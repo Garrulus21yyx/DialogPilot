@@ -36,8 +36,11 @@ optimistic Redis transaction prevents compression from dropping a concurrent
 message. Retrieved knowledge and memory are tagged as data while actual
 conversation history remains user/assistant messages.
 
-See [docs/architecture.md](docs/architecture.md) for component ownership and
-[docs/project-pitch.md](docs/project-pitch.md) for a concise technical walkthrough.
+See [docs/architecture.md](docs/architecture.md) for component ownership,
+[docs/project-pitch.md](docs/project-pitch.md) for a concise technical walkthrough,
+and [docs/full-architecture-tutorial.zh-CN.md](docs/full-architecture-tutorial.zh-CN.md)
+for the complete Chinese repository tutorial, change history, failure analysis,
+and project-specific interview follow-up guide.
 
 ## Technology
 

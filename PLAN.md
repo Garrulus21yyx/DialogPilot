@@ -52,6 +52,14 @@ private Python portfolio repository under the DialogPilot name.
 - [done] Update architecture, README, project pitch, and this plan so implemented behavior and claims agree.
 - [done] Confirm the final private-repository commit and GitHub Actions run are green.
 
+## Complete architecture tutorial page
+
+- [done] Locate the owner's local/private Agent Systems Atlas and extract only its project-question structure; leave that repository unchanged.
+- [done] Trace every authoritative owner and the `/chat`, memory, retrieval, routing, synthesis, verification, ticket, monitoring, and evaluation paths from code.
+- [done] Write one self-contained Chinese tutorial page with diagrams, data contracts, failure paths, configuration, tests, and the implemented change history.
+- [done] Add interviewer follow-up questions with evidence-bounded model answers and explicit current limitations.
+- [in_progress] Run a fresh-reader comprehension review, repair gaps, link the page from README, test, push, and obtain green CI.
+
 ## Constraints
 
 - Python implementation is authoritative; Java and the dual-backend frontend are out of scope.
@@ -77,3 +85,6 @@ private Python portfolio repository under the DialogPilot name.
 - `services/result_synthesizer.py` — typed multi-agent outcome fusion.
 - `tests/test_agent_orchestration.py` — timeout, partial-success, and fusion invariants.
 - `tests/test_quality_routing.py` — verification feedback and routing-quality invariants.
+- `docs/full-architecture-tutorial.zh-CN.md` — complete repository tutorial and interview follow-up guide.
+- `tests/test_lifespan.py` — lifecycle wiring and memory-configuration ownership regression test.
+- `tests/test_knowledge_context.py` — real evidence versus RAG fallback boundary tests.
