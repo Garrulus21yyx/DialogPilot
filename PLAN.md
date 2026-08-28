@@ -64,12 +64,12 @@ private Python portfolio repository under the DialogPilot name.
 
 Goal: make the Python repository readable to a Chinese-speaking maintainer without changing runtime behavior.
 
-- [in_progress] Inventory source, test, runtime configuration, deployment, and Page assets; define comment coverage and exclusions.
-- [pending] Add module/class/function docstrings and high-value inline comments to the Python runtime, preserving names, contracts, and control flow.
-- [pending] Add concise Chinese intent/invariant comments to tests so each acceptance gate explains what it proves.
-- [pending] Annotate Docker, Compose, Nginx, Prometheus, CI, shell scripts, and Page assets where the format supports comments.
-- [pending] Run syntax, test, configuration, source-diff, and documentation checks; update this plan with exact produced files.
-- [pending] Commit and push each coherent batch, then confirm CI and GitHub Pages remain green.
+- [done] Inventory source, test, runtime configuration, deployment, and Page assets; define comment coverage and exclusions.
+- [done] Add module/class/function docstrings and high-value inline comments to the Python runtime, preserving names, contracts, and control flow.
+- [done] Add concise Chinese intent/invariant comments to tests so each acceptance gate explains what it proves.
+- [done] Audit Docker, Compose, Nginx, Prometheus and shell scripts that already contain Chinese operational comments; annotate CI and Page assets where coverage was missing.
+- [done] Run Python/JavaScript/Shell syntax checks, all 42 tests, whitespace checks, and a repository-wide Python docstring coverage audit.
+- [in_progress] Confirm the final CI and GitHub Pages runs remain green after the progress record is pushed.
 
 Comment contract:
 
@@ -77,6 +77,13 @@ Comment contract:
 - Public behavior, identifiers, prompts, schemas, thresholds, and execution order remain unchanged.
 - Obvious statements such as assignments and imports are not translated line by line.
 - Generated/lock/runtime data, third-party code, and prose documents that are already Chinese are excluded.
+
+Produced/updated commentary surfaces:
+
+- Runtime: `api/`, `agents/`, `core/`, `memory/`, `mcp/`, `services/`, `monitor/`, `evaluation/`.
+- Acceptance gates: all nine `tests/test_*.py` modules and all 42 test functions.
+- Delivery/Page: `.github/workflows/ci.yml`, `requirements-dev.txt`, `docs/_config.yml`, `docs/_includes/head.html`, `docs/index.md`, `docs/assets/dialogpilot.js`, and `docs/assets/main.scss`.
+- Audited existing Chinese operational commentary: `Dockerfile`, `docker-compose.yml`, the three root shell scripts, `config/nginx/nginx.conf`, and `config/prometheus.yml`.
 
 ## Constraints
 
