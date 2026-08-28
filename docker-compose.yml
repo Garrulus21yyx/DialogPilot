@@ -84,9 +84,11 @@ services:
       - CHROMA_PERSIST_DIRECTORY=/app/data/chroma
       - EVAL_BASELINE_PATH=/app/data/eval/baseline.json
       - DIALOGPILOT_SKILLS_DIR=/app/skills
+      - TICKET_DB_PATH=/app/data/tickets/tickets.db
     volumes:
       - ./data/chroma:/app/data/chroma
       - ./data/eval:/app/data/eval
+      - ./data/tickets:/app/data/tickets
       - ./skills:/app/skills
       - ./logs:/app/logs
     depends_on:

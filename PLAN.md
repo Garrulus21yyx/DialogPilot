@@ -13,6 +13,16 @@ private Python portfolio repository under the DialogPilot name.
 - [done] Run tests, static compilation, secret/source searches, Docker configuration validation, and a clean Python 3.12 production-image build.
 - [done] Create the private `Garrulus21yyx/DialogPilot` GitHub repository, push the result, and obtain a green clean-environment CI run.
 
+## Persistent handoff milestone
+
+- [done] Define the ticket owner, typed states, legal transitions, idempotency, and persistence contract.
+- [done] Implement the SQLite-backed TicketService and event history.
+- [done] Connect `/chat` escalation outcomes to idempotent ticket creation.
+- [done] Add ticket create/list/detail/status-transition API contracts.
+- [done] Add state-machine, persistence, filtering, API, and chat-handoff tests.
+- [done] Update runtime configuration, Docker persistence, backup handling, architecture docs, and project pitch.
+- [in_progress] Run local/Docker verification, push to the private repository, and obtain green CI.
+
 ## Constraints
 
 - Python implementation is authoritative; Java and the dual-backend frontend are out of scope.
@@ -29,3 +39,7 @@ private Python portfolio repository under the DialogPilot name.
 - `docs/architecture.md` — authoritative component and temporal contracts.
 - `docs/project-pitch.md` — concise, evidence-bounded project walkthrough.
 - `data/eval/.gitkeep` — baseline directory without inherited quality claims.
+- `services/ticket_service.py` — SQLite ticket owner, idempotency, and state machine.
+- `tests/test_ticket_service.py` — persistence and lifecycle property witnesses.
+- `tests/test_ticket_api.py` — HTTP contract and typed failure mapping.
+- `tests/test_chat_handoff.py` — automatic chat escalation and retry idempotency.

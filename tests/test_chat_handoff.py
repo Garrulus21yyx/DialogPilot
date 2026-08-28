@@ -1,0 +1,98 @@
+import asyncio
+from types import SimpleNamespace
+
+from agents.agent_orchestrator import AgentType, OrchestratorResult
+from api import main
+from core.intent_recognizer import IntentCategory, UrgencyLevel
+from services.answer_verifier import VerificationResult, VerificationStatus
+from services.ticket_service import TicketPriority, TicketService
+
+
+class FakeMemoryContext:
+    recent_messages = []
+
+    @staticmethod
+    def to_prompt_text():
+        return ""
+
+
+class FakeMemory:
+    def __init__(self):
+        self.messages = []
+
+    async def get_context(self, *_args, **_kwargs):
+        return FakeMemoryContext()
+
+    async def add_message(self, _user_id, _conv_id, role, content):
+        self.messages.append((role.value, content))
+
+    async def update_profile(self, *_args, **_kwargs):
+        return None
+
+
+class FakeOrchestrator:
+    async def recognize_intent(self, _message, history=None):
+        return SimpleNamespace(
+            intent=IntentCategory.HUMAN_HANDOFF,
+            intent_group="escalation",
+            urgency=UrgencyLevel.CRITICAL,
+            confidence=0.99,
+            entities={},
+            source_scores={"pattern": 0.99},
+        )
+
+    async def run(self, request):
+        return OrchestratorResult(
+            request_id=request.request_id,
+            response="我会为你转接人工客服。",
+            agent_type=AgentType.ESCALATION,
+            intent=IntentCategory.HUMAN_HANDOFF,
+            escalated=True,
+            latency_ms=1.0,
+            agent_types=[AgentType.ESCALATION],
+            primary_agent=AgentType.ESCALATION,
+            routing_reason="user requested human handoff",
+            routing_confidence=0.99,
+        )
+
+
+class FakeVerifier:
+    async def verify(self, *_args, **_kwargs):
+        return VerificationResult(
+            status=VerificationStatus.PASS,
+            grounded=True,
+            need_escalation=False,
+            reason="safe handoff response",
+        )
+
+
+def test_chat_escalation_creates_one_persistent_idempotent_ticket(tmp_path, monkeypatch):
+    memory = FakeMemory()
+    ticket_service = TicketService(str(tmp_path / "tickets.db"))
+    monkeypatch.setattr(main, "_orchestrator", FakeOrchestrator())
+    monkeypatch.setattr(main, "_memory", memory)
+    monkeypatch.setattr(main, "_answer_verifier", FakeVerifier())
+    monkeypatch.setattr(main, "_ticket_service", ticket_service)
+    monkeypatch.setattr(main, "_tool_manager", None)
+
+    request = main.ChatRequest(
+        message="我要转人工",
+        user_id="user-1",
+        conv_id="conversation-1",
+        request_id="stable-request-1",
+    )
+    first = asyncio.run(main.chat(request))
+    retry = asyncio.run(main.chat(request))
+
+    assert first.escalated is True
+    assert first.handoff_created is True
+    assert retry.handoff_created is False
+    assert retry.ticket_id == first.ticket_id
+    assert ticket_service.get_ticket(first.ticket_id).priority is TicketPriority.CRITICAL
+    assert len(ticket_service.list_tickets()) == 1
+
+
+def test_handoff_priority_preserves_typed_critical_urgency():
+    assert main._handoff_priority(UrgencyLevel.CRITICAL, "pass") is TicketPriority.CRITICAL
+    assert main._handoff_priority(UrgencyLevel.HIGH, "reject") is TicketPriority.HIGH
+    assert main._handoff_priority(UrgencyLevel.HIGH, "pass") is TicketPriority.NORMAL

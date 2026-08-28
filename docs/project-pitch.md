@@ -8,8 +8,9 @@ similarity, and rules, retrieves business knowledge through a reliable tool
 layer, and routes requests to general, technical, or billing agents. Complex
 requests can execute agents concurrently. Before returning a response, a typed
 verifier allows only explicitly passed answers to be published; failures are
-escalated deterministically. Prometheus monitoring and LLM-as-Judge evaluation
-close the online and offline feedback loops.
+escalated deterministically into an idempotent SQLite-backed human ticket with
+a typed lifecycle and audit history. Prometheus monitoring and LLM-as-Judge
+evaluation close the online and offline feedback loops.
 
 ## Engineering decisions
 
@@ -37,6 +38,15 @@ parallel for mixed requests such as login failure plus duplicate billing.
 The verifier owns whether a candidate answer is publishable. Treating parser or
 model failures as success would silently bypass that boundary. A closed outcome
 algebra makes unsupported states explicit and routes them to a safe handoff.
+
+### Why does the ticket service own its state machine?
+
+The API and Agent orchestrator can request a handoff, but only TicketService
+owns identity, idempotency, persistence, legal transitions, and event history.
+That prevents controllers from inventing states and ensures retries do not
+create duplicate tickets. SQLite keeps the portfolio deployment simple while
+the contract is narrow enough to migrate to PostgreSQL when horizontal writes
+are required.
 
 ## Honest measurement language
 

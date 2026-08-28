@@ -202,6 +202,11 @@ backup_data() {
     # 备份 ChromaDB 数据
     docker cp dialogpilot-chromadb:/chroma/chroma "$backup_dir/"
 
+    # 备份 SQLite 人工工单数据
+    if [ -d "data/tickets" ]; then
+        cp -a data/tickets "$backup_dir/"
+    fi
+
     # 备份配置
     cp .env "$backup_dir/"
     cp -r config "$backup_dir/"
@@ -236,6 +241,12 @@ restore_data() {
 
         # 恢复 ChromaDB 数据
         docker cp "$backup_dir/chroma" dialogpilot-chromadb:/chroma/
+
+        # 恢复 SQLite 人工工单数据
+        if [ -d "$backup_dir/tickets" ]; then
+            mkdir -p data
+            cp -a "$backup_dir/tickets" data/
+        fi
 
         # 恢复配置
         cp "$backup_dir/.env" .env

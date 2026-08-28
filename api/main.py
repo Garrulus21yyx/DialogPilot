@@ -19,10 +19,19 @@ if _ROOT not in sys.path:
 
 import uvicorn
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Response, UploadFile, File
+from fastapi import FastAPI, HTTPException, Response, UploadFile, File, Query
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, Field
+
+from services.ticket_service import (
+    IdempotencyConflictError,
+    InvalidTransitionError,
+    TicketNotFoundError,
+    TicketPriority,
+    TicketService,
+    TicketStatus,
+)
 
 load_dotenv()
 
@@ -47,6 +56,7 @@ _monitor      = None
 _evaluator    = None
 _skill_manager = None
 _answer_verifier = None
+_ticket_service = None
 
 def _anthropic_cfg() -> Dict[str, Any]:
     key = os.getenv("ANTHROPIC_API_KEY", "")
@@ -64,7 +74,7 @@ def _anthropic_cfg() -> Dict[str, Any]:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global _orchestrator, _memory, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier
+    global _orchestrator, _memory, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service
 
     print(BANNER, flush=True)
 
@@ -107,6 +117,12 @@ async def lifespan(app: FastAPI):
         api_key=cfg["api_key"],
         base_url=cfg.get("base_url"),
         model=cfg["model"],
+    )
+    _ticket_service = TicketService(
+        os.getenv(
+            "TICKET_DB_PATH",
+            str(pathlib.Path(_ROOT) / "data" / "tickets" / "tickets.db"),
+        )
     )
 
     # 记忆管理器（Redis 工作记忆 + ChromaDB 情景记忆/用户画像）
@@ -211,9 +227,11 @@ class ChatRequest(BaseModel):
     message:     str
     user_id:     str = "anonymous"
     conv_id:     Optional[str] = None
+    request_id:  Optional[str] = Field(default=None, max_length=128)
 
 
 class ChatResponse(BaseModel):
+    request_id:  str
     conv_id:     str
     response:    str
     intent:      str
@@ -234,6 +252,30 @@ class ChatResponse(BaseModel):
     verified: bool
     grounded: bool
     verification_reason: str = ""
+    ticket_id: Optional[str] = None
+    ticket_status: Optional[str] = None
+    handoff_created: bool = False
+
+
+class TicketCreateRequest(BaseModel):
+    idempotency_key: str = Field(min_length=1, max_length=200)
+    user_id: str = Field(min_length=1, max_length=200)
+    conv_id: str = Field(min_length=1, max_length=200)
+    request_id: str = Field(min_length=1, max_length=200)
+    question: str = Field(min_length=1, max_length=10000)
+    published_response: str = Field(default="", max_length=20000)
+    reason: str = Field(min_length=1, max_length=5000)
+    priority: TicketPriority = TicketPriority.NORMAL
+    agent_type: str = "general"
+    intent: str = "other"
+    verification_status: str = "unknown"
+
+
+class TicketStatusUpdate(BaseModel):
+    status: TicketStatus
+    actor: str = Field(min_length=1, max_length=200)
+    note: str = Field(default="", max_length=1000)
+    assignee: Optional[str] = Field(default=None, max_length=200)
 
 
 # ── 路由 ──────────────────────────────────────────────────────────────────────
@@ -269,13 +311,19 @@ async def chat(req: ChatRequest):
     主对话接口。完整流程：
       记忆读取 → 意图识别 → Agent 路由 → 执行 → 记忆写入
     """
-    if _orchestrator is None or _memory is None or _answer_verifier is None:
+    if (
+        _orchestrator is None
+        or _memory is None
+        or _answer_verifier is None
+        or _ticket_service is None
+    ):
         raise HTTPException(503, "服务未就绪")
 
     from agents.agent_orchestrator import Request as OrcReq
     from memory.conversation_memory import MsgRole
 
     conv_id = req.conv_id or str(uuid.uuid4())
+    request_id = req.request_id or str(uuid.uuid4())
 
     # 1. 读取记忆上下文
     mem_ctx = await _memory.get_context(req.user_id, conv_id, query=req.message)
@@ -304,6 +352,7 @@ async def chat(req: ChatRequest):
         intent_group=intent_result.intent_group,
         urgency=intent_result.urgency,
         intent_confidence=intent_result.confidence,
+        request_id=request_id,
     )
 
     # 3. 执行
@@ -316,14 +365,44 @@ async def chat(req: ChatRequest):
     )
     escalated = result.escalated or verification.need_escalation
 
-    # 5. 写入记忆
+    # 5. 升级结果必须落为持久化工单，不能只返回一个布尔标志。
+    ticket = None
+    handoff_created = False
+    if escalated:
+        try:
+            ticket, handoff_created = await asyncio.to_thread(
+                _ticket_service.create_ticket,
+                idempotency_key=f"chat:{request_id}:handoff",
+                user_id=req.user_id,
+                conv_id=conv_id,
+                request_id=request_id,
+                question=req.message,
+                published_response=response_text,
+                reason=(
+                    f"verification={verification.status.value}: {verification.reason}; "
+                    f"routing={result.routing_reason}"
+                )[:5000],
+                priority=_handoff_priority(intent_result.urgency, verification.status.value),
+                agent_type=result.agent_type.value,
+                intent=result.intent.value if result.intent else "other",
+                verification_status=verification.status.value,
+            )
+        except Exception:
+            logger.exception("人工工单创建失败 request_id=%s", request_id)
+            response_text = (
+                "当前回答需要人工确认，但工单创建失败。请稍后使用相同 request_id 重试，"
+                "或直接联系人工客服。"
+            )
+
+    # 6. 写入记忆：只保存实际发布给用户的文本。
     await _memory.add_message(req.user_id, conv_id, MsgRole.USER, req.message)
     await _memory.add_message(req.user_id, conv_id, MsgRole.ASSISTANT, response_text)
 
-    # 6. 异步更新用户画像（不阻塞响应）
+    # 7. 异步更新用户画像（不阻塞响应）
     asyncio.create_task(_memory.update_profile(req.user_id, conv_id))
 
     return ChatResponse(
+        request_id=request_id,
         conv_id=conv_id,
         response=response_text,
         intent=result.intent.value if result.intent else "other",
@@ -344,7 +423,94 @@ async def chat(req: ChatRequest):
         verified=verification.publishable,
         grounded=verification.grounded,
         verification_reason=verification.reason,
+        ticket_id=ticket.ticket_id if ticket else None,
+        ticket_status=ticket.status.value if ticket else None,
+        handoff_created=handoff_created,
     )
+
+
+def _handoff_priority(urgency: Any, verification_status: str) -> TicketPriority:
+    urgency_value = getattr(urgency, "value", urgency)
+    urgency_name = str(getattr(urgency, "name", "")).lower()
+    if urgency_name == "critical" or urgency_value in {"critical", 4}:
+        return TicketPriority.CRITICAL
+    if verification_status in {"reject", "unknown"}:
+        return TicketPriority.HIGH
+    return TicketPriority.NORMAL
+
+
+@app.post("/tickets", tags=["人工工单"])
+async def create_ticket(body: TicketCreateRequest):
+    """Manually create an idempotent handoff ticket."""
+    if _ticket_service is None:
+        raise HTTPException(503, "工单服务未就绪")
+    try:
+        ticket, created = await asyncio.to_thread(
+            _ticket_service.create_ticket,
+            **body.model_dump(),
+        )
+        return {"created": created, "ticket": ticket.to_dict()}
+    except IdempotencyConflictError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+
+@app.get("/tickets", tags=["人工工单"])
+async def list_tickets(
+    user_id: Optional[str] = None,
+    status: Optional[TicketStatus] = None,
+    limit: int = Query(default=50, ge=1, le=200),
+):
+    """List tickets with optional user and status filters."""
+    if _ticket_service is None:
+        raise HTTPException(503, "工单服务未就绪")
+    tickets = await asyncio.to_thread(
+        _ticket_service.list_tickets,
+        user_id=user_id,
+        status=status,
+        limit=limit,
+    )
+    return {"tickets": [ticket.to_dict() for ticket in tickets], "count": len(tickets)}
+
+
+@app.get("/tickets/{ticket_id}", tags=["人工工单"])
+async def get_ticket(ticket_id: str):
+    """Return a ticket together with its immutable transition history."""
+    if _ticket_service is None:
+        raise HTTPException(503, "工单服务未就绪")
+    try:
+        return await asyncio.to_thread(_ticket_service.get_ticket_view, ticket_id)
+    except TicketNotFoundError as exc:
+        raise HTTPException(404, str(exc)) from exc
+
+
+@app.patch("/tickets/{ticket_id}/status", tags=["人工工单"])
+async def update_ticket_status(ticket_id: str, body: TicketStatusUpdate):
+    """Apply one legal state transition and append an audit event."""
+    if _ticket_service is None:
+        raise HTTPException(503, "工单服务未就绪")
+    try:
+        ticket = await asyncio.to_thread(
+            _ticket_service.transition,
+            ticket_id,
+            body.status,
+            actor=body.actor,
+            note=body.note,
+            assignee=body.assignee,
+        )
+        return ticket.to_dict()
+    except TicketNotFoundError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except InvalidTransitionError as exc:
+        raise HTTPException(
+            409,
+            {
+                "error": "invalid_ticket_transition",
+                "current": exc.current.value,
+                "target": exc.target.value,
+            },
+        ) from exc
 
 
 async def _build_knowledge_context(message: str, intent=None, top_k: int = 3) -> tuple[str, bool]:

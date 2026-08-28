@@ -22,6 +22,7 @@ POST /chat
   -> run primary/supporting agents concurrently when needed
   -> verify the candidate answer (PASS / REJECT / UNKNOWN)
   -> publish only PASS answers; escalate every other outcome
+  -> persist each escalation as one idempotent human-support ticket
   -> persist messages and update the profile in the background
 ```
 
@@ -86,17 +87,39 @@ Redis and ChromaDB still need to be reachable using the values in `.env`.
 | `POST` | `/skills/reload` | Reload skills without a process restart |
 | `GET` | `/monitor` | Agent/tool metrics, alerts, and suggestions |
 | `POST` | `/eval/run` | Intent and end-to-end quality evaluation |
+| `POST` | `/tickets` | Manually create an idempotent handoff ticket |
+| `GET` | `/tickets` | List tickets by user and/or status |
+| `GET` | `/tickets/{ticket_id}` | Read a ticket and its transition history |
+| `PATCH` | `/tickets/{ticket_id}/status` | Apply a legal ticket status transition |
 
 Example chat request:
 
 ```bash
 curl -X POST http://localhost:8000/chat \
   -H 'Content-Type: application/json' \
-  -d '{"user_id":"demo-user","message":"订单 #A123 登录失败后又被扣款了"}'
+  -d '{"request_id":"client-request-001","user_id":"demo-user","message":"订单 #A123 登录失败后又被扣款了"}'
 ```
 
 The response includes the selected intent and agents, routing reason,
 knowledge usage, typed verification status, groundedness, and escalation flag.
+When escalation is required it also returns `ticket_id`, `ticket_status`, and
+whether that request created the ticket or reused an idempotent existing one.
+
+## Human-ticket lifecycle
+
+SQLite is the authoritative ticket store. The supported lifecycle is:
+
+```text
+OPEN -> IN_PROGRESS -> WAITING_CUSTOMER -> IN_PROGRESS
+                    \-> RESOLVED -> IN_PROGRESS
+OPEN / IN_PROGRESS / WAITING_CUSTOMER / RESOLVED -> CLOSED
+CLOSED -> terminal
+```
+
+Every successful transition appends an immutable event with actor, note, and
+timestamp. Repeating the same status is an idempotent no-op; unsupported
+transitions return HTTP `409`. A stable chat `request_id` guarantees that
+network retries reuse the first handoff ticket.
 
 ## Verification contract
 
@@ -116,8 +139,10 @@ and generated caches are intentionally excluded. Never commit `.env`.
 
 ## Current limitations
 
-- The escalation outcome is exposed, but a persistent human-ticket workflow is
-  not implemented yet.
+- Ticket endpoints currently have no authentication or role-based authorization;
+  add an identity boundary before exposing them outside a trusted environment.
+- SQLite is suitable for a single application writer; a multi-replica deployment
+  should migrate the same TicketService contract to PostgreSQL.
 - LLM verification adds latency and model cost to each published response.
 - Built-in evaluation cases are suitable for regression checks, not production
   accuracy claims.
