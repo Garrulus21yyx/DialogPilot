@@ -98,9 +98,6 @@ async def lifespan(app: FastAPI):
         api_key=cfg["api_key"],
         base_url=cfg.get("base_url"),
         model=cfg["model"],
-        memory_token_budget=int(os.getenv("MEMORY_TOKEN_BUDGET", "6000")),
-        compression_threshold=float(os.getenv("MEMORY_COMPRESSION_THRESHOLD", "0.70")),
-        summary_max_tokens=int(os.getenv("MEMORY_SUMMARY_MAX_TOKENS", "1200")),
     )
 
     # Skills：启动时从目录加载业务能力说明，并在 Agent 调用 LLM 时动态注入。
@@ -144,6 +141,9 @@ async def lifespan(app: FastAPI):
         api_key=cfg["api_key"],
         base_url=cfg.get("base_url"),
         model=cfg["model"],
+        memory_token_budget=int(os.getenv("MEMORY_TOKEN_BUDGET", "6000")),
+        compression_threshold=float(os.getenv("MEMORY_COMPRESSION_THRESHOLD", "0.70")),
+        summary_max_tokens=int(os.getenv("MEMORY_SUMMARY_MAX_TOKENS", "1200")),
     )
 
     # MCP 工具管理器 + RAG 知识库（基于 ChromaDB 的真实检索）
