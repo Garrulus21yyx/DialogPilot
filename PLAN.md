@@ -60,6 +60,24 @@ private Python portfolio repository under the DialogPilot name.
 - [done] Add interviewer follow-up questions with evidence-bounded model answers and explicit current limitations.
 - [done] Run a fresh-reader comprehension review, repair gaps, link the page from README, test, push, and obtain green CI.
 
+## Repository-wide Chinese commentary
+
+Goal: make the Python repository readable to a Chinese-speaking maintainer without changing runtime behavior.
+
+- [in_progress] Inventory source, test, runtime configuration, deployment, and Page assets; define comment coverage and exclusions.
+- [pending] Add module/class/function docstrings and high-value inline comments to the Python runtime, preserving names, contracts, and control flow.
+- [pending] Add concise Chinese intent/invariant comments to tests so each acceptance gate explains what it proves.
+- [pending] Annotate Docker, Compose, Nginx, Prometheus, CI, shell scripts, and Page assets where the format supports comments.
+- [pending] Run syntax, test, configuration, source-diff, and documentation checks; update this plan with exact produced files.
+- [pending] Commit and push each coherent batch, then confirm CI and GitHub Pages remain green.
+
+Comment contract:
+
+- Comments explain ownership, data flow, state transitions, concurrency, failure semantics, security boundaries, and design tradeoffs.
+- Public behavior, identifiers, prompts, schemas, thresholds, and execution order remain unchanged.
+- Obvious statements such as assignments and imports are not translated line by line.
+- Generated/lock/runtime data, third-party code, and prose documents that are already Chinese are excluded.
+
 ## Constraints
 
 - Python implementation is authoritative; Java and the dual-backend frontend are out of scope.
