@@ -1,0 +1,263 @@
+import json
+import asyncio
+from datetime import datetime
+from types import SimpleNamespace
+
+import pytest
+
+from memory.context import ContextAssembler, ContextSection, TokenEstimator
+from memory.conversation_memory import MemoryManager, Message, MsgRole
+
+
+def raw_message(role: str, content: str) -> str:
+    return json.dumps({
+        "role": role,
+        "content": content,
+        "ts": datetime.now().isoformat(),
+        "metadata": {},
+    })
+
+
+def bare_manager(*, budget=512, threshold=0.7, summary_tokens=128):
+    manager = MemoryManager.__new__(MemoryManager)
+    manager._memory_token_budget = budget
+    manager._compression_threshold = threshold
+    manager._summary_max_tokens = summary_tokens
+    manager._token_estimator = TokenEstimator()
+    manager._compression_stats = {
+        "attempted": 0,
+        "completed": 0,
+        "conflicts": 0,
+        "failures": 0,
+        "tokens_before": 0,
+        "tokens_after": 0,
+    }
+    return manager
+
+
+@pytest.mark.parametrize(
+    "short,long",
+    [
+        ("你好", "你好" * 200),
+        ("hello", "hello " * 200),
+        ("订单 A1", "订单 A1 登录失败且重复扣款。" * 100),
+    ],
+)
+def test_token_estimator_is_monotonic_for_repeated_content(short, long):
+    estimator = TokenEstimator()
+    assert estimator.estimate(long) > estimator.estimate(short) > 0
+
+
+def test_context_assembler_preserves_real_turns_and_bounds_prompt():
+    assembler = ContextAssembler(
+        max_input_tokens=700,
+        reserved_output_tokens=100,
+        fixed_system_reserve=100,
+    )
+    history = [
+        {"role": "user", "content": f"old question {i} " * 10}
+        if i % 2 == 0
+        else {"role": "assistant", "content": f"old answer {i} " * 10}
+        for i in range(20)
+    ]
+    prompt = assembler.assemble(
+        sections=[
+            ContextSection("summary", "important summary " * 30, priority=100),
+            ContextSection("knowledge", "retrieved data " * 100, priority=50),
+        ],
+        history=history,
+        current_user_message="current question",
+    )
+    messages = prompt.to_messages("current question")
+
+    assert prompt.estimated_tokens <= assembler.max_input_tokens
+    assert messages[-1] == {"role": "user", "content": "current question"}
+    assert all(message["content"] != "好的，我已了解背景信息。" for message in messages)
+    assert prompt.dropped_history > 0
+    assert "<summary" in prompt.system_context
+
+
+def test_compression_trigger_uses_tokens_not_message_count():
+    manager = bare_manager(budget=512, threshold=0.7)
+    manager._redis = FakeRedis([raw_message("user", "超长问题" * 300)])
+
+    assert asyncio.run(manager._needs_compression("u", "c")) is True
+
+    manager._redis = FakeRedis([raw_message("user", "短") for _ in range(20)])
+    assert asyncio.run(manager._needs_compression("u", "c")) is False
+
+
+def test_structured_rolling_summary_stays_valid_and_bounded():
+    manager = bare_manager(summary_tokens=128)
+    payload = {
+        "user_goal": "处理登录和扣款" * 100,
+        "confirmed_facts": [f"fact-{i}-" * 30 for i in range(20)],
+        "pending_questions": [f"question-{i}" for i in range(20)],
+        "entities": {f"key-{i}": "value" * 20 for i in range(20)},
+        "decisions": [f"decision-{i}" for i in range(20)],
+        "user_preferences": [f"preference-{i}" for i in range(20)],
+    }
+
+    summary = manager._bounded_summary(payload)
+    parsed = json.loads(summary)
+
+    assert set(parsed) == {
+        "user_goal",
+        "confirmed_facts",
+        "pending_questions",
+        "entities",
+        "decisions",
+        "user_preferences",
+    }
+    assert manager._token_estimator.estimate(summary) <= manager._summary_max_tokens
+
+
+def test_concurrent_write_prevents_stale_compression_commit():
+    manager = bare_manager(budget=512, threshold=0.5)
+    original = [
+        raw_message("assistant" if i % 2 else "user", "历史内容" * 80)
+        for i in range(8)
+    ]
+    redis = FakeRedis(original)
+    manager._redis = redis
+    manager._client = MutatingClient(redis)
+    manager._model = "test-model"
+
+    async def no_store(*_args, **_kwargs):
+        raise AssertionError("stale compression must not write episodic memory")
+
+    manager._store_episodic = no_store
+    asyncio.run(manager._compress("user", "conversation"))
+
+    assert redis.values[0] == MutatingClient.concurrent_message
+    assert len(redis.values) == len(original) + 1
+    assert redis.summary == ""
+    assert manager.compression_stats()["conflicts"] == 1
+
+
+def test_successful_compression_replaces_summary_and_preserves_recent_messages():
+    manager = bare_manager(budget=512, threshold=0.5, summary_tokens=128)
+    original = [
+        raw_message("assistant" if i % 2 else "user", f"历史-{i}-" * 80)
+        for i in range(8)
+    ]
+    redis = FakeRedis(original)
+    manager._redis = redis
+    manager._client = StableClient()
+    manager._model = "test-model"
+    stored = []
+
+    async def record_store(*args, **_kwargs):
+        stored.append(args)
+
+    manager._store_episodic = record_store
+    asyncio.run(manager._compress("user", "conversation"))
+
+    assert 2 <= len(redis.values) <= manager.RECENT_KEEP
+    assert redis.values == original[: len(redis.values)]
+    assert json.loads(redis.summary)["user_goal"] == "解决问题"
+    assert manager._token_estimator.estimate(redis.summary) <= manager._summary_max_tokens
+    assert len(stored) == 1
+    assert manager.compression_stats()["completed"] == 1
+
+
+class FakePipeline:
+    def __init__(self, redis):
+        self.redis = redis
+        self.commands = []
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *_args):
+        return None
+
+    async def watch(self, *_keys):
+        return None
+
+    async def lrange(self, _key, start, end):
+        return await self.redis.lrange(_key, start, end)
+
+    async def get(self, _key):
+        return self.redis.summary
+
+    async def unwatch(self):
+        return None
+
+    def multi(self):
+        return None
+
+    def delete(self, key):
+        self.commands.append(("delete", key))
+
+    def rpush(self, key, *values):
+        self.commands.append(("rpush", key, values))
+
+    def expire(self, key, ttl):
+        self.commands.append(("expire", key, ttl))
+
+    def setex(self, key, ttl, value):
+        self.commands.append(("setex", key, ttl, value))
+
+    async def execute(self):
+        for command in self.commands:
+            if command[0] == "delete":
+                self.redis.values = []
+            elif command[0] == "rpush":
+                self.redis.values.extend(command[2])
+            elif command[0] == "setex":
+                self.redis.summary = command[3]
+
+
+class FakeRedis:
+    def __init__(self, values):
+        self.values = list(values)
+        self.summary = ""
+
+    async def lrange(self, _key, start, end):
+        if end == -1:
+            return list(self.values[start:])
+        return list(self.values[start : end + 1])
+
+    async def get(self, _key):
+        return self.summary
+
+    def pipeline(self, transaction=True):
+        assert transaction is True
+        return FakePipeline(self)
+
+
+class MutatingClient:
+    concurrent_message = raw_message("user", "压缩期间到达的新消息")
+
+    def __init__(self, redis):
+        self.redis = redis
+        self.messages = self
+
+    async def create(self, **_kwargs):
+        self.redis.values.insert(0, self.concurrent_message)
+        payload = {
+            "user_goal": "解决问题",
+            "confirmed_facts": ["已有事实"],
+            "pending_questions": [],
+            "entities": {},
+            "decisions": [],
+            "user_preferences": [],
+        }
+        return SimpleNamespace(content=[SimpleNamespace(type="text", text=json.dumps(payload))])
+
+
+class StableClient:
+    def __init__(self):
+        self.messages = self
+
+    async def create(self, **_kwargs):
+        payload = {
+            "user_goal": "解决问题",
+            "confirmed_facts": ["已有事实"],
+            "pending_questions": [],
+            "entities": {},
+            "decisions": [],
+            "user_preferences": [],
+        }
+        return SimpleNamespace(content=[SimpleNamespace(type="text", text=json.dumps(payload))])

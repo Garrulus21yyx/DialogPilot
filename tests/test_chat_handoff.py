@@ -6,6 +6,7 @@ from api import main
 from core.intent_recognizer import IntentCategory, UrgencyLevel
 from services.answer_verifier import VerificationResult, VerificationStatus
 from services.ticket_service import TicketPriority, TicketService
+from memory.context import ContextAssembler
 
 
 class FakeMemoryContext:
@@ -14,6 +15,10 @@ class FakeMemoryContext:
     @staticmethod
     def to_prompt_text():
         return ""
+
+    @staticmethod
+    def to_sections():
+        return []
 
 
 class FakeMemory:
@@ -73,6 +78,11 @@ def test_chat_escalation_creates_one_persistent_idempotent_ticket(tmp_path, monk
     monkeypatch.setattr(main, "_memory", memory)
     monkeypatch.setattr(main, "_answer_verifier", FakeVerifier())
     monkeypatch.setattr(main, "_ticket_service", ticket_service)
+    monkeypatch.setattr(
+        main,
+        "_context_assembler",
+        ContextAssembler(max_input_tokens=2048, reserved_output_tokens=256),
+    )
     monkeypatch.setattr(main, "_tool_manager", None)
 
     request = main.ChatRequest(

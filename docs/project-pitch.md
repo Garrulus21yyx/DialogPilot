@@ -5,7 +5,8 @@
 DialogPilot is a Python/FastAPI multi-agent customer-support backend. It reads
 Redis and ChromaDB memory, classifies intent using an LLM, local semantic
 similarity, and rules, retrieves business knowledge through a reliable tool
-layer, and routes requests to general, technical, or billing agents. Complex
+layer, and uses a token-budgeted context assembler with bounded structured
+rolling summaries. It routes requests to general, technical, or billing agents. Complex
 requests can execute agents concurrently. Before returning a response, a typed
 verifier allows only explicitly passed answers to be published; failures are
 escalated deterministically into an idempotent SQLite-backed human ticket with
@@ -32,6 +33,15 @@ latency, and reranking cost.
 General, technical, and billing prompts encode different response policies.
 The orchestrator owns selection and can run primary/supporting agents in
 parallel for mixed requests such as login failure plus duplicate billing.
+
+### Why compress by tokens instead of message count?
+
+Message count does not predict model input size. DialogPilot estimates prompt
+tokens, preserves the recent raw turn, and replaces old memory with a bounded
+structured summary. An optimistic Redis transaction prevents an LLM summary
+generated from a stale snapshot from overwriting messages that arrived during
+compression. Prompt assembly keeps retrieved data in tagged sections and real
+conversation turns in the message sequence.
 
 ### Why fail closed at verification?
 

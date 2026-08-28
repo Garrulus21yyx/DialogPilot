@@ -28,6 +28,7 @@ from anthropic import AsyncAnthropic
 
 from core.intent_recognizer import IntentCategory, IntentRecognizer, UrgencyLevel
 from core.llm_utils import extract_text_content
+from memory.context import ContextSection, PromptContext
 
 logger = logging.getLogger(__name__)
 
@@ -81,6 +82,7 @@ class Request:
     conv_id:     str
     context:     str = ""        # 来自 MemoryManager 的格式化上下文
     history:     Optional[List[Dict[str, str]]] = None  # 对话历史，传给意图识别
+    prompt_context: Optional[PromptContext] = None
     entities:    Dict[str, List[str]] = field(default_factory=dict)
     intent:      Optional[IntentCategory] = None
     intent_group: Optional[str] = None
@@ -166,20 +168,29 @@ class BaseAgent:
         def _clean(s: str) -> str:
             return s.encode("utf-8", errors="ignore").decode("utf-8")
 
-        messages = []
-        if req.context:
-            messages.append({"role": "user", "content": f"[背景信息]\n{_clean(req.context)}"})
-            messages.append({"role": "assistant", "content": "好的，我已了解背景信息。"})
+        if req.prompt_context is not None:
+            messages = req.prompt_context.to_messages(_clean(req.message))
+        else:
+            messages = [
+                {"role": str(message["role"]), "content": _clean(str(message["content"]))}
+                for message in (req.history or [])
+                if message.get("role") in {"user", "assistant"}
+                and str(message.get("content") or "").strip()
+            ]
+            messages.append({"role": "user", "content": _clean(req.message)})
+
+        system = self._build_system_prompt(req)
+        if req.prompt_context is not None and req.prompt_context.system_context:
+            system = f"{system}\n\n{req.prompt_context.system_context}"
+        elif req.context:
+            system = f"{system}\n\n{ContextSection(tag='request_context', content=req.context).render()}"
         if req.entities:
-            entities_text = json.dumps(req.entities, ensure_ascii=False)
-            messages.append({"role": "user", "content": f"[结构化实体]\n{_clean(entities_text)}"})
-            messages.append({"role": "assistant", "content": "好的，我会结合这些结构化实体处理。"})
-        messages.append({"role": "user", "content": _clean(req.message)})
+            system = f"{system}\n\n{ContextSection(tag='request_entities', content=json.dumps(req.entities, ensure_ascii=False), priority=100).render()}"
 
         resp = await self._client.messages.create(
             model=self._model,
             max_tokens=1024,
-            system=self._build_system_prompt(req),
+            system=system,
             messages=messages,
         )
         return extract_text_content(resp.content)

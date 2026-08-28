@@ -85,6 +85,11 @@ services:
       - EVAL_BASELINE_PATH=/app/data/eval/baseline.json
       - DIALOGPILOT_SKILLS_DIR=/app/skills
       - TICKET_DB_PATH=/app/data/tickets/tickets.db
+      - CONTEXT_INPUT_BUDGET=${CONTEXT_INPUT_BUDGET:-12000}
+      - CONTEXT_OUTPUT_RESERVE=${CONTEXT_OUTPUT_RESERVE:-1536}
+      - MEMORY_TOKEN_BUDGET=${MEMORY_TOKEN_BUDGET:-6000}
+      - MEMORY_COMPRESSION_THRESHOLD=${MEMORY_COMPRESSION_THRESHOLD:-0.70}
+      - MEMORY_SUMMARY_MAX_TOKENS=${MEMORY_SUMMARY_MAX_TOKENS:-1200}
     volumes:
       - ./data/chroma:/app/data/chroma
       - ./data/eval:/app/data/eval

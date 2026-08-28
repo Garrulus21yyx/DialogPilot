@@ -10,7 +10,8 @@ prompt chain.
 | Agent selection | `agents/agent_orchestrator.py` | Structured routing decision |
 | Tool reliability | `mcp/tool_manager.py` | Typed tool result and runtime statistics |
 | Knowledge | `mcp/knowledge_base.py` | Retrieved ChromaDB documents |
-| Conversation context | `memory/conversation_memory.py` | Working, episodic, and profile context |
+| Conversation memory | `memory/conversation_memory.py` | Working, episodic, profile, and rolling-summary state |
+| Prompt context | `memory/context.py` | Token estimation, typed sections, and bounded LLM input |
 | Dynamic rules | `core/skill_loader.py` | Request-scoped skill prompt blocks |
 | Publication safety | `services/answer_verifier.py` | PASS, REJECT, or UNKNOWN |
 | Human handoff | `services/ticket_service.py` | Ticket identity, state, idempotency, and event history |
@@ -31,6 +32,20 @@ prompt chain.
 This ordering prevents the memory store from claiming that an unverified model
 answer was shown to the user.
 
+## Context budget contract
+
+`MemoryManager` owns persisted memory state. It triggers compression from an
+estimated token budget rather than message count, replaces the prior summary
+with a bounded structured rolling summary, and preserves the most recent raw
+turn. The Redis rewrite uses an optimistic transaction: if messages arrive
+while the summary model is running, the stale compression is discarded instead
+of deleting the concurrent write.
+
+`ContextAssembler` separately owns conversion into an LLM prompt. Memory,
+retrieved knowledge, and profile data remain tagged data sections; real
+user/assistant history remains real messages. It reserves output capacity,
+trims oldest history, and never inserts fabricated assistant acknowledgements.
+
 ## Failure semantics
 
 - Unknown intent with low confidence asks a clarification question.
@@ -41,6 +56,8 @@ answer was shown to the user.
   `escalated=true`.
 - Ticket persistence failure never claims a successful handoff; the response
   explicitly asks the client to retry with the same `request_id`.
+- A compression model failure uses a bounded deterministic summary; a stale
+  compression snapshot is not committed.
 
 ## Ticket state algebra
 

@@ -16,6 +16,7 @@ owner and exposes the routing and verification decisions in the API response.
 ```text
 POST /chat
   -> load Redis working memory and ChromaDB episodic memory/profile
+  -> assemble a bounded prompt using token-aware rolling compression
   -> classify intent with LLM + local semantic similarity + patterns
   -> retrieve knowledge for business intents
   -> route to General, Technical, or Billing agents
@@ -25,6 +26,13 @@ POST /chat
   -> persist each escalation as one idempotent human-support ticket
   -> persist messages and update the profile in the background
 ```
+
+Context input is bounded independently from model output. Working memory is
+compressed from estimated token usage, not a fixed message count. The rolling
+summary is structured and size-limited, recent turns stay verbatim, and an
+optimistic Redis transaction prevents compression from dropping a concurrent
+message. Retrieved knowledge and memory are tagged as data while actual
+conversation history remains user/assistant messages.
 
 See [docs/architecture.md](docs/architecture.md) for component ownership and
 [docs/project-pitch.md](docs/project-pitch.md) for a concise technical walkthrough.

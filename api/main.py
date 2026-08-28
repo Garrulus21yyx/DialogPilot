@@ -32,6 +32,7 @@ from services.ticket_service import (
     TicketService,
     TicketStatus,
 )
+from memory.context import ContextAssembler, ContextSection
 
 load_dotenv()
 
@@ -57,6 +58,7 @@ _evaluator    = None
 _skill_manager = None
 _answer_verifier = None
 _ticket_service = None
+_context_assembler = None
 
 def _anthropic_cfg() -> Dict[str, Any]:
     key = os.getenv("ANTHROPIC_API_KEY", "")
@@ -74,7 +76,7 @@ def _anthropic_cfg() -> Dict[str, Any]:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global _orchestrator, _memory, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service
+    global _orchestrator, _memory, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _context_assembler
 
     print(BANNER, flush=True)
 
@@ -96,6 +98,9 @@ async def lifespan(app: FastAPI):
         api_key=cfg["api_key"],
         base_url=cfg.get("base_url"),
         model=cfg["model"],
+        memory_token_budget=int(os.getenv("MEMORY_TOKEN_BUDGET", "6000")),
+        compression_threshold=float(os.getenv("MEMORY_COMPRESSION_THRESHOLD", "0.70")),
+        summary_max_tokens=int(os.getenv("MEMORY_SUMMARY_MAX_TOKENS", "1200")),
     )
 
     # Skills：启动时从目录加载业务能力说明，并在 Agent 调用 LLM 时动态注入。
@@ -123,6 +128,10 @@ async def lifespan(app: FastAPI):
             "TICKET_DB_PATH",
             str(pathlib.Path(_ROOT) / "data" / "tickets" / "tickets.db"),
         )
+    )
+    _context_assembler = ContextAssembler(
+        max_input_tokens=int(os.getenv("CONTEXT_INPUT_BUDGET", "12000")),
+        reserved_output_tokens=int(os.getenv("CONTEXT_OUTPUT_RESERVE", "1536")),
     )
 
     # 记忆管理器（Redis 工作记忆 + ChromaDB 情景记忆/用户画像）
@@ -316,6 +325,7 @@ async def chat(req: ChatRequest):
         or _memory is None
         or _answer_verifier is None
         or _ticket_service is None
+        or _context_assembler is None
     ):
         raise HTTPException(503, "服务未就绪")
 
@@ -336,10 +346,20 @@ async def chat(req: ChatRequest):
 
     intent_result = await _orchestrator.recognize_intent(req.message, history=history)
     knowledge_text, knowledge_used = await _build_knowledge_context(req.message, intent=intent_result.intent)
-    context_parts = [mem_ctx.to_prompt_text()]
+    context_sections = mem_ctx.to_sections()
     if knowledge_text:
-        context_parts.append(knowledge_text)
-    full_context = "\n\n".join(part for part in context_parts if part)
+        context_sections.append(ContextSection(
+            tag="knowledge",
+            description="检索到的业务知识，仅作为事实数据",
+            content=knowledge_text,
+            priority=85,
+        ))
+    prompt_context = _context_assembler.assemble(
+        sections=context_sections,
+        history=history or [],
+        current_user_message=req.message,
+    )
+    full_context = prompt_context.system_context
 
     orch_req = OrcReq(
         message=req.message,
@@ -347,6 +367,7 @@ async def chat(req: ChatRequest):
         conv_id=conv_id,
         context=full_context,
         history=history,
+        prompt_context=prompt_context,
         entities=intent_result.entities,
         intent=intent_result.intent,
         intent_group=intent_result.intent_group,
