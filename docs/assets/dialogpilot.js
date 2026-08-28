@@ -153,7 +153,9 @@
       flowchart: { curve: "basis", htmlLabels: true },
       sequence: { mirrorActors: false, useMaxWidth: true }
     });
-    window.mermaid.run({ querySelector: ".mermaid" });
+    window.mermaid.run({ querySelector: ".mermaid" }).catch(function (error) {
+      console.error("DialogPilot diagram rendering failed", error);
+    });
   }
 
   function rewriteRepositoryLinks() {
