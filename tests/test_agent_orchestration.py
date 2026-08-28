@@ -166,6 +166,30 @@ def test_orchestrator_converts_unhandled_agent_exception_to_typed_error():
     assert "RuntimeError" in result.error
 
 
+def test_compound_natural_request_routes_to_both_domain_owners():
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    orchestrator._pool = {
+        AgentType.GENERAL: [object()],
+        AgentType.TECHNICAL: [object()],
+        AgentType.BILLING: [object()],
+    }
+    request = Request(
+        message="订单 #A123 登录失败后又被重复扣款 50 元",
+        user_id="user",
+        conv_id="conversation",
+        intent=IntentCategory.TECHNICAL_LOGIN,
+        intent_group="technical",
+        intent_confidence=0.9,
+        entities={"order_id": ["A123"], "amount": ["50 元"]},
+    )
+
+    decision = orchestrator._route_decision(request)
+
+    assert decision.primary_agent is AgentType.TECHNICAL
+    assert decision.supporting_agents == [AgentType.BILLING]
+    assert decision.agent_types == [AgentType.TECHNICAL, AgentType.BILLING]
+
+
 class JsonClient:
     def __init__(self, payload):
         self.payload = payload

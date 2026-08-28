@@ -544,7 +544,7 @@ class AgentOrchestrator:
         supporting_agents = [
             agent_type
             for agent_type, score in ordered[1:]
-            if agent_type != AgentType.GENERAL and score >= 0.45 and score >= primary_score * 0.55
+            if agent_type != AgentType.GENERAL and score >= 0.45
         ]
 
         reason = self._routing_reason(req, available_scores, primary_agent, supporting_agents)
@@ -601,8 +601,13 @@ class AgentOrchestrator:
         billing_hits = sum(1 for kw in billing_kws if kw in msg)
         general_hits = sum(1 for kw in general_kws if kw in msg)
 
-        scores[AgentType.TECHNICAL] += min(0.45, technical_hits * 0.18)
-        scores[AgentType.BILLING] += min(0.45, billing_hits * 0.18)
+        # One explicit domain expression is sufficient evidence to involve that
+        # specialist. Additional matches increase confidence without allowing
+        # keyword density to dominate the intent signal.
+        if technical_hits:
+            scores[AgentType.TECHNICAL] += min(0.65, 0.45 + (technical_hits - 1) * 0.10)
+        if billing_hits:
+            scores[AgentType.BILLING] += min(0.65, 0.45 + (billing_hits - 1) * 0.10)
         scores[AgentType.GENERAL] += min(0.35, general_hits * 0.12)
 
         entities = req.entities or {}
