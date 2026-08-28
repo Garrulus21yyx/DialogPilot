@@ -76,6 +76,7 @@ class SkillManager:
     SUPPORTED_SUFFIXES = {".md", ".txt", ".json"}
 
     def __init__(self, root_dir: str, max_prompt_chars: int = 5000):
+        """保存 Skill 根目录和单次 Prompt 总字符预算。"""
         self.root_dir = Path(root_dir).expanduser().resolve()
         self.max_prompt_chars = max_prompt_chars
         self._skills: List[Skill] = []
@@ -83,10 +84,12 @@ class SkillManager:
 
     @property
     def skills(self) -> List[Skill]:
+        """返回副本，避免调用方越过 Manager 修改权威集合。"""
         return list(self._skills)
 
     @property
     def errors(self) -> List[str]:
+        """返回本轮加载错误副本；单文件错误不会阻塞其他 Skill。"""
         return list(self._errors)
 
     def load(self) -> List[Skill]:
@@ -228,11 +231,13 @@ class SkillManager:
                 yield path
 
     def _load_file(self, path: Path) -> Optional[Skill]:
+        """按文件后缀分派解析器，保持发现和格式转换职责分离。"""
         if path.suffix.lower() == ".json":
             return self._load_json(path)
         return self._load_text(path)
 
     def _load_json(self, path: Path) -> Optional[Skill]:
+        """把 JSON Skill 转换为统一领域对象。"""
         raw = json.loads(path.read_text(encoding="utf-8"))
         if not isinstance(raw, dict):
             raise ValueError("JSON Skill 必须是对象格式")
@@ -252,6 +257,7 @@ class SkillManager:
         )
 
     def _load_text(self, path: Path) -> Optional[Skill]:
+        """解析带可选 front matter 的 Markdown/TXT Skill。"""
         raw = path.read_text(encoding="utf-8")
         meta, body = self._split_front_matter(raw)
         body = body.strip()
@@ -305,6 +311,7 @@ class SkillManager:
 
     @staticmethod
     def _first_heading(body: str) -> Optional[str]:
+        """提取首个 Markdown 标题作为缺省 Skill 名称。"""
         for line in body.splitlines():
             stripped = line.strip()
             if stripped.startswith("#"):
@@ -313,6 +320,7 @@ class SkillManager:
 
     @staticmethod
     def _strip_first_heading(body: str, name: str) -> str:
+        """移除作为元数据使用的首个标题，避免 Prompt 中重复展示。"""
         lines = body.splitlines()
         if not lines:
             return body
@@ -323,6 +331,7 @@ class SkillManager:
 
     @staticmethod
     def _as_list(value: Any) -> List[str]:
+        """把标量或列表规范为去空白字符串列表。"""
         if value is None or value == "":
             return []
         if isinstance(value, list):
@@ -331,6 +340,7 @@ class SkillManager:
 
     @staticmethod
     def _as_bool(value: Any, default: bool = False) -> bool:
+        """兼容布尔值和常见文本表示，解析 enabled 配置。"""
         if value is None or value == "":
             return default
         if isinstance(value, bool):

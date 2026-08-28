@@ -38,6 +38,7 @@ class KnowledgeBase:
         chroma_port: int = 8000,
         chroma_path: str = "./data/chroma",
     ):
+        """优先连接远程 ChromaDB，失败时退回本地持久化 collection。"""
         # 优先连接独立 ChromaDB 服务（服务端内置 embedding 模型，客户端无需下载）
         self._use_server = False
         try:
@@ -134,6 +135,7 @@ class KnowledgeBase:
 
     @property
     def doc_count(self) -> int:
+        """返回知识库当前持久化的文档片段数。"""
         return self._collection.count()
 
     async def doc_count_async(self) -> int:

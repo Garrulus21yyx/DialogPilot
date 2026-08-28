@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 # ── 数据结构 ──────────────────────────────────────────────────────────────────
 
 class CircuitState(Enum):
+    """熔断器的三态生命周期。"""
     CLOSED    = "closed"     # 正常
     OPEN      = "open"       # 熔断，拒绝请求
     HALF_OPEN = "half_open"  # 探测恢复
@@ -39,6 +40,7 @@ class CircuitState(Enum):
 
 @dataclass
 class ToolResult:
+    """一次工具调用的统一结果，包含缓存、延迟和重排证据。"""
     success:        bool
     data:           Any
     tool_name:      str
@@ -59,10 +61,12 @@ class ToolStats:
 
     @property
     def success_rate(self) -> float:
+        """无样本时返回健康初始值 1.0，避免冷启动误惩罚。"""
         return self.success / self.total if self.total else 1.0
 
     @property
     def avg_latency_ms(self) -> float:
+        """返回已记录调用的平均耗时。"""
         return self.total_latency_ms / self.total if self.total else 0.0
 
 
@@ -78,6 +82,7 @@ class CircuitBreaker:
     """
 
     def __init__(self, failure_threshold: int = 5, recovery_s: float = 60.0):
+        """配置连续失败阈值和 OPEN 状态恢复等待时间。"""
         self.threshold   = failure_threshold
         self.recovery_s  = recovery_s
         self.state       = CircuitState.CLOSED
@@ -85,6 +90,7 @@ class CircuitBreaker:
         self.opened_at:  Optional[float] = None
 
     def allow(self) -> bool:
+        """判断本次调用能否执行，并在恢复窗口后进入 HALF_OPEN 探测。"""
         if self.state == CircuitState.CLOSED:
             return True
         if self.state == CircuitState.OPEN:
@@ -95,10 +101,12 @@ class CircuitBreaker:
         return True  # HALF_OPEN：放行一次探测
 
     def record_success(self) -> None:
+        """成功调用关闭熔断器并清空连续失败计数。"""
         self.fail_count = 0
         self.state = CircuitState.CLOSED
 
     def record_failure(self) -> None:
+        """累计连续失败；达到阈值后记录打开时间并拒绝后续调用。"""
         self.fail_count += 1
         if self.fail_count >= self.threshold:
             self.state     = CircuitState.OPEN
@@ -110,6 +118,7 @@ class CircuitBreaker:
 
 @dataclass
 class Tool:
+    """工具静态合同及其由运行时拥有的统计、熔断状态。"""
     name:        str
     description: str
     handler:     Callable                    # async (params, context) -> Any
@@ -135,6 +144,7 @@ class MCPToolManager:
     """
 
     def __init__(self, api_key: str, base_url: Optional[str] = None, model: str = "claude-3-5-sonnet-20241022"):
+        """创建模型客户端以及进程内工具注册表和 TTL 缓存。"""
         kwargs: Dict[str, Any] = {"api_key": api_key}
         if base_url:
             kwargs["base_url"] = base_url
@@ -146,10 +156,12 @@ class MCPToolManager:
     # ── 注册 / 注销 ───────────────────────────────────────────────────────────
 
     def register(self, tool: Tool) -> None:
+        """按名称注册或替换工具定义。"""
         self._tools[tool.name] = tool
         logger.info(f"注册工具: {tool.name}")
 
     def unregister(self, name: str) -> None:
+        """幂等移除工具定义。"""
         self._tools.pop(name, None)
 
     # ── 核心调用 ──────────────────────────────────────────────────────────────
@@ -391,10 +403,12 @@ class MCPToolManager:
     # ── 缓存 ──────────────────────────────────────────────────────────────────
 
     def _cache_key(self, name: str, params: Dict, rerank_top_k: int = 0) -> str:
+        """对工具名、参数和重排配置计算稳定缓存键。"""
         payload = {"params": params, "rerank_top_k": rerank_top_k}
         return f"{name}:{hashlib.md5(json.dumps(payload, sort_keys=True).encode()).hexdigest()}"
 
     def _get_cache(self, name: str, params: Dict, rerank_top_k: int = 0) -> Optional[Tuple[Any, bool]]:
+        """读取未过期缓存；过期项会在读取时删除。"""
         key = self._cache_key(name, params, rerank_top_k)
         if key in self._cache:
             data, expire_at, reranked = self._cache[key]
@@ -412,6 +426,7 @@ class MCPToolManager:
         rerank_top_k: int = 0,
         reranked: bool = False,
     ) -> None:
+        """写入带单调时钟过期点的进程内缓存。"""
         if len(self._cache) >= 5000:
             # 清掉最旧的 1/4
             for k in list(self._cache)[:1250]:
@@ -453,6 +468,7 @@ class MCPToolManager:
     # ── 统计 ──────────────────────────────────────────────────────────────────
 
     def get_stats(self) -> Dict[str, Any]:
+        """返回工具统计和熔断状态的只读 API 投影。"""
         return {
             name: {
                 "total": t.stats.total,

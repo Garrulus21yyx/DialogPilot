@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 class IntentCategory(Enum):
+    """路由与业务分支共同使用的闭合意图集合。"""
     QUERY      = "query"       # 查询信息
     COMPLAINT  = "complaint"   # 投诉不满
     REQUEST    = "request"     # 请求操作
@@ -49,6 +50,7 @@ class IntentCategory(Enum):
 
 
 class UrgencyLevel(Enum):
+    """升级优先级；数值越大表示越需要及时人工介入。"""
     LOW      = 1
     MEDIUM   = 2
     HIGH     = 3
@@ -57,6 +59,7 @@ class UrgencyLevel(Enum):
 
 @dataclass
 class IntentResult:
+    """三路识别融合后的有类型结果及可诊断证据。"""
     intent:     IntentCategory
     confidence: float
     urgency:    UrgencyLevel
@@ -152,6 +155,7 @@ class IntentRecognizer:
         model: str = "claude-3-5-sonnet-20241022",
         confidence_threshold: float = 0.5,
     ):
+        """创建模型客户端，并初始化模板向量与结果缓存。"""
         kwargs: Dict[str, Any] = {"api_key": api_key}
         if base_url:
             kwargs["base_url"] = base_url
@@ -440,6 +444,7 @@ class IntentRecognizer:
         return vec
 
     def _urgency(self, message: str, intent: IntentCategory) -> UrgencyLevel:
+        """结合显式人工升级意图和紧急关键词计算优先级。"""
         msg = message.lower()
         for level, kws in _URGENCY_KEYWORDS.items():
             if any(kw in msg for kw in kws):
@@ -451,6 +456,7 @@ class IntentRecognizer:
         return UrgencyLevel.LOW
 
     def _cache_key(self, message: str, history: Optional[List[Dict[str, str]]] = None) -> str:
+        """对当前消息与有限历史生成稳定缓存键。"""
         payload = {"message": self._clean_text(message)[:200]}
         if history:
             payload["history"] = [
@@ -465,6 +471,7 @@ class IntentRecognizer:
 
     @staticmethod
     def _unique(values: List[str]) -> List[str]:
+        """按首次出现顺序去重非空字符串。"""
         return list(dict.fromkeys(value.strip() for value in values if value and value.strip()))
 
     @staticmethod
@@ -472,6 +479,7 @@ class IntentRecognizer:
         message: str,
         patterns: Dict[IntentCategory, List[str]],
     ) -> tuple[IntentCategory, float]:
+        """在关键词集合中选择命中数量最高的细粒度意图。"""
         best_cat, best_score = IntentCategory.OTHER, 0.0
         for cat, kws in patterns.items():
             hits = sum(1 for kw in kws if kw in message)
@@ -485,6 +493,7 @@ class IntentRecognizer:
 
     @staticmethod
     def _intent_group(intent: IntentCategory) -> str:
+        """把细粒度意图投影为下游兼容的领域分组。"""
         return _INTENT_GROUPS.get(intent, intent).value
 
     @staticmethod
@@ -498,6 +507,7 @@ class IntentRecognizer:
 
     @property
     def cache_stats(self) -> Dict[str, Any]:
+        """暴露缓存容量和命中率，供健康检查与排障使用。"""
         total = self.cache_hits + self.cache_misses
         return {
             "size": len(self._cache),
