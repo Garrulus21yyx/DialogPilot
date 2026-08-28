@@ -763,6 +763,10 @@ pre code {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .dp-signal-path span:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
   .back-to-top {
     right: 14px;
     bottom: 14px;
@@ -782,4 +786,3 @@ pre code {
     animation-iteration-count: 1 !important;
   }
 }
-
