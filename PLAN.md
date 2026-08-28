@@ -44,12 +44,12 @@ private Python portfolio repository under the DialogPilot name.
 - [done] Feed publication verification outcomes back to the agents that produced the candidate answer.
 - [done] Separate execution availability from answer quality and use sample-aware EWMA quality in routing scores.
 - [done] Expose quality evidence in monitor/API statistics without treating verifier infrastructure failure as an agent failure.
-- [in_progress] Verify feedback algebra and routing changes; push immediately and obtain green CI.
+- [done] Verify feedback algebra and routing changes; push immediately and obtain green CI.
 
 ### Final convergence
 
-- [pending] Run the complete test suite, static compilation, source/secret checks, and a clean production-image build.
-- [pending] Update architecture, README, project pitch, and this plan so implemented behavior and claims agree.
+- [done] Run the complete test suite, static compilation, source/secret checks, and a clean production-image build.
+- [done] Update architecture, README, project pitch, and this plan so implemented behavior and claims agree.
 - [pending] Confirm the final private-repository commit and GitHub Actions run are green.
 
 ## Constraints
