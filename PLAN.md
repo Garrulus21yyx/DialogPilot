@@ -21,7 +21,7 @@ private Python portfolio repository under the DialogPilot name.
 - [done] Add ticket create/list/detail/status-transition API contracts.
 - [done] Add state-machine, persistence, filtering, API, and chat-handoff tests.
 - [done] Update runtime configuration, Docker persistence, backup handling, architecture docs, and project pitch.
-- [in_progress] Run local/Docker verification, push to the private repository, and obtain green CI.
+- [done] Run local/Docker verification, push to the private repository, and obtain green CI.
 
 ## Constraints
 
