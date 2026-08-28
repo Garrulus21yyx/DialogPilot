@@ -571,6 +571,8 @@ async def _build_knowledge_context(message: str, intent=None, top_k: int = 3) ->
         for i, item in enumerate(result.data[:top_k], start=1):
             if not isinstance(item, dict):
                 continue
+            if item.get("fallback"):
+                continue
             title = str(item.get("title", "未命名文档"))
             content = str(item.get("content", "")).strip()
             score = item.get("score", "")
