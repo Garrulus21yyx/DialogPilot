@@ -1,4 +1,5 @@
 <head>
+  <!-- 覆盖 Minima 2.5 的 head，以显式接入教程交互和 Mermaid。 -->
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -6,12 +7,14 @@
 
   {%- seo -%}
   {%- assign asset_version = site.time | date: '%s' -%}
+  <!-- 每次 Pages 构建生成新版本号，避免浏览器继续使用旧 CSS/JS。 -->
   <link rel="stylesheet" href="{{ '/assets/main.css' | relative_url }}?v={{ asset_version }}">
   {%- feed_meta -%}
   {%- if jekyll.environment == 'production' and site.google_analytics -%}
     {%- include google-analytics.html -%}
   {%- endif -%}
 
+  <!-- defer 保证 Mermaid 先定义，页面增强脚本随后在 DOM 解析完成后运行。 -->
   <script defer src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
   <script defer src="{{ '/assets/dialogpilot.js' | relative_url }}?v={{ asset_version }}"></script>
 </head>

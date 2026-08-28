@@ -1,10 +1,12 @@
 (function () {
   "use strict";
 
+  // 统一读取元素文本，避免空节点让后续目录构建失败。
   function textOf(element) {
     return (element && element.textContent || "").trim();
   }
 
+  // 把 Markdown 标题和导语提升为运行时主链 Hero，不复制正文内容。
   function buildHero(root) {
     const title = root.querySelector(":scope > h1");
     if (!title) return null;
@@ -44,6 +46,7 @@
     return hero;
   }
 
+  // 以 h2 为章节权威边界，把平铺的 Jekyll HTML 包装成独立卡片。
   function wrapChapters(content) {
     const children = Array.from(content.children);
     let chapter = null;
@@ -65,6 +68,7 @@
     });
   }
 
+  // 根据实际章节动态生成左侧执行轨道，避免手工目录与正文漂移。
   function buildRail(content) {
     const rail = document.createElement("aside");
     rail.className = "dp-rail";
@@ -91,6 +95,7 @@
     return { rail: rail, headings: headings, links: Array.from(nav.querySelectorAll("a")) };
   }
 
+  // 将面试题章节改造成原生 details，保留键盘操作和无脚本降级能力。
   function makeQuestionsCollapsible(content) {
     const interview = Array.from(content.querySelectorAll(".dp-chapter")).find(function (chapter) {
       return /^22\./.test(chapter.dataset.title || "");
@@ -120,6 +125,7 @@
     });
   }
 
+  // 把 Markdown 代码块交给 Mermaid 渲染为 SVG；失败只影响图，不阻塞正文。
   function renderMermaid() {
     const blocks = Array.from(document.querySelectorAll("pre > code.language-mermaid"));
     if (!blocks.length || !window.mermaid) return;
@@ -158,6 +164,7 @@
     });
   }
 
+  // Pages 与源码目录层级不同，将相对源码链接改写为私人仓库浏览链接。
   function rewriteRepositoryLinks() {
     document.querySelectorAll('a[href^="../"]').forEach(function (link) {
       const path = link.getAttribute("href").replace(/^\.\.\//, "");
@@ -167,6 +174,7 @@
     });
   }
 
+  // 维护阅读进度、返回顶部按钮和当前章节高亮三类滚动状态。
   function setupScrollState(headings, links) {
     const progress = document.createElement("div");
     progress.className = "reading-progress";
@@ -192,6 +200,7 @@
     window.addEventListener("scroll", updateProgress, { passive: true });
     updateProgress();
 
+    // IntersectionObserver 只观察章节标题，减少长页面滚动时的计算量。
     const observer = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         if (!entry.isIntersecting) return;
@@ -205,6 +214,7 @@
     headings.forEach(function (heading) { observer.observe(heading); });
   }
 
+  // 只在完整教程首页存在时增强 DOM，其他 Jekyll 页面保持 Minima 原结构。
   function initialize() {
     const root = document.querySelector(".page-content > .wrapper");
     if (!root || !root.querySelector("#快速导航")) return;

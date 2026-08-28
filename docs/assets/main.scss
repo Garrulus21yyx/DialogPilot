@@ -3,6 +3,7 @@
 
 @import "minima";
 
+/* 全站设计令牌：知识图谱纸面、深色运行轨道和状态强调色。 */
 :root {
   --dp-ink: #142231;
   --dp-muted: #607286;
@@ -110,6 +111,7 @@ summary:focus-visible {
   color: #ffffff;
 }
 
+/* 固定导航与页面阅读进度。 */
 .reading-progress {
   position: fixed;
   z-index: 50;
@@ -131,6 +133,7 @@ summary:focus-visible {
   padding: 0;
 }
 
+/* 首屏把整条 Agent 执行链压缩成一张“运行时控制台”。 */
 .dp-hero {
   position: relative;
   overflow: hidden;
@@ -262,6 +265,7 @@ summary:focus-visible {
   font-weight: 750;
 }
 
+/* 桌面端双栏骨架：左侧章节轨道，右侧教程正文。 */
 .dp-shell {
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr);
@@ -269,6 +273,7 @@ summary:focus-visible {
   align-items: start;
 }
 
+/* 章节轨道使用 sticky 定位，正文滚动时保持当前执行阶段可见。 */
 .dp-rail {
   position: sticky;
   top: 86px;
@@ -364,6 +369,7 @@ summary:focus-visible {
   min-width: 0;
 }
 
+/* 每个 h2 章节成为独立研究卡片，长文可以按模块快速扫描。 */
 .dp-chapter {
   margin: 0 0 18px;
   padding: clamp(22px, 3vw, 38px);
@@ -510,6 +516,7 @@ pre code {
   line-height: 1.65;
 }
 
+/* Mermaid SVG 与普通代码块使用不同容器，强调“关系图”而非源码。 */
 .mermaid-panel {
   margin: 20px 0;
   padding: 18px;
@@ -545,6 +552,7 @@ pre code {
   margin: 0 auto;
 }
 
+/* 原生 details 问答卡：默认只展开第一题，减少 25 题造成的视觉压力。 */
 .qa-card {
   margin: 10px 0;
   overflow: hidden;
@@ -660,6 +668,7 @@ pre code {
   color: #c8d5df;
 }
 
+/* 中等屏幕缩窄轨道，但仍保留双栏结构。 */
 @media (max-width: 980px) {
   .dp-shell {
     grid-template-columns: 220px minmax(0, 1fr);
@@ -675,6 +684,7 @@ pre code {
   }
 }
 
+/* 手机端将纵向轨道转换为横向可滚动章节导航。 */
 @media (max-width: 760px) {
   .site-header .wrapper,
   .page-content > .wrapper.dp-page {
@@ -773,6 +783,7 @@ pre code {
   }
 }
 
+/* 尊重系统减少动画设置，避免平滑滚动和过渡造成不适。 */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

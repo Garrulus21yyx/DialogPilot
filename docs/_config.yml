@@ -1,9 +1,10 @@
+# GitHub Pages/Jekyll 的站点元数据与导航入口。
 title: DialogPilot 完整架构教程
 description: Python 多 Agent 客服后端的架构、链路、内部实现、改造记录与项目追问
 lang: zh-CN
 theme: minima
 markdown: kramdown
 header_pages:
+  # 首页已经内嵌完整教程，只保留两张补充说明页避免重复导航。
   - architecture.md
   - project-pitch.md
-

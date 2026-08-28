@@ -1,1 +1,1 @@
-"""Application services owned by DialogPilot."""
+"""DialogPilot 的发布校验、结果融合与人工工单领域服务。"""
