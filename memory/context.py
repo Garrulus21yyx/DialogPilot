@@ -1,4 +1,8 @@
-"""Typed context assembly and lightweight token-budget utilities."""
+"""有类型的上下文装配与轻量 Token 预算工具。
+
+这里拥有“哪些数据进入模型输入、按什么优先级裁剪”的转换合同；记忆和知识
+模块只生产上下文事实，不应各自拼装最终 Prompt。
+"""
 
 from __future__ import annotations
 
@@ -11,10 +15,11 @@ from typing import Any, Dict, Iterable, List, Sequence, Tuple
 
 
 class TokenEstimator:
-    """Fast provider-independent estimate used only for preflight budgeting."""
+    """与供应商无关的快速估算器，仅用于调用前预算而非精确计费。"""
 
     @staticmethod
     def estimate(value: Any) -> int:
+        """按中文字符与其他字符的经验比例估算 Token 数。"""
         if value is None:
             return 0
         text = value if isinstance(value, str) else json.dumps(
@@ -31,6 +36,7 @@ class TokenEstimator:
 
     @classmethod
     def estimate_messages(cls, messages: Iterable[Dict[str, Any]]) -> int:
+        """估算消息正文、工具字段及每条消息的协议开销。"""
         total = 0
         for message in messages:
             total += 4
@@ -41,6 +47,7 @@ class TokenEstimator:
 
     @classmethod
     def truncate(cls, text: str, max_tokens: int) -> str:
+        """用二分查找截取不超过预算的最长文本前缀。"""
         text = str(text or "")
         if max_tokens <= 0:
             return ""
@@ -59,7 +66,7 @@ class TokenEstimator:
 
 @dataclass(frozen=True)
 class ContextSection:
-    """Internal system-context part with an explicit source and priority."""
+    """带来源标签、优先级和信任边界的内部上下文片段。"""
 
     tag: str
     content: str
@@ -68,6 +75,7 @@ class ContextSection:
     untrusted_data: bool = True
 
     def render(self, content: str | None = None) -> str:
+        """转义不可信数据并渲染为带 ``data_only`` 标记的标签块。"""
         safe_tag = re.sub(r"[^a-zA-Z0-9_-]", "_", self.tag) or "context"
         safe_content = html.escape(self.content if content is None else content, quote=False)
         attributes = []
@@ -81,7 +89,7 @@ class ContextSection:
 
 @dataclass(frozen=True)
 class PromptContext:
-    """Budgeted internal context that converts to provider messages at one boundary."""
+    """已完成预算的内部上下文，只在一个边界转换为供应商消息。"""
 
     system_context: str
     history: Tuple[Dict[str, str], ...]
@@ -90,13 +98,14 @@ class PromptContext:
     truncated_sections: Tuple[str, ...] = field(default_factory=tuple)
 
     def to_messages(self, current_user_message: str) -> List[Dict[str, str]]:
+        """复制历史并将当前用户消息追加为最后一条真实对话。"""
         messages = [dict(message) for message in self.history]
         messages.append({"role": "user", "content": str(current_user_message or "")})
         return messages
 
 
 class ContextAssembler:
-    """Owns the bounded conversion from context state to an LLM prompt."""
+    """上下文状态到有界 LLM Prompt 转换的唯一 Owner。"""
 
     def __init__(
         self,
@@ -105,6 +114,7 @@ class ContextAssembler:
         fixed_system_reserve: int = 768,
         section_ratio: float = 0.55,
     ):
+        """配置输入、输出和固定系统开销，并校验预算存在可用空间。"""
         if max_input_tokens <= reserved_output_tokens + fixed_system_reserve:
             raise ValueError("max_input_tokens must exceed reserved prompt budgets")
         self.max_input_tokens = int(max_input_tokens)
@@ -120,6 +130,7 @@ class ContextAssembler:
         history: Sequence[Dict[str, Any]],
         current_user_message: str,
     ) -> PromptContext:
+        """按优先级装配 section，并从最近历史向前保留消息。"""
         current_tokens = self.estimator.estimate_messages(
             [{"role": "user", "content": current_user_message}]
         )
@@ -140,7 +151,7 @@ class ContextAssembler:
             history, history_budget
         )
 
-        # Give unused history capacity back to sections before accepting truncation.
+        # 历史实际占用较少时，把闲置容量返还给 section，避免不必要的知识裁剪。
         unused = max(0, history_budget - used_history_tokens)
         if truncated and unused:
             rendered_sections, used_section_tokens, truncated = self._fit_sections(
@@ -166,6 +177,7 @@ class ContextAssembler:
     def _fit_sections(
         self, sections: Sequence[ContextSection], budget: int
     ) -> Tuple[List[str], int, List[str]]:
+        """优先装入高优先级 section，最终恢复调用方原始展示顺序。"""
         selected: Dict[int, str] = {}
         truncated: List[str] = []
         remaining = max(0, budget)
@@ -194,6 +206,7 @@ class ContextAssembler:
     def _fit_history(
         self, history: Sequence[Dict[str, Any]], budget: int
     ) -> Tuple[List[Dict[str, str]], int, int]:
+        """过滤非法历史角色，并从最新消息向前装入直至预算耗尽。"""
         valid = [
             {"role": str(item.get("role")), "content": str(item.get("content") or "")}
             for item in history

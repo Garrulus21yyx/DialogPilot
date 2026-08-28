@@ -1,9 +1,9 @@
-"""LLM response helpers shared by Anthropic-compatible providers."""
+"""Anthropic 兼容供应商共用的 LLM 响应归一化工具。"""
 from typing import Any, Iterable, List
 
 
 def extract_text_content(content: Iterable[Any]) -> str:
-    """Return text blocks from Anthropic-style response content."""
+    """兼容对象块、字典块和纯字符串，按原顺序提取文本内容。"""
     texts: List[str] = []
     for block in content or []:
         if isinstance(block, str):

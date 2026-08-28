@@ -1,4 +1,8 @@
-"""Typed, fail-closed synthesis for parallel Agent outcomes."""
+"""并行 Agent 结果的有类型、默认拒绝式融合。
+
+单 Agent 负责生产领域结果，本模块是候选回答与整体融合状态的唯一 Owner。
+它显式表达部分成功、冲突、全失败和融合器不可用，避免直接拼接掩盖失败。
+"""
 
 from __future__ import annotations
 
@@ -11,12 +15,14 @@ from core.llm_utils import extract_text_content
 
 
 class AgentOutcomeStatus(str, Enum):
+    """单个 Agent 一次执行能够产生的闭合状态。"""
     SUCCESS = "success"
     TIMEOUT = "timeout"
     ERROR = "error"
 
 
 class SynthesisStatus(str, Enum):
+    """整组 Agent 结果经过融合后的闭合状态。"""
     SUCCESS = "success"
     PARTIAL = "partial"
     CONFLICT = "conflict"
@@ -26,6 +32,7 @@ class SynthesisStatus(str, Enum):
 
 @dataclass(frozen=True)
 class AgentOutcome:
+    """单 Agent 执行证据；内容与错误不会通过异常通道隐式丢失。"""
     agent_type: str
     status: AgentOutcomeStatus
     is_primary: bool
@@ -38,6 +45,7 @@ class AgentOutcome:
     error: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
+        """转换为 API 可序列化字典，并显式展开枚举值。"""
         data = asdict(self)
         data["status"] = self.status.value
         return data
@@ -45,6 +53,7 @@ class AgentOutcome:
 
 @dataclass(frozen=True)
 class SynthesisResult:
+    """可校验的候选回答及其成功、失败和冲突归因。"""
     status: SynthesisStatus
     content: str
     reason: str
@@ -55,9 +64,10 @@ class SynthesisResult:
 
 
 class ResultSynthesizer:
-    """Sole owner of the user-facing candidate produced from Agent outcomes."""
+    """由多个 Agent outcome 生成用户候选回答的唯一 Owner。"""
 
     def __init__(self, client: Optional[Any], model: str):
+        """保存可选融合客户端；客户端为空时仍提供确定性降级。"""
         self._client = client
         self._model = model
 
@@ -66,6 +76,7 @@ class ResultSynthesizer:
         question: str,
         outcomes: Sequence[AgentOutcome],
     ) -> SynthesisResult:
+        """按结果代数融合路由顺序稳定的 Agent outcomes。"""
         successful = [outcome for outcome in outcomes if outcome.status is AgentOutcomeStatus.SUCCESS]
         failed = [outcome for outcome in outcomes if outcome.status is not AgentOutcomeStatus.SUCCESS]
         successful_agents = [outcome.agent_type for outcome in successful]
@@ -73,6 +84,7 @@ class ResultSynthesizer:
         inherited_escalation = any(outcome.escalate for outcome in successful)
 
         if not successful:
+            # 没有可用内容时不得伪造候选回答，直接进入人工处理。
             return SynthesisResult(
                 status=SynthesisStatus.FAILED,
                 content="所有专业 Agent 均未能完成处理，已转交人工进一步确认。",
@@ -82,6 +94,7 @@ class ResultSynthesizer:
             )
 
         if len(successful) == 1:
+            # 单路成功不需要再次调用模型；若其他路失败则保留内容但标记 PARTIAL。
             only = successful[0]
             return SynthesisResult(
                 status=SynthesisStatus.PARTIAL if failed else SynthesisStatus.SUCCESS,
@@ -123,6 +136,7 @@ class ResultSynthesizer:
                 conflicts=conflicts,
             )
         except Exception as exc:
+            # 降级结果保持原路由顺序，并用 UNKNOWN 阻止其被误认为可靠融合。
             return SynthesisResult(
                 status=SynthesisStatus.UNKNOWN,
                 content=self._deterministic_fallback(successful),
@@ -138,6 +152,7 @@ class ResultSynthesizer:
         question: str,
         successful: Sequence[AgentOutcome],
     ) -> Dict[str, Any]:
+        """调用模型去重、融合并识别跨领域结论冲突。"""
         if self._client is None:
             raise RuntimeError("synthesis model is unavailable")
         findings = [
@@ -182,6 +197,7 @@ class ResultSynthesizer:
 
     @staticmethod
     def _deterministic_fallback(successful: Sequence[AgentOutcome]) -> str:
+        """融合模型不可用时按既有路由顺序保留全部成功内容。"""
         parts = []
         for outcome in successful:
             role = "主处理" if outcome.is_primary else "辅助处理"
@@ -190,6 +206,7 @@ class ResultSynthesizer:
 
     @staticmethod
     def _string_list(value: Any, *, limit: int, max_chars: int) -> List[str]:
+        """把不可信模型字段规范为有数量和长度上限的字符串列表。"""
         if not isinstance(value, list):
             return []
         return [str(item).strip()[:max_chars] for item in value[:limit] if str(item).strip()]

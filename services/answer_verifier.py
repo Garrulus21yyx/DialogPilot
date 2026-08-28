@@ -1,4 +1,8 @@
-"""Typed answer verification boundary for user-visible Agent responses."""
+"""回答发布前的有类型校验边界。
+
+该模块只判断候选回答是否具备发布资格，不拥有回答内容。任何模型异常、
+格式错误或未知状态都会收敛为 ``UNKNOWN``，确保发布边界默认拒绝而非放行。
+"""
 
 from __future__ import annotations
 
@@ -13,7 +17,7 @@ from core.llm_utils import extract_text_content
 
 
 class VerificationStatus(str, Enum):
-    """Closed set of outcomes produced by the verification boundary."""
+    """校验器支持的闭合结果集合；新增状态必须同步迁移所有消费者。"""
 
     PASS = "pass"
     REJECT = "reject"
@@ -22,6 +26,8 @@ class VerificationStatus(str, Enum):
 
 @dataclass(frozen=True)
 class VerificationResult:
+    """一次校验的不可变结果，同时携带依据性与人工升级信号。"""
+
     status: VerificationStatus
     grounded: bool
     need_escalation: bool
@@ -29,15 +35,15 @@ class VerificationResult:
 
     @property
     def publishable(self) -> bool:
+        """只有明确的 PASS 才能越过用户可见的发布边界。"""
         return self.status is VerificationStatus.PASS
 
 
 class AnswerVerifier:
-    """Verify an answer before it crosses the user-visible API boundary.
+    """在回答进入用户可见 API 前进行校验。
 
-    Model failures and malformed output become ``UNKNOWN``. They never become
-    an implicit pass, so unsupported verifier states fail closed and are
-    routed to human review.
+    模型不可用或输出损坏时返回 ``UNKNOWN``，绝不隐式视作通过；因此所有
+    不受支持的状态都会 fail-closed，并交由人工复核。
     """
 
     def __init__(
@@ -47,6 +53,7 @@ class AnswerVerifier:
         model: str = "claude-3-5-sonnet-20241022",
         client: Optional[Any] = None,
     ):
+        """注入兼容 Anthropic Messages API 的客户端；未注入时按配置创建。"""
         if client is None:
             if not api_key:
                 raise ValueError("api_key is required when client is not supplied")
@@ -58,11 +65,13 @@ class AnswerVerifier:
         self._model = model
 
     async def verify(self, question: str, answer: str, context: str = "") -> VerificationResult:
+        """校验候选回答，并把任意外部异常转换成闭合的有类型结果。"""
         question = (question or "").strip()
         answer = (answer or "").strip()
         context = (context or "").strip()
 
         if not answer:
+            # 空回答是确定性的业务失败，无需浪费一次模型调用。
             return VerificationResult(
                 status=VerificationStatus.REJECT,
                 grounded=False,
@@ -105,6 +114,7 @@ class AnswerVerifier:
                 reason=reason,
             )
         except Exception as exc:
+            # 校验服务故障不能证明候选回答安全，因此统一进入人工路径。
             return VerificationResult(
                 status=VerificationStatus.UNKNOWN,
                 grounded=False,
@@ -114,6 +124,7 @@ class AnswerVerifier:
 
     @staticmethod
     def _parse_payload(raw: str) -> Dict[str, Any]:
+        """从可能带前后说明文字的响应中提取唯一 JSON 对象。"""
         start = raw.find("{")
         end = raw.rfind("}")
         if start < 0 or end < start:
