@@ -21,6 +21,7 @@ def payload():
 
 
 def test_ticket_api_create_list_detail_and_transition(tmp_path, monkeypatch):
+    """证明创建、列表、详情和合法迁移的完整 API 主路径。"""
     service = TicketService(str(tmp_path / "tickets.db"))
     monkeypatch.setattr(main, "_ticket_service", service)
     client = TestClient(main.app)
@@ -58,6 +59,7 @@ def test_ticket_api_create_list_detail_and_transition(tmp_path, monkeypatch):
 
 
 def test_ticket_api_maps_conflict_and_missing_states(tmp_path, monkeypatch):
+    """证明幂等冲突与缺失工单映射为稳定 HTTP 错误。"""
     service = TicketService(str(tmp_path / "tickets.db"))
     monkeypatch.setattr(main, "_ticket_service", service)
     client = TestClient(main.app)
@@ -77,3 +79,4 @@ def test_ticket_api_maps_conflict_and_missing_states(tmp_path, monkeypatch):
     assert illegal.json()["detail"]["error"] == "invalid_ticket_transition"
 
     assert client.get("/tickets/missing").status_code == 404
+"""工单 HTTP 投影及领域异常映射测试。"""

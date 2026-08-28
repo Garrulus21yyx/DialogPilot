@@ -44,11 +44,13 @@ def bare_manager(*, budget=512, threshold=0.7, summary_tokens=128):
     ],
 )
 def test_token_estimator_is_monotonic_for_repeated_content(short, long):
+    """证明内容增长不会导致估算 Token 反向减少。"""
     estimator = TokenEstimator()
     assert estimator.estimate(long) > estimator.estimate(short) > 0
 
 
 def test_context_assembler_preserves_real_turns_and_bounds_prompt():
+    """证明装配器保留真实最近对话，并把总输入限制在预算内。"""
     assembler = ContextAssembler(
         max_input_tokens=700,
         reserved_output_tokens=100,
@@ -78,6 +80,7 @@ def test_context_assembler_preserves_real_turns_and_bounds_prompt():
 
 
 def test_compression_trigger_uses_tokens_not_message_count():
+    """证明压缩权威触发条件是 Token，而不是消息条数。"""
     manager = bare_manager(budget=512, threshold=0.7)
     manager._redis = FakeRedis([raw_message("user", "超长问题" * 300)])
 
@@ -88,6 +91,7 @@ def test_compression_trigger_uses_tokens_not_message_count():
 
 
 def test_structured_rolling_summary_stays_valid_and_bounded():
+    """证明滚动摘要始终是结构化 JSON，且不会继续无界增长。"""
     manager = bare_manager(summary_tokens=128)
     payload = {
         "user_goal": "处理登录和扣款" * 100,
@@ -113,6 +117,7 @@ def test_structured_rolling_summary_stays_valid_and_bounded():
 
 
 def test_concurrent_write_prevents_stale_compression_commit():
+    """证明压缩期间出现并发写时旧快照不能覆盖新消息。"""
     manager = bare_manager(budget=512, threshold=0.5)
     original = [
         raw_message("assistant" if i % 2 else "user", "历史内容" * 80)
@@ -136,6 +141,7 @@ def test_concurrent_write_prevents_stale_compression_commit():
 
 
 def test_successful_compression_replaces_summary_and_preserves_recent_messages():
+    """证明无冲突提交会替换摘要，同时保留受保护的最近轮次。"""
     manager = bare_manager(budget=512, threshold=0.5, summary_tokens=128)
     original = [
         raw_message("assistant" if i % 2 else "user", f"历史-{i}-" * 80)
@@ -261,3 +267,4 @@ class StableClient:
             "user_preferences": [],
         }
         return SimpleNamespace(content=[SimpleNamespace(type="text", text=json.dumps(payload))])
+"""Token 预算、结构化摘要与并发压缩提交的不变量测试。"""

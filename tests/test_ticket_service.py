@@ -34,6 +34,7 @@ def create(
 
 
 def test_ticket_persists_across_service_instances(tmp_path):
+    """证明新服务实例仍能读取已经持久化的工单。"""
     path = tmp_path / "tickets.db"
     first = TicketService(str(path))
     ticket, created = create(first)
@@ -48,6 +49,7 @@ def test_ticket_persists_across_service_instances(tmp_path):
 
 
 def test_same_idempotent_request_returns_existing_ticket(tmp_path):
+    """证明同一幂等操作返回首个工单且 created=False。"""
     service = TicketService(str(tmp_path / "tickets.db"))
     first, first_created = create(service)
     second, second_created = create(service)
@@ -59,6 +61,7 @@ def test_same_idempotent_request_returns_existing_ticket(tmp_path):
 
 
 def test_retry_ignores_nondeterministic_generated_wording(tmp_path):
+    """证明模型措辞变化不属于客户端操作身份。"""
     service = TicketService(str(tmp_path / "tickets.db"))
     first, _ = create(service, published_response="first safe handoff wording")
     second, created = create(service, published_response="different retry wording")
@@ -69,6 +72,7 @@ def test_retry_ignores_nondeterministic_generated_wording(tmp_path):
 
 
 def test_reusing_idempotency_key_with_different_content_conflicts(tmp_path):
+    """证明同键不同稳定输入会抛出幂等冲突。"""
     service = TicketService(str(tmp_path / "tickets.db"))
     create(service, question="first question")
 
@@ -77,6 +81,7 @@ def test_reusing_idempotency_key_with_different_content_conflicts(tmp_path):
 
 
 def test_legal_transitions_are_persisted_with_event_history(tmp_path):
+    """证明合法迁移与审计事件在持久层保持一致。"""
     service = TicketService(str(tmp_path / "tickets.db"))
     ticket, _ = create(service)
 
@@ -111,6 +116,7 @@ def test_legal_transitions_are_persisted_with_event_history(tmp_path):
 
 
 def test_illegal_transition_and_closed_reopen_fail_deterministically(tmp_path):
+    """证明非法迁移和 CLOSED 重开都按状态机确定性拒绝。"""
     service = TicketService(str(tmp_path / "tickets.db"))
     ticket, _ = create(service)
 
@@ -123,6 +129,7 @@ def test_illegal_transition_and_closed_reopen_fail_deterministically(tmp_path):
 
 
 def test_same_status_transition_is_idempotent(tmp_path):
+    """证明重复目标状态不会制造额外事件。"""
     service = TicketService(str(tmp_path / "tickets.db"))
     ticket, _ = create(service)
 
@@ -133,6 +140,7 @@ def test_same_status_transition_is_idempotent(tmp_path):
 
 
 def test_list_filters_by_user_and_status(tmp_path):
+    """证明列表查询同时遵守用户和状态过滤条件。"""
     service = TicketService(str(tmp_path / "tickets.db"))
     first, _ = create(service, key="request-1", user="user-1")
     second, _ = create(service, key="request-2", user="user-2")
@@ -148,7 +156,9 @@ def test_list_filters_by_user_and_status(tmp_path):
 
 
 def test_missing_ticket_has_typed_failure(tmp_path):
+    """证明缺失工单使用领域异常，而不是模糊空值。"""
     service = TicketService(str(tmp_path / "tickets.db"))
 
     with pytest.raises(TicketNotFoundError):
         service.get_ticket("missing")
+"""TicketService 持久化、幂等身份和闭合状态机测试。"""

@@ -14,6 +14,7 @@ class FakeToolManager:
 
 
 def test_rag_fallback_is_not_published_as_business_evidence(monkeypatch):
+    """证明 fallback 诊断文本不会被标记为知识证据或注入回答上下文。"""
     monkeypatch.setattr(main, "_tool_manager", FakeToolManager([{
         "title": "知识库降级结果",
         "content": "知识库暂时不可用",
@@ -31,6 +32,7 @@ def test_rag_fallback_is_not_published_as_business_evidence(monkeypatch):
 
 
 def test_real_rag_result_is_marked_as_used(monkeypatch):
+    """证明真实检索结果才会进入知识上下文并标记 knowledge_used。"""
     monkeypatch.setattr(main, "_tool_manager", FakeToolManager([{
         "title": "退款政策",
         "content": "购买后七天内可以申请退款。",
@@ -44,3 +46,4 @@ def test_real_rag_result_is_marked_as_used(monkeypatch):
 
     assert "退款政策" in context
     assert used is True
+"""RAG 真实证据与工具降级信息之间的信任边界测试。"""

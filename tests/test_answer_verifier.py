@@ -26,6 +26,7 @@ def verify(payload=None, error=None, answer="candidate answer"):
 
 
 def test_pass_is_the_only_publishable_status():
+    """证明只有明确 PASS 才具备发布资格。"""
     result = verify('{"status":"pass","grounded":true,"reason":"supported"}')
 
     assert result.status is VerificationStatus.PASS
@@ -35,6 +36,7 @@ def test_pass_is_the_only_publishable_status():
 
 
 def test_reject_is_not_publishable_and_escalates():
+    """证明 REJECT 同时阻止发布并要求人工升级。"""
     result = verify('{"status":"reject","grounded":false,"reason":"unsupported claim"}')
 
     assert result.status is VerificationStatus.REJECT
@@ -43,6 +45,7 @@ def test_reject_is_not_publishable_and_escalates():
 
 
 def test_malformed_model_output_fails_closed():
+    """证明损坏的模型 JSON 会收敛为 UNKNOWN，而非隐式通过。"""
     result = verify("not-json")
 
     assert result.status is VerificationStatus.UNKNOWN
@@ -51,6 +54,7 @@ def test_malformed_model_output_fails_closed():
 
 
 def test_model_failure_fails_closed():
+    """证明校验供应商异常不会放行未经证明安全的回答。"""
     result = verify(error=TimeoutError("model timeout"))
 
     assert result.status is VerificationStatus.UNKNOWN
@@ -59,8 +63,10 @@ def test_model_failure_fails_closed():
 
 
 def test_empty_answer_is_rejected_without_model_call():
+    """证明空回答在本地确定性拒绝，且不浪费模型调用。"""
     result = verify(payload=None, answer="")
 
     assert result.status is VerificationStatus.REJECT
     assert result.publishable is False
     assert result.need_escalation is True
+"""回答发布校验边界的 PASS/REJECT/UNKNOWN 合同测试。"""

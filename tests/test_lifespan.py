@@ -4,6 +4,7 @@ from api import main
 
 
 def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
+    """证明 Memory 配置只传给 MemoryManager，不会误传给意图识别器。"""
     """The API boundary must send memory policy to MemoryManager, not intent."""
     import agents.agent_orchestrator as agent_module
     import core.intent_recognizer as intent_module
@@ -119,3 +120,4 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
     asyncio.run(exercise_lifespan())
     assert captured["memory_closed"] is True
     assert captured["monitor_stopped"] is True
+"""FastAPI 生命周期依赖装配和配置归属测试。"""

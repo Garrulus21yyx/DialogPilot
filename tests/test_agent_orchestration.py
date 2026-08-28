@@ -37,6 +37,7 @@ def outcome(
 
 
 def test_synthesizer_returns_partial_success_without_discarding_valid_answer():
+    """证明部分失败时保留有效回答，同时返回 PARTIAL 并升级。"""
     synthesizer = ResultSynthesizer(client=None, model="test")
     result = asyncio.run(synthesizer.synthesize(
         "question",
@@ -54,6 +55,7 @@ def test_synthesizer_returns_partial_success_without_discarding_valid_answer():
 
 
 def test_synthesizer_all_failed_is_typed_and_fail_closed():
+    """证明全部 Agent 失败会收敛为 FAILED，而不是发布空或伪造内容。"""
     synthesizer = ResultSynthesizer(client=None, model="test")
     result = asyncio.run(synthesizer.synthesize(
         "question",
@@ -70,6 +72,7 @@ def test_synthesizer_all_failed_is_typed_and_fail_closed():
 
 
 def test_synthesizer_propagates_model_detected_conflicts():
+    """证明融合模型识别的冲突会传播到状态和人工升级信号。"""
     client = JsonClient({
         "answer": "两项问题需要人工核对后处理。",
         "conflicts": ["一个结果建议立即退款，另一个要求先验证身份"],
@@ -91,6 +94,7 @@ def test_synthesizer_propagates_model_detected_conflicts():
 
 
 def test_unavailable_synthesis_preserves_route_order_and_fails_closed():
+    """证明融合器不可用时按路由顺序降级，并以 UNKNOWN 默认拒绝。"""
     synthesizer = ResultSynthesizer(client=MalformedClient(), model="test")
     result = asyncio.run(synthesizer.synthesize(
         "question",
@@ -106,6 +110,7 @@ def test_unavailable_synthesis_preserves_route_order_and_fails_closed():
 
 
 def test_orchestrator_records_timeout_and_partial_success_in_route_order():
+    """证明并行 deadline 独立生效，且 outcome 顺序稳定可诊断。"""
     orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
     orchestrator._agent_timeout_s = 0.01
     synthesizer = CapturingSynthesizer()
@@ -147,6 +152,7 @@ def test_orchestrator_records_timeout_and_partial_success_in_route_order():
 
 
 def test_orchestrator_converts_unhandled_agent_exception_to_typed_error():
+    """证明未处理异常不会越过编排边界，而会转换为 ERROR outcome。"""
     orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
     orchestrator._agent_timeout_s = 1.0
 
@@ -167,6 +173,7 @@ def test_orchestrator_converts_unhandled_agent_exception_to_typed_error():
 
 
 def test_compound_natural_request_routes_to_both_domain_owners():
+    """证明自然语言复合问题会同时路由技术与账务领域 Owner。"""
     orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
     orchestrator._pool = {
         AgentType.GENERAL: [object()],
@@ -191,6 +198,7 @@ def test_compound_natural_request_routes_to_both_domain_owners():
 
 
 def test_single_agent_execution_uses_same_typed_timeout_boundary():
+    """证明单 Agent 路径与并行路径共用同一有类型超时合同。"""
     orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
     orchestrator._agent_timeout_s = 0.01
     orchestrator._pool = {
@@ -254,3 +262,4 @@ class CapturingSynthesizer:
             successful_agents=["technical"],
             failed_agents=["billing"],
         )
+"""Agent 路由、超时与并行结果代数的核心不变量测试。"""

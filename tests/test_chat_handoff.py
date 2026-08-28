@@ -79,6 +79,7 @@ class FakeVerifier:
 
 
 def test_chat_escalation_creates_one_persistent_idempotent_ticket(tmp_path, monkeypatch):
+    """证明同一请求重试只创建一张持久工单，并返回相同 ticket_id。"""
     memory = FakeMemory()
     ticket_service = TicketService(str(tmp_path / "tickets.db"))
     orchestrator = FakeOrchestrator()
@@ -115,6 +116,8 @@ def test_chat_escalation_creates_one_persistent_idempotent_ticket(tmp_path, monk
 
 
 def test_handoff_priority_preserves_typed_critical_urgency():
+    """证明 CRITICAL 紧急度能完整投影到人工工单优先级。"""
     assert main._handoff_priority(UrgencyLevel.CRITICAL, "pass") is TicketPriority.CRITICAL
     assert main._handoff_priority(UrgencyLevel.HIGH, "reject") is TicketPriority.HIGH
     assert main._handoff_priority(UrgencyLevel.HIGH, "pass") is TicketPriority.NORMAL
+"""聊天发布边界与持久人工工单闭环的端到端测试。"""
