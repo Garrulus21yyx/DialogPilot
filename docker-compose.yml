@@ -90,6 +90,7 @@ services:
       - MEMORY_TOKEN_BUDGET=${MEMORY_TOKEN_BUDGET:-6000}
       - MEMORY_COMPRESSION_THRESHOLD=${MEMORY_COMPRESSION_THRESHOLD:-0.70}
       - MEMORY_SUMMARY_MAX_TOKENS=${MEMORY_SUMMARY_MAX_TOKENS:-1200}
+      - AGENT_TIMEOUT_SECONDS=${AGENT_TIMEOUT_SECONDS:-15}
     volumes:
       - ./data/chroma:/app/data/chroma
       - ./data/eval:/app/data/eval

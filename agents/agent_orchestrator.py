@@ -29,6 +29,11 @@ from anthropic import AsyncAnthropic
 from core.intent_recognizer import IntentCategory, IntentRecognizer, UrgencyLevel
 from core.llm_utils import extract_text_content
 from memory.context import ContextSection, PromptContext
+from services.result_synthesizer import (
+    AgentOutcome,
+    AgentOutcomeStatus,
+    ResultSynthesizer,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +78,7 @@ class AgentResponse:
     confidence:  float = 1.0
     latency_ms:  float = 0.0
     escalate:    bool  = False   # 是否需要升级
+    error:       str = ""
 
 
 @dataclass
@@ -104,6 +110,10 @@ class OrchestratorResult:
     supporting_agents: List[AgentType] = field(default_factory=list)
     routing_reason: str = ""
     routing_confidence: float = 0.0
+    synthesis_status: str = "single"
+    synthesis_reason: str = ""
+    synthesis_conflicts: List[str] = field(default_factory=list)
+    agent_outcomes: List[Dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass
@@ -162,6 +172,7 @@ class BaseAgent:
                 content="抱歉，处理您的请求时出现问题，请稍后重试。",
                 success=False,
                 latency_ms=ms,
+                error=f"{type(ex).__name__}: {str(ex)[:300]}",
             )
 
     async def _call_llm(self, req: Request) -> str:
@@ -268,6 +279,8 @@ class AgentOrchestrator:
         base_url: Optional[str] = None,
         model:    str = "claude-3-5-sonnet-20241022",
         skill_manager: Optional[Any] = None,
+        agent_timeout_s: float = 15.0,
+        result_synthesizer: Optional[ResultSynthesizer] = None,
     ):
         kwargs: Dict[str, Any] = {"api_key": api_key}
         if base_url:
@@ -276,6 +289,8 @@ class AgentOrchestrator:
 
         self._intent_recognizer = IntentRecognizer(api_key=api_key, base_url=base_url, model=model)
         self._skill_manager = skill_manager
+        self._agent_timeout_s = max(0.1, float(agent_timeout_s))
+        self._result_synthesizer = result_synthesizer or ResultSynthesizer(client, model)
 
         # Agent 池：每种类型可有多个实例（水平扩展）
         self._pool: Dict[AgentType, List[BaseAgent]] = {
@@ -369,34 +384,32 @@ class AgentOrchestrator:
         """
         t0 = time.monotonic()
         agent_types = decision.agent_types
-        tasks = [self._execute(req, at) for at in agent_types]
-        responses = await asyncio.gather(*tasks, return_exceptions=True)
-
-        # 合并：主 Agent 在前，辅助 Agent 在后。
-        parts = []
-        for r in responses:
-            if isinstance(r, AgentResponse) and r.success:
-                role = "主处理" if r.agent_type == decision.primary_agent else "辅助处理"
-                parts.append(f"[{r.agent_type.value} - {role}]\n{r.content}")
-
-        combined = "\n\n".join(parts) if parts else "抱歉，所有 Agent 均处理失败。"
-        escalated = any(isinstance(r, AgentResponse) and r.escalate for r in responses)
+        tasks = [
+            self._execute_outcome(req, agent_type, is_primary=agent_type == decision.primary_agent)
+            for agent_type in agent_types
+        ]
+        outcomes = await asyncio.gather(*tasks)
+        synthesis = await self._result_synthesizer.synthesize(req.message, outcomes)
 
         return OrchestratorResult(
             request_id=req.request_id,
-            response=combined,
+            response=synthesis.content,
             agent_type=decision.primary_agent,
             intent=req.intent,
-            escalated=escalated,
+            escalated=synthesis.escalate,
             latency_ms=(time.monotonic() - t0) * 1000,
             agent_types=[
-                r.agent_type for r in responses
-                if isinstance(r, AgentResponse) and r.success
+                AgentType(outcome.agent_type) for outcome in outcomes
+                if outcome.status is AgentOutcomeStatus.SUCCESS
             ] or agent_types,
             primary_agent=decision.primary_agent,
             supporting_agents=decision.supporting_agents,
             routing_reason=decision.reason,
             routing_confidence=decision.confidence,
+            synthesis_status=synthesis.status.value,
+            synthesis_reason=synthesis.reason,
+            synthesis_conflicts=synthesis.conflicts,
+            agent_outcomes=[outcome.to_dict() for outcome in outcomes],
         )
 
     # ── 路由逻辑 ──────────────────────────────────────────────────────────────
@@ -622,6 +635,49 @@ class AgentOrchestrator:
                 response = await fallback.handle(req)
 
         return response
+
+    async def _execute_outcome(
+        self,
+        req: Request,
+        selected_agent: AgentType,
+        *,
+        is_primary: bool,
+    ) -> AgentOutcome:
+        """Convert one selected Agent execution into the closed outcome algebra."""
+        started = time.monotonic()
+        try:
+            response = await asyncio.wait_for(
+                self._execute(req, selected_agent),
+                timeout=self._agent_timeout_s,
+            )
+        except asyncio.TimeoutError:
+            return AgentOutcome(
+                agent_type=selected_agent.value,
+                status=AgentOutcomeStatus.TIMEOUT,
+                is_primary=is_primary,
+                latency_ms=(time.monotonic() - started) * 1000,
+                error=f"agent exceeded {self._agent_timeout_s:.3f}s timeout",
+            )
+        except Exception as exc:
+            return AgentOutcome(
+                agent_type=selected_agent.value,
+                status=AgentOutcomeStatus.ERROR,
+                is_primary=is_primary,
+                latency_ms=(time.monotonic() - started) * 1000,
+                error=f"{type(exc).__name__}: {str(exc)[:300]}",
+            )
+
+        return AgentOutcome(
+            agent_type=selected_agent.value,
+            responding_agent_type=response.agent_type.value,
+            status=(AgentOutcomeStatus.SUCCESS if response.success else AgentOutcomeStatus.ERROR),
+            is_primary=is_primary,
+            content=response.content if response.success else "",
+            confidence=response.confidence,
+            latency_ms=response.latency_ms,
+            escalate=response.escalate,
+            error=response.error,
+        )
 
     # ── 统计（供 Monitor 读取）────────────────────────────────────────────────
 

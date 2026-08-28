@@ -21,6 +21,7 @@ POST /chat
   -> retrieve knowledge for business intents
   -> route to General, Technical, or Billing agents
   -> run primary/supporting agents concurrently when needed
+  -> synthesize typed SUCCESS / TIMEOUT / ERROR outcomes into one candidate
   -> verify the candidate answer (PASS / REJECT / UNKNOWN)
   -> publish only PASS answers; escalate every other outcome
   -> persist each escalation as one idempotent human-support ticket
@@ -110,6 +111,10 @@ curl -X POST http://localhost:8000/chat \
 
 The response includes the selected intent and agents, routing reason,
 knowledge usage, typed verification status, groundedness, and escalation flag.
+Parallel responses also expose `synthesis_status`, conflict details, and each
+selected Agent's typed execution outcome. Per-Agent timeouts allow useful
+partial results to survive, while any missing selected result or detected
+conflict triggers escalation.
 When escalation is required it also returns `ticket_id`, `ticket_status`, and
 whether that request created the ticket or reused an idempotent existing one.
 

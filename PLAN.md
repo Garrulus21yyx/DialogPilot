@@ -31,13 +31,13 @@ private Python portfolio repository under the DialogPilot name.
 - [done] Replace append-only prose summaries with a bounded structured rolling summary.
 - [done] Preserve the recent turn and use an atomic/versioned Redis rewrite so compression cannot discard concurrent writes.
 - [done] Assemble memory, retrieved knowledge, actual history, and the current request without fabricated assistant acknowledgements.
-- [in_progress] Verify bounded summaries, recent-turn preservation, token-trigger behavior, and concurrent-write preservation; push immediately and obtain green CI.
+- [done] Verify bounded summaries, recent-turn preservation, token-trigger behavior, and concurrent-write preservation; push immediately and obtain green CI.
 
 ### 2. Multi-agent result synthesis
 
-- [pending] Define typed agent outcomes and one authoritative result synthesizer.
-- [pending] Add per-agent timeouts, partial-success semantics, conflict/escalation propagation, and deterministic output ordering.
-- [pending] Verify success, timeout, exception, conflict, and all-failed paths; push immediately and obtain green CI.
+- [done] Define typed agent outcomes and one authoritative result synthesizer.
+- [done] Add per-agent timeouts, partial-success semantics, conflict/escalation propagation, and deterministic output ordering.
+- [in_progress] Verify success, timeout, exception, conflict, and all-failed paths; push immediately and obtain green CI.
 
 ### 3. Quality-aware routing feedback
 

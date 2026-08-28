@@ -117,6 +117,7 @@ async def lifespan(app: FastAPI):
         base_url=cfg.get("base_url"),
         model=cfg["model"],
         skill_manager=_skill_manager,
+        agent_timeout_s=float(os.getenv("AGENT_TIMEOUT_SECONDS", "15")),
     )
     _answer_verifier = AnswerVerifier(
         api_key=cfg["api_key"],
@@ -251,6 +252,10 @@ class ChatResponse(BaseModel):
     supporting_agents: List[str] = Field(default_factory=list)
     routing_reason: str = ""
     routing_confidence: float = 0.0
+    synthesis_status: str = "single"
+    synthesis_reason: str = ""
+    synthesis_conflicts: List[str] = Field(default_factory=list)
+    agent_outcomes: List[Dict[str, Any]] = Field(default_factory=list)
     escalated:   bool
     latency_ms:  float
     knowledge_used: bool = False
@@ -434,6 +439,10 @@ async def chat(req: ChatRequest):
         supporting_agents=[agent_type.value for agent_type in result.supporting_agents],
         routing_reason=result.routing_reason,
         routing_confidence=result.routing_confidence,
+        synthesis_status=result.synthesis_status,
+        synthesis_reason=result.synthesis_reason,
+        synthesis_conflicts=result.synthesis_conflicts,
+        agent_outcomes=result.agent_outcomes,
         escalated=escalated,
         latency_ms=round(result.latency_ms, 1),
         knowledge_used=knowledge_used,

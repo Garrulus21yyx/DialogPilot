@@ -8,7 +8,8 @@ similarity, and rules, retrieves business knowledge through a reliable tool
 layer, and uses a token-budgeted context assembler with bounded structured
 rolling summaries. It routes requests to general, technical, or billing agents. Complex
 requests can execute agents concurrently. Before returning a response, a typed
-verifier allows only explicitly passed answers to be published; failures are
+result synthesizer isolates per-Agent timeouts, preserves partial success, and
+detects cross-Agent conflicts. A verifier then allows only explicitly passed answers to be published; failures are
 escalated deterministically into an idempotent SQLite-backed human ticket with
 a typed lifecycle and audit history. Prometheus monitoring and LLM-as-Judge
 evaluation close the online and offline feedback loops.
@@ -32,7 +33,10 @@ latency, and reranking cost.
 
 General, technical, and billing prompts encode different response policies.
 The orchestrator owns selection and can run primary/supporting agents in
-parallel for mixed requests such as login failure plus duplicate billing.
+parallel for mixed requests such as login failure plus duplicate billing. Each
+execution becomes a closed `SUCCESS / TIMEOUT / ERROR` outcome, and one
+ResultSynthesizer owns deduplication, conflict detection, output order, and
+partial-success escalation.
 
 ### Why compress by tokens instead of message count?
 

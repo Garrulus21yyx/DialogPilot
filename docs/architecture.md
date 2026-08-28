@@ -8,6 +8,7 @@ prompt chain.
 | HTTP contract | `api/main.py` | Validated request/response models |
 | Intent | `core/intent_recognizer.py` | Intent, confidence, urgency, entities |
 | Agent selection | `agents/agent_orchestrator.py` | Structured routing decision |
+| Parallel synthesis | `services/result_synthesizer.py` | One candidate, conflicts, and escalation decision |
 | Tool reliability | `mcp/tool_manager.py` | Typed tool result and runtime statistics |
 | Knowledge | `mcp/knowledge_base.py` | Retrieved ChromaDB documents |
 | Conversation memory | `memory/conversation_memory.py` | Working, episodic, profile, and rolling-summary state |
@@ -24,10 +25,11 @@ prompt chain.
 2. Classify once; reuse that result for knowledge selection and routing.
 3. Retrieve knowledge only for supported business intents.
 4. Execute one or more selected agents.
-5. Verify the candidate answer before it crosses the response boundary.
-6. If escalation is required, create or reuse one idempotent persistent ticket.
-7. Persist only the answer that was actually published.
-8. Update the user profile asynchronously after persistence.
+5. Convert parallel executions to typed outcomes and synthesize one candidate.
+6. Verify the candidate answer before it crosses the response boundary.
+7. If escalation is required, create or reuse one idempotent persistent ticket.
+8. Persist only the answer that was actually published.
+9. Update the user profile asynchronously after persistence.
 
 This ordering prevents the memory store from claiming that an unverified model
 answer was shown to the user.
@@ -46,6 +48,16 @@ retrieved knowledge, and profile data remain tagged data sections; real
 user/assistant history remains real messages. It reserves output capacity,
 trims oldest history, and never inserts fabricated assistant acknowledgements.
 
+## Parallel outcome algebra
+
+Each selected Agent finishes as `SUCCESS`, `TIMEOUT`, or `ERROR` within its own
+deadline. `ResultSynthesizer` is the only component that converts those ordered
+outcomes into a candidate answer. One surviving result is preserved as a
+partial answer; no successful result becomes `FAILED`; incompatible successful
+results become `CONFLICT`; and an unavailable synthesis model becomes
+`UNKNOWN`. Partial, conflict, failed, and unknown outcomes all fail closed to
+human escalation while retaining diagnostic outcome metadata.
+
 ## Failure semantics
 
 - Unknown intent with low confidence asks a clarification question.
@@ -58,6 +70,8 @@ trims oldest history, and never inserts fabricated assistant acknowledgements.
   explicitly asks the client to retry with the same `request_id`.
 - A compression model failure uses a bounded deterministic summary; a stale
   compression snapshot is not committed.
+- Agent timeout or exception is a typed outcome. Partial synthesis remains
+  usable but escalates; all-failed and unverifiable synthesis fail closed.
 
 ## Ticket state algebra
 
