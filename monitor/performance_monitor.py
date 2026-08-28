@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 # ── 数据结构 ──────────────────────────────────────────────────────────────────
 
 class Severity(Enum):
+    """告警严重度的闭合集合。"""
     INFO     = "info"
     WARNING  = "warning"
     ERROR    = "error"
@@ -38,6 +39,7 @@ class Severity(Enum):
 
 @dataclass
 class Alert:
+    """一次阈值越界的可序列化告警快照。"""
     severity:    Severity
     metric:      str
     message:     str
@@ -67,6 +69,7 @@ class AnomalyDetector:
     """
 
     def __init__(self, window: int = 60, sensitivity: float = 2.5):
+        """为每个指标创建固定窗口，并配置 Z-score 灵敏度。"""
         self._window      = window
         self._sensitivity = sensitivity
         self._history: Dict[str, Deque[float]] = defaultdict(lambda: deque(maxlen=window))
@@ -126,6 +129,7 @@ class PerformanceMonitor:
         webhook_url:      Optional[str] = None,
         prometheus_port:  Optional[int] = None,   # None = 不启动
     ):
+        """连接指标生产者，配置采集周期、Webhook 和可选 Prometheus。"""
         self._orchestrator = orchestrator
         self._tool_manager = tool_manager
         self._interval     = interval_s
@@ -143,6 +147,7 @@ class PerformanceMonitor:
             self._setup_prometheus(prometheus_port)
 
     def _setup_prometheus(self, port: int) -> None:
+        """注册进程级指标并启动独立 Prometheus HTTP 端口。"""
         self._prom = {
             "agent_success_rate": Gauge("agent_success_rate", "Agent 成功率", ["agent"]),
             "agent_quality_score": Gauge("agent_quality_score", "经样本置信度收缩的 Agent 回答质量", ["agent"]),
@@ -156,6 +161,7 @@ class PerformanceMonitor:
     # ── 生命周期 ──────────────────────────────────────────────────────────────
 
     async def start(self) -> None:
+        """幂等启动后台采集任务。"""
         if self._active:
             return
         self._active = True
@@ -163,6 +169,7 @@ class PerformanceMonitor:
         logger.info(f"Monitor 已启动，采集间隔 {self._interval}s")
 
     async def stop(self) -> None:
+        """取消并等待后台任务结束，保证应用关闭不遗留协程。"""
         self._active = False
         if self._task:
             self._task.cancel()
@@ -174,6 +181,7 @@ class PerformanceMonitor:
     # ── 采集循环 ──────────────────────────────────────────────────────────────
 
     async def _loop(self) -> None:
+        """隔离单次采集异常，使监控循环能够继续运行。"""
         while self._active:
             try:
                 await self._collect()
@@ -253,6 +261,7 @@ class PerformanceMonitor:
         return min(penalty, 0.9)
 
     def _check_threshold(self, metric: str, value: float, label: str) -> None:
+        """按指标方向判断阈值，并异步触发非阻塞告警。"""
         if metric not in self.THRESHOLDS:
             return
         threshold, severity, operator = self.THRESHOLDS[metric]
@@ -292,12 +301,14 @@ class PerformanceMonitor:
                 ))
 
     def _add_suggestion(self, s: Suggestion) -> None:
+        """按标题去重建议，防止周期采集无限追加同一动作。"""
         # 去重：相同 title 不重复添加
         if not any(x.title == s.title for x in self._suggestions):
             self._suggestions.append(s)
             logger.info(f"优化建议 [P{s.priority}]: {s.title}")
 
     async def _send_webhook(self, alert: Alert) -> None:
+        """在短超时内投递告警；失败只记录日志，不阻塞采集。"""
         try:
             async with httpx.AsyncClient(timeout=5.0) as c:
                 await c.post(self._webhook, json=asdict(alert))  # type: ignore

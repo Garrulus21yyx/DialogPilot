@@ -61,6 +61,7 @@ _ticket_service = None
 _context_assembler = None
 
 def _anthropic_cfg() -> Dict[str, Any]:
+    """读取模型供应商配置，并在应用启动前验证必需 API Key。"""
     key = os.getenv("ANTHROPIC_API_KEY", "")
     if not key:
         raise RuntimeError("未设置 ANTHROPIC_API_KEY")
@@ -76,6 +77,7 @@ def _anthropic_cfg() -> Dict[str, Any]:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """按依赖顺序创建所有组件，并在退出时释放后台任务和连接。"""
     global _orchestrator, _memory, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _context_assembler
 
     print(BANNER, flush=True)
@@ -160,6 +162,7 @@ async def lifespan(app: FastAPI):
     logger.info(f"知识库已加载: {await kb.doc_count_async()} 个文档片段")
 
     def knowledge_fallback(params: Dict[str, Any], context: Optional[Dict[str, Any]], error: str):
+        """知识检索不可用时返回可诊断降级信息，但不冒充真实业务证据。"""
         query = params.get("query", "")
         return [{
             "title": "知识库降级结果",
@@ -234,6 +237,7 @@ app.add_middleware(
 
 # ── 请求/响应模型 ─────────────────────────────────────────────────────────────
 class ChatRequest(BaseModel):
+    """聊天入口的外部请求合同。"""
     message:     str
     user_id:     str = "anonymous"
     conv_id:     Optional[str] = None
@@ -241,6 +245,7 @@ class ChatRequest(BaseModel):
 
 
 class ChatResponse(BaseModel):
+    """用户可见回答及路由、校验、工单等诊断投影。"""
     request_id:  str
     conv_id:     str
     response:    str
@@ -273,6 +278,7 @@ class ChatResponse(BaseModel):
 
 
 class TicketCreateRequest(BaseModel):
+    """人工或外部系统主动创建工单的输入合同。"""
     idempotency_key: str = Field(min_length=1, max_length=200)
     user_id: str = Field(min_length=1, max_length=200)
     conv_id: str = Field(min_length=1, max_length=200)
@@ -287,6 +293,7 @@ class TicketCreateRequest(BaseModel):
 
 
 class TicketStatusUpdate(BaseModel):
+    """工单状态迁移请求；合法性仍由 TicketService 判断。"""
     status: TicketStatus
     actor: str = Field(min_length=1, max_length=200)
     note: str = Field(default="", max_length=1000)
@@ -296,6 +303,7 @@ class TicketStatusUpdate(BaseModel):
 # ── 路由 ──────────────────────────────────────────────────────────────────────
 @app.get("/health")
 async def health():
+    """汇总依赖就绪状态和运行时统计，不承担业务健康修复。"""
     if _orchestrator is None:
         raise HTTPException(503, "服务未就绪")
     return {"status": "ok", "agents": _orchestrator.get_stats()}
@@ -468,6 +476,7 @@ async def chat(req: ChatRequest):
 
 
 def _handoff_priority(urgency: Any, verification_status: str) -> TicketPriority:
+    """把意图紧急度与发布校验结果投影为人工队列优先级。"""
     urgency_value = getattr(urgency, "value", urgency)
     urgency_name = str(getattr(urgency, "name", "")).lower()
     if urgency_name == "critical" or urgency_value in {"critical", 4}:
@@ -807,6 +816,7 @@ async def run_eval(body: Optional[EvalRunInput] = None):
 
 # ── 交互式 CLI ────────────────────────────────────────────────────────────────
 async def _cli():
+    """提供无需启动 HTTP 服务的最小交互式调试入口。"""
     print(BANNER)
     print("DialogPilot CLI — 输入 quit 退出\n")
 

@@ -41,6 +41,7 @@ logger = logging.getLogger(__name__)
 # ── 数据结构 ──────────────────────────────────────────────────────────────────
 
 class AgentType(Enum):
+    """当前路由器支持的领域 Agent 类型。"""
     GENERAL   = "general"    # 通用客服
     TECHNICAL = "technical"  # 技术支持
     BILLING   = "billing"    # 账单/退款
@@ -66,14 +67,17 @@ class AgentStats:
 
     @property
     def success_rate(self) -> float:
+        """计算执行可用性；它不代表回答内容质量。"""
         return self.success / self.total if self.total else 1.0
 
     @property
     def avg_ms(self) -> float:
+        """计算该实例已完成请求的平均延迟。"""
         return self.total_ms / self.total if self.total else 0.0
 
     @property
     def quality_score(self) -> float:
+        """用带先验收缩的 EWMA 表达经校验的回答质量。"""
         confidence = min(
             1.0,
             self.quality_samples / self.QUALITY_FULL_CONFIDENCE_SAMPLES,
@@ -81,6 +85,7 @@ class AgentStats:
         return self.QUALITY_PRIOR * (1.0 - confidence) + self.quality_ewma * confidence
 
     def record_verification(self, status: str) -> None:
+        """只把 PASS/REJECT 归因给生产该候选回答的实例。"""
         normalized = str(getattr(status, "value", status)).lower()
         if normalized == "unknown":
             self.verification_unknown += 1
@@ -99,7 +104,7 @@ class AgentStats:
         )
 
     def routing_score(self) -> float:
-        """Combine execution availability, verified quality, and latency."""
+        """联合执行可用性、经校验质量、延迟和监控惩罚计算路由分。"""
         latency_score = 1.0 / (1.0 + self.avg_ms / 1000)
         base_score = (
             self.success_rate * 0.35
@@ -111,6 +116,7 @@ class AgentStats:
 
 @dataclass
 class AgentResponse:
+    """单 Agent 成功执行后返回的内容、置信度和生产者证据。"""
     agent_type:  AgentType
     content:     str
     success:     bool
@@ -123,6 +129,7 @@ class AgentResponse:
 
 @dataclass
 class Request:
+    """领域 Agent 接收的内部请求合同。"""
     message:     str
     user_id:     str
     conv_id:     str
@@ -139,6 +146,7 @@ class Request:
 
 @dataclass
 class OrchestratorResult:
+    """编排层返回给 API 的候选回答、路由和融合证据。"""
     request_id:  str
     response:    str
     agent_type:  AgentType
@@ -167,10 +175,12 @@ class RoutingDecision:
 
     @property
     def agent_types(self) -> List[AgentType]:
+        """按主 Agent 在前、辅助 Agent 在后的稳定顺序返回类型。"""
         return [self.primary_agent] + self.supporting_agents
 
     @property
     def multi_agent(self) -> bool:
+        """指示本次路由是否需要并行执行多个领域 Owner。"""
         return bool(self.supporting_agents)
 
 
@@ -189,6 +199,7 @@ class BaseAgent:
         skill_manager: Optional[Any] = None,
         instance_id: str = "",
     ):
+        """保存 Agent 身份、模型客户端、Skill 入口和运行统计。"""
         self._client = client
         self._model  = model
         self._skill_manager = skill_manager
@@ -196,6 +207,7 @@ class BaseAgent:
         self.stats   = AgentStats()
 
     async def handle(self, req: Request) -> AgentResponse:
+        """执行一次领域处理，并在实例级记录可用性与延迟。"""
         t0 = time.monotonic()
         self.stats.total += 1
         try:
@@ -226,7 +238,9 @@ class BaseAgent:
             )
 
     async def _call_llm(self, req: Request) -> str:
+        """把内部请求转换为模型调用，并归一化文本响应。"""
         def _clean(s: str) -> str:
+            """清除代理字符，避免第三方兼容端点编码 Prompt 失败。"""
             return s.encode("utf-8", errors="ignore").decode("utf-8")
 
         if req.prompt_context is not None:
@@ -272,6 +286,7 @@ class BaseAgent:
 
 
 class GeneralAgent(BaseAgent):
+    """处理无法归入特定专业域的通用客服请求。"""
     agent_type    = AgentType.GENERAL
     system_prompt = (
         "你是 DialogPilot 智能客服。友好、简洁地回答用户问题。"
@@ -280,6 +295,7 @@ class GeneralAgent(BaseAgent):
 
 
 class TechnicalAgent(BaseAgent):
+    """拥有登录、崩溃、错误码等技术排障回答。"""
     agent_type    = AgentType.TECHNICAL
     system_prompt = (
         "你是技术支持专家。专注于：故障排查、错误诊断、系统配置。"
@@ -288,6 +304,7 @@ class TechnicalAgent(BaseAgent):
 
 
 class BillingAgent(BaseAgent):
+    """拥有扣款、退款、发票等账务领域回答。"""
     agent_type    = AgentType.BILLING
     system_prompt = (
         "你是账单服务专家。专注于：账单查询、退款申请、发票问题、订阅管理。"
@@ -332,6 +349,7 @@ class AgentOrchestrator:
         agent_timeout_s: float = 15.0,
         result_synthesizer: Optional[ResultSynthesizer] = None,
     ):
+        """创建 Agent 池、意图识别器、融合器和路由反馈状态。"""
         kwargs: Dict[str, Any] = {"api_key": api_key}
         if base_url:
             kwargs["base_url"] = base_url
@@ -633,6 +651,7 @@ class AgentOrchestrator:
         primary_agent: AgentType,
         supporting_agents: List[AgentType],
     ) -> str:
+        """把路由分数和主辅选择转换为可诊断原因文本。"""
         score_text = ", ".join(
             f"{agent_type.value}={score:.2f}"
             for agent_type, score in sorted(scores.items(), key=lambda item: item[1], reverse=True)
@@ -727,7 +746,7 @@ class AgentOrchestrator:
         *,
         is_primary: bool,
     ) -> AgentOutcome:
-        """Convert one selected Agent execution into the closed outcome algebra."""
+        """把一次选中 Agent 的执行收敛为闭合的 outcome 结果代数。"""
         started = time.monotonic()
         try:
             response = await asyncio.wait_for(
@@ -767,6 +786,7 @@ class AgentOrchestrator:
     # ── 统计（供 Monitor 读取）────────────────────────────────────────────────
 
     def get_stats(self) -> Dict[str, Any]:
+        """暴露各实例的可用性、质量、延迟与当前路由分数。"""
         result = {}
         for agents in self._pool.values():
             for agent in agents:

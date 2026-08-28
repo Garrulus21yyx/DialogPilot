@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class IntentTestCase:
+    """一条意图识别标注样本。"""
     message:          str
     expected_intent:  str
     context:          Optional[Dict[str, Any]] = None
@@ -53,11 +54,13 @@ class QualityScores:
 
     @property
     def overall(self) -> float:
+        """四个质量维度等权平均后的综合分。"""
         return statistics.mean([self.relevance, self.accuracy, self.completeness, self.helpfulness])
 
 
 @dataclass
 class EvalResult:
+    """单个评测用例的结果、评分和版本化元数据。"""
     test_id:    str
     passed:     bool
     scores:     Dict[str, float]
@@ -107,6 +110,7 @@ Agent 响应: {response}
 只返回 JSON，例如: {{"relevance": 0.9, "accuracy": 0.8, "completeness": 0.7, "helpfulness": 0.85}}"""
 
     def __init__(self, client: AsyncAnthropic, model: str):
+        """保存独立 Judge 客户端和固定模型版本。"""
         self._client = client
         self._model  = model
 
@@ -116,6 +120,7 @@ Agent 响应: {response}
         response: str,
         context: Optional[str] = None,
     ) -> QualityScores:
+        """对一次问答进行四维评分；Judge 故障显式标记而非伪装通过。"""
         ctx_section = f"背景信息: {context}" if context else ""
         prompt = self.JUDGE_PROMPT.format(
             question=question,
@@ -161,9 +166,11 @@ class IntentEvaluator:
     """评测意图识别的准确率和 F1。"""
 
     def __init__(self, recognizer: IntentRecognizer):
+        """注入被测意图识别器。"""
         self._recognizer = recognizer
 
     async def evaluate(self, cases: List[IntentTestCase]) -> Dict[str, Any]:
+        """运行全部样本并计算 accuracy、macro-F1 与逐类指标。"""
         predictions, ground_truth = [], []
         case_details: List[Dict[str, Any]] = []
 
@@ -233,6 +240,7 @@ class EndToEndEvaluator:
         model:    str = "claude-3-5-sonnet-20241022",
         baseline_path: Optional[str] = None,
     ):
+        """组装意图评测、LLM Judge、编排器和可选持久基线。"""
         kwargs: Dict[str, Any] = {"api_key": api_key}
         if base_url:
             kwargs["base_url"] = base_url
@@ -379,6 +387,7 @@ class EndToEndEvaluator:
 
     @staticmethod
     def _dialog_turns(case: Dict[str, Any]) -> List[str]:
+        """兼容单问题与多轮输入格式，提取有效用户轮次。"""
         turns = case.get("turns")
         if isinstance(turns, list):
             return [str(t) for t in turns if str(t).strip()]
@@ -387,6 +396,7 @@ class EndToEndEvaluator:
 
     @staticmethod
     def _history_context(history: List[Dict[str, str]]) -> str:
+        """将已发生对话投影为 Judge 使用的只读背景文本。"""
         if not history:
             return ""
         lines = [f"{m['role']}: {m['content']}" for m in history[-8:]]
@@ -413,6 +423,7 @@ class EndToEndEvaluator:
         scores: Dict[str, float],
         intent_metrics: Dict[str, Any],
     ) -> List[str]:
+        """根据指标缺口和回归项生成可操作的改进建议。"""
         recs = []
         if scores.get("intent_accuracy", 1.0) < 0.90:
             recs.append("意图识别准确率 < 90%：增加 Few-shot 示例，或对低 F1 的意图类别补充训练数据")
@@ -428,9 +439,11 @@ class EndToEndEvaluator:
 
     @property
     def history(self) -> List[EvalReport]:
+        """返回进程内评测报告副本。"""
         return self._history
 
     def _load_baseline(self) -> Optional[EvalReport]:
+        """从磁盘恢复基线；损坏或缺失时返回空而不中断启动。"""
         if not self._baseline_path or not self._baseline_path.exists():
             return None
         try:
@@ -441,6 +454,7 @@ class EndToEndEvaluator:
             return None
 
     def _save_baseline(self, report: EvalReport) -> None:
+        """将首个有效报告原子语义地写为后续回归比较基线。"""
         if not self._baseline_path:
             return
         try:
@@ -455,6 +469,7 @@ class EndToEndEvaluator:
 
     @staticmethod
     def _report_from_dict(data: Dict[str, Any]) -> EvalReport:
+        """把持久 JSON 在边界恢复为有类型评测报告。"""
         return EvalReport(
             timestamp=data.get("timestamp", ""),
             total=int(data.get("total", 0)),
