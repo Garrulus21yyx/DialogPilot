@@ -58,7 +58,7 @@ private Python portfolio repository under the DialogPilot name.
 - [done] Trace every authoritative owner and the `/chat`, memory, retrieval, routing, synthesis, verification, ticket, monitoring, and evaluation paths from code.
 - [done] Write one self-contained Chinese tutorial page with diagrams, data contracts, failure paths, configuration, tests, and the implemented change history.
 - [done] Add interviewer follow-up questions with evidence-bounded model answers and explicit current limitations.
-- [in_progress] Run a fresh-reader comprehension review, repair gaps, link the page from README, test, push, and obtain green CI.
+- [done] Run a fresh-reader comprehension review, repair gaps, link the page from README, test, push, and obtain green CI.
 
 ## Constraints
 
