@@ -69,7 +69,7 @@ Goal: make the Python repository readable to a Chinese-speaking maintainer witho
 - [done] Add concise Chinese intent/invariant comments to tests so each acceptance gate explains what it proves.
 - [done] Audit Docker, Compose, Nginx, Prometheus and shell scripts that already contain Chinese operational comments; annotate CI and Page assets where coverage was missing.
 - [done] Run Python/JavaScript/Shell syntax checks, all 42 tests, whitespace checks, and a repository-wide Python docstring coverage audit.
-- [in_progress] Confirm the final CI and GitHub Pages runs remain green after the progress record is pushed.
+- [done] Confirm the final CI and GitHub Pages runs remain green after the progress record is pushed (`33159826152`, `33159824710`).
 
 Comment contract:
 
