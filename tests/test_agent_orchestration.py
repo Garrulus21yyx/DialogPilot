@@ -190,6 +190,36 @@ def test_compound_natural_request_routes_to_both_domain_owners():
     assert decision.agent_types == [AgentType.TECHNICAL, AgentType.BILLING]
 
 
+def test_single_agent_execution_uses_same_typed_timeout_boundary():
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    orchestrator._agent_timeout_s = 0.01
+    orchestrator._pool = {
+        AgentType.GENERAL: [object()],
+        AgentType.TECHNICAL: [object()],
+        AgentType.BILLING: [object()],
+    }
+
+    async def execute(_req, _agent_type):
+        await asyncio.sleep(0.05)
+
+    orchestrator._execute = execute
+    request = Request(
+        message="应用登录失败",
+        user_id="user",
+        conv_id="conversation",
+        intent=IntentCategory.TECHNICAL_LOGIN,
+        intent_group="technical",
+        intent_confidence=0.9,
+    )
+
+    result = asyncio.run(orchestrator.run(request))
+
+    assert result.escalated is True
+    assert result.synthesis_status == "single"
+    assert result.agent_outcomes[0]["status"] == "timeout"
+    assert result.producer_agent_keys == []
+
+
 class JsonClient:
     def __init__(self, payload):
         self.payload = payload

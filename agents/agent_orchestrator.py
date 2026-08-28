@@ -400,12 +400,25 @@ class AgentOrchestrator:
         if decision.multi_agent:
             return await self.run_parallel(req, decision)
 
-        # 2. 执行主 Agent（含降级）
-        response = await self._execute(req, decision.primary_agent)
+        # 2. 执行主 Agent（含降级），与并行路径共用同一个 deadline/outcome 边界。
+        outcome = await self._execute_outcome(
+            req,
+            decision.primary_agent,
+            is_primary=True,
+        )
+        succeeded = outcome.status is AgentOutcomeStatus.SUCCESS
+        responding_type = (
+            AgentType(outcome.responding_agent_type)
+            if outcome.responding_agent_type
+            else decision.primary_agent
+        )
+        response_content = outcome.content if succeeded else (
+            "专业 Agent 未能在限定时间内完成处理，已转交人工进一步确认。"
+        )
 
         # 4. 升级检查
-        escalated = False
-        if response.escalate or req.urgency == UrgencyLevel.CRITICAL or req.intent in (
+        escalated = not succeeded
+        if outcome.escalate or req.urgency == UrgencyLevel.CRITICAL or req.intent in (
             IntentCategory.ESCALATION,
             IntentCategory.HUMAN_HANDOFF,
         ):
@@ -415,30 +428,23 @@ class AgentOrchestrator:
 
         return OrchestratorResult(
             request_id=req.request_id,
-            response=response.content,
-            agent_type=response.agent_type,
+            response=response_content,
+            agent_type=responding_type,
             intent=req.intent,
             escalated=escalated,
             latency_ms=(time.monotonic() - t0) * 1000,
-            agent_types=[response.agent_type],
+            agent_types=[responding_type],
             primary_agent=decision.primary_agent,
             supporting_agents=[],
             routing_reason=decision.reason,
             routing_confidence=decision.confidence,
-            synthesis_reason="single Agent candidate",
-            agent_outcomes=[AgentOutcome(
-                agent_type=decision.primary_agent.value,
-                responding_agent_type=response.agent_type.value,
-                agent_key=response.agent_key,
-                status=(AgentOutcomeStatus.SUCCESS if response.success else AgentOutcomeStatus.ERROR),
-                is_primary=True,
-                content=response.content if response.success else "",
-                confidence=response.confidence,
-                latency_ms=response.latency_ms,
-                escalate=response.escalate,
-                error=response.error,
-            ).to_dict()],
-            producer_agent_keys=[response.agent_key] if response.success and response.agent_key else [],
+            synthesis_reason=(
+                "single Agent candidate"
+                if succeeded
+                else "single Agent failed or timed out"
+            ),
+            agent_outcomes=[outcome.to_dict()],
+            producer_agent_keys=[outcome.agent_key] if succeeded and outcome.agent_key else [],
         )
 
     async def run_parallel(self, req: Request, decision: RoutingDecision) -> OrchestratorResult:
