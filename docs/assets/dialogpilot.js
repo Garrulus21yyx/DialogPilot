@@ -36,7 +36,7 @@
 
     const meta = document.createElement("div");
     meta.className = "dp-hero-meta";
-    ["24 chapters", "25 interview drills", "42 regression tests", "4 typed repair audits"].forEach(function (label) {
+    ["25 chapters", "46 interview drills", "42 regression tests", "4 typed repair audits"].forEach(function (label) {
       const item = document.createElement("span");
       item.textContent = label;
       meta.appendChild(item);
@@ -95,14 +95,11 @@
     return { rail: rail, headings: headings, links: Array.from(nav.querySelectorAll("a")) };
   }
 
-  // 将面试题章节改造成原生 details，保留键盘操作和无脚本降级能力。
+  // 将所有 Q 编号追问改造成原生 details，保留键盘操作和无脚本降级能力。
   function makeQuestionsCollapsible(content) {
-    const interview = Array.from(content.querySelectorAll(".dp-chapter")).find(function (chapter) {
-      return /^22\./.test(chapter.dataset.title || "");
+    const headings = Array.from(content.querySelectorAll(".dp-chapter > h3")).filter(function (heading) {
+      return /^Q\d+：/.test(textOf(heading));
     });
-    if (!interview) return;
-
-    const headings = Array.from(interview.querySelectorAll(":scope > h3"));
     headings.forEach(function (heading, index) {
       const details = document.createElement("details");
       details.className = "qa-card";

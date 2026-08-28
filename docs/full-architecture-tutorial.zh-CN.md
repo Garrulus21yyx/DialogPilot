@@ -8,7 +8,7 @@
 - 想吃透 Agent：读第 6、9、10、11、12、14 章；
 - 想吃透 Context/Memory：读第 8 章；
 - 想吃透后端可靠性：读第 7、13、17、18、21 章；
-- 面试前速查：直接读第 22 章和第 23 章自测。
+- 面试前速查：读第 22 章连续追问、第 23 章闭卷自测，再用第 24 章做真实性审计。
 
 ## 0. 先把项目说准确
 
@@ -1231,3 +1231,145 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 10. 用 30 秒、3 分钟、10 分钟三个版本讲同一个项目，事实范围保持一致。
 
 如果这十题都能在不看页面时答出来，你就不是在背项目名词，而是在按真实架构和证据讲项目。
+
+## 24. 项目真实性自查：7 个维度、21 个追问
+
+这一章参考图片中“细节颗粒度、决策过程、踩坑经历”三个暴露位置，但问题和答案全部重新落到 DialogPilot 当前代码。使用方法不是背诵：先遮住答案回答，再点击展开对照；凡是只能说“教程默认如此”的位置，都应继续回到代码、测试或实验记录补证据。
+
+### 维度一：参数颗粒度
+
+### Q26：知识库的 chunk size 和 overlap 到底是多少？
+
+**答：** [`KnowledgeBase._chunk_text()`](../mcp/knowledge_base.py) 的默认 `chunk_size=500`，单位是 Python 字符数，不是 Token；导入时按句号和换行累积句子，超过 500 才切片。当前实现没有 overlap，也没有 token-aware splitter。
+
+**为什么这样选：** 这是面向小型客服 FAQ 的简单基线，优点是依赖少、行为确定；缺点是长句可能超过预算，跨 chunk 事实可能断裂。仓库没有 256/500/800 与不同 overlap 的消融数据，所以只能说“当前配置是 500、无 overlap”，不能说它已经最优。
+
+### Q27：一次 Prompt 的 Token 预算如何分配？
+
+**答：** 默认完整输入上限 12000，为模型输出预留 1536，再预留 768 固定 system 开销；扣除当前用户消息后，剩余容量默认 55% 给 memory/knowledge sections、45% 给历史。section 按优先级装入，历史从最新消息向前保留；历史没用完的容量会返还给 section。
+
+**追问：为什么不用精确 tokenizer？** 当前 `TokenEstimator` 是 provider-independent preflight：中文字符约按 `2/3 token`、其他字符约按 `1/4 token` 估算。它换取速度和无供应商依赖，但不是账单级精度；生产版应按实际模型 tokenizer 或 usage 反馈校准，并保留安全余量。
+
+### Q28：检索、缓存和超时的具体参数是什么？
+
+**答：** `/chat` 最终使用 Top-3 知识片段；公开 `/search` 默认 Top-5。检索会保留原 query，再尝试生成 3 个改写 query；每路至少召回 5 条，合并去重后重排到最终 Top-K。`knowledge_search` TTL 是 300 秒，通用工具默认 timeout 30 秒，单 Agent deadline 默认 15 秒。
+
+**追问：这些数值怎么证明？** 它们是代码中的工程初值，不是离线寻优结果。面试时应指向配置 Owner 和失败语义；如果声称“最佳”，必须补 Top-K、改写数、TTL、timeout 的质量/延迟/成本曲线。
+
+### 维度二：技术决策过程
+
+### Q29：为什么选择 ChromaDB，而不是 Faiss 或 Milvus？
+
+**答：** 当前原型同时需要知识库、情景记忆和用户画像三个 collection，以及持久化、metadata filter 和本地/服务端两种运行方式。ChromaDB 用一个较轻的接口覆盖这些需要，适合单仓库演示。Faiss 更接近向量索引库，持久化和 metadata 需要自行补；Milvus 更适合独立、规模化向量服务，但部署和运维成本更高。
+
+**事实边界：** 仓库没有做三者 benchmark，因此这是一项基于项目规模和运维复杂度的取舍，不是性能结论。流量、数据量、多租户和 SLA 变化后应重新选型。
+
+### Q30：为什么直接用 Python 编排，而不用 LangChain/LangGraph？
+
+**答：** 当前主链固定，真正需要表达的是 Owner、typed outcome、deadline、幂等和发布边界。直接 Python 能让这些合同在 dataclass/enum/事务中显式可见，也减少框架状态与项目状态的双重语义。
+
+**替代方案何时更好：** 如果出现可恢复的长流程、人工中断后续跑、多步自主 tool loop 或 durable checkpoint，再评估 LangGraph 等框架。选择标准应是恢复语义、可观测性、迁移成本和状态所有权，不是框架热度。
+
+### Q31：为什么复合请求要多路路由，而不是只按最高意图选一个 Agent？
+
+**答：** “登录失败后又重复扣款”同时包含 Technical 与 Billing 两个独立领域事实。只取最高意图会系统性漏掉另一个问题。当前路由先用 intent、关键词、实体计算领域分数，最高分为 primary，其他非 General 领域达到 0.45 才成为 supporting，并保持主辅顺序。
+
+**代价：** fan-out 增加模型调用、延迟、冲突和归因复杂度，所以简单问题仍只走单 Agent；并行结果必须进入统一 Synthesizer，不能直接字符串拼接。
+
+### 维度三：踩坑与根因修复
+
+### Q32：项目里最典型的并发坑是什么？
+
+**答：** 工作记忆压缩。旧快照交给 LLM 生成摘要期间，新消息可能写入 Redis；如果回来后直接删除并重写 list，就会把新消息一起删掉。根因不是“Redis 不可靠”，而是压缩提交没有验证读取版本仍是当前状态。
+
+**修复与证据：** 慢 LLM 调用不持锁；提交前同时 WATCH 消息 key 和摘要 key，比较完整快照，再用 MULTI 重写。发生变化就放弃本轮压缩。`test_concurrent_write_prevents_stale_compression_commit` 证明冲突时新消息保留。
+
+### Q33：一个 Agent 超时为什么没有让整个请求失败？
+
+**答：** 旧式 `gather` 的全成全败语义会丢掉已经成功的领域回答。现在每个 Agent 独立进入 15 秒 deadline，并收敛为 `SUCCESS/TIMEOUT/ERROR`；融合层对“一个成功、一个超时”返回 `PARTIAL`，保留成功内容，同时 `escalate=true`。
+
+**取舍：** 用户能先拿到有价值但不完整的建议，人工继续处理缺失领域。代价是 API 和监控必须携带失败 Agent、融合状态和生产者证据，不能只返回一段文本。
+
+### Q34：RAG fallback 曾经有什么真假证据问题？
+
+**答：** 工具失败时会返回“知识库暂时不可用”的降级信息；如果 API 只检查 `ToolResult.success` 或非空文本，就可能把运维提示当成真实知识，标记 `knowledge_used=true` 并注入 Prompt。
+
+**修复与证据：** fallback 是诊断投影，不是业务证据。API 只接受真实检索结果列表；fallback 不进入知识 section，也不设置 `knowledge_used`。对应两个测试分别守住降级和真实结果边界。
+
+### 维度四：Owner 与数据合同
+
+### Q35：candidate answer 和 published response 为什么必须分开？
+
+**答：** Agent/Synthesizer 只生产 candidate；AnswerVerifier 才拥有发布资格判断。只有明确 `PASS` 的 candidate 被选为 published response，`REJECT/UNKNOWN` 进入人工路径。Memory 最后只持久化用户真正看到的 published response。
+
+**否则会怎样：** 如果先把 candidate 写入 Memory，随后校验拒绝，下轮模型会读到一条用户从未见过的错误“历史”，形成状态污染和幻觉自强化。
+
+### Q36：工单幂等 fingerprint 为什么不包含生成回答？
+
+**答：** 幂等身份描述客户端操作：`idempotency_key/user_id/conv_id/request_id/question`。同一请求重试时 LLM 文案可能变化，但仍应复用首次创建的 ticket；把回答放入 fingerprint 会把一次人工交接拆成多个操作。
+
+**冲突怎么处理：** 同一个幂等键若绑定了不同稳定输入，`TicketService` 抛 `IdempotencyConflictError`。`BEGIN IMMEDIATE`、数据库唯一约束和进程锁共同保证单应用写者下的并发创建一致性。
+
+### Q37：为什么 Agent 调用成功率不能代表回答质量？
+
+**答：** Provider 返回 200 只证明 availability，不证明内容正确。执行成功率、延迟和 Verifier 的 PASS/REJECT 分开统计；质量使用带 0.5 prior 的 EWMA，10 个样本后才达到完整置信度，路由权重为 availability 35%、quality 45%、latency 20%，最后再乘 monitor penalty。
+
+**UNKNOWN 怎么算：** UNKNOWN 通常表示校验基础设施不可用或无法判断，只增加观察计数，不把它当 0 分惩罚生产者。
+
+### 维度五：评测与实验方法
+
+### Q38：当前评测数据到底有多少，能证明什么？
+
+**答：** 内置数据是 11 条意图 case 和 5 组对话，共 16 个 smoke/regression 样本；质量及格线默认 0.75。仓库还有 42 个确定性测试，它们证明状态机、失败边界和代码不变量，但不等于 42 条业务准确率样本。
+
+**不能声称什么：** 不能据此声称生产准确率、行业 SOTA 或泛化能力。生产发布需要版本化数据集、关键 slice、dev/held-out 分离和人工校准 Judge。
+
+### Q39：如果要验证 chunk size，从哪组实验开始？
+
+**答：** 固定文档集、embedding、query、Top-K 和 reranker，比较 256/500/800 字符及 0/50/100 overlap。检索层报告 Recall@K、MRR/nDCG、evidence hit；端到端报告 grounded answer、拒绝率、延迟、索引体积和 Token 成本。
+
+**为什么不能只看召回率：** 更小 chunk 可能提高局部匹配却丢上下文，更大 overlap 可能提高召回却制造重复和重排负担。最终选择必须同时满足答案质量和资源预算。
+
+### Q40：怎样证明 query rewrite/rerank 确实有价值？
+
+**答：** 做四组消融：原 query；rewrite only；rerank only；rewrite + rerank。保持模型、索引和测试集一致，多次运行记录均值与方差，并单独检查 query drift、空召回和 reranker 故障降级。
+
+**当前事实：** 代码实现了这条链和失败 fallback，但仓库没有完整消融报告。因此可以讲机制、合同和如何评测，不能讲未经记录的提升百分比。
+
+### 维度六：生产边界与扩展
+
+### Q41：这个项目上线前最大的 P0 是什么？
+
+**答：** 认证授权，而不是继续调 Prompt。当前调用者可以自报 `user_id`，ticket、knowledge、skills、eval 接口也没有可信 Principal 和 tenant 边界。上线前必须增加认证、resource/action 授权、tenant filter、上传/状态变更审计和敏感数据策略。
+
+### Q42：流量增加 10 倍，第一步会改哪里？
+
+**答：** 先加 trace 分解 LLM、rewrite、每路检索、rerank、Agent、Verifier、Redis、Chroma 和 SQLite 的 P95/P99，不凭感觉先换组件。确认瓶颈后再做 provider 并发闸门、缓存/预算、API 多副本、在线统计外置和 durable queue。
+
+**已知迁移点：** 多应用写者场景将 TicketService 从 SQLite 迁到 PostgreSQL；画像更新等 `create_task` 副作用进入有幂等、重试、dead-letter 和任务状态的队列。
+
+### Q43：SQLite 能承受多少并发？
+
+**答：** 仓库没有目标硬件上的压测数据，所以不编数字。当前 WAL、`busy_timeout=5000`、`BEGIN IMMEDIATE` 和进程锁的合同是“单应用写者、小规模工单闭环”，不是横向扩容数据库。
+
+**怎么回答容量：** 给出压测维度：事务大小、读写比、并发 writer、P95/P99、lock wait、超时和恢复；超过 SLA 或需要多副本时迁 PostgreSQL。
+
+### 维度七：个人贡献与事实边界
+
+### Q44：如果原型不是从零写的，你具体负责了什么？
+
+**答：** 已有原型包含 FastAPI、基础意图/RAG/记忆、领域 Agent、Skill、监控和评测。实际新增/收敛的是 DialogPilot 命名与仓库整理、发布校验、持久工单状态机、Token-aware 并发安全压缩、typed multi-Agent synthesis、质量反馈路由，以及生命周期、复合路由、单路 timeout、RAG fallback 四类合同修复和对应测试/文档/CI。
+
+**面试原则：** 可以完整讲懂已有模块，但个人贡献要按 commit、代码 Owner 和测试证据划边界，不把“理解并维护”说成“全部从零原创”。
+
+### Q45：这个项目最难的坑应该讲哪一个？
+
+**答：** 按岗位只选一个讲透。后端岗讲 ticket idempotency + state/event 同事务；Agent Infra 岗讲 compression optimistic commit 或 partial synthesis。使用固定结构：症状 → 触发条件 → 立即机制 → 共享根因 → 正向合同 → 测试证据 → 代价。
+
+**不要这样答：** “最大困难是调 API、配环境、看文档”。这些可以是过程问题，但不足以证明你理解状态、并发、失败和数据一致性。
+
+### Q46：现场追问到没有数据的参数怎么办？
+
+**答：** 先说当前值和代码位置，再区分“工程初值”与“实验结论”。例如：chunk 是 500 字符、无 overlap；这是当前可复现配置，但没有消融证明最优。随后给出你会怎样设计实验、看哪些指标、什么条件下改值。
+
+**底线：** 不虚构 benchmark、线上流量、准确率或事故经历。真实感来自可验证的代码细节、取舍、失败语义和复现实验，而不是把没有发生过的经历讲得更像真的。
