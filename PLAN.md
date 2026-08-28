@@ -11,7 +11,7 @@ private Python portfolio repository under the DialogPilot name.
 - [done] Add a typed answer-verification boundary and deterministic fail-closed behavior, with focused tests.
 - [done] Add reproducible developer tooling and GitHub Actions CI.
 - [done] Run tests, static compilation, secret/source searches, Docker configuration validation, and a clean Python 3.12 production-image build.
-- [in_progress] Create the private `Garrulus21yyx/DialogPilot` GitHub repository, push the result, and obtain a green clean-environment CI run.
+- [done] Create the private `Garrulus21yyx/DialogPilot` GitHub repository, push the result, and obtain a green clean-environment CI run.
 
 ## Constraints
 
