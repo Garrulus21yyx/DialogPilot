@@ -37,14 +37,14 @@ private Python portfolio repository under the DialogPilot name.
 
 - [done] Define typed agent outcomes and one authoritative result synthesizer.
 - [done] Add per-agent timeouts, partial-success semantics, conflict/escalation propagation, and deterministic output ordering.
-- [in_progress] Verify success, timeout, exception, conflict, and all-failed paths; push immediately and obtain green CI.
+- [done] Verify success, timeout, exception, conflict, and all-failed paths; push immediately and obtain green CI.
 
 ### 3. Quality-aware routing feedback
 
-- [pending] Feed publication verification outcomes back to the agents that produced the candidate answer.
-- [pending] Separate execution availability from answer quality and use sample-aware EWMA quality in routing scores.
-- [pending] Expose quality evidence in monitor/API statistics without treating verifier infrastructure failure as an agent failure.
-- [pending] Verify feedback algebra and routing changes; push immediately and obtain green CI.
+- [done] Feed publication verification outcomes back to the agents that produced the candidate answer.
+- [done] Separate execution availability from answer quality and use sample-aware EWMA quality in routing scores.
+- [done] Expose quality evidence in monitor/API statistics without treating verifier infrastructure failure as an agent failure.
+- [in_progress] Verify feedback algebra and routing changes; push immediately and obtain green CI.
 
 ### Final convergence
 

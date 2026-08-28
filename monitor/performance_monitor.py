@@ -7,7 +7,7 @@
   1. 实时采集 —— 每隔 N 秒从 Orchestrator 和 ToolManager 拉取最新统计
   2. 异常检测 —— Z-score 统计方法，自动发现指标突变
   3. 路由反馈 —— 将 Agent 成功率/延迟写回 Orchestrator，
-     Orchestrator 的 _best_agent() 会据此动态调整路由权重
+     Orchestrator 的 _best_agent() 会结合执行可用性、校验质量和延迟调整路由
   4. 优化建议 —— 基于规则生成可操作的优化建议（不是空话）
   5. 告警 —— 超阈值时打日志 + 可选 Webhook
 """
@@ -145,6 +145,7 @@ class PerformanceMonitor:
     def _setup_prometheus(self, port: int) -> None:
         self._prom = {
             "agent_success_rate": Gauge("agent_success_rate", "Agent 成功率", ["agent"]),
+            "agent_quality_score": Gauge("agent_quality_score", "经样本置信度收缩的 Agent 回答质量", ["agent"]),
             "agent_latency_ms":   Histogram("agent_latency_ms", "Agent 延迟", ["agent"]),
             "tool_success_rate":  Gauge("tool_success_rate", "工具成功率", ["tool"]),
             "requests_total":     Counter("requests_total", "总请求数"),
@@ -210,6 +211,7 @@ class PerformanceMonitor:
             if "agent_success_rate" in self._prom:
                 self._prom["agent_success_rate"].labels(agent=agent_key).set(sr)
                 self._prom["agent_latency_ms"].labels(agent=agent_key).observe(ms)
+                self._prom["agent_quality_score"].labels(agent=agent_key).set(s["quality_score"])
 
             routing_penalties[agent_key] = self._routing_penalty(sr, ms)
 

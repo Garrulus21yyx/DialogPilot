@@ -7,7 +7,7 @@ prompt chain.
 |---|---|---|
 | HTTP contract | `api/main.py` | Validated request/response models |
 | Intent | `core/intent_recognizer.py` | Intent, confidence, urgency, entities |
-| Agent selection | `agents/agent_orchestrator.py` | Structured routing decision |
+| Agent selection | `agents/agent_orchestrator.py` | Structured routing decision and producer quality state |
 | Parallel synthesis | `services/result_synthesizer.py` | One candidate, conflicts, and escalation decision |
 | Tool reliability | `mcp/tool_manager.py` | Typed tool result and runtime statistics |
 | Knowledge | `mcp/knowledge_base.py` | Retrieved ChromaDB documents |
@@ -27,9 +27,10 @@ prompt chain.
 4. Execute one or more selected agents.
 5. Convert parallel executions to typed outcomes and synthesize one candidate.
 6. Verify the candidate answer before it crosses the response boundary.
-7. If escalation is required, create or reuse one idempotent persistent ticket.
-8. Persist only the answer that was actually published.
-9. Update the user profile asynchronously after persistence.
+7. Attribute a supported verification verdict to the exact candidate producers.
+8. If escalation is required, create or reuse one idempotent persistent ticket.
+9. Persist only the answer that was actually published.
+10. Update the user profile asynchronously after persistence.
 
 This ordering prevents the memory store from claiming that an unverified model
 answer was shown to the user.
@@ -58,6 +59,17 @@ results become `CONFLICT`; and an unavailable synthesis model becomes
 `UNKNOWN`. Partial, conflict, failed, and unknown outcomes all fail closed to
 human escalation while retaining diagnostic outcome metadata.
 
+## Routing-quality feedback
+
+Agent execution success means the provider call completed; it is not evidence
+that the answer was good. Each Agent instance therefore owns separate
+availability and answer-quality statistics. Verifier `PASS` and `REJECT`
+observations update a sample-aware EWMA whose confidence grows over the first
+ten samples. `UNKNOWN` increments an infrastructure counter but leaves quality
+unchanged. Only producer keys attached to a direct or successfully synthesized
+candidate receive feedback; conflict and unknown synthesis results are not
+misattributed to individual Agents.
+
 ## Failure semantics
 
 - Unknown intent with low confidence asks a clarification question.
@@ -72,6 +84,8 @@ human escalation while retaining diagnostic outcome metadata.
   compression snapshot is not committed.
 - Agent timeout or exception is a typed outcome. Partial synthesis remains
   usable but escalates; all-failed and unverifiable synthesis fail closed.
+- Verifier `UNKNOWN` is observable but never treated as an Agent-quality
+  rejection.
 
 ## Ticket state algebra
 

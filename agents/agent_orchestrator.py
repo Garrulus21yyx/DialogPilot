@@ -54,6 +54,15 @@ class AgentStats:
     success:   int   = 0
     total_ms:  float = 0.0
     monitor_penalty: float = 0.0
+    quality_samples: int = 0
+    verified_pass: int = 0
+    verified_reject: int = 0
+    verification_unknown: int = 0
+    quality_ewma: float = 0.5
+
+    QUALITY_ALPHA = 0.25
+    QUALITY_PRIOR = 0.5
+    QUALITY_FULL_CONFIDENCE_SAMPLES = 10
 
     @property
     def success_rate(self) -> float:
@@ -63,10 +72,40 @@ class AgentStats:
     def avg_ms(self) -> float:
         return self.total_ms / self.total if self.total else 0.0
 
+    @property
+    def quality_score(self) -> float:
+        confidence = min(
+            1.0,
+            self.quality_samples / self.QUALITY_FULL_CONFIDENCE_SAMPLES,
+        )
+        return self.QUALITY_PRIOR * (1.0 - confidence) + self.quality_ewma * confidence
+
+    def record_verification(self, status: str) -> None:
+        normalized = str(getattr(status, "value", status)).lower()
+        if normalized == "unknown":
+            self.verification_unknown += 1
+            return
+        if normalized not in {"pass", "reject"}:
+            raise ValueError(f"unsupported verification status: {status}")
+        observation = 1.0 if normalized == "pass" else 0.0
+        self.quality_samples += 1
+        if normalized == "pass":
+            self.verified_pass += 1
+        else:
+            self.verified_reject += 1
+        self.quality_ewma = (
+            self.QUALITY_ALPHA * observation
+            + (1.0 - self.QUALITY_ALPHA) * self.quality_ewma
+        )
+
     def routing_score(self) -> float:
-        """路由评分：成功率高、延迟低的 Agent 得分高。"""
+        """Combine execution availability, verified quality, and latency."""
         latency_score = 1.0 / (1.0 + self.avg_ms / 1000)
-        base_score = self.success_rate * 0.7 + latency_score * 0.3
+        base_score = (
+            self.success_rate * 0.35
+            + self.quality_score * 0.45
+            + latency_score * 0.20
+        )
         return base_score * max(0.0, 1.0 - self.monitor_penalty)
 
 
@@ -79,6 +118,7 @@ class AgentResponse:
     latency_ms:  float = 0.0
     escalate:    bool  = False   # 是否需要升级
     error:       str = ""
+    agent_key:   str = ""
 
 
 @dataclass
@@ -114,6 +154,7 @@ class OrchestratorResult:
     synthesis_reason: str = ""
     synthesis_conflicts: List[str] = field(default_factory=list)
     agent_outcomes: List[Dict[str, Any]] = field(default_factory=list)
+    producer_agent_keys: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -141,10 +182,17 @@ class BaseAgent:
     agent_type: AgentType
     system_prompt: str
 
-    def __init__(self, client: AsyncAnthropic, model: str, skill_manager: Optional[Any] = None):
+    def __init__(
+        self,
+        client: AsyncAnthropic,
+        model: str,
+        skill_manager: Optional[Any] = None,
+        instance_id: str = "",
+    ):
         self._client = client
         self._model  = model
         self._skill_manager = skill_manager
+        self.instance_id = instance_id or f"{self.agent_type.value}_0"
         self.stats   = AgentStats()
 
     async def handle(self, req: Request) -> AgentResponse:
@@ -162,6 +210,7 @@ class BaseAgent:
                 success=True,
                 latency_ms=ms,
                 escalate=escalate,
+                agent_key=self.instance_id,
             )
         except Exception as ex:
             ms = (time.monotonic() - t0) * 1000
@@ -173,6 +222,7 @@ class BaseAgent:
                 success=False,
                 latency_ms=ms,
                 error=f"{type(ex).__name__}: {str(ex)[:300]}",
+                agent_key=self.instance_id,
             )
 
     async def _call_llm(self, req: Request) -> str:
@@ -294,9 +344,9 @@ class AgentOrchestrator:
 
         # Agent 池：每种类型可有多个实例（水平扩展）
         self._pool: Dict[AgentType, List[BaseAgent]] = {
-            AgentType.GENERAL:   [GeneralAgent(client, model, skill_manager)],
-            AgentType.TECHNICAL: [TechnicalAgent(client, model, skill_manager)],
-            AgentType.BILLING:   [BillingAgent(client, model, skill_manager)],
+            AgentType.GENERAL:   [GeneralAgent(client, model, skill_manager, "general_0")],
+            AgentType.TECHNICAL: [TechnicalAgent(client, model, skill_manager, "technical_0")],
+            AgentType.BILLING:   [BillingAgent(client, model, skill_manager, "billing_0")],
         }
 
     def set_skill_manager(self, skill_manager: Optional[Any]) -> None:
@@ -375,6 +425,20 @@ class AgentOrchestrator:
             supporting_agents=[],
             routing_reason=decision.reason,
             routing_confidence=decision.confidence,
+            synthesis_reason="single Agent candidate",
+            agent_outcomes=[AgentOutcome(
+                agent_type=decision.primary_agent.value,
+                responding_agent_type=response.agent_type.value,
+                agent_key=response.agent_key,
+                status=(AgentOutcomeStatus.SUCCESS if response.success else AgentOutcomeStatus.ERROR),
+                is_primary=True,
+                content=response.content if response.success else "",
+                confidence=response.confidence,
+                latency_ms=response.latency_ms,
+                escalate=response.escalate,
+                error=response.error,
+            ).to_dict()],
+            producer_agent_keys=[response.agent_key] if response.success and response.agent_key else [],
         )
 
     async def run_parallel(self, req: Request, decision: RoutingDecision) -> OrchestratorResult:
@@ -410,6 +474,15 @@ class AgentOrchestrator:
             synthesis_reason=synthesis.reason,
             synthesis_conflicts=synthesis.conflicts,
             agent_outcomes=[outcome.to_dict() for outcome in outcomes],
+            producer_agent_keys=(
+                list(dict.fromkeys(
+                    outcome.agent_key
+                    for outcome in outcomes
+                    if outcome.status is AgentOutcomeStatus.SUCCESS and outcome.agent_key
+                ))
+                if synthesis.status.value in {"success", "partial"}
+                else []
+            ),
         )
 
     # ── 路由逻辑 ──────────────────────────────────────────────────────────────
@@ -669,6 +742,7 @@ class AgentOrchestrator:
 
         return AgentOutcome(
             agent_type=selected_agent.value,
+            agent_key=response.agent_key,
             responding_agent_type=response.agent_type.value,
             status=(AgentOutcomeStatus.SUCCESS if response.success else AgentOutcomeStatus.ERROR),
             is_primary=is_primary,
@@ -683,17 +757,34 @@ class AgentOrchestrator:
 
     def get_stats(self) -> Dict[str, Any]:
         result = {}
-        for agent_type, agents in self._pool.items():
-            for i, agent in enumerate(agents):
-                key = f"{agent_type.value}_{i}"
+        for agents in self._pool.values():
+            for agent in agents:
+                key = agent.instance_id
                 result[key] = {
                     "total":        agent.stats.total,
                     "success_rate": round(agent.stats.success_rate, 3),
+                    "execution_success_rate": round(agent.stats.success_rate, 3),
                     "avg_ms":       round(agent.stats.avg_ms, 1),
+                    "quality_samples": agent.stats.quality_samples,
+                    "verified_pass": agent.stats.verified_pass,
+                    "verified_reject": agent.stats.verified_reject,
+                    "verification_unknown": agent.stats.verification_unknown,
+                    "quality_ewma": round(agent.stats.quality_ewma, 3),
+                    "quality_score": round(agent.stats.quality_score, 3),
                     "monitor_penalty": round(agent.stats.monitor_penalty, 3),
                     "routing_score": round(agent.stats.routing_score(), 3),
                 }
         return result
+
+    def record_verification(self, agent_keys: List[str], status: str) -> None:
+        """Attribute a publication verdict only to the candidate's real producers."""
+        targets = set(agent_keys)
+        if not targets:
+            return
+        for agents in self._pool.values():
+            for agent in agents:
+                if agent.instance_id in targets:
+                    agent.stats.record_verification(status)
 
     def update_routing_penalties(self, penalties: Dict[str, float]) -> None:
         """
@@ -701,8 +792,8 @@ class AgentOrchestrator:
 
         penalties 的 key 使用 get_stats() 中的 agent key，例如 technical_0。
         """
-        for agent_type, agents in self._pool.items():
-            for i, agent in enumerate(agents):
-                key = f"{agent_type.value}_{i}"
+        for agents in self._pool.values():
+            for agent in agents:
+                key = agent.instance_id
                 penalty = penalties.get(key, 0.0)
                 agent.stats.monitor_penalty = min(max(penalty, 0.0), 0.9)

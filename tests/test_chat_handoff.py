@@ -36,6 +36,9 @@ class FakeMemory:
 
 
 class FakeOrchestrator:
+    def __init__(self):
+        self.feedback = []
+
     async def recognize_intent(self, _message, history=None):
         return SimpleNamespace(
             intent=IntentCategory.HUMAN_HANDOFF,
@@ -58,7 +61,11 @@ class FakeOrchestrator:
             primary_agent=AgentType.ESCALATION,
             routing_reason="user requested human handoff",
             routing_confidence=0.99,
+            producer_agent_keys=["escalation_0"],
         )
+
+    def record_verification(self, agent_keys, status):
+        self.feedback.append((list(agent_keys), status))
 
 
 class FakeVerifier:
@@ -74,7 +81,8 @@ class FakeVerifier:
 def test_chat_escalation_creates_one_persistent_idempotent_ticket(tmp_path, monkeypatch):
     memory = FakeMemory()
     ticket_service = TicketService(str(tmp_path / "tickets.db"))
-    monkeypatch.setattr(main, "_orchestrator", FakeOrchestrator())
+    orchestrator = FakeOrchestrator()
+    monkeypatch.setattr(main, "_orchestrator", orchestrator)
     monkeypatch.setattr(main, "_memory", memory)
     monkeypatch.setattr(main, "_answer_verifier", FakeVerifier())
     monkeypatch.setattr(main, "_ticket_service", ticket_service)
@@ -100,6 +108,10 @@ def test_chat_escalation_creates_one_persistent_idempotent_ticket(tmp_path, monk
     assert retry.ticket_id == first.ticket_id
     assert ticket_service.get_ticket(first.ticket_id).priority is TicketPriority.CRITICAL
     assert len(ticket_service.list_tickets()) == 1
+    assert orchestrator.feedback == [
+        (["escalation_0"], "pass"),
+        (["escalation_0"], "pass"),
+    ]
 
 
 def test_handoff_priority_preserves_typed_critical_urgency():

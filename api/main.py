@@ -256,6 +256,7 @@ class ChatResponse(BaseModel):
     synthesis_reason: str = ""
     synthesis_conflicts: List[str] = Field(default_factory=list)
     agent_outcomes: List[Dict[str, Any]] = Field(default_factory=list)
+    producer_agent_keys: List[str] = Field(default_factory=list)
     escalated:   bool
     latency_ms:  float
     knowledge_used: bool = False
@@ -386,6 +387,12 @@ async def chat(req: ChatRequest):
 
     # 4. 发布边界：只有明确通过校验的回答才能返回给用户。
     verification = await _answer_verifier.verify(req.message, result.response, full_context)
+    feedback_recorder = getattr(_orchestrator, "record_verification", None)
+    if feedback_recorder:
+        try:
+            feedback_recorder(result.producer_agent_keys, verification.status.value)
+        except Exception:
+            logger.exception("记录 Agent 质量反馈失败 request_id=%s", request_id)
     response_text = result.response if verification.publishable else (
         "当前回答未通过可信度校验，已转交人工进一步确认。"
     )
@@ -443,6 +450,7 @@ async def chat(req: ChatRequest):
         synthesis_reason=result.synthesis_reason,
         synthesis_conflicts=result.synthesis_conflicts,
         agent_outcomes=result.agent_outcomes,
+        producer_agent_keys=result.producer_agent_keys,
         escalated=escalated,
         latency_ms=round(result.latency_ms, 1),
         knowledge_used=knowledge_used,

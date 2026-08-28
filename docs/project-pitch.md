@@ -9,7 +9,8 @@ layer, and uses a token-budgeted context assembler with bounded structured
 rolling summaries. It routes requests to general, technical, or billing agents. Complex
 requests can execute agents concurrently. Before returning a response, a typed
 result synthesizer isolates per-Agent timeouts, preserves partial success, and
-detects cross-Agent conflicts. A verifier then allows only explicitly passed answers to be published; failures are
+detects cross-Agent conflicts. A verifier then allows only explicitly passed
+answers to be published; failures are
 escalated deterministically into an idempotent SQLite-backed human ticket with
 a typed lifecycle and audit history. Prometheus monitoring and LLM-as-Judge
 evaluation close the online and offline feedback loops.
@@ -52,6 +53,11 @@ conversation turns in the message sequence.
 The verifier owns whether a candidate answer is publishable. Treating parser or
 model failures as success would silently bypass that boundary. A closed outcome
 algebra makes unsupported states explicit and routes them to a safe handoff.
+
+The verdict also closes the online routing loop without conflating provider
+availability with answer quality. `PASS` and `REJECT` observations update a
+sample-aware EWMA for the exact producer Agent instances; `UNKNOWN` is recorded
+as verifier infrastructure state and does not lower Agent quality.
 
 ### Why does the ticket service own its state machine?
 

@@ -29,6 +29,7 @@ class AgentOutcome:
     agent_type: str
     status: AgentOutcomeStatus
     is_primary: bool
+    agent_key: str = ""
     responding_agent_type: str = ""
     content: str = ""
     confidence: float = 0.0

@@ -23,6 +23,7 @@ POST /chat
   -> run primary/supporting agents concurrently when needed
   -> synthesize typed SUCCESS / TIMEOUT / ERROR outcomes into one candidate
   -> verify the candidate answer (PASS / REJECT / UNKNOWN)
+  -> feed PASS / REJECT quality back to the exact producing Agent instances
   -> publish only PASS answers; escalate every other outcome
   -> persist each escalation as one idempotent human-support ticket
   -> persist messages and update the profile in the background
@@ -115,6 +116,12 @@ Parallel responses also expose `synthesis_status`, conflict details, and each
 selected Agent's typed execution outcome. Per-Agent timeouts allow useful
 partial results to survive, while any missing selected result or detected
 conflict triggers escalation.
+
+Runtime Agent statistics separate execution availability from verified answer
+quality. `PASS` and `REJECT` update a sample-aware EWMA quality score for the
+exact producer instances; verifier `UNKNOWN` is counted for observability but
+does not penalize Agent quality. Routing combines availability, verified
+quality, latency, and monitor penalties.
 When escalation is required it also returns `ticket_id`, `ticket_status`, and
 whether that request created the ticket or reused an idempotent existing one.
 
