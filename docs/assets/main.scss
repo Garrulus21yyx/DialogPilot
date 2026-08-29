@@ -578,6 +578,12 @@ code {
   font-size: 0.86em;
 }
 
+/* 长枚举/标识符在窄屏内换行；pre 内源码仍由下方规则独立滚动。 */
+:not(pre) > code {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 pre,
 .highlighter-rouge .highlight {
   border: 1px solid #294156;
