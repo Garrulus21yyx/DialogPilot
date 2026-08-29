@@ -104,7 +104,7 @@ Produced/updated commentary surfaces:
 - [done] Add a bounded Worker-level Anthropic tool loop while preserving deterministic outer TaskPlan, coverage, deadlines, and publication ownership.
 - [done] Preserve ReAct blocked/error/max-step evidence through AgentOutcome and API; never hide it with GeneralAgent fallback.
 - [done] Add runtime configuration, 14 focused memory/tool tests, one orchestration projection gate, and pass all 65 repository tests.
-- [in progress] Publish the 26-chapter/56-question Page update and verify the deployed desktop/mobile page before final closure.
+- [done] Publish the 26-chapter/56-question Page update; verify desktop and 390px mobile width, anchors, Evidence Board, question cards, overflow, and console state in deployed Chromium.
 
 ## Constraints
 
