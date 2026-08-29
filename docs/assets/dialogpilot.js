@@ -197,6 +197,26 @@
     window.addEventListener("scroll", updateProgress, { passive: true });
     updateProgress();
 
+    // 只滚动目录自己的容器；scrollIntoView 会连带滚动 document，导致锚点跳转后正文被拉回。
+    function revealActiveNavigation(active) {
+      const rail = active.closest(".dp-rail");
+      const nav = active.closest(".dp-rail-nav");
+      if (!rail || !nav) return;
+
+      if (window.matchMedia("(max-width: 760px)").matches) {
+        const left = active.offsetLeft;
+        const right = left + active.offsetWidth;
+        if (left < nav.scrollLeft) nav.scrollLeft = left;
+        else if (right > nav.scrollLeft + nav.clientWidth) nav.scrollLeft = right - nav.clientWidth;
+        return;
+      }
+
+      const top = active.offsetTop;
+      const bottom = top + active.offsetHeight;
+      if (top < rail.scrollTop) rail.scrollTop = top;
+      else if (bottom > rail.scrollTop + rail.clientHeight) rail.scrollTop = bottom - rail.clientHeight;
+    }
+
     // IntersectionObserver 只观察章节标题，减少长页面滚动时的计算量。
     const observer = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
@@ -205,7 +225,7 @@
           link.classList.toggle("active", link.dataset.target === entry.target.id);
         });
         const active = links.find(function (link) { return link.classList.contains("active"); });
-        if (active) active.scrollIntoView({ block: "nearest", inline: "nearest" });
+        if (active) revealActiveNavigation(active);
       });
     }, { rootMargin: "-18% 0px -68% 0px", threshold: 0 });
     headings.forEach(function (heading) { observer.observe(heading); });
