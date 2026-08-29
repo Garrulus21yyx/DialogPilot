@@ -18,13 +18,13 @@
 | 阶段 | 状态 | 交付与验证 |
 |---|---|---|
 | 1. 建立任务合同和 CoverageGate | done | `TaskSpec/TaskPlan/TaskOutcome/CoverageReport`，迁移编排和融合，单元/属性测试 |
-| 2. 增加 AccountSecurity 能力和请求预算 | in_progress | 独立 Agent、统一 deadline/max_agents、取消与预算状态测试 |
-| 3. 扩展验证、评测和可观测输出 | pending | Verifier 感知任务覆盖，编排指标与 API 结果字段，回归测试 |
+| 2. 增加 AccountSecurity 能力和请求预算 | done | 独立 Agent、统一 deadline/max_agents、取消与预算状态测试 |
+| 3. 扩展验证、评测和可观测输出 | in_progress | Verifier 感知任务覆盖，编排指标与 API 结果字段，回归测试 |
 | 4. 更新项目讲解 Page | pending | 新架构图、链路、面试追问和实现证据，静态页面验证 |
 
 ## 影响文件记录
 
 - 阶段 1：新增 `agents/orchestration_contracts.py`；迁移 `agents/agent_orchestrator.py`、`services/result_synthesizer.py` 和 `tests/test_agent_orchestration.py`。完整回归 44 passed。
-- 阶段 2：待更新。
+- 阶段 2：更新 Agent 合同、编排器、融合器、lifespan、Compose 和环境示例；新增 `skills/account_security/SKILL.md`。账户安全成为独立 Owner，请求共享 deadline/max-agents，预算不足产生 typed outcome。完整回归 47 passed。
 - 阶段 3：待更新。
 - 阶段 4：待更新。

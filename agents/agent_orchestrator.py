@@ -25,7 +25,14 @@ from typing import Any, Dict, List, Optional
 
 from anthropic import AsyncAnthropic
 
-from agents.orchestration_contracts import AgentType, TaskPlan, TaskRisk, TaskSpec
+from agents.orchestration_contracts import (
+    AgentType,
+    ExecutionBudget,
+    ExecutionWindow,
+    TaskPlan,
+    TaskRisk,
+    TaskSpec,
+)
 from core.intent_recognizer import IntentCategory, IntentRecognizer, UrgencyLevel
 from core.llm_utils import extract_text_content
 from memory.context import ContextSection, PromptContext
@@ -301,6 +308,17 @@ class BillingAgent(BaseAgent):
     )
 
 
+class AccountSecurityAgent(BaseAgent):
+    """拥有账号被盗、异常登录、身份验证和敏感资料保护流程。"""
+
+    agent_type = AgentType.ACCOUNT_SECURITY
+    system_prompt = (
+        "你是账户安全专家。专注于：账号被盗、异常登录、身份验证、密码与敏感资料保护。"
+        "优先阻止风险扩大，只收集最少必要信息；不得索要密码、验证码或完整证件信息。"
+        "涉及解封、资料修改、资金或身份核验时，必须说明需要安全验证或人工审批。"
+    )
+
+
 # ── 编排器 ────────────────────────────────────────────────────────────────────
 
 class AgentOrchestrator:
@@ -322,8 +340,8 @@ class AgentOrchestrator:
         IntentCategory.REFUND:     AgentType.BILLING,
         IntentCategory.INVOICE:    AgentType.BILLING,
         IntentCategory.PAYMENT_ISSUE: AgentType.BILLING,
-        IntentCategory.ACCOUNT:    AgentType.BILLING,
-        IntentCategory.ACCOUNT_SECURITY: AgentType.BILLING,
+        IntentCategory.ACCOUNT:    AgentType.GENERAL,
+        IntentCategory.ACCOUNT_SECURITY: AgentType.ACCOUNT_SECURITY,
         IntentCategory.ESCALATION: AgentType.ESCALATION,
         IntentCategory.HUMAN_HANDOFF: AgentType.ESCALATION,
         # 其余意图 → GENERAL（默认）
@@ -336,6 +354,8 @@ class AgentOrchestrator:
         model:    str = "claude-3-5-sonnet-20241022",
         skill_manager: Optional[Any] = None,
         agent_timeout_s: float = 15.0,
+        request_timeout_s: float = 20.0,
+        max_agents_per_request: int = 3,
         result_synthesizer: Optional[ResultSynthesizer] = None,
     ):
         """创建 Agent 池、意图识别器、融合器和路由反馈状态。"""
@@ -347,6 +367,11 @@ class AgentOrchestrator:
         self._intent_recognizer = IntentRecognizer(api_key=api_key, base_url=base_url, model=model)
         self._skill_manager = skill_manager
         self._agent_timeout_s = max(0.1, float(agent_timeout_s))
+        self._execution_budget = ExecutionBudget(
+            request_timeout_s=float(request_timeout_s),
+            agent_timeout_s=self._agent_timeout_s,
+            max_agents=int(max_agents_per_request),
+        )
         self._result_synthesizer = result_synthesizer or ResultSynthesizer(client, model)
 
         # Agent 池：每种类型可有多个实例（水平扩展）
@@ -354,6 +379,9 @@ class AgentOrchestrator:
             AgentType.GENERAL:   [GeneralAgent(client, model, skill_manager, "general_0")],
             AgentType.TECHNICAL: [TechnicalAgent(client, model, skill_manager, "technical_0")],
             AgentType.BILLING:   [BillingAgent(client, model, skill_manager, "billing_0")],
+            AgentType.ACCOUNT_SECURITY: [
+                AccountSecurityAgent(client, model, skill_manager, "account_security_0")
+            ],
         }
 
     def set_skill_manager(self, skill_manager: Optional[Any]) -> None:
@@ -379,6 +407,7 @@ class AgentOrchestrator:
           意图识别 → 路由选 Agent → 执行 → 检查升级 → 返回结果
         """
         t0 = time.monotonic()
+        window = self._new_execution_window()
 
         # 1. 意图识别（如果调用方已识别则跳过）
         if req.intent is None:
@@ -405,13 +434,14 @@ class AgentOrchestrator:
         # 复杂问题自动并行协作，例如同一句同时涉及登录故障和扣款/退款。
         plan = self._build_task_plan(req)
         if plan.multi_agent:
-            return await self.run_parallel(req, plan)
+            return await self.run_parallel(req, plan, window=window)
 
         # 2. 执行主 Agent（含降级），与并行路径共用同一个 deadline/outcome 边界。
         outcome = await self._execute_outcome(
             req,
             plan.primary_task,
             is_primary=True,
+            window=window,
         )
         coverage = CoverageGate.evaluate(plan, [outcome])
         succeeded = outcome.status is AgentOutcomeStatus.SUCCESS
@@ -457,23 +487,69 @@ class AgentOrchestrator:
             coverage=coverage.to_dict(),
         )
 
-    async def run_parallel(self, req: Request, plan: TaskPlan) -> OrchestratorResult:
+    async def run_parallel(
+        self,
+        req: Request,
+        plan: TaskPlan,
+        *,
+        window: Optional[ExecutionWindow] = None,
+    ) -> OrchestratorResult:
         """
         并行派发给多个 Agent，合并结果。
         适用于复杂问题（如同时涉及技术和账单）。
         """
         t0 = time.monotonic()
+        window = window or self._new_execution_window()
+        budget = window.budget
         agent_types = plan.agent_types
-        tasks = [
+        executable_tasks = plan.ordered_tasks[: budget.max_agents]
+        deferred_tasks = plan.ordered_tasks[budget.max_agents :]
+        executions = [
             self._execute_outcome(
                 req,
                 task,
                 is_primary=task.task_id == plan.primary_task_id,
+                window=window,
             )
-            for task in plan.ordered_tasks
+            for task in executable_tasks
         ]
-        outcomes = await asyncio.gather(*tasks)
-        synthesis = await self._result_synthesizer.synthesize(req.message, plan, outcomes)
+        executed_outcomes = list(await asyncio.gather(*executions))
+        deferred_outcomes = [
+            AgentOutcome(
+                task_id=task.task_id,
+                required=task.required,
+                agent_type=task.owner.value,
+                status=AgentOutcomeStatus.BUDGET_EXCEEDED,
+                is_primary=task.task_id == plan.primary_task_id,
+                error=f"max_agents_per_request={budget.max_agents} prevented execution",
+            )
+            for task in deferred_tasks
+        ]
+        outcome_by_task = {
+            outcome.task_id: outcome
+            for outcome in executed_outcomes + deferred_outcomes
+        }
+        outcomes = [outcome_by_task[task.task_id] for task in plan.ordered_tasks]
+
+        remaining = window.remaining_s()
+        if remaining <= 0:
+            synthesis = self._result_synthesizer.unavailable_result(
+                plan,
+                outcomes,
+                reason="request execution budget exhausted before synthesis",
+            )
+        else:
+            try:
+                synthesis = await asyncio.wait_for(
+                    self._result_synthesizer.synthesize(req.message, plan, outcomes),
+                    timeout=remaining,
+                )
+            except asyncio.TimeoutError:
+                synthesis = self._result_synthesizer.unavailable_result(
+                    plan,
+                    outcomes,
+                    reason="request execution budget exhausted during synthesis",
+                )
 
         return OrchestratorResult(
             request_id=req.request_id,
@@ -633,6 +709,7 @@ class AgentOrchestrator:
             AgentType.GENERAL: 0.1,
             AgentType.TECHNICAL: 0.0,
             AgentType.BILLING: 0.0,
+            AgentType.ACCOUNT_SECURITY: 0.0,
         }
 
         if req.intent in (
@@ -644,6 +721,7 @@ class AgentOrchestrator:
             IntentCategory.GREETING,
             IntentCategory.FEEDBACK,
             IntentCategory.OTHER,
+            IntentCategory.ACCOUNT,
         ):
             scores[AgentType.GENERAL] += 0.55
 
@@ -656,20 +734,26 @@ class AgentOrchestrator:
 
         if req.intent in (
             IntentCategory.BILLING,
-            IntentCategory.ACCOUNT,
-            IntentCategory.ACCOUNT_SECURITY,
             IntentCategory.REFUND,
             IntentCategory.INVOICE,
             IntentCategory.PAYMENT_ISSUE,
         ):
             scores[AgentType.BILLING] += 0.75
 
+        if req.intent == IntentCategory.ACCOUNT_SECURITY:
+            scores[AgentType.ACCOUNT_SECURITY] += 0.85
+
         technical_kws = ["崩溃", "报错", "error", "crash", "无法登录", "登录失败", "500", "401", "验证码"]
         billing_kws = ["退款", "退货", "扣款", "发票", "账单", "支付", "订阅", "refund", "invoice", "多扣"]
+        security_kws = [
+            "账号被盗", "账户被盗", "异常登录", "陌生设备", "密码泄露", "账号安全",
+            "账户安全", "身份验证", "冻结账号", "盗号", "unauthorized login", "hacked",
+        ]
         general_kws = ["订单", "物流", "快递", "配送", "会员", "积分", "咨询", "帮助"]
 
         technical_hits = sum(1 for kw in technical_kws if kw in msg)
         billing_hits = sum(1 for kw in billing_kws if kw in msg)
+        security_hits = sum(1 for kw in security_kws if kw in msg)
         general_hits = sum(1 for kw in general_kws if kw in msg)
 
         # One explicit domain expression is sufficient evidence to involve that
@@ -679,6 +763,11 @@ class AgentOrchestrator:
             scores[AgentType.TECHNICAL] += min(0.65, 0.45 + (technical_hits - 1) * 0.10)
         if billing_hits:
             scores[AgentType.BILLING] += min(0.65, 0.45 + (billing_hits - 1) * 0.10)
+        if security_hits:
+            scores[AgentType.ACCOUNT_SECURITY] += min(
+                0.75,
+                0.55 + (security_hits - 1) * 0.10,
+            )
         scores[AgentType.GENERAL] += min(0.35, general_hits * 0.12)
 
         entities = req.entities or {}
@@ -722,6 +811,7 @@ class AgentOrchestrator:
 
         technical_kws = ["崩溃", "报错", "error", "crash", "无法登录", "登录失败", "500", "401"]
         billing_kws = ["退款", "扣款", "发票", "账单", "支付", "订阅", "refund", "invoice"]
+        security_kws = ["账号被盗", "账户被盗", "异常登录", "密码泄露", "账号安全", "身份验证", "盗号"]
 
         if req.intent in (
             IntentCategory.TECHNICAL,
@@ -731,13 +821,13 @@ class AgentOrchestrator:
             targets.append(AgentType.TECHNICAL)
         if req.intent in (
             IntentCategory.BILLING,
-            IntentCategory.ACCOUNT,
-            IntentCategory.ACCOUNT_SECURITY,
             IntentCategory.REFUND,
             IntentCategory.INVOICE,
             IntentCategory.PAYMENT_ISSUE,
         ) or any(kw in msg for kw in billing_kws):
             targets.append(AgentType.BILLING)
+        if req.intent == IntentCategory.ACCOUNT_SECURITY or any(kw in msg for kw in security_kws):
+            targets.append(AgentType.ACCOUNT_SECURITY)
 
         # 保持顺序去重，并只返回当前有实例的 Agent 类型。
         deduped = list(dict.fromkeys(targets))
@@ -792,24 +882,45 @@ class AgentOrchestrator:
         task: TaskSpec,
         *,
         is_primary: bool,
+        window: Optional[ExecutionWindow] = None,
     ) -> AgentOutcome:
         """把一次选中 Agent 的执行收敛为闭合的 outcome 结果代数。"""
         started = time.monotonic()
+        window = window or self._new_execution_window()
+        timeout_s = window.agent_timeout()
+        if timeout_s <= 0:
+            return AgentOutcome(
+                task_id=task.task_id,
+                required=task.required,
+                agent_type=task.owner.value,
+                status=AgentOutcomeStatus.BUDGET_EXCEEDED,
+                is_primary=is_primary,
+                error="request execution budget exhausted before agent start",
+            )
+        request_limited = timeout_s < window.budget.agent_timeout_s
         scoped_request = replace(req, assigned_task=task)
         try:
             response = await asyncio.wait_for(
                 self._execute(scoped_request, task.owner),
-                timeout=self._agent_timeout_s,
+                timeout=timeout_s,
             )
         except asyncio.TimeoutError:
             return AgentOutcome(
                 task_id=task.task_id,
                 required=task.required,
                 agent_type=task.owner.value,
-                status=AgentOutcomeStatus.TIMEOUT,
+                status=(
+                    AgentOutcomeStatus.BUDGET_EXCEEDED
+                    if request_limited
+                    else AgentOutcomeStatus.TIMEOUT
+                ),
                 is_primary=is_primary,
                 latency_ms=(time.monotonic() - started) * 1000,
-                error=f"agent exceeded {self._agent_timeout_s:.3f}s timeout",
+                error=(
+                    f"request budget exhausted after {timeout_s:.3f}s"
+                    if request_limited
+                    else f"agent exceeded {timeout_s:.3f}s timeout"
+                ),
             )
         except Exception as exc:
             return AgentOutcome(
@@ -836,6 +947,18 @@ class AgentOrchestrator:
             escalate=response.escalate,
             error=response.error,
         )
+
+    def _new_execution_window(self) -> ExecutionWindow:
+        """为运行和旧测试桩统一创建请求级预算窗口。"""
+        budget = getattr(self, "_execution_budget", None)
+        if budget is None:
+            agent_timeout = max(0.001, float(getattr(self, "_agent_timeout_s", 15.0)))
+            budget = ExecutionBudget(
+                request_timeout_s=agent_timeout + 5.0,
+                agent_timeout_s=agent_timeout,
+                max_agents=3,
+            )
+        return budget.start()
 
     # ── 统计（供 Monitor 读取）────────────────────────────────────────────────
 

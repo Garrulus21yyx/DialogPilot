@@ -8,7 +8,7 @@ from agents.agent_orchestrator import (
     AgentType,
     Request,
 )
-from agents.orchestration_contracts import TaskPlan, TaskRisk, TaskSpec
+from agents.orchestration_contracts import ExecutionBudget, TaskPlan, TaskRisk, TaskSpec
 from core.intent_recognizer import IntentCategory
 from services.result_synthesizer import (
     AgentOutcome,
@@ -249,6 +249,85 @@ def test_compound_natural_request_routes_to_both_domain_owners():
     assert decision.primary_agent is AgentType.TECHNICAL
     assert decision.supporting_agents == [AgentType.BILLING]
     assert decision.agent_types == [AgentType.TECHNICAL, AgentType.BILLING]
+
+
+def test_account_security_is_the_owner_and_billing_is_only_supporting():
+    """证明账号被盗不再误归 Billing，异常扣款仍由账务能力并行补充。"""
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    orchestrator._pool = {
+        AgentType.GENERAL: [object()],
+        AgentType.TECHNICAL: [object()],
+        AgentType.BILLING: [object()],
+        AgentType.ACCOUNT_SECURITY: [object()],
+    }
+    request = Request(
+        message="账号被盗，而且出现了一笔重复扣款",
+        user_id="user",
+        conv_id="conversation",
+        intent=IntentCategory.ACCOUNT_SECURITY,
+        intent_group="account",
+        intent_confidence=0.95,
+    )
+
+    plan = orchestrator._build_task_plan(request)
+
+    assert plan.primary_agent is AgentType.ACCOUNT_SECURITY
+    assert plan.supporting_agents == [AgentType.BILLING]
+    assert plan.primary_task.risk is TaskRisk.HIGH
+
+
+def test_max_agent_budget_keeps_plan_but_emits_typed_budget_outcome():
+    """证明并发上限不会偷偷删除任务，而会留下可覆盖检查的预算终态。"""
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    orchestrator._agent_timeout_s = 1.0
+    orchestrator._execution_budget = ExecutionBudget(
+        request_timeout_s=1.0,
+        agent_timeout_s=1.0,
+        max_agents=1,
+    )
+    orchestrator._result_synthesizer = CapturingSynthesizer()
+
+    async def execute(_req, agent_type):
+        return AgentResponse(agent_type=agent_type, content="answer", success=True)
+
+    orchestrator._execute = execute
+    request = Request(message="登录失败并重复扣款", user_id="u", conv_id="c")
+    plan = task_plan(AgentType.TECHNICAL, AgentType.BILLING)
+
+    result = asyncio.run(orchestrator.run_parallel(request, plan))
+
+    assert [item["status"] for item in result.agent_outcomes] == [
+        "success",
+        "budget_exceeded",
+    ]
+    assert result.coverage["unresolved_required_task_ids"] == ["billing_task"]
+
+
+def test_request_deadline_bounds_all_parallel_workers():
+    """证明多个 Worker 共享请求 deadline，而不是各自重新获得完整超时。"""
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    orchestrator._agent_timeout_s = 1.0
+    orchestrator._execution_budget = ExecutionBudget(
+        request_timeout_s=0.01,
+        agent_timeout_s=1.0,
+        max_agents=2,
+    )
+    orchestrator._result_synthesizer = ResultSynthesizer(client=None, model="test")
+
+    async def execute(_req, _agent_type):
+        await asyncio.sleep(0.05)
+
+    orchestrator._execute = execute
+    request = Request(message="登录失败并重复扣款", user_id="u", conv_id="c")
+
+    result = asyncio.run(orchestrator.run_parallel(
+        request,
+        task_plan(AgentType.TECHNICAL, AgentType.BILLING),
+    ))
+
+    assert {item["status"] for item in result.agent_outcomes} == {"budget_exceeded"}
+    assert result.escalated is True
+    assert result.coverage["complete"] is False
 
 
 def test_single_agent_execution_uses_same_typed_timeout_boundary():

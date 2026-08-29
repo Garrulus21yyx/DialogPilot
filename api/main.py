@@ -117,6 +117,8 @@ async def lifespan(app: FastAPI):
         model=cfg["model"],
         skill_manager=_skill_manager,
         agent_timeout_s=float(os.getenv("AGENT_TIMEOUT_SECONDS", "15")),
+        request_timeout_s=float(os.getenv("AGENT_REQUEST_TIMEOUT_SECONDS", "20")),
+        max_agents_per_request=int(os.getenv("AGENT_MAX_PER_REQUEST", "3")),
     )
     _answer_verifier = AnswerVerifier(
         api_key=cfg["api_key"],

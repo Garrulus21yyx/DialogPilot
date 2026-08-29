@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 from enum import Enum
+import time
 from typing import Any, Dict, Tuple
 
 
@@ -146,3 +147,57 @@ class CoverageReport:
             "duplicate_task_ids": list(self.duplicate_task_ids),
             "unexpected_task_ids": list(self.unexpected_task_ids),
         }
+
+
+@dataclass(frozen=True)
+class ExecutionBudget:
+    """一次编排请求允许使用的时间和并发 Agent 上限。"""
+
+    request_timeout_s: float = 20.0
+    agent_timeout_s: float = 15.0
+    max_agents: int = 3
+
+    def __post_init__(self) -> None:
+        """配置错误应在启动时失败，不能退化成随机运行时行为。"""
+        if self.request_timeout_s <= 0:
+            raise ValueError("request_timeout_s must be positive")
+        if self.agent_timeout_s <= 0:
+            raise ValueError("agent_timeout_s must be positive")
+        if self.max_agents < 1:
+            raise ValueError("max_agents must be at least one")
+
+    def start(self) -> "ExecutionWindow":
+        """为一次请求创建使用单调时钟的运行窗口。"""
+        return ExecutionWindow(
+            budget=self,
+            started_at=time.monotonic(),
+        )
+
+    def to_dict(self) -> Dict[str, Any]:
+        """暴露配置而不暴露进程局部的单调时钟值。"""
+        return {
+            "request_timeout_s": self.request_timeout_s,
+            "agent_timeout_s": self.agent_timeout_s,
+            "max_agents": self.max_agents,
+        }
+
+
+@dataclass(frozen=True)
+class ExecutionWindow:
+    """多个并行 Worker 共享的请求级 deadline。"""
+
+    budget: ExecutionBudget
+    started_at: float
+
+    @property
+    def deadline(self) -> float:
+        """返回单调时钟上的绝对截止点。"""
+        return self.started_at + self.budget.request_timeout_s
+
+    def remaining_s(self) -> float:
+        """返回非负剩余时间，供 Worker、融合器和降级路径共同消费。"""
+        return max(0.0, self.deadline - time.monotonic())
+
+    def agent_timeout(self) -> float:
+        """单 Worker 只能使用 Agent 上限和请求剩余时间中的较小值。"""
+        return min(self.budget.agent_timeout_s, self.remaining_s())

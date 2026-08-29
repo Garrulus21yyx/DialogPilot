@@ -20,6 +20,7 @@ class AgentOutcomeStatus(str, Enum):
     SUCCESS = "success"
     TIMEOUT = "timeout"
     ERROR = "error"
+    BUDGET_EXCEEDED = "budget_exceeded"
 
 
 class SynthesisStatus(str, Enum):
@@ -126,6 +127,37 @@ class ResultSynthesizer:
         self._client = client
         self._model = model
 
+    def unavailable_result(
+        self,
+        plan: TaskPlan,
+        outcomes: Sequence[AgentOutcome],
+        *,
+        reason: str,
+    ) -> SynthesisResult:
+        """融合预算或供应商不可用时，保留成功证据并默认要求人工确认。"""
+        coverage = CoverageGate.evaluate(plan, outcomes)
+        successful = [outcome for outcome in outcomes if outcome.status is AgentOutcomeStatus.SUCCESS]
+        failed = [outcome for outcome in outcomes if outcome.status is not AgentOutcomeStatus.SUCCESS]
+        if not successful:
+            return SynthesisResult(
+                status=SynthesisStatus.FAILED,
+                content="所有专业 Agent 均未能在请求预算内完成处理，已转交人工进一步确认。",
+                reason=reason,
+                escalate=True,
+                coverage=coverage,
+                failed_agents=[outcome.agent_type for outcome in failed],
+            )
+        return SynthesisResult(
+            status=SynthesisStatus.UNKNOWN,
+            content=self._deterministic_fallback(successful),
+            reason=reason,
+            escalate=True,
+            coverage=coverage,
+            successful_agents=[outcome.agent_type for outcome in successful],
+            failed_agents=[outcome.agent_type for outcome in failed],
+            conflicts=["parallel result synthesis could not be verified"],
+        )
+
     async def synthesize(
         self,
         question: str,
@@ -204,15 +236,10 @@ class ResultSynthesizer:
             )
         except Exception as exc:
             # 降级结果保持原路由顺序，并用 UNKNOWN 阻止其被误认为可靠融合。
-            return SynthesisResult(
-                status=SynthesisStatus.UNKNOWN,
-                content=self._deterministic_fallback(successful),
+            return self.unavailable_result(
+                plan,
+                outcomes,
                 reason=f"synthesis unavailable: {type(exc).__name__}",
-                escalate=True,
-                coverage=coverage,
-                successful_agents=successful_agents,
-                failed_agents=failed_agents,
-                conflicts=["parallel result synthesis could not be verified"],
             )
 
     async def _synthesize_with_model(
