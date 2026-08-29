@@ -278,6 +278,11 @@ class MCPToolManager:
             "input_schema": tool.schema,
         } for tool in self.tools_for_agent(agent_type)]
 
+    def calls_are_parallel_safe(self, tool_names: List[str]) -> bool:
+        """只有全部已注册工具都是只读时，ReAct 才能并行派发。"""
+        tools = [self._tools.get(name) for name in tool_names]
+        return bool(tools) and all(tool is not None and tool.read_only for tool in tools)
+
     async def execute_for_agent(
         self,
         name: str,

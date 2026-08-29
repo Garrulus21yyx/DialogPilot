@@ -25,6 +25,7 @@ from typing import Any, Dict, List, Optional
 
 from anthropic import AsyncAnthropic
 
+from agents.react_engine import ReActExecutionEngine, ReActResult
 from agents.orchestration_contracts import (
     AgentType,
     ExecutionBudget,
@@ -35,6 +36,7 @@ from agents.orchestration_contracts import (
 )
 from core.intent_recognizer import IntentCategory, IntentRecognizer, UrgencyLevel
 from core.llm_utils import extract_text_content
+from core.tracing import current_trace_id
 from memory.context import ContextSection, PromptContext
 from services.result_synthesizer import (
     AgentOutcome,
@@ -126,6 +128,10 @@ class AgentResponse:
     escalate:    bool  = False   # 是否需要升级
     error:       str = ""
     agent_key:   str = ""
+    react_status: str = "disabled"
+    react_steps: int = 0
+    tool_call_ids: List[str] = field(default_factory=list)
+    allow_fallback: bool = True
 
 
 @dataclass
@@ -184,11 +190,16 @@ class BaseAgent:
         model: str,
         skill_manager: Optional[Any] = None,
         instance_id: str = "",
+        tool_manager: Optional[Any] = None,
+        react_max_steps: int = 4,
     ):
         """保存 Agent 身份、模型客户端、Skill 入口和运行统计。"""
         self._client = client
         self._model  = model
         self._skill_manager = skill_manager
+        self._tool_manager = tool_manager
+        self._react_max_steps = max(1, int(react_max_steps))
+        self._react_engine = self._new_react_engine()
         self.instance_id = instance_id or f"{self.agent_type.value}_0"
         self.stats   = AgentStats()
 
@@ -197,18 +208,38 @@ class BaseAgent:
         t0 = time.monotonic()
         self.stats.total += 1
         try:
-            content = await self._call_llm(req)
+            model_result = await self._call_llm(req)
+            if isinstance(model_result, ReActResult):
+                content = model_result.content
+                completed = model_result.success
+                react_status = model_result.status.value
+                react_steps = model_result.steps
+                tool_call_ids = list(model_result.tool_call_ids)
+                react_error = "" if completed else model_result.reason
+            else:
+                content = model_result
+                completed = True
+                react_status = "disabled"
+                react_steps = 0
+                tool_call_ids = []
+                react_error = ""
             ms = (time.monotonic() - t0) * 1000
-            self.stats.success += 1
+            if completed:
+                self.stats.success += 1
             self.stats.total_ms += ms
-            escalate = self._needs_escalation(content)
+            escalate = not completed or self._needs_escalation(content)
             return AgentResponse(
                 agent_type=self.agent_type,
                 content=content,
-                success=True,
+                success=completed,
                 latency_ms=ms,
                 escalate=escalate,
+                error=react_error,
                 agent_key=self.instance_id,
+                react_status=react_status,
+                react_steps=react_steps,
+                tool_call_ids=tool_call_ids,
+                allow_fallback=completed,
             )
         except Exception as ex:
             ms = (time.monotonic() - t0) * 1000
@@ -223,7 +254,7 @@ class BaseAgent:
                 agent_key=self.instance_id,
             )
 
-    async def _call_llm(self, req: Request) -> str:
+    async def _call_llm(self, req: Request) -> str | ReActResult:
         """把内部请求转换为模型调用，并归一化文本响应。"""
         def _clean(s: str) -> str:
             """清除代理字符，避免第三方兼容端点编码 Prompt 失败。"""
@@ -248,6 +279,20 @@ class BaseAgent:
         if req.entities:
             system = f"{system}\n\n{ContextSection(tag='request_entities', content=json.dumps(req.entities, ensure_ascii=False), priority=100).render()}"
 
+        if self._react_engine is not None and self._tool_manager.tools_for_agent(self.agent_type.value):
+            return await self._react_engine.run(
+                system=system,
+                messages=messages,
+                agent_type=self.agent_type.value,
+                execution_context={
+                    "trace_id": current_trace_id(),
+                    "request_id": req.request_id,
+                    "user_id": req.user_id,
+                    "conv_id": req.conv_id,
+                    "task_id": req.assigned_task.task_id if req.assigned_task else "",
+                },
+            )
+
         resp = await self._client.messages.create(
             model=self._model,
             max_tokens=1024,
@@ -255,6 +300,22 @@ class BaseAgent:
             messages=messages,
         )
         return extract_text_content(resp.content)
+
+    def set_tool_manager(self, tool_manager: Optional[Any]) -> None:
+        """更新工具运行时并重建无共享可变轮次状态的 ReAct 引擎。"""
+        self._tool_manager = tool_manager
+        self._react_engine = self._new_react_engine()
+
+    def _new_react_engine(self) -> Optional[ReActExecutionEngine]:
+        """只有注入受控工具运行时时才启用 ReAct。"""
+        if self._tool_manager is None:
+            return None
+        return ReActExecutionEngine(
+            client=self._client,
+            model=self._model,
+            tool_manager=self._tool_manager,
+            max_steps=self._react_max_steps,
+        )
 
     def _build_system_prompt(self, req: Request) -> str:
         """把动态加载的 Skills 拼入 system prompt，让业务规则随请求生效。"""
@@ -358,6 +419,8 @@ class AgentOrchestrator:
         request_timeout_s: float = 20.0,
         max_agents_per_request: int = 3,
         result_synthesizer: Optional[ResultSynthesizer] = None,
+        tool_manager: Optional[Any] = None,
+        react_max_steps: int = 4,
     ):
         """创建 Agent 池、意图识别器、融合器和路由反馈状态。"""
         kwargs: Dict[str, Any] = {"api_key": api_key}
@@ -377,11 +440,23 @@ class AgentOrchestrator:
 
         # Agent 池：每种类型可有多个实例（水平扩展）
         self._pool: Dict[AgentType, List[BaseAgent]] = {
-            AgentType.GENERAL:   [GeneralAgent(client, model, skill_manager, "general_0")],
-            AgentType.TECHNICAL: [TechnicalAgent(client, model, skill_manager, "technical_0")],
-            AgentType.BILLING:   [BillingAgent(client, model, skill_manager, "billing_0")],
+            AgentType.GENERAL: [GeneralAgent(
+                client, model, skill_manager, "general_0",
+                tool_manager=tool_manager, react_max_steps=react_max_steps,
+            )],
+            AgentType.TECHNICAL: [TechnicalAgent(
+                client, model, skill_manager, "technical_0",
+                tool_manager=tool_manager, react_max_steps=react_max_steps,
+            )],
+            AgentType.BILLING: [BillingAgent(
+                client, model, skill_manager, "billing_0",
+                tool_manager=tool_manager, react_max_steps=react_max_steps,
+            )],
             AgentType.ACCOUNT_SECURITY: [
-                AccountSecurityAgent(client, model, skill_manager, "account_security_0")
+                AccountSecurityAgent(
+                    client, model, skill_manager, "account_security_0",
+                    tool_manager=tool_manager, react_max_steps=react_max_steps,
+                )
             ],
         }
 
@@ -391,6 +466,12 @@ class AgentOrchestrator:
         for agents in self._pool.values():
             for agent in agents:
                 agent._skill_manager = skill_manager
+
+    def set_tool_manager(self, tool_manager: Optional[Any]) -> None:
+        """向所有 Worker 注入同一个受控工具运行时。"""
+        for agents in self._pool.values():
+            for agent in agents:
+                agent.set_tool_manager(tool_manager)
 
     async def recognize_intent(
         self,
@@ -871,7 +952,7 @@ class AgentOrchestrator:
         response = await agent.handle(req)
 
         # 专属 Agent 失败时降级到 GeneralAgent
-        if not response.success and agent_type != AgentType.GENERAL:
+        if response.allow_fallback and not response.success and agent_type != AgentType.GENERAL:
             logger.warning(f"{agent_type.value} 失败，降级到 GeneralAgent")
             fallback = self._best_agent(AgentType.GENERAL)
             if fallback:
@@ -949,6 +1030,9 @@ class AgentOrchestrator:
             latency_ms=response.latency_ms,
             escalate=response.escalate,
             error=response.error,
+            react_status=response.react_status,
+            react_steps=response.react_steps,
+            tool_call_ids=response.tool_call_ids,
         )
 
     def _new_execution_window(self) -> ExecutionWindow:

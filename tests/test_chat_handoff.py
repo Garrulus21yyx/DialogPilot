@@ -15,6 +15,7 @@ from memory.context import ContextAssembler
 
 class FakeMemoryContext:
     recent_messages = []
+    retrieval_hits = []
 
     @staticmethod
     def to_prompt_text():

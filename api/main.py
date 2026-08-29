@@ -7,6 +7,7 @@ import asyncio
 import logging
 import os
 import pathlib
+import re
 import sys
 import uuid
 from contextlib import asynccontextmanager
@@ -19,7 +20,7 @@ if _ROOT not in sys.path:
 
 import uvicorn
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Response, UploadFile, File, Query
+from fastapi import FastAPI, HTTPException, Response, UploadFile, File, Query, Request as FastAPIRequest
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, Field
@@ -33,6 +34,7 @@ from services.ticket_service import (
     TicketStatus,
 )
 from memory.context import ContextAssembler, ContextSection
+from core.tracing import TraceRecorder, current_trace_id, trace_scope
 
 load_dotenv()
 
@@ -59,6 +61,7 @@ _skill_manager = None
 _answer_verifier = None
 _ticket_service = None
 _context_assembler = None
+_trace_recorder = TraceRecorder()
 
 def _anthropic_cfg() -> Dict[str, Any]:
     """读取模型供应商配置，并在应用启动前验证必需 API Key。"""
@@ -86,7 +89,7 @@ async def lifespan(app: FastAPI):
     from core.intent_recognizer import IntentRecognizer
     from evaluation.evaluator import EndToEndEvaluator
     from mcp.knowledge_base import KnowledgeBase
-    from mcp.tool_manager import MCPToolManager, Tool
+    from mcp.tool_manager import ApprovalMode, MCPToolManager, Tool
     from memory.conversation_memory import MemoryManager
     from monitor.performance_monitor import PerformanceMonitor
     from core.skill_loader import SkillManager
@@ -119,6 +122,7 @@ async def lifespan(app: FastAPI):
         agent_timeout_s=float(os.getenv("AGENT_TIMEOUT_SECONDS", "15")),
         request_timeout_s=float(os.getenv("AGENT_REQUEST_TIMEOUT_SECONDS", "20")),
         max_agents_per_request=int(os.getenv("AGENT_MAX_PER_REQUEST", "3")),
+        react_max_steps=int(os.getenv("REACT_MAX_STEPS", "4")),
     )
     _answer_verifier = AnswerVerifier(
         api_key=cfg["api_key"],
@@ -155,6 +159,9 @@ async def lifespan(app: FastAPI):
         api_key=cfg["api_key"],
         base_url=cfg.get("base_url"),
         model=cfg["model"],
+        approval_mode=ApprovalMode(os.getenv("TOOL_APPROVAL_MODE", "default")),
+        trace_recorder=_trace_recorder,
+        max_output_chars=int(os.getenv("TOOL_OUTPUT_MAX_CHARS", "4000")),
     )
     kb = KnowledgeBase(
         chroma_host=os.getenv("CHROMA_HOST", "chromadb"),
@@ -189,7 +196,39 @@ async def lifespan(app: FastAPI):
         cache_ttl=300.0,
         supports_rerank=True,
         fallback=knowledge_fallback,
+        allowed_agents=("general", "technical", "billing", "account_security"),
+        read_only=True,
     ))
+
+    async def memory_search(params: Dict[str, Any], context: Optional[Dict[str, Any]]):
+        """在当前用户边界内执行混合长期记忆检索。"""
+        context = context or {}
+        user_id = str(context.get("user_id") or "").strip()
+        if not user_id:
+            raise ValueError("memory_search requires trusted user_id context")
+        hits = await _memory.search_long_term(
+            user_id,
+            str(params.get("query") or ""),
+            top_k=min(max(int(params.get("top_k", 5)), 1), 10),
+        )
+        return [{**hit.to_dict(), "content": hit.content} for hit in hits]
+
+    _tool_manager.register(Tool(
+        name="memory_search",
+        description="检索当前用户的跨会话长期记忆；适合核对历史订单号、错误码和偏好",
+        handler=memory_search,
+        schema={
+            "type": "object",
+            "properties": {
+                "query": {"type": "string"},
+                "top_k": {"type": "integer"},
+            },
+            "required": ["query"],
+        },
+        allowed_agents=("general", "technical", "billing", "account_security"),
+        read_only=True,
+    ))
+    _orchestrator.set_tool_manager(_tool_manager)
 
     # 性能监控（可选启动 Prometheus）
     prom_port = int(os.getenv("PROMETHEUS_PORT", "0")) or None
@@ -229,6 +268,22 @@ app = FastAPI(
     docs_url="/docs",
 )
 
+
+@app.middleware("http")
+async def trace_request(request: FastAPIRequest, call_next):
+    """为每个 HTTP 请求建立可跨 asyncio Task 传播的 TraceId。"""
+    requested = (request.headers.get("x-trace-id") or "").strip()
+    trace_id = requested if re.fullmatch(r"[A-Za-z0-9._-]{8,128}", requested) else uuid.uuid4().hex
+    with trace_scope(trace_id):
+        with _trace_recorder.span(
+            f"http.{request.method.lower()}",
+            kind="server",
+            attributes={"http.method": request.method, "http.path": request.url.path},
+        ):
+            response = await call_next(request)
+    response.headers["X-Trace-Id"] = trace_id
+    return response
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -249,6 +304,7 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     """用户可见回答及路由、校验、工单等诊断投影。"""
     request_id:  str
+    trace_id: str = ""
     conv_id:     str
     response:    str
     intent:      str
@@ -267,6 +323,8 @@ class ChatResponse(BaseModel):
     task_plan: Dict[str, Any] = Field(default_factory=dict)
     coverage: Dict[str, Any] = Field(default_factory=dict)
     execution_budget: Dict[str, Any] = Field(default_factory=dict)
+    tool_audit: List[Dict[str, Any]] = Field(default_factory=list)
+    memory_retrieval: List[Dict[str, Any]] = Field(default_factory=list)
     escalated:   bool
     latency_ms:  float
     knowledge_used: bool = False
@@ -458,6 +516,7 @@ async def chat(req: ChatRequest):
 
     return ChatResponse(
         request_id=request_id,
+        trace_id=current_trace_id(),
         conv_id=conv_id,
         response=response_text,
         intent=result.intent.value if result.intent else "other",
@@ -476,6 +535,16 @@ async def chat(req: ChatRequest):
         task_plan=result.task_plan,
         coverage=result.coverage,
         execution_budget=result.execution_budget,
+        tool_audit=[
+            record.to_dict()
+            for record in _tool_manager.audit_records(trace_id=current_trace_id())
+        ] if _tool_manager else [],
+        memory_retrieval=[{
+            "memory_id": hit.memory_id,
+            "score": round(hit.score, 8),
+            "sources": list(hit.sources),
+            "ranks": dict(hit.ranks),
+        } for hit in mem_ctx.retrieval_hits],
         escalated=escalated,
         latency_ms=round(result.latency_ms, 1),
         knowledge_used=knowledge_used,

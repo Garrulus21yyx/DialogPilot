@@ -303,6 +303,39 @@ def test_max_agent_budget_keeps_plan_but_emits_typed_budget_outcome():
     assert result.coverage["unresolved_required_task_ids"] == ["billing_task"]
 
 
+def test_react_failure_evidence_reaches_typed_agent_outcome():
+    """证明工具拒绝不会丢成普通异常，编排结果保留 ReAct 与 call_id 证据。"""
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    orchestrator._agent_timeout_s = 1.0
+
+    async def execute(_req, agent_type):
+        return AgentResponse(
+            agent_type=agent_type,
+            content="高风险工具等待人工审批。",
+            success=False,
+            escalate=True,
+            error="tool call requires approval",
+            react_status="blocked",
+            react_steps=2,
+            tool_call_ids=["call-risk"],
+            allow_fallback=False,
+        )
+
+    orchestrator._execute = execute
+    task = task_plan(AgentType.BILLING).primary_task
+    result = asyncio.run(orchestrator._execute_outcome(
+        Request(message="退款", user_id="u", conv_id="c"),
+        task,
+        is_primary=True,
+    ))
+
+    assert result.status is AgentOutcomeStatus.ERROR
+    assert result.react_status == "blocked"
+    assert result.react_steps == 2
+    assert result.tool_call_ids == ["call-risk"]
+    assert result.escalate is True
+
+
 def test_request_deadline_bounds_all_parallel_workers():
     """证明多个 Worker 共享请求 deadline，而不是各自重新获得完整超时。"""
     orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)

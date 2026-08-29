@@ -47,6 +47,9 @@ class AgentOutcome:
     latency_ms: float = 0.0
     escalate: bool = False
     error: str = ""
+    react_status: str = "disabled"
+    react_steps: int = 0
+    tool_call_ids: List[str] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         """转换为 API 可序列化字典，并显式展开枚举值。"""

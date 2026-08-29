@@ -37,6 +37,9 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
         def __init__(self, **_kwargs):
             pass
 
+        def set_tool_manager(self, _tool_manager):
+            captured["tool_manager_wired"] = True
+
         def get_stats(self):
             return {}
 
@@ -116,6 +119,7 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
             assert captured["memory"]["memory_token_budget"] == 4321
             assert captured["memory"]["compression_threshold"] == 0.81
             assert captured["memory"]["summary_max_tokens"] == 777
+            assert captured["tool_manager_wired"] is True
 
     asyncio.run(exercise_lifespan())
     assert captured["memory_closed"] is True
