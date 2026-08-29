@@ -5,17 +5,18 @@
 ## 快速导航
 
 - 想先会讲：读第 0、3、5、19、20、22 章；
-- 想吃透 Agent：读第 6、9、10、11、12、14 章；
-- 想吃透 Context/Memory：读第 8 章；
+- 想吃透 Agent：读第 6、9、10、11、12、14、25 章；
+- 想吃透 Context/Memory：读第 8、25 章；
 - 想吃透后端可靠性：读第 7、13、17、18、21 章；
-- 面试前速查：读第 22 章连续追问、第 23 章闭卷自测，再用第 24 章做真实性审计。
+- 面试前速查：读第 22、25 章连续追问、第 23 章闭卷自测，再用第 24 章做真实性审计。
 
 ## 0. 先把项目说准确
 
 DialogPilot 是一个 Python 3.12 + FastAPI 的异步多 Agent 客服后端。它把单提示词聊天机器人中容易混在一起的职责拆开：
 
 - `IntentRecognizer` 判断用户想做什么；
-- `KnowledgeBase` 和 `MCPToolManager` 提供受控知识检索；
+- `KnowledgeBase` 和 `MCPToolManager` 提供受控知识/记忆工具；
+- `ReActExecutionEngine` 在单个领域 Worker 内执行有限工具循环；
 - `MemoryManager` 拥有工作记忆、滚动摘要、情景记忆和用户画像；
 - `ContextAssembler` 把这些数据装进有 Token 上限的模型输入；
 - `AgentOrchestrator` 生产 `TaskPlan`，为子任务分配 General、Technical、Billing 或 AccountSecurity Owner；
@@ -25,14 +26,15 @@ DialogPilot 是一个 Python 3.12 + FastAPI 的异步多 Agent 客服后端。�
 - `TicketService` 把需要人工确认的结果持久化为可追踪工单；
 - `PerformanceMonitor` 与 `EndToEndEvaluator` 分别负责在线健康和离线质量。
 
-必须同时说明两个边界：
+必须同时说明三个边界：
 
-1. 这是**由应用代码控制步骤的多 Agent 工作流**。模型负责分类、生成、改写、重排、融合和校验，但没有一个 `while tool_calls` 自主循环。因此，不应把它描述成完整的 ReAct 自主 Agent Runtime。
+1. 外层仍是**由应用代码控制的 TaskPlan 工作流**；只有单个领域 Worker 内部有最大 4 步的 ReAct 工具循环。它不是开放式 Planner，也不允许 Worker 自由委派或互聊。
 2. [`MCPToolManager`](../mcp/tool_manager.py) 是项目内部的工具注册、超时、熔断、缓存和降级层；它目前没有实现远程 MCP 的 transport、server、session 或协议握手。名字表达的是工具抽象方向，不等于已经实现网络 MCP Server。
+3. Trace 和工具审计目前是进程内有界记录；默认策略会阻止高风险/写工具，但还没有“用户点击批准后恢复原调用”的持久审批接口。
 
 ### 30 秒版本
 
-> DialogPilot 是一个 Python/FastAPI 多 Agent 客服后端。请求先读取记忆并融合识别意图，再按需完成 RAG。Orchestrator 将复合问题拆成带 task_id、Owner、风险和完成标准的 TaskPlan；通用、技术、账务与账户安全 Worker 只处理自己的子任务。所有 Worker 共享请求级 deadline 和最大并发预算，每项收敛为 SUCCESS、TIMEOUT、ERROR 或 BUDGET_EXCEEDED。CoverageGate 证明必需任务覆盖后，Synthesizer 才融合候选回答；Verifier 只有明确 PASS 才发布，其余情况幂等落成 SQLite 人工工单。在线监控反馈可用性和经校验质量，离线评测额外衡量 Owner、覆盖、预算与 fan-out。
+> DialogPilot 是一个 Python/FastAPI 多 Agent 客服后端。请求先用 BM25、向量与时间信号融合检索长期记忆，再识别意图和按需 RAG。Orchestrator 将复合问题拆成带 task_id、Owner、风险和完成标准的 TaskPlan；领域 Worker 在自己的任务范围内执行最大 4 步 ReAct，并且只能看到 allowlist 工具。所有 Worker 共享 deadline 和并发预算，每项收敛为有类型结果。CoverageGate 证明必需任务覆盖后，Synthesizer 才融合候选回答；Verifier 只有明确 PASS 才发布，其余情况幂等落成 SQLite 人工工单。TraceId 把 HTTP、ReAct step 和 Tool audit 串起来。
 
 ### 3 分钟版本的顺序
 
@@ -41,9 +43,9 @@ DialogPilot 是一个 Python 3.12 + FastAPI 的异步多 Agent 客服后端。�
 1. 问题：单提示词客服把路由、知识、记忆、安全和升级混成黑盒。
 2. 合同：一次请求必须得到可诊断的路由结果；只有明确 `PASS` 的回答能发布；需要人工时同步尝试创建持久工单，并把建单成功或失败明确返回。
 3. 主链：Memory → Intent → RAG → Context → TaskPlan → Workers → Coverage → Synthesis → Verification → Ticket → Persist published messages。
-4. 四个最值得深挖的改动：Token 驱动且并发安全的压缩、TaskPlan/CoverageGate、请求预算下的有类型结果代数、校验质量反馈闭环。
-5. 证据：50 个测试，覆盖生命周期配置、RAG 降级、校验 fail-closed、工单状态机/幂等、压缩并发冲突、任务缺失/重复、账户安全 Owner、共享 deadline、预算耗尽、部分成功/冲突和质量 EWMA。
-6. 边界：无鉴权，SQLite 只适合单应用写者，画像后台任务不耐进程崩溃，在线统计重启丢失，评测数据还不足以声称生产准确率。
+4. 六个最值得深挖的改动：Token 驱动且并发安全的压缩、混合长期记忆、TaskPlan/CoverageGate、有界 ReAct 与权限、请求预算下的结果代数、校验质量反馈闭环。
+5. 证据：65 个测试，新增覆盖混合召回/RRF 指标、Agent allowlist、高风险审批阻断、Trace 传播、tool_use/result 配对与循环上限。
+6. 边界：无鉴权，SQLite 只适合单应用写者，Trace/审计重启丢失，审批不能交互恢复，评测数据还不足以声称生产准确率。
 
 ## 1. 如何学习这个仓库
 
@@ -79,14 +81,17 @@ DialogPilot/
 ├── core/
 │   ├── intent_recognizer.py         # 三路意图识别、实体和紧急度
 │   ├── skill_loader.py              # 动态业务 Skill 加载/匹配/热更新
+│   ├── tracing.py                   # Trace/span 身份与进程内投影
 │   └── llm_utils.py                 # 供应商响应文本归一化
 ├── memory/
 │   ├── conversation_memory.py       # Redis/Chroma 记忆状态与压缩提交
+│   ├── hybrid_retrieval.py          # BM25/vector/recency 加权 RRF
 │   └── context.py                   # Token 估算与 Prompt 输入装配
 ├── mcp/
 │   ├── knowledge_base.py            # Chroma 知识文档摄取与检索
 │   └── tool_manager.py              # 工具注册、校验、超时、熔断、缓存、降级
 ├── agents/agent_orchestrator.py     # Agent 池、路由、并发执行、质量反馈
+├── agents/react_engine.py           # Worker 内有界 tool_use/tool_result 循环
 ├── agents/orchestration_contracts.py # TaskPlan、风险、Coverage、执行预算
 ├── services/
 │   ├── result_synthesizer.py        # 并行结果的唯一融合 Owner
@@ -114,6 +119,8 @@ flowchart LR
     Orchestrator --> Intent[IntentRecognizer]
     Orchestrator --> Plan[TaskPlan + ExecutionBudget]
     Plan --> Agents[Scoped Domain Workers]
+    Agents --> React[Bounded ReAct]
+    React --> Tool
     Orchestrator --> Synth[ResultSynthesizer]
     Agents --> Coverage[CoverageGate]
     Coverage --> Synth
@@ -136,7 +143,11 @@ API 层负责**时序编排**，但不应该成为各领域事实的 Owner。例
 | Prompt 可裁剪部分预算 | `ContextAssembler` | Memory/RAG/API | Domain Agent | section/history 有界，最近历史优先 |
 | 子任务、Owner 与完成标准 | `AgentOrchestrator` 的 `TaskPlan` | Intent、实体、关键词、统计 | Worker、CoverageGate、API | task_id 唯一，每个 required task 恰有一个 Owner |
 | 请求执行预算 | `ExecutionBudget/ExecutionWindow` | 启动配置、单调时钟 | Worker、Synthesizer、API | 共享 deadline、per-Agent 上限、max-agents |
-| 单任务执行状态 | Worker + Orchestrator 包装 | Provider call/预算 | CoverageGate、Synthesizer、Monitor | `SUCCESS/TIMEOUT/ERROR/BUDGET_EXCEEDED` |
+| 单任务执行状态 | Worker + Orchestrator 包装 | Provider/ReAct/预算 | CoverageGate、Synthesizer、Monitor | `SUCCESS/TIMEOUT/ERROR/BUDGET_EXCEEDED`；保留 ReAct 证据 |
+| ReAct 循环终态 | `ReActExecutionEngine` | LLM + ToolResult | AgentResponse、AgentOutcome | `COMPLETED/BLOCKED/TOOL_ERROR/MAX_STEPS` |
+| 工具授权与审批 | `MCPToolManager` | 注册合同 + 可信宿主输入 | ReAct、审计/API | allowlist；写/高风险默认不批准即不执行 |
+| 长期记忆排序 | `HybridMemoryRetriever` | 用户内 BM25/vector 候选 + recency | MemoryContext/API | weighted RRF + source ranks；时间不引入无关候选 |
+| TraceId/span | `core/tracing.py` | HTTP middleware/contextvars | Agent、Tool、API | 并行 Task 继承同一 TraceId；投影有界且脱敏 |
 | 必需任务覆盖 | `CoverageGate` | TaskPlan + outcomes | Synthesizer、Verifier、Evaluator | 缺失、失败、重复、越界均不能 complete |
 | 并行候选回答 | `ResultSynthesizer` | Agent outcomes | Verifier/API | `SUCCESS/PARTIAL/CONFLICT/FAILED/UNKNOWN` |
 | 是否可发布 | `AnswerVerifier` | Candidate + context + plan/coverage/outcomes | API、质量反馈、Ticket | coverage 缺口本地 REJECT；其余只有 `PASS` 可发布 |
@@ -156,7 +167,7 @@ API 层负责**时序编排**，但不应该成为各领域事实的 Owner。例
 3. 扫描 `skills/`，加载 Markdown/JSON/TXT 业务规则。
 4. 创建 `AgentOrchestrator`、`AnswerVerifier`、`TicketService` 和 `ContextAssembler`。
 5. 创建 `MemoryManager`：Redis 保存短期状态，ChromaDB 保存情景记忆和画像。
-6. 创建 `MCPToolManager` 和 `KnowledgeBase`，注册 `knowledge_search`。
+6. 创建共享 `TraceRecorder`、`MCPToolManager` 和 `KnowledgeBase`，注册只读且有 Agent allowlist 的 `knowledge_search`、`memory_search`，再把 ToolManager 注入所有领域 Worker。
 7. 启动 `PerformanceMonitor` 后台采集循环。
 8. 创建 `EndToEndEvaluator`。
 9. `yield` 后服务开始接请求；退出时停止 Monitor 并关闭 Redis 连接。
@@ -185,6 +196,7 @@ sequenceDiagram
     participant T as ToolManager + KB
     participant X as ContextAssembler
     participant O as AgentOrchestrator
+    participant R as Worker ReAct
     participant G as CoverageGate
     participant S as ResultSynthesizer
     participant V as AnswerVerifier
@@ -202,9 +214,13 @@ sequenceDiagram
     A->>O: run(Request)
     O->>O: build TaskPlan + ExecutionWindow
     par technical
-        O->>O: TechnicalAgent
+        O->>R: Technical task
     and billing
-        O->>O: BillingAgent
+        O->>R: Billing task
+    end
+    loop at most REACT_MAX_STEPS
+        R->>T: allowlisted tool_use(call_id)
+        T-->>R: typed tool_result + audit
     end
     O->>G: TaskPlan + ordered typed outcomes
     G-->>O: complete / unresolved task evidence
@@ -218,7 +234,7 @@ sequenceDiagram
         K-->>A: new/reused ticket or explicit delivery failure
     end
     A->>M: persist user + actually published response
-    A-->>C: ChatResponse + diagnostics
+    A-->>C: ChatResponse + TraceId/audit/retrieval diagnostics
 ```
 
 ### 5.1 请求身份
@@ -347,16 +363,16 @@ LLM 与 embedding 并行，pattern 同步执行。官方 Anthropic SDK 没有 em
 
 ### 7.3 Tool 调用合同
 
-`Tool` 定义名称、说明、handler、JSON Schema、TTL、超时、是否支持重排和 fallback。`call()` 的顺序是：
+`Tool` 除名称、handler、Schema、缓存和超时外，还声明 `allowed_agents`、`risk`、`read_only` 与 `requires_approval`。ReAct 必须走 `execute_for_agent()`，不能直接碰 handler。完整顺序是：
 
-1. 查注册表；
-2. 查 TTL cache；
-3. 检查 CircuitBreaker；
-4. 按 JSON Schema 的 required 和基础 type 校验参数；
-5. `asyncio.wait_for` 执行 handler；同步 handler 放线程池；
-6. 可选重排；
-7. 写最终结果缓存；
-8. 更新统计。
+1. 先按 Agent allowlist 过滤模型能看到的 tool schema；
+2. 执行时再次检查注册表与 allowlist，抵御模型编造/越权工具名；
+3. 按宿主 `ApprovalMode` 和工具风险判断是否需要批准；`approved` 不在模型参数 Schema 内；
+4. 获准后才进入 TTL cache、CircuitBreaker、Schema 校验、timeout/handler、可选重排和 fallback；
+5. 结果回写模型前限制字符数；
+6. 以 `trace_id/call_id/agent/tool/status` 记录脱敏审计，只保存参数哈希和 shape 摘要。
+
+ReAct 同一轮请求多个工具时，只有全部 `read_only=True` 才通过 `asyncio.gather` 并行；只要存在潜在写操作就按模型给出的稳定顺序串行，避免不可控副作用竞争。
 
 ### 7.4 熔断器状态
 
@@ -384,13 +400,15 @@ stateDiagram-v2
 - Chroma 返回 distance，代码用 `1 - distance` 表示近似 score；
 - 本地 Chroma 不可服务化连接时退到 PersistentClient。
 
-### 7.7 当前不是完整工具 Agent
+### 7.7 有界 ReAct，而不是开放式自治
 
-模型不会收到一个 tools schema 后自主选择工具。API 明确调用 `search_with_rewrite()`。优点是路径容易控制和测试；缺点是扩展到多工具、多轮观察-行动需要增加执行循环、max loops、中断、审批、tool call/result 配对和输出压缩。
+现在每个领域 Worker 会收到自己的工具 Schema，并执行 Anthropic `tool_use → tool_result` 循环；`call_id` 必须配对，默认最多 4 步。自然结束为 `COMPLETED`，权限拒绝或待审批为 `BLOCKED`，工具失败为 `TOOL_ERROR`，持续循环为 `MAX_STEPS`。后三种都让任务非成功并触发升级，而且不会被 GeneralAgent 静默替换。
+
+外层 TaskPlan、Agent fan-out、CoverageGate 和发布校验仍是确定性 Python 控制。这是刻意的两层设计：Planner 拥有“哪些工作必须完成”，ReAct 只拥有“当前 Worker 为完成自己的任务应调用什么工具”。它还缺持久 checkpoint、取消/恢复、交互审批和真实写操作 receipt，因此不能称为通用自治 Agent 平台。
 
 ## 8. 记忆系统：状态、压缩和并发安全
 
-代码：[`memory/conversation_memory.py`](../memory/conversation_memory.py)、[`memory/context.py`](../memory/context.py)
+代码：[`memory/conversation_memory.py`](../memory/conversation_memory.py)、[`memory/hybrid_retrieval.py`](../memory/hybrid_retrieval.py)、[`memory/context.py`](../memory/context.py)
 
 ### 8.1 四类上下文不要混淆
 
@@ -398,7 +416,7 @@ stateDiagram-v2
 |---|---|---|---|
 | Working memory | Redis list | TTL 24h | 当前会话原始消息 |
 | Rolling summary | Redis string | TTL 24h | 被压缩历史的结构化摘要 |
-| Episodic memory | Chroma `episodic` | 持久 | 跨会话语义检索的历史摘要 |
+| Episodic memory | Chroma `episodic` | 持久 | 跨会话检索的原始重叠片段；摘要只作 metadata/背景 |
 | User profile | Chroma `user_profile` | 持久 | 偏好和关键实体 |
 
 Knowledge Base 也在 Chroma，但使用独立 collection。知识文档是业务事实投影，用户记忆是个人交互状态，不能混为一类。
@@ -464,9 +482,30 @@ T1 删除原列表并写回保留消息
 
 这条正向不变量是：**压缩可以延后，但不能删除压缩快照之后到达的消息。**
 
-### 8.6 压缩成功后的情景记忆
+### 8.6 为什么不能只检索压缩摘要
 
-成功提交 Redis 后，再把被压缩部分的 summary 存入 Chroma `episodic`。如果 Chroma 写失败，当前实现只记录 warning；Redis 压缩已经成功，因此跨会话检索会少一段，但当前会话仍有 summary。这是一个明确的部分成功语义。
+旧实现把 summary 当作 Chroma document。摘要能控制 Prompt，但会删掉订单号、错误码和原话；一旦只剩摘要，后续向量检索无法恢复丢失细节。新合同把被压缩对话切成原始重叠片段作为 document，summary 只留在 metadata 和 Prompt 背景。v1 历史记录仍兼容读取其 `full_text` metadata。
+
+查询在同一个 `user_id` 边界内走三路信号：
+
+```mermaid
+flowchart LR
+    Q[query] --> V[Chroma vector Top-N]
+    Q --> B[BM25 over user documents]
+    V --> C[relevant candidate union]
+    B --> C
+    C --> R[recency rank]
+    V --> F[weighted RRF]
+    B --> F
+    R --> F
+    F --> K[Top-K + source ranks]
+```
+
+默认权重为 vector 0.30、BM25 0.60、recency 0.10，RRF 常数 `k=60`。时间只对 BM25/向量已经召回的候选排序，不能让“最新但无关”的记忆进入候选集。向量库和词法路径用 `gather(return_exceptions=True)` 独立降级：一路故障时另一路仍可工作；两路都空则确定性返回空结果。
+
+为什么 BM25 权重更高？客服记忆常含订单号、错误码等精确 token，词法信号应优先保护它们；这只是当前可解释基线，不是已证明最优。`evaluate_retrieval()` 已提供 Recall@K、MRR、nDCG，后续应在版本化 query/relevant-id 数据集上做权重和 chunk overlap 消融。
+
+成功提交 Redis 后才写入 Chroma。若 Chroma 写失败，当前会话 summary 仍成立，但跨会话召回缺少该片段；这是被记录 warning 的部分成功，不是伪装为完整成功。
 
 ### 8.7 Prompt Context 和持久记忆是两层
 
@@ -529,7 +568,7 @@ Skill 适合放：客服话术、所需字段、退款/发票规则、排障 SOP
 
 ## 10. Multi-Agent 编排
 
-代码：[`agents/agent_orchestrator.py`](../agents/agent_orchestrator.py)、[`agents/orchestration_contracts.py`](../agents/orchestration_contracts.py)
+代码：[`agents/agent_orchestrator.py`](../agents/agent_orchestrator.py)、[`agents/orchestration_contracts.py`](../agents/orchestration_contracts.py)、[`agents/react_engine.py`](../agents/react_engine.py)
 
 <div class="dp-task-ledger" role="img" aria-label="DialogPilot 任务账本：规划、并行 Worker、覆盖检查、融合和发布校验">
   <div class="ledger-stage ledger-plan"><span>01 · PLAN</span><strong>3 required tasks</strong><small>task_id · owner · risk · criteria</small></div>
@@ -548,7 +587,7 @@ Skill 适合放：客服话术、所需字段、退款/发票规则、排障 SOP
 - `AccountSecurityAgent`：账号被盗、异常登录、身份验证和敏感资料保护；
 - `ESCALATION`：路由占位，不是一个真实 LLM Agent，执行时会落到 General fallback，但上层保持升级语义。
 
-四个真实领域 Agent 共用 `BaseAgent.handle()`：计时、调用模型、累计执行统计、识别回答里的转人工关键词、把异常转成 `AgentResponse(success=False)`。AccountSecurity 有单独 Skill 和高风险完成标准，不再由 Billing 代管。
+四个真实领域 Agent 共用 `BaseAgent.handle()`：计时、选择普通模型调用或 ReAct、累计执行统计、识别回答里的转人工关键词、把异常转成 `AgentResponse(success=False)`。AccountSecurity 有单独 Skill 和高风险完成标准，不再由 Billing 代管。
 
 ### 10.2 路由不是只看单一 intent
 
@@ -581,7 +620,7 @@ routing_score = base * (1 - monitor_penalty)
 
 ### 10.5 Specialist 降级
 
-专属 Agent 返回 `success=False` 时，`_execute()` 再调用 GeneralAgent。结果会记录：
+普通 provider 异常仍允许专属 Agent 降级到 GeneralAgent。ReAct 的 `BLOCKED/TOOL_ERROR/MAX_STEPS` 则设置 `allow_fallback=False`，因为另一个 Agent 生成流畅文字不能证明原工具任务已经完成，更不能抹掉权限拒绝。结果会记录：
 
 - `agent_type`：原本选择的领域；
 - `responding_agent_type`：最终实际回答的 General；
@@ -607,6 +646,18 @@ routing_score = base * (1 - monitor_penalty)
 - `unresolved_required_task_ids`：所有未成功的必需任务。
 
 只有 required tasks 全部成功且不存在重复/越界结果，`coverage.complete` 才为 true。这样“技术回答很完整，但账务任务没执行”不能被误标成整体成功。
+
+### 10.8 两级控制流到底怎么分工
+
+```text
+主 Orchestrator（确定性）
+  └─ TaskPlan: task_id / owner / risk / criteria / deadline
+       ├─ Technical Worker ─ ReAct(max 4) ─ allowlisted tools
+       └─ Billing Worker   ─ ReAct(max 4) ─ allowlisted tools
+  └─ CoverageGate / Synthesizer / Verifier
+```
+
+这与“主 Agent 自由 plan、线程池跑子 Agent”不同：外层任务完整性和风险是代码合同，适合固定客服域；`asyncio` 用于 I/O 并发，只有同步 handler 才放线程池，避免把线程池误当 Agent 架构。ReAct 只补足 Worker 内“观察工具结果后继续行动”的能力，不改变任务 Owner。
 
 ## 11. 并行结果代数和融合
 
@@ -818,7 +869,7 @@ Monitor 每隔 N 秒：
 
 - 指标和 EWMA 都在进程内，重启归零；
 - Histogram 当前每次采集 observe 一个累计平均延迟，而不是每次真实请求延迟，统计语义不够严格；
-- 没有 trace_id/span、模型 token/cost、检索候选和工具参数的完整链路；
+- 已有 HTTP/ReAct/Tool 的 TraceId/span 和脱敏审计，但记录只在单进程内，尚未覆盖 Intent、Synthesis、Verifier、Ticket，也没有 token/cost/exporter；
 - label 应保持低基数，不能把 user_id/request_id 直接作为 Prometheus label。
 
 ## 15. 离线评测
@@ -887,7 +938,7 @@ curl -X POST http://localhost:8000/chat \
   }'
 ```
 
-重点观察响应里的：`intent`、`entities`、`primary_agent`、`supporting_agents`、`routing_reason`、`agent_outcomes`、`synthesis_status`、`producer_agent_keys`、`verification_status`、`escalated` 和 `ticket_id`。
+重点观察响应里的：`trace_id`、`intent`、`primary_agent`、`task_plan`、`agent_outcomes[*].react_status/react_steps/tool_call_ids`、`coverage`、`tool_audit`、`memory_retrieval`、`verification_status`、`escalated` 和 `ticket_id`。HTTP header 也返回同一个 `X-Trace-Id`；Client 可传 8–128 位字母数字/`._-` 的 ID，非法值会由服务端重新生成。
 
 ## 17. 配置、部署和运行
 
@@ -941,6 +992,9 @@ Prometheus :9090
 | `AGENT_TIMEOUT_SECONDS` | 每 Agent 15 秒 |
 | `AGENT_REQUEST_TIMEOUT_SECONDS` | Worker + synthesis 共享请求预算 20 秒 |
 | `AGENT_MAX_PER_REQUEST` | 单请求最多执行 3 个 Agent；其余任务产生预算终态 |
+| `REACT_MAX_STEPS` | 每个领域 Worker 最多 4 次 LLM/tool step |
+| `TOOL_APPROVAL_MODE` | 默认 `default`：高风险/写工具等待宿主批准 |
+| `TOOL_OUTPUT_MAX_CHARS` | 工具结果回写模型前最多 4000 字符 |
 
 ## 18. 测试如何证明设计
 
@@ -951,7 +1005,7 @@ python -m compileall -q agents api core evaluation mcp memory monitor services
 python -m pytest -q
 ```
 
-当前 50 个测试按不变量分组：
+当前 65 个测试按不变量分组：
 
 ### Lifespan 与 RAG boundary
 
@@ -987,7 +1041,7 @@ python -m pytest -q
 
 ### Context and compression
 
-[`tests/test_context_memory.py`](../tests/test_context_memory.py)
+[`tests/test_context_memory.py`](../tests/test_context_memory.py)、[`tests/test_hybrid_memory.py`](../tests/test_hybrid_memory.py)
 
 - Token estimator 对重复内容单调；
 - Prompt 有界且不伪造对话；
@@ -995,6 +1049,9 @@ python -m pytest -q
 - 滚动 summary 始终可解析且有界；
 - 并发写导致快照变化时拒绝 stale commit；
 - 成功压缩替换 summary 并保留最近消息。
+- 原始情景片段而不是摘要成为可检索 document；
+- BM25 可找回订单号/错误码，recency 不引入无关候选；
+- 向量或词法单路故障仍可降级，Recall@K/MRR/nDCG 计算可复现。
 
 ### Multi-Agent synthesis
 
@@ -1008,6 +1065,18 @@ python -m pytest -q
 - 缺失和重复 task 不能通过 CoverageGate；
 - AccountSecurity 成为账号被盗主 Owner；
 - max-agents 和共享 deadline 产生 typed `BUDGET_EXCEEDED`。
+- ReAct 的权限拒绝证据能贯穿到 typed AgentOutcome。
+
+### ReAct、工具安全与 Trace
+
+[`tests/test_react_engine.py`](../tests/test_react_engine.py)、[`tests/test_tool_security_trace.py`](../tests/test_tool_security_trace.py)
+
+- tool_use 与 tool_result 按 call_id 配对后才能生成下一轮回答；
+- 持续工具循环在 max steps 确定性停止；
+- 模型编造或越权工具名被第二道 allowlist 拒绝；
+- 高风险工具无宿主批准时零副作用并进入 `AWAITING_APPROVAL`；
+- 审计不保存原始敏感参数，长输出在投递模型前有界；
+- 并行 asyncio Task 的工具 span 继承同一个 TraceId。
 
 ### Multi-Agent evaluation
 
@@ -1085,6 +1154,14 @@ python -m pytest -q
 
 这次没有引入 LangGraph 或 Swarm，也没有宣称实现 LLM 自主 Planner。当前 TaskPlan 仍由代码中的意图、关键词、实体和阈值生成；收益是任务完整性、预算和发布边界已经可验证，未来可以替换 Planner 而不改变下游合同。
 
+### 19.9 混合记忆、工具安全和有界 ReAct — `dfdf671`、`6a010bc`、`6b2880b`
+
+- `dfdf671`：把长期记忆事实载体从压缩摘要改为原始情景片段；新增用户隔离的 BM25/vector/recency weighted RRF、独立降级和 Recall@K/MRR/nDCG；
+- `6a010bc`：ToolManager 增加 Agent allowlist、风险/读写属性、宿主审批、输出截断、参数哈希审计和 contextvars TraceId；
+- `6b2880b`：在领域 Worker 内接入最大步数 ReAct，读工具可并行、潜在写工具串行；拒绝、待审批、失败、超步数均闭合为失败并贯穿到 AgentOutcome/API。
+
+共同根因不是“技术栈不够多”，而是权威边界缺失：摘要错误兼任长期事实源，Tool handler 没有统一身份/审批合同，Agent 也不能在观察后继续行动。修复发生在各自 Owner，不是在简历或 API 外层补标签。
+
 ## 20. 三个可完整复盘的 Badcase
 
 ### Badcase A：重试创建多张人工工单
@@ -1130,7 +1207,7 @@ python -m pytest -q
 - [Anthropic：How we built our multi-agent research system](https://www.anthropic.com/engineering/multi-agent-research-system) 展示 lead-agent/parallel subagent、委派合同、token budget 和覆盖广度的工程价值，也说明多 Agent 有显著 token 成本。DialogPilot 因此把 request deadline、max-agents、coverage 和 fan-out efficiency 作为一等合同。
 - [Google ADK：Workflow agents](https://adk.dev/agents/workflow-agents/) 将 sequential、parallel、loop 作为确定性控制流。DialogPilot 只对互不依赖的领域任务并行；以后出现依赖任务时，应在 TaskPlan 上增加 DAG，而不是让 Worker 自由互聊。
 
-对照后的结论是：当前实现已经补齐“任务身份、唯一 Owner、共享预算、覆盖门禁、发布校验和编排评测”这条生产链；尚未实现动态 LLM Planner、持久化执行图、Worker tool loop、token/金额预算和人工审批节点。因此面试时应说“按主流先进实践完成了有界实现”，不要说“项目就是 SOTA”。
+对照后的结论是：当前实现已经补齐“任务身份、唯一 Owner、共享预算、覆盖门禁、有界 Worker tool loop、发布校验和编排评测”这条链；尚未实现动态 LLM Planner、持久化执行图、token/金额预算和可恢复人工审批节点。因此面试时应说“按主流先进实践完成了有界实现”，不要说“项目就是 SOTA”。
 
 ### P0：身份、授权和数据边界
 
@@ -1144,17 +1221,17 @@ python -m pytest -q
 
 TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副作用进入可靠队列，增加幂等、重试、dead letter 和 task status。
 
-### P1：完整 Trace
+### P1：持久化完整 Trace
 
-引入 OpenTelemetry 风格 trace/span：API、intent、retrieval、每个 Agent、synthesis、verify、ticket。记录版本、typed outcome、延迟、token/cost；Prompt/文档默认摘要或脱敏。
+当前已经用 contextvars 串联 HTTP、ReAct step 与 Tool span，并向 API 返回 TraceId/脱敏工具审计；下一步是接 OpenTelemetry exporter 和持久后端，继续覆盖 intent、retrieval、synthesis、verify、ticket，记录版本、typed outcome、token/cost，并定义采样、保留与敏感字段策略。
 
 ### P1：版本化评测
 
 建立 ≥100 条分层数据，80/20 dev/held-out；记录 dataset/prompt/skill/model/index 版本；用确定性 grader + LLM Judge + 人工抽检；发布看 pass^k、关键 slice 和 cost/success。
 
-### P2：真正的 Agent Tool Loop（只有需求证明后）
+### P1：审批恢复与副作用 receipt
 
-如果要支持多工具自主决策，再加：统一 LLM response/tool call 类型、有限循环、ToolScheduler、审批、取消、调用/结果配对、输出压缩和副作用 receipt。当前客服固定流程不一定需要先引入这层复杂度。
+当前高风险/写工具默认 fail closed，测试可由可信宿主传 `approved=True`，但 HTTP 没有持久 pending call、批准人、过期时间和 resume endpoint。真正接退款/账户修改前，需要幂等 operation key、业务服务授权、批准事件与 typed receipt；模型文本不能拥有“退款成功”这个事实。
 
 ## 22. 项目追问题库与参考答案
 
@@ -1168,9 +1245,9 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q2：你个人具体负责了什么？
 
-**推荐诚实答案：** 我接手的是一个已有客服原型。我负责仓库清理和 DialogPilot 命名迁移，并重点完成五条 Owner 级改造：持久工单状态机、Token-aware 并发安全压缩、typed Multi-Agent synthesis、Verifier 质量反馈路由，以及 TaskPlan/CoverageGate/ExecutionBudget 收敛；同时把账户安全拆成独立 Owner，并把编排证据接入发布校验和评测。当前有 50 个测试、CI、Docker 验证和架构文档。原型已有的基础意图/RAG/记忆功能我可以讲其实现，但不会把它们说成全部从零原创。
+**推荐诚实答案：** 我接手的是一个已有客服原型。我负责仓库清理和 DialogPilot 命名迁移，并重点完成八条 Owner 级改造：持久工单状态机、Token-aware 并发安全压缩、typed Multi-Agent synthesis、Verifier 质量反馈路由、TaskPlan/CoverageGate/ExecutionBudget、混合长期记忆、工具权限/Trace、有界 ReAct；同时把账户安全拆成独立 Owner，并把编排证据接入发布校验和评测。当前有 65 个测试、CI、Docker 验证和架构文档。原型已有功能会按 commit 划清边界，不说成全部从零原创。
 
-**追问：去掉你的改动还剩什么？** 仍有基础 FastAPI、三路意图、Redis/Chroma 记忆、RAG、领域 Agent、Skill、监控和评测原型；会失去真实工单闭环、Token/并发压缩不变量、有类型并行结果、发布质量反馈和对应验收门禁。
+**追问：去掉你的改动还剩什么？** 仍有基础 FastAPI、三路意图、Redis/Chroma 记忆、RAG、领域 Agent、Skill、监控和评测原型；会失去真实工单闭环、Token/并发压缩不变量、TaskPlan/覆盖门禁、有类型并行结果、质量反馈、混合召回、工具权限/Trace 和 Worker ReAct。
 
 ### Q3：讲一次完整请求。
 
@@ -1240,9 +1317,9 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q14：工具的可靠性设计有哪些？
 
-**答：** 注册表、基础 schema 校验、TTL cache、per-call timeout、三态 breaker、sync handler 线程池、fallback 和 stats。
+**答：** 注册表、Agent allowlist、风险/读写声明、宿主审批、基础 schema 校验、TTL cache、per-call timeout、三态 breaker、sync handler 线程池、fallback、输出有界化、脱敏审计和 TraceId。
 
-**追问：缺什么？** 没有工具审批、权限、执行 receipt、完整 JSON Schema、幂等副作用、输出压缩、调用状态持久化和真正 MCP transport。
+**追问：缺什么？** 还没有交互式审批恢复、持久调用状态、执行 receipt、完整 JSON Schema、幂等副作用和真正 MCP transport。默认阻断高风险工具不等于完整 Human-in-the-loop。
 
 ### Q15：为什么 Verifier 要 fail closed？
 
@@ -1292,7 +1369,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q25：还有哪些地方你不会过度声称？
 
-**答：** 不把 local n-gram 叫生产 embedding；不把内部 ToolManager 叫完整 MCP Server；不把 API-controlled workflow 叫自主 ReAct runtime；不把 16 个内置评测 case 叫生产准确率；不把单实例 in-memory routing feedback 叫分布式学习系统；不把异步 `create_task` 叫可靠队列。
+**答：** 不把 local n-gram 叫生产 embedding；不把内部 ToolManager 叫完整 MCP Server；不把“确定性 Planner + Worker 内有界 ReAct”叫开放式自治平台；不把进程内 Trace 叫持久 OpenTelemetry；不把 16 个内置评测 case 叫生产准确率；不把异步 `create_task` 叫可靠队列。
 
 ## 23. 最后自测：不看答案能否讲出来
 
@@ -1397,7 +1474,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q38：当前评测数据到底有多少，能证明什么？
 
-**答：** 内置数据是 11 条意图 case 和 5 组对话，共 16 个 smoke/regression 样本；质量及格线默认 0.75。仓库还有 50 个确定性测试，它们证明状态机、失败边界、任务覆盖和预算不变量，但不等于 50 条业务准确率样本。
+**答：** 内置数据是 11 条意图 case 和 5 组对话，共 16 个 smoke/regression 样本；质量及格线默认 0.75。仓库还有 65 个确定性测试，它们证明状态机、失败边界、任务覆盖、工具权限、ReAct 和记忆排序不变量，但不等于 65 条业务准确率样本。
 
 **不能声称什么：** 不能据此声称生产准确率、行业 SOTA 或泛化能力。生产发布需要版本化数据集、关键 slice、dev/held-out 分离和人工校准 Judge。
 
@@ -1435,7 +1512,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q44：如果原型不是从零写的，你具体负责了什么？
 
-**答：** 已有原型包含 FastAPI、基础意图/RAG/记忆、领域 Agent、Skill、监控和评测。实际新增/收敛的是 DialogPilot 命名与仓库整理、发布校验、持久工单状态机、Token-aware 并发安全压缩、typed multi-Agent synthesis、质量反馈路由，以及生命周期、复合路由、单路 timeout、RAG fallback 四类合同修复和对应测试/文档/CI。
+**答：** 已有原型包含 FastAPI、基础意图/RAG/记忆、领域 Agent、Skill、监控和评测。实际新增/收敛的是 DialogPilot 命名与仓库整理、发布校验、持久工单状态机、Token-aware 并发安全压缩、typed multi-Agent synthesis、质量反馈路由、TaskPlan/CoverageGate/ExecutionBudget、混合长期记忆、工具权限/Trace 和有界 ReAct，以及对应测试/文档/CI。用 commit 和 Owner 说明个人改动，不靠“用了某框架”充数。
 
 **面试原则：** 可以完整讲懂已有模块，但个人贡献要按 commit、代码 Owner 和测试证据划边界，不把“理解并维护”说成“全部从零原创”。
 
@@ -1453,7 +1530,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q47：这算 SOTA Multi-Agent 吗？
 
-**答：** 不能直接声称行业 SOTA。它采用了当前生产系统常见的 manager/worker、结构化任务、共享预算、覆盖检查和 fail-closed 发布边界，但 Planner 仍是可解释的代码启发式，Worker 也没有自主 tool loop。更准确的表述是“按生产 SOTA 思路收敛了任务、预算、覆盖和评测合同”。
+**答：** 不能直接声称行业 SOTA。它采用了 manager/worker、结构化任务、共享预算、覆盖检查、Worker 内有界 ReAct 和 fail-closed 发布边界，但 Planner 仍是可解释代码，执行图和审批也不持久。更准确的表述是“按先进生产实践收敛了任务、工具、预算、覆盖和评测合同”。
 
 **追问：为什么不直接做 LLM Planner？** 客服领域能力少、风险明确，代码 Planner 更便宜、可复现、容易测试。等标注数据证明启发式无法覆盖长尾，再让 LLM 输出同一个 TaskPlan schema，并保留风险规则和 CoverageGate 作为确定性边界。
 
@@ -1474,3 +1551,80 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 **答：** 在同一 held-out 复合问题集比较 single、static fan-out、task-aware fan-out。报告 required-task coverage、route exact/Jaccard、unsafe publish、unnecessary escalation、fan-out efficiency、budget success、延迟、token/cost；不能只比较 LLM Judge 的语言分。
 
 **追问：什么时候应该退回单 Agent？** 子任务强依赖同一上下文、fan-out efficiency 持续低、成本增幅大于覆盖收益，或单 Agent 在关键 slice 已达到同等终态成功率时。Multi-Agent 是受评测证明的策略，不是项目必须保留的身份标签。
+
+## 25. 新补强：混合长期记忆 + ReAct 权限与 Trace
+
+这一章专门回答“和之前有什么区别、代码如何证明、简历怎么用 STAR 写、面试会怎样追问”。不要只背组件名，要从旧合同的缺口讲到新合同和失败终态。
+
+<div class="dp-evidence-board" role="img" aria-label="混合记忆与 ReAct 安全改造的前后证据图">
+  <div class="evidence-axis"><span>LONG-TERM MEMORY</span><strong>摘要检索</strong><b>→</b><strong>原始片段 + BM25 / Vector / Recency RRF</strong><small>source ranks · Recall@K · MRR · nDCG</small></div>
+  <div class="evidence-axis"><span>WORKER EXECUTION</span><strong>单次生成</strong><b>→</b><strong>Bounded ReAct</strong><small>tool_use ↔ tool_result · max 4 steps</small></div>
+  <div class="evidence-axis"><span>SECURITY</span><strong>注册即能调用</strong><b>→</b><strong>双重 allowlist + host approval</strong><small>read parallel · write serial · fail closed</small></div>
+  <div class="evidence-axis"><span>OBSERVABILITY</span><strong>日志片段</strong><b>→</b><strong>TraceId + call_id + redacted audit</strong><small>HTTP → ReAct step → Tool span</small></div>
+</div>
+
+### 25.1 混合长期记忆：STAR 拆解
+
+**Situation：** 原实现压缩后只把 summary 作为 Chroma document。它能缩短上下文，却可能把订单号、错误码和用户原话删掉；向量检索再强也无法找回已经丢失的字符。
+
+**Task：** 在不破坏 Token 压缩和用户隔离的前提下，让跨会话记忆同时支持语义问题、精确标识符和时间偏好，并能用离线指标回归。
+
+**Action：** 把原始对话切成重叠片段写入 episodic collection，summary 退回 metadata/Prompt 背景；在用户边界内分别生成 Chroma vector 和 BM25 候选，用 0.30/0.60/0.10 权重做 RRF，recency 只重排相关候选；两条检索路径独立降级，并实现 Recall@K、MRR、nDCG。
+
+**Result：** 6 个聚焦测试证明精确 ID 可修正纯向量排序、最新无关记忆不会靠时间混入、原始片段实际落库、v1 数据可读、单路故障可降级、指标确定性。这里能说“建立了可回归的召回合同”，不能虚构线上提升百分比。
+
+**简历一行（只在你能现场解释代码时使用）：**
+
+> 利用 BM25、Chroma 向量检索与加权 RRF 重构跨会话长期记忆，解决压缩摘要丢失订单号/错误码导致的召回失真；以原始情景片段作为事实载体，加入用户隔离、独立降级及 Recall@K/MRR/nDCG 回归评测。
+
+### 25.2 ReAct 权限与 Trace：STAR 拆解
+
+**Situation：** 原领域 Agent 只能单次生成文本，不能根据工具观察继续行动；ToolManager 的 handler 执行也没有统一 Agent 身份、风险审批、call_id 与审计合同。
+
+**Task：** 在保留外层 TaskPlan、CoverageGate 和请求预算确定性的同时，为 Worker 增加工具推理能力，并保证模型不能通过 Prompt 或参数绕过权限。
+
+**Action：** 在 Worker 内增加最大 4 步的 Anthropic tool loop；工具发现和执行共享同一 allowlist，执行边界再次校验；高风险/写工具默认等待宿主批准，读工具批次并行、潜在写工具串行；工具输出截断后按 call_id 回写，TraceId 通过 contextvars 贯穿并行 Task，审计只记录参数哈希/shape；拒绝、失败、超步数禁止 General fallback 覆盖。
+
+**Result：** 8 个工具/ReAct 聚焦测试加 1 个编排投影测试证明越权零副作用、审批阻断、循环停止、结果配对、输出有界、Trace 传播和失败证据贯穿。整个仓库 65 项测试通过。
+
+**简历一行（只在你能现场解释代码时使用）：**
+
+> 利用有界 ReAct、Agent 工具白名单和宿主审批门禁解决工具调用越权、死循环与不可追溯问题；实现 tool_use/result 配对、读并行写串行、脱敏审计和跨 HTTP/Agent/Tool 的 TraceId，并将拒绝/失败证据贯穿至发布校验。
+
+### 25.3 两条合并成项目亮点时怎么写
+
+不要写“基于 LangChain/LangGraph 设计多智能体”——仓库没有这两个依赖。也不要把九个技术名词塞进一句。推荐按“动词 + 技术 + 问题 + 可验证结果”拆成 4–5 个钩子：
+
+1. 利用 `TaskPlan + CoverageGate + ExecutionBudget` 解决复合请求中任务静默丢失和 timeout 叠加，按 task_id 输出成功、超时、异常与预算耗尽证据。
+2. 利用有界 ReAct 与工具权限合同解决 Worker 无法观察执行、越权和循环失控，默认阻断未批准的高风险副作用。
+3. 利用 BM25/vector/recency weighted RRF 解决摘要压缩后的精确事实召回问题，并用 Recall@K/MRR/nDCG 建立回归门禁。
+4. 利用 contextvars TraceId、call_id 和脱敏审计解决异步工具调用不可关联、不可复盘问题。
+5. 利用 fail-closed Verifier 与幂等 Ticket 状态机解决不可信候选误发布和网络重试重复建单。
+
+每一条都埋一个你能展开的钩子：参数、为什么、失败路径、测试和不足。若面试官问到代码不是你写的部分，应准确说“原型已有，我理解并维护；以下 commit 是我实际新增/收敛的部分”。
+
+### Q51：为什么不是“向量 + 时间”，还要 BM25？
+
+**答：** 语义相似适合意图近似，订单号 `A123`、错误码 `E401` 更依赖精确 token。BM25 提供词法召回，vector 提供语义召回，RRF 只融合排名、避免直接比较不同量纲的分数。时间是弱偏好，只能在相关候选中排序。
+
+**追问：为什么权重是 0.30/0.60/0.10？** 当前客服数据偏精确实体，所以把 BM25 设为更强工程初值；没有宣称最优。应用 held-out query/relevant-id 集做网格或贝叶斯搜索，同时看 Recall@K、MRR/nDCG、延迟和关键实体 slice。
+
+### Q52：为什么长期记忆事实载体必须是原始片段？
+
+**答：** 摘要是有损投影，适合 Prompt 压缩，不适合成为唯一事实源。原始片段保留可追溯细节，summary 可重新生成；反过来无法从 summary 恢复被删原文。这是事实 Owner 与投影分离。
+
+### Q53：为什么主编排不用 LLM Planner，Worker 却用 ReAct？
+
+**答：** 客服域的任务类型、风险和完成条件较固定，外层用代码 Planner 可以稳定保证 Owner、deadline 和 coverage；Worker 内“查哪个工具、观察后是否继续”更依赖自然语言，因此用有限 ReAct。两层分别优化任务完整性和局部适应性。
+
+### Q54：模型把 `approved=true` 塞进工具参数能绕过吗？
+
+**答：** 不能。`approved` 不在暴露给模型的 input schema，由可信宿主调用 `execute_for_agent()` 时单独传递；执行边界还会重新检查工具是否存在、Agent 是否在 allowlist、策略是否要求审批。Prompt 隐藏只是第一层，运行时校验才是权威边界。
+
+### Q55：Trace 为什么不用把完整参数和输出都记下来？
+
+**答：** 客服参数可能含订单、账户或个人信息。当前审计用参数哈希支持同输入关联，用 shape/长度摘要支持诊断，避免把敏感正文复制进观测系统。真正生产化还要字段级 redaction、采样、保留期限、访问审计和加密。
+
+### Q56：这两项还有什么未完成？
+
+**答：** 混合记忆缺版本化真实数据集、权重消融和稳定 embedding；Trace 缺 OTel exporter/持久存储及全链 span；审批缺 pending-call persistence、批准人/过期时间/resume endpoint；写工具缺业务授权、幂等 key 和 typed receipt。当前代码证明的是闭合安全基线，不是完整生产平台。

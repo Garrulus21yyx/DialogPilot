@@ -15,12 +15,13 @@ owner and exposes the routing and verification decisions in the API response.
 
 ```text
 POST /chat
-  -> load Redis working memory and ChromaDB episodic memory/profile
+  -> load Redis working memory and hybrid Chroma/BM25 episodic memory/profile
   -> assemble a bounded prompt using token-aware rolling compression
   -> classify intent with LLM + local semantic similarity + patterns
   -> retrieve knowledge for business intents
   -> build a TaskPlan for General, Technical, Billing, or AccountSecurity owners
   -> run scoped workers under one request deadline and max-Agent budget
+  -> inside each worker, execute a bounded ReAct loop through allowlisted tools
   -> verify required-task coverage from typed task outcomes
   -> synthesize one candidate from SUCCESS / TIMEOUT / ERROR / BUDGET_EXCEEDED
   -> verify coverage, grounding, completeness, and safety (PASS / REJECT / UNKNOWN)
@@ -28,13 +29,16 @@ POST /chat
   -> publish only PASS answers; escalate every other outcome
   -> persist each escalation as one idempotent human-support ticket
   -> persist messages and update the profile in the background
+  -> return TraceId, tool audit, and hybrid-memory retrieval evidence
 ```
 
 Context input is bounded independently from model output. Working memory is
 compressed from estimated token usage, not a fixed message count. The rolling
 summary is structured and size-limited, recent turns stay verbatim, and an
 optimistic Redis transaction prevents compression from dropping a concurrent
-message. Retrieved knowledge and memory are tagged as data while actual
+message. Long-term search stores raw episodic chunks and fuses vector, BM25,
+and recency ranks with weighted reciprocal-rank fusion; the summary remains a
+prompt projection rather than the only retrievable fact source. Retrieved knowledge and memory are tagged as data while actual
 conversation history remains user/assistant messages.
 
 See [docs/architecture.md](docs/architecture.md) for component ownership,
@@ -49,6 +53,8 @@ and project-specific interview follow-up guide.
 - Anthropic-compatible chat API
 - Redis working memory
 - ChromaDB knowledge, episodic memory, and user profiles
+- BM25 + weighted RRF hybrid long-term memory retrieval
+- Bounded ReAct tool execution with allowlists, approval gates, and TraceId audit
 - Prometheus monitoring and anomaly detection
 - Docker Compose with Nginx, Redis, ChromaDB, and Prometheus
 - Pytest and GitHub Actions
@@ -117,6 +123,9 @@ curl -X POST http://localhost:8000/chat \
 The response includes the selected intent and agents, structured task plan,
 required-task coverage, execution budget, routing reason,
 knowledge usage, typed verification status, groundedness, and escalation flag.
+It also exposes `trace_id`, redacted `tool_audit`, and `memory_retrieval`
+rank evidence. Each Agent outcome carries `react_status`, `react_steps`, and
+`tool_call_ids` when tools were used.
 Parallel responses also expose `synthesis_status`, conflict details, and each
 selected task's typed execution outcome. Workers share one request deadline and
 max-Agent budget; `BUDGET_EXCEEDED` remains attached to the unresolved task.
@@ -175,3 +184,8 @@ and generated caches are intentionally excluded. Never commit `.env`.
 - No pre-generated quality baseline is committed; `/eval/run` creates one for
   the configured model and environment.
 - Local development currently expects Redis and ChromaDB to be running.
+- Trace spans and tool audits are process-local bounded memory, not durable
+  OpenTelemetry storage; restarts remove them.
+- Default approval safely blocks high-risk/write tools, but there is not yet an
+  interactive approve-and-resume HTTP workflow.
+- `MCPToolManager` is an internal tool runtime, not a remote MCP protocol server.

@@ -16,6 +16,12 @@ escalated deterministically into an idempotent SQLite-backed human ticket with
 a typed lifecycle and audit history. Prometheus monitoring and LLM-as-Judge
 evaluation close the online and offline feedback loops.
 
+Within each scoped Worker, a bounded ReAct loop may select only tools exposed by
+its allowlist. ToolManager—not the model—owns risk, approval, execution, bounded
+writeback, and redacted audit. A request TraceId links HTTP, ReAct steps, and
+tool calls. Episodic retrieval stores raw chunks and fuses BM25, vector, and
+recency ranks, avoiding the precision loss caused by searching only summaries.
+
 ## Engineering decisions
 
 ### Why combine three intent signals?
@@ -48,6 +54,21 @@ structured summary. An optimistic Redis transaction prevents an LLM summary
 generated from a stale snapshot from overwriting messages that arrived during
 compression. Prompt assembly keeps retrieved data in tagged sections and real
 conversation turns in the message sequence.
+
+### Why combine deterministic planning with bounded ReAct?
+
+The outer TaskPlan owns required work, risk, deadlines, and coverage; that keeps
+the customer-support workflow reproducible. ReAct is limited to tool selection
+inside one task Owner. This gives Workers observation/action capability without
+allowing free-form delegation to erase task identity or bypass authorization.
+
+### Why hybrid long-term memory?
+
+Structured summaries are useful for bounded prompts but may drop exact order
+IDs and error codes. DialogPilot therefore retrieves raw episodic chunks using
+BM25 and vector search, fuses their ranks with a small recency signal, and
+returns source/rank evidence. Retrieval quality can be measured with Recall@K,
+MRR, and nDCG instead of judged from one fluent answer.
 
 ### Why fail closed at verification?
 

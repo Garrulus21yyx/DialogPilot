@@ -96,6 +96,16 @@ Produced/updated commentary surfaces:
 - [done] Update the Page with the Task Ledger, architecture diagrams, implementation evidence, and 50 project-specific interview drills.
 - [done] Verify Python compilation, all 50 tests, JavaScript syntax, Markdown structure, and Page source consistency; push each implementation milestone.
 
+## Hybrid memory, ReAct security, and Trace
+
+- [done] Store raw overlapping episodic chunks and keep summaries as bounded prompt projections instead of the only long-term fact source.
+- [done] Fuse user-scoped BM25, vector, and recency ranks with weighted RRF; expose Recall@K, MRR, nDCG, and source-rank evidence.
+- [done] Add Agent tool allowlists, risk/read-only contracts, host approval, bounded model writeback, redacted audit, and context-propagated TraceId.
+- [done] Add a bounded Worker-level Anthropic tool loop while preserving deterministic outer TaskPlan, coverage, deadlines, and publication ownership.
+- [done] Preserve ReAct blocked/error/max-step evidence through AgentOutcome and API; never hide it with GeneralAgent fallback.
+- [done] Add runtime configuration, 14 focused memory/tool tests, one orchestration projection gate, and pass all 65 repository tests.
+- [in progress] Publish the 26-chapter/56-question Page update and verify the deployed desktop/mobile page before final closure.
+
 ## Constraints
 
 - Python implementation is authoritative; Java and the dual-backend frontend are out of scope.
@@ -121,6 +131,12 @@ Produced/updated commentary surfaces:
 - `services/result_synthesizer.py` — typed multi-agent outcome fusion.
 - `tests/test_agent_orchestration.py` — timeout, partial-success, and fusion invariants.
 - `tests/test_quality_routing.py` — verification feedback and routing-quality invariants.
+- `memory/hybrid_retrieval.py` — user-scoped BM25/vector/recency RRF and retrieval metrics.
+- `core/tracing.py` — request TraceId and bounded process-local span projection.
+- `agents/react_engine.py` — bounded Worker tool-use loop and closed ReAct outcomes.
+- `tests/test_hybrid_memory.py` — raw-memory, ranking, degradation, and metric invariants.
+- `tests/test_tool_security_trace.py` — allowlist, approval, output, audit, and Trace invariants.
+- `tests/test_react_engine.py` — call/result pairing, authorization, and max-step invariants.
 - `docs/full-architecture-tutorial.zh-CN.md` — complete repository tutorial and interview follow-up guide.
 - `tests/test_lifespan.py` — lifecycle wiring and memory-configuration ownership regression test.
 - `tests/test_knowledge_context.py` — real evidence versus RAG fallback boundary tests.

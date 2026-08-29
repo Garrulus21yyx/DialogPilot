@@ -93,6 +93,9 @@ services:
       - AGENT_TIMEOUT_SECONDS=${AGENT_TIMEOUT_SECONDS:-15}
       - AGENT_REQUEST_TIMEOUT_SECONDS=${AGENT_REQUEST_TIMEOUT_SECONDS:-20}
       - AGENT_MAX_PER_REQUEST=${AGENT_MAX_PER_REQUEST:-3}
+      - REACT_MAX_STEPS=${REACT_MAX_STEPS:-4}
+      - TOOL_APPROVAL_MODE=${TOOL_APPROVAL_MODE:-default}
+      - TOOL_OUTPUT_MAX_CHARS=${TOOL_OUTPUT_MAX_CHARS:-4000}
     volumes:
       - ./data/chroma:/app/data/chroma
       - ./data/eval:/app/data/eval

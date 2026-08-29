@@ -217,7 +217,7 @@ summary:focus-visible {
 .dp-signal-path {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(9, minmax(0, 1fr));
+  grid-template-columns: repeat(10, minmax(0, 1fr));
   gap: 1px;
   margin-top: 34px;
   overflow: hidden;
@@ -568,6 +568,62 @@ summary:focus-visible {
   background: linear-gradient(145deg, rgba(185, 85, 85, 0.24), rgba(255, 255, 255, 0.02));
 }
 
+/* Evidence Board 用“示波器轨道”表达四条真实的合同迁移，不把技术栈做成装饰卡片。 */
+.dp-evidence-board {
+  display: grid;
+  gap: 1px;
+  margin: 24px 0;
+  overflow: hidden;
+  border: 1px solid #29455c;
+  border-radius: 12px;
+  color: #e8f2f8;
+  background: #29455c;
+  box-shadow: 0 18px 42px rgba(18, 40, 58, 0.17);
+}
+
+.evidence-axis {
+  display: grid;
+  grid-template-columns: 150px minmax(120px, 0.7fr) 30px minmax(220px, 1.35fr) minmax(190px, 1fr);
+  gap: 13px;
+  align-items: center;
+  min-width: 0;
+  padding: 15px 17px;
+  background:
+    linear-gradient(90deg, rgba(114, 179, 142, 0.09), transparent 45%),
+    #132638;
+}
+
+.evidence-axis span,
+.evidence-axis small {
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+
+.evidence-axis span {
+  color: #8ec6ed;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+}
+
+.evidence-axis strong {
+  overflow-wrap: anywhere;
+  color: #f7fbfe;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.evidence-axis b {
+  color: #69c493;
+  font-size: 20px;
+  text-align: center;
+}
+
+.evidence-axis small {
+  color: #91a9bb;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
 code {
   padding: 2px 6px;
   border: 1px solid #d6e1e8;
@@ -889,6 +945,21 @@ pre code {
     bottom: -8px;
     content: "⌄";
     transform: none;
+  }
+
+  .evidence-axis {
+    grid-template-columns: 1fr 24px 1.35fr;
+    gap: 8px;
+    padding: 14px;
+  }
+
+  .evidence-axis span,
+  .evidence-axis small {
+    grid-column: 1 / -1;
+  }
+
+  .evidence-axis small {
+    margin-top: -2px;
   }
 
   .back-to-top {

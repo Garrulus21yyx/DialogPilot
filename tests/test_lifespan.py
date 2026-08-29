@@ -34,8 +34,8 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
             return []
 
     class FakeOrchestrator:
-        def __init__(self, **_kwargs):
-            pass
+        def __init__(self, **kwargs):
+            captured["orchestrator"] = kwargs
 
         def set_tool_manager(self, _tool_manager):
             captured["tool_manager_wired"] = True
@@ -59,7 +59,8 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
             captured["memory_closed"] = True
 
     class FakeToolManager:
-        def __init__(self, **_kwargs):
+        def __init__(self, **kwargs):
+            captured["tool_manager"] = kwargs
             self.tools = []
 
         def register(self, tool):
@@ -107,6 +108,9 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
     monkeypatch.setenv("MEMORY_TOKEN_BUDGET", "4321")
     monkeypatch.setenv("MEMORY_COMPRESSION_THRESHOLD", "0.81")
     monkeypatch.setenv("MEMORY_SUMMARY_MAX_TOKENS", "777")
+    monkeypatch.setenv("REACT_MAX_STEPS", "6")
+    monkeypatch.setenv("TOOL_APPROVAL_MODE", "require_all")
+    monkeypatch.setenv("TOOL_OUTPUT_MAX_CHARS", "2345")
     monkeypatch.setenv("PROMETHEUS_PORT", "0")
 
     async def exercise_lifespan():
@@ -119,6 +123,9 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
             assert captured["memory"]["memory_token_budget"] == 4321
             assert captured["memory"]["compression_threshold"] == 0.81
             assert captured["memory"]["summary_max_tokens"] == 777
+            assert captured["orchestrator"]["react_max_steps"] == 6
+            assert captured["tool_manager"]["approval_mode"].value == "require_all"
+            assert captured["tool_manager"]["max_output_chars"] == 2345
             assert captured["tool_manager_wired"] is True
 
     asyncio.run(exercise_lifespan())
