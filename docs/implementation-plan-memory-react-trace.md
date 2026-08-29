@@ -26,8 +26,8 @@
 | 阶段 | 状态 | 验收 |
 |---|---|---|
 | 1. 混合长期记忆 | done | 原始片段写入、BM25+vector+recency RRF、指标与测试 |
-| 2. 工具安全与 Trace | in_progress | allowlist、审批、调用状态、审计、上下文 TraceId |
-| 3. 有界 ReAct 集成 | pending | Anthropic tool loop、max steps、输出压缩、Agent 集成 |
+| 2. 工具安全与 Trace | done | allowlist、审批、调用状态、审计、上下文 TraceId |
+| 3. 有界 ReAct 集成 | in_progress | Anthropic tool loop、max steps、输出压缩、Agent 集成 |
 | 4. API/文档/Page | pending | 响应证据、配置、简历 STAR、完整教程和线上验收 |
 
 ## 非目标
@@ -40,3 +40,4 @@
 ## 变更记录
 
 - 阶段 1：新增 `memory/hybrid_retrieval.py` 与 `tests/test_hybrid_memory.py`；Chroma v2 记录以原始重叠片段为 document，摘要退回 metadata/Prompt 背景；用户内向量池和 BM25 语料独立降级后用加权 RRF 融合，时间只重排相关候选；提供 Recall@K/MRR/nDCG。完整回归 56 passed。
+- 阶段 2：新增 `core/tracing.py` 和 `tests/test_tool_security_trace.py`；`MCPToolManager` 增加 Agent allowlist、风险/读写属性、宿主侧审批、调用终态、输出截断、参数哈希和脱敏审计；TraceId 通过 contextvars 传播到并行 asyncio Task。完整回归 60 passed。

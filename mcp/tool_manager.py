@@ -18,13 +18,18 @@ import inspect
 import json
 import logging
 import time
+import uuid
+from collections import deque
+from contextlib import nullcontext
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Deque, Dict, List, Optional, Tuple
 
 from anthropic import AsyncAnthropic
 
 from core.llm_utils import extract_text_content
+from core.tracing import TraceRecorder, current_trace_id, trace_scope
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +43,32 @@ class CircuitState(Enum):
     HALF_OPEN = "half_open"  # 探测恢复
 
 
+class ToolRisk(str, Enum):
+    """工具副作用风险；高风险在默认模式下一律要求宿主批准。"""
+
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+
+
+class ApprovalMode(str, Enum):
+    """由宿主配置的工具审批策略，模型不能修改。"""
+
+    DEFAULT = "default"
+    REQUIRE_ALL = "require_all"
+    AUTO_APPROVE = "auto_approve"
+
+
+class ToolCallStatus(str, Enum):
+    """一次受控工具调用的闭合状态集合。"""
+
+    AWAITING_APPROVAL = "awaiting_approval"
+    EXECUTING = "executing"
+    SUCCESS = "success"
+    ERROR = "error"
+    DENIED = "denied"
+
+
 @dataclass
 class ToolResult:
     """一次工具调用的统一结果，包含缓存、延迟和重排证据。"""
@@ -48,6 +79,51 @@ class ToolResult:
     cached:         bool = False
     latency_ms:     float = 0.0
     reranked:       bool = False   # 是否经过重排
+    call_id:         str = ""
+    trace_id:        str = ""
+    status:          str = ""
+    output_for_model: str = ""
+
+
+@dataclass(frozen=True)
+class ToolAuditRecord:
+    """不含原始敏感参数/结果的工具调用审计记录。"""
+
+    trace_id: str
+    call_id: str
+    request_id: str
+    agent_type: str
+    tool_name: str
+    status: ToolCallStatus
+    risk: ToolRisk
+    read_only: bool
+    params_hash: str
+    params_summary: str
+    result_summary: str
+    approved: bool
+    started_at: str
+    latency_ms: float
+    error: str = ""
+
+    def to_dict(self) -> Dict[str, Any]:
+        """生成稳定 API/Trace 投影。"""
+        return {
+            "trace_id": self.trace_id,
+            "call_id": self.call_id,
+            "request_id": self.request_id,
+            "agent_type": self.agent_type,
+            "tool_name": self.tool_name,
+            "status": self.status.value,
+            "risk": self.risk.value,
+            "read_only": self.read_only,
+            "params_hash": self.params_hash,
+            "params_summary": self.params_summary,
+            "result_summary": self.result_summary,
+            "approved": self.approved,
+            "started_at": self.started_at,
+            "latency_ms": round(self.latency_ms, 3),
+            "error": self.error,
+        }
 
 
 @dataclass
@@ -127,6 +203,10 @@ class Tool:
     timeout_s:   float = 30.0
     supports_rerank: bool = False            # 是否支持结果重排
     fallback:    Optional[Callable] = None    # sync/async (params, context, error) -> Any
+    allowed_agents: Tuple[str, ...] = ("*",) # ReAct 可发现/执行该工具的 Agent allowlist
+    risk: ToolRisk = ToolRisk.LOW
+    read_only: bool = True
+    requires_approval: bool = False
 
     # 运行时状态（不参与构造）
     stats:   ToolStats    = field(default_factory=ToolStats, init=False)
@@ -143,7 +223,17 @@ class MCPToolManager:
       用户查询 → 查询改写（多角度子查询）→ 并行召回 → 结果重排 → 返回 Top-K
     """
 
-    def __init__(self, api_key: str, base_url: Optional[str] = None, model: str = "claude-3-5-sonnet-20241022"):
+    def __init__(
+        self,
+        api_key: str,
+        base_url: Optional[str] = None,
+        model: str = "claude-3-5-sonnet-20241022",
+        *,
+        approval_mode: ApprovalMode = ApprovalMode.DEFAULT,
+        trace_recorder: Optional[TraceRecorder] = None,
+        max_audit_records: int = 2000,
+        max_output_chars: int = 4000,
+    ):
         """创建模型客户端以及进程内工具注册表和 TTL 缓存。"""
         kwargs: Dict[str, Any] = {"api_key": api_key}
         if base_url:
@@ -152,17 +242,163 @@ class MCPToolManager:
         self._model  = model
         self._tools: Dict[str, Tool] = {}
         self._cache: Dict[str, tuple] = {}   # key → (result, expire_at, reranked)
+        self._approval_mode = ApprovalMode(approval_mode)
+        self._trace_recorder = trace_recorder or TraceRecorder()
+        self._audit: Deque[ToolAuditRecord] = deque(maxlen=max(1, int(max_audit_records)))
+        self._max_output_chars = max(256, int(max_output_chars))
 
     # ── 注册 / 注销 ───────────────────────────────────────────────────────────
 
     def register(self, tool: Tool) -> None:
         """按名称注册或替换工具定义。"""
+        if not tool.name.strip():
+            raise ValueError("tool name must not be empty")
+        if not tool.allowed_agents:
+            raise ValueError("tool allowed_agents must not be empty")
         self._tools[tool.name] = tool
         logger.info(f"注册工具: {tool.name}")
 
     def unregister(self, name: str) -> None:
         """幂等移除工具定义。"""
         self._tools.pop(name, None)
+
+    def tools_for_agent(self, agent_type: str) -> List[Tool]:
+        """只返回 Agent allowlist 中可发现的工具；隐藏即第一道权限边界。"""
+        normalized = str(getattr(agent_type, "value", agent_type))
+        return [
+            tool for tool in self._tools.values()
+            if "*" in tool.allowed_agents or normalized in tool.allowed_agents
+        ]
+
+    def anthropic_tools_for_agent(self, agent_type: str) -> List[Dict[str, Any]]:
+        """把允许工具投影为 Anthropic tool schema，不暴露 handler/策略内部状态。"""
+        return [{
+            "name": tool.name,
+            "description": tool.description,
+            "input_schema": tool.schema,
+        } for tool in self.tools_for_agent(agent_type)]
+
+    async def execute_for_agent(
+        self,
+        name: str,
+        params: Dict[str, Any],
+        *,
+        agent_type: str,
+        context: Optional[Dict[str, Any]] = None,
+        approved: bool = False,
+        call_id: Optional[str] = None,
+    ) -> ToolResult:
+        """在身份、审批、审计和 Trace 边界内执行一次 Agent 工具调用。
+
+        ``approved`` 只能由宿主调用方传入，不属于 LLM tool schema，模型无法
+        通过伪造参数绕过审批。
+        """
+        context = dict(context or {})
+        normalized_agent = str(getattr(agent_type, "value", agent_type))
+        resolved_call_id = str(call_id or uuid.uuid4().hex)
+        trace_id = str(context.get("trace_id") or current_trace_id() or uuid.uuid4().hex)
+        request_id = str(context.get("request_id") or "")
+        started_iso = datetime.now(timezone.utc).isoformat()
+        started = time.monotonic()
+        tool = self._tools.get(name)
+
+        if tool is None:
+            return self._finish_controlled_call(
+                result=ToolResult(False, None, name, error="工具不存在"),
+                tool=None,
+                agent_type=normalized_agent,
+                params=params,
+                context=context,
+                trace_id=trace_id,
+                call_id=resolved_call_id,
+                request_id=request_id,
+                started_iso=started_iso,
+                started=started,
+                status=ToolCallStatus.DENIED,
+                approved=False,
+            )
+
+        if "*" not in tool.allowed_agents and normalized_agent not in tool.allowed_agents:
+            return self._finish_controlled_call(
+                result=ToolResult(False, None, name, error="Agent 无权调用该工具"),
+                tool=tool,
+                agent_type=normalized_agent,
+                params=params,
+                context=context,
+                trace_id=trace_id,
+                call_id=resolved_call_id,
+                request_id=request_id,
+                started_iso=started_iso,
+                started=started,
+                status=ToolCallStatus.DENIED,
+                approved=False,
+            )
+
+        needs_approval = self._requires_approval(tool)
+        if needs_approval and not approved:
+            return self._finish_controlled_call(
+                result=ToolResult(False, None, name, error="工具调用等待宿主审批"),
+                tool=tool,
+                agent_type=normalized_agent,
+                params=params,
+                context=context,
+                trace_id=trace_id,
+                call_id=resolved_call_id,
+                request_id=request_id,
+                started_iso=started_iso,
+                started=started,
+                status=ToolCallStatus.AWAITING_APPROVAL,
+                approved=False,
+            )
+
+        span_attributes = {
+            "tool.name": name,
+            "tool.agent": normalized_agent,
+            "tool.risk": tool.risk.value,
+            "tool.call_id": resolved_call_id,
+        }
+        try:
+            scope = nullcontext(trace_id) if current_trace_id() == trace_id else trace_scope(trace_id)
+            with scope:
+                with self._trace_recorder.span(
+                    f"tool.{name}", kind="tool", attributes=span_attributes
+                ):
+                    result = await self.call(name, params, context)
+            status = ToolCallStatus.SUCCESS if result.success else ToolCallStatus.ERROR
+        except Exception as exc:  # call() 应闭合异常，此处保护未来适配器。
+            result = ToolResult(False, None, name, error=f"{type(exc).__name__}: {exc}")
+            status = ToolCallStatus.ERROR
+        return self._finish_controlled_call(
+            result=result,
+            tool=tool,
+            agent_type=normalized_agent,
+            params=params,
+            context=context,
+            trace_id=trace_id,
+            call_id=resolved_call_id,
+            request_id=request_id,
+            started_iso=started_iso,
+            started=started,
+            status=status,
+            approved=approved or not needs_approval,
+        )
+
+    def audit_records(
+        self,
+        *,
+        trace_id: Optional[str] = None,
+        limit: int = 100,
+    ) -> List[ToolAuditRecord]:
+        """读取工具审计快照，可按 TraceId 关联一次请求。"""
+        records = list(self._audit)
+        if trace_id:
+            records = [record for record in records if record.trace_id == trace_id]
+        return records[-max(0, int(limit)):]
+
+    @property
+    def trace_recorder(self) -> TraceRecorder:
+        """返回工具运行时使用的唯一 Trace Recorder。"""
+        return self._trace_recorder
 
     # ── 核心调用 ──────────────────────────────────────────────────────────────
 
@@ -432,6 +668,106 @@ class MCPToolManager:
             for k in list(self._cache)[:1250]:
                 del self._cache[k]
         self._cache[self._cache_key(name, params, rerank_top_k)] = (data, time.monotonic() + ttl, reranked)
+
+    # ── Agent 授权、审批与审计 ─────────────────────────────────────────────────
+
+    def _requires_approval(self, tool: Tool) -> bool:
+        """由宿主策略和工具静态风险共同决定是否需要批准。"""
+        if self._approval_mode is ApprovalMode.AUTO_APPROVE:
+            return False
+        if self._approval_mode is ApprovalMode.REQUIRE_ALL:
+            return True
+        return tool.requires_approval or tool.risk is ToolRisk.HIGH or not tool.read_only
+
+    def _finish_controlled_call(
+        self,
+        *,
+        result: ToolResult,
+        tool: Optional[Tool],
+        agent_type: str,
+        params: Dict[str, Any],
+        context: Dict[str, Any],
+        trace_id: str,
+        call_id: str,
+        request_id: str,
+        started_iso: str,
+        started: float,
+        status: ToolCallStatus,
+        approved: bool,
+    ) -> ToolResult:
+        """在唯一出口闭合结果字段并追加脱敏审计。"""
+        result.call_id = call_id
+        result.trace_id = trace_id
+        result.status = status.value
+        result.output_for_model = self._render_for_model(result)
+        risk = tool.risk if tool else ToolRisk.HIGH
+        read_only = tool.read_only if tool else True
+        payload = json.dumps(params, ensure_ascii=False, sort_keys=True, default=str)
+        record = ToolAuditRecord(
+            trace_id=trace_id,
+            call_id=call_id,
+            request_id=request_id,
+            agent_type=agent_type,
+            tool_name=result.tool_name,
+            status=status,
+            risk=risk,
+            read_only=read_only,
+            params_hash=hashlib.sha256(payload.encode("utf-8")).hexdigest(),
+            params_summary=self._params_summary(params),
+            result_summary=self._result_summary(result),
+            approved=approved,
+            started_at=started_iso,
+            latency_ms=(time.monotonic() - started) * 1000,
+            error="tool execution failed" if result.error else "",
+        )
+        self._audit.append(record)
+        return result
+
+    def _render_for_model(self, result: ToolResult) -> str:
+        """把工具终态格式化并限制回写模型的字符数。"""
+        payload = json.dumps(
+            {
+                "status": result.status,
+                "success": result.success,
+                "data": result.data,
+                "error": result.error,
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+            default=str,
+        )
+        if len(payload) <= self._max_output_chars:
+            return payload
+        keep = max(64, (self._max_output_chars - 80) // 2)
+        omitted = len(payload) - keep * 2
+        return (
+            f"{payload[:keep]}\n...[tool output truncated: {omitted} chars omitted]...\n"
+            f"{payload[-keep:]}"
+        )
+
+    @staticmethod
+    def _params_summary(params: Dict[str, Any]) -> str:
+        """只记录参数名、类型和规模，不把密码/正文写入审计。"""
+        parts = []
+        for key, value in list(params.items())[:24]:
+            if isinstance(value, str):
+                shape = f"str[{len(value)}]"
+            elif isinstance(value, (list, tuple, set, dict)):
+                shape = f"{type(value).__name__}[{len(value)}]"
+            else:
+                shape = type(value).__name__
+            parts.append(f"{str(key)[:60]}:{shape}")
+        return ", ".join(parts)[:500]
+
+    @staticmethod
+    def _result_summary(result: ToolResult) -> str:
+        """审计只记录结果形状；完整输出只存在当前执行上下文。"""
+        data = result.data
+        size = len(data) if isinstance(data, (str, list, tuple, set, dict)) else 0
+        return (
+            f"status={result.status}; success={result.success}; "
+            f"data={type(data).__name__}[{size}]; output_chars={len(result.output_for_model)}"
+        )[:240]
 
     # ── 参数校验 ──────────────────────────────────────────────────────────────
 
