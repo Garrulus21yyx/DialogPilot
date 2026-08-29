@@ -1,7 +1,11 @@
 import asyncio
 from types import SimpleNamespace
 
-from services.answer_verifier import AnswerVerifier, VerificationStatus
+from services.answer_verifier import (
+    AnswerVerifier,
+    VerificationReasonCode,
+    VerificationStatus,
+)
 
 
 class FakeMessages:
@@ -20,9 +24,9 @@ class FakeClient:
         self.messages = FakeMessages(payload=payload, error=error)
 
 
-def verify(payload=None, error=None, answer="candidate answer"):
+def verify(payload=None, error=None, answer="candidate answer", **kwargs):
     verifier = AnswerVerifier(client=FakeClient(payload=payload, error=error), model="test")
-    return asyncio.run(verifier.verify("question", answer, "context"))
+    return asyncio.run(verifier.verify("question", answer, "context", **kwargs))
 
 
 def test_pass_is_the_only_publishable_status():
@@ -33,6 +37,7 @@ def test_pass_is_the_only_publishable_status():
     assert result.publishable is True
     assert result.need_escalation is False
     assert result.grounded is True
+    assert result.reason_code is VerificationReasonCode.PASSED
 
 
 def test_reject_is_not_publishable_and_escalates():
@@ -42,6 +47,7 @@ def test_reject_is_not_publishable_and_escalates():
     assert result.status is VerificationStatus.REJECT
     assert result.publishable is False
     assert result.need_escalation is True
+    assert result.reason_code is VerificationReasonCode.UNGROUNDED
 
 
 def test_malformed_model_output_fails_closed():
@@ -51,6 +57,7 @@ def test_malformed_model_output_fails_closed():
     assert result.status is VerificationStatus.UNKNOWN
     assert result.publishable is False
     assert result.need_escalation is True
+    assert result.reason_code is VerificationReasonCode.VERIFIER_UNAVAILABLE
 
 
 def test_model_failure_fails_closed():
@@ -60,6 +67,7 @@ def test_model_failure_fails_closed():
     assert result.status is VerificationStatus.UNKNOWN
     assert result.publishable is False
     assert result.need_escalation is True
+    assert result.reason_code is VerificationReasonCode.VERIFIER_UNAVAILABLE
 
 
 def test_empty_answer_is_rejected_without_model_call():
@@ -69,4 +77,22 @@ def test_empty_answer_is_rejected_without_model_call():
     assert result.status is VerificationStatus.REJECT
     assert result.publishable is False
     assert result.need_escalation is True
+    assert result.reason_code is VerificationReasonCode.EMPTY_ANSWER
+
+
+def test_incomplete_required_task_is_rejected_before_model_judgement():
+    """证明 CoverageGate 缺口在本地发布边界直接拒绝，不依赖 Judge 猜测。"""
+    result = verify(
+        payload=None,
+        coverage={
+            "complete": False,
+            "unresolved_required_task_ids": ["billing_task"],
+        },
+        task_plan={"primary_task_id": "technical_task"},
+        agent_outcomes=[{"task_id": "technical_task", "status": "success"}],
+    )
+
+    assert result.status is VerificationStatus.REJECT
+    assert result.reason_code is VerificationReasonCode.INCOMPLETE
+    assert "billing_task" in result.reason
 """回答发布校验边界的 PASS/REJECT/UNKNOWN 合同测试。"""

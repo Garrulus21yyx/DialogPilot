@@ -167,6 +167,7 @@ class OrchestratorResult:
     producer_agent_keys: List[str] = field(default_factory=list)
     task_plan: Dict[str, Any] = field(default_factory=dict)
     coverage: Dict[str, Any] = field(default_factory=dict)
+    execution_budget: Dict[str, Any] = field(default_factory=dict)
 
 
 # ── 基础 Agent ────────────────────────────────────────────────────────────────
@@ -485,6 +486,7 @@ class AgentOrchestrator:
             producer_agent_keys=[outcome.agent_key] if succeeded and outcome.agent_key else [],
             task_plan=plan.to_dict(),
             coverage=coverage.to_dict(),
+            execution_budget=window.budget.to_dict(),
         )
 
     async def run_parallel(
@@ -581,6 +583,7 @@ class AgentOrchestrator:
             ),
             task_plan=plan.to_dict(),
             coverage=synthesis.coverage.to_dict(),
+            execution_budget=window.budget.to_dict(),
         )
 
     # ── 路由逻辑 ──────────────────────────────────────────────────────────────

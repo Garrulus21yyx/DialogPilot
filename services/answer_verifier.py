@@ -24,6 +24,19 @@ class VerificationStatus(str, Enum):
     UNKNOWN = "unknown"
 
 
+class VerificationReasonCode(str, Enum):
+    """发布拒绝的稳定机器可读原因；展示文本不再承担控制流。"""
+
+    PASSED = "passed"
+    EMPTY_ANSWER = "empty_answer"
+    INCOMPLETE = "incomplete"
+    UNGROUNDED = "ungrounded"
+    UNSAFE = "unsafe"
+    IRRELEVANT = "irrelevant"
+    MODEL_REJECTED = "model_rejected"
+    VERIFIER_UNAVAILABLE = "verifier_unavailable"
+
+
 @dataclass(frozen=True)
 class VerificationResult:
     """一次校验的不可变结果，同时携带依据性与人工升级信号。"""
@@ -32,6 +45,7 @@ class VerificationResult:
     grounded: bool
     need_escalation: bool
     reason: str
+    reason_code: VerificationReasonCode
 
     @property
     def publishable(self) -> bool:
@@ -64,7 +78,16 @@ class AnswerVerifier:
         self._client = client
         self._model = model
 
-    async def verify(self, question: str, answer: str, context: str = "") -> VerificationResult:
+    async def verify(
+        self,
+        question: str,
+        answer: str,
+        context: str = "",
+        *,
+        task_plan: Optional[Dict[str, Any]] = None,
+        coverage: Optional[Dict[str, Any]] = None,
+        agent_outcomes: Optional[list[Dict[str, Any]]] = None,
+    ) -> VerificationResult:
         """校验候选回答，并把任意外部异常转换成闭合的有类型结果。"""
         question = (question or "").strip()
         answer = (answer or "").strip()
@@ -77,7 +100,29 @@ class AnswerVerifier:
                 grounded=False,
                 need_escalation=True,
                 reason="Agent returned an empty answer",
+                reason_code=VerificationReasonCode.EMPTY_ANSWER,
             )
+
+        coverage = coverage or {}
+        unresolved = coverage.get("unresolved_required_task_ids")
+        if coverage.get("complete") is False or (isinstance(unresolved, list) and unresolved):
+            unresolved_text = ", ".join(str(item) for item in (unresolved or [])) or "unknown"
+            return VerificationResult(
+                status=VerificationStatus.REJECT,
+                grounded=False,
+                need_escalation=True,
+                reason=f"required tasks are unresolved: {unresolved_text}"[:300],
+                reason_code=VerificationReasonCode.INCOMPLETE,
+            )
+
+        orchestration_evidence = json.dumps(
+            {
+                "task_plan": task_plan or {},
+                "coverage": coverage,
+                "agent_outcomes": agent_outcomes or [],
+            },
+            ensure_ascii=False,
+        )
 
         prompt = f"""
 你是客服回答发布前的质量校验器。根据用户问题、候选回答和可选上下文，返回严格 JSON。
@@ -90,9 +135,10 @@ class AnswerVerifier:
 用户问题：{question}
 候选回答：{answer}
 上下文：{context or "（无外部知识上下文）"}
+任务执行证据：{orchestration_evidence}
 
 只返回：
-{{"status":"pass|reject|unknown","grounded":true,"reason":"简短原因"}}
+{{"status":"pass|reject|unknown","grounded":true,"reason_code":"passed|incomplete|ungrounded|unsafe|irrelevant|model_rejected","reason":"简短原因"}}
 """.strip()
 
         try:
@@ -107,11 +153,13 @@ class AnswerVerifier:
             status = VerificationStatus(str(payload["status"]).lower())
             grounded = bool(payload.get("grounded", False))
             reason = str(payload.get("reason", "verification completed")).strip()[:300]
+            reason_code = self._reason_code(payload.get("reason_code"), status, grounded)
             return VerificationResult(
                 status=status,
                 grounded=grounded,
                 need_escalation=status is not VerificationStatus.PASS,
                 reason=reason,
+                reason_code=reason_code,
             )
         except Exception as exc:
             # 校验服务故障不能证明候选回答安全，因此统一进入人工路径。
@@ -120,7 +168,31 @@ class AnswerVerifier:
                 grounded=False,
                 need_escalation=True,
                 reason=f"verification unavailable: {type(exc).__name__}",
+                reason_code=VerificationReasonCode.VERIFIER_UNAVAILABLE,
             )
+
+    @staticmethod
+    def _reason_code(
+        value: Any,
+        status: VerificationStatus,
+        grounded: bool,
+    ) -> VerificationReasonCode:
+        """规范模型原因码，并为缺失/未知值提供保守默认。"""
+        if status is VerificationStatus.PASS:
+            return VerificationReasonCode.PASSED
+        if status is VerificationStatus.UNKNOWN:
+            return VerificationReasonCode.VERIFIER_UNAVAILABLE
+        try:
+            code = VerificationReasonCode(str(value).lower())
+        except ValueError:
+            code = (
+                VerificationReasonCode.UNGROUNDED
+                if not grounded
+                else VerificationReasonCode.MODEL_REJECTED
+            )
+        if code is VerificationReasonCode.PASSED:
+            return VerificationReasonCode.MODEL_REJECTED
+        return code
 
     @staticmethod
     def _parse_payload(raw: str) -> Dict[str, Any]:

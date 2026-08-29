@@ -268,7 +268,17 @@ class EndToEndEvaluator:
         """
         results: List[EvalResult] = []
         all_scores: Dict[str, List[float]] = {
-            "relevance": [], "accuracy": [], "completeness": [], "helpfulness": []
+            "relevance": [],
+            "accuracy": [],
+            "completeness": [],
+            "helpfulness": [],
+            "coverage_complete": [],
+            "task_coverage": [],
+            "budget_success_rate": [],
+            "fanout_efficiency": [],
+            "route_exact_match": [],
+            "route_jaccard": [],
+            "task_exact_match": [],
         }
 
         # 1. 意图识别评测
@@ -354,7 +364,13 @@ class EndToEndEvaluator:
             actual_answer = orch_result.response
 
             scores = await self._judge.judge(question, actual_answer, context=context or None)
-            passed = scores.overall >= self.PASS_THRESHOLD
+            orchestration_scores = self._orchestration_scores(orch_result, case)
+            required_checks = [orchestration_scores["coverage_complete"] >= 1.0]
+            if "route_exact_match" in orchestration_scores:
+                required_checks.append(orchestration_scores["route_exact_match"] >= 1.0)
+            if "task_exact_match" in orchestration_scores:
+                required_checks.append(orchestration_scores["task_exact_match"] >= 1.0)
+            passed = scores.overall >= self.PASS_THRESHOLD and all(required_checks)
 
             history.append({"role": "user", "content": question})
             history.append({"role": "assistant", "content": actual_answer})
@@ -369,6 +385,7 @@ class EndToEndEvaluator:
                     "completeness": scores.completeness,
                     "helpfulness": scores.helpfulness,
                     "overall": scores.overall,
+                    **orchestration_scores,
                 },
                 detail=f"Q: {question[:30]}... → 综合评分 {scores.overall:.3f}",
                 metadata={
@@ -380,10 +397,72 @@ class EndToEndEvaluator:
                     "conv_id": conv_id,
                     "judge_failed": scores.judge_failed,
                     "judge_error": scores.error,
+                    "task_plan": orch_result.task_plan,
+                    "coverage": orch_result.coverage,
+                    "agent_outcomes": orch_result.agent_outcomes,
                 },
             ))
 
         return results
+
+    @staticmethod
+    def _orchestration_scores(orch_result: Any, case: Dict[str, Any]) -> Dict[str, float]:
+        """从计划、覆盖和终态计算可回归的 Multi-Agent 指标。"""
+        coverage = dict(getattr(orch_result, "coverage", {}) or {})
+        required = set(coverage.get("required_task_ids") or [])
+        completed = set(coverage.get("completed_task_ids") or [])
+        task_coverage = len(required & completed) / len(required) if required else 0.0
+
+        outcomes = list(getattr(orch_result, "agent_outcomes", []) or [])
+        budget_failures = sum(
+            1 for outcome in outcomes if outcome.get("status") == "budget_exceeded"
+        )
+        budget_success_rate = (
+            1.0 - budget_failures / len(outcomes) if outcomes else 1.0
+        )
+
+        task_plan = dict(getattr(orch_result, "task_plan", {}) or {})
+        planned_tasks = list(task_plan.get("tasks") or [])
+        actual_agents = {
+            str(task.get("owner")) for task in planned_tasks if task.get("owner")
+        }
+        if not actual_agents:
+            actual_agents = {
+                str(getattr(agent, "value", agent))
+                for agent in (getattr(orch_result, "agent_types", []) or [])
+            }
+
+        scores: Dict[str, float] = {
+            "coverage_complete": 1.0 if coverage.get("complete") is True else 0.0,
+            "task_coverage": task_coverage,
+            "budget_success_rate": budget_success_rate,
+            "fanout_efficiency": 1.0,
+        }
+
+        expected_agents = {
+            str(agent) for agent in (case.get("expected_agents") or []) if str(agent)
+        }
+        if expected_agents:
+            union = actual_agents | expected_agents
+            scores["route_exact_match"] = 1.0 if actual_agents == expected_agents else 0.0
+            scores["route_jaccard"] = (
+                len(actual_agents & expected_agents) / len(union) if union else 1.0
+            )
+            unnecessary = len(actual_agents - expected_agents)
+            scores["fanout_efficiency"] = (
+                1.0 - unnecessary / len(actual_agents) if actual_agents else 0.0
+            )
+
+        expected_tasks = {
+            str(task_id) for task_id in (case.get("expected_task_ids") or []) if str(task_id)
+        }
+        if expected_tasks:
+            actual_tasks = {
+                str(task.get("task_id")) for task in planned_tasks if task.get("task_id")
+            }
+            scores["task_exact_match"] = 1.0 if actual_tasks == expected_tasks else 0.0
+
+        return scores
 
     @staticmethod
     def _dialog_turns(case: Dict[str, Any]) -> List[str]:
@@ -433,6 +512,14 @@ class EndToEndEvaluator:
             recs.append("完整性偏低：Agent 可能过早结束回答，考虑在 prompt 中要求提供完整解决方案")
         if scores.get("helpfulness", 1.0) < 0.75:
             recs.append("有用性偏低：回答可能过于抽象，考虑要求 Agent 提供具体操作步骤")
+        if scores.get("coverage_complete", 1.0) < 0.98:
+            recs.append("必需任务覆盖不足：检查 TaskPlanner、预算上限和失败后人工接管路径")
+        if scores.get("route_exact_match", 1.0) < 0.90:
+            recs.append("Owner 分配偏差：补充复合问题与误导关键词的路由标注样本")
+        if scores.get("fanout_efficiency", 1.0) < 0.90:
+            recs.append("存在无效 fan-out：收紧能力触发证据或提高辅助任务阈值")
+        if scores.get("budget_success_rate", 1.0) < 0.98:
+            recs.append("预算失败偏高：校准请求 deadline、Agent timeout 与最大并发数")
         if not recs:
             recs.append("所有指标均达标，继续保持")
         return recs

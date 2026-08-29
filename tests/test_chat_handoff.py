@@ -4,7 +4,11 @@ from types import SimpleNamespace
 from agents.agent_orchestrator import AgentType, OrchestratorResult
 from api import main
 from core.intent_recognizer import IntentCategory, UrgencyLevel
-from services.answer_verifier import VerificationResult, VerificationStatus
+from services.answer_verifier import (
+    VerificationReasonCode,
+    VerificationResult,
+    VerificationStatus,
+)
 from services.ticket_service import TicketPriority, TicketService
 from memory.context import ContextAssembler
 
@@ -75,6 +79,7 @@ class FakeVerifier:
             grounded=True,
             need_escalation=False,
             reason="safe handoff response",
+            reason_code=VerificationReasonCode.PASSED,
         )
 
 

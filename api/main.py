@@ -264,6 +264,9 @@ class ChatResponse(BaseModel):
     synthesis_conflicts: List[str] = Field(default_factory=list)
     agent_outcomes: List[Dict[str, Any]] = Field(default_factory=list)
     producer_agent_keys: List[str] = Field(default_factory=list)
+    task_plan: Dict[str, Any] = Field(default_factory=dict)
+    coverage: Dict[str, Any] = Field(default_factory=dict)
+    execution_budget: Dict[str, Any] = Field(default_factory=dict)
     escalated:   bool
     latency_ms:  float
     knowledge_used: bool = False
@@ -274,6 +277,7 @@ class ChatResponse(BaseModel):
     verified: bool
     grounded: bool
     verification_reason: str = ""
+    verification_reason_code: str = ""
     ticket_id: Optional[str] = None
     ticket_status: Optional[str] = None
     handoff_created: bool = False
@@ -396,7 +400,14 @@ async def chat(req: ChatRequest):
     result = await _orchestrator.run(orch_req)
 
     # 4. 发布边界：只有明确通过校验的回答才能返回给用户。
-    verification = await _answer_verifier.verify(req.message, result.response, full_context)
+    verification = await _answer_verifier.verify(
+        req.message,
+        result.response,
+        full_context,
+        task_plan=result.task_plan,
+        coverage=result.coverage,
+        agent_outcomes=result.agent_outcomes,
+    )
     feedback_recorder = getattr(_orchestrator, "record_verification", None)
     if feedback_recorder:
         try:
@@ -423,6 +434,7 @@ async def chat(req: ChatRequest):
                 published_response=response_text,
                 reason=(
                     f"verification={verification.status.value}: {verification.reason}; "
+                    f"coverage={result.coverage.get('complete', 'unknown')}; "
                     f"routing={result.routing_reason}"
                 )[:5000],
                 priority=_handoff_priority(intent_result.urgency, verification.status.value),
@@ -461,6 +473,9 @@ async def chat(req: ChatRequest):
         synthesis_conflicts=result.synthesis_conflicts,
         agent_outcomes=result.agent_outcomes,
         producer_agent_keys=result.producer_agent_keys,
+        task_plan=result.task_plan,
+        coverage=result.coverage,
+        execution_budget=result.execution_budget,
         escalated=escalated,
         latency_ms=round(result.latency_ms, 1),
         knowledge_used=knowledge_used,
@@ -471,6 +486,7 @@ async def chat(req: ChatRequest):
         verified=verification.publishable,
         grounded=verification.grounded,
         verification_reason=verification.reason,
+        verification_reason_code=verification.reason_code.value,
         ticket_id=ticket.ticket_id if ticket else None,
         ticket_status=ticket.status.value if ticket else None,
         handoff_created=handoff_created,
@@ -676,6 +692,8 @@ class EvalDialogInput(BaseModel):
     turns: Optional[List[str]] = None
     user_id: Optional[str] = None
     conv_id: Optional[str] = None
+    expected_agents: Optional[List[str]] = None
+    expected_task_ids: Optional[List[str]] = None
 
 
 class EvalRunInput(BaseModel):
