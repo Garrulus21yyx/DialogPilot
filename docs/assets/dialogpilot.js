@@ -27,7 +27,7 @@
 
     const path = document.createElement("div");
     path.className = "dp-signal-path";
-    ["MEMORY", "INTENT", "RAG", "ROUTE", "SYNTHESIS", "VERIFY", "TICKET"].forEach(function (label) {
+    ["MEMORY", "INTENT", "RAG", "TASK PLAN", "WORKERS", "COVERAGE", "SYNTHESIS", "VERIFY", "TICKET"].forEach(function (label) {
       const item = document.createElement("span");
       item.textContent = label;
       path.appendChild(item);
@@ -36,7 +36,7 @@
 
     const meta = document.createElement("div");
     meta.className = "dp-hero-meta";
-    ["25 chapters", "46 interview drills", "42 regression tests", "4 typed repair audits"].forEach(function (label) {
+    ["25 chapters", "50 interview drills", "50 regression tests", "4 task outcome states"].forEach(function (label) {
       const item = document.createElement("span");
       item.textContent = label;
       meta.appendChild(item);

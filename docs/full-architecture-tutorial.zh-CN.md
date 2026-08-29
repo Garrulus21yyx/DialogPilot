@@ -18,7 +18,8 @@ DialogPilot 是一个 Python 3.12 + FastAPI 的异步多 Agent 客服后端。�
 - `KnowledgeBase` 和 `MCPToolManager` 提供受控知识检索；
 - `MemoryManager` 拥有工作记忆、滚动摘要、情景记忆和用户画像；
 - `ContextAssembler` 把这些数据装进有 Token 上限的模型输入；
-- `AgentOrchestrator` 选择 General、Technical、Billing Agent；
+- `AgentOrchestrator` 生产 `TaskPlan`，为子任务分配 General、Technical、Billing 或 AccountSecurity Owner；
+- `CoverageGate` 判断每个必需任务是否真的得到闭合 outcome；
 - `ResultSynthesizer` 合并并行 Agent 的有类型结果；
 - `AnswerVerifier` 决定候选回答能否发布；
 - `TicketService` 把需要人工确认的结果持久化为可追踪工单；
@@ -31,7 +32,7 @@ DialogPilot 是一个 Python 3.12 + FastAPI 的异步多 Agent 客服后端。�
 
 ### 30 秒版本
 
-> DialogPilot 是一个 Python/FastAPI 多 Agent 客服后端。请求进入后先读取 Redis 和 ChromaDB 记忆，再用 LLM、字符 n-gram 相似度和规则融合识别意图，按需执行知识库查询改写、并行召回和重排，然后路由到通用、技术或账单 Agent。复合问题会并行执行多个 Agent，并把每个执行收敛为 SUCCESS、TIMEOUT 或 ERROR，再由唯一的结果融合器处理部分成功和冲突。候选回答只有通过 PASS/REJECT/UNKNOWN 校验边界后才能发布；其余情况会幂等落成 SQLite 人工工单。在线监控把可用性、延迟和经校验的回答质量反馈给路由，离线评测负责意图和回答质量回归。
+> DialogPilot 是一个 Python/FastAPI 多 Agent 客服后端。请求先读取记忆并融合识别意图，再按需完成 RAG。Orchestrator 将复合问题拆成带 task_id、Owner、风险和完成标准的 TaskPlan；通用、技术、账务与账户安全 Worker 只处理自己的子任务。所有 Worker 共享请求级 deadline 和最大并发预算，每项收敛为 SUCCESS、TIMEOUT、ERROR 或 BUDGET_EXCEEDED。CoverageGate 证明必需任务覆盖后，Synthesizer 才融合候选回答；Verifier 只有明确 PASS 才发布，其余情况幂等落成 SQLite 人工工单。在线监控反馈可用性和经校验质量，离线评测额外衡量 Owner、覆盖、预算与 fan-out。
 
 ### 3 分钟版本的顺序
 
@@ -39,9 +40,9 @@ DialogPilot 是一个 Python 3.12 + FastAPI 的异步多 Agent 客服后端。�
 
 1. 问题：单提示词客服把路由、知识、记忆、安全和升级混成黑盒。
 2. 合同：一次请求必须得到可诊断的路由结果；只有明确 `PASS` 的回答能发布；需要人工时同步尝试创建持久工单，并把建单成功或失败明确返回。
-3. 主链：Memory → Intent → RAG → Context → Routing → Agents → Synthesis → Verification → Ticket → Persist published messages。
-4. 三个最值得深挖的改动：Token 驱动且并发安全的压缩、多 Agent 有类型结果代数、校验质量反馈闭环。
-5. 证据：42 个测试，覆盖生命周期配置、RAG 降级、校验 fail-closed、工单状态机/幂等、压缩并发冲突、部分成功/超时/冲突、自然语言复合路由和质量 EWMA。
+3. 主链：Memory → Intent → RAG → Context → TaskPlan → Workers → Coverage → Synthesis → Verification → Ticket → Persist published messages。
+4. 四个最值得深挖的改动：Token 驱动且并发安全的压缩、TaskPlan/CoverageGate、请求预算下的有类型结果代数、校验质量反馈闭环。
+5. 证据：50 个测试，覆盖生命周期配置、RAG 降级、校验 fail-closed、工单状态机/幂等、压缩并发冲突、任务缺失/重复、账户安全 Owner、共享 deadline、预算耗尽、部分成功/冲突和质量 EWMA。
 6. 边界：无鉴权，SQLite 只适合单应用写者，画像后台任务不耐进程崩溃，在线统计重启丢失，评测数据还不足以声称生产准确率。
 
 ## 1. 如何学习这个仓库
@@ -86,6 +87,7 @@ DialogPilot/
 │   ├── knowledge_base.py            # Chroma 知识文档摄取与检索
 │   └── tool_manager.py              # 工具注册、校验、超时、熔断、缓存、降级
 ├── agents/agent_orchestrator.py     # Agent 池、路由、并发执行、质量反馈
+├── agents/orchestration_contracts.py # TaskPlan、风险、Coverage、执行预算
 ├── services/
 │   ├── result_synthesizer.py        # 并行结果的唯一融合 Owner
 │   ├── answer_verifier.py           # 回答发布边界
@@ -110,8 +112,11 @@ flowchart LR
     API --> Verifier[AnswerVerifier]
     API --> Ticket[TicketService]
     Orchestrator --> Intent[IntentRecognizer]
-    Orchestrator --> Agents[Domain Agents]
+    Orchestrator --> Plan[TaskPlan + ExecutionBudget]
+    Plan --> Agents[Scoped Domain Workers]
     Orchestrator --> Synth[ResultSynthesizer]
+    Agents --> Coverage[CoverageGate]
+    Coverage --> Synth
     Agents --> Skills[SkillManager]
     Tool --> KB[KnowledgeBase]
     Monitor[PerformanceMonitor] --> Orchestrator
@@ -129,14 +134,16 @@ API 层负责**时序编排**，但不应该成为各领域事实的 Owner。例
 | HTTP 输入输出 | `api/main.py` 的 Pydantic 模型 | Client/API | 所有内部模块/Client | 非法结构在边界拒绝 |
 | 意图、置信度、紧急度、实体 | `IntentRecognizer` | 三路识别器 | RAG gate、Orchestrator、Ticket | 返回闭合 `IntentCategory` |
 | Prompt 可裁剪部分预算 | `ContextAssembler` | Memory/RAG/API | Domain Agent | section/history 有界，最近历史优先 |
-| Agent 选择 | `AgentOrchestrator` | Intent、实体、关键词、统计 | Agent 执行和 API | 主 Agent 唯一，支持 Agent 有序 |
-| 单 Agent 执行状态 | Agent + Orchestrator 包装 | Provider call | Synthesizer、Monitor | `SUCCESS/TIMEOUT/ERROR` |
+| 子任务、Owner 与完成标准 | `AgentOrchestrator` 的 `TaskPlan` | Intent、实体、关键词、统计 | Worker、CoverageGate、API | task_id 唯一，每个 required task 恰有一个 Owner |
+| 请求执行预算 | `ExecutionBudget/ExecutionWindow` | 启动配置、单调时钟 | Worker、Synthesizer、API | 共享 deadline、per-Agent 上限、max-agents |
+| 单任务执行状态 | Worker + Orchestrator 包装 | Provider call/预算 | CoverageGate、Synthesizer、Monitor | `SUCCESS/TIMEOUT/ERROR/BUDGET_EXCEEDED` |
+| 必需任务覆盖 | `CoverageGate` | TaskPlan + outcomes | Synthesizer、Verifier、Evaluator | 缺失、失败、重复、越界均不能 complete |
 | 并行候选回答 | `ResultSynthesizer` | Agent outcomes | Verifier/API | `SUCCESS/PARTIAL/CONFLICT/FAILED/UNKNOWN` |
-| 是否可发布 | `AnswerVerifier` | Candidate + context | API、质量反馈、Ticket | 只有 `PASS` 可发布 |
+| 是否可发布 | `AnswerVerifier` | Candidate + context + plan/coverage/outcomes | API、质量反馈、Ticket | coverage 缺口本地 REJECT；其余只有 `PASS` 可发布 |
 | 选定发布文本 | `/chat` 发布边界 | Verifier/API | Memory、Client、Ticket | 只持久化选入 HTTP 响应的文本 |
 | 工单身份与状态 | `TicketService` | Chat/manual API | 人工流程/API | 幂等创建、合法迁移、同事务事件 |
 | Agent 可用性/质量统计 | 每个 `AgentStats` | 执行结果、Verifier verdict | Router、Monitor | 可用性与回答质量分离 |
-| 离线质量报告 | `EndToEndEvaluator` | Cases + Judge | 开发者/发布决策 | 带样本、模型和环境解释 |
+| 离线质量报告 | `EndToEndEvaluator` | Cases + Judge + orchestration evidence | 开发者/发布决策 | 同时度量文本质量、Owner、覆盖、预算和 fan-out |
 
 这个表是整个仓库最重要的“所有权地图”。连续追问时，只要回到 Owner，答案通常不会乱。
 
@@ -178,6 +185,7 @@ sequenceDiagram
     participant T as ToolManager + KB
     participant X as ContextAssembler
     participant O as AgentOrchestrator
+    participant G as CoverageGate
     participant S as ResultSynthesizer
     participant V as AnswerVerifier
     participant K as TicketService
@@ -192,15 +200,18 @@ sequenceDiagram
     A->>X: assemble(sections, history, current message)
     X-->>A: bounded PromptContext
     A->>O: run(Request)
+    O->>O: build TaskPlan + ExecutionWindow
     par technical
         O->>O: TechnicalAgent
     and billing
         O->>O: BillingAgent
     end
-    O->>S: ordered typed outcomes
+    O->>G: TaskPlan + ordered typed outcomes
+    G-->>O: complete / unresolved task evidence
+    O->>S: plan + outcomes + coverage
     S-->>O: candidate + synthesis status
     O-->>A: OrchestratorResult
-    A->>V: verify(question,candidate,context)
+    A->>V: verify(question,candidate,context,plan,coverage,outcomes)
     V-->>A: PASS / REJECT / UNKNOWN
     alt escalation needed
         A->>K: create idempotent ticket
@@ -250,7 +261,7 @@ RAG 结果作为 `ContextSection(tag="knowledge", data_only=true)` 进入 system
 `OrchestratorResult.response` 只是**候选回答**。`AnswerVerifier` 才拥有“能否选入 HTTP 响应”的决定：
 
 - `PASS`：发布候选回答；
-- `REJECT`：替换为固定人工确认话术；
+- `REJECT`：coverage 缺口、本地空回答或 Judge 明确拒绝，替换为固定人工确认话术；
 - `UNKNOWN`：模型失败、坏 JSON 或未知状态，也替换并升级。
 
 ### 5.6 先确定发布文本，再写记忆
@@ -518,29 +529,39 @@ Skill 适合放：客服话术、所需字段、退款/发票规则、排障 SOP
 
 ## 10. Multi-Agent 编排
 
-代码：[`agents/agent_orchestrator.py`](../agents/agent_orchestrator.py)
+代码：[`agents/agent_orchestrator.py`](../agents/agent_orchestrator.py)、[`agents/orchestration_contracts.py`](../agents/orchestration_contracts.py)
+
+<div class="dp-task-ledger" role="img" aria-label="DialogPilot 任务账本：规划、并行 Worker、覆盖检查、融合和发布校验">
+  <div class="ledger-stage ledger-plan"><span>01 · PLAN</span><strong>3 required tasks</strong><small>task_id · owner · risk · criteria</small></div>
+  <div class="ledger-workers"><span>02 · WORKERS</span><strong>Security ╱ Technical ╱ Billing</strong><small>shared deadline · max 3 agents</small></div>
+  <div class="ledger-stage ledger-coverage"><span>03 · COVERAGE</span><strong>2 complete · 1 unresolved</strong><small>fail closed, never silently drop</small></div>
+  <div class="ledger-stage ledger-verify"><span>04 · VERIFY</span><strong>REJECT_INCOMPLETE</strong><small>safe handoff + ticket</small></div>
+</div>
+
+这张 Task Ledger 是代码实际合同的缩影：Agent 列表只说明谁运行，TaskPlan 才说明用户要求中的哪些工作必须完成。
 
 ### 10.1 Agent 角色
 
 - `GeneralAgent`：通用接待、澄清、分流；
 - `TechnicalAgent`：错误诊断、配置、排障步骤；
 - `BillingAgent`：账单、退款、发票、订阅；
+- `AccountSecurityAgent`：账号被盗、异常登录、身份验证和敏感资料保护；
 - `ESCALATION`：路由占位，不是一个真实 LLM Agent，执行时会落到 General fallback，但上层保持升级语义。
 
-三个 Agent 共用 `BaseAgent.handle()`：计时、调用模型、累计执行统计、识别回答里的转人工关键词、把异常转成 `AgentResponse(success=False)`。
+四个真实领域 Agent 共用 `BaseAgent.handle()`：计时、调用模型、累计执行统计、识别回答里的转人工关键词、把异常转成 `AgentResponse(success=False)`。AccountSecurity 有单独 Skill 和高风险完成标准，不再由 Billing 代管。
 
 ### 10.2 路由不是只看单一 intent
 
-`_domain_scores()` 组合：
+`_domain_scores()` 仍用可解释的确定性证据选能力：
 
 - 意图大类：例如技术类 +0.75；
 - 领域关键词：每个命中增加分数并设上限；
-- 实体：错误码给 Technical，金额给 Billing，订单号给 General；
+- 实体：错误码给 Technical，金额给 Billing，订单号给 General；账号被盗、陌生设备、身份验证等证据给 AccountSecurity；
 - General 初始 0.1，承接普通请求。
 
-得分最高的是 primary。一个明确领域关键词即为对应领域增加 0.45，更多匹配小幅加分；其他非 General Agent 只要最终分数至少 0.45，就成为 supporting Agent。这样“登录失败 + 重复扣款”能稳定触发 Technical + Billing，同时不会要求一条消息堆满三个同义词。
+得分最高的能力成为 primary，其他非 General 能力达到 0.45 成为 supporting。随后 `_build_task_plan()` 不只返回 Agent 名单，而是为每项生成 `TaskSpec(task_id, owner, instruction, required, risk, success_criteria)`。当前 Planner 是代码控制的可解释启发式，不是另一次 LLM 自主规划；这是刻意保留的生产确定性边界。
 
-例子“登录失败后重复扣款”：Technical 和 Billing 都达到门槛，于是并行执行，不让一个 Agent假装精通两个领域。
+例子“账号被盗、登录失败、又重复扣款”会形成 AccountSecurity、Technical、Billing 三项任务。每个 Worker 的 system prompt 注入自己的任务范围，明确禁止替其他领域下结论。
 
 ### 10.3 何时先澄清
 
@@ -568,9 +589,24 @@ routing_score = base * (1 - monitor_penalty)
 
 这样反馈不会错误记到失败的 specialist 上。
 
-### 10.6 并行执行
+### 10.6 请求级预算与并行执行
 
-每个被选 Agent 都由 `_execute_outcome()` 用独立 `asyncio.wait_for` 包装，单路和并行路由共用同一个 deadline 边界。并行时一个慢 Agent 超时不会取消其他已成功结果；`asyncio.gather` 保持任务输入顺序，结果融合也因此有稳定的 route order。
+`ExecutionBudget` 默认配置为请求 20 秒、单 Agent 15 秒、最多 3 个 Agent。一次 `run()` 创建一个基于单调时钟的 `ExecutionWindow`，所有 Worker 和 Synthesizer 共享同一个绝对 deadline；每个 Worker 实际 timeout 是 `min(agent_timeout, remaining_request_time)`。
+
+超过 `max_agents` 的任务不会从计划中消失，而是得到 `BUDGET_EXCEEDED` outcome；请求时间在 Worker 前或执行中耗尽也收敛到该状态。并发仍用 `asyncio.gather`，结果再按 `TaskPlan.ordered_tasks` 恢复稳定顺序。
+
+### 10.7 CoverageGate：完整性不能由回答观感决定
+
+`CoverageGate` 用 task_id 比较计划和 outcomes，输出：
+
+- `completed_task_ids`：明确 SUCCESS；
+- `failed_task_ids`：TIMEOUT、ERROR 或 BUDGET_EXCEEDED；
+- `missing_task_ids`：计划存在但完全没有 outcome；
+- `duplicate_task_ids`：同一 task 重复生产结果；
+- `unexpected_task_ids`：计划外结果；
+- `unresolved_required_task_ids`：所有未成功的必需任务。
+
+只有 required tasks 全部成功且不存在重复/越界结果，`coverage.complete` 才为 true。这样“技术回答很完整，但账务任务没执行”不能被误标成整体成功。
 
 ## 11. 并行结果代数和融合
 
@@ -578,10 +614,10 @@ routing_score = base * (1 - monitor_penalty)
 
 ### 11.1 两层闭合状态
 
-每个选中 Agent：
+每个计划任务：
 
 ```text
-SUCCESS | TIMEOUT | ERROR
+SUCCESS | TIMEOUT | ERROR | BUDGET_EXCEEDED
 ```
 
 真正进入 `ResultSynthesizer` 的并行整体融合：
@@ -596,16 +632,16 @@ SUCCESS | PARTIAL | CONFLICT | FAILED | UNKNOWN
 
 ### 11.2 状态转换
 
-| Agent outcomes | Synthesis | Candidate | 是否升级 |
+| Task outcomes / coverage | Synthesis | Candidate | 是否升级 |
 |---|---|---|---|
-| 全部失败/超时 | `FAILED` | 固定人工话术 | 是 |
+| 全部失败/超时/预算耗尽 | `FAILED` | 固定人工话术 | 是 |
 | 只有一个成功，无失败 | `SUCCESS` | 原回答 | 继承 Agent 决定 |
-| 只有一个成功，其余失败 | `PARTIAL` | 保留成功回答 | 是 |
+| 只有一个成功，其余失败或 required 未覆盖 | `PARTIAL` | 保留成功回答 | 是 |
 | 多个成功且一致 | `SUCCESS` 或有失败时 `PARTIAL` | LLM 去重融合 | 视失败/Agent 标志 |
 | 多个成功但冲突 | `CONFLICT` | 融合回答 + conflicts | 是 |
 | 融合模型失败/坏 JSON | `UNKNOWN` | 按路由顺序确定性拼接 | 是 |
 
-关键不变量：**有一个有效答案时，不能因为另一个超时就把它降成“所有失败”；但部分成功仍需升级，避免把不完整结果伪装成完整成功。**
+关键不变量：**有一个有效答案时，不能因为另一个超时就把它降成“所有失败”；但 CoverageGate 仍将缺失的 required task 标为不完整，避免把部分回答伪装成整体成功。**
 
 ### 11.3 为什么需要唯一 Synthesizer Owner
 
@@ -634,13 +670,17 @@ SUCCESS | PARTIAL | CONFLICT | FAILED | UNKNOWN
 ```mermaid
 stateDiagram-v2
     [*] --> Candidate
-    Candidate --> PASS: 可解决且无编造高风险事实
-    Candidate --> REJECT: 错误/危险/无关/虚假执行声明
-    Candidate --> UNKNOWN: 证据不足/模型失败/解析失败
+    Candidate --> REJECT: coverage incomplete（本地确定性）
+    Candidate --> Judge: coverage complete
+    Judge --> PASS: 可解决且无编造高风险事实
+    Judge --> REJECT: 错误/危险/无关/虚假执行声明
+    Judge --> UNKNOWN: 证据不足/模型失败/解析失败
     PASS --> Published
     REJECT --> SafeHandoff
     UNKNOWN --> SafeHandoff
 ```
+
+Verifier 现在接收 `task_plan + coverage + agent_outcomes`。如果 `coverage.complete=false` 或仍有 unresolved required task，它在调用 Judge 前直接 `REJECT`，原因码为 `incomplete`；模型不能通过流畅措辞覆盖确定性的任务缺口。
 
 ### 12.2 解析失败为何是 UNKNOWN
 
@@ -650,9 +690,11 @@ stateDiagram-v2
 status=UNKNOWN, grounded=false, need_escalation=true
 ```
 
+机器可读 `reason_code` 进一步区分 `passed/empty_answer/incomplete/ungrounded/unsafe/irrelevant/model_rejected/verifier_unavailable`；API 和工单无需解析自然语言 reason 来决定后续动作。
+
 ### 12.3 校验器不是事实引擎
 
-当前 Verifier 仍由同类 LLM 基于 question、candidate 和 system context 判断；它看不到作为 provider messages 传入 Agent 的 recent history。`publishable` 只要求 `status=PASS`，不会额外要求 `grounded=true`，因为问候等回答可能无需外部知识。它能减少明显错误，但不等于确定性事实证明。资金、账户变更等高风险操作最终必须查询业务系统 receipt，不能只靠第二次模型调用。
+Coverage 缺口和空回答是本地确定性检查；其余语义判断仍由同类 LLM 基于 question、candidate、system context 和编排证据完成。`publishable` 只要求 `status=PASS`，不会额外要求 `grounded=true`，因为问候等回答可能无需外部知识。它能减少明显错误，但不等于确定性事实证明。资金、账户变更等高风险操作最终必须查询业务系统 receipt，不能只靠第二次模型调用。
 
 ## 13. 人工工单：从布尔标志到持久状态
 
@@ -783,12 +825,13 @@ Monitor 每隔 N 秒：
 
 代码：[`evaluation/evaluator.py`](../evaluation/evaluator.py)
 
-### 15.1 两类评测
+### 15.1 三类评测信号
 
 1. Intent：预测与标注比较，计算 accuracy、每类 precision/recall/F1 和 macro-F1。
 2. Dialog：直接调用 Orchestrator，再让 LLM Judge 从 relevance、accuracy、completeness、helpfulness 四维各打 0-1。
+3. Orchestration：从真实 `task_plan/coverage/agent_outcomes` 计算 coverage complete、task coverage、budget success rate、fan-out efficiency；case 提供 `expected_agents/expected_task_ids` 时再计算 route exact/Jaccard 和 task exact。
 
-因此类名虽叫 `EndToEndEvaluator`，当前实际覆盖的是 **Intent + Orchestrator candidate**，没有经过 `/chat` 的 Memory、RAG、ContextAssembler、AnswerVerifier、Ticket 和最终 response persistence。页面把它称为离线评测管线，而不声称是完整发布面的端到端测试。
+因此类名虽叫 `EndToEndEvaluator`，当前实际覆盖的是 **Intent + Orchestrator candidate + orchestration evidence**，没有经过 `/chat` 的 Memory、RAG、ContextAssembler、AnswerVerifier、Ticket 和最终 response persistence。页面把它称为离线评测管线，而不声称是完整发布面的端到端测试。
 
 总体通过阈值为 0.75。报告保存时间、总数、通过数、均值、退化指标、建议和逐 case metadata。
 
@@ -798,7 +841,7 @@ Monitor 每隔 N 秒：
 
 ### 15.3 Judge 失败的风险
 
-Judge 异常时返回四个 0.5 并标记 `judge_failed=True`。这不会伪装成高分，但会混入平均值。严格发布门禁应把 judge failure 作为独立 typed outcome，而不是普通 0.5 样本。
+Judge 异常时返回四个 0.5 并标记 `judge_failed=True`。这不会伪装成高分，但会混入平均值。任务覆盖和预算指标是代码计算，不受 Judge 故障影响；严格发布门禁仍应把 judge failure 作为独立 typed outcome，而不是普通 0.5 样本。
 
 ### 15.4 什么能说，什么不能说
 
@@ -896,6 +939,8 @@ Prometheus :9090
 | `MEMORY_COMPRESSION_THRESHOLD` | 压缩阈值 0.70 |
 | `MEMORY_SUMMARY_MAX_TOKENS` | 摘要估算上限 1200 |
 | `AGENT_TIMEOUT_SECONDS` | 每 Agent 15 秒 |
+| `AGENT_REQUEST_TIMEOUT_SECONDS` | Worker + synthesis 共享请求预算 20 秒 |
+| `AGENT_MAX_PER_REQUEST` | 单请求最多执行 3 个 Agent；其余任务产生预算终态 |
 
 ## 18. 测试如何证明设计
 
@@ -906,7 +951,7 @@ python -m compileall -q agents api core evaluation mcp memory monitor services
 python -m pytest -q
 ```
 
-当前 42 个测试按不变量分组：
+当前 50 个测试按不变量分组：
 
 ### Lifespan 与 RAG boundary
 
@@ -924,7 +969,8 @@ python -m pytest -q
 - 只有 PASS publishable；
 - REJECT 升级；
 - malformed output 和 provider failure 都 UNKNOWN；
-- empty answer 在不调用模型时直接 REJECT。
+- empty answer 在不调用模型时直接 REJECT；
+- unresolved required task 在不调用模型时以 `incomplete` 原因码 REJECT。
 
 ### Ticket
 
@@ -958,7 +1004,17 @@ python -m pytest -q
 - 全失败 fail closed；
 - model-detected conflicts 传播；
 - synthesis unavailable 保持 route order 并 UNKNOWN；
-- timeout/exception 转 typed outcomes。
+- timeout/exception 转 typed outcomes；
+- 缺失和重复 task 不能通过 CoverageGate；
+- AccountSecurity 成为账号被盗主 Owner；
+- max-agents 和共享 deadline 产生 typed `BUDGET_EXCEEDED`。
+
+### Multi-Agent evaluation
+
+[`tests/test_agent_evaluation.py`](../tests/test_agent_evaluation.py)
+
+- 正确 Owner 集合、任务集合和完整覆盖得到满分编排指标；
+- 额外 Agent、覆盖缺口和预算失败分别降低 route、fan-out、coverage 和 budget 指标。
 
 ### Quality routing
 
@@ -1019,6 +1075,16 @@ python -m pytest -q
 
 这组修复说明文档审阅也可以是验收工具：先让新读者按页面预测行为，再用代码/测试寻找不一致，最后在事实 Owner 处修正，而不是只润色说法。
 
+### 19.8 Task-aware Multi-Agent 收敛 — `2003249`、`6a7cf21`、`5bdb00b`
+
+根因：领域 Agent 列表只能证明“谁运行过”，不能证明用户的每个必需问题都有唯一 Owner 和闭合结果；独立 timeout 也没有约束整次请求，账户安全错误归 Billing，最终 Judge 可能被流畅的部分回答误导。
+
+- `2003249`：新增 TaskSpec/TaskPlan/CoverageReport，把路由、执行和融合迁移到 task_id 合同；CoverageGate 拒绝缺失、失败、重复和计划外结果；
+- `6a7cf21`：新增 AccountSecurityAgent/Skill；引入共享 ExecutionBudget，限制 request deadline、Agent timeout 和 max-agents，新增 `BUDGET_EXCEEDED`；
+- `5bdb00b`：Verifier 在模型前确定性拒绝 coverage 缺口；API 暴露计划、覆盖、预算和原因码；Evaluator 增加 Owner、task、coverage、budget 和 fan-out 指标。
+
+这次没有引入 LangGraph 或 Swarm，也没有宣称实现 LLM 自主 Planner。当前 TaskPlan 仍由代码中的意图、关键词、实体和阈值生成；收益是任务完整性、预算和发布边界已经可验证，未来可以替换 Planner 而不改变下游合同。
+
 ## 20. 三个可完整复盘的 Badcase
 
 ### Badcase A：重试创建多张人工工单
@@ -1041,19 +1107,30 @@ python -m pytest -q
 - 验证：测试 client 在 summary 调用期间改变 Redis，断言 commit 返回 false 且新消息保留。
 - 代价：冲突时本轮不压缩，后续请求重试；正确性优先于立即节省 Token。
 
-### Badcase C：一个 Agent 超时导致所有有效结果丢失
+### Badcase C：一个 Agent 超时导致所有有效结果丢失或任务静默消失
 
 - 症状：技术 Agent 已回答，但 Billing 超时后整体只返回失败。
 - 触发：复合问题并行执行，其中一个依赖慢。
 - 立即机制：把 `gather` 的整体结果当成全成或全败。
-- 根因：缺少单 Agent outcome 和整体 synthesis 的结果代数。
-- 修复：每项独立 deadline；成功项进入 PARTIAL；保留回答但强制升级。
-- 验证：timeout + success 得到原成功内容、PARTIAL、失败 Agent 元数据和 escalated=true。
+- 根因：缺少 task identity、整体预算、单任务 outcome 和 coverage 结果代数。
+- 修复：共享请求 deadline；每项进入闭合 outcome；超过 max-agents 仍保留 `BUDGET_EXCEEDED`；CoverageGate 标出 unresolved required task。
+- 验证：timeout + success 保留成功候选但 coverage=false，Verifier 本地 `REJECT/incomplete` 并转人工；任务不会从 API 证据中消失。
 - 代价：用户可能先得到部分建议，同时人工继续处理缺失领域。
 
 ## 21. 当前限制和下一步演进
 
 按优先级，而不是“什么都加”：
+
+### 与当前主流 Agent 编排实践对照
+
+以下链接于 **2026-08-29** 核对。这里的“SOTA”指可核验的设计实践，不代表 DialogPilot 在公开 benchmark 上达到最佳成绩：
+
+- [OpenAI Agents SDK：Agent orchestration](https://openai.github.io/openai-agents-python/multi_agent/) 区分 manager-as-tools 与 handoff，并明确独立任务可并行、代码编排在速度、成本和确定性上更可控。DialogPilot 属于前者：API/Orchestrator 保留对最终回答的控制权，领域 Worker 不直接接管会话。
+- [Anthropic：Building effective agents](https://www.anthropic.com/engineering/building-effective-agents) 给出 routing、parallelization、orchestrator-workers、evaluator-optimizer 等组合，并强调只有评测证明收益后才增加复杂度。DialogPilot 当前采用确定性 routing + bounded parallel workers，而不是为固定客服域强行引入开放式 LLM Planner。
+- [Anthropic：How we built our multi-agent research system](https://www.anthropic.com/engineering/multi-agent-research-system) 展示 lead-agent/parallel subagent、委派合同、token budget 和覆盖广度的工程价值，也说明多 Agent 有显著 token 成本。DialogPilot 因此把 request deadline、max-agents、coverage 和 fan-out efficiency 作为一等合同。
+- [Google ADK：Workflow agents](https://adk.dev/agents/workflow-agents/) 将 sequential、parallel、loop 作为确定性控制流。DialogPilot 只对互不依赖的领域任务并行；以后出现依赖任务时，应在 TaskPlan 上增加 DAG，而不是让 Worker 自由互聊。
+
+对照后的结论是：当前实现已经补齐“任务身份、唯一 Owner、共享预算、覆盖门禁、发布校验和编排评测”这条生产链；尚未实现动态 LLM Planner、持久化执行图、Worker tool loop、token/金额预算和人工审批节点。因此面试时应说“按主流先进实践完成了有界实现”，不要说“项目就是 SOTA”。
 
 ### P0：身份、授权和数据边界
 
@@ -1091,7 +1168,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q2：你个人具体负责了什么？
 
-**推荐诚实答案：** 我接手的是一个已有客服原型。我负责仓库清理和 DialogPilot 命名迁移，并重点完成四条 Owner 级改造：持久工单及状态机、Token-aware 并发安全压缩、typed Multi-Agent synthesis、Verifier 质量反馈路由；教程审计又修复了启动配置、复合路由、单路 timeout 和 RAG fallback 边界。当前有 42 个测试、CI、Docker 验证和架构文档。原型已有的基础意图/RAG/记忆功能我可以讲其实现，但不会把它们说成全部从零原创。
+**推荐诚实答案：** 我接手的是一个已有客服原型。我负责仓库清理和 DialogPilot 命名迁移，并重点完成五条 Owner 级改造：持久工单状态机、Token-aware 并发安全压缩、typed Multi-Agent synthesis、Verifier 质量反馈路由，以及 TaskPlan/CoverageGate/ExecutionBudget 收敛；同时把账户安全拆成独立 Owner，并把编排证据接入发布校验和评测。当前有 50 个测试、CI、Docker 验证和架构文档。原型已有的基础意图/RAG/记忆功能我可以讲其实现，但不会把它们说成全部从零原创。
 
 **追问：去掉你的改动还剩什么？** 仍有基础 FastAPI、三路意图、Redis/Chroma 记忆、RAG、领域 Agent、Skill、监控和评测原型；会失去真实工单闭环、Token/并发压缩不变量、有类型并行结果、发布质量反馈和对应验收门禁。
 
@@ -1109,19 +1186,19 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q5：主 Agent 和辅助 Agent 怎么选？
 
-**答：** intent、关键词、实体形成 domain scores；最高分为 primary。一个明确领域词给对应 specialist 0.45 的资格分，非 General 的其他领域达到 0.45 就成为 supporting。路由原因和各分数返回 API，并有自然复合请求测试。
+**答：** intent、关键词、实体形成 domain scores；最高分为 primary，非 General 的其他领域达到 0.45 成为 supporting。随后不是直接返回 Agent 数组，而是形成 TaskPlan：每项有 task_id、Owner、风险、任务范围和成功标准。路由原因、计划和各分数都返回 API，并有自然复合请求测试。
 
 **追问：阈值怎么来的？** 目前是工程启发式初值，不伪称离线最优。应在标注复合请求集上评 routing precision/recall、端到端成功、成本和延迟，再调阈值。
 
 ### Q6：为什么不直接拼接并行回答？
 
-**答：** 拼接没有冲突 Owner，也无法表达超时和部分成功。当前先把每项收敛为三态，再由 Synthesizer 统一去重、主辅排序、冲突检测和升级。
+**答：** 拼接没有冲突 Owner，也无法表达任务缺失、预算耗尽和部分成功。当前先把每项收敛为 `SUCCESS/TIMEOUT/ERROR/BUDGET_EXCEEDED`，CoverageGate 对照计划检查完整性，再由 Synthesizer 统一去重、主辅排序、冲突检测和升级。
 
 **追问：Synthesizer 自己失败怎么办？** 输出 `UNKNOWN`，按路由顺序确定性拼接成功项，保留诊断信息并升级；不会把未经验证的融合当 SUCCESS。
 
 ### Q7：一个 Agent 超时，为什么不让整个请求失败？
 
-**答：** 因为结果代数支持 PARTIAL。有效结果仍有用户价值，但缺失领域意味着不完整，所以保留内容同时 escalated=true。
+**答：** 因为结果代数支持 PARTIAL。成功内容仍作为候选证据保留，但缺失 required task 会让 coverage=false；Verifier 在模型前以 `incomplete` 原因码拒绝自动发布并转人工，所以“保留证据”不等于“冒充完整答案发布”。
 
 **追问：为何不用 gather(return_exceptions=True) 就够了？** 它只给编程语言异常形态，不定义业务状态、deadline、稳定序列、生产者、candidate 和升级语义。
 
@@ -1221,7 +1298,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 1. 画出 `/chat` sequence，并标出 candidate 和 published response 的分界。
 2. 解释为什么 Intent 只计算一次。
-3. 写出 Agent outcomes 三态、并行 synthesis 五态，以及为什么单路使用外围 `single`。
+3. 写出 Task outcomes 四态、CoverageGate 条件、并行 synthesis 五态，以及为什么单路使用外围 `single`。
 4. 解释 PARTIAL 为什么保留回答又必须升级。
 5. 写出 ticket 合法迁移和幂等 fingerprint 字段。
 6. 画出压缩并发丢消息的时间线以及 WATCH 修复。
@@ -1286,7 +1363,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q33：一个 Agent 超时为什么没有让整个请求失败？
 
-**答：** 旧式 `gather` 的全成全败语义会丢掉已经成功的领域回答。现在每个 Agent 独立进入 15 秒 deadline，并收敛为 `SUCCESS/TIMEOUT/ERROR`；融合层对“一个成功、一个超时”返回 `PARTIAL`，保留成功内容，同时 `escalate=true`。
+**答：** 旧式 `gather` 的全成全败语义会丢掉成功回答，也无法证明每个 required task 有结果。现在所有 Worker 共享 20 秒请求 deadline，每项最多 15 秒，并收敛为 `SUCCESS/TIMEOUT/ERROR/BUDGET_EXCEEDED`；融合层保留成功候选，CoverageGate 标出缺口，Verifier 再以 `incomplete` 拒绝自动发布。
 
 **取舍：** 用户能先拿到有价值但不完整的建议，人工继续处理缺失领域。代价是 API 和监控必须携带失败 Agent、融合状态和生产者证据，不能只返回一段文本。
 
@@ -1320,7 +1397,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q38：当前评测数据到底有多少，能证明什么？
 
-**答：** 内置数据是 11 条意图 case 和 5 组对话，共 16 个 smoke/regression 样本；质量及格线默认 0.75。仓库还有 42 个确定性测试，它们证明状态机、失败边界和代码不变量，但不等于 42 条业务准确率样本。
+**答：** 内置数据是 11 条意图 case 和 5 组对话，共 16 个 smoke/regression 样本；质量及格线默认 0.75。仓库还有 50 个确定性测试，它们证明状态机、失败边界、任务覆盖和预算不变量，但不等于 50 条业务准确率样本。
 
 **不能声称什么：** 不能据此声称生产准确率、行业 SOTA 或泛化能力。生产发布需要版本化数据集、关键 slice、dev/held-out 分离和人工校准 Judge。
 
@@ -1373,3 +1450,27 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 **答：** 先说当前值和代码位置，再区分“工程初值”与“实验结论”。例如：chunk 是 500 字符、无 overlap；这是当前可复现配置，但没有消融证明最优。随后给出你会怎样设计实验、看哪些指标、什么条件下改值。
 
 **底线：** 不虚构 benchmark、线上流量、准确率或事故经历。真实感来自可验证的代码细节、取舍、失败语义和复现实验，而不是把没有发生过的经历讲得更像真的。
+
+### Q47：这算 SOTA Multi-Agent 吗？
+
+**答：** 不能直接声称行业 SOTA。它采用了当前生产系统常见的 manager/worker、结构化任务、共享预算、覆盖检查和 fail-closed 发布边界，但 Planner 仍是可解释的代码启发式，Worker 也没有自主 tool loop。更准确的表述是“按生产 SOTA 思路收敛了任务、预算、覆盖和评测合同”。
+
+**追问：为什么不直接做 LLM Planner？** 客服领域能力少、风险明确，代码 Planner 更便宜、可复现、容易测试。等标注数据证明启发式无法覆盖长尾，再让 LLM 输出同一个 TaskPlan schema，并保留风险规则和 CoverageGate 作为确定性边界。
+
+### Q48：TaskPlan 和普通 RoutingDecision 有什么本质区别？
+
+**答：** RoutingDecision 只回答“调用谁”；TaskPlan 还回答“用户的哪项工作由谁负责、是否必需、风险多高、完成标准是什么”。下游用 task_id 对齐 outcome，所以能识别 missing、duplicate、unexpected，而不是从 Agent 数量猜完整性。
+
+**追问：多个任务能否给同一个 Agent？** 合同允许每个任务有唯一 Owner，不要求 Owner 只能拥有一个任务。当前小型 Planner 按领域合并成一项；未来若同领域任务存在依赖，可保留多个 task_id，并由 DAG 调度决定串并行。
+
+### Q49：请求级预算怎样避免 timeout 叠加？
+
+**答：** `ExecutionWindow` 在 run 开始时用 monotonic clock 固定绝对 deadline。每个 Worker 获得 `min(15s, remaining)`，Synthesizer 也只能消费剩余时间；最多执行 3 个 Agent。超限任务仍产生 `BUDGET_EXCEEDED`，所以预算控制不会破坏覆盖证据。
+
+**追问：为什么只用 wall-clock 还不够？** 当前只实现时间和 Agent 数量，尚缺真实 token、模型调用次数和金额预算。生产版应从 provider usage 聚合 token/cost，并把 reservation/refund 语义加入同一 ExecutionBudget。
+
+### Q50：怎样证明 Multi-Agent 比单 Agent 值得？
+
+**答：** 在同一 held-out 复合问题集比较 single、static fan-out、task-aware fan-out。报告 required-task coverage、route exact/Jaccard、unsafe publish、unnecessary escalation、fan-out efficiency、budget success、延迟、token/cost；不能只比较 LLM Judge 的语言分。
+
+**追问：什么时候应该退回单 Agent？** 子任务强依赖同一上下文、fan-out efficiency 持续低、成本增幅大于覆盖收益，或单 Agent 在关键 slice 已达到同等终态成功率时。Multi-Agent 是受评测证明的策略，不是项目必须保留的身份标签。

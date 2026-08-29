@@ -19,10 +19,11 @@ POST /chat
   -> assemble a bounded prompt using token-aware rolling compression
   -> classify intent with LLM + local semantic similarity + patterns
   -> retrieve knowledge for business intents
-  -> route to General, Technical, or Billing agents
-  -> run primary/supporting agents concurrently when needed
-  -> synthesize typed SUCCESS / TIMEOUT / ERROR outcomes into one candidate
-  -> verify the candidate answer (PASS / REJECT / UNKNOWN)
+  -> build a TaskPlan for General, Technical, Billing, or AccountSecurity owners
+  -> run scoped workers under one request deadline and max-Agent budget
+  -> verify required-task coverage from typed task outcomes
+  -> synthesize one candidate from SUCCESS / TIMEOUT / ERROR / BUDGET_EXCEEDED
+  -> verify coverage, grounding, completeness, and safety (PASS / REJECT / UNKNOWN)
   -> feed PASS / REJECT quality back to the exact producing Agent instances
   -> publish only PASS answers; escalate every other outcome
   -> persist each escalation as one idempotent human-support ticket
@@ -113,12 +114,14 @@ curl -X POST http://localhost:8000/chat \
   -d '{"request_id":"client-request-001","user_id":"demo-user","message":"订单 #A123 登录失败后又被扣款了"}'
 ```
 
-The response includes the selected intent and agents, routing reason,
+The response includes the selected intent and agents, structured task plan,
+required-task coverage, execution budget, routing reason,
 knowledge usage, typed verification status, groundedness, and escalation flag.
 Parallel responses also expose `synthesis_status`, conflict details, and each
-selected Agent's typed execution outcome. Per-Agent timeouts allow useful
-partial results to survive, while any missing selected result or detected
-conflict triggers escalation.
+selected task's typed execution outcome. Workers share one request deadline and
+max-Agent budget; `BUDGET_EXCEEDED` remains attached to the unresolved task.
+Coverage gaps, duplicate/unexpected outcomes, or detected conflicts trigger a
+fail-closed handoff instead of being hidden by a fluent partial answer.
 
 Runtime Agent statistics separate execution availability from verified answer
 quality. `PASS` and `REJECT` update a sample-aware EWMA quality score for the

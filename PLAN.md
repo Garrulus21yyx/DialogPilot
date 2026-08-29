@@ -68,7 +68,7 @@ Goal: make the Python repository readable to a Chinese-speaking maintainer witho
 - [done] Add module/class/function docstrings and high-value inline comments to the Python runtime, preserving names, contracts, and control flow.
 - [done] Add concise Chinese intent/invariant comments to tests so each acceptance gate explains what it proves.
 - [done] Audit Docker, Compose, Nginx, Prometheus and shell scripts that already contain Chinese operational comments; annotate CI and Page assets where coverage was missing.
-- [done] Run Python/JavaScript/Shell syntax checks, all 42 tests, whitespace checks, and a repository-wide Python docstring coverage audit.
+- [done] Run Python/JavaScript/Shell syntax checks, all 42 tests available at that milestone, whitespace checks, and a repository-wide Python docstring coverage audit.
 - [done] Confirm the final CI and GitHub Pages runs remain green after the progress record is pushed (`33159826152`, `33159824710`).
 
 Comment contract:
@@ -81,9 +81,20 @@ Comment contract:
 Produced/updated commentary surfaces:
 
 - Runtime: `api/`, `agents/`, `core/`, `memory/`, `mcp/`, `services/`, `monitor/`, `evaluation/`.
-- Acceptance gates: all nine `tests/test_*.py` modules and all 42 test functions.
+- Acceptance gates: the nine `tests/test_*.py` modules and 42 test functions present at that milestone.
 - Delivery/Page: `.github/workflows/ci.yml`, `requirements-dev.txt`, `docs/_config.yml`, `docs/_includes/head.html`, `docs/index.md`, `docs/assets/dialogpilot.js`, and `docs/assets/main.scss`.
 - Audited existing Chinese operational commentary: `Dockerfile`, `docker-compose.yml`, the three root shell scripts, `config/nginx/nginx.conf`, and `config/prometheus.yml`.
+
+## Task-aware multi-agent convergence
+
+- [done] Replace the Agent-list routing contract with TaskSpec/TaskPlan identity, scope, risk, Owner, and success criteria.
+- [done] Add CoverageGate properties for missing, failed, duplicate, unexpected, and unresolved required tasks.
+- [done] Add a dedicated AccountSecurityAgent and account-security Skill instead of routing security incidents to Billing.
+- [done] Add a shared request deadline, per-Agent timeout, max-Agent limit, and typed BUDGET_EXCEEDED outcome.
+- [done] Make AnswerVerifier deterministically reject incomplete coverage before model judgement and expose stable reason codes.
+- [done] Add API projections and offline metrics for task coverage, exact Owner/task sets, budget success, and fan-out efficiency.
+- [done] Update the Page with the Task Ledger, architecture diagrams, implementation evidence, and 50 project-specific interview drills.
+- [done] Verify Python compilation, all 50 tests, JavaScript syntax, Markdown structure, and Page source consistency; push each implementation milestone.
 
 ## Constraints
 

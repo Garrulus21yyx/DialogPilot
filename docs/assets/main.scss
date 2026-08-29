@@ -483,6 +483,91 @@ summary:focus-visible {
   border-bottom: 0;
 }
 
+/* Task Ledger 把任务合同、预算与发布门禁画成一条真实状态账本。 */
+.dp-task-ledger {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr 1fr 1fr;
+  margin: 22px 0 18px;
+  overflow: hidden;
+  border: 1px solid #2e465b;
+  border-radius: 12px;
+  color: #d9e8f2;
+  background: #142638;
+  box-shadow: 0 16px 34px rgba(20, 43, 61, 0.16);
+}
+
+.dp-task-ledger > div {
+  position: relative;
+  min-width: 0;
+  padding: 16px 15px 17px;
+  border-right: 1px solid #365067;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.035), transparent 65%);
+}
+
+.dp-task-ledger > div:last-child {
+  border-right: 0;
+}
+
+.dp-task-ledger > div:not(:last-child)::after {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  right: -8px;
+  display: grid;
+  width: 16px;
+  height: 16px;
+  place-items: center;
+  border: 1px solid #567389;
+  border-radius: 50%;
+  color: #93c9ed;
+  background: #142638;
+  content: "›";
+  font-size: 13px;
+  transform: translateY(-50%);
+}
+
+.dp-task-ledger span,
+.dp-task-ledger small {
+  display: block;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+
+.dp-task-ledger span {
+  margin-bottom: 7px;
+  color: #87bfe7;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.dp-task-ledger strong {
+  display: block;
+  overflow: hidden;
+  color: #ffffff;
+  font-size: 13px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+}
+
+.dp-task-ledger small {
+  margin-top: 7px;
+  color: #94aabc;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.dp-task-ledger .ledger-workers {
+  background: linear-gradient(145deg, rgba(57, 121, 170, 0.28), rgba(255, 255, 255, 0.02));
+}
+
+.dp-task-ledger .ledger-coverage {
+  background: linear-gradient(145deg, rgba(197, 129, 50, 0.22), rgba(255, 255, 255, 0.02));
+}
+
+.dp-task-ledger .ledger-verify {
+  background: linear-gradient(145deg, rgba(185, 85, 85, 0.24), rgba(255, 255, 255, 0.02));
+}
+
 code {
   padding: 2px 6px;
   border: 1px solid #d6e1e8;
@@ -775,6 +860,27 @@ pre code {
 
   .dp-signal-path span:last-child:nth-child(odd) {
     grid-column: 1 / -1;
+  }
+
+  .dp-task-ledger {
+    grid-template-columns: 1fr;
+  }
+
+  .dp-task-ledger > div {
+    border-right: 0;
+    border-bottom: 1px solid #365067;
+  }
+
+  .dp-task-ledger > div:last-child {
+    border-bottom: 0;
+  }
+
+  .dp-task-ledger > div:not(:last-child)::after {
+    top: auto;
+    right: 18px;
+    bottom: -8px;
+    content: "⌄";
+    transform: none;
   }
 
   .back-to-top {

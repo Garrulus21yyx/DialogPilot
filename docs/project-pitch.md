@@ -6,10 +6,11 @@ DialogPilot is a Python/FastAPI multi-agent customer-support backend. It reads
 Redis and ChromaDB memory, classifies intent using an LLM, local semantic
 similarity, and rules, retrieves business knowledge through a reliable tool
 layer, and uses a token-budgeted context assembler with bounded structured
-rolling summaries. It routes requests to general, technical, or billing agents. Complex
-requests can execute agents concurrently. Before returning a response, a typed
-result synthesizer isolates per-Agent timeouts, preserves partial success, and
-detects cross-Agent conflicts. A verifier then allows only explicitly passed
+rolling summaries. It turns requests into scoped tasks owned by general,
+technical, billing, or account-security agents. Independent tasks execute under
+one request deadline and max-Agent budget. A coverage gate proves that every
+required task has a closed outcome before a typed result synthesizer preserves
+useful partial evidence and detects conflicts. A verifier then allows only explicitly passed
 answers to be published; failures are
 escalated deterministically into an idempotent SQLite-backed human ticket with
 a typed lifecycle and audit history. Prometheus monitoring and LLM-as-Judge
@@ -30,14 +31,14 @@ Knowledge retrieval improves factual business answers but can pollute greetings
 and handoff requests. Intent-owned retrieval gating reduces irrelevant context,
 latency, and reranking cost.
 
-### Why multiple agents?
+### Why task-aware multiple agents?
 
-General, technical, and billing prompts encode different response policies.
-The orchestrator owns selection and can run primary/supporting agents in
-parallel for mixed requests such as login failure plus duplicate billing. Each
-execution becomes a closed `SUCCESS / TIMEOUT / ERROR` outcome, and one
-ResultSynthesizer owns deduplication, conflict detection, output order, and
-partial-success escalation.
+General, technical, billing, and account-security prompts encode different
+policies and risk boundaries. The orchestrator owns a TaskPlan rather than only
+an Agent list: each required task has an ID, Owner, scope, risk, and completion
+criteria. Workers share an execution window and finish as `SUCCESS / TIMEOUT /
+ERROR / BUDGET_EXCEEDED`; CoverageGate owns completeness and ResultSynthesizer
+owns deduplication, conflict detection, output order, and partial evidence.
 
 ### Why compress by tokens instead of message count?
 

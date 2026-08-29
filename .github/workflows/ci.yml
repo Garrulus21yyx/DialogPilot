@@ -21,6 +21,6 @@ jobs:
           cache: pip
       - run: python -m pip install --upgrade pip
       - run: pip install -r requirements-dev.txt
-      # 先做全模块语法编译，再执行 42 个行为/不变量测试。
+      # 先做全模块语法编译，再执行全部行为/不变量测试；数量随合同增长。
       - run: python -m compileall -q agents api core evaluation mcp memory monitor services
       - run: python -m pytest -q

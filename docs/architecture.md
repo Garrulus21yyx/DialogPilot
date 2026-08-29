@@ -7,7 +7,9 @@ prompt chain.
 |---|---|---|
 | HTTP contract | `api/main.py` | Validated request/response models |
 | Intent | `core/intent_recognizer.py` | Intent, confidence, urgency, entities |
-| Agent selection | `agents/agent_orchestrator.py` | Structured routing decision and producer quality state |
+| Task planning and Agent selection | `agents/agent_orchestrator.py` | TaskPlan with scoped work, risk, criteria, and Owner |
+| Orchestration contracts and budget | `agents/orchestration_contracts.py` | Task identity, coverage projection, and shared execution deadline |
+| Required-task coverage | `services/result_synthesizer.py` | Complete/missing/failed/duplicate/unexpected task evidence |
 | Parallel synthesis | `services/result_synthesizer.py` | One candidate, conflicts, and escalation decision |
 | Tool reliability | `mcp/tool_manager.py` | Typed tool result and runtime statistics |
 | Knowledge | `mcp/knowledge_base.py` | Retrieved ChromaDB documents |
@@ -24,9 +26,9 @@ prompt chain.
 1. Read memory before classifying the current request.
 2. Classify once; reuse that result for knowledge selection and routing.
 3. Retrieve knowledge only for supported business intents.
-4. Execute one or more selected agents.
-5. Convert parallel executions to typed outcomes and synthesize one candidate.
-6. Verify the candidate answer before it crosses the response boundary.
+4. Build one TaskPlan and execute scoped workers within a shared request budget.
+5. Convert every planned task to a typed outcome and verify required-task coverage.
+6. Synthesize one candidate and verify coverage, grounding, completeness, and safety before publication.
 7. Attribute a supported verification verdict to the exact candidate producers.
 8. If escalation is required, create or reuse one idempotent persistent ticket.
 9. Persist only the answer that was actually published.
@@ -49,15 +51,18 @@ retrieved knowledge, and profile data remain tagged data sections; real
 user/assistant history remains real messages. It reserves output capacity,
 trims oldest history, and never inserts fabricated assistant acknowledgements.
 
-## Parallel outcome algebra
+## Task plan, budget, and parallel outcome algebra
 
-Each selected Agent finishes as `SUCCESS`, `TIMEOUT`, or `ERROR` within its own
-deadline. `ResultSynthesizer` is the only component that converts those ordered
-outcomes into a candidate answer. One surviving result is preserved as a
-partial answer; no successful result becomes `FAILED`; incompatible successful
-results become `CONFLICT`; and an unavailable synthesis model becomes
-`UNKNOWN`. Partial, conflict, failed, and unknown outcomes all fail closed to
-human escalation while retaining diagnostic outcome metadata.
+The orchestrator converts selected capabilities into a `TaskPlan`; every required
+task has a stable ID, one Owner, scoped instructions, risk, and success criteria.
+`ExecutionWindow` gives all workers and synthesis one request deadline while also
+enforcing a per-Agent timeout and max-Agent limit. Every task finishes as
+`SUCCESS`, `TIMEOUT`, `ERROR`, or `BUDGET_EXCEEDED`.
+
+`CoverageGate` compares the plan with outcomes and rejects missing, failed,
+duplicate, or unexpected required-task evidence. `ResultSynthesizer` is the only
+component that converts ordered outcomes into a candidate. The publication
+verifier deterministically rejects incomplete coverage before calling its model.
 
 ## Routing-quality feedback
 
@@ -84,6 +89,9 @@ misattributed to individual Agents.
   compression snapshot is not committed.
 - Agent timeout or exception is a typed outcome. Partial synthesis remains
   usable but escalates; all-failed and unverifiable synthesis fail closed.
+- Request-budget exhaustion remains attached to the planned task as
+  `BUDGET_EXCEEDED`; it never silently removes work from coverage evidence.
+- Account-security work is owned by `AccountSecurityAgent`, not Billing.
 - Verifier `UNKNOWN` is observable but never treated as an Agent-quality
   rejection.
 
