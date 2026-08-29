@@ -833,6 +833,11 @@ pre code {
 
 /* 手机端将纵向轨道转换为横向可滚动章节导航。 */
 @media (max-width: 760px) {
+  html {
+    /* 手机端同时存在站点 Header 与横向章节栏，锚点必须避开两层 sticky 高度。 */
+    scroll-padding-top: 136px;
+  }
+
   .site-header .wrapper,
   .page-content > .wrapper.dp-page {
     width: min(100% - 22px, 1500px);
