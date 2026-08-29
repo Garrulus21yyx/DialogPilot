@@ -17,7 +17,7 @@ import json
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
@@ -28,6 +28,7 @@ from redis.exceptions import WatchError
 
 from core.llm_utils import extract_text_content
 from memory.context import ContextSection, TokenEstimator
+from memory.hybrid_retrieval import HybridMemoryRetriever, MemoryDocument, MemoryHit
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +56,7 @@ class MemoryContext:
     relevant_history: List[str]       # 情景记忆：语义相关的历史片段
     user_profile:     Dict[str, Any]  # 用户画像：偏好、常用实体
     summary:          str             # 当前会话摘要（压缩后）
+    retrieval_hits:   List[MemoryHit] = field(default_factory=list)
 
     @staticmethod
     def _clean(text: str) -> str:
@@ -103,6 +105,10 @@ class MemoryManager:
     RECENT_KEEP   = 5     # 压缩后最多保留的最近原始消息
     MIN_RECENT_KEEP = 2   # 至少保护最后一个 user/assistant 轮次
     HISTORY_TOP_K = 5     # 情景记忆检索返回条数
+    HISTORY_VECTOR_POOL = 20
+    HISTORY_LEXICAL_SCAN = 200
+    EPISODIC_CHUNK_CHARS = 1200
+    EPISODIC_CHUNK_OVERLAP = 120
 
     def __init__(
         self,
@@ -127,6 +133,7 @@ class MemoryManager:
         self._compression_threshold = min(max(float(compression_threshold), 0.5), 0.95)
         self._summary_max_tokens = max(128, int(summary_max_tokens))
         self._token_estimator = TokenEstimator()
+        self._hybrid_retriever = HybridMemoryRetriever()
         self._compression_stats = {
             "attempted": 0,
             "completed": 0,
@@ -256,8 +263,14 @@ class MemoryManager:
 
         recent = await self._get_working_memory(user_id, conv_id)
 
-        # 2. 情景记忆（跨会话语义检索）
-        history = await self._search_episodic(user_id, query or (recent[-1].content if recent else ""))
+        # 2. 情景记忆（跨会话混合检索）；摘要不再是唯一事实源。
+        retrieval_query = query or (recent[-1].content if recent else "")
+        retrieval_hits = await self.search_long_term(
+            user_id,
+            retrieval_query,
+            top_k=self.HISTORY_TOP_K,
+        )
+        history = [hit.content for hit in retrieval_hits]
 
         # 3. 用户画像
         profile = await self._get_profile(user_id)
@@ -270,6 +283,7 @@ class MemoryManager:
             relevant_history=history,
             user_profile=profile,
             summary=summary,
+            retrieval_hits=retrieval_hits,
         )
 
     # ── 压缩（防止 context 爆炸）─────────────────────────────────────────────
@@ -506,24 +520,54 @@ class MemoryManager:
         """返回压缩尝试、成功、冲突与 Token 变化的统计副本。"""
         return dict(self._compression_stats)
 
-    async def _search_episodic(self, user_id: str, query: str) -> List[str]:
-        """语义检索情景记忆。ChromaDB 内置 embedding，不依赖外部 API。"""
+    async def search_long_term(
+        self,
+        user_id: str,
+        query: str,
+        *,
+        top_k: int = HISTORY_TOP_K,
+    ) -> List[MemoryHit]:
+        """按用户过滤后融合向量、BM25 和时间排名检索原始情景记忆。"""
         query_text = self._safe_text(query).strip()
         if not query_text:
             return []
         try:
-            # 直接传 query_texts，ChromaDB 内置模型自动生成向量做匹配
-            results = await asyncio.to_thread(
-                self._episodic.query,
-                query_texts=[query_text],
-                n_results=self.HISTORY_TOP_K,
-                where={"user_id": self._safe_text(user_id)},
+            safe_user_id = self._safe_text(user_id)
+            vector_result, corpus_result = await asyncio.gather(
+                asyncio.to_thread(
+                    self._episodic.query,
+                    query_texts=[query_text],
+                    n_results=max(top_k, self.HISTORY_VECTOR_POOL),
+                    where={"user_id": safe_user_id},
+                    include=["documents", "metadatas", "distances"],
+                ),
+                asyncio.to_thread(
+                    self._episodic.get,
+                    where={"user_id": safe_user_id},
+                    limit=self.HISTORY_LEXICAL_SCAN,
+                    include=["documents", "metadatas"],
+                ),
+                return_exceptions=True,
             )
-            docs = results["documents"][0] if results["documents"] else []
-            return [self._safe_text(doc) for doc in docs if isinstance(doc, str) and doc.strip()]
+            if isinstance(vector_result, Exception):
+                logger.warning("长期记忆向量召回降级: %s", vector_result)
+                vector_result = {}
+            if isinstance(corpus_result, Exception):
+                logger.warning("长期记忆 BM25 语料读取降级: %s", corpus_result)
+                corpus_result = {}
+            return self._hybrid_retriever.rank(
+                query_text,
+                vector_documents=self._memory_documents(vector_result, nested=True),
+                corpus_documents=self._memory_documents(corpus_result, nested=False),
+                top_k=top_k,
+            )
         except Exception as ex:
-            logger.warning(f"情景记忆检索失败: {ex}")
+            logger.warning(f"混合情景记忆检索失败: {ex}")
             return []
+
+    async def _search_episodic(self, user_id: str, query: str) -> List[str]:
+        """兼容旧调用方：只投影混合检索命中的原始文本。"""
+        return [hit.content for hit in await self.search_long_term(user_id, query)]
 
     async def _store_episodic(self, user_id: str, conv_id: str, text: str, summary: str) -> None:
         """将压缩后的对话片段存入情景记忆。ChromaDB 内置 embedding，不依赖外部 API。"""
@@ -532,14 +576,26 @@ class MemoryManager:
             conv_id = self._safe_text(conv_id)
             text = self._safe_text(text)
             summary = self._safe_text(summary)
-            doc_id = hashlib.md5(f"{user_id}{conv_id}{time.time()}".encode()).hexdigest()
-            # 直接传 documents，ChromaDB 内置模型自动生成 embedding
+            base_id = hashlib.md5(f"{user_id}{conv_id}{time.time()}".encode()).hexdigest()
+            chunks = self._chunk_episodic_text(text)
+            if not chunks:
+                return
+            timestamp = datetime.now(timezone.utc).isoformat()
+            ids = [f"{base_id}_{index}" for index in range(len(chunks))]
+            metadatas = [{
+                "user_id": user_id,
+                "conv_id": conv_id,
+                "ts": timestamp,
+                "summary": summary[:4000],
+                "chunk_index": index,
+                "memory_version": 2,
+            } for index in range(len(chunks))]
+            # 原始片段是长期事实载体；摘要仅作为 metadata 和 Prompt 背景。
             await asyncio.to_thread(
                 self._episodic.add,
-                ids=[doc_id],
-                documents=[summary],
-                metadatas=[{"user_id": user_id, "conv_id": conv_id,
-                            "ts": datetime.now().isoformat(), "full_text": self._safe_text(text[:500])}],
+                ids=ids,
+                documents=chunks,
+                metadatas=metadatas,
             )
         except Exception as ex:
             logger.warning(f"存储情景记忆失败: {ex}")
@@ -553,6 +609,57 @@ class MemoryManager:
         except Exception:
             pass
         return {}
+
+    @classmethod
+    def _chunk_episodic_text(cls, text: str) -> List[str]:
+        """把原始历史切成有界重叠片段，避免一个摘要对应不可检索的大块文本。"""
+        clean = cls._safe_text(text).strip()
+        if not clean:
+            return []
+        size = cls.EPISODIC_CHUNK_CHARS
+        overlap = min(cls.EPISODIC_CHUNK_OVERLAP, size // 3)
+        chunks: List[str] = []
+        start = 0
+        while start < len(clean):
+            end = min(len(clean), start + size)
+            chunks.append(clean[start:end])
+            if end == len(clean):
+                break
+            start = end - overlap
+        return chunks
+
+    @classmethod
+    def _memory_documents(cls, result: Any, *, nested: bool) -> List[MemoryDocument]:
+        """把 Chroma query/get 的两种返回形状归一为同一内部合同。"""
+        if not isinstance(result, dict):
+            return []
+        ids = result.get("ids") or []
+        documents = result.get("documents") or []
+        metadatas = result.get("metadatas") or []
+        if nested:
+            ids = ids[0] if ids and isinstance(ids[0], list) else ids
+            documents = documents[0] if documents and isinstance(documents[0], list) else documents
+            metadatas = metadatas[0] if metadatas and isinstance(metadatas[0], list) else metadatas
+        normalized: List[MemoryDocument] = []
+        for index, memory_id in enumerate(ids):
+            content = documents[index] if index < len(documents) else ""
+            metadata = metadatas[index] if index < len(metadatas) else {}
+            metadata = metadata if isinstance(metadata, dict) else {}
+            # v1 曾把摘要存为 document、原文截断存为 full_text；读取时优先恢复
+            # 可用的原始片段，逐步兼容迁移到 v2 原文 document。
+            if metadata.get("memory_version") != 2 and metadata.get("full_text"):
+                content = metadata["full_text"]
+            content = cls._safe_text(content).strip()
+            if not content:
+                continue
+            normalized.append(MemoryDocument(
+                memory_id=cls._safe_text(memory_id),
+                content=content,
+                timestamp=cls._safe_text(metadata.get("ts", "")),
+                conversation_id=cls._safe_text(metadata.get("conv_id", "")),
+                summary=cls._safe_text(metadata.get("summary", "")),
+            ))
+        return normalized
 
     async def close(self) -> None:
         """关闭异步 Redis 连接。"""
