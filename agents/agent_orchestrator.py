@@ -20,18 +20,19 @@ import json
 import logging
 import time
 import uuid
-from dataclasses import dataclass, field
-from enum import Enum
+from dataclasses import dataclass, field, replace
 from typing import Any, Dict, List, Optional
 
 from anthropic import AsyncAnthropic
 
+from agents.orchestration_contracts import AgentType, TaskPlan, TaskRisk, TaskSpec
 from core.intent_recognizer import IntentCategory, IntentRecognizer, UrgencyLevel
 from core.llm_utils import extract_text_content
 from memory.context import ContextSection, PromptContext
 from services.result_synthesizer import (
     AgentOutcome,
     AgentOutcomeStatus,
+    CoverageGate,
     ResultSynthesizer,
 )
 
@@ -39,13 +40,6 @@ logger = logging.getLogger(__name__)
 
 
 # ── 数据结构 ──────────────────────────────────────────────────────────────────
-
-class AgentType(Enum):
-    """当前路由器支持的领域 Agent 类型。"""
-    GENERAL   = "general"    # 通用客服
-    TECHNICAL = "technical"  # 技术支持
-    BILLING   = "billing"    # 账单/退款
-    ESCALATION = "escalation" # 人工升级（占位）
 
 
 @dataclass
@@ -141,6 +135,7 @@ class Request:
     intent_group: Optional[str] = None
     urgency:     Optional[UrgencyLevel]   = None
     intent_confidence: float = 1.0
+    assigned_task: Optional[TaskSpec] = None
     request_id:  str = field(default_factory=lambda: str(uuid.uuid4())[:8])
 
 
@@ -163,25 +158,8 @@ class OrchestratorResult:
     synthesis_conflicts: List[str] = field(default_factory=list)
     agent_outcomes: List[Dict[str, Any]] = field(default_factory=list)
     producer_agent_keys: List[str] = field(default_factory=list)
-
-
-@dataclass
-class RoutingDecision:
-    """一次请求的结构化路由决策。"""
-    primary_agent: AgentType
-    supporting_agents: List[AgentType] = field(default_factory=list)
-    reason: str = ""
-    confidence: float = 0.0
-
-    @property
-    def agent_types(self) -> List[AgentType]:
-        """按主 Agent 在前、辅助 Agent 在后的稳定顺序返回类型。"""
-        return [self.primary_agent] + self.supporting_agents
-
-    @property
-    def multi_agent(self) -> bool:
-        """指示本次路由是否需要并行执行多个领域 Owner。"""
-        return bool(self.supporting_agents)
+    task_plan: Dict[str, Any] = field(default_factory=dict)
+    coverage: Dict[str, Any] = field(default_factory=dict)
 
 
 # ── 基础 Agent ────────────────────────────────────────────────────────────────
@@ -272,12 +250,23 @@ class BaseAgent:
 
     def _build_system_prompt(self, req: Request) -> str:
         """把动态加载的 Skills 拼入 system prompt，让业务规则随请求生效。"""
+        system = self.system_prompt
+        if req.assigned_task is not None:
+            task = req.assigned_task
+            criteria = "；".join(task.success_criteria) or "明确回答该子任务并说明未知项"
+            system = (
+                f"{system}\n\n[本次子任务]\n"
+                f"task_id={task.task_id}\n"
+                f"只处理以下职责：{task.instruction}\n"
+                f"完成标准：{criteria}\n"
+                "不要代替其他领域给出结论；发现跨域依赖时列为未解决项。"
+            )
         if self._skill_manager is None:
-            return self.system_prompt
+            return system
         skill_prompt = self._skill_manager.prompt_for(req.message, self.agent_type.value)
         if not skill_prompt:
-            return self.system_prompt
-        return f"{self.system_prompt}\n\n[动态 Skills]\n{skill_prompt}"
+            return system
+        return f"{system}\n\n[动态 Skills]\n{skill_prompt}"
 
     def _needs_escalation(self, content: str) -> bool:
         """检测 Agent 是否建议升级（简单关键词检测）。"""
@@ -414,21 +403,22 @@ class AgentOrchestrator:
             )
 
         # 复杂问题自动并行协作，例如同一句同时涉及登录故障和扣款/退款。
-        decision = self._route_decision(req)
-        if decision.multi_agent:
-            return await self.run_parallel(req, decision)
+        plan = self._build_task_plan(req)
+        if plan.multi_agent:
+            return await self.run_parallel(req, plan)
 
         # 2. 执行主 Agent（含降级），与并行路径共用同一个 deadline/outcome 边界。
         outcome = await self._execute_outcome(
             req,
-            decision.primary_agent,
+            plan.primary_task,
             is_primary=True,
         )
+        coverage = CoverageGate.evaluate(plan, [outcome])
         succeeded = outcome.status is AgentOutcomeStatus.SUCCESS
         responding_type = (
             AgentType(outcome.responding_agent_type)
             if outcome.responding_agent_type
-            else decision.primary_agent
+            else plan.primary_agent
         )
         response_content = outcome.content if succeeded else (
             "专业 Agent 未能在限定时间内完成处理，已转交人工进一步确认。"
@@ -452,10 +442,10 @@ class AgentOrchestrator:
             escalated=escalated,
             latency_ms=(time.monotonic() - t0) * 1000,
             agent_types=[responding_type],
-            primary_agent=decision.primary_agent,
+            primary_agent=plan.primary_agent,
             supporting_agents=[],
-            routing_reason=decision.reason,
-            routing_confidence=decision.confidence,
+            routing_reason=plan.reason,
+            routing_confidence=plan.confidence,
             synthesis_reason=(
                 "single Agent candidate"
                 if succeeded
@@ -463,26 +453,32 @@ class AgentOrchestrator:
             ),
             agent_outcomes=[outcome.to_dict()],
             producer_agent_keys=[outcome.agent_key] if succeeded and outcome.agent_key else [],
+            task_plan=plan.to_dict(),
+            coverage=coverage.to_dict(),
         )
 
-    async def run_parallel(self, req: Request, decision: RoutingDecision) -> OrchestratorResult:
+    async def run_parallel(self, req: Request, plan: TaskPlan) -> OrchestratorResult:
         """
         并行派发给多个 Agent，合并结果。
         适用于复杂问题（如同时涉及技术和账单）。
         """
         t0 = time.monotonic()
-        agent_types = decision.agent_types
+        agent_types = plan.agent_types
         tasks = [
-            self._execute_outcome(req, agent_type, is_primary=agent_type == decision.primary_agent)
-            for agent_type in agent_types
+            self._execute_outcome(
+                req,
+                task,
+                is_primary=task.task_id == plan.primary_task_id,
+            )
+            for task in plan.ordered_tasks
         ]
         outcomes = await asyncio.gather(*tasks)
-        synthesis = await self._result_synthesizer.synthesize(req.message, outcomes)
+        synthesis = await self._result_synthesizer.synthesize(req.message, plan, outcomes)
 
         return OrchestratorResult(
             request_id=req.request_id,
             response=synthesis.content,
-            agent_type=decision.primary_agent,
+            agent_type=plan.primary_agent,
             intent=req.intent,
             escalated=synthesis.escalate,
             latency_ms=(time.monotonic() - t0) * 1000,
@@ -490,10 +486,10 @@ class AgentOrchestrator:
                 AgentType(outcome.agent_type) for outcome in outcomes
                 if outcome.status is AgentOutcomeStatus.SUCCESS
             ] or agent_types,
-            primary_agent=decision.primary_agent,
-            supporting_agents=decision.supporting_agents,
-            routing_reason=decision.reason,
-            routing_confidence=decision.confidence,
+            primary_agent=plan.primary_agent,
+            supporting_agents=plan.supporting_agents,
+            routing_reason=plan.reason,
+            routing_confidence=plan.confidence,
             synthesis_status=synthesis.status.value,
             synthesis_reason=synthesis.reason,
             synthesis_conflicts=synthesis.conflicts,
@@ -507,6 +503,8 @@ class AgentOrchestrator:
                 if synthesis.status.value in {"success", "partial"}
                 else []
             ),
+            task_plan=plan.to_dict(),
+            coverage=synthesis.coverage.to_dict(),
         )
 
     # ── 路由逻辑 ──────────────────────────────────────────────────────────────
@@ -529,23 +527,28 @@ class AgentOrchestrator:
 
         return AgentType.GENERAL
 
-    def _route_decision(self, req: Request) -> RoutingDecision:
+    def _build_task_plan(self, req: Request) -> TaskPlan:
         """
-        结构化路由决策。
+        生成本次请求唯一的任务计划。
 
         先处理紧急/转人工，再用领域分数决定主 Agent 和辅助 Agent。
-        这样可以表达“主处理 + 辅助诊断”，避免关键词命中后无主次地拼接。
+        每个被选能力都会得到独立 task_id、任务范围和完成标准，后续覆盖
+        判断只读取该计划，不再从 Agent 数量反推用户问题是否已解决。
         """
         if req.urgency == UrgencyLevel.CRITICAL:
-            return RoutingDecision(
-                primary_agent=AgentType.ESCALATION,
+            task = self._task_for_agent(req, AgentType.ESCALATION)
+            return TaskPlan(
+                tasks=(task,),
+                primary_task_id=task.task_id,
                 reason="紧急度为 CRITICAL，触发升级路由",
                 confidence=1.0,
             )
 
         if req.intent in (IntentCategory.ESCALATION, IntentCategory.HUMAN_HANDOFF):
-            return RoutingDecision(
-                primary_agent=AgentType.ESCALATION,
+            task = self._task_for_agent(req, AgentType.ESCALATION)
+            return TaskPlan(
+                tasks=(task,),
+                primary_task_id=task.task_id,
                 reason=f"意图为 {req.intent.value if req.intent else 'unknown'}，触发升级路由",
                 confidence=max(req.intent_confidence, 0.8),
             )
@@ -557,8 +560,10 @@ class AgentOrchestrator:
             if agent_type == AgentType.GENERAL or self._pool.get(agent_type)
         }
         if not available_scores:
-            return RoutingDecision(
-                primary_agent=AgentType.GENERAL,
+            task = self._task_for_agent(req, AgentType.GENERAL)
+            return TaskPlan(
+                tasks=(task,),
+                primary_task_id=task.task_id,
                 reason="无可用专属 Agent，降级到 GeneralAgent",
                 confidence=0.1,
             )
@@ -572,11 +577,53 @@ class AgentOrchestrator:
         ]
 
         reason = self._routing_reason(req, available_scores, primary_agent, supporting_agents)
-        return RoutingDecision(
-            primary_agent=primary_agent,
-            supporting_agents=supporting_agents,
+        selected_agents = [primary_agent] + supporting_agents
+        planned_tasks = tuple(self._task_for_agent(req, agent_type) for agent_type in selected_agents)
+        return TaskPlan(
+            tasks=planned_tasks,
+            primary_task_id=planned_tasks[0].task_id,
             reason=reason,
             confidence=round(min(primary_score, 1.0), 3),
+        )
+
+    @staticmethod
+    def _task_for_agent(req: Request, agent_type: AgentType) -> TaskSpec:
+        """把领域选择转换为带范围和验收标准的子任务合同。"""
+        definitions = {
+            AgentType.GENERAL: (
+                "处理订单、物流、会员或通用咨询部分",
+                TaskRisk.LOW,
+                ("直接回答通用问题", "未知业务事实必须显式说明"),
+            ),
+            AgentType.TECHNICAL: (
+                "处理登录、错误码、崩溃或系统配置排障部分",
+                TaskRisk.MEDIUM,
+                ("给出可执行排障步骤", "需要后台权限时明确升级"),
+            ),
+            AgentType.BILLING: (
+                "处理扣款、退款、发票、支付或订阅部分",
+                TaskRisk.HIGH,
+                ("说明适用条件和下一步", "不得声称已执行未发生的财务操作"),
+            ),
+            AgentType.ACCOUNT_SECURITY: (
+                "处理账号被盗、身份验证、异常登录或敏感资料修改部分",
+                TaskRisk.HIGH,
+                ("优先保护账户安全", "敏感操作必须要求验证或人工审批"),
+            ),
+            AgentType.ESCALATION: (
+                "整理人工接管所需问题、风险和已知证据",
+                TaskRisk.HIGH,
+                ("明确告知正在转人工", "不得承诺尚未执行的后台操作"),
+            ),
+        }
+        instruction, risk, criteria = definitions[agent_type]
+        return TaskSpec(
+            task_id=f"{agent_type.value}_task",
+            owner=agent_type,
+            instruction=instruction,
+            required=True,
+            risk=risk,
+            success_criteria=criteria,
         )
 
     def _domain_scores(self, req: Request) -> Dict[AgentType, float]:
@@ -742,20 +789,23 @@ class AgentOrchestrator:
     async def _execute_outcome(
         self,
         req: Request,
-        selected_agent: AgentType,
+        task: TaskSpec,
         *,
         is_primary: bool,
     ) -> AgentOutcome:
         """把一次选中 Agent 的执行收敛为闭合的 outcome 结果代数。"""
         started = time.monotonic()
+        scoped_request = replace(req, assigned_task=task)
         try:
             response = await asyncio.wait_for(
-                self._execute(req, selected_agent),
+                self._execute(scoped_request, task.owner),
                 timeout=self._agent_timeout_s,
             )
         except asyncio.TimeoutError:
             return AgentOutcome(
-                agent_type=selected_agent.value,
+                task_id=task.task_id,
+                required=task.required,
+                agent_type=task.owner.value,
                 status=AgentOutcomeStatus.TIMEOUT,
                 is_primary=is_primary,
                 latency_ms=(time.monotonic() - started) * 1000,
@@ -763,7 +813,9 @@ class AgentOrchestrator:
             )
         except Exception as exc:
             return AgentOutcome(
-                agent_type=selected_agent.value,
+                task_id=task.task_id,
+                required=task.required,
+                agent_type=task.owner.value,
                 status=AgentOutcomeStatus.ERROR,
                 is_primary=is_primary,
                 latency_ms=(time.monotonic() - started) * 1000,
@@ -771,7 +823,9 @@ class AgentOrchestrator:
             )
 
         return AgentOutcome(
-            agent_type=selected_agent.value,
+            task_id=task.task_id,
+            required=task.required,
+            agent_type=task.owner.value,
             agent_key=response.agent_key,
             responding_agent_type=response.agent_type.value,
             status=(AgentOutcomeStatus.SUCCESS if response.success else AgentOutcomeStatus.ERROR),

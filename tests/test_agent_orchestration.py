@@ -7,12 +7,13 @@ from agents.agent_orchestrator import (
     AgentResponse,
     AgentType,
     Request,
-    RoutingDecision,
 )
+from agents.orchestration_contracts import TaskPlan, TaskRisk, TaskSpec
 from core.intent_recognizer import IntentCategory
 from services.result_synthesizer import (
     AgentOutcome,
     AgentOutcomeStatus,
+    CoverageGate,
     ResultSynthesizer,
     SynthesisResult,
     SynthesisStatus,
@@ -27,6 +28,8 @@ def outcome(
     content="answer",
 ):
     return AgentOutcome(
+        task_id=f"{agent_type}_task",
+        required=True,
         agent_type=agent_type,
         responding_agent_type=agent_type,
         status=status,
@@ -36,11 +39,25 @@ def outcome(
     )
 
 
+def task_plan(*agent_types: AgentType) -> TaskPlan:
+    """为融合器测试创建与 outcomes 一一对应的最小任务合同。"""
+    tasks = tuple(
+        TaskSpec(
+            task_id=f"{agent_type.value}_task",
+            owner=agent_type,
+            instruction=f"处理 {agent_type.value} 子任务",
+        )
+        for agent_type in agent_types
+    )
+    return TaskPlan(tasks=tasks, primary_task_id=tasks[0].task_id)
+
+
 def test_synthesizer_returns_partial_success_without_discarding_valid_answer():
     """证明部分失败时保留有效回答，同时返回 PARTIAL 并升级。"""
     synthesizer = ResultSynthesizer(client=None, model="test")
     result = asyncio.run(synthesizer.synthesize(
         "question",
+        task_plan(AgentType.TECHNICAL, AgentType.BILLING),
         [
             outcome("technical", primary=True, content="technical answer"),
             outcome("billing", AgentOutcomeStatus.TIMEOUT),
@@ -59,6 +76,7 @@ def test_synthesizer_all_failed_is_typed_and_fail_closed():
     synthesizer = ResultSynthesizer(client=None, model="test")
     result = asyncio.run(synthesizer.synthesize(
         "question",
+        task_plan(AgentType.TECHNICAL, AgentType.BILLING),
         [
             outcome("technical", AgentOutcomeStatus.ERROR, primary=True),
             outcome("billing", AgentOutcomeStatus.TIMEOUT),
@@ -82,6 +100,7 @@ def test_synthesizer_propagates_model_detected_conflicts():
     synthesizer = ResultSynthesizer(client=client, model="test")
     result = asyncio.run(synthesizer.synthesize(
         "question",
+        task_plan(AgentType.BILLING, AgentType.TECHNICAL),
         [
             outcome("billing", primary=True, content="立即退款"),
             outcome("technical", content="先验证身份"),
@@ -98,6 +117,7 @@ def test_unavailable_synthesis_preserves_route_order_and_fails_closed():
     synthesizer = ResultSynthesizer(client=MalformedClient(), model="test")
     result = asyncio.run(synthesizer.synthesize(
         "question",
+        task_plan(AgentType.TECHNICAL, AgentType.BILLING),
         [
             outcome("technical", primary=True, content="first"),
             outcome("billing", content="second"),
@@ -107,6 +127,34 @@ def test_unavailable_synthesis_preserves_route_order_and_fails_closed():
     assert result.status is SynthesisStatus.UNKNOWN
     assert result.content.index("technical") < result.content.index("billing")
     assert result.escalate is True
+
+
+def test_coverage_gate_rejects_missing_required_task_even_when_one_agent_succeeds():
+    """证明一个漂亮回答不能掩盖另一个必需子任务完全没有 outcome。"""
+    plan = task_plan(AgentType.TECHNICAL, AgentType.BILLING)
+
+    coverage = CoverageGate.evaluate(
+        plan,
+        [outcome("technical", primary=True, content="technical answer")],
+    )
+
+    assert coverage.complete is False
+    assert coverage.completed_task_ids == ("technical_task",)
+    assert coverage.missing_task_ids == ("billing_task",)
+    assert coverage.unresolved_required_task_ids == ("billing_task",)
+
+
+def test_coverage_gate_rejects_duplicate_outcome_for_the_same_task():
+    """证明同一任务重复返回不会被误算成两项工作均已完成。"""
+    plan = task_plan(AgentType.TECHNICAL)
+
+    coverage = CoverageGate.evaluate(
+        plan,
+        [outcome("technical"), outcome("technical")],
+    )
+
+    assert coverage.complete is False
+    assert coverage.duplicate_task_ids == ("technical_task",)
 
 
 def test_orchestrator_records_timeout_and_partial_success_in_route_order():
@@ -133,9 +181,10 @@ def test_orchestrator_records_timeout_and_partial_success_in_route_order():
         conv_id="conversation",
         intent=IntentCategory.TECHNICAL,
     )
-    decision = RoutingDecision(
-        primary_agent=AgentType.TECHNICAL,
-        supporting_agents=[AgentType.BILLING],
+    decision = task_plan(AgentType.TECHNICAL, AgentType.BILLING)
+    decision = TaskPlan(
+        tasks=decision.tasks,
+        primary_task_id=decision.primary_task_id,
         reason="mixed request",
         confidence=0.9,
     )
@@ -163,7 +212,12 @@ def test_orchestrator_converts_unhandled_agent_exception_to_typed_error():
     request = Request(message="help", user_id="u", conv_id="c")
     result = asyncio.run(orchestrator._execute_outcome(
         request,
-        AgentType.TECHNICAL,
+        TaskSpec(
+            task_id="technical_task",
+            owner=AgentType.TECHNICAL,
+            instruction="处理登录故障",
+            risk=TaskRisk.MEDIUM,
+        ),
         is_primary=True,
     ))
 
@@ -190,7 +244,7 @@ def test_compound_natural_request_routes_to_both_domain_owners():
         entities={"order_id": ["A123"], "amount": ["50 元"]},
     )
 
-    decision = orchestrator._route_decision(request)
+    decision = orchestrator._build_task_plan(request)
 
     assert decision.primary_agent is AgentType.TECHNICAL
     assert decision.supporting_agents == [AgentType.BILLING]
@@ -252,13 +306,14 @@ class CapturingSynthesizer:
     def __init__(self):
         self.outcomes = []
 
-    async def synthesize(self, _question, outcomes):
+    async def synthesize(self, _question, plan, outcomes):
         self.outcomes = list(outcomes)
         return SynthesisResult(
             status=SynthesisStatus.PARTIAL,
             content="technical answer",
             reason="billing timed out",
             escalate=False,
+            coverage=CoverageGate.evaluate(plan, outcomes),
             successful_agents=["technical"],
             failed_agents=["billing"],
         )

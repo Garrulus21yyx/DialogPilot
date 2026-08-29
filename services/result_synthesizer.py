@@ -11,6 +11,7 @@ from dataclasses import asdict, dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Sequence
 
+from agents.orchestration_contracts import CoverageReport, TaskPlan
 from core.llm_utils import extract_text_content
 
 
@@ -33,6 +34,8 @@ class SynthesisStatus(str, Enum):
 @dataclass(frozen=True)
 class AgentOutcome:
     """单 Agent 执行证据；内容与错误不会通过异常通道隐式丢失。"""
+    task_id: str
+    required: bool
     agent_type: str
     status: AgentOutcomeStatus
     is_primary: bool
@@ -58,9 +61,61 @@ class SynthesisResult:
     content: str
     reason: str
     escalate: bool
+    coverage: CoverageReport
     successful_agents: List[str] = field(default_factory=list)
     failed_agents: List[str] = field(default_factory=list)
     conflicts: List[str] = field(default_factory=list)
+
+
+class CoverageGate:
+    """比较计划和 outcomes，拥有“必需任务是否全部完成”的判定权。"""
+
+    @staticmethod
+    def evaluate(plan: TaskPlan, outcomes: Sequence[AgentOutcome]) -> CoverageReport:
+        """以 task_id 对齐事实，并显式暴露缺失、重复和越界结果。"""
+        plan_ids = [task.task_id for task in plan.ordered_tasks]
+        required_ids = [task.task_id for task in plan.ordered_tasks if task.required]
+        outcome_ids = [outcome.task_id for outcome in outcomes]
+        seen: set[str] = set()
+        duplicate_ids: list[str] = []
+        for task_id in outcome_ids:
+            if task_id in seen and task_id not in duplicate_ids:
+                duplicate_ids.append(task_id)
+            seen.add(task_id)
+
+        outcome_by_id = {
+            outcome.task_id: outcome
+            for outcome in outcomes
+            if outcome.task_id in plan_ids
+        }
+        completed_ids = [
+            task_id for task_id in plan_ids
+            if task_id in outcome_by_id
+            and outcome_by_id[task_id].status is AgentOutcomeStatus.SUCCESS
+        ]
+        failed_ids = [
+            task_id for task_id in plan_ids
+            if task_id in outcome_by_id
+            and outcome_by_id[task_id].status is not AgentOutcomeStatus.SUCCESS
+        ]
+        missing_ids = [task_id for task_id in plan_ids if task_id not in outcome_by_id]
+        unresolved_required = [
+            task_id for task_id in required_ids if task_id not in completed_ids
+        ]
+        unexpected_ids = list(dict.fromkeys(
+            task_id for task_id in outcome_ids if task_id not in plan_ids
+        ))
+        complete = not unresolved_required and not duplicate_ids and not unexpected_ids
+        return CoverageReport(
+            complete=complete,
+            required_task_ids=tuple(required_ids),
+            completed_task_ids=tuple(completed_ids),
+            failed_task_ids=tuple(failed_ids),
+            missing_task_ids=tuple(missing_ids),
+            unresolved_required_task_ids=tuple(unresolved_required),
+            duplicate_task_ids=tuple(duplicate_ids),
+            unexpected_task_ids=tuple(unexpected_ids),
+        )
 
 
 class ResultSynthesizer:
@@ -74,9 +129,11 @@ class ResultSynthesizer:
     async def synthesize(
         self,
         question: str,
+        plan: TaskPlan,
         outcomes: Sequence[AgentOutcome],
     ) -> SynthesisResult:
         """按结果代数融合路由顺序稳定的 Agent outcomes。"""
+        coverage = CoverageGate.evaluate(plan, outcomes)
         successful = [outcome for outcome in outcomes if outcome.status is AgentOutcomeStatus.SUCCESS]
         failed = [outcome for outcome in outcomes if outcome.status is not AgentOutcomeStatus.SUCCESS]
         successful_agents = [outcome.agent_type for outcome in successful]
@@ -90,6 +147,7 @@ class ResultSynthesizer:
                 content="所有专业 Agent 均未能完成处理，已转交人工进一步确认。",
                 reason="all selected agents failed or timed out",
                 escalate=True,
+                coverage=coverage,
                 failed_agents=failed_agents,
             )
 
@@ -97,14 +155,19 @@ class ResultSynthesizer:
             # 单路成功不需要再次调用模型；若其他路失败则保留内容但标记 PARTIAL。
             only = successful[0]
             return SynthesisResult(
-                status=SynthesisStatus.PARTIAL if failed else SynthesisStatus.SUCCESS,
+                status=(
+                    SynthesisStatus.PARTIAL
+                    if failed or not coverage.complete
+                    else SynthesisStatus.SUCCESS
+                ),
                 content=only.content,
                 reason=(
                     "one successful result; other agents failed or timed out"
                     if failed
                     else "single successful result"
                 ),
-                escalate=inherited_escalation or bool(failed),
+                escalate=inherited_escalation or bool(failed) or not coverage.complete,
+                coverage=coverage,
                 successful_agents=successful_agents,
                 failed_agents=failed_agents,
             )
@@ -118,7 +181,9 @@ class ResultSynthesizer:
             status = (
                 SynthesisStatus.CONFLICT
                 if conflicts
-                else SynthesisStatus.PARTIAL if failed else SynthesisStatus.SUCCESS
+                else SynthesisStatus.PARTIAL
+                if failed or not coverage.complete
+                else SynthesisStatus.SUCCESS
             )
             reason = str(payload.get("reason", "parallel results synthesized")).strip()[:500]
             return SynthesisResult(
@@ -130,7 +195,9 @@ class ResultSynthesizer:
                     or bool(failed)
                     or bool(conflicts)
                     or bool(payload.get("escalate", False))
+                    or not coverage.complete
                 ),
+                coverage=coverage,
                 successful_agents=successful_agents,
                 failed_agents=failed_agents,
                 conflicts=conflicts,
@@ -142,6 +209,7 @@ class ResultSynthesizer:
                 content=self._deterministic_fallback(successful),
                 reason=f"synthesis unavailable: {type(exc).__name__}",
                 escalate=True,
+                coverage=coverage,
                 successful_agents=successful_agents,
                 failed_agents=failed_agents,
                 conflicts=["parallel result synthesis could not be verified"],
@@ -158,6 +226,7 @@ class ResultSynthesizer:
         findings = [
             {
                 "agent_type": outcome.agent_type,
+                "task_id": outcome.task_id,
                 "responding_agent_type": outcome.responding_agent_type or outcome.agent_type,
                 "role": "primary" if outcome.is_primary else "supporting",
                 "content": outcome.content,
