@@ -5,6 +5,8 @@ Python and FastAPI. It combines intent recognition, retrieval-augmented
 generation, dynamic business skills, layered conversation memory, observable
 agent routing, and a fail-closed answer-verification boundary.
 
+Chinese documentation: [full architecture tutorial](https://garrulus21yyx.github.io/DialogPilot/) · [code-checked interview guide](https://garrulus21yyx.github.io/DialogPilot/interview-guide.html)
+
 ## Why this project exists
 
 A single-prompt chatbot mixes routing, knowledge access, memory, and response

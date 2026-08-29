@@ -265,6 +265,39 @@ summary:focus-visible {
   font-weight: 750;
 }
 
+/* 面经页使用“校准桌”色调：与教程同源，但用琳琅红强调待核对声明。 */
+.dp-interview-page .dp-hero {
+  border-color: #5b3b47;
+  background:
+    radial-gradient(circle at 86% 8%, rgba(212, 128, 113, 0.25), transparent 32%),
+    radial-gradient(circle at 12% 100%, rgba(131, 189, 232, 0.18), transparent 34%),
+    linear-gradient(135deg, #191c28 0%, #302537 55%, #17283a 100%);
+}
+
+.dp-interview-page .dp-eyebrow {
+  color: #f1b1a3;
+}
+
+.dp-interview-page .dp-eyebrow::before {
+  background: #e39481;
+}
+
+.dp-interview-page .dp-chapter:first-child table td:last-child,
+.dp-interview-page .dp-chapter:nth-child(2) table td:last-child {
+  color: #8d3d43;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-weight: 900;
+}
+
+.dp-interview-page .qa-card[open] {
+  border-left: 4px solid #c66c5d;
+}
+
+.dp-interview-page .qa-card summary::after {
+  border-color: #ddb7ae;
+  color: #9d4f45;
+}
+
 /* 桌面端双栏骨架：左侧章节轨道，右侧教程正文。 */
 .dp-shell {
   display: grid;

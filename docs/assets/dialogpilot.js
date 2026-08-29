@@ -7,7 +7,7 @@
   }
 
   // 把 Markdown 标题和导语提升为运行时主链 Hero，不复制正文内容。
-  function buildHero(root) {
+  function buildHero(root, mode) {
     const title = root.querySelector(":scope > h1");
     if (!title) return null;
 
@@ -20,14 +20,19 @@
 
     const eyebrow = document.createElement("div");
     eyebrow.className = "dp-eyebrow";
-    eyebrow.textContent = "Runtime field guide · Python agent system";
+    eyebrow.textContent = mode === "interview"
+      ? "Evidence-checked interview dossier · DialogPilot"
+      : "Runtime field guide · Python agent system";
     hero.appendChild(eyebrow);
     hero.appendChild(title);
     if (intro) hero.appendChild(intro);
 
     const path = document.createElement("div");
     path.className = "dp-signal-path";
-    ["MEMORY", "INTENT", "RAG", "TASK PLAN", "REACT", "TOOLS", "COVERAGE", "SYNTHESIS", "VERIFY", "TICKET"].forEach(function (label) {
+    const signalLabels = mode === "interview"
+      ? ["CLAIM", "CODE", "OWNER", "CONTRACT", "TRADE-OFF", "FAILURE", "METRIC", "TRACE", "BOUNDARY", "FOLLOW-UP"]
+      : ["MEMORY", "INTENT", "RAG", "TASK PLAN", "REACT", "TOOLS", "COVERAGE", "SYNTHESIS", "VERIFY", "TICKET"];
+    signalLabels.forEach(function (label) {
       const item = document.createElement("span");
       item.textContent = label;
       path.appendChild(item);
@@ -36,7 +41,10 @@
 
     const meta = document.createElement("div");
     meta.className = "dp-hero-meta";
-    ["26 chapters", "56 interview drills", "65 regression tests", "14 focused memory/tool tests"].forEach(function (label) {
+    const metaLabels = mode === "interview"
+      ? ["old notes reconciled", "current-code answers", "unsupported claims flagged", "follow-up drills included"]
+      : ["26 chapters", "56 interview drills", "65 regression tests", "14 focused memory/tool tests"];
+    metaLabels.forEach(function (label) {
       const item = document.createElement("span");
       item.textContent = label;
       meta.appendChild(item);
@@ -69,11 +77,13 @@
   }
 
   // 根据实际章节动态生成左侧执行轨道，避免手工目录与正文漂移。
-  function buildRail(content) {
+  function buildRail(content, mode) {
     const rail = document.createElement("aside");
     rail.className = "dp-rail";
-    rail.setAttribute("aria-label", "教程章节导航");
-    rail.innerHTML = '<div class="dp-rail-head"><span>Execution map</span><strong>从请求到可验证交付</strong></div>';
+    rail.setAttribute("aria-label", mode === "interview" ? "面经章节导航" : "教程章节导航");
+    rail.innerHTML = mode === "interview"
+      ? '<div class="dp-rail-head"><span>Defense map</span><strong>从旧答案到代码证据</strong></div>'
+      : '<div class="dp-rail-head"><span>Execution map</span><strong>从请求到可验证交付</strong></div>';
 
     const nav = document.createElement("nav");
     nav.className = "dp-rail-nav";
@@ -231,20 +241,23 @@
     headings.forEach(function (heading) { observer.observe(heading); });
   }
 
-  // 只在完整教程首页存在时增强 DOM，其他 Jekyll 页面保持 Minima 原结构。
+  // 教程和面经页共用同一阅读系统，其他 Jekyll 页面保持 Minima 原结构。
   function initialize() {
     const root = document.querySelector(".page-content > .wrapper");
-    if (!root || !root.querySelector("#快速导航")) return;
+    if (!root) return;
+    const mode = root.querySelector("#面经使用说明") ? "interview" : "tutorial";
+    if (mode === "tutorial" && !root.querySelector("#快速导航")) return;
     root.classList.add("dp-page");
+    if (mode === "interview") root.classList.add("dp-interview-page");
 
-    const hero = buildHero(root);
+    const hero = buildHero(root, mode);
     const content = document.createElement("article");
     content.className = "dp-content";
     while (hero && hero.nextSibling) content.appendChild(hero.nextSibling);
     wrapChapters(content);
     makeQuestionsCollapsible(content);
 
-    const railData = buildRail(content);
+    const railData = buildRail(content, mode);
     const shell = document.createElement("div");
     shell.className = "dp-shell";
     shell.append(railData.rail, content);

@@ -5,6 +5,7 @@ lang: zh-CN
 theme: minima
 markdown: kramdown
 header_pages:
-  # 首页已经内嵌完整教程，只保留两张补充说明页避免重复导航。
+  # 面经校准页与完整教程分开，便于面试前按问题检索。
+  - interview-guide.md
   - architecture.md
   - project-pitch.md
