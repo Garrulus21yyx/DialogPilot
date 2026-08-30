@@ -74,6 +74,24 @@ def test_knowledge_base_empty_query_does_not_touch_vector_query():
     assert knowledge_base.search("   ") == []
 
 
+def test_bm25_only_strategy_does_not_pay_for_unused_vector_query():
+    knowledge_base = bare_knowledge_base()
+    knowledge_base._hybrid_retriever = HybridMemoryRetriever(
+        vector_weight=0.0, lexical_weight=1.0, recency_weight=0.0,
+    )
+    knowledge_base.add_documents([
+        {"id": "kb-one", "title": "登录", "content": "登录错误 E401 表示令牌过期。"},
+    ])
+    knowledge_base._collection.query = lambda **_kwargs: (_ for _ in ()).throw(
+        AssertionError("BM25-only must not execute vector query")
+    )
+
+    hits = knowledge_base.search("E401", top_k=1)
+
+    assert hits[0]["document_id"] == "kb-one"
+    assert hits[0]["sources"] == ["bm25"]
+
+
 def test_knowledge_base_exposes_retrieval_strategy_with_storage_identity(monkeypatch):
     """部署诊断必须记录实际检索权重，避免离线配置与生产配置漂移。"""
     backend = type("Backend", (), {

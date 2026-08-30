@@ -154,10 +154,12 @@ class KnowledgeBase:
         query = str(query or "").strip()
         if not query or self._collection.count() == 0:
             return []
-        vector_results = self._collection.query(
-            query_texts=[query],
-            n_results=min(max(20, int(top_k)), self._collection.count()),
-        )
+        vector_results = {}
+        if self._hybrid_retriever.vector_weight > 0:
+            vector_results = self._collection.query(
+                query_texts=[query],
+                n_results=min(max(20, int(top_k)), self._collection.count()),
+            )
         corpus_results = self._collection.get(include=["documents", "metadatas"])
 
         def documents(result: Dict[str, Any], *, nested: bool) -> List[MemoryDocument]:
