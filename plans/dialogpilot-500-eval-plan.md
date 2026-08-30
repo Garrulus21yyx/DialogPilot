@@ -193,7 +193,7 @@ from different chunks.
 
 ## Phase 5: Reviewer B stateful and tool-lifecycle convergence
 
-Status: in progress. This phase addresses the remaining shared acceptance and
+Status: implemented; independent re-verification remains open. This phase addresses the remaining shared acceptance and
 lifecycle gaps from Reviewer B without changing its historical review record.
 
 ### Positive contract
@@ -219,4 +219,17 @@ lifecycle gaps from Reviewer B without changing its historical review record.
 3. [completed] Normalize Unicode format-only memory queries before storage access.
 4. [completed] Register and execute all 27 fresh Reviewer B actions.
 5. [completed] Run invariant, mutation, full-suite, Dev/regression and fresh gates.
-6. [in progress] Update Pages and push each coherent repair phase.
+6. [completed] Update Pages and push each coherent repair phase.
+
+### Verification evidence
+
+- Boundary/lifecycle repair `f25b5df`; fresh-v2 execution `c874de7`; published
+  evidence `46a62d9`.
+- Full repository: 153 tests passed locally and in GitHub Actions run
+  `33318238434`.
+- Stateful: Dev 80/80, consumed heldout regression 20/20, consumed Reviewer B
+  fresh-v2 regression 27/27 with zero unregistered actions.
+- Pages run `33318238317` succeeded; the deployed architecture page exposes the
+  FixtureRequest, explicit terminal-state and `outcome_unknown` contracts.
+- Reviewer B's historical `reject` remains immutable. Because fresh-v2 was read
+  during this repair, it cannot serve as the new unseen closure gate.
