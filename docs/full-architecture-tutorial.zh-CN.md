@@ -46,7 +46,7 @@ DialogPilot 是一个 Python 3.12 + FastAPI 的异步多 Agent 客服后端。�
 3. 主链：Memory → Intent → RAG → Context → TaskPlan → Workers → Coverage → Synthesis → Verification → Ticket → Persist published messages。
 4. 六个最值得深挖的改动：Token 驱动且并发安全的压缩、混合长期记忆、TaskPlan/CoverageGate、有界 ReAct 与权限、请求预算下的结果代数、校验质量反馈闭环。
 5. 证据：111 个测试，覆盖身份/公开投影、归档幂等/CAS、显式存储模式、真实 Escalation Owner、路由基数、混合召回、工具权限、Trace、分层模型策略和版本化评测合同。
-6. 边界：已有 JWT/scope 基线；多租户 IdP/ABAC 未完成，SQLite 只适合单应用写者，Trace/审计重启丢失，审批不能交互恢复；已有 28 条 provisional 分层样本，但尚无 human-reviewed gold，不能声称生产准确率。
+6. 边界：已有 JWT/scope 基线；多租户 IdP/ABAC 未完成，SQLite 只适合单应用写者，Trace/审计重启丢失，审批不能交互恢复；已有 500 条分层候选集，但尚无 human-reviewed gold，不能声称生产准确率。
 
 ## 1. 如何学习这个仓库
 
@@ -880,7 +880,7 @@ Monitor 每隔 N 秒：
 
 ## 15. 离线评测
 
-代码：[`evaluation/dataset.py`](../evaluation/dataset.py)、[`evaluation/evaluator.py`](../evaluation/evaluator.py)、[`evaluation/benchmark.py`](../evaluation/benchmark.py)
+代码：[`evaluation/dataset.py`](../evaluation/dataset.py)、[`evaluation/evaluator.py`](../evaluation/evaluator.py)、[`evaluation/benchmark.py`](../evaluation/benchmark.py)、[`evaluation/stateful_runner.py`](../evaluation/stateful_runner.py)、[`evaluation/retrieval_runner.py`](../evaluation/retrieval_runner.py)
 
 ### 15.1 两条评测路径不能混为一谈
 
@@ -898,7 +898,7 @@ Monitor 每隔 N 秒：
 | Retrieval | `relevant_ids` | Recall@K、MRR、nDCG | 精确证据是否召回且排在前面 |
 | Stateful | `assertions` | assertion pass、all pass | 隔离、授权、副作用等不变量是否成立 |
 
-提交的 `dialogpilot-v1` 有 28 条 provisional case 和 6 篇稳定 corpus 文档，dev 19 / heldout 9。它覆盖复合路由、否定误触发、澄清、订单号/错误码召回、跨用户隔离、伪造审批和零副作用拒绝。**provisional 不是 gold**；默认 API/CLI 只选 `human_reviewed`，所以当前默认 gold 结果是 0 条，而不是 0% 或 100%。
+提交的 `dialogpilot-500-v1` 有 500 条：Intent/OOS 180、Routing 120、Retrieval 100、Stateful 100，另有 25 篇隔离 corpus。180 条外部意图样本是 `auto_mapped`，320 条项目合同是 `provisional`，**都不是 human-reviewed gold**。Stateful 的 20 条原 heldout 已参与缺陷修复，只能作为回归集；现有 fixture 也没有证明真实空闲检测、签名审批令牌、HTTP 发布投影或跨用户检索。
 
 ### 15.3 数据身份和防污染合同
 
@@ -906,13 +906,13 @@ Monitor 每隔 N 秒：
 
 ### 15.4 API、基线和 Judge 边界
 
-`GET /eval/datasets` 列出注册集和审核状态；`POST /eval/run` 可按 dataset_id/split/layers 运行 intent/routing，并把版本、checksum 和 review scope 写进报告。客户端只能选服务端注册 ID，不能传任意文件路径。retrieval/stateful 暂走 prediction scorer；若请求这两层，API 返回 typed 422，而不是悄悄跳过。
+`GET /eval/datasets` 列出注册集和审核状态；`POST /eval/run` 可按 dataset_id/split/layers 运行 intent/routing，并把版本、checksum 和 review scope 写进报告。客户端只能选服务端注册 ID，不能传任意文件路径。retrieval/stateful 使用各自的隔离 runner 再进入统一 scorer；API 若直接请求这两层仍返回 typed 422，而不是悄悄跳过。
 
 `EVAL_BASELINE_PATH` 仍是最近一次运行基线，共同指标下降超过 5% 记 regression，不等于版本化发布基线。Judge 异常会标 `judge_failed=True` 并给四个 0.5；过程指标不受影响，但正式门禁应单独处理 Judge failure。
 
 ### 15.5 什么能说，什么不能说
 
-可以说：“建立了版本化四层评测合同、公开数据适配、split/checksum/review 门禁和可运行 scorer。”不能说“系统准确率达到 X%”，因为当前 28 条是 provisional，内置 11 条意图 + 5 组对话只是 smoke，尚无 human-reviewed gold 和正式 held-out 运行产物。真正报数还要同时给数据版本/分布、模型/Prompt/Skill/index 版本、日期环境、逐 slice 结果、Judge 校准和重复运行方差。
+可以说：“建立了版本化四层评测合同、公开数据适配、split/checksum/review 门禁、Stateful Owner fixture 和隔离 RAG producer。”还可以报告 **provisional dev 基线**：Retrieval 80 条 Recall@5 0.9125、MRR 0.7504、nDCG@5 0.7914；以及 Stateful 80/80 dev、20/20 已消费回归。不能把这些写成“系统准确率”，因为尚无 human-reviewed gold、新鲜 heldout 和独立 Reviewer B。
 
 ## 16. API 面与典型调用
 
@@ -1248,7 +1248,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### P1：把 provisional seed 扩成 gold benchmark
 
-版本化 schema、28 条 provisional seed、公开集 adapter 和确定性 grader 已完成。下一步是双人复核/仲裁并扩到 ≥100 条项目样本，保持 group-safe dev/held-out；报告补齐 prompt/skill/model/index 版本、关键 slice、重复运行方差、pass^k 和 cost/success。自动映射公开数据只做外部压力测试。
+版本化 schema、500 条四层候选集、公开集 adapter、确定性 grader、Stateful fixture 与隔离 RAG producer 已完成。下一步是 Reviewer B 在未读取现有判定的上下文中独立复核，并另写新鲜 Stateful holdout；报告继续补齐 prompt/skill/model/index 版本、关键 slice、重复运行方差、pass^k 和 cost/success。自动映射公开数据只做外部压力测试。
 
 ### P1：审批恢复与副作用 receipt
 
@@ -1606,7 +1606,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 **Action：** 在 Worker 内增加最大 4 步的 Anthropic tool loop；工具发现和执行共享同一 allowlist，执行边界再次校验；高风险/写工具默认等待宿主批准，读工具批次并行、潜在写工具串行；工具输出截断后按 call_id 回写，TraceId 通过 contextvars 贯穿并行 Task，审计只记录参数哈希/shape；拒绝、失败、超步数禁止 General fallback 覆盖。
 
-**Result：** 工具/ReAct 聚焦测试和编排投影测试证明越权零副作用、审批阻断、循环停止、结果配对、输出有界、Trace 传播和失败证据贯穿；连同生产边界、分层模型策略与分层评测合同测试，整个仓库 111 项测试通过。
+**Result：** 工具/ReAct 聚焦测试和编排投影测试证明越权零副作用、审批阻断、循环停止、结果配对、输出有界、Trace 传播和失败证据贯穿；连同生产边界、分层模型策略与分层评测合同测试，整个仓库 137 项测试通过。
 
 **简历一行（只在你能现场解释代码时使用）：**
 
@@ -1726,7 +1726,7 @@ Verifier 必须读取完整 `AgentOutcome.content/error/producer` 才能判断�
 
 ### Q64：这一轮怎样写成 STAR？
 
-**S：** 原链路在 TTL、诊断投影和部署降级处存在“成功返回但事实丢失或泄漏”的边界。**T：** 让身份、归档、存储模式和升级执行者各有唯一 Owner，并让失败可重试、可观测。**A：** 实现 JWT Principal/scope、公开 outcome redaction、确定性消息归档 + Redis CAS finalize、单记录版本画像、显式 Chroma/intent 模式、tool-free EscalationAgent 和路由基数披露。**R：** 相关不变量由测试覆盖；全仓当前 111 项测试通过，不虚构线上提升。
+**S：** 原链路在 TTL、诊断投影和部署降级处存在“成功返回但事实丢失或泄漏”的边界。**T：** 让身份、归档、存储模式和升级执行者各有唯一 Owner，并让失败可重试、可观测。**A：** 实现 JWT Principal/scope、公开 outcome redaction、确定性消息归档 + Redis CAS finalize、单记录版本画像、显式 Chroma/intent 模式、tool-free EscalationAgent 和路由基数披露。**R：** 相关不变量由测试覆盖；全仓当前 137 项测试通过，不虚构线上提升。
 
 ## 27. 把评测数据真正跑起来：从 provisional 到 held-out 报告
 
@@ -1751,7 +1751,7 @@ flowchart LR
 ```bash
 cd /home/yang/DialogPilot
 source .venv/bin/activate
-python -m evaluation.dataset data/eval/dialogpilot-v1
+python -m evaluation.dataset data/eval/dialogpilot-500-v1
 ```
 
 校验器会检查 schema、manifest 数量、case/corpus checksum、重复 ID、retrieval relevant ID，以及 group_id 是否跨 dev/heldout。当前输出应对应 28 cases、6 corpus、dev 19、heldout 9；审核状态全是 provisional。
@@ -1761,7 +1761,7 @@ python -m evaluation.dataset data/eval/dialogpilot-v1
 逐条打开 `cases.jsonl`，先判断输入是否存在唯一合理期望；有歧义就改写或删除，不要强行给标签。然后核对 expected、风险 slice、source/license 和 group_id。不要手改 status/hash，用审核命令把 required metadata 与新 checksum 一起提交：
 
 ```bash
-python scripts/review_eval_dataset.py data/eval/dialogpilot-v1 \
+python scripts/review_eval_dataset.py data/eval/dialogpilot-500-v1 \
   --case-id intent-dev-negation-01 \
   --reviewer reviewer-a \
   --notes 'intent、歧义和 split 已核对' \
@@ -1795,7 +1795,7 @@ curl -X POST http://localhost:8000/eval/run \
   -H "Authorization: Bearer $DIALOGPILOT_ADMIN_TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{
-    "dataset_id": "dialogpilot-v1",
+    "dataset_id": "dialogpilot-500-v1",
     "split": "dev",
     "layers": ["intent", "routing"],
     "include_non_gold": true
@@ -1822,11 +1822,11 @@ Intent/routing 已能从注册集进入 `/eval/run`。Stateful 使用 `evaluatio
 ```bash
 # 正式口径：只选 human-reviewed gold
 python -m evaluation.benchmark \
-  data/eval/dialogpilot-v1 predictions.jsonl --split heldout
+  data/eval/dialogpilot-500-v1 predictions.jsonl --split heldout
 
 # 仅验证管线：纳入 provisional/auto-mapped
 python -m evaluation.benchmark \
-  data/eval/dialogpilot-v1 predictions.jsonl --split heldout --include-non-gold
+  data/eval/dialogpilot-500-v1 predictions.jsonl --split heldout --include-non-gold
 
 # Stateful 真实 fixture 执行与评分
 python -m evaluation.stateful_runner \

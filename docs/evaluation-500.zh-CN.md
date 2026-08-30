@@ -32,14 +32,17 @@ permalink: /evaluation-500/
 抗干扰四类 query。这样能分别暴露 BM25、向量召回、融合排序和否定干扰问题。
 
 Stateful 层严格一半测记忆、一半测 ReAct/工具安全。每条不只是自然语言，
-还包含结构化 `setup`、`action` 和布尔断言，可执行短会话归档、画像单调合并、
-跨用户隔离、混合召回、审批令牌、零副作用、trace、超时和发布脱敏等协议。
+还包含结构化 `setup`、`action` 和布尔断言。当前真实 fixture 覆盖显式会话归档、
+画像合并与 ID 区分、混合召回、宿主布尔审批、零副作用、trace、超时、Coverage
+Gate 和 verifier fail-closed。它尚未证明真实空闲检测、签名 `approval_token`、
+HTTP 公共响应投影或跨用户检索，因此不再用这些更强的名字包装现有结果。
 
 ## 为什么固定 400 / 100
 
-400 条 dev 用来调 Prompt、阈值、召回策略和模型分层；100 条 heldout 在配置
-冻结后只运行一次。每个语义 family 只能整体位于一侧，避免“同一句话换个说法”
-同时出现在调试集和考试集，造成指标虚高。
+最初设计是 400 条 dev 用来调 Prompt、阈值、召回策略和模型分层，100 条
+heldout 在配置冻结后只运行一次。当前 Stateful heldout 已经参与两次缺陷定位，
+所以它的 20 条只能作为 `consumed_regression_after_repair`，不能再证明泛化。
+恢复 verified closure 前必须由未看过修复的人另写新鲜用例并独立复核。
 
 ## 真正运行
 
@@ -59,10 +62,11 @@ curl -sS -X POST http://localhost:8000/eval/run \
   --predictions artifacts/eval/stateful-dev-predictions.jsonl \
   --report artifacts/eval/stateful-dev-report.json
 
-# 4. RAG producer 产出 predictions.jsonl 后确定性评分
-.venv/bin/python -m evaluation.benchmark \
-  data/eval/dialogpilot-500-v1 artifacts/eval/dev-predictions.jsonl \
-  --split dev --include-non-gold --layer retrieval --retrieval-k 5
+# 4. 在临时 embedded Chroma 中装载版本化 corpus，执行生产 KnowledgeBase
+.venv/bin/python -m evaluation.retrieval_runner \
+  data/eval/dialogpilot-500-v1 --split dev --top-k 5 \
+  --predictions artifacts/eval/retrieval-dev.predictions.jsonl \
+  --report artifacts/eval/retrieval-dev.report.json
 ```
 
 当前 180 条外部样本是 `auto_mapped`，320 条项目样本是 `provisional`。
@@ -70,24 +74,38 @@ curl -sS -X POST http://localhost:8000/eval/run \
 notes 后，才可以叫 gold heldout 结果。
 
 目前服务端可以直接运行 Intent 与 Routing。Stateful 的 100 条已经全部绑定
-真实 fixture：Dev 80/80、Heldout 20/20；执行器拒绝未注册 action 和无探针
-断言，不能把 expected 复制成 actual。Retrieval 仍缺隔离 collection loader，
-所以当前不能虚报“500 条已经全部实跑”。
+真实 fixture，当前机械回归为 Dev 80/80、已消费 Heldout 20/20。针对审查指出的
+7 条假阳性，Owner 变异测试会在 `search_long_term`、`_fallback_summary`、
+`finalize_conversation` 或 `ContextAssembler.assemble` 被破坏时强制失败。
 
-第一次 Stateful heldout 运行还发现了真实缺陷：不可信记忆中的 `<system>` 经
-HTML 转义后字符膨胀，旧预算算法会把整个高优先级 section 丢弃。修复后改为
-按最终渲染文本二分裁剪，再次运行 heldout 达到 20/20。
+Retrieval producer 现已接线：它把 25 篇 corpus 装入临时 embedded Chroma，调用
+生产 `KnowledgeBase` 的向量 + BM25 + RRF 路径并输出证据 ID。当前 Dev 80 条的
+真实基线是 Recall@5 0.9125、MRR 0.7504、nDCG@5 0.7914；这是 provisional
+开发集结果，不是生产准确率，Retrieval heldout 尚未运行。
+
+两次复核暴露的是同一个验收缺口。第一次发现 HTML 转义会扩大 section；第二次
+发现 section 分隔符未计费，且二次预算返还重复计算容量。现在预算唯一事实是
+最终拼接文本；历史确定后 section 上限严格等于剩余容量，强制当前轮次本身放不下
+时返回 `ContextBudgetExceededError`。CI 固定种子 3000 组组合测试覆盖描述属性、
+多 section、转义和历史；同种生成合同本地扩大到 20000 组，19405 组成功装配、
+595 组得到预期有类型拒绝，预算违规为 0。
+
+这套做法与 Anthropic 对 agent eval 中 task、trial、grader、transcript、outcome
+和 harness 的区分一致：确定性 grader 要检查权威 outcome 与实际 trace，不能只
+检查一个叫“通过”的字段。重复查看过的 heldout 也应降级为回归证据，而不是继续
+声称未见泛化（[Anthropic agent eval 指南](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents)、
+[holdout 污染研究](https://arxiv.org/abs/2407.01502)）。
 
 ## 面试追问
 
 **为什么不让 LLM Judge 判断所有层？**  
-Owner、task_id、证据 ID、跨用户隔离和副作用都有确定性真值。让另一个模型
+Owner、task_id、证据 ID 和副作用都有确定性真值。让另一个模型
 判断会引入方差，也会掩盖安全错误。LLM Judge 只适合回答质量等主观维度。
 
 **为什么 500 条不直接跑三个模型？**  
 数据覆盖与模型选型是两个正交维度。先用小型消融确认候选配置，再在 400 条
-dev 上分层比较；配置冻结后只跑一次 100 条 heldout，才能避免反复看考试答案。
+dev 上分层比较；配置冻结后只跑一次新鲜 heldout，才能避免反复看考试答案。
 
 **最重要的门禁是什么？**  
-不是平均分，而是 OOS、跨用户隔离、未审批工具零副作用、必需任务覆盖等关键
+不是平均分，而是 OOS、用户过滤、未审批工具零副作用、必需任务覆盖等关键
 切片必须单独过线。平均数不能抵消一次越权调用。

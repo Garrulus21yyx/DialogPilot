@@ -84,3 +84,64 @@ records observed facts, and produces scorer-compatible predictions.
   fail closed.
 - Repository gate: 123 tests passed; GitHub Actions CI and Pages deployment for
   `092eeb0` passed, and the public evaluation page exposes the updated runner.
+
+## Phase 3: convergence review after repeated reopening
+
+Status: in progress. Phase 2 implementation is complete, but verified closure
+was withdrawn after an independent review found a shared acceptance-gap pattern.
+The 20 previously named heldout Stateful cases are now regression cases because
+they were inspected and used during repair.
+
+### Causal model
+
+- `ContextAssembler` owns the final prompt budget, but `_fit_sections` accounted
+  individual rendered blocks rather than the exact joined representation. The
+  second allocation pass also returned both history slack and already-unused
+  section capacity, so the same tokens could be allocated twice.
+- The Stateful runner owns execution evidence, but its gate checked only that an
+  assertion key existed. Seven cases could therefore report a fact without
+  traversing the production method that owns that fact.
+- The documentation projected scenario names into stronger claims (idle timeout,
+  signed approval tokens, public-response projection, cross-user retrieval) than
+  the executable fixtures actually established.
+- The old heldout split and fixture-key checks were examples, not a proof of the
+  supported budget algebra or semantic execution path.
+
+### Positive target contracts
+
+1. For every accepted prompt input, mandatory tokens plus the exact rendered,
+   joined sections and retained history are at most `max_input_tokens`. If the
+   mandatory current turn cannot fit, assembly raises a typed budget error.
+2. Section separators, escaping and description attributes are charged at the
+   final representation boundary. History slack may be reassigned once, using
+   `available - used_history_tokens`, without duplicated capacity.
+3. Empty-query and empty-corpus cases execute `MemoryManager.search_long_term`;
+   fallback cases force `_summarize` through `_fallback_summary`; explicit close
+   cases claim only `finalize_conversation`; injection cases contain hostile data.
+4. Mutation tests must fail when any reviewed semantic Owner is bypassed. Seeded
+   generative tests must establish the prompt-budget invariant over varied
+   sections, descriptions, markup, history and limits.
+5. Pages, manifests and reports describe the existing heldout as consumed
+   regression evidence. A fresh heldout and Reviewer B remain separate gates and
+   cannot be self-attested by an author who has seen the cases and repairs.
+
+### Steps
+
+1. [completed] Repair prompt-budget ownership and add typed overflow behavior.
+2. [completed] Replace the seven false-positive fixture paths and add mutation tests.
+3. [completed] Regenerate the deterministic dataset and re-run all regression gates.
+4. [completed] Correct Pages/report scope, wire the isolated RAG producer and
+   publish the convergence evidence.
+5. [pending] Obtain fresh-context Reviewer B plus newly authored unseen cases
+   before restoring a verified-closed or human-gold status.
+
+### SOTA comparison and bounded non-goals
+
+Anthropic's 2026 agent-evaluation guidance separates tasks, trials, graders,
+transcripts, outcomes and harnesses, and recommends grading the authoritative
+outcome and relevant trace rather than trusting fluent output. Research on
+holdout contamination likewise treats repeatedly inspected evaluation examples
+as regression data, not unseen generalization evidence. This phase adopts those
+boundaries without adding a generalized event-sourcing system, a new agent
+framework, or fictitious signed-token/public-API guarantees that production does
+not implement.

@@ -28,7 +28,7 @@ title: DialogPilot 面经校准与追问手册
 | 长期记忆只检索摘要 | 检索 1200 字符/120 overlap 原始片段，摘要只是背景 metadata | **CHANGED** |
 | 知识库是 BM25 + 向量 + RRF | 这是长期记忆；知识 RAG 仍是 rewrite + Chroma 多路向量 + 去重 + LLM rerank | **CORRECTED** |
 | Agent 单次生成、无完整 Trace | Worker 内最多 4 步 ReAct，allowlist/宿主审批/脱敏 audit/TraceId | **CHANGED** |
-| 准确率 91.3%、综合分 0.89 | 当前有 11+5 smoke、28 条 provisional 分层 seed、6 篇 corpus 和 111 项回归测试，但仍无 human-reviewed gold | **UNPROVEN** |
+| 准确率 91.3%、综合分 0.89 | 当前有 500 条分层候选集、25 篇 corpus 和 137 项回归测试，但仍无 human-reviewed gold | **UNPROVEN** |
 | 完整 MCP Server / LangGraph | 是内部 ToolManager 与直接 Python 编排；没有远程 MCP Server，没用 LangGraph | **UNPROVEN** |
 
 ## 项目开场与完整链路
@@ -81,7 +81,7 @@ title: DialogPilot 面经校准与追问手册
 
 ### Q12：怎样测意图识别？
 
-当前有 Accuracy/Macro-F1、版本化 intent layer 和公开数据 adapter。内置 11 条仍只是 smoke，28 条项目 seed 还是 provisional；正式结果必须来自 human-reviewed、group-safe heldout，并报告 confusion matrix、每类 precision/recall/F1、置信度校准、拒识质量与复合/否定难例 slice。
+当前有 Accuracy/Macro-F1、版本化 intent layer 和公开数据 adapter。180 条外部意图是 `auto_mapped`，320 条项目合同是 `provisional`；正式结果必须来自 human-reviewed、新鲜 group-safe heldout，并报告 confusion matrix、每类 precision/recall/F1、置信度校准、拒识质量与复合/否定难例 slice。
 
 ## TaskPlan 与 Multi-Agent 编排
 
@@ -235,7 +235,7 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q48：91.3%、0.89 等旧数字怎么回答？
 
-**UNPROVEN。** 旧数字没对应数据版本、切分、运行产物和 commit，已移除。当前可证明的是 111 项回归测试、11+5 smoke、28 条 provisional seed、6 篇 corpus 和可运行 scorer；因为 gold 仍为 0，不能报项目准确率。审核并运行 heldout 后才报均值、方差、slice 和置信区间。
+**UNPROVEN。** 旧数字没对应数据版本、切分、运行产物和 commit，已移除。当前可证明的是 137 项回归测试、500 条分层候选集、25 篇 corpus、Stateful Owner fixture 和隔离 RAG producer；因为 gold 仍为 0，不能报项目准确率。独立审核并运行新鲜 heldout 后才报均值、方差、slice 和置信区间。
 
 ### Q49：多 LLM 调用怎么降延迟？
 
@@ -279,7 +279,7 @@ Trace 缺 OpenTelemetry exporter、持久存储、全链 span、采样与保留�
 
 ### Q57：“500 条数据从哪来”怎么答？
 
-不沿用旧说法。当前是 28 条 provisional 项目 seed，不是 500 条 gold。可以具体讲下一步：从脱敏工单分层抽样，双人标注+仲裁，按用户/时间/group_id 去重切分，保留无效输入与复合难例；公开数据 adapter 已完成，但不能把自动映射数量冒充人工项目标注。
+不沿用旧说法。当前正好有 500 条候选，但不是 500 条 gold：180 条 auto-mapped 外部压力样本、320 条 provisional 项目合同。下一步从脱敏工单分层抽样，双人标注+仲裁，按用户/时间/group_id 去重切分，保留无效输入与复合难例；不能把自动映射数量冒充人工项目标注。
 
 ### Q58：“91.3% 是高还是低”怎么答？
 
@@ -333,7 +333,7 @@ TaskPlan 已把人工交接指定给 `AgentType.ESCALATION`，却由 General 执
 
 ### Q69：现在仓库到底有哪些评测数据？
 
-三类必须分开：11 条 intent + 5 组 dialog 是内置 smoke；`dialogpilot-v1` 是 28 条 provisional 四层 seed + 6 篇 retrieval corpus；BANKING77、CLINC150 OOS、Bitext adapter 生成的是 auto-mapped external pressure set。当前 human-reviewed gold 是 0。
+三类必须分开：11 条 intent + 5 组 dialog 是内置 smoke；`dialogpilot-500-v1` 是 500 条四层候选集 + 25 篇 retrieval corpus；其中 BANKING77、CLINC150 OOS 部分是 auto-mapped external pressure，项目合同仍是 provisional。当前 human-reviewed gold 是 0。
 
 ### Q70：为什么公开数据不能直接算项目准确率？
 
@@ -361,7 +361,7 @@ Recall@K 证明相关证据进入候选，MRR 关注第一条 relevant 的位置
 
 ### Q76：这部分简历怎么写？
 
-> 利用版本化 JSONL、group-safe dev/heldout、checksum/provenance/review 门禁与确定性 grader，解决 smoke case 无法支撑路由、RAG、记忆和工具安全回归的问题；接入 BANKING77、CLINC150 OOS 与 opt-in Bitext 压力集，按 Accuracy/Macro-F1、Owner Exact、Recall@K/MRR/nDCG 和 assertion pass 分层归因，当前 28 条项目 seed 待人工审核，不虚构准确率。
+> 利用版本化 JSONL、group-safe dev/heldout、checksum/provenance/review 门禁与确定性 grader，解决 smoke case 无法支撑路由、RAG、记忆和工具安全回归的问题；构建 500 条四层候选集并接入隔离 RAG producer、Stateful Owner fixture，按 Accuracy/Macro-F1、Owner Exact、Recall@K/MRR/nDCG 和 assertion pass 分层归因；当前候选集待独立复核，不虚构生产准确率。
 
 ## DeepSeek 分层调用与模型选型
 
@@ -395,7 +395,7 @@ DeepSeek 的 Anthropic 兼容协议要求工具后续轮回传此前 thinking �
 
 ### Q84：这项改造怎样写 STAR？
 
-**S：** 九类调用共用一个模型，DeepSeek 默认 reasoning 让简单任务成本、延迟和结构化输出不可控。**T：** 在保持统一 Messages API 的同时，让每类调用可独立权衡质量。**A：** 实现按角色校验的 ModelPolicy，Flash/none 承担闭合高频任务，Pro/none 承担融合与质量门禁；显式 reasoning 强制最小完成预算，并补齐 health/eval 配置证据和 ReAct thinking 回传。**R：** 4 条 E2E pilot 均值约 28.4s → 13.3s，Verifier 解析 2/4 → 4/4；111 项回归测试通过。15 条 provisional 三档消融已完成，最终选择仍需 gold heldout 与重复运行确认。
+**S：** 九类调用共用一个模型，DeepSeek 默认 reasoning 让简单任务成本、延迟和结构化输出不可控。**T：** 在保持统一 Messages API 的同时，让每类调用可独立权衡质量。**A：** 实现按角色校验的 ModelPolicy，Flash/none 承担闭合高频任务，Pro/none 承担融合与质量门禁；显式 reasoning 强制最小完成预算，并补齐 health/eval 配置证据和 ReAct thinking 回传。**R：** 4 条 E2E pilot 均值约 28.4s → 13.3s，Verifier 解析 2/4 → 4/4；137 项回归测试通过。15 条 provisional 三档消融已完成，最终选择仍需 gold heldout 与重复运行确认。
 
 ### Q85：Flash/off、Flash/high、Pro/high 真跑后有什么区别？
 

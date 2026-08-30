@@ -20,6 +20,8 @@
 - 同一语义 family 的变体共享 `group_id`，只能整体进入 dev 或 heldout。
 - `manifest.json.expected_distribution` 由加载器强制校验；少一条、分错层或
   跨 split 都会失败。
+- Stateful 的 20 条 heldout 已用于定位和修复缺陷，现属于已消费回归集；
+  不能再当作未见泛化证据。新鲜 holdout 与独立 Reviewer B 仍是关闭门禁。
 
 ## 生成与校验
 
@@ -53,7 +55,7 @@ curl -sS -X POST http://localhost:8000/eval/run \
 `include_non_gold=true` 是因为当前数据尚未完成人工审核。报告必须注明
 `auto_mapped/provisional`，不能写成“项目 gold 准确率”。
 
-Retrieval 使用统一 prediction scorer；Stateful 已有独立真实 fixture 执行器。
+Retrieval 使用隔离 producer 和统一 scorer；Stateful 有独立真实 fixture 执行器。
 预测结构如下：
 
 ```json
@@ -68,6 +70,15 @@ Retrieval 使用统一 prediction scorer；Stateful 已有独立真实 fixture �
   --split dev --include-non-gold --retrieval-k 5
 ```
 
+Retrieval 的真实运行命令：
+
+```bash
+.venv/bin/python -m evaluation.retrieval_runner \
+  data/eval/dialogpilot-500-v1 --split dev --top-k 5 \
+  --predictions artifacts/eval/retrieval-dev.predictions.jsonl \
+  --report artifacts/eval/retrieval-dev.report.json
+```
+
 Stateful 的真实运行命令：
 
 ```bash
@@ -80,13 +91,15 @@ Stateful 的真实运行命令：
 执行器根据 `input.scenario.action` 查找注册 fixture，调用真实的 MemoryManager、
 HybridMemoryRetriever、ContextAssembler、MCPToolManager、ReAct、CoverageGate、
 Verifier 和 TicketService。fixture 不读取 expected 值；未注册 action、fixture
-异常或断言缺少实际探针都会直接失败。当前版本实跑 Dev 80/80、Heldout 20/20。
+异常或断言缺少实际探针都会直接失败。关键语义路径还有 Owner 变异测试。
+当前版本机械回归 Dev 80/80、已消费 Heldout 20/20。
 
-预测缺失不会缩小分母，而会直接失败。Retrieval 的自动运行器仍需把本目录
-`corpus.jsonl` 装入隔离的评测 collection；因此不能声称 RAG 100 条已经实跑。
+预测缺失不会缩小分母，而会直接失败。Retrieval Dev 80 条已通过临时 embedded
+Chroma 和生产 `KnowledgeBase` 实跑；Recall@5 0.9125、MRR 0.7504、nDCG@5
+0.7914。Retrieval heldout 未运行，整套数据也仍是 provisional。
 
 ## 评测与模型选型的关系
 
 500 条是“项目覆盖面”；Flash/off、Flash/reasoning、Pro/reasoning 是“模型配置”。
-正确顺序是先用 dev 对候选配置做逐层比较，再锁定配置只跑一次 heldout。
+正确顺序是先用 dev 对候选配置做逐层比较，再锁定配置只跑一次新鲜 heldout。
 不能把 500 条乘三个模型后，声称得到了三套不同项目数据。

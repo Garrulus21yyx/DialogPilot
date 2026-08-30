@@ -177,7 +177,7 @@ excludes them from project-gold metrics until human review.
 
 ```bash
 # Validate schema, checksums, references, and group-safe dev/heldout splits.
-python -m evaluation.dataset data/eval/dialogpilot-v1
+python -m evaluation.dataset data/eval/dialogpilot-500-v1
 
 # Execute real repository-owner fixtures for the stateful layer.
 python -m evaluation.stateful_runner data/eval/dialogpilot-500-v1 \
@@ -185,7 +185,7 @@ python -m evaluation.stateful_runner data/eval/dialogpilot-500-v1 \
   --report artifacts/eval/stateful-dev-report.json
 
 # After inspecting/correcting selected case inputs and expected labels:
-python scripts/review_eval_dataset.py data/eval/dialogpilot-v1 \
+python scripts/review_eval_dataset.py data/eval/dialogpilot-500-v1 \
   --case-id intent-dev-negation-01 \
   --reviewer reviewer-a --notes 'intent and ambiguity checked' \
   --confirm-human-review
@@ -195,10 +195,10 @@ python scripts/build_eval_dataset.py --source banking77 --max-per-label 20
 python scripts/build_eval_dataset.py --source clinc150-oos --max-per-label 20
 
 # Score a complete prediction JSONL for one split. Default: human-reviewed only.
-python -m evaluation.benchmark data/eval/dialogpilot-v1 predictions.jsonl --split heldout
+python -m evaluation.benchmark data/eval/dialogpilot-500-v1 predictions.jsonl --split heldout
 
 # Dry-run provisional/auto-mapped cases; do not publish this as project accuracy.
-python -m evaluation.benchmark data/eval/dialogpilot-v1 predictions.jsonl \
+python -m evaluation.benchmark data/eval/dialogpilot-500-v1 predictions.jsonl \
   --split heldout --include-non-gold
 ```
 
@@ -270,9 +270,9 @@ and generated caches are intentionally excluded. Never commit `.env`.
 - SQLite is suitable for a single application writer; a multi-replica deployment
   should migrate the same TicketService contract to PostgreSQL.
 - LLM verification adds latency and model cost to each published response.
-- The repository has a 28-case provisional layered seed plus 11 intent and five
-  dialog smoke cases, but no human-reviewed gold cases yet; none supports a
-  production accuracy claim.
+- The repository has a 500-case provisional layered suite but no human-reviewed
+  gold cases yet. Stateful heldout has been consumed as regression evidence;
+  none of these results supports a production accuracy claim.
 - No pre-generated quality baseline is committed; `/eval/run` creates one for
   the configured model and environment.
 - Local development expects Redis; Chroma must be explicitly `remote` or `embedded`.
