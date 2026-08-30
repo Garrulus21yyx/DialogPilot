@@ -37,6 +37,7 @@ POST /chat
   -> feed PASS / REJECT quality back to the exact producing Agent instances
   -> publish only PASS answers; escalate every other outcome
   -> persist each escalation as one idempotent human-support ticket
+  -> persist verifier, coverage, and uncertain tool-effect failures as deduplicated Bad Case candidates
   -> append the published turn with contiguous conversation-local sequence numbers
   -> extract source-linked, versioned facts in the background
   -> explicitly finalize short sessions by advancing their summary checkpoint
@@ -150,6 +151,10 @@ fails startup when the declared server is unavailable; `embedded` uses only
 | `GET` | `/tickets` | List tickets by user and/or status |
 | `GET` | `/tickets/{ticket_id}` | Read a ticket and its transition history |
 | `PATCH` | `/tickets/{ticket_id}/status` | Apply a legal ticket status transition |
+| `POST` | `/feedback` | Submit authenticated negative feedback as a provisional Bad Case candidate |
+| `GET` | `/bad-cases` | Admin queue filtered by lifecycle, stage, and severity |
+| `GET` | `/bad-cases/{badcase_id}` | Read a Bad Case and immutable transition audit |
+| `PATCH` | `/bad-cases/{badcase_id}/status` | Apply an evidence-gated Bad Case transition |
 
 Example chat request:
 
@@ -217,6 +222,14 @@ python -m evaluation.benchmark data/eval/dialogpilot-500-v1 predictions.jsonl --
 # Dry-run provisional/auto-mapped cases; do not publish this as project accuracy.
 python -m evaluation.benchmark data/eval/dialogpilot-500-v1 predictions.jsonl \
   --split heldout --include-non-gold
+
+# Export only a reproduced/fixed case into a versioned dev regression bundle.
+# The output stays provisional; this command cannot create Gold or heldout.
+python scripts/promote_badcase.py \
+  --database ./data/badcases/badcases.db \
+  --badcase-id BADCASE_ID \
+  --output ./data/eval/dialogpilot-badcase-regression-v1 \
+  --actor reviewer-a
 ```
 
 BANKING77 contributes overlapping customer-support intents and CLINC150
@@ -270,6 +283,22 @@ timestamp. Repeating the same status is an idempotent no-op; unsupported
 transitions return HTTP `409`. A stable chat `request_id` guarantees that
 network retries reuse the first handoff ticket.
 
+## Bad Case quality loop
+
+`BadCaseRegistry` separately owns production-quality incidents. Verifier
+REJECT/UNKNOWN, incomplete required-task coverage, and failed or uncertain tool
+effects are captured without blocking the current response. `/feedback` adds
+authenticated user reports. Inputs and evidence are bounded and redacted,
+users are stored as keyed HMAC pseudonyms, and unpublished candidates are never copied.
+
+The lifecycle is `candidate -> triaged -> reproduced -> fixing ->
+regression_pass -> verified -> closed`. Reproduction requires an Owner fixture,
+assertion list, and evidence SHA-256; a fixed commit is required before a
+regression can pass. Recurrence reopens a closed record. Exported cases always
+use the existing intent/routing/retrieval/stateful layers with `split=dev`,
+`status=provisional`, and `consumed_regression`; human Gold remains a separate,
+explicit review action.
+
 ## Verification contract
 
 The answer verifier owns the publication decision:
@@ -292,7 +321,7 @@ and generated caches are intentionally excluded. Never commit `.env`.
   signed `sub`, while admin and knowledge routes require scopes. Multi-tenant
   organization policy and external IdP/JWKS integration remain future work.
 - SQLite is suitable for a single application writer; a multi-replica deployment
-  should migrate the same TicketService contract to PostgreSQL.
+  should migrate the TicketService and BadCaseRegistry contracts to PostgreSQL.
 - LLM verification adds latency and model cost to each published response.
 - The repository has a 500-case provisional layered suite but no human-reviewed
   gold cases yet. Stateful heldout has been consumed as regression evidence;

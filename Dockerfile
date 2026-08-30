@@ -35,6 +35,9 @@ RUN mkdir -p /root/.cache/chroma/onnx_models/all-MiniLM-L6-v2 && \
 # ── 阶段 3：生产镜像 ──────────────────────────────────────────────────────────
 FROM base AS production
 
+ARG GIT_COMMIT_SHA=unknown
+ENV GIT_COMMIT_SHA=${GIT_COMMIT_SHA}
+
 # 非 root 用户运行。先创建用户，后续 COPY 直接带 owner，避免 chown -R 复制出额外大层。
 RUN useradd -m -u 1000 dialogpilot
 
@@ -48,9 +51,9 @@ COPY --from=dependencies --chown=dialogpilot:dialogpilot /root/.cache/chroma /ho
 COPY --chown=dialogpilot:dialogpilot . .
 
 # 创建必要目录，只调整运行期需要写入的目录权限，避免递归 chown 整个应用。
-RUN mkdir -p /app/data/chroma /app/data/tickets /app/data/customer-operations /app/data/eval-state /app/logs /app/config && \
+RUN mkdir -p /app/data/chroma /app/data/tickets /app/data/badcases /app/data/customer-operations /app/data/eval-state /app/logs /app/config && \
     chown dialogpilot:dialogpilot \
-        /app/data /app/data/chroma /app/data/tickets /app/data/customer-operations \
+        /app/data /app/data/chroma /app/data/tickets /app/data/badcases /app/data/customer-operations \
         /app/data/eval-state /app/logs /app/config
 USER dialogpilot
 
@@ -66,7 +69,7 @@ FROM dependencies AS development
 
 COPY . .
 
-RUN mkdir -p /app/data/chroma /app/data/tickets /app/data/customer-operations /app/logs /app/config /app/tests && \
+RUN mkdir -p /app/data/chroma /app/data/tickets /app/data/badcases /app/data/customer-operations /app/logs /app/config /app/tests && \
     chmod -R 777 /app/data /app/logs
 
 EXPOSE 8000

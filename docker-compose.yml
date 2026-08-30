@@ -72,6 +72,8 @@ services:
       context: .
       dockerfile: Dockerfile
       target: production
+      args:
+        GIT_COMMIT_SHA: ${GIT_COMMIT_SHA:-local}
     container_name: dialogpilot-app
     ports:
       - "${DIALOGPILOT_API_PORT:-18000}:8000"
@@ -91,6 +93,8 @@ services:
       - EVAL_BASELINE_PATH=/app/data/eval-state/baseline.json
       - DIALOGPILOT_SKILLS_DIR=/app/skills
       - TICKET_DB_PATH=/app/data/tickets/tickets.db
+      - BADCASE_DB_PATH=/app/data/badcases/badcases.db
+      - BADCASE_IDENTITY_SALT=${BADCASE_IDENTITY_SALT:-}
       - CUSTOMER_OPERATIONS_DB_PATH=/app/data/customer-operations/operations.db
       - CONTEXT_INPUT_BUDGET=${CONTEXT_INPUT_BUDGET:-12000}
       - CONTEXT_OUTPUT_RESERVE=${CONTEXT_OUTPUT_RESERVE:-1536}
@@ -141,6 +145,7 @@ services:
       - ./data/eval:/app/data/eval:ro
       - dialogpilot-eval-state:/app/data/eval-state
       - dialogpilot-tickets:/app/data/tickets
+      - dialogpilot-badcases:/app/data/badcases
       - dialogpilot-customer-operations:/app/data/customer-operations
       - ./skills:/app/skills:ro
       - dialogpilot-logs:/app/logs
@@ -197,6 +202,7 @@ volumes:
   prometheus-data:
   nginx-logs:
   dialogpilot-tickets:
+  dialogpilot-badcases:
   dialogpilot-customer-operations:
   dialogpilot-logs:
   dialogpilot-eval-state:

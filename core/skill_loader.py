@@ -5,6 +5,7 @@ Skill 是一段可热加载的业务能力说明，用来补充 Agent 的 system
 它适合放置企业话术、处理流程、合规边界、排障 SOP 等需要运营侧快速调整的规则。
 """
 import json
+import hashlib
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -61,6 +62,7 @@ class Skill:
             "agents": self.agents,
             "enabled": self.enabled,
             "content_chars": len(self.content),
+            "content_sha256": hashlib.sha256(self.content.encode("utf-8")).hexdigest(),
         }
 
 

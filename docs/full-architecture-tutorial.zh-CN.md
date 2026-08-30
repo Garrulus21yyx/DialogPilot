@@ -45,7 +45,7 @@ DialogPilot 是一个 Python 3.12 + FastAPI 的异步多 Agent 客服后端。�
 2. 合同：一次请求必须得到可诊断的路由结果；只有明确 `PASS` 的回答能发布；需要人工时同步尝试创建持久工单，并把建单成功或失败明确返回。
 3. 主链：Memory → Intent → RAG → Context → TaskPlan → Workers → Coverage → Synthesis → Verification → Ticket → Persist published messages。
 4. 六个最值得深挖的改动：单调事件与范围摘要 checkpoint、混合长期记忆、TaskPlan/CoverageGate、有界 ReAct 与权限、请求预算下的结果代数、校验质量反馈闭环。
-5. 证据：203 个测试，覆盖用户输入注入、身份/公开投影、归档幂等/CAS、显式存储模式、真实 Escalation Owner、路由基数、混合召回、工具权限、订单版本/退款幂等、Trace、分层模型策略和版本化评测合同。
+5. 证据：211 个测试，覆盖用户输入注入、Bad Case 闭环、身份/公开投影、归档幂等/CAS、显式存储模式、真实 Escalation Owner、路由基数、混合召回、工具权限、订单版本/退款幂等、Trace、分层模型策略和版本化评测合同。
 6. 边界：已有 JWT/scope 基线；多租户 IdP/ABAC 未完成，SQLite 只适合单应用写者，Trace/审计重启丢失，审批不能交互恢复；已有 500 条分层候选集，但尚无 human-reviewed gold，不能声称生产准确率。
 
 ## 1. 如何学习这个仓库
@@ -161,6 +161,7 @@ API 层负责**时序编排**，但不应该成为各领域事实的 Owner。例
 | 是否可发布 | `AnswerVerifier` | Candidate + context + plan/coverage/outcomes | API、质量反馈、Ticket | coverage 缺口本地 REJECT；其余只有 `PASS` 可发布 |
 | 选定发布文本 | `/chat` 发布边界 | Verifier/API | Memory、Client、Ticket | 只持久化选入 HTTP 响应的文本 |
 | 工单身份与状态 | `TicketService` | Chat/manual API | 人工流程/API | 幂等创建、合法迁移、同事务事件 |
+| Bad Case 身份与生命周期 | `BadCaseRegistry` | Verifier、Coverage、Tool audit、用户反馈 | 管理队列、评测导出、发布复盘 | 自动信号只建 candidate；有证据迁移；复发重开；不自动 Gold |
 | Agent 可用性/质量统计 | 每个 `AgentStats` | 执行结果、Verifier verdict | Router、Monitor | 可用性与回答质量分离 |
 | 离线质量报告 | `EndToEndEvaluator` | Cases + Judge + orchestration evidence | 开发者/发布决策 | 同时度量文本质量、Owner、覆盖、预算和 fan-out |
 
@@ -942,6 +943,17 @@ Monitor 每隔 N 秒：
 
 可以说：“建立了版本化四层评测合同、公开数据适配、split/checksum/review 门禁、Stateful Owner fixture 和隔离 RAG producer。”当前 **provisional** 结果为：Intent 170/180（Accuracy 0.9444）；Fast Routing 120/120 且 LLM 0 调用；Retrieval dev 经消融选择 BM25-only，Recall@5 0.9500、MRR 0.8575，已消费 regression 为 0.9500/0.8058；Stateful 80/80 dev、20/20 已消费回归。不能把这些写成生产准确率，因为仍无 human-reviewed gold 和新的独立封存 holdout。
 
+### 15.6 线上 Bad Case 怎样真正闭环
+
+[`services/badcase_registry.py`](../services/badcase_registry.py) 是 Bad Case 身份、去重、状态和审计唯一 Owner。`/chat` 在发布后把 Verifier `REJECT/UNKNOWN`、Coverage 缺口、工具失败和 `outcome_unknown` 投影为候选；`POST /feedback` 允许认证用户提交点踩或纠错。自动捕获失败不会改变当前响应，也不会复制未发布 candidate。输入、响应和 evidence 在持久化边界做长度限制、密钥/邮箱/电话/卡号脱敏，用户只保存由服务端 secret 生成的 HMAC pseudonym，避免裸 SHA 可枚举问题。
+
+```text
+CANDIDATE → TRIAGED → REPRODUCED → FIXING
+          → REGRESSION_PASS → VERIFIED → CLOSED
+```
+
+进入 `REPRODUCED` 必须同时给出根因 Owner、四层之一的 expected、fixture、assertions 与 evidence SHA-256；进入 `REGRESSION_PASS` 还必须给出修复 commit。相同 fingerprint 原子增加 occurrence，已关闭问题复发会回到 `TRIAGED`。[`scripts/promote_badcase.py`](../scripts/promote_badcase.py) 只允许导出 `REGRESSION_PASS` 及后续记录，输出固定为 `split=dev`、`review.status=provisional`、`consumed_regression`，所以看过并修过的问题不会被包装成 fresh heldout 或 Gold。这里的 evidence hash 是人工可追溯合同，不等价于密码学证明 fixture 必然调用 Owner；最终仍由真实 runner 与属性/变异测试提供执行证据。
+
 ## 16. API 面与典型调用
 
 | Method | Path | 作用 | 关键边界 |
@@ -959,6 +971,8 @@ Monitor 每隔 N 秒：
 | GET | `/eval/datasets` | 列出评测集 | JWT `admin`；显示版本、checksum、层/split/审核状态 |
 | POST | `/eval/run` | 运行评测 | JWT `admin`；注册集默认只跑 gold intent/routing |
 | POST/GET/PATCH | `/tickets...` | 工单 CRUD/迁移 | JWT `admin`；状态机仍由 TicketService 拥有 |
+| POST | `/feedback` | 用户点踩/纠错 | JWT `chat`；只创建 provisional candidate |
+| GET/PATCH | `/bad-cases...` | 队列、审计与证据迁移 | JWT `admin`；actor 取签名身份；非法跳转 409、证据不足 422 |
 
 示例：
 
@@ -1047,7 +1061,17 @@ python -m compileall -q agents api core evaluation mcp memory monitor services
 python -m pytest -q
 ```
 
-当前 203 个测试按不变量分组：
+当前 211 个测试按不变量分组：
+
+### Bad Case 闭环
+
+[`tests/test_badcase_closure.py`](../tests/test_badcase_closure.py)
+
+- observation 脱敏、用户哈希、fingerprint 去重与 occurrence 计数；
+- 非法跳转以及缺 Owner/expected/真实复现证据时 fail closed；
+- 已关闭问题复发原子重开并追加审计；
+- 导出固定为 dev/provisional/consumed regression，成功后才回写 case ID；
+- 用户身份来自 JWT Principal，Verifier/Coverage/未知工具副作用按责任层自动捕获。
 
 ### 用户输入 Prompt Injection
 
@@ -1311,7 +1335,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q2：你个人具体负责了什么？
 
-**推荐诚实答案：** 我接手的是一个已有客服原型。我负责仓库清理和 DialogPilot 命名迁移，并完成持久工单、Token/CAS 压缩、typed synthesis、TaskPlan/CoverageGate、混合记忆、用户输入注入 Guard、ReAct 权限/Trace、订单/退款/安全事件业务 Owner，以及 JWT/公开投影、短会话归档、显式 Chroma 模式、真实 Escalation Owner、分层模型策略和分层评测合同。当前有 203 个测试、CI、Docker 验证和架构文档。原型已有功能会按 commit 划清边界，不说成全部从零原创。
+**推荐诚实答案：** 我接手的是一个已有客服原型。我负责仓库清理和 DialogPilot 命名迁移，并完成持久工单、Token/CAS 压缩、typed synthesis、TaskPlan/CoverageGate、混合记忆、用户输入注入 Guard、Bad Case 状态闭环、ReAct 权限/Trace、订单/退款/安全事件业务 Owner，以及 JWT/公开投影、短会话归档、显式 Chroma 模式、真实 Escalation Owner、分层模型策略和分层评测合同。当前有 211 个测试、CI、Docker 验证和架构文档。原型已有功能会按 commit 划清边界，不说成全部从零原创。
 
 **追问：去掉你的改动还剩什么？** 仍有基础 FastAPI、三路意图、Redis/Chroma 记忆、RAG、领域 Agent、Skill、监控和评测原型；会失去真实工单闭环、Token/并发压缩不变量、TaskPlan/覆盖门禁、有类型并行结果、质量反馈、混合召回、工具权限/Trace 和 Worker ReAct。
 

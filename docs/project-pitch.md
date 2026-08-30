@@ -13,8 +13,10 @@ required task has a closed outcome before a typed result synthesizer preserves
 useful partial evidence and detects conflicts. A verifier then allows only explicitly passed
 answers to be published; failures are
 escalated deterministically into an idempotent SQLite-backed human ticket with
-a typed lifecycle and audit history. Prometheus monitoring and LLM-as-Judge
-evaluation close the online and offline feedback loops.
+a typed lifecycle and audit history. Verifier, Coverage, uncertain tool effects,
+and authenticated user feedback enter a separate deduplicated Bad Case state
+machine; reproduced fixes export only as provisional dev regressions. Prometheus
+monitoring and layered evaluation close the online and offline feedback loops.
 
 The HTTP boundary derives identity from a verified JWT Principal rather than a
 caller-supplied user ID. A dedicated, tool-free escalation worker prepares
@@ -102,10 +104,20 @@ create duplicate tickets. SQLite keeps the portfolio deployment simple while
 the contract is narrow enough to migrate to PostgreSQL when horizontal writes
 are required.
 
+### Why is Bad Case state separate from tickets and Trace?
+
+Tickets own customer handoff work and process-local Trace owns diagnostics;
+neither owns whether an engineering defect was reproduced, fixed, or seen again.
+`BadCaseRegistry` persists redacted observations, deduplicates recurring
+symptoms, requires Owner/expected/fixture evidence before reproduction, requires
+a fix commit before regression pass, and reopens closed defects on recurrence.
+The exporter always marks observed-and-fixed cases as consumed dev regressions;
+it cannot manufacture fresh heldout or human Gold.
+
 ## Honest measurement language
 
 Use results from `/eval/run` only with the dataset size, model, date, and runtime
-configuration. The repository now has a 28-case provisional layered seed, six
+configuration. The repository now has a 500-case provisional layered suite, 25
 retrieval documents, public-data adapters and deterministic layer metrics, but
 no human-reviewed gold cases yet. Built-in 11+5 cases remain smoke tests; none
 of these artifacts establishes production accuracy or latency until review and

@@ -4,6 +4,8 @@ DialogPilot 智能客服系统 — FastAPI 入口
 所有核心组件在 lifespan 中初始化，通过环境变量配置。
 """
 import asyncio
+import hashlib
+import json
 import logging
 import os
 import pathlib
@@ -32,6 +34,15 @@ from services.ticket_service import (
     TicketPriority,
     TicketService,
     TicketStatus,
+)
+from services.badcase_registry import (
+    BadCaseContractError,
+    BadCaseNotFoundError,
+    BadCaseRegistry,
+    BadCaseSeverity,
+    BadCaseStage,
+    BadCaseStatus,
+    BadCaseTransitionError,
 )
 from memory.context import ContextAssembler, ContextSection
 from core.tracing import TraceRecorder, current_trace_id, trace_scope
@@ -70,6 +81,7 @@ _evaluator    = None
 _skill_manager = None
 _answer_verifier = None
 _ticket_service = None
+_badcase_registry = None
 _customer_operations = None
 _context_assembler = None
 _authenticator = None
@@ -123,7 +135,7 @@ def _anthropic_cfg() -> Dict[str, Any]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """按依赖顺序创建所有组件，并在退出时释放后台任务和连接。"""
-    global _orchestrator, _memory, _knowledge_base, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _customer_operations, _context_assembler, _authenticator, _model_policy
+    global _orchestrator, _memory, _knowledge_base, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy
 
     print(BANNER, flush=True)
 
@@ -188,6 +200,13 @@ async def lifespan(app: FastAPI):
             "TICKET_DB_PATH",
             str(pathlib.Path(_ROOT) / "data" / "tickets" / "tickets.db"),
         )
+    )
+    _badcase_registry = BadCaseRegistry(
+        os.getenv(
+            "BADCASE_DB_PATH",
+            str(pathlib.Path(_ROOT) / "data" / "badcases" / "badcases.db"),
+        ),
+        identity_salt=os.getenv("BADCASE_IDENTITY_SALT") or os.getenv("AUTH_JWT_SECRET", ""),
     )
     _customer_operations = CustomerOperationsService(
         os.getenv(
@@ -442,6 +461,31 @@ class TicketStatusUpdate(BaseModel):
     assignee: Optional[str] = Field(default=None, max_length=200)
 
 
+class BadCaseFeedbackRequest(BaseModel):
+    """认证用户提交的负反馈；内容只作为待审核 observation。"""
+    request_id: str = Field(min_length=1, max_length=200)
+    trace_id: str = Field(default="", max_length=128)
+    category: Literal[
+        "incorrect", "incomplete", "unsafe", "wrong_route",
+        "bad_retrieval", "security_false_positive", "other",
+    ]
+    message: str = Field(default="", max_length=10000)
+    published_response: str = Field(default="", max_length=12000)
+    correction: str = Field(default="", max_length=5000)
+
+
+class BadCaseTransitionRequest(BaseModel):
+    """管理员请求状态迁移；证据充分性仍由 Registry 强制。"""
+    status: BadCaseStatus
+    note: str = Field(default="", max_length=1000)
+    root_cause: Optional[str] = Field(default=None, max_length=4000)
+    owner_module: Optional[str] = Field(default=None, max_length=240)
+    eval_layer: Optional[Literal["intent", "routing", "retrieval", "stateful"]] = None
+    expected_behavior: Optional[Dict[str, Any]] = None
+    reproduction: Optional[Dict[str, Any]] = None
+    fixed_by_commit: Optional[str] = Field(default=None, max_length=80)
+
+
 class ConversationFinalizeResponse(BaseModel):
     """会话显式结束后的幂等归档结果。"""
     conv_id: str
@@ -467,6 +511,7 @@ async def health():
         "storage": storage,
         "model_policy": _model_policy.to_dict() if _model_policy is not None else None,
         "input_security": _input_security_guard.get_stats(),
+        "badcases": _badcase_registry.stats() if _badcase_registry is not None else {},
     }
 
 
@@ -569,6 +614,106 @@ def _publish_candidate(candidate: str, verification: VerificationResult) -> str:
     if verification.publishable:
         return candidate
     return "当前回答未通过可信度校验，已转交人工进一步确认。"
+
+
+def _badcase_versions() -> Dict[str, Any]:
+    """生成不含密钥的复现版本投影。"""
+    raw_skill_rows = (_skill_manager.summary().get("skills") or []) if _skill_manager else []
+    skill_rows = [
+        {key: value for key, value in row.items() if key != "path"}
+        for row in raw_skill_rows
+    ]
+    skill_sha = hashlib.sha256(
+        json.dumps(skill_rows, ensure_ascii=False, sort_keys=True).encode("utf-8")
+    ).hexdigest()
+    return {
+        "commit_sha": os.getenv("GIT_COMMIT_SHA", "unknown")[:80],
+        "model_policy": _model_policy.to_dict() if _model_policy is not None else {},
+        "skill_registry_sha256": skill_sha,
+        "knowledge": _knowledge_base.storage_backend if _knowledge_base is not None else {},
+    }
+
+
+async def _observe_badcase(**observation: Any) -> None:
+    """自动捕获不得改变主请求结果；失败只进入服务日志。"""
+    if _badcase_registry is None:
+        return
+    try:
+        await asyncio.to_thread(
+            _badcase_registry.observe,
+            versions=_badcase_versions(),
+            **observation,
+        )
+    except Exception:
+        logger.exception(
+            "Bad Case observation 持久化失败 trace_id=%s symptom=%s",
+            current_trace_id(), observation.get("symptom_code", "unknown"),
+        )
+
+
+async def _capture_chat_badcases(
+    *,
+    req: ChatRequest,
+    user_id: str,
+    request_id: str,
+    result: Any,
+    verification: VerificationResult,
+    published_response: str,
+    tool_audit: List[Dict[str, Any]],
+) -> None:
+    """把发布、Coverage 与工具终态投影为去重候选，不复制未发布 candidate。"""
+    common = {
+        "user_id": user_id,
+        "sanitized_input": req.message,
+        "trace_id": current_trace_id(),
+        "request_id": request_id,
+        "published_response": published_response,
+    }
+    if verification.status is not VerificationStatus.PASS:
+        await _observe_badcase(
+            **common,
+            source="verifier",
+            stage=BadCaseStage.VERIFICATION,
+            severity=BadCaseSeverity.P1,
+            symptom_code=f"verification_{verification.status.value}",
+            evidence={
+                "reason_code": verification.reason_code.value,
+                "grounded": verification.grounded,
+                "need_escalation": verification.need_escalation,
+                "intent": result.intent.value if result.intent else "other",
+            },
+        )
+    if not bool(result.coverage.get("complete", False)):
+        await _observe_badcase(
+            **common,
+            source="coverage_gate",
+            stage=BadCaseStage.COVERAGE,
+            severity=BadCaseSeverity.P1,
+            symptom_code="required_task_coverage_incomplete",
+            evidence={"coverage": result.coverage, "task_plan": result.task_plan},
+        )
+    for record in tool_audit:
+        status = str(record.get("status") or "unknown")
+        effect_status = str(record.get("effect_status") or "none")
+        if status == "success" and effect_status != "outcome_unknown":
+            continue
+        severity = BadCaseSeverity.P0 if effect_status == "outcome_unknown" else BadCaseSeverity.P1
+        await _observe_badcase(
+            **common,
+            source="tool_audit",
+            stage=BadCaseStage.TOOL_POLICY,
+            severity=severity,
+            symptom_code=f"tool_{record.get('tool_name', 'unknown')}_{status}_{effect_status}",
+            evidence={
+                "tool_name": record.get("tool_name"),
+                "status": status,
+                "effect_status": effect_status,
+                "risk": record.get("risk"),
+                "read_only": record.get("read_only"),
+                "approved": record.get("approved"),
+                "params_hash": record.get("params_hash"),
+            },
+        )
 
 
 @app.post("/chat", response_model=ChatResponse)
@@ -693,6 +838,21 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
                 "或直接联系人工客服。"
             )
 
+    tool_audit = [
+        record.to_dict()
+        for record in _tool_manager.audit_records(trace_id=current_trace_id())
+    ] if _tool_manager else []
+    # 质量事实先于会话持久化保存；Memory 故障不能抹掉已经发生的发布失败。
+    await _capture_chat_badcases(
+        req=req,
+        user_id=user_id,
+        request_id=request_id,
+        result=result,
+        verification=verification,
+        published_response=response_text,
+        tool_audit=tool_audit,
+    )
+
     # 6. 同一轮次一次追加连续 seq，压缩只会在完整轮次落地后触发。
     persisted_messages = await _memory.add_messages(user_id, conv_id, [
         (MsgRole.USER, req.message, {"request_id": request_id}),
@@ -722,10 +882,7 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
         task_plan=result.task_plan,
         coverage=result.coverage,
         execution_budget=result.execution_budget,
-        tool_audit=[
-            record.to_dict()
-            for record in _tool_manager.audit_records(trace_id=current_trace_id())
-        ] if _tool_manager else [],
+        tool_audit=tool_audit,
         memory_retrieval=[{
             "memory_id": hit.memory_id,
             "score": round(hit.score, 8),
@@ -859,6 +1016,119 @@ async def update_ticket_status(
                 "target": exc.target.value,
             },
         ) from exc
+
+
+@app.post("/feedback", tags=["质量闭环"])
+async def submit_badcase_feedback(
+    body: BadCaseFeedbackRequest,
+    principal: Principal = Depends(_chat_principal),
+):
+    """用户点踩/纠错只创建待审核 observation，不能自行定义 Gold。"""
+    if _badcase_registry is None:
+        raise HTTPException(503, "Bad Case Registry 未就绪")
+    stage_by_category = {
+        "wrong_route": BadCaseStage.ROUTING,
+        "bad_retrieval": BadCaseStage.RETRIEVAL,
+        "security_false_positive": BadCaseStage.INPUT_SECURITY,
+    }
+    stage = stage_by_category.get(body.category, BadCaseStage.VERIFICATION)
+    try:
+        case, created = await asyncio.to_thread(
+            _badcase_registry.observe,
+            source="user_feedback",
+            stage=stage,
+            severity=BadCaseSeverity.P1 if body.category == "unsafe" else BadCaseSeverity.P2,
+            symptom_code=f"user_feedback_{body.category}",
+            user_id=principal.subject,
+            sanitized_input=body.message or f"[request:{body.request_id}]",
+            trace_id=body.trace_id,
+            request_id=body.request_id,
+            published_response=body.published_response,
+            evidence={"category": body.category, "correction": body.correction},
+            versions=_badcase_versions(),
+        )
+        return {
+            "created": created,
+            "badcase_id": case.badcase_id,
+            "status": case.status.value,
+            "occurrence_count": case.occurrence_count,
+        }
+    except BadCaseContractError as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+
+@app.get("/bad-cases", tags=["质量闭环"])
+async def list_badcases(
+    status: Optional[BadCaseStatus] = None,
+    stage: Optional[BadCaseStage] = None,
+    severity: Optional[BadCaseSeverity] = None,
+    limit: int = Query(default=50, ge=1, le=200),
+    _principal: Principal = Depends(_admin_principal),
+):
+    """管理员读取按生命周期和责任层筛选的 Bad Case 队列。"""
+    if _badcase_registry is None:
+        raise HTTPException(503, "Bad Case Registry 未就绪")
+    cases = await asyncio.to_thread(
+        _badcase_registry.list,
+        status=status,
+        stage=stage,
+        severity=severity,
+        limit=limit,
+    )
+    return {"bad_cases": [case.to_dict() for case in cases], "count": len(cases)}
+
+
+@app.get("/bad-cases/{badcase_id}", tags=["质量闭环"])
+async def get_badcase(
+    badcase_id: str,
+    _principal: Principal = Depends(_admin_principal),
+):
+    """返回当前事实及不可变迁移审计。"""
+    if _badcase_registry is None:
+        raise HTTPException(503, "Bad Case Registry 未就绪")
+    try:
+        return await asyncio.to_thread(_badcase_registry.get_view, badcase_id)
+    except BadCaseNotFoundError as exc:
+        raise HTTPException(404, str(exc)) from exc
+
+
+@app.patch("/bad-cases/{badcase_id}/status", tags=["质量闭环"])
+async def transition_badcase(
+    badcase_id: str,
+    body: BadCaseTransitionRequest,
+    principal: Principal = Depends(_admin_principal),
+):
+    """迁移闭合状态；actor 永远来自签名身份而非请求正文。"""
+    if _badcase_registry is None:
+        raise HTTPException(503, "Bad Case Registry 未就绪")
+    try:
+        case = await asyncio.to_thread(
+            _badcase_registry.transition,
+            badcase_id,
+            body.status,
+            actor=principal.subject,
+            note=body.note,
+            root_cause=body.root_cause,
+            owner_module=body.owner_module,
+            eval_layer=body.eval_layer,
+            expected_behavior=body.expected_behavior,
+            reproduction=body.reproduction,
+            fixed_by_commit=body.fixed_by_commit,
+        )
+        return case.to_dict()
+    except BadCaseNotFoundError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except BadCaseTransitionError as exc:
+        raise HTTPException(409, {
+            "error": "invalid_badcase_transition",
+            "current": exc.current.value,
+            "target": exc.target.value,
+        }) from exc
+    except BadCaseContractError as exc:
+        raise HTTPException(422, {
+            "error": "badcase_evidence_incomplete",
+            "message": str(exc),
+        }) from exc
 
 
 async def _build_knowledge_context(message: str, intent=None, top_k: int = 3) -> tuple[str, bool]:

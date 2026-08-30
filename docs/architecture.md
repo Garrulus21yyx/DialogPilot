@@ -24,6 +24,7 @@ prompt chain.
 | Dynamic rules | `core/skill_loader.py` | Request-scoped skill prompt blocks |
 | Publication safety | `services/answer_verifier.py` | PASS, REJECT, or UNKNOWN |
 | Human handoff | `services/ticket_service.py` | Ticket identity, state, idempotency, and event history |
+| Bad Case lifecycle | `services/badcase_registry.py` | Deduplicated observation, evidence-gated state, recurrence, and audit history |
 | Online health | `monitor/performance_monitor.py` | Alerts and routing penalties |
 | Evaluation data | `evaluation/dataset.py` | Versioned cases, provenance, review state, checksums and split integrity |
 | Offline quality | `evaluation/evaluator.py`, `evaluation/benchmark.py` | Runtime intent/routing reports and deterministic layered prediction scores |
@@ -40,9 +41,10 @@ prompt chain.
 7. Synthesize one candidate and verify coverage, grounding, completeness, and safety before publication.
 8. Attribute a supported verification verdict to the exact candidate producers.
 9. If escalation is required, create or reuse one idempotent persistent ticket.
-10. Persist only the answer that was actually published.
-11. Extract bounded, source-linked fact operations asynchronously after persistence.
-12. When the client closes a conversation, idempotently archive every uncovered
+10. Capture verifier, coverage, and uncertain tool-effect failures as provisional Bad Case observations.
+11. Persist only the answer that was actually published.
+12. Extract bounded, source-linked fact operations asynchronously after persistence.
+13. When the client closes a conversation, idempotently archive every uncovered
     raw event and advance the range checkpoint without deleting the event log.
 
 This ordering prevents the memory store from claiming that an unverified model
@@ -152,11 +154,23 @@ The idempotency fingerprint covers the stable client operation—not generated
 LLM wording—so a retry can safely reuse the first ticket even when model output
 is nondeterministic.
 
+## Bad Case state algebra
+
+`BadCaseRegistry` owns a separate closed lifecycle:
+`CANDIDATE -> TRIAGED -> REPRODUCED -> FIXING -> REGRESSION_PASS -> VERIFIED -> CLOSED`.
+Candidate observations may also become duplicate, not-a-bug, product-decision,
+or privacy-rejected terminal records. Reproduction requires typed eval-layer
+expectations plus an Owner fixture/evidence hash; regression pass requires the
+fix commit. A matching observation after closure atomically increments the
+occurrence count and reopens the record to triaged. Export is always a dev,
+provisional, consumed regression; neither runtime nor exporter can declare Gold
+or fresh heldout.
+
 ## Extension points
 
 - Add an Agent by defining its prompt and registering it in the orchestrator pool.
 - Add a Tool by registering a typed `Tool` in the manager.
 - Add business behavior with a `skills/<name>/SKILL.md` file.
 - Replace model providers through the Anthropic-compatible configuration boundary.
-- Replace SQLite with PostgreSQL behind the same TicketService contract for
+- Replace SQLite with PostgreSQL behind the TicketService and BadCaseRegistry contracts for
   multi-replica writes.
