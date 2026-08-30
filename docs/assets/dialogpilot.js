@@ -43,7 +43,7 @@
     meta.className = "dp-hero-meta";
     const metaLabels = mode === "interview"
       ? ["85 evidence-checked questions", "current-code answers", "unsupported claims flagged", "STAR + follow-up drills"]
-      : ["29 numbered chapters", "85 interview drills", "111 regression tests", "4-layer eval contract"];
+      : ["29 numbered chapters", "85 interview drills", "211 regression tests", "4-layer eval contract"];
     metaLabels.forEach(function (label) {
       const item = document.createElement("span");
       item.textContent = label;
@@ -175,6 +175,216 @@
     });
   }
 
+  // 为 Mermaid SVG 和正文图片提供统一的矢量查看器；不移动原节点，避免破坏正文布局。
+  function setupDiagramViewer(content) {
+    const viewer = document.createElement("div");
+    viewer.className = "dp-diagram-viewer";
+    viewer.hidden = true;
+    viewer.setAttribute("role", "dialog");
+    viewer.setAttribute("aria-modal", "true");
+    viewer.setAttribute("aria-labelledby", "dp-viewer-title");
+    viewer.innerHTML = [
+      '<div class="dp-viewer-shell">',
+      '  <header class="dp-viewer-bar">',
+      '    <div><span>BLUEPRINT INSPECTOR</span><strong id="dp-viewer-title">Architecture diagram</strong></div>',
+      '    <div class="dp-viewer-controls" aria-label="图像缩放控制">',
+      '      <button type="button" data-action="out" aria-label="缩小">−</button>',
+      '      <button type="button" data-action="reset" class="dp-viewer-scale" aria-label="恢复原始缩放">100%</button>',
+      '      <button type="button" data-action="in" aria-label="放大">＋</button>',
+      '      <button type="button" data-action="close" class="dp-viewer-close" aria-label="关闭大图">×</button>',
+      '    </div>',
+      '  </header>',
+      '  <div class="dp-viewer-canvas">',
+      '    <img alt="" draggable="false">',
+      '  </div>',
+      '  <footer>滚轮或双指缩放 · 放大后拖拽查看 · Esc 关闭</footer>',
+      '</div>'
+    ].join("");
+    document.body.appendChild(viewer);
+
+    const canvas = viewer.querySelector(".dp-viewer-canvas");
+    const image = canvas.querySelector("img");
+    const title = viewer.querySelector("#dp-viewer-title");
+    const scaleLabel = viewer.querySelector(".dp-viewer-scale");
+    const closeButton = viewer.querySelector('[data-action="close"]');
+    let scale = 1;
+    let offsetX = 0;
+    let offsetY = 0;
+    let objectUrl = "";
+    let previousFocus = null;
+    let dragging = false;
+    let dragStart = null;
+    const pointers = new Map();
+    let pinchStart = null;
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function updateTransform() {
+      if (scale <= 1) {
+        offsetX = 0;
+        offsetY = 0;
+      }
+      image.style.transform = "translate(" + offsetX + "px," + offsetY + "px) scale(" + scale + ")";
+      scaleLabel.textContent = Math.round(scale * 100) + "%";
+      canvas.classList.toggle("can-pan", scale > 1);
+      canvas.classList.toggle("is-panning", dragging);
+    }
+
+    function setScale(nextScale) {
+      scale = clamp(nextScale, 0.75, 4);
+      updateTransform();
+    }
+
+    function resetView() {
+      scale = 1;
+      offsetX = 0;
+      offsetY = 0;
+      updateTransform();
+    }
+
+    function sourceFor(target) {
+      if (target.tagName.toLowerCase() === "svg") {
+        const clone = target.cloneNode(true);
+        clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+        const blob = new Blob([new XMLSerializer().serializeToString(clone)], { type: "image/svg+xml;charset=utf-8" });
+        objectUrl = URL.createObjectURL(blob);
+        return objectUrl;
+      }
+      return target.currentSrc || target.src;
+    }
+
+    function openViewer(target) {
+      previousFocus = document.activeElement;
+      const panel = target.closest(".mermaid-panel");
+      const caption = panel && panel.querySelector(".diagram-label");
+      const label = target.getAttribute("alt") || textOf(caption) || "Architecture diagram";
+      title.textContent = label;
+      image.alt = label + " 放大视图";
+      image.src = sourceFor(target);
+      resetView();
+      viewer.hidden = false;
+      document.body.classList.add("dp-viewer-open");
+      closeButton.focus();
+    }
+
+    function closeViewer() {
+      if (viewer.hidden) return;
+      viewer.hidden = true;
+      document.body.classList.remove("dp-viewer-open");
+      image.removeAttribute("src");
+      pointers.clear();
+      pinchStart = null;
+      dragging = false;
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+        objectUrl = "";
+      }
+      if (previousFocus && typeof previousFocus.focus === "function") previousFocus.focus();
+    }
+
+    function decorate(target) {
+      if (target.dataset.dpZoomReady === "true") return;
+      target.dataset.dpZoomReady = "true";
+      target.classList.add("dp-zoomable-media");
+      target.tabIndex = 0;
+      target.setAttribute("role", "button");
+      target.setAttribute("aria-label", (target.getAttribute("alt") || "图表") + "，点击放大");
+      target.addEventListener("click", function () { openViewer(target); });
+      target.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openViewer(target);
+        }
+      });
+
+      const panel = target.closest(".mermaid-panel");
+      if (panel && !panel.querySelector(".diagram-zoom-hint")) {
+        panel.classList.add("is-zoomable");
+        const hint = document.createElement("button");
+        hint.type = "button";
+        hint.className = "diagram-zoom-hint";
+        hint.textContent = "点击放大 ↗";
+        hint.addEventListener("click", function () { openViewer(target); });
+        panel.appendChild(hint);
+      }
+    }
+
+    function discoverMedia() {
+      content.querySelectorAll(".mermaid-panel svg, img").forEach(decorate);
+    }
+
+    new MutationObserver(discoverMedia).observe(content, { childList: true, subtree: true });
+    discoverMedia();
+
+    viewer.querySelector(".dp-viewer-controls").addEventListener("click", function (event) {
+      const action = event.target.closest("button") && event.target.closest("button").dataset.action;
+      if (action === "in") setScale(scale + 0.25);
+      if (action === "out") setScale(scale - 0.25);
+      if (action === "reset") resetView();
+      if (action === "close") closeViewer();
+    });
+    viewer.addEventListener("click", function (event) {
+      if (event.target === viewer) closeViewer();
+    });
+    canvas.addEventListener("dblclick", function () {
+      if (scale > 1) resetView();
+      else setScale(2);
+    });
+    canvas.addEventListener("wheel", function (event) {
+      event.preventDefault();
+      setScale(scale + (event.deltaY < 0 ? 0.2 : -0.2));
+    }, { passive: false });
+    canvas.addEventListener("pointerdown", function (event) {
+      pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      canvas.setPointerCapture(event.pointerId);
+      if (pointers.size === 1 && scale > 1) {
+        dragging = true;
+        dragStart = { x: event.clientX - offsetX, y: event.clientY - offsetY };
+      } else if (pointers.size === 2) {
+        const points = Array.from(pointers.values());
+        pinchStart = {
+          distance: Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y),
+          scale: scale
+        };
+        dragging = false;
+      }
+      updateTransform();
+    });
+    canvas.addEventListener("pointermove", function (event) {
+      if (!pointers.has(event.pointerId)) return;
+      pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (pointers.size === 2 && pinchStart) {
+        const points = Array.from(pointers.values());
+        const distance = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
+        setScale(pinchStart.scale * distance / Math.max(1, pinchStart.distance));
+      } else if (dragging && dragStart) {
+        offsetX = event.clientX - dragStart.x;
+        offsetY = event.clientY - dragStart.y;
+        updateTransform();
+      }
+    });
+    function releasePointer(event) {
+      pointers.delete(event.pointerId);
+      if (pointers.size < 2) pinchStart = null;
+      if (!pointers.size) {
+        dragging = false;
+        dragStart = null;
+      }
+      updateTransform();
+    }
+    canvas.addEventListener("pointerup", releasePointer);
+    canvas.addEventListener("pointercancel", releasePointer);
+    document.addEventListener("keydown", function (event) {
+      if (viewer.hidden) return;
+      if (event.key === "Escape") closeViewer();
+      if (event.key === "+" || event.key === "=") setScale(scale + 0.25);
+      if (event.key === "-") setScale(scale - 0.25);
+      if (event.key === "0") resetView();
+    });
+  }
+
   // Pages 与源码目录层级不同，将相对源码链接改写为私人仓库浏览链接。
   function rewriteRepositoryLinks() {
     document.querySelectorAll('a[href^="../"]').forEach(function (link) {
@@ -268,6 +478,7 @@
     root.appendChild(shell);
 
     rewriteRepositoryLinks();
+    setupDiagramViewer(content);
     renderMermaid();
     setupScrollState(railData.headings, railData.links);
   }

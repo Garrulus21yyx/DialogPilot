@@ -734,6 +734,7 @@ pre code {
 
 /* Mermaid SVG 与普通代码块使用不同容器，强调“关系图”而非源码。 */
 .mermaid-panel {
+  position: relative;
   margin: 20px 0;
   padding: 18px;
   overflow: auto;
@@ -766,6 +767,192 @@ pre code {
   max-width: 100%;
   height: auto;
   margin: 0 auto;
+}
+
+/* 图表查看入口与全屏“蓝图检查视窗”。 */
+.dp-zoomable-media {
+  cursor: zoom-in;
+}
+
+.dp-zoomable-media:focus-visible {
+  outline: 3px solid #e3a658;
+  outline-offset: 5px;
+}
+
+.diagram-zoom-hint {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  padding: 6px 10px;
+  border: 1px solid #b8cede;
+  border-radius: 999px;
+  color: #285b7e;
+  background: rgba(247, 252, 255, 0.94);
+  box-shadow: 0 5px 16px rgba(31, 65, 89, 0.1);
+  cursor: zoom-in;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+}
+
+.diagram-zoom-hint:hover {
+  border-color: #79a7c8;
+  background: #ffffff;
+}
+
+body.dp-viewer-open {
+  overflow: hidden;
+}
+
+.dp-diagram-viewer {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  padding: clamp(10px, 3vw, 34px);
+  place-items: center;
+  background: rgba(7, 16, 24, 0.86);
+  backdrop-filter: blur(12px);
+}
+
+.dp-diagram-viewer[hidden] {
+  display: none;
+}
+
+.dp-viewer-shell {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  width: min(1600px, 100%);
+  height: min(94vh, 1080px);
+  overflow: hidden;
+  border: 1px solid #46647c;
+  border-radius: 16px;
+  color: #dce9f2;
+  background: #0d1b28;
+  box-shadow: 0 36px 110px rgba(0, 0, 0, 0.48);
+}
+
+.dp-viewer-bar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px 12px 18px;
+  border-bottom: 1px solid #31495d;
+  background: #132536;
+}
+
+.dp-viewer-bar > div:first-child {
+  min-width: 0;
+}
+
+.dp-viewer-bar span,
+.dp-viewer-bar strong {
+  display: block;
+}
+
+.dp-viewer-bar span {
+  color: #76b58f;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.dp-viewer-bar strong {
+  overflow: hidden;
+  margin-top: 2px;
+  color: #f5f9fc;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dp-viewer-controls {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
+}
+
+.dp-viewer-controls button {
+  display: grid;
+  min-width: 38px;
+  height: 36px;
+  padding: 0 10px;
+  place-items: center;
+  border: 1px solid #48647b;
+  border-radius: 7px;
+  color: #e6f1f8;
+  background: #1d3447;
+  cursor: pointer;
+  font-weight: 850;
+}
+
+.dp-viewer-controls button:hover {
+  border-color: #82b9df;
+  background: #27465e;
+}
+
+.dp-viewer-controls .dp-viewer-scale {
+  min-width: 64px;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 11px;
+}
+
+.dp-viewer-controls .dp-viewer-close {
+  margin-left: 6px;
+  border-color: #80545b;
+  color: #ffdfe1;
+  background: #472a34;
+  font-size: 21px;
+}
+
+.dp-viewer-canvas {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  place-items: center;
+  touch-action: none;
+  background:
+    linear-gradient(rgba(122, 162, 190, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(122, 162, 190, 0.055) 1px, transparent 1px),
+    #101f2d;
+  background-size: 28px 28px;
+  user-select: none;
+}
+
+.dp-viewer-canvas.can-pan {
+  cursor: grab;
+}
+
+.dp-viewer-canvas.is-panning {
+  cursor: grabbing;
+}
+
+.dp-viewer-canvas img {
+  display: block;
+  max-width: calc(100% - 40px);
+  max-height: calc(100% - 40px);
+  object-fit: contain;
+  transform-origin: center;
+  transition: transform 120ms ease-out;
+  will-change: transform;
+}
+
+.dp-viewer-canvas.is-panning img {
+  transition: none;
+}
+
+.dp-viewer-shell > footer {
+  padding: 8px 16px;
+  border-top: 1px solid #31495d;
+  color: #8da6b8;
+  background: #132536;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 10px;
+  text-align: center;
 }
 
 /* 原生 details 问答卡：默认只展开第一题，减少 25 题造成的视觉压力。 */
@@ -991,6 +1178,53 @@ pre code {
     max-width: 100%;
     overflow-x: auto;
     white-space: nowrap;
+  }
+
+  .diagram-zoom-hint {
+    top: 10px;
+    right: 10px;
+  }
+
+  .dp-diagram-viewer {
+    padding: 0;
+  }
+
+  .dp-viewer-shell {
+    width: 100%;
+    height: 100dvh;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .dp-viewer-bar {
+    padding: 9px 8px 9px 12px;
+  }
+
+  .dp-viewer-bar span {
+    display: none;
+  }
+
+  .dp-viewer-controls {
+    gap: 4px;
+  }
+
+  .dp-viewer-controls button {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 7px;
+  }
+
+  .dp-viewer-controls .dp-viewer-scale {
+    min-width: 56px;
+  }
+
+  .dp-viewer-controls .dp-viewer-close {
+    margin-left: 2px;
+  }
+
+  .dp-viewer-canvas img {
+    max-width: calc(100% - 20px);
+    max-height: calc(100% - 20px);
   }
 
   .dp-quick-nav > ul {
