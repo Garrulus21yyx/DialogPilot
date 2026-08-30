@@ -12,11 +12,16 @@ from evaluation.dataset import (
     load_registered_dataset,
     write_dataset,
 )
+from agents.agent_orchestrator import AgentOrchestrator, Request
+from agents.orchestration_contracts import AgentType
+from core.intent_recognizer import IntentCategory
 from scripts.build_eval_dataset import _case, build_bitext
+from scripts.build_project_eval_500 import EXPECTED_DISTRIBUTION
 from scripts.review_eval_dataset import mark_human_reviewed
 
 
 REPO_DATASET = Path(__file__).resolve().parents[1] / "data" / "eval" / "dialogpilot-v1"
+PROJECT_500_DATASET = Path(__file__).resolve().parents[1] / "data" / "eval" / "dialogpilot-500-v1"
 
 
 def source():
@@ -72,6 +77,54 @@ def test_committed_seed_is_valid_but_not_misreported_as_gold():
     assert len(bundle.select(split="heldout")) == 9
 
 
+def test_committed_500_dataset_enforces_all_layer_and_split_contracts():
+    bundle = DatasetBundle.load(PROJECT_500_DATASET)
+    summary = bundle.summary()
+
+    assert summary["case_count"] == 500
+    assert summary["corpus_count"] == 25
+    assert summary["by_layer"] == EXPECTED_DISTRIBUTION["by_layer"]
+    assert summary["by_split"] == EXPECTED_DISTRIBUTION["by_split"]
+    assert summary["by_review_status"] == {
+        "auto_mapped": 180,
+        "human_reviewed": 0,
+        "provisional": 320,
+    }
+    assert len(bundle.select(layer="stateful", split="heldout")) == 20
+
+
+def test_500_dataset_stateful_cases_are_executable_protocols():
+    bundle = DatasetBundle.load(PROJECT_500_DATASET)
+    stateful = bundle.select(layer="stateful")
+
+    assert len(stateful) == 100
+    assert {case.input["scenario"]["category"] for case in stateful} == {
+        "memory", "react-security",
+    }
+    assert all(case.input["scenario"]["setup"] for case in stateful)
+    assert all(case.input["scenario"]["action"] for case in stateful)
+    assert all(set(case.expected["assertions"].values()) == {True} for case in stateful)
+
+
+def test_all_120_routing_labels_match_current_task_plan_contract():
+    bundle = DatasetBundle.load(PROJECT_500_DATASET)
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    orchestrator._pool = {agent_type: [object()] for agent_type in AgentType}
+
+    for eval_case in bundle.select(layer="routing"):
+        request = Request(
+            message=eval_case.input["message"],
+            user_id="eval-user",
+            conv_id=eval_case.case_id,
+            intent=IntentCategory(eval_case.input["intent"]),
+            intent_confidence=eval_case.input["intent_confidence"],
+            entities=eval_case.input.get("entities", {}),
+        )
+        plan = orchestrator._build_task_plan(request)
+        assert [owner.value for owner in plan.agent_types] == eval_case.expected["owners"]
+        assert [task.task_id for task in plan.ordered_tasks] == eval_case.expected["task_ids"]
+
+
 def test_checksum_detects_unversioned_case_mutation(tmp_path):
     dataset = write_dataset(
         tmp_path,
@@ -93,6 +146,28 @@ def test_group_variants_cannot_cross_dev_and_heldout(tmp_path):
 
     with pytest.raises(DatasetValidationError, match="crosses dev/heldout"):
         write_dataset(tmp_path, manifest=manifest(), cases=cases)
+
+
+def test_manifest_distribution_is_an_enforced_contract(tmp_path):
+    declared = manifest()
+    declared["expected_distribution"] = {"by_layer": {"intent": 2}}
+
+    with pytest.raises(DatasetValidationError, match="expected_distribution.by_layer"):
+        write_dataset(
+            tmp_path,
+            manifest=declared,
+            cases=[case("i1", "intent", "dev", {"message": "hello"}, {"intent": "greeting"})],
+        )
+
+
+def test_duplicate_corpus_ids_are_rejected_at_dataset_boundary(tmp_path):
+    with pytest.raises(DatasetValidationError, match="duplicate corpus ids"):
+        write_dataset(
+            tmp_path,
+            manifest=manifest(),
+            cases=[case("r1", "retrieval", "dev", {"query": "hello"}, {"relevant_ids": ["doc"]})],
+            corpus=[{"id": "doc", "content": "one"}, {"id": "doc", "content": "two"}],
+        )
 
 
 def test_dataset_registry_only_accepts_direct_child_ids(tmp_path):

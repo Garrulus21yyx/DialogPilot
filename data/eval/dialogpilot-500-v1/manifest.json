@@ -1,0 +1,56 @@
+{
+  "case_count": 500,
+  "cases_sha256": "00c32e28eda8b9026482a4135561fba5287747982dd50c15127db126fe94b8ac",
+  "corpus_count": 25,
+  "corpus_sha256": "a904a61da430a9834231cf66b9af701b36a3f6310a709cba5ab415680c9d3803",
+  "created_at": "2026-08-30",
+  "dataset_id": "dialogpilot-500-v1",
+  "description": "Four-layer DialogPilot evaluation: intent, TaskPlan routing, evidence retrieval, and stateful memory/ReAct safety.",
+  "expected_distribution": {
+    "by_layer": {
+      "intent": 180,
+      "retrieval": 100,
+      "routing": 120,
+      "stateful": 100
+    },
+    "by_layer_split": {
+      "intent:dev": 144,
+      "intent:heldout": 36,
+      "retrieval:dev": 80,
+      "retrieval:heldout": 20,
+      "routing:dev": 96,
+      "routing:heldout": 24,
+      "stateful:dev": 80,
+      "stateful:heldout": 20
+    },
+    "by_split": {
+      "dev": 400,
+      "heldout": 100
+    }
+  },
+  "review_policy": {
+    "external_intent": "auto_mapped pressure data, never project gold by default",
+    "project_cases": "provisional until human review"
+  },
+  "schema_version": 1,
+  "sources": [
+    {
+      "dataset": "banking77",
+      "license": "CC-BY-4.0",
+      "use": "balanced intent pressure subset"
+    },
+    {
+      "dataset": "clinc150-oos",
+      "license": "CC-BY-4.0",
+      "use": "OOS rejection subset"
+    },
+    {
+      "dataset": "dialogpilot-contract-scenarios",
+      "license": "project-private",
+      "url": "repository://DialogPilot"
+    }
+  ],
+  "split_policy": "semantic groups are assigned whole to dev/heldout; fixed 80/20 per layer",
+  "status": "provisional",
+  "version": "1.0.0-provisional"
+}

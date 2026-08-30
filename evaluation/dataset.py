@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import hashlib
 import json
 import re
@@ -125,7 +126,17 @@ class DatasetBundle:
     def validate(self) -> None:
         ids: set[str] = set()
         group_splits: Dict[str, str] = {}
-        corpus_ids = {str(doc.get("id") or "") for doc in self.corpus}
+        corpus_id_rows = [str(doc.get("id") or "").strip() for doc in self.corpus]
+        if any(not corpus_id for corpus_id in corpus_id_rows):
+            raise DatasetValidationError("corpus document id is required")
+        duplicate_corpus_ids = sorted(
+            corpus_id for corpus_id, count in Counter(corpus_id_rows).items() if count > 1
+        )
+        if duplicate_corpus_ids:
+            raise DatasetValidationError(
+                f"duplicate corpus ids: {duplicate_corpus_ids}"
+            )
+        corpus_ids = set(corpus_id_rows)
         for case in self.cases:
             if case.case_id in ids:
                 raise DatasetValidationError(f"duplicate case id: {case.case_id}")
@@ -146,6 +157,35 @@ class DatasetBundle:
             raise DatasetValidationError(
                 f"manifest case_count={expected_count}, actual={len(self.cases)}"
             )
+        self._validate_expected_distribution()
+
+    def _validate_expected_distribution(self) -> None:
+        """若 manifest 声明分布合同，则在数据所有者边界强制执行。"""
+        expected = self.manifest.get("expected_distribution")
+        if expected is None:
+            return
+        if not isinstance(expected, Mapping):
+            raise DatasetValidationError("expected_distribution must be an object")
+
+        actual_layer = Counter(case.layer for case in self.cases)
+        actual_split = Counter(case.split for case in self.cases)
+        actual_matrix = Counter(f"{case.layer}:{case.split}" for case in self.cases)
+        checks = {
+            "by_layer": actual_layer,
+            "by_split": actual_split,
+            "by_layer_split": actual_matrix,
+        }
+        for dimension, actual in checks.items():
+            declared = expected.get(dimension)
+            if declared is None:
+                continue
+            normalized = {str(key): int(value) for key, value in dict(declared).items()}
+            actual_normalized = {key: actual.get(key, 0) for key in normalized}
+            if normalized != actual_normalized:
+                raise DatasetValidationError(
+                    f"expected_distribution.{dimension}={normalized}, "
+                    f"actual={actual_normalized}"
+                )
 
     def select(
         self,

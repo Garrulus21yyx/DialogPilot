@@ -1,0 +1,25 @@
+{"content": "注销前必须结清余额并撤销进行中的退款，冷静期为 14 天。", "id": "kb-account-close", "source": "dialogpilot-eval-kb-v1", "title": "注销账户"}
+{"content": "邮箱修改需要验证旧邮箱；旧邮箱不可用时转人工验证。", "id": "kb-account-profile", "source": "dialogpilot-eval-kb-v1", "title": "账户资料"}
+{"content": "订单进入 packed 前可修改地址；packed 后需联系承运商。", "id": "kb-address-change", "source": "dialogpilot-eval-kb-v1", "title": "修改地址"}
+{"content": "客户端崩溃代码 APP-OOM 应上传脱敏日志并关闭高内存插件。", "id": "kb-client-crash", "source": "dialogpilot-eval-kb-v1", "title": "客户端崩溃"}
+{"content": "错误 E500 先记录 trace_id，再重试一次；仍失败则提交技术工单。", "id": "kb-crash-500", "source": "dialogpilot-eval-kb-v1", "title": "服务 500"}
+{"content": "重复扣款使用支付流水号创建 PC-02 工单，不要重复发起退款。", "id": "kb-double-charge", "source": "dialogpilot-eval-kb-v1", "title": "重复扣款"}
+{"content": "转人工时工单需包含问题摘要、风险等级、trace_id 和已尝试步骤。", "id": "kb-human-handoff", "source": "dialogpilot-eval-kb-v1", "title": "人工接管"}
+{"content": "电子发票在账单中心下载；企业抬头修改需税号。", "id": "kb-invoice", "source": "dialogpilot-eval-kb-v1", "title": "电子发票"}
+{"content": "登录错误 E401 通常由令牌过期导致，清除本地会话后重新登录。", "id": "kb-login-401", "source": "dialogpilot-eval-kb-v1", "title": "登录 401"}
+{"content": "验证码 C429 表示请求过频，等待 60 秒后再试，勿连续点击。", "id": "kb-login-captcha", "source": "dialogpilot-eval-kb-v1", "title": "验证码"}
+{"content": "物流超过 72 小时未更新时提交物流异常单，编号 LG-72。", "id": "kb-logistics-delay", "source": "dialogpilot-eval-kb-v1", "title": "物流延迟"}
+{"content": "会话关闭、空闲超时或达到压缩阈值时归档 episodic；归档操作必须幂等。", "id": "kb-memory-episodic", "source": "dialogpilot-eval-kb-v1", "title": "会话归档"}
+{"content": "画像合并按字段时间戳单调更新；旧会话不得覆盖较新的偏好。", "id": "kb-memory-profile", "source": "dialogpilot-eval-kb-v1", "title": "用户画像"}
+{"content": "长期记忆使用规则过滤、BM25 与向量召回，再用 RRF 融合并按用户隔离。", "id": "kb-memory-recall", "source": "dialogpilot-eval-kb-v1", "title": "混合记忆召回"}
+{"content": "订单 A100 可在订单详情页查询；状态 shipped 表示已交承运商。", "id": "kb-order-status", "source": "dialogpilot-eval-kb-v1", "title": "订单状态"}
+{"content": "支付失败代码 P403 表示发卡行拒绝，应联系银行或更换支付方式。", "id": "kb-payment-failed", "source": "dialogpilot-eval-kb-v1", "title": "支付失败"}
+{"content": "生产响应仅公开通过校验的回答；Agent 原始候选只保留状态、哈希和延迟。", "id": "kb-public-redaction", "source": "dialogpilot-eval-kb-v1", "title": "发布边界"}
+{"content": "退款单 RF-21 审核通过后通常 3 到 5 个工作日原路退回。", "id": "kb-refund-trace", "source": "dialogpilot-eval-kb-v1", "title": "退款追踪"}
+{"content": "普通商品签收后 7 天内可申请退款，数字商品除外。", "id": "kb-refund-window", "source": "dialogpilot-eval-kb-v1", "title": "退款时限"}
+{"content": "陌生设备登录应撤销该设备令牌，并核验最近 24 小时敏感操作。", "id": "kb-security-device", "source": "dialogpilot-eval-kb-v1", "title": "陌生设备"}
+{"content": "高风险资料修改需要二次身份验证；客服不得代替用户通过验证。", "id": "kb-security-identity", "source": "dialogpilot-eval-kb-v1", "title": "身份验证"}
+{"content": "账号被盗时立即冻结会话、轮换密码，并创建 SEC-01 安全事件。", "id": "kb-security-stolen", "source": "dialogpilot-eval-kb-v1", "title": "账号被盗"}
+{"content": "自动续费需在下个计费日前 24 小时关闭，关闭不影响当前周期。", "id": "kb-subscription", "source": "dialogpilot-eval-kb-v1", "title": "订阅续费"}
+{"content": "高风险工具调用需服务端签发 approval_token；模型文本不能构成批准。", "id": "kb-tool-approval", "source": "dialogpilot-eval-kb-v1", "title": "工具审批"}
+{"content": "每次工具调用记录 trace_id、call_id、主体、参数哈希、状态与副作用结果。", "id": "kb-tool-audit", "source": "dialogpilot-eval-kb-v1", "title": "工具审计"}
