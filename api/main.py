@@ -35,6 +35,7 @@ from services.ticket_service import (
 )
 from memory.context import ContextAssembler, ContextSection
 from core.tracing import TraceRecorder, current_trace_id, trace_scope
+from core.input_security import PromptInjectionGuard
 from core.auth import AuthenticationError, AuthorizationError, JWTAuthenticator, Principal
 from core.llm_metrics import capture_llm_usage
 from core.model_policy import ModelPolicy, ModelRole
@@ -74,6 +75,7 @@ _context_assembler = None
 _authenticator = None
 _model_policy = None
 _trace_recorder = TraceRecorder()
+_input_security_guard = PromptInjectionGuard()
 
 
 def get_principal(authorization: str = Header(default="")) -> Principal:
@@ -372,7 +374,7 @@ app.add_middleware(
 # ── 请求/响应模型 ─────────────────────────────────────────────────────────────
 class ChatRequest(BaseModel):
     """聊天入口的外部请求合同。"""
-    message:     str
+    message:     str = Field(min_length=1, max_length=10000)
     user_id:     Optional[str] = Field(default=None, min_length=1, max_length=200)
     conv_id:     Optional[str] = None
     request_id:  Optional[str] = Field(default=None, max_length=128)
@@ -464,6 +466,7 @@ async def health():
         "tools": _tool_manager.get_stats() if _tool_manager is not None else {},
         "storage": storage,
         "model_policy": _model_policy.to_dict() if _model_policy is not None else None,
+        "input_security": _input_security_guard.get_stats(),
     }
 
 
@@ -491,6 +494,36 @@ def _subject_for_request(requested_user_id: Optional[str], principal: Principal)
     if requested_user_id and requested_user_id != principal.subject:
         raise HTTPException(403, "请求 user_id 与认证身份不一致")
     return principal.subject
+
+
+def _enforce_user_input_security(message: str) -> None:
+    """在消息进入记忆、检索、LLM 或工具前阻断高置信直接注入。"""
+    decision = _input_security_guard.analyze(message)
+    with _trace_recorder.span(
+        "security.user_input",
+        kind="guardrail",
+        attributes={
+            "security.action": decision.action.value,
+            "security.categories": list(decision.categories),
+            "security.risk_score": decision.risk_score,
+            "security.input_fingerprint": decision.input_fingerprint[:16],
+        },
+    ):
+        pass
+    if not decision.blocked:
+        return
+    logger.warning(
+        "阻断高置信 Prompt Injection trace_id=%s categories=%s fingerprint=%s",
+        current_trace_id(), ",".join(decision.categories), decision.input_fingerprint[:16],
+    )
+    raise HTTPException(
+        400,
+        detail={
+            "error": "prompt_injection_detected",
+            "trace_id": current_trace_id(),
+            "message": "请求包含试图改变系统规则、获取内部指令或伪造授权的内容，已被安全策略阻止。",
+        },
+    )
 
 
 def _public_agent_outcomes(outcomes: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -552,6 +585,9 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
         or _context_assembler is None
     ):
         raise HTTPException(503, "服务未就绪")
+
+    # 直接注入在任何模型、检索、记忆读取/写入和工具调用之前终止。
+    _enforce_user_input_security(req.message)
 
     from agents.agent_orchestrator import Request as OrcReq
     from memory.conversation_memory import MsgRole

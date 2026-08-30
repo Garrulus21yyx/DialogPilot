@@ -45,7 +45,7 @@ DialogPilot 是一个 Python 3.12 + FastAPI 的异步多 Agent 客服后端。�
 2. 合同：一次请求必须得到可诊断的路由结果；只有明确 `PASS` 的回答能发布；需要人工时同步尝试创建持久工单，并把建单成功或失败明确返回。
 3. 主链：Memory → Intent → RAG → Context → TaskPlan → Workers → Coverage → Synthesis → Verification → Ticket → Persist published messages。
 4. 六个最值得深挖的改动：单调事件与范围摘要 checkpoint、混合长期记忆、TaskPlan/CoverageGate、有界 ReAct 与权限、请求预算下的结果代数、校验质量反馈闭环。
-5. 证据：188 个测试，覆盖身份/公开投影、归档幂等/CAS、显式存储模式、真实 Escalation Owner、路由基数、混合召回、工具权限、订单版本/退款幂等、Trace、分层模型策略和版本化评测合同。
+5. 证据：203 个测试，覆盖用户输入注入、身份/公开投影、归档幂等/CAS、显式存储模式、真实 Escalation Owner、路由基数、混合召回、工具权限、订单版本/退款幂等、Trace、分层模型策略和版本化评测合同。
 6. 边界：已有 JWT/scope 基线；多租户 IdP/ABAC 未完成，SQLite 只适合单应用写者，Trace/审计重启丢失，审批不能交互恢复；已有 500 条分层候选集，但尚无 human-reviewed gold，不能声称生产准确率。
 
 ## 1. 如何学习这个仓库
@@ -116,6 +116,7 @@ DialogPilot/
 ```mermaid
 flowchart LR
     Client --> API[FastAPI API]
+    API --> Guard[PromptInjectionGuard]
     API --> Memory[MemoryManager]
     API --> Context[ContextAssembler]
     API --> Orchestrator[AgentOrchestrator]
@@ -145,6 +146,7 @@ API 层负责**时序编排**，但不应该成为各领域事实的 Owner。例
 | 事实/状态 | 唯一 Owner | 主要生产者 | 主要消费者 | 正向合同 |
 |---|---|---|---|---|
 | HTTP 输入输出 | `api/main.py` 的 Pydantic 模型 | Client/API | 所有内部模块/Client | 非法结构在边界拒绝 |
+| 用户输入注入判定 | `PromptInjectionGuard` | 规范化后的当前用户消息 | `/chat`、Trace、健康统计 | 高置信直接注入在 Memory/RAG/LLM/Tool 前阻断；不记录原文 |
 | 意图、置信度、紧急度、实体 | `IntentRecognizer` | 三路识别器 | RAG gate、Orchestrator、Ticket | 返回闭合 `IntentCategory` |
 | Prompt 可裁剪部分预算 | `ContextAssembler` | Memory/RAG/API | Domain Agent | section/history 有界，最近历史优先 |
 | 子任务、Owner 与完成标准 | `AgentOrchestrator` 的 `TaskPlan` | Intent、实体、关键词、统计 | Worker、CoverageGate、API | task_id 唯一，每个 required task 恰有一个 Owner |
@@ -548,7 +550,9 @@ flowchart LR
 - history 有剩余预算时返还给被截断 section；
 - 当前 user message 永远单独保留。
 
-`ContextSection.render()` 会 HTML escape 内容并标注 `data_only=true`，降低检索内容或旧记忆被模型当指令执行的风险。它是信任边界提示，不是完整 Prompt Injection 防御；真正安全仍需要权限和工具边界。
+`ContextSection.render()` 会 HTML escape 内容并标注 `data_only=true`，降低检索内容或旧记忆被模型当指令执行的风险。当前用户消息另外经过 `PromptInjectionGuard`：NFKC 规范化并移除零宽/双向控制字符，识别规则覆盖、系统提示词窃取、角色伪造、授权伪造和常见编码逃逸；高置信命中在任何 Memory/RAG/LLM/Tool 调用前返回稳定 400。部分明确标注且不要求继续执行攻击动作的安全教学示例只记录不阻断，降低明显误报。所有 Worker 还共享一段稳定 system policy，明确用户、历史、检索和工具输出均不能拥有 system/developer 权限，身份、授权和提交事实只认服务端上下文与 receipt。
+
+这仍不是完整 Prompt Injection 防御。规则检测可被改写或新型攻击绕过，也可能误报；因此真正的损害上限仍由可信 `user_id`、Agent/tool allowlist、写操作宿主审批、业务 Owner 重验、typed receipt 和 fail-closed Verifier 控制。该分层与 [OWASP LLM01:2025](https://genai.owasp.org/llmrisk/llm01-prompt-injection/) 的输入过滤、最小权限、人工批准和外部内容隔离建议一致；检测类别也对齐 [Microsoft Prompt Shields](https://learn.microsoft.com/en-us/azure/foundry-classic/openai/concepts/content-filter-prompt-shields) 对规则覆盖、伪造对话、角色扮演和编码攻击的划分。以上是截至 2026-08-30 的工程对照，不是安全认证。
 
 精确的数据投递关系：
 
@@ -562,7 +566,7 @@ flowchart LR
 | Skill | Domain Agent 基础 system prompt | 是 | 否 |
 | entities | Agent 调用时额外 system section | 是 | 否 |
 
-预算还有一个必须诚实说明的边界：`ContextAssembler` 只裁剪 sections 和 history，当前 user message 完整保留；Domain Agent 的基础 system prompt、Skill 和 entities 又在 assembler 之后追加。因此 `estimated_tokens` 不是所有 HTTP 输入的硬上限。`ChatRequest.message` 当前也无长度约束，生产版需要 HTTP 长度限制、完整 preflight 计数和 typed `context_too_large` 失败。
+预算还有一个必须诚实说明的边界：`ContextAssembler` 只裁剪 sections 和 history，当前 user message 完整保留；Domain Agent 的基础 system prompt、Skill 和 entities 又在 assembler 之后追加。因此 `estimated_tokens` 不是所有 HTTP 输入的硬上限。`ChatRequest.message` 现限制为 1～10000 字符，但字符上限不等于供应商 Token 硬上限；生产版仍需完整 preflight 计数和 typed `context_too_large` 失败。
 
 ## 9. Skill：业务规则怎样与代码解耦
 
@@ -1043,7 +1047,18 @@ python -m compileall -q agents api core evaluation mcp memory monitor services
 python -m pytest -q
 ```
 
-当前 188 个测试按不变量分组：
+当前 203 个测试按不变量分组：
+
+### 用户输入 Prompt Injection
+
+[`tests/test_input_security.py`](../tests/test_input_security.py)
+
+- 中英文规则覆盖、提示词窃取、角色伪造和授权伪造在下游调用前阻断；
+- 零宽字符无法拆散已知攻击模式；
+- 普通客服问题，以及明确标注且不要求继续执行攻击动作的安全教学示例不阻断；
+- 当前用户文本保持真实 `role=user`，不会被拼入 system policy；
+- Trace/统计只保留类别、分数和消息哈希，不保存攻击正文；
+- 空消息和超过 10000 字符的输入在 Pydantic 边界拒绝。
 
 ### Lifespan 与 RAG boundary
 
@@ -1296,7 +1311,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q2：你个人具体负责了什么？
 
-**推荐诚实答案：** 我接手的是一个已有客服原型。我负责仓库清理和 DialogPilot 命名迁移，并完成持久工单、Token/CAS 压缩、typed synthesis、TaskPlan/CoverageGate、混合记忆、ReAct 权限/Trace、订单/退款/安全事件业务 Owner，以及 JWT/公开投影、短会话归档、显式 Chroma 模式、真实 Escalation Owner、分层模型策略和分层评测合同。当前有 188 个测试、CI、Docker 验证和架构文档。原型已有功能会按 commit 划清边界，不说成全部从零原创。
+**推荐诚实答案：** 我接手的是一个已有客服原型。我负责仓库清理和 DialogPilot 命名迁移，并完成持久工单、Token/CAS 压缩、typed synthesis、TaskPlan/CoverageGate、混合记忆、用户输入注入 Guard、ReAct 权限/Trace、订单/退款/安全事件业务 Owner，以及 JWT/公开投影、短会话归档、显式 Chroma 模式、真实 Escalation Owner、分层模型策略和分层评测合同。当前有 203 个测试、CI、Docker 验证和架构文档。原型已有功能会按 commit 划清边界，不说成全部从零原创。
 
 **追问：去掉你的改动还剩什么？** 仍有基础 FastAPI、三路意图、Redis/Chroma 记忆、RAG、领域 Agent、Skill、监控和评测原型；会失去真实工单闭环、Token/并发压缩不变量、TaskPlan/覆盖门禁、有类型并行结果、质量反馈、混合召回、工具权限/Trace 和 Worker ReAct。
 

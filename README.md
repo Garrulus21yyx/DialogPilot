@@ -23,6 +23,7 @@ owner and exposes the routing and verification decisions in the API response.
 
 ```text
 POST /chat
+  -> normalize and screen high-confidence direct prompt-injection attempts before any model or memory access
   -> load uncovered Redis events, range summaries, sourced facts, and hybrid episodic memory
   -> assemble a bounded prompt from those projections
   -> classify intent with LLM + local semantic similarity + patterns

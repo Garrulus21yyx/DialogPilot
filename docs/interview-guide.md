@@ -28,7 +28,7 @@ title: DialogPilot 面经校准与追问手册
 | 长期记忆只检索摘要 | 检索 1200 字符/120 overlap 原始片段，摘要只是背景 metadata | **CHANGED** |
 | 知识库是 BM25 + 向量 + RRF | 这是长期记忆；知识 RAG 仍是 rewrite + Chroma 多路向量 + 去重 + LLM rerank | **CORRECTED** |
 | Agent 单次生成、无完整 Trace | Worker 内最多 4 步 ReAct，allowlist/宿主审批/脱敏 audit/TraceId | **CHANGED** |
-| 准确率 91.3%、综合分 0.89 | 当前有 500 条分层候选集、25 篇 corpus 和 174 项回归测试，但仍无 human-reviewed gold | **UNPROVEN** |
+| 准确率 91.3%、综合分 0.89 | 当前有 500 条分层候选集、25 篇 corpus 和 203 项回归测试，但仍无 human-reviewed gold | **UNPROVEN** |
 | 完整 MCP Server / LangGraph | 是内部 ToolManager 与直接 Python 编排；没有远程 MCP Server，没用 LangGraph | **UNPROVEN** |
 
 ## 项目开场与完整链路
@@ -39,11 +39,11 @@ title: DialogPilot 面经校准与追问手册
 
 ### Q2：你个人改了什么？
 
-说“接手已有客服原型”，不说从零原创。可用 commit 证明的改造包括：DialogPilot 命名与仓库收敛、持久工单状态机、Token-aware 并发安全压缩、typed synthesis、质量反馈路由、TaskPlan/CoverageGate/ExecutionBudget、混合长期记忆、工具权限/Trace 和有界 ReAct，以及测试、CI 和文档。
+说“接手已有客服原型”，不说从零原创。可用 commit 证明的改造包括：DialogPilot 命名与仓库收敛、持久工单状态机、Token-aware 并发安全压缩、typed synthesis、质量反馈路由、TaskPlan/CoverageGate/ExecutionBudget、混合长期记忆、用户输入 Prompt Injection Guard、工具权限/Trace 和有界 ReAct，以及测试、CI 和文档。
 
 ### Q3：`/chat` 端到端经过哪些节点？
 
-`TraceId → Redis 工作记忆/混合情景记忆/画像 → 意图与实体 → 有条件知识 RAG → TaskPlan → 预算内 Worker 执行 → CoverageGate → ResultSynthesizer → AnswerVerifier → 发布或工单 → 只写入已发布答案。`
+`TraceId → 用户输入 Injection Guard → Redis 工作记忆/混合情景记忆/画像 → 意图与实体 → 有条件知识 RAG → TaskPlan → 预算内 Worker 执行 → CoverageGate → ResultSynthesizer → AnswerVerifier → 发布或工单 → 只写入已发布答案。`
 
 ### Q4：为什么不用 LangChain / LangGraph？
 
@@ -204,6 +204,12 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 ### Q40：模型能伪造 `approved=true` 吗？
 
 不能。`approved` 不在暴露给模型的 input schema，只由可信宿主传给执行器。高风险/写工具默认没批准就无副作用终止。
+
+### Q40.1：用户直接写“忽略系统指令”怎么办？
+
+`PromptInjectionGuard` 在消息进入 Memory、RAG、Intent LLM 和 Worker 前做 NFKC/不可见字符规范化，检测系统规则覆盖、提示词窃取、角色伪造、授权伪造和编码逃逸。高置信命中直接返回稳定 400，并只记录类别、风险分、哈希和 TraceId，不把攻击正文写进记忆或日志；普通客服继续通过，部分明确教学语境只记录不阻断。若规则漏检，所有 Worker 的共同 system policy 仍把用户、历史、检索和工具输出声明为不可信，身份/审批只认服务端上下文和 receipt。
+
+**追问：正则能彻底防住吗？** 不能。它只负责拦截已知高置信直接注入。真正的损害控制仍靠可信身份、最小工具权限、写审批、业务 Owner 重验、receipt 与发布 Verifier；后续要用版本化攻击集评误报/漏报，并可接独立 learned detector，而不是把规则命中率叫安全率。
 
 ### Q41：工具并发如何处理？
 
