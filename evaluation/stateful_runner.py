@@ -26,9 +26,15 @@ from mcp.tool_manager import (
     MCPToolManager,
     Tool,
     ToolCallStatus,
+    ToolEffectStatus,
     ToolRisk,
 )
-from memory.context import ContextAssembler, ContextSection, TokenEstimator
+from memory.context import (
+    ContextAssembler,
+    ContextBudgetExceededError,
+    ContextSection,
+    TokenEstimator,
+)
 from memory.conversation_memory import MemoryManager, Message, MsgRole
 from memory.hybrid_retrieval import HybridMemoryRetriever, MemoryDocument
 from services.answer_verifier import AnswerVerifier, VerificationStatus
@@ -679,6 +685,19 @@ async def _ticket_idempotent(case: FixtureRequest) -> FixtureEvidence:
             "single_create_event": len(events) == 1,
             "ticket_open": first.status is TicketStatus.OPEN,
         }, {"ticket_id": first.ticket_id, "created_flags": [first_created, second_created], "event_count": len(events)})
+
+
+# Fresh Reviewer B action 在独立模块中注册，避免把主 runner 继续膨胀。
+from evaluation.fresh_stateful_fixtures import register_fresh_fixtures
+
+register_fresh_fixtures(
+    fixture,
+    FixtureEvidence,
+    _EvalCollection,
+    _EvalRedis,
+    _memory_manager,
+    _raw,
+)
 
 
 async def execute_case(case: EvalCase) -> Dict[str, Any]:

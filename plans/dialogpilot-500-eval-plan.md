@@ -217,6 +217,6 @@ lifecycle gaps from Reviewer B without changing its historical review record.
 1. [completed] Separate FixtureRequest from EvalCase and add an expected-copy attack gate.
 2. [completed] Close timeout/cancellation/approval-parameter lifecycle semantics.
 3. [completed] Normalize Unicode format-only memory queries before storage access.
-4. [in progress] Register and execute all 27 fresh Reviewer B actions.
-5. [pending] Run invariant, mutation, full-suite, Dev/regression and fresh gates.
-6. [pending] Update Pages and push each coherent repair phase.
+4. [completed] Register and execute all 27 fresh Reviewer B actions.
+5. [completed] Run invariant, mutation, full-suite, Dev/regression and fresh gates.
+6. [in progress] Update Pages and push each coherent repair phase.

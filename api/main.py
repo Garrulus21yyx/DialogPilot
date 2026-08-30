@@ -38,6 +38,11 @@ from core.tracing import TraceRecorder, current_trace_id, trace_scope
 from core.auth import AuthenticationError, AuthorizationError, JWTAuthenticator, Principal
 from core.llm_metrics import capture_llm_usage
 from core.model_policy import ModelPolicy, ModelRole
+from services.answer_verifier import (
+    VerificationReasonCode,
+    VerificationResult,
+    VerificationStatus,
+)
 
 load_dotenv()
 
@@ -485,6 +490,36 @@ def _public_agent_outcomes(outcomes: List[Dict[str, Any]]) -> List[Dict[str, Any
     return projected
 
 
+async def _verify_for_publication(
+    verifier: Any,
+    question: str,
+    candidate: str,
+    context: str,
+    **evidence: Any,
+) -> VerificationResult:
+    """API 发布边界把任意 verifier 合同违约收敛为 UNKNOWN。"""
+    try:
+        result = await verifier.verify(question, candidate, context, **evidence)
+        if not isinstance(result, VerificationResult):
+            raise TypeError("verifier returned unsupported result")
+        return result
+    except Exception as exc:
+        return VerificationResult(
+            status=VerificationStatus.UNKNOWN,
+            grounded=False,
+            need_escalation=True,
+            reason=f"verification boundary failure: {type(exc).__name__}",
+            reason_code=VerificationReasonCode.VERIFIER_UNAVAILABLE,
+        )
+
+
+def _publish_candidate(candidate: str, verification: VerificationResult) -> str:
+    """只有 PASS candidate 能越过用户可见边界。"""
+    if verification.publishable:
+        return candidate
+    return "当前回答未通过可信度校验，已转交人工进一步确认。"
+
+
 @app.post("/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)):
     """
@@ -552,7 +587,8 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
     result = await _orchestrator.run(orch_req)
 
     # 4. 发布边界：只有明确通过校验的回答才能返回给用户。
-    verification = await _answer_verifier.verify(
+    verification = await _verify_for_publication(
+        _answer_verifier,
         req.message,
         result.response,
         full_context,
@@ -566,9 +602,7 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
             feedback_recorder(result.producer_agent_keys, verification.status.value)
         except Exception:
             logger.exception("记录 Agent 质量反馈失败 request_id=%s", request_id)
-    response_text = result.response if verification.publishable else (
-        "当前回答未通过可信度校验，已转交人工进一步确认。"
-    )
+    response_text = _publish_candidate(result.response, verification)
     escalated = result.escalated or verification.need_escalation
 
     # 5. 升级结果必须落为持久化工单，不能只返回一个布尔标志。

@@ -19,6 +19,7 @@ from memory.conversation_memory import MemoryManager
 
 
 DATASET = Path(__file__).resolve().parents[1] / "data" / "eval" / "dialogpilot-500-v1"
+FRESH_DATASET = Path(__file__).resolve().parents[1] / "data" / "eval" / "dialogpilot-stateful-fresh-v2"
 
 
 def test_all_100_stateful_cases_have_registered_real_fixtures_and_observations():
@@ -27,10 +28,22 @@ def test_all_100_stateful_cases_have_registered_real_fixtures_and_observations()
     actions = {case.input["scenario"]["action"] for case in cases}
 
     assert len(cases) == 100
-    assert actions == set(registered_fixtures())
+    assert actions <= set(registered_fixtures())
     predictions = [asyncio.run(execute_case(case)) for case in cases]
     assert len(predictions) == 100
     assert all(prediction["evidence"] for prediction in predictions)
+
+
+def test_all_fresh_reviewer_b_actions_are_registered_and_execute():
+    bundle = DatasetBundle.load(FRESH_DATASET)
+    cases = bundle.select(layer="stateful", split="heldout", gold_only=False)
+    actions = {case.input["scenario"]["action"] for case in cases}
+
+    assert len(cases) == 27
+    assert actions <= set(registered_fixtures())
+    predictions, report = asyncio.run(run_stateful(bundle, split="heldout"))
+    assert len(predictions) == 27
+    assert report["pass_rate"] == 1.0
 
 
 @pytest.mark.parametrize("split,count", [("dev", 80), ("heldout", 20)])
