@@ -1,4 +1,5 @@
 import asyncio
+import os
 
 from api import main
 
@@ -105,6 +106,13 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
     monkeypatch.setattr(monitor_module, "PerformanceMonitor", FakeMonitor)
     monkeypatch.setattr(evaluation_module, "EndToEndEvaluator", FakeEvaluator)
 
+    # 本机可能存在真实 DeepSeek .env；生命周期测试必须显式隔离供应商配置。
+    for name in list(os.environ):
+        if name.startswith("MODEL_"):
+            monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv("MODEL_PROVIDER", "anthropic")
+    monkeypatch.setenv("ANTHROPIC_BASE_URL", "")
+    monkeypatch.setenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022")
     monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
     monkeypatch.setenv("AUTH_JWT_SECRET", "test-secret-that-is-at-least-32-bytes-long")
     monkeypatch.setenv("TICKET_DB_PATH", str(tmp_path / "tickets.db"))

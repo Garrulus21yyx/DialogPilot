@@ -210,7 +210,7 @@ def test_react_returns_thinking_block_before_tool_result_turn():
         [thinking("need a lookup"), tool_use("c1", "lookup", {})],
         [text("查询完成。")],
     ])
-    profile = ModelProfile("deepseek-v4-pro", ReasoningEffort.HIGH, "deepseek")
+    profile = ModelProfile("deepseek-v4-pro", ReasoningEffort.HIGH, "deepseek", 1024)
     react = ReActExecutionEngine(
         client=client,
         model=profile.model,

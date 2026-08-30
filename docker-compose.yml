@@ -82,9 +82,12 @@ services:
       # 容器内固定值，覆盖 .env 中的本地路径
       - REDIS_URL=redis://:${REDIS_PASSWORD:-dialogpilot-local}@redis:6379/0
       - CHROMA_PERSIST_DIRECTORY=/app/data/chroma
+      # 容器网络地址由 Compose 拥有，不能继承宿主开发环境的 localhost:8001。
+      - CHROMA_HOST=chromadb
+      - CHROMA_PORT=8000
       - CHROMA_MODE=${CHROMA_MODE:-remote}
       - INTENT_SIMILARITY_MODE=${INTENT_SIMILARITY_MODE:-ngram}
-      - EVAL_BASELINE_PATH=/app/data/eval/baseline.json
+      - EVAL_BASELINE_PATH=/app/data/eval-state/baseline.json
       - DIALOGPILOT_SKILLS_DIR=/app/skills
       - TICKET_DB_PATH=/app/data/tickets/tickets.db
       - CONTEXT_INPUT_BUDGET=${CONTEXT_INPUT_BUDGET:-12000}
@@ -113,21 +116,25 @@ services:
       - MODEL_RERANK=${MODEL_RERANK:-deepseek-v4-flash}
       - MODEL_RERANK_REASONING=${MODEL_RERANK_REASONING:-none}
       - MODEL_SYNTHESIS=${MODEL_SYNTHESIS:-deepseek-v4-pro}
-      - MODEL_SYNTHESIS_REASONING=${MODEL_SYNTHESIS_REASONING:-high}
+      - MODEL_SYNTHESIS_REASONING=${MODEL_SYNTHESIS_REASONING:-none}
+      - MODEL_SYNTHESIS_MIN_COMPLETION_TOKENS=${MODEL_SYNTHESIS_MIN_COMPLETION_TOKENS:-0}
       - MODEL_VERIFIER=${MODEL_VERIFIER:-deepseek-v4-pro}
-      - MODEL_VERIFIER_REASONING=${MODEL_VERIFIER_REASONING:-high}
+      - MODEL_VERIFIER_REASONING=${MODEL_VERIFIER_REASONING:-none}
+      - MODEL_VERIFIER_MIN_COMPLETION_TOKENS=${MODEL_VERIFIER_MIN_COMPLETION_TOKENS:-0}
       - MODEL_JUDGE=${MODEL_JUDGE:-deepseek-v4-pro}
-      - MODEL_JUDGE_REASONING=${MODEL_JUDGE_REASONING:-high}
+      - MODEL_JUDGE_REASONING=${MODEL_JUDGE_REASONING:-none}
+      - MODEL_JUDGE_MIN_COMPLETION_TOKENS=${MODEL_JUDGE_MIN_COMPLETION_TOKENS:-0}
       - AUTH_JWT_SECRET=${AUTH_JWT_SECRET}
       - AUTH_JWT_ISSUER=${AUTH_JWT_ISSUER:-dialogpilot}
       - AUTH_JWT_AUDIENCE=${AUTH_JWT_AUDIENCE:-dialogpilot-api}
       - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-}
     volumes:
-      - ./data/chroma:/app/data/chroma
-      - ./data/eval:/app/data/eval
-      - ./data/tickets:/app/data/tickets
-      - ./skills:/app/skills
-      - ./logs:/app/logs
+      # remote 模式只写 Chroma server 的 chromadb-data，不在应用容器再建第二份库。
+      - ./data/eval:/app/data/eval:ro
+      - dialogpilot-eval-state:/app/data/eval-state
+      - dialogpilot-tickets:/app/data/tickets
+      - ./skills:/app/skills:ro
+      - dialogpilot-logs:/app/logs
     depends_on:
       redis:
         condition: service_healthy
@@ -159,7 +166,8 @@ services:
     networks:
       - dialogpilot-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost/health || exit 1"]
+      # Alpine 的 localhost 优先解析到 ::1，而当前 Nginx 只监听 IPv4。
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -179,3 +187,6 @@ volumes:
   chromadb-data:
   prometheus-data:
   nginx-logs:
+  dialogpilot-tickets:
+  dialogpilot-logs:
+  dialogpilot-eval-state:

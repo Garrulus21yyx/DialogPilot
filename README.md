@@ -80,11 +80,13 @@ ANTHROPIC_API_KEY=your_key
 The checked-in example selects DeepSeek's Anthropic-compatible endpoint and
 uses Flash without thinking for intent, workers, ReAct, memory, rewrite, and
 rerank. Cross-domain synthesis, answer verification, and the offline judge use
-Pro with `high` reasoning. Every role can be overridden independently with
+Pro with thinking disabled by default. A live three-case verifier pilot found
+Flash/none and Pro/none both parsed 3/3 cases, while Pro/high was roughly three
+times slower and had previously exhausted short completion budgets. Every role can be overridden independently with
 `MODEL_<ROLE>` and `MODEL_<ROLE>_REASONING`; `/health` and evaluation metadata
 record the effective, non-secret policy. See `.env.example` for the complete
-matrix. This avoids silently inheriting a provider-wide thinking default for
-every small call.
+matrix. Reasoning profiles enforce a minimum completion budget so thinking
+cannot silently consume the entire response before structured JSON is emitted.
 
 Start the complete stack:
 

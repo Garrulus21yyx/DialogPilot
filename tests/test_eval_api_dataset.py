@@ -30,7 +30,14 @@ def _row(case_id, layer, expected, *, status="human_reviewed"):
         "layer": layer,
         "split": "dev",
         "group_id": case_id,
-        "input": {"message": f"message for {case_id}"},
+        "input": {
+            "message": f"message for {case_id}",
+            **({
+                "intent": "technical_login",
+                "intent_confidence": 0.93,
+                "entities": {"error_code": ["401"]},
+            } if layer == "routing" else {}),
+        },
         "expected": expected,
         "tags": [],
         "source": _source(),
@@ -71,6 +78,10 @@ def test_registered_dataset_converts_to_runtime_cases_and_metadata(tmp_path, mon
     assert intent_cases[0].expected_intent == "greeting"
     assert dialog_cases[0]["id"] == "route-1"
     assert dialog_cases[0]["expected_agents"] == ["technical", "billing"]
+    assert dialog_cases[0]["intent"] == "technical_login"
+    assert dialog_cases[0]["intent_confidence"] == 0.93
+    assert dialog_cases[0]["entities"] == {"error_code": ["401"]}
+    assert dialog_cases[0]["evaluation_layer"] == "routing"
     assert metadata["dataset_version"] == "1.0.0"
     assert len(metadata["dataset_checksum"]) == 64
     assert metadata["review_scope"] == "human_reviewed"

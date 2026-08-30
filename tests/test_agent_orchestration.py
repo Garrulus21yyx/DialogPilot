@@ -275,6 +275,52 @@ def test_compound_natural_request_routes_to_both_domain_owners():
     assert decision.agent_types == [AgentType.TECHNICAL, AgentType.BILLING]
 
 
+def test_compound_colloquial_charge_expression_routes_to_billing_support():
+    """证明“重复扣了”这类口语变体也属于账务领域正证据。"""
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    orchestrator._pool = {
+        AgentType.GENERAL: [object()],
+        AgentType.TECHNICAL: [object()],
+        AgentType.BILLING: [object()],
+    }
+    request = Request(
+        message="订单 A123 登录报 401 后又重复扣了 50 元",
+        user_id="user",
+        conv_id="conversation",
+        intent=IntentCategory.TECHNICAL_LOGIN,
+        intent_confidence=0.95,
+        entities={"order_id": ["A123"], "error_code": ["401"], "amount": ["50 元"]},
+    )
+
+    plan = orchestrator._build_task_plan(request)
+
+    assert plan.agent_types == [AgentType.TECHNICAL, AgentType.BILLING]
+
+
+def test_negated_billing_term_does_not_create_billing_task():
+    """证明“不是扣款问题”不会被关键词层误当作 Billing 正证据。"""
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    orchestrator._pool = {
+        AgentType.GENERAL: [object()],
+        AgentType.TECHNICAL: [object()],
+        AgentType.BILLING: [object()],
+    }
+    request = Request(
+        message="不是扣款问题，只是登录 401",
+        user_id="user",
+        conv_id="conversation",
+        intent=IntentCategory.TECHNICAL_LOGIN,
+        intent_group="technical",
+        intent_confidence=0.95,
+        entities={"error_code": ["401"]},
+    )
+
+    plan = orchestrator._build_task_plan(request)
+
+    assert plan.agent_types == [AgentType.TECHNICAL]
+    assert plan.primary_task_id == "technical_task"
+
+
 def test_account_security_is_the_owner_and_billing_is_only_supporting():
     """证明账号被盗不再误归 Billing，异常扣款仍由账务能力并行补充。"""
     orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)

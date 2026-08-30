@@ -885,6 +885,9 @@ class EvalDialogInput(BaseModel):
     conv_id: Optional[str] = None
     expected_agents: Optional[List[str]] = None
     expected_task_ids: Optional[List[str]] = None
+    intent: Optional[str] = None
+    intent_confidence: Optional[float] = None
+    entities: Optional[Dict[str, List[str]]] = None
 
 
 class EvalRunInput(BaseModel):
@@ -968,6 +971,10 @@ def _registered_eval_inputs(body: EvalRunInput):
             "user_id": "eval_user",
             "expected_agents": list(map(str, case.expected["owners"])),
             "expected_task_ids": list(map(str, case.expected["task_ids"])),
+            "evaluation_layer": "routing",
+            "intent": case.input.get("intent"),
+            "intent_confidence": case.input.get("intent_confidence"),
+            "entities": case.input.get("entities") or {},
         }
         for case in selected
         if case.layer == "routing"

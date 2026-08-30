@@ -42,6 +42,7 @@ class ModelProfile:
     model: str
     reasoning: ReasoningEffort = ReasoningEffort.NONE
     provider: str = "anthropic"
+    min_completion_tokens: int = 0
 
     def __post_init__(self) -> None:
         model = self.model.strip()
@@ -57,6 +58,10 @@ class ModelProfile:
             raise ValueError(f"unsupported DeepSeek model: {model}")
         if provider != "deepseek" and self.reasoning is not ReasoningEffort.NONE:
             raise ValueError("role reasoning controls currently require MODEL_PROVIDER=deepseek")
+        if self.min_completion_tokens < 0 or self.min_completion_tokens > 8192:
+            raise ValueError("min_completion_tokens must be between 0 and 8192")
+        if self.reasoning is not ReasoningEffort.NONE and self.min_completion_tokens < 256:
+            raise ValueError("reasoning profiles require min_completion_tokens >= 256")
         object.__setattr__(self, "model", model)
         object.__setattr__(self, "provider", provider)
 
@@ -70,6 +75,10 @@ class ModelProfile:
             return request
         # Thinking 模式下 temperature 不生效，移除可避免配置看似有效却被忽略。
         request.pop("temperature", None)
+        request["max_tokens"] = max(
+            int(request.get("max_tokens", 0)),
+            self.min_completion_tokens,
+        )
         request["extra_body"] = {
             "thinking": {"type": "enabled"},
             "output_config": {"effort": self.reasoning.value},
@@ -78,7 +87,11 @@ class ModelProfile:
 
     def to_dict(self) -> Dict[str, str]:
         """返回不含密钥的运行时投影。"""
-        return {"model": self.model, "reasoning": self.reasoning.value}
+        return {
+            "model": self.model,
+            "reasoning": self.reasoning.value,
+            "min_completion_tokens": self.min_completion_tokens,
+        }
 
 
 @dataclass(frozen=True)
@@ -90,15 +103,15 @@ class ModelPolicy:
     profiles: Mapping[ModelRole, ModelProfile]
 
     _DEEPSEEK_DEFAULTS = {
-        ModelRole.INTENT: ("deepseek-v4-flash", ReasoningEffort.NONE),
-        ModelRole.WORKER: ("deepseek-v4-flash", ReasoningEffort.NONE),
-        ModelRole.REACT: ("deepseek-v4-flash", ReasoningEffort.NONE),
-        ModelRole.SYNTHESIS: ("deepseek-v4-pro", ReasoningEffort.HIGH),
-        ModelRole.VERIFIER: ("deepseek-v4-pro", ReasoningEffort.HIGH),
-        ModelRole.JUDGE: ("deepseek-v4-pro", ReasoningEffort.HIGH),
-        ModelRole.MEMORY: ("deepseek-v4-flash", ReasoningEffort.NONE),
-        ModelRole.REWRITE: ("deepseek-v4-flash", ReasoningEffort.NONE),
-        ModelRole.RERANK: ("deepseek-v4-flash", ReasoningEffort.NONE),
+        ModelRole.INTENT: ("deepseek-v4-flash", ReasoningEffort.NONE, 0),
+        ModelRole.WORKER: ("deepseek-v4-flash", ReasoningEffort.NONE, 0),
+        ModelRole.REACT: ("deepseek-v4-flash", ReasoningEffort.NONE, 0),
+        ModelRole.SYNTHESIS: ("deepseek-v4-pro", ReasoningEffort.NONE, 0),
+        ModelRole.VERIFIER: ("deepseek-v4-pro", ReasoningEffort.NONE, 0),
+        ModelRole.JUDGE: ("deepseek-v4-pro", ReasoningEffort.NONE, 0),
+        ModelRole.MEMORY: ("deepseek-v4-flash", ReasoningEffort.NONE, 0),
+        ModelRole.REWRITE: ("deepseek-v4-flash", ReasoningEffort.NONE, 0),
+        ModelRole.RERANK: ("deepseek-v4-flash", ReasoningEffort.NONE, 0),
     }
 
     @classmethod
@@ -113,9 +126,10 @@ class ModelPolicy:
         profiles: Dict[ModelRole, ModelProfile] = {}
         for role in ModelRole:
             if provider == "deepseek":
-                default_model, default_reasoning = cls._DEEPSEEK_DEFAULTS[role]
+                default_model, default_reasoning, default_min_tokens = cls._DEEPSEEK_DEFAULTS[role]
             else:
                 default_model, default_reasoning = legacy_model, ReasoningEffort.NONE
+                default_min_tokens = 0
             model = source.get(f"MODEL_{role.value.upper()}", default_model).strip()
             raw_reasoning = source.get(
                 f"MODEL_{role.value.upper()}_REASONING",
@@ -127,7 +141,17 @@ class ModelPolicy:
                 raise ValueError(
                     f"unsupported reasoning effort for {role.value}: {raw_reasoning}"
                 ) from exc
-            profiles[role] = ModelProfile(model, reasoning, provider)
+            raw_min_tokens = source.get(
+                f"MODEL_{role.value.upper()}_MIN_COMPLETION_TOKENS",
+                str(default_min_tokens),
+            ).strip()
+            try:
+                min_tokens = int(raw_min_tokens)
+            except ValueError as exc:
+                raise ValueError(
+                    f"invalid completion token floor for {role.value}: {raw_min_tokens}"
+                ) from exc
+            profiles[role] = ModelProfile(model, reasoning, provider, min_tokens)
         if provider == "deepseek":
             base_url = base_url or "https://api.deepseek.com/anthropic"
         return cls(provider=provider, base_url=base_url, profiles=profiles)

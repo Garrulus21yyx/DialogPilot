@@ -873,17 +873,20 @@ class AgentOrchestrator:
             scores[AgentType.ACCOUNT_SECURITY] += 0.85
 
         technical_kws = ["崩溃", "报错", "error", "crash", "无法登录", "登录失败", "500", "401", "验证码"]
-        billing_kws = ["退款", "退货", "扣款", "发票", "账单", "支付", "订阅", "refund", "invoice", "多扣"]
+        billing_kws = [
+            "退款", "退货", "扣款", "扣费", "扣了", "重复扣", "多扣",
+            "发票", "账单", "支付", "订阅", "refund", "invoice",
+        ]
         security_kws = [
             "账号被盗", "账户被盗", "异常登录", "陌生设备", "密码泄露", "账号安全",
             "账户安全", "身份验证", "冻结账号", "盗号", "unauthorized login", "hacked",
         ]
         general_kws = ["订单", "物流", "快递", "配送", "会员", "积分", "咨询", "帮助"]
 
-        technical_hits = sum(1 for kw in technical_kws if kw in msg)
-        billing_hits = sum(1 for kw in billing_kws if kw in msg)
-        security_hits = sum(1 for kw in security_kws if kw in msg)
-        general_hits = sum(1 for kw in general_kws if kw in msg)
+        technical_hits = self._affirmed_keyword_hits(msg, technical_kws)
+        billing_hits = self._affirmed_keyword_hits(msg, billing_kws)
+        security_hits = self._affirmed_keyword_hits(msg, security_kws)
+        general_hits = self._affirmed_keyword_hits(msg, general_kws)
 
         # One explicit domain expression is sufficient evidence to involve that
         # specialist. Additional matches increase confidence without allowing
@@ -910,6 +913,24 @@ class AgentOrchestrator:
         return {agent_type: round(score, 3) for agent_type, score in scores.items()}
 
     @staticmethod
+    def _affirmed_keyword_hits(message: str, keywords: List[str]) -> int:
+        """只统计局部语义中未被明确否定的领域词证据。"""
+        negators = ("不是", "并非", "没有", "不涉及", "无关", "不要", "别")
+        hits = 0
+        for keyword in keywords:
+            start = 0
+            while True:
+                index = message.find(keyword, start)
+                if index < 0:
+                    break
+                prefix = message[max(0, index - 8):index]
+                if not any(negator in prefix for negator in negators):
+                    hits += 1
+                    break
+                start = index + len(keyword)
+        return hits
+
+    @staticmethod
     def _routing_reason(
         req: Request,
         scores: Dict[AgentType, float],
@@ -927,40 +948,6 @@ class AgentOrchestrator:
             f"intent={intent}, group={req.intent_group or 'unknown'}, "
             f"primary={primary_agent.value}, supporting={support_text}, scores=[{score_text}]"
         )
-
-    def _collaboration_targets(self, req: Request) -> List[AgentType]:
-        """
-        判断是否需要多个 Agent 并行协作。
-
-        意图识别通常只返回一个主意图；这里用领域关键词补充检测复合问题，
-        例如"登录报错且被重复扣款"需要技术和账单 Agent 同时处理。
-        """
-        msg = req.message.lower()
-        targets: List[AgentType] = []
-
-        technical_kws = ["崩溃", "报错", "error", "crash", "无法登录", "登录失败", "500", "401"]
-        billing_kws = ["退款", "扣款", "发票", "账单", "支付", "订阅", "refund", "invoice"]
-        security_kws = ["账号被盗", "账户被盗", "异常登录", "密码泄露", "账号安全", "身份验证", "盗号"]
-
-        if req.intent in (
-            IntentCategory.TECHNICAL,
-            IntentCategory.TECHNICAL_LOGIN,
-            IntentCategory.TECHNICAL_CRASH,
-        ) or any(kw in msg for kw in technical_kws):
-            targets.append(AgentType.TECHNICAL)
-        if req.intent in (
-            IntentCategory.BILLING,
-            IntentCategory.REFUND,
-            IntentCategory.INVOICE,
-            IntentCategory.PAYMENT_ISSUE,
-        ) or any(kw in msg for kw in billing_kws):
-            targets.append(AgentType.BILLING)
-        if req.intent == IntentCategory.ACCOUNT_SECURITY or any(kw in msg for kw in security_kws):
-            targets.append(AgentType.ACCOUNT_SECURITY)
-
-        # 保持顺序去重，并只返回当前有实例的 Agent 类型。
-        deduped = list(dict.fromkeys(targets))
-        return [agent_type for agent_type in deduped if self._pool.get(agent_type)]
 
     @staticmethod
     def _needs_clarification(req: Request) -> bool:

@@ -197,6 +197,8 @@ policy while preserving the existing Anthropic-compatible DeepSeek transport.
 - [done] Migrate every model-call consumer to the shared policy and make runtime/evaluation metadata expose the effective tiers.
 - [done] Preserve DeepSeek thinking blocks across ReAct tool turns; prove non-thinking, thinking, and malformed/unsupported configuration contracts.
 - [done] Update environment/Compose, README, Pages tutorial/interview guide, run all gates, push, and verify CI/Pages. Commit `90a526d`; CI and Pages succeeded and the live pages contain the new model-selection chapters.
+- [done] Run the real DeepSeek pilot and revise the default: Pro/high was slower and could consume short completion budgets before emitting JSON, so synthesis/verifier/judge now default to Pro/none; reasoning profiles enforce a completion-token floor. The 4-case E2E pilot improved from ~28.4s/2-of-4 parsed to ~13.3s/4-of-4 parsed.
+- [done] Separate routing truth from answer-quality judging, forward gold intent/entities at the evaluator boundary, handle negated and colloquial billing evidence, and verify provisional routing dev 5/5 plus heldout 2/2. These seed results are regression evidence, not production accuracy.
 
 Target contracts:
 

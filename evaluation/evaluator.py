@@ -364,42 +364,66 @@ class EndToEndEvaluator:
 
         for turn_idx, question in enumerate(questions):
             context = self._history_context(history)
+            supplied_intent = case.get("intent")
+            try:
+                routed_intent = IntentCategory(str(supplied_intent)) if supplied_intent else None
+            except ValueError:
+                routed_intent = None
+            supplied_confidence = case.get("intent_confidence")
             orch_req = OrcReq(
                 message=question,
                 user_id=user_id,
                 conv_id=conv_id,
                 context=context,
                 history=history[-6:] if history else None,
+                intent=routed_intent,
+                intent_confidence=(
+                    float(supplied_confidence) if supplied_confidence is not None else 1.0
+                ),
+                entities=dict(case.get("entities") or {}),
             )
             orch_result = await self._orchestrator.run(orch_req)
             actual_answer = orch_result.response
 
-            scores = await self._judge.judge(question, actual_answer, context=context or None)
             orchestration_scores = self._orchestration_scores(orch_result, case)
             required_checks = [orchestration_scores["coverage_complete"] >= 1.0]
             if "route_exact_match" in orchestration_scores:
                 required_checks.append(orchestration_scores["route_exact_match"] >= 1.0)
             if "task_exact_match" in orchestration_scores:
                 required_checks.append(orchestration_scores["task_exact_match"] >= 1.0)
-            passed = scores.overall >= self.PASS_THRESHOLD and all(required_checks)
+            routing_only = case.get("evaluation_layer") == "routing"
+            scores = None
+            if not routing_only:
+                scores = await self._judge.judge(question, actual_answer, context=context or None)
+            passed = all(required_checks) and (
+                routing_only or (scores is not None and scores.overall >= self.PASS_THRESHOLD)
+            )
 
             history.append({"role": "user", "content": question})
             history.append({"role": "assistant", "content": actual_answer})
 
             base_test_id = str(case.get("id") or f"dialog_{case_idx}")
             test_id = base_test_id if len(questions) == 1 else f"{base_test_id}_turn_{turn_idx}"
+            quality_scores = ({
+                "relevance": scores.relevance,
+                "accuracy": scores.accuracy,
+                "completeness": scores.completeness,
+                "helpfulness": scores.helpfulness,
+                "overall": scores.overall,
+            } if scores is not None else {})
+            detail = (
+                f"Q: {question[:30]}... → 综合评分 {scores.overall:.3f}"
+                if scores is not None
+                else f"Q: {question[:30]}... → 路由合同评测"
+            )
             results.append(EvalResult(
                 test_id=test_id,
                 passed=passed,
                 scores={
-                    "relevance": scores.relevance,
-                    "accuracy": scores.accuracy,
-                    "completeness": scores.completeness,
-                    "helpfulness": scores.helpfulness,
-                    "overall": scores.overall,
+                    **quality_scores,
                     **orchestration_scores,
                 },
-                detail=f"Q: {question[:30]}... → 综合评分 {scores.overall:.3f}",
+                detail=detail,
                 metadata={
                     "question": question,
                     "response": actual_answer,
@@ -407,8 +431,8 @@ class EndToEndEvaluator:
                     "intent": orch_result.intent.value if orch_result.intent else None,
                     "turn": turn_idx,
                     "conv_id": conv_id,
-                    "judge_failed": scores.judge_failed,
-                    "judge_error": scores.error,
+                    "judge_failed": scores.judge_failed if scores is not None else False,
+                    "judge_error": scores.error if scores is not None else None,
                     "task_plan": orch_result.task_plan,
                     "coverage": orch_result.coverage,
                     "agent_outcomes": orch_result.agent_outcomes,
@@ -423,7 +447,16 @@ class EndToEndEvaluator:
         coverage = dict(getattr(orch_result, "coverage", {}) or {})
         required = set(coverage.get("required_task_ids") or [])
         completed = set(coverage.get("completed_task_ids") or [])
-        task_coverage = len(required & completed) / len(required) if required else 0.0
+        expected_tasks = {
+            str(task_id) for task_id in (case.get("expected_task_ids") or []) if str(task_id)
+        }
+        no_task_contract = (
+            "expected_task_ids" in case and not expected_tasks and not required
+        )
+        task_coverage = (
+            len(required & completed) / len(required) if required
+            else (1.0 if no_task_contract else 0.0)
+        )
 
         outcomes = list(getattr(orch_result, "agent_outcomes", []) or [])
         budget_failures = sum(
@@ -445,7 +478,7 @@ class EndToEndEvaluator:
             }
 
         scores: Dict[str, float] = {
-            "coverage_complete": 1.0 if coverage.get("complete") is True else 0.0,
+            "coverage_complete": 1.0 if coverage.get("complete") is True or no_task_contract else 0.0,
             "task_coverage": task_coverage,
             "budget_success_rate": budget_success_rate,
             "fanout_efficiency": 1.0,
@@ -465,9 +498,6 @@ class EndToEndEvaluator:
                 1.0 - unnecessary / len(actual_agents) if actual_agents else 0.0
             )
 
-        expected_tasks = {
-            str(task_id) for task_id in (case.get("expected_task_ids") or []) if str(task_id)
-        }
         if expected_tasks:
             actual_tasks = {
                 str(task.get("task_id")) for task in planned_tasks if task.get("task_id")
