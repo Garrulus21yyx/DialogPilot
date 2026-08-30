@@ -323,6 +323,8 @@ class BaseAgent:
                     "user_id": req.user_id,
                     "conv_id": req.conv_id,
                     "task_id": req.assigned_task.task_id if req.assigned_task else "",
+                    "intent": req.intent.value if req.intent else "other",
+                    "intent_group": req.intent_group or "other",
                 },
             )
 

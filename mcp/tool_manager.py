@@ -334,6 +334,9 @@ class MCPToolManager:
         params = self._strip_control_params(params)
         normalized_agent = str(getattr(agent_type, "value", agent_type))
         resolved_call_id = str(call_id or uuid.uuid4().hex)
+        # Agent 身份与调用 ID 由执行边界覆盖，不能信任调用方 context 中的同名值。
+        context["agent_type"] = normalized_agent
+        context["tool_call_id"] = resolved_call_id
         trace_id = str(context.get("trace_id") or current_trace_id() or uuid.uuid4().hex)
         request_id = str(context.get("request_id") or "")
         started_iso = datetime.now(timezone.utc).isoformat()

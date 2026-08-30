@@ -128,6 +128,7 @@ async def lifespan(app: FastAPI):
     from core.intent_recognizer import IntentRecognizer
     from evaluation.evaluator import EndToEndEvaluator
     from mcp.knowledge_base import KnowledgeBase
+    from mcp.customer_support_tools import ticket_tools
     from mcp.tool_manager import ApprovalMode, MCPToolManager, Tool
     from memory.conversation_memory import MemoryManager
     from monitor.performance_monitor import PerformanceMonitor
@@ -241,7 +242,7 @@ async def lifespan(app: FastAPI):
 
     _tool_manager.register(Tool(
         name="knowledge_search",
-        description="搜索知识库（基于 ChromaDB 向量检索）",
+        description="搜索公共业务知识库（当前默认 BM25；支持可配置向量与 RRF）",
         handler=_knowledge_base.search_handler,
         schema={
             "type": "object",
@@ -286,6 +287,8 @@ async def lifespan(app: FastAPI):
         allowed_agents=("general", "technical", "billing", "account_security"),
         read_only=True,
     ))
+    for ticket_tool in ticket_tools(_ticket_service):
+        _tool_manager.register(ticket_tool)
     _orchestrator.set_tool_manager(_tool_manager)
 
     # 性能监控（可选启动 Prometheus）
