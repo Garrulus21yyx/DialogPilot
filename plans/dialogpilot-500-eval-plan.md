@@ -24,7 +24,7 @@ as an end-to-end benchmark.
 3. [completed] Generate dataset, corpus and manifest; validate counts/splits/groups.
 4. [completed] Extend tests and registry validation for the new dataset.
 5. [completed] Document layer design, review workflow and honest metric language.
-6. [in_progress] Run all gates, push, and verify CI/Pages.
+6. [completed] Run all gates, push, and verify CI/Pages.
 
 ## Produced files
 
@@ -52,6 +52,7 @@ as an end-to-end benchmark.
 - Dataset load/checksum/distribution: passed (500 cases, 25 corpus documents).
 - Current Planner vs all routing expectations: 120/120 matched.
 - Repository tests: 116 passed.
+- GitHub Actions CI and Pages deployment for commit `1346c07`: passed.
 - Runtime truth: API can execute intent/routing; retrieval/stateful currently
   have deterministic scoring protocols but still require their isolated
   collection/fixture execution adapters. Documentation states this explicitly.
