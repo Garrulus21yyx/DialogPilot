@@ -26,6 +26,9 @@ def run_retrieval(
     dataset_dir: Path,
     split: str,
     top_k: int = 5,
+    rrf_k: int = 60,
+    vector_weight: float = 0.0,
+    lexical_weight: float = 1.0,
 ) -> tuple[list[Dict[str, Any]], Dict[str, Any]]:
     """加载版本化语料，调用生产 KnowledgeBase，返回 scorer 兼容预测。"""
     corpus = _read_jsonl(dataset_dir / "corpus.jsonl")
@@ -36,6 +39,9 @@ def run_retrieval(
             chroma_path=temp_dir,
             load_default_docs=False,
             collection_name="dialogpilot_eval_retrieval",
+            retrieval_rrf_k=rrf_k,
+            retrieval_vector_weight=vector_weight,
+            retrieval_lexical_weight=lexical_weight,
         )
         inserted = knowledge_base.add_documents(corpus)
         predictions = []
@@ -62,6 +68,11 @@ def run_retrieval(
     report["execution_mode"] = "isolated-embedded-production-knowledge-base"
     report["corpus_documents"] = len(corpus)
     report["inserted_chunks"] = inserted
+    report["retrieval_config"] = {
+        "rrf_k": rrf_k,
+        "vector_weight": vector_weight,
+        "lexical_weight": lexical_weight,
+    }
     return predictions, report
 
 
@@ -78,6 +89,9 @@ def main() -> int:
     parser.add_argument("dataset", type=Path)
     parser.add_argument("--split", choices=("dev", "heldout"), default="dev")
     parser.add_argument("--top-k", type=int, default=5)
+    parser.add_argument("--rrf-k", type=int, default=60)
+    parser.add_argument("--vector-weight", type=float, default=0.0)
+    parser.add_argument("--lexical-weight", type=float, default=1.0)
     parser.add_argument("--predictions", type=Path, required=True)
     parser.add_argument("--report", type=Path, required=True)
     args = parser.parse_args()
@@ -86,6 +100,9 @@ def main() -> int:
         dataset_dir=args.dataset,
         split=args.split,
         top_k=max(1, args.top_k),
+        rrf_k=max(1, args.rrf_k),
+        vector_weight=args.vector_weight,
+        lexical_weight=args.lexical_weight,
     )
     _write_jsonl(args.predictions, predictions)
     args.report.parent.mkdir(parents=True, exist_ok=True)

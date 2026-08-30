@@ -48,6 +48,9 @@ class KnowledgeBase:
         collection_name: str = COLLECTION_NAME,
         chunk_max_tokens: int = DEFAULT_CHUNK_MAX_TOKENS,
         chunk_overlap_tokens: int = DEFAULT_CHUNK_OVERLAP_TOKENS,
+        retrieval_rrf_k: int = 60,
+        retrieval_vector_weight: float = 0.0,
+        retrieval_lexical_weight: float = 1.0,
     ):
         """按显式部署模式连接 ChromaDB，不在两套物理存储间静默切换。"""
         chunk_max_tokens = int(chunk_max_tokens)
@@ -60,7 +63,12 @@ class KnowledgeBase:
             mode=chroma_mode, host=chroma_host, port=chroma_port, path=chroma_path,
         )
         self._use_server = self._chroma_backend.mode == "remote"
-        self._hybrid_retriever = HybridMemoryRetriever(recency_weight=0.0)
+        self._hybrid_retriever = HybridMemoryRetriever(
+            rrf_k=retrieval_rrf_k,
+            vector_weight=retrieval_vector_weight,
+            lexical_weight=retrieval_lexical_weight,
+            recency_weight=0.0,
+        )
         self._token_estimator = TokenEstimator()
         self._chunk_max_tokens = chunk_max_tokens
         self._chunk_overlap_tokens = chunk_overlap_tokens
@@ -85,6 +93,9 @@ class KnowledgeBase:
             "chunking_version": str(self.CHUNKING_VERSION),
             "chunk_max_tokens": str(self._chunk_max_tokens),
             "chunk_overlap_tokens": str(self._chunk_overlap_tokens),
+            "retrieval_rrf_k": str(self._hybrid_retriever.rrf_k),
+            "retrieval_vector_weight": str(self._hybrid_retriever.vector_weight),
+            "retrieval_lexical_weight": str(self._hybrid_retriever.lexical_weight),
         }
 
     # ── 文档管理 ──────────────────────────────────────────────────────────────

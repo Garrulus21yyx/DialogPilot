@@ -74,6 +74,30 @@ def test_knowledge_base_empty_query_does_not_touch_vector_query():
     assert knowledge_base.search("   ") == []
 
 
+def test_knowledge_base_exposes_retrieval_strategy_with_storage_identity(monkeypatch):
+    """部署诊断必须记录实际检索权重，避免离线配置与生产配置漂移。"""
+    backend = type("Backend", (), {
+        "mode": "embedded",
+        "location": "/tmp/test",
+        "to_dict": lambda self: {"mode": self.mode, "location": self.location},
+    })()
+    client = type("Client", (), {
+        "get_or_create_collection": lambda self, **_kwargs: FakeCollection(),
+    })()
+    monkeypatch.setattr("mcp.knowledge_base.create_chroma_client", lambda **_kwargs: (client, backend))
+
+    knowledge_base = KnowledgeBase(
+        load_default_docs=False,
+        retrieval_rrf_k=42,
+        retrieval_vector_weight=0.2,
+        retrieval_lexical_weight=0.8,
+    )
+
+    assert knowledge_base.storage_backend["retrieval_rrf_k"] == "42"
+    assert knowledge_base.storage_backend["retrieval_vector_weight"] == "0.2"
+    assert knowledge_base.storage_backend["retrieval_lexical_weight"] == "0.8"
+
+
 def test_chunker_uses_token_ceiling_structure_boundaries_and_overlap():
     knowledge_base = bare_knowledge_base(max_tokens=24, overlap_tokens=5)
     text = (

@@ -222,6 +222,9 @@ async def lifespan(app: FastAPI):
         chroma_mode=chroma_mode,
         chunk_max_tokens=int(os.getenv("RAG_CHUNK_MAX_TOKENS", "360")),
         chunk_overlap_tokens=int(os.getenv("RAG_CHUNK_OVERLAP_TOKENS", "48")),
+        retrieval_rrf_k=int(os.getenv("RAG_RRF_K", "60")),
+        retrieval_vector_weight=float(os.getenv("RAG_VECTOR_WEIGHT", "0.0")),
+        retrieval_lexical_weight=float(os.getenv("RAG_LEXICAL_WEIGHT", "1.0")),
     )
     logger.info(f"知识库已加载: {await _knowledge_base.doc_count_async()} 个文档片段")
 
