@@ -86,6 +86,8 @@ services:
       - CHROMA_HOST=chromadb
       - CHROMA_PORT=8000
       - CHROMA_MODE=${CHROMA_MODE:-remote}
+      - RAG_CHUNK_MAX_TOKENS=${RAG_CHUNK_MAX_TOKENS:-360}
+      - RAG_CHUNK_OVERLAP_TOKENS=${RAG_CHUNK_OVERLAP_TOKENS:-48}
       - INTENT_SIMILARITY_MODE=${INTENT_SIMILARITY_MODE:-ngram}
       - EVAL_BASELINE_PATH=/app/data/eval-state/baseline.json
       - DIALOGPILOT_SKILLS_DIR=/app/skills
