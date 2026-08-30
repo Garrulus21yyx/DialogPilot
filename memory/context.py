@@ -186,22 +186,42 @@ class ContextAssembler:
             if not str(section.content or "").strip() or remaining <= 0:
                 continue
             wrapper_tokens = self.estimator.estimate(section.render(""))
-            content_budget = remaining - wrapper_tokens
-            if content_budget <= 0:
+            if wrapper_tokens >= remaining:
                 truncated.append(section.tag)
                 continue
-            fitted = self.estimator.truncate(section.content, content_budget)
-            rendered = section.render(fitted)
-            cost = self.estimator.estimate(rendered)
-            if cost > remaining:
-                truncated.append(section.tag)
-                continue
+            fitted, rendered, cost = self._fit_rendered_section(section, remaining)
             selected[index] = rendered
             remaining -= cost
             if fitted != section.content:
                 truncated.append(section.tag)
         rendered = [selected[index] for index in sorted(selected)]
         return rendered, budget - remaining, truncated
+
+    def _fit_rendered_section(
+        self,
+        section: ContextSection,
+        budget: int,
+    ) -> Tuple[str, str, int]:
+        """按最终转义后的表示裁剪，避免 HTML expansion 把整段高优先级事实丢弃。"""
+        content = str(section.content or "")
+        low, high = 0, len(content)
+        best_rendered = section.render("")
+        best_cost = self.estimator.estimate(best_rendered)
+        while low < high:
+            middle = (low + high + 1) // 2
+            candidate = section.render(content[:middle])
+            cost = self.estimator.estimate(candidate)
+            if cost <= budget:
+                low = middle
+                best_rendered = candidate
+                best_cost = cost
+            else:
+                high = middle - 1
+        fitted = content[:low]
+        if low == len(content):
+            best_rendered = section.render(content)
+            best_cost = self.estimator.estimate(best_rendered)
+        return fitted, best_rendered, best_cost
 
     def _fit_history(
         self, history: Sequence[Dict[str, Any]], budget: int

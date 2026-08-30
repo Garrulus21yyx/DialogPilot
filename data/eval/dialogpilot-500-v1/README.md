@@ -53,11 +53,12 @@ curl -sS -X POST http://localhost:8000/eval/run \
 `include_non_gold=true` 是因为当前数据尚未完成人工审核。报告必须注明
 `auto_mapped/provisional`，不能写成“项目 gold 准确率”。
 
-Retrieval 与 Stateful 使用统一预测文件评分，结构如下：
+Retrieval 使用统一 prediction scorer；Stateful 已有独立真实 fixture 执行器。
+预测结构如下：
 
 ```json
 {"case_id":"retrieval-memory-recall-1","actual":{"retrieved_ids":["kb-memory-recall"]}}
-{"case_id":"stateful-memory-short-close-1","actual":{"assertions":{"episodic_archived":true,"redis_expired_safe":true}}}
+{"case_id":"stateful-memory-short-close-1","actual":{"assertions":{"episodic_archived":true,"working_memory_cleared":true}}}
 ```
 
 ```bash
@@ -67,11 +68,22 @@ Retrieval 与 Stateful 使用统一预测文件评分，结构如下：
   --split dev --include-non-gold --retrieval-k 5
 ```
 
-预测缺失不会缩小分母，而会直接失败。Retrieval 的运行器需要把本目录
-`corpus.jsonl` 装入隔离的评测 collection；Stateful 的运行器按每条样本的
-`input.scenario.setup/action` 执行，再回填 `expected.assertions` 对应的实际布尔值。
-当前仓库已经具备统一评分合同，但这两层的自动执行适配器仍需分别接到隔离
-collection 和 pytest fixture；在适配器落地前，不能声称已经跑完这 200 条。
+Stateful 的真实运行命令：
+
+```bash
+.venv/bin/python -m evaluation.stateful_runner \
+  data/eval/dialogpilot-500-v1 --split dev \
+  --predictions artifacts/eval/stateful-dev-predictions.jsonl \
+  --report artifacts/eval/stateful-dev-report.json
+```
+
+执行器根据 `input.scenario.action` 查找注册 fixture，调用真实的 MemoryManager、
+HybridMemoryRetriever、ContextAssembler、MCPToolManager、ReAct、CoverageGate、
+Verifier 和 TicketService。fixture 不读取 expected 值；未注册 action、fixture
+异常或断言缺少实际探针都会直接失败。当前版本实跑 Dev 80/80、Heldout 20/20。
+
+预测缺失不会缩小分母，而会直接失败。Retrieval 的自动运行器仍需把本目录
+`corpus.jsonl` 装入隔离的评测 collection；因此不能声称 RAG 100 条已经实跑。
 
 ## 评测与模型选型的关系
 

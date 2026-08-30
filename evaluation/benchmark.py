@@ -23,6 +23,7 @@ def score_bundle(
     split: str,
     gold_only: bool = True,
     retrieval_k: int = 5,
+    layers: Iterable[str] | None = None,
 ) -> Dict[str, Any]:
     """按层评分并返回逐例证据；不把 auto-mapped 样本混入 gold 指标。"""
     prediction_map: Dict[str, Dict[str, Any]] = {}
@@ -31,7 +32,14 @@ def score_bundle(
         if not case_id or case_id in prediction_map:
             raise PredictionError("predictions require unique non-empty case_id")
         prediction_map[case_id] = dict(row.get("actual") or {})
-    cases = bundle.select(split=split, gold_only=gold_only)
+    requested_layers = set(layers or ())
+    unknown_layers = requested_layers - {"intent", "routing", "retrieval", "stateful"}
+    if unknown_layers:
+        raise PredictionError(f"unsupported layers: {sorted(unknown_layers)}")
+    cases = [
+        case for case in bundle.select(split=split, gold_only=gold_only)
+        if not requested_layers or case.layer in requested_layers
+    ]
     missing = [case.case_id for case in cases if case.case_id not in prediction_map]
     if missing:
         raise PredictionError(f"missing predictions: {missing}")
@@ -70,6 +78,7 @@ def score_bundle(
         "split": split,
         "gold_only": gold_only,
         "case_count": len(cases),
+        "layers_requested": sorted(requested_layers) if requested_layers else "all",
         "pass_rate": round(sum(item["passed"] for item in outcomes) / len(outcomes), 4) if outcomes else 0.0,
         "layers": layer_metrics,
         "outcomes": outcomes,
@@ -149,6 +158,13 @@ def _main() -> int:
         help="include provisional and auto-mapped cases for dry runs; never report as project gold",
     )
     parser.add_argument("--retrieval-k", type=int, default=5)
+    parser.add_argument(
+        "--layer",
+        action="append",
+        choices=("intent", "routing", "retrieval", "stateful"),
+        dest="layers",
+        help="score only this layer; repeat to select multiple layers",
+    )
     args = parser.parse_args()
     report = score_bundle(
         DatasetBundle.load(args.dataset),
@@ -156,6 +172,7 @@ def _main() -> int:
         split=args.split,
         gold_only=not args.include_non_gold,
         retrieval_k=max(1, args.retrieval_k),
+        layers=args.layers,
     )
     print(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True))
     return 0

@@ -291,6 +291,29 @@ def test_missing_predictions_fail_instead_of_shrinking_denominator(tmp_path):
         score_bundle(bundle, [], split="heldout")
 
 
+def test_layer_filter_allows_independent_prediction_files(tmp_path):
+    bundle = write_dataset(
+        tmp_path,
+        manifest=manifest(),
+        cases=[
+            case("i1", "intent", "dev", {"message": "hello"}, {"intent": "greeting"}),
+            case("s1", "stateful", "dev", {"message": "secure"}, {"assertions": {"blocked": True}}),
+        ],
+    )
+
+    report = score_bundle(
+        bundle,
+        [{"case_id": "s1", "actual": {"assertions": {"blocked": True}}}],
+        split="dev",
+        gold_only=False,
+        layers={"stateful"},
+    )
+
+    assert report["case_count"] == 1
+    assert report["layers_requested"] == ["stateful"]
+    assert set(report["layers"]) == {"stateful"}
+
+
 def test_external_case_preserves_original_label_license_and_upstream_split():
     mapped = _case(
         source_name="banking77",

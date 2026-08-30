@@ -169,16 +169,20 @@ fail-closed handoff instead of being hidden by a fluent partial answer.
 
 ## Versioned evaluation data
 
-The committed `dialogpilot-v1` seed contains 28 repository-specific cases and
-six retrieval documents across intent, routing, retrieval, and stateful safety
-layers. Every seed case is deliberately `provisional`: it is useful for
-reviewing the evaluation contract, but the default scorer excludes it from
-project-gold metrics until a human verifies the input, expected result,
-ambiguity, split, and review metadata.
+The committed `dialogpilot-500-v1` suite contains 500 cases: 180 intent/OOS,
+120 TaskPlan routing, 100 retrieval, and 100 stateful memory/tool-safety cases,
+with a group-safe 400/100 dev/heldout split. External intent cases remain
+`auto_mapped`; project cases remain `provisional`, so the default scorer still
+excludes them from project-gold metrics until human review.
 
 ```bash
 # Validate schema, checksums, references, and group-safe dev/heldout splits.
 python -m evaluation.dataset data/eval/dialogpilot-v1
+
+# Execute real repository-owner fixtures for the stateful layer.
+python -m evaluation.stateful_runner data/eval/dialogpilot-500-v1 \
+  --split dev --predictions artifacts/eval/stateful-dev-predictions.jsonl \
+  --report artifacts/eval/stateful-dev-report.json
 
 # After inspecting/correcting selected case inputs and expected labels:
 python scripts/review_eval_dataset.py data/eval/dialogpilot-v1 \
@@ -210,9 +214,10 @@ python scripts/build_eval_dataset.py --source bitext --max-per-label 20 \
 
 With an admin token, `GET /eval/datasets` exposes counts and review status.
 `POST /eval/run` accepts `dataset_id`, `split`, `layers`, and
-`include_non_gold`; only intent/routing currently execute through the live
-runtime. Retrieval and stateful/security outputs use the deterministic
-prediction scorer so unsupported layers cannot be silently reported as run.
+`include_non_gold`; intent/routing execute through the live runtime. Stateful
+memory/security cases execute through isolated real-owner fixtures and the
+deterministic scorer. Retrieval still requires a prediction producer, so an
+unsupported live layer cannot be silently reported as run.
 Every runtime report carries dataset version, checksum, split, layer set, and
 review scope.
 

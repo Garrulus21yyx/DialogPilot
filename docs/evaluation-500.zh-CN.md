@@ -53,19 +53,30 @@ curl -sS -X POST http://localhost:8000/eval/run \
   -d '{"dataset_id":"dialogpilot-500-v1","split":"dev",\
        "layers":["intent","routing"],"include_non_gold":true}'
 
-# 3. RAG/Stateful 执行器产出 predictions.jsonl 后确定性评分
+# 3. Stateful fixture 调用真实组件并自动评分
+.venv/bin/python -m evaluation.stateful_runner \
+  data/eval/dialogpilot-500-v1 --split dev \
+  --predictions artifacts/eval/stateful-dev-predictions.jsonl \
+  --report artifacts/eval/stateful-dev-report.json
+
+# 4. RAG producer 产出 predictions.jsonl 后确定性评分
 .venv/bin/python -m evaluation.benchmark \
   data/eval/dialogpilot-500-v1 artifacts/eval/dev-predictions.jsonl \
-  --split dev --include-non-gold --retrieval-k 5
+  --split dev --include-non-gold --layer retrieval --retrieval-k 5
 ```
 
 当前 180 条外部样本是 `auto_mapped`，320 条项目样本是 `provisional`。
 因此当前结果只能叫“候选集回归结果”；完成人工复核并留下 reviewer、时间和
 notes 后，才可以叫 gold heldout 结果。
 
-目前服务端可以直接自动运行 Intent 与 Routing；Retrieval 与 Stateful 已有
-数据协议和确定性 scorer，但隔离知识库 loader、状态 fixture executor 尚未接线。
-所以当前完成的是 500 条设计与门禁，不是虚报“500 条已经全部实跑”。
+目前服务端可以直接运行 Intent 与 Routing。Stateful 的 100 条已经全部绑定
+真实 fixture：Dev 80/80、Heldout 20/20；执行器拒绝未注册 action 和无探针
+断言，不能把 expected 复制成 actual。Retrieval 仍缺隔离 collection loader，
+所以当前不能虚报“500 条已经全部实跑”。
+
+第一次 Stateful heldout 运行还发现了真实缺陷：不可信记忆中的 `<system>` 经
+HTML 转义后字符膨胀，旧预算算法会把整个高优先级 section 丢弃。修复后改为
+按最终渲染文本二分裁剪，再次运行 heldout 达到 20/20。
 
 ## 面试追问
 

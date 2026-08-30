@@ -53,6 +53,32 @@ as an end-to-end benchmark.
 - Current Planner vs all routing expectations: 120/120 matched.
 - Repository tests: 116 passed.
 - GitHub Actions CI and Pages deployment for commit `1346c07`: passed.
-- Runtime truth: API can execute intent/routing; retrieval/stateful currently
-  have deterministic scoring protocols but still require their isolated
-  collection/fixture execution adapters. Documentation states this explicitly.
+- Runtime truth after Phase 2: API executes intent/routing; the dedicated
+  runner executes stateful fixtures; retrieval still needs its isolated
+  collection producer.
+
+## Phase 2: executable stateful scenarios
+
+Goal: replace symbolic stateful setup names with a fail-closed fixture registry
+that invokes repository-owned memory, tool-policy, trace and publication code,
+records observed facts, and produces scorer-compatible predictions.
+
+1. [completed] Inventory the real stateful owners and map the 50 scenario
+   actions to supported executable contracts.
+2. [completed] Implement fixture registry, isolated probes and typed unsupported
+   failures; never derive observations from expected assertions.
+3. [completed] Run 80 dev and 20 heldout stateful cases with auditable reports.
+4. [completed] Add invariant/negative tests for fixture completeness, zero-effect
+   evidence and missing observations.
+5. [completed] Update dataset/page commands and limitations.
+6. [in_progress] Run repository gates, push each coherent phase, verify CI/Pages.
+
+### Phase 2 evidence
+
+- 100/100 cases resolve to one of 22 registered real-owner fixtures.
+- Dev: 80/80; heldout: first run 19/20, after owner repair 20/20.
+- The first heldout run exposed an escaped-markup budget defect in
+  `ContextAssembler`: pre-render sizing could discard a high-priority memory
+  section after HTML expansion. The owner now fits against final rendered text.
+- Negative gates prove an invented action and an assertion without a probe both
+  fail closed.

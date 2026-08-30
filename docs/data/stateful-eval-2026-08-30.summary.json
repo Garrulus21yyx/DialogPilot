@@ -1,0 +1,31 @@
+{
+  "dataset_checksum": "395d27007c7a7698149cc277ca89e68ff98423e9f2f68352882a486036c929eb",
+  "dataset_id": "dialogpilot-500-v1",
+  "evaluation_layer": "stateful",
+  "execution_mode": "isolated-real-owner-fixtures",
+  "fixture_count": 22,
+  "review_scope": "provisional",
+  "runs": {
+    "dev": {
+      "all_assertions_pass": 1.0,
+      "case_count": 80,
+      "pass_rate": 1.0
+    },
+    "heldout_after_owner_repair": {
+      "all_assertions_pass": 1.0,
+      "case_count": 20,
+      "pass_rate": 1.0
+    },
+    "heldout_before_owner_repair": {
+      "case_count": 20,
+      "failed_case": "stateful-memory-context-priority-2",
+      "pass_rate": 0.95
+    }
+  },
+  "root_cause_repair": {
+    "component": "memory.context.ContextAssembler",
+    "failure": "HTML escaping expanded untrusted content after pre-render token fitting and caused a high-priority section to be discarded",
+    "repair": "fit section content against the final rendered representation using a bounded binary search"
+  },
+  "warning": "These cases are provisional deterministic regressions, not human-reviewed business-gold accuracy."
+}

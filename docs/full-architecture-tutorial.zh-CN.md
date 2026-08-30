@@ -1495,7 +1495,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q38：当前评测数据到底有多少，能证明什么？
 
-**答：** 内置数据仍是 11 条意图 + 5 组对话 smoke case；另有 28 条 provisional 四层 seed 和 6 篇 retrieval corpus，但还没有 human-reviewed gold。仓库的 111 个确定性测试证明状态机、身份、失败边界、任务覆盖、工具权限、ReAct、记忆和数据合同，不等于 111 条业务准确率样本。
+**答：** 内置仍保留 11 条意图 + 5 组对话 smoke case；版本化项目集已扩展为 500 条：180 intent/OOS、120 routing、100 retrieval、100 stateful，配套 25 篇 corpus，固定 400/100 dev/heldout。外部意图是 auto_mapped，项目样本是 provisional，仍没有 human-reviewed gold。确定性测试证明状态机、身份、失败边界和 fixture 合同，不等于业务泛化准确率。
 
 **不能声称什么：** 不能据此声称生产准确率、行业 SOTA 或泛化能力。生产发布需要版本化数据集、关键 slice、dev/held-out 分离和人工校准 Judge。
 
@@ -1815,7 +1815,7 @@ curl -X POST http://localhost:8000/eval/run \
 {"case_id":"stateful-001","actual":{"assertions":{"blocked":true,"side_effect_zero":true}}}
 ```
 
-Intent/routing 已能从注册集进入 `/eval/run`。Retrieval producer 应记录真实返回的稳定 document IDs；stateful producer 应在隔离测试环境观察工具审计、存储变化和公开响应后填布尔 assertion。当前仓库没有把后两类伪装成 live API 已执行：请求 unsupported layer 会明确 422。
+Intent/routing 已能从注册集进入 `/eval/run`。Stateful 使用 `evaluation.stateful_runner` 在隔离环境调用真实 Memory、Tool、ReAct、Verifier、Coverage 与 Ticket Owner，观察存储、审计、Trace 和副作用后产生布尔 assertion；100 条已实跑通过。Retrieval producer 仍需记录真实稳定 document IDs；请求 unsupported live layer 会明确 422。
 
 ### 27.6 第六步：确定性评分与报告
 
@@ -1827,6 +1827,12 @@ python -m evaluation.benchmark \
 # 仅验证管线：纳入 provisional/auto-mapped
 python -m evaluation.benchmark \
   data/eval/dialogpilot-v1 predictions.jsonl --split heldout --include-non-gold
+
+# Stateful 真实 fixture 执行与评分
+python -m evaluation.stateful_runner \
+  data/eval/dialogpilot-500-v1 --split dev \
+  --predictions artifacts/eval/stateful-dev-predictions.jsonl \
+  --report artifacts/eval/stateful-dev-report.json
 ```
 
 正式报告至少保存：git commit、dataset version/checksum、split、review scope、模型与配置版本、逐 case outcome、layer/slice 指标、日期环境。第一次合理实验不是追求一个总分，而是做消融：single vs task-aware routing、vector vs BM25+vector+recency、不同 chunk/overlap、Verifier/Skill on-off；一次只改变一个因素。
@@ -1837,9 +1843,9 @@ python -m evaluation.benchmark \
 
 **答：** 公开集定义的是它自己的标签体系，不能证明 DialogPilot 的 TaskPlan、Owner、知识 corpus、记忆隔离或工具授权。它适合测迁移和 OOS 压力；项目 gold 才拥有本仓库业务规则的期望行为。
 
-### Q66：28 条数据能报准确率吗？
+### Q66：500 条数据能直接报生产准确率吗？
 
-**答：** 不能报生产准确率。28 条目前还是 provisional，价值是固定 schema、难例和执行管线；审核后也只能作为小型回归集。要估计泛化质量，需要扩大样本、按用户/时间/语义组去重切分，并报告区间和错误 slice。
+**答：** 不能。180 条是 auto_mapped 外部压力样本，320 条项目样本仍是 provisional。Stateful 100/100 证明当前确定性安全回归成立，不证明开放回答质量或线上分布。只有独立人工复核、冻结 heldout、报告置信区间和错误 slice 后，才能使用项目 gold 口径。
 
 ### Q67：为什么 default gold-only 返回 0 case，而不是自动跑 provisional？
 
@@ -1863,7 +1869,7 @@ python -m evaluation.benchmark \
 
 ### Q72：这项改造怎样写成 STAR？
 
-**S：** 原仓库只有 11+5 内置 smoke case，无法复现旧准确率，也不能定位路由、召回和安全错误。**T：** 建立不会混淆公开数据、草稿标注和项目 gold 的评测闭环。**A：** 实现四层 JSONL/manifest、group-safe split、checksum/provenance/review 状态、BANKING77/CLINC150/Bitext adapter、注册 API 和确定性 scorer。**R：** 28 条 provisional 难例与 6 篇 corpus 已落库，111 项测试验证缺预测失败、路径隔离、审核门禁和分层指标；尚未声称未经 human review 的准确率。
+**S：** 原仓库只有 11+5 内置 smoke case，无法定位路由、召回和安全错误。**T：** 建立不混淆公开数据、草稿标注和项目 gold 的评测闭环。**A：** 实现 500 条四层 JSONL、group-safe split、checksum/provenance/review 状态、分层 scorer，并为 100 条 Stateful 建立 fail-closed fixture registry，真实调用记忆、工具、ReAct、Verifier、Coverage 与工单 Owner。**R：** Stateful Dev 80/80、Heldout 20/20；首次 heldout 暴露并修复 HTML 转义后高优先级上下文被预算器丢弃的问题；仍不把 provisional 结果写成生产准确率。
 
 ## 28. DeepSeek 分层调用：Flash、Pro 与 reasoning 怎样选
 
