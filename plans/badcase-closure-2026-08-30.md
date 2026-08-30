@@ -18,7 +18,7 @@
 4. `done` — 实现审核后导出四层 regression JSONL 的脚本。
 5. `done` — 增加状态机、隐私、自动捕获、API、导出与回归测试。
 6. `done` — 更新 README、架构教程、面经和 Pages 内容。
-7. `in_progress` — 全量验证、提交、push、Docker 与 CI/Pages 验证。
+7. `done` — 全量验证、提交、push、Docker 与 CI/Pages 验证。
 
 ## 变更文件
 
