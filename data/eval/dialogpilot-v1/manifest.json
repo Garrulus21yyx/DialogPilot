@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "dataset_id": "dialogpilot-layered-core",
+  "version": "1.0.0-seed",
+  "status": "provisional",
+  "created_at": "2026-08-30",
+  "description": "Repository-specific adversarial seed cases for intent, TaskPlan routing, retrieval, and stateful memory/tool/publication contracts.",
+  "case_count": 28,
+  "corpus_count": 6,
+  "cases_sha256": "3dd91100254ef7c5420d62d5ccc1f10e1da2064f4c9ea31d0246fe04e3b53c2e",
+  "corpus_sha256": "fb45f99c15d7535ca22ebc0f1f9bc25ceacfeb5c91e5c8b528f80075799ccd7a",
+  "split_policy": {
+    "unit": "group_id",
+    "dev": "prompt/routing iteration allowed",
+    "heldout": "release evaluation only; labels must not be used for tuning"
+  },
+  "review_policy": {
+    "gold_status": "human_reviewed",
+    "default_status": "provisional",
+    "required_fields": ["reviewer", "reviewed_at", "notes"]
+  },
+  "sources": [
+    {
+      "dataset": "dialogpilot-authored",
+      "license": "project-private",
+      "usage": "provisional seed; requires human review before gold reporting"
+    }
+  ],
+  "target_scale": {
+    "intent": "300-500",
+    "routing": "150-200",
+    "retrieval": "100-150",
+    "stateful": "80-100"
+  }
+}

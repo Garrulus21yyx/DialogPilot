@@ -162,3 +162,28 @@ Target contracts:
 - `docs/full-architecture-tutorial.zh-CN.md` — complete repository tutorial and interview follow-up guide.
 - `tests/test_lifespan.py` — lifecycle wiring and memory-configuration ownership regression test.
 - `tests/test_knowledge_context.py` — real evidence versus RAG fallback boundary tests.
+
+## Versioned layered evaluation dataset
+
+Goal: replace hard-coded smoke cases as the only data source with a versioned,
+license-aware JSONL contract for intent, routing, retrieval, and stateful
+memory/tool safety, while keeping auto-mapped public samples separate from
+human-reviewed project gold data.
+
+- [done] Define the manifest/case schema, deterministic dev/held-out split contract, validation, checksums, and layer-specific metrics.
+- [done] Add a 28-case provisional project seed and six-document retrieval corpus covering compound routing, negation, clarification, retrieval IDs, memory isolation, and tool authorization; provisional cases are excluded from gold metrics.
+- [done] Add deterministic public-source adapters for BANKING77, CLINC150 OOS, and opt-in Bitext; retain source label/license/provenance and write generated files outside committed gold data. BANKING77/CLINC adapters were exercised against their live upstream sources.
+- [pending] Wire dataset discovery/selection into `/eval/run`, add CLI validation/scoring, and verify positive/negative contracts with tests.
+- [pending] Update README, Pages tutorial/interview guide, push coherent phases, and verify CI/Pages.
+
+Target contracts:
+
+- A case has a stable ID, schema version, layer, split, input, expected behavior,
+  tags, source provenance, and review status.
+- Grouped variants never cross dev/held-out; held-out labels are not used for
+  prompt tuning; auto-mapped public samples are never reported as project gold.
+- Scoring is deterministic for classification, owner/task sets, retrieval ranks,
+  and boolean state/security assertions; LLM Judge remains an explicitly
+  separate subjective signal.
+- Dataset reports include dataset version, checksum, split, source mix, model,
+  prompt/skill/index versions, date, and raw case outcomes.
