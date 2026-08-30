@@ -22,13 +22,13 @@ title: DialogPilot 面经校准与追问手册
 
 | 旧口径 | 当前代码事实 | 结论 |
 |---|---|---|
-| EchoMind、3 个业务 Agent | 已更名 DialogPilot；General / Technical / Billing / AccountSecurity 四个领域 Worker，另有 Escalation | **CHANGED** |
+| EchoMind、3 个业务 Agent | 已更名 DialogPilot；General / Technical / Billing / AccountSecurity / Escalation 五个真实 Worker | **CHANGED** |
 | 并行回答直接拼接 | `TaskPlan → typed outcomes → CoverageGate → ResultSynthesizer → AnswerVerifier` | **CHANGED** |
 | 消息超过 15 条压缩 | 6000 Token 预算、70% 触发、最近 5 条优先保留、Redis WATCH/MULTI 乐观提交 | **CHANGED** |
 | 长期记忆只检索摘要 | 检索 1200 字符/120 overlap 原始片段，摘要只是背景 metadata | **CHANGED** |
 | 知识库是 BM25 + 向量 + RRF | 这是长期记忆；知识 RAG 仍是 rewrite + Chroma 多路向量 + 去重 + LLM rerank | **CORRECTED** |
 | Agent 单次生成、无完整 Trace | Worker 内最多 4 步 ReAct，allowlist/宿主审批/脱敏 audit/TraceId | **CHANGED** |
-| 准确率 91.3%、综合分 0.89 | 当前只有 11 条意图、5 条对话 smoke case 和 65 项回归测试，不是生产 benchmark | **UNPROVEN** |
+| 准确率 91.3%、综合分 0.89 | 当前只有 11 条意图、5 条对话 smoke case 和 81 项回归测试，不是生产 benchmark | **UNPROVEN** |
 | 完整 MCP Server / LangGraph | 是内部 ToolManager 与直接 Python 编排；没有远程 MCP Server，没用 LangGraph | **UNPROVEN** |
 
 ## 项目开场与完整链路
@@ -55,13 +55,13 @@ title: DialogPilot 面经校准与追问手册
 
 ### Q6：多轮中途改意图会丢历史吗？
 
-不会。工作记忆按 `user_id + conv_id` 保留，意图每轮重新识别。老信息超 Token 预算后压缩，原始片段另存情景记忆。边界是 `user_id/conv_id` 仍是外部字符，不是认证身份。
+不会。工作记忆按认证 Principal 的 `subject + conv_id` 保留，意图每轮重新识别。老信息超 Token 预算后压缩；短会话结束时显式 finalize，原始消息以稳定 ID 幂等归档。请求体 `user_id` 不再拥有身份，冲突会 403。
 
 ## 意图识别与路由
 
 ### Q7：意图识别方案是什么？
 
-**CURRENT。** 从闭合 `IntentCategory` 枚举选择，不让 LLM 自由创类别。官方 Anthropic 路径是 LLM 0.70 + 本地字符 n-gram 相似 0.20 + 规则 0.10；兼容 base URL 时改为 LLM 0.85 + 规则 0.15。融合低于 0.5 归 `OTHER`。
+**CURRENT。** 从闭合 `IntentCategory` 枚举选择，不让 LLM 自由创类别。`INTENT_SIMILARITY_MODE=ngram` 时是 LLM 0.70 + 本地字符 n-gram 0.20 + 规则 0.10；`disabled` 时是 LLM 0.85 + 规则 0.15。模式与 provider base URL 解耦，融合低于 0.5 归 `OTHER`。
 
 ### Q8：为什么不能把 n-gram 叫 Embedding 模型？
 
@@ -235,7 +235,7 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q48：91.3%、0.89 等旧数字怎么回答？
 
-**UNPROVEN。** 旧数字没对应数据集、切分、运行产物和 commit，已移除。可证明的是 65 项回归测试通过与内置 11+5 smoke case。建立生产 benchmark 后才报均值、方差、slice 和置信区间。
+**UNPROVEN。** 旧数字没对应数据集、切分、运行产物和 commit，已移除。可证明的是 81 项回归测试通过与内置 11+5 smoke case。建立生产 benchmark 后才报均值、方差、slice 和置信区间。
 
 ### Q49：多 LLM 调用怎么降延迟？
 
@@ -243,7 +243,7 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q50：最大生产缺口是什么？
 
-是可信身份与租户授权，不是再加 Prompt。当前调用者可自报 `user_id`，ticket/knowledge/skills/eval 接口缺 Principal、RBAC/ABAC 和 tenant filter，CORS 允许全部来源。生产前必须先建认证与 resource/action 授权。
+此前最大缺口是可信身份，不是 Prompt；现在 JWT `sub` 是用户身份，chat/knowledge/admin scope 控制接口，CORS 默认显式来源。剩余生产缺口是外部 IdP/JWKS、密钥轮换、tenant claim、resource/action ABAC、撤销与持久审计。
 
 ### Q51：Trace/审批还缺什么？
 
@@ -287,23 +287,59 @@ Trace 缺 OpenTelemetry exporter、持久存储、全链 span、采样与保留�
 
 ### Q59：如果下一步只改一件事？
 
-要上生产，先做认证、tenant 隔离和 resource/action 授权；要证明算法价值，先做去污染 held-out 数据集和 intent/retrieval/routing 消融；要长流程可恢复，再引入 durable graph 和持久审批。不是默认再加 Agent。
+要上生产，在已有 JWT/scope 基线上先接企业 IdP/JWKS、tenant/resource ABAC 与密钥轮换；要证明算法价值，先做去污染 held-out 数据集和 intent/retrieval/routing 消融；要长流程可恢复，再引入 durable graph 和持久审批。不是默认再加 Agent。
 
 ### Q60：怎样回答“项目最难的点”？
 
 不答“模块协同很难”。选一条可验证故事：旧并行链路只有 Agent 文本列表，异常破坏整体且无法证明子问题完成；于是引入 task_id/Owner、四态 outcome、共享预算和 CoverageGate；最后用部分成功、超时、重复/计划外 outcome 测试验证。
 
+## 新增边界追问：这次代码收敛了什么
+
+### Q61：短会话没触发压缩，怎样保证长期记忆？
+
+客户端在会话关闭时调用 `POST /conversations/{conv_id}/finalize`。MemoryManager 先按稳定 message ID 幂等 upsert 原始消息，再 WATCH working/summary 快照并删除 Redis；归档失败不删，出现并发新消息返回 409 留待重试。
+
+### Q62：为什么用户画像现在能确定性读取？
+
+不再按 `where user_id + limit=1` 猜最新记录，而是每用户一个 `profile_<sha256(user_id)>` 权威 ID，带 version 和 observed_at。单进程内按用户加锁，慢 LLM 写若观察时间更旧就不能覆盖较新画像；多副本仍需数据库 CAS。
+
+### Q63：Verifier 已替换顶层 response，为什么还要删 outcome content？
+
+因为拒绝候选仍可能从嵌套诊断字段泄漏。内部 verifier/feedback 需要完整 outcome，但公开 API 只投影状态、延迟与类型化原因，删除 candidate、raw error、agent key 和 tool call IDs。管理员排障应走独立受控接口。
+
+### Q64：请求体传别人的 user_id 还能查记忆吗？
+
+不能。HTTP 先验证 JWT，所有记忆操作使用签名 `sub`；请求体 user_id 只是旧客户端一致性检查，冲突直接 403。chat、knowledge 和 admin scope 分开。要诚实说明：这还是本地 HS256 基线，不是完整企业 IAM。
+
+### Q65：Chroma 远程挂掉为什么取消本地 fallback？
+
+远程和 embedded 是不会自动合并的两套物理存储，静默切换会产生 split-brain。现在 `CHROMA_MODE=remote` 不可达就启动失败；开发要本地库必须显式 `embedded`，`/health` 报告实际 mode/location。
+
+### Q66：在线降权以前为什么可能是“看起来有闭环”？
+
+每种类型只有一个 `_0` 实例，分数再低也没有 `_1` 可选。现在 stats 输出 pool size 与 adaptive flag；singleton 只告警不施加选择 penalty。测试另建同类双实例，证明质量反馈确实能改选。
+
+### Q67：Escalation 为什么要是真实 Agent？
+
+TaskPlan 已把人工交接指定给 `AgentType.ESCALATION`，却由 General 执行会让 Owner 和 responder 不一致。现在 tool-free EscalationAgent 专门整理诉求、风险、证据和待核实项；真正工单事实仍由 API/TicketService 创建，不让 LLM 声称已建单。
+
+### Q68：这一轮简历怎么写成一条？
+
+> 利用 JWT Principal/scope、确定性消息归档与显式存储模式收敛 Agent 服务生产边界，解决用户身份伪造、短会话 TTL 丢失、拒绝候选旁路泄漏和 Chroma 双库分叉；补齐 tool-free Escalation Owner 与路由基数诊断，以 81 项不变量测试验证失败可重试、数据不丢失和公开投影最小化。
+
+这句信息密度高，面试时优先拆成“身份/发布”或“记忆生命周期”一条 STAR，不要一次全背。
+
 ## 面试前 10 分钟自查
 
 1. 能画出 `/chat` 从 TraceId 到记忆写回的顺序，不混 Knowledge RAG 和 Memory Retrieval。
-2. 能说出 4 个业务 Worker、supporting 0.45、20s/15s/3 agents 预算和 4 步 ReAct。
+2. 能说出 5 个真实 Worker、supporting 0.45、20s/15s/3 agents 预算和 4 步 ReAct。
 3. 能说出 Knowledge chunk 500/no overlap 与 Memory chunk 1200/120 overlap。
 4. 能说出 Task outcome 四态、synthesis 五态与 Verifier PASS/REJECT/UNKNOWN。
 5. 能解释 BM25 对订单号的价值，以及 recency 为什么不能独立召回。
 6. 能解释发现/执行共用 allowlist，审批不来自模型参数。
-7. 能说明 65 tests 不等于 65 个 benchmark，11+5 case 不支持生产准确率。
+7. 能说明 81 tests 不等于 81 个 benchmark，11+5 case 不支持生产准确率。
 8. 能用 commit 划清原型与个人改造，不说从零原创。
-9. 能主动说出认证/租户隔离、持久 Trace、可恢复审批和真实 benchmark 缺口。
+9. 能讲清 JWT/scope 已完成，以及 IdP/JWKS、tenant ABAC、持久 Trace、可恢复审批和真实 benchmark 仍是缺口。
 10. 不说“精通 LangGraph”、“完整 MCP”、“项目是 SOTA”或“线上准确率 91.3%”。
 
 > 完整仓库链路、源码定位和更多底层追问，回到 [DialogPilot 完整架构教程](./)。

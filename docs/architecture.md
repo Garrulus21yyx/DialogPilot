@@ -6,6 +6,8 @@ prompt chain.
 | Concern | Owner | Authoritative output |
 |---|---|---|
 | HTTP contract | `api/main.py` | Validated request/response models |
+| HTTP identity and scopes | `core/auth.py` | Verified Principal from signed JWT `sub` |
+| Chroma deployment mode | `core/chroma_client.py` | One explicit remote or embedded physical backend |
 | Intent | `core/intent_recognizer.py` | Intent, confidence, urgency, entities |
 | Task planning and Agent selection | `agents/agent_orchestrator.py` | TaskPlan with scoped work, risk, criteria, and Owner |
 | Orchestration contracts and budget | `agents/orchestration_contracts.py` | Task identity, coverage projection, and shared execution deadline |
@@ -37,7 +39,9 @@ prompt chain.
 8. Attribute a supported verification verdict to the exact candidate producers.
 9. If escalation is required, create or reuse one idempotent persistent ticket.
 10. Persist only the answer that was actually published.
-11. Update the user profile asynchronously after persistence.
+11. Update the one-record-per-user profile asynchronously after persistence.
+12. When the client closes a conversation, idempotently archive every remaining
+    raw message before CAS-clearing its Redis working state.
 
 This ordering prevents the memory store from claiming that an unverified model
 answer was shown to the user.
@@ -57,6 +61,14 @@ degrade independently; recency can only reorder already-relevant candidates.
 Weighted RRF produces the final ranking and preserves per-source ranks for
 diagnosis. The structured summary remains prompt context/metadata, not the sole
 long-term source of truth.
+
+Compression and explicit conversation finalization share one archive owner.
+Every Redis message has a stable `message_id`; Chroma uses deterministic IDs
+and `upsert`, so a CAS retry cannot duplicate episodic facts. Chroma archival
+happens before Redis removal. If archival fails or the Redis snapshot changes,
+working memory is retained for a safe retry. The user profile has one
+deterministic per-user ID and versioned metadata instead of relying on an
+unordered `limit=1` collection read.
 
 `ContextAssembler` separately owns conversion into an LLM prompt. Memory,
 retrieved knowledge, and profile data remain tagged data sections; real
@@ -87,6 +99,11 @@ unchanged. Only producer keys attached to a direct or successfully synthesized
 candidate receive feedback; conflict and unknown synthesis results are not
 misattributed to individual Agents.
 
+The feedback changes selection only inside a type with at least two live
+instances. Each stats record therefore exposes `routing_pool_size` and
+`adaptive_routing_active`; singleton pools still collect health but do not
+claim that a penalty can route to a nonexistent alternative.
+
 ## Failure semantics
 
 - Unknown intent with low confidence asks a clarification question.
@@ -111,6 +128,12 @@ misattributed to individual Agents.
 - Account-security work is owned by `AccountSecurityAgent`, not Billing.
 - Verifier `UNKNOWN` is observable but never treated as an Agent-quality
   rejection.
+- Human-handoff tasks execute a real, tool-free `EscalationAgent`; the task Owner
+  and responding capability no longer disagree.
+- `CHROMA_MODE=remote` fails startup if the server is unavailable. Only explicit
+  `embedded` mode writes to the local path, preventing split-brain persistence.
+- The public HTTP projection strips rejected candidate bodies and raw Agent
+  errors; trusted internal outcomes remain available only inside the service.
 
 ## Ticket state algebra
 

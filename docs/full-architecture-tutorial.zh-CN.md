@@ -4,7 +4,7 @@
 
 ## 快速导航
 
-- 想先会讲：读第 0、3、5、19、20、22 章；
+- 想先会讲：读第 0、3、5、19、20、22、26 章；
 - 想吃透 Agent：读第 6、9、10、11、12、14、25 章；
 - 想吃透 Context/Memory：读第 8、25 章；
 - 想吃透后端可靠性：读第 7、13、17、18、21 章；
@@ -19,7 +19,7 @@ DialogPilot 是一个 Python 3.12 + FastAPI 的异步多 Agent 客服后端。�
 - `ReActExecutionEngine` 在单个领域 Worker 内执行有限工具循环；
 - `MemoryManager` 拥有工作记忆、滚动摘要、情景记忆和用户画像；
 - `ContextAssembler` 把这些数据装进有 Token 上限的模型输入；
-- `AgentOrchestrator` 生产 `TaskPlan`，为子任务分配 General、Technical、Billing 或 AccountSecurity Owner；
+- `AgentOrchestrator` 生产 `TaskPlan`，为子任务分配 General、Technical、Billing、AccountSecurity 或 Escalation Owner；
 - `CoverageGate` 判断每个必需任务是否真的得到闭合 outcome；
 - `ResultSynthesizer` 合并并行 Agent 的有类型结果；
 - `AnswerVerifier` 决定候选回答能否发布；
@@ -44,8 +44,8 @@ DialogPilot 是一个 Python 3.12 + FastAPI 的异步多 Agent 客服后端。�
 2. 合同：一次请求必须得到可诊断的路由结果；只有明确 `PASS` 的回答能发布；需要人工时同步尝试创建持久工单，并把建单成功或失败明确返回。
 3. 主链：Memory → Intent → RAG → Context → TaskPlan → Workers → Coverage → Synthesis → Verification → Ticket → Persist published messages。
 4. 六个最值得深挖的改动：Token 驱动且并发安全的压缩、混合长期记忆、TaskPlan/CoverageGate、有界 ReAct 与权限、请求预算下的结果代数、校验质量反馈闭环。
-5. 证据：65 个测试，新增覆盖混合召回/RRF 指标、Agent allowlist、高风险审批阻断、Trace 传播、tool_use/result 配对与循环上限。
-6. 边界：无鉴权，SQLite 只适合单应用写者，Trace/审计重启丢失，审批不能交互恢复，评测数据还不足以声称生产准确率。
+5. 证据：81 个测试，覆盖身份/公开投影、归档幂等/CAS、显式存储模式、真实 Escalation Owner、路由基数、混合召回、工具权限与 Trace。
+6. 边界：已有 JWT/scope 基线；多租户 IdP/ABAC 未完成，SQLite 只适合单应用写者，Trace/审计重启丢失，审批不能交互恢复，评测数据仍不足以声称生产准确率。
 
 ## 1. 如何学习这个仓库
 
@@ -80,6 +80,8 @@ DialogPilot/
 ├── api/main.py                      # HTTP 入口、生命周期、主流程编排
 ├── core/
 │   ├── intent_recognizer.py         # 三路意图识别、实体和紧急度
+│   ├── auth.py                      # JWT Principal 与 scope 授权
+│   ├── chroma_client.py             # 显式 remote/embedded 存储边界
 │   ├── skill_loader.py              # 动态业务 Skill 加载/匹配/热更新
 │   ├── tracing.py                   # Trace/span 身份与进程内投影
 │   └── llm_utils.py                 # 供应商响应文本归一化
@@ -239,6 +241,9 @@ sequenceDiagram
 
 ### 5.1 请求身份
 
+- `Authorization: Bearer <JWT>` 由 `JWTAuthenticator` 校验 HS256 签名、issuer、audience、`sub/iat/exp`；
+- `Principal.subject` 是记忆和工单用户身份的唯一来源；请求体旧 `user_id` 若与它冲突直接 403；
+- `chat`、`knowledge:read`、`admin` scope 控制不同 HTTP 能力；admin 可显式越过细分 scope；
 - `conv_id` 标识一次会话；调用方不传时生成 UUID。
 - `request_id` 标识一次客户端操作；不传时生成 UUID。
 - 自动人工工单的幂等键是 `chat:{request_id}:handoff`。
@@ -398,7 +403,7 @@ stateDiagram-v2
 - 文档按句号/换行尽量切成约 500 字片段；
 - ID 由 title、chunk index、片段前缀哈希生成；
 - Chroma 返回 distance，代码用 `1 - distance` 表示近似 score；
-- 本地 Chroma 不可服务化连接时退到 PersistentClient。
+- `CHROMA_MODE=remote` 连接失败时启动失败；只有显式 `embedded` 才使用 PersistentClient，因此不会产生两套无自动合并的物理存储。
 
 ### 7.7 有界 ReAct，而不是开放式自治
 
@@ -421,7 +426,7 @@ stateDiagram-v2
 
 Knowledge Base 也在 Chroma，但使用独立 collection。知识文档是业务事实投影，用户记忆是个人交互状态，不能混为一类。
 
-当前画像按 `user_id` 查询并 `limit=1`，没有显式按时间排序，也没有跨 conversation 合并合同，因此不能保证拿到真正最新或完整的用户画像。生产设计应让 profile 有唯一 user key/version，定义新旧偏好冲突与更新顺序。
+画像现在使用 `profile_<sha256(user_id)>` 作为每用户唯一权威 ID，写入带 `version/observed_at/updated_at`，读取按精确 ID，不依赖 Chroma 返回顺序。进程内按用户加锁并比较 observation time，避免慢请求覆盖较新的画像；多副本部署仍需把同一 CAS/版本条件迁到共享数据库。
 
 ### 8.2 Redis 消息顺序
 
@@ -505,7 +510,7 @@ flowchart LR
 
 为什么 BM25 权重更高？客服记忆常含订单号、错误码等精确 token，词法信号应优先保护它们；这只是当前可解释基线，不是已证明最优。`evaluate_retrieval()` 已提供 Recall@K、MRR、nDCG，后续应在版本化 query/relevant-id 数据集上做权重和 chunk overlap 消融。
 
-成功提交 Redis 后才写入 Chroma。若 Chroma 写失败，当前会话 summary 仍成立，但跨会话召回缺少该片段；这是被记录 warning 的部分成功，不是伪装为完整成功。
+归档顺序是先用稳定 `message_id` 和确定性 Chroma ID `upsert` 原始消息，再用 Redis WATCH/MULTI 提交压缩。Chroma 写失败时不删除 Redis 原消息；CAS 冲突后的重试仍写同一批 ID，不制造重复情景记忆。短会话还可调用 `POST /conversations/{conv_id}/finalize`，归档全部剩余消息后再 CAS 删除 working/summary；并发新消息会得到可重试的 409 并完整保留。
 
 ### 8.7 Prompt Context 和持久记忆是两层
 
@@ -585,9 +590,9 @@ Skill 适合放：客服话术、所需字段、退款/发票规则、排障 SOP
 - `TechnicalAgent`：错误诊断、配置、排障步骤；
 - `BillingAgent`：账单、退款、发票、订阅；
 - `AccountSecurityAgent`：账号被盗、异常登录、身份验证和敏感资料保护；
-- `ESCALATION`：路由占位，不是一个真实 LLM Agent，执行时会落到 General fallback，但上层保持升级语义。
+- `EscalationAgent`：真实、无工具的人工交接 Worker，整理诉求、风险、已知证据和待核实项，不承诺后台动作已完成。
 
-四个真实领域 Agent 共用 `BaseAgent.handle()`：计时、选择普通模型调用或 ReAct、累计执行统计、识别回答里的转人工关键词、把异常转成 `AgentResponse(success=False)`。AccountSecurity 有单独 Skill 和高风险完成标准，不再由 Billing 代管。
+五个真实 Agent 共用 `BaseAgent.handle()`：计时、选择普通模型调用或 ReAct、累计执行统计、识别回答里的转人工关键词、把异常转成 `AgentResponse(success=False)`。AccountSecurity 有单独 Skill 和高风险完成标准；Escalation 覆盖 `_new_react_engine()`，确定性禁止工具。
 
 ### 10.2 路由不是只看单一 intent
 
@@ -616,7 +621,7 @@ base = availability * 0.35 + verified_quality * 0.45 + latency * 0.20
 routing_score = base * (1 - monitor_penalty)
 ```
 
-当前默认每类只有一个实例，所以动态选择能力已有合同和测试，但生产收益需要扩容后才出现。
+当前默认每类只有一个实例，所以 `get_stats()` 明确输出 `routing_pool_size=1`、`adaptive_routing_active=false`。Monitor 仍采集健康，但不会施加“能改变选择”的 penalty；只有同类型至少两个候选时才启用在线质量选优。
 
 ### 10.5 Specialist 降级
 
@@ -914,31 +919,32 @@ Judge 异常时返回四个 0.5 并标记 `judge_failed=True`。这不会伪装�
 | Method | Path | 作用 | 关键边界 |
 |---|---|---|---|
 | GET | `/health` | readiness + Agent stats | 不是深度依赖健康检查 |
-| POST | `/chat` | 主链路 | 只有 PASS candidate 可发布 |
-| GET/POST | `/skills`, `/skills/reload` | Skill 查看/热加载 | 当前无鉴权 |
-| POST | `/search` | 改写、并行召回、重排 | query 是 query parameter |
-| POST | `/knowledge/add` | JSON 文档导入 | 当前无权限/版本控制 |
-| POST | `/knowledge/upload` | txt/md/json 上传 | 10MB，UTF-8 宽松解码 |
-| GET | `/knowledge/stats` | chunk 计数 | 只反映数量，不反映质量 |
-| GET | `/monitor` | 在线统计/告警/建议 | 进程内状态 |
+| POST | `/chat` | 主链路 | JWT `chat`；只有 PASS candidate 可发布 |
+| POST | `/conversations/{conv_id}/finalize` | 归档短会话 | JWT `chat`；archive-before-delete + CAS |
+| GET/POST | `/skills`, `/skills/reload` | Skill 查看/热加载 | JWT `admin` |
+| POST | `/search` | 改写、并行召回、重排 | JWT `knowledge:read` |
+| POST | `/knowledge/add` | JSON 文档导入 | JWT `admin`；仍缺文档版本合同 |
+| POST | `/knowledge/upload` | txt/md/json 上传 | JWT `admin`；10MB |
+| GET | `/knowledge/stats` | chunk 计数 | JWT `admin`；数量不代表质量 |
+| GET | `/monitor` | 在线统计/告警/建议 | JWT `admin`；进程内状态 |
 | GET | `/metrics` | Prometheus scrape | 无业务维度高基数 |
-| POST | `/eval/run` | 运行评测 | 会调用模型并写 baseline |
-| POST/GET/PATCH | `/tickets...` | 工单 CRUD/迁移 | 当前无鉴权/RBAC |
+| POST | `/eval/run` | 运行评测 | JWT `admin`；会调用模型并写 baseline |
+| POST/GET/PATCH | `/tickets...` | 工单 CRUD/迁移 | JWT `admin`；状态机仍由 TicketService 拥有 |
 
 示例：
 
 ```bash
 curl -X POST http://localhost:8000/chat \
+  -H "Authorization: Bearer $DIALOGPILOT_TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{
     "request_id":"demo-20260828-001",
-    "user_id":"demo-user",
     "conv_id":"demo-conversation",
     "message":"订单 #A123 登录失败后又被扣款 50 元"
   }'
 ```
 
-重点观察响应里的：`trace_id`、`intent`、`primary_agent`、`task_plan`、`agent_outcomes[*].react_status/react_steps/tool_call_ids`、`coverage`、`tool_audit`、`memory_retrieval`、`verification_status`、`escalated` 和 `ticket_id`。HTTP header 也返回同一个 `X-Trace-Id`；Client 可传 8–128 位字母数字/`._-` 的 ID，非法值会由服务端重新生成。
+重点观察响应里的：`trace_id`、`intent`、`primary_agent`、`task_plan`、公开 outcome 的状态/延迟、`coverage`、`tool_audit`、`memory_retrieval`、`verification_status`、`escalated` 和 `ticket_id`。公开 `agent_outcomes` 不含候选正文、原始错误、producer key 或 tool call ID，避免被 Verifier 拒绝的内容从诊断字段旁路泄漏。HTTP header 也返回同一个 `X-Trace-Id`。
 
 ## 17. 配置、部署和运行
 
@@ -981,8 +987,11 @@ Prometheus :9090
 | `ANTHROPIC_API_KEY` | 必填 |
 | `ANTHROPIC_MODEL` | 模型名 |
 | `ANTHROPIC_BASE_URL` | Anthropic-compatible provider |
+| `AUTH_JWT_SECRET/ISSUER/AUDIENCE` | JWT 身份边界；secret 至少 32 字节 |
 | `REDIS_URL` | 工作记忆 |
 | `CHROMA_HOST/PORT/PERSIST_DIRECTORY` | Chroma 服务或本地路径 |
+| `CHROMA_MODE` | `remote` 失败即停止；`embedded` 只写本地路径 |
+| `INTENT_SIMILARITY_MODE` | `ngram` 或 `disabled`，不再由 provider base URL 猜测 |
 | `TICKET_DB_PATH` | SQLite 工单文件 |
 | `CONTEXT_INPUT_BUDGET` | 完整输入预算 12000 |
 | `CONTEXT_OUTPUT_RESERVE` | 为输出预留 1536 |
@@ -1005,7 +1014,7 @@ python -m compileall -q agents api core evaluation mcp memory monitor services
 python -m pytest -q
 ```
 
-当前 65 个测试按不变量分组：
+当前 81 个测试按不变量分组：
 
 ### Lifespan 与 RAG boundary
 
@@ -1209,9 +1218,9 @@ python -m pytest -q
 
 对照后的结论是：当前实现已经补齐“任务身份、唯一 Owner、共享预算、覆盖门禁、有界 Worker tool loop、发布校验和编排评测”这条链；尚未实现动态 LLM Planner、持久化执行图、token/金额预算和可恢复人工审批节点。因此面试时应说“按主流先进实践完成了有界实现”，不要说“项目就是 SOTA”。
 
-### P0：身份、授权和数据边界
+### P1：从本地 JWT/RBAC 基线扩展到多租户身份平台
 
-当前 ticket、knowledge、skills、eval 接口无鉴权，CORS 允许全部来源。生产前应加入 Principal、tenant、RBAC/ABAC，所有检索按 tenant/user 过滤，上传和状态变更做 audit。`user_id` 和 `conv_id` 只是外部字符串，不是认证。
+当前已在 HTTP 边界验证 HS256 JWT，以签名 `sub` 覆盖请求体身份；chat、knowledge 和 admin scope 分离，CORS 默认只允许显式来源。生产多租户仍需外部 IdP/JWKS、key rotation、tenant claim、resource/action ABAC、撤销机制，以及跨租户数据/上传/状态变更审计。
 
 ### P0：高风险业务 receipt
 
@@ -1245,7 +1254,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q2：你个人具体负责了什么？
 
-**推荐诚实答案：** 我接手的是一个已有客服原型。我负责仓库清理和 DialogPilot 命名迁移，并重点完成八条 Owner 级改造：持久工单状态机、Token-aware 并发安全压缩、typed Multi-Agent synthesis、Verifier 质量反馈路由、TaskPlan/CoverageGate/ExecutionBudget、混合长期记忆、工具权限/Trace、有界 ReAct；同时把账户安全拆成独立 Owner，并把编排证据接入发布校验和评测。当前有 65 个测试、CI、Docker 验证和架构文档。原型已有功能会按 commit 划清边界，不说成全部从零原创。
+**推荐诚实答案：** 我接手的是一个已有客服原型。我负责仓库清理和 DialogPilot 命名迁移，并完成持久工单、Token/CAS 压缩、typed synthesis、TaskPlan/CoverageGate、混合记忆、ReAct 权限/Trace，以及 JWT/公开投影、短会话归档、显式 Chroma 模式、真实 Escalation Owner 等边界收敛。当前有 81 个测试、CI、Docker 验证和架构文档。原型已有功能会按 commit 划清边界，不说成全部从零原创。
 
 **追问：去掉你的改动还剩什么？** 仍有基础 FastAPI、三路意图、Redis/Chroma 记忆、RAG、领域 Agent、Skill、监控和评测原型；会失去真实工单闭环、Token/并发压缩不变量、TaskPlan/覆盖门禁、有类型并行结果、质量反馈、混合召回、工具权限/Trace 和 Worker ReAct。
 
@@ -1357,7 +1366,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q22：这个项目最大的安全问题是什么？
 
-**答：** 不是 Prompt，而是没有认证授权：调用者可自报 user_id，ticket/knowledge/skills/eval 都可修改或读取。上线前必须先建立可信 Principal，再做 resource/action 授权和 tenant filter。
+**答：** 最大已关闭风险曾是调用者自报 `user_id` 和管理接口无鉴权；现在由 JWT Principal 与 scope 持有身份/能力，公开诊断也删除拒绝候选正文。剩余最大边界是多租户：本地共享密钥不是企业 IdP，仍需 JWKS/key rotation、tenant/resource ABAC、撤销和持久审计。
 
 ### Q23：为什么不用 LangChain/LangGraph？
 
@@ -1474,7 +1483,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q38：当前评测数据到底有多少，能证明什么？
 
-**答：** 内置数据是 11 条意图 case 和 5 组对话，共 16 个 smoke/regression 样本；质量及格线默认 0.75。仓库还有 65 个确定性测试，它们证明状态机、失败边界、任务覆盖、工具权限、ReAct 和记忆排序不变量，但不等于 65 条业务准确率样本。
+**答：** 内置数据是 11 条意图 case 和 5 组对话，共 16 个 smoke/regression 样本；质量及格线默认 0.75。仓库还有 81 个确定性测试，它们证明状态机、身份、失败边界、任务覆盖、工具权限、ReAct 和记忆不变量，但不等于 81 条业务准确率样本。
 
 **不能声称什么：** 不能据此声称生产准确率、行业 SOTA 或泛化能力。生产发布需要版本化数据集、关键 slice、dev/held-out 分离和人工校准 Judge。
 
@@ -1585,7 +1594,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 **Action：** 在 Worker 内增加最大 4 步的 Anthropic tool loop；工具发现和执行共享同一 allowlist，执行边界再次校验；高风险/写工具默认等待宿主批准，读工具批次并行、潜在写工具串行；工具输出截断后按 call_id 回写，TraceId 通过 contextvars 贯穿并行 Task，审计只记录参数哈希/shape；拒绝、失败、超步数禁止 General fallback 覆盖。
 
-**Result：** 8 个工具/ReAct 聚焦测试加 1 个编排投影测试证明越权零副作用、审批阻断、循环停止、结果配对、输出有界、Trace 传播和失败证据贯穿。整个仓库 65 项测试通过。
+**Result：** 工具/ReAct 聚焦测试和编排投影测试证明越权零副作用、审批阻断、循环停止、结果配对、输出有界、Trace 传播和失败证据贯穿；连同新增生产边界测试，整个仓库 81 项测试通过。
 
 **简历一行（只在你能现场解释代码时使用）：**
 
@@ -1628,3 +1637,81 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 ### Q56：这两项还有什么未完成？
 
 **答：** 混合记忆缺版本化真实数据集、权重消融和稳定 embedding；Trace 缺 OTel exporter/持久存储及全链 span；审批缺 pending-call persistence、批准人/过期时间/resume endpoint；写工具缺业务授权、幂等 key 和 typed receipt。当前代码证明的是闭合安全基线，不是完整生产平台。
+
+## 26. 边界收敛：身份、记忆生命周期、物理存储与升级 Owner
+
+这一轮不是在 API 外层补八个 if，而是把八个症状归并成四个权威边界：HTTP 身份/发布投影、Memory 生命周期、Chroma 部署身份、Agent 执行 Owner。每个边界都定义“谁拥有事实、失败时保留什么、怎样证明”。
+
+```mermaid
+flowchart LR
+    J[Signed JWT] --> P[Principal subject + scopes]
+    P --> C[Chat identity]
+    C --> W[Redis working memory]
+    W -->|compression or finalize| A[deterministic message archive]
+    A -->|upsert succeeds| X[Redis WATCH/MULTI clear]
+    A --> E[Chroma explicit backend]
+    P --> O[TaskPlan]
+    O --> H[tool-free EscalationAgent]
+    H --> V[Verifier + public redaction]
+    V --> T[idempotent ticket]
+```
+
+### 26.1 八项差异总账
+
+| 原问题 | 根因 Owner | 当前合同 | 失败语义与证据 |
+|---|---|---|---|
+| 短会话未达压缩阈值，TTL 后消失 | `MemoryManager` 生命周期 | `finalize_conversation` 归档全部剩余消息，再 CAS 清 Redis | 归档失败 503；并发写 409；Redis 原文保留 |
+| `user_profile limit=1` 不保证最新 | Profile 存储身份 | 每用户一个确定性 ID，版本化合并 | 进程内 observation-order 防旧写覆盖；多副本 CAS 仍是边界 |
+| `agent_outcomes.content` 泄漏拒绝候选 | HTTP 发布投影 | 公开 outcome 只保留安全状态/延迟/错误码 | candidate、raw error、agent key、tool call IDs 全部删除 |
+| 请求体可伪造 `user_id` | HTTP 身份 | JWT `sub` 是唯一用户身份，scope 控制能力 | 缺失/坏 token 401；身份冲突或缺 scope 403 |
+| Chroma 远程失败静默写本地 | `core/chroma_client.py` | `remote` 与 `embedded` 显式二选一，health 报实际位置 | remote 不可达启动失败，绝不产生第二套库 |
+| 单实例却声称动态路由 | Orchestrator/Monitor | stats 报 pool size；≥2 才启用选择惩罚 | 单实例 penalty 为 0，健康告警不冒充替换路由 |
+| `ESCALATION` Task 实际由 General 执行 | Agent pool | 注册真实、tool-free `EscalationAgent` | Owner 与 responding type 一致；失败才进入类型化 fallback |
+| provider base URL 误关 n-gram | Intent 配置 | `INTENT_SIMILARITY_MODE=ngram|disabled` 独立拥有算法选择 | 非法值启动失败；兼容 API 不改变三路权重 |
+
+### 26.2 为什么归档必须早于 Redis 删除
+
+旧的“先提交摘要、再尽力写 Chroma”允许 working memory 已消失而长期事实未落库。新顺序是：快照消息拥有稳定 `message_id` → Chroma 以确定性 ID `upsert` → Redis 比较 list 与 summary 快照 → 只在未变化时删除或压缩。这个顺序同时满足：
+
+1. Chroma 失败不会损失原文；
+2. CAS 冲突保留并发新消息；
+3. 重试 upsert 相同 ID，不复制记忆；
+4. 压缩和显式 finalize 使用同一个 archive Owner。
+
+### 26.3 HTTP 内部证据与公开诊断为什么要分开
+
+Verifier 必须读取完整 `AgentOutcome.content/error/producer` 才能判断候选并反馈真实生产者，但这不表示浏览器也应该收到它们。API 的 `_public_agent_outcomes()` 是信任边界转换：内部合同保真，公开投影最小化。只替换顶层 `response` 不够，因为拒绝正文会从嵌套字段旁路出现。
+
+### 26.4 面试追问与参考答案
+
+### Q57：短会话 finalize 调两次会重复长期记忆吗？
+
+**答：** 不会按正常合同重复。每条 Redis 消息带稳定 `message_id`，Chroma ID 由 user/conv/message/chunk 确定并使用 `upsert`；第一次成功后 Redis 已清，第二次返回 `already_empty=true`。即使第一次归档后 CAS 冲突，重试仍覆盖同一 ID。
+
+### Q58：为什么 finalize 不直接 `DEL` Redis？
+
+**答：** 归档调用期间可能到达新消息。删除前必须 WATCH 并比较 working list 与 summary；变化时返回 retryable 409，让新消息留下。目标不是“接口一定成功”，而是“结束会话不能删除快照之后的事实”。
+
+### Q59：每用户一个 profile 是否就解决并发？
+
+**答：** 解决了无序多记录读取，并在单进程内通过 user lock + observed time 防慢请求覆盖。它没有虚构多副本原子性；横向扩展时应把 version compare-and-swap 放进共享数据库或可靠串行队列。
+
+### Q60：JWT 之后还有没有越权风险？
+
+**答：** 仍有。当前是本地 HS256 + scope 基线，证明客户端不能自报 user identity。企业生产还需要 IdP/JWKS、密钥轮换、tenant claim、resource/action ABAC、撤销和审计，尤其是 admin scope 不能长期用共享 token。
+
+### Q61：为什么不保留 `agent_outcomes.content` 方便排障？
+
+**答：** 完整内容留在受信内部执行和 Trace 边界即可，不能默认发给最终用户。公开接口只给状态、延迟和类型化原因；若运营确需正文，应建立独立管理员诊断接口、访问控制、脱敏和审计。
+
+### Q62：远程 Chroma 挂了为什么宁可启动失败？
+
+**答：** 静默本地 fallback 会制造两个都看似成功但不会自动合并的物理事实源，恢复后读写不一致比显式不可用更危险。`remote` fail closed 让编排系统暴露依赖故障；开发者若要单机运行，明确设 `embedded`。
+
+### Q63：Monitor 降权为什么以前没有实际收益？
+
+**答：** `_best_agent()` 只在同类型候选内比较。每类只有 `_0` 时，0.9 和 0.1 分都只能选它。现在 API 明确报告 pool size/active；扩成 `technical_0/1` 后，质量 EWMA 和 penalty 才真正改变实例选择。
+
+### Q64：这一轮怎样写成 STAR？
+
+**S：** 原链路在 TTL、诊断投影和部署降级处存在“成功返回但事实丢失或泄漏”的边界。**T：** 让身份、归档、存储模式和升级执行者各有唯一 Owner，并让失败可重试、可观测。**A：** 实现 JWT Principal/scope、公开 outcome redaction、确定性消息归档 + Redis CAS finalize、单记录版本画像、显式 Chroma/intent 模式、tool-free EscalationAgent 和路由基数披露。**R：** 81 项测试覆盖身份伪造、候选泄漏、归档幂等、并发保留、模式 fail-closed、真实升级执行和单/多实例路由；不虚构线上提升。

@@ -16,6 +16,12 @@ escalated deterministically into an idempotent SQLite-backed human ticket with
 a typed lifecycle and audit history. Prometheus monitoring and LLM-as-Judge
 evaluation close the online and offline feedback loops.
 
+The HTTP boundary derives identity from a verified JWT Principal rather than a
+caller-supplied user ID. A dedicated, tool-free escalation worker prepares
+human handoff evidence. Chroma storage mode is explicit and observable, and
+short conversations are idempotently archived before their Redis TTL can erase
+the only raw copy.
+
 Within each scoped Worker, a bounded ReAct loop may select only tools exposed by
 its allowlist. ToolManager—not the model—owns risk, approval, execution, bounded
 writeback, and redacted audit. A request TraceId links HTTP, ReAct steps, and
@@ -54,6 +60,12 @@ structured summary. An optimistic Redis transaction prevents an LLM summary
 generated from a stale snapshot from overwriting messages that arrived during
 compression. Prompt assembly keeps retrieved data in tagged sections and real
 conversation turns in the message sequence.
+
+Compression is not the only archive trigger. The conversation-finalize API
+upserts deterministic per-message episodic IDs and then CAS-clears Redis; an
+archive failure or concurrent message preserves working state for retry. User
+profiles use one deterministic per-user record with version metadata rather
+than an unordered “first row” query.
 
 ### Why combine deterministic planning with bounded ReAct?
 

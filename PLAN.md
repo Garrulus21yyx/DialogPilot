@@ -116,7 +116,7 @@ moving authority into API projections or hiding unsupported behavior in document
 - [done] Make Chroma backend selection explicit and fail closed in remote mode; decouple local n-gram similarity from `ANTHROPIC_BASE_URL` behind an explicit configuration mode. Both owners use one storage factory and `/health` reports the physical backend; the full 77-test suite passes.
 - [done] Register a real EscalationAgent so TaskPlan Owner and responding capability agree; make performance routing claims conditional on actual same-type alternatives.
 - [done] Add positive invariant tests for authentication, projection redaction, idempotent archival, profile ordering, storage-mode selection, intent mode, escalation execution, and routing cardinality. The full suite now contains 81 passing tests.
-- [pending] Update README, architecture, tutorial, interview guide, environment/Compose contracts, run all checks, push each coherent phase, and verify deployed Pages on desktop/mobile.
+- [done] Update README, architecture, tutorial, interview guide, environment/Compose contracts, and run all local checks. Pages now contains 27 numbered chapters, 64 tutorial drills, a separate 68-question interview page, and the eight boundary repairs; deployment verification follows the final push.
 
 Target contracts:
 

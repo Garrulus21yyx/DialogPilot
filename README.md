@@ -30,8 +30,9 @@ POST /chat
   -> feed PASS / REJECT quality back to the exact producing Agent instances
   -> publish only PASS answers; escalate every other outcome
   -> persist each escalation as one idempotent human-support ticket
-  -> persist messages and update the profile in the background
-  -> return TraceId, tool audit, and hybrid-memory retrieval evidence
+  -> persist messages and update the one-record-per-user profile in the background
+  -> explicitly finalize short sessions before their Redis TTL expires
+  -> return redacted TraceId, tool audit, and hybrid-memory retrieval evidence
 ```
 
 Context input is bounded independently from model output. Working memory is
@@ -94,7 +95,9 @@ pytest -q
 uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Redis and ChromaDB still need to be reachable using the values in `.env`.
+Redis must be reachable. Chroma uses the explicit `CHROMA_MODE`: `remote`
+fails startup when the declared server is unavailable; `embedded` uses only
+`CHROMA_PERSIST_DIRECTORY` and never silently switches to the remote store.
 
 ## Primary endpoints
 
@@ -102,6 +105,7 @@ Redis and ChromaDB still need to be reachable using the values in `.env`.
 |---|---|---|
 | `GET` | `/health` | Readiness and agent statistics |
 | `POST` | `/chat` | Complete multi-agent conversation flow |
+| `POST` | `/conversations/{conv_id}/finalize` | Idempotently archive a short session before clearing Redis |
 | `POST` | `/search` | Query rewrite, parallel retrieval, and reranking |
 | `POST` | `/knowledge/add` | Add knowledge documents |
 | `POST` | `/knowledge/upload` | Upload text, Markdown, or JSON knowledge |
@@ -117,17 +121,30 @@ Redis and ChromaDB still need to be reachable using the values in `.env`.
 Example chat request:
 
 ```bash
+# Create a development token. Use a different long secret outside this example.
+export AUTH_JWT_SECRET='replace-with-at-least-32-random-bytes'
+export DIALOGPILOT_TOKEN="$(python - <<'PY'
+import os, time, jwt
+now = int(time.time())
+print(jwt.encode({
+    "sub": "demo-user", "scope": "chat", "iat": now, "exp": now + 3600,
+    "iss": "dialogpilot", "aud": "dialogpilot-api",
+}, os.environ["AUTH_JWT_SECRET"], algorithm="HS256"))
+PY
+)"
+
 curl -X POST http://localhost:8000/chat \
+  -H "Authorization: Bearer $DIALOGPILOT_TOKEN" \
   -H 'Content-Type: application/json' \
-  -d '{"request_id":"client-request-001","user_id":"demo-user","message":"订单 #A123 登录失败后又被扣款了"}'
+  -d '{"request_id":"client-request-001","message":"订单 #A123 登录失败后又被扣款了"}'
 ```
 
 The response includes the selected intent and agents, structured task plan,
 required-task coverage, execution budget, routing reason,
 knowledge usage, typed verification status, groundedness, and escalation flag.
 It also exposes `trace_id`, redacted `tool_audit`, and `memory_retrieval`
-rank evidence. Each Agent outcome carries `react_status`, `react_steps`, and
-`tool_call_ids` when tools were used.
+rank evidence. Public Agent outcomes retain status and timing diagnostics but
+remove candidate content, raw internal errors, producer keys, and tool call IDs.
 Parallel responses also expose `synthesis_status`, conflict details, and each
 selected task's typed execution outcome. Workers share one request deadline and
 max-Agent budget; `BUDGET_EXCEEDED` remains attached to the unresolved task.
@@ -138,7 +155,8 @@ Runtime Agent statistics separate execution availability from verified answer
 quality. `PASS` and `REJECT` update a sample-aware EWMA quality score for the
 exact producer instances; verifier `UNKNOWN` is counted for observability but
 does not penalize Agent quality. Routing combines availability, verified
-quality, latency, and monitor penalties.
+quality, latency, and monitor penalties. `adaptive_routing_active` is true only
+when a type has at least two instances that can actually replace one another.
 When escalation is required it also returns `ticket_id`, `ticket_status`, and
 whether that request created the ticket or reused an idempotent existing one.
 
@@ -176,8 +194,9 @@ and generated caches are intentionally excluded. Never commit `.env`.
 
 ## Current limitations
 
-- Ticket endpoints currently have no authentication or role-based authorization;
-  add an identity boundary before exposing them outside a trusted environment.
+- HTTP routes verify HS256 bearer tokens; chat memory identity comes from the
+  signed `sub`, while admin and knowledge routes require scopes. Multi-tenant
+  organization policy and external IdP/JWKS integration remain future work.
 - SQLite is suitable for a single application writer; a multi-replica deployment
   should migrate the same TicketService contract to PostgreSQL.
 - LLM verification adds latency and model cost to each published response.
@@ -185,7 +204,7 @@ and generated caches are intentionally excluded. Never commit `.env`.
   accuracy claims.
 - No pre-generated quality baseline is committed; `/eval/run` creates one for
   the configured model and environment.
-- Local development currently expects Redis and ChromaDB to be running.
+- Local development expects Redis; Chroma must be explicitly `remote` or `embedded`.
 - Trace spans and tool audits are process-local bounded memory, not durable
   OpenTelemetry storage; restarts remove them.
 - Default approval safely blocks high-risk/write tools, but there is not yet an
