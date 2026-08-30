@@ -450,6 +450,7 @@ async def health():
     return {
         "status": "ok",
         "agents": _orchestrator.get_stats(),
+        "tools": _tool_manager.get_stats() if _tool_manager is not None else {},
         "storage": storage,
         "model_policy": _model_policy.to_dict() if _model_policy is not None else None,
     }
