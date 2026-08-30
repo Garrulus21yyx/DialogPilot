@@ -148,7 +148,7 @@ not implement.
 
 ## Phase 4: chunk-aware RAG convergence
 
-Status: in progress. Reviewer B established that the storage adapter persisted a
+Status: implemented; independent re-verification remains open. Reviewer B established that the storage adapter persisted a
 unique `document_id::chunk-N`, but `KnowledgeBase.search` replaced that candidate
 identity with the parent `document_id` before BM25/RRF. Projection then looked up
 metadata independently by parent ID, so content, chunk index and ranks could come
@@ -174,5 +174,19 @@ from different chunks.
 2. [completed] Preserve chunk candidate identity through search and projection.
 3. [completed] Add long-sentence, overlap-boundary and multi-chunk alignment tests.
 4. [completed] Re-run repository tests and provisional Retrieval Dev baseline.
-5. [in progress] Update Pages/review status, push implementation and documentation,
+5. [completed] Update Pages/review status, push implementation and documentation,
    then verify CI and Pages.
+
+### Verification evidence
+
+- Production repair: `6235141`; documentation and immutable Reviewer B evidence:
+  `8a8d3de`.
+- Local and GitHub CI: 146 tests passed; GitHub Actions run `33317140968`
+  completed successfully.
+- Pages run `33317140576` completed successfully, and the deployed architecture
+  page exposes the 360-token ceiling, 48-token overlap and chunk-identity contract.
+- Retrieval Dev remains provisional at 80 cases: Recall@5 0.9125, MRR 0.7504 and
+  nDCG@5 0.7914. An embedded-Chroma multi-chunk probe returned one aligned
+  `chunk_id`, chunk index, content and rank record.
+- This phase records implementation completion only. Reviewer B's repository-wide
+  `reject` decision and the fresh independent closure gate remain unchanged.
