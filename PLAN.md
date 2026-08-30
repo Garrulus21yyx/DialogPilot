@@ -187,3 +187,24 @@ Target contracts:
   separate subjective signal.
 - Dataset reports include dataset version, checksum, split, source mix, model,
   prompt/skill/index versions, date, and raw case outcomes.
+
+## Role-tiered DeepSeek model and reasoning policy
+
+Goal: replace the single global model choice with one authoritative per-role
+policy while preserving the existing Anthropic-compatible DeepSeek transport.
+
+- [done] Define and validate a closed role policy for intent, rewrite/rerank, memory, worker, synthesis, verifier, and judge, including model and reasoning effort.
+- [done] Migrate every model-call consumer to the shared policy and make runtime/evaluation metadata expose the effective tiers.
+- [done] Preserve DeepSeek thinking blocks across ReAct tool turns; prove non-thinking, thinking, and malformed/unsupported configuration contracts.
+- [in_progress] Update environment/Compose, README, Pages tutorial/interview guide, run all gates, push, and verify CI/Pages.
+
+Target contracts:
+
+- Provider transport, model identity, and reasoning effort have one config Owner;
+  individual components consume an injected immutable call profile.
+- Low-complexity closed tasks default to Flash/non-thinking; synthesis,
+  publication verification, and Judge can independently use Pro reasoning.
+- ReAct either disables thinking explicitly or round-trips every thinking block
+  exactly before the next tool request; no mixed implicit-default state exists.
+- Unsupported model names/efforts fail at startup with typed configuration
+  errors, and reports state the actual model/reasoning policy used.

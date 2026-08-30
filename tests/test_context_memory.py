@@ -7,6 +7,7 @@ import pytest
 
 from memory.context import ContextAssembler, ContextSection, TokenEstimator
 from memory.conversation_memory import MemoryManager, Message, MsgRole
+from core.model_policy import ModelProfile
 
 
 def raw_message(role: str, content: str) -> str:
@@ -23,6 +24,7 @@ def bare_manager(*, budget=512, threshold=0.7, summary_tokens=128):
     manager._memory_token_budget = budget
     manager._compression_threshold = threshold
     manager._summary_max_tokens = summary_tokens
+    manager._model_profile = ModelProfile("test-model")
     manager._token_estimator = TokenEstimator()
     manager._compression_stats = {
         "attempted": 0,

@@ -36,6 +36,7 @@ from services.ticket_service import (
 from memory.context import ContextAssembler, ContextSection
 from core.tracing import TraceRecorder, current_trace_id, trace_scope
 from core.auth import AuthenticationError, AuthorizationError, JWTAuthenticator, Principal
+from core.model_policy import ModelPolicy, ModelRole
 
 load_dotenv()
 
@@ -64,6 +65,7 @@ _answer_verifier = None
 _ticket_service = None
 _context_assembler = None
 _authenticator = None
+_model_policy = None
 _trace_recorder = TraceRecorder()
 
 
@@ -97,11 +99,13 @@ def _anthropic_cfg() -> Dict[str, Any]:
     key = os.getenv("ANTHROPIC_API_KEY", "")
     if not key:
         raise RuntimeError("未设置 ANTHROPIC_API_KEY")
+    policy = ModelPolicy.from_env()
     cfg: Dict[str, Any] = {
         "api_key":  key,
-        "model":    os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022").strip(),
+        "model":    policy.profile(ModelRole.WORKER).model,
+        "policy": policy,
     }
-    base_url = os.getenv("ANTHROPIC_BASE_URL", "").strip()
+    base_url = policy.base_url
     if base_url:
         cfg["base_url"] = base_url
     return cfg
@@ -110,7 +114,7 @@ def _anthropic_cfg() -> Dict[str, Any]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """按依赖顺序创建所有组件，并在退出时释放后台任务和连接。"""
-    global _orchestrator, _memory, _knowledge_base, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _context_assembler, _authenticator
+    global _orchestrator, _memory, _knowledge_base, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _context_assembler, _authenticator, _model_policy
 
     print(BANNER, flush=True)
 
@@ -125,10 +129,11 @@ async def lifespan(app: FastAPI):
     from services.answer_verifier import AnswerVerifier
 
     cfg = _anthropic_cfg()
+    _model_policy = cfg["policy"]
     similarity_mode = os.getenv("INTENT_SIMILARITY_MODE", "ngram")
     chroma_mode = os.getenv("CHROMA_MODE", "remote")
     _authenticator = JWTAuthenticator.from_env()
-    logger.info(f"模型: {cfg['model']}  base_url: {cfg.get('base_url', '(官方)')}")
+    logger.info("模型分层策略: %s", _model_policy.to_dict())
 
     # 意图识别器（Orchestrator 内部也会创建，这里单独暴露给 Evaluator）
     recognizer = IntentRecognizer(
@@ -136,6 +141,7 @@ async def lifespan(app: FastAPI):
         base_url=cfg.get("base_url"),
         model=cfg["model"],
         similarity_mode=similarity_mode,
+        model_profile=_model_policy.profile(ModelRole.INTENT),
     )
 
     # Skills：启动时从目录加载业务能力说明，并在 Agent 调用 LLM 时动态注入。
@@ -157,11 +163,13 @@ async def lifespan(app: FastAPI):
         max_agents_per_request=int(os.getenv("AGENT_MAX_PER_REQUEST", "3")),
         react_max_steps=int(os.getenv("REACT_MAX_STEPS", "4")),
         intent_similarity_mode=similarity_mode,
+        model_policy=_model_policy,
     )
     _answer_verifier = AnswerVerifier(
         api_key=cfg["api_key"],
         base_url=cfg.get("base_url"),
         model=cfg["model"],
+        model_profile=_model_policy.profile(ModelRole.VERIFIER),
     )
     _ticket_service = TicketService(
         os.getenv(
@@ -187,6 +195,7 @@ async def lifespan(app: FastAPI):
         memory_token_budget=int(os.getenv("MEMORY_TOKEN_BUDGET", "6000")),
         compression_threshold=float(os.getenv("MEMORY_COMPRESSION_THRESHOLD", "0.70")),
         summary_max_tokens=int(os.getenv("MEMORY_SUMMARY_MAX_TOKENS", "1200")),
+        model_profile=_model_policy.profile(ModelRole.MEMORY),
     )
 
     # MCP 工具管理器 + RAG 知识库（基于 ChromaDB 的真实检索）
@@ -197,6 +206,8 @@ async def lifespan(app: FastAPI):
         approval_mode=ApprovalMode(os.getenv("TOOL_APPROVAL_MODE", "default")),
         trace_recorder=_trace_recorder,
         max_output_chars=int(os.getenv("TOOL_OUTPUT_MAX_CHARS", "4000")),
+        rewrite_model_profile=_model_policy.profile(ModelRole.REWRITE),
+        rerank_model_profile=_model_policy.profile(ModelRole.RERANK),
     )
     _knowledge_base = KnowledgeBase(
         chroma_host=os.getenv("CHROMA_HOST", "chromadb"),
@@ -285,6 +296,7 @@ async def lifespan(app: FastAPI):
         base_url=cfg.get("base_url"),
         model=cfg["model"],
         baseline_path=os.getenv("EVAL_BASELINE_PATH", "/app/data/eval/baseline.json"),
+        judge_model_profile=_model_policy.profile(ModelRole.JUDGE),
     )
 
     logger.info("DialogPilot 已就绪")
@@ -421,7 +433,12 @@ async def health():
         "memory": _memory.storage_backend if _memory is not None else None,
         "knowledge": _knowledge_base.storage_backend if _knowledge_base is not None else None,
     }
-    return {"status": "ok", "agents": _orchestrator.get_stats(), "storage": storage}
+    return {
+        "status": "ok",
+        "agents": _orchestrator.get_stats(),
+        "storage": storage,
+        "model_policy": _model_policy.to_dict() if _model_policy is not None else None,
+    }
 
 
 @app.get("/skills", tags=["Skills"])
@@ -1097,6 +1114,7 @@ async def run_eval(
         else:
             dialog_cases = DEFAULT_DIALOG_CASES
 
+    metadata["model_policy"] = _model_policy.to_dict() if _model_policy is not None else None
     report = await _evaluator.run(
         intent_cases=intent_cases,
         dialog_cases=dialog_cases,

@@ -28,7 +28,7 @@ title: DialogPilot 面经校准与追问手册
 | 长期记忆只检索摘要 | 检索 1200 字符/120 overlap 原始片段，摘要只是背景 metadata | **CHANGED** |
 | 知识库是 BM25 + 向量 + RRF | 这是长期记忆；知识 RAG 仍是 rewrite + Chroma 多路向量 + 去重 + LLM rerank | **CORRECTED** |
 | Agent 单次生成、无完整 Trace | Worker 内最多 4 步 ReAct，allowlist/宿主审批/脱敏 audit/TraceId | **CHANGED** |
-| 准确率 91.3%、综合分 0.89 | 当前有 11+5 smoke、28 条 provisional 分层 seed、6 篇 corpus 和 96 项回归测试，但仍无 human-reviewed gold | **UNPROVEN** |
+| 准确率 91.3%、综合分 0.89 | 当前有 11+5 smoke、28 条 provisional 分层 seed、6 篇 corpus 和 103 项回归测试，但仍无 human-reviewed gold | **UNPROVEN** |
 | 完整 MCP Server / LangGraph | 是内部 ToolManager 与直接 Python 编排；没有远程 MCP Server，没用 LangGraph | **UNPROVEN** |
 
 ## 项目开场与完整链路
@@ -235,7 +235,7 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q48：91.3%、0.89 等旧数字怎么回答？
 
-**UNPROVEN。** 旧数字没对应数据版本、切分、运行产物和 commit，已移除。当前可证明的是 96 项回归测试、11+5 smoke、28 条 provisional seed、6 篇 corpus 和可运行 scorer；因为 gold 仍为 0，不能报项目准确率。审核并运行 heldout 后才报均值、方差、slice 和置信区间。
+**UNPROVEN。** 旧数字没对应数据版本、切分、运行产物和 commit，已移除。当前可证明的是 103 项回归测试、11+5 smoke、28 条 provisional seed、6 篇 corpus 和可运行 scorer；因为 gold 仍为 0，不能报项目准确率。审核并运行 heldout 后才报均值、方差、slice 和置信区间。
 
 ### Q49：多 LLM 调用怎么降延迟？
 
@@ -363,6 +363,40 @@ Recall@K 证明相关证据进入候选，MRR 关注第一条 relevant 的位置
 
 > 利用版本化 JSONL、group-safe dev/heldout、checksum/provenance/review 门禁与确定性 grader，解决 smoke case 无法支撑路由、RAG、记忆和工具安全回归的问题；接入 BANKING77、CLINC150 OOS 与 opt-in Bitext 压力集，按 Accuracy/Macro-F1、Owner Exact、Recall@K/MRR/nDCG 和 assertion pass 分层归因，当前 28 条项目 seed 待人工审核，不虚构准确率。
 
+## DeepSeek 分层调用与模型选型
+
+### Q77：现在具体用了哪些模型？
+
+默认矩阵不是“全局一个 DeepSeek”。Intent、Worker、ReAct、Memory、rewrite、rerank 使用 `deepseek-v4-flash + reasoning none`；跨 Agent synthesis、AnswerVerifier 和离线 Judge 使用 `deepseek-v4-pro + reasoning high`。外层 TaskPlan 是确定性 Python，不调用 Planner LLM。
+
+### Q78：为什么 Flash 足够？
+
+不能直接说“足够”。它是面向高频闭合任务的成本/延迟基线：Intent 用 Macro-F1 与关键类 Recall 证明，Worker 用 required-task coverage/完成率证明，检索环节用 Recall@K/MRR/nDCG 证明。若 heldout 不达门槛，再逐角色升 Flash/low 或 Pro/high，不能全局拍脑袋升级。
+
+### Q79：为什么 synthesis、Verifier、Judge 用 Pro high？
+
+Synthesis 要处理跨域冲突与部分失败；Verifier 位于发布边界，false pass 风险高；Judge 不在在线关键路径，优先评分稳定性。但 Coverage、权限和副作用仍由确定性代码拥有，Pro 不能替代这些事实边界。
+
+### Q80：DeepSeek 默认 thinking 有什么坑？
+
+如果只改 base URL 而不显式控制，简单 Intent/摘要调用也可能继承高 thinking，延迟和成本口径失真。`ModelProfile` 对 none 显式发送 disabled，对 low/high/max 发送 enabled + effort，并从 thinking 请求移除无效 temperature。
+
+### Q81：thinking + tool call 为什么特别处理？
+
+DeepSeek 的 Anthropic 兼容协议要求工具后续轮回传此前 thinking 内容。旧解析器只保存 text/tool_use，会导致第二轮协议错误。现在按响应顺序保留 `thinking → tool_use`，再追加配对的 `tool_result`，并有两轮 ReAct 测试证明。
+
+### Q82：为什么不让 Router 每次动态选模型？
+
+静态按角色分层更可复现，也少一次 Router 调用和错误反馈环。动态升级只有在真实复杂度 slice 证明收益后再加，而且必须记录选择理由、实际 profile、预算和 fallback，不能成为不可观测黑盒。
+
+### Q83：怎么防报告里不知道跑的哪个模型？
+
+`/health` 返回无密钥的实际 role matrix，`/eval/run` 把同一矩阵写入 report metadata。启动时未知 provider、DeepSeek 模型名或 reasoning 值直接失败，不静默回退。
+
+### Q84：这项改造怎样写 STAR？
+
+**S：** 九类调用共用一个模型，DeepSeek 默认 reasoning 让简单任务成本/延迟不可控。**T：** 在保持统一 Messages API 的同时，让每类调用可独立权衡质量。**A：** 实现按角色校验的 ModelPolicy，Flash/none 承担闭合高频任务，Pro/high 承担融合与质量门禁，补齐 health/eval 配置证据和 ReAct thinking 回传。**R：** 配置错误启动即失败，协议与分层默认由 7 个新增测试守住；真实最优性仍等待 gold heldout 消融，不虚构提分。
+
 ## 面试前 10 分钟自查
 
 1. 能画出 `/chat` 从 TraceId 到记忆写回的顺序，不混 Knowledge RAG 和 Memory Retrieval。
@@ -371,7 +405,7 @@ Recall@K 证明相关证据进入候选，MRR 关注第一条 relevant 的位置
 4. 能说出 Task outcome 四态、synthesis 五态与 Verifier PASS/REJECT/UNKNOWN。
 5. 能解释 BM25 对订单号的价值，以及 recency 为什么不能独立召回。
 6. 能解释发现/执行共用 allowlist，审批不来自模型参数。
-7. 能说明 96 tests 不等于 96 个 benchmark，11+5 smoke 与 28 provisional 都不支持生产准确率。
+7. 能说明 103 tests 不等于 103 个 benchmark，11+5 smoke 与 28 provisional 都不支持生产准确率。
 8. 能用 commit 划清原型与个人改造，不说从零原创。
 9. 能讲清 JWT/scope 已完成，以及 IdP/JWKS、tenant ABAC、持久 Trace、可恢复审批和真实 benchmark 仍是缺口。
 10. 不说“精通 LangGraph”、“完整 MCP”、“项目是 SOTA”或“线上准确率 91.3%”。

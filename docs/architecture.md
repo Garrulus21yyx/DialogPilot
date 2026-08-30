@@ -8,6 +8,7 @@ prompt chain.
 | HTTP contract | `api/main.py` | Validated request/response models |
 | HTTP identity and scopes | `core/auth.py` | Verified Principal from signed JWT `sub` |
 | Chroma deployment mode | `core/chroma_client.py` | One explicit remote or embedded physical backend |
+| Model tier and reasoning policy | `core/model_policy.py` | Validated per-role model/effort profiles and request overrides |
 | Intent | `core/intent_recognizer.py` | Intent, confidence, urgency, entities |
 | Task planning and Agent selection | `agents/agent_orchestrator.py` | TaskPlan with scoped work, risk, criteria, and Owner |
 | Orchestration contracts and budget | `agents/orchestration_contracts.py` | Task identity, coverage projection, and shared execution deadline |

@@ -4,11 +4,11 @@
 
 ## 快速导航
 
-- 想先会讲：读第 0、3、5、19、20、22、26、27 章；
+- 想先会讲：读第 0、3、5、19、20、22、26、27、28 章；
 - 想吃透 Agent：读第 6、9、10、11、12、14、25 章；
 - 想吃透 Context/Memory：读第 8、25 章；
 - 想吃透后端可靠性：读第 7、13、17、18、21 章；
-- 想把评测跑起来：读第 15、27 章；
+- 想把评测跑起来：读第 15、27 章；想讲模型选型：读第 28 章；
 - 面试前速查：读第 22、25、27 章连续追问、第 23 章闭卷自测，再用第 24 章做真实性审计。
 
 ## 0. 先把项目说准确
@@ -45,7 +45,7 @@ DialogPilot 是一个 Python 3.12 + FastAPI 的异步多 Agent 客服后端。�
 2. 合同：一次请求必须得到可诊断的路由结果；只有明确 `PASS` 的回答能发布；需要人工时同步尝试创建持久工单，并把建单成功或失败明确返回。
 3. 主链：Memory → Intent → RAG → Context → TaskPlan → Workers → Coverage → Synthesis → Verification → Ticket → Persist published messages。
 4. 六个最值得深挖的改动：Token 驱动且并发安全的压缩、混合长期记忆、TaskPlan/CoverageGate、有界 ReAct 与权限、请求预算下的结果代数、校验质量反馈闭环。
-5. 证据：96 个测试，覆盖身份/公开投影、归档幂等/CAS、显式存储模式、真实 Escalation Owner、路由基数、混合召回、工具权限、Trace 和版本化评测合同。
+5. 证据：103 个测试，覆盖身份/公开投影、归档幂等/CAS、显式存储模式、真实 Escalation Owner、路由基数、混合召回、工具权限、Trace、分层模型策略和版本化评测合同。
 6. 边界：已有 JWT/scope 基线；多租户 IdP/ABAC 未完成，SQLite 只适合单应用写者，Trace/审计重启丢失，审批不能交互恢复；已有 28 条 provisional 分层样本，但尚无 human-reviewed gold，不能声称生产准确率。
 
 ## 1. 如何学习这个仓库
@@ -1015,7 +1015,7 @@ python -m compileall -q agents api core evaluation mcp memory monitor services
 python -m pytest -q
 ```
 
-当前 96 个测试按不变量分组：
+当前 103 个测试按不变量分组：
 
 ### Lifespan 与 RAG boundary
 
@@ -1266,7 +1266,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q2：你个人具体负责了什么？
 
-**推荐诚实答案：** 我接手的是一个已有客服原型。我负责仓库清理和 DialogPilot 命名迁移，并完成持久工单、Token/CAS 压缩、typed synthesis、TaskPlan/CoverageGate、混合记忆、ReAct 权限/Trace，以及 JWT/公开投影、短会话归档、显式 Chroma 模式、真实 Escalation Owner 和分层评测合同。当前有 96 个测试、CI、Docker 验证和架构文档。原型已有功能会按 commit 划清边界，不说成全部从零原创。
+**推荐诚实答案：** 我接手的是一个已有客服原型。我负责仓库清理和 DialogPilot 命名迁移，并完成持久工单、Token/CAS 压缩、typed synthesis、TaskPlan/CoverageGate、混合记忆、ReAct 权限/Trace，以及 JWT/公开投影、短会话归档、显式 Chroma 模式、真实 Escalation Owner、分层模型策略和分层评测合同。当前有 103 个测试、CI、Docker 验证和架构文档。原型已有功能会按 commit 划清边界，不说成全部从零原创。
 
 **追问：去掉你的改动还剩什么？** 仍有基础 FastAPI、三路意图、Redis/Chroma 记忆、RAG、领域 Agent、Skill、监控和评测原型；会失去真实工单闭环、Token/并发压缩不变量、TaskPlan/覆盖门禁、有类型并行结果、质量反馈、混合召回、工具权限/Trace 和 Worker ReAct。
 
@@ -1495,7 +1495,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q38：当前评测数据到底有多少，能证明什么？
 
-**答：** 内置数据仍是 11 条意图 + 5 组对话 smoke case；另有 28 条 provisional 四层 seed 和 6 篇 retrieval corpus，但还没有 human-reviewed gold。仓库的 96 个确定性测试证明状态机、身份、失败边界、任务覆盖、工具权限、ReAct、记忆和数据合同，不等于 96 条业务准确率样本。
+**答：** 内置数据仍是 11 条意图 + 5 组对话 smoke case；另有 28 条 provisional 四层 seed 和 6 篇 retrieval corpus，但还没有 human-reviewed gold。仓库的 103 个确定性测试证明状态机、身份、失败边界、任务覆盖、工具权限、ReAct、记忆和数据合同，不等于 103 条业务准确率样本。
 
 **不能声称什么：** 不能据此声称生产准确率、行业 SOTA 或泛化能力。生产发布需要版本化数据集、关键 slice、dev/held-out 分离和人工校准 Judge。
 
@@ -1606,7 +1606,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 **Action：** 在 Worker 内增加最大 4 步的 Anthropic tool loop；工具发现和执行共享同一 allowlist，执行边界再次校验；高风险/写工具默认等待宿主批准，读工具批次并行、潜在写工具串行；工具输出截断后按 call_id 回写，TraceId 通过 contextvars 贯穿并行 Task，审计只记录参数哈希/shape；拒绝、失败、超步数禁止 General fallback 覆盖。
 
-**Result：** 工具/ReAct 聚焦测试和编排投影测试证明越权零副作用、审批阻断、循环停止、结果配对、输出有界、Trace 传播和失败证据贯穿；连同生产边界与分层评测合同测试，整个仓库 96 项测试通过。
+**Result：** 工具/ReAct 聚焦测试和编排投影测试证明越权零副作用、审批阻断、循环停止、结果配对、输出有界、Trace 传播和失败证据贯穿；连同生产边界、分层模型策略与分层评测合同测试，整个仓库 103 项测试通过。
 
 **简历一行（只在你能现场解释代码时使用）：**
 
@@ -1726,7 +1726,7 @@ Verifier 必须读取完整 `AgentOutcome.content/error/producer` 才能判断�
 
 ### Q64：这一轮怎样写成 STAR？
 
-**S：** 原链路在 TTL、诊断投影和部署降级处存在“成功返回但事实丢失或泄漏”的边界。**T：** 让身份、归档、存储模式和升级执行者各有唯一 Owner，并让失败可重试、可观测。**A：** 实现 JWT Principal/scope、公开 outcome redaction、确定性消息归档 + Redis CAS finalize、单记录版本画像、显式 Chroma/intent 模式、tool-free EscalationAgent 和路由基数披露。**R：** 相关不变量由测试覆盖；全仓当前 96 项测试通过，不虚构线上提升。
+**S：** 原链路在 TTL、诊断投影和部署降级处存在“成功返回但事实丢失或泄漏”的边界。**T：** 让身份、归档、存储模式和升级执行者各有唯一 Owner，并让失败可重试、可观测。**A：** 实现 JWT Principal/scope、公开 outcome redaction、确定性消息归档 + Redis CAS finalize、单记录版本画像、显式 Chroma/intent 模式、tool-free EscalationAgent 和路由基数披露。**R：** 相关不变量由测试覆盖；全仓当前 103 项测试通过，不虚构线上提升。
 
 ## 27. 把评测数据真正跑起来：从 provisional 到 held-out 报告
 
@@ -1863,4 +1863,69 @@ python -m evaluation.benchmark \
 
 ### Q72：这项改造怎样写成 STAR？
 
-**S：** 原仓库只有 11+5 内置 smoke case，无法复现旧准确率，也不能定位路由、召回和安全错误。**T：** 建立不会混淆公开数据、草稿标注和项目 gold 的评测闭环。**A：** 实现四层 JSONL/manifest、group-safe split、checksum/provenance/review 状态、BANKING77/CLINC150/Bitext adapter、注册 API 和确定性 scorer。**R：** 28 条 provisional 难例与 6 篇 corpus 已落库，96 项测试验证缺预测失败、路径隔离、审核门禁和分层指标；尚未声称未经 human review 的准确率。
+**S：** 原仓库只有 11+5 内置 smoke case，无法复现旧准确率，也不能定位路由、召回和安全错误。**T：** 建立不会混淆公开数据、草稿标注和项目 gold 的评测闭环。**A：** 实现四层 JSONL/manifest、group-safe split、checksum/provenance/review 状态、BANKING77/CLINC150/Bitext adapter、注册 API 和确定性 scorer。**R：** 28 条 provisional 难例与 6 篇 corpus 已落库，103 项测试验证缺预测失败、路径隔离、审核门禁和分层指标；尚未声称未经 human review 的准确率。
+
+## 28. DeepSeek 分层调用：Flash、Pro 与 reasoning 怎样选
+
+原实现只有一个 `ANTHROPIC_MODEL`，Intent、记忆摘要、Worker、融合、校验和 Judge 全部消费同一个模型。配置 DeepSeek 后，供应商默认 thinking 可能让每个小调用都进入高推理，成本和尾延迟不可控；反过来全部使用 Flash 又会把跨域冲突与发布门禁一起降级。根因不是“模型不够强”，而是**模型选择没有角色 Owner**。
+
+`core/model_policy.py` 现在拥有完整矩阵，启动时校验 provider、模型名和 reasoning 枚举，消费者只接收不可变 `ModelProfile`：
+
+| 调用角色 | 默认模型 | reasoning | 为什么 |
+|---|---|---|---|
+| Intent、Worker、ReAct | `deepseek-v4-flash` | `none` | 高频、输入边界清楚，先保证延迟和成本；外层 Planner 本身是确定性代码 |
+| Memory summary/profile | `deepseek-v4-flash` | `none` | 结构化压缩，不值得每轮高推理 |
+| Query rewrite、rerank | `deepseek-v4-flash` | `none` | 候选生成/排序任务短，失败还有确定性降级 |
+| Multi-Agent synthesis | `deepseek-v4-pro` | `high` | 要处理跨域去重、冲突和部分失败 |
+| Answer verifier | `deepseek-v4-pro` | `high` | 位于发布门禁，漏判代价高，且不是每个内部步骤都调用 |
+| Offline judge | `deepseek-v4-pro` | `high` | 不在用户请求关键路径，优先评分稳定性 |
+
+```mermaid
+flowchart LR
+    Q[Request] --> I[Flash / no thinking\nIntent]
+    I --> W[Flash / no thinking\nWorker or ReAct]
+    W --> S{multi-agent?}
+    S -->|no| V[Pro / high\nVerifier]
+    S -->|yes| Y[Pro / high\nSynthesis]
+    Y --> V
+    V --> P[Publish or handoff]
+    E[Offline dataset] --> J[Pro / high\nJudge]
+```
+
+### 28.1 配置和实际运行证据
+
+`.env.example` 明确列出 `MODEL_<ROLE>` 与 `MODEL_<ROLE>_REASONING`。`none` 会向 DeepSeek 显式发送 `thinking.type=disabled`，避免继承供应商默认；`low/high/max` 会发送 enabled + `output_config.effort`，并移除 thinking 模式下被忽略的 temperature。`/health` 和每次评测 report metadata 都记录无密钥的实际矩阵，保证报告能回答“当时究竟跑了哪个模型”。
+
+ReAct 默认仍用 Flash/none。若把 `MODEL_REACT_REASONING` 改为 high，执行器会按原响应顺序保存 `thinking → tool_use`，下一轮连同 `tool_result` 回传。DeepSeek 的 Anthropic 兼容协议要求 thinking + tools 的历史思考块不能丢，否则后续请求可能 400。
+
+### Q73：为什么不全部使用 Pro high？
+
+**答：** Intent、改写、摘要等是高频闭合任务，强推理通常把同一个简单决策做得更慢更贵；系统质量还受路由合同、检索数据和权限边界限制，升级模型不能修复这些确定性问题。先用 Flash/none 建基线，再只对高风险角色做消融。
+
+### Q74：Flash 够不够，怎么证明？
+
+**答：** 不能凭型号证明。Intent 看 Macro-F1、关键类 Recall/OOS；Worker 看任务完成率、覆盖、人工升级和延迟成本；rewrite/rerank 看 Recall@K/MRR/nDCG。用同一 heldout 和至少三次重复运行比较 Flash/none、Flash/low、Pro/high，选择满足质量门槛后的最低成本配置。
+
+### Q75：为什么 Verifier 用 Pro high？
+
+**答：** 它控制发布资格，false pass 的风险高于多花一次模型调用。不过确定性 CoverageGate、工具授权和 side-effect 事实仍先由代码判断，Verifier 只处理开放文本质量；模型不可用收敛为 UNKNOWN 并转人工，不因“用了 Pro”就 fail open。
+
+### Q76：ReAct 要不要开 reasoning？
+
+**答：** 当前客服工具 schema 和步骤较短，默认 none 足够，也能避免长 thinking 占用上下文。只有多工具依赖、参数推断或错误恢复的 heldout 显示明显收益时才升 low/high；一旦开启，必须完整回传 thinking blocks，本仓库已实现并测试这个协议不变量。
+
+### Q77：为什么不是一个 Router 动态决定所有模型？
+
+**答：** 先用静态角色策略更可复现，避免 Router 自身增加一次调用、错误路由和成本反馈环。后续可在角色内部按输入复杂度升级，但决策必须输出 reason、候选配置和实际配置，并受预算与 allowlist 约束。
+
+### Q78：模型配置错误会怎样？
+
+**答：** DeepSeek provider 只接受当前支持的 Flash/Pro 名称，reasoning 只接受 none/low/high/max；未知值在启动阶段抛错，而不是跑到某个请求才隐式降级。原生 Anthropic 路径保留旧模型后备，但当前通用策略不伪装支持其不同的 thinking 预算合同。
+
+### Q79：面试怎么讲这次改造？
+
+**答：** “原链路用同一模型处理九类调用，接入 DeepSeek 后默认高 reasoning 会污染延迟/成本口径。我把模型与推理强度收敛到按角色配置的 `ModelPolicy`，闭合任务走 Flash/none，融合、发布校验和离线 Judge 走 Pro/high；同时在 health/eval 固化实际配置，并补齐 ReAct thinking block 回传测试。”
+
+### Q80：这部分还有什么边界？
+
+**答：** 当前默认值是工程起点，不是 benchmark 最优；尚未用 human-reviewed heldout 跑模型消融，也没有实时 token/cost budget、供应商 fallback、熔断后的跨模型切换和动态复杂度路由。面试时应说“配置与验证框架完成，最优选择待真实数据证明”。

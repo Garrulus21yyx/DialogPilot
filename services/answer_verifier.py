@@ -14,6 +14,7 @@ from typing import Any, Dict, Optional
 from anthropic import AsyncAnthropic
 
 from core.llm_utils import extract_text_content
+from core.model_policy import ModelProfile
 
 
 class VerificationStatus(str, Enum):
@@ -66,6 +67,7 @@ class AnswerVerifier:
         base_url: Optional[str] = None,
         model: str = "claude-3-5-sonnet-20241022",
         client: Optional[Any] = None,
+        model_profile: Optional[ModelProfile] = None,
     ):
         """注入兼容 Anthropic Messages API 的客户端；未注入时按配置创建。"""
         if client is None:
@@ -76,7 +78,8 @@ class AnswerVerifier:
                 kwargs["base_url"] = base_url
             client = AsyncAnthropic(**kwargs)
         self._client = client
-        self._model = model
+        self._model_profile = model_profile or ModelProfile(model)
+        self._model = self._model_profile.model
 
     async def verify(
         self,
@@ -142,12 +145,11 @@ class AnswerVerifier:
 """.strip()
 
         try:
-            response = await self._client.messages.create(
-                model=self._model,
+            response = await self._client.messages.create(**self._model_profile.request(
                 max_tokens=256,
                 temperature=0,
                 messages=[{"role": "user", "content": prompt}],
-            )
+            ))
             raw = extract_text_content(response.content)
             payload = self._parse_payload(raw)
             status = VerificationStatus(str(payload["status"]).lower())

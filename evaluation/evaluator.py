@@ -26,6 +26,7 @@ from typing import Any, Dict, List, Optional
 from anthropic import AsyncAnthropic
 
 from core.llm_utils import extract_text_content
+from core.model_policy import ModelProfile
 
 from core.intent_recognizer import IntentCategory, IntentRecognizer
 
@@ -110,10 +111,16 @@ Agent 响应: {response}
 
 只返回 JSON，例如: {{"relevance": 0.9, "accuracy": 0.8, "completeness": 0.7, "helpfulness": 0.85}}"""
 
-    def __init__(self, client: AsyncAnthropic, model: str):
+    def __init__(
+        self,
+        client: AsyncAnthropic,
+        model: str,
+        model_profile: Optional[ModelProfile] = None,
+    ):
         """保存独立 Judge 客户端和固定模型版本。"""
         self._client = client
-        self._model  = model
+        self._model_profile = model_profile or ModelProfile(model)
+        self._model  = self._model_profile.model
 
     async def judge(
         self,
@@ -130,10 +137,10 @@ Agent 响应: {response}
         )
         prompt = self._clean_text(prompt)
         try:
-            resp = await self._client.messages.create(
-                model=self._model, max_tokens=256, temperature=0.0,
+            resp = await self._client.messages.create(**self._model_profile.request(
+                max_tokens=256, temperature=0.0,
                 messages=[{"role": "user", "content": prompt}],
-            )
+            ))
             raw = extract_text_content(resp.content)
             s, e = raw.find("{"), raw.rfind("}") + 1
             data = json.loads(raw[s:e])
@@ -240,6 +247,7 @@ class EndToEndEvaluator:
         base_url: Optional[str] = None,
         model:    str = "claude-3-5-sonnet-20241022",
         baseline_path: Optional[str] = None,
+        judge_model_profile: Optional[ModelProfile] = None,
     ):
         """组装意图评测、LLM Judge、编排器和可选持久基线。"""
         kwargs: Dict[str, Any] = {"api_key": api_key}
@@ -248,7 +256,7 @@ class EndToEndEvaluator:
         client = AsyncAnthropic(**kwargs)
 
         self._orchestrator     = orchestrator
-        self._judge            = LLMJudge(client, model)
+        self._judge            = LLMJudge(client, model, model_profile=judge_model_profile)
         self._intent_evaluator = IntentEvaluator(recognizer)
         self._history:         List[EvalReport] = []
         self._baseline_path = pathlib.Path(baseline_path) if baseline_path else None

@@ -42,8 +42,8 @@
     const meta = document.createElement("div");
     meta.className = "dp-hero-meta";
     const metaLabels = mode === "interview"
-      ? ["76 evidence-checked questions", "current-code answers", "unsupported claims flagged", "STAR + follow-up drills"]
-      : ["28 numbered chapters", "72 interview drills", "96 regression tests", "4-layer eval contract"];
+      ? ["84 evidence-checked questions", "current-code answers", "unsupported claims flagged", "STAR + follow-up drills"]
+      : ["29 numbered chapters", "80 interview drills", "103 regression tests", "4-layer eval contract"];
     metaLabels.forEach(function (label) {
       const item = document.createElement("span");
       item.textContent = label;

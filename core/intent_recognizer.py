@@ -22,6 +22,7 @@ from typing import Any, Dict, List, Optional
 from anthropic import AsyncAnthropic
 
 from core.llm_utils import extract_text_content
+from core.model_policy import ModelProfile
 
 logger = logging.getLogger(__name__)
 
@@ -155,13 +156,15 @@ class IntentRecognizer:
         model: str = "claude-3-5-sonnet-20241022",
         confidence_threshold: float = 0.5,
         similarity_mode: str = "ngram",
+        model_profile: Optional[ModelProfile] = None,
     ):
         """创建模型客户端，并初始化模板向量与结果缓存。"""
         kwargs: Dict[str, Any] = {"api_key": api_key}
         if base_url:
             kwargs["base_url"] = base_url
         self.client    = AsyncAnthropic(**kwargs)
-        self.model     = model
+        self._model_profile = model_profile or ModelProfile(model)
+        self.model     = self._model_profile.model
         self.threshold = confidence_threshold
         normalized_mode = similarity_mode.strip().lower()
         if normalized_mode not in {"ngram", "disabled"}:
@@ -277,12 +280,11 @@ class IntentRecognizer:
         prompt = self._clean_text(prompt)
 
         try:
-            resp = await self.client.messages.create(
-                model=self.model,
+            resp = await self.client.messages.create(**self._model_profile.request(
                 max_tokens=256,
                 temperature=0.1,
                 messages=[{"role": "user", "content": prompt}],
-            )
+            ))
             raw = extract_text_content(resp.content)
             s, e = raw.find("{"), raw.rfind("}") + 1
             data = json.loads(raw[s:e])

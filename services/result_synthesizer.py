@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional, Sequence
 
 from agents.orchestration_contracts import CoverageReport, TaskPlan
 from core.llm_utils import extract_text_content
+from core.model_policy import ModelProfile
 
 
 class AgentOutcomeStatus(str, Enum):
@@ -125,10 +126,16 @@ class CoverageGate:
 class ResultSynthesizer:
     """由多个 Agent outcome 生成用户候选回答的唯一 Owner。"""
 
-    def __init__(self, client: Optional[Any], model: str):
+    def __init__(
+        self,
+        client: Optional[Any],
+        model: str,
+        model_profile: Optional[ModelProfile] = None,
+    ):
         """保存可选融合客户端；客户端为空时仍提供确定性降级。"""
         self._client = client
-        self._model = model
+        self._model_profile = model_profile or ModelProfile(model)
+        self._model = self._model_profile.model
 
     def unavailable_result(
         self,
@@ -279,12 +286,11 @@ class ResultSynthesizer:
 
 只返回严格 JSON：
 {{"answer":"", "conflicts":[], "escalate":false, "reason":""}}"""
-        response = await self._client.messages.create(
-            model=self._model,
+        response = await self._client.messages.create(**self._model_profile.request(
             max_tokens=1024,
             temperature=0.0,
             messages=[{"role": "user", "content": prompt}],
-        )
+        ))
         raw = extract_text_content(response.content)
         start, end = raw.find("{"), raw.rfind("}")
         if start < 0 or end < start:

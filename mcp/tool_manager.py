@@ -29,6 +29,7 @@ from typing import Any, Callable, Deque, Dict, List, Optional, Tuple
 from anthropic import AsyncAnthropic
 
 from core.llm_utils import extract_text_content
+from core.model_policy import ModelProfile
 from core.tracing import TraceRecorder, current_trace_id, trace_scope
 
 logger = logging.getLogger(__name__)
@@ -233,13 +234,17 @@ class MCPToolManager:
         trace_recorder: Optional[TraceRecorder] = None,
         max_audit_records: int = 2000,
         max_output_chars: int = 4000,
+        rewrite_model_profile: Optional[ModelProfile] = None,
+        rerank_model_profile: Optional[ModelProfile] = None,
     ):
         """创建模型客户端以及进程内工具注册表和 TTL 缓存。"""
         kwargs: Dict[str, Any] = {"api_key": api_key}
         if base_url:
             kwargs["base_url"] = base_url
         self._client = AsyncAnthropic(**kwargs)
-        self._model  = model
+        self._rewrite_model_profile = rewrite_model_profile or ModelProfile(model)
+        self._rerank_model_profile = rerank_model_profile or self._rewrite_model_profile
+        self._model  = self._rewrite_model_profile.model
         self._tools: Dict[str, Tool] = {}
         self._cache: Dict[str, tuple] = {}   # key → (result, expire_at, reranked)
         self._approval_mode = ApprovalMode(approval_mode)
@@ -549,10 +554,10 @@ class MCPToolManager:
 返回 JSON 数组，例如: ["子查询1", "子查询2", "子查询3"]"""
         prompt = self._clean_text(prompt)
         try:
-            resp = await self._client.messages.create(
-                model=self._model, max_tokens=256, temperature=0.3,
+            resp = await self._client.messages.create(**self._rewrite_model_profile.request(
+                max_tokens=256, temperature=0.3,
                 messages=[{"role": "user", "content": prompt}],
-            )
+            ))
             raw = extract_text_content(resp.content)
             s, e = raw.find("["), raw.rfind("]") + 1
             queries = json.loads(raw[s:e])
@@ -628,10 +633,10 @@ class MCPToolManager:
         prompt = self._clean_text(prompt)
 
         try:
-            resp = await self._client.messages.create(
-                model=self._model, max_tokens=256, temperature=0.0,
+            resp = await self._client.messages.create(**self._rerank_model_profile.request(
+                max_tokens=256, temperature=0.0,
                 messages=[{"role": "user", "content": prompt}],
-            )
+            ))
             raw = extract_text_content(resp.content)
             s, e = raw.find("["), raw.rfind("]") + 1
             order: List[int] = json.loads(raw[s:e])

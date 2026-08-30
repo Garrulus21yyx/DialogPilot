@@ -19,12 +19,13 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
     captured = {}
 
     class FakeIntentRecognizer:
-        def __init__(self, api_key, base_url=None, model=None, similarity_mode=None):
+        def __init__(self, api_key, base_url=None, model=None, similarity_mode=None, model_profile=None):
             captured["intent"] = {
                 "api_key": api_key,
                 "base_url": base_url,
                 "model": model,
                 "similarity_mode": similarity_mode,
+                "model_profile": model_profile,
             }
 
     class FakeSkillManager:
@@ -119,12 +120,13 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
 
     async def exercise_lifespan():
         async with main.lifespan(main.app):
-            assert captured["intent"] == {
+            assert {key: value for key, value in captured["intent"].items() if key != "model_profile"} == {
                 "api_key": "test-key",
                 "base_url": None,
                 "model": "claude-3-5-sonnet-20241022",
                 "similarity_mode": "ngram",
             }
+            assert captured["intent"]["model_profile"].model == "claude-3-5-sonnet-20241022"
             assert captured["memory"]["memory_token_budget"] == 4321
             assert captured["memory"]["compression_threshold"] == 0.81
             assert captured["memory"]["summary_max_tokens"] == 777

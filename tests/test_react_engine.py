@@ -5,6 +5,7 @@ from types import SimpleNamespace
 
 from agents.react_engine import ReActExecutionEngine, ReActStatus
 from core.tracing import TraceRecorder, trace_scope
+from core.model_policy import ModelProfile, ReasoningEffort
 from mcp.tool_manager import MCPToolManager, Tool, ToolRisk
 
 
@@ -14,6 +15,10 @@ def text(value):
 
 def tool_use(call_id, name, arguments):
     return SimpleNamespace(type="tool_use", id=call_id, name=name, input=arguments)
+
+
+def thinking(value, signature="sig-1"):
+    return SimpleNamespace(type="thinking", thinking=value, signature=signature)
 
 
 class ScriptedClient:
@@ -189,3 +194,40 @@ def test_react_unauthorized_tool_name_is_denied_even_if_model_invents_it():
 
     assert result.status is ReActStatus.BLOCKED
     assert tools.audit_records()[0].status.value == "denied"
+
+
+def test_react_returns_thinking_block_before_tool_result_turn():
+    """证明开启 reasoning 时，不会在工具第二轮丢失供应商要求的思考块。"""
+    tools = runtime()
+    tools.register(Tool(
+        name="lookup",
+        description="查询",
+        handler=lambda _params, _context: {"ok": True},
+        schema={"type": "object", "properties": {}},
+        allowed_agents=("general",),
+    ))
+    client = ScriptedClient([
+        [thinking("need a lookup"), tool_use("c1", "lookup", {})],
+        [text("查询完成。")],
+    ])
+    profile = ModelProfile("deepseek-v4-pro", ReasoningEffort.HIGH, "deepseek")
+    react = ReActExecutionEngine(
+        client=client,
+        model=profile.model,
+        model_profile=profile,
+        tool_manager=tools,
+    )
+
+    result = asyncio.run(react.run(
+        system="worker",
+        messages=[{"role": "user", "content": "查一下"}],
+        agent_type="general",
+    ))
+
+    assert result.status is ReActStatus.COMPLETED
+    assert client.calls[0]["extra_body"]["thinking"]["type"] == "enabled"
+    assistant_blocks = client.calls[1]["messages"][-2]["content"]
+    assert assistant_blocks[0] == {
+        "type": "thinking", "thinking": "need a lookup", "signature": "sig-1",
+    }
+    assert assistant_blocks[1]["type"] == "tool_use"

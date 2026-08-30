@@ -36,6 +36,7 @@ from agents.orchestration_contracts import (
 )
 from core.intent_recognizer import IntentCategory, IntentRecognizer, UrgencyLevel
 from core.llm_utils import extract_text_content
+from core.model_policy import ModelPolicy, ModelProfile, ModelRole
 from core.tracing import current_trace_id
 from memory.context import ContextSection, PromptContext
 from services.result_synthesizer import (
@@ -192,10 +193,14 @@ class BaseAgent:
         instance_id: str = "",
         tool_manager: Optional[Any] = None,
         react_max_steps: int = 4,
+        model_profile: Optional[ModelProfile] = None,
+        react_model_profile: Optional[ModelProfile] = None,
     ):
         """保存 Agent 身份、模型客户端、Skill 入口和运行统计。"""
         self._client = client
-        self._model  = model
+        self._model_profile = model_profile or ModelProfile(model)
+        self._react_model_profile = react_model_profile or self._model_profile
+        self._model  = self._model_profile.model
         self._skill_manager = skill_manager
         self._tool_manager = tool_manager
         self._react_max_steps = max(1, int(react_max_steps))
@@ -293,12 +298,11 @@ class BaseAgent:
                 },
             )
 
-        resp = await self._client.messages.create(
-            model=self._model,
+        resp = await self._client.messages.create(**self._model_profile.request(
             max_tokens=1024,
             system=system,
             messages=messages,
-        )
+        ))
         return extract_text_content(resp.content)
 
     def set_tool_manager(self, tool_manager: Optional[Any]) -> None:
@@ -312,8 +316,9 @@ class BaseAgent:
             return None
         return ReActExecutionEngine(
             client=self._client,
-            model=self._model,
+            model=self._react_model_profile.model,
             tool_manager=self._tool_manager,
+            model_profile=self._react_model_profile,
             max_steps=self._react_max_steps,
         )
 
@@ -437,6 +442,7 @@ class AgentOrchestrator:
         tool_manager: Optional[Any] = None,
         react_max_steps: int = 4,
         intent_similarity_mode: str = "ngram",
+        model_policy: Optional[ModelPolicy] = None,
     ):
         """创建 Agent 池、意图识别器、融合器和路由反馈状态。"""
         kwargs: Dict[str, Any] = {"api_key": api_key}
@@ -444,11 +450,16 @@ class AgentOrchestrator:
             kwargs["base_url"] = base_url
         client = AsyncAnthropic(**kwargs)
 
+        policy = model_policy or ModelPolicy.legacy(model, base_url)
+        worker_profile = policy.profile(ModelRole.WORKER)
+        react_profile = policy.profile(ModelRole.REACT)
+        self._model_policy = policy
         self._intent_recognizer = IntentRecognizer(
             api_key=api_key,
             base_url=base_url,
             model=model,
             similarity_mode=intent_similarity_mode,
+            model_profile=policy.profile(ModelRole.INTENT),
         )
         self._skill_manager = skill_manager
         self._agent_timeout_s = max(0.1, float(agent_timeout_s))
@@ -457,31 +468,40 @@ class AgentOrchestrator:
             agent_timeout_s=self._agent_timeout_s,
             max_agents=int(max_agents_per_request),
         )
-        self._result_synthesizer = result_synthesizer or ResultSynthesizer(client, model)
+        self._result_synthesizer = result_synthesizer or ResultSynthesizer(
+            client,
+            policy.profile(ModelRole.SYNTHESIS).model,
+            model_profile=policy.profile(ModelRole.SYNTHESIS),
+        )
 
         # Agent 池：每种类型可有多个实例（水平扩展）
         self._pool: Dict[AgentType, List[BaseAgent]] = {
             AgentType.GENERAL: [GeneralAgent(
                 client, model, skill_manager, "general_0",
                 tool_manager=tool_manager, react_max_steps=react_max_steps,
+                model_profile=worker_profile, react_model_profile=react_profile,
             )],
             AgentType.TECHNICAL: [TechnicalAgent(
                 client, model, skill_manager, "technical_0",
                 tool_manager=tool_manager, react_max_steps=react_max_steps,
+                model_profile=worker_profile, react_model_profile=react_profile,
             )],
             AgentType.BILLING: [BillingAgent(
                 client, model, skill_manager, "billing_0",
                 tool_manager=tool_manager, react_max_steps=react_max_steps,
+                model_profile=worker_profile, react_model_profile=react_profile,
             )],
             AgentType.ACCOUNT_SECURITY: [
                 AccountSecurityAgent(
                     client, model, skill_manager, "account_security_0",
                     tool_manager=tool_manager, react_max_steps=react_max_steps,
+                    model_profile=worker_profile, react_model_profile=react_profile,
                 )
             ],
             AgentType.ESCALATION: [EscalationAgent(
                 client, model, skill_manager, "escalation_0",
                 tool_manager=tool_manager, react_max_steps=react_max_steps,
+                model_profile=worker_profile, react_model_profile=react_profile,
             )],
         }
 

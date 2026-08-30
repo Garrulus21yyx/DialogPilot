@@ -54,6 +54,7 @@ and project-specific interview follow-up guide.
 
 - Python 3.12, FastAPI, Pydantic, asyncio
 - Anthropic-compatible chat API
+- Role-tiered DeepSeek Flash/Pro profiles with explicit reasoning policy
 - Redis working memory
 - ChromaDB knowledge, episodic memory, and user profiles
 - BM25 + weighted RRF hybrid long-term memory retrieval
@@ -75,6 +76,15 @@ Set at least:
 ```env
 ANTHROPIC_API_KEY=your_key
 ```
+
+The checked-in example selects DeepSeek's Anthropic-compatible endpoint and
+uses Flash without thinking for intent, workers, ReAct, memory, rewrite, and
+rerank. Cross-domain synthesis, answer verification, and the offline judge use
+Pro with `high` reasoning. Every role can be overridden independently with
+`MODEL_<ROLE>` and `MODEL_<ROLE>_REASONING`; `/health` and evaluation metadata
+record the effective, non-secret policy. See `.env.example` for the complete
+matrix. This avoids silently inheriting a provider-wide thinking default for
+every small call.
 
 Start the complete stack:
 

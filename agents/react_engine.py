@@ -13,6 +13,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from core.tracing import TraceRecorder, current_trace_id
+from core.model_policy import ModelProfile
 from mcp.tool_manager import MCPToolManager, ToolCallStatus, ToolResult
 
 
@@ -59,6 +60,7 @@ class ReActExecutionEngine:
         client: Any,
         model: str,
         tool_manager: MCPToolManager,
+        model_profile: Optional[ModelProfile] = None,
         trace_recorder: Optional[TraceRecorder] = None,
         max_steps: int = 4,
         max_tokens: int = 1024,
@@ -66,7 +68,8 @@ class ReActExecutionEngine:
         if max_steps < 1:
             raise ValueError("max_steps must be positive")
         self._client = client
-        self._model = model
+        self._model_profile = model_profile or ModelProfile(model)
+        self._model = self._model_profile.model
         self._tool_manager = tool_manager
         self._trace_recorder = trace_recorder or tool_manager.trace_recorder
         self._max_steps = int(max_steps)
@@ -103,13 +106,12 @@ class ReActExecutionEngine:
                     "tool.count": len(tools),
                 },
             ):
-                response = await self._client.messages.create(
-                    model=self._model,
+                response = await self._client.messages.create(**self._model_profile.request(
                     max_tokens=self._max_tokens,
                     system=system,
                     messages=working_messages,
                     tools=tools,
-                )
+                ))
             blocks, text, tool_calls = self._parse_content(response.content)
             if text:
                 last_text = text
@@ -220,6 +222,16 @@ class ReActExecutionEngine:
                     "input": arguments,
                 })
                 tool_calls.append(ParsedToolCall(call_id, name, arguments))
+            elif block_type == "thinking":
+                # Thinking + tools 的下一轮必须回传此前 thinking block。
+                block = {
+                    "type": "thinking",
+                    "thinking": str(cls._value(raw, "thinking") or ""),
+                }
+                signature = cls._value(raw, "signature")
+                if signature is not None:
+                    block["signature"] = signature
+                blocks.append(block)
         return blocks, "\n".join(text_parts).strip(), tool_calls
 
     @staticmethod
