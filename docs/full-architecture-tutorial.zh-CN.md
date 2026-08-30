@@ -898,7 +898,7 @@ Monitor 每隔 N 秒：
 | Retrieval | `relevant_ids` | Recall@K、MRR、nDCG | 精确证据是否召回且排在前面 |
 | Stateful | `assertions` | assertion pass、all pass | 隔离、授权、副作用等不变量是否成立 |
 
-提交的 `dialogpilot-500-v1` 有 500 条：Intent/OOS 180、Routing 120、Retrieval 100、Stateful 100，另有 25 篇隔离 corpus。180 条外部意图样本是 `auto_mapped`，320 条项目合同是 `provisional`，**都不是 human-reviewed gold**。Stateful 的 20 条原 heldout 已参与缺陷修复，只能作为回归集；现有 fixture 也没有证明真实空闲检测、签名审批令牌、HTTP 发布投影或跨用户检索。
+提交的 `dialogpilot-500-v1` 有 500 条：Intent/OOS 180、Routing 120、Retrieval 100、Stateful 100，另有 25 篇隔离 corpus。180 条外部意图样本是 `auto_mapped`，320 条项目合同是 `provisional`，**都不是 human-reviewed gold**。Stateful 的 20 条原 heldout 与 Reviewer B fresh-v2 27 条都已参与缺陷修复，只能作为回归集；现有 fixture 仍没有证明真实空闲检测或外部 IdP/JWKS 多租户边界。
 
 ### 15.3 数据身份和防污染合同
 
@@ -912,7 +912,7 @@ Monitor 每隔 N 秒：
 
 ### 15.5 什么能说，什么不能说
 
-可以说：“建立了版本化四层评测合同、公开数据适配、split/checksum/review 门禁、Stateful Owner fixture 和隔离 RAG producer。”还可以报告 **provisional dev 基线**：Retrieval 80 条 Recall@5 0.9125、MRR 0.7504、nDCG@5 0.7914；以及 Stateful 80/80 dev、20/20 已消费回归。不能把这些写成“系统准确率”，因为尚无 human-reviewed gold、新鲜 heldout 和独立 Reviewer B。
+可以说：“建立了版本化四层评测合同、公开数据适配、split/checksum/review 门禁、Stateful Owner fixture 和隔离 RAG producer。”还可以报告 **provisional dev 基线**：Retrieval 80 条 Recall@5 0.9125、MRR 0.7504、nDCG@5 0.7914；以及 Stateful 80/80 dev、20/20 已消费回归、Reviewer B fresh-v2 27/27 已消费回归。不能把这些写成“系统准确率”，因为尚无 human-reviewed gold 和新的独立封存 holdout。
 
 ## 16. API 面与典型调用
 
@@ -1340,9 +1340,9 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q14：工具的可靠性设计有哪些？
 
-**答：** 注册表、Agent allowlist、风险/读写声明、宿主审批、基础 schema 校验、TTL cache、per-call timeout、三态 breaker、sync handler 线程池、fallback、输出有界化、脱敏审计和 TraceId。
+**答：** 注册表、Agent allowlist、风险/读写声明、宿主审批、基础 schema 校验、TTL cache、显式 success/error/timeout/cancelled 终态、三态 breaker、sync handler 线程池、fallback、输出有界化、脱敏审计和 TraceId。调用终态与业务副作用分开：写调用没有 `ToolEffectReceipt` 时只能标 `outcome_unknown`。
 
-**追问：缺什么？** 还没有交互式审批恢复、持久调用状态、执行 receipt、完整 JSON Schema、幂等副作用和真正 MCP transport。默认阻断高风险工具不等于完整 Human-in-the-loop。
+**追问：缺什么？** 还没有交互式审批恢复、持久调用状态、完整 JSON Schema、生产写工具的幂等键/持久 receipt 和真正 MCP transport。当前定义了 receipt 类型合同，不等于已经拥有下游事务或补偿能力。
 
 ### Q15：为什么 Verifier 要 fail closed？
 
@@ -1610,7 +1610,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 **Action：** 在 Worker 内增加最大 4 步的 Anthropic tool loop；工具发现和执行共享同一 allowlist，执行边界再次校验；高风险/写工具默认等待宿主批准，读工具批次并行、潜在写工具串行；工具输出截断后按 call_id 回写，TraceId 通过 contextvars 贯穿并行 Task，审计只记录参数哈希/shape；拒绝、失败、超步数禁止 General fallback 覆盖。
 
-**Result：** 工具/ReAct 聚焦测试和编排投影测试证明越权零副作用、审批阻断、循环停止、结果配对、输出有界、Trace 传播和失败证据贯穿；连同生产边界、分层模型策略与分层评测合同测试，整个仓库 146 项测试通过。
+**Result：** 工具/ReAct 聚焦测试和编排投影测试证明越权零副作用、审批阻断、循环停止、结果配对、输出有界、Trace 传播和失败证据贯穿；timeout/cancel 进一步区分调用终态与 `outcome_unknown` 副作用事实。连同生产边界、分层模型策略与分层评测合同测试，整个仓库 153 项测试通过。
 
 **简历一行（只在你能现场解释代码时使用）：**
 
@@ -1730,7 +1730,7 @@ Verifier 必须读取完整 `AgentOutcome.content/error/producer` 才能判断�
 
 ### Q64：这一轮怎样写成 STAR？
 
-**S：** 原链路在 TTL、诊断投影和部署降级处存在“成功返回但事实丢失或泄漏”的边界。**T：** 让身份、归档、存储模式和升级执行者各有唯一 Owner，并让失败可重试、可观测。**A：** 实现 JWT Principal/scope、公开 outcome redaction、确定性消息归档 + Redis CAS finalize、单记录版本画像、显式 Chroma/intent 模式、tool-free EscalationAgent 和路由基数披露。**R：** 相关不变量由测试覆盖；全仓当前 146 项测试通过，不虚构线上提升。
+**S：** 原链路在 TTL、诊断投影和部署降级处存在“成功返回但事实丢失或泄漏”的边界。**T：** 让身份、归档、存储模式和升级执行者各有唯一 Owner，并让失败可重试、可观测。**A：** 实现 JWT Principal/scope、公开 outcome redaction、确定性消息归档 + Redis CAS finalize、单记录版本画像、显式 Chroma/intent 模式、tool-free EscalationAgent 和路由基数披露。**R：** 相关不变量由测试覆盖；全仓当前 153 项测试通过，不虚构线上提升。
 
 ## 27. 把评测数据真正跑起来：从 provisional 到 held-out 报告
 
@@ -1819,7 +1819,7 @@ curl -X POST http://localhost:8000/eval/run \
 {"case_id":"stateful-001","actual":{"assertions":{"blocked":true,"side_effect_zero":true}}}
 ```
 
-Intent/routing 已能从注册集进入 `/eval/run`。Stateful 使用 `evaluation.stateful_runner` 执行隔离 fixture；Reviewer B 已证明当前布尔 evidence 仍可绕过 Owner，因此 100/100 只能称机械回归。Retrieval producer 已装载隔离 corpus 并返回稳定父 `document_id` 与对齐的 `chunk_id` 证据；请求 unsupported live layer 会明确 422。
+Intent/routing 已能从注册集进入 `/eval/run`。Stateful 使用 `evaluation.stateful_runner` 执行隔离 fixture；Reviewer B 发现的 expected-copy 绕过已在接口 Owner 修复：actual 生产者只收到没有 `expected` 的不可变 `FixtureRequest`。原 100 条为 80/80 dev、20/20 已消费回归，fresh-v2 27 条也已全部执行为已消费回归；它们仍不是 human Gold 或未见泛化证据。Retrieval producer 已装载隔离 corpus 并返回稳定父 `document_id` 与对齐的 `chunk_id` 证据；请求 unsupported live layer 会明确 422。
 
 ### 27.6 第六步：确定性评分与报告
 

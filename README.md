@@ -222,10 +222,17 @@ With an admin token, `GET /eval/datasets` exposes counts and review status.
 `POST /eval/run` accepts `dataset_id`, `split`, `layers`, and
 `include_non_gold`; intent/routing execute through the live runtime. Stateful
 memory/security cases execute through isolated real-owner fixtures and the
-deterministic scorer. Retrieval still requires a prediction producer, so an
-unsupported live layer cannot be silently reported as run.
+deterministic scorer. Retrieval uses its isolated Chroma prediction producer;
+an unsupported live layer cannot be silently reported as run.
 Every runtime report carries dataset version, checksum, split, layer set, and
 review scope.
+
+Reviewer B's 27-case fresh-v2 specification is fully registered and executes
+the context, memory, RAG, tool, verifier, coverage and publication owners. It
+passes 27/27 as a **consumed regression set**, not as an unseen holdout. Fixture
+producers receive an immutable `FixtureRequest` without `expected`; write-tool
+timeout/cancellation use explicit terminal audit states and report
+`outcome_unknown` whenever the runtime cannot prove the business commit.
 
 Runtime Agent statistics separate execution availability from verified answer
 quality. `PASS` and `REJECT` update a sample-aware EWMA quality score for the

@@ -78,6 +78,20 @@ notes 后，才可以叫 gold heldout 结果。
 7 条假阳性，Owner 变异测试会在 `search_long_term`、`_fallback_summary`、
 `finalize_conversation` 或 `ContextAssembler.assemble` 被破坏时强制失败。
 
+Reviewer B 进一步证明：只靠约定 fixture “不读取 expected”仍可绕过，因为旧接口
+把完整 `EvalCase` 交给 actual 生产者。现在 fixture 只接收递归冻结的
+`FixtureRequest(case_id, scenario, message)`，类型上不存在 `expected`；故意复制
+`request.expected` 的攻击会在评分前以 `AttributeError` 失败。Reviewer B 新写的
+27 条 fresh-v2 action 也已全部注册并执行，结果为 27/27。由于这些用例已经被本轮
+开发者读取并用于修复，它们现称 `consumed fresh-v2 regression`，不能继续叫未见
+holdout；恢复 verified closure 仍需另一位 reviewer 封存新用例。
+
+工具状态机也拆开了“调用终态”和“业务副作用事实”：timeout 返回显式 `timeout`，
+外部取消留下唯一 `cancelled` 审计；对于 manager 无法观察事务提交的写调用，审计
+记录 `outcome_unknown`，不再把超时误写成零副作用。模型参数中的 `approved` 与
+`approval_token` 会在 handler 前移除，只有宿主参数能批准调用。仅含 Unicode
+空白或 `U+200B/U+FEFF` 的记忆 query 会在访问 Chroma 前短路。
+
 Retrieval producer 现已接线：它把 25 篇 corpus 装入临时 embedded Chroma，调用
 生产 `KnowledgeBase` 的向量 + BM25 + RRF 路径并输出证据 ID。当前 Dev 80 条的
 真实基线是 Recall@5 0.9125、MRR 0.7504、nDCG@5 0.7914；这是 provisional

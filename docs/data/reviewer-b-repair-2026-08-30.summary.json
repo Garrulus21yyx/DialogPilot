@@ -1,0 +1,32 @@
+{
+  "historical_review": "docs/data/reviewer-b-independent-review.json",
+  "historical_decision": "reject",
+  "repair_commits": [
+    "f25b5df",
+    "c874de7"
+  ],
+  "contracts_repaired": {
+    "fixture_boundary": "FixtureRequest is recursively frozen and contains case_id, scenario and message only; expected truth remains scorer-side.",
+    "tool_lifecycle": "timeout and cancelled are explicit terminal states with one correlated audit record; unproved write effects are outcome_unknown.",
+    "approval_control_plane": "approved and approval_token model parameters are removed before schema validation and handler execution; host approved remains authoritative.",
+    "memory_empty_query": "Unicode format controls are removed before strip; format/whitespace-only queries return before vector or lexical storage access.",
+    "publication_boundary": "verifier exceptions and invalid result types become typed UNKNOWN; only PASS candidates are published.",
+    "fresh_v2_coverage": "All 27 Reviewer B fresh-v2 actions are registered and execute production owners."
+  },
+  "verification": {
+    "repository_tests": "153 passed",
+    "stateful_dev": "80/80",
+    "stateful_consumed_regression": "20/20",
+    "reviewer_b_fresh_v2_consumed_regression": "27/27",
+    "focused_tests": "38 passed",
+    "fresh_v2_sha256": "23da1e7a67cacaec9347e3b20a97777552c102eec5d2b84404bf7c0c57dfec43"
+  },
+  "scope_limits": [
+    "fresh-v2 was inspected during repair and is no longer an unseen holdout",
+    "tool audit is bounded process-local memory rather than durable storage",
+    "the manager cannot prove downstream write commit without a business ToolEffectReceipt",
+    "the dataset remains provisional and has zero human-reviewed Gold cases"
+  ],
+  "closure_status": "implementation_repaired_verification_open",
+  "next_gate": "A fresh-context reviewer must author or seal a new adversarial set without reading the repairs, rerun invariants, and decide whether the historical reject can be superseded."
+}

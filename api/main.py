@@ -1035,7 +1035,7 @@ async def add_knowledge(body: BatchDocInput, _principal: Principal = Depends(_ad
     """
     批量导入文档到知识库。
 
-    文档会自动切片（每片 500 字）并存入 ChromaDB，ChromaDB 内置 Embedding 模型自动向量化。
+    文档按配置的 Token 估算上限、结构边界和 overlap 切片后存入 ChromaDB。
 
     示例请求体：
     ```json
