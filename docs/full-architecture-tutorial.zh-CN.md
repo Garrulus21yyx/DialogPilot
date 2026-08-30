@@ -170,7 +170,7 @@ API 层负责**时序编排**，但不应该成为各领域事实的 Owner。例
 3. 扫描 `skills/`，加载 Markdown/JSON/TXT 业务规则。
 4. 创建 `AgentOrchestrator`、`AnswerVerifier`、`TicketService` 和 `ContextAssembler`。
 5. 创建 `MemoryManager`：Redis 保存短期状态，ChromaDB 保存情景记忆和画像。
-6. 创建共享 `TraceRecorder`、`MCPToolManager` 和 `KnowledgeBase`，注册只读且有 Agent allowlist 的 `knowledge_search`、`memory_search`，再把 ToolManager 注入所有领域 Worker。
+6. 创建共享 `TraceRecorder`、`MCPToolManager` 和 `KnowledgeBase`，注册知识、记忆和用户工单共 5 个生产工具，再把 ToolManager 注入所有领域 Worker。
 7. 启动 `PerformanceMonitor` 后台采集循环。
 8. 创建 `EndToEndEvaluator`。
 9. `yield` 后服务开始接请求；退出时停止 Monitor 并关闭 Redis 连接。
@@ -369,6 +369,18 @@ LLM 与 embedding 并行，pattern 同步执行。官方 Anthropic SDK 没有 em
 
 ### 7.3 Tool 调用合同
 
+当前生产注册表不是测试 fixture，共有 5 项：
+
+| 工具 | 类型 | 权威数据与边界 |
+|---|---|---|
+| `knowledge_search` | 只读 | 公共业务知识；BM25 默认，可配置 vector/RRF |
+| `memory_search` | 只读 | 当前认证用户的跨会话记忆；`user_id` 只来自可信上下文 |
+| `support_ticket_list` | 只读 | 只列出当前认证用户自己的工单，最多 20 条 |
+| `support_ticket_get` | 只读 | 工单快照与审计事件；即使猜到他人 ID 也按不存在处理 |
+| `support_ticket_create` | 高风险写 | SQLite 幂等创建；默认等待宿主审批，成功返回 `COMMITTED` 和 `ticket_id` receipt |
+
+测试里的 `refund_write/fresh_write` 仍只是状态机 fixture，不是生产退款能力。
+
 `Tool` 除名称、handler、Schema、缓存和超时外，还声明 `allowed_agents`、`risk`、`read_only` 与 `requires_approval`。ReAct 必须走 `execute_for_agent()`，不能直接碰 handler。完整顺序是：
 
 1. 先按 Agent allowlist 过滤模型能看到的 tool schema；
@@ -411,7 +423,7 @@ stateDiagram-v2
 
 现在每个领域 Worker 会收到自己的工具 Schema，并执行 Anthropic `tool_use → tool_result` 循环；`call_id` 必须配对，默认最多 4 步。自然结束为 `COMPLETED`，权限拒绝或待审批为 `BLOCKED`，工具失败为 `TOOL_ERROR`，持续循环为 `MAX_STEPS`。后三种都让任务非成功并触发升级，而且不会被 GeneralAgent 静默替换。
 
-外层 TaskPlan、Agent fan-out、CoverageGate 和发布校验仍是确定性 Python 控制。这是刻意的两层设计：Planner 拥有“哪些工作必须完成”，ReAct 只拥有“当前 Worker 为完成自己的任务应调用什么工具”。它还缺持久 checkpoint、取消/恢复、交互审批和真实写操作 receipt，因此不能称为通用自治 Agent 平台。
+外层 TaskPlan、Agent fan-out、CoverageGate 和发布校验仍是确定性 Python 控制。这是刻意的两层设计：Planner 拥有“哪些工作必须完成”，ReAct 只拥有“当前 Worker 为完成自己的任务应调用什么工具”。工单创建已有幂等键和真实 SQLite receipt，但仍缺持久 pending call、交互审批、取消/恢复以及退款等外部业务事务，因此不能称为通用自治 Agent 平台。
 
 ## 8. 记忆系统：状态、压缩和并发安全
 
@@ -1347,7 +1359,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 **答：** 注册表、Agent allowlist、风险/读写声明、宿主审批、基础 schema 校验、TTL cache、显式 success/error/timeout/cancelled 终态、三态 breaker、sync handler 线程池、fallback、输出有界化、脱敏审计和 TraceId。调用终态与业务副作用分开：写调用没有 `ToolEffectReceipt` 时只能标 `outcome_unknown`。
 
-**追问：缺什么？** 还没有交互式审批恢复、持久调用状态、完整 JSON Schema、生产写工具的幂等键/持久 receipt 和真正 MCP transport。当前定义了 receipt 类型合同，不等于已经拥有下游事务或补偿能力。
+**追问：缺什么？** 还没有交互式审批恢复、持久调用状态、完整 JSON Schema 和真正 MCP transport。`support_ticket_create` 已有幂等键与持久 receipt，但这只证明本地工单事务，不等于拥有退款、调账等外部事务或补偿能力。
 
 ### Q15：为什么 Verifier 要 fail closed？
 
@@ -1615,7 +1627,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 **Action：** 在 Worker 内增加最大 4 步的 Anthropic tool loop；工具发现和执行共享同一 allowlist，执行边界再次校验；高风险/写工具默认等待宿主批准，读工具批次并行、潜在写工具串行；工具输出截断后按 call_id 回写，TraceId 通过 contextvars 贯穿并行 Task，审计只记录参数哈希/shape；拒绝、失败、超步数禁止 General fallback 覆盖。
 
-**Result：** 工具/ReAct 聚焦测试和编排投影测试证明越权零副作用、审批阻断、循环停止、结果配对、输出有界、Trace 传播和失败证据贯穿；timeout/cancel 进一步区分调用终态与 `outcome_unknown` 副作用事实。连同生产边界、分层模型策略、记忆不变量与分层评测合同测试，整个仓库 160 项测试通过。
+**Result：** 工具/ReAct 聚焦测试和编排投影测试证明越权零副作用、审批阻断、循环停止、结果配对、输出有界、Trace 传播和失败证据贯穿；timeout/cancel 进一步区分调用终态与 `outcome_unknown` 副作用事实。新增工单查询/详情/创建后，全仓 174 项测试通过；写入成功返回 SQLite ticket receipt，跨用户读取确定性拒绝。
 
 **简历一行（只在你能现场解释代码时使用）：**
 
@@ -1657,7 +1669,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q56：这两项还有什么未完成？
 
-**答：** 混合记忆缺版本化真实数据集、权重消融和稳定 embedding；Trace 缺 OTel exporter/持久存储及全链 span；审批缺 pending-call persistence、批准人/过期时间/resume endpoint；写工具缺业务授权、幂等 key 和 typed receipt。当前代码证明的是闭合安全基线，不是完整生产平台。
+**答：** 混合记忆缺版本化真实数据集、权重消融和稳定 embedding；Trace 缺 OTel exporter/持久存储及全链 span；审批缺 pending-call persistence、批准人/过期时间/resume endpoint。工单写工具已有可信身份、幂等 key 和 typed receipt，但退款/账户修改仍没有外部业务授权与事务适配器。当前代码证明的是闭合安全基线，不是完整生产平台。
 
 ## 26. 边界收敛：身份、记忆生命周期、物理存储与升级 Owner
 

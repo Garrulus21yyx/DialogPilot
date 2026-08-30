@@ -28,7 +28,7 @@ title: DialogPilot 面经校准与追问手册
 | 长期记忆只检索摘要 | 检索 1200 字符/120 overlap 原始片段，摘要只是背景 metadata | **CHANGED** |
 | 知识库是 BM25 + 向量 + RRF | 这是长期记忆；知识 RAG 仍是 rewrite + Chroma 多路向量 + 去重 + LLM rerank | **CORRECTED** |
 | Agent 单次生成、无完整 Trace | Worker 内最多 4 步 ReAct，allowlist/宿主审批/脱敏 audit/TraceId | **CHANGED** |
-| 准确率 91.3%、综合分 0.89 | 当前有 500 条分层候选集、25 篇 corpus 和 160 项回归测试，但仍无 human-reviewed gold | **UNPROVEN** |
+| 准确率 91.3%、综合分 0.89 | 当前有 500 条分层候选集、25 篇 corpus 和 174 项回归测试，但仍无 human-reviewed gold | **UNPROVEN** |
 | 完整 MCP Server / LangGraph | 是内部 ToolManager 与直接 Python 编排；没有远程 MCP Server，没用 LangGraph | **UNPROVEN** |
 
 ## 项目开场与完整链路
@@ -199,13 +199,15 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 工具发现只暴露 Agent allowlist，执行时 ToolManager 用同一 allowlist 再校验。模型编造工具名会得到 `denied`。授权不是 Prompt 约定，而是执行边界的权威决策。
 
+当前生产工具共 5 个：公共知识 `knowledge_search`、用户记忆 `memory_search`、当前用户工单列表 `support_ticket_list`、工单详情 `support_ticket_get`、需宿主审批的幂等写工具 `support_ticket_create`。测试里的退款写工具不能当作生产能力。
+
 ### Q40：模型能伪造 `approved=true` 吗？
 
 不能。`approved` 不在暴露给模型的 input schema，只由可信宿主传给执行器。高风险/写工具默认没批准就无副作用终止。
 
 ### Q41：工具并发如何处理？
 
-同一 ReAct 步中只读工具可并行，潜在写工具串行，避免顺序未定义的副作用。这不是分布式事务；生产写工具还需业务幂等 key、版本或 typed receipt。
+同一 ReAct 步中只读工具可并行，潜在写工具串行，避免顺序未定义的副作用。这不是分布式事务；当前工单创建已有业务幂等 key 和 typed receipt，但退款、调账等外部写工具仍需各自的业务授权、版本与补偿合同。
 
 ### Q42：怎么防 ReAct 死循环？
 
@@ -235,7 +237,7 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q48：91.3%、0.89 等旧数字怎么回答？
 
-**UNPROVEN。** 旧数字没对应数据版本、切分、运行产物和 commit，已移除。当前可证明的是 160 项回归测试、500 条分层候选集、25 篇 corpus、Stateful fixture 和隔离 RAG producer；因为 gold 仍为 0，不能报项目准确率。独立审核并运行新鲜 heldout 后才报均值、方差、slice 和置信区间。
+**UNPROVEN。** 旧数字没对应数据版本、切分、运行产物和 commit，已移除。当前可证明的是 174 项回归测试、500 条分层候选集、25 篇 corpus、Stateful fixture 和隔离 RAG producer；因为 gold 仍为 0，不能报项目准确率。独立审核并运行新鲜 heldout 后才报均值、方差、slice 和置信区间。
 
 ### Q49：多 LLM 调用怎么降延迟？
 
@@ -399,7 +401,7 @@ DeepSeek 的 Anthropic 兼容协议要求工具后续轮回传此前 thinking �
 
 ### Q84：这项改造怎样写 STAR？
 
-**S：** 九类调用共用一个模型，DeepSeek 默认 reasoning 让简单任务成本、延迟和结构化输出不可控。**T：** 在保持统一 Messages API 的同时，让每类调用可独立权衡质量。**A：** 实现按角色校验的 ModelPolicy，Flash/none 承担闭合高频任务，Pro/none 承担融合与质量门禁；显式 reasoning 强制最小完成预算，并补齐 health/eval 配置证据和 ReAct thinking 回传。**R：** 4 条 E2E pilot 均值约 28.4s → 13.3s，Verifier 解析 2/4 → 4/4；160 项回归测试通过。15 条 provisional 三档消融已完成，最终选择仍需 gold heldout 与重复运行确认。
+**S：** 九类调用共用一个模型，DeepSeek 默认 reasoning 让简单任务成本、延迟和结构化输出不可控。**T：** 在保持统一 Messages API 的同时，让每类调用可独立权衡质量。**A：** 实现按角色校验的 ModelPolicy，Flash/none 承担闭合高频任务，Pro/none 承担融合与质量门禁；显式 reasoning 强制最小完成预算，并补齐 health/eval 配置证据和 ReAct thinking 回传。**R：** 4 条 E2E pilot 均值约 28.4s → 13.3s，Verifier 解析 2/4 → 4/4；当前全仓 174 项回归测试通过。15 条 provisional 三档消融已完成，最终选择仍需 gold heldout 与重复运行确认。
 
 ### Q85：Flash/off、Flash/high、Pro/high 真跑后有什么区别？
 

@@ -71,6 +71,7 @@ usage, cost, and failure cases, is in
 - ChromaDB knowledge, episodic memory, and source-linked user facts
 - BM25 + weighted RRF hybrid long-term memory retrieval
 - Bounded ReAct tool execution with allowlists, approval gates, and TraceId audit
+- Five production Agent tools: public knowledge, user memory, and user-scoped ticket list/detail/create
 - Prometheus monitoring and anomaly detection
 - Docker Compose with Nginx, Redis, ChromaDB, and Prometheus
 - Pytest and GitHub Actions
