@@ -5,6 +5,12 @@ Python and FastAPI. It combines intent recognition, retrieval-augmented
 generation, dynamic business skills, layered conversation memory, observable
 agent routing, and a fail-closed answer-verification boundary.
 
+Knowledge ingestion uses a configurable 360-token estimate ceiling with a
+48-token overlap. Stable chunk IDs remain authoritative through vector recall,
+BM25, RRF, and evidence projection; parent document IDs are deduplicated only
+after ranking. Existing v1 Chroma chunks remain readable but require a source
+reindex to gain the v2 overlap policy; ingestion never silently rewrites them.
+
 Chinese documentation: [full architecture tutorial](https://garrulus21yyx.github.io/DialogPilot/) · [code-checked interview guide](https://garrulus21yyx.github.io/DialogPilot/interview-guide.html)
 
 ## Why this project exists

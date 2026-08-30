@@ -83,6 +83,11 @@ Retrieval producer 现已接线：它把 25 篇 corpus 装入临时 embedded Chr
 真实基线是 Recall@5 0.9125、MRR 0.7504、nDCG@5 0.7914；这是 provisional
 开发集结果，不是生产准确率，Retrieval heldout 尚未运行。
 
+Reviewer B 随后用多 chunk 文档发现父 `document_id` 被过早当成候选 ID，可能
+组合不同 chunk 的内容与 metadata。现已改为 360 Token 上限、48 Token overlap
+的结构感知切分；唯一 `chunk_id` 贯穿向量、BM25、RRF 和投影，最终才按父文档
+去重。显式两 chunk 反例与 300 组生成文档通过，原 Retrieval Dev 指标保持不变。
+
 两次复核暴露的是同一个验收缺口。第一次发现 HTML 转义会扩大 section；第二次
 发现 section 分隔符未计费，且二次预算返还重复计算容量。现在预算唯一事实是
 最终拼接文本；历史确定后 section 上限严格等于剩余容量，强制当前轮次本身放不下

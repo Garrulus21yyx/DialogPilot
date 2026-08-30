@@ -401,9 +401,9 @@ stateDiagram-v2
 
 - collection 名为 `knowledge_base`；
 - 首次为空时导入默认客服文档；
-- 文档按句号/换行尽量切成约 500 字片段；
-- ID 由 title、chunk index、片段前缀哈希生成；
-- Chroma 返回 distance，代码用 `1 - distance` 表示近似 score；
+- 文档默认按 360 Token 估算上限切片、48 Token overlap，优先段落/句末边界；
+- corpus `document_id` 是父身份，`document_id::chunk-N` 是向量/BM25/RRF 候选身份；
+- Chroma 提供向量候选，KnowledgeBase 再用 BM25 + RRF 融合；最终按父文档去重；
 - `CHROMA_MODE=remote` 连接失败时启动失败；只有显式 `embedded` 才使用 PersistentClient，因此不会产生两套无自动合并的物理存储。
 
 ### 7.7 有界 ReAct，而不是开放式自治
@@ -992,6 +992,8 @@ Prometheus :9090
 | `REDIS_URL` | 工作记忆 |
 | `CHROMA_HOST/PORT/PERSIST_DIRECTORY` | Chroma 服务或本地路径 |
 | `CHROMA_MODE` | `remote` 失败即停止；`embedded` 只写本地路径 |
+| `RAG_CHUNK_MAX_TOKENS` | RAG 片段估算上限 360 Token；优先段落/句末边界 |
+| `RAG_CHUNK_OVERLAP_TOKENS` | 相邻 RAG 片段重叠预算 48 Token，必须小于片段上限 |
 | `INTENT_SIMILARITY_MODE` | `ngram` 或 `disabled`，不再由 provider base URL 猜测 |
 | `TICKET_DB_PATH` | SQLite 工单文件 |
 | `CONTEXT_INPUT_BUDGET` | 完整输入预算 12000 |
@@ -1415,9 +1417,11 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q26：知识库的 chunk size 和 overlap 到底是多少？
 
-**答：** [`KnowledgeBase._chunk_text()`](../mcp/knowledge_base.py) 的默认 `chunk_size=500`，单位是 Python 字符数，不是 Token；导入时按句号和换行累积句子，超过 500 才切片。当前实现没有 overlap，也没有 token-aware splitter。
+**答：** [`KnowledgeBase._chunk_text()`](../mcp/knowledge_base.py) 默认使用估算 Token 上限 360、overlap 48。它先二分找到硬上限，再尽量回退到窗口后 40% 内最后一个段落、句末或空白边界；找不到结构边界就硬切，因此单个超长句也不会超过预算。
 
-**为什么这样选：** 这是面向小型客服 FAQ 的简单基线，优点是依赖少、行为确定；缺点是长句可能超过预算，跨 chunk 事实可能断裂。仓库没有 256/500/800 与不同 overlap 的消融数据，所以只能说“当前配置是 500、无 overlap”，不能说它已经最优。
+**为什么这样选：** 360/48 是约 13% overlap 的工程初值，解决旧版 500 字符、无 overlap 的跨边界丢事实问题；300 组生成式文档验证了预算、覆盖与重组不变量，但仓库仍没有多档参数消融，所以不能说它已经最优。
+
+**迁移边界：** v2 参数只影响新导入文档，metadata 会记录 `chunking_version=2` 和实际预算。已有 Chroma v1 chunk 仍能按存储 chunk ID 正确投影，但不会凭空获得 overlap；要采用新切分必须从原始文档重建索引，不能把旧片段再次拼接后静默覆盖。
 
 ### Q27：一次 Prompt 的 Token 预算如何分配？
 
@@ -1545,7 +1549,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q46：现场追问到没有数据的参数怎么办？
 
-**答：** 先说当前值和代码位置，再区分“工程初值”与“实验结论”。例如：chunk 是 500 字符、无 overlap；这是当前可复现配置，但没有消融证明最优。随后给出你会怎样设计实验、看哪些指标、什么条件下改值。
+**答：** 先说当前值和代码位置，再区分“工程初值”与“实验结论”。当前 RAG 入库按估算 Token 硬上限 360 切分，优先段落/句末边界，相邻片段 overlap 48；超长单句也会强制切开。`chunk_id` 贯穿向量、BM25、RRF 和证据投影，父 `document_id` 只在排名后做结果去重。这是可复现工程初值，不冒充消融最优值；正式选型还要比较 Recall@K、MRR、nDCG、证据完整率、索引体积与延迟。
 
 **底线：** 不虚构 benchmark、线上流量、准确率或事故经历。真实感来自可验证的代码细节、取舍、失败语义和复现实验，而不是把没有发生过的经历讲得更像真的。
 
@@ -1606,7 +1610,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 **Action：** 在 Worker 内增加最大 4 步的 Anthropic tool loop；工具发现和执行共享同一 allowlist，执行边界再次校验；高风险/写工具默认等待宿主批准，读工具批次并行、潜在写工具串行；工具输出截断后按 call_id 回写，TraceId 通过 contextvars 贯穿并行 Task，审计只记录参数哈希/shape；拒绝、失败、超步数禁止 General fallback 覆盖。
 
-**Result：** 工具/ReAct 聚焦测试和编排投影测试证明越权零副作用、审批阻断、循环停止、结果配对、输出有界、Trace 传播和失败证据贯穿；连同生产边界、分层模型策略与分层评测合同测试，整个仓库 137 项测试通过。
+**Result：** 工具/ReAct 聚焦测试和编排投影测试证明越权零副作用、审批阻断、循环停止、结果配对、输出有界、Trace 传播和失败证据贯穿；连同生产边界、分层模型策略与分层评测合同测试，整个仓库 146 项测试通过。
 
 **简历一行（只在你能现场解释代码时使用）：**
 
@@ -1726,7 +1730,7 @@ Verifier 必须读取完整 `AgentOutcome.content/error/producer` 才能判断�
 
 ### Q64：这一轮怎样写成 STAR？
 
-**S：** 原链路在 TTL、诊断投影和部署降级处存在“成功返回但事实丢失或泄漏”的边界。**T：** 让身份、归档、存储模式和升级执行者各有唯一 Owner，并让失败可重试、可观测。**A：** 实现 JWT Principal/scope、公开 outcome redaction、确定性消息归档 + Redis CAS finalize、单记录版本画像、显式 Chroma/intent 模式、tool-free EscalationAgent 和路由基数披露。**R：** 相关不变量由测试覆盖；全仓当前 137 项测试通过，不虚构线上提升。
+**S：** 原链路在 TTL、诊断投影和部署降级处存在“成功返回但事实丢失或泄漏”的边界。**T：** 让身份、归档、存储模式和升级执行者各有唯一 Owner，并让失败可重试、可观测。**A：** 实现 JWT Principal/scope、公开 outcome redaction、确定性消息归档 + Redis CAS finalize、单记录版本画像、显式 Chroma/intent 模式、tool-free EscalationAgent 和路由基数披露。**R：** 相关不变量由测试覆盖；全仓当前 146 项测试通过，不虚构线上提升。
 
 ## 27. 把评测数据真正跑起来：从 provisional 到 held-out 报告
 
@@ -1815,7 +1819,7 @@ curl -X POST http://localhost:8000/eval/run \
 {"case_id":"stateful-001","actual":{"assertions":{"blocked":true,"side_effect_zero":true}}}
 ```
 
-Intent/routing 已能从注册集进入 `/eval/run`。Stateful 使用 `evaluation.stateful_runner` 在隔离环境调用真实 Memory、Tool、ReAct、Verifier、Coverage 与 Ticket Owner，观察存储、审计、Trace 和副作用后产生布尔 assertion；100 条已实跑通过。Retrieval producer 仍需记录真实稳定 document IDs；请求 unsupported live layer 会明确 422。
+Intent/routing 已能从注册集进入 `/eval/run`。Stateful 使用 `evaluation.stateful_runner` 执行隔离 fixture；Reviewer B 已证明当前布尔 evidence 仍可绕过 Owner，因此 100/100 只能称机械回归。Retrieval producer 已装载隔离 corpus 并返回稳定父 `document_id` 与对齐的 `chunk_id` 证据；请求 unsupported live layer 会明确 422。
 
 ### 27.6 第六步：确定性评分与报告
 

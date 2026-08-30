@@ -145,3 +145,34 @@ as regression data, not unseen generalization evidence. This phase adopts those
 boundaries without adding a generalized event-sourcing system, a new agent
 framework, or fictitious signed-token/public-API guarantees that production does
 not implement.
+
+## Phase 4: chunk-aware RAG convergence
+
+Status: in progress. Reviewer B established that the storage adapter persisted a
+unique `document_id::chunk-N`, but `KnowledgeBase.search` replaced that candidate
+identity with the parent `document_id` before BM25/RRF. Projection then looked up
+metadata independently by parent ID, so content, chunk index and ranks could come
+from different chunks.
+
+### Positive contract
+
+- Ingestion uses a hard token-estimate ceiling, structural sentence/paragraph
+  boundaries where possible, and a bounded overlap; even one oversized sentence
+  is split into valid chunks.
+- `chunk_id` remains the candidate identity through vector recall, lexical recall,
+  RRF and selected-hit projection. `document_id` remains stable parent identity.
+- Projected `content`, `chunk_id`, `chunk_index`, `title`, score and ranks all
+  originate from the same selected chunk.
+- Result diversity collapses duplicate parent documents only after ranking, while
+  preserving the highest-ranked aligned chunk evidence.
+- Existing short-document retrieval metrics remain reproducible; multi-chunk and
+  boundary-overlap cases receive deterministic regression tests.
+
+### Steps
+
+1. [completed] Implement token-aware structural overlap chunking.
+2. [completed] Preserve chunk candidate identity through search and projection.
+3. [completed] Add long-sentence, overlap-boundary and multi-chunk alignment tests.
+4. [completed] Re-run repository tests and provisional Retrieval Dev baseline.
+5. [in progress] Update Pages/review status, push implementation and documentation,
+   then verify CI and Pages.

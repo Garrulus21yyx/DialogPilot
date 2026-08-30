@@ -28,7 +28,7 @@ title: DialogPilot 面经校准与追问手册
 | 长期记忆只检索摘要 | 检索 1200 字符/120 overlap 原始片段，摘要只是背景 metadata | **CHANGED** |
 | 知识库是 BM25 + 向量 + RRF | 这是长期记忆；知识 RAG 仍是 rewrite + Chroma 多路向量 + 去重 + LLM rerank | **CORRECTED** |
 | Agent 单次生成、无完整 Trace | Worker 内最多 4 步 ReAct，allowlist/宿主审批/脱敏 audit/TraceId | **CHANGED** |
-| 准确率 91.3%、综合分 0.89 | 当前有 500 条分层候选集、25 篇 corpus 和 137 项回归测试，但仍无 human-reviewed gold | **UNPROVEN** |
+| 准确率 91.3%、综合分 0.89 | 当前有 500 条分层候选集、25 篇 corpus 和 146 项回归测试，但仍无 human-reviewed gold | **UNPROVEN** |
 | 完整 MCP Server / LangGraph | 是内部 ToolManager 与直接 Python 编排；没有远程 MCP Server，没用 LangGraph | **UNPROVEN** |
 
 ## 项目开场与完整链路
@@ -147,15 +147,15 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q27：知识 RAG 链路是什么？
 
-对需要业务事实的意图，ToolManager 产生原 query 加改写 query，并行调 Chroma 向量检索，去重后用 chat LLM rerank 取 Top-K。rewrite 失败退原 query，rerank 失败退原排序。当前不是 BM25 混合知识检索。
+对需要业务事实的意图，ToolManager 产生原 query 加改写 query，并行调用 KnowledgeBase。每次检索由 Chroma 提供向量候选，同时对隔离 corpus 做 BM25，再用 RRF 融合；多 query 结果合并后由 chat LLM rerank 取 Top-K。rewrite 失败退原 query，rerank 失败退融合排序。
 
 ### Q28：知识 chunk size 和 overlap 是多少？
 
-**CURRENT。** 默认 500 **Python 字符**，按句号/换行累积切分，没 overlap，也不是 token-aware splitter。这是小型 FAQ 基线，没有消融证明最优。
+**CURRENT。** 默认估算 Token 上限 360、overlap 48，优先段落/句末/空白边界；超长单句强制二分硬切。`chunk_id` 贯穿向量、BM25、RRF 与证据投影，最终才按父 `document_id` 去重。参数可由 `RAG_CHUNK_MAX_TOKENS` 和 `RAG_CHUNK_OVERLAP_TOKENS` 配置；当前值是工程基线，不是消融最优值。
 
 ### Q29：怎样实验 chunk 参数？
 
-固定文档、query、embedding、Top-K 和 reranker，比较 256/500/800 字符与 0/50/100 overlap。检索层看 Recall@K、MRR/nDCG、evidence hit；端到端看 grounded answer、拒答率、延迟、索引体积和 Token 成本。
+固定文档、query、embedding、Top-K 和 reranker，比较 256/360/512 Token 与 0/32/48/64 overlap。检索层看 Recall@K、MRR/nDCG、边界证据完整率与 chunk 投影一致性；端到端看 grounded answer、拒答率、延迟、索引体积和 Token 成本。
 
 ### Q30：为什么 LLM rerank 不用 cross-encoder？
 
@@ -235,7 +235,7 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q48：91.3%、0.89 等旧数字怎么回答？
 
-**UNPROVEN。** 旧数字没对应数据版本、切分、运行产物和 commit，已移除。当前可证明的是 137 项回归测试、500 条分层候选集、25 篇 corpus、Stateful Owner fixture 和隔离 RAG producer；因为 gold 仍为 0，不能报项目准确率。独立审核并运行新鲜 heldout 后才报均值、方差、slice 和置信区间。
+**UNPROVEN。** 旧数字没对应数据版本、切分、运行产物和 commit，已移除。当前可证明的是 146 项回归测试、500 条分层候选集、25 篇 corpus、Stateful fixture 和隔离 RAG producer；因为 gold 仍为 0，不能报项目准确率。独立审核并运行新鲜 heldout 后才报均值、方差、slice 和置信区间。
 
 ### Q49：多 LLM 调用怎么降延迟？
 
@@ -395,7 +395,7 @@ DeepSeek 的 Anthropic 兼容协议要求工具后续轮回传此前 thinking �
 
 ### Q84：这项改造怎样写 STAR？
 
-**S：** 九类调用共用一个模型，DeepSeek 默认 reasoning 让简单任务成本、延迟和结构化输出不可控。**T：** 在保持统一 Messages API 的同时，让每类调用可独立权衡质量。**A：** 实现按角色校验的 ModelPolicy，Flash/none 承担闭合高频任务，Pro/none 承担融合与质量门禁；显式 reasoning 强制最小完成预算，并补齐 health/eval 配置证据和 ReAct thinking 回传。**R：** 4 条 E2E pilot 均值约 28.4s → 13.3s，Verifier 解析 2/4 → 4/4；137 项回归测试通过。15 条 provisional 三档消融已完成，最终选择仍需 gold heldout 与重复运行确认。
+**S：** 九类调用共用一个模型，DeepSeek 默认 reasoning 让简单任务成本、延迟和结构化输出不可控。**T：** 在保持统一 Messages API 的同时，让每类调用可独立权衡质量。**A：** 实现按角色校验的 ModelPolicy，Flash/none 承担闭合高频任务，Pro/none 承担融合与质量门禁；显式 reasoning 强制最小完成预算，并补齐 health/eval 配置证据和 ReAct thinking 回传。**R：** 4 条 E2E pilot 均值约 28.4s → 13.3s，Verifier 解析 2/4 → 4/4；146 项回归测试通过。15 条 provisional 三档消融已完成，最终选择仍需 gold heldout 与重复运行确认。
 
 ### Q85：Flash/off、Flash/high、Pro/high 真跑后有什么区别？
 
@@ -405,11 +405,11 @@ DeepSeek 的 Anthropic 兼容协议要求工具后续轮回传此前 thinking �
 
 1. 能画出 `/chat` 从 TraceId 到记忆写回的顺序，不混 Knowledge RAG 和 Memory Retrieval。
 2. 能说出 5 个真实 Worker、supporting 0.45、20s/15s/3 agents 预算和 4 步 ReAct。
-3. 能说出 Knowledge chunk 500/no overlap 与 Memory chunk 1200/120 overlap。
+3. 能说出 Knowledge chunk 360 Token/48 overlap 与 Memory chunk 1200 字符/120 overlap，并解释两条链路身份不同。
 4. 能说出 Task outcome 四态、synthesis 五态与 Verifier PASS/REJECT/UNKNOWN。
 5. 能解释 BM25 对订单号的价值，以及 recency 为什么不能独立召回。
 6. 能解释发现/执行共用 allowlist，审批不来自模型参数。
-7. 能说明 111 tests 不等于 111 个 benchmark，11+5 smoke 与 28 provisional 都不支持生产准确率。
+7. 能说明 146 tests 不等于 146 个 benchmark，smoke、auto_mapped 与 provisional 都不支持生产准确率。
 8. 能用 commit 划清原型与个人改造，不说从零原创。
 9. 能讲清 JWT/scope 已完成，以及 IdP/JWKS、tenant ABAC、持久 Trace、可恢复审批和真实 benchmark 仍是缺口。
 10. 不说“精通 LangGraph”、“完整 MCP”、“项目是 SOTA”或“线上准确率 91.3%”。

@@ -1,0 +1,39 @@
+{
+  "review_finding": "RB-RAG-001",
+  "review_target_commit": "684dd8dad84726abb5daa2b7905dd69a95e46675",
+  "repair_status": "implemented_pending_independent_reverification",
+  "root_cause": "KnowledgeBase replaced unique persisted chunk identity with parent document_id before BM25/RRF, then projected metadata through a separate parent-id map.",
+  "positive_contract": {
+    "candidate_identity": "persisted document_id::chunk-N through vector, BM25 and RRF",
+    "parent_identity": "stable document_id projected only after ranking",
+    "projection": "content, chunk_id, chunk_index, title, score and ranks originate from the selected chunk",
+    "chunking": "360 estimated-token hard ceiling, structural boundary preference, 48-token overlap, oversized-sentence hard split",
+    "configuration": [
+      "RAG_CHUNK_MAX_TOKENS",
+      "RAG_CHUNK_OVERLAP_TOKENS"
+    ],
+    "migration": "v1 chunks remain queryable with aligned stored chunk IDs; original source documents must be reindexed to receive v2 overlap, and no silent rewrite is attempted"
+  },
+  "verification": {
+    "repository_tests": 146,
+    "seeded_chunk_documents": 300,
+    "explicit_multichunk_projection_regression": "passed",
+    "embedded_chroma_multichunk_probe": {
+      "document_id": "persisted-document-777",
+      "chunk_id": "persisted-document-777::chunk-6",
+      "chunk_index": 6,
+      "target_content_present": true,
+      "sources": ["vector", "bm25"]
+    },
+    "oversized_sentence_regression": "passed",
+    "parent_diversity_regression": "passed",
+    "retrieval_dev": {
+      "case_count": 80,
+      "pass_rate": 0.6375,
+      "recall_at_5": 0.9125,
+      "mrr": 0.7504,
+      "ndcg_at_5": 0.7914
+    }
+  },
+  "closure_status": "Reviewer B evidence remains immutable; a fresh-context reviewer must independently re-run the multichunk invariant before this finding is closed."
+}
