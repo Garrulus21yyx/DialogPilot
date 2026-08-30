@@ -15,6 +15,7 @@ import hashlib
 import asyncio
 import json
 import logging
+import unicodedata
 import uuid
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -548,7 +549,7 @@ class MemoryManager:
         top_k: int = HISTORY_TOP_K,
     ) -> List[MemoryHit]:
         """按用户过滤后融合向量、BM25 和时间排名检索原始情景记忆。"""
-        query_text = self._safe_text(query).strip()
+        query_text = self._normalize_retrieval_query(query)
         if not query_text:
             return []
         try:
@@ -584,6 +585,16 @@ class MemoryManager:
         except Exception as ex:
             logger.warning(f"混合情景记忆检索失败: {ex}")
             return []
+
+    @classmethod
+    def _normalize_retrieval_query(cls, query: Any) -> str:
+        """在存储边界前移除不可见格式控制并归一化首尾空白。"""
+        text = cls._safe_text(query)
+        return "".join(
+            character
+            for character in text
+            if unicodedata.category(character) != "Cf"
+        ).strip()
 
     async def _search_episodic(self, user_id: str, query: str) -> List[str]:
         """兼容旧调用方：只投影混合检索命中的原始文本。"""

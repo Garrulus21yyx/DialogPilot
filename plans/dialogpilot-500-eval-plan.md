@@ -190,3 +190,33 @@ from different chunks.
   `chunk_id`, chunk index, content and rank record.
 - This phase records implementation completion only. Reviewer B's repository-wide
   `reject` decision and the fresh independent closure gate remain unchanged.
+
+## Phase 5: Reviewer B stateful and tool-lifecycle convergence
+
+Status: in progress. This phase addresses the remaining shared acceptance and
+lifecycle gaps from Reviewer B without changing its historical review record.
+
+### Positive contract
+
+- Fixture result producers receive an immutable request containing case identity
+  and scenario inputs but no expected answer. Expected truth exists only in the
+  scorer after actual evidence has been produced.
+- Every controlled tool call has one correlated terminal audit outcome. Timeout
+  and cancellation are explicit states; a write whose business commit cannot be
+  observed is reported as `outcome_unknown`, never as zero side effect.
+- Host approval is control-plane state. Model parameters named `approved` or
+  `approval_token` cannot authorize a call and never reach a tool handler.
+- Queries containing only Unicode whitespace/format controls return before either
+  long-term-memory storage path is invoked.
+- Every action in the sealed Reviewer B fresh dataset is either executed through
+  a registered production-owner fixture or reported as a typed coverage gap; no
+  unregistered action can be counted as a pass.
+
+### Steps
+
+1. [completed] Separate FixtureRequest from EvalCase and add an expected-copy attack gate.
+2. [completed] Close timeout/cancellation/approval-parameter lifecycle semantics.
+3. [completed] Normalize Unicode format-only memory queries before storage access.
+4. [in progress] Register and execute all 27 fresh Reviewer B actions.
+5. [pending] Run invariant, mutation, full-suite, Dev/regression and fresh gates.
+6. [pending] Update Pages and push each coherent repair phase.

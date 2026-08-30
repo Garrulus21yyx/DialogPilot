@@ -68,7 +68,27 @@ class ToolCallStatus(str, Enum):
     EXECUTING = "executing"
     SUCCESS = "success"
     ERROR = "error"
+    TIMEOUT = "timeout"
+    CANCELLED = "cancelled"
     DENIED = "denied"
+
+
+class ToolEffectStatus(str, Enum):
+    """业务副作用的可证明状态，与调用终态分开建模。"""
+
+    NONE = "none"
+    COMMITTED = "committed"
+    NOT_COMMITTED = "not_committed"
+    OUTCOME_UNKNOWN = "outcome_unknown"
+
+
+@dataclass(frozen=True)
+class ToolEffectReceipt:
+    """由业务 handler 返回的提交回执；manager 不自行猜测写入结果。"""
+
+    data: Any
+    effect_status: ToolEffectStatus
+    receipt_id: str = ""
 
 
 @dataclass
@@ -85,6 +105,8 @@ class ToolResult:
     trace_id:        str = ""
     status:          str = ""
     output_for_model: str = ""
+    effect_status:   str = ToolEffectStatus.NONE.value
+    receipt_id:      str = ""
 
 
 @dataclass(frozen=True)
@@ -106,6 +128,8 @@ class ToolAuditRecord:
     started_at: str
     latency_ms: float
     error: str = ""
+    effect_status: ToolEffectStatus = ToolEffectStatus.NONE
+    receipt_id: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         """生成稳定 API/Trace 投影。"""
@@ -125,6 +149,8 @@ class ToolAuditRecord:
             "started_at": self.started_at,
             "latency_ms": round(self.latency_ms, 3),
             "error": self.error,
+            "effect_status": self.effect_status.value,
+            "receipt_id": self.receipt_id,
         }
 
 
@@ -305,6 +331,7 @@ class MCPToolManager:
         通过伪造参数绕过审批。
         """
         context = dict(context or {})
+        params = self._strip_control_params(params)
         normalized_agent = str(getattr(agent_type, "value", agent_type))
         resolved_call_id = str(call_id or uuid.uuid4().hex)
         trace_id = str(context.get("trace_id") or current_trace_id() or uuid.uuid4().hex)
@@ -375,7 +402,39 @@ class MCPToolManager:
                     f"tool.{name}", kind="tool", attributes=span_attributes
                 ):
                     result = await self.call(name, params, context)
-            status = ToolCallStatus.SUCCESS if result.success else ToolCallStatus.ERROR
+            status = (
+                ToolCallStatus(result.status)
+                if result.status
+                else ToolCallStatus.SUCCESS if result.success else ToolCallStatus.ERROR
+            )
+        except asyncio.CancelledError:
+            # 取消必须留下唯一终态审计，但仍向调用方传播取消语义。
+            result = ToolResult(
+                False,
+                None,
+                name,
+                error="调用被取消",
+                effect_status=(
+                    ToolEffectStatus.NONE.value
+                    if tool.read_only
+                    else ToolEffectStatus.OUTCOME_UNKNOWN.value
+                ),
+            )
+            self._finish_controlled_call(
+                result=result,
+                tool=tool,
+                agent_type=normalized_agent,
+                params=params,
+                context=context,
+                trace_id=trace_id,
+                call_id=resolved_call_id,
+                request_id=request_id,
+                started_iso=started_iso,
+                started=started,
+                status=ToolCallStatus.CANCELLED,
+                approved=approved or not needs_approval,
+            )
+            raise
         except Exception as exc:  # call() 应闭合异常，此处保护未来适配器。
             result = ToolResult(False, None, name, error=f"{type(exc).__name__}: {exc}")
             status = ToolCallStatus.ERROR
@@ -461,6 +520,13 @@ class MCPToolManager:
             data = await asyncio.wait_for(self._run_handler(tool, params, context), timeout=tool.timeout_s)
             latency = (time.monotonic() - t0) * 1000
 
+            effect_status = ToolEffectStatus.NONE if tool.read_only else ToolEffectStatus.OUTCOME_UNKNOWN
+            receipt_id = ""
+            if isinstance(data, ToolEffectReceipt):
+                effect_status = data.effect_status
+                receipt_id = str(data.receipt_id or "")
+                data = data.data
+
             tool.stats.success += 1
             tool.stats.consecutive_fails = 0
             tool.stats.total_latency_ms += latency
@@ -476,15 +542,29 @@ class MCPToolManager:
             if tool.cache_ttl > 0:
                 self._set_cache(name, params, data, tool.cache_ttl, cache_rerank_top_k, reranked)
 
-            return ToolResult(success=True, data=data, tool_name=name,
-                              latency_ms=latency, reranked=reranked)
+            return ToolResult(
+                success=True,
+                data=data,
+                tool_name=name,
+                latency_ms=latency,
+                reranked=reranked,
+                effect_status=effect_status.value,
+                receipt_id=receipt_id,
+            )
 
         except asyncio.TimeoutError:
             tool.stats.failed += 1
             tool.stats.consecutive_fails += 1
             tool.breaker.record_failure()
             logger.error(f"工具超时: {name} ({tool.timeout_s}s)")
-            return await self._fallback_result(tool, params, context, "执行超时")
+            result = await self._fallback_result(tool, params, context, "执行超时")
+            result.status = ToolCallStatus.TIMEOUT.value
+            result.effect_status = (
+                ToolEffectStatus.NONE.value
+                if tool.read_only
+                else ToolEffectStatus.OUTCOME_UNKNOWN.value
+            )
+            return result
 
         except Exception as ex:
             tool.stats.failed += 1
@@ -730,6 +810,8 @@ class MCPToolManager:
             started_at=started_iso,
             latency_ms=(time.monotonic() - started) * 1000,
             error="tool execution failed" if result.error else "",
+            effect_status=ToolEffectStatus(result.effect_status),
+            receipt_id=result.receipt_id,
         )
         self._audit.append(record)
         return result
@@ -742,6 +824,8 @@ class MCPToolManager:
                 "success": result.success,
                 "data": result.data,
                 "error": result.error,
+                "effect_status": result.effect_status,
+                "receipt_id": result.receipt_id,
             },
             ensure_ascii=False,
             sort_keys=True,
@@ -802,6 +886,15 @@ class MCPToolManager:
                         raise ValueError(
                             f"工具 {tool.name} 参数 {key} 类型错误: 期望 {expected_type}，实际 {type(value).__name__}"
                         )
+
+    @staticmethod
+    def _strip_control_params(params: Dict[str, Any]) -> Dict[str, Any]:
+        """移除只属于宿主控制面的字段，禁止模型参数污染审批状态。"""
+        return {
+            key: value
+            for key, value in dict(params or {}).items()
+            if key not in {"approved", "approval_token"}
+        }
 
     @staticmethod
     def _clean_text(value: Any) -> str:

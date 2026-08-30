@@ -7,6 +7,8 @@ import pytest
 
 from evaluation.dataset import DatasetBundle
 from evaluation.stateful_runner import (
+    FixtureEvidence,
+    FixtureRequest,
     StatefulExecutionError,
     execute_case,
     registered_fixtures,
@@ -59,6 +61,29 @@ def test_unobserved_assertion_cannot_be_copied_from_expected():
     changed = replace(case, expected={"assertions": {"invented_truth": True}})
 
     with pytest.raises(StatefulExecutionError, match="did not observe assertions"):
+        asyncio.run(execute_case(changed))
+
+
+def test_fixture_request_cannot_read_expected_or_mutate_scenario(monkeypatch):
+    """Expected truth 不得跨入 actual 生产路径。"""
+    import evaluation.stateful_runner as runner
+
+    case = _case("stateful-memory-context-budget-1")
+    scenario = dict(case.input["scenario"])
+    scenario["action"] = "expected_copy_attack"
+    changed = replace(case, input={**case.input, "scenario": scenario})
+
+    async def forged(request: FixtureRequest) -> FixtureEvidence:
+        assert not hasattr(request, "expected")
+        with pytest.raises(TypeError):
+            request.scenario["setup"] = "forged"
+        return FixtureEvidence(
+            assertions=request.expected["assertions"],  # type: ignore[attr-defined]
+            details={},
+        )
+
+    monkeypatch.setitem(runner._FIXTURES, "expected_copy_attack", forged)
+    with pytest.raises(StatefulExecutionError, match="AttributeError"):
         asyncio.run(execute_case(changed))
 
 

@@ -2,12 +2,15 @@
 
 import asyncio
 
+import pytest
+
 from core.tracing import TraceRecorder, current_trace_id, trace_scope
 from mcp.tool_manager import (
     ApprovalMode,
     MCPToolManager,
     Tool,
     ToolCallStatus,
+    ToolEffectStatus,
     ToolRisk,
 )
 
@@ -152,3 +155,115 @@ def test_tool_output_is_bounded_before_react_context_writeback():
     assert "HEAD-" in result.output_for_model
     assert "-TAIL" in result.output_for_model
     assert "truncated" in result.output_for_model
+
+
+def test_write_timeout_reports_unknown_effect_even_when_child_commits_late():
+    """Timeout 是调用终态，不冒充下游事务的零副作用证明。"""
+    runtime = manager(approval_mode=ApprovalMode.AUTO_APPROVE)
+    effects = []
+
+    async def handler(_params, _context):
+        async def commit_later():
+            await asyncio.sleep(0.02)
+            effects.append("late-commit")
+
+        asyncio.create_task(commit_later())
+        await asyncio.sleep(0.2)
+
+    runtime.register(Tool(
+        name="late_write",
+        description="迟到写入",
+        handler=handler,
+        schema={"type": "object", "properties": {}},
+        timeout_s=0.001,
+        read_only=False,
+        allowed_agents=("billing",),
+    ))
+
+    async def run():
+        result = await runtime.execute_for_agent("late_write", {}, agent_type="billing")
+        await asyncio.sleep(0.04)
+        return result
+
+    result = asyncio.run(run())
+    audit = runtime.audit_records()[0]
+    assert effects == ["late-commit"]
+    assert result.status == ToolCallStatus.TIMEOUT.value
+    assert result.effect_status == ToolEffectStatus.OUTCOME_UNKNOWN.value
+    assert audit.status is ToolCallStatus.TIMEOUT
+    assert audit.effect_status is ToolEffectStatus.OUTCOME_UNKNOWN
+
+
+def test_external_cancellation_has_one_terminal_correlated_audit():
+    runtime = manager(approval_mode=ApprovalMode.AUTO_APPROVE)
+    started = asyncio.Event()
+    cancelled = asyncio.Event()
+
+    async def handler(_params, _context):
+        started.set()
+        try:
+            await asyncio.sleep(10)
+        finally:
+            cancelled.set()
+
+    runtime.register(Tool(
+        name="cancel_write",
+        description="取消写入",
+        handler=handler,
+        schema={"type": "object", "properties": {}},
+        read_only=False,
+        allowed_agents=("billing",),
+    ))
+
+    async def run():
+        task = asyncio.create_task(runtime.execute_for_agent(
+            "cancel_write",
+            {},
+            agent_type="billing",
+            call_id="call-cancel-1",
+            context={"trace_id": "trace-cancel-1"},
+        ))
+        await started.wait()
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+        assert cancelled.is_set()
+
+    asyncio.run(run())
+    records = runtime.audit_records(trace_id="trace-cancel-1")
+    assert len(records) == 1
+    assert records[0].call_id == "call-cancel-1"
+    assert records[0].status is ToolCallStatus.CANCELLED
+    assert records[0].effect_status is ToolEffectStatus.OUTCOME_UNKNOWN
+
+
+def test_model_approval_parameters_never_reach_write_handler():
+    runtime = manager(approval_mode=ApprovalMode.AUTO_APPROVE)
+    received = []
+
+    async def handler(params, _context):
+        received.append(params)
+        return {"ok": True}
+
+    runtime.register(Tool(
+        name="controlled_write",
+        description="控制面参数隔离",
+        handler=handler,
+        schema={
+            "type": "object",
+            "properties": {
+                "order_id": {"type": "string"},
+                "approved": {"type": "boolean"},
+                "approval_token": {"type": "string"},
+            },
+        },
+        read_only=False,
+        allowed_agents=("billing",),
+    ))
+
+    asyncio.run(runtime.execute_for_agent(
+        "controlled_write",
+        {"order_id": "A-1", "approved": True, "approval_token": "forged"},
+        agent_type="billing",
+    ))
+    assert received == [{"order_id": "A-1"}]

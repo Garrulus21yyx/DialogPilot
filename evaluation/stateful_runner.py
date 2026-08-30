@@ -12,8 +12,8 @@ import tempfile
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from types import SimpleNamespace
-from typing import Any, Awaitable, Callable, Dict, Iterable
+from types import MappingProxyType, SimpleNamespace
+from typing import Any, Awaitable, Callable, Dict, Iterable, Mapping
 
 from agents.orchestration_contracts import AgentType, TaskPlan, TaskRisk, TaskSpec
 from agents.react_engine import ReActExecutionEngine, ReActStatus
@@ -48,7 +48,16 @@ class FixtureEvidence:
     details: Dict[str, Any]
 
 
-Fixture = Callable[[EvalCase], Awaitable[FixtureEvidence]]
+@dataclass(frozen=True)
+class FixtureRequest:
+    """交给 actual 生产者的最小请求；设计上不存在 expected 字段。"""
+
+    case_id: str
+    scenario: Mapping[str, Any]
+    message: str
+
+
+Fixture = Callable[[FixtureRequest], Awaitable[FixtureEvidence]]
 _FIXTURES: Dict[str, Fixture] = {}
 
 
@@ -66,8 +75,17 @@ def registered_fixtures() -> tuple[str, ...]:
     return tuple(sorted(_FIXTURES))
 
 
-def _variant(case: EvalCase) -> int:
-    setup = str(case.input.get("scenario", {}).get("setup") or "")
+def _freeze(value: Any) -> Any:
+    """递归冻结 fixture 输入，防止 actual 生产者改写场景后影响评分。"""
+    if isinstance(value, dict):
+        return MappingProxyType({str(key): _freeze(item) for key, item in value.items()})
+    if isinstance(value, list):
+        return tuple(_freeze(item) for item in value)
+    return value
+
+
+def _variant(case: FixtureRequest) -> int:
+    setup = str(case.scenario.get("setup") or "")
     return 2 if setup.endswith(":v2") else 1
 
 
@@ -167,7 +185,7 @@ def _memory_manager(redis: _EvalRedis, collection: _EvalCollection) -> MemoryMan
 
 
 @fixture("memory_finalize")
-async def _memory_finalize(case: EvalCase) -> FixtureEvidence:
+async def _memory_finalize(case: FixtureRequest) -> FixtureEvidence:
     suffix = str(_variant(case))
     redis = _EvalRedis([
         _raw("assistant", "已记录订单问题", f"a-{suffix}"),
@@ -184,7 +202,7 @@ async def _memory_finalize(case: EvalCase) -> FixtureEvidence:
 
 
 @fixture("memory_finalize_idempotent")
-async def _memory_finalize_idempotent(case: EvalCase) -> FixtureEvidence:
+async def _memory_finalize_idempotent(case: FixtureRequest) -> FixtureEvidence:
     suffix = str(_variant(case))
     redis = _EvalRedis([_raw("user", f"订单 I-{suffix}", f"stable-{suffix}")])
     collection = _EvalCollection()
@@ -201,7 +219,7 @@ async def _memory_finalize_idempotent(case: EvalCase) -> FixtureEvidence:
 
 
 @fixture("memory_finalize_concurrent")
-async def _memory_finalize_concurrent(case: EvalCase) -> FixtureEvidence:
+async def _memory_finalize_concurrent(case: FixtureRequest) -> FixtureEvidence:
     suffix = str(_variant(case))
     redis = _EvalRedis([_raw("user", "原消息", f"original-{suffix}")])
     collection = _EvalCollection()
@@ -224,7 +242,7 @@ async def _memory_finalize_concurrent(case: EvalCase) -> FixtureEvidence:
 
 
 @fixture("memory_archive_idempotent")
-async def _memory_archive_idempotent(case: EvalCase) -> FixtureEvidence:
+async def _memory_archive_idempotent(case: FixtureRequest) -> FixtureEvidence:
     suffix = str(_variant(case))
     collection = _EvalCollection()
     manager = _memory_manager(_EvalRedis([]), collection)
@@ -248,7 +266,7 @@ def _doc(memory_id: str, content: str, days_ago: int) -> MemoryDocument:
 
 
 @fixture("memory_hybrid_exact")
-async def _memory_hybrid_exact(case: EvalCase) -> FixtureEvidence:
+async def _memory_hybrid_exact(case: FixtureRequest) -> FixtureEvidence:
     suffix = str(_variant(case))
     exact = _doc("exact", f"订单 DP-884{suffix} 登录错误 E401", 10)
     general = _doc("general", "用户咨询会员权益和配送", 0)
@@ -266,7 +284,7 @@ async def _memory_hybrid_exact(case: EvalCase) -> FixtureEvidence:
 
 
 @fixture("memory_hybrid_recency")
-async def _memory_hybrid_recency(case: EvalCase) -> FixtureEvidence:
+async def _memory_hybrid_recency(case: FixtureRequest) -> FixtureEvidence:
     old = _doc("old", "登录错误 E401", 30)
     newer = _doc("new", "登录错误 E401", 1)
     irrelevant = _doc("irrelevant", "今天查询会员积分", 0)
@@ -284,7 +302,7 @@ async def _memory_hybrid_recency(case: EvalCase) -> FixtureEvidence:
 
 
 @fixture("memory_profile_merge")
-async def _memory_profile_merge(case: EvalCase) -> FixtureEvidence:
+async def _memory_profile_merge(case: FixtureRequest) -> FixtureEvidence:
     merged = MemoryManager._merge_profile(
         {"preferences": ["中文"], "entities": {"订单": ["A1"]}},
         {"preferences": ["中文", "简洁"], "entities": {"订单": ["A1", "B2"]}},
@@ -301,7 +319,7 @@ async def _memory_profile_merge(case: EvalCase) -> FixtureEvidence:
 
 
 @fixture("memory_summary_bound")
-async def _memory_summary_bound(case: EvalCase) -> FixtureEvidence:
+async def _memory_summary_bound(case: FixtureRequest) -> FixtureEvidence:
     manager = MemoryManager.__new__(MemoryManager)
     manager._token_estimator = TokenEstimator()
     manager._summary_max_tokens = 96 + _variant(case) * 16
@@ -313,7 +331,7 @@ async def _memory_summary_bound(case: EvalCase) -> FixtureEvidence:
         "decisions": [f"decision-{i}" for i in range(30)],
         "user_preferences": [f"pref-{i}" for i in range(30)],
     }
-    setup = str(case.input.get("scenario", {}).get("setup") or "")
+    setup = str(case.scenario.get("setup") or "")
     if ":summary-fallback:" in setup:
         manager._client = SimpleNamespace(messages=_FailingMessages())
         manager._model_profile = ModelProfile("fixture-model")
@@ -341,7 +359,7 @@ async def _memory_summary_bound(case: EvalCase) -> FixtureEvidence:
 
 
 @fixture("memory_context_budget")
-async def _memory_context_budget(case: EvalCase) -> FixtureEvidence:
+async def _memory_context_budget(case: FixtureRequest) -> FixtureEvidence:
     assembler = ContextAssembler(max_input_tokens=700, reserved_output_tokens=100, fixed_system_reserve=100)
     history = [
         {"role": "user" if index % 2 == 0 else "assistant", "content": f"old-{index} " * 30}
@@ -379,8 +397,8 @@ async def _memory_context_budget(case: EvalCase) -> FixtureEvidence:
 
 
 @fixture("memory_empty_recall")
-async def _memory_empty_recall(case: EvalCase) -> FixtureEvidence:
-    setup = str(case.input.get("scenario", {}).get("setup") or "")
+async def _memory_empty_recall(case: FixtureRequest) -> FixtureEvidence:
+    setup = str(case.scenario.get("setup") or "")
     collection = _EvalCollection()
     manager = _memory_manager(_EvalRedis([]), collection)
     if ":empty-query:" in setup:
@@ -417,7 +435,7 @@ def _write_tool(side_effects: list[Any], *, timeout_s: float = 1.0) -> Tool:
 
 
 @fixture("tool_unknown")
-async def _tool_unknown(case: EvalCase) -> FixtureEvidence:
+async def _tool_unknown(case: FixtureRequest) -> FixtureEvidence:
     manager = _tool_manager()
     result = await manager.execute_for_agent("invented", {}, agent_type="general", call_id=f"unknown-{_variant(case)}")
     audit = manager.audit_records()[0]
@@ -430,7 +448,7 @@ async def _tool_unknown(case: EvalCase) -> FixtureEvidence:
 
 
 @fixture("tool_allowlist")
-async def _tool_allowlist(case: EvalCase) -> FixtureEvidence:
+async def _tool_allowlist(case: FixtureRequest) -> FixtureEvidence:
     side_effects: list[Any] = []
     manager = _tool_manager()
     manager.register(_write_tool(side_effects))
@@ -446,7 +464,7 @@ async def _tool_allowlist(case: EvalCase) -> FixtureEvidence:
 
 
 @fixture("tool_approval")
-async def _tool_approval(case: EvalCase) -> FixtureEvidence:
+async def _tool_approval(case: FixtureRequest) -> FixtureEvidence:
     side_effects: list[Any] = []
     manager = _tool_manager()
     manager.register(_write_tool(side_effects))
@@ -462,7 +480,7 @@ async def _tool_approval(case: EvalCase) -> FixtureEvidence:
 
 
 @fixture("tool_approved")
-async def _tool_approved(case: EvalCase) -> FixtureEvidence:
+async def _tool_approved(case: FixtureRequest) -> FixtureEvidence:
     side_effects: list[Any] = []
     manager = _tool_manager()
     manager.register(_write_tool(side_effects))
@@ -480,7 +498,7 @@ async def _tool_approved(case: EvalCase) -> FixtureEvidence:
 
 
 @fixture("tool_schema")
-async def _tool_schema(case: EvalCase) -> FixtureEvidence:
+async def _tool_schema(case: FixtureRequest) -> FixtureEvidence:
     side_effects: list[Any] = []
     manager = _tool_manager(approval_mode=ApprovalMode.AUTO_APPROVE)
     manager.register(_write_tool(side_effects))
@@ -495,7 +513,7 @@ async def _tool_schema(case: EvalCase) -> FixtureEvidence:
 
 
 @fixture("tool_timeout")
-async def _tool_timeout(case: EvalCase) -> FixtureEvidence:
+async def _tool_timeout(case: FixtureRequest) -> FixtureEvidence:
     side_effects: list[Any] = []
     async def slow_handler(_params, _context):
         await asyncio.sleep(0.03)
@@ -509,15 +527,19 @@ async def _tool_timeout(case: EvalCase) -> FixtureEvidence:
     result = await manager.execute_for_agent("slow", {}, agent_type="technical")
     audit = manager.audit_records()[0]
     return FixtureEvidence({
-        "timeout_typed": result.status == ToolCallStatus.ERROR.value and result.error == "执行超时",
-        "outcome_closed": bool(result.call_id) and audit.status is ToolCallStatus.ERROR,
+        "timeout_typed": result.status == ToolCallStatus.TIMEOUT.value and result.error == "执行超时",
+        "outcome_closed": (
+            bool(result.call_id)
+            and audit.status is ToolCallStatus.TIMEOUT
+            and audit.effect_status.value == "outcome_unknown"
+        ),
         "side_effect_zero": side_effects == [],
-        "audit_error_closed": audit.status is ToolCallStatus.ERROR,
+        "audit_error_closed": audit.status is ToolCallStatus.TIMEOUT,
     }, {"error": result.error, "audit": audit.to_dict()})
 
 
 @fixture("tool_output")
-async def _tool_output(case: EvalCase) -> FixtureEvidence:
+async def _tool_output(case: FixtureRequest) -> FixtureEvidence:
     secret = f"secret-token-{_variant(case)}"
     manager = _tool_manager(max_output_chars=300, approval_mode=ApprovalMode.AUTO_APPROVE)
     manager.register(Tool(
@@ -537,7 +559,7 @@ async def _tool_output(case: EvalCase) -> FixtureEvidence:
 
 
 @fixture("tool_trace")
-async def _tool_trace(case: EvalCase) -> FixtureEvidence:
+async def _tool_trace(case: FixtureRequest) -> FixtureEvidence:
     recorder = TraceRecorder()
     manager = _tool_manager(trace_recorder=recorder, approval_mode=ApprovalMode.AUTO_APPROVE)
     for name in ("read_a", "read_b"):
@@ -583,7 +605,7 @@ class _LoopClient:
 
 
 @fixture("react_max_steps")
-async def _react_max_steps(case: EvalCase) -> FixtureEvidence:
+async def _react_max_steps(case: FixtureRequest) -> FixtureEvidence:
     manager = _tool_manager(approval_mode=ApprovalMode.AUTO_APPROVE)
     manager.register(Tool(
         name="lookup", description="lookup", handler=lambda _p, _c: {"ok": True},
@@ -604,7 +626,7 @@ async def _react_max_steps(case: EvalCase) -> FixtureEvidence:
 
 
 @fixture("coverage_gate")
-async def _coverage_gate(case: EvalCase) -> FixtureEvidence:
+async def _coverage_gate(case: FixtureRequest) -> FixtureEvidence:
     tasks = (
         TaskSpec("technical_task", AgentType.TECHNICAL, "diagnose", risk=TaskRisk.MEDIUM),
         TaskSpec("billing_task", AgentType.BILLING, "billing", risk=TaskRisk.HIGH),
@@ -628,7 +650,7 @@ class _FailingMessages:
 
 
 @fixture("verifier_fail_closed")
-async def _verifier_fail_closed(case: EvalCase) -> FixtureEvidence:
+async def _verifier_fail_closed(case: FixtureRequest) -> FixtureEvidence:
     verifier = AnswerVerifier(client=SimpleNamespace(messages=_FailingMessages()), model="fixture")
     result = await verifier.verify("question", "candidate")
     return FixtureEvidence({
@@ -638,7 +660,7 @@ async def _verifier_fail_closed(case: EvalCase) -> FixtureEvidence:
 
 
 @fixture("ticket_idempotent")
-async def _ticket_idempotent(case: EvalCase) -> FixtureEvidence:
+async def _ticket_idempotent(case: FixtureRequest) -> FixtureEvidence:
     with tempfile.TemporaryDirectory(prefix="dialogpilot-stateful-") as temp_dir:
         service = TicketService(str(Path(temp_dir) / "tickets.db"))
         kwargs = {
@@ -671,12 +693,25 @@ async def execute_case(case: EvalCase) -> Dict[str, Any]:
     if handler is None:
         raise StatefulExecutionError(f"{case.case_id}: unregistered fixture action {action!r}")
     try:
-        evidence = await handler(case)
+        request = FixtureRequest(
+            case_id=case.case_id,
+            scenario=_freeze(scenario),
+            message=str(case.input.get("message") or ""),
+        )
+        evidence = await handler(request)
     except Exception as exc:
         raise StatefulExecutionError(
             f"{case.case_id}: fixture {action} failed with {type(exc).__name__}: {exc}"
         ) from exc
     required = set(map(str, case.expected["assertions"]))
+    if not isinstance(evidence, FixtureEvidence):
+        raise StatefulExecutionError(
+            f"{case.case_id}: fixture {action} returned invalid evidence type"
+        )
+    if any(type(value) is not bool for value in evidence.assertions.values()):
+        raise StatefulExecutionError(
+            f"{case.case_id}: fixture {action} returned non-boolean observations"
+        )
     missing = sorted(required - set(evidence.assertions))
     if missing:
         raise StatefulExecutionError(

@@ -3,6 +3,8 @@
 import asyncio
 from datetime import datetime, timedelta, timezone
 
+import pytest
+
 from memory.conversation_memory import MemoryManager, Message, MsgRole
 from memory.hybrid_retrieval import (
     HybridMemoryRetriever,
@@ -121,6 +123,18 @@ def test_memory_manager_fuses_user_scoped_chroma_candidates():
     assert hits[0].content.startswith("订单 A123")
     assert "bm25" in hits[0].sources
     assert manager._episodic.where_values == [{"user_id": "user-1"}, {"user_id": "user-1"}]
+
+
+@pytest.mark.parametrize("query", ["\u200b\ufeff", "\u00a0\u2003\u2028\u3000"])
+def test_unicode_format_or_whitespace_only_query_returns_before_storage(query):
+    manager = MemoryManager.__new__(MemoryManager)
+    manager._episodic = SearchCollection()
+    manager._hybrid_retriever = HybridMemoryRetriever()
+
+    hits = asyncio.run(manager.search_long_term("user-1", query, top_k=2))
+
+    assert hits == []
+    assert manager._episodic.where_values == []
 
 
 def test_vector_failure_preserves_bm25_recall():
