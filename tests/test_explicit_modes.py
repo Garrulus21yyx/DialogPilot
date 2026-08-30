@@ -85,6 +85,34 @@ def test_disabled_similarity_mode_has_explicit_two_way_weights(monkeypatch):
     assert score == pytest.approx(1.0)
 
 
+@pytest.mark.parametrize(
+    ("message", "expected"),
+    [
+        ("I have a charge for something I didn't buy.", IntentCategory.ACCOUNT_SECURITY),
+        ("What do I need to verify my id?", IntentCategory.ACCOUNT_SECURITY),
+        ("My disposable virtual card was rejected.", IntentCategory.TECHNICAL),
+        ("How do I reset my PIN?", IntentCategory.TECHNICAL_LOGIN),
+        ("Why is there an extra fee on my payment?", IntentCategory.PAYMENT_ISSUE),
+    ],
+)
+def test_business_label_contract_drives_specific_pattern_fallback(
+    monkeypatch, message, expected,
+):
+    """关键歧义样本必须由业务标签合同稳定区分，不能退回宽泛类别。"""
+    monkeypatch.setattr(intent_module, "AsyncAnthropic", lambda **_kwargs: SimpleNamespace())
+    recognizer = intent_module.IntentRecognizer(api_key="test", similarity_mode="disabled")
+
+    result = recognizer._pattern_recognize(message)
+
+    assert result["intent"] is expected
+    assert result["confidence"] >= 0.5
+
+
+def test_intent_definition_contract_covers_every_supported_enum():
+    """新增标签时必须同时声明业务边界，否则 Prompt 与代码会再次分叉。"""
+    assert set(intent_module._INTENT_DEFINITIONS) == set(IntentCategory)
+
+
 def test_unknown_modes_fail_with_typed_configuration_errors(monkeypatch):
     monkeypatch.setattr(intent_module, "AsyncAnthropic", lambda **_kwargs: SimpleNamespace())
     with pytest.raises(ValueError, match="INTENT_SIMILARITY_MODE"):

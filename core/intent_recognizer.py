@@ -51,6 +51,31 @@ class IntentCategory(Enum):
     OTHER      = "other"
 
 
+# 这是 IntentCategory 的业务语义 owner。Prompt、规则和评测文档都应引用同一份
+# 定义，避免把“客服领域外的一般问句”误当成 QUERY，或把安全事件误当支付失败。
+_INTENT_DEFINITIONS: Dict[IntentCategory, str] = {
+    IntentCategory.ORDER_STATUS: "本项目订单的处理、发货状态；不含承运商的一般信息",
+    IntentCategory.LOGISTICS: "本项目订单或银行卡的寄送、到达时间、配送方式",
+    IntentCategory.REFUND: "取消购买、退货退款、退款进度或退款时限",
+    IntentCategory.INVOICE: "发票开具、抬头、税号或电子发票",
+    IntentCategory.PAYMENT_ISSUE: "本人发起的支付失败、重复扣款、支付手续费或扣款异常",
+    IntentCategory.ACCOUNT_SECURITY: "非本人交易/取现、身份验证、盗号或异常登录等安全事件",
+    IntentCategory.TECHNICAL_LOGIN: "PIN、验证码、登录、卡片解锁或认证代码问题",
+    IntentCategory.TECHNICAL_CRASH: "应用崩溃、闪退、HTTP 500 或明确错误码",
+    IntentCategory.HUMAN_HANDOFF: "明确要求本项目人工客服或升级处理",
+    IntentCategory.TECHNICAL: "银行卡、虚拟卡、非接触支付或应用功能不可用，且不属于登录/崩溃",
+    IntentCategory.BILLING: "无法细分到退款、发票或支付异常的本项目账单问题",
+    IntentCategory.ACCOUNT: "账户资料、地址、邮箱、销户等非安全账户管理",
+    IntentCategory.QUERY: "本项目范围内但无法细分的普通信息查询",
+    IntentCategory.REQUEST: "本项目范围内但无法细分的普通操作请求",
+    IntentCategory.COMPLAINT: "对本项目服务表达不满，但未明确要求人工升级",
+    IntentCategory.GREETING: "问候或开始对话",
+    IntentCategory.ESCALATION: "投诉升级、找经理等升级诉求",
+    IntentCategory.FEEDBACK: "对本项目服务的正面评价或建议",
+    IntentCategory.OTHER: "项目业务范围外、语义不足或不受支持；一般知识/股票/航班/购物查询均在此类",
+}
+
+
 class UrgencyLevel(Enum):
     """升级优先级；数值越大表示越需要及时人工介入。"""
     LOW      = 1
@@ -250,11 +275,15 @@ class IntentRecognizer:
     ) -> Dict[str, Any]:
         """策略 1：LLM 语义理解（Few-shot + 上下文）。"""
         message = self._clean_text(message)
-        # 构建 Few-shot 示例
+        # 构建 Few-shot 示例和唯一业务标签合同。
         examples = "\n".join(
             f'  消息: "{t}" → 意图: {cat.value}'
             for cat, tpls in _TEMPLATES.items()
             for t in tpls[:1]  # 每类取 1 条，控制 prompt 长度
+        )
+        definitions = "\n".join(
+            f"  - {category.value}: {description}"
+            for category, description in _INTENT_DEFINITIONS.items()
         )
         # 最近 3 轮对话上下文
         ctx = ""
@@ -264,9 +293,15 @@ class IntentRecognizer:
                 for m in history[-3:]
             )
 
-        prompt = f"""你是客服意图分析专家。根据示例判断用户意图，返回 JSON。
+        prompt = f"""你是 DialogPilot 客服系统的意图分类器。根据业务标签合同判断用户意图，返回 JSON。
 如果用户问题能匹配细粒度业务意图，请优先返回细粒度意图，而不是宽泛大类。
 例如退款优先返回 refund，发票优先返回 invoice，登录故障优先返回 technical_login。
+先判断消息是否属于本项目客服范围；范围外的一般问句必须返回 other，不能因为它是问句就返回 query。
+陌生交易、非本人取现和身份验证属于 account_security；本人支付失败或手续费属于 payment_issue。
+银行卡、虚拟卡、非接触支付本身不可用属于 technical；PIN、验证码和解锁属于 technical_login。
+
+业务标签合同:
+{definitions}
 
 示例:
 {examples}
@@ -321,13 +356,24 @@ class IntentRecognizer:
         specific_patterns = {
             IntentCategory.HUMAN_HANDOFF: ["转人工", "人工客服", "找人工"],
             IntentCategory.ORDER_STATUS: ["订单状态", "发货了吗", "处理到哪", "order status"],
-            IntentCategory.LOGISTICS: ["物流", "快递", "配送", "运单", "delivery", "shipping"],
+            IntentCategory.LOGISTICS: ["物流", "快递", "配送", "运单", "delivery", "shipping", "card fast"],
             IntentCategory.REFUND: ["退款", "退货", "refund", "return"],
             IntentCategory.INVOICE: ["发票", "抬头", "税号", "invoice"],
-            IntentCategory.PAYMENT_ISSUE: ["重复扣款", "多扣", "支付失败", "扣费", "payment failed"],
-            IntentCategory.ACCOUNT_SECURITY: ["被盗", "异常登录", "重置密码", "两步验证", "安全"],
-            IntentCategory.TECHNICAL_LOGIN: ["无法登录", "登录失败", "401", "验证码"],
+            IntentCategory.PAYMENT_ISSUE: ["重复扣款", "多扣", "支付失败", "扣费", "payment failed", "extra fee"],
+            IntentCategory.ACCOUNT_SECURITY: [
+                "被盗", "异常登录", "两步验证", "安全", "didn't buy", "did not make",
+                "don't recognize", "do not recognize", "fraudulent", "verify my id", "identity check",
+                "didn't take out", "did not get", "non-received cash",
+            ],
+            IntentCategory.TECHNICAL_LOGIN: [
+                "无法登录", "登录失败", "401", "验证码", "reset my pin", "unblock my card",
+                "code for the app", "pin is unlocked",
+            ],
             IntentCategory.TECHNICAL_CRASH: ["崩溃", "闪退", "500", "报错", "crash"],
+            IntentCategory.TECHNICAL: [
+                "virtual card", "contactless", "card broke", "card broken", "card no longer works",
+                "card hasn't been working", "card gets rejected", "disposable virtual card",
+            ],
         }
         generic_patterns = {
             IntentCategory.ESCALATION: ["投诉", "经理", "supervisor"],
