@@ -196,7 +196,7 @@ policy while preserving the existing Anthropic-compatible DeepSeek transport.
 - [done] Define and validate a closed role policy for intent, rewrite/rerank, memory, worker, synthesis, verifier, and judge, including model and reasoning effort.
 - [done] Migrate every model-call consumer to the shared policy and make runtime/evaluation metadata expose the effective tiers.
 - [done] Preserve DeepSeek thinking blocks across ReAct tool turns; prove non-thinking, thinking, and malformed/unsupported configuration contracts.
-- [in_progress] Update environment/Compose, README, Pages tutorial/interview guide, run all gates, push, and verify CI/Pages.
+- [done] Update environment/Compose, README, Pages tutorial/interview guide, run all gates, push, and verify CI/Pages. Commit `90a526d`; CI and Pages succeeded and the live pages contain the new model-selection chapters.
 
 Target contracts:
 
