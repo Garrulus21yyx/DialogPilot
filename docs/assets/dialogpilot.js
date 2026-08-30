@@ -233,7 +233,7 @@
     }
 
     function setScale(nextScale) {
-      scale = clamp(nextScale, 0.75, 4);
+      scale = clamp(nextScale, 0.75, 6);
       updateTransform();
     }
 
@@ -255,11 +255,11 @@
       return target.currentSrc || target.src;
     }
 
-    function openViewer(target) {
+    function openViewer(target, explicitLabel) {
       previousFocus = document.activeElement;
       const panel = target.closest(".mermaid-panel");
       const caption = panel && panel.querySelector(".diagram-label");
-      const label = target.getAttribute("alt") || textOf(caption) || "Architecture diagram";
+      const label = explicitLabel || target.getAttribute("alt") || textOf(caption) || "Architecture diagram";
       title.textContent = label;
       image.alt = label + " 放大视图";
       image.src = sourceFor(target);
@@ -288,26 +288,45 @@
       if (target.dataset.dpZoomReady === "true") return;
       target.dataset.dpZoomReady = "true";
       target.classList.add("dp-zoomable-media");
-      target.tabIndex = 0;
-      target.setAttribute("role", "button");
-      target.setAttribute("aria-label", (target.getAttribute("alt") || "图表") + "，点击放大");
-      target.addEventListener("click", function () { openViewer(target); });
-      target.addEventListener("keydown", function (event) {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          openViewer(target);
-        }
-      });
 
       const panel = target.closest(".mermaid-panel");
-      if (panel && !panel.querySelector(".diagram-zoom-hint")) {
+      if (panel && panel.dataset.dpZoomReady !== "true") {
+        const caption = panel.querySelector(".diagram-label");
+        const label = textOf(caption) || "Architecture diagram";
+        panel.dataset.dpZoomReady = "true";
+        panel.dataset.dpDiagramTitle = label;
         panel.classList.add("is-zoomable");
-        const hint = document.createElement("button");
-        hint.type = "button";
+        panel.tabIndex = 0;
+        panel.setAttribute("role", "button");
+        panel.setAttribute("aria-label", label + "，点击放大");
+        panel.addEventListener("click", function () { openViewer(target, label); });
+        panel.addEventListener("keydown", function (event) {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openViewer(target, label);
+          }
+        });
+
+        const hint = document.createElement("span");
         hint.className = "diagram-zoom-hint";
         hint.textContent = "点击放大 ↗";
-        hint.addEventListener("click", function () { openViewer(target); });
+        hint.setAttribute("aria-hidden", "true");
         panel.appendChild(hint);
+        return;
+      }
+
+      // 正文图片没有图卡容器，因此由图片自身承担同一查看器的入口语义。
+      if (!panel) {
+        target.tabIndex = 0;
+        target.setAttribute("role", "button");
+        target.setAttribute("aria-label", (target.getAttribute("alt") || "图片") + "，点击放大");
+        target.addEventListener("click", function () { openViewer(target); });
+        target.addEventListener("keydown", function (event) {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openViewer(target);
+          }
+        });
       }
     }
 
@@ -320,8 +339,8 @@
 
     viewer.querySelector(".dp-viewer-controls").addEventListener("click", function (event) {
       const action = event.target.closest("button") && event.target.closest("button").dataset.action;
-      if (action === "in") setScale(scale + 0.25);
-      if (action === "out") setScale(scale - 0.25);
+      if (action === "in") setScale(scale + 0.5);
+      if (action === "out") setScale(scale - 0.5);
       if (action === "reset") resetView();
       if (action === "close") closeViewer();
     });
@@ -379,8 +398,8 @@
     document.addEventListener("keydown", function (event) {
       if (viewer.hidden) return;
       if (event.key === "Escape") closeViewer();
-      if (event.key === "+" || event.key === "=") setScale(scale + 0.25);
-      if (event.key === "-") setScale(scale - 0.25);
+      if (event.key === "+" || event.key === "=") setScale(scale + 0.5);
+      if (event.key === "-") setScale(scale - 0.5);
       if (event.key === "0") resetView();
     });
   }

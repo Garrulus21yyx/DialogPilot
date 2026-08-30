@@ -748,6 +748,15 @@ pre code {
   box-shadow: 0 10px 30px rgba(28, 57, 78, 0.07);
 }
 
+.mermaid-panel.is-zoomable {
+  cursor: zoom-in;
+}
+
+.mermaid-panel.is-zoomable:focus-visible {
+  outline: 3px solid #e3a658;
+  outline-offset: 4px;
+}
+
 .mermaid-panel .diagram-label {
   display: inline-flex;
   margin-bottom: 13px;
@@ -789,14 +798,14 @@ pre code {
   color: #285b7e;
   background: rgba(247, 252, 255, 0.94);
   box-shadow: 0 5px 16px rgba(31, 65, 89, 0.1);
-  cursor: zoom-in;
+  pointer-events: none;
   font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
   font-size: 10px;
   font-weight: 850;
   letter-spacing: 0.04em;
 }
 
-.diagram-zoom-hint:hover {
+.mermaid-panel.is-zoomable:hover .diagram-zoom-hint {
   border-color: #79a7c8;
   background: #ffffff;
 }
@@ -916,9 +925,9 @@ body.dp-viewer-open {
   place-items: center;
   touch-action: none;
   background:
-    linear-gradient(rgba(122, 162, 190, 0.055) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(122, 162, 190, 0.055) 1px, transparent 1px),
-    #101f2d;
+    linear-gradient(rgba(49, 93, 125, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(49, 93, 125, 0.07) 1px, transparent 1px),
+    #f7fbfe;
   background-size: 28px 28px;
   user-select: none;
 }
