@@ -178,6 +178,33 @@ class OrchestratorResult:
     execution_budget: Dict[str, Any] = field(default_factory=dict)
 
 
+@dataclass(frozen=True)
+class PlanningDecision:
+    """路由阶段的只读产物；不包含任何 Worker 执行或完成度事实。"""
+
+    intent: Optional[IntentCategory]
+    task_plan: Optional[TaskPlan]
+    clarification_required: bool = False
+    reason: str = ""
+
+    @property
+    def agent_types(self) -> List[AgentType]:
+        """返回计划 Owner；澄清由 General 边界负责但不伪造可执行任务。"""
+        if self.task_plan is not None:
+            return self.task_plan.agent_types
+        return [AgentType.GENERAL] if self.clarification_required else []
+
+    def to_dict(self) -> Dict[str, Any]:
+        """生成稳定的评测/Trace 投影。"""
+        return {
+            "intent": self.intent.value if self.intent else None,
+            "clarification_required": self.clarification_required,
+            "reason": self.reason,
+            "task_plan": self.task_plan.to_dict() if self.task_plan else {},
+            "agent_types": [agent.value for agent in self.agent_types],
+        }
+
+
 # ── 基础 Agent ────────────────────────────────────────────────────────────────
 
 class BaseAgent:
@@ -527,6 +554,30 @@ class AgentOrchestrator:
         """对外暴露意图识别，供 API 层先判断是否需要 RAG 等前置能力。"""
         return await self._intent_recognizer.recognize(message, history=history)
 
+    async def plan(self, req: Request) -> PlanningDecision:
+        """只完成意图补全和 TaskPlan 生成，保证不会执行 Worker、工具或融合器。"""
+        if req.intent is None:
+            intent_result = await self._intent_recognizer.recognize(req.message, history=req.history)
+            req.intent = intent_result.intent
+            req.intent_group = intent_result.intent_group
+            req.urgency = intent_result.urgency
+            req.intent_confidence = intent_result.confidence
+
+        if self._needs_clarification(req):
+            return PlanningDecision(
+                intent=req.intent,
+                task_plan=None,
+                clarification_required=True,
+                reason="低置信度 OTHER 意图，需要先澄清用户需求",
+            )
+
+        plan = self._build_task_plan(req)
+        return PlanningDecision(
+            intent=req.intent,
+            task_plan=plan,
+            reason=plan.reason,
+        )
+
     # ── 主入口 ────────────────────────────────────────────────────────────────
 
     async def run(self, req: Request) -> OrchestratorResult:
@@ -537,15 +588,9 @@ class AgentOrchestrator:
         t0 = time.monotonic()
         window = self._new_execution_window()
 
-        # 1. 意图识别（如果调用方已识别则跳过）
-        if req.intent is None:
-            intent_result = await self._intent_recognizer.recognize(req.message, history=req.history)
-            req.intent  = intent_result.intent
-            req.intent_group = intent_result.intent_group
-            req.urgency = intent_result.urgency
-            req.intent_confidence = intent_result.confidence
-
-        if self._needs_clarification(req):
+        # 1. 规划阶段拥有意图补全和 TaskPlan；执行路径消费同一个公开合同。
+        decision = await self.plan(req)
+        if decision.clarification_required:
             return OrchestratorResult(
                 request_id=req.request_id,
                 response="我还不能确定您要处理的是哪类问题。请补充一下是订单物流、退款账单、账户资料，还是技术故障？",
@@ -560,7 +605,9 @@ class AgentOrchestrator:
             )
 
         # 复杂问题自动并行协作，例如同一句同时涉及登录故障和扣款/退款。
-        plan = self._build_task_plan(req)
+        plan = decision.task_plan
+        if plan is None:  # PlanningDecision 的类型不变量保护；正常路径不可达。
+            raise RuntimeError("executable planning decision must contain a task plan")
         if plan.multi_agent:
             return await self.run_parallel(req, plan, window=window)
 

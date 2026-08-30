@@ -5,7 +5,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from agents.orchestration_contracts import AgentType
+from agents.agent_orchestrator import PlanningDecision
+from agents.orchestration_contracts import AgentType, TaskPlan, TaskRisk, TaskSpec
 from core.intent_recognizer import IntentCategory
 from evaluation.evaluator import EndToEndEvaluator, QualityScores
 
@@ -79,15 +80,18 @@ def test_routing_evaluation_consumes_supplied_intent_instead_of_reclassifying():
     captured = {}
 
     class Orchestrator:
-        async def run(self, request):
+        async def plan(self, request):
             captured["request"] = request
-            projection = result(owners=["technical"])
-            return SimpleNamespace(
-                **projection.__dict__,
-                response="请按步骤排查 401。",
-                agent_type=AgentType.TECHNICAL,
-                intent=request.intent,
+            task = TaskSpec(
+                "technical_task", AgentType.TECHNICAL, "排查 401", risk=TaskRisk.MEDIUM,
             )
+            return PlanningDecision(
+                intent=request.intent,
+                task_plan=TaskPlan((task,), task.task_id),
+            )
+
+        async def run(self, _request):
+            raise AssertionError("routing-only evaluation must not execute workers")
 
     class Judge:
         async def judge(self, *_args, **_kwargs):
@@ -105,6 +109,7 @@ def test_routing_evaluation_consumes_supplied_intent_instead_of_reclassifying():
         "entities": {"error_code": ["401"]},
         "expected_agents": ["technical"],
         "expected_task_ids": ["technical_task"],
+        "evaluation_layer": "routing",
     }, 0))
 
     request = captured["request"]
@@ -116,16 +121,16 @@ def test_routing_evaluation_consumes_supplied_intent_instead_of_reclassifying():
 def test_routing_layer_skips_answer_judge_and_accepts_empty_clarification_plan():
     """Routing 层只验证 owner/task 合同，澄清路径的空任务集是完整结果。"""
     class Orchestrator:
-        async def run(self, request):
-            return SimpleNamespace(
-                response="请补充具体问题。",
-                agent_type=AgentType.GENERAL,
+        async def plan(self, request):
+            return PlanningDecision(
                 intent=request.intent,
-                task_plan={},
-                coverage={},
-                agent_outcomes=[],
-                agent_types=[AgentType.GENERAL],
+                task_plan=None,
+                clarification_required=True,
+                reason="需要澄清",
             )
+
+        async def run(self, _request):
+            raise AssertionError("routing-only evaluation must not execute workers")
 
     class Judge:
         async def judge(self, *_args, **_kwargs):
@@ -147,6 +152,8 @@ def test_routing_layer_skips_answer_judge_and_accepts_empty_clarification_plan()
     }, 0))
 
     assert results[0].passed is True
-    assert results[0].scores["coverage_complete"] == 1.0
-    assert results[0].scores["task_coverage"] == 1.0
+    assert results[0].scores["planning_complete"] == 1.0
+    assert results[0].scores["task_exact_match"] == 1.0
     assert "overall" not in results[0].scores
+    assert results[0].metadata["execution_mode"] == "planner_only"
+    assert results[0].metadata["agent_outcomes"] == []

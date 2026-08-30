@@ -291,6 +291,7 @@ class EndToEndEvaluator:
             "route_exact_match": [],
             "route_jaccard": [],
             "task_exact_match": [],
+            "planning_complete": [],
         }
 
         # 1. 意图识别评测
@@ -385,16 +386,22 @@ class EndToEndEvaluator:
                 ),
                 entities=dict(case.get("entities") or {}),
             )
-            orch_result = await self._orchestrator.run(orch_req)
-            actual_answer = orch_result.response
-
-            orchestration_scores = self._orchestration_scores(orch_result, case)
-            required_checks = [orchestration_scores["coverage_complete"] >= 1.0]
-            if "route_exact_match" in orchestration_scores:
-                required_checks.append(orchestration_scores["route_exact_match"] >= 1.0)
-            if "task_exact_match" in orchestration_scores:
-                required_checks.append(orchestration_scores["task_exact_match"] >= 1.0)
             routing_only = case.get("evaluation_layer") == "routing"
+            if routing_only:
+                decision = await self._orchestrator.plan(orch_req)
+                orchestration_scores = self._planning_scores(decision, case)
+                required_checks = [orchestration_scores["planning_complete"] >= 1.0]
+                if "route_exact_match" in orchestration_scores:
+                    required_checks.append(orchestration_scores["route_exact_match"] >= 1.0)
+                if "task_exact_match" in orchestration_scores:
+                    required_checks.append(orchestration_scores["task_exact_match"] >= 1.0)
+                actual_answer = ""
+                orch_result = None
+            else:
+                orch_result = await self._orchestrator.run(orch_req)
+                actual_answer = orch_result.response
+                orchestration_scores = self._orchestration_scores(orch_result, case)
+                required_checks = [orchestration_scores["coverage_complete"] >= 1.0]
             scores = None
             if not routing_only:
                 scores = await self._judge.judge(question, actual_answer, context=context or None)
@@ -430,20 +437,61 @@ class EndToEndEvaluator:
                 metadata={
                     "question": question,
                     "response": actual_answer,
-                    "agent_type": orch_result.agent_type.value,
-                    "intent": orch_result.intent.value if orch_result.intent else None,
+                    "agent_type": (
+                        orch_result.agent_type.value if orch_result is not None
+                        else next(iter(decision.agent_types), None).value if decision.agent_types else None
+                    ),
+                    "intent": (
+                        orch_result.intent.value if orch_result is not None and orch_result.intent
+                        else decision.intent.value if routing_only and decision.intent else None
+                    ),
                     "turn": turn_idx,
                     "conv_id": conv_id,
                     "latency_ms": round((time.perf_counter() - turn_started) * 1000, 3),
                     "judge_failed": scores.judge_failed if scores is not None else False,
                     "judge_error": scores.error if scores is not None else None,
-                    "task_plan": orch_result.task_plan,
-                    "coverage": orch_result.coverage,
-                    "agent_outcomes": orch_result.agent_outcomes,
+                    "task_plan": (
+                        orch_result.task_plan if orch_result is not None
+                        else decision.task_plan.to_dict() if decision.task_plan else {}
+                    ),
+                    "coverage": orch_result.coverage if orch_result is not None else {},
+                    "agent_outcomes": orch_result.agent_outcomes if orch_result is not None else [],
+                    "execution_mode": "planner_only" if routing_only else "full_execution",
+                    "clarification_required": decision.clarification_required if routing_only else False,
                 },
             ))
 
         return results
+
+    @staticmethod
+    def _planning_scores(decision: Any, case: Dict[str, Any]) -> Dict[str, float]:
+        """只比较 Planner 产物；不得把尚未执行的任务记为已完成。"""
+        task_plan = getattr(decision, "task_plan", None)
+        planned_tasks = list(task_plan.to_dict().get("tasks") or []) if task_plan else []
+        actual_agents = {
+            str(getattr(agent, "value", agent))
+            for agent in (getattr(decision, "agent_types", []) or [])
+        }
+        actual_tasks = {
+            str(task.get("task_id")) for task in planned_tasks if task.get("task_id")
+        }
+        expected_agents = {
+            str(agent) for agent in (case.get("expected_agents") or []) if str(agent)
+        }
+        expected_tasks = {
+            str(task_id) for task_id in (case.get("expected_task_ids") or []) if str(task_id)
+        }
+        union = actual_agents | expected_agents
+        return {
+            "planning_complete": 1.0,
+            "route_exact_match": 1.0 if actual_agents == expected_agents else 0.0,
+            "route_jaccard": len(actual_agents & expected_agents) / len(union) if union else 1.0,
+            "task_exact_match": 1.0 if actual_tasks == expected_tasks else 0.0,
+            "fanout_efficiency": (
+                1.0 - len(actual_agents - expected_agents) / len(actual_agents)
+                if actual_agents else (1.0 if not expected_agents else 0.0)
+            ),
+        }
 
     @staticmethod
     def _orchestration_scores(orch_result: Any, case: Dict[str, Any]) -> Dict[str, float]:
