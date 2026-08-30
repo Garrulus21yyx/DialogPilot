@@ -5,7 +5,13 @@ from pathlib import Path
 import pytest
 
 from evaluation.benchmark import PredictionError, score_bundle
-from evaluation.dataset import DatasetBundle, DatasetValidationError, write_dataset
+from evaluation.dataset import (
+    DatasetBundle,
+    DatasetValidationError,
+    discover_datasets,
+    load_registered_dataset,
+    write_dataset,
+)
 from scripts.build_eval_dataset import _case, build_bitext
 
 
@@ -81,6 +87,34 @@ def test_group_variants_cannot_cross_dev_and_heldout(tmp_path):
 
     with pytest.raises(DatasetValidationError, match="crosses dev/heldout"):
         write_dataset(tmp_path, manifest=manifest(), cases=cases)
+
+
+def test_dataset_registry_only_accepts_direct_child_ids(tmp_path):
+    registry = tmp_path / "registry"
+    write_dataset(
+        registry / "safe-v1",
+        manifest=manifest(),
+        cases=[case("i1", "intent", "dev", {"message": "hello"}, {"intent": "greeting"})],
+    )
+
+    assert load_registered_dataset(registry, "safe-v1").summary()["case_count"] == 1
+    with pytest.raises(DatasetValidationError, match="invalid dataset_id"):
+        load_registered_dataset(registry, "../safe-v1")
+
+
+def test_dataset_discovery_exposes_version_and_review_state(tmp_path):
+    registry = tmp_path / "registry"
+    write_dataset(
+        registry / "safe-v1",
+        manifest=manifest(),
+        cases=[case("i1", "intent", "dev", {"message": "hello"}, {"intent": "greeting"})],
+    )
+
+    discovered = discover_datasets(registry)
+
+    assert discovered[0]["registry_id"] == "safe-v1"
+    assert discovered[0]["valid"] is True
+    assert discovered[0]["by_review_status"]["human_reviewed"] == 1
 
 
 def test_layered_scorer_reports_deterministic_process_and_result_metrics(tmp_path):

@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping
@@ -210,6 +211,36 @@ def write_dataset(
         encoding="utf-8",
     )
     return DatasetBundle.load(target)
+
+
+def load_registered_dataset(root: str | Path, dataset_id: str) -> DatasetBundle:
+    """只允许从配置根目录按简单 ID 读取，拒绝路径穿越和任意文件读取。"""
+    normalized = str(dataset_id or "").strip()
+    if not re.fullmatch(r"[A-Za-z0-9._-]{1,100}", normalized):
+        raise DatasetValidationError("invalid dataset_id")
+    registry_root = Path(root).resolve()
+    target = (registry_root / normalized).resolve()
+    if target.parent != registry_root:
+        raise DatasetValidationError("dataset_id escapes registry root")
+    return DatasetBundle.load(target)
+
+
+def discover_datasets(root: str | Path) -> List[Dict[str, Any]]:
+    """列出可验证数据集；损坏条目以 typed error 暴露而不拖垮整个注册表。"""
+    registry_root = Path(root)
+    if not registry_root.is_dir():
+        return []
+    discovered: List[Dict[str, Any]] = []
+    for child in sorted(registry_root.iterdir(), key=lambda item: item.name):
+        if not child.is_dir() or not (child / "manifest.json").is_file():
+            continue
+        try:
+            item = DatasetBundle.load(child).summary()
+            item.update({"registry_id": child.name, "valid": True})
+        except (DatasetValidationError, OSError, json.JSONDecodeError) as exc:
+            item = {"registry_id": child.name, "valid": False, "error": str(exc)}
+        discovered.append(item)
+    return discovered
 
 
 def sha256_file(path: str | Path) -> str:

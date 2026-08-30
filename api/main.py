@@ -11,7 +11,7 @@ import re
 import sys
 import uuid
 from contextlib import asynccontextmanager
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 
 _ROOT = str(pathlib.Path(__file__).parent.parent.resolve())
@@ -861,6 +861,7 @@ class EvalIntentInput(BaseModel):
 
 class EvalDialogInput(BaseModel):
     """对话质量评测用例。question 单轮，turns 多轮。"""
+    id: Optional[str] = None
     question: Optional[str] = None
     turns: Optional[List[str]] = None
     user_id: Optional[str] = None
@@ -870,9 +871,102 @@ class EvalDialogInput(BaseModel):
 
 
 class EvalRunInput(BaseModel):
-    """评测请求。为空时使用内置默认用例。"""
+    """评测请求。可使用内置 smoke case、内联用例或注册数据集。"""
     intent_cases: Optional[List[EvalIntentInput]] = None
     dialog_cases: Optional[List[EvalDialogInput]] = None
+    dataset_id: Optional[str] = None
+    split: Literal["dev", "heldout"] = "dev"
+    layers: Optional[List[Literal["intent", "routing", "retrieval", "stateful"]]] = None
+    include_non_gold: bool = False
+
+
+def _eval_dataset_root() -> pathlib.Path:
+    """返回服务端控制的数据集注册表，客户端不能传入任意文件路径。"""
+    configured = os.getenv("EVAL_DATASET_DIR", "").strip()
+    return pathlib.Path(configured or pathlib.Path(_ROOT) / "data" / "eval")
+
+
+def _registered_eval_inputs(body: EvalRunInput):
+    """把版本化数据集样本转换为现有 evaluator 的运行合同。"""
+    from evaluation.dataset import DatasetValidationError, load_registered_dataset
+    from evaluation.evaluator import IntentTestCase
+
+    if body.intent_cases is not None or body.dialog_cases is not None:
+        raise HTTPException(
+            422,
+            detail={
+                "code": "mixed_eval_sources",
+                "message": "dataset_id 不能与内联 intent_cases/dialog_cases 同时使用",
+            },
+        )
+    requested_layers = list(dict.fromkeys(body.layers or ["intent", "routing"]))
+    if not requested_layers:
+        raise HTTPException(422, detail={"code": "empty_eval_layers", "message": "layers 不能为空"})
+    unsupported = sorted(set(requested_layers) - {"intent", "routing"})
+    if unsupported:
+        raise HTTPException(
+            422,
+            detail={
+                "code": "runtime_layer_unsupported",
+                "message": "retrieval/stateful 需通过 evaluation.benchmark 的预测文件评分",
+                "layers": unsupported,
+            },
+        )
+    try:
+        bundle = load_registered_dataset(_eval_dataset_root(), body.dataset_id or "")
+    except DatasetValidationError as exc:
+        raise HTTPException(
+            404,
+            detail={"code": "eval_dataset_unavailable", "message": str(exc)},
+        ) from exc
+
+    selected = [
+        case
+        for case in bundle.select(split=body.split, gold_only=not body.include_non_gold)
+        if case.layer in requested_layers
+    ]
+    if not selected:
+        scope = "全部审核状态" if body.include_non_gold else "human_reviewed gold"
+        raise HTTPException(
+            409,
+            detail={
+                "code": "no_eligible_eval_cases",
+                "message": f"数据集在 {body.split} / {scope} / {requested_layers} 下没有可运行样本",
+            },
+        )
+
+    intent_cases = [
+        IntentTestCase(
+            message=str(case.input["message"]),
+            expected_intent=str(case.expected["intent"]),
+            context=case.input.get("context"),
+        )
+        for case in selected
+        if case.layer == "intent"
+    ]
+    dialog_cases = [
+        {
+            "id": case.case_id,
+            "question": str(case.input["message"]),
+            "user_id": "eval_user",
+            "expected_agents": list(map(str, case.expected["owners"])),
+            "expected_task_ids": list(map(str, case.expected["task_ids"])),
+        }
+        for case in selected
+        if case.layer == "routing"
+    ]
+    metadata = {
+        "source": "registered_dataset",
+        "registry_id": body.dataset_id,
+        "dataset_id": bundle.manifest.get("dataset_id"),
+        "dataset_version": bundle.manifest.get("version"),
+        "dataset_checksum": bundle.manifest.get("cases_sha256"),
+        "split": body.split,
+        "layers": requested_layers,
+        "review_scope": "all" if body.include_non_gold else "human_reviewed",
+        "case_count": len(selected),
+    }
+    return intent_cases, dialog_cases, metadata
 
 
 @app.post("/knowledge/add", tags=["知识库"])
@@ -959,17 +1053,28 @@ async def knowledge_stats(_principal: Principal = Depends(_admin_principal)):
     return {"total_chunks": await kb.doc_count_async()}
 
 
+@app.get("/eval/datasets")
+async def list_eval_datasets(_principal: Principal = Depends(_admin_principal)):
+    """列出服务端注册且通过合同校验的评测集及审核状态。"""
+    from evaluation.dataset import discover_datasets
+
+    return {"datasets": discover_datasets(_eval_dataset_root())}
+
+
 @app.post("/eval/run")
 async def run_eval(
     body: Optional[EvalRunInput] = None,
     _principal: Principal = Depends(_admin_principal),
 ):
-    """运行内置评测用例，返回评测报告。"""
+    """运行内置/内联用例，或按版本、split、审核状态运行注册数据集。"""
     if _evaluator is None:
         raise HTTPException(503, "服务未就绪")
     from evaluation.evaluator import DEFAULT_DIALOG_CASES, DEFAULT_INTENT_CASES, IntentTestCase
 
-    if body and body.intent_cases is not None:
+    metadata: Dict[str, Any] = {"source": "builtin_smoke"}
+    if body and body.dataset_id:
+        intent_cases, dialog_cases, metadata = _registered_eval_inputs(body)
+    elif body and body.intent_cases is not None:
         intent_cases = [
             IntentTestCase(
                 message=c.message,
@@ -978,20 +1083,24 @@ async def run_eval(
             )
             for c in body.intent_cases
         ]
+        dialog_cases = (
+            [c.model_dump(exclude_none=True) for c in body.dialog_cases]
+            if body.dialog_cases is not None
+            else DEFAULT_DIALOG_CASES
+        )
+        metadata = {"source": "inline_or_mixed"}
     else:
         intent_cases = DEFAULT_INTENT_CASES
-
-    if body and body.dialog_cases is not None:
-        dialog_cases = [
-            c.model_dump(exclude_none=True)
-            for c in body.dialog_cases
-        ]
-    else:
-        dialog_cases = DEFAULT_DIALOG_CASES
+        if body and body.dialog_cases is not None:
+            dialog_cases = [c.model_dump(exclude_none=True) for c in body.dialog_cases]
+            metadata = {"source": "inline_or_mixed"}
+        else:
+            dialog_cases = DEFAULT_DIALOG_CASES
 
     report = await _evaluator.run(
         intent_cases=intent_cases,
         dialog_cases=dialog_cases,
+        metadata=metadata,
     )
     return {
         "pass_rate":       report.pass_rate,
@@ -1000,6 +1109,7 @@ async def run_eval(
         "avg_scores":      report.avg_scores,
         "regressions":     report.regressions,
         "recommendations": report.recommendations,
+        "metadata":        report.metadata,
         "results": [
             {
                 "test_id": r.test_id,

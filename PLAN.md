@@ -173,7 +173,7 @@ human-reviewed project gold data.
 - [done] Define the manifest/case schema, deterministic dev/held-out split contract, validation, checksums, and layer-specific metrics.
 - [done] Add a 28-case provisional project seed and six-document retrieval corpus covering compound routing, negation, clarification, retrieval IDs, memory isolation, and tool authorization; provisional cases are excluded from gold metrics.
 - [done] Add deterministic public-source adapters for BANKING77, CLINC150 OOS, and opt-in Bitext; retain source label/license/provenance and write generated files outside committed gold data. BANKING77/CLINC adapters were exercised against their live upstream sources.
-- [pending] Wire dataset discovery/selection into `/eval/run`, add CLI validation/scoring, and verify positive/negative contracts with tests.
+- [done] Add a server-owned dataset registry, `/eval/datasets`, and dataset-aware `/eval/run` selection by split/layer/review status; attach version/checksum metadata, fail closed on provisional-only gold runs, and keep retrieval/stateful on the deterministic prediction-scoring boundary. Validation/scoring CLIs and 94 repository tests pass.
 - [pending] Update README, Pages tutorial/interview guide, push coherent phases, and verify CI/Pages.
 
 Target contracts:

@@ -79,6 +79,7 @@ class EvalReport:
     regressions:      List[str]          # 相比基线退化的指标
     recommendations:  List[str]
     results:          List[EvalResult]
+    metadata:         Dict[str, Any] = field(default_factory=dict)
 
 
 # ── LLM-as-Judge ─────────────────────────────────────────────────────────────
@@ -257,6 +258,7 @@ class EndToEndEvaluator:
         self,
         intent_cases:    Optional[List[IntentTestCase]] = None,
         dialog_cases:    Optional[List[Dict[str, Any]]] = None,
+        metadata:        Optional[Dict[str, Any]] = None,
     ) -> EvalReport:
         """
         运行完整评测。
@@ -333,6 +335,7 @@ class EndToEndEvaluator:
             regressions=regressions,
             recommendations=recommendations,
             results=results,
+            metadata=dict(metadata or {}),
         )
         self._history.append(report)
         self._save_baseline(report)
@@ -375,7 +378,8 @@ class EndToEndEvaluator:
             history.append({"role": "user", "content": question})
             history.append({"role": "assistant", "content": actual_answer})
 
-            test_id = f"dialog_{case_idx}" if len(questions) == 1 else f"dialog_{case_idx}_turn_{turn_idx}"
+            base_test_id = str(case.get("id") or f"dialog_{case_idx}")
+            test_id = base_test_id if len(questions) == 1 else f"{base_test_id}_turn_{turn_idx}"
             results.append(EvalResult(
                 test_id=test_id,
                 passed=passed,
@@ -575,6 +579,7 @@ class EndToEndEvaluator:
                 )
                 for r in data.get("results", [])
             ],
+            metadata=dict(data.get("metadata", {})),
         )
 
 
