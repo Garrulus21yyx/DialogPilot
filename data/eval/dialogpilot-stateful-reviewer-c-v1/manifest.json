@@ -1,0 +1,23 @@
+{
+  "action_count": 40,
+  "case_count": 40,
+  "cases_sha256": "11847eceee85d41cde24afc77e504de6bf9cbb5aadf6d5c8ad6bdfa8ce9b3731",
+  "created_at": "2026-08-30T17:56:12+02:00",
+  "dataset_id": "dialogpilot-stateful-reviewer-c-v1",
+  "description": "Reviewer C one-time independent stateful adversarial acceptance set for DialogPilot target commit 7f5797e.",
+  "group_count": 22,
+  "license": "CC0-1.0",
+  "review_policy": {
+    "blindness": "explicit Reviewer B evidence files unopened before seal; strict zero-old-test exposure not achieved due accidental symbol-search snippets",
+    "consumption": "after this Reviewer C run, downgrade to consumed regression if used for development",
+    "gold": false
+  },
+  "reviewer": "reviewer-c-independent",
+  "schema_version": 1,
+  "sealed_before_prior_review_read": false,
+  "split": "heldout",
+  "split_policy": "one-time sealed holdout; all semantic groups remain heldout",
+  "status": "provisional",
+  "target_commit": "7f5797e1bbcf87b8dab49904dbc5f25b25f7e1c6",
+  "version": "1.0.0-provisional"
+}
