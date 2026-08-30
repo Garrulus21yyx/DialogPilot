@@ -22,7 +22,8 @@ from typing import Any, Dict, List, Optional
 from anthropic import AsyncAnthropic
 
 from core.llm_utils import extract_text_content
-from core.model_policy import ModelProfile
+from core.llm_metrics import create_message
+from core.model_policy import ModelProfile, ModelRole
 
 logger = logging.getLogger(__name__)
 
@@ -280,11 +281,11 @@ class IntentRecognizer:
         prompt = self._clean_text(prompt)
 
         try:
-            resp = await self.client.messages.create(**self._model_profile.request(
+            resp = await create_message(self.client, self._model_profile, ModelRole.INTENT,
                 max_tokens=256,
                 temperature=0.1,
                 messages=[{"role": "user", "content": prompt}],
-            ))
+            )
             raw = extract_text_content(resp.content)
             s, e = raw.find("{"), raw.rfind("}") + 1
             data = json.loads(raw[s:e])

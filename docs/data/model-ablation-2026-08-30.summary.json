@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "run_date": "2026-08-30",
+  "source_base_commit": "3738ece09f10002cf8ab7bd3ba2493dbb03bc5a8",
+  "dataset": {
+    "dataset_id": "dialogpilot-layered-core",
+    "version": "1.0.0-seed",
+    "cases_sha256": "3dd91100254ef7c5420d62d5ccc1f10e1da2064f4c9ea31d0246fe04e3b53c2e",
+    "review_scope": "provisional",
+    "intent_cases": 8,
+    "routing_cases": 7,
+    "runs_per_profile": 1
+  },
+  "profiles": [
+    {
+      "profile_id": "flash_off",
+      "model": "deepseek-v4-flash",
+      "reasoning": "none",
+      "intent_accuracy": 1.0,
+      "owner_exact": 1.0,
+      "task_exact": 1.0,
+      "task_success_rate": 1.0,
+      "react_tool_loop_completion_rate": 1.0,
+      "react_tool_loops": 7,
+      "tool_calls": 13,
+      "case_latency_ms": {"p50": 1430.773, "p95": 13186.52},
+      "model_call_latency_ms": {"p50": 1891.526, "p95": 7395.8},
+      "usage": {
+        "calls_with_usage": 24,
+        "input_tokens": 10144,
+        "output_tokens": 6292,
+        "cache_read_input_tokens": 21120,
+        "thinking_calls": 0,
+        "reasoning_tokens": null
+      },
+      "estimated_cost_usd": {"off_peak": 0.00653224, "peak": 0.01306448}
+    },
+    {
+      "profile_id": "flash_high",
+      "model": "deepseek-v4-flash",
+      "reasoning": "high",
+      "intent_accuracy": 0.875,
+      "owner_exact": 1.0,
+      "task_exact": 1.0,
+      "task_success_rate": 0.875,
+      "react_tool_loop_completion_rate": 1.0,
+      "react_tool_loops": 6,
+      "tool_calls": 14,
+      "case_latency_ms": {"p50": 1793.544, "p95": 16500.597},
+      "model_call_latency_ms": {"p50": 3003.588, "p95": 8855.275},
+      "usage": {
+        "calls_with_usage": 22,
+        "input_tokens": 17163,
+        "output_tokens": 8153,
+        "cache_read_input_tokens": 14464,
+        "thinking_calls": 22,
+        "reasoning_tokens": null
+      },
+      "estimated_cost_usd_lower_bound": {"off_peak": 0.00925809, "peak": 0.01851618}
+    },
+    {
+      "profile_id": "pro_high",
+      "model": "deepseek-v4-pro",
+      "reasoning": "high",
+      "intent_accuracy": 0.875,
+      "owner_exact": 1.0,
+      "task_exact": 1.0,
+      "task_success_rate": 0.375,
+      "react_tool_loop_completion_rate": 1.0,
+      "react_tool_loops": 2,
+      "tool_calls": 4,
+      "case_latency_ms": {"p50": 5613.006, "p95": 15001.37},
+      "model_call_latency_ms": {"p50": 4863.12, "p95": 10615.822},
+      "usage": {
+        "calls_with_usage": 18,
+        "input_tokens": 13016,
+        "output_tokens": 5134,
+        "cache_read_input_tokens": 6656,
+        "thinking_calls": 18,
+        "reasoning_tokens": null
+      },
+      "estimated_cost_usd_lower_bound": {"off_peak": 0.01890231, "peak": 0.03780462}
+    }
+  ],
+  "limitations": [
+    "15 cases are provisional seeds rather than human-reviewed gold.",
+    "Each profile was run once, so percentiles have no confidence interval.",
+    "DeepSeek Anthropic usage does not expose reasoning tokens separately.",
+    "Timed-out in-flight calls have no returned usage; high-profile cost is a lower bound.",
+    "Tool Exact is not available because expected tool names are not yet labeled.",
+    "Routing uses supplied gold intent to isolate Planner and execution behavior.",
+    "This dataset exercised Intent, Worker/ReAct and Synthesis when fan-out completed; it did not benchmark Verifier, Judge, Memory, Rewrite or Rerank quality."
+  ]
+}

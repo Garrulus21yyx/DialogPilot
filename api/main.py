@@ -36,6 +36,7 @@ from services.ticket_service import (
 from memory.context import ContextAssembler, ContextSection
 from core.tracing import TraceRecorder, current_trace_id, trace_scope
 from core.auth import AuthenticationError, AuthorizationError, JWTAuthenticator, Principal
+from core.llm_metrics import capture_llm_usage
 from core.model_policy import ModelPolicy, ModelRole
 
 load_dotenv()
@@ -1122,11 +1123,13 @@ async def run_eval(
             dialog_cases = DEFAULT_DIALOG_CASES
 
     metadata["model_policy"] = _model_policy.to_dict() if _model_policy is not None else None
-    report = await _evaluator.run(
-        intent_cases=intent_cases,
-        dialog_cases=dialog_cases,
-        metadata=metadata,
-    )
+    with capture_llm_usage() as usage:
+        report = await _evaluator.run(
+            intent_cases=intent_cases,
+            dialog_cases=dialog_cases,
+            metadata=metadata,
+        )
+    report.metadata["llm_usage"] = usage.summary()
     return {
         "pass_rate":       report.pass_rate,
         "total":           report.total,

@@ -13,8 +13,9 @@ from typing import Any, Dict, Optional
 
 from anthropic import AsyncAnthropic
 
+from core.llm_metrics import create_message
 from core.llm_utils import extract_text_content
-from core.model_policy import ModelProfile
+from core.model_policy import ModelProfile, ModelRole
 
 
 class VerificationStatus(str, Enum):
@@ -145,11 +146,14 @@ class AnswerVerifier:
 """.strip()
 
         try:
-            response = await self._client.messages.create(**self._model_profile.request(
+            response = await create_message(
+                self._client,
+                self._model_profile,
+                ModelRole.VERIFIER,
                 max_tokens=256,
                 temperature=0,
                 messages=[{"role": "user", "content": prompt}],
-            ))
+            )
             raw = extract_text_content(response.content)
             payload = self._parse_payload(raw)
             status = VerificationStatus(str(payload["status"]).lower())

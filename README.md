@@ -49,6 +49,9 @@ See [docs/architecture.md](docs/architecture.md) for component ownership,
 and [docs/full-architecture-tutorial.zh-CN.md](docs/full-architecture-tutorial.zh-CN.md)
 for the complete Chinese repository tutorial, change history, failure analysis,
 and project-specific interview follow-up guide.
+The reproducible Flash/off vs Flash/high vs Pro/high pilot, including latency,
+usage, cost, and failure cases, is in
+[docs/model-ablation-report.zh-CN.md](docs/model-ablation-report.zh-CN.md).
 
 ## Technology
 

@@ -28,8 +28,9 @@ from typing import Any, Callable, Deque, Dict, List, Optional, Tuple
 
 from anthropic import AsyncAnthropic
 
+from core.llm_metrics import create_message
 from core.llm_utils import extract_text_content
-from core.model_policy import ModelProfile
+from core.model_policy import ModelProfile, ModelRole
 from core.tracing import TraceRecorder, current_trace_id, trace_scope
 
 logger = logging.getLogger(__name__)
@@ -554,10 +555,10 @@ class MCPToolManager:
 返回 JSON 数组，例如: ["子查询1", "子查询2", "子查询3"]"""
         prompt = self._clean_text(prompt)
         try:
-            resp = await self._client.messages.create(**self._rewrite_model_profile.request(
+            resp = await create_message(self._client, self._rewrite_model_profile, ModelRole.REWRITE,
                 max_tokens=256, temperature=0.3,
                 messages=[{"role": "user", "content": prompt}],
-            ))
+            )
             raw = extract_text_content(resp.content)
             s, e = raw.find("["), raw.rfind("]") + 1
             queries = json.loads(raw[s:e])
@@ -633,10 +634,10 @@ class MCPToolManager:
         prompt = self._clean_text(prompt)
 
         try:
-            resp = await self._client.messages.create(**self._rerank_model_profile.request(
+            resp = await create_message(self._client, self._rerank_model_profile, ModelRole.RERANK,
                 max_tokens=256, temperature=0.0,
                 messages=[{"role": "user", "content": prompt}],
-            ))
+            )
             raw = extract_text_content(resp.content)
             s, e = raw.find("["), raw.rfind("]") + 1
             order: List[int] = json.loads(raw[s:e])

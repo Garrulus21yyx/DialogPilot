@@ -12,8 +12,9 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Sequence
 
 from agents.orchestration_contracts import CoverageReport, TaskPlan
+from core.llm_metrics import create_message
 from core.llm_utils import extract_text_content
-from core.model_policy import ModelProfile
+from core.model_policy import ModelProfile, ModelRole
 
 
 class AgentOutcomeStatus(str, Enum):
@@ -286,11 +287,11 @@ class ResultSynthesizer:
 
 只返回严格 JSON：
 {{"answer":"", "conflicts":[], "escalate":false, "reason":""}}"""
-        response = await self._client.messages.create(**self._model_profile.request(
+        response = await create_message(self._client, self._model_profile, ModelRole.SYNTHESIS,
             max_tokens=1024,
             temperature=0.0,
             messages=[{"role": "user", "content": prompt}],
-        ))
+        )
         raw = extract_text_content(response.content)
         start, end = raw.find("{"), raw.rfind("}")
         if start < 0 or end < start:

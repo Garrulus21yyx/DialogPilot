@@ -28,7 +28,8 @@ from redis.exceptions import WatchError
 
 from core.llm_utils import extract_text_content
 from core.chroma_client import create_chroma_client
-from core.model_policy import ModelProfile
+from core.llm_metrics import create_message
+from core.model_policy import ModelProfile, ModelRole
 from memory.context import ContextSection, TokenEstimator
 from memory.hybrid_retrieval import HybridMemoryRetriever, MemoryDocument, MemoryHit
 
@@ -222,10 +223,10 @@ class MemoryManager:
         prompt = self._safe_text(prompt)
 
         try:
-            resp = await self._client.messages.create(**self._model_profile.request(
+            resp = await create_message(self._client, self._model_profile, ModelRole.MEMORY,
                 max_tokens=512, temperature=0.0,
                 messages=[{"role": "user", "content": prompt}],
-            ))
+            )
             raw = extract_text_content(resp.content)
             s, e = raw.find("{"), raw.rfind("}") + 1
             profile_data = json.loads(raw[s:e])
@@ -401,11 +402,11 @@ class MemoryManager:
 合并旧摘要并保留仍然有效的事实；只返回 JSON。""")
         payload: Optional[Dict[str, Any]] = None
         try:
-            resp = await self._client.messages.create(**self._model_profile.request(
+            resp = await create_message(self._client, self._model_profile, ModelRole.MEMORY,
                 max_tokens=min(self._summary_max_tokens, 1024),
                 temperature=0.0,
                 messages=[{"role": "user", "content": prompt}],
-            ))
+            )
             raw = extract_text_content(resp.content)
             start, end = raw.find("{"), raw.rfind("}")
             if start >= 0 and end >= start:

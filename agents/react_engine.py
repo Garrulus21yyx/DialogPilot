@@ -13,7 +13,8 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from core.tracing import TraceRecorder, current_trace_id
-from core.model_policy import ModelProfile
+from core.llm_metrics import create_message
+from core.model_policy import ModelProfile, ModelRole
 from mcp.tool_manager import MCPToolManager, ToolCallStatus, ToolResult
 
 
@@ -106,12 +107,15 @@ class ReActExecutionEngine:
                     "tool.count": len(tools),
                 },
             ):
-                response = await self._client.messages.create(**self._model_profile.request(
+                response = await create_message(
+                    self._client,
+                    self._model_profile,
+                    ModelRole.REACT,
                     max_tokens=self._max_tokens,
                     system=system,
                     messages=working_messages,
                     tools=tools,
-                ))
+                )
             blocks, text, tool_calls = self._parse_content(response.content)
             if text:
                 last_text = text

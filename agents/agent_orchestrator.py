@@ -35,6 +35,7 @@ from agents.orchestration_contracts import (
     TaskSpec,
 )
 from core.intent_recognizer import IntentCategory, IntentRecognizer, UrgencyLevel
+from core.llm_metrics import create_message
 from core.llm_utils import extract_text_content
 from core.model_policy import ModelPolicy, ModelProfile, ModelRole
 from core.tracing import current_trace_id
@@ -298,11 +299,11 @@ class BaseAgent:
                 },
             )
 
-        resp = await self._client.messages.create(**self._model_profile.request(
+        resp = await create_message(self._client, self._model_profile, ModelRole.WORKER,
             max_tokens=1024,
             system=system,
             messages=messages,
-        ))
+        )
         return extract_text_content(resp.content)
 
     def set_tool_manager(self, tool_manager: Optional[Any]) -> None:

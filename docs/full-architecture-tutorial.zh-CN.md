@@ -45,7 +45,7 @@ DialogPilot 是一个 Python 3.12 + FastAPI 的异步多 Agent 客服后端。�
 2. 合同：一次请求必须得到可诊断的路由结果；只有明确 `PASS` 的回答能发布；需要人工时同步尝试创建持久工单，并把建单成功或失败明确返回。
 3. 主链：Memory → Intent → RAG → Context → TaskPlan → Workers → Coverage → Synthesis → Verification → Ticket → Persist published messages。
 4. 六个最值得深挖的改动：Token 驱动且并发安全的压缩、混合长期记忆、TaskPlan/CoverageGate、有界 ReAct 与权限、请求预算下的结果代数、校验质量反馈闭环。
-5. 证据：108 个测试，覆盖身份/公开投影、归档幂等/CAS、显式存储模式、真实 Escalation Owner、路由基数、混合召回、工具权限、Trace、分层模型策略和版本化评测合同。
+5. 证据：111 个测试，覆盖身份/公开投影、归档幂等/CAS、显式存储模式、真实 Escalation Owner、路由基数、混合召回、工具权限、Trace、分层模型策略和版本化评测合同。
 6. 边界：已有 JWT/scope 基线；多租户 IdP/ABAC 未完成，SQLite 只适合单应用写者，Trace/审计重启丢失，审批不能交互恢复；已有 28 条 provisional 分层样本，但尚无 human-reviewed gold，不能声称生产准确率。
 
 ## 1. 如何学习这个仓库
@@ -1015,7 +1015,7 @@ python -m compileall -q agents api core evaluation mcp memory monitor services
 python -m pytest -q
 ```
 
-当前 108 个测试按不变量分组：
+当前 111 个测试按不变量分组：
 
 ### Lifespan 与 RAG boundary
 
@@ -1266,7 +1266,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q2：你个人具体负责了什么？
 
-**推荐诚实答案：** 我接手的是一个已有客服原型。我负责仓库清理和 DialogPilot 命名迁移，并完成持久工单、Token/CAS 压缩、typed synthesis、TaskPlan/CoverageGate、混合记忆、ReAct 权限/Trace，以及 JWT/公开投影、短会话归档、显式 Chroma 模式、真实 Escalation Owner、分层模型策略和分层评测合同。当前有 108 个测试、CI、Docker 验证和架构文档。原型已有功能会按 commit 划清边界，不说成全部从零原创。
+**推荐诚实答案：** 我接手的是一个已有客服原型。我负责仓库清理和 DialogPilot 命名迁移，并完成持久工单、Token/CAS 压缩、typed synthesis、TaskPlan/CoverageGate、混合记忆、ReAct 权限/Trace，以及 JWT/公开投影、短会话归档、显式 Chroma 模式、真实 Escalation Owner、分层模型策略和分层评测合同。当前有 111 个测试、CI、Docker 验证和架构文档。原型已有功能会按 commit 划清边界，不说成全部从零原创。
 
 **追问：去掉你的改动还剩什么？** 仍有基础 FastAPI、三路意图、Redis/Chroma 记忆、RAG、领域 Agent、Skill、监控和评测原型；会失去真实工单闭环、Token/并发压缩不变量、TaskPlan/覆盖门禁、有类型并行结果、质量反馈、混合召回、工具权限/Trace 和 Worker ReAct。
 
@@ -1495,7 +1495,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q38：当前评测数据到底有多少，能证明什么？
 
-**答：** 内置数据仍是 11 条意图 + 5 组对话 smoke case；另有 28 条 provisional 四层 seed 和 6 篇 retrieval corpus，但还没有 human-reviewed gold。仓库的 108 个确定性测试证明状态机、身份、失败边界、任务覆盖、工具权限、ReAct、记忆和数据合同，不等于 108 条业务准确率样本。
+**答：** 内置数据仍是 11 条意图 + 5 组对话 smoke case；另有 28 条 provisional 四层 seed 和 6 篇 retrieval corpus，但还没有 human-reviewed gold。仓库的 111 个确定性测试证明状态机、身份、失败边界、任务覆盖、工具权限、ReAct、记忆和数据合同，不等于 111 条业务准确率样本。
 
 **不能声称什么：** 不能据此声称生产准确率、行业 SOTA 或泛化能力。生产发布需要版本化数据集、关键 slice、dev/held-out 分离和人工校准 Judge。
 
@@ -1606,7 +1606,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 **Action：** 在 Worker 内增加最大 4 步的 Anthropic tool loop；工具发现和执行共享同一 allowlist，执行边界再次校验；高风险/写工具默认等待宿主批准，读工具批次并行、潜在写工具串行；工具输出截断后按 call_id 回写，TraceId 通过 contextvars 贯穿并行 Task，审计只记录参数哈希/shape；拒绝、失败、超步数禁止 General fallback 覆盖。
 
-**Result：** 工具/ReAct 聚焦测试和编排投影测试证明越权零副作用、审批阻断、循环停止、结果配对、输出有界、Trace 传播和失败证据贯穿；连同生产边界、分层模型策略与分层评测合同测试，整个仓库 108 项测试通过。
+**Result：** 工具/ReAct 聚焦测试和编排投影测试证明越权零副作用、审批阻断、循环停止、结果配对、输出有界、Trace 传播和失败证据贯穿；连同生产边界、分层模型策略与分层评测合同测试，整个仓库 111 项测试通过。
 
 **简历一行（只在你能现场解释代码时使用）：**
 
@@ -1726,7 +1726,7 @@ Verifier 必须读取完整 `AgentOutcome.content/error/producer` 才能判断�
 
 ### Q64：这一轮怎样写成 STAR？
 
-**S：** 原链路在 TTL、诊断投影和部署降级处存在“成功返回但事实丢失或泄漏”的边界。**T：** 让身份、归档、存储模式和升级执行者各有唯一 Owner，并让失败可重试、可观测。**A：** 实现 JWT Principal/scope、公开 outcome redaction、确定性消息归档 + Redis CAS finalize、单记录版本画像、显式 Chroma/intent 模式、tool-free EscalationAgent 和路由基数披露。**R：** 相关不变量由测试覆盖；全仓当前 108 项测试通过，不虚构线上提升。
+**S：** 原链路在 TTL、诊断投影和部署降级处存在“成功返回但事实丢失或泄漏”的边界。**T：** 让身份、归档、存储模式和升级执行者各有唯一 Owner，并让失败可重试、可观测。**A：** 实现 JWT Principal/scope、公开 outcome redaction、确定性消息归档 + Redis CAS finalize、单记录版本画像、显式 Chroma/intent 模式、tool-free EscalationAgent 和路由基数披露。**R：** 相关不变量由测试覆盖；全仓当前 111 项测试通过，不虚构线上提升。
 
 ## 27. 把评测数据真正跑起来：从 provisional 到 held-out 报告
 
@@ -1863,7 +1863,7 @@ python -m evaluation.benchmark \
 
 ### Q72：这项改造怎样写成 STAR？
 
-**S：** 原仓库只有 11+5 内置 smoke case，无法复现旧准确率，也不能定位路由、召回和安全错误。**T：** 建立不会混淆公开数据、草稿标注和项目 gold 的评测闭环。**A：** 实现四层 JSONL/manifest、group-safe split、checksum/provenance/review 状态、BANKING77/CLINC150/Bitext adapter、注册 API 和确定性 scorer。**R：** 28 条 provisional 难例与 6 篇 corpus 已落库，108 项测试验证缺预测失败、路径隔离、审核门禁和分层指标；尚未声称未经 human review 的准确率。
+**S：** 原仓库只有 11+5 内置 smoke case，无法复现旧准确率，也不能定位路由、召回和安全错误。**T：** 建立不会混淆公开数据、草稿标注和项目 gold 的评测闭环。**A：** 实现四层 JSONL/manifest、group-safe split、checksum/provenance/review 状态、BANKING77/CLINC150/Bitext adapter、注册 API 和确定性 scorer。**R：** 28 条 provisional 难例与 6 篇 corpus 已落库，111 项测试验证缺预测失败、路径隔离、审核门禁和分层指标；尚未声称未经 human review 的准确率。
 
 ## 28. DeepSeek 分层调用：Flash、Pro 与 reasoning 怎样选
 
@@ -1913,6 +1913,12 @@ reasoning 模式还设置 `min_completion_tokens`。原因不是“多给点 tok
 
 路由评测过程中还暴露了三个代码问题：routing case 的 gold intent/entities 曾在 API 转换时丢失；“不是扣款问题”曾被关键词误触发；“重复扣了”未进入账务表达表。修复后，routing 层直接验证 Planner 的 TaskPlan，不再混入 Answer Judge；澄清路径的空任务集按合法完成态评分。所有数字都来自 7 条 provisional 路由种子，只能证明回归链路可运行，不能写成生产准确率。
 
+### 28.3 三档完整消融：Flash/off、Flash/high、Pro/high
+
+随后在同一 8 条 intent + 7 条 routing/Agent seed 上完成三档正交对照。Flash/off 是唯一达到 Intent 8/8、Task success 8/8 的配置；Flash/high 为 7/8、7/8，Pro/high 为 7/8、3/8。Flash/high 相比 off 的 case P95 增加 25.1%、峰时成本至少增加 41.7%；Pro/high 的峰时成本下界约为 Flash/off 的 2.9 倍，并有多次 15s Worker timeout。
+
+这里 Owner Exact 三档都是 7/7，因为它验证 Planner 分工；Task success 验证 Worker 是否在预算内完成。二者不能混为一个“Agent 准确率”。完整方法、失败 case、P50/P95、Token、峰谷成本与限制见[三档模型消融报告](./model-ablation-report.zh-CN.md)。
+
 ### Q73：为什么不全部使用 Pro high？
 
 **答：** Intent、改写、摘要等是高频闭合任务，强推理通常把同一个简单决策做得更慢更贵；系统质量还受路由合同、检索数据和权限边界限制，升级模型不能修复这些确定性问题。先用 Flash/none 建基线，再只对高风险角色做消融。
@@ -1943,4 +1949,4 @@ reasoning 模式还设置 `min_completion_tokens`。原因不是“多给点 tok
 
 ### Q80：这部分还有什么边界？
 
-**答：** 当前默认值来自小样本 pilot，不是 benchmark 最优；尚未用 human-reviewed heldout 跑模型消融，也没有实时 token/cost budget、供应商 fallback、熔断后的跨模型切换和动态复杂度路由。面试时应说“默认矩阵已有实测依据，最终最优选择仍待 gold 数据证明”。
+**答：** 已完成 15 条 provisional seed 的三档消融，但它每档只有一次运行，也不是 human-reviewed gold；尚无置信区间、实时 token/cost budget、供应商 fallback、熔断后的跨模型切换和动态复杂度路由。面试时应说“当前矩阵有小样本实测依据，最终最优选择仍待 gold 数据和重复运行证明”。

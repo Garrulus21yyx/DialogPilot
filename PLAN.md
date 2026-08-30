@@ -199,6 +199,7 @@ policy while preserving the existing Anthropic-compatible DeepSeek transport.
 - [done] Update environment/Compose, README, Pages tutorial/interview guide, run all gates, push, and verify CI/Pages. Commit `90a526d`; CI and Pages succeeded and the live pages contain the new model-selection chapters.
 - [done] Run the real DeepSeek pilot and revise the default: Pro/high was slower and could consume short completion budgets before emitting JSON, so synthesis/verifier/judge now default to Pro/none; reasoning profiles enforce a completion-token floor. The 4-case E2E pilot improved from ~28.4s/2-of-4 parsed to ~13.3s/4-of-4 parsed.
 - [done] Separate routing truth from answer-quality judging, forward gold intent/entities at the evaluator boundary, handle negated and colloquial billing evidence, and verify provisional routing dev 5/5 plus heldout 2/2. These seed results are regression evidence, not production accuracy.
+- [done] Add context-isolated usage/latency metering at every Messages API call owner and a checkpointed Python ablation runner. Run 15 provisional cases once per profile: Flash/off achieved intent 8/8 and task success 8/8; Flash/high 7/8 and 7/8; Pro/high 7/8 and 3/8. Publish P50/P95, provider usage, peak/off-peak cost, timeout failures, and explicit limitations rather than claiming a production benchmark.
 
 Target contracts:
 

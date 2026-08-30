@@ -25,8 +25,9 @@ from typing import Any, Dict, List, Optional
 
 from anthropic import AsyncAnthropic
 
+from core.llm_metrics import create_message
 from core.llm_utils import extract_text_content
-from core.model_policy import ModelProfile
+from core.model_policy import ModelProfile, ModelRole
 
 from core.intent_recognizer import IntentCategory, IntentRecognizer
 
@@ -137,10 +138,10 @@ Agent 响应: {response}
         )
         prompt = self._clean_text(prompt)
         try:
-            resp = await self._client.messages.create(**self._model_profile.request(
+            resp = await create_message(self._client, self._model_profile, ModelRole.JUDGE,
                 max_tokens=256, temperature=0.0,
                 messages=[{"role": "user", "content": prompt}],
-            ))
+            )
             raw = extract_text_content(resp.content)
             s, e = raw.find("{"), raw.rfind("}") + 1
             data = json.loads(raw[s:e])
@@ -193,6 +194,7 @@ class IntentEvaluator:
                 "predicted": predicted,
                 "confidence": result.confidence,
                 "reasoning": result.reasoning,
+                "latency_ms": round(result.latency_ms, 3),
             })
 
         # 纯 Python 计算指标
@@ -363,6 +365,7 @@ class EndToEndEvaluator:
         results: List[EvalResult] = []
 
         for turn_idx, question in enumerate(questions):
+            turn_started = time.perf_counter()
             context = self._history_context(history)
             supplied_intent = case.get("intent")
             try:
@@ -431,6 +434,7 @@ class EndToEndEvaluator:
                     "intent": orch_result.intent.value if orch_result.intent else None,
                     "turn": turn_idx,
                     "conv_id": conv_id,
+                    "latency_ms": round((time.perf_counter() - turn_started) * 1000, 3),
                     "judge_failed": scores.judge_failed if scores is not None else False,
                     "judge_error": scores.error if scores is not None else None,
                     "task_plan": orch_result.task_plan,
