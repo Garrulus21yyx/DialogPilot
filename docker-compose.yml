@@ -96,6 +96,10 @@ services:
       - REACT_MAX_STEPS=${REACT_MAX_STEPS:-4}
       - TOOL_APPROVAL_MODE=${TOOL_APPROVAL_MODE:-default}
       - TOOL_OUTPUT_MAX_CHARS=${TOOL_OUTPUT_MAX_CHARS:-4000}
+      - AUTH_JWT_SECRET=${AUTH_JWT_SECRET}
+      - AUTH_JWT_ISSUER=${AUTH_JWT_ISSUER:-dialogpilot}
+      - AUTH_JWT_AUDIENCE=${AUTH_JWT_AUDIENCE:-dialogpilot-api}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-}
     volumes:
       - ./data/chroma:/app/data/chroma
       - ./data/eval:/app/data/eval

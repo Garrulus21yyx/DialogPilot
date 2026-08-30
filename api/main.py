@@ -20,7 +20,7 @@ if _ROOT not in sys.path:
 
 import uvicorn
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Response, UploadFile, File, Query, Request as FastAPIRequest
+from fastapi import Depends, FastAPI, Header, HTTPException, Response, UploadFile, File, Query, Request as FastAPIRequest
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, Field
@@ -35,6 +35,7 @@ from services.ticket_service import (
 )
 from memory.context import ContextAssembler, ContextSection
 from core.tracing import TraceRecorder, current_trace_id, trace_scope
+from core.auth import AuthenticationError, AuthorizationError, JWTAuthenticator, Principal
 
 load_dotenv()
 
@@ -61,7 +62,34 @@ _skill_manager = None
 _answer_verifier = None
 _ticket_service = None
 _context_assembler = None
+_authenticator = None
 _trace_recorder = TraceRecorder()
+
+
+def get_principal(authorization: str = Header(default="")) -> Principal:
+    """在 HTTP 边界把签名 Token 转成 Principal；业务层不再信任 user_id 字符。"""
+    if _authenticator is None:
+        raise HTTPException(503, "认证服务未就绪")
+    try:
+        return _authenticator.authenticate(authorization)
+    except AuthenticationError as exc:
+        raise HTTPException(401, "无效或缺失的 Bearer Token") from exc
+
+
+def require_scopes(*required: str):
+    """生成稳定的 FastAPI scope 依赖，admin 可显式越过细分 scope。"""
+    def dependency(principal: Principal = Depends(get_principal)) -> Principal:
+        try:
+            principal.require(required)
+        except AuthorizationError as exc:
+            raise HTTPException(403, "当前身份无权访问该资源") from exc
+        return principal
+    return dependency
+
+
+_chat_principal = require_scopes("chat")
+_admin_principal = require_scopes("admin")
+_knowledge_principal = require_scopes("knowledge:read")
 
 def _anthropic_cfg() -> Dict[str, Any]:
     """读取模型供应商配置，并在应用启动前验证必需 API Key。"""
@@ -81,7 +109,7 @@ def _anthropic_cfg() -> Dict[str, Any]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """按依赖顺序创建所有组件，并在退出时释放后台任务和连接。"""
-    global _orchestrator, _memory, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _context_assembler
+    global _orchestrator, _memory, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _context_assembler, _authenticator
 
     print(BANNER, flush=True)
 
@@ -96,6 +124,7 @@ async def lifespan(app: FastAPI):
     from services.answer_verifier import AnswerVerifier
 
     cfg = _anthropic_cfg()
+    _authenticator = JWTAuthenticator.from_env()
     logger.info(f"模型: {cfg['model']}  base_url: {cfg.get('base_url', '(官方)')}")
 
     # 意图识别器（Orchestrator 内部也会创建，这里单独暴露给 Evaluator）
@@ -286,7 +315,11 @@ async def trace_request(request: FastAPIRequest, call_next):
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        origin.strip()
+        for origin in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
+        if origin.strip()
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -296,7 +329,7 @@ app.add_middleware(
 class ChatRequest(BaseModel):
     """聊天入口的外部请求合同。"""
     message:     str
-    user_id:     str = "anonymous"
+    user_id:     Optional[str] = Field(default=None, min_length=1, max_length=200)
     conv_id:     Optional[str] = None
     request_id:  Optional[str] = Field(default=None, max_length=128)
 
@@ -319,7 +352,6 @@ class ChatResponse(BaseModel):
     synthesis_reason: str = ""
     synthesis_conflicts: List[str] = Field(default_factory=list)
     agent_outcomes: List[Dict[str, Any]] = Field(default_factory=list)
-    producer_agent_keys: List[str] = Field(default_factory=list)
     task_plan: Dict[str, Any] = Field(default_factory=dict)
     coverage: Dict[str, Any] = Field(default_factory=dict)
     execution_budget: Dict[str, Any] = Field(default_factory=dict)
@@ -374,7 +406,7 @@ async def health():
 
 
 @app.get("/skills", tags=["Skills"])
-async def skills_summary():
+async def skills_summary(_principal: Principal = Depends(_admin_principal)):
     """查看当前已加载的 Skills，便于确认热加载结果和排查解析错误。"""
     if _skill_manager is None:
         raise HTTPException(503, "Skills 未初始化")
@@ -382,7 +414,7 @@ async def skills_summary():
 
 
 @app.post("/skills/reload", tags=["Skills"])
-async def reload_skills():
+async def reload_skills(_principal: Principal = Depends(_admin_principal)):
     """运行时重新扫描 Skill 目录，不需要重启服务。"""
     if _skill_manager is None:
         raise HTTPException(503, "Skills 未初始化")
@@ -392,8 +424,30 @@ async def reload_skills():
     return _skill_manager.summary()
 
 
+def _subject_for_request(requested_user_id: Optional[str], principal: Principal) -> str:
+    """身份只由 Principal 决定；保留 user_id 仅用于检测旧客户端伪造/配置错误。"""
+    if requested_user_id and requested_user_id != principal.subject:
+        raise HTTPException(403, "请求 user_id 与认证身份不一致")
+    return principal.subject
+
+
+def _public_agent_outcomes(outcomes: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """用户响应只保留执行证据，不发布 candidate、内部错误或实例标识。"""
+    allowed = {
+        "task_id", "required", "agent_type", "responding_agent_type", "status",
+        "is_primary", "confidence", "latency_ms", "escalate", "react_status", "react_steps",
+    }
+    projected = []
+    for outcome in outcomes:
+        item = {key: outcome[key] for key in allowed if key in outcome}
+        if outcome.get("status") != "success":
+            item["error_code"] = f"agent_{outcome.get('status', 'unknown')}"
+        projected.append(item)
+    return projected
+
+
 @app.post("/chat", response_model=ChatResponse)
-async def chat(req: ChatRequest):
+async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)):
     """
     主对话接口。完整流程：
       记忆读取 → 意图识别 → Agent 路由 → 执行 → 记忆写入
@@ -410,11 +464,12 @@ async def chat(req: ChatRequest):
     from agents.agent_orchestrator import Request as OrcReq
     from memory.conversation_memory import MsgRole
 
+    user_id = _subject_for_request(req.user_id, principal)
     conv_id = req.conv_id or str(uuid.uuid4())
     request_id = req.request_id or str(uuid.uuid4())
 
     # 1. 读取记忆上下文
-    mem_ctx = await _memory.get_context(req.user_id, conv_id, query=req.message)
+    mem_ctx = await _memory.get_context(user_id, conv_id, query=req.message)
 
     # 2. 构建编排请求（含对话历史，用于意图识别上下文）
     history = [
@@ -441,7 +496,7 @@ async def chat(req: ChatRequest):
 
     orch_req = OrcReq(
         message=req.message,
-        user_id=req.user_id,
+        user_id=user_id,
         conv_id=conv_id,
         context=full_context,
         history=history,
@@ -485,7 +540,7 @@ async def chat(req: ChatRequest):
             ticket, handoff_created = await asyncio.to_thread(
                 _ticket_service.create_ticket,
                 idempotency_key=f"chat:{request_id}:handoff",
-                user_id=req.user_id,
+                user_id=user_id,
                 conv_id=conv_id,
                 request_id=request_id,
                 question=req.message,
@@ -508,11 +563,11 @@ async def chat(req: ChatRequest):
             )
 
     # 6. 写入记忆：只保存实际发布给用户的文本。
-    await _memory.add_message(req.user_id, conv_id, MsgRole.USER, req.message)
-    await _memory.add_message(req.user_id, conv_id, MsgRole.ASSISTANT, response_text)
+    await _memory.add_message(user_id, conv_id, MsgRole.USER, req.message)
+    await _memory.add_message(user_id, conv_id, MsgRole.ASSISTANT, response_text)
 
     # 7. 异步更新用户画像（不阻塞响应）
-    asyncio.create_task(_memory.update_profile(req.user_id, conv_id))
+    asyncio.create_task(_memory.update_profile(user_id, conv_id))
 
     return ChatResponse(
         request_id=request_id,
@@ -530,8 +585,7 @@ async def chat(req: ChatRequest):
         synthesis_status=result.synthesis_status,
         synthesis_reason=result.synthesis_reason,
         synthesis_conflicts=result.synthesis_conflicts,
-        agent_outcomes=result.agent_outcomes,
-        producer_agent_keys=result.producer_agent_keys,
+        agent_outcomes=_public_agent_outcomes(result.agent_outcomes),
         task_plan=result.task_plan,
         coverage=result.coverage,
         execution_budget=result.execution_budget,
@@ -574,7 +628,7 @@ def _handoff_priority(urgency: Any, verification_status: str) -> TicketPriority:
 
 
 @app.post("/tickets", tags=["人工工单"])
-async def create_ticket(body: TicketCreateRequest):
+async def create_ticket(body: TicketCreateRequest, _principal: Principal = Depends(_admin_principal)):
     """Manually create an idempotent handoff ticket."""
     if _ticket_service is None:
         raise HTTPException(503, "工单服务未就绪")
@@ -595,6 +649,7 @@ async def list_tickets(
     user_id: Optional[str] = None,
     status: Optional[TicketStatus] = None,
     limit: int = Query(default=50, ge=1, le=200),
+    _principal: Principal = Depends(_admin_principal),
 ):
     """List tickets with optional user and status filters."""
     if _ticket_service is None:
@@ -609,7 +664,7 @@ async def list_tickets(
 
 
 @app.get("/tickets/{ticket_id}", tags=["人工工单"])
-async def get_ticket(ticket_id: str):
+async def get_ticket(ticket_id: str, _principal: Principal = Depends(_admin_principal)):
     """Return a ticket together with its immutable transition history."""
     if _ticket_service is None:
         raise HTTPException(503, "工单服务未就绪")
@@ -620,7 +675,11 @@ async def get_ticket(ticket_id: str):
 
 
 @app.patch("/tickets/{ticket_id}/status", tags=["人工工单"])
-async def update_ticket_status(ticket_id: str, body: TicketStatusUpdate):
+async def update_ticket_status(
+    ticket_id: str,
+    body: TicketStatusUpdate,
+    _principal: Principal = Depends(_admin_principal),
+):
     """Apply one legal state transition and append an audit event."""
     if _ticket_service is None:
         raise HTTPException(503, "工单服务未就绪")
@@ -712,7 +771,7 @@ def _should_use_knowledge(message: str, intent=None) -> bool:
 
 
 @app.get("/monitor")
-async def monitor_summary():
+async def monitor_summary(_principal: Principal = Depends(_admin_principal)):
     """实时监控摘要：Agent 成功率、工具统计、告警、优化建议。"""
     if _monitor is None:
         raise HTTPException(503, "服务未就绪")
@@ -726,7 +785,11 @@ async def prometheus_metrics():
 
 
 @app.post("/search")
-async def search(query: str, top_k: int = 5):
+async def search(
+    query: str,
+    top_k: int = 5,
+    _principal: Principal = Depends(_knowledge_principal),
+):
     """
     演示检索优化链路：查询改写 → 并行召回 → 重排 → Top-K。
     展示 MCP 工具调用的核心亮点。
@@ -772,7 +835,7 @@ class EvalRunInput(BaseModel):
 
 
 @app.post("/knowledge/add", tags=["知识库"])
-async def add_knowledge(body: BatchDocInput):
+async def add_knowledge(body: BatchDocInput, _principal: Principal = Depends(_admin_principal)):
     """
     批量导入文档到知识库。
 
@@ -798,7 +861,10 @@ async def add_knowledge(body: BatchDocInput):
 
 
 @app.post("/knowledge/upload", tags=["知识库"])
-async def upload_knowledge(file: UploadFile = File(...)):
+async def upload_knowledge(
+    file: UploadFile = File(...),
+    _principal: Principal = Depends(_admin_principal),
+):
     """
     上传文件导入知识库。
 
@@ -843,7 +909,7 @@ async def upload_knowledge(file: UploadFile = File(...)):
 
 
 @app.get("/knowledge/stats", tags=["知识库"])
-async def knowledge_stats():
+async def knowledge_stats(_principal: Principal = Depends(_admin_principal)):
     """查看知识库统计信息（文档片段总数）。"""
     tool = _tool_manager._tools.get("knowledge_search") if _tool_manager else None
     if tool is None:
@@ -853,7 +919,10 @@ async def knowledge_stats():
 
 
 @app.post("/eval/run")
-async def run_eval(body: Optional[EvalRunInput] = None):
+async def run_eval(
+    body: Optional[EvalRunInput] = None,
+    _principal: Principal = Depends(_admin_principal),
+):
     """运行内置评测用例，返回评测报告。"""
     if _evaluator is None:
         raise HTTPException(503, "服务未就绪")

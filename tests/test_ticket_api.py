@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 
 from api import main
+from core.auth import Principal
 from services.ticket_service import TicketService
 
 
@@ -20,11 +21,20 @@ def payload():
     }
 
 
+def admin_client():
+    """工单 HTTP 是管理面；测试显式注入已认证 admin Principal。"""
+    main.app.dependency_overrides[main.get_principal] = lambda: Principal(
+        subject="support-admin",
+        scopes=frozenset({"admin"}),
+    )
+    return TestClient(main.app)
+
+
 def test_ticket_api_create_list_detail_and_transition(tmp_path, monkeypatch):
     """证明创建、列表、详情和合法迁移的完整 API 主路径。"""
     service = TicketService(str(tmp_path / "tickets.db"))
     monkeypatch.setattr(main, "_ticket_service", service)
-    client = TestClient(main.app)
+    client = admin_client()
 
     created = client.post("/tickets", json=payload())
     assert created.status_code == 200
@@ -62,7 +72,7 @@ def test_ticket_api_maps_conflict_and_missing_states(tmp_path, monkeypatch):
     """证明幂等冲突与缺失工单映射为稳定 HTTP 错误。"""
     service = TicketService(str(tmp_path / "tickets.db"))
     monkeypatch.setattr(main, "_ticket_service", service)
-    client = TestClient(main.app)
+    client = admin_client()
 
     created = client.post("/tickets", json=payload()).json()
     ticket_id = created["ticket"]["ticket_id"]

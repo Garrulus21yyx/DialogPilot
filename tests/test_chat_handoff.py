@@ -4,6 +4,7 @@ from types import SimpleNamespace
 from agents.agent_orchestrator import AgentType, OrchestratorResult
 from api import main
 from core.intent_recognizer import IntentCategory, UrgencyLevel
+from core.auth import Principal
 from services.answer_verifier import (
     VerificationReasonCode,
     VerificationResult,
@@ -106,8 +107,9 @@ def test_chat_escalation_creates_one_persistent_idempotent_ticket(tmp_path, monk
         conv_id="conversation-1",
         request_id="stable-request-1",
     )
-    first = asyncio.run(main.chat(request))
-    retry = asyncio.run(main.chat(request))
+    principal = Principal(subject="user-1", scopes=frozenset({"chat"}))
+    first = asyncio.run(main.chat(request, principal))
+    retry = asyncio.run(main.chat(request, principal))
 
     assert first.escalated is True
     assert first.handoff_created is True

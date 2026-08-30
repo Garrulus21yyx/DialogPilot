@@ -104,6 +104,7 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
     monkeypatch.setattr(evaluation_module, "EndToEndEvaluator", FakeEvaluator)
 
     monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+    monkeypatch.setenv("AUTH_JWT_SECRET", "test-secret-that-is-at-least-32-bytes-long")
     monkeypatch.setenv("TICKET_DB_PATH", str(tmp_path / "tickets.db"))
     monkeypatch.setenv("MEMORY_TOKEN_BUDGET", "4321")
     monkeypatch.setenv("MEMORY_COMPRESSION_THRESHOLD", "0.81")

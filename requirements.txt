@@ -8,6 +8,7 @@ fastapi==0.115.5
 uvicorn[standard]==0.32.1
 pydantic==2.10.3
 python-multipart==0.0.12    # FastAPI 文件上传支持
+PyJWT==2.10.1               # HTTP Bearer JWT 签名、issuer/audience/exp 验证
 
 # ── 数据存储 ──────────────────────────────────────────────────────────────────
 redis==5.2.1

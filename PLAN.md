@@ -106,6 +106,28 @@ Produced/updated commentary surfaces:
 - [done] Add runtime configuration, 14 focused memory/tool tests, one orchestration projection gate, and pass all 65 repository tests.
 - [done] Publish the 26-chapter/56-question Page update; verify desktop and 390px mobile width, anchors, Evidence Board, question cards, overflow, and console state in deployed Chromium.
 
+## Production-boundary convergence: identity, memory lifecycle, storage, escalation
+
+Goal: close the eight code-backed gaps found after the memory/ReAct milestone without
+moving authority into API projections or hiding unsupported behavior in documentation.
+
+- [done] Derive an authenticated Principal at the HTTP boundary and make memory/ticket operations consume server-owned identity; remove rejected candidate content from the public chat projection.
+- [in_progress] Add an idempotent explicit conversation-finalization contract that archives unpersisted raw turns before Redis expiry, and make one versioned per-user profile the authoritative record.
+- [pending] Make Chroma backend selection explicit and fail closed in remote mode; decouple local n-gram similarity from `ANTHROPIC_BASE_URL` behind an explicit configuration mode.
+- [pending] Register a real EscalationAgent so TaskPlan Owner and responding capability agree; make performance routing claims conditional on actual same-type alternatives.
+- [pending] Add positive invariant tests for authentication, projection redaction, idempotent archival, profile ordering, storage-mode selection, intent mode, escalation execution, and routing cardinality.
+- [pending] Update README, architecture, tutorial, interview guide, environment/Compose contracts, run all checks, push each coherent phase, and verify deployed Pages on desktop/mobile.
+
+Target contracts:
+
+- Public identity comes from a verified bearer token; request-body `user_id` is rejected on mismatch and is never authoritative.
+- Public `/chat` diagnostics contain status/latency/reason codes but never candidate response bodies or raw internal errors.
+- `finalize_conversation` archives each raw message range exactly once before removing working memory; compression and finalization share one episodic write contract.
+- `user_profile:{user_id}` is one versioned aggregate record; reads are deterministic and stale writers cannot overwrite a newer version.
+- `CHROMA_MODE=remote` never silently writes to local storage; embedded mode is explicit, and runtime mode is observable.
+- Escalation has a registered execution owner; online quality routing is reported as active only when a type has at least two instances.
+- `INTENT_SIMILARITY_MODE=ngram|disabled` owns similarity behavior independently of provider base URL.
+
 ## Constraints
 
 - Python implementation is authoritative; Java and the dual-backend frontend are out of scope.
