@@ -4,11 +4,12 @@
 
 ## 快速导航
 
-- 想先会讲：读第 0、3、5、19、20、22、26 章；
+- 想先会讲：读第 0、3、5、19、20、22、26、27 章；
 - 想吃透 Agent：读第 6、9、10、11、12、14、25 章；
 - 想吃透 Context/Memory：读第 8、25 章；
 - 想吃透后端可靠性：读第 7、13、17、18、21 章；
-- 面试前速查：读第 22、25 章连续追问、第 23 章闭卷自测，再用第 24 章做真实性审计。
+- 想把评测跑起来：读第 15、27 章；
+- 面试前速查：读第 22、25、27 章连续追问、第 23 章闭卷自测，再用第 24 章做真实性审计。
 
 ## 0. 先把项目说准确
 
@@ -44,8 +45,8 @@ DialogPilot 是一个 Python 3.12 + FastAPI 的异步多 Agent 客服后端。�
 2. 合同：一次请求必须得到可诊断的路由结果；只有明确 `PASS` 的回答能发布；需要人工时同步尝试创建持久工单，并把建单成功或失败明确返回。
 3. 主链：Memory → Intent → RAG → Context → TaskPlan → Workers → Coverage → Synthesis → Verification → Ticket → Persist published messages。
 4. 六个最值得深挖的改动：Token 驱动且并发安全的压缩、混合长期记忆、TaskPlan/CoverageGate、有界 ReAct 与权限、请求预算下的结果代数、校验质量反馈闭环。
-5. 证据：81 个测试，覆盖身份/公开投影、归档幂等/CAS、显式存储模式、真实 Escalation Owner、路由基数、混合召回、工具权限与 Trace。
-6. 边界：已有 JWT/scope 基线；多租户 IdP/ABAC 未完成，SQLite 只适合单应用写者，Trace/审计重启丢失，审批不能交互恢复，评测数据仍不足以声称生产准确率。
+5. 证据：96 个测试，覆盖身份/公开投影、归档幂等/CAS、显式存储模式、真实 Escalation Owner、路由基数、混合召回、工具权限、Trace 和版本化评测合同。
+6. 边界：已有 JWT/scope 基线；多租户 IdP/ABAC 未完成，SQLite 只适合单应用写者，Trace/审计重启丢失，审批不能交互恢复；已有 28 条 provisional 分层样本，但尚无 human-reviewed gold，不能声称生产准确率。
 
 ## 1. 如何学习这个仓库
 
@@ -879,40 +880,39 @@ Monitor 每隔 N 秒：
 
 ## 15. 离线评测
 
-代码：[`evaluation/evaluator.py`](../evaluation/evaluator.py)
+代码：[`evaluation/dataset.py`](../evaluation/dataset.py)、[`evaluation/evaluator.py`](../evaluation/evaluator.py)、[`evaluation/benchmark.py`](../evaluation/benchmark.py)
 
-### 15.1 三类评测信号
+### 15.1 两条评测路径不能混为一谈
 
-1. Intent：预测与标注比较，计算 accuracy、每类 precision/recall/F1 和 macro-F1。
-2. Dialog：直接调用 Orchestrator，再让 LLM Judge 从 relevance、accuracy、completeness、helpfulness 四维各打 0-1。
-3. Orchestration：从真实 `task_plan/coverage/agent_outcomes` 计算 coverage complete、task coverage、budget success rate、fan-out efficiency；case 提供 `expected_agents/expected_task_ids` 时再计算 route exact/Jaccard 和 task exact。
+1. **运行时路径**：Intent 计算 accuracy/Macro-F1；Dialog 真实调用 Orchestrator，再用 LLM Judge 评 relevance、accuracy、completeness、helpfulness；Orchestration 从 TaskPlan/outcome 计算 Owner exact、Jaccard、task coverage、budget 和 fan-out。
+2. **确定性预测路径**：版本化 JSONL 为 intent、routing、retrieval、stateful 四层定义期望结果，`evaluation.benchmark` 对完整 prediction 文件计算固定指标，不让主观 Judge 代替过程合同。
 
-因此类名虽叫 `EndToEndEvaluator`，当前实际覆盖的是 **Intent + Orchestrator candidate + orchestration evidence**，没有经过 `/chat` 的 Memory、RAG、ContextAssembler、AnswerVerifier、Ticket 和最终 response persistence。页面把它称为离线评测管线，而不声称是完整发布面的端到端测试。
+`EndToEndEvaluator` 实际覆盖 **Intent + Orchestrator candidate + orchestration evidence**，没有经过 `/chat` 的完整 Memory、RAG、ContextAssembler、Verifier、Ticket 和最终持久化。名称不能被用来夸成完整发布面 E2E。
 
-总体通过阈值为 0.75。报告保存时间、总数、通过数、均值、退化指标、建议和逐 case metadata。
+### 15.2 四层数据与指标
 
-### 15.2 基线
+| 层 | 期望字段 | 确定性指标 | 主要失败问题 |
+|---|---|---|---|
+| Intent | `intent` | Accuracy、Macro-F1、OOS Recall | 主意图/拒识是否正确 |
+| Routing | `owners/task_ids` | Owner exact/Jaccard、task exact、coverage、fan-out | 是否漏任务或乱并行 |
+| Retrieval | `relevant_ids` | Recall@K、MRR、nDCG | 精确证据是否召回且排在前面 |
+| Stateful | `assertions` | assertion pass、all pass | 隔离、授权、副作用等不变量是否成立 |
 
-`EVAL_BASELINE_PATH` 指向 JSON。当前报告和基线比较，任何共同指标相对下降超过 5% 就列为 regression。每次运行又会覆盖 baseline，所以它更像“最近一次运行基线”，不是版本化 benchmark。
+提交的 `dialogpilot-v1` 有 28 条 provisional case 和 6 篇稳定 corpus 文档，dev 19 / heldout 9。它覆盖复合路由、否定误触发、澄清、订单号/错误码召回、跨用户隔离、伪造审批和零副作用拒绝。**provisional 不是 gold**；默认 API/CLI 只选 `human_reviewed`，所以当前默认 gold 结果是 0 条，而不是 0% 或 100%。
 
-### 15.3 Judge 失败的风险
+### 15.3 数据身份和防污染合同
 
-Judge 异常时返回四个 0.5 并标记 `judge_failed=True`。这不会伪装成高分，但会混入平均值。任务覆盖和预算指标是代码计算，不受 Judge 故障影响；严格发布门禁仍应把 judge failure 作为独立 typed outcome，而不是普通 0.5 样本。
+每条 case 必须有 schema version、稳定 ID、layer、split、group_id、input、expected、tags、source/license 和 review status。Manifest 固定 case/corpus SHA-256；同一语义变体共用 group_id，校验器拒绝它跨 dev/heldout。自动映射公开数据保留原 label、原 split、license、URL 和 mapping version，但状态是 `auto_mapped`，不会混进项目 gold。
 
-### 15.4 什么能说，什么不能说
+### 15.4 API、基线和 Judge 边界
 
-可以说：“实现了可运行的评测管线和基线回归机制。”
+`GET /eval/datasets` 列出注册集和审核状态；`POST /eval/run` 可按 dataset_id/split/layers 运行 intent/routing，并把版本、checksum 和 review scope 写进报告。客户端只能选服务端注册 ID，不能传任意文件路径。retrieval/stateful 暂走 prediction scorer；若请求这两层，API 返回 typed 422，而不是悄悄跳过。
 
-不能说：“系统准确率达到 X%”，除非同时给出：
+`EVAL_BASELINE_PATH` 仍是最近一次运行基线，共同指标下降超过 5% 记 regression，不等于版本化发布基线。Judge 异常会标 `judge_failed=True` 并给四个 0.5；过程指标不受影响，但正式门禁应单独处理 Judge failure。
 
-- 数据集版本、规模和分布；
-- 模型、Prompt/Skill 版本；
-- 日期与环境；
-- Judge 校准方法；
-- dev/held-out 划分；
-- 重复运行方差。
+### 15.5 什么能说，什么不能说
 
-内置 11 条意图和 5 组对话只适合 smoke/regression，不足以证明生产质量。
+可以说：“建立了版本化四层评测合同、公开数据适配、split/checksum/review 门禁和可运行 scorer。”不能说“系统准确率达到 X%”，因为当前 28 条是 provisional，内置 11 条意图 + 5 组对话只是 smoke，尚无 human-reviewed gold 和正式 held-out 运行产物。真正报数还要同时给数据版本/分布、模型/Prompt/Skill/index 版本、日期环境、逐 slice 结果、Judge 校准和重复运行方差。
 
 ## 16. API 面与典型调用
 
@@ -928,7 +928,8 @@ Judge 异常时返回四个 0.5 并标记 `judge_failed=True`。这不会伪装�
 | GET | `/knowledge/stats` | chunk 计数 | JWT `admin`；数量不代表质量 |
 | GET | `/monitor` | 在线统计/告警/建议 | JWT `admin`；进程内状态 |
 | GET | `/metrics` | Prometheus scrape | 无业务维度高基数 |
-| POST | `/eval/run` | 运行评测 | JWT `admin`；会调用模型并写 baseline |
+| GET | `/eval/datasets` | 列出评测集 | JWT `admin`；显示版本、checksum、层/split/审核状态 |
+| POST | `/eval/run` | 运行评测 | JWT `admin`；注册集默认只跑 gold intent/routing |
 | POST/GET/PATCH | `/tickets...` | 工单 CRUD/迁移 | JWT `admin`；状态机仍由 TicketService 拥有 |
 
 示例：
@@ -1014,7 +1015,7 @@ python -m compileall -q agents api core evaluation mcp memory monitor services
 python -m pytest -q
 ```
 
-当前 81 个测试按不变量分组：
+当前 96 个测试按不变量分组：
 
 ### Lifespan 与 RAG boundary
 
@@ -1093,6 +1094,17 @@ python -m pytest -q
 
 - 正确 Owner 集合、任务集合和完整覆盖得到满分编排指标；
 - 额外 Agent、覆盖缺口和预算失败分别降低 route、fan-out、coverage 和 budget 指标。
+
+### Layered evaluation data
+
+[`tests/test_layered_eval_dataset.py`](../tests/test_layered_eval_dataset.py)、[`tests/test_eval_api_dataset.py`](../tests/test_eval_api_dataset.py)
+
+- checksum 拒绝旁路修改，group 变体不能跨 dev/heldout；
+- human-reviewed 必须带 reviewer、reviewed_at、notes；审核命令同步重算 checksum；
+- 缺 prediction 不会静默缩小分母，四层指标保持确定性；
+- 注册表拒绝路径穿越，API 默认 gold-only 并保留 dataset identity；
+- provisional 需要显式 opt-in，retrieval/stateful unsupported runtime layer 返回 typed failure；
+- Bitext 未确认 CDLA-Sharing 条款时脚本拒绝下载生成。
 
 ### Quality routing
 
@@ -1234,9 +1246,9 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 当前已经用 contextvars 串联 HTTP、ReAct step 与 Tool span，并向 API 返回 TraceId/脱敏工具审计；下一步是接 OpenTelemetry exporter 和持久后端，继续覆盖 intent、retrieval、synthesis、verify、ticket，记录版本、typed outcome、token/cost，并定义采样、保留与敏感字段策略。
 
-### P1：版本化评测
+### P1：把 provisional seed 扩成 gold benchmark
 
-建立 ≥100 条分层数据，80/20 dev/held-out；记录 dataset/prompt/skill/model/index 版本；用确定性 grader + LLM Judge + 人工抽检；发布看 pass^k、关键 slice 和 cost/success。
+版本化 schema、28 条 provisional seed、公开集 adapter 和确定性 grader 已完成。下一步是双人复核/仲裁并扩到 ≥100 条项目样本，保持 group-safe dev/held-out；报告补齐 prompt/skill/model/index 版本、关键 slice、重复运行方差、pass^k 和 cost/success。自动映射公开数据只做外部压力测试。
 
 ### P1：审批恢复与副作用 receipt
 
@@ -1254,7 +1266,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q2：你个人具体负责了什么？
 
-**推荐诚实答案：** 我接手的是一个已有客服原型。我负责仓库清理和 DialogPilot 命名迁移，并完成持久工单、Token/CAS 压缩、typed synthesis、TaskPlan/CoverageGate、混合记忆、ReAct 权限/Trace，以及 JWT/公开投影、短会话归档、显式 Chroma 模式、真实 Escalation Owner 等边界收敛。当前有 81 个测试、CI、Docker 验证和架构文档。原型已有功能会按 commit 划清边界，不说成全部从零原创。
+**推荐诚实答案：** 我接手的是一个已有客服原型。我负责仓库清理和 DialogPilot 命名迁移，并完成持久工单、Token/CAS 压缩、typed synthesis、TaskPlan/CoverageGate、混合记忆、ReAct 权限/Trace，以及 JWT/公开投影、短会话归档、显式 Chroma 模式、真实 Escalation Owner 和分层评测合同。当前有 96 个测试、CI、Docker 验证和架构文档。原型已有功能会按 commit 划清边界，不说成全部从零原创。
 
 **追问：去掉你的改动还剩什么？** 仍有基础 FastAPI、三路意图、Redis/Chroma 记忆、RAG、领域 Agent、Skill、监控和评测原型；会失去真实工单闭环、Token/并发压缩不变量、TaskPlan/覆盖门禁、有类型并行结果、质量反馈、混合召回、工具权限/Trace 和 Worker ReAct。
 
@@ -1378,7 +1390,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q25：还有哪些地方你不会过度声称？
 
-**答：** 不把 local n-gram 叫生产 embedding；不把内部 ToolManager 叫完整 MCP Server；不把“确定性 Planner + Worker 内有界 ReAct”叫开放式自治平台；不把进程内 Trace 叫持久 OpenTelemetry；不把 16 个内置评测 case 叫生产准确率；不把异步 `create_task` 叫可靠队列。
+**答：** 不把 local n-gram 叫生产 embedding；不把内部 ToolManager 叫完整 MCP Server；不把“确定性 Planner + Worker 内有界 ReAct”叫开放式自治平台；不把进程内 Trace 叫持久 OpenTelemetry；不把 16 个内置 smoke case 或 28 个 provisional case 叫生产准确率；不把异步 `create_task` 叫可靠队列。
 
 ## 23. 最后自测：不看答案能否讲出来
 
@@ -1483,7 +1495,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q38：当前评测数据到底有多少，能证明什么？
 
-**答：** 内置数据是 11 条意图 case 和 5 组对话，共 16 个 smoke/regression 样本；质量及格线默认 0.75。仓库还有 81 个确定性测试，它们证明状态机、身份、失败边界、任务覆盖、工具权限、ReAct 和记忆不变量，但不等于 81 条业务准确率样本。
+**答：** 内置数据仍是 11 条意图 + 5 组对话 smoke case；另有 28 条 provisional 四层 seed 和 6 篇 retrieval corpus，但还没有 human-reviewed gold。仓库的 96 个确定性测试证明状态机、身份、失败边界、任务覆盖、工具权限、ReAct、记忆和数据合同，不等于 96 条业务准确率样本。
 
 **不能声称什么：** 不能据此声称生产准确率、行业 SOTA 或泛化能力。生产发布需要版本化数据集、关键 slice、dev/held-out 分离和人工校准 Judge。
 
@@ -1594,7 +1606,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 **Action：** 在 Worker 内增加最大 4 步的 Anthropic tool loop；工具发现和执行共享同一 allowlist，执行边界再次校验；高风险/写工具默认等待宿主批准，读工具批次并行、潜在写工具串行；工具输出截断后按 call_id 回写，TraceId 通过 contextvars 贯穿并行 Task，审计只记录参数哈希/shape；拒绝、失败、超步数禁止 General fallback 覆盖。
 
-**Result：** 工具/ReAct 聚焦测试和编排投影测试证明越权零副作用、审批阻断、循环停止、结果配对、输出有界、Trace 传播和失败证据贯穿；连同新增生产边界测试，整个仓库 81 项测试通过。
+**Result：** 工具/ReAct 聚焦测试和编排投影测试证明越权零副作用、审批阻断、循环停止、结果配对、输出有界、Trace 传播和失败证据贯穿；连同生产边界与分层评测合同测试，整个仓库 96 项测试通过。
 
 **简历一行（只在你能现场解释代码时使用）：**
 
@@ -1714,4 +1726,141 @@ Verifier 必须读取完整 `AgentOutcome.content/error/producer` 才能判断�
 
 ### Q64：这一轮怎样写成 STAR？
 
-**S：** 原链路在 TTL、诊断投影和部署降级处存在“成功返回但事实丢失或泄漏”的边界。**T：** 让身份、归档、存储模式和升级执行者各有唯一 Owner，并让失败可重试、可观测。**A：** 实现 JWT Principal/scope、公开 outcome redaction、确定性消息归档 + Redis CAS finalize、单记录版本画像、显式 Chroma/intent 模式、tool-free EscalationAgent 和路由基数披露。**R：** 81 项测试覆盖身份伪造、候选泄漏、归档幂等、并发保留、模式 fail-closed、真实升级执行和单/多实例路由；不虚构线上提升。
+**S：** 原链路在 TTL、诊断投影和部署降级处存在“成功返回但事实丢失或泄漏”的边界。**T：** 让身份、归档、存储模式和升级执行者各有唯一 Owner，并让失败可重试、可观测。**A：** 实现 JWT Principal/scope、公开 outcome redaction、确定性消息归档 + Redis CAS finalize、单记录版本画像、显式 Chroma/intent 模式、tool-free EscalationAgent 和路由基数披露。**R：** 相关不变量由测试覆盖；全仓当前 96 项测试通过，不虚构线上提升。
+
+## 27. 把评测数据真正跑起来：从 provisional 到 held-out 报告
+
+这套评测设计的关键不是“找一个大数据集跑 Accuracy”，而是让 **数据身份、审核、执行和评分各有唯一 Owner**：DatasetBundle 拥有样本合同，人工审核拥有 gold 资格，运行器产生 actual，Benchmark 只做确定性比较，报告用 checksum 绑定具体数据内容。
+
+```mermaid
+flowchart LR
+    A[项目 badcase / 脱敏工单] --> B[provisional JSONL]
+    P[BANKING77 / CLINC150 / Bitext] --> M[auto-mapped pressure set]
+    B --> R[双人复核 + 仲裁]
+    R -->|human_reviewed| G[project gold]
+    G --> D[dev: 调参]
+    G --> H[heldout: 只做发布判断]
+    D --> X[Runtime / prediction producer]
+    H --> X
+    X --> S[deterministic scorer]
+    S --> O[version + checksum + slice outcomes]
+```
+
+### 27.1 第一步：校验仓库 seed
+
+```bash
+cd /home/yang/DialogPilot
+source .venv/bin/activate
+python -m evaluation.dataset data/eval/dialogpilot-v1
+```
+
+校验器会检查 schema、manifest 数量、case/corpus checksum、重复 ID、retrieval relevant ID，以及 group_id 是否跨 dev/heldout。当前输出应对应 28 cases、6 corpus、dev 19、heldout 9；审核状态全是 provisional。
+
+### 27.2 第二步：把 provisional 复核成 gold
+
+逐条打开 `cases.jsonl`，先判断输入是否存在唯一合理期望；有歧义就改写或删除，不要强行给标签。然后核对 expected、风险 slice、source/license 和 group_id。不要手改 status/hash，用审核命令把 required metadata 与新 checksum 一起提交：
+
+```bash
+python scripts/review_eval_dataset.py data/eval/dialogpilot-v1 \
+  --case-id intent-dev-negation-01 \
+  --reviewer reviewer-a \
+  --notes 'intent、歧义和 split 已核对' \
+  --confirm-human-review
+```
+
+校验器强制 human_reviewed 必须有 reviewer、reviewed_at、notes；命令只改变所选 case 的审核元数据并重封 cases checksum，corpus 若被旁路修改则拒绝执行。
+
+推荐流程是标注者 A、标注者 B 独立判断，冲突由第三人仲裁。项目作者自己一遍标完可以做开发 seed，但不能冒充独立 gold。dev 可用于调 Prompt、阈值和 RRF 权重；heldout 标签不能反向参与这些选择。
+
+### 27.3 第三步：生成公开压力集
+
+```bash
+python scripts/build_eval_dataset.py --source banking77 --max-per-label 20
+python scripts/build_eval_dataset.py --source clinc150-oos --max-per-label 20
+```
+
+- [BANKING77](https://github.com/PolyAI-LDN/task-specific-datasets) 只映射与客服域重叠的金融意图，适合压 Payment、AccountSecurity、Login 等细粒度边界；CC BY 4.0。
+- [CLINC150](https://archive.ics.uci.edu/dataset/570/clinc150) 这里只取 OOS，映射到 `other`，用于测拒识；CC BY 4.0。
+- [Bitext Customer Support](https://github.com/bitext/customer-support-llm-chatbot-training-dataset) 与客服域更接近，但仓库标注 CDLA-Sharing-1.0，脚本要求显式 `--accept-cdla-sharing`，避免无意识再分发。
+
+生成目录位于 `data/eval/generated/` 且默认 gitignore。自动标签映射只是 external pressure test；即使准确率很高，也不能写成“DialogPilot 项目准确率”。
+
+### 27.4 第四步：通过 API 跑 intent/routing
+
+```bash
+curl http://localhost:8000/eval/datasets \
+  -H "Authorization: Bearer $DIALOGPILOT_ADMIN_TOKEN"
+
+curl -X POST http://localhost:8000/eval/run \
+  -H "Authorization: Bearer $DIALOGPILOT_ADMIN_TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "dataset_id": "dialogpilot-v1",
+    "split": "dev",
+    "layers": ["intent", "routing"],
+    "include_non_gold": true
+  }'
+```
+
+当前 seed 尚未 human review，所以正式默认请求会返回 `no_eligible_eval_cases`；示例中的 `include_non_gold=true` 只验证管线。报告 metadata 固定 registry ID、dataset version、cases checksum、split、layers、review scope 和 case count。注册表只接受简单 ID，`../` 等路径输入被拒绝。
+
+### 27.5 第五步：为四层产出统一 prediction JSONL
+
+每个被选 case 必须恰有一条 actual；漏一条时 scorer 直接失败，不允许通过缩小分母美化指标。
+
+```json
+{"case_id":"intent-001","actual":{"intent":"other"}}
+{"case_id":"routing-001","actual":{"owners":["technical","billing"],"task_ids":["technical_task","billing_task"]}}
+{"case_id":"retrieval-001","actual":{"retrieved_ids":["doc-login-401","doc-noise"]}}
+{"case_id":"stateful-001","actual":{"assertions":{"blocked":true,"side_effect_zero":true}}}
+```
+
+Intent/routing 已能从注册集进入 `/eval/run`。Retrieval producer 应记录真实返回的稳定 document IDs；stateful producer 应在隔离测试环境观察工具审计、存储变化和公开响应后填布尔 assertion。当前仓库没有把后两类伪装成 live API 已执行：请求 unsupported layer 会明确 422。
+
+### 27.6 第六步：确定性评分与报告
+
+```bash
+# 正式口径：只选 human-reviewed gold
+python -m evaluation.benchmark \
+  data/eval/dialogpilot-v1 predictions.jsonl --split heldout
+
+# 仅验证管线：纳入 provisional/auto-mapped
+python -m evaluation.benchmark \
+  data/eval/dialogpilot-v1 predictions.jsonl --split heldout --include-non-gold
+```
+
+正式报告至少保存：git commit、dataset version/checksum、split、review scope、模型与配置版本、逐 case outcome、layer/slice 指标、日期环境。第一次合理实验不是追求一个总分，而是做消融：single vs task-aware routing、vector vs BM25+vector+recency、不同 chunk/overlap、Verifier/Skill on-off；一次只改变一个因素。
+
+### 27.7 评测追问与参考答案
+
+### Q65：有公开数据，为什么还要自己标项目集？
+
+**答：** 公开集定义的是它自己的标签体系，不能证明 DialogPilot 的 TaskPlan、Owner、知识 corpus、记忆隔离或工具授权。它适合测迁移和 OOS 压力；项目 gold 才拥有本仓库业务规则的期望行为。
+
+### Q66：28 条数据能报准确率吗？
+
+**答：** 不能报生产准确率。28 条目前还是 provisional，价值是固定 schema、难例和执行管线；审核后也只能作为小型回归集。要估计泛化质量，需要扩大样本、按用户/时间/语义组去重切分，并报告区间和错误 slice。
+
+### Q67：为什么 default gold-only 返回 0 case，而不是自动跑 provisional？
+
+**答：** 审核资格是人工 Owner 的事实，运行器不能为了有数字就提升数据身份。0 eligible 是正确的 fail-closed 结果，提醒先完成审核；`include_non_gold` 只用于调试并在 metadata 留痕。
+
+### Q68：为什么不能随机逐条 80/20？
+
+**答：** 同一问题的改写若分到两边会造成语义泄漏。仓库按 group_id 约束变体，整组只能属于 dev 或 heldout；进一步还应按用户、工单、时间和文档来源去重。
+
+### Q69：Macro-F1 与 Accuracy 怎么一起看？
+
+**答：** Accuracy 容易被问候等大类主导；Macro-F1 给每类同等权重，能暴露小类崩溃。还要看账户安全/支付 false negative、OOS recall 和 confusion matrix，不能只报一个总数。
+
+### Q70：RAG 为什么同时看 Recall@K、MRR、nDCG？
+
+**答：** Recall@K 看 relevant 证据是否进入候选，MRR 看第一条相关证据有多靠前，nDCG 看多个相关证据的整体排序。只看 answer 文本会把模型常识和检索证据混在一起，无法归因改进来自哪里。
+
+### Q71：LLM Judge 能不能当发布唯一门禁？
+
+**答：** 不能。Judge 有偏差和故障；路由集合、任务覆盖、检索 ID、授权和零副作用都有确定性 truth，应先由代码评分。Judge 只补充开放文本质量，并需与人工样本校准。
+
+### Q72：这项改造怎样写成 STAR？
+
+**S：** 原仓库只有 11+5 内置 smoke case，无法复现旧准确率，也不能定位路由、召回和安全错误。**T：** 建立不会混淆公开数据、草稿标注和项目 gold 的评测闭环。**A：** 实现四层 JSONL/manifest、group-safe split、checksum/provenance/review 状态、BANKING77/CLINC150/Bitext adapter、注册 API 和确定性 scorer。**R：** 28 条 provisional 难例与 6 篇 corpus 已落库，96 项测试验证缺预测失败、路径隔离、审核门禁和分层指标；尚未声称未经 human review 的准确率。

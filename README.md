@@ -112,7 +112,8 @@ fails startup when the declared server is unavailable; `embedded` uses only
 | `GET` | `/skills` | Inspect loaded dynamic skills |
 | `POST` | `/skills/reload` | Reload skills without a process restart |
 | `GET` | `/monitor` | Agent/tool metrics, alerts, and suggestions |
-| `POST` | `/eval/run` | Intent and end-to-end quality evaluation |
+| `GET` | `/eval/datasets` | List versioned evaluation sets and review state |
+| `POST` | `/eval/run` | Run selected intent/routing dataset slices or smoke cases |
 | `POST` | `/tickets` | Manually create an idempotent handoff ticket |
 | `GET` | `/tickets` | List tickets by user and/or status |
 | `GET` | `/tickets/{ticket_id}` | Read a ticket and its transition history |
@@ -150,6 +151,55 @@ selected task's typed execution outcome. Workers share one request deadline and
 max-Agent budget; `BUDGET_EXCEEDED` remains attached to the unresolved task.
 Coverage gaps, duplicate/unexpected outcomes, or detected conflicts trigger a
 fail-closed handoff instead of being hidden by a fluent partial answer.
+
+## Versioned evaluation data
+
+The committed `dialogpilot-v1` seed contains 28 repository-specific cases and
+six retrieval documents across intent, routing, retrieval, and stateful safety
+layers. Every seed case is deliberately `provisional`: it is useful for
+reviewing the evaluation contract, but the default scorer excludes it from
+project-gold metrics until a human verifies the input, expected result,
+ambiguity, split, and review metadata.
+
+```bash
+# Validate schema, checksums, references, and group-safe dev/heldout splits.
+python -m evaluation.dataset data/eval/dialogpilot-v1
+
+# After inspecting/correcting selected case inputs and expected labels:
+python scripts/review_eval_dataset.py data/eval/dialogpilot-v1 \
+  --case-id intent-dev-negation-01 \
+  --reviewer reviewer-a --notes 'intent and ambiguity checked' \
+  --confirm-human-review
+
+# Build external pressure-test data (generated output is gitignored and non-gold).
+python scripts/build_eval_dataset.py --source banking77 --max-per-label 20
+python scripts/build_eval_dataset.py --source clinc150-oos --max-per-label 20
+
+# Score a complete prediction JSONL for one split. Default: human-reviewed only.
+python -m evaluation.benchmark data/eval/dialogpilot-v1 predictions.jsonl --split heldout
+
+# Dry-run provisional/auto-mapped cases; do not publish this as project accuracy.
+python -m evaluation.benchmark data/eval/dialogpilot-v1 predictions.jsonl \
+  --split heldout --include-non-gold
+```
+
+BANKING77 contributes overlapping customer-support intents and CLINC150
+contributes out-of-scope examples. Their original label, upstream split,
+license, URL, and mapping version remain in every generated case. Bitext is
+opt-in because its CDLA-Sharing-1.0 obligations must be accepted explicitly:
+
+```bash
+python scripts/build_eval_dataset.py --source bitext --max-per-label 20 \
+  --accept-cdla-sharing
+```
+
+With an admin token, `GET /eval/datasets` exposes counts and review status.
+`POST /eval/run` accepts `dataset_id`, `split`, `layers`, and
+`include_non_gold`; only intent/routing currently execute through the live
+runtime. Retrieval and stateful/security outputs use the deterministic
+prediction scorer so unsupported layers cannot be silently reported as run.
+Every runtime report carries dataset version, checksum, split, layer set, and
+review scope.
 
 Runtime Agent statistics separate execution availability from verified answer
 quality. `PASS` and `REJECT` update a sample-aware EWMA quality score for the
@@ -200,8 +250,9 @@ and generated caches are intentionally excluded. Never commit `.env`.
 - SQLite is suitable for a single application writer; a multi-replica deployment
   should migrate the same TicketService contract to PostgreSQL.
 - LLM verification adds latency and model cost to each published response.
-- Built-in evaluation cases are suitable for regression checks, not production
-  accuracy claims.
+- The repository has a 28-case provisional layered seed plus 11 intent and five
+  dialog smoke cases, but no human-reviewed gold cases yet; none supports a
+  production accuracy claim.
 - No pre-generated quality baseline is committed; `/eval/run` creates one for
   the configured model and environment.
 - Local development expects Redis; Chroma must be explicitly `remote` or `embedded`.

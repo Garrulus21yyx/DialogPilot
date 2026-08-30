@@ -141,14 +141,20 @@ def _main() -> int:
     parser.add_argument("dataset")
     parser.add_argument("predictions")
     parser.add_argument("--split", choices=("dev", "heldout"), required=True)
-    parser.add_argument("--include-auto-mapped", action="store_true")
+    parser.add_argument(
+        "--include-non-gold",
+        "--include-auto-mapped",
+        dest="include_non_gold",
+        action="store_true",
+        help="include provisional and auto-mapped cases for dry runs; never report as project gold",
+    )
     parser.add_argument("--retrieval-k", type=int, default=5)
     args = parser.parse_args()
     report = score_bundle(
         DatasetBundle.load(args.dataset),
         read_predictions(args.predictions),
         split=args.split,
-        gold_only=not args.include_auto_mapped,
+        gold_only=not args.include_non_gold,
         retrieval_k=max(1, args.retrieval_k),
     )
     print(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True))

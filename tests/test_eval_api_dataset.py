@@ -18,6 +18,12 @@ def _source():
 
 
 def _row(case_id, layer, expected, *, status="human_reviewed"):
+    review = {"status": status, "reviewer": "test"}
+    if status == "human_reviewed":
+        review.update({
+            "reviewed_at": "2026-08-30T00:00:00+00:00",
+            "notes": "test fixture",
+        })
     return {
         "schema_version": 1,
         "id": case_id,
@@ -28,7 +34,7 @@ def _row(case_id, layer, expected, *, status="human_reviewed"):
         "expected": expected,
         "tags": [],
         "source": _source(),
-        "review": {"status": status, "reviewer": "test"},
+        "review": review,
     }
 
 

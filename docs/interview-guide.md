@@ -28,7 +28,7 @@ title: DialogPilot 面经校准与追问手册
 | 长期记忆只检索摘要 | 检索 1200 字符/120 overlap 原始片段，摘要只是背景 metadata | **CHANGED** |
 | 知识库是 BM25 + 向量 + RRF | 这是长期记忆；知识 RAG 仍是 rewrite + Chroma 多路向量 + 去重 + LLM rerank | **CORRECTED** |
 | Agent 单次生成、无完整 Trace | Worker 内最多 4 步 ReAct，allowlist/宿主审批/脱敏 audit/TraceId | **CHANGED** |
-| 准确率 91.3%、综合分 0.89 | 当前只有 11 条意图、5 条对话 smoke case 和 81 项回归测试，不是生产 benchmark | **UNPROVEN** |
+| 准确率 91.3%、综合分 0.89 | 当前有 11+5 smoke、28 条 provisional 分层 seed、6 篇 corpus 和 96 项回归测试，但仍无 human-reviewed gold | **UNPROVEN** |
 | 完整 MCP Server / LangGraph | 是内部 ToolManager 与直接 Python 编排；没有远程 MCP Server，没用 LangGraph | **UNPROVEN** |
 
 ## 项目开场与完整链路
@@ -81,7 +81,7 @@ title: DialogPilot 面经校准与追问手册
 
 ### Q12：怎样测意图识别？
 
-当前有 Accuracy/Macro-F1，但内置只有 11 条样例，是 smoke test 而非生产准确率。完整方案应有去重 held-out 集、confusion matrix、每类 precision/recall/F1、置信度校准、拒识质量与复合/否定难例 slice。
+当前有 Accuracy/Macro-F1、版本化 intent layer 和公开数据 adapter。内置 11 条仍只是 smoke，28 条项目 seed 还是 provisional；正式结果必须来自 human-reviewed、group-safe heldout，并报告 confusion matrix、每类 precision/recall/F1、置信度校准、拒识质量与复合/否定难例 slice。
 
 ## TaskPlan 与 Multi-Agent 编排
 
@@ -227,7 +227,7 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q46：当前评测链路是什么？
 
-意图评测计算 Accuracy/Macro-F1；对话评测真实调 Agent 链路，LLM-as-Judge 返回 relevance、accuracy、completeness、helpfulness 0–1 分，默认通过阈值 0.75。报告还有 detail、metadata、regressions 和 recommendations。
+有两条链。运行时链对 intent 算 Accuracy/Macro-F1，对 dialog 真实调 Orchestrator 并用 LLM Judge；确定性链对版本化 intent/routing/retrieval/stateful prediction 分别算分类、Owner/task、Recall@K/MRR/nDCG 和 assertion 指标。报告带 dataset version/checksum/split/review scope。
 
 ### Q47：Judge 分高就代表路由正确吗？
 
@@ -235,7 +235,7 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q48：91.3%、0.89 等旧数字怎么回答？
 
-**UNPROVEN。** 旧数字没对应数据集、切分、运行产物和 commit，已移除。可证明的是 81 项回归测试通过与内置 11+5 smoke case。建立生产 benchmark 后才报均值、方差、slice 和置信区间。
+**UNPROVEN。** 旧数字没对应数据版本、切分、运行产物和 commit，已移除。当前可证明的是 96 项回归测试、11+5 smoke、28 条 provisional seed、6 篇 corpus 和可运行 scorer；因为 gold 仍为 0，不能报项目准确率。审核并运行 heldout 后才报均值、方差、slice 和置信区间。
 
 ### Q49：多 LLM 调用怎么降延迟？
 
@@ -279,7 +279,7 @@ Trace 缺 OpenTelemetry exporter、持久存储、全链 span、采样与保留�
 
 ### Q57：“500 条数据从哪来”怎么答？
 
-不沿用旧说法。当前没有 500 条标注数据，只有 11 条意图和 5 条对话内置 case。可说下一步会从脱敏工单分层抽样，双人标注+仲裁，按用户/时间去重切分，保留无效输入与复合难例，但不能说已做完。
+不沿用旧说法。当前是 28 条 provisional 项目 seed，不是 500 条 gold。可以具体讲下一步：从脱敏工单分层抽样，双人标注+仲裁，按用户/时间/group_id 去重切分，保留无效输入与复合难例；公开数据 adapter 已完成，但不能把自动映射数量冒充人工项目标注。
 
 ### Q58：“91.3% 是高还是低”怎么答？
 
@@ -325,9 +325,43 @@ TaskPlan 已把人工交接指定给 `AgentType.ESCALATION`，却由 General 执
 
 ### Q68：这一轮简历怎么写成一条？
 
-> 利用 JWT Principal/scope、确定性消息归档与显式存储模式收敛 Agent 服务生产边界，解决用户身份伪造、短会话 TTL 丢失、拒绝候选旁路泄漏和 Chroma 双库分叉；补齐 tool-free Escalation Owner 与路由基数诊断，以 81 项不变量测试验证失败可重试、数据不丢失和公开投影最小化。
+> 利用 JWT Principal/scope、确定性消息归档与显式存储模式收敛 Agent 服务生产边界，解决用户身份伪造、短会话 TTL 丢失、拒绝候选旁路泄漏和 Chroma 双库分叉；补齐 tool-free Escalation Owner 与路由基数诊断，以对应不变量测试验证失败可重试、数据不丢失和公开投影最小化。
 
 这句信息密度高，面试时优先拆成“身份/发布”或“记忆生命周期”一条 STAR，不要一次全背。
+
+## 新增评测数据追问：从“有数据”到“能报数”
+
+### Q69：现在仓库到底有哪些评测数据？
+
+三类必须分开：11 条 intent + 5 组 dialog 是内置 smoke；`dialogpilot-v1` 是 28 条 provisional 四层 seed + 6 篇 retrieval corpus；BANKING77、CLINC150 OOS、Bitext adapter 生成的是 auto-mapped external pressure set。当前 human-reviewed gold 是 0。
+
+### Q70：为什么公开数据不能直接算项目准确率？
+
+它们的标签和业务边界不是 DialogPilot 的 TaskPlan、知识库、记忆与工具规则。公开集能测试迁移、金融细粒度和 OOS 拒识，不能证明复合路由、证据 ID、用户隔离或零副作用授权。
+
+### Q71：provisional 怎样变成 gold？
+
+人工核对输入是否无歧义、expected 是否唯一、source/license 和 split 是否正确；记录 reviewer/reviewed_at/notes，再把状态改为 `human_reviewed`。推荐双人独立标注、冲突仲裁。运行器无权自动提升审核身份。
+
+### Q72：怎样防 train/test 污染？
+
+相同语义改写共用 group_id，校验器禁止一组跨 dev/heldout。生产数据还应按 user/ticket/time/document 去重。dev 用于阈值和 Prompt 迭代，heldout 标签只在发布评测读取。
+
+### Q73：为什么缺一条 prediction 要整次失败？
+
+若 scorer 自动忽略缺失项，失败样本会从分母消失，结果被虚高。当前要求 selected case 一一对应 actual；缺失和重复 case_id 都是 typed error。
+
+### Q74：RAG 三个指标分别证明什么？
+
+Recall@K 证明相关证据进入候选，MRR 关注第一条 relevant 的位置，nDCG 衡量多个 relevant 的整体排序。三者与 grounded answer 分开，才能判断问题出在召回、排序还是生成。
+
+### Q75：怎么跑一次不造假的实验？
+
+先固定 commit、dataset checksum、split、模型/Prompt/Skill/index 版本；一次只改变一个因素，例如 vector-only vs hybrid RRF；保存逐 case outcome、关键 slice、延迟/成本和多次运行方差。`include_non_gold` 只能验证管线，不进简历数字。
+
+### Q76：这部分简历怎么写？
+
+> 利用版本化 JSONL、group-safe dev/heldout、checksum/provenance/review 门禁与确定性 grader，解决 smoke case 无法支撑路由、RAG、记忆和工具安全回归的问题；接入 BANKING77、CLINC150 OOS 与 opt-in Bitext 压力集，按 Accuracy/Macro-F1、Owner Exact、Recall@K/MRR/nDCG 和 assertion pass 分层归因，当前 28 条项目 seed 待人工审核，不虚构准确率。
 
 ## 面试前 10 分钟自查
 
@@ -337,7 +371,7 @@ TaskPlan 已把人工交接指定给 `AgentType.ESCALATION`，却由 General 执
 4. 能说出 Task outcome 四态、synthesis 五态与 Verifier PASS/REJECT/UNKNOWN。
 5. 能解释 BM25 对订单号的价值，以及 recency 为什么不能独立召回。
 6. 能解释发现/执行共用 allowlist，审批不来自模型参数。
-7. 能说明 81 tests 不等于 81 个 benchmark，11+5 case 不支持生产准确率。
+7. 能说明 96 tests 不等于 96 个 benchmark，11+5 smoke 与 28 provisional 都不支持生产准确率。
 8. 能用 commit 划清原型与个人改造，不说从零原创。
 9. 能讲清 JWT/scope 已完成，以及 IdP/JWKS、tenant ABAC、持久 Trace、可恢复审批和真实 benchmark 仍是缺口。
 10. 不说“精通 LangGraph”、“完整 MCP”、“项目是 SOTA”或“线上准确率 91.3%”。

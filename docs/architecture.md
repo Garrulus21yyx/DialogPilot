@@ -24,7 +24,8 @@ prompt chain.
 | Publication safety | `services/answer_verifier.py` | PASS, REJECT, or UNKNOWN |
 | Human handoff | `services/ticket_service.py` | Ticket identity, state, idempotency, and event history |
 | Online health | `monitor/performance_monitor.py` | Alerts and routing penalties |
-| Offline quality | `evaluation/evaluator.py` | Intent and response-quality reports |
+| Evaluation data | `evaluation/dataset.py` | Versioned cases, provenance, review state, checksums and split integrity |
+| Offline quality | `evaluation/evaluator.py`, `evaluation/benchmark.py` | Runtime intent/routing reports and deterministic layered prediction scores |
 
 ## Temporal contract for `/chat`
 

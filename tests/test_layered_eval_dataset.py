@@ -13,6 +13,7 @@ from evaluation.dataset import (
     write_dataset,
 )
 from scripts.build_eval_dataset import _case, build_bitext
+from scripts.review_eval_dataset import mark_human_reviewed
 
 
 REPO_DATASET = Path(__file__).resolve().parents[1] / "data" / "eval" / "dialogpilot-v1"
@@ -23,7 +24,12 @@ def source():
 
 
 def review():
-    return {"status": "human_reviewed", "reviewer": "test"}
+    return {
+        "status": "human_reviewed",
+        "reviewer": "test",
+        "reviewed_at": "2026-08-30T00:00:00+00:00",
+        "notes": "test fixture",
+    }
 
 
 def case(case_id, layer, split, input_data, expected, *, group_id=None):
@@ -115,6 +121,42 @@ def test_dataset_discovery_exposes_version_and_review_state(tmp_path):
     assert discovered[0]["registry_id"] == "safe-v1"
     assert discovered[0]["valid"] is True
     assert discovered[0]["by_review_status"]["human_reviewed"] == 1
+
+
+def test_human_review_status_requires_auditable_metadata(tmp_path):
+    invalid = case("i1", "intent", "dev", {"message": "hello"}, {"intent": "greeting"})
+    invalid["review"] = {"status": "human_reviewed", "reviewer": "test"}
+
+    with pytest.raises(DatasetValidationError, match="human_reviewed requires"):
+        write_dataset(tmp_path, manifest=manifest(), cases=[invalid])
+
+
+def test_review_command_promotes_selected_case_and_recomputes_checksum(tmp_path):
+    draft = case("i1", "intent", "dev", {"message": "hello"}, {"intent": "greeting"})
+    draft["review"] = {"status": "provisional", "reviewer": None}
+    bundle = write_dataset(tmp_path, manifest=manifest(), cases=[draft])
+    old_checksum = bundle.manifest["cases_sha256"]
+    cases_path = tmp_path / "cases.jsonl"
+    edited = json.loads(cases_path.read_text(encoding="utf-8"))
+    edited["input"]["message"] = "hello after ambiguity review"
+    cases_path.write_text(json.dumps(edited, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    reviewed = mark_human_reviewed(
+        tmp_path,
+        case_ids=["i1"],
+        reviewer="reviewer-a",
+        notes="intent and ambiguity checked",
+        reviewed_at="2026-08-30T12:00:00+00:00",
+    )
+
+    assert reviewed.manifest["cases_sha256"] != old_checksum
+    assert reviewed.select(gold_only=True)[0].input["message"] == "hello after ambiguity review"
+    assert reviewed.select(gold_only=True)[0].review == {
+        "status": "human_reviewed",
+        "reviewer": "reviewer-a",
+        "reviewed_at": "2026-08-30T12:00:00+00:00",
+        "notes": "intent and ambiguity checked",
+    }
 
 
 def test_layered_scorer_reports_deterministic_process_and_result_metrics(tmp_path):

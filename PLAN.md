@@ -174,7 +174,7 @@ human-reviewed project gold data.
 - [done] Add a 28-case provisional project seed and six-document retrieval corpus covering compound routing, negation, clarification, retrieval IDs, memory isolation, and tool authorization; provisional cases are excluded from gold metrics.
 - [done] Add deterministic public-source adapters for BANKING77, CLINC150 OOS, and opt-in Bitext; retain source label/license/provenance and write generated files outside committed gold data. BANKING77/CLINC adapters were exercised against their live upstream sources.
 - [done] Add a server-owned dataset registry, `/eval/datasets`, and dataset-aware `/eval/run` selection by split/layer/review status; attach version/checksum metadata, fail closed on provisional-only gold runs, and keep retrieval/stateful on the deterministic prediction-scoring boundary. Validation/scoring CLIs and 94 repository tests pass.
-- [pending] Update README, Pages tutorial/interview guide, push coherent phases, and verify CI/Pages.
+- [done] Update README, architecture/project pitch, the 28-chapter/72-drill tutorial, and the separate 76-question interview Page; add an auditable human-review/checksum command and enforce reviewer/time/notes for gold. All 96 repository tests, Python compilation, JavaScript syntax, dataset validation, and Markdown count checks pass; CI/Pages verification follows the final push.
 
 Target contracts:
 

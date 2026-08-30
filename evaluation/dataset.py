@@ -68,6 +68,13 @@ class EvalCase:
         status = self.review.get("status")
         if status not in REVIEW_STATUSES:
             raise DatasetValidationError(f"{self.case_id}: invalid review status")
+        if status == "human_reviewed":
+            required_review = ("reviewer", "reviewed_at", "notes")
+            missing_review = [key for key in required_review if not str(self.review.get(key) or "").strip()]
+            if missing_review:
+                raise DatasetValidationError(
+                    f"{self.case_id}: human_reviewed requires {missing_review}"
+                )
         if not self.source.get("dataset") or not self.source.get("license"):
             raise DatasetValidationError(f"{self.case_id}: source dataset/license required")
         required = {

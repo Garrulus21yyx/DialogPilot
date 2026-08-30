@@ -18,6 +18,26 @@ Validate after any edit:
 python -m evaluation.dataset data/eval/dialogpilot-v1
 ```
 
+After checking and, if needed, correcting a case input/expected label, promote
+it through the review command so required audit metadata and checksums are
+written together:
+
+```bash
+python scripts/review_eval_dataset.py data/eval/dialogpilot-v1 \
+  --case-id intent-dev-negation-01 \
+  --reviewer reviewer-a --notes 'intent and ambiguity checked' \
+  --confirm-human-review
+```
+
+Then produce a complete prediction JSONL for the chosen split and score it with:
+
+```bash
+python -m evaluation.benchmark data/eval/dialogpilot-v1 predictions.jsonl --split heldout
+```
+
+For a provisional pipeline dry run only, add `--include-non-gold`. That switch
+does not promote cases and its result must not be presented as project accuracy.
+
 Do not tune prompts on `heldout`. Variants sharing one semantic scenario must
 use the same `group_id`, and the validator rejects a group that crosses the
 dev/held-out boundary.

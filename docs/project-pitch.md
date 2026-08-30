@@ -105,5 +105,8 @@ are required.
 ## Honest measurement language
 
 Use results from `/eval/run` only with the dataset size, model, date, and runtime
-configuration. Built-in cases demonstrate the evaluation pipeline; they do not
-establish production accuracy or latency.
+configuration. The repository now has a 28-case provisional layered seed, six
+retrieval documents, public-data adapters and deterministic layer metrics, but
+no human-reviewed gold cases yet. Built-in 11+5 cases remain smoke tests; none
+of these artifacts establishes production accuracy or latency until review and
+a held-out run are recorded.

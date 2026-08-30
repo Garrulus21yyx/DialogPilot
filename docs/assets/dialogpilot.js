@@ -42,8 +42,8 @@
     const meta = document.createElement("div");
     meta.className = "dp-hero-meta";
     const metaLabels = mode === "interview"
-      ? ["68 evidence-checked questions", "current-code answers", "unsupported claims flagged", "STAR + follow-up drills"]
-      : ["27 numbered chapters", "64 interview drills", "81 regression tests", "8 boundary repairs"];
+      ? ["76 evidence-checked questions", "current-code answers", "unsupported claims flagged", "STAR + follow-up drills"]
+      : ["28 numbered chapters", "72 interview drills", "96 regression tests", "4-layer eval contract"];
     metaLabels.forEach(function (label) {
       const item = document.createElement("span");
       item.textContent = label;
@@ -66,6 +66,10 @@
         chapter.className = "dp-chapter";
         chapter.dataset.title = textOf(node);
         if (node.id === "快速导航") chapter.classList.add("dp-quick-nav");
+        // 评测章用四段校准条对应 intent/routing/retrieval/stateful 四层合同。
+        if (textOf(node).indexOf("把评测数据真正跑起来") !== -1) {
+          chapter.classList.add("dp-eval-lab");
+        }
         node.dataset.section = String(sectionIndex).padStart(2, "0");
         sectionIndex += 1;
         content.insertBefore(chapter, node);
