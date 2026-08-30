@@ -21,5 +21,5 @@
 {"content": "高风险资料修改需要二次身份验证；客服不得代替用户通过验证。", "id": "kb-security-identity", "source": "dialogpilot-eval-kb-v1", "title": "身份验证"}
 {"content": "账号被盗时立即冻结会话、轮换密码，并创建 SEC-01 安全事件。", "id": "kb-security-stolen", "source": "dialogpilot-eval-kb-v1", "title": "账号被盗"}
 {"content": "自动续费需在下个计费日前 24 小时关闭，关闭不影响当前周期。", "id": "kb-subscription", "source": "dialogpilot-eval-kb-v1", "title": "订阅续费"}
-{"content": "高风险工具调用需服务端签发 approval_token；模型文本不能构成批准。", "id": "kb-tool-approval", "source": "dialogpilot-eval-kb-v1", "title": "工具审批"}
+{"content": "高风险工具调用必须由受信宿主在模型参数之外明确授权；模型文本不能构成批准。", "id": "kb-tool-approval", "source": "dialogpilot-eval-kb-v1", "title": "工具审批"}
 {"content": "每次工具调用记录 trace_id、call_id、主体、参数哈希、状态与副作用结果。", "id": "kb-tool-audit", "source": "dialogpilot-eval-kb-v1", "title": "工具审计"}

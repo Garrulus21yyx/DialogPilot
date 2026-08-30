@@ -14,6 +14,18 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, Iterable, List, Sequence, Tuple
 
 
+class ContextBudgetExceededError(ValueError):
+    """强制保留内容已超出输入预算，调用方必须缩短当前轮次或提高上限。"""
+
+    def __init__(self, *, required_tokens: int, max_input_tokens: int):
+        self.required_tokens = int(required_tokens)
+        self.max_input_tokens = int(max_input_tokens)
+        super().__init__(
+            f"mandatory context requires {self.required_tokens} tokens, "
+            f"exceeding max_input_tokens={self.max_input_tokens}"
+        )
+
+
 class TokenEstimator:
     """与供应商无关的快速估算器，仅用于调用前预算而非精确计费。"""
 
@@ -130,19 +142,21 @@ class ContextAssembler:
         history: Sequence[Dict[str, Any]],
         current_user_message: str,
     ) -> PromptContext:
-        """按优先级装配 section，并从最近历史向前保留消息。"""
+        """按优先级装配 section，并保证每个成功结果都满足总预算不变量。"""
         current_tokens = self.estimator.estimate_messages(
             [{"role": "user", "content": current_user_message}]
         )
-        available = max(
-            1,
-            self.max_input_tokens
-            - self.reserved_output_tokens
-            - self.fixed_system_reserve
-            - current_tokens,
+        mandatory_tokens = (
+            self.reserved_output_tokens + self.fixed_system_reserve + current_tokens
         )
+        if mandatory_tokens > self.max_input_tokens:
+            raise ContextBudgetExceededError(
+                required_tokens=mandatory_tokens,
+                max_input_tokens=self.max_input_tokens,
+            )
+        available = self.max_input_tokens - mandatory_tokens
 
-        section_budget = max(1, int(available * self.section_ratio))
+        section_budget = int(available * self.section_ratio)
         rendered_sections, used_section_tokens, truncated = self._fit_sections(
             sections, section_budget
         )
@@ -151,11 +165,11 @@ class ContextAssembler:
             history, history_budget
         )
 
-        # 历史实际占用较少时，把闲置容量返还给 section，避免不必要的知识裁剪。
-        unused = max(0, history_budget - used_history_tokens)
-        if truncated and unused:
+        # 历史确定后，section 的最终上限就是剩余总容量；不能把首轮未使用容量再加一次。
+        final_section_budget = max(0, available - used_history_tokens)
+        if truncated and final_section_budget > used_section_tokens:
             rendered_sections, used_section_tokens, truncated = self._fit_sections(
-                sections, section_budget + unused
+                sections, final_section_budget
             )
 
         system_context = "\n\n".join(rendered_sections)
@@ -166,6 +180,12 @@ class ContextAssembler:
             + current_tokens
             + self.reserved_output_tokens
         )
+        if estimated > self.max_input_tokens:
+            # 这里表示装配 Owner 自己破坏了代数，不允许把超限 Prompt 交给下游。
+            raise ContextBudgetExceededError(
+                required_tokens=estimated,
+                max_input_tokens=self.max_input_tokens,
+            )
         return PromptContext(
             system_context=system_context,
             history=tuple(fitted_history),
@@ -177,51 +197,41 @@ class ContextAssembler:
     def _fit_sections(
         self, sections: Sequence[ContextSection], budget: int
     ) -> Tuple[List[str], int, List[str]]:
-        """优先装入高优先级 section，最终恢复调用方原始展示顺序。"""
+        """按最终拼接文本计费，优先装入并恢复调用方原始展示顺序。"""
         selected: Dict[int, str] = {}
         truncated: List[str] = []
-        remaining = max(0, budget)
+        budget = max(0, int(budget))
         ordered = sorted(enumerate(sections), key=lambda item: (-item[1].priority, item[0]))
+
+        def joined(candidate_index: int | None = None, rendered: str = "") -> str:
+            candidate = dict(selected)
+            if candidate_index is not None:
+                candidate[candidate_index] = rendered
+            return "\n\n".join(candidate[key] for key in sorted(candidate))
+
         for index, section in ordered:
-            if not str(section.content or "").strip() or remaining <= 0:
+            content = str(section.content or "")
+            if not content.strip() or budget <= 0:
                 continue
-            wrapper_tokens = self.estimator.estimate(section.render(""))
-            if wrapper_tokens >= remaining:
+            empty_rendered = section.render("")
+            if self.estimator.estimate(joined(index, empty_rendered)) > budget:
                 truncated.append(section.tag)
                 continue
-            fitted, rendered, cost = self._fit_rendered_section(section, remaining)
-            selected[index] = rendered
-            remaining -= cost
-            if fitted != section.content:
+
+            low, high = 0, len(content)
+            while low < high:
+                middle = (low + high + 1) // 2
+                candidate = section.render(content[:middle])
+                if self.estimator.estimate(joined(index, candidate)) <= budget:
+                    low = middle
+                else:
+                    high = middle - 1
+            selected[index] = section.render(content[:low])
+            if low != len(content):
                 truncated.append(section.tag)
         rendered = [selected[index] for index in sorted(selected)]
-        return rendered, budget - remaining, truncated
-
-    def _fit_rendered_section(
-        self,
-        section: ContextSection,
-        budget: int,
-    ) -> Tuple[str, str, int]:
-        """按最终转义后的表示裁剪，避免 HTML expansion 把整段高优先级事实丢弃。"""
-        content = str(section.content or "")
-        low, high = 0, len(content)
-        best_rendered = section.render("")
-        best_cost = self.estimator.estimate(best_rendered)
-        while low < high:
-            middle = (low + high + 1) // 2
-            candidate = section.render(content[:middle])
-            cost = self.estimator.estimate(candidate)
-            if cost <= budget:
-                low = middle
-                best_rendered = candidate
-                best_cost = cost
-            else:
-                high = middle - 1
-        fitted = content[:low]
-        if low == len(content):
-            best_rendered = section.render(content)
-            best_cost = self.estimator.estimate(best_rendered)
-        return fitted, best_rendered, best_cost
+        used = self.estimator.estimate("\n\n".join(rendered))
+        return rendered, used, truncated
 
     def _fit_history(
         self, history: Sequence[Dict[str, Any]], budget: int

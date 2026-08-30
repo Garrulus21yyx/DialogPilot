@@ -12,6 +12,8 @@ from evaluation.stateful_runner import (
     registered_fixtures,
     run_stateful,
 )
+from memory.context import ContextAssembler
+from memory.conversation_memory import MemoryManager
 
 
 DATASET = Path(__file__).resolve().parents[1] / "data" / "eval" / "dialogpilot-500-v1"
@@ -58,3 +60,73 @@ def test_unobserved_assertion_cannot_be_copied_from_expected():
 
     with pytest.raises(StatefulExecutionError, match="did not observe assertions"):
         asyncio.run(execute_case(changed))
+
+
+def _case(case_id: str):
+    return next(
+        case
+        for case in DatasetBundle.load(DATASET).select(layer="stateful")
+        if case.case_id == case_id
+    )
+
+
+@pytest.mark.parametrize(
+    "case_id",
+    ["stateful-memory-empty-query-1", "stateful-memory-empty-query-2"],
+)
+def test_empty_query_fixture_cannot_bypass_search_owner(monkeypatch, case_id):
+    async def fail_owner(*_args, **_kwargs):
+        raise RuntimeError("search owner bypass mutation")
+
+    monkeypatch.setattr(MemoryManager, "search_long_term", fail_owner)
+    with pytest.raises(StatefulExecutionError, match="search owner bypass mutation"):
+        asyncio.run(execute_case(_case(case_id)))
+
+
+@pytest.mark.parametrize(
+    "case_id",
+    ["stateful-memory-summary-fallback-1", "stateful-memory-summary-fallback-2"],
+)
+def test_summary_fallback_fixture_cannot_bypass_fallback_owner(monkeypatch, case_id):
+    def fail_owner(*_args, **_kwargs):
+        raise RuntimeError("fallback owner bypass mutation")
+
+    monkeypatch.setattr(MemoryManager, "_fallback_summary", fail_owner)
+    with pytest.raises(StatefulExecutionError, match="fallback owner bypass mutation"):
+        asyncio.run(execute_case(_case(case_id)))
+
+
+@pytest.mark.parametrize(
+    "case_id",
+    ["stateful-memory-context-escape-1", "stateful-memory-context-escape-2"],
+)
+def test_context_escape_fixture_cannot_bypass_assembler_owner(monkeypatch, case_id):
+    def fail_owner(*_args, **_kwargs):
+        raise RuntimeError("context owner bypass mutation")
+
+    monkeypatch.setattr(ContextAssembler, "assemble", fail_owner)
+    with pytest.raises(StatefulExecutionError, match="context owner bypass mutation"):
+        asyncio.run(execute_case(_case(case_id)))
+
+
+@pytest.mark.parametrize(
+    "case_id",
+    ["stateful-memory-explicit-close-1", "stateful-memory-explicit-close-2"],
+)
+def test_explicit_close_fixture_cannot_bypass_finalize_owner(monkeypatch, case_id):
+    async def fail_owner(*_args, **_kwargs):
+        raise RuntimeError("finalize owner bypass mutation")
+
+    monkeypatch.setattr(MemoryManager, "finalize_conversation", fail_owner)
+    with pytest.raises(StatefulExecutionError, match="finalize owner bypass mutation"):
+        asyncio.run(execute_case(_case(case_id)))
+
+
+def test_empty_query_and_empty_corpus_record_real_storage_behavior():
+    empty_query = asyncio.run(execute_case(_case("stateful-memory-empty-query-1")))
+    empty_corpus = asyncio.run(execute_case(_case("stateful-memory-empty-corpus-1")))
+
+    assert empty_query["evidence"]["storage_calls"] == 0
+    assert empty_query["actual"]["assertions"]["no_storage_query"] is True
+    assert empty_corpus["evidence"]["storage_calls"] == 2
+    assert empty_corpus["actual"]["assertions"]["result_empty"] is True

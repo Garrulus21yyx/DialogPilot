@@ -140,7 +140,7 @@ class HybridMemoryRetriever:
             ranks = {
                 source: ranking[memory_id]
                 for source, ranking in rankings.items()
-                if memory_id in ranking
+                if memory_id in ranking and weights[source] > 0
             }
             score = sum(
                 weights[source] / (self.rrf_k + rank)

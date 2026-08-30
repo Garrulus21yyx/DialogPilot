@@ -1,11 +1,19 @@
 {
   "case_count": 500,
-  "cases_sha256": "395d27007c7a7698149cc277ca89e68ff98423e9f2f68352882a486036c929eb",
+  "cases_sha256": "07de2bba52155be143cb865f6572405bc93370610f1b119ab2c494be377112fd",
   "corpus_count": 25,
-  "corpus_sha256": "a904a61da430a9834231cf66b9af701b36a3f6310a709cba5ab415680c9d3803",
+  "corpus_sha256": "a28ec3ed1413f7627623b934f2562244b266a81a349308eba55ac55415834fc8",
   "created_at": "2026-08-30",
   "dataset_id": "dialogpilot-500-v1",
   "description": "Four-layer DialogPilot evaluation: intent, TaskPlan routing, evidence retrieval, and stateful memory/ReAct safety.",
+  "evaluation_status": {
+    "fresh_stateful_holdout": "required_before_verified_closure",
+    "retrieval_dev": "development_baseline",
+    "retrieval_heldout": "not_run",
+    "reviewer_b": "required_fresh_context",
+    "stateful_dev": "deterministic_regression",
+    "stateful_heldout": "consumed_regression_after_repair"
+  },
   "expected_distribution": {
     "by_layer": {
       "intent": 180,

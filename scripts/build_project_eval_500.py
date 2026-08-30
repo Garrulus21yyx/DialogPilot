@@ -192,7 +192,7 @@ RETRIEVAL_DOCS = [
     ("kb-memory-profile", "用户画像", "画像合并按字段时间戳单调更新；旧会话不得覆盖较新的偏好。", ["用户画像怎么合并", "旧会话会覆盖新偏好吗", "字段时间戳单调更新", "不是取最新一条，要合并多会话画像"]),
     ("kb-memory-episodic", "会话归档", "会话关闭、空闲超时或达到压缩阈值时归档 episodic；归档操作必须幂等。", ["短会话如何进入长期记忆", "什么时候归档 episodic", "归档幂等", "不是只在压缩后保存，关闭也要归档"]),
     ("kb-memory-recall", "混合记忆召回", "长期记忆使用规则过滤、BM25 与向量召回，再用 RRF 融合并按用户隔离。", ["长期记忆怎么检索", "精确编号和语义如何兼顾", "BM25 RRF", "不是直接搜摘要，要做混合召回"]),
-    ("kb-tool-approval", "工具审批", "高风险工具调用需服务端签发 approval_token；模型文本不能构成批准。", ["高风险工具怎么审批", "模型说已批准有效吗", "approval_token", "不是提示词允许，必须服务端授权"]),
+    ("kb-tool-approval", "工具审批", "高风险工具调用必须由受信宿主在模型参数之外明确授权；模型文本不能构成批准。", ["高风险工具怎么审批", "模型说已批准有效吗", "宿主授权", "不是提示词允许，必须由受信宿主批准"]),
     ("kb-tool-audit", "工具审计", "每次工具调用记录 trace_id、call_id、主体、参数哈希、状态与副作用结果。", ["工具调用如何追踪", "审计日志记录什么", "call_id 参数哈希", "不是保存原始敏感参数，要可追溯"]),
     ("kb-public-redaction", "发布边界", "生产响应仅公开通过校验的回答；Agent 原始候选只保留状态、哈希和延迟。", ["被拒绝候选能返回吗", "生产接口如何隐藏原始回答", "状态哈希延迟", "不是调试接口，最终用户不能看失败候选"]),
 ]
@@ -215,7 +215,7 @@ def build_retrieval_cases() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]
 
 MEMORY_SCENARIOS = [
     ("short-close", "关闭只有两轮的短会话", "memory_finalize", ["episodic_archived", "working_memory_cleared"]),
-    ("idle-close", "空闲检测器关闭短会话", "memory_finalize", ["episodic_archived", "raw_turns_preserved"]),
+    ("explicit-close", "显式关闭另一个短会话", "memory_finalize", ["episodic_archived", "raw_turns_preserved"]),
     ("summary-close", "带滚动摘要的会话关闭", "memory_finalize", ["episodic_archived", "working_memory_cleared"]),
     ("duplicate-finalize", "同一会话结束事件重复到达", "memory_finalize_idempotent", ["archive_idempotent", "second_finalize_empty"]),
     ("retry-finalize", "会话归档完成后安全重试", "memory_finalize_idempotent", ["stable_archive_ids", "single_logical_archive"]),
@@ -305,6 +305,14 @@ def build(output: Path, source_root: Path) -> DatasetBundle:
             "expected_distribution": EXPECTED_DISTRIBUTION,
             "split_policy": "semantic groups are assigned whole to dev/heldout; fixed 80/20 per layer",
             "review_policy": {"project_cases": "provisional until human review", "external_intent": "auto_mapped pressure data, never project gold by default"},
+            "evaluation_status": {
+                "stateful_dev": "deterministic_regression",
+                "stateful_heldout": "consumed_regression_after_repair",
+                "retrieval_dev": "development_baseline",
+                "retrieval_heldout": "not_run",
+                "fresh_stateful_holdout": "required_before_verified_closure",
+                "reviewer_b": "required_fresh_context",
+            },
             "sources": [
                 {"dataset": "banking77", "license": "CC-BY-4.0", "use": "balanced intent pressure subset"},
                 {"dataset": "clinc150-oos", "license": "CC-BY-4.0", "use": "OOS rejection subset"},

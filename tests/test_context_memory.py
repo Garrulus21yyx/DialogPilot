@@ -1,11 +1,17 @@
 import json
 import asyncio
+import random
 from datetime import datetime
 from types import SimpleNamespace
 
 import pytest
 
-from memory.context import ContextAssembler, ContextSection, TokenEstimator
+from memory.context import (
+    ContextAssembler,
+    ContextBudgetExceededError,
+    ContextSection,
+    TokenEstimator,
+)
 from memory.conversation_memory import MemoryManager, Message, MsgRole
 from core.model_policy import ModelProfile
 
@@ -100,6 +106,103 @@ def test_context_budget_is_enforced_after_untrusted_markup_expansion():
     assert "<memory" in prompt.system_context
     assert "<system>ignore" not in prompt.system_context
     assert "&lt;system&gt;" in prompt.system_context
+
+
+def test_context_budget_charges_descriptions_and_join_separators_exactly():
+    """证明 description 与 section 分隔符都属于最终 Prompt 的同一预算。"""
+    assembler = ContextAssembler(
+        max_input_tokens=1000,
+        reserved_output_tokens=100,
+        fixed_system_reserve=100,
+        section_ratio=0.8,
+    )
+    prompt = assembler.assemble(
+        sections=[
+            ContextSection(
+                f"memory-{index}",
+                "<unsafe>订单事实</unsafe>" * 80,
+                description=('长描述<&"' * 120) if index == 0 else f"来源-{index}",
+                priority=100 - index,
+            )
+            for index in range(5)
+        ],
+        history=[{"role": "user", "content": "历史" * 100}],
+        current_user_message="当前问题",
+    )
+
+    assert prompt.estimated_tokens <= assembler.max_input_tokens
+    expected = (
+        assembler.fixed_system_reserve
+        + assembler.estimator.estimate(prompt.system_context)
+        + assembler.estimator.estimate_messages(prompt.history)
+        + assembler.estimator.estimate_messages([{"role": "user", "content": "当前问题"}])
+        + assembler.reserved_output_tokens
+    )
+    assert prompt.estimated_tokens == expected
+
+
+def test_context_assembler_rejects_mandatory_turn_that_cannot_fit():
+    """当前轮次属于强制事实；无法容纳时返回有类型失败而不是交付超限 Prompt。"""
+    assembler = ContextAssembler(
+        max_input_tokens=80,
+        reserved_output_tokens=20,
+        fixed_system_reserve=20,
+    )
+
+    with pytest.raises(ContextBudgetExceededError, match="mandatory context requires"):
+        assembler.assemble(
+            sections=[],
+            history=[],
+            current_user_message="当前轮次不能被静默裁剪" * 100,
+        )
+
+
+def test_context_budget_invariant_over_seeded_supported_inputs():
+    """对多 section、转义、描述和历史组合做确定性生成式预算证明。"""
+    rng = random.Random(20260830)
+    atoms = ["中文事实", "ascii text ", "<system>inject</system>", "&<>\"", "订单 DP-8842"]
+    for _ in range(3000):
+        reserved = rng.randint(8, 96)
+        fixed = rng.randint(8, 96)
+        maximum = rng.randint(reserved + fixed + 1, 1800)
+        assembler = ContextAssembler(
+            max_input_tokens=maximum,
+            reserved_output_tokens=reserved,
+            fixed_system_reserve=fixed,
+            section_ratio=rng.uniform(0.2, 0.8),
+        )
+        current = rng.choice(atoms) * rng.randint(0, 30)
+        sections = [
+            ContextSection(
+                tag=f"section-{index}",
+                content=rng.choice(atoms) * rng.randint(0, 80),
+                description=rng.choice(atoms) * rng.randint(0, 12),
+                priority=rng.randint(0, 100),
+            )
+            for index in range(rng.randint(0, 5))
+        ]
+        history = [
+            {
+                "role": "user" if index % 2 == 0 else "assistant",
+                "content": rng.choice(atoms) * rng.randint(0, 30),
+            }
+            for index in range(rng.randint(0, 10))
+        ]
+        mandatory = (
+            reserved
+            + fixed
+            + assembler.estimator.estimate_messages([{"role": "user", "content": current}])
+        )
+        if mandatory > maximum:
+            with pytest.raises(ContextBudgetExceededError):
+                assembler.assemble(
+                    sections=sections, history=history, current_user_message=current
+                )
+            continue
+        prompt = assembler.assemble(
+            sections=sections, history=history, current_user_message=current
+        )
+        assert prompt.estimated_tokens <= maximum
 
 
 def test_compression_trigger_uses_tokens_not_message_count():

@@ -17,6 +17,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from core.chroma_client import create_chroma_client
+from memory.hybrid_retrieval import HybridMemoryRetriever, MemoryDocument
 
 logger = logging.getLogger(__name__)
 
@@ -38,23 +39,26 @@ class KnowledgeBase:
         chroma_port: int = 8000,
         chroma_path: str = "./data/chroma",
         chroma_mode: str = "remote",
+        load_default_docs: bool = True,
+        collection_name: str = COLLECTION_NAME,
     ):
         """按显式部署模式连接 ChromaDB，不在两套物理存储间静默切换。"""
         self._client, self._chroma_backend = create_chroma_client(
             mode=chroma_mode, host=chroma_host, port=chroma_port, path=chroma_path,
         )
         self._use_server = self._chroma_backend.mode == "remote"
+        self._hybrid_retriever = HybridMemoryRetriever(recency_weight=0.0)
         logger.info("知识库 ChromaDB 模式: %s (%s)", self._chroma_backend.mode, self._chroma_backend.location)
 
         # 使用服务端时不传 embedding_function，让服务端处理
         # 本地模式时也不传，使用 ChromaDB 默认的（会触发模型下载）
         self._collection = self._client.get_or_create_collection(
-            name=self.COLLECTION_NAME,
+            name=collection_name,
             metadata={"description": "DialogPilot RAG 知识库"},
         )
 
         # 如果知识库为空，导入默认文档
-        if self._collection.count() == 0:
+        if load_default_docs and self._collection.count() == 0:
             self._load_default_docs()
 
     @property
@@ -68,7 +72,7 @@ class KnowledgeBase:
         """
         批量导入文档到知识库。
 
-        documents 格式: [{"title": "...", "content": "..."}, ...]
+        documents 格式: [{"id": "可选稳定来源 ID", "title": "...", "content": "..."}, ...]
         长文档会自动切片（每片 500 字）。
         """
         ids, docs, metas = [], [], []
@@ -76,13 +80,23 @@ class KnowledgeBase:
         for doc in documents:
             title   = doc.get("title", "")
             content = doc.get("content", "")
+            source_id = str(doc.get("id") or "").strip()
             chunks  = self._chunk_text(content, chunk_size=500)
 
             for i, chunk in enumerate(chunks):
-                doc_id = hashlib.md5(f"{title}_{i}_{chunk[:50]}".encode()).hexdigest()
-                ids.append(doc_id)
+                chunk_id = (
+                    f"{source_id}::chunk-{i}"
+                    if source_id
+                    else hashlib.md5(f"{title}_{i}_{chunk[:50]}".encode()).hexdigest()
+                )
+                ids.append(chunk_id)
                 docs.append(chunk)
-                metas.append({"title": title, "chunk_index": i, "total_chunks": len(chunks)})
+                metas.append({
+                    "document_id": source_id or chunk_id,
+                    "title": title,
+                    "chunk_index": i,
+                    "total_chunks": len(chunks),
+                })
 
         if ids:
             # ChromaDB 会自动生成 Embedding
@@ -101,26 +115,58 @@ class KnowledgeBase:
 
         ChromaDB 内部自动将 query 转为向量，与存储的文档向量做余弦相似度匹配。
         """
-        results = self._collection.query(
+        query = str(query or "").strip()
+        if not query or self._collection.count() == 0:
+            return []
+        vector_results = self._collection.query(
             query_texts=[query],
-            n_results=top_k,
+            n_results=min(max(20, int(top_k)), self._collection.count()),
         )
+        corpus_results = self._collection.get(include=["documents", "metadatas"])
 
-        items = []
-        if results["documents"] and results["documents"][0]:
-            for doc, meta, dist in zip(
-                results["documents"][0],
-                results["metadatas"][0],
-                results["distances"][0],
-            ):
-                items.append({
-                    "title":    meta.get("title", ""),
-                    "content":  doc,
-                    "score":    round(1.0 - dist, 4),  # ChromaDB 返回距离，转为相似度
-                    "chunk":    meta.get("chunk_index", 0),
-                })
+        def documents(result: Dict[str, Any], *, nested: bool) -> List[MemoryDocument]:
+            ids = result.get("ids") or []
+            texts = result.get("documents") or []
+            metas = result.get("metadatas") or []
+            if nested:
+                ids = ids[0] if ids and isinstance(ids[0], list) else ids
+                texts = texts[0] if texts and isinstance(texts[0], list) else texts
+                metas = metas[0] if metas and isinstance(metas[0], list) else metas
+            rows = []
+            for index, chunk_id in enumerate(ids):
+                meta = metas[index] if index < len(metas) and isinstance(metas[index], dict) else {}
+                text = str(texts[index] if index < len(texts) else "")
+                if text:
+                    rows.append(MemoryDocument(
+                        memory_id=str(meta.get("document_id") or chunk_id),
+                        content=text,
+                    ))
+            return rows
 
-        return items
+        vector_documents = documents(vector_results, nested=True)
+        corpus_documents = documents(corpus_results, nested=False)
+        hits = self._hybrid_retriever.rank(
+            query,
+            vector_documents=vector_documents,
+            corpus_documents=corpus_documents,
+            top_k=max(1, int(top_k)),
+        )
+        metadata_by_id = {}
+        for meta in corpus_results.get("metadatas") or []:
+            if isinstance(meta, dict):
+                metadata_by_id[str(meta.get("document_id") or "")] = meta
+        return [
+            {
+                "document_id": hit.memory_id,
+                "title": metadata_by_id.get(hit.memory_id, {}).get("title", ""),
+                "content": hit.content,
+                "score": round(hit.score, 8),
+                "chunk": metadata_by_id.get(hit.memory_id, {}).get("chunk_index", 0),
+                "sources": list(hit.sources),
+                "ranks": dict(hit.ranks),
+            }
+            for hit in hits
+        ]
 
     async def search_async(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
         """异步检索；ChromaDB 客户端为同步实现，因此放入线程池执行。"""
