@@ -128,16 +128,20 @@ def test_concurrent_write_prevents_stale_compression_commit():
     manager._client = MutatingClient(redis)
     manager._model = "test-model"
 
-    async def no_store(*_args, **_kwargs):
-        raise AssertionError("stale compression must not write episodic memory")
+    archived = []
 
-    manager._store_episodic = no_store
+    async def record_archive(*args, **_kwargs):
+        archived.append(args)
+        return True
+
+    manager._archive_messages = record_archive
     asyncio.run(manager._compress("user", "conversation"))
 
     assert redis.values[0] == MutatingClient.concurrent_message
     assert len(redis.values) == len(original) + 1
     assert redis.summary == ""
     assert manager.compression_stats()["conflicts"] == 1
+    assert len(archived) == 1
 
 
 def test_successful_compression_replaces_summary_and_preserves_recent_messages():
@@ -155,8 +159,9 @@ def test_successful_compression_replaces_summary_and_preserves_recent_messages()
 
     async def record_store(*args, **_kwargs):
         stored.append(args)
+        return True
 
-    manager._store_episodic = record_store
+    manager._archive_messages = record_store
     asyncio.run(manager._compress("user", "conversation"))
 
     assert 2 <= len(redis.values) <= manager.RECENT_KEEP
@@ -165,6 +170,52 @@ def test_successful_compression_replaces_summary_and_preserves_recent_messages()
     assert manager._token_estimator.estimate(redis.summary) <= manager._summary_max_tokens
     assert len(stored) == 1
     assert manager.compression_stats()["completed"] == 1
+
+
+def test_finalize_archives_short_session_then_clears_working_memory():
+    """证明未达到压缩阈值的短会话也能显式进入长期记忆。"""
+    manager = bare_manager()
+    redis = FakeRedis([
+        raw_message("assistant", "已为你记录"),
+        raw_message("user", "订单 A123 重复扣款"),
+    ])
+    redis.summary = '{"user_goal":"处理扣款"}'
+    manager._redis = redis
+    archived = []
+
+    async def record_archive(_user_id, _conv_id, messages, **kwargs):
+        archived.append((messages, kwargs))
+        return True
+
+    manager._archive_messages = record_archive
+    result = asyncio.run(manager.finalize_conversation("user", "short-conversation"))
+
+    assert result == {"archived_messages": 2, "finalized": True, "already_empty": False}
+    assert [message.role for message in archived[0][0]] == [MsgRole.USER, MsgRole.ASSISTANT]
+    assert archived[0][1]["reason"] == "conversation_finalize"
+    assert redis.values == []
+    assert redis.summary == ""
+
+    repeated = asyncio.run(manager.finalize_conversation("user", "short-conversation"))
+    assert repeated == {"archived_messages": 0, "finalized": True, "already_empty": True}
+
+
+def test_finalize_concurrent_write_preserves_redis_for_retry():
+    """证明归档快照之后的新消息不会被会话结束操作误删。"""
+    manager = bare_manager()
+    redis = FakeRedis([raw_message("user", "原消息")])
+    manager._redis = redis
+
+    async def archive_then_receive_new_message(*_args, **_kwargs):
+        redis.values.insert(0, raw_message("assistant", "并发到达的新消息"))
+        return True
+
+    manager._archive_messages = archive_then_receive_new_message
+    result = asyncio.run(manager.finalize_conversation("user", "conversation"))
+
+    assert result["finalized"] is False
+    assert result["reason"] == "concurrent_write"
+    assert len(redis.values) == 2
 
 
 class FakePipeline:
@@ -193,8 +244,8 @@ class FakePipeline:
     def multi(self):
         return None
 
-    def delete(self, key):
-        self.commands.append(("delete", key))
+    def delete(self, *keys):
+        self.commands.append(("delete", keys))
 
     def rpush(self, key, *values):
         self.commands.append(("rpush", key, values))
@@ -208,7 +259,10 @@ class FakePipeline:
     async def execute(self):
         for command in self.commands:
             if command[0] == "delete":
-                self.redis.values = []
+                if any(str(key).startswith("wm:") for key in command[1]):
+                    self.redis.values = []
+                if any(str(key).startswith("summary:") for key in command[1]):
+                    self.redis.summary = ""
             elif command[0] == "rpush":
                 self.redis.values.extend(command[2])
             elif command[0] == "setex":

@@ -396,6 +396,14 @@ class TicketStatusUpdate(BaseModel):
     assignee: Optional[str] = Field(default=None, max_length=200)
 
 
+class ConversationFinalizeResponse(BaseModel):
+    """会话显式结束后的幂等归档结果。"""
+    conv_id: str
+    archived_messages: int
+    finalized: bool
+    already_empty: bool = False
+
+
 # ── 路由 ──────────────────────────────────────────────────────────────────────
 @app.get("/health")
 async def health():
@@ -625,6 +633,28 @@ def _handoff_priority(urgency: Any, verification_status: str) -> TicketPriority:
     if verification_status in {"reject", "unknown"}:
         return TicketPriority.HIGH
     return TicketPriority.NORMAL
+
+
+@app.post(
+    "/conversations/{conv_id}/finalize",
+    response_model=ConversationFinalizeResponse,
+    tags=["记忆"],
+)
+async def finalize_conversation(
+    conv_id: str,
+    principal: Principal = Depends(_chat_principal),
+):
+    """显式归档未达压缩阈值的短会话；并发写入时保留现场供幂等重试。"""
+    if _memory is None:
+        raise HTTPException(503, "记忆服务未就绪")
+    result = await _memory.finalize_conversation(principal.subject, conv_id)
+    if not result.get("finalized"):
+        status_code = 409 if result.get("reason") == "concurrent_write" else 503
+        raise HTTPException(status_code, {
+            "error": result.get("reason", "finalize_failed"),
+            "retryable": True,
+        })
+    return ConversationFinalizeResponse(conv_id=conv_id, **result)
 
 
 @app.post("/tickets", tags=["人工工单"])

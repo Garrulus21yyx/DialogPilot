@@ -3,7 +3,7 @@
 import asyncio
 from datetime import datetime, timedelta, timezone
 
-from memory.conversation_memory import MemoryManager
+from memory.conversation_memory import MemoryManager, Message, MsgRole
 from memory.hybrid_retrieval import (
     HybridMemoryRetriever,
     MemoryDocument,
@@ -63,16 +63,50 @@ def test_episodic_store_persists_raw_chunks_not_summary():
     """证明摘要只进 metadata，Chroma document 保存可还原的原始片段。"""
     manager = MemoryManager.__new__(MemoryManager)
     manager._episodic = RecordingCollection()
-    raw = "user: 订单 A123 重复扣款\nassistant: 已记录原始事实"
+    messages = [
+        Message(MsgRole.USER, "订单 A123 重复扣款", message_id="m1"),
+        Message(MsgRole.ASSISTANT, "已记录原始事实", message_id="m2"),
+    ]
     summary = '{"user_goal":"处理扣款"}'
 
-    asyncio.run(manager._store_episodic("user-1", "conv-1", raw, summary))
+    assert asyncio.run(manager._archive_messages(
+        "user-1", "conv-1", messages, summary=summary, reason="test",
+    )) is True
 
-    call = manager._episodic.add_call
-    assert call["documents"] == [raw]
+    call = manager._episodic.upsert_call
+    assert call["documents"] == ["user: 订单 A123 重复扣款", "assistant: 已记录原始事实"]
     assert call["documents"] != [summary]
     assert call["metadatas"][0]["summary"] == summary
-    assert call["metadatas"][0]["memory_version"] == 2
+    assert call["metadatas"][0]["memory_version"] == 3
+    assert call["metadatas"][0]["message_id"] == "m1"
+
+
+def test_episodic_archive_is_idempotent_for_the_same_messages():
+    """证明压缩 CAS 冲突后的重试会 upsert 同一组 ID，不产生重复记忆。"""
+    manager = MemoryManager.__new__(MemoryManager)
+    manager._episodic = RecordingCollection()
+    messages = [Message(MsgRole.USER, "订单 A123", message_id="stable-message")]
+
+    asyncio.run(manager._archive_messages("u", "c", messages, summary="", reason="compression"))
+    first_ids = manager._episodic.upsert_calls[-1]["ids"]
+    asyncio.run(manager._archive_messages("u", "c", messages, summary="", reason="compression"))
+    second_ids = manager._episodic.upsert_calls[-1]["ids"]
+
+    assert first_ids == second_ids
+
+
+def test_profile_has_one_deterministic_id_and_merges_known_values():
+    """证明同一用户跨会话写入同一权威画像，并保留已有偏好与实体。"""
+    assert MemoryManager._profile_id("user-1") == MemoryManager._profile_id("user-1")
+    assert MemoryManager._profile_id("user-1") != MemoryManager._profile_id("user-2")
+    merged = MemoryManager._merge_profile(
+        {"preferences": ["中文"], "entities": {"订单": ["A123"]}},
+        {"preferences": ["中文", "简洁"], "entities": {"订单": ["A123", "B456"]}},
+    )
+    assert merged == {
+        "preferences": ["中文", "简洁"],
+        "entities": {"订单": ["A123", "B456"]},
+    }
 
 
 def test_memory_manager_fuses_user_scoped_chroma_candidates():
@@ -103,10 +137,12 @@ def test_vector_failure_preserves_bm25_recall():
 
 class RecordingCollection:
     def __init__(self):
-        self.add_call = None
+        self.upsert_call = None
+        self.upsert_calls = []
 
-    def add(self, **kwargs):
-        self.add_call = kwargs
+    def upsert(self, **kwargs):
+        self.upsert_call = kwargs
+        self.upsert_calls.append(kwargs)
 
 
 class SearchCollection:

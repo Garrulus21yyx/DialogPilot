@@ -15,7 +15,8 @@ import hashlib
 import asyncio
 import json
 import logging
-import time
+import uuid
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
@@ -47,6 +48,7 @@ class Message:
     content:    str
     timestamp:  datetime = field(default_factory=datetime.now)
     metadata:   Dict[str, Any] = field(default_factory=dict)
+    message_id: str = field(default_factory=lambda: uuid.uuid4().hex)
 
 
 @dataclass
@@ -142,6 +144,7 @@ class MemoryManager:
             "tokens_before": 0,
             "tokens_after": 0,
         }
+        self._profile_locks: Dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
 
         self._redis = redis.from_url(redis_url, decode_responses=True)
 
@@ -189,6 +192,7 @@ class MemoryManager:
 
         # 追加到 Redis 列表（左推，最新在前）
         await self._redis.lpush(key, json.dumps({
+            "message_id": msg.message_id,
             "role":      msg.role.value,
             "content":   msg.content,
             "ts":        msg.timestamp.isoformat(),
@@ -205,6 +209,7 @@ class MemoryManager:
         从当前工作记忆中提炼用户偏好，更新用户画像。
         用 LLM 提炼偏好，然后存入 ChromaDB（ChromaDB 内置 embedding，不依赖外部 API）。
         """
+        observed_at = datetime.now(timezone.utc)
         user_id = self._safe_text(user_id)
         conv_id = self._safe_text(conv_id)
         messages = await self._get_working_memory(user_id, conv_id)
@@ -228,22 +233,30 @@ class MemoryManager:
             s, e = raw.find("{"), raw.rfind("}") + 1
             profile_data = json.loads(raw[s:e])
 
-            doc_id = f"{user_id}_profile_{conv_id}"
-            doc_text = self._safe_text(json.dumps(profile_data, ensure_ascii=False))
-
-            try:
-                await asyncio.to_thread(self._profile.delete, ids=[doc_id])
-            except Exception:
-                pass
-
-            # 直接传 documents，让 ChromaDB 内置模型生成 embedding（不依赖 Voyage API）
-            await asyncio.to_thread(
-                self._profile.add,
-                ids=[doc_id],
-                documents=[doc_text],
-                metadatas=[{"user_id": user_id, "conv_id": conv_id,
-                            "ts": datetime.now().isoformat()}],
-            )
+            # 每用户只有一个权威画像 ID。锁内重读并比较 observation time，
+            # 防止先启动但后完成的慢 LLM 请求覆盖更新画像。
+            lock = self._profile_locks[user_id]
+            async with lock:
+                doc_id = self._profile_id(user_id)
+                current, current_meta = await self._read_profile_record(doc_id)
+                current_observed = self._parse_timestamp(current_meta.get("observed_at", ""))
+                if current_observed and current_observed >= observed_at.timestamp():
+                    return
+                merged = self._merge_profile(current, profile_data)
+                version = int(current_meta.get("version", 0) or 0) + 1
+                doc_text = self._safe_text(json.dumps(merged, ensure_ascii=False, sort_keys=True))
+                await asyncio.to_thread(
+                    self._profile.upsert,
+                    ids=[doc_id],
+                    documents=[doc_text],
+                    metadatas=[{
+                        "user_id": user_id,
+                        "last_conv_id": conv_id,
+                        "observed_at": observed_at.isoformat(),
+                        "updated_at": datetime.now(timezone.utc).isoformat(),
+                        "version": version,
+                    }],
+                )
             logger.info(f"用户画像已更新: {user_id}")
         except Exception as ex:
             logger.warning(f"更新用户画像失败: {ex}")
@@ -314,9 +327,19 @@ class MemoryManager:
         if not to_compress:
             return
 
-        text = self._safe_text("\n".join(f"{m.role.value}: {m.content}" for m in to_compress))
         try:
             summary = await self._summarize(old_summary, to_compress)
+            # 先以 message_id 幂等归档，再 CAS 移除 Redis 旧消息。
+            # 归档失败时不改写工作记忆；CAS 冲突时重试 upsert 也不会复制情景记忆。
+            archived = await self._archive_messages(
+                user_id,
+                conv_id,
+                to_compress,
+                summary=summary,
+                reason="compression",
+            )
+            if not archived:
+                raise RuntimeError("episodic archive failed before compression commit")
             committed = await self._commit_compression(
                 key=key,
                 summary_key=skey,
@@ -329,7 +352,6 @@ class MemoryManager:
                 self._compression_stats["conflicts"] += 1
                 logger.info("压缩快照已变化，保留并发写入并放弃本次提交: %s/%s", user_id, conv_id)
                 return
-            await self._store_episodic(user_id, conv_id, text, summary)
             self._compression_stats["completed"] += 1
             self._compression_stats["tokens_after"] = self._memory_tokens(keep, summary)
             logger.info(
@@ -513,6 +535,7 @@ class MemoryManager:
                 content=d["content"],
                 timestamp=datetime.fromisoformat(d["ts"]),
                 metadata=d.get("metadata", {}),
+                message_id=d.get("message_id") or hashlib.sha256(raw.encode("utf-8")).hexdigest(),
             ))
         return msgs
 
@@ -569,46 +592,159 @@ class MemoryManager:
         """兼容旧调用方：只投影混合检索命中的原始文本。"""
         return [hit.content for hit in await self.search_long_term(user_id, query)]
 
-    async def _store_episodic(self, user_id: str, conv_id: str, text: str, summary: str) -> None:
-        """将压缩后的对话片段存入情景记忆。ChromaDB 内置 embedding，不依赖外部 API。"""
+    async def _archive_messages(
+        self,
+        user_id: str,
+        conv_id: str,
+        messages: List[Message],
+        *,
+        summary: str,
+        reason: str,
+    ) -> bool:
+        """以稳定 message_id 幂等归档原始消息；压缩和会话结束共用此 Owner。"""
         try:
             user_id = self._safe_text(user_id)
             conv_id = self._safe_text(conv_id)
-            text = self._safe_text(text)
             summary = self._safe_text(summary)
-            base_id = hashlib.md5(f"{user_id}{conv_id}{time.time()}".encode()).hexdigest()
-            chunks = self._chunk_episodic_text(text)
-            if not chunks:
-                return
-            timestamp = datetime.now(timezone.utc).isoformat()
-            ids = [f"{base_id}_{index}" for index in range(len(chunks))]
-            metadatas = [{
-                "user_id": user_id,
-                "conv_id": conv_id,
-                "ts": timestamp,
-                "summary": summary[:4000],
-                "chunk_index": index,
-                "memory_version": 2,
-            } for index in range(len(chunks))]
+            ids: List[str] = []
+            documents: List[str] = []
+            metadatas: List[Dict[str, Any]] = []
+            for message in messages:
+                chunks = self._chunk_episodic_text(f"{message.role.value}: {message.content}")
+                stable_message_id = message.message_id or hashlib.sha256(
+                    f"{message.role.value}:{message.timestamp.isoformat()}:{message.content}".encode("utf-8")
+                ).hexdigest()
+                for index, chunk in enumerate(chunks):
+                    ids.append(f"episodic_{hashlib.sha256(f'{user_id}:{conv_id}:{stable_message_id}'.encode()).hexdigest()}_{index}")
+                    documents.append(chunk)
+                    metadatas.append({
+                        "user_id": user_id,
+                        "conv_id": conv_id,
+                        "ts": self._utc_timestamp(message.timestamp),
+                        "summary": summary[:4000],
+                        "chunk_index": index,
+                        "message_id": stable_message_id,
+                        "role": message.role.value,
+                        "archive_reason": reason,
+                        "memory_version": 3,
+                    })
+            if not ids:
+                return True
             # 原始片段是长期事实载体；摘要仅作为 metadata 和 Prompt 背景。
             await asyncio.to_thread(
-                self._episodic.add,
+                self._episodic.upsert,
                 ids=ids,
-                documents=chunks,
+                documents=documents,
                 metadatas=metadatas,
             )
+            return True
         except Exception as ex:
             logger.warning(f"存储情景记忆失败: {ex}")
+            return False
+
+    async def finalize_conversation(self, user_id: str, conv_id: str) -> Dict[str, Any]:
+        """幂等归档短会话并 CAS 清理工作记忆；并发写入时保留 Redis 供重试。"""
+        key = self._wm_key(user_id, conv_id)
+        summary_key = self._summary_key(user_id, conv_id)
+        snapshot = await self._redis.lrange(key, 0, -1)
+        summary = await self._redis.get(summary_key) or ""
+        messages = self._decode_messages(snapshot)
+        if not messages:
+            return {"archived_messages": 0, "finalized": True, "already_empty": True}
+        if not await self._archive_messages(
+            user_id,
+            conv_id,
+            messages,
+            summary=summary,
+            reason="conversation_finalize",
+        ):
+            return {"archived_messages": 0, "finalized": False, "reason": "archive_failed"}
+        try:
+            async with self._redis.pipeline(transaction=True) as pipe:
+                await pipe.watch(key, summary_key)
+                if await pipe.lrange(key, 0, -1) != snapshot or (await pipe.get(summary_key) or "") != summary:
+                    await pipe.unwatch()
+                    return {
+                        "archived_messages": len(messages),
+                        "finalized": False,
+                        "reason": "concurrent_write",
+                    }
+                pipe.multi()
+                pipe.delete(key, summary_key)
+                await pipe.execute()
+        except WatchError:
+            return {"archived_messages": len(messages), "finalized": False, "reason": "concurrent_write"}
+        return {"archived_messages": len(messages), "finalized": True, "already_empty": False}
 
     async def _get_profile(self, user_id: str) -> Dict[str, Any]:
-        """获取用户画像（取最新一条）。"""
+        """按每用户唯一权威 ID 读取画像，不依赖 Chroma 返回顺序。"""
         try:
-            results = await asyncio.to_thread(self._profile.get, where={"user_id": user_id}, limit=1)
+            results = await asyncio.to_thread(self._profile.get, ids=[self._profile_id(user_id)])
             if results["documents"]:
                 return json.loads(results["documents"][0])
         except Exception:
             pass
         return {}
+
+    async def _read_profile_record(self, doc_id: str) -> tuple[Dict[str, Any], Dict[str, Any]]:
+        """在写锁内读取当前画像和版本 metadata。"""
+        try:
+            result = await asyncio.to_thread(self._profile.get, ids=[doc_id])
+            if result.get("documents"):
+                document = json.loads(result["documents"][0])
+                metadata = (result.get("metadatas") or [{}])[0] or {}
+                return (document if isinstance(document, dict) else {}), metadata
+        except Exception:
+            pass
+        return {}, {}
+
+    @staticmethod
+    def _merge_profile(current: Dict[str, Any], update: Dict[str, Any]) -> Dict[str, Any]:
+        """确定性合并偏好和实体，新会话不会清空旧会话已知信息。"""
+        preferences = MemoryManager._dedupe_values([
+            *(current.get("preferences") or []),
+            *(update.get("preferences") or []),
+        ])
+        entities: Dict[str, List[Any]] = {}
+        for source in (current.get("entities") or {}, update.get("entities") or {}):
+            if not isinstance(source, dict):
+                continue
+            for key, values in source.items():
+                normalized = values if isinstance(values, list) else [values]
+                entities[str(key)] = MemoryManager._dedupe_values([
+                    *entities.get(str(key), []), *normalized,
+                ])
+        return {"preferences": preferences[:100], "entities": entities}
+
+    @staticmethod
+    def _dedupe_values(values: List[Any]) -> List[Any]:
+        """按稳定 JSON 表示去重，兼容模型偶尔返回的对象或数组值。"""
+        seen: set[str] = set()
+        result: List[Any] = []
+        for value in values:
+            key = json.dumps(value, ensure_ascii=False, sort_keys=True, default=str)
+            if key not in seen:
+                seen.add(key)
+                result.append(value)
+        return result
+
+    @staticmethod
+    def _utc_timestamp(value: datetime) -> str:
+        """把新旧消息时间统一为 UTC；旧数据的无时区时间按 UTC 解释。"""
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        return value.astimezone(timezone.utc).isoformat()
+
+    @staticmethod
+    def _profile_id(user_id: str) -> str:
+        return f"profile_{hashlib.sha256(user_id.encode('utf-8')).hexdigest()}"
+
+    @staticmethod
+    def _parse_timestamp(value: str) -> float:
+        try:
+            return datetime.fromisoformat(str(value).replace("Z", "+00:00")).timestamp()
+        except (TypeError, ValueError):
+            return 0.0
 
     @classmethod
     def _chunk_episodic_text(cls, text: str) -> List[str]:
