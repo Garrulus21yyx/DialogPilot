@@ -68,6 +68,7 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
 
         def register(self, tool):
             self.tools.append(tool)
+            captured.setdefault("registered_tool_names", []).append(tool.name)
 
         def get_stats(self):
             return {}
@@ -116,6 +117,7 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
     monkeypatch.setenv("AUTH_JWT_SECRET", "test-secret-that-is-at-least-32-bytes-long")
     monkeypatch.setenv("TICKET_DB_PATH", str(tmp_path / "tickets.db"))
+    monkeypatch.setenv("CUSTOMER_OPERATIONS_DB_PATH", str(tmp_path / "operations.db"))
     monkeypatch.setenv("MEMORY_TOKEN_BUDGET", "4321")
     monkeypatch.setenv("MEMORY_COMPRESSION_THRESHOLD", "0.81")
     monkeypatch.setenv("MEMORY_SUMMARY_MAX_TOKENS", "777")
@@ -145,6 +147,17 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
             assert captured["tool_manager"]["approval_mode"].value == "require_all"
             assert captured["tool_manager"]["max_output_chars"] == 2345
             assert captured["tool_manager_wired"] is True
+            assert set(captured["registered_tool_names"]) == {
+                "knowledge_search",
+                "memory_search",
+                "support_ticket_list",
+                "support_ticket_get",
+                "support_ticket_create",
+                "order_lookup",
+                "refund_eligibility_check",
+                "refund_request_create",
+                "account_security_event_list",
+            }
 
     asyncio.run(exercise_lifespan())
     assert captured["memory_closed"] is True

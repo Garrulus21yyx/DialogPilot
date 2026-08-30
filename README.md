@@ -53,6 +53,12 @@ with source message IDs and active/superseded/retracted lifecycle, not one mutab
 profile blob. Retrieved knowledge and memory are tagged as data while actual
 conversation history remains user/assistant messages.
 
+The production registry exposes nine bounded tools: knowledge, user memory,
+ticket list/detail/create, order lookup, refund eligibility, refund-request
+creation, and account-security events. Write tools require host approval and
+return typed SQLite receipts. A refund receipt proves that the local request was
+committed; it does not claim that an external payment rail moved money.
+
 See [docs/architecture.md](docs/architecture.md) for component ownership,
 [docs/project-pitch.md](docs/project-pitch.md) for a concise technical walkthrough,
 and [docs/full-architecture-tutorial.zh-CN.md](docs/full-architecture-tutorial.zh-CN.md)
@@ -71,7 +77,7 @@ usage, cost, and failure cases, is in
 - ChromaDB knowledge, episodic memory, and source-linked user facts
 - BM25 + weighted RRF hybrid long-term memory retrieval
 - Bounded ReAct tool execution with allowlists, approval gates, and TraceId audit
-- Five production Agent tools: public knowledge, user memory, and user-scoped ticket list/detail/create
+- Nine production Agent tools spanning knowledge, memory, tickets, orders, refund requests, and security events
 - Prometheus monitoring and anomaly detection
 - Docker Compose with Nginx, Redis, ChromaDB, and Prometheus
 - Pytest and GitHub Actions

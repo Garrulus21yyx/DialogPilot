@@ -69,6 +69,7 @@ _evaluator    = None
 _skill_manager = None
 _answer_verifier = None
 _ticket_service = None
+_customer_operations = None
 _context_assembler = None
 _authenticator = None
 _model_policy = None
@@ -120,7 +121,7 @@ def _anthropic_cfg() -> Dict[str, Any]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """按依赖顺序创建所有组件，并在退出时释放后台任务和连接。"""
-    global _orchestrator, _memory, _knowledge_base, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _context_assembler, _authenticator, _model_policy
+    global _orchestrator, _memory, _knowledge_base, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _customer_operations, _context_assembler, _authenticator, _model_policy
 
     print(BANNER, flush=True)
 
@@ -129,11 +130,13 @@ async def lifespan(app: FastAPI):
     from evaluation.evaluator import EndToEndEvaluator
     from mcp.knowledge_base import KnowledgeBase
     from mcp.customer_support_tools import ticket_tools
+    from mcp.customer_operations_tools import customer_operation_tools
     from mcp.tool_manager import ApprovalMode, MCPToolManager, Tool
     from memory.conversation_memory import MemoryManager
     from monitor.performance_monitor import PerformanceMonitor
     from core.skill_loader import SkillManager
     from services.answer_verifier import AnswerVerifier
+    from services.customer_operations import CustomerOperationsService
 
     cfg = _anthropic_cfg()
     _model_policy = cfg["policy"]
@@ -182,6 +185,12 @@ async def lifespan(app: FastAPI):
         os.getenv(
             "TICKET_DB_PATH",
             str(pathlib.Path(_ROOT) / "data" / "tickets" / "tickets.db"),
+        )
+    )
+    _customer_operations = CustomerOperationsService(
+        os.getenv(
+            "CUSTOMER_OPERATIONS_DB_PATH",
+            str(pathlib.Path(_ROOT) / "data" / "customer-operations" / "operations.db"),
         )
     )
     _context_assembler = ContextAssembler(
@@ -289,6 +298,8 @@ async def lifespan(app: FastAPI):
     ))
     for ticket_tool in ticket_tools(_ticket_service):
         _tool_manager.register(ticket_tool)
+    for operation_tool in customer_operation_tools(_customer_operations):
+        _tool_manager.register(operation_tool)
     _orchestrator.set_tool_manager(_tool_manager)
 
     # 性能监控（可选启动 Prometheus）

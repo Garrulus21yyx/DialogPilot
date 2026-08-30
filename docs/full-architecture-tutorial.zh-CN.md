@@ -45,7 +45,7 @@ DialogPilot 是一个 Python 3.12 + FastAPI 的异步多 Agent 客服后端。�
 2. 合同：一次请求必须得到可诊断的路由结果；只有明确 `PASS` 的回答能发布；需要人工时同步尝试创建持久工单，并把建单成功或失败明确返回。
 3. 主链：Memory → Intent → RAG → Context → TaskPlan → Workers → Coverage → Synthesis → Verification → Ticket → Persist published messages。
 4. 六个最值得深挖的改动：单调事件与范围摘要 checkpoint、混合长期记忆、TaskPlan/CoverageGate、有界 ReAct 与权限、请求预算下的结果代数、校验质量反馈闭环。
-5. 证据：111 个测试，覆盖身份/公开投影、归档幂等/CAS、显式存储模式、真实 Escalation Owner、路由基数、混合召回、工具权限、Trace、分层模型策略和版本化评测合同。
+5. 证据：188 个测试，覆盖身份/公开投影、归档幂等/CAS、显式存储模式、真实 Escalation Owner、路由基数、混合召回、工具权限、订单版本/退款幂等、Trace、分层模型策略和版本化评测合同。
 6. 边界：已有 JWT/scope 基线；多租户 IdP/ABAC 未完成，SQLite 只适合单应用写者，Trace/审计重启丢失，审批不能交互恢复；已有 500 条分层候选集，但尚无 human-reviewed gold，不能声称生产准确率。
 
 ## 1. 如何学习这个仓库
@@ -92,6 +92,8 @@ DialogPilot/
 │   └── context.py                   # Token 估算与 Prompt 输入装配
 ├── mcp/
 │   ├── knowledge_base.py            # Chroma 知识文档摄取与检索
+│   ├── customer_support_tools.py    # 人工工单工具投影
+│   ├── customer_operations_tools.py # 订单、退款和安全事件工具投影
 │   └── tool_manager.py              # 工具注册、校验、超时、熔断、缓存、降级
 ├── agents/agent_orchestrator.py     # Agent 池、路由、并发执行、质量反馈
 ├── agents/react_engine.py           # Worker 内有界 tool_use/tool_result 循环
@@ -99,7 +101,8 @@ DialogPilot/
 ├── services/
 │   ├── result_synthesizer.py        # 并行结果的唯一融合 Owner
 │   ├── answer_verifier.py           # 回答发布边界
-│   └── ticket_service.py            # 工单身份、状态、幂等、审计
+│   ├── ticket_service.py            # 工单身份、状态、幂等、审计
+│   └── customer_operations.py       # 订单/退款/安全事件 SQLite 业务沙箱 Owner
 ├── monitor/performance_monitor.py   # 在线指标、告警、路由 penalty
 ├── evaluation/evaluator.py          # 离线意图/对话评测和基线
 ├── skills/*/SKILL.md                # 运营可热更新的领域规则
@@ -168,9 +171,9 @@ API 层负责**时序编排**，但不应该成为各领域事实的 Owner。例
 1. `_anthropic_cfg()` 读取 API Key、模型和可选兼容 Base URL；Key 缺失时启动失败。
 2. 创建 `IntentRecognizer`。
 3. 扫描 `skills/`，加载 Markdown/JSON/TXT 业务规则。
-4. 创建 `AgentOrchestrator`、`AnswerVerifier`、`TicketService` 和 `ContextAssembler`。
+4. 创建 `AgentOrchestrator`、`AnswerVerifier`、`TicketService`、`CustomerOperationsService` 和 `ContextAssembler`。
 5. 创建 `MemoryManager`：Redis 保存短期状态，ChromaDB 保存情景记忆和画像。
-6. 创建共享 `TraceRecorder`、`MCPToolManager` 和 `KnowledgeBase`，注册知识、记忆和用户工单共 5 个生产工具，再把 ToolManager 注入所有领域 Worker。
+6. 创建共享 `TraceRecorder`、`MCPToolManager` 和 `KnowledgeBase`，注册知识、记忆、工单、订单、退款和安全事件共 9 个生产工具，再把 ToolManager 注入所有领域 Worker。
 7. 启动 `PerformanceMonitor` 后台采集循环。
 8. 创建 `EndToEndEvaluator`。
 9. `yield` 后服务开始接请求；退出时停止 Monitor 并关闭 Redis 连接。
@@ -369,7 +372,7 @@ LLM 与 embedding 并行，pattern 同步执行。官方 Anthropic SDK 没有 em
 
 ### 7.3 Tool 调用合同
 
-当前生产注册表不是测试 fixture，共有 5 项：
+当前生产注册表不是测试 fixture，共有 9 项：
 
 | 工具 | 类型 | 权威数据与边界 |
 |---|---|---|
@@ -378,8 +381,13 @@ LLM 与 embedding 并行，pattern 同步执行。官方 Anthropic SDK 没有 em
 | `support_ticket_list` | 只读 | 只列出当前认证用户自己的工单，最多 20 条 |
 | `support_ticket_get` | 只读 | 工单快照与审计事件；即使猜到他人 ID 也按不存在处理 |
 | `support_ticket_create` | 高风险写 | SQLite 幂等创建；默认等待宿主审批，成功返回 `COMMITTED` 和 `ticket_id` receipt |
+| `order_lookup` | 只读 | 当前认证用户的订单状态、金额、退款窗口和单调版本；跨用户按不存在处理 |
+| `refund_eligibility_check` | 只读 | 由业务 Owner 根据订单状态、退款窗口和已有申请计算资格与 `order_version` |
+| `refund_request_create` | 高风险写 | 宿主批准后在事务内重验资格/版本并幂等创建退款申请，返回 refund receipt |
+| `account_security_event_list` | 只读 | 仅 AccountSecurity Agent 可查询当前认证用户的不可变安全事件 |
 
-测试里的 `refund_write/fresh_write` 仍只是状态机 fixture，不是生产退款能力。
+旧评测中的 `refund_write/fresh_write` 仍只是状态机 fixture；真正注册的是
+`refund_request_create`。它证明本地业务沙箱中的“退款申请已提交”，不证明支付渠道已经退回资金。
 
 `Tool` 除名称、handler、Schema、缓存和超时外，还声明 `allowed_agents`、`risk`、`read_only` 与 `requires_approval`。ReAct 必须走 `execute_for_agent()`，不能直接碰 handler。完整顺序是：
 
@@ -423,7 +431,7 @@ stateDiagram-v2
 
 现在每个领域 Worker 会收到自己的工具 Schema，并执行 Anthropic `tool_use → tool_result` 循环；`call_id` 必须配对，默认最多 4 步。自然结束为 `COMPLETED`，权限拒绝或待审批为 `BLOCKED`，工具失败为 `TOOL_ERROR`，持续循环为 `MAX_STEPS`。后三种都让任务非成功并触发升级，而且不会被 GeneralAgent 静默替换。
 
-外层 TaskPlan、Agent fan-out、CoverageGate 和发布校验仍是确定性 Python 控制。这是刻意的两层设计：Planner 拥有“哪些工作必须完成”，ReAct 只拥有“当前 Worker 为完成自己的任务应调用什么工具”。工单创建已有幂等键和真实 SQLite receipt，但仍缺持久 pending call、交互审批、取消/恢复以及退款等外部业务事务，因此不能称为通用自治 Agent 平台。
+外层 TaskPlan、Agent fan-out、CoverageGate 和发布校验仍是确定性 Python 控制。这是刻意的两层设计：Planner 拥有“哪些工作必须完成”，ReAct 只拥有“当前 Worker 为完成自己的任务应调用什么工具”。工单与本地退款申请已有幂等键和真实 SQLite receipt，但仍缺持久 pending call、交互审批、取消/恢复以及支付渠道退款/补偿等外部事务，因此不能称为通用自治 Agent 平台。
 
 ## 8. 记忆系统：状态、压缩和并发安全
 
@@ -1012,6 +1020,7 @@ Prometheus :9090
 | `RAG_CHUNK_OVERLAP_TOKENS` | 相邻 RAG 片段重叠预算 48 Token，必须小于片段上限 |
 | `INTENT_SIMILARITY_MODE` | `ngram` 或 `disabled`，不再由 provider base URL 猜测 |
 | `TICKET_DB_PATH` | SQLite 工单文件 |
+| `CUSTOMER_OPERATIONS_DB_PATH` | SQLite 订单、退款申请与安全事件业务沙箱文件 |
 | `CONTEXT_INPUT_BUDGET` | 完整输入预算 12000 |
 | `CONTEXT_OUTPUT_RESERVE` | 为输出预留 1536 |
 | `MEMORY_TOKEN_BUDGET` | 记忆预算 6000 |
@@ -1033,7 +1042,7 @@ python -m compileall -q agents api core evaluation mcp memory monitor services
 python -m pytest -q
 ```
 
-当前 111 个测试按不变量分组：
+当前 188 个测试按不变量分组：
 
 ### Lifespan 与 RAG boundary
 
@@ -1255,7 +1264,8 @@ python -m pytest -q
 
 ### P0：高风险业务 receipt
 
-模型不得声称已退款、改地址或修改账户。真正执行时需要业务服务返回 typed receipt，由业务服务而非模型拥有副作用事实。
+模型不得把“退款申请已提交”说成“资金已到账”，也不能声称已改地址或修改账户。
+`CustomerOperationsService` 现在能返回本地退款申请 typed receipt，由业务 Owner 而非模型拥有该提交事实；支付渠道退款、调账和补偿仍未接入。
 
 ### P1：PostgreSQL + durable queue
 
@@ -1271,7 +1281,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### P1：审批恢复与副作用 receipt
 
-当前高风险/写工具默认 fail closed，测试可由可信宿主传 `approved=True`，但 HTTP 没有持久 pending call、批准人、过期时间和 resume endpoint。真正接退款/账户修改前，需要幂等 operation key、业务服务授权、批准事件与 typed receipt；模型文本不能拥有“退款成功”这个事实。
+当前高风险/写工具默认 fail closed，测试可由可信宿主传 `approved=True`，但 HTTP 没有持久 pending call、批准人、过期时间和 resume endpoint。退款申请已有幂等 operation key、订单版本重验和本地 typed receipt；真正接支付退款/账户修改仍需外部授权、批准事件、补偿与渠道回执，模型文本不能拥有“退款到账”这个事实。
 
 ## 22. 项目追问题库与参考答案
 
@@ -1285,7 +1295,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q2：你个人具体负责了什么？
 
-**推荐诚实答案：** 我接手的是一个已有客服原型。我负责仓库清理和 DialogPilot 命名迁移，并完成持久工单、Token/CAS 压缩、typed synthesis、TaskPlan/CoverageGate、混合记忆、ReAct 权限/Trace，以及 JWT/公开投影、短会话归档、显式 Chroma 模式、真实 Escalation Owner、分层模型策略和分层评测合同。当前有 111 个测试、CI、Docker 验证和架构文档。原型已有功能会按 commit 划清边界，不说成全部从零原创。
+**推荐诚实答案：** 我接手的是一个已有客服原型。我负责仓库清理和 DialogPilot 命名迁移，并完成持久工单、Token/CAS 压缩、typed synthesis、TaskPlan/CoverageGate、混合记忆、ReAct 权限/Trace、订单/退款/安全事件业务 Owner，以及 JWT/公开投影、短会话归档、显式 Chroma 模式、真实 Escalation Owner、分层模型策略和分层评测合同。当前有 188 个测试、CI、Docker 验证和架构文档。原型已有功能会按 commit 划清边界，不说成全部从零原创。
 
 **追问：去掉你的改动还剩什么？** 仍有基础 FastAPI、三路意图、Redis/Chroma 记忆、RAG、领域 Agent、Skill、监控和评测原型；会失去真实工单闭环、Token/并发压缩不变量、TaskPlan/覆盖门禁、有类型并行结果、质量反馈、混合召回、工具权限/Trace 和 Worker ReAct。
 
@@ -1359,7 +1369,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 **答：** 注册表、Agent allowlist、风险/读写声明、宿主审批、基础 schema 校验、TTL cache、显式 success/error/timeout/cancelled 终态、三态 breaker、sync handler 线程池、fallback、输出有界化、脱敏审计和 TraceId。调用终态与业务副作用分开：写调用没有 `ToolEffectReceipt` 时只能标 `outcome_unknown`。
 
-**追问：缺什么？** 还没有交互式审批恢复、持久调用状态、完整 JSON Schema 和真正 MCP transport。`support_ticket_create` 已有幂等键与持久 receipt，但这只证明本地工单事务，不等于拥有退款、调账等外部事务或补偿能力。
+**追问：缺什么？** 还没有交互式审批恢复、持久调用状态、完整 JSON Schema 和真正 MCP transport。`support_ticket_create` 与 `refund_request_create` 都有幂等键和持久 receipt；后者只证明本地退款申请事务，不等于支付渠道已退款，也不具备外部调账或补偿能力。
 
 ### Q15：为什么 Verifier 要 fail closed？
 
@@ -1627,7 +1637,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 **Action：** 在 Worker 内增加最大 4 步的 Anthropic tool loop；工具发现和执行共享同一 allowlist，执行边界再次校验；高风险/写工具默认等待宿主批准，读工具批次并行、潜在写工具串行；工具输出截断后按 call_id 回写，TraceId 通过 contextvars 贯穿并行 Task，审计只记录参数哈希/shape；拒绝、失败、超步数禁止 General fallback 覆盖。
 
-**Result：** 工具/ReAct 聚焦测试和编排投影测试证明越权零副作用、审批阻断、循环停止、结果配对、输出有界、Trace 传播和失败证据贯穿；timeout/cancel 进一步区分调用终态与 `outcome_unknown` 副作用事实。新增工单查询/详情/创建后，全仓 174 项测试通过；写入成功返回 SQLite ticket receipt，跨用户读取确定性拒绝。
+**Result：** 工具/ReAct 聚焦测试和编排投影测试证明越权零副作用、审批阻断、循环停止、结果配对、输出有界、Trace 传播和失败证据贯穿；timeout/cancel 进一步区分调用终态与 `outcome_unknown` 副作用事实。生产注册表扩展为 9 个工具；工单和退款申请写入均返回 SQLite typed receipt，订单/事件跨用户读取确定性拒绝，订单变更会让旧资格版本失败。
 
 **简历一行（只在你能现场解释代码时使用）：**
 
@@ -1669,7 +1679,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q56：这两项还有什么未完成？
 
-**答：** 混合记忆缺版本化真实数据集、权重消融和稳定 embedding；Trace 缺 OTel exporter/持久存储及全链 span；审批缺 pending-call persistence、批准人/过期时间/resume endpoint。工单写工具已有可信身份、幂等 key 和 typed receipt，但退款/账户修改仍没有外部业务授权与事务适配器。当前代码证明的是闭合安全基线，不是完整生产平台。
+**答：** 混合记忆缺版本化真实数据集和稳定 embedding；Trace 缺 OTel exporter/持久存储及全链 span；审批缺 pending-call persistence、批准人/过期时间/resume endpoint。工单和本地退款申请已有可信身份、幂等 key 与 typed receipt，但支付退款、账户修改仍没有外部业务授权与补偿适配器。当前代码证明的是闭合安全基线，不是完整生产平台。
 
 ## 26. 边界收敛：身份、记忆生命周期、物理存储与升级 Owner
 

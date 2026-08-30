@@ -199,7 +199,7 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 工具发现只暴露 Agent allowlist，执行时 ToolManager 用同一 allowlist 再校验。模型编造工具名会得到 `denied`。授权不是 Prompt 约定，而是执行边界的权威决策。
 
-当前生产工具共 5 个：公共知识 `knowledge_search`、用户记忆 `memory_search`、当前用户工单列表 `support_ticket_list`、工单详情 `support_ticket_get`、需宿主审批的幂等写工具 `support_ticket_create`。测试里的退款写工具不能当作生产能力。
+当前生产工具共 9 个：公共知识 `knowledge_search`、用户记忆 `memory_search`、工单列表/详情/创建，以及订单查询、退款资格检查、退款申请创建和账户安全事件查询。旧评测里的 `refund_write` 仍是 fixture；真正的 `refund_request_create` 由 Billing Agent 调用，宿主审批后在 SQLite 业务 Owner 内重验订单版本与资格并返回 receipt。它表示“申请已提交”，不表示支付渠道“资金已到账”。
 
 ### Q40：模型能伪造 `approved=true` 吗？
 
@@ -207,7 +207,7 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q41：工具并发如何处理？
 
-同一 ReAct 步中只读工具可并行，潜在写工具串行，避免顺序未定义的副作用。这不是分布式事务；当前工单创建已有业务幂等 key 和 typed receipt，但退款、调账等外部写工具仍需各自的业务授权、版本与补偿合同。
+同一 ReAct 步中只读工具可并行，潜在写工具串行，避免顺序未定义的副作用。这不是分布式事务；当前工单创建和本地退款申请已有业务幂等 key 与 typed receipt，退款还使用 `order_version` 防止资格检查后的 TOCTOU。支付渠道退款、调账仍需外部授权与补偿合同。
 
 ### Q42：怎么防 ReAct 死循环？
 
@@ -267,7 +267,7 @@ Trace 缺 OpenTelemetry exporter、持久存储、全链 span、采样与保留�
 
 ### Q55：如何用 STAR 讲 ReAct 权限与 Trace？
 
-**S：** 模型能调工具后可能编造名称、越权写、死循环且难归因。**T：** 保留外层确定性计划，让 Worker 安全使用工具。**A：** 实现 4 步 ReAct、双重 allowlist、宿主审批、读并行写串行、输出截断、call_id 配对与 contextvars TraceId。**R：** 测试证明越权零副作用、循环有界和 Trace 跨并行传播；持久审批/OTel 仍未实现。
+**S：** 模型能调工具后可能编造名称、越权写、使用过期资格、死循环且难归因。**T：** 保留外层确定性计划，让 Worker 安全使用工具。**A：** 实现 4 步 ReAct、双重 allowlist、宿主审批、读并行写串行、call_id 配对与 contextvars TraceId；退款由业务 Owner 事务内重验 `order_version`、窗口和重复申请。**R：** 9 个生产工具覆盖知识、记忆、工单、订单、退款和安全事件；测试证明跨用户拒绝、未审批零副作用、退款幂等 receipt、循环有界和 Trace 跨并行传播；外部支付和持久审批仍未实现。
 
 ### Q56：简历可以怎么写？
 
