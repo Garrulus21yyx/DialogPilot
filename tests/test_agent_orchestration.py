@@ -6,6 +6,7 @@ from agents.agent_orchestrator import (
     AgentOrchestrator,
     AgentResponse,
     AgentType,
+    EscalationAgent,
     Request,
 )
 from agents.orchestration_contracts import ExecutionBudget, TaskPlan, TaskRisk, TaskSpec
@@ -50,6 +51,29 @@ def task_plan(*agent_types: AgentType) -> TaskPlan:
         for agent_type in agent_types
     )
     return TaskPlan(tasks=tasks, primary_task_id=tasks[0].task_id)
+
+
+def test_human_handoff_executes_the_registered_escalation_owner():
+    """证明 ESCALATION Task 不再由 GeneralAgent 代执行。"""
+    escalation = EscalationAgent(TextClient("已整理风险和待核实项，正在转人工处理。"), "test")
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    orchestrator._pool = {AgentType.ESCALATION: [escalation]}
+    orchestrator._agent_timeout_s = 1.0
+    request = Request(
+        message="我要转人工处理这个异常扣款",
+        user_id="u",
+        conv_id="c",
+        intent=IntentCategory.HUMAN_HANDOFF,
+        intent_confidence=0.99,
+    )
+
+    result = asyncio.run(orchestrator.run(request))
+
+    assert result.primary_agent is AgentType.ESCALATION
+    assert result.agent_type is AgentType.ESCALATION
+    assert result.agent_outcomes[0]["responding_agent_type"] == "escalation"
+    assert result.escalated is True
+    assert escalation._react_engine is None
 
 
 def test_synthesizer_returns_partial_success_without_discarding_valid_answer():
@@ -404,6 +428,15 @@ class JsonClient:
             type="text",
             text=json.dumps(self.payload, ensure_ascii=False),
         )])
+
+
+class TextClient:
+    def __init__(self, text):
+        self.text = text
+        self.messages = self
+
+    async def create(self, **_kwargs):
+        return SimpleNamespace(content=[SimpleNamespace(type="text", text=self.text)])
 
 
 class MalformedClient:

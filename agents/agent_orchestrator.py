@@ -192,7 +192,6 @@ class BaseAgent:
         instance_id: str = "",
         tool_manager: Optional[Any] = None,
         react_max_steps: int = 4,
-        intent_similarity_mode: str = "ngram",
     ):
         """保存 Agent 身份、模型客户端、Skill 入口和运行统计。"""
         self._client = client
@@ -382,6 +381,21 @@ class AccountSecurityAgent(BaseAgent):
     )
 
 
+class EscalationAgent(BaseAgent):
+    """拥有人工作单交接摘要；只整理证据，不执行任何业务工具。"""
+
+    agent_type = AgentType.ESCALATION
+    system_prompt = (
+        "你是人工客服交接专员。把用户诉求、紧急程度、已确认事实、待核实项和风险"
+        "整理成简洁的交接说明，并明确告知用户已进入人工处理流程。"
+        "不得声称工单、退款、解封或后台操作已经完成；不得索取密码、验证码或完整证件信息。"
+    )
+
+    def _new_react_engine(self) -> Optional[ReActExecutionEngine]:
+        """升级交接是只读整理能力，不发现或调用工具。"""
+        return None
+
+
 # ── 编排器 ────────────────────────────────────────────────────────────────────
 
 class AgentOrchestrator:
@@ -422,6 +436,7 @@ class AgentOrchestrator:
         result_synthesizer: Optional[ResultSynthesizer] = None,
         tool_manager: Optional[Any] = None,
         react_max_steps: int = 4,
+        intent_similarity_mode: str = "ngram",
     ):
         """创建 Agent 池、意图识别器、融合器和路由反馈状态。"""
         kwargs: Dict[str, Any] = {"api_key": api_key}
@@ -464,6 +479,10 @@ class AgentOrchestrator:
                     tool_manager=tool_manager, react_max_steps=react_max_steps,
                 )
             ],
+            AgentType.ESCALATION: [EscalationAgent(
+                client, model, skill_manager, "escalation_0",
+                tool_manager=tool_manager, react_max_steps=react_max_steps,
+            )],
         }
 
     def set_skill_manager(self, skill_manager: Optional[Any]) -> None:
@@ -1074,6 +1093,8 @@ class AgentOrchestrator:
                     "quality_score": round(agent.stats.quality_score, 3),
                     "monitor_penalty": round(agent.stats.monitor_penalty, 3),
                     "routing_score": round(agent.stats.routing_score(), 3),
+                    "routing_pool_size": len(agents),
+                    "adaptive_routing_active": len(agents) >= 2,
                 }
         return result
 

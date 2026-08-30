@@ -3,6 +3,7 @@ from types import SimpleNamespace
 import pytest
 
 from agents.agent_orchestrator import AgentOrchestrator, AgentStats, AgentType
+from monitor.performance_monitor import PerformanceMonitor
 
 
 def test_unknown_verification_is_observed_without_penalizing_quality():
@@ -65,6 +66,32 @@ def test_feedback_is_attributed_only_to_named_producer_instances():
     assert general.stats.quality_samples == 0
     assert technical.stats.verified_reject == 1
     assert billing.stats.verified_reject == 1
+
+
+def test_stats_disclose_when_adaptive_routing_has_no_alternative():
+    """证明单实例池不会宣称在线降权能够改选其他实例。"""
+    only = fake_agent("technical_0")
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    orchestrator._pool = {AgentType.TECHNICAL: [only]}
+
+    stats = orchestrator.get_stats()["technical_0"]
+
+    assert stats["routing_pool_size"] == 1
+    assert stats["adaptive_routing_active"] is False
+
+
+def test_monitor_only_applies_selection_penalty_when_an_alternative_exists():
+    """证明 Monitor 不再把单实例健康惩罚描述成可生效的动态路由。"""
+    singleton = fake_agent("technical_0")
+    singleton.stats.success = 0
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    orchestrator._pool = {AgentType.TECHNICAL: [singleton]}
+    monitor = PerformanceMonitor(orchestrator, SimpleNamespace(get_stats=lambda: {}))
+
+    import asyncio
+    asyncio.run(monitor._collect())
+
+    assert singleton.stats.monitor_penalty == 0.0
 
 
 def test_unsupported_feedback_status_fails_deterministically():

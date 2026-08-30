@@ -221,7 +221,12 @@ class PerformanceMonitor:
                 self._prom["agent_latency_ms"].labels(agent=agent_key).observe(ms)
                 self._prom["agent_quality_score"].labels(agent=agent_key).set(s["quality_score"])
 
-            routing_penalties[agent_key] = self._routing_penalty(sr, ms)
+            # 只有同类型至少两个候选实例时，惩罚才可能改变选择结果。
+            routing_penalties[agent_key] = (
+                self._routing_penalty(sr, ms)
+                if s.get("adaptive_routing_active", False)
+                else 0.0
+            )
 
         # ── 工具指标 ──────────────────────────────────────────────────────────
         for tool_name, s in tool_stats.items():
@@ -288,11 +293,15 @@ class PerformanceMonitor:
         """
         for agent_key, s in agent_stats.items():
             if s["success_rate"] < 0.85 and s["total"] > 10:
+                adaptive = s.get("adaptive_routing_active", False)
                 self._add_suggestion(Suggestion(
                     title=f"Agent {agent_key} 成功率偏低",
                     detail=f"成功率 {s['success_rate']:.1%}，路由评分 {s['routing_score']:.3f}",
-                    action=(
-                        "Orchestrator 的 _best_agent() 已自动降低该 Agent 的路由权重。\n"
+                    action=((
+                        "Orchestrator 已在同类型候选中降低该实例的路由权重。\n"
+                    ) if adaptive else (
+                        "当前同类型只有一个实例，降权不会改变路由，需先增加备选实例。\n"
+                    )) + (
                         "建议：1. 检查 system_prompt 是否需要优化\n"
                         "      2. 检查该类型问题的复杂度是否超出 Agent 能力\n"
                         "      3. 考虑增加同类型 Agent 实例"
