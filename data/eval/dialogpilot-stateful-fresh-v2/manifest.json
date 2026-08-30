@@ -1,14 +1,14 @@
 {
   "case_count": 27,
-  "cases_sha256": "23da1e7a67cacaec9347e3b20a97777552c102eec5d2b84404bf7c0c57dfec43",
+  "cases_sha256": "5e1453b638c2bcba2460556a79d098cf1047664c29a25e7c5daa339e62bd7dad",
   "created_at": "2026-08-30",
   "dataset_id": "dialogpilot-stateful-fresh-v2",
-  "description": "Reviewer B fresh-context Stateful adversarial holdout, sealed before comparison with dialogpilot-500-v1 cases.",
+  "description": "Reviewer B adversarial Stateful suite; originally sealed fresh, now a consumed regression set after contract migrations.",
   "evaluation_status": {
-    "coverage_gaps": 27,
+    "coverage_gaps": 0,
     "failed": 0,
-    "passed": 0,
-    "runner_status": "all actions currently unregistered and fail closed",
+    "passed": 27,
+    "runner_status": "all actions registered; consumed regression run passes",
     "verified_closure": false
   },
   "expected_distribution": {
@@ -24,6 +24,7 @@
   },
   "freshness_provenance": {
     "blind_preliminary_review_sha256": "d82716d23a76edd6a2512727a7a4a4f49decc374d006c084faa2e02b4883b845",
+    "contract_migration": "Memory summary/finalize cases were revised for append-only events and checkpoint semantics; this invalidates unseen-holdout status.",
     "comparison_after_seal": {
       "exact_action_overlap": 0,
       "exact_group_id_overlap": 0,
@@ -35,7 +36,7 @@
     "target_commit": "684dd8dad84726abb5daa2b7905dd69a95e46675"
   },
   "parent_dataset": {
-    "cases_sha256": "07de2bba52155be143cb865f6572405bc93370610f1b119ab2c494be377112fd",
+    "cases_sha256": "00ba40789eaa27c4aa420eedd51d86b3fa115b879d88e8eff65ff1f2616f4c95",
     "dataset_id": "dialogpilot-500-v1",
     "version": "1.0.0-provisional"
   },
@@ -52,7 +53,7 @@
       "url": "repository://DialogPilot"
     }
   ],
-  "split_policy": "All cases were independently authored and sealed as a fresh heldout set; no case may be moved to dev before first executable run.",
+  "split_policy": "The heldout label records the original split; all cases have been consumed by repair and are regression-only.",
   "status": "provisional",
   "version": "2.0.0-provisional"
 }

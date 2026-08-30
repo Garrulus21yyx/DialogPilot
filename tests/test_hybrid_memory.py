@@ -79,7 +79,7 @@ def test_episodic_store_persists_raw_chunks_not_summary():
     assert call["documents"] == ["user: 订单 A123 重复扣款", "assistant: 已记录原始事实"]
     assert call["documents"] != [summary]
     assert call["metadatas"][0]["summary"] == summary
-    assert call["metadatas"][0]["memory_version"] == 3
+    assert call["metadatas"][0]["memory_version"] == 4
     assert call["metadatas"][0]["message_id"] == "m1"
 
 
@@ -97,18 +97,14 @@ def test_episodic_archive_is_idempotent_for_the_same_messages():
     assert first_ids == second_ids
 
 
-def test_profile_has_one_deterministic_id_and_merges_known_values():
-    """证明同一用户跨会话写入同一权威画像，并保留已有偏好与实体。"""
-    assert MemoryManager._profile_id("user-1") == MemoryManager._profile_id("user-1")
-    assert MemoryManager._profile_id("user-1") != MemoryManager._profile_id("user-2")
-    merged = MemoryManager._merge_profile(
-        {"preferences": ["中文"], "entities": {"订单": ["A123"]}},
-        {"preferences": ["中文", "简洁"], "entities": {"订单": ["A123", "B456"]}},
-    )
-    assert merged == {
-        "preferences": ["中文", "简洁"],
-        "entities": {"订单": ["A123", "B456"]},
-    }
+def test_fact_identity_is_stable_for_the_same_source_operation():
+    """证明同一来源事实重试得到同一 ID，而不同来源保留独立历史。"""
+    first = MemoryManager._fact_id("user-1", "preferred_language", "zh", ["m1"])
+    retry = MemoryManager._fact_id("user-1", "preferred_language", "zh", ["m1"])
+    later = MemoryManager._fact_id("user-1", "preferred_language", "zh", ["m2"])
+
+    assert first == retry
+    assert first != later
 
 
 def test_memory_manager_fuses_user_scoped_chroma_candidates():

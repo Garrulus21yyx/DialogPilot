@@ -12,12 +12,19 @@ from memory.context import (
     ContextSection,
     TokenEstimator,
 )
-from memory.conversation_memory import MemoryManager, Message, MsgRole
+from memory.conversation_memory import (
+    MemoryManager,
+    Message,
+    MsgRole,
+    SummaryCheckpoint,
+)
 from core.model_policy import ModelProfile
 
 
-def raw_message(role: str, content: str) -> str:
+def raw_message(role: str, content: str, *, seq=None, message_id=None) -> str:
     return json.dumps({
+        "message_id": message_id or f"message-{seq or random.random()}",
+        **({"seq": seq} if seq is not None else {}),
         "role": role,
         "content": content,
         "ts": datetime.now().isoformat(),
@@ -40,6 +47,7 @@ def bare_manager(*, budget=512, threshold=0.7, summary_tokens=128):
         "tokens_before": 0,
         "tokens_after": 0,
     }
+    manager._profile_locks = __import__("collections").defaultdict(asyncio.Lock)
     return manager
 
 
@@ -216,8 +224,8 @@ def test_compression_trigger_uses_tokens_not_message_count():
     assert asyncio.run(manager._needs_compression("u", "c")) is False
 
 
-def test_structured_rolling_summary_stays_valid_and_bounded():
-    """证明滚动摘要始终是结构化 JSON，且不会继续无界增长。"""
+def test_structured_summary_chunk_stays_valid_and_bounded():
+    """证明单个 source-range 摘要块结构化且有界。"""
     manager = bare_manager(summary_tokens=128)
     payload = {
         "user_goal": "处理登录和扣款" * 100,
@@ -242,8 +250,8 @@ def test_structured_rolling_summary_stays_valid_and_bounded():
     assert manager._token_estimator.estimate(summary) <= manager._summary_max_tokens
 
 
-def test_concurrent_write_prevents_stale_compression_commit():
-    """证明压缩期间出现并发写时旧快照不能覆盖新消息。"""
+def test_new_event_does_not_invalidate_fixed_high_water_summary():
+    """证明压缩期间的新 seq 不会使已选 source range 失效。"""
     manager = bare_manager(budget=512, threshold=0.5)
     original = [
         raw_message("assistant" if i % 2 else "user", "历史内容" * 80)
@@ -263,15 +271,18 @@ def test_concurrent_write_prevents_stale_compression_commit():
     manager._archive_messages = record_archive
     asyncio.run(manager._compress("user", "conversation"))
 
-    assert redis.values[0] == MutatingClient.concurrent_message
+    assert json.loads(redis.values[0])["content"] == "压缩期间到达的新消息"
     assert len(redis.values) == len(original) + 1
-    assert redis.summary == ""
-    assert manager.compression_stats()["conflicts"] == 1
+    checkpoint = SummaryCheckpoint.from_raw(redis.strings["summary_checkpoint:user:conversation"])
+    assert checkpoint.covered_until_seq > 0
+    assert checkpoint.covered_until_seq < 9
+    assert len(redis.lists["summary_chunks:user:conversation"]) == 1
+    assert manager.compression_stats()["conflicts"] == 0
     assert len(archived) == 1
 
 
-def test_successful_compression_replaces_summary_and_preserves_recent_messages():
-    """证明无冲突提交会替换摘要，同时保留受保护的最近轮次。"""
+def test_successful_compression_keeps_event_log_and_advances_checkpoint():
+    """证明摘要推进不删除原始事件，并留下最近未覆盖轮次。"""
     manager = bare_manager(budget=512, threshold=0.5, summary_tokens=128)
     original = [
         raw_message("assistant" if i % 2 else "user", f"历史-{i}-" * 80)
@@ -290,23 +301,53 @@ def test_successful_compression_replaces_summary_and_preserves_recent_messages()
     manager._archive_messages = record_store
     asyncio.run(manager._compress("user", "conversation"))
 
-    assert 2 <= len(redis.values) <= manager.RECENT_KEEP
-    assert redis.values == original[: len(redis.values)]
-    assert json.loads(redis.summary)["user_goal"] == "解决问题"
-    assert manager._token_estimator.estimate(redis.summary) <= manager._summary_max_tokens
+    assert redis.values == original
+    checkpoint = SummaryCheckpoint.from_raw(redis.strings["summary_checkpoint:user:conversation"])
+    assert 0 < checkpoint.covered_until_seq < 8
+    chunk = json.loads(redis.lists["summary_chunks:user:conversation"][0])
+    assert chunk["from_seq"] == 1
+    assert chunk["to_seq"] == checkpoint.covered_until_seq
+    assert json.loads(chunk["content"])["user_goal"] == "解决问题"
     assert len(stored) == 1
     assert manager.compression_stats()["completed"] == 1
 
 
-def test_finalize_archives_short_session_then_clears_working_memory():
-    """证明未达到压缩阈值的短会话也能显式进入长期记忆。"""
+def test_legacy_summary_survives_first_range_checkpoint_migration():
+    """旧版可能已删摘要原文；首次新提交必须保留并明确标记旧投影。"""
+    manager = bare_manager(summary_tokens=256)
+    redis = FakeRedis([raw_message("user", "新机制接管后的原始事件", seq=1)])
+    redis.strings["summary:user:conversation"] = '{"confirmed_facts":["旧版唯一保留的事实"]}'
+    manager._redis = redis
+    manager._client = StableClient()
+
+    async def archive(*_args, **_kwargs):
+        return True
+
+    manager._archive_messages = archive
+    committed = asyncio.run(manager._compress(
+        "user", "conversation", force=True, cover_all=True
+    ))
+
+    assert committed is True
+    checkpoint = SummaryCheckpoint.from_raw(
+        redis.strings["summary_checkpoint:user:conversation"]
+    )
+    assert "旧版唯一保留的事实" in checkpoint.legacy_summary
+    chunks = asyncio.run(manager._get_summary_chunks("user", "conversation"))
+    view = manager._build_summary_view(chunks, checkpoint)
+    assert "legacy_summary_unverified" in view
+    assert "旧版唯一保留的事实" in view
+
+
+def test_finalize_archives_short_session_without_deleting_raw_events():
+    """证明短会话 finalize 推进 checkpoint，但保留可重建原文。"""
     manager = bare_manager()
     redis = FakeRedis([
         raw_message("assistant", "已为你记录"),
         raw_message("user", "订单 A123 重复扣款"),
     ])
-    redis.summary = '{"user_goal":"处理扣款"}'
     manager._redis = redis
+    manager._client = StableClient()
     archived = []
 
     async def record_archive(_user_id, _conv_id, messages, **kwargs):
@@ -319,21 +360,23 @@ def test_finalize_archives_short_session_then_clears_working_memory():
     assert result == {"archived_messages": 2, "finalized": True, "already_empty": False}
     assert [message.role for message in archived[0][0]] == [MsgRole.USER, MsgRole.ASSISTANT]
     assert archived[0][1]["reason"] == "conversation_finalize"
-    assert redis.values == []
-    assert redis.summary == ""
+    assert len(redis.values) == 2
+    checkpoint = SummaryCheckpoint.from_raw(redis.strings["summary_checkpoint:user:short-conversation"])
+    assert checkpoint.covered_until_seq == 2
 
     repeated = asyncio.run(manager.finalize_conversation("user", "short-conversation"))
     assert repeated == {"archived_messages": 0, "finalized": True, "already_empty": True}
 
 
 def test_finalize_concurrent_write_preserves_redis_for_retry():
-    """证明归档快照之后的新消息不会被会话结束操作误删。"""
+    """证明 finalize 的初始 high-water 可提交，新到事件留给重试。"""
     manager = bare_manager()
     redis = FakeRedis([raw_message("user", "原消息")])
     manager._redis = redis
+    manager._client = StableClient()
 
     async def archive_then_receive_new_message(*_args, **_kwargs):
-        redis.values.insert(0, raw_message("assistant", "并发到达的新消息"))
+        redis.values.insert(0, raw_message("assistant", "并发到达的新消息", seq=2))
         return True
 
     manager._archive_messages = archive_then_receive_new_message
@@ -342,6 +385,172 @@ def test_finalize_concurrent_write_preserves_redis_for_retry():
     assert result["finalized"] is False
     assert result["reason"] == "concurrent_write"
     assert len(redis.values) == 2
+
+
+def test_checkpoint_competition_not_message_append_causes_conflict():
+    manager = bare_manager()
+    redis = FakeRedis([])
+    manager._redis = redis
+    chunk = manager._make_summary_chunk(
+        "u",
+        "c",
+        [Message(MsgRole.USER, "事实", message_id="m1", seq=1)],
+        manager._bounded_summary({"user_goal": "事实"}),
+    )
+    redis.strings["summary_checkpoint:u:c"] = SummaryCheckpoint(covered_until_seq=1, version=1).to_json()
+
+    committed = asyncio.run(manager._commit_summary_chunk(
+        user_id="u",
+        conv_id="c",
+        expected_checkpoint=SummaryCheckpoint(),
+        expected_raw="",
+        chunk=chunk,
+    ))
+
+    assert committed is False
+    assert redis.lists["summary_chunks:u:c"] == []
+
+
+def test_scalar_fact_supersession_preserves_sources_and_one_active_value():
+    manager = bare_manager()
+    manager._facts = RecordingFacts()
+    first = [{
+        "operation": "upsert",
+        "key": "preferred_language",
+        "value": "zh",
+        "confidence": 0.9,
+        "source_message_ids": ["m1"],
+        "source_max_seq": 1,
+    }]
+    second = [{
+        "operation": "upsert",
+        "key": "preferred_language",
+        "value": "en",
+        "confidence": 0.99,
+        "source_message_ids": ["m2"],
+        "source_max_seq": 2,
+    }]
+    asyncio.run(manager._apply_fact_operations("u", first, observed_at=datetime.now().astimezone()))
+    asyncio.run(manager._apply_fact_operations("u", second, observed_at=datetime.now().astimezone()))
+
+    facts = asyncio.run(manager._read_facts("u"))
+    active = [fact for fact in facts if fact.status == "active"]
+    old = next(fact for fact in facts if fact.value == "zh")
+    assert [(fact.key, fact.value) for fact in active] == [("preferred_language", "en")]
+    assert old.status == "superseded"
+    assert old.superseded_by == active[0].fact_id
+    assert old.source_message_ids == ["m1"]
+    assert active[0].source_message_ids == ["m2"]
+
+
+def test_unknown_fact_keys_and_sources_fail_closed():
+    operations = MemoryManager._normalize_fact_operations(
+        {"facts": [
+            {"operation": "upsert", "key": "arbitrary", "value": "x"},
+            {
+                "operation": "upsert",
+                "key": "preferred_language",
+                "value": "zh",
+                "source_message_ids": ["invented"],
+            },
+        ]},
+        source_sequences={"real": 7},
+    )
+
+    assert operations == [{
+        "operation": "upsert",
+        "key": "preferred_language",
+        "value": "zh",
+        "confidence": 0.5,
+        "source_message_ids": ["real"],
+        "source_max_seq": 7,
+    }]
+
+
+def test_slow_old_scalar_extraction_cannot_supersede_newer_fact():
+    manager = bare_manager()
+    manager._facts = RecordingFacts()
+    newer = [{
+        "operation": "upsert",
+        "key": "current_location",
+        "value": "Berlin",
+        "confidence": 0.95,
+        "source_message_ids": ["m20"],
+        "source_max_seq": 20,
+    }]
+    older_finishes_late = [{
+        "operation": "upsert",
+        "key": "current_location",
+        "value": "Munich",
+        "confidence": 0.99,
+        "source_message_ids": ["m10"],
+        "source_max_seq": 10,
+    }]
+
+    asyncio.run(manager._apply_fact_operations("u", newer, observed_at=datetime.now().astimezone()))
+    asyncio.run(manager._apply_fact_operations(
+        "u", older_finishes_late, observed_at=datetime.now().astimezone()
+    ))
+
+    facts = asyncio.run(manager._read_facts("u"))
+    assert [(fact.value, fact.source_max_seq) for fact in facts if fact.status == "active"] == [
+        ("Berlin", 20)
+    ]
+
+
+def test_batched_appends_allocate_monotonic_sequence_and_preserve_turn_order():
+    manager = bare_manager(budget=100000)
+    manager._redis = FakeRedis([])
+
+    first = asyncio.run(manager.add_messages("u", "c", [
+        (MsgRole.USER, "q1", {}),
+        (MsgRole.ASSISTANT, "a1", {}),
+    ]))
+    second = asyncio.run(manager.add_messages("u", "c", [
+        (MsgRole.USER, "q2", {}),
+        (MsgRole.ASSISTANT, "a2", {}),
+    ]))
+    event_log = asyncio.run(manager._get_event_log("u", "c"))
+
+    assert [message.seq for message in [*first, *second]] == [1, 2, 3, 4]
+    assert [(message.seq, message.content) for message in event_log] == [
+        (1, "q1"), (2, "a1"), (3, "q2"), (4, "a2")
+    ]
+
+
+def test_repeated_forced_summary_ranges_are_contiguous_and_rebuildable():
+    manager = bare_manager(budget=512, summary_tokens=128)
+    original = [
+        raw_message(
+            "assistant" if seq % 2 == 0 else "user",
+            f"event-{seq}-" * 80,
+            seq=seq,
+            message_id=f"m{seq}",
+        )
+        for seq in range(12, 0, -1)
+    ]
+    redis = FakeRedis(original)
+    manager._redis = redis
+    manager._client = StableClient()
+
+    async def archive(*_args, **_kwargs):
+        return True
+
+    manager._archive_messages = archive
+    while True:
+        checkpoint, _ = asyncio.run(manager._read_checkpoint("u", "c"))
+        if checkpoint.covered_until_seq == 12:
+            break
+        assert asyncio.run(manager._compress("u", "c", force=True, cover_all=True)) is True
+
+    chunks = asyncio.run(manager._get_summary_chunks("u", "c"))
+    assert chunks[0].from_seq == 1
+    assert chunks[-1].to_seq == 12
+    assert all(left.to_seq + 1 == right.from_seq for left, right in zip(chunks, chunks[1:]))
+    assert [source for chunk in chunks for source in chunk.source_message_ids] == [
+        f"m{seq}" for seq in range(1, 13)
+    ]
+    assert redis.values == original
 
 
 class FakePipeline:
@@ -358,11 +567,8 @@ class FakePipeline:
     async def watch(self, *_keys):
         return None
 
-    async def lrange(self, _key, start, end):
-        return await self.redis.lrange(_key, start, end)
-
-    async def get(self, _key):
-        return self.redis.summary
+    async def get(self, key):
+        return await self.redis.get(key)
 
     async def unwatch(self):
         return None
@@ -370,43 +576,54 @@ class FakePipeline:
     def multi(self):
         return None
 
-    def delete(self, *keys):
-        self.commands.append(("delete", keys))
-
     def rpush(self, key, *values):
         self.commands.append(("rpush", key, values))
 
-    def expire(self, key, ttl):
-        self.commands.append(("expire", key, ttl))
-
-    def setex(self, key, ttl, value):
-        self.commands.append(("setex", key, ttl, value))
+    def set(self, key, value):
+        self.commands.append(("set", key, value))
 
     async def execute(self):
         for command in self.commands:
-            if command[0] == "delete":
-                if any(str(key).startswith("wm:") for key in command[1]):
-                    self.redis.values = []
-                if any(str(key).startswith("summary:") for key in command[1]):
-                    self.redis.summary = ""
-            elif command[0] == "rpush":
-                self.redis.values.extend(command[2])
-            elif command[0] == "setex":
-                self.redis.summary = command[3]
+            if command[0] == "rpush":
+                self.redis.lists[command[1]].extend(command[2])
+            elif command[0] == "set":
+                self.redis.strings[command[1]] = command[2]
 
 
 class FakeRedis:
     def __init__(self, values):
         self.values = list(values)
-        self.summary = ""
+        self.strings = {}
+        self.lists = __import__("collections").defaultdict(list)
 
-    async def lrange(self, _key, start, end):
+    async def lrange(self, key, start, end):
+        values = self.values if str(key).startswith("wm:") else self.lists[key]
         if end == -1:
-            return list(self.values[start:])
-        return list(self.values[start : end + 1])
+            return list(values[start:])
+        return list(values[start : end + 1])
 
-    async def get(self, _key):
-        return self.summary
+    async def get(self, key):
+        return self.strings.get(key)
+
+    async def setnx(self, key, value):
+        if key in self.strings:
+            return False
+        self.strings[key] = str(value)
+        return True
+
+    async def incrby(self, key, amount):
+        value = int(self.strings.get(key, 0)) + amount
+        self.strings[key] = str(value)
+        return value
+
+    async def lpush(self, key, *values):
+        target = self.values if str(key).startswith("wm:") else self.lists[key]
+        for value in values:
+            target.insert(0, value)
+        return len(target)
+
+    async def persist(self, _key):
+        return True
 
     def pipeline(self, transaction=True):
         assert transaction is True
@@ -414,7 +631,7 @@ class FakeRedis:
 
 
 class MutatingClient:
-    concurrent_message = raw_message("user", "压缩期间到达的新消息")
+    concurrent_message = raw_message("user", "压缩期间到达的新消息", seq=9)
 
     def __init__(self, redis):
         self.redis = redis
@@ -447,4 +664,21 @@ class StableClient:
             "user_preferences": [],
         }
         return SimpleNamespace(content=[SimpleNamespace(type="text", text=json.dumps(payload))])
+
+
+class RecordingFacts:
+    def __init__(self):
+        self.records = {}
+
+    def get(self, *, where=None, **_kwargs):
+        user_id = (where or {}).get("user_id")
+        documents = [
+            document
+            for document in self.records.values()
+            if json.loads(document)["user_id"] == user_id
+        ]
+        return {"documents": documents}
+
+    def upsert(self, *, ids, documents, **_kwargs):
+        self.records.update(zip(ids, documents))
 """Token 预算、结构化摘要与并发压缩提交的不变量测试。"""

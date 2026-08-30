@@ -164,13 +164,16 @@ def register_fresh_fixtures(
         class Failing:
             async def create(self, **_kwargs): raise ConnectionResetError("fresh fixture")
         manager._client = SimpleNamespace(messages=Failing()); manager._model_profile = ModelProfile("fixture")
-        messages = [Message(MsgRole(row["role"]), str(row["content"])) for row in data["messages"]]
-        summary = await manager._summarize(str(data["old_summary"]), messages); parsed = json.loads(summary)
+        messages = [
+            Message(MsgRole(row["role"]), str(row["content"]), seq=index)
+            for index, row in enumerate(data["messages"], 1)
+        ]
+        summary = await manager._summarize_chunk(messages); parsed = json.loads(summary)
         return FixtureEvidence({
             "fallback_contains_latest_user_fact": "LATEST-USER-FACT" in summary,
             "fallback_owner_called": "LATEST-USER-FACT" in summary,
             "summary_schema_and_budget_valid": isinstance(parsed, dict) and manager._token_estimator.estimate(summary) <= manager._summary_max_tokens,
-        }, {"summary": summary, "owner": "MemoryManager._summarize->_fallback_summary"})
+        }, {"summary": summary, "owner": "MemoryManager._summarize_chunk->_fallback_summary"})
 
     @register("reviewer_b_memory_finalize_concurrent_retry")
     async def memory_finalize_retry(request):
@@ -185,7 +188,8 @@ def register_fresh_fixtures(
         return FixtureEvidence({
             "first_attempt_typed_concurrent": first.get("reason") == "concurrent_write",
             "no_duplicate_archive_after_retry": len(collection.records) == 2,
-            "retry_clears_complete_snapshot": second.get("finalized") is True and redis.values == [],
+            "retry_covers_complete_snapshot": second.get("finalized") is True and len(redis.values) == 2
+                and not await manager._get_working_memory("signed-user-a", "fresh"),
         }, {"first": first, "second": second, "archive_ids": sorted(collection.records)})
 
     @register("reviewer_b_memory_two_parallel_finalizers")
@@ -195,11 +199,12 @@ def register_fresh_fixtures(
         ]); manager = _memory_manager(redis, collection)
         results = await asyncio.gather(*[manager.finalize_conversation("signed-user-a", "parallel") for _ in range(2)])
         ids = sorted(collection.records)
+        chunks = await manager._get_summary_chunks("signed-user-a", "parallel")
         return FixtureEvidence({
             "archive_ids_unique": len(ids) == len(set(ids)) == 2,
-            "at_most_one_clear_commit": sum(bool(row.get("finalized")) for row in results) <= 1,
+            "checkpoint_converged_once": len(chunks) == 1 and chunks[0].from_seq == 1 and chunks[0].to_seq == 2,
             "no_message_loss": len(collection.records) == 2,
-        }, {"results": results, "archive_ids": ids})
+        }, {"results": results, "archive_ids": ids, "summary_chunks": len(chunks)})
 
     @register("reviewer_b_memory_explicit_close_public_route")
     async def memory_public_finalize(request):

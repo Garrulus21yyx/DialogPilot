@@ -60,7 +60,7 @@ Retrieval 使用隔离 producer 和统一 scorer；Stateful 有独立真实 fixt
 
 ```json
 {"case_id":"retrieval-memory-recall-1","actual":{"retrieved_ids":["kb-memory-recall"]}}
-{"case_id":"stateful-memory-short-close-1","actual":{"assertions":{"episodic_archived":true,"working_memory_cleared":true}}}
+{"case_id":"stateful-memory-short-close-1","actual":{"assertions":{"episodic_archived":true,"event_log_retained":true}}}
 ```
 
 ```bash

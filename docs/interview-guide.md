@@ -24,11 +24,11 @@ title: DialogPilot 面经校准与追问手册
 |---|---|---|
 | EchoMind、3 个业务 Agent | 已更名 DialogPilot；General / Technical / Billing / AccountSecurity / Escalation 五个真实 Worker | **CHANGED** |
 | 并行回答直接拼接 | `TaskPlan → typed outcomes → CoverageGate → ResultSynthesizer → AnswerVerifier` | **CHANGED** |
-| 消息超过 15 条压缩 | 6000 Token 预算、70% 触发、最近 5 条优先保留、Redis WATCH/MULTI 乐观提交 | **CHANGED** |
+| 消息超过 15 条压缩 | 6000 Token 预算、70% 触发；原始事件追加保留，摘要块覆盖固定 seq 范围，CAS 只推进 checkpoint | **CHANGED** |
 | 长期记忆只检索摘要 | 检索 1200 字符/120 overlap 原始片段，摘要只是背景 metadata | **CHANGED** |
 | 知识库是 BM25 + 向量 + RRF | 这是长期记忆；知识 RAG 仍是 rewrite + Chroma 多路向量 + 去重 + LLM rerank | **CORRECTED** |
 | Agent 单次生成、无完整 Trace | Worker 内最多 4 步 ReAct，allowlist/宿主审批/脱敏 audit/TraceId | **CHANGED** |
-| 准确率 91.3%、综合分 0.89 | 当前有 500 条分层候选集、25 篇 corpus 和 153 项回归测试，但仍无 human-reviewed gold | **UNPROVEN** |
+| 准确率 91.3%、综合分 0.89 | 当前有 500 条分层候选集、25 篇 corpus 和 160 项回归测试，但仍无 human-reviewed gold | **UNPROVEN** |
 | 完整 MCP Server / LangGraph | 是内部 ToolManager 与直接 Python 编排；没有远程 MCP Server，没用 LangGraph | **UNPROVEN** |
 
 ## 项目开场与完整链路
@@ -183,7 +183,7 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q36：压缩记忆的当前参数？
 
-6000 Token 预算，估算达 70% 触发，摘要上限 1200 Token，回复组装最多带最近 5 条消息。压缩写回用 Redis WATCH/MULTI，避免新消息被旧摘要覆盖。
+6000 Token 预算，估算达 70% 触发，摘要视图上限 1200 Token。普通压缩保护最近 2～5 条原文，其余从最旧未覆盖事件开始形成有界 seq 范围摘要；Prompt 仍由 `ContextAssembler` 按总预算裁剪。提交只 WATCH checkpoint，新消息拥有更大 seq，不会让已固定范围失效。
 
 ### Q37：记忆错了怎么办？
 
@@ -235,7 +235,7 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q48：91.3%、0.89 等旧数字怎么回答？
 
-**UNPROVEN。** 旧数字没对应数据版本、切分、运行产物和 commit，已移除。当前可证明的是 153 项回归测试、500 条分层候选集、25 篇 corpus、Stateful fixture 和隔离 RAG producer；因为 gold 仍为 0，不能报项目准确率。独立审核并运行新鲜 heldout 后才报均值、方差、slice 和置信区间。
+**UNPROVEN。** 旧数字没对应数据版本、切分、运行产物和 commit，已移除。当前可证明的是 160 项回归测试、500 条分层候选集、25 篇 corpus、Stateful fixture 和隔离 RAG producer；因为 gold 仍为 0，不能报项目准确率。独立审核并运行新鲜 heldout 后才报均值、方差、slice 和置信区间。
 
 ### Q49：多 LLM 调用怎么降延迟？
 
@@ -272,7 +272,7 @@ Trace 缺 OpenTelemetry exporter、持久存储、全链 span、采样与保留�
 1. 利用 `TaskPlan + CoverageGate + ExecutionBudget` 解决复合客诉中任务静默丢失与 timeout 叠加，按 task_id 输出成功、超时、异常与预算耗尽证据。
 2. 利用 BM25、Chroma 向量检索与 weighted RRF 解决压缩摘要丢失精确实体的召回失真，建立 Recall@K/MRR/nDCG 回归接口。
 3. 利用有界 ReAct、Agent 白名单和宿主审批解决工具越权、死循环与不可追溯，将拒绝/失败证据传到发布校验。
-4. 利用 Token-aware 压缩和 Redis WATCH/MULTI 解决长对话溢出及并发写覆盖，保留最近原文并输出压缩证据。
+4. 利用单调 seq、不可变范围摘要和 checkpoint CAS 解决长对话溢出与并发写覆盖，保留可重建原文和来源证据。
 5. 利用 fail-closed AnswerVerifier 与幂等 TicketService 解决高风险候选误发布和重复升级，确保只有 PASS 回复进入记忆。
 
 ## 公司轮次模拟与新追问
@@ -297,11 +297,11 @@ Trace 缺 OpenTelemetry exporter、持久存储、全链 span、采样与保留�
 
 ### Q61：短会话没触发压缩，怎样保证长期记忆？
 
-客户端在会话关闭时调用 `POST /conversations/{conv_id}/finalize`。MemoryManager 先按稳定 message ID 幂等 upsert 原始消息，再 WATCH working/summary 快照并删除 Redis；归档失败不删，出现并发新消息返回 409 留待重试。
+客户端在会话关闭时调用 `POST /conversations/{conv_id}/finalize`。MemoryManager 固定调用开始时的 high-water，把所有未覆盖范围按稳定 message ID 幂等 upsert，再逐段推进 checkpoint；原始事件不删除。若完成后发现更大 seq，则返回 409，下一次只处理新增范围。
 
 ### Q62：为什么用户画像现在能确定性读取？
 
-不再按 `where user_id + limit=1` 猜最新记录，而是每用户一个 `profile_<sha256(user_id)>` 权威 ID，带 version 和 observed_at。单进程内按用户加锁，慢 LLM 写若观察时间更旧就不能覆盖较新画像；多副本仍需数据库 CAS。
+不再把整个画像合并进一条可覆盖 JSON。模型只能对支持的 fact key 产出 `upsert/retract`，每条事实携带来源 message ID、source seq、置信度和生命周期。标量事实由更新的 source seq 替代旧值，多值事实可共存；Prompt profile 只是 active facts 的投影。当前进程锁避免本进程内交错提交，多副本仍需共享存储 CAS。
 
 ### Q63：Verifier 已替换顶层 response，为什么还要删 outcome content？
 
@@ -399,7 +399,7 @@ DeepSeek 的 Anthropic 兼容协议要求工具后续轮回传此前 thinking �
 
 ### Q84：这项改造怎样写 STAR？
 
-**S：** 九类调用共用一个模型，DeepSeek 默认 reasoning 让简单任务成本、延迟和结构化输出不可控。**T：** 在保持统一 Messages API 的同时，让每类调用可独立权衡质量。**A：** 实现按角色校验的 ModelPolicy，Flash/none 承担闭合高频任务，Pro/none 承担融合与质量门禁；显式 reasoning 强制最小完成预算，并补齐 health/eval 配置证据和 ReAct thinking 回传。**R：** 4 条 E2E pilot 均值约 28.4s → 13.3s，Verifier 解析 2/4 → 4/4；153 项回归测试通过。15 条 provisional 三档消融已完成，最终选择仍需 gold heldout 与重复运行确认。
+**S：** 九类调用共用一个模型，DeepSeek 默认 reasoning 让简单任务成本、延迟和结构化输出不可控。**T：** 在保持统一 Messages API 的同时，让每类调用可独立权衡质量。**A：** 实现按角色校验的 ModelPolicy，Flash/none 承担闭合高频任务，Pro/none 承担融合与质量门禁；显式 reasoning 强制最小完成预算，并补齐 health/eval 配置证据和 ReAct thinking 回传。**R：** 4 条 E2E pilot 均值约 28.4s → 13.3s，Verifier 解析 2/4 → 4/4；160 项回归测试通过。15 条 provisional 三档消融已完成，最终选择仍需 gold heldout 与重复运行确认。
 
 ### Q85：Flash/off、Flash/high、Pro/high 真跑后有什么区别？
 
@@ -413,7 +413,7 @@ DeepSeek 的 Anthropic 兼容协议要求工具后续轮回传此前 thinking �
 4. 能说出 Task outcome 四态、synthesis 五态与 Verifier PASS/REJECT/UNKNOWN。
 5. 能解释 BM25 对订单号的价值，以及 recency 为什么不能独立召回。
 6. 能解释发现/执行共用 allowlist，审批不来自模型参数。
-7. 能说明 153 tests 不等于 153 个 benchmark，smoke、auto_mapped 与 provisional 都不支持生产准确率。
+7. 能说明 160 tests 不等于 160 个 benchmark，smoke、auto_mapped 与 provisional 都不支持生产准确率。
 8. 能用 commit 划清原型与个人改造，不说从零原创。
 9. 能讲清 JWT/scope 已完成，以及 IdP/JWKS、tenant ABAC、持久 Trace、可恢复审批和真实 benchmark 仍是缺口。
 10. 不说“精通 LangGraph”、“完整 MCP”、“项目是 SOTA”或“线上准确率 91.3%”。

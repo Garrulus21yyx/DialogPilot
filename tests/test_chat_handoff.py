@@ -34,8 +34,12 @@ class FakeMemory:
     async def get_context(self, *_args, **_kwargs):
         return FakeMemoryContext()
 
-    async def add_message(self, _user_id, _conv_id, role, content):
-        self.messages.append((role.value, content))
+    async def add_messages(self, _user_id, _conv_id, entries):
+        persisted = []
+        for role, content, metadata in entries:
+            self.messages.append((role.value, content))
+            persisted.append(SimpleNamespace(role=role, content=content, metadata=metadata))
+        return persisted
 
     async def update_profile(self, *_args, **_kwargs):
         return None

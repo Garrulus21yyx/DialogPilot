@@ -23,8 +23,8 @@ owner and exposes the routing and verification decisions in the API response.
 
 ```text
 POST /chat
-  -> load Redis working memory and hybrid Chroma/BM25 episodic memory/profile
-  -> assemble a bounded prompt using token-aware rolling compression
+  -> load uncovered Redis events, range summaries, sourced facts, and hybrid episodic memory
+  -> assemble a bounded prompt from those projections
   -> classify intent with LLM + local semantic similarity + patterns
   -> retrieve knowledge for business intents
   -> build a TaskPlan for General, Technical, Billing, or AccountSecurity owners
@@ -36,18 +36,21 @@ POST /chat
   -> feed PASS / REJECT quality back to the exact producing Agent instances
   -> publish only PASS answers; escalate every other outcome
   -> persist each escalation as one idempotent human-support ticket
-  -> persist messages and update the one-record-per-user profile in the background
-  -> explicitly finalize short sessions before their Redis TTL expires
+  -> append the published turn with contiguous conversation-local sequence numbers
+  -> extract source-linked, versioned facts in the background
+  -> explicitly finalize short sessions by advancing their summary checkpoint
   -> return redacted TraceId, tool audit, and hybrid-memory retrieval evidence
 ```
 
-Context input is bounded independently from model output. Working memory is
-compressed from estimated token usage, not a fixed message count. The rolling
-summary is structured and size-limited, recent turns stay verbatim, and an
-optimistic Redis transaction prevents compression from dropping a concurrent
-message. Long-term search stores raw episodic chunks and fuses vector, BM25,
-and recency ranks with weighted reciprocal-rank fusion; the summary remains a
-prompt projection rather than the only retrievable fact source. Retrieved knowledge and memory are tagged as data while actual
+Context input is bounded independently from model output. Every conversation turn
+is first retained as an append-only raw event with a monotonic `seq`. Compression
+creates immutable, structured chunks for explicit sequence ranges and advances a
+checkpoint with optimistic CAS; it never rewrites or deletes the raw event log.
+Newer messages therefore do not invalidate a completed older-range summary.
+Long-term search stores raw episodic chunks and fuses vector, BM25, and recency
+ranks with weighted reciprocal-rank fusion. User memory is stored as typed facts
+with source message IDs and active/superseded/retracted lifecycle, not one mutable
+profile blob. Retrieved knowledge and memory are tagged as data while actual
 conversation history remains user/assistant messages.
 
 See [docs/architecture.md](docs/architecture.md) for component ownership,
@@ -64,8 +67,8 @@ usage, cost, and failure cases, is in
 - Python 3.12, FastAPI, Pydantic, asyncio
 - Anthropic-compatible chat API
 - Role-tiered DeepSeek Flash/Pro profiles with explicit reasoning policy
-- Redis working memory
-- ChromaDB knowledge, episodic memory, and user profiles
+- Redis append-only conversation events, summary chunks, and checkpoints
+- ChromaDB knowledge, episodic memory, and source-linked user facts
 - BM25 + weighted RRF hybrid long-term memory retrieval
 - Bounded ReAct tool execution with allowlists, approval gates, and TraceId audit
 - Prometheus monitoring and anomaly detection

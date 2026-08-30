@@ -5,8 +5,8 @@
 DialogPilot is a Python/FastAPI multi-agent customer-support backend. It reads
 Redis and ChromaDB memory, classifies intent using an LLM, local semantic
 similarity, and rules, retrieves business knowledge through a reliable tool
-layer, and uses a token-budgeted context assembler with bounded structured
-rolling summaries. It turns requests into scoped tasks owned by general,
+layer, and uses a token-budgeted context assembler over append-only events,
+range-owned summary chunks, and sourced facts. It turns requests into scoped tasks owned by general,
 technical, billing, or account-security agents. Independent tasks execute under
 one request deadline and max-Agent budget. A coverage gate proves that every
 required task has a closed outcome before a typed result synthesizer preserves
@@ -19,8 +19,8 @@ evaluation close the online and offline feedback loops.
 The HTTP boundary derives identity from a verified JWT Principal rather than a
 caller-supplied user ID. A dedicated, tool-free escalation worker prepares
 human handoff evidence. Chroma storage mode is explicit and observable, and
-short conversations are idempotently archived before their Redis TTL can erase
-the only raw copy.
+short conversations are idempotently indexed and checkpointed while their raw
+event log remains available for rebuilding summaries and auditing facts.
 
 Within each scoped Worker, a bounded ReAct loop may select only tools exposed by
 its allowlist. ToolManager—not the model—owns risk, approval, execution, bounded
@@ -55,17 +55,17 @@ owns deduplication, conflict detection, output order, and partial evidence.
 ### Why compress by tokens instead of message count?
 
 Message count does not predict model input size. DialogPilot estimates prompt
-tokens, preserves the recent raw turn, and replaces old memory with a bounded
-structured summary. An optimistic Redis transaction prevents an LLM summary
-generated from a stale snapshot from overwriting messages that arrived during
-compression. Prompt assembly keeps retrieved data in tagged sections and real
+tokens, preserves the recent raw turn, and summarizes the oldest uncovered
+sequence range into an immutable bounded chunk. An optimistic Redis transaction
+advances only the checkpoint; later messages have larger sequence numbers and
+do not invalidate the fixed range. Prompt assembly keeps retrieved data in tagged sections and real
 conversation turns in the message sequence.
 
 Compression is not the only archive trigger. The conversation-finalize API
-upserts deterministic per-message episodic IDs and then CAS-clears Redis; an
-archive failure or concurrent message preserves working state for retry. User
-profiles use one deterministic per-user record with version metadata rather
-than an unordered “first row” query.
+upserts deterministic per-message episodic IDs and advances the range checkpoint
+without deleting the raw event log. An archive failure leaves the checkpoint
+unchanged. User profiles are projections of active, typed facts whose records
+retain source message IDs and supersession/retraction state.
 
 ### Why combine deterministic planning with bounded ReAct?
 

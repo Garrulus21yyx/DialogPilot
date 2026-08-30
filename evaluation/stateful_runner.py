@@ -9,6 +9,7 @@ import argparse
 import asyncio
 import json
 import tempfile
+from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -114,41 +115,57 @@ class _EvalPipeline:
     async def __aexit__(self, *_args): return None
     async def watch(self, *_keys): return None
     async def unwatch(self): return None
-    async def lrange(self, key, start, end): return await self.redis.lrange(key, start, end)
     async def get(self, key): return await self.redis.get(key)
     def multi(self): return None
-    def delete(self, *keys): self.commands.append(("delete", keys))
     def rpush(self, key, *values): self.commands.append(("rpush", key, values))
-    def expire(self, key, ttl): self.commands.append(("expire", key, ttl))
-    def setex(self, key, ttl, value): self.commands.append(("setex", key, value))
+    def set(self, key, value): self.commands.append(("set", key, value))
 
     async def execute(self):
         for command in self.commands:
-            if command[0] == "delete":
-                for key in command[1]:
-                    if str(key).startswith("wm:"):
-                        self.redis.values = []
-                    if str(key).startswith("summary:"):
-                        self.redis.summary = ""
-            elif command[0] == "rpush":
-                self.redis.values.extend(command[2])
-            elif command[0] == "setex":
-                self.redis.summary = command[2]
+            if command[0] == "rpush":
+                self.redis.lists[command[1]].extend(command[2])
+            elif command[0] == "set":
+                self.redis.strings[command[1]] = command[2]
 
 
 class _EvalRedis:
     def __init__(self, values: Iterable[str], summary: str = ""):
         self.values = list(values)
-        self.summary = summary
+        self.strings: Dict[str, str] = {}
+        self.lists: Dict[str, list[str]] = defaultdict(list)
+        if summary:
+            self.strings["summary:legacy"] = summary
         self.reads = 0
 
-    async def lrange(self, _key, start, end):
+    async def lrange(self, key, start, end):
         self.reads += 1
-        return list(self.values[start:] if end == -1 else self.values[start:end + 1])
+        values = self.values if str(key).startswith("wm:") else self.lists[key]
+        return list(values[start:] if end == -1 else values[start:end + 1])
 
     async def get(self, key):
         self.reads += 1
-        return self.summary if str(key).startswith("summary:") else None
+        if str(key).startswith("summary:") and "summary:legacy" in self.strings:
+            return self.strings["summary:legacy"]
+        return self.strings.get(key)
+
+    async def setnx(self, key, value):
+        if key in self.strings:
+            return False
+        self.strings[key] = str(value)
+        return True
+
+    async def incrby(self, key, amount):
+        value = int(self.strings.get(key, 0)) + amount
+        self.strings[key] = str(value)
+        return value
+
+    async def lpush(self, key, *values):
+        target = self.values if str(key).startswith("wm:") else self.lists[key]
+        for value in values:
+            target.insert(0, value)
+        return len(target)
+
+    async def persist(self, _key): return True
 
     def pipeline(self, transaction=True):
         if transaction is not True:
@@ -177,15 +194,39 @@ class _EvalCollection:
 
     def get(self, **kwargs):
         self.get_calls.append(kwargs)
-        return {"ids": [], "documents": [], "metadatas": []}
+        selected = list(self.records.items())
+        if kwargs.get("ids"):
+            wanted = set(kwargs["ids"])
+            selected = [(key, row) for key, row in selected if key in wanted]
+        if kwargs.get("where"):
+            where = kwargs["where"]
+            selected = [
+                (key, row) for key, row in selected
+                if all(row["metadata"].get(field) == value for field, value in where.items())
+            ]
+        return {
+            "ids": [key for key, _ in selected],
+            "documents": [row["document"] for _, row in selected],
+            "metadatas": [row["metadata"] for _, row in selected],
+        }
 
 
 def _memory_manager(redis: _EvalRedis, collection: _EvalCollection) -> MemoryManager:
     manager = MemoryManager.__new__(MemoryManager)
     manager._redis = redis
     manager._episodic = collection
+    manager._facts = collection
     manager._token_estimator = TokenEstimator()
     manager._summary_max_tokens = 128
+    manager._memory_token_budget = 512
+    manager._compression_threshold = 0.7
+    manager._compression_stats = {
+        "attempted": 0, "completed": 0, "conflicts": 0, "failures": 0,
+        "tokens_before": 0, "tokens_after": 0,
+    }
+    manager._client = SimpleNamespace(messages=_FailingMessages())
+    manager._model_profile = ModelProfile("fixture-model")
+    manager._profile_locks = defaultdict(asyncio.Lock)
     manager._hybrid_retriever = HybridMemoryRetriever()
     return manager
 
@@ -198,11 +239,13 @@ async def _memory_finalize(case: FixtureRequest) -> FixtureEvidence:
         _raw("user", f"订单 DP-884{suffix} 重复扣款", f"u-{suffix}"),
     ], summary='{"user_goal":"处理扣款"}')
     collection = _EvalCollection()
-    result = await _memory_manager(redis, collection).finalize_conversation("user-a", "conv-a")
+    manager = _memory_manager(redis, collection)
+    result = await manager.finalize_conversation("user-a", "conv-a")
     documents = [row["document"] for row in collection.records.values()]
     return FixtureEvidence({
         "episodic_archived": result["finalized"] and len(collection.records) == 2,
-        "working_memory_cleared": redis.values == [] and redis.summary == "",
+        "event_log_retained": len(redis.values) == 2,
+        "checkpoint_covers_session": result["finalized"] and not await manager._get_working_memory("user-a", "conv-a"),
         "raw_turns_preserved": any("DP-884" in item for item in documents),
     }, {"result": result, "archive_ids": sorted(collection.records)})
 
@@ -243,7 +286,7 @@ async def _memory_finalize_concurrent(case: FixtureRequest) -> FixtureEvidence:
         "concurrent_write_typed": result.get("reason") == "concurrent_write",
         "new_message_preserved": any("并发新消息" in raw for raw in redis.values),
         "episodic_archived": bool(collection.records),
-        "working_memory_not_cleared": len(redis.values) == 2,
+        "event_log_retained": len(redis.values) == 2,
     }, {"result": result, "working_count": len(redis.values)})
 
 
@@ -309,19 +352,38 @@ async def _memory_hybrid_recency(case: FixtureRequest) -> FixtureEvidence:
 
 @fixture("memory_profile_merge")
 async def _memory_profile_merge(case: FixtureRequest) -> FixtureEvidence:
-    merged = MemoryManager._merge_profile(
-        {"preferences": ["中文"], "entities": {"订单": ["A1"]}},
-        {"preferences": ["中文", "简洁"], "entities": {"订单": ["A1", "B2"]}},
-    )
-    profile_a = MemoryManager._profile_id("user-a")
+    collection = _EvalCollection()
+    manager = _memory_manager(_EvalRedis([]), collection)
+    now = datetime.now(timezone.utc)
+    await manager._apply_fact_operations("user-a", [{
+        "operation": "upsert", "key": "preferred_language", "value": "中文",
+        "confidence": 0.8, "source_message_ids": ["source-1"], "source_max_seq": 1,
+    }, {
+        "operation": "upsert", "key": "order_reference", "value": "A1",
+        "confidence": 0.9, "source_message_ids": ["source-1"], "source_max_seq": 1,
+    }], observed_at=now)
+    await manager._apply_fact_operations("user-a", [{
+        "operation": "upsert", "key": "preferred_language", "value": "English",
+        "confidence": 0.95, "source_message_ids": ["source-2"], "source_max_seq": 2,
+    }, {
+        "operation": "upsert", "key": "order_reference", "value": "A1",
+        "confidence": 0.95, "source_message_ids": ["source-2"], "source_max_seq": 2,
+    }, {
+        "operation": "upsert", "key": "order_reference", "value": "B2",
+        "confidence": 0.9, "source_message_ids": ["source-2"], "source_max_seq": 2,
+    }], observed_at=now + timedelta(seconds=1))
+    facts = await manager._read_facts("user-a")
+    active = [fact for fact in facts if fact.status == "active"]
+    language = [fact for fact in facts if fact.key == "preferred_language"]
+    orders = [fact for fact in active if fact.key == "order_reference"]
     return FixtureEvidence({
-        "existing_values_retained": "中文" in merged["preferences"],
-        "new_values_merged": "简洁" in merged["preferences"],
-        "entities_merged": merged["entities"]["订单"] == ["A1", "B2"],
-        "duplicates_removed": merged["preferences"].count("中文") == 1,
-        "profile_id_stable": profile_a == MemoryManager._profile_id("user-a"),
-        "cross_user_profile_id_distinct": profile_a != MemoryManager._profile_id("user-b"),
-    }, {"merged": merged, "profile_id": profile_a})
+        "scalar_fact_superseded": sorted(fact.status for fact in language) == ["active", "superseded"],
+        "newest_scalar_active": any(fact.value == "English" for fact in active),
+        "multi_facts_coexist": {fact.value for fact in orders} == {"A1", "B2"},
+        "duplicate_fact_merged": len([fact for fact in facts if fact.key == "order_reference" and fact.value == "A1"]) == 1,
+        "source_links_preserved": all(fact.source_message_ids for fact in facts),
+        "fact_ids_stable": len(collection.records) == len(facts),
+    }, {"facts": [fact.to_dict() for fact in facts]})
 
 
 @fixture("memory_summary_bound")
@@ -342,11 +404,11 @@ async def _memory_summary_bound(case: FixtureRequest) -> FixtureEvidence:
         manager._client = SimpleNamespace(messages=_FailingMessages())
         manager._model_profile = ModelProfile("fixture-model")
         messages = [
-            Message(MsgRole.USER, "登录 E401 后发现重复扣款" * 20),
-            Message(MsgRole.ASSISTANT, "正在核对" * 20),
+            Message(MsgRole.USER, "登录 E401 后发现重复扣款" * 20, seq=1),
+            Message(MsgRole.ASSISTANT, "正在核对" * 20, seq=2),
         ]
-        summary = await manager._summarize('{"confirmed_facts":["旧事实"]}', messages)
-        pathway = "MemoryManager._summarize -> MemoryManager._fallback_summary"
+        summary = await manager._summarize_chunk(messages)
+        pathway = "MemoryManager._summarize_chunk -> MemoryManager._fallback_summary"
     else:
         summary = manager._bounded_summary(payload)
         pathway = "MemoryManager._bounded_summary"

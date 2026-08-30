@@ -68,7 +68,7 @@ estimated_tokens
 
 ### 3.2 MemoryManager
 
-[MemoryManager](/home/yang/DialogPilot/memory/conversation_memory.py:642) 拥有短会话归档生命周期。显式 finalize 先读取 Redis snapshot/summary，以稳定 message/chunk ID upsert 原始消息，再通过 WATCH/MULTI 比较并清理；并发写返回 `finalized=false, reason=concurrent_write`，保留状态供重试。
+[MemoryManager](../memory/conversation_memory.py) 拥有短会话归档生命周期。显式 finalize 固定调用开始时的 seq high-water，以稳定 message/chunk ID upsert 原始事件，再通过 WATCH/MULTI 追加范围摘要并推进 checkpoint；原始事件不清理。其间出现更大 seq 时返回 `finalized=false, reason=concurrent_write`，下一次只处理新增范围。
 
 摘要路径由 `_summarize -> _fallback_summary -> _bounded_summary` 拥有。模型异常或 JSON 解析失败会进入确定性 fallback。
 

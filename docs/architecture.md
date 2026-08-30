@@ -17,7 +17,7 @@ prompt chain.
 | ReAct execution | `agents/react_engine.py` | Bounded Worker loop and closed ReAct outcome |
 | Tool authorization and reliability | `mcp/tool_manager.py` | Agent allowlist, approval decision, typed result, redacted audit |
 | Knowledge | `mcp/knowledge_base.py` | Retrieved ChromaDB documents |
-| Conversation memory | `memory/conversation_memory.py` | Working, raw episodic, profile, and rolling-summary state |
+| Conversation memory | `memory/conversation_memory.py` | Sequenced raw events, range summaries/checkpoint, episodic index, and sourced facts |
 | Hybrid memory ranking | `memory/hybrid_retrieval.py` | BM25/vector/recency candidate fusion and retrieval metrics |
 | Request trace | `core/tracing.py` | Trace/span identity and process-local projection |
 | Prompt context | `memory/context.py` | Token estimation, typed sections, and bounded LLM input |
@@ -41,21 +41,23 @@ prompt chain.
 8. Attribute a supported verification verdict to the exact candidate producers.
 9. If escalation is required, create or reuse one idempotent persistent ticket.
 10. Persist only the answer that was actually published.
-11. Update the one-record-per-user profile asynchronously after persistence.
-12. When the client closes a conversation, idempotently archive every remaining
-    raw message before CAS-clearing its Redis working state.
+11. Extract bounded, source-linked fact operations asynchronously after persistence.
+12. When the client closes a conversation, idempotently archive every uncovered
+    raw event and advance the range checkpoint without deleting the event log.
 
 This ordering prevents the memory store from claiming that an unverified model
 answer was shown to the user.
 
 ## Context budget contract
 
-`MemoryManager` owns persisted memory state. It triggers compression from an
-estimated token budget rather than message count, replaces the prior summary
-with a bounded structured rolling summary, and preserves the most recent raw
-turn. The Redis rewrite uses an optimistic transaction: if messages arrive
-while the summary model is running, the stale compression is discarded instead
-of deleting the concurrent write.
+`MemoryManager` owns persisted memory state. A batched turn receives contiguous,
+conversation-local sequence numbers and is appended to the raw Redis event log.
+Token pressure selects the oldest uncovered, bounded sequence range while recent
+turns remain verbatim. The model summarizes only that range; the result is an
+immutable chunk carrying `from_seq`, `to_seq`, source message IDs, and a source
+hash. Redis CAS advances only the summary checkpoint. A newer message is outside
+the fixed range and does not invalidate it; only another checkpoint writer can
+win the same transition.
 
 Long-term episodic storage uses raw overlapping conversation chunks as the
 retrievable documents. Vector and BM25 candidates are isolated by user and may
@@ -65,12 +67,13 @@ diagnosis. The structured summary remains prompt context/metadata, not the sole
 long-term source of truth.
 
 Compression and explicit conversation finalization share one archive owner.
-Every Redis message has a stable `message_id`; Chroma uses deterministic IDs
-and `upsert`, so a CAS retry cannot duplicate episodic facts. Chroma archival
-happens before Redis removal. If archival fails or the Redis snapshot changes,
-working memory is retained for a safe retry. The user profile has one
-deterministic per-user ID and versioned metadata instead of relying on an
-unordered `limit=1` collection read.
+Every event has a stable `message_id`; Chroma uses deterministic IDs and `upsert`,
+so checkpoint retries cannot duplicate episodic records. Archival happens before
+checkpoint advancement; failure leaves both checkpoint and raw events unchanged.
+Finalization covers the high-water observed at call start and reports a typed
+concurrent write if a later sequence appears. Long-term user state is a closed set
+of typed facts with source IDs and `active/superseded/retracted` lifecycle. The
+profile exposed to prompts is only a projection of active facts.
 
 `ContextAssembler` separately owns conversion into an LLM prompt. Memory,
 retrieved knowledge, and profile data remain tagged data sections; real
@@ -121,8 +124,8 @@ claim that a penalty can route to a nonexistent alternative.
   `escalated=true`.
 - Ticket persistence failure never claims a successful handoff; the response
   explicitly asks the client to retry with the same `request_id`.
-- A compression model failure uses a bounded deterministic summary; a stale
-  compression snapshot is not committed.
+- A compression model failure uses a bounded deterministic summary over the same
+  fixed source range; competing checkpoint transitions cannot both commit.
 - Agent timeout or exception is a typed outcome. Partial synthesis remains
   usable but escalates; all-failed and unverifiable synthesis fail closed.
 - Request-budget exhaustion remains attached to the planned task as

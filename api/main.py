@@ -545,13 +545,17 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
     # 1. 读取记忆上下文
     mem_ctx = await _memory.get_context(user_id, conv_id, query=req.message)
 
-    # 2. 构建编排请求（含对话历史，用于意图识别上下文）
-    history = [
+    # 2. 意图识别只需短窗口；最终 Prompt 历史由 ContextAssembler 独立预算。
+    prompt_history = [
+        {"role": message.role.value, "content": message.content}
+        for message in mem_ctx.recent_messages
+    ]
+    intent_history = [
         {"role": m.role.value, "content": m.content}
         for m in mem_ctx.recent_messages[-5:]
     ] if mem_ctx.recent_messages else None
 
-    intent_result = await _orchestrator.recognize_intent(req.message, history=history)
+    intent_result = await _orchestrator.recognize_intent(req.message, history=intent_history)
     knowledge_text, knowledge_used = await _build_knowledge_context(req.message, intent=intent_result.intent)
     context_sections = mem_ctx.to_sections()
     if knowledge_text:
@@ -563,7 +567,7 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
         ))
     prompt_context = _context_assembler.assemble(
         sections=context_sections,
-        history=history or [],
+        history=prompt_history,
         current_user_message=req.message,
     )
     full_context = prompt_context.system_context
@@ -573,7 +577,7 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
         user_id=user_id,
         conv_id=conv_id,
         context=full_context,
-        history=history,
+        history=intent_history,
         prompt_context=prompt_context,
         entities=intent_result.entities,
         intent=intent_result.intent,
@@ -635,12 +639,14 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
                 "或直接联系人工客服。"
             )
 
-    # 6. 写入记忆：只保存实际发布给用户的文本。
-    await _memory.add_message(user_id, conv_id, MsgRole.USER, req.message)
-    await _memory.add_message(user_id, conv_id, MsgRole.ASSISTANT, response_text)
+    # 6. 同一轮次一次追加连续 seq，压缩只会在完整轮次落地后触发。
+    persisted_messages = await _memory.add_messages(user_id, conv_id, [
+        (MsgRole.USER, req.message, {"request_id": request_id}),
+        (MsgRole.ASSISTANT, response_text, {"request_id": request_id}),
+    ])
 
-    # 7. 异步更新用户画像（不阻塞响应）
-    asyncio.create_task(_memory.update_profile(user_id, conv_id))
+    # 7. 异步形成版本化事实；显式传入本轮来源，避免 checkpoint 推进后漏提取。
+    asyncio.create_task(_memory.update_profile(user_id, conv_id, persisted_messages))
 
     return ChatResponse(
         request_id=request_id,
@@ -1241,8 +1247,10 @@ async def _cli():
         req = Request(message=msg, user_id=user_id, conv_id=conv_id, context=ctx.to_prompt_text(), history=history)
         result = await orch.run(req)
 
-        await mem.add_message(user_id, conv_id, MsgRole.USER, msg)
-        await mem.add_message(user_id, conv_id, MsgRole.ASSISTANT, result.response)
+        await mem.add_messages(user_id, conv_id, [
+            (MsgRole.USER, msg, {}),
+            (MsgRole.ASSISTANT, result.response, {}),
+        ])
 
         print(f"\nDialogPilot [{result.agent_type.value}]: {result.response}\n")
 

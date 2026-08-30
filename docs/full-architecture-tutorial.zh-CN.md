@@ -18,7 +18,7 @@ DialogPilot 是一个 Python 3.12 + FastAPI 的异步多 Agent 客服后端。�
 - `IntentRecognizer` 判断用户想做什么；
 - `KnowledgeBase` 和 `MCPToolManager` 提供受控知识/记忆工具；
 - `ReActExecutionEngine` 在单个领域 Worker 内执行有限工具循环；
-- `MemoryManager` 拥有工作记忆、滚动摘要、情景记忆和用户画像；
+- `MemoryManager` 拥有顺序化原始事件、范围摘要/checkpoint、情景索引和来源化用户事实；
 - `ContextAssembler` 把这些数据装进有 Token 上限的模型输入；
 - `AgentOrchestrator` 生产 `TaskPlan`，为子任务分配 General、Technical、Billing、AccountSecurity 或 Escalation Owner；
 - `CoverageGate` 判断每个必需任务是否真的得到闭合 outcome；
@@ -44,7 +44,7 @@ DialogPilot 是一个 Python 3.12 + FastAPI 的异步多 Agent 客服后端。�
 1. 问题：单提示词客服把路由、知识、记忆、安全和升级混成黑盒。
 2. 合同：一次请求必须得到可诊断的路由结果；只有明确 `PASS` 的回答能发布；需要人工时同步尝试创建持久工单，并把建单成功或失败明确返回。
 3. 主链：Memory → Intent → RAG → Context → TaskPlan → Workers → Coverage → Synthesis → Verification → Ticket → Persist published messages。
-4. 六个最值得深挖的改动：Token 驱动且并发安全的压缩、混合长期记忆、TaskPlan/CoverageGate、有界 ReAct 与权限、请求预算下的结果代数、校验质量反馈闭环。
+4. 六个最值得深挖的改动：单调事件与范围摘要 checkpoint、混合长期记忆、TaskPlan/CoverageGate、有界 ReAct 与权限、请求预算下的结果代数、校验质量反馈闭环。
 5. 证据：111 个测试，覆盖身份/公开投影、归档幂等/CAS、显式存储模式、真实 Escalation Owner、路由基数、混合召回、工具权限、Trace、分层模型策略和版本化评测合同。
 6. 边界：已有 JWT/scope 基线；多租户 IdP/ABAC 未完成，SQLite 只适合单应用写者，Trace/审计重启丢失，审批不能交互恢复；已有 500 条分层候选集，但尚无 human-reviewed gold，不能声称生产准确率。
 
@@ -258,7 +258,7 @@ sequenceDiagram
 - 当前会话 Redis 消息；
 - 基于当前 query 检索的跨会话情景记忆；
 - 用户画像；
-- 已有滚动摘要。
+- 已有按 seq 范围归属、可由原始事件重建的摘要块。
 
 API 只取最近 5 条真实消息作为意图识别 history。这样“它还是没到”可以借前文判断是物流问题。
 
@@ -420,18 +420,19 @@ stateDiagram-v2
 
 | 类型 | 存储 | 生命周期 | 用途 |
 |---|---|---|---|
-| Working memory | Redis list | TTL 24h | 当前会话原始消息 |
-| Rolling summary | Redis string | TTL 24h | 被压缩历史的结构化摘要 |
+| Raw event log | Redis list | 会话内追加保留 | 带单调 `seq` 的当前会话原始消息，摘要不能删除它 |
+| Summary chunks | Redis list | 与会话事件共同保留 | 每块只拥有一个固定的 `[from_seq, to_seq]` 范围及 source hash |
+| Summary checkpoint | Redis string | 与会话事件共同保留 | 已覆盖 high-water 和版本；唯一允许 CAS 推进的摘要状态 |
 | Episodic memory | Chroma `episodic` | 持久 | 跨会话检索的原始重叠片段；摘要只作 metadata/背景 |
-| User profile | Chroma `user_profile` | 持久 | 偏好和关键实体 |
+| User facts | Chroma `user_facts_v1` | 持久 | 有来源的 active/superseded/retracted 类型化事实 |
 
 Knowledge Base 也在 Chroma，但使用独立 collection。知识文档是业务事实投影，用户记忆是个人交互状态，不能混为一类。
 
-画像现在使用 `profile_<sha256(user_id)>` 作为每用户唯一权威 ID，写入带 `version/observed_at/updated_at`，读取按精确 ID，不依赖 Chroma 返回顺序。进程内按用户加锁并比较 observation time，避免慢请求覆盖较新的画像；多副本部署仍需把同一 CAS/版本条件迁到共享数据库。
+画像不是另一份权威 JSON，而是 active facts 的 Prompt 投影。事实提取只接受代码声明的 key 和 `upsert/retract` 操作；每条记录带 source message IDs、最大 source seq、置信度和状态。标量事实由更新的 source seq supersede，较慢的旧提取不能覆盖新事实；多值事实可以共存并合并重复来源。进程内按用户加锁，多副本部署仍需把事实状态转换迁到支持 CAS 的共享存储。
 
 ### 8.2 Redis 消息顺序
 
-写入使用 `LPUSH`，Redis 中最新消息在前。读取时 `_decode_messages()` 对列表 `reversed`，恢复为从旧到新的真实时序。
+一次对话 turn 通过 `INCRBY` 预留连续序号，再用一次 `LPUSH` 写入 user/assistant 事件；Redis 中最新消息在前。读取时 `_decode_messages()` 恢复并按 `seq` 排序。旧记录没有 seq 时会惰性推断初始水位，之后所有新事件都使用单调序号。
 
 ### 8.3 为什么按 Token，不按消息数
 
@@ -449,7 +450,7 @@ Knowledge Base 也在 Chroma，但使用独立 collection。知识文档是业�
 - 最近原文额外受约 30% memory budget 约束；
 - summary 最多 1200 estimated tokens。
 
-摘要是滚动替换，不是把每次摘要继续无限 append。Schema 固定为：
+每次摘要只读取“最旧且尚未覆盖”的一个有界连续范围，不读取旧摘要，也不修改原事件。结构化内容 Schema 固定为：
 
 ```json
 {
@@ -462,31 +463,33 @@ Knowledge Base 也在 Chroma，但使用独立 collection。知识文档是业�
 }
 ```
 
-LLM 失败时，用旧摘要加最近事实生成确定性 fallback；随后 `_bounded_summary()` 从最长列表开始删除旧项，直到落入 Token 上限。
+LLM 失败时，只从当前 source range 生成确定性 fallback；随后 `_bounded_summary()` 从最长列表开始删除旧项，直到落入单块 Token 上限。Prompt 所见摘要由已提交 chunks 确定性重建并再次受 1200 Token 视图上限约束，所以单块事实不会因下一次摘要被再次改写。
 
-### 8.5 并发写为何会丢消息
+升级兼容有一个诚实边界：旧版本可能已经删除了摘要对应的原文。首次新 checkpoint 提交会把旧 summary 作为 `legacy_summary_unverified` 有界保留，而不会伪造它的 seq/source links；新产生的摘要块才满足完整的范围可追溯合同。
+
+### 8.5 并发压缩为什么只竞争 checkpoint
 
 最危险的时间窗口：
 
 ```text
-T1 读取 Redis 快照
-T1 调 LLM 生成摘要（慢）
-T2 在这期间 LPUSH 新消息
-T1 删除原列表并写回保留消息
+T1 读取 checkpoint=40，并固定 source range 41..60
+T1 调 LLM 生成该范围摘要（慢）
+T2 在这期间追加 seq=61
+T1 归档 41..60，并 CAS checkpoint 40 -> 60
 ```
 
-如果 T1 无条件提交，T2 的新消息会被删除。
+seq=61 不属于 T1 的输入范围，因此不会使摘要失真，也不会被删除。真正冲突只发生在另一个 worker 已经推进了同一 checkpoint。
 
-修复使用 Redis optimistic transaction：
+提交使用 Redis optimistic transaction：
 
-1. 保存原始 list 和 old summary 快照；
-2. 生成摘要；
-3. `WATCH` 消息 key 和 summary key；
-4. 重新读取并逐值比较；
-5. 只在完全未变化时 `MULTI`，同一事务重写列表、TTL 和 summary；
-6. 发生 `WatchError` 或值变化就放弃本次压缩，不覆盖任何新状态。
+1. 读取 checkpoint，并按 seq 固定一个连续 source range；
+2. 只对该范围生成摘要并计算 source hash/message IDs；
+3. 先以稳定 ID 幂等 upsert 原始事件到 episodic；
+4. `WATCH` checkpoint key，校验版本和 covered high-water；
+5. `MULTI` 追加 immutable chunk，并把 checkpoint 推进到 `to_seq`；
+6. checkpoint 竞争失败就放弃本次结果；新事件仍留在 raw log，后续按更大 seq 处理。
 
-这条正向不变量是：**压缩可以延后，但不能删除压缩快照之后到达的消息。**
+这条正向不变量是：**每个已提交摘要都能映射回固定原始范围；checkpoint 单调推进；任何摘要都不删除原始事件。**
 
 ### 8.6 为什么不能只检索压缩摘要
 
@@ -511,7 +514,7 @@ flowchart LR
 
 为什么 BM25 权重更高？客服记忆常含订单号、错误码等精确 token，词法信号应优先保护它们；这只是当前可解释基线，不是已证明最优。`evaluate_retrieval()` 已提供 Recall@K、MRR、nDCG，后续应在版本化 query/relevant-id 数据集上做权重和 chunk overlap 消融。
 
-归档顺序是先用稳定 `message_id` 和确定性 Chroma ID `upsert` 原始消息，再用 Redis WATCH/MULTI 提交压缩。Chroma 写失败时不删除 Redis 原消息；CAS 冲突后的重试仍写同一批 ID，不制造重复情景记忆。短会话还可调用 `POST /conversations/{conv_id}/finalize`，归档全部剩余消息后再 CAS 删除 working/summary；并发新消息会得到可重试的 409 并完整保留。
+归档顺序是先用稳定 `message_id` 和确定性 Chroma ID `upsert` 原始消息，再用 Redis WATCH/MULTI 提交 chunk + checkpoint。Chroma 写失败时 checkpoint 不推进；CAS 冲突后的重试仍写同一批 ID，不制造重复情景记忆。短会话还可调用 `POST /conversations/{conv_id}/finalize`，覆盖调用开始时的全部未摘要事件。原始事件不删除；若其间出现更大 seq，会得到可重试的 409，下一次只覆盖新增范围。
 
 ### 8.7 Prompt Context 和持久记忆是两层
 
@@ -531,9 +534,9 @@ flowchart LR
 | 来源 | Prompt 位置 | Agent 可见 | Verifier 可见 |
 |---|---|---|---|
 | recent Redis messages | `messages` 中真实 user/assistant history | 是 | 否 |
-| rolling summary | system `conversation_summary` section | 是 | 是 |
+| range summary view | system `conversation_summary` section | 是 | 是 |
 | episodic retrieval | system `relevant_history` section | 是 | 是 |
-| user profile | system `user_profile` section | 是 | 是 |
+| active sourced facts projection | system `user_profile` section | 是 | 是 |
 | RAG evidence | system `knowledge` section | 是 | 是 |
 | Skill | Domain Agent 基础 system prompt | 是 | 否 |
 | entities | Agent 调用时额外 system section | 是 | 否 |
@@ -1058,9 +1061,10 @@ python -m pytest -q
 - Token estimator 对重复内容单调；
 - Prompt 有界且不伪造对话；
 - 触发依据是 Token，不是消息条数；
-- 滚动 summary 始终可解析且有界；
-- 并发写导致快照变化时拒绝 stale commit；
-- 成功压缩替换 summary 并保留最近消息。
+- summary chunk 始终可解析、有界并声明连续 source range；
+- 并发新消息不使固定范围失效，checkpoint 竞争只能有一个提交；
+- checkpoint 单调推进，原始事件保持不变且摘要视图可重建；
+- 标量 fact supersede、多值 fact 合并、retract 与 source links 有状态测试；
 - 原始情景片段而不是摘要成为可检索 document；
 - BM25 可找回订单号/错误码，recency 不引入无关候选；
 - 向量或词法单路故障仍可降级，Recall@K/MRR/nDCG 计算可复现。
@@ -1140,7 +1144,7 @@ python -m pytest -q
 
 根因：消息数不能代表输入大小；摘要 append 会继续膨胀；LLM 压缩期间并发写可能被旧快照覆盖；把 memory 当假消息会污染历史。
 
-修复：Token 触发、结构化有界滚动摘要、保护最近轮次、Redis WATCH/MULTI optimistic commit、typed data sections 和单独的 Prompt assembler。
+修复：Token 触发、结构化有界范围摘要、保护最近轮次、checkpoint-only Redis CAS、typed data sections 和单独的 Prompt assembler。原始事件保留，摘要块只拥有固定 seq 范围。
 
 ### 19.4 Typed Multi-Agent Synthesis — `6f8b19f`
 
@@ -1197,15 +1201,15 @@ python -m pytest -q
 - 验证：同请求返回原 ticket；不同稳定内容复用 key 返回 409；生成文案变化不影响复用。
 - 代价：Client 必须稳定复用 request_id；否则系统无法知道两个请求是否同一操作。
 
-### Badcase B：压缩删除并发到达的新消息
+### Badcase B：摘要和原文共享可变权威状态
 
 - 症状：高并发会话中偶发缺失最近消息。
 - 触发：压缩 LLM 正在运行时同会话写入新消息。
 - 立即机制：基于旧快照删除并重写 Redis list。
-- 根因：压缩没有验证其读到的版本仍是当前状态。
-- 修复：WATCH 两个权威 key，比较值，事务提交；冲突则放弃而非覆盖。
-- 验证：测试 client 在 summary 调用期间改变 Redis，断言 commit 返回 false 且新消息保留。
-- 代价：冲突时本轮不压缩，后续请求重试；正确性优先于立即节省 Token。
+- 根因：原始事实和有损摘要共享一次“删除并重写”转换，摘要没有自己的范围归属和单调水位。
+- 修复：事件分配单调 seq 并追加保留；摘要只拥有固定 `[from_seq,to_seq]`，CAS 只推进 checkpoint。
+- 验证：测试在 summary 调用期间追加更大 seq，旧范围仍能提交且新消息保留；并行 worker 竞争同一 checkpoint 时只追加一个 chunk。
+- 代价：Redis 保留更多原始事件，需要后续明确的数据保留/冷归档策略；当前机制不声称已解决长期存储治理。
 
 ### Badcase C：一个 Agent 超时导致所有有效结果丢失或任务静默消失
 
@@ -1322,7 +1326,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q11：并发压缩如何保证不丢消息？
 
-**答：** LLM 生成 summary 时不持有长事务；提交前 WATCH message 和 summary 两个 key，重新比较完整快照，只在未变化时 MULTI 重写，否则放弃。
+**答：** LLM 生成 summary 时不持有长事务。开始前把 `[from_seq,to_seq]` 固定下来；归档后只 WATCH checkpoint，并在版本和 covered high-water 未变化时追加 chunk、推进水位。期间的新消息拥有更大 seq，不属于该范围，也不会导致旧结果覆盖它。
 
 **追问：为什么不加分布式锁？** 锁会跨越慢模型调用，放大延迟和故障恢复。压缩是可重试优化，optimistic conflict-abort 更合适；正确消息写入不应该等摘要。
 
@@ -1461,7 +1465,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 **答：** 工作记忆压缩。旧快照交给 LLM 生成摘要期间，新消息可能写入 Redis；如果回来后直接删除并重写 list，就会把新消息一起删掉。根因不是“Redis 不可靠”，而是压缩提交没有验证读取版本仍是当前状态。
 
-**修复与证据：** 慢 LLM 调用不持锁；提交前同时 WATCH 消息 key 和摘要 key，比较完整快照，再用 MULTI 重写。发生变化就放弃本轮压缩。`test_concurrent_write_prevents_stale_compression_commit` 证明冲突时新消息保留。
+**修复与证据：** 慢 LLM 调用只处理已固定的 source range；提交前 WATCH checkpoint，再用 MULTI 原子追加 chunk 并推进 high-water。新消息不会制造冲突，另一个 checkpoint writer 才会。`test_new_event_does_not_invalidate_fixed_high_water_summary` 与 `test_checkpoint_competition_not_message_append_causes_conflict` 分别证明两种并发语义。
 
 ### Q33：一个 Agent 超时为什么没有让整个请求失败？
 
@@ -1610,7 +1614,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 **Action：** 在 Worker 内增加最大 4 步的 Anthropic tool loop；工具发现和执行共享同一 allowlist，执行边界再次校验；高风险/写工具默认等待宿主批准，读工具批次并行、潜在写工具串行；工具输出截断后按 call_id 回写，TraceId 通过 contextvars 贯穿并行 Task，审计只记录参数哈希/shape；拒绝、失败、超步数禁止 General fallback 覆盖。
 
-**Result：** 工具/ReAct 聚焦测试和编排投影测试证明越权零副作用、审批阻断、循环停止、结果配对、输出有界、Trace 传播和失败证据贯穿；timeout/cancel 进一步区分调用终态与 `outcome_unknown` 副作用事实。连同生产边界、分层模型策略与分层评测合同测试，整个仓库 153 项测试通过。
+**Result：** 工具/ReAct 聚焦测试和编排投影测试证明越权零副作用、审批阻断、循环停止、结果配对、输出有界、Trace 传播和失败证据贯穿；timeout/cancel 进一步区分调用终态与 `outcome_unknown` 副作用事实。连同生产边界、分层模型策略、记忆不变量与分层评测合同测试，整个仓库 160 项测试通过。
 
 **简历一行（只在你能现场解释代码时使用）：**
 
@@ -1662,9 +1666,9 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 flowchart LR
     J[Signed JWT] --> P[Principal subject + scopes]
     P --> C[Chat identity]
-    C --> W[Redis working memory]
-    W -->|compression or finalize| A[deterministic message archive]
-    A -->|upsert succeeds| X[Redis WATCH/MULTI clear]
+    C --> W[Redis append-only events + seq]
+    W -->|fixed source range| A[deterministic episodic archive]
+    A -->|upsert succeeds| X[Redis checkpoint CAS + immutable chunk]
     A --> E[Chroma explicit backend]
     P --> O[TaskPlan]
     O --> H[tool-free EscalationAgent]
@@ -1676,8 +1680,8 @@ flowchart LR
 
 | 原问题 | 根因 Owner | 当前合同 | 失败语义与证据 |
 |---|---|---|---|
-| 短会话未达压缩阈值，TTL 后消失 | `MemoryManager` 生命周期 | `finalize_conversation` 归档全部剩余消息，再 CAS 清 Redis | 归档失败 503；并发写 409；Redis 原文保留 |
-| `user_profile limit=1` 不保证最新 | Profile 存储身份 | 每用户一个确定性 ID，版本化合并 | 进程内 observation-order 防旧写覆盖；多副本 CAS 仍是边界 |
+| 短会话未达压缩阈值，长期索引缺失 | `MemoryManager` 生命周期 | `finalize_conversation` 归档调用 high-water 前的剩余范围并推进 checkpoint | 归档失败不推进；并发新 seq 返回 409；Redis 原文始终保留 |
+| `user_profile limit=1` 不保证最新且无法追源 | Fact 生命周期 | 支持 key 的来源化事实，标量 supersede、多值共存、retract 有状态 | 进程内 source-seq 单调；多副本 CAS 仍是边界 |
 | `agent_outcomes.content` 泄漏拒绝候选 | HTTP 发布投影 | 公开 outcome 只保留安全状态/延迟/错误码 | candidate、raw error、agent key、tool call IDs 全部删除 |
 | 请求体可伪造 `user_id` | HTTP 身份 | JWT `sub` 是唯一用户身份，scope 控制能力 | 缺失/坏 token 401；身份冲突或缺 scope 403 |
 | Chroma 远程失败静默写本地 | `core/chroma_client.py` | `remote` 与 `embedded` 显式二选一，health 报实际位置 | remote 不可达启动失败，绝不产生第二套库 |
@@ -1687,10 +1691,10 @@ flowchart LR
 
 ### 26.2 为什么归档必须早于 Redis 删除
 
-旧的“先提交摘要、再尽力写 Chroma”允许 working memory 已消失而长期事实未落库。新顺序是：快照消息拥有稳定 `message_id` → Chroma 以确定性 ID `upsert` → Redis 比较 list 与 summary 快照 → 只在未变化时删除或压缩。这个顺序同时满足：
+旧的“先提交摘要、再尽力写 Chroma”允许 checkpoint 声称覆盖，但长期索引并未落库。新顺序是：固定 seq 范围与稳定 `message_id` → Chroma 以确定性 ID `upsert` → Redis CAS checkpoint → 原子追加摘要块并推进 high-water。这个顺序同时满足：
 
 1. Chroma 失败不会损失原文；
-2. CAS 冲突保留并发新消息；
+2. CAS 冲突不会改变 checkpoint，所有原始事件始终保留；
 3. 重试 upsert 相同 ID，不复制记忆；
 4. 压缩和显式 finalize 使用同一个 archive Owner。
 
@@ -1702,11 +1706,11 @@ Verifier 必须读取完整 `AgentOutcome.content/error/producer` 才能判断�
 
 ### Q57：短会话 finalize 调两次会重复长期记忆吗？
 
-**答：** 不会按正常合同重复。每条 Redis 消息带稳定 `message_id`，Chroma ID 由 user/conv/message/chunk 确定并使用 `upsert`；第一次成功后 Redis 已清，第二次返回 `already_empty=true`。即使第一次归档后 CAS 冲突，重试仍覆盖同一 ID。
+**答：** 不会按正常合同重复。每条事件带稳定 `message_id`，Chroma ID 由 user/conv/message/chunk 确定并使用 `upsert`；第一次成功后 checkpoint 已覆盖该范围，第二次返回 `already_empty=true`。原始事件仍在，但不会因 finalize 重复进入未覆盖集合。
 
-### Q58：为什么 finalize 不直接 `DEL` Redis？
+### Q58：为什么 finalize 不 `DEL` Redis？
 
-**答：** 归档调用期间可能到达新消息。删除前必须 WATCH 并比较 working list 与 summary；变化时返回 retryable 409，让新消息留下。目标不是“接口一定成功”，而是“结束会话不能删除快照之后的事实”。
+**答：** 原始事件是摘要重建、事实溯源和审计的依据，finalize 的含义只是“覆盖调用开始时的 high-water”。归档期间若到达更大 seq，已完成范围仍有效，但接口返回 retryable 409，下一次继续处理新增范围。
 
 ### Q59：每用户一个 profile 是否就解决并发？
 
@@ -1730,7 +1734,7 @@ Verifier 必须读取完整 `AgentOutcome.content/error/producer` 才能判断�
 
 ### Q64：这一轮怎样写成 STAR？
 
-**S：** 原链路在 TTL、诊断投影和部署降级处存在“成功返回但事实丢失或泄漏”的边界。**T：** 让身份、归档、存储模式和升级执行者各有唯一 Owner，并让失败可重试、可观测。**A：** 实现 JWT Principal/scope、公开 outcome redaction、确定性消息归档 + Redis CAS finalize、单记录版本画像、显式 Chroma/intent 模式、tool-free EscalationAgent 和路由基数披露。**R：** 相关不变量由测试覆盖；全仓当前 153 项测试通过，不虚构线上提升。
+**S：** 原链路在摘要覆盖、事实溯源、诊断投影和部署降级处存在“成功返回但事实丢失或泄漏”的边界。**T：** 让事件、摘要 checkpoint、事实、身份和发布投影各有唯一 Owner。**A：** 实现 JWT Principal/scope、公开 outcome redaction、单调 seq + 范围摘要 CAS、来源化版本事实、显式 Chroma/intent 模式、tool-free EscalationAgent 和路由基数披露。**R：** 相关不变量由回归测试覆盖；不虚构线上提升或多副本原子性。
 
 ## 27. 把评测数据真正跑起来：从 provisional 到 held-out 报告
 
@@ -1884,7 +1888,7 @@ python -m evaluation.stateful_runner \
 | 调用角色 | 默认模型 | reasoning | 为什么 |
 |---|---|---|---|
 | Intent、Worker、ReAct | `deepseek-v4-flash` | `none` | 高频、输入边界清楚，先保证延迟和成本；外层 Planner 本身是确定性代码 |
-| Memory summary/profile | `deepseek-v4-flash` | `none` | 结构化压缩，不值得每轮高推理 |
+| Memory range summary/fact extraction | `deepseek-v4-flash` | `none` | 结构化投影，不值得每轮高推理 |
 | Query rewrite、rerank | `deepseek-v4-flash` | `none` | 候选生成/排序任务短，失败还有确定性降级 |
 | Multi-Agent synthesis | `deepseek-v4-pro` | `none` | 保留 Pro 的跨域融合能力；实测 high 增大尾延迟，结构化输出收益未被证明 |
 | Answer verifier | `deepseek-v4-pro` | `none` | 发布门禁优先保证 JSON 可解析和稳定延迟；确定性 CoverageGate 先行 |
