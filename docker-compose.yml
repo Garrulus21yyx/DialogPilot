@@ -7,8 +7,7 @@ services:
   redis:
     image: redis:7-alpine
     container_name: dialogpilot-redis
-    ports:
-      - "6379:6379"
+    # Redis 只供 Compose 内部服务访问，避免与宿主/其他项目的 6379 冲突。
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-dialogpilot-local}
     volumes:
       - redis-data:/data
@@ -75,7 +74,7 @@ services:
       target: production
     container_name: dialogpilot-app
     ports:
-      - "8000:8000"
+      - "${DIALOGPILOT_API_PORT:-18000}:8000"
     env_file:
       - .env
     environment:

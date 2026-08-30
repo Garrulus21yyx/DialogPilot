@@ -959,7 +959,7 @@ Monitor 每隔 N 秒：
 示例：
 
 ```bash
-curl -X POST http://localhost:8000/chat \
+curl -X POST http://localhost:18000/chat \
   -H "Authorization: Bearer $DIALOGPILOT_TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{
@@ -990,7 +990,7 @@ uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
 
 ```bash
 docker compose up -d --build
-curl http://localhost:8000/health
+curl http://localhost:18000/health
 ```
 
 ### 17.2 Compose 拓扑
@@ -1021,6 +1021,7 @@ Prometheus :9090
 | `INTENT_SIMILARITY_MODE` | `ngram` 或 `disabled`，不再由 provider base URL 猜测 |
 | `TICKET_DB_PATH` | SQLite 工单文件 |
 | `CUSTOMER_OPERATIONS_DB_PATH` | SQLite 订单、退款申请与安全事件业务沙箱文件 |
+| `DIALOGPILOT_API_PORT` | Docker 宿主 API 端口，默认 18000；容器内仍为 8000 |
 | `CONTEXT_INPUT_BUDGET` | 完整输入预算 12000 |
 | `CONTEXT_OUTPUT_RESERVE` | 为输出预留 1536 |
 | `MEMORY_TOKEN_BUDGET` | 记忆预算 6000 |
@@ -1819,10 +1820,10 @@ python scripts/build_eval_dataset.py --source clinc150-oos --max-per-label 20
 ### 27.4 第四步：通过 API 跑 intent/routing
 
 ```bash
-curl http://localhost:8000/eval/datasets \
+curl http://localhost:18000/eval/datasets \
   -H "Authorization: Bearer $DIALOGPILOT_ADMIN_TOKEN"
 
-curl -X POST http://localhost:8000/eval/run \
+curl -X POST http://localhost:18000/eval/run \
   -H "Authorization: Bearer $DIALOGPILOT_ADMIN_TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{

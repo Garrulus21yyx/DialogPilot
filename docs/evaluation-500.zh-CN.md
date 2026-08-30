@@ -51,7 +51,7 @@ heldout 在配置冻结后只运行一次。当前 Stateful heldout 已经参与
 .venv/bin/python -m evaluation.dataset data/eval/dialogpilot-500-v1
 
 # 2. 启动服务后，先运行 dev 的意图与路由
-curl -sS -X POST http://localhost:8000/eval/run \
+curl -sS -X POST http://localhost:18000/eval/run \
   -H "Authorization: Bearer $DIALOGPILOT_TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{"dataset_id":"dialogpilot-500-v1","split":"dev",\

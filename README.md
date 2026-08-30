@@ -111,10 +111,10 @@ Start the complete stack:
 
 ```bash
 docker compose up -d --build
-curl http://localhost:8000/health
+curl http://localhost:18000/health
 ```
 
-Swagger UI is available at `http://localhost:8000/docs`.
+Swagger UI is available at `http://localhost:18000/docs`.
 
 For a source-based development environment:
 
@@ -165,7 +165,7 @@ print(jwt.encode({
 PY
 )"
 
-curl -X POST http://localhost:8000/chat \
+curl -X POST http://localhost:18000/chat \
   -H "Authorization: Bearer $DIALOGPILOT_TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{"request_id":"client-request-001","message":"订单 #A123 登录失败后又被扣款了"}'
