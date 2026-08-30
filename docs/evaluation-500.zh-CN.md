@@ -52,6 +52,7 @@ heldout 在配置冻结后只运行一次。当前 Stateful heldout 已经参与
 
 # 2. 启动服务后，先运行 dev 的意图与路由
 curl -sS -X POST http://localhost:8000/eval/run \
+  -H "Authorization: Bearer $DIALOGPILOT_TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{"dataset_id":"dialogpilot-500-v1","split":"dev",\
        "layers":["intent","routing"],"include_non_gold":true}'
@@ -67,6 +68,11 @@ curl -sS -X POST http://localhost:8000/eval/run \
   data/eval/dialogpilot-500-v1 --split dev --top-k 5 \
   --predictions artifacts/eval/retrieval-dev.predictions.jsonl \
   --report artifacts/eval/retrieval-dev.report.json
+
+# 5. 只在 dev 上比较 vector / BM25 / RRF；heldout 只做冻结配置回归
+.venv/bin/python -m evaluation.retrieval_ablation \
+  data/eval/dialogpilot-500-v1 --split dev --top-k 5 \
+  --output artifacts/eval/retrieval-ablation-dev.json
 ```
 
 当前 180 条外部样本是 `auto_mapped`，320 条项目样本是 `provisional`。
@@ -93,9 +99,11 @@ holdout；恢复 verified closure 仍需另一位 reviewer 封存新用例。
 空白或 `U+200B/U+FEFF` 的记忆 query 会在访问 Chroma 前短路。
 
 Retrieval producer 现已接线：它把 25 篇 corpus 装入临时 embedded Chroma，调用
-生产 `KnowledgeBase` 的向量 + BM25 + RRF 路径并输出证据 ID。当前 Dev 80 条的
-真实基线是 Recall@5 0.9125、MRR 0.7504、nDCG@5 0.7914；这是 provisional
-开发集结果，不是生产准确率，Retrieval heldout 尚未运行。
+生产 `KnowledgeBase` 并输出证据 ID。固定索引和 80 条 dev 的消融结果是：
+vector-only Recall@5 0.6125 / MRR 0.4852；旧 0.30/0.70 RRF 为 0.9125 / 0.7479；
+BM25-only 为 **0.9500 / 0.8575**，因此知识库默认配置改为 BM25-only。向量与 RRF
+仍是显式可配置策略，权重为 0 时不会再执行无效向量查询。冻结配置在已消费的
+20 条 regression 上得到 Recall@5 0.9500、MRR 0.8058、nDCG@5 0.8409。
 
 Reviewer B 随后用多 chunk 文档发现父 `document_id` 被过早当成候选 ID，可能
 组合不同 chunk 的内容与 metadata。现已改为 360 Token 上限、48 Token overlap
@@ -108,6 +116,28 @@ Reviewer B 随后用多 chunk 文档发现父 `document_id` 被过早当成候�
 时返回 `ContextBudgetExceededError`。CI 固定种子 3000 组组合测试覆盖描述属性、
 多 section、转义和历史；同种生成合同本地扩大到 20000 组，19405 组成功装配、
 595 组得到预期有类型拒绝，预算违规为 0。
+
+## 2026-08-30 收敛运行结果
+
+| 层 | 结果 | 与旧实现的区别 |
+|---|---:|---|
+| Intent | 170/180，Accuracy 0.9444 | 标签定义成为单一业务合同；旧基线 120/180 |
+| Intent dev | 136/144，Macro-F1 0.8361 | 可用于本轮 prompt/规则开发 |
+| Intent consumed regression | 34/36，Macro-F1 0.9504 | 已被查看，不能再叫 fresh heldout |
+| Fast Routing | 120/120 | 直接调用 Planner；P50 0.051ms、P95 0.082ms、LLM 0 调用 |
+| Retrieval dev | Recall@5 0.9500、MRR 0.8575 | dev 消融选择 BM25-only |
+| Retrieval consumed regression | Recall@5 0.9500、MRR 0.8058 | 冻结配置验证，不反向选型 |
+| Stateful | Dev 80/80、consumed regression 20/20 | 仍只代表当前 fixture 的机械合同 |
+
+Intent 剩余 10 条不是继续堆关键词就能诚实解决：其中“陌生扣款”在业务上像
+`account_security`，公开数据映射却期望 `payment_issue`；“新卡被拒”又落在
+`payment_issue` 与 `technical` 边界。这些样本已列为标签仲裁项，不通过改 gold
+或写 case-id 分支制造 100%。
+
+Routing 的 120/120 只证明给定 gold intent/entities 时，确定性 Planner 生成了正确
+Owner 和 task_id。它不执行 Worker、工具、Synthesizer 或 Verifier，也不再用
+`coverage_complete` 冒充尚未发生的执行完成度。完整执行质量必须单独跑
+Full Execution Eval。
 
 这套做法与 Anthropic 对 agent eval 中 task、trial、grader、transcript、outcome
 和 harness 的区分一致：确定性 grader 要检查权威 outcome 与实际 trace，不能只

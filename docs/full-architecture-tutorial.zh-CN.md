@@ -403,7 +403,8 @@ stateDiagram-v2
 - 首次为空时导入默认客服文档；
 - 文档默认按 360 Token 估算上限切片、48 Token overlap，优先段落/句末边界；
 - corpus `document_id` 是父身份，`document_id::chunk-N` 是向量/BM25/RRF 候选身份；
-- Chroma 提供向量候选，KnowledgeBase 再用 BM25 + RRF 融合；最终按父文档去重；
+- KnowledgeBase 支持 vector、BM25 与 RRF；当前 80 条 dev 消融选择 BM25-only 默认值，向量权重为 0 时不执行向量查询；最终按父文档去重；
+- `RAG_VECTOR_WEIGHT`、`RAG_LEXICAL_WEIGHT` 与 `RAG_RRF_K` 显式记录实际策略；改权重后必须重新跑 dev 消融；
 - `CHROMA_MODE=remote` 连接失败时启动失败；只有显式 `embedded` 才使用 PersistentClient，因此不会产生两套无自动合并的物理存储。
 
 ### 7.7 有界 ReAct，而不是开放式自治
@@ -887,7 +888,7 @@ Monitor 每隔 N 秒：
 
 ### 15.1 两条评测路径不能混为一谈
 
-1. **运行时路径**：Intent 计算 accuracy/Macro-F1；Dialog 真实调用 Orchestrator，再用 LLM Judge 评 relevance、accuracy、completeness、helpfulness；Orchestration 从 TaskPlan/outcome 计算 Owner exact、Jaccard、task coverage、budget 和 fan-out。
+1. **运行时路径**：Intent 计算 accuracy/Macro-F1；Routing 只调用公开 Planner 并比较 TaskPlan；Full Execution 才调用 Worker、工具、Synthesizer，并用 LLM Judge 评回答质量、从 outcome 计算 coverage/budget。
 2. **确定性预测路径**：版本化 JSONL 为 intent、routing、retrieval、stateful 四层定义期望结果，`evaluation.benchmark` 对完整 prediction 文件计算固定指标，不让主观 Judge 代替过程合同。
 
 `EndToEndEvaluator` 实际覆盖 **Intent + Orchestrator candidate + orchestration evidence**，没有经过 `/chat` 的完整 Memory、RAG、ContextAssembler、Verifier、Ticket 和最终持久化。名称不能被用来夸成完整发布面 E2E。
@@ -897,7 +898,7 @@ Monitor 每隔 N 秒：
 | 层 | 期望字段 | 确定性指标 | 主要失败问题 |
 |---|---|---|---|
 | Intent | `intent` | Accuracy、Macro-F1、OOS Recall | 主意图/拒识是否正确 |
-| Routing | `owners/task_ids` | Owner exact/Jaccard、task exact、coverage、fan-out | 是否漏任务或乱并行 |
+| Routing | `owners/task_ids` | Owner exact/Jaccard、task exact、planning complete、fan-out | 是否拆错任务或乱并行；不声称执行完成 |
 | Retrieval | `relevant_ids` | Recall@K、MRR、nDCG | 精确证据是否召回且排在前面 |
 | Stateful | `assertions` | assertion pass、all pass | 隔离、授权、副作用等不变量是否成立 |
 
@@ -915,7 +916,7 @@ Monitor 每隔 N 秒：
 
 ### 15.5 什么能说，什么不能说
 
-可以说：“建立了版本化四层评测合同、公开数据适配、split/checksum/review 门禁、Stateful Owner fixture 和隔离 RAG producer。”还可以报告 **provisional dev 基线**：Retrieval 80 条 Recall@5 0.9125、MRR 0.7504、nDCG@5 0.7914；以及 Stateful 80/80 dev、20/20 已消费回归、Reviewer B fresh-v2 27/27 已消费回归。不能把这些写成“系统准确率”，因为尚无 human-reviewed gold 和新的独立封存 holdout。
+可以说：“建立了版本化四层评测合同、公开数据适配、split/checksum/review 门禁、Stateful Owner fixture 和隔离 RAG producer。”当前 **provisional** 结果为：Intent 170/180（Accuracy 0.9444）；Fast Routing 120/120 且 LLM 0 调用；Retrieval dev 经消融选择 BM25-only，Recall@5 0.9500、MRR 0.8575，已消费 regression 为 0.9500/0.8058；Stateful 80/80 dev、20/20 已消费回归。不能把这些写成生产准确率，因为仍无 human-reviewed gold 和新的独立封存 holdout。
 
 ## 16. API 面与典型调用
 
@@ -1922,10 +1923,10 @@ reasoning 模式还设置 `min_completion_tokens`。原因不是“多给点 tok
 |---|---|
 | Verifier 3 条（安全完整回答、泄露 secret、伪造退款） | Flash/none 3/3，均值 0.90s；Pro/none 3/3，均值 1.71s；Pro/high 3/3，均值 5.73s |
 | 4 条在线 E2E | Pro/high 初始矩阵均值约 28.4s、Verifier 可解析 2/4；改为 Pro/none 后均值约 13.3s、可解析 4/4 |
-| 意图 provisional seed | dev 5/5、heldout 3/3 |
-| 路由 provisional seed | dev 5/5、heldout 2/2；Owner Exact、Task Exact、Coverage、fan-out 均为 1.0 |
+| 意图 180 条 provisional | dev 136/144、已消费 regression 34/36；总计 170/180 |
+| Fast Routing 120 条 provisional | 120/120；P50 0.051ms、P95 0.082ms、LLM 0 调用 |
 
-路由评测过程中还暴露了三个代码问题：routing case 的 gold intent/entities 曾在 API 转换时丢失；“不是扣款问题”曾被关键词误触发；“重复扣了”未进入账务表达表。修复后，routing 层直接验证 Planner 的 TaskPlan，不再混入 Answer Judge；澄清路径的空任务集按合法完成态评分。所有数字都来自 7 条 provisional 路由种子，只能证明回归链路可运行，不能写成生产准确率。
+路由评测过程中还暴露了三个代码问题：routing case 的 gold intent/entities 曾在 API 转换时丢失；“不是扣款问题”曾被关键词误触发；“重复扣了”未进入账务表达表。现在公开 `plan()` 是唯一规划入口，生产 `run()` 与 Fast Routing Eval 都消费同一个 `PlanningDecision/TaskPlan`；路由评测不再运行 Worker、Answer Judge 或伪造 coverage。120 条结果只能证明 provisional Planner 合同，不是端到端 Agent 成功率。
 
 ### 28.3 三档完整消融：Flash/off、Flash/high、Pro/high
 

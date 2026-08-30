@@ -11,7 +11,7 @@ BM25, RRF, and evidence projection; parent document IDs are deduplicated only
 after ranking. Existing v1 Chroma chunks remain readable but require a source
 reindex to gain the v2 overlap policy; ingestion never silently rewrites them.
 
-Chinese documentation: [full architecture tutorial](https://garrulus21yyx.github.io/DialogPilot/) · [code-checked interview guide](https://garrulus21yyx.github.io/DialogPilot/interview-guide.html)
+Chinese documentation: [full architecture tutorial](https://garrulus21yyx.github.io/DialogPilot/) · [code-checked interview guide](https://garrulus21yyx.github.io/DialogPilot/interview-guide.html) · [500-case layered evaluation](https://garrulus21yyx.github.io/DialogPilot/evaluation-500/)
 
 ## Why this project exists
 

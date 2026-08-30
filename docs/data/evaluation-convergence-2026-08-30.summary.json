@@ -1,0 +1,35 @@
+{
+  "commit_before_docs": "4b94ba2",
+  "dataset_id": "dialogpilot-500-v1",
+  "dataset_checksum": "00ba40789eaa27c4aa420eedd51d86b3fa115b879d88e8eff65ff1f2616f4c95",
+  "review_status": "provisional_and_auto_mapped_not_human_gold",
+  "intent": {
+    "total": 180,
+    "correct": 170,
+    "accuracy": 0.9444,
+    "dev_accuracy": 0.9444,
+    "dev_macro_f1": 0.8361,
+    "consumed_regression_accuracy": 0.9444,
+    "consumed_regression_macro_f1": 0.9504
+  },
+  "routing": {
+    "total": 120,
+    "correct": 120,
+    "execution_mode": "planner_only",
+    "llm_calls": 0,
+    "case_latency_ms": {"p50": 0.051, "p95": 0.082}
+  },
+  "retrieval": {
+    "selected_on": "dev",
+    "selected_strategy": "bm25_only",
+    "dev": {"recall_at_5": 0.95, "mrr": 0.8575, "ndcg_at_5": 0.8805},
+    "consumed_regression": {"recall_at_5": 0.95, "mrr": 0.8058, "ndcg_at_5": 0.8409},
+    "old_rrf_dev": {"recall_at_5": 0.9125, "mrr": 0.7479, "ndcg_at_5": 0.7894},
+    "vector_only_dev": {"recall_at_5": 0.6125, "mrr": 0.4852, "ndcg_at_5": 0.5169}
+  },
+  "claims": [
+    "These are provisional regression results, not production accuracy.",
+    "The heldout splits have been consumed and are reported as regression only.",
+    "Routing measures Planner output and does not execute workers or prove task completion."
+  ]
+}

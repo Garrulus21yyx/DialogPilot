@@ -147,11 +147,11 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q27：知识 RAG 链路是什么？
 
-对需要业务事实的意图，ToolManager 产生原 query 加改写 query，并行调用 KnowledgeBase。每次检索由 Chroma 提供向量候选，同时对隔离 corpus 做 BM25，再用 RRF 融合；多 query 结果合并后由 chat LLM rerank 取 Top-K。rewrite 失败退原 query，rerank 失败退融合排序。
+对需要业务事实的意图，ToolManager 产生原 query 加改写 query，并行调用 KnowledgeBase。KnowledgeBase 支持 vector、BM25 和 RRF，但当前 80 条 provisional dev 消融选择 BM25-only 默认值；多 query 结果合并后由 chat LLM rerank 取 Top-K。rewrite 失败退原 query，rerank 失败退检索排序。
 
 ### Q28：知识 chunk size 和 overlap 是多少？
 
-**CURRENT。** 默认估算 Token 上限 360、overlap 48，优先段落/句末/空白边界；超长单句强制二分硬切。`chunk_id` 贯穿向量、BM25、RRF 与证据投影，最终才按父 `document_id` 去重。参数可由 `RAG_CHUNK_MAX_TOKENS` 和 `RAG_CHUNK_OVERLAP_TOKENS` 配置；当前值是工程基线，不是消融最优值。
+**CURRENT。** 默认估算 Token 上限 360、overlap 48，优先段落/句末/空白边界；超长单句强制二分硬切。`chunk_id` 贯穿候选排序与证据投影，最终才按父 `document_id` 去重。切片参数仍是工程基线；检索权重则已有 dev 消融：BM25-only Recall@5 0.95 / MRR 0.8575，优于旧 RRF 的 0.9125 / 0.7479。
 
 ### Q29：怎样实验 chunk 参数？
 
