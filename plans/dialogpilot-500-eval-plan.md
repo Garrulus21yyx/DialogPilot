@@ -71,7 +71,7 @@ records observed facts, and produces scorer-compatible predictions.
 4. [completed] Add invariant/negative tests for fixture completeness, zero-effect
    evidence and missing observations.
 5. [completed] Update dataset/page commands and limitations.
-6. [in_progress] Run repository gates, push each coherent phase, verify CI/Pages.
+6. [completed] Run repository gates, push each coherent phase, verify CI/Pages.
 
 ### Phase 2 evidence
 
@@ -82,3 +82,5 @@ records observed facts, and produces scorer-compatible predictions.
   section after HTML expansion. The owner now fits against final rendered text.
 - Negative gates prove an invented action and an assertion without a probe both
   fail closed.
+- Repository gate: 123 tests passed; GitHub Actions CI and Pages deployment for
+  `092eeb0` passed, and the public evaluation page exposes the updated runner.
