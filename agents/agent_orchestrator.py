@@ -192,6 +192,7 @@ class BaseAgent:
         instance_id: str = "",
         tool_manager: Optional[Any] = None,
         react_max_steps: int = 4,
+        intent_similarity_mode: str = "ngram",
     ):
         """保存 Agent 身份、模型客户端、Skill 入口和运行统计。"""
         self._client = client
@@ -428,7 +429,12 @@ class AgentOrchestrator:
             kwargs["base_url"] = base_url
         client = AsyncAnthropic(**kwargs)
 
-        self._intent_recognizer = IntentRecognizer(api_key=api_key, base_url=base_url, model=model)
+        self._intent_recognizer = IntentRecognizer(
+            api_key=api_key,
+            base_url=base_url,
+            model=model,
+            similarity_mode=intent_similarity_mode,
+        )
         self._skill_manager = skill_manager
         self._agent_timeout_s = max(0.1, float(agent_timeout_s))
         self._execution_budget = ExecutionBudget(

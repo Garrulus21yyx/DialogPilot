@@ -55,6 +55,7 @@ BANNER = r"""
 # ── 全局组件（lifespan 中初始化）─────────────────────────────────────────────
 _orchestrator = None
 _memory       = None
+_knowledge_base = None
 _tool_manager = None
 _monitor      = None
 _evaluator    = None
@@ -109,7 +110,7 @@ def _anthropic_cfg() -> Dict[str, Any]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """按依赖顺序创建所有组件，并在退出时释放后台任务和连接。"""
-    global _orchestrator, _memory, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _context_assembler, _authenticator
+    global _orchestrator, _memory, _knowledge_base, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _context_assembler, _authenticator
 
     print(BANNER, flush=True)
 
@@ -124,6 +125,8 @@ async def lifespan(app: FastAPI):
     from services.answer_verifier import AnswerVerifier
 
     cfg = _anthropic_cfg()
+    similarity_mode = os.getenv("INTENT_SIMILARITY_MODE", "ngram")
+    chroma_mode = os.getenv("CHROMA_MODE", "remote")
     _authenticator = JWTAuthenticator.from_env()
     logger.info(f"模型: {cfg['model']}  base_url: {cfg.get('base_url', '(官方)')}")
 
@@ -132,6 +135,7 @@ async def lifespan(app: FastAPI):
         api_key=cfg["api_key"],
         base_url=cfg.get("base_url"),
         model=cfg["model"],
+        similarity_mode=similarity_mode,
     )
 
     # Skills：启动时从目录加载业务能力说明，并在 Agent 调用 LLM 时动态注入。
@@ -152,6 +156,7 @@ async def lifespan(app: FastAPI):
         request_timeout_s=float(os.getenv("AGENT_REQUEST_TIMEOUT_SECONDS", "20")),
         max_agents_per_request=int(os.getenv("AGENT_MAX_PER_REQUEST", "3")),
         react_max_steps=int(os.getenv("REACT_MAX_STEPS", "4")),
+        intent_similarity_mode=similarity_mode,
     )
     _answer_verifier = AnswerVerifier(
         api_key=cfg["api_key"],
@@ -175,6 +180,7 @@ async def lifespan(app: FastAPI):
         chroma_host=os.getenv("CHROMA_HOST", "chromadb"),
         chroma_port=int(os.getenv("CHROMA_PORT", "8000")),
         chroma_path=os.getenv("CHROMA_PERSIST_DIRECTORY", "/app/data/chroma"),
+        chroma_mode=chroma_mode,
         api_key=cfg["api_key"],
         base_url=cfg.get("base_url"),
         model=cfg["model"],
@@ -192,12 +198,13 @@ async def lifespan(app: FastAPI):
         trace_recorder=_trace_recorder,
         max_output_chars=int(os.getenv("TOOL_OUTPUT_MAX_CHARS", "4000")),
     )
-    kb = KnowledgeBase(
+    _knowledge_base = KnowledgeBase(
         chroma_host=os.getenv("CHROMA_HOST", "chromadb"),
         chroma_port=int(os.getenv("CHROMA_PORT", "8000")),
         chroma_path=os.getenv("CHROMA_PERSIST_DIRECTORY", "/app/data/chroma"),
+        chroma_mode=chroma_mode,
     )
-    logger.info(f"知识库已加载: {await kb.doc_count_async()} 个文档片段")
+    logger.info(f"知识库已加载: {await _knowledge_base.doc_count_async()} 个文档片段")
 
     def knowledge_fallback(params: Dict[str, Any], context: Optional[Dict[str, Any]], error: str):
         """知识检索不可用时返回可诊断降级信息，但不冒充真实业务证据。"""
@@ -213,7 +220,7 @@ async def lifespan(app: FastAPI):
     _tool_manager.register(Tool(
         name="knowledge_search",
         description="搜索知识库（基于 ChromaDB 向量检索）",
-        handler=kb.search_handler,
+        handler=_knowledge_base.search_handler,
         schema={
             "type": "object",
             "properties": {
@@ -410,7 +417,11 @@ async def health():
     """汇总依赖就绪状态和运行时统计，不承担业务健康修复。"""
     if _orchestrator is None:
         raise HTTPException(503, "服务未就绪")
-    return {"status": "ok", "agents": _orchestrator.get_stats()}
+    storage = {
+        "memory": _memory.storage_backend if _memory is not None else None,
+        "knowledge": _knowledge_base.storage_backend if _knowledge_base is not None else None,
+    }
+    return {"status": "ok", "agents": _orchestrator.get_stats(), "storage": storage}
 
 
 @app.get("/skills", tags=["Skills"])
@@ -1023,12 +1034,14 @@ async def _cli():
         base_url=cfg.get("base_url"),
         model=cfg["model"],
         skill_manager=skill_manager,
+        intent_similarity_mode=os.getenv("INTENT_SIMILARITY_MODE", "ngram"),
     )
     mem  = MemoryManager(
         redis_url=os.getenv("REDIS_URL", "redis://localhost:6379/0"),
         chroma_host=os.getenv("CHROMA_HOST", "localhost"),
         chroma_port=int(os.getenv("CHROMA_PORT", "8000")),
         chroma_path=os.getenv("CHROMA_PERSIST_DIRECTORY", "/tmp/chroma"),
+        chroma_mode=os.getenv("CHROMA_MODE", "embedded"),
         api_key=cfg["api_key"],
         base_url=cfg.get("base_url"),
         model=cfg["model"],

@@ -19,11 +19,12 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
     captured = {}
 
     class FakeIntentRecognizer:
-        def __init__(self, api_key, base_url=None, model=None):
+        def __init__(self, api_key, base_url=None, model=None, similarity_mode=None):
             captured["intent"] = {
                 "api_key": api_key,
                 "base_url": base_url,
                 "model": model,
+                "similarity_mode": similarity_mode,
             }
 
     class FakeSkillManager:
@@ -70,8 +71,8 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
             return {}
 
     class FakeKnowledgeBase:
-        def __init__(self, **_kwargs):
-            pass
+        def __init__(self, **kwargs):
+            captured["knowledge"] = kwargs
 
         async def doc_count_async(self):
             return 0
@@ -113,6 +114,8 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
     monkeypatch.setenv("TOOL_APPROVAL_MODE", "require_all")
     monkeypatch.setenv("TOOL_OUTPUT_MAX_CHARS", "2345")
     monkeypatch.setenv("PROMETHEUS_PORT", "0")
+    monkeypatch.setenv("CHROMA_MODE", "embedded")
+    monkeypatch.setenv("INTENT_SIMILARITY_MODE", "ngram")
 
     async def exercise_lifespan():
         async with main.lifespan(main.app):
@@ -120,10 +123,14 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
                 "api_key": "test-key",
                 "base_url": None,
                 "model": "claude-3-5-sonnet-20241022",
+                "similarity_mode": "ngram",
             }
             assert captured["memory"]["memory_token_budget"] == 4321
             assert captured["memory"]["compression_threshold"] == 0.81
             assert captured["memory"]["summary_max_tokens"] == 777
+            assert captured["memory"]["chroma_mode"] == "embedded"
+            assert captured["knowledge"]["chroma_mode"] == "embedded"
+            assert captured["orchestrator"]["intent_similarity_mode"] == "ngram"
             assert captured["orchestrator"]["react_max_steps"] == 6
             assert captured["tool_manager"]["approval_mode"].value == "require_all"
             assert captured["tool_manager"]["max_output_chars"] == 2345

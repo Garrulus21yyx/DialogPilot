@@ -154,6 +154,7 @@ class IntentRecognizer:
         base_url: Optional[str] = None,
         model: str = "claude-3-5-sonnet-20241022",
         confidence_threshold: float = 0.5,
+        similarity_mode: str = "ngram",
     ):
         """创建模型客户端，并初始化模板向量与结果缓存。"""
         kwargs: Dict[str, Any] = {"api_key": api_key}
@@ -162,10 +163,13 @@ class IntentRecognizer:
         self.client    = AsyncAnthropic(**kwargs)
         self.model     = model
         self.threshold = confidence_threshold
-        # 第三方兼容 API（如 DeepSeek）通常不支持 Embedding，禁用该策略。
-        # 官方 Anthropic SDK 当前没有 embeddings 资源，因此下面会使用稳定的
-        # 本地字符 n-gram 向量作为轻量兜底，保证三路融合链路真实可跑。
-        self._embedding_enabled = not bool(base_url)
+        normalized_mode = similarity_mode.strip().lower()
+        if normalized_mode not in {"ngram", "disabled"}:
+            raise ValueError("INTENT_SIMILARITY_MODE must be 'ngram' or 'disabled'")
+        # 相似度策略属于路由配置，不由模型 API 地址猜测。ngram 模式在远端
+        # embedding 不存在或失败时稳定退回本地字符向量。
+        self._embedding_enabled = normalized_mode == "ngram"
+        self.similarity_mode = normalized_mode
 
         self._tpl_embeddings: Dict[IntentCategory, List[List[float]]] = {}
         self._cache: Dict[str, IntentResult] = {}

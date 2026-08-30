@@ -113,7 +113,7 @@ moving authority into API projections or hiding unsupported behavior in document
 
 - [done] Derive an authenticated Principal at the HTTP boundary and make memory/ticket operations consume server-owned identity; remove rejected candidate content from the public chat projection.
 - [done] Add an idempotent explicit conversation-finalization contract that archives unpersisted raw turns before Redis expiry, and make one versioned per-user profile the authoritative record. Verified by the full 72-test suite, including retry-idempotent archive IDs and concurrent-write preservation.
-- [pending] Make Chroma backend selection explicit and fail closed in remote mode; decouple local n-gram similarity from `ANTHROPIC_BASE_URL` behind an explicit configuration mode.
+- [done] Make Chroma backend selection explicit and fail closed in remote mode; decouple local n-gram similarity from `ANTHROPIC_BASE_URL` behind an explicit configuration mode. Both owners use one storage factory and `/health` reports the physical backend; the full 77-test suite passes.
 - [pending] Register a real EscalationAgent so TaskPlan Owner and responding capability agree; make performance routing claims conditional on actual same-type alternatives.
 - [pending] Add positive invariant tests for authentication, projection redaction, idempotent archival, profile ordering, storage-mode selection, intent mode, escalation execution, and routing cardinality.
 - [pending] Update README, architecture, tutorial, interview guide, environment/Compose contracts, run all checks, push each coherent phase, and verify deployed Pages on desktop/mobile.

@@ -22,12 +22,12 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-import chromadb
 import redis.asyncio as redis
 from anthropic import AsyncAnthropic
 from redis.exceptions import WatchError
 
 from core.llm_utils import extract_text_content
+from core.chroma_client import create_chroma_client
 from memory.context import ContextSection, TokenEstimator
 from memory.hybrid_retrieval import HybridMemoryRetriever, MemoryDocument, MemoryHit
 
@@ -118,6 +118,7 @@ class MemoryManager:
         chroma_host:  str = "localhost",
         chroma_port:  int = 8000,
         chroma_path:  str = "./data/chroma",
+        chroma_mode:  str = "remote",
         api_key:      str = "",
         base_url:     Optional[str] = None,
         model:        str = "claude-3-5-sonnet-20241022",
@@ -148,27 +149,20 @@ class MemoryManager:
 
         self._redis = redis.from_url(redis_url, decode_responses=True)
 
-        # ChromaDB：优先连接独立服务（docker compose 模式），连不上则降级为本地嵌入式
-        try:
-            # HttpClient 默认也会初始化 ChromaDB telemetry；显式关闭避免 posthog 兼容性错误日志。
-            chroma = chromadb.HttpClient(
-                host=chroma_host,
-                port=chroma_port,
-                settings=chromadb.Settings(anonymized_telemetry=False),
-            )
-            chroma.heartbeat()  # 测试连接
-            logger.info(f"ChromaDB 已连接: {chroma_host}:{chroma_port}")
-        except Exception:
-            logger.info(f"ChromaDB 服务不可用，使用本地嵌入式模式: {chroma_path}")
-            chroma = chromadb.PersistentClient(
-                path=chroma_path,
-                settings=chromadb.Settings(anonymized_telemetry=False),
-            )
+        chroma, self._chroma_backend = create_chroma_client(
+            mode=chroma_mode, host=chroma_host, port=chroma_port, path=chroma_path,
+        )
+        logger.info("记忆 ChromaDB 模式: %s (%s)", self._chroma_backend.mode, self._chroma_backend.location)
 
         # 情景记忆：存储历史对话片段
         self._episodic = chroma.get_or_create_collection("episodic")
         # 用户画像：存储提炼出的偏好和实体
         self._profile  = chroma.get_or_create_collection("user_profile")
+
+    @property
+    def storage_backend(self) -> Dict[str, str]:
+        """返回只读的实际存储身份，避免把部署模式留在隐式日志中。"""
+        return self._chroma_backend.to_dict()
 
     # ── 写入 ──────────────────────────────────────────────────────────────────
 

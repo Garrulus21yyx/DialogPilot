@@ -82,6 +82,8 @@ services:
       # 容器内固定值，覆盖 .env 中的本地路径
       - REDIS_URL=redis://:${REDIS_PASSWORD:-dialogpilot-local}@redis:6379/0
       - CHROMA_PERSIST_DIRECTORY=/app/data/chroma
+      - CHROMA_MODE=${CHROMA_MODE:-remote}
+      - INTENT_SIMILARITY_MODE=${INTENT_SIMILARITY_MODE:-ngram}
       - EVAL_BASELINE_PATH=/app/data/eval/baseline.json
       - DIALOGPILOT_SKILLS_DIR=/app/skills
       - TICKET_DB_PATH=/app/data/tickets/tickets.db
