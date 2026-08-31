@@ -25,7 +25,11 @@ DialogPilot 不是一条不断堆 Prompt 的调用链，而是按“谁拥有最
 | 并行结果合成 | `services/result_synthesizer.py` | 唯一候选答案、冲突和升级决定 |
 | ReAct 执行 | `agents/react_engine.py` | 有界 Worker 循环及闭合的 ReAct 结果 |
 | 工具授权与可靠性 | `mcp/tool_manager.py` | Agent 白名单、审批结论、类型化结果和脱敏审计 |
-| 业务知识 | `mcp/knowledge_base.py` | 从 ChromaDB 检索出的文档证据 |
+| 业务知识原文与检索 | `mcp/knowledge_base.py`、`mcp/document_chunker.py` | source-offset 保真的 chunk 投影及 BM25/Dense/RRF 候选 |
+| Query Transformation | `mcp/query_transformer.py` | Raw 保留、Standalone/Multi-query/HyDE 检索提示与失败降级 |
+| 知识重排 | `mcp/result_reranker.py` | 经过候选 ID 校验的完整排序；失败保持 first-stage 顺序 |
+| RAG Context Packing | `mcp/context_packer.py` | 不超过 Token/chunk 上限且保留 provenance 的上下文 |
+| Grounded Generation | `mcp/grounded_answer_generator.py` | 同语言、引用合法、失败关闭的结构化回答 |
 | 会话记忆 | `memory/conversation_memory.py` | 有序原始事件、范围摘要与检查点、情景索引和带来源事实 |
 | 混合记忆排序 | `memory/hybrid_retrieval.py` | BM25、向量、时效性融合候选及检索指标 |
 | 请求 Trace | `core/tracing.py` | Trace/Span 身份及进程内投影 |
@@ -65,6 +69,35 @@ DialogPilot 不是一条不断堆 Prompt 的调用链，而是按“谁拥有最
 17. 请求结束记录固定 Bundle 的质量/延迟代理指标；Shadow 副本不发布、不写业务事实。
 
 这个顺序保证记忆系统不会把“模型生成但未通过校验的答案”误认为已经展示给用户。
+
+## 知识 RAG 的权威坐标与候选配置
+
+知识原文的 `document_id + [start_char,end_char)` 是证据事实；chunk ID、检索排名、重排、打包上下文和回答都是配置相关投影。生产 `KnowledgeBase` 与评测共用 `DocumentChunker`，metadata 记录 `chunking_version=3`、strategy、预算、overlap 和 source offsets。旧实现切片前 `strip()` 导致官方 evidence 坐标漂移的问题已在这个 Owner 修复。
+
+```text
+Source document/span
+  → DocumentChunker
+  → QueryTransformer（Raw 必保留；生成 query 不是证据）
+  → BM25 / Dense stable chunk-ID rankings
+  → weighted RRF
+  → ResultReranker（完整 ID permutation）
+  → ContextPacker（token/chunk/provenance）
+  → GroundedAnswerGenerator（同语言 + validated citations + fail closed）
+```
+
+当前 API 默认与 Dev 候选必须分开：
+
+| 配置面 | 当前兼容默认 | Doc2Dial Dev 候选 |
+|---|---|---|
+| Chunk | structure-aware 360/48 | fixed 512/64 |
+| First stage | BM25-only，RRF k=60 | BM25 .75 / Dense .25，k=10，candidate 20 |
+| Query | Raw + 最多 3 个 Multi-query | Raw .25 + Standalone .75 |
+| Rerank | LLM，最终按接口 Top-K | listwise 20→5 |
+| Packing/Generation | `/chat` 现有 ContextSection/Synthesis | Top-5/2600 + grounded v3 |
+
+候选来自 Doc2Dial Dev 的 100 文档、300 case、488 个官方 grounding span；48 条多轮压力集用于有界模型评测。Query Recall@20 为 0.7708（Raw 0.6667），Rerank Recall@5 为 0.7500（不重排 0.5938），Generation language match 1.0、Judge grounded 0.9792、格式失败 0/48。安全选择不使用单一加权总分：否定/实体、非法引用、格式失败与 harmful rate 是不可补偿门槛。
+
+这些结果只授权 **Dev candidate**，没有自动修改 API 默认。Standalone 权重路由、ContextPacker 和 GroundedAnswerGenerator 尚未接入 `/chat` 主链；切换前还需原文重建索引、untouched Heldout、人工 Judge 校准、串行延迟复测和 shadow/canary。完整实验见 [客服 RAG 全链路评测](./rag-pipeline-evaluation/)。
 
 ## 意图识别的在线/离线边界
 

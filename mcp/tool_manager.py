@@ -28,10 +28,10 @@ from typing import Any, Callable, Deque, Dict, List, Optional, Tuple
 
 from anthropic import AsyncAnthropic
 
-from core.llm_metrics import create_message
-from core.llm_utils import extract_text_content
-from core.model_policy import ModelProfile, ModelRole
+from core.model_policy import ModelProfile
 from core.tracing import TraceRecorder, current_trace_id, trace_scope
+from mcp.query_transformer import QueryTransformer
+from mcp.result_reranker import ResultReranker, candidates_from_items
 
 logger = logging.getLogger(__name__)
 
@@ -272,6 +272,8 @@ class MCPToolManager:
         self._client = AsyncAnthropic(**kwargs)
         self._rewrite_model_profile = rewrite_model_profile or ModelProfile(model)
         self._rerank_model_profile = rerank_model_profile or self._rewrite_model_profile
+        self._query_transformer = QueryTransformer(self._client, self._rewrite_model_profile)
+        self._result_reranker = ResultReranker(self._client, self._rerank_model_profile)
         self._model  = self._rewrite_model_profile.model
         self._tools: Dict[str, Tool] = {}
         self._cache: Dict[str, tuple] = {}   # key → (result, expire_at, reranked)
@@ -786,24 +788,8 @@ class MCPToolManager:
           原始: "退款流程"
           改写: ["如何申请退款", "退款需要多少天", "退款政策是什么"]
         """
-        prompt = f"""将以下用户查询改写为 {n} 个不同角度的搜索子查询，用于检索知识库。
-要求：每个子查询角度不同，覆盖原始问题的不同方面。
-原始查询: "{query}"
-返回 JSON 数组，例如: ["子查询1", "子查询2", "子查询3"]"""
-        prompt = self._clean_text(prompt)
-        try:
-            resp = await create_message(self._client, self._rewrite_model_profile, ModelRole.REWRITE,
-                max_tokens=256, temperature=0.3,
-                messages=[{"role": "user", "content": prompt}],
-            )
-            raw = extract_text_content(resp.content)
-            s, e = raw.find("["), raw.rfind("]") + 1
-            queries = json.loads(raw[s:e])
-            # 原始查询也保留，去重
-            return list(dict.fromkeys([query] + queries))
-        except Exception as ex:
-            logger.warning(f"查询改写失败，使用原始查询: {ex}")
-            return [query]
+        expansions, _error = await self._query_transformer.expand(query, n=n)
+        return list(dict.fromkeys([query, *expansions]))
 
     async def search_with_rewrite(
         self,
@@ -858,31 +844,10 @@ class MCPToolManager:
         if len(items) <= top_k:
             return items
 
-        # 将结果序列化为文本供 LLM 评分
-        items_text = "\n".join(f"{i}. {json.dumps(item, ensure_ascii=False)[:200]}"
-                               for i, item in enumerate(items))
-        prompt = f"""根据用户查询，对以下检索结果按相关性打分（0-10），返回 JSON 数组。
-用户查询: "{query}"
-检索结果:
-{items_text}
-
-返回格式（按相关性降序排列的索引列表）: [最相关的索引, ..., 最不相关的索引]
-只返回 JSON 数组，不要其他文字。"""
-        prompt = self._clean_text(prompt)
-
-        try:
-            resp = await create_message(self._client, self._rerank_model_profile, ModelRole.RERANK,
-                max_tokens=256, temperature=0.0,
-                messages=[{"role": "user", "content": prompt}],
-            )
-            raw = extract_text_content(resp.content)
-            s, e = raw.find("["), raw.rfind("]") + 1
-            order: List[int] = json.loads(raw[s:e])
-            reranked = [items[i] for i in order if 0 <= i < len(items)]
-            return reranked[:top_k]
-        except Exception as ex:
-            logger.warning(f"重排失败，返回原始顺序: {ex}")
-            return items[:top_k]
+        candidates = candidates_from_items(items)
+        result = await self._result_reranker.rerank(query, candidates)
+        by_id = {candidate.candidate_id: item for candidate, item in zip(candidates, items)}
+        return [by_id[candidate_id] for candidate_id in result.ordered_ids[:top_k]]
 
     # ── 缓存 ──────────────────────────────────────────────────────────────────
 

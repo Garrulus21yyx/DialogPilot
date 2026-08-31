@@ -64,7 +64,10 @@ def test_knowledge_base_preserves_source_document_ids_and_returns_rank_evidence(
     assert "bm25" in hits[0]["sources"]
     assert "recency" not in hits[0]["sources"]
     assert knowledge_base._collection.metadatas[0]["document_id"] == "kb-target"
-    assert knowledge_base._collection.metadatas[0]["chunking_version"] == 2
+    assert knowledge_base._collection.metadatas[0]["chunking_version"] == 3
+    assert knowledge_base._collection.metadatas[0]["chunk_strategy"] == "structure_aware"
+    assert knowledge_base._collection.metadatas[0]["source_start_char"] == 0
+    assert knowledge_base._collection.metadatas[0]["source_end_char"] == len("登录错误 E401 表示令牌过期。")
 
 
 def test_knowledge_base_empty_query_does_not_touch_vector_query():

@@ -6,6 +6,8 @@ permalink: /evaluation-500/
 
 # 500 条不是一个指标，而是四个可定位的质量边界
 
+> 本页记录 `dialogpilot-500-v1` 的 provisional 四层 fixture，其中 Retrieval 是 25 篇隔离 corpus、100 条 query、Recall@5 口径。它与后续 [Doc2Dial 客服 RAG 全链路评测](../rag-pipeline-evaluation/) 不是同一数据集：后者使用 100 文档、300 case、488 个官方 span，并继续评测 Chunk、Query、Rerank、Packing 和 Generation。两页数字不能横向拼接；当前 API 兼容默认仍来自本页配置，新 Doc2Dial 结果只是尚未部署的 Dev candidate。
+
 如果把 500 条全部做成意图分类，只能回答“入口标签是否识别正确”，无法回答
 主 Agent 是否拆对任务、RAG 是否找到证据、短会话是否归档、伪造审批是否产生
 副作用。DialogPilot 因此固定采用四层、总计 500 条的评测矩阵。

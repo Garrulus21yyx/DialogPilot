@@ -14,12 +14,12 @@ ChromaDB 在这里的角色：
 import asyncio
 import hashlib
 import logging
-import re
 from typing import Any, Dict, List, Optional
 
 from core.chroma_client import create_chroma_client
 from memory.context import TokenEstimator
 from memory.hybrid_retrieval import HybridMemoryRetriever, MemoryDocument
+from mcp.document_chunker import ChunkStrategy, DocumentChunk, DocumentChunker
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ class KnowledgeBase:
     COLLECTION_NAME = "knowledge_base"
     DEFAULT_CHUNK_MAX_TOKENS = 360
     DEFAULT_CHUNK_OVERLAP_TOKENS = 48
-    CHUNKING_VERSION = 2
+    CHUNKING_VERSION = 3
 
     def __init__(
         self,
@@ -48,6 +48,7 @@ class KnowledgeBase:
         collection_name: str = COLLECTION_NAME,
         chunk_max_tokens: int = DEFAULT_CHUNK_MAX_TOKENS,
         chunk_overlap_tokens: int = DEFAULT_CHUNK_OVERLAP_TOKENS,
+        chunk_strategy: ChunkStrategy | str = ChunkStrategy.STRUCTURE_AWARE,
         retrieval_rrf_k: int = 60,
         retrieval_vector_weight: float = 0.0,
         retrieval_lexical_weight: float = 1.0,
@@ -70,8 +71,10 @@ class KnowledgeBase:
             recency_weight=0.0,
         )
         self._token_estimator = TokenEstimator()
+        self._chunker = DocumentChunker(self._token_estimator)
         self._chunk_max_tokens = chunk_max_tokens
         self._chunk_overlap_tokens = chunk_overlap_tokens
+        self._chunk_strategy = ChunkStrategy(chunk_strategy)
         logger.info("知识库 ChromaDB 模式: %s (%s)", self._chroma_backend.mode, self._chroma_backend.location)
 
         # 使用服务端时不传 embedding_function，让服务端处理
@@ -93,6 +96,7 @@ class KnowledgeBase:
             "chunking_version": str(self.CHUNKING_VERSION),
             "chunk_max_tokens": str(self._chunk_max_tokens),
             "chunk_overlap_tokens": str(self._chunk_overlap_tokens),
+            "chunk_strategy": self._chunk_strategy.value,
             "retrieval_rrf_k": str(self._hybrid_retriever.rrf_k),
             "retrieval_vector_weight": str(self._hybrid_retriever.vector_weight),
             "retrieval_lexical_weight": str(self._hybrid_retriever.lexical_weight),
@@ -108,26 +112,32 @@ class KnowledgeBase:
         长文档按结构边界和 Token 预算切片，并保留有界 overlap。
         """
         ids, docs, metas = [], [], []
+        chunk_strategy = getattr(
+            self, "_chunk_strategy", ChunkStrategy.STRUCTURE_AWARE,
+        )
 
         for doc in documents:
             title   = doc.get("title", "")
             content = doc.get("content", "")
             source_id = str(doc.get("id") or "").strip()
-            chunks = self._chunk_text(content)
+            chunks = self._chunk_spans(content)
 
             for i, chunk in enumerate(chunks):
                 chunk_id = (
                     f"{source_id}::chunk-{i}"
                     if source_id
-                    else hashlib.md5(f"{title}_{i}_{chunk[:50]}".encode()).hexdigest()
+                    else hashlib.md5(f"{title}_{i}_{chunk.content[:50]}".encode()).hexdigest()
                 )
                 ids.append(chunk_id)
-                docs.append(chunk)
+                docs.append(chunk.content)
                 metas.append({
                     "chunk_id": chunk_id,
                     "chunking_version": self.CHUNKING_VERSION,
                     "chunk_max_tokens": self._chunk_max_tokens,
                     "chunk_overlap_tokens": self._chunk_overlap_tokens,
+                    "chunk_strategy": chunk_strategy.value,
+                    "source_start_char": chunk.start_char,
+                    "source_end_char": chunk.end_char,
                     "document_id": source_id or chunk_id,
                     "title": title,
                     "chunk_index": i,
@@ -226,6 +236,8 @@ class KnowledgeBase:
                 "content": hit.content,
                 "score": round(hit.score, 8),
                 "chunk": meta.get("chunk_index", 0),
+                "source_start_char": meta.get("source_start_char", 0),
+                "source_end_char": meta.get("source_end_char", len(hit.content)),
                 "sources": list(hit.sources),
                 "ranks": dict(hit.ranks),
             })
@@ -281,71 +293,43 @@ class KnowledgeBase:
         overlap_tokens: Optional[int] = None,
     ) -> List[str]:
         """按 Token 上限切片，优先结构边界，并让相邻片段保留有界重叠。"""
-        text = str(text or "").strip()
-        if not text:
-            return []
+        return [chunk.content for chunk in self._chunk_spans(
+            text, max_tokens=max_tokens, overlap_tokens=overlap_tokens,
+        )]
+
+    def _chunk_spans(
+        self,
+        text: str,
+        *,
+        max_tokens: Optional[int] = None,
+        overlap_tokens: Optional[int] = None,
+    ) -> List[DocumentChunk]:
+        """Return the production chunks with authoritative source offsets."""
         max_tokens = self._chunk_max_tokens if max_tokens is None else int(max_tokens)
         overlap_tokens = self._chunk_overlap_tokens if overlap_tokens is None else int(overlap_tokens)
-        if max_tokens < 1 or overlap_tokens < 0 or overlap_tokens >= max_tokens:
-            raise ValueError("chunk token budgets require 0 <= overlap_tokens < max_tokens")
-        if self._token_estimator.estimate(text) <= max_tokens:
-            return [text]
-
-        chunks: List[str] = []
-        start = 0
-        while start < len(text):
-            max_end = self._max_fitting_end(text, start, max_tokens)
-            if max_end <= start:
-                raise RuntimeError("chunker could not make progress")
-            end = self._preferred_break(text, start, max_end)
-            chunk = text[start:end]
-            chunks.append(chunk)
-            if end >= len(text):
-                break
-            next_start = self._overlap_start(text, start, end, overlap_tokens)
-            if next_start <= start:
-                next_start = end
-            start = next_start
-
-        if any(self._token_estimator.estimate(chunk) > max_tokens for chunk in chunks):
-            raise RuntimeError("chunker produced an over-budget chunk")
-        return chunks
+        chunker = getattr(self, "_chunker", DocumentChunker(self._token_estimator))
+        strategy = getattr(self, "_chunk_strategy", ChunkStrategy.STRUCTURE_AWARE)
+        return chunker.split(
+            text,
+            max_tokens=max_tokens,
+            overlap_tokens=overlap_tokens,
+            strategy=strategy,
+        )
 
     def _max_fitting_end(self, text: str, start: int, max_tokens: int) -> int:
         """二分查找从 start 起不超过 Token 上限的最长字符终点。"""
-        low, high = start + 1, len(text)
-        best = start
-        while low <= high:
-            middle = (low + high) // 2
-            if self._token_estimator.estimate(text[start:middle]) <= max_tokens:
-                best = middle
-                low = middle + 1
-            else:
-                high = middle - 1
-        return best
+        return DocumentChunker(self._token_estimator).max_fitting_end(text, start, max_tokens)
 
     @staticmethod
     def _preferred_break(text: str, start: int, max_end: int) -> int:
         """在窗口后 40% 中优先选择段落、句末或空白边界。"""
-        minimum = start + max(1, int((max_end - start) * 0.60))
-        window = text[minimum:max_end]
-        matches = list(re.finditer(r"\n+|[。！？.!?]+|\s+", window))
-        return minimum + matches[-1].end() if matches else max_end
+        return DocumentChunker.preferred_break(text, start, max_end)
 
     def _overlap_start(self, text: str, start: int, end: int, overlap_tokens: int) -> int:
         """找到不超过 overlap 预算的最长后缀起点。"""
-        if overlap_tokens <= 0:
-            return end
-        low, high = start, end
-        best = end
-        while low <= high:
-            middle = (low + high) // 2
-            if self._token_estimator.estimate(text[middle:end]) <= overlap_tokens:
-                best = middle
-                high = middle - 1
-            else:
-                low = middle + 1
-        return best
+        return DocumentChunker(self._token_estimator).overlap_start(
+            text, start, end, overlap_tokens,
+        )
 
     def _load_default_docs(self) -> None:
         """导入默认知识库文档（客服场景常见问题）。"""
