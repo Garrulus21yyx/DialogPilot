@@ -86,6 +86,7 @@ _customer_operations = None
 _context_assembler = None
 _authenticator = None
 _model_policy = None
+_run_store = None
 _trace_recorder = TraceRecorder()
 _input_security_guard = PromptInjectionGuard()
 
@@ -114,6 +115,7 @@ def require_scopes(*required: str):
 _chat_principal = require_scopes("chat")
 _admin_principal = require_scopes("admin")
 _knowledge_principal = require_scopes("knowledge:read")
+_tool_approval_principal = require_scopes("tool:approve")
 
 def _anthropic_cfg() -> Dict[str, Any]:
     """读取模型供应商配置，并在应用启动前验证必需 API Key。"""
@@ -135,11 +137,12 @@ def _anthropic_cfg() -> Dict[str, Any]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """按依赖顺序创建所有组件，并在退出时释放后台任务和连接。"""
-    global _orchestrator, _memory, _knowledge_base, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy
+    global _orchestrator, _memory, _knowledge_base, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store
 
     print(BANNER, flush=True)
 
     from agents.agent_orchestrator import AgentOrchestrator, Request
+    from agents.run_store import RunStore
     from core.intent_recognizer import IntentRecognizer
     from evaluation.evaluator import EndToEndEvaluator
     from mcp.knowledge_base import KnowledgeBase
@@ -157,6 +160,14 @@ async def lifespan(app: FastAPI):
     similarity_mode = os.getenv("INTENT_SIMILARITY_MODE", "ngram")
     chroma_mode = os.getenv("CHROMA_MODE", "remote")
     _authenticator = JWTAuthenticator.from_env()
+    _run_store = RunStore(
+        os.getenv(
+            "REACT_RUN_DB_PATH",
+            str(pathlib.Path(_ROOT) / "data" / "react-runs" / "react-runs.db"),
+        ),
+        approval_ttl_s=float(os.getenv("REACT_APPROVAL_TTL_SECONDS", "900")),
+        recovery_grace_s=float(os.getenv("REACT_RECOVERY_GRACE_SECONDS", "30")),
+    )
     logger.info("模型分层策略: %s", _model_policy.to_dict())
 
     # 意图识别器（Orchestrator 内部也会创建，这里单独暴露给 Evaluator）
@@ -188,6 +199,8 @@ async def lifespan(app: FastAPI):
         react_max_steps=int(os.getenv("REACT_MAX_STEPS", "4")),
         intent_similarity_mode=similarity_mode,
         model_policy=_model_policy,
+        run_store=_run_store,
+        intent_recognizer=recognizer,
     )
     _answer_verifier = AnswerVerifier(
         api_key=cfg["api_key"],
@@ -245,6 +258,7 @@ async def lifespan(app: FastAPI):
         max_output_chars=int(os.getenv("TOOL_OUTPUT_MAX_CHARS", "4000")),
         rewrite_model_profile=_model_policy.profile(ModelRole.REWRITE),
         rerank_model_profile=_model_policy.profile(ModelRole.RERANK),
+        execution_store=_run_store,
     )
     _knowledge_base = KnowledgeBase(
         chroma_host=os.getenv("CHROMA_HOST", "chromadb"),
@@ -346,12 +360,30 @@ async def lifespan(app: FastAPI):
     )
 
     logger.info("DialogPilot 已就绪")
-    yield
-
-    await _monitor.stop()
-    if _memory is not None:
-        await _memory.close()
-    logger.info("DialogPilot 已关闭")
+    try:
+        yield
+    finally:
+        if _monitor is not None:
+            await _monitor.stop()
+        if _memory is not None:
+            await _memory.close()
+        # lifespan 结束后不留下指向已关闭资源的进程全局引用。
+        _orchestrator = None
+        _memory = None
+        _knowledge_base = None
+        _tool_manager = None
+        _monitor = None
+        _evaluator = None
+        _skill_manager = None
+        _answer_verifier = None
+        _ticket_service = None
+        _badcase_registry = None
+        _customer_operations = None
+        _context_assembler = None
+        _authenticator = None
+        _model_policy = None
+        _run_store = None
+        logger.info("DialogPilot 已关闭")
 
 
 # ── FastAPI ───────────────────────────────────────────────────────────────────
@@ -436,6 +468,15 @@ class ChatResponse(BaseModel):
     ticket_id: Optional[str] = None
     ticket_status: Optional[str] = None
     handoff_created: bool = False
+    awaiting_approval: bool = False
+    react_run_ids: List[str] = Field(default_factory=list)
+    pending_approval_call_ids: List[str] = Field(default_factory=list)
+
+
+class ReactResumeInput(BaseModel):
+    """宿主对持久待审批调用做显式决策；不接受模型传入 token。"""
+
+    approved: bool
 
 
 class TicketCreateRequest(BaseModel):
@@ -618,6 +659,7 @@ def _public_agent_outcomes(outcomes: List[Dict[str, Any]]) -> List[Dict[str, Any
     allowed = {
         "task_id", "required", "agent_type", "responding_agent_type", "status",
         "is_primary", "confidence", "latency_ms", "escalate", "react_status", "react_steps",
+        "react_run_id", "pending_approval_call_ids",
     }
     projected = []
     for outcome in outcomes:
@@ -702,6 +744,7 @@ async def _capture_chat_badcases(
     verification: VerificationResult,
     published_response: str,
     tool_audit: List[Dict[str, Any]],
+    approval_pending: bool = False,
 ) -> None:
     """把发布、Coverage 与工具终态投影为去重候选，不复制未发布 candidate。"""
     common = {
@@ -711,7 +754,7 @@ async def _capture_chat_badcases(
         "request_id": request_id,
         "published_response": published_response,
     }
-    if verification.status is not VerificationStatus.PASS:
+    if not approval_pending and verification.status is not VerificationStatus.PASS:
         await _observe_badcase(
             **common,
             source="verifier",
@@ -725,7 +768,7 @@ async def _capture_chat_badcases(
                 "intent": result.intent.value if result.intent else "other",
             },
         )
-    if not bool(result.coverage.get("complete", False)):
+    if not approval_pending and not bool(result.coverage.get("complete", False)):
         await _observe_badcase(
             **common,
             source="coverage_gate",
@@ -737,6 +780,8 @@ async def _capture_chat_badcases(
     for record in tool_audit:
         status = str(record.get("status") or "unknown")
         effect_status = str(record.get("effect_status") or "none")
+        if status == "awaiting_approval":
+            continue
         if status == "success" and effect_status != "outcome_unknown":
             continue
         severity = BadCaseSeverity.P0 if effect_status == "outcome_unknown" else BadCaseSeverity.P1
@@ -835,22 +880,32 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
     result = await _orchestrator.run(orch_req)
 
     # 4. 发布边界：只有明确通过校验的回答才能返回给用户。
-    verification = await _verify_for_publication(
-        _answer_verifier,
-        req.message,
-        result.response,
-        full_context,
-        task_plan=result.task_plan,
-        coverage=result.coverage,
-        agent_outcomes=result.agent_outcomes,
-    )
+    approval_pending = bool(result.awaiting_approval)
+    if approval_pending:
+        verification = VerificationResult(
+            status=VerificationStatus.UNKNOWN,
+            grounded=False,
+            need_escalation=False,
+            reason="high-risk tool call is paused for authenticated host approval",
+            reason_code=VerificationReasonCode.APPROVAL_REQUIRED,
+        )
+    else:
+        verification = await _verify_for_publication(
+            _answer_verifier,
+            req.message,
+            result.response,
+            full_context,
+            task_plan=result.task_plan,
+            coverage=result.coverage,
+            agent_outcomes=result.agent_outcomes,
+        )
     feedback_recorder = getattr(_orchestrator, "record_verification", None)
     if feedback_recorder:
         try:
             feedback_recorder(result.producer_agent_keys, verification.status.value)
         except Exception:
             logger.exception("记录 Agent 质量反馈失败 request_id=%s", request_id)
-    response_text = _publish_candidate(result.response, verification)
+    response_text = result.response if approval_pending else _publish_candidate(result.response, verification)
     escalated = result.escalated or verification.need_escalation
 
     # 5. 升级结果必须落为持久化工单，不能只返回一个布尔标志。
@@ -896,6 +951,7 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
         verification=verification,
         published_response=response_text,
         tool_audit=tool_audit,
+        approval_pending=approval_pending,
     )
 
     # 6. 同一轮次一次追加连续 seq，压缩只会在完整轮次落地后触发。
@@ -948,7 +1004,116 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
         ticket_id=ticket.ticket_id if ticket else None,
         ticket_status=ticket.status.value if ticket else None,
         handoff_created=handoff_created,
+        awaiting_approval=approval_pending,
+        react_run_ids=list(result.react_run_ids),
+        pending_approval_call_ids=list(result.pending_approval_call_ids),
     )
+
+
+@app.get("/agent-runs/{run_id}", tags=["Agent Run"])
+async def get_agent_run(
+    run_id: str,
+    principal: Principal = Depends(_chat_principal),
+):
+    """只向 Run 所属的认证用户返回脱敏状态。"""
+    if _orchestrator is None:
+        raise HTTPException(503, "Agent 服务未就绪")
+    from agents.run_store import RunAccessDeniedError, RunNotFoundError
+
+    try:
+        checkpoint = await asyncio.to_thread(
+            _orchestrator.get_react_run,
+            run_id,
+            user_id=principal.subject,
+        )
+    except RunNotFoundError as exc:
+        raise HTTPException(404, {"code": "run_not_found"}) from exc
+    except RunAccessDeniedError as exc:
+        raise HTTPException(403, {"code": "run_access_denied"}) from exc
+    return checkpoint.to_public_dict()
+
+
+@app.post("/agent-runs/{run_id}/resume", tags=["Agent Run"])
+async def resume_agent_run(
+    run_id: str,
+    body: ReactResumeInput,
+    principal: Principal = Depends(_tool_approval_principal),
+):
+    """审批决策绑定 JWT Principal 和原 Run，恢复后仍经过发布校验。"""
+    if _orchestrator is None or _answer_verifier is None:
+        raise HTTPException(503, "Agent 服务未就绪")
+    from agents.run_store import (
+        RunAccessDeniedError,
+        RunNotFoundError,
+        RunTransitionError,
+        RunVersionConflictError,
+    )
+
+    try:
+        before = await asyncio.to_thread(
+            _orchestrator.get_react_run,
+            run_id,
+            user_id=principal.subject,
+        )
+        result = await _orchestrator.resume_react(
+            run_id,
+            user_id=principal.subject,
+            approved=body.approved,
+            actor=principal.subject,
+        )
+        after = await asyncio.to_thread(
+            _orchestrator.get_react_run,
+            run_id,
+            user_id=principal.subject,
+        )
+    except RunNotFoundError as exc:
+        raise HTTPException(404, {"code": "run_not_found"}) from exc
+    except RunAccessDeniedError as exc:
+        raise HTTPException(403, {"code": "run_access_denied"}) from exc
+    except (RunTransitionError, RunVersionConflictError, ValueError) as exc:
+        raise HTTPException(409, {"code": "run_not_resumable", "message": str(exc)}) from exc
+
+    if result.success:
+        task_id = before.task_id
+        verification = await _verify_for_publication(
+            _answer_verifier,
+            str(before.execution_context.get("task_input") or ""),
+            result.content,
+            before.system,
+            task_plan={"primary_task_id": task_id, "tasks": [{"task_id": task_id}]},
+            coverage={
+                "complete": True,
+                "required_task_ids": [task_id],
+                "completed_task_ids": [task_id],
+                "unresolved_required_task_ids": [],
+            },
+            agent_outcomes=[{"task_id": task_id, "status": "success"}],
+        )
+        published = _publish_candidate(result.content, verification)
+    else:
+        verification = VerificationResult(
+            status=VerificationStatus.UNKNOWN,
+            grounded=False,
+            need_escalation=False,
+            reason=result.reason or "run did not produce a publishable completion",
+            reason_code=(
+                VerificationReasonCode.APPROVAL_REQUIRED
+                if result.status.value == "waiting_approval"
+                else VerificationReasonCode.INCOMPLETE
+            ),
+        )
+        published = (
+            "操作已暂停，仍在等待审批。"
+            if result.status.value == "waiting_approval"
+            else "操作未完成，未发布 Agent 候选内容，请根据 Run 状态重试或联系人工。"
+        )
+    return {
+        **after.to_public_dict(),
+        "response": published,
+        "verification_status": verification.status.value,
+        "verified": verification.publishable,
+        "verification_reason_code": verification.reason_code.value,
+    }
 
 
 def _handoff_priority(urgency: Any, verification_status: str) -> TicketPriority:

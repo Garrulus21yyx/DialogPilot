@@ -2,6 +2,7 @@ import asyncio
 from types import SimpleNamespace
 
 from agents.agent_orchestrator import AgentType, OrchestratorResult
+from agents.react_engine import ReActResult, ReActStatus
 from api import main
 from core.intent_recognizer import IntentCategory, UrgencyLevel
 from core.auth import Principal
@@ -132,6 +133,96 @@ def test_handoff_priority_preserves_typed_critical_urgency():
     assert main._handoff_priority(UrgencyLevel.CRITICAL, "pass") is TicketPriority.CRITICAL
     assert main._handoff_priority(UrgencyLevel.HIGH, "reject") is TicketPriority.HIGH
     assert main._handoff_priority(UrgencyLevel.HIGH, "pass") is TicketPriority.NORMAL
+
+
+def test_chat_waiting_approval_does_not_create_handoff_or_badcase(tmp_path, monkeypatch):
+    """预期审批等待不是 Agent 故障，不应偷偷创建人工工单。"""
+    class PendingOrchestrator(FakeOrchestrator):
+        async def run(self, request):
+            return OrchestratorResult(
+                request_id=request.request_id,
+                response="高风险操作已暂停并等待宿主审批。",
+                agent_type=AgentType.BILLING,
+                intent=IntentCategory.REFUND,
+                synthesis_status="awaiting_approval",
+                agent_outcomes=[{
+                    "task_id": "billing_task",
+                    "status": "awaiting_approval",
+                    "react_run_id": "react-1",
+                    "pending_approval_call_ids": ["call-1"],
+                }],
+                coverage={"complete": False},
+                awaiting_approval=True,
+                react_run_ids=["react-1"],
+                pending_approval_call_ids=["call-1"],
+            )
+
+    class MustNotVerify:
+        async def verify(self, *_args, **_kwargs):
+            raise AssertionError("pending approval is not a publishable candidate")
+
+    memory = FakeMemory()
+    tickets = TicketService(str(tmp_path / "tickets.db"))
+    monkeypatch.setattr(main, "_orchestrator", PendingOrchestrator())
+    monkeypatch.setattr(main, "_memory", memory)
+    monkeypatch.setattr(main, "_answer_verifier", MustNotVerify())
+    monkeypatch.setattr(main, "_ticket_service", tickets)
+    monkeypatch.setattr(main, "_badcase_registry", None)
+    monkeypatch.setattr(main, "_tool_manager", None)
+    monkeypatch.setattr(
+        main, "_context_assembler",
+        ContextAssembler(max_input_tokens=2048, reserved_output_tokens=256),
+    )
+    response = asyncio.run(main.chat(
+        main.ChatRequest(message="帮我申请退款", request_id="request-pending"),
+        Principal(subject="user-1", scopes=frozenset({"chat"})),
+    ))
+
+    assert response.awaiting_approval is True
+    assert response.react_run_ids == ["react-1"]
+    assert response.pending_approval_call_ids == ["call-1"]
+    assert response.verification_reason_code == "approval_required"
+    assert response.escalated is False
+    assert response.ticket_id is None
+    assert tickets.list_tickets() == []
+
+
+def test_resume_endpoint_reverifies_completed_candidate(monkeypatch):
+    captured = {}
+
+    class Checkpoint:
+        task_id = "billing_task"
+        system = "trusted context"
+        execution_context = {"task_input": "申请退款"}
+
+        @staticmethod
+        def to_public_dict():
+            return {"run_id": "react-1", "status": "completed"}
+
+    class ResumeOrchestrator:
+        def get_react_run(self, run_id, *, user_id):
+            captured["identity"] = (run_id, user_id)
+            return Checkpoint()
+
+        async def resume_react(self, *_args, **_kwargs):
+            return ReActResult(
+                content="退款申请已提交。",
+                status=ReActStatus.COMPLETED,
+                steps=2,
+                run_id="react-1",
+            )
+
+    monkeypatch.setattr(main, "_orchestrator", ResumeOrchestrator())
+    monkeypatch.setattr(main, "_answer_verifier", FakeVerifier())
+    response = asyncio.run(main.resume_agent_run(
+        "react-1",
+        main.ReactResumeInput(approved=True),
+        Principal(subject="user-1", scopes=frozenset({"tool:approve"})),
+    ))
+
+    assert captured["identity"] == ("react-1", "user-1")
+    assert response["verified"] is True
+    assert response["response"] == "退款申请已提交。"
 
 
 def test_active_ticket_context_is_bounded_authoritative_projection(tmp_path, monkeypatch):

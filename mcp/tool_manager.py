@@ -263,6 +263,7 @@ class MCPToolManager:
         max_output_chars: int = 4000,
         rewrite_model_profile: Optional[ModelProfile] = None,
         rerank_model_profile: Optional[ModelProfile] = None,
+        execution_store: Optional[Any] = None,
     ):
         """创建模型客户端以及进程内工具注册表和 TTL 缓存。"""
         kwargs: Dict[str, Any] = {"api_key": api_key}
@@ -278,6 +279,7 @@ class MCPToolManager:
         self._trace_recorder = trace_recorder or TraceRecorder()
         self._audit: Deque[ToolAuditRecord] = deque(maxlen=max(1, int(max_audit_records)))
         self._max_output_chars = max(256, int(max_output_chars))
+        self._execution_store = execution_store
 
     # ── 注册 / 注销 ───────────────────────────────────────────────────────────
 
@@ -392,6 +394,93 @@ class MCPToolManager:
                 approved=False,
             )
 
+        run_id = str(context.get("run_id") or "").strip()
+        binding_hash = self._execution_binding_hash(
+            name=name,
+            params=params,
+            agent_type=normalized_agent,
+            context=context,
+        )
+        claimed = False
+        if self._execution_store is not None and run_id:
+            try:
+                claim = self._execution_store.claim_tool_call(
+                    run_id=run_id,
+                    call_id=resolved_call_id,
+                    binding_hash=binding_hash,
+                    read_only=tool.read_only,
+                )
+            except Exception as exc:
+                return self._finish_controlled_call(
+                    result=ToolResult(
+                        False,
+                        None,
+                        name,
+                        error=f"tool execution ledger rejected call: {type(exc).__name__}",
+                        effect_status=(
+                            ToolEffectStatus.NONE.value
+                            if tool.read_only else ToolEffectStatus.OUTCOME_UNKNOWN.value
+                        ),
+                    ),
+                    tool=tool,
+                    agent_type=normalized_agent,
+                    params=params,
+                    context=context,
+                    trace_id=trace_id,
+                    call_id=resolved_call_id,
+                    request_id=request_id,
+                    started_iso=started_iso,
+                    started=started,
+                    status=ToolCallStatus.DENIED,
+                    approved=approved or not needs_approval,
+                )
+            if claim.state == "terminal":
+                replay = self._tool_result_from_dict(claim.result)
+                replay.cached = True
+                try:
+                    replay_status = ToolCallStatus(replay.status)
+                except ValueError:
+                    replay_status = ToolCallStatus.ERROR
+                return self._finish_controlled_call(
+                    result=replay,
+                    tool=tool,
+                    agent_type=normalized_agent,
+                    params=params,
+                    context=context,
+                    trace_id=trace_id,
+                    call_id=resolved_call_id,
+                    request_id=request_id,
+                    started_iso=started_iso,
+                    started=started,
+                    status=replay_status,
+                    approved=approved or not needs_approval,
+                )
+            if claim.state == "in_progress":
+                return self._finish_controlled_call(
+                    result=ToolResult(
+                        False,
+                        None,
+                        name,
+                        error="tool call already executing; retry is suppressed",
+                        effect_status=(
+                            ToolEffectStatus.NONE.value
+                            if tool.read_only else ToolEffectStatus.OUTCOME_UNKNOWN.value
+                        ),
+                    ),
+                    tool=tool,
+                    agent_type=normalized_agent,
+                    params=params,
+                    context=context,
+                    trace_id=trace_id,
+                    call_id=resolved_call_id,
+                    request_id=request_id,
+                    started_iso=started_iso,
+                    started=started,
+                    status=ToolCallStatus.ERROR,
+                    approved=approved or not needs_approval,
+                )
+            claimed = claim.state == "claimed"
+
         span_attributes = {
             "tool.name": name,
             "tool.agent": normalized_agent,
@@ -423,7 +512,7 @@ class MCPToolManager:
                     else ToolEffectStatus.OUTCOME_UNKNOWN.value
                 ),
             )
-            self._finish_controlled_call(
+            finished = self._finish_controlled_call(
                 result=result,
                 tool=tool,
                 agent_type=normalized_agent,
@@ -437,11 +526,15 @@ class MCPToolManager:
                 status=ToolCallStatus.CANCELLED,
                 approved=approved or not needs_approval,
             )
+            if claimed:
+                self._complete_execution_ledger(
+                    run_id, resolved_call_id, binding_hash, finished
+                )
             raise
         except Exception as exc:  # call() 应闭合异常，此处保护未来适配器。
             result = ToolResult(False, None, name, error=f"{type(exc).__name__}: {exc}")
             status = ToolCallStatus.ERROR
-        return self._finish_controlled_call(
+        finished = self._finish_controlled_call(
             result=result,
             tool=tool,
             agent_type=normalized_agent,
@@ -455,6 +548,11 @@ class MCPToolManager:
             status=status,
             approved=approved or not needs_approval,
         )
+        if claimed:
+            self._complete_execution_ledger(
+                run_id, resolved_call_id, binding_hash, finished
+            )
+        return finished
 
     def audit_records(
         self,
@@ -818,6 +916,77 @@ class MCPToolManager:
         )
         self._audit.append(record)
         return result
+
+    @staticmethod
+    def _execution_binding_hash(
+        *,
+        name: str,
+        params: Dict[str, Any],
+        agent_type: str,
+        context: Dict[str, Any],
+    ) -> str:
+        """把 call_id 绑定到工具、参数和可信身份，防止换参重放。"""
+        payload = {
+            "tool_name": name,
+            "params": params,
+            "agent_type": agent_type,
+            "user_id": str(context.get("user_id") or ""),
+            "conv_id": str(context.get("conv_id") or ""),
+            "request_id": str(context.get("request_id") or ""),
+        }
+        canonical = json.dumps(
+            payload,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+            default=str,
+        )
+        return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+    def _complete_execution_ledger(
+        self,
+        run_id: str,
+        call_id: str,
+        binding_hash: str,
+        result: ToolResult,
+    ) -> None:
+        """账本落盘失败时不重试 handler；占位保持 executing 以阻止重复写。"""
+        try:
+            self._execution_store.complete_tool_call(
+                run_id=run_id,
+                call_id=call_id,
+                binding_hash=binding_hash,
+                result=self._tool_result_to_dict(result),
+            )
+        except Exception:
+            logger.exception("tool execution ledger completion failed call_id=%s", call_id)
+
+    @staticmethod
+    def _tool_result_to_dict(result: ToolResult) -> Dict[str, Any]:
+        return {
+            "success": result.success,
+            "data": result.data,
+            "tool_name": result.tool_name,
+            "error": result.error,
+            "cached": result.cached,
+            "latency_ms": result.latency_ms,
+            "reranked": result.reranked,
+            "call_id": result.call_id,
+            "trace_id": result.trace_id,
+            "status": result.status,
+            "output_for_model": result.output_for_model,
+            "effect_status": result.effect_status,
+            "receipt_id": result.receipt_id,
+        }
+
+    @staticmethod
+    def _tool_result_from_dict(payload: Dict[str, Any]) -> ToolResult:
+        fields = {
+            key: payload.get(key)
+            for key in ToolResult.__dataclass_fields__
+            if key in payload
+        }
+        return ToolResult(**fields)
 
     def _render_for_model(self, result: ToolResult) -> str:
         """把工具终态格式化并限制回写模型的字符数。"""

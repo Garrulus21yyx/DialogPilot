@@ -27,6 +27,7 @@ from typing import Any, Dict, List, Optional
 from anthropic import AsyncAnthropic
 
 from agents.react_engine import ReActExecutionEngine, ReActResult
+from agents.run_store import RunCheckpoint, RunStore
 from agents.orchestration_contracts import (
     AgentType,
     ExecutionBudget,
@@ -135,6 +136,8 @@ class AgentResponse:
     react_status: str = "disabled"
     react_steps: int = 0
     tool_call_ids: List[str] = field(default_factory=list)
+    react_run_id: str = ""
+    pending_approval_call_ids: List[str] = field(default_factory=list)
     allow_fallback: bool = True
 
 
@@ -153,6 +156,7 @@ class Request:
     urgency:     Optional[UrgencyLevel]   = None
     intent_confidence: float = 1.0
     assigned_task: Optional[TaskSpec] = None
+    bundle_version: str = "unversioned"
     request_id:  str = field(default_factory=lambda: str(uuid.uuid4())[:8])
 
 
@@ -178,6 +182,9 @@ class OrchestratorResult:
     task_plan: Dict[str, Any] = field(default_factory=dict)
     coverage: Dict[str, Any] = field(default_factory=dict)
     execution_budget: Dict[str, Any] = field(default_factory=dict)
+    awaiting_approval: bool = False
+    react_run_ids: List[str] = field(default_factory=list)
+    pending_approval_call_ids: List[str] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -225,6 +232,7 @@ class BaseAgent:
         react_max_steps: int = 4,
         model_profile: Optional[ModelProfile] = None,
         react_model_profile: Optional[ModelProfile] = None,
+        run_store: Optional[RunStore] = None,
     ):
         """保存 Agent 身份、模型客户端、Skill 入口和运行统计。"""
         self._client = client
@@ -234,6 +242,7 @@ class BaseAgent:
         self._skill_manager = skill_manager
         self._tool_manager = tool_manager
         self._react_max_steps = max(1, int(react_max_steps))
+        self._run_store = run_store
         self._react_engine = self._new_react_engine()
         self.instance_id = instance_id or f"{self.agent_type.value}_0"
         self.stats   = AgentStats()
@@ -250,6 +259,8 @@ class BaseAgent:
                 react_status = model_result.status.value
                 react_steps = model_result.steps
                 tool_call_ids = list(model_result.tool_call_ids)
+                react_run_id = model_result.run_id
+                pending_approval_call_ids = list(model_result.pending_approval_call_ids)
                 react_error = "" if completed else model_result.reason
             else:
                 content = model_result
@@ -257,12 +268,17 @@ class BaseAgent:
                 react_status = "disabled"
                 react_steps = 0
                 tool_call_ids = []
+                react_run_id = ""
+                pending_approval_call_ids = []
                 react_error = ""
             ms = (time.monotonic() - t0) * 1000
             if completed:
                 self.stats.success += 1
             self.stats.total_ms += ms
-            escalate = not completed or self._needs_escalation(content)
+            escalate = (
+                (not completed and react_status != "waiting_approval")
+                or self._needs_escalation(content)
+            )
             return AgentResponse(
                 agent_type=self.agent_type,
                 content=content,
@@ -274,6 +290,8 @@ class BaseAgent:
                 react_status=react_status,
                 react_steps=react_steps,
                 tool_call_ids=tool_call_ids,
+                react_run_id=react_run_id,
+                pending_approval_call_ids=pending_approval_call_ids,
                 allow_fallback=completed,
             )
         except Exception as ex:
@@ -327,6 +345,8 @@ class BaseAgent:
                     "task_id": req.assigned_task.task_id if req.assigned_task else "",
                     "intent": req.intent.value if req.intent else "other",
                     "intent_group": req.intent_group or "other",
+                    "bundle_version": req.bundle_version,
+                    "task_input": req.message,
                 },
             )
 
@@ -352,6 +372,7 @@ class BaseAgent:
             tool_manager=self._tool_manager,
             model_profile=self._react_model_profile,
             max_steps=self._react_max_steps,
+            run_store=self._run_store,
         )
 
     def _build_system_prompt(self, req: Request) -> str:
@@ -483,6 +504,8 @@ class AgentOrchestrator:
         react_max_steps: int = 4,
         intent_similarity_mode: str = "ngram",
         model_policy: Optional[ModelPolicy] = None,
+        run_store: Optional[RunStore] = None,
+        intent_recognizer: Optional[IntentRecognizer] = None,
     ):
         """创建 Agent 池、意图识别器、融合器和路由反馈状态。"""
         kwargs: Dict[str, Any] = {"api_key": api_key}
@@ -494,7 +517,7 @@ class AgentOrchestrator:
         worker_profile = policy.profile(ModelRole.WORKER)
         react_profile = policy.profile(ModelRole.REACT)
         self._model_policy = policy
-        self._intent_recognizer = IntentRecognizer(
+        self._intent_recognizer = intent_recognizer or IntentRecognizer(
             api_key=api_key,
             base_url=base_url,
             model=model,
@@ -502,6 +525,7 @@ class AgentOrchestrator:
             model_profile=policy.profile(ModelRole.INTENT),
         )
         self._skill_manager = skill_manager
+        self._run_store = run_store
         self._agent_timeout_s = max(0.1, float(agent_timeout_s))
         self._execution_budget = ExecutionBudget(
             request_timeout_s=float(request_timeout_s),
@@ -520,28 +544,33 @@ class AgentOrchestrator:
                 client, model, skill_manager, "general_0",
                 tool_manager=tool_manager, react_max_steps=react_max_steps,
                 model_profile=worker_profile, react_model_profile=react_profile,
+                run_store=run_store,
             )],
             AgentType.TECHNICAL: [TechnicalAgent(
                 client, model, skill_manager, "technical_0",
                 tool_manager=tool_manager, react_max_steps=react_max_steps,
                 model_profile=worker_profile, react_model_profile=react_profile,
+                run_store=run_store,
             )],
             AgentType.BILLING: [BillingAgent(
                 client, model, skill_manager, "billing_0",
                 tool_manager=tool_manager, react_max_steps=react_max_steps,
                 model_profile=worker_profile, react_model_profile=react_profile,
+                run_store=run_store,
             )],
             AgentType.ACCOUNT_SECURITY: [
                 AccountSecurityAgent(
                     client, model, skill_manager, "account_security_0",
                     tool_manager=tool_manager, react_max_steps=react_max_steps,
                     model_profile=worker_profile, react_model_profile=react_profile,
+                    run_store=run_store,
                 )
             ],
             AgentType.ESCALATION: [EscalationAgent(
                 client, model, skill_manager, "escalation_0",
                 tool_manager=tool_manager, react_max_steps=react_max_steps,
                 model_profile=worker_profile, react_model_profile=react_profile,
+                run_store=run_store,
             )],
         }
 
@@ -637,12 +666,13 @@ class AgentOrchestrator:
             if outcome.responding_agent_type
             else plan.primary_agent
         )
-        response_content = outcome.content if succeeded else (
+        awaiting_approval = outcome.status is AgentOutcomeStatus.AWAITING_APPROVAL
+        response_content = outcome.content if succeeded or awaiting_approval else (
             "专业 Agent 未能在限定时间内完成处理，已转交人工进一步确认。"
         )
 
         # 4. 升级检查
-        escalated = not succeeded
+        escalated = not succeeded and not awaiting_approval
         if outcome.escalate or req.urgency == UrgencyLevel.CRITICAL or req.intent in (
             IntentCategory.ESCALATION,
             IntentCategory.HUMAN_HANDOFF,
@@ -673,6 +703,9 @@ class AgentOrchestrator:
             task_plan=plan.to_dict(),
             coverage=coverage.to_dict(),
             execution_budget=window.budget.to_dict(),
+            awaiting_approval=awaiting_approval,
+            react_run_ids=[outcome.react_run_id] if outcome.react_run_id else [],
+            pending_approval_call_ids=list(outcome.pending_approval_call_ids),
         )
 
     async def run_parallel(
@@ -804,6 +837,18 @@ class AgentOrchestrator:
             task_plan=plan.to_dict(),
             coverage=synthesis.coverage.to_dict(),
             execution_budget=window.budget.to_dict(),
+            awaiting_approval=any(
+                outcome.status is AgentOutcomeStatus.AWAITING_APPROVAL
+                for outcome in outcomes
+            ),
+            react_run_ids=list(dict.fromkeys(
+                outcome.react_run_id for outcome in outcomes if outcome.react_run_id
+            )),
+            pending_approval_call_ids=list(dict.fromkeys(
+                call_id
+                for outcome in outcomes
+                for call_id in outcome.pending_approval_call_ids
+            )),
         )
 
     # ── 路由逻辑 ──────────────────────────────────────────────────────────────
@@ -1109,6 +1154,36 @@ class AgentOrchestrator:
             return None
         return max(agents, key=lambda a: a.stats.routing_score())
 
+    def get_react_run(self, run_id: str, *, user_id: str) -> RunCheckpoint:
+        """读取脱敏 Run 状态前先在持久 Owner 验证用户归属。"""
+        if self._run_store is None:
+            raise RuntimeError("react run storage is not configured")
+        return self._run_store.get_for_user(run_id, user_id)
+
+    async def resume_react(
+        self,
+        run_id: str,
+        *,
+        user_id: str,
+        approved: bool,
+        actor: str,
+    ) -> ReActResult:
+        """按库中 agent_type 恢复原 Run，不接受客户端伪造 Owner。"""
+        checkpoint = self.get_react_run(run_id, user_id=user_id)
+        try:
+            agent_type = AgentType(checkpoint.agent_type)
+        except ValueError as exc:
+            raise RuntimeError("run references an unsupported agent type") from exc
+        agent = self._best_agent(agent_type)
+        if agent is None or agent._react_engine is None:
+            raise RuntimeError("the original react agent is unavailable")
+        return await agent._react_engine.resume(
+            run_id,
+            user_id=user_id,
+            approved=approved,
+            actor=actor,
+        )
+
     async def _execute(self, req: Request, agent_type: AgentType) -> AgentResponse:
         """执行 Agent，失败时降级到 GeneralAgent。"""
         agent = self._best_agent(agent_type)
@@ -1189,15 +1264,22 @@ class AgentOrchestrator:
                 error=f"{type(exc).__name__}: {str(exc)[:300]}",
             )
 
+        awaiting_approval = response.react_status == "waiting_approval"
         return AgentOutcome(
             task_id=task.task_id,
             required=task.required,
             agent_type=task.owner.value,
             agent_key=response.agent_key,
             responding_agent_type=response.agent_type.value,
-            status=(AgentOutcomeStatus.SUCCESS if response.success else AgentOutcomeStatus.ERROR),
+            status=(
+                AgentOutcomeStatus.SUCCESS
+                if response.success
+                else AgentOutcomeStatus.AWAITING_APPROVAL
+                if awaiting_approval
+                else AgentOutcomeStatus.ERROR
+            ),
             is_primary=is_primary,
-            content=response.content if response.success else "",
+            content=response.content if response.success or awaiting_approval else "",
             confidence=response.confidence,
             latency_ms=response.latency_ms,
             escalate=response.escalate,
@@ -1205,6 +1287,8 @@ class AgentOrchestrator:
             react_status=response.react_status,
             react_steps=response.react_steps,
             tool_call_ids=response.tool_call_ids,
+            react_run_id=response.react_run_id,
+            pending_approval_call_ids=response.pending_approval_call_ids,
         )
 
     @staticmethod

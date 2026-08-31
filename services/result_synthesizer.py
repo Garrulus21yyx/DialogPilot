@@ -24,6 +24,7 @@ class AgentOutcomeStatus(str, Enum):
     ERROR = "error"
     BUDGET_EXCEEDED = "budget_exceeded"
     BLOCKED_DEPENDENCY = "blocked_dependency"
+    AWAITING_APPROVAL = "awaiting_approval"
 
 
 class SynthesisStatus(str, Enum):
@@ -33,6 +34,7 @@ class SynthesisStatus(str, Enum):
     CONFLICT = "conflict"
     FAILED = "failed"
     UNKNOWN = "unknown"
+    AWAITING_APPROVAL = "awaiting_approval"
 
 
 @dataclass(frozen=True)
@@ -53,6 +55,8 @@ class AgentOutcome:
     react_status: str = "disabled"
     react_steps: int = 0
     tool_call_ids: List[str] = field(default_factory=list)
+    react_run_id: str = ""
+    pending_approval_call_ids: List[str] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         """转换为 API 可序列化字典，并显式展开枚举值。"""
@@ -150,6 +154,21 @@ class ResultSynthesizer:
         coverage = CoverageGate.evaluate(plan, outcomes)
         successful = [outcome for outcome in outcomes if outcome.status is AgentOutcomeStatus.SUCCESS]
         failed = [outcome for outcome in outcomes if outcome.status is not AgentOutcomeStatus.SUCCESS]
+        pending = [
+            outcome for outcome in outcomes
+            if outcome.status is AgentOutcomeStatus.AWAITING_APPROVAL
+        ]
+        hard_failed = [outcome for outcome in failed if outcome not in pending]
+        if pending and not hard_failed:
+            return SynthesisResult(
+                status=SynthesisStatus.AWAITING_APPROVAL,
+                content=self._approval_message(successful, pending),
+                reason="one or more tool calls await host approval",
+                escalate=False,
+                coverage=coverage,
+                successful_agents=[outcome.agent_type for outcome in successful],
+                failed_agents=[outcome.agent_type for outcome in pending],
+            )
         if not successful:
             return SynthesisResult(
                 status=SynthesisStatus.FAILED,
@@ -180,9 +199,25 @@ class ResultSynthesizer:
         coverage = CoverageGate.evaluate(plan, outcomes)
         successful = [outcome for outcome in outcomes if outcome.status is AgentOutcomeStatus.SUCCESS]
         failed = [outcome for outcome in outcomes if outcome.status is not AgentOutcomeStatus.SUCCESS]
+        pending = [
+            outcome for outcome in outcomes
+            if outcome.status is AgentOutcomeStatus.AWAITING_APPROVAL
+        ]
+        hard_failed = [outcome for outcome in failed if outcome not in pending]
         successful_agents = [outcome.agent_type for outcome in successful]
         failed_agents = [outcome.agent_type for outcome in failed]
         inherited_escalation = any(outcome.escalate for outcome in successful)
+
+        if pending and not hard_failed:
+            return SynthesisResult(
+                status=SynthesisStatus.AWAITING_APPROVAL,
+                content=self._approval_message(successful, pending),
+                reason="one or more tool calls await host approval",
+                escalate=False,
+                coverage=coverage,
+                successful_agents=successful_agents,
+                failed_agents=[outcome.agent_type for outcome in pending],
+            )
 
         if not successful:
             # 没有可用内容时不得伪造候选回答，直接进入人工处理。
@@ -309,6 +344,24 @@ class ResultSynthesizer:
         for outcome in successful:
             role = "主处理" if outcome.is_primary else "辅助处理"
             parts.append(f"[{outcome.agent_type} - {role}]\n{outcome.content}")
+        return "\n\n".join(parts)
+
+    @classmethod
+    def _approval_message(
+        cls,
+        successful: Sequence[AgentOutcome],
+        pending: Sequence[AgentOutcome],
+    ) -> str:
+        parts = []
+        if successful:
+            parts.append(cls._deterministic_fallback(successful))
+        call_ids = [
+            call_id
+            for outcome in pending
+            for call_id in outcome.pending_approval_call_ids
+        ]
+        suffix = f"（调用 {', '.join(call_ids)}）" if call_ids else ""
+        parts.append(f"高风险操作已暂停并等待宿主审批{suffix}。")
         return "\n\n".join(parts)
 
     @staticmethod

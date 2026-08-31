@@ -118,6 +118,8 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
     monkeypatch.setenv("AUTH_JWT_SECRET", "test-secret-that-is-at-least-32-bytes-long")
     monkeypatch.setenv("TICKET_DB_PATH", str(tmp_path / "tickets.db"))
     monkeypatch.setenv("CUSTOMER_OPERATIONS_DB_PATH", str(tmp_path / "operations.db"))
+    monkeypatch.setenv("REACT_RUN_DB_PATH", str(tmp_path / "react-runs.db"))
+    monkeypatch.setenv("REACT_RECOVERY_GRACE_SECONDS", "0")
     monkeypatch.setenv("MEMORY_TOKEN_BUDGET", "4321")
     monkeypatch.setenv("MEMORY_COMPRESSION_THRESHOLD", "0.81")
     monkeypatch.setenv("MEMORY_SUMMARY_MAX_TOKENS", "777")
@@ -144,6 +146,8 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
             assert captured["knowledge"]["chroma_mode"] == "embedded"
             assert captured["orchestrator"]["intent_similarity_mode"] == "ngram"
             assert captured["orchestrator"]["react_max_steps"] == 6
+            assert captured["orchestrator"]["intent_recognizer"] is not None
+            assert captured["orchestrator"]["run_store"] is captured["tool_manager"]["execution_store"]
             assert captured["tool_manager"]["approval_mode"].value == "require_all"
             assert captured["tool_manager"]["max_output_chars"] == 2345
             assert captured["tool_manager_wired"] is True

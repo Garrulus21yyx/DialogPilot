@@ -94,8 +94,8 @@ def test_react_executes_read_tool_and_pairs_result_before_final_answer():
     assert len(recorder.get_trace("trace-react")) == 3  # 两个 LLM step + 一个 tool
 
 
-def test_react_high_risk_call_closes_as_blocked_without_side_effect():
-    """证明待审批工具即使模型随后给出文本，任务仍不能标记完成。"""
+def test_react_high_risk_call_pauses_before_second_model_step_without_side_effect():
+    """待审批是可恢复状态；不伪造 tool_result，也不继续第二轮模型。"""
     tools = runtime()
     effects = []
 
@@ -127,10 +127,11 @@ def test_react_high_risk_call_closes_as_blocked_without_side_effect():
         agent_type="billing",
     ))
 
-    assert result.status is ReActStatus.BLOCKED
+    assert result.status is ReActStatus.WAITING_APPROVAL
     assert result.success is False
     assert effects == []
-    assert client.calls[1]["messages"][-1]["content"][0]["is_error"] is True
+    assert result.pending_approval_call_ids == ("call-risk",)
+    assert len(client.calls) == 1
 
 
 def test_react_stops_repeated_tool_loop_at_max_steps():

@@ -37,6 +37,7 @@ class VerificationReasonCode(str, Enum):
     IRRELEVANT = "irrelevant"
     MODEL_REJECTED = "model_rejected"
     VERIFIER_UNAVAILABLE = "verifier_unavailable"
+    APPROVAL_REQUIRED = "approval_required"
 
 
 @dataclass(frozen=True)
