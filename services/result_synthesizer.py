@@ -23,6 +23,7 @@ class AgentOutcomeStatus(str, Enum):
     TIMEOUT = "timeout"
     ERROR = "error"
     BUDGET_EXCEEDED = "budget_exceeded"
+    BLOCKED_DEPENDENCY = "blocked_dependency"
 
 
 class SynthesisStatus(str, Enum):

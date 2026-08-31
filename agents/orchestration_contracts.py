@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from enum import Enum
 import time
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Iterable, Tuple
 
 
 class AgentType(str, Enum):
@@ -31,36 +31,62 @@ class TaskRisk(str, Enum):
     HIGH = "high"
 
 
+class TaskEffect(str, Enum):
+    """计划阶段的副作用上界，由调度器决定是否可并行。"""
+
+    READ_ONLY = "read_only"
+    WRITE_REQUIRES_APPROVAL = "write_requires_approval"
+
+
 @dataclass(frozen=True)
 class TaskSpec:
-    """一个可独立派发、可独立验收的子任务。"""
+    """一个有 Owner、证据、上下文范围和依赖的可验收子任务。"""
 
     task_id: str
     owner: AgentType
-    instruction: str
+    objective: str
     required: bool = True
     risk: TaskRisk = TaskRisk.LOW
     success_criteria: Tuple[str, ...] = field(default_factory=tuple)
+    evidence_spans: Tuple[str, ...] = field(default_factory=tuple)
+    context_refs: Tuple[str, ...] = field(default_factory=tuple)
+    depends_on: Tuple[str, ...] = field(default_factory=tuple)
+    effect: TaskEffect = TaskEffect.READ_ONLY
 
     def __post_init__(self) -> None:
         """拒绝无法追踪或无法执行的空任务。"""
         if not self.task_id.strip():
             raise ValueError("task_id must not be empty")
-        if not self.instruction.strip():
-            raise ValueError("task instruction must not be empty")
+        if not self.objective.strip():
+            raise ValueError("task objective must not be empty")
+        if self.task_id in self.depends_on:
+            raise ValueError("task cannot depend on itself")
+        if len(self.depends_on) != len(set(self.depends_on)):
+            raise ValueError("task dependencies must be unique")
+        if any(not str(item).strip() for item in self.depends_on):
+            raise ValueError("task dependencies must not be empty")
+
+    @property
+    def scoped_input(self) -> str:
+        """工作者只消费本任务证据；无切片时由 Planner 显式放入 objective。"""
+        return "\n".join(span for span in self.evidence_spans if span.strip()) or self.objective
 
     def to_dict(self) -> Dict[str, Any]:
         """生成稳定的 API/Trace 投影。"""
         data = asdict(self)
         data["owner"] = self.owner.value
         data["risk"] = self.risk.value
+        data["effect"] = self.effect.value
         data["success_criteria"] = list(self.success_criteria)
+        data["evidence_spans"] = list(self.evidence_spans)
+        data["context_refs"] = list(self.context_refs)
+        data["depends_on"] = list(self.depends_on)
         return data
 
 
 @dataclass(frozen=True)
-class TaskPlan:
-    """一次请求唯一的任务拆分和 Owner 分配事实。"""
+class TaskGraph:
+    """一次请求唯一的 DAG、Owner 分配和执行语义事实。"""
 
     tasks: Tuple[TaskSpec, ...]
     primary_task_id: str
@@ -68,7 +94,7 @@ class TaskPlan:
     confidence: float = 0.0
 
     def __post_init__(self) -> None:
-        """在执行前关闭重复 ID、空计划和悬空主任务。"""
+        """在执行前关闭重复 ID、悬空依赖和有向环。"""
         if not self.tasks:
             raise ValueError("task plan must contain at least one task")
         task_ids = [task.task_id for task in self.tasks]
@@ -76,6 +102,17 @@ class TaskPlan:
             raise ValueError("task plan contains duplicate task ids")
         if self.primary_task_id not in set(task_ids):
             raise ValueError("primary_task_id is not present in task plan")
+        task_id_set = set(task_ids)
+        dangling = sorted({
+            dependency
+            for task in self.tasks
+            for dependency in task.depends_on
+            if dependency not in task_id_set
+        })
+        if dangling:
+            raise ValueError(f"task graph contains dangling dependencies: {dangling}")
+        # 执行一次拓扑分层，在调用任何 Worker 前拒绝环。
+        self.execution_waves()
 
     @property
     def primary_task(self) -> TaskSpec:
@@ -112,14 +149,64 @@ class TaskPlan:
         """只有多个不同 Owner 时才属于多 Agent fan-out。"""
         return len(self.agent_types) > 1
 
+    def execution_waves(
+        self,
+        task_ids: Iterable[str] | None = None,
+    ) -> Tuple[Tuple[TaskSpec, ...], ...]:
+        """生成稳定的拓扑波次；同波次任务在依赖代数上可并行。"""
+        selected = set(task_ids) if task_ids is not None else {task.task_id for task in self.tasks}
+        unknown = selected - {task.task_id for task in self.tasks}
+        if unknown:
+            raise ValueError(f"unknown task ids requested: {sorted(unknown)}")
+        remaining = [task for task in self.tasks if task.task_id in selected]
+        omitted_dependencies = {
+            dependency
+            for task in remaining
+            for dependency in task.depends_on
+            if dependency not in selected
+        }
+        if omitted_dependencies:
+            raise ValueError(
+                f"task selection omits dependencies: {sorted(omitted_dependencies)}"
+            )
+        completed: set[str] = set()
+        waves = []
+        while remaining:
+            ready = tuple(
+                task for task in remaining
+                if set(task.depends_on).issubset(completed)
+            )
+            if not ready:
+                cycle_ids = [task.task_id for task in remaining]
+                raise ValueError(f"task graph contains a dependency cycle: {cycle_ids}")
+            waves.append(ready)
+            ready_ids = {task.task_id for task in ready}
+            completed.update(ready_ids)
+            remaining = [task for task in remaining if task.task_id not in ready_ids]
+        return tuple(waves)
+
+    @property
+    def topological_tasks(self) -> Tuple[TaskSpec, ...]:
+        """按波次展平的稳定执行顺序。"""
+        return tuple(task for wave in self.execution_waves() for task in wave)
+
     def to_dict(self) -> Dict[str, Any]:
         """生成可诊断且不重复建立权威的计划投影。"""
         return {
+            "graph_version": 1,
             "primary_task_id": self.primary_task_id,
             "reason": self.reason,
             "confidence": self.confidence,
             "tasks": [task.to_dict() for task in self.ordered_tasks],
+            "execution_waves": [
+                [task.task_id for task in wave]
+                for wave in self.execution_waves()
+            ],
         }
+
+
+# 向后兼容旧的内部导入名；权威类型已是 TaskGraph。
+TaskPlan = TaskGraph
 
 
 @dataclass(frozen=True)

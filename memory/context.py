@@ -108,12 +108,42 @@ class PromptContext:
     estimated_tokens: int
     dropped_history: int = 0
     truncated_sections: Tuple[str, ...] = field(default_factory=tuple)
+    section_blocks: Tuple[Tuple[str, str], ...] = field(default_factory=tuple)
 
     def to_messages(self, current_user_message: str) -> List[Dict[str, str]]:
         """复制历史并将当前用户消息追加为最后一条真实对话。"""
         messages = [dict(message) for message in self.history]
         messages.append({"role": "user", "content": str(current_user_message or "")})
         return messages
+
+    def scoped(
+        self,
+        *,
+        section_tags: Sequence[str],
+        include_history: bool,
+    ) -> "PromptContext":
+        """按 TaskGraph 声明的来源生成只读子上下文。
+
+        ``section_blocks`` 是 ContextAssembler 产生的权威投影。旧对象若没有
+        结构化 block，返回空 section 而不回退到全量字符串，避免隔离失败。
+        """
+        allowed = {str(tag) for tag in section_tags if str(tag).strip()}
+        blocks = tuple(
+            (tag, rendered)
+            for tag, rendered in self.section_blocks
+            if tag in allowed
+        )
+        return PromptContext(
+            system_context="\n\n".join(rendered for _, rendered in blocks),
+            history=self.history if include_history else (),
+            # 原始值是严格上界；子集不可能比原输入更大。
+            estimated_tokens=self.estimated_tokens,
+            dropped_history=self.dropped_history + (0 if include_history else len(self.history)),
+            truncated_sections=tuple(
+                tag for tag in self.truncated_sections if tag in allowed
+            ),
+            section_blocks=blocks,
+        )
 
 
 class ContextAssembler:
@@ -157,7 +187,7 @@ class ContextAssembler:
         available = self.max_input_tokens - mandatory_tokens
 
         section_budget = int(available * self.section_ratio)
-        rendered_sections, used_section_tokens, truncated = self._fit_sections(
+        rendered_sections, used_section_tokens, truncated, section_blocks = self._fit_sections(
             sections, section_budget
         )
         history_budget = available - used_section_tokens
@@ -168,7 +198,7 @@ class ContextAssembler:
         # 历史确定后，section 的最终上限就是剩余总容量；不能把首轮未使用容量再加一次。
         final_section_budget = max(0, available - used_history_tokens)
         if truncated and final_section_budget > used_section_tokens:
-            rendered_sections, used_section_tokens, truncated = self._fit_sections(
+            rendered_sections, used_section_tokens, truncated, section_blocks = self._fit_sections(
                 sections, final_section_budget
             )
 
@@ -192,11 +222,12 @@ class ContextAssembler:
             estimated_tokens=estimated,
             dropped_history=dropped,
             truncated_sections=tuple(truncated),
+            section_blocks=tuple(section_blocks),
         )
 
     def _fit_sections(
         self, sections: Sequence[ContextSection], budget: int
-    ) -> Tuple[List[str], int, List[str]]:
+    ) -> Tuple[List[str], int, List[str], List[Tuple[str, str]]]:
         """按最终拼接文本计费，优先装入并恢复调用方原始展示顺序。"""
         selected: Dict[int, str] = {}
         truncated: List[str] = []
@@ -230,8 +261,12 @@ class ContextAssembler:
             if low != len(content):
                 truncated.append(section.tag)
         rendered = [selected[index] for index in sorted(selected)]
+        blocks = [
+            (sections[index].tag, selected[index])
+            for index in sorted(selected)
+        ]
         used = self.estimator.estimate("\n\n".join(rendered))
-        return rendered, used, truncated
+        return rendered, used, truncated, blocks
 
     def _fit_history(
         self, history: Sequence[Dict[str, Any]], budget: int

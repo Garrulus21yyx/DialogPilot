@@ -364,7 +364,7 @@ def register_fresh_fixtures(
         return FixtureEvidence({"candidate_not_published": candidate not in published, "public_failure_typed": result.status is VerificationStatus.UNKNOWN, "request_has_closed_handoff_or_retry_state": result.need_escalation}, {"published": published, "verification": result.status.value})
 
     def plan_for(ids):
-        tasks = tuple(TaskSpec(task_id=task_id, owner=AgentType.GENERAL, instruction="fresh", required=True, risk=TaskRisk.LOW) for task_id in ids)
+        tasks = tuple(TaskSpec(task_id=task_id, owner=AgentType.GENERAL, objective="fresh", required=True, risk=TaskRisk.LOW) for task_id in ids)
         return TaskPlan(tasks=tasks, primary_task_id=tasks[0].task_id, reason="fresh", confidence=1.0)
 
     def outcome(task_id): return AgentOutcome(task_id=task_id, required=True, agent_type="general", status=AgentOutcomeStatus.SUCCESS, is_primary=True)

@@ -2,6 +2,8 @@ import asyncio
 import json
 from types import SimpleNamespace
 
+import pytest
+
 from agents.agent_orchestrator import (
     AgentOrchestrator,
     AgentResponse,
@@ -9,8 +11,15 @@ from agents.agent_orchestrator import (
     EscalationAgent,
     Request,
 )
-from agents.orchestration_contracts import ExecutionBudget, TaskPlan, TaskRisk, TaskSpec
+from agents.orchestration_contracts import (
+    ExecutionBudget,
+    TaskEffect,
+    TaskPlan,
+    TaskRisk,
+    TaskSpec,
+)
 from core.intent_recognizer import IntentCategory
+from memory.context import ContextAssembler, ContextSection
 from services.result_synthesizer import (
     AgentOutcome,
     AgentOutcomeStatus,
@@ -46,7 +55,7 @@ def task_plan(*agent_types: AgentType) -> TaskPlan:
         TaskSpec(
             task_id=f"{agent_type.value}_task",
             owner=agent_type,
-            instruction=f"处理 {agent_type.value} 子任务",
+            objective=f"处理 {agent_type.value} 子任务",
         )
         for agent_type in agent_types
     )
@@ -239,7 +248,7 @@ def test_orchestrator_converts_unhandled_agent_exception_to_typed_error():
         TaskSpec(
             task_id="technical_task",
             owner=AgentType.TECHNICAL,
-            instruction="处理登录故障",
+            objective="处理登录故障",
             risk=TaskRisk.MEDIUM,
         ),
         is_primary=True,
@@ -344,6 +353,185 @@ def test_account_security_is_the_owner_and_billing_is_only_supporting():
     assert plan.primary_agent is AgentType.ACCOUNT_SECURITY
     assert plan.supporting_agents == [AgentType.BILLING]
     assert plan.primary_task.risk is TaskRisk.HIGH
+    assert plan.tasks[1].depends_on == ("account_security_task",)
+    assert [[task.task_id for task in wave] for wave in plan.execution_waves()] == [
+        ["account_security_task"],
+        ["billing_task"],
+    ]
+
+
+def test_task_graph_rejects_dangling_dependency_and_cycle_before_execution():
+    """TaskGraph 在 Worker 调用前封闭悬空边与有向环。"""
+    with pytest.raises(ValueError, match="dangling"):
+        TaskPlan(
+            tasks=(TaskSpec(
+                "billing_task",
+                AgentType.BILLING,
+                "处理扣款",
+                depends_on=("missing_task",),
+            ),),
+            primary_task_id="billing_task",
+        )
+
+    with pytest.raises(ValueError, match="cycle"):
+        TaskPlan(
+            tasks=(
+                TaskSpec("technical_task", AgentType.TECHNICAL, "排障", depends_on=("billing_task",)),
+                TaskSpec("billing_task", AgentType.BILLING, "核对", depends_on=("technical_task",)),
+            ),
+            primary_task_id="technical_task",
+        )
+
+
+def test_task_graph_parallelizes_independent_reads_but_serializes_writes():
+    """同波次只读任务可并行，写任务在同一调度 Owner 中稳定串行。"""
+    async def run_with(effect):
+        orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+        orchestrator._agent_timeout_s = 1.0
+        orchestrator._execution_budget = ExecutionBudget(1.0, 1.0, 3)
+        orchestrator._result_synthesizer = CapturingSynthesizer()
+        active = 0
+        maximum = 0
+
+        async def execute(_req, agent_type):
+            nonlocal active, maximum
+            active += 1
+            maximum = max(maximum, active)
+            await asyncio.sleep(0.01)
+            active -= 1
+            return AgentResponse(agent_type=agent_type, content="ok", success=True)
+
+        orchestrator._execute = execute
+        graph = TaskPlan(
+            tasks=(
+                TaskSpec("technical_task", AgentType.TECHNICAL, "排障", effect=effect),
+                TaskSpec("billing_task", AgentType.BILLING, "核对", effect=effect),
+            ),
+            primary_task_id="technical_task",
+        )
+        await orchestrator.run_parallel(Request(message="mixed", user_id="u", conv_id="c"), graph)
+        return maximum
+
+    assert asyncio.run(run_with(TaskEffect.READ_ONLY)) == 2
+    assert asyncio.run(run_with(TaskEffect.WRITE_REQUIRES_APPROVAL)) == 1
+
+
+def test_failed_dependency_blocks_downstream_without_calling_worker():
+    """上游不成功时下游产生有类型终态，不偷跑 Worker。"""
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    orchestrator._agent_timeout_s = 1.0
+    orchestrator._execution_budget = ExecutionBudget(1.0, 1.0, 3)
+    orchestrator._result_synthesizer = CapturingSynthesizer()
+    called = []
+
+    async def execute(_req, agent_type):
+        called.append(agent_type)
+        return AgentResponse(
+            agent_type=agent_type,
+            content="failed",
+            success=False,
+            allow_fallback=False,
+        )
+
+    orchestrator._execute = execute
+    graph = TaskPlan(
+        tasks=(
+            TaskSpec("security_task", AgentType.ACCOUNT_SECURITY, "安全止损"),
+            TaskSpec("billing_task", AgentType.BILLING, "账务核对", depends_on=("security_task",)),
+        ),
+        primary_task_id="security_task",
+    )
+
+    result = asyncio.run(orchestrator.run_parallel(
+        Request(message="被盗且扣款", user_id="u", conv_id="c"),
+        graph,
+    ))
+
+    assert called == [AgentType.ACCOUNT_SECURITY]
+    assert [item["status"] for item in result.agent_outcomes] == [
+        "error",
+        "blocked_dependency",
+    ]
+
+
+def test_worker_receives_only_task_evidence_and_declared_context_refs():
+    """范围投影同时剪裁当前输入、section、历史和实体。"""
+    assembler = ContextAssembler(
+        max_input_tokens=1200,
+        reserved_output_tokens=100,
+        fixed_system_reserve=100,
+    )
+    prompt_context = assembler.assemble(
+        sections=(
+            ContextSection("knowledge", "401 表示认证失败"),
+            ContextSection("user_profile", "VIP 账务画像"),
+        ),
+        history=({"role": "user", "content": "过去的扣款对话"},),
+        current_user_message="登录 401 并且重复扣款 50 元",
+    )
+    captured = {}
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    orchestrator._agent_timeout_s = 1.0
+
+    async def execute(scoped, agent_type):
+        captured["request"] = scoped
+        return AgentResponse(agent_type=agent_type, content="ok", success=True)
+
+    orchestrator._execute = execute
+    task = TaskSpec(
+        "technical_task",
+        AgentType.TECHNICAL,
+        "排查 401",
+        evidence_spans=("登录 401",),
+        context_refs=("knowledge", "entity:error_code"),
+    )
+    request = Request(
+        message="登录 401 并且重复扣款 50 元",
+        user_id="u",
+        conv_id="c",
+        prompt_context=prompt_context,
+        context=prompt_context.system_context,
+        history=[{"role": "user", "content": "过去的扣款对话"}],
+        entities={"error_code": ["401"], "amount": ["50 元"]},
+    )
+
+    asyncio.run(orchestrator._execute_outcome(request, task, is_primary=True))
+
+    scoped = captured["request"]
+    assert scoped.message == "登录 401"
+    assert "401 表示认证失败" in scoped.prompt_context.system_context
+    assert "VIP 账务画像" not in scoped.prompt_context.system_context
+    assert scoped.prompt_context.history == ()
+    assert scoped.history is None
+    assert scoped.entities == {"error_code": ["401"]}
+
+
+def test_planner_slices_compound_evidence_and_marks_explicit_refund_write():
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    orchestrator._pool = {
+        AgentType.GENERAL: [object()],
+        AgentType.TECHNICAL: [object()],
+        AgentType.BILLING: [object()],
+    }
+    compound = Request(
+        message="订单 A123 登录报 401 后又被重复扣款 50 元",
+        user_id="u",
+        conv_id="c",
+        intent=IntentCategory.TECHNICAL_LOGIN,
+        intent_confidence=0.95,
+    )
+    graph = orchestrator._build_task_plan(compound)
+    evidence = {task.owner: task.evidence_spans for task in graph.tasks}
+
+    assert any("401" in span for span in evidence[AgentType.TECHNICAL])
+    assert all("扣款" not in span for span in evidence[AgentType.TECHNICAL])
+    assert any("扣款" in span for span in evidence[AgentType.BILLING])
+
+    refund_task = orchestrator._task_for_agent(
+        Request(message="帮我申请退款", user_id="u", conv_id="c"),
+        AgentType.BILLING,
+    )
+    assert refund_task.effect is TaskEffect.WRITE_REQUIRES_APPROVAL
 
 
 def test_max_agent_budget_keeps_plan_but_emits_typed_budget_outcome():

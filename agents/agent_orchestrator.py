@@ -18,6 +18,7 @@
 import asyncio
 import json
 import logging
+import re
 import time
 import uuid
 from dataclasses import dataclass, field, replace
@@ -31,6 +32,7 @@ from agents.orchestration_contracts import (
     ExecutionBudget,
     ExecutionWindow,
     TaskPlan,
+    TaskEffect,
     TaskRisk,
     TaskSpec,
 )
@@ -366,7 +368,10 @@ class BaseAgent:
             system = (
                 f"{system}\n\n[本次子任务]\n"
                 f"task_id={task.task_id}\n"
-                f"只处理以下职责：{task.instruction}\n"
+                f"只处理以下目标：{task.objective}\n"
+                f"证据片段：{list(task.evidence_spans)}\n"
+                f"已声明依赖：{list(task.depends_on)}\n"
+                f"副作用上界：{task.effect.value}\n"
                 f"完成标准：{criteria}\n"
                 "不要代替其他领域给出结论；发现跨域依赖时列为未解决项。"
             )
@@ -685,18 +690,55 @@ class AgentOrchestrator:
         window = window or self._new_execution_window()
         budget = window.budget
         agent_types = plan.agent_types
-        executable_tasks = plan.ordered_tasks[: budget.max_agents]
-        deferred_tasks = plan.ordered_tasks[budget.max_agents :]
-        executions = [
-            self._execute_outcome(
-                req,
-                task,
-                is_primary=task.task_id == plan.primary_task_id,
-                window=window,
-            )
-            for task in executable_tasks
-        ]
-        executed_outcomes = list(await asyncio.gather(*executions))
+        # 按拓扑顺序而非展示顺序分配总 fan-out 预算，
+        # 保证一个被选中任务的依赖不会被偷偷延后。
+        topological = plan.topological_tasks
+        executable_tasks = topological[: budget.max_agents]
+        deferred_tasks = topological[budget.max_agents :]
+        executable_ids = {task.task_id for task in executable_tasks}
+        outcome_by_task: Dict[str, AgentOutcome] = {}
+        for wave in plan.execution_waves(executable_ids):
+            ready = []
+            for task in wave:
+                failed_dependencies = [
+                    dependency
+                    for dependency in task.depends_on
+                    if outcome_by_task[dependency].status is not AgentOutcomeStatus.SUCCESS
+                ]
+                if failed_dependencies:
+                    outcome_by_task[task.task_id] = AgentOutcome(
+                        task_id=task.task_id,
+                        required=task.required,
+                        agent_type=task.owner.value,
+                        status=AgentOutcomeStatus.BLOCKED_DEPENDENCY,
+                        is_primary=task.task_id == plan.primary_task_id,
+                        error=f"blocked by failed dependencies: {failed_dependencies}",
+                    )
+                else:
+                    ready.append(task)
+
+            # 同波次只读任务可并行；任何可能写入的任务都按计划顺序串行。
+            read_tasks = [task for task in ready if task.effect is TaskEffect.READ_ONLY]
+            write_tasks = [task for task in ready if task.effect is not TaskEffect.READ_ONLY]
+            if read_tasks:
+                read_outcomes = await asyncio.gather(*[
+                    self._execute_outcome(
+                        req,
+                        task,
+                        is_primary=task.task_id == plan.primary_task_id,
+                        window=window,
+                    )
+                    for task in read_tasks
+                ])
+                outcome_by_task.update({outcome.task_id: outcome for outcome in read_outcomes})
+            for task in write_tasks:
+                outcome_by_task[task.task_id] = await self._execute_outcome(
+                    req,
+                    task,
+                    is_primary=task.task_id == plan.primary_task_id,
+                    window=window,
+                )
+
         deferred_outcomes = [
             AgentOutcome(
                 task_id=task.task_id,
@@ -708,10 +750,7 @@ class AgentOrchestrator:
             )
             for task in deferred_tasks
         ]
-        outcome_by_task = {
-            outcome.task_id: outcome
-            for outcome in executed_outcomes + deferred_outcomes
-        }
+        outcome_by_task.update({outcome.task_id: outcome for outcome in deferred_outcomes})
         outcomes = [outcome_by_task[task.task_id] for task in plan.ordered_tasks]
 
         remaining = window.remaining_s()
@@ -839,6 +878,13 @@ class AgentOrchestrator:
         reason = self._routing_reason(req, available_scores, primary_agent, supporting_agents)
         selected_agents = [primary_agent] + supporting_agents
         planned_tasks = tuple(self._task_for_agent(req, agent_type) for agent_type in selected_agents)
+        # 可疑账号同时出现资金问题时，账务结论依赖先完成安全止损。
+        if AgentType.ACCOUNT_SECURITY in selected_agents and AgentType.BILLING in selected_agents:
+            planned_tasks = tuple(
+                replace(task, depends_on=("account_security_task",))
+                if task.owner is AgentType.BILLING else task
+                for task in planned_tasks
+            )
         return TaskPlan(
             tasks=planned_tasks,
             primary_task_id=planned_tasks[0].task_id,
@@ -854,37 +900,76 @@ class AgentOrchestrator:
                 "处理订单、物流、会员或通用咨询部分",
                 TaskRisk.LOW,
                 ("直接回答通用问题", "未知业务事实必须显式说明"),
+                ("history", "conversation_summary", "relevant_history", "user_profile", "knowledge", "entity:order_id"),
             ),
             AgentType.TECHNICAL: (
                 "处理登录、错误码、崩溃或系统配置排障部分",
                 TaskRisk.MEDIUM,
                 ("给出可执行排障步骤", "需要后台权限时明确升级"),
+                ("history", "conversation_summary", "relevant_history", "knowledge", "entity:error_code", "entity:order_id"),
             ),
             AgentType.BILLING: (
                 "处理扣款、退款、发票、支付或订阅部分",
                 TaskRisk.HIGH,
                 ("说明适用条件和下一步", "不得声称已执行未发生的财务操作"),
+                ("history", "conversation_summary", "relevant_history", "user_profile", "knowledge", "entity:order_id", "entity:amount"),
             ),
             AgentType.ACCOUNT_SECURITY: (
                 "处理账号被盗、身份验证、异常登录或敏感资料修改部分",
                 TaskRisk.HIGH,
                 ("优先保护账户安全", "敏感操作必须要求验证或人工审批"),
+                ("history", "conversation_summary", "relevant_history", "user_profile", "knowledge"),
             ),
             AgentType.ESCALATION: (
                 "整理人工接管所需问题、风险和已知证据",
                 TaskRisk.HIGH,
                 ("明确告知正在转人工", "不得承诺尚未执行的后台操作"),
+                ("history", "conversation_summary", "relevant_history", "user_profile", "knowledge", "entity:order_id", "entity:error_code", "entity:amount"),
             ),
         }
-        instruction, risk, criteria = definitions[agent_type]
+        objective, risk, criteria, context_refs = definitions[agent_type]
+        write_requested = (
+            agent_type is AgentType.BILLING
+            and bool(re.search(r"(?:帮我|我要|申请|立即|现在).{0,8}(?:退款|退款申请)", req.message))
+        )
         return TaskSpec(
             task_id=f"{agent_type.value}_task",
             owner=agent_type,
-            instruction=instruction,
+            objective=objective,
             required=True,
             risk=risk,
             success_criteria=criteria,
+            evidence_spans=AgentOrchestrator._evidence_spans(req.message, agent_type),
+            context_refs=context_refs,
+            effect=(
+                TaskEffect.WRITE_REQUIRES_APPROVAL
+                if write_requested else TaskEffect.READ_ONLY
+            ),
         )
+
+    @staticmethod
+    def _evidence_spans(message: str, agent_type: AgentType) -> tuple[str, ...]:
+        """从复合问题中提取当前 Owner 的局部证据，不把整句复制给每个 Worker。"""
+        keywords = {
+            AgentType.GENERAL: ("订单", "物流", "快递", "配送", "会员", "积分", "咨询"),
+            AgentType.TECHNICAL: ("登录", "报错", "错误", "崩溃", "401", "500", "error", "crash", "验证码"),
+            AgentType.BILLING: ("退款", "扣款", "扣费", "扣了", "发票", "账单", "支付", "订阅", "refund", "invoice"),
+            AgentType.ACCOUNT_SECURITY: ("被盗", "异常登录", "陌生设备", "密码泄露", "账号安全", "身份验证", "盗号", "hacked"),
+            AgentType.ESCALATION: ("人工", "投诉", "升级", "escalate"),
+        }[agent_type]
+        parts = [
+            part.strip()
+            for part in re.split(
+                r"(?:[\s]*[，,。；;!！?？][\s]*|而且|同时|另外|以及|并且|后又|又被)",
+                str(message or ""),
+            )
+            if part.strip()
+        ]
+        selected = tuple(
+            part for part in parts
+            if any(keyword.casefold() in part.casefold() for keyword in keywords)
+        )
+        return selected or (str(message or "").strip(),)
 
     def _domain_scores(self, req: Request) -> Dict[AgentType, float]:
         """按意图、关键词和实体为各领域 Agent 打分。"""
@@ -1069,7 +1154,7 @@ class AgentOrchestrator:
                 error="request execution budget exhausted before agent start",
             )
         request_limited = timeout_s < window.budget.agent_timeout_s
-        scoped_request = replace(req, assigned_task=task)
+        scoped_request = self._scoped_request(req, task)
         try:
             response = await asyncio.wait_for(
                 self._execute(scoped_request, task.owner),
@@ -1120,6 +1205,39 @@ class AgentOrchestrator:
             react_status=response.react_status,
             react_steps=response.react_steps,
             tool_call_ids=response.tool_call_ids,
+        )
+
+    @staticmethod
+    def _scoped_request(req: Request, task: TaskSpec) -> Request:
+        """TaskSpec 是范围权威；在 Worker 边界投影当前证据与允许上下文。"""
+        refs = set(task.context_refs)
+        section_tags = tuple(ref for ref in refs if not ref.startswith("entity:") and ref != "history")
+        include_history = "history" in refs
+        scoped_prompt = (
+            req.prompt_context.scoped(
+                section_tags=section_tags,
+                include_history=include_history,
+            )
+            if req.prompt_context is not None else None
+        )
+        allowed_entity_keys = {
+            ref.split(":", 1)[1]
+            for ref in refs
+            if ref.startswith("entity:") and ":" in ref
+        }
+        entities = {
+            key: list(values)
+            for key, values in (req.entities or {}).items()
+            if key in allowed_entity_keys
+        }
+        return replace(
+            req,
+            message=task.scoped_input,
+            context=scoped_prompt.system_context if scoped_prompt is not None else "",
+            history=req.history if include_history else None,
+            prompt_context=scoped_prompt,
+            entities=entities,
+            assigned_task=task,
         )
 
     def _new_execution_window(self) -> ExecutionWindow:
