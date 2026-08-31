@@ -10,6 +10,14 @@ from .registry import AgentBundleRegistry, BundleConflictError, BundleNotFoundEr
 from .attribution import AttributionDecision, CreditAttributor, EvolutionSurface
 from .miner import BadCaseCluster, BadCaseMiner
 from .proposal_generator import GEPALiteProposalGenerator, build_llm_proposal_generator
+from .rollout import (
+    HardSignal,
+    RolloutAssignment,
+    RolloutContractError,
+    RolloutManager,
+    RolloutState,
+    SoftRollbackPolicy,
+)
 
 __all__ = [
     "AgentBundle",
@@ -24,6 +32,12 @@ __all__ = [
     "CreditAttributor",
     "EvolutionSurface",
     "GEPALiteProposalGenerator",
+    "HardSignal",
+    "RolloutAssignment",
+    "RolloutContractError",
+    "RolloutManager",
+    "RolloutState",
+    "SoftRollbackPolicy",
     "build_default_bundle",
     "build_llm_proposal_generator",
 ]

@@ -334,6 +334,11 @@ class MCPToolManager:
             json.dumps(rows, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
         ).hexdigest()
 
+    @property
+    def registered_tool_names(self) -> Tuple[str, ...]:
+        """返回注册身份快照，供 Bundle 激活校验，不暴露 handler。"""
+        return tuple(sorted(self._tools))
+
     def calls_are_parallel_safe(self, tool_names: List[str]) -> bool:
         """只有全部已注册工具都是只读时，ReAct 才能并行派发。"""
         tools = [self._tools.get(name) for name in tool_names]
@@ -386,6 +391,26 @@ class MCPToolManager:
         if "*" not in tool.allowed_agents and normalized_agent not in tool.allowed_agents:
             return self._finish_controlled_call(
                 result=ToolResult(False, None, name, error="Agent 无权调用该工具"),
+                tool=tool,
+                agent_type=normalized_agent,
+                params=params,
+                context=context,
+                trace_id=trace_id,
+                call_id=resolved_call_id,
+                request_id=request_id,
+                started_iso=started_iso,
+                started=started,
+                status=ToolCallStatus.DENIED,
+                approved=False,
+            )
+
+        if str(context.get("execution_mode") or "live") == "shadow" and not tool.read_only:
+            return self._finish_controlled_call(
+                result=ToolResult(
+                    False, None, name,
+                    error="Shadow 模式禁止任何写工具副作用",
+                    effect_status=ToolEffectStatus.NOT_COMMITTED.value,
+                ),
                 tool=tool,
                 agent_type=normalized_agent,
                 params=params,
@@ -616,7 +641,8 @@ class MCPToolManager:
 
         # 同一 Bundle 内可复用；检索策略变化后不得误用上一版本结果。
         cache_scope = str((context or {}).get("cache_scope") or "")[:128]
-        if use_cache and tool.cache_ttl > 0:
+        shadow_mode = str((context or {}).get("execution_mode") or "live") == "shadow"
+        if use_cache and not shadow_mode and tool.cache_ttl > 0:
             cached = self._get_cache(name, params, cache_rerank_top_k, cache_scope)
             if cached is not None:
                 cached_data, cached_reranked = cached
@@ -631,12 +657,13 @@ class MCPToolManager:
                 )
 
         # 熔断检查
-        if not tool.breaker.allow():
+        if not shadow_mode and not tool.breaker.allow():
             error = f"工具熔断中: {name}，请稍后重试"
             return await self._fallback_result(tool, params, context, error)
 
         t0 = time.monotonic()
-        tool.stats.total += 1
+        if not shadow_mode:
+            tool.stats.total += 1
         try:
             # 参数校验（根据 JSON Schema 的 required 和 properties.type）
             self._validate_params(tool, params)
@@ -651,10 +678,11 @@ class MCPToolManager:
                 receipt_id = str(data.receipt_id or "")
                 data = data.data
 
-            tool.stats.success += 1
-            tool.stats.consecutive_fails = 0
-            tool.stats.total_latency_ms += latency
-            tool.breaker.record_success()
+            if not shadow_mode:
+                tool.stats.success += 1
+                tool.stats.consecutive_fails = 0
+                tool.stats.total_latency_ms += latency
+                tool.breaker.record_success()
 
             # 重排（针对返回列表的检索工具）
             reranked = False
@@ -663,7 +691,7 @@ class MCPToolManager:
                 data, reranked = await self._rerank(query, data, rerank_top_k), True
 
             # 写缓存：缓存最终返回结果，避免下次命中未重排的原始结果。
-            if tool.cache_ttl > 0:
+            if not shadow_mode and tool.cache_ttl > 0:
                 self._set_cache(
                     name, params, data, tool.cache_ttl,
                     cache_rerank_top_k, reranked, cache_scope,
@@ -680,9 +708,10 @@ class MCPToolManager:
             )
 
         except asyncio.TimeoutError:
-            tool.stats.failed += 1
-            tool.stats.consecutive_fails += 1
-            tool.breaker.record_failure()
+            if not shadow_mode:
+                tool.stats.failed += 1
+                tool.stats.consecutive_fails += 1
+                tool.breaker.record_failure()
             logger.error(f"工具超时: {name} ({tool.timeout_s}s)")
             result = await self._fallback_result(tool, params, context, "执行超时")
             result.status = ToolCallStatus.TIMEOUT.value
@@ -694,9 +723,10 @@ class MCPToolManager:
             return result
 
         except Exception as ex:
-            tool.stats.failed += 1
-            tool.stats.consecutive_fails += 1
-            tool.breaker.record_failure()
+            if not shadow_mode:
+                tool.stats.failed += 1
+                tool.stats.consecutive_fails += 1
+                tool.breaker.record_failure()
             logger.error(f"工具异常: {name} — {ex}")
             return await self._fallback_result(tool, params, context, str(ex))
 

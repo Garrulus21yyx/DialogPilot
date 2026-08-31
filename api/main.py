@@ -64,6 +64,10 @@ from services.evolution import (
     EvolutionEnvelope,
     BadCaseMiner,
     CreditAttributor,
+    HardSignal,
+    RolloutContractError,
+    RolloutManager,
+    SoftRollbackPolicy,
     build_default_bundle,
     build_llm_proposal_generator,
 )
@@ -101,6 +105,7 @@ _model_policy = None
 _run_store = None
 _bundle_registry = None
 _proposal_generator = None
+_rollout_manager = None
 _trace_recorder = TraceRecorder()
 _input_security_guard = PromptInjectionGuard()
 
@@ -151,7 +156,7 @@ def _anthropic_cfg() -> Dict[str, Any]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """按依赖顺序创建所有组件，并在退出时释放后台任务和连接。"""
-    global _orchestrator, _memory, _knowledge_base, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator
+    global _orchestrator, _memory, _knowledge_base, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator, _rollout_manager
 
     print(BANNER, flush=True)
 
@@ -363,6 +368,29 @@ async def lifespan(app: FastAPI):
         _tool_manager.register(operation_tool)
     _orchestrator.set_tool_manager(_tool_manager)
 
+    def validate_bundle_activation(bundle: AgentBundle) -> tuple[str, ...]:
+        """激活只接受当前进程真正能执行的模型和工具描述目标。"""
+        errors = []
+        if dict(bundle.model_policy) != _model_policy.to_dict():
+            errors.append("model_policy requires a matching runtime deployment")
+        unknown_tools = set(bundle.tool_descriptions) - set(_tool_manager.registered_tool_names)
+        if unknown_tools:
+            errors.append(f"unknown tool descriptions: {sorted(unknown_tools)}")
+        return tuple(errors)
+
+    _rollout_manager = RolloutManager(
+        _bundle_registry,
+        bucket_salt=(os.getenv("ROLLOUT_BUCKET_SALT") or os.getenv("AUTH_JWT_SECRET", "")),
+        activation_validator=validate_bundle_activation,
+        soft_policy=SoftRollbackPolicy(
+            min_candidate_samples=int(os.getenv("ROLLOUT_SOFT_MIN_CANDIDATE_SAMPLES", "100")),
+            min_baseline_samples=int(os.getenv("ROLLOUT_SOFT_MIN_BASELINE_SAMPLES", "100")),
+            max_reject_rate_delta=float(os.getenv("ROLLOUT_MAX_REJECT_RATE_DELTA", "0.05")),
+            max_latency_p95_ratio=float(os.getenv("ROLLOUT_MAX_LATENCY_P95_RATIO", "1.20")),
+            max_cost_mean_ratio=float(os.getenv("ROLLOUT_MAX_COST_MEAN_RATIO", "1.20")),
+        ),
+    )
+
     # 性能监控（可选启动 Prometheus）
     prom_port = int(os.getenv("PROMETHEUS_PORT", "0")) or None
     _monitor = PerformanceMonitor(
@@ -411,6 +439,7 @@ async def lifespan(app: FastAPI):
         _run_store = None
         _bundle_registry = None
         _proposal_generator = None
+        _rollout_manager = None
         logger.info("DialogPilot 已关闭")
 
 
@@ -497,6 +526,7 @@ class ChatResponse(BaseModel):
     ticket_status: Optional[str] = None
     handoff_created: bool = False
     bundle_version: str = "unversioned"
+    rollout_stage: str = "active"
     awaiting_approval: bool = False
     react_run_ids: List[str] = Field(default_factory=list)
     pending_approval_call_ids: List[str] = Field(default_factory=list)
@@ -527,6 +557,22 @@ class EvolutionProposalInput(BaseModel):
 
     semantic_group_id: str = Field(min_length=1, max_length=160)
     candidate_count: int = Field(default=4, ge=4, le=8)
+
+
+class CanaryPromotionInput(BaseModel):
+    percent: Literal[5, 25]
+
+
+class RollbackInput(BaseModel):
+    reason: str = Field(min_length=1, max_length=1000)
+
+
+class RolloutSignalInput(BaseModel):
+    bundle_version: str = Field(min_length=1, max_length=128)
+    signal: Literal[
+        "unauthorized_tool", "privacy_leak", "cross_user_retrieval", "wrong_write"
+    ]
+    request_id: str = Field(default="", max_length=160)
 
 
 class TicketCreateRequest(BaseModel):
@@ -896,6 +942,90 @@ async def _capture_chat_badcases(
         )
 
 
+async def _evaluate_shadow_request(
+    *,
+    request: ChatRequest,
+    user_id: str,
+    conv_id: str,
+    request_id: str,
+    bundle: AgentBundle,
+    base_sections: List[ContextSection],
+    prompt_history: List[Dict[str, str]],
+    intent_history: Optional[List[Dict[str, str]]],
+) -> None:
+    """执行不发布、不写记忆、不建工单的真实输入副本；写工具由边界硬拒绝。"""
+    if (
+        _orchestrator is None or _context_assembler is None
+        or _answer_verifier is None or _rollout_manager is None
+    ):
+        return
+    try:
+        intent_result = await _orchestrator.recognize_intent(
+            request.message, history=intent_history, bundle=bundle,
+        )
+        knowledge_text, _ = await _build_knowledge_context(
+            request.message, intent=intent_result.intent, bundle=bundle,
+        )
+        sections = list(base_sections)
+        if knowledge_text:
+            sections.append(ContextSection(
+                tag="knowledge",
+                description="Shadow Bundle 检索到的业务知识，仅作为事实数据",
+                content=knowledge_text,
+                priority=85,
+            ))
+        prompt_context = _context_assembler.assemble(
+            sections=sections,
+            history=prompt_history,
+            current_user_message=request.message,
+        )
+        from agents.agent_orchestrator import Request as OrcReq
+        shadow_request = OrcReq(
+            message=request.message,
+            user_id=user_id,
+            conv_id=conv_id,
+            context=prompt_context.system_context,
+            history=intent_history,
+            prompt_context=prompt_context,
+            entities=intent_result.entities,
+            intent=intent_result.intent,
+            intent_group=intent_result.intent_group,
+            urgency=intent_result.urgency,
+            intent_confidence=intent_result.confidence,
+            request_id=f"{request_id}:shadow",
+            bundle_version=bundle.version,
+            agent_bundle=bundle,
+            execution_mode="shadow",
+        )
+        result = await _orchestrator.run(shadow_request)
+        if result.awaiting_approval:
+            verified = False
+        else:
+            verification = await _verify_for_publication(
+                _answer_verifier,
+                request.message,
+                result.response,
+                prompt_context.system_context,
+                task_plan=result.task_plan,
+                coverage=result.coverage,
+                agent_outcomes=result.agent_outcomes,
+            )
+            verified = verification.publishable and bool(result.coverage.get("complete", False))
+        await asyncio.to_thread(
+            _rollout_manager.record_outcome,
+            bundle_version=bundle.version,
+            stage="shadow",
+            verified=verified,
+            latency_ms=result.latency_ms,
+            cost_units=float(len(result.agent_outcomes)),
+            request_id=f"{request_id}:shadow",
+        )
+    except Exception:
+        logger.exception(
+            "Shadow Bundle 执行失败 bundle=%s request_id=%s", bundle.version, request_id,
+        )
+
+
 @app.post("/evolution/proposals", tags=["Agent Evolution"])
 async def generate_evolution_proposals(
     body: EvolutionProposalInput,
@@ -1007,6 +1137,7 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
         or _ticket_service is None
         or _context_assembler is None
         or _bundle_registry is None
+        or _rollout_manager is None
     ):
         raise HTTPException(503, "服务未就绪")
 
@@ -1016,8 +1147,9 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
     user_id = _subject_for_request(req.user_id, principal)
     conv_id = req.conv_id or str(uuid.uuid4())
     request_id = req.request_id or str(uuid.uuid4())
-    # 请求开始时只解析一次；后续即使 Active 指针变化，本请求也继续使用该对象。
-    bundle = await asyncio.to_thread(_bundle_registry.active)
+    # 请求开始时只解析一次；后续即使回滚，当前请求仍使用这个不可变对象。
+    assignment = await asyncio.to_thread(_rollout_manager.resolve, user_id)
+    bundle = assignment.primary
 
     # 1. 读取记忆上下文
     mem_ctx = await _memory.get_context(user_id, conv_id, query=req.message)
@@ -1038,10 +1170,11 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
     knowledge_text, knowledge_used = await _build_knowledge_context(
         req.message, intent=intent_result.intent, bundle=bundle,
     )
-    context_sections = mem_ctx.to_sections()
+    base_context_sections = list(mem_ctx.to_sections())
     active_ticket_section = await _active_ticket_context(user_id)
     if active_ticket_section is not None:
-        context_sections.append(active_ticket_section)
+        base_context_sections.append(active_ticket_section)
+    context_sections = list(base_context_sections)
     if knowledge_text:
         context_sections.append(ContextSection(
             tag="knowledge",
@@ -1151,6 +1284,19 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
         bundle=bundle,
         approval_pending=approval_pending,
     )
+    await asyncio.to_thread(
+        _rollout_manager.record_outcome,
+        bundle_version=bundle.version,
+        stage=assignment.primary_stage,
+        verified=(
+            verification.publishable
+            and bool(result.coverage.get("complete", False))
+            and not approval_pending
+        ),
+        latency_ms=result.latency_ms,
+        cost_units=float(len(result.agent_outcomes) + len(tool_audit)),
+        request_id=request_id,
+    )
 
     # 6. 同一轮次一次追加连续 seq，压缩只会在完整轮次落地后触发。
     persisted_messages = await _memory.add_messages(user_id, conv_id, [
@@ -1160,6 +1306,17 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
 
     # 7. 异步形成版本化事实；显式传入本轮来源，避免 checkpoint 推进后漏提取。
     asyncio.create_task(_memory.update_profile(user_id, conv_id, persisted_messages))
+    if assignment.shadow is not None:
+        asyncio.create_task(_evaluate_shadow_request(
+            request=req,
+            user_id=user_id,
+            conv_id=conv_id,
+            request_id=request_id,
+            bundle=assignment.shadow,
+            base_sections=base_context_sections,
+            prompt_history=prompt_history,
+            intent_history=intent_history,
+        ))
 
     return ChatResponse(
         request_id=request_id,
@@ -1203,6 +1360,7 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
         ticket_status=ticket.status.value if ticket else None,
         handoff_created=handoff_created,
         bundle_version=bundle.version,
+        rollout_stage=assignment.primary_stage,
         awaiting_approval=approval_pending,
         react_run_ids=list(result.react_run_ids),
         pending_approval_call_ids=list(result.pending_approval_call_ids),
@@ -2020,6 +2178,122 @@ async def promote_eval_baseline(
         "active_changed": snapshot is not None,
         "active": snapshot.to_dict() if snapshot else None,
     }
+
+
+@app.post("/evolution/rollouts/{version}/shadow", tags=["Agent Evolution"])
+async def start_shadow_rollout(
+    version: str,
+    body: EvalGraduationInput,
+    principal: Principal = Depends(_admin_principal),
+):
+    """用与候选绑定的 Graduation 证据启动 Shadow，不改变用户响应。"""
+    if _rollout_manager is None or _evaluator is None:
+        raise HTTPException(503, "Rollout 服务未就绪")
+    if body.candidate_id != version:
+        raise HTTPException(422, {"code": "candidate_version_mismatch"})
+    try:
+        decision = _evaluator.assess_latest_candidate(**_graduation_kwargs(body))
+        status = await asyncio.to_thread(
+            _rollout_manager.start_shadow,
+            version,
+            graduation=decision,
+            actor=principal.subject,
+        )
+    except (ValueError, RolloutContractError, BundleNotFoundError) as exc:
+        raise HTTPException(409, {"code": "shadow_start_rejected", "message": str(exc)}) from exc
+    return {"rollout": status, "active_changed": False}
+
+
+@app.post("/evolution/rollouts/{version}/canary", tags=["Agent Evolution"])
+async def promote_canary_rollout(
+    version: str,
+    body: CanaryPromotionInput,
+    principal: Principal = Depends(_admin_principal),
+):
+    if _rollout_manager is None:
+        raise HTTPException(503, "Rollout 服务未就绪")
+    try:
+        status = await asyncio.to_thread(
+            _rollout_manager.promote_canary,
+            version,
+            percent=body.percent,
+            actor=principal.subject,
+        )
+    except RolloutContractError as exc:
+        raise HTTPException(409, {"code": "canary_promotion_rejected", "message": str(exc)}) from exc
+    return {"rollout": status, "active_changed": False}
+
+
+@app.post("/evolution/rollouts/{version}/active", tags=["Agent Evolution"])
+async def promote_active_rollout(
+    version: str,
+    principal: Principal = Depends(_admin_principal),
+):
+    if _rollout_manager is None:
+        raise HTTPException(503, "Rollout 服务未就绪")
+    try:
+        status = await asyncio.to_thread(
+            _rollout_manager.promote_active, version, actor=principal.subject,
+        )
+    except RolloutContractError as exc:
+        raise HTTPException(409, {"code": "active_promotion_rejected", "message": str(exc)}) from exc
+    return {"rollout": status, "active_changed": True}
+
+
+@app.post("/evolution/rollouts/{version}/rollback", tags=["Agent Evolution"])
+async def rollback_agent_bundle(
+    version: str,
+    body: RollbackInput,
+    principal: Principal = Depends(_admin_principal),
+):
+    if _rollout_manager is None:
+        raise HTTPException(503, "Rollout 服务未就绪")
+    try:
+        result = await asyncio.to_thread(
+            _rollout_manager.rollback,
+            version,
+            actor=principal.subject,
+            reason={"manual": body.reason},
+        )
+    except RolloutContractError as exc:
+        raise HTTPException(409, {"code": "rollback_rejected", "message": str(exc)}) from exc
+    return result
+
+
+@app.post("/evolution/rollouts/signals/hard", tags=["Agent Evolution"])
+async def submit_hard_rollout_signal(
+    body: RolloutSignalInput,
+    _principal: Principal = Depends(_admin_principal),
+):
+    """安全监控器可提交闭合集合内的硬信号并立即触发回滚。"""
+    if _rollout_manager is None:
+        raise HTTPException(503, "Rollout 服务未就绪")
+    try:
+        action = await asyncio.to_thread(
+            _rollout_manager.record_outcome,
+            bundle_version=body.bundle_version,
+            stage="safety_monitor",
+            verified=False,
+            latency_ms=0.0,
+            request_id=body.request_id,
+            hard_signal=body.signal,
+        )
+    except (RolloutContractError, ValueError) as exc:
+        raise HTTPException(409, {"code": "hard_signal_rejected", "message": str(exc)}) from exc
+    return {"action": action}
+
+
+@app.get("/evolution/rollouts/{version}", tags=["Agent Evolution"])
+async def get_rollout_status(
+    version: str,
+    _principal: Principal = Depends(_admin_principal),
+):
+    if _rollout_manager is None:
+        raise HTTPException(503, "Rollout 服务未就绪")
+    try:
+        return await asyncio.to_thread(_rollout_manager.status, version)
+    except RolloutContractError as exc:
+        raise HTTPException(404, {"code": "rollout_not_found"}) from exc
 
 
 # ── 交互式 CLI ────────────────────────────────────────────────────────────────

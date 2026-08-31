@@ -159,6 +159,7 @@ class Request:
     assigned_task: Optional[TaskSpec] = None
     bundle_version: str = "unversioned"
     agent_bundle: Optional[AgentBundle] = None
+    execution_mode: str = "live"
     request_id:  str = field(default_factory=lambda: str(uuid.uuid4())[:8])
 
 
@@ -253,7 +254,9 @@ class BaseAgent:
     async def handle(self, req: Request) -> AgentResponse:
         """执行一次领域处理，并在实例级记录可用性与延迟。"""
         t0 = time.monotonic()
-        self.stats.total += 1
+        record_stats = req.execution_mode == "live"
+        if record_stats:
+            self.stats.total += 1
         try:
             model_result = await self._call_llm(req)
             if isinstance(model_result, ReActResult):
@@ -275,9 +278,10 @@ class BaseAgent:
                 pending_approval_call_ids = []
                 react_error = ""
             ms = (time.monotonic() - t0) * 1000
-            if completed:
+            if completed and record_stats:
                 self.stats.success += 1
-            self.stats.total_ms += ms
+            if record_stats:
+                self.stats.total_ms += ms
             escalate = (
                 (not completed and react_status != "waiting_approval")
                 or self._needs_escalation(content)
@@ -299,7 +303,8 @@ class BaseAgent:
             )
         except Exception as ex:
             ms = (time.monotonic() - t0) * 1000
-            self.stats.total_ms += ms
+            if record_stats:
+                self.stats.total_ms += ms
             logger.error(f"{self.agent_type.value} 处理失败: {ex}")
             return AgentResponse(
                 agent_type=self.agent_type,
@@ -359,6 +364,7 @@ class BaseAgent:
                         req.agent_bundle.component_hash("retrieval_policy")
                         if req.agent_bundle else req.bundle_version
                     ),
+                    "execution_mode": req.execution_mode,
                     "task_input": req.message,
                 },
             )

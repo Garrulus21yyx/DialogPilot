@@ -51,8 +51,8 @@ def test_registry_is_append_only_and_pointer_is_separate(tmp_path):
     pinned = registry.active()
     v2 = registry.register(_bundle("agent-v2", "agent-v1"), actor="evolution")
     assert registry.active().version == v1.version
-    registry.set_pointer("active", v2.version, actor="rollout")
-    assert registry.active().version == "agent-v2"
+    assert v2.version == "agent-v2"
+    assert registry.active().version == "agent-v1"
     assert pinned.version == "agent-v1"
 
     with pytest.raises(BundleConflictError):

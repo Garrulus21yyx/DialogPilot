@@ -99,26 +99,15 @@ class AgentBundleRegistry:
         active_version = active["version"] if active else ""
         return [{**dict(row), "active": row["version"] == active_version} for row in rows]
 
-    def set_pointer(self, name: str, version: str, *, actor: str) -> AgentBundle:
-        """供 Rollout Owner 使用的原子指针原语；HTTP 不直接暴露。"""
-        name = str(name).strip()
-        if name not in {"active", "canary", "shadow"}:
-            raise ValueError(f"unsupported bundle pointer: {name}")
-        bundle = self.get(version)
-        with self._lock, self._connect() as conn:
-            conn.execute("BEGIN IMMEDIATE")
-            conn.execute(
-                "INSERT INTO bundle_pointers(name, version, updated_at, updated_by) VALUES (?, ?, ?, ?) "
-                "ON CONFLICT(name) DO UPDATE SET version=excluded.version, "
-                "updated_at=excluded.updated_at, updated_by=excluded.updated_by",
-                (name, bundle.version, datetime.now(timezone.utc).isoformat(), str(actor)[:200]),
-            )
-        return bundle
-
     def pointer(self, name: str) -> Optional[AgentBundle]:
         with self._connect() as conn:
             row = conn.execute("SELECT version FROM bundle_pointers WHERE name=?", (str(name),)).fetchone()
         return self.get(row["version"]) if row else None
+
+    @property
+    def db_path(self) -> str:
+        """供同库 Rollout Owner 建立原子状态/指针事务。"""
+        return self._path
 
     def _initialize(self) -> None:
         with self._connect() as conn:
