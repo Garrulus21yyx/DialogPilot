@@ -40,11 +40,11 @@ title: DialogPilot 面经校准与追问手册
 
 ### Q2：你个人改了什么？
 
-说“接手已有客服原型”，不说从零原创。可用 commit 证明的改造包括：命名与仓库收敛、持久工单、Token/CAS 压缩、typed synthesis、TaskGraph/CoverageGate、混合长期记忆、用户输入 Guard、工具权限/Trace、有界 ReAct 与审批 Resume，以及不可变 Baseline/AgentBundle、受限候选、Graduation/Pareto 和灰度回滚。
+说“接手已有客服原型”，不说从零原创。可用 commit 证明的改造包括：命名与仓库收敛、持久工单与事务 outbox、客户端回答 ACK/断线续取、Token/CAS 压缩、typed synthesis、TaskGraph/CoverageGate、混合长期记忆、用户输入 Guard、工具权限/Trace、有界 ReAct 与审批 Resume，以及不可变 Baseline/AgentBundle、受限候选、Graduation/Pareto 和灰度回滚。
 
 ### Q3：`/chat` 端到端经过哪些节点？
 
-`TraceId → 用户输入 Guard → 固定 Rollout/Bundle → Redis 工作记忆/混合情景记忆/画像 → 意图与实体 → PlanningDisposition；CLARIFY/OUT_OF_SCOPE 直接发布固定策略回复，只有 EXECUTE 继续有条件 RAG → TaskGraph 波次 → Worker/ReAct/审批 Resume → Coverage → Synthesis → Verifier → 发布或工单 → 只写客服会话答案 → 失败版本归因。`
+`TraceId → 用户输入 Guard → 固定 Rollout/Bundle → Redis 工作记忆/混合情景记忆/画像 → 意图与实体 → PlanningDisposition；CLARIFY/OUT_OF_SCOPE 直接发布固定策略回复，只有 EXECUTE 继续有条件 RAG → TaskGraph 波次 → Worker/ReAct/审批 Resume → Coverage → Synthesis → Verifier → 工单+outbox（按需）→ 持久化 response_id/seq → 写客服会话答案 → HTTP 返回 → 客户端 ACK → 失败版本归因。`
 
 ### Q4：为什么不用 LangChain / LangGraph？
 

@@ -1,3 +1,5 @@
+import time
+
 import pytest
 
 from services.ticket_service import (
@@ -178,4 +180,81 @@ def test_active_ticket_projection_excludes_only_closed_terminal_state(tmp_path):
 
     assert {ticket.ticket_id for ticket in active} == {open_ticket.ticket_id, waiting.ticket_id}
     assert all(ticket.status is not TicketStatus.CLOSED for ticket in active)
+
+
+def test_ticket_and_outbox_event_commit_in_same_transaction(tmp_path):
+    """outbox 写失败必须回滚工单，不能留下无法可靠投递的半成功。"""
+    service = TicketService(str(tmp_path / "tickets.db"))
+    with service._connect() as conn:
+        conn.execute(
+            """
+            CREATE TRIGGER reject_ticket_outbox BEFORE INSERT ON ticket_outbox
+            BEGIN SELECT RAISE(ABORT, 'outbox unavailable'); END
+            """
+        )
+
+    with pytest.raises(Exception, match="outbox unavailable"):
+        create(service)
+
+    assert service.list_tickets() == []
+    assert service.outbox_stats()["pending"] == 0
+
+
+def test_idempotent_ticket_creates_one_outbox_event_and_dispatches_once(tmp_path):
+    delivered = []
+    service = TicketService(
+        str(tmp_path / "tickets.db"), dispatcher=delivered.append,
+    )
+    first, first_created = create(service)
+    second, second_created = create(service)
+
+    assert first_created is True
+    assert second_created is False
+    assert second.ticket_id == first.ticket_id
+    assert service.outbox_stats()["pending"] == 1
+    assert service.dispatch_once() is True
+    assert service.dispatch_once() is False
+    assert len(delivered) == 1
+    assert delivered[0].ticket_id == first.ticket_id
+    assert delivered[0].payload["idempotency_key"] == "request-1"
+    assert service.outbox_stats()["delivered"] == 1
+
+
+def test_failed_dispatch_remains_pending_for_retry_without_fake_success(tmp_path):
+    def fail(_message):
+        raise RuntimeError("crm unavailable")
+
+    service = TicketService(
+        str(tmp_path / "tickets.db"),
+        dispatcher=fail,
+        dispatch_retry_base_seconds=60,
+    )
+    create(service)
+
+    assert service.dispatch_once() is True
+    stats = service.outbox_stats()
+    assert stats["pending"] == 1
+    assert stats["delivered"] == 0
+    assert stats["due"] == 0
+
+
+def test_failed_outbox_event_is_recovered_by_restarted_worker(tmp_path):
+    path = tmp_path / "tickets.db"
+
+    def fail(_message):
+        raise RuntimeError("first worker crashed")
+
+    first = TicketService(
+        str(path), dispatcher=fail, dispatch_retry_base_seconds=0.05,
+    )
+    create(first)
+    assert first.dispatch_once() is True
+
+    delivered = []
+    restarted = TicketService(str(path), dispatcher=delivered.append)
+    time.sleep(0.07)
+    assert restarted.dispatch_once() is True
+    assert len(delivered) == 1
+    assert delivered[0].attempts == 2
+    assert restarted.outbox_stats()["delivered"] == 1
 """TicketService 持久化、幂等身份和闭合状态机测试。"""

@@ -40,8 +40,9 @@ POST /chat
   -> verify coverage, grounding, completeness, and safety (PASS / REJECT / UNKNOWN)
   -> feed PASS / REJECT quality back to the exact producing Agent instances
   -> publish only PASS answers; escalate every other outcome
-  -> persist each escalation as one idempotent human-support ticket
+  -> persist each escalation and its ticket.created outbox event in one SQLite transaction
   -> persist verifier, coverage, and uncertain tool-effect failures as deduplicated Bad Case candidates
+  -> persist response_id + conversation-local response_seq before returning; accept authenticated delivered/read ACKs
   -> append the published turn with contiguous conversation-local sequence numbers and immediately upsert its raw events into episodic search
   -> atomically schedule source-linked fact reflection with the L0 turn, then debounce it in a recoverable Redis queue
   -> explicitly finalize short sessions by compensating any missing index metadata and advancing their summary checkpoint
@@ -311,7 +312,21 @@ CLOSED -> terminal
 Every successful transition appends an immutable event with actor, note, and
 timestamp. Repeating the same status is an idempotent no-op; unsupported
 transitions return HTTP `409`. A stable chat `request_id` guarantees that
-network retries reuse the first handoff ticket.
+network retries reuse the first handoff ticket. Ticket creation also inserts an
+immutable `ticket.created` outbox row in the same transaction. When
+`TICKET_DISPATCH_WEBHOOK_URL` is configured, a leased worker retries delivery
+with exponential backoff and a stable event idempotency key; without a webhook,
+the outbox remains truthfully pending.
+
+## Response delivery receipts
+
+Every `/chat` response includes `response_id`, conversation-local
+`response_seq`, and `delivery_status=selected`. After rendering, an authenticated
+client calls `POST /responses/{response_id}/ack` with `delivered` (and optionally
+later `read`). Transitions are monotonic and idempotent. Reconnecting clients use
+`GET /conversations/{conv_id}/responses?after_seq=N`; this application ACK is what
+proves terminal delivery—an MQ acknowledgement would only prove broker/consumer
+progress.
 
 ## Bad Case quality loop
 

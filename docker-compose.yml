@@ -93,6 +93,13 @@ services:
       - EVAL_BASELINE_PATH=/app/data/eval-state/baseline.json
       - DIALOGPILOT_SKILLS_DIR=/app/skills
       - TICKET_DB_PATH=/app/data/tickets/tickets.db
+      - TICKET_DISPATCH_WEBHOOK_URL=${TICKET_DISPATCH_WEBHOOK_URL:-}
+      - TICKET_DISPATCH_TIMEOUT_SECONDS=${TICKET_DISPATCH_TIMEOUT_SECONDS:-5}
+      - TICKET_DISPATCH_POLL_SECONDS=${TICKET_DISPATCH_POLL_SECONDS:-5}
+      - TICKET_DISPATCH_LEASE_SECONDS=${TICKET_DISPATCH_LEASE_SECONDS:-30}
+      - TICKET_DISPATCH_RETRY_BASE_SECONDS=${TICKET_DISPATCH_RETRY_BASE_SECONDS:-5}
+      - TICKET_DISPATCH_RETRY_MAX_SECONDS=${TICKET_DISPATCH_RETRY_MAX_SECONDS:-300}
+      - RESPONSE_DELIVERY_DB_PATH=/app/data/responses/responses.db
       - BADCASE_DB_PATH=/app/data/badcases/badcases.db
       - BADCASE_IDENTITY_SALT=${BADCASE_IDENTITY_SALT:-}
       - CUSTOMER_OPERATIONS_DB_PATH=/app/data/customer-operations/operations.db
@@ -158,6 +165,7 @@ services:
       - ./data/eval:/app/data/eval:ro
       - dialogpilot-eval-state:/app/data/eval-state
       - dialogpilot-tickets:/app/data/tickets
+      - dialogpilot-responses:/app/data/responses
       - dialogpilot-badcases:/app/data/badcases
       - dialogpilot-customer-operations:/app/data/customer-operations
       - dialogpilot-react-runs:/app/data/react-runs
@@ -217,6 +225,7 @@ volumes:
   prometheus-data:
   nginx-logs:
   dialogpilot-tickets:
+  dialogpilot-responses:
   dialogpilot-badcases:
   dialogpilot-customer-operations:
   dialogpilot-react-runs:

@@ -6,16 +6,22 @@ API 层只请求操作，不能自行放宽状态机或解释数据库行。
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
+import logging
 import sqlite3
 import threading
+import urllib.request
 import uuid
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
+
+
+logger = logging.getLogger(__name__)
 
 
 class TicketStatus(str, Enum):
@@ -102,15 +108,94 @@ class Ticket:
         return data
 
 
+@dataclass(frozen=True)
+class TicketOutboxMessage:
+    """等待外部人工系统确认接收的不可变工单事件。"""
+    event_id: str
+    event_type: str
+    ticket_id: str
+    payload: Dict[str, Any]
+    attempts: int
+    created_at: str
+
+
+class TicketWebhookDispatcher:
+    """把 outbox 事件投递到外部 CRM webhook；接收端须按 event_id 幂等。"""
+
+    def __init__(self, url: str, *, timeout_seconds: float = 5.0):
+        self._url = (url or "").strip()
+        if not self._url:
+            raise ValueError("ticket dispatch webhook URL must not be blank")
+        self._timeout_seconds = max(0.1, float(timeout_seconds))
+
+    def __call__(self, message: TicketOutboxMessage) -> None:
+        body = json.dumps({
+            "event_id": message.event_id,
+            "event_type": message.event_type,
+            "ticket_id": message.ticket_id,
+            "payload": message.payload,
+            "created_at": message.created_at,
+        }, ensure_ascii=False, sort_keys=True).encode("utf-8")
+        request = urllib.request.Request(
+            self._url,
+            data=body,
+            headers={
+                "Content-Type": "application/json",
+                "Idempotency-Key": message.event_id,
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(request, timeout=self._timeout_seconds) as response:
+            if not 200 <= int(response.status) < 300:
+                raise RuntimeError(f"ticket webhook returned HTTP {response.status}")
+
+
 class TicketService:
     """工单持久化、幂等身份与生命周期的权威 Owner。"""
 
-    def __init__(self, database_path: str):
+    def __init__(
+        self,
+        database_path: str,
+        *,
+        dispatcher: Optional[Callable[[TicketOutboxMessage], None]] = None,
+        dispatch_poll_seconds: float = 5.0,
+        dispatch_lease_seconds: float = 30.0,
+        dispatch_retry_base_seconds: float = 5.0,
+        dispatch_retry_max_seconds: float = 300.0,
+    ):
         """解析数据库路径、准备父目录并初始化 SQLite schema。"""
         self._path = Path(database_path).expanduser().resolve()
         self._path.parent.mkdir(parents=True, exist_ok=True)
         self._lock = threading.RLock()
+        self._dispatcher = dispatcher
+        self._dispatch_poll_seconds = max(0.05, float(dispatch_poll_seconds))
+        self._dispatch_lease_seconds = max(1.0, float(dispatch_lease_seconds))
+        self._dispatch_retry_base_seconds = max(0.05, float(dispatch_retry_base_seconds))
+        self._dispatch_retry_max_seconds = max(
+            self._dispatch_retry_base_seconds, float(dispatch_retry_max_seconds)
+        )
+        self._worker_id = uuid.uuid4().hex
+        self._worker_task: Optional[asyncio.Task] = None
+        self._stop_event: Optional[asyncio.Event] = None
         self._initialize()
+
+    async def start(self) -> None:
+        """配置外部投递器时启动可恢复轮询；未配置时 outbox 保持 pending。"""
+        if self._dispatcher is None or self._worker_task is not None:
+            return
+        self._stop_event = asyncio.Event()
+        self._worker_task = asyncio.create_task(
+            self._dispatch_loop(), name="ticket-outbox-dispatcher"
+        )
+
+    async def close(self) -> None:
+        if self._worker_task is None:
+            return
+        assert self._stop_event is not None
+        self._stop_event.set()
+        await self._worker_task
+        self._worker_task = None
+        self._stop_event = None
 
     def create_ticket(
         self,
@@ -158,6 +243,7 @@ class TicketService:
         )
         now = self._now()
         ticket_id = uuid.uuid4().hex
+        outbox_event_id = uuid.uuid4().hex
 
         with self._lock, self._connect() as conn:
             # BEGIN IMMEDIATE 在读旧记录与插入新记录之间取得写锁，配合唯一索引
@@ -211,8 +297,158 @@ class TicketService:
                 note="ticket created",
                 created_at=now,
             )
+            outbox_payload = {
+                "ticket_id": ticket_id,
+                "idempotency_key": values["idempotency_key"],
+                "user_id": values["user_id"],
+                "conv_id": values["conv_id"],
+                "request_id": values["request_id"],
+                "question": values["question"],
+                "published_response": values["published_response"],
+                "reason": values["reason"],
+                "priority": values["priority"].value,
+                "status": TicketStatus.OPEN.value,
+                "agent_type": values["agent_type"],
+                "intent": values["intent"],
+                "verification_status": values["verification_status"],
+                "created_at": now,
+            }
+            conn.execute(
+                """
+                INSERT INTO ticket_outbox (
+                    event_id, event_type, ticket_id, payload_json, attempts,
+                    available_at, claimed_by, lease_until, last_error,
+                    delivered_at, created_at
+                ) VALUES (?, 'ticket.created', ?, ?, 0, ?, NULL, NULL, NULL, NULL, ?)
+                """,
+                (
+                    outbox_event_id, ticket_id,
+                    json.dumps(outbox_payload, ensure_ascii=False, sort_keys=True),
+                    now, now,
+                ),
+            )
             row = conn.execute("SELECT * FROM tickets WHERE ticket_id = ?", (ticket_id,)).fetchone()
             return self._row_to_ticket(row), True
+
+    def dispatch_once(self) -> bool:
+        """认领并投递一个到期事件；返回本次是否处理了事件。"""
+        if self._dispatcher is None:
+            return False
+        message = self._claim_outbox_message()
+        if message is None:
+            return False
+        try:
+            self._dispatcher(message)
+        except Exception as exc:
+            self._mark_outbox_failed(message, exc)
+            logger.warning(
+                "工单 outbox 投递失败 event_id=%s attempts=%s error=%s",
+                message.event_id, message.attempts, type(exc).__name__,
+            )
+        else:
+            self._mark_outbox_delivered(message)
+        return True
+
+    def outbox_stats(self) -> Dict[str, Any]:
+        """返回真实持久状态；未配置接收端时明确报告 disabled。"""
+        now = self._now()
+        with self._connect() as conn:
+            row = conn.execute(
+                """
+                SELECT
+                    SUM(CASE WHEN delivered_at IS NULL THEN 1 ELSE 0 END) AS pending,
+                    SUM(CASE WHEN delivered_at IS NOT NULL THEN 1 ELSE 0 END) AS delivered,
+                    SUM(CASE WHEN delivered_at IS NULL AND available_at <= ? THEN 1 ELSE 0 END) AS due
+                FROM ticket_outbox
+                """,
+                (now,),
+            ).fetchone()
+        return {
+            "dispatcher_configured": self._dispatcher is not None,
+            "worker_running": self._worker_task is not None and not self._worker_task.done(),
+            "pending": int(row["pending"] or 0),
+            "delivered": int(row["delivered"] or 0),
+            "due": int(row["due"] or 0),
+        }
+
+    async def _dispatch_loop(self) -> None:
+        assert self._stop_event is not None
+        while not self._stop_event.is_set():
+            try:
+                handled = await asyncio.to_thread(self.dispatch_once)
+            except Exception:
+                logger.exception("工单 outbox worker 周期失败")
+                handled = False
+            if handled:
+                continue
+            try:
+                await asyncio.wait_for(
+                    self._stop_event.wait(), timeout=self._dispatch_poll_seconds
+                )
+            except asyncio.TimeoutError:
+                pass
+
+    def _claim_outbox_message(self) -> Optional[TicketOutboxMessage]:
+        now_dt = datetime.now(timezone.utc)
+        now = now_dt.isoformat()
+        lease_until = (now_dt + timedelta(seconds=self._dispatch_lease_seconds)).isoformat()
+        with self._lock, self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            row = conn.execute(
+                """
+                SELECT * FROM ticket_outbox
+                WHERE delivered_at IS NULL AND available_at <= ?
+                  AND (claimed_by IS NULL OR lease_until <= ?)
+                ORDER BY created_at ASC, event_id ASC LIMIT 1
+                """,
+                (now, now),
+            ).fetchone()
+            if row is None:
+                return None
+            attempts = int(row["attempts"]) + 1
+            conn.execute(
+                """
+                UPDATE ticket_outbox
+                SET claimed_by = ?, lease_until = ?, attempts = ?
+                WHERE event_id = ?
+                """,
+                (self._worker_id, lease_until, attempts, row["event_id"]),
+            )
+        return TicketOutboxMessage(
+            event_id=row["event_id"], event_type=row["event_type"],
+            ticket_id=row["ticket_id"], payload=json.loads(row["payload_json"]),
+            attempts=attempts, created_at=row["created_at"],
+        )
+
+    def _mark_outbox_delivered(self, message: TicketOutboxMessage) -> None:
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """
+                UPDATE ticket_outbox
+                SET delivered_at = ?, claimed_by = NULL, lease_until = NULL, last_error = NULL
+                WHERE event_id = ? AND claimed_by = ? AND delivered_at IS NULL
+                """,
+                (self._now(), message.event_id, self._worker_id),
+            )
+
+    def _mark_outbox_failed(self, message: TicketOutboxMessage, error: Exception) -> None:
+        delay = min(
+            self._dispatch_retry_max_seconds,
+            self._dispatch_retry_base_seconds * (2 ** max(0, message.attempts - 1)),
+        )
+        available_at = (datetime.now(timezone.utc) + timedelta(seconds=delay)).isoformat()
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """
+                UPDATE ticket_outbox
+                SET available_at = ?, claimed_by = NULL, lease_until = NULL, last_error = ?
+                WHERE event_id = ? AND claimed_by = ? AND delivered_at IS NULL
+                """,
+                (
+                    available_at, f"{type(error).__name__}: {str(error)[:500]}",
+                    message.event_id, self._worker_id,
+                ),
+            )
 
     def get_ticket(self, ticket_id: str) -> Ticket:
         """按 ID 读取工单；不存在时使用领域异常而不是返回空值。"""
@@ -383,6 +619,23 @@ class TicketService:
                     created_at TEXT NOT NULL,
                     FOREIGN KEY(ticket_id) REFERENCES tickets(ticket_id)
                 );
+
+                CREATE TABLE IF NOT EXISTS ticket_outbox (
+                    event_id TEXT PRIMARY KEY,
+                    event_type TEXT NOT NULL,
+                    ticket_id TEXT NOT NULL,
+                    payload_json TEXT NOT NULL,
+                    attempts INTEGER NOT NULL DEFAULT 0 CHECK(attempts >= 0),
+                    available_at TEXT NOT NULL,
+                    claimed_by TEXT,
+                    lease_until TEXT,
+                    last_error TEXT,
+                    delivered_at TEXT,
+                    created_at TEXT NOT NULL,
+                    FOREIGN KEY(ticket_id) REFERENCES tickets(ticket_id)
+                );
+                CREATE INDEX IF NOT EXISTS idx_ticket_outbox_due
+                    ON ticket_outbox(delivered_at, available_at, created_at);
                 """
             )
 

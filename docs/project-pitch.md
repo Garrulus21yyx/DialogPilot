@@ -39,8 +39,9 @@ Bad Case 不会在线改生产 Prompt。系统先用脱敏版本信封做责任�
   → CoverageGate
   → ResultSynthesizer
   → AnswerVerifier
-  → 发布答案或创建人工工单
-  → 持久化真实发布结果
+  → 创建人工工单 + 同事务 outbox（按需）
+  → 持久化 response_id / response_seq 与真实发布结果
+  → HTTP 返回；客户端渲染后 ACK，断线按 seq 续取
   → Redis 防抖任务批量抽取 L1 事实，并记录 Bad Case
   → 脱敏归因 → 离线候选 → Graduation → 灰度/回滚
 ```
@@ -57,8 +58,10 @@ flowchart LR
     D --> E[Worker + ReAct + Tools]
     E --> F[Coverage + Synthesis]
     F --> G{Verifier}
-    G -->|PASS| H[发布并持久化]
-    G -->|其他| I[工单 + Bad Case]
+    G -->|PASS| H[选定回答 + response seq]
+    G -->|其他| I[工单 + Outbox + Bad Case]
+    H --> A1[HTTP + Client ACK]
+    I --> H
     I --> J[离线候选 / Graduation]
     J --> K[Shadow / Canary / Rollback]
 ```
@@ -124,9 +127,15 @@ BLOCKED_DEPENDENCY / AWAITING_APPROVAL
 
 API 和 Orchestrator 可以申请人工升级，但只有 `TicketService` 负责工单身份、幂等、持久化、合法状态迁移和事件历史。这样 Controller 不能随意发明状态，相同 `request_id` 的重试也不会创建重复工单。
 
+新建工单与 `ticket.created` outbox 在同一个 SQLite 事务提交；配置外部 CRM webhook 后，Worker 以稳定 event id 做至少一次投递和指数退避，成功才标记 delivered。未配置接收端时 outbox 保持 pending，不把“本地已建单”冒充“外部队列已接收”。
+
 新请求会读取该用户最近三个未进入 `CLOSED` 终态的工单，并作为高于历史记忆的 `active_tickets` 数据 section 提供给 Worker；订单、退款和账户的实时状态仍由业务工具拥有。这样用现有工单状态承担轻量 Case Memory，不再复制一套案件数据库。
 
 当前使用 SQLite 是为了让个人项目易部署；服务合同保持窄边界，多副本写入时可以迁移 PostgreSQL，而不用重写 Agent 主链。
+
+### 如何证明回答真的到了客户端？
+
+`/chat` 返回前由 `ResponseDeliveryService` 持久化 `response_id + response_seq + SELECTED`。客户端渲染后认证 ACK 为 `DELIVERED`，可选继续 ACK 为 `READ`；状态只单调上升。断线按 `after_seq` 续取。这里不用 MQ 冒充终端回执，因为 broker ACK 无法证明浏览器已经展示。
 
 ### 为什么 Bad Case 不等于 Ticket 或 Trace？
 

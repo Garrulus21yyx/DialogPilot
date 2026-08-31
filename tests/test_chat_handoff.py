@@ -17,6 +17,7 @@ from services.answer_verifier import (
     VerificationStatus,
 )
 from services.ticket_service import TicketPriority, TicketService
+from services.response_delivery import ResponseDeliveryService
 from services.evolution import AgentBundleRegistry, RolloutManager, build_default_bundle
 from memory.context import ContextAssembler
 
@@ -147,6 +148,10 @@ def test_chat_out_of_scope_is_a_policy_terminal_without_worker_verifier_or_memor
     monkeypatch.setattr(main, "_memory", memory)
     monkeypatch.setattr(main, "_answer_verifier", MustNotVerify())
     monkeypatch.setattr(main, "_ticket_service", tickets)
+    monkeypatch.setattr(
+        main, "_response_delivery",
+        ResponseDeliveryService(str(tmp_path / "scope-responses.db")),
+    )
     monkeypatch.setattr(main, "_badcase_registry", None)
     monkeypatch.setattr(main, "_tool_manager", MustNotSearchOrExecuteTools())
     monkeypatch.setattr(main, "_bundle_registry", bundles)
@@ -178,6 +183,8 @@ def test_chat_out_of_scope_is_a_policy_terminal_without_worker_verifier_or_memor
     assert response.verification_reason_code == "policy_terminal"
     assert response.escalated is False
     assert response.ticket_id is None
+    assert response.response_seq == 1
+    assert response.delivery_status.value == "selected"
     assert "客服范围" in response.response
     assert memory.messages == []
     assert memory.profile_updates == 0
@@ -193,6 +200,10 @@ def test_chat_escalation_creates_one_persistent_idempotent_ticket(tmp_path, monk
     monkeypatch.setattr(main, "_memory", memory)
     monkeypatch.setattr(main, "_answer_verifier", FakeVerifier())
     monkeypatch.setattr(main, "_ticket_service", ticket_service)
+    monkeypatch.setattr(
+        main, "_response_delivery",
+        ResponseDeliveryService(str(tmp_path / "responses.db")),
+    )
     monkeypatch.setattr(
         main,
         "_context_assembler",
@@ -220,6 +231,8 @@ def test_chat_escalation_creates_one_persistent_idempotent_ticket(tmp_path, monk
     assert first.handoff_created is True
     assert retry.handoff_created is False
     assert retry.ticket_id == first.ticket_id
+    assert retry.response_seq == 2
+    assert retry.response_id != first.response_id
     assert ticket_service.get_ticket(first.ticket_id).priority is TicketPriority.CRITICAL
     assert len(ticket_service.list_tickets()) == 1
     assert memory.profile_updates == 2
@@ -268,6 +281,10 @@ def test_chat_waiting_approval_does_not_create_handoff_or_badcase(tmp_path, monk
     monkeypatch.setattr(main, "_memory", memory)
     monkeypatch.setattr(main, "_answer_verifier", MustNotVerify())
     monkeypatch.setattr(main, "_ticket_service", tickets)
+    monkeypatch.setattr(
+        main, "_response_delivery",
+        ResponseDeliveryService(str(tmp_path / "pending-responses.db")),
+    )
     monkeypatch.setattr(main, "_badcase_registry", None)
     monkeypatch.setattr(main, "_tool_manager", None)
     bundles = AgentBundleRegistry(str(tmp_path / "pending-agent-bundles.db"))

@@ -104,7 +104,8 @@ DialogPilot/
 ├── services/
 │   ├── result_synthesizer.py        # 并行结果的唯一融合 Owner
 │   ├── answer_verifier.py           # 回答发布边界
-│   ├── ticket_service.py            # 工单身份、状态、幂等、审计
+│   ├── response_delivery.py         # 回答 seq、ACK 状态与断线续取
+│   ├── ticket_service.py            # 工单身份、状态、审计与事务 outbox
 │   └── customer_operations.py       # 订单/退款/安全事件 SQLite 业务沙箱 Owner
 ├── monitor/performance_monitor.py   # 在线指标、告警、路由 penalty
 ├── evaluation/evaluator.py          # 离线意图/对话评测和基线
@@ -163,7 +164,8 @@ API 层负责**时序编排**，但不应该成为各领域事实的 Owner。例
 | 并行候选回答 | `ResultSynthesizer` | Agent outcomes | Verifier/API | `SUCCESS/PARTIAL/CONFLICT/FAILED/UNKNOWN` |
 | 是否可发布 | `AnswerVerifier` | Candidate + context + plan/coverage/outcomes | API、质量反馈、Ticket | coverage 缺口本地 REJECT；其余只有 `PASS` 可发布 |
 | 选定发布文本 | `/chat` 发布边界 | Verifier/API | Memory、Client、Ticket | 只持久化选入 HTTP 响应的文本 |
-| 工单身份与状态 | `TicketService` | Chat/manual API | 人工流程/API | 幂等创建、合法迁移、同事务事件 |
+| 回答序号与送达状态 | `ResponseDeliveryService` | `/chat`、认证客户端 ACK | Client、健康统计 | `SELECTED → DELIVERED → READ` 单调幂等；会话内 seq 连续 |
+| 工单身份、状态与外发事件 | `TicketService` | Chat/manual API | 人工流程/API/外部 CRM | 工单与 `ticket.created` outbox 同事务；外发按 event_id 幂等重试 |
 | Bad Case 身份与生命周期 | `BadCaseRegistry` | Verifier、Coverage、Tool audit、用户反馈 | 管理队列、评测导出、发布复盘 | 自动信号只建 candidate；有证据迁移；复发重开；不自动 Gold |
 | Agent 可用性/质量统计 | 每个 `AgentStats` | 执行结果、Verifier verdict | Router、Monitor | 可用性与回答质量分离 |
 | 离线质量报告 | `EndToEndEvaluator` | Cases + Judge + orchestration evidence | 开发者/发布决策 | 同时度量文本质量、Owner、覆盖、预算和 fan-out |
@@ -213,6 +215,7 @@ sequenceDiagram
     participant S as ResultSynthesizer
     participant V as AnswerVerifier
     participant K as TicketService
+    participant D as ResponseDeliveryService
 
     C->>A: message,user_id,conv_id?,request_id?
     A->>M: get_context(user, conv, query)
@@ -245,10 +248,12 @@ sequenceDiagram
     V-->>A: PASS / REJECT / UNKNOWN
     alt escalation needed
         A->>K: create idempotent ticket
-        K-->>A: new/reused ticket or explicit delivery failure
+        K-->>A: ticket + same-transaction outbox event
     end
+    A->>D: persist selected response_id + conversation seq
     A->>M: persist user + actually published response
-    A-->>C: ChatResponse + TraceId/audit/retrieval diagnostics
+    A-->>C: ChatResponse + response_id/seq
+    C->>D: ACK delivered/read
 ```
 
 ### 5.1 请求身份
@@ -299,9 +304,13 @@ RAG 结果作为 `ContextSection(tag="knowledge", data_only=true)` 进入 system
 - `REJECT`：coverage 缺口、本地空回答或 Judge 明确拒绝，替换为固定人工确认话术；
 - `UNKNOWN`：模型失败、坏 JSON 或未知状态，也替换并升级。
 
-### 5.6 先确定发布文本，再写记忆
+### 5.6 先确定发布文本，再记录送达并写记忆
 
-Memory 保存的是服务端选入 HTTP 响应的 `response_text`，不是未经校验的 candidate。服务端无法证明客户端最终收到了字节，因此这里的 “published” 是响应选择事实，不是用户实际阅读 receipt。即便如此，也不能让下轮模型把已被拒绝的 candidate 当成历史事实。
+Memory 保存的是服务端选入 HTTP 响应的 `response_text`，不是未经校验的 candidate。`ResponseDeliveryService` 会在返回 HTTP 前把该文本记录为 `SELECTED`，生成 `response_id` 和当前 `user_id + conv_id` 内连续的 `response_seq`。这仍只证明服务端做了选择，不证明浏览器收到或展示。
+
+客户端渲染完成后调用 `POST /responses/{response_id}/ack` 提交 `delivered`；如果产品还区分用户已读，再提交 `read`。状态只能单调推进 `SELECTED → DELIVERED → READ`，重复 ACK、迟到的 delivered ACK 都不会倒退。断线重连通过 `GET /conversations/{conv_id}/responses?after_seq=N` 续取遗漏文本。ACK 依赖签名 Principal，猜到他人的 `response_id` 也按不存在处理。这里不使用 MQ，因为 MQ 最多证明消息到达 broker/consumer，无法代替终端应用层回执。
+
+写入 Redis 的 assistant 消息同时携带 `response_id/response_seq`，因此下一轮模型只会看到真正选定的安全文本；被 Verifier 拒绝的 candidate 仍不会进入历史。
 
 ### 5.7 L0 每轮保存，L1 事实防抖提取
 
@@ -313,7 +322,9 @@ Memory 保存的是服务端选入 HTTP 响应的 `response_text`，不是未经
 
 ### 5.8 工单投递失败不是成功
 
-如果 `TicketService.create_ticket()` 失败，API 当前保持 `escalated=true`、`ticket_id=null`，返回明确“工单创建失败，请用相同 request_id 重试”的文本。也就是说，系统拥有“需要升级”和“已持久化 ticket”两个不同事实；当前没有 outbox/可靠队列保证升级最终必达。这里不能复用记忆事实队列假装解决工单投递：本地 TicketService 的数据库持久化仍是 ticket 成功的唯一 Owner。
+`TicketService.create_ticket()` 现在在一个 SQLite 事务中同时插入工单、首个状态事件和不可变 `ticket.created` outbox 事件。任意一项失败都会整体回滚；API 保持 `escalated=true`、`ticket_id=null`，要求客户端用相同 `request_id` 重试。因而“需要升级”和“已持久化 ticket”仍是两个不同事实。
+
+配置 `TICKET_DISPATCH_WEBHOOK_URL` 后，生命周期 Worker 用租约认领到期事件并投递外部 CRM，请求携带稳定 `event_id` 作为 `Idempotency-Key`。成功才写 `delivered_at`；失败保留 `last_error` 并按 5 秒起、最大 300 秒指数退避。进程在外部已接收、但本地尚未来得及标记成功时可能重复发送，所以接收端也必须按 `event_id` 幂等。未配置 webhook 时本地工单仍然成功，outbox 明确保持 pending，不能伪装成已进入外部人工队列。它解决的是“本地成功后如何可靠外发”，不解决 SQLite 文件本身不可写。
 
 ## 6. 意图识别：三路信号如何融合
 
@@ -1065,7 +1076,7 @@ Nginx :80
 Prometheus :9090
 ```
 
-应用容器使用非 root 用户；Chroma ONNX embedding 模型在 build 阶段预下载，避免首次请求临时下载失败；tickets/chroma/eval/skills/logs 映射为持久目录。
+应用容器使用非 root 用户；Chroma ONNX embedding 模型在 build 阶段预下载，避免首次请求临时下载失败；tickets/responses/chroma/eval/skills/logs 映射为持久目录。
 
 ### 17.3 关键环境变量
 
@@ -1082,6 +1093,9 @@ Prometheus :9090
 | `RAG_CHUNK_OVERLAP_TOKENS` | 相邻 RAG 片段重叠预算 48 Token，必须小于片段上限 |
 | `INTENT_SIMILARITY_MODE` | `ngram` 或 `disabled`，不再由 provider base URL 猜测 |
 | `TICKET_DB_PATH` | SQLite 工单文件 |
+| `TICKET_DISPATCH_WEBHOOK_URL` | 可选外部 CRM 接收端；为空则 outbox 保持 pending |
+| `TICKET_DISPATCH_*` | webhook 超时、扫描、租约和指数退避参数 |
+| `RESPONSE_DELIVERY_DB_PATH` | 回答选择、ACK 状态和断线续取 seq 的 SQLite 文件 |
 | `CUSTOMER_OPERATIONS_DB_PATH` | SQLite 订单、退款申请与安全事件业务沙箱文件 |
 | `DIALOGPILOT_API_PORT` | Docker 宿主 API 端口，默认 18000；容器内仍为 8000 |
 | `CONTEXT_INPUT_BUDGET` | 完整输入预算 12000 |

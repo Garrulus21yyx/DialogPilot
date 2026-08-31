@@ -34,6 +34,12 @@ from services.ticket_service import (
     TicketPriority,
     TicketService,
     TicketStatus,
+    TicketWebhookDispatcher,
+)
+from services.response_delivery import (
+    DeliveryStatus,
+    ResponseDeliveryService,
+    ResponseNotFoundError,
 )
 from services.badcase_registry import (
     BadCaseContractError,
@@ -97,6 +103,7 @@ _evaluator    = None
 _skill_manager = None
 _answer_verifier = None
 _ticket_service = None
+_response_delivery = None
 _badcase_registry = None
 _customer_operations = None
 _context_assembler = None
@@ -156,7 +163,7 @@ def _anthropic_cfg() -> Dict[str, Any]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """按依赖顺序创建所有组件，并在退出时释放后台任务和连接。"""
-    global _orchestrator, _memory, _knowledge_base, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator, _rollout_manager
+    global _orchestrator, _memory, _knowledge_base, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator, _rollout_manager
 
     print(BANNER, flush=True)
 
@@ -239,10 +246,26 @@ async def lifespan(app: FastAPI):
         model=cfg["model"],
         model_profile=_model_policy.profile(ModelRole.VERIFIER),
     )
+    ticket_webhook_url = os.getenv("TICKET_DISPATCH_WEBHOOK_URL", "").strip()
+    ticket_dispatcher = TicketWebhookDispatcher(
+        ticket_webhook_url,
+        timeout_seconds=float(os.getenv("TICKET_DISPATCH_TIMEOUT_SECONDS", "5")),
+    ) if ticket_webhook_url else None
     _ticket_service = TicketService(
         os.getenv(
             "TICKET_DB_PATH",
             str(pathlib.Path(_ROOT) / "data" / "tickets" / "tickets.db"),
+        ),
+        dispatcher=ticket_dispatcher,
+        dispatch_poll_seconds=float(os.getenv("TICKET_DISPATCH_POLL_SECONDS", "5")),
+        dispatch_lease_seconds=float(os.getenv("TICKET_DISPATCH_LEASE_SECONDS", "30")),
+        dispatch_retry_base_seconds=float(os.getenv("TICKET_DISPATCH_RETRY_BASE_SECONDS", "5")),
+        dispatch_retry_max_seconds=float(os.getenv("TICKET_DISPATCH_RETRY_MAX_SECONDS", "300")),
+    )
+    _response_delivery = ResponseDeliveryService(
+        os.getenv(
+            "RESPONSE_DELIVERY_DB_PATH",
+            str(pathlib.Path(_ROOT) / "data" / "responses" / "responses.db"),
         )
     )
     _badcase_registry = BadCaseRegistry(
@@ -417,12 +440,15 @@ async def lifespan(app: FastAPI):
     )
 
     await _memory.start()
+    await _ticket_service.start()
     logger.info("DialogPilot 已就绪")
     try:
         yield
     finally:
         if _monitor is not None:
             await _monitor.stop()
+        if _ticket_service is not None:
+            await _ticket_service.close()
         if _memory is not None:
             await _memory.close()
         # lifespan 结束后不留下指向已关闭资源的进程全局引用。
@@ -435,6 +461,7 @@ async def lifespan(app: FastAPI):
         _skill_manager = None
         _answer_verifier = None
         _ticket_service = None
+        _response_delivery = None
         _badcase_registry = None
         _customer_operations = None
         _context_assembler = None
@@ -497,6 +524,9 @@ class ChatResponse(BaseModel):
     request_id:  str
     trace_id: str = ""
     conv_id:     str
+    response_id: str
+    response_seq: int
+    delivery_status: DeliveryStatus = DeliveryStatus.SELECTED
     response:    str
     intent:      str
     intent_group: str = "other"
@@ -603,6 +633,11 @@ class TicketStatusUpdate(BaseModel):
     assignee: Optional[str] = Field(default=None, max_length=200)
 
 
+class ResponseAckRequest(BaseModel):
+    """客户端可证明的单调回执；READ 隐含已经 DELIVERED。"""
+    status: Literal["delivered", "read"]
+
+
 class BadCaseFeedbackRequest(BaseModel):
     """认证用户提交的负反馈；内容只作为待审核 observation。"""
     request_id: str = Field(min_length=1, max_length=200)
@@ -656,6 +691,8 @@ async def health():
         "input_security": _input_security_guard.get_stats(),
         "badcases": _badcase_registry.stats() if _badcase_registry is not None else {},
         "memory_fact_jobs": _memory.fact_job_stats if _memory is not None else {},
+        "response_delivery": _response_delivery.stats() if _response_delivery is not None else {},
+        "ticket_outbox": _ticket_service.outbox_stats() if _ticket_service is not None else {},
     }
 
 
@@ -1166,6 +1203,7 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
         or _memory is None
         or _answer_verifier is None
         or _ticket_service is None
+        or _response_delivery is None
         or _context_assembler is None
         or _bundle_registry is None
         or _rollout_manager is None
@@ -1301,6 +1339,23 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
                 "或直接联系人工客服。"
             )
 
+    # 服务端选择与客户端送达是两个事实。先持久化选定文本和会话序号，随后才
+    # 能把 response_id 交给 HTTP 客户端做幂等 ACK 或断线续取。
+    try:
+        delivery = await asyncio.to_thread(
+            _response_delivery.select_response,
+            user_id=user_id,
+            conv_id=conv_id,
+            request_id=request_id,
+            response_text=response_text,
+        )
+    except Exception as exc:
+        logger.exception("持久化回答选择事实失败 request_id=%s", request_id)
+        raise HTTPException(503, {
+            "error": "response_selection_unavailable",
+            "retryable": True,
+        }) from exc
+
     tool_audit = [
         record.to_dict()
         for record in _tool_manager.audit_records(trace_id=current_trace_id())
@@ -1339,7 +1394,11 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
     if disposition != "out_of_scope":
         await _memory.add_messages(user_id, conv_id, [
             (MsgRole.USER, req.message, {"request_id": request_id}),
-            (MsgRole.ASSISTANT, response_text, {"request_id": request_id}),
+            (MsgRole.ASSISTANT, response_text, {
+                "request_id": request_id,
+                "response_id": delivery.response_id,
+                "response_seq": delivery.seq,
+            }),
         ], extract_facts=(disposition == "execute"))
 
     # 7. L1 事实任务已与 L0 原始轮次在同一 Redis 事务中持久化；这里不创建
@@ -1360,6 +1419,9 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
         request_id=request_id,
         trace_id=current_trace_id(),
         conv_id=conv_id,
+        response_id=delivery.response_id,
+        response_seq=delivery.seq,
+        delivery_status=delivery.status,
         response=response_text,
         intent=result.intent.value if result.intent else "other",
         intent_group=intent_result.intent_group,
@@ -1543,6 +1605,52 @@ async def finalize_conversation(
             "retryable": True,
         })
     return ConversationFinalizeResponse(conv_id=conv_id, **result)
+
+
+@app.post("/responses/{response_id}/ack", tags=["回答送达"])
+async def acknowledge_response(
+    response_id: str,
+    body: ResponseAckRequest,
+    principal: Principal = Depends(_chat_principal),
+):
+    """由认证客户端确认已渲染或已读；重复与乱序 ACK 保持单调幂等。"""
+    if _response_delivery is None:
+        raise HTTPException(503, "回答送达服务未就绪")
+    try:
+        delivery = await asyncio.to_thread(
+            _response_delivery.acknowledge,
+            response_id,
+            user_id=principal.subject,
+            status=DeliveryStatus(body.status),
+        )
+    except ResponseNotFoundError as exc:
+        # 不区分不存在和他人回答，避免 ID 枚举泄露。
+        raise HTTPException(404, {"error": "response_not_found"}) from exc
+    return delivery.to_public_dict()
+
+
+@app.get("/conversations/{conv_id}/responses", tags=["回答送达"])
+async def replay_responses(
+    conv_id: str,
+    after_seq: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=200),
+    principal: Principal = Depends(_chat_principal),
+):
+    """客户端重连后按稳定 seq 续取遗漏回答，再逐条提交 ACK。"""
+    if _response_delivery is None:
+        raise HTTPException(503, "回答送达服务未就绪")
+    deliveries = await asyncio.to_thread(
+        _response_delivery.list_after,
+        user_id=principal.subject,
+        conv_id=conv_id,
+        after_seq=after_seq,
+        limit=limit,
+    )
+    return {
+        "conv_id": conv_id,
+        "responses": [delivery.to_public_dict() for delivery in deliveries],
+        "last_seq": deliveries[-1].seq if deliveries else after_seq,
+    }
 
 
 @app.post("/tickets", tags=["人工工单"])

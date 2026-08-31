@@ -31,7 +31,8 @@ DialogPilot 不是一条不断堆 Prompt 的调用链，而是按“谁拥有最
 | Prompt 上下文 | `memory/context.py` | Token 估算、类型化分区和有界模型输入 |
 | 动态规则 | `core/skill_loader.py` | 请求级 Skill Prompt 块 |
 | 发布安全 | `services/answer_verifier.py` | `PASS`、`REJECT` 或 `UNKNOWN` |
-| 人工升级 | `services/ticket_service.py` | 工单身份、状态、幂等性和事件历史 |
+| 回答送达 | `services/response_delivery.py` | `response_id`、会话 seq 与 `SELECTED/DELIVERED/READ` |
+| 人工升级 | `services/ticket_service.py` | 工单身份、状态、幂等性、事件历史和同事务 outbox |
 | Bad Case 生命周期 | `services/badcase_registry.py` | 去重观察、证据门禁、复发和审计历史 |
 | 在线健康度 | `monitor/performance_monitor.py` | 告警和路由惩罚 |
 | 评测数据 | `evaluation/dataset.py` | 带版本、来源、审核状态、校验和及切分完整性的数据 |
@@ -54,12 +55,13 @@ DialogPilot 不是一条不断堆 Prompt 的调用链，而是按“谁拥有最
 8. 每个任务都必须转换为类型化结果，并检查必做任务覆盖率；依赖失败保留 `BLOCKED_DEPENDENCY` 证据。
 9. 合成唯一候选答案，在发布前校验覆盖、证据、完整性和安全性；代码拥有的澄清/越域固定回复以 `POLICY_TERMINAL` 发布，不再调用模型 Verifier。
 10. 只把校验结论归因给真正产生该候选答案的 Agent 实例。
-11. 需要升级时，创建或复用一个幂等、持久化的人工工单。
-12. 将校验失败、覆盖失败和工具副作用不确定记录为 provisional Bad Case，并附加 Bundle 组件哈希归因信封。
-13. `EXECUTE` 和需要保持追问连续性的 `CLARIFY` 轮次持久化真正发布的内容；`OUT_OF_SCOPE` 不写工作记忆、情景索引或画像。
-14. 只有 `EXECUTE` 轮次会在同一个 Redis 事务中追加 L0 原文并更新会话级 L1 事实任务；Worker 在累计 3 轮或空闲 5 分钟后批量提取，成功才推进 fact checkpoint。
-15. 客户端关闭会话时，`finalize` 补齐未覆盖范围的摘要/checkpoint 和索引 metadata，并强制尝试刷新已调度事实；原始事件不删除，事实失败则保留任务重试。
-16. 请求结束记录固定 Bundle 的质量/延迟代理指标；Shadow 副本不发布、不写业务事实。
+11. 需要升级时，在一个 SQLite 事务中创建/复用工单并写入 `ticket.created` outbox；后台向外部 CRM 投递，只有成功才标记 delivered。
+12. 为最终选定文本持久化 `response_id + response_seq + SELECTED`，再把它写入记忆并返回客户端；渲染/已读由认证 ACK 单调推进。
+13. 将校验失败、覆盖失败和工具副作用不确定记录为 provisional Bad Case，并附加 Bundle 组件哈希归因信封。
+14. `EXECUTE` 和需要保持追问连续性的 `CLARIFY` 轮次持久化真正发布的内容；`OUT_OF_SCOPE` 不写工作记忆、情景索引或画像。
+15. 只有 `EXECUTE` 轮次会在同一个 Redis 事务中追加 L0 原文并更新会话级 L1 事实任务；Worker 在累计 3 轮或空闲 5 分钟后批量提取，成功才推进 fact checkpoint。
+16. 客户端关闭会话时，`finalize` 补齐未覆盖范围的摘要/checkpoint 和索引 metadata，并强制尝试刷新已调度事实；原始事件不删除，事实失败则保留任务重试。
+17. 请求结束记录固定 Bundle 的质量/延迟代理指标；Shadow 副本不发布、不写业务事实。
 
 这个顺序保证记忆系统不会把“模型生成但未通过校验的答案”误认为已经展示给用户。
 
@@ -127,6 +129,8 @@ Agent 调用成功只说明模型供应商返回了结果，不代表答案质�
 - 校验器失败返回 `UNKNOWN`，绝不等同于 `PASS`。
 - `REJECT` 和 `UNKNOWN` 发布确定性人工转接说明，并设置 `escalated=true`。
 - 工单持久化失败时不能宣称升级成功，而是要求客户端携带相同 `request_id` 重试。
+- 回答返回只产生 `SELECTED`；没有认证客户端 ACK 时不能声称已送达或已读。
+- 外部 CRM 投递失败时 outbox 保持 pending 并退避重试；未配置接收端不能标记 delivered。
 - 压缩模型失败时，对同一固定来源范围执行有界确定性摘要；竞争的检查点迁移不能同时提交。
 - Agent 超时或异常是类型化结果。部分成功可以合成但必须升级；全部失败或不可校验的结果按 fail-closed 处理。
 - 请求预算耗尽仍以 `BUDGET_EXCEEDED` 绑定到原计划任务，不能从覆盖证据中静默消失。
@@ -142,7 +146,11 @@ Agent 调用成功只说明模型供应商返回了结果，不代表答案质�
 
 `list_active_tickets(user_id)` 只投影尚未进入 `CLOSED` 的最近事项；API 最多把三项作为 `active_tickets` 数据 section 注入所有 Worker 的声明上下文。这个投影不复制或修改状态，历史对话也不能覆盖 TicketService 的当前状态。
 
-幂等指纹绑定稳定的客户端操作，而不是模型每次生成的措辞。因此即使模型输出不确定，重试也能安全复用第一次创建的工单。
+幂等指纹绑定稳定的客户端操作，而不是模型每次生成的措辞。因此即使模型输出不确定，重试也能安全复用第一次创建的工单。新工单、首个状态事件和 `ticket.created` outbox 在同一 SQLite 事务提交。Worker 用短租约认领并指数退避；外部接收端必须按稳定 `event_id` 幂等，因为崩溃窗口下投递语义是至少一次而不是虚假的恰好一次。
+
+## 回答送达状态代数
+
+`ResponseDeliveryService` 在 HTTP 发送前为选定文本分配全局 `response_id` 和会话局部连续 `seq`，初态为 `SELECTED`。认证客户端渲染后 ACK 为 `DELIVERED`，用户确实打开/阅读时可继续 ACK 为 `READ`；`READ` 隐含已经送达。重复或乱序 ACK 只取更高状态，不允许倒退。重连客户端按 `after_seq` 续取，MQ 不能替代这个终端应用层事实。
 
 ## Bad Case 状态代数
 
