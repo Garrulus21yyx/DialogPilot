@@ -9,6 +9,8 @@ from agents.agent_orchestrator import (
     AgentResponse,
     AgentType,
     EscalationAgent,
+    PlanningDecision,
+    PlanningDisposition,
     Request,
 )
 from agents.orchestration_contracts import (
@@ -658,6 +660,100 @@ def test_single_agent_execution_uses_same_typed_timeout_boundary():
     assert result.synthesis_status == "single"
     assert result.agent_outcomes[0]["status"] == "timeout"
     assert result.producer_agent_keys == []
+
+
+def test_high_confidence_other_terminates_out_of_scope_without_a_worker():
+    """业务外请求必须由 Planner 确定性收口，不能再生成 general_task。"""
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+
+    async def must_not_execute(*_args, **_kwargs):
+        raise AssertionError("out-of-scope request must not execute a worker")
+
+    orchestrator._execute = must_not_execute
+    request = Request(
+        message="六边形有几条边？",
+        user_id="user",
+        conv_id="conversation",
+        intent=IntentCategory.OTHER,
+        intent_group="other",
+        intent_confidence=0.95,
+    )
+
+    decision = asyncio.run(orchestrator.plan(request))
+    result = asyncio.run(orchestrator.run(request))
+
+    assert decision.disposition is PlanningDisposition.OUT_OF_SCOPE
+    assert decision.task_plan is None
+    assert decision.agent_types == []
+    assert result.routing_disposition is PlanningDisposition.OUT_OF_SCOPE
+    assert result.task_plan == {}
+    assert result.agent_outcomes == []
+    assert result.agent_type is None
+    assert result.agent_types == []
+    assert result.primary_agent is None
+    assert result.synthesis_status == "policy"
+    assert "客服范围" in result.response
+
+
+def test_low_confidence_other_terminates_with_clarification_without_a_worker():
+    """语义不足与高置信度越域是两个不同终态，但都不能伪造 Worker。"""
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    request = Request(
+        message="看看",
+        user_id="user",
+        conv_id="conversation",
+        intent=IntentCategory.OTHER,
+        intent_group="other",
+        intent_confidence=0.2,
+    )
+
+    decision = asyncio.run(orchestrator.plan(request))
+    result = asyncio.run(orchestrator.run(request))
+
+    assert decision.disposition is PlanningDisposition.CLARIFY
+    assert decision.clarification_required is True
+    assert decision.task_plan is None
+    assert result.routing_disposition is PlanningDisposition.CLARIFY
+    assert result.agent_outcomes == []
+    assert result.primary_agent is None
+    assert "请补充" in result.response
+
+
+def test_greeting_remains_an_executable_general_agent_request():
+    """业务边界不能把正常寒暄误当越域拒答。"""
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    orchestrator._pool = {AgentType.GENERAL: [object()]}
+    request = Request(
+        message="你好",
+        user_id="user",
+        conv_id="conversation",
+        intent=IntentCategory.GREETING,
+        intent_group="greeting",
+        intent_confidence=0.95,
+    )
+
+    decision = asyncio.run(orchestrator.plan(request))
+
+    assert decision.disposition is PlanningDisposition.EXECUTE
+    assert decision.task_plan is not None
+    assert decision.task_plan.primary_agent is AgentType.GENERAL
+
+
+def test_planning_decision_rejects_task_and_disposition_split_brain():
+    """EXECUTE 必须有图，策略终态必须无图，避免两个权威事实并存。"""
+    plan = task_plan(AgentType.GENERAL)
+    with pytest.raises(ValueError, match="requires a task plan"):
+        PlanningDecision(
+            intent=IntentCategory.QUERY,
+            task_plan=None,
+            disposition=PlanningDisposition.EXECUTE,
+        )
+    with pytest.raises(ValueError, match="cannot contain a task plan"):
+        PlanningDecision(
+            intent=IntentCategory.OTHER,
+            task_plan=plan,
+            disposition=PlanningDisposition.OUT_OF_SCOPE,
+        )
 
 
 class JsonClient:

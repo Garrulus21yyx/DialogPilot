@@ -65,12 +65,12 @@ def test_committed_seed_is_valid_but_not_misreported_as_gold():
     bundle = DatasetBundle.load(REPO_DATASET)
     summary = bundle.summary()
 
-    assert summary["case_count"] == 28
+    assert summary["case_count"] == 29
     assert summary["corpus_count"] == 6
     assert summary["by_layer"] == {
         "intent": 8,
         "retrieval": 6,
-        "routing": 7,
+        "routing": 8,
         "stateful": 7,
     }
     assert bundle.select(gold_only=True) == []
@@ -278,6 +278,29 @@ def test_layered_scorer_reports_deterministic_process_and_result_metrics(tmp_pat
     assert report["layers"]["retrieval"]["recall_at_3"] == 1.0
     assert report["layers"]["retrieval"]["mrr"] == 0.5
     assert report["layers"]["stateful"]["all_assertions_pass"] == 1.0
+
+
+def test_routing_scorer_accepts_typed_no_worker_policy_terminal(tmp_path):
+    """空 Owner/Task 是策略终态的正确结果，不能被 fan-out 指标反向判错。"""
+    bundle = write_dataset(
+        tmp_path,
+        manifest=manifest(),
+        cases=[case(
+            "route-oos", "routing", "heldout", {"message": "weather"},
+            {"owners": [], "task_ids": [], "disposition": "out_of_scope"},
+        )],
+    )
+    report = score_bundle(
+        bundle,
+        [{"case_id": "route-oos", "actual": {
+            "owners": [], "task_ids": [], "disposition": "out_of_scope",
+        }}],
+        split="heldout",
+    )
+
+    assert report["pass_rate"] == 1.0
+    assert report["layers"]["routing"]["fanout_efficiency"] == 1.0
+    assert report["layers"]["routing"]["disposition_exact_match"] == 1.0
 
 
 def test_missing_predictions_fail_instead_of_shrinking_denominator(tmp_path):

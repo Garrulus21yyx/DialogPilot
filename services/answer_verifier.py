@@ -38,6 +38,7 @@ class VerificationReasonCode(str, Enum):
     MODEL_REJECTED = "model_rejected"
     VERIFIER_UNAVAILABLE = "verifier_unavailable"
     APPROVAL_REQUIRED = "approval_required"
+    POLICY_TERMINAL = "policy_terminal"
 
 
 @dataclass(frozen=True)

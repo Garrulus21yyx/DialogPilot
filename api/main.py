@@ -502,6 +502,7 @@ class ChatResponse(BaseModel):
     supporting_agents: List[str] = Field(default_factory=list)
     routing_reason: str = ""
     routing_confidence: float = 0.0
+    routing_disposition: str = "execute"
     synthesis_status: str = "single"
     synthesis_reason: str = ""
     synthesis_conflicts: List[str] = Field(default_factory=list)
@@ -796,6 +797,21 @@ def _publish_candidate(candidate: str, verification: VerificationResult) -> str:
     return "当前回答未通过可信度校验，已转交人工进一步确认。"
 
 
+def _policy_terminal_verification(result: Any) -> Optional[VerificationResult]:
+    """确定性 Planner 终态由代码策略拥有，不再调用回答模型或创建人工工单。"""
+    raw_disposition = getattr(result, "routing_disposition", None)
+    disposition = getattr(raw_disposition, "value", raw_disposition)
+    if disposition not in {"clarify", "out_of_scope"}:
+        return None
+    return VerificationResult(
+        status=VerificationStatus.PASS,
+        grounded=True,
+        need_escalation=False,
+        reason=f"deterministic planner terminal: {disposition}",
+        reason_code=VerificationReasonCode.POLICY_TERMINAL,
+    )
+
+
 def _badcase_versions(bundle: Optional[AgentBundle] = None) -> Dict[str, Any]:
     """生成不含密钥的复现版本投影。"""
     raw_skill_rows = (_skill_manager.summary().get("skills") or []) if _skill_manager else []
@@ -903,7 +919,12 @@ async def _capture_chat_badcases(
                 "intent": result.intent.value if result.intent else "other",
             }),
         )
-    if not approval_pending and not bool(result.coverage.get("complete", False)):
+    policy_terminal = _policy_terminal_verification(result) is not None
+    if (
+        not approval_pending
+        and not policy_terminal
+        and not bool(result.coverage.get("complete", False))
+    ):
         symptom = "required_task_coverage_incomplete"
         await _observe_badcase(
             **common,
@@ -1001,16 +1022,20 @@ async def _evaluate_shadow_request(
         if result.awaiting_approval:
             verified = False
         else:
-            verification = await _verify_for_publication(
-                _answer_verifier,
-                request.message,
-                result.response,
-                prompt_context.system_context,
-                task_plan=result.task_plan,
-                coverage=result.coverage,
-                agent_outcomes=result.agent_outcomes,
-            )
-            verified = verification.publishable and bool(result.coverage.get("complete", False))
+            verification = _policy_terminal_verification(result)
+            if verification is None:
+                verification = await _verify_for_publication(
+                    _answer_verifier,
+                    request.message,
+                    result.response,
+                    prompt_context.system_context,
+                    task_plan=result.task_plan,
+                    coverage=result.coverage,
+                    agent_outcomes=result.agent_outcomes,
+                )
+                verified = verification.publishable and bool(result.coverage.get("complete", False))
+            else:
+                verified = verification.publishable
         await asyncio.to_thread(
             _rollout_manager.record_outcome,
             bundle_version=bundle.version,
@@ -1220,15 +1245,17 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
             reason_code=VerificationReasonCode.APPROVAL_REQUIRED,
         )
     else:
-        verification = await _verify_for_publication(
-            _answer_verifier,
-            req.message,
-            result.response,
-            full_context,
-            task_plan=result.task_plan,
-            coverage=result.coverage,
-            agent_outcomes=result.agent_outcomes,
-        )
+        verification = _policy_terminal_verification(result)
+        if verification is None:
+            verification = await _verify_for_publication(
+                _answer_verifier,
+                req.message,
+                result.response,
+                full_context,
+                task_plan=result.task_plan,
+                coverage=result.coverage,
+                agent_outcomes=result.agent_outcomes,
+            )
     feedback_recorder = getattr(_orchestrator, "record_verification", None)
     if feedback_recorder:
         try:
@@ -1257,7 +1284,7 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
                     f"routing={result.routing_reason}"
                 )[:5000],
                 priority=_handoff_priority(intent_result.urgency, verification.status.value),
-                agent_type=result.agent_type.value,
+                agent_type=result.agent_type.value if result.agent_type else "orchestrator",
                 intent=result.intent.value if result.intent else "other",
                 verification_status=verification.status.value,
             )
@@ -1284,13 +1311,17 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
         bundle=bundle,
         approval_pending=approval_pending,
     )
+    disposition = getattr(result.routing_disposition, "value", result.routing_disposition)
     await asyncio.to_thread(
         _rollout_manager.record_outcome,
         bundle_version=bundle.version,
         stage=assignment.primary_stage,
         verified=(
             verification.publishable
-            and bool(result.coverage.get("complete", False))
+            and (
+                disposition in {"clarify", "out_of_scope"}
+                or bool(result.coverage.get("complete", False))
+            )
             and not approval_pending
         ),
         latency_ms=result.latency_ms,
@@ -1298,15 +1329,18 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
         request_id=request_id,
     )
 
-    # 6. 同一轮次一次追加连续 seq，压缩只会在完整轮次落地后触发。
-    persisted_messages = await _memory.add_messages(user_id, conv_id, [
-        (MsgRole.USER, req.message, {"request_id": request_id}),
-        (MsgRole.ASSISTANT, response_text, {"request_id": request_id}),
-    ])
+    # 6. 越域请求不进入客服工作记忆、情景索引或用户画像；其他结果仍按完整轮次写入。
+    persisted_messages = []
+    if disposition != "out_of_scope":
+        persisted_messages = await _memory.add_messages(user_id, conv_id, [
+            (MsgRole.USER, req.message, {"request_id": request_id}),
+            (MsgRole.ASSISTANT, response_text, {"request_id": request_id}),
+        ])
 
-    # 7. 异步形成版本化事实；显式传入本轮来源，避免 checkpoint 推进后漏提取。
-    asyncio.create_task(_memory.update_profile(user_id, conv_id, persisted_messages))
-    if assignment.shadow is not None:
+    # 7. 只有真正执行客服任务/寒暄的轮次可形成版本化用户事实。
+    if disposition == "execute":
+        asyncio.create_task(_memory.update_profile(user_id, conv_id, persisted_messages))
+    if assignment.shadow is not None and disposition == "execute":
         asyncio.create_task(_evaluate_shadow_request(
             request=req,
             user_id=user_id,
@@ -1325,12 +1359,13 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
         response=response_text,
         intent=result.intent.value if result.intent else "other",
         intent_group=intent_result.intent_group,
-        agent_type=result.agent_type.value,
+        agent_type=result.agent_type.value if result.agent_type else "orchestrator",
         agent_types=[agent_type.value for agent_type in result.agent_types],
-        primary_agent=result.primary_agent.value if result.primary_agent else result.agent_type.value,
+        primary_agent=result.primary_agent.value if result.primary_agent else "",
         supporting_agents=[agent_type.value for agent_type in result.supporting_agents],
         routing_reason=result.routing_reason,
         routing_confidence=result.routing_confidence,
+        routing_disposition=disposition,
         synthesis_status=result.synthesis_status,
         synthesis_reason=result.synthesis_reason,
         synthesis_conflicts=result.synthesis_conflicts,
@@ -1339,7 +1374,7 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
         coverage=result.coverage,
         execution_budget=result.execution_budget,
         tool_audit=tool_audit,
-        memory_retrieval=[{
+        memory_retrieval=[] if disposition == "out_of_scope" else [{
             "memory_id": hit.memory_id,
             "score": round(hit.score, 8),
             "sources": list(hit.sources),
@@ -1836,6 +1871,7 @@ class EvalDialogInput(BaseModel):
     conv_id: Optional[str] = None
     expected_agents: Optional[List[str]] = None
     expected_task_ids: Optional[List[str]] = None
+    expected_disposition: Optional[Literal["execute", "clarify", "out_of_scope"]] = None
     intent: Optional[str] = None
     intent_confidence: Optional[float] = None
     entities: Optional[Dict[str, List[str]]] = None
@@ -1937,6 +1973,7 @@ def _registered_eval_inputs(body: EvalRunInput):
             "user_id": "eval_user",
             "expected_agents": list(map(str, case.expected["owners"])),
             "expected_task_ids": list(map(str, case.expected["task_ids"])),
+            "expected_disposition": case.expected.get("disposition"),
             "evaluation_layer": "routing",
             "intent": case.input.get("intent"),
             "intent_confidence": case.input.get("intent_confidence"),
@@ -2350,12 +2387,15 @@ async def _cli():
         req = Request(message=msg, user_id=user_id, conv_id=conv_id, context=ctx.to_prompt_text(), history=history)
         result = await orch.run(req)
 
-        await mem.add_messages(user_id, conv_id, [
-            (MsgRole.USER, msg, {}),
-            (MsgRole.ASSISTANT, result.response, {}),
-        ])
+        disposition = getattr(result.routing_disposition, "value", result.routing_disposition)
+        if disposition != "out_of_scope":
+            await mem.add_messages(user_id, conv_id, [
+                (MsgRole.USER, msg, {}),
+                (MsgRole.ASSISTANT, result.response, {}),
+            ])
 
-        print(f"\nDialogPilot [{result.agent_type.value}]: {result.response}\n")
+        responder = result.agent_type.value if result.agent_type else "orchestrator"
+        print(f"\nDialogPilot [{responder}]: {result.response}\n")
 
     await mem.close()
 

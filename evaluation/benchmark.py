@@ -94,13 +94,21 @@ def _score_case(case: EvalCase, actual: Mapping[str, Any], *, retrieval_k: int) 
         tasks = set(map(str, actual.get("task_ids") or []))
         expected_tasks = set(map(str, case.expected["task_ids"]))
         union = owners | expected_owners
-        return {
+        scores = {
             "owner_exact_match": float(owners == expected_owners),
             "owner_jaccard": len(owners & expected_owners) / len(union) if union else 1.0,
             "task_exact_match": float(tasks == expected_tasks),
             "required_owner_coverage": len(owners & expected_owners) / len(expected_owners) if expected_owners else 1.0,
-            "fanout_efficiency": len(owners & expected_owners) / len(owners) if owners else 0.0,
+            "fanout_efficiency": (
+                len(owners & expected_owners) / len(owners)
+                if owners else (1.0 if not expected_owners else 0.0)
+            ),
         }
+        if "disposition" in case.expected:
+            scores["disposition_exact_match"] = float(
+                str(actual.get("disposition")) == str(case.expected["disposition"])
+            )
+        return scores
     if case.layer == "retrieval":
         retrieved = list(map(str, actual.get("retrieved_ids") or []))[:retrieval_k]
         relevant = set(map(str, case.expected["relevant_ids"]))

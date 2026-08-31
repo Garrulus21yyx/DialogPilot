@@ -87,6 +87,12 @@ class EvalCase:
         missing = [key for key in required if key not in self.expected]
         if missing:
             raise DatasetValidationError(f"{self.case_id}: missing expected {missing}")
+        if self.layer == "routing" and "disposition" in self.expected:
+            disposition = str(self.expected["disposition"])
+            if disposition not in {"execute", "clarify", "out_of_scope"}:
+                raise DatasetValidationError(
+                    f"{self.case_id}: invalid routing disposition {disposition}"
+                )
 
 
 @dataclass(frozen=True)

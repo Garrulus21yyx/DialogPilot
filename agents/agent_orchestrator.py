@@ -22,6 +22,7 @@ import re
 import time
 import uuid
 from dataclasses import dataclass, field, replace
+from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from anthropic import AsyncAnthropic
@@ -163,12 +164,20 @@ class Request:
     request_id:  str = field(default_factory=lambda: str(uuid.uuid4())[:8])
 
 
+class PlanningDisposition(str, Enum):
+    """Planner 对一次请求的闭合处置；只有 EXECUTE 能生成并运行 TaskGraph。"""
+
+    EXECUTE = "execute"
+    CLARIFY = "clarify"
+    OUT_OF_SCOPE = "out_of_scope"
+
+
 @dataclass
 class OrchestratorResult:
     """编排层返回给 API 的候选回答、路由和融合证据。"""
     request_id:  str
     response:    str
-    agent_type:  AgentType
+    agent_type:  Optional[AgentType]
     intent:      Optional[IntentCategory]
     escalated:   bool  = False
     latency_ms:  float = 0.0
@@ -177,6 +186,7 @@ class OrchestratorResult:
     supporting_agents: List[AgentType] = field(default_factory=list)
     routing_reason: str = ""
     routing_confidence: float = 0.0
+    routing_disposition: PlanningDisposition = PlanningDisposition.EXECUTE
     synthesis_status: str = "single"
     synthesis_reason: str = ""
     synthesis_conflicts: List[str] = field(default_factory=list)
@@ -193,25 +203,44 @@ class OrchestratorResult:
 
 @dataclass(frozen=True)
 class PlanningDecision:
-    """路由阶段的只读产物；不包含任何 Worker 执行或完成度事实。"""
+    """路由阶段的只读产物；非执行终态不允许携带伪造的 TaskGraph。"""
 
     intent: Optional[IntentCategory]
     task_plan: Optional[TaskPlan]
-    clarification_required: bool = False
+    disposition: PlanningDisposition = PlanningDisposition.EXECUTE
     reason: str = ""
+
+    def __post_init__(self) -> None:
+        """一个处置只能有一种事实形态，避免“拒答但仍执行 Worker”的双重真相。"""
+        if self.disposition is PlanningDisposition.EXECUTE and self.task_plan is None:
+            raise ValueError("EXECUTE planning decision requires a task plan")
+        if self.disposition is not PlanningDisposition.EXECUTE and self.task_plan is not None:
+            raise ValueError("non-executable planning decision cannot contain a task plan")
+
+    @property
+    def clarification_required(self) -> bool:
+        """兼容评测投影；权威事实是 disposition。"""
+        return self.disposition is PlanningDisposition.CLARIFY
+
+    @property
+    def out_of_scope(self) -> bool:
+        """表示请求已被确定为业务范围外，不应交给 GeneralAgent 猜答。"""
+        return self.disposition is PlanningDisposition.OUT_OF_SCOPE
 
     @property
     def agent_types(self) -> List[AgentType]:
-        """返回计划 Owner；澄清由 General 边界负责但不伪造可执行任务。"""
+        """只返回真实计划 Owner；策略终态没有 Worker。"""
         if self.task_plan is not None:
             return self.task_plan.agent_types
-        return [AgentType.GENERAL] if self.clarification_required else []
+        return []
 
     def to_dict(self) -> Dict[str, Any]:
         """生成稳定的评测/Trace 投影。"""
         return {
             "intent": self.intent.value if self.intent else None,
+            "disposition": self.disposition.value,
             "clarification_required": self.clarification_required,
+            "out_of_scope": self.out_of_scope,
             "reason": self.reason,
             "task_plan": self.task_plan.to_dict() if self.task_plan else {},
             "agent_types": [agent.value for agent in self.agent_types],
@@ -626,7 +655,7 @@ class AgentOrchestrator:
         return await self._intent_recognizer.recognize(message, history=history, bundle=bundle)
 
     async def plan(self, req: Request) -> PlanningDecision:
-        """只完成意图补全和 TaskPlan 生成，保证不会执行 Worker、工具或融合器。"""
+        """拥有执行/澄清/越域处置；只有 EXECUTE 才能生成 TaskGraph。"""
         if req.intent is None:
             intent_result = await self._intent_recognizer.recognize(
                 req.message, history=req.history, bundle=req.agent_bundle,
@@ -640,14 +669,23 @@ class AgentOrchestrator:
             return PlanningDecision(
                 intent=req.intent,
                 task_plan=None,
-                clarification_required=True,
+                disposition=PlanningDisposition.CLARIFY,
                 reason="低置信度 OTHER 意图，需要先澄清用户需求",
+            )
+
+        if req.intent is IntentCategory.OTHER:
+            return PlanningDecision(
+                intent=req.intent,
+                task_plan=None,
+                disposition=PlanningDisposition.OUT_OF_SCOPE,
+                reason="高置信度 OTHER 意图，确定为客服业务范围外或不受支持",
             )
 
         plan = self._build_task_plan(req)
         return PlanningDecision(
             intent=req.intent,
             task_plan=plan,
+            disposition=PlanningDisposition.EXECUTE,
             reason=plan.reason,
         )
 
@@ -659,22 +697,45 @@ class AgentOrchestrator:
           意图识别 → 路由选 Agent → 执行 → 检查升级 → 返回结果
         """
         t0 = time.monotonic()
-        window = self._new_execution_window()
 
         # 1. 规划阶段拥有意图补全和 TaskPlan；执行路径消费同一个公开合同。
         decision = await self.plan(req)
-        if decision.clarification_required:
+        if decision.disposition is PlanningDisposition.CLARIFY:
             return OrchestratorResult(
                 request_id=req.request_id,
                 response="我还不能确定您要处理的是哪类问题。请补充一下是订单物流、退款账单、账户资料，还是技术故障？",
-                agent_type=AgentType.GENERAL,
+                agent_type=None,
                 intent=req.intent,
                 escalated=False,
                 latency_ms=(time.monotonic() - t0) * 1000,
-                agent_types=[AgentType.GENERAL],
-                primary_agent=AgentType.GENERAL,
+                agent_types=[],
+                primary_agent=None,
                 routing_reason="低置信度 OTHER 意图，先澄清用户需求",
                 routing_confidence=req.intent_confidence,
+                routing_disposition=PlanningDisposition.CLARIFY,
+                synthesis_status="policy",
+                synthesis_reason="Planner 返回确定性澄清，不执行 Worker 或 Synthesizer",
+                bundle_version=req.bundle_version,
+            )
+
+        if decision.disposition is PlanningDisposition.OUT_OF_SCOPE:
+            return OrchestratorResult(
+                request_id=req.request_id,
+                response=(
+                    "我是 DialogPilot 客服助手，主要处理订单物流、退款账单、账户安全和产品技术问题。"
+                    "这个问题超出了客服范围；如果您有上述相关诉求，我可以继续协助。"
+                ),
+                agent_type=None,
+                intent=req.intent,
+                escalated=False,
+                latency_ms=(time.monotonic() - t0) * 1000,
+                agent_types=[],
+                primary_agent=None,
+                routing_reason=decision.reason,
+                routing_confidence=req.intent_confidence,
+                routing_disposition=PlanningDisposition.OUT_OF_SCOPE,
+                synthesis_status="policy",
+                synthesis_reason="Planner 返回确定性业务范围重定向，不执行 Worker 或 Synthesizer",
                 bundle_version=req.bundle_version,
             )
 
@@ -682,6 +743,7 @@ class AgentOrchestrator:
         plan = decision.task_plan
         if plan is None:  # PlanningDecision 的类型不变量保护；正常路径不可达。
             raise RuntimeError("executable planning decision must contain a task plan")
+        window = self._new_execution_window()
         if plan.multi_agent:
             return await self.run_parallel(req, plan, window=window)
 
@@ -726,6 +788,7 @@ class AgentOrchestrator:
             supporting_agents=[],
             routing_reason=plan.reason,
             routing_confidence=plan.confidence,
+            routing_disposition=PlanningDisposition.EXECUTE,
             synthesis_reason=(
                 "single Agent candidate"
                 if succeeded
@@ -855,6 +918,7 @@ class AgentOrchestrator:
             supporting_agents=plan.supporting_agents,
             routing_reason=plan.reason,
             routing_confidence=plan.confidence,
+            routing_disposition=PlanningDisposition.EXECUTE,
             synthesis_status=synthesis.status.value,
             synthesis_reason=synthesis.reason,
             synthesis_conflicts=synthesis.conflicts,
@@ -1175,9 +1239,6 @@ class AgentOrchestrator:
     def _needs_clarification(self, req: Request) -> bool:
         """低置信度且无明确意图时，先追问，避免误路由。"""
         if req.intent != IntentCategory.OTHER:
-            return False
-        text = (req.message or "").strip()
-        if len(text) <= 2:
             return False
         threshold = self._bundle_number(
             req, "routing_policy", "clarification_threshold", 0.5,

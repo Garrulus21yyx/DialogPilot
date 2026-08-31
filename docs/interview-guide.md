@@ -29,7 +29,7 @@ title: DialogPilot 面经校准与追问手册
 | 知识库是 BM25 + 向量 + RRF | 这是长期记忆；知识 RAG 仍是 rewrite + Chroma 多路向量 + 去重 + LLM rerank | **CORRECTED** |
 | Agent 单次生成、无完整 Trace | Worker 内最多 4 步 ReAct，allowlist、持久审批 Resume、脱敏 audit/TraceId | **CHANGED** |
 | Bad Case 后人工直接改 Prompt | 版本归因 → 不可变 Bundle 候选 → Graduation/Pareto → Shadow/Canary/回滚 | **NEW** |
-| 准确率 91.3%、综合分 0.89 | 当前有 500 条分层候选集、25 篇 corpus 和 251 项回归测试，但仍无 human-reviewed gold | **UNPROVEN** |
+| 准确率 91.3%、综合分 0.89 | 当前有 500 条分层候选集、25 篇 corpus 和 258 项回归测试，但仍无 human-reviewed gold | **UNPROVEN** |
 | 完整 MCP Server / LangGraph | 是内部 ToolManager 与直接 Python 编排；没有远程 MCP Server，没用 LangGraph | **UNPROVEN** |
 
 ## 项目开场与完整链路
@@ -44,7 +44,7 @@ title: DialogPilot 面经校准与追问手册
 
 ### Q3：`/chat` 端到端经过哪些节点？
 
-`TraceId → 用户输入 Guard → 固定 Rollout/Bundle → Redis 工作记忆/混合情景记忆/画像 → 意图与实体 → 有条件 RAG → TaskGraph 波次 → Worker/ReAct/审批 Resume → Coverage → Synthesis → Verifier → 发布或工单 → 只写已发布答案 → 失败版本归因。`
+`TraceId → 用户输入 Guard → 固定 Rollout/Bundle → Redis 工作记忆/混合情景记忆/画像 → 意图与实体 → PlanningDisposition；CLARIFY/OUT_OF_SCOPE 直接发布固定策略回复，只有 EXECUTE 继续有条件 RAG → TaskGraph 波次 → Worker/ReAct/审批 Resume → Coverage → Synthesis → Verifier → 发布或工单 → 只写客服会话答案 → 失败版本归因。`
 
 ### Q4：为什么不用 LangChain / LangGraph？
 
@@ -79,6 +79,12 @@ title: DialogPilot 面经校准与追问手册
 ### Q11：低置信度时是否启动所有 Agent？
 
 不应该。模糊不等于多领域，无差别 fan-out 只是让多个模型一起猜。没有明确证据时追问，有多个可分离领域证据时才并行。
+
+### Q11.1：用户没有恶意，只是问了无关客服的问题，哪个 Agent 负责？
+
+没有“拒答 Agent”。`PromptInjectionGuard` 只判断恶意输入，`IntentRecognizer` 提供 `OTHER + confidence`，最终处置 Owner 是 Orchestrator。低置信度 `OTHER` 返回 `CLARIFY`，高置信度 `OTHER` 返回 `OUT_OF_SCOPE`；两者都没有 TaskGraph，也不启动 GeneralAgent、RAG、工具、Verifier 或工单。固定范围回复由代码策略发布，越域内容不进入客服长期记忆。明确问候仍由 GeneralAgent 简短回应。
+
+追问“为什么不让 GeneralAgent 自己拒答”时，可以回答：Prompt 是软约束，而且 Verifier 的相关性判断只说明答案是否回应用户问题，不能证明它符合产品范围。把范围处置做成 Planner 的类型化终态，才能确定性证明零 Worker、零工具和零记忆写入。
 
 ### Q12：怎样测意图识别？
 
@@ -246,7 +252,7 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q48：91.3%、0.89 等旧数字怎么回答？
 
-**UNPROVEN。** 旧数字没对应数据版本、切分、运行产物和 commit，已移除。当前可证明的是 251 项回归测试、500 条分层候选集、25 篇 corpus、Stateful fixture 和隔离 RAG producer；因为 gold 仍为 0，不能报项目准确率。独立审核并运行新鲜 heldout 后才报均值、方差、slice 和置信区间。
+**UNPROVEN。** 旧数字没对应数据版本、切分、运行产物和 commit，已移除。当前可证明的是 258 项回归测试、500 条分层候选集、25 篇 corpus、Stateful fixture 和隔离 RAG producer；因为 gold 仍为 0，不能报项目准确率。独立审核并运行新鲜 heldout 后才报均值、方差、slice 和置信区间。
 
 ### Q49：多 LLM 调用怎么降延迟？
 
@@ -418,7 +424,7 @@ DeepSeek 的 Anthropic 兼容协议要求工具后续轮回传此前 thinking �
 
 ### Q84：这项改造怎样写 STAR？
 
-**S：** 九类调用共用一个模型，DeepSeek 默认 reasoning 让简单任务成本、延迟和结构化输出不可控。**T：** 在保持统一 Messages API 的同时，让每类调用可独立权衡质量。**A：** 实现按角色校验的 ModelPolicy，Flash/none 承担闭合高频任务，Pro/none 承担融合与质量门禁；显式 reasoning 强制最小完成预算，并补齐 health/eval 配置证据和 ReAct thinking 回传。**R：** 4 条 E2E pilot 均值约 28.4s → 13.3s，Verifier 解析 2/4 → 4/4；当前全仓 251 项回归测试通过。15 条 provisional 三档消融已完成，最终选择仍需 gold heldout 与重复运行确认。
+**S：** 九类调用共用一个模型，DeepSeek 默认 reasoning 让简单任务成本、延迟和结构化输出不可控。**T：** 在保持统一 Messages API 的同时，让每类调用可独立权衡质量。**A：** 实现按角色校验的 ModelPolicy，Flash/none 承担闭合高频任务，Pro/none 承担融合与质量门禁；显式 reasoning 强制最小完成预算，并补齐 health/eval 配置证据和 ReAct thinking 回传。**R：** 4 条 E2E pilot 均值约 28.4s → 13.3s，Verifier 解析 2/4 → 4/4；当前全仓 258 项回归测试通过。15 条 provisional 三档消融已完成，最终选择仍需 gold heldout 与重复运行确认。
 
 ### Q85：Flash/off、Flash/high、Pro/high 真跑后有什么区别？
 
@@ -476,7 +482,7 @@ Shadow 用真实输入跑候选 Intent/RAG/Worker/Verifier，但不发布、不�
 
 ### Q98：这项改造怎么写 STAR？
 
-**S：** Bad Case 能入库，但人工直接改 Prompt 导致版本归因弱、回归不可复现、发布全量且安全边界可能被误改。**T：** 把线上失败变成可验证、可灰度、可撤销的策略升级。**A：** 增加脱敏 EvolutionEnvelope、确定性 Owner 归因、不可变 AgentBundle、GEPA-lite 多候选、provenance Graduation/Pareto，并以 Shadow、稳定 5%/25% 分桶及硬/软自动回滚发布。**R：** 请求内版本固定，候选无法修改权限或绕过 Gate，Shadow 写操作零提交，发布/回滚成为原子状态迁移；251 项回归通过，数据非 Gold 前不虚构线上提升。
+**S：** Bad Case 能入库，但人工直接改 Prompt 导致版本归因弱、回归不可复现、发布全量且安全边界可能被误改。**T：** 把线上失败变成可验证、可灰度、可撤销的策略升级。**A：** 增加脱敏 EvolutionEnvelope、确定性 Owner 归因、不可变 AgentBundle、GEPA-lite 多候选、provenance Graduation/Pareto，并以 Shadow、稳定 5%/25% 分桶及硬/软自动回滚发布。**R：** 请求内版本固定，候选无法修改权限或绕过 Gate，Shadow 写操作零提交，发布/回滚成为原子状态迁移；258 项回归通过，数据非 Gold 前不虚构线上提升。
 
 ## 面试前 10 分钟自查
 

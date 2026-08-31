@@ -17,6 +17,7 @@ DialogPilot 不是一条不断堆 Prompt 的调用链，而是按“谁拥有最
 | Chroma 部署模式 | `core/chroma_client.py` | 明确选择远程或嵌入式物理存储 |
 | 模型分层与推理策略 | `core/model_policy.py` | 按角色校验的模型、推理强度及请求级覆盖配置 |
 | 意图识别 | `core/intent_recognizer.py` | 意图、置信度、紧急程度和实体 |
+| 业务范围处置 | `agents/agent_orchestrator.py` | `EXECUTE / CLARIFY / OUT_OF_SCOPE`，只有执行态可生成任务图 |
 | 任务规划与 Agent 选择 | `agents/agent_orchestrator.py` | 带依赖、上下文范围、风险、验收条件和 Owner 的 `TaskGraph` |
 | 编排合同与预算 | `agents/orchestration_contracts.py` | 任务身份、覆盖投影和共享执行截止时间 |
 | 必做任务覆盖 | `services/result_synthesizer.py` | 完成、缺失、失败、重复和意外任务的证据 |
@@ -45,18 +46,18 @@ DialogPilot 不是一条不断堆 Prompt 的调用链，而是按“谁拥有最
 
 1. 先做用户输入安全检查，再从 RolloutManager 解析并固定本次请求的 `AgentBundle`。
 2. 读取记忆，再识别当前请求；Intent Prompt、Few-shot 和缓存键都绑定固定 Bundle。
-3. 意图只识别一次，知识检索和路由复用同一个结果；只有受支持的业务意图才检索知识库。
+3. 意图只识别一次，知识检索和路由复用同一个结果；低置信度 `OTHER` 收敛为 `CLARIFY`，高置信度 `OTHER` 收敛为 `OUT_OF_SCOPE`，二者都是无 Worker 的 Planner 终态。
 4. 从 `TicketService` 读取该用户最多三个未进入 `CLOSED` 终态的事项，作为当前处理状态的权威投影。
-5. 构建依赖感知、上下文隔离的 `TaskGraph`；无依赖任务可并发，后继任务只在依赖成功后进入 ready 集合。
+5. 只有 `EXECUTE` 才构建依赖感知、上下文隔离的 `TaskGraph`；无依赖任务可并发，后继任务只在依赖成功后进入 ready 集合。
 6. Worker 只能看到任务声明的上下文和白名单工具，最多执行 `REACT_MAX_STEPS`；授权仍由 `ToolManager` 决定。
 7. 写工具等待审批时，RunStore 持久化 checkpoint 与审批挑战；Resume 重新验证绑定信息并幂等恢复原调用。
 8. 每个任务都必须转换为类型化结果，并检查必做任务覆盖率；依赖失败保留 `BLOCKED_DEPENDENCY` 证据。
-9. 合成唯一候选答案，在发布前校验覆盖、证据、完整性和安全性。
+9. 合成唯一候选答案，在发布前校验覆盖、证据、完整性和安全性；代码拥有的澄清/越域固定回复以 `POLICY_TERMINAL` 发布，不再调用模型 Verifier。
 10. 只把校验结论归因给真正产生该候选答案的 Agent 实例。
 11. 需要升级时，创建或复用一个幂等、持久化的人工工单。
 12. 将校验失败、覆盖失败和工具副作用不确定记录为 provisional Bad Case，并附加 Bundle 组件哈希归因信封。
-13. 只持久化真正发布给用户的答案，并立即以稳定消息 ID 幂等写入跨会话情景索引。
-14. 持久化之后，异步提取有界且带来源的事实操作。
+13. `EXECUTE` 和需要保持追问连续性的 `CLARIFY` 轮次持久化真正发布的内容；`OUT_OF_SCOPE` 不写工作记忆、情景索引或画像。
+14. 只有 `EXECUTE` 轮次在持久化后异步提取有界且带来源的事实操作。
 15. 客户端关闭会话时，`finalize` 只补齐未覆盖范围的摘要/checkpoint 和索引 metadata，不删除事件日志。
 16. 请求结束记录固定 Bundle 的质量/延迟代理指标；Shadow 副本不发布、不写业务事实。
 
@@ -74,7 +75,15 @@ DialogPilot 不是一条不断堆 Prompt 的调用链，而是按“谁拥有最
 
 ## TaskGraph、预算与并行结果代数
 
-编排器把所选能力转换成 `TaskGraph`；`TaskPlan` 只保留为旧代码导入别名。每个必做任务都有稳定 ID、唯一 Owner、明确范围、`depends_on`、`context_refs`、副作用上界、风险和成功标准。图在执行任何 Worker 前拒绝重复 ID、悬空边和环；拓扑上同一波次可并行，后继只消费自己声明的上下文与依赖产物。`ExecutionWindow` 为全部 Worker 和合成阶段提供共享截止时间，同时限制单 Agent 超时和最大 Agent 数量。每项任务最终只能进入：
+Planner 先返回闭合的 `PlanningDisposition`：
+
+```text
+EXECUTE      → 必须携带 TaskGraph
+CLARIFY      → 必须无 TaskGraph，发布固定澄清问题
+OUT_OF_SCOPE → 必须无 TaskGraph，发布固定业务范围重定向
+```
+
+编排器只把 `EXECUTE` 选择的能力转换成 `TaskGraph`；`TaskPlan` 只保留为旧代码导入别名。构造函数拒绝“执行却没有图”和“策略终态却携带图”的双重事实。每个必做任务都有稳定 ID、唯一 Owner、明确范围、`depends_on`、`context_refs`、副作用上界、风险和成功标准。图在执行任何 Worker 前拒绝重复 ID、悬空边和环；拓扑上同一波次可并行，后继只消费自己声明的上下文与依赖产物。`ExecutionWindow` 为全部 Worker 和合成阶段提供共享截止时间，同时限制单 Agent 超时和最大 Agent 数量。每项任务最终只能进入：
 
 ```text
 SUCCESS / TIMEOUT / ERROR / BUDGET_EXCEEDED /
@@ -109,7 +118,7 @@ Agent 调用成功只说明模型供应商返回了结果，不代表答案质�
 
 ## 失败语义
 
-- 未知意图且置信度低时，系统请求用户澄清。
+- `OTHER` 且置信度低时返回 `CLARIFY`；高置信度时返回 `OUT_OF_SCOPE`。二者都不是攻击、失败或 GeneralAgent 任务，不触发 RAG、工具、Verifier、Shadow、工单或 Agent 质量归因。
 - 普通模型调用失败可以回退到 General Agent；被拒绝、等待审批、执行失败或超预算的 ReAct 结果不得回退，避免丢失原任务的安全证据。
 - 工具超时、熔断或执行失败返回受控降级结果。
 - Worker 无法发现或执行白名单外工具。只读调用可以并发，潜在写操作串行执行，并在默认策略下要求宿主审批。

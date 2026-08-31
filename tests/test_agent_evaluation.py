@@ -5,7 +5,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from agents.agent_orchestrator import PlanningDecision
+from agents.agent_orchestrator import PlanningDecision, PlanningDisposition
 from agents.orchestration_contracts import AgentType, TaskPlan, TaskRisk, TaskSpec
 from core.intent_recognizer import IntentCategory
 from evaluation.evaluator import EndToEndEvaluator, QualityScores
@@ -125,7 +125,7 @@ def test_routing_layer_skips_answer_judge_and_accepts_empty_clarification_plan()
             return PlanningDecision(
                 intent=request.intent,
                 task_plan=None,
-                clarification_required=True,
+                disposition=PlanningDisposition.CLARIFY,
                 reason="需要澄清",
             )
 
@@ -146,14 +146,53 @@ def test_routing_layer_skips_answer_judge_and_accepts_empty_clarification_plan()
         "intent": "other",
         "intent_confidence": 0.2,
         "entities": {},
-        "expected_agents": ["general"],
+        "expected_agents": [],
         "expected_task_ids": [],
+        "expected_disposition": "clarify",
         "evaluation_layer": "routing",
     }, 0))
 
     assert results[0].passed is True
+    assert results[0].scores["route_exact_match"] == 1.0
     assert results[0].scores["planning_complete"] == 1.0
     assert results[0].scores["task_exact_match"] == 1.0
+    assert results[0].scores["disposition_exact_match"] == 1.0
     assert "overall" not in results[0].scores
     assert results[0].metadata["execution_mode"] == "planner_only"
     assert results[0].metadata["agent_outcomes"] == []
+
+
+def test_routing_layer_accepts_out_of_scope_as_a_no_worker_terminal():
+    """高置信度 OTHER 的正确 gold 是策略重定向，不是 General Worker。"""
+    class Orchestrator:
+        async def plan(self, request):
+            return PlanningDecision(
+                intent=request.intent,
+                task_plan=None,
+                disposition=PlanningDisposition.OUT_OF_SCOPE,
+                reason="业务范围外",
+            )
+
+        async def run(self, _request):
+            raise AssertionError("routing-only evaluation must not execute workers")
+
+    evaluator = EndToEndEvaluator.__new__(EndToEndEvaluator)
+    evaluator._orchestrator = Orchestrator()
+    evaluator._judge = SimpleNamespace()
+
+    results = asyncio.run(evaluator._evaluate_dialog_case({
+        "id": "routing-out-of-scope-contract",
+        "question": "六边形有几条边？",
+        "intent": "other",
+        "intent_confidence": 0.95,
+        "entities": {},
+        "expected_agents": [],
+        "expected_task_ids": [],
+        "expected_disposition": "out_of_scope",
+        "evaluation_layer": "routing",
+    }, 0))
+
+    assert results[0].passed is True
+    assert results[0].scores["route_exact_match"] == 1.0
+    assert results[0].scores["disposition_exact_match"] == 1.0
+    assert results[0].metadata["routing_disposition"] == "out_of_scope"

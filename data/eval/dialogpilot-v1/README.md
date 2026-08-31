@@ -7,6 +7,10 @@ not a production benchmark and not a claimed accuracy result.
 - `corpus.jsonl`: stable documents referenced by retrieval gold IDs.
 - `manifest.json`: version, provenance, counts, and SHA-256 content identity.
 
+Routing cases may also declare `expected.disposition` as `execute`, `clarify`,
+or `out_of_scope`. The latter two must have empty Owner/task sets because they
+are deterministic Planner terminals, not GeneralAgent executions.
+
 Every case starts as `review.status=provisional`. A human reviewer must check the
 input, expected behavior, ambiguity, and split before changing it to
 `human_reviewed`. Default benchmark scoring excludes provisional and

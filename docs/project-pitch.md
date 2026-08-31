@@ -12,7 +12,7 @@ permalink: /project-pitch.html
 
 ## 30 秒版本
 
-DialogPilot 是一个使用 Python 和 FastAPI 实现的多 Agent 客服后端。我不是把所有能力塞进一个 Prompt，而是先用 LLM、本地字符 n-gram 和规则融合识别意图，再把请求转换成带依赖、上下文范围、风险和验收条件的 `TaskGraph`，由 General、Technical、Billing、Account Security 等 Worker 分波执行。
+DialogPilot 是一个使用 Python 和 FastAPI 实现的多 Agent 客服后端。我不是把所有能力塞进一个 Prompt，而是先用 LLM、本地字符 n-gram 和规则融合识别意图，再由 Orchestrator 将请求收敛为 `EXECUTE / CLARIFY / OUT_OF_SCOPE`；只有执行态才转换成带依赖、上下文范围、风险和验收条件的 `TaskGraph`，由 General、Technical、Billing、Account Security 等 Worker 分波执行。
 
 每个 Worker 内部使用有界 ReAct，只能调用 ToolManager 暴露的白名单工具。ToolManager 而不是模型负责风险分级、写操作审批、超时、审计和结果脱敏。并行结果必须先通过 `CoverageGate`，证明所有必做任务都有闭合结果，再由 `ResultSynthesizer` 处理顺序、冲突和部分成功。最终只有 `AnswerVerifier` 明确判为 `PASS` 的候选可以发布；失败则确定性转入带幂等键和状态历史的 SQLite 人工工单。
 
@@ -29,6 +29,9 @@ Bad Case 不会在线改生产 Prompt。系统先用脱敏版本信封做责任�
   → 解析并固定 AgentBundle / Rollout 版本
   → 读取记忆
   → 多信号意图识别
+  → Planner 处置：EXECUTE / CLARIFY / OUT_OF_SCOPE
+      ├─ CLARIFY / OUT_OF_SCOPE：固定策略回复并结束
+      └─ EXECUTE：继续客服执行链
   → 按业务意图检索知识
   → 读取未关闭工单并构建 TaskGraph
   → 按依赖波次执行 Worker / ReAct / Tool
@@ -45,8 +48,12 @@ Bad Case 不会在线改生产 Prompt。系统先用脱敏版本信封做责任�
 ```mermaid
 flowchart LR
     A[认证请求] --> B[固定 Bundle]
-    B --> C[Memory / Intent / RAG]
-    C --> D[TaskGraph]
+    B --> C[Memory / Intent]
+    C --> P{PlanningDisposition}
+    P -->|CLARIFY| Q[固定澄清]
+    P -->|OUT_OF_SCOPE| O[固定范围重定向]
+    P -->|EXECUTE| R[按业务意图 RAG]
+    R --> D[TaskGraph]
     D --> E[Worker + ReAct + Tools]
     E --> F[Coverage + Synthesis]
     F --> G{Verifier}
@@ -67,6 +74,12 @@ LLM 擅长处理自然语言歧义；本地字符 n-gram 是确定性语义降�
 ### 为什么只对业务意图检索知识？
 
 知识库能提升业务回答的事实性，但把检索结果塞进问候、闲聊或人工转接请求只会污染上下文、增加延迟和重排成本。因此由意图结果控制检索门，而不是每条请求都无条件执行 RAG。
+
+### 为什么业务范围外请求不交给 GeneralAgent？
+
+无恶意不等于属于产品范围。天气、股票、通识和写代码等请求会被识别为高置信度 `OTHER`，由 Orchestrator 返回 `OUT_OF_SCOPE` 固定回复；低置信度 `OTHER` 则返回 `CLARIFY`。这两个 Planner 终态都不能携带 TaskGraph，所以不会调用 Worker、RAG、ReAct、工具、Verifier、Shadow 或人工工单。
+
+如果只在 GeneralAgent Prompt 里写“不要回答无关问题”，边界仍由概率模型决定；即使它完整回答了“六边形有几条边”，AnswerVerifier 也可能认为答案与问题相关而放行。类型化处置把范围策略变成可测试的代码合同。明确问候和感谢仍由 GeneralAgent 接待；`OUT_OF_SCOPE` 轮次不会写入客服工作记忆、情景索引或用户画像。
 
 ### 为什么是 TaskGraph，而不是简单选择几个 Agent？
 
@@ -125,7 +138,17 @@ Ticket 负责用户人工处理流程，Trace 负责一次请求的诊断；二�
 
 候选不会直接覆盖 Active。`CandidateRunner` 实际运行 Gate 并产生带 provenance 的证据，`GraduationGate` 先检查不可被平均分抵消的安全合同，再比较质量、延迟和成本。发布按稳定用户分桶经历 Shadow、5% 和 25%；完整说明见[Agent 进化闭环](./agent-evolution/)。
 
-## 这轮改造如何用 STAR 讲
+## 业务范围改造如何用 STAR 讲
+
+**S：** 原 Planner 把高置信度 `OTHER` 也生成成 `general_task`，例如“六边形有几条边”会进入 GeneralAgent；即使答案正确，Verifier 也只能证明它回应了问题，不能证明符合客服产品范围。
+
+**T：** 在不把正常无关问题误判为攻击的前提下，让模糊请求可澄清、越域请求可重定向，并确定性证明没有 Worker、工具、工单和长期记忆污染。
+
+**A：** 在 Orchestrator 增加闭合 `PlanningDisposition`，规定 `EXECUTE` 必须有 TaskGraph，`CLARIFY/OUT_OF_SCOPE` 必须无图；API 对策略终态发布固定回复并跳过模型 Verifier，`OUT_OF_SCOPE` 额外跳过 Redis/Chroma/画像写入。路由评测增加 disposition exact match，HTTP 集成测试使用会抛错的假 Worker、RAG、工具和 Verifier 证明这些路径未被调用。
+
+**R：** 越域请求公开投影为 `agent_type=orchestrator`、空 Agent/Task/Outcome、`verification_reason_code=policy_terminal`，不创建人工工单；低置信度请求仍追问，明确问候仍由 GeneralAgent 执行，全仓 258 项测试通过。
+
+## Agent 进化改造如何用 STAR 讲
 
 **S：** 原有 Bad Case 能入库和导出回归，但人工直接改 Prompt 缺少版本归因，复合任务没有依赖/上下文隔离，写工具等待批准后也无法恢复。
 
@@ -133,7 +156,7 @@ Ticket 负责用户人工处理流程，Trace 负责一次请求的诊断；二�
 
 **A：** 将兼容 `TaskPlan` 升级为 `TaskGraph`，增加依赖波次、`context_refs` 与阻塞状态；用 SQLite RunStore 固定 task/Bundle/工具调用并通过 CAS Resume；再实现 EvolutionEnvelope、不可变 AgentBundle、GEPA-lite 受限候选、带证据 Graduation/Pareto，以及 Shadow → 5% → 25% → Active 和硬/软回滚。
 
-**R：** 请求内版本不漂移，依赖失败不再误调后继，审批重放不重复写，候选不能修改权限或绕过 Gate，灰度与回滚收敛为原子状态迁移；当前全仓 251 项测试通过。评测数据仍是 provisional，因此结果只表述为合同回归，不虚构生产准确率。
+**R：** 请求内版本不漂移，依赖失败不再误调后继，审批重放不重复写，候选不能修改权限或绕过 Gate，灰度与回滚收敛为原子状态迁移；当前全仓 258 项测试通过。评测数据仍是 provisional，因此结果只表述为合同回归，不虚构生产准确率。
 
 ## 面试时应该诚实说明的指标边界
 

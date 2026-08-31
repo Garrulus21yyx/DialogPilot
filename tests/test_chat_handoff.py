@@ -1,7 +1,12 @@
 import asyncio
 from types import SimpleNamespace
 
-from agents.agent_orchestrator import AgentType, OrchestratorResult
+from agents.agent_orchestrator import (
+    AgentOrchestrator,
+    AgentType,
+    OrchestratorResult,
+    PlanningDisposition,
+)
 from agents.react_engine import ReActResult, ReActStatus
 from api import main
 from core.intent_recognizer import IntentCategory, UrgencyLevel
@@ -32,6 +37,7 @@ class FakeMemoryContext:
 class FakeMemory:
     def __init__(self):
         self.messages = []
+        self.profile_updates = 0
 
     async def get_context(self, *_args, **_kwargs):
         return FakeMemoryContext()
@@ -44,6 +50,7 @@ class FakeMemory:
         return persisted
 
     async def update_profile(self, *_args, **_kwargs):
+        self.profile_updates += 1
         return None
 
 
@@ -89,6 +96,90 @@ class FakeVerifier:
             reason="safe handoff response",
             reason_code=VerificationReasonCode.PASSED,
         )
+
+
+def test_chat_out_of_scope_is_a_policy_terminal_without_worker_verifier_or_memory_write(
+    tmp_path, monkeypatch,
+):
+    """无恶意越域请求只做范围重定向，不污染客服执行、工单和长期记忆链路。"""
+    class ScopeRecognizer:
+        async def recognize(self, *_args, **_kwargs):
+            return SimpleNamespace(
+                intent=IntentCategory.OTHER,
+                intent_group="other",
+                urgency=UrgencyLevel.LOW,
+                confidence=0.95,
+                entities={},
+                source_scores={"llm": 0.95},
+            )
+
+    class MustNotVerify:
+        async def verify(self, *_args, **_kwargs):
+            raise AssertionError("policy terminal must not call AnswerVerifier")
+
+    class MustNotSearchOrExecuteTools:
+        async def search_with_rewrite(self, *_args, **_kwargs):
+            raise AssertionError("out-of-scope request must not run RAG")
+
+        @staticmethod
+        def audit_records(*_args, **_kwargs):
+            return []
+
+        @staticmethod
+        def registry_fingerprint(*_args, **_kwargs):
+            return "scope-test-tools"
+
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    orchestrator._intent_recognizer = ScopeRecognizer()
+
+    async def must_not_execute(*_args, **_kwargs):
+        raise AssertionError("out-of-scope request must not execute a worker")
+
+    orchestrator._execute = must_not_execute
+    memory = FakeMemory()
+    tickets = TicketService(str(tmp_path / "scope-tickets.db"))
+    bundles = AgentBundleRegistry(str(tmp_path / "scope-agent-bundles.db"))
+    bundles.bootstrap(build_default_bundle({}))
+
+    monkeypatch.setattr(main, "_orchestrator", orchestrator)
+    monkeypatch.setattr(main, "_memory", memory)
+    monkeypatch.setattr(main, "_answer_verifier", MustNotVerify())
+    monkeypatch.setattr(main, "_ticket_service", tickets)
+    monkeypatch.setattr(main, "_badcase_registry", None)
+    monkeypatch.setattr(main, "_tool_manager", MustNotSearchOrExecuteTools())
+    monkeypatch.setattr(main, "_bundle_registry", bundles)
+    monkeypatch.setattr(
+        main, "_rollout_manager", RolloutManager(bundles, bucket_salt="scope-test-salt"),
+    )
+    monkeypatch.setattr(
+        main,
+        "_context_assembler",
+        ContextAssembler(max_input_tokens=2048, reserved_output_tokens=256),
+    )
+
+    response = asyncio.run(main.chat(
+        main.ChatRequest(message="六边形有几条边？", request_id="scope-request"),
+        Principal(subject="user-1", scopes=frozenset({"chat"})),
+    ))
+
+    assert response.intent == "other"
+    assert response.routing_disposition == "out_of_scope"
+    assert response.agent_type == "orchestrator"
+    assert response.agent_types == []
+    assert response.primary_agent == ""
+    assert response.task_plan == {}
+    assert response.agent_outcomes == []
+    assert response.tool_audit == []
+    assert response.knowledge_used is False
+    assert response.memory_retrieval == []
+    assert response.verification_status == "pass"
+    assert response.verification_reason_code == "policy_terminal"
+    assert response.escalated is False
+    assert response.ticket_id is None
+    assert "客服范围" in response.response
+    assert memory.messages == []
+    assert memory.profile_updates == 0
+    assert tickets.list_tickets() == []
 
 
 def test_chat_escalation_creates_one_persistent_idempotent_ticket(tmp_path, monkeypatch):

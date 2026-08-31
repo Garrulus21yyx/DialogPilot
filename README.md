@@ -28,7 +28,9 @@ POST /chat
   -> load uncovered Redis events, range summaries, sourced facts, and hybrid episodic memory with bounded neighbor windows
   -> assemble a bounded prompt from those projections
   -> classify intent with LLM + local semantic similarity + patterns
-  -> retrieve knowledge for business intents and project active TicketService cases
+  -> resolve one typed Planner disposition: EXECUTE / CLARIFY / OUT_OF_SCOPE
+  -> publish CLARIFY / OUT_OF_SCOPE policy terminals without workers, RAG, tools, verifier, or tickets; OUT_OF_SCOPE also skips memory writes
+  -> for EXECUTE only, retrieve business knowledge and project active TicketService cases
   -> build a dependency-aware, context-isolated TaskGraph for domain owners
   -> execute topological waves under one request deadline and max-Agent budget
   -> inside each worker, execute a bounded ReAct loop through allowlisted tools
@@ -53,7 +55,7 @@ is first retained as an append-only raw event with a monotonic `seq`. Compressio
 creates immutable, structured chunks for explicit sequence ranges and advances a
 checkpoint with optimistic CAS; it never rewrites or deletes the raw event log.
 Newer messages therefore do not invalidate a completed older-range summary.
-Every completed published turn is immediately upserted into long-term search;
+Every completed in-scope published turn is immediately upserted into long-term search;
 compression/finalize remain idempotent compensation paths. Retrieval excludes the
 current conversation, preserves event locators, and expands the strongest old
 conversation hits into bounded neighboring raw-message windows. Active non-closed
@@ -88,6 +90,7 @@ usage, cost, and failure cases, is in
 - BM25 + weighted RRF hybrid long-term memory retrieval
 - Bounded ReAct tool execution with allowlists, approval gates, and TraceId audit
 - Dependency-aware TaskGraph execution with scoped context and typed blocked outcomes
+- Typed no-worker Planner terminals for clarification and benign out-of-scope requests
 - Durable ReAct checkpoints, approval resume, and idempotent tool-call claims
 - Nine production Agent tools spanning knowledge, memory, tickets, orders, refund requests, and security events
 - Immutable AgentBundle versions, GEPA-lite constrained proposals, provenance-bearing graduation gates, and Pareto selection

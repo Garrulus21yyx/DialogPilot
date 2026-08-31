@@ -63,7 +63,7 @@
       interview: [questionCount + " 个代码校准追问", "答案对应当前实现", "不支持的主张已标记", "STAR + 连续追问"],
       evolution: [chapterCount + " 个闭环章节", "4–8 个受限候选", "Shadow → 5% → 25%", "硬信号立即回滚"],
       overview: [chapterCount + " 个架构切面", "单一事实 Owner", "依赖感知 TaskGraph", "发布与学习分离"],
-      tutorial: [chapterCount + " 个仓库章节", questionCount + " 个面试追问", "251 项回归测试", "4 层评测合同"]
+      tutorial: [chapterCount + " 个仓库章节", questionCount + " 个面试追问", "258 项回归测试", "4 层评测合同"]
     };
     const metaLabels = metaByMode[mode] || metaByMode.tutorial;
     metaLabels.forEach(function (label) {

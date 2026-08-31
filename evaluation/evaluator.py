@@ -435,6 +435,8 @@ class EndToEndEvaluator:
                     required_checks.append(orchestration_scores["route_exact_match"] >= 1.0)
                 if "task_exact_match" in orchestration_scores:
                     required_checks.append(orchestration_scores["task_exact_match"] >= 1.0)
+                if "disposition_exact_match" in orchestration_scores:
+                    required_checks.append(orchestration_scores["disposition_exact_match"] >= 1.0)
                 actual_answer = ""
                 orch_result = None
             else:
@@ -504,7 +506,9 @@ class EndToEndEvaluator:
                     "question": question,
                     "response": actual_answer,
                     "agent_type": (
-                        orch_result.agent_type.value if orch_result is not None
+                        orch_result.agent_type.value
+                        if orch_result is not None and orch_result.agent_type is not None
+                        else "orchestrator" if orch_result is not None
                         else next(iter(decision.agent_types), None).value if decision.agent_types else None
                     ),
                     "intent": (
@@ -526,6 +530,10 @@ class EndToEndEvaluator:
                     "agent_outcomes": orch_result.agent_outcomes if orch_result is not None else [],
                     "execution_mode": "planner_only" if routing_only else "full_execution",
                     "clarification_required": decision.clarification_required if routing_only else False,
+                    "routing_disposition": (
+                        decision.disposition.value if routing_only else
+                        getattr(getattr(orch_result, "routing_disposition", None), "value", "execute")
+                    ),
                 },
             ))
 
@@ -550,7 +558,7 @@ class EndToEndEvaluator:
             str(task_id) for task_id in (case.get("expected_task_ids") or []) if str(task_id)
         }
         union = actual_agents | expected_agents
-        return {
+        scores = {
             "planning_complete": 1.0,
             "route_exact_match": 1.0 if actual_agents == expected_agents else 0.0,
             "route_jaccard": len(actual_agents & expected_agents) / len(union) if union else 1.0,
@@ -560,6 +568,15 @@ class EndToEndEvaluator:
                 if actual_agents else (1.0 if not expected_agents else 0.0)
             ),
         }
+        expected_disposition = str(case.get("expected_disposition") or "").strip()
+        if expected_disposition:
+            actual_disposition = str(
+                getattr(getattr(decision, "disposition", "execute"), "value", "execute")
+            )
+            scores["disposition_exact_match"] = (
+                1.0 if actual_disposition == expected_disposition else 0.0
+            )
+        return scores
 
     @staticmethod
     def _orchestration_scores(orch_result: Any, case: Dict[str, Any]) -> Dict[str, float]:
