@@ -146,7 +146,7 @@
       panel.className = "mermaid-panel";
       const label = document.createElement("figcaption");
       label.className = "diagram-label";
-      label.textContent = "Architecture diagram " + String(index + 1).padStart(2, "0");
+      label.textContent = "架构图 " + String(index + 1).padStart(2, "0");
       const diagram = document.createElement("div");
       diagram.className = "mermaid";
       diagram.textContent = code.textContent;
@@ -186,7 +186,7 @@
     viewer.innerHTML = [
       '<div class="dp-viewer-shell">',
       '  <header class="dp-viewer-bar">',
-      '    <div><span>BLUEPRINT INSPECTOR</span><strong id="dp-viewer-title">Architecture diagram</strong></div>',
+      '    <div><span>架构图查看器</span><strong id="dp-viewer-title">架构图</strong></div>',
       '    <div class="dp-viewer-controls" aria-label="图像缩放控制">',
       '      <button type="button" data-action="out" aria-label="缩小">−</button>',
       '      <button type="button" data-action="reset" class="dp-viewer-scale" aria-label="恢复原始缩放">100%</button>',
@@ -259,7 +259,7 @@
       previousFocus = document.activeElement;
       const panel = target.closest(".mermaid-panel");
       const caption = panel && panel.querySelector(".diagram-label");
-      const label = explicitLabel || target.getAttribute("alt") || textOf(caption) || "Architecture diagram";
+      const label = explicitLabel || target.getAttribute("alt") || textOf(caption) || "架构图";
       title.textContent = label;
       image.alt = label + " 放大视图";
       image.src = sourceFor(target);
@@ -292,7 +292,7 @@
       const panel = target.closest(".mermaid-panel");
       if (panel && panel.dataset.dpZoomReady !== "true") {
         const caption = panel.querySelector(".diagram-label");
-        const label = textOf(caption) || "Architecture diagram";
+        const label = textOf(caption) || "架构图";
         panel.dataset.dpZoomReady = "true";
         panel.dataset.dpDiagramTitle = label;
         panel.classList.add("is-zoomable");

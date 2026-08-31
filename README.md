@@ -61,11 +61,10 @@ creation, and account-security events. Write tools require host approval and
 return typed SQLite receipts. A refund receipt proves that the local request was
 committed; it does not claim that an external payment rail moved money.
 
-See [docs/architecture.md](docs/architecture.md) for component ownership,
-[docs/project-pitch.md](docs/project-pitch.md) for a concise technical walkthrough,
-and [docs/full-architecture-tutorial.zh-CN.md](docs/full-architecture-tutorial.zh-CN.md)
-for the complete Chinese repository tutorial, change history, failure analysis,
-and project-specific interview follow-up guide.
+文档入口：[docs/architecture.md](docs/architecture.md) 说明组件职责归属，
+[docs/project-pitch.md](docs/project-pitch.md) 提供中文项目讲述与技术取舍，
+[docs/full-architecture-tutorial.zh-CN.md](docs/full-architecture-tutorial.zh-CN.md)
+提供完整仓库教程、改造历史、故障分析和项目追问指南。
 The reproducible Flash/off vs Flash/high vs Pro/high pilot, including latency,
 usage, cost, and failure cases, is in
 [docs/model-ablation-report.zh-CN.md](docs/model-ablation-report.zh-CN.md).

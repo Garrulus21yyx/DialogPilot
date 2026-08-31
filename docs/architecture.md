@@ -1,176 +1,115 @@
-# Architecture and ownership
+# 架构边界与职责归属
 
-DialogPilot is organized around authoritative boundaries rather than a single
-prompt chain.
+DialogPilot 不是一条不断堆 Prompt 的调用链，而是按“谁拥有最终事实”划分边界。下面这张表既是仓库地图，也是面试时解释模块职责的主线。
 
-| Concern | Owner | Authoritative output |
+| 关注点 | Owner（权威模块） | 权威输出 |
 |---|---|---|
-| HTTP contract | `api/main.py` | Validated request/response models |
-| HTTP identity and scopes | `core/auth.py` | Verified Principal from signed JWT `sub` |
-| Chroma deployment mode | `core/chroma_client.py` | One explicit remote or embedded physical backend |
-| Model tier and reasoning policy | `core/model_policy.py` | Validated per-role model/effort profiles and request overrides |
-| Intent | `core/intent_recognizer.py` | Intent, confidence, urgency, entities |
-| Task planning and Agent selection | `agents/agent_orchestrator.py` | TaskPlan with scoped work, risk, criteria, and Owner |
-| Orchestration contracts and budget | `agents/orchestration_contracts.py` | Task identity, coverage projection, and shared execution deadline |
-| Required-task coverage | `services/result_synthesizer.py` | Complete/missing/failed/duplicate/unexpected task evidence |
-| Parallel synthesis | `services/result_synthesizer.py` | One candidate, conflicts, and escalation decision |
-| ReAct execution | `agents/react_engine.py` | Bounded Worker loop and closed ReAct outcome |
-| Tool authorization and reliability | `mcp/tool_manager.py` | Agent allowlist, approval decision, typed result, redacted audit |
-| Knowledge | `mcp/knowledge_base.py` | Retrieved ChromaDB documents |
-| Conversation memory | `memory/conversation_memory.py` | Sequenced raw events, range summaries/checkpoint, episodic index, and sourced facts |
-| Hybrid memory ranking | `memory/hybrid_retrieval.py` | BM25/vector/recency candidate fusion and retrieval metrics |
-| Request trace | `core/tracing.py` | Trace/span identity and process-local projection |
-| Prompt context | `memory/context.py` | Token estimation, typed sections, and bounded LLM input |
-| Dynamic rules | `core/skill_loader.py` | Request-scoped skill prompt blocks |
-| Publication safety | `services/answer_verifier.py` | PASS, REJECT, or UNKNOWN |
-| Human handoff | `services/ticket_service.py` | Ticket identity, state, idempotency, and event history |
-| Bad Case lifecycle | `services/badcase_registry.py` | Deduplicated observation, evidence-gated state, recurrence, and audit history |
-| Online health | `monitor/performance_monitor.py` | Alerts and routing penalties |
-| Evaluation data | `evaluation/dataset.py` | Versioned cases, provenance, review state, checksums and split integrity |
-| Offline quality | `evaluation/evaluator.py`, `evaluation/benchmark.py` | Runtime intent/routing reports and deterministic layered prediction scores |
+| HTTP 合同 | `api/main.py` | 经过校验的请求与响应模型 |
+| HTTP 身份与权限范围 | `core/auth.py` | 从签名 JWT 的 `sub` 解析出的可信 `Principal` |
+| Chroma 部署模式 | `core/chroma_client.py` | 明确选择远程或嵌入式物理存储 |
+| 模型分层与推理策略 | `core/model_policy.py` | 按角色校验的模型、推理强度及请求级覆盖配置 |
+| 意图识别 | `core/intent_recognizer.py` | 意图、置信度、紧急程度和实体 |
+| 任务规划与 Agent 选择 | `agents/agent_orchestrator.py` | 带任务范围、风险、验收条件和 Owner 的 `TaskPlan` |
+| 编排合同与预算 | `agents/orchestration_contracts.py` | 任务身份、覆盖投影和共享执行截止时间 |
+| 必做任务覆盖 | `services/result_synthesizer.py` | 完成、缺失、失败、重复和意外任务的证据 |
+| 并行结果合成 | `services/result_synthesizer.py` | 唯一候选答案、冲突和升级决定 |
+| ReAct 执行 | `agents/react_engine.py` | 有界 Worker 循环及闭合的 ReAct 结果 |
+| 工具授权与可靠性 | `mcp/tool_manager.py` | Agent 白名单、审批结论、类型化结果和脱敏审计 |
+| 业务知识 | `mcp/knowledge_base.py` | 从 ChromaDB 检索出的文档证据 |
+| 会话记忆 | `memory/conversation_memory.py` | 有序原始事件、范围摘要与检查点、情景索引和带来源事实 |
+| 混合记忆排序 | `memory/hybrid_retrieval.py` | BM25、向量、时效性融合候选及检索指标 |
+| 请求 Trace | `core/tracing.py` | Trace/Span 身份及进程内投影 |
+| Prompt 上下文 | `memory/context.py` | Token 估算、类型化分区和有界模型输入 |
+| 动态规则 | `core/skill_loader.py` | 请求级 Skill Prompt 块 |
+| 发布安全 | `services/answer_verifier.py` | `PASS`、`REJECT` 或 `UNKNOWN` |
+| 人工升级 | `services/ticket_service.py` | 工单身份、状态、幂等性和事件历史 |
+| Bad Case 生命周期 | `services/badcase_registry.py` | 去重观察、证据门禁、复发和审计历史 |
+| 在线健康度 | `monitor/performance_monitor.py` | 告警和路由惩罚 |
+| 评测数据 | `evaluation/dataset.py` | 带版本、来源、审核状态、校验和及切分完整性的数据 |
+| 离线质量 | `evaluation/evaluator.py`、`evaluation/benchmark.py` | 运行时意图/路由报告及确定性分层评分 |
 
-## Temporal contract for `/chat`
+## `/chat` 的时序合同
 
-1. Read memory before classifying the current request.
-2. Classify once; reuse that result for knowledge selection and routing.
-3. Retrieve knowledge only for supported business intents.
-4. Build one TaskPlan and execute scoped workers within a shared request budget.
-5. Inside a Worker, expose only allowlisted tools and run at most
-   `REACT_MAX_STEPS`; authorization remains owned by ToolManager.
-6. Convert every planned task to a typed outcome and verify required-task coverage.
-7. Synthesize one candidate and verify coverage, grounding, completeness, and safety before publication.
-8. Attribute a supported verification verdict to the exact candidate producers.
-9. If escalation is required, create or reuse one idempotent persistent ticket.
-10. Capture verifier, coverage, and uncertain tool-effect failures as provisional Bad Case observations.
-11. Persist only the answer that was actually published.
-12. Extract bounded, source-linked fact operations asynchronously after persistence.
-13. When the client closes a conversation, idempotently archive every uncovered
-    raw event and advance the range checkpoint without deleting the event log.
+1. 先读取记忆，再识别当前请求。
+2. 意图只识别一次，知识检索和路由复用同一个结果。
+3. 只有受支持的业务意图才检索知识库。
+4. 构建一个 `TaskPlan`，在共享请求预算内执行职责明确的 Worker。
+5. Worker 只能看到白名单工具，最多执行 `REACT_MAX_STEPS`；授权仍由 `ToolManager` 决定。
+6. 每个计划任务都必须转换为类型化结果，并检查必做任务覆盖率。
+7. 合成唯一候选答案，在发布前校验覆盖、证据、完整性和安全性。
+8. 只把校验结论归因给真正产生该候选答案的 Agent 实例。
+9. 需要升级时，创建或复用一个幂等、持久化的人工工单。
+10. 将校验失败、覆盖失败和工具副作用不确定记录为 provisional Bad Case。
+11. 只持久化真正发布给用户的答案。
+12. 持久化之后，异步提取有界且带来源的事实操作。
+13. 客户端关闭会话时，幂等归档尚未覆盖的原始事件并推进范围检查点，不删除事件日志。
 
-This ordering prevents the memory store from claiming that an unverified model
-answer was shown to the user.
+这个顺序保证记忆系统不会把“模型生成但未通过校验的答案”误认为已经展示给用户。
 
-## Context budget contract
+## 上下文预算合同
 
-`MemoryManager` owns persisted memory state. A batched turn receives contiguous,
-conversation-local sequence numbers and is appended to the raw Redis event log.
-Token pressure selects the oldest uncovered, bounded sequence range while recent
-turns remain verbatim. The model summarizes only that range; the result is an
-immutable chunk carrying `from_seq`, `to_seq`, source message IDs, and a source
-hash. Redis CAS advances only the summary checkpoint. A newer message is outside
-the fixed range and does not invalidate it; only another checkpoint writer can
-win the same transition.
+`MemoryManager` 拥有持久化记忆状态。批量写入的每轮消息获得会话内连续序号，并追加到 Redis 原始事件日志。Token 压力出现时，只选择最老、尚未覆盖且边界固定的序列范围，最近对话仍保留原文。模型只摘要这个固定范围，产物是携带 `from_seq`、`to_seq`、来源消息 ID 和来源哈希的不可变 Chunk。Redis CAS 只推进摘要检查点；后来到达的新消息位于范围之外，不会使当前摘要失效，只有竞争同一检查点的写入者可能赢得这次状态迁移。
 
-Long-term episodic storage uses raw overlapping conversation chunks as the
-retrievable documents. Vector and BM25 candidates are isolated by user and may
-degrade independently; recency can only reorder already-relevant candidates.
-Weighted RRF produces the final ranking and preserves per-source ranks for
-diagnosis. The structured summary remains prompt context/metadata, not the sole
-long-term source of truth.
+长期情景记忆存储带重叠的原始会话 Chunk，而不是只存摘要。向量和 BM25 候选按用户隔离，两路可以独立降级；时效性只能重排已经相关的候选。加权 RRF 生成最终排序，并保留各检索源排名用于诊断。结构化摘要服务于 Prompt 上下文和元数据，不是长期检索的唯一事实来源。
 
-Compression and explicit conversation finalization share one archive owner.
-Every event has a stable `message_id`; Chroma uses deterministic IDs and `upsert`,
-so checkpoint retries cannot duplicate episodic records. Archival happens before
-checkpoint advancement; failure leaves both checkpoint and raw events unchanged.
-Finalization covers the high-water observed at call start and reports a typed
-concurrent write if a later sequence appears. Long-term user state is a closed set
-of typed facts with source IDs and `active/superseded/retracted` lifecycle. The
-profile exposed to prompts is only a projection of active facts.
+压缩和显式结束会话共用同一个归档 Owner。每条事件都有稳定 `message_id`，Chroma 使用确定性 ID 和 `upsert`，因此检查点重试不会产生重复情景记录。系统先归档、后推进检查点；归档失败时二者均不改变。会话结束操作覆盖调用开始时观察到的高水位，如果随后出现更大序号，则返回类型化并发写入结果。长期用户状态由带来源 ID 的类型化事实组成，生命周期闭合为 `active / superseded / retracted`；Prompt 中的用户画像只是活跃事实的投影。
 
-`ContextAssembler` separately owns conversion into an LLM prompt. Memory,
-retrieved knowledge, and profile data remain tagged data sections; real
-user/assistant history remains real messages. It reserves output capacity,
-trims oldest history, and never inserts fabricated assistant acknowledgements.
+`ContextAssembler` 单独拥有“记忆数据如何转换成 LLM 输入”的职责。记忆、检索知识和画像放在带标签的数据分区中，真正的用户/助手历史仍然保留消息角色。它预留输出容量、从最老历史开始裁剪，并且不会伪造助手确认消息。
 
-## Task plan, budget, and parallel outcome algebra
+## TaskPlan、预算与并行结果代数
 
-The orchestrator converts selected capabilities into a `TaskPlan`; every required
-task has a stable ID, one Owner, scoped instructions, risk, and success criteria.
-`ExecutionWindow` gives all workers and synthesis one request deadline while also
-enforcing a per-Agent timeout and max-Agent limit. Every task finishes as
-`SUCCESS`, `TIMEOUT`, `ERROR`, or `BUDGET_EXCEEDED`.
+编排器把所选能力转换成 `TaskPlan`。每个必做任务都有稳定 ID、唯一 Owner、明确范围、风险和成功标准。`ExecutionWindow` 为全部 Worker 和合成阶段提供共享截止时间，同时限制单 Agent 超时和最大 Agent 数量。每项任务最终只能进入：
 
-`CoverageGate` compares the plan with outcomes and rejects missing, failed,
-duplicate, or unexpected required-task evidence. `ResultSynthesizer` is the only
-component that converts ordered outcomes into a candidate. The publication
-verifier deterministically rejects incomplete coverage before calling its model.
+```text
+SUCCESS / TIMEOUT / ERROR / BUDGET_EXCEEDED
+```
 
-## Routing-quality feedback
+`CoverageGate` 对比计划和结果，拒绝缺失、失败、重复或意外的必做任务证据。只有 `ResultSynthesizer` 能把有序任务结果转换为候选答案。发布校验器在调用模型之前，会先确定性拒绝覆盖不完整的候选。
 
-Agent execution success means the provider call completed; it is not evidence
-that the answer was good. Each Agent instance therefore owns separate
-availability and answer-quality statistics. Verifier `PASS` and `REJECT`
-observations update a sample-aware EWMA whose confidence grows over the first
-ten samples. `UNKNOWN` increments an infrastructure counter but leaves quality
-unchanged. Only producer keys attached to a direct or successfully synthesized
-candidate receive feedback; conflict and unknown synthesis results are not
-misattributed to individual Agents.
+## 路由质量反馈
 
-The feedback changes selection only inside a type with at least two live
-instances. Each stats record therefore exposes `routing_pool_size` and
-`adaptive_routing_active`; singleton pools still collect health but do not
-claim that a penalty can route to a nonexistent alternative.
+Agent 调用成功只说明模型供应商返回了结果，不代表答案质量合格。因此每个 Agent 实例分别维护可用性和答案质量统计。校验器的 `PASS`、`REJECT` 更新带样本置信度的 EWMA，置信度在前 10 个样本逐步建立；`UNKNOWN` 只增加基础设施异常计数，不改变答案质量。只有直接生成候选或成功参与合成的实例会收到归因，冲突或未知合成不会错误惩罚某个 Worker。
 
-## Failure semantics
+反馈只有在同类型存在至少两个存活实例时才能改变选择。统计记录因此显式暴露 `routing_pool_size` 和 `adaptive_routing_active`；单实例池仍收集健康度，但不会声称能把流量路由到不存在的备份实例。
 
-- Unknown intent with low confidence asks a clarification question.
-- A normal provider failure may fall back to the general agent; a denied,
-  approval-blocked, failed, or over-budget ReAct outcome does not, preserving
-  the security evidence attached to the original task.
-- Tool timeout, open circuit, or execution failure returns a controlled fallback.
-- A Worker cannot discover or execute a tool outside its allowlist. Read-only
-  batches may run concurrently; potential writes run serially and require host
-  approval under the default policy.
-- Verifier failure becomes `UNKNOWN`, never `PASS`.
-- `REJECT` and `UNKNOWN` publish a deterministic handoff response and set
-  `escalated=true`.
-- Ticket persistence failure never claims a successful handoff; the response
-  explicitly asks the client to retry with the same `request_id`.
-- A compression model failure uses a bounded deterministic summary over the same
-  fixed source range; competing checkpoint transitions cannot both commit.
-- Agent timeout or exception is a typed outcome. Partial synthesis remains
-  usable but escalates; all-failed and unverifiable synthesis fail closed.
-- Request-budget exhaustion remains attached to the planned task as
-  `BUDGET_EXCEEDED`; it never silently removes work from coverage evidence.
-- Account-security work is owned by `AccountSecurityAgent`, not Billing.
-- Verifier `UNKNOWN` is observable but never treated as an Agent-quality
-  rejection.
-- Human-handoff tasks execute a real, tool-free `EscalationAgent`; the task Owner
-  and responding capability no longer disagree.
-- `CHROMA_MODE=remote` fails startup if the server is unavailable. Only explicit
-  `embedded` mode writes to the local path, preventing split-brain persistence.
-- The public HTTP projection strips rejected candidate bodies and raw Agent
-  errors; trusted internal outcomes remain available only inside the service.
+## 失败语义
 
-## Ticket state algebra
+- 未知意图且置信度低时，系统请求用户澄清。
+- 普通模型调用失败可以回退到 General Agent；被拒绝、等待审批、执行失败或超预算的 ReAct 结果不得回退，避免丢失原任务的安全证据。
+- 工具超时、熔断或执行失败返回受控降级结果。
+- Worker 无法发现或执行白名单外工具。只读调用可以并发，潜在写操作串行执行，并在默认策略下要求宿主审批。
+- 校验器失败返回 `UNKNOWN`，绝不等同于 `PASS`。
+- `REJECT` 和 `UNKNOWN` 发布确定性人工转接说明，并设置 `escalated=true`。
+- 工单持久化失败时不能宣称升级成功，而是要求客户端携带相同 `request_id` 重试。
+- 压缩模型失败时，对同一固定来源范围执行有界确定性摘要；竞争的检查点迁移不能同时提交。
+- Agent 超时或异常是类型化结果。部分成功可以合成但必须升级；全部失败或不可校验的结果按 fail-closed 处理。
+- 请求预算耗尽仍以 `BUDGET_EXCEEDED` 绑定到原计划任务，不能从覆盖证据中静默消失。
+- 账户安全任务由 `AccountSecurityAgent` 负责，而不是 Billing Agent。
+- `UNKNOWN` 可观测，但不会被当作 Agent 答案质量差。
+- 人工转接任务由真实、无工具的 `EscalationAgent` 执行，Task Owner 与实际响应能力一致。
+- `CHROMA_MODE=remote` 下服务不可用会阻止启动；只有显式 `embedded` 模式写本地路径，避免双存储分叉。
+- 对外 HTTP 投影删除被拒候选正文和原始 Agent 错误，可信内部结果只保留在服务边界内。
 
-`TicketService` is the only owner allowed to change ticket state. Its bounded
-state set is `OPEN`, `IN_PROGRESS`, `WAITING_CUSTOMER`, `RESOLVED`, and
-`CLOSED`. Closed tickets are terminal; resolved tickets may be reopened to
-`IN_PROGRESS`. Every accepted transition is written to `ticket_events` in the
-same SQLite transaction as the ticket update. Same-state retries are no-ops.
+## 工单状态代数
 
-The idempotency fingerprint covers the stable client operation—not generated
-LLM wording—so a retry can safely reuse the first ticket even when model output
-is nondeterministic.
+`TicketService` 是唯一允许修改工单状态的 Owner。状态集合闭合为 `OPEN`、`IN_PROGRESS`、`WAITING_CUSTOMER`、`RESOLVED` 和 `CLOSED`。`CLOSED` 是终态，`RESOLVED` 可以重新进入 `IN_PROGRESS`。每次合法迁移与工单更新在同一个 SQLite 事务中写入 `ticket_events`，重复提交相同状态是无操作。
 
-## Bad Case state algebra
+幂等指纹绑定稳定的客户端操作，而不是模型每次生成的措辞。因此即使模型输出不确定，重试也能安全复用第一次创建的工单。
 
-`BadCaseRegistry` owns a separate closed lifecycle:
-`CANDIDATE -> TRIAGED -> REPRODUCED -> FIXING -> REGRESSION_PASS -> VERIFIED -> CLOSED`.
-Candidate observations may also become duplicate, not-a-bug, product-decision,
-or privacy-rejected terminal records. Reproduction requires typed eval-layer
-expectations plus an Owner fixture/evidence hash; regression pass requires the
-fix commit. A matching observation after closure atomically increments the
-occurrence count and reopens the record to triaged. Export is always a dev,
-provisional, consumed regression; neither runtime nor exporter can declare Gold
-or fresh heldout.
+## Bad Case 状态代数
 
-## Extension points
+`BadCaseRegistry` 拥有另一条独立且闭合的生命周期：
 
-- Add an Agent by defining its prompt and registering it in the orchestrator pool.
-- Add a Tool by registering a typed `Tool` in the manager.
-- Add business behavior with a `skills/<name>/SKILL.md` file.
-- Replace model providers through the Anthropic-compatible configuration boundary.
-- Replace SQLite with PostgreSQL behind the TicketService and BadCaseRegistry contracts for
-  multi-replica writes.
+```text
+CANDIDATE → TRIAGED → REPRODUCED → FIXING → REGRESSION_PASS → VERIFIED → CLOSED
+```
+
+候选观察也可以进入 duplicate、not-a-bug、product-decision 或 privacy-rejected 等终态。进入 `REPRODUCED` 必须提供类型化评测层预期、Owner fixture 和证据哈希；进入 `REGRESSION_PASS` 必须提供修复提交。已关闭问题再次出现时，系统原子增加发生次数并重新打开为 `TRIAGED`。导出的样本永远只是 dev、provisional、consumed regression；运行时和导出器都无权把它声明为 Gold 或 fresh heldout。
+
+## 扩展点
+
+- 新增 Agent：定义专属 Prompt 并注册到 Orchestrator 池。
+- 新增 Tool：向 ToolManager 注册类型化 `Tool`。
+- 新增业务行为：添加 `skills/<name>/SKILL.md`。
+- 更换模型供应商：通过 Anthropic-compatible 配置边界替换。
+- 多副本写入：在不改变 `TicketService` 与 `BadCaseRegistry` 合同的前提下，将 SQLite 替换为 PostgreSQL。

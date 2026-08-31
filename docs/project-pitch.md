@@ -1,124 +1,104 @@
-# Project walkthrough
+# 项目讲述与技术取舍
 
-## 30-second version
+这页回答两个面试问题：**“你的项目到底解决什么问题？”**和**“为什么这样设计？”**。完整调用链和源码定位请看[完整架构教程](./)。
 
-DialogPilot is a Python/FastAPI multi-agent customer-support backend. It reads
-Redis and ChromaDB memory, classifies intent using an LLM, local semantic
-similarity, and rules, retrieves business knowledge through a reliable tool
-layer, and uses a token-budgeted context assembler over append-only events,
-range-owned summary chunks, and sourced facts. It turns requests into scoped tasks owned by general,
-technical, billing, or account-security agents. Independent tasks execute under
-one request deadline and max-Agent budget. A coverage gate proves that every
-required task has a closed outcome before a typed result synthesizer preserves
-useful partial evidence and detects conflicts. A verifier then allows only explicitly passed
-answers to be published; failures are
-escalated deterministically into an idempotent SQLite-backed human ticket with
-a typed lifecycle and audit history. Verifier, Coverage, uncertain tool effects,
-and authenticated user feedback enter a separate deduplicated Bad Case state
-machine; reproduced fixes export only as provisional dev regressions. Prometheus
-monitoring and layered evaluation close the online and offline feedback loops.
+## 30 秒版本
 
-The HTTP boundary derives identity from a verified JWT Principal rather than a
-caller-supplied user ID. A dedicated, tool-free escalation worker prepares
-human handoff evidence. Chroma storage mode is explicit and observable, and
-short conversations are idempotently indexed and checkpointed while their raw
-event log remains available for rebuilding summaries and auditing facts.
+DialogPilot 是一个使用 Python 和 FastAPI 实现的多 Agent 客服后端。我不是把所有能力塞进一个 Prompt，而是先用 LLM、本地字符 n-gram 和规则融合识别意图，再把请求转换成带任务范围、风险和验收条件的 `TaskPlan`，由 General、Technical、Billing、Account Security 等 Worker 在共享截止时间内执行。
 
-Within each scoped Worker, a bounded ReAct loop may select only tools exposed by
-its allowlist. ToolManager—not the model—owns risk, approval, execution, bounded
-writeback, and redacted audit. A request TraceId links HTTP, ReAct steps, and
-tool calls. Episodic retrieval stores raw chunks and fuses BM25, vector, and
-recency ranks, avoiding the precision loss caused by searching only summaries.
+每个 Worker 内部使用有界 ReAct，只能调用 ToolManager 暴露的白名单工具。ToolManager 而不是模型负责风险分级、写操作审批、超时、审计和结果脱敏。并行结果必须先通过 `CoverageGate`，证明所有必做任务都有闭合结果，再由 `ResultSynthesizer` 处理顺序、冲突和部分成功。最终只有 `AnswerVerifier` 明确判为 `PASS` 的候选可以发布；失败则确定性转入带幂等键和状态历史的 SQLite 人工工单。
 
-## Engineering decisions
+记忆层以 Redis 原始事件日志为事实来源，按 Token 压力压缩固定序列范围，同时把带重叠的原始会话 Chunk 写入 ChromaDB。长期召回融合 BM25、向量和时效性排名，结构化事实保留来源及替代/撤销状态。这样既能控制上下文长度，又不会因为只搜索摘要而丢失订单号、错误码等精确信息。
 
-### Why combine three intent signals?
+HTTP 边界从签名 JWT 中取得用户身份，不信任请求体提交的 `user_id`。请求级 `TraceId` 串联 HTTP、ReAct 和工具调用。校验失败、任务覆盖失败、工具副作用不确定以及可信用户反馈会进入独立的 Bad Case 状态机；复现和修复后的样本只作为 provisional dev regression，不冒充人工 Gold 或全新 heldout。
 
-The LLM handles natural-language ambiguity, local character n-grams provide a
-deterministic semantic fallback, and patterns are strong for order IDs, error
-codes, refund language, and amounts. Concurrent execution controls latency and
-weighted voting exposes source scores for debugging.
+## 主链路怎么讲
 
-### Why retrieve only for business intents?
+```text
+请求与可信身份
+  → 读取记忆
+  → 多信号意图识别
+  → 按业务意图检索知识
+  → 构建 TaskPlan
+  → 有界并行 Worker / ReAct / Tool
+  → CoverageGate
+  → ResultSynthesizer
+  → AnswerVerifier
+  → 发布答案或创建人工工单
+  → 持久化真实发布结果
+  → 异步抽取事实与记录 Bad Case
+```
 
-Knowledge retrieval improves factual business answers but can pollute greetings
-and handoff requests. Intent-owned retrieval gating reduces irrelevant context,
-latency, and reranking cost.
+## 关键技术取舍
 
-### Why task-aware multiple agents?
+### 为什么融合三路意图信号？
 
-General, technical, billing, and account-security prompts encode different
-policies and risk boundaries. The orchestrator owns a TaskPlan rather than only
-an Agent list: each required task has an ID, Owner, scope, risk, and completion
-criteria. Workers share an execution window and finish as `SUCCESS / TIMEOUT /
-ERROR / BUDGET_EXCEEDED`; CoverageGate owns completeness and ResultSynthesizer
-owns deduplication, conflict detection, output order, and partial evidence.
+LLM 擅长处理自然语言歧义；本地字符 n-gram 是确定性语义降级路径；规则对订单号、错误码、退款词和金额等结构化特征更稳定。三路并发控制延迟，加权投票保留各来源分数，出现误路由时能够定位到底是哪一路判断出了问题。
 
-### Why compress by tokens instead of message count?
+代价是系统比单模型分类复杂，因此合同明确规定只分类一次，知识选择和 Agent 路由必须复用同一个 `IntentResult`，避免两个识别实例或两次调用产生分叉结论。
 
-Message count does not predict model input size. DialogPilot estimates prompt
-tokens, preserves the recent raw turn, and summarizes the oldest uncovered
-sequence range into an immutable bounded chunk. An optimistic Redis transaction
-advances only the checkpoint; later messages have larger sequence numbers and
-do not invalidate the fixed range. Prompt assembly keeps retrieved data in tagged sections and real
-conversation turns in the message sequence.
+### 为什么只对业务意图检索知识？
 
-Compression is not the only archive trigger. The conversation-finalize API
-upserts deterministic per-message episodic IDs and advances the range checkpoint
-without deleting the raw event log. An archive failure leaves the checkpoint
-unchanged. User profiles are projections of active, typed facts whose records
-retain source message IDs and supersession/retraction state.
+知识库能提升业务回答的事实性，但把检索结果塞进问候、闲聊或人工转接请求只会污染上下文、增加延迟和重排成本。因此由意图结果控制检索门，而不是每条请求都无条件执行 RAG。
 
-### Why combine deterministic planning with bounded ReAct?
+### 为什么是 TaskPlan，而不是简单选择几个 Agent？
 
-The outer TaskPlan owns required work, risk, deadlines, and coverage; that keeps
-the customer-support workflow reproducible. ReAct is limited to tool selection
-inside one task Owner. This gives Workers observation/action capability without
-allowing free-form delegation to erase task identity or bypass authorization.
+General、Technical、Billing 和 Account Security 不只是不同 Prompt，它们对应不同业务责任与风险边界。Orchestrator 生成的不是 Agent 名单，而是 `TaskPlan`：每个必做任务都有稳定 ID、唯一 Owner、范围、风险和完成标准。
 
-### Why hybrid long-term memory?
+Worker 共享一个 `ExecutionWindow`，最终结果只能是：
 
-Structured summaries are useful for bounded prompts but may drop exact order
-IDs and error codes. DialogPilot therefore retrieves raw episodic chunks using
-BM25 and vector search, fuses their ranks with a small recency signal, and
-returns source/rank evidence. Retrieval quality can be measured with Recall@K,
-MRR, and nDCG instead of judged from one fluent answer.
+```text
+SUCCESS / TIMEOUT / ERROR / BUDGET_EXCEEDED
+```
 
-### Why fail closed at verification?
+`CoverageGate` 负责完整性，`ResultSynthesizer` 负责去重、冲突、输出顺序和部分成功证据。这样并发不会把“有 Agent 返回”误当成“用户问题已经完整解决”。
 
-The verifier owns whether a candidate answer is publishable. Treating parser or
-model failures as success would silently bypass that boundary. A closed outcome
-algebra makes unsupported states explicit and routes them to a safe handoff.
+### 为什么外层确定性规划、内层有界 ReAct？
 
-The verdict also closes the online routing loop without conflating provider
-availability with answer quality. `PASS` and `REJECT` observations update a
-sample-aware EWMA for the exact producer Agent instances; `UNKNOWN` is recorded
-as verifier infrastructure state and does not lower Agent quality.
+外层 `TaskPlan` 固定必做工作、风险、截止时间和覆盖要求，使客服流程可复现；ReAct 只负责一个任务 Owner 内部的工具选择。这样保留了 Worker 根据观察结果继续行动的能力，又防止自由委派抹掉任务身份或绕过工具授权。
 
-### Why does the ticket service own its state machine?
+### 为什么按 Token 而不是消息条数压缩？
 
-The API and Agent orchestrator can request a handoff, but only TicketService
-owns identity, idempotency, persistence, legal transitions, and event history.
-That prevents controllers from inventing states and ensures retries do not
-create duplicate tickets. SQLite keeps the portfolio deployment simple while
-the contract is narrow enough to migrate to PostgreSQL when horizontal writes
-are required.
+消息数量无法准确代表模型输入长度。DialogPilot 估算 Prompt Token，保留最近原始轮次，只把最老且尚未覆盖的固定序列范围压缩成不可变 Chunk。Redis 乐观事务只推进该范围的检查点；后来到达的消息序号更大，不会让正在生成的摘要失效。
 
-### Why is Bad Case state separate from tickets and Trace?
+压缩也不是唯一归档触发器。会话结束 API 会用确定性消息 ID 幂等写入情景记忆并推进检查点，但不删除原始事件日志。归档失败时检查点保持不变。用户画像只是活跃类型化事实的投影，每条事实仍保留来源消息和 superseded/retracted 生命周期。
 
-Tickets own customer handoff work and process-local Trace owns diagnostics;
-neither owns whether an engineering defect was reproduced, fixed, or seen again.
-`BadCaseRegistry` persists redacted observations, deduplicates recurring
-symptoms, requires Owner/expected/fixture evidence before reproduction, requires
-a fix commit before regression pass, and reopens closed defects on recurrence.
-The exporter always marks observed-and-fixed cases as consumed dev regressions;
-it cannot manufacture fresh heldout or human Gold.
+### 为什么长期记忆使用混合召回？
 
-## Honest measurement language
+摘要适合放进有界 Prompt，却可能丢掉订单号和错误码。系统因此检索原始情景 Chunk，分别得到 BM25 与向量候选，再用加权 RRF 融合并加入较小的时效性信号。每条结果保留来源排名，效果可以用 `Recall@K`、`MRR` 和 `nDCG` 测量，而不是只凭一段流畅回答判断。
 
-Use results from `/eval/run` only with the dataset size, model, date, and runtime
-configuration. The repository now has a 500-case provisional layered suite, 25
-retrieval documents, public-data adapters and deterministic layer metrics, but
-no human-reviewed gold cases yet. Built-in 11+5 cases remain smoke tests; none
-of these artifacts establishes production accuracy or latency until review and
-a held-out run are recorded.
+### 为什么工具权限不能交给模型？
+
+模型只提出“想调用什么工具”，无权决定“是否允许调用”。ToolManager 根据 Agent 白名单、工具风险、宿主审批和执行状态机作决定；只读工具可以并发，潜在写操作串行并默认要求审批。超时、取消和未知副作用以类型化结果返回，审计记录只保存脱敏参数和结果摘要。
+
+这能回答用户提示注入场景：即使用户要求忽略规则或伪造审批，模型也拿不到白名单外工具，写操作也无法绕过宿主授权。
+
+### 为什么发布校验必须 fail-closed？
+
+`AnswerVerifier` 拥有候选答案能否发布的最终决定权。如果解析失败或校验模型异常时默认放行，就等于绕过安全边界。因此结论集合闭合为 `PASS / REJECT / UNKNOWN`，只有 `PASS` 发布，其余状态进入安全人工转接。
+
+校验结论也用于在线路由反馈，但不混淆模型可用性和答案质量。`PASS`、`REJECT` 更新真正候选生产者的样本感知 EWMA；`UNKNOWN` 只记录校验基础设施异常，不降低 Agent 质量。
+
+### 为什么工单服务拥有独立状态机？
+
+API 和 Orchestrator 可以申请人工升级，但只有 `TicketService` 负责工单身份、幂等、持久化、合法状态迁移和事件历史。这样 Controller 不能随意发明状态，相同 `request_id` 的重试也不会创建重复工单。
+
+当前使用 SQLite 是为了让个人项目易部署；服务合同保持窄边界，多副本写入时可以迁移 PostgreSQL，而不用重写 Agent 主链。
+
+### 为什么 Bad Case 不等于 Ticket 或 Trace？
+
+Ticket 负责用户人工处理流程，Trace 负责一次请求的诊断；二者都不拥有“工程缺陷是否复现、修复、验证或复发”的事实。`BadCaseRegistry` 因而单独持久化脱敏观察、合并重复症状，并要求 Owner、expected、fixture 和证据哈希齐全后才能进入 `REPRODUCED`，提交修复后才能进入回归验证，关闭后复发则自动重新打开。
+
+## 面试时应该诚实说明的指标边界
+
+调用 `/eval/run` 得到结果时，必须同时说明数据集规模、模型、日期和运行配置。仓库目前拥有 500 条 provisional 分层评测、25 篇检索文档、公开数据适配器及确定性分层指标，但还没有获得独立人工仲裁的 Gold 数据。
+
+因此可以说：
+
+> 我建立了覆盖意图、路由、RAG 和 Stateful 合同的版本化回归体系，并用 Macro-F1、Owner Exact Match、Recall@K、MRR、nDCG 及 Owner fixture 验证不同层级。
+
+不能说：
+
+> 项目已达到生产准确率，或 500 条数据全部属于人工 Gold。
+
+内置 11+5 条用例只是 smoke test，也不能代替代表真实业务分布的 heldout 评测。
