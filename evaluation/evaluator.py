@@ -13,13 +13,11 @@
 LLM-as-Judge 是评测 Agent 质量的关键技术：
   人工标注成本高、主观性强；用 LLM 评判可以规模化、可重复。
 """
-import asyncio
 import json
 import logging
-import pathlib
 import statistics
 import time
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -30,6 +28,14 @@ from core.llm_utils import extract_text_content
 from core.model_policy import ModelProfile, ModelRole
 
 from core.intent_recognizer import IntentCategory, IntentRecognizer
+from evaluation.graduation import (
+    BaselineSnapshot,
+    GraduationDecision,
+    GraduationEvidence,
+    GraduationGate,
+    ImmutableBaselineStore,
+)
+from evaluation.rubric import CaseRubric
 
 logger = logging.getLogger(__name__)
 
@@ -103,6 +109,7 @@ class LLMJudge:
 用户问题: {question}
 Agent 响应: {response}
 {context_section}
+{rubric_section}
 
 请从以下四个维度评分（0.0-1.0），返回 JSON：
 - relevance: 响应是否直接针对用户问题（0=完全无关，1=完全相关）
@@ -128,13 +135,16 @@ Agent 响应: {response}
         question: str,
         response: str,
         context: Optional[str] = None,
+        rubric: Optional[CaseRubric] = None,
     ) -> QualityScores:
         """对一次问答进行四维评分；Judge 故障显式标记而非伪装通过。"""
         ctx_section = f"背景信息: {context}" if context else ""
+        rubric_section = rubric.semantic_prompt() if rubric else ""
         prompt = self.JUDGE_PROMPT.format(
             question=question,
             response=response,
             context_section=ctx_section,
+            rubric_section=rubric_section,
         )
         prompt = self._clean_text(prompt)
         try:
@@ -261,7 +271,8 @@ class EndToEndEvaluator:
         self._judge            = LLMJudge(client, model, model_profile=judge_model_profile)
         self._intent_evaluator = IntentEvaluator(recognizer)
         self._history:         List[EvalReport] = []
-        self._baseline_path = pathlib.Path(baseline_path) if baseline_path else None
+        self._baseline_store = ImmutableBaselineStore(baseline_path) if baseline_path else None
+        self._graduation_gate = GraduationGate()
         self._baseline: Optional[EvalReport] = self._load_baseline()
 
     async def run(
@@ -292,6 +303,8 @@ class EndToEndEvaluator:
             "route_jaccard": [],
             "task_exact_match": [],
             "planning_complete": [],
+            "rubric_hard_pass": [],
+            "rubric_score": [],
         }
 
         # 1. 意图识别评测
@@ -349,7 +362,6 @@ class EndToEndEvaluator:
             metadata=dict(metadata or {}),
         )
         self._history.append(report)
-        self._save_baseline(report)
         return report
 
     async def _evaluate_dialog_case(self, case: Dict[str, Any], case_idx: int) -> List[EvalResult]:
@@ -403,8 +415,29 @@ class EndToEndEvaluator:
                 orchestration_scores = self._orchestration_scores(orch_result, case)
                 required_checks = [orchestration_scores["coverage_complete"] >= 1.0]
             scores = None
+            rubric = None
+            rubric_result = None
             if not routing_only:
-                scores = await self._judge.judge(question, actual_answer, context=context or None)
+                rubric = CaseRubric.from_mapping(case.get("rubric"))
+                tool_call_count = sum(
+                    len(dict(outcome).get("tool_call_ids") or [])
+                    for outcome in (getattr(orch_result, "agent_outcomes", []) or [])
+                )
+                rubric_result = rubric.evaluate(
+                    actual_answer,
+                    tool_call_count=tool_call_count,
+                )
+                scores = await self._judge.judge(
+                    question,
+                    actual_answer,
+                    context=context or None,
+                    rubric=rubric,
+                )
+                required_checks.append(rubric_result.hard_pass)
+                required_checks.extend(
+                    getattr(scores, dimension) >= threshold
+                    for dimension, threshold in rubric.min_dimension_scores.items()
+                )
             passed = all(required_checks) and (
                 routing_only or (scores is not None and scores.overall >= self.PASS_THRESHOLD)
             )
@@ -421,6 +454,11 @@ class EndToEndEvaluator:
                 "helpfulness": scores.helpfulness,
                 "overall": scores.overall,
             } if scores is not None else {})
+            if rubric_result is not None:
+                quality_scores.update({
+                    "rubric_hard_pass": 1.0 if rubric_result.hard_pass else 0.0,
+                    "rubric_score": rubric_result.score,
+                })
             detail = (
                 f"Q: {question[:30]}... → 综合评分 {scores.overall:.3f}"
                 if scores is not None
@@ -450,6 +488,8 @@ class EndToEndEvaluator:
                     "latency_ms": round((time.perf_counter() - turn_started) * 1000, 3),
                     "judge_failed": scores.judge_failed if scores is not None else False,
                     "judge_error": scores.error if scores is not None else None,
+                    "rubric_id": rubric.rubric_id if rubric is not None else None,
+                    "rubric": rubric_result.to_dict() if rubric_result is not None else None,
                     "task_plan": (
                         orch_result.task_plan if orch_result is not None
                         else decision.task_plan.to_dict() if decision.task_plan else {}
@@ -576,8 +616,8 @@ class EndToEndEvaluator:
         return "[评测多轮历史]\n" + "\n".join(lines)
 
     def _detect_regressions(self, current: Dict[str, float]) -> List[str]:
-        """与上一次评测对比，找出退化超过 5% 的指标。"""
-        prev_report = self._history[-1] if self._history else self._baseline
+        """与显式晋级的 Active Baseline 对比，找出退化超过 5% 的指标。"""
+        prev_report = self._baseline
         if prev_report is None:
             return []
         prev = prev_report.avg_scores
@@ -624,29 +664,68 @@ class EndToEndEvaluator:
         return self._history
 
     def _load_baseline(self) -> Optional[EvalReport]:
-        """从磁盘恢复基线；损坏或缺失时返回空而不中断启动。"""
-        if not self._baseline_path or not self._baseline_path.exists():
+        """从不可变快照仓库恢复 Active Baseline。"""
+        if self._baseline_store is None:
             return None
         try:
-            data = json.loads(self._baseline_path.read_text(encoding="utf-8"))
-            return self._report_from_dict(data)
+            snapshot = self._baseline_store.active()
+            return self._report_from_dict(snapshot.report) if snapshot else None
         except Exception as ex:
             logger.warning(f"读取评测基线失败: {ex}")
             return None
 
-    def _save_baseline(self, report: EvalReport) -> None:
-        """将首个有效报告原子语义地写为后续回归比较基线。"""
-        if not self._baseline_path:
-            return
-        try:
-            self._baseline_path.parent.mkdir(parents=True, exist_ok=True)
-            self._baseline_path.write_text(
-                json.dumps(asdict(report), ensure_ascii=False, indent=2),
-                encoding="utf-8",
-            )
-            self._baseline = report
-        except Exception as ex:
-            logger.warning(f"保存评测基线失败: {ex}")
+    @property
+    def baseline_snapshot(self) -> Optional[BaselineSnapshot]:
+        """返回当前 Active 快照；普通评测不会改变该指针。"""
+        return self._baseline_store.active() if self._baseline_store else None
+
+    def assess_latest_candidate(
+        self,
+        *,
+        candidate_id: str,
+        hard_gates: Dict[str, bool],
+        review_status: str,
+        fresh_heldout: bool,
+        heldout_evidence_id: str = "",
+        heldout_checksum: str = "",
+        latency_ratio: float = 1.0,
+        cost_ratio: float = 1.0,
+    ) -> GraduationDecision:
+        """对最近一次运行做显式晋级判定，但不改变 Active 指针。"""
+        if not self._history:
+            raise ValueError("no evaluation report is available for graduation")
+        return self._graduation_gate.evaluate(GraduationEvidence(
+            candidate_id=candidate_id,
+            report=self._history[-1],
+            hard_gates=dict(hard_gates),
+            review_status=review_status,
+            fresh_heldout=fresh_heldout,
+            heldout_evidence_id=heldout_evidence_id,
+            heldout_checksum=heldout_checksum,
+            latency_ratio=latency_ratio,
+            cost_ratio=cost_ratio,
+        ))
+
+    def promote_latest_candidate(
+        self,
+        *,
+        actor: str,
+        **evidence: Any,
+    ) -> tuple[GraduationDecision, Optional[BaselineSnapshot]]:
+        """只有 Graduation Gate 通过时才原子切换 Active Baseline。"""
+        decision = self.assess_latest_candidate(**evidence)
+        if not decision.graduated:
+            return decision, None
+        if self._baseline_store is None:
+            raise ValueError("baseline storage is not configured")
+        report = self._history[-1]
+        snapshot = self._baseline_store.promote(
+            report=report,
+            decision=decision,
+            actor=actor,
+        )
+        self._baseline = report
+        return decision, snapshot
 
     @staticmethod
     def _report_from_dict(data: Dict[str, Any]) -> EvalReport:

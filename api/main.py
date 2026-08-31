@@ -1255,6 +1255,7 @@ class EvalDialogInput(BaseModel):
     intent: Optional[str] = None
     intent_confidence: Optional[float] = None
     entities: Optional[Dict[str, List[str]]] = None
+    rubric: Optional[Dict[str, Any]] = None
 
 
 class EvalRunInput(BaseModel):
@@ -1265,6 +1266,19 @@ class EvalRunInput(BaseModel):
     split: Literal["dev", "heldout"] = "dev"
     layers: Optional[List[Literal["intent", "routing", "retrieval", "stateful"]]] = None
     include_non_gold: bool = False
+
+
+class EvalGraduationInput(BaseModel):
+    """候选评测报告的显式晋级证据；普通 eval run 不会自动晋级。"""
+
+    candidate_id: str = Field(min_length=1, max_length=160)
+    hard_gates: Dict[str, bool]
+    review_status: str = Field(min_length=1, max_length=80)
+    fresh_heldout: bool
+    heldout_evidence_id: str = Field(default="", max_length=240)
+    heldout_checksum: str = Field(default="", max_length=64)
+    latency_ratio: float = Field(default=1.0, ge=0.0)
+    cost_ratio: float = Field(default=1.0, ge=0.0)
 
 
 def _eval_dataset_root() -> pathlib.Path:
@@ -1514,6 +1528,57 @@ async def run_eval(
             }
             for r in report.results
         ],
+    }
+
+
+def _graduation_kwargs(body: EvalGraduationInput) -> Dict[str, Any]:
+    """把 HTTP 证据投影为 Graduation Owner 的有限输入合同。"""
+    return body.model_dump()
+
+
+@app.get("/eval/baseline")
+async def get_eval_baseline(_principal: Principal = Depends(_admin_principal)):
+    """返回当前显式晋级的 Active Baseline；无基线时返回 null。"""
+    if _evaluator is None:
+        raise HTTPException(503, "服务未就绪")
+    snapshot = _evaluator.baseline_snapshot
+    return {"active": snapshot.to_dict() if snapshot else None}
+
+
+@app.post("/eval/graduation/check")
+async def check_eval_graduation(
+    body: EvalGraduationInput,
+    _principal: Principal = Depends(_admin_principal),
+):
+    """检查最近一次评测是否满足晋级合同，不修改 Active 指针。"""
+    if _evaluator is None:
+        raise HTTPException(503, "服务未就绪")
+    try:
+        decision = _evaluator.assess_latest_candidate(**_graduation_kwargs(body))
+    except ValueError as exc:
+        raise HTTPException(409, detail={"code": "graduation_unavailable", "message": str(exc)}) from exc
+    return {"decision": decision.to_dict(), "active_changed": False}
+
+
+@app.post("/eval/baseline/promote")
+async def promote_eval_baseline(
+    body: EvalGraduationInput,
+    principal: Principal = Depends(_admin_principal),
+):
+    """通过全部 Graduation Gate 后原子切换 Active Baseline。"""
+    if _evaluator is None:
+        raise HTTPException(503, "服务未就绪")
+    try:
+        decision, snapshot = _evaluator.promote_latest_candidate(
+            actor=principal.subject,
+            **_graduation_kwargs(body),
+        )
+    except ValueError as exc:
+        raise HTTPException(409, detail={"code": "graduation_unavailable", "message": str(exc)}) from exc
+    return {
+        "decision": decision.to_dict(),
+        "active_changed": snapshot is not None,
+        "active": snapshot.to_dict() if snapshot else None,
     }
 
 
