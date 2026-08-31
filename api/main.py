@@ -571,6 +571,48 @@ def _enforce_user_input_security(message: str) -> None:
     )
 
 
+async def _active_ticket_context(user_id: str) -> Optional[ContextSection]:
+    """把 TicketService 未关闭工单投影为有界上下文，不复制其状态权威。"""
+    if _ticket_service is None:
+        return None
+    try:
+        tickets = await asyncio.to_thread(
+            _ticket_service.list_active_tickets,
+            user_id=user_id,
+            limit=3,
+        )
+    except Exception as exc:
+        logger.warning("读取未关闭工单上下文失败: %s", exc)
+        return None
+    if not tickets:
+        return None
+    content = json.dumps({
+        "authority": "TicketService",
+        "tickets": [
+            {
+                "ticket_id": ticket.ticket_id,
+                "status": ticket.status.value,
+                "priority": ticket.priority.value,
+                "intent": ticket.intent,
+                "question": ticket.question,
+                "published_response": ticket.published_response,
+                "assignee": ticket.assignee,
+                "updated_at": ticket.updated_at,
+            }
+            for ticket in tickets
+        ],
+    }, ensure_ascii=False, sort_keys=True)
+    return ContextSection(
+        tag="active_tickets",
+        description=(
+            "TicketService 提供的当前客服事项状态；状态字段高于历史对话和摘要，"
+            "实时业务工具结果仍是订单、退款和账户事实的最高权威"
+        ),
+        content=content,
+        priority=90,
+    )
+
+
 def _public_agent_outcomes(outcomes: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """用户响应只保留执行证据，不发布 candidate、内部错误或实例标识。"""
     allowed = {
@@ -757,6 +799,9 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
     intent_result = await _orchestrator.recognize_intent(req.message, history=intent_history)
     knowledge_text, knowledge_used = await _build_knowledge_context(req.message, intent=intent_result.intent)
     context_sections = mem_ctx.to_sections()
+    active_ticket_section = await _active_ticket_context(user_id)
+    if active_ticket_section is not None:
+        context_sections.append(active_ticket_section)
     if knowledge_text:
         context_sections.append(ContextSection(
             tag="knowledge",

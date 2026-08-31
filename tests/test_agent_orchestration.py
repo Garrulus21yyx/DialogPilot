@@ -506,6 +506,14 @@ def test_worker_receives_only_task_evidence_and_declared_context_refs():
     assert scoped.entities == {"error_code": ["401"]}
 
 
+def test_default_worker_contracts_include_active_ticket_authority():
+    request = Request(message="继续处理上次的问题", user_id="u", conv_id="c")
+
+    for agent_type in AgentType:
+        task = AgentOrchestrator._task_for_agent(request, agent_type)
+        assert "active_tickets" in task.context_refs
+
+
 def test_planner_slices_compound_evidence_and_marks_explicit_refund_write():
     orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
     orchestrator._pool = {

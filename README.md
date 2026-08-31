@@ -24,10 +24,10 @@ owner and exposes the routing and verification decisions in the API response.
 ```text
 POST /chat
   -> normalize and screen high-confidence direct prompt-injection attempts before any model or memory access
-  -> load uncovered Redis events, range summaries, sourced facts, and hybrid episodic memory
+  -> load uncovered Redis events, range summaries, sourced facts, and hybrid episodic memory with bounded neighbor windows
   -> assemble a bounded prompt from those projections
   -> classify intent with LLM + local semantic similarity + patterns
-  -> retrieve knowledge for business intents
+  -> retrieve knowledge for business intents and project active TicketService cases
   -> build a TaskPlan for General, Technical, Billing, or AccountSecurity owners
   -> run scoped workers under one request deadline and max-Agent budget
   -> inside each worker, execute a bounded ReAct loop through allowlisted tools
@@ -38,9 +38,9 @@ POST /chat
   -> publish only PASS answers; escalate every other outcome
   -> persist each escalation as one idempotent human-support ticket
   -> persist verifier, coverage, and uncertain tool-effect failures as deduplicated Bad Case candidates
-  -> append the published turn with contiguous conversation-local sequence numbers
+  -> append the published turn with contiguous conversation-local sequence numbers and immediately upsert its raw events into episodic search
   -> extract source-linked, versioned facts in the background
-  -> explicitly finalize short sessions by advancing their summary checkpoint
+  -> explicitly finalize short sessions by compensating any missing index metadata and advancing their summary checkpoint
   -> return redacted TraceId, tool audit, and hybrid-memory retrieval evidence
 ```
 
@@ -49,8 +49,13 @@ is first retained as an append-only raw event with a monotonic `seq`. Compressio
 creates immutable, structured chunks for explicit sequence ranges and advances a
 checkpoint with optimistic CAS; it never rewrites or deletes the raw event log.
 Newer messages therefore do not invalidate a completed older-range summary.
-Long-term search stores raw episodic chunks and fuses vector, BM25, and recency
-ranks with weighted reciprocal-rank fusion. User memory is stored as typed facts
+Every completed published turn is immediately upserted into long-term search;
+compression/finalize remain idempotent compensation paths. Retrieval excludes the
+current conversation, preserves event locators, and expands the strongest old
+conversation hits into bounded neighboring raw-message windows. Active non-closed
+tickets are projected from TicketService as higher-authority service state.
+Long-term ranking fuses vector, BM25, and recency with weighted reciprocal-rank
+fusion. User memory is stored as typed facts
 with source message IDs and active/superseded/retracted lifecycle, not one mutable
 profile blob. Retrieved knowledge and memory are tagged as data while actual
 conversation history remains user/assistant messages.

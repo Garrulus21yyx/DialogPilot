@@ -161,4 +161,21 @@ def test_missing_ticket_has_typed_failure(tmp_path):
 
     with pytest.raises(TicketNotFoundError):
         service.get_ticket("missing")
+
+
+def test_active_ticket_projection_excludes_only_closed_terminal_state(tmp_path):
+    """未关闭事项包含可恢复状态，CLOSED 终态不会继续污染客服上下文。"""
+    service = TicketService(str(tmp_path / "tickets.db"))
+    open_ticket, _ = create(service, key="open", user="user-1")
+    waiting, _ = create(service, key="waiting", user="user-1")
+    closed, _ = create(service, key="closed", user="user-1")
+    service.transition(waiting.ticket_id, TicketStatus.IN_PROGRESS, actor="agent-1")
+    service.transition(waiting.ticket_id, TicketStatus.WAITING_CUSTOMER, actor="agent-1")
+    service.transition(closed.ticket_id, TicketStatus.CLOSED, actor="agent-1")
+    create(service, key="other-user", user="user-2")
+
+    active = service.list_active_tickets(user_id="user-1", limit=3)
+
+    assert {ticket.ticket_id for ticket in active} == {open_ticket.ticket_id, waiting.ticket_id}
+    assert all(ticket.status is not TicketStatus.CLOSED for ticket in active)
 """TicketService 持久化、幂等身份和闭合状态机测试。"""

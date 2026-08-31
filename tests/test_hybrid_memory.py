@@ -118,7 +118,40 @@ def test_memory_manager_fuses_user_scoped_chroma_candidates():
     assert hits[0].memory_id == "exact"
     assert hits[0].content.startswith("订单 A123")
     assert "bm25" in hits[0].sources
+    assert hits[0].message_id == "m-exact"
+    assert hits[0].event_seq == 8
+    assert hits[0].role == "user"
     assert manager._episodic.where_values == [{"user_id": "user-1"}, {"user_id": "user-1"}]
+
+
+def test_cross_conversation_search_excludes_current_conversation():
+    """立即归档后，当前会话片段不能挤占真正的跨会话召回结果。"""
+    manager = MemoryManager.__new__(MemoryManager)
+    manager._episodic = SearchCollection()
+    manager._hybrid_retriever = HybridMemoryRetriever()
+
+    hits = asyncio.run(manager.search_long_term(
+        "user-1",
+        "订单 A123",
+        top_k=2,
+        exclude_conversation_id="c1",
+    ))
+
+    assert [hit.memory_id for hit in hits] == ["exact"]
+    assert hits[0].conversation_id == "c2"
+
+
+def test_corrupt_optional_event_locator_does_not_drop_retrievable_content():
+    documents = MemoryManager._memory_documents({
+        "ids": ["memory-1"],
+        "documents": ["订单 A123 原始片段"],
+        "metadatas": [{"event_seq": "broken", "chunk_index": object()}],
+    }, nested=False)
+
+    assert len(documents) == 1
+    assert documents[0].content == "订单 A123 原始片段"
+    assert documents[0].event_seq == 0
+    assert documents[0].chunk_index == 0
 
 
 @pytest.mark.parametrize("query", ["\u200b\ufeff", "\u00a0\u2003\u2028\u3000"])
@@ -165,8 +198,8 @@ class SearchCollection:
             "ids": [["general", "exact"]],
             "documents": [["订单配送咨询", "订单 A123 曾重复扣款"]],
             "metadatas": [[
-                {"conv_id": "c1", "ts": "2026-08-29T10:00:00+00:00"},
-                {"conv_id": "c2", "ts": "2026-08-20T10:00:00+00:00"},
+                {"conv_id": "c1", "ts": "2026-08-29T10:00:00+00:00", "message_id": "m-general", "event_seq": 2, "role": "assistant"},
+                {"conv_id": "c2", "ts": "2026-08-20T10:00:00+00:00", "message_id": "m-exact", "event_seq": 8, "role": "user"},
             ]],
             "distances": [[0.1, 0.2]],
         }
@@ -177,8 +210,8 @@ class SearchCollection:
             "ids": ["general", "exact"],
             "documents": ["订单配送咨询", "订单 A123 曾重复扣款"],
             "metadatas": [
-                {"conv_id": "c1", "ts": "2026-08-29T10:00:00+00:00"},
-                {"conv_id": "c2", "ts": "2026-08-20T10:00:00+00:00"},
+                {"conv_id": "c1", "ts": "2026-08-29T10:00:00+00:00", "message_id": "m-general", "event_seq": 2, "role": "assistant"},
+                {"conv_id": "c2", "ts": "2026-08-20T10:00:00+00:00", "message_id": "m-exact", "event_seq": 8, "role": "user"},
             ],
         }
 

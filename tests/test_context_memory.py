@@ -18,6 +18,7 @@ from memory.conversation_memory import (
     MsgRole,
     SummaryCheckpoint,
 )
+from memory.hybrid_retrieval import MemoryHit
 from core.model_policy import ModelProfile
 
 
@@ -501,6 +502,13 @@ def test_slow_old_scalar_extraction_cannot_supersede_newer_fact():
 def test_batched_appends_allocate_monotonic_sequence_and_preserve_turn_order():
     manager = bare_manager(budget=100000)
     manager._redis = FakeRedis([])
+    archives = []
+
+    async def archive(user_id, conv_id, messages, *, summary, reason):
+        archives.append((user_id, conv_id, [message.content for message in messages], summary, reason))
+        return True
+
+    manager._archive_messages = archive
 
     first = asyncio.run(manager.add_messages("u", "c", [
         (MsgRole.USER, "q1", {}),
@@ -516,6 +524,37 @@ def test_batched_appends_allocate_monotonic_sequence_and_preserve_turn_order():
     assert [(message.seq, message.content) for message in event_log] == [
         (1, "q1"), (2, "a1"), (3, "q2"), (4, "a2")
     ]
+    assert archives == [
+        ("u", "c", ["q1", "a1"], "", "turn_completed"),
+        ("u", "c", ["q2", "a2"], "", "turn_completed"),
+    ]
+
+
+def test_retrieval_hit_expands_bounded_neighbor_window_from_raw_events():
+    """命中片段应恢复有限前后语境，同时保留旧会话与 source seq。"""
+    manager = bare_manager(budget=100000)
+    manager._redis = FakeRedis([
+        raw_message("user" if seq % 2 else "assistant", f"event-{seq}", seq=seq)
+        for seq in range(6, 0, -1)
+    ])
+    hit = MemoryHit(
+        memory_id="hit-1",
+        content="user: event-3",
+        score=1.0,
+        sources=("bm25",),
+        conversation_id="old-conversation",
+        event_seq=3,
+        message_id="message-3",
+        role="user",
+    )
+
+    history = asyncio.run(manager._expand_retrieval_hits("user-1", [hit]))
+    payload = json.loads(history[0])
+
+    assert payload["conversation_id"] == "old-conversation"
+    assert payload["source_event_seq"] == 3
+    assert [message["seq"] for message in payload["messages"]] == [1, 2, 3, 4, 5]
+    assert manager._token_estimator.estimate(history[0]) <= 600
 
 
 def test_repeated_forced_summary_ranges_are_contiguous_and_rebuildable():

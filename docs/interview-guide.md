@@ -28,7 +28,7 @@ title: DialogPilot 面经校准与追问手册
 | 长期记忆只检索摘要 | 检索 1200 字符/120 overlap 原始片段，摘要只是背景 metadata | **CHANGED** |
 | 知识库是 BM25 + 向量 + RRF | 这是长期记忆；知识 RAG 仍是 rewrite + Chroma 多路向量 + 去重 + LLM rerank | **CORRECTED** |
 | Agent 单次生成、无完整 Trace | Worker 内最多 4 步 ReAct，allowlist/宿主审批/脱敏 audit/TraceId | **CHANGED** |
-| 准确率 91.3%、综合分 0.89 | 当前有 500 条分层候选集、25 篇 corpus 和 211 项回归测试，但仍无 human-reviewed gold | **UNPROVEN** |
+| 准确率 91.3%、综合分 0.89 | 当前有 500 条分层候选集、25 篇 corpus 和 231 项回归测试，但仍无 human-reviewed gold | **UNPROVEN** |
 | 完整 MCP Server / LangGraph | 是内部 ToolManager 与直接 Python 编排；没有远程 MCP Server，没用 LangGraph | **UNPROVEN** |
 
 ## 项目开场与完整链路
@@ -55,7 +55,7 @@ title: DialogPilot 面经校准与追问手册
 
 ### Q6：多轮中途改意图会丢历史吗？
 
-不会。工作记忆按认证 Principal 的 `subject + conv_id` 保留，意图每轮重新识别。老信息超 Token 预算后压缩；短会话结束时显式 finalize，原始消息以稳定 ID 幂等归档。请求体 `user_id` 不再拥有身份，冲突会 403。
+不会。工作记忆按认证 Principal 的 `subject + conv_id` 保留，意图每轮重新识别。每个完整发布轮次写入 Redis 后立即以稳定 ID 幂等进入情景索引；老信息超 Token 预算后压缩，短会话 finalize 只补齐摘要/checkpoint 和索引 metadata。请求体 `user_id` 不再拥有身份，冲突会 403。
 
 ## 意图识别与路由
 
@@ -171,6 +171,8 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q33：混合长期记忆怎么做？
 
+每个完整发布轮次立即以稳定消息 ID upsert 原始片段；检索只在签名 `user_id` 内并排除当前 `conv_id`，同时召回 Chroma vector Top-20 和用户内最多 200 条 BM25 语料，再以 vector 0.30、BM25 0.60、recency 0.10 的 RRF 排序。命中保留 `message_id/event_seq/role/chunk_index`，最相关的两个旧会话从 Redis 原始事件各展开前后两条消息，总窗口上限 1200 estimated tokens；展开失败才退回孤立命中原文。
+
 **NEW。** 原始历史按 1200 字符、120 overlap 写入 episodic collection。在用户边界内分别取 vector 和 BM25 候选，只对候选并集做 recency，最后用 RRF `k=60`、vector/BM25/recency 权重 `0.30/0.60/0.10` 融合。
 
 ### Q34：为什么 BM25 权重更高？
@@ -187,7 +189,7 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q37：记忆错了怎么办？
 
-组件不可用时降级无记忆；内容不准时，当前用户输入和当前业务知识优先，记忆只是背景。已有用户隔离、Top-K、原始片段和 rank 证据；未有记忆编辑/删除 UI、事实有效期和持久反馈学习。
+组件不可用时降级无记忆；内容不准时，实时订单/退款/账户工具结果最高，TicketService 未关闭事项状态其次，当前用户输入再用于纠正背景，历史原文、画像和摘要不能覆盖这些 Owner。已有用户隔离、当前会话排除、Top-K、邻居窗口、原始片段和 rank 证据；未有记忆编辑/删除 UI、事实有效期和持久反馈学习。
 
 ## ReAct、工具权限与 Trace
 
@@ -243,7 +245,7 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q48：91.3%、0.89 等旧数字怎么回答？
 
-**UNPROVEN。** 旧数字没对应数据版本、切分、运行产物和 commit，已移除。当前可证明的是 211 项回归测试、500 条分层候选集、25 篇 corpus、Stateful fixture 和隔离 RAG producer；因为 gold 仍为 0，不能报项目准确率。独立审核并运行新鲜 heldout 后才报均值、方差、slice 和置信区间。
+**UNPROVEN。** 旧数字没对应数据版本、切分、运行产物和 commit，已移除。当前可证明的是 231 项回归测试、500 条分层候选集、25 篇 corpus、Stateful fixture 和隔离 RAG producer；因为 gold 仍为 0，不能报项目准确率。独立审核并运行新鲜 heldout 后才报均值、方差、slice 和置信区间。
 
 ### Q49：多 LLM 调用怎么降延迟？
 
@@ -305,7 +307,7 @@ Trace 缺 OpenTelemetry exporter、持久存储、全链 span、采样与保留�
 
 ### Q61：短会话没触发压缩，怎样保证长期记忆？
 
-客户端在会话关闭时调用 `POST /conversations/{conv_id}/finalize`。MemoryManager 固定调用开始时的 high-water，把所有未覆盖范围按稳定 message ID 幂等 upsert，再逐段推进 checkpoint；原始事件不删除。若完成后发现更大 seq，则返回 409，下一次只处理新增范围。
+现在不再把“能否跨会话检索”绑定到压缩。`add_messages()` 写完一个完整发布轮次后立即按稳定 message ID 幂等 upsert 原始片段，因此两条消息的短会话也能被下一会话检索。`POST /conversations/{conv_id}/finalize` 仍固定调用开始时的 high-water，补齐未覆盖范围的摘要/checkpoint 与索引 metadata；原始事件不删除。若完成后发现更大 seq，则返回 409，下一次只处理新增范围。
 
 ### Q62：为什么用户画像现在能确定性读取？
 
@@ -333,7 +335,7 @@ TaskPlan 已把人工交接指定给 `AgentType.ESCALATION`，却由 General 执
 
 ### Q68：这一轮简历怎么写成一条？
 
-> 利用 JWT Principal/scope、确定性消息归档与显式存储模式收敛 Agent 服务生产边界，解决用户身份伪造、短会话 TTL 丢失、拒绝候选旁路泄漏和 Chroma 双库分叉；补齐 tool-free Escalation Owner 与路由基数诊断，以对应不变量测试验证失败可重试、数据不丢失和公开投影最小化。
+> 利用 JWT Principal/scope、完整轮次即时幂等归档与显式存储模式收敛 Agent 服务生产边界，解决用户身份伪造、短会话索引滞后、拒绝候选旁路泄漏和 Chroma 双库分叉；补齐 tool-free Escalation Owner 与路由基数诊断，以对应不变量测试验证失败可重试、数据不丢失和公开投影最小化。
 
 这句信息密度高，面试时优先拆成“身份/发布”或“记忆生命周期”一条 STAR，不要一次全背。
 
@@ -415,7 +417,7 @@ DeepSeek 的 Anthropic 兼容协议要求工具后续轮回传此前 thinking �
 
 ### Q84：这项改造怎样写 STAR？
 
-**S：** 九类调用共用一个模型，DeepSeek 默认 reasoning 让简单任务成本、延迟和结构化输出不可控。**T：** 在保持统一 Messages API 的同时，让每类调用可独立权衡质量。**A：** 实现按角色校验的 ModelPolicy，Flash/none 承担闭合高频任务，Pro/none 承担融合与质量门禁；显式 reasoning 强制最小完成预算，并补齐 health/eval 配置证据和 ReAct thinking 回传。**R：** 4 条 E2E pilot 均值约 28.4s → 13.3s，Verifier 解析 2/4 → 4/4；当前全仓 211 项回归测试通过。15 条 provisional 三档消融已完成，最终选择仍需 gold heldout 与重复运行确认。
+**S：** 九类调用共用一个模型，DeepSeek 默认 reasoning 让简单任务成本、延迟和结构化输出不可控。**T：** 在保持统一 Messages API 的同时，让每类调用可独立权衡质量。**A：** 实现按角色校验的 ModelPolicy，Flash/none 承担闭合高频任务，Pro/none 承担融合与质量门禁；显式 reasoning 强制最小完成预算，并补齐 health/eval 配置证据和 ReAct thinking 回传。**R：** 4 条 E2E pilot 均值约 28.4s → 13.3s，Verifier 解析 2/4 → 4/4；当前全仓 231 项回归测试通过。15 条 provisional 三档消融已完成，最终选择仍需 gold heldout 与重复运行确认。
 
 ### Q85：Flash/off、Flash/high、Pro/high 真跑后有什么区别？
 
@@ -429,7 +431,7 @@ DeepSeek 的 Anthropic 兼容协议要求工具后续轮回传此前 thinking �
 4. 能说出 Task outcome 四态、synthesis 五态与 Verifier PASS/REJECT/UNKNOWN。
 5. 能解释 BM25 对订单号的价值，以及 recency 为什么不能独立召回。
 6. 能解释发现/执行共用 allowlist，审批不来自模型参数。
-7. 能说明 211 tests 不等于 211 个 benchmark，smoke、auto_mapped 与 provisional 都不支持生产准确率。
+7. 能说明回归测试数量不等于 benchmark 样本量，smoke、auto_mapped 与 provisional 都不支持生产准确率。
 8. 能用 commit 划清原型与个人改造，不说从零原创。
 9. 能讲清 JWT/scope 已完成，以及 IdP/JWKS、tenant ABAC、持久 Trace、可恢复审批和真实 benchmark 仍是缺口。
 10. 不说“精通 LangGraph”、“完整 MCP”、“项目是 SOTA”或“线上准确率 91.3%”。

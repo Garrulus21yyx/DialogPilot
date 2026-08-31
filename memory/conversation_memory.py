@@ -233,6 +233,9 @@ class MemoryManager:
     HISTORY_TOP_K = 5     # 情景记忆检索返回条数
     HISTORY_VECTOR_POOL = 20
     HISTORY_LEXICAL_SCAN = 200
+    HISTORY_EXPAND_HITS = 2
+    HISTORY_NEIGHBOR_RADIUS = 2
+    HISTORY_EXPANSION_MAX_TOKENS = 1200
     EPISODIC_CHUNK_CHARS = 1200
     EPISODIC_CHUNK_OVERLAP = 120
     SUMMARY_CHUNK_MAX_TOKENS = 3000
@@ -357,6 +360,22 @@ class MemoryManager:
         if persist is not None:
             await persist(key)
 
+        # 完整轮次一旦成为原始事件，就应立即进入跨会话索引。范围压缩仍会用
+        # 同一稳定 ID 幂等补写摘要 metadata，但不再拥有“是否可检索”的时机。
+        archived = await self._archive_messages(
+            user_id,
+            conv_id,
+            messages,
+            summary="",
+            reason="turn_completed",
+        )
+        if not archived:
+            logger.warning(
+                "完整轮次已写入 Redis，但长期记忆索引暂不可用，将由压缩/finalize 补偿: %s/%s",
+                user_id,
+                conv_id,
+            )
+
         # Token 预算是压缩的权威触发条件，消息条数只用于防御性读取。
         if await self._needs_compression(user_id, conv_id):
             await self._compress(user_id, conv_id)
@@ -446,8 +465,9 @@ class MemoryManager:
             user_id,
             retrieval_query,
             top_k=self.HISTORY_TOP_K,
+            exclude_conversation_id=conv_id,
         )
-        history = [hit.content for hit in retrieval_hits]
+        history = await self._expand_retrieval_hits(user_id, retrieval_hits)
 
         # 3. active facts 的兼容 profile 投影
         profile = await self._get_profile(user_id)
@@ -888,6 +908,7 @@ class MemoryManager:
         query: str,
         *,
         top_k: int = HISTORY_TOP_K,
+        exclude_conversation_id: str = "",
     ) -> List[MemoryHit]:
         """按用户过滤后融合向量、BM25 和时间排名检索原始情景记忆。"""
         query_text = self._normalize_retrieval_query(query)
@@ -917,10 +938,22 @@ class MemoryManager:
             if isinstance(corpus_result, Exception):
                 logger.warning("长期记忆 BM25 语料读取降级: %s", corpus_result)
                 corpus_result = {}
+            vector_documents = self._memory_documents(vector_result, nested=True)
+            corpus_documents = self._memory_documents(corpus_result, nested=False)
+            excluded = self._safe_text(exclude_conversation_id).strip()
+            if excluded:
+                vector_documents = [
+                    document for document in vector_documents
+                    if document.conversation_id != excluded
+                ]
+                corpus_documents = [
+                    document for document in corpus_documents
+                    if document.conversation_id != excluded
+                ]
             return self._hybrid_retriever.rank(
                 query_text,
-                vector_documents=self._memory_documents(vector_result, nested=True),
-                corpus_documents=self._memory_documents(corpus_result, nested=False),
+                vector_documents=vector_documents,
+                corpus_documents=corpus_documents,
                 top_k=top_k,
             )
         except Exception as ex:
@@ -940,6 +973,94 @@ class MemoryManager:
     async def _search_episodic(self, user_id: str, query: str) -> List[str]:
         """兼容旧调用方：只投影混合检索命中的原始文本。"""
         return [hit.content for hit in await self.search_long_term(user_id, query)]
+
+    async def _expand_retrieval_hits(
+        self,
+        user_id: str,
+        hits: Sequence[MemoryHit],
+    ) -> List[str]:
+        """把最相关旧会话命中展开成有界事件窗口，其余命中保留原始片段。"""
+        expanded: List[str] = []
+        expanded_conversations: set[str] = set()
+        per_window_budget = max(
+            128,
+            self.HISTORY_EXPANSION_MAX_TOKENS // max(1, self.HISTORY_EXPAND_HITS),
+        )
+
+        for hit in hits:
+            conversation_id = self._safe_text(hit.conversation_id).strip()
+            if (
+                len(expanded_conversations) >= self.HISTORY_EXPAND_HITS
+                or not conversation_id
+                or hit.event_seq <= 0
+                or conversation_id in expanded_conversations
+            ):
+                continue
+            try:
+                events = await self._get_event_log(user_id, conversation_id)
+            except Exception as exc:
+                logger.warning("长期记忆邻居展开失败，保留命中原文: %s", exc)
+                continue
+            window = [
+                message for message in events
+                if abs(message.seq - hit.event_seq) <= self.HISTORY_NEIGHBOR_RADIUS
+            ]
+            if not window:
+                continue
+            expanded.append(self._render_retrieval_window(
+                hit,
+                window,
+                max_tokens=per_window_budget,
+            ))
+            expanded_conversations.add(conversation_id)
+
+        # ContextSection 最终只投递前三项；保留未展开会话的原始命中作为降级证据。
+        for hit in hits:
+            if hit.conversation_id and hit.conversation_id in expanded_conversations:
+                continue
+            content = self._token_estimator.truncate(hit.content, per_window_budget)
+            if content:
+                expanded.append(content)
+        return expanded
+
+    def _render_retrieval_window(
+        self,
+        hit: MemoryHit,
+        messages: Sequence[Message],
+        *,
+        max_tokens: int,
+    ) -> str:
+        """按距离裁剪邻居窗口，并保留来源会话与命中 seq。"""
+        selected = sorted(messages, key=lambda message: message.seq)
+
+        def render(items: Sequence[Message]) -> str:
+            return json.dumps({
+                "conversation_id": hit.conversation_id,
+                "source_event_seq": hit.event_seq,
+                "messages": [
+                    {
+                        "seq": message.seq,
+                        "role": message.role.value,
+                        "content": message.content,
+                    }
+                    for message in items
+                ],
+            }, ensure_ascii=False, sort_keys=True)
+
+        rendered = render(selected)
+        while len(selected) > 1 and self._token_estimator.estimate(rendered) > max_tokens:
+            farthest_index = max(
+                range(len(selected)),
+                key=lambda index: (
+                    abs(selected[index].seq - hit.event_seq),
+                    selected[index].seq,
+                ),
+            )
+            selected.pop(farthest_index)
+            rendered = render(selected)
+        if self._token_estimator.estimate(rendered) <= max_tokens:
+            return rendered
+        return self._token_estimator.truncate(hit.content, max_tokens)
 
     async def _archive_messages(
         self,
@@ -1302,8 +1423,20 @@ class MemoryManager:
                 timestamp=cls._safe_text(metadata.get("ts", "")),
                 conversation_id=cls._safe_text(metadata.get("conv_id", "")),
                 summary=cls._safe_text(metadata.get("summary", "")),
+                message_id=cls._safe_text(metadata.get("message_id", "")),
+                event_seq=cls._safe_metadata_int(metadata.get("event_seq", 0)),
+                role=cls._safe_text(metadata.get("role", "")),
+                chunk_index=cls._safe_metadata_int(metadata.get("chunk_index", 0)),
             ))
         return normalized
+
+    @staticmethod
+    def _safe_metadata_int(value: Any) -> int:
+        """损坏的非权威索引定位退为未知，不能让整次长期检索失败。"""
+        try:
+            return max(0, int(value or 0))
+        except (TypeError, ValueError, OverflowError):
+            return 0
 
     async def close(self) -> None:
         """关闭异步 Redis 连接。"""

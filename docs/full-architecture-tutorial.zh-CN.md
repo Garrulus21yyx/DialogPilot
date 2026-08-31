@@ -45,7 +45,7 @@ DialogPilot 是一个 Python 3.12 + FastAPI 的异步多 Agent 客服后端。�
 2. 合同：一次请求必须得到可诊断的路由结果；只有明确 `PASS` 的回答能发布；需要人工时同步尝试创建持久工单，并把建单成功或失败明确返回。
 3. 主链：Memory → Intent → RAG → Context → TaskPlan → Workers → Coverage → Synthesis → Verification → Ticket → Persist published messages。
 4. 六个最值得深挖的改动：单调事件与范围摘要 checkpoint、混合长期记忆、TaskPlan/CoverageGate、有界 ReAct 与权限、请求预算下的结果代数、校验质量反馈闭环。
-5. 证据：211 个测试，覆盖用户输入注入、Bad Case 闭环、身份/公开投影、归档幂等/CAS、显式存储模式、真实 Escalation Owner、路由基数、混合召回、工具权限、订单版本/退款幂等、Trace、分层模型策略和版本化评测合同。
+5. 证据：231 个测试，覆盖用户输入注入、Bad Case 闭环、身份/公开投影、轮次即时归档、跨会话排除/邻居展开、活动工单上下文、摘要幂等/CAS、显式存储模式、真实 Escalation Owner、路由基数、混合召回、工具权限、订单版本/退款幂等、Trace、分层模型策略和版本化评测合同。
 6. 边界：已有 JWT/scope 基线；多租户 IdP/ABAC 未完成，SQLite 只适合单应用写者，Trace/审计重启丢失，审批不能交互恢复；已有 500 条分层候选集，但尚无 human-reviewed gold，不能声称生产准确率。
 
 ## 1. 如何学习这个仓库
@@ -218,6 +218,8 @@ sequenceDiagram
     I-->>A: intent/confidence/urgency/entities
     A->>T: search_with_rewrite (business intent only)
     T-->>A: reranked knowledge or controlled fallback
+    A->>K: list_active_tickets(user, limit=3)
+    K-->>A: non-CLOSED ticket state projection
     A->>X: assemble(sections, history, current message)
     X-->>A: bounded PromptContext
     A->>O: run(Request)
@@ -262,7 +264,7 @@ sequenceDiagram
 `MemoryManager.get_context()` 会顺序读取：
 
 - 当前会话 Redis 消息；
-- 基于当前 query 检索的跨会话情景记忆；
+- 基于当前 query 检索的跨会话情景记忆：排除当前 `conv_id`，Top 命中保留事件定位，并对最多两个旧会话各展开命中前后两条原始消息；
 - 用户画像；
 - 已有按 seq 范围归属、可由原始事件重建的摘要块。
 
@@ -283,6 +285,8 @@ API 先调用 `recognize_intent()`，随后把同一个 `IntentResult` 同时用
 ### 5.4 知识是数据，不是假对话
 
 RAG 结果作为 `ContextSection(tag="knowledge", data_only=true)` 进入 system context。真实历史仍保持 `user/assistant` message。系统不会伪造一句 assistant “我已了解背景”，因为伪造历史会改变模型对真实交互的判断。
+
+同一阶段还从 `TicketService` 读取该用户最多三个未进入 `CLOSED` 终态的工单，投影为 priority 90 的 `active_tickets` section，并把这个 tag 加入所有 Worker 的声明上下文。这个 section 只引用工单状态，不复制它的修改权威：历史原文和摘要不能覆盖工单状态；订单、退款和账户的实时工具结果仍高于工单描述。
 
 ### 5.5 执行和发布是两个边界
 
@@ -458,6 +462,8 @@ Knowledge Base 也在 Chroma，但使用独立 collection。知识文档是业�
 
 一次对话 turn 通过 `INCRBY` 预留连续序号，再用一次 `LPUSH` 写入 user/assistant 事件；Redis 中最新消息在前。读取时 `_decode_messages()` 恢复并按 `seq` 排序。旧记录没有 seq 时会惰性推断初始水位，之后所有新事件都使用单调序号。
 
+完整发布轮次写入 Redis 后，`add_messages()` 立即用稳定 `message_id` 和确定性 Chroma ID 把原始消息 `upsert` 到 episodic。这个动作让短会话不必等待压缩或 finalize 才能被下一会话检索；运行时索引失败不回滚已经发生的 Redis 事件，后续压缩/finalize 会以同一 ID 幂等补偿。
+
 ### 8.3 为什么按 Token，不按消息数
 
 一条消息可以是 2 个字，也可以是 2 万字。固定 20 条压缩无法控制模型输入。`TokenEstimator` 用中文约 1.5 字/token、其他字符约 4 字/token 加元数据开销做快速估算。
@@ -531,14 +537,18 @@ flowchart LR
     V --> F[weighted RRF]
     B --> F
     R --> F
-    F --> K[Top-K + source ranks]
+    F --> X[exclude current conv_id]
+    X --> K[Top-K + event locator]
+    K --> W[expand up to 2 old-conversation windows]
 ```
 
-默认权重为 vector 0.30、BM25 0.60、recency 0.10，RRF 常数 `k=60`。时间只对 BM25/向量已经召回的候选排序，不能让“最新但无关”的记忆进入候选集。向量库和词法路径用 `gather(return_exceptions=True)` 独立降级：一路故障时另一路仍可工作；两路都空则确定性返回空结果。
+默认权重为 vector 0.30、BM25 0.60、recency 0.10，RRF 常数 `k=60`。时间只对 BM25/向量已经召回的候选排序，不能让“最新但无关”的记忆进入候选集。当前 `conv_id` 已由 Redis recent history 提供，因此会在融合前从两路候选中排除，避免立即归档后自己挤占跨会话 Top-K。向量库和词法路径用 `gather(return_exceptions=True)` 独立降级：一路故障时另一路仍可工作；两路都空则确定性返回空结果。
+
+Chroma metadata 中的 `message_id/event_seq/role/chunk_index/conv_id` 会保留到 `MemoryHit`。排序后最多选择两个不同旧会话，用 `event_seq ± 2` 从 Redis 原始事件日志展开邻居窗口，每个窗口约 600、合计最多 1200 estimated tokens；多个命中来自同一旧会话时不会重复展开。无法定位或 Redis 读取失败时仍返回命中原文，而不是伪造缺失语境。默认 Prompt 只投递前三项 relevant history，所以不会因一次命中加载完整 transcript。
 
 为什么 BM25 权重更高？客服记忆常含订单号、错误码等精确 token，词法信号应优先保护它们；这只是当前可解释基线，不是已证明最优。`evaluate_retrieval()` 已提供 Recall@K、MRR、nDCG，后续应在版本化 query/relevant-id 数据集上做权重和 chunk overlap 消融。
 
-归档顺序是先用稳定 `message_id` 和确定性 Chroma ID `upsert` 原始消息，再用 Redis WATCH/MULTI 提交 chunk + checkpoint。Chroma 写失败时 checkpoint 不推进；CAS 冲突后的重试仍写同一批 ID，不制造重复情景记忆。短会话还可调用 `POST /conversations/{conv_id}/finalize`，覆盖调用开始时的全部未摘要事件。原始事件不删除；若其间出现更大 seq，会得到可重试的 409，下一次只覆盖新增范围。
+归档有两个明确时机：完整发布轮次由 `add_messages()` 立即 upsert 原始消息；范围压缩/finalize 再用相同稳定 ID 补写摘要 metadata，成功后才用 Redis WATCH/MULTI 提交 chunk + checkpoint。日常索引失败不会撤销 Redis 事件，压缩路径的 Chroma 写失败则不推进 checkpoint；CAS 冲突后的重试仍写同一批 ID，不制造重复情景记忆。短会话仍可调用 `POST /conversations/{conv_id}/finalize`，覆盖调用开始时的全部未摘要事件。原始事件不删除；若其间出现更大 seq，会得到可重试的 409，下一次只覆盖新增范围。
 
 ### 8.7 Prompt Context 和持久记忆是两层
 
@@ -563,6 +573,7 @@ flowchart LR
 | range summary view | system `conversation_summary` section | 是 | 是 |
 | episodic retrieval | system `relevant_history` section | 是 | 是 |
 | active sourced facts projection | system `user_profile` section | 是 | 是 |
+| non-CLOSED TicketService projection | system `active_tickets` section | 是 | 是 |
 | RAG evidence | system `knowledge` section | 是 | 是 |
 | Skill | Domain Agent 基础 system prompt | 是 | 否 |
 | entities | Agent 调用时额外 system section | 是 | 否 |
@@ -1061,7 +1072,7 @@ python -m compileall -q agents api core evaluation mcp memory monitor services
 python -m pytest -q
 ```
 
-当前 211 个测试按不变量分组：
+当前 231 个测试按不变量分组：
 
 ### Bad Case 闭环
 
@@ -1335,7 +1346,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q2：你个人具体负责了什么？
 
-**推荐诚实答案：** 我接手的是一个已有客服原型。我负责仓库清理和 DialogPilot 命名迁移，并完成持久工单、Token/CAS 压缩、typed synthesis、TaskPlan/CoverageGate、混合记忆、用户输入注入 Guard、Bad Case 状态闭环、ReAct 权限/Trace、订单/退款/安全事件业务 Owner，以及 JWT/公开投影、短会话归档、显式 Chroma 模式、真实 Escalation Owner、分层模型策略和分层评测合同。当前有 211 个测试、CI、Docker 验证和架构文档。原型已有功能会按 commit 划清边界，不说成全部从零原创。
+**推荐诚实答案：** 我接手的是一个已有客服原型。我负责仓库清理和 DialogPilot 命名迁移，并完成持久工单、Token/CAS 压缩、typed synthesis、TaskPlan/CoverageGate、混合记忆、用户输入注入 Guard、Bad Case 状态闭环、ReAct 权限/Trace、订单/退款/安全事件业务 Owner，以及 JWT/公开投影、轮次即时归档、跨会话邻居展开、活动工单上下文、显式 Chroma 模式、真实 Escalation Owner、分层模型策略和分层评测合同。当前有 231 个测试、CI、Docker 验证和架构文档。原型已有功能会按 commit 划清边界，不说成全部从零原创。
 
 **追问：去掉你的改动还剩什么？** 仍有基础 FastAPI、三路意图、Redis/Chroma 记忆、RAG、领域 Agent、Skill、监控和评测原型；会失去真实工单闭环、Token/并发压缩不变量、TaskPlan/覆盖门禁、有类型并行结果、质量反馈、混合召回、工具权限/Trace 和 Worker ReAct。
 
@@ -1661,13 +1672,13 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 **Task：** 在不破坏 Token 压缩和用户隔离的前提下，让跨会话记忆同时支持语义问题、精确标识符和时间偏好，并能用离线指标回归。
 
-**Action：** 把原始对话切成重叠片段写入 episodic collection，summary 退回 metadata/Prompt 背景；在用户边界内分别生成 Chroma vector 和 BM25 候选，用 0.30/0.60/0.10 权重做 RRF，recency 只重排相关候选；两条检索路径独立降级，并实现 Recall@K、MRR、nDCG。
+**Action：** 每个完整发布轮次立即以稳定 ID 写入 episodic，summary 退回 metadata/Prompt 背景；在用户边界内分别生成 Chroma vector 和 BM25 候选，用 0.30/0.60/0.10 权重做 RRF，recency 只重排相关候选；排除当前 `conv_id`，保留事件定位，并把最多两个旧会话命中展开成有界前后原始消息窗口；两条检索路径独立降级，并实现 Recall@K、MRR、nDCG。
 
-**Result：** 6 个聚焦测试证明精确 ID 可修正纯向量排序、最新无关记忆不会靠时间混入、原始片段实际落库、v1 数据可读、单路故障可降级、指标确定性。这里能说“建立了可回归的召回合同”，不能虚构线上提升百分比。
+**Result：** 聚焦测试证明精确 ID 可修正纯向量排序、最新无关记忆不会靠时间混入、短轮次立即归档、当前会话被排除、命中能展开有界原始邻居、v1 数据可读、单路故障可降级、指标确定性；当前全仓 231 项回归通过。这里能说“建立了可回归的召回合同”，不能虚构线上提升百分比。
 
 **简历一行（只在你能现场解释代码时使用）：**
 
-> 利用 BM25、Chroma 向量检索与加权 RRF 重构跨会话长期记忆，解决压缩摘要丢失订单号/错误码导致的召回失真；以原始情景片段作为事实载体，加入用户隔离、独立降级及 Recall@K/MRR/nDCG 回归评测。
+> 利用稳定轮次归档、BM25/Chroma/RRF 与有界邻居展开重构跨会话长期记忆，解决短会话不可检索、摘要丢失精确实体和孤立命中缺语境的问题；以原始情景片段作为事实载体，加入用户/当前会话隔离、事件定位、独立降级及 Recall@K/MRR/nDCG 回归评测。
 
 ### 25.2 ReAct 权限与 Trace：STAR 拆解
 
@@ -1743,7 +1754,7 @@ flowchart LR
 
 | 原问题 | 根因 Owner | 当前合同 | 失败语义与证据 |
 |---|---|---|---|
-| 短会话未达压缩阈值，长期索引缺失 | `MemoryManager` 生命周期 | `finalize_conversation` 归档调用 high-water 前的剩余范围并推进 checkpoint | 归档失败不推进；并发新 seq 返回 409；Redis 原文始终保留 |
+| 短会话未达压缩阈值，长期索引缺失 | `MemoryManager` 生命周期 | 完整发布轮次立即幂等 upsert；`finalize_conversation` 补齐 high-water 前的摘要/checkpoint 与 metadata | 日常索引失败保留 Redis 原文并由后续压缩补偿；并发新 seq 返回 409 |
 | `user_profile limit=1` 不保证最新且无法追源 | Fact 生命周期 | 支持 key 的来源化事实，标量 supersede、多值共存、retract 有状态 | 进程内 source-seq 单调；多副本 CAS 仍是边界 |
 | `agent_outcomes.content` 泄漏拒绝候选 | HTTP 发布投影 | 公开 outcome 只保留安全状态/延迟/错误码 | candidate、raw error、agent key、tool call IDs 全部删除 |
 | 请求体可伪造 `user_id` | HTTP 身份 | JWT `sub` 是唯一用户身份，scope 控制能力 | 缺失/坏 token 401；身份冲突或缺 scope 403 |

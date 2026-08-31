@@ -257,6 +257,27 @@ class TicketService:
             ).fetchall()
         return [self._row_to_ticket(row) for row in rows]
 
+    def list_active_tickets(
+        self,
+        *,
+        user_id: str,
+        limit: int = 3,
+    ) -> List[Ticket]:
+        """读取用户尚未进入 CLOSED 终态的工单，作为客服事项的权威投影。"""
+        user_id = self._required(user_id, "user_id")
+        limit = max(1, min(int(limit), 20))
+        with self._connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT * FROM tickets
+                WHERE user_id = ? AND status != ?
+                ORDER BY updated_at DESC, created_at DESC, ticket_id ASC
+                LIMIT ?
+                """,
+                (user_id, TicketStatus.CLOSED.value, limit),
+            ).fetchall()
+        return [self._row_to_ticket(row) for row in rows]
+
     def transition(
         self,
         ticket_id: str,

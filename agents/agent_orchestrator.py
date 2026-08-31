@@ -900,31 +900,31 @@ class AgentOrchestrator:
                 "处理订单、物流、会员或通用咨询部分",
                 TaskRisk.LOW,
                 ("直接回答通用问题", "未知业务事实必须显式说明"),
-                ("history", "conversation_summary", "relevant_history", "user_profile", "knowledge", "entity:order_id"),
+                ("history", "conversation_summary", "relevant_history", "user_profile", "active_tickets", "knowledge", "entity:order_id"),
             ),
             AgentType.TECHNICAL: (
                 "处理登录、错误码、崩溃或系统配置排障部分",
                 TaskRisk.MEDIUM,
                 ("给出可执行排障步骤", "需要后台权限时明确升级"),
-                ("history", "conversation_summary", "relevant_history", "knowledge", "entity:error_code", "entity:order_id"),
+                ("history", "conversation_summary", "relevant_history", "active_tickets", "knowledge", "entity:error_code", "entity:order_id"),
             ),
             AgentType.BILLING: (
                 "处理扣款、退款、发票、支付或订阅部分",
                 TaskRisk.HIGH,
                 ("说明适用条件和下一步", "不得声称已执行未发生的财务操作"),
-                ("history", "conversation_summary", "relevant_history", "user_profile", "knowledge", "entity:order_id", "entity:amount"),
+                ("history", "conversation_summary", "relevant_history", "user_profile", "active_tickets", "knowledge", "entity:order_id", "entity:amount"),
             ),
             AgentType.ACCOUNT_SECURITY: (
                 "处理账号被盗、身份验证、异常登录或敏感资料修改部分",
                 TaskRisk.HIGH,
                 ("优先保护账户安全", "敏感操作必须要求验证或人工审批"),
-                ("history", "conversation_summary", "relevant_history", "user_profile", "knowledge"),
+                ("history", "conversation_summary", "relevant_history", "user_profile", "active_tickets", "knowledge"),
             ),
             AgentType.ESCALATION: (
                 "整理人工接管所需问题、风险和已知证据",
                 TaskRisk.HIGH,
                 ("明确告知正在转人工", "不得承诺尚未执行的后台操作"),
-                ("history", "conversation_summary", "relevant_history", "user_profile", "knowledge", "entity:order_id", "entity:error_code", "entity:amount"),
+                ("history", "conversation_summary", "relevant_history", "user_profile", "active_tickets", "knowledge", "entity:order_id", "entity:error_code", "entity:amount"),
             ),
         }
         objective, risk, criteria, context_refs = definitions[agent_type]

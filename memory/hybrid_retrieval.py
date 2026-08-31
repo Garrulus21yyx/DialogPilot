@@ -27,6 +27,10 @@ class MemoryDocument:
     timestamp: str = ""
     conversation_id: str = ""
     summary: str = ""
+    message_id: str = ""
+    event_seq: int = 0
+    role: str = ""
+    chunk_index: int = 0
 
 
 @dataclass(frozen=True)
@@ -40,6 +44,10 @@ class MemoryHit:
     timestamp: str = ""
     conversation_id: str = ""
     summary: str = ""
+    message_id: str = ""
+    event_seq: int = 0
+    role: str = ""
+    chunk_index: int = 0
     ranks: Dict[str, int] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, object]:
@@ -50,6 +58,8 @@ class MemoryHit:
             "sources": list(self.sources),
             "timestamp": self.timestamp,
             "conversation_id": self.conversation_id,
+            "event_seq": self.event_seq,
+            "role": self.role,
             "preview": self.content[:240],
             "ranks": dict(self.ranks),
         }
@@ -155,6 +165,10 @@ class HybridMemoryRetriever:
                 timestamp=document.timestamp,
                 conversation_id=document.conversation_id,
                 summary=document.summary,
+                message_id=document.message_id,
+                event_seq=document.event_seq,
+                role=document.role,
+                chunk_index=document.chunk_index,
                 ranks=ranks,
             ))
         return sorted(hits, key=lambda hit: (-hit.score, hit.memory_id))[:top_k]

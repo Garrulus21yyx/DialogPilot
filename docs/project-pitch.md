@@ -8,7 +8,7 @@ DialogPilot 是一个使用 Python 和 FastAPI 实现的多 Agent 客服后端�
 
 每个 Worker 内部使用有界 ReAct，只能调用 ToolManager 暴露的白名单工具。ToolManager 而不是模型负责风险分级、写操作审批、超时、审计和结果脱敏。并行结果必须先通过 `CoverageGate`，证明所有必做任务都有闭合结果，再由 `ResultSynthesizer` 处理顺序、冲突和部分成功。最终只有 `AnswerVerifier` 明确判为 `PASS` 的候选可以发布；失败则确定性转入带幂等键和状态历史的 SQLite 人工工单。
 
-记忆层以 Redis 原始事件日志为事实来源，按 Token 压力压缩固定序列范围，同时把带重叠的原始会话 Chunk 写入 ChromaDB。长期召回融合 BM25、向量和时效性排名，结构化事实保留来源及替代/撤销状态。这样既能控制上下文长度，又不会因为只搜索摘要而丢失订单号、错误码等精确信息。
+记忆层以 Redis 原始事件日志为事实来源，每个完整发布轮次立即用稳定 ID 幂等写入 ChromaDB，Token 压缩只负责固定序列范围的摘要/checkpoint。长期召回融合 BM25、向量和时效性排名，排除当前会话，并对最相关旧会话展开有界前后消息窗口。未关闭工单直接从 TicketService 投影，结构化事实保留来源及替代/撤销状态。这样既能恢复客服事项，又不会因为只搜索摘要或孤立片段而丢失订单号、纠正语境和处理进度。
 
 HTTP 边界从签名 JWT 中取得用户身份，不信任请求体提交的 `user_id`。请求级 `TraceId` 串联 HTTP、ReAct 和工具调用。校验失败、任务覆盖失败、工具副作用不确定以及可信用户反馈会进入独立的 Bad Case 状态机；复现和修复后的样本只作为 provisional dev regression，不冒充人工 Gold 或全新 heldout。
 
@@ -19,7 +19,7 @@ HTTP 边界从签名 JWT 中取得用户身份，不信任请求体提交的 `us
   → 读取记忆
   → 多信号意图识别
   → 按业务意图检索知识
-  → 构建 TaskPlan
+  → 读取未关闭工单并构建 TaskPlan
   → 有界并行 Worker / ReAct / Tool
   → CoverageGate
   → ResultSynthesizer
@@ -61,11 +61,11 @@ SUCCESS / TIMEOUT / ERROR / BUDGET_EXCEEDED
 
 消息数量无法准确代表模型输入长度。DialogPilot 估算 Prompt Token，保留最近原始轮次，只把最老且尚未覆盖的固定序列范围压缩成不可变 Chunk。Redis 乐观事务只推进该范围的检查点；后来到达的消息序号更大，不会让正在生成的摘要失效。
 
-压缩也不是唯一归档触发器。会话结束 API 会用确定性消息 ID 幂等写入情景记忆并推进检查点，但不删除原始事件日志。归档失败时检查点保持不变。用户画像只是活跃类型化事实的投影，每条事实仍保留来源消息和 superseded/retracted 生命周期。
+完整发布轮次写入 Redis 后会立即用确定性消息 ID 幂等写入情景记忆；压缩和会话结束 API 是补偿路径，并只在对应范围归档成功后推进检查点。原始事件日志不删除。用户画像只是活跃类型化事实的投影，每条事实仍保留来源消息和 superseded/retracted 生命周期。
 
 ### 为什么长期记忆使用混合召回？
 
-摘要适合放进有界 Prompt，却可能丢掉订单号和错误码。系统因此检索原始情景 Chunk，分别得到 BM25 与向量候选，再用加权 RRF 融合并加入较小的时效性信号。每条结果保留来源排名，效果可以用 `Recall@K`、`MRR` 和 `nDCG` 测量，而不是只凭一段流畅回答判断。
+摘要适合放进有界 Prompt，却可能丢掉订单号和错误码。系统因此检索原始情景 Chunk，分别得到 BM25 与向量候选，再用加权 RRF 融合并加入较小的时效性信号。当前 `conv_id` 由 Redis recent history 承担，不参与跨会话候选；命中保留事件定位，最相关的两个旧会话各展开前后两条消息，避免孤立回答脱离用户纠正语境。每条结果保留来源排名，效果可以用 `Recall@K`、`MRR` 和 `nDCG` 测量，而不是只凭一段流畅回答判断。
 
 ### 为什么工具权限不能交给模型？
 
@@ -82,6 +82,8 @@ SUCCESS / TIMEOUT / ERROR / BUDGET_EXCEEDED
 ### 为什么工单服务拥有独立状态机？
 
 API 和 Orchestrator 可以申请人工升级，但只有 `TicketService` 负责工单身份、幂等、持久化、合法状态迁移和事件历史。这样 Controller 不能随意发明状态，相同 `request_id` 的重试也不会创建重复工单。
+
+新请求会读取该用户最近三个未进入 `CLOSED` 终态的工单，并作为高于历史记忆的 `active_tickets` 数据 section 提供给 Worker；订单、退款和账户的实时状态仍由业务工具拥有。这样用现有工单状态承担轻量 Case Memory，不再复制一套案件数据库。
 
 当前使用 SQLite 是为了让个人项目易部署；服务合同保持窄边界，多副本写入时可以迁移 PostgreSQL，而不用重写 Agent 主链。
 
