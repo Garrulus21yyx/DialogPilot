@@ -16,7 +16,8 @@ DialogPilot 不是一条不断堆 Prompt 的调用链，而是按“谁拥有最
 | HTTP 身份与权限范围 | `core/auth.py` | 从签名 JWT 的 `sub` 解析出的可信 `Principal` |
 | Chroma 部署模式 | `core/chroma_client.py` | 明确选择远程或嵌入式物理存储 |
 | 模型分层与推理策略 | `core/model_policy.py` | 按角色校验的模型、推理强度及请求级覆盖配置 |
-| 意图识别 | `core/intent_recognizer.py` | 意图、置信度、紧急程度和实体 |
+| 意图识别 | `core/intent_recognizer.py` | 意图、置信度、紧急程度、实体、完整输入哈希和分类器指纹 |
+| 意图预测与标注 | `services/badcase_registry.py` | 不可变 prediction、pending 纠正、人工 annotation 与 Bad Case 链接 |
 | 业务范围处置 | `agents/agent_orchestrator.py` | `EXECUTE / CLARIFY / OUT_OF_SCOPE`，只有执行态可生成任务图 |
 | 任务规划与 Agent 选择 | `agents/agent_orchestrator.py` | 带依赖、上下文范围、风险、验收条件和 Owner 的 `TaskGraph` |
 | 编排合同与预算 | `agents/orchestration_contracts.py` | 任务身份、覆盖投影和共享执行截止时间 |
@@ -46,7 +47,7 @@ DialogPilot 不是一条不断堆 Prompt 的调用链，而是按“谁拥有最
 ## `/chat` 的时序合同
 
 1. 先做用户输入安全检查，再从 RolloutManager 解析并固定本次请求的 `AgentBundle`。
-2. 读取记忆，再识别当前请求；Intent Prompt、Few-shot 和缓存键都绑定固定 Bundle。
+2. 读取记忆，再识别当前请求；缓存身份由完整消息/最近三轮哈希与有效分类器指纹共同确定。识别后尽力把脱敏 prediction、Bundle 版本和来源分数写入质量库；成功时向客户端返回稳定 `prediction_id`，质量库故障不改变本次客服回答。
 3. 意图只识别一次，知识检索和路由复用同一个结果；低置信度 `OTHER` 收敛为 `CLARIFY`，高置信度 `OTHER` 收敛为 `OUT_OF_SCOPE`，二者都是无 Worker 的 Planner 终态。
 4. 从 `TicketService` 读取该用户最多三个未进入 `CLOSED` 终态的事项，作为当前处理状态的权威投影。
 5. 只有 `EXECUTE` 才构建依赖感知、上下文隔离的 `TaskGraph`；无依赖任务可并发，后继任务只在依赖成功后进入 ready 集合。
@@ -64,6 +65,19 @@ DialogPilot 不是一条不断堆 Prompt 的调用链，而是按“谁拥有最
 17. 请求结束记录固定 Bundle 的质量/延迟代理指标；Shadow 副本不发布、不写业务事实。
 
 这个顺序保证记忆系统不会把“模型生成但未通过校验的答案”误认为已经展示给用户。
+
+## 意图识别的在线/离线边界
+
+线上识别器只有 `recognize()`，不再提供修改模块模板的 `learn()`。内置模板使用只读映射；每个结果携带 `input_fingerprint` 与 `classifier_fingerprint`。后者覆盖实际模型配置、阈值、相似度模式、融合权重、标签定义、Pattern、模板以及固定 Bundle 的 Intent Prompt/Few-shot。缓存按两个 SHA-256 的组合寻址，因此同前缀不同后缀、旧 Bundle 与新 Bundle 都不会错误共享结果。普通结果默认一小时 TTL，低置信度和账户安全结果最多五分钟；这仍是可删除的进程内加速层，不是纠正事实的 Owner。
+
+```text
+在线：recognize → IntentLearningRecord(PREDICTED) → 返回 prediction_id
+反馈：prediction_id + suggested_intent → PENDING Intent Bad Case
+审核：管理员 APPROVED / REJECTED → 不可变 annotation
+进化：仅 APPROVED 样本 → Prompt/Few-shot 候选 → Eval/Graduation/Rollout
+```
+
+`wrong_route` 反馈必须引用当前认证用户的一次真实预测，不能只提交任意消息和标签。用户建议只代表候选证据；管理员批准后，Bad Case 才获得 `approved_intent + annotation_id + dataset_version`，但这仍不是自动 Gold，也不会修改 Active Bundle。`CreditAttributor` 和候选生成器会共同拒绝未批准的 Intent Case。预测文本先经过 BadCase 脱敏且限制长度；普通聊天接口只返回 ID 和版本哈希，详细队列只对 admin scope 开放。
 
 ## 上下文预算合同
 

@@ -51,6 +51,18 @@ class CreditAttributor:
         ):
             return self._blocked(cluster, "tool_runtime_owner", "授权、取消和副作用终态属于生产代码/策略 Owner")
         if BadCaseStage.INTENT in stages:
+            intent_cases = [
+                case for case in cluster.cases if case.stage is BadCaseStage.INTENT
+            ]
+            if any(
+                not case.approved_intent or not case.annotation_id
+                for case in intent_cases
+            ):
+                return self._blocked(
+                    cluster,
+                    "intent_annotation_owner",
+                    "意图反馈必须先由人工批准标签，未审核建议不能生成候选 Bundle",
+                )
             return AttributionDecision(
                 cluster.group_id, "intent_recognizer",
                 (EvolutionSurface.PROMPTS, EvolutionSurface.FEW_SHOTS),

@@ -20,13 +20,22 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
     captured = {}
 
     class FakeIntentRecognizer:
-        def __init__(self, api_key, base_url=None, model=None, similarity_mode=None, model_profile=None):
+        def __init__(
+            self,
+            api_key,
+            base_url=None,
+            model=None,
+            similarity_mode=None,
+            model_profile=None,
+            cache_ttl_seconds=None,
+        ):
             captured["intent"] = {
                 "api_key": api_key,
                 "base_url": base_url,
                 "model": model,
                 "similarity_mode": similarity_mode,
                 "model_profile": model_profile,
+                "cache_ttl_seconds": cache_ttl_seconds,
             }
 
     class FakeSkillManager:
@@ -134,16 +143,22 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
     monkeypatch.setenv("PROMETHEUS_PORT", "0")
     monkeypatch.setenv("CHROMA_MODE", "embedded")
     monkeypatch.setenv("INTENT_SIMILARITY_MODE", "ngram")
+    monkeypatch.setenv("INTENT_CACHE_TTL_SECONDS", "987")
 
     async def exercise_lifespan():
         async with main.lifespan(main.app):
-            assert {key: value for key, value in captured["intent"].items() if key != "model_profile"} == {
+            assert {
+                key: value
+                for key, value in captured["intent"].items()
+                if key not in {"model_profile", "cache_ttl_seconds"}
+            } == {
                 "api_key": "test-key",
                 "base_url": None,
                 "model": "claude-3-5-sonnet-20241022",
                 "similarity_mode": "ngram",
             }
             assert captured["intent"]["model_profile"].model == "claude-3-5-sonnet-20241022"
+            assert captured["intent"]["cache_ttl_seconds"] == 987
             assert captured["memory"]["memory_token_budget"] == 4321
             assert captured["memory"]["compression_threshold"] == 0.81
             assert captured["memory"]["summary_max_tokens"] == 777

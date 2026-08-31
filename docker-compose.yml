@@ -90,6 +90,7 @@ services:
       - RAG_CHUNK_MAX_TOKENS=${RAG_CHUNK_MAX_TOKENS:-360}
       - RAG_CHUNK_OVERLAP_TOKENS=${RAG_CHUNK_OVERLAP_TOKENS:-48}
       - INTENT_SIMILARITY_MODE=${INTENT_SIMILARITY_MODE:-ngram}
+      - INTENT_CACHE_TTL_SECONDS=${INTENT_CACHE_TTL_SECONDS:-3600}
       - EVAL_BASELINE_PATH=/app/data/eval-state/baseline.json
       - DIALOGPILOT_SKILLS_DIR=/app/skills
       - TICKET_DB_PATH=/app/data/tickets/tickets.db

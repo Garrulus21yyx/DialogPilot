@@ -198,12 +198,15 @@ class IntentEvaluator:
         """运行全部样本并计算 accuracy、macro-F1 与逐类指标。"""
         predictions, ground_truth = [], []
         case_details: List[Dict[str, Any]] = []
+        classifier_fingerprint = self._recognizer.classifier_fingerprint(agent_bundle)
 
         for case in cases:
             if agent_bundle is None:
                 result = await self._recognizer.recognize(case.message)
             else:
                 result = await self._recognizer.recognize(case.message, bundle=agent_bundle)
+            if result.classifier_fingerprint != classifier_fingerprint:
+                raise RuntimeError("intent evaluation mixed classifier fingerprints")
             predicted = result.intent.value
             predictions.append(predicted)
             ground_truth.append(case.expected_intent)
@@ -214,6 +217,7 @@ class IntentEvaluator:
                 "confidence": result.confidence,
                 "reasoning": result.reasoning,
                 "latency_ms": round(result.latency_ms, 3),
+                "classifier_fingerprint": result.classifier_fingerprint,
             })
 
         # 纯 Python 计算指标
@@ -241,6 +245,7 @@ class IntentEvaluator:
             "total":      len(cases),
             "correct":    correct,
             "cases":      case_details,
+            "classifier_fingerprint": classifier_fingerprint,
         }
 
 
@@ -365,6 +370,10 @@ class EndToEndEvaluator:
         recommendations = self._recommendations(avg_scores, intent_metrics)
 
         report_metadata = dict(metadata or {})
+        if intent_metrics:
+            report_metadata["intent_classifier_fingerprint"] = intent_metrics.get(
+                "classifier_fingerprint", "",
+            )
         if agent_bundle is not None:
             report_metadata.update({
                 "agent_bundle_version": agent_bundle.version,

@@ -27,7 +27,8 @@ POST /chat
   -> resolve and pin one immutable AgentBundle from the active/canary rollout pointer
   -> load uncovered Redis events, range summaries, sourced facts, and hybrid episodic memory with bounded neighbor windows
   -> assemble a bounded prompt from those projections
-  -> classify intent with LLM + local semantic similarity + patterns
+  -> classify intent with LLM + local semantic similarity + patterns under one classifier fingerprint
+  -> best-effort append a redacted prediction event; return prediction_id when attributable route feedback is available
   -> resolve one typed Planner disposition: EXECUTE / CLARIFY / OUT_OF_SCOPE
   -> publish CLARIFY / OUT_OF_SCOPE policy terminals without workers, RAG, tools, verifier, or tickets; OUT_OF_SCOPE also skips memory writes
   -> for EXECUTE only, retrieve business knowledge and project active TicketService cases
@@ -42,6 +43,7 @@ POST /chat
   -> publish only PASS answers; escalate every other outcome
   -> persist each escalation and its ticket.created outbox event in one SQLite transaction
   -> persist verifier, coverage, and uncertain tool-effect failures as deduplicated Bad Case candidates
+  -> accept wrong-route feedback only against the authenticated user's real prediction; keep it pending until admin annotation
   -> persist response_id + conversation-local response_seq before returning; accept authenticated delivered/read ACKs
   -> append the published turn with contiguous conversation-local sequence numbers and immediately upsert its raw events into episodic search
   -> atomically schedule source-linked fact reflection with the L0 turn, then debounce it in a recoverable Redis queue

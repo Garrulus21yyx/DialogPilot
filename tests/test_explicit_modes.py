@@ -1,4 +1,5 @@
 """显式存储和意图相似度模式的边界不变量。"""
+import asyncio
 from types import SimpleNamespace
 
 import pytest
@@ -7,6 +8,7 @@ import core.chroma_client as chroma_module
 import core.intent_recognizer as intent_module
 import agents.agent_orchestrator as orchestrator_module
 from core.intent_recognizer import IntentCategory
+from services.evolution import AgentBundle
 
 
 def test_remote_chroma_failure_does_not_fall_back_to_embedded(monkeypatch):
@@ -111,6 +113,46 @@ def test_business_label_contract_drives_specific_pattern_fallback(
 def test_intent_definition_contract_covers_every_supported_enum():
     """新增标签时必须同时声明业务边界，否则 Prompt 与代码会再次分叉。"""
     assert set(intent_module._INTENT_DEFINITIONS) == set(IntentCategory)
+
+
+def test_intent_classifier_fingerprint_tracks_effective_bundle(monkeypatch):
+    """Prompt/Few-shot 变化必须生成新分类器身份，不能继续命中旧缓存。"""
+    monkeypatch.setattr(intent_module, "AsyncAnthropic", lambda **_kwargs: SimpleNamespace())
+    recognizer = intent_module.IntentRecognizer(api_key="test", similarity_mode="disabled")
+    baseline = AgentBundle(version="intent-base")
+    candidate = AgentBundle(
+        version="intent-candidate",
+        base_version="intent-base",
+        few_shots={"intent": [{"message": "这笔钱不是我的", "intent": "account_security"}]},
+    )
+
+    assert recognizer.classifier_fingerprint(baseline) != recognizer.classifier_fingerprint(candidate)
+    assert len(recognizer.classifier_fingerprint(candidate)) == 64
+
+
+def test_intent_cache_hashes_full_input_and_has_no_online_learn(monkeypatch):
+    """相同前缀、不同后缀不能共享结果；线上识别器不再暴露可变 learn。"""
+    monkeypatch.setattr(intent_module, "AsyncAnthropic", lambda **_kwargs: SimpleNamespace())
+    recognizer = intent_module.IntentRecognizer(api_key="test", similarity_mode="disabled")
+    calls = []
+
+    async def classify(message, _history, bundle=None):
+        calls.append((message, bundle))
+        return {"intent": IntentCategory.QUERY, "confidence": 1.0, "reasoning": "fixture"}
+
+    recognizer._llm_recognize = classify
+    prefix = "x" * 220
+    first = asyncio.run(recognizer.recognize(prefix + "退款"))
+    second = asyncio.run(recognizer.recognize(prefix + "非本人交易"))
+    cached = asyncio.run(recognizer.recognize(prefix + "退款"))
+
+    assert len(calls) == 2
+    assert first.input_fingerprint != second.input_fingerprint
+    assert cached.input_fingerprint == first.input_fingerprint
+    assert recognizer.cache_stats["hits"] == 1
+    assert not hasattr(recognizer, "learn")
+    with pytest.raises(TypeError):
+        intent_module._TEMPLATES[IntentCategory.REFUND] = ("现场修改",)
 
 
 def test_unknown_modes_fail_with_typed_configuration_errors(monkeypatch):

@@ -632,6 +632,12 @@ class AgentOrchestrator:
             )],
         }
 
+    def intent_runtime(self, bundle: Optional[AgentBundle] = None) -> Dict[str, Any]:
+        """暴露实际共享识别器的缓存与版本证据，不复制第二份配置真相。"""
+        stats = dict(self._intent_recognizer.cache_stats)
+        stats["classifier_fingerprint"] = self._intent_recognizer.classifier_fingerprint(bundle)
+        return stats
+
     def set_skill_manager(self, skill_manager: Optional[Any]) -> None:
         """更新 SkillManager 引用，供运行时重载或测试替换使用。"""
         self._skill_manager = skill_manager

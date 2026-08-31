@@ -49,6 +49,7 @@ from services.badcase_registry import (
     BadCaseStage,
     BadCaseStatus,
     BadCaseTransitionError,
+    IntentFeedbackStatus,
 )
 from memory.context import ContextAssembler, ContextSection
 from core.tracing import TraceRecorder, current_trace_id, trace_scope
@@ -56,6 +57,7 @@ from core.input_security import PromptInjectionGuard
 from core.auth import AuthenticationError, AuthorizationError, JWTAuthenticator, Principal
 from core.llm_metrics import capture_llm_usage
 from core.model_policy import ModelPolicy, ModelRole
+from core.intent_recognizer import IntentCategory
 from services.answer_verifier import (
     VerificationReasonCode,
     VerificationResult,
@@ -215,6 +217,7 @@ async def lifespan(app: FastAPI):
         model=cfg["model"],
         similarity_mode=similarity_mode,
         model_profile=_model_policy.profile(ModelRole.INTENT),
+        cache_ttl_seconds=float(os.getenv("INTENT_CACHE_TTL_SECONDS", "3600")),
     )
 
     # Skills：启动时从目录加载业务能力说明，并在 Agent 调用 LLM 时动态注入。
@@ -552,6 +555,8 @@ class ChatResponse(BaseModel):
     entities: Dict[str, List[str]] = Field(default_factory=dict)
     intent_confidence: float = 0.0
     intent_source_scores: Dict[str, float] = Field(default_factory=dict)
+    intent_prediction_id: str = ""
+    intent_classifier_fingerprint: str = ""
     verification_status: str
     verified: bool
     grounded: bool
@@ -649,6 +654,16 @@ class BadCaseFeedbackRequest(BaseModel):
     message: str = Field(default="", max_length=10000)
     published_response: str = Field(default="", max_length=12000)
     correction: str = Field(default="", max_length=5000)
+    prediction_id: str = Field(default="", max_length=64)
+    suggested_intent: Optional[IntentCategory] = None
+
+
+class IntentFeedbackReviewRequest(BaseModel):
+    """管理员对候选意图标签做一次不可变裁决。"""
+    decision: Literal["approved", "rejected"]
+    approved_intent: Optional[IntentCategory] = None
+    dataset_version: str = Field(default="", max_length=128)
+    note: str = Field(default="", max_length=1000)
 
 
 class BadCaseTransitionRequest(BaseModel):
@@ -682,6 +697,10 @@ async def health():
         "memory": _memory.storage_backend if _memory is not None else None,
         "knowledge": _knowledge_base.storage_backend if _knowledge_base is not None else None,
     }
+    active_bundle = (
+        await asyncio.to_thread(_bundle_registry.active)
+        if _bundle_registry is not None else None
+    )
     return {
         "status": "ok",
         "agents": _orchestrator.get_stats(),
@@ -689,6 +708,7 @@ async def health():
         "storage": storage,
         "model_policy": _model_policy.to_dict() if _model_policy is not None else None,
         "input_security": _input_security_guard.get_stats(),
+        "intent_recognizer": _orchestrator.intent_runtime(active_bundle),
         "badcases": _badcase_registry.stats() if _badcase_registry is not None else {},
         "memory_fact_jobs": _memory.fact_job_stats if _memory is not None else {},
         "response_delivery": _response_delivery.stats() if _response_delivery is not None else {},
@@ -875,6 +895,47 @@ def _badcase_versions(bundle: Optional[AgentBundle] = None) -> Dict[str, Any]:
         versions["agent_bundle_version"] = bundle.version
         versions["agent_bundle_sha256"] = bundle.content_hash
     return versions
+
+
+async def _record_intent_prediction(
+    *,
+    intent_result: Any,
+    request_id: str,
+    conv_id: str,
+    user_id: str,
+    message: str,
+    bundle: AgentBundle,
+) -> Optional[Any]:
+    """把分类结果写成不可变质量事实；遥测故障不改变聊天业务结果。"""
+    if _badcase_registry is None:
+        return None
+    classifier_fingerprint = str(
+        getattr(intent_result, "classifier_fingerprint", "") or ""
+    )
+    input_fingerprint = str(getattr(intent_result, "input_fingerprint", "") or "")
+    if not classifier_fingerprint or not input_fingerprint:
+        logger.warning(
+            "意图识别结果缺少版本证据，跳过预测记录 request_id=%s", request_id,
+        )
+        return None
+    try:
+        return await asyncio.to_thread(
+            _badcase_registry.record_intent_prediction,
+            request_id=request_id,
+            trace_id=current_trace_id(),
+            conv_id=conv_id,
+            user_id=user_id,
+            input_fingerprint=input_fingerprint,
+            sanitized_input=message,
+            predicted_intent=intent_result.intent.value,
+            confidence=intent_result.confidence,
+            source_scores=intent_result.source_scores,
+            classifier_fingerprint=classifier_fingerprint,
+            bundle_version=bundle.version,
+        )
+    except Exception:
+        logger.exception("记录意图预测失败 request_id=%s", request_id)
+        return None
 
 
 async def _observe_badcase(**observation: Any) -> None:
@@ -1236,6 +1297,14 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
     intent_result = await _orchestrator.recognize_intent(
         req.message, history=intent_history, bundle=bundle,
     )
+    intent_prediction = await _record_intent_prediction(
+        intent_result=intent_result,
+        request_id=request_id,
+        conv_id=conv_id,
+        user_id=user_id,
+        message=req.message,
+        bundle=bundle,
+    )
     knowledge_text, knowledge_used = await _build_knowledge_context(
         req.message, intent=intent_result.intent, bundle=bundle,
     )
@@ -1452,6 +1521,12 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
         entities=intent_result.entities,
         intent_confidence=round(intent_result.confidence, 4),
         intent_source_scores=intent_result.source_scores,
+        intent_prediction_id=(
+            intent_prediction.prediction_id if intent_prediction is not None else ""
+        ),
+        intent_classifier_fingerprint=str(
+            getattr(intent_result, "classifier_fingerprint", "") or ""
+        ),
         verification_status=verification.status.value,
         verified=verification.publishable,
         grounded=verification.grounded,
@@ -1740,8 +1815,37 @@ async def submit_badcase_feedback(
     """用户点踩/纠错只创建待审核 observation，不能自行定义 Gold。"""
     if _badcase_registry is None:
         raise HTTPException(503, "Bad Case Registry 未就绪")
+    if body.category == "wrong_route":
+        if not body.prediction_id or body.suggested_intent is None:
+            raise HTTPException(422, {
+                "code": "intent_feedback_requires_prediction",
+                "message": "wrong_route requires prediction_id and suggested_intent",
+            })
+        try:
+            learning, case, created = await asyncio.to_thread(
+                _badcase_registry.submit_intent_feedback,
+                prediction_id=body.prediction_id,
+                user_id=principal.subject,
+                suggested_intent=body.suggested_intent.value,
+                reason=body.correction,
+                published_response=body.published_response,
+                source="user_feedback",
+            )
+            return {
+                "created": created,
+                "badcase_id": case.badcase_id,
+                "status": case.status.value,
+                "occurrence_count": case.occurrence_count,
+                "prediction_id": learning.prediction_id,
+                "feedback_status": learning.feedback_status.value,
+                "predicted_intent": learning.predicted_intent,
+                "suggested_intent": learning.suggested_intent,
+            }
+        except BadCaseNotFoundError as exc:
+            raise HTTPException(404, {"code": "intent_prediction_not_found"}) from exc
+        except BadCaseContractError as exc:
+            raise HTTPException(422, str(exc)) from exc
     stage_by_category = {
-        "wrong_route": BadCaseStage.ROUTING,
         "bad_retrieval": BadCaseStage.RETRIEVAL,
         "security_false_positive": BadCaseStage.INPUT_SECURITY,
     }
@@ -1841,6 +1945,80 @@ async def transition_badcase(
     except BadCaseContractError as exc:
         raise HTTPException(422, {
             "error": "badcase_evidence_incomplete",
+            "message": str(exc),
+        }) from exc
+
+
+@app.get("/intent-feedback", tags=["质量闭环"])
+async def list_intent_feedback(
+    status: Optional[IntentFeedbackStatus] = None,
+    limit: int = Query(default=50, ge=1, le=200),
+    _principal: Principal = Depends(_admin_principal),
+):
+    """管理员读取预测、待审纠正和已裁决标签，不向普通用户泄露样本。"""
+    if _badcase_registry is None:
+        raise HTTPException(503, "Bad Case Registry 未就绪")
+    rows = await asyncio.to_thread(
+        _badcase_registry.list_intent_learning,
+        status=status,
+        limit=limit,
+    )
+    return {"items": [row.to_dict() for row in rows], "count": len(rows)}
+
+
+@app.get("/intent-predictions/{prediction_id}", tags=["质量闭环"])
+async def get_intent_prediction(
+    prediction_id: str,
+    _principal: Principal = Depends(_admin_principal),
+):
+    """管理员按稳定 prediction_id 读取一次版本化预测事实。"""
+    if _badcase_registry is None:
+        raise HTTPException(503, "Bad Case Registry 未就绪")
+    try:
+        row = await asyncio.to_thread(
+            _badcase_registry.get_intent_prediction, prediction_id,
+        )
+        return row.to_dict()
+    except BadCaseNotFoundError as exc:
+        raise HTTPException(404, {"code": "intent_prediction_not_found"}) from exc
+
+
+@app.post("/intent-feedback/{prediction_id}/review", tags=["质量闭环"])
+async def review_intent_feedback(
+    prediction_id: str,
+    body: IntentFeedbackReviewRequest,
+    principal: Principal = Depends(_admin_principal),
+):
+    """人工裁决候选标签；批准不会绕过评测、Graduation 或 Rollout。"""
+    if _badcase_registry is None:
+        raise HTTPException(503, "Bad Case Registry 未就绪")
+    if body.decision == "approved" and body.approved_intent is None:
+        raise HTTPException(422, {
+            "code": "approved_intent_required",
+            "message": "approved decision requires approved_intent",
+        })
+    try:
+        learning, case = await asyncio.to_thread(
+            _badcase_registry.review_intent_feedback,
+            prediction_id,
+            decision=IntentFeedbackStatus(body.decision),
+            actor=principal.subject,
+            approved_intent=(
+                body.approved_intent.value if body.approved_intent is not None else ""
+            ),
+            dataset_version=body.dataset_version,
+            note=body.note,
+        )
+        return {
+            "intent_learning": learning.to_dict(),
+            "bad_case": case.to_dict(),
+            "active_bundle_changed": False,
+        }
+    except BadCaseNotFoundError as exc:
+        raise HTTPException(404, {"code": "intent_prediction_not_found"}) from exc
+    except BadCaseContractError as exc:
+        raise HTTPException(409, {
+            "code": "intent_feedback_review_rejected",
             "message": str(exc),
         }) from exc
 

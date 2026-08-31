@@ -27,6 +27,18 @@ class BadCaseCluster:
 
     def reflection_summary(self) -> dict:
         """只给候选生成器必要的脱敏诊断，不携带原始请求/响应。"""
+        approved_intent_examples = [
+            {
+                "message": case.sanitized_input,
+                "intent": case.approved_intent,
+                "annotation_id": case.annotation_id,
+                "classifier_fingerprint": case.classifier_fingerprint,
+            }
+            for case in self.cases
+            if case.stage.value == "intent"
+            and case.approved_intent
+            and case.annotation_id
+        ][:20]
         return {
             "group_id": self.group_id,
             "stages": list(self.stages),
@@ -37,6 +49,7 @@ class BadCaseCluster:
             "expected_behaviors": [
                 case.expected_behavior for case in self.cases if case.expected_behavior
             ][:20],
+            "approved_intent_examples": approved_intent_examples,
         }
 
 

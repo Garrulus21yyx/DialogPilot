@@ -29,7 +29,7 @@ title: DialogPilot 面经校准与追问手册
 | 知识库是 BM25 + 向量 + RRF | 这是长期记忆；知识 RAG 仍是 rewrite + Chroma 多路向量 + 去重 + LLM rerank | **CORRECTED** |
 | Agent 单次生成、无完整 Trace | Worker 内最多 4 步 ReAct，allowlist、持久审批 Resume、脱敏 audit/TraceId | **CHANGED** |
 | Bad Case 后人工直接改 Prompt | 版本归因 → 不可变 Bundle 候选 → Graduation/Pareto → Shadow/Canary/回滚 | **NEW** |
-| 准确率 91.3%、综合分 0.89 | 当前有 500 条分层候选集、25 篇 corpus 和 265 项回归测试，但仍无 human-reviewed gold | **UNPROVEN** |
+| 准确率 91.3%、综合分 0.89 | 当前有 500 条分层候选集、25 篇 corpus 和 280 项回归测试，但仍无 human-reviewed gold | **UNPROVEN** |
 | 完整 MCP Server / LangGraph | 是内部 ToolManager 与直接 Python 编排；没有远程 MCP Server，没用 LangGraph | **UNPROVEN** |
 
 ## 项目开场与完整链路
@@ -68,6 +68,12 @@ title: DialogPilot 面经校准与追问手册
 
 它是可运行的轻量词面相似度基线，不是语义 embedding 服务。应准确说“本地字符 n-gram 向量相似度”，否则模型名称、维度、训练数据一追问就会暴露。
 
+### Q8.1：意图识别结果怎样保证可复现，缓存会不会串版本？
+
+`IntentResult` 同时返回 `classifier_fingerprint` 和 `input_fingerprint`。前者覆盖模型 profile/provider、融合模式与权重、阈值、Prompt、定义、Few-shot、模板、规则和当前 Bundle；后者哈希完整消息及实际使用的三条历史。缓存身份由两个指纹共同计算并带 TTL，低置信度和账户安全结果最长只缓存 300 秒。因此改配置会自然换命名空间，长消息也不会因为只取前 200 字而碰撞。
+
+当前是进程内热点缓存，不是训练数据事实来源；多副本可迁移到 Redis，但 Prediction/Annotation 仍由 SQLite 持久化，不能拿缓存代替审核记录。
+
 ### Q9：意图和 Agent 路由是同一件事吗？
 
 不是。意图描述用户主要要做什么；路由将意图、关键词和实体转成领域 score 和 TaskGraph。因此一个主意图仍可产生 Technical + Billing 两个独立子任务，并显式表达其依赖和上下文范围。
@@ -89,6 +95,14 @@ title: DialogPilot 面经校准与追问手册
 ### Q12：怎样测意图识别？
 
 当前有 Accuracy/Macro-F1、版本化 intent layer 和公开数据 adapter。180 条外部意图是 `auto_mapped`，320 条项目合同是 `provisional`；正式结果必须来自 human-reviewed、新鲜 group-safe heldout，并报告 confusion matrix、每类 precision/recall/F1、置信度校准、拒识质量与复合/否定难例 slice。
+
+评测器还要求一次运行中每条结果携带同一个预期 `classifier_fingerprint`，避免进程中途换 Bundle 或策略后把混合版本结果合并成一个数字。报告元数据保存该指纹，但这只能证明运行版本一致，不能把 provisional 标签升级成 Gold。
+
+### Q12.1：用户点“路由错了”后会在线学习吗？
+
+不会。`/chat` 先记录不可变 Prediction，并把 `prediction_id` 返回客户端；`/feedback` 必须同时提交该 ID 和建议意图，服务端校验 Prediction 属于当前 JWT 用户，只生成 `PENDING` 反馈及关联 Bad Case。管理员再通过独立接口执行 `APPROVED / REJECTED`，批准时必须指定 `dataset_version`，生成 Annotation。
+
+只有带 `approved_intent + annotation_id` 的样本能进入意图候选生成；即使上游误把它标成 evolvable，ProposalGenerator 也会再次 fail-closed。Annotation 只是审核证据，不是 Active Bundle 切换，也不是独立多人仲裁的 human Gold。
 
 ## TaskGraph 与 Multi-Agent 编排
 
@@ -252,7 +266,7 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q48：91.3%、0.89 等旧数字怎么回答？
 
-**UNPROVEN。** 旧数字没对应数据版本、切分、运行产物和 commit，已移除。当前可证明的是 265 项回归测试、500 条分层候选集、25 篇 corpus、Stateful fixture 和隔离 RAG producer；因为 gold 仍为 0，不能报项目准确率。独立审核并运行新鲜 heldout 后才报均值、方差、slice 和置信区间。
+**UNPROVEN。** 旧数字没对应数据版本、切分、运行产物和 commit，已移除。当前可证明的是 280 项回归测试、500 条分层候选集、25 篇 corpus、Stateful fixture 和隔离 RAG producer；因为 gold 仍为 0，不能报项目准确率。独立审核并运行新鲜 heldout 后才报均值、方差、slice 和置信区间。
 
 ### Q49：多 LLM 调用怎么降延迟？
 
@@ -386,7 +400,9 @@ Recall@K 证明相关证据进入候选，MRR 关注第一条 relevant 的位置
 
 ### Q76.2：线上 Bad Case 怎么闭环，不会越积越多吗？
 
-Verifier `REJECT/UNKNOWN`、Coverage 缺口和工具 `outcome_unknown` 自动进入 `BadCaseRegistry`，用户点踩走 `/feedback`。Registry 以 stage + symptom + 规范化输入生成 fingerprint，重复问题只增加 occurrence；状态按 `candidate → triaged → reproduced → fixing → regression_pass → verified → closed` 迁移，关闭后复发会自动重开。只有补齐根因 Owner、四层 expected、fixture/assertions/evidence hash 和修复 commit 才能进入回归阶段。
+Verifier `REJECT/UNKNOWN`、Coverage 缺口和工具 `outcome_unknown` 自动进入 `BadCaseRegistry`，一般用户点踩走 `/feedback`。Registry 以 stage + symptom + 规范化输入生成 fingerprint，重复问题只增加 occurrence；状态按 `candidate → triaged → reproduced → fixing → regression_pass → verified → closed` 迁移，关闭后复发会自动重开。只有补齐根因 Owner、四层 expected、fixture/assertions/evidence hash 和修复 commit 才能进入回归阶段。
+
+错路由反馈更严格：它必须引用 `/chat` 实际产生的 Prediction，校验用户归属后才进入 Pending；管理员 Annotation 才能把建议变成候选标签。这样“点踩”是观察，“建议意图”是待审主张，“Annotation”是裁决，三者不会混成一份事实。
 
 **追问：线上 Case 能当 heldout 吗？** 一旦看过并用于修复，它就是 consumed regression。导出脚本强制写成 `dev + provisional + consumed_regression`，不能生成 Gold 或 heldout；真正泛化仍依赖未来流量或独立封存的新语义组。
 
@@ -424,7 +440,7 @@ DeepSeek 的 Anthropic 兼容协议要求工具后续轮回传此前 thinking �
 
 ### Q84：这项改造怎样写 STAR？
 
-**S：** 九类调用共用一个模型，DeepSeek 默认 reasoning 让简单任务成本、延迟和结构化输出不可控。**T：** 在保持统一 Messages API 的同时，让每类调用可独立权衡质量。**A：** 实现按角色校验的 ModelPolicy，Flash/none 承担闭合高频任务，Pro/none 承担融合与质量门禁；显式 reasoning 强制最小完成预算，并补齐 health/eval 配置证据和 ReAct thinking 回传。**R：** 4 条 E2E pilot 均值约 28.4s → 13.3s，Verifier 解析 2/4 → 4/4；当前全仓 265 项回归测试通过。15 条 provisional 三档消融已完成，最终选择仍需 gold heldout 与重复运行确认。
+**S：** 九类调用共用一个模型，DeepSeek 默认 reasoning 让简单任务成本、延迟和结构化输出不可控。**T：** 在保持统一 Messages API 的同时，让每类调用可独立权衡质量。**A：** 实现按角色校验的 ModelPolicy，Flash/none 承担闭合高频任务，Pro/none 承担融合与质量门禁；显式 reasoning 强制最小完成预算，并补齐 health/eval 配置证据和 ReAct thinking 回传。**R：** 4 条 E2E pilot 均值约 28.4s → 13.3s，Verifier 解析 2/4 → 4/4；当前全仓 280 项回归测试通过。15 条 provisional 三档消融已完成，最终选择仍需 gold heldout 与重复运行确认。
 
 ### Q85：Flash/off、Flash/high、Pro/high 真跑后有什么区别？
 
@@ -439,6 +455,8 @@ DeepSeek 的 Anthropic 兼容协议要求工具后续轮回传此前 thinking �
 ### Q87：为什么不能一次差评就在线改 Prompt？
 
 一次差评可能是噪声，也可能是 RAG、路由、权限或业务服务错误。在线改会让在途请求版本漂移，旧回归不可复现，失败也没有稳定回滚点。运行与学习分离后，生产只读取不可变版本，学习面只产候选。
+
+意图链上还多一层 Prediction/Annotation：反馈必须绑定当时的分类器指纹和真实预测，管理员批准后才允许生成候选。旧 `learn()` 已删除，模板只读；缓存键绑定分类器版本和完整输入，所以不会出现“同一个 cache key、背后模板已被反馈改掉”的隐藏漂移。
 
 ### Q88：EvolutionEnvelope 解决什么问题？
 
@@ -482,7 +500,7 @@ Shadow 用真实输入跑候选 Intent/RAG/Worker/Verifier，但不发布、不�
 
 ### Q98：这项改造怎么写 STAR？
 
-**S：** Bad Case 能入库，但人工直接改 Prompt 导致版本归因弱、回归不可复现、发布全量且安全边界可能被误改。**T：** 把线上失败变成可验证、可灰度、可撤销的策略升级。**A：** 增加脱敏 EvolutionEnvelope、确定性 Owner 归因、不可变 AgentBundle、GEPA-lite 多候选、provenance Graduation/Pareto，并以 Shadow、稳定 5%/25% 分桶及硬/软自动回滚发布。**R：** 请求内版本固定，候选无法修改权限或绕过 Gate，Shadow 写操作零提交，发布/回滚成为原子状态迁移；265 项回归通过，数据非 Gold 前不虚构线上提升。
+**S：** Bad Case 能入库，但人工直接改 Prompt 导致版本归因弱、回归不可复现、发布全量且安全边界可能被误改。**T：** 把线上失败变成可验证、可灰度、可撤销的策略升级。**A：** 增加脱敏 EvolutionEnvelope、确定性 Owner 归因、不可变 AgentBundle、GEPA-lite 多候选、provenance Graduation/Pareto，并以 Shadow、稳定 5%/25% 分桶及硬/软自动回滚发布。**R：** 请求内版本固定，候选无法修改权限或绕过 Gate，Shadow 写操作零提交，发布/回滚成为原子状态迁移；280 项回归通过，数据非 Gold 前不虚构线上提升。
 
 ## 面试前 10 分钟自查
 
@@ -495,6 +513,7 @@ Shadow 用真实输入跑候选 Intent/RAG/Worker/Verifier，但不发布、不�
 7. 能说明回归测试数量不等于 benchmark 样本量，smoke、auto_mapped 与 provisional 都不支持生产准确率。
 8. 能用 commit 划清原型与个人改造，不说从零原创。
 9. 能讲清 Bundle → 候选 → Graduation → Shadow → 5% → 25% → Active/回滚，并说明 GEPA-lite 与 RL 的边界。
-10. 能讲清 JWT/scope 与 task-level Resume 已完成，以及 IdP/JWKS、tenant ABAC、持久 Trace、全图恢复和真实 Gold benchmark 仍是缺口；不说“完整 MCP”“复现 SOTA”或“线上准确率 91.3%”。
+10. 能讲清 Prediction → Pending Feedback → Admin Annotation → Candidate，知道分类器指纹覆盖什么，并说明 Annotation 不等于 Gold、缓存不等于学习库。
+11. 能讲清 JWT/scope 与 task-level Resume 已完成，以及 IdP/JWKS、tenant ABAC、持久 Trace、全图恢复和真实 Gold benchmark 仍是缺口；不说“完整 MCP”“复现 SOTA”或“线上准确率 91.3%”。
 
 > 完整仓库链路、源码定位和更多底层追问，回到 [DialogPilot 完整架构教程](./)。

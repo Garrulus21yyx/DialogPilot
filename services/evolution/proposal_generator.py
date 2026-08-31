@@ -11,6 +11,7 @@ from anthropic import AsyncAnthropic
 from core.llm_metrics import create_message
 from core.llm_utils import extract_text_content
 from core.model_policy import ModelProfile, ModelRole
+from services.badcase_registry import BadCaseStage
 from .attribution import AttributionDecision
 from .bundle import AgentBundle, BundleContractError
 from .miner import BadCaseCluster
@@ -76,6 +77,11 @@ class GEPALiteProposalGenerator:
     ) -> Tuple[AgentBundle, ...]:
         if not attribution.evolvable:
             raise BundleContractError(f"badcase group is not auto-evolvable: {attribution.reason}")
+        intent_cases = [case for case in cluster.cases if case.stage is BadCaseStage.INTENT]
+        if any(not case.approved_intent or not case.annotation_id for case in intent_cases):
+            raise BundleContractError(
+                "intent candidates require approved, attributable annotations"
+            )
         if not 4 <= int(candidate_count) <= 8:
             raise BundleContractError("candidate_count must be between 4 and 8")
         allowed = {surface.value for surface in attribution.allowed_surfaces}

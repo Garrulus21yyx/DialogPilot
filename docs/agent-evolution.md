@@ -52,6 +52,9 @@ flowchart LR
     C --> D{Verifier 与硬合同}
     D -->|PASS| E[发布并记录指标]
     D -->|失败| F[BadCaseRegistry]
+    C --> T[Intent prediction + classifier fingerprint]
+    T -->|认证用户纠正| U[Pending label]
+    U -->|管理员批准| F
     F --> G[语义组聚类]
     G --> H[CreditAttributor]
     H -->|安全或代码 Owner| I[阻断自动进化 / 人工修复]
@@ -73,7 +76,7 @@ flowchart LR
 
 | Owner | 源码 | 拥有的事实 | 不拥有的事实 |
 |---|---|---|---|
-| 失败资产 | [`services/badcase_registry.py`](../services/badcase_registry.py) | 去重、复发、状态与证据 | 不能自动认定修复有效 |
+| 失败资产 | [`services/badcase_registry.py`](../services/badcase_registry.py) | 去重、复发、状态、不可变 Intent prediction、pending 纠正与人工 annotation | 不能自动认定修复有效或把 annotation 冒充 Gold |
 | 版本归因 | [`services/evolution/envelope.py`](../services/evolution/envelope.py) | Bundle/组件哈希、producer/task/tool-call ID | 不保存原始 Prompt、输出或参数 |
 | 候选范围 | [`services/evolution/bundle.py`](../services/evolution/bundle.py) | 可进化字段和值域 | 不包含权限、JWT、PII、Verifier、Gold |
 | 责任归因与生成 | [`attribution.py`](../services/evolution/attribution.py)、[`proposal_generator.py`](../services/evolution/proposal_generator.py) | 失败属于哪个可进化 Surface、候选补丁 | 不能发布候选 |
@@ -106,7 +109,7 @@ flowchart LR
 
 | 失败阶段 | 自动候选面 | 处理 |
 |---|---|---|
-| Intent | Prompt、Few-shot | 可生成候选 |
+| Intent | Prompt、Few-shot | 只有绑定真实 prediction 且人工批准 annotation 后可生成候选 |
 | Planning / Routing / Coverage | 路由阈值 | 可生成候选 |
 | Retrieval / Memory | top_k、RRF 与两路权重 | 可生成候选 |
 | 普通 Tool 选择 | 工具描述、Worker Prompt | 可生成候选 |
@@ -114,6 +117,12 @@ flowchart LR
 | 越权、timeout、cancel、`outcome_unknown` | 无 | 禁止模型改安全合同 |
 
 这一步是整个闭环的保险丝：配置错误交给候选生成，权限和副作用终态仍由生产代码 Owner 修复。
+
+### Intent 为什么多一道人工 Annotation
+
+一次低置信度、点踩或用户输入的 `suggested_intent` 都不能证明分类器错了。`/chat` 因此先保存脱敏 `IntentLearningRecord(PREDICTED)`，记录 `prediction_id`、输入/分类器指纹、三路分数和固定 Bundle。`wrong_route` 反馈必须引用认证用户自己的 prediction，随后只进入 `PENDING`。
+
+管理员通过 `/intent-feedback/{prediction_id}/review` 批准或拒绝。批准产生不可变 `annotation_id + approved_intent + dataset_version`，但接口明确返回 `active_bundle_changed=false`。`CreditAttributor` 与 `GEPALiteProposalGenerator` 都会拒绝缺少批准 annotation 的 Intent Case，避免调用者绕过其中一层。批准样本只进入候选 Prompt/Few-shot；是否发布仍由 Eval、Graduation 和 Rollout 决定。
 
 ## 5. 不可变 AgentBundle
 
@@ -215,6 +224,18 @@ POST /evolution/rollouts/signals/hard
 {"bundle_version":"cand-agent-v1-…","signal":"privacy_leak","request_id":"req_x"}
 ```
 
+Intent 错路由在第 1 步之前还需要：
+
+```bash
+# ChatResponse 已返回 intent_prediction_id
+POST /feedback
+{"request_id":"req_x","category":"wrong_route","prediction_id":"pred_x","suggested_intent":"account_security"}
+
+# admin scope；只批准标签，不发布 Bundle
+POST /intent-feedback/pred_x/review
+{"decision":"approved","approved_intent":"account_security","dataset_version":"intent-dataset-v8"}
+```
+
 还可用 `GET /evolution/bundles`、`GET /evolution/bundles/active` 和 `GET /evolution/rollouts/{version}` 检查不可变版本、当前指针、状态迁移事件和证据。
 
 ## 9. 与改造前的区别
@@ -222,6 +243,8 @@ POST /evolution/rollouts/signals/hard
 | 维度 | 改造前 | 现在 |
 |---|---|---|
 | Bad Case | 去重、状态、导出 dev regression | 增加 Bundle/组件哈希与生产者归因 |
+| Intent 纠正 | 进程内 `learn()` 直接追加可变模板 | prediction → pending feedback → admin annotation → candidate Bundle |
+| Intent 缓存 | 截断消息/历史且不绑定完整策略版本 | 完整输入 SHA-256 × 有效分类器指纹，并按风险设置 TTL |
 | Prompt 优化 | 人工直接改文件，版本归因弱 | 反思只生成受限不可变候选 |
 | 评测基线 | 普通 eval 可能混淆当前报告与基线 | Baseline Snapshot 只追加，显式晋级才切指针 |
 | 多目标选择 | 看单一平均分 | 安全硬门禁 + 质量/延迟/成本 Pareto |
@@ -274,4 +297,4 @@ DialogPilot **不是 GEPA 或 Agent Lightning 的完整复现**。它借鉴的�
 
 ### Q7：这项改造怎么用 STAR 讲？
 
-**S：** Bad Case 虽可入库，但人工直接改 Prompt 会丢失版本归因，优化也可能伤害旧能力。**T：** 把线上失败转成可验证、可灰度、可撤销的 Agent 策略升级，同时禁止模型修改安全边界。**A：** 增加脱敏 EvolutionEnvelope、确定性 Owner 归因、不可变 AgentBundle、GEPA-lite 多候选、带 provenance 的 Graduation/Pareto，以及 Shadow、稳定 5%/25% 分桶和硬/软自动回滚。**R：** 请求级版本固定、候选不能绕过硬门禁、影子写操作零提交、发布和回滚都收敛为 SQLite 原子状态迁移；265 项仓库回归通过。当前数据仍非 human Gold，因此不虚构线上准确率提升。
+**S：** Bad Case 虽可入库，但人工直接改 Prompt 会丢失版本归因，优化也可能伤害旧能力。**T：** 把线上失败转成可验证、可灰度、可撤销的 Agent 策略升级，同时禁止模型修改安全边界。**A：** 增加脱敏 EvolutionEnvelope、确定性 Owner 归因、不可变 AgentBundle、GEPA-lite 多候选、带 provenance 的 Graduation/Pareto，以及 Shadow、稳定 5%/25% 分桶和硬/软自动回滚。**R：** 请求级版本固定、候选不能绕过硬门禁、影子写操作零提交、发布和回滚都收敛为 SQLite 原子状态迁移；280 项仓库回归通过。当前数据仍非 human Gold，因此不虚构线上准确率提升。

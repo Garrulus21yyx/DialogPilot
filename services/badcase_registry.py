@@ -8,6 +8,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+import math
 import re
 import sqlite3
 import threading
@@ -102,6 +103,49 @@ class BadCaseContractError(BadCaseError):
     pass
 
 
+class IntentFeedbackStatus(str, Enum):
+    """一次不可变预测在离线学习链中的闭合状态。"""
+
+    PREDICTED = "predicted"
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
+@dataclass(frozen=True)
+class IntentLearningRecord:
+    """预测事实、候选纠正和人工裁决的单一聚合投影。"""
+
+    prediction_id: str
+    request_id: str
+    trace_id: str
+    conv_id: str
+    user_ref: str
+    input_fingerprint: str
+    sanitized_input: str
+    predicted_intent: str
+    confidence: float
+    source_scores: Dict[str, float]
+    classifier_fingerprint: str
+    bundle_version: str
+    feedback_status: IntentFeedbackStatus
+    suggested_intent: str
+    feedback_reason: str
+    badcase_id: str
+    approved_intent: str
+    annotation_id: str
+    reviewer: str
+    dataset_version: str
+    review_note: str
+    created_at: str
+    updated_at: str
+
+    def to_dict(self) -> Dict[str, Any]:
+        data = asdict(self)
+        data["feedback_status"] = self.feedback_status.value
+        return data
+
+
 @dataclass(frozen=True)
 class BadCase:
     badcase_id: str
@@ -131,6 +175,12 @@ class BadCase:
     first_seen_at: str
     last_seen_at: str
     updated_at: str
+    prediction_id: str = ""
+    predicted_intent: str = ""
+    suggested_intent: str = ""
+    approved_intent: str = ""
+    annotation_id: str = ""
+    classifier_fingerprint: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         data = asdict(self)
@@ -191,104 +241,369 @@ class BadCaseRegistry:
         semantic_group_id: str = "",
     ) -> Tuple[BadCase, bool]:
         """幂等捕获一个脱敏 observation；已关闭问题复发时原子重开。"""
-        stage = BadCaseStage(stage)
-        severity = BadCaseSeverity(severity)
-        source = self._required(source, "source")[:80]
-        symptom_code = self._slug(self._required(symptom_code, "symptom_code"), 100)
-        safe_input = self.sanitize_text(sanitized_input, max_chars=10000)
-        safe_response = self.sanitize_text(published_response, max_chars=12000)
-        normalized = self._normalize_for_fingerprint(safe_input)
-        fingerprint = hashlib.sha256(
-            f"{stage.value}\0{symptom_code}\0{normalized}".encode("utf-8")
-        ).hexdigest()
-        now = self._now()
-        badcase_id = uuid.uuid4().hex
+        with self._lock, self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            return self._observe_with_connection(
+                conn,
+                source=source,
+                stage=stage,
+                severity=severity,
+                symptom_code=symptom_code,
+                user_id=user_id,
+                sanitized_input=sanitized_input,
+                trace_id=trace_id,
+                request_id=request_id,
+                published_response=published_response,
+                evidence=evidence,
+                versions=versions,
+                semantic_group_id=semantic_group_id,
+            )
+
+    def record_intent_prediction(
+        self,
+        *,
+        request_id: str,
+        trace_id: str,
+        conv_id: str,
+        user_id: str,
+        input_fingerprint: str,
+        sanitized_input: str,
+        predicted_intent: str,
+        confidence: float,
+        source_scores: Mapping[str, Any],
+        classifier_fingerprint: str,
+        bundle_version: str,
+    ) -> IntentLearningRecord:
+        """追加一次不可变预测事实；不把预测本身视作反馈或 Gold。"""
         if not self._identity_salt:
-            raise BadCaseContractError("identity_salt is required to observe user data")
-        user_ref = hmac.new(
-            self._identity_salt,
-            str(user_id or "anonymous").encode("utf-8"),
-            hashlib.sha256,
-        ).hexdigest()[:20]
-        safe_evidence = self._sanitize_value(dict(evidence or {}))
-        safe_versions = self._sanitize_value(dict(versions or {}))
-        group_id = self._slug(semantic_group_id, 160) if semantic_group_id else f"badcase-{fingerprint[:16]}"
+            raise BadCaseContractError("identity_salt is required to record intent predictions")
+        request_id = self._required(request_id, "request_id")[:200]
+        predicted = self._intent_name(predicted_intent, "predicted_intent")
+        input_hash = self._sha256(input_fingerprint, "input_fingerprint")
+        classifier_hash = self._sha256(
+            classifier_fingerprint, "classifier_fingerprint",
+        )
+        try:
+            numeric_confidence = float(confidence)
+        except (TypeError, ValueError) as exc:
+            raise BadCaseContractError("confidence must be a number") from exc
+        if not math.isfinite(numeric_confidence) or not 0.0 <= numeric_confidence <= 1.0:
+            raise BadCaseContractError("confidence must be between 0 and 1")
+        safe_scores: Dict[str, float] = {}
+        for key, value in list(source_scores.items())[:32]:
+            try:
+                score = float(value)
+            except (TypeError, ValueError):
+                continue
+            if math.isfinite(score):
+                safe_scores[self._slug(key, 80)] = min(1.0, max(0.0, score))
+        now = self._now()
+        prediction_id = uuid.uuid4().hex
+        with self._lock, self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            conn.execute(
+                """
+                INSERT INTO intent_learning_records (
+                    prediction_id, request_id, trace_id, conv_id, user_ref,
+                    input_fingerprint, sanitized_input, predicted_intent,
+                    confidence, source_scores_json, classifier_fingerprint,
+                    bundle_version, feedback_status, suggested_intent,
+                    feedback_reason, badcase_id, approved_intent, annotation_id,
+                    reviewer, dataset_version, review_note, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', '', '', '', '', '', '', '', ?, ?)
+                """,
+                (
+                    prediction_id, request_id, str(trace_id)[:128], str(conv_id)[:200],
+                    self._user_ref(user_id), input_hash,
+                    self.sanitize_text(sanitized_input, 2000), predicted,
+                    numeric_confidence, self._json(safe_scores), classifier_hash,
+                    self._slug(bundle_version or "unversioned", 128),
+                    IntentFeedbackStatus.PREDICTED.value, now, now,
+                ),
+            )
+            self._insert_intent_learning_event(
+                conn,
+                prediction_id,
+                "prediction_recorded",
+                "system",
+                {
+                    "predicted_intent": predicted,
+                    "confidence": numeric_confidence,
+                    "classifier_fingerprint": classifier_hash,
+                },
+                now,
+            )
+            row = conn.execute(
+                "SELECT * FROM intent_learning_records WHERE prediction_id=?",
+                (prediction_id,),
+            ).fetchone()
+        return self._row_to_intent_learning(row)
+
+    def submit_intent_feedback(
+        self,
+        *,
+        prediction_id: str,
+        user_id: str,
+        suggested_intent: str,
+        reason: str = "",
+        published_response: str = "",
+        source: str = "user_feedback",
+    ) -> Tuple[IntentLearningRecord, BadCase, bool]:
+        """把认证用户纠正保存为 pending observation，并原子链接一个 Intent Bad Case。"""
+        prediction_id = self._required(prediction_id, "prediction_id")[:64]
+        suggested = self._intent_name(suggested_intent, "suggested_intent")
+        with self._lock, self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            prediction = conn.execute(
+                "SELECT * FROM intent_learning_records WHERE prediction_id=?",
+                (prediction_id,),
+            ).fetchone()
+            if prediction is None or prediction["user_ref"] != self._user_ref(user_id):
+                # 不区分不存在和他人预测，避免枚举用户质量记录。
+                raise BadCaseNotFoundError("intent prediction not found")
+            current = IntentFeedbackStatus(prediction["feedback_status"])
+            if current in {IntentFeedbackStatus.APPROVED, IntentFeedbackStatus.REJECTED}:
+                raise BadCaseContractError("reviewed intent feedback is immutable")
+            if suggested == prediction["predicted_intent"]:
+                raise BadCaseContractError("suggested_intent must differ from predicted_intent")
+            if current is IntentFeedbackStatus.PENDING and prediction["suggested_intent"] != suggested:
+                raise BadCaseContractError("a prediction cannot have conflicting pending labels")
+
+            safe_reason = self.sanitize_text(reason, 2000)
+            evidence = {
+                "prediction_id": prediction_id,
+                "predicted_intent": prediction["predicted_intent"],
+                "suggested_intent": suggested,
+                "classifier_fingerprint": prediction["classifier_fingerprint"],
+                "confidence": float(prediction["confidence"]),
+                "feedback_reason": safe_reason,
+            }
+            case, created = self._observe_with_connection(
+                conn,
+                source=source,
+                stage=BadCaseStage.INTENT,
+                severity=BadCaseSeverity.P2,
+                symptom_code=f"wrong-route-{prediction_id}",
+                user_id=user_id,
+                sanitized_input=prediction["sanitized_input"],
+                trace_id=prediction["trace_id"],
+                request_id=prediction["request_id"],
+                published_response=published_response,
+                evidence=evidence,
+                versions={
+                    "classifier_fingerprint": prediction["classifier_fingerprint"],
+                    "agent_bundle_version": prediction["bundle_version"],
+                },
+                semantic_group_id=(
+                    f"intent-{prediction['predicted_intent']}-to-{suggested}"
+                ),
+            )
+            now = self._now()
+            conn.execute(
+                """
+                UPDATE intent_learning_records
+                SET feedback_status=?, suggested_intent=?, feedback_reason=?,
+                    badcase_id=?, updated_at=?
+                WHERE prediction_id=?
+                """,
+                (
+                    IntentFeedbackStatus.PENDING.value, suggested, safe_reason,
+                    case.badcase_id, now, prediction_id,
+                ),
+            )
+            conn.execute(
+                """
+                UPDATE bad_cases
+                SET prediction_id=?, predicted_intent=?, suggested_intent=?,
+                    classifier_fingerprint=?, updated_at=?
+                WHERE badcase_id=?
+                """,
+                (
+                    prediction_id, prediction["predicted_intent"], suggested,
+                    prediction["classifier_fingerprint"], now, case.badcase_id,
+                ),
+            )
+            self._insert_intent_learning_event(
+                conn, prediction_id, "feedback_submitted", prediction["user_ref"],
+                {"suggested_intent": suggested, "badcase_id": case.badcase_id}, now,
+            )
+            learning_row = conn.execute(
+                "SELECT * FROM intent_learning_records WHERE prediction_id=?",
+                (prediction_id,),
+            ).fetchone()
+            case_row = conn.execute(
+                "SELECT * FROM bad_cases WHERE badcase_id=?", (case.badcase_id,),
+            ).fetchone()
+        return (
+            self._row_to_intent_learning(learning_row),
+            self._row_to_badcase(case_row),
+            created,
+        )
+
+    def review_intent_feedback(
+        self,
+        prediction_id: str,
+        *,
+        decision: IntentFeedbackStatus,
+        actor: str,
+        approved_intent: str = "",
+        dataset_version: str = "",
+        note: str = "",
+    ) -> Tuple[IntentLearningRecord, BadCase]:
+        """人工批准或拒绝候选标签；批准只形成可评测标签，不直接激活 Bundle。"""
+        prediction_id = self._required(prediction_id, "prediction_id")[:64]
+        decision = IntentFeedbackStatus(decision)
+        if decision not in {IntentFeedbackStatus.APPROVED, IntentFeedbackStatus.REJECTED}:
+            raise BadCaseContractError("review decision must be approved or rejected")
+        actor = self._required(actor, "actor")[:200]
+        approved = ""
+        dataset = ""
+        if decision is IntentFeedbackStatus.APPROVED:
+            approved = self._intent_name(approved_intent, "approved_intent")
+            dataset = self._slug(self._required(dataset_version, "dataset_version"), 128)
+        safe_note = self.sanitize_text(note, 1000)
 
         with self._lock, self._connect() as conn:
             conn.execute("BEGIN IMMEDIATE")
-            row = conn.execute(
-                "SELECT * FROM bad_cases WHERE fingerprint = ?", (fingerprint,)
+            prediction = conn.execute(
+                "SELECT * FROM intent_learning_records WHERE prediction_id=?",
+                (prediction_id,),
             ).fetchone()
-            if row is not None:
-                current = BadCaseStatus(row["status"])
-                next_status = BadCaseStatus.TRIAGED if current is BadCaseStatus.CLOSED else current
-                current_severity = BadCaseSeverity(row["severity"])
-                next_severity = min(
-                    (current_severity, severity), key=lambda item: self._SEVERITY_RANK[item]
-                )
-                conn.execute(
-                    """
-                    UPDATE bad_cases SET occurrence_count=occurrence_count+1,
-                        status=?, severity=?, trace_id=?, request_id=?, published_response=?,
-                        evidence_json=?, versions_json=?, last_seen_at=?, updated_at=?
-                    WHERE badcase_id=?
-                    """,
-                    (
-                        next_status.value, next_severity.value, str(trace_id)[:128], str(request_id)[:200],
-                        safe_response, self._json(safe_evidence), self._json(safe_versions),
-                        now, now, row["badcase_id"],
-                    ),
-                )
-                self._insert_occurrence(
-                    conn, row["badcase_id"], source, severity, str(trace_id)[:128],
-                    str(request_id)[:200], safe_input, safe_response,
-                    safe_evidence, safe_versions, now,
-                )
-                self._insert_event(
-                    conn, row["badcase_id"], current, next_status,
-                    "system",
-                    f"recurrence observed from {source}" if current is BadCaseStatus.CLOSED
-                    else f"duplicate observation from {source}",
-                    now,
-                )
-                updated = conn.execute(
-                    "SELECT * FROM bad_cases WHERE badcase_id=?", (row["badcase_id"],)
+            if prediction is None:
+                raise BadCaseNotFoundError("intent prediction not found")
+            current = IntentFeedbackStatus(prediction["feedback_status"])
+            if current is decision:
+                if decision is IntentFeedbackStatus.APPROVED and (
+                    prediction["approved_intent"] != approved
+                    or prediction["dataset_version"] != dataset
+                ):
+                    raise BadCaseContractError("approved annotation is immutable")
+                case_row = conn.execute(
+                    "SELECT * FROM bad_cases WHERE badcase_id=?",
+                    (prediction["badcase_id"],),
                 ).fetchone()
-                return self._row_to_badcase(updated), False
+                return self._row_to_intent_learning(prediction), self._row_to_badcase(case_row)
+            if current is not IntentFeedbackStatus.PENDING:
+                raise BadCaseContractError("only pending intent feedback can be reviewed")
+            if (
+                decision is IntentFeedbackStatus.APPROVED
+                and approved == prediction["predicted_intent"]
+            ):
+                raise BadCaseContractError(
+                    "an approved wrong-route label must differ from the original prediction; "
+                    "reject the feedback when the prediction was correct"
+                )
+            case_row = conn.execute(
+                "SELECT * FROM bad_cases WHERE badcase_id=?",
+                (prediction["badcase_id"],),
+            ).fetchone()
+            if case_row is None or BadCaseStage(case_row["stage"]) is not BadCaseStage.INTENT:
+                raise BadCaseContractError("intent feedback must reference an intent bad case")
 
+            now = self._now()
+            # 被拒绝的反馈仍保留 reviewer/note/event，但不能产生一个看似已批准的
+            # annotation_id。只有 APPROVED 才拥有可供候选生成消费的标签事实。
+            annotation_id = (
+                uuid.uuid4().hex
+                if decision is IntentFeedbackStatus.APPROVED else ""
+            )
             conn.execute(
                 """
-                INSERT INTO bad_cases (
-                    badcase_id, fingerprint, semantic_group_id, source, stage, severity,
-                    status, symptom_code, trace_id, request_id, user_ref,
-                    sanitized_input, published_response, evidence_json, versions_json,
-                    eval_layer, expected_json, reproduction_json, root_cause,
-                    owner_module, linked_case_id, fixed_by_commit, occurrence_count,
-                    created_at, first_seen_at, last_seen_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', '{}', '{}',
-                          '', '', '', '', 1, ?, ?, ?, ?)
+                UPDATE intent_learning_records
+                SET feedback_status=?, approved_intent=?, annotation_id=?, reviewer=?,
+                    dataset_version=?, review_note=?, updated_at=?
+                WHERE prediction_id=?
                 """,
                 (
-                    badcase_id, fingerprint, group_id, source, stage.value, severity.value,
-                    BadCaseStatus.CANDIDATE.value, symptom_code, str(trace_id)[:128],
-                    str(request_id)[:200], user_ref, safe_input, safe_response,
-                    self._json(safe_evidence), self._json(safe_versions),
-                    now, now, now, now,
+                    decision.value, approved, annotation_id, actor, dataset,
+                    safe_note, now, prediction_id,
+                ),
+            )
+            badcase_status = BadCaseStatus(case_row["status"])
+            next_status = (
+                BadCaseStatus.TRIAGED
+                if decision is IntentFeedbackStatus.APPROVED
+                and badcase_status is BadCaseStatus.CANDIDATE
+                else badcase_status
+            )
+            expected = (
+                {"intent": approved, "annotation_id": annotation_id}
+                if decision is IntentFeedbackStatus.APPROVED
+                else self._load_json(case_row["expected_json"])
+            )
+            conn.execute(
+                """
+                UPDATE bad_cases
+                SET status=?, approved_intent=?, annotation_id=?, expected_json=?, updated_at=?
+                WHERE badcase_id=?
+                """,
+                (
+                    next_status.value, approved, annotation_id,
+                    self._json(expected), now, case_row["badcase_id"],
                 ),
             )
             self._insert_event(
-                conn, badcase_id, None, BadCaseStatus.CANDIDATE,
-                "system", f"observed from {source}", now,
+                conn, case_row["badcase_id"], badcase_status, next_status, actor,
+                self.sanitize_text(
+                    f"intent feedback {decision.value}; annotation={annotation_id}; {safe_note}",
+                    1000,
+                ),
+                now,
             )
-            self._insert_occurrence(
-                conn, badcase_id, source, severity, str(trace_id)[:128],
-                str(request_id)[:200], safe_input, safe_response,
-                safe_evidence, safe_versions, now,
+            self._insert_intent_learning_event(
+                conn, prediction_id, f"feedback_{decision.value}", actor,
+                {
+                    "annotation_id": annotation_id,
+                    "approved_intent": approved,
+                    "dataset_version": dataset,
+                },
+                now,
             )
-            row = conn.execute(
-                "SELECT * FROM bad_cases WHERE badcase_id=?", (badcase_id,)
+            learning_row = conn.execute(
+                "SELECT * FROM intent_learning_records WHERE prediction_id=?",
+                (prediction_id,),
             ).fetchone()
-            return self._row_to_badcase(row), True
+            updated_case = conn.execute(
+                "SELECT * FROM bad_cases WHERE badcase_id=?",
+                (case_row["badcase_id"],),
+            ).fetchone()
+        return self._row_to_intent_learning(learning_row), self._row_to_badcase(updated_case)
+
+    def get_intent_prediction(
+        self,
+        prediction_id: str,
+        *,
+        user_id: str = "",
+    ) -> IntentLearningRecord:
+        """读取预测；传入 user_id 时执行不泄露存在性的所有权检查。"""
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM intent_learning_records WHERE prediction_id=?",
+                (str(prediction_id)[:64],),
+            ).fetchone()
+        if row is None or (user_id and row["user_ref"] != self._user_ref(user_id)):
+            raise BadCaseNotFoundError("intent prediction not found")
+        return self._row_to_intent_learning(row)
+
+    def list_intent_learning(
+        self,
+        *,
+        status: Optional[IntentFeedbackStatus] = None,
+        limit: int = 50,
+    ) -> List[IntentLearningRecord]:
+        """管理员读取预测/反馈队列；普通聊天接口不暴露该投影。"""
+        params: List[Any] = []
+        where = ""
+        if status is not None:
+            where = " WHERE feedback_status=?"
+            params.append(IntentFeedbackStatus(status).value)
+        params.append(max(1, min(int(limit), 200)))
+        with self._connect() as conn:
+            rows = conn.execute(
+                f"SELECT * FROM intent_learning_records{where} ORDER BY updated_at DESC LIMIT ?",
+                tuple(params),
+            ).fetchall()
+        return [self._row_to_intent_learning(row) for row in rows]
 
     def transition(
         self,
@@ -411,6 +726,17 @@ class BadCaseRegistry:
                 "SELECT * FROM bad_case_occurrences WHERE badcase_id=? ORDER BY occurrence_id",
                 (badcase_id,),
             ).fetchall()
+            intent_record = None
+            intent_events = []
+            if case.prediction_id:
+                intent_record = conn.execute(
+                    "SELECT * FROM intent_learning_records WHERE prediction_id=?",
+                    (case.prediction_id,),
+                ).fetchone()
+                intent_events = conn.execute(
+                    "SELECT * FROM intent_learning_events WHERE prediction_id=? ORDER BY event_id",
+                    (case.prediction_id,),
+                ).fetchall()
         view = case.to_dict()
         view["events"] = [dict(event) for event in events]
         view["occurrences"] = [
@@ -424,6 +750,19 @@ class BadCaseRegistry:
         for item in view["occurrences"]:
             item.pop("evidence_json", None)
             item.pop("versions_json", None)
+        view["intent_learning"] = (
+            self._row_to_intent_learning(intent_record).to_dict()
+            if intent_record is not None else None
+        )
+        view["intent_learning_events"] = [
+            {
+                **dict(event),
+                "payload": self._load_json(event["payload_json"]),
+            }
+            for event in intent_events
+        ]
+        for event in view["intent_learning_events"]:
+            event.pop("payload_json", None)
         return view
 
     def list(
@@ -466,7 +805,19 @@ class BadCaseRegistry:
             recurrences = int(conn.execute(
                 "SELECT COALESCE(SUM(occurrence_count - 1), 0) FROM bad_cases"
             ).fetchone()[0])
-        return {"total": total, "by_status": by_status, "recurrences": recurrences}
+            intent_predictions = int(conn.execute(
+                "SELECT COUNT(*) FROM intent_learning_records"
+            ).fetchone()[0])
+            intent_feedback = {row[0]: int(row[1]) for row in conn.execute(
+                "SELECT feedback_status, COUNT(*) FROM intent_learning_records GROUP BY feedback_status"
+            ).fetchall()}
+        return {
+            "total": total,
+            "by_status": by_status,
+            "recurrences": recurrences,
+            "intent_predictions": intent_predictions,
+            "intent_feedback": intent_feedback,
+        }
 
     @classmethod
     def sanitize_text(cls, value: Any, max_chars: int = 10000) -> str:
@@ -474,6 +825,117 @@ class BadCaseRegistry:
         for pattern, replacement in cls._SECRET_PATTERNS:
             text = pattern.sub(replacement, text)
         return text[:max(0, int(max_chars))]
+
+    def _observe_with_connection(
+        self,
+        conn: sqlite3.Connection,
+        *,
+        source: str,
+        stage: BadCaseStage,
+        severity: BadCaseSeverity,
+        symptom_code: str,
+        user_id: str,
+        sanitized_input: str,
+        trace_id: str = "",
+        request_id: str = "",
+        published_response: str = "",
+        evidence: Optional[Mapping[str, Any]] = None,
+        versions: Optional[Mapping[str, Any]] = None,
+        semantic_group_id: str = "",
+    ) -> Tuple[BadCase, bool]:
+        """在调用方事务中写 observation，供普通捕获和意图反馈共用。"""
+        stage = BadCaseStage(stage)
+        severity = BadCaseSeverity(severity)
+        source = self._required(source, "source")[:80]
+        symptom_code = self._slug(self._required(symptom_code, "symptom_code"), 100)
+        safe_input = self.sanitize_text(sanitized_input, max_chars=10000)
+        safe_response = self.sanitize_text(published_response, max_chars=12000)
+        normalized = self._normalize_for_fingerprint(safe_input)
+        fingerprint = hashlib.sha256(
+            f"{stage.value}\0{symptom_code}\0{normalized}".encode("utf-8")
+        ).hexdigest()
+        now = self._now()
+        badcase_id = uuid.uuid4().hex
+        user_ref = self._user_ref(user_id)
+        safe_evidence = self._sanitize_value(dict(evidence or {}))
+        safe_versions = self._sanitize_value(dict(versions or {}))
+        group_id = (
+            self._slug(semantic_group_id, 160)
+            if semantic_group_id else f"badcase-{fingerprint[:16]}"
+        )
+
+        row = conn.execute(
+            "SELECT * FROM bad_cases WHERE fingerprint = ?", (fingerprint,)
+        ).fetchone()
+        if row is not None:
+            current = BadCaseStatus(row["status"])
+            next_status = BadCaseStatus.TRIAGED if current is BadCaseStatus.CLOSED else current
+            current_severity = BadCaseSeverity(row["severity"])
+            next_severity = min(
+                (current_severity, severity), key=lambda item: self._SEVERITY_RANK[item]
+            )
+            conn.execute(
+                """
+                UPDATE bad_cases SET occurrence_count=occurrence_count+1,
+                    status=?, severity=?, trace_id=?, request_id=?, published_response=?,
+                    evidence_json=?, versions_json=?, last_seen_at=?, updated_at=?
+                WHERE badcase_id=?
+                """,
+                (
+                    next_status.value, next_severity.value, str(trace_id)[:128],
+                    str(request_id)[:200], safe_response, self._json(safe_evidence),
+                    self._json(safe_versions), now, now, row["badcase_id"],
+                ),
+            )
+            self._insert_occurrence(
+                conn, row["badcase_id"], source, severity, str(trace_id)[:128],
+                str(request_id)[:200], safe_input, safe_response,
+                safe_evidence, safe_versions, now,
+            )
+            self._insert_event(
+                conn, row["badcase_id"], current, next_status, "system",
+                f"recurrence observed from {source}" if current is BadCaseStatus.CLOSED
+                else f"duplicate observation from {source}",
+                now,
+            )
+            updated = conn.execute(
+                "SELECT * FROM bad_cases WHERE badcase_id=?", (row["badcase_id"],)
+            ).fetchone()
+            return self._row_to_badcase(updated), False
+
+        conn.execute(
+            """
+            INSERT INTO bad_cases (
+                badcase_id, fingerprint, semantic_group_id, source, stage, severity,
+                status, symptom_code, trace_id, request_id, user_ref,
+                sanitized_input, published_response, evidence_json, versions_json,
+                eval_layer, expected_json, reproduction_json, root_cause,
+                owner_module, linked_case_id, fixed_by_commit, occurrence_count,
+                created_at, first_seen_at, last_seen_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', '{}', '{}',
+                      '', '', '', '', 1, ?, ?, ?, ?)
+            """,
+            (
+                badcase_id, fingerprint, group_id, source, stage.value, severity.value,
+                BadCaseStatus.CANDIDATE.value, symptom_code, str(trace_id)[:128],
+                str(request_id)[:200], user_ref, safe_input, safe_response,
+                self._json(safe_evidence), self._json(safe_versions),
+                now, now, now, now,
+            ),
+        )
+        self._insert_event(
+            conn, badcase_id, None, BadCaseStatus.CANDIDATE,
+            "system", f"observed from {source}", now,
+        )
+        self._insert_occurrence(
+            conn, badcase_id, source, severity, str(trace_id)[:128],
+            str(request_id)[:200], safe_input, safe_response,
+            safe_evidence, safe_versions, now,
+        )
+        row = conn.execute(
+            "SELECT * FROM bad_cases WHERE badcase_id=?", (badcase_id,)
+        ).fetchone()
+        return self._row_to_badcase(row), True
 
     def _validate_transition_evidence(self, target: BadCaseStatus, values: Dict[str, Any]) -> None:
         if target in {
@@ -559,7 +1021,13 @@ class BadCaseRegistry:
                     created_at TEXT NOT NULL,
                     first_seen_at TEXT NOT NULL,
                     last_seen_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL
+                    updated_at TEXT NOT NULL,
+                    prediction_id TEXT NOT NULL DEFAULT '',
+                    predicted_intent TEXT NOT NULL DEFAULT '',
+                    suggested_intent TEXT NOT NULL DEFAULT '',
+                    approved_intent TEXT NOT NULL DEFAULT '',
+                    annotation_id TEXT NOT NULL DEFAULT '',
+                    classifier_fingerprint TEXT NOT NULL DEFAULT ''
                 );
                 CREATE INDEX IF NOT EXISTS idx_bad_cases_queue
                     ON bad_cases(status, severity, last_seen_at);
@@ -589,8 +1057,56 @@ class BadCaseRegistry:
                 );
                 CREATE INDEX IF NOT EXISTS idx_bad_case_occurrences
                     ON bad_case_occurrences(badcase_id, occurrence_id);
+                CREATE TABLE IF NOT EXISTS intent_learning_records (
+                    prediction_id TEXT PRIMARY KEY,
+                    request_id TEXT NOT NULL,
+                    trace_id TEXT NOT NULL,
+                    conv_id TEXT NOT NULL,
+                    user_ref TEXT NOT NULL,
+                    input_fingerprint TEXT NOT NULL,
+                    sanitized_input TEXT NOT NULL,
+                    predicted_intent TEXT NOT NULL,
+                    confidence REAL NOT NULL,
+                    source_scores_json TEXT NOT NULL,
+                    classifier_fingerprint TEXT NOT NULL,
+                    bundle_version TEXT NOT NULL,
+                    feedback_status TEXT NOT NULL,
+                    suggested_intent TEXT NOT NULL,
+                    feedback_reason TEXT NOT NULL,
+                    badcase_id TEXT NOT NULL,
+                    approved_intent TEXT NOT NULL,
+                    annotation_id TEXT NOT NULL,
+                    reviewer TEXT NOT NULL,
+                    dataset_version TEXT NOT NULL,
+                    review_note TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_intent_learning_queue
+                    ON intent_learning_records(feedback_status, updated_at);
+                CREATE INDEX IF NOT EXISTS idx_intent_learning_request
+                    ON intent_learning_records(request_id, created_at);
+                CREATE TABLE IF NOT EXISTS intent_learning_events (
+                    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    prediction_id TEXT NOT NULL,
+                    event_type TEXT NOT NULL,
+                    actor TEXT NOT NULL,
+                    payload_json TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    FOREIGN KEY(prediction_id) REFERENCES intent_learning_records(prediction_id)
+                );
+                CREATE INDEX IF NOT EXISTS idx_intent_learning_events
+                    ON intent_learning_events(prediction_id, event_id);
                 """
             )
+            self._ensure_columns(conn, "bad_cases", {
+                "prediction_id": "TEXT NOT NULL DEFAULT ''",
+                "predicted_intent": "TEXT NOT NULL DEFAULT ''",
+                "suggested_intent": "TEXT NOT NULL DEFAULT ''",
+                "approved_intent": "TEXT NOT NULL DEFAULT ''",
+                "annotation_id": "TEXT NOT NULL DEFAULT ''",
+                "classifier_fingerprint": "TEXT NOT NULL DEFAULT ''",
+            })
 
     def _connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(str(self._path), timeout=5.0)
@@ -599,6 +1115,23 @@ class BadCaseRegistry:
         conn.execute("PRAGMA journal_mode=WAL")
         conn.execute("PRAGMA busy_timeout=5000")
         return conn
+
+    @staticmethod
+    def _ensure_columns(
+        conn: sqlite3.Connection,
+        table: str,
+        columns: Mapping[str, str],
+    ) -> None:
+        """只用于启动期、固定标识符的向前兼容迁移。"""
+        if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", table):
+            raise BadCaseContractError("invalid migration table")
+        existing = {row["name"] for row in conn.execute(f"PRAGMA table_info({table})")}
+        for name, declaration in columns.items():
+            if name in existing:
+                continue
+            if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", name):
+                raise BadCaseContractError("invalid migration column")
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {name} {declaration}")
 
     @staticmethod
     def _insert_event(
@@ -619,6 +1152,28 @@ class BadCaseRegistry:
             (
                 badcase_id, current.value if current else None, target.value,
                 actor, note, created_at,
+            ),
+        )
+
+    @classmethod
+    def _insert_intent_learning_event(
+        cls,
+        conn: sqlite3.Connection,
+        prediction_id: str,
+        event_type: str,
+        actor: str,
+        payload: Mapping[str, Any],
+        created_at: str,
+    ) -> None:
+        conn.execute(
+            """
+            INSERT INTO intent_learning_events (
+                prediction_id, event_type, actor, payload_json, created_at
+            ) VALUES (?, ?, ?, ?, ?)
+            """,
+            (
+                prediction_id, str(event_type)[:80], str(actor)[:200],
+                cls._json(dict(payload)), created_at,
             ),
         )
 
@@ -670,6 +1225,32 @@ class BadCaseRegistry:
             occurrence_count=int(row["occurrence_count"]), created_at=row["created_at"],
             first_seen_at=row["first_seen_at"], last_seen_at=row["last_seen_at"],
             updated_at=row["updated_at"],
+            prediction_id=row["prediction_id"], predicted_intent=row["predicted_intent"],
+            suggested_intent=row["suggested_intent"], approved_intent=row["approved_intent"],
+            annotation_id=row["annotation_id"],
+            classifier_fingerprint=row["classifier_fingerprint"],
+        )
+
+    @classmethod
+    def _row_to_intent_learning(cls, row: sqlite3.Row) -> IntentLearningRecord:
+        if row is None:
+            raise BadCaseNotFoundError("intent prediction not found")
+        scores = cls._load_json(row["source_scores_json"])
+        return IntentLearningRecord(
+            prediction_id=row["prediction_id"], request_id=row["request_id"],
+            trace_id=row["trace_id"], conv_id=row["conv_id"], user_ref=row["user_ref"],
+            input_fingerprint=row["input_fingerprint"],
+            sanitized_input=row["sanitized_input"], predicted_intent=row["predicted_intent"],
+            confidence=float(row["confidence"]),
+            source_scores={str(key): float(value) for key, value in scores.items()},
+            classifier_fingerprint=row["classifier_fingerprint"],
+            bundle_version=row["bundle_version"],
+            feedback_status=IntentFeedbackStatus(row["feedback_status"]),
+            suggested_intent=row["suggested_intent"], feedback_reason=row["feedback_reason"],
+            badcase_id=row["badcase_id"], approved_intent=row["approved_intent"],
+            annotation_id=row["annotation_id"], reviewer=row["reviewer"],
+            dataset_version=row["dataset_version"], review_note=row["review_note"],
+            created_at=row["created_at"], updated_at=row["updated_at"],
         )
 
     @staticmethod
@@ -678,6 +1259,29 @@ class BadCaseRegistry:
         if not text:
             raise BadCaseContractError(f"{field} is required")
         return text
+
+    def _user_ref(self, user_id: str) -> str:
+        if not self._identity_salt:
+            raise BadCaseContractError("identity_salt is required to observe user data")
+        return hmac.new(
+            self._identity_salt,
+            str(user_id or "anonymous").encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()[:20]
+
+    @staticmethod
+    def _sha256(value: Any, field: str) -> str:
+        digest = str(value or "").strip().lower()
+        if not re.fullmatch(r"[0-9a-f]{64}", digest):
+            raise BadCaseContractError(f"{field} must be a SHA-256 digest")
+        return digest
+
+    @staticmethod
+    def _intent_name(value: Any, field: str) -> str:
+        name = str(getattr(value, "value", value) or "").strip().lower()
+        if not re.fullmatch(r"[a-z][a-z0-9_]{0,63}", name):
+            raise BadCaseContractError(f"{field} must be a supported intent name")
+        return name
 
     @staticmethod
     def _slug(value: Any, limit: int) -> str:

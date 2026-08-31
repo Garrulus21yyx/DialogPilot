@@ -48,7 +48,7 @@ DialogPilot 是一个 Python 3.12 + FastAPI 的异步多 Agent 客服后端。�
 3. 主链：Bundle → Memory → Intent → RAG → Context → TaskGraph → Worker/ReAct → Coverage → Synthesis → Verification → Ticket/Persist。
 4. 学习链：Bad Case → Envelope → Attribution → 4–8 Bundles → Graduation/Pareto → Shadow → 5% → 25% → Active/Rollback。
 5. 七个最值得深挖的改动：单调事件与范围摘要 checkpoint、混合长期记忆、TaskGraph/CoverageGate、有界 ReAct 与持久审批恢复、请求预算下的结果代数、发布校验、受控 Agent 进化。
-6. 证据：265 项测试，覆盖注入防护、业务范围处置、身份/公开投影、记忆生命周期、TaskGraph DAG、审批 Resume/幂等恢复、不可变 Bundle、候选门禁、稳定分桶、Shadow 零写入和自动回滚等合同。
+6. 证据：280 项测试，覆盖注入防护、业务范围处置、身份/公开投影、记忆生命周期、TaskGraph DAG、审批 Resume/幂等恢复、不可变 Bundle、候选门禁、稳定分桶、Shadow 零写入和自动回滚等合同。
 7. 边界：已有 JWT/scope 基线；多租户 IdP/ABAC 未完成，SQLite 只适合单应用写者，普通 Trace/审计重启丢失；已有 500 条分层候选集，但尚无 human-reviewed gold，不能声称生产准确率或“完整复现 GEPA/Agent Lightning”。
 
 ## 1. 如何学习这个仓库
@@ -340,6 +340,8 @@ Memory 保存的是服务端选入 HTTP 响应的 `response_text`，不是未经
 - `urgency`：LOW/MEDIUM/HIGH/CRITICAL；
 - `entities`：订单号、日期、金额、错误码；
 - `source_scores`：LLM、embedding、pattern 各自分数；
+- `classifier_fingerprint`：实际模型、标签合同、规则、融合权重与 Bundle Intent 配置的 SHA-256；
+- `input_fingerprint`：完整消息与最近三轮输入的 SHA-256；
 - `reasoning` 和延迟。
 
 ### 6.2 三条识别路径
@@ -348,7 +350,7 @@ Memory 保存的是服务端选入 HTTP 响应的 `response_text`，不是未经
 2. 本地向量：把字符 1/2/3-gram 哈希到 256 维，做余弦相似度。它不是训练过的语义 Embedding，但可作为无远端 embedding 时的确定性近似。
 3. Pattern：对退款、发票、401、500、转人工等高精度表达做同步匹配。
 
-LLM 与 embedding 并行，pattern 同步执行。官方 Anthropic SDK 没有 embeddings 资源时，本地字符向量是实际兜底；配置第三方兼容 Base URL 时代码会禁用 embedding 分支，使用 LLM 0.85 + pattern 0.15。
+LLM 与 embedding 并行，pattern 同步执行。官方 Anthropic SDK 没有 embeddings 资源时，本地字符向量是实际兜底。`INTENT_SIMILARITY_MODE=ngram/disabled` 是显式策略，不再从第三方 Base URL 猜测；`disabled` 才使用 LLM 0.85 + pattern 0.15。
 
 ### 6.3 投票和细粒度纠偏
 
@@ -356,18 +358,37 @@ LLM 与 embedding 并行，pattern 同步执行。官方 Anthropic SDK 没有 em
 
 如果融合结果是泛化类 `billing/technical/query`，但 pattern 高置信命中了 `refund/technical_login/...`，代码会在条件满足时细化结果。这解决“模型说大类，规则知道具体子类”的问题。
 
-### 6.4 缓存和在线学习
+### 6.4 版本化缓存，不在线修改模板
 
-- cache key 同时覆盖 message 和 history；同一句话在不同上下文中不会误用同一结果。
-- 内存缓存最多约 1000 条，满后删除前 500 条；这是简单近似 LRU，不是严格 LRU。
-- `learn()` 能把纠正样本加入进程内模板并清理对应向量缓存，但没有持久化，重启会丢失。
+旧 `learn(message, correct)` 会直接修改模块级模板，却没有审核、版本和回滚；它还只清理模板向量，不清理已经生成的结果缓存。现在该接口已删除，内置模板改成只读映射。
 
-### 6.5 面试中要主动承认
+缓存键不再截断消息前 200 字和历史前 160 字，而是计算：
+
+```text
+SHA-256(
+  classifier_fingerprint
+  + SHA-256(完整 message + 实际消费的最近三轮 history)
+)
+```
+
+`classifier_fingerprint` 覆盖模型 Profile、阈值、相似度模式、融合权重、Prompt 合同、标签定义、模板、Pattern、意图分组、紧急规则，以及固定 Bundle 的 Prompt/Few-shot 组件哈希。普通缓存默认一小时；低置信度与账户安全结果最多五分钟。最多保留约 1000 条，满后批量淘汰。它仍是进程内、可删除、可重建的加速层；多副本若需要共享命中率可以换 Redis，但 Redis 不拥有纠正事实。
+
+### 6.5 Prediction → Feedback → Annotation
+
+`/chat` 在一次真实识别后，把脱敏消息、预测标签、置信度、三路分数、输入/分类器指纹和 Bundle 版本写入 `BadCaseRegistry` 管理的 `intent_learning_records`，并返回 `intent_prediction_id`。预测事实不可变，记录失败只影响质量闭环，不篡改本次聊天结果。
+
+用户提交 `wrong_route` 时必须同时提供本人预测的 `prediction_id` 和 `suggested_intent`。Registry 校验 HMAC 用户归属后，原子创建 `PENDING` 记录与 `BadCaseStage.INTENT`；用户建议不能成为标准答案。管理员通过 `/intent-feedback/{prediction_id}/review` 做 `APPROVED/REJECTED` 裁决。批准后才生成 `annotation_id`、`approved_intent` 和 `dataset_version`，并把 Bad Case 推进到 `TRIAGED`，但明确返回 `active_bundle_changed=false`。
+
+只有带批准 annotation 的 Intent Case 才能进入 `CreditAttributor → GEPA-lite`，成为 Prompt/Few-shot 候选；候选仍必须跑 dev、fresh heldout、硬安全门禁和 Graduation，再经过 Shadow/Canary。人工批准一条线上纠正不等于把整个数据集标成 human Gold。
+
+### 6.6 面试中要主动承认
 
 - 字符 n-gram 是轻量相似度，不应声称为生产语义模型；
 - 三路权重是工程初始值，尚未通过大规模标注集校准；
-- cache 和 learn 都是进程内状态，多副本不共享；
-- 更成熟方案应记录混淆矩阵、按类别阈值和 calibration error。
+- cache 仍是进程内加速，多副本不共享命中率；若迁移 Redis，键仍必须保留完整分类器指纹；
+- 当前 prediction/annotation 权威库使用 SQLite，适合单应用写者；多写副本应迁移到共享事务数据库；
+- 单个管理员批准只形成可追溯 annotation，不自动把数据提升为独立双审 Gold；
+- 还应持续记录混淆矩阵、关键类 Recall、OOS precision/recall、按类别阈值和 calibration error。
 
 ## 7. RAG 与工具可靠性链
 
@@ -1092,6 +1113,7 @@ Prometheus :9090
 | `RAG_CHUNK_MAX_TOKENS` | RAG 片段估算上限 360 Token；优先段落/句末边界 |
 | `RAG_CHUNK_OVERLAP_TOKENS` | 相邻 RAG 片段重叠预算 48 Token，必须小于片段上限 |
 | `INTENT_SIMILARITY_MODE` | `ngram` 或 `disabled`，不再由 provider base URL 猜测 |
+| `INTENT_CACHE_TTL_SECONDS` | 进程内识别结果默认 TTL 3600 秒；低置信度和账户安全最多 300 秒 |
 | `TICKET_DB_PATH` | SQLite 工单文件 |
 | `TICKET_DISPATCH_WEBHOOK_URL` | 可选外部 CRM 接收端；为空则 outbox 保持 pending |
 | `TICKET_DISPATCH_*` | webhook 超时、扫描、租约和指数退避参数 |
@@ -1122,7 +1144,7 @@ python -m compileall -q agents api core evaluation mcp memory monitor services
 python -m pytest -q
 ```
 
-当前 265 项测试按不变量分组；数量是仓库回归规模，不等于 benchmark 样本量：
+当前 280 项测试按不变量分组；数量是仓库回归规模，不等于 benchmark 样本量：
 
 ### Bad Case 闭环
 
@@ -1398,7 +1420,7 @@ python -m pytest -q
 
 ### Q2：你个人具体负责了什么？
 
-**推荐诚实答案：** 我接手的是一个已有客服原型。我负责仓库清理和 DialogPilot 命名迁移，并完成持久工单、Token/CAS 压缩、typed synthesis、TaskGraph/CoverageGate、混合记忆、用户输入注入 Guard、业务范围类型化处置、Bad Case 状态闭环、ReAct 权限/Trace、持久审批 Resume、订单/退款/安全事件业务 Owner，以及 JWT/公开投影、显式 Chroma、分层模型/评测、不可变 AgentBundle、候选晋级和灰度回滚。当前有 265 项测试、CI、Docker 验证和架构文档。原型已有功能会按 commit 划清边界，不说成全部从零原创。
+**推荐诚实答案：** 我接手的是一个已有客服原型。我负责仓库清理和 DialogPilot 命名迁移，并完成持久工单、Token/CAS 压缩、typed synthesis、TaskGraph/CoverageGate、混合记忆、用户输入注入 Guard、业务范围类型化处置、Bad Case 状态闭环、ReAct 权限/Trace、持久审批 Resume、订单/退款/安全事件业务 Owner，以及 JWT/公开投影、显式 Chroma、分层模型/评测、不可变 AgentBundle、候选晋级和灰度回滚。当前有 280 项测试、CI、Docker 验证和架构文档。原型已有功能会按 commit 划清边界，不说成全部从零原创。
 
 **追问：去掉你的改动还剩什么？** 仍有基础 FastAPI、三路意图、Redis/Chroma 记忆、RAG、领域 Agent、Skill、监控和评测原型；会失去真实工单闭环、Token/并发压缩不变量、TaskPlan/覆盖门禁、有类型并行结果、质量反馈、混合召回、工具权限/Trace 和 Worker ReAct。
 
@@ -1726,7 +1748,7 @@ python -m pytest -q
 
 **Action：** 每个完整发布轮次立即以稳定 ID 写入 episodic，summary 退回 metadata/Prompt 背景；在用户边界内分别生成 Chroma vector 和 BM25 候选，用 0.30/0.60/0.10 权重做 RRF，recency 只重排相关候选；排除当前 `conv_id`，保留事件定位，并把最多两个旧会话命中展开成有界前后原始消息窗口；两条检索路径独立降级，并实现 Recall@K、MRR、nDCG。
 
-**Result：** 聚焦测试证明精确 ID 可修正纯向量排序、最新无关记忆不会靠时间混入、短轮次立即归档、当前会话被排除、命中能展开有界原始邻居、v1 数据可读、单路故障可降级、指标确定性；当前全仓 265 项回归通过。这里能说“建立了可回归的召回合同”，不能虚构线上提升百分比。
+**Result：** 聚焦测试证明精确 ID 可修正纯向量排序、最新无关记忆不会靠时间混入、短轮次立即归档、当前会话被排除、命中能展开有界原始邻居、v1 数据可读、单路故障可降级、指标确定性；当前全仓 280 项回归通过。这里能说“建立了可回归的召回合同”，不能虚构线上提升百分比。
 
 **简历一行（只在你能现场解释代码时使用）：**
 
@@ -2231,4 +2253,4 @@ Shadow 跑真实输入副本，但不发布、不写记忆、不建 Ticket、不
 
 ### Q92：简历怎么写？
 
-> 利用脱敏执行归因、不可变 AgentBundle 与多目标 Graduation Gate 建立 Agent 持续优化闭环，解决线上 Bad Case 直接改 Prompt 导致的版本漂移、回归不可复现和安全边界误改；结合 TaskGraph 依赖调度、持久审批 Resume、Shadow/5%/25% 灰度和硬/软自动回滚，使失败可归因、候选可验证、写操作可恢复、版本可撤销，并以 265 项回归验证合同，评测数据未获 human Gold 前不虚构生产准确率。
+> 利用脱敏执行归因、不可变 AgentBundle 与多目标 Graduation Gate 建立 Agent 持续优化闭环，解决线上 Bad Case 直接改 Prompt 导致的版本漂移、回归不可复现和安全边界误改；结合 TaskGraph 依赖调度、持久审批 Resume、Shadow/5%/25% 灰度和硬/软自动回滚，使失败可归因、候选可验证、写操作可恢复、版本可撤销，并以 280 项回归验证合同，评测数据未获 human Gold 前不虚构生产准确率。

@@ -18,6 +18,7 @@ from services.answer_verifier import (
 )
 from services.ticket_service import TicketPriority, TicketService
 from services.response_delivery import ResponseDeliveryService
+from services.badcase_registry import BadCaseRegistry
 from services.evolution import AgentBundleRegistry, RolloutManager, build_default_bundle
 from memory.context import ContextAssembler
 
@@ -114,6 +115,8 @@ def test_chat_out_of_scope_is_a_policy_terminal_without_worker_verifier_or_memor
                 confidence=0.95,
                 entities={},
                 source_scores={"llm": 0.95},
+                classifier_fingerprint="c" * 64,
+                input_fingerprint="d" * 64,
             )
 
     class MustNotVerify:
@@ -152,7 +155,11 @@ def test_chat_out_of_scope_is_a_policy_terminal_without_worker_verifier_or_memor
         main, "_response_delivery",
         ResponseDeliveryService(str(tmp_path / "scope-responses.db")),
     )
-    monkeypatch.setattr(main, "_badcase_registry", None)
+    prediction_registry = BadCaseRegistry(
+        str(tmp_path / "scope-badcases.db"),
+        identity_salt="scope-test-identity-salt-at-least-32-bytes",
+    )
+    monkeypatch.setattr(main, "_badcase_registry", prediction_registry)
     monkeypatch.setattr(main, "_tool_manager", MustNotSearchOrExecuteTools())
     monkeypatch.setattr(main, "_bundle_registry", bundles)
     monkeypatch.setattr(
@@ -170,6 +177,11 @@ def test_chat_out_of_scope_is_a_policy_terminal_without_worker_verifier_or_memor
     ))
 
     assert response.intent == "other"
+    assert response.intent_prediction_id
+    assert response.intent_classifier_fingerprint == "c" * 64
+    assert prediction_registry.get_intent_prediction(
+        response.intent_prediction_id,
+    ).predicted_intent == "other"
     assert response.routing_disposition == "out_of_scope"
     assert response.agent_type == "orchestrator"
     assert response.agent_types == []

@@ -1,4 +1,5 @@
 import asyncio
+from dataclasses import replace
 from types import SimpleNamespace
 
 import pytest
@@ -77,6 +78,38 @@ def test_security_badcase_cannot_generate_bundle():
             attribution=attribution,
             candidate_count=4,
         ))
+
+
+def test_intent_candidate_requires_approved_annotation():
+    unreviewed = _case(BadCaseStage.INTENT, "intent-payment-security")
+    blocked = CreditAttributor().attribute(BadCaseMiner().cluster([unreviewed])[0])
+    assert blocked.evolvable is False
+
+    approved = replace(
+        unreviewed,
+        approved_intent="account_security",
+        annotation_id="annotation-1",
+        classifier_fingerprint="f" * 64,
+        expected_behavior={"intent": "account_security"},
+    )
+    cluster = BadCaseMiner().cluster([approved])[0]
+    attribution = CreditAttributor().attribute(cluster)
+
+    assert attribution.evolvable is True
+    assert attribution.allowed_surfaces
+    with pytest.raises(BundleContractError, match="approved"):
+        asyncio.run(GEPALiteProposalGenerator(FakeProvider()).generate(
+            base=AgentBundle(version="intent-v1"),
+            cluster=BadCaseMiner().cluster([unreviewed])[0],
+            attribution=attribution,
+            candidate_count=4,
+        ))
+    assert cluster.reflection_summary()["approved_intent_examples"] == [{
+        "message": "[redacted]",
+        "intent": "account_security",
+        "annotation_id": "annotation-1",
+        "classifier_fingerprint": "f" * 64,
+    }]
 
 
 class FakeEvaluator:

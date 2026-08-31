@@ -16,11 +16,13 @@ from services.answer_verifier import (
 )
 from services.badcase_registry import (
     BadCaseContractError,
+    BadCaseNotFoundError,
     BadCaseRegistry,
     BadCaseSeverity,
     BadCaseStage,
     BadCaseStatus,
     BadCaseTransitionError,
+    IntentFeedbackStatus,
 )
 
 
@@ -58,6 +60,24 @@ def reproduction(message="订单错误"):
         "assertions": ["verification_status"],
         "evidence_sha256": digest,
     }
+
+
+def record_prediction(registry: BadCaseRegistry, **overrides):
+    values = {
+        "request_id": "intent-request-1",
+        "trace_id": "intent-trace-1",
+        "conv_id": "intent-conv-1",
+        "user_id": "signed-user",
+        "input_fingerprint": "a" * 64,
+        "sanitized_input": "这笔钱不是我付的，联系 me@example.com",
+        "predicted_intent": "payment_issue",
+        "confidence": 0.76,
+        "source_scores": {"llm": 0.8, "embedding": 0.65, "pattern": 0.5},
+        "classifier_fingerprint": "b" * 64,
+        "bundle_version": "agent-v17",
+    }
+    values.update(overrides)
+    return registry.record_intent_prediction(**values)
 
 
 def move_to_regression_pass(registry: BadCaseRegistry, badcase_id: str):
@@ -188,6 +208,142 @@ def test_user_feedback_identity_is_server_owned_and_remains_candidate(tmp_path, 
     assert case.user_ref == hmac.new(
         IDENTITY_SALT.encode(), b"signed-user", hashlib.sha256
     ).hexdigest()[:20]
+
+
+def test_intent_prediction_feedback_and_annotation_are_separate_versioned_facts(tmp_path):
+    registry = registry_at(tmp_path / "intent-learning.db")
+    prediction = record_prediction(registry)
+
+    assert prediction.feedback_status is IntentFeedbackStatus.PREDICTED
+    assert "me@example.com" not in prediction.sanitized_input
+    assert prediction.classifier_fingerprint == "b" * 64
+
+    learning, case, created = registry.submit_intent_feedback(
+        prediction_id=prediction.prediction_id,
+        user_id="signed-user",
+        suggested_intent="account_security",
+        reason="用户明确说明并非本人交易",
+    )
+
+    assert created is True
+    assert learning.feedback_status is IntentFeedbackStatus.PENDING
+    assert case.stage is BadCaseStage.INTENT
+    assert case.prediction_id == prediction.prediction_id
+    assert case.predicted_intent == "payment_issue"
+    assert case.suggested_intent == "account_security"
+    assert case.approved_intent == ""
+
+    approved, annotated_case = registry.review_intent_feedback(
+        prediction.prediction_id,
+        decision=IntentFeedbackStatus.APPROVED,
+        actor="reviewer-17",
+        approved_intent="account_security",
+        dataset_version="intent-dataset-v8",
+        note="工单与上下文确认",
+    )
+
+    assert approved.feedback_status is IntentFeedbackStatus.APPROVED
+    assert approved.approved_intent == "account_security"
+    assert approved.annotation_id
+    assert annotated_case.status is BadCaseStatus.TRIAGED
+    assert annotated_case.expected_behavior["intent"] == "account_security"
+    assert annotated_case.annotation_id == approved.annotation_id
+    view = registry.get_view(case.badcase_id)
+    assert [event["event_type"] for event in view["intent_learning_events"]] == [
+        "prediction_recorded", "feedback_submitted", "feedback_approved",
+    ]
+
+
+def test_intent_feedback_enforces_prediction_owner_and_immutable_review(tmp_path):
+    registry = registry_at(tmp_path / "intent-learning.db")
+    prediction = record_prediction(registry)
+
+    with pytest.raises(BadCaseNotFoundError, match="prediction not found"):
+        registry.submit_intent_feedback(
+            prediction_id=prediction.prediction_id,
+            user_id="another-user",
+            suggested_intent="account_security",
+        )
+
+    registry.submit_intent_feedback(
+        prediction_id=prediction.prediction_id,
+        user_id="signed-user",
+        suggested_intent="account_security",
+    )
+    registry.review_intent_feedback(
+        prediction.prediction_id,
+        decision=IntentFeedbackStatus.APPROVED,
+        actor="reviewer",
+        approved_intent="account_security",
+        dataset_version="intent-v1",
+    )
+    with pytest.raises(BadCaseContractError, match="immutable"):
+        registry.review_intent_feedback(
+            prediction.prediction_id,
+            decision=IntentFeedbackStatus.APPROVED,
+            actor="reviewer-2",
+            approved_intent="refund",
+            dataset_version="intent-v2",
+        )
+
+    rejected_prediction = record_prediction(
+        registry,
+        request_id="intent-request-2",
+        input_fingerprint="c" * 64,
+    )
+    registry.submit_intent_feedback(
+        prediction_id=rejected_prediction.prediction_id,
+        user_id="signed-user",
+        suggested_intent="account_security",
+    )
+    with pytest.raises(BadCaseContractError, match="must differ"):
+        registry.review_intent_feedback(
+            rejected_prediction.prediction_id,
+            decision=IntentFeedbackStatus.APPROVED,
+            actor="reviewer",
+            approved_intent="payment_issue",
+            dataset_version="intent-v1",
+        )
+    rejected, rejected_case = registry.review_intent_feedback(
+        rejected_prediction.prediction_id,
+        decision=IntentFeedbackStatus.REJECTED,
+        actor="reviewer",
+        note="原分类正确，回答内容需要另行复核",
+    )
+    assert rejected.feedback_status is IntentFeedbackStatus.REJECTED
+    assert rejected.annotation_id == ""
+    assert rejected_case.annotation_id == ""
+    assert rejected_case.status is BadCaseStatus.CANDIDATE
+
+
+def test_wrong_route_api_requires_real_prediction_and_admin_review_does_not_publish(tmp_path, monkeypatch):
+    registry = registry_at(tmp_path / "intent-api.db")
+    prediction = record_prediction(registry)
+    monkeypatch.setattr(main, "_badcase_registry", registry)
+
+    feedback = asyncio.run(main.submit_badcase_feedback(
+        main.BadCaseFeedbackRequest(
+            request_id="intent-request-1",
+            category="wrong_route",
+            prediction_id=prediction.prediction_id,
+            suggested_intent="account_security",
+            correction="不是本人交易",
+        ),
+        Principal(subject="signed-user", scopes=frozenset({"chat"})),
+    ))
+    reviewed = asyncio.run(main.review_intent_feedback(
+        prediction.prediction_id,
+        main.IntentFeedbackReviewRequest(
+            decision="approved",
+            approved_intent="account_security",
+            dataset_version="intent-dataset-v1",
+        ),
+        Principal(subject="signed-admin", scopes=frozenset({"admin"})),
+    ))
+
+    assert feedback["feedback_status"] == "pending"
+    assert reviewed["intent_learning"]["feedback_status"] == "approved"
+    assert reviewed["active_bundle_changed"] is False
 
 
 def test_admin_api_uses_signed_actor_and_exposes_audited_queue(tmp_path, monkeypatch):

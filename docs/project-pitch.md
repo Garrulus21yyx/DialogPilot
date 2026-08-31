@@ -18,7 +18,7 @@ DialogPilot 是一个使用 Python 和 FastAPI 实现的多 Agent 客服后端�
 
 记忆层以 Redis 原始事件日志为事实来源，每个完整发布轮次立即用稳定 ID 幂等写入 ChromaDB，Token 压缩只负责固定序列范围的摘要/checkpoint。长期召回融合 BM25、向量和时效性排名，排除当前会话，并对最相关旧会话展开有界前后消息窗口。未关闭工单直接从 TicketService 投影，结构化事实保留来源及替代/撤销状态。这样既能恢复客服事项，又不会因为只搜索摘要或孤立片段而丢失订单号、纠正语境和处理进度。
 
-HTTP 边界从签名 JWT 中取得用户身份，不信任请求体提交的 `user_id`。请求级 `TraceId` 串联 HTTP、ReAct 和工具调用。写操作等待审批时持久化 Run checkpoint，授权后以原 Bundle 和 task_id 幂等恢复。校验失败、任务覆盖失败、工具副作用不确定以及可信用户反馈会进入独立的 Bad Case 状态机；复现和修复后的样本只作为 provisional dev regression，不冒充人工 Gold 或全新 heldout。
+HTTP 边界从签名 JWT 中取得用户身份，不信任请求体提交的 `user_id`。请求级 `TraceId` 串联 HTTP、ReAct 和工具调用。质量库可用时，每次意图判断都记录不可变 `prediction_id`、分类器指纹和脱敏输入指纹；记录失败不阻断客服主链，但该轮不开放可归因的错路由反馈。用户报告错路由时只能提交待审核建议，管理员确认后才形成版本化 Annotation，不能在请求线程里改 Prompt 或模板。写操作等待审批时持久化 Run checkpoint，授权后以原 Bundle 和 task_id 幂等恢复。校验失败、任务覆盖失败、工具副作用不确定以及可信用户反馈会进入独立的 Bad Case 状态机；复现和修复后的样本只作为 provisional dev regression，不冒充人工 Gold 或全新 heldout。
 
 Bad Case 不会在线改生产 Prompt。系统先用脱敏版本信封做责任归因，只对 Prompt、Few-shot、路由、检索和工具描述生成 4–8 个不可变候选；候选经过安全硬门禁、Rubric、heldout 合同和质量/延迟/成本 Pareto 后，才按 Shadow、5%、25%、Active 灰度。越权、隐私、跨用户召回或错误写操作会原子切回上一 Bundle。
 
@@ -29,6 +29,7 @@ Bad Case 不会在线改生产 Prompt。系统先用脱敏版本信封做责任�
   → 解析并固定 AgentBundle / Rollout 版本
   → 读取记忆
   → 多信号意图识别
+  → 记录 prediction_id / classifier fingerprint
   → Planner 处置：EXECUTE / CLARIFY / OUT_OF_SCOPE
       ├─ CLARIFY / OUT_OF_SCOPE：固定策略回复并结束
       └─ EXECUTE：继续客服执行链
@@ -43,6 +44,7 @@ Bad Case 不会在线改生产 Prompt。系统先用脱敏版本信封做责任�
   → 持久化 response_id / response_seq 与真实发布结果
   → HTTP 返回；客户端渲染后 ACK，断线按 seq 续取
   → Redis 防抖任务批量抽取 L1 事实，并记录 Bad Case
+  → 错路由反馈绑定原 Prediction → 人工 Annotation
   → 脱敏归因 → 离线候选 → Graduation → 灰度/回滚
 ```
 
@@ -50,6 +52,7 @@ Bad Case 不会在线改生产 Prompt。系统先用脱敏版本信封做责任�
 flowchart LR
     A[认证请求] --> B[固定 Bundle]
     B --> C[Memory / Intent]
+    C --> V[版本化 Prediction]
     C --> P{PlanningDisposition}
     P -->|CLARIFY| Q[固定澄清]
     P -->|OUT_OF_SCOPE| O[固定范围重定向]
@@ -63,6 +66,8 @@ flowchart LR
     H --> A1[HTTP + Client ACK]
     I --> H
     I --> J[离线候选 / Graduation]
+    V --> L[Pending Feedback / Annotation]
+    L --> J
     J --> K[Shadow / Canary / Rollback]
 ```
 
@@ -73,6 +78,14 @@ flowchart LR
 LLM 擅长处理自然语言歧义；本地字符 n-gram 是确定性语义降级路径；规则对订单号、错误码、退款词和金额等结构化特征更稳定。三路并发控制延迟，加权投票保留各来源分数，出现误路由时能够定位到底是哪一路判断出了问题。
 
 代价是系统比单模型分类复杂，因此合同明确规定只分类一次，知识选择和 Agent 路由必须复用同一个 `IntentResult`，避免两个识别实例或两次调用产生分叉结论。
+
+### 为什么不能让 `learn()` 在线修改意图模板？
+
+一次点踩可能来自意图、TaskGraph、RAG、工具或业务服务，用户建议也不天然是正确标签。如果请求线程直接改模板，会让同一版本的分类器含义漂移：旧结果无法复现，缓存可能返回旧策略结果，评测和回滚也失去版本锚点。
+
+因此运行面只做两件事：以 `classifier_fingerprint + full_input_fingerprint` 作为缓存身份，并记录不可变 Prediction。错路由反馈必须携带真实 `prediction_id`，服务端校验它属于当前认证用户，再进入 `PENDING`；管理员执行 `APPROVED / REJECTED` 审核，批准时写入 `annotation_id + dataset_version`。只有已批准 Annotation 才能进入意图候选生成，仍需走既有 Graduation、Shadow 和 Canary；审核本身不会修改 Active Bundle。
+
+当前热缓存是进程内 TTL 缓存，适合单实例个人项目；分类器、Bundle、模型策略、Prompt、Few-shot、规则或阈值变化都会产生新指纹，因此不会复用旧版本结果。多副本部署时可以换 Redis 共享热点，但 SQLite Prediction/Annotation 仍是学习证据的事实来源，缓存不能成为标签数据库。
 
 ### 为什么只对业务意图检索知识？
 
@@ -155,7 +168,7 @@ Ticket 负责用户人工处理流程，Trace 负责一次请求的诊断；二�
 
 **A：** 在 Orchestrator 增加闭合 `PlanningDisposition`，规定 `EXECUTE` 必须有 TaskGraph，`CLARIFY/OUT_OF_SCOPE` 必须无图；API 对策略终态发布固定回复并跳过模型 Verifier，`OUT_OF_SCOPE` 额外跳过 Redis/Chroma/画像写入。路由评测增加 disposition exact match，HTTP 集成测试使用会抛错的假 Worker、RAG、工具和 Verifier 证明这些路径未被调用。
 
-**R：** 越域请求公开投影为 `agent_type=orchestrator`、空 Agent/Task/Outcome、`verification_reason_code=policy_terminal`，不创建人工工单；低置信度请求仍追问，明确问候仍由 GeneralAgent 执行，全仓 265 项测试通过。
+**R：** 越域请求公开投影为 `agent_type=orchestrator`、空 Agent/Task/Outcome、`verification_reason_code=policy_terminal`，不创建人工工单；低置信度请求仍追问，明确问候仍由 GeneralAgent 执行，全仓 280 项测试通过。
 
 ## Agent 进化改造如何用 STAR 讲
 
@@ -165,7 +178,17 @@ Ticket 负责用户人工处理流程，Trace 负责一次请求的诊断；二�
 
 **A：** 将兼容 `TaskPlan` 升级为 `TaskGraph`，增加依赖波次、`context_refs` 与阻塞状态；用 SQLite RunStore 固定 task/Bundle/工具调用并通过 CAS Resume；再实现 EvolutionEnvelope、不可变 AgentBundle、GEPA-lite 受限候选、带证据 Graduation/Pareto，以及 Shadow → 5% → 25% → Active 和硬/软回滚。
 
-**R：** 请求内版本不漂移，依赖失败不再误调后继，审批重放不重复写，候选不能修改权限或绕过 Gate，灰度与回滚收敛为原子状态迁移；当前全仓 265 项测试通过。评测数据仍是 provisional，因此结果只表述为合同回归，不虚构生产准确率。
+**R：** 请求内版本不漂移，依赖失败不再误调后继，审批重放不重复写，候选不能修改权限或绕过 Gate，灰度与回滚收敛为原子状态迁移；当前全仓 280 项测试通过。评测数据仍是 provisional，因此结果只表述为合同回归，不虚构生产准确率。
+
+## 意图反馈闭环如何用 STAR 讲
+
+**S：** 原意图识别器带有进程内 `learn()`，用户反馈可以直接修改模板；缓存键又没有绑定完整分类器配置和完整输入，导致同名版本语义漂移、旧缓存复用以及反馈被误当作 Gold。
+
+**T：** 分离在线推理和离线改进，让每条错路由建议都能追溯到真实预测、认证用户、分类器版本和人工裁决，同时保证反馈不会直接影响生产流量。
+
+**A：** 删除在线模板修改入口，把模板改为只读；计算覆盖模型策略、Prompt、Few-shot、规则、阈值和 Bundle 的分类器指纹，并用完整输入哈希组成 TTL 缓存键；为 `/chat` 记录不可变 Prediction，让 `/feedback` 只创建带 ownership 校验的 Pending 记录，再由管理员审批为版本化 Annotation；Attributor 和 ProposalGenerator 双重拒绝未审核意图样本。
+
+**R：** 在线路径只读且可复现，长输入不再因前缀截断发生缓存碰撞，错路由反馈不能伪造别人的 Prediction，也不能越过人工标注和 Graduation 直接改 Active Bundle。这里证明的是合同闭环，不把单人审核称为 human Gold，也不宣称线上准确率提升。
 
 ## 面试时应该诚实说明的指标边界
 

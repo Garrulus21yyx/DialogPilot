@@ -17,7 +17,8 @@ import re
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Mapping, Optional
+from types import MappingProxyType
+from typing import Any, Dict, List, Mapping, Optional, Tuple
 
 from anthropic import AsyncAnthropic
 
@@ -96,29 +97,31 @@ class IntentResult:
     reasoning:  str
     latency_ms: float
     source_scores: Dict[str, float] = field(default_factory=dict)
+    classifier_fingerprint: str = ""
+    input_fingerprint: str = ""
 
 
 # ── Few-shot 模板（同时用于 LLM 示例和 Embedding 匹配）────────────────────────
-_TEMPLATES: Dict[IntentCategory, List[str]] = {
-    IntentCategory.QUERY:      ["我的订单状态是什么？", "如何重置密码？", "快递什么时候到？"],
-    IntentCategory.COMPLAINT:  ["等了好几个小时！", "服务太差了！", "一直没人处理！"],
-    IntentCategory.REQUEST:    ["帮我取消订单", "我需要修改地址", "请协助退款"],
-    IntentCategory.GREETING:   ["你好", "嗨，有人吗", "早上好"],
-    IntentCategory.ESCALATION: ["我要投诉！", "转人工客服", "找你们经理"],
-    IntentCategory.TECHNICAL:  ["应用一直崩溃", "无法登录", "出现500错误"],
-    IntentCategory.BILLING:    ["为什么扣了两次款？", "申请退款", "发票问题"],
-    IntentCategory.ACCOUNT:    ["修改邮箱", "注销账户", "更新个人信息"],
-    IntentCategory.FEEDBACK:   ["服务很棒！", "非常满意", "给个好评"],
-    IntentCategory.ORDER_STATUS: ["我的订单现在是什么状态？", "订单有没有发货？", "订单处理到哪一步了？"],
-    IntentCategory.LOGISTICS: ["快递什么时候到？", "物流一直不更新", "配送要多久？"],
-    IntentCategory.REFUND: ["我要申请退款", "退货退款怎么处理？", "退款多久到账？"],
-    IntentCategory.INVOICE: ["帮我开发票", "发票抬头怎么改？", "电子发票在哪里？"],
-    IntentCategory.PAYMENT_ISSUE: ["为什么重复扣款？", "支付失败怎么办？", "这个月多扣了钱"],
-    IntentCategory.ACCOUNT_SECURITY: ["账户被盗了", "发现异常登录", "我要重置密码"],
-    IntentCategory.TECHNICAL_LOGIN: ["登录一直报401", "验证码收不到", "无法登录账号"],
-    IntentCategory.TECHNICAL_CRASH: ["应用一直崩溃", "页面报500错误", "系统闪退"],
-    IntentCategory.HUMAN_HANDOFF: ["转人工客服", "我要找人工", "请升级处理"],
-}
+_TEMPLATES: Mapping[IntentCategory, Tuple[str, ...]] = MappingProxyType({
+    IntentCategory.QUERY: ("我的订单状态是什么？", "如何重置密码？", "快递什么时候到？"),
+    IntentCategory.COMPLAINT: ("等了好几个小时！", "服务太差了！", "一直没人处理！"),
+    IntentCategory.REQUEST: ("帮我取消订单", "我需要修改地址", "请协助退款"),
+    IntentCategory.GREETING: ("你好", "嗨，有人吗", "早上好"),
+    IntentCategory.ESCALATION: ("我要投诉！", "转人工客服", "找你们经理"),
+    IntentCategory.TECHNICAL: ("应用一直崩溃", "无法登录", "出现500错误"),
+    IntentCategory.BILLING: ("为什么扣了两次款？", "申请退款", "发票问题"),
+    IntentCategory.ACCOUNT: ("修改邮箱", "注销账户", "更新个人信息"),
+    IntentCategory.FEEDBACK: ("服务很棒！", "非常满意", "给个好评"),
+    IntentCategory.ORDER_STATUS: ("我的订单现在是什么状态？", "订单有没有发货？", "订单处理到哪一步了？"),
+    IntentCategory.LOGISTICS: ("快递什么时候到？", "物流一直不更新", "配送要多久？"),
+    IntentCategory.REFUND: ("我要申请退款", "退货退款怎么处理？", "退款多久到账？"),
+    IntentCategory.INVOICE: ("帮我开发票", "发票抬头怎么改？", "电子发票在哪里？"),
+    IntentCategory.PAYMENT_ISSUE: ("为什么重复扣款？", "支付失败怎么办？", "这个月多扣了钱"),
+    IntentCategory.ACCOUNT_SECURITY: ("账户被盗了", "发现异常登录", "我要重置密码"),
+    IntentCategory.TECHNICAL_LOGIN: ("登录一直报401", "验证码收不到", "无法登录账号"),
+    IntentCategory.TECHNICAL_CRASH: ("应用一直崩溃", "页面报500错误", "系统闪退"),
+    IntentCategory.HUMAN_HANDOFF: ("转人工客服", "我要找人工", "请升级处理"),
+})
 
 _SPECIFIC_INTENTS = {
     IntentCategory.ORDER_STATUS,
@@ -159,6 +162,54 @@ _URGENCY_KEYWORDS = {
     UrgencyLevel.MEDIUM:   ["这周", "soon", "快点"],
 }
 
+# 分类规则和融合代数是分类器版本的一部分。把它们放在模块级常量中，既避免
+# 运行时临时构造，也让 classifier_fingerprint() 能覆盖真实生效的策略。
+_SPECIFIC_PATTERNS: Dict[IntentCategory, List[str]] = {
+    IntentCategory.HUMAN_HANDOFF: ["转人工", "人工客服", "找人工"],
+    IntentCategory.ORDER_STATUS: ["订单状态", "发货了吗", "处理到哪", "order status"],
+    IntentCategory.LOGISTICS: ["物流", "快递", "配送", "运单", "delivery", "shipping", "card fast"],
+    IntentCategory.REFUND: ["退款", "退货", "refund", "return"],
+    IntentCategory.INVOICE: ["发票", "抬头", "税号", "invoice"],
+    IntentCategory.PAYMENT_ISSUE: ["重复扣款", "多扣", "支付失败", "扣费", "payment failed", "extra fee"],
+    IntentCategory.ACCOUNT_SECURITY: [
+        "被盗", "异常登录", "两步验证", "安全", "didn't buy", "did not make",
+        "don't recognize", "do not recognize", "fraudulent", "verify my id", "identity check",
+        "didn't take out", "did not get", "non-received cash",
+    ],
+    IntentCategory.TECHNICAL_LOGIN: [
+        "无法登录", "登录失败", "401", "验证码", "reset my pin", "unblock my card",
+        "code for the app", "pin is unlocked",
+    ],
+    IntentCategory.TECHNICAL_CRASH: ["崩溃", "闪退", "500", "报错", "crash"],
+    IntentCategory.TECHNICAL: [
+        "virtual card", "contactless", "card broke", "card broken", "card no longer works",
+        "card hasn't been working", "card gets rejected", "disposable virtual card",
+    ],
+}
+
+_GENERIC_PATTERNS: Dict[IntentCategory, List[str]] = {
+    IntentCategory.ESCALATION: ["投诉", "经理", "supervisor"],
+    IntentCategory.COMPLAINT: ["太差", "糟糕", "horrible", "等了很久"],
+    IntentCategory.QUERY: ["?", "？", "怎么", "什么", "status"],
+    IntentCategory.REQUEST: ["帮我", "需要", "please", "help"],
+    IntentCategory.GREETING: ["你好", "嗨", "hello", "hi"],
+    IntentCategory.BILLING: ["退款", "扣款", "发票", "refund"],
+    IntentCategory.TECHNICAL: ["崩溃", "报错", "error", "crash"],
+    IntentCategory.ACCOUNT: ["密码", "邮箱", "账户", "password"],
+}
+
+_VOTE_WEIGHTS = {
+    "ngram": {"llm": 0.7, "embedding": 0.2, "pattern": 0.1},
+    "disabled": {"llm": 0.85, "pattern": 0.15},
+}
+
+_INTENT_PROMPT_POLICY = """先判断消息是否属于本项目客服范围；范围外的一般问句必须返回 other，不能因为它是问句就返回 query。
+陌生交易、非本人取现和身份验证属于 account_security；本人支付失败或手续费属于 payment_issue。
+银行卡、虚拟卡、非接触支付本身不可用属于 technical；PIN、验证码和解锁属于 technical_login。"""
+
+# 任何没有被上述数据常量表达、但会改变输出代数的实现变更都必须升级该值。
+_CLASSIFIER_CONTRACT_VERSION = "intent-classifier-v2"
+
 
 def _cosine(a: List[float], b: List[float]) -> float:
     """纯 Python 余弦相似度，不依赖 numpy。"""
@@ -184,6 +235,7 @@ class IntentRecognizer:
         confidence_threshold: float = 0.5,
         similarity_mode: str = "ngram",
         model_profile: Optional[ModelProfile] = None,
+        cache_ttl_seconds: float = 3600.0,
     ):
         """创建模型客户端，并初始化模板向量与结果缓存。"""
         kwargs: Dict[str, Any] = {"api_key": api_key}
@@ -200,9 +252,10 @@ class IntentRecognizer:
         # embedding 不存在或失败时稳定退回本地字符向量。
         self._embedding_enabled = normalized_mode == "ngram"
         self.similarity_mode = normalized_mode
+        self._cache_ttl_seconds = max(1.0, float(cache_ttl_seconds))
 
         self._tpl_embeddings: Dict[IntentCategory, List[List[float]]] = {}
-        self._cache: Dict[str, IntentResult] = {}
+        self._cache: Dict[str, Tuple[float, IntentResult]] = {}
         self.cache_hits   = 0
         self.cache_misses = 0
 
@@ -219,12 +272,17 @@ class IntentRecognizer:
 
         history 格式：[{"role": "user"/"assistant", "content": "..."}]
         """
-        key = self._cache_key(message, history)
-        if bundle is not None:
-            key = f"{key}:{bundle.component_hash('prompts')}:{bundle.component_hash('few_shots')}"
-        if key in self._cache:
+        classifier_fingerprint = self.classifier_fingerprint(bundle)
+        input_fingerprint = self.input_fingerprint(message, history)
+        key = hashlib.sha256(
+            f"{classifier_fingerprint}:{input_fingerprint}".encode("utf-8")
+        ).hexdigest()
+        cached = self._cache.get(key)
+        if cached is not None and cached[0] > time.monotonic():
             self.cache_hits += 1
-            return self._cache[key]
+            return cached[1]
+        if cached is not None:
+            self._cache.pop(key, None)
         self.cache_misses += 1
 
         t0 = time.monotonic()
@@ -253,22 +311,20 @@ class IntentRecognizer:
             reasoning=llm.get("reasoning", ""),
             latency_ms=(time.monotonic() - t0) * 1000,
             source_scores=source_scores,
+            classifier_fingerprint=classifier_fingerprint,
+            input_fingerprint=input_fingerprint,
         )
 
-        # LRU 缓存
+        # 可删除、可重建的进程内加速层。低置信度和账户安全结果使用短 TTL；
+        # 正确性由完整输入哈希和分类器指纹保证，而不是依赖手工清缓存。
         if len(self._cache) >= 1000:
             for k in list(self._cache)[:500]:
                 del self._cache[k]
-        self._cache[key] = result
+        ttl = self._cache_ttl_seconds
+        if result.confidence < self.threshold or result.intent is IntentCategory.ACCOUNT_SECURITY:
+            ttl = min(ttl, 300.0)
+        self._cache[key] = (time.monotonic() + ttl, result)
         return result
-
-    def learn(self, message: str, correct: IntentCategory) -> None:
-        """在线学习：将纠正样本加入模板，清除对应 Embedding 缓存。"""
-        tpls = _TEMPLATES.setdefault(correct, [])
-        if message not in tpls:
-            tpls.append(message)
-            self._tpl_embeddings.pop(correct, None)  # 下次重新计算
-            logger.info(f"学习新样本 → {correct.value}: {message[:40]}")
 
     # ── 三路识别策略 ──────────────────────────────────────────────────────────
 
@@ -289,11 +345,14 @@ class IntentRecognizer:
         if bundle is not None:
             candidate_examples = bundle.few_shot_examples("intent")
             if candidate_examples:
+                allowed_intents = {category.value for category in IntentCategory}
                 examples = examples + "\n" + "\n".join(
                     f"  消息: {json.dumps(str(item.get('message') or ''), ensure_ascii=False)}"
                     f" → 意图: {str(item.get('intent') or 'other')}"
                     for item in candidate_examples
                     if isinstance(item, Mapping)
+                    and str(item.get("message") or "").strip()
+                    and str(item.get("intent") or "") in allowed_intents
                 )
         definitions = "\n".join(
             f"  - {category.value}: {description}"
@@ -311,9 +370,7 @@ class IntentRecognizer:
         prompt = f"""你是 DialogPilot 客服系统的意图分类器。根据业务标签合同判断用户意图，返回 JSON。
 如果用户问题能匹配细粒度业务意图，请优先返回细粒度意图，而不是宽泛大类。
 例如退款优先返回 refund，发票优先返回 invoice，登录故障优先返回 technical_login。
-先判断消息是否属于本项目客服范围；范围外的一般问句必须返回 other，不能因为它是问句就返回 query。
-陌生交易、非本人取现和身份验证属于 account_security；本人支付失败或手续费属于 payment_issue。
-银行卡、虚拟卡、非接触支付本身不可用属于 technical；PIN、验证码和解锁属于 technical_login。
+{_INTENT_PROMPT_POLICY}
 {policy_fragment}
 
 业务标签合同:
@@ -369,44 +426,11 @@ class IntentRecognizer:
     def _pattern_recognize(self, message: str) -> Dict[str, Any]:
         """策略 3：关键词模式匹配（同步，零延迟兜底）。"""
         msg = message.lower()
-        specific_patterns = {
-            IntentCategory.HUMAN_HANDOFF: ["转人工", "人工客服", "找人工"],
-            IntentCategory.ORDER_STATUS: ["订单状态", "发货了吗", "处理到哪", "order status"],
-            IntentCategory.LOGISTICS: ["物流", "快递", "配送", "运单", "delivery", "shipping", "card fast"],
-            IntentCategory.REFUND: ["退款", "退货", "refund", "return"],
-            IntentCategory.INVOICE: ["发票", "抬头", "税号", "invoice"],
-            IntentCategory.PAYMENT_ISSUE: ["重复扣款", "多扣", "支付失败", "扣费", "payment failed", "extra fee"],
-            IntentCategory.ACCOUNT_SECURITY: [
-                "被盗", "异常登录", "两步验证", "安全", "didn't buy", "did not make",
-                "don't recognize", "do not recognize", "fraudulent", "verify my id", "identity check",
-                "didn't take out", "did not get", "non-received cash",
-            ],
-            IntentCategory.TECHNICAL_LOGIN: [
-                "无法登录", "登录失败", "401", "验证码", "reset my pin", "unblock my card",
-                "code for the app", "pin is unlocked",
-            ],
-            IntentCategory.TECHNICAL_CRASH: ["崩溃", "闪退", "500", "报错", "crash"],
-            IntentCategory.TECHNICAL: [
-                "virtual card", "contactless", "card broke", "card broken", "card no longer works",
-                "card hasn't been working", "card gets rejected", "disposable virtual card",
-            ],
-        }
-        generic_patterns = {
-            IntentCategory.ESCALATION: ["投诉", "经理", "supervisor"],
-            IntentCategory.COMPLAINT:  ["太差", "糟糕", "horrible", "等了很久"],
-            IntentCategory.QUERY:      ["?", "？", "怎么", "什么", "status"],
-            IntentCategory.REQUEST:    ["帮我", "需要", "please", "help"],
-            IntentCategory.GREETING:   ["你好", "嗨", "hello", "hi"],
-            IntentCategory.BILLING:    ["退款", "扣款", "发票", "refund"],
-            IntentCategory.TECHNICAL:  ["崩溃", "报错", "error", "crash"],
-            IntentCategory.ACCOUNT:    ["密码", "邮箱", "账户", "password"],
-        }
-
-        best_cat, best_score = self._best_pattern_match(msg, specific_patterns)
+        best_cat, best_score = self._best_pattern_match(msg, _SPECIFIC_PATTERNS)
         if best_cat != IntentCategory.OTHER:
             return {"intent": best_cat, "confidence": best_score}
 
-        best_cat, best_score = self._best_pattern_match(msg, generic_patterns)
+        best_cat, best_score = self._best_pattern_match(msg, _GENERIC_PATTERNS)
         return {"intent": best_cat, "confidence": best_score}
 
     # ── 投票合并 ──────────────────────────────────────────────────────────────
@@ -425,10 +449,9 @@ class IntentRecognizer:
                 return pat["intent"], source_scores["pattern"], source_scores
             return IntentCategory.OTHER, 0.0, source_scores
 
-        if self._embedding_enabled:
-            weights = [(llm, 0.7), (emb, 0.2), (pat, 0.1)]
-        else:
-            weights = [(llm, 0.85), (pat, 0.15)]
+        configured = _VOTE_WEIGHTS[self.similarity_mode]
+        sources = {"llm": llm, "embedding": emb, "pattern": pat}
+        weights = [(sources[name], weight) for name, weight in configured.items()]
         scores: Dict[IntentCategory, float] = {}
         for result, w in weights:
             cat  = result.get("intent", IntentCategory.OTHER)
@@ -524,19 +547,85 @@ class IntentRecognizer:
             return UrgencyLevel.MEDIUM
         return UrgencyLevel.LOW
 
-    def _cache_key(self, message: str, history: Optional[List[Dict[str, str]]] = None) -> str:
-        """对当前消息与有限历史生成稳定缓存键。"""
-        payload = {"message": self._clean_text(message)[:200]}
+    def classifier_fingerprint(self, bundle: Optional[AgentBundle] = None) -> str:
+        """哈希所有会影响分类结果的有效配置，不使用可变进程状态充当版本。"""
+        payload: Dict[str, Any] = {
+            "contract_version": _CLASSIFIER_CONTRACT_VERSION,
+            "model_profile": {
+                **self._model_profile.to_dict(),
+                "provider": self._model_profile.provider,
+            },
+            "confidence_threshold": self.threshold,
+            "similarity_mode": self.similarity_mode,
+            "vote_weights": _VOTE_WEIGHTS[self.similarity_mode],
+            "prompt_policy": _INTENT_PROMPT_POLICY,
+            "definitions": {
+                category.value: description
+                for category, description in sorted(
+                    _INTENT_DEFINITIONS.items(), key=lambda item: item[0].value
+                )
+            },
+            "templates": {
+                category.value: list(values)
+                for category, values in sorted(_TEMPLATES.items(), key=lambda item: item[0].value)
+            },
+            "specific_patterns": {
+                category.value: list(values)
+                for category, values in sorted(_SPECIFIC_PATTERNS.items(), key=lambda item: item[0].value)
+            },
+            "generic_patterns": {
+                category.value: list(values)
+                for category, values in sorted(_GENERIC_PATTERNS.items(), key=lambda item: item[0].value)
+            },
+            "intent_groups": {
+                category.value: group.value
+                for category, group in sorted(_INTENT_GROUPS.items(), key=lambda item: item[0].value)
+            },
+            "urgency_keywords": {
+                level.name.lower(): list(values)
+                for level, values in sorted(_URGENCY_KEYWORDS.items(), key=lambda item: item[0].value)
+            },
+        }
+        if bundle is not None:
+            payload["bundle_components"] = {
+                "prompts": bundle.component_hash("prompts"),
+                "few_shots": bundle.component_hash("few_shots"),
+            }
+        raw = json.dumps(
+            payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"),
+        )
+        return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+    def input_fingerprint(
+        self,
+        message: str,
+        history: Optional[List[Dict[str, str]]] = None,
+    ) -> str:
+        """哈希分类器实际消费的完整消息与最近三轮，避免前缀截断造成缓存别名。"""
+        payload: Dict[str, Any] = {"message": self._clean_text(message)}
         if history:
             payload["history"] = [
                 {
-                    "role": self._clean_text(item.get("role", ""))[:20],
-                    "content": self._clean_text(item.get("content", ""))[:160],
+                    "role": self._clean_text(item.get("role", "")),
+                    "content": self._clean_text(item.get("content", "")),
                 }
                 for item in history[-3:]
             ]
-        raw = json.dumps(payload, ensure_ascii=False, sort_keys=True)
-        return hashlib.md5(raw.encode("utf-8")).hexdigest()
+        raw = json.dumps(
+            payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"),
+        )
+        return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+    def _cache_key(
+        self,
+        message: str,
+        history: Optional[List[Dict[str, str]]] = None,
+        bundle: Optional[AgentBundle] = None,
+    ) -> str:
+        """缓存身份由完整输入和实际分类器版本共同决定。"""
+        classifier = self.classifier_fingerprint(bundle)
+        inputs = self.input_fingerprint(message, history)
+        return hashlib.sha256(f"{classifier}:{inputs}".encode("utf-8")).hexdigest()
 
     @staticmethod
     def _unique(values: List[str]) -> List[str]:
@@ -583,4 +672,6 @@ class IntentRecognizer:
             "hits": self.cache_hits,
             "misses": self.cache_misses,
             "hit_rate": self.cache_hits / total if total else 0.0,
+            "ttl_seconds": self._cache_ttl_seconds,
+            "classifier_fingerprint": self.classifier_fingerprint(),
         }
