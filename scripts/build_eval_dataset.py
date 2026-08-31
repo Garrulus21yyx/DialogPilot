@@ -50,7 +50,15 @@ BANKING_MAP = {
     "terminate_account": "account",
     "card_arrival": "logistics",
     "card_delivery_estimate": "logistics",
+    # Project-scope banking questions with no narrower DialogPilot owner.
+    "atm_support": "query",
+    "card_acceptance": "query",
+    "country_support": "query",
+    "exchange_rate": "query",
+    "fiat_currency_support": "query",
+    "visa_or_mastercard": "query",
 }
+BANKING_MAPPING_VERSION = "dialogpilot-intent-map-v2"
 
 BITEXT_MAP = {
     "contact_human_agent": "human_handoff",
@@ -129,7 +137,7 @@ def _case(
             "url": source_url,
             "original_label": source_label,
             "original_split": source_split,
-            "mapping_version": "dialogpilot-intent-map-v1",
+            "mapping_version": BANKING_MAPPING_VERSION if source_name == "banking77" else "dialogpilot-intent-map-v1",
         },
         "review": {"status": "auto_mapped", "reviewer": None},
     }

@@ -62,7 +62,7 @@ title: DialogPilot 面经校准与追问手册
 
 ### Q7：意图识别方案是什么？
 
-**CURRENT。** 从闭合 `IntentCategory` 枚举选择，不让 LLM 自由创类别。`INTENT_SIMILARITY_MODE=ngram` 时是 LLM 0.70 + 本地字符 n-gram 0.20 + Pattern 0.10；`disabled` 时是 LLM 0.85 + Pattern 0.15。LLM 负责复杂语义和历史，n-gram 提供低成本、确定性的词面相似度，Pattern 提供少量高精度业务证据。三路是误差互补，不是三个模型平权投票；当前权重是工程初值，融合低于 0.5 归 `OTHER`。
+**CURRENT。** 从闭合 `IntentCategory` 枚举选择，不让 LLM 自由创类别。`INTENT_SIMILARITY_MODE=ngram` 时是 LLM 0.70 + 本地字符 n-gram 0.20 + Pattern 0.10；`disabled` 时是 LLM 0.85 + Pattern 0.15。LLM 负责复杂语义和历史，n-gram 提供低成本词面相似度，Pattern 输出带 span 的正向、负向、不确定和引用证据。三路是误差互补，不是平权投票；融合最高支持低于0.5归 `OTHER`。
 
 ### Q8：为什么不能把 n-gram 叫 Embedding 模型？
 
@@ -70,7 +70,13 @@ title: DialogPilot 面经校准与追问手册
 
 ### Q8.1：LLM、Pattern 和向量冲突怎么办？
 
-不能只说“按权重相加，谁分高听谁的”。普通 Pattern 只提供辅助证据，尤其要防“不是扣款问题”这类否定误命中；只有带明确极性且经过验证的确定性规则才适合提升优先级。LLM 与相似度信号冲突且总体证据不足时应澄清或拒识。账户安全等高风险类别采取保守策略，不能让一次普通 LLM 判断把更强的安全证据直接降级。当前代码仍是加权融合基线，极性 evidence 和类型化拒识是明确改进方向。
+常规融合把 Pattern 当有符号证据：`positive = +pattern_weight×confidence`，`negative = -pattern_weight×confidence`，`uncertain/quoted = 0`。例如 n-gram 模式下，LLM 对 refund 给0.8时贡献 `0.7×0.8=0.56`；“不是退款问题”产生 refund 负向0.5，再贡献 `-0.1×0.5=-0.05`，最终 refund 支持为0.51。负向证据不会自动否决LLM，只抵消 Pattern 自己拥有的0.1权重；只有无矛盾的正向细粒度 Pattern 才能触发 `billing→refund` 等纠偏。否定按局部子句作用，“不是我操作的”对账户安全仍是正向，“退款没有到账”对退款仍是正向。
+
+### Q8.1.1：0.70/0.20/0.10 是怎么验证的？
+
+它最初是工程先验，后来不是靠几个例句确认，而是每条只捕获一次 LLM、n-gram、BGE和Pattern输出，在500条 Dev 上做五折按标签与语义 group 隔离的PAVA校准，搜索2,332组权重与阈值，并以OOS recall和安全 recall作硬门禁。第一轮候选 `0.65/0.35/0` 在Dev多对1条，却在首次test少对2条、安全召回82%降到80%，被否决；V3候选 `0.85/0/0.15` 在Dev为465/500，低于当前466/500，冻结300条test又同为283/300，所以没有替换。
+
+接入Pattern极性后没有拿test重新调权重，而是复用冻结LLM/n-gram输出做隔离A/B：202条冲突诊断167→169，修正2条、伤害0条；500条Dev仍466/500，300条冻结验证仍283/300，OOS和安全召回不变。因此当前结论是“原权重有回归保留依据”，不是“已证明全局最优”。
 
 ### Q8.2：既然 BGE Encoder 更像成熟方案，为什么不直接替换？
 

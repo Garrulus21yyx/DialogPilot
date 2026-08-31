@@ -16,6 +16,7 @@ from agents.agent_orchestrator import AgentOrchestrator, Request
 from agents.orchestration_contracts import AgentType
 from core.intent_recognizer import IntentCategory
 from scripts.build_eval_dataset import _case, build_bitext
+from scripts.build_intent_weight_verification_dataset import _identity
 from scripts.build_project_eval_500 import EXPECTED_DISTRIBUTION
 from scripts.review_eval_dataset import mark_human_reviewed
 
@@ -357,3 +358,16 @@ def test_external_case_preserves_original_label_license_and_upstream_split():
 def test_bitext_requires_explicit_cdla_sharing_acceptance():
     with pytest.raises(SystemExit, match="CDLA-Sharing-1.0"):
         build_bitext(1, accept_cdla_sharing=False)
+
+
+def test_external_identity_binds_dataset_split_label_and_exact_message():
+    source_row = {
+        "dataset": "banking77",
+        "original_split": "test",
+        "original_label": "request_refund",
+    }
+
+    assert _identity(source_row, "refund please") == (
+        "banking77", "test", "request_refund", "refund please"
+    )
+    assert _identity(source_row, "refund please") != _identity(source_row, "different")

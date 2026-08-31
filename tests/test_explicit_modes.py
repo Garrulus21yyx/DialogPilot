@@ -7,7 +7,7 @@ import pytest
 import core.chroma_client as chroma_module
 import core.intent_recognizer as intent_module
 import agents.agent_orchestrator as orchestrator_module
-from core.intent_recognizer import IntentCategory
+from core.intent_recognizer import EvidencePolarity, IntentCategory
 from services.evolution import AgentBundle
 
 
@@ -110,9 +110,76 @@ def test_business_label_contract_drives_specific_pattern_fallback(
     assert result["confidence"] >= 0.5
 
 
+def test_pattern_polarity_is_signed_evidence_not_keyword_presence(monkeypatch):
+    monkeypatch.setattr(intent_module, "AsyncAnthropic", lambda **_kwargs: SimpleNamespace())
+    recognizer = intent_module.IntentRecognizer(api_key="test", similarity_mode="ngram")
+
+    result = recognizer._pattern_recognize("这不是退款问题，是登录失败")
+    refund = [item for item in result["evidence"] if item.intent is IntentCategory.REFUND]
+    login = [item for item in result["evidence"] if item.intent is IntentCategory.TECHNICAL_LOGIN]
+
+    assert refund and all(item.polarity is EvidencePolarity.NEGATIVE for item in refund)
+    assert login and any(item.polarity is EvidencePolarity.POSITIVE for item in login)
+    assert result["polarity_scores"][IntentCategory.REFUND] < 0
+    assert result["intent"] is IntentCategory.TECHNICAL_LOGIN
+
+
+def test_business_negation_can_still_be_positive_pattern_evidence(monkeypatch):
+    monkeypatch.setattr(intent_module, "AsyncAnthropic", lambda **_kwargs: SimpleNamespace())
+    recognizer = intent_module.IntentRecognizer(api_key="test", similarity_mode="ngram")
+
+    security = recognizer._pattern_recognize("这笔交易不是我操作的")
+    refund = recognizer._pattern_recognize("退款一直没有到账")
+
+    assert security["intent"] is IntentCategory.ACCOUNT_SECURITY
+    assert security["polarity"] == "positive"
+    assert refund["intent"] is IntentCategory.REFUND
+    assert refund["polarity"] == "positive"
+
+
+def test_pattern_polarity_changes_only_pattern_weight_contribution(monkeypatch):
+    monkeypatch.setattr(intent_module, "AsyncAnthropic", lambda **_kwargs: SimpleNamespace())
+    recognizer = intent_module.IntentRecognizer(api_key="test", similarity_mode="ngram")
+    pattern = recognizer._pattern_recognize("这不是退款问题")
+
+    intent, score, sources = recognizer._vote(
+        {"intent": IntentCategory.REFUND, "confidence": 0.8},
+        {"intent": IntentCategory.OTHER, "confidence": 0.0},
+        pattern,
+    )
+
+    # LLM contributes 0.7*0.8=0.56; negative Pattern contributes -0.1*0.5=-0.05.
+    assert intent is IntentCategory.REFUND
+    assert score == pytest.approx(0.51)
+    assert sources["pattern_negative"] == pytest.approx(0.5)
+
+
+def test_quoted_or_uncertain_pattern_abstains(monkeypatch):
+    monkeypatch.setattr(intent_module, "AsyncAnthropic", lambda **_kwargs: SimpleNamespace())
+    recognizer = intent_module.IntentRecognizer(api_key="test", similarity_mode="ngram")
+
+    quoted = recognizer._pattern_recognize("客服说“退款”，但我只是在转述")
+    uncertain = recognizer._pattern_recognize("好像是退款，但我不确定")
+
+    assert quoted["polarity_scores"][IntentCategory.REFUND] == 0.0
+    assert uncertain["polarity_scores"][IntentCategory.REFUND] == 0.0
+
+
 def test_intent_definition_contract_covers_every_supported_enum():
     """新增标签时必须同时声明业务边界，否则 Prompt 与代码会再次分叉。"""
     assert set(intent_module._INTENT_DEFINITIONS) == set(IntentCategory)
+
+
+def test_project_scope_and_boundary_examples_are_owned_by_prompt_contract():
+    """The classifier must know the supported banking domain and its risky boundaries."""
+    policy = intent_module._INTENT_PROMPT_POLICY
+
+    assert "支持国家/币种" in policy
+    assert "信息不足" in policy
+    assert "银行卡/手机丢失" in policy
+    assert "付款失败、被拒" in policy
+    assert intent_module._LLM_FEW_SHOTS[IntentCategory.QUERY][0] == "你们支持哪些币种？"
+    assert "银行卡丢了" in intent_module._LLM_FEW_SHOTS[IntentCategory.ACCOUNT_SECURITY]
 
 
 def test_intent_classifier_fingerprint_tracks_effective_bundle(monkeypatch):

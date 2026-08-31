@@ -348,7 +348,7 @@ Memory 保存的是服务端选入 HTTP 响应的 `response_text`，不是未经
 
 1. LLM：理解复杂语义和最近三轮历史，优先输出细粒度意图。
 2. 本地词面向量：把字符 1/2/3-gram 哈希到 256 维，做余弦相似度。它不是训练过的语义 Embedding，但对退款、扣款、验证码等稳定业务词敏感，无额外模型部署成本，可作为确定性基线。
-3. Pattern：对退款、发票、401、500、转人工等表达做同步匹配。它覆盖率低，只适合提供可解释证据；普通关键词不能天然拥有最终裁决权。
+3. Pattern：对退款、发票、401、500、转人工等表达做同步匹配，并为每个 span 标记 `positive/negative/uncertain/quoted`。它覆盖率低，只适合提供可解释证据；普通关键词不能天然拥有最终裁决权。
 
 LLM 与 embedding 并行，pattern 同步执行。官方 Anthropic SDK 没有 embeddings 资源时，本地字符向量是实际兜底。`INTENT_SIMILARITY_MODE=ngram/disabled` 是显式策略，不再从第三方 Base URL 猜测；`disabled` 才使用 LLM 0.85 + pattern 0.15。
 
@@ -356,11 +356,56 @@ LLM 与 embedding 并行，pattern 同步执行。官方 Anthropic SDK 没有 em
 
 默认权重为 LLM 0.7、embedding 0.2、pattern 0.1。若 LLM 失败，直接选择有效 fallback，不让一个 0 分 `OTHER` 稀释结果。
 
-如果融合结果是泛化类 `billing/technical/query`，但 pattern 高置信命中了 `refund/technical_login/...`，代码会在条件满足时细化结果。这解决“模型说大类，规则知道具体子类”的问题。
+Pattern 权重是有符号贡献：正向为 `+w×confidence`，负向为 `-w×confidence`，不确定或引用为0；同一意图同时出现相反证据时Pattern弃权。否定只支配当前局部子句，不能让“不是退款问题，是登录失败”中的“不是”污染后半句；“不是我操作的”对安全意图和“退款没有到账”对退款意图都属于业务正向表达。如果融合结果是泛化类 `billing/technical/query`，只有无矛盾的正向Pattern命中 `refund/technical_login/...` 时才允许细化。
 
-这组权重是基于三路能力边界给出的工程初值，不是搜索得到的最优参数。LLM、Pattern 和词面向量冲突时不能把它们理解成平权多数票：普通 Pattern 只提供辅助证据，并且必须警惕否定、引用和纠正语境；只有带明确正向极性、经过验证的确定性规则才适合提高优先级。证据不足应进入澄清或业务范围处置。账户安全等高风险类别采用保守策略，不能让一次普通 LLM 判断直接覆盖更强的安全证据。
+### 6.4 当前权重到底怎样测试
 
-### 6.4 为什么测试了 BGE，却没有替换当前方案
+`0.70/0.20/0.10` 最初来自工程先验，后续验证不是用几个例句“感觉不错”，而是先固定每条样本的四路原始输出，再离线重放不同权重。这样每个候选看到完全相同的LLM结果，不会把模型随机性误认为权重收益。
+
+校准数据来自BANKING77 upstream train与CLINC150 `oos_train`，共500条：8个业务意图各50条，`other` 100条。外部标签是 `auto_mapped`，不是DialogPilot人工Gold。相同语义group不能跨折；五折中的每一折只使用另外四折拟合PAVA isotonic reliability，当前验证折标签不会进入校准器。
+
+搜索空间一共2,332个候选：
+
+```text
+LLM weight:          0.50 ～ 1.00
+n-gram/BGE weight:   0.00 ～ 0.40
+Pattern weight:      0.00 ～ 0.30
+Fusion threshold:    0.30 ～ 0.80
+Embedding source:    n-gram / BGE-M3
+Pattern refinement:  on / off
+```
+
+选择不是只看Accuracy。候选的 `other` recall和`account_security` recall不得低于当前V1，然后才比较Macro-F1、Accuracy、跨折波动和复杂度。Dev只负责选型；候选冻结后才能查看上游test。
+
+第一轮Dev选出 `LLM 0.65 + BGE 0.35 + Pattern 0 + threshold 0.30`：
+
+| 策略 | Dev 500 | 第一次上游test 500 | Security recall |
+|---|---:|---:|---:|
+| 当前V1 | 418 | 427 | 82% |
+| 校准候选 | 419 | 425 | 80% |
+
+候选Dev多对1条，但test少对2条且安全召回下降，因此被否决。随后修复项目Scope、意图标签合同和跨标签Few-shot污染，再使用V3合同重跑：
+
+| 策略 | Dev 500 | 冻结验证300 | OOS recall | Security recall |
+|---|---:|---:|---:|---:|
+| 当前 `0.70/0.20/0.10` | 466 | 283 | 96%（验证集） | 88%（验证集） |
+| 候选 `0.85/0/0.15` | 465 | 283 | 96%（验证集） | 88%（验证集） |
+
+候选在Dev少对1条、冻结验证只打平，没有晋升依据。所以准确结论是：**当前权重经过候选挑战后被保留，但没有被证明全局最优。** 202条冲突诊断中，LLM-only为171/202，旧三路只有167/202，也明确提醒我们不要把“保留生产基线”包装成“融合一定优于单模型”。
+
+Pattern极性接入后没有用验证集重新调权重，而是复用冻结的LLM/n-gram输出，只重算Pattern，隔离这一次代码变化：
+
+| 数据 | 旧Pattern | 极性Pattern | 修正/伤害 | OOS recall | Security recall |
+|---|---:|---:|---:|---:|---:|
+| 202条冲突诊断 | 167/202 | 169/202 | +2 / 0 | 100%→100% | 88.46%→88.46% |
+| 500条校准Dev | 466/500 | 466/500 | 0 / 0 | 97%→97% | 90%→90% |
+| 300条冻结验证 | 283/300 | 283/300 | 0 / 0 | 96%→96% | 88%→88% |
+
+代码合同另外覆盖：否定不能跨子句传播；显式负向只扣除Pattern自己的权重；引用和不确定表达弃权；“不是我操作的”仍正向支持账户安全；“退款没有到账”仍正向支持退款；负向或冲突Pattern不能触发细粒度纠偏。定向测试25项通过，全仓为325 passed、2 skipped。
+
+完整搜索空间、数据身份、统计检验和被否决候选见[意图权重校准报告](./intent-weight-calibration-2026-08-31.zh-CN.html)；202条冲突、拒识和语义slice见[三路融合小规模消融](./intent-fusion-mini-ablation-2026-08-31.zh-CN.html)。
+
+### 6.5 为什么测试了 BGE，却没有替换当前方案
 
 为了验证字符 n-gram 是否只是历史包袱，项目另外冻结 `BAAI/bge-m3` 表征、训练 Logistic Regression 分类头，并测试 Encoder 首判、低置信回退 LLM 的级联。级联阈值使用 group-safe 五折 OOF 按 selective risk/coverage 校准，英文原句与中文翻译始终位于同一 fold；主候选在查看 test 前固定为 97% 接受精度档，阈值 0.5226。
 
@@ -372,7 +417,7 @@ LLM 与 embedding 并行，pattern 同步执行。官方 Anthropic SDK 没有 em
 
 级联与 V1 在上游总体持平，并显著减少 LLM 调用，说明它是有价值的成本/延迟候选；但中文总体仍低 2 条，OOS 和安全 slice 也没有同时形成无回退优势。中文训练增强和诊断由 LLM 生成或复核，没有人工 Gold，而且相关测试集已经被多轮查看。因此合理决策是**保留当前 V1，把级联留在离线实验**，而不是因为 Encoder 更“现代”就直接替换。详细证据见[本地 Encoder 可行性试验](./local-encoder-feasibility-2026-08-31.zh-CN.html)、[中文训练增强](./chinese-encoder-augmentation-2026-08-31.zh-CN.html)和[Encoder→LLM 级联试验](./encoder-llm-cascade-2026-08-31.zh-CN.html)。
 
-### 6.5 版本化缓存，不在线修改模板
+### 6.6 版本化缓存，不在线修改模板
 
 旧 `learn(message, correct)` 会直接修改模块级模板，却没有审核、版本和回滚；它还只清理模板向量，不清理已经生成的结果缓存。现在该接口已删除，内置模板改成只读映射。
 
@@ -387,7 +432,7 @@ SHA-256(
 
 `classifier_fingerprint` 覆盖模型 Profile、阈值、相似度模式、融合权重、Prompt 合同、标签定义、模板、Pattern、意图分组、紧急规则，以及固定 Bundle 的 Prompt/Few-shot 组件哈希。普通缓存默认一小时；低置信度与账户安全结果最多五分钟。最多保留约 1000 条，满后批量淘汰。它仍是进程内、可删除、可重建的加速层；多副本若需要共享命中率可以换 Redis，但 Redis 不拥有纠正事实。
 
-### 6.6 Prediction → Feedback → Annotation
+### 6.7 Prediction → Feedback → Annotation
 
 `/chat` 在一次真实识别后，把脱敏消息、预测标签、置信度、三路分数、输入/分类器指纹和 Bundle 版本写入 `BadCaseRegistry` 管理的 `intent_learning_records`，并返回 `intent_prediction_id`。预测事实不可变，记录失败只影响质量闭环，不篡改本次聊天结果。
 
@@ -395,10 +440,10 @@ SHA-256(
 
 只有带批准 annotation 的 Intent Case 才能进入 `CreditAttributor → GEPA-lite`，成为 Prompt/Few-shot 候选；候选仍必须跑 dev、fresh heldout、硬安全门禁和 Graduation，再经过 Shadow/Canary。人工批准一条线上纠正不等于把整个数据集标成 human Gold。
 
-### 6.7 面试中要主动承认
+### 6.8 面试中要主动承认
 
 - 字符 n-gram 是轻量相似度，不应声称为生产语义模型；
-- 三路权重是工程初始值；小规模对照不足以证明其全局最优；
+- 三路权重经过有限Dev搜索与冻结验证后被保留，但没有被证明全局最优；
 - BGE 级联已证明降低 LLM 调用的潜力，但尚未证明可无回退替换当前 V1；
 - cache 仍是进程内加速，多副本不共享命中率；若迁移 Redis，键仍必须保留完整分类器指纹；
 - 当前 prediction/annotation 权威库使用 SQLite，适合单应用写者；多写副本应迁移到共享事务数据库；

@@ -1,0 +1,61 @@
+{
+  "case_count": 300,
+  "cases_sha256": "07e47defe61861aeb41f7c16d154daea6a806dc76912df9380c2ebd1ea59b3a0",
+  "consumed_exclusion": {
+    "cases_sha256": "9dfd29819c8756c550ad96781caeb63164070d7717f3705246d281569d1d358f",
+    "dataset_id": "intent-weight-calibration-2026-08-31",
+    "excluded_heldout_count": 500
+  },
+  "created_at": "2026-08-31",
+  "dataset_id": "intent-weight-verification-2026-08-31",
+  "description": "Fresh official-test subset excluded from calibration and policy selection.",
+  "expected_distribution": {
+    "by_layer": {
+      "intent": 300
+    },
+    "by_layer_split": {
+      "intent:heldout": 300
+    },
+    "by_split": {
+      "heldout": 300
+    }
+  },
+  "mapping_policy": {
+    "excluded_banking_labels": [
+      "unable_to_verify_identity",
+      "verify_my_identity"
+    ],
+    "status": "auto_mapped_not_project_gold",
+    "targets": {
+      "account": 25,
+      "account_security": 25,
+      "logistics": 25,
+      "other": 100,
+      "payment_issue": 25,
+      "query": 25,
+      "refund": 25,
+      "technical": 25,
+      "technical_login": 25
+    }
+  },
+  "schema_version": 1,
+  "sources": [
+    {
+      "dataset": "banking77",
+      "license": "CC-BY-4.0",
+      "mapping": "selected overlapping intents only; auto-mapped, not project gold",
+      "url": "https://github.com/PolyAI-LDN/task-specific-datasets"
+    },
+    {
+      "dataset": "clinc150-oos",
+      "license": "CC-BY-4.0",
+      "mapping": "OOS examples only; mapped to DialogPilot other",
+      "url": "https://archive.ics.uci.edu/dataset/570/clinc150"
+    }
+  ],
+  "split_policy": {
+    "heldout": "unused upstream test/oos_test only"
+  },
+  "status": "fresh_upstream_test_report_only",
+  "version": "1.0.0-auto-mapped"
+}

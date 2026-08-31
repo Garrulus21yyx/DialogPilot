@@ -53,6 +53,26 @@ class IntentCategory(Enum):
     OTHER      = "other"
 
 
+class EvidencePolarity(Enum):
+    """Pattern 对某个意图的支持方向，而不是句子的情感倾向。"""
+
+    POSITIVE = "positive"
+    NEGATIVE = "negative"
+    UNCERTAIN = "uncertain"
+    QUOTED = "quoted"
+
+
+@dataclass(frozen=True)
+class PatternEvidence:
+    intent: IntentCategory
+    keyword: str
+    span: str
+    start: int
+    end: int
+    polarity: EvidencePolarity
+    specific: bool
+
+
 # 这是 IntentCategory 的业务语义 owner。Prompt、规则和评测文档都应引用同一份
 # 定义，避免把“客服领域外的一般问句”误当成 QUERY，或把安全事件误当支付失败。
 _INTENT_DEFINITIONS: Dict[IntentCategory, str] = {
@@ -60,21 +80,21 @@ _INTENT_DEFINITIONS: Dict[IntentCategory, str] = {
     IntentCategory.LOGISTICS: "本项目订单或银行卡的寄送、到达时间、配送方式",
     IntentCategory.REFUND: "取消购买、退货退款、退款进度或退款时限",
     IntentCategory.INVOICE: "发票开具、抬头、税号或电子发票",
-    IntentCategory.PAYMENT_ISSUE: "本人发起的支付失败、重复扣款、支付手续费或扣款异常",
-    IntentCategory.ACCOUNT_SECURITY: "非本人交易/取现、身份验证、盗号或异常登录等安全事件",
+    IntentCategory.PAYMENT_ISSUE: "本人发起的银行卡/借记卡支付失败或被拒、重复扣款、支付手续费；不含非本人交易",
+    IntentCategory.ACCOUNT_SECURITY: "非本人交易/取现/直接借记、卡片或手机丢失、盗号、异常登录、未主动请求却收到认证码等安全事件",
     IntentCategory.TECHNICAL_LOGIN: "PIN、验证码、登录、卡片解锁或认证代码问题",
     IntentCategory.TECHNICAL_CRASH: "应用崩溃、闪退、HTTP 500 或明确错误码",
     IntentCategory.HUMAN_HANDOFF: "明确要求本项目人工客服或升级处理",
-    IntentCategory.TECHNICAL: "银行卡、虚拟卡、非接触支付或应用功能不可用，且不属于登录/崩溃",
+    IntentCategory.TECHNICAL: "银行卡本体、虚拟卡、非接触支付或应用功能不可用；不含卡片丢失、非本人交易和付款被拒",
     IntentCategory.BILLING: "无法细分到退款、发票或支付异常的本项目账单问题",
     IntentCategory.ACCOUNT: "账户资料、地址、邮箱、销户等非安全账户管理",
-    IntentCategory.QUERY: "本项目范围内但无法细分的普通信息查询",
+    IntentCategory.QUERY: "在线银行/银行卡项目内但无法细分的产品支持查询，如支持币种、汇率、ATM、支持国家、卡片受理范围或 Visa/Mastercard",
     IntentCategory.REQUEST: "本项目范围内但无法细分的普通操作请求",
     IntentCategory.COMPLAINT: "对本项目服务表达不满，但未明确要求人工升级",
     IntentCategory.GREETING: "问候或开始对话",
     IntentCategory.ESCALATION: "投诉升级、找经理等升级诉求",
     IntentCategory.FEEDBACK: "对本项目服务的正面评价或建议",
-    IntentCategory.OTHER: "项目业务范围外、语义不足或不受支持；一般知识/股票/航班/购物查询均在此类",
+    IntentCategory.OTHER: "在线银行/银行卡客服范围外，或缺少可解析业务指代；一般知识、股票、航班、天气、购物查询均在此类",
 }
 
 
@@ -101,15 +121,17 @@ class IntentResult:
     input_fingerprint: str = ""
 
 
-# ── Few-shot 模板（同时用于 LLM 示例和 Embedding 匹配）────────────────────────
-_TEMPLATES: Mapping[IntentCategory, Tuple[str, ...]] = MappingProxyType({
-    IntentCategory.QUERY: ("我的订单状态是什么？", "如何重置密码？", "快递什么时候到？"),
+# ── V1 Few-shot 模板 ──────────────────────────────────────────────────────────
+# V1 同时把这份历史模板用于 Prompt 和字符 n-gram。保留别名以维持 V1 行为和
+# 指纹；V2 语义 Provider 只消费下面独立、无跨标签重复的原型合同。
+_LLM_FEW_SHOTS: Mapping[IntentCategory, Tuple[str, ...]] = MappingProxyType({
+    IntentCategory.QUERY: ("你们支持哪些币种？", "哪些国家可以使用这张卡？", "支持哪些 ATM？"),
     IntentCategory.COMPLAINT: ("等了好几个小时！", "服务太差了！", "一直没人处理！"),
     IntentCategory.REQUEST: ("帮我取消订单", "我需要修改地址", "请协助退款"),
     IntentCategory.GREETING: ("你好", "嗨，有人吗", "早上好"),
     IntentCategory.ESCALATION: ("我要投诉！", "转人工客服", "找你们经理"),
-    IntentCategory.TECHNICAL: ("应用一直崩溃", "无法登录", "出现500错误"),
-    IntentCategory.BILLING: ("为什么扣了两次款？", "申请退款", "发票问题"),
+    IntentCategory.TECHNICAL: ("感应支付功能用不了", "虚拟卡本身无法使用", "银行卡磁条功能坏了"),
+    IntentCategory.BILLING: ("我看不懂这期账单", "请解释账单构成", "这项账单费用是什么"),
     IntentCategory.ACCOUNT: ("修改邮箱", "注销账户", "更新个人信息"),
     IntentCategory.FEEDBACK: ("服务很棒！", "非常满意", "给个好评"),
     IntentCategory.ORDER_STATUS: ("我的订单现在是什么状态？", "订单有没有发货？", "订单处理到哪一步了？"),
@@ -117,10 +139,70 @@ _TEMPLATES: Mapping[IntentCategory, Tuple[str, ...]] = MappingProxyType({
     IntentCategory.REFUND: ("我要申请退款", "退货退款怎么处理？", "退款多久到账？"),
     IntentCategory.INVOICE: ("帮我开发票", "发票抬头怎么改？", "电子发票在哪里？"),
     IntentCategory.PAYMENT_ISSUE: ("为什么重复扣款？", "支付失败怎么办？", "这个月多扣了钱"),
-    IntentCategory.ACCOUNT_SECURITY: ("账户被盗了", "发现异常登录", "我要重置密码"),
+    IntentCategory.ACCOUNT_SECURITY: ("这笔交易不是我操作的", "银行卡丢了", "没操作却收到认证码"),
     IntentCategory.TECHNICAL_LOGIN: ("登录一直报401", "验证码收不到", "无法登录账号"),
     IntentCategory.TECHNICAL_CRASH: ("应用一直崩溃", "页面报500错误", "系统闪退"),
     IntentCategory.HUMAN_HANDOFF: ("转人工客服", "我要找人工", "请升级处理"),
+})
+_TEMPLATES = _LLM_FEW_SHOTS
+
+
+# V2 semantic prototype owner。泛化类不包含已支持的退款、登录、崩溃等细粒度
+# 表达；标准化后的同一句原型只能属于一个标签。OTHER 由距离和 margin 拒识，
+# 不通过伪造一个万能 OTHER 向量来表达。
+_SEMANTIC_PROTOTYPES: Mapping[IntentCategory, Tuple[str, ...]] = MappingProxyType({
+    IntentCategory.QUERY: (
+        "会员服务都包含哪些内容", "我想了解平台的一般业务规则", "你们目前支持哪些服务",
+    ),
+    IntentCategory.COMPLAINT: (
+        "你们的处理体验太差了", "这个服务让我非常不满意", "等了很久还是没人解决",
+    ),
+    IntentCategory.REQUEST: (
+        "请帮我办理一项业务", "麻烦协助完成这个操作", "我需要你们处理一下",
+    ),
+    IntentCategory.GREETING: ("你好", "早上好客服", "嗨我来咨询一下"),
+    IntentCategory.ESCALATION: (
+        "我要向主管投诉", "请把问题升级给经理", "这个问题需要上级处理",
+    ),
+    IntentCategory.TECHNICAL: (
+        "我的银行卡刷不了", "非接触支付功能不能使用", "虚拟卡在商户处不可用",
+    ),
+    IntentCategory.BILLING: (
+        "我看不懂这期账单", "请解释月度账单构成", "账单上的项目是什么意思",
+    ),
+    IntentCategory.ACCOUNT: (
+        "我要更新账户资料", "怎样修改注册邮箱", "请帮我注销账号",
+    ),
+    IntentCategory.FEEDBACK: (
+        "这次服务体验很好", "我想提一个产品建议", "客服处理得很专业",
+    ),
+    IntentCategory.ORDER_STATUS: (
+        "订单目前处理到哪一步", "我的订单发货了吗", "查询订单的处理状态",
+    ),
+    IntentCategory.LOGISTICS: (
+        "包裹预计什么时候送到", "物流轨迹一直没有更新", "银行卡寄送到哪里了",
+    ),
+    IntentCategory.REFUND: (
+        "我想取消购买并把钱退回", "退货以后多久能收到钱", "申请的退款还没有到账",
+    ),
+    IntentCategory.INVOICE: (
+        "我要开电子发票", "怎样修改发票抬头", "开票时税号怎么填写",
+    ),
+    IntentCategory.PAYMENT_ISSUE: (
+        "同一笔付款被扣了两次", "我本人发起的支付失败了", "付款时被收了额外手续费",
+    ),
+    IntentCategory.ACCOUNT_SECURITY: (
+        "这笔交易不是我操作的", "账户出现陌生设备登录", "我的账号可能被盗了",
+    ),
+    IntentCategory.TECHNICAL_LOGIN: (
+        "登录验证码一直收不到", "输入 PIN 后无法进入账户", "应用认证代码不工作",
+    ),
+    IntentCategory.TECHNICAL_CRASH: (
+        "应用打开后立刻闪退", "页面返回 HTTP 500", "客户端启动时一直崩溃",
+    ),
+    IntentCategory.HUMAN_HANDOFF: (
+        "请转接人工客服", "我要真人客服接管", "请安排人工处理这个问题",
+    ),
 })
 
 _SPECIFIC_INTENTS = {
@@ -172,7 +254,8 @@ _SPECIFIC_PATTERNS: Dict[IntentCategory, List[str]] = {
     IntentCategory.INVOICE: ["发票", "抬头", "税号", "invoice"],
     IntentCategory.PAYMENT_ISSUE: ["重复扣款", "多扣", "支付失败", "扣费", "payment failed", "extra fee"],
     IntentCategory.ACCOUNT_SECURITY: [
-        "被盗", "异常登录", "两步验证", "安全", "didn't buy", "did not make",
+        "被盗", "异常登录", "两步验证", "安全", "非本人", "不是我操作", "不是本人操作",
+        "陌生交易", "银行卡丢", "卡丢了", "没操作却收到", "didn't buy", "did not make",
         "don't recognize", "do not recognize", "fraudulent", "verify my id", "identity check",
         "didn't take out", "did not get", "non-received cash",
     ],
@@ -203,12 +286,148 @@ _VOTE_WEIGHTS = {
     "disabled": {"llm": 0.85, "pattern": 0.15},
 }
 
-_INTENT_PROMPT_POLICY = """先判断消息是否属于本项目客服范围；范围外的一般问句必须返回 other，不能因为它是问句就返回 query。
-陌生交易、非本人取现和身份验证属于 account_security；本人支付失败或手续费属于 payment_issue。
-银行卡、虚拟卡、非接触支付本身不可用属于 technical；PIN、验证码和解锁属于 technical_login。"""
+_INTENT_PROMPT_POLICY = """本项目是在线银行与银行卡客服。银行卡受理范围、ATM 支持、支持国家/币种、汇率、Visa 或 Mastercard 等产品规则都属于项目内 query，不得判为 other。
+先判断当前消息及最近对话是否提供了可解析的银行业务指代；没有业务指代的“还是没变化”“之前的事”“怎么又这样”属于信息不足，返回 other。真正范围外的一般问句也返回 other，不能因为它是问句就返回 query。
+陌生交易、非本人取现或直接借记、银行卡/手机丢失、未主动请求却收到认证码属于 account_security；本人发起的银行卡付款失败、被拒、重复扣款或支付手续费属于 payment_issue。
+银行卡本体、虚拟卡、非接触支付功能不可用属于 technical；PIN、用户主动请求但收不到/不能使用的验证码和解锁故障属于 technical_login。"""
 
 # 任何没有被上述数据常量表达、但会改变输出代数的实现变更都必须升级该值。
-_CLASSIFIER_CONTRACT_VERSION = "intent-classifier-v2"
+_CLASSIFIER_CONTRACT_VERSION = "intent-classifier-v4-pattern-polarity"
+
+
+_PATTERN_NEGATORS = (
+    "不是", "并非", "不属于", "不涉及", "不需要", "不要", "没要求", "没有要求", "未要求",
+    "not ", "no ", "don't need", "do not need", "isn't ", "without ",
+)
+_PATTERN_HEDGES = (
+    "可能", "好像", "不确定", "也许", "听说", "maybe ", "perhaps ", "not sure",
+)
+_PATTERN_QUOTE_PAIRS = (
+    ('"', '"'), ("'", "'"), ("“", "”"), ("‘", "’"), ("「", "」"), ("『", "』"),
+)
+
+
+def _inside_pattern_quotes(message: str, start: int, end: int) -> bool:
+    for left, right in _PATTERN_QUOTE_PAIRS:
+        if left == right:
+            if message[:start].count(left) % 2 == 1:
+                return True
+            continue
+        left_index = message.rfind(left, 0, start + 1)
+        if left_index >= 0 and message.find(right, end) >= 0:
+            return True
+    return False
+
+
+def _positive_negation_expression(
+    message: str,
+    intent: IntentCategory,
+    keyword: str,
+    start: int,
+    end: int,
+) -> bool:
+    """识别“含否定词但实际正向支持意图”的业务表达。"""
+    normalized_keyword = keyword.lower()
+    if intent is IntentCategory.ACCOUNT_SECURITY and any(token in normalized_keyword for token in (
+        "不是我", "不是本人", "非本人", "didn't", "did not", "don't recognize",
+        "do not recognize", "non-received",
+    )):
+        return True
+    if intent is IntentCategory.REFUND:
+        window = message[max(0, start - 10):min(len(message), end + 10)].lower()
+        if re.search(r"(?:没有|没|未).{0,4}(?:收到|到账|拿到).{0,5}(?:退款|退货)", window):
+            return True
+        if re.search(r"(?:退款|退货).{0,6}(?:没有|没|未).{0,4}(?:收到|到账|拿到)", window):
+            return True
+    return False
+
+
+def _pattern_polarity(
+    message: str,
+    intent: IntentCategory,
+    keyword: str,
+    start: int,
+    end: int,
+) -> EvidencePolarity:
+    if _inside_pattern_quotes(message, start, end):
+        return EvidencePolarity.QUOTED
+    if _positive_negation_expression(message, intent, keyword, start, end):
+        return EvidencePolarity.POSITIVE
+    prefix = message[max(0, start - 14):start].lower()
+    # 否定只支配当前局部子句，不能跨过逗号或“但/而是”污染后一个意图。
+    prefix = re.split(r"[，,。！？!?；;]|(?:但是|但|而是|不过|只是)", prefix)[-1]
+    suffix = message[end:min(len(message), end + 8)].lower()
+    if any(hedge in prefix for hedge in _PATTERN_HEDGES):
+        return EvidencePolarity.UNCERTAIN
+    if any(negator in prefix for negator in _PATTERN_NEGATORS):
+        return EvidencePolarity.NEGATIVE
+    if re.search(r"(?:没|没有|无).{0,2}问题", suffix):
+        return EvidencePolarity.NEGATIVE
+    return EvidencePolarity.POSITIVE
+
+
+def extract_pattern_evidence(message: str) -> tuple[PatternEvidence, ...]:
+    """返回全部 Pattern span 及其局部极性；细粒度命中拥有重复 span。"""
+    raw = str(message)
+    normalized = raw.lower()
+    evidence: list[PatternEvidence] = []
+    claimed_specific: set[tuple[int, int, str]] = set()
+    for specific, patterns in ((True, _SPECIFIC_PATTERNS), (False, _GENERIC_PATTERNS)):
+        for intent, keywords in patterns.items():
+            for keyword in keywords:
+                normalized_keyword = keyword.lower()
+                cursor = 0
+                while True:
+                    index = normalized.find(normalized_keyword, cursor)
+                    if index < 0:
+                        break
+                    end = index + len(normalized_keyword)
+                    identity = (index, end, normalized_keyword)
+                    if not specific and identity in claimed_specific:
+                        cursor = end
+                        continue
+                    evidence.append(PatternEvidence(
+                        intent=intent,
+                        keyword=keyword,
+                        span=raw[index:end],
+                        start=index,
+                        end=end,
+                        polarity=_pattern_polarity(raw, intent, keyword, index, end),
+                        specific=specific,
+                    ))
+                    if specific:
+                        claimed_specific.add(identity)
+                    cursor = end
+    return tuple(evidence)
+
+
+def pattern_supports(evidence: List[PatternEvidence] | Tuple[PatternEvidence, ...], intent: IntentCategory) -> bool:
+    relevant = [item for item in evidence if item.intent is intent]
+    return bool(relevant) and any(
+        item.polarity is EvidencePolarity.POSITIVE for item in relevant
+    ) and not any(
+        item.polarity is not EvidencePolarity.POSITIVE for item in relevant
+    )
+
+
+def _pattern_polarity_scores(evidence: Tuple[PatternEvidence, ...]) -> Dict[IntentCategory, float]:
+    """把同一意图的 Pattern 证据压成 [-1, 1]，冲突或不确定时弃权。"""
+    grouped: Dict[IntentCategory, Dict[EvidencePolarity, int]] = {}
+    for item in evidence:
+        counts = grouped.setdefault(item.intent, {})
+        counts[item.polarity] = counts.get(item.polarity, 0) + 1
+    scores: Dict[IntentCategory, float] = {}
+    for intent, counts in grouped.items():
+        positives = counts.get(EvidencePolarity.POSITIVE, 0)
+        negatives = counts.get(EvidencePolarity.NEGATIVE, 0)
+        uncertain = counts.get(EvidencePolarity.UNCERTAIN, 0) + counts.get(EvidencePolarity.QUOTED, 0)
+        if positives and not negatives and not uncertain:
+            scores[intent] = min(1.0, 0.5 + 0.25 * (positives - 1))
+        elif negatives and not positives:
+            scores[intent] = -min(1.0, 0.5 + 0.25 * (negatives - 1))
+        else:
+            scores[intent] = 0.0
+    return scores
 
 
 def _cosine(a: List[float], b: List[float]) -> float:
@@ -424,14 +643,35 @@ class IntentRecognizer:
             return {"intent": IntentCategory.OTHER, "confidence": 0.0}
 
     def _pattern_recognize(self, message: str) -> Dict[str, Any]:
-        """策略 3：关键词模式匹配（同步，零延迟兜底）。"""
-        msg = message.lower()
-        best_cat, best_score = self._best_pattern_match(msg, _SPECIFIC_PATTERNS)
-        if best_cat != IntentCategory.OTHER:
-            return {"intent": best_cat, "confidence": best_score}
-
-        best_cat, best_score = self._best_pattern_match(msg, _GENERIC_PATTERNS)
-        return {"intent": best_cat, "confidence": best_score}
+        """策略 3：输出带正向、负向、不确定/引用极性的 Pattern 证据。"""
+        evidence = extract_pattern_evidence(message)
+        polarity_scores = _pattern_polarity_scores(evidence)
+        for specific in (True, False):
+            candidates = {
+                item.intent
+                for item in evidence
+                if item.specific is specific and polarity_scores.get(item.intent, 0.0) > 0
+            }
+            if candidates:
+                order = _SPECIFIC_PATTERNS if specific else _GENERIC_PATTERNS
+                best_cat = min(
+                    candidates,
+                    key=lambda intent: (-polarity_scores[intent], list(order).index(intent)),
+                )
+                return {
+                    "intent": best_cat,
+                    "confidence": polarity_scores[best_cat],
+                    "polarity": EvidencePolarity.POSITIVE.value,
+                    "polarity_scores": polarity_scores,
+                    "evidence": evidence,
+                }
+        return {
+            "intent": IntentCategory.OTHER,
+            "confidence": 0.0,
+            "polarity": EvidencePolarity.UNCERTAIN.value if evidence else "none",
+            "polarity_scores": polarity_scores,
+            "evidence": evidence,
+        }
 
     # ── 投票合并 ──────────────────────────────────────────────────────────────
 
@@ -451,18 +691,35 @@ class IntentRecognizer:
 
         configured = _VOTE_WEIGHTS[self.similarity_mode]
         sources = {"llm": llm, "embedding": emb, "pattern": pat}
-        weights = [(sources[name], weight) for name, weight in configured.items()]
         scores: Dict[IntentCategory, float] = {}
-        for result, w in weights:
+        for name, w in configured.items():
+            if name == "pattern" and isinstance(pat.get("polarity_scores"), dict):
+                for raw_intent, signed_confidence in pat["polarity_scores"].items():
+                    intent = raw_intent if isinstance(raw_intent, IntentCategory) else IntentCategory(raw_intent)
+                    scores[intent] = scores.get(intent, 0.0) + w * float(signed_confidence)
+                continue
+            result = sources[name]
             cat  = result.get("intent", IntentCategory.OTHER)
             conf = result.get("confidence", 0.0)
             scores[cat] = scores.get(cat, 0.0) + w * conf
+
+        polarity_scores = pat.get("polarity_scores") or {}
+        if polarity_scores:
+            signed_values = [float(value) for value in polarity_scores.values()]
+            source_scores["pattern_positive"] = max([0.0, *signed_values])
+            source_scores["pattern_negative"] = max([0.0, *(-value for value in signed_values)])
 
         best = max(scores, key=scores.get)  # type: ignore
         best_score = scores[best]
         pat_intent = pat.get("intent", IntentCategory.OTHER)
         pat_conf = float(pat.get("confidence", 0.0) or 0.0)
-        if best in _GENERIC_INTENTS and pat_intent in _SPECIFIC_INTENTS and pat_conf >= 0.5 and best_score < 0.8:
+        if (
+            best in _GENERIC_INTENTS
+            and pat_intent in _SPECIFIC_INTENTS
+            and pat_conf >= 0.5
+            and best_score < 0.8
+            and (not pat.get("evidence") or pattern_supports(pat["evidence"], pat_intent))
+        ):
             source_scores["refined_by_pattern"] = pat_conf
             return pat_intent, max(best_score, pat_conf), source_scores
         if best_score < self.threshold:
@@ -576,6 +833,12 @@ class IntentRecognizer:
             "generic_patterns": {
                 category.value: list(values)
                 for category, values in sorted(_GENERIC_PATTERNS.items(), key=lambda item: item[0].value)
+            },
+            "pattern_polarity": {
+                "negators": list(_PATTERN_NEGATORS),
+                "hedges": list(_PATTERN_HEDGES),
+                "quote_pairs": [list(pair) for pair in _PATTERN_QUOTE_PAIRS],
+                "algebra": "positive:+w*c;negative:-w*c;uncertain_or_quoted:0",
             },
             "intent_groups": {
                 category.value: group.value

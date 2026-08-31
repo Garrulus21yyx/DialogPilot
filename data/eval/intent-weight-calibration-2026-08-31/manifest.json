@@ -1,0 +1,59 @@
+{
+  "case_count": 1000,
+  "cases_sha256": "9dfd29819c8756c550ad96781caeb63164070d7717f3705246d281569d1d358f",
+  "created_at": "2026-08-31",
+  "dataset_id": "intent-weight-calibration-2026-08-31",
+  "description": "Compact external calibration suite. Parameters may be selected on dev only; heldout is upstream test and report-only.",
+  "expected_distribution": {
+    "by_layer": {
+      "intent": 1000
+    },
+    "by_layer_split": {
+      "intent:dev": 500,
+      "intent:heldout": 500
+    },
+    "by_split": {
+      "dev": 500,
+      "heldout": 500
+    }
+  },
+  "mapping_policy": {
+    "excluded_banking_labels": [
+      "unable_to_verify_identity",
+      "verify_my_identity"
+    ],
+    "status": "auto_mapped_not_project_gold",
+    "targets_per_split": {
+      "account": 50,
+      "account_security": 50,
+      "logistics": 50,
+      "other": 100,
+      "payment_issue": 50,
+      "query": 50,
+      "refund": 50,
+      "technical": 50,
+      "technical_login": 50
+    }
+  },
+  "schema_version": 1,
+  "sources": [
+    {
+      "dataset": "banking77",
+      "license": "CC-BY-4.0",
+      "mapping": "selected overlapping intents only; auto-mapped, not project gold",
+      "url": "https://github.com/PolyAI-LDN/task-specific-datasets"
+    },
+    {
+      "dataset": "clinc150-oos",
+      "license": "CC-BY-4.0",
+      "mapping": "OOS examples only; mapped to DialogPilot other",
+      "url": "https://archive.ics.uci.edu/dataset/570/clinc150"
+    }
+  ],
+  "split_policy": {
+    "dev": "upstream train/oos_train",
+    "heldout": "upstream test/oos_test"
+  },
+  "status": "auto_mapped_external_calibration",
+  "version": "1.0.0-auto-mapped"
+}
