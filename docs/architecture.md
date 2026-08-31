@@ -1,4 +1,12 @@
+---
+layout: default
+title: 架构边界与职责归属
+permalink: /architecture.html
+---
+
 # 架构边界与职责归属
+
+> 中文架构总览：按一次请求、一次任务图和一次版本发布，定位每个权威事实的唯一 Owner。所有 Mermaid 图均可点击放大、滚轮或双指缩放，并可拖拽查看。
 
 DialogPilot 不是一条不断堆 Prompt 的调用链，而是按“谁拥有最终事实”划分边界。下面这张表既是仓库地图，也是面试时解释模块职责的主线。
 
@@ -9,7 +17,7 @@ DialogPilot 不是一条不断堆 Prompt 的调用链，而是按“谁拥有最
 | Chroma 部署模式 | `core/chroma_client.py` | 明确选择远程或嵌入式物理存储 |
 | 模型分层与推理策略 | `core/model_policy.py` | 按角色校验的模型、推理强度及请求级覆盖配置 |
 | 意图识别 | `core/intent_recognizer.py` | 意图、置信度、紧急程度和实体 |
-| 任务规划与 Agent 选择 | `agents/agent_orchestrator.py` | 带任务范围、风险、验收条件和 Owner 的 `TaskPlan` |
+| 任务规划与 Agent 选择 | `agents/agent_orchestrator.py` | 带依赖、上下文范围、风险、验收条件和 Owner 的 `TaskGraph` |
 | 编排合同与预算 | `agents/orchestration_contracts.py` | 任务身份、覆盖投影和共享执行截止时间 |
 | 必做任务覆盖 | `services/result_synthesizer.py` | 完成、缺失、失败、重复和意外任务的证据 |
 | 并行结果合成 | `services/result_synthesizer.py` | 唯一候选答案、冲突和升级决定 |
@@ -27,23 +35,30 @@ DialogPilot 不是一条不断堆 Prompt 的调用链，而是按“谁拥有最
 | 在线健康度 | `monitor/performance_monitor.py` | 告警和路由惩罚 |
 | 评测数据 | `evaluation/dataset.py` | 带版本、来源、审核状态、校验和及切分完整性的数据 |
 | 离线质量 | `evaluation/evaluator.py`、`evaluation/benchmark.py` | 运行时意图/路由报告及确定性分层评分 |
+| 评测晋级 | `evaluation/rubric.py`、`evaluation/graduation.py` | 不可变 Baseline、Rubric、硬门禁和晋级结论 |
+| 任务依赖与恢复 | `agents/orchestration_contracts.py`、`agents/run_store.py` | `TaskGraph` 依赖、上下文范围、Checkpoint、审批挑战与 Resume |
+| Agent 版本 | `services/evolution/bundle.py`、`registry.py` | 不可变 `AgentBundle`、内容哈希和版本指针 |
+| 失败归因与候选 | `services/evolution/envelope.py`、`attribution.py`、`proposal_generator.py` | 脱敏归因、可进化 Owner 和受限候选 |
+| 灰度与回滚 | `services/evolution/rollout.py` | Shadow、稳定 5%/25% 分桶、Active 与原子回滚 |
 
 ## `/chat` 的时序合同
 
-1. 先读取记忆，再识别当前请求。
-2. 意图只识别一次，知识检索和路由复用同一个结果。
-3. 只有受支持的业务意图才检索知识库。
+1. 先做用户输入安全检查，再从 RolloutManager 解析并固定本次请求的 `AgentBundle`。
+2. 读取记忆，再识别当前请求；Intent Prompt、Few-shot 和缓存键都绑定固定 Bundle。
+3. 意图只识别一次，知识检索和路由复用同一个结果；只有受支持的业务意图才检索知识库。
 4. 从 `TicketService` 读取该用户最多三个未进入 `CLOSED` 终态的事项，作为当前处理状态的权威投影。
-5. 构建一个 `TaskPlan`，在共享请求预算内执行职责明确的 Worker。
-6. Worker 只能看到白名单工具，最多执行 `REACT_MAX_STEPS`；授权仍由 `ToolManager` 决定。
-7. 每个计划任务都必须转换为类型化结果，并检查必做任务覆盖率。
-8. 合成唯一候选答案，在发布前校验覆盖、证据、完整性和安全性。
-9. 只把校验结论归因给真正产生该候选答案的 Agent 实例。
-10. 需要升级时，创建或复用一个幂等、持久化的人工工单。
-11. 将校验失败、覆盖失败和工具副作用不确定记录为 provisional Bad Case。
-12. 只持久化真正发布给用户的答案，并立即以稳定消息 ID 幂等写入跨会话情景索引。
-13. 持久化之后，异步提取有界且带来源的事实操作。
-14. 客户端关闭会话时，`finalize` 只补齐未覆盖范围的摘要/checkpoint 和索引 metadata，不删除事件日志。
+5. 构建依赖感知、上下文隔离的 `TaskGraph`；无依赖任务可并发，后继任务只在依赖成功后进入 ready 集合。
+6. Worker 只能看到任务声明的上下文和白名单工具，最多执行 `REACT_MAX_STEPS`；授权仍由 `ToolManager` 决定。
+7. 写工具等待审批时，RunStore 持久化 checkpoint 与审批挑战；Resume 重新验证绑定信息并幂等恢复原调用。
+8. 每个任务都必须转换为类型化结果，并检查必做任务覆盖率；依赖失败保留 `BLOCKED_DEPENDENCY` 证据。
+9. 合成唯一候选答案，在发布前校验覆盖、证据、完整性和安全性。
+10. 只把校验结论归因给真正产生该候选答案的 Agent 实例。
+11. 需要升级时，创建或复用一个幂等、持久化的人工工单。
+12. 将校验失败、覆盖失败和工具副作用不确定记录为 provisional Bad Case，并附加 Bundle 组件哈希归因信封。
+13. 只持久化真正发布给用户的答案，并立即以稳定消息 ID 幂等写入跨会话情景索引。
+14. 持久化之后，异步提取有界且带来源的事实操作。
+15. 客户端关闭会话时，`finalize` 只补齐未覆盖范围的摘要/checkpoint 和索引 metadata，不删除事件日志。
+16. 请求结束记录固定 Bundle 的质量/延迟代理指标；Shadow 副本不发布、不写业务事实。
 
 这个顺序保证记忆系统不会把“模型生成但未通过校验的答案”误认为已经展示给用户。
 
@@ -57,15 +72,34 @@ DialogPilot 不是一条不断堆 Prompt 的调用链，而是按“谁拥有最
 
 `ContextAssembler` 单独拥有“记忆数据如何转换成 LLM 输入”的职责。记忆、检索知识、画像和 `active_tickets` 放在带标签的数据分区中，真正的用户/助手历史仍然保留消息角色。活动工单 priority 为 90，高于历史画像/情景/摘要；订单、退款和账户的当前事实仍必须以实时业务工具结果为最高权威。装配器预留输出容量、从最老历史开始裁剪，并且不会伪造助手确认消息。
 
-## TaskPlan、预算与并行结果代数
+## TaskGraph、预算与并行结果代数
 
-编排器把所选能力转换成 `TaskPlan`。每个必做任务都有稳定 ID、唯一 Owner、明确范围、风险和成功标准。`ExecutionWindow` 为全部 Worker 和合成阶段提供共享截止时间，同时限制单 Agent 超时和最大 Agent 数量。每项任务最终只能进入：
+编排器把所选能力转换成 `TaskGraph`；`TaskPlan` 只保留为旧代码导入别名。每个必做任务都有稳定 ID、唯一 Owner、明确范围、`depends_on`、`context_refs`、副作用上界、风险和成功标准。图在执行任何 Worker 前拒绝重复 ID、悬空边和环；拓扑上同一波次可并行，后继只消费自己声明的上下文与依赖产物。`ExecutionWindow` 为全部 Worker 和合成阶段提供共享截止时间，同时限制单 Agent 超时和最大 Agent 数量。每项任务最终只能进入：
 
 ```text
-SUCCESS / TIMEOUT / ERROR / BUDGET_EXCEEDED
+SUCCESS / TIMEOUT / ERROR / BUDGET_EXCEEDED /
+BLOCKED_DEPENDENCY / AWAITING_APPROVAL
 ```
 
 `CoverageGate` 对比计划和结果，拒绝缺失、失败、重复或意外的必做任务证据。只有 `ResultSynthesizer` 能把有序任务结果转换为候选答案。发布校验器在调用模型之前，会先确定性拒绝覆盖不完整的候选。
+
+## 持久 ReAct 与审批恢复
+
+`RunStore` 是 ReAct Run、Checkpoint 和工具调用幂等账本的唯一 Owner。写工具需要审批时，执行器不是返回一个无法恢复的布尔值，而是把原始 `task_id`、认证用户、Bundle 版本、消息块、运行时状态、pending call 与过期时间写入 SQLite，并返回最小公开挑战。`POST /agent-runs/{run_id}/resume` 需要 `tool:approve` scope，重新校验用户/任务/工具/参数绑定后，以 CAS 迁移 checkpoint。
+
+```mermaid
+stateDiagram-v2
+    [*] --> RUNNING
+    RUNNING --> WAITING_APPROVAL: 写工具等待宿主批准
+    WAITING_APPROVAL --> RUNNING: 绑定校验 + CAS resume
+    RUNNING --> COMPLETED
+    RUNNING --> TOOL_ERROR
+    RUNNING --> MAX_STEPS
+    WAITING_APPROVAL --> EXPIRED
+    RUNNING --> CANCELLED
+```
+
+同一个 `tool_call_id` 只有一个执行声明；重放已完成调用返回相同 receipt，恢复竞争者不能重复提交写操作。恢复的是原 Worker 任务，不是整张图从头再跑；上层仍使用原 `task_id` 和 Bundle 版本继续合成。
 
 ## 路由质量反馈
 
@@ -109,6 +143,25 @@ CANDIDATE → TRIAGED → REPRODUCED → FIXING → REGRESSION_PASS → VERIFIED
 
 候选观察也可以进入 duplicate、not-a-bug、product-decision 或 privacy-rejected 等终态。进入 `REPRODUCED` 必须提供类型化评测层预期、Owner fixture 和证据哈希；进入 `REGRESSION_PASS` 必须提供修复提交。已关闭问题再次出现时，系统原子增加发生次数并重新打开为 `TRIAGED`。导出的样本永远只是 dev、provisional、consumed regression；运行时和导出器都无权把它声明为 Gold 或 fresh heldout。
 
+## Agent 进化与发布边界
+
+Bad Case 的新职责止于“提供失败资产”。`EvolutionEnvelope` 用 Bundle/Prompt/路由/检索/工具注册哈希和 producer/task/call ID 做版本归因；`CreditAttributor` 将安全、基础设施与未知副作用阻断在自动进化之外。可进化问题才会生成 4–8 个不可变 `AgentBundle` 候选。
+
+候选必须经过带来源 ID 与 checksum 的 Gate 执行证据、Rubric、fresh heldout 合同以及质量/延迟/成本 Pareto 选择。通过后也不会直接全量：`RolloutManager` 按 `Shadow → 5% → 25% → Active` 迁移，硬安全信号立即切回基线，软指标达到最小样本后用置信区间判断。完整代码链路与面试问答见[Agent 进化闭环](./agent-evolution/)。
+
+```mermaid
+flowchart LR
+    B[Bad Case] --> E[EvolutionEnvelope]
+    E --> A[Owner 归因]
+    A --> C[不可变候选]
+    C --> G[Graduation + Pareto]
+    G --> S[Shadow]
+    S --> C5[Canary 5%]
+    C5 --> C25[Canary 25%]
+    C25 --> P[Active]
+    S & C5 & C25 & P -->|硬/软退化| R[原子回滚]
+```
+
 ## 扩展点
 
 - 新增 Agent：定义专属 Prompt 并注册到 Orchestrator 池。
@@ -116,3 +169,4 @@ CANDIDATE → TRIAGED → REPRODUCED → FIXING → REGRESSION_PASS → VERIFIED
 - 新增业务行为：添加 `skills/<name>/SKILL.md`。
 - 更换模型供应商：通过 Anthropic-compatible 配置边界替换。
 - 多副本写入：在不改变 `TicketService` 与 `BadCaseRegistry` 合同的前提下，将 SQLite 替换为 PostgreSQL。
+- 多副本发布：保持 `RolloutManager` 唯一写语义，把 Bundle/Run/Rollout 的 SQLite 事务迁移为共享数据库事务。

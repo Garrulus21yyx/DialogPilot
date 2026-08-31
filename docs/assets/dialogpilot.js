@@ -18,21 +18,35 @@
     hero.className = "dp-hero";
     hero.setAttribute("aria-labelledby", title.id);
 
+    const pageProfiles = {
+      interview: {
+        eyebrow: "代码校准 · 面试防守手册",
+        signals: ["主张", "源码", "Owner", "合同", "取舍", "故障", "指标", "Trace", "边界", "追问"]
+      },
+      evolution: {
+        eyebrow: "版本控制 · Agent 进化闭环",
+        signals: ["Bad Case", "归因", "基线", "候选", "门禁", "Pareto", "Shadow", "5%", "25%", "回滚"]
+      },
+      overview: {
+        eyebrow: "架构证据 · DialogPilot",
+        signals: ["身份", "记忆", "意图", "RAG", "TaskGraph", "ReAct", "工具", "校验", "工单", "进化"]
+      },
+      tutorial: {
+        eyebrow: "运行时手册 · Python Agent 系统",
+        signals: ["记忆", "意图", "RAG", "任务图", "ReAct", "工具", "覆盖", "融合", "校验", "工单"]
+      }
+    };
+    const profile = pageProfiles[mode] || pageProfiles.tutorial;
     const eyebrow = document.createElement("div");
     eyebrow.className = "dp-eyebrow";
-    eyebrow.textContent = mode === "interview"
-      ? "Evidence-checked interview dossier · DialogPilot"
-      : "Runtime field guide · Python agent system";
+    eyebrow.textContent = profile.eyebrow;
     hero.appendChild(eyebrow);
     hero.appendChild(title);
     if (intro) hero.appendChild(intro);
 
     const path = document.createElement("div");
     path.className = "dp-signal-path";
-    const signalLabels = mode === "interview"
-      ? ["CLAIM", "CODE", "OWNER", "CONTRACT", "TRADE-OFF", "FAILURE", "METRIC", "TRACE", "BOUNDARY", "FOLLOW-UP"]
-      : ["MEMORY", "INTENT", "RAG", "TASK PLAN", "REACT", "TOOLS", "COVERAGE", "SYNTHESIS", "VERIFY", "TICKET"];
-    signalLabels.forEach(function (label) {
+    profile.signals.forEach(function (label) {
       const item = document.createElement("span");
       item.textContent = label;
       path.appendChild(item);
@@ -41,9 +55,17 @@
 
     const meta = document.createElement("div");
     meta.className = "dp-hero-meta";
-    const metaLabels = mode === "interview"
-      ? ["85 evidence-checked questions", "current-code answers", "unsupported claims flagged", "STAR + follow-up drills"]
-      : ["29 numbered chapters", "85 interview drills", "211 regression tests", "4-layer eval contract"];
+    const chapterCount = root.querySelectorAll(":scope > h2").length;
+    const questionCount = Array.from(root.querySelectorAll(":scope > h3")).filter(function (heading) {
+      return /^Q\d+(?:\.\d+)?：/.test(textOf(heading));
+    }).length;
+    const metaByMode = {
+      interview: [questionCount + " 个代码校准追问", "答案对应当前实现", "不支持的主张已标记", "STAR + 连续追问"],
+      evolution: [chapterCount + " 个闭环章节", "4–8 个受限候选", "Shadow → 5% → 25%", "硬信号立即回滚"],
+      overview: [chapterCount + " 个架构切面", "单一事实 Owner", "依赖感知 TaskGraph", "发布与学习分离"],
+      tutorial: [chapterCount + " 个仓库章节", questionCount + " 个面试追问", "251 项回归测试", "4 层评测合同"]
+    };
+    const metaLabels = metaByMode[mode] || metaByMode.tutorial;
     metaLabels.forEach(function (label) {
       const item = document.createElement("span");
       item.textContent = label;
@@ -84,10 +106,15 @@
   function buildRail(content, mode) {
     const rail = document.createElement("aside");
     rail.className = "dp-rail";
-    rail.setAttribute("aria-label", mode === "interview" ? "面经章节导航" : "教程章节导航");
-    rail.innerHTML = mode === "interview"
-      ? '<div class="dp-rail-head"><span>Defense map</span><strong>从旧答案到代码证据</strong></div>'
-      : '<div class="dp-rail-head"><span>Execution map</span><strong>从请求到可验证交付</strong></div>';
+    const heads = {
+      interview: ["答题地图", "从旧答案到代码证据"],
+      evolution: ["进化地图", "从线上失败到安全发布"],
+      overview: ["架构地图", "从职责边界到项目讲述"],
+      tutorial: ["执行地图", "从请求到可验证交付"]
+    };
+    const head = heads[mode] || heads.tutorial;
+    rail.setAttribute("aria-label", head[0] + "章节导航");
+    rail.innerHTML = '<div class="dp-rail-head"><span>' + head[0] + '</span><strong>' + head[1] + '</strong></div>';
 
     const nav = document.createElement("nav");
     nav.className = "dp-rail-nav";
@@ -112,7 +139,7 @@
   // 将所有 Q 编号追问改造成原生 details，保留键盘操作和无脚本降级能力。
   function makeQuestionsCollapsible(content) {
     const headings = Array.from(content.querySelectorAll(".dp-chapter > h3")).filter(function (heading) {
-      return /^Q\d+：/.test(textOf(heading));
+      return /^Q\d+(?:\.\d+)?：/.test(textOf(heading));
     });
     headings.forEach(function (heading, index) {
       const details = document.createElement("details");
@@ -474,14 +501,19 @@
     headings.forEach(function (heading) { observer.observe(heading); });
   }
 
-  // 教程和面经页共用同一阅读系统，其他 Jekyll 页面保持 Minima 原结构。
+  // 教程、面经、架构、讲述和进化页共用同一阅读系统。
   function initialize() {
     const root = document.querySelector(".page-content > .wrapper");
     if (!root) return;
-    const mode = root.querySelector("#面经使用说明") ? "interview" : "tutorial";
-    if (mode === "tutorial" && !root.querySelector("#快速导航")) return;
+    const pageTitle = textOf(root.querySelector(":scope > h1"));
+    let mode = "";
+    if (root.querySelector("#面经使用说明")) mode = "interview";
+    else if (pageTitle.indexOf("进化") !== -1) mode = "evolution";
+    else if (pageTitle.indexOf("架构边界") !== -1 || pageTitle.indexOf("项目讲述") !== -1) mode = "overview";
+    else if (root.querySelector("#快速导航")) mode = "tutorial";
+    if (!mode) return;
     root.classList.add("dp-page");
-    if (mode === "interview") root.classList.add("dp-interview-page");
+    root.classList.add("dp-" + mode + "-page");
 
     const hero = buildHero(root, mode);
     const content = document.createElement("article");

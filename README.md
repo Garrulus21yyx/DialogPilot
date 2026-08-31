@@ -11,7 +11,7 @@ BM25, RRF, and evidence projection; parent document IDs are deduplicated only
 after ranking. Existing v1 Chroma chunks remain readable but require a source
 reindex to gain the v2 overlap policy; ingestion never silently rewrites them.
 
-Chinese documentation: [full architecture tutorial](https://garrulus21yyx.github.io/DialogPilot/) · [code-checked interview guide](https://garrulus21yyx.github.io/DialogPilot/interview-guide.html) · [500-case layered evaluation](https://garrulus21yyx.github.io/DialogPilot/evaluation-500/)
+中文文档：[完整架构教程](https://garrulus21yyx.github.io/DialogPilot/) · [架构边界](https://garrulus21yyx.github.io/DialogPilot/architecture.html) · [项目讲述](https://garrulus21yyx.github.io/DialogPilot/project-pitch.html) · [Agent 进化闭环](https://garrulus21yyx.github.io/DialogPilot/agent-evolution/) · [代码校准面经](https://garrulus21yyx.github.io/DialogPilot/interview-guide.html) · [500 条分层评测](https://garrulus21yyx.github.io/DialogPilot/evaluation-500/)
 
 ## Why this project exists
 
@@ -24,15 +24,17 @@ owner and exposes the routing and verification decisions in the API response.
 ```text
 POST /chat
   -> normalize and screen high-confidence direct prompt-injection attempts before any model or memory access
+  -> resolve and pin one immutable AgentBundle from the active/canary rollout pointer
   -> load uncovered Redis events, range summaries, sourced facts, and hybrid episodic memory with bounded neighbor windows
   -> assemble a bounded prompt from those projections
   -> classify intent with LLM + local semantic similarity + patterns
   -> retrieve knowledge for business intents and project active TicketService cases
-  -> build a TaskPlan for General, Technical, Billing, or AccountSecurity owners
-  -> run scoped workers under one request deadline and max-Agent budget
+  -> build a dependency-aware, context-isolated TaskGraph for domain owners
+  -> execute topological waves under one request deadline and max-Agent budget
   -> inside each worker, execute a bounded ReAct loop through allowlisted tools
   -> verify required-task coverage from typed task outcomes
-  -> synthesize one candidate from SUCCESS / TIMEOUT / ERROR / BUDGET_EXCEEDED
+  -> persist write-tool approval checkpoints and idempotently resume the original run when approved
+  -> synthesize one candidate from typed task outcomes, including blocked dependencies and approval waits
   -> verify coverage, grounding, completeness, and safety (PASS / REJECT / UNKNOWN)
   -> feed PASS / REJECT quality back to the exact producing Agent instances
   -> publish only PASS answers; escalate every other outcome
@@ -41,6 +43,8 @@ POST /chat
   -> append the published turn with contiguous conversation-local sequence numbers and immediately upsert its raw events into episodic search
   -> extract source-linked, versioned facts in the background
   -> explicitly finalize short sessions by compensating any missing index metadata and advancing their summary checkpoint
+  -> attach a redacted EvolutionEnvelope to actionable Bad Cases for version/owner attribution
+  -> record pinned-bundle quality, latency, and cost-proxy evidence for controlled rollout
   -> return redacted TraceId, tool audit, and hybrid-memory retrieval evidence
 ```
 
@@ -83,7 +87,11 @@ usage, cost, and failure cases, is in
 - ChromaDB knowledge, episodic memory, and source-linked user facts
 - BM25 + weighted RRF hybrid long-term memory retrieval
 - Bounded ReAct tool execution with allowlists, approval gates, and TraceId audit
+- Dependency-aware TaskGraph execution with scoped context and typed blocked outcomes
+- Durable ReAct checkpoints, approval resume, and idempotent tool-call claims
 - Nine production Agent tools spanning knowledge, memory, tickets, orders, refund requests, and security events
+- Immutable AgentBundle versions, GEPA-lite constrained proposals, provenance-bearing graduation gates, and Pareto selection
+- Shadow, stable 5%/25% canaries, atomic activation, and hard/soft automatic rollback
 - Prometheus monitoring and anomaly detection
 - Docker Compose with Nginx, Redis, ChromaDB, and Prometheus
 - Pytest and GitHub Actions
@@ -151,6 +159,16 @@ fails startup when the declared server is unavailable; `embedded` uses only
 | `GET` | `/monitor` | Agent/tool metrics, alerts, and suggestions |
 | `GET` | `/eval/datasets` | List versioned evaluation sets and review state |
 | `POST` | `/eval/run` | Run selected intent/routing dataset slices or smoke cases |
+| `POST` | `/eval/baseline/promote` | Promote a graduated immutable evaluation snapshot |
+| `GET` | `/agent-runs/{run_id}` | Read the minimal public state of a persisted ReAct run |
+| `POST` | `/agent-runs/{run_id}/resume` | Approve and idempotently resume the bound pending tool call |
+| `POST` | `/evolution/proposals` | Generate 4–8 constrained candidates from one attributed Bad Case group |
+| `GET/POST` | `/evolution/bundles` | Inspect or register immutable AgentBundle versions |
+| `POST` | `/evolution/rollouts/{version}/shadow` | Start a rollout from matching graduation evidence |
+| `POST` | `/evolution/rollouts/{version}/canary` | Move monotonically through 5% and 25% canary stages |
+| `POST` | `/evolution/rollouts/{version}/active` | Atomically activate a successful 25% canary |
+| `POST` | `/evolution/rollouts/{version}/rollback` | Manually restore the recorded baseline pointer |
+| `POST` | `/evolution/rollouts/signals/hard` | Immediately roll back on a closed hard-safety signal |
 | `POST` | `/tickets` | Manually create an idempotent handoff ticket |
 | `GET` | `/tickets` | List tickets by user and/or status |
 | `GET` | `/tickets/{ticket_id}` | Read a ticket and its transition history |
@@ -196,7 +214,7 @@ fail-closed handoff instead of being hidden by a fluent partial answer.
 ## Versioned evaluation data
 
 The committed `dialogpilot-500-v1` suite contains 500 cases: 180 intent/OOS,
-120 TaskPlan routing, 100 retrieval, and 100 stateful memory/tool-safety cases,
+120 TaskGraph routing, 100 retrieval, and 100 stateful memory/tool-safety cases,
 with a group-safe 400/100 dev/heldout split. External intent cases remain
 `auto_mapped`; project cases remain `provisional`, so the default scorer still
 excludes them from project-gold metrics until human review.
@@ -303,6 +321,14 @@ use the existing intent/routing/retrieval/stateful layers with `split=dev`,
 `status=provisional`, and `consumed_regression`; human Gold remains a separate,
 explicit review action.
 
+Bad Cases also carry a redacted `EvolutionEnvelope` containing the exact Bundle
+and component hashes plus producer/task/tool-call IDs. A deterministic
+attributor blocks security, infrastructure, cancellation, timeout, and unknown
+side-effect cases from automatic evolution. Only already-wired prompt,
+few-shot, routing, retrieval, and tool-description surfaces may become
+immutable candidates. Candidates cannot update the active pointer directly:
+they require real gate artifacts, graduation, and Shadow -> 5% -> 25% rollout.
+
 ## Verification contract
 
 The answer verifier owns the publication decision:
@@ -325,16 +351,22 @@ and generated caches are intentionally excluded. Never commit `.env`.
   signed `sub`, while admin and knowledge routes require scopes. Multi-tenant
   organization policy and external IdP/JWKS integration remain future work.
 - SQLite is suitable for a single application writer; a multi-replica deployment
-  should migrate the TicketService and BadCaseRegistry contracts to PostgreSQL.
+  should migrate the TicketService, BadCaseRegistry, RunStore, BundleRegistry,
+  and RolloutManager contracts to a shared transactional database.
 - LLM verification adds latency and model cost to each published response.
 - The repository has a 500-case provisional layered suite but no human-reviewed
   gold cases yet. Stateful heldout has been consumed as regression evidence;
   none of these results supports a production accuracy claim.
-- No pre-generated quality baseline is committed; `/eval/run` creates one for
-  the configured model and environment.
+- Evaluation runs create candidates, not an implicit baseline. Only explicit
+  graduation plus `/eval/baseline/promote` changes the immutable active snapshot.
 - Local development expects Redis; Chroma must be explicitly `remote` or `embedded`.
 - Trace spans and tool audits are process-local bounded memory, not durable
   OpenTelemetry storage; restarts remove them.
-- Default approval safely blocks high-risk/write tools, but there is not yet an
-  interactive approve-and-resume HTTP workflow.
+- Approval resume is persisted and bound to the original user/task/Bundle/tool
+  call. It resumes that ReAct task; it is not yet a general distributed workflow
+  engine that replays an entire multi-agent graph across process topologies.
+- Shadow execution consumes model/retrieval capacity. Online `cost_units` is
+  currently an Agent/tool-count proxy rather than provider-billed currency, and
+  hard-signal detection still needs an external safety monitor to call the
+  closed admin endpoint.
 - `MCPToolManager` is an internal tool runtime, not a remote MCP protocol server.

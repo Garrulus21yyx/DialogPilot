@@ -23,7 +23,7 @@
 | 3. Run Checkpoint + Approval Resume | completed | ReAct RunStore、ToolManager 幂等调用、API resume | 238 tests passed；`e9682ad` 已 push |
 | 4. EvolutionEnvelope + AgentBundle Registry | completed | `services/evolution/*`、BadCase/API 版本归因 | 244 tests passed；`c19e2c8` 已 push |
 | 5. GEPA-lite Candidate + Graduation 集成 | completed | 聚类、责任归因、候选生成、Pareto 选择 | 248 tests passed；`864c899` 已 push |
-| 6. Shadow/Canary/Active + 自动回滚 | completed | Rollout Owner、稳定分桶、指标窗口、Active 指针 | 251 tests passed；待 commit/push |
+| 6. Shadow/Canary/Active + 自动回滚 | completed | Rollout Owner、稳定分桶、指标窗口、Active 指针 | 251 tests passed；`40a65bc` 已 push |
 | 7. Pages/教程/面试问答同步 | in_progress | architecture、project-pitch、完整教程、图 | 页面构建与浏览器验证；commit/push |
 
 ## 影响面
@@ -46,7 +46,7 @@
 - 所有 Owner 只有一个权威状态源，投影和报告不反写权威事实。
 - 支持的状态、迁移、终态、幂等键和未知状态处理均闭合。
 - 属性/状态机/变异或生成式测试覆盖正常、失败、重试、取消、审批、并发、回滚和投影边界。
-- 现有 211 项回归与新增测试全部通过；CI 与 Pages 成功。
+- 当前 251 项回归与文档检查全部通过；CI 与 Pages 成功。
 - 新鲜对抗用例不需要逐例新增生产分支即可通过。
 - 代码、测试、文档、线上页面和对外口径一致。
 
