@@ -432,6 +432,7 @@ class BadCaseRegistry:
         status: Optional[BadCaseStatus] = None,
         stage: Optional[BadCaseStage] = None,
         severity: Optional[BadCaseSeverity] = None,
+        semantic_group_id: Optional[str] = None,
         limit: int = 50,
     ) -> List[BadCase]:
         clauses: List[str] = []
@@ -444,6 +445,9 @@ class BadCaseRegistry:
             if value is not None:
                 clauses.append(f"{column}=?")
                 params.append(enum_type(value).value)
+        if semantic_group_id is not None:
+            clauses.append("semantic_group_id=?")
+            params.append(self._slug(semantic_group_id, 160))
         where = f" WHERE {' AND '.join(clauses)}" if clauses else ""
         params.append(max(1, min(int(limit), 200)))
         with self._connect() as conn:

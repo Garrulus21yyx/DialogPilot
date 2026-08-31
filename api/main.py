@@ -62,7 +62,10 @@ from services.evolution import (
     BundleContractError,
     BundleNotFoundError,
     EvolutionEnvelope,
+    BadCaseMiner,
+    CreditAttributor,
     build_default_bundle,
+    build_llm_proposal_generator,
 )
 
 load_dotenv()
@@ -97,6 +100,7 @@ _authenticator = None
 _model_policy = None
 _run_store = None
 _bundle_registry = None
+_proposal_generator = None
 _trace_recorder = TraceRecorder()
 _input_security_guard = PromptInjectionGuard()
 
@@ -147,7 +151,7 @@ def _anthropic_cfg() -> Dict[str, Any]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """按依赖顺序创建所有组件，并在退出时释放后台任务和连接。"""
-    global _orchestrator, _memory, _knowledge_base, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry
+    global _orchestrator, _memory, _knowledge_base, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator
 
     print(BANNER, flush=True)
 
@@ -185,6 +189,11 @@ async def lifespan(app: FastAPI):
         )
     )
     _bundle_registry.bootstrap(build_default_bundle(_model_policy.to_dict()))
+    _proposal_generator = build_llm_proposal_generator(
+        api_key=cfg["api_key"],
+        base_url=cfg.get("base_url"),
+        model_profile=_model_policy.profile(ModelRole.JUDGE),
+    )
     logger.info("模型分层策略: %s", _model_policy.to_dict())
 
     # 单一意图识别器同时注入 Orchestrator 与 Evaluator，避免 cache/学习状态分叉。
@@ -401,6 +410,7 @@ async def lifespan(app: FastAPI):
         _model_policy = None
         _run_store = None
         _bundle_registry = None
+        _proposal_generator = None
         logger.info("DialogPilot 已关闭")
 
 
@@ -510,6 +520,13 @@ class AgentBundleInput(BaseModel):
     tool_descriptions: Dict[str, str] = Field(default_factory=dict)
     model_policy: Dict[str, Any] = Field(default_factory=dict)
     source_badcase_groups: List[str] = Field(default_factory=list)
+
+
+class EvolutionProposalInput(BaseModel):
+    """从一个已归因 Bad Case 组生成 4-8 个不可变候选。"""
+
+    semantic_group_id: str = Field(min_length=1, max_length=160)
+    candidate_count: int = Field(default=4, ge=4, le=8)
 
 
 class TicketCreateRequest(BaseModel):
@@ -879,6 +896,59 @@ async def _capture_chat_badcases(
         )
 
 
+@app.post("/evolution/proposals", tags=["Agent Evolution"])
+async def generate_evolution_proposals(
+    body: EvolutionProposalInput,
+    principal: Principal = Depends(_admin_principal),
+):
+    """反思式生成受限候选；只注册，不晋级、不发布。"""
+    if _badcase_registry is None or _bundle_registry is None or _proposal_generator is None:
+        raise HTTPException(503, "Agent Evolution 服务未就绪")
+    cases = await asyncio.to_thread(
+        _badcase_registry.list,
+        semantic_group_id=body.semantic_group_id,
+        limit=200,
+    )
+    clusters = BadCaseMiner().cluster(cases)
+    cluster = next((item for item in clusters if item.group_id == body.semantic_group_id), None)
+    if cluster is None:
+        raise HTTPException(404, {"code": "evolution_group_not_found"})
+    attribution = CreditAttributor().attribute(cluster)
+    if not attribution.evolvable:
+        raise HTTPException(409, {
+            "code": "owner_not_auto_evolvable",
+            "attribution": attribution.to_dict(),
+        })
+    base = await asyncio.to_thread(_bundle_registry.active)
+    try:
+        candidates = await _proposal_generator.generate(
+            base=base,
+            cluster=cluster,
+            attribution=attribution,
+            candidate_count=body.candidate_count,
+        )
+        for candidate in candidates:
+            await asyncio.to_thread(
+                _bundle_registry.register,
+                candidate,
+                actor=f"proposal:{principal.subject}",
+            )
+    except BundleContractError as exc:
+        raise HTTPException(422, {"code": "invalid_evolution_proposal", "message": str(exc)}) from exc
+    except Exception as exc:
+        logger.exception("Evolution proposal 生成失败 group=%s", body.semantic_group_id)
+        raise HTTPException(502, {"code": "proposal_provider_failed"}) from exc
+    return {
+        "base_version": base.version,
+        "attribution": attribution.to_dict(),
+        "candidates": [
+            {"version": item.version, "content_hash": item.content_hash}
+            for item in candidates
+        ],
+        "active_changed": False,
+    }
+
+
 @app.get("/evolution/bundles", tags=["Agent Evolution"])
 async def list_agent_bundles(
     limit: int = Query(default=100, ge=1, le=500),
@@ -962,7 +1032,9 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
         for m in mem_ctx.recent_messages[-5:]
     ] if mem_ctx.recent_messages else None
 
-    intent_result = await _orchestrator.recognize_intent(req.message, history=intent_history)
+    intent_result = await _orchestrator.recognize_intent(
+        req.message, history=intent_history, bundle=bundle,
+    )
     knowledge_text, knowledge_used = await _build_knowledge_context(
         req.message, intent=intent_result.intent, bundle=bundle,
     )
@@ -1620,6 +1692,7 @@ class EvalRunInput(BaseModel):
     split: Literal["dev", "heldout"] = "dev"
     layers: Optional[List[Literal["intent", "routing", "retrieval", "stateful"]]] = None
     include_non_gold: bool = False
+    bundle_version: Optional[str] = Field(default=None, min_length=1, max_length=128)
 
 
 class EvalGraduationInput(BaseModel):
@@ -1857,11 +1930,24 @@ async def run_eval(
             dialog_cases = DEFAULT_DIALOG_CASES
 
     metadata["model_policy"] = _model_policy.to_dict() if _model_policy is not None else None
+    agent_bundle = None
+    if body and body.bundle_version:
+        if _bundle_registry is None:
+            raise HTTPException(503, "Agent Bundle 服务未就绪")
+        try:
+            agent_bundle = await asyncio.to_thread(
+                _bundle_registry.get, body.bundle_version,
+            )
+        except BundleNotFoundError as exc:
+            raise HTTPException(404, {"code": "bundle_not_found"}) from exc
+    elif _bundle_registry is not None:
+        agent_bundle = await asyncio.to_thread(_bundle_registry.active)
     with capture_llm_usage() as usage:
         report = await _evaluator.run(
             intent_cases=intent_cases,
             dialog_cases=dialog_cases,
             metadata=metadata,
+            agent_bundle=agent_bundle,
         )
     report.metadata["llm_usage"] = usage.summary()
     return {

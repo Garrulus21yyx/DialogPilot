@@ -15,7 +15,9 @@ class BundleContractError(ValueError):
 
 
 _VERSION = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}")
-_AGENTS = {"*", "general", "technical", "billing", "account_security", "escalation"}
+_AGENTS = {
+    "*", "intent", "general", "technical", "billing", "account_security", "escalation",
+}
 _ROUTING_KEYS = {"supporting_threshold", "clarification_threshold"}
 _RETRIEVAL_KEYS = {"top_k", "rrf_k", "vector_weight", "lexical_weight"}
 _PROHIBITED = re.compile(

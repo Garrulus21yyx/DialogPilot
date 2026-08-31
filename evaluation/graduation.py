@@ -79,6 +79,11 @@ class GraduationGate:
     def evaluate(self, evidence: GraduationEvidence) -> GraduationDecision:
         report = evidence.report
         reasons = []
+        report_bundle = str(getattr(report, "metadata", {}).get("agent_bundle_version") or "")
+        if report_bundle and report_bundle != evidence.candidate_id:
+            reasons.append(
+                f"report bundle {report_bundle!r} does not match candidate {evidence.candidate_id!r}"
+            )
         missing = [
             gate for gate in self.policy.required_hard_gates
             if gate not in evidence.hard_gates

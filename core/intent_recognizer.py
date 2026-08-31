@@ -17,13 +17,14 @@ import re
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Mapping, Optional
 
 from anthropic import AsyncAnthropic
 
 from core.llm_utils import extract_text_content
 from core.llm_metrics import create_message
 from core.model_policy import ModelProfile, ModelRole
+from services.evolution.bundle import AgentBundle
 
 logger = logging.getLogger(__name__)
 
@@ -211,6 +212,7 @@ class IntentRecognizer:
         self,
         message: str,
         history: Optional[List[Dict[str, str]]] = None,
+        bundle: Optional[AgentBundle] = None,
     ) -> IntentResult:
         """
         识别用户意图。
@@ -218,6 +220,8 @@ class IntentRecognizer:
         history 格式：[{"role": "user"/"assistant", "content": "..."}]
         """
         key = self._cache_key(message, history)
+        if bundle is not None:
+            key = f"{key}:{bundle.component_hash('prompts')}:{bundle.component_hash('few_shots')}"
         if key in self._cache:
             self.cache_hits += 1
             return self._cache[key]
@@ -226,7 +230,7 @@ class IntentRecognizer:
         t0 = time.monotonic()
 
         # LLM 和 Embedding 并行（Embedding 不可用时跳过）
-        llm_task = asyncio.create_task(self._llm_recognize(message, history))
+        llm_task = asyncio.create_task(self._llm_recognize(message, history, bundle=bundle))
         emb_task = asyncio.create_task(self._embedding_recognize(message)) if self._embedding_enabled else None
         pat      = self._pattern_recognize(message)
 
@@ -272,6 +276,7 @@ class IntentRecognizer:
         self,
         message: str,
         history: Optional[List[Dict[str, str]]],
+        bundle: Optional[AgentBundle] = None,
     ) -> Dict[str, Any]:
         """策略 1：LLM 语义理解（Few-shot + 上下文）。"""
         message = self._clean_text(message)
@@ -281,6 +286,15 @@ class IntentRecognizer:
             for cat, tpls in _TEMPLATES.items()
             for t in tpls[:1]  # 每类取 1 条，控制 prompt 长度
         )
+        if bundle is not None:
+            candidate_examples = bundle.few_shot_examples("intent")
+            if candidate_examples:
+                examples = examples + "\n" + "\n".join(
+                    f"  消息: {json.dumps(str(item.get('message') or ''), ensure_ascii=False)}"
+                    f" → 意图: {str(item.get('intent') or 'other')}"
+                    for item in candidate_examples
+                    if isinstance(item, Mapping)
+                )
         definitions = "\n".join(
             f"  - {category.value}: {description}"
             for category, description in _INTENT_DEFINITIONS.items()
@@ -293,12 +307,14 @@ class IntentRecognizer:
                 for m in history[-3:]
             )
 
+        policy_fragment = bundle.prompt_fragment("intent") if bundle is not None else ""
         prompt = f"""你是 DialogPilot 客服系统的意图分类器。根据业务标签合同判断用户意图，返回 JSON。
 如果用户问题能匹配细粒度业务意图，请优先返回细粒度意图，而不是宽泛大类。
 例如退款优先返回 refund，发票优先返回 invoice，登录故障优先返回 technical_login。
 先判断消息是否属于本项目客服范围；范围外的一般问句必须返回 other，不能因为它是问句就返回 query。
 陌生交易、非本人取现和身份验证属于 account_security；本人支付失败或手续费属于 payment_issue。
 银行卡、虚拟卡、非接触支付本身不可用属于 technical；PIN、验证码和解锁属于 technical_login。
+{policy_fragment}
 
 业务标签合同:
 {definitions}

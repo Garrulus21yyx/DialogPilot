@@ -36,6 +36,7 @@ from evaluation.graduation import (
     ImmutableBaselineStore,
 )
 from evaluation.rubric import CaseRubric
+from services.evolution.bundle import AgentBundle
 
 logger = logging.getLogger(__name__)
 
@@ -188,13 +189,21 @@ class IntentEvaluator:
         """注入被测意图识别器。"""
         self._recognizer = recognizer
 
-    async def evaluate(self, cases: List[IntentTestCase]) -> Dict[str, Any]:
+    async def evaluate(
+        self,
+        cases: List[IntentTestCase],
+        *,
+        agent_bundle: Optional[AgentBundle] = None,
+    ) -> Dict[str, Any]:
         """运行全部样本并计算 accuracy、macro-F1 与逐类指标。"""
         predictions, ground_truth = [], []
         case_details: List[Dict[str, Any]] = []
 
         for case in cases:
-            result = await self._recognizer.recognize(case.message)
+            if agent_bundle is None:
+                result = await self._recognizer.recognize(case.message)
+            else:
+                result = await self._recognizer.recognize(case.message, bundle=agent_bundle)
             predicted = result.intent.value
             predictions.append(predicted)
             ground_truth.append(case.expected_intent)
@@ -280,6 +289,7 @@ class EndToEndEvaluator:
         intent_cases:    Optional[List[IntentTestCase]] = None,
         dialog_cases:    Optional[List[Dict[str, Any]]] = None,
         metadata:        Optional[Dict[str, Any]] = None,
+        agent_bundle:    Optional[AgentBundle] = None,
     ) -> EvalReport:
         """
         运行完整评测。
@@ -310,7 +320,9 @@ class EndToEndEvaluator:
         # 1. 意图识别评测
         intent_metrics: Dict[str, Any] = {}
         if intent_cases:
-            intent_metrics = await self._intent_evaluator.evaluate(intent_cases)
+            intent_metrics = await self._intent_evaluator.evaluate(
+                intent_cases, agent_bundle=agent_bundle,
+            )
             passed = intent_metrics["accuracy"] >= self.PASS_THRESHOLD
             results.append(EvalResult(
                 test_id="intent_recognition",
@@ -327,7 +339,9 @@ class EndToEndEvaluator:
         # 2. 对话质量评测（调用 orchestrator 产出回复，再用 LLM Judge 评分）
         if dialog_cases:
             for i, case in enumerate(dialog_cases):
-                case_results = await self._evaluate_dialog_case(case, i)
+                case_results = await self._evaluate_dialog_case(
+                    case, i, agent_bundle=agent_bundle,
+                )
                 results.extend(case_results)
                 for r in case_results:
                     for k in all_scores:
@@ -350,6 +364,12 @@ class EndToEndEvaluator:
         # 5. 优化建议
         recommendations = self._recommendations(avg_scores, intent_metrics)
 
+        report_metadata = dict(metadata or {})
+        if agent_bundle is not None:
+            report_metadata.update({
+                "agent_bundle_version": agent_bundle.version,
+                "agent_bundle_sha256": agent_bundle.content_hash,
+            })
         report = EvalReport(
             timestamp=datetime.now().isoformat(),
             total=len(results),
@@ -359,12 +379,18 @@ class EndToEndEvaluator:
             regressions=regressions,
             recommendations=recommendations,
             results=results,
-            metadata=dict(metadata or {}),
+            metadata=report_metadata,
         )
         self._history.append(report)
         return report
 
-    async def _evaluate_dialog_case(self, case: Dict[str, Any], case_idx: int) -> List[EvalResult]:
+    async def _evaluate_dialog_case(
+        self,
+        case: Dict[str, Any],
+        case_idx: int,
+        *,
+        agent_bundle: Optional[AgentBundle] = None,
+    ) -> List[EvalResult]:
         """评测单轮或多轮对话用例。"""
         from agents.agent_orchestrator import Request as OrcReq
 
@@ -397,6 +423,8 @@ class EndToEndEvaluator:
                     float(supplied_confidence) if supplied_confidence is not None else 1.0
                 ),
                 entities=dict(case.get("entities") or {}),
+                bundle_version=agent_bundle.version if agent_bundle else "unversioned",
+                agent_bundle=agent_bundle,
             )
             routing_only = case.get("evaluation_layer") == "routing"
             if routing_only:

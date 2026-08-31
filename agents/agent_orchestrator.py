@@ -614,14 +614,17 @@ class AgentOrchestrator:
         self,
         message: str,
         history: Optional[List[Dict[str, str]]] = None,
+        bundle: Optional[AgentBundle] = None,
     ):
         """对外暴露意图识别，供 API 层先判断是否需要 RAG 等前置能力。"""
-        return await self._intent_recognizer.recognize(message, history=history)
+        return await self._intent_recognizer.recognize(message, history=history, bundle=bundle)
 
     async def plan(self, req: Request) -> PlanningDecision:
         """只完成意图补全和 TaskPlan 生成，保证不会执行 Worker、工具或融合器。"""
         if req.intent is None:
-            intent_result = await self._intent_recognizer.recognize(req.message, history=req.history)
+            intent_result = await self._intent_recognizer.recognize(
+                req.message, history=req.history, bundle=req.agent_bundle,
+            )
             req.intent = intent_result.intent
             req.intent_group = intent_result.intent_group
             req.urgency = intent_result.urgency

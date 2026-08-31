@@ -51,7 +51,7 @@ class FakeOrchestrator:
     def __init__(self):
         self.feedback = []
 
-    async def recognize_intent(self, _message, history=None):
+    async def recognize_intent(self, _message, history=None, bundle=None):
         return SimpleNamespace(
             intent=IntentCategory.HUMAN_HANDOFF,
             intent_group="escalation",

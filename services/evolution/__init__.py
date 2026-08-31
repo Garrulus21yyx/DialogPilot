@@ -7,6 +7,9 @@
 from .bundle import AgentBundle, BundleContractError, build_default_bundle
 from .envelope import EvolutionEnvelope
 from .registry import AgentBundleRegistry, BundleConflictError, BundleNotFoundError
+from .attribution import AttributionDecision, CreditAttributor, EvolutionSurface
+from .miner import BadCaseCluster, BadCaseMiner
+from .proposal_generator import GEPALiteProposalGenerator, build_llm_proposal_generator
 
 __all__ = [
     "AgentBundle",
@@ -15,5 +18,12 @@ __all__ = [
     "BundleContractError",
     "BundleNotFoundError",
     "EvolutionEnvelope",
+    "AttributionDecision",
+    "BadCaseCluster",
+    "BadCaseMiner",
+    "CreditAttributor",
+    "EvolutionSurface",
+    "GEPALiteProposalGenerator",
     "build_default_bundle",
+    "build_llm_proposal_generator",
 ]
