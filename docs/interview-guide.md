@@ -62,13 +62,21 @@ title: DialogPilot 面经校准与追问手册
 
 ### Q7：意图识别方案是什么？
 
-**CURRENT。** 从闭合 `IntentCategory` 枚举选择，不让 LLM 自由创类别。`INTENT_SIMILARITY_MODE=ngram` 时是 LLM 0.70 + 本地字符 n-gram 0.20 + 规则 0.10；`disabled` 时是 LLM 0.85 + 规则 0.15。模式与 provider base URL 解耦，融合低于 0.5 归 `OTHER`。
+**CURRENT。** 从闭合 `IntentCategory` 枚举选择，不让 LLM 自由创类别。`INTENT_SIMILARITY_MODE=ngram` 时是 LLM 0.70 + 本地字符 n-gram 0.20 + Pattern 0.10；`disabled` 时是 LLM 0.85 + Pattern 0.15。LLM 负责复杂语义和历史，n-gram 提供低成本、确定性的词面相似度，Pattern 提供少量高精度业务证据。三路是误差互补，不是三个模型平权投票；当前权重是工程初值，融合低于 0.5 归 `OTHER`。
 
 ### Q8：为什么不能把 n-gram 叫 Embedding 模型？
 
-它是可运行的轻量词面相似度基线，不是语义 embedding 服务。应准确说“本地字符 n-gram 向量相似度”，否则模型名称、维度、训练数据一追问就会暴露。
+它把字符 1/2/3-gram 哈希到 256 维后计算余弦相似度，是可运行的轻量词面基线，不是训练过的语义 embedding 服务。客服请求常含退款、扣款、验证码等稳定业务词，n-gram 无模型部署成本、速度快且可解释；代价是无法可靠理解字面不同但语义相同的表达。面试中应准确说“本地字符 n-gram 向量相似度”。
 
-### Q8.1：意图识别结果怎样保证可复现，缓存会不会串版本？
+### Q8.1：LLM、Pattern 和向量冲突怎么办？
+
+不能只说“按权重相加，谁分高听谁的”。普通 Pattern 只提供辅助证据，尤其要防“不是扣款问题”这类否定误命中；只有带明确极性且经过验证的确定性规则才适合提升优先级。LLM 与相似度信号冲突且总体证据不足时应澄清或拒识。账户安全等高风险类别采取保守策略，不能让一次普通 LLM 判断把更强的安全证据直接降级。当前代码仍是加权融合基线，极性 evidence 和类型化拒识是明确改进方向。
+
+### Q8.2：既然 BGE Encoder 更像成熟方案，为什么不直接替换？
+
+因为模型架构更先进不等于在当前标签和数据上更好。实测纯 BGE-M3 Encoder 在 300 条上游 test 为 281/300、85 条中文/混合诊断为 75/85；97% 接受精度的 Encoder→LLM 级联为 283/300 和 82/85，而当前 V1 为 283/300 和 84/85。级联把上游 LLM fallback 降到 4.7%，有成本和延迟潜力，但未在总体、OOS、安全指标上同时超过 V1，所以当前保留 V1、把级联留作离线候选。中文增强和诊断没有人工 Gold，不能说已经完成生产选型。
+
+### Q8.3：意图识别结果怎样保证可复现，缓存会不会串版本？
 
 `IntentResult` 同时返回 `classifier_fingerprint` 和 `input_fingerprint`。前者覆盖模型 profile/provider、融合模式与权重、阈值、Prompt、定义、Few-shot、模板、规则和当前 Bundle；后者哈希完整消息及实际使用的三条历史。缓存身份由两个指纹共同计算并带 TTL，低置信度和账户安全结果最长只缓存 300 秒。因此改配置会自然换命名空间，长消息也不会因为只取前 200 字而碰撞。
 
@@ -80,7 +88,7 @@ title: DialogPilot 面经校准与追问手册
 
 ### Q10：关键词会覆盖 LLM 意图吗？
 
-不是直接覆盖，两者累加到领域 score。但旧面经的担心成立：“我不是说扣钱问题”仍可命中“扣钱”。当前启发式未完整处理否定和引用；改进应让解析层输出肯定/否定 domain evidence，路由器只消费该结构。
+普通关键词不会直接覆盖 LLM，两者只是形成不同来源的 evidence。但旧面经的担心成立：“我不是说扣钱问题”仍可命中“扣钱”。当前启发式未完整处理否定和引用；改进应让解析层输出肯定/否定 domain evidence，路由器只消费该结构。明确的安全类正向规则应保守升级，但不能把所有关键词都包装成硬规则。
 
 ### Q11：低置信度时是否启动所有 Agent？
 
@@ -95,6 +103,8 @@ title: DialogPilot 面经校准与追问手册
 ### Q12：怎样测意图识别？
 
 当前有 Accuracy/Macro-F1、版本化 intent layer 和公开数据 adapter。180 条外部意图是 `auto_mapped`，320 条项目合同是 `provisional`；正式结果必须来自 human-reviewed、新鲜 group-safe heldout，并报告 confusion matrix、每类 precision/recall/F1、置信度校准、拒识质量与复合/否定难例 slice。
+
+本轮还完成了 V1、纯 BGE Encoder、Encoder→LLM 级联的离线对照。阈值不是在 test 上搜索，而是用 group-safe 五折 OOF 按 selective risk/coverage 校准；97% 档在上游 test 与 V1 同为 283/300，但中文诊断 82/85 低于 V1 的 84/85。回答时应同时给总体、OOS recall、安全 recall 和 LLM fallback，结论是“级联方向有价值但证据不足以替换”，而不是只挑一个最好看的准确率。
 
 评测器还要求一次运行中每条结果携带同一个预期 `classifier_fingerprint`，避免进程中途换 Bundle 或策略后把混合版本结果合并成一个数字。报告元数据保存该指纹，但这只能证明运行版本一致，不能把 provisional 标签升级成 Gold。
 

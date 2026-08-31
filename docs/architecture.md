@@ -103,6 +103,10 @@ Source document/span
 
 线上识别器只有 `recognize()`，不再提供修改模块模板的 `learn()`。内置模板使用只读映射；每个结果携带 `input_fingerprint` 与 `classifier_fingerprint`。后者覆盖实际模型配置、阈值、相似度模式、融合权重、标签定义、Pattern、模板以及固定 Bundle 的 Intent Prompt/Few-shot。缓存按两个 SHA-256 的组合寻址，因此同前缀不同后缀、旧 Bundle 与新 Bundle 都不会错误共享结果。普通结果默认一小时 TTL，低置信度和账户安全结果最多五分钟；这仍是可删除的进程内加速层，不是纠正事实的 Owner。
 
+当前生产兼容路径仍是 LLM 0.70 + 字符 n-gram 0.20 + Pattern 0.10。这里的 n-gram 是 256 维词面相似度，不是训练过的语义 Embedding；Pattern 也不是平权分类器，只适合提供少量可解释证据。权重是工程初值，不是已校准的最优参数。信号冲突时，普通关键词不得无条件覆盖语义结果；需要显式处理否定和极性，高风险确定性证据则采用保守处置，证据不足进入澄清或范围终态。
+
+离线另有冻结 BGE-M3 + Logistic Regression 和 Encoder→LLM 级联候选。300 条上游 test 上，纯 Encoder、97% 接受精度级联、当前 V1 分别为 281/300、283/300、283/300；85 条中文/混合诊断分别为 75/85、82/85、84/85。级联在上游只回退 LLM 4.7%，但没有同时超过 V1 的总体、OOS 与安全指标。因此这些产物属于 `offline_cascade_replay_not_production`，不改变 `/chat` 默认路由。切换条件至少包括新鲜中文留存集、独立 Gold、类别风险校准和无关键 slice 回退。
+
 ```text
 在线：recognize → IntentLearningRecord(PREDICTED) → 返回 prediction_id
 反馈：prediction_id + suggested_intent → PENDING Intent Bad Case
