@@ -167,6 +167,8 @@ class _EvalRedis:
 
     async def persist(self, _key): return True
 
+    async def zscore(self, _key, _member): return None
+
     def pipeline(self, transaction=True):
         if transaction is not True:
             raise AssertionError("stateful fixture requires transactional pipeline")

@@ -48,7 +48,7 @@ DialogPilot 是一个 Python 3.12 + FastAPI 的异步多 Agent 客服后端。�
 3. 主链：Bundle → Memory → Intent → RAG → Context → TaskGraph → Worker/ReAct → Coverage → Synthesis → Verification → Ticket/Persist。
 4. 学习链：Bad Case → Envelope → Attribution → 4–8 Bundles → Graduation/Pareto → Shadow → 5% → 25% → Active/Rollback。
 5. 七个最值得深挖的改动：单调事件与范围摘要 checkpoint、混合长期记忆、TaskGraph/CoverageGate、有界 ReAct 与持久审批恢复、请求预算下的结果代数、发布校验、受控 Agent 进化。
-6. 证据：258 项测试，覆盖注入防护、业务范围处置、身份/公开投影、记忆生命周期、TaskGraph DAG、审批 Resume/幂等恢复、不可变 Bundle、候选门禁、稳定分桶、Shadow 零写入和自动回滚等合同。
+6. 证据：265 项测试，覆盖注入防护、业务范围处置、身份/公开投影、记忆生命周期、TaskGraph DAG、审批 Resume/幂等恢复、不可变 Bundle、候选门禁、稳定分桶、Shadow 零写入和自动回滚等合同。
 7. 边界：已有 JWT/scope 基线；多租户 IdP/ABAC 未完成，SQLite 只适合单应用写者，普通 Trace/审计重启丢失；已有 500 条分层候选集，但尚无 human-reviewed gold，不能声称生产准确率或“完整复现 GEPA/Agent Lightning”。
 
 ## 1. 如何学习这个仓库
@@ -303,13 +303,17 @@ RAG 结果作为 `ContextSection(tag="knowledge", data_only=true)` 进入 system
 
 Memory 保存的是服务端选入 HTTP 响应的 `response_text`，不是未经校验的 candidate。服务端无法证明客户端最终收到了字节，因此这里的 “published” 是响应选择事实，不是用户实际阅读 receipt。即便如此，也不能让下轮模型把已被拒绝的 candidate 当成历史事实。
 
+### 5.7 L0 每轮保存，L1 事实防抖提取
+
+用户画像不是每轮重建的推断性 Persona，而是 Chroma `user_facts_v1` 中 active L1 原子事实的只读投影。只有 `EXECUTE` 轮次有资格形成事实；API 不再调用裸 `asyncio.create_task(update_profile(...))`。`add_messages(..., extract_facts=true)` 在同一个 Redis 事务中完成两件事：追加已发布的 user/assistant L0 原文，并更新该 `user_id + conv_id` 唯一的 sorted-set 延迟任务。
+
+默认累计 3 个尚未处理的完整轮次就立即到期；不足 3 轮时，每个新轮次把到期时间重置到最后活动后 300 秒。生命周期管理的 Worker 每 5 秒扫描到期项，通过用户级租约串行化同一用户跨会话的事实状态转换，并按最多 20 条事件的固定范围调用 `extract_user_facts()`。事实 upsert 成功后才推进 `fact_checkpoint:{user_id}:{conv_id}`；积压继续立即排队，失败不推进 checkpoint，并在 30 秒后重试。任务存在 Redis 而不是进程 task 列表中，所以服务崩溃重启后仍能恢复。
+
+显式 `finalize` 会固定当前 high-water，在摘要/索引完成后立即 flush 已存在的事实任务，并返回 `facts_flushed`。事实提取仍是派生能力：失败时原始对话归档可以成功，但任务必须留队，不能谎称 L1 已覆盖。这个分层接近 TencentDB Agent Memory 的 L0→L1→L2/L3 思路，但当前客服系统只保留有来源的 L1、范围摘要和活动工单，不生成高推断性的 L3 Persona。Tencent官方实现同样是 L0 每个 `agent_end` 捕获，L1 按数量或 idle 防抖，而不是等待一个不可靠的“整场会话结束”信号。
+
 ### 5.8 工单投递失败不是成功
 
-如果 `TicketService.create_ticket()` 失败，API 当前保持 `escalated=true`、`ticket_id=null`，返回明确“工单创建失败，请用相同 request_id 重试”的文本。也就是说，系统拥有“需要升级”和“已持久化 ticket”两个不同事实；当前没有 outbox/可靠队列保证升级最终必达。
-
-### 5.7 用户画像异步更新
-
-`asyncio.create_task(update_profile(...))` 避免阻塞响应。代价是进程在任务完成前崩溃时，本次画像更新可能丢失。生产环境应交给有重试、幂等和可观测状态的队列。
+如果 `TicketService.create_ticket()` 失败，API 当前保持 `escalated=true`、`ticket_id=null`，返回明确“工单创建失败，请用相同 request_id 重试”的文本。也就是说，系统拥有“需要升级”和“已持久化 ticket”两个不同事实；当前没有 outbox/可靠队列保证升级最终必达。这里不能复用记忆事实队列假装解决工单投递：本地 TicketService 的数据库持久化仍是 ticket 成功的唯一 Owner。
 
 ## 6. 意图识别：三路信号如何融合
 
@@ -454,18 +458,26 @@ stateDiagram-v2
 | Raw event log | Redis list | 会话内追加保留 | 带单调 `seq` 的当前会话原始消息，摘要不能删除它 |
 | Summary chunks | Redis list | 与会话事件共同保留 | 每块只拥有一个固定的 `[from_seq, to_seq]` 范围及 source hash |
 | Summary checkpoint | Redis string | 与会话事件共同保留 | 已覆盖 high-water 和版本；唯一允许 CAS 推进的摘要状态 |
+| Fact reflection jobs | Redis sorted set | 到成功提取或明确无待处理范围 | 每会话一个防抖 L1 任务；score 是到期时间，租约控制消费者 |
+| Fact checkpoint | Redis string | 与会话事件共同保留 | 已成功形成 L1 事实的原始事件 high-water；失败不得推进 |
 | Episodic memory | Chroma `episodic` | 持久 | 跨会话检索的原始重叠片段；摘要只作 metadata/背景 |
 | User facts | Chroma `user_facts_v1` | 持久 | 有来源的 active/superseded/retracted 类型化事实 |
 
 Knowledge Base 也在 Chroma，但使用独立 collection。知识文档是业务事实投影，用户记忆是个人交互状态，不能混为一类。
 
-画像不是另一份权威 JSON，而是 active facts 的 Prompt 投影。事实提取只接受代码声明的 key 和 `upsert/retract` 操作；每条记录带 source message IDs、最大 source seq、置信度和状态。标量事实由更新的 source seq supersede，较慢的旧提取不能覆盖新事实；多值事实可以共存并合并重复来源。进程内按用户加锁，多副本部署仍需把事实状态转换迁到支持 CAS 的共享存储。
+画像不是另一份权威 JSON，而是 active facts 的 Prompt 投影。事实提取只接受代码声明的 key 和 `upsert/retract` 操作；每条记录带 source message IDs、conversation ID、原始事件时间、局部最大 seq、置信度和状态。同一会话的标量事实按 source seq判断新旧，跨会话按服务端事件时间判断；多值事实可以共存并合并重复来源。进程内用户锁和跨实例 Redis用户租约共同串行化事实生命周期转换，Chroma事实 ID让重复 upsert收敛。
 
 ### 8.2 Redis 消息顺序
 
 一次对话 turn 通过 `INCRBY` 预留连续序号，再用一次 `LPUSH` 写入 user/assistant 事件；Redis 中最新消息在前。读取时 `_decode_messages()` 恢复并按 `seq` 排序。旧记录没有 seq 时会惰性推断初始水位，之后所有新事件都使用单调序号。
 
 完整发布轮次写入 Redis 后，`add_messages()` 立即用稳定 `message_id` 和确定性 Chroma ID 把原始消息 `upsert` 到 episodic。这个动作让短会话不必等待压缩或 finalize 才能被下一会话检索；运行时索引失败不回滚已经发生的 Redis 事件，后续压缩/finalize 会以同一 ID 幂等补偿。
+
+只有 `EXECUTE` 轮次会把消息标为 `memory_fact_eligible`，并在同一个 Redis 事务中对 `memory:fact_jobs:v1` 执行 `ZADD`。同一会话的 JSON member 稳定，因此连续对话只更新一个到期时间，不会每轮制造一条任务。默认合同是：未处理范围达到 3 轮立即执行，否则从最后活动起防抖 300 秒；后台 Worker 每 5 秒扫描到期项。它读取 `fact_checkpoint` 后的有资格事件，固定最多 20 条作为一批，LLM只提取代码允许的 `upsert/retract` 和事实 key。Chroma 成功后 checkpoint 才推进；仍有积压就立即续排，失败则保持原 checkpoint 并退避 30 秒。
+
+多实例通过短期用户级 Redis 租约避免同一用户的不同会话并行改写事实生命周期。任务完成时按最初读取的 ZSET score 做 Lua CAS 删除：如果执行期间新轮次已经更新 score，旧 Worker不能删掉新任务。进程在任意 LLM/Chroma 边界崩溃时，ZSET member仍存在；租约过期后其他 Worker从同一个 fact checkpoint 重试。事实 ID由 user/key/value/source IDs确定，重复写会收敛。`source_max_seq` 是 conversation-local，只有同会话能比较；跨会话更新按服务端原始事件的 `source_observed_at` 排序，并保存 `source_conversation_id`，因此旧会话即使 seq=100 且较晚完成，也不能覆盖时间上更新会话的 seq=1。`finalize` 不依赖 idle timer，而是立即处理调用开始 high-water内已经调度的任务，并把结果公开为 `facts_flushed`。
+
+这不是完整 L0→L3 平台：当前 Redis/Chroma原文相当于 L0，`user_facts_v1` 相当于 L1，范围摘要与活动工单承担客服场景恢复；没有生成行为性 Persona。这样的边界保留了原文、来源和可撤回事实，又避免客服系统因每轮画像重写产生费用、碎片上下文和过度推断。可对照 [TencentDB Agent Memory 的分层与异步 pipeline](https://github.com/TencentCloud/tencentdb-agent-memory#1-memory-isnt-flat-records--it-grows-in-layers) 和 [LangMem delayed processing](https://langchain-ai.github.io/langmem/guides/delayed_processing/)；这里引用的是触发设计，不把外部 benchmark 当作本项目效果证明。
 
 ### 8.3 为什么按 Token，不按消息数
 
@@ -1077,6 +1089,9 @@ Prometheus :9090
 | `MEMORY_TOKEN_BUDGET` | 记忆预算 6000 |
 | `MEMORY_COMPRESSION_THRESHOLD` | 压缩阈值 0.70 |
 | `MEMORY_SUMMARY_MAX_TOKENS` | 摘要估算上限 1200 |
+| `MEMORY_FACT_IDLE_SECONDS` | L1 事实任务空闲防抖 300 秒 |
+| `MEMORY_FACT_BATCH_TURNS` | 累计 3 个未处理轮次立即触发 L1 |
+| `MEMORY_FACT_WORKER_POLL_SECONDS` | 到期任务扫描间隔 5 秒 |
 | `AGENT_TIMEOUT_SECONDS` | 每 Agent 15 秒 |
 | `AGENT_REQUEST_TIMEOUT_SECONDS` | Worker + synthesis 共享请求预算 20 秒 |
 | `AGENT_MAX_PER_REQUEST` | 单请求最多执行 3 个 Agent；其余任务产生预算终态 |
@@ -1093,7 +1108,7 @@ python -m compileall -q agents api core evaluation mcp memory monitor services
 python -m pytest -q
 ```
 
-当前 258 项测试按不变量分组；数量是仓库回归规模，不等于 benchmark 样本量：
+当前 265 项测试按不变量分组；数量是仓库回归规模，不等于 benchmark 样本量：
 
 ### Bad Case 闭环
 
@@ -1159,6 +1174,8 @@ python -m pytest -q
 - 并发新消息不使固定范围失效，checkpoint 竞争只能有一个提交；
 - checkpoint 单调推进，原始事件保持不变且摘要视图可重建；
 - 标量 fact supersede、多值 fact 合并、retract 与 source links 有状态测试；
+- L0 与 fact job 原子提交、会话级防抖、进程重启恢复、失败不推进 checkpoint；
+- 超过单批上限的积压按范围续排，显式 finalize 强制刷新且公开 `facts_flushed`；
 - 原始情景片段而不是摘要成为可检索 document；
 - BM25 可找回订单号/错误码，recency 不引入无关候选；
 - 向量或词法单路故障仍可降级，Recall@K/MRR/nDCG 计算可复现。
@@ -1339,9 +1356,9 @@ python -m pytest -q
 模型不得把“退款申请已提交”说成“资金已到账”，也不能声称已改地址或修改账户。
 `CustomerOperationsService` 现在能返回本地退款申请 typed receipt，由业务 Owner 而非模型拥有该提交事实；支付渠道退款、调账和补偿仍未接入。
 
-### P1：PostgreSQL + durable queue
+### P1：PostgreSQL + 外部副作用 Outbox
 
-TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副作用进入可靠队列，增加幂等、重试、dead letter 和 task status。
+当前 L1 事实提取已使用 Redis持久化延迟任务、租约、checkpoint和重试，不再依赖裸进程 task。下一步不是再造一套 MQ，而是让 TicketService迁移 PostgreSQL支持多副本；若人工工单未来投递到外部系统，再以事务 Outbox + 幂等消费者补齐最终必达、dead letter和 task status。客户端 delivered/read仍需要 response ID + 应用级 ACK，MQ本身不能证明浏览器展示成功。
 
 ### P1：持久化完整 Trace
 
@@ -1367,7 +1384,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 ### Q2：你个人具体负责了什么？
 
-**推荐诚实答案：** 我接手的是一个已有客服原型。我负责仓库清理和 DialogPilot 命名迁移，并完成持久工单、Token/CAS 压缩、typed synthesis、TaskGraph/CoverageGate、混合记忆、用户输入注入 Guard、业务范围类型化处置、Bad Case 状态闭环、ReAct 权限/Trace、持久审批 Resume、订单/退款/安全事件业务 Owner，以及 JWT/公开投影、显式 Chroma、分层模型/评测、不可变 AgentBundle、候选晋级和灰度回滚。当前有 258 项测试、CI、Docker 验证和架构文档。原型已有功能会按 commit 划清边界，不说成全部从零原创。
+**推荐诚实答案：** 我接手的是一个已有客服原型。我负责仓库清理和 DialogPilot 命名迁移，并完成持久工单、Token/CAS 压缩、typed synthesis、TaskGraph/CoverageGate、混合记忆、用户输入注入 Guard、业务范围类型化处置、Bad Case 状态闭环、ReAct 权限/Trace、持久审批 Resume、订单/退款/安全事件业务 Owner，以及 JWT/公开投影、显式 Chroma、分层模型/评测、不可变 AgentBundle、候选晋级和灰度回滚。当前有 265 项测试、CI、Docker 验证和架构文档。原型已有功能会按 commit 划清边界，不说成全部从零原创。
 
 **追问：去掉你的改动还剩什么？** 仍有基础 FastAPI、三路意图、Redis/Chroma 记忆、RAG、领域 Agent、Skill、监控和评测原型；会失去真实工单闭环、Token/并发压缩不变量、TaskPlan/覆盖门禁、有类型并行结果、质量反馈、混合召回、工具权限/Trace 和 Worker ReAct。
 
@@ -1624,7 +1641,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 **答：** 先加 trace 分解 LLM、rewrite、每路检索、rerank、Agent、Verifier、Redis、Chroma 和 SQLite 的 P95/P99，不凭感觉先换组件。确认瓶颈后再做 provider 并发闸门、缓存/预算、API 多副本、在线统计外置和 durable queue。
 
-**已知迁移点：** 多应用写者场景将 TicketService 从 SQLite 迁到 PostgreSQL；画像更新等 `create_task` 副作用进入有幂等、重试、dead-letter 和任务状态的队列。
+**已知迁移点：** 多应用写者场景将 TicketService 从 SQLite 迁到 PostgreSQL；L1事实任务已经具备 Redis持久化、租约、checkpoint和重试，若未来要求长期失败隔离，再增加 dead-letter和可查询任务状态。工单投递到外部系统时应另建事务 Outbox，不能把记忆队列当作通用副作用总线。
 
 ### Q43：SQLite 能承受多少并发？
 
@@ -1695,7 +1712,7 @@ TicketService 迁移 PostgreSQL 支持多副本；画像更新和其他异步副
 
 **Action：** 每个完整发布轮次立即以稳定 ID 写入 episodic，summary 退回 metadata/Prompt 背景；在用户边界内分别生成 Chroma vector 和 BM25 候选，用 0.30/0.60/0.10 权重做 RRF，recency 只重排相关候选；排除当前 `conv_id`，保留事件定位，并把最多两个旧会话命中展开成有界前后原始消息窗口；两条检索路径独立降级，并实现 Recall@K、MRR、nDCG。
 
-**Result：** 聚焦测试证明精确 ID 可修正纯向量排序、最新无关记忆不会靠时间混入、短轮次立即归档、当前会话被排除、命中能展开有界原始邻居、v1 数据可读、单路故障可降级、指标确定性；当前全仓 258 项回归通过。这里能说“建立了可回归的召回合同”，不能虚构线上提升百分比。
+**Result：** 聚焦测试证明精确 ID 可修正纯向量排序、最新无关记忆不会靠时间混入、短轮次立即归档、当前会话被排除、命中能展开有界原始邻居、v1 数据可读、单路故障可降级、指标确定性；当前全仓 265 项回归通过。这里能说“建立了可回归的召回合同”，不能虚构线上提升百分比。
 
 **简历一行（只在你能现场解释代码时使用）：**
 
@@ -1776,7 +1793,7 @@ flowchart LR
 | 原问题 | 根因 Owner | 当前合同 | 失败语义与证据 |
 |---|---|---|---|
 | 短会话未达压缩阈值，长期索引缺失 | `MemoryManager` 生命周期 | 完整发布轮次立即幂等 upsert；`finalize_conversation` 补齐 high-water 前的摘要/checkpoint 与 metadata | 日常索引失败保留 Redis 原文并由后续压缩补偿；并发新 seq 返回 409 |
-| `user_profile limit=1` 不保证最新且无法追源 | Fact 生命周期 | 支持 key 的来源化事实，标量 supersede、多值共存、retract 有状态 | 进程内 source-seq 单调；多副本 CAS 仍是边界 |
+| `user_profile limit=1` 不保证最新且无法追源 | Fact 生命周期 | 支持 key 的来源化事实，标量 supersede、多值共存、retract 有状态；同会话看 seq、跨会话看 source time | Redis用户租约串行转换；异常进程由任务/checkpoint恢复 |
 | `agent_outcomes.content` 泄漏拒绝候选 | HTTP 发布投影 | 公开 outcome 只保留安全状态/延迟/错误码 | candidate、raw error、agent key、tool call IDs 全部删除 |
 | 请求体可伪造 `user_id` | HTTP 身份 | JWT `sub` 是唯一用户身份，scope 控制能力 | 缺失/坏 token 401；身份冲突或缺 scope 403 |
 | Chroma 远程失败静默写本地 | `core/chroma_client.py` | `remote` 与 `embedded` 显式二选一，health 报实际位置 | remote 不可达启动失败，绝不产生第二套库 |
@@ -2200,4 +2217,4 @@ Shadow 跑真实输入副本，但不发布、不写记忆、不建 Ticket、不
 
 ### Q92：简历怎么写？
 
-> 利用脱敏执行归因、不可变 AgentBundle 与多目标 Graduation Gate 建立 Agent 持续优化闭环，解决线上 Bad Case 直接改 Prompt 导致的版本漂移、回归不可复现和安全边界误改；结合 TaskGraph 依赖调度、持久审批 Resume、Shadow/5%/25% 灰度和硬/软自动回滚，使失败可归因、候选可验证、写操作可恢复、版本可撤销，并以 258 项回归验证合同，评测数据未获 human Gold 前不虚构生产准确率。
+> 利用脱敏执行归因、不可变 AgentBundle 与多目标 Graduation Gate 建立 Agent 持续优化闭环，解决线上 Bad Case 直接改 Prompt 导致的版本漂移、回归不可复现和安全边界误改；结合 TaskGraph 依赖调度、持久审批 Resume、Shadow/5%/25% 灰度和硬/软自动回滚，使失败可归因、候选可验证、写操作可恢复、版本可撤销，并以 265 项回归验证合同，评测数据未获 human Gold 前不虚构生产准确率。

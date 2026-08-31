@@ -276,6 +276,9 @@ async def lifespan(app: FastAPI):
         memory_token_budget=int(os.getenv("MEMORY_TOKEN_BUDGET", "6000")),
         compression_threshold=float(os.getenv("MEMORY_COMPRESSION_THRESHOLD", "0.70")),
         summary_max_tokens=int(os.getenv("MEMORY_SUMMARY_MAX_TOKENS", "1200")),
+        fact_idle_seconds=float(os.getenv("MEMORY_FACT_IDLE_SECONDS", "300")),
+        fact_batch_turns=int(os.getenv("MEMORY_FACT_BATCH_TURNS", "3")),
+        fact_worker_poll_seconds=float(os.getenv("MEMORY_FACT_WORKER_POLL_SECONDS", "5")),
         model_profile=_model_policy.profile(ModelRole.MEMORY),
     )
 
@@ -413,6 +416,7 @@ async def lifespan(app: FastAPI):
         judge_model_profile=_model_policy.profile(ModelRole.JUDGE),
     )
 
+    await _memory.start()
     logger.info("DialogPilot 已就绪")
     try:
         yield
@@ -630,6 +634,7 @@ class ConversationFinalizeResponse(BaseModel):
     archived_messages: int
     finalized: bool
     already_empty: bool = False
+    facts_flushed: bool = True
 
 
 # ── 路由 ──────────────────────────────────────────────────────────────────────
@@ -650,6 +655,7 @@ async def health():
         "model_policy": _model_policy.to_dict() if _model_policy is not None else None,
         "input_security": _input_security_guard.get_stats(),
         "badcases": _badcase_registry.stats() if _badcase_registry is not None else {},
+        "memory_fact_jobs": _memory.fact_job_stats if _memory is not None else {},
     }
 
 
@@ -1330,16 +1336,14 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
     )
 
     # 6. 越域请求不进入客服工作记忆、情景索引或用户画像；其他结果仍按完整轮次写入。
-    persisted_messages = []
     if disposition != "out_of_scope":
-        persisted_messages = await _memory.add_messages(user_id, conv_id, [
+        await _memory.add_messages(user_id, conv_id, [
             (MsgRole.USER, req.message, {"request_id": request_id}),
             (MsgRole.ASSISTANT, response_text, {"request_id": request_id}),
-        ])
+        ], extract_facts=(disposition == "execute"))
 
-    # 7. 只有真正执行客服任务/寒暄的轮次可形成版本化用户事实。
-    if disposition == "execute":
-        asyncio.create_task(_memory.update_profile(user_id, conv_id, persisted_messages))
+    # 7. L1 事实任务已与 L0 原始轮次在同一 Redis 事务中持久化；这里不创建
+    # 可能随进程退出而丢失的裸 asyncio task。
     if assignment.shadow is not None and disposition == "execute":
         asyncio.create_task(_evaluate_shadow_request(
             request=req,

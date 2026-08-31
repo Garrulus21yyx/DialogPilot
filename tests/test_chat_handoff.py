@@ -42,11 +42,13 @@ class FakeMemory:
     async def get_context(self, *_args, **_kwargs):
         return FakeMemoryContext()
 
-    async def add_messages(self, _user_id, _conv_id, entries):
+    async def add_messages(self, _user_id, _conv_id, entries, *, extract_facts=False):
         persisted = []
         for role, content, metadata in entries:
             self.messages.append((role.value, content))
             persisted.append(SimpleNamespace(role=role, content=content, metadata=metadata))
+        if extract_facts:
+            self.profile_updates += 1
         return persisted
 
     async def update_profile(self, *_args, **_kwargs):
@@ -220,6 +222,7 @@ def test_chat_escalation_creates_one_persistent_idempotent_ticket(tmp_path, monk
     assert retry.ticket_id == first.ticket_id
     assert ticket_service.get_ticket(first.ticket_id).priority is TicketPriority.CRITICAL
     assert len(ticket_service.list_tickets()) == 1
+    assert memory.profile_updates == 2
     assert orchestrator.feedback == [
         (["escalation_0"], "pass"),
         (["escalation_0"], "pass"),

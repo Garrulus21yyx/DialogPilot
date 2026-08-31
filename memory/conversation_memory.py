@@ -140,6 +140,8 @@ class MemoryFact:
     source_max_seq: int
     observed_at: str
     updated_at: str
+    source_conversation_id: str = ""
+    source_observed_at: str = ""
     superseded_by: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
@@ -154,6 +156,8 @@ class MemoryFact:
             "source_max_seq": self.source_max_seq,
             "observed_at": self.observed_at,
             "updated_at": self.updated_at,
+            "source_conversation_id": self.source_conversation_id,
+            "source_observed_at": self.source_observed_at,
             "superseded_by": self.superseded_by,
         }
 
@@ -170,6 +174,8 @@ class MemoryFact:
             source_max_seq=max(0, int(payload.get("source_max_seq", 0) or 0)),
             observed_at=str(payload.get("observed_at", "")),
             updated_at=str(payload.get("updated_at", payload.get("observed_at", ""))),
+            source_conversation_id=str(payload.get("source_conversation_id", "")),
+            source_observed_at=str(payload.get("source_observed_at", "")),
             superseded_by=(str(payload["superseded_by"]) if payload.get("superseded_by") else None),
         )
 
@@ -236,6 +242,10 @@ class MemoryManager:
     HISTORY_EXPAND_HITS = 2
     HISTORY_NEIGHBOR_RADIUS = 2
     HISTORY_EXPANSION_MAX_TOKENS = 1200
+    FACT_JOB_QUEUE_KEY = "memory:fact_jobs:v1"
+    FACT_JOB_LOCK_SECONDS = 300
+    FACT_JOB_RETRY_SECONDS = 30
+    FACT_EXTRACTION_MAX_MESSAGES = 20
     EPISODIC_CHUNK_CHARS = 1200
     EPISODIC_CHUNK_OVERLAP = 120
     SUMMARY_CHUNK_MAX_TOKENS = 3000
@@ -262,6 +272,9 @@ class MemoryManager:
         memory_token_budget: int = 6000,
         compression_threshold: float = 0.70,
         summary_max_tokens: int = 1200,
+        fact_idle_seconds: float = 300.0,
+        fact_batch_turns: int = 3,
+        fact_worker_poll_seconds: float = 5.0,
         model_profile: Optional[ModelProfile] = None,
     ):
         """初始化模型、Token 压缩策略、Redis 及两类 Chroma collection。"""
@@ -274,6 +287,9 @@ class MemoryManager:
         self._memory_token_budget = max(512, int(memory_token_budget))
         self._compression_threshold = min(max(float(compression_threshold), 0.5), 0.95)
         self._summary_max_tokens = max(128, int(summary_max_tokens))
+        self._fact_idle_seconds = max(0.0, float(fact_idle_seconds))
+        self._fact_batch_turns = max(1, int(fact_batch_turns))
+        self._fact_worker_poll_seconds = max(0.1, float(fact_worker_poll_seconds))
         self._token_estimator = TokenEstimator()
         self._hybrid_retriever = HybridMemoryRetriever()
         self._compression_stats = {
@@ -285,6 +301,14 @@ class MemoryManager:
             "tokens_after": 0,
         }
         self._profile_locks: Dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
+        self._fact_worker_task: Optional[asyncio.Task] = None
+        self._fact_worker_stop = asyncio.Event()
+        self._fact_job_stats = {
+            "scheduled": 0,
+            "completed": 0,
+            "failed": 0,
+            "retried": 0,
+        }
 
         self._redis = redis.from_url(redis_url, decode_responses=True)
 
@@ -328,8 +352,10 @@ class MemoryManager:
         user_id: str,
         conv_id: str,
         entries: Sequence[Tuple[MsgRole, str, Dict[str, Any]]],
+        *,
+        extract_facts: bool = False,
     ) -> List[Message]:
-        """为同一轮次预留连续序号并一次追加，完成后才检查摘要阈值。"""
+        """原子追加完整轮次，并可同时持久化一个防抖 L1 事实任务。"""
         user_id = self._safe_text(user_id)
         conv_id = self._safe_text(conv_id)
         if not entries:
@@ -345,6 +371,8 @@ class MemoryManager:
                 self._safe_text(k): self._safe_metadata_value(v)
                 for k, v in (metadata or {}).items()
             }
+            if extract_facts:
+                clean_metadata["memory_fact_eligible"] = True
             message = Message(
                 role=role,
                 content=self._safe_text(content),
@@ -354,11 +382,26 @@ class MemoryManager:
             messages.append(message)
             raws.append(self._encode_message(message))
 
-        # LPUSH 多值会把最后一项放到最左侧，恰好保持 Redis 中“最新事件在前”。
-        await self._redis.lpush(key, *raws)
-        persist = getattr(self._redis, "persist", None)
-        if persist is not None:
-            await persist(key)
+        # 原始 L0 与“需要派生 L1”属于同一个事实边界。二者在同一 Redis 事务中
+        # 提交，避免进程在写完对话、安排裸 asyncio task 之前崩溃而永久漏提取。
+        async with self._redis.pipeline(transaction=True) as pipe:
+            pipe.lpush(key, *raws)
+            pipe.persist(key)
+            if extract_facts:
+                checkpoint = self._safe_metadata_int(await self._redis.get(
+                    self._fact_checkpoint_key(user_id, conv_id)
+                ))
+                pending_turns = max(1, (end_seq - checkpoint + 1) // 2)
+                due_at = datetime.now(timezone.utc).timestamp()
+                if pending_turns < self._fact_batch_turns:
+                    due_at += self._fact_idle_seconds
+                pipe.zadd(
+                    self.FACT_JOB_QUEUE_KEY,
+                    {self._fact_job_member(user_id, conv_id): due_at},
+                )
+            await pipe.execute()
+        if extract_facts:
+            self._fact_job_stats["scheduled"] += 1
 
         # 完整轮次一旦成为原始事件，就应立即进入跨会话索引。范围压缩仍会用
         # 同一稳定 ID 幂等补写摘要 metadata，但不再拥有“是否可检索”的时机。
@@ -381,14 +424,14 @@ class MemoryManager:
             await self._compress(user_id, conv_id)
         return messages
 
-    async def update_profile(
+    async def extract_user_facts(
         self,
         user_id: str,
         conv_id: str,
         source_messages: Optional[Sequence[Message]] = None,
-    ) -> None:
+    ) -> bool:
         """
-        从本轮用户原话提取有限类型的事实操作；profile 只是 active facts 投影。
+        从一个明确 L0 范围提取有限类型的 L1 事实；profile 只是 active facts 投影。
 
         ``source_messages`` 由写入调用方传入，避免本轮消息在摘要 checkpoint
         推进后从 recent context 消失而漏做事实提取。
@@ -399,7 +442,7 @@ class MemoryManager:
         messages = list(source_messages or await self._get_working_memory(user_id, conv_id))
         user_messages = [message for message in messages if message.role is MsgRole.USER][-10:]
         if not user_messages:
-            return
+            return True
 
         text = self._safe_text("\n".join(
             f"message_id={message.message_id}: {message.content}"
@@ -424,10 +467,17 @@ class MemoryManager:
             )
             raw = extract_text_content(resp.content)
             s, e = raw.find("{"), raw.rfind("}") + 1
-            payload = json.loads(raw[s:e]) if s >= 0 and e > s else {}
+            payload = json.loads(raw[s:e]) if s >= 0 and e > s else None
+            if not isinstance(payload, dict) or not isinstance(payload.get("facts"), list):
+                raise ValueError("memory fact extractor returned an unsupported payload")
             operations = self._normalize_fact_operations(
                 payload,
                 source_sequences={message.message_id: message.seq for message in user_messages},
+                source_timestamps={
+                    message.message_id: self._utc_timestamp(message.timestamp)
+                    for message in user_messages
+                },
+                source_conversation_id=conv_id,
             )
             if operations:
                 await self._apply_fact_operations(
@@ -436,8 +486,241 @@ class MemoryManager:
                     observed_at=observed_at,
                 )
                 logger.info("用户事实已更新: %s (%s operations)", user_id, len(operations))
+            return True
         except Exception as ex:
             logger.warning("更新用户事实失败: %s", ex)
+            return False
+
+    async def update_profile(
+        self,
+        user_id: str,
+        conv_id: str,
+        source_messages: Optional[Sequence[Message]] = None,
+    ) -> bool:
+        """兼容旧调用方；新链路应调度 ``extract_user_facts``，而非创建裸任务。"""
+        return await self.extract_user_facts(user_id, conv_id, source_messages)
+
+    @property
+    def fact_job_stats(self) -> Dict[str, int]:
+        """返回当前进程观察到的 L1 调度状态；Redis 队列仍是持久化权威。"""
+        return dict(self._fact_job_stats)
+
+    async def start(self) -> None:
+        """启动单个受生命周期管理的事实 Worker；待处理任务保留在 Redis。"""
+        if self._fact_worker_task is not None and not self._fact_worker_task.done():
+            return
+        self._fact_worker_stop.clear()
+        self._fact_worker_task = asyncio.create_task(
+            self._fact_worker_loop(),
+            name="dialogpilot-memory-fact-worker",
+        )
+
+    async def _fact_worker_loop(self) -> None:
+        """轮询到期会话；异常只影响本轮，任务会带退避继续留在队列。"""
+        while not self._fact_worker_stop.is_set():
+            try:
+                await self.process_due_fact_jobs()
+            except asyncio.CancelledError:
+                raise
+            except Exception:
+                logger.exception("L1 用户事实 Worker 轮询失败")
+            try:
+                await asyncio.wait_for(
+                    self._fact_worker_stop.wait(),
+                    timeout=self._fact_worker_poll_seconds,
+                )
+            except asyncio.TimeoutError:
+                pass
+
+    async def process_due_fact_jobs(self, *, limit: int = 10) -> int:
+        """处理一批到期任务；租约 + checkpoint 使多实例重复执行可收敛。"""
+        now = datetime.now(timezone.utc).timestamp()
+        jobs = await self._redis.zrangebyscore(
+            self.FACT_JOB_QUEUE_KEY,
+            min="-inf",
+            max=now,
+            start=0,
+            num=max(1, min(int(limit), 100)),
+            withscores=True,
+        )
+        completed = 0
+        for member, score in jobs:
+            if await self._run_fact_job(str(member), float(score)):
+                completed += 1
+        return completed
+
+    async def flush_fact_extraction(
+        self,
+        user_id: str,
+        conv_id: str,
+        *,
+        target_high_water: Optional[int] = None,
+    ) -> bool:
+        """显式结束时立即处理已持久化任务；失败任务仍留队等待重试。"""
+        member = self._fact_job_member(user_id, conv_id)
+        if target_high_water is None:
+            events = await self._get_event_log(user_id, conv_id)
+            target_high_water = max((message.seq for message in events), default=0)
+        for _ in range(100):
+            checkpoint = self._safe_metadata_int(await self._redis.get(
+                self._fact_checkpoint_key(user_id, conv_id)
+            ))
+            if checkpoint >= target_high_water:
+                return True
+            score = await self._redis.zscore(self.FACT_JOB_QUEUE_KEY, member)
+            if score is None:
+                # 只有明确调度过的 execute 轮次才形成 L1；没有任务不是失败。
+                return True
+            if not await self._run_fact_job(
+                member,
+                float(score),
+                target_high_water=target_high_water,
+            ):
+                return False
+        logger.error("L1 用户事实 flush 超过批次上限: %s/%s", user_id, conv_id)
+        return False
+
+    async def _run_fact_job(
+        self,
+        member: str,
+        expected_score: float,
+        *,
+        target_high_water: Optional[int] = None,
+    ) -> bool:
+        """在分布式租约内处理一个固定 high-water，并按 score CAS 完成任务。"""
+        try:
+            payload = json.loads(member)
+            user_id = self._safe_text(payload["user_id"])
+            conv_id = self._safe_text(payload["conv_id"])
+        except (TypeError, ValueError, KeyError):
+            logger.error("丢弃损坏的 L1 事实任务: %r", member)
+            await self._redis.zrem(self.FACT_JOB_QUEUE_KEY, member)
+            return False
+
+        lock_key = self._fact_user_lock_key(user_id)
+        lock_token = uuid.uuid4().hex
+        acquired = await self._redis.set(
+            lock_key,
+            lock_token,
+            nx=True,
+            ex=self.FACT_JOB_LOCK_SECONDS,
+        )
+        if not acquired:
+            return False
+
+        try:
+            checkpoint_key = self._fact_checkpoint_key(user_id, conv_id)
+            checkpoint = self._safe_metadata_int(await self._redis.get(checkpoint_key))
+            events = await self._get_event_log(user_id, conv_id)
+            observed_high_water = max((message.seq for message in events), default=0)
+            if target_high_water is not None:
+                observed_high_water = min(observed_high_water, max(0, int(target_high_water)))
+            all_pending = [
+                message for message in events
+                if checkpoint < message.seq <= observed_high_water
+            ]
+            pending = all_pending[:self.FACT_EXTRACTION_MAX_MESSAGES]
+            high_water = max((message.seq for message in pending), default=checkpoint)
+            has_more = len(all_pending) > len(pending)
+            fact_messages = [
+                message for message in pending
+                if message.metadata.get("memory_fact_eligible") is True
+            ]
+            succeeded = not fact_messages or await self.extract_user_facts(
+                user_id,
+                conv_id,
+                fact_messages,
+            )
+            if not succeeded:
+                self._fact_job_stats["failed"] += 1
+                self._fact_job_stats["retried"] += 1
+                await self._reschedule_fact_job_if_unchanged(member, expected_score)
+                return False
+
+            if high_water > checkpoint:
+                await self._redis.set(checkpoint_key, high_water)
+            if has_more:
+                await self._reschedule_fact_job_if_unchanged(
+                    member,
+                    expected_score,
+                    delay_seconds=0,
+                )
+                self._fact_job_stats["completed"] += 1
+                return True
+            await self._remove_fact_job_if_unchanged(member, expected_score)
+            self._fact_job_stats["completed"] += 1
+            # 如果执行期间又有新轮次到达，score 已变化，任务会保留给下一批；
+            # 当前固定 high-water 仍然成功，不能把它误报为失败。
+            return True
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:
+            self._fact_job_stats["failed"] += 1
+            self._fact_job_stats["retried"] += 1
+            logger.warning("L1 用户事实任务失败，将重试 %s/%s: %s", user_id, conv_id, exc)
+            await self._reschedule_fact_job_if_unchanged(member, expected_score)
+            return False
+        finally:
+            await self._release_fact_job_lock(lock_key, lock_token)
+
+    async def _remove_fact_job_if_unchanged(self, member: str, expected_score: float) -> bool:
+        """只删除自己读取的版本；并发新调度通过更新 score 保留任务。"""
+        result = await self._redis.eval(
+            """-- fact-job-remove-if-unchanged
+            local current = redis.call('ZSCORE', KEYS[1], ARGV[1])
+            if current and tonumber(current) == tonumber(ARGV[2]) then
+              return redis.call('ZREM', KEYS[1], ARGV[1])
+            end
+            return 0
+            """,
+            1,
+            self.FACT_JOB_QUEUE_KEY,
+            member,
+            expected_score,
+        )
+        return bool(result)
+
+    async def _reschedule_fact_job_if_unchanged(
+        self,
+        member: str,
+        expected_score: float,
+        *,
+        delay_seconds: float = FACT_JOB_RETRY_SECONDS,
+    ) -> None:
+        """失败退避不能覆盖执行期间到达的新一轮调度。"""
+        retry_at = datetime.now(timezone.utc).timestamp() + max(0.0, float(delay_seconds))
+        await self._redis.eval(
+            """-- fact-job-reschedule-if-unchanged
+            local current = redis.call('ZSCORE', KEYS[1], ARGV[1])
+            if current and tonumber(current) == tonumber(ARGV[2]) then
+              redis.call('ZADD', KEYS[1], ARGV[3], ARGV[1])
+              return 1
+            end
+            return 0
+            """,
+            1,
+            self.FACT_JOB_QUEUE_KEY,
+            member,
+            expected_score,
+            retry_at,
+        )
+
+    async def _release_fact_job_lock(self, lock_key: str, lock_token: str) -> None:
+        """租约只能由持有者释放，避免删掉过期后其他 Worker 获得的新锁。"""
+        try:
+            await self._redis.eval(
+                """-- fact-job-release-lock
+                if redis.call('GET', KEYS[1]) == ARGV[1] then
+                  return redis.call('DEL', KEYS[1])
+                end
+                return 0
+                """,
+                1,
+                lock_key,
+                lock_token,
+            )
+        except Exception:
+            logger.exception("释放 L1 事实任务租约失败: %s", lock_key)
 
     # ── 读取 ──────────────────────────────────────────────────────────────────
 
@@ -1114,7 +1397,7 @@ class MemoryManager:
             return False
 
     async def finalize_conversation(self, user_id: str, conv_id: str) -> Dict[str, Any]:
-        """把调用开始时的 high-water 全部形成摘要/索引，但不删除原始事件。"""
+        """固定 high-water 形成摘要，并立即尝试刷新同范围的 L1 事实。"""
         messages = await self._get_event_log(user_id, conv_id)
         checkpoint, _ = await self._read_checkpoint(user_id, conv_id)
         target_high_water = max((message.seq for message in messages), default=0)
@@ -1123,7 +1406,17 @@ class MemoryManager:
             if checkpoint.covered_until_seq < message.seq <= target_high_water
         ]
         if not initial_uncovered:
-            return {"archived_messages": 0, "finalized": True, "already_empty": True}
+            facts_flushed = await self.flush_fact_extraction(
+                user_id,
+                conv_id,
+                target_high_water=target_high_water,
+            )
+            return {
+                "archived_messages": 0,
+                "finalized": True,
+                "already_empty": True,
+                "facts_flushed": facts_flushed,
+            }
 
         last_covered = checkpoint.covered_until_seq
         while last_covered < target_high_water:
@@ -1151,10 +1444,16 @@ class MemoryManager:
                 "finalized": False,
                 "reason": "concurrent_write",
             }
+        facts_flushed = await self.flush_fact_extraction(
+            user_id,
+            conv_id,
+            target_high_water=target_high_water,
+        )
         return {
             "archived_messages": len(initial_uncovered),
             "finalized": True,
             "already_empty": False,
+            "facts_flushed": facts_flushed,
         }
 
     async def _get_profile(self, user_id: str) -> Dict[str, Any]:
@@ -1173,6 +1472,8 @@ class MemoryManager:
                         "confidence": fact.confidence,
                         "source_message_ids": fact.source_message_ids,
                         "source_max_seq": fact.source_max_seq,
+                        "source_conversation_id": fact.source_conversation_id,
+                        "source_observed_at": fact.source_observed_at,
                     }
                     for fact in active
                 ]
@@ -1211,6 +1512,8 @@ class MemoryManager:
         payload: Any,
         *,
         source_sequences: Dict[str, int],
+        source_timestamps: Optional[Dict[str, str]] = None,
+        source_conversation_id: str = "",
     ) -> List[Dict[str, Any]]:
         """关闭事实输入代数：未知 key/operation/source 一律不写。"""
         if not isinstance(payload, dict) or not isinstance(payload.get("facts"), list):
@@ -1238,14 +1541,21 @@ class MemoryManager:
                 json.dumps(value, ensure_ascii=False, sort_keys=True)
             except (TypeError, ValueError):
                 continue
-            operations.append({
+            operation = {
                 "operation": operation,
                 "key": key,
                 "value": value,
                 "confidence": min(1.0, max(0.0, float(candidate.get("confidence", 0.5) or 0.5))),
                 "source_message_ids": source_ids,
                 "source_max_seq": max((source_sequences[source] for source in source_ids), default=0),
-            })
+            }
+            timestamp_map = source_timestamps or {}
+            source_times = [timestamp_map[source] for source in source_ids if timestamp_map.get(source)]
+            if source_times:
+                operation["source_observed_at"] = max(source_times)
+            if source_conversation_id:
+                operation["source_conversation_id"] = cls._safe_text(source_conversation_id)
+            operations.append(operation)
         return operations
 
     async def _apply_fact_operations(
@@ -1265,13 +1575,19 @@ class MemoryManager:
             for operation in operations:
                 key = operation["key"]
                 value = operation.get("value")
+                source_conversation_id = self._safe_text(
+                    operation.get("source_conversation_id", "")
+                )
+                source_observed_at = self._safe_text(
+                    operation.get("source_observed_at", "")
+                )
                 active = [
                     fact for fact in by_id.values()
                     if fact.key == key and fact.status == "active"
                 ]
                 if operation["operation"] == "retract":
                     for fact in active:
-                        if operation["source_max_seq"] < fact.source_max_seq:
+                        if self._fact_operation_is_older(operation, fact):
                             continue
                         if value is None or self._same_fact_value(fact.value, value):
                             fact.status = "retracted"
@@ -1279,7 +1595,10 @@ class MemoryManager:
                             fact.source_message_ids = sorted(set(
                                 fact.source_message_ids + operation["source_message_ids"]
                             ))
-                            fact.source_max_seq = max(fact.source_max_seq, operation["source_max_seq"])
+                            fact.source_max_seq = operation["source_max_seq"]
+                            if source_observed_at:
+                                fact.source_observed_at = source_observed_at
+                                fact.source_conversation_id = source_conversation_id
                             changed[fact.fact_id] = fact
                     continue
 
@@ -1293,12 +1612,16 @@ class MemoryManager:
                     same.source_message_ids = sorted(set(
                         same.source_message_ids + operation["source_message_ids"]
                     ))
-                    same.source_max_seq = max(same.source_max_seq, operation["source_max_seq"])
+                    if not self._fact_operation_is_older(operation, same):
+                        same.source_max_seq = operation["source_max_seq"]
+                        if source_observed_at:
+                            same.source_observed_at = source_observed_at
+                            same.source_conversation_id = source_conversation_id
                     changed[same.fact_id] = same
                     continue
 
                 if self.SUPPORTED_FACTS[key] == "scalar":
-                    if any(fact.source_max_seq > operation["source_max_seq"] for fact in active):
+                    if any(self._fact_operation_is_older(operation, fact) for fact in active):
                         continue
                 new_id = self._fact_id(user_id, key, value, operation["source_message_ids"])
                 if self.SUPPORTED_FACTS[key] == "scalar":
@@ -1316,8 +1639,10 @@ class MemoryManager:
                     confidence=operation["confidence"],
                     source_message_ids=list(operation["source_message_ids"]),
                     source_max_seq=operation["source_max_seq"],
-                    observed_at=observed,
+                    observed_at=source_observed_at or observed,
                     updated_at=observed,
+                    source_conversation_id=source_conversation_id,
+                    source_observed_at=source_observed_at,
                 )
                 by_id[new_id] = new_fact
                 changed[new_id] = new_fact
@@ -1338,9 +1663,46 @@ class MemoryManager:
                     "status": fact.status,
                     "observed_at": fact.observed_at,
                     "source_max_seq": fact.source_max_seq,
+                    "source_conversation_id": fact.source_conversation_id,
+                    "source_observed_at": fact.source_observed_at,
                     "memory_version": 1,
                 } for fact in ordered],
             )
+
+    @classmethod
+    def _fact_operation_is_older(
+        cls,
+        operation: Dict[str, Any],
+        fact: MemoryFact,
+    ) -> bool:
+        """优先比较原始事件时间；旧操作无时间时保留 seq 兼容语义。"""
+        operation_time = cls._safe_text(operation.get("source_observed_at", ""))
+        operation_conv = cls._safe_text(operation.get("source_conversation_id", ""))
+        operation_seq = int(operation.get("source_max_seq", 0) or 0)
+        if operation_conv and operation_conv == fact.source_conversation_id:
+            return operation_seq < fact.source_max_seq
+        fact_time = fact.source_observed_at or fact.observed_at
+        if operation_time and fact_time:
+            return (
+                cls._timestamp_order(operation_time),
+                operation_conv,
+                operation_seq,
+            ) < (
+                cls._timestamp_order(fact_time),
+                fact.source_conversation_id,
+                fact.source_max_seq,
+            )
+        return operation_seq < fact.source_max_seq
+
+    @staticmethod
+    def _timestamp_order(value: str) -> float:
+        try:
+            parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=timezone.utc)
+            return parsed.astimezone(timezone.utc).timestamp()
+        except (TypeError, ValueError, OverflowError):
+            return 0.0
 
     @staticmethod
     def _same_fact_value(left: Any, right: Any) -> bool:
@@ -1439,7 +1801,15 @@ class MemoryManager:
             return 0
 
     async def close(self) -> None:
-        """关闭异步 Redis 连接。"""
+        """停止受管 Worker；未完成任务仍在 Redis，随后关闭连接。"""
+        self._fact_worker_stop.set()
+        if self._fact_worker_task is not None:
+            self._fact_worker_task.cancel()
+            try:
+                await self._fact_worker_task
+            except asyncio.CancelledError:
+                pass
+            self._fact_worker_task = None
         await self._redis.aclose()
 
     @staticmethod
@@ -1459,6 +1829,25 @@ class MemoryManager:
     @staticmethod
     def _summary_chunks_key(user_id: str, conv_id: str) -> str:
         return f"summary_chunks:{user_id}:{conv_id}"
+
+    @staticmethod
+    def _fact_checkpoint_key(user_id: str, conv_id: str) -> str:
+        """记录 L1 事实提取已成功覆盖的原始事件高水位。"""
+        return f"fact_checkpoint:{user_id}:{conv_id}"
+
+    @classmethod
+    def _fact_job_member(cls, user_id: str, conv_id: str) -> str:
+        """同一会话共享一个有序集合成员，后续轮次只更新其到期时间。"""
+        return json.dumps({
+            "conv_id": cls._safe_text(conv_id),
+            "user_id": cls._safe_text(user_id),
+        }, ensure_ascii=False, sort_keys=True)
+
+    @staticmethod
+    def _fact_user_lock_key(user_id: str) -> str:
+        """事实状态按用户聚合；不同会话也必须竞争同一个转换租约。"""
+        digest = hashlib.sha256(user_id.encode("utf-8")).hexdigest()
+        return f"memory:fact_user_lock:{digest}"
 
     @staticmethod
     def _seq_key(user_id: str, conv_id: str) -> str:

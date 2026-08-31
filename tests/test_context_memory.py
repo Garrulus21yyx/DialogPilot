@@ -49,6 +49,12 @@ def bare_manager(*, budget=512, threshold=0.7, summary_tokens=128):
         "tokens_after": 0,
     }
     manager._profile_locks = __import__("collections").defaultdict(asyncio.Lock)
+    manager._fact_idle_seconds = 300.0
+    manager._fact_batch_turns = 3
+    manager._fact_worker_poll_seconds = 0.01
+    manager._fact_job_stats = {"scheduled": 0, "completed": 0, "failed": 0, "retried": 0}
+    manager._fact_worker_task = None
+    manager._fact_worker_stop = asyncio.Event()
     return manager
 
 
@@ -358,7 +364,12 @@ def test_finalize_archives_short_session_without_deleting_raw_events():
     manager._archive_messages = record_archive
     result = asyncio.run(manager.finalize_conversation("user", "short-conversation"))
 
-    assert result == {"archived_messages": 2, "finalized": True, "already_empty": False}
+    assert result == {
+        "archived_messages": 2,
+        "finalized": True,
+        "already_empty": False,
+        "facts_flushed": True,
+    }
     assert [message.role for message in archived[0][0]] == [MsgRole.USER, MsgRole.ASSISTANT]
     assert archived[0][1]["reason"] == "conversation_finalize"
     assert len(redis.values) == 2
@@ -366,7 +377,40 @@ def test_finalize_archives_short_session_without_deleting_raw_events():
     assert checkpoint.covered_until_seq == 2
 
     repeated = asyncio.run(manager.finalize_conversation("user", "short-conversation"))
-    assert repeated == {"archived_messages": 0, "finalized": True, "already_empty": True}
+    assert repeated == {
+        "archived_messages": 0,
+        "finalized": True,
+        "already_empty": True,
+        "facts_flushed": True,
+    }
+
+
+def test_finalize_forces_not_yet_due_fact_job_and_reports_flush_state():
+    """显式结束不等待 idle timer，并区分摘要归档与派生事实刷新结果。"""
+    manager = bare_manager(budget=100000)
+    manager._redis = FakeRedis([])
+    manager._facts = RecordingFacts()
+    manager._client = FactClient()
+    manager._fact_idle_seconds = 3600
+    manager._fact_batch_turns = 99
+
+    async def archive(*_args, **_kwargs):
+        return True
+
+    manager._archive_messages = archive
+    asyncio.run(manager.add_messages("u", "c", [
+        (MsgRole.USER, "以后都用中文", {}),
+        (MsgRole.ASSISTANT, "好的", {}),
+    ], extract_facts=True))
+    member = manager._fact_job_member("u", "c")
+    assert manager._redis.zsets[manager.FACT_JOB_QUEUE_KEY][member] > datetime.now().timestamp()
+
+    result = asyncio.run(manager.finalize_conversation("u", "c"))
+
+    assert result["finalized"] is True
+    assert result["facts_flushed"] is True
+    assert manager._redis.strings["fact_checkpoint:u:c"] == "2"
+    assert manager._redis.zsets[manager.FACT_JOB_QUEUE_KEY] == {}
 
 
 def test_finalize_concurrent_write_preserves_redis_for_retry():
@@ -499,6 +543,42 @@ def test_slow_old_scalar_extraction_cannot_supersede_newer_fact():
     ]
 
 
+def test_cross_conversation_fact_order_uses_source_time_not_local_seq():
+    """conversation-local seq不可跨会话比较；晚完成的旧会话任务不能覆盖新事实。"""
+    manager = bare_manager()
+    manager._facts = RecordingFacts()
+    newer = [{
+        "operation": "upsert",
+        "key": "preferred_language",
+        "value": "en",
+        "confidence": 0.95,
+        "source_message_ids": ["new-message"],
+        "source_max_seq": 1,
+        "source_conversation_id": "new-conversation",
+        "source_observed_at": "2026-08-31T11:00:00+00:00",
+    }]
+    older_finishes_late = [{
+        "operation": "upsert",
+        "key": "preferred_language",
+        "value": "zh",
+        "confidence": 0.99,
+        "source_message_ids": ["old-message"],
+        "source_max_seq": 100,
+        "source_conversation_id": "old-conversation",
+        "source_observed_at": "2026-08-31T10:00:00+00:00",
+    }]
+
+    asyncio.run(manager._apply_fact_operations("u", newer, observed_at=datetime.now().astimezone()))
+    asyncio.run(manager._apply_fact_operations(
+        "u", older_finishes_late, observed_at=datetime.now().astimezone()
+    ))
+
+    active = [fact for fact in asyncio.run(manager._read_facts("u")) if fact.status == "active"]
+    assert [(fact.value, fact.source_conversation_id, fact.source_max_seq) for fact in active] == [
+        ("en", "new-conversation", 1)
+    ]
+
+
 def test_batched_appends_allocate_monotonic_sequence_and_preserve_turn_order():
     manager = bare_manager(budget=100000)
     manager._redis = FakeRedis([])
@@ -528,6 +608,124 @@ def test_batched_appends_allocate_monotonic_sequence_and_preserve_turn_order():
         ("u", "c", ["q1", "a1"], "", "turn_completed"),
         ("u", "c", ["q2", "a2"], "", "turn_completed"),
     ]
+
+
+def test_fact_job_is_durable_debounced_and_reaches_batch_threshold():
+    """L0 和待提取标记同事务提交；同一会话只有一个可更新的延迟任务。"""
+    manager = bare_manager(budget=100000)
+    manager._redis = FakeRedis([])
+    manager._fact_idle_seconds = 300
+    manager._fact_batch_turns = 3
+
+    async def archive(*_args, **_kwargs):
+        return True
+
+    manager._archive_messages = archive
+    for index in range(3):
+        asyncio.run(manager.add_messages("u", "c", [
+            (MsgRole.USER, f"q{index}", {}),
+            (MsgRole.ASSISTANT, f"a{index}", {}),
+        ], extract_facts=True))
+
+    member = manager._fact_job_member("u", "c")
+    assert list(manager._redis.zsets[manager.FACT_JOB_QUEUE_KEY]) == [member]
+    assert manager._redis.zsets[manager.FACT_JOB_QUEUE_KEY][member] <= datetime.now().timestamp()
+    assert manager.fact_job_stats["scheduled"] == 3
+
+
+def test_fact_transition_lease_is_user_scoped_across_conversations():
+    """画像生命周期按用户聚合，因此同一用户不同会话不能持有不同转换锁。"""
+    assert MemoryManager._fact_user_lock_key("user-a") == MemoryManager._fact_user_lock_key("user-a")
+    assert MemoryManager._fact_user_lock_key("user-a") != MemoryManager._fact_user_lock_key("user-b")
+
+
+def test_due_fact_job_batches_l0_range_advances_checkpoint_and_is_idempotent():
+    """重启后的 Worker仍从 Redis恢复任务，成功才推进 checkpoint 并删除任务。"""
+    redis = FakeRedis([])
+    writer = bare_manager(budget=100000)
+    writer._redis = redis
+    writer._fact_batch_turns = 1
+
+    async def archive(*_args, **_kwargs):
+        return True
+
+    writer._archive_messages = archive
+    asyncio.run(writer.add_messages("u", "c", [
+        (MsgRole.USER, "以后都用中文", {}),
+        (MsgRole.ASSISTANT, "好的", {}),
+    ], extract_facts=True))
+
+    # 模拟进程重启：新的 Manager只有相同 Redis/Chroma，内存里没有旧 task。
+    manager = bare_manager(budget=100000)
+    manager._redis = redis
+    manager._facts = RecordingFacts()
+    manager._client = FactClient()
+    manager._fact_batch_turns = 1
+    manager._archive_messages = archive
+
+    assert asyncio.run(manager.process_due_fact_jobs()) == 1
+    assert manager._redis.strings["fact_checkpoint:u:c"] == "2"
+    assert manager._redis.zsets[manager.FACT_JOB_QUEUE_KEY] == {}
+    facts = asyncio.run(manager._read_facts("u"))
+    assert [(fact.key, fact.value, fact.status) for fact in facts] == [
+        ("preferred_language", "zh", "active")
+    ]
+    assert facts[0].source_conversation_id == "c"
+    assert facts[0].source_observed_at
+    assert asyncio.run(manager.process_due_fact_jobs()) == 0
+    assert manager._client.calls == 1
+
+
+def test_failed_fact_job_keeps_checkpoint_and_reschedules_for_retry():
+    """模型失败不能吞掉派生任务，也不能谎称对应 L0 范围已经处理。"""
+    manager = bare_manager(budget=100000)
+    manager._redis = FakeRedis([])
+    manager._facts = RecordingFacts()
+    manager._client = FactClient(fail=True)
+    manager._fact_batch_turns = 1
+
+    async def archive(*_args, **_kwargs):
+        return True
+
+    manager._archive_messages = archive
+    asyncio.run(manager.add_messages("u", "c", [
+        (MsgRole.USER, "以后都用中文", {}),
+        (MsgRole.ASSISTANT, "好的", {}),
+    ], extract_facts=True))
+    member = manager._fact_job_member("u", "c")
+
+    assert asyncio.run(manager.process_due_fact_jobs()) == 0
+    assert "fact_checkpoint:u:c" not in manager._redis.strings
+    assert manager._redis.zsets[manager.FACT_JOB_QUEUE_KEY][member] > datetime.now().timestamp()
+    assert manager.fact_job_stats["failed"] == 1
+    assert manager.fact_job_stats["retried"] == 1
+
+
+def test_fact_backlog_is_chunked_without_advancing_past_unprocessed_events():
+    """Worker恢复大积压时按固定范围推进，不能因提取输入上限跳过早期事实。"""
+    manager = bare_manager(budget=100000)
+    manager._redis = FakeRedis([])
+    manager._facts = RecordingFacts()
+    manager._client = FactClient()
+    manager._fact_batch_turns = 1
+
+    async def archive(*_args, **_kwargs):
+        return True
+
+    manager._archive_messages = archive
+    for index in range(12):
+        asyncio.run(manager.add_messages("u", "c", [
+            (MsgRole.USER, f"偏好证据-{index}", {}),
+            (MsgRole.ASSISTANT, "已记录", {}),
+        ], extract_facts=True))
+
+    assert asyncio.run(manager.process_due_fact_jobs()) == 1
+    assert manager._redis.strings["fact_checkpoint:u:c"] == "20"
+    assert manager._fact_job_member("u", "c") in manager._redis.zsets[manager.FACT_JOB_QUEUE_KEY]
+    assert asyncio.run(manager.process_due_fact_jobs()) == 1
+    assert manager._redis.strings["fact_checkpoint:u:c"] == "24"
+    assert manager._redis.zsets[manager.FACT_JOB_QUEUE_KEY] == {}
+    assert manager._client.calls == 2
 
 
 def test_retrieval_hit_expands_bounded_neighbor_window_from_raw_events():
@@ -618,6 +816,15 @@ class FakePipeline:
     def rpush(self, key, *values):
         self.commands.append(("rpush", key, values))
 
+    def lpush(self, key, *values):
+        self.commands.append(("lpush", key, values))
+
+    def persist(self, key):
+        self.commands.append(("persist", key))
+
+    def zadd(self, key, mapping):
+        self.commands.append(("zadd", key, mapping))
+
     def set(self, key, value):
         self.commands.append(("set", key, value))
 
@@ -625,8 +832,14 @@ class FakePipeline:
         for command in self.commands:
             if command[0] == "rpush":
                 self.redis.lists[command[1]].extend(command[2])
+            elif command[0] == "lpush":
+                target = self.redis.values if str(command[1]).startswith("wm:") else self.redis.lists[command[1]]
+                for value in command[2]:
+                    target.insert(0, value)
             elif command[0] == "set":
                 self.redis.strings[command[1]] = command[2]
+            elif command[0] == "zadd":
+                self.redis.zsets[command[1]].update(command[2])
 
 
 class FakeRedis:
@@ -634,6 +847,7 @@ class FakeRedis:
         self.values = list(values)
         self.strings = {}
         self.lists = __import__("collections").defaultdict(list)
+        self.zsets = __import__("collections").defaultdict(dict)
 
     async def lrange(self, key, start, end):
         values = self.values if str(key).startswith("wm:") else self.lists[key]
@@ -643,6 +857,13 @@ class FakeRedis:
 
     async def get(self, key):
         return self.strings.get(key)
+
+    async def set(self, key, value, nx=False, ex=None):
+        del ex
+        if nx and key in self.strings:
+            return False
+        self.strings[key] = str(value)
+        return True
 
     async def setnx(self, key, value):
         if key in self.strings:
@@ -663,6 +884,45 @@ class FakeRedis:
 
     async def persist(self, _key):
         return True
+
+    async def zscore(self, key, member):
+        return self.zsets[key].get(member)
+
+    async def zrem(self, key, member):
+        return int(self.zsets[key].pop(member, None) is not None)
+
+    async def zrangebyscore(self, key, min, max, start=0, num=None, withscores=False):
+        lower = float("-inf") if min == "-inf" else float(min)
+        upper = float(max)
+        items = sorted(
+            ((member, score) for member, score in self.zsets[key].items() if lower <= score <= upper),
+            key=lambda item: (item[1], item[0]),
+        )
+        items = items[start : None if num is None else start + num]
+        return items if withscores else [member for member, _ in items]
+
+    async def eval(self, script, _numkeys, key, *args):
+        if "fact-job-remove-if-unchanged" in script:
+            member, expected = args
+            current = self.zsets[key].get(member)
+            if current is not None and float(current) == float(expected):
+                del self.zsets[key][member]
+                return 1
+            return 0
+        if "fact-job-reschedule-if-unchanged" in script:
+            member, expected, retry_at = args
+            current = self.zsets[key].get(member)
+            if current is not None and float(current) == float(expected):
+                self.zsets[key][member] = float(retry_at)
+                return 1
+            return 0
+        if "fact-job-release-lock" in script:
+            token = args[0]
+            if self.strings.get(key) == str(token):
+                del self.strings[key]
+                return 1
+            return 0
+        raise AssertionError("unexpected Lua script")
 
     def pipeline(self, transaction=True):
         assert transaction is True
@@ -701,6 +961,28 @@ class StableClient:
             "entities": {},
             "decisions": [],
             "user_preferences": [],
+        }
+        return SimpleNamespace(content=[SimpleNamespace(type="text", text=json.dumps(payload))])
+
+
+class FactClient:
+    def __init__(self, *, fail=False):
+        self.messages = self
+        self.fail = fail
+        self.calls = 0
+
+    async def create(self, **_kwargs):
+        self.calls += 1
+        if self.fail:
+            raise RuntimeError("fact model unavailable")
+        payload = {
+            "facts": [{
+                "operation": "upsert",
+                "key": "preferred_language",
+                "value": "zh",
+                "confidence": 0.95,
+                "source_message_ids": [],
+            }],
         }
         return SimpleNamespace(content=[SimpleNamespace(type="text", text=json.dumps(payload))])
 

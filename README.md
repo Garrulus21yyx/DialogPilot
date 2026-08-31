@@ -43,7 +43,7 @@ POST /chat
   -> persist each escalation as one idempotent human-support ticket
   -> persist verifier, coverage, and uncertain tool-effect failures as deduplicated Bad Case candidates
   -> append the published turn with contiguous conversation-local sequence numbers and immediately upsert its raw events into episodic search
-  -> extract source-linked, versioned facts in the background
+  -> atomically schedule source-linked fact reflection with the L0 turn, then debounce it in a recoverable Redis queue
   -> explicitly finalize short sessions by compensating any missing index metadata and advancing their summary checkpoint
   -> attach a redacted EvolutionEnvelope to actionable Bad Cases for version/owner attribution
   -> record pinned-bundle quality, latency, and cost-proxy evidence for controlled rollout
@@ -63,7 +63,12 @@ tickets are projected from TicketService as higher-authority service state.
 Long-term ranking fuses vector, BM25, and recency with weighted reciprocal-rank
 fusion. User memory is stored as typed facts
 with source message IDs and active/superseded/retracted lifecycle, not one mutable
-profile blob. Retrieved knowledge and memory are tagged as data while actual
+profile blob. Eligible EXECUTE turns atomically update one Redis sorted-set job
+with their L0 append; a lifecycle-managed worker flushes after three pending turns
+or five idle minutes, advances a per-conversation fact checkpoint only after a
+successful bounded extraction, and retries failures after restart. Explicit
+finalize forces the same queued range without making profile completion part of
+the raw-conversation archive truth. Retrieved knowledge and memory are tagged as data while actual
 conversation history remains user/assistant messages.
 
 The production registry exposes nine bounded tools: knowledge, user memory,

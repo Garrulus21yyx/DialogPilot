@@ -57,8 +57,8 @@ DialogPilot 不是一条不断堆 Prompt 的调用链，而是按“谁拥有最
 11. 需要升级时，创建或复用一个幂等、持久化的人工工单。
 12. 将校验失败、覆盖失败和工具副作用不确定记录为 provisional Bad Case，并附加 Bundle 组件哈希归因信封。
 13. `EXECUTE` 和需要保持追问连续性的 `CLARIFY` 轮次持久化真正发布的内容；`OUT_OF_SCOPE` 不写工作记忆、情景索引或画像。
-14. 只有 `EXECUTE` 轮次在持久化后异步提取有界且带来源的事实操作。
-15. 客户端关闭会话时，`finalize` 只补齐未覆盖范围的摘要/checkpoint 和索引 metadata，不删除事件日志。
+14. 只有 `EXECUTE` 轮次会在同一个 Redis 事务中追加 L0 原文并更新会话级 L1 事实任务；Worker 在累计 3 轮或空闲 5 分钟后批量提取，成功才推进 fact checkpoint。
+15. 客户端关闭会话时，`finalize` 补齐未覆盖范围的摘要/checkpoint 和索引 metadata，并强制尝试刷新已调度事实；原始事件不删除，事实失败则保留任务重试。
 16. 请求结束记录固定 Bundle 的质量/延迟代理指标；Shadow 副本不发布、不写业务事实。
 
 这个顺序保证记忆系统不会把“模型生成但未通过校验的答案”误认为已经展示给用户。
@@ -69,7 +69,9 @@ DialogPilot 不是一条不断堆 Prompt 的调用链，而是按“谁拥有最
 
 长期情景记忆存储带重叠的原始会话 Chunk，而不是只存摘要。向量和 BM25 候选按用户隔离，并排除正在由 Redis history 承担的当前 `conv_id`；两路可以独立降级，时效性只能重排已经相关的候选。加权 RRF 生成最终排序并保留 `message_id/event_seq/role/chunk_index` 定位。最相关的两个旧会话命中会从 Redis 原始事件日志各展开命中前后两条消息，总窗口上限 1200 estimated tokens；无法展开时保留命中原文。结构化摘要服务于 Prompt 上下文和元数据，不是长期检索的唯一事实来源。
 
-`add_messages()` 是完整轮次进入情景索引的时机 Owner：Redis 追加成功后立即用稳定 `message_id` 和确定性 Chroma ID `upsert` 原始事件。运行时索引失败不回滚已发生的 Redis 事件，压缩和显式 `finalize` 会以同一 ID 幂等补偿；只有归档成功的范围才允许推进摘要 checkpoint。会话结束操作覆盖调用开始时观察到的高水位，如果随后出现更大序号，则返回类型化并发写入结果。长期用户状态由带来源 ID 的类型化事实组成，生命周期闭合为 `active / superseded / retracted`；Prompt 中的用户画像只是活跃事实的投影。
+`add_messages()` 是完整轮次进入情景索引的时机 Owner：Redis 追加成功后立即用稳定 `message_id` 和确定性 Chroma ID `upsert` 原始事件。运行时索引失败不回滚已发生的 Redis 事件，压缩和显式 `finalize` 会以同一 ID 幂等补偿；只有归档成功的范围才允许推进摘要 checkpoint。会话结束操作覆盖调用开始时观察到的高水位，如果随后出现更大序号，则返回类型化并发写入结果。
+
+长期用户状态由带来源 ID 的类型化事实组成，生命周期闭合为 `active / superseded / retracted`；Prompt 中的用户画像只是活跃事实的投影，不是每轮重建的 Persona。`EXECUTE` 轮次的 L0 追加与 Redis sorted-set 任务标记在同一事务提交，替代易随进程退出丢失的裸 `asyncio.create_task`。同一 `user_id + conv_id` 只有一个防抖任务：默认累计 3 轮立即到期，否则在最后活动 300 秒后处理。Worker 通过用户级 Redis 租约串行化同一用户跨会话的事实状态转换，每批最多覆盖 20 条事件；Chroma 事实写成功后才单调推进 `fact_checkpoint`，积压继续留队，失败按 30 秒退避。任务 score 用 CAS 删除/重排，执行期间到达的新轮次不会被旧 Worker 清掉。`source_max_seq` 只在同一会话内有序；跨会话事实新旧按服务端原始消息的 `source_observed_at` 判断，并保留 `source_conversation_id`，不能拿两个局部 seq 直接比较。
 
 `ContextAssembler` 单独拥有“记忆数据如何转换成 LLM 输入”的职责。记忆、检索知识、画像和 `active_tickets` 放在带标签的数据分区中，真正的用户/助手历史仍然保留消息角色。活动工单 priority 为 90，高于历史画像/情景/摘要；订单、退款和账户的当前事实仍必须以实时业务工具结果为最高权威。装配器预留输出容量、从最老历史开始裁剪，并且不会伪造助手确认消息。
 

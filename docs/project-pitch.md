@@ -41,7 +41,7 @@ Bad Case 不会在线改生产 Prompt。系统先用脱敏版本信封做责任�
   → AnswerVerifier
   → 发布答案或创建人工工单
   → 持久化真实发布结果
-  → 异步抽取事实与记录 Bad Case
+  → Redis 防抖任务批量抽取 L1 事实，并记录 Bad Case
   → 脱敏归因 → 离线候选 → Graduation → 灰度/回滚
 ```
 
@@ -102,7 +102,7 @@ BLOCKED_DEPENDENCY / AWAITING_APPROVAL
 
 消息数量无法准确代表模型输入长度。DialogPilot 估算 Prompt Token，保留最近原始轮次，只把最老且尚未覆盖的固定序列范围压缩成不可变 Chunk。Redis 乐观事务只推进该范围的检查点；后来到达的消息序号更大，不会让正在生成的摘要失效。
 
-完整发布轮次写入 Redis 后会立即用确定性消息 ID 幂等写入情景记忆；压缩和会话结束 API 是补偿路径，并只在对应范围归档成功后推进检查点。原始事件日志不删除。用户画像只是活跃类型化事实的投影，每条事实仍保留来源消息和 superseded/retracted 生命周期。
+完整发布轮次写入 Redis 后会立即用确定性消息 ID 幂等写入情景记忆；压缩和会话结束 API 是补偿路径，并只在对应范围归档成功后推进检查点。原始事件日志不删除。用户画像只是活跃 L1 类型化事实的投影，不是每轮生成的 L3 Persona。`EXECUTE` 轮次把原文和一个会话级 Redis 延迟任务原子提交，默认累计 3 轮或空闲 5 分钟后批量提取；Worker崩溃后任务仍可恢复，成功才推进 fact checkpoint，显式 finalize 会立即尝试刷新。
 
 ### 为什么长期记忆使用混合召回？
 
@@ -146,7 +146,7 @@ Ticket 负责用户人工处理流程，Trace 负责一次请求的诊断；二�
 
 **A：** 在 Orchestrator 增加闭合 `PlanningDisposition`，规定 `EXECUTE` 必须有 TaskGraph，`CLARIFY/OUT_OF_SCOPE` 必须无图；API 对策略终态发布固定回复并跳过模型 Verifier，`OUT_OF_SCOPE` 额外跳过 Redis/Chroma/画像写入。路由评测增加 disposition exact match，HTTP 集成测试使用会抛错的假 Worker、RAG、工具和 Verifier 证明这些路径未被调用。
 
-**R：** 越域请求公开投影为 `agent_type=orchestrator`、空 Agent/Task/Outcome、`verification_reason_code=policy_terminal`，不创建人工工单；低置信度请求仍追问，明确问候仍由 GeneralAgent 执行，全仓 258 项测试通过。
+**R：** 越域请求公开投影为 `agent_type=orchestrator`、空 Agent/Task/Outcome、`verification_reason_code=policy_terminal`，不创建人工工单；低置信度请求仍追问，明确问候仍由 GeneralAgent 执行，全仓 265 项测试通过。
 
 ## Agent 进化改造如何用 STAR 讲
 
@@ -156,7 +156,7 @@ Ticket 负责用户人工处理流程，Trace 负责一次请求的诊断；二�
 
 **A：** 将兼容 `TaskPlan` 升级为 `TaskGraph`，增加依赖波次、`context_refs` 与阻塞状态；用 SQLite RunStore 固定 task/Bundle/工具调用并通过 CAS Resume；再实现 EvolutionEnvelope、不可变 AgentBundle、GEPA-lite 受限候选、带证据 Graduation/Pareto，以及 Shadow → 5% → 25% → Active 和硬/软回滚。
 
-**R：** 请求内版本不漂移，依赖失败不再误调后继，审批重放不重复写，候选不能修改权限或绕过 Gate，灰度与回滚收敛为原子状态迁移；当前全仓 258 项测试通过。评测数据仍是 provisional，因此结果只表述为合同回归，不虚构生产准确率。
+**R：** 请求内版本不漂移，依赖失败不再误调后继，审批重放不重复写，候选不能修改权限或绕过 Gate，灰度与回滚收敛为原子状态迁移；当前全仓 265 项测试通过。评测数据仍是 provisional，因此结果只表述为合同回归，不虚构生产准确率。
 
 ## 面试时应该诚实说明的指标边界
 

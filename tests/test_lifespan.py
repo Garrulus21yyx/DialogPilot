@@ -58,6 +58,9 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
             captured["memory"] = kwargs
             captured["memory_closed"] = False
 
+        async def start(self):
+            captured["memory_started"] = True
+
         async def close(self):
             captured["memory_closed"] = True
 
@@ -142,6 +145,10 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
             assert captured["memory"]["memory_token_budget"] == 4321
             assert captured["memory"]["compression_threshold"] == 0.81
             assert captured["memory"]["summary_max_tokens"] == 777
+            assert captured["memory"]["fact_idle_seconds"] == 300
+            assert captured["memory"]["fact_batch_turns"] == 3
+            assert captured["memory"]["fact_worker_poll_seconds"] == 5
+            assert captured["memory_started"] is True
             assert captured["memory"]["chroma_mode"] == "embedded"
             assert captured["knowledge"]["chroma_mode"] == "embedded"
             assert captured["orchestrator"]["intent_similarity_mode"] == "ngram"

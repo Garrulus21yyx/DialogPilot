@@ -29,7 +29,7 @@ title: DialogPilot 面经校准与追问手册
 | 知识库是 BM25 + 向量 + RRF | 这是长期记忆；知识 RAG 仍是 rewrite + Chroma 多路向量 + 去重 + LLM rerank | **CORRECTED** |
 | Agent 单次生成、无完整 Trace | Worker 内最多 4 步 ReAct，allowlist、持久审批 Resume、脱敏 audit/TraceId | **CHANGED** |
 | Bad Case 后人工直接改 Prompt | 版本归因 → 不可变 Bundle 候选 → Graduation/Pareto → Shadow/Canary/回滚 | **NEW** |
-| 准确率 91.3%、综合分 0.89 | 当前有 500 条分层候选集、25 篇 corpus 和 258 项回归测试，但仍无 human-reviewed gold | **UNPROVEN** |
+| 准确率 91.3%、综合分 0.89 | 当前有 500 条分层候选集、25 篇 corpus 和 265 项回归测试，但仍无 human-reviewed gold | **UNPROVEN** |
 | 完整 MCP Server / LangGraph | 是内部 ToolManager 与直接 Python 编排；没有远程 MCP Server，没用 LangGraph | **UNPROVEN** |
 
 ## 项目开场与完整链路
@@ -56,7 +56,7 @@ title: DialogPilot 面经校准与追问手册
 
 ### Q6：多轮中途改意图会丢历史吗？
 
-不会。工作记忆按认证 Principal 的 `subject + conv_id` 保留，意图每轮重新识别。每个完整发布轮次写入 Redis 后立即以稳定 ID 幂等进入情景索引；老信息超 Token 预算后压缩，短会话 finalize 只补齐摘要/checkpoint 和索引 metadata。请求体 `user_id` 不再拥有身份，冲突会 403。
+不会。工作记忆按认证 Principal 的 `subject + conv_id` 保留，意图每轮重新识别。每个完整发布轮次写入 Redis 后立即以稳定 ID 幂等进入情景索引；老信息超 Token 预算后压缩。`EXECUTE` 轮次还会原子更新会话级 L1 事实任务，默认累计 3 轮或空闲 5 分钟后提取；短会话 finalize 补齐摘要/checkpoint、索引 metadata，并立即尝试 flush 事实。请求体 `user_id` 不再拥有身份，冲突会 403。
 
 ## 意图识别与路由
 
@@ -252,7 +252,7 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q48：91.3%、0.89 等旧数字怎么回答？
 
-**UNPROVEN。** 旧数字没对应数据版本、切分、运行产物和 commit，已移除。当前可证明的是 258 项回归测试、500 条分层候选集、25 篇 corpus、Stateful fixture 和隔离 RAG producer；因为 gold 仍为 0，不能报项目准确率。独立审核并运行新鲜 heldout 后才报均值、方差、slice 和置信区间。
+**UNPROVEN。** 旧数字没对应数据版本、切分、运行产物和 commit，已移除。当前可证明的是 265 项回归测试、500 条分层候选集、25 篇 corpus、Stateful fixture 和隔离 RAG producer；因为 gold 仍为 0，不能报项目准确率。独立审核并运行新鲜 heldout 后才报均值、方差、slice 和置信区间。
 
 ### Q49：多 LLM 调用怎么降延迟？
 
@@ -314,11 +314,11 @@ Trace 缺 OpenTelemetry exporter、持久存储、全链 span、采样与保留�
 
 ### Q61：短会话没触发压缩，怎样保证长期记忆？
 
-现在不再把“能否跨会话检索”绑定到压缩。`add_messages()` 写完一个完整发布轮次后立即按稳定 message ID 幂等 upsert 原始片段，因此两条消息的短会话也能被下一会话检索。`POST /conversations/{conv_id}/finalize` 仍固定调用开始时的 high-water，补齐未覆盖范围的摘要/checkpoint 与索引 metadata；原始事件不删除。若完成后发现更大 seq，则返回 409，下一次只处理新增范围。
+现在不再把“能否跨会话检索”绑定到压缩。`add_messages()` 写完一个完整发布轮次后立即按稳定 message ID 幂等 upsert 原始片段，因此两条消息的短会话也能被下一会话检索。`POST /conversations/{conv_id}/finalize` 仍固定调用开始时的 high-water，补齐未覆盖范围的摘要/checkpoint 与索引 metadata，并强制处理同范围内已调度的 L1 事实任务；原始事件不删除。若完成后发现更大 seq，则返回 409，下一次只处理新增范围。
 
 ### Q62：为什么用户画像现在能确定性读取？
 
-不再把整个画像合并进一条可覆盖 JSON。模型只能对支持的 fact key 产出 `upsert/retract`，每条事实携带来源 message ID、source seq、置信度和生命周期。标量事实由更新的 source seq 替代旧值，多值事实可共存；Prompt profile 只是 active facts 的投影。当前进程锁避免本进程内交错提交，多副本仍需共享存储 CAS。
+不再把整个画像合并进一条可覆盖 JSON，也不在每个请求后创建可能丢失的裸后台 task。`EXECUTE` 轮次把 L0 原文和唯一 Redis sorted-set任务原子提交；累计 3 轮或空闲 300 秒后，Worker持用户级租约按最多 20 条事件的固定范围提取，同一用户跨会话的事实状态转换也会串行。模型只能对支持的 fact key 产出 `upsert/retract`，每条事实携带来源 message ID、conversation ID、原始事件时间、局部 seq、置信度和生命周期；同会话按 seq、跨会话按 source time判断新旧。成功才推进 fact checkpoint，失败留队退避，进程重启可恢复。Prompt profile只是 active facts投影，不是 L3 Persona。
 
 ### Q63：Verifier 已替换顶层 response，为什么还要删 outcome content？
 
@@ -424,7 +424,7 @@ DeepSeek 的 Anthropic 兼容协议要求工具后续轮回传此前 thinking �
 
 ### Q84：这项改造怎样写 STAR？
 
-**S：** 九类调用共用一个模型，DeepSeek 默认 reasoning 让简单任务成本、延迟和结构化输出不可控。**T：** 在保持统一 Messages API 的同时，让每类调用可独立权衡质量。**A：** 实现按角色校验的 ModelPolicy，Flash/none 承担闭合高频任务，Pro/none 承担融合与质量门禁；显式 reasoning 强制最小完成预算，并补齐 health/eval 配置证据和 ReAct thinking 回传。**R：** 4 条 E2E pilot 均值约 28.4s → 13.3s，Verifier 解析 2/4 → 4/4；当前全仓 258 项回归测试通过。15 条 provisional 三档消融已完成，最终选择仍需 gold heldout 与重复运行确认。
+**S：** 九类调用共用一个模型，DeepSeek 默认 reasoning 让简单任务成本、延迟和结构化输出不可控。**T：** 在保持统一 Messages API 的同时，让每类调用可独立权衡质量。**A：** 实现按角色校验的 ModelPolicy，Flash/none 承担闭合高频任务，Pro/none 承担融合与质量门禁；显式 reasoning 强制最小完成预算，并补齐 health/eval 配置证据和 ReAct thinking 回传。**R：** 4 条 E2E pilot 均值约 28.4s → 13.3s，Verifier 解析 2/4 → 4/4；当前全仓 265 项回归测试通过。15 条 provisional 三档消融已完成，最终选择仍需 gold heldout 与重复运行确认。
 
 ### Q85：Flash/off、Flash/high、Pro/high 真跑后有什么区别？
 
@@ -482,7 +482,7 @@ Shadow 用真实输入跑候选 Intent/RAG/Worker/Verifier，但不发布、不�
 
 ### Q98：这项改造怎么写 STAR？
 
-**S：** Bad Case 能入库，但人工直接改 Prompt 导致版本归因弱、回归不可复现、发布全量且安全边界可能被误改。**T：** 把线上失败变成可验证、可灰度、可撤销的策略升级。**A：** 增加脱敏 EvolutionEnvelope、确定性 Owner 归因、不可变 AgentBundle、GEPA-lite 多候选、provenance Graduation/Pareto，并以 Shadow、稳定 5%/25% 分桶及硬/软自动回滚发布。**R：** 请求内版本固定，候选无法修改权限或绕过 Gate，Shadow 写操作零提交，发布/回滚成为原子状态迁移；258 项回归通过，数据非 Gold 前不虚构线上提升。
+**S：** Bad Case 能入库，但人工直接改 Prompt 导致版本归因弱、回归不可复现、发布全量且安全边界可能被误改。**T：** 把线上失败变成可验证、可灰度、可撤销的策略升级。**A：** 增加脱敏 EvolutionEnvelope、确定性 Owner 归因、不可变 AgentBundle、GEPA-lite 多候选、provenance Graduation/Pareto，并以 Shadow、稳定 5%/25% 分桶及硬/软自动回滚发布。**R：** 请求内版本固定，候选无法修改权限或绕过 Gate，Shadow 写操作零提交，发布/回滚成为原子状态迁移；265 项回归通过，数据非 Gold 前不虚构线上提升。
 
 ## 面试前 10 分钟自查
 
