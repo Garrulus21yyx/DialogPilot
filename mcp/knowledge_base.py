@@ -145,7 +145,13 @@ class KnowledgeBase:
         """异步导入文档；ChromaDB 客户端为同步实现，因此放入线程池执行。"""
         return await asyncio.to_thread(self.add_documents, documents)
 
-    def search(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
+    def search(
+        self,
+        query: str,
+        top_k: int = 5,
+        *,
+        retrieval_policy: Optional[Dict[str, Any]] = None,
+    ) -> List[Dict[str, Any]]:
         """
         语义检索：根据 query 返回最相关的文档片段。
 
@@ -154,8 +160,15 @@ class KnowledgeBase:
         query = str(query or "").strip()
         if not query or self._collection.count() == 0:
             return []
+        policy = dict(retrieval_policy or {})
+        retriever = HybridMemoryRetriever(
+            rrf_k=int(policy.get("rrf_k", self._hybrid_retriever.rrf_k)),
+            vector_weight=float(policy.get("vector_weight", self._hybrid_retriever.vector_weight)),
+            lexical_weight=float(policy.get("lexical_weight", self._hybrid_retriever.lexical_weight)),
+            recency_weight=0.0,
+        )
         vector_results = {}
-        if self._hybrid_retriever.vector_weight > 0:
+        if retriever.vector_weight > 0:
             vector_results = self._collection.query(
                 query_texts=[query],
                 n_results=min(max(20, int(top_k)), self._collection.count()),
@@ -184,7 +197,7 @@ class KnowledgeBase:
 
         vector_documents = documents(vector_results, nested=True)
         corpus_documents = documents(corpus_results, nested=False)
-        hits = self._hybrid_retriever.rank(
+        hits = retriever.rank(
             query,
             vector_documents=vector_documents,
             corpus_documents=corpus_documents,
@@ -220,9 +233,17 @@ class KnowledgeBase:
                 break
         return projected
 
-    async def search_async(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
+    async def search_async(
+        self,
+        query: str,
+        top_k: int = 5,
+        *,
+        retrieval_policy: Optional[Dict[str, Any]] = None,
+    ) -> List[Dict[str, Any]]:
         """异步检索；ChromaDB 客户端为同步实现，因此放入线程池执行。"""
-        return await asyncio.to_thread(self.search, query, top_k)
+        return await asyncio.to_thread(
+            self.search, query, top_k, retrieval_policy=retrieval_policy,
+        )
 
     @property
     def doc_count(self) -> int:
@@ -247,7 +268,8 @@ class KnowledgeBase:
         """
         query = params.get("query", "")
         top_k = params.get("top_k", 5)
-        return await self.search_async(query, top_k=top_k)
+        policy = dict((context or {}).get("retrieval_policy") or {})
+        return await self.search_async(query, top_k=top_k, retrieval_policy=policy)
 
     # ── 内部方法 ──────────────────────────────────────────────────────────────
 

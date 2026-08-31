@@ -20,9 +20,9 @@
 | 0. 架构与因果面盘点 | completed | 本计划；现有 evaluator/orchestrator/ReAct/BadCase/API 消费面 | 受影响消费者清单完整 |
 | 1. Immutable Baseline + Rubric + Graduation | completed | `evaluation/rubric.py`、`evaluation/graduation.py`、Evaluator/API/测试迁移 | 220 tests passed；`0051ed9` 已 push |
 | 2. 依赖感知且上下文隔离的 TaskGraph | completed | orchestration contracts、scheduler、orchestrator/API/评测投影 | 225 tests passed；`d178f1a` 已 push |
-| 3. Run Checkpoint + Approval Resume | completed | ReAct RunStore、ToolManager 幂等调用、API resume | 238 tests passed；待本阶段 commit/push |
-| 4. EvolutionEnvelope + AgentBundle Registry | in_progress | `services/evolution/*`、BadCase/API 版本归因 | 哈希稳定、版本不可变、请求固定版本；commit/push |
-| 5. GEPA-lite Candidate + Graduation 集成 | pending | 聚类、责任归因、候选生成、Pareto 选择 | 目标 Case 修复且广谱门禁不退化；commit/push |
+| 3. Run Checkpoint + Approval Resume | completed | ReAct RunStore、ToolManager 幂等调用、API resume | 238 tests passed；`e9682ad` 已 push |
+| 4. EvolutionEnvelope + AgentBundle Registry | completed | `services/evolution/*`、BadCase/API 版本归因 | 244 tests passed；待 commit/push |
+| 5. GEPA-lite Candidate + Graduation 集成 | in_progress | 聚类、责任归因、候选生成、Pareto 选择 | 目标 Case 修复且广谱门禁不退化；commit/push |
 | 6. Shadow/Canary/Active + 自动回滚 | pending | Rollout Owner、稳定分桶、指标窗口、Active 指针 | 硬信号立即回滚、软信号防抖、在途版本固定；commit/push |
 | 7. Pages/教程/面试问答同步 | pending | architecture、project-pitch、完整教程、图 | 页面构建与浏览器验证；commit/push |
 
@@ -57,3 +57,4 @@
 - 2026-08-31：阶段 1 完成；普通 run 与 baseline 写权分离，Rubric 硬门禁和显式 Graduation 接入，220 项全仓测试通过。
 - 2026-08-31：阶段 2 完成；TaskGraph DAG、读并行/写串行、依赖失败终态和 Worker 范围投影接入，225 项全仓测试通过。
 - 2026-08-31：阶段 3 完成；SQLite Run checkpoint、JWT 身份绑定审批、跨进程 Resume 和 call_id 幂等账本接入，238 项全仓测试通过。
+- 2026-08-31：阶段 4 完成；请求级固定不可变 AgentBundle，真实 Prompt/路由/检索/工具描述接线，Bad Case EvolutionEnvelope 脱敏归因，244 项全仓测试通过。

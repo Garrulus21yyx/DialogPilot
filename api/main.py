@@ -55,6 +55,15 @@ from services.answer_verifier import (
     VerificationResult,
     VerificationStatus,
 )
+from services.evolution import (
+    AgentBundle,
+    AgentBundleRegistry,
+    BundleConflictError,
+    BundleContractError,
+    BundleNotFoundError,
+    EvolutionEnvelope,
+    build_default_bundle,
+)
 
 load_dotenv()
 
@@ -87,6 +96,7 @@ _context_assembler = None
 _authenticator = None
 _model_policy = None
 _run_store = None
+_bundle_registry = None
 _trace_recorder = TraceRecorder()
 _input_security_guard = PromptInjectionGuard()
 
@@ -137,7 +147,7 @@ def _anthropic_cfg() -> Dict[str, Any]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """按依赖顺序创建所有组件，并在退出时释放后台任务和连接。"""
-    global _orchestrator, _memory, _knowledge_base, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store
+    global _orchestrator, _memory, _knowledge_base, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry
 
     print(BANNER, flush=True)
 
@@ -168,9 +178,16 @@ async def lifespan(app: FastAPI):
         approval_ttl_s=float(os.getenv("REACT_APPROVAL_TTL_SECONDS", "900")),
         recovery_grace_s=float(os.getenv("REACT_RECOVERY_GRACE_SECONDS", "30")),
     )
+    _bundle_registry = AgentBundleRegistry(
+        os.getenv(
+            "AGENT_BUNDLE_DB_PATH",
+            str(pathlib.Path(_ROOT) / "data" / "evolution" / "agent-bundles.db"),
+        )
+    )
+    _bundle_registry.bootstrap(build_default_bundle(_model_policy.to_dict()))
     logger.info("模型分层策略: %s", _model_policy.to_dict())
 
-    # 意图识别器（Orchestrator 内部也会创建，这里单独暴露给 Evaluator）
+    # 单一意图识别器同时注入 Orchestrator 与 Evaluator，避免 cache/学习状态分叉。
     recognizer = IntentRecognizer(
         api_key=cfg["api_key"],
         base_url=cfg.get("base_url"),
@@ -383,6 +400,7 @@ async def lifespan(app: FastAPI):
         _authenticator = None
         _model_policy = None
         _run_store = None
+        _bundle_registry = None
         logger.info("DialogPilot 已关闭")
 
 
@@ -468,6 +486,7 @@ class ChatResponse(BaseModel):
     ticket_id: Optional[str] = None
     ticket_status: Optional[str] = None
     handoff_created: bool = False
+    bundle_version: str = "unversioned"
     awaiting_approval: bool = False
     react_run_ids: List[str] = Field(default_factory=list)
     pending_approval_call_ids: List[str] = Field(default_factory=list)
@@ -477,6 +496,20 @@ class ReactResumeInput(BaseModel):
     """宿主对持久待审批调用做显式决策；不接受模型传入 token。"""
 
     approved: bool
+
+
+class AgentBundleInput(BaseModel):
+    """管理员可注册的候选策略；没有任何 Active 指针写入口。"""
+
+    version: str = Field(min_length=1, max_length=128)
+    base_version: str = Field(default="", max_length=128)
+    prompts: Dict[str, str] = Field(default_factory=dict)
+    few_shots: Dict[str, List[Dict[str, Any]]] = Field(default_factory=dict)
+    routing_policy: Dict[str, Any] = Field(default_factory=dict)
+    retrieval_policy: Dict[str, Any] = Field(default_factory=dict)
+    tool_descriptions: Dict[str, str] = Field(default_factory=dict)
+    model_policy: Dict[str, Any] = Field(default_factory=dict)
+    source_badcase_groups: List[str] = Field(default_factory=list)
 
 
 class TicketCreateRequest(BaseModel):
@@ -700,7 +733,7 @@ def _publish_candidate(candidate: str, verification: VerificationResult) -> str:
     return "当前回答未通过可信度校验，已转交人工进一步确认。"
 
 
-def _badcase_versions() -> Dict[str, Any]:
+def _badcase_versions(bundle: Optional[AgentBundle] = None) -> Dict[str, Any]:
     """生成不含密钥的复现版本投影。"""
     raw_skill_rows = (_skill_manager.summary().get("skills") or []) if _skill_manager else []
     skill_rows = [
@@ -710,12 +743,16 @@ def _badcase_versions() -> Dict[str, Any]:
     skill_sha = hashlib.sha256(
         json.dumps(skill_rows, ensure_ascii=False, sort_keys=True).encode("utf-8")
     ).hexdigest()
-    return {
+    versions = {
         "commit_sha": os.getenv("GIT_COMMIT_SHA", "unknown")[:80],
         "model_policy": _model_policy.to_dict() if _model_policy is not None else {},
         "skill_registry_sha256": skill_sha,
         "knowledge": _knowledge_base.storage_backend if _knowledge_base is not None else {},
     }
+    if bundle is not None:
+        versions["agent_bundle_version"] = bundle.version
+        versions["agent_bundle_sha256"] = bundle.content_hash
+    return versions
 
 
 async def _observe_badcase(**observation: Any) -> None:
@@ -723,9 +760,10 @@ async def _observe_badcase(**observation: Any) -> None:
     if _badcase_registry is None:
         return
     try:
+        versions = observation.pop("versions", None)
         await asyncio.to_thread(
             _badcase_registry.observe,
-            versions=_badcase_versions(),
+            versions=versions if versions is not None else _badcase_versions(),
             **observation,
         )
     except Exception:
@@ -744,38 +782,75 @@ async def _capture_chat_badcases(
     verification: VerificationResult,
     published_response: str,
     tool_audit: List[Dict[str, Any]],
+    bundle: Optional[AgentBundle] = None,
     approval_pending: bool = False,
 ) -> None:
     """把发布、Coverage 与工具终态投影为去重候选，不复制未发布 candidate。"""
+    resolved_bundle = bundle or build_default_bundle(
+        _model_policy.to_dict() if _model_policy is not None else {}
+    )
     common = {
         "user_id": user_id,
         "sanitized_input": req.message,
         "trace_id": current_trace_id(),
         "request_id": request_id,
         "published_response": published_response,
+        "versions": _badcase_versions(resolved_bundle),
     }
+    task_ids = [
+        str(task.get("task_id") or "")
+        for task in (result.task_plan.get("tasks") or [])
+        if isinstance(task, dict) and task.get("task_id")
+    ]
+    call_ids = [
+        str(record.get("call_id") or "")
+        for record in tool_audit if record.get("call_id")
+    ]
+    tool_hash = (
+        _tool_manager.registry_fingerprint(dict(resolved_bundle.tool_descriptions))
+        if _tool_manager is not None else ""
+    )
+
+    def evidence_with_envelope(symptom: str, evidence: Dict[str, Any]) -> Dict[str, Any]:
+        envelope = EvolutionEnvelope.from_execution(
+            request_id=request_id,
+            trace_id=current_trace_id(),
+            bundle=resolved_bundle,
+            tool_registry_hash=tool_hash,
+            producer_agent_keys=getattr(result, "producer_agent_keys", ()),
+            task_ids=task_ids,
+            tool_call_ids=call_ids,
+            verification=verification.status.value,
+            badcase_group=symptom,
+        )
+        return {**evidence, "evolution_envelope": envelope.to_dict()}
+
     if not approval_pending and verification.status is not VerificationStatus.PASS:
+        symptom = f"verification_{verification.status.value}"
         await _observe_badcase(
             **common,
             source="verifier",
             stage=BadCaseStage.VERIFICATION,
             severity=BadCaseSeverity.P1,
-            symptom_code=f"verification_{verification.status.value}",
-            evidence={
+            symptom_code=symptom,
+            evidence=evidence_with_envelope(symptom, {
                 "reason_code": verification.reason_code.value,
                 "grounded": verification.grounded,
                 "need_escalation": verification.need_escalation,
                 "intent": result.intent.value if result.intent else "other",
-            },
+            }),
         )
     if not approval_pending and not bool(result.coverage.get("complete", False)):
+        symptom = "required_task_coverage_incomplete"
         await _observe_badcase(
             **common,
             source="coverage_gate",
             stage=BadCaseStage.COVERAGE,
             severity=BadCaseSeverity.P1,
-            symptom_code="required_task_coverage_incomplete",
-            evidence={"coverage": result.coverage, "task_plan": result.task_plan},
+            symptom_code=symptom,
+            evidence=evidence_with_envelope(
+                symptom, {"coverage": result.coverage, "task_plan": result.task_plan},
+            ),
         )
     for record in tool_audit:
         status = str(record.get("status") or "unknown")
@@ -785,13 +860,14 @@ async def _capture_chat_badcases(
         if status == "success" and effect_status != "outcome_unknown":
             continue
         severity = BadCaseSeverity.P0 if effect_status == "outcome_unknown" else BadCaseSeverity.P1
+        symptom = f"tool_{record.get('tool_name', 'unknown')}_{status}_{effect_status}"
         await _observe_badcase(
             **common,
             source="tool_audit",
             stage=BadCaseStage.TOOL_POLICY,
             severity=severity,
-            symptom_code=f"tool_{record.get('tool_name', 'unknown')}_{status}_{effect_status}",
-            evidence={
+            symptom_code=symptom,
+            evidence=evidence_with_envelope(symptom, {
                 "tool_name": record.get("tool_name"),
                 "status": status,
                 "effect_status": effect_status,
@@ -799,8 +875,50 @@ async def _capture_chat_badcases(
                 "read_only": record.get("read_only"),
                 "approved": record.get("approved"),
                 "params_hash": record.get("params_hash"),
-            },
+            }),
         )
+
+
+@app.get("/evolution/bundles", tags=["Agent Evolution"])
+async def list_agent_bundles(
+    limit: int = Query(default=100, ge=1, le=500),
+    _principal: Principal = Depends(_admin_principal),
+):
+    """列出不可变 Bundle 元数据；不把完整 Prompt 暴露到普通聊天接口。"""
+    if _bundle_registry is None:
+        raise HTTPException(503, "Agent Bundle 服务未就绪")
+    return {"items": await asyncio.to_thread(_bundle_registry.list, limit)}
+
+
+@app.get("/evolution/bundles/active", tags=["Agent Evolution"])
+async def get_active_agent_bundle(_principal: Principal = Depends(_admin_principal)):
+    """返回当前 Active Bundle 的管理投影。"""
+    if _bundle_registry is None:
+        raise HTTPException(503, "Agent Bundle 服务未就绪")
+    bundle = await asyncio.to_thread(_bundle_registry.active)
+    return {"bundle": bundle.to_dict(), "content_hash": bundle.content_hash}
+
+
+@app.post("/evolution/bundles", status_code=201, tags=["Agent Evolution"])
+async def register_agent_bundle(
+    body: AgentBundleInput,
+    principal: Principal = Depends(_admin_principal),
+):
+    """只注册候选；晋级和发布必须由后续 Graduation/Rollout Owner 完成。"""
+    if _bundle_registry is None:
+        raise HTTPException(503, "Agent Bundle 服务未就绪")
+    try:
+        bundle = AgentBundle(**body.model_dump())
+        registered = await asyncio.to_thread(
+            _bundle_registry.register, bundle, actor=principal.subject,
+        )
+    except BundleNotFoundError as exc:
+        raise HTTPException(404, {"code": "base_bundle_not_found", "version": str(exc)}) from exc
+    except BundleConflictError as exc:
+        raise HTTPException(409, {"code": "bundle_version_conflict", "message": str(exc)}) from exc
+    except BundleContractError as exc:
+        raise HTTPException(422, {"code": "invalid_bundle", "message": str(exc)}) from exc
+    return {"bundle": registered.to_dict(), "content_hash": registered.content_hash, "active": False}
 
 
 @app.post("/chat", response_model=ChatResponse)
@@ -809,17 +927,18 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
     主对话接口。完整流程：
       记忆读取 → 意图识别 → Agent 路由 → 执行 → 记忆写入
     """
+    # 纯本地输入边界先于服务就绪检查；恶意输入不能利用组件状态探测下游。
+    _enforce_user_input_security(req.message)
+
     if (
         _orchestrator is None
         or _memory is None
         or _answer_verifier is None
         or _ticket_service is None
         or _context_assembler is None
+        or _bundle_registry is None
     ):
         raise HTTPException(503, "服务未就绪")
-
-    # 直接注入在任何模型、检索、记忆读取/写入和工具调用之前终止。
-    _enforce_user_input_security(req.message)
 
     from agents.agent_orchestrator import Request as OrcReq
     from memory.conversation_memory import MsgRole
@@ -827,6 +946,8 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
     user_id = _subject_for_request(req.user_id, principal)
     conv_id = req.conv_id or str(uuid.uuid4())
     request_id = req.request_id or str(uuid.uuid4())
+    # 请求开始时只解析一次；后续即使 Active 指针变化，本请求也继续使用该对象。
+    bundle = await asyncio.to_thread(_bundle_registry.active)
 
     # 1. 读取记忆上下文
     mem_ctx = await _memory.get_context(user_id, conv_id, query=req.message)
@@ -842,7 +963,9 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
     ] if mem_ctx.recent_messages else None
 
     intent_result = await _orchestrator.recognize_intent(req.message, history=intent_history)
-    knowledge_text, knowledge_used = await _build_knowledge_context(req.message, intent=intent_result.intent)
+    knowledge_text, knowledge_used = await _build_knowledge_context(
+        req.message, intent=intent_result.intent, bundle=bundle,
+    )
     context_sections = mem_ctx.to_sections()
     active_ticket_section = await _active_ticket_context(user_id)
     if active_ticket_section is not None:
@@ -874,6 +997,8 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
         urgency=intent_result.urgency,
         intent_confidence=intent_result.confidence,
         request_id=request_id,
+        bundle_version=bundle.version,
+        agent_bundle=bundle,
     )
 
     # 3. 执行
@@ -951,6 +1076,7 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
         verification=verification,
         published_response=response_text,
         tool_audit=tool_audit,
+        bundle=bundle,
         approval_pending=approval_pending,
     )
 
@@ -1004,6 +1130,7 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
         ticket_id=ticket.ticket_id if ticket else None,
         ticket_status=ticket.status.value if ticket else None,
         handoff_created=handoff_created,
+        bundle_version=bundle.version,
         awaiting_approval=approval_pending,
         react_run_ids=list(result.react_run_ids),
         pending_approval_call_ids=list(result.pending_approval_call_ids),
@@ -1341,7 +1468,12 @@ async def transition_badcase(
         }) from exc
 
 
-async def _build_knowledge_context(message: str, intent=None, top_k: int = 3) -> tuple[str, bool]:
+async def _build_knowledge_context(
+    message: str,
+    intent=None,
+    top_k: int = 3,
+    bundle: Optional[AgentBundle] = None,
+) -> tuple[str, bool]:
     """
     为 /chat 主链路构建 RAG 知识上下文。
 
@@ -1352,13 +1484,25 @@ async def _build_knowledge_context(message: str, intent=None, top_k: int = 3) ->
     if not _should_use_knowledge(message, intent=intent):
         return "", False
     try:
-        result = await _tool_manager.search_with_rewrite("knowledge_search", message, top_k=top_k)
+        policy = dict(bundle.retrieval_policy) if bundle is not None else {}
+        resolved_top_k = int(policy.get("top_k", top_k))
+        result = await _tool_manager.search_with_rewrite(
+            "knowledge_search",
+            message,
+            top_k=resolved_top_k,
+            context={
+                "retrieval_policy": policy,
+                "cache_scope": (
+                    bundle.component_hash("retrieval_policy") if bundle is not None else "default"
+                ),
+            },
+        )
         if not result.success or not isinstance(result.data, list) or not result.data:
             return "", False
 
         parts = ["[知识库检索结果]"]
         used = False
-        for i, item in enumerate(result.data[:top_k], start=1):
+        for i, item in enumerate(result.data[:resolved_top_k], start=1):
             if not isinstance(item, dict):
                 continue
             if item.get("fallback"):

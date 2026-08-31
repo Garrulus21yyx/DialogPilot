@@ -12,6 +12,7 @@ from services.answer_verifier import (
     VerificationStatus,
 )
 from services.ticket_service import TicketPriority, TicketService
+from services.evolution import AgentBundleRegistry, build_default_bundle
 from memory.context import ContextAssembler
 
 
@@ -105,6 +106,9 @@ def test_chat_escalation_creates_one_persistent_idempotent_ticket(tmp_path, monk
         ContextAssembler(max_input_tokens=2048, reserved_output_tokens=256),
     )
     monkeypatch.setattr(main, "_tool_manager", None)
+    bundles = AgentBundleRegistry(str(tmp_path / "agent-bundles.db"))
+    bundles.bootstrap(build_default_bundle({}))
+    monkeypatch.setattr(main, "_bundle_registry", bundles)
 
     request = main.ChatRequest(
         message="我要转人工",
@@ -169,6 +173,9 @@ def test_chat_waiting_approval_does_not_create_handoff_or_badcase(tmp_path, monk
     monkeypatch.setattr(main, "_ticket_service", tickets)
     monkeypatch.setattr(main, "_badcase_registry", None)
     monkeypatch.setattr(main, "_tool_manager", None)
+    bundles = AgentBundleRegistry(str(tmp_path / "pending-agent-bundles.db"))
+    bundles.bootstrap(build_default_bundle({}))
+    monkeypatch.setattr(main, "_bundle_registry", bundles)
     monkeypatch.setattr(
         main, "_context_assembler",
         ContextAssembler(max_input_tokens=2048, reserved_output_tokens=256),

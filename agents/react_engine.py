@@ -117,11 +117,14 @@ class ReActExecutionEngine:
         execution_context: Optional[Dict[str, Any]] = None,
     ) -> ReActResult:
         """创建稳定 Run 并循环调用模型/工具，每个可恢复边界均落盘。"""
-        tools = self._tool_manager.anthropic_tools_for_agent(agent_type)
+        execution_context = dict(execution_context or {})
+        tools = self._tool_manager.anthropic_tools_for_agent(
+            agent_type,
+            description_overrides=dict(execution_context.get("tool_description_overrides") or {}),
+        )
         if not tools:
             raise ValueError(f"no tools are available for agent {agent_type}")
         working_messages = [dict(message) for message in messages]
-        execution_context = dict(execution_context or {})
         execution_context.setdefault("trace_id", current_trace_id())
         run_id = str(execution_context.get("run_id") or f"react_{uuid.uuid4().hex}")
         execution_context["run_id"] = run_id
@@ -276,7 +279,10 @@ class ReActExecutionEngine:
             tool_call_ids=checkpoint.tool_call_ids,
             pending={},
         )
-        tools = self._tool_manager.anthropic_tools_for_agent(checkpoint.agent_type)
+        tools = self._tool_manager.anthropic_tools_for_agent(
+            checkpoint.agent_type,
+            description_overrides=dict(execution_context.get("tool_description_overrides") or {}),
+        )
         return await self._continue(
             system=checkpoint.system,
             working_messages=working_messages,

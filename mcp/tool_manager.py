@@ -304,13 +304,35 @@ class MCPToolManager:
             if "*" in tool.allowed_agents or normalized in tool.allowed_agents
         ]
 
-    def anthropic_tools_for_agent(self, agent_type: str) -> List[Dict[str, Any]]:
-        """把允许工具投影为 Anthropic tool schema，不暴露 handler/策略内部状态。"""
+    def anthropic_tools_for_agent(
+        self,
+        agent_type: str,
+        *,
+        description_overrides: Optional[Dict[str, str]] = None,
+    ) -> List[Dict[str, Any]]:
+        """投影允许工具；Bundle 只能覆盖描述，不能改变 schema 或权限。"""
+        overrides = dict(description_overrides or {})
         return [{
             "name": tool.name,
-            "description": tool.description,
+            "description": str(overrides.get(tool.name) or tool.description),
             "input_schema": tool.schema,
         } for tool in self.tools_for_agent(agent_type)]
+
+    def registry_fingerprint(self, description_overrides: Optional[Dict[str, str]] = None) -> str:
+        """哈希实际模型可见合同及安全属性，不包含 handler 和运行统计。"""
+        overrides = dict(description_overrides or {})
+        rows = [{
+            "name": tool.name,
+            "description": str(overrides.get(tool.name) or tool.description),
+            "schema": tool.schema,
+            "allowed_agents": sorted(tool.allowed_agents),
+            "risk": tool.risk.value,
+            "read_only": tool.read_only,
+            "requires_approval": tool.requires_approval,
+        } for tool in sorted(self._tools.values(), key=lambda item: item.name)]
+        return hashlib.sha256(
+            json.dumps(rows, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
 
     def calls_are_parallel_safe(self, tool_names: List[str]) -> bool:
         """只有全部已注册工具都是只读时，ReAct 才能并行派发。"""
@@ -592,9 +614,10 @@ class MCPToolManager:
 
         cache_rerank_top_k = rerank_top_k if rerank_top_k > 0 and tool.supports_rerank else 0
 
-        # 缓存命中
+        # 同一 Bundle 内可复用；检索策略变化后不得误用上一版本结果。
+        cache_scope = str((context or {}).get("cache_scope") or "")[:128]
         if use_cache and tool.cache_ttl > 0:
-            cached = self._get_cache(name, params, cache_rerank_top_k)
+            cached = self._get_cache(name, params, cache_rerank_top_k, cache_scope)
             if cached is not None:
                 cached_data, cached_reranked = cached
                 tool.stats.total += 1
@@ -641,7 +664,10 @@ class MCPToolManager:
 
             # 写缓存：缓存最终返回结果，避免下次命中未重排的原始结果。
             if tool.cache_ttl > 0:
-                self._set_cache(name, params, data, tool.cache_ttl, cache_rerank_top_k, reranked)
+                self._set_cache(
+                    name, params, data, tool.cache_ttl,
+                    cache_rerank_top_k, reranked, cache_scope,
+                )
 
             return ToolResult(
                 success=True,
@@ -830,14 +856,22 @@ class MCPToolManager:
 
     # ── 缓存 ──────────────────────────────────────────────────────────────────
 
-    def _cache_key(self, name: str, params: Dict, rerank_top_k: int = 0) -> str:
+    def _cache_key(
+        self, name: str, params: Dict, rerank_top_k: int = 0, cache_scope: str = "",
+    ) -> str:
         """对工具名、参数和重排配置计算稳定缓存键。"""
-        payload = {"params": params, "rerank_top_k": rerank_top_k}
+        payload = {
+            "params": params,
+            "rerank_top_k": rerank_top_k,
+            "cache_scope": str(cache_scope),
+        }
         return f"{name}:{hashlib.md5(json.dumps(payload, sort_keys=True).encode()).hexdigest()}"
 
-    def _get_cache(self, name: str, params: Dict, rerank_top_k: int = 0) -> Optional[Tuple[Any, bool]]:
+    def _get_cache(
+        self, name: str, params: Dict, rerank_top_k: int = 0, cache_scope: str = "",
+    ) -> Optional[Tuple[Any, bool]]:
         """读取未过期缓存；过期项会在读取时删除。"""
-        key = self._cache_key(name, params, rerank_top_k)
+        key = self._cache_key(name, params, rerank_top_k, cache_scope)
         if key in self._cache:
             data, expire_at, reranked = self._cache[key]
             if time.monotonic() < expire_at:
@@ -853,13 +887,16 @@ class MCPToolManager:
         ttl: float,
         rerank_top_k: int = 0,
         reranked: bool = False,
+        cache_scope: str = "",
     ) -> None:
         """写入带单调时钟过期点的进程内缓存。"""
         if len(self._cache) >= 5000:
             # 清掉最旧的 1/4
             for k in list(self._cache)[:1250]:
                 del self._cache[k]
-        self._cache[self._cache_key(name, params, rerank_top_k)] = (data, time.monotonic() + ttl, reranked)
+        self._cache[self._cache_key(name, params, rerank_top_k, cache_scope)] = (
+            data, time.monotonic() + ttl, reranked,
+        )
 
     # ── Agent 授权、审批与审计 ─────────────────────────────────────────────────
 
