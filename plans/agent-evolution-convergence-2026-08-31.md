@@ -24,7 +24,7 @@
 | 4. EvolutionEnvelope + AgentBundle Registry | completed | `services/evolution/*`、BadCase/API 版本归因 | 244 tests passed；`c19e2c8` 已 push |
 | 5. GEPA-lite Candidate + Graduation 集成 | completed | 聚类、责任归因、候选生成、Pareto 选择 | 248 tests passed；`864c899` 已 push |
 | 6. Shadow/Canary/Active + 自动回滚 | completed | Rollout Owner、稳定分桶、指标窗口、Active 指针 | 251 tests passed；`40a65bc` 已 push |
-| 7. Pages/教程/面试问答同步 | in_progress | architecture、project-pitch、完整教程、图 | 页面构建与浏览器验证；commit/push |
+| 7. Pages/教程/面试问答同步 | completed | architecture、project-pitch、agent-evolution、完整教程、面经与可缩放图 | `1ae7618` 已 push；CI/Pages 成功；桌面与 390px 浏览器验收通过 |
 
 ## 影响面
 
@@ -60,3 +60,4 @@
 - 2026-08-31：阶段 4 完成；请求级固定不可变 AgentBundle，真实 Prompt/路由/检索/工具描述接线，Bad Case EvolutionEnvelope 脱敏归因，244 项全仓测试通过。
 - 2026-08-31：阶段 5 完成；确定性责任归因、GEPA-lite 受限补丁、真实 GateArtifact、Bundle 绑定 Graduation 和质量/延迟/成本 Pareto 前沿接入，248 项全仓测试通过。
 - 2026-08-31：阶段 6 完成；同事务 Rollout 状态/指针、稳定用户分桶、真实 Shadow 只读副本、5%/25% Canary、硬信号即时回滚和带样本/置信区间的软回滚接入，251 项全仓测试通过。
+- 2026-08-31：阶段 7 完成；新增独立 Agent 进化专题页，架构/项目讲述页统一中文视觉与导航，完整教程补至 29 章/92 问，面经补至 Q98；线上 Mermaid 查看器实测 150% 缩放，390px 无页面横向溢出，CI 与 Pages 均成功。
