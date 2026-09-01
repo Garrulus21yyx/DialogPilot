@@ -5,7 +5,7 @@
   - `docs/customer-service-agent-target-architecture.zh-CN.md`
   - `docs/customer-service-agent-implementation-plan.zh-CN.md`
 - 执行原则：按依赖 DAG 推进；每张任务卡独立验证、记录文件、commit 并 push；不把 `IMPLEMENTED` 冒充 `VERIFIED` 或 `READY`。
-- 当前阶段：M0
+- 当前阶段：M1
 
 ## 状态
 
@@ -17,7 +17,8 @@
 | M0-T03 生产主链 Eval Runner | done | full execution 共用 `ChatApplication`；typed stage/owner evidence |
 | M0-T04 当前行为基线 | done | `data/eval/baselines/m0-v1/manifest.json`，7 条真实主链 Trace |
 | M0-T05 Gate Manifest Foundation | done | `evaluation/gates/m0-exit/v1.*`，decision=`APPROVE` |
-| M1 完整会话事实与幂等发布 | pending | 按 M1-PF01、T00–T05/T03A/T04A 子节点推进 |
+| M1-PF01 PostgreSQL Platform Foundation | implemented | 生产快照副本验证待真实快照；本地 restore drill 通过 |
+| M1 完整会话事实与幂等发布 | in_progress | 按 T00–T05/T03A/T04A 子节点推进 |
 | M2 Route/Authority/Evidence/RAG | pending | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
@@ -140,8 +141,26 @@
 - 验证：property-style/参数化测试覆盖缺失/未知 prerequisite、Task/Gate/Artifact 非法 N/A、
   非法状态跳转、同 signer、运行后规格漂移、未满足 prerequisite 的 APPROVE 与 archive tamper。
 
+### M1-PF01（IMPLEMENTED，尚未 production-verified）
+
+- 平台决策：PostgreSQL 18.1、Psycopg 3.3.5/Pool 3.3.1、Alembic 1.19.1、SQLAlchemy
+  2.0.52；默认 `READ COMMITTED`，schema namespace 为 `dialogpilot_platform/dialogpilot_app`。
+- 本地/CI：Compose 增加 health-checked PostgreSQL；CI 注入隔离 service DB 并在测试前显式运行 migration；
+  Testcontainers fixture 可由 `RUN_POSTGRES_TESTCONTAINER=1` 启动，所有集成测试再创建一次随机隔离 DB。
+- Migration owner：应用不隐式建表；Alembic 建立 namespace、schema ledger 和 data migration ledger；
+  runner 校验已应用 revision 文件 checksum/head，数据库不可用或漂移时 typed fail closed，不回退 SQLite。
+- Cutover：ADR 与 runbook 固定 snapshot/backfill/shadow-read → freeze/stop old writer → final delta/
+  reconcile → atomic binding switch → start new writer → forward-fix/restore，禁止双 writer 窗口。
+- 旧库盘点：Ticket、ResponseDelivery、RunStore 的表、唯一键、状态、时间、tenant gap、导出、retention
+  和 `migrate/retain/retire` 决策已机器归档；三者在各自 cutover 前继续作为各领域单主。
+- 验证：真实 PostgreSQL 18 空库安装、重复升级、pool/search_path/隔离、checksum 漂移、不可用、canonical
+  count/content reconcile 通过；本地 custom dump/restore `<1s`，dump SHA 与 ledger/count 已归档；全套
+  `439 passed`。当前无生产快照副本，因此不声明 production snapshot upgrade/restore `VERIFIED`，对应
+  technical cutover gate 保持未满足。
+
 ## 下一步
 
-1. 提交并推送 M0-T05 Gate archive；M0 Exit 已由机器证据判定 `APPROVE`。
-2. 进入 M1-PF01：先冻结 PostgreSQL 平台能力事实与迁移 ADR，再开始 transcript/admission owner 迁移。
-3. 保持已发现的 deployed Chroma legacy index 不兼容为显式平台风险，不让后续检索迁移静默修复。
+1. 提交并推送 M1-PF01 实现与本地 restore evidence。
+2. 实施 M1-T00：冻结 admission CAS、薄 ExecutionView、public ChatOutcome/HTTP mapping 与 M3 cutover table。
+3. 保持 production snapshot restore 和 deployed Chroma legacy index 不兼容为显式未满足证据，
+   不让后续 migration/cutover 静默越过。

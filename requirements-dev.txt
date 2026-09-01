@@ -1,3 +1,4 @@
 # 开发/CI 覆盖运行时与 RAG 层级检索评测依赖。
 -r requirements-rag-eval.txt
 pytest==8.3.5
+testcontainers[postgres]==4.15.0

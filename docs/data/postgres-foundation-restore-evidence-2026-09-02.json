@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "environment": "local isolated PostgreSQL 18.1 Compose",
+  "source_database": "dialogpilot platform-foundation empty/application schema",
+  "restore_database": "dialogpilot_restore_drill",
+  "dump_format": "pg_dump custom",
+  "dump_sha256": "ccaf251c385f6309bfbfde398d4d00328e278c2500a22346cb87e7f7528d6946",
+  "observed_rto": "<1 second",
+  "alembic_head": "20260902_0001",
+  "ledger_sha256": "439d379b236989f367b27b7163c0221146b2058bd30a95c0b49b07f694441d6c",
+  "schema_migration_count": 1,
+  "data_migration_count": 0,
+  "verification": "PASS",
+  "scope_limit": "Platform foundation restore rehearsal only; no production snapshot was available and no production restore claim is made."
+}

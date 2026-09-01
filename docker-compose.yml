@@ -3,6 +3,28 @@
 
 services:
 
+  # ── PostgreSQL（新增 Conversation/Invocation/Outbox 的事实 Owner）────────────
+  postgres:
+    image: postgres:18.1-alpine
+    container_name: dialogpilot-postgres
+    ports:
+      - "${DIALOGPILOT_POSTGRES_PORT:-15432}:5432"
+    environment:
+      POSTGRES_DB: dialogpilot
+      POSTGRES_USER: dialogpilot
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dialogpilot-local}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - dialogpilot-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dialogpilot -d dialogpilot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
   # ── Redis 缓存（工作记忆）────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
@@ -82,6 +104,7 @@ services:
     environment:
       # 容器内固定值，覆盖 .env 中的本地路径
       - REDIS_URL=redis://:${REDIS_PASSWORD:-dialogpilot-local}@redis:6379/0
+      - DATABASE_URL=postgresql://dialogpilot:${POSTGRES_PASSWORD:-dialogpilot-local}@postgres:5432/dialogpilot
       - CHROMA_PERSIST_DIRECTORY=/app/data/chroma
       # 容器网络地址由 Compose 拥有，不能继承宿主开发环境的 localhost:8001。
       - CHROMA_HOST=chromadb
@@ -184,6 +207,8 @@ services:
       - ./skills:/app/skills:ro
       - dialogpilot-logs:/app/logs
     depends_on:
+      postgres:
+        condition: service_healthy
       redis:
         condition: service_healthy
       chromadb:
@@ -231,6 +256,7 @@ networks:
 
 # ── 数据卷 ──────────────────────────────────────────────────────────────────
 volumes:
+  postgres-data:
   redis-data:
   chromadb-data:
   prometheus-data:
