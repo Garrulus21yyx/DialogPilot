@@ -297,6 +297,56 @@ PYTHONPATH=. .venv/bin/python -m evaluation.rag_context_topology_ablation \
   --output artifacts/eval/doc2dial-rag-long8000-dev-v1/context-topology-standalone-full-report.json
 ```
 
+### 8.4 成熟层级组件与预算拓扑复测
+
+固定 `256→1024` 的失败不能推出 Parent-child 方法本身无效。旧实现先把 child 截成 Top-5，再映射和去重 parent；没有 sibling score aggregation，2600-token packing 又只能整块接受或丢弃 parent。复测把通用树算法交给 Haystack `HierarchicalDocumentSplitter + AutoMergingRetriever`，DialogPilot 只负责客服 source-span 投影、stable ID、分数聚合和最终预算：
+
+1. `baseline-512`：生产默认 512/64。
+2. `parent-child-256-1024`：保留旧 fixed 方案作失败见证。
+3. `unique-parent-aggregation`：child Top-20 全部参与，parent 分数为 `Σ 1/(10+child rank)`，即最佳 child 加 sibling support；先去重 parent 再 Top-K。
+4. `dynamic-auto-merge`：同一 parent 下命中 sibling 超过 50% 才由 Haystack 升级；孤立命中保留小粒度。
+5. `budget-aware-mixed`：允许约 256 leaf、512 window、1024 parent；相关性优先、Token 是约束和 tie-break，parent 放不下就递归降级，剩余预算才扩孤立 leaf。最初的纯 `score/token` 版本只用了平均 1143 tokens，被 Top-5 槽位卡住并将 packed recall 降到 `.50`，因此作为已证伪目标函数删除。Gold span 从未进入选择函数，只用于事后评分。
+
+Haystack word splitter 使用 `192/384/768 words + 24 words overlap` 作为约 `256/512/1024 estimated tokens` 的确定性代理，避免 sentence splitter 在运行期下载 NLTK 数据。该客服 corpus 实测三层 estimated-token 中位数为 `264/530.5/1069`，P95 为 `302/591/1190`；因此文档写“约”，不冒充真实 tokenizer 的精确 256/512/1024。每个嵌套节点的 parent-relative offset 会递归投影回原始客服文档；测试逐节点验证 `source[start:end] == node.text`。这些组件只进入 `requirements-rag-eval.txt`，尚未进入在线 `KnowledgeBase` 默认链。
+
+| 36 条长 Doc2Dial，rerank+packing | Baseline | Fixed 256→1024 | Unique parent | Dynamic merge | Mixed budget |
+|---|---:|---:|---:|---:|---:|
+| Candidate Recall@20 | `.7778` | `.7778` | `.7778` | `.7778` | `.7778` |
+| Reranked Recall@5 | `.7083` | **`.7500`** | `.7222` | `.7222` | `.7222` |
+| Packed span recall | `.7083` | `.6944` | `.5185` | **`.7500`** | `.7222` |
+| 16 条 multi-condition completeness | **`.7188`** | `.6875` | `.4792` | `.6875` | `.6875` |
+| Mean context tokens | `2423` | **`2074`** | `2266` | `2105` | `2235` |
+| Harmful context vs baseline | — | `8.33%` | `33.33%` | `8.33%` | `11.11%` |
+| Rerank typed failure | `0%` | `0%` | `0%` | `0%` | `0%` |
+
+Dynamic auto-merge 证明成熟父子链可以把 rerank `.7222` 扩展成 packed `.7500`，不再发生 fixed 方案的 `.7500→.6944` 损失；但它仍把 multi-condition `.7188→.6875`，且有 3/36 harmful case。因此结论不是“Parent-child 没用”，而是“当前 Dev 上有局部收益、未满足全局发布合同”。不继续调用 generator/Judge，也不打开 Heldout，线上仍保留 512/64。
+
+这轮还修复了独立的 rerank 输出 Owner。PydanticAI `ToolOutput` 要求完整 permutation 并允许一次纠错；模型只排列 `R01…R20`，代码验证后映射回 stable chunk ID。直接让模型抄写 20 个长 Haystack ID 时 failure 为 `4/36`、output `37,477` tokens；短别名复测为 `0/36`、`4,500` tokens。同一 smoke case 为 `956→125` output tokens。别名只是传输 DTO，EvidencePack 中的 stable ID 没有改变。
+
+```bash
+pip install -r requirements-rag-eval.txt
+
+# 零模型结构门禁
+PYTHONPATH=. .venv/bin/python -m evaluation.rag_context_topology_ablation \
+  artifacts/eval/doc2dial-rag-long8000-dev-v1 \
+  artifacts/eval/doc2dial-rag-long8000-dev-v1/query-transform-capture.json \
+  --structural-only \
+  --topologies baseline-512 parent-child-256-1024 \
+    unique-parent-aggregation dynamic-auto-merge budget-aware-mixed \
+  --output artifacts/eval/doc2dial-rag-long8000-dev-v1/context-topology-hierarchy-structural-report.json
+
+# 只跑 rerank+packing；通过后才允许省略 --rerank-only 进入生成层
+PYTHONPATH=. .venv/bin/python -m evaluation.rag_context_topology_ablation \
+  artifacts/eval/doc2dial-rag-long8000-dev-v1 \
+  artifacts/eval/doc2dial-rag-long8000-dev-v1/query-transform-capture.json \
+  --rerank-only \
+  --topologies baseline-512 parent-child-256-1024 \
+    unique-parent-aggregation dynamic-auto-merge budget-aware-mixed \
+  --output artifacts/eval/doc2dial-rag-long8000-dev-v1/context-topology-hierarchy-rerank-report.json
+```
+
+脱敏指标见[层级检索摘要 JSON](../assets/eval/rag-hierarchical-retrieval-dev-v1.json)。Baseline 与最终层级候选使用同一 ranking policy/model，但来自独立 provider run；本页不把小样本 P95 或随机排序差异写成负载结论。
+
 ## 9. 发布门禁
 
 代码合并、评测通过和生产验证是三个状态：
@@ -310,7 +360,7 @@ IMPLEMENTED
 → CANARY 5% → 25% → ACTIVE
 ```
 
-代码实现、362 项回归与 36 group×3 Dev 重放证明 PydanticAI 生成合同修复完成，但这只到 `REGRESSION_PASS`；父子拓扑仍未过 Dev 完整性门禁，继续保留 512/64。下一步是对修复后的 baseline 消费 fresh group-safe Heldout，再做人工 blind review 与 Shadow；本页不将 Dev 修复写成已上线。
+代码实现、回归与长文档 Dev 重放证明 PydanticAI 生成/rerank 合同修复完成，但这只到 `REGRESSION_PASS`；成熟 dynamic auto-merge 仍未过 multi-condition 与 harmful 门禁，继续保留 512/64。下一步是对默认 baseline 消费 fresh group-safe Heldout，再做人工 blind review 与 Shadow；本页不将 Dev 修复写成已上线。
 
 ## 10. 与当前主流实践的关系
 

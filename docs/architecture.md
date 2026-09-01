@@ -102,7 +102,7 @@ Source document/span
 
 候选来自 Doc2Dial Dev 的 100 文档、300 case、488 个官方 grounding span；48 条多轮压力集用于有界模型评测。历史 v3 报告中 Query Recall@20 为 0.7708（Raw 0.6667），Rerank Recall@5 为 0.7500（不重排 0.5938）。v4 的大量 `ValueError/JSONDecodeError` 证伪了手写多真相合同；v5 长文档重放中合同错误 `0/108`、typed abstention `6/36`、claim support/citation correctness `.7778–.8056`。这些仍是 Dev 数字，不是线上准确率。
 
-代码已把冻结检索配置接入 `/search` 与 `/chat`；Sparse 不再在每次查询拉全库，而是使用可从 Chroma 权威 public chunk 重建的 SQLite posting sidecar。普通 Dev 上父子 256/32→1024/128 的 multi-condition completeness `.8261→.7826`。新增 `>=8000` 字符压力集后，它在 36 个 Doc2Dial span-Gold group 上把 packed evidence recall `.5278→.5833` 且 harmful `0`，但 multi-condition 不升；WixQA article-Gold packing 也退化。因此默认仍是 512/64，父子只作为待重新设计的长文档候选。Generation Owner 的 Dev 合同已修复，下一发布门禁是 baseline fresh Heldout，完整边界见[客服 RAG 生产化审计](./customer-service-rag-production-audit/)。
+代码已把冻结检索配置接入 `/search` 与 `/chat`；Sparse 不再在每次查询拉全库，而是使用可从 Chroma 权威 public chunk 重建的 SQLite posting sidecar。长文档候选不再只测试手写 fixed parent：评测侧复用 Haystack 的层级 splitter/auto-merger，并比较 unique-parent aggregation、dynamic merge 与 budget-aware mixed packing。36 个 Doc2Dial span-Gold group 上 dynamic merge 将 packed recall 从 baseline `.7083` 提到 `.7500`，但 multi-condition `.7188→.6875`、harmful `8.33%`，所以没有进入生成层或线上依赖。Reranker 已改用 PydanticAI ToolOutput 和短 ID permutation，边界内再映射回 stable chunk ID；层级批次 typed failure `11.11%→0`。默认仍是 512/64，下一发布门禁是 baseline fresh Heldout，完整边界见[客服 RAG 生产化审计](./customer-service-rag-production-audit/)。
 
 ## 意图识别的在线/离线边界
 

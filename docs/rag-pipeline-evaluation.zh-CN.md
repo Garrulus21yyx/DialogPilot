@@ -6,7 +6,7 @@ permalink: /rag-pipeline-evaluation/
 
 # DialogPilot 客服 RAG 全链路评测
 
-> 本页保存 Doc2Dial 上选择检索配置与 grounded v3/v4 的历史实验依据。当前仓库已增加 public `SourceDocument`、持久 Sparse、完整 IndexManifest、EvidencePack、严格 rerank permutation，并用 grounded v5 PydanticAI tool output 修复了 v4 的手写 JSON/claim 合同失败。上线边界与待补证据见[客服 RAG 生产化审计](../customer-service-rag-production-audit/)。
+> 本页保存 Doc2Dial 上选择检索配置与 grounded v3/v4 的历史实验依据。当前仓库已增加 public `SourceDocument`、持久 Sparse、完整 IndexManifest、EvidencePack，并用局部 PydanticAI ToolOutput 约束 rerank permutation 与 grounded v5；rerank 使用短别名后再映射回 stable chunk ID。上线边界与待补证据见[客服 RAG 生产化审计](../customer-service-rag-production-audit/)。
 
 ## 1. 目标与边界
 
@@ -237,5 +237,7 @@ PYTHONPATH=. .venv/bin/python -m evaluation.rag_packing_ablation \
 随后增加的长文档结构预检不改变这一默认：`>=8000` 字符的 Doc2Dial span-Gold slice 中，父子方案把 packed evidence recall `.5278→.5833` 且 harmful `0`，但 multi-condition 不升。进一步真测的 Gold-free 条件路由（Top-5 有长文档且 BM25/Dense 首名文档分歧）触发 21/36，将 Candidate `.7222→.7500`，Packed 仍为 `.5833`，级联 P95 约 `110ms`；在 WixQA 又使 packed document recall `.9635→.9531`、multi-article completeness `.7667→.7000`，harmful `3.125%`。该简单路由没有跨集泛化，保持实验失败状态。脱敏结果见[长文档摘要 JSON](../assets/eval/rag-long-document-dev-v1.json)。
 
 同一 36 group 随后补齐 Raw `.25` + Standalone `.75`、rerank 20→5 和 grounded v4：Standalone 将 baseline Candidate `.7222→.7778`；条件路由达到 Candidate `.8056`、Rerank `.7639`，但 Packing 后回到 `.7361`，与 baseline 持平，多条件完整性还从 `.7188` 降到 `.6563`，harmful `5.56%`。v4 的 `83.33%–91.67%` 失败/拒答已经用 v5 重放拆解：合同错误 `0%`，证据不足拒答 `16.67%`。因此现在的分层结论是：Rewrite 已有增益，Generation 合同已修复，拓扑增益仍没有穿透 Rerank/Packing。
+
+最新层级复测不再用该 fixed parent 代表 Parent-child 全类：评测依赖复用 Haystack splitter/auto-merger，并加入 unique-parent aggregation 与预算降级。Dynamic auto-merge 把 reranked span recall `.7222` 扩成 packed `.7500`，说明它能让低位 sibling 证据通过 parent 进入上下文；但 16 条 multi-condition completeness 只有 `.6875`，低于 baseline `.7188`，harmful 为 `8.33%`。因此模型阶段在 rerank+packing 门禁后停止，没有为了得到一个生成分数继续消费 Judge。完整设计、命令和五路表见[客服 RAG 生产化审计 8.4](../customer-service-rag-production-audit/#84-成熟层级组件与预算拓扑复测)，脱敏摘要见[层级检索 JSON](../assets/eval/rag-hierarchical-retrieval-dev-v1.json)。
 
 全仓验证结果与提交信息见计划文件中的 verification record。

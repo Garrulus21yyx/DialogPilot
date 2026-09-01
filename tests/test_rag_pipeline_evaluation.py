@@ -25,7 +25,12 @@ from evaluation.rag_pipeline.metrics import (
 )
 from mcp.document_chunker import ChunkStrategy
 from mcp.query_transformer import QueryTransformer
-from mcp.result_reranker import RerankCandidate, ResultReranker
+from mcp.result_reranker import (
+    RerankCandidate,
+    ResultReranker,
+    _RerankDeps,
+    _StructuredRerankOutput,
+)
 from mcp.context_packer import ContextCandidate, ContextPacker
 from mcp.grounded_answer_generator import (
     GroundedAnswerGenerator,
@@ -275,17 +280,16 @@ def test_query_ablation_weights_reserve_raw_mass_and_keep_hyde_vector_only():
 
 
 def test_reranker_rejects_any_non_exact_candidate_permutation():
-    class FakeMessages:
-        async def create(self, **_kwargs):
+    class FakeAgent:
+        async def run(self, *_args, **_kwargs):
             return SimpleNamespace(
-                content=[SimpleNamespace(
-                    type="text", text='{"ordered_ids":["c2","invented","c2"]}',
-                )],
-                usage=SimpleNamespace(input_tokens=10, output_tokens=5),
+                output=_StructuredRerankOutput(
+                    ordered_ids=["R02", "invented", "R02"],
+                ),
             )
 
     reranker = ResultReranker(
-        SimpleNamespace(messages=FakeMessages()), ModelProfile("test-model"),
+        object(), ModelProfile("test-model"), structured_agent=FakeAgent(),
     )
     result = asyncio.run(reranker.rerank("refund", (
         RerankCandidate("c1", "general information"),
@@ -296,22 +300,38 @@ def test_reranker_rejects_any_non_exact_candidate_permutation():
     assert result.ordered_ids == ("c1", "c2", "c3")
     assert result.error == "ValueError"
 
+    with pytest.raises(ModelRetry):
+        ResultReranker._validate_output(
+            SimpleNamespace(deps=_RerankDeps(("R01", "R02", "R03"))),
+            _StructuredRerankOutput(ordered_ids=["R02", "invented", "R02"]),
+        )
+
 
 def test_reranker_accepts_typed_bare_id_array_from_provider():
-    class FakeMessages:
-        async def create(self, **_kwargs):
+    class FakeAgent:
+        async def run(self, *_args, **_kwargs):
             return SimpleNamespace(
-                content=[SimpleNamespace(type="text", text='["c2", "c1"]')],
-                usage=SimpleNamespace(input_tokens=1, output_tokens=1),
+                output=_StructuredRerankOutput(ordered_ids=["R02", "R01"]),
             )
 
     result = asyncio.run(ResultReranker(
-        SimpleNamespace(messages=FakeMessages()), ModelProfile("test-model"),
+        object(), ModelProfile("test-model"), structured_agent=FakeAgent(),
     ).rerank("refund", (
         RerankCandidate("c1", "general"), RerankCandidate("c2", "refund policy"),
     )))
     assert result.error is None
     assert result.ordered_ids == ("c2", "c1")
+
+
+def test_reranker_output_budget_has_room_for_twenty_short_aliases():
+    reranker = ResultReranker(
+        object(), ModelProfile("test-model"), structured_agent=object(),
+    )
+    aliases = tuple(f"R{index:02d}" for index in range(1, 21))
+
+    settings = reranker._model_settings(aliases)
+
+    assert settings["max_tokens"] == 768
 
 
 def test_context_packer_respects_budget_and_provenance_deduplication():

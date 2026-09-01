@@ -184,7 +184,7 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q27：知识 RAG 链路是什么？
 
-权威事实是 `source_id + checksum + [start,end)`，chunk 和排名只是投影。写入先形成 public `SourceDocument`；Chroma public chunk 是权威 corpus，SQLite BM25 是按 fingerprint 可重建 posting 投影，不再每次扫描全库。`QueryTransformer` 生成 Standalone，但 Raw 必须保留；`ResultReranker` 必须返回候选集合的精确完整排列，否则整次回退。`EvidencePack` 保留 Manifest、score/rank、scope decision 与 packing drop。Grounded v4 输出 claim citations、conflicts、abstained 和 reason；无业务工具的纯知识答案直接成为发布候选，实时订单/退款/账户事实仍由业务工具拥有。
+权威事实是 `source_id + checksum + [start,end)`，chunk 和排名只是投影。写入先形成 public `SourceDocument`；Chroma public chunk 是权威 corpus，SQLite BM25 是按 fingerprint 可重建 posting 投影，不再每次扫描全库。`QueryTransformer` 生成 Standalone，但 Raw 必须保留；`ResultReranker` 让模型排列 `R01…R20`，PydanticAI 校验短 ID 完整 permutation 后再映射回 stable chunk ID，否则整次回退。`EvidencePack` 保留 Manifest、score/rank、scope decision 与 packing drop。Grounded v5 输出 evidence-linked segments、conflicts、abstained 和 reason；无业务工具的纯知识答案直接成为发布候选，实时订单/退款/账户事实仍由业务工具拥有。
 
 当前仓库默认是 fixed 512/64、BM25 .75/Dense .25/k=10、Raw .25/Standalone .75、rerank 20→5、packing 2600。索引合同同时固定 source v1、chunk v4、index schema v2、public scope、Dense model 与 Sparse tokenizer；任何一项不匹配都拒绝启动并要求从权威原文重导。复杂 ACL、PDF/OCR 和多副本 Sparse 是明确的后续边界。
 
@@ -198,11 +198,11 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q29.1：父子 Chunk 有必要吗？
 
-没有证据支持把它作为全局默认。普通 48 条 Doc2Dial Dev 中，256/32 child → 1024/128 parent 将 Recall@20 `.8333→.9167`，但 multi-condition completeness `.8261→.7826`。`>=8000` 字符的 36 个长文档 group 同合同完整链中，Standalone 把 baseline Candidate `.7222→.7778`；条件父子达到 Candidate `.8056`、Rerank `.7639`，但 Packed 回落到 `.7361`，与 baseline 持平，多条件完整性从 `.7188` 降到 `.6563`、harmful `5.56%`。grounded v5 重放中生成合同错误已为 `0/108`，所以不能再拿 v4 解析失败解释父子方案的坏结果；真正限制仍是 Rerank/Packing 没有保住多条件证据。默认保留 512/64。
+常见不等于无条件有效，也不能用旧 fixed 实现代表所有 Parent-child。最新实验没有手写层级树，而是复用 Haystack `HierarchicalDocumentSplitter + AutoMergingRetriever`，比较 fixed 256→1024、unique-parent aggregation、dynamic sibling merge 和 budget-aware mixed。36 个长 Doc2Dial group 上，dynamic merge 把 rerank `.7222` 扩到 packed `.7500`，说明成熟自动合并确实修掉了 fixed 的 `.7500→.6944` packing 损失；但 multi-condition 仍从 baseline `.7188` 降到 `.6875`，harmful 为 `8.33%`。因此准确说法是“局部长文收益成立，但发布门禁未过”，默认继续 512/64。当前差距不在有没有 Parent-child 类，而在 child 检索/重排对多个条件的排序，以及怎样在有限 chunk slots 中安全选择不同粒度。
 
 ### Q30：为什么 LLM rerank 不用 cross-encoder？
 
-当前 LLM listwise 是依赖少、可重用 provider 的工程取舍，不代表已证明优于 cross-encoder。在固定 20 个候选的 48 条压力集上，它把 Recall@5 从 0.5938 提到 0.7500、MRR 从 0.4330 提到 0.5903，harmful 0.0208；首次只接受 JSON object 时 6/48 降级，边界扩展为校验后的 object/裸 ID array 并只重试失败 case，最终 0/48。Cross-encoder 仍应在同一候选集比较质量、P95、成本和错误 slice。
+当前 LLM listwise 是可重用现有 provider 的工程取舍，不代表已证明优于 cross-encoder。输出边界已从手写 JSON 截取迁为 PydanticAI ToolOutput：模型只抄短别名，代码要求候选集合的精确完整排列并映射回 stable ID。层级批次直接抄长 ID 时 failure `4/36`、output `37,477` tokens；短别名后 `0/36`、`4,500` tokens。Cross-encoder 仍应在同一 capture 上比较 Recall/MRR、P95、成本和错误 slice；如果它在客服域稳定且便宜，可以替换模型实现而不改变 permutation 合同。
 
 ### Q31：query rewrite 的价值和风险？
 

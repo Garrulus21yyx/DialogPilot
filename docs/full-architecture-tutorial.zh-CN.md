@@ -473,7 +473,7 @@ SHA-256(
   -> /chat 有历史时：Raw 0.25 + Standalone 0.75；/search 无历史时退化为 Raw 1.0
   -> 每路分别得到 BM25 / Dense stable chunk-ID 排名
   -> weighted RRF 融合候选
-  -> ResultReranker 返回经过 ID 校验的完整 permutation
+  -> ResultReranker 用 PydanticAI ToolOutput 排列 R01...R20，校验完整 permutation 后映射回 stable chunk ID
   -> listwise 20→5
   -> ContextPacker Top-5/2600
   -> GroundedAnswerGenerator 生成合法 chunk 引用的公共知识草稿
@@ -481,6 +481,8 @@ SHA-256(
 ```
 
 Standalone、Multi-query 与 HyDE 都只是**检索提示**，不是证据。当前默认只启用 Dev 选出的 Standalone；HyDE 仍只存在于离线消融。模型改写失败或没有对话历史时使用 Raw 1.0；重排失败时保留 first-stage 顺序。查询和检索器权重在 KnowledgeBase 的同一个 weighted-RRF 空间融合，不再先按展示文本哈希合并。
+
+父子 Chunk 也不是一个布尔开关。最新 Dev 在评测依赖中复用 Haystack `HierarchicalDocumentSplitter + AutoMergingRetriever`，比较 fixed 256→1024、unique-parent aggregation、动态 sibling merge 和 256/512/1024 mixed packing。Dynamic merge 的 packed span recall `.7083→.7500`，证明成熟实现能避免旧 fixed packing 的部分损失；但 multi-condition `.7188→.6875` 且 harmful `8.33%`，所以没有替换线上 512/64。Gold span 只参与事后评分，不进入 auto-merge 或预算选择。
 
 ### 7.3 Tool 调用合同
 

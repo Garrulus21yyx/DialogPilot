@@ -1,4 +1,4 @@
-"""Compare baseline chunks, neighbor expansion, and parent-child Small-to-Big RAG."""
+"""Compare fixed and mature hierarchical retrieval/packing contracts."""
 
 from __future__ import annotations
 
@@ -20,6 +20,15 @@ from anthropic import AsyncAnthropic
 from core.llm_metrics import capture_llm_usage
 from core.model_policy import ModelPolicy, ModelRole
 from evaluation.rag_generation_evaluation import JUDGE_PROMPT_VERSION, _judge
+from evaluation.rag_hierarchical_adapter import (
+    HierarchyIndex,
+    budget_aware_mixed_candidates,
+    build_hierarchy,
+    dynamic_auto_merge_candidates,
+    hierarchy_contract,
+    transform_leaf_hit,
+    unique_parent_candidates,
+)
 from evaluation.rag_pipeline.contracts import EvidenceSpan, RagCase
 from evaluation.rag_pipeline.dataset import RagDataset
 from evaluation.rag_pipeline.fusion import fuse_rankings
@@ -41,7 +50,22 @@ TOPOLOGIES = (
     "neighbor-512",
     "parent-child-256-1024",
     "conditional-parent-child",
+    "unique-parent-aggregation",
+    "dynamic-auto-merge",
+    "budget-aware-mixed",
 )
+DEFAULT_TOPOLOGIES = (
+    "baseline-512",
+    "parent-child-256-1024",
+    "unique-parent-aggregation",
+    "dynamic-auto-merge",
+    "budget-aware-mixed",
+)
+HIERARCHICAL_TOPOLOGIES = frozenset({
+    "unique-parent-aggregation",
+    "dynamic-auto-merge",
+    "budget-aware-mixed",
+})
 CONTEXT_MAX_TOKENS = 2600
 FINAL_K = 5
 CANDIDATE_K = 20
@@ -225,6 +249,66 @@ def _capture_retrieval(
     return captures
 
 
+def _capture_hierarchical_retrieval(
+    dataset: RagDataset,
+    query_capture: Mapping[str, Any],
+    hierarchy: HierarchyIndex,
+) -> list[dict[str, Any]]:
+    """Retrieve Haystack-produced leaves through the existing hybrid index."""
+    cases = {case.case_id: case for case in dataset.cases}
+    with tempfile.TemporaryDirectory(prefix="dialogpilot-hierarchical-topology-") as temp_dir:
+        knowledge_base = KnowledgeBase(
+            chroma_mode="embedded",
+            chroma_path=temp_dir,
+            sparse_index_path=str(Path(temp_dir) / "sparse.db"),
+            load_default_docs=False,
+            collection_name="dialogpilot_hierarchical_topology",
+            # Haystack owns leaf boundaries. This ceiling prevents the storage
+            # adapter from introducing a second, competing chunking contract.
+            chunk_strategy="fixed_tokens",
+            chunk_max_tokens=4096,
+            chunk_overlap_tokens=0,
+        )
+        knowledge_base.add_documents(list(hierarchy.source_documents))
+        captures = []
+        for row in query_capture.get("rows") or ():
+            case = cases[str(row["case_id"])]
+            variants = _variants(row, "standalone")
+            weights = _weights(
+                variants, raw_mass=0.25, lexical_weight=0.75, vector_weight=0.25,
+            )
+            rankings: dict[str, list[str]] = {}
+            hit_by_id: dict[str, dict[str, Any]] = {}
+            started = time.perf_counter()
+            for label, text, _vector_only in variants:
+                for source, lexical, vector in (
+                    ("bm25", 1.0, 0.0), ("vector", 0.0, 1.0),
+                ):
+                    hits = knowledge_base.search(text, top_k=CANDIDATE_K, retrieval_policy={
+                        "lexical_weight": lexical,
+                        "vector_weight": vector,
+                        "rrf_k": 30,
+                        "candidate_k": CANDIDATE_K,
+                    })
+                    transformed = [transform_leaf_hit(hit, hierarchy) for hit in hits]
+                    key = f"{label}:{source}"
+                    rankings[key] = [str(hit["chunk_id"]) for hit in transformed]
+                    hit_by_id.update(
+                        (str(hit["chunk_id"]), hit) for hit in transformed
+                    )
+            fused = fuse_rankings(rankings, weights=weights, rrf_k=10, top_k=CANDIDATE_K)
+            captures.append({
+                "case": case,
+                "fused_ids": fused,
+                "hit_by_id": hit_by_id,
+                "source_rankings": rankings,
+                "query_for_rerank": str(row.get("standalone") or case.query),
+                "retrieval_latency_ms": (time.perf_counter() - started) * 1000,
+            })
+        knowledge_base.close()
+    return captures
+
+
 def _conditional_route(
     capture: Mapping[str, Any],
     document_lengths: Mapping[str, int],
@@ -394,10 +478,40 @@ def _make_contexts(
     dataset: RagDataset,
     baseline_by_id: Mapping[str, Any],
     baseline_by_document: Mapping[str, Sequence[Any]],
+    hierarchy: HierarchyIndex | None = None,
 ) -> tuple[ContextCandidate, ...]:
     if topology == "conditional-parent-child":
         topology = str(capture["route_decision"]["selected_topology"])
     documents = {document.document_id: document for document in dataset.documents}
+    if topology in HIERARCHICAL_TOPOLOGIES:
+        if hierarchy is None:
+            raise ValueError(f"hierarchy is required for topology={topology}")
+        if topology == "unique-parent-aggregation":
+            candidates = list(unique_parent_candidates(
+                capture,
+                hierarchy,
+                candidate_k=CANDIDATE_K,
+                final_k=FINAL_K,
+            ))
+        elif topology == "dynamic-auto-merge":
+            candidates = list(dynamic_auto_merge_candidates(
+                capture, hierarchy, candidate_k=CANDIDATE_K,
+            ))
+        else:
+            return budget_aware_mixed_candidates(
+                capture,
+                hierarchy,
+                candidate_k=CANDIDATE_K,
+                max_tokens=CONTEXT_MAX_TOKENS,
+                max_chunks=FINAL_K,
+            )
+        return ContextPacker().pack(
+            candidates,
+            max_tokens=CONTEXT_MAX_TOKENS,
+            max_chunks=FINAL_K,
+            redundancy_threshold=1.0,
+        ).selected
+
     candidates: list[ContextCandidate] = []
     seen = set()
     for rank, chunk_id in enumerate(capture["reranked_ids"][:FINAL_K], 1):
@@ -610,6 +724,7 @@ def _prepare_structural_rows(
     dataset: RagDataset,
     baseline_chunks: Mapping[str, Any],
     baseline_by_document: Mapping[str, Sequence[Any]],
+    hierarchy: HierarchyIndex | None = None,
 ) -> list[dict[str, Any]]:
     """Use first-stage order for the cheap precheck; no LLM result is implied."""
     token_estimator = TokenEstimator()
@@ -623,7 +738,12 @@ def _prepare_structural_rows(
         }
         case: RagCase = capture["case"]
         contexts = _make_contexts(
-            topology, capture, dataset, baseline_chunks, baseline_by_document,
+            topology,
+            capture,
+            dataset,
+            baseline_chunks,
+            baseline_by_document,
+            hierarchy,
         )
         rows.append({
             **capture,
@@ -682,6 +802,52 @@ def _aggregate_structural(topology: str, rows: Sequence[Mapping[str, Any]]) -> d
     return result
 
 
+def _aggregate_rerank_stage(
+    topology: str, rows: Sequence[Mapping[str, Any]],
+) -> dict[str, Any]:
+    multi = [row for row in rows if len(row["case"].evidence) >= 2]
+
+    def mean(values: Sequence[float]) -> float:
+        return statistics.fmean(values) if values else 0.0
+
+    context_tokens = [float(row["context_tokens"]) for row in rows]
+    latencies = [
+        float(row["retrieval_latency_ms"])
+        + float(row["rerank_usage"]["latency_ms"]["sum"])
+        for row in rows
+    ]
+    return {
+        "topology": topology,
+        "case_count": len(rows),
+        "multi_condition_case_count": len(multi),
+        "candidate_evidence_recall_at_20": mean([
+            float(row["retrieval_metrics"]["evidence_recall"]) for row in rows
+        ]),
+        "reranked_mrr_at_5": mean([
+            float(row["reranked_metrics"]["mrr"]) for row in rows
+        ]),
+        "reranked_evidence_recall_at_5": mean([
+            float(row["reranked_metrics"]["evidence_recall"]) for row in rows
+        ]),
+        "context_evidence_recall": mean([float(row["context_recall"]) for row in rows]),
+        "multi_condition_context_completeness": mean([
+            float(row["context_recall"]) for row in multi
+        ]),
+        "mean_context_tokens": mean(context_tokens),
+        "p95_context_tokens": _percentile(context_tokens, 0.95),
+        "p95_retrieval_rerank_latency_ms": _percentile(latencies, 0.95),
+        "rerank_failure_rate": mean([
+            float(bool(row["rerank_error"])) for row in rows
+        ]),
+        "rerank_input_tokens": sum(
+            int(row["rerank_usage"].get("input_tokens", 0)) for row in rows
+        ),
+        "rerank_output_tokens": sum(
+            int(row["rerank_usage"].get("output_tokens", 0)) for row in rows
+        ),
+    }
+
+
 def _structural_gates(
     candidate: Mapping[str, Any], baseline: Mapping[str, Any], *, harmful_rate: float,
 ) -> dict[str, bool]:
@@ -713,7 +879,7 @@ def run_structural_ablation(
     dataset: RagDataset,
     query_capture: Mapping[str, Any],
     *,
-    topologies: Sequence[str] = TOPOLOGIES,
+    topologies: Sequence[str] = DEFAULT_TOPOLOGIES,
 ) -> dict[str, Any]:
     """Run cheap deterministic gates before spending reranker/generator/Judge calls."""
     if query_capture.get("dataset_id") != dataset.manifest.get("dataset_id"):
@@ -722,7 +888,13 @@ def run_structural_ablation(
     if unknown:
         raise ValueError(f"unknown topologies: {sorted(unknown)}")
     baseline_chunks, baseline_by_document = _baseline_chunks(dataset)
-    baseline_capture = _capture_retrieval(dataset, query_capture, parent_child=False)
+    needs_baseline = bool({
+        "baseline-512", "neighbor-512", "conditional-parent-child",
+    }.intersection(topologies))
+    baseline_capture = (
+        _capture_retrieval(dataset, query_capture, parent_child=False)
+        if needs_baseline else []
+    )
     needs_parent = bool(
         {"parent-child-256-1024", "conditional-parent-child"}.intersection(topologies)
     )
@@ -730,17 +902,34 @@ def run_structural_ablation(
         _capture_retrieval(dataset, query_capture, parent_child=True)
         if needs_parent else []
     )
-    conditional_capture = _conditional_captures(dataset, baseline_capture, parent_capture)
+    conditional_capture = (
+        _conditional_captures(dataset, baseline_capture, parent_capture)
+        if "conditional-parent-child" in topologies else []
+    )
+    hierarchy = build_hierarchy(dataset.documents) if HIERARCHICAL_TOPOLOGIES.intersection(
+        topologies
+    ) else None
+    hierarchical_capture = (
+        _capture_hierarchical_retrieval(dataset, query_capture, hierarchy)
+        if hierarchy is not None else []
+    )
     rows_by_topology = {}
     for topology in topologies:
         if topology == "parent-child-256-1024":
             captures = parent_capture
         elif topology == "conditional-parent-child":
             captures = conditional_capture
+        elif topology in HIERARCHICAL_TOPOLOGIES:
+            captures = hierarchical_capture
         else:
             captures = baseline_capture
         rows_by_topology[topology] = _prepare_structural_rows(
-            topology, captures, dataset, baseline_chunks, baseline_by_document,
+            topology,
+            captures,
+            dataset,
+            baseline_chunks,
+            baseline_by_document,
+            hierarchy,
         )
     summaries = {
         topology: _aggregate_structural(topology, rows)
@@ -787,6 +976,7 @@ def run_structural_ablation(
             "parent-child iff a baseline top-5 source is >=8000 chars and retrieval "
             "branches disagree on the first-ranked document; no Gold labels are used"
         ),
+        "hierarchical_contract": hierarchy_contract(),
         "rows": {
             topology: [_public_row(row) for row in rows]
             for topology, rows in rows_by_topology.items()
@@ -831,6 +1021,31 @@ def _candidate_gates(candidate: Mapping[str, Any], baseline: Mapping[str, Any]) 
     }
 
 
+def _rerank_stage_gates(
+    candidate: Mapping[str, Any], baseline: Mapping[str, Any],
+) -> dict[str, bool]:
+    epsilon = 1e-12
+    return {
+        "candidate_recall_at_20_not_lower": (
+            candidate["candidate_evidence_recall_at_20"] + epsilon
+            >= baseline["candidate_evidence_recall_at_20"]
+        ),
+        "reranked_mrr_at_5_not_lower": (
+            candidate["reranked_mrr_at_5"] + epsilon >= baseline["reranked_mrr_at_5"]
+        ),
+        "multi_condition_completeness_improves": (
+            candidate["multi_condition_context_completeness"]
+            > baseline["multi_condition_context_completeness"] + epsilon
+        ),
+        "context_p95_within_2600": candidate["p95_context_tokens"] <= CONTEXT_MAX_TOKENS,
+        "rerank_failure_rate_le_1pct": candidate["rerank_failure_rate"] <= 0.01,
+        "retrieval_rerank_p95_latency_growth_le_20pct": (
+            candidate["p95_retrieval_rerank_latency_ms"]
+            <= baseline["p95_retrieval_rerank_latency_ms"] * 1.20
+        ),
+    }
+
+
 def _public_row(row: Mapping[str, Any]) -> dict[str, Any]:
     case: RagCase = row["case"]
     contexts: Sequence[ContextCandidate] = row["contexts"]
@@ -871,9 +1086,10 @@ async def run_ablation(
     dataset: RagDataset,
     query_capture: Mapping[str, Any],
     *,
-    topologies: Sequence[str] = TOPOLOGIES,
+    topologies: Sequence[str] = DEFAULT_TOPOLOGIES,
     concurrency: int = 3,
     previous_report: Mapping[str, Any] | None = None,
+    rerank_only: bool = False,
 ) -> dict[str, Any]:
     if query_capture.get("dataset_id") != dataset.manifest.get("dataset_id"):
         raise ValueError("query capture and dataset IDs do not match")
@@ -883,6 +1099,23 @@ async def run_ablation(
     if unknown:
         raise ValueError(f"unknown topologies: {sorted(unknown)}")
     policy = ModelPolicy.from_env()
+    if previous_report is not None:
+        previous_prompt = str(
+            previous_report.get("experiment_contract", {})
+            .get("prompt_versions", {})
+            .get("rerank") or ""
+        )
+        if previous_prompt != RERANK_PROMPT_VERSION:
+            raise ValueError(
+                "previous report rerank prompt differs from the current contract"
+            )
+        previous_rerank_model = (
+            previous_report.get("models", {}).get("roles", {}).get("rerank")
+        )
+        if previous_rerank_model != policy.profile(ModelRole.RERANK).to_dict():
+            raise ValueError(
+                "previous report rerank model differs from the current contract"
+            )
     api_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
     if not api_key:
         raise RuntimeError("ANTHROPIC_API_KEY is required")
@@ -892,13 +1125,26 @@ async def run_ablation(
     client = AsyncAnthropic(**kwargs)
     baseline_chunks, baseline_by_document = _baseline_chunks(dataset)
     token_estimator = TokenEstimator()
-    baseline_capture = _capture_retrieval(dataset, query_capture, parent_child=False)
+    needs_baseline = bool({
+        "baseline-512", "neighbor-512", "conditional-parent-child",
+    }.intersection(topologies))
+    baseline_capture = (
+        _capture_retrieval(dataset, query_capture, parent_child=False)
+        if needs_baseline else []
+    )
     needs_parent = bool(
         {"parent-child-256-1024", "conditional-parent-child"}.intersection(topologies)
     )
     parent_capture = (
         _capture_retrieval(dataset, query_capture, parent_child=True)
         if needs_parent else []
+    )
+    hierarchy = build_hierarchy(dataset.documents) if HIERARCHICAL_TOPOLOGIES.intersection(
+        topologies
+    ) else None
+    hierarchical_capture = (
+        _capture_hierarchical_retrieval(dataset, query_capture, hierarchy)
+        if hierarchy is not None else []
     )
     previous_rows = dict((previous_report or {}).get("rows") or {})
     baseline_ranked = await _rerank_with_resume(
@@ -907,7 +1153,7 @@ async def run_ablation(
         baseline_capture,
         previous_rows.get("baseline-512", ()),
         concurrency=concurrency,
-    )
+    ) if baseline_capture else []
     parent_ranked = await _rerank_with_resume(
         client,
         policy.profile(ModelRole.RERANK),
@@ -915,20 +1161,41 @@ async def run_ablation(
         previous_rows.get("parent-child-256-1024", ()),
         concurrency=concurrency,
     ) if parent_capture else []
-    conditional_ranked = _conditional_captures(dataset, baseline_ranked, parent_ranked)
+    conditional_ranked = (
+        _conditional_captures(dataset, baseline_ranked, parent_ranked)
+        if "conditional-parent-child" in topologies else []
+    )
+    hierarchical_previous = next((
+        previous_rows.get(name, ()) for name in HIERARCHICAL_TOPOLOGIES
+        if previous_rows.get(name)
+    ), ())
+    hierarchical_ranked = await _rerank_with_resume(
+        client,
+        policy.profile(ModelRole.RERANK),
+        hierarchical_capture,
+        hierarchical_previous,
+        concurrency=concurrency,
+    ) if hierarchical_capture else []
     rows_by_topology: dict[str, list[dict[str, Any]]] = {}
     for topology in topologies:
         if topology == "parent-child-256-1024":
             captures = parent_ranked
         elif topology == "conditional-parent-child":
             captures = conditional_ranked
+        elif topology in HIERARCHICAL_TOPOLOGIES:
+            captures = hierarchical_ranked
         else:
             captures = baseline_ranked
         rows = []
         for capture in captures:
             case: RagCase = capture["case"]
             contexts = _make_contexts(
-                topology, capture, dataset, baseline_chunks, baseline_by_document,
+                topology,
+                capture,
+                dataset,
+                baseline_chunks,
+                baseline_by_document,
+                hierarchy,
             )
             rows.append({
                 **capture,
@@ -944,14 +1211,22 @@ async def run_ablation(
                     case, capture["reranked_ids"], capture["hit_by_id"], top_k=FINAL_K,
                 ),
             })
-        rows_by_topology[topology] = await _generate(
-            client,
-            policy.profile(ModelRole.SYNTHESIS),
-            policy.profile(ModelRole.JUDGE),
-            rows,
-            concurrency=concurrency,
+        rows_by_topology[topology] = (
+            rows if rerank_only else await _generate(
+                client,
+                policy.profile(ModelRole.SYNTHESIS),
+                policy.profile(ModelRole.JUDGE),
+                rows,
+                concurrency=concurrency,
+            )
         )
-    summaries = {name: _aggregate(name, rows) for name, rows in rows_by_topology.items()}
+    summaries = {
+        name: (
+            _aggregate_rerank_stage(name, rows)
+            if rerank_only else _aggregate(name, rows)
+        )
+        for name, rows in rows_by_topology.items()
+    }
     baseline = summaries.get("baseline-512")
     gates = {}
     harmful = {}
@@ -967,20 +1242,27 @@ async def run_ablation(
                 float(row["context_recall"] < baseline_rows[row["case"].case_id]["context_recall"])
                 for row in candidate_rows
             )
-            gates[topology] = _candidate_gates(summary, baseline)
+            gates[topology] = (
+                _rerank_stage_gates(summary, baseline)
+                if rerank_only else _candidate_gates(summary, baseline)
+            )
             gates[topology]["harmful_context_rate_does_not_increase"] = harmful[topology] == 0.0
             gates[topology]["passes_all"] = all(gates[topology].values())
     eligible = [name for name, values in gates.items() if values["passes_all"]]
-    recommended = "baseline-512"
+    recommended = "baseline-512" if baseline is not None else None
     if eligible:
         recommended = sorted(eligible, key=lambda name: (
             -summaries[name]["multi_condition_context_completeness"],
             summaries[name]["p95_context_tokens"],
-            summaries[name]["p95_pipeline_latency_ms"],
+            summaries[name][
+                "p95_retrieval_rerank_latency_ms"
+                if rerank_only else "p95_pipeline_latency_ms"
+            ],
             name,
         ))[0]
     return {
         "schema_version": 1,
+        "stage": "rerank_and_packing" if rerank_only else "full_chain",
         "dataset_id": dataset.manifest["dataset_id"],
         "split": query_capture["split"],
         "case_count": len(query_capture.get("rows") or ()),
@@ -995,6 +1277,20 @@ async def run_ablation(
                 "run baseline first; run/deliver parent-child only when a baseline top-5 "
                 "source is >=8000 chars and retrieval branches disagree on the first document"
             ),
+            "unique_parent_aggregation": (
+                "retrieve/rerank Haystack hierarchy leaves Top-20; score each unique "
+                "1024-level parent by sum reciprocal child ranks before parent Top-5"
+            ),
+            "dynamic_auto_merge": (
+                "Haystack AutoMergingRetriever threshold=.5 promotes sibling hits; "
+                "isolated hits retain their smaller granularity"
+            ),
+            "budget_aware_mixed": (
+                "pack the auto-merged 256/512/1024 mix by marginal retrieved-evidence "
+                "rank score under the token budget; descend when a preferred parent "
+                "cannot fit and use remaining budget for isolated-hit windows"
+            ),
+            "hierarchical_component_contract": hierarchy_contract(),
             "fixed_query": _query_contract(query_capture),
             "prompt_versions": {
                 "rerank": RERANK_PROMPT_VERSION,
@@ -1023,7 +1319,11 @@ async def run_ablation(
         },
         "limitations": [
             _grounding_limitation(dataset),
-            "LLM Judge is uncalibrated against a fresh human-labelled sample.",
+            (
+                "Generation and Judge were not run; this stage establishes only rerank and packing."
+                if rerank_only else
+                "LLM Judge is uncalibrated against a fresh human-labelled sample."
+            ),
             "P95 includes provider variance and this small sample is not a load test.",
         ],
     }
@@ -1033,11 +1333,21 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("dataset", type=Path)
     parser.add_argument("query_capture", type=Path)
-    parser.add_argument("--topologies", nargs="+", choices=TOPOLOGIES, default=list(TOPOLOGIES))
-    parser.add_argument("--concurrency", type=int, default=3)
     parser.add_argument(
+        "--topologies",
+        nargs="+",
+        choices=TOPOLOGIES,
+        default=list(DEFAULT_TOPOLOGIES),
+    )
+    parser.add_argument("--concurrency", type=int, default=3)
+    stage = parser.add_mutually_exclusive_group()
+    stage.add_argument(
         "--structural-only", action="store_true",
         help="Run deterministic pre-gates without reranker, generator, or Judge calls",
+    )
+    stage.add_argument(
+        "--rerank-only", action="store_true",
+        help="Run and persist reranker plus packing gates without generation or Judge",
     )
     parser.add_argument(
         "--resume-report", type=Path,
@@ -1057,6 +1367,7 @@ def main() -> int:
         asyncio.run(run_ablation(
             dataset, capture, topologies=args.topologies, concurrency=args.concurrency,
             previous_report=previous_report,
+            rerank_only=args.rerank_only,
         ))
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)

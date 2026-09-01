@@ -196,9 +196,9 @@ Ticket 负责用户人工处理流程，Trace 负责一次请求的诊断；二�
 
 **T：** 建立一个有界客服 RAG 实验，使预处理、Query、BM25/Dense/RRF、Rerank、Packing、Generation 各自可测；安全失败不能被平均质量分抵消，模型输出只捕获一次并可离线重放。
 
-**A：** 把 `source_id + checksum + [start,end)` 定为证据坐标，建立 public SourceDocument 与完整 IndexManifest；将在线全量 BM25 改为可从 Chroma 重建的持久 posting index；适配 Doc2Dial 100 文档/300 case/488 spans，以实体、否定、虚构实体和 harmful rate 为硬约束，用 dialogue-group paired bootstrap 选择权重；stable chunk ID 贯穿 RRF 和严格排列 rerank，EvidencePack 保留 score/rank/version/drop；grounded v5 在 RAG 局部边界用 PydanticAI tool output 约束 segments/conflicts/abstention，代码单向派生 answer/claims/citations，纯知识答案不再被 Agent 二次改写。
+**A：** 把 `source_id + checksum + [start,end)` 定为证据坐标，建立 public SourceDocument 与完整 IndexManifest；将在线全量 BM25 改为可从 Chroma 重建的持久 posting index；适配 Doc2Dial 100 文档/300 case/488 spans，以实体、否定、虚构实体和 harmful rate 为硬约束，用 dialogue-group paired bootstrap 选择权重；stable chunk ID 贯穿 RRF，rerank 在 PydanticAI ToolOutput 中只排列短别名、校验完整 permutation 后映射回 stable ID；EvidencePack 保留 score/rank/version/drop。长文档实验不手写树算法，复用 Haystack splitter/auto-merger，只在项目边界实现 source-span、parent score aggregation 与预算降级；grounded v5 同样在 RAG 局部边界约束 segments/conflicts/abstention，代码单向派生 answer/claims/citations。
 
-**R：** 历史 Dev 把检索冻结为 fixed 512/64、BM25 .75/Dense .25/k=10、Raw .25/Standalone .75、rerank 20→5、packing 2600。父子实验虽把 Recall@20 `0.8333→0.9167`，但多条件完整性 `0.8261→0.7826`、harmful `4.17%`，因此保留 512/64。v4 又暴露大量 JSON/claim 合同错误；v5 同一 36 group×3 重放为 `0/108` 合同错误、`6/36` 证据不足拒答，生成请求 `203→108`，Baseline 全链 P95 `18.29s→10.22s`。修复后仍不消费已知 test 调参，下一步才是 fresh Heldout/Shadow。
+**R：** 历史 Dev 把检索冻结为 fixed 512/64、BM25 .75/Dense .25/k=10、Raw .25/Standalone .75、rerank 20→5、packing 2600。成熟 dynamic auto-merge 在 36 个长文档 group 上把 packed span recall `.7083→.7500`，但 multi-condition `.7188→.6875`、harmful `8.33%`，因此仍保留 512/64；短别名 rerank 把层级批次合同失败 `4/36→0/36`、output token `37,477→4,500`。grounded v5 的 36 group×3 重放为 `0/108` 生成合同错误、`6/36` 证据不足拒答，生成请求 `203→108`。候选未过 Dev 就停止 generation/Judge，不消费 Heldout 调参，下一步才是 baseline fresh Heldout/Shadow。
 
 ## 意图反馈闭环如何用 STAR 讲
 
