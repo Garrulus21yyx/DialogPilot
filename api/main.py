@@ -64,6 +64,14 @@ from core.llm_metrics import capture_llm_usage
 from core.model_policy import ModelPolicy, ModelRole
 from core.rag_policy import DEFAULT_RAG_RETRIEVAL_POLICY, rag_retrieval_policy_from_env
 from core.intent_recognizer import IntentCategory
+from application.chat_application import (
+    ChatApplication,
+    ChatCommand,
+    ChatOperations,
+    ChatServices,
+    Completed,
+    Failed,
+)
 from services.answer_verifier import (
     VerificationReasonCode,
     VerificationResult,
@@ -78,7 +86,6 @@ from services.evolution import (
     EvolutionEnvelope,
     BadCaseMiner,
     CreditAttributor,
-    HardSignal,
     RolloutContractError,
     RolloutManager,
     SoftRollbackPolicy,
@@ -177,7 +184,7 @@ async def lifespan(app: FastAPI):
 
     print(BANNER, flush=True)
 
-    from agents.agent_orchestrator import AgentOrchestrator, Request
+    from agents.agent_orchestrator import AgentOrchestrator
     from agents.run_store import RunStore
     from core.intent_recognizer import IntentRecognizer
     from evaluation.evaluator import EndToEndEvaluator
@@ -1308,339 +1315,62 @@ async def register_agent_bundle(
     return {"bundle": registered.to_dict(), "content_hash": registered.content_hash, "active": False}
 
 
+def _chat_application() -> ChatApplication:
+    """Compose the application boundary from the current lifespan-owned services."""
+    return ChatApplication(
+        ChatServices(
+            orchestrator=_orchestrator,
+            memory=_memory,
+            answer_verifier=_answer_verifier,
+            ticket_service=_ticket_service,
+            response_delivery=_response_delivery,
+            context_assembler=_context_assembler,
+            bundle_registry=_bundle_registry,
+            rollout_manager=_rollout_manager,
+            tool_manager=_tool_manager,
+        ),
+        ChatOperations(
+            active_ticket_context=_active_ticket_context,
+            build_knowledge_context=_build_knowledge_context,
+            capture_badcases=_capture_chat_badcases,
+            evaluate_shadow=_evaluate_shadow_request,
+            handoff_priority=_handoff_priority,
+            policy_terminal_verification=_policy_terminal_verification,
+            publish_candidate=_publish_candidate,
+            public_agent_outcomes=_public_agent_outcomes,
+            record_intent_prediction=_record_intent_prediction,
+            select_publication_candidate=_select_publication_candidate,
+            trace_id=current_trace_id,
+            verify_for_publication=_verify_for_publication,
+        ),
+    )
+
+
 @app.post("/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)):
-    """
-    主对话接口。完整流程：
-      记忆读取 → 意图识别 → Agent 路由 → 执行 → 记忆写入
-    """
-    # 纯本地输入边界先于服务就绪检查；恶意输入不能利用组件状态探测下游。
+    """Validate the HTTP request and map the protocol-neutral application outcome."""
     _enforce_user_input_security(req.message)
-
-    if (
-        _orchestrator is None
-        or _memory is None
-        or _answer_verifier is None
-        or _ticket_service is None
-        or _response_delivery is None
-        or _context_assembler is None
-        or _bundle_registry is None
-        or _rollout_manager is None
-    ):
-        raise HTTPException(503, "服务未就绪")
-
-    from agents.agent_orchestrator import Request as OrcReq
-    from memory.conversation_memory import MsgRole
-
-    user_id = _subject_for_request(req.user_id, principal)
-    conv_id = req.conv_id or str(uuid.uuid4())
-    request_id = req.request_id or str(uuid.uuid4())
-    # 请求开始时只解析一次；后续即使回滚，当前请求仍使用这个不可变对象。
-    assignment = await asyncio.to_thread(_rollout_manager.resolve, user_id)
-    bundle = assignment.primary
-
-    # 1. 读取记忆上下文
-    mem_ctx = await _memory.get_context(user_id, conv_id, query=req.message)
-
-    # 2. 意图识别只需短窗口；最终 Prompt 历史由 ContextAssembler 独立预算。
-    prompt_history = [
-        {"role": message.role.value, "content": message.content}
-        for message in mem_ctx.recent_messages
-    ]
-    intent_history = [
-        {"role": m.role.value, "content": m.content}
-        for m in mem_ctx.recent_messages[-5:]
-    ] if mem_ctx.recent_messages else None
-
-    intent_result = await _orchestrator.recognize_intent(
-        req.message, history=intent_history, bundle=bundle,
-    )
-    intent_prediction = await _record_intent_prediction(
-        intent_result=intent_result,
-        request_id=request_id,
-        conv_id=conv_id,
-        user_id=user_id,
+    command = ChatCommand(
         message=req.message,
-        bundle=bundle,
+        user_id=_subject_for_request(req.user_id, principal),
+        conv_id=req.conv_id,
+        request_id=req.request_id,
     )
-    knowledge = await _build_knowledge_context(
-        req.message,
-        intent=intent_result.intent,
-        bundle=bundle,
-        history=[str(item.get("content") or "") for item in prompt_history],
-    )
-    base_context_sections = list(mem_ctx.to_sections())
-    active_ticket_section = await _active_ticket_context(user_id)
-    if active_ticket_section is not None:
-        base_context_sections.append(active_ticket_section)
-    context_sections = list(base_context_sections)
-    if knowledge.text:
-        context_sections.append(ContextSection(
-            tag="knowledge",
-            description="检索到的公共业务知识及有引用草稿；实时账户事实仍以业务工具为准",
-            content=knowledge.text,
-            priority=85,
-        ))
-    prompt_context = _context_assembler.assemble(
-        sections=context_sections,
-        history=prompt_history,
-        current_user_message=req.message,
-    )
-    full_context = prompt_context.system_context
-
-    orch_req = OrcReq(
-        message=req.message,
-        user_id=user_id,
-        conv_id=conv_id,
-        context=full_context,
-        history=intent_history,
-        prompt_context=prompt_context,
-        entities=intent_result.entities,
-        intent=intent_result.intent,
-        intent_group=intent_result.intent_group,
-        urgency=intent_result.urgency,
-        intent_confidence=intent_result.confidence,
-        request_id=request_id,
-        bundle_version=bundle.version,
-        agent_bundle=bundle,
-    )
-
-    # 3. 执行
-    result = await _orchestrator.run(orch_req)
-
-    # 4. 发布边界：只有明确通过校验的回答才能返回给用户。
-    approval_pending = bool(result.awaiting_approval)
-    prepublication_audit = [
-        record.to_dict()
-        for record in _tool_manager.audit_records(trace_id=current_trace_id())
-    ] if _tool_manager else []
-    publication_candidate, knowledge_is_final = _select_publication_candidate(
-        result.response, knowledge, prepublication_audit,
-        approval_pending=approval_pending,
-    )
-    knowledge_verification = {
-        "mode": "grounded_final" if knowledge_is_final else "mixed_or_context_only",
-        "grounded_answer": knowledge.answer,
-        "claims": list(knowledge.claims),
-        "conflicts": list(knowledge.conflicts),
-        "citations": list(knowledge.citations),
-        "abstained": knowledge.abstained,
-        "reason": knowledge.reason,
-        "evidence_pack": (
-            knowledge.evidence_pack.to_dict(include_text=True)
-            if knowledge.evidence_pack is not None else {}
-        ),
-    }
-    if approval_pending:
-        verification = VerificationResult(
-            status=VerificationStatus.UNKNOWN,
-            grounded=False,
-            need_escalation=False,
-            reason="high-risk tool call is paused for authenticated host approval",
-            reason_code=VerificationReasonCode.APPROVAL_REQUIRED,
-        )
-    else:
-        verification = _policy_terminal_verification(result)
-        if verification is None:
-            verification = await _verify_for_publication(
-                _answer_verifier,
-                req.message,
-                publication_candidate,
-                full_context,
-                task_plan=result.task_plan,
-                coverage=result.coverage,
-                agent_outcomes=result.agent_outcomes,
-                knowledge_evidence=knowledge_verification,
-            )
-    feedback_recorder = getattr(_orchestrator, "record_verification", None)
-    if feedback_recorder:
-        try:
-            feedback_recorder(result.producer_agent_keys, verification.status.value)
-        except Exception:
-            logger.exception("记录 Agent 质量反馈失败 request_id=%s", request_id)
-    response_text = result.response if approval_pending else _publish_candidate(
-        publication_candidate, verification,
-    )
-    escalated = result.escalated or verification.need_escalation
-
-    # 5. 升级结果必须落为持久化工单，不能只返回一个布尔标志。
-    ticket = None
-    handoff_created = False
-    if escalated:
-        try:
-            ticket, handoff_created = await asyncio.to_thread(
-                _ticket_service.create_ticket,
-                idempotency_key=f"chat:{request_id}:handoff",
-                user_id=user_id,
-                conv_id=conv_id,
-                request_id=request_id,
-                question=req.message,
-                published_response=response_text,
-                reason=(
-                    f"verification={verification.status.value}: {verification.reason}; "
-                    f"coverage={result.coverage.get('complete', 'unknown')}; "
-                    f"routing={result.routing_reason}"
-                )[:5000],
-                priority=_handoff_priority(intent_result.urgency, verification.status.value),
-                agent_type=result.agent_type.value if result.agent_type else "orchestrator",
-                intent=result.intent.value if result.intent else "other",
-                verification_status=verification.status.value,
-            )
-        except Exception:
-            logger.exception("人工工单创建失败 request_id=%s", request_id)
-            response_text = (
-                "当前回答需要人工确认，但工单创建失败。请稍后使用相同 request_id 重试，"
-                "或直接联系人工客服。"
-            )
-
-    # 服务端选择与客户端送达是两个事实。先持久化选定文本和会话序号，随后才
-    # 能把 response_id 交给 HTTP 客户端做幂等 ACK 或断线续取。
-    try:
-        delivery = await asyncio.to_thread(
-            _response_delivery.select_response,
-            user_id=user_id,
-            conv_id=conv_id,
-            request_id=request_id,
-            response_text=response_text,
-        )
-    except Exception as exc:
-        logger.exception("持久化回答选择事实失败 request_id=%s", request_id)
-        raise HTTPException(503, {
-            "error": "response_selection_unavailable",
-            "retryable": True,
-        }) from exc
-
-    tool_audit = [
-        record.to_dict()
-        for record in _tool_manager.audit_records(trace_id=current_trace_id())
-    ] if _tool_manager else []
-    # 质量事实先于会话持久化保存；Memory 故障不能抹掉已经发生的发布失败。
-    await _capture_chat_badcases(
-        req=req,
-        user_id=user_id,
-        request_id=request_id,
-        result=result,
-        verification=verification,
-        published_response=response_text,
-        tool_audit=tool_audit,
-        bundle=bundle,
-        approval_pending=approval_pending,
-    )
-    disposition = getattr(result.routing_disposition, "value", result.routing_disposition)
-    await asyncio.to_thread(
-        _rollout_manager.record_outcome,
-        bundle_version=bundle.version,
-        stage=assignment.primary_stage,
-        verified=(
-            verification.publishable
-            and (
-                disposition in {"clarify", "out_of_scope"}
-                or bool(result.coverage.get("complete", False))
-            )
-            and not approval_pending
-        ),
-        latency_ms=result.latency_ms,
-        cost_units=float(len(result.agent_outcomes) + len(tool_audit)),
-        request_id=request_id,
-    )
-
-    # 6. 越域请求不进入客服工作记忆、情景索引或用户画像；其他结果仍按完整轮次写入。
-    if disposition != "out_of_scope":
-        await _memory.add_messages(user_id, conv_id, [
-            (MsgRole.USER, req.message, {"request_id": request_id}),
-            (MsgRole.ASSISTANT, response_text, {
-                "request_id": request_id,
-                "response_id": delivery.response_id,
-                "response_seq": delivery.seq,
-            }),
-        ], extract_facts=(disposition == "execute"))
-
-    # 7. L1 事实任务已与 L0 原始轮次在同一 Redis 事务中持久化；这里不创建
-    # 可能随进程退出而丢失的裸 asyncio task。
-    if assignment.shadow is not None and disposition == "execute":
-        asyncio.create_task(_evaluate_shadow_request(
-            request=req,
-            user_id=user_id,
-            conv_id=conv_id,
-            request_id=request_id,
-            bundle=assignment.shadow,
-            base_sections=base_context_sections,
-            prompt_history=prompt_history,
-            intent_history=intent_history,
-        ))
-
-    return ChatResponse(
-        request_id=request_id,
-        trace_id=current_trace_id(),
-        conv_id=conv_id,
-        response_id=delivery.response_id,
-        response_seq=delivery.seq,
-        delivery_status=delivery.status,
-        response=response_text,
-        intent=result.intent.value if result.intent else "other",
-        intent_group=intent_result.intent_group,
-        agent_type=result.agent_type.value if result.agent_type else "orchestrator",
-        agent_types=[agent_type.value for agent_type in result.agent_types],
-        primary_agent=result.primary_agent.value if result.primary_agent else "",
-        supporting_agents=[agent_type.value for agent_type in result.supporting_agents],
-        routing_reason=result.routing_reason,
-        routing_confidence=result.routing_confidence,
-        routing_disposition=disposition,
-        synthesis_status=result.synthesis_status,
-        synthesis_reason=result.synthesis_reason,
-        synthesis_conflicts=result.synthesis_conflicts,
-        agent_outcomes=_public_agent_outcomes(result.agent_outcomes),
-        task_plan=result.task_plan,
-        coverage=result.coverage,
-        execution_budget=result.execution_budget,
-        tool_audit=tool_audit,
-        memory_retrieval=[] if disposition == "out_of_scope" else [{
-            "memory_id": hit.memory_id,
-            "score": round(hit.score, 8),
-            "sources": list(hit.sources),
-            "ranks": dict(hit.ranks),
-        } for hit in mem_ctx.retrieval_hits],
-        escalated=escalated,
-        latency_ms=round(result.latency_ms, 1),
-        knowledge_used=knowledge.used,
-        knowledge_draft_citations=list(knowledge.citations),
-        knowledge_citations=(
-            list(knowledge.citations)
-            if knowledge_is_final and verification.publishable else []
-        ),
-        knowledge_claims=list(knowledge.claims),
-        knowledge_conflicts=list(knowledge.conflicts),
-        knowledge_evidence=(
-            [item.to_dict(include_text=False) for item in knowledge.evidence_pack.items]
-            if knowledge.evidence_pack is not None else []
-        ),
-        knowledge_generation_status=(
-            "grounded_final" if knowledge_is_final and verification.publishable
-            else knowledge.generation_status
-        ),
-        entities=intent_result.entities,
-        intent_confidence=round(intent_result.confidence, 4),
-        intent_source_scores=intent_result.source_scores,
-        intent_prediction_id=(
-            intent_prediction.prediction_id if intent_prediction is not None else ""
-        ),
-        intent_classifier_fingerprint=str(
-            getattr(intent_result, "classifier_fingerprint", "") or ""
-        ),
-        verification_status=verification.status.value,
-        verified=verification.publishable,
-        grounded=verification.grounded,
-        verification_reason=verification.reason,
-        verification_reason_code=verification.reason_code.value,
-        ticket_id=ticket.ticket_id if ticket else None,
-        ticket_status=ticket.status.value if ticket else None,
-        handoff_created=handoff_created,
-        bundle_version=bundle.version,
-        rollout_stage=assignment.primary_stage,
-        awaiting_approval=approval_pending,
-        react_run_ids=list(result.react_run_ids),
-        pending_approval_call_ids=list(result.pending_approval_call_ids),
-    )
+    outcome = await _chat_application().handle(command)
+    if isinstance(outcome, Completed):
+        return ChatResponse.model_validate(outcome.response)
+    if isinstance(outcome, Failed):
+        status = 503 if outcome.retryable else 500
+        raise HTTPException(status, {
+            "error": outcome.code,
+            "retryable": outcome.retryable,
+            "correlation_id": outcome.correlation_id,
+        })
+    raise HTTPException(500, {
+        "error": "unsupported_chat_outcome",
+        "retryable": False,
+        "outcome": type(outcome).__name__,
+    })
 
 
 @app.get("/agent-runs/{run_id}", tags=["Agent Run"])

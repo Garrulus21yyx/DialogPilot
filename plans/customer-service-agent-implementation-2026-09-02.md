@@ -11,9 +11,9 @@
 
 | 节点 | 状态 | 验证 / 产物 |
 |---|---|---|
-| Bootstrap：冻结需求文档与执行跟踪 | in_progress | 本文件、两份架构文档、新分支 |
-| M0-T01 应用服务边界 | pending | `ChatApplication`、薄 `/chat`、characterization tests |
-| M0-T02 稳定身份和值对象 | pending | typed IDs/keys、属性测试、链路 metadata |
+| Bootstrap：冻结需求文档与执行跟踪 | done | commit `c2beceb`，已 push |
+| M0-T01 应用服务边界 | done | typed `ChatOutcome`、薄 `/chat`；392 tests passed |
+| M0-T02 稳定身份和值对象 | in_progress | typed IDs/keys、属性测试、链路 metadata |
 | M0-T03 生产主链 Eval Runner | pending | `ChatApplicationRunner`、typed stage observations |
 | M0-T04 当前行为基线 | pending | 冻结 baseline artifacts/report |
 | M0-T05 Gate Manifest Foundation | pending | 版本化 manifest schema/validator/report |
@@ -33,8 +33,26 @@
 - 工作区起始时存在其他未跟踪实验文件；不纳入本任务提交，除非后续任务卡明确需要。
 - 计划提交文件：两份权威需求文档与本跟踪文件。
 
+### M0-T01
+
+- 正向合同：认证后的 `ChatCommand` 进入唯一 `ChatApplication.handle()`；结果属于显式
+  `ChatOutcome` tagged union；HTTP adapter 只做输入安全、身份绑定与 HTTP 映射。
+- Owner 修复：完整主链从 `api.main.chat` 移到
+  `application/chat_application.py`；API 不再选择 RAG、执行 Agent、发布候选或写 Memory。
+- 修改文件：
+  - `application/__init__.py`
+  - `application/chat_application.py`
+  - `api/main.py`
+  - `tests/test_chat_application.py`
+- 验证：
+  - `PYTHONPATH=. .venv/bin/pytest -q` → `392 passed`
+  - `ruff check --ignore E402 application api/main.py tests/test_chat_application.py` → passed
+  - `git diff --check` → passed
+- 说明：M0 保持现有同步聊天语义；`Accepted/NeedsInput/...` 合同已冻结，具体 admission
+  与 execution 投影由 M1-T00/M1-T05 实现。
+
 ## 下一步
 
-1. 提交并推送 Bootstrap。
-2. 建立 M0-T01 的现状 characterization，确认 `/chat` 当前完整生命周期与依赖构造。
-3. 在 Application Owner 处提取 `ChatApplication`，迁移 API 与 Eval 消费者。
+1. 提交并推送 M0-T01。
+2. 实施 M0-T02：稳定 typed identity、key 构造与 metadata 迁移。
+3. 以属性测试验证 key 的确定性、隔离性和普通追问/resume identity 不混淆。
