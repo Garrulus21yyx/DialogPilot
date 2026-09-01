@@ -1,5 +1,6 @@
 """Replay, drift detection and reporting limits of the M0 behavior baseline."""
 import copy
+from pathlib import Path
 
 import pytest
 
@@ -153,3 +154,28 @@ def test_frozen_intent_and_rag_decision_policy_matches_current_owners():
     assert rag["dense_weight"] == DEFAULT_RAG_RETRIEVAL_POLICY["vector_weight"]
     assert rag["bm25_weight"] == DEFAULT_RAG_RETRIEVAL_POLICY["lexical_weight"]
     assert rag["rrf_k"] == DEFAULT_RAG_RETRIEVAL_POLICY["rrf_k"]
+
+
+def test_checked_in_m0_baseline_is_replayable_and_traceable():
+    path = Path(__file__).parents[1] / "data/eval/baselines/m0-v1/manifest.json"
+    baseline = load_behavior_baseline(path)
+
+    assert baseline["baseline_id"] == "m0-v1"
+    assert baseline["production_accuracy_claim"] is False
+    assert len(baseline["records"]) == 7
+    assert all(
+        row["case_id"] and row["request_id"] and row["trace_id"] and row["stages"]
+        for row in baseline["records"]
+    )
+    assert set(baseline["decision_policy_fingerprints"]) == {
+        "active_case_context",
+        "domain_routing",
+        "execution",
+        "instance_selection",
+        "intent_fusion",
+        "knowledge_retrieval",
+        "memory_retrieval",
+    }
+    assert {row["classification"] for row in baseline["datasets"]} == {
+        "provisional", "auto_mapped", "consumed_regression",
+    }

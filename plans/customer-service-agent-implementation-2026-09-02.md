@@ -15,7 +15,7 @@
 | M0-T01 应用服务边界 | done | typed `ChatOutcome`、薄 `/chat`；392 tests passed |
 | M0-T02 稳定身份和值对象 | done | stable IDs/keys；Trace/Tool/Ticket/Delivery/Memory propagation |
 | M0-T03 生产主链 Eval Runner | done | full execution 共用 `ChatApplication`；typed stage/owner evidence |
-| M0-T04 当前行为基线 | in_progress | 冻结 baseline artifacts/report |
+| M0-T04 当前行为基线 | done | `data/eval/baselines/m0-v1/manifest.json`，7 条真实主链 Trace |
 | M0-T05 Gate Manifest Foundation | pending | 版本化 manifest schema/validator/report |
 | M1 完整会话事实与幂等发布 | pending | 按 M1-PF01、T00–T05/T03A/T04A 子节点推进 |
 | M2 Route/Authority/Evidence/RAG | pending | 按 M2-PF01、T01–T06R 子节点推进 |
@@ -104,19 +104,28 @@
   - `git diff --check` → passed
   - `evaluation/evaluator.py` 负向搜索无 `orchestrator.run()`。
 
-### M0-T04（in progress）
+### M0-T04
 
 - 已实现可重放 `BehaviorBaseline` schema、版本漂移 fail-closed 校验、逐 route 运行记录聚合、
   六类决策策略及独立 fingerprint；schema 明确禁止 production accuracy 汇总。
 - 已实现真实 `ChatApplication` characterization capture 与 freeze CLI；capture 使用临时
   Ticket/Delivery/BadCase/Operation/Run 数据库、独立 baseline 用户/会话 identity，并输出实际
   Knowledge index manifest 与逐 Trace 记录。
-- 当前验证：全套 `419 passed`，相关 ruff 与 `git diff --check` 通过。
-- 待完成：在本代码 commit 上运行真实 capture，归档 cases/records/RAG manifest/final baseline，
-  然后验证 replay 与 Bundle/Index 漂移拒绝。
+- 真实 capture：7 个用例均经 `ChatApplication` 和实际模型运行，逐条保留 9 个阶段、request/trace、
+  route、延迟、模型/工具调用、发布与失败类型；工具后端的 `order not found` 被明确计为
+  `tool:error`，未被最终回答吞成成功。
+- 隔离与环境事实：Ticket/Delivery/BadCase/Operation/Run 使用临时 SQLite，Memory 使用 Redis DB 15；
+  部署的 Chroma collection 因 legacy chunk 缺少当前 index-contract metadata 被 owner validator 拒绝，
+  已记录为 `INCOMPATIBLE_KNOWLEDGE_INDEX`，基线改用隔离构建的当前合同 public corpus，且不声称完成
+  deployed-index certification。
+- 冻结产物：`cases.json`、`records.jsonl`、`rag-index-manifest.json`、
+  `environment-observations.json`、`manifest.json`；最终 manifest 绑定 capture commit `94ad6e6`、
+  tree、active Bundle/content hash、模型策略、RAG fingerprint、六份数据 checksum 及七类决策策略指纹。
+- 验证：manifest 可重放且 checksum 封闭；Bundle version/hash、commit 或 index 任一漂移均 fail closed；
+  不存在 production accuracy 汇总；每条记录可追溯到 case/request/trace/stages。
 
 ## 下一步
 
-1. 提交并推送 M0-T03。
-2. 实施 M0-T04：冻结当前真实主链行为、数据/代码/Bundle 版本与 route 分层基线。
-3. 生成机器可读 baseline artifact，并验证候选运行不会静默覆盖 Active baseline。
+1. 提交并推送 M0-T04 最终 manifest 与 replay gate。
+2. 实施 M0-T05：定义 Gate Manifest 生命周期、schema/linter 与首个 M0 evidence/decision。
+3. M0 Exit Gate 只在冻结 manifest、独立签署角色和机器证据全部归档后判定。
