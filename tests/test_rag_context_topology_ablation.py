@@ -4,6 +4,8 @@ from evaluation.rag_context_topology_ablation import (
     _aggregate,
     _build_parents,
     _candidate_gates,
+    _conditional_captures,
+    _conditional_route,
     _context_recall,
     _make_contexts,
     _query_contract,
@@ -124,6 +126,33 @@ def test_generation_failure_cannot_be_hidden_by_judging_the_fallback():
     assert summary["citation_correctness_rate"] == 0.0
 
 
+def test_typed_evidence_abstention_is_not_a_generation_contract_failure():
+    case = RagCase(
+        "c", "g", "dev", "q",
+        evidence=(EvidenceSpan("policy", 0, 1),),
+    )
+    row = {
+        "case": case,
+        "retrieval_metrics": {"evidence_recall": 0.0},
+        "reranked_metrics": {"mrr": 0.0, "evidence_recall": 0.0},
+        "context_recall": 0.0,
+        "context_tokens": 10,
+        "retrieval_latency_ms": 1.0,
+        "rerank_usage": {"latency_ms": {"sum": 1.0}},
+        "generation_usage": {"latency_ms": {"sum": 1.0}},
+        "judge_usage": {"latency_ms": {"sum": 0.0}},
+        "rerank_error": None,
+        "generation_error": None,
+        "abstained": True,
+        "judge": None,
+    }
+
+    summary = _aggregate("baseline-512", [row])
+
+    assert summary["generation_failure_rate"] == 0.0
+    assert summary["abstention_rate"] == 1.0
+
+
 def test_rerank_resume_requires_the_exact_candidate_set():
     case = SimpleNamespace(case_id="c")
     capture = {"case": case, "fused_ids": ["a", "b"]}
@@ -160,3 +189,52 @@ def test_query_contract_reports_raw_only_capture_without_claiming_a_rewrite():
 
     assert _query_contract(raw).startswith("Raw-only 1.0")
     assert _query_contract(rewritten).startswith("Raw .25 + captured Standalone .75")
+
+
+def test_conditional_route_uses_only_observable_length_and_branch_agreement():
+    capture = {
+        "fused_ids": ["a", "b"],
+        "source_rankings": {"raw:bm25": ["a"], "raw:vector": ["b"]},
+        "hit_by_id": {
+            "a": {"document_id": "long"},
+            "b": {"document_id": "short"},
+        },
+    }
+    routed = _conditional_route(capture, {"long": 8000, "short": 100})
+    assert routed["selected_topology"] == "parent-child-256-1024"
+
+    capture["source_rankings"]["raw:vector"] = ["a"]
+    agreed = _conditional_route(capture, {"long": 8000, "short": 100})
+    assert agreed["selected_topology"] == "baseline-512"
+
+    capture["source_rankings"]["raw:vector"] = ["b"]
+    short = _conditional_route(capture, {"long": 7999, "short": 100})
+    assert short["selected_topology"] == "baseline-512"
+
+
+def test_conditional_cascade_charges_baseline_and_parent_retrieval_latency():
+    case = SimpleNamespace(case_id="case")
+    value = dataset("long policy " * 1000)
+    baseline = [{
+        "case": case,
+        "fused_ids": ["a", "b"],
+        "source_rankings": {"raw:bm25": ["a"], "raw:vector": ["b"]},
+        "hit_by_id": {
+            "a": {"document_id": "policy"},
+            "b": {"document_id": "other"},
+        },
+        "retrieval_latency_ms": 10.0,
+    }]
+    parent = [{
+        "case": case,
+        "fused_ids": ["parent"],
+        "source_rankings": {},
+        "hit_by_id": {"parent": {"document_id": "policy"}},
+        "retrieval_latency_ms": 15.0,
+    }]
+
+    selected = _conditional_captures(value, baseline, parent)
+
+    assert selected[0]["fused_ids"] == ["parent"]
+    assert selected[0]["retrieval_latency_ms"] == 25.0
+    assert selected[0]["route_decision"]["selected_topology"] == "parent-child-256-1024"

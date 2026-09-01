@@ -23,7 +23,7 @@ permalink: /customer-service-rag-production-audit/
 → 分层评测、Shadow、回滚
 ```
 
-当前仓库已经显式化“小型、公共、txt/md/json 客服知识库”的代码边界，但 2026-09-01 的 48 条 Doc2Dial Dev 真实模型实验又暴露了新缺口：grounded v4 在当前 DeepSeek 配置下有 `85.42%–89.58%` 的生成合同失败/拒答率。它能 fail closed，但不具备可用性。因此准确说法是：**索引与证据边界已回归覆盖；生成合同已被新实验证伪，当前整体不能进入 Heldout、Shadow 或 Canary。**
+当前仓库已经显式化“小型、公共、txt/md/json 客服知识库”的代码边界。2026-09-01 的 grounded v4 实验曾出现 `83.33%–91.67%` 的合同失败/拒答；当天将 RAG 生成边界局部迁移到 PydanticAI tool output 后，同一 36 group×3 拓扑 Dev 重放中结构化合同错误为 `0/108`，证据不足的类型化拒答为 `6/36`。生成 Owner 已恢复到可用的 Dev 候选；但父子 Chunk 仍未改善 Packing 后的多条件完整性，且尚未消费 fresh Heldout、人工 Judge 校准或 Shadow/Canary。
 
 ## 2. 客服范围：必要、暂缓与非目标
 
@@ -64,7 +64,7 @@ permalink: /customer-service-rag-production-audit/
 | Rerank | `ResultReranker` | 模型必须返回候选集合的完整、唯一、精确排列；任一未知/重复/遗漏使整次重排回退 | 已收紧，不再静默过滤未知 ID 后补齐 |
 | Packing | `ContextPacker` | Top-5/2600、source overlap 去重、预算超限记录 drop reason | 已实现；这是证据选择，不冒充语义压缩 |
 | Evidence | `EvidencePack` | chunk/source/checksum/span/score/rank/source-ranks/scope decision/Manifest/query/rerank/packing trace | 已实现；公开 API 不返回全文，只返回公共来源坐标与排名 |
-| Generation | `GroundedAnswerGenerator` v4 | `answer + claims[].citations + conflicts[].citations + abstained + reason`；引用只允许 Evidence Pack IDs | 已实现 fail-closed，但 Dev 真模型失败率 `85.42%–89.58%`；当前合同在可用性上未闭合 |
+| Generation | `GroundedAnswerGenerator` v5 | PydanticAI tool output 返回 segments；代码派生 answer/claims/citations；Evidence ID 动态校验 | 36 group×3 Dev 合同错误 `0/108`；typed abstention 单独计量；待 Heldout/Shadow |
 | Publication | API + `AnswerVerifier` | 纯公共知识且无业务工具时，最终候选就是 GroundedAnswer（包括有类型的冲突/证据不足拒答）；混合政策与实时事实时由 Agent 合成并带 Evidence 进入 Verifier | 关闭了纯知识二次漂移；混合回答仍依赖模型 claim 判断，不能声称确定性逐 claim 证明 |
 
 ## 4. Sparse 为什么是派生投影
@@ -105,7 +105,7 @@ term → document_frequency
 
 Pack 还记录 index manifest fingerprint、Raw/Standalone variants、rewrite/rerank Prompt version、模型合同错误以及 packing drop。这样一次错误可以判断发生在解析、召回、重排、预算还是生成，而不是只看到最终“答错”。
 
-生成 v4 不只返回 citation 列表。非拒答必须有 `claims`，每个 claim 文本必须原样出现在 answer，所有 claim citation 的并集必须与顶层 citations 完全一致。`conflicts` 至少引用两个输入 chunk，出现冲突时只能 `abstained=true, reason=conflicting_evidence`。新实验证明“claim 必须是 answer 的逐字子串”与当前模型的实际输出不匹配：模型常修改标点/措辞，一次修复后仍失败。这是共享 Generation Owner 的合同缺陷，不是 Chunk 拓扑差异。
+v4 曾让模型同时返回 `answer + claims + citations`，并要求 claim 是 answer 的逐字子串。真模型常修改标点/措辞，一次手写 repair 后仍失败，证明这是 Generation Owner 的多真相合同缺陷，不是 Chunk 拓扑差异。v5 已改为模型只返回带 Evidence ID 的 segments，由 Python 生成 answer/claims/citations；因此不再需要“三份文本逐字一致”这个脆弱合同。
 
 ## 6. 小规模客服数据怎么选
 
@@ -193,7 +193,7 @@ Builder 会记录官方 URL、MIT license、2024-12-02 KB snapshot、选择规�
 | Grounded v4 生成失败/拒答 | `89.58%` | `85.42%` | `87.50%` |
 | Claim support / citation correctness（全 48 条） | `.1042 / .1042` | `.1458 / .1458` | `.1250 / .1250` |
 
-父子 Chunk 提高了候选和 rerank 质量，但在固定 packing 预算下没有提高多条件完整性，且两个扩展方案都有 `4.17%` context harmful case。它们因此未通过 Dev 不可补偿门禁，**不切换默认，也不打开 untouched Heldout**。这不是“父子 Chunk 永远无用”；它说明当前需要先修复生成代数，再尝试按剩余预算动态扩展，而不是无条件返回整个 parent。
+父子 Chunk 提高了候选和 rerank 质量，但在固定 packing 预算下没有提高多条件完整性，且两个扩展方案都有 `4.17%` context harmful case。它们因此未通过 Dev 不可补偿门禁，**不切换默认，也不打开 untouched Heldout**。grounded v5 修复生成代数后这个结论仍然成立；下一个拓扑实验应按剩余预算动态扩展，而不是无条件返回整个 parent。
 
 可复现命令：
 
@@ -204,7 +204,7 @@ PYTHONPATH=. .venv/bin/python -m evaluation.rag_context_topology_ablation \
   --structural-only \
   --output artifacts/eval/doc2dial-rag-mini-dev-v1/context-topology-structural-report.json
 
-# 真实 rerank + grounded v4 + Judge；需显式配置模型环境变量
+# 该命令保留 grounded v4 历史报告；当前生成实现为 v5
 PYTHONPATH=. .venv/bin/python -m evaluation.rag_context_topology_ablation \
   artifacts/eval/doc2dial-rag-mini-dev-v1 \
   artifacts/eval/doc2dial-rag-mini-dev-v1/query-transform-capture.json \
@@ -222,20 +222,80 @@ PYTHONPATH=. .venv/bin/python -m evaluation.rag_context_topology_ablation \
 
 两套 Gold 必须分开解释：Doc2Dial 是字符 span，可评价是否定位到长文正确段落；WixQA 只给 article IDs，只能评价找对文章与多文章 packing，不能冒充 section localization。
 
-本轮使用 Raw-only、BM25 `.75` + Dense `.25`、RRF `k=10`、Top-5/2600 的零模型结构预检：
+本轮使用 Raw-only、BM25 `.75` + Dense `.25`、RRF `k=10`、Top-5/2600 的零模型结构预检。随后又增加一条不读取 Gold 的条件路由：先跑基线；当基线 Top-5 出现 `>=8000` 字符文档，且 BM25/Dense 首名文档不一致时，才追加父子检索。级联延迟按两次检索之和计算。
 
-| Span Gold：长 Doc2Dial | Baseline 512 | Neighbor | Parent-child |
-|---|---:|---:|---:|
-| Candidate Recall@20 | `.7222` | `.7222` | `.7222` |
-| First-stage MRR@5（2 次范围） | `.4185–.4269` | `.4185–.4269` | **`.5009–.5148`** |
-| Packed evidence recall | `.5278` | `.5556` | **`.5833`** |
-| 16 条 multi-condition completeness | `.5000` | **`.5625`** | `.5000` |
-| Harmful context vs baseline | — | `2.78%` | **`0%`** |
-| Local retrieval P95（2 次范围） | `49.51–55.69ms` | `49.51–55.69ms` | `58.82–66.77ms` |
+| Span Gold：长 Doc2Dial | Baseline 512 | Neighbor | Parent-child | Conditional |
+|---|---:|---:|---:|---:|
+| Candidate Recall@20 | `.7222` | `.7222` | `.7222` | **`.7500`** |
+| First-stage MRR@5 | `.4185–.4407` | `.4185–.4269` | `.5009–.5148` | `.5102` |
+| Packed evidence recall | `.5278` | `.5556` | **`.5833`** | **`.5833`** |
+| 16 条 multi-condition completeness | `.5000` | **`.5625`** | `.5000` | `.5000` |
+| Harmful context vs baseline | — | `2.78%` | **`0%`** | **`0%`** |
+| Parent-child route rate | — | — | `100%` | `58.33%`（21/36） |
+| Local retrieval P95 | `49.51–55.69ms` | `49.51–55.69ms` | `58.82–66.77ms` | `110.24ms` |
 
 长文档上父子 Chunk 确实表现出条件化价值：正确段落的 packed recall 提升 `.0556`，且没有 harmful case；但多条件完整性没有提升，两次本地检索 P95 增长约 `6%–35%`，仍未通过全局默认门禁。MRR 与毫秒延迟使用范围，是因为每次重建本地近似索引会出现小幅排序和机器负载波动；稳定不变的 Recall/packing 才是本轮结构结论。WixQA article-level 对照也没有支持全量扩展：Baseline multi-article completeness `.7667`，Neighbor/Parent-child 都是 `.7000`。
 
-因此生产选择更新为：**全局默认仍是 512/64；父子 Chunk 只进入“长文档 + 低置信度/跨段需求”的条件化候选实验，不对全部文档启用。** 结构预检没有调用 reranker、generator 或 Judge，也没有打开 Heldout。完整脱敏结果见[长文档摘要 JSON](../assets/eval/rag-long-document-dev-v1.json)。
+这次拆层后可以看到两个独立问题。Baseline 从 Candidate `.7222` 到 Packing `.5278`，净丢 `.1944`，有 7/36 条在 Top-20 已找到部分证据、但 Top-5/2600 packing 又丢失；条件路由把 Candidate 提到 `.7500`，Packing 仍只有 `.5833`，仍有 6/36 条发生 Candidate→Packing 丢失。因此不能只调父子路由：召回器和 packing 都有可测的损失 Owner。`85%–90% Candidate`、`80% Packed`、`95% claim/citation` 只能作为生产目标带示例，不是行业标准或本次小样本的统计结论；真正门禁应由业务风险、人工基线、延迟/成本 SLO 和置信区间共同确定。
+
+跨数据集复核推翻了这条简单路由：WixQA 上它只触发 9/32，却把 packed document recall `.9635→.9531`、multi-article completeness `.7667→.7000`，harmful 为 `3.125%`，P95 从 `44.10ms` 增至 `97.58ms`。因此生产选择仍是：**全局默认 512/64；当前“长文档 + BM25/Dense 首名分歧”路由实验失败，不上线，也不打开 Heldout。** 下一版若继续，应直接优化预算 packing 或学习一个经跨数据集校准的路由器，而不是再手调一个方便阈值。结构预检没有调用 reranker、generator 或 Judge。完整脱敏结果见[长文档摘要 JSON](../assets/eval/rag-long-document-dev-v1.json)。
+
+### 8.2 长文档同合同完整链（Raw + Standalone、Rerank、grounded v4）
+
+为避免把 Raw-only 结构预检误当成完整 RAG 结论，又对同一 36 个 Doc2Dial group 生成并冻结 `customer-support-query-v1` capture。36/36 成功，共 108 次 Rewrite/Multi-query/HyDE 调用；拓扑对照只消费线上冻结合同 Raw `.25` + Standalone `.75`，不因本次 Dev 上 Multi2 Recall 更高而同时更换 Query 策略。Standalone 将基线 Candidate Recall@20 从 Raw `.7222` 提至 `.7778`；Multi2 `.8333` 仅记为后续跨集候选。
+
+| 同合同完整链 | Baseline 512 | Parent-child | Conditional |
+|---|---:|---:|---:|
+| Candidate evidence Recall@20 | `.7778` | `.7778` | **`.8056`** |
+| Reranked evidence Recall@5 | `.7361` | `.6944` | **`.7639`** |
+| Packed evidence recall | **`.7361`** | `.6667` | **`.7361`** |
+| 16 条 multi-condition completeness | **`.7188`** | `.6875` | `.6563` |
+| Harmful context vs baseline | — | `13.89%` | `5.56%` |
+| Rerank typed failure | `13.89%` | `5.56%` | `0%`（路由选中子集） |
+| Grounded v4 失败/拒答 | `91.67%` | `83.33%` | `86.11%` |
+| Claim support / citation correctness | `.0833/.0833` | `.1667/.1667` | `.1111/.1111` |
+| 实验链 P95 | `18.29s` | `18.75s` | `18.11s` |
+
+同一链路下的检索归因已经闭合：Standalone 修复了 `+.0556` Candidate Recall；条件路由再增加 `+.0278`，但从 Candidate→Rerank 丢 `.0417`，Rerank→Packing 再丢 `.0278`，最终 Packed 与 baseline 同为 `.7361`，多条件完整性反而低 `.0625`。所以不是“父子从未召回更多”，而是它没有把增益转化为更完整的最终上下文。该轮 grounded v4 的 `83.33%–91.67%` 失败/拒答将生成 Owner 识别为当时的另一阻断项，随后由 8.3 的 v5 重放独立修复。
+
+本轮物理执行 108 次 query capture、72 次 rerank（conditional 复用已捕获分支排序）、203 次 generation/repair 和 14 次 Judge；埋点合计约 568k input、114k output token。P95 混合本地检索与模型供应商波动，只作诊断，不能作为负载 SLO。完整报告保存在 `context-topology-standalone-full-report.json`，仍不消费 Heldout。
+
+### 8.3 Grounded v5 结构化输出修复
+
+v4 的根因不是“Agent 不够严格”，而是让模型同时维护 `answer + claims + citations` 三份可以互相矛盾的真相，再用手写 JSON 截取和整段 repair prompt 补救。v5 只要模型返回 `status + segments[].text + segments[].evidence_ids`；Python 由 segments 单向派生最终正文、claims 和 citation union。动态 Evidence ID 必须属于本次 EvidencePack，冲突必须同时引用至少两条已提供证据；PydanticAI 最多一次 output retry，耗尽后仍 fail closed。这是 RAG 的局部边界，没有迁移全局 Orchestrator/TaskGraph/ReAct。
+
+| 同一 36 group Dev | Baseline 512 | Parent-child | Conditional |
+|---|---:|---:|---:|
+| 结构化合同失败 | `0/36` | `0/36` | `0/36` |
+| 证据不足拒答 | `6/36` | `6/36` | `6/36` |
+| Claim support / citation correctness | `.7778/.7778` | `.7778/.7778` | **`.8056/.8056`** |
+| Answer completeness | **`.7500`** | `.6667` | `.7222` |
+| 全链 P95 | **`10.22s`** | `11.06s` | `11.65s` |
+
+108 条生成全部首次 tool output 成功，请求数从 v4 的 203 降到 108，生成 output token 从 `78,014` 降到 `27,248`。tool schema 使计入 cache read 的 input token 约 `472k→530k`，所以不是所有成本都下降；本轮证明的是合同稳定性和输出/延迟改善。指标也修正为“`generation_error` 才是合同失败，typed abstention 单独报告”，不再把安全拒答误计为 parser 故障。报告为 `context-topology-pydanticai-v5-full-report.json`。
+
+```bash
+PYTHONPATH=. .venv/bin/python -m evaluation.rag_context_topology_ablation \
+  artifacts/eval/doc2dial-rag-long8000-dev-v1 \
+  artifacts/eval/doc2dial-rag-long8000-dev-v1/query-transform-capture.json \
+  --topologies baseline-512 parent-child-256-1024 conditional-parent-child \
+  --concurrency 3 \
+  --resume-report artifacts/eval/doc2dial-rag-long8000-dev-v1/context-topology-standalone-full-report.json \
+  --output artifacts/eval/doc2dial-rag-long8000-dev-v1/context-topology-pydanticai-v5-full-report.json
+```
+
+```bash
+PYTHONPATH=. .venv/bin/python -m evaluation.rag_query_capture \
+  artifacts/eval/doc2dial-rag-long8000-dev-v1 --split dev --max-cases 36 \
+  --expansion-count 2 --concurrency 3 \
+  --output artifacts/eval/doc2dial-rag-long8000-dev-v1/query-transform-capture.json
+
+PYTHONPATH=. .venv/bin/python -m evaluation.rag_context_topology_ablation \
+  artifacts/eval/doc2dial-rag-long8000-dev-v1 \
+  artifacts/eval/doc2dial-rag-long8000-dev-v1/query-transform-capture.json \
+  --topologies baseline-512 parent-child-256-1024 conditional-parent-child \
+  --output artifacts/eval/doc2dial-rag-long8000-dev-v1/context-topology-standalone-full-report.json
+```
 
 ## 9. 发布门禁
 
@@ -250,7 +310,7 @@ IMPLEMENTED
 → CANARY 5% → 25% → ACTIVE
 ```
 
-代码实现和回归测试能证明前两项，但新的父子 Chunk Dev 实验已将 Generation 合同退回非闭合状态；修复且重跑 Dev 前不允许打开 fresh Heldout。现有小型 Doc2Dial test 只能作为已消费冻结反例，不能替代新的 WixQA group-safe Heldout、人工 blind review 和真实流量 Shadow。
+代码实现、362 项回归与 36 group×3 Dev 重放证明 PydanticAI 生成合同修复完成，但这只到 `REGRESSION_PASS`；父子拓扑仍未过 Dev 完整性门禁，继续保留 512/64。下一步是对修复后的 baseline 消费 fresh group-safe Heldout，再做人工 blind review 与 Shadow；本页不将 Dev 修复写成已上线。
 
 ## 10. 与当前主流实践的关系
 

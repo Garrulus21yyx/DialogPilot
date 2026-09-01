@@ -3,6 +3,9 @@ import asyncio
 import zipfile
 from types import SimpleNamespace
 
+import pytest
+from pydantic_ai import ModelRetry
+
 from evaluation.rag_pipeline import (
     EvidenceSpan,
     QueryVariant,
@@ -24,7 +27,13 @@ from mcp.document_chunker import ChunkStrategy
 from mcp.query_transformer import QueryTransformer
 from mcp.result_reranker import RerankCandidate, ResultReranker
 from mcp.context_packer import ContextCandidate, ContextPacker
-from mcp.grounded_answer_generator import GroundedAnswerGenerator
+from mcp.grounded_answer_generator import (
+    GroundedAnswerGenerator,
+    _GroundingDeps,
+    _StructuredConflict,
+    _StructuredGroundedOutput,
+    _StructuredSegment,
+)
 from mcp.tool_manager import MCPToolManager, ToolResult
 from evaluation.rag_generation_evaluation import language_matches, token_f1
 from core.model_policy import ModelProfile
@@ -319,50 +328,90 @@ def test_context_packer_respects_budget_and_provenance_deduplication():
     assert packed.token_count <= 100
 
 
-def test_grounded_generator_validates_citations_and_fails_closed():
-    class FakeMessages:
-        async def create(self, **_kwargs):
-            return SimpleNamespace(
-                content=[SimpleNamespace(
-                    type="text",
-                    text='{"answer":"退款需要审核。","citations":["unknown"],"abstained":false}',
-                )],
-                usage=SimpleNamespace(input_tokens=1, output_tokens=1),
-            )
+def test_grounded_generator_rejects_unknown_evidence_and_fails_closed():
+    invalid = _StructuredGroundedOutput(
+        status="answered",
+        segments=[_StructuredSegment(text="退款需要审核。", evidence_ids=["unknown"])],
+        conflicts=[],
+        reason="",
+    )
+    with pytest.raises(ModelRetry):
+        GroundedAnswerGenerator._validate_output(
+            SimpleNamespace(deps=_GroundingDeps(frozenset({"E1"}))),
+            invalid,
+        )
+
+    class FailingStructuredAgent:
+        async def run(self, *_args, **_kwargs):
+            raise RuntimeError("output retries exhausted")
 
     generator = GroundedAnswerGenerator(
-        SimpleNamespace(messages=FakeMessages()), ModelProfile("test-model"),
+        None,
+        ModelProfile("test-model"),
+        structured_agent=FailingStructuredAgent(),
     )
     answer = asyncio.run(generator.generate("退款", (
         ContextCandidate("c1", "doc", "退款需要审核。", 0, 7),
     )))
     assert answer.abstained is True
     assert answer.citations == ()
-    assert answer.error == "ValueError"
+    assert answer.reason == "generation_contract_error"
+    assert answer.error == "RuntimeError"
+
+
+def test_grounded_generator_derives_answer_claims_and_citations_from_segments():
+    output = _StructuredGroundedOutput(
+        status="answered",
+        segments=[
+            _StructuredSegment(text="退款需要审核。", evidence_ids=["E1"]),
+            _StructuredSegment(text="审核通过后原路退回。", evidence_ids=["E1", "E2"]),
+        ],
+        conflicts=[],
+        reason="",
+    )
+
+    class FakeStructuredAgent:
+        async def run(self, *_args, **_kwargs):
+            return SimpleNamespace(output=output)
+
+    answer = asyncio.run(GroundedAnswerGenerator(
+        None,
+        ModelProfile("test-model"),
+        structured_agent=FakeStructuredAgent(),
+    ).generate("退款怎么到账？", (
+        ContextCandidate("c1", "refund", "退款需要审核。", 0, 7),
+        ContextCandidate("c2", "payment", "审核通过后原路退回。", 0, 11),
+    )))
+
+    assert answer.answer == "退款需要审核。\n审核通过后原路退回。"
+    assert answer.citations == ("c1", "c2")
+    assert tuple(claim.text for claim in answer.claims) == (
+        "退款需要审核。",
+        "审核通过后原路退回。",
+    )
+    assert answer.claims[1].citations == ("c1", "c2")
+    assert answer.abstained is False
 
 
 def test_grounded_generator_returns_claim_citations_and_typed_conflicts():
-    payloads = iter([
-        {
-            "answer": "资料存在冲突，暂时无法确认退款期限。",
-            "claims": [],
-            "citations": [],
-            "conflicts": [{"description": "退款期限不一致", "citations": ["c1", "c2"]}],
-            "abstained": True,
-            "reason": "conflicting_evidence",
-        },
-    ])
+    output = _StructuredGroundedOutput(
+        status="conflicting_evidence",
+        segments=[],
+        conflicts=[_StructuredConflict(
+            description="退款期限不一致",
+            evidence_ids=["E1", "E2"],
+        )],
+        reason="资料存在冲突，暂时无法确认退款期限。",
+    )
 
-    class FakeMessages:
-        async def create(self, **_kwargs):
-            import json
-            return SimpleNamespace(
-                content=[SimpleNamespace(type="text", text=json.dumps(next(payloads), ensure_ascii=False))],
-                usage=SimpleNamespace(input_tokens=1, output_tokens=1),
-            )
+    class FakeStructuredAgent:
+        async def run(self, *_args, **_kwargs):
+            return SimpleNamespace(output=output)
 
     answer = asyncio.run(GroundedAnswerGenerator(
-        SimpleNamespace(messages=FakeMessages()), ModelProfile("test-model"),
+        None,
+        ModelProfile("test-model"),
+        structured_agent=FakeStructuredAgent(),
     ).generate("退款期限？", (
         ContextCandidate("c1", "refund-v1", "退款期限七天。", 0, 7),
         ContextCandidate("c2", "refund-v2", "退款期限十四天。", 0, 8),

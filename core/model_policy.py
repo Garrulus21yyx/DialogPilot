@@ -66,13 +66,18 @@ class ModelProfile:
         object.__setattr__(self, "provider", provider)
 
     def request(self, **payload: Any) -> Dict[str, Any]:
-        """生成一次 Messages 请求并显式覆盖 DeepSeek 默认 thinking 行为。"""
+        """生成符合 Anthropic SDK 1.x 的 Messages 请求。
+
+        SDK 1.x 不再把 temperature/top_p/top_k 暴露为 ``messages.create``
+        命名参数，但供应商 HTTP API 仍接收它们；因此这个传输合同的 owner
+        统一将采样参数投影到 ``extra_body``，避免各业务调用方分别兼容。
+        """
         request = {"model": self.model, **payload}
         if self.provider != "deepseek":
-            return request
+            return self._sdk_v1_request(request)
         if self.reasoning is ReasoningEffort.NONE:
             request["extra_body"] = {"thinking": {"type": "disabled"}}
-            return request
+            return self._sdk_v1_request(request)
         # Thinking 模式下 temperature 不生效，移除可避免配置看似有效却被忽略。
         request.pop("temperature", None)
         request["max_tokens"] = max(
@@ -83,6 +88,21 @@ class ModelProfile:
             "thinking": {"type": "enabled"},
             "output_config": {"effort": self.reasoning.value},
         }
+        return self._sdk_v1_request(request)
+
+    @staticmethod
+    def _sdk_v1_request(request: Dict[str, Any]) -> Dict[str, Any]:
+        sampling = {
+            key: request.pop(key)
+            for key in ("temperature", "top_p", "top_k")
+            if key in request
+        }
+        if not sampling:
+            return request
+        existing = request.get("extra_body")
+        if existing is not None and not isinstance(existing, dict):
+            raise ValueError("extra_body must be an object when sampling parameters are used")
+        request["extra_body"] = {**sampling, **(existing or {})}
         return request
 
     def to_dict(self) -> Dict[str, str]:

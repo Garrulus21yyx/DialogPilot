@@ -97,9 +97,9 @@ flowchart LR
 
 知识 RAG 也不是“向量搜一下就结束”。生产与评测共用 source-offset 保真的 `DocumentChunker`、QueryTransformer 和 stable-ID ResultReranker；Standalone、Multi-query、HyDE 只能生成检索提示，Raw 始终保留，HyDE 不能成为答案证据。独立 Doc2Dial Dev 实验在 100 篇文档、300 个 case、488 个官方 grounding span 上选择 fixed 512/64 与 BM25 .75/Dense .25/RRF k=10；48 条多轮压力集选择 Raw .25 + Standalone .75，并将 Recall@20 从 0.6667 提到 0.7708。LLM rerank 20→5 将 Recall@5 从 0.5938 提到 0.7500。
 
-仓库默认现已切到 fixed 512/64、BM25 .75/Dense .25/k=10、Raw .25/Standalone .75、20→5 和 Top-5/2600。写路径先形成 public `SourceDocument`，把 stable ID、checksum、type 和 source offset 写入 chunk；Chroma 是权威 corpus，SQLite BM25 posting 是按 corpus fingerprint 可重建投影，因此在线查询不再拉取全库。IndexManifest 与 EvidencePack 将 source/chunker/dense/sparse 版本、query variants、score/rank 和 packing drop 贯穿到生成。纯知识问答的发布候选确实不再被 Agent 二次改写，但 2026-09-01 的 48 条 Dev 真模型实验发现 grounded v4 生成合同失败/拒答率为 `85.42%–89.58%`，因此这一层是 fail-closed 但不可用，尚不能进入 Heldout/Shadow。
+仓库默认现已切到 fixed 512/64、BM25 .75/Dense .25/k=10、Raw .25/Standalone .75、20→5 和 Top-5/2600。写路径先形成 public `SourceDocument`，把 stable ID、checksum、type 和 source offset 写入 chunk；Chroma 是权威 corpus，SQLite BM25 posting 是按 corpus fingerprint 可重建投影，因此在线查询不再拉取全库。IndexManifest 与 EvidencePack 将 source/chunker/dense/sparse 版本、query variants、score/rank 和 packing drop 贯穿到生成。纯知识问答不再被 Agent 二次改写；grounded v5 仅在 RAG 边界使用 PydanticAI tool output，由 segments 单向派生正文/claims/citations。同一 36 group×3 Dev 重放合同错误 `0/108`，证据不足拒答 `6/36`；它修复了 v4 的可用性缺口，但仍需 fresh Heldout/Shadow，也没有将全局 Agent 迁到 PydanticAI。
 
-父子 Chunk 也已分两层真测：普通 Doc2Dial Dev 上 256/32 child → 1024/128 parent 将 Recall@20 `.8333→.9167`，但多条件 packed completeness `.8261→.7826`。新增 `>=8000` 字符的长文档压力集后，父子在 36 个 Doc2Dial span-Gold group 上将 packed evidence recall `.5278→.5833`、harmful `0`，说明它对长手册有条件化价值；但 multi-condition 仍为 `.5000`、两次本地检索 P95 增长约 `6%–35%`，WixQA multi-article completeness 也 `.7667→.7000`。所以全局默认仍为 512/64，只把父子方案保留为长文档路由候选，没有消费 untouched Heldout。
+父子 Chunk 也已分层真测：普通 Doc2Dial Dev 上 256/32 child → 1024/128 parent 将 Recall@20 `.8333→.9167`，但多条件 packed completeness `.8261→.7826`。在 `>=8000` 字符的 36 个 Doc2Dial span-Gold group 上，Standalone 先将 baseline Candidate `.7222→.7778`；条件路由达到 Candidate `.8056`、Rerank `.7639`，但 Packed 回落到 `.7361`，与 baseline 持平，多条件完整性 `.7188→.6563`、harmful `5.56%`。grounded v5 重放已将生成合同错误降为 `0%`，却不改变这个拓扑判断：WixQA 也出现 packing 退化。因此全局默认仍为 512/64，这条条件路由不上线，没有消费 untouched Heldout。
 
 ### 为什么业务范围外请求不交给 GeneralAgent？
 
@@ -196,9 +196,9 @@ Ticket 负责用户人工处理流程，Trace 负责一次请求的诊断；二�
 
 **T：** 建立一个有界客服 RAG 实验，使预处理、Query、BM25/Dense/RRF、Rerank、Packing、Generation 各自可测；安全失败不能被平均质量分抵消，模型输出只捕获一次并可离线重放。
 
-**A：** 把 `source_id + checksum + [start,end)` 定为证据坐标，建立 public SourceDocument 与完整 IndexManifest；将在线全量 BM25 改为可从 Chroma 重建的持久 posting index；适配 Doc2Dial 100 文档/300 case/488 spans，以实体、否定、虚构实体和 harmful rate 为硬约束，用 dialogue-group paired bootstrap 选择权重；stable chunk ID 贯穿 RRF 和严格排列 rerank，EvidencePack 保留 score/rank/version/drop；grounded v4 输出 claims/conflicts/abstained，纯知识答案不再被 Agent 二次改写。
+**A：** 把 `source_id + checksum + [start,end)` 定为证据坐标，建立 public SourceDocument 与完整 IndexManifest；将在线全量 BM25 改为可从 Chroma 重建的持久 posting index；适配 Doc2Dial 100 文档/300 case/488 spans，以实体、否定、虚构实体和 harmful rate 为硬约束，用 dialogue-group paired bootstrap 选择权重；stable chunk ID 贯穿 RRF 和严格排列 rerank，EvidencePack 保留 score/rank/version/drop；grounded v5 在 RAG 局部边界用 PydanticAI tool output 约束 segments/conflicts/abstention，代码单向派生 answer/claims/citations，纯知识答案不再被 Agent 二次改写。
 
-**R：** 历史 Dev 把检索冻结为 fixed 512/64、BM25 .75/Dense .25/k=10、Raw .25/Standalone .75、rerank 20→5、packing 2600。2026-09-01 又做 Baseline/Neighbor/Parent-child 三路真模型对照：父子把 Recall@20 `0.8333→0.9167`、MRR@5 `0.6597→0.7285`，但多条件完整性 `0.8261→0.7826`、harmful context `4.17%`，且三路 grounded v4 失败/拒答率均为 `85.42%–89.58%`。因此保留 512/64、不打开 untouched Heldout，并把 Generation 合同列为首要未闭环 Owner，而不是把检索增益包装成上线结论。
+**R：** 历史 Dev 把检索冻结为 fixed 512/64、BM25 .75/Dense .25/k=10、Raw .25/Standalone .75、rerank 20→5、packing 2600。父子实验虽把 Recall@20 `0.8333→0.9167`，但多条件完整性 `0.8261→0.7826`、harmful `4.17%`，因此保留 512/64。v4 又暴露大量 JSON/claim 合同错误；v5 同一 36 group×3 重放为 `0/108` 合同错误、`6/36` 证据不足拒答，生成请求 `203→108`，Baseline 全链 P95 `18.29s→10.22s`。修复后仍不消费已知 test 调参，下一步才是 fresh Heldout/Shadow。
 
 ## 意图反馈闭环如何用 STAR 讲
 

@@ -6,7 +6,7 @@ permalink: /rag-pipeline-evaluation/
 
 # DialogPilot 客服 RAG 全链路评测
 
-> 本页保存 Doc2Dial 上选择检索配置与 grounded v3 的历史实验依据。当前仓库随后增加了 public `SourceDocument`、持久 Sparse、完整 IndexManifest、EvidencePack、严格 rerank permutation 与 grounded v4 claim/conflict 合同；这些新增合同不能继承 v3 的模型分数。上线边界与待补证据见[客服 RAG 生产化审计](../customer-service-rag-production-audit/)。
+> 本页保存 Doc2Dial 上选择检索配置与 grounded v3/v4 的历史实验依据。当前仓库已增加 public `SourceDocument`、持久 Sparse、完整 IndexManifest、EvidencePack、严格 rerank permutation，并用 grounded v5 PydanticAI tool output 修复了 v4 的手写 JSON/claim 合同失败。上线边界与待补证据见[客服 RAG 生产化审计](../customer-service-rag-production-audit/)。
 
 ## 1. 目标与边界
 
@@ -230,10 +230,12 @@ PYTHONPATH=. .venv/bin/python -m evaluation.rag_packing_ablation \
 
 首次报告中 `know` 被旧 evaluator 以子串方式误识别为否定词 `no`。修复为英文词边界后，用同一模型 capture 离线重放，Standalone negation preservation 为 `1.0`；没有重调 Prompt 或权重。
 
-仓库保留该冻结检索配置：`KnowledgeBase` fixed 512/64、BM25 .75/Dense .25/k=10；`MCPToolManager` Raw .25/Standalone .75、20→5；`/chat` 使用 Top-5/2600。之后的生产边界修复将在线全量 BM25 换为持久 posting index，增加 source/index contract 和 EvidencePack，并把生成输出收紧为 grounded v4。`agent-v1` 仅在仍是精确旧默认时原子迁移到内容寻址的 `agent-v2-rag-*`，自定义 Active 指针不会被覆盖；非空索引缺少任一 source/chunk/dense/sparse/scope 合同都会 fail closed，要求从权威原文重导。
+仓库保留该冻结检索配置：`KnowledgeBase` fixed 512/64、BM25 .75/Dense .25/k=10；`MCPToolManager` Raw .25/Standalone .75、20→5；`/chat` 使用 Top-5/2600。生产边界已将在线全量 BM25 换为持久 posting index，增加 source/index contract 和 EvidencePack，生成输出已收紧为 grounded v5 PydanticAI tool output。`agent-v1` 仅在仍是精确旧默认时原子迁移到内容寻址的 `agent-v2-rag-*`，自定义 Active 指针不会被覆盖；非空索引缺少任一 source/chunk/dense/sparse/scope 合同都会 fail closed，要求从权威原文重导。
 
-当前状态是 **retrieval baseline integrated; v4 fail-closed but empirically unusable**。2026-09-01 的 48 条 Dev 真模型三路实验中，grounded v4 失败/拒答率为 `85.42%–89.58%`；父子 Chunk 虽将 Recall@20 `.8333→.9167`，但 multi-condition completeness `.8261→.7826`，harmful context `4.17%`。两个扩展候选均未过 Dev，因此保留 512/64 且不打开 untouched Heldout。详细见[客服 RAG 生产化审计](../customer-service-rag-production-audit/)。
+当前状态是 **retrieval baseline integrated; grounded v5 passes the Dev contract gate; topology candidates still rejected**。grounded v4 在 48 条 Dev 上的 `85.42%–89.58%` 失败/拒答仍作为历史反例；修复后同一 36 group×3 长文档链路中结构化合同错误为 `0/108`，typed abstention 为 `6/36`，claim support/citation correctness 为 `.7778–.8056`。但父子 Chunk 仍没有改善 multi-condition completeness，因此保留 512/64，修复后的 baseline 仍需 fresh Heldout、人工校准和 Shadow。
 
-随后增加的长文档结构预检不改变这一默认：`>=8000` 字符的 Doc2Dial span-Gold slice 中，父子方案把 packed evidence recall `.5278→.5833` 且 harmful `0`，但 multi-condition 不升、两次本地检索 P95 增长约 `6%–35%`；WixQA article-Gold 的 multi-article completeness `.7667→.7000`。这支持“长文档条件化扩展”的后续实验，不支持全库切换。脱敏结果见[长文档摘要 JSON](../assets/eval/rag-long-document-dev-v1.json)。
+随后增加的长文档结构预检不改变这一默认：`>=8000` 字符的 Doc2Dial span-Gold slice 中，父子方案把 packed evidence recall `.5278→.5833` 且 harmful `0`，但 multi-condition 不升。进一步真测的 Gold-free 条件路由（Top-5 有长文档且 BM25/Dense 首名文档分歧）触发 21/36，将 Candidate `.7222→.7500`，Packed 仍为 `.5833`，级联 P95 约 `110ms`；在 WixQA 又使 packed document recall `.9635→.9531`、multi-article completeness `.7667→.7000`，harmful `3.125%`。该简单路由没有跨集泛化，保持实验失败状态。脱敏结果见[长文档摘要 JSON](../assets/eval/rag-long-document-dev-v1.json)。
+
+同一 36 group 随后补齐 Raw `.25` + Standalone `.75`、rerank 20→5 和 grounded v4：Standalone 将 baseline Candidate `.7222→.7778`；条件路由达到 Candidate `.8056`、Rerank `.7639`，但 Packing 后回到 `.7361`，与 baseline 持平，多条件完整性还从 `.7188` 降到 `.6563`，harmful `5.56%`。v4 的 `83.33%–91.67%` 失败/拒答已经用 v5 重放拆解：合同错误 `0%`，证据不足拒答 `16.67%`。因此现在的分层结论是：Rewrite 已有增益，Generation 合同已修复，拓扑增益仍没有穿透 Rerank/Packing。
 
 全仓验证结果与提交信息见计划文件中的 verification record。

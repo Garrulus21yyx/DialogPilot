@@ -561,7 +561,7 @@ stateDiagram-v2
 
 Multi-query/All 在个别点估计上有更高 Recall，但否定保留只有 0.9167/0.9271，未过 .95 门槛。推荐 Query 相对 Raw 的 Recall delta 为 `+0.1042`，dialogue-group paired bootstrap 95% CI `[+0.0208,+0.1875]`；不是凭经验设置 `.25/.75`。重排三项质量 delta 的区间也都高于零，但这些仍只是 Dev evidence。
 
-`ContextPacker` 和 `GroundedAnswerGenerator` 已接入 `/chat`：Context 严格不超 Top-5/2600；当前 v4 要求 `claims[].citations/conflicts[].citations/abstained/reason`，引用只允许 EvidencePack IDs，冲突只能类型化拒答。没有业务工具的纯公共知识问题直接把 GroundedAnswer 作为最终发布候选，关闭 Agent 二次改写漂移。但 2026-09-01 的 48 条 Dev 真模型实验中，v4 生成合同失败/拒答率为 `85.42%–89.58%`；这证明二次漂移边界虽关闭，生成可用性仍未闭合。修复并重跑 Dev 前不打开 Heldout/Shadow。
+`ContextPacker` 和 `GroundedAnswerGenerator` 已接入 `/chat`：Context 严格不超 Top-5/2600；当前 v5 仅在 RAG 边界使用 PydanticAI `ToolOutput`，模型输出 `status + segments + conflicts + reason`，Python 由 segments 单向派生 answer/claims/citations。动态 Evidence ID 由 output validator 校验，最多一次 retry，耗尽后 fail closed。没有业务工具的纯公共知识问题直接把 GroundedAnswer 作为最终发布候选，关闭 Agent 二次改写漂移。同一 36 group×3 Dev 重放的合同错误为 `0/108`，typed abstention 为 `6/36`；这恢复了 Dev 可用性，但尚未通过 fresh Heldout/Shadow。
 
 ### 7.8 有界 ReAct，而不是开放式自治
 
@@ -1751,7 +1751,7 @@ python -m pytest -q
 
 **答：** 先在检索前用权威 source span 测预处理是否已经破坏证据，再固定 embedding、query、Top-K 和 reranker 做真实检索。本项目实际比较 fixed/structure-aware、256/32、384/48、512/64：先看 containment、fragmentation、index amplification 和 chunks/document，再看 Recall@20、MRR、nDCG。最终 512/64 containment 1.0、Recall@20 0.6244，高于 256/32 的 0.5622 和 384/48 的 0.5944。
 
-**为什么不能只看召回率：** 如果 source span 已在 chunk 边界被切碎，后续召回器再强也无法返回完整证据；更大 overlap 又会扩大索引和重排负担。普通三路实验中父子 Chunk 把 Recall@20 `.8333→.9167`，但 multi-condition packed completeness `.8261→.7826`。新增 `>=8000` 字符长文档 slice 后，它在 36 个 Doc2Dial span-Gold group 上又把 packed evidence recall `.5278→.5833` 且 harmful `0`，说明长手册确有条件化收益；但 multi-condition 不升、两次本地检索 P95 增长约 `6%–35%`，WixQA multi-article packing 也退化。因此保留 fixed 512/64 全局默认，只把父子 Chunk 作为长文档动态扩展候选。
+**为什么不能只看召回率：** 如果 source span 已在 chunk 边界被切碎，后续召回器再强也无法返回完整证据；更大 overlap 又会扩大索引和重排负担。普通三路实验中父子 Chunk 把 Recall@20 `.8333→.9167`，但 multi-condition packed completeness `.8261→.7826`。在 36 个长文档 group 的同合同完整链中，Standalone 先把 baseline Candidate `.7222→.7778`；条件父子达到 Candidate `.8056`、Rerank `.7639`，却在 Packing 后回到 `.7361`，与 baseline 相同，多条件完整性还从 `.7188` 降到 `.6563`、harmful `5.56%`。所以保留 fixed 512/64 全局默认；这把损失明确拆成 Query、Candidate、Rerank、Packing 和 Generation Owner，不能靠一个手调路由阈值一起掩盖。
 
 ### Q40：怎样证明 query rewrite/rerank 确实有价值？
 

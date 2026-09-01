@@ -19,7 +19,7 @@ from anthropic import AsyncAnthropic
 
 from core.llm_metrics import capture_llm_usage
 from core.model_policy import ModelPolicy, ModelRole
-from evaluation.rag_generation_evaluation import _judge
+from evaluation.rag_generation_evaluation import JUDGE_PROMPT_VERSION, _judge
 from evaluation.rag_pipeline.contracts import EvidenceSpan, RagCase
 from evaluation.rag_pipeline.dataset import RagDataset
 from evaluation.rag_pipeline.fusion import fuse_rankings
@@ -28,15 +28,24 @@ from evaluation.rag_query_ablation import _variants, _weights
 from memory.context import TokenEstimator
 from mcp.context_packer import ContextCandidate, ContextPacker
 from mcp.document_chunker import DocumentChunker
-from mcp.grounded_answer_generator import GroundedAnswerGenerator
+from mcp.grounded_answer_generator import (
+    GROUNDED_GENERATION_PROMPT_VERSION,
+    GroundedAnswerGenerator,
+)
 from mcp.knowledge_base import KnowledgeBase
-from mcp.result_reranker import RerankCandidate, ResultReranker
+from mcp.result_reranker import RERANK_PROMPT_VERSION, RerankCandidate, ResultReranker
 
 
-TOPOLOGIES = ("baseline-512", "neighbor-512", "parent-child-256-1024")
+TOPOLOGIES = (
+    "baseline-512",
+    "neighbor-512",
+    "parent-child-256-1024",
+    "conditional-parent-child",
+)
 CONTEXT_MAX_TOKENS = 2600
 FINAL_K = 5
 CANDIDATE_K = 20
+LONG_DOCUMENT_CHARS = 8000
 
 
 @dataclass(frozen=True)
@@ -208,11 +217,77 @@ def _capture_retrieval(
                 "case": case,
                 "fused_ids": fused,
                 "hit_by_id": hit_by_id,
+                "source_rankings": rankings,
                 "query_for_rerank": str(row.get("standalone") or case.query),
                 "retrieval_latency_ms": (time.perf_counter() - started) * 1000,
             })
         knowledge_base.close()
     return captures
+
+
+def _conditional_route(
+    capture: Mapping[str, Any],
+    document_lengths: Mapping[str, int],
+) -> dict[str, Any]:
+    """Route without Gold: long retrieved source plus first-rank branch disagreement."""
+    top_documents = []
+    for ranking in (capture.get("source_rankings") or {}).values():
+        if not ranking:
+            continue
+        hit = capture["hit_by_id"].get(str(ranking[0]))
+        if hit is not None:
+            top_documents.append(str(hit.get("document_id") or ""))
+    top_fused_documents = {
+        str(capture["hit_by_id"][chunk_id].get("document_id") or "")
+        for chunk_id in capture["fused_ids"][:FINAL_K]
+    }
+    long_document_seen = any(
+        document_lengths.get(document_id, 0) >= LONG_DOCUMENT_CHARS
+        for document_id in top_fused_documents
+    )
+    branch_disagreement = len(set(top_documents)) > 1
+    use_parent_child = long_document_seen and branch_disagreement
+    return {
+        "selected_topology": (
+            "parent-child-256-1024" if use_parent_child else "baseline-512"
+        ),
+        "long_document_seen": long_document_seen,
+        "branch_first_rank_document_disagreement": branch_disagreement,
+        "branch_first_rank_documents": top_documents,
+        "policy": (
+            "parent-child iff a baseline top-5 source is >=8000 chars and "
+            "retrieval branches disagree on the first-ranked document"
+        ),
+    }
+
+
+def _conditional_captures(
+    dataset: RagDataset,
+    baseline_captures: Sequence[Mapping[str, Any]],
+    parent_captures: Sequence[Mapping[str, Any]],
+) -> list[dict[str, Any]]:
+    parent_by_case = {capture["case"].case_id: capture for capture in parent_captures}
+    document_lengths = {
+        document.document_id: len(document.content) for document in dataset.documents
+    }
+    selected = []
+    for baseline in baseline_captures:
+        route = _conditional_route(baseline, document_lengths)
+        if route["selected_topology"] == "parent-child-256-1024":
+            parent = parent_by_case[baseline["case"].case_id]
+            capture = {
+                **parent,
+                # A cascade must pay for the baseline probe and the conditional retry.
+                "retrieval_latency_ms": (
+                    float(baseline["retrieval_latency_ms"])
+                    + float(parent["retrieval_latency_ms"])
+                ),
+            }
+        else:
+            capture = dict(baseline)
+        capture["route_decision"] = route
+        selected.append(capture)
+    return selected
 
 
 async def _rerank(
@@ -320,6 +395,8 @@ def _make_contexts(
     baseline_by_id: Mapping[str, Any],
     baseline_by_document: Mapping[str, Sequence[Any]],
 ) -> tuple[ContextCandidate, ...]:
+    if topology == "conditional-parent-child":
+        topology = str(capture["route_decision"]["selected_topology"])
     documents = {document.document_id: document for document in dataset.documents}
     candidates: list[ContextCandidate] = []
     seen = set()
@@ -469,9 +546,11 @@ def _aggregate(topology: str, rows: Sequence[Mapping[str, Any]]) -> dict[str, An
         "p95_context_tokens": _percentile(context_tokens, 0.95),
         "p95_pipeline_latency_ms": _percentile(pipeline_latencies, 0.95),
         "rerank_failure_rate": mean([float(bool(row["rerank_error"])) for row in rows]),
+        # A typed evidence abstention is a valid generator outcome, not a protocol
+        # failure. Keep it in the separate abstention rate; this gate measures only
+        # provider/structured-output/validation terminal errors.
         "generation_failure_rate": mean([
-            float(bool(row.get("generation_error")) or bool(row.get("abstained")))
-            for row in rows
+            float(bool(row.get("generation_error"))) for row in rows
         ]),
         "generation_error_counts": {
             name: sum(str(row.get("generation_error") or "") == name for row in rows)
@@ -571,7 +650,7 @@ def _aggregate_structural(topology: str, rows: Sequence[Mapping[str, Any]]) -> d
 
     context_tokens = [float(row["context_tokens"]) for row in rows]
     retrieval_latencies = [float(row["retrieval_latency_ms"]) for row in rows]
-    return {
+    result = {
         "topology": topology,
         "case_count": len(rows),
         "multi_condition_case_count": len(multi),
@@ -592,6 +671,15 @@ def _aggregate_structural(topology: str, rows: Sequence[Mapping[str, Any]]) -> d
         "p95_context_tokens": _percentile(context_tokens, 0.95),
         "p95_retrieval_latency_ms": _percentile(retrieval_latencies, 0.95),
     }
+    routed = [
+        row for row in rows
+        if (row.get("route_decision") or {}).get("selected_topology")
+        == "parent-child-256-1024"
+    ]
+    if topology == "conditional-parent-child":
+        result["parent_child_route_count"] = len(routed)
+        result["parent_child_route_rate"] = len(routed) / len(rows) if rows else 0.0
+    return result
 
 
 def _structural_gates(
@@ -635,13 +723,22 @@ def run_structural_ablation(
         raise ValueError(f"unknown topologies: {sorted(unknown)}")
     baseline_chunks, baseline_by_document = _baseline_chunks(dataset)
     baseline_capture = _capture_retrieval(dataset, query_capture, parent_child=False)
+    needs_parent = bool(
+        {"parent-child-256-1024", "conditional-parent-child"}.intersection(topologies)
+    )
     parent_capture = (
         _capture_retrieval(dataset, query_capture, parent_child=True)
-        if "parent-child-256-1024" in topologies else []
+        if needs_parent else []
     )
+    conditional_capture = _conditional_captures(dataset, baseline_capture, parent_capture)
     rows_by_topology = {}
     for topology in topologies:
-        captures = parent_capture if topology == "parent-child-256-1024" else baseline_capture
+        if topology == "parent-child-256-1024":
+            captures = parent_capture
+        elif topology == "conditional-parent-child":
+            captures = conditional_capture
+        else:
+            captures = baseline_capture
         rows_by_topology[topology] = _prepare_structural_rows(
             topology, captures, dataset, baseline_chunks, baseline_by_document,
         )
@@ -668,7 +765,7 @@ def run_structural_ablation(
             )
     eligible = [topology for topology, value in gates.items() if value["passes_all"]]
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "stage": "structural_precheck",
         "dataset_id": dataset.manifest["dataset_id"],
         "split": query_capture["split"],
@@ -686,6 +783,10 @@ def run_structural_ablation(
                 "reranked MRR@5", "claim support", "citation correctness", "generation latency",
             ],
         },
+        "conditional_route_contract": (
+            "parent-child iff a baseline top-5 source is >=8000 chars and retrieval "
+            "branches disagree on the first-ranked document; no Gold labels are used"
+        ),
         "rows": {
             topology: [_public_row(row) for row in rows]
             for topology, rows in rows_by_topology.items()
@@ -760,6 +861,7 @@ def _public_row(row: Mapping[str, Any]) -> dict[str, Any]:
         "judge_error": row.get("judge_error"),
         "gold_citation_precision": row.get("gold_citation_precision", 0.0),
         "rerank_usage": row["rerank_usage"],
+        "route_decision": row.get("route_decision"),
         "generation_usage": row.get("generation_usage", {}),
         "judge_usage": row.get("judge_usage", {}),
     }
@@ -791,9 +893,12 @@ async def run_ablation(
     baseline_chunks, baseline_by_document = _baseline_chunks(dataset)
     token_estimator = TokenEstimator()
     baseline_capture = _capture_retrieval(dataset, query_capture, parent_child=False)
+    needs_parent = bool(
+        {"parent-child-256-1024", "conditional-parent-child"}.intersection(topologies)
+    )
     parent_capture = (
         _capture_retrieval(dataset, query_capture, parent_child=True)
-        if "parent-child-256-1024" in topologies else []
+        if needs_parent else []
     )
     previous_rows = dict((previous_report or {}).get("rows") or {})
     baseline_ranked = await _rerank_with_resume(
@@ -810,9 +915,15 @@ async def run_ablation(
         previous_rows.get("parent-child-256-1024", ()),
         concurrency=concurrency,
     ) if parent_capture else []
+    conditional_ranked = _conditional_captures(dataset, baseline_ranked, parent_ranked)
     rows_by_topology: dict[str, list[dict[str, Any]]] = {}
     for topology in topologies:
-        captures = parent_ranked if topology == "parent-child-256-1024" else baseline_ranked
+        if topology == "parent-child-256-1024":
+            captures = parent_ranked
+        elif topology == "conditional-parent-child":
+            captures = conditional_ranked
+        else:
+            captures = baseline_ranked
         rows = []
         for capture in captures:
             case: RagCase = capture["case"]
@@ -880,7 +991,16 @@ async def run_ablation(
                 "retrieve/rerank 256/32 children nested under 1024/128 parents; "
                 "deliver deduplicated parents"
             ),
+            "conditional_parent_child": (
+                "run baseline first; run/deliver parent-child only when a baseline top-5 "
+                "source is >=8000 chars and retrieval branches disagree on the first document"
+            ),
             "fixed_query": _query_contract(query_capture),
+            "prompt_versions": {
+                "rerank": RERANK_PROMPT_VERSION,
+                "generation": GROUNDED_GENERATION_PROMPT_VERSION,
+                "judge": JUDGE_PROMPT_VERSION,
+            },
             "selection": "hard gates first; no weighted aggregate score",
         },
         "models": policy.to_dict(),

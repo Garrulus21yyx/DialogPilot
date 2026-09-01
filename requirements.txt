@@ -1,12 +1,13 @@
 # DialogPilot 依赖清单
 
 # ── AI / LLM ──────────────────────────────────────────────────────────────────
-anthropic==0.40.0          # LLM 调用；意图 Embedding 分支支持远端客户端，缺失时本地兜底
+anthropic==1.2.0           # LLM 调用；PydanticAI Anthropic provider 需要 1.x SDK
+pydantic-ai-slim[anthropic]==2.37.0  # 仅用于 RAG grounded structured-output 边界
 
 # ── Web 框架 ──────────────────────────────────────────────────────────────────
 fastapi==0.115.5
 uvicorn[standard]==0.32.1
-pydantic==2.10.3
+pydantic==2.13.5
 python-multipart==0.0.12    # FastAPI 文件上传支持
 PyJWT==2.10.1               # HTTP Bearer JWT 签名、issuer/audience/exp 验证
 

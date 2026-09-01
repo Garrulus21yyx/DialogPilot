@@ -198,7 +198,7 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q29.1：父子 Chunk 有必要吗？
 
-没有证据支持把它作为全局默认，但长文档上已有条件化价值。普通 48 条 Doc2Dial Dev 中，256/32 child → 1024/128 parent 将 Recall@20 `.8333→.9167`，但 multi-condition completeness `.8261→.7826`。新增 `>=8000` 字符压力集后，36 个 Doc2Dial span-Gold group 上 packed evidence recall `.5278→.5833`、harmful `0`，证明 Small-to-Big 更容易定位长手册里的正确段落；代价是 multi-condition 仍为 `.5000`，两次本地检索 P95 增长约 `6%–35%`。WixQA article-Gold 的 multi-article completeness 又从 `.7667` 降到 `.7000`。因此默认保留 512/64，只在长文档且 baseline 低置信度或需要跨段上下文时考虑动态扩展，不打开 Heldout。
+没有证据支持把它作为全局默认。普通 48 条 Doc2Dial Dev 中，256/32 child → 1024/128 parent 将 Recall@20 `.8333→.9167`，但 multi-condition completeness `.8261→.7826`。`>=8000` 字符的 36 个长文档 group 同合同完整链中，Standalone 把 baseline Candidate `.7222→.7778`；条件父子达到 Candidate `.8056`、Rerank `.7639`，但 Packed 回落到 `.7361`，与 baseline 持平，多条件完整性从 `.7188` 降到 `.6563`、harmful `5.56%`。grounded v5 重放中生成合同错误已为 `0/108`，所以不能再拿 v4 解析失败解释父子方案的坏结果；真正限制仍是 Rerank/Packing 没有保住多条件证据。默认保留 512/64。
 
 ### Q30：为什么 LLM rerank 不用 cross-encoder？
 
@@ -214,7 +214,7 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q32.1：这已经是完整生产级 RAG 吗？
 
-不能这么说。代码已显式化公共 txt/md/JSON 来源、持久 Sparse、Manifest、EvidencePack、严格 rerank 和纯知识发布边界；但新的 48 条 Dev 实验发现 grounded v4 失败/拒答率 `85.42%–89.58%`，证明生成代数与当前模型不匹配。它安全失败，但可用性不达标；修复前不开 Heldout/Shadow。此外还缺政策 update/delete 事务、多副本共享 Sparse、Embedding 权重 digest、人工 Judge 校准和真实 shadow/canary。文档级 ACL 是当前 public-only collection 的非目标。完整审计见[客服 RAG 生产化审计](./customer-service-rag-production-audit/)。
+不能这么说。代码已显式化公共 txt/md/JSON 来源、持久 Sparse、Manifest、EvidencePack、严格 rerank 和纯知识发布边界；grounded v5 又用局部 PydanticAI tool output 把同一 36 group×3 Dev 的合同错误从 v4 的大量 `ValueError/JSONDecodeError` 降为 `0/108`，且 typed abstention 与 parser failure 分开计量。但这仍只是 Dev 修复：父子拓扑未过 Packing 完整性门禁，baseline 也还缺 fresh Heldout、人工 Judge 校准和真实 shadow/canary；另外还缺政策 update/delete 事务、多副本共享 Sparse 和 Embedding 权重 digest。文档级 ACL 是当前 public-only collection 的非目标。
 
 ### Q33：混合长期记忆怎么做？
 

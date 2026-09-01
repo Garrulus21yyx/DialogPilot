@@ -124,6 +124,53 @@ def capture_llm_usage() -> Iterator[LLMUsageCollector]:
         _ACTIVE_COLLECTOR.reset(token)
 
 
+def record_external_llm_run(
+    profile: ModelProfile,
+    role: ModelRole,
+    usage: Any,
+    *,
+    latency_ms: float,
+    error: Optional[str] = None,
+) -> None:
+    """Project an externally managed model run into DialogPilot's usage contract.
+
+    PydanticAI owns output-correction retries, so those requests do not pass through
+    :func:`create_message`. Its run usage exposes exact aggregate request/token
+    counts but not per-request latency. We preserve exact totals and distribute the
+    wall time evenly across attempts so aggregate latency remains authoritative.
+    """
+    collector = _ACTIVE_COLLECTOR.get()
+    if collector is None:
+        return
+    requests = int(getattr(usage, "requests", 0) or 0)
+    if requests < 1:
+        requests = 1 if error else 0
+    if requests == 0:
+        return
+
+    def split(value: int) -> list[int]:
+        quotient, remainder = divmod(max(0, int(value)), requests)
+        return [quotient + int(index < remainder) for index in range(requests)]
+
+    input_tokens = split(getattr(usage, "input_tokens", 0) or 0)
+    output_tokens = split(getattr(usage, "output_tokens", 0) or 0)
+    cache_write = split(getattr(usage, "cache_write_tokens", 0) or 0)
+    cache_read = split(getattr(usage, "cache_read_tokens", 0) or 0)
+    per_request_latency = max(0.0, float(latency_ms)) / requests
+    for index in range(requests):
+        collector.add(LLMCallUsage(
+            role=role.value,
+            model=profile.model,
+            reasoning=profile.reasoning.value,
+            latency_ms=per_request_latency,
+            input_tokens=input_tokens[index],
+            output_tokens=output_tokens[index],
+            cache_creation_input_tokens=cache_write[index],
+            cache_read_input_tokens=cache_read[index],
+            error=error if index == requests - 1 else None,
+        ))
+
+
 async def create_message(
     client: Any,
     profile: ModelProfile,

@@ -35,8 +35,11 @@ def test_deepseek_none_explicitly_disables_provider_default_thinking():
     ).request(max_tokens=64, temperature=0.2)
 
     assert request["model"] == "deepseek-v4-flash"
-    assert request["temperature"] == 0.2
-    assert request["extra_body"] == {"thinking": {"type": "disabled"}}
+    assert "temperature" not in request
+    assert request["extra_body"] == {
+        "temperature": 0.2,
+        "thinking": {"type": "disabled"},
+    }
 
 
 def test_deepseek_reasoning_sets_effort_and_removes_ignored_temperature():
@@ -50,6 +53,18 @@ def test_deepseek_reasoning_sets_effort_and_removes_ignored_temperature():
         "thinking": {"type": "enabled"},
         "output_config": {"effort": "high"},
     }
+
+
+def test_anthropic_sdk_v1_moves_sampling_parameters_to_extra_body():
+    request = ModelProfile("claude-test").request(
+        max_tokens=64,
+        temperature=0.1,
+        top_p=0.9,
+    )
+
+    assert "temperature" not in request
+    assert "top_p" not in request
+    assert request["extra_body"] == {"temperature": 0.1, "top_p": 0.9}
 
 
 @pytest.mark.parametrize("env", [
