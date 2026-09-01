@@ -29,7 +29,7 @@ title: DialogPilot 面经校准与追问手册
 | 知识库是 BM25 + 向量 + RRF | 知识 RAG 已支持 source-offset chunk、Raw/Standalone + BM25/Dense/RRF、stable-ID rerank、packing 与引用草稿；候选已切换仓库默认 | **CHANGED** |
 | Agent 单次生成、无完整 Trace | Worker 内最多 4 步 ReAct，allowlist、持久审批 Resume、脱敏 audit/TraceId | **CHANGED** |
 | Bad Case 后人工直接改 Prompt | 版本归因 → 不可变 Bundle 候选 → Graduation/Pareto → Shadow/Canary/回滚 | **NEW** |
-| 准确率 91.3%、综合分 0.89 | 当前有 500 条 provisional 项目集、Doc2Dial Dev、48 条 test 检索/9 条多轮链路和 350 项回归测试；仍无 human-reviewed 项目 Gold | **UNPROVEN** |
+| 准确率 91.3%、综合分 0.89 | 当前有 500 条 provisional 项目集、Doc2Dial Dev、48 条 test 检索/9 条多轮链路和 355 项回归测试；仍无 human-reviewed 项目 Gold | **UNPROVEN** |
 | 完整 MCP Server / LangGraph | 是内部 ToolManager 与直接 Python 编排；没有远程 MCP Server，没用 LangGraph | **UNPROVEN** |
 
 ## 项目开场与完整链路
@@ -198,7 +198,7 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q29.1：父子 Chunk 有必要吗？
 
-当前没有证据支持上线。48 条 Doc2Dial Dev 三路对照中，256/32 child → 1024/128 parent 将 Recall@20 从 `.8333` 提到 `.9167`、reranked MRR@5 从 `.6597` 提到 `.7285`，说明 Small-to-Big 确实能帮助找到正确区域。但在同一 2600 Token 预算下，23 条 multi-condition completeness 从 `.8261` 降到 `.7826`，harmful context `4.17%`，rerank typed failure `6.25%`。Neighbor 也有同样的完整性退化。两者 Dev 门禁失败，所以保留 512/64，不打开 Heldout。
+没有证据支持把它作为全局默认，但长文档上已有条件化价值。普通 48 条 Doc2Dial Dev 中，256/32 child → 1024/128 parent 将 Recall@20 `.8333→.9167`，但 multi-condition completeness `.8261→.7826`。新增 `>=8000` 字符压力集后，36 个 Doc2Dial span-Gold group 上 packed evidence recall `.5278→.5833`、harmful `0`，证明 Small-to-Big 更容易定位长手册里的正确段落；代价是 multi-condition 仍为 `.5000`，两次本地检索 P95 增长约 `6%–35%`。WixQA article-Gold 的 multi-article completeness 又从 `.7667` 降到 `.7000`。因此默认保留 512/64，只在长文档且 baseline 低置信度或需要跨段上下文时考虑动态扩展，不打开 Heldout。
 
 ### Q30：为什么 LLM rerank 不用 cross-encoder？
 
@@ -284,7 +284,7 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q46：当前评测链路是什么？
 
-有三套不能混算的口径。运行时链对 intent 算 Accuracy/Macro-F1，对 dialog 调 Orchestrator 并用 LLM Judge；版本化 500 条项目 fixture 对 intent/routing/retrieval/stateful 分层评分，但标签仍是 provisional；独立 Doc2Dial RAG Dev 使用 100 文档/300 case/488 spans，从 chunk containment、Query 安全与 Recall、Rerank、Packing 到 Grounded Generation 逐阶段归因，其中模型阶段是 48 条多轮压力集。报告必须保存 dataset/checksum/split、模型/Prompt/index 配置和逐 case 输出。
+有三套不能混算的口径。运行时链对 intent 算 Accuracy/Macro-F1，对 dialog 调 Orchestrator 并用 LLM Judge；版本化 500 条项目 fixture 对 intent/routing/retrieval/stateful 分层评分，但标签仍是 provisional；公开客服 RAG 以 Doc2Dial 100 文档/300 case/488 spans 做基础分层，模型阶段取 48 条，另有 36 个长 Doc2Dial span-Gold group 与 32 个长 WixQA article-Gold group做零模型结构压力。Article Gold 只能证明找对文章，不能冒充正确段落；结构预检也不能冒充生成质量。报告必须保存 dataset/checksum/split、Gold granularity、模型/Prompt/index 配置和逐 case 输出。
 
 ### Q47：Judge 分高就代表路由正确吗？
 
@@ -292,7 +292,7 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q48：91.3%、0.89 等旧数字怎么回答？
 
-**UNPROVEN。** 旧数字没对应数据版本、切分、运行产物和 commit，已移除。当前可证明的是 350 项回归、500 条 provisional 分层项目集、Doc2Dial Dev 逐阶段结果，以及冻结配置在 test split 的 48 条检索/9 条多轮链路报告；因为项目 human Gold、RAG 人工 Judge 校准与真实流量灰度仍未完成，不能报“生产准确率”。
+**UNPROVEN。** 旧数字没对应数据版本、切分、运行产物和 commit，已移除。当前可证明的是 355 项回归、500 条 provisional 分层项目集、Doc2Dial Dev 逐阶段结果，以及冻结配置在 test split 的 48 条检索/9 条多轮链路报告；因为项目 human Gold、RAG 人工 Judge 校准与真实流量灰度仍未完成，不能报“生产准确率”。
 
 ### Q49：多 LLM 调用怎么降延迟？
 
@@ -467,7 +467,7 @@ DeepSeek 的 Anthropic 兼容协议要求工具后续轮回传此前 thinking �
 
 ### Q84：这项改造怎样写 STAR？
 
-**S：** 九类调用共用一个模型，DeepSeek 默认 reasoning 让简单任务成本、延迟和结构化输出不可控。**T：** 在保持统一 Messages API 的同时，让每类调用可独立权衡质量。**A：** 实现按角色校验的 ModelPolicy，Flash/none 承担闭合高频任务，Pro/none 承担融合与质量门禁；显式 reasoning 强制最小完成预算，并补齐 health/eval 配置证据和 ReAct thinking 回传。**R：** 4 条 E2E pilot 均值约 28.4s → 13.3s，Verifier 解析 2/4 → 4/4；当前全仓 350 项回归测试通过。15 条 provisional 三档消融已完成，最终选择仍需 gold heldout 与重复运行确认。
+**S：** 九类调用共用一个模型，DeepSeek 默认 reasoning 让简单任务成本、延迟和结构化输出不可控。**T：** 在保持统一 Messages API 的同时，让每类调用可独立权衡质量。**A：** 实现按角色校验的 ModelPolicy，Flash/none 承担闭合高频任务，Pro/none 承担融合与质量门禁；显式 reasoning 强制最小完成预算，并补齐 health/eval 配置证据和 ReAct thinking 回传。**R：** 4 条 E2E pilot 均值约 28.4s → 13.3s，Verifier 解析 2/4 → 4/4；当前全仓 355 项回归测试通过。15 条 provisional 三档消融已完成，最终选择仍需 gold heldout 与重复运行确认。
 
 ### Q85：Flash/off、Flash/high、Pro/high 真跑后有什么区别？
 
@@ -527,7 +527,7 @@ Shadow 用真实输入跑候选 Intent/RAG/Worker/Verifier，但不发布、不�
 
 ### Q98：这项改造怎么写 STAR？
 
-**S：** Bad Case 能入库，但人工直接改 Prompt 导致版本归因弱、回归不可复现、发布全量且安全边界可能被误改。**T：** 把线上失败变成可验证、可灰度、可撤销的策略升级。**A：** 增加脱敏 EvolutionEnvelope、确定性 Owner 归因、不可变 AgentBundle、GEPA-lite 多候选、provenance Graduation/Pareto，并以 Shadow、稳定 5%/25% 分桶及硬/软自动回滚发布。**R：** 请求内版本固定，候选无法修改权限或绕过 Gate，Shadow 写操作零提交，发布/回滚成为原子状态迁移；350 项回归通过，数据非 Gold 前不虚构线上提升。
+**S：** Bad Case 能入库，但人工直接改 Prompt 导致版本归因弱、回归不可复现、发布全量且安全边界可能被误改。**T：** 把线上失败变成可验证、可灰度、可撤销的策略升级。**A：** 增加脱敏 EvolutionEnvelope、确定性 Owner 归因、不可变 AgentBundle、GEPA-lite 多候选、provenance Graduation/Pareto，并以 Shadow、稳定 5%/25% 分桶及硬/软自动回滚发布。**R：** 请求内版本固定，候选无法修改权限或绕过 Gate，Shadow 写操作零提交，发布/回滚成为原子状态迁移；355 项回归通过，数据非 Gold 前不虚构线上提升。
 
 ## 面试前 10 分钟自查
 
@@ -537,7 +537,7 @@ Shadow 用真实输入跑候选 Intent/RAG/Worker/Verifier，但不发布、不�
 4. 能说出 TaskGraph 依赖/上下文隔离、六种 outcome、synthesis 与 Verifier PASS/REJECT/UNKNOWN。
 5. 能解释 BM25 对订单号的价值，以及 recency 为什么不能独立召回。
 6. 能解释发现/执行共用 allowlist，审批不来自模型参数，RunStore 如何 CAS Resume 并防重复写。
-7. 能说明 350 项回归不等于 benchmark 样本量，500 条 provisional 项目集与 Doc2Dial Dev 不能混算，也都不支持生产准确率。
+7. 能说明 355 项回归不等于 benchmark 样本量，500 条 provisional 项目集与 Doc2Dial Dev 不能混算，也都不支持生产准确率。
 8. 能用 commit 划清原型与个人改造，不说从零原创。
 9. 能讲清 Bundle → 候选 → Graduation → Shadow → 5% → 25% → Active/回滚，并说明 GEPA-lite 与 RL 的边界。
 10. 能讲清 Prediction → Pending Feedback → Admin Annotation → Candidate，知道分类器指纹覆盖什么，并说明 Annotation 不等于 Gold、缓存不等于学习库。

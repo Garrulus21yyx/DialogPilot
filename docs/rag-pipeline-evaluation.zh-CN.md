@@ -234,4 +234,6 @@ PYTHONPATH=. .venv/bin/python -m evaluation.rag_packing_ablation \
 
 当前状态是 **retrieval baseline integrated; v4 fail-closed but empirically unusable**。2026-09-01 的 48 条 Dev 真模型三路实验中，grounded v4 失败/拒答率为 `85.42%–89.58%`；父子 Chunk 虽将 Recall@20 `.8333→.9167`，但 multi-condition completeness `.8261→.7826`，harmful context `4.17%`。两个扩展候选均未过 Dev，因此保留 512/64 且不打开 untouched Heldout。详细见[客服 RAG 生产化审计](../customer-service-rag-production-audit/)。
 
+随后增加的长文档结构预检不改变这一默认：`>=8000` 字符的 Doc2Dial span-Gold slice 中，父子方案把 packed evidence recall `.5278→.5833` 且 harmful `0`，但 multi-condition 不升、两次本地检索 P95 增长约 `6%–35%`；WixQA article-Gold 的 multi-article completeness `.7667→.7000`。这支持“长文档条件化扩展”的后续实验，不支持全库切换。脱敏结果见[长文档摘要 JSON](../assets/eval/rag-long-document-dev-v1.json)。
+
 全仓验证结果与提交信息见计划文件中的 verification record。

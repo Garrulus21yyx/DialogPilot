@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import math
-from typing import Iterable, Mapping, Sequence
+from typing import Mapping, Sequence
 
 from evaluation.rag_pipeline.contracts import EvidenceSpan, RagCase, RagDocument, StageTrace
 from mcp.document_chunker import ChunkStrategy, DocumentChunk, DocumentChunker
@@ -46,6 +46,8 @@ def project_chunks(
 
 
 def chunk_contains_evidence(chunk: IndexedChunk, evidence: EvidenceSpan) -> bool:
+    if evidence.granularity == "document":
+        return chunk.document_id == evidence.document_id
     return (
         chunk.document_id == evidence.document_id
         and chunk.start_char <= evidence.start_char
@@ -76,7 +78,8 @@ def evaluate_chunk_projection(
         overlap_tokens=overlap_tokens,
         strategy=strategy,
     )
-    evidence = [item for case in cases for item in case.evidence]
+    all_evidence = [item for case in cases for item in case.evidence]
+    evidence = [item for item in all_evidence if item.granularity == "span"]
     contained = sum(any(chunk_contains_evidence(chunk, item) for chunk in chunks) for item in evidence)
     fragmented = sum(
         not any(chunk_contains_evidence(chunk, item) for chunk in chunks)
@@ -86,7 +89,9 @@ def evaluate_chunk_projection(
     source_chars = sum(len(document.content.strip()) for document in documents)
     indexed_chars = sum(len(chunk.content) for chunk in chunks)
     return ({
+        "grounding_count": float(len(all_evidence)),
         "evidence_count": float(len(evidence)),
+        "document_grounding_count": float(len(all_evidence) - len(evidence)),
         "evidence_containment_rate": contained / len(evidence) if evidence else 1.0,
         "boundary_fragmentation_rate": fragmented / len(evidence) if evidence else 0.0,
         "index_amplification": indexed_chars / source_chars if source_chars else 1.0,
@@ -95,20 +100,21 @@ def evaluate_chunk_projection(
     }, chunks)
 
 
-def _evidence_chunk_ids(
-    evidence: Iterable[EvidenceSpan], chunks: Mapping[str, IndexedChunk],
-) -> set[str]:
-    return {
-        chunk_id
-        for chunk_id, chunk in chunks.items()
-        if any(chunk_contains_evidence(chunk, item) for item in evidence)
-    }
-
-
-def _recall(ranked_ids: Sequence[str], relevant_ids: set[str]) -> float:
-    if not relevant_ids:
+def _evidence_recall(
+    ranked_ids: Sequence[str],
+    evidence: Sequence[EvidenceSpan],
+    chunks: Mapping[str, IndexedChunk],
+) -> float:
+    if not evidence:
         return 1.0
-    return len(set(ranked_ids) & relevant_ids) / len(relevant_ids)
+    covered = sum(
+        any(
+            chunk_id in chunks and chunk_contains_evidence(chunks[chunk_id], item)
+            for chunk_id in ranked_ids
+        )
+        for item in evidence
+    )
+    return covered / len(evidence)
 
 
 def evaluate_stage_trace(
@@ -120,10 +126,9 @@ def evaluate_stage_trace(
     if trace.case_id != case.case_id:
         raise ValueError("trace and case IDs do not match")
     by_id = {chunk.chunk_id: chunk for chunk in chunks}
-    relevant = _evidence_chunk_ids(case.evidence, by_id)
-    fused_recall = _recall(trace.fused_chunk_ids, relevant)
-    reranked_recall = _recall(trace.reranked_chunk_ids, relevant)
-    packed_recall = _recall(trace.packed_chunk_ids, relevant)
+    fused_recall = _evidence_recall(trace.fused_chunk_ids, case.evidence, by_id)
+    reranked_recall = _evidence_recall(trace.reranked_chunk_ids, case.evidence, by_id)
+    packed_recall = _evidence_recall(trace.packed_chunk_ids, case.evidence, by_id)
     normalized_answer = " ".join(trace.answer.lower().split())
     required_covered = sum(
         " ".join(claim.lower().split()) in normalized_answer for claim in case.required_claims
@@ -162,6 +167,8 @@ def evaluate_ranked_hits(
     ranked = list(ranked_ids[:top_k])
 
     def covers(hit: Mapping[str, object], evidence: EvidenceSpan) -> bool:
+        if evidence.granularity == "document":
+            return str(hit.get("document_id")) == evidence.document_id
         return (
             str(hit.get("document_id")) == evidence.document_id
             and int(hit.get("source_start_char", 0)) <= evidence.start_char
@@ -172,11 +179,19 @@ def evaluate_ranked_hits(
         index for index, evidence in enumerate(case.evidence)
         if any(covers(hit_by_id[item], evidence) for item in ranked if item in hit_by_id)
     }
-    relevant_ranks = [
-        rank for rank, item in enumerate(ranked, 1)
-        if item in hit_by_id and any(covers(hit_by_id[item], evidence) for evidence in case.evidence)
-    ]
     relevant_documents = {evidence.document_id for evidence in case.evidence}
+    ranked_relevant_documents: set[str] = set()
+    relevant_ranks = []
+    for rank, item in enumerate(ranked, 1):
+        if item not in hit_by_id:
+            continue
+        document_id = str(hit_by_id[item].get("document_id"))
+        if (
+            document_id not in ranked_relevant_documents
+            and any(covers(hit_by_id[item], evidence) for evidence in case.evidence)
+        ):
+            ranked_relevant_documents.add(document_id)
+            relevant_ranks.append(rank)
     retrieved_documents = {
         str(hit_by_id[item].get("document_id")) for item in ranked if item in hit_by_id
     }

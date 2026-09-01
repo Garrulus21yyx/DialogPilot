@@ -6,6 +6,7 @@ from evaluation.rag_context_topology_ablation import (
     _candidate_gates,
     _context_recall,
     _make_contexts,
+    _query_contract,
     _reuse_reranks,
     _structural_gates,
 )
@@ -148,3 +149,14 @@ def test_rerank_resume_requires_the_exact_candidate_set():
         assert "candidates differ" in str(exc)
     else:
         raise AssertionError("a different candidate set must not be reused")
+
+
+def test_query_contract_reports_raw_only_capture_without_claiming_a_rewrite():
+    raw = {"rows": [{"raw_query": "refund?", "standalone": ""}]}
+    rewritten = {"rows": [{
+        "raw_query": "When?",
+        "standalone": "When will the refund arrive?",
+    }]}
+
+    assert _query_contract(raw).startswith("Raw-only 1.0")
+    assert _query_contract(rewritten).startswith("Raw .25 + captured Standalone .75")

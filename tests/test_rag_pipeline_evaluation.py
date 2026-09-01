@@ -15,7 +15,11 @@ from evaluation.rag_pipeline import (
     fuse_rankings,
     select_configuration,
 )
-from evaluation.rag_pipeline.metrics import project_chunks
+from evaluation.rag_pipeline.metrics import (
+    chunk_contains_evidence,
+    evaluate_ranked_hits,
+    project_chunks,
+)
 from mcp.document_chunker import ChunkStrategy
 from mcp.query_transformer import QueryTransformer
 from mcp.result_reranker import RerankCandidate, ResultReranker
@@ -28,6 +32,7 @@ from evaluation.rag_pipeline.selection import paired_group_bootstrap_delta
 from evaluation.rag_pipeline.query_metrics import extract_negations
 from scripts.build_doc2dial_rag_subset import build_subset
 from evaluation.rag_query_ablation import _variants, _weights
+from evaluation.rag_query_capture import capture_raw_queries
 
 
 def test_overlap_is_credited_only_when_it_preserves_authoritative_evidence():
@@ -411,6 +416,79 @@ def test_stage_metrics_identify_rerank_and_context_evidence_loss():
     assert metrics["citation_precision"] == 1.0
 
 
+def test_stage_metrics_count_evidence_items_not_duplicate_overlapping_chunks():
+    document = RagDocument("policy", "Policy", "rule " * 400)
+    chunks = project_chunks(
+        [document], max_tokens=256, overlap_tokens=128,
+        strategy=ChunkStrategy.FIXED_TOKENS,
+    )
+    evidence = EvidenceSpan("policy", 600, 700)
+    matching = [chunk for chunk in chunks if chunk_contains_evidence(chunk, evidence)]
+    assert len(matching) > 1
+    case = RagCase("case", "group", "dev", "rule?", evidence=(evidence,))
+    trace = StageTrace(
+        case_id="case",
+        config_fingerprint="abc",
+        query_variants=(QueryVariant("raw", "rule?"),),
+        source_rankings={},
+        fused_chunk_ids=(matching[0].chunk_id,),
+        reranked_chunk_ids=(matching[0].chunk_id,),
+        packed_chunk_ids=(matching[0].chunk_id,),
+    )
+
+    assert evaluate_stage_trace(case, trace, chunks)["first_stage_evidence_recall"] == 1.0
+
+
+def test_document_level_grounding_accepts_any_chunk_from_the_gold_document():
+    documents = [
+        RagDocument("gold", "Gold", "gold policy " * 500),
+        RagDocument("other", "Other", "other policy " * 500),
+    ]
+    chunks = project_chunks(
+        documents, max_tokens=128, overlap_tokens=0,
+        strategy=ChunkStrategy.FIXED_TOKENS,
+    )
+    evidence = EvidenceSpan(
+        "gold", 0, len(documents[0].content), granularity="document",
+    )
+    case = RagCase("case", "group", "dev", "policy?", evidence=(evidence,))
+    gold_chunks = [chunk for chunk in chunks if chunk.document_id == "gold"]
+    gold_chunk = gold_chunks[0]
+    other_chunk = next(chunk for chunk in chunks if chunk.document_id == "other")
+
+    assert evaluate_ranked_hits(
+        case,
+        [gold_chunk.chunk_id],
+        {gold_chunk.chunk_id: {
+            "document_id": "gold",
+            "source_start_char": gold_chunk.start_char,
+            "source_end_char": gold_chunk.end_char,
+        }},
+        top_k=1,
+    )["evidence_recall"] == 1.0
+    duplicate_hits = {
+        chunk.chunk_id: {
+            "document_id": "gold",
+            "source_start_char": chunk.start_char,
+            "source_end_char": chunk.end_char,
+        }
+        for chunk in gold_chunks[:2]
+    }
+    assert evaluate_ranked_hits(
+        case, [chunk.chunk_id for chunk in gold_chunks[:2]], duplicate_hits, top_k=2,
+    )["ndcg"] == 1.0
+    assert evaluate_ranked_hits(
+        case,
+        [other_chunk.chunk_id],
+        {other_chunk.chunk_id: {
+            "document_id": "other",
+            "source_start_char": other_chunk.start_char,
+            "source_end_char": other_chunk.end_char,
+        }},
+        top_k=1,
+    )["evidence_recall"] == 0.0
+
+
 def test_selection_is_constraint_first_and_heldout_is_report_only():
     rows = [
         {"config_id": "unsafe-fast", "forbidden_rate": 0.1, "recall": 1.0, "latency": 1},
@@ -427,6 +505,26 @@ def test_selection_is_constraint_first_and_heldout_is_report_only():
     assert dev["recommended"] == "safe-fast"
     assert heldout["recommended"] is None
     assert heldout["selection_allowed"] is False
+
+
+def test_raw_query_capture_needs_no_model_and_preserves_dataset_identity():
+    document = RagDocument("policy", "Policy", "Policy text")
+    case = RagCase(
+        "case", "group", "dev", "What is the policy?",
+        evidence=(EvidenceSpan("policy", 0, len(document.content)),),
+        query_types=("customer_support", "long_document"),
+    )
+    dataset = SimpleNamespace(
+        manifest={"dataset_id": "long-dev"},
+        select_cases=lambda split: (case,) if split == "dev" else (),
+    )
+
+    capture = capture_raw_queries(dataset, split="dev", max_cases=1)
+
+    assert capture["dataset_id"] == "long-dev"
+    assert capture["total_calls"] == 0
+    assert capture["rows"][0]["raw_query"] == case.query
+    assert capture["rows"][0]["standalone"] == ""
 
 
 def test_paired_bootstrap_keeps_groups_together_and_reports_direction():
@@ -482,3 +580,12 @@ def test_doc2dial_adapter_preserves_official_source_spans(tmp_path):
         evidence = case.evidence[0]
         document = next(item for item in dataset.documents if item.document_id == evidence.document_id)
         assert document.content[evidence.start_char:evidence.end_char] == evidence.quote
+
+    long_slice = build_subset(
+        archive, tmp_path / "long-dataset",
+        max_documents=4, max_cases=4, split="dev",
+        min_relevant_document_chars=10,
+    )
+    assert long_slice.manifest["dataset_id"] == "doc2dial-rag-long10-dev-v1"
+    assert all("long_document" in case.query_types for case in long_slice.cases)
+    assert long_slice.manifest["source"]["grounding_granularity"] == "character-span"

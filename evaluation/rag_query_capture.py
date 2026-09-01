@@ -57,6 +57,51 @@ def select_query_cases(
     return tuple(selected)
 
 
+def capture_raw_queries(
+    dataset: RagDataset,
+    *,
+    split: str,
+    max_cases: int,
+) -> dict[str, Any]:
+    """Create a deterministic no-model capture for retrieval-only stress suites."""
+    selected = select_query_cases(dataset, split=split, max_cases=max_cases)
+    rows = [{
+        "case_id": case.case_id,
+        "group_id": case.group_id,
+        "query_types": list(case.query_types),
+        "history_turns": len(case.history),
+        "raw_query": case.query,
+        "standalone": "",
+        "expansions": [],
+        "hyde": "",
+        "errors": [],
+        "usage": {
+            "calls": 0,
+            "errors": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "latency_ms": {"sum": 0.0},
+        },
+        "usage_by_stage": {},
+    } for case in selected]
+    rows.sort(key=lambda row: row["case_id"])
+    return {
+        "schema_version": CAPTURE_SCHEMA_VERSION,
+        "dataset_id": dataset.manifest["dataset_id"],
+        "split": split,
+        "sample_policy": "one case per grounding group, deterministic domain round-robin",
+        "case_count": len(rows),
+        "prompt_version": "raw-only-v1",
+        "model_policy": {"provider": "none", "rewrite": {"model": "none"}},
+        "expansion_count": 0,
+        "total_calls": 0,
+        "total_input_tokens": 0,
+        "total_output_tokens": 0,
+        "error_case_count": 0,
+        "rows": rows,
+    }
+
+
 async def capture_queries(
     dataset: RagDataset,
     *,
@@ -160,17 +205,26 @@ def main() -> int:
     parser.add_argument("--max-cases", type=int, default=48)
     parser.add_argument("--concurrency", type=int, default=3)
     parser.add_argument("--expansion-count", type=int, default=2)
+    parser.add_argument(
+        "--raw-only", action="store_true",
+        help="Capture deterministic Raw queries without an API key or model calls",
+    )
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     if args.max_cases < 1:
         parser.error("--max-cases must be positive")
-    capture = asyncio.run(capture_queries(
-        RagDataset.load(args.dataset),
-        split=args.split,
-        max_cases=args.max_cases,
-        concurrency=args.concurrency,
-        expansion_count=args.expansion_count,
-    ))
+    dataset = RagDataset.load(args.dataset)
+    capture = (
+        capture_raw_queries(dataset, split=args.split, max_cases=args.max_cases)
+        if args.raw_only else
+        asyncio.run(capture_queries(
+            dataset,
+            split=args.split,
+            max_cases=args.max_cases,
+            concurrency=args.concurrency,
+            expansion_count=args.expansion_count,
+        ))
+    )
     write_capture(args.output, capture)
     print(json.dumps({
         "case_count": capture["case_count"],

@@ -49,6 +49,29 @@ class ParentRecord:
     end_char: int
 
 
+def _query_contract(query_capture: Mapping[str, Any]) -> str:
+    has_standalone = any(
+        str(row.get("standalone") or "").strip()
+        and str(row.get("standalone") or "").strip() != str(row.get("raw_query") or "").strip()
+        for row in query_capture.get("rows") or ()
+    )
+    return (
+        "Raw .25 + captured Standalone .75; BM25 .75 + Dense .25; RRF k=10"
+        if has_standalone else
+        "Raw-only 1.0; BM25 .75 + Dense .25; RRF k=10"
+    )
+
+
+def _grounding_limitation(dataset: RagDataset) -> str:
+    granularity = str(dataset.manifest.get("source", {}).get("grounding_granularity") or "")
+    if granularity.startswith("article-level"):
+        return (
+            "WixQA Gold identifies relevant articles, not answer spans; document Recall and "
+            "multi-article packing are valid, but section localization is not measured."
+        )
+    return "Doc2Dial Gold spans are authoritative but not exhaustive relevance annotations."
+
+
 def _percentile(values: Sequence[float], percentile: float) -> float:
     if not values:
         return 0.0
@@ -67,6 +90,8 @@ def _covers(candidate: ContextCandidate | Mapping[str, Any], evidence: EvidenceS
         document_id = str(candidate.get("document_id") or "")
         start = int(candidate.get("source_start_char") or 0)
         end = int(candidate.get("source_end_char") or 0)
+    if evidence.granularity == "document":
+        return document_id == evidence.document_id
     return document_id == evidence.document_id and start <= evidence.start_char and end >= evidence.end_char
 
 
@@ -649,7 +674,7 @@ def run_structural_ablation(
         "split": query_capture["split"],
         "case_count": len(query_capture.get("rows") or ()),
         "ranking_contract": (
-            "Raw/Standalone hybrid weighted-RRF first-stage only; MRR@5 is not LLM-reranked"
+            f"{_query_contract(query_capture)}; first-stage only; MRR@5 is not LLM-reranked"
         ),
         "summaries": summaries,
         "harmful_context_rate_vs_baseline": harmful,
@@ -666,7 +691,7 @@ def run_structural_ablation(
             for topology, rows in rows_by_topology.items()
         },
         "limitations": [
-            "Doc2Dial Gold spans are not exhaustive relevance annotations.",
+            _grounding_limitation(dataset),
             "This precheck cannot establish generation or citation quality.",
             "Latency is serial local retrieval on a small corpus, not a load test.",
         ],
@@ -855,7 +880,7 @@ async def run_ablation(
                 "retrieve/rerank 256/32 children nested under 1024/128 parents; "
                 "deliver deduplicated parents"
             ),
-            "fixed_query": "Raw .25 + captured Standalone .75; BM25 .75 + Dense .25; RRF k=10",
+            "fixed_query": _query_contract(query_capture),
             "selection": "hard gates first; no weighted aggregate score",
         },
         "models": policy.to_dict(),
@@ -877,7 +902,7 @@ async def run_ablation(
             for topology, rows in rows_by_topology.items()
         },
         "limitations": [
-            "Doc2Dial Gold spans are authoritative but not exhaustive relevance annotations.",
+            _grounding_limitation(dataset),
             "LLM Judge is uncalibrated against a fresh human-labelled sample.",
             "P95 includes provider variance and this small sample is not a load test.",
         ],

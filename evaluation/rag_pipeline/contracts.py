@@ -32,6 +32,7 @@ class EvidenceSpan:
     end_char: int
     quote: str = ""
     relevance: int = 3
+    granularity: str = "span"
 
     def __post_init__(self) -> None:
         if not self.document_id.strip():
@@ -40,6 +41,8 @@ class EvidenceSpan:
             raise ValueError("evidence span must be a non-empty half-open interval")
         if self.relevance < 0:
             raise ValueError("evidence relevance must be non-negative")
+        if self.granularity not in {"span", "document"}:
+            raise ValueError("evidence granularity must be span or document")
 
 
 @dataclass(frozen=True)

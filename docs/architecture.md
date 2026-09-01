@@ -102,7 +102,7 @@ Source document/span
 
 候选来自 Doc2Dial Dev 的 100 文档、300 case、488 个官方 grounding span；48 条多轮压力集用于有界模型评测。历史 v3 报告中 Query Recall@20 为 0.7708（Raw 0.6667），Rerank Recall@5 为 0.7500（不重排 0.5938），Generation language match 1.0、Judge grounded 0.9792、格式失败 0/48。这些生成数字不能继承给 v4：2026-09-01 重跑的三路 v4 实验中，生成合同失败/拒答率为 `85.42%–89.58%`。
 
-代码已把冻结检索配置接入 `/search` 与 `/chat`；Sparse 不再在每次查询拉全库，而是使用可从 Chroma 权威 public chunk 重建的 SQLite posting sidecar。同一批 48 条 Dev 三路对照又表明：父子 256/32→1024/128 将 Recall@20 `.8333→.9167`，但 23 条 multi-condition completeness `.8261→.7826`，harmful context `4.17%`；Neighbor 也未过门禁。所以默认仍是 512/64，Heldout 未打开，当前先修 Generation Owner 而不是上父子 Chunk。完整边界见[客服 RAG 生产化审计](./customer-service-rag-production-audit/)。
+代码已把冻结检索配置接入 `/search` 与 `/chat`；Sparse 不再在每次查询拉全库，而是使用可从 Chroma 权威 public chunk 重建的 SQLite posting sidecar。普通 Dev 上父子 256/32→1024/128 的 multi-condition completeness `.8261→.7826`。新增 `>=8000` 字符压力集后，它在 36 个 Doc2Dial span-Gold group 上把 packed evidence recall `.5278→.5833` 且 harmful `0`，但 multi-condition 不升、两次本地检索 P95 增长约 `6%–35%`；WixQA article-Gold packing 也退化。因此默认仍是 512/64，父子只作为长文档条件化候选，Heldout 未打开，当前仍先修 Generation Owner。完整边界见[客服 RAG 生产化审计](./customer-service-rag-production-audit/)。
 
 ## 意图识别的在线/离线边界
 

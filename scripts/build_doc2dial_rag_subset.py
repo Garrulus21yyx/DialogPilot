@@ -30,8 +30,13 @@ def build_subset(
     max_documents: int = 100,
     max_cases: int = 300,
     split: str = "dev",
+    min_relevant_document_chars: int = 0,
 ) -> RagDataset:
-    if max_documents < len(DOMAINS) or max_cases < len(DOMAINS):
+    if (
+        max_documents < len(DOMAINS)
+        or max_cases < len(DOMAINS)
+        or min_relevant_document_chars < 0
+    ):
         raise ValueError("limits must allow at least one document and case per domain")
     docs_by_domain = _load_archive(archive, "doc2dial_doc.json")["doc_data"]
     dialogue_file = {
@@ -47,6 +52,8 @@ def build_subset(
         domain_cases = 0
         for doc_id in sorted(dials_by_domain.get(domain, {})):
             document = docs_by_domain[domain][doc_id]
+            if len(str(document.get("doc_text") or "")) < min_relevant_document_chars:
+                continue
             spans = document["spans"]
             for dialogue in sorted(
                 dials_by_domain[domain][doc_id], key=lambda item: str(item["dial_id"]),
@@ -82,6 +89,7 @@ def build_subset(
                             "customer_support",
                             "multi_turn" if history else "standalone",
                             domain,
+                            *(["long_document"] if min_relevant_document_chars else []),
                         ],
                         "required_claims": [str(next_turn["utterance"])],
                         "forbidden_claims": [],
@@ -121,7 +129,10 @@ def build_subset(
     ][:max_cases]
     write_dataset(
         output,
-        dataset_id=f"doc2dial-rag-mini-{split}-v1",
+        dataset_id=(
+            f"doc2dial-rag-long{min_relevant_document_chars}-{split}-v1"
+            if min_relevant_document_chars else f"doc2dial-rag-mini-{split}-v1"
+        ),
         documents=documents,
         cases=cases,
         source={
@@ -129,6 +140,8 @@ def build_subset(
             "url": DOC2DIAL_URL,
             "license": "CC-BY-3.0",
             "selection": "deterministic domain-balanced prefix plus distractors",
+            "min_relevant_document_chars": min_relevant_document_chars,
+            "grounding_granularity": "character-span",
         },
     )
     return RagDataset.load(output)
@@ -141,6 +154,7 @@ def main() -> int:
     parser.add_argument("--split", choices=("dev", "heldout"), default="dev")
     parser.add_argument("--max-documents", type=int, default=100)
     parser.add_argument("--max-cases", type=int, default=300)
+    parser.add_argument("--min-relevant-document-chars", type=int, default=0)
     args = parser.parse_args()
     archive = args.archive
     if archive is None:
@@ -152,6 +166,7 @@ def main() -> int:
                 max_documents=args.max_documents,
                 max_cases=args.max_cases,
                 split=args.split,
+                min_relevant_document_chars=args.min_relevant_document_chars,
             )
     else:
         dataset = build_subset(
@@ -159,6 +174,7 @@ def main() -> int:
             max_documents=args.max_documents,
             max_cases=args.max_cases,
             split=args.split,
+            min_relevant_document_chars=args.min_relevant_document_chars,
         )
     print(json.dumps({
         "dataset_id": dataset.manifest["dataset_id"],

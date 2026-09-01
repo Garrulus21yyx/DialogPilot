@@ -95,6 +95,7 @@ def _case_from_dict(row: Mapping[str, Any]) -> RagCase:
             end_char=int(item["end_char"]),
             quote=str(item.get("quote") or ""),
             relevance=int(item.get("relevance", 3)),
+            granularity=str(item.get("granularity") or "span"),
         ) for item in row.get("evidence") or ()),
         query_types=tuple(map(str, row.get("query_types") or ())),
         required_claims=tuple(map(str, row.get("required_claims") or ())),

@@ -48,7 +48,7 @@ DialogPilot 是一个 Python 3.12 + FastAPI 的异步多 Agent 客服后端。�
 3. 主链：Bundle → Memory → Intent → RAG → Context → TaskGraph → Worker/ReAct → Coverage → Synthesis → Verification → Ticket/Persist。
 4. 学习链：Bad Case → Envelope → Attribution → 4–8 Bundles → Graduation/Pareto → Shadow → 5% → 25% → Active/Rollback。
 5. 七个最值得深挖的改动：单调事件与范围摘要 checkpoint、混合长期记忆、TaskGraph/CoverageGate、有界 ReAct 与持久审批恢复、请求预算下的结果代数、发布校验、受控 Agent 进化。
-6. 证据：350 项测试，覆盖注入防护、业务范围处置、身份/公开投影、记忆生命周期、TaskGraph DAG、审批 Resume/幂等恢复、RAG source/sparse/evidence/publish、不可变 Bundle、候选门禁、稳定分桶、Shadow 零写入和自动回滚等合同。
+6. 证据：355 项测试，覆盖注入防护、业务范围处置、身份/公开投影、记忆生命周期、TaskGraph DAG、审批 Resume/幂等恢复、RAG source/sparse/evidence/publish、不可变 Bundle、候选门禁、稳定分桶、Shadow 零写入和自动回滚等合同。
 7. 边界：已有 JWT/scope 基线；多租户 IdP/ABAC 未完成，SQLite 只适合单应用写者，普通 Trace/审计重启丢失；已有 500 条分层候选集，但尚无 human-reviewed gold，不能声称生产准确率或“完整复现 GEPA/Agent Lightning”。
 
 ## 1. 如何学习这个仓库
@@ -1236,7 +1236,7 @@ python -m compileall -q agents api core evaluation mcp memory monitor services
 python -m pytest -q
 ```
 
-当前 350 项测试按不变量分组；数量是仓库回归规模，不等于 benchmark 样本量：
+当前 355 项测试按不变量分组；数量是仓库回归规模，不等于 benchmark 样本量：
 
 ### Bad Case 闭环
 
@@ -1512,7 +1512,7 @@ python -m pytest -q
 
 ### Q2：你个人具体负责了什么？
 
-**推荐诚实答案：** 我接手的是一个已有客服原型。我负责仓库清理和 DialogPilot 命名迁移，并完成持久工单、Token/CAS 压缩、typed synthesis、TaskGraph/CoverageGate、混合记忆、用户输入注入 Guard、业务范围类型化处置、Bad Case 状态闭环、ReAct 权限/Trace、持久审批 Resume、订单/退款/安全事件业务 Owner，以及 JWT/公开投影、显式 Chroma、客服 RAG 分层评测与生产边界、分层模型/评测、不可变 AgentBundle、候选晋级和灰度回滚。当前有 350 项测试、CI、Docker 验证和架构文档。原型已有功能会按 commit 划清边界，不说成全部从零原创。
+**推荐诚实答案：** 我接手的是一个已有客服原型。我负责仓库清理和 DialogPilot 命名迁移，并完成持久工单、Token/CAS 压缩、typed synthesis、TaskGraph/CoverageGate、混合记忆、用户输入注入 Guard、业务范围类型化处置、Bad Case 状态闭环、ReAct 权限/Trace、持久审批 Resume、订单/退款/安全事件业务 Owner，以及 JWT/公开投影、显式 Chroma、客服 RAG 分层评测与生产边界、分层模型/评测、不可变 AgentBundle、候选晋级和灰度回滚。当前有 355 项测试、CI、Docker 验证和架构文档。原型已有功能会按 commit 划清边界，不说成全部从零原创。
 
 **追问：去掉你的改动还剩什么？** 仍有基础 FastAPI、三路意图、Redis/Chroma 记忆、RAG、领域 Agent、Skill、监控和评测原型；会失去真实工单闭环、Token/并发压缩不变量、TaskPlan/覆盖门禁、有类型并行结果、质量反馈、混合召回、工具权限/Trace 和 Worker ReAct。
 
@@ -1743,7 +1743,7 @@ python -m pytest -q
 
 ### Q38：当前评测数据到底有多少，能证明什么？
 
-**答：** 有三类不同口径，不能混算。第一类是 11 条意图 + 5 组对话 smoke。第二类是版本化 500 条项目 fixture：180 intent/OOS、120 routing、100 retrieval、100 stateful，配套 25 篇 corpus 和 400/100 dev/heldout，但样本仍是 provisional。第三类是独立 Doc2Dial RAG Dev 子集：100 篇文档、300 个客服 turn、4 个服务域、488 个官方 grounding span；其中 Query/Rerank/Generation 为控制模型费用，每个 dialogue 最多取一个 history 最长 turn，共 48 条压力 case。Doc2Dial 数据能支持当前 corpus 上的 stage-attributed Dev 选型，不能证明中文、多租户真实流量或长尾业务泛化。
+**答：** 有三类不同口径，不能混算。第一类是 11 条意图 + 5 组对话 smoke。第二类是版本化 500 条项目 fixture：180 intent/OOS、120 routing、100 retrieval、100 stateful，配套 25 篇 corpus 和 400/100 dev/heldout，但样本仍是 provisional。第三类是公开客服 RAG：基础 Doc2Dial Dev 为 100 篇文档、300 个客服 turn、488 个官方 grounding span，模型阶段取 48 条；长文档结构压力又增加 36 个 Doc2Dial span-Gold group 和 32 个 WixQA article-Gold group，相关文档至少 8,000 字符。Span Gold 与 article Gold 不混算，结构预检也不能继承生成质量结论。这些数据仍不能证明中文、多租户真实流量或长尾业务泛化。
 
 **不能声称什么：** 不能据此声称生产准确率、行业 SOTA 或已完成闭环。仓库新默认已接入并做了小规模 test split 冻结报告，但外部生产发布仍需要真实脱敏客服 slice、人工盲审校准 Judge、串行延迟复测，以及 shadow/canary。
 
@@ -1751,7 +1751,7 @@ python -m pytest -q
 
 **答：** 先在检索前用权威 source span 测预处理是否已经破坏证据，再固定 embedding、query、Top-K 和 reranker 做真实检索。本项目实际比较 fixed/structure-aware、256/32、384/48、512/64：先看 containment、fragmentation、index amplification 和 chunks/document，再看 Recall@20、MRR、nDCG。最终 512/64 containment 1.0、Recall@20 0.6244，高于 256/32 的 0.5622 和 384/48 的 0.5944。
 
-**为什么不能只看召回率：** 如果 source span 已在 chunk 边界被切碎，后续召回器再强也无法返回完整证据；更大 overlap 又会扩大索引和重排负担。新三路实验就是反例：父子 Chunk 把 Recall@20 `.8333→.9167`，但 multi-condition packed completeness `.8261→.7826`，还产生 `4.17%` harmful context。因此保留 fixed 512/64，不上父子 Chunk。
+**为什么不能只看召回率：** 如果 source span 已在 chunk 边界被切碎，后续召回器再强也无法返回完整证据；更大 overlap 又会扩大索引和重排负担。普通三路实验中父子 Chunk 把 Recall@20 `.8333→.9167`，但 multi-condition packed completeness `.8261→.7826`。新增 `>=8000` 字符长文档 slice 后，它在 36 个 Doc2Dial span-Gold group 上又把 packed evidence recall `.5278→.5833` 且 harmful `0`，说明长手册确有条件化收益；但 multi-condition 不升、两次本地检索 P95 增长约 `6%–35%`，WixQA multi-article packing 也退化。因此保留 fixed 512/64 全局默认，只把父子 Chunk 作为长文档动态扩展候选。
 
 ### Q40：怎样证明 query rewrite/rerank 确实有价值？
 
@@ -1840,7 +1840,7 @@ python -m pytest -q
 
 **Action：** 每个完整发布轮次立即以稳定 ID 写入 episodic，summary 退回 metadata/Prompt 背景；在用户边界内分别生成 Chroma vector 和 BM25 候选，用 0.30/0.60/0.10 权重做 RRF，recency 只重排相关候选；排除当前 `conv_id`，保留事件定位，并把最多两个旧会话命中展开成有界前后原始消息窗口；两条检索路径独立降级，并实现 Recall@K、MRR、nDCG。
 
-**Result：** 聚焦测试证明精确 ID 可修正纯向量排序、最新无关记忆不会靠时间混入、短轮次立即归档、当前会话被排除、命中能展开有界原始邻居、v1 数据可读、单路故障可降级、指标确定性；当前全仓 350 项回归通过。这里能说“建立了可回归的召回合同”，不能虚构线上提升百分比。
+**Result：** 聚焦测试证明精确 ID 可修正纯向量排序、最新无关记忆不会靠时间混入、短轮次立即归档、当前会话被排除、命中能展开有界原始邻居、v1 数据可读、单路故障可降级、指标确定性；当前全仓 355 项回归通过。这里能说“建立了可回归的召回合同”，不能虚构线上提升百分比。
 
 **简历一行（只在你能现场解释代码时使用）：**
 
@@ -2345,4 +2345,4 @@ Shadow 跑真实输入副本，但不发布、不写记忆、不建 Ticket、不
 
 ### Q92：简历怎么写？
 
-> 利用脱敏执行归因、不可变 AgentBundle 与多目标 Graduation Gate 建立 Agent 持续优化闭环，解决线上 Bad Case 直接改 Prompt 导致的版本漂移、回归不可复现和安全边界误改；结合 TaskGraph 依赖调度、持久审批 Resume、Shadow/5%/25% 灰度和硬/软自动回滚，使失败可归因、候选可验证、写操作可恢复、版本可撤销，并以 350 项回归验证合同，评测数据未获 human Gold 前不虚构生产准确率。
+> 利用脱敏执行归因、不可变 AgentBundle 与多目标 Graduation Gate 建立 Agent 持续优化闭环，解决线上 Bad Case 直接改 Prompt 导致的版本漂移、回归不可复现和安全边界误改；结合 TaskGraph 依赖调度、持久审批 Resume、Shadow/5%/25% 灰度和硬/软自动回滚，使失败可归因、候选可验证、写操作可恢复、版本可撤销，并以 355 项回归验证合同，评测数据未获 human Gold 前不虚构生产准确率。

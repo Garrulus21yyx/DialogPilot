@@ -99,7 +99,7 @@ flowchart LR
 
 仓库默认现已切到 fixed 512/64、BM25 .75/Dense .25/k=10、Raw .25/Standalone .75、20→5 和 Top-5/2600。写路径先形成 public `SourceDocument`，把 stable ID、checksum、type 和 source offset 写入 chunk；Chroma 是权威 corpus，SQLite BM25 posting 是按 corpus fingerprint 可重建投影，因此在线查询不再拉取全库。IndexManifest 与 EvidencePack 将 source/chunker/dense/sparse 版本、query variants、score/rank 和 packing drop 贯穿到生成。纯知识问答的发布候选确实不再被 Agent 二次改写，但 2026-09-01 的 48 条 Dev 真模型实验发现 grounded v4 生成合同失败/拒答率为 `85.42%–89.58%`，因此这一层是 fail-closed 但不可用，尚不能进入 Heldout/Shadow。
 
-父子 Chunk 也已真测：256/32 child → 1024/128 parent 将 Recall@20 `.8333→.9167`、reranked MRR@5 `.6597→.7285`，但 23 条多条件样本的 packed completeness `.8261→.7826`，harmful context `4.17%`，rerank typed failure `6.25%`。Neighbor 同样未过门禁，所以保留 512/64 默认，没有消费 untouched Heldout。
+父子 Chunk 也已分两层真测：普通 Doc2Dial Dev 上 256/32 child → 1024/128 parent 将 Recall@20 `.8333→.9167`，但多条件 packed completeness `.8261→.7826`。新增 `>=8000` 字符的长文档压力集后，父子在 36 个 Doc2Dial span-Gold group 上将 packed evidence recall `.5278→.5833`、harmful `0`，说明它对长手册有条件化价值；但 multi-condition 仍为 `.5000`、两次本地检索 P95 增长约 `6%–35%`，WixQA multi-article completeness 也 `.7667→.7000`。所以全局默认仍为 512/64，只把父子方案保留为长文档路由候选，没有消费 untouched Heldout。
 
 ### 为什么业务范围外请求不交给 GeneralAgent？
 
@@ -178,7 +178,7 @@ Ticket 负责用户人工处理流程，Trace 负责一次请求的诊断；二�
 
 **A：** 在 Orchestrator 增加闭合 `PlanningDisposition`，规定 `EXECUTE` 必须有 TaskGraph，`CLARIFY/OUT_OF_SCOPE` 必须无图；API 对策略终态发布固定回复并跳过模型 Verifier，`OUT_OF_SCOPE` 额外跳过 Redis/Chroma/画像写入。路由评测增加 disposition exact match，HTTP 集成测试使用会抛错的假 Worker、RAG、工具和 Verifier 证明这些路径未被调用。
 
-**R：** 越域请求公开投影为 `agent_type=orchestrator`、空 Agent/Task/Outcome、`verification_reason_code=policy_terminal`，不创建人工工单；低置信度请求仍追问，明确问候仍由 GeneralAgent 执行，当前全仓 350 项测试通过。
+**R：** 越域请求公开投影为 `agent_type=orchestrator`、空 Agent/Task/Outcome、`verification_reason_code=policy_terminal`，不创建人工工单；低置信度请求仍追问，明确问候仍由 GeneralAgent 执行，当前全仓 355 项测试通过。
 
 ## Agent 进化改造如何用 STAR 讲
 
@@ -188,7 +188,7 @@ Ticket 负责用户人工处理流程，Trace 负责一次请求的诊断；二�
 
 **A：** 将兼容 `TaskPlan` 升级为 `TaskGraph`，增加依赖波次、`context_refs` 与阻塞状态；用 SQLite RunStore 固定 task/Bundle/工具调用并通过 CAS Resume；再实现 EvolutionEnvelope、不可变 AgentBundle、GEPA-lite 受限候选、带证据 Graduation/Pareto，以及 Shadow → 5% → 25% → Active 和硬/软回滚。
 
-**R：** 请求内版本不漂移，依赖失败不再误调后继，审批重放不重复写，候选不能修改权限或绕过 Gate，灰度与回滚收敛为原子状态迁移；当前全仓 350 项测试通过。评测数据仍是 provisional，因此结果只表述为合同回归，不虚构生产准确率。
+**R：** 请求内版本不漂移，依赖失败不再误调后继，审批重放不重复写，候选不能修改权限或绕过 Gate，灰度与回滚收敛为原子状态迁移；当前全仓 355 项测试通过。评测数据仍是 provisional，因此结果只表述为合同回归，不虚构生产准确率。
 
 ## RAG 生产化改造如何用 STAR 讲
 

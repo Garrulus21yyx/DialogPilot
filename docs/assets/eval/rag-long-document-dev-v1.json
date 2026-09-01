@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "run_date": "2026-09-01",
+  "experiment": "customer-support long-document context topology structural precheck",
+  "fixed_contract": {
+    "query": "Raw-only 1.0",
+    "retrieval": "BM25 0.75 + Dense 0.25 + weighted RRF k=10",
+    "packing": "top 5 within 2600 estimated tokens",
+    "topologies": [
+      "baseline fixed 512/64",
+      "neighbor expansion around fixed 512/64 anchors",
+      "parent-child 256/32 child to 1024/128 parent"
+    ],
+    "model_calls": 0,
+    "doc2dial_repeat_runs": 2
+  },
+  "datasets": {
+    "doc2dial-rag-long8000-dev-v1": {
+      "license": "CC-BY-3.0",
+      "grounding": "character-span",
+      "corpus_documents": 100,
+      "relevant_long_documents": 19,
+      "source_cases": 209,
+      "evaluated_article_groups": 36,
+      "multi_span_groups": 16,
+      "relevant_document_chars": {
+        "min": 8348,
+        "median": 9291,
+        "p95": 18772,
+        "max": 44837
+      },
+      "corpus_sha256": "ce4db3f15c1efd3aed1d42f09fe3d22fb10920f913aaf8673058919df061109e",
+      "cases_sha256": "eb290a46c73de9cd0627fe6457d9e22e17065bf2e0b578864b487a4599f82416"
+    },
+    "wixqa-rag-long8000-dev-v1": {
+      "license": "MIT",
+      "grounding": "article-level",
+      "corpus_documents": 39,
+      "documents_at_least_8000_chars": 34,
+      "source_cases": 36,
+      "evaluated_article_groups": 32,
+      "multi_article_groups": 5,
+      "corpus_document_chars": {
+        "min": 1252,
+        "median": 9365,
+        "p95": 17187,
+        "max": 27637
+      },
+      "corpus_sha256": "442609f7b89804aa36a60e456185f5019f6cba5db45b74668fa810615d8ecfd0",
+      "cases_sha256": "e80d80f3204b5cca1763d9ef339535bab62f82cd93da0529cbde50e09e9504ee"
+    }
+  },
+  "results": {
+    "doc2dial_span_gold": {
+      "baseline-512": {
+        "candidate_recall_at_20": 0.7222222222222222,
+        "first_stage_mrr_at_5_range": [
+          0.4185185185185185,
+          0.42685185185185187
+        ],
+        "packed_evidence_recall": 0.5277777777777778,
+        "multi_condition_completeness": 0.5,
+        "harmful_context_rate_vs_baseline": 0.0,
+        "p95_retrieval_latency_ms_range": [
+          49.50739163905382,
+          55.68959657102823
+        ]
+      },
+      "neighbor-512": {
+        "candidate_recall_at_20": 0.7222222222222222,
+        "first_stage_mrr_at_5_range": [
+          0.4185185185185185,
+          0.42685185185185187
+        ],
+        "packed_evidence_recall": 0.5555555555555556,
+        "multi_condition_completeness": 0.5625,
+        "harmful_context_rate_vs_baseline": 0.027777777777777776,
+        "p95_retrieval_latency_ms_range": [
+          49.50739163905382,
+          55.68959657102823
+        ]
+      },
+      "parent-child-256-1024": {
+        "candidate_recall_at_20": 0.7222222222222222,
+        "first_stage_mrr_at_5_range": [
+          0.500925925925926,
+          0.5148148148148148
+        ],
+        "packed_evidence_recall": 0.5833333333333334,
+        "multi_condition_completeness": 0.5,
+        "harmful_context_rate_vs_baseline": 0.0,
+        "p95_retrieval_latency_ms_range": [
+          58.815819676965475,
+          66.77443441003561
+        ]
+      }
+    },
+    "wixqa_article_gold": {
+      "baseline-512": {
+        "candidate_recall_at_20": 1.0,
+        "first_stage_mrr_at_5": 0.96875,
+        "packed_document_recall": 0.9635416666666666,
+        "multi_article_completeness": 0.7666666666666666
+      },
+      "neighbor-512": {
+        "candidate_recall_at_20": 1.0,
+        "first_stage_mrr_at_5": 0.96875,
+        "packed_document_recall": 0.953125,
+        "multi_article_completeness": 0.7
+      },
+      "parent-child-256-1024": {
+        "candidate_recall_at_20": 1.0,
+        "first_stage_mrr_at_5": 0.96875,
+        "packed_document_recall": 0.953125,
+        "multi_article_completeness": 0.7
+      }
+    }
+  },
+  "decision": {
+    "global_default": "baseline-512",
+    "neighbor_passes_all_gates": false,
+    "parent_child_passes_all_gates": false,
+    "conditional_parent_child_followup": true,
+    "heldout_opened": false,
+    "reason": "Parent-child improved long Doc2Dial span localization without harmful cases, but did not improve multi-condition completeness. Across two fresh local runs its P95 retrieval latency remained higher, with a noisy growth range of about 6% to 35%. WixQA article-level Gold also showed packing regression."
+  },
+  "limitations": [
+    "This is a structural precheck without reranker, generator, or Judge calls.",
+    "WixQA evaluates relevant-article retrieval, not answer-section localization.",
+    "Local serial latency on a small corpus is not a production load test.",
+    "Doc2Dial MRR and local P95 are reported as two-run ranges because rebuilding the local approximate index produced small rank-order and timing variation; stable Recall and packing metrics drive the structural conclusion."
+  ]
+}

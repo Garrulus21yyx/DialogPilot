@@ -53,10 +53,11 @@ def build_subset(
     split: str,
     cases_per_config: int = 20,
     max_documents: int = 120,
+    min_relevant_document_chars: int = 0,
 ) -> RagDataset:
     if split not in {"dev", "heldout"}:
         raise ValueError("split must be dev or heldout")
-    if cases_per_config < 1 or max_documents < 1:
+    if cases_per_config < 1 or max_documents < 1 or min_relevant_document_chars < 0:
         raise ValueError("dataset limits must be positive")
     corpus = {
         str(row.get("id") or ""): row
@@ -71,6 +72,11 @@ def build_subset(
                 str(value) for value in (row.get("article_ids") or ()) if str(value) in corpus
             ))
             if not article_ids:
+                continue
+            if min_relevant_document_chars and max(
+                len(str(corpus[article_id].get("contents") or ""))
+                for article_id in article_ids
+            ) < min_relevant_document_chars:
                 continue
             group_id = _group(article_ids)
             if _split_for(group_id) != split:
@@ -90,6 +96,7 @@ def build_subset(
                     "end_char": len(content),
                     "quote": "",
                     "relevance": 3,
+                    "granularity": "document",
                 })
             if len(evidence) != len(article_ids):
                 continue
@@ -108,6 +115,7 @@ def build_subset(
                 "query_types": [
                     "customer_support", config,
                     "multi_article" if len(article_ids) > 1 else "single_article",
+                    *(["long_document"] if min_relevant_document_chars else []),
                 ],
                 "required_claims": [answer],
                 "forbidden_claims": [],
@@ -138,7 +146,10 @@ def build_subset(
         raise ValueError(f"no WixQA cases selected for split={split}")
     write_dataset(
         output,
-        dataset_id=f"wixqa-rag-mini-{split}-v1",
+        dataset_id=(
+            f"wixqa-rag-long{min_relevant_document_chars}-{split}-v1"
+            if min_relevant_document_chars else f"wixqa-rag-mini-{split}-v1"
+        ),
         documents=documents,
         cases=cases,
         source={
@@ -147,6 +158,7 @@ def build_subset(
             "license": "MIT",
             "snapshot": "2024-12-02",
             "selection": "article-id-group-safe deterministic 80/20 split",
+            "min_relevant_document_chars": min_relevant_document_chars,
             "grounding_granularity": "article-level; not character-span Gold",
         },
     )
@@ -172,6 +184,7 @@ def main() -> int:
     parser.add_argument("--split", choices=("dev", "heldout"), required=True)
     parser.add_argument("--cases-per-config", type=int, default=20)
     parser.add_argument("--max-documents", type=int, default=120)
+    parser.add_argument("--min-relevant-document-chars", type=int, default=0)
     args = parser.parse_args()
 
     if args.input_dir is None:
@@ -190,6 +203,7 @@ def main() -> int:
             split=args.split,
             cases_per_config=args.cases_per_config,
             max_documents=args.max_documents,
+            min_relevant_document_chars=args.min_relevant_document_chars,
         )
     finally:
         if temporary is not None:

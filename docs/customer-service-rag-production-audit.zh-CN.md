@@ -136,6 +136,17 @@ PYTHONPATH=. .venv/bin/python scripts/build_wixqa_rag_subset.py \
 PYTHONPATH=. .venv/bin/python scripts/build_wixqa_rag_subset.py \
   --split heldout --cases-per-config 20 --max-documents 120 \
   --output artifacts/eval/wixqa-rag-mini-heldout-v1
+
+# 长文档 Dev 压力集：每个 case 至少一篇相关文档 >= 8000 字符
+PYTHONPATH=. .venv/bin/python scripts/build_wixqa_rag_subset.py \
+  --split dev --cases-per-config 12 --max-documents 80 \
+  --min-relevant-document-chars 8000 \
+  --output artifacts/eval/wixqa-rag-long8000-dev-v1
+
+PYTHONPATH=. .venv/bin/python scripts/build_doc2dial_rag_subset.py \
+  --split dev --max-documents 100 --max-cases 300 \
+  --min-relevant-document-chars 8000 \
+  --output artifacts/eval/doc2dial-rag-long8000-dev-v1
 ```
 
 Builder 会记录官方 URL、MIT license、2024-12-02 KB snapshot、选择规则和 checksum。WixQA 只提供 article IDs，因此适合 document-level Recall 与 answer completeness；它不能替代 Doc2Dial 的精确字符 span 来评价 chunk containment。
@@ -201,6 +212,30 @@ PYTHONPATH=. .venv/bin/python -m evaluation.rag_context_topology_ablation \
 ```
 
 本页同时发布不含原文/回答的[脱敏摘要 JSON](../assets/eval/rag-context-topology-dev-v1.json)。
+
+### 8.1 长文档压力集
+
+为避免用短政策页替长手册下结论，又增加两套 `>=8000` 字符 Dev slice：
+
+- Doc2Dial：100 篇检索语料、19 篇带 span Gold 的相关长文档、209 个原始 case；按 dialogue 去重后评测 36 group，其中 16 个是多 span。相关长文档中位数 9,291 字符、P95 18,772、最大 44,837。
+- WixQA：36 个原始 case、39 篇相关文档，其中 34 篇至少 8,000 字符；按 article set 去重后评测 32 group，5 个是 multi-article。文档中位数 9,365 字符、P95 17,187、最大 27,637。
+
+两套 Gold 必须分开解释：Doc2Dial 是字符 span，可评价是否定位到长文正确段落；WixQA 只给 article IDs，只能评价找对文章与多文章 packing，不能冒充 section localization。
+
+本轮使用 Raw-only、BM25 `.75` + Dense `.25`、RRF `k=10`、Top-5/2600 的零模型结构预检：
+
+| Span Gold：长 Doc2Dial | Baseline 512 | Neighbor | Parent-child |
+|---|---:|---:|---:|
+| Candidate Recall@20 | `.7222` | `.7222` | `.7222` |
+| First-stage MRR@5（2 次范围） | `.4185–.4269` | `.4185–.4269` | **`.5009–.5148`** |
+| Packed evidence recall | `.5278` | `.5556` | **`.5833`** |
+| 16 条 multi-condition completeness | `.5000` | **`.5625`** | `.5000` |
+| Harmful context vs baseline | — | `2.78%` | **`0%`** |
+| Local retrieval P95（2 次范围） | `49.51–55.69ms` | `49.51–55.69ms` | `58.82–66.77ms` |
+
+长文档上父子 Chunk 确实表现出条件化价值：正确段落的 packed recall 提升 `.0556`，且没有 harmful case；但多条件完整性没有提升，两次本地检索 P95 增长约 `6%–35%`，仍未通过全局默认门禁。MRR 与毫秒延迟使用范围，是因为每次重建本地近似索引会出现小幅排序和机器负载波动；稳定不变的 Recall/packing 才是本轮结构结论。WixQA article-level 对照也没有支持全量扩展：Baseline multi-article completeness `.7667`，Neighbor/Parent-child 都是 `.7000`。
+
+因此生产选择更新为：**全局默认仍是 512/64；父子 Chunk 只进入“长文档 + 低置信度/跨段需求”的条件化候选实验，不对全部文档启用。** 结构预检没有调用 reranker、generator 或 Judge，也没有打开 Heldout。完整脱敏结果见[长文档摘要 JSON](../assets/eval/rag-long-document-dev-v1.json)。
 
 ## 9. 发布门禁
 
