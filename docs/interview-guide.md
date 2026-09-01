@@ -204,6 +204,8 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 当前 LLM listwise 是可重用现有 provider 的工程取舍，不代表已证明优于 cross-encoder。输出边界已从手写 JSON 截取迁为 PydanticAI ToolOutput：模型只抄短别名，代码要求候选集合的精确完整排列并映射回 stable ID。层级批次直接抄长 ID 时 failure `4/36`、output `37,477` tokens；短别名后 `0/36`、`4,500` tokens。Cross-encoder 仍应在同一 capture 上比较 Recall/MRR、P95、成本和错误 slice；如果它在客服域稳定且便宜，可以替换模型实现而不改变 permutation 合同。
 
+最新同候选对照已经补跑。英文 MiniLM cross-encoder 在 12 条显式双条件 stress case 上配合 query decomposition 和每条件 2 个 anchor，将 Packed `.5903→.6319`，P95 约 `2366ms→203ms`，在线 rerank Token 为 0；但有 3/12 harmful。普通 36 条长文又从 `.7222→.6111`，6/36 harmful，rank-5/6 margin 低置信回退直到 100% fallback 才恢复 `-1pp` 非劣目标。因此答案不是“cross-encoder 一定更好”，而是它证明了成本潜力，当前英文通用模型与置信信号未过客服发布门禁，线上继续使用 Flash LLM rerank。
+
 ### Q31：query rewrite 的价值和风险？
 
 模型输出先固定捕获，再离线比较 Raw、Standalone、Multi2、HyDE、All 和 raw mass .75/.50/.25。Raw .25 + Standalone .75 将 Dev Recall@20 从 0.6667 提到 0.7708，delta 95% CI `[+0.0208,+0.1875]`；Multi-query/All 的否定保留未过 .95 门槛。该 Standalone 配置现已成为仓库默认；test split 的 9 条多轮冻结样本 Recall 与 Raw 持平、MRR .3648→.4537、harmful 0。结论仍不是“扩展越多越好”，Raw 必须保留，失败时退回 Raw 1.0。

@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-01",
+  "status": "dev_and_synthetic_stress_rejected_for_release",
+  "datasets": {
+    "long_document_dev": {
+      "dataset_id": "doc2dial-rag-long8000-dev-v1",
+      "cases": 36,
+      "multi_span_cases": 16,
+      "planner_kinds": {"simple": 36, "parallel_composite": 0, "dependent": 0},
+      "note": "evidence_count>=2 usually means adjacent annotation spans, not independent conditions"
+    },
+    "parallel_stress": {
+      "dataset_id": "doc2dial-rag-parallel-stress-v1",
+      "cases": 12,
+      "construction": "same-domain pairs of existing Doc2Dial questions; Gold evidence union",
+      "planner_kinds": {"simple": 0, "parallel_composite": 12, "dependent": 0},
+      "gold_used_by_retrieval_or_selection": false
+    }
+  },
+  "long_document_dev": {
+    "flash_llm_baseline_512_64": {
+      "candidate_recall_at_20": 0.7777777777777778,
+      "selected_recall_at_5": 0.7222222222222222,
+      "packed_recall": 0.7222222222222222,
+      "p95_retrieval_selection_latency_ms": 2651.1808901256027,
+      "input_tokens": 208823,
+      "output_tokens": 4500
+    },
+    "cross_encoder_512_64": {
+      "model": "cross-encoder/ms-marco-MiniLM-L6-v2",
+      "device": "cuda:0",
+      "candidate_recall_at_20": 0.7777777777777778,
+      "selected_recall_at_5": 0.6111111111111112,
+      "packed_recall": 0.6111111111111112,
+      "harmful_cases": 6,
+      "harmful_rate": 0.16666666666666666,
+      "p95_retrieval_selection_latency_ms": 160.4016637429595,
+      "online_model_tokens": 0
+    },
+    "margin_cascade": {
+      "signal": "cross-encoder rank-5 minus rank-6 score",
+      "result": "not_calibrated_to_quality",
+      "minimum_observed_fallback_rate_for_within_1pp_of_llm_baseline": 1.0,
+      "note": "low-margin fallbacks were not monotonic in evidence recall"
+    }
+  },
+  "parallel_stress": {
+    "flash_llm_baseline_512_64": {
+      "candidate_recall_at_20": 0.7291666666666666,
+      "selected_recall_at_5": 0.5902777777777778,
+      "packed_recall": 0.5902777777777778,
+      "p95_retrieval_selection_latency_ms": 2366.187138815212,
+      "input_tokens": 69798,
+      "output_tokens": 1500
+    },
+    "decomposition_flash_set_selector_512_64": {
+      "candidate_recall_at_20": 0.7708333333333334,
+      "selected_recall_at_5": 0.4930555555555556,
+      "packed_recall": 0.4930555555555556,
+      "selection_failure_rate": 0.0,
+      "p95_retrieval_selection_latency_ms": 5408.033279488134
+    },
+    "decomposition_cross_encoder_q2_512_64": {
+      "model": "cross-encoder/ms-marco-MiniLM-L6-v2",
+      "candidate_recall_at_20": 0.7708333333333334,
+      "selected_recall_at_5": 0.6319444444444444,
+      "packed_recall": 0.6319444444444444,
+      "improved_cases": 3,
+      "unchanged_cases": 6,
+      "harmful_cases": 3,
+      "harmful_rate": 0.25,
+      "p95_retrieval_selection_latency_ms": 203.42499800026417,
+      "online_model_tokens": 0
+    },
+    "decomposition_cross_encoder_q2_dynamic_parent": {
+      "candidate_recall_at_20": 0.7152777777777778,
+      "selected_recall_at_5": 0.5208333333333334,
+      "packed_recall": 0.5902777777777778,
+      "p95_retrieval_selection_latency_ms": 279.4402193278074
+    }
+  },
+  "decision": {
+    "production_default": "unchanged: 512/64 plus Flash LLM listwise rerank",
+    "generation_and_judge": "not_run_because_upstream_gates_failed",
+    "what_worked": "decomposition improved parallel Candidate Recall by 4.17pp; local cross-encoder q2 improved mean packed recall by 4.17pp and removed online rerank tokens on the synthetic parallel slice",
+    "why_rejected": "25% harmful on parallel stress, 16.67% harmful on ordinary long-document cases, and the rank-margin fallback signal required 100% fallback to recover the 1pp non-inferiority target",
+    "next_falsifiable_candidate": "domain/multilingual cross-encoder or distillation, evaluated on natural heldout parallel queries with a calibrated fallback signal"
+  }
+}

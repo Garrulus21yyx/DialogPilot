@@ -347,6 +347,14 @@ PYTHONPATH=. .venv/bin/python -m evaluation.rag_context_topology_ablation \
 
 脱敏指标见[层级检索摘要 JSON](../assets/eval/rag-hierarchical-retrieval-dev-v1.json)。Baseline 与最终层级候选使用同一 ranking policy/model，但来自独立 provider run；本页不把小样本 P95 或随机排序差异写成负载结论。
 
+### 8.5 多条件 Owner 与 Cross-encoder 成本实验
+
+原 36 条长文集的 16 条 `evidence_count>=2` 多数是同一答案的相邻 span；规划器将 36/36 判为 `simple`，因此不能用它证明 Query decomposition。新增 12 条同领域双问题 stress case 后，规划器 12/12 输出 `parallel_composite`，且拆 Query 将 512/64 Candidate Recall `.7292→.7708`，证明多条件问题应先由 requirement Owner 拆分，而不是先升级 Parent。
+
+当前 Flash set selector 没保住这一增益，Selected/Packed 降到 `.4931`。成熟组件对照使用 `sentence-transformers CrossEncoder` 与英文 `ms-marco-MiniLM-L6-v2`：每条件保留 2 个 anchor 后 Packed 为 `.6319`，高于 Flash LLM baseline `.5903`，本次 GPU P95 约 `203ms vs 2366ms` 且在线 rerank Token 为 0。但逐 case 有 3/12 退化；普通 36 条上又从 `.7222→.6111`，6/36 harmful。rank-5/6 margin 也不能校准 fallback，达到 `-1pp` 非劣目标需要 100% 回退。
+
+因此不把“小模型更快”写成上线结论：**默认仍是 512/64 + Flash LLM rerank；decomposition、cross-encoder 和 Parent 都保持离线候选。** 本轮在上游门禁停止，没有消费 Generation/Judge。下一轮只值得测试客服域/多语言 reranker、自然多条件 Heldout 和经过校准的 fallback；不继续手调同一 12 条 stress case。完整漏斗、成本和复现命令见[客服 RAG 全链路评测第 12 节](../rag-pipeline-evaluation/#12-cross-encoder2026-09-01)，脱敏摘要见[JSON](../assets/eval/rag-multi-condition-cascade-dev-v1.json)。
+
 ## 9. 发布门禁
 
 代码合并、评测通过和生产验证是三个状态：

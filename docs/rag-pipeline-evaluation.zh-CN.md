@@ -234,6 +234,64 @@ PYTHONPATH=. .venv/bin/python -m evaluation.rag_packing_ablation \
 
 当前状态是 **retrieval baseline integrated; grounded v5 passes the Dev contract gate; topology candidates still rejected**。grounded v4 在 48 条 Dev 上的 `85.42%–89.58%` 失败/拒答仍作为历史反例；修复后同一 36 group×3 长文档链路中结构化合同错误为 `0/108`，typed abstention 为 `6/36`，claim support/citation correctness 为 `.7778–.8056`。但父子 Chunk 仍没有改善 multi-condition completeness，因此保留 512/64，修复后的 baseline 仍需 fresh Heldout、人工校准和 Shadow。
 
+## 12. 多条件拆分与低成本 Cross-encoder（2026-09-01）
+
+前一轮把 `evidence_count >= 2` 称为 multi-condition 不够准确。抽查 36 条长文 case 后发现，其中 16 条多数只是同一客服答案被标成相邻的 2–3 个 span；结构化规划器也将 36/36 判为 `simple`。因此本轮保留它作为 multi-span 完整性回归，另从已有 Doc2Dial case 构造 12 条同领域双问题压力集；每条问题显式包含两个独立 requirement，Gold 是两个原 case 的 evidence 并集，Gold 不进入规划、检索或选择。
+
+分层结果验证了两个不同 Owner：
+
+| 12 条真正并列条件 | Candidate@20 | Selected@5 | Packed | P95 检索+选择 | 在线 Rerank Token |
+|---|---:|---:|---:|---:|---:|
+| Flash LLM baseline 512/64 | `.7292` | `.5903` | `.5903` | `2366ms` | `69,798 / 1,500` |
+| 拆 Query + Flash set selector | **`.7708`** | `.4931` | `.4931` | `5408ms` | `84,815 / 1,906` |
+| 拆 Query + MiniLM cross-encoder，每条件 2 anchors | **`.7708`** | **`.6319`** | **`.6319`** | **`203ms`** | **0** |
+| 上行 + dynamic parent | `.7153` | `.5208` | `.5903` | `279ms` | **0** |
+
+因此 Query decomposition 本身有效：Candidate Recall 提升 `4.17pp`。当前瓶颈是集合选择；Flash set selector 把 Candidate→Selected 损失扩大到 `27.78pp`。英文 MiniLM + 每条件 2 anchors 在该压力集上平均 Packed 比 LLM baseline 高 `4.17pp`，约省去 90% 的本次选择 P95，并消除在线 rerank Token；但逐 case 是 3 条改善、6 条不变、3 条退化，harmful=`25%`，不能用均值宣称“不退化”。Parent 也没有在该 cross-encoder 路径上提供额外收益。
+
+普通长文反向门禁同样否决了全量替换：
+
+| 36 条普通/长文 | Flash LLM | MiniLM cross-encoder |
+|---|---:|---:|
+| Candidate Recall@20 | `.7778` | `.7778` |
+| Selected/Packed Recall@5 | **`.7222`** | `.6111` |
+| Harmful cases | — | `6/36 = 16.67%` |
+| P95 检索+选择 | `2651ms` | **`160ms`** |
+| 在线 Rerank Token | `208,823 / 4,500` | **0** |
+
+又用 rank-5 与 rank-6 的 cross-encoder 分差回放低置信 fallback。该信号与错误不单调：fallback `11.1%–61.1%` 都没有恢复质量，达到相对 LLM baseline `-1pp` 非劣界需要 `100%` fallback。因此不能把一个方便的 margin 阈值直接上线。
+
+结论是 **有成本潜力，但没有通过发布门禁**：保持 512/64 + Flash LLM rerank 默认；不运行后续 Generation/Judge。下一候选应换成客服域/多语言 cross-encoder 或蒸馏模型，并在自然的 untouched 多条件 Heldout 上校准可证明的 fallback 信号，而不是继续在这 12 条合成压力集调阈值。脱敏结果见[多条件与 Cascade 摘要 JSON](../assets/eval/rag-multi-condition-cascade-dev-v1.json)。
+
+复现命令：
+
+```bash
+PYTHONPATH=. .venv/bin/python -m evaluation.rag_parallel_stress_builder \
+  artifacts/eval/doc2dial-rag-long8000-dev-v1 \
+  --query-capture artifacts/eval/doc2dial-rag-long8000-dev-v1/query-transform-capture.json \
+  --output artifacts/eval/doc2dial-rag-parallel-stress-v1
+
+set -a; source .env; set +a
+PYTHONPATH=. .venv/bin/python -m evaluation.rag_requirement_capture \
+  artifacts/eval/doc2dial-rag-parallel-stress-v1 \
+  --query-capture artifacts/eval/doc2dial-rag-parallel-stress-v1/query-capture.json \
+  --output artifacts/eval/doc2dial-rag-parallel-stress-v1/query-requirement-capture-v1.json
+
+PYTHONPATH=. .venv/bin/python -m evaluation.rag_multi_condition_ablation \
+  artifacts/eval/doc2dial-rag-parallel-stress-v1 \
+  --query-capture artifacts/eval/doc2dial-rag-parallel-stress-v1/query-capture.json \
+  --requirement-capture artifacts/eval/doc2dial-rag-parallel-stress-v1/query-requirement-capture-v1.json \
+  --output artifacts/eval/doc2dial-rag-parallel-stress-v1/multi-condition-ablation-v1.json
+
+pip install -r requirements-semantic.txt
+PYTHONPATH=. .venv/bin/python -m evaluation.rag_cross_encoder_ablation \
+  artifacts/eval/doc2dial-rag-parallel-stress-v1 \
+  --query-capture artifacts/eval/doc2dial-rag-parallel-stress-v1/query-capture.json \
+  --requirement-capture artifacts/eval/doc2dial-rag-parallel-stress-v1/query-requirement-capture-v1.json \
+  --llm-report artifacts/eval/doc2dial-rag-parallel-stress-v1/multi-condition-ablation-v1.json \
+  --output artifacts/eval/doc2dial-rag-parallel-stress-v1/cross-encoder-ablation-v3.json
+```
+
 随后增加的长文档结构预检不改变这一默认：`>=8000` 字符的 Doc2Dial span-Gold slice 中，父子方案把 packed evidence recall `.5278→.5833` 且 harmful `0`，但 multi-condition 不升。进一步真测的 Gold-free 条件路由（Top-5 有长文档且 BM25/Dense 首名文档分歧）触发 21/36，将 Candidate `.7222→.7500`，Packed 仍为 `.5833`，级联 P95 约 `110ms`；在 WixQA 又使 packed document recall `.9635→.9531`、multi-article completeness `.7667→.7000`，harmful `3.125%`。该简单路由没有跨集泛化，保持实验失败状态。脱敏结果见[长文档摘要 JSON](../assets/eval/rag-long-document-dev-v1.json)。
 
 同一 36 group 随后补齐 Raw `.25` + Standalone `.75`、rerank 20→5 和 grounded v4：Standalone 将 baseline Candidate `.7222→.7778`；条件路由达到 Candidate `.8056`、Rerank `.7639`，但 Packing 后回到 `.7361`，与 baseline 持平，多条件完整性还从 `.7188` 降到 `.6563`，harmful `5.56%`。v4 的 `83.33%–91.67%` 失败/拒答已经用 v5 重放拆解：合同错误 `0%`，证据不足拒答 `16.67%`。因此现在的分层结论是：Rewrite 已有增益，Generation 合同已修复，拓扑增益仍没有穿透 Rerank/Packing。
