@@ -103,14 +103,14 @@ holdout；恢复 verified closure 仍需另一位 reviewer 封存新用例。
 Retrieval producer 现已接线：它把 25 篇 corpus 装入临时 embedded Chroma，调用
 生产 `KnowledgeBase` 并输出证据 ID。固定索引和 80 条 dev 的消融结果是：
 vector-only Recall@5 0.6125 / MRR 0.4852；旧 0.30/0.70 RRF 为 0.9125 / 0.7479；
-BM25-only 为 **0.9500 / 0.8575**，因此知识库默认配置改为 BM25-only。向量与 RRF
-仍是显式可配置策略，权重为 0 时不会再执行无效向量查询。冻结配置在已消费的
+BM25-only 为 **0.9500 / 0.8575**，因此该旧 fixture 当时选择 BM25-only。后来独立
+Doc2Dial 全链路实验已取代它作为当前知识 RAG 默认的选型依据；本节只保留历史证据。
+冻结配置在已消费的
 20 条 regression 上得到 Recall@5 0.9500、MRR 0.8058、nDCG@5 0.8409。
 
 Reviewer B 随后用多 chunk 文档发现父 `document_id` 被过早当成候选 ID，可能
-组合不同 chunk 的内容与 metadata。现已改为 360 Token 上限、48 Token overlap
-的结构感知切分；唯一 `chunk_id` 贯穿向量、BM25、RRF 和投影，最终才按父文档
-去重。显式两 chunk 反例与 300 组生成文档通过，原 Retrieval Dev 指标保持不变。
+组合不同 chunk 的内容与 metadata。当时修到 360/48；当前生产合同已继续迁移为
+fixed 512/64、index v4，唯一 `chunk_id` 贯穿向量、BM25、RRF、重排、packing 和引用。
 
 两次复核暴露的是同一个验收缺口。第一次发现 HTML 转义会扩大 section；第二次
 发现 section 分隔符未计费，且二次预算返还重复计算容量。现在预算唯一事实是

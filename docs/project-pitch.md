@@ -97,7 +97,7 @@ flowchart LR
 
 知识 RAG 也不是“向量搜一下就结束”。生产与评测共用 source-offset 保真的 `DocumentChunker`、QueryTransformer 和 stable-ID ResultReranker；Standalone、Multi-query、HyDE 只能生成检索提示，Raw 始终保留，HyDE 不能成为答案证据。独立 Doc2Dial Dev 实验在 100 篇文档、300 个 case、488 个官方 grounding span 上选择 fixed 512/64 与 BM25 .75/Dense .25/RRF k=10；48 条多轮压力集选择 Raw .25 + Standalone .75，并将 Recall@20 从 0.6667 提到 0.7708。LLM rerank 20→5 将 Recall@5 从 0.5938 提到 0.7500。
 
-这些是 **Dev candidate，不是当前 API 默认**：当前兼容路径仍使用 chunk 360/48、BM25-only/k=60 和 Multi-query。ContextPacker 与 grounded generator 已有严格 token、引用和 fail-closed 合同，但尚未替换 `/chat` 主链；切换默认前仍需 untouched Heldout、人工 Judge 校准、串行延迟复测和 shadow/canary。这样讲能同时回答“为什么这样设计”和“做到哪一步”，不会把离线结果包装成已上线能力。
+仓库默认现已切到 fixed 512/64、BM25 .75/Dense .25/k=10、Raw .25/Standalone .75、20→5 和 Top-5/2600；`/chat` 会生成带合法 chunk 引用的知识草稿，再由业务 Agent 组合实时工具事实并经 Verifier 发布。旧索引不兼容时 fail closed，旧 bootstrap Bundle 只在未修改的旧策略上原子迁移。Doc2Dial test split 冻结报告没有发现 harmful case，但端到端模型链只有 9 个 dialogue group；人工 Judge 校准、真实流量 shadow/canary 仍未完成，不能讲成外部生产已验证。
 
 ### 为什么业务范围外请求不交给 GeneralAgent？
 
@@ -176,7 +176,7 @@ Ticket 负责用户人工处理流程，Trace 负责一次请求的诊断；二�
 
 **A：** 在 Orchestrator 增加闭合 `PlanningDisposition`，规定 `EXECUTE` 必须有 TaskGraph，`CLARIFY/OUT_OF_SCOPE` 必须无图；API 对策略终态发布固定回复并跳过模型 Verifier，`OUT_OF_SCOPE` 额外跳过 Redis/Chroma/画像写入。路由评测增加 disposition exact match，HTTP 集成测试使用会抛错的假 Worker、RAG、工具和 Verifier 证明这些路径未被调用。
 
-**R：** 越域请求公开投影为 `agent_type=orchestrator`、空 Agent/Task/Outcome、`verification_reason_code=policy_terminal`，不创建人工工单；低置信度请求仍追问，明确问候仍由 GeneralAgent 执行，全仓 307 项测试通过。
+**R：** 越域请求公开投影为 `agent_type=orchestrator`、空 Agent/Task/Outcome、`verification_reason_code=policy_terminal`，不创建人工工单；低置信度请求仍追问，明确问候仍由 GeneralAgent 执行，全仓 329 项测试通过。
 
 ## Agent 进化改造如何用 STAR 讲
 
@@ -186,7 +186,7 @@ Ticket 负责用户人工处理流程，Trace 负责一次请求的诊断；二�
 
 **A：** 将兼容 `TaskPlan` 升级为 `TaskGraph`，增加依赖波次、`context_refs` 与阻塞状态；用 SQLite RunStore 固定 task/Bundle/工具调用并通过 CAS Resume；再实现 EvolutionEnvelope、不可变 AgentBundle、GEPA-lite 受限候选、带证据 Graduation/Pareto，以及 Shadow → 5% → 25% → Active 和硬/软回滚。
 
-**R：** 请求内版本不漂移，依赖失败不再误调后继，审批重放不重复写，候选不能修改权限或绕过 Gate，灰度与回滚收敛为原子状态迁移；当前全仓 307 项测试通过。评测数据仍是 provisional，因此结果只表述为合同回归，不虚构生产准确率。
+**R：** 请求内版本不漂移，依赖失败不再误调后继，审批重放不重复写，候选不能修改权限或绕过 Gate，灰度与回滚收敛为原子状态迁移；当前全仓 329 项测试通过。评测数据仍是 provisional，因此结果只表述为合同回归，不虚构生产准确率。
 
 ## RAG 生产化改造如何用 STAR 讲
 
@@ -196,7 +196,7 @@ Ticket 负责用户人工处理流程，Trace 负责一次请求的诊断；二�
 
 **A：** 把原文 `document_id + [start,end)` 定为唯一证据坐标，生产 KnowledgeBase 与评测共用 chunk Owner；适配 Doc2Dial 100 文档/300 case/488 spans，固定保存 Standalone/Multi2/HyDE 输出；以实体、否定、虚构实体和 harmful rate 做前置约束，再用 dialogue-group paired bootstrap 选择权重；stable chunk ID 贯穿 RRF、listwise rerank、packing 和引用，生成器按用户语言回答、非拒答必须引用、矛盾输出一次修复后 fail closed。
 
-**R：** Dev 候选从 fixed 512/64、BM25 .75/Dense .25/k=10 收敛到 Raw .25/Standalone .75、rerank 20→5、packing 2600；Query Recall@20 0.6667→0.7708，Rerank Recall@5 0.5938→0.7500，生成 language match 1.0、grounded 0.9792、格式失败 0/48。结尾必须主动说明：这些是 Dev 证据，Standalone/Packing/Generator 尚未成为 `/chat` 默认，Heldout 和人工校准仍未完成。
+**R：** Dev 从 fixed 512/64、BM25 .75/Dense .25/k=10 收敛到 Raw .25/Standalone .75、rerank 20→5、packing 2600；Query Recall@20 0.6667→0.7708，Rerank Recall@5 0.5938→0.7500，生成 language match 1.0、grounded 0.9792、格式失败 0/48。随后接入内容寻址的 `agent-v2-rag-*` 与 `/chat`，并在 Doc2Dial test 的 48 条检索/9 条多轮链路上冻结复验：query harmful 0、rerank harmful 0、生成 gate 全过。结尾主动说明 9 条端到端样本很小，人工校准和真实 shadow/canary 尚未完成。
 
 ## 意图反馈闭环如何用 STAR 讲
 
@@ -220,7 +220,7 @@ Ticket 负责用户人工处理流程，Trace 负责一次请求的诊断；二�
 
 ## 面试时应该诚实说明的指标边界
 
-调用 `/eval/run` 得到结果时，必须同时说明数据集规模、模型、日期和运行配置。仓库目前有两套不能混算的评测：500 条 provisional 四层项目 fixture + 25 篇 corpus；以及独立 Doc2Dial RAG Dev 子集 100 文档/300 case/488 spans，其中模型阶段使用 48 条多轮压力集。前者尚无独立人工 Gold，后者尚无 untouched Heldout 与人工 Judge 校准。
+调用 `/eval/run` 得到结果时，必须同时说明数据集规模、模型、日期和运行配置。仓库目前有两套不能混算的评测：500 条 provisional 四层项目 fixture + 25 篇 corpus；以及独立 Doc2Dial RAG，Dev 为 100 文档/300 case/488 spans、模型阶段 48 条多轮压力集，test 冻结报告为 40 文档/48 条检索且模型链只有 9 个 group。前者尚无独立人工 Gold，后者尚无人工 Judge 校准与真实流量灰度。
 
 因此可以说：
 

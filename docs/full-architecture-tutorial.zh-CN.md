@@ -48,7 +48,7 @@ DialogPilot 是一个 Python 3.12 + FastAPI 的异步多 Agent 客服后端。�
 3. 主链：Bundle → Memory → Intent → RAG → Context → TaskGraph → Worker/ReAct → Coverage → Synthesis → Verification → Ticket/Persist。
 4. 学习链：Bad Case → Envelope → Attribution → 4–8 Bundles → Graduation/Pareto → Shadow → 5% → 25% → Active/Rollback。
 5. 七个最值得深挖的改动：单调事件与范围摘要 checkpoint、混合长期记忆、TaskGraph/CoverageGate、有界 ReAct 与持久审批恢复、请求预算下的结果代数、发布校验、受控 Agent 进化。
-6. 证据：307 项测试，覆盖注入防护、业务范围处置、身份/公开投影、记忆生命周期、TaskGraph DAG、审批 Resume/幂等恢复、RAG stage attribution、不可变 Bundle、候选门禁、稳定分桶、Shadow 零写入和自动回滚等合同。
+6. 证据：329 项测试，覆盖注入防护、业务范围处置、身份/公开投影、记忆生命周期、TaskGraph DAG、审批 Resume/幂等恢复、RAG stage attribution、不可变 Bundle、候选门禁、稳定分桶、Shadow 零写入和自动回滚等合同。
 7. 边界：已有 JWT/scope 基线；多租户 IdP/ABAC 未完成，SQLite 只适合单应用写者，普通 Trace/审计重启丢失；已有 500 条分层候选集，但尚无 human-reviewed gold，不能声称生产准确率或“完整复现 GEPA/Agent Lightning”。
 
 ## 1. 如何学习这个仓库
@@ -454,7 +454,7 @@ SHA-256(
 
 代码：[`mcp/tool_manager.py`](../mcp/tool_manager.py)、[`mcp/knowledge_base.py`](../mcp/knowledge_base.py)、[`mcp/document_chunker.py`](../mcp/document_chunker.py)、[`mcp/query_transformer.py`](../mcp/query_transformer.py)、[`mcp/result_reranker.py`](../mcp/result_reranker.py)、[`mcp/context_packer.py`](../mcp/context_packer.py)、[`mcp/grounded_answer_generator.py`](../mcp/grounded_answer_generator.py)
 
-完整实验与复现命令见 [客服 RAG 全链路评测](./rag-pipeline-evaluation/)。阅读本章时必须区分两件事：**当前 API 默认配置**仍保持兼容值；**Doc2Dial Dev 选出的候选配置**已经有实验依据，但尚未切换线上默认，也没有通过 untouched Heldout、人工 Judge 校准和 shadow/canary。
+完整实验与复现命令见 [客服 RAG 全链路评测](./rag-pipeline-evaluation/)。阅读本章时必须区分两件事：**仓库 API 默认**已切到 Doc2Dial Dev 冻结配置并完成 test split 报告；**外部生产验证**仍缺人工 Judge 校准、真实串行 P95 和 shadow/canary。
 
 ### 7.1 为什么先做 Intent Gate
 
@@ -470,16 +470,17 @@ SHA-256(
 ```text
 原始问题
   -> QueryTransformer 生成检索提示；原问题永远保留
-  -> 当前 /search 路径：Raw + Multi-query 并行调用 knowledge_search
-  -> Dev 候选：Raw 0.25 + Standalone 0.75
+  -> /chat 有历史时：Raw 0.25 + Standalone 0.75；/search 无历史时退化为 Raw 1.0
   -> 每路分别得到 BM25 / Dense stable chunk-ID 排名
   -> weighted RRF 融合候选
   -> ResultReranker 返回经过 ID 校验的完整 permutation
-  -> 取最终 Top-K
-  -> 作为 data_only ContextSection 注入
+  -> listwise 20→5
+  -> ContextPacker Top-5/2600
+  -> GroundedAnswerGenerator 生成合法 chunk 引用的公共知识草稿
+  -> 作为 data_only ContextSection 注入，最终仍由 Agent + Verifier 发布
 ```
 
-Standalone、Multi-query 与 HyDE 都只是**检索提示**，不是证据。HyDE 只能进入 Dense 路径，生成阶段不得把假想文档当来源。模型改写失败时保留 Raw；重排失败时保留 first-stage 顺序。当前 `search_with_rewrite()` 已共用 Query/Rerank 的 prompt、解析与 fallback Owner，但仍执行兼容的 Multi-query 路径；实验选出的 Standalone 权重路由尚未接到 API 默认路径。
+Standalone、Multi-query 与 HyDE 都只是**检索提示**，不是证据。当前默认只启用 Dev 选出的 Standalone；HyDE 仍只存在于离线消融。模型改写失败或没有对话历史时使用 Raw 1.0；重排失败时保留 first-stage 顺序。查询和检索器权重在 KnowledgeBase 的同一个 weighted-RRF 空间融合，不再先按展示文本哈希合并。
 
 ### 7.3 Tool 调用合同
 
@@ -487,7 +488,7 @@ Standalone、Multi-query 与 HyDE 都只是**检索提示**，不是证据。HyD
 
 | 工具 | 类型 | 权威数据与边界 |
 |---|---|---|
-| `knowledge_search` | 只读 | 公共业务知识；BM25 默认，可配置 vector/RRF |
+| `knowledge_search` | 只读 | 公共业务知识；默认 BM25 .75/Dense .25、RRF k=10 |
 | `memory_search` | 只读 | 当前认证用户的跨会话记忆；`user_id` 只来自可信上下文 |
 | `support_ticket_list` | 只读 | 只列出当前认证用户自己的工单，最多 20 条 |
 | `support_ticket_get` | 只读 | 工单快照与审计事件；即使猜到他人 ID 也按不存在处理 |
@@ -532,13 +533,13 @@ stateDiagram-v2
 
 - collection 名为 `knowledge_base`；
 - 首次为空时导入默认客服文档；
-- 当前 API 环境默认仍按 360 Token 估算上限、48 Token overlap 切片；生产与评测已经共用保留原始 source offset 的 `DocumentChunker`；
+- 当前 API 默认按 fixed 512 Token 上限、64 Token overlap 切片；生产与评测共用保留原始 source offset 的 `DocumentChunker`；
 - corpus `document_id` 是父身份，`document_id::chunk-N` 是向量/BM25/RRF 候选身份；
-- KnowledgeBase 支持 Dense、BM25 与 stable-ID weighted RRF；兼容默认仍是 BM25-only，向量权重为 0 时不执行向量查询；
+- KnowledgeBase 在同一 stable-ID weighted-RRF 空间融合 Raw/Standalone 与 Dense/BM25；默认权重为 query `.25/.75`、retriever `.25/.75`；
 - `RAG_VECTOR_WEIGHT`、`RAG_LEXICAL_WEIGHT` 与 `RAG_RRF_K` 显式记录实际策略；改权重后必须重新跑 dev 消融；
 - `CHROMA_MODE=remote` 连接失败时启动失败；只有显式 `embedded` 才使用 PersistentClient，因此不会产生两套无自动合并的物理存储。
 
-旧实现曾在切片前对全文 `strip()`，使带前导空白的官方 evidence span 与 chunk offset 漂移。现在 source document 的字符坐标是权威事实，chunk 只是在特定配置下的投影；metadata 记录 `chunking_version=3`、策略、预算、overlap 与 source start/end。切换 512/64 必须从原始文档重建索引，不能把旧 chunk 重新拼接后冒充原文。
+旧实现曾在切片前对全文 `strip()`，使带前导空白的官方 evidence span 与 chunk offset 漂移。现在 source document 的字符坐标是权威事实，chunk 只是在特定配置下的投影；metadata 记录 `chunking_version=4`、策略、预算、overlap 与 source start/end。非空索引合同不匹配时启动直接失败，必须从原始文档重建，不能把旧 chunk 重新拼接后冒充原文。
 
 ### 7.7 Doc2Dial Dev 全链路消融
 
@@ -557,7 +558,7 @@ stateDiagram-v2
 
 Multi-query/All 在个别点估计上有更高 Recall，但否定保留只有 0.9167/0.9271，未过 .95 门槛。推荐 Query 相对 Raw 的 Recall delta 为 `+0.1042`，dialogue-group paired bootstrap 95% CI `[+0.0208,+0.1875]`；不是凭经验设置 `.25/.75`。重排三项质量 delta 的区间也都高于零，但这些仍只是 Dev evidence。
 
-`ContextPacker` 和 `GroundedAnswerGenerator` 已形成可复用 Owner 与评测入口：Context 严格不超预算，可按 source overlap 去重；Generation 只允许引用已打包 chunk ID，非拒答必须有引用，矛盾输出最多修复一次后 fail closed。它们尚未替换 `/chat` 当前 ContextSection/Synthesis 主链，不能把“有生产合同”表述成“已经灰度上线”。
+`ContextPacker` 和 `GroundedAnswerGenerator` 现已接入 `/chat` 知识投影边界：Context 严格不超 Top-5/2600，可按 source overlap 去重；Generation 只允许引用已打包 chunk ID，非拒答必须有引用，矛盾输出最多修复一次后 fail closed。该输出是公共知识草稿，不覆盖实时业务工具，最终回答仍经过 Agent 编排和 Verifier。Doc2Dial test 冻结报告通过离线 gate，但只有 9 个多轮 group；尚未完成人工 Judge 校准和真实流量 shadow/canary。
 
 ### 7.8 有界 ReAct，而不是开放式自治
 
@@ -1103,7 +1104,7 @@ Monitor 每隔 N 秒：
 
 ### 15.5 什么能说，什么不能说
 
-可以说：“建立了版本化四层评测合同、公开数据适配、split/checksum/review 门禁、Stateful Owner fixture 和隔离 RAG producer。”原 500 条项目集的 **provisional** 结果为：Intent 170/180（Accuracy 0.9444）；Fast Routing 120/120 且 LLM 0 调用；其中 100 条 Retrieval fixture 的 dev 曾选择 BM25-only，Recall@5 0.9500、MRR 0.8575，已消费 regression 为 0.9500/0.8058；Stateful 80/80 dev、20/20 已消费回归。另有独立的 Doc2Dial RAG Dev 全链路实验：100 文档、300 case，选择 512/64、BM25 .75/Dense .25/RRF k=10，并在 48 条多轮压力集继续评测 Query、Rerank、Packing 与 Generation。两套口径的数据、任务和 Top-K 不同，不能横向拼成一个“总准确率”，也不能写成生产准确率；仍缺 human-reviewed gold、untouched Heldout 和线上 shadow/canary。
+可以说：“建立了版本化四层评测合同、公开数据适配、split/checksum/review 门禁、Stateful Owner fixture 和隔离 RAG producer。”原 500 条项目集的 **provisional** 结果与独立 Doc2Dial RAG 不能横向拼成一个总分。Doc2Dial Dev 用 100 文档/300 case 选择 512/64、BM25 .75/Dense .25/RRF k=10，并在 48 条多轮压力集选择 Query、Rerank、Packing 与 Generation；冻结配置随后在 test split 的 40 文档/48 条检索上报告，模型全链只覆盖 9 个 dialogue group。代码已切默认，但仍不能写成生产准确率；缺 human-reviewed gold、人工 Judge 校准和线上 shadow/canary。
 
 ### 15.6 线上 Bad Case 怎样真正闭环
 
@@ -1196,9 +1197,10 @@ Prometheus :9090
 | `REDIS_URL` | 工作记忆 |
 | `CHROMA_HOST/PORT/PERSIST_DIRECTORY` | Chroma 服务或本地路径 |
 | `CHROMA_MODE` | `remote` 失败即停止；`embedded` 只写本地路径 |
-| `RAG_CHUNK_MAX_TOKENS` | RAG 片段估算上限 360 Token；优先段落/句末边界 |
-| `RAG_CHUNK_OVERLAP_TOKENS` | 相邻 RAG 片段重叠预算 48 Token，必须小于片段上限 |
-| `RAG_VECTOR_WEIGHT/RAG_LEXICAL_WEIGHT/RAG_RRF_K` | 当前兼容默认 0/1/60；Doc2Dial Dev 候选为 .25/.75/10，切换前必须重建索引并过 Heldout/灰度门禁 |
+| `RAG_CHUNK_MAX_TOKENS` | RAG fixed chunk 上限 512 estimated tokens |
+| `RAG_CHUNK_OVERLAP_TOKENS` | 相邻 RAG 片段重叠预算 64 Token，必须小于片段上限 |
+| `RAG_CHUNK_STRATEGY` | 默认 `fixed_tokens`；非空旧索引合同不匹配会拒绝启动 |
+| `RAG_VECTOR_WEIGHT/RAG_LEXICAL_WEIGHT/RAG_RRF_K` | 当前默认 .25/.75/10；first-stage candidate 20 由 Bundle 固定 |
 | `INTENT_SIMILARITY_MODE` | `ngram` 或 `disabled`，不再由 provider base URL 猜测 |
 | `INTENT_CACHE_TTL_SECONDS` | 进程内识别结果默认 TTL 3600 秒；低置信度和账户安全最多 300 秒 |
 | `TICKET_DB_PATH` | SQLite 工单文件 |
@@ -1231,7 +1233,7 @@ python -m compileall -q agents api core evaluation mcp memory monitor services
 python -m pytest -q
 ```
 
-当前 307 项测试按不变量分组；数量是仓库回归规模，不等于 benchmark 样本量：
+当前 329 项测试按不变量分组；数量是仓库回归规模，不等于 benchmark 样本量：
 
 ### Bad Case 闭环
 
@@ -1507,7 +1509,7 @@ python -m pytest -q
 
 ### Q2：你个人具体负责了什么？
 
-**推荐诚实答案：** 我接手的是一个已有客服原型。我负责仓库清理和 DialogPilot 命名迁移，并完成持久工单、Token/CAS 压缩、typed synthesis、TaskGraph/CoverageGate、混合记忆、用户输入注入 Guard、业务范围类型化处置、Bad Case 状态闭环、ReAct 权限/Trace、持久审批 Resume、订单/退款/安全事件业务 Owner，以及 JWT/公开投影、显式 Chroma、客服 RAG 分层评测、分层模型/评测、不可变 AgentBundle、候选晋级和灰度回滚。当前有 307 项测试、CI、Docker 验证和架构文档。原型已有功能会按 commit 划清边界，不说成全部从零原创。
+**推荐诚实答案：** 我接手的是一个已有客服原型。我负责仓库清理和 DialogPilot 命名迁移，并完成持久工单、Token/CAS 压缩、typed synthesis、TaskGraph/CoverageGate、混合记忆、用户输入注入 Guard、业务范围类型化处置、Bad Case 状态闭环、ReAct 权限/Trace、持久审批 Resume、订单/退款/安全事件业务 Owner，以及 JWT/公开投影、显式 Chroma、客服 RAG 分层评测、分层模型/评测、不可变 AgentBundle、候选晋级和灰度回滚。当前有 329 项测试、CI、Docker 验证和架构文档。原型已有功能会按 commit 划清边界，不说成全部从零原创。
 
 **追问：去掉你的改动还剩什么？** 仍有基础 FastAPI、三路意图、Redis/Chroma 记忆、RAG、领域 Agent、Skill、监控和评测原型；会失去真实工单闭环、Token/并发压缩不变量、TaskPlan/覆盖门禁、有类型并行结果、质量反馈、混合召回、工具权限/Trace 和 Worker ReAct。
 
@@ -1656,11 +1658,11 @@ python -m pytest -q
 
 ### Q26：知识库的 chunk size 和 overlap 到底是多少？
 
-**答：** 要分“当前部署默认”和“Dev 候选”。[`KnowledgeBase`](../mcp/knowledge_base.py) 当前兼容默认仍是估算 Token 上限 360、overlap 48、structure-aware；[`DocumentChunker`](../mcp/document_chunker.py) 先二分找到硬上限，再尽量回退到窗口后 40% 内最后一个段落、句末或空白边界。Doc2Dial Dev 实测比较 fixed/structure-aware 与 256/384/512 多档后，候选是 **fixed 512/64**：488 个官方 span containment 1.0000、fragmentation 0、共 314 chunks。
+**答：** [`KnowledgeBase`](../mcp/knowledge_base.py) 当前默认是估算 Token 上限 512、overlap 64、fixed；Doc2Dial Dev 实测比较 fixed/structure-aware 与 256/384/512 多档后选择 **fixed 512/64**：488 个官方 span containment 1.0000、fragmentation 0、共 314 chunks。
 
 **为什么这样选：** 256/32 containment 0.9918，384/48 为 0.9980，512/64 为 1.0000；structure-aware 512/64 在这个英文客服子集上与 fixed 完全相同，因此质量相同时选择更简单的 fixed。随后真实检索 Recall@20 也从 256/32 的 0.5622、384/48 的 0.5944 提升到 512/64 的 0.6244。这个结论只对当前 Dev corpus 成立，中文 FAQ、Markdown 和表格仍要单独验证。
 
-**迁移边界：** metadata 现在记录 `chunking_version=3`、strategy、实际预算和原文 source offsets。已有旧 chunk 不会凭空获得新 overlap 或正确 offset；采用 512/64 必须从权威原文重建索引。当前环境默认尚未改成候选值，所以不能回答“线上现在就是 512/64”。
+**迁移边界：** metadata 现在记录 `chunking_version=4`、strategy、实际预算和原文 source offsets。已有旧 chunk 不会凭空获得新 overlap 或正确 offset；非空旧索引会确定性拒绝启动，必须从权威原文重建。
 
 ### Q27：一次 Prompt 的 Token 预算如何分配？
 
@@ -1670,9 +1672,9 @@ python -m pytest -q
 
 ### Q28：检索、缓存和超时的具体参数是什么？
 
-**答：** 当前 `/chat` 最终使用 Top-3 知识片段，公开 `/search` 默认 Top-5；兼容的 `search_with_rewrite()` 保留 Raw，再生成最多 3 个 Multi-query，每路至少召回 5 条并重排。`knowledge_search` TTL 是 300 秒，通用工具默认 timeout 30 秒，单 Agent deadline 默认 15 秒。独立 Dev 候选则是 Raw .25 + Standalone .75、BM25 .75 + Dense .25、RRF k=10、first-stage 20、LLM rerank 到 5、Context 上限 2600 Token；这套候选尚未成为 API 默认。
+**答：** 当前 `/chat` 有历史时使用 Raw .25 + Standalone .75；无历史或改写失败时退回 Raw 1.0，因此不带历史参数的公开 `/search` 是 Raw 路径。两者共用 BM25 .75 + Dense .25、RRF k=10、first-stage 20、LLM rerank 到 5；`/chat` 再做 Context Top-5/2600。`knowledge_search` TTL 是 300 秒，通用工具默认 timeout 30 秒，单 Agent deadline 默认 15 秒。
 
-**追问：哪些是实验结论，哪些仍是工程初值？** Chunk、first-stage 权重、Query mass、RRF k、rerank final-k 和 packing budget 有 Doc2Dial Dev 消融；TTL、timeout、Agent deadline、当前 `/chat` Top-3 和兼容 Multi-query 数仍是工程配置。不能把前者说成已上线，也不能把后者说成已寻优。
+**追问：哪些是实验结论，哪些仍是工程初值？** Chunk、first-stage 权重、Query mass、RRF k、rerank final-k 和 packing budget有 Doc2Dial Dev 消融并已成为仓库默认；TTL、timeout 与 Agent deadline 仍是工程配置。代码默认接入不等于真实流量已验证，后者仍需 shadow/canary 与 P95。
 
 ### 维度二：技术决策过程
 
@@ -1740,7 +1742,7 @@ python -m pytest -q
 
 **答：** 有三类不同口径，不能混算。第一类是 11 条意图 + 5 组对话 smoke。第二类是版本化 500 条项目 fixture：180 intent/OOS、120 routing、100 retrieval、100 stateful，配套 25 篇 corpus 和 400/100 dev/heldout，但样本仍是 provisional。第三类是独立 Doc2Dial RAG Dev 子集：100 篇文档、300 个客服 turn、4 个服务域、488 个官方 grounding span；其中 Query/Rerank/Generation 为控制模型费用，每个 dialogue 最多取一个 history 最长 turn，共 48 条压力 case。Doc2Dial 数据能支持当前 corpus 上的 stage-attributed Dev 选型，不能证明中文、多租户真实流量或长尾业务泛化。
 
-**不能声称什么：** 不能据此声称生产准确率、行业 SOTA、已经部署新默认或已完成闭环。生产发布仍需要 untouched Heldout、真实脱敏客服 slice、人工盲审校准 Judge、串行延迟复测，以及 shadow/canary。
+**不能声称什么：** 不能据此声称生产准确率、行业 SOTA 或已完成闭环。仓库新默认已接入并做了小规模 test split 冻结报告，但外部生产发布仍需要真实脱敏客服 slice、人工盲审校准 Judge、串行延迟复测，以及 shadow/canary。
 
 ### Q39：如果要验证 chunk size，从哪组实验开始？
 
@@ -1752,7 +1754,7 @@ python -m pytest -q
 
 **答：** 不是让每个配置重新调用模型。先固定保存 Raw、Standalone、Multi2、HyDE 输出，再在同一索引和同一候选输入上离线重放 query mass；用 exact entity、否定词、虚构实体、harmful rate 做前置约束，之后比较 Recall/MRR/nDCG，并按 dialogue group 做 paired bootstrap。Rerank 固定同一批 20 个 first-stage 候选，比较 no-rerank 与 listwise 20→5，同时记录 typed fallback、candidate-to-final evidence loss 和 harmful case。
 
-**当前事实：** Raw .25 + Standalone .75 相对 Raw 将 Recall@20 从 0.6667 提到 0.7708，delta 95% CI `[+0.0208,+0.1875]`；MRR 从 0.3662 提到 0.4458。Multi-query/All 因否定保留低于 .95 被拒绝。LLM rerank 将 Recall@5 从 0.5938 提到 0.7500、MRR 从 0.4330 提到 0.5903，harmful 0.0208。可以讲这些 Dev 结果，但必须同时说 48 条是多轮压力集、未过 Heldout，且 Standalone 路由还没切到 API 默认路径。
+**当前事实：** Raw .25 + Standalone .75 在 Dev 将 Recall@20 从 0.6667 提到 0.7708，delta 95% CI `[+0.0208,+0.1875]`；LLM rerank 将 Recall@5 从 0.5938 提到 0.7500。该配置已切仓库默认。Doc2Dial test 的 9 条多轮冻结样本中 Standalone Recall 与 Raw 持平、MRR .3648→.4537、harmful 0；rerank MRR@5 .4537→.6111、harmful 0。必须同时说明 test 模型链只有 9 个 group。
 
 ### 维度六：生产边界与扩展
 
@@ -1788,7 +1790,7 @@ python -m pytest -q
 
 ### Q46：现场追问到没有数据的参数怎么办？
 
-**答：** 先分三层说：当前部署值、Dev 候选、仍无证据的参数。当前 API 默认是 chunk 360/48、BM25-only、RRF k=60 和兼容 Multi-query；Doc2Dial Dev 候选是 fixed 512/64、BM25 .75/Dense .25/k=10、Raw .25/Standalone .75、rerank 20→5、packing 2600；TTL 300 秒、timeout 30 秒和 Agent deadline 15 秒仍主要是工程配置。`chunk_id` 贯穿 Dense、BM25、RRF、rerank、packing 和引用，source `document_id + [start,end)` 才是权威证据坐标。
+**答：** 先分三层说：当前仓库默认、离线证据、仍无证据的参数。当前 API 默认是 fixed 512/64、BM25 .75/Dense .25/k=10、Raw .25/Standalone .75、rerank 20→5、packing 2600；这些来自 Dev 并做了小规模 test 冻结报告。TTL 300 秒、timeout 30 秒和 Agent deadline 15 秒仍主要是工程配置。`chunk_id` 贯穿 Dense、BM25、RRF、rerank、packing 和引用，source `document_id + [start,end)` 才是权威证据坐标。
 
 **底线：** 不把 Dev candidate 说成线上默认，不把 LLM Judge 说成人工 Gold，也不虚构 benchmark、流量或事故。真实感来自能解释为什么 Multi-query 被安全门槛淘汰、为什么 2600 Token 才保住 evidence、以及哪些门槛仍未完成。
 
@@ -1835,7 +1837,7 @@ python -m pytest -q
 
 **Action：** 每个完整发布轮次立即以稳定 ID 写入 episodic，summary 退回 metadata/Prompt 背景；在用户边界内分别生成 Chroma vector 和 BM25 候选，用 0.30/0.60/0.10 权重做 RRF，recency 只重排相关候选；排除当前 `conv_id`，保留事件定位，并把最多两个旧会话命中展开成有界前后原始消息窗口；两条检索路径独立降级，并实现 Recall@K、MRR、nDCG。
 
-**Result：** 聚焦测试证明精确 ID 可修正纯向量排序、最新无关记忆不会靠时间混入、短轮次立即归档、当前会话被排除、命中能展开有界原始邻居、v1 数据可读、单路故障可降级、指标确定性；当前全仓 307 项回归通过。这里能说“建立了可回归的召回合同”，不能虚构线上提升百分比。
+**Result：** 聚焦测试证明精确 ID 可修正纯向量排序、最新无关记忆不会靠时间混入、短轮次立即归档、当前会话被排除、命中能展开有界原始邻居、v1 数据可读、单路故障可降级、指标确定性；当前全仓 329 项回归通过。这里能说“建立了可回归的召回合同”，不能虚构线上提升百分比。
 
 **简历一行（只在你能现场解释代码时使用）：**
 
@@ -2340,4 +2342,4 @@ Shadow 跑真实输入副本，但不发布、不写记忆、不建 Ticket、不
 
 ### Q92：简历怎么写？
 
-> 利用脱敏执行归因、不可变 AgentBundle 与多目标 Graduation Gate 建立 Agent 持续优化闭环，解决线上 Bad Case 直接改 Prompt 导致的版本漂移、回归不可复现和安全边界误改；结合 TaskGraph 依赖调度、持久审批 Resume、Shadow/5%/25% 灰度和硬/软自动回滚，使失败可归因、候选可验证、写操作可恢复、版本可撤销，并以 307 项回归验证合同，评测数据未获 human Gold 前不虚构生产准确率。
+> 利用脱敏执行归因、不可变 AgentBundle 与多目标 Graduation Gate 建立 Agent 持续优化闭环，解决线上 Bad Case 直接改 Prompt 导致的版本漂移、回归不可复现和安全边界误改；结合 TaskGraph 依赖调度、持久审批 Resume、Shadow/5%/25% 灰度和硬/软自动回滚，使失败可归因、候选可验证、写操作可恢复、版本可撤销，并以 329 项回归验证合同，评测数据未获 human Gold 前不虚构生产准确率。

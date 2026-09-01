@@ -55,7 +55,7 @@ PYTHONPATH=. .venv/bin/python -m evaluation.rag_chunk_ablation \
 
 结构切分 512/64 与 fixed 512/64 在本子集的结果相同，因此按“质量相同时选择更简单策略”的成本顺序选择 fixed 512/64。该结论只适用于当前 Dev corpus；中文 FAQ、表格或 Markdown 仍需单独验证。
 
-评测过程中发现并修复了旧 chunker 对全文 `strip()` 导致原始 evidence offset 漂移的问题。生产 KnowledgeBase 与评测现共用 `DocumentChunker`，并记录 source offsets；chunking version 升至 3。
+评测过程中发现并修复了旧 chunker 对全文 `strip()` 导致原始 evidence offset 漂移的问题。生产 KnowledgeBase 与评测现共用 `DocumentChunker`，并记录 source offsets；生产默认切换后 chunking version 升至 4。
 
 ## 4. 检索权重与 RRF K
 
@@ -179,7 +179,7 @@ V1/V2 报告保留了失败演进：V1 的中文提示导致跨语言 token-F1 �
 3. Context 必须保住已获得的 evidence，再最小化 token；
 4. Generation 分别报告 grounded、correct、citation、failure 和 abstention。
 
-权重只有 RRF 与 query mass，均通过固定捕获、离线网格和 paired bootstrap 选择；上线后仍需在 Heldout 和真实脱敏客服流量上复验。
+权重只有 RRF 与 query mass，均通过固定捕获、离线网格和 paired bootstrap 选择；随后冻结到 Doc2Dial test split 报告，真实脱敏客服流量仍需复验。
 
 ## 10. 验证
 
@@ -191,4 +191,45 @@ PYTHONPATH=. .venv/bin/pytest \
   tests/test_layered_eval_dataset.py -q
 ```
 
-全仓测试结果见计划文件中的 verification record。当前结论仍是 **Dev candidate**，不是 verified closure：缺少 untouched Heldout、真实延迟串行复测、人工 Judge 校准与线上 shadow/canary。
+## 11. 冻结 Test 报告与生产接入
+
+Dev 选择结束后，使用 Doc2Dial 官方 test split 构建 40 文档、48 case 的确定性子集。配置不再选择；`select_configuration()` 在 `heldout` 上始终返回 `recommended=null`。其中 Query/Rerank/Generation 为避免同一 dialogue 重复，只覆盖 9 个 group，因此这里只是小样本反证，不把它包装成高置信生产结论。
+
+```bash
+PYTHONPATH=. .venv/bin/python scripts/build_doc2dial_rag_subset.py \
+  --output artifacts/eval/doc2dial-rag-mini-heldout-v1 \
+  --split heldout --max-documents 40 --max-cases 48
+
+PYTHONPATH=. .venv/bin/python -m evaluation.rag_retrieval_ablation \
+  artifacts/eval/doc2dial-rag-mini-heldout-v1 --split heldout \
+  --chunk-strategy fixed_tokens --chunk-max-tokens 512 \
+  --chunk-overlap-tokens 64 --candidate-k 20 \
+  --output artifacts/eval/doc2dial-rag-mini-heldout-v1/retrieval-heldout.json
+
+# Query capture、query ablation、rerank 与 Dev 命令相同，只把 dataset/output 换为 heldout。
+PYTHONPATH=. .venv/bin/python -m evaluation.rag_packing_ablation \
+  artifacts/eval/doc2dial-rag-mini-heldout-v1 \
+  artifacts/eval/doc2dial-rag-mini-heldout-v1/rerank-ablation-report.json \
+  --fixed-config top5-2600 \
+  --output artifacts/eval/doc2dial-rag-mini-heldout-v1/packing-ablation-report.json
+```
+
+冻结结果：
+
+机器可读摘要及完整报告 SHA-256 见 [`docs/data/rag-heldout-summary-2026-09-01.json`](../data/rag-heldout-summary-2026-09-01.json)。
+
+| 阶段 | Test 结果 |
+|---|---|
+| First stage（48 case） | BM25 .75/Dense .25/k=10 evidence Recall@20 `.6875`，MRR `.4711`；只报告，不重选 |
+| Query（9 groups） | Raw 与 Standalone-raw25 Recall@20 均 `.6667`；MRR `.3648→.4537`；harmful `0` |
+| Rerank（9 groups） | Recall@5 均 `.6667`；MRR `.4537→.6111`；harmful `0`，typed failure `0/9` |
+| Packing | 冻结 Top-5/2600 保持 evidence recall `.6667`，平均 5 chunks / 2321 estimated tokens |
+| Generation（9 groups） | generator/Judge failure `0/0`，language `1.0`，evidence citation recall `1.0`，Judge grounded `1.0`、correct `.7778` |
+
+首次报告中 `know` 被旧 evaluator 以子串方式误识别为否定词 `no`。修复为英文词边界后，用同一模型 capture 离线重放，Standalone negation preservation 为 `1.0`；没有重调 Prompt 或权重。
+
+仓库默认已接入该冻结配置：`KnowledgeBase` fixed 512/64、BM25 .75/Dense .25/k=10；`MCPToolManager` Raw .25/Standalone .75、20→5；`/chat` 使用 Top-5/2600 packing 与 grounded v3 知识草稿。`agent-v1` 仅在仍是精确旧默认时原子迁移到内容寻址的 `agent-v2-rag-*`，自定义 Active 指针不会被覆盖；非空旧 Chroma 索引与 v4 不一致时启动 fail closed，要求从权威原文重导。
+
+当前状态是 **repository default integrated, external production unverified**：仍缺真实脱敏流量的串行 P95/P99、人工盲审对 Judge 的校准、shadow 和 canary。代码默认、离线 test 报告与外部生产验证必须分开表述。
+
+全仓验证结果与提交信息见计划文件中的 verification record。

@@ -72,7 +72,7 @@ DialogPilot 不是一条不断堆 Prompt 的调用链，而是按“谁拥有最
 
 ## 知识 RAG 的权威坐标与候选配置
 
-知识原文的 `document_id + [start_char,end_char)` 是证据事实；chunk ID、检索排名、重排、打包上下文和回答都是配置相关投影。生产 `KnowledgeBase` 与评测共用 `DocumentChunker`，metadata 记录 `chunking_version=3`、strategy、预算、overlap 和 source offsets。旧实现切片前 `strip()` 导致官方 evidence 坐标漂移的问题已在这个 Owner 修复。
+知识原文的 `document_id + [start_char,end_char)` 是证据事实；chunk ID、检索排名、重排、打包上下文和回答都是配置相关投影。生产 `KnowledgeBase` 与评测共用 `DocumentChunker`，metadata 记录 `chunking_version=4`、strategy、预算、overlap 和 source offsets。旧实现切片前 `strip()` 导致官方 evidence 坐标漂移的问题已在这个 Owner 修复。
 
 ```text
 Source document/span
@@ -85,19 +85,19 @@ Source document/span
   → GroundedAnswerGenerator（同语言 + validated citations + fail closed）
 ```
 
-当前 API 默认与 Dev 候选必须分开：
+仓库当前默认已迁移到冻结候选：
 
-| 配置面 | 当前兼容默认 | Doc2Dial Dev 候选 |
-|---|---|---|
-| Chunk | structure-aware 360/48 | fixed 512/64 |
-| First stage | BM25-only，RRF k=60 | BM25 .75 / Dense .25，k=10，candidate 20 |
-| Query | Raw + 最多 3 个 Multi-query | Raw .25 + Standalone .75 |
-| Rerank | LLM，最终按接口 Top-K | listwise 20→5 |
-| Packing/Generation | `/chat` 现有 ContextSection/Synthesis | Top-5/2600 + grounded v3 |
+| 配置面 | 当前仓库默认 |
+|---|---|
+| Chunk | fixed 512/64，index contract v4 |
+| First stage | BM25 .75 / Dense .25，RRF k=10，candidate 20 |
+| Query | Raw .25 + Standalone .75；无历史或改写失败退回 Raw 1.0 |
+| Rerank | listwise 20→5，失败保留 first-stage 顺序 |
+| Packing/Generation | Top-5/2600 + grounded v3 知识草稿，再交给 Agent/Verifier 发布链 |
 
 候选来自 Doc2Dial Dev 的 100 文档、300 case、488 个官方 grounding span；48 条多轮压力集用于有界模型评测。Query Recall@20 为 0.7708（Raw 0.6667），Rerank Recall@5 为 0.7500（不重排 0.5938），Generation language match 1.0、Judge grounded 0.9792、格式失败 0/48。安全选择不使用单一加权总分：否定/实体、非法引用、格式失败与 harmful rate 是不可补偿门槛。
 
-这些结果只授权 **Dev candidate**，没有自动修改 API 默认。Standalone 权重路由、ContextPacker 和 GroundedAnswerGenerator 尚未接入 `/chat` 主链；切换前还需原文重建索引、untouched Heldout、人工 Judge 校准、串行延迟复测和 shadow/canary。完整实验见 [客服 RAG 全链路评测](./rag-pipeline-evaluation/)。
+代码已把该配置接入 `/search` 与 `/chat`。已有 `agent-v1` 只有在仍精确使用旧检索策略时才原子迁移到内容寻址的 `agent-v2-rag-*`；自定义 Active Bundle 不会被启动过程覆盖。非空旧 Chroma 索引与 v4 合同不一致时会拒绝启动，必须从权威原文重新导入，不能混用旧 chunk。Doc2Dial test split 的 48 条检索集及 9 条 group-safe 多轮链路报告保持配置冻结：Standalone-raw25 Recall@20 与 Raw 同为 .6667、MRR .3648→.4537、harmful 0；rerank MRR@5 .4537→.6111；生成 9/9 无格式/Judge 失败并通过预设 gate。样本仍小，人工 Judge 校准、真实串行 P95 与线上 shadow/canary 尚未完成，因此“仓库默认已接入”不等于“外部生产流量已验证”。完整实验见 [客服 RAG 全链路评测](./rag-pipeline-evaluation/)。
 
 ## 意图识别的在线/离线边界
 

@@ -29,6 +29,7 @@ from typing import Any, Callable, Deque, Dict, List, Optional, Tuple
 from anthropic import AsyncAnthropic
 
 from core.model_policy import ModelProfile
+from core.rag_policy import DEFAULT_RAG_RETRIEVAL_POLICY
 from core.tracing import TraceRecorder, current_trace_id, trace_scope
 from mcp.query_transformer import QueryTransformer
 from mcp.result_reranker import ResultReranker, candidates_from_items
@@ -340,6 +341,11 @@ class MCPToolManager:
     def registered_tool_names(self) -> Tuple[str, ...]:
         """返回注册身份快照，供 Bundle 激活校验，不暴露 handler。"""
         return tuple(sorted(self._tools))
+
+    @property
+    def llm_client(self) -> Any:
+        """Shared provider client for adjacent prompt owners in the same runtime."""
+        return self._client
 
     def calls_are_parallel_safe(self, tool_names: List[str]) -> bool:
         """只有全部已注册工具都是只读时，ReAct 才能并行派发。"""
@@ -799,37 +805,43 @@ class MCPToolManager:
         context: Optional[Dict[str, Any]] = None,
     ) -> ToolResult:
         """
-        完整的检索优化链路：查询改写 → 并行召回 → 去重 → 重排 → Top-K
+        客服检索链路：Raw/Standalone → 跨查询与检索器加权 RRF → 重排 → Top-K。
 
-        这是解决"检索不全、召回不好"的完整方案。
+        Raw 永远保留；Standalone 失败时其质量退回 Raw，不会让检索变成空集。
         """
-        # 1. 查询改写：生成多角度子查询
-        sub_queries = await self.rewrite_query(query, n=3)
-        logger.info(f"查询改写: {query!r} → {sub_queries}")
-
-        # 2. 并行召回：所有子查询同时检索
-        recall_k = max(top_k, 5)
-        tasks = [
-            self.call(tool_name, {"query": q, "top_k": recall_k}, context, use_cache=True)
-            for q in sub_queries
-        ]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-
-        # 3. 合并去重（按内容哈希去重）
-        seen, merged = set(), []
-        for r in results:
-            if isinstance(r, ToolResult) and r.success and isinstance(r.data, list):
-                for item in r.data:
-                    key = hashlib.md5(str(item).encode()).hexdigest()
-                    if key not in seen:
-                        seen.add(key)
-                        merged.append(item)
-
-        if not merged:
-            return ToolResult(success=False, data=[], tool_name=tool_name, error="所有子查询均无结果")
-
-        # 4. 重排：用 LLM 对合并结果按相关性打分，取 Top-K
-        reranked = await self._rerank(query, merged, top_k)
+        context = dict(context or {})
+        policy = dict(context.get("retrieval_policy") or {})
+        history = tuple(str(item) for item in context.get("query_history") or ())
+        candidate_k = max(int(policy.get("candidate_k", DEFAULT_RAG_RETRIEVAL_POLICY["candidate_k"])), int(top_k))
+        raw_weight = float(policy.get("raw_query_weight", DEFAULT_RAG_RETRIEVAL_POLICY["raw_query_weight"]))
+        standalone_weight = float(policy.get("standalone_query_weight", DEFAULT_RAG_RETRIEVAL_POLICY["standalone_query_weight"]))
+        if raw_weight < 0 or standalone_weight < 0 or raw_weight + standalone_weight <= 0:
+            return ToolResult(
+                success=False, data=[], tool_name=tool_name,
+                error="invalid Raw/Standalone retrieval weights",
+            )
+        standalone, rewrite_error = await self._query_transformer.standalone(query, history)
+        if rewrite_error or standalone == query:
+            variants = [{"kind": "raw", "query": query, "weight": 1.0}]
+        else:
+            total = raw_weight + standalone_weight
+            variants = [
+                {"kind": "raw", "query": query, "weight": raw_weight / total},
+                {"kind": "standalone", "query": standalone, "weight": standalone_weight / total},
+            ]
+        logger.info("查询路由: %r → %s", query, variants)
+        result = await self.call(
+            tool_name,
+            {"query": query, "query_variants": variants, "top_k": candidate_k},
+            context,
+            use_cache=True,
+        )
+        if not result.success or not isinstance(result.data, list) or not result.data:
+            return ToolResult(
+                success=False, data=[], tool_name=tool_name,
+                error=result.error or "加权召回无结果",
+            )
+        reranked = await self._rerank(query, result.data[:candidate_k], top_k)
         return ToolResult(success=True, data=reranked, tool_name=tool_name, reranked=True)
 
     # ── 结果重排（解决召回不好）──────────────────────────────────────────────

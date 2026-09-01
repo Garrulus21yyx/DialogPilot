@@ -77,6 +77,7 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
         def __init__(self, **kwargs):
             captured["tool_manager"] = kwargs
             self.tools = []
+            self.llm_client = object()
 
         def register(self, tool):
             self.tools.append(tool)
@@ -133,6 +134,7 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
     monkeypatch.delenv("TICKET_DISPATCH_WEBHOOK_URL", raising=False)
     monkeypatch.setenv("CUSTOMER_OPERATIONS_DB_PATH", str(tmp_path / "operations.db"))
     monkeypatch.setenv("REACT_RUN_DB_PATH", str(tmp_path / "react-runs.db"))
+    monkeypatch.setenv("AGENT_BUNDLE_DB_PATH", str(tmp_path / "agent-bundles.db"))
     monkeypatch.setenv("REACT_RECOVERY_GRACE_SECONDS", "0")
     monkeypatch.setenv("MEMORY_TOKEN_BUDGET", "4321")
     monkeypatch.setenv("MEMORY_COMPRESSION_THRESHOLD", "0.81")

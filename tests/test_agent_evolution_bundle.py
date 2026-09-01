@@ -59,6 +59,46 @@ def test_registry_is_append_only_and_pointer_is_separate(tmp_path):
         registry.register(AgentBundle(version="agent-v2", base_version="agent-v1"))
 
 
+def test_bootstrap_successor_only_migrates_exact_legacy_retrieval_policy(tmp_path):
+    legacy_policy = {
+        "top_k": 3, "rrf_k": 60, "vector_weight": 0.0, "lexical_weight": 1.0,
+    }
+    registry = AgentBundleRegistry(str(tmp_path / "bundles.db"))
+    registry.bootstrap(AgentBundle(version="agent-v1", retrieval_policy=legacy_policy))
+    successor = AgentBundle(
+        version="agent-v2-rag", base_version="agent-v1",
+        retrieval_policy={
+            "top_k": 5, "candidate_k": 20, "context_max_tokens": 2600,
+            "rrf_k": 10, "vector_weight": 0.25, "lexical_weight": 0.75,
+            "raw_query_weight": 0.25, "standalone_query_weight": 0.75,
+        },
+    )
+
+    _, migrated = registry.bootstrap_successor(
+        successor,
+        predecessor_version="agent-v1",
+        expected_predecessor_retrieval=legacy_policy,
+    )
+
+    assert migrated is True
+    assert registry.active().version == "agent-v2-rag"
+
+
+def test_bootstrap_successor_preserves_custom_active_pointer(tmp_path):
+    registry = AgentBundleRegistry(str(tmp_path / "bundles.db"))
+    registry.bootstrap(_bundle())
+    successor = AgentBundle(version="agent-v2-rag", base_version="agent-v1")
+
+    _, migrated = registry.bootstrap_successor(
+        successor,
+        predecessor_version="agent-v1",
+        expected_predecessor_retrieval={"top_k": 3},
+    )
+
+    assert migrated is False
+    assert registry.active().version == "agent-v1"
+
+
 def test_envelope_contains_hashes_not_raw_prompt_or_output():
     envelope = EvolutionEnvelope.from_execution(
         request_id="req-1",

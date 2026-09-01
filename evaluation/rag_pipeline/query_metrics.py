@@ -10,10 +10,8 @@ from memory.hybrid_retrieval import HybridMemoryRetriever
 
 
 _ENTITY = re.compile(r"(?<![A-Za-z0-9])[A-Za-z]+[-_]?[A-Za-z0-9]*\d+[A-Za-z0-9._-]*|\b\d+(?:\.\d+)?\b")
-_NEGATIONS = (
-    "不", "不是", "不要", "不能", "没有", "未", "无需", "别",
-    "not", "no", "never", "without", "don't", "do not", "cannot", "can't",
-)
+_CJK_NEGATIONS = ("不", "不是", "不要", "不能", "没有", "未", "无需", "别")
+_EN_NEGATIONS = ("not", "no", "never", "without", "don't", "do not", "cannot", "can't")
 
 
 def extract_exact_entities(text: str) -> set[str]:
@@ -22,7 +20,12 @@ def extract_exact_entities(text: str) -> set[str]:
 
 def extract_negations(text: str) -> set[str]:
     normalized = str(text).lower()
-    return {term for term in _NEGATIONS if term in normalized}
+    found = {term for term in _CJK_NEGATIONS if term in normalized}
+    found.update(
+        term for term in _EN_NEGATIONS
+        if re.search(rf"(?<![a-z]){re.escape(term)}(?![a-z])", normalized)
+    )
+    return found
 
 
 def evaluate_query_variants(

@@ -5,7 +5,8 @@ import pytest
 
 from memory.hybrid_retrieval import HybridMemoryRetriever
 from memory.context import TokenEstimator
-from mcp.knowledge_base import KnowledgeBase
+from mcp.document_chunker import ChunkStrategy
+from mcp.knowledge_base import IncompatibleKnowledgeIndexError, KnowledgeBase
 
 
 class FakeCollection:
@@ -39,13 +40,14 @@ class FakeCollection:
         }
 
 
-def bare_knowledge_base(*, max_tokens=360, overlap_tokens=48):
+def bare_knowledge_base(*, max_tokens=512, overlap_tokens=64):
     knowledge_base = KnowledgeBase.__new__(KnowledgeBase)
     knowledge_base._collection = FakeCollection()
     knowledge_base._hybrid_retriever = HybridMemoryRetriever(recency_weight=0.0)
     knowledge_base._token_estimator = TokenEstimator()
     knowledge_base._chunk_max_tokens = max_tokens
     knowledge_base._chunk_overlap_tokens = overlap_tokens
+    knowledge_base._chunk_strategy = ChunkStrategy.FIXED_TOKENS
     return knowledge_base
 
 
@@ -61,11 +63,11 @@ def test_knowledge_base_preserves_source_document_ids_and_returns_rank_evidence(
     assert inserted == 2
     assert hits[0]["document_id"] == "kb-target"
     assert hits[0]["chunk_id"] == "kb-target::chunk-0"
-    assert "bm25" in hits[0]["sources"]
+    assert "raw:bm25" in hits[0]["sources"]
     assert "recency" not in hits[0]["sources"]
     assert knowledge_base._collection.metadatas[0]["document_id"] == "kb-target"
-    assert knowledge_base._collection.metadatas[0]["chunking_version"] == 3
-    assert knowledge_base._collection.metadatas[0]["chunk_strategy"] == "structure_aware"
+    assert knowledge_base._collection.metadatas[0]["chunking_version"] == 4
+    assert knowledge_base._collection.metadatas[0]["chunk_strategy"] == "fixed_tokens"
     assert knowledge_base._collection.metadatas[0]["source_start_char"] == 0
     assert knowledge_base._collection.metadatas[0]["source_end_char"] == len("登录错误 E401 表示令牌过期。")
 
@@ -92,7 +94,7 @@ def test_bm25_only_strategy_does_not_pay_for_unused_vector_query():
     hits = knowledge_base.search("E401", top_k=1)
 
     assert hits[0]["document_id"] == "kb-one"
-    assert hits[0]["sources"] == ["bm25"]
+    assert hits[0]["sources"] == ["raw:bm25"]
 
 
 def test_knowledge_base_exposes_retrieval_strategy_with_storage_identity(monkeypatch):
@@ -119,8 +121,33 @@ def test_knowledge_base_exposes_retrieval_strategy_with_storage_identity(monkeyp
     assert knowledge_base.storage_backend["retrieval_lexical_weight"] == "0.8"
 
 
+def test_non_empty_incompatible_index_fails_closed(monkeypatch):
+    collection = FakeCollection()
+    collection.add(
+        ids=["old::chunk-0"], documents=["旧索引"],
+        metadatas=[{
+            "chunking_version": 3,
+            "chunk_max_tokens": 360,
+            "chunk_overlap_tokens": 48,
+            "chunk_strategy": "structure_aware",
+        }],
+    )
+    backend = type("Backend", (), {
+        "mode": "embedded", "location": "/tmp/test",
+        "to_dict": lambda self: {"mode": self.mode, "location": self.location},
+    })()
+    client = type("Client", (), {
+        "get_or_create_collection": lambda self, **_kwargs: collection,
+    })()
+    monkeypatch.setattr("mcp.knowledge_base.create_chroma_client", lambda **_kwargs: (client, backend))
+
+    with pytest.raises(IncompatibleKnowledgeIndexError, match="re-import"):
+        KnowledgeBase(load_default_docs=False)
+
+
 def test_chunker_uses_token_ceiling_structure_boundaries_and_overlap():
     knowledge_base = bare_knowledge_base(max_tokens=24, overlap_tokens=5)
+    knowledge_base._chunk_strategy = ChunkStrategy.STRUCTURE_AWARE
     text = (
         "第一段介绍退款审核规则。" * 8
         + "\n第二段包含边界证据 BOUNDARY-42，必须能从相邻片段找回。" * 6
@@ -175,7 +202,7 @@ def test_multi_chunk_projection_keeps_content_metadata_and_rank_identity_aligned
     assert hit["chunk_id"] == stored_meta["chunk_id"]
 
 
-def test_parent_document_is_deduplicated_only_after_chunk_ranking():
+def test_chunk_candidates_keep_stable_ids_until_context_packing():
     knowledge_base = bare_knowledge_base(max_tokens=32, overlap_tokens=4)
     knowledge_base.add_documents([
         {"id": "parent-a", "title": "A", "content": "关键词 ALPHA。" * 100},
@@ -184,8 +211,9 @@ def test_parent_document_is_deduplicated_only_after_chunk_ranking():
 
     hits = knowledge_base.search("ALPHA", top_k=5)
 
-    assert [hit["document_id"] for hit in hits] == ["parent-a", "parent-b"]
-    assert len({hit["chunk_id"] for hit in hits}) == 2
+    assert len(hits) == 5
+    assert len({hit["chunk_id"] for hit in hits}) == 5
+    assert hits[0]["document_id"] == "parent-a"
 
 
 def test_chunker_budget_and_overlap_reconstruct_seeded_documents():
@@ -201,21 +229,17 @@ def test_chunker_budget_and_overlap_reconstruct_seeded_documents():
             rng.choice(separators) if rng.random() < 0.06 else rng.choice(alphabet)
             for _ in range(rng.randint(300, 1200))
         ).strip()
-        chunks = knowledge_base._chunk_text(text)
+        spans = knowledge_base._chunk_spans(text)
+        chunks = [span.content for span in spans]
 
         assert chunks
         assert all(knowledge_base._token_estimator.estimate(chunk) <= maximum for chunk in chunks)
-        rebuilt = chunks[0]
-        for chunk in chunks[1:]:
-            shared = max(
-                (
-                    size
-                    for size in range(min(len(rebuilt), len(chunk)), -1, -1)
-                    if rebuilt.endswith(chunk[:size])
-                ),
-                default=0,
-            )
-            rebuilt += chunk[shared:]
+        rebuilt = spans[0].content
+        previous_end = spans[0].end_char
+        for span in spans[1:]:
+            assert span.start_char <= previous_end
+            rebuilt += span.content[previous_end - span.start_char:]
+            previous_end = span.end_char
         assert rebuilt == text
 
 

@@ -165,6 +165,10 @@ async def run_generation_evaluation(
     rows = list(await asyncio.gather(*(
         one(row) for row in packing_report["recommended_rows"]
     )))
+    if not rows:
+        raise ValueError(
+            "packing report contains no rows; heldout evaluation requires an explicit frozen config"
+        )
     judge_valid = [row for row in rows if row["judge"] is not None]
     context_answerable = [row for row in rows if row["context_contains_evidence"]]
     generator_failures = sum(row["generation_error"] is not None for row in rows)
@@ -198,7 +202,10 @@ async def run_generation_evaluation(
         "dataset_id": packing_report["dataset_id"],
         "split": packing_report["split"],
         "case_count": len(rows),
-        "fixed_context_config": packing_report["selection"]["recommended"],
+        "fixed_context_config": (
+            packing_report.get("evaluated_config")
+            or packing_report["selection"]["recommended"]
+        ),
         "generation_prompt_version": GROUNDED_GENERATION_PROMPT_VERSION,
         "judge_prompt_version": JUDGE_PROMPT_VERSION,
         "models": {

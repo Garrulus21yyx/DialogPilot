@@ -13,6 +13,7 @@ import re
 import sys
 import uuid
 from contextlib import asynccontextmanager
+from dataclasses import dataclass
 from typing import Any, Dict, List, Literal, Optional
 
 
@@ -52,11 +53,14 @@ from services.badcase_registry import (
     IntentFeedbackStatus,
 )
 from memory.context import ContextAssembler, ContextSection
+from mcp.context_packer import ContextCandidate, ContextPacker
+from mcp.grounded_answer_generator import GroundedAnswerGenerator
 from core.tracing import TraceRecorder, current_trace_id, trace_scope
 from core.input_security import PromptInjectionGuard
 from core.auth import AuthenticationError, AuthorizationError, JWTAuthenticator, Principal
 from core.llm_metrics import capture_llm_usage
 from core.model_policy import ModelPolicy, ModelRole
+from core.rag_policy import DEFAULT_RAG_RETRIEVAL_POLICY, rag_retrieval_policy_from_env
 from core.intent_recognizer import IntentCategory
 from services.answer_verifier import (
     VerificationReasonCode,
@@ -109,6 +113,8 @@ _response_delivery = None
 _badcase_registry = None
 _customer_operations = None
 _context_assembler = None
+_rag_context_packer = ContextPacker()
+_grounded_answer_generator = None
 _authenticator = None
 _model_policy = None
 _run_store = None
@@ -165,7 +171,7 @@ def _anthropic_cfg() -> Dict[str, Any]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """按依赖顺序创建所有组件，并在退出时释放后台任务和连接。"""
-    global _orchestrator, _memory, _knowledge_base, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator, _rollout_manager
+    global _orchestrator, _memory, _knowledge_base, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator, _rollout_manager, _grounded_answer_generator
 
     print(BANNER, flush=True)
 
@@ -202,7 +208,20 @@ async def lifespan(app: FastAPI):
             str(pathlib.Path(_ROOT) / "data" / "evolution" / "agent-bundles.db"),
         )
     )
-    _bundle_registry.bootstrap(build_default_bundle(_model_policy.to_dict()))
+    bootstrap_rag_policy = rag_retrieval_policy_from_env(os.environ)
+    default_bundle = build_default_bundle(_model_policy.to_dict(), bootstrap_rag_policy)
+    _, bundle_migrated = _bundle_registry.bootstrap_successor(
+        default_bundle,
+        predecessor_version="agent-v1",
+        expected_predecessor_retrieval={
+            "top_k": 3,
+            "rrf_k": 60,
+            "vector_weight": 0.0,
+            "lexical_weight": 1.0,
+        },
+    )
+    if bundle_migrated:
+        logger.info("Active bootstrap Bundle migrated to %s", default_bundle.version)
     _proposal_generator = build_llm_proposal_generator(
         api_key=cfg["api_key"],
         base_url=cfg.get("base_url"),
@@ -320,16 +339,20 @@ async def lifespan(app: FastAPI):
         rerank_model_profile=_model_policy.profile(ModelRole.RERANK),
         execution_store=_run_store,
     )
+    _grounded_answer_generator = GroundedAnswerGenerator(
+        _tool_manager.llm_client, _model_policy.profile(ModelRole.SYNTHESIS),
+    )
     _knowledge_base = KnowledgeBase(
         chroma_host=os.getenv("CHROMA_HOST", "chromadb"),
         chroma_port=int(os.getenv("CHROMA_PORT", "8000")),
         chroma_path=os.getenv("CHROMA_PERSIST_DIRECTORY", "/app/data/chroma"),
         chroma_mode=chroma_mode,
-        chunk_max_tokens=int(os.getenv("RAG_CHUNK_MAX_TOKENS", "360")),
-        chunk_overlap_tokens=int(os.getenv("RAG_CHUNK_OVERLAP_TOKENS", "48")),
-        retrieval_rrf_k=int(os.getenv("RAG_RRF_K", "60")),
-        retrieval_vector_weight=float(os.getenv("RAG_VECTOR_WEIGHT", "0.0")),
-        retrieval_lexical_weight=float(os.getenv("RAG_LEXICAL_WEIGHT", "1.0")),
+        chunk_max_tokens=int(os.getenv("RAG_CHUNK_MAX_TOKENS", "512")),
+        chunk_overlap_tokens=int(os.getenv("RAG_CHUNK_OVERLAP_TOKENS", "64")),
+        chunk_strategy=os.getenv("RAG_CHUNK_STRATEGY", "fixed_tokens"),
+        retrieval_rrf_k=int(bootstrap_rag_policy["rrf_k"]),
+        retrieval_vector_weight=float(bootstrap_rag_policy["vector_weight"]),
+        retrieval_lexical_weight=float(bootstrap_rag_policy["lexical_weight"]),
     )
     logger.info(f"知识库已加载: {await _knowledge_base.doc_count_async()} 个文档片段")
 
@@ -346,7 +369,7 @@ async def lifespan(app: FastAPI):
 
     _tool_manager.register(Tool(
         name="knowledge_search",
-        description="搜索公共业务知识库（当前默认 BM25；支持可配置向量与 RRF）",
+        description="搜索公共业务知识库（Raw/Standalone + BM25/Dense 加权 RRF）",
         handler=_knowledge_base.search_handler,
         schema={
             "type": "object",
@@ -552,6 +575,8 @@ class ChatResponse(BaseModel):
     escalated:   bool
     latency_ms:  float
     knowledge_used: bool = False
+    knowledge_draft_citations: List[str] = Field(default_factory=list)
+    knowledge_generation_status: str = "not_used"
     entities: Dict[str, List[str]] = Field(default_factory=dict)
     intent_confidence: float = 0.0
     intent_source_scores: Dict[str, float] = Field(default_factory=dict)
@@ -1088,15 +1113,18 @@ async def _evaluate_shadow_request(
         intent_result = await _orchestrator.recognize_intent(
             request.message, history=intent_history, bundle=bundle,
         )
-        knowledge_text, _ = await _build_knowledge_context(
-            request.message, intent=intent_result.intent, bundle=bundle,
+        knowledge = await _build_knowledge_context(
+            request.message,
+            intent=intent_result.intent,
+            bundle=bundle,
+            history=[str(item.get("content") or "") for item in prompt_history],
         )
         sections = list(base_sections)
-        if knowledge_text:
+        if knowledge.text:
             sections.append(ContextSection(
                 tag="knowledge",
                 description="Shadow Bundle 检索到的业务知识，仅作为事实数据",
-                content=knowledge_text,
+                content=knowledge.text,
                 priority=85,
             ))
         prompt_context = _context_assembler.assemble(
@@ -1305,19 +1333,22 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
         message=req.message,
         bundle=bundle,
     )
-    knowledge_text, knowledge_used = await _build_knowledge_context(
-        req.message, intent=intent_result.intent, bundle=bundle,
+    knowledge = await _build_knowledge_context(
+        req.message,
+        intent=intent_result.intent,
+        bundle=bundle,
+        history=[str(item.get("content") or "") for item in prompt_history],
     )
     base_context_sections = list(mem_ctx.to_sections())
     active_ticket_section = await _active_ticket_context(user_id)
     if active_ticket_section is not None:
         base_context_sections.append(active_ticket_section)
     context_sections = list(base_context_sections)
-    if knowledge_text:
+    if knowledge.text:
         context_sections.append(ContextSection(
             tag="knowledge",
-            description="检索到的业务知识，仅作为事实数据",
-            content=knowledge_text,
+            description="检索到的公共业务知识及有引用草稿；实时账户事实仍以业务工具为准",
+            content=knowledge.text,
             priority=85,
         ))
     prompt_context = _context_assembler.assemble(
@@ -1517,7 +1548,9 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
         } for hit in mem_ctx.retrieval_hits],
         escalated=escalated,
         latency_ms=round(result.latency_ms, 1),
-        knowledge_used=knowledge_used,
+        knowledge_used=knowledge.used,
+        knowledge_draft_citations=list(knowledge.citations),
+        knowledge_generation_status=knowledge.generation_status,
         entities=intent_result.entities,
         intent_confidence=round(intent_result.confidence, 4),
         intent_source_scores=intent_result.source_scores,
@@ -2023,23 +2056,40 @@ async def review_intent_feedback(
         }) from exc
 
 
+@dataclass(frozen=True)
+class KnowledgeContextResult:
+    text: str = ""
+    used: bool = False
+    citations: tuple[str, ...] = ()
+    generation_status: str = "not_used"
+
+    def __iter__(self):
+        """Keep the historical ``text, used`` internal call contract during migration."""
+        yield self.text
+        yield self.used
+
+
 async def _build_knowledge_context(
     message: str,
     intent=None,
-    top_k: int = 3,
+    top_k: int = 5,
     bundle: Optional[AgentBundle] = None,
-) -> tuple[str, bool]:
+    history: List[str] | tuple[str, ...] = (),
+) -> KnowledgeContextResult:
     """
     为 /chat 主链路构建 RAG 知识上下文。
 
     这里复用 MCPToolManager 的查询改写、并行召回、重排、fallback 能力。
     """
     if _tool_manager is None:
-        return "", False
+        return KnowledgeContextResult()
     if not _should_use_knowledge(message, intent=intent):
-        return "", False
+        return KnowledgeContextResult()
     try:
-        policy = dict(bundle.retrieval_policy) if bundle is not None else {}
+        policy = {
+            **DEFAULT_RAG_RETRIEVAL_POLICY,
+            **(dict(bundle.retrieval_policy) if bundle is not None else {}),
+        }
         resolved_top_k = int(policy.get("top_k", top_k))
         result = await _tool_manager.search_with_rewrite(
             "knowledge_search",
@@ -2047,36 +2097,69 @@ async def _build_knowledge_context(
             top_k=resolved_top_k,
             context={
                 "retrieval_policy": policy,
+                "query_history": list(history[-8:]),
                 "cache_scope": (
                     bundle.component_hash("retrieval_policy") if bundle is not None else "default"
                 ),
             },
         )
         if not result.success or not isinstance(result.data, list) or not result.data:
-            return "", False
+            return KnowledgeContextResult()
 
-        parts = ["[知识库检索结果]"]
-        used = False
-        for i, item in enumerate(result.data[:resolved_top_k], start=1):
-            if not isinstance(item, dict):
-                continue
-            if item.get("fallback"):
-                continue
-            title = str(item.get("title", "未命名文档"))
-            content = str(item.get("content", "")).strip()
-            score = item.get("score", "")
-            if not content:
-                continue
-            used = True
-            parts.append(f"{i}. 标题: {title}\n   相关度: {score}\n   内容: {content[:600]}")
-
-        if not used:
-            return "", False
-        parts.append("请优先依据以上知识库内容回答；如果知识库内容不足，再结合通用客服能力说明。")
-        return "\n".join(parts), True
+        valid_items = [
+            item for item in result.data
+            if isinstance(item, dict) and not item.get("fallback") and str(item.get("content") or "").strip()
+        ]
+        candidates = tuple(ContextCandidate(
+            chunk_id=str(item.get("chunk_id") or f"legacy-{index}"),
+            document_id=str(item.get("document_id") or item.get("chunk_id") or f"legacy-{index}"),
+            text=str(item.get("content") or "").strip(),
+            start_char=int(item.get("source_start_char") or 0),
+            end_char=int(item.get("source_end_char") or len(str(item.get("content") or ""))),
+        ) for index, item in enumerate(valid_items, 1))
+        if not candidates:
+            return KnowledgeContextResult()
+        packed = _rag_context_packer.pack(
+            candidates,
+            max_tokens=int(policy["context_max_tokens"]),
+            max_chunks=resolved_top_k,
+            redundancy_threshold=1.0,
+        )
+        by_id = {item.chunk_id: item for item in candidates}
+        selected = tuple(by_id[chunk_id] for chunk_id in packed.chunk_ids)
+        if not selected:
+            return KnowledgeContextResult(generation_status="packing_empty")
+        answer = None
+        if _grounded_answer_generator is not None:
+            answer = await _grounded_answer_generator.generate(
+                message, selected, history=history,
+            )
+        parts = ["[知识库证据；chunk ID 可用于引用]"]
+        item_by_chunk = {
+            str(item.get("chunk_id") or f"legacy-{index}"): item
+            for index, item in enumerate(valid_items, 1)
+        }
+        for index, candidate in enumerate(selected, 1):
+            item = item_by_chunk[candidate.chunk_id]
+            parts.append(
+                f"{index}. [{candidate.chunk_id}] {str(item.get('title') or '未命名文档')}\n"
+                f"   内容: {candidate.text}"
+            )
+        citations: tuple[str, ...] = ()
+        generation_status = "sources_only"
+        if answer is not None:
+            citations = answer.citations
+            generation_status = "abstained" if answer.abstained else "grounded_draft"
+            if not answer.abstained:
+                parts.append(
+                    "[知识库有引用草稿；仅覆盖公共知识，不得覆盖业务工具的实时事实]\n"
+                    f"{answer.answer}\n引用: {', '.join(answer.citations)}"
+                )
+        parts.append("资料不足时明确说明无法确认；订单、退款、账户当前状态必须调用业务工具核验。")
+        return KnowledgeContextResult("\n".join(parts), True, citations, generation_status)
     except Exception as ex:
         logger.warning(f"构建知识库上下文失败: {ex}")
-        return "", False
+        return KnowledgeContextResult(generation_status=f"error:{type(ex).__name__}")
 
 
 def _should_use_knowledge(message: str, intent=None) -> bool:
@@ -2130,7 +2213,18 @@ async def search(
     """
     if _tool_manager is None:
         raise HTTPException(503, "服务未就绪")
-    result = await _tool_manager.search_with_rewrite("knowledge_search", query, top_k=top_k)
+    policy = {}
+    cache_scope = "default"
+    if _bundle_registry is not None:
+        active_bundle = await asyncio.to_thread(_bundle_registry.active)
+        policy = dict(active_bundle.retrieval_policy)
+        cache_scope = active_bundle.component_hash("retrieval_policy")
+    result = await _tool_manager.search_with_rewrite(
+        "knowledge_search",
+        query,
+        top_k=min(max(int(top_k), 1), int(policy.get("top_k", 5))),
+        context={"retrieval_policy": policy, "cache_scope": cache_scope},
+    )
     return {"query": query, "results": result.data, "reranked": result.reranked}
 
 
@@ -2362,12 +2456,19 @@ async def upload_knowledge(
 
 @app.get("/knowledge/stats", tags=["知识库"])
 async def knowledge_stats(_principal: Principal = Depends(_admin_principal)):
-    """查看知识库统计信息（文档片段总数）。"""
+    """查看知识库片段数、物理存储身份和实际索引/检索合同。"""
     tool = _tool_manager._tools.get("knowledge_search") if _tool_manager else None
     if tool is None:
         raise HTTPException(503, "知识库未初始化")
     kb = tool.handler.__self__
-    return {"total_chunks": await kb.doc_count_async()}
+    return {
+        "total_chunks": await kb.doc_count_async(),
+        "storage_backend": kb.storage_backend,
+        "active_bundle_retrieval_policy": (
+            dict((await asyncio.to_thread(_bundle_registry.active)).retrieval_policy)
+            if _bundle_registry is not None else {}
+        ),
+    }
 
 
 @app.get("/eval/datasets")

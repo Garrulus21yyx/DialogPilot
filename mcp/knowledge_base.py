@@ -18,10 +18,16 @@ from typing import Any, Dict, List, Optional
 
 from core.chroma_client import create_chroma_client
 from memory.context import TokenEstimator
+from core.rag_policy import DEFAULT_RAG_RETRIEVAL_POLICY
 from memory.hybrid_retrieval import HybridMemoryRetriever, MemoryDocument
 from mcp.document_chunker import ChunkStrategy, DocumentChunk, DocumentChunker
+from mcp.rank_fusion import fuse_rankings
 
 logger = logging.getLogger(__name__)
+
+
+class IncompatibleKnowledgeIndexError(RuntimeError):
+    """Persisted chunks were produced by a different indexing contract."""
 
 
 class KnowledgeBase:
@@ -34,9 +40,9 @@ class KnowledgeBase:
     """
 
     COLLECTION_NAME = "knowledge_base"
-    DEFAULT_CHUNK_MAX_TOKENS = 360
-    DEFAULT_CHUNK_OVERLAP_TOKENS = 48
-    CHUNKING_VERSION = 3
+    DEFAULT_CHUNK_MAX_TOKENS = 512
+    DEFAULT_CHUNK_OVERLAP_TOKENS = 64
+    CHUNKING_VERSION = 4
 
     def __init__(
         self,
@@ -48,10 +54,10 @@ class KnowledgeBase:
         collection_name: str = COLLECTION_NAME,
         chunk_max_tokens: int = DEFAULT_CHUNK_MAX_TOKENS,
         chunk_overlap_tokens: int = DEFAULT_CHUNK_OVERLAP_TOKENS,
-        chunk_strategy: ChunkStrategy | str = ChunkStrategy.STRUCTURE_AWARE,
-        retrieval_rrf_k: int = 60,
-        retrieval_vector_weight: float = 0.0,
-        retrieval_lexical_weight: float = 1.0,
+        chunk_strategy: ChunkStrategy | str = ChunkStrategy.FIXED_TOKENS,
+        retrieval_rrf_k: int = int(DEFAULT_RAG_RETRIEVAL_POLICY["rrf_k"]),
+        retrieval_vector_weight: float = float(DEFAULT_RAG_RETRIEVAL_POLICY["vector_weight"]),
+        retrieval_lexical_weight: float = float(DEFAULT_RAG_RETRIEVAL_POLICY["lexical_weight"]),
     ):
         """按显式部署模式连接 ChromaDB，不在两套物理存储间静默切换。"""
         chunk_max_tokens = int(chunk_max_tokens)
@@ -79,14 +85,57 @@ class KnowledgeBase:
 
         # 使用服务端时不传 embedding_function，让服务端处理
         # 本地模式时也不传，使用 ChromaDB 默认的（会触发模型下载）
+        collection_metadata = {
+            "description": "DialogPilot RAG 知识库",
+            **{key: str(value) for key, value in self.index_contract.items()},
+        }
         self._collection = self._client.get_or_create_collection(
             name=collection_name,
-            metadata={"description": "DialogPilot RAG 知识库"},
+            metadata=collection_metadata,
         )
 
-        # 如果知识库为空，导入默认文档
-        if load_default_docs and self._collection.count() == 0:
+        existing_count = self._collection.count()
+        if existing_count:
+            self._validate_index_contract()
+        # 空 collection 才能按当前合同导入；旧索引绝不静默混用。
+        if load_default_docs and existing_count == 0:
             self._load_default_docs()
+
+    @property
+    def index_contract(self) -> Dict[str, Any]:
+        """Return the authoritative chunking contract persisted on every chunk."""
+        return {
+            "chunking_version": self.CHUNKING_VERSION,
+            "chunk_max_tokens": self._chunk_max_tokens,
+            "chunk_overlap_tokens": self._chunk_overlap_tokens,
+            "chunk_strategy": self._chunk_strategy.value,
+        }
+
+    def _validate_index_contract(self) -> None:
+        """Reject a non-empty collection if any sampled chunk violates the contract."""
+        collection_metadata = getattr(self._collection, "metadata", None)
+        if isinstance(collection_metadata, dict):
+            actual = {
+                key: collection_metadata.get(key)
+                for key in self.index_contract
+            }
+            expected = {key: str(value) for key, value in self.index_contract.items()}
+            if actual == expected:
+                return
+        result = self._collection.get(include=["metadatas"])
+        mismatches = []
+        for index, metadata in enumerate(result.get("metadatas") or []):
+            metadata = metadata if isinstance(metadata, dict) else {}
+            actual = {key: metadata.get(key) for key in self.index_contract}
+            if actual != self.index_contract:
+                mismatches.append({"chunk": index, "actual": actual})
+                if len(mismatches) >= 3:
+                    break
+        if mismatches:
+            raise IncompatibleKnowledgeIndexError(
+                "knowledge index contract mismatch; re-import the authoritative source "
+                f"documents with expected={self.index_contract}, samples={mismatches}"
+            )
 
     @property
     def storage_backend(self) -> Dict[str, str]:
@@ -100,6 +149,9 @@ class KnowledgeBase:
             "retrieval_rrf_k": str(self._hybrid_retriever.rrf_k),
             "retrieval_vector_weight": str(self._hybrid_retriever.vector_weight),
             "retrieval_lexical_weight": str(self._hybrid_retriever.lexical_weight),
+            "index_contract_fingerprint": hashlib.sha256(
+                repr(sorted(self.index_contract.items())).encode("utf-8")
+            ).hexdigest(),
         }
 
     # ── 文档管理 ──────────────────────────────────────────────────────────────
@@ -119,7 +171,9 @@ class KnowledgeBase:
         for doc in documents:
             title   = doc.get("title", "")
             content = doc.get("content", "")
-            source_id = str(doc.get("id") or "").strip()
+            source_id = str(doc.get("id") or "").strip() or hashlib.sha256(
+                f"{title}\0{content}".encode("utf-8")
+            ).hexdigest()[:24]
             chunks = self._chunk_spans(content)
 
             for i, chunk in enumerate(chunks):
@@ -138,7 +192,7 @@ class KnowledgeBase:
                     "chunk_strategy": chunk_strategy.value,
                     "source_start_char": chunk.start_char,
                     "source_end_char": chunk.end_char,
-                    "document_id": source_id or chunk_id,
+                    "document_id": source_id,
                     "title": title,
                     "chunk_index": i,
                     "total_chunks": len(chunks),
@@ -170,19 +224,32 @@ class KnowledgeBase:
         query = str(query or "").strip()
         if not query or self._collection.count() == 0:
             return []
-        policy = dict(retrieval_policy or {})
-        retriever = HybridMemoryRetriever(
-            rrf_k=int(policy.get("rrf_k", self._hybrid_retriever.rrf_k)),
-            vector_weight=float(policy.get("vector_weight", self._hybrid_retriever.vector_weight)),
-            lexical_weight=float(policy.get("lexical_weight", self._hybrid_retriever.lexical_weight)),
-            recency_weight=0.0,
+        return self.search_variants(
+            [("raw", query, 1.0)], top_k=top_k, retrieval_policy=retrieval_policy,
         )
-        vector_results = {}
-        if retriever.vector_weight > 0:
-            vector_results = self._collection.query(
-                query_texts=[query],
-                n_results=min(max(20, int(top_k)), self._collection.count()),
-            )
+
+    def search_variants(
+        self,
+        variants: List[tuple[str, str, float]],
+        *,
+        top_k: int = 5,
+        retrieval_policy: Optional[Dict[str, Any]] = None,
+    ) -> List[Dict[str, Any]]:
+        """Fuse query variants and BM25/vector rankings in one weighted-RRF space."""
+        policy = dict(retrieval_policy or {})
+        rrf_k = int(policy.get("rrf_k", self._hybrid_retriever.rrf_k))
+        vector_weight = float(policy.get("vector_weight", self._hybrid_retriever.vector_weight))
+        lexical_weight = float(policy.get("lexical_weight", self._hybrid_retriever.lexical_weight))
+        candidate_k = max(int(policy.get("candidate_k", DEFAULT_RAG_RETRIEVAL_POLICY["candidate_k"])), int(top_k))
+        normalized = []
+        seen_kinds = set()
+        for kind, text, weight in variants:
+            kind, text, weight = str(kind), str(text).strip(), float(weight)
+            if text and weight > 0 and kind not in seen_kinds:
+                normalized.append((kind, text, weight))
+                seen_kinds.add(kind)
+        if not normalized or self._collection.count() == 0:
+            return []
         corpus_results = self._collection.get(include=["documents", "metadatas"])
 
         def documents(result: Dict[str, Any], *, nested: bool) -> List[MemoryDocument]:
@@ -205,14 +272,38 @@ class KnowledgeBase:
                     ))
             return rows
 
-        vector_documents = documents(vector_results, nested=True)
         corpus_documents = documents(corpus_results, nested=False)
-        hits = retriever.rank(
-            query,
-            vector_documents=vector_documents,
-            corpus_documents=corpus_documents,
-            # 为最终父文档去重预留候选，避免一个文档的多个 chunk 吃满 top_k。
-            top_k=max(1, len({document.memory_id for document in corpus_documents})),
+        by_chunk = {item.memory_id: item for item in corpus_documents}
+        rankings: Dict[str, List[str]] = {}
+        weights: Dict[str, float] = {}
+        ranks_by_chunk: Dict[str, Dict[str, int]] = {}
+        for kind, text, query_weight in normalized:
+            if lexical_weight > 0:
+                scores = HybridMemoryRetriever._bm25_scores(text, corpus_documents)
+                order = [
+                    chunk_id for chunk_id, score in sorted(
+                        scores.items(), key=lambda item: (-item[1], item[0]),
+                    ) if score > 0
+                ][:candidate_k]
+                source = f"{kind}:bm25"
+                rankings[source], weights[source] = order, query_weight * lexical_weight
+                for rank, chunk_id in enumerate(order, 1):
+                    ranks_by_chunk.setdefault(chunk_id, {})[source] = rank
+            if vector_weight > 0:
+                result = self._collection.query(
+                    query_texts=[text],
+                    n_results=min(candidate_k, self._collection.count()),
+                )
+                order = [item.memory_id for item in documents(result, nested=True)]
+                source = f"{kind}:vector"
+                rankings[source], weights[source] = order, query_weight * vector_weight
+                for rank, chunk_id in enumerate(order, 1):
+                    ranks_by_chunk.setdefault(chunk_id, {})[source] = rank
+        active_rankings = {key: value for key, value in rankings.items() if weights.get(key, 0) > 0}
+        if not active_rankings:
+            return []
+        fused_ids = fuse_rankings(
+            active_rankings, weights=weights, rrf_k=rrf_k, top_k=candidate_k,
         )
         metadata_by_chunk = {}
         corpus_ids = corpus_results.get("ids") or []
@@ -222,24 +313,28 @@ class KnowledgeBase:
                 metadata_by_chunk[str(meta.get("chunk_id") or stored_id)] = meta
 
         projected = []
-        seen_documents = set()
-        for hit in hits:
-            meta = metadata_by_chunk.get(hit.memory_id, {})
-            document_id = str(meta.get("document_id") or hit.memory_id)
-            if document_id in seen_documents:
+        for chunk_id in fused_ids:
+            document = by_chunk.get(chunk_id)
+            if document is None:
                 continue
-            seen_documents.add(document_id)
+            meta = metadata_by_chunk.get(chunk_id, {})
+            document_id = str(meta.get("document_id") or chunk_id)
+            source_ranks = ranks_by_chunk.get(chunk_id, {})
+            score = sum(
+                weights[source] / (rrf_k + rank)
+                for source, rank in source_ranks.items()
+            )
             projected.append({
                 "document_id": document_id,
-                "chunk_id": hit.memory_id,
+                "chunk_id": chunk_id,
                 "title": meta.get("title", ""),
-                "content": hit.content,
-                "score": round(hit.score, 8),
+                "content": document.content,
+                "score": round(score, 8),
                 "chunk": meta.get("chunk_index", 0),
                 "source_start_char": meta.get("source_start_char", 0),
-                "source_end_char": meta.get("source_end_char", len(hit.content)),
-                "sources": list(hit.sources),
-                "ranks": dict(hit.ranks),
+                "source_end_char": meta.get("source_end_char", len(document.content)),
+                "sources": list(source_ranks),
+                "ranks": dict(source_ranks),
             })
             if len(projected) >= max(1, int(top_k)):
                 break
@@ -255,6 +350,17 @@ class KnowledgeBase:
         """异步检索；ChromaDB 客户端为同步实现，因此放入线程池执行。"""
         return await asyncio.to_thread(
             self.search, query, top_k, retrieval_policy=retrieval_policy,
+        )
+
+    async def search_variants_async(
+        self,
+        variants: List[tuple[str, str, float]],
+        *,
+        top_k: int = 5,
+        retrieval_policy: Optional[Dict[str, Any]] = None,
+    ) -> List[Dict[str, Any]]:
+        return await asyncio.to_thread(
+            self.search_variants, variants, top_k=top_k, retrieval_policy=retrieval_policy,
         )
 
     @property
@@ -281,6 +387,13 @@ class KnowledgeBase:
         query = params.get("query", "")
         top_k = params.get("top_k", 5)
         policy = dict((context or {}).get("retrieval_policy") or {})
+        variants = params.get("query_variants")
+        if isinstance(variants, list):
+            parsed = [
+                (str(item.get("kind")), str(item.get("query")), float(item.get("weight", 0)))
+                for item in variants if isinstance(item, dict)
+            ]
+            return await self.search_variants_async(parsed, top_k=top_k, retrieval_policy=policy)
         return await self.search_async(query, top_k=top_k, retrieval_policy=policy)
 
     # ── 内部方法 ──────────────────────────────────────────────────────────────

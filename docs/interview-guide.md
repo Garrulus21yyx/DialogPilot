@@ -26,10 +26,10 @@ title: DialogPilot 面经校准与追问手册
 | 并行回答直接拼接 | `TaskGraph → typed outcomes → CoverageGate → ResultSynthesizer → AnswerVerifier` | **CHANGED** |
 | 消息超过 15 条压缩 | 6000 Token 预算、70% 触发；原始事件追加保留，摘要块覆盖固定 seq 范围，CAS 只推进 checkpoint | **CHANGED** |
 | 长期记忆只检索摘要 | 检索 1200 字符/120 overlap 原始片段，摘要只是背景 metadata | **CHANGED** |
-| 知识库是 BM25 + 向量 + RRF | 知识 RAG 已支持 source-offset chunk、BM25/Dense/RRF、typed query transform 与 stable-ID rerank；Dev 候选尚未切换 API 默认 | **CHANGED** |
+| 知识库是 BM25 + 向量 + RRF | 知识 RAG 已支持 source-offset chunk、Raw/Standalone + BM25/Dense/RRF、stable-ID rerank、packing 与引用草稿；候选已切换仓库默认 | **CHANGED** |
 | Agent 单次生成、无完整 Trace | Worker 内最多 4 步 ReAct，allowlist、持久审批 Resume、脱敏 audit/TraceId | **CHANGED** |
 | Bad Case 后人工直接改 Prompt | 版本归因 → 不可变 Bundle 候选 → Graduation/Pareto → Shadow/Canary/回滚 | **NEW** |
-| 准确率 91.3%、综合分 0.89 | 当前有 500 条 provisional 项目集、独立 Doc2Dial RAG Dev 和 307 项回归测试；仍无 human-reviewed 项目 Gold/RAG Heldout | **UNPROVEN** |
+| 准确率 91.3%、综合分 0.89 | 当前有 500 条 provisional 项目集、Doc2Dial Dev、48 条 test 检索/9 条多轮链路和 329 项回归测试；仍无 human-reviewed 项目 Gold | **UNPROVEN** |
 | 完整 MCP Server / LangGraph | 是内部 ToolManager 与直接 Python 编排；没有远程 MCP Server，没用 LangGraph | **UNPROVEN** |
 
 ## 项目开场与完整链路
@@ -184,13 +184,13 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q27：知识 RAG 链路是什么？
 
-权威事实是 source document 的 `document_id + [start,end)`，chunk 和排名只是投影。`DocumentChunker` 保留 source offsets；`QueryTransformer` 生成 Standalone/Multi-query/HyDE，但 Raw 必须保留、HyDE 只能检索不能作证据；KnowledgeBase 分别产生 BM25/Dense stable chunk-ID 排名并由 weighted RRF 融合；`ResultReranker` 只接受候选 ID 并补成完整 permutation，失败保留 first-stage 顺序。`ContextPacker` 与 Grounded Generator 已有生产合同，但尚未替换 `/chat` 主链。
+权威事实是 source document 的 `document_id + [start,end)`，chunk 和排名只是投影。`DocumentChunker` 保留 source offsets；`QueryTransformer` 生成 Standalone，但 Raw 必须保留，生成查询不能作证据；KnowledgeBase 在一个权重空间融合 BM25/Dense 与 Raw/Standalone stable chunk-ID 排名；`ResultReranker` 只接受候选 ID 并补成完整 permutation，失败保留 first-stage 顺序。`ContextPacker` 和 Grounded Generator 已接入 `/chat` 的知识投影边界；生成器只产出公共知识草稿，实时订单/退款/账户事实仍由业务工具拥有，最终发布仍由 Agent + Verifier 控制。
 
-必须主动区分：当前 API 默认仍是 chunk 360/48、BM25-only/k=60、兼容 Multi-query；Doc2Dial Dev 候选才是 fixed 512/64、BM25 .75/Dense .25/k=10、Raw .25/Standalone .75、rerank 20→5、packing 2600。
+当前仓库默认是 fixed 512/64、BM25 .75/Dense .25/k=10、Raw .25/Standalone .75、rerank 20→5、packing 2600。已有旧索引不会静默复用：index contract v4 不匹配就拒绝启动并要求从权威原文重导。
 
 ### Q28：知识 chunk size 和 overlap 是多少？
 
-**CHANGED。** 当前部署默认仍是 structure-aware 360/48；Doc2Dial Dev 比较 fixed/structure-aware 与 256/32、384/48、512/64 后选择 fixed 512/64。它对 488 个官方 span 的 containment 为 1.0、fragmentation 为 0，真实检索 Recall@20 为 0.6244，高于 256/32 的 0.5622 和 384/48 的 0.5944。metadata 是 `chunking_version=3` 并记录 source offsets；切换配置必须从权威原文重建索引，不能说线上已经是 512/64。
+**CHANGED。** 当前仓库默认已是 fixed 512/64。Doc2Dial Dev 比较 fixed/structure-aware 与 256/32、384/48、512/64 后选择它；对 488 个官方 span 的 containment 为 1.0、fragmentation 为 0，真实检索 Recall@20 为 0.6244，高于 256/32 的 0.5622 和 384/48 的 0.5944。metadata 是 `chunking_version=4` 并记录 source offsets；已有非空旧索引必须从权威原文重建，否则启动 fail closed。
 
 ### Q29：怎样实验 chunk 参数？
 
@@ -202,7 +202,7 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q31：query rewrite 的价值和风险？
 
-模型输出先固定捕获，再离线比较 Raw、Standalone、Multi2、HyDE、All 和 raw mass .75/.50/.25。Raw .25 + Standalone .75 将 Recall@20 从 0.6667 提到 0.7708，delta 95% CI `[+0.0208,+0.1875]`；但 Multi-query/All 的否定保留只有 0.9167/0.9271，未过 .95 门槛。结论不是“扩展越多越好”，而是 raw 必须保留、实体/否定/query drift 属于前置安全约束；当前 Standalone 候选尚未成为 API 默认。
+模型输出先固定捕获，再离线比较 Raw、Standalone、Multi2、HyDE、All 和 raw mass .75/.50/.25。Raw .25 + Standalone .75 将 Dev Recall@20 从 0.6667 提到 0.7708，delta 95% CI `[+0.0208,+0.1875]`；Multi-query/All 的否定保留未过 .95 门槛。该 Standalone 配置现已成为仓库默认；test split 的 9 条多轮冻结样本 Recall 与 Raw 持平、MRR .3648→.4537、harmful 0。结论仍不是“扩展越多越好”，Raw 必须保留，失败时退回 Raw 1.0。
 
 ### Q32：长期记忆与知识库有什么区别？
 
@@ -284,7 +284,7 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q48：91.3%、0.89 等旧数字怎么回答？
 
-**UNPROVEN。** 旧数字没对应数据版本、切分、运行产物和 commit，已移除。当前可证明的是 307 项回归、500 条 provisional 分层项目集，以及独立 Doc2Dial RAG Dev 的逐阶段结果；因为项目 human Gold 和 RAG untouched Heldout 仍未完成，不能报“生产准确率”。
+**UNPROVEN。** 旧数字没对应数据版本、切分、运行产物和 commit，已移除。当前可证明的是 329 项回归、500 条 provisional 分层项目集、Doc2Dial Dev 逐阶段结果，以及冻结配置在 test split 的 48 条检索/9 条多轮链路报告；因为项目 human Gold、RAG 人工 Judge 校准与真实流量灰度仍未完成，不能报“生产准确率”。
 
 ### Q49：多 LLM 调用怎么降延迟？
 
@@ -383,7 +383,7 @@ TaskGraph 已把人工交接指定给 `AgentType.ESCALATION`，却由 General �
 
 ### Q69：现在仓库到底有哪些评测数据？
 
-四类必须分开：11 条 intent + 5 组 dialog 是内置 smoke；`dialogpilot-500-v1` 是 500 条四层候选集 + 25 篇 retrieval corpus，其中外部样本是 auto-mapped、项目合同仍是 provisional；Doc2Dial RAG Dev 是 100 文档/300 case/488 官方 spans，模型阶段取 48 条多轮压力 case；Stateful 已消费回归只证明固定合同。当前项目 human-reviewed gold 是 0，Doc2Dial 也还没有 untouched Heldout 结论。
+四类必须分开：11 条 intent + 5 组 dialog 是内置 smoke；`dialogpilot-500-v1` 是 500 条四层候选集 + 25 篇 retrieval corpus，其中外部样本是 auto-mapped、项目合同仍是 provisional；Doc2Dial RAG Dev 是 100 文档/300 case/488 官方 spans，模型阶段取 48 条多轮压力 case；Doc2Dial test 冻结报告是 40 文档/48 条检索，其中 group-safe 模型链只有 9 条；Stateful 已消费回归只证明固定合同。当前项目 human-reviewed gold 仍是 0。
 
 ### Q70：为什么公开数据不能直接算项目准确率？
 
@@ -459,7 +459,7 @@ DeepSeek 的 Anthropic 兼容协议要求工具后续轮回传此前 thinking �
 
 ### Q84：这项改造怎样写 STAR？
 
-**S：** 九类调用共用一个模型，DeepSeek 默认 reasoning 让简单任务成本、延迟和结构化输出不可控。**T：** 在保持统一 Messages API 的同时，让每类调用可独立权衡质量。**A：** 实现按角色校验的 ModelPolicy，Flash/none 承担闭合高频任务，Pro/none 承担融合与质量门禁；显式 reasoning 强制最小完成预算，并补齐 health/eval 配置证据和 ReAct thinking 回传。**R：** 4 条 E2E pilot 均值约 28.4s → 13.3s，Verifier 解析 2/4 → 4/4；当前全仓 307 项回归测试通过。15 条 provisional 三档消融已完成，最终选择仍需 gold heldout 与重复运行确认。
+**S：** 九类调用共用一个模型，DeepSeek 默认 reasoning 让简单任务成本、延迟和结构化输出不可控。**T：** 在保持统一 Messages API 的同时，让每类调用可独立权衡质量。**A：** 实现按角色校验的 ModelPolicy，Flash/none 承担闭合高频任务，Pro/none 承担融合与质量门禁；显式 reasoning 强制最小完成预算，并补齐 health/eval 配置证据和 ReAct thinking 回传。**R：** 4 条 E2E pilot 均值约 28.4s → 13.3s，Verifier 解析 2/4 → 4/4；当前全仓 329 项回归测试通过。15 条 provisional 三档消融已完成，最终选择仍需 gold heldout 与重复运行确认。
 
 ### Q85：Flash/off、Flash/high、Pro/high 真跑后有什么区别？
 
@@ -519,17 +519,17 @@ Shadow 用真实输入跑候选 Intent/RAG/Worker/Verifier，但不发布、不�
 
 ### Q98：这项改造怎么写 STAR？
 
-**S：** Bad Case 能入库，但人工直接改 Prompt 导致版本归因弱、回归不可复现、发布全量且安全边界可能被误改。**T：** 把线上失败变成可验证、可灰度、可撤销的策略升级。**A：** 增加脱敏 EvolutionEnvelope、确定性 Owner 归因、不可变 AgentBundle、GEPA-lite 多候选、provenance Graduation/Pareto，并以 Shadow、稳定 5%/25% 分桶及硬/软自动回滚发布。**R：** 请求内版本固定，候选无法修改权限或绕过 Gate，Shadow 写操作零提交，发布/回滚成为原子状态迁移；307 项回归通过，数据非 Gold 前不虚构线上提升。
+**S：** Bad Case 能入库，但人工直接改 Prompt 导致版本归因弱、回归不可复现、发布全量且安全边界可能被误改。**T：** 把线上失败变成可验证、可灰度、可撤销的策略升级。**A：** 增加脱敏 EvolutionEnvelope、确定性 Owner 归因、不可变 AgentBundle、GEPA-lite 多候选、provenance Graduation/Pareto，并以 Shadow、稳定 5%/25% 分桶及硬/软自动回滚发布。**R：** 请求内版本固定，候选无法修改权限或绕过 Gate，Shadow 写操作零提交，发布/回滚成为原子状态迁移；329 项回归通过，数据非 Gold 前不虚构线上提升。
 
 ## 面试前 10 分钟自查
 
 1. 能画出 `/chat` 从 TraceId 到记忆写回的顺序，不混 Knowledge RAG 和 Memory Retrieval。
 2. 能说出 5 个真实 Worker、Bundle 默认 supporting 0.45、20s/15s/3 agents 预算和 4 步 ReAct。
-3. 能区分 Knowledge 当前默认 360/48、Dev 候选 512/64 与 Memory 1200 字符/120 overlap，并解释三者的 Owner、单位和迁移边界。
+3. 能区分 Knowledge 当前默认 fixed 512/64 与 Memory 1200 字符/120 overlap，并解释两者的 Owner、单位和旧索引迁移边界。
 4. 能说出 TaskGraph 依赖/上下文隔离、六种 outcome、synthesis 与 Verifier PASS/REJECT/UNKNOWN。
 5. 能解释 BM25 对订单号的价值，以及 recency 为什么不能独立召回。
 6. 能解释发现/执行共用 allowlist，审批不来自模型参数，RunStore 如何 CAS Resume 并防重复写。
-7. 能说明 307 项回归不等于 benchmark 样本量，500 条 provisional 项目集与 Doc2Dial Dev 不能混算，也都不支持生产准确率。
+7. 能说明 329 项回归不等于 benchmark 样本量，500 条 provisional 项目集与 Doc2Dial Dev 不能混算，也都不支持生产准确率。
 8. 能用 commit 划清原型与个人改造，不说从零原创。
 9. 能讲清 Bundle → 候选 → Graduation → Shadow → 5% → 25% → Active/回滚，并说明 GEPA-lite 与 RL 的边界。
 10. 能讲清 Prediction → Pending Feedback → Admin Annotation → Candidate，知道分类器指纹覆盖什么，并说明 Annotation 不等于 Gold、缓存不等于学习库。

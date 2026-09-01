@@ -46,4 +46,43 @@ def test_real_rag_result_is_marked_as_used(monkeypatch):
 
     assert "退款政策" in context
     assert used is True
+
+
+def test_chat_rag_packs_top_five_and_injects_only_validated_grounded_draft(monkeypatch):
+    items = [{
+        "document_id": f"doc-{index}",
+        "chunk_id": f"chunk-{index}",
+        "title": f"政策 {index}",
+        "content": f"第 {index} 条退款政策证据。",
+        "source_start_char": 0,
+        "source_end_char": 12,
+    } for index in range(6)]
+    captured = {}
+
+    class Generator:
+        async def generate(self, query, contexts, *, history):
+            captured["query"] = query
+            captured["contexts"] = contexts
+            captured["history"] = history
+            return SimpleNamespace(
+                answer="退款需要按政策审核。",
+                citations=(contexts[0].chunk_id,),
+                abstained=False,
+            )
+
+    monkeypatch.setattr(main, "_tool_manager", FakeToolManager(items))
+    monkeypatch.setattr(main, "_grounded_answer_generator", Generator())
+
+    result = asyncio.run(main._build_knowledge_context(
+        "它怎么退款？",
+        intent=IntentCategory.REFUND,
+        history=["用户之前提到订单 A1"],
+    ))
+
+    assert result.used is True
+    assert result.generation_status == "grounded_draft"
+    assert result.citations == ("chunk-0",)
+    assert len(captured["contexts"]) == 5
+    assert "chunk-5" not in result.text
+    assert "退款需要按政策审核" in result.text
 """RAG 真实证据与工具降级信息之间的信任边界测试。"""

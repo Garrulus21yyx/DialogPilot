@@ -21,9 +21,11 @@ from mcp.query_transformer import QueryTransformer
 from mcp.result_reranker import RerankCandidate, ResultReranker
 from mcp.context_packer import ContextCandidate, ContextPacker
 from mcp.grounded_answer_generator import GroundedAnswerGenerator
+from mcp.tool_manager import MCPToolManager, ToolResult
 from evaluation.rag_generation_evaluation import language_matches, token_f1
 from core.model_policy import ModelProfile
 from evaluation.rag_pipeline.selection import paired_group_bootstrap_delta
+from evaluation.rag_pipeline.query_metrics import extract_negations
 from scripts.build_doc2dial_rag_subset import build_subset
 from evaluation.rag_query_ablation import _variants, _weights
 
@@ -117,6 +119,13 @@ def test_query_variant_metrics_expose_entity_negation_and_hallucination_risk():
     assert metrics["variant_token_diversity"] > 0.0
 
 
+def test_english_negation_metric_uses_word_boundaries():
+    assert extract_negations("I want to know whether it is available") == set()
+    assert extract_negations("No, I don't want it without approval") == {
+        "no", "don't", "without",
+    }
+
+
 def test_query_transformer_retains_raw_and_marks_generated_text_non_evidence():
     responses = iter((
         '{"query":"订单 A123 不能退款的处理条件"}',
@@ -163,6 +172,71 @@ def test_query_transformer_fails_closed_to_raw_query():
     assert {item.split(":", 1)[0] for item in result.errors} == {
         "standalone", "multi_query", "hyde",
     }
+
+
+def test_runtime_retrieval_uses_frozen_raw_standalone_weights_and_20_to_5():
+    manager = MCPToolManager.__new__(MCPToolManager)
+    captured = {}
+
+    class Transformer:
+        async def standalone(self, query, history):
+            captured["history"] = history
+            return "standalone refund query", None
+
+    async def call(_name, params, context, **_kwargs):
+        captured["params"] = params
+        captured["context"] = context
+        return ToolResult(True, [
+            {"chunk_id": f"c{i}", "content": f"text {i}"} for i in range(20)
+        ], "knowledge_search")
+
+    async def rerank(_query, items, top_k):
+        captured["rerank_input"] = len(items)
+        return items[:top_k]
+
+    manager._query_transformer = Transformer()
+    manager.call = call
+    manager._rerank = rerank
+    result = asyncio.run(manager.search_with_rewrite(
+        "knowledge_search", "it", top_k=5,
+        context={"query_history": ["refund order A1"], "retrieval_policy": {}},
+    ))
+
+    assert result.success
+    assert len(result.data) == 5
+    assert captured["params"]["top_k"] == 20
+    assert captured["params"]["query_variants"] == [
+        {"kind": "raw", "query": "it", "weight": 0.25},
+        {"kind": "standalone", "query": "standalone refund query", "weight": 0.75},
+    ]
+    assert captured["history"] == ("refund order A1",)
+    assert captured["rerank_input"] == 20
+
+
+def test_runtime_retrieval_rewrite_failure_collapses_to_raw_without_losing_mass():
+    manager = MCPToolManager.__new__(MCPToolManager)
+    captured = {}
+
+    class Transformer:
+        async def standalone(self, query, history):
+            return query, "RuntimeError"
+
+    async def call(_name, params, _context, **_kwargs):
+        captured.update(params)
+        return ToolResult(True, [{"chunk_id": "c1", "content": "refund"}], "knowledge_search")
+
+    async def rerank(_query, items, _top_k):
+        return items
+
+    manager._query_transformer = Transformer()
+    manager.call = call
+    manager._rerank = rerank
+    result = asyncio.run(manager.search_with_rewrite("knowledge_search", "refund", top_k=5))
+
+    assert result.success
+    assert captured["query_variants"] == [
+        {"kind": "raw", "query": "refund", "weight": 1.0},
+    ]
 
 
 def test_query_ablation_weights_reserve_raw_mass_and_keep_hyde_vector_only():

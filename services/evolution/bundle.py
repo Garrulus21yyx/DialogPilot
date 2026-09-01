@@ -9,6 +9,8 @@ from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import Any, Dict, Mapping, Sequence, Tuple
 
+from core.rag_policy import DEFAULT_RAG_RETRIEVAL_POLICY
+
 
 class BundleContractError(ValueError):
     """候选 Bundle 试图越过可进化配置面或值域不合法。"""
@@ -19,7 +21,10 @@ _AGENTS = {
     "*", "intent", "general", "technical", "billing", "account_security", "escalation",
 }
 _ROUTING_KEYS = {"supporting_threshold", "clarification_threshold"}
-_RETRIEVAL_KEYS = {"top_k", "rrf_k", "vector_weight", "lexical_weight"}
+_RETRIEVAL_KEYS = {
+    "top_k", "candidate_k", "context_max_tokens", "rrf_k",
+    "vector_weight", "lexical_weight", "raw_query_weight", "standalone_query_weight",
+}
 _PROHIBITED = re.compile(
     r"permission|allowlist|approval|jwt|auth|secret|pii|redact|verifier|fail.?closed|gold",
     re.IGNORECASE,
@@ -105,6 +110,15 @@ class AgentBundle:
             raise BundleContractError(f"unsupported retrieval policy keys: {sorted(unknown_retrieval)}")
         if "top_k" in retrieval and not 1 <= int(retrieval["top_k"]) <= 20:
             raise BundleContractError("retrieval top_k must be between 1 and 20")
+        if "candidate_k" in retrieval and not 1 <= int(retrieval["candidate_k"]) <= 100:
+            raise BundleContractError("retrieval candidate_k must be between 1 and 100")
+        if (
+            "candidate_k" in retrieval and "top_k" in retrieval
+            and int(retrieval["candidate_k"]) < int(retrieval["top_k"])
+        ):
+            raise BundleContractError("retrieval candidate_k must be at least top_k")
+        if "context_max_tokens" in retrieval and not 128 <= int(retrieval["context_max_tokens"]) <= 12000:
+            raise BundleContractError("retrieval context_max_tokens must be between 128 and 12000")
         if "rrf_k" in retrieval and not 1 <= int(retrieval["rrf_k"]) <= 1000:
             raise BundleContractError("retrieval rrf_k must be between 1 and 1000")
         weights = [float(retrieval.get(key, 0.0)) for key in ("vector_weight", "lexical_weight")]
@@ -112,6 +126,14 @@ class AgentBundle:
             raise BundleContractError("retrieval weights must be non-negative")
         if any(key in retrieval for key in ("vector_weight", "lexical_weight")) and sum(weights) <= 0:
             raise BundleContractError("retrieval weights must not both be zero")
+        query_weights = [
+            float(retrieval.get(key, 0.0))
+            for key in ("raw_query_weight", "standalone_query_weight")
+        ]
+        if any(weight < 0 for weight in query_weights):
+            raise BundleContractError("query weights must be non-negative")
+        if any(key in retrieval for key in ("raw_query_weight", "standalone_query_weight")) and sum(query_weights) <= 0:
+            raise BundleContractError("query weights must not both be zero")
 
         descriptions = {str(key).strip(): str(value).strip() for key, value in self.tool_descriptions.items()}
         if any(not key or not value for key, value in descriptions.items()):
@@ -173,16 +195,20 @@ class AgentBundle:
         return tuple(values)
 
 
-def build_default_bundle(model_policy: Mapping[str, Any]) -> AgentBundle:
+def build_default_bundle(
+    model_policy: Mapping[str, Any],
+    retrieval_policy: Mapping[str, Any] = DEFAULT_RAG_RETRIEVAL_POLICY,
+) -> AgentBundle:
     """用当前生产默认值建立只读 bootstrap Bundle。"""
+    routing_policy = {"supporting_threshold": 0.45, "clarification_threshold": 0.5}
+    bootstrap_version = "agent-v2-rag-" + stable_hash({
+        "routing_policy": routing_policy,
+        "retrieval_policy": dict(retrieval_policy),
+        "model_policy": dict(model_policy),
+    })[:12]
     return AgentBundle(
-        version="agent-v1",
-        routing_policy={"supporting_threshold": 0.45, "clarification_threshold": 0.5},
-        retrieval_policy={
-            "top_k": 3,
-            "rrf_k": 60,
-            "vector_weight": 0.0,
-            "lexical_weight": 1.0,
-        },
+        version=bootstrap_version,
+        routing_policy=routing_policy,
+        retrieval_policy=dict(retrieval_policy),
         model_policy=dict(model_policy),
     )

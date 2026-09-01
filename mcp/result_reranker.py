@@ -107,7 +107,8 @@ def candidates_from_items(items: Sequence[Any]) -> tuple[RerankCandidate, ...]:
                 dict(item), ensure_ascii=False, sort_keys=True,
             )
             title = item.get("title") or item.get("name") or ""
+            candidate_id = item.get("chunk_id") or item.get("candidate_id") or f"candidate-{index}"
         else:
-            text, title = str(item), ""
-        result.append(RerankCandidate(f"candidate-{index}", str(text), str(title)))
+            text, title, candidate_id = str(item), "", f"candidate-{index}"
+        result.append(RerankCandidate(str(candidate_id), str(text), str(title)))
     return tuple(result)
