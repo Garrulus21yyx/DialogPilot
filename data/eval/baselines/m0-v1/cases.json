@@ -1,0 +1,30 @@
+[
+  {
+    "id": "direct-greeting",
+    "message": "你好，请介绍一下你能提供哪些客服帮助。"
+  },
+  {
+    "id": "knowledge-policy",
+    "message": "会员服务通常包含哪些内容？请只依据知识库回答。"
+  },
+  {
+    "id": "business-order",
+    "message": "请查询订单 ORD-M0-READONLY-001 当前状态，不要执行任何写操作。"
+  },
+  {
+    "id": "mixed-refund-order",
+    "message": "退款规则是什么？同时查询订单 ORD-M0-READONLY-002 的状态，不要提交退款。"
+  },
+  {
+    "id": "multi-domain",
+    "message": "应用登录失败，而且账单里出现重复扣款，请分别排查，但不要执行写操作。"
+  },
+  {
+    "id": "out-of-scope",
+    "message": "六边形有几条边？"
+  },
+  {
+    "id": "human-handoff",
+    "message": "请转接人工客服继续处理。"
+  }
+]

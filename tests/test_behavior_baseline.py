@@ -24,6 +24,7 @@ GIT_B = "2" * 40
 
 def _record(route="knowledge_qa", latency=10.0):
     return BehaviorRunRecord.from_mapping({
+        "case_id": f"case-{route}",
         "request_id": f"request-{route}",
         "trace_id": f"trace-{route}",
         "route": route,
@@ -45,6 +46,7 @@ def _manifest():
         bundle={"version": "agent-v2", "content_hash": SHA_A},
         model_policy={"provider": "test", "roles": {}},
         rag_index_manifest={"manifest_fingerprint": SHA_B},
+        environment_observations={"capture_index": "isolated_current_contract"},
         datasets=[{
             "dataset_id": "dataset-v1",
             "version": "1.0.0-provisional",
@@ -69,6 +71,9 @@ def test_baseline_is_replayable_and_aggregates_operational_route_facts(tmp_path)
 
     assert replayed == manifest
     assert replayed["production_accuracy_claim"] is False
+    assert replayed["environment_observations"] == {
+        "capture_index": "isolated_current_contract",
+    }
     assert "accuracy" not in replayed
     assert replayed["route_measurements"]["knowledge_qa"] == {
         "count": 2,
@@ -80,6 +85,7 @@ def test_baseline_is_replayable_and_aggregates_operational_route_facts(tmp_path)
     }
     assert replayed["records"][0]["request_id"]
     assert replayed["records"][0]["trace_id"]
+    assert replayed["records"][0]["case_id"]
 
 
 @pytest.mark.parametrize(

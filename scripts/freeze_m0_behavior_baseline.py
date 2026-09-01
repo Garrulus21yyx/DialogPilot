@@ -67,6 +67,7 @@ def main() -> int:
     parser.add_argument("--output", required=True)
     parser.add_argument("--records", required=True)
     parser.add_argument("--rag-index-manifest", required=True)
+    parser.add_argument("--environment-observations", required=True)
     parser.add_argument("--bundle-db", required=True)
     parser.add_argument("--model-env", default=".env")
     parser.add_argument("--dataset-manifest", action="append", default=[])
@@ -92,6 +93,9 @@ def main() -> int:
     rag_manifest = json.loads(
         Path(args.rag_index_manifest).read_text(encoding="utf-8")
     )
+    environment_observations = json.loads(
+        Path(args.environment_observations).read_text(encoding="utf-8")
+    )
     manifest = build_behavior_baseline(
         baseline_id=args.baseline_id,
         created_at=args.created_at,
@@ -100,6 +104,7 @@ def main() -> int:
         bundle={"version": bundle.version, "content_hash": bundle.content_hash},
         model_policy=runtime_model_policy,
         rag_index_manifest=rag_manifest,
+        environment_observations=environment_observations,
         datasets=[_dataset(Path(path)) for path in args.dataset_manifest],
         records=records,
     )

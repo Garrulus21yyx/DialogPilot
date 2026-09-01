@@ -93,6 +93,7 @@ def policy_fingerprints(
 
 @dataclass(frozen=True)
 class BehaviorRunRecord:
+    case_id: str
     request_id: str
     trace_id: str
     route: str
@@ -106,6 +107,7 @@ class BehaviorRunRecord:
     @classmethod
     def from_mapping(cls, raw: Mapping[str, Any]) -> "BehaviorRunRecord":
         record = cls(
+            case_id=_required(raw.get("case_id"), "case_id"),
             request_id=_required(raw.get("request_id"), "request_id"),
             trace_id=_required(raw.get("trace_id"), "trace_id"),
             route=_required(raw.get("route"), "route"),
@@ -141,6 +143,7 @@ def build_behavior_baseline(
     bundle: Mapping[str, Any],
     model_policy: Mapping[str, Any],
     rag_index_manifest: Mapping[str, Any],
+    environment_observations: Mapping[str, Any] | None = None,
     datasets: Sequence[Mapping[str, Any]],
     records: Iterable[BehaviorRunRecord],
 ) -> dict[str, Any]:
@@ -163,6 +166,7 @@ def build_behavior_baseline(
             "rag_index_manifest": dict(rag_index_manifest),
             "rag_index_manifest_sha256": _sha256_json(rag_index_manifest),
         },
+        "environment_observations": dict(environment_observations or {}),
         "decision_policies": dict(DECISION_POLICY_BASELINE_V1),
         "decision_policy_fingerprints": policy_fingerprints(),
         "datasets": dataset_rows,

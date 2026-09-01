@@ -1,0 +1,42 @@
+{
+  "dense": {
+    "dimension": 384,
+    "embedding_function": "ONNXMiniLM_L6_V2",
+    "engine": "chroma",
+    "engine_version": "0.5.23",
+    "model": "sentence-transformers/all-MiniLM-L6-v2",
+    "normalization": "model-default"
+  },
+  "index_contract": {
+    "chunk_max_tokens": 512,
+    "chunk_overlap_tokens": 64,
+    "chunk_strategy": "fixed_tokens",
+    "chunking_version": 4,
+    "dense_embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "index_schema_version": 2,
+    "knowledge_scope": "public",
+    "source_contract_version": 1,
+    "sparse_schema_version": 1,
+    "sparse_tokenizer_version": "ascii-cjk-unigram-bigram-v1"
+  },
+  "manifest_fingerprint": "ec478199e4e17052e9f9967bafbfbadef6c4cf65d90c22402d516ee208ea18f5",
+  "parser": {
+    "contract": "source-document-v1",
+    "supported_source_types": [
+      "json",
+      "markdown",
+      "text"
+    ]
+  },
+  "sparse": {
+    "b": 0.75,
+    "built_at": "2026-09-01T23:35:26.933525+00:00",
+    "corpus_fingerprint": "ab9c382dc4112091ff32531bea7283e46362aa24f4911b6ac3b086201afb5c7f",
+    "document_count": "6",
+    "engine": "sqlite-bm25",
+    "k1": 1.5,
+    "schema_version": 1,
+    "tokenizer_version": "ascii-cjk-unigram-bigram-v1"
+  },
+  "sparse_ready": true
+}

@@ -1,0 +1,20 @@
+{
+  "capture_index": {
+    "corpus": "built-in public knowledge corpus",
+    "document_count": 6,
+    "mode": "isolated_current_contract",
+    "reason": "The deployed collection failed the current index-contract validator; baseline capture must not repair or reinterpret deployed state.",
+    "scope": "behavior characterization, not deployed-index certification"
+  },
+  "deployed_index_probe": {
+    "observed_at": "2026-09-02",
+    "result": "INCOMPATIBLE_KNOWLEDGE_INDEX",
+    "violation": "legacy chunks lack required current index-contract metadata"
+  },
+  "side_effect_isolation": {
+    "agent_bundle": "temporary copy of active registry",
+    "business_and_publication_stores": "temporary SQLite databases",
+    "memory": "dedicated Redis database 15 with per-case identities",
+    "sparse_index": "temporary SQLite database"
+  }
+}
