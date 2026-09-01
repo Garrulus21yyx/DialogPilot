@@ -14,12 +14,14 @@ LLM-as-Judge 是评测 Agent 质量的关键技术：
   人工标注成本高、主观性强；用 LLM 评判可以规模化、可重复。
 """
 import json
+import hashlib
 import logging
 import statistics
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+from types import SimpleNamespace
 
 from anthropic import AsyncAnthropic
 
@@ -37,6 +39,8 @@ from evaluation.graduation import (
 )
 from evaluation.rubric import CaseRubric
 from services.evolution.bundle import AgentBundle
+from application.chat_application import ChatCommand, Completed
+from evaluation.chat_application_runner import ChatApplicationRunner
 
 logger = logging.getLogger(__name__)
 
@@ -274,6 +278,7 @@ class EndToEndEvaluator:
         model:    str = "claude-3-5-sonnet-20241022",
         baseline_path: Optional[str] = None,
         judge_model_profile: Optional[ModelProfile] = None,
+        chat_runner: Optional[ChatApplicationRunner] = None,
     ):
         """组装意图评测、LLM Judge、编排器和可选持久基线。"""
         kwargs: Dict[str, Any] = {"api_key": api_key}
@@ -282,6 +287,7 @@ class EndToEndEvaluator:
         client = AsyncAnthropic(**kwargs)
 
         self._orchestrator     = orchestrator
+        self._chat_runner      = chat_runner
         self._judge            = LLMJudge(client, model, model_profile=judge_model_profile)
         self._intent_evaluator = IntentEvaluator(recognizer)
         self._history:         List[EvalReport] = []
@@ -421,6 +427,9 @@ class EndToEndEvaluator:
             except ValueError:
                 routed_intent = None
             supplied_confidence = case.get("intent_confidence")
+            request_id = "eval_" + hashlib.sha256(
+                f"{case.get('id', case_idx)}:{turn_idx}:{user_id}:{conv_id}".encode("utf-8")
+            ).hexdigest()[:32]
             orch_req = OrcReq(
                 message=question,
                 user_id=user_id,
@@ -434,6 +443,7 @@ class EndToEndEvaluator:
                 entities=dict(case.get("entities") or {}),
                 bundle_version=agent_bundle.version if agent_bundle else "unversioned",
                 agent_bundle=agent_bundle,
+                request_id=request_id,
             )
             routing_only = case.get("evaluation_layer") == "routing"
             if routing_only:
@@ -449,19 +459,42 @@ class EndToEndEvaluator:
                 actual_answer = ""
                 orch_result = None
             else:
-                orch_result = await self._orchestrator.run(orch_req)
-                actual_answer = orch_result.response
+                if self._chat_runner is None:
+                    raise RuntimeError(
+                        "full_execution requires ChatApplicationRunner; "
+                        "component orchestrator execution is not a production-chain evaluation"
+                    )
+                chat_run = await self._chat_runner.run(ChatCommand(
+                    message=question,
+                    tenant_id="evaluation",
+                    user_id=user_id,
+                    conv_id=conv_id,
+                    request_id=request_id,
+                    pinned_bundle=agent_bundle,
+                ))
+                public = dict(chat_run.public_response)
+                actual_answer = str(public.get("response") or "")
+                orch_result = SimpleNamespace(
+                    response=actual_answer,
+                    agent_type=public.get("agent_type"),
+                    intent=public.get("intent"),
+                    agent_types=list(public.get("agent_types") or []),
+                    task_plan=dict(public.get("task_plan") or {}),
+                    coverage=dict(public.get("coverage") or {}),
+                    agent_outcomes=list(public.get("agent_outcomes") or []),
+                    routing_disposition=public.get("routing_disposition", "execute"),
+                )
                 orchestration_scores = self._orchestration_scores(orch_result, case)
-                required_checks = [orchestration_scores["coverage_complete"] >= 1.0]
+                required_checks = [
+                    isinstance(chat_run.outcome, Completed),
+                    orchestration_scores["coverage_complete"] >= 1.0,
+                ]
             scores = None
             rubric = None
             rubric_result = None
             if not routing_only:
                 rubric = CaseRubric.from_mapping(case.get("rubric"))
-                tool_call_count = sum(
-                    len(dict(outcome).get("tool_call_ids") or [])
-                    for outcome in (getattr(orch_result, "agent_outcomes", []) or [])
-                )
+                tool_call_count = len(public.get("tool_audit") or [])
                 rubric_result = rubric.evaluate(
                     actual_answer,
                     tool_call_count=tool_call_count,
@@ -515,13 +548,14 @@ class EndToEndEvaluator:
                     "question": question,
                     "response": actual_answer,
                     "agent_type": (
-                        orch_result.agent_type.value
+                        getattr(orch_result.agent_type, "value", orch_result.agent_type)
                         if orch_result is not None and orch_result.agent_type is not None
                         else "orchestrator" if orch_result is not None
                         else next(iter(decision.agent_types), None).value if decision.agent_types else None
                     ),
                     "intent": (
-                        orch_result.intent.value if orch_result is not None and orch_result.intent
+                        getattr(orch_result.intent, "value", orch_result.intent)
+                        if orch_result is not None and orch_result.intent
                         else decision.intent.value if routing_only and decision.intent else None
                     ),
                     "turn": turn_idx,
@@ -538,10 +572,22 @@ class EndToEndEvaluator:
                     "coverage": orch_result.coverage if orch_result is not None else {},
                     "agent_outcomes": orch_result.agent_outcomes if orch_result is not None else [],
                     "execution_mode": "planner_only" if routing_only else "full_execution",
+                    "chat_stages": (
+                        [stage.to_dict() for stage in chat_run.stages]
+                        if not routing_only else []
+                    ),
+                    "owner_state": dict(chat_run.owner_state) if not routing_only else {},
+                    "chat_outcome": (
+                        type(chat_run.outcome).__name__ if not routing_only else None
+                    ),
                     "clarification_required": decision.clarification_required if routing_only else False,
                     "routing_disposition": (
                         decision.disposition.value if routing_only else
-                        getattr(getattr(orch_result, "routing_disposition", None), "value", "execute")
+                        getattr(
+                            getattr(orch_result, "routing_disposition", None),
+                            "value",
+                            getattr(orch_result, "routing_disposition", "execute"),
+                        )
                     ),
                 },
             ))

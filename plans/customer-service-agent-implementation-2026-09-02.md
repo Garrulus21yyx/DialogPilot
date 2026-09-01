@@ -14,8 +14,8 @@
 | Bootstrap：冻结需求文档与执行跟踪 | done | commit `c2beceb`，已 push |
 | M0-T01 应用服务边界 | done | typed `ChatOutcome`、薄 `/chat`；392 tests passed |
 | M0-T02 稳定身份和值对象 | done | stable IDs/keys；Trace/Tool/Ticket/Delivery/Memory propagation |
-| M0-T03 生产主链 Eval Runner | in_progress | `ChatApplicationRunner`、typed stage observations |
-| M0-T04 当前行为基线 | pending | 冻结 baseline artifacts/report |
+| M0-T03 生产主链 Eval Runner | done | full execution 共用 `ChatApplication`；typed stage/owner evidence |
+| M0-T04 当前行为基线 | in_progress | 冻结 baseline artifacts/report |
 | M0-T05 Gate Manifest Foundation | pending | 版本化 manifest schema/validator/report |
 | M1 完整会话事实与幂等发布 | pending | 按 M1-PF01、T00–T05/T03A/T04A 子节点推进 |
 | M2 Route/Authority/Evidence/RAG | pending | 按 M2-PF01、T01–T06R 子节点推进 |
@@ -79,8 +79,33 @@
   - `git diff --check` → passed
   - 负向搜索未发现业务路径继续以 `uuid4` 或 `:shadow` 派生 request ID。
 
+### M0-T03
+
+- 正向合同：`ChatApplicationRunner.run(ChatCommand) -> ChatRunResult` 只调用生产应用服务，
+  保存公开 outcome、typed stage observations、owner probes 和 latency；完整执行缺少 runner 时
+  fail closed，不再回退到 `orchestrator.run()`。
+- 可替换环境：`ChatRuntimeOverrides` 明确承载 model、clock、business backend、knowledge index
+  和 delivery adapter，由 application factory 在构造同一主链时适配；测试验证五种替换均透传。
+- 阶段证据：Application 记录 `memory_load/intent/knowledge_retrieval/route_and_agent/tool/
+  verification/ticket/delivery/memory_write` 的 `OK/SKIPPED/DEGRADED/FAILED` typed observation。
+- Eval 迁移：routing-only 仍调用 Planner 局部 runner；所有 `full_execution` 通过
+  `ChatApplicationRunner`，并在单个 fixture metadata 同时归档公开 response、stage evidence
+  与 owner state probe。
+- 修改文件：
+  - `application/chat_application.py`、`application/__init__.py`
+  - `evaluation/chat_application_runner.py`
+  - `evaluation/evaluator.py`
+  - `api/main.py`
+  - `tests/test_chat_application_runner.py`
+  - `tests/test_eval_graduation.py`、`tests/test_chat_handoff.py`
+- 验证：
+  - `PYTHONPATH=. .venv/bin/pytest -q` → `412 passed`
+  - 相关文件 `ruff check --ignore E402` → passed
+  - `git diff --check` → passed
+  - `evaluation/evaluator.py` 负向搜索无 `orchestrator.run()`。
+
 ## 下一步
 
-1. 提交并推送 M0-T02。
-2. 实施 M0-T03：让 `full_execution` 通过 `ChatApplicationRunner` 调用生产主链。
-3. 冻结 typed stage observation，使公开回答与后台 owner 状态可在同一 fixture 验证。
+1. 提交并推送 M0-T03。
+2. 实施 M0-T04：冻结当前真实主链行为、数据/代码/Bundle 版本与 route 分层基线。
+3. 生成机器可读 baseline artifact，并验证候选运行不会静默覆盖 Active baseline。

@@ -6,8 +6,10 @@ import json
 from types import SimpleNamespace
 
 from agents.orchestration_contracts import AgentType
+from application.chat_application import Completed
 from core.intent_recognizer import IntentCategory
 from evaluation.evaluator import EndToEndEvaluator, EvalReport, EvalResult, QualityScores
+from evaluation.chat_application_runner import ChatApplicationRunner
 from evaluation.graduation import (
     GraduationDecision,
     GraduationEvidence,
@@ -25,6 +27,28 @@ HARD_GATES = {
     "coverage": True,
     "stateful": True,
 }
+
+
+def _chat_runner(response: str, *, agent_type: str, intent: str):
+    class Application:
+        async def handle(self, _command):
+            return Completed(response_id="eval-response", response={
+                "response": response,
+                "coverage": {
+                    "complete": True,
+                    "required_task_ids": [],
+                    "completed_task_ids": [],
+                },
+                "agent_outcomes": [],
+                "task_plan": {"tasks": []},
+                "agent_types": [agent_type],
+                "agent_type": agent_type,
+                "intent": intent,
+                "routing_disposition": "execute",
+                "tool_audit": [],
+            })
+
+    return ChatApplicationRunner(lambda _overrides: Application())
 
 
 def _report(*, pass_rate: float = 1.0, regressions=None, judge_failed: bool = False):
@@ -141,6 +165,11 @@ def test_eval_run_does_not_create_or_overwrite_baseline(tmp_path):
         recognizer=SimpleNamespace(),
         api_key="test-key",
         baseline_path=str(baseline_path),
+        chat_runner=_chat_runner(
+            "请核对订单号后申请退款。",
+            agent_type=AgentType.GENERAL.value,
+            intent=IntentCategory.REFUND.value,
+        ),
     )
     evaluator._judge = Judge()
 
@@ -171,6 +200,11 @@ def test_case_rubric_hard_failure_and_dimension_floor_both_block_pass():
 
     evaluator = EndToEndEvaluator.__new__(EndToEndEvaluator)
     evaluator._orchestrator = Orchestrator()
+    evaluator._chat_runner = _chat_runner(
+        "退款已经必然成功。",
+        agent_type=AgentType.BILLING.value,
+        intent=IntentCategory.REFUND.value,
+    )
     evaluator._judge = Judge()
     results = asyncio.run(evaluator._evaluate_dialog_case({
         "id": "rubric-hard-gate",

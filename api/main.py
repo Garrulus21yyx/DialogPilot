@@ -190,6 +190,7 @@ async def lifespan(app: FastAPI):
     from agents.run_store import RunStore
     from core.intent_recognizer import IntentRecognizer
     from evaluation.evaluator import EndToEndEvaluator
+    from evaluation.chat_application_runner import ChatApplicationRunner
     from mcp.knowledge_base import KnowledgeBase
     from mcp.customer_support_tools import ticket_tools
     from mcp.customer_operations_tools import customer_operation_tools
@@ -475,6 +476,7 @@ async def lifespan(app: FastAPI):
         model=cfg["model"],
         baseline_path=os.getenv("EVAL_BASELINE_PATH", "/app/data/eval/baseline.json"),
         judge_model_profile=_model_policy.profile(ModelRole.JUDGE),
+        chat_runner=ChatApplicationRunner(lambda _overrides: _chat_application()),
     )
 
     await _memory.start()

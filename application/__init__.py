@@ -14,6 +14,8 @@ from .chat_application import (
     NeedsInput,
     Reconciling,
     Rejected,
+    StageObservation,
+    StageStatus,
 )
 
 __all__ = [
@@ -30,4 +32,6 @@ __all__ = [
     "NeedsInput",
     "Reconciling",
     "Rejected",
+    "StageObservation",
+    "StageStatus",
 ]

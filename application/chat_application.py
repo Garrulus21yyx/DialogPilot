@@ -10,6 +10,7 @@ import asyncio
 import logging
 from contextlib import nullcontext
 from dataclasses import dataclass
+from enum import Enum
 from typing import Any, Awaitable, Callable, Mapping, Optional, TypeAlias
 
 from memory.context import ContextSection
@@ -24,6 +25,27 @@ from services.answer_verifier import (
 logger = logging.getLogger(__name__)
 
 
+class StageStatus(str, Enum):
+    OK = "ok"
+    SKIPPED = "skipped"
+    DEGRADED = "degraded"
+    FAILED = "failed"
+
+
+@dataclass(frozen=True)
+class StageObservation:
+    stage: str
+    status: StageStatus
+    detail: Mapping[str, Any]
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "stage": self.stage,
+            "status": self.status.value,
+            "detail": dict(self.detail),
+        }
+
+
 @dataclass(frozen=True)
 class ChatCommand:
     """Authenticated application input; protocol adapters must resolve identity."""
@@ -34,12 +56,14 @@ class ChatCommand:
     conv_id: Optional[str] = None
     request_id: Optional[str] = None
     continuation_id: Optional[str] = None
+    pinned_bundle: Any = None
 
 
 @dataclass(frozen=True)
 class Completed:
     response_id: str
     response: Mapping[str, Any]
+    stages: tuple[StageObservation, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -101,6 +125,7 @@ class Failed:
     retryable: bool
     correlation_id: str
     safe_message: str = ""
+    stages: tuple[StageObservation, ...] = ()
 
 
 ChatOutcome: TypeAlias = (
@@ -233,10 +258,21 @@ class ChatApplication:
         conv_id = str(identity.conversation_id)
         request_id = str(identity.request_id)
         identity_metadata = identity.metadata()
+        stages: list[StageObservation] = []
         assignment = await asyncio.to_thread(services.rollout_manager.resolve, user_id)
-        bundle = assignment.primary
+        bundle = command.pinned_bundle or assignment.primary
+        if command.pinned_bundle is not None:
+            assignment = type("EvalAssignment", (), {
+                "primary": bundle,
+                "primary_stage": "evaluation",
+                "shadow": None,
+            })()
 
         mem_ctx = await services.memory.get_context(user_id, conv_id, query=command.message)
+        stages.append(StageObservation("memory_load", StageStatus.OK, {
+            "recent_message_count": len(mem_ctx.recent_messages),
+            "retrieval_hit_count": len(mem_ctx.retrieval_hits),
+        }))
         prompt_history = [
             {"role": message.role.value, "content": message.content}
             for message in mem_ctx.recent_messages
@@ -249,6 +285,10 @@ class ChatApplication:
         intent_result = await services.orchestrator.recognize_intent(
             command.message, history=intent_history, bundle=bundle,
         )
+        stages.append(StageObservation("intent", StageStatus.OK, {
+            "intent": intent_result.intent.value,
+            "confidence": intent_result.confidence,
+        }))
         intent_prediction = await ops.record_intent_prediction(
             intent_result=intent_result,
             request_id=request_id,
@@ -263,6 +303,11 @@ class ChatApplication:
             bundle=bundle,
             history=[str(item.get("content") or "") for item in prompt_history],
         )
+        stages.append(StageObservation("knowledge_retrieval", StageStatus.OK, {
+            "used": bool(knowledge.used),
+            "generation_status": knowledge.generation_status,
+            "citation_count": len(knowledge.citations),
+        }))
         base_context_sections = list(mem_ctx.to_sections())
         active_ticket_section = await ops.active_ticket_context(user_id)
         if active_ticket_section is not None:
@@ -299,6 +344,13 @@ class ChatApplication:
             identity_metadata=identity_metadata,
         )
         result = await services.orchestrator.run(orchestration_request)
+        stages.append(StageObservation("route_and_agent", StageStatus.OK, {
+            "routing_disposition": getattr(
+                result.routing_disposition, "value", result.routing_disposition,
+            ),
+            "agent_count": len(result.agent_types),
+            "awaiting_approval": bool(result.awaiting_approval),
+        }))
 
         approval_pending = bool(result.awaiting_approval)
         prepublication_audit = [
@@ -345,6 +397,11 @@ class ChatApplication:
                     agent_outcomes=result.agent_outcomes,
                     knowledge_evidence=knowledge_verification,
                 )
+        stages.append(StageObservation("verification", StageStatus.OK, {
+            "status": verification.status.value,
+            "reason_code": verification.reason_code.value,
+            "publishable": verification.publishable,
+        }))
         feedback_recorder = getattr(services.orchestrator, "record_verification", None)
         if feedback_recorder:
             try:
@@ -389,12 +446,24 @@ class ChatApplication:
                         "operation_key": str(ticket_operation_key),
                     },
                 )
+                stages.append(StageObservation("ticket", StageStatus.OK, {
+                    "ticket_id": ticket.ticket_id,
+                    "created": handoff_created,
+                }))
             except Exception:
                 logger.exception("人工工单创建失败 request_id=%s", request_id)
                 response_text = (
                     "当前回答需要人工确认，但工单创建失败。请稍后使用相同 request_id 重试，"
                     "或直接联系人工客服。"
                 )
+                stages.append(StageObservation("ticket", StageStatus.DEGRADED, {
+                    "created": False,
+                    "reason": "ticket_creation_failed",
+                }))
+        else:
+            stages.append(StageObservation("ticket", StageStatus.SKIPPED, {
+                "reason": "handoff_not_required",
+            }))
 
         try:
             delivery_operation_key = identity.operation_key(
@@ -417,12 +486,25 @@ class ChatApplication:
                 code="response_selection_unavailable",
                 retryable=True,
                 correlation_id=ops.trace_id(),
+                stages=tuple(stages) + (StageObservation(
+                    "delivery", StageStatus.FAILED,
+                    {"reason": "response_selection_unavailable"},
+                ),),
             )
+        stages.append(StageObservation("delivery", StageStatus.OK, {
+            "response_id": delivery.response_id,
+            "response_seq": delivery.seq,
+            "status": delivery.status.value,
+        }))
 
         tool_audit = [
             record.to_dict()
             for record in services.tool_manager.audit_records(trace_id=ops.trace_id())
         ] if services.tool_manager else []
+        stages.append(StageObservation("tool", StageStatus.OK, {
+            "call_count": len(tool_audit),
+            "statuses": [str(item.get("status") or "") for item in tool_audit],
+        }))
         await ops.capture_badcases(
             req=command,
             user_id=user_id,
@@ -460,6 +542,14 @@ class ChatApplication:
                     "response_seq": delivery.seq,
                 }),
             ], extract_facts=(disposition == "execute"))
+            stages.append(StageObservation("memory_write", StageStatus.OK, {
+                "message_count": 2,
+                "extract_facts": disposition == "execute",
+            }))
+        else:
+            stages.append(StageObservation("memory_write", StageStatus.SKIPPED, {
+                "reason": "out_of_scope_projection_policy",
+            }))
 
         if assignment.shadow is not None and disposition == "execute":
             asyncio.create_task(ops.evaluate_shadow(
@@ -547,4 +637,8 @@ class ChatApplication:
             "react_run_ids": list(result.react_run_ids),
             "pending_approval_call_ids": list(result.pending_approval_call_ids),
         }
-        return Completed(response_id=delivery.response_id, response=response)
+        return Completed(
+            response_id=delivery.response_id,
+            response=response,
+            stages=tuple(stages),
+        )

@@ -8,6 +8,7 @@ from agents.agent_orchestrator import (
 )
 from agents.react_engine import ReActResult, ReActStatus
 from api import main
+from application.chat_application import ChatCommand, Completed
 from core.intent_recognizer import IntentCategory, UrgencyLevel
 from core.auth import Principal
 from services.answer_verifier import (
@@ -261,6 +262,24 @@ def test_chat_escalation_creates_one_persistent_idempotent_ticket(tmp_path, monk
         (["escalation_0"], "pass"),
         (["escalation_0"], "pass"),
     ]
+    application_outcome = asyncio.run(main._chat_application().handle(ChatCommand(
+        message="我要转人工",
+        user_id="user-1",
+        conv_id="conversation-1",
+        request_id="stable-request-2",
+    )))
+    assert isinstance(application_outcome, Completed)
+    assert {stage.stage for stage in application_outcome.stages} == {
+        "memory_load",
+        "intent",
+        "knowledge_retrieval",
+        "route_and_agent",
+        "verification",
+        "ticket",
+        "delivery",
+        "tool",
+        "memory_write",
+    }
 
 
 def test_handoff_priority_preserves_typed_critical_urgency():
