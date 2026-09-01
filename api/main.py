@@ -64,6 +64,7 @@ from core.llm_metrics import capture_llm_usage
 from core.model_policy import ModelPolicy, ModelRole
 from core.rag_policy import DEFAULT_RAG_RETRIEVAL_POLICY, rag_retrieval_policy_from_env
 from core.intent_recognizer import IntentCategory
+from core.identity import IdentityFactory
 from application.chat_application import (
     ChatApplication,
     ChatCommand,
@@ -71,6 +72,7 @@ from application.chat_application import (
     ChatServices,
     Completed,
     Failed,
+    Rejected,
 )
 from services.answer_verifier import (
     VerificationReasonCode,
@@ -1139,6 +1141,7 @@ async def _evaluate_shadow_request(
     base_sections: List[ContextSection],
     prompt_history: List[Dict[str, str]],
     intent_history: Optional[List[Dict[str, str]]],
+    identity_metadata: Optional[Dict[str, str]] = None,
 ) -> None:
     """执行不发布、不写记忆、不建工单的真实输入副本；写工具由边界硬拒绝。"""
     if (
@@ -1182,10 +1185,11 @@ async def _evaluate_shadow_request(
             intent_group=intent_result.intent_group,
             urgency=intent_result.urgency,
             intent_confidence=intent_result.confidence,
-            request_id=f"{request_id}:shadow",
+            request_id=request_id,
             bundle_version=bundle.version,
             agent_bundle=bundle,
             execution_mode="shadow",
+            identity_metadata=dict(identity_metadata or {}),
         )
         result = await _orchestrator.run(shadow_request)
         if result.awaiting_approval:
@@ -1212,7 +1216,7 @@ async def _evaluate_shadow_request(
             verified=verified,
             latency_ms=result.latency_ms,
             cost_units=float(len(result.agent_outcomes)),
-            request_id=f"{request_id}:shadow",
+            request_id=request_id,
         )
     except Exception:
         logger.exception(
@@ -1328,6 +1332,7 @@ def _chat_application() -> ChatApplication:
             bundle_registry=_bundle_registry,
             rollout_manager=_rollout_manager,
             tool_manager=_tool_manager,
+            trace_recorder=_trace_recorder,
         ),
         ChatOperations(
             active_ticket_context=_active_ticket_context,
@@ -1365,6 +1370,11 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
             "error": outcome.code,
             "retryable": outcome.retryable,
             "correlation_id": outcome.correlation_id,
+        })
+    if isinstance(outcome, Rejected):
+        raise HTTPException(422, {
+            "error": outcome.code,
+            "message": outcome.safe_message,
         })
     raise HTTPException(500, {
         "error": "unsupported_chat_outcome",
@@ -2668,6 +2678,7 @@ async def _cli():
     )
 
     user_id, conv_id = "cli_user", str(uuid.uuid4())
+    identity_factory = IdentityFactory()
 
     while True:
         try:
@@ -2684,14 +2695,28 @@ async def _cli():
             {"role": m.role.value, "content": m.content}
             for m in ctx.recent_messages[-5:]
         ] if ctx.recent_messages else None
-        req = Request(message=msg, user_id=user_id, conv_id=conv_id, context=ctx.to_prompt_text(), history=history)
+        identity = identity_factory.create_invocation(
+            tenant_id="cli",
+            user_id=user_id,
+            conversation_id=conv_id,
+            request_id=None,
+        )
+        req = Request(
+            message=msg,
+            user_id=user_id,
+            conv_id=conv_id,
+            request_id=str(identity.request_id),
+            identity_metadata=identity.metadata(),
+            context=ctx.to_prompt_text(),
+            history=history,
+        )
         result = await orch.run(req)
 
         disposition = getattr(result.routing_disposition, "value", result.routing_disposition)
         if disposition != "out_of_scope":
             await mem.add_messages(user_id, conv_id, [
-                (MsgRole.USER, msg, {}),
-                (MsgRole.ASSISTANT, result.response, {}),
+                (MsgRole.USER, msg, identity.metadata()),
+                (MsgRole.ASSISTANT, result.response, identity.metadata()),
             ])
 
         responder = result.agent_type.value if result.agent_type else "orchestrator"

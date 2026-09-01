@@ -1,5 +1,6 @@
 """Application/HTTP ownership contracts for the production chat chain."""
 import asyncio
+from contextlib import contextmanager
 from types import SimpleNamespace
 
 import pytest
@@ -30,19 +31,34 @@ def _ready_services() -> ChatServices:
 
 
 def test_chat_application_is_directly_callable_without_http(monkeypatch):
+    captured = {}
+
+    class Recorder:
+        @contextmanager
+        def span(self, name, *, kind, attributes):
+            captured.update(name=name, kind=kind, attributes=attributes)
+            yield
+
+    services = _ready_services()
+    services = ChatServices(**{
+        **services.__dict__,
+        "trace_recorder": Recorder(),
+    })
     app = ChatApplication(
-        _ready_services(),
+        services,
         SimpleNamespace(trace_id=lambda: "trace-direct"),
     )
     expected = Completed(response_id="response-1", response={"ok": True})
 
-    async def handle_ready(command):
+    async def handle_ready(command, identity):
         assert command == ChatCommand(
             message="查询订单",
             user_id="user-1",
             conv_id="conversation-1",
             request_id="request-1",
         )
+        assert identity.request_id == "request-1"
+        assert identity.conversation_id == "conversation-1"
         return expected
 
     monkeypatch.setattr(app, "_handle_ready", handle_ready)
@@ -52,6 +68,9 @@ def test_chat_application_is_directly_callable_without_http(monkeypatch):
         conv_id="conversation-1",
         request_id="request-1",
     ))) is expected
+    assert captured["name"] == "application.chat"
+    assert captured["attributes"]["request_id"] == "request-1"
+    assert captured["attributes"]["invocation_key"].startswith("invocation:v1:")
 
 
 def test_chat_application_projects_unexpected_failure_to_typed_outcome(monkeypatch):
@@ -60,7 +79,7 @@ def test_chat_application_projects_unexpected_failure_to_typed_outcome(monkeypat
         SimpleNamespace(trace_id=lambda: "trace-failure"),
     )
 
-    async def fail(_command):
+    async def fail(_command, _identity):
         raise RuntimeError("provider secret must not cross the boundary")
 
     monkeypatch.setattr(app, "_handle_ready", fail)

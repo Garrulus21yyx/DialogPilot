@@ -31,6 +31,7 @@ from anthropic import AsyncAnthropic
 from core.model_policy import ModelProfile
 from core.rag_policy import DEFAULT_RAG_RETRIEVAL_POLICY
 from core.tracing import TraceRecorder, current_trace_id, trace_scope
+from core.identity import InvocationKey, OperationKey
 from mcp.query_transformer import QUERY_TRANSFORM_PROMPT_VERSION, QueryTransformer
 from mcp.result_reranker import RERANK_PROMPT_VERSION, RerankResult, ResultReranker, candidates_from_items
 
@@ -131,6 +132,8 @@ class ToolAuditRecord:
     error: str = ""
     effect_status: ToolEffectStatus = ToolEffectStatus.NONE
     receipt_id: str = ""
+    invocation_key: str = ""
+    operation_key: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         """生成稳定 API/Trace 投影。"""
@@ -152,6 +155,8 @@ class ToolAuditRecord:
             "error": self.error,
             "effect_status": self.effect_status.value,
             "receipt_id": self.receipt_id,
+            "invocation_key": self.invocation_key,
+            "operation_key": self.operation_key,
         }
 
 
@@ -374,6 +379,14 @@ class MCPToolManager:
         # Agent 身份与调用 ID 由执行边界覆盖，不能信任调用方 context 中的同名值。
         context["agent_type"] = normalized_agent
         context["tool_call_id"] = resolved_call_id
+        invocation_key = str(context.get("invocation_key") or "").strip()
+        if invocation_key:
+            context["operation_key"] = str(OperationKey.build(
+                InvocationKey(invocation_key),
+                owner=f"tool:{name}",
+                operation="execute",
+                subject=resolved_call_id,
+            ))
         trace_id = str(context.get("trace_id") or current_trace_id() or uuid.uuid4().hex)
         request_id = str(context.get("request_id") or "")
         started_iso = datetime.now(timezone.utc).isoformat()
@@ -984,6 +997,8 @@ class MCPToolManager:
             error="tool execution failed" if result.error else "",
             effect_status=ToolEffectStatus(result.effect_status),
             receipt_id=result.receipt_id,
+            invocation_key=str(context.get("invocation_key") or ""),
+            operation_key=str(context.get("operation_key") or ""),
         )
         self._audit.append(record)
         return result
@@ -1004,6 +1019,8 @@ class MCPToolManager:
             "user_id": str(context.get("user_id") or ""),
             "conv_id": str(context.get("conv_id") or ""),
             "request_id": str(context.get("request_id") or ""),
+            "invocation_key": str(context.get("invocation_key") or ""),
+            "operation_key": str(context.get("operation_key") or ""),
         }
         canonical = json.dumps(
             payload,
@@ -1117,9 +1134,9 @@ class MCPToolManager:
         required = schema.get("required", [])
         properties = schema.get("properties", {})
 
-        for field in required:
-            if field not in params:
-                raise ValueError(f"工具 {tool.name} 缺少必需参数: {field}")
+        for field_name in required:
+            if field_name not in params:
+                raise ValueError(f"工具 {tool.name} 缺少必需参数: {field_name}")
 
         for key, value in params.items():
             if key in properties:

@@ -5,7 +5,6 @@ from agents.agent_orchestrator import (
     AgentOrchestrator,
     AgentType,
     OrchestratorResult,
-    PlanningDisposition,
 )
 from agents.react_engine import ReActResult, ReActStatus
 from api import main
@@ -39,6 +38,7 @@ class FakeMemoryContext:
 class FakeMemory:
     def __init__(self):
         self.messages = []
+        self.message_metadata = []
         self.profile_updates = 0
 
     async def get_context(self, *_args, **_kwargs):
@@ -48,6 +48,7 @@ class FakeMemory:
         persisted = []
         for role, content, metadata in entries:
             self.messages.append((role.value, content))
+            self.message_metadata.append(dict(metadata))
             persisted.append(SimpleNamespace(role=role, content=content, metadata=metadata))
         if extract_facts:
             self.profile_updates += 1
@@ -61,6 +62,7 @@ class FakeMemory:
 class FakeOrchestrator:
     def __init__(self):
         self.feedback = []
+        self.requests = []
 
     async def recognize_intent(self, _message, history=None, bundle=None):
         return SimpleNamespace(
@@ -73,6 +75,7 @@ class FakeOrchestrator:
         )
 
     async def run(self, request):
+        self.requests.append(request)
         return OrchestratorResult(
             request_id=request.request_id,
             response="我会为你转接人工客服。",
@@ -248,6 +251,12 @@ def test_chat_escalation_creates_one_persistent_idempotent_ticket(tmp_path, monk
     assert ticket_service.get_ticket(first.ticket_id).priority is TicketPriority.CRITICAL
     assert len(ticket_service.list_tickets()) == 1
     assert memory.profile_updates == 2
+    first_identity = orchestrator.requests[0].identity_metadata
+    retry_identity = orchestrator.requests[1].identity_metadata
+    assert first_identity == retry_identity
+    assert first_identity["request_id"] == "stable-request-1"
+    assert first_identity["invocation_key"].startswith("invocation:v1:")
+    assert memory.message_metadata[0]["invocation_key"] == first_identity["invocation_key"]
     assert orchestrator.feedback == [
         (["escalation_0"], "pass"),
         (["escalation_0"], "pass"),

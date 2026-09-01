@@ -14,7 +14,7 @@ import sqlite3
 import threading
 import urllib.request
 import uuid
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
@@ -99,6 +99,7 @@ class Ticket:
     assignee: Optional[str]
     created_at: str
     updated_at: str
+    identity_metadata: Dict[str, str] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         """转换为对外 JSON 结构，并展开领域枚举。"""
@@ -211,6 +212,7 @@ class TicketService:
         agent_type: str = "general",
         intent: str = "other",
         verification_status: str = "unknown",
+        identity_metadata: Optional[Dict[str, str]] = None,
     ) -> Tuple[Ticket, bool]:
         """幂等创建工单，返回 ``(ticket, created)``。
 
@@ -229,6 +231,10 @@ class TicketService:
             "agent_type": (agent_type or "general").strip(),
             "intent": (intent or "other").strip(),
             "verification_status": (verification_status or "unknown").strip(),
+            "identity_metadata": {
+                str(key): str(value)
+                for key, value in dict(identity_metadata or {}).items()
+            },
         }
         # 幂等身份描述客户端操作，而不是非确定性的 LLM 输出。安全重试即使
         # 生成措辞不同，也必须解析到首次持久化的人工工单。
@@ -239,6 +245,7 @@ class TicketService:
                 "conv_id": values["conv_id"],
                 "request_id": values["request_id"],
                 "question": values["question"],
+                "identity_metadata": values["identity_metadata"],
             }
         )
         now = self._now()
@@ -266,8 +273,8 @@ class TicketService:
                     ticket_id, idempotency_key, request_fingerprint, user_id,
                     conv_id, request_id, question, published_response, reason,
                     priority, status, agent_type, intent, verification_status,
-                    assignee, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?)
+                    assignee, created_at, updated_at, identity_metadata_json
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?)
                 """,
                 (
                     ticket_id,
@@ -286,6 +293,9 @@ class TicketService:
                     values["verification_status"],
                     now,
                     now,
+                    json.dumps(
+                        values["identity_metadata"], ensure_ascii=False, sort_keys=True,
+                    ),
                 ),
             )
             self._insert_event(
@@ -311,6 +321,7 @@ class TicketService:
                 "agent_type": values["agent_type"],
                 "intent": values["intent"],
                 "verification_status": values["verification_status"],
+                "identity_metadata": values["identity_metadata"],
                 "created_at": now,
             }
             conn.execute(
@@ -602,6 +613,7 @@ class TicketService:
                     assignee TEXT,
                     created_at TEXT NOT NULL,
                     updated_at TEXT NOT NULL
+                    ,identity_metadata_json TEXT NOT NULL DEFAULT '{}'
                 );
 
                 CREATE INDEX IF NOT EXISTS idx_tickets_user_created
@@ -638,6 +650,15 @@ class TicketService:
                     ON ticket_outbox(delivered_at, available_at, created_at);
                 """
             )
+            columns = {
+                str(row["name"])
+                for row in conn.execute("PRAGMA table_info(tickets)").fetchall()
+            }
+            if "identity_metadata_json" not in columns:
+                conn.execute(
+                    "ALTER TABLE tickets "
+                    "ADD COLUMN identity_metadata_json TEXT NOT NULL DEFAULT '{}'"
+                )
 
     def _connect(self) -> sqlite3.Connection:
         """创建启用外键、WAL 和忙等待的短生命周期连接。"""
@@ -696,6 +717,7 @@ class TicketService:
             assignee=row["assignee"],
             created_at=row["created_at"],
             updated_at=row["updated_at"],
+            identity_metadata=json.loads(row["identity_metadata_json"] or "{}"),
         )
 
     @staticmethod

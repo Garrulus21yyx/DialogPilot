@@ -1,4 +1,5 @@
 import time
+import sqlite3
 
 import pytest
 
@@ -48,6 +49,53 @@ def test_ticket_persists_across_service_instances(tmp_path):
     assert restored == ticket
     assert restored.status is TicketStatus.OPEN
     assert second.get_events(ticket.ticket_id)[0]["to_status"] == "open"
+
+
+def test_ticket_persists_invocation_identity_in_fact_and_outbox(tmp_path):
+    service = TicketService(str(tmp_path / "tickets.db"))
+    ticket, created = service.create_ticket(
+        idempotency_key="operation:v1:ticket",
+        user_id="user-1",
+        conv_id="conversation-1",
+        request_id="request-1",
+        question="help",
+        published_response="handoff",
+        reason="verification rejected",
+        identity_metadata={
+            "tenant_id": "tenant-1",
+            "invocation_key": "invocation:v1:abc",
+        },
+    )
+    assert created is True
+    assert ticket.identity_metadata["invocation_key"] == "invocation:v1:abc"
+    outbox = service._claim_outbox_message()
+    assert outbox is not None
+    assert outbox.payload["identity_metadata"] == ticket.identity_metadata
+
+
+def test_ticket_forward_migrates_legacy_table_before_writing_metadata(tmp_path):
+    path = tmp_path / "legacy-tickets.db"
+    with sqlite3.connect(path) as conn:
+        conn.execute("""
+            CREATE TABLE tickets (
+                ticket_id TEXT PRIMARY KEY, idempotency_key TEXT NOT NULL UNIQUE,
+                request_fingerprint TEXT NOT NULL, user_id TEXT NOT NULL,
+                conv_id TEXT NOT NULL, request_id TEXT NOT NULL,
+                question TEXT NOT NULL, published_response TEXT NOT NULL,
+                reason TEXT NOT NULL, priority TEXT NOT NULL, status TEXT NOT NULL,
+                agent_type TEXT NOT NULL, intent TEXT NOT NULL,
+                verification_status TEXT NOT NULL, assignee TEXT,
+                created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+            )
+        """)
+    service = TicketService(str(path))
+    ticket, _ = service.create_ticket(
+        idempotency_key="operation:v1:migrated",
+        user_id="user-1", conv_id="conversation-1", request_id="request-1",
+        question="help", published_response="handoff", reason="rejected",
+        identity_metadata={"invocation_key": "invocation:v1:x"},
+    )
+    assert ticket.identity_metadata["invocation_key"] == "invocation:v1:x"
 
 
 def test_same_idempotent_request_returns_existing_ticket(tmp_path):

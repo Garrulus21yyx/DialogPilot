@@ -8,11 +8,12 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import uuid
+from contextlib import nullcontext
 from dataclasses import dataclass
 from typing import Any, Awaitable, Callable, Mapping, Optional, TypeAlias
 
 from memory.context import ContextSection
+from core.identity import IdentityContractError, IdentityFactory, InvocationIdentity
 from services.answer_verifier import (
     VerificationReasonCode,
     VerificationResult,
@@ -29,8 +30,10 @@ class ChatCommand:
 
     message: str
     user_id: str
+    tenant_id: str = "default"
     conv_id: Optional[str] = None
     request_id: Optional[str] = None
+    continuation_id: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -125,6 +128,7 @@ class ChatServices:
     bundle_registry: Any
     rollout_manager: Any
     tool_manager: Any = None
+    trace_recorder: Any = None
 
     @property
     def ready(self) -> bool:
@@ -162,9 +166,15 @@ class ChatOperations:
 class ChatApplication:
     """Owns the complete current chat invocation from context load to publication."""
 
-    def __init__(self, services: ChatServices, operations: ChatOperations):
+    def __init__(
+        self,
+        services: ChatServices,
+        operations: ChatOperations,
+        identity_factory: IdentityFactory | None = None,
+    ):
         self._services = services
         self._ops = operations
+        self._identity_factory = identity_factory or IdentityFactory()
 
     async def handle(self, command: ChatCommand) -> ChatOutcome:
         if not self._services.ready:
@@ -175,7 +185,29 @@ class ChatApplication:
                 safe_message="服务未就绪",
             )
         try:
-            return await self._handle_ready(command)
+            identity = self._identity_factory.create_invocation(
+                tenant_id=command.tenant_id,
+                user_id=command.user_id,
+                conversation_id=command.conv_id,
+                request_id=command.request_id,
+                continuation_id=command.continuation_id,
+            )
+            span = (
+                self._services.trace_recorder.span(
+                    "application.chat",
+                    kind="internal",
+                    attributes=identity.metadata(),
+                )
+                if self._services.trace_recorder is not None
+                else nullcontext()
+            )
+            with span:
+                return await self._handle_ready(command, identity)
+        except IdentityContractError:
+            return Rejected(
+                code="invalid_invocation_identity",
+                safe_message="请求身份字段无效",
+            )
         except Exception as exc:
             logger.exception(
                 "chat application failed request_id=%s", command.request_id or "unassigned",
@@ -187,15 +219,20 @@ class ChatApplication:
                 safe_message=f"internal application failure: {type(exc).__name__}",
             )
 
-    async def _handle_ready(self, command: ChatCommand) -> ChatOutcome:
+    async def _handle_ready(
+        self,
+        command: ChatCommand,
+        identity: InvocationIdentity,
+    ) -> ChatOutcome:
         from agents.agent_orchestrator import Request as OrcReq
         from memory.conversation_memory import MsgRole
 
         services = self._services
         ops = self._ops
-        user_id = command.user_id
-        conv_id = command.conv_id or str(uuid.uuid4())
-        request_id = command.request_id or str(uuid.uuid4())
+        user_id = str(identity.user_id)
+        conv_id = str(identity.conversation_id)
+        request_id = str(identity.request_id)
+        identity_metadata = identity.metadata()
         assignment = await asyncio.to_thread(services.rollout_manager.resolve, user_id)
         bundle = assignment.primary
 
@@ -259,6 +296,7 @@ class ChatApplication:
             request_id=request_id,
             bundle_version=bundle.version,
             agent_bundle=bundle,
+            identity_metadata=identity_metadata,
         )
         result = await services.orchestrator.run(orchestration_request)
 
@@ -321,10 +359,13 @@ class ChatApplication:
         ticket = None
         handoff_created = False
         if escalated:
+            ticket_operation_key = identity.operation_key(
+                "TicketService", "create_handoff", "primary",
+            )
             try:
                 ticket, handoff_created = await asyncio.to_thread(
                     services.ticket_service.create_ticket,
-                    idempotency_key=f"chat:{request_id}:handoff",
+                    idempotency_key=str(ticket_operation_key),
                     user_id=user_id,
                     conv_id=conv_id,
                     request_id=request_id,
@@ -343,6 +384,10 @@ class ChatApplication:
                     ),
                     intent=result.intent.value if result.intent else "other",
                     verification_status=verification.status.value,
+                    identity_metadata={
+                        **identity_metadata,
+                        "operation_key": str(ticket_operation_key),
+                    },
                 )
             except Exception:
                 logger.exception("人工工单创建失败 request_id=%s", request_id)
@@ -352,12 +397,19 @@ class ChatApplication:
                 )
 
         try:
+            delivery_operation_key = identity.operation_key(
+                "ResponseDelivery", "select_final_response", "primary",
+            )
             delivery = await asyncio.to_thread(
                 services.response_delivery.select_response,
                 user_id=user_id,
                 conv_id=conv_id,
                 request_id=request_id,
                 response_text=response_text,
+                identity_metadata={
+                    **identity_metadata,
+                    "operation_key": str(delivery_operation_key),
+                },
             )
         except Exception:
             logger.exception("持久化回答选择事实失败 request_id=%s", request_id)
@@ -401,9 +453,9 @@ class ChatApplication:
         )
         if disposition != "out_of_scope":
             await services.memory.add_messages(user_id, conv_id, [
-                (MsgRole.USER, command.message, {"request_id": request_id}),
+                (MsgRole.USER, command.message, identity_metadata),
                 (MsgRole.ASSISTANT, response_text, {
-                    "request_id": request_id,
+                    **identity_metadata,
                     "response_id": delivery.response_id,
                     "response_seq": delivery.seq,
                 }),
@@ -419,6 +471,7 @@ class ChatApplication:
                 base_sections=base_context_sections,
                 prompt_history=prompt_history,
                 intent_history=intent_history,
+                identity_metadata=identity_metadata,
             ))
 
         response = {

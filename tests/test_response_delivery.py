@@ -1,6 +1,7 @@
 """回答选择、客户端 ACK 与断线续取的持久合同测试。"""
 
 from concurrent.futures import ThreadPoolExecutor
+import sqlite3
 
 from fastapi.testclient import TestClient
 
@@ -98,6 +99,46 @@ def test_delivery_cursor_and_ack_survive_service_restart(tmp_path):
     assert restored.response_id == selected.response_id
     assert restored.response_text == "recoverable answer"
     assert acknowledged.status is DeliveryStatus.DELIVERED
+
+
+def test_delivery_persists_internal_invocation_identity_metadata(tmp_path):
+    path = tmp_path / "responses.db"
+    service = ResponseDeliveryService(str(path))
+    selected = service.select_response(
+        user_id="user-1",
+        conv_id="conversation-1",
+        request_id="request-1",
+        response_text="answer",
+        identity_metadata={
+            "tenant_id": "tenant-1",
+            "invocation_key": "invocation:v1:abc",
+        },
+    )
+    restored = ResponseDeliveryService(str(path)).list_after(
+        user_id="user-1", conv_id="conversation-1",
+    )[0]
+    assert restored.identity_metadata == selected.identity_metadata
+    assert "identity_metadata" not in restored.to_public_dict()
+
+
+def test_delivery_forward_migrates_legacy_table_before_writing_metadata(tmp_path):
+    path = tmp_path / "legacy-responses.db"
+    with sqlite3.connect(path) as conn:
+        conn.execute("""
+            CREATE TABLE response_deliveries (
+                response_id TEXT PRIMARY KEY, user_id TEXT NOT NULL,
+                conv_id TEXT NOT NULL, request_id TEXT NOT NULL,
+                seq INTEGER NOT NULL CHECK(seq > 0), response_text TEXT NOT NULL,
+                status TEXT NOT NULL, selected_at TEXT NOT NULL,
+                delivered_at TEXT, read_at TEXT,
+                UNIQUE(user_id, conv_id, seq)
+            )
+        """)
+    selected = ResponseDeliveryService(str(path)).select_response(
+        user_id="user-1", conv_id="conversation-1", request_id="request-1",
+        response_text="answer", identity_metadata={"invocation_key": "invocation:v1:x"},
+    )
+    assert selected.identity_metadata["invocation_key"] == "invocation:v1:x"
 
 
 def test_ack_and_replay_http_contract(tmp_path, monkeypatch):

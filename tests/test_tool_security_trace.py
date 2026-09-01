@@ -4,6 +4,7 @@ import asyncio
 
 import pytest
 
+from core.identity import InvocationKey, TenantId, UserId, ConversationId, RequestId
 from core.tracing import TraceRecorder, current_trace_id, trace_scope
 from mcp.tool_manager import (
     ApprovalMode,
@@ -44,6 +45,41 @@ def test_tool_discovery_and_execution_share_agent_allowlist():
     assert result.status == ToolCallStatus.DENIED.value
     assert called == []
     assert runtime.audit_records()[0].status is ToolCallStatus.DENIED
+
+
+def test_tool_execution_derives_operation_key_from_application_invocation():
+    runtime = manager()
+    observed_context = {}
+
+    async def handler(_params, context):
+        observed_context.update(context)
+        return {"ok": True}
+
+    runtime.register(Tool(
+        name="identity_lookup",
+        description="identity propagation test",
+        handler=handler,
+        schema={"type": "object", "properties": {}},
+        allowed_agents=("general",),
+    ))
+    invocation_key = InvocationKey.build(
+        TenantId("tenant-1"), UserId("user-1"),
+        ConversationId("conversation-1"), RequestId("request-1"),
+    )
+    asyncio.run(runtime.execute_for_agent(
+        "identity_lookup",
+        {},
+        agent_type="general",
+        call_id="call-1",
+        context={
+            "request_id": "request-1",
+            "invocation_key": str(invocation_key),
+        },
+    ))
+    audit = runtime.audit_records()[0]
+    assert audit.invocation_key == invocation_key
+    assert audit.operation_key.startswith("operation:v1:")
+    assert observed_context["operation_key"] == audit.operation_key
 
 
 def test_high_risk_tool_requires_host_approval_before_side_effect():

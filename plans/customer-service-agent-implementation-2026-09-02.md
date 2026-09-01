@@ -13,8 +13,8 @@
 |---|---|---|
 | Bootstrap：冻结需求文档与执行跟踪 | done | commit `c2beceb`，已 push |
 | M0-T01 应用服务边界 | done | typed `ChatOutcome`、薄 `/chat`；392 tests passed |
-| M0-T02 稳定身份和值对象 | in_progress | typed IDs/keys、属性测试、链路 metadata |
-| M0-T03 生产主链 Eval Runner | pending | `ChatApplicationRunner`、typed stage observations |
+| M0-T02 稳定身份和值对象 | done | stable IDs/keys；Trace/Tool/Ticket/Delivery/Memory propagation |
+| M0-T03 生产主链 Eval Runner | in_progress | `ChatApplicationRunner`、typed stage observations |
 | M0-T04 当前行为基线 | pending | 冻结 baseline artifacts/report |
 | M0-T05 Gate Manifest Foundation | pending | 版本化 manifest schema/validator/report |
 | M1 完整会话事实与幂等发布 | pending | 按 M1-PF01、T00–T05/T03A/T04A 子节点推进 |
@@ -51,8 +51,36 @@
 - 说明：M0 保持现有同步聊天语义；`Accepted/NeedsInput/...` 合同已冻结，具体 admission
   与 execution 投影由 M1-T00/M1-T05 实现。
 
+### M0-T02
+
+- 正向合同：`IdentityFactory` 在 Application 边界一次性解析
+  `TenantId/UserId/ConversationId/RequestId/ContinuationId/TurnId/WorkflowRunId`；
+  `TurnKey/InvocationKey/OperationKey` 使用带 namespace/version 的无歧义 canonical tuple
+  SHA-256 构造，外部投影仍为字符串。
+- Continuation：`ContinuationIdFactory` 只接受 typed `StartNew` 或 Agent Gate 已校验的
+  `ReusePriorFrame(frame_ref, frame_version)`；复用前强制校验 tenant/user/conversation/version。
+- 消费者迁移：同一 identity metadata 已贯穿 Application trace、Agent/ReAct execution context、
+  Tool handler/audit、Ticket fact/outbox、ResponseDelivery fact 与 Memory message；Ticket、Delivery
+  使用各自稳定 `OperationKey`。Agent `Request` 不再随机铸造第二个 request ID，shadow 也复用原 ID。
+- 持久层：Ticket/ResponseDelivery SQLite 增加 `identity_metadata_json` 的幂等 forward migration；
+  现有数据库默认回填 `{}`，新写入携带完整稳定引用。
+- 修改文件：
+  - `core/identity.py`
+  - `application/chat_application.py`
+  - `agents/agent_orchestrator.py`
+  - `mcp/tool_manager.py`
+  - `services/ticket_service.py`
+  - `services/response_delivery.py`
+  - `api/main.py`
+  - `tests/test_identity_contracts.py` 及相关 owner/集成测试
+- 验证：
+  - `PYTHONPATH=. .venv/bin/pytest -q` → `409 passed`
+  - 相关文件 `ruff check --ignore E402` → passed
+  - `git diff --check` → passed
+  - 负向搜索未发现业务路径继续以 `uuid4` 或 `:shadow` 派生 request ID。
+
 ## 下一步
 
-1. 提交并推送 M0-T01。
-2. 实施 M0-T02：稳定 typed identity、key 构造与 metadata 迁移。
-3. 以属性测试验证 key 的确定性、隔离性和普通追问/resume identity 不混淆。
+1. 提交并推送 M0-T02。
+2. 实施 M0-T03：让 `full_execution` 通过 `ChatApplicationRunner` 调用生产主链。
+3. 冻结 typed stage observation，使公开回答与后台 owner 状态可在同一 fixture 验证。

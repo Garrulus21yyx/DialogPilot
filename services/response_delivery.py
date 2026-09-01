@@ -9,7 +9,8 @@ from __future__ import annotations
 import sqlite3
 import threading
 import uuid
-from dataclasses import asdict, dataclass
+import json
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
@@ -42,10 +43,12 @@ class ResponseDelivery:
     selected_at: str
     delivered_at: str | None
     read_at: str | None
+    identity_metadata: Dict[str, str] = field(default_factory=dict)
 
     def to_public_dict(self) -> Dict[str, Any]:
         data = asdict(self)
         data.pop("user_id", None)
+        data.pop("identity_metadata", None)
         data["status"] = self.status.value
         return data
 
@@ -66,12 +69,17 @@ class ResponseDeliveryService:
         conv_id: str,
         request_id: str,
         response_text: str,
+        identity_metadata: Dict[str, str] | None = None,
     ) -> ResponseDelivery:
         """在发送前记录服务端选定文本，并分配连续的会话局部序号。"""
         user_id = self._required(user_id, "user_id")
         conv_id = self._required(conv_id, "conv_id")
         request_id = self._required(request_id, "request_id")
         response_text = self._required(response_text, "response_text")
+        identity_metadata = {
+            str(key): str(value)
+            for key, value in dict(identity_metadata or {}).items()
+        }
         response_id = uuid.uuid4().hex
         now = self._now()
         with self._lock, self._connect() as conn:
@@ -88,12 +96,13 @@ class ResponseDeliveryService:
                 """
                 INSERT INTO response_deliveries (
                     response_id, user_id, conv_id, request_id, seq, response_text,
-                    status, selected_at, delivered_at, read_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL)
+                    status, selected_at, delivered_at, read_at, identity_metadata_json
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, ?)
                 """,
                 (
                     response_id, user_id, conv_id, request_id, seq, response_text,
                     DeliveryStatus.SELECTED.value, now,
+                    json.dumps(identity_metadata, ensure_ascii=False, sort_keys=True),
                 ),
             )
             stored = conn.execute(
@@ -196,12 +205,22 @@ class ResponseDeliveryService:
                     selected_at TEXT NOT NULL,
                     delivered_at TEXT,
                     read_at TEXT,
+                    identity_metadata_json TEXT NOT NULL DEFAULT '{}',
                     UNIQUE(user_id, conv_id, seq)
                 );
                 CREATE INDEX IF NOT EXISTS idx_response_delivery_replay
                     ON response_deliveries(user_id, conv_id, seq);
                 """
             )
+            columns = {
+                str(row["name"])
+                for row in conn.execute("PRAGMA table_info(response_deliveries)").fetchall()
+            }
+            if "identity_metadata_json" not in columns:
+                conn.execute(
+                    "ALTER TABLE response_deliveries "
+                    "ADD COLUMN identity_metadata_json TEXT NOT NULL DEFAULT '{}'"
+                )
 
     def _connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self._path, timeout=5.0)
@@ -218,6 +237,7 @@ class ResponseDeliveryService:
             response_text=row["response_text"], status=DeliveryStatus(row["status"]),
             selected_at=row["selected_at"], delivered_at=row["delivered_at"],
             read_at=row["read_at"],
+            identity_metadata=json.loads(row["identity_metadata_json"] or "{}"),
         )
 
     @staticmethod

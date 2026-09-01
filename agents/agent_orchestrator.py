@@ -20,7 +20,6 @@ import json
 import logging
 import re
 import time
-import uuid
 from dataclasses import dataclass, field, replace
 from enum import Enum
 from typing import Any, Dict, List, Optional
@@ -161,7 +160,10 @@ class Request:
     bundle_version: str = "unversioned"
     agent_bundle: Optional[AgentBundle] = None
     execution_mode: str = "live"
-    request_id:  str = field(default_factory=lambda: str(uuid.uuid4())[:8])
+    # The Application boundary assigns request identity once. Component-only
+    # planner tests may omit it, but an Agent must never mint a replacement.
+    request_id: str = ""
+    identity_metadata: Dict[str, str] = field(default_factory=dict)
 
 
 class PlanningDisposition(str, Enum):
@@ -375,6 +377,7 @@ class BaseAgent:
                 messages=messages,
                 agent_type=self.agent_type.value,
                 execution_context={
+                    **req.identity_metadata,
                     "trace_id": current_trace_id(),
                     "request_id": req.request_id,
                     "user_id": req.user_id,
