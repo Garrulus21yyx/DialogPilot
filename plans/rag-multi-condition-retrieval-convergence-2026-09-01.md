@@ -9,7 +9,7 @@
 - [x] 增加合同测试与属性测试
 - [x] 运行 36 条全量、16 条 multi-span 及 12 条真正并列条件分层评测
 - [x] 用门禁判定，不以单个总分宣称上线
-- [ ] 更新文档、复现命令和线上页面（本地文档已更新，待构建/发布验证）
+- [x] 更新文档、复现命令和线上页面
 
 ## 共同根因
 
@@ -66,3 +66,10 @@ Doc2Dial Dev 当前 16 条所谓 multi-condition 是按 `evidence_count >= 2` �
 - `evaluation/rag_multi_condition_ablation.py`：Candidate→Selected→Packed 分层报告。
 - `evaluation/rag_cross_encoder_ablation.py`：成熟 CrossEncoder、q1/q2 anchor 和低置信 cascade 回放。
 - `docs/assets/eval/rag-multi-condition-cascade-dev-v1.json`：不含原文的发布摘要。
+
+## Verification Record
+
+- 本地：`388 passed`；`pip check` 无冲突；`git diff --check` 与摘要 JSON 校验通过。
+- CI：GitHub Actions run `33521751415` success。
+- Pages：deployment run `33521750866` success；线上评测页可见第 12 节，摘要 JSON 返回本次 rejected-for-release 决策。
+- 发布提交：`6e0bd8c`；默认在线 RAG 配置未改变。
