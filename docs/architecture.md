@@ -72,32 +72,35 @@ DialogPilot 不是一条不断堆 Prompt 的调用链，而是按“谁拥有最
 
 ## 知识 RAG 的权威坐标与候选配置
 
-知识原文的 `document_id + [start_char,end_char)` 是证据事实；chunk ID、检索排名、重排、打包上下文和回答都是配置相关投影。生产 `KnowledgeBase` 与评测共用 `DocumentChunker`，metadata 记录 `chunking_version=4`、strategy、预算、overlap 和 source offsets。旧实现切片前 `strip()` 导致官方 evidence 坐标漂移的问题已在这个 Owner 修复。
+知识原文的 `source_id + checksum + [start_char,end_char)` 是证据事实；chunk ID、检索排名、重排、打包上下文和回答都是配置相关投影。导入边界先形成最小 `SourceDocument`，只支持 UTF-8 txt/md/JSON；public collection 的写入需要 admin，查询需要 knowledge/chat 能力，用户订单与账户事实不得进入该索引。生产 `KnowledgeBase` 与评测共用 `DocumentChunker`，每个 chunk 固定 `scope=public` 并记录 source type/checksum/offset。复杂文档 ACL 与 PDF/OCR ParseResult 不是当前范围。
 
 ```text
 Source document/span
+  → SourceDocument（stable ID / SHA-256 / type / public）
   → DocumentChunker
+  → Chroma Dense + persistent SQLite BM25 postings + IndexManifest
   → QueryTransformer（Raw 必保留；生成 query 不是证据）
   → BM25 / Dense stable chunk-ID rankings
   → weighted RRF
-  → ResultReranker（完整 ID permutation）
-  → ContextPacker（token/chunk/provenance）
-  → GroundedAnswerGenerator（同语言 + validated citations + fail closed）
+  → ResultReranker（必须是精确完整 ID permutation）
+  → ContextPacker + EvidencePack（预算、来源、分数、版本、drop）
+  → GroundedAnswerGenerator v4（claims/conflicts/abstained）
+  → 纯知识直接发布；混合实时事实进入 Agent + Verifier
 ```
 
 仓库当前默认已迁移到冻结候选：
 
 | 配置面 | 当前仓库默认 |
 |---|---|
-| Chunk | fixed 512/64，index contract v4 |
+| Source/Chunk | public SourceDocument + fixed 512/64，chunk v4、index schema v2 |
 | First stage | BM25 .75 / Dense .25，RRF k=10，candidate 20 |
 | Query | Raw .25 + Standalone .75；无历史或改写失败退回 Raw 1.0 |
 | Rerank | listwise 20→5，失败保留 first-stage 顺序 |
-| Packing/Generation | Top-5/2600 + grounded v3 知识草稿，再交给 Agent/Verifier 发布链 |
+| Packing/Generation | Top-5/2600 EvidencePack + grounded v4；纯知识结果不再二次改写 |
 
 候选来自 Doc2Dial Dev 的 100 文档、300 case、488 个官方 grounding span；48 条多轮压力集用于有界模型评测。Query Recall@20 为 0.7708（Raw 0.6667），Rerank Recall@5 为 0.7500（不重排 0.5938），Generation language match 1.0、Judge grounded 0.9792、格式失败 0/48。安全选择不使用单一加权总分：否定/实体、非法引用、格式失败与 harmful rate 是不可补偿门槛。
 
-代码已把该配置接入 `/search` 与 `/chat`。已有 `agent-v1` 只有在仍精确使用旧检索策略时才原子迁移到内容寻址的 `agent-v2-rag-*`；自定义 Active Bundle 不会被启动过程覆盖。非空旧 Chroma 索引与 v4 合同不一致时会拒绝启动，必须从权威原文重新导入，不能混用旧 chunk。Doc2Dial test split 的 48 条检索集及 9 条 group-safe 多轮链路报告保持配置冻结：Standalone-raw25 Recall@20 与 Raw 同为 .6667、MRR .3648→.4537、harmful 0；rerank MRR@5 .4537→.6111；生成 9/9 无格式/Judge 失败并通过预设 gate。样本仍小，人工 Judge 校准、真实串行 P95 与线上 shadow/canary 尚未完成，因此“仓库默认已接入”不等于“外部生产流量已验证”。完整实验见 [客服 RAG 全链路评测](./rag-pipeline-evaluation/)。
+代码已把冻结检索配置接入 `/search` 与 `/chat`；Sparse 不再在每次查询拉全库，而是使用可从 Chroma 权威 public chunk 重建的 SQLite posting sidecar。`/knowledge/stats` 投影 source/parser/chunker/dense/sparse/corpus Manifest；不兼容非空索引必须从权威原文重导。Doc2Dial test split 的 48 条检索集及 9 条 group-safe 多轮链路仍只证明 v3 冻结结果；v4 claim/conflict 合同目前有代码回归，尚需 WixQA group-safe Heldout、人工 Judge 校准和真实 shadow/canary。因此“仓库默认已接入”不等于“外部生产流量已验证”。完整边界见[客服 RAG 生产化审计](./customer-service-rag-production-audit/)，历史选型数据见[客服 RAG 全链路评测](./rag-pipeline-evaluation/)。
 
 ## 意图识别的在线/离线边界
 

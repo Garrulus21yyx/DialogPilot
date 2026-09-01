@@ -6,6 +6,8 @@ permalink: /rag-pipeline-evaluation/
 
 # DialogPilot 客服 RAG 全链路评测
 
+> 本页保存 Doc2Dial 上选择检索配置与 grounded v3 的历史实验依据。当前仓库随后增加了 public `SourceDocument`、持久 Sparse、完整 IndexManifest、EvidencePack、严格 rerank permutation 与 grounded v4 claim/conflict 合同；这些新增合同不能继承 v3 的模型分数。上线边界与待补证据见[客服 RAG 生产化审计](../customer-service-rag-production-audit/)。
+
 ## 1. 目标与边界
 
 本评测把 source document 与 evidence span 作为权威事实，逐层区分：
@@ -228,8 +230,8 @@ PYTHONPATH=. .venv/bin/python -m evaluation.rag_packing_ablation \
 
 首次报告中 `know` 被旧 evaluator 以子串方式误识别为否定词 `no`。修复为英文词边界后，用同一模型 capture 离线重放，Standalone negation preservation 为 `1.0`；没有重调 Prompt 或权重。
 
-仓库默认已接入该冻结配置：`KnowledgeBase` fixed 512/64、BM25 .75/Dense .25/k=10；`MCPToolManager` Raw .25/Standalone .75、20→5；`/chat` 使用 Top-5/2600 packing 与 grounded v3 知识草稿。`agent-v1` 仅在仍是精确旧默认时原子迁移到内容寻址的 `agent-v2-rag-*`，自定义 Active 指针不会被覆盖；非空旧 Chroma 索引与 v4 不一致时启动 fail closed，要求从权威原文重导。
+仓库保留该冻结检索配置：`KnowledgeBase` fixed 512/64、BM25 .75/Dense .25/k=10；`MCPToolManager` Raw .25/Standalone .75、20→5；`/chat` 使用 Top-5/2600。之后的生产边界修复将在线全量 BM25 换为持久 posting index，增加 source/index contract 和 EvidencePack，并把生成输出收紧为 grounded v4。`agent-v1` 仅在仍是精确旧默认时原子迁移到内容寻址的 `agent-v2-rag-*`，自定义 Active 指针不会被覆盖；非空索引缺少任一 source/chunk/dense/sparse/scope 合同都会 fail closed，要求从权威原文重导。
 
-当前状态是 **repository default integrated, external production unverified**：仍缺真实脱敏流量的串行 P95/P99、人工盲审对 Judge 的校准、shadow 和 canary。代码默认、离线 test 报告与外部生产验证必须分开表述。
+当前状态是 **retrieval baseline integrated; new v4 production contract regression-tested; external production unverified**。仍缺新的 WixQA group-safe Heldout、真实脱敏流量串行 P95/P99、人工盲审对 claim Judge 的校准、shadow 和 canary。代码默认、历史 v3 离线报告、新合同回归与外部生产验证必须分开表述。
 
 全仓验证结果与提交信息见计划文件中的 verification record。

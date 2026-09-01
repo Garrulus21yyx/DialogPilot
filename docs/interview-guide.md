@@ -29,7 +29,7 @@ title: DialogPilot 面经校准与追问手册
 | 知识库是 BM25 + 向量 + RRF | 知识 RAG 已支持 source-offset chunk、Raw/Standalone + BM25/Dense/RRF、stable-ID rerank、packing 与引用草稿；候选已切换仓库默认 | **CHANGED** |
 | Agent 单次生成、无完整 Trace | Worker 内最多 4 步 ReAct，allowlist、持久审批 Resume、脱敏 audit/TraceId | **CHANGED** |
 | Bad Case 后人工直接改 Prompt | 版本归因 → 不可变 Bundle 候选 → Graduation/Pareto → Shadow/Canary/回滚 | **NEW** |
-| 准确率 91.3%、综合分 0.89 | 当前有 500 条 provisional 项目集、Doc2Dial Dev、48 条 test 检索/9 条多轮链路和 329 项回归测试；仍无 human-reviewed 项目 Gold | **UNPROVEN** |
+| 准确率 91.3%、综合分 0.89 | 当前有 500 条 provisional 项目集、Doc2Dial Dev、48 条 test 检索/9 条多轮链路和 344 项回归测试；仍无 human-reviewed 项目 Gold | **UNPROVEN** |
 | 完整 MCP Server / LangGraph | 是内部 ToolManager 与直接 Python 编排；没有远程 MCP Server，没用 LangGraph | **UNPROVEN** |
 
 ## 项目开场与完整链路
@@ -184,13 +184,13 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q27：知识 RAG 链路是什么？
 
-权威事实是 source document 的 `document_id + [start,end)`，chunk 和排名只是投影。`DocumentChunker` 保留 source offsets；`QueryTransformer` 生成 Standalone，但 Raw 必须保留，生成查询不能作证据；KnowledgeBase 在一个权重空间融合 BM25/Dense 与 Raw/Standalone stable chunk-ID 排名；`ResultReranker` 只接受候选 ID 并补成完整 permutation，失败保留 first-stage 顺序。`ContextPacker` 和 Grounded Generator 已接入 `/chat` 的知识投影边界；生成器只产出公共知识草稿，实时订单/退款/账户事实仍由业务工具拥有，最终发布仍由 Agent + Verifier 控制。
+权威事实是 `source_id + checksum + [start,end)`，chunk 和排名只是投影。写入先形成 public `SourceDocument`；Chroma public chunk 是权威 corpus，SQLite BM25 是按 fingerprint 可重建 posting 投影，不再每次扫描全库。`QueryTransformer` 生成 Standalone，但 Raw 必须保留；`ResultReranker` 必须返回候选集合的精确完整排列，否则整次回退。`EvidencePack` 保留 Manifest、score/rank、scope decision 与 packing drop。Grounded v4 输出 claim citations、conflicts、abstained 和 reason；无业务工具的纯知识答案直接成为发布候选，实时订单/退款/账户事实仍由业务工具拥有。
 
-当前仓库默认是 fixed 512/64、BM25 .75/Dense .25/k=10、Raw .25/Standalone .75、rerank 20→5、packing 2600。已有旧索引不会静默复用：index contract v4 不匹配就拒绝启动并要求从权威原文重导。
+当前仓库默认是 fixed 512/64、BM25 .75/Dense .25/k=10、Raw .25/Standalone .75、rerank 20→5、packing 2600。索引合同同时固定 source v1、chunk v4、index schema v2、public scope、Dense model 与 Sparse tokenizer；任何一项不匹配都拒绝启动并要求从权威原文重导。复杂 ACL、PDF/OCR 和多副本 Sparse 是明确的后续边界。
 
 ### Q28：知识 chunk size 和 overlap 是多少？
 
-**CHANGED。** 当前仓库默认已是 fixed 512/64。Doc2Dial Dev 比较 fixed/structure-aware 与 256/32、384/48、512/64 后选择它；对 488 个官方 span 的 containment 为 1.0、fragmentation 为 0，真实检索 Recall@20 为 0.6244，高于 256/32 的 0.5622 和 384/48 的 0.5944。metadata 是 `chunking_version=4` 并记录 source offsets；已有非空旧索引必须从权威原文重建，否则启动 fail closed。
+**CHANGED。** 当前仓库默认已是 fixed 512/64。Doc2Dial Dev 比较 fixed/structure-aware 与 256/32、384/48、512/64 后选择它；对 488 个官方 span 的 containment 为 1.0、fragmentation 为 0，真实检索 Recall@20 为 0.6244，高于 256/32 的 0.5622 和 384/48 的 0.5944。chunk metadata 除 `chunking_version=4` 和 offsets 外，还记录 source checksum/type/public scope、Dense 与 Sparse 合同；旧索引必须从权威原文重建。
 
 ### Q29：怎样实验 chunk 参数？
 
@@ -207,6 +207,10 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 ### Q32：长期记忆与知识库有什么区别？
 
 知识库是公共业务事实；长期记忆是某个用户的历史情景，必须按 user 隔离。两者不共享排名管线，也不能互相充当权威事实。
+
+### Q32.1：这已经是完整生产级 RAG 吗？
+
+不能这么说。代码已闭合公共 txt/md/JSON 来源、持久 Sparse、Manifest、EvidencePack、严格 rerank 和纯知识最终答案，但还缺政策 update/delete 事务、多副本共享 Sparse、Embedding 权重 digest、WixQA group-safe Heldout、人工 Judge 校准和真实 shadow/canary。文档级 ACL 是当前 public-only collection 的非目标，不应为“架构完整”过度设计。完整审计见[客服 RAG 生产化审计](./customer-service-rag-production-audit/)。
 
 ### Q33：混合长期记忆怎么做？
 
@@ -284,7 +288,7 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q48：91.3%、0.89 等旧数字怎么回答？
 
-**UNPROVEN。** 旧数字没对应数据版本、切分、运行产物和 commit，已移除。当前可证明的是 329 项回归、500 条 provisional 分层项目集、Doc2Dial Dev 逐阶段结果，以及冻结配置在 test split 的 48 条检索/9 条多轮链路报告；因为项目 human Gold、RAG 人工 Judge 校准与真实流量灰度仍未完成，不能报“生产准确率”。
+**UNPROVEN。** 旧数字没对应数据版本、切分、运行产物和 commit，已移除。当前可证明的是 344 项回归、500 条 provisional 分层项目集、Doc2Dial Dev 逐阶段结果，以及冻结配置在 test split 的 48 条检索/9 条多轮链路报告；因为项目 human Gold、RAG 人工 Judge 校准与真实流量灰度仍未完成，不能报“生产准确率”。
 
 ### Q49：多 LLM 调用怎么降延迟？
 
@@ -459,7 +463,7 @@ DeepSeek 的 Anthropic 兼容协议要求工具后续轮回传此前 thinking �
 
 ### Q84：这项改造怎样写 STAR？
 
-**S：** 九类调用共用一个模型，DeepSeek 默认 reasoning 让简单任务成本、延迟和结构化输出不可控。**T：** 在保持统一 Messages API 的同时，让每类调用可独立权衡质量。**A：** 实现按角色校验的 ModelPolicy，Flash/none 承担闭合高频任务，Pro/none 承担融合与质量门禁；显式 reasoning 强制最小完成预算，并补齐 health/eval 配置证据和 ReAct thinking 回传。**R：** 4 条 E2E pilot 均值约 28.4s → 13.3s，Verifier 解析 2/4 → 4/4；当前全仓 329 项回归测试通过。15 条 provisional 三档消融已完成，最终选择仍需 gold heldout 与重复运行确认。
+**S：** 九类调用共用一个模型，DeepSeek 默认 reasoning 让简单任务成本、延迟和结构化输出不可控。**T：** 在保持统一 Messages API 的同时，让每类调用可独立权衡质量。**A：** 实现按角色校验的 ModelPolicy，Flash/none 承担闭合高频任务，Pro/none 承担融合与质量门禁；显式 reasoning 强制最小完成预算，并补齐 health/eval 配置证据和 ReAct thinking 回传。**R：** 4 条 E2E pilot 均值约 28.4s → 13.3s，Verifier 解析 2/4 → 4/4；当前全仓 344 项回归测试通过。15 条 provisional 三档消融已完成，最终选择仍需 gold heldout 与重复运行确认。
 
 ### Q85：Flash/off、Flash/high、Pro/high 真跑后有什么区别？
 
@@ -519,7 +523,7 @@ Shadow 用真实输入跑候选 Intent/RAG/Worker/Verifier，但不发布、不�
 
 ### Q98：这项改造怎么写 STAR？
 
-**S：** Bad Case 能入库，但人工直接改 Prompt 导致版本归因弱、回归不可复现、发布全量且安全边界可能被误改。**T：** 把线上失败变成可验证、可灰度、可撤销的策略升级。**A：** 增加脱敏 EvolutionEnvelope、确定性 Owner 归因、不可变 AgentBundle、GEPA-lite 多候选、provenance Graduation/Pareto，并以 Shadow、稳定 5%/25% 分桶及硬/软自动回滚发布。**R：** 请求内版本固定，候选无法修改权限或绕过 Gate，Shadow 写操作零提交，发布/回滚成为原子状态迁移；329 项回归通过，数据非 Gold 前不虚构线上提升。
+**S：** Bad Case 能入库，但人工直接改 Prompt 导致版本归因弱、回归不可复现、发布全量且安全边界可能被误改。**T：** 把线上失败变成可验证、可灰度、可撤销的策略升级。**A：** 增加脱敏 EvolutionEnvelope、确定性 Owner 归因、不可变 AgentBundle、GEPA-lite 多候选、provenance Graduation/Pareto，并以 Shadow、稳定 5%/25% 分桶及硬/软自动回滚发布。**R：** 请求内版本固定，候选无法修改权限或绕过 Gate，Shadow 写操作零提交，发布/回滚成为原子状态迁移；344 项回归通过，数据非 Gold 前不虚构线上提升。
 
 ## 面试前 10 分钟自查
 
@@ -529,7 +533,7 @@ Shadow 用真实输入跑候选 Intent/RAG/Worker/Verifier，但不发布、不�
 4. 能说出 TaskGraph 依赖/上下文隔离、六种 outcome、synthesis 与 Verifier PASS/REJECT/UNKNOWN。
 5. 能解释 BM25 对订单号的价值，以及 recency 为什么不能独立召回。
 6. 能解释发现/执行共用 allowlist，审批不来自模型参数，RunStore 如何 CAS Resume 并防重复写。
-7. 能说明 329 项回归不等于 benchmark 样本量，500 条 provisional 项目集与 Doc2Dial Dev 不能混算，也都不支持生产准确率。
+7. 能说明 344 项回归不等于 benchmark 样本量，500 条 provisional 项目集与 Doc2Dial Dev 不能混算，也都不支持生产准确率。
 8. 能用 commit 划清原型与个人改造，不说从零原创。
 9. 能讲清 Bundle → 候选 → Graduation → Shadow → 5% → 25% → Active/回滚，并说明 GEPA-lite 与 RL 的边界。
 10. 能讲清 Prediction → Pending Feedback → Admin Annotation → Candidate，知道分类器指纹覆盖什么，并说明 Annotation 不等于 Gold、缓存不等于学习库。

@@ -5,14 +5,17 @@ Python and FastAPI. It combines intent recognition, retrieval-augmented
 generation, dynamic business skills, layered conversation memory, observable
 agent routing, and a fail-closed answer-verification boundary.
 
-Knowledge ingestion defaults to fixed 512-token-estimate chunks with a 64-token
-overlap. Stable chunk IDs remain authoritative through Raw/Standalone query
-fusion, BM25/Dense weighted RRF, listwise reranking, context packing, and
-citations. A non-empty Chroma index whose v4 contract differs is rejected at
-startup and must be rebuilt from authoritative source documents; old and new
-chunks are never silently mixed.
+Knowledge ingestion normalizes public customer-support sources into stable IDs,
+SHA-256 checksums, source types, and fixed 512/64 chunks. Chroma owns the public
+chunk corpus; a persistent SQLite BM25 posting index is rebuilt from that corpus
+instead of scanning every chunk per query. An index manifest fixes the source,
+chunk, dense, sparse, and scope contracts, while an Evidence Pack preserves
+provenance and ranks through packing. Pure knowledge answers publish the
+claim-citation-validated grounded result; private order/account state remains a
+business-tool concern. Incompatible non-empty indexes fail closed and require
+re-import from authoritative sources.
 
-中文文档：[完整架构教程](https://garrulus21yyx.github.io/DialogPilot/) · [架构边界](https://garrulus21yyx.github.io/DialogPilot/architecture.html) · [项目讲述](https://garrulus21yyx.github.io/DialogPilot/project-pitch.html) · [Agent 进化闭环](https://garrulus21yyx.github.io/DialogPilot/agent-evolution/) · [代码校准面经](https://garrulus21yyx.github.io/DialogPilot/interview-guide.html) · [500 条分层评测](https://garrulus21yyx.github.io/DialogPilot/evaluation-500/)
+中文文档：[完整架构教程](https://garrulus21yyx.github.io/DialogPilot/) · [架构边界](https://garrulus21yyx.github.io/DialogPilot/architecture.html) · [项目讲述](https://garrulus21yyx.github.io/DialogPilot/project-pitch.html) · [客服 RAG 生产化审计](https://garrulus21yyx.github.io/DialogPilot/customer-service-rag-production-audit/) · [客服 RAG 评测](https://garrulus21yyx.github.io/DialogPilot/rag-pipeline-evaluation/) · [代码校准面经](https://garrulus21yyx.github.io/DialogPilot/interview-guide.html)
 
 ## Why this project exists
 

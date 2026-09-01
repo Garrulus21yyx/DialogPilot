@@ -3,10 +3,12 @@ import random
 
 import pytest
 
-from memory.hybrid_retrieval import HybridMemoryRetriever
+from memory.hybrid_retrieval import HybridMemoryRetriever, MemoryDocument
 from memory.context import TokenEstimator
 from mcp.document_chunker import ChunkStrategy
 from mcp.knowledge_base import IncompatibleKnowledgeIndexError, KnowledgeBase
+from mcp.source_document import SourceDocument, SourceDocumentContractError
+from mcp.sparse_index import PersistentBM25Index, SparseDocument
 
 
 class FakeCollection:
@@ -14,6 +16,7 @@ class FakeCollection:
         self.ids = []
         self.documents = []
         self.metadatas = []
+        self.get_calls = []
 
     def count(self):
         return len(self.ids)
@@ -23,8 +26,14 @@ class FakeCollection:
         self.documents.extend(documents)
         self.metadatas.extend(metadatas)
 
-    def query(self, **_kwargs):
-        order = list(reversed(range(len(self.ids))))
+    def query(self, **kwargs):
+        order = [
+            index for index in reversed(range(len(self.ids)))
+            if not kwargs.get("where") or all(
+                self.metadatas[index].get(key) == value
+                for key, value in kwargs["where"].items()
+            )
+        ][:kwargs.get("n_results", len(self.ids))]
         return {
             "ids": [[self.ids[index] for index in order]],
             "documents": [[self.documents[index] for index in order]],
@@ -32,11 +41,22 @@ class FakeCollection:
             "distances": [[float(index) for index in order]],
         }
 
-    def get(self, **_kwargs):
+    def get(self, **kwargs):
+        self.get_calls.append(dict(kwargs))
+        selected = set(kwargs.get("ids") or self.ids)
+        indexes = [
+            index for index, stored_id in enumerate(self.ids)
+            if stored_id in selected and (
+                not kwargs.get("where") or all(
+                    self.metadatas[index].get(key) == value
+                    for key, value in kwargs["where"].items()
+                )
+            )
+        ]
         return {
-            "ids": list(self.ids),
-            "documents": list(self.documents),
-            "metadatas": list(self.metadatas),
+            "ids": [self.ids[index] for index in indexes],
+            "documents": [self.documents[index] for index in indexes],
+            "metadatas": [self.metadatas[index] for index in indexes],
         }
 
 
@@ -48,6 +68,7 @@ def bare_knowledge_base(*, max_tokens=512, overlap_tokens=64):
     knowledge_base._chunk_max_tokens = max_tokens
     knowledge_base._chunk_overlap_tokens = overlap_tokens
     knowledge_base._chunk_strategy = ChunkStrategy.FIXED_TOKENS
+    knowledge_base._sparse_index = PersistentBM25Index(":memory:")
     return knowledge_base
 
 
@@ -66,10 +87,81 @@ def test_knowledge_base_preserves_source_document_ids_and_returns_rank_evidence(
     assert "raw:bm25" in hits[0]["sources"]
     assert "recency" not in hits[0]["sources"]
     assert knowledge_base._collection.metadatas[0]["document_id"] == "kb-target"
+    assert knowledge_base._collection.metadatas[0]["source_id"] == "kb-target"
+    assert knowledge_base._collection.metadatas[0]["source_type"] == "text"
+    assert knowledge_base._collection.metadatas[0]["scope"] == "public"
+    assert len(knowledge_base._collection.metadatas[0]["source_checksum"]) == 64
     assert knowledge_base._collection.metadatas[0]["chunking_version"] == 4
     assert knowledge_base._collection.metadatas[0]["chunk_strategy"] == "fixed_tokens"
     assert knowledge_base._collection.metadatas[0]["source_start_char"] == 0
     assert knowledge_base._collection.metadatas[0]["source_end_char"] == len("登录错误 E401 表示令牌过期。")
+
+
+def test_source_document_contract_is_stable_public_and_checksum_verified():
+    first = SourceDocument.create(title="退款政策", content="七天内可申请。", source_type="md")
+    second = SourceDocument.create(title="退款政策", content="七天内可申请。", source_type="markdown")
+
+    assert first == second
+    assert first.source_id.startswith("source-")
+    assert first.scope == "public"
+    assert first.source_type == "markdown"
+    with pytest.raises(SourceDocumentContractError, match="checksum mismatch"):
+        SourceDocument.create(
+            source_id="refund-policy", title="退款政策", content="七天内可申请。",
+            checksum="0" * 64,
+        )
+    with pytest.raises(SourceDocumentContractError, match="scope=public"):
+        SourceDocument.from_mapping({
+            "title": "内部手册", "content": "敏感内容", "scope": "internal",
+        })
+
+
+def test_persistent_sparse_index_reopens_without_retokenizing_corpus(tmp_path):
+    path = tmp_path / "sparse.db"
+    rows = [
+        SparseDocument("refund", "退款期限为七天，错误码 R-7。"),
+        SparseDocument("delivery", "配送需要三天。"),
+    ]
+    first = PersistentBM25Index(str(path))
+    assert first.ensure(rows, corpus_fingerprint="corpus-v1") is True
+    assert first.search("R-7 退款", top_k=2)[0] == "refund"
+    first.close()
+
+    reopened = PersistentBM25Index(str(path))
+    assert reopened.ensure(rows, corpus_fingerprint="corpus-v1") is False
+    assert reopened.search("配送", top_k=1) == ["delivery"]
+    with reopened._connection:
+        reopened._connection.execute(
+            "UPDATE sparse_metadata SET value='broken' WHERE key='tokenizer_version'"
+        )
+    assert reopened.ensure(rows, corpus_fingerprint="corpus-v1") is True
+    assert reopened.manifest["tokenizer_version"] == PersistentBM25Index.TOKENIZER_VERSION
+
+
+def test_persistent_sparse_ranking_matches_reference_bm25_for_seeded_corpora():
+    rng = random.Random(20260901)
+    vocabulary = ["退款", "配送", "E401", "R-7", "审核", "到账", "会员", "不是"]
+    for _ in range(80):
+        documents = [
+            SparseDocument(
+                f"doc-{index}",
+                " ".join(rng.choice(vocabulary) for _ in range(rng.randint(4, 30))),
+            )
+            for index in range(rng.randint(2, 25))
+        ]
+        query = " ".join(rng.choice(vocabulary) for _ in range(rng.randint(1, 4)))
+        sparse = PersistentBM25Index(":memory:")
+        sparse.ensure(documents, corpus_fingerprint="seeded")
+        expected_scores = HybridMemoryRetriever._bm25_scores(
+            query,
+            [MemoryDocument(item.chunk_id, item.text) for item in documents],
+        )
+        expected = [
+            chunk_id for chunk_id, score in sorted(
+                expected_scores.items(), key=lambda item: (-item[1], item[0]),
+            ) if score > 0
+        ]
+        assert sparse.search(query, top_k=len(documents)) == expected
 
 
 def test_knowledge_base_empty_query_does_not_touch_vector_query():
@@ -95,6 +187,65 @@ def test_bm25_only_strategy_does_not_pay_for_unused_vector_query():
 
     assert hits[0]["document_id"] == "kb-one"
     assert hits[0]["sources"] == ["raw:bm25"]
+
+
+def test_search_uses_persistent_postings_and_never_hydrates_the_full_corpus():
+    knowledge_base = bare_knowledge_base()
+    knowledge_base.add_documents([
+        {"id": "refund", "title": "退款", "content": "退款错误码 R-7。"},
+        {"id": "delivery", "title": "配送", "content": "配送需要三天。"},
+    ])
+    knowledge_base._collection.get_calls.clear()
+
+    hits = knowledge_base.search("R-7", top_k=1)
+
+    assert hits[0]["document_id"] == "refund"
+    assert knowledge_base._collection.get_calls
+    assert all(call.get("ids") for call in knowledge_base._collection.get_calls)
+
+
+def test_public_only_scope_filters_sparse_and_dense_before_retrieval():
+    knowledge_base = bare_knowledge_base()
+    knowledge_base._hybrid_retriever = HybridMemoryRetriever(
+        vector_weight=0.0, lexical_weight=1.0, recency_weight=0.0,
+    )
+    knowledge_base.add_documents([
+        {"id": "public", "title": "公开政策", "content": "公开退款说明。"},
+    ])
+    knowledge_base._collection.add(
+        ids=["internal::chunk-0"], documents=["SECRET-INTERNAL"],
+        metadatas=[{
+            "chunk_id": "internal::chunk-0", "document_id": "internal",
+            "title": "内部手册", "scope": "internal",
+        }],
+    )
+
+    assert knowledge_base.search("SECRET-INTERNAL", top_k=5) == []
+
+
+def test_sparse_sync_failure_never_serves_a_half_updated_hybrid_index():
+    knowledge_base = bare_knowledge_base()
+
+    class BrokenSparse:
+        path = ":broken:"
+        manifest = {"corpus_fingerprint": "old"}
+
+        def ensure(self, *_args, **_kwargs):
+            raise OSError("disk unavailable")
+
+        def search(self, *_args, **_kwargs):
+            raise AssertionError("stale sparse index must not be searched")
+
+    knowledge_base._sparse_index = BrokenSparse()
+    with pytest.raises(OSError, match="disk unavailable"):
+        knowledge_base.add_documents([
+            {"id": "new-policy", "title": "新政策", "content": "新的退款期限。"},
+        ])
+
+    assert knowledge_base._collection.count() == 1
+    assert knowledge_base._sparse_ready is False
+    with pytest.raises(RuntimeError, match="not synchronized"):
+        knowledge_base.search("退款", top_k=1)
 
 
 def test_knowledge_base_exposes_retrieval_strategy_with_storage_identity(monkeypatch):
@@ -143,6 +294,45 @@ def test_non_empty_incompatible_index_fails_closed(monkeypatch):
 
     with pytest.raises(IncompatibleKnowledgeIndexError, match="re-import"):
         KnowledgeBase(load_default_docs=False)
+
+
+def test_old_v4_chunks_without_source_contract_fail_closed(monkeypatch, tmp_path):
+    collection = FakeCollection()
+    collection.metadata = {
+        "index_schema_version": "2",
+        "source_contract_version": "1",
+        "knowledge_scope": "public",
+        "dense_embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+        "sparse_schema_version": "1",
+        "sparse_tokenizer_version": "ascii-cjk-unigram-bigram-v1",
+        "chunking_version": "4",
+        "chunk_max_tokens": "512",
+        "chunk_overlap_tokens": "64",
+        "chunk_strategy": "fixed_tokens",
+    }
+    collection.add(
+        ids=["old::chunk-0"], documents=["旧 v4 索引"],
+        metadatas=[{
+            "chunking_version": 4,
+            "chunk_max_tokens": 512,
+            "chunk_overlap_tokens": 64,
+            "chunk_strategy": "fixed_tokens",
+        }],
+    )
+    backend = type("Backend", (), {
+        "mode": "embedded", "location": str(tmp_path),
+        "to_dict": lambda self: {"mode": self.mode, "location": self.location},
+    })()
+    client = type("Client", (), {
+        "get_or_create_collection": lambda self, **_kwargs: collection,
+    })()
+    monkeypatch.setattr("mcp.knowledge_base.create_chroma_client", lambda **_kwargs: (client, backend))
+
+    with pytest.raises(IncompatibleKnowledgeIndexError, match="source_contract_version"):
+        KnowledgeBase(
+            load_default_docs=False,
+            sparse_index_path=str(tmp_path / "sparse.db"),
+        )
 
 
 def test_chunker_uses_token_ceiling_structure_boundaries_and_overlap():

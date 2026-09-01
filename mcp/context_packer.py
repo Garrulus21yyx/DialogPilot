@@ -14,6 +14,14 @@ class ContextCandidate:
     text: str
     start_char: int
     end_char: int
+    title: str = ""
+    score: float = 0.0
+    ranks: tuple[tuple[str, int], ...] = ()
+    source_type: str = ""
+    source_checksum: str = ""
+    scope: str = "public"
+    scope_decision: str = "allowed_public"
+    index_manifest_fingerprint: str = ""
 
 
 @dataclass(frozen=True)
@@ -22,6 +30,7 @@ class PackedContext:
     token_count: int
     skipped_redundant: tuple[str, ...] = ()
     skipped_budget: tuple[str, ...] = ()
+    selected: tuple[ContextCandidate, ...] = ()
 
 
 class ContextPacker:
@@ -59,7 +68,7 @@ class ContextPacker:
             token_count += candidate_tokens
         return PackedContext(
             tuple(item.chunk_id for item in selected), token_count,
-            tuple(redundant), tuple(over_budget),
+            tuple(redundant), tuple(over_budget), tuple(selected),
         )
 
 

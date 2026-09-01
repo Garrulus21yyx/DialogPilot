@@ -79,14 +79,12 @@ class ResultReranker:
             ordered = payload.get("ordered_ids") if isinstance(payload, dict) else payload
             if not isinstance(ordered, list):
                 raise ValueError("ordered_ids must be an array")
-            allowed = set(candidate_ids)
-            model_ids = tuple(dict.fromkeys(
-                str(item) for item in ordered if str(item) in allowed
-            ))
-            if not model_ids:
-                raise ValueError("reranker returned no valid candidate IDs")
-            complete = (*model_ids, *(item for item in candidate_ids if item not in model_ids))
-            return RerankResult(tuple(complete), model_ids)
+            model_ids = tuple(str(item) for item in ordered)
+            if len(model_ids) != len(candidate_ids):
+                raise ValueError("reranker must return every candidate exactly once")
+            if len(set(model_ids)) != len(model_ids) or set(model_ids) != set(candidate_ids):
+                raise ValueError("reranker output is not an exact candidate permutation")
+            return RerankResult(model_ids, model_ids)
         except Exception as exc:
             logger.warning("rerank failed; retaining first-stage order: %s", exc)
             return RerankResult(tuple(candidate_ids), (), type(exc).__name__)

@@ -93,6 +93,7 @@ class AnswerVerifier:
         task_plan: Optional[Dict[str, Any]] = None,
         coverage: Optional[Dict[str, Any]] = None,
         agent_outcomes: Optional[list[Dict[str, Any]]] = None,
+        knowledge_evidence: Optional[Dict[str, Any]] = None,
     ) -> VerificationResult:
         """校验候选回答，并把任意外部异常转换成闭合的有类型结果。"""
         question = (question or "").strip()
@@ -121,11 +122,55 @@ class AnswerVerifier:
                 reason_code=VerificationReasonCode.INCOMPLETE,
             )
 
+        knowledge_evidence = knowledge_evidence or {}
+        if knowledge_evidence.get("mode") == "grounded_final":
+            if answer != str(knowledge_evidence.get("grounded_answer") or "").strip():
+                return VerificationResult(
+                    status=VerificationStatus.REJECT,
+                    grounded=False,
+                    need_escalation=True,
+                    reason="final knowledge answer differs from the validated grounded answer",
+                    reason_code=VerificationReasonCode.UNGROUNDED,
+                )
+            abstained = bool(knowledge_evidence.get("abstained"))
+            reason = str(knowledge_evidence.get("reason") or "")
+            conflicts = list(knowledge_evidence.get("conflicts") or [])
+            if abstained:
+                valid_abstention = (
+                    reason == "insufficient_evidence" and not conflicts
+                ) or (
+                    reason == "conflicting_evidence" and bool(conflicts)
+                )
+                if not valid_abstention:
+                    return VerificationResult(
+                        status=VerificationStatus.REJECT,
+                        grounded=False,
+                        need_escalation=True,
+                        reason="grounded abstention has an invalid typed reason/conflict state",
+                        reason_code=VerificationReasonCode.UNGROUNDED,
+                    )
+                return VerificationResult(
+                    status=VerificationStatus.PASS,
+                    grounded=True,
+                    need_escalation=False,
+                    reason="validated grounded abstention",
+                    reason_code=VerificationReasonCode.PASSED,
+                )
+            if conflicts or not knowledge_evidence.get("claims"):
+                return VerificationResult(
+                    status=VerificationStatus.REJECT,
+                    grounded=False,
+                    need_escalation=True,
+                    reason="grounded final answer has conflicts or no cited claims",
+                    reason_code=VerificationReasonCode.UNGROUNDED,
+                )
+
         orchestration_evidence = json.dumps(
             {
                 "task_plan": task_plan or {},
                 "coverage": coverage,
                 "agent_outcomes": agent_outcomes or [],
+                "knowledge_evidence": knowledge_evidence,
             },
             ensure_ascii=False,
         )

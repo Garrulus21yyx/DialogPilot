@@ -14,7 +14,11 @@ ChromaDB 在这里的角色：
 import asyncio
 import hashlib
 import logging
-from typing import Any, Dict, List, Optional
+import pathlib
+from typing import Any, Dict, List, Mapping, Optional, Sequence
+
+import chromadb
+from chromadb.utils.embedding_functions import DefaultEmbeddingFunction
 
 from core.chroma_client import create_chroma_client
 from memory.context import TokenEstimator
@@ -22,6 +26,8 @@ from core.rag_policy import DEFAULT_RAG_RETRIEVAL_POLICY
 from memory.hybrid_retrieval import HybridMemoryRetriever, MemoryDocument
 from mcp.document_chunker import ChunkStrategy, DocumentChunk, DocumentChunker
 from mcp.rank_fusion import fuse_rankings
+from mcp.source_document import SourceDocument
+from mcp.sparse_index import PersistentBM25Index, SparseDocument
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +49,11 @@ class KnowledgeBase:
     DEFAULT_CHUNK_MAX_TOKENS = 512
     DEFAULT_CHUNK_OVERLAP_TOKENS = 64
     CHUNKING_VERSION = 4
+    SOURCE_CONTRACT_VERSION = 1
+    INDEX_SCHEMA_VERSION = 2
+    KNOWLEDGE_SCOPE = SourceDocument.PUBLIC_SCOPE
+    DENSE_EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+    DENSE_EMBEDDING_FUNCTION = "ONNXMiniLM_L6_V2"
 
     def __init__(
         self,
@@ -58,6 +69,7 @@ class KnowledgeBase:
         retrieval_rrf_k: int = int(DEFAULT_RAG_RETRIEVAL_POLICY["rrf_k"]),
         retrieval_vector_weight: float = float(DEFAULT_RAG_RETRIEVAL_POLICY["vector_weight"]),
         retrieval_lexical_weight: float = float(DEFAULT_RAG_RETRIEVAL_POLICY["lexical_weight"]),
+        sparse_index_path: str = "",
     ):
         """按显式部署模式连接 ChromaDB，不在两套物理存储间静默切换。"""
         chunk_max_tokens = int(chunk_max_tokens)
@@ -81,6 +93,15 @@ class KnowledgeBase:
         self._chunk_max_tokens = chunk_max_tokens
         self._chunk_overlap_tokens = chunk_overlap_tokens
         self._chunk_strategy = ChunkStrategy(chunk_strategy)
+        self._embedding_function = DefaultEmbeddingFunction()
+        if not sparse_index_path:
+            collection_key = hashlib.sha256(collection_name.encode("utf-8")).hexdigest()[:12]
+            sparse_index_path = str(
+                pathlib.Path(chroma_path).expanduser().resolve().parent
+                / f"knowledge-sparse-{collection_key}.db"
+            )
+        self._sparse_index = PersistentBM25Index(sparse_index_path)
+        self._sparse_ready = False
         logger.info("知识库 ChromaDB 模式: %s (%s)", self._chroma_backend.mode, self._chroma_backend.location)
 
         # 使用服务端时不传 embedding_function，让服务端处理
@@ -92,6 +113,7 @@ class KnowledgeBase:
         self._collection = self._client.get_or_create_collection(
             name=collection_name,
             metadata=collection_metadata,
+            embedding_function=self._embedding_function,
         )
 
         existing_count = self._collection.count()
@@ -100,11 +122,19 @@ class KnowledgeBase:
         # 空 collection 才能按当前合同导入；旧索引绝不静默混用。
         if load_default_docs and existing_count == 0:
             self._load_default_docs()
+        else:
+            self._synchronize_sparse_index()
 
     @property
     def index_contract(self) -> Dict[str, Any]:
-        """Return the authoritative chunking contract persisted on every chunk."""
+        """Return the authoritative public source and chunk projection contract."""
         return {
+            "index_schema_version": self.INDEX_SCHEMA_VERSION,
+            "source_contract_version": self.SOURCE_CONTRACT_VERSION,
+            "knowledge_scope": self.KNOWLEDGE_SCOPE,
+            "dense_embedding_model": self.DENSE_EMBEDDING_MODEL,
+            "sparse_schema_version": PersistentBM25Index.SCHEMA_VERSION,
+            "sparse_tokenizer_version": PersistentBM25Index.TOKENIZER_VERSION,
             "chunking_version": self.CHUNKING_VERSION,
             "chunk_max_tokens": self._chunk_max_tokens,
             "chunk_overlap_tokens": self._chunk_overlap_tokens,
@@ -112,19 +142,15 @@ class KnowledgeBase:
         }
 
     def _validate_index_contract(self) -> None:
-        """Reject a non-empty collection if any sampled chunk violates the contract."""
-        collection_metadata = getattr(self._collection, "metadata", None)
-        if isinstance(collection_metadata, dict):
-            actual = {
-                key: collection_metadata.get(key)
-                for key in self.index_contract
-            }
-            expected = {key: str(value) for key, value in self.index_contract.items()}
-            if actual == expected:
-                return
+        """Reject a non-empty collection if any chunk violates the public index contract."""
         result = self._collection.get(include=["metadatas"])
+        metadatas = result.get("metadatas") or []
+        if len(metadatas) != self._collection.count():
+            raise IncompatibleKnowledgeIndexError(
+                "knowledge index contract mismatch; persisted chunk metadata is incomplete"
+            )
         mismatches = []
-        for index, metadata in enumerate(result.get("metadatas") or []):
+        for index, metadata in enumerate(metadatas):
             metadata = metadata if isinstance(metadata, dict) else {}
             actual = {key: metadata.get(key) for key in self.index_contract}
             if actual != self.index_contract:
@@ -143,6 +169,9 @@ class KnowledgeBase:
         return {
             **self._chroma_backend.to_dict(),
             "chunking_version": str(self.CHUNKING_VERSION),
+            "source_contract_version": str(self.SOURCE_CONTRACT_VERSION),
+            "index_schema_version": str(self.INDEX_SCHEMA_VERSION),
+            "knowledge_scope": self.KNOWLEDGE_SCOPE,
             "chunk_max_tokens": str(self._chunk_max_tokens),
             "chunk_overlap_tokens": str(self._chunk_overlap_tokens),
             "chunk_strategy": self._chunk_strategy.value,
@@ -152,15 +181,45 @@ class KnowledgeBase:
             "index_contract_fingerprint": hashlib.sha256(
                 repr(sorted(self.index_contract.items())).encode("utf-8")
             ).hexdigest(),
+            "sparse_index_path": self._sparse_index.path,
         }
+
+    @property
+    def index_manifest(self) -> Dict[str, Any]:
+        """一次可审计的当前索引快照；动态 corpus 字段来自 Sparse 投影校验。"""
+        sparse = self._sparse_index.manifest
+        static = {
+            "index_contract": self.index_contract,
+            "parser": {
+                "contract": "source-document-v1",
+                "supported_source_types": sorted(SourceDocument.SUPPORTED_SOURCE_TYPES),
+            },
+            "dense": {
+                "engine": "chroma",
+                "engine_version": getattr(chromadb, "__version__", "unknown"),
+                "embedding_function": self.DENSE_EMBEDDING_FUNCTION,
+                "model": self.DENSE_EMBEDDING_MODEL,
+                "dimension": 384,
+                "normalization": "model-default",
+            },
+            "sparse": sparse,
+            "sparse_ready": self._sparse_ready,
+        }
+        static["manifest_fingerprint"] = hashlib.sha256(
+            repr(sorted(self._flatten_manifest(static).items())).encode("utf-8")
+        ).hexdigest()
+        return static
 
     # ── 文档管理 ──────────────────────────────────────────────────────────────
 
-    def add_documents(self, documents: List[Dict[str, str]]) -> int:
+    def add_documents(
+        self,
+        documents: Sequence[SourceDocument | Mapping[str, Any]],
+    ) -> int:
         """
         批量导入文档到知识库。
 
-        documents 格式: [{"id": "可选稳定来源 ID", "title": "...", "content": "..."}, ...]
+        首选传入 SourceDocument；旧 mapping 会在此边界规范化以保持 API 兼容。
         长文档按结构边界和 Token 预算切片，并保留有界 overlap。
         """
         ids, docs, metas = [], [], []
@@ -168,32 +227,34 @@ class KnowledgeBase:
             self, "_chunk_strategy", ChunkStrategy.STRUCTURE_AWARE,
         )
 
-        for doc in documents:
-            title   = doc.get("title", "")
-            content = doc.get("content", "")
-            source_id = str(doc.get("id") or "").strip() or hashlib.sha256(
-                f"{title}\0{content}".encode("utf-8")
-            ).hexdigest()[:24]
-            chunks = self._chunk_spans(content)
+        for value in documents:
+            source = value if isinstance(value, SourceDocument) else SourceDocument.from_mapping(value)
+            chunks = self._chunk_spans(source.content)
 
             for i, chunk in enumerate(chunks):
-                chunk_id = (
-                    f"{source_id}::chunk-{i}"
-                    if source_id
-                    else hashlib.md5(f"{title}_{i}_{chunk.content[:50]}".encode()).hexdigest()
-                )
+                chunk_id = f"{source.source_id}::chunk-{i}"
                 ids.append(chunk_id)
                 docs.append(chunk.content)
                 metas.append({
                     "chunk_id": chunk_id,
+                    "index_schema_version": self.INDEX_SCHEMA_VERSION,
+                    "source_contract_version": self.SOURCE_CONTRACT_VERSION,
+                    "scope": source.scope,
+                    "knowledge_scope": source.scope,
+                    "dense_embedding_model": self.DENSE_EMBEDDING_MODEL,
+                    "sparse_schema_version": PersistentBM25Index.SCHEMA_VERSION,
+                    "sparse_tokenizer_version": PersistentBM25Index.TOKENIZER_VERSION,
+                    "source_id": source.source_id,
+                    "source_type": source.source_type,
+                    "source_checksum": source.checksum,
                     "chunking_version": self.CHUNKING_VERSION,
                     "chunk_max_tokens": self._chunk_max_tokens,
                     "chunk_overlap_tokens": self._chunk_overlap_tokens,
                     "chunk_strategy": chunk_strategy.value,
                     "source_start_char": chunk.start_char,
                     "source_end_char": chunk.end_char,
-                    "document_id": source_id,
-                    "title": title,
+                    "document_id": source.source_id,
+                    "title": source.title,
                     "chunk_index": i,
                     "total_chunks": len(chunks),
                 })
@@ -201,11 +262,15 @@ class KnowledgeBase:
         if ids:
             # ChromaDB 会自动生成 Embedding
             self._collection.add(ids=ids, documents=docs, metadatas=metas)
+            self._synchronize_sparse_index()
             logger.info(f"知识库导入 {len(ids)} 个文档片段")
 
         return len(ids)
 
-    async def add_documents_async(self, documents: List[Dict[str, str]]) -> int:
+    async def add_documents_async(
+        self,
+        documents: Sequence[SourceDocument | Mapping[str, Any]],
+    ) -> int:
         """异步导入文档；ChromaDB 客户端为同步实现，因此放入线程池执行。"""
         return await asyncio.to_thread(self.add_documents, documents)
 
@@ -240,6 +305,8 @@ class KnowledgeBase:
         rrf_k = int(policy.get("rrf_k", self._hybrid_retriever.rrf_k))
         vector_weight = float(policy.get("vector_weight", self._hybrid_retriever.vector_weight))
         lexical_weight = float(policy.get("lexical_weight", self._hybrid_retriever.lexical_weight))
+        if lexical_weight > 0 and not self._sparse_ready:
+            raise RuntimeError("sparse index is not synchronized with the authoritative corpus")
         candidate_k = max(int(policy.get("candidate_k", DEFAULT_RAG_RETRIEVAL_POLICY["candidate_k"])), int(top_k))
         normalized = []
         seen_kinds = set()
@@ -250,7 +317,7 @@ class KnowledgeBase:
                 seen_kinds.add(kind)
         if not normalized or self._collection.count() == 0:
             return []
-        corpus_results = self._collection.get(include=["documents", "metadatas"])
+        public_filter = {"scope": self.KNOWLEDGE_SCOPE}
 
         def documents(result: Dict[str, Any], *, nested: bool) -> List[MemoryDocument]:
             ids = result.get("ids") or []
@@ -264,7 +331,7 @@ class KnowledgeBase:
             for index, chunk_id in enumerate(ids):
                 meta = metas[index] if index < len(metas) and isinstance(metas[index], dict) else {}
                 text = str(texts[index] if index < len(texts) else "")
-                if text:
+                if text and meta.get("scope") == self.KNOWLEDGE_SCOPE:
                     rows.append(MemoryDocument(
                         # chunk_id 是排序候选身份；父 document_id 只能在最终投影时使用。
                         memory_id=str(meta.get("chunk_id") or chunk_id),
@@ -272,19 +339,12 @@ class KnowledgeBase:
                     ))
             return rows
 
-        corpus_documents = documents(corpus_results, nested=False)
-        by_chunk = {item.memory_id: item for item in corpus_documents}
         rankings: Dict[str, List[str]] = {}
         weights: Dict[str, float] = {}
         ranks_by_chunk: Dict[str, Dict[str, int]] = {}
         for kind, text, query_weight in normalized:
             if lexical_weight > 0:
-                scores = HybridMemoryRetriever._bm25_scores(text, corpus_documents)
-                order = [
-                    chunk_id for chunk_id, score in sorted(
-                        scores.items(), key=lambda item: (-item[1], item[0]),
-                    ) if score > 0
-                ][:candidate_k]
+                order = self._sparse_index.search(text, top_k=candidate_k)
                 source = f"{kind}:bm25"
                 rankings[source], weights[source] = order, query_weight * lexical_weight
                 for rank, chunk_id in enumerate(order, 1):
@@ -293,6 +353,7 @@ class KnowledgeBase:
                 result = self._collection.query(
                     query_texts=[text],
                     n_results=min(candidate_k, self._collection.count()),
+                    where=public_filter,
                 )
                 order = [item.memory_id for item in documents(result, nested=True)]
                 source = f"{kind}:vector"
@@ -305,6 +366,13 @@ class KnowledgeBase:
         fused_ids = fuse_rankings(
             active_rankings, weights=weights, rrf_k=rrf_k, top_k=candidate_k,
         )
+        if not fused_ids:
+            return []
+        corpus_results = self._collection.get(
+            ids=fused_ids, include=["documents", "metadatas"], where=public_filter,
+        )
+        corpus_documents = documents(corpus_results, nested=False)
+        by_chunk = {item.memory_id: item for item in corpus_documents}
         metadata_by_chunk = {}
         corpus_ids = corpus_results.get("ids") or []
         for index, meta in enumerate(corpus_results.get("metadatas") or []):
@@ -313,7 +381,8 @@ class KnowledgeBase:
                 metadata_by_chunk[str(meta.get("chunk_id") or stored_id)] = meta
 
         projected = []
-        for chunk_id in fused_ids:
+        manifest_fingerprint = str(self.index_manifest["manifest_fingerprint"])
+        for overall_rank, chunk_id in enumerate(fused_ids, 1):
             document = by_chunk.get(chunk_id)
             if document is None:
                 continue
@@ -330,9 +399,15 @@ class KnowledgeBase:
                 "title": meta.get("title", ""),
                 "content": document.content,
                 "score": round(score, 8),
+                "rank": overall_rank,
                 "chunk": meta.get("chunk_index", 0),
                 "source_start_char": meta.get("source_start_char", 0),
                 "source_end_char": meta.get("source_end_char", len(document.content)),
+                "source_type": meta.get("source_type", ""),
+                "source_checksum": meta.get("source_checksum", ""),
+                "scope": meta.get("scope", ""),
+                "scope_decision": "allowed_public",
+                "index_manifest_fingerprint": manifest_fingerprint,
                 "sources": list(source_ranks),
                 "ranks": dict(source_ranks),
             })
@@ -371,6 +446,10 @@ class KnowledgeBase:
     async def doc_count_async(self) -> int:
         """异步获取文档片段数量。"""
         return await asyncio.to_thread(self._collection.count)
+
+    def close(self) -> None:
+        """释放本地 Sparse sidecar；Chroma 客户端生命周期仍由其驱动拥有。"""
+        self._sparse_index.close()
 
     # ── MCP 工具 handler ─────────────────────────────────────────────────────
 
@@ -519,3 +598,45 @@ class KnowledgeBase:
         ]
         self.add_documents(default_docs)
         logger.info(f"已导入默认知识库: {len(default_docs)} 篇文档")
+
+    def _synchronize_sparse_index(self) -> None:
+        """启动/导入时从 Chroma 权威 public chunk 校验并重建 Sparse 投影。"""
+        self._sparse_ready = False
+        result = self._collection.get(
+            include=["documents", "metadatas"], where={"scope": self.KNOWLEDGE_SCOPE},
+        )
+        rows = []
+        fingerprint_rows = []
+        ids = result.get("ids") or []
+        documents = result.get("documents") or []
+        metadatas = result.get("metadatas") or []
+        for index, stored_id in enumerate(ids):
+            metadata = metadatas[index] if index < len(metadatas) and isinstance(metadatas[index], dict) else {}
+            if metadata.get("scope") != self.KNOWLEDGE_SCOPE:
+                continue
+            text = str(documents[index] if index < len(documents) else "")
+            chunk_id = str(metadata.get("chunk_id") or stored_id)
+            rows.append(SparseDocument(chunk_id, text))
+            fingerprint_rows.append((
+                chunk_id, hashlib.sha256(text.encode("utf-8")).hexdigest(),
+                str(metadata.get("source_checksum") or ""),
+            ))
+        corpus_fingerprint = hashlib.sha256(
+            repr(sorted(fingerprint_rows)).encode("utf-8")
+        ).hexdigest()
+        rebuilt = self._sparse_index.ensure(rows, corpus_fingerprint=corpus_fingerprint)
+        self._sparse_ready = True
+        if rebuilt:
+            logger.info("已从 %s 个权威 public chunk 重建 Sparse 索引", len(rows))
+
+    @staticmethod
+    def _flatten_manifest(value: Any, prefix: str = "") -> Dict[str, Any]:
+        flattened: Dict[str, Any] = {}
+        if isinstance(value, dict):
+            for key, item in value.items():
+                flattened.update(KnowledgeBase._flatten_manifest(
+                    item, f"{prefix}.{key}" if prefix else str(key),
+                ))
+        else:
+            flattened[prefix] = value
+        return flattened

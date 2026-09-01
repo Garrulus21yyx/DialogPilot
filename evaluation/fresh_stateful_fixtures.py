@@ -14,6 +14,8 @@ from agents.orchestration_contracts import AgentType, TaskPlan, TaskRisk, TaskSp
 from core.auth import Principal
 from core.model_policy import ModelProfile
 from mcp.knowledge_base import KnowledgeBase
+from mcp.document_chunker import ChunkStrategy
+from mcp.sparse_index import PersistentBM25Index
 from mcp.tool_manager import (
     ApprovalMode,
     MCPToolManager,
@@ -251,6 +253,8 @@ def register_fresh_fixtures(
     def kb_with(documents, *, max_tokens=360, overlap=48):
         kb = KnowledgeBase.__new__(KnowledgeBase); kb._collection = KBCollection(); kb._hybrid_retriever = HybridMemoryRetriever(recency_weight=0.0)
         kb._token_estimator = TokenEstimator(); kb._chunk_max_tokens = max_tokens; kb._chunk_overlap_tokens = overlap
+        kb._chunk_strategy = ChunkStrategy.STRUCTURE_AWARE
+        kb._sparse_index = PersistentBM25Index(":memory:")
         kb.add_documents(documents); return kb
 
     async def rag_case(request, expected_id, content):

@@ -68,6 +68,10 @@ def test_chat_rag_packs_top_five_and_injects_only_validated_grounded_draft(monke
                 answer="退款需要按政策审核。",
                 citations=(contexts[0].chunk_id,),
                 abstained=False,
+                claims=(SimpleNamespace(
+                    text="退款需要按政策审核。", citations=(contexts[0].chunk_id,),
+                ),),
+                conflicts=(),
             )
 
     monkeypatch.setattr(main, "_tool_manager", FakeToolManager(items))
@@ -82,7 +86,61 @@ def test_chat_rag_packs_top_five_and_injects_only_validated_grounded_draft(monke
     assert result.used is True
     assert result.generation_status == "grounded_draft"
     assert result.citations == ("chunk-0",)
+    assert result.claims[0]["citations"] == ["chunk-0"]
+    assert result.evidence_pack.items[0].scope_decision == "allowed_public"
     assert len(captured["contexts"]) == 5
     assert "chunk-5" not in result.text
     assert "退款需要按政策审核" in result.text
+
+
+def test_publication_uses_grounded_answer_only_for_knowledge_only_request():
+    knowledge = main.KnowledgeContextResult(
+        used=True,
+        generation_status="grounded_draft",
+        answer="政策要求七天内申请。",
+        citations=("c1",),
+        claims=({"text": "政策要求七天内申请。", "citations": ["c1"]},),
+    )
+
+    candidate, final = main._select_publication_candidate(
+        "Agent 改写后的政策答案", knowledge,
+        [{"tool_name": "knowledge_search"}], approval_pending=False,
+    )
+    assert candidate == knowledge.answer
+    assert final is True
+
+    mixed_candidate, mixed_final = main._select_publication_candidate(
+        "政策允许，订单 A1 当前也符合。", knowledge,
+        [{"tool_name": "knowledge_search"}, {"tool_name": "order_lookup"}],
+        approval_pending=False,
+    )
+    assert mixed_candidate == "政策允许，订单 A1 当前也符合。"
+    assert mixed_final is False
+
+    abstention = main.KnowledgeContextResult(
+        used=True,
+        generation_status="abstained",
+        answer="知识库证据互相冲突，请人工确认。",
+        conflicts=({"description": "退款期限冲突", "citations": ["c1", "c2"]},),
+        abstained=True,
+        reason="conflicting_evidence",
+    )
+    abstained_candidate, abstained_final = main._select_publication_candidate(
+        "Agent 自行选择了七天。", abstention,
+        [{"tool_name": "knowledge_search"}], approval_pending=False,
+    )
+    assert abstained_candidate == abstention.answer
+    assert abstained_final is True
+
+
+def test_rag_cache_scope_changes_with_index_manifest(monkeypatch):
+    fake = SimpleNamespace(index_manifest={"manifest_fingerprint": "corpus-a"})
+    monkeypatch.setattr(main, "_knowledge_base", fake)
+    first = main._rag_cache_scope("bundle-x")
+    fake.index_manifest = {"manifest_fingerprint": "corpus-b"}
+    second = main._rag_cache_scope("bundle-x")
+
+    assert first == "bundle-x:corpus-a"
+    assert second == "bundle-x:corpus-b"
+    assert first != second
 """RAG 真实证据与工具降级信息之间的信任边界测试。"""

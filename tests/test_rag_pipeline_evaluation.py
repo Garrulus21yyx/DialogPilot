@@ -192,11 +192,15 @@ def test_runtime_retrieval_uses_frozen_raw_standalone_weights_and_20_to_5():
 
     async def rerank(_query, items, top_k):
         captured["rerank_input"] = len(items)
-        return items[:top_k]
+        ids = tuple(item["chunk_id"] for item in items)
+        return items[:top_k], SimpleNamespace(
+            error=None,
+            model_ordered_ids=ids,
+        )
 
     manager._query_transformer = Transformer()
     manager.call = call
-    manager._rerank = rerank
+    manager._rerank_detailed = rerank
     result = asyncio.run(manager.search_with_rewrite(
         "knowledge_search", "it", top_k=5,
         context={"query_history": ["refund order A1"], "retrieval_policy": {}},
@@ -256,7 +260,7 @@ def test_query_ablation_weights_reserve_raw_mass_and_keep_hyde_vector_only():
     assert weights["hyde:vector"] > 0
 
 
-def test_reranker_validates_ids_and_completes_partial_permutation():
+def test_reranker_rejects_any_non_exact_candidate_permutation():
     class FakeMessages:
         async def create(self, **_kwargs):
             return SimpleNamespace(
@@ -274,8 +278,9 @@ def test_reranker_validates_ids_and_completes_partial_permutation():
         RerankCandidate("c2", "refund policy"),
         RerankCandidate("c3", "contact information"),
     )))
-    assert result.model_ordered_ids == ("c2",)
-    assert result.ordered_ids == ("c2", "c1", "c3")
+    assert result.model_ordered_ids == ()
+    assert result.ordered_ids == ("c1", "c2", "c3")
+    assert result.error == "ValueError"
 
 
 def test_reranker_accepts_typed_bare_id_array_from_provider():
@@ -329,6 +334,38 @@ def test_grounded_generator_validates_citations_and_fails_closed():
     assert answer.abstained is True
     assert answer.citations == ()
     assert answer.error == "ValueError"
+
+
+def test_grounded_generator_returns_claim_citations_and_typed_conflicts():
+    payloads = iter([
+        {
+            "answer": "资料存在冲突，暂时无法确认退款期限。",
+            "claims": [],
+            "citations": [],
+            "conflicts": [{"description": "退款期限不一致", "citations": ["c1", "c2"]}],
+            "abstained": True,
+            "reason": "conflicting_evidence",
+        },
+    ])
+
+    class FakeMessages:
+        async def create(self, **_kwargs):
+            import json
+            return SimpleNamespace(
+                content=[SimpleNamespace(type="text", text=json.dumps(next(payloads), ensure_ascii=False))],
+                usage=SimpleNamespace(input_tokens=1, output_tokens=1),
+            )
+
+    answer = asyncio.run(GroundedAnswerGenerator(
+        SimpleNamespace(messages=FakeMessages()), ModelProfile("test-model"),
+    ).generate("退款期限？", (
+        ContextCandidate("c1", "refund-v1", "退款期限七天。", 0, 7),
+        ContextCandidate("c2", "refund-v2", "退款期限十四天。", 0, 8),
+    )))
+
+    assert answer.abstained is True
+    assert answer.reason == "conflicting_evidence"
+    assert answer.conflicts[0].citations == ("c1", "c2")
 
 
 def test_generation_token_f1_accepts_paraphrase_overlap_without_exact_match():

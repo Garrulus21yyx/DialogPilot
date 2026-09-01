@@ -95,4 +95,33 @@ def test_incomplete_required_task_is_rejected_before_model_judgement():
     assert result.status is VerificationStatus.REJECT
     assert result.reason_code is VerificationReasonCode.INCOMPLETE
     assert "billing_task" in result.reason
+
+
+def test_grounded_final_must_equal_validated_answer_and_have_claims():
+    evidence = {
+        "mode": "grounded_final",
+        "grounded_answer": "退款期限是七天。",
+        "claims": [{"text": "退款期限是七天。", "citations": ["c1"]}],
+        "conflicts": [],
+    }
+    mismatch = verify(
+        payload=None, answer="退款期限是十四天。", knowledge_evidence=evidence,
+    )
+    assert mismatch.status is VerificationStatus.REJECT
+    assert mismatch.reason_code is VerificationReasonCode.UNGROUNDED
+
+    abstention = verify(
+        payload=None,
+        answer="证据互相冲突，请人工确认。",
+        knowledge_evidence={
+            "mode": "grounded_final",
+            "grounded_answer": "证据互相冲突，请人工确认。",
+            "claims": [],
+            "conflicts": [{"description": "期限冲突", "citations": ["c1", "c2"]}],
+            "abstained": True,
+            "reason": "conflicting_evidence",
+        },
+    )
+    assert abstention.status is VerificationStatus.PASS
+    assert abstention.publishable is True
 """回答发布校验边界的 PASS/REJECT/UNKNOWN 合同测试。"""

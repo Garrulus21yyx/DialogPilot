@@ -31,8 +31,8 @@ from anthropic import AsyncAnthropic
 from core.model_policy import ModelProfile
 from core.rag_policy import DEFAULT_RAG_RETRIEVAL_POLICY
 from core.tracing import TraceRecorder, current_trace_id, trace_scope
-from mcp.query_transformer import QueryTransformer
-from mcp.result_reranker import ResultReranker, candidates_from_items
+from mcp.query_transformer import QUERY_TRANSFORM_PROMPT_VERSION, QueryTransformer
+from mcp.result_reranker import RERANK_PROMPT_VERSION, RerankResult, ResultReranker, candidates_from_items
 
 logger = logging.getLogger(__name__)
 
@@ -841,8 +841,27 @@ class MCPToolManager:
                 success=False, data=[], tool_name=tool_name,
                 error=result.error or "加权召回无结果",
             )
-        reranked = await self._rerank(query, result.data[:candidate_k], top_k)
-        return ToolResult(success=True, data=reranked, tool_name=tool_name, reranked=True)
+        reranked, rerank_result = await self._rerank_detailed(
+            query, result.data[:candidate_k], top_k,
+        )
+        trace = {
+            "raw_query": query,
+            "variants": variants,
+            "rewrite_prompt_version": QUERY_TRANSFORM_PROMPT_VERSION,
+            "rewrite_error": rewrite_error or "",
+            "rerank_prompt_version": RERANK_PROMPT_VERSION,
+            "rerank_error": rerank_result.error or "",
+            "rerank_model_ids": list(rerank_result.model_ordered_ids),
+        }
+        traced = [
+            {**item, "retrieval_trace": trace}
+            if isinstance(item, dict) else item
+            for item in reranked
+        ]
+        return ToolResult(
+            success=True, data=traced, tool_name=tool_name,
+            reranked=rerank_result.error is None,
+        )
 
     # ── 结果重排（解决召回不好）──────────────────────────────────────────────
 
@@ -853,13 +872,21 @@ class MCPToolManager:
         解决问题：向量检索的相似度分数不等于"对用户有用"，
         LLM 能理解语义相关性，重排后 Top-K 质量显著提升。
         """
-        if len(items) <= top_k:
-            return items
+        reranked, _result = await self._rerank_detailed(query, items, top_k)
+        return reranked
 
+    async def _rerank_detailed(
+        self, query: str, items: List[Any], top_k: int,
+    ) -> tuple[List[Any], RerankResult]:
+        """返回结果及严格排列合同状态，供一次检索快照审计。"""
         candidates = candidates_from_items(items)
+        if len(items) <= top_k:
+            ids = tuple(candidate.candidate_id for candidate in candidates)
+            return items, RerankResult(ids, ids)
+
         result = await self._result_reranker.rerank(query, candidates)
         by_id = {candidate.candidate_id: item for candidate, item in zip(candidates, items)}
-        return [by_id[candidate_id] for candidate_id in result.ordered_ids[:top_k]]
+        return [by_id[candidate_id] for candidate_id in result.ordered_ids[:top_k]], result
 
     # ── 缓存 ──────────────────────────────────────────────────────────────────
 

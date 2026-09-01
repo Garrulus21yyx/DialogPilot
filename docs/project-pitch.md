@@ -97,7 +97,7 @@ flowchart LR
 
 知识 RAG 也不是“向量搜一下就结束”。生产与评测共用 source-offset 保真的 `DocumentChunker`、QueryTransformer 和 stable-ID ResultReranker；Standalone、Multi-query、HyDE 只能生成检索提示，Raw 始终保留，HyDE 不能成为答案证据。独立 Doc2Dial Dev 实验在 100 篇文档、300 个 case、488 个官方 grounding span 上选择 fixed 512/64 与 BM25 .75/Dense .25/RRF k=10；48 条多轮压力集选择 Raw .25 + Standalone .75，并将 Recall@20 从 0.6667 提到 0.7708。LLM rerank 20→5 将 Recall@5 从 0.5938 提到 0.7500。
 
-仓库默认现已切到 fixed 512/64、BM25 .75/Dense .25/k=10、Raw .25/Standalone .75、20→5 和 Top-5/2600；`/chat` 会生成带合法 chunk 引用的知识草稿，再由业务 Agent 组合实时工具事实并经 Verifier 发布。旧索引不兼容时 fail closed，旧 bootstrap Bundle 只在未修改的旧策略上原子迁移。Doc2Dial test split 冻结报告没有发现 harmful case，但端到端模型链只有 9 个 dialogue group；人工 Judge 校准、真实流量 shadow/canary 仍未完成，不能讲成外部生产已验证。
+仓库默认现已切到 fixed 512/64、BM25 .75/Dense .25/k=10、Raw .25/Standalone .75、20→5 和 Top-5/2600。写路径先形成 public `SourceDocument`，把 stable ID、checksum、type 和 source offset 写入 chunk；Chroma 是权威 corpus，SQLite BM25 posting 是按 corpus fingerprint 可重建投影，因此在线查询不再拉取全库。IndexManifest 与 EvidencePack 将 source/chunker/dense/sparse 版本、query variants、score/rank 和 packing drop 贯穿到生成。纯知识问答直接发布 grounded v4 的 claim-citation 结果；涉及“我的订单/退款状态”时仍由认证业务工具补事实并经过 Verifier。Doc2Dial test 模型链只有 9 个 group，v4 还需 WixQA Heldout、人工 Judge 校准和真实 shadow/canary，不能讲成外部生产已验证。
 
 ### 为什么业务范围外请求不交给 GeneralAgent？
 
@@ -176,7 +176,7 @@ Ticket 负责用户人工处理流程，Trace 负责一次请求的诊断；二�
 
 **A：** 在 Orchestrator 增加闭合 `PlanningDisposition`，规定 `EXECUTE` 必须有 TaskGraph，`CLARIFY/OUT_OF_SCOPE` 必须无图；API 对策略终态发布固定回复并跳过模型 Verifier，`OUT_OF_SCOPE` 额外跳过 Redis/Chroma/画像写入。路由评测增加 disposition exact match，HTTP 集成测试使用会抛错的假 Worker、RAG、工具和 Verifier 证明这些路径未被调用。
 
-**R：** 越域请求公开投影为 `agent_type=orchestrator`、空 Agent/Task/Outcome、`verification_reason_code=policy_terminal`，不创建人工工单；低置信度请求仍追问，明确问候仍由 GeneralAgent 执行，全仓 329 项测试通过。
+**R：** 越域请求公开投影为 `agent_type=orchestrator`、空 Agent/Task/Outcome、`verification_reason_code=policy_terminal`，不创建人工工单；低置信度请求仍追问，明确问候仍由 GeneralAgent 执行，当前全仓 344 项测试通过。
 
 ## Agent 进化改造如何用 STAR 讲
 
@@ -186,7 +186,7 @@ Ticket 负责用户人工处理流程，Trace 负责一次请求的诊断；二�
 
 **A：** 将兼容 `TaskPlan` 升级为 `TaskGraph`，增加依赖波次、`context_refs` 与阻塞状态；用 SQLite RunStore 固定 task/Bundle/工具调用并通过 CAS Resume；再实现 EvolutionEnvelope、不可变 AgentBundle、GEPA-lite 受限候选、带证据 Graduation/Pareto，以及 Shadow → 5% → 25% → Active 和硬/软回滚。
 
-**R：** 请求内版本不漂移，依赖失败不再误调后继，审批重放不重复写，候选不能修改权限或绕过 Gate，灰度与回滚收敛为原子状态迁移；当前全仓 329 项测试通过。评测数据仍是 provisional，因此结果只表述为合同回归，不虚构生产准确率。
+**R：** 请求内版本不漂移，依赖失败不再误调后继，审批重放不重复写，候选不能修改权限或绕过 Gate，灰度与回滚收敛为原子状态迁移；当前全仓 344 项测试通过。评测数据仍是 provisional，因此结果只表述为合同回归，不虚构生产准确率。
 
 ## RAG 生产化改造如何用 STAR 讲
 
@@ -194,9 +194,9 @@ Ticket 负责用户人工处理流程，Trace 负责一次请求的诊断；二�
 
 **T：** 建立一个有界客服 RAG 实验，使预处理、Query、BM25/Dense/RRF、Rerank、Packing、Generation 各自可测；安全失败不能被平均质量分抵消，模型输出只捕获一次并可离线重放。
 
-**A：** 把原文 `document_id + [start,end)` 定为唯一证据坐标，生产 KnowledgeBase 与评测共用 chunk Owner；适配 Doc2Dial 100 文档/300 case/488 spans，固定保存 Standalone/Multi2/HyDE 输出；以实体、否定、虚构实体和 harmful rate 做前置约束，再用 dialogue-group paired bootstrap 选择权重；stable chunk ID 贯穿 RRF、listwise rerank、packing 和引用，生成器按用户语言回答、非拒答必须引用、矛盾输出一次修复后 fail closed。
+**A：** 把 `source_id + checksum + [start,end)` 定为证据坐标，建立 public SourceDocument 与完整 IndexManifest；将在线全量 BM25 改为可从 Chroma 重建的持久 posting index；适配 Doc2Dial 100 文档/300 case/488 spans，以实体、否定、虚构实体和 harmful rate 为硬约束，用 dialogue-group paired bootstrap 选择权重；stable chunk ID 贯穿 RRF 和严格排列 rerank，EvidencePack 保留 score/rank/version/drop；grounded v4 输出 claims/conflicts/abstained，纯知识答案不再被 Agent 二次改写。
 
-**R：** Dev 从 fixed 512/64、BM25 .75/Dense .25/k=10 收敛到 Raw .25/Standalone .75、rerank 20→5、packing 2600；Query Recall@20 0.6667→0.7708，Rerank Recall@5 0.5938→0.7500，生成 language match 1.0、grounded 0.9792、格式失败 0/48。随后接入内容寻址的 `agent-v2-rag-*` 与 `/chat`，并在 Doc2Dial test 的 48 条检索/9 条多轮链路上冻结复验：query harmful 0、rerank harmful 0、生成 gate 全过。结尾主动说明 9 条端到端样本很小，人工校准和真实 shadow/canary 尚未完成。
+**R：** Dev 从 fixed 512/64、BM25 .75/Dense .25/k=10 收敛到 Raw .25/Standalone .75、rerank 20→5、packing 2600；Query Recall@20 0.6667→0.7708，Rerank Recall@5 0.5938→0.7500，历史 v3 generation language match 1.0、grounded 0.9792、格式失败 0/48。随后接入 `/chat` 并在 Doc2Dial test 的 48 条检索/9 条多轮链路冻结复验。新的 source/sparse/evidence/v4 发布合同已有回归证据，但尚无新的 WixQA Heldout、人工校准和真实 shadow/canary，必须把“实现完成”与“生产验证”分开。
 
 ## 意图反馈闭环如何用 STAR 讲
 

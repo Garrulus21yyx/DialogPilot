@@ -26,7 +26,7 @@ from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Header, HTTPException, Response, UploadFile, File, Query, Request as FastAPIRequest
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from services.ticket_service import (
     IdempotencyConflictError,
@@ -55,6 +55,8 @@ from services.badcase_registry import (
 from memory.context import ContextAssembler, ContextSection
 from mcp.context_packer import ContextCandidate, ContextPacker
 from mcp.grounded_answer_generator import GroundedAnswerGenerator
+from mcp.evidence_pack import EvidencePack
+from mcp.source_document import SourceDocument, SourceDocumentContractError
 from core.tracing import TraceRecorder, current_trace_id, trace_scope
 from core.input_security import PromptInjectionGuard
 from core.auth import AuthenticationError, AuthorizationError, JWTAuthenticator, Principal
@@ -353,6 +355,7 @@ async def lifespan(app: FastAPI):
         retrieval_rrf_k=int(bootstrap_rag_policy["rrf_k"]),
         retrieval_vector_weight=float(bootstrap_rag_policy["vector_weight"]),
         retrieval_lexical_weight=float(bootstrap_rag_policy["lexical_weight"]),
+        sparse_index_path=os.getenv("RAG_SPARSE_INDEX_PATH", ""),
     )
     logger.info(f"知识库已加载: {await _knowledge_base.doc_count_async()} 个文档片段")
 
@@ -477,6 +480,8 @@ async def lifespan(app: FastAPI):
             await _ticket_service.close()
         if _memory is not None:
             await _memory.close()
+        if _knowledge_base is not None and hasattr(_knowledge_base, "close"):
+            await asyncio.to_thread(_knowledge_base.close)
         # lifespan 结束后不留下指向已关闭资源的进程全局引用。
         _orchestrator = None
         _memory = None
@@ -576,6 +581,10 @@ class ChatResponse(BaseModel):
     latency_ms:  float
     knowledge_used: bool = False
     knowledge_draft_citations: List[str] = Field(default_factory=list)
+    knowledge_citations: List[str] = Field(default_factory=list)
+    knowledge_claims: List[Dict[str, Any]] = Field(default_factory=list)
+    knowledge_conflicts: List[Dict[str, Any]] = Field(default_factory=list)
+    knowledge_evidence: List[Dict[str, Any]] = Field(default_factory=list)
     knowledge_generation_status: str = "not_used"
     entities: Dict[str, List[str]] = Field(default_factory=dict)
     intent_confidence: float = 0.0
@@ -898,6 +907,27 @@ def _policy_terminal_verification(result: Any) -> Optional[VerificationResult]:
         reason=f"deterministic planner terminal: {disposition}",
         reason_code=VerificationReasonCode.POLICY_TERMINAL,
     )
+
+
+def _select_publication_candidate(
+    agent_response: str,
+    knowledge: "KnowledgeContextResult",
+    tool_audit: List[Dict[str, Any]],
+    *,
+    approval_pending: bool,
+) -> tuple[str, bool]:
+    """纯公共知识问答发布已校验 grounded result；混合业务事实仍由 Agent 合成。"""
+    business_tool_used = any(
+        str(record.get("tool") or record.get("tool_name") or "") != "knowledge_search"
+        for record in tool_audit
+    )
+    knowledge_is_final = bool(
+        knowledge.answer
+        and knowledge.generation_status in {"grounded_draft", "abstained"}
+        and not business_tool_used
+        and not approval_pending
+    )
+    return (knowledge.answer if knowledge_is_final else agent_response), knowledge_is_final
 
 
 def _badcase_versions(bundle: Optional[AgentBundle] = None) -> Dict[str, Any]:
@@ -1380,6 +1410,27 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
 
     # 4. 发布边界：只有明确通过校验的回答才能返回给用户。
     approval_pending = bool(result.awaiting_approval)
+    prepublication_audit = [
+        record.to_dict()
+        for record in _tool_manager.audit_records(trace_id=current_trace_id())
+    ] if _tool_manager else []
+    publication_candidate, knowledge_is_final = _select_publication_candidate(
+        result.response, knowledge, prepublication_audit,
+        approval_pending=approval_pending,
+    )
+    knowledge_verification = {
+        "mode": "grounded_final" if knowledge_is_final else "mixed_or_context_only",
+        "grounded_answer": knowledge.answer,
+        "claims": list(knowledge.claims),
+        "conflicts": list(knowledge.conflicts),
+        "citations": list(knowledge.citations),
+        "abstained": knowledge.abstained,
+        "reason": knowledge.reason,
+        "evidence_pack": (
+            knowledge.evidence_pack.to_dict(include_text=True)
+            if knowledge.evidence_pack is not None else {}
+        ),
+    }
     if approval_pending:
         verification = VerificationResult(
             status=VerificationStatus.UNKNOWN,
@@ -1394,11 +1445,12 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
             verification = await _verify_for_publication(
                 _answer_verifier,
                 req.message,
-                result.response,
+                publication_candidate,
                 full_context,
                 task_plan=result.task_plan,
                 coverage=result.coverage,
                 agent_outcomes=result.agent_outcomes,
+                knowledge_evidence=knowledge_verification,
             )
     feedback_recorder = getattr(_orchestrator, "record_verification", None)
     if feedback_recorder:
@@ -1406,7 +1458,9 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
             feedback_recorder(result.producer_agent_keys, verification.status.value)
         except Exception:
             logger.exception("记录 Agent 质量反馈失败 request_id=%s", request_id)
-    response_text = result.response if approval_pending else _publish_candidate(result.response, verification)
+    response_text = result.response if approval_pending else _publish_candidate(
+        publication_candidate, verification,
+    )
     escalated = result.escalated or verification.need_escalation
 
     # 5. 升级结果必须落为持久化工单，不能只返回一个布尔标志。
@@ -1550,7 +1604,20 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
         latency_ms=round(result.latency_ms, 1),
         knowledge_used=knowledge.used,
         knowledge_draft_citations=list(knowledge.citations),
-        knowledge_generation_status=knowledge.generation_status,
+        knowledge_citations=(
+            list(knowledge.citations)
+            if knowledge_is_final and verification.publishable else []
+        ),
+        knowledge_claims=list(knowledge.claims),
+        knowledge_conflicts=list(knowledge.conflicts),
+        knowledge_evidence=(
+            [item.to_dict(include_text=False) for item in knowledge.evidence_pack.items]
+            if knowledge.evidence_pack is not None else []
+        ),
+        knowledge_generation_status=(
+            "grounded_final" if knowledge_is_final and verification.publishable
+            else knowledge.generation_status
+        ),
         entities=intent_result.entities,
         intent_confidence=round(intent_result.confidence, 4),
         intent_source_scores=intent_result.source_scores,
@@ -2062,11 +2129,25 @@ class KnowledgeContextResult:
     used: bool = False
     citations: tuple[str, ...] = ()
     generation_status: str = "not_used"
+    answer: str = ""
+    claims: tuple[Dict[str, Any], ...] = ()
+    conflicts: tuple[Dict[str, Any], ...] = ()
+    abstained: bool = False
+    reason: str = ""
+    evidence_pack: Optional[EvidencePack] = None
 
     def __iter__(self):
         """Keep the historical ``text, used`` internal call contract during migration."""
         yield self.text
         yield self.used
+
+
+def _rag_cache_scope(policy_scope: str) -> str:
+    """绑定检索策略与当前 corpus Manifest，知识变更后旧结果自然失效。"""
+    fingerprint = "unversioned-index"
+    if _knowledge_base is not None and hasattr(_knowledge_base, "index_manifest"):
+        fingerprint = str(_knowledge_base.index_manifest.get("manifest_fingerprint") or fingerprint)
+    return f"{policy_scope}:{fingerprint}"
 
 
 async def _build_knowledge_context(
@@ -2098,7 +2179,7 @@ async def _build_knowledge_context(
             context={
                 "retrieval_policy": policy,
                 "query_history": list(history[-8:]),
-                "cache_scope": (
+                "cache_scope": _rag_cache_scope(
                     bundle.component_hash("retrieval_policy") if bundle is not None else "default"
                 ),
             },
@@ -2116,6 +2197,16 @@ async def _build_knowledge_context(
             text=str(item.get("content") or "").strip(),
             start_char=int(item.get("source_start_char") or 0),
             end_char=int(item.get("source_end_char") or len(str(item.get("content") or ""))),
+            title=str(item.get("title") or ""),
+            score=float(item.get("score") or 0.0),
+            ranks=tuple(sorted(
+                (str(key), int(value)) for key, value in (item.get("ranks") or {}).items()
+            )),
+            source_type=str(item.get("source_type") or ""),
+            source_checksum=str(item.get("source_checksum") or ""),
+            scope=str(item.get("scope") or "public"),
+            scope_decision=str(item.get("scope_decision") or "allowed_public"),
+            index_manifest_fingerprint=str(item.get("index_manifest_fingerprint") or ""),
         ) for index, item in enumerate(valid_items, 1))
         if not candidates:
             return KnowledgeContextResult()
@@ -2129,6 +2220,16 @@ async def _build_knowledge_context(
         selected = tuple(by_id[chunk_id] for chunk_id in packed.chunk_ids)
         if not selected:
             return KnowledgeContextResult(generation_status="packing_empty")
+        evidence_pack = EvidencePack.from_packed(
+            message,
+            packed,
+            retrieval_policy=policy,
+            retrieval_trace=(
+                valid_items[0].get("retrieval_trace")
+                if valid_items and isinstance(valid_items[0].get("retrieval_trace"), dict)
+                else {}
+            ),
+        )
         answer = None
         if _grounded_answer_generator is not None:
             answer = await _grounded_answer_generator.generate(
@@ -2146,17 +2247,39 @@ async def _build_knowledge_context(
                 f"   内容: {candidate.text}"
             )
         citations: tuple[str, ...] = ()
+        claims: tuple[Dict[str, Any], ...] = ()
+        conflicts: tuple[Dict[str, Any], ...] = ()
+        grounded_answer = ""
         generation_status = "sources_only"
         if answer is not None:
             citations = answer.citations
             generation_status = "abstained" if answer.abstained else "grounded_draft"
+            grounded_answer = answer.answer
+            claims = tuple({
+                "text": claim.text, "citations": list(claim.citations),
+            } for claim in answer.claims)
+            conflicts = tuple({
+                "description": conflict.description,
+                "citations": list(conflict.citations),
+            } for conflict in answer.conflicts)
             if not answer.abstained:
                 parts.append(
                     "[知识库有引用草稿；仅覆盖公共知识，不得覆盖业务工具的实时事实]\n"
                     f"{answer.answer}\n引用: {', '.join(answer.citations)}"
                 )
         parts.append("资料不足时明确说明无法确认；订单、退款、账户当前状态必须调用业务工具核验。")
-        return KnowledgeContextResult("\n".join(parts), True, citations, generation_status)
+        return KnowledgeContextResult(
+            text="\n".join(parts),
+            used=True,
+            citations=citations,
+            generation_status=generation_status,
+            answer=grounded_answer,
+            claims=claims,
+            conflicts=conflicts,
+            abstained=bool(answer.abstained) if answer is not None else False,
+            reason=str(getattr(answer, "reason", "") or "") if answer is not None else "",
+            evidence_pack=evidence_pack,
+        )
     except Exception as ex:
         logger.warning(f"构建知识库上下文失败: {ex}")
         return KnowledgeContextResult(generation_status=f"error:{type(ex).__name__}")
@@ -2223,20 +2346,28 @@ async def search(
         "knowledge_search",
         query,
         top_k=min(max(int(top_k), 1), int(policy.get("top_k", 5))),
-        context={"retrieval_policy": policy, "cache_scope": cache_scope},
+        context={"retrieval_policy": policy, "cache_scope": _rag_cache_scope(cache_scope)},
     )
     return {"query": query, "results": result.data, "reranked": result.reranked}
 
 
 class DocInput(BaseModel):
     """单篇文档输入。"""
-    title:   str
-    content: str
+    model_config = ConfigDict(extra="forbid")
+
+    source_id: Optional[str] = Field(default=None, max_length=256)
+    title: str = Field(min_length=1, max_length=500)
+    content: str = Field(min_length=1)
+    source_type: Literal["text", "markdown", "json"] = "text"
+    checksum: Optional[str] = Field(default=None, min_length=64, max_length=64)
+    scope: Literal["public"] = "public"
 
 
 class BatchDocInput(BaseModel):
     """批量文档导入请求体。"""
-    documents: List[DocInput]
+    model_config = ConfigDict(extra="forbid")
+
+    documents: List[DocInput] = Field(min_length=1, max_length=1000)
 
 
 class EvalIntentInput(BaseModel):
@@ -2391,7 +2522,7 @@ async def add_knowledge(body: BatchDocInput, _principal: Principal = Depends(_ad
     ```json
     {
       "documents": [
-        {"title": "退款政策", "content": "用户在购买后 7 天内可以申请无理由退款..."},
+        {"source_id": "refund-policy", "title": "退款政策", "content": "用户在购买后 7 天内可以申请无理由退款..."},
         {"title": "配送说明", "content": "标准配送 3-5 个工作日..."}
       ]
     }
@@ -2401,9 +2532,29 @@ async def add_knowledge(body: BatchDocInput, _principal: Principal = Depends(_ad
     if tool is None:
         raise HTTPException(503, "知识库未初始化")
     kb = tool.handler.__self__
-    count = await kb.add_documents_async([{"title": d.title, "content": d.content} for d in body.documents])
+    try:
+        sources = [SourceDocument.create(
+            source_id=d.source_id or "",
+            title=d.title,
+            content=d.content,
+            source_type=d.source_type,
+            checksum=d.checksum,
+        ) for d in body.documents]
+    except SourceDocumentContractError as exc:
+        raise HTTPException(422, {"code": "source_document_invalid", "message": str(exc)}) from exc
+    count = await kb.add_documents_async(sources)
     total = await kb.doc_count_async()
-    return {"message": f"成功导入 {count} 个文档片段", "added_chunks": count, "total_chunks": total}
+    return {
+        "message": f"成功导入 {count} 个文档片段",
+        "added_chunks": count,
+        "total_chunks": total,
+        "sources": [{
+            "source_id": source.source_id,
+            "source_type": source.source_type,
+            "checksum": source.checksum,
+            "scope": source.scope,
+        } for source in sources],
+    }
 
 
 @app.post("/knowledge/upload", tags=["知识库"])
@@ -2429,28 +2580,55 @@ async def upload_knowledge(
     if len(content) > 10 * 1024 * 1024:
         raise HTTPException(413, "文件大小超过 10MB 限制")
 
-    text = content.decode("utf-8", errors="ignore")
-    filename = file.filename or "unknown"
+    try:
+        text = content.decode("utf-8-sig")
+    except UnicodeDecodeError as exc:
+        raise HTTPException(400, {"code": "invalid_utf8", "message": "文件必须是 UTF-8 编码"}) from exc
+    filename = pathlib.PurePath(file.filename or "unknown").name
+    suffix = pathlib.PurePath(filename).suffix.lower()
+    if suffix not in {".txt", ".md", ".json"}:
+        raise HTTPException(415, {
+            "code": "unsupported_source_type",
+            "message": "仅支持 .txt、.md、.json",
+        })
 
-    if filename.endswith(".json"):
+    if suffix == ".json":
         import json as _json
         try:
-            docs = _json.loads(text)
-            if not isinstance(docs, list):
+            values = _json.loads(text)
+            if not isinstance(values, list):
                 raise HTTPException(400, "JSON 文件应为数组格式: [{title, content}, ...]")
+            if not values:
+                raise HTTPException(400, "JSON 文档数组不能为空")
         except _json.JSONDecodeError as e:
             raise HTTPException(400, f"JSON 解析失败: {e}")
     else:
         # txt / md：整个文件作为一篇文档
-        title = filename.rsplit(".", 1)[0] if "." in filename else filename
-        docs = [{"title": title, "content": text}]
+        values = [{
+            "title": pathlib.PurePath(filename).stem,
+            "content": text,
+            "source_type": "markdown" if suffix == ".md" else "text",
+        }]
 
-    count = await kb.add_documents_async(docs)
+    try:
+        sources = [
+            SourceDocument.from_mapping(value, default_source_type="json")
+            for value in values
+        ]
+    except SourceDocumentContractError as exc:
+        raise HTTPException(422, {"code": "source_document_invalid", "message": str(exc)}) from exc
+    count = await kb.add_documents_async(sources)
     total = await kb.doc_count_async()
     return {
         "message": f"文件 {filename} 导入成功",
         "added_chunks": count,
         "total_chunks": total,
+        "sources": [{
+            "source_id": source.source_id,
+            "source_type": source.source_type,
+            "checksum": source.checksum,
+            "scope": source.scope,
+        } for source in sources],
     }
 
 
@@ -2464,6 +2642,7 @@ async def knowledge_stats(_principal: Principal = Depends(_admin_principal)):
     return {
         "total_chunks": await kb.doc_count_async(),
         "storage_backend": kb.storage_backend,
+        "index_manifest": kb.index_manifest,
         "active_bundle_retrieval_policy": (
             dict((await asyncio.to_thread(_bundle_registry.active)).retrieval_policy)
             if _bundle_registry is not None else {}
