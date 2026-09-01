@@ -16,7 +16,7 @@
 | M0-T02 稳定身份和值对象 | done | stable IDs/keys；Trace/Tool/Ticket/Delivery/Memory propagation |
 | M0-T03 生产主链 Eval Runner | done | full execution 共用 `ChatApplication`；typed stage/owner evidence |
 | M0-T04 当前行为基线 | done | `data/eval/baselines/m0-v1/manifest.json`，7 条真实主链 Trace |
-| M0-T05 Gate Manifest Foundation | pending | 版本化 manifest schema/validator/report |
+| M0-T05 Gate Manifest Foundation | done | `evaluation/gates/m0-exit/v1.*`，decision=`APPROVE` |
 | M1 完整会话事实与幂等发布 | pending | 按 M1-PF01、T00–T05/T03A/T04A 子节点推进 |
 | M2 Route/Authority/Evidence/RAG | pending | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
@@ -124,8 +124,24 @@
 - 验证：manifest 可重放且 checksum 封闭；Bundle version/hash、commit 或 index 任一漂移均 fail closed；
   不存在 production accuracy 汇总；每条记录可追溯到 case/request/trace/stages。
 
+### M0-T05
+
+- 正向合同：通用 Gate 规格拥有 typed `TaskRef/GateDecisionRef/ArtifactRef/
+  ConditionalRequirement` prerequisite algebra，manifest 生命周期唯一为
+  `DRAFT→FROZEN→RUNNING→DECIDED`；`N/A` 只属于有 reason/approver 的 conditional。
+- 冻结与签署：spec 绑定数据、oracle、零容忍性质、统计阈值、故障点、成本/SLO、Owner、
+  independent approver 与 rollback；Evidence Owner 和 approver 必须是不同 signer，冻结后 spec
+  fingerprint 不变，运行开始后只能创建 superseding version，不能原地改阈值或数据。
+- 存储与 lint：`GateStore` 使用 `evaluation/gates/<profile>/<version>.yaml`（JSON 兼容 YAML）和
+  immutable evidence/decision 文件；archive linter 重建 RUNNING revision 并校验 manifest、evidence、
+  decision 三层 checksum 与引用。
+- 首个实例：`M0-EXIT/v1` 绑定 M0-T01..T05、六份数据身份、行为基线文件 checksum 与 431-test
+  证据；Evaluation producer 与 Application contract verifier 分角色签署，decision=`APPROVE`。
+- 验证：property-style/参数化测试覆盖缺失/未知 prerequisite、Task/Gate/Artifact 非法 N/A、
+  非法状态跳转、同 signer、运行后规格漂移、未满足 prerequisite 的 APPROVE 与 archive tamper。
+
 ## 下一步
 
-1. 提交并推送 M0-T04 最终 manifest 与 replay gate。
-2. 实施 M0-T05：定义 Gate Manifest 生命周期、schema/linter 与首个 M0 evidence/decision。
-3. M0 Exit Gate 只在冻结 manifest、独立签署角色和机器证据全部归档后判定。
+1. 提交并推送 M0-T05 Gate archive；M0 Exit 已由机器证据判定 `APPROVE`。
+2. 进入 M1-PF01：先冻结 PostgreSQL 平台能力事实与迁移 ADR，再开始 transcript/admission owner 迁移。
+3. 保持已发现的 deployed Chroma legacy index 不兼容为显式平台风险，不让后续检索迁移静默修复。

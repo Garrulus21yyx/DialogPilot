@@ -1,6 +1,7 @@
 """Gate manifest algebra, lifecycle immutability and signing tests."""
 from dataclasses import replace
 import json
+from pathlib import Path
 
 import pytest
 
@@ -245,3 +246,16 @@ def test_linter_rejects_unknown_prerequisite_kind(tmp_path):
     path.write_text(json.dumps(raw), encoding="utf-8")
     with pytest.raises(GateContractError, match="unknown prerequisite kind"):
         load_manifest(path)
+
+
+def test_checked_in_m0_gate_archive_is_decided_and_replayable():
+    root = Path(__file__).parents[1] / "evaluation/gates/m0-exit"
+    manifest = load_manifest(root / "v1.yaml")
+    evidence = load_evidence(root / "v1.evidence.json")
+    decision = load_decision(root / "v1.decision.json")
+
+    validate_gate_archive(manifest, evidence, decision)
+    assert manifest.state is GateState.DECIDED
+    assert decision.status is GateDecisionStatus.APPROVE
+    assert evidence.observations["all_records_traceable"] is True
+    assert evidence.observations["production_accuracy_claim"] is False
