@@ -98,9 +98,11 @@ Source document/span
 | Rerank | listwise 20→5，失败保留 first-stage 顺序 |
 | Packing/Generation | Top-5/2600 EvidencePack + grounded v4；纯知识结果不再二次改写 |
 
-候选来自 Doc2Dial Dev 的 100 文档、300 case、488 个官方 grounding span；48 条多轮压力集用于有界模型评测。Query Recall@20 为 0.7708（Raw 0.6667），Rerank Recall@5 为 0.7500（不重排 0.5938），Generation language match 1.0、Judge grounded 0.9792、格式失败 0/48。安全选择不使用单一加权总分：否定/实体、非法引用、格式失败与 harmful rate 是不可补偿门槛。
+> 2026-09-01 验证更新：上表是代码责任与失败边界，不是生产达标声明。48 条 Doc2Dial Dev 三路实验中，父子 Chunk 提高 Recall@20 `.8333→.9167`，但 multi-condition completeness `.8261→.7826`；更重要的是三路 grounded v4 失败/拒答率都在 `85.42%–89.58%`。因此父子方案不上线，Generation 合同恢复为当前 RAG 的首要未闭合 Owner。
 
-代码已把冻结检索配置接入 `/search` 与 `/chat`；Sparse 不再在每次查询拉全库，而是使用可从 Chroma 权威 public chunk 重建的 SQLite posting sidecar。`/knowledge/stats` 投影 source/parser/chunker/dense/sparse/corpus Manifest；不兼容非空索引必须从权威原文重导。Doc2Dial test split 的 48 条检索集及 9 条 group-safe 多轮链路仍只证明 v3 冻结结果；v4 claim/conflict 合同目前有代码回归，尚需 WixQA group-safe Heldout、人工 Judge 校准和真实 shadow/canary。因此“仓库默认已接入”不等于“外部生产流量已验证”。完整边界见[客服 RAG 生产化审计](./customer-service-rag-production-audit/)，历史选型数据见[客服 RAG 全链路评测](./rag-pipeline-evaluation/)。
+候选来自 Doc2Dial Dev 的 100 文档、300 case、488 个官方 grounding span；48 条多轮压力集用于有界模型评测。历史 v3 报告中 Query Recall@20 为 0.7708（Raw 0.6667），Rerank Recall@5 为 0.7500（不重排 0.5938），Generation language match 1.0、Judge grounded 0.9792、格式失败 0/48。这些生成数字不能继承给 v4：2026-09-01 重跑的三路 v4 实验中，生成合同失败/拒答率为 `85.42%–89.58%`。
+
+代码已把冻结检索配置接入 `/search` 与 `/chat`；Sparse 不再在每次查询拉全库，而是使用可从 Chroma 权威 public chunk 重建的 SQLite posting sidecar。同一批 48 条 Dev 三路对照又表明：父子 256/32→1024/128 将 Recall@20 `.8333→.9167`，但 23 条 multi-condition completeness `.8261→.7826`，harmful context `4.17%`；Neighbor 也未过门禁。所以默认仍是 512/64，Heldout 未打开，当前先修 Generation Owner 而不是上父子 Chunk。完整边界见[客服 RAG 生产化审计](./customer-service-rag-production-audit/)。
 
 ## 意图识别的在线/离线边界
 

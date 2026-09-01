@@ -297,4 +297,4 @@ DialogPilot **不是 GEPA 或 Agent Lightning 的完整复现**。它借鉴的�
 
 ### Q7：这项改造怎么用 STAR 讲？
 
-**S：** Bad Case 虽可入库，但人工直接改 Prompt 会丢失版本归因，优化也可能伤害旧能力。**T：** 把线上失败转成可验证、可灰度、可撤销的 Agent 策略升级，同时禁止模型修改安全边界。**A：** 增加脱敏 EvolutionEnvelope、确定性 Owner 归因、不可变 AgentBundle、GEPA-lite 多候选、带 provenance 的 Graduation/Pareto，以及 Shadow、稳定 5%/25% 分桶和硬/软自动回滚。**R：** 请求级版本固定、候选不能绕过硬门禁、影子写操作零提交、发布和回滚都收敛为 SQLite 原子状态迁移；344 项仓库回归通过。当前数据仍非 human Gold，因此不虚构线上准确率提升。
+**S：** Bad Case 虽可入库，但人工直接改 Prompt 会丢失版本归因，优化也可能伤害旧能力。**T：** 把线上失败转成可验证、可灰度、可撤销的 Agent 策略升级，同时禁止模型修改安全边界。**A：** 增加脱敏 EvolutionEnvelope、确定性 Owner 归因、不可变 AgentBundle、GEPA-lite 多候选、带 provenance 的 Graduation/Pareto，以及 Shadow、稳定 5%/25% 分桶和硬/软自动回滚。**R：** 请求级版本固定、候选不能绕过硬门禁、影子写操作零提交、发布和回滚都收敛为 SQLite 原子状态迁移；350 项仓库回归通过。当前数据仍非 human Gold，因此不虚构线上准确率提升。

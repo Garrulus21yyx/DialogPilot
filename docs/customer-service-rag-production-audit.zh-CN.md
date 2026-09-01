@@ -23,7 +23,7 @@ permalink: /customer-service-rag-production-audit/
 → 分层评测、Shadow、回滚
 ```
 
-当前仓库已经闭合“小型、公共、txt/md/json 客服知识库”的代码合同；仍没有完成真实流量 Shadow、人工 Judge 校准、多副本共享 Sparse、政策更新/删除事务和企业多租户隔离。因此准确说法是：**生产边界已显式化并由回归测试覆盖，但外部生产验证仍未完成。**
+当前仓库已经显式化“小型、公共、txt/md/json 客服知识库”的代码边界，但 2026-09-01 的 48 条 Doc2Dial Dev 真实模型实验又暴露了新缺口：grounded v4 在当前 DeepSeek 配置下有 `85.42%–89.58%` 的生成合同失败/拒答率。它能 fail closed，但不具备可用性。因此准确说法是：**索引与证据边界已回归覆盖；生成合同已被新实验证伪，当前整体不能进入 Heldout、Shadow 或 Canary。**
 
 ## 2. 客服范围：必要、暂缓与非目标
 
@@ -64,7 +64,7 @@ permalink: /customer-service-rag-production-audit/
 | Rerank | `ResultReranker` | 模型必须返回候选集合的完整、唯一、精确排列；任一未知/重复/遗漏使整次重排回退 | 已收紧，不再静默过滤未知 ID 后补齐 |
 | Packing | `ContextPacker` | Top-5/2600、source overlap 去重、预算超限记录 drop reason | 已实现；这是证据选择，不冒充语义压缩 |
 | Evidence | `EvidencePack` | chunk/source/checksum/span/score/rank/source-ranks/scope decision/Manifest/query/rerank/packing trace | 已实现；公开 API 不返回全文，只返回公共来源坐标与排名 |
-| Generation | `GroundedAnswerGenerator` v4 | `answer + claims[].citations + conflicts[].citations + abstained + reason`；引用只允许 Evidence Pack IDs | 已实现；claim entailment 的离线 Judge 仍需人工校准 |
+| Generation | `GroundedAnswerGenerator` v4 | `answer + claims[].citations + conflicts[].citations + abstained + reason`；引用只允许 Evidence Pack IDs | 已实现 fail-closed，但 Dev 真模型失败率 `85.42%–89.58%`；当前合同在可用性上未闭合 |
 | Publication | API + `AnswerVerifier` | 纯公共知识且无业务工具时，最终候选就是 GroundedAnswer（包括有类型的冲突/证据不足拒答）；混合政策与实时事实时由 Agent 合成并带 Evidence 进入 Verifier | 关闭了纯知识二次漂移；混合回答仍依赖模型 claim 判断，不能声称确定性逐 claim 证明 |
 
 ## 4. Sparse 为什么是派生投影
@@ -105,7 +105,7 @@ term → document_frequency
 
 Pack 还记录 index manifest fingerprint、Raw/Standalone variants、rewrite/rerank Prompt version、模型合同错误以及 packing drop。这样一次错误可以判断发生在解析、召回、重排、预算还是生成，而不是只看到最终“答错”。
 
-生成 v4 不只返回 citation 列表。非拒答必须有 `claims`，每个 claim 文本必须原样出现在 answer，所有 claim citation 的并集必须与顶层 citations 完全一致。`conflicts` 至少引用两个输入 chunk，出现冲突时只能 `abstained=true, reason=conflicting_evidence`。
+生成 v4 不只返回 citation 列表。非拒答必须有 `claims`，每个 claim 文本必须原样出现在 answer，所有 claim citation 的并集必须与顶层 citations 完全一致。`conflicts` 至少引用两个输入 chunk，出现冲突时只能 `abstained=true, reason=conflicting_evidence`。新实验证明“claim 必须是 answer 的逐字子串”与当前模型的实际输出不匹配：模型常修改标点/措辞，一次修复后仍失败。这是共享 Generation Owner 的合同缺陷，不是 Chunk 拓扑差异。
 
 ## 6. 小规模客服数据怎么选
 
@@ -158,7 +158,51 @@ Builder 会记录官方 URL、MIT license、2024-12-02 KB snapshot、选择规�
 
 当前 `.75/.25`、`.25/.75` 等权重来自既有 Doc2Dial Dev 的候选比较、实体/否定硬门禁和 dialogue-group paired bootstrap，不是主观赋分。换到 WixQA/中文客服集后，权重只能作为冻结 baseline；若 Heldout 退化，不允许在 Heldout 上反向调参。
 
-## 8. 发布门禁
+## 8. 父子 Chunk 三路实验（2026-09-01）
+
+在同一批 48 条 Doc2Dial Dev 多轮 capture 上比较：
+
+1. `baseline-512`：512/64 命中块直接 packing。
+2. `neighbor-512`：同一命中，扩展前/当前/后 sibling。
+3. `parent-child-256-1024`：256/32 child 检索，返回 1024/128 parent。
+
+三路共用 Raw `.25` + Standalone `.75`、BM25 `.75` + Dense `.25`、RRF `k=10`、rerank 20→5 和 2600 Token 上限。父子的 Recall 按“child 是否导航到覆盖 Gold 的 parent”计，避免用 child 本身 containment 错误惩罚 Small-to-Big。
+
+| 指标 | Baseline 512/64 | Neighbor 512 | Parent-child 256→1024 |
+|---|---:|---:|---:|
+| Candidate evidence Recall@20 | `.8333` | `.8333` | **`.9167`** |
+| Reranked MRR@5 | `.6597` | `.6597` | **`.7285`** |
+| Reranked evidence Recall@5 | `.7708` | `.7708` | **`.8750`** |
+| Packed context evidence recall | `.7708` | `.7708` | **`.8125`** |
+| 23 条 multi-condition completeness | **`.8261`** | `.7826` | `.7826` |
+| P95 context tokens | `2562` | **`2507`** | `2551.45` |
+| P95 实验链延迟 | `17.99s` | `18.83s` | `18.02s` |
+| Harmful context vs baseline | — | `4.17%` | `4.17%` |
+| Rerank typed failure | `2.08%` | `2.08%` | `6.25%` |
+| Grounded v4 生成失败/拒答 | `89.58%` | `85.42%` | `87.50%` |
+| Claim support / citation correctness（全 48 条） | `.1042 / .1042` | `.1458 / .1458` | `.1250 / .1250` |
+
+父子 Chunk 提高了候选和 rerank 质量，但在固定 packing 预算下没有提高多条件完整性，且两个扩展方案都有 `4.17%` context harmful case。它们因此未通过 Dev 不可补偿门禁，**不切换默认，也不打开 untouched Heldout**。这不是“父子 Chunk 永远无用”；它说明当前需要先修复生成代数，再尝试按剩余预算动态扩展，而不是无条件返回整个 parent。
+
+可复现命令：
+
+```bash
+PYTHONPATH=. .venv/bin/python -m evaluation.rag_context_topology_ablation \
+  artifacts/eval/doc2dial-rag-mini-dev-v1 \
+  artifacts/eval/doc2dial-rag-mini-dev-v1/query-transform-capture.json \
+  --structural-only \
+  --output artifacts/eval/doc2dial-rag-mini-dev-v1/context-topology-structural-report.json
+
+# 真实 rerank + grounded v4 + Judge；需显式配置模型环境变量
+PYTHONPATH=. .venv/bin/python -m evaluation.rag_context_topology_ablation \
+  artifacts/eval/doc2dial-rag-mini-dev-v1 \
+  artifacts/eval/doc2dial-rag-mini-dev-v1/query-transform-capture.json \
+  --output artifacts/eval/doc2dial-rag-mini-dev-v1/context-topology-full-report.json
+```
+
+本页同时发布不含原文/回答的[脱敏摘要 JSON](../assets/eval/rag-context-topology-dev-v1.json)。
+
+## 9. 发布门禁
 
 代码合并、评测通过和生产验证是三个状态：
 
@@ -171,9 +215,9 @@ IMPLEMENTED
 → CANARY 5% → 25% → ACTIVE
 ```
 
-本次能证明前两项；现有小型 Doc2Dial test 只能作为已消费冻结反例，不能替代新的 WixQA group-safe Heldout、人工 blind review 和真实流量 Shadow。Shadow 至少监控：每层 P50/P95、Sparse/Dense 候选数、fallback、abstention、conflict、citation invalid、私有事实误路由、人工转接率和用户负反馈。
+代码实现和回归测试能证明前两项，但新的父子 Chunk Dev 实验已将 Generation 合同退回非闭合状态；修复且重跑 Dev 前不允许打开 fresh Heldout。现有小型 Doc2Dial test 只能作为已消费冻结反例，不能替代新的 WixQA group-safe Heldout、人工 blind review 和真实流量 Shadow。
 
-## 9. 与当前主流实践的关系
+## 10. 与当前主流实践的关系
 
 - [Chroma 官方文档](https://docs.trychroma.com/docs/querying-collections/metadata-filtering)明确支持在 `get/query` 前用 `where` 做 metadata filter；当前 public scope 在 Dense 与 hydration 两侧都执行。
 - [Chroma embedding 配置](https://docs.trychroma.com/docs/collections/configure)说明 embedding function 会影响索引构建并应随 collection 配置持久化；本项目因此不再把“服务端默认”当成未记录事实。

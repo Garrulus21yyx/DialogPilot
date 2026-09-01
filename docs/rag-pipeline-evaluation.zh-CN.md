@@ -232,6 +232,6 @@ PYTHONPATH=. .venv/bin/python -m evaluation.rag_packing_ablation \
 
 仓库保留该冻结检索配置：`KnowledgeBase` fixed 512/64、BM25 .75/Dense .25/k=10；`MCPToolManager` Raw .25/Standalone .75、20→5；`/chat` 使用 Top-5/2600。之后的生产边界修复将在线全量 BM25 换为持久 posting index，增加 source/index contract 和 EvidencePack，并把生成输出收紧为 grounded v4。`agent-v1` 仅在仍是精确旧默认时原子迁移到内容寻址的 `agent-v2-rag-*`，自定义 Active 指针不会被覆盖；非空索引缺少任一 source/chunk/dense/sparse/scope 合同都会 fail closed，要求从权威原文重导。
 
-当前状态是 **retrieval baseline integrated; new v4 production contract regression-tested; external production unverified**。仍缺新的 WixQA group-safe Heldout、真实脱敏流量串行 P95/P99、人工盲审对 claim Judge 的校准、shadow 和 canary。代码默认、历史 v3 离线报告、新合同回归与外部生产验证必须分开表述。
+当前状态是 **retrieval baseline integrated; v4 fail-closed but empirically unusable**。2026-09-01 的 48 条 Dev 真模型三路实验中，grounded v4 失败/拒答率为 `85.42%–89.58%`；父子 Chunk 虽将 Recall@20 `.8333→.9167`，但 multi-condition completeness `.8261→.7826`，harmful context `4.17%`。两个扩展候选均未过 Dev，因此保留 512/64 且不打开 untouched Heldout。详细见[客服 RAG 生产化审计](../customer-service-rag-production-audit/)。
 
 全仓验证结果与提交信息见计划文件中的 verification record。
