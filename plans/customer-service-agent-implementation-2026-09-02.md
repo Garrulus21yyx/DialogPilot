@@ -104,6 +104,17 @@
   - `git diff --check` → passed
   - `evaluation/evaluator.py` 负向搜索无 `orchestrator.run()`。
 
+### M0-T04（in progress）
+
+- 已实现可重放 `BehaviorBaseline` schema、版本漂移 fail-closed 校验、逐 route 运行记录聚合、
+  六类决策策略及独立 fingerprint；schema 明确禁止 production accuracy 汇总。
+- 已实现真实 `ChatApplication` characterization capture 与 freeze CLI；capture 使用临时
+  Ticket/Delivery/BadCase/Operation/Run 数据库、独立 baseline 用户/会话 identity，并输出实际
+  Knowledge index manifest 与逐 Trace 记录。
+- 当前验证：全套 `419 passed`，相关 ruff 与 `git diff --check` 通过。
+- 待完成：在本代码 commit 上运行真实 capture，归档 cases/records/RAG manifest/final baseline，
+  然后验证 replay 与 Bundle/Index 漂移拒绝。
+
 ## 下一步
 
 1. 提交并推送 M0-T03。
