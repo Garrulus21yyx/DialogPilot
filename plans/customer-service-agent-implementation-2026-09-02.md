@@ -34,7 +34,7 @@
 | M2-T03 Canonical EvidenceReceipt | done (consumer flag-off) | 7 kind typed algebra + registered adapters + resolver verification；624 tests passed |
 | M2-T04 Requirement CoverageGate / VerificationProfile | implemented (flag-off) | build complete；Knowledge verification waits T04A；642 tests passed |
 | M2-T04A SourceRevision v0 / active manifest | implemented (review pending) | PG owner/backfill/active validator done；independent human heldout review pending；650 tests passed |
-| M2-T05 统一 KnowledgeRetriever | in_progress | A1/A2 + B consumer migration done；pre-Exit dark-shadow report pending；672 tests passed |
+| M2-T05 统一 KnowledgeRetriever | implemented (canary blocked) | A1/A2/B + immutable PG dark-shadow report；675 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
@@ -632,9 +632,30 @@
   全套 `672 passed in 19.49s`，ruff（忽略历史 E402）/diff checks passed。consumer slice 完成；
   pre-Exit PG dark-shadow 不可变比较报告尚未生成，因此 M2-T05 不标记 IMPLEMENTED。
 
+### M2-T05-B2（frozen Knowledge PG pre-Exit dark shadow）
+
+- 冻结输入：`evaluation/fixtures/knowledge-pg-shadow-v1/spec.json` 以 SHA-256 绑定 5 条
+  canonical public source、7 条 dev + author-created heldout-candidate query、tenant/scope/locale/product filter
+  和 `LEGACY_BM25_V1_COMPARISON` 的 `.25/.75` query、`.25/.75` Dense/lexical、RRF `10`、
+  `20→5`、pack `2600` 及全部 component version。任一文件或 policy 漂移都在执行前拒绝。
+- 真实写链：runner 先经 DataLocationRegistry v4 审批 `knowledge-shadow` 的 dark-shadow write，
+  然后使用 immutable SourceRevision/manifest/chunk spec→canonical projection outbox→PG search projection；
+  generation 只到 `READY`，未写 active pointer。Legacy Chroma/BM25 始终是唯一 publisher。
+- 不可变报告：`governance/evidence/m2-t05/knowledge-pg-pre-exit-v1.report.json`，
+  `report_sha256=b6bad25276c1f2906edb099a43cbe1b3de9d3979836d526684da3159f1387d26`；
+  同一 runner 连续两次重放得到相同字节/哈希，已有不同报告拒绝覆盖。
+- 结果：status agreement=`1.0`、Top-5 source-set Jaccard=`1.0`，但 exact order=`0.0`，
+  legacy/PG 均在 4 个 harmful/dynamic-authority case 返回 forbidden Top-5。该差异被保留为
+  `COMPARISON_COMPLETE_NOT_CANARY_AUTHORIZATION`，不冒充 fresh heldout/quality/latency Gate；M2-T05C
+  必须在 M2 Exit 后独立消费报告，不得因本节点切 PG。
+- 验证：frozen drift、deterministic report、immutable write、registry lifecycle `get`、canonical projection
+  `APPLIED`、generation `READY`、active pointer count `0`；全套 `675 passed in 19.11s`，ruff/diff
+  checks passed。A1/A2/B 三个 delivery artifact 已完成，M2-T05 标记 IMPLEMENTED；canary/GA
+  仍由 M2-T05C 与 release profile 阻断。
+
 ## 下一步
 
-1. 实施 M2-T05-B2：固定 query/corpus/filter/policy，运行 Knowledge PG pre-Exit dark shadow
-   并生成不可变比较报告；legacy 仍是唯一 publisher。
-2. T04/T04A live activation 仍受 M2 gate 与独立 review 约束。
-3. 保持 PG_FTS_ZH_V1 与 LEGACY_BM25_V1 独立评分，未过质量/延迟/删除/重建 Gate 前不切 active consumer。
+1. 实施 M2-T06A：保留并收紧 Multi-Agent TaskGraph，先冻结 TaskFormation/Execution/
+   Synthesis policy 及 typed dependency/outcome 合同。
+2. M2-T05C 受 M2 Exit + `POSTGRES_RETRIEVAL_GA` candidate manifest 阻断，当前不执行 canary。
+3. T04/T04A live activation 仍受 M2 gate 与独立 review 约束。

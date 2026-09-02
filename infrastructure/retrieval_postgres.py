@@ -198,6 +198,11 @@ class PostgresRetrievalGenerationRegistry:
             raise GenerationConflict("generation identity is immutable")
         return existing
 
+    def get(self, generation_id: str) -> RetrievalGeneration:
+        """Return the authoritative generation, including its current lifecycle state."""
+        with self.pool.transaction() as connection:
+            return self._get(connection, generation_id, for_update=False)
+
     def transition(
         self, generation_id: str, target: GenerationState,
     ) -> RetrievalGeneration:

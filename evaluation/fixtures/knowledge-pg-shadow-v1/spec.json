@@ -1,0 +1,48 @@
+{
+  "active_switch": false,
+  "corpus": {
+    "path": "../../../data/eval/knowledge-source-v0/sources.jsonl",
+    "sha256": "5951ea322cf717739356b50a2d13c3e44192456f0171ba8694096b6fe2f3fa19"
+  },
+  "filters": {
+    "locale": "zh-CN",
+    "product": null,
+    "scope": "public",
+    "tenant_id": "tenant-knowledge-shadow"
+  },
+  "frozen_at": "2026-09-02T12:00:00+00:00",
+  "legacy_generation": {
+    "backend_fingerprint": "legacy-bm25-v1-shadow-5951ea32",
+    "backend_id": "LEGACY_CHROMA_BM25_V1",
+    "generation_id": "m2-t05-shadow-v1-legacy-5951ea32"
+  },
+  "policy": {
+    "candidate_k": 20,
+    "context_max_tokens": 2600,
+    "dense_weight": 0.25,
+    "embedding_version": "ONNXMiniLM_L6_V2:all-MiniLM-L6-v2",
+    "final_k": 5,
+    "lexical_weight": 0.75,
+    "packer_version": "context-packer-v1",
+    "profile": "LEGACY_BM25_V1_COMPARISON",
+    "raw_query_weight": 0.25,
+    "reranker_version": "not-applied-candidate-shadow-v1",
+    "rrf_k": 10,
+    "standalone_query_weight": 0.75,
+    "transformer_version": "raw-fallback-v1"
+  },
+  "policy_fingerprint": "bfdd23f83d996512da8d3eb40aa6e399885a0a69c6764aa06d8c432d7f0830cb",
+  "postgres_generation": {
+    "backend_fingerprint": "postgres-pg-fts-zh-v1-shadow-5951ea32",
+    "backend_id": "POSTGRES_PG_FTS_ZH_V1",
+    "generation_id": "m2-t05-shadow-v1-postgres-5951ea32"
+  },
+  "publisher": "LEGACY_BM25_V1",
+  "queries": {
+    "path": "queries.jsonl",
+    "review_status": "dev_plus_author_created_heldout_candidate_not_release_gold",
+    "sha256": "7c4a258180d4c2fd7f938c98ac436398cd45f45a5000788c89e82a33d9cc3bc4"
+  },
+  "schema_version": "knowledge-pg-shadow-spec-v1",
+  "shadow_id": "m2-t05-knowledge-pg-pre-exit-v1"
+}

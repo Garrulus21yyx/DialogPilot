@@ -104,7 +104,8 @@ def test_generation_definition_is_immutable_and_pointer_activation_is_atomic(
             **first.__dict__, "embedding_dimension": 768,
         }))
     registry.transition(first.generation_id, GenerationState.BUILDING)
-    registry.transition(first.generation_id, GenerationState.READY)
+    ready = registry.transition(first.generation_id, GenerationState.READY)
+    assert registry.get(first.generation_id) == ready
     pointer = registry.activate(first.generation_id, expected_version=0)
     assert pointer.active_generation_id == first.generation_id
     assert pointer.version == 1
