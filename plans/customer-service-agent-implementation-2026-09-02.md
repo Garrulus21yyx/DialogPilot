@@ -25,7 +25,7 @@
 | 删除 Eval Graduation/Pareto 与 baseline promotion API | done | `/eval/run` 保留确定性 dev/heldout 报告 |
 | 收缩本地评测并清理展示文档中的旧路径 | done | README/架构/项目讲述/面试文档以当前代码为准 |
 | 本地 E2E、恢复验证、Demo 复现 | done | `4a0a0f4`；835 tests passed；两份机器报告 PASS |
-| OCR/VLM 分级调用 | pending | 当前代码无图片输入；作为下一实施节点，不提前宣称完成 |
+| OCR/VLM 分级调用 | done | `c0b7d96`、`ac8ee64`、`5ad83d6`、`b77a196`；L1/L2 两份真实 E2E PASS；887 tests passed |
 | Commitment/Handoff PostgreSQL 收敛 | pending | 先保留本地闭环，再删除对应 SQLite store |
 | 持久 OTel/Langfuse | pending | 当前只有 TraceId、进程内 span 与 Prometheus |
 
@@ -34,7 +34,7 @@
 - Router / Planner / TaskGraph / Worker / ReAct / ContextPolicy。
 - PostgreSQL checkpoint、幂等键、Tool receipt、ServiceEpisode、Profile、Commitment、Handoff。
 - Redis 当前会话窗口，作为 PostgreSQL 事件的可重建快速投影。
-- Knowledge / Business tools 与 Evidence / Coverage；OCR/VLM 是下一实现节点。
+- Knowledge / Business tools、Evidence / Coverage，以及 Agent-owned L0/L1/L2 媒体决策。
 - TraceId/Prometheus、本地崩溃恢复、确定性评测和 Demo；持久 OTel/Langfuse 待实现。
 
 ## 完成标准

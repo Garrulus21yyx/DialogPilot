@@ -140,6 +140,7 @@ Redis 投影失败不会改写 PostgreSQL 事实；后台 outbox 会重试。删
 - TraceRecorder 当前为进程内存，不是持久 OTel backend。
 - `/eval/run` 和离线脚本生成确定性报告；provisional 数据不包装为 Gold。
 - `scripts/run_local_e2e.py` 验证健康、Knowledge 后端和真实鉴权对话。
+- `scripts/run_local_vlm_e2e.py` 验证真实 DeepSeek Vision L2 与回答消费。
 - `scripts/rehearse_x_t01_restore.py` 验证空库 schema 的本地 dump/restore。
 
 ## 已删除的旧路径
@@ -150,9 +151,15 @@ Redis 投影失败不会改写 PostgreSQL 事实；后台 outbox 会重试。删
 - Canary、promotion、rollback pointer 与 `/evolution/rollouts/*`。
 - 生产签署、双盲仲裁、非劣门禁和空 corpus backfill。
 
+## 多模态单路径
+
+- `/assets/upload` 将图片/PDF 与认证用户、本轮 turn 绑定，安全扫描本身不调用模型。
+- Agent 是唯一 MediaRequirementDecision producer；无关附件停在 L0，字符读取进入 Tesseract L1，外观/位置/关系进入 DeepSeek Vision L2。
+- ParseResult 与 EvidenceNode 保存 asset checksum、page/bbox、producer/model/version；TaskGraph 显式声明 `media_observations` 后 Worker 才能读取。
+- 媒体文字和视觉观察始终标为不可信派生数据，不能冒充订单、资格、根因或指令。
+
 ## 尚未实现
 
-- OCR/VLM、附件存储、ParseResult 和视觉证据坐标。
 - 持久 OpenTelemetry Collector、Tempo/Jaeger 或 Langfuse。
 - Ticket/BadCase/ReAct metadata 的 PostgreSQL 最终收敛。
 - human-reviewed Gold 和未消费的 fresh heldout。

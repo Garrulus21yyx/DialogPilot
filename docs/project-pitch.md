@@ -14,12 +14,12 @@ DialogPilot 是一个可恢复的多 Agent 客服后端。我把原本容易混�
 
 可使用：
 
-> 设计并实现 FastAPI 多 Agent 客服后端，以 PostgreSQL 持久化请求准入、会话事件、Knowledge/ServiceEpisode 和回答发布，以 Redis 提供可重建当前会话投影；通过 TaskGraph、受控 ReAct、工具幂等 receipt、Evidence/Coverage 和 fail-closed Verifier 实现可恢复、可追溯的客服服务链，并用 Docker E2E、835 项测试与本地 dump/restore 报告验证。
+> 设计并实现 FastAPI 多 Agent 客服后端，以 PostgreSQL 持久化请求准入、会话事件、Knowledge/ServiceEpisode、附件和回答发布，以 Redis 提供可重建当前会话投影；通过 TaskGraph、受控 ReAct、工具幂等 receipt、Evidence/Coverage 和 fail-closed Verifier 实现可恢复、可追溯的客服服务链；实现 Agent 按需选择 Tesseract OCR 与 DeepSeek Vision 的 L0/L1/L2 多模态路径，并用 Docker E2E、887 项测试与本地 dump/restore 报告验证。
 
 不要使用：
 
 - “已支持生产 Shadow/Canary 和自动回滚”——相关模拟已删除。
-- “已完成 OCR/VLM 多模态客服”——当前没有图片输入链路。
+- “视觉观察可直接决定退款/故障根因”——VLM 只产带 provenance 的派生观察，业务事实仍由对应 Owner 决定。
 - “接入完整 OTel/Langfuse”——当前只有 TraceId、进程内 span 与 Prometheus。
 - “准确率达到生产标准”——项目数据仍含 provisional 标签，没有 human-reviewed Gold。
 - “所有数据都在 PostgreSQL”——Ticket、BadCase、ReAct/Bundle metadata 仍有本地 store。
@@ -69,15 +69,18 @@ docker compose up -d --build --remove-orphans
 curl http://localhost:18000/health
 PYTHONPATH=. .venv/bin/python scripts/run_local_e2e.py \
   --output evaluation/reports/local-e2e-v1.json
+VLM_ENABLED=true docker compose up -d --build dialogpilot nginx
+PYTHONPATH=. .venv/bin/python scripts/run_local_vlm_e2e.py \
+  --output evaluation/reports/local-vlm-e2e-v1.json
 ```
 
 展示报告时重点指出：
 
 - Knowledge engine 是 `postgresql+pgvector+pg_fts`。
 - 请求经过真实 JWT，而不是测试内直接调用函数。
-- E2E 问题被路由到 Billing，并通过 grounding 与 verification。
+- L1 E2E 识别截图 `E42` 且不调用 VLM；L2 E2E 调用 DeepSeek Vision 并由 Technical Worker 消费观察。
 - 报告不保存 JWT、API Key 或完整用户回答。
 
 ## 当前边界
 
-这是本地作品集系统，不声称有生产流量、生产 RPO/RTO 或组织级发布治理。后续最有价值的节点是 OCR/VLM 分级调用、Commitment/Handoff 的 PostgreSQL 收敛，以及持久 OTel/Langfuse；它们应以真实 E2E 和机器报告完成，而不是先增加状态机与签署文件。
+这是本地作品集系统，不声称有生产流量、生产 RPO/RTO 或组织级发布治理。后续最有价值的节点是 Commitment/Handoff 的 PostgreSQL 收敛，以及持久 OTel/Langfuse；它们应以真实 E2E 和机器报告完成，而不是先增加状态机与签署文件。

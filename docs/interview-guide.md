@@ -12,7 +12,7 @@ permalink: /interview-guide.html
 
 ### Q：用一分钟介绍项目。
 
-DialogPilot 是 FastAPI 多 Agent 客服后端。请求通过 JWT 后先持久化到 PostgreSQL，再由 Router/Planner 产生闭合 RouteDecision。`EXECUTE` 构建 TaskGraph，领域 Worker 在任务内执行有界 ReAct 和白名单工具；Evidence、Coverage 和 AnswerVerifier 决定回答能否发布。最终回答先写 PostgreSQL，再返回客户端并投影到 Redis 当前窗口。项目用 Docker Compose、835 项测试、真实鉴权 E2E 和本地恢复报告验证。
+DialogPilot 是 FastAPI 多 Agent 客服后端。请求通过 JWT 后先持久化到 PostgreSQL，再由 Router/Planner 产生闭合 RouteDecision。`EXECUTE` 构建 TaskGraph，领域 Worker 在任务内执行有界 ReAct 和白名单工具；附件由 Agent 按需选择 L0/L1/L2，Tesseract 与 DeepSeek Vision 只产可追溯派生观察。Evidence、Coverage 和 AnswerVerifier 决定回答能否发布。最终回答先写 PostgreSQL，再返回客户端并投影到 Redis 当前窗口。项目用 Docker Compose、887 项测试、L1/L2 真实鉴权 E2E 和本地恢复报告验证。
 
 ### Q：为什么不是一个大 Prompt？
 
@@ -104,7 +104,7 @@ Handoff 是客服闭环的一部分。它负责工单 identity、幂等、状态
 
 ### Q：怎样验证项目完整跑通？
 
-三层证据：835 项 pytest；Docker Compose health；`scripts/run_local_e2e.py` 通过真实 JWT 请求 `/health`、`/knowledge/stats` 和 `/chat`。最近报告中退款问题路由到 Billing，Knowledge 被使用，回答 grounded 且 verified。
+三层证据：887 项 pytest；Docker Compose health；L1/L2 脚本通过真实 JWT 请求附件与 `/chat`。L1 报告证明 OCR 足够时 VLM 调用为零；L2 报告证明 DeepSeek Vision producer/model/version、视觉 artifact 和回答消费均可追踪。
 
 ### Q：恢复报告证明什么？
 
@@ -118,7 +118,7 @@ Handoff 是客服闭环的一部分。它负责工单 identity、幂等、状态
 
 ### Q：项目还缺什么？
 
-当前没有 OCR/VLM 和附件事实链；没有持久 OTel Collector/Langfuse；Ticket、BadCase、ReAct/Bundle metadata 还未全部迁到 PostgreSQL；没有未消费的人工 Gold heldout。这些是后续工程节点，不应在简历中写成已完成。
+当前已有附件、Tesseract OCR 与可配置 DeepSeek Vision 单路径；仍没有持久 OTel Collector/Langfuse，Ticket、BadCase、ReAct/Bundle metadata 还未全部迁到 PostgreSQL，也没有未消费的人工 Gold heldout。这些限制不应包装成已完成。
 
 ### Q：为什么删除 Shadow/Canary？
 
@@ -126,4 +126,4 @@ Handoff 是客服闭环的一部分。它负责工单 identity、幂等、状态
 
 ### Q：下一步优先做什么？
 
-优先完成可展示的 OCR/VLM 分级调用：附件安全、L0 元数据、OCR 足够即停止、VLM 仅在视觉需求明确时调用、ParseResult/EvidenceNode 可追溯，并增加无关图片零 VLM 与真实图片 E2E。随后再做 Commitment/Handoff PostgreSQL 收敛和持久 OTel/Langfuse。
+优先做 Commitment/Handoff PostgreSQL 收敛，删除对应本地 SQLite 单点；随后接入持久 OTel/Langfuse。多模态节点已通过 L1 零 VLM 与真实 DeepSeek L2 两份 E2E，不再列为未来能力。
