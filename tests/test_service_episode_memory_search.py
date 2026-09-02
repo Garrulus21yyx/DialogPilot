@@ -106,6 +106,17 @@ def test_disabled_binding_prevents_any_backend_or_embedding_call():
     assert backend.requests == []
 
 
+def test_visually_blank_query_fails_before_binding_or_provider_access():
+    service = ServiceEpisodeMemorySearch.__new__(ServiceEpisodeMemorySearch)
+    for query in ("\u200b\ufeff", "\u00a0\u2003\u2028\u3000"):
+        result = service.search(
+            tenant_id="tenant-1", user_id="user-1", query=query,
+        )
+        assert (result.status, result.detail_code) == (
+            RetrievalStatus.INVALID_CONTRACT, "SEARCH_SCOPE_INCOMPLETE",
+        )
+
+
 def test_enabled_binding_builds_authenticated_scoped_request_and_trace():
     retrieval_policy = policy()
     backend = Backend()

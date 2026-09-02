@@ -4,8 +4,6 @@ import asyncio
 from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 
-import pytest
-
 from memory.conversation_memory import MemoryManager, Message, MsgRole
 from memory.hybrid_retrieval import (
     HybridMemoryRetriever,
@@ -72,24 +70,7 @@ def test_fact_identity_is_stable_for_the_same_source_operation():
     assert first != later
 
 
-def test_memory_manager_fuses_user_scoped_chroma_candidates():
-    """证明存储适配器同时读取向量池和用户内 BM25 语料并返回解释证据。"""
-    manager = MemoryManager.__new__(MemoryManager)
-    manager._episodic = SearchCollection()
-    manager._hybrid_retriever = HybridMemoryRetriever()
-
-    hits = asyncio.run(manager.search_long_term("user-1", "订单 A123", top_k=2))
-
-    assert hits[0].memory_id == "exact"
-    assert hits[0].content.startswith("订单 A123")
-    assert "bm25" in hits[0].sources
-    assert hits[0].message_id == "m-exact"
-    assert hits[0].event_seq == 8
-    assert hits[0].role == "user"
-    assert manager._episodic.where_values == [{"user_id": "user-1"}, {"user_id": "user-1"}]
-
-
-def test_current_thread_context_never_runs_cross_session_search(monkeypatch):
+def test_compatibility_context_is_current_thread_only(monkeypatch):
     manager = MemoryManager.__new__(MemoryManager)
 
     async def checkpoint(*_args):
@@ -104,113 +85,16 @@ def test_current_thread_context_never_runs_cross_session_search(monkeypatch):
     async def profile(*_args):
         return {"language": "zh-CN"}
 
-    async def forbidden(*_args, **_kwargs):
-        raise AssertionError("cross-session search is not part of current context")
-
     monkeypatch.setattr(manager, "_read_checkpoint", checkpoint)
     monkeypatch.setattr(manager, "_get_summary_chunks", chunks)
     monkeypatch.setattr(manager, "_get_working_memory", recent)
     monkeypatch.setattr(manager, "_get_profile", profile)
     monkeypatch.setattr(manager, "_build_summary_view", lambda *_args: "summary")
-    monkeypatch.setattr(manager, "search_long_term", forbidden)
-
-    context = asyncio.run(manager.get_current_context("user-1", "conversation-1"))
+    context = asyncio.run(manager.get_context(
+        "user-1", "conversation-1", query="must not prefetch",
+    ))
     assert [item.content for item in context.recent_messages] == ["当前会话"]
     assert context.summary == "summary"
     assert context.user_profile == {"language": "zh-CN"}
     assert context.relevant_history == []
     assert context.retrieval_hits == []
-
-
-def test_cross_conversation_search_excludes_current_conversation():
-    """立即归档后，当前会话片段不能挤占真正的跨会话召回结果。"""
-    manager = MemoryManager.__new__(MemoryManager)
-    manager._episodic = SearchCollection()
-    manager._hybrid_retriever = HybridMemoryRetriever()
-
-    hits = asyncio.run(manager.search_long_term(
-        "user-1",
-        "订单 A123",
-        top_k=2,
-        exclude_conversation_id="c1",
-    ))
-
-    assert [hit.memory_id for hit in hits] == ["exact"]
-    assert hits[0].conversation_id == "c2"
-
-
-def test_corrupt_optional_event_locator_does_not_drop_retrievable_content():
-    documents = MemoryManager._memory_documents({
-        "ids": ["memory-1"],
-        "documents": ["订单 A123 原始片段"],
-        "metadatas": [{"event_seq": "broken", "chunk_index": object()}],
-    }, nested=False)
-
-    assert len(documents) == 1
-    assert documents[0].content == "订单 A123 原始片段"
-    assert documents[0].event_seq == 0
-    assert documents[0].chunk_index == 0
-
-
-@pytest.mark.parametrize("query", ["\u200b\ufeff", "\u00a0\u2003\u2028\u3000"])
-def test_unicode_format_or_whitespace_only_query_returns_before_storage(query):
-    manager = MemoryManager.__new__(MemoryManager)
-    manager._episodic = SearchCollection()
-    manager._hybrid_retriever = HybridMemoryRetriever()
-
-    hits = asyncio.run(manager.search_long_term("user-1", query, top_k=2))
-
-    assert hits == []
-    assert manager._episodic.where_values == []
-
-
-def test_vector_failure_preserves_bm25_recall():
-    """证明向量服务故障不会连带抹掉仍可用的关键词召回。"""
-    manager = MemoryManager.__new__(MemoryManager)
-    manager._episodic = LexicalOnlyCollection()
-    manager._hybrid_retriever = HybridMemoryRetriever()
-
-    hits = asyncio.run(manager.search_long_term("user-1", "E401", top_k=1))
-
-    assert [hit.memory_id for hit in hits] == ["exact"]
-    assert hits[0].sources == ("bm25", "recency")
-
-
-class SearchCollection:
-    def __init__(self):
-        self.where_values = []
-
-    def query(self, **kwargs):
-        self.where_values.append(kwargs["where"])
-        return {
-            "ids": [["general", "exact"]],
-            "documents": [["订单配送咨询", "订单 A123 曾重复扣款"]],
-            "metadatas": [[
-                {"conv_id": "c1", "ts": "2026-08-29T10:00:00+00:00", "message_id": "m-general", "event_seq": 2, "role": "assistant"},
-                {"conv_id": "c2", "ts": "2026-08-20T10:00:00+00:00", "message_id": "m-exact", "event_seq": 8, "role": "user"},
-            ]],
-            "distances": [[0.1, 0.2]],
-        }
-
-    def get(self, **kwargs):
-        self.where_values.append(kwargs["where"])
-        return {
-            "ids": ["general", "exact"],
-            "documents": ["订单配送咨询", "订单 A123 曾重复扣款"],
-            "metadatas": [
-                {"conv_id": "c1", "ts": "2026-08-29T10:00:00+00:00", "message_id": "m-general", "event_seq": 2, "role": "assistant"},
-                {"conv_id": "c2", "ts": "2026-08-20T10:00:00+00:00", "message_id": "m-exact", "event_seq": 8, "role": "user"},
-            ],
-        }
-
-
-class LexicalOnlyCollection:
-    def query(self, **_kwargs):
-        raise RuntimeError("embedding unavailable")
-
-    def get(self, **_kwargs):
-        return {
-            "ids": ["exact", "noise"],
-            "documents": ["登录失败错误码 E401", "会员积分说明"],
-            "metadatas": [{"ts": "2026-08-01T00:00:00+00:00"}, {}],
-        }

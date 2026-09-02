@@ -63,7 +63,7 @@ class Memory:
     def __init__(self, *, failures=()):
         self.failures = list(failures)
 
-    async def get_context(self, *_args, diagnostics=None, **_kwargs):
+    async def get_current_context(self, *_args, diagnostics=None, **_kwargs):
         if diagnostics is not None:
             diagnostics["failures"] = list(self.failures)
         return MemoryContext([], [], {}, "", [])
@@ -101,7 +101,7 @@ def test_projection_lag_returns_raw_source_fallback_and_omitted_ranges(
     assert {item.projection for item in result.omitted_ranges} == {
         "working_window", "thread_summary", "fact_extraction",
     }
-    assert result.retrieval_outcome is MemoryRetrievalOutcome.NO_MATCH
+    assert result.retrieval_outcome is MemoryRetrievalOutcome.NOT_NEEDED
     current_excluded = asyncio.run(PostgresMemoryProjectionReader(
         pool, Memory(),
     ).get_projection_result(
@@ -111,22 +111,20 @@ def test_projection_lag_returns_raw_source_fallback_and_omitted_ranges(
     assert current_excluded.context.recent_messages == []
 
 
-def test_retrieval_backend_failure_is_degraded_not_no_match(
+def test_current_thread_backend_failure_is_degraded_without_cross_session_retrieval(
     memory_projection_scope,
 ):
     pool, identity = memory_projection_scope
     result = asyncio.run(PostgresMemoryProjectionReader(pool, Memory(failures=(
-        "EPISODIC_VECTOR_UNAVAILABLE", "EPISODIC_LEXICAL_UNAVAILABLE",
+        "CURRENT_THREAD_REDIS_UNAVAILABLE",
     ))).get_projection_result(
         str(identity.tenant_id), str(identity.user_id), str(identity.conversation_id),
         query="prior", current_request_id="different-request",
     ))
     assert result.state is MemoryProjectionState.DEGRADED
-    assert result.retrieval_outcome is MemoryRetrievalOutcome.UNAVAILABLE
+    assert result.retrieval_outcome is MemoryRetrievalOutcome.NOT_NEEDED
     assert result.raw_fallback_used is True
-    assert result.reason_codes == (
-        "EPISODIC_VECTOR_UNAVAILABLE", "EPISODIC_LEXICAL_UNAVAILABLE",
-    )
+    assert result.reason_codes == ("CURRENT_THREAD_REDIS_UNAVAILABLE",)
 
 
 def test_production_projection_loads_fixed_thread_without_episode_pre_retrieval(

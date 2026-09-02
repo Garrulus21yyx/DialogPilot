@@ -220,7 +220,7 @@ class _EvalCollection:
 def _memory_manager(redis: _EvalRedis, collection: _EvalCollection) -> MemoryManager:
     manager = MemoryManager.__new__(MemoryManager)
     manager._redis = redis
-    manager._episodic = collection
+    manager._profile = collection
     manager._facts = collection
     manager._token_estimator = TokenEstimator()
     manager._summary_max_tokens = 128
@@ -233,7 +233,6 @@ def _memory_manager(redis: _EvalRedis, collection: _EvalCollection) -> MemoryMan
     manager._client = SimpleNamespace(messages=_FailingMessages())
     manager._model_profile = ModelProfile("fixture-model")
     manager._profile_locks = defaultdict(asyncio.Lock)
-    manager._hybrid_retriever = HybridMemoryRetriever()
     return manager
 
 
@@ -483,8 +482,10 @@ async def _memory_empty_recall(case: FixtureRequest) -> FixtureEvidence:
         query = "" if _variant(case) == 1 else "   \n\t"
     else:
         query = f"missing-evidence-{_variant(case)}"
-    hits = await manager.search_long_term("user-a", query, top_k=5)
-    storage_calls = len(collection.query_calls) + len(collection.get_calls)
+    context = await manager.get_context("user-a", "current", query=query)
+    hits = context.retrieval_hits
+    fact_storage_calls = len(collection.query_calls) + len(collection.get_calls)
+    storage_calls = 0
     return FixtureEvidence({
         "result_empty": hits == [],
         "no_storage_query": storage_calls == 0,
@@ -492,7 +493,8 @@ async def _memory_empty_recall(case: FixtureRequest) -> FixtureEvidence:
     }, {
         "ranked_ids": [hit.memory_id for hit in hits],
         "storage_calls": storage_calls,
-        "owner_path": "MemoryManager.search_long_term",
+        "fact_storage_calls": fact_storage_calls,
+        "owner_path": "MemoryManager.get_context(current-thread only)",
     })
 
 

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from typing import Callable
+import unicodedata
 
 from application.hybrid_retrieval import (
     EpisodeSearchScope,
@@ -42,7 +43,8 @@ class ServiceEpisodeMemorySearch:
         entity_ids: tuple[str, ...] = (),
         top_k: int = 5,
     ) -> ServiceEpisodeRetrievalResult:
-        if not tenant_id.strip() or not user_id.strip() or not query.strip():
+        query_text = self._normalize_query(query)
+        if not tenant_id.strip() or not user_id.strip() or not query_text:
             return _invalid("SEARCH_SCOPE_INCOMPLETE")
         binding = self._bindings.get(tenant_id)
         if binding is None or not binding.enabled:
@@ -64,7 +66,7 @@ class ServiceEpisodeMemorySearch:
         ):
             return _conflict("GENERATION_BINDING_DRIFT")
         try:
-            embedding = self._embed_query(query, generation)
+            embedding = self._embed_query(query_text, generation)
         except ValueError:
             return _invalid("QUERY_EMBEDDING_CONTRACT")
         except Exception:
@@ -75,12 +77,19 @@ class ServiceEpisodeMemorySearch:
             backend_fingerprint=generation.backend_fingerprint,
             generation_id=generation.generation_id,
             policy_fingerprint=target.policy_fingerprint,
-            query_text=query,
+            query_text=query_text,
             query_embedding=embedding,
             scope=EpisodeSearchScope(user_id, entity_ids),
             lexical_limit=self._retriever.policy.fusion.lexical_pool,
         )
         return self._retriever.retrieve(request, top_k=top_k)
+
+    @staticmethod
+    def _normalize_query(query: str) -> str:
+        return "".join(
+            character for character in str(query)
+            if unicodedata.category(character) != "Cf"
+        ).strip()
 
 
 def _invalid(detail: str) -> ServiceEpisodeRetrievalResult:

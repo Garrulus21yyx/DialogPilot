@@ -22,7 +22,6 @@
     "fence": "conversation deletion_epoch before and after every external effect",
     "surfaces": [
       "Redis raw/sequence/summary/chunks/fact checkpoint/job/markers",
-      "Chroma episodic rows scoped by user and conversation",
       "Chroma facts scoped by source conversation",
       "legacy unprovenanced profile fallback for the user"
     ],

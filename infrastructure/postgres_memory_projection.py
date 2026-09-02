@@ -47,21 +47,15 @@ class PostgresMemoryProjectionReader:
         diagnostics: dict = {}
         current_context_reader = getattr(self.memory, "get_current_context", None)
         try:
-            if current_context_reader is not None:
-                context = await current_context_reader(
-                    user_id, conv_id, diagnostics=diagnostics,
-                )
-                cross_session_requested = False
-            else:
-                context = await self.memory.get_context(
-                    user_id, conv_id, query=query, diagnostics=diagnostics,
-                )
-                cross_session_requested = True
+            if current_context_reader is None:
+                raise TypeError("current-thread memory reader is required")
+            context = await current_context_reader(
+                user_id, conv_id, diagnostics=diagnostics,
+            )
             memory_available = True
         except Exception as exc:
             context = empty
             memory_available = False
-            cross_session_requested = current_context_reader is None
             diagnostics["failures"] = [f"MEMORY_READ_{type(exc).__name__}"]
 
         conflicts = tuple(
@@ -77,10 +71,7 @@ class PostgresMemoryProjectionReader:
             for name, value in watermarks.items() if min(value, source) > 0
         )
         failures = tuple(dict.fromkeys(diagnostics.get("failures") or ()))
-        retrieval_outcome = self._retrieval_outcome(
-            query, context, failures, conflicts,
-            cross_session_requested=cross_session_requested,
-        )
+        retrieval_outcome = self._retrieval_outcome(conflicts)
 
         raw_fallback = False
         if omitted or not memory_available:
@@ -172,21 +163,7 @@ class PostgresMemoryProjectionReader:
         ) for role, content, created_at, metadata, turn_id, seq in reversed(rows)]
 
     @staticmethod
-    def _retrieval_outcome(
-        query, context, failures, conflicts, *, cross_session_requested=True,
-    ):
+    def _retrieval_outcome(conflicts):
         if conflicts:
             return MemoryRetrievalOutcome.CONFLICT
-        if not cross_session_requested:
-            return MemoryRetrievalOutcome.NOT_NEEDED
-        retrieval_failures = [
-            item for item in failures if "EPISODIC" in item or "MEMORY_READ" in item
-        ]
-        if retrieval_failures:
-            return MemoryRetrievalOutcome.UNAVAILABLE
-        if not str(query or "").strip():
-            return MemoryRetrievalOutcome.NOT_NEEDED
-        return (
-            MemoryRetrievalOutcome.HITS
-            if context.retrieval_hits else MemoryRetrievalOutcome.NO_MATCH
-        )
+        return MemoryRetrievalOutcome.NOT_NEEDED

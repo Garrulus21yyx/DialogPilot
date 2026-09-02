@@ -112,11 +112,11 @@ def _case(case_id: str):
     "case_id",
     ["stateful-memory-empty-query-1", "stateful-memory-empty-query-2"],
 )
-def test_empty_query_fixture_cannot_bypass_search_owner(monkeypatch, case_id):
+def test_empty_query_fixture_cannot_bypass_current_context_owner(monkeypatch, case_id):
     async def fail_owner(*_args, **_kwargs):
         raise RuntimeError("search owner bypass mutation")
 
-    monkeypatch.setattr(MemoryManager, "search_long_term", fail_owner)
+    monkeypatch.setattr(MemoryManager, "get_context", fail_owner)
     with pytest.raises(StatefulExecutionError, match="search owner bypass mutation"):
         asyncio.run(execute_case(_case(case_id)))
 
@@ -166,5 +166,5 @@ def test_empty_query_and_empty_corpus_record_real_storage_behavior():
 
     assert empty_query["evidence"]["storage_calls"] == 0
     assert empty_query["actual"]["assertions"]["no_storage_query"] is True
-    assert empty_corpus["evidence"]["storage_calls"] == 2
+    assert empty_corpus["evidence"]["storage_calls"] == 0
     assert empty_corpus["actual"]["assertions"]["result_empty"] is True

@@ -68,15 +68,15 @@ estimated_tokens
 
 ### 3.2 MemoryManager
 
-[MemoryManager](../memory/conversation_memory.py) 拥有短会话归档生命周期。显式 finalize 固定调用开始时的 seq high-water，以稳定 message/chunk ID upsert 原始事件，再通过 WATCH/MULTI 追加范围摘要并推进 checkpoint；原始事件不清理。其间出现更大 seq 时返回 `finalized=false, reason=concurrent_write`，下一次只处理新增范围。
+[MemoryManager](../memory/conversation_memory.py) 拥有短会话摘要生命周期。显式 finalize 固定调用开始时的 seq high-water，通过 WATCH/MULTI 追加范围摘要并推进 checkpoint；原始事件不清理。其间出现更大 seq 时返回 `finalized=false, reason=concurrent_write`，下一次只处理新增范围。
 
 摘要路径由 `_summarize -> _fallback_summary -> _bounded_summary` 拥有。模型异常或 JSON 解析失败会进入确定性 fallback。
 
-`search_long_term` 对 Python `strip()` 后为空的 query 在访问存储前返回；对非空 query 会并行访问向量候选与 lexical corpus，并在两个存储调用中带同一 `where={user_id: ...}`。API 层的 [Principal.subject 与 _subject_for_request](/home/yang/DialogPilot/api/main.py:464) 才是请求身份 Owner，请求体不能伪造另一 user，实测返回 403。
+后续 direct-cutover 已删除本节审查时存在的 `MemoryManager.search_long_term` 和 raw Chroma reader。跨会话检索现在只经 `ServiceEpisodeMemorySearch`，tenant/user 来自可信调用身份；当前 thread `get_context` 不做预检索。API 层的 [Principal.subject 与 _subject_for_request](/home/yang/DialogPilot/api/main.py:464) 仍是请求身份 Owner，请求体不能伪造另一 user。
 
-边界反例是只含 U+200B/U+FEFF 的视觉空白 query：Python `strip()` 不移除这些 format characters，因此发生 2 次存储访问。是否把这些字符定义为空白需要一个明确、有限的 Unicode 合同，而不能依赖偶然的语言库行为。
+只含 U+200B/U+FEFF 的视觉空白 query 现在由 ServiceEpisode query boundary 显式移除 Unicode `Cf` 后判空，并在 binding/provider/backend 前返回 `SEARCH_SCOPE_INCOMPLETE`。
 
-“explicit close” 实测直接调用 `finalize_conversation`，archive reason 为 `conversation_finalize`，没有时钟或 idle-timeout 输入，不能包装为真实空闲检测。
+“explicit close” 实测直接调用 `finalize_conversation`，没有时钟或 idle-timeout 输入，不能包装为真实空闲检测。
 
 ### 3.3 Stateful case → fixture → Owner → evidence → scorer
 
@@ -99,7 +99,7 @@ Dataset EvalCase（包含 input + expected）
 
 正面证据是：对以下五个 Owner 替换为抛错后，相应用例确实失败，5/5 mutation 通过：
 
-- `MemoryManager.search_long_term`
+- `MemoryManager.get_context` / `ServiceEpisodeMemorySearch.search`
 - `MemoryManager._fallback_summary`
 - `MemoryManager.finalize_conversation`
 - `ContextAssembler.assemble`

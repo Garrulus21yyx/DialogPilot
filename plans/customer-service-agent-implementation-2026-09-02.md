@@ -1234,6 +1234,14 @@
   shadow reader。[build evidence](../governance/evidence/m4-t04b/raw-episodic-writer-retirement-build.md)。legacy 离线 reader/config
   收口与 binding activation 仍是后续节点。
 
+### M4-T04B10（legacy reader/backfill retirement）
+
+- `MemoryManager` 不再创建、查询或删除 raw Chroma episodic collection；`get_context` 只读取当前 thread，跨会话召回只经
+  `service_episode_search`。
+- 删除空 corpus backfill/inventory 执行代码与对应测试，不保留无旧数据迁移协调器；历史 count=`0` 报告只作为事实记录。
+- PostgreSQL projection reader 强制 current-thread reader，不再退回 legacy cross-session prefetch；ServiceEpisode boundary 在
+  binding/provider/backend 前拒绝 Unicode 视觉空白 query。聚焦 `79 passed`，全仓 `975 passed in 101.71s`。
+
 ### M6-T01（Dataset v2 / Rubric v2）
 
 - 新增独立 service-chain v2，不改变 v1 数据身份；闭合 perception→service_outcome 11 层 observation，case

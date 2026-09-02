@@ -15,7 +15,6 @@ import hashlib
 import asyncio
 import json
 import logging
-import unicodedata
 import uuid
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -32,7 +31,7 @@ from core.chroma_client import create_chroma_client
 from core.llm_metrics import create_message
 from core.model_policy import ModelProfile, ModelRole
 from memory.context import ContextSection, TokenEstimator
-from memory.hybrid_retrieval import HybridMemoryRetriever, MemoryDocument, MemoryHit
+from memory.hybrid_retrieval import MemoryHit
 
 logger = logging.getLogger(__name__)
 
@@ -229,25 +228,17 @@ class MemoryManager:
     """
     分层记忆管理器。
 
-    Redis 保存带 seq 的追加事件流、范围摘要块和 checkpoint；ChromaDB 保存
-    可重建的 episodic 检索索引与带来源的版本化事实。
+    Redis 保存带 seq 的追加事件流、范围摘要块和 checkpoint；ChromaDB 只保存
+    带来源的版本化用户事实。跨会话检索由 ServiceEpisode Owner 提供。
     """
 
     WORKING_MAX   = 200   # 防御性读取上限；正常情况下由 token 预算控制
     RECENT_KEEP   = 5     # 压缩后最多保留的最近原始消息
     MIN_RECENT_KEEP = 2   # 至少保护最后一个 user/assistant 轮次
-    HISTORY_TOP_K = 5     # 情景记忆检索返回条数
-    HISTORY_VECTOR_POOL = 20
-    HISTORY_LEXICAL_SCAN = 200
-    HISTORY_EXPAND_HITS = 2
-    HISTORY_NEIGHBOR_RADIUS = 2
-    HISTORY_EXPANSION_MAX_TOKENS = 1200
     FACT_JOB_QUEUE_KEY = "memory:fact_jobs:v1"
     FACT_JOB_LOCK_SECONDS = 300
     FACT_JOB_RETRY_SECONDS = 30
     FACT_EXTRACTION_MAX_MESSAGES = 20
-    EPISODIC_CHUNK_CHARS = 1200
-    EPISODIC_CHUNK_OVERLAP = 120
     SUMMARY_CHUNK_MAX_TOKENS = 3000
     SUPPORTED_FACTS = {
         "preferred_language": "scalar",
@@ -277,7 +268,7 @@ class MemoryManager:
         fact_worker_poll_seconds: float = 5.0,
         model_profile: Optional[ModelProfile] = None,
     ):
-        """初始化模型、Token 压缩策略、Redis 及两类 Chroma collection。"""
+        """初始化模型、Token 压缩策略、Redis 及事实类 Chroma collection。"""
         kwargs: Dict[str, Any] = {"api_key": api_key}
         if base_url:
             kwargs["base_url"] = base_url
@@ -291,7 +282,6 @@ class MemoryManager:
         self._fact_batch_turns = max(1, int(fact_batch_turns))
         self._fact_worker_poll_seconds = max(0.1, float(fact_worker_poll_seconds))
         self._token_estimator = TokenEstimator()
-        self._hybrid_retriever = HybridMemoryRetriever()
         self._compression_stats = {
             "attempted": 0,
             "completed": 0,
@@ -317,8 +307,6 @@ class MemoryManager:
         )
         logger.info("记忆 ChromaDB 模式: %s (%s)", self._chroma_backend.mode, self._chroma_backend.location)
 
-        # 情景记忆：存储历史对话片段
-        self._episodic = chroma.get_or_create_collection("episodic")
         # 用户画像：存储提炼出的偏好和实体
         self._profile  = chroma.get_or_create_collection("user_profile")
         # 版本化事实：每条事实独立保存来源和 active/superseded/retracted 状态。
@@ -502,11 +490,6 @@ class MemoryManager:
         if keys:
             await self._redis.delete(*keys)
         await self._redis.zrem(self.FACT_JOB_QUEUE_KEY, self._fact_job_member(user_id, conv_id))
-        where = {"$and": [
-            {"user_id": {"$eq": user_id}},
-            {"conv_id": {"$eq": conv_id}},
-        ]}
-        await asyncio.to_thread(self._episodic.delete, where=where)
         await asyncio.to_thread(self._facts.delete, where={"$and": [
             {"user_id": {"$eq": user_id}},
             {"source_conversation_id": {"$eq": conv_id}},
@@ -826,38 +809,14 @@ class MemoryManager:
         *,
         diagnostics: Optional[Dict[str, Any]] = None,
     ) -> MemoryContext:
-        """
-        构建完整的记忆上下文。
+        """Compatibility read for current-thread state only.
 
-        query 用于从情景记忆中检索语义相关的历史片段。
+        Cross-session retrieval is exclusively available through the authenticated
+        ServiceEpisode tool and is never prefetched into the prompt.
         """
-        user_id = self._safe_text(user_id)
-        conv_id = self._safe_text(conv_id)
-        query = self._safe_text(query)
-
-        current = await self.get_current_context(
+        del query
+        return await self.get_current_context(
             user_id, conv_id, diagnostics=diagnostics,
-        )
-
-        # 2. 情景记忆（跨会话混合检索）；摘要不再是唯一事实源。
-        retrieval_query = query or (
-            current.recent_messages[-1].content if current.recent_messages else ""
-        )
-        retrieval_hits = await self.search_long_term(
-            user_id,
-            retrieval_query,
-            top_k=self.HISTORY_TOP_K,
-            exclude_conversation_id=conv_id,
-            diagnostics=diagnostics,
-        )
-        history = await self._expand_retrieval_hits(user_id, retrieval_hits)
-
-        return MemoryContext(
-            recent_messages=current.recent_messages,
-            relevant_history=history,
-            user_profile=current.user_profile,
-            summary=current.summary,
-            retrieval_hits=retrieval_hits,
         )
 
     async def get_current_context(
@@ -1299,179 +1258,6 @@ class MemoryManager:
         """返回压缩尝试、成功、冲突与 Token 变化的统计副本。"""
         return dict(self._compression_stats)
 
-    async def search_long_term(
-        self,
-        user_id: str,
-        query: str,
-        *,
-        top_k: int = HISTORY_TOP_K,
-        exclude_conversation_id: str = "",
-        diagnostics: Optional[Dict[str, Any]] = None,
-    ) -> List[MemoryHit]:
-        """按用户过滤后融合向量、BM25 和时间排名检索原始情景记忆。"""
-        query_text = self._normalize_retrieval_query(query)
-        if not query_text:
-            return []
-        try:
-            safe_user_id = self._safe_text(user_id)
-            vector_result, corpus_result = await asyncio.gather(
-                asyncio.to_thread(
-                    self._episodic.query,
-                    query_texts=[query_text],
-                    n_results=max(top_k, self.HISTORY_VECTOR_POOL),
-                    where={"user_id": safe_user_id},
-                    include=["documents", "metadatas", "distances"],
-                ),
-                asyncio.to_thread(
-                    self._episodic.get,
-                    where={"user_id": safe_user_id},
-                    limit=self.HISTORY_LEXICAL_SCAN,
-                    include=["documents", "metadatas"],
-                ),
-                return_exceptions=True,
-            )
-            if isinstance(vector_result, Exception):
-                logger.warning("长期记忆向量召回降级: %s", vector_result)
-                if diagnostics is not None:
-                    diagnostics.setdefault("failures", []).append(
-                        "EPISODIC_VECTOR_UNAVAILABLE"
-                    )
-                vector_result = {}
-            if isinstance(corpus_result, Exception):
-                logger.warning("长期记忆 BM25 语料读取降级: %s", corpus_result)
-                if diagnostics is not None:
-                    diagnostics.setdefault("failures", []).append(
-                        "EPISODIC_LEXICAL_UNAVAILABLE"
-                    )
-                corpus_result = {}
-            vector_documents = self._memory_documents(vector_result, nested=True)
-            corpus_documents = self._memory_documents(corpus_result, nested=False)
-            excluded = self._safe_text(exclude_conversation_id).strip()
-            if excluded:
-                vector_documents = [
-                    document for document in vector_documents
-                    if document.conversation_id != excluded
-                ]
-                corpus_documents = [
-                    document for document in corpus_documents
-                    if document.conversation_id != excluded
-                ]
-            return self._hybrid_retriever.rank(
-                query_text,
-                vector_documents=vector_documents,
-                corpus_documents=corpus_documents,
-                top_k=top_k,
-            )
-        except Exception as ex:
-            logger.warning(f"混合情景记忆检索失败: {ex}")
-            if diagnostics is not None:
-                diagnostics.setdefault("failures", []).append(
-                    "EPISODIC_RETRIEVAL_UNAVAILABLE"
-                )
-            return []
-
-    @classmethod
-    def _normalize_retrieval_query(cls, query: Any) -> str:
-        """在存储边界前移除不可见格式控制并归一化首尾空白。"""
-        text = cls._safe_text(query)
-        return "".join(
-            character
-            for character in text
-            if unicodedata.category(character) != "Cf"
-        ).strip()
-
-    async def _search_episodic(self, user_id: str, query: str) -> List[str]:
-        """兼容旧调用方：只投影混合检索命中的原始文本。"""
-        return [hit.content for hit in await self.search_long_term(user_id, query)]
-
-    async def _expand_retrieval_hits(
-        self,
-        user_id: str,
-        hits: Sequence[MemoryHit],
-    ) -> List[str]:
-        """把最相关旧会话命中展开成有界事件窗口，其余命中保留原始片段。"""
-        expanded: List[str] = []
-        expanded_conversations: set[str] = set()
-        per_window_budget = max(
-            128,
-            self.HISTORY_EXPANSION_MAX_TOKENS // max(1, self.HISTORY_EXPAND_HITS),
-        )
-
-        for hit in hits:
-            conversation_id = self._safe_text(hit.conversation_id).strip()
-            if (
-                len(expanded_conversations) >= self.HISTORY_EXPAND_HITS
-                or not conversation_id
-                or hit.event_seq <= 0
-                or conversation_id in expanded_conversations
-            ):
-                continue
-            try:
-                events = await self._get_event_log(user_id, conversation_id)
-            except Exception as exc:
-                logger.warning("长期记忆邻居展开失败，保留命中原文: %s", exc)
-                continue
-            window = [
-                message for message in events
-                if abs(message.seq - hit.event_seq) <= self.HISTORY_NEIGHBOR_RADIUS
-            ]
-            if not window:
-                continue
-            expanded.append(self._render_retrieval_window(
-                hit,
-                window,
-                max_tokens=per_window_budget,
-            ))
-            expanded_conversations.add(conversation_id)
-
-        # ContextSection 最终只投递前三项；保留未展开会话的原始命中作为降级证据。
-        for hit in hits:
-            if hit.conversation_id and hit.conversation_id in expanded_conversations:
-                continue
-            content = self._token_estimator.truncate(hit.content, per_window_budget)
-            if content:
-                expanded.append(content)
-        return expanded
-
-    def _render_retrieval_window(
-        self,
-        hit: MemoryHit,
-        messages: Sequence[Message],
-        *,
-        max_tokens: int,
-    ) -> str:
-        """按距离裁剪邻居窗口，并保留来源会话与命中 seq。"""
-        selected = sorted(messages, key=lambda message: message.seq)
-
-        def render(items: Sequence[Message]) -> str:
-            return json.dumps({
-                "conversation_id": hit.conversation_id,
-                "source_event_seq": hit.event_seq,
-                "messages": [
-                    {
-                        "seq": message.seq,
-                        "role": message.role.value,
-                        "content": message.content,
-                    }
-                    for message in items
-                ],
-            }, ensure_ascii=False, sort_keys=True)
-
-        rendered = render(selected)
-        while len(selected) > 1 and self._token_estimator.estimate(rendered) > max_tokens:
-            farthest_index = max(
-                range(len(selected)),
-                key=lambda index: (
-                    abs(selected[index].seq - hit.event_seq),
-                    selected[index].seq,
-                ),
-            )
-            selected.pop(farthest_index)
-            rendered = render(selected)
-        if self._token_estimator.estimate(rendered) <= max_tokens:
-            return rendered
-        return self._token_estimator.truncate(hit.content, max_tokens)
-
     async def finalize_conversation(self, user_id: str, conv_id: str) -> Dict[str, Any]:
         """固定 high-water 形成摘要，并立即尝试刷新同范围的 L1 事实。"""
         messages = await self._get_event_log(user_id, conv_id)
@@ -1811,61 +1597,6 @@ class MemoryManager:
     @staticmethod
     def _profile_id(user_id: str) -> str:
         return f"profile_{hashlib.sha256(user_id.encode('utf-8')).hexdigest()}"
-
-    @classmethod
-    def _chunk_episodic_text(cls, text: str) -> List[str]:
-        """把原始历史切成有界重叠片段，避免一个摘要对应不可检索的大块文本。"""
-        clean = cls._safe_text(text).strip()
-        if not clean:
-            return []
-        size = cls.EPISODIC_CHUNK_CHARS
-        overlap = min(cls.EPISODIC_CHUNK_OVERLAP, size // 3)
-        chunks: List[str] = []
-        start = 0
-        while start < len(clean):
-            end = min(len(clean), start + size)
-            chunks.append(clean[start:end])
-            if end == len(clean):
-                break
-            start = end - overlap
-        return chunks
-
-    @classmethod
-    def _memory_documents(cls, result: Any, *, nested: bool) -> List[MemoryDocument]:
-        """把 Chroma query/get 的两种返回形状归一为同一内部合同。"""
-        if not isinstance(result, dict):
-            return []
-        ids = result.get("ids") or []
-        documents = result.get("documents") or []
-        metadatas = result.get("metadatas") or []
-        if nested:
-            ids = ids[0] if ids and isinstance(ids[0], list) else ids
-            documents = documents[0] if documents and isinstance(documents[0], list) else documents
-            metadatas = metadatas[0] if metadatas and isinstance(metadatas[0], list) else metadatas
-        normalized: List[MemoryDocument] = []
-        for index, memory_id in enumerate(ids):
-            content = documents[index] if index < len(documents) else ""
-            metadata = metadatas[index] if index < len(metadatas) else {}
-            metadata = metadata if isinstance(metadata, dict) else {}
-            # v1 曾把摘要存为 document、原文截断存为 full_text；读取时优先恢复
-            # 可用的原始片段，逐步兼容迁移到 v2 原文 document。
-            if metadata.get("memory_version") != 2 and metadata.get("full_text"):
-                content = metadata["full_text"]
-            content = cls._safe_text(content).strip()
-            if not content:
-                continue
-            normalized.append(MemoryDocument(
-                memory_id=cls._safe_text(memory_id),
-                content=content,
-                timestamp=cls._safe_text(metadata.get("ts", "")),
-                conversation_id=cls._safe_text(metadata.get("conv_id", "")),
-                summary=cls._safe_text(metadata.get("summary", "")),
-                message_id=cls._safe_text(metadata.get("message_id", "")),
-                event_seq=cls._safe_metadata_int(metadata.get("event_seq", 0)),
-                role=cls._safe_text(metadata.get("role", "")),
-                chunk_index=cls._safe_metadata_int(metadata.get("chunk_index", 0)),
-            ))
-        return normalized
 
     @staticmethod
     def _safe_metadata_int(value: Any) -> int:

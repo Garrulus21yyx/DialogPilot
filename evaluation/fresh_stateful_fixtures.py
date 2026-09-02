@@ -11,6 +11,7 @@ from types import SimpleNamespace
 from typing import Any, Mapping
 
 from agents.orchestration_contracts import AgentType, TaskPlan, TaskRisk, TaskSpec
+from application.service_episode_memory_search import ServiceEpisodeMemorySearch
 from core.auth import Principal
 from core.model_policy import ModelProfile
 from mcp.knowledge_base import KnowledgeBase
@@ -132,14 +133,24 @@ def register_fresh_fixtures(
         }, {"history": list(prompt.history), "estimated_tokens": prompt.estimated_tokens})
 
     async def empty_memory(request, *, format_only: bool):
-        data = inputs(request); collection = _EvalCollection(); manager = _memory_manager(_EvalRedis([]), collection)
-        query = str(data["query"]); hits = await manager.search_long_term(str(data["user_id"]), query, top_k=int(data["top_k"]))
-        calls = len(collection.query_calls) + len(collection.get_calls)
-        assertions = {"result_empty": hits == [], "no_storage_access": calls == 0}
-        assertions["format_only_query_is_empty" if format_only else "unicode_whitespace_normalized"] = (
-            manager._normalize_retrieval_query(query) == ""
+        data = inputs(request); collection = _EvalCollection()
+        query = str(data["query"])
+        service = ServiceEpisodeMemorySearch.__new__(ServiceEpisodeMemorySearch)
+        result = service.search(
+            tenant_id="tenant-fixture", user_id=str(data["user_id"]),
+            query=query, top_k=int(data["top_k"]),
         )
-        return FixtureEvidence(assertions, {"storage_calls": calls, "normalized": manager._normalize_retrieval_query(query)})
+        calls = len(collection.query_calls) + len(collection.get_calls)
+        assertions = {
+            "result_empty": not result.hits,
+            "no_storage_access": calls == 0,
+        }
+        assertions["format_only_query_is_empty" if format_only else "unicode_whitespace_normalized"] = (
+            result.detail_code == "SEARCH_SCOPE_INCOMPLETE"
+        )
+        return FixtureEvidence(assertions, {
+            "storage_calls": calls, "detail_code": result.detail_code,
+        })
 
     @register("reviewer_b_memory_unicode_whitespace_query")
     async def memory_unicode(request): return await empty_memory(request, format_only=False)
@@ -237,13 +248,16 @@ def register_fresh_fixtures(
     @register("reviewer_b_memory_empty_corpus_nonempty_query")
     async def memory_empty_corpus(request):
         data = inputs(request); collection = _EvalCollection(); manager = _memory_manager(_EvalRedis([]), collection)
-        hits = await manager.search_long_term(str(data["user_id"]), str(data["query"]), top_k=int(data["top_k"]))
-        calls = collection.query_calls + collection.get_calls
+        context = await manager.get_context(
+            str(data["user_id"]), "current", query=str(data["query"]),
+        )
+        fact_calls = collection.query_calls + collection.get_calls
+        calls = []
         return FixtureEvidence({
-            "both_storage_paths_attempted": len(calls) == 2,
-            "result_empty": hits == [],
-            "trusted_user_filter_on_both_paths": all(call.get("where") == {"user_id": data["user_id"]} for call in calls),
-        }, {"calls": calls})
+            "legacy_storage_not_accessed": calls == [],
+            "result_empty": context.retrieval_hits == [],
+            "target_tool_required": context.relevant_history == [],
+        }, {"legacy_calls": calls, "fact_calls": fact_calls})
 
     class KBCollection:
         def __init__(self): self.records = {}

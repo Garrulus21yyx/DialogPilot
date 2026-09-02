@@ -83,7 +83,7 @@ notes 后，才可以叫 gold heldout 结果。
 
 目前服务端可以直接运行 Intent 与 Routing。Stateful 的 100 条已经全部绑定
 真实 fixture，当前机械回归为 Dev 80/80、已消费 Heldout 20/20。针对审查指出的
-7 条假阳性，Owner 变异测试会在 `search_long_term`、`_fallback_summary`、
+7 条假阳性，Owner 变异测试会在 `MemoryManager.get_context`、`ServiceEpisodeMemorySearch.search`、`_fallback_summary`、
 `finalize_conversation` 或 `ContextAssembler.assemble` 被破坏时强制失败。
 
 Reviewer B 进一步证明：只靠约定 fixture “不读取 expected”仍可绕过，因为旧接口

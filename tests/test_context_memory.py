@@ -23,7 +23,6 @@ from memory.conversation_memory import (
     MsgRole,
     SummaryCheckpoint,
 )
-from memory.hybrid_retrieval import MemoryHit
 from core.model_policy import ModelProfile
 
 
@@ -794,33 +793,6 @@ def test_fact_backlog_is_chunked_without_advancing_past_unprocessed_events():
     assert manager._redis.strings["fact_checkpoint:u:c"] == "24"
     assert manager._redis.zsets[manager.FACT_JOB_QUEUE_KEY] == {}
     assert manager._client.calls == 2
-
-
-def test_retrieval_hit_expands_bounded_neighbor_window_from_raw_events():
-    """命中片段应恢复有限前后语境，同时保留旧会话与 source seq。"""
-    manager = bare_manager(budget=100000)
-    manager._redis = FakeRedis([
-        raw_message("user" if seq % 2 else "assistant", f"event-{seq}", seq=seq)
-        for seq in range(6, 0, -1)
-    ])
-    hit = MemoryHit(
-        memory_id="hit-1",
-        content="user: event-3",
-        score=1.0,
-        sources=("bm25",),
-        conversation_id="old-conversation",
-        event_seq=3,
-        message_id="message-3",
-        role="user",
-    )
-
-    history = asyncio.run(manager._expand_retrieval_hits("user-1", [hit]))
-    payload = json.loads(history[0])
-
-    assert payload["conversation_id"] == "old-conversation"
-    assert payload["source_event_seq"] == 3
-    assert [message["seq"] for message in payload["messages"]] == [1, 2, 3, 4, 5]
-    assert manager._token_estimator.estimate(history[0]) <= 600
 
 
 def test_repeated_forced_summary_ranges_are_contiguous_and_rebuildable():

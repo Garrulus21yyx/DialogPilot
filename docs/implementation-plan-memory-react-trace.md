@@ -4,16 +4,16 @@
 
 把两个简历建议变成仓库可运行、可测试的事实：
 
-1. 长期记忆不再只检索压缩摘要，而是保存原始情景片段，用 BM25、向量召回和时间排序做 RRF 融合，并提供 Recall@K/MRR/nDCG 评测。
+1. 跨会话记忆由 canonical PostgreSQL ServiceEpisode generation 提供，用 BM25、向量召回和时间排序做 RRF 融合，并提供 Recall@K/MRR/nDCG 评测。
 2. Agent 获得有界 ReAct 工具循环；工具调用必须经过 Agent allowlist、风险/审批策略、闭合状态机和可追踪审计，TraceId 能跨 API、Task、Agent 和 Tool 透传。
 
 ## 根因与正向合同
 
 ### 长期记忆
 
-- 现状症状：`_store_episodic()` 把摘要作为 Chroma document，`_search_episodic()` 只做向量 Top-K。
+- 历史症状：旧实现曾把 raw conversation 与摘要写入 Chroma episodic；该 reader/writer 已在 direct-cutover 中删除。
 - 根因：摘要同时承担“压缩上下文”和“长期事实源”两种权威，精确标识符与原始细节在压缩后不可恢复。
-- 目标合同：原始片段是可检索事实载体；摘要只做背景投影。候选集由用户隔离后的向量与 BM25 产生，时间仅对相关候选排序，RRF 负责融合；空查询/存储故障确定性返回空结果。
+- 目标合同：验证完成的 ServiceEpisode 是唯一跨会话事实载体；当前 thread 摘要只做背景投影。候选集由 tenant/user scope 内的 PostgreSQL generation 产生，时间仅对相关候选排序，RRF 负责融合；空查询和合同漂移返回 typed outcome。
 
 ### ReAct、权限与 Trace
 

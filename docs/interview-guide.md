@@ -220,9 +220,9 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q33：混合长期记忆怎么做？
 
-每个完整发布轮次立即以稳定消息 ID upsert 原始片段；检索只在签名 `user_id` 内并排除当前 `conv_id`，同时召回 Chroma vector Top-20 和用户内最多 200 条 BM25 语料，再以 vector 0.30、BM25 0.60、recency 0.10 的 RRF 排序。命中保留 `message_id/event_seq/role/chunk_index`，最相关的两个旧会话从 Redis 原始事件各展开前后两条消息，总窗口上限 1200 estimated tokens；展开失败才退回孤立命中原文。
+跨会话记忆只由验证完成的 canonical ServiceEpisode generation 产生。Agent 按需调用 `service_episode_search`，tenant/user 来自签名调用身份；binding、generation、backend 和 policy fingerprint 必须一致。PostgreSQL backend 返回 vector/lexical 候选，ServiceEpisode Owner 只在候选并集内融合 recency，并返回 episode revision、provenance、source ranks、freshness 和 index watermark。
 
-**NEW。** 原始历史按 1200 字符、120 overlap 写入 episodic collection。在用户边界内分别取 vector 和 BM25 候选，只对候选并集做 recency，最后用 RRF `k=60`、vector/BM25/recency 权重 `0.30/0.60/0.10` 融合。
+当前 thread 不预检索跨会话数据；旧 raw Chroma episodic reader/writer 已删除。空白 query 在 ServiceEpisode boundary、binding/provider/backend 之前 typed fail closed。
 
 ### Q34：为什么 BM25 权重更高？
 
