@@ -25,7 +25,7 @@ from application.compatibility_execution import (
 )
 from application.inbound_admission import NewInvocationInbound
 from core.identity import IdentityFactory, InvocationKey
-from services.evolution import PinnedExecutionRefs, RolloutAssignment
+from services.evolution import ActiveBundleAssignment, PinnedExecutionRefs
 
 
 _PIN_FIELDS = tuple(PinnedExecutionRefs.__dataclass_fields__)
@@ -41,7 +41,7 @@ class CompatibilityChatCoordinator:
         admission: Any,
         dispatcher: Any,
         execution_outbox: Any,
-        rollout_manager: Any,
+        bundle_resolver: Any,
         bundle_registry: Any,
         completed_reader: Any,
         identity_factory: IdentityFactory | None = None,
@@ -55,7 +55,7 @@ class CompatibilityChatCoordinator:
         self.admission = admission
         self.dispatcher = dispatcher
         self.execution_outbox = execution_outbox
-        self.rollout_manager = rollout_manager
+        self.bundle_resolver = bundle_resolver
         self.bundle_registry = bundle_registry
         self.completed_reader = completed_reader
         self.identity_factory = identity_factory or IdentityFactory()
@@ -79,15 +79,8 @@ class CompatibilityChatCoordinator:
                 continuation_id=command.continuation_id,
             )
             assignment = await asyncio.to_thread(
-                self.rollout_manager.resolve, str(identity.user_id),
+                self.bundle_resolver.resolve, str(identity.user_id),
             )
-            if not assignment.admission_allowed:
-                return Failed(
-                    code="rollout_admission_blocked",
-                    retryable=False,
-                    correlation_id="rollout-admission",
-                    safe_message="当前服务版本无法安全回退，已停止自动处理并等待人工处置。",
-                )
             pins = assignment_to_pins(
                 assignment,
                 authorization_fingerprint=command.authorization_fingerprint,
@@ -211,54 +204,30 @@ class CompatibilityChatCoordinator:
 
 
 def assignment_to_pins(
-    assignment: RolloutAssignment, *, authorization_fingerprint: str,
+    assignment: ActiveBundleAssignment, *, authorization_fingerprint: str,
 ) -> dict[str, str]:
     if assignment.pinned_refs is None:
         raise ValueError("durable admission requires complete execution refs")
     auth = str(authorization_fingerprint).strip()
     if not auth:
         raise ValueError("durable admission requires authorization fingerprint")
-    result = {
-        "rollout_stage": str(assignment.primary_stage),
-        "rollout_bucket": str(assignment.bucket),
-        "authorization_fingerprint": auth,
-    }
+    result = {"authorization_fingerprint": auth}
     result.update({f"primary_{name}": str(getattr(assignment.pinned_refs, name)) for name in _PIN_FIELDS})
-    if assignment.shadow is not None:
-        if assignment.shadow_pinned_refs is None:
-            raise ValueError("shadow assignment requires complete execution refs")
-        result.update({
-            f"shadow_{name}": str(getattr(assignment.shadow_pinned_refs, name))
-            for name in _PIN_FIELDS
-        })
     return result
 
 
 def assignment_from_pins(
     pins: Mapping[str, str], bundle_registry: Any,
-) -> RolloutAssignment:
+) -> ActiveBundleAssignment:
     primary_refs = PinnedExecutionRefs(**{
         name: pins[f"primary_{name}"] for name in _PIN_FIELDS
     })
     primary = bundle_registry.get(primary_refs.bundle_version)
     if primary.content_hash != primary_refs.bundle_hash:
         raise ValueError("pinned primary bundle content changed")
-    shadow_refs = None
-    shadow = None
-    if "shadow_bundle_version" in pins:
-        shadow_refs = PinnedExecutionRefs(**{
-            name: pins[f"shadow_{name}"] for name in _PIN_FIELDS
-        })
-        shadow = bundle_registry.get(shadow_refs.bundle_version)
-        if shadow.content_hash != shadow_refs.bundle_hash:
-            raise ValueError("pinned shadow bundle content changed")
-    return RolloutAssignment(
+    return ActiveBundleAssignment(
         primary=primary,
-        primary_stage=pins["rollout_stage"],
-        shadow=shadow,
-        bucket=int(pins["rollout_bucket"]),
         pinned_refs=primary_refs,
-        shadow_pinned_refs=shadow_refs,
     )
 
 

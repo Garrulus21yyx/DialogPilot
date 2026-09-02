@@ -129,7 +129,7 @@
       "abuse_case": "an invocation or Bundle rollback repeats a write whose effect is unknown or committed",
       "controls": [
         {"control_id": "operation-binding-and-claim", "kind": "PREVENT", "owner": "MCPToolManager", "evidence_refs": ["tests/test_tool_security_trace.py", "tests/test_react_resume.py"]},
-        {"control_id": "unknown-effect-reconciliation", "kind": "PREVENT", "owner": "Domain Tool", "evidence_refs": ["ToolEffectStatus.OUTCOME_UNKNOWN", "docs/customer-service-route-bundle-rollout-runbook.zh-CN.md"]},
+        {"control_id": "unknown-effect-reconciliation", "kind": "PREVENT", "owner": "Domain Tool", "evidence_refs": ["ToolEffectStatus.OUTCOME_UNKNOWN"]},
         {"control_id": "duplicate-effect-negative-tests", "kind": "DETECT", "owner": "Evaluation", "evidence_refs": ["tests/test_tool_security_trace.py"]}
       ],
       "disable_action": "disable write tool, preserve ledger and reconcile by authoritative receipt",

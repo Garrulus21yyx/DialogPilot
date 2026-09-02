@@ -52,7 +52,7 @@ title: DialogPilot 面经校准与追问手册
 
 ### Q5：项目最重要的模块是哪个？
 
-是“合同边界”而非单个模型调用。TaskGraph 拥有执行意图与依赖，RunStore 拥有暂停/恢复，ToolManager 拥有授权和副作用，CoverageGate/Verifier 拥有发布资格，RolloutManager 拥有版本指针。没有这些 Owner，多 Agent 只是多调几次模型。
+是“合同边界”而非单个模型调用。TaskGraph 拥有执行意图与依赖，RunStore 拥有暂停/恢复，ToolManager 拥有授权和副作用，CoverageGate/Verifier 拥有发布资格，ActiveBundleResolver 固定请求内版本。没有这些 Owner，多 Agent 只是多调几次模型。
 
 ### Q6：多轮中途改意图会丢历史吗？
 
@@ -216,7 +216,7 @@ Skill 是处理策略、SOP 和安全边界，解决“怎么做”；知识库�
 
 ### Q32.1：这已经是完整生产级 RAG 吗？
 
-不能这么说。代码已显式化公共 txt/md/JSON 来源、持久 Sparse、Manifest、EvidencePack、严格 rerank 和纯知识发布边界；grounded v5 又用局部 PydanticAI tool output 把同一 36 group×3 Dev 的合同错误从 v4 的大量 `ValueError/JSONDecodeError` 降为 `0/108`，且 typed abstention 与 parser failure 分开计量。但这仍只是 Dev 修复：父子拓扑未过 Packing 完整性门禁，baseline 也还缺 fresh Heldout、人工 Judge 校准和真实 shadow/canary；另外还缺政策 update/delete 事务、多副本共享 Sparse 和 Embedding 权重 digest。文档级 ACL 是当前 public-only collection 的非目标。
+不能这么说。代码已显式化公共 txt/md/JSON 来源、持久 Sparse、Manifest、EvidencePack、严格 rerank 和纯知识发布边界；grounded v5 又用局部 PydanticAI tool output 把同一 36 group×3 Dev 的合同错误从 v4 的大量 `ValueError/JSONDecodeError` 降为 `0/108`，且 typed abstention 与 parser failure 分开计量。但这仍只是 Dev 修复：父子拓扑未过 Packing 完整性门禁，baseline 还需要 fresh Heldout 和本地 E2E 复现；另外还缺政策 update/delete 事务、多副本共享 Sparse 和 Embedding 权重 digest。文档级 ACL 是当前 public-only collection 的非目标。
 
 ### Q33：混合长期记忆怎么做？
 
@@ -507,17 +507,17 @@ DeepSeek 的 Anthropic 兼容协议要求工具后续轮回传此前 thinking �
 
 越权、跨用户、错误写入属于零容忍不变量，不是偏好。Graduation 先检查 security、identity isolation、tool authorization、coverage、stateful；只有全部通过的候选才进入质量/延迟/成本 Pareto。
 
-### Q93：Shadow 为什么不会污染生产？
+### Q93：为什么删除 Shadow/Canary？
 
-Shadow 用真实输入跑候选 Intent/RAG/Worker/Verifier，但不发布、不写 Memory、不建 Ticket、不登记 Bad Case。更重要的是 `execution_mode=shadow` 在 ToolManager 执行边界拒绝写 Tool，只读调用也不更新生产 cache、breaker 和 Agent stats；不是单靠 Prompt 约束。
+项目目标是本地完整跑通和简历展示，没有真实线上流量。重复执行 Agent 会增加成本和复杂度，却不能产生可信的生产发布证据，因此候选只在离线 dev/heldout 上比较，运行时固定唯一 Active Bundle。
 
-### Q94：Canary 怎么分流，为什么不是随机？
+### Q94：如何保证请求内版本稳定？
 
-用 secret salt + 认证用户 subject 做 SHA-256 稳定分桶。同一用户在阶段不变时总落到同一版本，避免多轮会话随机跨版本。状态机只允许 Shadow → 5% → 25% → Active，不能跳过 25% 直接全量。
+`ActiveBundleResolver` 在请求开始解析一次不可变 Bundle 与 execution refs，持久执行再把这些 refs 固定进 invocation pins；请求中途不会切版本。
 
-### Q95：自动回滚看什么？
+### Q95：本地版本验证看什么？
 
-越权、隐私泄漏、跨用户召回、错误写操作是一条即回滚的硬信号。Verifier pass rate、P95 latency、平均 cost proxy 是软信号；候选和基线达到最小样本后再判断，pass rate 用 Wilson 区间防小样本抖动。当前 cost 是 Agent/tool 数代理，不是美元账单。
+保留确定性测试、本地 E2E、heldout 指标、延迟与可复现 Demo。越权、隐私泄漏、跨用户召回和错误写操作仍是测试中的零容忍失败，但不包装成没有线上样本的自动回滚系统。
 
 ### Q96：你实现的是完整 GEPA 吗？
 
@@ -541,7 +541,7 @@ Shadow 用真实输入跑候选 Intent/RAG/Worker/Verifier，但不发布、不�
 6. 能解释发现/执行共用 allowlist，审批不来自模型参数，RunStore 如何 CAS Resume 并防重复写。
 7. 能说明 355 项回归不等于 benchmark 样本量，500 条 provisional 项目集与 Doc2Dial Dev 不能混算，也都不支持生产准确率。
 8. 能用 commit 划清原型与个人改造，不说从零原创。
-9. 能讲清 Bundle → 候选 → Graduation → Shadow → 5% → 25% → Active/回滚，并说明 GEPA-lite 与 RL 的边界。
+9. 能讲清 Bundle → 本地候选 → dev/heldout 对比 → 可复现 Demo，并说明为何没有线上流量时删除 Shadow/Canary。
 10. 能讲清 Prediction → Pending Feedback → Admin Annotation → Candidate，知道分类器指纹覆盖什么，并说明 Annotation 不等于 Gold、缓存不等于学习库。
 11. 能讲清 JWT/scope 与 task-level Resume 已完成，以及 IdP/JWKS、tenant ABAC、持久 Trace、全图恢复和真实 Gold benchmark 仍是缺口；不说“完整 MCP”“复现 SOTA”或“线上准确率 91.3%”。
 

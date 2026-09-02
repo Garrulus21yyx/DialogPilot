@@ -7,7 +7,7 @@ import pathlib
 import sqlite3
 import threading
 from datetime import datetime, timezone
-from typing import Any, List, Mapping, Optional
+from typing import List
 
 from .bundle import AgentBundle
 
@@ -67,50 +67,6 @@ class AgentBundleRegistry:
             )
         return registered
 
-    def bootstrap_successor(
-        self,
-        bundle: AgentBundle,
-        *,
-        predecessor_version: str,
-        expected_predecessor_retrieval: Mapping[str, Any],
-    ) -> tuple[AgentBundle, bool]:
-        """Install a versioned default and migrate only the unmodified predecessor.
-
-        User-created, canary, shadow, or otherwise customized active pointers are never
-        overwritten by startup.  The comparison and pointer change share one SQLite
-        transaction, so concurrent startup cannot observe a partial migration.
-        """
-        registered = self.register(bundle, actor="bootstrap-successor")
-        migrated = False
-        with self._lock, self._connect() as conn:
-            conn.execute("BEGIN IMMEDIATE")
-            row = conn.execute(
-                "SELECT p.version, b.payload_json FROM bundle_pointers p "
-                "JOIN agent_bundles b ON b.version=p.version WHERE p.name='active'"
-            ).fetchone()
-            if row is None:
-                conn.execute(
-                    "INSERT INTO bundle_pointers(name, version, updated_at, updated_by) "
-                    "VALUES ('active', ?, ?, 'bootstrap-successor')",
-                    (registered.version, datetime.now(timezone.utc).isoformat()),
-                )
-                migrated = True
-            elif row["version"] == str(predecessor_version):
-                predecessor = self._decode(row["payload_json"])
-                if dict(predecessor.retrieval_policy) == dict(expected_predecessor_retrieval):
-                    conn.execute(
-                        "UPDATE bundle_pointers SET version=?, updated_at=?, updated_by=? "
-                        "WHERE name='active' AND version=?",
-                        (
-                            registered.version,
-                            datetime.now(timezone.utc).isoformat(),
-                            "bootstrap-successor",
-                            str(predecessor_version),
-                        ),
-                    )
-                    migrated = True
-        return registered, migrated
-
     def get(self, version: str) -> AgentBundle:
         with self._connect() as conn:
             row = conn.execute(
@@ -142,16 +98,6 @@ class AgentBundleRegistry:
             ).fetchone()
         active_version = active["version"] if active else ""
         return [{**dict(row), "active": row["version"] == active_version} for row in rows]
-
-    def pointer(self, name: str) -> Optional[AgentBundle]:
-        with self._connect() as conn:
-            row = conn.execute("SELECT version FROM bundle_pointers WHERE name=?", (str(name),)).fetchone()
-        return self.get(row["version"]) if row else None
-
-    @property
-    def db_path(self) -> str:
-        """供同库 Rollout Owner 建立原子状态/指针事务。"""
-        return self._path
 
     def _initialize(self) -> None:
         with self._connect() as conn:

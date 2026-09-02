@@ -20,7 +20,7 @@ DialogPilot 是一个使用 Python 和 FastAPI 实现的多 Agent 客服后端�
 
 HTTP 边界从签名 JWT 中取得用户身份，不信任请求体提交的 `user_id`。请求级 `TraceId` 串联 HTTP、ReAct 和工具调用。质量库可用时，每次意图判断都记录不可变 `prediction_id`、分类器指纹和脱敏输入指纹；记录失败不阻断客服主链，但该轮不开放可归因的错路由反馈。用户报告错路由时只能提交待审核建议，管理员确认后才形成版本化 Annotation，不能在请求线程里改 Prompt 或模板。写操作等待审批时持久化 Run checkpoint，授权后以原 Bundle 和 task_id 幂等恢复。校验失败、任务覆盖失败、工具副作用不确定以及可信用户反馈会进入独立的 Bad Case 状态机；复现和修复后的样本只作为 provisional dev regression，不冒充人工 Gold 或全新 heldout。
 
-Bad Case 不会在线改生产 Prompt。系统先用脱敏版本信封做责任归因，只对 Prompt、Few-shot、路由、检索和工具描述生成 4–8 个不可变候选；候选经过安全硬门禁、Rubric、heldout 合同和质量/延迟/成本 Pareto 后，才按 Shadow、5%、25%、Active 灰度。越权、隐私、跨用户召回或错误写操作会原子切回上一 Bundle。
+Bad Case 不会在线改运行时 Prompt。系统先用脱敏版本信封做责任归因，只对 Prompt、Few-shot、路由、检索和工具描述生成不可变候选；候选只在本地 dev/heldout 与 Demo 中比较。运行时由 ActiveBundleResolver 固定唯一 Bundle，不复制请求做 Shadow/Canary。
 
 ## 主链路怎么讲
 
@@ -168,7 +168,7 @@ Ticket 负责用户人工处理流程，Trace 负责一次请求的诊断；二�
 
 因为失败需要先做 Credit Assignment：意图错、任务拆分错、召回错、工具选错和权限漏洞的 Owner 不同。系统用 `EvolutionEnvelope` 固定请求实际使用的 Bundle 及组件哈希；安全、基础设施、timeout/cancel 和未知副作用直接阻断自动进化。只有配置 Owner 明确的问题，反思模型才可在闭合白名单中生成不可变候选。
 
-候选不会直接覆盖 Active。`CandidateRunner` 实际运行 Gate 并产生带 provenance 的证据，`GraduationGate` 先检查不可被平均分抵消的安全合同，再比较质量、延迟和成本。发布按稳定用户分桶经历 Shadow、5% 和 25%；完整说明见[Agent 进化闭环](./agent-evolution/)。
+候选不会直接覆盖 Active。`CandidateRunner` 产生本地可复现的指标与 provenance；运行时只消费启动时固定的 Active Bundle。
 
 ## 业务范围改造如何用 STAR 讲
 
@@ -186,7 +186,7 @@ Ticket 负责用户人工处理流程，Trace 负责一次请求的诊断；二�
 
 **T：** 让运行时任务可依赖执行、写操作可恢复，同时让线上失败只能通过可验证、可灰度、可回滚的方式推动 Agent 策略升级。
 
-**A：** 将兼容 `TaskPlan` 升级为 `TaskGraph`，增加依赖波次、`context_refs` 与阻塞状态；用 SQLite RunStore 固定 task/Bundle/工具调用并通过 CAS Resume；再实现 EvolutionEnvelope、不可变 AgentBundle、GEPA-lite 受限候选、带证据 Graduation/Pareto，以及 Shadow → 5% → 25% → Active 和硬/软回滚。
+**A：** 将兼容 `TaskPlan` 升级为 `TaskGraph`，增加依赖波次、`context_refs` 与阻塞状态；用 SQLite RunStore 固定 task/Bundle/工具调用并通过 CAS Resume；再实现 EvolutionEnvelope、不可变 AgentBundle、GEPA-lite 受限候选和本地 dev/heldout 对比，运行时固定唯一 Active Bundle。
 
 **R：** 请求内版本不漂移，依赖失败不再误调后继，审批重放不重复写，候选不能修改权限或绕过 Gate，灰度与回滚收敛为原子状态迁移；当前全仓 355 项测试通过。评测数据仍是 provisional，因此结果只表述为合同回归，不虚构生产准确率。
 

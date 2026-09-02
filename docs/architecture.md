@@ -44,13 +44,12 @@ DialogPilot 不是一条不断堆 Prompt 的调用链，而是按“谁拥有最
 | 离线质量 | `evaluation/evaluator.py`、`evaluation/benchmark.py` | 运行时意图/路由报告及确定性分层评分 |
 | 评测晋级 | `evaluation/rubric.py`、`evaluation/graduation.py` | 不可变 Baseline、Rubric、硬门禁和晋级结论 |
 | 任务依赖与恢复 | `agents/orchestration_contracts.py`、`agents/run_store.py` | `TaskGraph` 依赖、上下文范围、Checkpoint、审批挑战与 Resume |
-| Agent 版本 | `services/evolution/bundle.py`、`registry.py` | 不可变 `AgentBundle`、内容哈希和版本指针 |
+| Agent 版本 | `services/evolution/bundle.py`、`registry.py`、`active_bundle.py` | 不可变 `AgentBundle`、内容哈希和单一 Active 解析 |
 | 失败归因与候选 | `services/evolution/envelope.py`、`attribution.py`、`proposal_generator.py` | 脱敏归因、可进化 Owner 和受限候选 |
-| 灰度与回滚 | `services/evolution/rollout.py` | Shadow、稳定 5%/25% 分桶、Active 与原子回滚 |
 
 ## `/chat` 的时序合同
 
-1. 先做用户输入安全检查，再从 RolloutManager 解析并固定本次请求的 `AgentBundle`。
+1. 先做用户输入安全检查，再从 `ActiveBundleResolver` 解析并固定本次请求的唯一 `AgentBundle`。
 2. 读取记忆，再识别当前请求；缓存身份由完整消息/最近三轮哈希与有效分类器指纹共同确定。识别后尽力把脱敏 prediction、Bundle 版本和来源分数写入质量库；成功时向客户端返回稳定 `prediction_id`，质量库故障不改变本次客服回答。
 3. 意图只识别一次，知识检索和路由复用同一个结果；低置信度 `OTHER` 收敛为 `CLARIFY`，高置信度 `OTHER` 收敛为 `OUT_OF_SCOPE`，二者都是无 Worker 的 Planner 终态。
 4. 从 `TicketService` 读取该用户最多三个未进入 `CLOSED` 终态的事项，作为当前处理状态的权威投影。
@@ -220,23 +219,20 @@ CANDIDATE → TRIAGED → REPRODUCED → FIXING → REGRESSION_PASS → VERIFIED
 
 候选观察也可以进入 duplicate、not-a-bug、product-decision 或 privacy-rejected 等终态。进入 `REPRODUCED` 必须提供类型化评测层预期、Owner fixture 和证据哈希；进入 `REGRESSION_PASS` 必须提供修复提交。已关闭问题再次出现时，系统原子增加发生次数并重新打开为 `TRIAGED`。导出的样本永远只是 dev、provisional、consumed regression；运行时和导出器都无权把它声明为 Gold 或 fresh heldout。
 
-## Agent 进化与发布边界
+## Agent 进化与本地评测边界
 
 Bad Case 的新职责止于“提供失败资产”。`EvolutionEnvelope` 用 Bundle/Prompt/路由/检索/工具注册哈希和 producer/task/call ID 做版本归因；`CreditAttributor` 将安全、基础设施与未知副作用阻断在自动进化之外。可进化问题才会生成 4–8 个不可变 `AgentBundle` 候选。
 
-候选必须经过带来源 ID 与 checksum 的 Gate 执行证据、Rubric、fresh heldout 合同以及质量/延迟/成本 Pareto 选择。通过后也不会直接全量：`RolloutManager` 按 `Shadow → 5% → 25% → Active` 迁移，硬安全信号立即切回基线，软指标达到最小样本后用置信区间判断。完整代码链路与面试问答见[Agent 进化闭环](./agent-evolution/)。
+候选只用于本地 dev/heldout 对比和 Demo 报告，不能改变运行时 Bundle。启动时固定一个 Active Bundle；没有线上流量时不重复执行 Shadow，也不模拟 Canary、Promotion 或自动回滚组织流程。
 
 ```mermaid
 flowchart LR
     B[Bad Case] --> E[EvolutionEnvelope]
     E --> A[Owner 归因]
     A --> C[不可变候选]
-    C --> G[Graduation + Pareto]
-    G --> S[Shadow]
-    S --> C5[Canary 5%]
-    C5 --> C25[Canary 25%]
-    C25 --> P[Active]
-    S & C5 & C25 & P -->|硬/软退化| R[原子回滚]
+    C --> G[本地 Eval + 对比报告]
+    G --> D[可复现 Demo]
+    P[启动配置] --> A1[唯一 Active Bundle]
 ```
 
 ## 扩展点
@@ -246,4 +242,3 @@ flowchart LR
 - 新增业务行为：添加 `skills/<name>/SKILL.md`。
 - 更换模型供应商：通过 Anthropic-compatible 配置边界替换。
 - 多副本写入：在不改变 `TicketService` 与 `BadCaseRegistry` 合同的前提下，将 SQLite 替换为 PostgreSQL。
-- 多副本发布：保持 `RolloutManager` 唯一写语义，把 Bundle/Run/Rollout 的 SQLite 事务迁移为共享数据库事务。

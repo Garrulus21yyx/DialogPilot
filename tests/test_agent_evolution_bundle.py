@@ -6,6 +6,7 @@ from agents.agent_orchestrator import AgentOrchestrator, Request
 from core.intent_recognizer import IntentCategory
 from mcp.tool_manager import MCPToolManager, Tool, ToolRisk
 from services.evolution import (
+    ActiveBundleResolver,
     AgentBundle,
     AgentBundleRegistry,
     BundleConflictError,
@@ -45,7 +46,7 @@ def test_bundle_rejects_security_owned_surface():
         AgentBundle(version="unsafe-v1", routing_policy={"approval_mode": "auto"})
 
 
-def test_registry_is_append_only_and_pointer_is_separate(tmp_path):
+def test_registry_is_append_only_and_runtime_keeps_bootstrapped_active_bundle(tmp_path):
     registry = AgentBundleRegistry(str(tmp_path / "bundles.db"))
     v1 = registry.bootstrap(_bundle())
     pinned = registry.active()
@@ -59,44 +60,17 @@ def test_registry_is_append_only_and_pointer_is_separate(tmp_path):
         registry.register(AgentBundle(version="agent-v2", base_version="agent-v1"))
 
 
-def test_bootstrap_successor_only_migrates_exact_legacy_retrieval_policy(tmp_path):
-    legacy_policy = {
-        "top_k": 3, "rrf_k": 60, "vector_weight": 0.0, "lexical_weight": 1.0,
-    }
+def test_active_bundle_resolver_has_one_deterministic_runtime_assignment(tmp_path):
     registry = AgentBundleRegistry(str(tmp_path / "bundles.db"))
-    registry.bootstrap(AgentBundle(version="agent-v1", retrieval_policy=legacy_policy))
-    successor = AgentBundle(
-        version="agent-v2-rag", base_version="agent-v1",
-        retrieval_policy={
-            "top_k": 5, "candidate_k": 20, "context_max_tokens": 2600,
-            "rrf_k": 10, "vector_weight": 0.25, "lexical_weight": 0.75,
-            "raw_query_weight": 0.25, "standalone_query_weight": 0.75,
-        },
-    )
+    active = registry.bootstrap(_bundle())
+    registry.register(_bundle("agent-v2", "agent-v1"))
+    resolver = ActiveBundleResolver(registry)
 
-    _, migrated = registry.bootstrap_successor(
-        successor,
-        predecessor_version="agent-v1",
-        expected_predecessor_retrieval=legacy_policy,
-    )
+    first = resolver.resolve("user-a")
+    second = resolver.resolve("user-b")
 
-    assert migrated is True
-    assert registry.active().version == "agent-v2-rag"
-
-
-def test_bootstrap_successor_preserves_custom_active_pointer(tmp_path):
-    registry = AgentBundleRegistry(str(tmp_path / "bundles.db"))
-    registry.bootstrap(_bundle())
-    successor = AgentBundle(version="agent-v2-rag", base_version="agent-v1")
-
-    _, migrated = registry.bootstrap_successor(
-        successor,
-        predecessor_version="agent-v1",
-        expected_predecessor_retrieval={"top_k": 3},
-    )
-
-    assert migrated is False
-    assert registry.active().version == "agent-v1"
+    assert first.primary == second.primary == active
+    assert first.pinned_refs == second.pinned_refs
 
 
 def test_envelope_contains_hashes_not_raw_prompt_or_output():

@@ -44,7 +44,7 @@ def _ready_services() -> ChatServices:
         response_delivery=component,
         context_assembler=component,
         bundle_registry=component,
-        rollout_manager=component,
+        bundle_resolver=component,
     )
 
 
@@ -110,32 +110,6 @@ def test_chat_application_projects_unexpected_failure_to_typed_outcome(monkeypat
     )
 
 
-def test_rollout_blocked_assignment_stops_before_any_application_side_effect():
-    class Rollout:
-        def resolve(self, _subject):
-            return SimpleNamespace(
-                admission_allowed=False,
-                admission_reason="ROLLBACK_BASELINE_INCOMPATIBLE",
-            )
-
-    services = _ready_services()
-    services = ChatServices(**{
-        **services.__dict__, "rollout_manager": Rollout(),
-    })
-    app = ChatApplication(
-        services, SimpleNamespace(trace_id=lambda: "trace-rollout-blocked"),
-    )
-
-    outcome = asyncio.run(app.handle(ChatCommand(message="查询退款", user_id="u")))
-
-    assert isinstance(outcome, Failed)
-    assert outcome.code == "rollout_admission_blocked"
-    assert outcome.retryable is False
-    assert outcome.stages[0].detail["reason_code"] == (
-        "ROLLBACK_BASELINE_INCOMPATIBLE"
-    )
-
-
 def test_unavailable_memory_projection_fails_before_intent_or_agent_work():
     class Memory:
         async def get_projection_result(self, *_args, **_kwargs):
@@ -148,12 +122,10 @@ def test_unavailable_memory_projection_fails_before_intent_or_agent_work():
                 reason_codes=("SOURCE_WATERMARK_UNAVAILABLE",),
             )
 
-    class Rollout:
+    class BundleResolver:
         def resolve(self, _subject):
             return SimpleNamespace(
-                admission_allowed=True,
                 primary=SimpleNamespace(version="bundle-v1"),
-                primary_stage="active",
                 pinned_refs=None,
             )
 
@@ -165,7 +137,7 @@ def test_unavailable_memory_projection_fails_before_intent_or_agent_work():
     services = ChatServices(**{
         **services.__dict__,
         "memory": Memory(),
-        "rollout_manager": Rollout(),
+        "bundle_resolver": BundleResolver(),
         "orchestrator": MustNotRun(),
     })
     app = ChatApplication(

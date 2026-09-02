@@ -32,8 +32,8 @@ from infrastructure.postgres_compatibility_execution import (
 from infrastructure.postgres_conversation import PostgresInvocationRepository
 from tests.test_postgres_admission import _identity, _new
 from services.evolution import (
+    ActiveBundleAssignment,
     PinnedExecutionRefs,
-    RolloutAssignment,
     build_default_bundle,
 )
 
@@ -147,11 +147,11 @@ def test_online_coordinator_admits_binds_executes_and_replays_one_terminal(compa
         corpus_manifest_ref="corpus-v1",
         retrieval_policy_ref="retrieval-v1",
     )
-    assignment = RolloutAssignment(
-        primary=bundle, primary_stage="active", bucket=7, pinned_refs=refs,
+    assignment = ActiveBundleAssignment(
+        primary=bundle, pinned_refs=refs,
     )
 
-    class Rollout:
+    class BundleResolver:
         def resolve(self, _subject):
             return assignment
 
@@ -197,7 +197,7 @@ def test_online_coordinator_admits_binds_executes_and_replays_one_terminal(compa
             PostgresCompatibilityRunBinder(compat_pool),
         ),
         execution_outbox=outbox,
-        rollout_manager=Rollout(),
+        bundle_resolver=BundleResolver(),
         bundle_registry=Registry(),
         completed_reader=reader,
         worker_id="online-test",

@@ -184,7 +184,7 @@ class ChatServices:
     response_delivery: Any
     context_assembler: Any
     bundle_registry: Any
-    rollout_manager: Any
+    bundle_resolver: Any
     tool_manager: Any = None
     trace_recorder: Any = None
     knowledge_base: Any = None
@@ -203,7 +203,7 @@ class ChatServices:
                 self.response_delivery,
                 self.context_assembler,
                 self.bundle_registry,
-                self.rollout_manager,
+                self.bundle_resolver,
             )
         )
 
@@ -349,37 +349,17 @@ class ChatApplication:
         }
         stages: list[StageObservation] = []
         assignment = assignment or await asyncio.to_thread(
-            services.rollout_manager.resolve, user_id,
+            services.bundle_resolver.resolve, user_id,
         )
-        if not getattr(assignment, "admission_allowed", True):
-            return Failed(
-                code="rollout_admission_blocked",
-                retryable=False,
-                correlation_id=ops.trace_id(),
-                safe_message=(
-                    "当前服务版本无法安全回退，已停止自动处理并等待人工处置。"
-                ),
-                stages=(StageObservation("rollout_admission", StageStatus.FAILED, {
-                    "reason_code": getattr(
-                        assignment, "admission_reason", "ROLLOUT_BLOCKED",
-                    ),
-                }),),
-            )
         bundle = command.pinned_bundle or assignment.primary
         if command.pinned_bundle is not None:
             assignment = type("EvalAssignment", (), {
                 "primary": bundle,
-                "primary_stage": "evaluation",
-                "shadow": None,
                 "pinned_refs": None,
-                "shadow_pinned_refs": None,
-                "admission_allowed": True,
             })()
         pinned_refs = getattr(assignment, "pinned_refs", None)
-        stages.append(StageObservation("rollout_admission", StageStatus.OK, {
+        stages.append(StageObservation("bundle_resolution", StageStatus.OK, {
             "bundle_version": bundle.version,
-            "assignment_stage": assignment.primary_stage,
-            "publisher_version": bundle.version,
             "pinned_refs_fingerprint": (
                 pinned_refs.fingerprint if pinned_refs is not None else "evaluation"
             ),
@@ -794,7 +774,6 @@ class ChatApplication:
             "handoff_created": handoff_created,
             "bundle_version": bundle.version,
             "routing_policy_trace": result.routing_policy_trace,
-            "rollout_stage": assignment.primary_stage,
             "awaiting_approval": approval_pending,
             "react_run_ids": list(result.react_run_ids),
             "pending_approval_call_ids": list(result.pending_approval_call_ids),
@@ -885,22 +864,6 @@ class ChatApplication:
             tool_audit=tool_audit,
             bundle=bundle,
             approval_pending=approval_pending,
-        )
-        await asyncio.to_thread(
-            services.rollout_manager.record_outcome,
-            bundle_version=bundle.version,
-            stage=assignment.primary_stage,
-            verified=(
-                verification.publishable
-                and (
-                    disposition in {"clarify", "out_of_scope"}
-                    or bool(result.coverage.get("complete", False))
-                )
-                and not approval_pending
-            ),
-            latency_ms=result.latency_ms,
-            cost_units=float(len(result.agent_outcomes) + len(tool_audit)),
-            request_id=request_id,
         )
         if services.memory_projection_mode == "durable_event_outbox":
             stages.append(StageObservation("memory_write", StageStatus.SKIPPED, {

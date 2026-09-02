@@ -96,7 +96,7 @@ def test_chat_application_agent_path_calls_service_episode_tool_with_identity():
         orchestrator=_orchestrator(), memory=object(), answer_verifier=object(),
         ticket_service=object(), response_delivery=object(),
         context_assembler=object(), bundle_registry=object(),
-        rollout_manager=object(), tool_manager=manager,
+        bundle_resolver=object(), tool_manager=manager,
         route_execution_mode="evaluation",
     )
     app = ChatApplication(services, SimpleNamespace(evaluate_route_path=evaluate))
@@ -220,7 +220,7 @@ def test_eight_route_modes_execute_expected_path_and_forbid_all_others(
         orchestrator=_orchestrator(), memory=component, answer_verifier=component,
         ticket_service=component, response_delivery=component,
         context_assembler=component, bundle_registry=component,
-        rollout_manager=component, route_execution_mode="evaluation",
+        bundle_resolver=component, route_execution_mode="evaluation",
     )
     app = ChatApplication(services, SimpleNamespace(evaluate_route_path=evaluate))
     intent_result = SimpleNamespace(

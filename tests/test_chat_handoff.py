@@ -19,7 +19,7 @@ from services.answer_verifier import (
 from services.ticket_service import TicketPriority, TicketService
 from services.response_delivery import ResponseDeliveryService
 from services.badcase_registry import BadCaseRegistry
-from services.evolution import AgentBundleRegistry, RolloutManager, build_default_bundle
+from services.evolution import ActiveBundleResolver, AgentBundleRegistry, build_default_bundle
 from memory.context import ContextAssembler
 
 
@@ -164,7 +164,7 @@ def test_chat_out_of_scope_is_a_policy_terminal_without_worker_verifier_or_memor
     monkeypatch.setattr(main, "_tool_manager", MustNotSearchOrExecuteTools())
     monkeypatch.setattr(main, "_bundle_registry", bundles)
     monkeypatch.setattr(
-        main, "_rollout_manager", RolloutManager(bundles, bucket_salt="scope-test-salt"),
+        main, "_bundle_resolver", ActiveBundleResolver(bundles),
     )
     monkeypatch.setattr(
         main,
@@ -227,7 +227,7 @@ def test_chat_escalation_creates_one_persistent_idempotent_ticket(tmp_path, monk
     bundles.bootstrap(build_default_bundle({}))
     monkeypatch.setattr(main, "_bundle_registry", bundles)
     monkeypatch.setattr(
-        main, "_rollout_manager", RolloutManager(bundles, bucket_salt="test-salt"),
+        main, "_bundle_resolver", ActiveBundleResolver(bundles),
     )
 
     request = main.ChatRequest(
@@ -268,7 +268,7 @@ def test_chat_escalation_creates_one_persistent_idempotent_ticket(tmp_path, monk
     assert isinstance(application_outcome, Completed)
     assert {stage.stage for stage in application_outcome.stages} == {
         "memory_load",
-        "rollout_admission",
+        "bundle_resolution",
         "intent",
         "knowledge_retrieval",
         "active_case",
@@ -330,7 +330,7 @@ def test_chat_waiting_approval_does_not_create_handoff_or_badcase(tmp_path, monk
     bundles.bootstrap(build_default_bundle({}))
     monkeypatch.setattr(main, "_bundle_registry", bundles)
     monkeypatch.setattr(
-        main, "_rollout_manager", RolloutManager(bundles, bucket_salt="test-salt"),
+        main, "_bundle_resolver", ActiveBundleResolver(bundles),
     )
     monkeypatch.setattr(
         main, "_context_assembler",

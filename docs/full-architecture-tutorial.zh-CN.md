@@ -26,7 +26,7 @@ DialogPilot 是一个 Python 3.12 + FastAPI 的异步多 Agent 客服后端。�
 - `AnswerVerifier` 决定候选回答能否发布；
 - `TicketService` 把需要人工确认的结果持久化为可追踪工单；
 - `RunStore` 持久化 ReAct checkpoint、审批挑战与幂等工具调用，批准后恢复原任务；
-- `AgentBundleRegistry` 与 `RolloutManager` 将可进化配置固定为不可变版本，并控制 Shadow、Canary、Active 与回滚；
+- `AgentBundleRegistry` 与 `ActiveBundleResolver` 将可进化配置固定为不可变版本，并为一次请求解析唯一 Active Bundle；
 - `PerformanceMonitor` 与 `EndToEndEvaluator` 分别负责在线健康和离线质量。
 
 必须同时说明三个边界：
@@ -37,7 +37,7 @@ DialogPilot 是一个 Python 3.12 + FastAPI 的异步多 Agent 客服后端。�
 
 ### 30 秒版本
 
-> DialogPilot 是一个 Python/FastAPI 多 Agent 客服后端。请求先固定不可变 AgentBundle，再用混合记忆、意图和按需 RAG 构建上下文。Orchestrator 将复合问题拆成带依赖、Owner、上下文范围、风险和完成标准的 TaskGraph；领域 Worker 按拓扑波次执行最大 4 步 ReAct，只能看到 allowlist 工具。写操作可暂停为持久 checkpoint，审批后幂等恢复。CoverageGate 证明必需任务覆盖后，Synthesizer 才融合候选；Verifier 只有明确 PASS 才发布。失败进入带版本归因的 Bad Case，离线生成候选并通过 Graduation 后再经历 Shadow、5%、25% 灰度与可回滚 Active。
+> DialogPilot 是一个 Python/FastAPI 多 Agent 客服后端。请求先固定不可变 AgentBundle，再用混合记忆、意图和按需 RAG 构建上下文。Orchestrator 将复合问题拆成带依赖、Owner、上下文范围、风险和完成标准的 TaskGraph；领域 Worker 按拓扑波次执行最大 4 步 ReAct，只能看到 allowlist 工具。写操作可暂停为持久 checkpoint，审批后幂等恢复。CoverageGate 证明必需任务覆盖后，Synthesizer 才融合候选；Verifier 只有明确 PASS 才发布。失败进入带版本归因的 Bad Case，候选只在本地离线评测，验证通过后由开发者显式设为唯一 Active Bundle。
 
 ### 3 分钟版本的顺序
 
@@ -46,9 +46,9 @@ DialogPilot 是一个 Python 3.12 + FastAPI 的异步多 Agent 客服后端。�
 1. 问题：单提示词客服把路由、知识、记忆、安全和升级混成黑盒。
 2. 合同：一次请求必须得到可诊断的路由结果；只有明确 `PASS` 的回答能发布；需要人工时同步尝试创建持久工单，并把建单成功或失败明确返回。
 3. 主链：Bundle → Memory → Intent → RAG → Context → TaskGraph → Worker/ReAct → Coverage → Synthesis → Verification → Ticket/Persist。
-4. 学习链：Bad Case → Envelope → Attribution → 4–8 Bundles → Graduation/Pareto → Shadow → 5% → 25% → Active/Rollback。
+4. 学习链：Bad Case → Envelope → Attribution → 4–8 Bundles → 本地 Graduation/Pareto → 显式设置 Active。
 5. 七个最值得深挖的改动：单调事件与范围摘要 checkpoint、混合长期记忆、TaskGraph/CoverageGate、有界 ReAct 与持久审批恢复、请求预算下的结果代数、发布校验、受控 Agent 进化。
-6. 证据：355 项测试，覆盖注入防护、业务范围处置、身份/公开投影、记忆生命周期、TaskGraph DAG、审批 Resume/幂等恢复、RAG source/sparse/evidence/publish、不可变 Bundle、候选门禁、稳定分桶、Shadow 零写入和自动回滚等合同。
+6. 证据：全量自动化测试与本地 E2E，覆盖注入防护、业务范围处置、身份/公开投影、记忆生命周期、TaskGraph DAG、审批 Resume/幂等恢复、RAG source/sparse/evidence/publish、不可变 Bundle 和候选门禁等合同。
 7. 边界：已有 JWT/scope 基线；多租户 IdP/ABAC 未完成，SQLite 只适合单应用写者，普通 Trace/审计重启丢失；已有 500 条分层候选集，但尚无 human-reviewed gold，不能声称生产准确率或“完整复现 GEPA/Agent Lightning”。
 
 ## 1. 如何学习这个仓库
@@ -454,7 +454,7 @@ SHA-256(
 
 代码：[`mcp/tool_manager.py`](../mcp/tool_manager.py)、[`mcp/knowledge_base.py`](../mcp/knowledge_base.py)、[`mcp/document_chunker.py`](../mcp/document_chunker.py)、[`mcp/query_transformer.py`](../mcp/query_transformer.py)、[`mcp/result_reranker.py`](../mcp/result_reranker.py)、[`mcp/context_packer.py`](../mcp/context_packer.py)、[`mcp/grounded_answer_generator.py`](../mcp/grounded_answer_generator.py)
 
-完整实验与复现命令见 [客服 RAG 全链路评测](./rag-pipeline-evaluation/)。阅读本章时必须区分两件事：**仓库 API 默认**已切到 Doc2Dial Dev 冻结配置并完成 test split 报告；**外部生产验证**仍缺人工 Judge 校准、真实串行 P95 和 shadow/canary。
+完整实验与复现命令见 [客服 RAG 全链路评测](./rag-pipeline-evaluation/)。阅读本章时必须区分两件事：**仓库 API 默认**已切到 Doc2Dial Dev 冻结配置并完成 test split 报告；当前目标只要求本地 heldout、串行延迟与 E2E 可复现，不声称外部生产验证。
 
 ### 7.1 为什么先做 Intent Gate
 
@@ -1109,7 +1109,7 @@ Monitor 每隔 N 秒：
 
 ### 15.5 什么能说，什么不能说
 
-可以说：“建立了版本化四层评测合同、公开数据适配、split/checksum/review 门禁、Stateful Owner fixture 和隔离 RAG producer。”原 500 条项目集的 **provisional** 结果与独立 Doc2Dial RAG 不能横向拼成一个总分。Doc2Dial Dev 用 100 文档/300 case 选择 512/64、BM25 .75/Dense .25/RRF k=10，并在 48 条多轮压力集选择 Query、Rerank、Packing 与 Generation；冻结配置随后在 test split 的 40 文档/48 条检索上报告，模型全链只覆盖 9 个 dialogue group。代码已切默认，但仍不能写成生产准确率；缺 human-reviewed gold、人工 Judge 校准和线上 shadow/canary。
+可以说：“建立了版本化四层评测合同、公开数据适配、split/checksum/review 门禁、Stateful Owner fixture 和隔离 RAG producer。”原 500 条项目集的 **provisional** 结果与独立 Doc2Dial RAG 不能横向拼成一个总分。Doc2Dial Dev 用 100 文档/300 case 选择 512/64、BM25 .75/Dense .25/RRF k=10，并在 48 条多轮压力集选择 Query、Rerank、Packing 与 Generation；冻结配置随后在 test split 的 40 文档/48 条检索上报告，模型全链只覆盖 9 个 dialogue group。代码已切默认，但仍不能写成生产准确率；简历只陈述可复现的本地数据、确定性评分与 E2E 结果。
 
 ### 15.6 线上 Bad Case 怎样真正闭环
 
@@ -1679,7 +1679,7 @@ python -m pytest -q
 
 **答：** 当前 `/chat` 有历史时使用 Raw .25 + Standalone .75；无历史或改写失败时退回 Raw 1.0，因此不带历史参数的公开 `/search` 是 Raw 路径。两者共用 BM25 .75 + Dense .25、RRF k=10、first-stage 20、LLM rerank 到 5；`/chat` 再做 Context Top-5/2600。`knowledge_search` TTL 是 300 秒，通用工具默认 timeout 30 秒，单 Agent deadline 默认 15 秒。
 
-**追问：哪些是实验结论，哪些仍是工程初值？** Chunk、first-stage 权重、Query mass、RRF k、rerank final-k 和 packing budget有 Doc2Dial Dev 消融并已成为仓库默认；TTL、timeout 与 Agent deadline 仍是工程配置。代码默认接入不等于真实流量已验证，后者仍需 shadow/canary 与 P95。
+**追问：哪些是实验结论，哪些仍是工程初值？** Chunk、first-stage 权重、Query mass、RRF k、rerank final-k 和 packing budget有 Doc2Dial Dev 消融并已成为仓库默认；TTL、timeout 与 Agent deadline 仍是工程配置。代码默认接入只代表本地测试和 Demo 可复现，不等于真实流量已验证。
 
 ### 维度二：技术决策过程
 
@@ -1747,7 +1747,7 @@ python -m pytest -q
 
 **答：** 有三类不同口径，不能混算。第一类是 11 条意图 + 5 组对话 smoke。第二类是版本化 500 条项目 fixture：180 intent/OOS、120 routing、100 retrieval、100 stateful，配套 25 篇 corpus 和 400/100 dev/heldout，但样本仍是 provisional。第三类是公开客服 RAG：基础 Doc2Dial Dev 为 100 篇文档、300 个客服 turn、488 个官方 grounding span，模型阶段取 48 条；长文档结构压力又增加 36 个 Doc2Dial span-Gold group 和 32 个 WixQA article-Gold group，相关文档至少 8,000 字符。Span Gold 与 article Gold 不混算，结构预检也不能继承生成质量结论。这些数据仍不能证明中文、多租户真实流量或长尾业务泛化。
 
-**不能声称什么：** 不能据此声称生产准确率、行业 SOTA 或已完成闭环。仓库新默认已接入并做了小规模 test split 冻结报告，但外部生产发布仍需要真实脱敏客服 slice、人工盲审校准 Judge、串行延迟复测，以及 shadow/canary。
+**不能声称什么：** 不能据此声称生产准确率、行业 SOTA 或已完成线上闭环。仓库新默认已接入并做了小规模 test split 冻结报告；当前仅承诺本地 heldout、串行延迟与 E2E 的可复现结果。
 
 ### Q39：如果要验证 chunk size，从哪组实验开始？
 
@@ -2207,16 +2207,16 @@ reasoning 模式还设置 `min_completion_tokens`。原因不是“多给点 tok
 
 **答：** 已完成 15 条 provisional seed 的三档消融，但它每档只有一次运行，也不是 human-reviewed gold；尚无置信区间、实时 token/cost budget、供应商 fallback、熔断后的跨模型切换和动态复杂度路由。面试时应说“当前矩阵有小样本实测依据，最终最优选择仍待 gold 数据和重复运行证明”。
 
-## 29. 受控 Agent 进化：Baseline、TaskGraph、Checkpoint 与 Rollout
+## 29. 受控 Agent 进化：Baseline、TaskGraph、Checkpoint 与本地激活
 
 这轮改造把四个原本容易混淆的问题分开：
 
 1. **评测事实**：普通 eval run 不能覆盖稳定 Baseline，只有 Graduation 成功后才能显式晋级不可变 Snapshot；
 2. **运行事实**：`TaskGraph` 拥有依赖和上下文范围，`RunStore` 拥有暂停/恢复和工具调用幂等；
 3. **学习事实**：Bad Case 只提供失败证据，Evolution 层完成组件归因和候选生成；
-4. **发布事实**：RolloutManager 独占 Shadow、Canary、Active 和 Rollback 状态迁移。
+4. **激活事实**：`ActiveBundleResolver` 只解析注册表中显式选定的唯一 Active Bundle，不承担流量灰度或自动回滚。
 
-完整专题页见[Agent 进化闭环](./agent-evolution/)。下面从代码链路解释它怎样接进现有仓库。
+下面从代码链路解释离线候选如何接进当前本地运行主链。
 
 ### 29.1 为什么 Baseline 必须不可变
 
@@ -2263,7 +2263,7 @@ Run checkpoint 用版本字段做 CAS。Tool call 账本以唯一 call ID 原子
 
 `AgentBundle` 是递归冻结的 JSON 合同，同名版本内容不同时注册失败。允许面只有 prompts、few_shots、routing_policy、retrieval_policy、tool_descriptions 和 model_policy；permission、approval、JWT、auth、PII、redaction、Verifier、Gold 等字段没有自动修改权。
 
-一次 `/chat` 在最开始由 RolloutManager 解析 Bundle 并固定对象。Intent cache 加上 Prompt/Few-shot 哈希，RAG cache 加上 retrieval policy 哈希，Worker、Verifier、ReAct checkpoint 和 EvolutionEnvelope 都复用同一个版本，关闭了“API 显示 v18、实际某个子调用仍用 v17”的分叉。
+一次 `/chat` 在最开始由 `ActiveBundleResolver` 解析 Bundle 并固定对象。Intent cache 加上 Prompt/Few-shot 哈希，RAG cache 加上 retrieval policy 哈希，Worker、Verifier、ReAct checkpoint 和 EvolutionEnvelope 都复用同一个版本，关闭了“API 显示 v18、实际某个子调用仍用 v17”的分叉。
 
 ### 29.5 GEPA-lite 候选和 Graduation/Pareto
 
@@ -2273,37 +2273,22 @@ Run checkpoint 用版本字段做 CAS。Tool call 账本以唯一 call ID 原子
 
 Pareto 目标是 `quality ↑ / latency ↓ / cost ↓`，但只在已经通过安全硬门禁的候选中计算。它不是一个可以让低安全分被高流畅度抵消的加权总分。
 
-### 29.6 Shadow、Canary 与自动回滚
+### 29.6 本地激活边界
 
-```mermaid
-stateDiagram-v2
-    [*] --> CANDIDATE
-    CANDIDATE --> SHADOW: matching Graduation
-    SHADOW --> CANARY_5
-    CANARY_5 --> CANARY_25
-    CANARY_25 --> ACTIVE
-    SHADOW --> ROLLED_BACK
-    CANARY_5 --> ROLLED_BACK
-    CANARY_25 --> ROLLED_BACK
-    ACTIVE --> ROLLED_BACK
-```
-
-Shadow 跑真实输入副本，但不发布、不写记忆、不建 Ticket、不登记 Bad Case，ToolManager 在 Owner 边界拒绝所有影子写工具；只读调用也不更新生产缓存、breaker 和 Agent stats。Canary 使用认证 `subject` 加 secret salt 的 SHA-256 稳定分桶，只允许 5% 再到 25%，25% 后才能 Active。
-
-越权、隐私泄漏、跨用户召回和错误写操作属于硬信号，一次即回滚。Verifier pass rate、P95 latency 和 cost proxy 属于软信号：候选/基线都达到最小样本后才比较，pass rate 用 Wilson 区间防止小样本抖动。回滚在同一 SQLite 事务中恢复 pointer；在途请求继续使用其固定 Bundle，新请求读取恢复后的版本。
+仓库没有线上流量和历史版本迁移需求，因此不执行 Shadow 副本、稳定分桶、Canary、promotion 或自动 rollback。候选通过固定 dev/heldout 集、确定性 Gate 和本地 E2E 后，由开发者显式更新 Active Bundle；失败时修正候选或重新选择已注册版本。一次已开始的请求仍持有同一个不可变 Bundle，保证 TaskGraph、Prompt、Tool 描述和 Resume checkpoint 不跨版本混用。
 
 ### 29.7 实现边界
 
 - 这是受 GEPA 轨迹反思/Pareto 思路启发的 **GEPA-lite**，不是论文算法复现；
 - 没有 Agent Lightning 的训练、RL、Replay Buffer 或模型权重更新；
 - CandidateRunner 已有完整接口，但 human Gold 仍为 0，不能说候选已获生产认证；
-- Shadow 会增加模型与检索容量；在线 cost 目前是 Agent/tool 数代理值，不是供应商金额；
+- 本地 cost 目前是 Agent/tool 数代理值，不是供应商账单；
 - 硬信号 API 已闭合，真实隐私和跨用户检测仍需要外部安全监控 producer；
 - RunStore 恢复单个 ReAct task，不是跨服务全图恢复；SQLite 权威库当前只适合单应用写者。
 
 ### Q81：这和“自动改 Prompt”本质上差在哪？
 
-**答：** 自动改 Prompt 把生成、验证和发布混成一个动作；这里将运行、学习和发布分离。模型只能提出不可变候选，CandidateRunner/Gate 拥有验证，RolloutManager 独占指针，任何候选都不能直接修改 Active。
+**答：** 自动改 Prompt 把生成、验证和激活混成一个动作；这里将运行、学习和本地激活分离。模型只能提出不可变候选，CandidateRunner/Gate 拥有验证，`ActiveBundleResolver` 只读取开发者显式选定的版本，候选不能自行修改 Active。
 
 ### Q82：Credit Assignment 怎么做？
 
@@ -2317,34 +2302,18 @@ Shadow 跑真实输入副本，但不发布、不写记忆、不建 Ticket、不
 
 **答：** 因为布尔值没有 provenance，调用者可以静态伪造。Gate 必须实际执行并返回 evidence ID 和 details checksum；artifact 名还必须与注册的 Runner 一致。
 
-### Q85：为什么只能 5% 再 25%？
-
-**答：** 闭合阶段更容易测试，也避免任意百分比跳跃绕过观察窗口。当前规模不需要通用流量 DSL；如果未来证据支持更多阶段，再扩展状态合同而不是接受任意数值。
-
-### Q86：Shadow 怎样证明零业务副作用？
-
-**答：** 不是靠 Prompt 告诉模型“不要写”，而是 `execution_mode=shadow` 在 ToolManager 权威执行边界拒绝写 Tool，并跳过 Memory/Ticket/Bad Case；测试还验证只读 shadow 不污染生产缓存、breaker 和 Agent stats。
-
-### Q87：硬回滚和软回滚为什么分开？
-
-**答：** 越权/泄漏/跨用户/错误写操作的容忍度是零，不需要统计显著性；回答拒绝率、延迟和成本天然有波动，需要最小样本和区间判断，否则一次异常就会造成版本来回抖动。
-
-### Q88：回滚时在途请求怎么办？
-
-**答：** 它继续使用开始时持有的 Bundle 对象，确保一次执行内部一致；原子指针只影响之后解析版本的新请求。若强行中途替换，TaskGraph、Prompt、Tool 描述和 Resume checkpoint 可能跨版本混合。
-
 ### Q89：为什么没有直接上 Agent Lightning？
 
 **答：** 当前主要优化对象是 Prompt/路由/检索，数据又是 provisional，缺乏稳定奖励和真实轨迹规模。先用反思式候选和确定性 Gate 更便宜、可解释；等 human Gold、线上 reward 与 step-level trace 足够，再评估离线 RL 是否有增益。
 
 ### Q90：这算 SOTA 吗？
 
-**答：** 不能说项目达到 benchmark SOTA。可以说架构对齐了当前成熟实践：运行/学习分离、轨迹归因、多候选、多目标门禁、灰度和原子回滚；GEPA 与 Agent Lightning 是参考路线，仓库实现的是受限工程版本。
+**答：** 不能说项目达到 benchmark SOTA。可以说架构保留了适合本地项目的成熟实践：运行/学习分离、轨迹归因、多候选、多目标门禁和显式版本固定；GEPA 与 Agent Lightning 是参考路线，仓库实现的是受限工程版本。
 
 ### Q91：这轮改造前后最清楚的变化是什么？
 
-**答：** 前：Task 是平面列表、写工具批准后无法恢复、eval 可能混淆 baseline、Bad Case 之后靠人工直接改配置、发布全量且回滚靠改文件。后：TaskGraph 依赖/隔离、RunStore Resume、不可变 Baseline/Bundle、受限候选与 provenance Gate、Shadow/Canary/原子回滚。
+**答：** 前：Task 是平面列表、写工具批准后无法恢复、eval 可能混淆 baseline、Bad Case 之后靠人工直接改配置。后：TaskGraph 依赖/隔离、RunStore Resume、不可变 Baseline/Bundle、受限候选与 provenance Gate，以及一个确定的 Active Bundle 主路径。
 
 ### Q92：简历怎么写？
 
-> 利用脱敏执行归因、不可变 AgentBundle 与多目标 Graduation Gate 建立 Agent 持续优化闭环，解决线上 Bad Case 直接改 Prompt 导致的版本漂移、回归不可复现和安全边界误改；结合 TaskGraph 依赖调度、持久审批 Resume、Shadow/5%/25% 灰度和硬/软自动回滚，使失败可归因、候选可验证、写操作可恢复、版本可撤销，并以 355 项回归验证合同，评测数据未获 human Gold 前不虚构生产准确率。
+> 利用脱敏执行归因、不可变 AgentBundle 与多目标 Graduation Gate 建立本地 Agent 持续优化闭环，解决 Bad Case 直接改 Prompt 导致的版本漂移、回归不可复现和安全边界误改；结合 TaskGraph 依赖调度、持久审批 Resume 和唯一 Active Bundle，使失败可归因、候选可验证、写操作可恢复、Demo 可复现，并以全量自动化测试和本地 E2E 验证合同。

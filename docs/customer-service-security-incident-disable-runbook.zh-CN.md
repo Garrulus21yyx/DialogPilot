@@ -17,8 +17,8 @@ Agent Runtime、Domain Tool 与 Observability。模型输出、caller 日志和�
 
 ## 2. 立即 containment
 
-1. 停止受影响入口的新 admission。全局事件由 ingress 下线 chat/upload；route candidate 事件调用
-   RolloutManager rollback。previous 不兼容时保持 `BLOCKED_FORWARD_FIX`，不能强退。
+1. 停止受影响入口的新 admission。全局事件由 ingress 下线 chat/upload；Bundle 问题由开发者显式选择
+   已验证版本或提交 forward-fix，不存在自动 rollback/promotion 状态机。
 2. 写工具事件设置 `TOOL_APPROVAL_MODE=require_all`，在工具注册/ingress 层禁用具体 write tool；保存
    ToolExecutionLedger，不删除或重放 unknown-effect attempt。
 3. Knowledge/Memory 注入事件停止受影响 corpus/generation，active pointer 只原子回到 compatible previous；
@@ -34,7 +34,7 @@ Agent Runtime、Domain Tool 与 Observability。模型输出、caller 日志和�
 - 内容：只保存 fingerprint、source/revision/chunk/manifest refs；避免复制原始 PII 到事件聊天或 Trace。
 - 工具：call/operation key、approval actor/binding、effect status、authoritative receipt；unknown 保持
   reconciliation。
-- Rollout：Bundle/hash、route/backend/generation/corpus/retrieval refs、pointer event 与 assignment stage。
+- Runtime：Bundle/hash、route/backend/generation/corpus/retrieval refs 与请求固定的 execution refs。
 - 删除：tombstone/deletion epoch、projection watermark/outbox receipt。
 
 使用 `governance/security/x-t03-threat-model-v1.json` 将事件映射到 threat/control owner。Trace/badcase
@@ -43,10 +43,10 @@ Agent Runtime、Domain Tool 与 Observability。模型输出、caller 日志和�
 ## 4. 恢复条件
 
 必须同时满足：根因与受影响 authority 已确定；credential 已轮换；跨租户/重复写/删除复活为零；unknown
-effect 已由权威 receipt 解析或继续 reconciliation；adversarial corpus 与 held-out 测试通过；新 Bundle/
-generation 重新走 shadow/canary gate；Security 与对应 Domain Owner 审阅证据。
+effect 已由权威 receipt 解析或继续 reconciliation；adversarial corpus、held-out 与本地 E2E 测试通过；新 Bundle/
+generation 由开发者显式设为 Active，并保存可复现的机器报告。
 
-被 rollback 的 Bundle 不复活，使用新版本 forward-fix。被污染 SourceRevision 不改写，发布新 revision/
+存在安全问题的 Bundle 不再设为 Active，使用新版本 forward-fix。被污染 SourceRevision 不改写，发布新 revision/
 manifest。恢复写工具时必须保留相同 operation/idempotency 合同。
 
 ## 5. 事后闭环

@@ -373,9 +373,8 @@ and generated caches are intentionally excluded. Never commit `.env`.
 - HTTP routes verify HS256 bearer tokens; chat memory identity comes from the
   signed `sub`, while admin and knowledge routes require scopes. Multi-tenant
   organization policy and external IdP/JWKS integration remain future work.
-- SQLite is suitable for a single application writer; a multi-replica deployment
-  should migrate the TicketService, BadCaseRegistry, RunStore, BundleRegistry,
-  and RolloutManager contracts to a shared transactional database.
+- SQLite remains only for local TicketService, BadCaseRegistry, RunStore, and
+  immutable Bundle metadata; the runtime selects one bootstrapped Active Bundle.
 - LLM verification adds latency and model cost to each published response.
 - The repository has a 500-case provisional layered suite but no human-reviewed
   gold cases yet. Stateful heldout has been consumed as regression evidence;

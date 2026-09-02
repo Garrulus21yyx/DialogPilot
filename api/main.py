@@ -97,9 +97,7 @@ from services.evolution import (
     EvolutionEnvelope,
     BadCaseMiner,
     CreditAttributor,
-    PinnedExecutionRefs,
-    RolloutManager,
-    SoftRollbackPolicy,
+    ActiveBundleResolver,
     build_default_bundle,
     build_llm_proposal_generator,
 )
@@ -142,7 +140,7 @@ _model_policy = None
 _run_store = None
 _bundle_registry = None
 _proposal_generator = None
-_rollout_manager = None
+_bundle_resolver = None
 _postgres_pool = None
 _retrieval_postgres_pool = None
 _service_episode_search = None
@@ -200,7 +198,7 @@ def _anthropic_cfg() -> Dict[str, Any]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """按依赖顺序创建所有组件，并在退出时释放后台任务和连接。"""
-    global _orchestrator, _memory, _knowledge_base, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator, _rollout_manager, _grounded_answer_generator, _postgres_pool, _conversation_query, _knowledge_retriever, _retrieval_cache_client, _durable_chat_coordinator, _durable_chat_task, _durable_chat_stop, _retrieval_postgres_pool, _service_episode_search
+    global _orchestrator, _memory, _knowledge_base, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator, _bundle_resolver, _grounded_answer_generator, _postgres_pool, _conversation_query, _knowledge_retriever, _retrieval_cache_client, _durable_chat_coordinator, _durable_chat_task, _durable_chat_stop, _retrieval_postgres_pool, _service_episode_search
 
     print(BANNER, flush=True)
 
@@ -241,18 +239,7 @@ async def lifespan(app: FastAPI):
     )
     bootstrap_rag_policy = rag_retrieval_policy_from_env(os.environ)
     default_bundle = build_default_bundle(_model_policy.to_dict(), bootstrap_rag_policy)
-    _, bundle_migrated = _bundle_registry.bootstrap_successor(
-        default_bundle,
-        predecessor_version="agent-v1",
-        expected_predecessor_retrieval={
-            "top_k": 3,
-            "rrf_k": 60,
-            "vector_weight": 0.0,
-            "lexical_weight": 1.0,
-        },
-    )
-    if bundle_migrated:
-        logger.info("Active bootstrap Bundle migrated to %s", default_bundle.version)
+    _bundle_registry.bootstrap(default_bundle)
     _proposal_generator = build_llm_proposal_generator(
         api_key=cfg["api_key"],
         base_url=cfg.get("base_url"),
@@ -538,16 +525,6 @@ async def lifespan(app: FastAPI):
     AuthorityPolicyRegistry.v1().validate_tools(_tool_manager.registered_tools)
     _orchestrator.set_tool_manager(_tool_manager)
 
-    def validate_bundle_activation(bundle: AgentBundle) -> tuple[str, ...]:
-        """激活只接受当前进程真正能执行的模型和工具描述目标。"""
-        errors = []
-        if dict(bundle.model_policy) != _model_policy.to_dict():
-            errors.append("model_policy requires a matching runtime deployment")
-        unknown_tools = set(bundle.tool_descriptions) - set(_tool_manager.registered_tool_names)
-        if unknown_tools:
-            errors.append(f"unknown tool descriptions: {sorted(unknown_tools)}")
-        return tuple(errors)
-
     def route_execution_refs(bundle: AgentBundle) -> Dict[str, str]:
         """Freeze every route/Knowledge read pointer before rollout admission."""
         from agents.request_shape_policy import RequestShapePolicy
@@ -572,34 +549,9 @@ async def lifespan(app: FastAPI):
             "retrieval_policy_ref": bundle.component_hash("retrieval_policy"),
         }
 
-    def validate_route_execution_refs(
-        refs: PinnedExecutionRefs,
-    ) -> tuple[str, ...]:
-        try:
-            bundle = _bundle_registry.get(refs.bundle_version)
-        except BundleNotFoundError:
-            return ("bundle no longer exists",)
-        expected = route_execution_refs(bundle)
-        return tuple(
-            f"{name} is unavailable"
-            for name, value in expected.items()
-            if getattr(refs, name) != value
-        )
-
-    _rollout_manager = RolloutManager(
+    _bundle_resolver = ActiveBundleResolver(
         _bundle_registry,
-        bucket_salt=(os.getenv("ROLLOUT_BUCKET_SALT") or os.getenv("AUTH_JWT_SECRET", "")),
-        activation_validator=validate_bundle_activation,
         execution_ref_resolver=route_execution_refs,
-        execution_ref_validator=validate_route_execution_refs,
-        strict_execution_refs=True,
-        soft_policy=SoftRollbackPolicy(
-            min_candidate_samples=int(os.getenv("ROLLOUT_SOFT_MIN_CANDIDATE_SAMPLES", "100")),
-            min_baseline_samples=int(os.getenv("ROLLOUT_SOFT_MIN_BASELINE_SAMPLES", "100")),
-            max_reject_rate_delta=float(os.getenv("ROLLOUT_MAX_REJECT_RATE_DELTA", "0.05")),
-            max_latency_p95_ratio=float(os.getenv("ROLLOUT_MAX_LATENCY_P95_RATIO", "1.20")),
-            max_cost_mean_ratio=float(os.getenv("ROLLOUT_MAX_COST_MEAN_RATIO", "1.20")),
-        ),
     )
 
     # 性能监控（可选启动 Prometheus）
@@ -691,7 +643,7 @@ async def lifespan(app: FastAPI):
             admission=PostgresAdmissionUnitOfWork(_postgres_pool),
             dispatcher=dispatcher,
             execution_outbox=execution_outbox,
-            rollout_manager=_rollout_manager,
+            bundle_resolver=_bundle_resolver,
             bundle_registry=_bundle_registry,
             completed_reader=_response_delivery,
             worker_id=os.getenv("DIALOGPILOT_DURABLE_CHAT_WORKER_ID", "api-compat"),
@@ -781,7 +733,7 @@ async def lifespan(app: FastAPI):
         _run_store = None
         _bundle_registry = None
         _proposal_generator = None
-        _rollout_manager = None
+        _bundle_resolver = None
         _retrieval_postgres_pool = None
         _service_episode_search = None
         _postgres_pool = None
@@ -889,7 +841,6 @@ class ChatResponse(BaseModel):
     ticket_status: Optional[str] = None
     handoff_created: bool = False
     bundle_version: str = "unversioned"
-    rollout_stage: str = "active"
     awaiting_approval: bool = False
     react_run_ids: List[str] = Field(default_factory=list)
     pending_approval_call_ids: List[str] = Field(default_factory=list)
@@ -1868,7 +1819,7 @@ def _core_chat_application(
             response_delivery=_response_delivery,
             context_assembler=_context_assembler,
             bundle_registry=_bundle_registry,
-            rollout_manager=_rollout_manager,
+            bundle_resolver=_bundle_resolver,
             tool_manager=_tool_manager,
             trace_recorder=_trace_recorder,
             knowledge_base=_knowledge_base,
