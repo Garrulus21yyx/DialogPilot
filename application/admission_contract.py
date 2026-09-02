@@ -169,7 +169,13 @@ class ClaimStart:
 
 
 class InvocationRepository(Protocol):
-    def get(self, invocation_key: InvocationKey) -> AdmissionRecord | None: ...
+    def get(
+        self,
+        invocation_key: InvocationKey,
+        *,
+        tenant_id: str,
+        user_id: str,
+    ) -> AdmissionRecord | None: ...
 
     def compare_and_set(
         self,
@@ -179,6 +185,8 @@ class InvocationRepository(Protocol):
         expected_version: int,
         target_status: AdmissionStatus,
         execution_pointer: ExecutionPointer | None,
+        tenant_id: str,
+        user_id: str,
     ) -> AdmissionCasResult: ...
 
 

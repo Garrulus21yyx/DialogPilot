@@ -19,6 +19,7 @@
 | M0-T05 Gate Manifest Foundation | done | `evaluation/gates/m0-exit/v1.*`，decision=`APPROVE` |
 | M1-PF01 PostgreSQL Platform Foundation | implemented | 生产快照副本验证待真实快照；本地 restore drill 通过 |
 | M1-T00 Admission/Execution/ChatOutcome v1 | done | CAS/ports/projection/OpenAPI/M3 cutover contract |
+| M1-T01 ConversationTurnStore schema | done | PostgreSQL migration `0002` + immutable scoped repositories |
 | M1 完整会话事实与幂等发布 | in_progress | 按 T00–T05/T03A/T04A 子节点推进 |
 | M2 Route/Authority/Evidence/RAG | pending | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
@@ -178,10 +179,29 @@
 - 验证：state product/参数化 tests、terminal conflict、signal replay、fingerprint、M3 enum surface 和
   OpenAPI status 全覆盖；真实 PostgreSQL fixture 下全套 `466 passed`。
 
+### M1-T01
+
+- PostgreSQL schema：`conversations/conversation_turns/conversation_events/workflow_invocations/
+  response_deliveries` 全部位于 `dialogpilot_app`；tenant/user/conversation 为显式 scope，TurnKey、
+  InvocationKey、OperationKey、publication/delivery key 具有数据库唯一约束与 retention 字段。
+- Transcript owner：Conversation 行在事务内持有独立 turn/event/publication next-seq；append 锁定 scope
+  行后分配并同事务递增，失败回滚不会留静默洞。Turn/Event 有 content SHA，数据库 trigger 禁止 UPDATE；
+  role 只接受 inbound/assistant/human/system_event，不保存内部 prompt。
+- Invocation：仅保存 admission、pinned versions、opaque runtime pointer、terminal ref 与 CAS version；
+  DB CHECK 强制只有 `EXECUTION_BOUND` 携 pointer，不新增 runtime lifecycle 列。
+- Delivery schema：通用 publication ID/kind/operation key，状态覆盖
+  `SELECTED→DELIVERING→DELIVERED/OUTCOME_UNKNOWN/FAILED` 与可选 READ、receipt/reconciliation；
+  本卡只建 owner schema，发布命令与 outbox 在 T03 实现。
+- Repositories：turn/event append 对同 key 同内容返回 `ALREADY_APPLIED`、异内容返回 typed conflict；
+  transcript/invocation read 强制 tenant+user scope；Invocation repository 直接实现 T00 CAS interface。
+- 验证：16 路同 key 并发只落一条；失败事务后 seq 为 `[1,2]`；immutable trigger、跨 scope deny、
+  admission replay/conflict/bind CAS 均在真实 PostgreSQL 18 验证；Alembic head=`0002`，全套
+  `472 passed`。
+
 ## 下一步
 
-1. 提交并推送 M1-T00 contracts。
-2. 实施 M1-T01：建立 PostgreSQL ConversationTurnStore schema、不可变 turn/event、invocation admission
-   与通用 publication/delivery owner。
+1. 提交并推送 M1-T01 schema/repositories。
+2. 实施 M1-T02：把 inbound turn、REQUEST_ACCEPTED、queued invocation 与唯一 start outbox 收敛到
+   单个 PostgreSQL 事务，并实现 lease dispatcher/同 run binding。
 3. 保持 production snapshot restore 和 deployed Chroma legacy index 不兼容为显式未满足证据，
    不让后续 migration/cutover 静默越过。

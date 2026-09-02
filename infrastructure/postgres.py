@@ -96,8 +96,12 @@ class PostgresPool:
             with self._pool.connection() as connection:
                 with connection.transaction():
                     yield connection
-        except psycopg.Error as exc:
-            raise PostgresUnavailableError("PostgreSQL transaction failed") from exc
+        except psycopg.OperationalError as exc:
+            if exc.sqlstate is None or exc.sqlstate.startswith("08") or exc.sqlstate in {
+                "57P01", "57P02", "57P03",
+            }:
+                raise PostgresUnavailableError("PostgreSQL transaction failed") from exc
+            raise
 
     def close(self) -> None:
         self._pool.close()
