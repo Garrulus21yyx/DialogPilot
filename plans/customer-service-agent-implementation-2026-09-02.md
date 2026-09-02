@@ -53,6 +53,7 @@
 | M6-T03 Gold / fresh heldout | workflow implemented / real data blocked | privacy+dual review+arbitration+group split+consumed transition；真实标注/Privacy evidence pending |
 | M5-T02A Agent MediaRequirementDecision | implemented (flag-off) | canonical binding/decision IDs、Agent-only producer、ACL/requiredness/stage validator；854 tests passed |
 | M5-T01 SourceRevision lifecycle/publication | implemented (behavior gated) | canonical state machine、scoped/global CAS pointer、request manifest pin、rollback/candidate/evidence fences；862 tests passed |
+| M5 Knowledge Gate | draft / not ready | unsigned reproducible manifest；fresh heldout、staging canary/rollback、production budget 与独立审批 pending；865 tests passed |
 | M6 Eval/Observability/Release | in_progress | T01 build 完成；T02–T09 按依赖推进 |
 | X-T01–X-T05 跨里程碑治理 | implemented / production reviews pending | 五个 build 节点完成；生产 snapshot/failover/security/billing 与独立文案 review 不伪造 |
 
