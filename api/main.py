@@ -14,7 +14,8 @@ import sys
 import uuid
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from typing import Any, Dict, List, Literal, Optional
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Literal, Mapping, Optional
 
 
 _ROOT = str(pathlib.Path(__file__).parent.parent.resolve())
@@ -132,6 +133,8 @@ _run_store = None
 _bundle_registry = None
 _proposal_generator = None
 _rollout_manager = None
+_postgres_pool = None
+_conversation_query = None
 _trace_recorder = TraceRecorder()
 _input_security_guard = PromptInjectionGuard()
 
@@ -182,7 +185,7 @@ def _anthropic_cfg() -> Dict[str, Any]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """按依赖顺序创建所有组件，并在退出时释放后台任务和连接。"""
-    global _orchestrator, _memory, _knowledge_base, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator, _rollout_manager, _grounded_answer_generator
+    global _orchestrator, _memory, _knowledge_base, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator, _rollout_manager, _grounded_answer_generator, _postgres_pool, _conversation_query
 
     print(BANNER, flush=True)
 
@@ -302,6 +305,43 @@ async def lifespan(app: FastAPI):
             str(pathlib.Path(_ROOT) / "data" / "responses" / "responses.db"),
         )
     )
+    database_url = os.getenv("DATABASE_URL", "").strip()
+    if database_url:
+        from infrastructure.postgres import (
+            PostgresMigrationRunner,
+            PostgresPool,
+            PostgresPoolConfig,
+        )
+        from infrastructure.postgres_conversation_query import (
+            PostgresConversationQueryService,
+        )
+
+        PostgresMigrationRunner(database_url).verify()
+        _postgres_pool = PostgresPool(PostgresPoolConfig.from_env())
+        _postgres_pool.open()
+        _conversation_query = PostgresConversationQueryService(
+            _postgres_pool,
+            runtime_reader=_compat_runtime_reader,
+            ticket_reader=_active_ticket_status_reader,
+        )
+        from infrastructure.delivery_binding import (
+            DeliveryRepositoryState,
+            PostgresDeliveryBindingRepository,
+        )
+
+        delivery_binding = PostgresDeliveryBindingRepository(_postgres_pool).get()
+        if delivery_binding.state is DeliveryRepositoryState.POSTGRES_ACTIVE:
+            from infrastructure.postgres_response_compat import (
+                PostgresResponseDeliveryCompatibilityService,
+            )
+
+            _response_delivery = PostgresResponseDeliveryCompatibilityService(
+                _postgres_pool,
+                resume_binding_secret=(
+                    os.getenv("RESUME_BINDING_SECRET")
+                    or os.getenv("AUTH_JWT_SECRET", "")
+                ),
+            )
     _badcase_registry = BadCaseRegistry(
         os.getenv(
             "BADCASE_DB_PATH",
@@ -493,6 +533,8 @@ async def lifespan(app: FastAPI):
             await _memory.close()
         if _knowledge_base is not None and hasattr(_knowledge_base, "close"):
             await asyncio.to_thread(_knowledge_base.close)
+        if _postgres_pool is not None:
+            _postgres_pool.close()
         # lifespan 结束后不留下指向已关闭资源的进程全局引用。
         _orchestrator = None
         _memory = None
@@ -513,6 +555,8 @@ async def lifespan(app: FastAPI):
         _bundle_registry = None
         _proposal_generator = None
         _rollout_manager = None
+        _postgres_pool = None
+        _conversation_query = None
         logger.info("DialogPilot 已关闭")
 
 
@@ -821,12 +865,20 @@ class BadCaseTransitionRequest(BaseModel):
 
 
 class ConversationFinalizeResponse(BaseModel):
-    """会话显式结束后的幂等归档结果。"""
+    """Deprecated compatibility wait for projection watermark convergence."""
     conv_id: str
     archived_messages: int
     finalized: bool
     already_empty: bool = False
     facts_flushed: bool = True
+    target_event_seq: int = 0
+    projection_watermarks: Dict[str, int] = Field(default_factory=dict)
+    caught_up: bool = True
+    deprecated: bool = True
+
+
+class ConversationCloseRequest(BaseModel):
+    reason_code: str = Field(default="user_closed", min_length=1, max_length=100)
 
 
 # ── 路由 ──────────────────────────────────────────────────────────────────────
@@ -1432,6 +1484,7 @@ def _chat_application() -> ChatApplication:
             rollout_manager=_rollout_manager,
             tool_manager=_tool_manager,
             trace_recorder=_trace_recorder,
+            knowledge_base=_knowledge_base,
         ),
         ChatOperations(
             active_ticket_context=_active_ticket_context,
@@ -1448,6 +1501,48 @@ def _chat_application() -> ChatApplication:
             verify_for_publication=_verify_for_publication,
         ),
     )
+
+
+def _compat_runtime_reader(invocation: Mapping[str, Any]) -> Mapping[str, Any] | None:
+    """Read legacy RunStore without letting it own public terminal completion."""
+    run_id = str(invocation.get("execution_run_id") or "")
+    if not run_id or _run_store is None:
+        return None
+    try:
+        checkpoint = _run_store.get_for_user(run_id, invocation["user_id"])
+    except Exception as exc:
+        return {
+            "runtime_kind": "compat",
+            "runtime_status": "UNAVAILABLE",
+            "reason_code": type(exc).__name__,
+        }
+    status = checkpoint.status.value
+    result = {
+        "runtime_kind": "compat",
+        "runtime_status": status,
+        "run_id": checkpoint.run_id,
+        "version": checkpoint.version,
+    }
+    if status == "COMPLETED":
+        result["reason_code"] = "FINAL_PUBLICATION_REQUIRED"
+    return result
+
+
+def _active_ticket_status_reader(
+    user_id: str, conversation_id: str,
+) -> Mapping[str, Any] | None:
+    if _ticket_service is None:
+        return None
+    tickets = _ticket_service.list_active_tickets(user_id=user_id, limit=20)
+    ticket = next((item for item in tickets if item.conv_id == conversation_id), None)
+    if ticket is None:
+        return None
+    return {
+        "ticket_id": ticket.ticket_id,
+        "status": ticket.status.value,
+        "priority": ticket.priority.value,
+        "assignee": ticket.assignee,
+    }
 
 
 @app.post(
@@ -1604,7 +1699,38 @@ async def finalize_conversation(
     conv_id: str,
     principal: Principal = Depends(_chat_principal),
 ):
-    """显式归档未达压缩阈值的短会话；并发写入时保留现场供幂等重试。"""
+    """Deprecated: wait for projections; this never closes the conversation."""
+    if _conversation_query is not None:
+        from infrastructure.postgres_conversation_query import (
+            ConversationQueryAccessDenied,
+            ConversationQueryNotFound,
+        )
+
+        try:
+            progress = await asyncio.to_thread(
+                _conversation_query.projection_progress,
+                tenant_id=os.getenv("DEFAULT_TENANT_ID", "default"),
+                user_id=principal.subject,
+                conversation_id=conv_id,
+            )
+        except (ConversationQueryNotFound, ConversationQueryAccessDenied) as exc:
+            raise HTTPException(404, {"error": "conversation_not_found"}) from exc
+        body = ConversationFinalizeResponse(
+            conv_id=conv_id,
+            archived_messages=0,
+            finalized=progress.caught_up,
+            already_empty=progress.target_event_seq == 0,
+            facts_flushed=(
+                progress.watermarks.get("fact_extraction", 0)
+                >= progress.target_event_seq
+            ),
+            target_event_seq=progress.target_event_seq,
+            projection_watermarks=dict(progress.watermarks),
+            caught_up=progress.caught_up,
+        )
+        if not progress.caught_up:
+            return JSONResponse(status_code=202, content=body.model_dump())
+        return body
     if _memory is None:
         raise HTTPException(503, "记忆服务未就绪")
     result = await _memory.finalize_conversation(principal.subject, conv_id)
@@ -1615,6 +1741,112 @@ async def finalize_conversation(
             "retryable": True,
         })
     return ConversationFinalizeResponse(conv_id=conv_id, **result)
+
+
+@app.get("/conversations/{conv_id}/turns", tags=["会话"])
+async def list_conversation_turns(
+    conv_id: str,
+    after_seq: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=200),
+    principal: Principal = Depends(_chat_principal),
+):
+    """Return the complete public transcript with a stable turn cursor."""
+    if _conversation_query is None:
+        raise HTTPException(503, "会话查询服务未就绪")
+    from infrastructure.postgres_conversation_query import (
+        ConversationQueryAccessDenied,
+        ConversationQueryNotFound,
+    )
+
+    try:
+        turns = await asyncio.to_thread(
+            _conversation_query.list_turns,
+            tenant_id=os.getenv("DEFAULT_TENANT_ID", "default"),
+            user_id=principal.subject,
+            conversation_id=conv_id,
+            after_seq=after_seq,
+            limit=limit,
+        )
+    except (ConversationQueryNotFound, ConversationQueryAccessDenied) as exc:
+        raise HTTPException(404, {"error": "conversation_not_found"}) from exc
+    return {
+        "conv_id": conv_id,
+        "turns": [turn.__dict__ for turn in turns],
+        "last_seq": turns[-1].seq if turns else after_seq,
+    }
+
+
+@app.get("/invocations/{invocation_key}", tags=["会话"])
+async def get_invocation_status(
+    invocation_key: str,
+    principal: Principal = Depends(_chat_principal),
+):
+    """Compose admission, execution, signal, delivery and ticket read models."""
+    if _conversation_query is None:
+        raise HTTPException(503, "会话查询服务未就绪")
+    from infrastructure.postgres_conversation_query import (
+        ConversationQueryAccessDenied,
+        ConversationQueryNotFound,
+    )
+
+    try:
+        view = await asyncio.to_thread(
+            _conversation_query.invocation_status,
+            invocation_key,
+            tenant_id=os.getenv("DEFAULT_TENANT_ID", "default"),
+            user_id=principal.subject,
+        )
+    except (ConversationQueryNotFound, ConversationQueryAccessDenied) as exc:
+        raise HTTPException(404, {"error": "invocation_not_found"}) from exc
+    return {
+        "invocation_key": view.invocation_key,
+        "workflow_run_id": view.workflow_run_id,
+        "admission_status": view.admission_status.value,
+        "execution_status": (
+            view.execution_status.value if view.execution_status else None
+        ),
+        "runtime": view.runtime,
+        "pending_signal": view.pending_signal,
+        "final_response": view.final_response,
+        "delivery_status": (
+            view.delivery_status.value if view.delivery_status else None
+        ),
+        "ticket": view.ticket,
+    }
+
+
+@app.post("/conversations/{conv_id}/close", tags=["会话"])
+async def close_conversation(
+    conv_id: str,
+    body: ConversationCloseRequest,
+    principal: Principal = Depends(_chat_principal),
+):
+    """Audit and close a conversation; unlike finalize, this fences later writes."""
+    if _conversation_query is None:
+        raise HTTPException(503, "会话查询服务未就绪")
+    from infrastructure.postgres_conversation_query import (
+        ConversationQueryAccessDenied,
+        ConversationQueryNotFound,
+    )
+
+    try:
+        result = await asyncio.to_thread(
+            _conversation_query.close_conversation,
+            tenant_id=os.getenv("DEFAULT_TENANT_ID", "default"),
+            user_id=principal.subject,
+            conversation_id=conv_id,
+            reason_code=body.reason_code,
+            actor=principal.subject,
+            created_at=datetime.now(timezone.utc).isoformat(),
+        )
+    except (ConversationQueryNotFound, ConversationQueryAccessDenied) as exc:
+        raise HTTPException(404, {"error": "conversation_not_found"}) from exc
+    return {
+        "conv_id": conv_id,
+        "close_id": result.close_id,
+        "already_closed": result.already_closed,
+        "closed_at": result.closed_at,
+    }
 
 
 @app.post("/responses/{response_id}/ack", tags=["回答送达"])
@@ -1646,7 +1878,7 @@ async def replay_responses(
     limit: int = Query(default=100, ge=1, le=200),
     principal: Principal = Depends(_chat_principal),
 ):
-    """客户端重连后按稳定 seq 续取遗漏回答，再逐条提交 ACK。"""
+    """Deprecated assistant-only compatibility projection; use /turns."""
     if _response_delivery is None:
         raise HTTPException(503, "回答送达服务未就绪")
     deliveries = await asyncio.to_thread(
@@ -1660,6 +1892,8 @@ async def replay_responses(
         "conv_id": conv_id,
         "responses": [delivery.to_public_dict() for delivery in deliveries],
         "last_seq": deliveries[-1].seq if deliveries else after_seq,
+        "projection_kind": "assistant_only_compatibility",
+        "deprecated": True,
     }
 
 

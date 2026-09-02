@@ -25,6 +25,7 @@
 | M1-T03A ResponseDelivery PostgreSQL 单主切换 | implemented | PR-10A/10B + local crash/restore drill；production snapshot cutover unverified |
 | M1-T04 Conversation projection outbox/deletion fence | implemented | PostgreSQL `0006`；4 projections + generation watermark + tombstone epoch |
 | M1-T04A DataLocationRegistry / pre-write fence | done | PostgreSQL `0007`；31 stable locations，4 write-approved，future writes fail closed |
+| M1-T05 Conversation/API read projections | implemented | PostgreSQL `0008`；turn/status/finalize watermark/close + PG delivery compatibility |
 | M1 完整会话事实与幂等发布 | in_progress | 按 T00–T05/T03A/T04A 子节点推进 |
 | M2 Route/Authority/Evidence/RAG | pending | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
@@ -325,6 +326,28 @@
 - 验证：artifact/catalog 结构、缺 proof、未知/planned/wrong producer/schema/retention、subject-create 权、
   四类 late write（producer/backfill/shadow/restore）、DB binding immutable 与 runner verification 全覆盖；
   空库重建到 Alembic head=`0007`，全套 `544 passed`。
+
+### M1-T05（IMPLEMENTED，production activation gated）
+
+- Transcript：新增 scoped `GET /conversations/{id}/turns?after_seq=`，只返回
+  `seq/role/content/created_at/request_id` allowlist；Bearer/secret/email/card 经过 public redactor，跨
+  tenant/user 统一拒绝且分页 cursor 稳定。旧 `/responses` 明确标记
+  `assistant_only_compatibility/deprecated`。
+- Invocation view：新增 `GET /invocations/{invocation_key}`，只读组合 Admission、compat runtime、最新
+  PendingSignal、唯一 final publication、独立 DeliveryStatus 和 active Ticket；final publication 优先于
+  runtime，legacy `COMPLETED` 缺 final 会投影 FAILED 而不是伪 COMPLETED，无 READ ACK 仍为 COMPLETED。
+- Finalize/close：legacy `finalize` 在 PG mode 只比较当前 projection generation 的四个 watermark，未追平
+  返回 202，追平返回 200；它不写 closed/deleted。`POST /conversations/{id}/close` 单事务写 immutable close
+  fact + `CONVERSATION_CLOSED` event，DB fence 阻止后续 turn/event/publication，重放不新增审计事实。
+- Delivery compatibility：PG binding=`POSTGRES_ACTIVE` 时 lifespan 原子选择 PG compatibility service，
+  final selection 仍调用 T03 canonical transaction；ChatApplication 传递 candidate、完整 Verifier outcome、
+  evidence hash、Bundle 和真实 Knowledge index manifest fingerprint。client delivered/read 转 canonical
+  receipt；same invocation retry、跨用户防枚举和 binding 非 PG fail-closed 均通过。
+- Binding 边界：`SQLITE_ACTIVE/FROZEN` 继续使用 legacy ResponseDelivery，不能因配置了 DATABASE_URL 就
+  偷换 writer；生产 PG writer 只在真实 T03A maintenance gate 后启用。当前同步 `/chat` admission/runtime
+  cutover 仍未执行，避免在 compatibility execution recovery 未闭合时制造永久 Accepted。
+- 验证：read model/HTTP adapter、脱敏/分页/权限、WAITING→COMPLETED、delivery 独立、watermark、close
+  fence、PG compatibility select/retry/ACK/READ/replay 全覆盖；Alembic head=`0008`，全套 `554 passed`。
 
 ## 下一步
 

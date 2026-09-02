@@ -7,6 +7,8 @@ request and gives later admission/runtime milestones a stable outcome algebra.
 from __future__ import annotations
 
 import asyncio
+import hashlib
+import json
 import logging
 from contextlib import nullcontext
 from dataclasses import dataclass
@@ -154,6 +156,7 @@ class ChatServices:
     rollout_manager: Any
     tool_manager: Any = None
     trace_recorder: Any = None
+    knowledge_base: Any = None
 
     @property
     def ready(self) -> bool:
@@ -412,6 +415,9 @@ class ChatApplication:
             publication_candidate, verification,
         )
         escalated = result.escalated or verification.need_escalation
+        disposition = getattr(
+            result.routing_disposition, "value", result.routing_disposition,
+        )
 
         ticket = None
         handoff_created = False
@@ -478,6 +484,36 @@ class ChatApplication:
                 identity_metadata={
                     **identity_metadata,
                     "operation_key": str(delivery_operation_key),
+                    "candidate_id": _publication_candidate_id(
+                        str(identity.invocation_key), response_text,
+                    ),
+                    "producer": "chat-application-compat-v1",
+                    "verifier_status": verification.status.value,
+                    "verification": {
+                        "status": verification.status.value,
+                        "grounded": verification.grounded,
+                        "need_escalation": verification.need_escalation,
+                        "reason": verification.reason,
+                        "reason_code": verification.reason_code.value,
+                    },
+                    "evidence_sha256": _canonical_sha256({
+                        "verification": {
+                            "status": verification.status.value,
+                            "grounded": verification.grounded,
+                            "need_escalation": verification.need_escalation,
+                            "reason": verification.reason,
+                            "reason_code": verification.reason_code.value,
+                        },
+                        "knowledge": knowledge_verification,
+                        "coverage": result.coverage,
+                    }),
+                    "bundle_version": bundle.version,
+                    "index_manifest_sha256": _knowledge_manifest_fingerprint(
+                        knowledge, services.knowledge_base,
+                    ),
+                    "projection_disposition": (
+                        "approval" if approval_pending else disposition
+                    ),
                 },
             )
         except Exception:
@@ -516,7 +552,6 @@ class ChatApplication:
             bundle=bundle,
             approval_pending=approval_pending,
         )
-        disposition = getattr(result.routing_disposition, "value", result.routing_disposition)
         await asyncio.to_thread(
             services.rollout_manager.record_outcome,
             bundle_version=bundle.version,
@@ -642,3 +677,31 @@ class ChatApplication:
             response=response,
             stages=tuple(stages),
         )
+
+
+def _publication_candidate_id(invocation_key: str, response_text: str) -> str:
+    return f"candidate:v1:{_canonical_sha256({
+        'invocation_key': invocation_key,
+        'response_text': response_text,
+    })}"
+
+
+def _canonical_sha256(value: Any) -> str:
+    encoded = json.dumps(
+        value, ensure_ascii=False, sort_keys=True,
+        separators=(",", ":"), allow_nan=False,
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def _knowledge_manifest_fingerprint(knowledge: Any, knowledge_base: Any) -> str:
+    evidence_pack = getattr(knowledge, "evidence_pack", None)
+    fingerprint = str(
+        getattr(evidence_pack, "index_manifest_fingerprint", "") or ""
+    )
+    if not fingerprint and knowledge_base is not None:
+        manifest = getattr(knowledge_base, "index_manifest", {})
+        if callable(manifest):
+            manifest = manifest()
+        fingerprint = str(dict(manifest or {}).get("manifest_fingerprint") or "")
+    return fingerprint if len(fingerprint) == 64 else ""
