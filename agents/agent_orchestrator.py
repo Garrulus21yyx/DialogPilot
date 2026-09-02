@@ -71,6 +71,7 @@ from core.llm_utils import extract_text_content
 from core.model_policy import ModelPolicy, ModelProfile, ModelRole
 from core.tracing import current_trace_id
 from memory.context import ContextSection, PromptContext
+from mcp.tool_manager import ToolExecutionReceipt
 from services.result_synthesizer import (
     AgentOutcome,
     AgentOutcomeStatus,
@@ -171,6 +172,7 @@ class AgentResponse:
     evidence_receipt_refs: List[str] = field(default_factory=list)
     authority_conflicts: List[str] = field(default_factory=list)
     terminal_outcome_status: str = ""
+    tool_receipts: tuple[ToolExecutionReceipt, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -354,6 +356,7 @@ class BaseAgent:
                 tool_call_ids = list(model_result.tool_call_ids)
                 react_run_id = model_result.run_id
                 pending_approval_call_ids = list(model_result.pending_approval_call_ids)
+                tool_receipts = model_result.tool_receipts
                 react_error = "" if completed else model_result.reason
             else:
                 content = model_result
@@ -363,6 +366,7 @@ class BaseAgent:
                 tool_call_ids = []
                 react_run_id = ""
                 pending_approval_call_ids = []
+                tool_receipts = ()
                 react_error = ""
             ms = (time.monotonic() - t0) * 1000
             if completed and record_stats:
@@ -386,6 +390,10 @@ class BaseAgent:
                 tool_call_ids=tool_call_ids,
                 react_run_id=react_run_id,
                 pending_approval_call_ids=pending_approval_call_ids,
+                tool_receipts=tool_receipts,
+                evidence_receipt_refs=[
+                    item.receipt_id for item in tool_receipts if item.receipt_id
+                ],
                 allow_fallback=completed,
             )
         except Exception as ex:
@@ -1836,6 +1844,7 @@ class AgentOrchestrator:
             pending_approval_call_ids=response.pending_approval_call_ids,
             artifacts=artifacts,
             authority_conflicts=response.authority_conflicts,
+            tool_receipts=response.tool_receipts,
         ))
 
     async def _execute_outcome(

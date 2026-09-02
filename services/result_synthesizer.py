@@ -24,6 +24,7 @@ from agents.task_policies import (
 from core.llm_metrics import create_message
 from core.llm_utils import extract_text_content
 from core.model_policy import ModelProfile, ModelRole
+from mcp.tool_manager import ToolExecutionReceipt
 
 
 class AgentOutcomeStatus(str, Enum):
@@ -72,6 +73,7 @@ class AgentOutcome:
     pending_approval_call_ids: List[str] = field(default_factory=list)
     artifacts: tuple[TaskArtifact, ...] = ()
     authority_conflicts: List[str] = field(default_factory=list)
+    tool_receipts: tuple[ToolExecutionReceipt, ...] = ()
 
     def to_dict(self) -> Dict[str, Any]:
         """转换为 API 可序列化字典，并显式展开枚举值。"""

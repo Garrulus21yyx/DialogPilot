@@ -93,6 +93,9 @@ def _register_write(manager, effects):
         risk=ToolRisk.HIGH,
         read_only=False,
         requires_approval=True,
+        authority="CustomerOperations",
+        output_schema_version="refund-action-v1",
+        receipt_schema_version="action-receipt-v1",
     ))
 
 
@@ -131,6 +134,9 @@ def test_waiting_run_resumes_after_runtime_recreation_and_write_executes_once(tm
     ))
 
     assert completed.status is ReActStatus.COMPLETED
+    assert len(completed.tool_receipts) == 1
+    assert completed.tool_receipts[0].receipt_id == "refund-1"
+    assert completed.tool_receipts[0].status == "success"
     assert effects == ["A-1"]
     assert resumed_store.get(waiting.run_id).status is RunStatus.COMPLETED
     tool_result = client.calls[1]["messages"][-1]["content"][0]
@@ -144,6 +150,7 @@ def test_waiting_run_resumes_after_runtime_recreation_and_write_executes_once(tm
         actor="user-1",
     ))
     assert replay.status is ReActStatus.COMPLETED
+    assert replay.tool_receipts == completed.tool_receipts
     assert effects == ["A-1"]
 
 

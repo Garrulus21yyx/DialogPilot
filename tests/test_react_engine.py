@@ -68,6 +68,9 @@ def test_react_executes_read_tool_and_pairs_result_before_final_answer():
             "required": ["order_id"],
         },
         allowed_agents=("billing",),
+        authority="CustomerOperations",
+        output_schema_version="order-view-v1",
+        receipt_schema_version="evidence-receipt-v1",
     ))
     client = ScriptedClient([
         [text("我先核实订单。"), tool_use("call-1", "order_lookup", {"order_id": "A123"})],
@@ -88,6 +91,16 @@ def test_react_executes_read_tool_and_pairs_result_before_final_answer():
     assert result.status is ReActStatus.COMPLETED
     assert result.steps == 2
     assert result.tool_call_ids == ("call-1",)
+    assert [item.to_dict() for item in result.tool_receipts] == [{
+        "call_id": "call-1",
+        "tool_name": "order_lookup",
+        "status": "success",
+        "authority": "CustomerOperations",
+        "output_schema_version": "order-view-v1",
+        "receipt_schema_version": "evidence-receipt-v1",
+        "effect_status": "none",
+        "receipt_id": "",
+    }]
     tool_results = client.calls[1]["messages"][-1]["content"]
     assert tool_results[0]["tool_use_id"] == "call-1"
     assert tool_results[0]["is_error"] is False
@@ -162,6 +175,7 @@ def test_react_stops_repeated_tool_loop_at_max_steps():
     assert result.status is ReActStatus.MAX_STEPS
     assert result.steps == 2
     assert result.tool_call_ids == ("c1", "c2")
+    assert [item.call_id for item in result.tool_receipts] == ["c1", "c2"]
     assert "最大步数" in result.content
 
 

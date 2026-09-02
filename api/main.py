@@ -13,7 +13,7 @@ import re
 import sys
 import uuid
 from contextlib import asynccontextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Literal, Mapping, Optional
 
@@ -1131,6 +1131,129 @@ def _select_publication_candidate(
     return (knowledge.answer if knowledge_is_final else agent_response), knowledge_is_final
 
 
+async def _evaluate_route_path(invocation: Any) -> Any:
+    """Execute the new route path as a non-publishing, write-forbidden shadow."""
+    from application.route_decision import RouteMode
+    from application.route_execution import CandidateOwner
+    from application.route_path_executor import (
+        DeterministicGateResult,
+        RouteCandidate,
+        RoutePathExecutor,
+        RoutePathOperations,
+        agent_route_candidate,
+    )
+
+    contract = invocation.execution_contract
+
+    async def rule_candidate(_contract):
+        content = {
+            RouteMode.DIRECT: "您好，我是 DialogPilot 客服助手。请问有什么可以帮您？",
+            RouteMode.OUT_OF_SCOPE: "我是 DialogPilot 客服助手，可以协助订单、退款、账户与技术问题。",
+            RouteMode.CLARIFY: "请补充您要处理的是订单、退款、账户还是技术问题。",
+        }.get(invocation.route_decision.mode, "请补充您的客服诉求。")
+        return RouteCandidate(content, CandidateOwner.RULE_POLICY)
+
+    async def retrieve(_contract):
+        return await _build_knowledge_context(
+            invocation.command.message,
+            intent=invocation.intent_result.intent,
+            bundle=invocation.bundle,
+            tenant_id=str(invocation.identity_metadata.get("tenant_id") or "default"),
+            user_id=str(invocation.identity_metadata.get("user_id") or ""),
+            conversation_id=str(invocation.identity_metadata.get("conversation_id") or ""),
+            authorization_fingerprint=invocation.command.authorization_fingerprint,
+            generate_answer=False,
+        )
+
+    async def grounded_generate(_contract, knowledge):
+        if (
+            _grounded_answer_generator is None
+            or knowledge.evidence_pack is None
+            or not knowledge.evidence_pack.items
+        ):
+            return RouteCandidate(
+                "当前知识证据不足，无法可靠回答。",
+                CandidateOwner.GROUNDED_ANSWER_GENERATOR,
+            )
+        candidates = tuple(ContextCandidate(
+            chunk_id=item.chunk_id,
+            document_id=item.source_ref.source_id,
+            text=item.text,
+            start_char=item.source_ref.start_char,
+            end_char=item.source_ref.end_char,
+            title=item.title,
+            score=item.score,
+            ranks=item.source_ranks,
+            source_type=item.source_ref.source_type,
+            source_checksum=item.source_ref.checksum,
+            source_revision=item.source_ref.source_revision,
+            scope=item.source_ref.scope,
+            scope_decision=item.scope_decision,
+            index_manifest_fingerprint=knowledge.evidence_pack.index_manifest_fingerprint,
+        ) for item in knowledge.evidence_pack.items)
+        answer = await _grounded_answer_generator.generate(
+            invocation.command.message, candidates, history=(),
+        )
+        content = answer.answer or "当前知识证据不足，无法可靠回答。"
+        return RouteCandidate(
+            content,
+            CandidateOwner.GROUNDED_ANSWER_GENERATOR,
+            evidence_refs=tuple(answer.citations),
+        )
+
+    async def run_agent(_contract, knowledge):
+        request = invocation.orchestration_request
+        if knowledge is not None and knowledge.text and _context_assembler is not None:
+            prompt = _context_assembler.assemble(
+                sections=[ContextSection(
+                    tag="knowledge",
+                    description="canonical KnowledgeRetriever shadow evidence",
+                    content=knowledge.text,
+                    priority=85,
+                )],
+                history=[],
+                current_user_message=invocation.command.message,
+            )
+            request = replace(
+                request, context=prompt.system_context, prompt_context=prompt,
+            )
+        result = await _orchestrator.run(request)
+        return agent_route_candidate(contract, result)
+
+    async def handoff_draft(_contract):
+        return RouteCandidate(
+            "已整理人工接管所需的问题与风险信息；当前仅生成兼容草稿。",
+            CandidateOwner.HANDOFF_DRAFT,
+        )
+
+    async def deterministic_gate(_contract, candidate):
+        profile = contract.verification_profile
+        if profile in {"rule_only", "handoff_contract"}:
+            return DeterministicGateResult(True, False, "SHADOW_RULE_GATE_PASSED")
+        publishable = bool(candidate.evidence_refs)
+        return DeterministicGateResult(
+            publishable, False,
+            "SHADOW_RECEIPTS_PRESENT" if publishable else "SHADOW_RECEIPTS_MISSING",
+        )
+
+    async def semantic_verifier(_contract, _candidate):
+        raise RuntimeError("shadow deterministic gate did not request semantic verification")
+
+    async def record_turn(_contract, _candidate, _publishable):
+        return None
+
+    return await RoutePathExecutor().execute(contract, RoutePathOperations(
+        rule_candidate=rule_candidate,
+        retrieve=retrieve,
+        grounded_generate=grounded_generate,
+        run_agent=run_agent,
+        handoff_draft=handoff_draft,
+        deterministic_gate=deterministic_gate,
+        semantic_verifier=semantic_verifier,
+        record_turn=record_turn,
+    ))
+
+
 def _badcase_versions(bundle: Optional[AgentBundle] = None) -> Dict[str, Any]:
     """生成不含密钥的复现版本投影。"""
     raw_skill_rows = (_skill_manager.summary().get("skills") or []) if _skill_manager else []
@@ -1530,6 +1653,9 @@ def _chat_application() -> ChatApplication:
             tool_manager=_tool_manager,
             trace_recorder=_trace_recorder,
             knowledge_base=_knowledge_base,
+            route_execution_mode=os.getenv(
+                "DIALOGPILOT_ROUTE_EXECUTION_MODE", "legacy",
+            ),
         ),
         ChatOperations(
             active_ticket_context=_active_ticket_context,
@@ -1544,6 +1670,7 @@ def _chat_application() -> ChatApplication:
             select_publication_candidate=_select_publication_candidate,
             trace_id=current_trace_id,
             verify_for_publication=_verify_for_publication,
+            evaluate_route_path=_evaluate_route_path,
         ),
     )
 
@@ -2394,6 +2521,7 @@ async def _build_knowledge_context(
     user_id: str = "",
     conversation_id: str = "",
     authorization_fingerprint: str = "",
+    generate_answer: bool = True,
 ) -> KnowledgeContextResult:
     """
     为 /chat 主链路构建 RAG 知识上下文。
@@ -2435,7 +2563,7 @@ async def _build_knowledge_context(
             index_manifest_fingerprint=evidence_pack.index_manifest_fingerprint,
         ) for item in evidence_pack.items)
         answer = None
-        if _grounded_answer_generator is not None:
+        if generate_answer and _grounded_answer_generator is not None:
             answer = await _grounded_answer_generator.generate(
                 message, selected, history=history,
             )

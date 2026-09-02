@@ -17,7 +17,12 @@ from agents.run_store import RunStatus, RunStore, TERMINAL_RUN_STATUSES
 from core.tracing import TraceRecorder, current_trace_id
 from core.llm_metrics import create_message
 from core.model_policy import ModelProfile, ModelRole
-from mcp.tool_manager import MCPToolManager, ToolCallStatus, ToolResult
+from mcp.tool_manager import (
+    MCPToolManager,
+    ToolCallStatus,
+    ToolExecutionReceipt,
+    ToolResult,
+)
 
 
 class ReActStatus(str, Enum):
@@ -41,6 +46,7 @@ class ReActResult:
     reason: str = ""
     run_id: str = ""
     pending_approval_call_ids: Tuple[str, ...] = field(default_factory=tuple)
+    tool_receipts: Tuple[ToolExecutionReceipt, ...] = field(default_factory=tuple)
 
     @property
     def success(self) -> bool:
@@ -56,6 +62,7 @@ class ReActResult:
             "reason": self.reason,
             "run_id": self.run_id,
             "pending_approval_call_ids": list(self.pending_approval_call_ids),
+            "tool_receipts": [item.to_dict() for item in self.tool_receipts],
         }
 
     @classmethod
@@ -69,6 +76,10 @@ class ReActResult:
             run_id=str(payload.get("run_id") or ""),
             pending_approval_call_ids=tuple(
                 map(str, payload.get("pending_approval_call_ids") or [])
+            ),
+            tool_receipts=tuple(
+                ToolExecutionReceipt(**item)
+                for item in (payload.get("tool_receipts") or [])
             ),
         )
 
@@ -155,6 +166,7 @@ class ReActExecutionEngine:
             last_text="",
             saw_blocked=False,
             saw_tool_error=False,
+            tool_receipts=[],
             run_id=run_id,
             checkpoint_version=checkpoint_version,
         )
@@ -268,7 +280,19 @@ class ReActExecutionEngine:
             }
             for result in ordered_results
         )
-        runtime.update({"saw_blocked": saw_blocked, "saw_tool_error": saw_tool_error})
+        prior_receipts = [
+            ToolExecutionReceipt(**item)
+            for item in (runtime.get("tool_receipts") or [])
+        ]
+        receipt_by_call = {item.call_id: item for item in prior_receipts}
+        for item in ordered_results:
+            receipt_by_call[item.call_id] = ToolExecutionReceipt.from_result(item)
+        tool_receipts = list(receipt_by_call.values())
+        runtime.update({
+            "saw_blocked": saw_blocked,
+            "saw_tool_error": saw_tool_error,
+            "tool_receipts": [item.to_dict() for item in tool_receipts],
+        })
         checkpoint = self._run_store.checkpoint(
             run_id=run_id,
             expected_version=checkpoint.version,
@@ -294,6 +318,7 @@ class ReActExecutionEngine:
             last_text=str(runtime.get("last_text") or ""),
             saw_blocked=saw_blocked,
             saw_tool_error=saw_tool_error,
+            tool_receipts=tool_receipts,
             run_id=run_id,
             checkpoint_version=checkpoint.version,
         )
@@ -311,6 +336,7 @@ class ReActExecutionEngine:
         last_text: str,
         saw_blocked: bool,
         saw_tool_error: bool,
+        tool_receipts: List[ToolExecutionReceipt],
         run_id: str,
         checkpoint_version: Optional[int],
     ) -> ReActResult:
@@ -350,6 +376,7 @@ class ReActExecutionEngine:
                         tool_call_ids=tuple(tool_call_ids),
                         reason="model returned neither text nor tool calls",
                             run_id=run_id,
+                            tool_receipts=tuple(tool_receipts),
                         )
                     else:
                         status = (
@@ -370,6 +397,7 @@ class ReActExecutionEngine:
                                 else "model completed without further tool calls"
                             ),
                             run_id=run_id,
+                            tool_receipts=tuple(tool_receipts),
                         )
                     self._persist_terminal(result, tuple(working_messages), current_version)
                     return result
@@ -395,6 +423,9 @@ class ReActExecutionEngine:
                     agent_type=agent_type,
                     execution_context=execution_context,
                 )
+                tool_receipts.extend(
+                    ToolExecutionReceipt.from_result(result) for result in results
+                )
                 for result in results:
                     if result.call_id not in tool_call_ids:
                         tool_call_ids.append(result.call_id)
@@ -408,6 +439,7 @@ class ReActExecutionEngine:
                         "last_text": last_text,
                         "saw_blocked": saw_blocked,
                         "saw_tool_error": saw_tool_error,
+                        "tool_receipts": [item.to_dict() for item in tool_receipts],
                     }
                     pending = {
                         "phase": "waiting_approval",
@@ -443,6 +475,7 @@ class ReActExecutionEngine:
                         pending_approval_call_ids=tuple(
                             call.call_id for call in tool_calls if call.call_id in waiting_ids
                         ),
+                        tool_receipts=tuple(tool_receipts),
                     )
                 saw_blocked = saw_blocked or any(
                     result.status == ToolCallStatus.DENIED.value for result in results
@@ -468,6 +501,7 @@ class ReActExecutionEngine:
                         "last_text": last_text,
                         "saw_blocked": saw_blocked,
                         "saw_tool_error": saw_tool_error,
+                        "tool_receipts": [item.to_dict() for item in tool_receipts],
                     },
                     step=step,
                     tool_call_ids=tuple(tool_call_ids),
@@ -481,6 +515,7 @@ class ReActExecutionEngine:
                 tool_call_ids=tuple(tool_call_ids),
                 reason=f"react exceeded max_steps={self._max_steps}",
                 run_id=run_id,
+                tool_receipts=tuple(tool_receipts),
             )
             self._persist_terminal(result, tuple(working_messages), current_version)
             return result
@@ -493,6 +528,7 @@ class ReActExecutionEngine:
                     tool_call_ids=tuple(tool_call_ids),
                     reason="react run was cancelled",
                     run_id=run_id,
+                    tool_receipts=tuple(tool_receipts),
                 )
                 try:
                     self._run_store.checkpoint(

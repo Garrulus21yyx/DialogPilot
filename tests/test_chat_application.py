@@ -231,6 +231,11 @@ def test_route_path_evaluation_receives_canonical_immutable_contract():
     assert stages[0].stage == "route_path_plan"
     assert stages[0].status is StageStatus.OK
 
+    shadow = asyncio.run(main._evaluate_route_path(captured[0]))
+    assert shadow.candidate.owner.value == "grounded_answer_generator"
+    assert shadow.publishable is False
+    assert shadow.reason_code == "SHADOW_RECEIPTS_MISSING"
+
 
 def test_route_path_active_mode_is_rejected_before_release_action():
     services = ChatServices(**{

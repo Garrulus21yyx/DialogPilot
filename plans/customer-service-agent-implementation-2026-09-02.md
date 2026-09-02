@@ -36,7 +36,7 @@
 | M2-T04A SourceRevision v0 / active manifest | implemented (review pending) | PG owner/backfill/active validator done；independent human heldout review pending；650 tests passed |
 | M2-T05 统一 KnowledgeRetriever | implemented (canary blocked) | A1/A2/B + immutable PG dark-shadow report；675 tests passed |
 | M2-T06A Multi-Agent TaskGraph 收紧 | implemented | A/B/C policy、execution、dependency、native signal 与 terminal algebra 完成；697 tests passed |
-| M2-T06 自适应 RAG 发布路径 | in_progress | A/B1/B2/B3: gated ChatApplication adapter done；native tool receipts + shadow executor pending；744 tests passed |
+| M2-T06 自适应 RAG 发布路径 | in_progress | A/B1-B4: native receipts + real non-publishing shadow executor done；legacy candidate inference/E2E pending；747 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
@@ -797,6 +797,23 @@
 - 验证：Knowledge route invocation 绑定 `knowledge.active_source` 与 grounded profile；evaluation
   callback 恰好一次；pre-release active 被拒；聚焦 `38 passed`、全套 `744 passed in 18.23s`，
   ruff checks passed。下一步由 Agent/ReAct 原生返回 tool/evidence receipts 后接真实 shadow executor。
+
+### M2-T06-B4（native ToolExecutionReceipt / real shadow executor）
+
+- MCPToolManager 在唯一 controlled-call 出口把 Tool manifest 的 authority、output/receipt schema 与
+  effect/receipt ID 写入 typed `ToolExecutionReceipt`；该 receipt 随 ReAct checkpoint/result、审批恢复、
+  AgentResponse 和 terminal AgentOutcome 逐层传递，不从全局 audit 重建。
+- ReAct 跨 step 累积 receipts；审批 resume 以 call_id 稳定替换 waiting receipt，completed replay 不重复；
+  Agent artifact 的 evidence refs 直接取 native receipt IDs。Tool audit 仅保留观测职责。
+- `agent_route_candidate()` 只接受 outcome 内 status=success 且 authority/output schema 完整的 receipt，
+  再投影 Knowledge/Business component；失败或无类型结果不能满足 required route component，外部
+  `tool_audit` 即使内容相反也不影响 candidate。
+- API 接入真实 `_evaluate_route_path` shadow callback：Knowledge 只检索一次再 Grounded generation；
+  Mixed 将 evidence 交给单 Agent candidate；Agent/Multi 以 `execution_mode=shadow` 运行，MCP 禁止写；
+  callback 不写 Transcript/Ticket/Delivery，deterministic receipt 缺失只返回 non-publishable 诊断。
+- `DIALOGPILOT_ROUTE_EXECUTION_MODE` 仅可开启 dark_shadow/evaluation，active 仍被 Application gate
+  拒绝。验证：read receipt、跨 step、approval resume/replay、AgentOutcome 传播、audit-independent
+  projection、真实 Knowledge shadow；聚焦 `88 passed`、全套 `747 passed in 19.26s`，ruff passed。
 
 ## 下一步
 

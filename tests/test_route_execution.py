@@ -1,5 +1,6 @@
 """M2-T06 route-specific execution/publication contract invariants."""
 import asyncio
+from types import SimpleNamespace
 
 import pytest
 
@@ -23,6 +24,7 @@ from application.route_path_executor import (
     RouteCandidate,
     RoutePathExecutor,
     RoutePathOperations,
+    agent_route_candidate,
 )
 
 
@@ -279,3 +281,42 @@ def test_semantic_verifier_runs_once_only_after_deterministic_gates_request_it()
 
     assert calls == ["gate", "semantic", "record"]
     assert result.invocation_trace.count(RouteComponent.SEMANTIC_VERIFIER) == 1
+
+
+def test_agent_candidate_uses_native_tool_receipts_not_audit_inference():
+    contract = plan(RouteMode.AGENT_TASK)
+    result = SimpleNamespace(
+        response="refund is processing",
+        agent_outcomes=[{"tool_receipts": [{
+            "call_id": "call-1", "tool_name": "refund_status",
+            "status": "success", "authority": "CustomerOperations",
+            "output_schema_version": "refund-view-v1",
+            "receipt_schema_version": "evidence-receipt-v1",
+            "effect_status": "none", "receipt_id": "receipt-1",
+        }]}],
+        tool_audit=[{"tool_name": "knowledge_search", "status": "success"}],
+    )
+
+    candidate = agent_route_candidate(contract, result)
+
+    assert candidate.component_receipts == (RouteComponent.BUSINESS_TOOL,)
+    assert candidate.evidence_refs == ("receipt-1",)
+
+
+def test_untyped_or_failed_tool_result_cannot_satisfy_route_component():
+    contract = plan(RouteMode.AGENT_TASK)
+    result = SimpleNamespace(response="guess", agent_outcomes=[{
+        "tool_receipts": [
+            {"tool_name": "refund_status", "status": "success", "authority": ""},
+            {
+                "tool_name": "refund_status", "status": "error",
+                "authority": "CustomerOperations",
+                "output_schema_version": "refund-view-v1",
+            },
+        ],
+    }])
+
+    candidate = agent_route_candidate(contract, result)
+
+    assert candidate.component_receipts == ()
+    assert candidate.evidence_refs == ()

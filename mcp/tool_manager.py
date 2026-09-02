@@ -108,6 +108,48 @@ class ToolResult:
     output_for_model: str = ""
     effect_status:   str = ToolEffectStatus.NONE.value
     receipt_id:      str = ""
+    authority:       str = ""
+    output_schema_version: str = ""
+    receipt_schema_version: str = ""
+
+
+@dataclass(frozen=True)
+class ToolExecutionReceipt:
+    """Typed execution evidence returned to the caller, independent of audit logs."""
+
+    call_id: str
+    tool_name: str
+    status: str
+    authority: str
+    output_schema_version: str
+    receipt_schema_version: str
+    effect_status: str
+    receipt_id: str = ""
+
+    @classmethod
+    def from_result(cls, result: ToolResult) -> "ToolExecutionReceipt":
+        return cls(
+            call_id=result.call_id,
+            tool_name=result.tool_name,
+            status=result.status,
+            authority=result.authority,
+            output_schema_version=result.output_schema_version,
+            receipt_schema_version=result.receipt_schema_version,
+            effect_status=result.effect_status,
+            receipt_id=result.receipt_id,
+        )
+
+    def to_dict(self) -> Dict[str, str]:
+        return {
+            "call_id": self.call_id,
+            "tool_name": self.tool_name,
+            "status": self.status,
+            "authority": self.authority,
+            "output_schema_version": self.output_schema_version,
+            "receipt_schema_version": self.receipt_schema_version,
+            "effect_status": self.effect_status,
+            "receipt_id": self.receipt_id,
+        }
 
 
 @dataclass(frozen=True)
@@ -933,6 +975,10 @@ class MCPToolManager:
         result.call_id = call_id
         result.trace_id = trace_id
         result.status = status.value
+        if tool is not None:
+            result.authority = tool.authority
+            result.output_schema_version = tool.output_schema_version
+            result.receipt_schema_version = tool.receipt_schema_version
         result.output_for_model = self._render_for_model(result)
         risk = tool.risk if tool else ToolRisk.HIGH
         read_only = tool.read_only if tool else True
@@ -1023,6 +1069,9 @@ class MCPToolManager:
             "output_for_model": result.output_for_model,
             "effect_status": result.effect_status,
             "receipt_id": result.receipt_id,
+            "authority": result.authority,
+            "output_schema_version": result.output_schema_version,
+            "receipt_schema_version": result.receipt_schema_version,
         }
 
     @staticmethod

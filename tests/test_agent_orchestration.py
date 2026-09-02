@@ -27,6 +27,7 @@ from agents.task_policies import MultiAgentExecutionPolicy
 from application.route_decision import RequestShape, RouteMode
 from core.intent_recognizer import IntentCategory, UrgencyLevel
 from memory.context import ContextAssembler, ContextSection
+from mcp.tool_manager import ToolExecutionReceipt
 from services.result_synthesizer import (
     AgentOutcome,
     AgentOutcomeStatus,
@@ -1100,6 +1101,31 @@ def test_unknown_terminal_status_is_typed_error():
 
     assert terminal.status is AgentOutcomeStatus.ERROR
     assert terminal.error == "INVALID_TERMINAL_STATUS: future_status"
+
+
+def test_tool_execution_receipts_reach_terminal_agent_outcome():
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    orchestrator._agent_timeout_s = 1.0
+    receipt = ToolExecutionReceipt(
+        call_id="call-1", tool_name="refund_status", status="success",
+        authority="CustomerOperations", output_schema_version="refund-view-v1",
+        receipt_schema_version="evidence-receipt-v1", effect_status="none",
+    )
+
+    async def execute(_req, agent_type):
+        return AgentResponse(
+            agent_type=agent_type, content="refunding", success=True,
+            tool_receipts=(receipt,),
+        )
+
+    orchestrator._execute = execute
+    outcome = asyncio.run(orchestrator._execute_outcome(
+        Request(message="refund", user_id="u", conv_id="c"),
+        TaskSpec("billing", AgentType.BILLING, "refund"), is_primary=True,
+    ))
+
+    assert outcome.tool_receipts == (receipt,)
+    assert outcome.to_dict()["tool_receipts"][0]["tool_name"] == "refund_status"
 
 
 def test_prior_outcome_binding_is_read_only_input_not_current_outcome():

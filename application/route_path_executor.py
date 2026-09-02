@@ -184,3 +184,38 @@ class RoutePathExecutor:
                     "MISSING_REQUIRED_COMPONENT",
                     f"route omitted required components: {missing}",
                 )
+
+
+def agent_route_candidate(
+    contract: RouteExecutionContract,
+    result: Any,
+) -> RouteCandidate:
+    """Project native AgentOutcome tool receipts; audit records are not an input."""
+    components: list[RouteComponent] = []
+    evidence_refs: list[str] = []
+    for outcome in getattr(result, "agent_outcomes", ()) or ():
+        for receipt in outcome.get("tool_receipts", ()) or ():
+            if str(receipt.get("status") or "") != "success":
+                continue
+            authority = str(receipt.get("authority") or "").strip()
+            schema = str(receipt.get("output_schema_version") or "").strip()
+            if not authority or not schema:
+                continue
+            tool_name = str(receipt.get("tool_name") or "")
+            component = (
+                RouteComponent.AGENT_KNOWLEDGE_TOOL
+                if "knowledge" in authority.casefold()
+                or tool_name == "knowledge_search"
+                else RouteComponent.BUSINESS_TOOL
+            )
+            if component not in components:
+                components.append(component)
+            receipt_id = str(receipt.get("receipt_id") or "").strip()
+            if receipt_id and receipt_id not in evidence_refs:
+                evidence_refs.append(receipt_id)
+    return RouteCandidate(
+        content=str(getattr(result, "response", "") or ""),
+        owner=contract.candidate_owner,
+        component_receipts=tuple(components),
+        evidence_refs=tuple(evidence_refs),
+    )
