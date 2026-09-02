@@ -25,7 +25,7 @@ from services.answer_verifier import (
     VerificationStatus,
 )
 from services.ticket_service import TicketPriority, TicketService
-from services.response_delivery import ResponseDeliveryService
+from services.response_delivery import DeliveryStatus, ResponseDelivery
 from services.badcase_registry import BadCaseRegistry
 from services.evolution import ActiveBundleResolver, AgentBundleRegistry, build_default_bundle
 from memory.context import ContextAssembler
@@ -66,6 +66,31 @@ class FakeMemory:
     async def update_profile(self, *_args, **_kwargs):
         self.profile_updates += 1
         return None
+
+
+class FakeResponseDeliveryService:
+    def __init__(self):
+        self.records = []
+
+    def select_response(
+        self, *, user_id, conv_id, request_id, response_text,
+        identity_metadata=None,
+    ):
+        delivery = ResponseDelivery(
+            response_id=f"response-{len(self.records) + 1}",
+            user_id=user_id,
+            conv_id=conv_id,
+            request_id=request_id,
+            seq=1 + sum(item.conv_id == conv_id for item in self.records),
+            response_text=response_text,
+            status=DeliveryStatus.SELECTED,
+            selected_at="2026-09-02T00:00:00+00:00",
+            delivered_at=None,
+            read_at=None,
+            identity_metadata=dict(identity_metadata or {}),
+        )
+        self.records.append(delivery)
+        return delivery
 
 
 class FakeOrchestrator:
@@ -181,7 +206,7 @@ def test_chat_out_of_scope_is_a_policy_terminal_without_worker_verifier_or_memor
     monkeypatch.setattr(main, "_ticket_service", tickets)
     monkeypatch.setattr(
         main, "_response_delivery",
-        ResponseDeliveryService(str(tmp_path / "scope-responses.db")),
+        FakeResponseDeliveryService(),
     )
     prediction_registry = BadCaseRegistry(
         str(tmp_path / "scope-badcases.db"),
@@ -242,7 +267,7 @@ def test_chat_escalation_creates_one_persistent_idempotent_ticket(tmp_path, monk
     monkeypatch.setattr(main, "_ticket_service", ticket_service)
     monkeypatch.setattr(
         main, "_response_delivery",
-        ResponseDeliveryService(str(tmp_path / "responses.db")),
+        FakeResponseDeliveryService(),
     )
     monkeypatch.setattr(
         main,
@@ -350,7 +375,7 @@ def test_chat_waiting_approval_does_not_create_handoff_or_badcase(tmp_path, monk
     monkeypatch.setattr(main, "_ticket_service", tickets)
     monkeypatch.setattr(
         main, "_response_delivery",
-        ResponseDeliveryService(str(tmp_path / "pending-responses.db")),
+        FakeResponseDeliveryService(),
     )
     monkeypatch.setattr(main, "_badcase_registry", None)
     monkeypatch.setattr(main, "_tool_manager", None)

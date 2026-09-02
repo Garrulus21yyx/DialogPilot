@@ -28,9 +28,8 @@
 ## 单主边界
 
 - M1 首期只有新建的 Conversation/Invocation/Outbox 由 PostgreSQL 单主。
-- TicketService、ResponseDelivery、RunStore 在各自迁移卡完成 technical cutover 前仍由当前 SQLite 单主。
-- 禁止同一事实双写。shadow-read 只能比较，不得修正 source；atomic binding switch 前必须停止旧 claim/write，
-  完成 final delta 与 reconcile，切换后才启动新 writer。
+- ResponseDelivery 从新安装起直接由 PostgreSQL 单主；仓库不维护 SQLite Delivery 或迁移 binding。
+- TicketService 与 RunStore 的存储边界由各自模块声明；任何事实都不得双写到第二权威库。
 
 ## 依据
 

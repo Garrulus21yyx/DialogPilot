@@ -39,11 +39,7 @@ from services.ticket_service import (
     TicketStatus,
     TicketWebhookDispatcher,
 )
-from services.response_delivery import (
-    DeliveryStatus,
-    ResponseDeliveryService,
-    ResponseNotFoundError,
-)
+from services.response_delivery import DeliveryStatus, ResponseNotFoundError
 from services.badcase_registry import (
     BadCaseContractError,
     BadCaseNotFoundError,
@@ -302,12 +298,6 @@ async def lifespan(app: FastAPI):
         dispatch_retry_base_seconds=float(os.getenv("TICKET_DISPATCH_RETRY_BASE_SECONDS", "5")),
         dispatch_retry_max_seconds=float(os.getenv("TICKET_DISPATCH_RETRY_MAX_SECONDS", "300")),
     )
-    _response_delivery = ResponseDeliveryService(
-        os.getenv(
-            "RESPONSE_DELIVERY_DB_PATH",
-            str(pathlib.Path(_ROOT) / "data" / "responses" / "responses.db"),
-        )
-    )
     database_url = os.getenv("DATABASE_URL", "").strip()
     if database_url:
         from infrastructure.postgres import (
@@ -379,24 +369,19 @@ async def lifespan(app: FastAPI):
             runtime_reader=_compat_runtime_reader,
             ticket_reader=_active_ticket_status_reader,
         )
-        from infrastructure.delivery_binding import (
-            DeliveryRepositoryState,
-            PostgresDeliveryBindingRepository,
+        from infrastructure.postgres_response_delivery import (
+            PostgresResponseDeliveryService,
         )
 
-        delivery_binding = PostgresDeliveryBindingRepository(_postgres_pool).get()
-        if delivery_binding.state is DeliveryRepositoryState.POSTGRES_ACTIVE:
-            from infrastructure.postgres_response_compat import (
-                PostgresResponseDeliveryCompatibilityService,
-            )
-
-            _response_delivery = PostgresResponseDeliveryCompatibilityService(
-                _postgres_pool,
-                resume_binding_secret=(
-                    os.getenv("RESUME_BINDING_SECRET")
-                    or os.getenv("AUTH_JWT_SECRET", "")
-                ),
-            )
+        _response_delivery = PostgresResponseDeliveryService(
+            _postgres_pool,
+            resume_binding_secret=(
+                os.getenv("RESUME_BINDING_SECRET")
+                or os.getenv("AUTH_JWT_SECRET", "")
+            ),
+        )
+    if _postgres_pool is None or _response_delivery is None:
+        raise RuntimeError("DATABASE_URL is required for the PostgreSQL runtime")
     _badcase_registry = BadCaseRegistry(
         os.getenv(
             "BADCASE_DB_PATH",
@@ -617,15 +602,15 @@ async def lifespan(app: FastAPI):
             PostgresConversationProjectionOutbox,
         )
         from application.conversation_projection import ProjectionName
-        from infrastructure.postgres_response_compat import (
-            PostgresResponseDeliveryCompatibilityService,
+        from infrastructure.postgres_response_delivery import (
+            PostgresResponseDeliveryService,
         )
 
         if not isinstance(
-            _response_delivery, PostgresResponseDeliveryCompatibilityService,
+            _response_delivery, PostgresResponseDeliveryService,
         ):
             raise RuntimeError(
-                "durable chat requires POSTGRES_ACTIVE response publication"
+                "durable chat requires PostgreSQL response publication"
             )
         execution_outbox = PostgresCompatibilityExecutionOutbox(_postgres_pool)
         dispatcher = StartOutboxDispatcher(

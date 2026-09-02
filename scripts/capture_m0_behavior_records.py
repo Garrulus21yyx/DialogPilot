@@ -99,7 +99,6 @@ async def capture(args) -> None:
             "REDIS_URL": redis_url,
             "AGENT_BUNDLE_DB_PATH": str(bundle_copy),
             "TICKET_DB_PATH": str(root / "tickets.db"),
-            "RESPONSE_DELIVERY_DB_PATH": str(root / "responses.db"),
             "BADCASE_DB_PATH": str(root / "badcases.db"),
             "CUSTOMER_OPERATIONS_DB_PATH": str(root / "operations.db"),
             "REACT_RUN_DB_PATH": str(root / "react-runs.db"),

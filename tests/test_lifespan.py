@@ -5,7 +5,9 @@ from types import SimpleNamespace
 from api import main
 
 
-def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
+def test_lifespan_wires_memory_budget_to_memory_owner(
+    tmp_path, monkeypatch, postgres_database_url,
+):
     """证明 Memory 配置只传给 MemoryManager，不会误传给意图识别器。"""
     """The API boundary must send memory policy to MemoryManager, not intent."""
     import agents.agent_orchestrator as agent_module
@@ -143,8 +145,8 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
     monkeypatch.setenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022")
     monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
     monkeypatch.setenv("AUTH_JWT_SECRET", "test-secret-that-is-at-least-32-bytes-long")
+    monkeypatch.setenv("DATABASE_URL", postgres_database_url)
     monkeypatch.setenv("TICKET_DB_PATH", str(tmp_path / "tickets.db"))
-    monkeypatch.setenv("RESPONSE_DELIVERY_DB_PATH", str(tmp_path / "responses.db"))
     monkeypatch.delenv("TICKET_DISPATCH_WEBHOOK_URL", raising=False)
     monkeypatch.setenv("CUSTOMER_OPERATIONS_DB_PATH", str(tmp_path / "operations.db"))
     monkeypatch.setenv("REACT_RUN_DB_PATH", str(tmp_path / "react-runs.db"))

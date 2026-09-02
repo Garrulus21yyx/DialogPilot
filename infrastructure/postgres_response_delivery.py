@@ -1,4 +1,4 @@
-"""Legacy ResponseDelivery API projected onto the canonical PostgreSQL owner."""
+"""PostgreSQL owner for final-response selection, ACK and replay."""
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
@@ -15,7 +15,6 @@ from application.publication import (
     PublicationPolicy,
 )
 from core.identity import InvocationKey
-from infrastructure.delivery_binding import PostgresDeliveryBindingRepository
 from infrastructure.postgres import PostgresPool
 from infrastructure.postgres_publication import (
     PostgresDeliveryRepository,
@@ -28,8 +27,8 @@ from services.response_delivery import (
 )
 
 
-class PostgresResponseDeliveryCompatibilityService:
-    """Temporary API shape; PostgreSQL facts and lifecycle remain authoritative."""
+class PostgresResponseDeliveryService:
+    """Expose the ResponseDelivery lifecycle directly from PostgreSQL facts."""
 
     def __init__(
         self,
@@ -39,7 +38,6 @@ class PostgresResponseDeliveryCompatibilityService:
         clock: Callable[[], str] | None = None,
     ):
         self.pool = pool
-        self.binding = PostgresDeliveryBindingRepository(pool)
         self.publication = PostgresPublicationService(
             pool, resume_binding_secret=resume_binding_secret,
         )
@@ -56,7 +54,6 @@ class PostgresResponseDeliveryCompatibilityService:
         identity_metadata: dict[str, Any] | None = None,
     ) -> ResponseDelivery:
         del request_id
-        self.binding.assert_postgres_active()
         metadata = dict(identity_metadata or {})
         required = (
             "tenant_id", "invocation_key", "candidate_id", "producer",
@@ -138,7 +135,6 @@ class PostgresResponseDeliveryCompatibilityService:
         user_id: str,
         status: DeliveryStatus,
     ) -> ResponseDelivery:
-        self.binding.assert_postgres_active()
         target = DeliveryStatus(status)
         if target is DeliveryStatus.SELECTED:
             raise ValueError("client ACK target must be delivered or read")
@@ -169,7 +165,6 @@ class PostgresResponseDeliveryCompatibilityService:
         after_seq: int = 0,
         limit: int = 100,
     ) -> list[ResponseDelivery]:
-        self.binding.assert_postgres_active()
         with self.pool.transaction() as connection:
             rows = connection.execute("""
                 SELECT publication_id FROM dialogpilot_app.response_deliveries
