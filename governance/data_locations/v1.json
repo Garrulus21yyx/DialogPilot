@@ -1,0 +1,412 @@
+{
+  "schema": "dialogpilot.data-location-registry.v1",
+  "version": "v1",
+  "approved_by": "privacy-platform-review",
+  "contract_catalog": {
+    "delete_adapters": [
+      {
+        "id": "adapter:pg-conversation-tombstone:v1",
+        "status": "IMPLEMENTED",
+        "evidence": "tests/test_postgres_projection.py"
+      },
+      {
+        "id": "adapter:pg-projection-fence:v1",
+        "status": "IMPLEMENTED",
+        "evidence": "tests/test_postgres_projection.py"
+      }
+    ],
+    "proof_contracts": [
+      {
+        "id": "proof:m1-t04-deletion-fence:v1",
+        "status": "IMPLEMENTED",
+        "evidence": "delete-vs-write race and late-write DB fence"
+      },
+      {
+        "id": "proof:m1-t04-projection-race:v1",
+        "status": "IMPLEMENTED",
+        "evidence": "effect-before-ACK replay and post-effect epoch recheck"
+      }
+    ],
+    "restore_fences": [
+      {
+        "id": "restore-fence:pg-deletion-epoch:v1",
+        "status": "IMPLEMENTED",
+        "evidence": "PostgresDataLocationWriteFence expected epoch check"
+      }
+    ]
+  },
+  "locations": [
+    {
+      "location_id": "location:pg-conversation-facts:v1",
+      "owner": "Application",
+      "schema_version": "20260902_0006",
+      "retention_class": "conversation_operational",
+      "readiness": "WRITE_APPROVED",
+      "allowed_producers": ["admission", "conversation-store", "publication", "deletion", "delivery-backfill"],
+      "delete_adapter_id": "adapter:pg-conversation-tombstone:v1",
+      "proof_contract_id": "proof:m1-t04-deletion-fence:v1",
+      "restore_fence_id": "restore-fence:pg-deletion-epoch:v1",
+      "allow_subject_create": true
+    },
+    {
+      "location_id": "location:pg-workflow-outboxes:v1",
+      "owner": "Application",
+      "schema_version": "20260902_0006",
+      "retention_class": "conversation_operational",
+      "readiness": "WRITE_APPROVED",
+      "allowed_producers": ["admission", "start-dispatcher", "resume-dispatcher"],
+      "delete_adapter_id": "adapter:pg-conversation-tombstone:v1",
+      "proof_contract_id": "proof:m1-t04-deletion-fence:v1",
+      "restore_fence_id": "restore-fence:pg-deletion-epoch:v1",
+      "allow_subject_create": true
+    },
+    {
+      "location_id": "location:pg-response-delivery:v1",
+      "owner": "ResponseDelivery",
+      "schema_version": "20260902_0006",
+      "retention_class": "conversation_operational",
+      "readiness": "WRITE_APPROVED",
+      "allowed_producers": ["publication", "delivery-worker", "delivery-backfill"],
+      "delete_adapter_id": "adapter:pg-conversation-tombstone:v1",
+      "proof_contract_id": "proof:m1-t04-deletion-fence:v1",
+      "restore_fence_id": "restore-fence:pg-deletion-epoch:v1",
+      "allow_subject_create": false
+    },
+    {
+      "location_id": "location:pg-projection-control:v1",
+      "owner": "Application",
+      "schema_version": "20260902_0006",
+      "retention_class": "conversation_operational",
+      "readiness": "WRITE_APPROVED",
+      "allowed_producers": ["projection-outbox", "projection-worker", "projection-rebuild"],
+      "delete_adapter_id": "adapter:pg-projection-fence:v1",
+      "proof_contract_id": "proof:m1-t04-projection-race:v1",
+      "restore_fence_id": "restore-fence:pg-deletion-epoch:v1",
+      "allow_subject_create": false
+    },
+    {
+      "location_id": "location:redis-working-window:v1",
+      "owner": "Memory",
+      "schema_version": "memory-projection-v1",
+      "retention_class": "ephemeral_cache",
+      "readiness": "REGISTERED",
+      "allowed_producers": ["working-window-projector"],
+      "delete_adapter_id": null,
+      "proof_contract_id": null,
+      "restore_fence_id": "restore-fence:pg-deletion-epoch:v1",
+      "allow_subject_create": false
+    },
+    {
+      "location_id": "location:thread-summary:v1",
+      "owner": "Memory",
+      "schema_version": "thread-summary-v1",
+      "retention_class": "conversation_operational",
+      "readiness": "REGISTERED",
+      "allowed_producers": ["thread-summary-projector"],
+      "delete_adapter_id": null,
+      "proof_contract_id": null,
+      "restore_fence_id": "restore-fence:pg-deletion-epoch:v1",
+      "allow_subject_create": false
+    },
+    {
+      "location_id": "location:memory-atom:v1",
+      "owner": "Memory",
+      "schema_version": "memory-atom-v1",
+      "retention_class": "customer_support",
+      "readiness": "REGISTERED",
+      "allowed_producers": ["memory-atom-projector"],
+      "delete_adapter_id": null,
+      "proof_contract_id": null,
+      "restore_fence_id": "restore-fence:pg-deletion-epoch:v1",
+      "allow_subject_create": false
+    },
+    {
+      "location_id": "location:service-episode:v1",
+      "owner": "Memory",
+      "schema_version": "service-episode-v1",
+      "retention_class": "customer_support",
+      "readiness": "REGISTERED",
+      "allowed_producers": ["episode-projector", "episode-backfill", "episode-shadow"],
+      "delete_adapter_id": null,
+      "proof_contract_id": null,
+      "restore_fence_id": "restore-fence:pg-deletion-epoch:v1",
+      "allow_subject_create": false
+    },
+    {
+      "location_id": "location:customer-profile:v1",
+      "owner": "Memory",
+      "schema_version": "customer-profile-v1",
+      "retention_class": "customer_support",
+      "readiness": "REGISTERED",
+      "allowed_producers": ["profile-projector", "profile-backfill"],
+      "delete_adapter_id": null,
+      "proof_contract_id": null,
+      "restore_fence_id": "restore-fence:pg-deletion-epoch:v1",
+      "allow_subject_create": false
+    },
+    {
+      "location_id": "location:active-case:v1",
+      "owner": "ServiceCase",
+      "schema_version": "active-case-v1",
+      "retention_class": "customer_support",
+      "readiness": "REGISTERED",
+      "allowed_producers": ["active-case-projector", "ticket-backfill"],
+      "delete_adapter_id": null,
+      "proof_contract_id": null,
+      "restore_fence_id": "restore-fence:pg-deletion-epoch:v1",
+      "allow_subject_create": false
+    },
+    {
+      "location_id": "location:service-continuity:v1",
+      "owner": "ServiceCase",
+      "schema_version": "service-continuity-v1",
+      "retention_class": "customer_support",
+      "readiness": "REGISTERED",
+      "allowed_producers": ["service-continuity-projector"],
+      "delete_adapter_id": null,
+      "proof_contract_id": null,
+      "restore_fence_id": "restore-fence:pg-deletion-epoch:v1",
+      "allow_subject_create": false
+    },
+    {
+      "location_id": "location:agent-checkpoint:v1",
+      "owner": "AgentRuntime",
+      "schema_version": "agent-checkpoint-v1",
+      "retention_class": "conversation_operational",
+      "readiness": "REGISTERED",
+      "allowed_producers": ["langgraph-checkpointer"],
+      "delete_adapter_id": null,
+      "proof_contract_id": null,
+      "restore_fence_id": null,
+      "allow_subject_create": false
+    },
+    {
+      "location_id": "location:task-continuation-store:v1",
+      "owner": "AgentRuntime",
+      "schema_version": "task-continuation-v1",
+      "retention_class": "conversation_operational",
+      "readiness": "REGISTERED",
+      "allowed_producers": ["langgraph-store"],
+      "delete_adapter_id": null,
+      "proof_contract_id": null,
+      "restore_fence_id": null,
+      "allow_subject_create": false
+    },
+    {
+      "location_id": "location:approval-ledger:v1",
+      "owner": "AgentRuntime",
+      "schema_version": "approval-ledger-v1",
+      "retention_class": "security_audit",
+      "readiness": "REGISTERED",
+      "allowed_producers": ["approval-ledger", "legacy-ledger-backfill"],
+      "delete_adapter_id": null,
+      "proof_contract_id": null,
+      "restore_fence_id": null,
+      "allow_subject_create": false
+    },
+    {
+      "location_id": "location:tool-ledger:v1",
+      "owner": "AgentRuntime",
+      "schema_version": "tool-ledger-v1",
+      "retention_class": "security_audit",
+      "readiness": "REGISTERED",
+      "allowed_producers": ["tool-ledger", "legacy-ledger-backfill"],
+      "delete_adapter_id": null,
+      "proof_contract_id": null,
+      "restore_fence_id": null,
+      "allow_subject_create": false
+    },
+    {
+      "location_id": "location:commitment:v1",
+      "owner": "ServiceCase",
+      "schema_version": "commitment-v1",
+      "retention_class": "customer_support",
+      "readiness": "REGISTERED",
+      "allowed_producers": ["commitment-service"],
+      "delete_adapter_id": null,
+      "proof_contract_id": null,
+      "restore_fence_id": null,
+      "allow_subject_create": false
+    },
+    {
+      "location_id": "location:handoff:v1",
+      "owner": "ServiceCase",
+      "schema_version": "handoff-v1",
+      "retention_class": "customer_support",
+      "readiness": "REGISTERED",
+      "allowed_producers": ["handoff-service", "ticket-backfill"],
+      "delete_adapter_id": null,
+      "proof_contract_id": null,
+      "restore_fence_id": null,
+      "allow_subject_create": false
+    },
+    {
+      "location_id": "location:attachment:v1",
+      "owner": "Multimodal",
+      "schema_version": "attachment-v1",
+      "retention_class": "conversation_operational",
+      "readiness": "REGISTERED",
+      "allowed_producers": ["attachment-service"],
+      "delete_adapter_id": null,
+      "proof_contract_id": null,
+      "restore_fence_id": null,
+      "allow_subject_create": false
+    },
+    {
+      "location_id": "location:derived-asset:v1",
+      "owner": "Multimodal",
+      "schema_version": "derived-asset-v1",
+      "retention_class": "conversation_operational",
+      "readiness": "REGISTERED",
+      "allowed_producers": ["derived-asset-worker"],
+      "delete_adapter_id": null,
+      "proof_contract_id": null,
+      "restore_fence_id": null,
+      "allow_subject_create": false
+    },
+    {
+      "location_id": "location:redis-exact-cache:v1",
+      "owner": "Platform",
+      "schema_version": "exact-cache-v1",
+      "retention_class": "ephemeral_cache",
+      "readiness": "REGISTERED",
+      "allowed_producers": ["exact-cache"],
+      "delete_adapter_id": null,
+      "proof_contract_id": null,
+      "restore_fence_id": null,
+      "allow_subject_create": false
+    },
+    {
+      "location_id": "location:redis-embedding-cache:v1",
+      "owner": "Platform",
+      "schema_version": "embedding-cache-v1",
+      "retention_class": "ephemeral_cache",
+      "readiness": "REGISTERED",
+      "allowed_producers": ["embedding-cache"],
+      "delete_adapter_id": null,
+      "proof_contract_id": null,
+      "restore_fence_id": null,
+      "allow_subject_create": false
+    },
+    {
+      "location_id": "location:redis-perception-cache:v1",
+      "owner": "Platform",
+      "schema_version": "perception-cache-v1",
+      "retention_class": "ephemeral_cache",
+      "readiness": "REGISTERED",
+      "allowed_producers": ["perception-cache"],
+      "delete_adapter_id": null,
+      "proof_contract_id": null,
+      "restore_fence_id": null,
+      "allow_subject_create": false
+    },
+    {
+      "location_id": "location:trace:v1",
+      "owner": "Observability",
+      "schema_version": "trace-v1",
+      "retention_class": "evaluation_governed",
+      "readiness": "REGISTERED",
+      "allowed_producers": ["trace-recorder"],
+      "delete_adapter_id": null,
+      "proof_contract_id": null,
+      "restore_fence_id": null,
+      "allow_subject_create": false
+    },
+    {
+      "location_id": "location:evaluation:v1",
+      "owner": "Evaluation",
+      "schema_version": "evaluation-v1",
+      "retention_class": "evaluation_governed",
+      "readiness": "REGISTERED",
+      "allowed_producers": ["eval-runner"],
+      "delete_adapter_id": null,
+      "proof_contract_id": null,
+      "restore_fence_id": null,
+      "allow_subject_create": false
+    },
+    {
+      "location_id": "location:shadow:v1",
+      "owner": "Evaluation",
+      "schema_version": "shadow-v1",
+      "retention_class": "evaluation_governed",
+      "readiness": "REGISTERED",
+      "allowed_producers": ["shadow-runner"],
+      "delete_adapter_id": null,
+      "proof_contract_id": null,
+      "restore_fence_id": null,
+      "allow_subject_create": false
+    },
+    {
+      "location_id": "location:knowledge-index:v1",
+      "owner": "Knowledge",
+      "schema_version": "knowledge-index-v1",
+      "retention_class": "knowledge_governed",
+      "readiness": "REGISTERED",
+      "allowed_producers": ["knowledge-indexer", "knowledge-backfill", "knowledge-shadow"],
+      "delete_adapter_id": null,
+      "proof_contract_id": null,
+      "restore_fence_id": null,
+      "allow_subject_create": false
+    },
+    {
+      "location_id": "location:episode-index:v1",
+      "owner": "Memory",
+      "schema_version": "episode-index-v1",
+      "retention_class": "customer_support",
+      "readiness": "REGISTERED",
+      "allowed_producers": ["episode-indexer", "episode-backfill", "episode-shadow"],
+      "delete_adapter_id": null,
+      "proof_contract_id": null,
+      "restore_fence_id": null,
+      "allow_subject_create": false
+    },
+    {
+      "location_id": "location:customer-feedback:v1",
+      "owner": "Evaluation",
+      "schema_version": "customer-feedback-v1",
+      "retention_class": "evaluation_governed",
+      "readiness": "REGISTERED",
+      "allowed_producers": ["feedback-service"],
+      "delete_adapter_id": null,
+      "proof_contract_id": null,
+      "restore_fence_id": null,
+      "allow_subject_create": false
+    },
+    {
+      "location_id": "location:backup-restore:v1",
+      "owner": "Platform",
+      "schema_version": "backup-restore-v1",
+      "retention_class": "backup_controlled",
+      "readiness": "REGISTERED",
+      "allowed_producers": ["backup-runner", "restore-runner"],
+      "delete_adapter_id": null,
+      "proof_contract_id": null,
+      "restore_fence_id": null,
+      "allow_subject_create": false
+    },
+    {
+      "location_id": "location:running-agent-invocation:v1",
+      "owner": "AgentRuntime",
+      "schema_version": "running-agent-invocation-v1",
+      "retention_class": "conversation_operational",
+      "readiness": "REGISTERED",
+      "allowed_producers": ["running-invocation-export"],
+      "delete_adapter_id": null,
+      "proof_contract_id": null,
+      "restore_fence_id": null,
+      "allow_subject_create": false
+    },
+    {
+      "location_id": "location:external-processor-state:v1",
+      "owner": "Platform",
+      "schema_version": "external-processor-state-v1",
+      "retention_class": "conversation_operational",
+      "readiness": "REGISTERED",
+      "allowed_producers": ["external-processor"],
+      "delete_adapter_id": null,
+      "proof_contract_id": null,
+      "restore_fence_id": null,
+      "allow_subject_create": false
+    }
+  ]
+}

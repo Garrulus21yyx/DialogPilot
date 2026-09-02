@@ -24,6 +24,7 @@
 | M1-T03 Unified publication/delivery | done | PostgreSQL `0004`；atomic publication/delivery outbox + canonical receipt lifecycle |
 | M1-T03A ResponseDelivery PostgreSQL 单主切换 | implemented | PR-10A/10B + local crash/restore drill；production snapshot cutover unverified |
 | M1-T04 Conversation projection outbox/deletion fence | implemented | PostgreSQL `0006`；4 projections + generation watermark + tombstone epoch |
+| M1-T04A DataLocationRegistry / pre-write fence | done | PostgreSQL `0007`；31 stable locations，4 write-approved，future writes fail closed |
 | M1 完整会话事实与幂等发布 | in_progress | 按 T00–T05/T03A/T04A 子节点推进 |
 | M2 Route/Authority/Evidence/RAG | pending | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
@@ -303,6 +304,27 @@
 - 激活边界：当前同步 legacy `ConversationMemory.add_messages` 仍随旧 `/chat` 单主运行；M1-T05 在新
   admission/publication 主链启用时关闭该直写并启动 projection adapters。当前卡不把未切流量表述成生产
   projection 已启用。
+
+### M1-T04A
+
+- Registry artifact：`governance/data_locations/v1.json` 以语义 fingerprint 冻结 31 个独立 durable
+  surface 的稳定 location ID、Owner、schema、retention、bounded producer、readiness、delete/de-identify
+  adapter、proof contract 与 restore fence。Approval/Tool、Commitment/Handoff、Attachment/DerivedAsset、
+  Redis exact/embedding/perception、Trace/Eval/Shadow、running invocation/external processor 均为独立 ID，
+  不用聚合 ID 隐藏责任边界。
+- Readiness：只有四个已实现的 M1 PostgreSQL location 为 `WRITE_APPROVED`；checkpoint、LangGraph Store、
+  Memory/Profile/Episode、Case/Continuity、Ledger、Multimodal、cache、Trace/Eval/Shadow、Knowledge/Episode
+  index、feedback/backup 等均仅 `REGISTERED`。未实现 adapter/proof/restore fence 时 producer、migration、
+  backfill、dark shadow、restore 都不能借“已登记”越过首写围栏。
+- Pre-write fence：`DataWriteIntent` 同时绑定 location/producer/write-kind/schema/retention/subject/
+  expected deletion epoch；合同不匹配、未知 location、planned location、subject 不存在且 location 无创建权、
+  tombstone 或 epoch 漂移全部 typed fail closed。Adapter 与 RestoreFence 有显式 Protocol/DeletionProof。
+- Migration gate：`0007` 将 registry version+fingerprint 绑定到 immutable PG revision；runner 在 upgrade/verify
+  时同时验证 artifact binding。从 `0007` 起每个 migration 必须声明 `subject_linked_write` 与
+  `data_location_ids`，subject-linked migration 不得为空且只能引用 write-approved location。
+- 验证：artifact/catalog 结构、缺 proof、未知/planned/wrong producer/schema/retention、subject-create 权、
+  四类 late write（producer/backfill/shadow/restore）、DB binding immutable 与 runner verification 全覆盖；
+  空库重建到 Alembic head=`0007`，全套 `544 passed`。
 
 ## 下一步
 

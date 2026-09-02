@@ -16,6 +16,12 @@ from psycopg import Connection
 from psycopg_pool import ConnectionPool
 from sqlalchemy.exc import SQLAlchemyError
 
+from application.data_location_registry import (
+    DataLocationRegistry,
+    LocationReadiness,
+    default_registry_path,
+)
+
 
 class PostgresUnavailableError(RuntimeError):
     pass
@@ -134,6 +140,7 @@ class PostgresMigrationRunner:
 
     def upgrade(self) -> dict[str, str]:
         try:
+            self._validate_data_location_metadata()
             self._verify_known_ledger(allow_absent=True)
             command.upgrade(self.config, "head")
             self._record_known_revisions()
@@ -142,6 +149,7 @@ class PostgresMigrationRunner:
             raise PostgresUnavailableError("PostgreSQL migration failed") from exc
 
     def verify(self) -> dict[str, str]:
+        self._validate_data_location_metadata()
         expected = self._revision_checksums()
         try:
             with psycopg.connect(self.database_url) as connection:
@@ -152,6 +160,18 @@ class PostgresMigrationRunner:
                     "SELECT revision, file_sha256 FROM "
                     "dialogpilot_platform.migration_ledger"
                 ).fetchall()
+                registry_table = connection.execute(
+                    "SELECT to_regclass("
+                    "'dialogpilot_platform.data_location_registry_revisions')"
+                ).fetchone()[0]
+                registry_row = (
+                    connection.execute(
+                        "SELECT registry_version, artifact_fingerprint FROM "
+                        "dialogpilot_platform.data_location_registry_revisions "
+                        "ORDER BY installed_at DESC LIMIT 1"
+                    ).fetchone()
+                    if registry_table else None
+                )
         except psycopg.Error as exc:
             raise PostgresUnavailableError("PostgreSQL verification failed") from exc
         actual = dict(rows)
@@ -165,7 +185,43 @@ class PostgresMigrationRunner:
             raise MigrationDriftError(
                 f"database revision {current[0] if current else None!r} != head {head!r}"
             )
+        if registry_row is not None:
+            registry = DataLocationRegistry.load(default_registry_path())
+            if registry_row != (registry.version, registry.fingerprint):
+                raise MigrationDriftError(
+                    "installed data-location registry differs from approved artifact"
+                )
         return {"head": head, "ledger_sha256": _mapping_hash(actual)}
+
+    def _validate_data_location_metadata(self) -> None:
+        registry = DataLocationRegistry.load(default_registry_path())
+        ordered = list(reversed(list(
+            self._script().walk_revisions(base="base", head="heads")
+        )))
+        enforce = False
+        for revision in ordered:
+            if revision.revision == "20260902_0006":
+                enforce = True
+                continue
+            if not enforce:
+                continue
+            module = revision.module
+            if not hasattr(module, "data_location_ids") or not hasattr(
+                module, "subject_linked_write",
+            ):
+                raise MigrationDriftError(
+                    f"migration lacks data-location declaration: {revision.revision}"
+                )
+            if module.subject_linked_write and not module.data_location_ids:
+                raise MigrationDriftError(
+                    f"subject-linked migration has no locations: {revision.revision}"
+                )
+            for location_id in module.data_location_ids:
+                location = registry.get(str(location_id))
+                if location.readiness is not LocationReadiness.WRITE_APPROVED:
+                    raise MigrationDriftError(
+                        f"migration location is not write-approved: {location_id}"
+                    )
 
     def _verify_known_ledger(self, *, allow_absent: bool) -> None:
         try:
