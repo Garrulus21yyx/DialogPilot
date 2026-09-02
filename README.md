@@ -15,7 +15,7 @@ claim-citation-validated grounded result; private order/account state remains a
 business-tool concern. Incompatible non-empty indexes fail closed and require
 re-import from authoritative sources.
 
-中文文档：[完整架构教程](https://garrulus21yyx.github.io/DialogPilot/) · [架构边界](https://garrulus21yyx.github.io/DialogPilot/architecture.html) · [项目讲述](https://garrulus21yyx.github.io/DialogPilot/project-pitch.html) · [客服 RAG 生产化审计](https://garrulus21yyx.github.io/DialogPilot/customer-service-rag-production-audit/) · [客服 RAG 评测](https://garrulus21yyx.github.io/DialogPilot/rag-pipeline-evaluation/) · [代码校准面经](https://garrulus21yyx.github.io/DialogPilot/interview-guide.html)
+中文文档：[完整架构教程](https://garrulus21yyx.github.io/DialogPilot/) · [架构边界](https://garrulus21yyx.github.io/DialogPilot/architecture.html) · [项目讲述](https://garrulus21yyx.github.io/DialogPilot/project-pitch.html) · [客服 RAG 评测](https://garrulus21yyx.github.io/DialogPilot/rag-pipeline-evaluation/) · [代码校准面经](https://garrulus21yyx.github.io/DialogPilot/interview-guide.html)
 
 ## Why this project exists
 
