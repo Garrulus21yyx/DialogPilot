@@ -27,7 +27,7 @@
 | M1-T04A DataLocationRegistry / pre-write fence | done | PostgreSQL `0007`；31 stable locations，4 write-approved，future writes fail closed |
 | M1-T05 Conversation/API read projections | implemented | PostgreSQL `0008`；turn/status/finalize watermark/close + PG delivery compatibility |
 | M1 完整会话事实与幂等发布 | in_progress | 按 T00–T05/T03A/T04A 子节点推进 |
-| M2-PF01 共享 PostgreSQL HybridRetrievalBackend | in_progress | PR-18P-A/B done；PR-18P-C pending |
+| M2-PF01 共享 PostgreSQL HybridRetrievalBackend | implemented | PR-18P-A/B/C done；生产质量、RTO/OLTP gate 尚未 VERIFIED |
 | M2-T01A Agent-owned Intent/Domain/Instance policy | done | V1 registry + typed decisions/trace；582 tests passed |
 | M2-T01 RouteDecision / RouterInvocationPolicy | done (flag-off) | 8 modes + call/skip algebra；602 tests passed |
 | M2-T02 FactRequirement / AuthorityPolicyRegistry | done (planner flag-off) | minimum requirements + startup manifest gate + refund_status；609 tests passed |
@@ -546,8 +546,33 @@
   scope fail-closed、artifact checksum；Alembic head=`0012`，真实 PostgreSQL/pgvector 全套
   `650 passed in 18.57s`。涉及原有压缩 fixture 文件只做显式 scope 消费者迁移，未将其历史风格问题纳入本卡。
 
+### M2-PF01 / PR-18P-C（canonical outbox projection / deletion fence）
+
+- Owner 边界：Knowledge backfill 只在同一事务固化 immutable `SourceRevision`、manifest/entries、精确
+  `knowledge_source_chunk_specs` 并发出只含 canonical refs/fingerprint 的 durable outbox；不再直接写
+  `knowledge_chunk_search`。Retrieval Platform projector 只解析 Owner refs、验证 BUILDING generation 和
+  完整 fingerprint 后生成可删除、可重建搜索 projection；ServiceEpisode 只定义 opaque owner resolver port，
+  不在 M4 前复制 episode 事实或 verified-outcome 语义。
+- 可重放合同：确定性 event identity、immutable canonical fields、闭合
+  `PENDING→PROCESSING→APPLIED/REJECTED` 状态与 typed result code；重复执行已完成 event 返回
+  `ALREADY_APPLIED`，candidate set 或 canonical fingerprint 漂移为 `CANONICAL_SOURCE_DRIFT`，关闭或未知
+  generation fail closed。多 scope/locale/product manifest 按 manifest hash 单独投影，不跨 manifest 混写。
+- 写边界：DataLocationRegistry v4 注册 `location:retrieval-projection-outbox:v1`，共 33 locations/
+  8 write-approved，fingerprint=`2aae62ba01ac4195ae50a7dbd7b619f433d5a800b3fce8698a1e3a9a3f49f502`；
+  runtime retrieval role 已撤销两个搜索 projection 表的写权限，正常 PG retrieval row 只能由平台投影边界写入。
+- 删除/迟到写：Episode enqueue 与 projector 都在事务内读取 conversation tombstone/deletion epoch；conversation
+  首次 tombstone 的数据库 trigger 同事务删除已有 Episode projection 并拒绝 pending/processing event。删除后
+  enqueue、直接搜索投影和 rebuild 都受 fence 阻止；dark-shadow 仅写独立 BUILDING generation，不修改唯一
+  active pointer。完整备份恢复故障证明仍按任务卡由 M4-T08 收口。
+- PostgreSQL：migrations `0013`–`0015` 增加 source chunk specs、canonical outbox/receipt、event owner/fence
+  guard、projection delete adapter 与 runtime read-only boundary；Alembic head=`0015`。
+- 验证：backfill-before-projector 零搜索行、exact replay、identity immutability、canonical drift、closed generation、
+  tenant/scope filter、shadow pointer、missing Episode resolver、tombstone purge 与 late enqueue；聚焦 `36 passed`，
+  真实 PostgreSQL/pgvector 全套 `655 passed in 21.40s`，ruff/diff checks passed。节点标记 IMPLEMENTED；生产
+  Recall/latency/rebuild RTO/OLTP 影响证据仍未满足，不声明 VERIFIED。
+
 ## 下一步
 
-1. M2-PF01 PR-18P-C：只消费 canonical SourceRevision/ServiceEpisode producer 投影，完成平台 prerequisite。
-2. 随后进入 M2-T05 统一 Retriever；T04/T04A live activation 仍受 M2 gate 与独立 review 约束。
+1. 进入 M2-T05 统一 Retriever，消费 backend-neutral Dense/Lexical candidates 并保持 corpus policy owner 独立。
+2. T04/T04A live activation 仍受 M2 gate 与独立 review 约束。
 3. 保持 PG_FTS_ZH_V1 与 LEGACY_BM25_V1 独立评分，未过质量/延迟/删除/重建 Gate 前不切 active consumer。

@@ -1,0 +1,44 @@
+{
+  "schema": "dialogpilot.data-location-registry-overlay.v1",
+  "version": "v4",
+  "approved_by": "canonical-retrieval-projection-review",
+  "base_artifact": "v3.json",
+  "contract_catalog_additions": {
+    "delete_adapters": [
+      {
+        "id": "adapter:pg-retrieval-projection-delete:v1",
+        "status": "IMPLEMENTED",
+        "evidence": "transactional conversation tombstone projection purge and outbox rejection"
+      }
+    ],
+    "proof_contracts": [
+      {
+        "id": "proof:m2-pf01-canonical-projection:v1",
+        "status": "IMPLEMENTED",
+        "evidence": "tests/test_postgres_retrieval_projection.py"
+      }
+    ],
+    "restore_fences": [
+      {
+        "id": "restore-fence:retrieval-generation-subject-epoch:v1",
+        "status": "IMPLEMENTED",
+        "evidence": "BUILDING generation and current subject deletion epoch validation"
+      }
+    ]
+  },
+  "location_additions": [
+    {
+      "location_id": "location:retrieval-projection-outbox:v1",
+      "owner": "RetrievalPlatform",
+      "schema_version": "canonical-retrieval-projection-v1",
+      "retention_class": "retrieval_projection_operational",
+      "readiness": "WRITE_APPROVED",
+      "allowed_producers": ["knowledge-backfill", "service-episode-owner"],
+      "delete_adapter_id": "adapter:pg-retrieval-projection-delete:v1",
+      "proof_contract_id": "proof:m2-pf01-canonical-projection:v1",
+      "restore_fence_id": "restore-fence:retrieval-generation-subject-epoch:v1",
+      "allow_subject_create": false
+    }
+  ],
+  "location_updates": []
+}

@@ -342,7 +342,7 @@ class DataLocationRegistry:
 
 
 def default_registry_path() -> Path:
-    return Path(__file__).resolve().parents[1] / "governance" / "data_locations" / "v3.json"
+    return Path(__file__).resolve().parents[1] / "governance" / "data_locations" / "v4.json"
 
 
 def _optional(value: object) -> str | None:

@@ -77,7 +77,7 @@ def test_retrieval_pool_has_independent_role_budget_timeout_and_metrics(
     retrieval_foundation,
 ):
     result, _, retrieval = retrieval_foundation
-    assert result["head"] == "20260902_0012"
+    assert result["head"] == "20260902_0015"
     assert retrieval.config.max_size == 2
     with retrieval.transaction() as connection:
         row = connection.execute("""
@@ -127,9 +127,9 @@ def test_search_projection_fails_closed_on_dimension_missing_subject_and_epoch(
     registry.transition(knowledge.generation_id, GenerationState.BUILDING)
 
     with pytest.raises(psycopg.errors.DataException, match="dimension mismatch"):
-        with retrieval.transaction() as connection:
+        with platform.transaction() as connection:
             connection.execute("""
-                INSERT INTO knowledge_chunk_search (
+                INSERT INTO retrieval.knowledge_chunk_search (
                     candidate_id, tenant_id, backend_id, generation_id,
                     source_id, source_revision, source_checksum, source_span,
                     provenance_sha256, scope, locale, deletion_epoch,
@@ -150,9 +150,9 @@ def test_search_projection_fails_closed_on_dimension_missing_subject_and_epoch(
         psycopg.errors.ObjectNotInPrerequisiteState,
         match="deletion-fenced",
     ):
-        with retrieval.transaction() as connection:
+        with platform.transaction() as connection:
             connection.execute("""
-                INSERT INTO service_episode_search (
+                INSERT INTO retrieval.service_episode_search (
                     candidate_id, tenant_id, user_id, source_conversation_id,
                     backend_id, generation_id, episode_id, episode_revision,
                     outcome_receipt_ref, provenance_sha256, deletion_epoch,
@@ -182,3 +182,14 @@ def test_corpus_tables_are_separate_and_retrieval_role_cannot_mutate_registry(
             connection.execute(
                 "DELETE FROM retrieval_generation_registry WHERE false"
             )
+    with pytest.raises(psycopg.errors.InsufficientPrivilege):
+        with retrieval.transaction() as connection:
+            connection.execute("""
+                INSERT INTO knowledge_chunk_search (
+                    candidate_id, tenant_id, backend_id, generation_id,
+                    source_id, source_revision, source_checksum, source_span,
+                    provenance_sha256, scope, locale, deletion_epoch,
+                    lexical_document, projected_at
+                ) VALUES ('forbidden','t','b','g','s','r',%s,'{}',%s,
+                          'public','zh-CN',0,'forbidden',now())
+            """, (SHA, SHA))

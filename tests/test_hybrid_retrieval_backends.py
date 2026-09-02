@@ -139,10 +139,10 @@ def test_postgres_dense_exact_ann_and_pg_fts_are_stable_and_acl_scoped(
         ("candidate-logistics", "tenant-a", "logistics-source", "物流 查询", _vector(1)),
         ("candidate-other-tenant", "tenant-b", "other-source", "退款", _vector(0)),
     )
-    with retrieval.transaction() as connection:
+    with platform.transaction() as connection:
         for candidate_id, tenant_id, source_id, text, embedding in rows:
             connection.execute("""
-                INSERT INTO knowledge_chunk_search (
+                INSERT INTO retrieval.knowledge_chunk_search (
                     candidate_id, tenant_id, backend_id, generation_id,
                     source_id, source_revision, source_checksum, source_span,
                     provenance_sha256, scope, locale, product, deletion_epoch,
@@ -225,10 +225,10 @@ def test_episode_search_is_cross_user_isolated_and_never_cross_ranks_knowledge(
                     tenant_id, user_id, conversation_id
                 ) VALUES ('tenant-a', %s, %s)
             """, (user_id, f"conversation-{user_id}"))
-    with retrieval.transaction() as connection:
+    with platform.transaction() as connection:
         for user_id in ("user-a", "user-b"):
             connection.execute("""
-                INSERT INTO service_episode_search (
+                INSERT INTO retrieval.service_episode_search (
                     candidate_id, tenant_id, user_id, entity_ids,
                     source_conversation_id, backend_id, generation_id,
                     episode_id, episode_revision, outcome_receipt_ref,

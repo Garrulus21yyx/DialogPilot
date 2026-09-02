@@ -1,9 +1,9 @@
-"""PostgreSQL SourceRevision v0 backfill, dereference, and active validation."""
+"""PostgreSQL SourceRevision backfill and canonical projection enqueue."""
 from __future__ import annotations
 
+import hashlib
+import json
 from typing import Sequence
-
-from psycopg.types.json import Jsonb
 
 from application.evidence_receipt import (
     EvidenceReceipt,
@@ -152,48 +152,78 @@ class PostgresKnowledgeSourceRepository:
                     if chunk.embedding is not None else None
                 )
                 connection.execute("""
-                    INSERT INTO retrieval.knowledge_chunk_search (
+                    INSERT INTO retrieval.knowledge_source_chunk_specs (
                         candidate_id, tenant_id, backend_id, generation_id,
-                        source_id, source_revision, source_checksum, source_span,
-                        provenance_sha256, scope, locale, product,
-                        subject_user_id, subject_conversation_id, deletion_epoch,
-                        embedding, lexical_document, projected_at
+                        scope, locale, product, source_id, revision_id,
+                        source_checksum, start_char, end_char,
+                        provenance_sha256, embedding, lexical_document,
+                        immutable_fingerprint
                     ) VALUES (
-                        %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
-                        NULL,NULL,0,%s::vector,%s,transaction_timestamp()
+                        %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
+                        %s::vector,%s,%s
                     ) ON CONFLICT (candidate_id) DO NOTHING
                 """, (
                     chunk.candidate_id, manifest.tenant_id, manifest.backend_id,
-                    manifest.generation_id, chunk.source_id, chunk.revision_id,
-                    chunk.source_checksum,
-                    Jsonb({"start_char": chunk.start_char, "end_char": chunk.end_char}),
-                    chunk.provenance_sha256, manifest.scope, manifest.locale,
-                    manifest.product or None, embedding, chunk.lexical_document,
+                    manifest.generation_id, manifest.scope, manifest.locale,
+                    manifest.product, chunk.source_id, chunk.revision_id,
+                    chunk.source_checksum, chunk.start_char, chunk.end_char,
+                    chunk.provenance_sha256, embedding, chunk.lexical_document,
+                    chunk.immutable_fingerprint,
                 ))
                 stored = connection.execute("""
-                    SELECT source_id, source_revision, source_checksum,
-                           source_span, provenance_sha256, lexical_document
-                    FROM retrieval.knowledge_chunk_search WHERE candidate_id=%s
+                    SELECT immutable_fingerprint
+                    FROM retrieval.knowledge_source_chunk_specs WHERE candidate_id=%s
                 """, (chunk.candidate_id,)).fetchone()
-                expected = (
-                    chunk.source_id, chunk.revision_id, chunk.source_checksum,
-                    {"start_char": chunk.start_char, "end_char": chunk.end_char},
-                    chunk.provenance_sha256, chunk.lexical_document,
-                )
-                if stored is None or (
-                    stored[0], stored[1], stored[2], stored[3], stored[4], stored[5]
-                ) != expected:
-                    raise KnowledgeSourceConflict("chunk projection identity changed")
+                if stored is None or stored[0] != chunk.immutable_fingerprint:
+                    raise KnowledgeSourceConflict("chunk specification identity changed")
+
+            event_body = {
+                "corpus": "KNOWLEDGE",
+                "tenant_id": manifest.tenant_id,
+                "backend_id": manifest.backend_id,
+                "generation_id": manifest.generation_id,
+                "manifest_hash": manifest.manifest_hash,
+                "chunk_fingerprints": sorted(
+                    item.immutable_fingerprint for item in chunks
+                ),
+            }
+            event_fingerprint = hashlib.sha256(json.dumps(
+                event_body, sort_keys=True, separators=(",", ":"),
+            ).encode("utf-8")).hexdigest()
+            event_id = f"knowledge-projection-v1-{event_fingerprint}"
+            connection.execute("""
+                INSERT INTO retrieval.canonical_projection_outbox (
+                    event_id, corpus, tenant_id, backend_id, generation_id,
+                    source_ref, source_revision, source_fingerprint,
+                    deletion_epoch
+                ) VALUES (%s,'KNOWLEDGE',%s,%s,%s,%s,%s,%s,0)
+                ON CONFLICT (event_id) DO NOTHING
+            """, (
+                event_id, manifest.tenant_id, manifest.backend_id,
+                manifest.generation_id, manifest.manifest_hash,
+                manifest.schema_version, event_fingerprint,
+            ))
+            event = connection.execute("""
+                SELECT corpus, tenant_id, backend_id, generation_id, source_ref,
+                       source_revision, source_fingerprint
+                FROM retrieval.canonical_projection_outbox WHERE event_id=%s
+            """, (event_id,)).fetchone()
+            if event != (
+                "KNOWLEDGE", manifest.tenant_id, manifest.backend_id,
+                manifest.generation_id, manifest.manifest_hash,
+                manifest.schema_version, event_fingerprint,
+            ):
+                raise KnowledgeSourceConflict("projection event identity changed")
 
             counts = connection.execute("""
                 SELECT
                     (SELECT count(*) FROM retrieval.knowledge_source_manifest_entries
                      WHERE tenant_id=%s AND backend_id=%s AND generation_id=%s
                        AND scope=%s AND locale=%s AND product=%s),
-                    (SELECT count(*) FROM retrieval.knowledge_chunk_search
+                    (SELECT count(*) FROM retrieval.knowledge_source_chunk_specs
                      WHERE tenant_id=%s AND backend_id=%s AND generation_id=%s
                        AND scope=%s AND locale=%s
-                       AND product IS NOT DISTINCT FROM NULLIF(%s, ''))
+                       AND product=%s)
             """, (
                 manifest.tenant_id, manifest.backend_id, manifest.generation_id,
                 manifest.scope, manifest.locale, manifest.product,

@@ -27,6 +27,9 @@ from application.knowledge_source import (
 )
 from infrastructure.postgres import PostgresMigrationRunner, PostgresPool, PostgresPoolConfig
 from infrastructure.postgres_knowledge_source import PostgresKnowledgeSourceRepository
+from infrastructure.postgres_retrieval_projection import (
+    PostgresCanonicalRetrievalProjector,
+)
 from infrastructure.retrieval_postgres import PostgresRetrievalGenerationRegistry
 
 
@@ -43,6 +46,9 @@ def source_pool(postgres_database_url):
     with pool.transaction() as connection:
         connection.execute("""
             TRUNCATE TABLE
+                retrieval.canonical_projection_receipts,
+                retrieval.canonical_projection_outbox,
+                retrieval.knowledge_source_chunk_specs,
                 retrieval.knowledge_source_manifest_entries,
                 retrieval.knowledge_source_manifests,
                 retrieval.knowledge_source_revisions,
@@ -129,6 +135,9 @@ def _build(pool, source, generation_id):
     repository.backfill_generation(
         manifest, (source,), (_chunk(source, generation_id),)
     )
+    result = PostgresCanonicalRetrievalProjector(pool).project_next()
+    assert result is not None
+    assert result.code.value == "APPLIED"
     return manifest, generations, repository
 
 
@@ -163,6 +172,11 @@ def test_backfill_is_idempotent_and_source_revision_is_dereferenceable(source_po
     repository.backfill_generation(
         manifest, (source,), (_chunk(source, manifest.generation_id),)
     )
+    with source_pool.transaction() as connection:
+        assert connection.execute("""
+            SELECT count(*) FROM retrieval.canonical_projection_outbox
+            WHERE generation_id=%s
+        """, (manifest.generation_id,)).fetchone()[0] == 1
     generations.transition(manifest.generation_id, GenerationState.READY)
     generations.activate(manifest.generation_id, expected_version=0)
 

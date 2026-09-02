@@ -195,6 +195,13 @@ class KnowledgeChunkProjection:
         if self.embedding is not None and not self.embedding:
             raise KnowledgeSourceContractError("embedding cannot be empty")
 
+    @property
+    def immutable_fingerprint(self) -> str:
+        return _canonical_hash({
+            **self.__dict__,
+            "embedding": list(self.embedding) if self.embedding is not None else None,
+        })
+
 
 def _canonical_hash(value: Any) -> str:
     encoded = json.dumps(
