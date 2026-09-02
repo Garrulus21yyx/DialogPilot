@@ -1,15 +1,8 @@
 import asyncio
 from dataclasses import replace
-from types import SimpleNamespace
 
 import pytest
 
-from evaluation.candidate_runner import (
-    CandidateExternalEvidence,
-    CandidateRunner,
-    GateArtifact,
-)
-from evaluation.graduation import GraduationEvidence, GraduationGate
 from services.badcase_registry import (
     BadCase,
     BadCaseSeverity,
@@ -110,76 +103,3 @@ def test_intent_candidate_requires_approved_annotation():
         "annotation_id": "annotation-1",
         "classifier_fingerprint": "f" * 64,
     }]
-
-
-class FakeEvaluator:
-    def __init__(self):
-        self.bundle = None
-
-    async def run(self, **kwargs):
-        self.bundle = kwargs["agent_bundle"]
-        return SimpleNamespace(
-            pass_rate=0.95,
-            regressions=[],
-            results=[],
-            metadata={"agent_bundle_version": self.bundle.version},
-        )
-
-
-def _gate(name, passed=True):
-    def runner(bundle):
-        return GateArtifact.create(
-            name, passed, f"{bundle.version}:{name}", {"executed": 10, "passed": passed},
-        )
-    return runner
-
-
-def test_candidate_runner_uses_provenance_gates_and_rejects_safety_failure():
-    evaluator = FakeEvaluator()
-    runners = {
-        name: _gate(name, passed=name != "security")
-        for name in ("security", "identity_isolation", "tool_authorization", "coverage", "stateful")
-    }
-    candidate = AgentBundle(version="candidate-v1")
-    result = asyncio.run(CandidateRunner(evaluator, runners).run(
-        candidate,
-        external=CandidateExternalEvidence(
-            review_status="human_reviewed",
-            fresh_heldout=True,
-            heldout_evidence_id="fresh-v1",
-            heldout_checksum="a" * 64,
-        ),
-    ))
-    assert evaluator.bundle is candidate
-    assert result.decision.graduated is False
-    assert "failed hard gates" in " ".join(result.decision.reasons)
-    assert all(artifact.evidence_id for artifact in result.gates)
-    assert CandidateRunner.pareto_front([result]) == ()
-
-
-def test_candidate_report_cannot_be_relabelled_as_another_bundle():
-    evaluator = FakeEvaluator()
-    runners = {
-        name: _gate(name)
-        for name in ("security", "identity_isolation", "tool_authorization", "coverage", "stateful")
-    }
-    candidate = AgentBundle(version="candidate-v1")
-    result = asyncio.run(CandidateRunner(evaluator, runners).run(
-        candidate,
-        external=CandidateExternalEvidence(
-            review_status="human_reviewed", fresh_heldout=True,
-            heldout_evidence_id="fresh-v1", heldout_checksum="b" * 64,
-        ),
-    ))
-    assert result.decision.graduated is True
-    relabelled = GraduationGate().evaluate(GraduationEvidence(
-        candidate_id="other",
-        report=result.report,
-        hard_gates={artifact.name: artifact.passed for artifact in result.gates},
-        review_status="human_reviewed",
-        fresh_heldout=True,
-        heldout_evidence_id="fresh-v1",
-        heldout_checksum="b" * 64,
-    ))
-    assert relabelled.graduated is False
-    assert "does not match candidate" in " ".join(relabelled.reasons)

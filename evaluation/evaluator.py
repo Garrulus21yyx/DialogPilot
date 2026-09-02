@@ -30,13 +30,6 @@ from core.llm_utils import extract_text_content
 from core.model_policy import ModelProfile, ModelRole
 
 from core.intent_recognizer import IntentCategory, IntentRecognizer
-from evaluation.graduation import (
-    BaselineSnapshot,
-    GraduationDecision,
-    GraduationEvidence,
-    GraduationGate,
-    ImmutableBaselineStore,
-)
 from evaluation.rubric import CaseRubric
 from services.evolution.bundle import AgentBundle
 from application.chat_application import ChatCommand, Completed
@@ -276,7 +269,6 @@ class EndToEndEvaluator:
         api_key:  str,
         base_url: Optional[str] = None,
         model:    str = "claude-3-5-sonnet-20241022",
-        baseline_path: Optional[str] = None,
         judge_model_profile: Optional[ModelProfile] = None,
         chat_runner: Optional[ChatApplicationRunner] = None,
     ):
@@ -291,9 +283,6 @@ class EndToEndEvaluator:
         self._judge            = LLMJudge(client, model, model_profile=judge_model_profile)
         self._intent_evaluator = IntentEvaluator(recognizer)
         self._history:         List[EvalReport] = []
-        self._baseline_store = ImmutableBaselineStore(baseline_path) if baseline_path else None
-        self._graduation_gate = GraduationGate()
-        self._baseline: Optional[EvalReport] = self._load_baseline()
 
     async def run(
         self,
@@ -370,7 +359,7 @@ class EndToEndEvaluator:
         pass_rate    = passed_count / len(results) if results else 0.0
 
         # 4. 回归检测
-        regressions = self._detect_regressions(avg_scores)
+        regressions: List[str] = []
 
         # 5. 优化建议
         recommendations = self._recommendations(avg_scores, intent_metrics)
@@ -718,22 +707,6 @@ class EndToEndEvaluator:
         lines = [f"{m['role']}: {m['content']}" for m in history[-8:]]
         return "[评测多轮历史]\n" + "\n".join(lines)
 
-    def _detect_regressions(self, current: Dict[str, float]) -> List[str]:
-        """与显式晋级的 Active Baseline 对比，找出退化超过 5% 的指标。"""
-        prev_report = self._baseline
-        if prev_report is None:
-            return []
-        prev = prev_report.avg_scores
-        regressions = []
-        for metric, value in current.items():
-            if metric in prev and prev[metric] > 0:
-                delta = (value - prev[metric]) / prev[metric]
-                if delta < -0.05:
-                    regressions.append(
-                        f"{metric}: {prev[metric]:.3f} → {value:.3f} (退化 {abs(delta):.1%})"
-                    )
-        return regressions
-
     def _recommendations(
         self,
         scores: Dict[str, float],
@@ -765,95 +738,6 @@ class EndToEndEvaluator:
     def history(self) -> List[EvalReport]:
         """返回进程内评测报告副本。"""
         return self._history
-
-    def _load_baseline(self) -> Optional[EvalReport]:
-        """从不可变快照仓库恢复 Active Baseline。"""
-        if self._baseline_store is None:
-            return None
-        try:
-            snapshot = self._baseline_store.active()
-            return self._report_from_dict(snapshot.report) if snapshot else None
-        except Exception as ex:
-            logger.warning(f"读取评测基线失败: {ex}")
-            return None
-
-    @property
-    def baseline_snapshot(self) -> Optional[BaselineSnapshot]:
-        """返回当前 Active 快照；普通评测不会改变该指针。"""
-        return self._baseline_store.active() if self._baseline_store else None
-
-    def assess_latest_candidate(
-        self,
-        *,
-        candidate_id: str,
-        hard_gates: Dict[str, bool],
-        review_status: str,
-        fresh_heldout: bool,
-        heldout_evidence_id: str = "",
-        heldout_checksum: str = "",
-        latency_ratio: float = 1.0,
-        cost_ratio: float = 1.0,
-    ) -> GraduationDecision:
-        """对最近一次运行做显式晋级判定，但不改变 Active 指针。"""
-        if not self._history:
-            raise ValueError("no evaluation report is available for graduation")
-        return self._graduation_gate.evaluate(GraduationEvidence(
-            candidate_id=candidate_id,
-            report=self._history[-1],
-            hard_gates=dict(hard_gates),
-            review_status=review_status,
-            fresh_heldout=fresh_heldout,
-            heldout_evidence_id=heldout_evidence_id,
-            heldout_checksum=heldout_checksum,
-            latency_ratio=latency_ratio,
-            cost_ratio=cost_ratio,
-        ))
-
-    def promote_latest_candidate(
-        self,
-        *,
-        actor: str,
-        **evidence: Any,
-    ) -> tuple[GraduationDecision, Optional[BaselineSnapshot]]:
-        """只有 Graduation Gate 通过时才原子切换 Active Baseline。"""
-        decision = self.assess_latest_candidate(**evidence)
-        if not decision.graduated:
-            return decision, None
-        if self._baseline_store is None:
-            raise ValueError("baseline storage is not configured")
-        report = self._history[-1]
-        snapshot = self._baseline_store.promote(
-            report=report,
-            decision=decision,
-            actor=actor,
-        )
-        self._baseline = report
-        return decision, snapshot
-
-    @staticmethod
-    def _report_from_dict(data: Dict[str, Any]) -> EvalReport:
-        """把持久 JSON 在边界恢复为有类型评测报告。"""
-        return EvalReport(
-            timestamp=data.get("timestamp", ""),
-            total=int(data.get("total", 0)),
-            passed=int(data.get("passed", 0)),
-            pass_rate=float(data.get("pass_rate", 0.0)),
-            avg_scores=dict(data.get("avg_scores", {})),
-            regressions=list(data.get("regressions", [])),
-            recommendations=list(data.get("recommendations", [])),
-            results=[
-                EvalResult(
-                    test_id=r.get("test_id", ""),
-                    passed=bool(r.get("passed", False)),
-                    scores=dict(r.get("scores", {})),
-                    detail=r.get("detail", ""),
-                    metadata=dict(r.get("metadata", {})),
-                )
-                for r in data.get("results", [])
-            ],
-            metadata=dict(data.get("metadata", {})),
-        )
-
 
 # ── 内置测试用例（开箱即用）──────────────────────────────────────────────────
 

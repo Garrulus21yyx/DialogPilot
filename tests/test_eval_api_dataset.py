@@ -8,7 +8,6 @@ from fastapi import HTTPException
 from api import main
 from core.auth import Principal
 from evaluation.dataset import write_dataset
-from evaluation.graduation import GraduationDecision, GraduationStatus
 
 
 ADMIN = Principal(subject="test-admin", scopes=frozenset({"admin"}))
@@ -139,49 +138,3 @@ def test_eval_run_forwards_dataset_identity_to_report(tmp_path, monkeypatch):
 
     assert response["metadata"]["registry_id"] == "project-v1"
     assert response["metadata"]["case_count"] == 2
-
-
-def test_graduation_check_is_read_only_and_promotion_uses_admin_identity(monkeypatch):
-    captured = {}
-
-    class FakeSnapshot:
-        def to_dict(self):
-            return {"snapshot_id": "sha", "candidate_id": "agent-v2"}
-
-    class FakeEvaluator:
-        baseline_snapshot = None
-
-        def assess_latest_candidate(self, **kwargs):
-            captured["check"] = kwargs
-            return GraduationDecision(GraduationStatus.GRADUATED, kwargs["candidate_id"])
-
-        def promote_latest_candidate(self, **kwargs):
-            captured["promote"] = kwargs
-            return (
-                GraduationDecision(GraduationStatus.GRADUATED, kwargs["candidate_id"]),
-                FakeSnapshot(),
-            )
-
-    body = main.EvalGraduationInput(
-        candidate_id="agent-v2",
-        hard_gates={
-            "security": True,
-            "identity_isolation": True,
-            "tool_authorization": True,
-            "coverage": True,
-            "stateful": True,
-        },
-        review_status="human_reviewed",
-        fresh_heldout=True,
-        heldout_evidence_id="heldout-v2",
-        heldout_checksum="a" * 64,
-    )
-    monkeypatch.setattr(main, "_evaluator", FakeEvaluator())
-
-    checked = asyncio.run(main.check_eval_graduation(body, ADMIN))
-    promoted = asyncio.run(main.promote_eval_baseline(body, ADMIN))
-
-    assert checked["active_changed"] is False
-    assert promoted["active_changed"] is True
-    assert captured["promote"]["actor"] == "test-admin"
-    assert captured["promote"]["heldout_checksum"] == "a" * 64

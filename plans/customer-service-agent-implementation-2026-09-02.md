@@ -21,6 +21,7 @@
 | 删除 governance evidence/concurrency 冻结副本 | done | `d90ba81`；848 tests passed |
 | ServiceEpisode 直接解析唯一 ACTIVE generation | done | `679a89b`；844 tests passed |
 | 删除生产迁移、Reviewer 签署与多副本演练材料 | done | 保留空库 Alembic 初始化和本地 dump/restore |
+| 删除 Eval Graduation/Pareto 与 baseline promotion API | done | `/eval/run` 保留确定性 dev/heldout 报告 |
 | 收缩本地评测并清理文档中的旧路径 | in_progress | 保留确定性 dev/heldout 与机器报告 |
 | 本地 E2E、恢复验证、Demo 复现 | pending | 最终验收 |
 

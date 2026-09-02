@@ -559,7 +559,6 @@ async def lifespan(app: FastAPI):
         api_key=cfg["api_key"],
         base_url=cfg.get("base_url"),
         model=cfg["model"],
-        baseline_path=os.getenv("EVAL_BASELINE_PATH", "/app/data/eval/baseline.json"),
         judge_model_profile=_model_policy.profile(ModelRole.JUDGE),
         chat_runner=ChatApplicationRunner(lambda _overrides: _chat_application()),
     )
@@ -1511,7 +1510,7 @@ async def register_agent_bundle(
     body: AgentBundleInput,
     principal: Principal = Depends(_admin_principal),
 ):
-    """只注册候选；晋级和发布必须由后续 Graduation/Rollout Owner 完成。"""
+    """只注册候选，不修改当前 Active Bundle。"""
     if _bundle_registry is None:
         raise HTTPException(503, "Agent Bundle 服务未就绪")
     try:
@@ -2267,7 +2266,7 @@ async def review_intent_feedback(
     body: IntentFeedbackReviewRequest,
     principal: Principal = Depends(_admin_principal),
 ):
-    """人工裁决候选标签；批准不会绕过评测、Graduation 或 Rollout。"""
+    """人工校正候选标签；校正结果仍需通过本地评测。"""
     if _badcase_registry is None:
         raise HTTPException(503, "Bad Case Registry 未就绪")
     if body.decision == "approved" and body.approved_intent is None:
@@ -2711,19 +2710,6 @@ class EvalRunInput(BaseModel):
     bundle_version: Optional[str] = Field(default=None, min_length=1, max_length=128)
 
 
-class EvalGraduationInput(BaseModel):
-    """候选评测报告的显式晋级证据；普通 eval run 不会自动晋级。"""
-
-    candidate_id: str = Field(min_length=1, max_length=160)
-    hard_gates: Dict[str, bool]
-    review_status: str = Field(min_length=1, max_length=80)
-    fresh_heldout: bool
-    heldout_evidence_id: str = Field(default="", max_length=240)
-    heldout_checksum: str = Field(default="", max_length=64)
-    latency_ratio: float = Field(default=1.0, ge=0.0)
-    cost_ratio: float = Field(default=1.0, ge=0.0)
-
-
 def _eval_dataset_root() -> pathlib.Path:
     """返回服务端控制的数据集注册表，客户端不能传入任意文件路径。"""
     configured = os.getenv("EVAL_DATASET_DIR", "").strip()
@@ -3059,57 +3045,6 @@ async def run_eval(
             }
             for r in report.results
         ],
-    }
-
-
-def _graduation_kwargs(body: EvalGraduationInput) -> Dict[str, Any]:
-    """把 HTTP 证据投影为 Graduation Owner 的有限输入合同。"""
-    return body.model_dump()
-
-
-@app.get("/eval/baseline")
-async def get_eval_baseline(_principal: Principal = Depends(_admin_principal)):
-    """返回当前显式晋级的 Active Baseline；无基线时返回 null。"""
-    if _evaluator is None:
-        raise HTTPException(503, "服务未就绪")
-    snapshot = _evaluator.baseline_snapshot
-    return {"active": snapshot.to_dict() if snapshot else None}
-
-
-@app.post("/eval/graduation/check")
-async def check_eval_graduation(
-    body: EvalGraduationInput,
-    _principal: Principal = Depends(_admin_principal),
-):
-    """检查最近一次评测是否满足晋级合同，不修改 Active 指针。"""
-    if _evaluator is None:
-        raise HTTPException(503, "服务未就绪")
-    try:
-        decision = _evaluator.assess_latest_candidate(**_graduation_kwargs(body))
-    except ValueError as exc:
-        raise HTTPException(409, detail={"code": "graduation_unavailable", "message": str(exc)}) from exc
-    return {"decision": decision.to_dict(), "active_changed": False}
-
-
-@app.post("/eval/baseline/promote")
-async def promote_eval_baseline(
-    body: EvalGraduationInput,
-    principal: Principal = Depends(_admin_principal),
-):
-    """通过全部 Graduation Gate 后原子切换 Active Baseline。"""
-    if _evaluator is None:
-        raise HTTPException(503, "服务未就绪")
-    try:
-        decision, snapshot = _evaluator.promote_latest_candidate(
-            actor=principal.subject,
-            **_graduation_kwargs(body),
-        )
-    except ValueError as exc:
-        raise HTTPException(409, detail={"code": "graduation_unavailable", "message": str(exc)}) from exc
-    return {
-        "decision": decision.to_dict(),
-        "active_changed": snapshot is not None,
-        "active": snapshot.to_dict() if snapshot else None,
     }
 
 
