@@ -158,6 +158,33 @@ def test_unsupported_authority_cannot_be_replaced_by_knowledge():
         )
 
 
+def test_unsupported_authority_resolves_to_canonical_handoff():
+    registry = AuthorityPolicyRegistry.v1()
+    original = _route((RequiredAuthority.ACCOUNT_STATE,), intent="account_status")
+
+    resolved = registry.resolve_route_authority(original)
+
+    assert resolved.mode is RouteMode.HANDOFF
+    assert resolved.required_authorities == (RequiredAuthority.HUMAN,)
+    assert resolved.owner_ids == ()
+    assert resolved.risk is RouteRisk.HIGH
+    assert resolved.reason_codes[-2:] == (
+        "AUTHORITY_UNSUPPORTED",
+        "UNSUPPORTED_REQUIREMENT:account.current_state",
+    )
+    assert resolved.auxiliary_signals == ("authority_fail_closed",)
+    assert registry.minimum_requirements(resolved) == ()
+
+
+def test_handoff_draft_has_no_write_fact_requirement():
+    registry = AuthorityPolicyRegistry.v1()
+    route = _route(
+        (RequiredAuthority.HUMAN,), intent="human_handoff", mode=RouteMode.HANDOFF,
+    )
+
+    assert registry.minimum_requirements(route) == ()
+
+
 def test_unknown_requirement_and_invalid_manifest_versions_cannot_mint_evidence():
     registry = AuthorityPolicyRegistry.v1()
     with pytest.raises(AuthorityContractError, match="unknown fact requirement"):

@@ -24,7 +24,7 @@ from agents.orchestration_contracts import (
     TaskSpec,
 )
 from agents.task_policies import MultiAgentExecutionPolicy
-from application.route_decision import RequestShape, RouteMode
+from application.route_decision import RequiredAuthority, RequestShape, RouteMode
 from core.intent_recognizer import IntentCategory, UrgencyLevel
 from memory.context import ContextAssembler, ContextSection
 from mcp.tool_manager import ToolExecutionReceipt
@@ -1216,3 +1216,25 @@ def test_request_shape_to_route_decision_preserves_mixed_authorities():
         "knowledge", "domain_tool",
     ]
     assert decision.owner_ids == ("billing",)
+
+
+def test_canonical_route_fails_closed_when_account_state_has_no_authority_owner():
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    orchestrator._pool = {
+        AgentType.GENERAL: [object()], AgentType.ACCOUNT_SECURITY: [object()],
+    }
+    request = Request(
+        message="我的账户资料现在是什么", user_id="u", conv_id="c",
+        intent=IntentCategory.ACCOUNT, intent_group="account",
+        urgency=UrgencyLevel.LOW, intent_confidence=0.95,
+    )
+
+    shape = asyncio.run(orchestrator.classify_request_shape(request))
+    decision = asyncio.run(orchestrator.decide_route(request, shape))
+
+    assert shape.shape is RequestShape.BUSINESS_STATE
+    assert decision.mode is RouteMode.HANDOFF
+    assert decision.required_authorities == (RequiredAuthority.HUMAN,)
+    assert decision.owner_ids == ()
+    assert "AUTHORITY_UNSUPPORTED" in decision.reason_codes
+    assert "UNSUPPORTED_REQUIREMENT:account.current_state" in decision.reason_codes

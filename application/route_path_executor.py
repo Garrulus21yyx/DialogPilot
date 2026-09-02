@@ -10,7 +10,11 @@ from application.route_execution import (
     RouteExecutionContract,
     RouteExpectedOutcome,
 )
-from application.route_outcomes import HandoffContractDraft, NeedsInputDraft
+from application.route_outcomes import (
+    HandoffContractDraft,
+    NeedsInputDraft,
+    RouteOutcomePayload,
+)
 
 
 class RoutePathError(RuntimeError):
@@ -25,7 +29,7 @@ class RouteCandidate:
     owner: CandidateOwner
     component_receipts: tuple[RouteComponent, ...] = ()
     evidence_refs: tuple[str, ...] = ()
-    outcome_payload: Any = None
+    outcome_payload: RouteOutcomePayload = None
 
     def __post_init__(self) -> None:
         if not self.content.strip():
@@ -48,6 +52,10 @@ class RoutePathResult:
     publishable: bool
     invocation_trace: tuple[RouteComponent, ...]
     reason_code: str
+
+    @property
+    def outcome_payload(self) -> RouteOutcomePayload:
+        return self.candidate.outcome_payload
 
 
 @dataclass(frozen=True)
@@ -136,6 +144,31 @@ class RoutePathExecutor:
                     "INVALID_HANDOFF_DRAFT",
                     "handoff route requires a complete HandoffContractDraft",
                 )
+            if candidate.outcome_payload.reason_codes != contract.reason_codes:
+                raise RoutePathError(
+                    "HANDOFF_REASON_BINDING_MISMATCH",
+                    "Handoff reason codes do not match the canonical route",
+                )
+            if candidate.outcome_payload.risk != contract.risk:
+                raise RoutePathError(
+                    "HANDOFF_RISK_BINDING_MISMATCH",
+                    "Handoff risk does not match the canonical route",
+                )
+            if not set(contract.missing_inputs).issubset(
+                candidate.outcome_payload.missing_materials
+            ):
+                raise RoutePathError(
+                    "HANDOFF_MISSING_MATERIAL_BINDING_MISMATCH",
+                    "Handoff draft omits route-owned missing materials",
+                )
+        if (
+            contract.expected_outcome is RouteExpectedOutcome.COMPLETED
+            and candidate.outcome_payload is not None
+        ):
+            raise RoutePathError(
+                "UNEXPECTED_OUTCOME_PAYLOAD",
+                "completed route cannot carry a nonterminal outcome payload",
+            )
         invoked.extend(candidate.component_receipts)
         self._validate_invocations(contract, invoked)
 

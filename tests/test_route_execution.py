@@ -22,6 +22,7 @@ from application.route_execution import (
 from application.route_path_executor import (
     DeterministicGateResult,
     RouteCandidate,
+    RoutePathError,
     RoutePathExecutor,
     RoutePathOperations,
     agent_route_candidate,
@@ -316,10 +317,63 @@ def test_typed_nonterminal_route_payload_is_required(mode, error_code):
         candidate_operation, forbidden, forbidden, forbidden,
     )
 
-    with pytest.raises(Exception) as exc_info:
+    with pytest.raises(RoutePathError) as exc_info:
         asyncio.run(RoutePathExecutor().execute(contract, operations))
 
     assert getattr(exc_info.value, "code", None) == error_code
+
+
+def test_handoff_payload_must_bind_canonical_reason_and_risk():
+    contract = plan(RouteMode.HANDOFF)
+    draft = handoff_contract_draft(contract)
+    values = {
+        field: getattr(draft, field) for field in draft.__dataclass_fields__
+    }
+    values["reason_codes"] = ("DOWNSTREAM_GUESS",)
+
+    async def handoff(_contract):
+        return RouteCandidate(
+            "draft", CandidateOwner.HANDOFF_DRAFT,
+            outcome_payload=HandoffContractDraft(**values),
+        )
+
+    async def forbidden(*_args):
+        raise AssertionError("executor continued after a binding mismatch")
+
+    with pytest.raises(RoutePathError) as exc_info:
+        asyncio.run(RoutePathExecutor().execute(
+            contract,
+            RoutePathOperations(
+                forbidden, forbidden, forbidden, forbidden, handoff,
+                forbidden, forbidden, forbidden,
+            ),
+        ))
+
+    assert exc_info.value.code == "HANDOFF_REASON_BINDING_MISMATCH"
+
+
+def test_completed_route_rejects_nonterminal_payload():
+    contract = plan(RouteMode.DIRECT)
+
+    async def rule(_contract):
+        return RouteCandidate(
+            "hello", CandidateOwner.RULE_POLICY,
+            outcome_payload=needs_input_draft(plan(RouteMode.CLARIFY)),
+        )
+
+    async def forbidden(*_args):
+        raise AssertionError("executor continued after an outcome algebra mismatch")
+
+    with pytest.raises(RoutePathError) as exc_info:
+        asyncio.run(RoutePathExecutor().execute(
+            contract,
+            RoutePathOperations(
+                rule, forbidden, forbidden, forbidden, forbidden,
+                forbidden, forbidden, forbidden,
+            ),
+        ))
+
+    assert exc_info.value.code == "UNEXPECTED_OUTCOME_PAYLOAD"
 
 
 def test_handoff_draft_matches_target_schema_and_cannot_claim_release():

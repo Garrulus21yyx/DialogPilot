@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Iterable, Mapping, Sequence
@@ -12,6 +12,7 @@ from application.route_decision import (
     RequiredAuthority,
     RouteDecision,
     RouteMode,
+    RouteRisk,
 )
 
 
@@ -20,7 +21,14 @@ class AuthorityContractError(ValueError):
 
 
 class UnsupportedAuthority(AuthorityContractError):
-    pass
+    def __init__(
+        self,
+        message: str,
+        *,
+        requirement_ids: tuple[str, ...] = (),
+    ):
+        super().__init__(message)
+        self.requirement_ids = requirement_ids
 
 
 class RequirementEffect(str, Enum):
@@ -115,6 +123,7 @@ class EvidenceAdapterRegistration:
 
 class AuthorityPolicyRegistry:
     version = "authority-policy-registry-v1"
+    route_resolution_version = "authority-route-resolution-v1"
 
     def __init__(
         self,
@@ -321,7 +330,8 @@ class AuthorityPolicyRegistry:
             elif authority is RequiredAuthority.SECURITY:
                 ids.append("account.security_events")
             elif authority is RequiredAuthority.HUMAN:
-                ids.append("support.handoff_action")
+                if route.mode is not RouteMode.HANDOFF:
+                    ids.append("support.handoff_action")
             elif authority is RequiredAuthority.ACTION_APPROVAL:
                 ids.append(self._action_requirement(route.intent))
             elif authority is RequiredAuthority.DOMAIN_TOOL:
@@ -338,9 +348,38 @@ class AuthorityPolicyRegistry:
         ]
         if unsupported_items:
             raise UnsupportedAuthority(
-                "unsupported authority: " + ",".join(unsupported_items)
+                "unsupported authority: " + ",".join(unsupported_items),
+                requirement_ids=tuple(unsupported_items),
             )
         return requirements
+
+    def resolve_route_authority(self, route: RouteDecision) -> RouteDecision:
+        """Fail closed to canonical Handoff when the required authority has no owner."""
+        try:
+            self.minimum_requirements(route)
+        except UnsupportedAuthority as exc:
+            unsupported = exc.requirement_ids or ("unmapped.authority",)
+            reason_codes = tuple(dict.fromkeys((
+                *route.reason_codes,
+                "AUTHORITY_UNSUPPORTED",
+                *(f"UNSUPPORTED_REQUIREMENT:{item}" for item in unsupported),
+            )))
+            auxiliary = tuple(dict.fromkeys((
+                *route.auxiliary_signals, "authority_fail_closed",
+            )))
+            return replace(
+                route,
+                mode=RouteMode.HANDOFF,
+                required_authorities=(RequiredAuthority.HUMAN,),
+                risk=RouteRisk.HIGH if route.risk is not RouteRisk.CRITICAL else route.risk,
+                reason_codes=reason_codes,
+                owner_ids=(),
+                policy_version=(
+                    f"{route.policy_version}|{self.route_resolution_version}"
+                ),
+                auxiliary_signals=auxiliary,
+            )
+        return route
 
     def resolve_requirements(
         self,
@@ -509,4 +548,8 @@ class AuthorityPolicyRegistry:
     def _action_requirement(intent: str) -> str:
         if "refund" in intent.lower():
             return "refund.request_action"
-        raise UnsupportedAuthority("no supported action authority for intent")
+        requirement_id = f"action:{intent.strip().lower() or 'unknown'}"
+        raise UnsupportedAuthority(
+            "no supported action authority for intent",
+            requirement_ids=(requirement_id,),
+        )

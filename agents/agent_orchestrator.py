@@ -27,6 +27,7 @@ from typing import Any, Dict, List, Optional
 
 from anthropic import AsyncAnthropic
 
+from application.authority_policy import AuthorityPolicyRegistry
 from application.route_decision import (
     RequestShape,
     RouteDecision,
@@ -812,7 +813,7 @@ class AgentOrchestrator:
         risk = RouteRisk[
             (req.urgency or UrgencyLevel.LOW).name
         ]
-        return RouterInvocationPolicy().decide(RouterInvocation(
+        route = RouterInvocationPolicy().decide(RouterInvocation(
             input_fingerprint=input_fingerprint,
             request_shape=shape,
             prior_intent=req.intent.value if req.intent else "",
@@ -825,6 +826,7 @@ class AgentOrchestrator:
                 for owner, agents in getattr(self, "_pool", {}).items()
             },
         ))
+        return AuthorityPolicyRegistry.v1().resolve_route_authority(route)
 
     async def classify_request_shape(self, req: Request) -> RequestShapeDecision:
         """Run the versioned, model-free hard-rule/authority shape policy."""

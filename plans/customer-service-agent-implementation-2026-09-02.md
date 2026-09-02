@@ -36,7 +36,7 @@
 | M2-T04A SourceRevision v0 / active manifest | implemented (review pending) | PG owner/backfill/active validator done；independent human heldout review pending；650 tests passed |
 | M2-T05 统一 KnowledgeRetriever | implemented (canary blocked) | A1/A2/B + immutable PG dark-shadow report；675 tests passed |
 | M2-T06A Multi-Agent TaskGraph 收紧 | implemented | A/B/C policy、execution、dependency、native signal 与 terminal algebra 完成；697 tests passed |
-| M2-T06 自适应 RAG 发布路径 | in_progress | A/B1-B7: eight-route E2E + typed NeedsInput/Handoff draft；unsupported-authority fail-closed review pending；759 tests passed |
+| M2-T06 自适应 RAG 发布路径 | implemented (dark-shadow) | A/B1-B8: eight-route typed outcome algebra + unsupported-authority Handoff；765 tests passed；active/canary gated |
 | M2 Route/Authority/Evidence/RAG | in_progress | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
@@ -859,9 +859,27 @@
   `46 passed`、全套 `759 passed in 19.24s`，ruff checks passed。T06 保持 in_progress，下一步收敛
   unsupported authority 的 canonical typed fail-closed 路径，再复核 build-complete 边界。
 
+### M2-T06-B8（unsupported-authority / outcome algebra closure）
+
+- AuthorityPolicyRegistry 现在以结构化 `UnsupportedAuthority.requirement_ids` 拥有“不存在事实/动作
+  authority”这一事实；AgentOrchestrator 的 canonical route producer 消费该策略，将原执行路径确定性
+  转成 `HANDOFF + HUMAN + AUTHORITY_UNSUPPORTED`，清除旧 Worker owners 并绑定 authority-resolution
+  policy version。Application 不捕获异常猜路由，也不会用 Knowledge 替代实时账户事实。
+- M2 Handoff draft 的最低要求不再错误包含 `support.handoff_action` 写操作；Ticket/Handoff write 继续由
+  M4-T07C release action 独占。held-out 账户状态请求证明只运行 HandoffDraft + TurnRecord，Agent、Retriever、
+  Tool 均未调用。
+- Route outcome 代数闭合为 `Completed + no payload / NeedsInputDraft / HandoffContractDraft`；Completed
+  夹带非终态 payload fail closed，Handoff reason/risk 必须与 canonical RouteExecutionContract 相同，route
+  已声明的 missing input 必须进入 missing materials。两个 draft schema/version/tuple identity 也做确定性校验。
+- 验证：unsupported account/action authority、canonical handoff、无写型 requirement、Application held-out、
+  payload type/binding/schema/release invariant；聚焦 `120 passed` 与 `98 passed`，全套
+  `765 passed in 19.42s`，ruff/diff checks passed。
+- M2-T06 标记 `implemented (dark-shadow)`：八路径 build 合同已闭合；`active` 仍被服务端拒绝，bounded
+  canary 需 M2 Exit manifest，广泛放量需 `CORE_TEXT_GA`，新的生产 Handoff write 需 M4-T07C。
+
 ## 下一步
 
-1. 完成 M2-T06：收敛 unsupported authority 的 canonical HANDOFF/fail-closed 语义，并复核八路径
-   build-complete 边界；生产 active/canary 仍不在本节点授权范围内。
+1. 实施 M2-T06R：冻结 route Bundle enable/rollback runbook、单 publisher 与 pinned in-flight 故障测试；
+   不执行生产 canary。
 2. M2-T05C 受 M2 Exit + `POSTGRES_RETRIEVAL_GA` candidate manifest 阻断，当前不执行 canary。
 3. T04/T04A live activation 仍受 M2 gate 与独立 review 约束。
