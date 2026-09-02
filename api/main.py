@@ -624,6 +624,16 @@ async def lifespan(app: FastAPI):
         from infrastructure.memory_projection_adapter import (
             PostgresLegacyMemoryProjectionAdapter,
         )
+        from infrastructure.embedded_thread_summarizer import (
+            EmbeddedThreadSummarizerAdapter,
+        )
+        from infrastructure.postgres_thread_summary import (
+            PostgresThreadSummaryRepository,
+        )
+        from application.thread_summary import (
+            ThreadSummaryPolicy,
+            ThreadSummaryProjector,
+        )
         from infrastructure.postgres_memory_projection import (
             PostgresMemoryProjectionReader,
         )
@@ -672,15 +682,34 @@ async def lifespan(app: FastAPI):
             ),
         )
         _durable_chat_stop = asyncio.Event()
+        projection_adapters = {
+            name: PostgresLegacyMemoryProjectionAdapter(
+                _postgres_pool, _memory, name,
+            )
+            for name in ProjectionName if name is not ProjectionName.THREAD_SUMMARY
+        }
+        projection_adapters[ProjectionName.THREAD_SUMMARY] = ThreadSummaryProjector(
+            PostgresThreadSummaryRepository(_postgres_pool),
+            EmbeddedThreadSummarizerAdapter(
+                _memory,
+                version=f"embedded-{_model_policy.profile(ModelRole.MEMORY).model}-v1",
+            ),
+            policy=ThreadSummaryPolicy(
+                message_threshold=int(os.getenv(
+                    "THREAD_SUMMARY_MESSAGE_THRESHOLD", "12",
+                )),
+                token_threshold=int(os.getenv(
+                    "THREAD_SUMMARY_TOKEN_THRESHOLD", "2000",
+                )),
+                max_events_per_job=int(os.getenv(
+                    "THREAD_SUMMARY_MAX_EVENTS_PER_JOB", "50",
+                )),
+            ),
+        )
         projection_dispatcher = ConversationProjectionDispatcher(
             outbox=PostgresConversationProjectionOutbox(_postgres_pool),
             deletion=PostgresConversationDeletionRepository(_postgres_pool),
-            adapters={
-                name: PostgresLegacyMemoryProjectionAdapter(
-                    _postgres_pool, _memory, name,
-                )
-                for name in ProjectionName
-            },
+            adapters=projection_adapters,
         )
         _durable_chat_task = asyncio.create_task(
             _run_durable_chat_worker(

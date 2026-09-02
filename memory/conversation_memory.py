@@ -1017,6 +1017,18 @@ class MemoryManager:
 
     async def _summarize_chunk(self, messages: List[Message]) -> str:
         """只总结本次明确事件范围；不把任何旧摘要作为模型输入。"""
+        try:
+            return await self.summarize_thread_candidate(messages)
+        except Exception:
+            return self._bounded_summary(
+                self._fallback_summary(messages),
+                max_tokens=max(64, int(self._summary_max_tokens * 0.70)),
+            )
+
+    async def summarize_thread_candidate(self, messages: Sequence[Message]) -> str:
+        """Produce a candidate only; range/checkpoint ownership stays outside."""
+        if not messages:
+            raise ValueError("thread summary candidate requires raw messages")
         dialog = self._safe_text("\n".join(
             f"seq={message.seq} message_id={message.message_id} {message.role.value}: {message.content}"
             for message in messages
@@ -1029,23 +1041,18 @@ class MemoryManager:
 输出字段必须是：
 {{"user_goal":"", "confirmed_facts":[], "pending_questions":[], "entities":{{}}, "decisions":[], "user_preferences":[]}}
 只总结给出的事件范围；只返回 JSON。""")
-        payload: Optional[Dict[str, Any]] = None
-        try:
-            resp = await create_message(self._client, self._model_profile, ModelRole.MEMORY,
-                max_tokens=min(self._summary_max_tokens, 1024),
-                temperature=0.0,
-                messages=[{"role": "user", "content": prompt}],
-            )
-            raw = extract_text_content(resp.content)
-            start, end = raw.find("{"), raw.rfind("}")
-            if start >= 0 and end >= start:
-                candidate = json.loads(raw[start : end + 1])
-                if isinstance(candidate, dict):
-                    payload = candidate
-        except Exception:
-            payload = None
-        if payload is None:
-            payload = self._fallback_summary(messages)
+        resp = await create_message(self._client, self._model_profile, ModelRole.MEMORY,
+            max_tokens=min(self._summary_max_tokens, 1024),
+            temperature=0.0,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        raw = extract_text_content(resp.content)
+        start, end = raw.find("{"), raw.rfind("}")
+        if start < 0 or end < start:
+            raise RuntimeError("thread summarizer returned no JSON object")
+        payload = json.loads(raw[start : end + 1])
+        if not isinstance(payload, dict):
+            raise RuntimeError("thread summarizer returned invalid JSON")
         return self._bounded_summary(
             payload,
             max_tokens=max(64, int(self._summary_max_tokens * 0.70)),
