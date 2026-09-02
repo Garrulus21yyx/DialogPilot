@@ -163,6 +163,9 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
     monkeypatch.setenv("INTENT_SIMILARITY_MODE", "ngram")
     monkeypatch.setenv("INTENT_CACHE_TTL_SECONDS", "987")
 
+    from infrastructure.postgres import PostgresMigrationRunner
+    PostgresMigrationRunner(postgres_database_url).upgrade()
+
     async def exercise_lifespan():
         async with main.lifespan(main.app):
             assert {
