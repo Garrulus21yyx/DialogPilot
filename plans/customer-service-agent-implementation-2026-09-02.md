@@ -32,6 +32,7 @@
 | M2-T01 RouteDecision / RouterInvocationPolicy | done (flag-off) | 8 modes + call/skip algebra；602 tests passed |
 | M2-T02 FactRequirement / AuthorityPolicyRegistry | done (planner flag-off) | minimum requirements + startup manifest gate + refund_status；609 tests passed |
 | M2-T03 Canonical EvidenceReceipt | done (consumer flag-off) | 7 kind typed algebra + registered adapters + resolver verification；624 tests passed |
+| M2-T04 Requirement CoverageGate / VerificationProfile | implemented (flag-off) | build complete；Knowledge verification waits T04A；642 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
@@ -496,8 +497,29 @@
   provenance、wire 篡改、Owner 内容漂移、checksum/receipt 绑定、freshness 与非 committed action；聚焦
   `22 passed`，真实 PostgreSQL/pgvector 全套 `624 passed in 17.73s`，ruff/diff checks passed。
 
+### M2-T04（Requirement CoverageGate / VerificationProfile，flag-off build）
+
+- Authority 修复：新增 Application-owned `RequirementCoverageGate`，输入只有本轮 `FactRequirement`、canonical
+  receipt、Owner resolver 与 claim binding；task/Agent `SUCCESS` 不再是 requirement 完成依据。现有线上
+  `services.result_synthesizer.CoverageGate` 暂保留为 task compatibility projection，等待 T04A 后迁移消费面。
+- 闭合报告：逐 requirement 输出 `SATISFIED/MISSING/CONFLICTING/STALE/UNSUPPORTED/INVALID_EVIDENCE`，
+  同时显式记录 duplicate/unexpected/invalid-wire refs；未知或 checksum/schema/policy/producer 错误 receipt
+  归 `INVALID_EVIDENCE`，不降格成普通 missing。空 requirement 不能在该 Gate 独立成功。
+- 证据规则：动态业务事实必须有可解引用且字段/locator/freshness 有效的 Tool receipt；写 requirement 还必须
+  是 COMMITTED 且 final claim 显式绑定该 receipt。多份相异 business/action authoritative values 归冲突；
+  Knowledge 除 receipt 自校验外强制调用 active revision validator，T04A port 缺失时 fail closed。
+- VerificationProfile：版本化六类 `RULE_ONLY/GROUNDED_KNOWLEDGE/AUTHORITATIVE_RECEIPT/MIXED_AUTHORITY/
+  MULTI_TASK/HANDOFF_CONTRACT`，每类冻结 deterministic gates 与 semantic verifier policy。DIRECT/OOS/
+  CLARIFY/HANDOFF 及确定性 action receipt 禁止通用 LLM；Knowledge/Mixed/Multi/read receipt 只有存在语义
+  歧义才调用一次，无歧义记录 AVOIDED，需要但 verifier 不可用记录 UNAVAILABLE。
+- 激活/验证边界：本节点完成 build 与非 Knowledge/缺-validator 的 fail-closed 验证；按任务卡 Verification
+  prerequisite，不在 T04A active SourceRevision/backfill 完成前标记 VERIFIED，也不提前替换线上发布门禁。
+- 验证：纯文本不能满足动态事实、malformed receipt、mixed partial、duplicate/unexpected、unsupported、
+  action claim binding、Knowledge validator prerequisite、RouteMode×Profile 和 invoked/avoided/unavailable；
+  聚焦 `18 passed`，真实 PostgreSQL/pgvector 全套 `642 passed in 17.93s`，ruff/diff checks passed。
+
 ## 下一步
 
-1. M2-T04：建立 requirement-level CoverageGate/VerificationProfile（build），验证闭环依赖 T04A。
-2. M2-T04A：建立 active SourceRevision/backfill 后完成 Knowledge coverage 验证，再完成 M2-PF01 PR-18P-C。
+1. M2-T04A：建立 SourceRevision v0、legacy corpus backfill 与 active manifest validator，完成 T04 Knowledge gate。
+2. 随后完成 M2-PF01 PR-18P-C canonical projection，再进入 M2-T05 统一 Retriever。
 3. 保持 PG_FTS_ZH_V1 与 LEGACY_BM25_V1 独立评分，未过质量/延迟/删除/重建 Gate 前不切 active consumer。
