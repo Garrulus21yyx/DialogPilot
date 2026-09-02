@@ -25,6 +25,7 @@ import uvicorn
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Header, HTTPException, Response, UploadFile, File, Query, Request as FastAPIRequest
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -71,9 +72,8 @@ from application.chat_application import (
     ChatOperations,
     ChatServices,
     Completed,
-    Failed,
-    Rejected,
 )
+from application.public_chat_contract import project_chat_outcome
 from services.answer_verifier import (
     VerificationReasonCode,
     VerificationResult,
@@ -615,6 +615,103 @@ class ChatResponse(BaseModel):
     awaiting_approval: bool = False
     react_run_ids: List[str] = Field(default_factory=list)
     pending_approval_call_ids: List[str] = Field(default_factory=list)
+
+
+class AcceptedChatResponse(BaseModel):
+    outcome: Literal["accepted"]
+    workflow_run_id: str
+    public_status: Dict[str, Any]
+    client_action: Literal["poll_same_request"]
+    retry_hint: Literal["reuse_request_id"]
+
+
+class NeedsInputChatResponse(BaseModel):
+    outcome: Literal["needs_input"]
+    workflow_run_id: str
+    signal_id: str
+    kind: str
+    expires_at: str
+    interaction_publication_id: str
+    client_action: Literal["reply_to_signal_schema"]
+    retry_hint: Literal["do_not_create_new_request"]
+
+
+class ReconcilingChatResponse(BaseModel):
+    outcome: Literal["reconciling"]
+    workflow_run_id: str
+    public_status: Dict[str, Any]
+    next_poll_after: float
+    client_action: Literal["poll_only"]
+    retry_hint: Literal["never_replay_write"]
+
+
+class HandedOffChatResponse(BaseModel):
+    outcome: Literal["handed_off"]
+    ticket_id: str
+    handoff_id: str
+    client_action: Literal["continue_with_human_support"]
+    retry_hint: Literal["do_not_restart_execution"]
+
+
+class CancelledChatResponse(BaseModel):
+    outcome: Literal["cancelled"]
+    workflow_run_id: str
+    reason_code: str
+    client_action: Literal["start_new_request_if_needed"]
+    retry_hint: Literal["do_not_retry_same_request"]
+
+
+class ExpiredChatResponse(BaseModel):
+    outcome: Literal["expired"]
+    workflow_run_id: str
+    stage: str
+    new_request_required: bool
+    client_action: Literal["start_new_request"]
+    retry_hint: Literal["old_run_must_not_be_revived"]
+
+
+class ConflictChatResponse(BaseModel):
+    outcome: Literal["conflict"]
+    code: str
+    existing_invocation: Dict[str, Any]
+    client_action: Literal["read_existing_or_change_request_id"]
+    retry_hint: Literal["do_not_change_payload_for_same_key"]
+
+
+class RejectedChatResponse(BaseModel):
+    outcome: Literal["rejected"]
+    code: str
+    safe_message: str
+    client_action: Literal["correct_request"]
+    retry_hint: Literal["retry_only_after_correction"]
+
+
+class FailedChatResponse(BaseModel):
+    outcome: Literal["failed"]
+    code: str
+    retryable: bool
+    correlation_id: str
+    safe_message: str
+    client_action: Literal["retry_same_request", "contact_support"]
+    retry_hint: Literal["reuse_request_id", "do_not_blind_retry"]
+
+
+ChatPublicResponse = (
+    ChatResponse
+    | AcceptedChatResponse
+    | NeedsInputChatResponse
+    | ReconcilingChatResponse
+    | HandedOffChatResponse
+    | CancelledChatResponse
+    | ExpiredChatResponse
+    | ConflictChatResponse
+    | RejectedChatResponse
+    | FailedChatResponse
+)
+ChatOkResponse = ChatResponse | HandedOffChatResponse | CancelledChatResponse
+ChatAsyncResponse = (
+    AcceptedChatResponse | NeedsInputChatResponse | ReconcilingChatResponse
+)
 
 
 class ReactResumeInput(BaseModel):
@@ -1353,7 +1450,18 @@ def _chat_application() -> ChatApplication:
     )
 
 
-@app.post("/chat", response_model=ChatResponse)
+@app.post(
+    "/chat",
+    response_model=ChatOkResponse,
+    responses={
+        202: {"model": ChatAsyncResponse},
+        409: {"model": ConflictChatResponse},
+        410: {"model": ExpiredChatResponse},
+        422: {"model": RejectedChatResponse},
+        500: {"model": FailedChatResponse},
+        503: {"model": FailedChatResponse},
+    },
+)
 async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)):
     """Validate the HTTP request and map the protocol-neutral application outcome."""
     _enforce_user_input_security(req.message)
@@ -1366,23 +1474,8 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
     outcome = await _chat_application().handle(command)
     if isinstance(outcome, Completed):
         return ChatResponse.model_validate(outcome.response)
-    if isinstance(outcome, Failed):
-        status = 503 if outcome.retryable else 500
-        raise HTTPException(status, {
-            "error": outcome.code,
-            "retryable": outcome.retryable,
-            "correlation_id": outcome.correlation_id,
-        })
-    if isinstance(outcome, Rejected):
-        raise HTTPException(422, {
-            "error": outcome.code,
-            "message": outcome.safe_message,
-        })
-    raise HTTPException(500, {
-        "error": "unsupported_chat_outcome",
-        "retryable": False,
-        "outcome": type(outcome).__name__,
-    })
+    projection = project_chat_outcome(outcome)
+    return JSONResponse(status_code=projection.status_code, content=projection.body)
 
 
 @app.get("/agent-runs/{run_id}", tags=["Agent Run"])

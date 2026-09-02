@@ -1,9 +1,8 @@
 """Application/HTTP ownership contracts for the production chat chain."""
 import asyncio
+import json
 from contextlib import contextmanager
 from types import SimpleNamespace
-
-import pytest
 
 from api import main
 from application.chat_application import (
@@ -144,14 +143,17 @@ def test_http_chat_maps_typed_retryable_failure(monkeypatch):
             )
 
     monkeypatch.setattr(main, "_chat_application", lambda: FakeApplication())
-    with pytest.raises(main.HTTPException) as exc:
-        asyncio.run(main.chat(
-            main.ChatRequest(message="查询订单"),
-            Principal(subject="user-1", scopes=frozenset({"chat"})),
-        ))
-    assert exc.value.status_code == 503
-    assert exc.value.detail == {
-        "error": "response_selection_unavailable",
+    response = asyncio.run(main.chat(
+        main.ChatRequest(message="查询订单"),
+        Principal(subject="user-1", scopes=frozenset({"chat"})),
+    ))
+    assert response.status_code == 503
+    assert json.loads(response.body) == {
+        "outcome": "failed",
+        "code": "response_selection_unavailable",
         "retryable": True,
         "correlation_id": "trace-1",
+        "safe_message": "",
+        "client_action": "retry_same_request",
+        "retry_hint": "reuse_request_id",
     }

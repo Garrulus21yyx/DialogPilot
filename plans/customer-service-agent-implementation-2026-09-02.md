@@ -18,6 +18,7 @@
 | M0-T04 当前行为基线 | done | `data/eval/baselines/m0-v1/manifest.json`，7 条真实主链 Trace |
 | M0-T05 Gate Manifest Foundation | done | `evaluation/gates/m0-exit/v1.*`，decision=`APPROVE` |
 | M1-PF01 PostgreSQL Platform Foundation | implemented | 生产快照副本验证待真实快照；本地 restore drill 通过 |
+| M1-T00 Admission/Execution/ChatOutcome v1 | done | CAS/ports/projection/OpenAPI/M3 cutover contract |
 | M1 完整会话事实与幂等发布 | in_progress | 按 T00–T05/T03A/T04A 子节点推进 |
 | M2 Route/Authority/Evidence/RAG | pending | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
@@ -158,9 +159,29 @@
   `439 passed`。当前无生产快照副本，因此不声明 production snapshot upgrade/restore `VERIFIED`，对应
   technical cutover gate 保持未满足。
 
+### M1-T00
+
+- Admission v1：唯一状态为 `START_QUEUED/EXECUTION_BOUND/EXPIRED_BEFORE_START`，仅允许 queued
+  CAS 到另外两态；claim/lease/attempt 不进入业务状态。request fingerprint canonical 化，同 key
+  同内容绑定既有 admission，同 key 异内容的 typed result 为 `IDEMPOTENCY_CONFLICT`。
+- Ports：冻结 `InvocationRepository/AdmissionUnitOfWork/StartOutbox/Dispatcher/PendingSignalStore`、
+  expected status/version CAS、stable outbox key 与 lease command；本卡未建表或启动 worker。
+- Thin Execution：投影优先级为互斥 terminal → PendingSignal → runtime running → admission；多个 terminal
+  fail closed。`COMPLETED` 只能由同时绑定 response/outbound event/delivery outbox 的
+  `FinalPublicationCommitted` 事实产生。
+- Signal：Principal 才投影 `NeedsInput`；media receipt 只允许 poll，reconciliation receipt 只允许 poll
+  且禁止 replay write；signal consume 代数覆盖 applied/already/conflict/expired/unauthorized。
+- M3 cutover：当前 RunStore 八种状态均有唯一映射；`COMPLETED` 仍要求既有 final publication，
+  `BLOCKED/TOOL_ERROR/MAX_STEPS` 映射为不同 typed failure，不压成未知字符串。
+- Public contract：Pydantic/OpenAPI 和 protocol-neutral mapper 共同冻结所有 ChatOutcome 的 HTTP、body、
+  client action 与 retry hint；API adapter 不再把非 Completed outcome 统一变成 500。
+- 验证：state product/参数化 tests、terminal conflict、signal replay、fingerprint、M3 enum surface 和
+  OpenAPI status 全覆盖；真实 PostgreSQL fixture 下全套 `466 passed`。
+
 ## 下一步
 
-1. 提交并推送 M1-PF01 实现与本地 restore evidence。
-2. 实施 M1-T00：冻结 admission CAS、薄 ExecutionView、public ChatOutcome/HTTP mapping 与 M3 cutover table。
+1. 提交并推送 M1-T00 contracts。
+2. 实施 M1-T01：建立 PostgreSQL ConversationTurnStore schema、不可变 turn/event、invocation admission
+   与通用 publication/delivery owner。
 3. 保持 production snapshot restore 和 deployed Chroma legacy index 不兼容为显式未满足证据，
    不让后续 migration/cutover 静默越过。
