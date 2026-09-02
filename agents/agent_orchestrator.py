@@ -37,6 +37,11 @@ from agents.orchestration_contracts import (
     TaskRisk,
     TaskSpec,
 )
+from agents.routing_policy import (
+    AgentHealthSnapshot,
+    AgentRoutingPolicyRegistry,
+    RoutingPolicyTrace,
+)
 from core.intent_recognizer import IntentCategory, IntentRecognizer, UrgencyLevel
 from core.llm_metrics import create_message
 from core.llm_utils import extract_text_content
@@ -164,6 +169,10 @@ class Request:
     # planner tests may omit it, but an Agent must never mint a replacement.
     request_id: str = ""
     identity_metadata: Dict[str, str] = field(default_factory=dict)
+    intent_classifier_fingerprint: str = ""
+    intent_input_fingerprint: str = ""
+    intent_source_scores: Dict[str, float] = field(default_factory=dict)
+    routing_policy_trace: Optional[RoutingPolicyTrace] = None
 
 
 class PlanningDisposition(str, Enum):
@@ -201,6 +210,7 @@ class OrchestratorResult:
     react_run_ids: List[str] = field(default_factory=list)
     pending_approval_call_ids: List[str] = field(default_factory=list)
     bundle_version: str = "unversioned"
+    routing_policy_trace: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -535,22 +545,6 @@ class AgentOrchestrator:
       3. 专属 Agent 失败时降级到 GeneralAgent
     """
 
-    # 意图 → Agent 类型的静态映射（路由表）
-    _INTENT_ROUTING: Dict[IntentCategory, AgentType] = {
-        IntentCategory.TECHNICAL:  AgentType.TECHNICAL,
-        IntentCategory.TECHNICAL_LOGIN: AgentType.TECHNICAL,
-        IntentCategory.TECHNICAL_CRASH: AgentType.TECHNICAL,
-        IntentCategory.BILLING:    AgentType.BILLING,
-        IntentCategory.REFUND:     AgentType.BILLING,
-        IntentCategory.INVOICE:    AgentType.BILLING,
-        IntentCategory.PAYMENT_ISSUE: AgentType.BILLING,
-        IntentCategory.ACCOUNT:    AgentType.GENERAL,
-        IntentCategory.ACCOUNT_SECURITY: AgentType.ACCOUNT_SECURITY,
-        IntentCategory.ESCALATION: AgentType.ESCALATION,
-        IntentCategory.HUMAN_HANDOFF: AgentType.ESCALATION,
-        # 其余意图 → GENERAL（默认）
-    }
-
     def __init__(
         self,
         api_key:  str,
@@ -567,6 +561,7 @@ class AgentOrchestrator:
         model_policy: Optional[ModelPolicy] = None,
         run_store: Optional[RunStore] = None,
         intent_recognizer: Optional[IntentRecognizer] = None,
+        routing_policy_registry: Optional[AgentRoutingPolicyRegistry] = None,
     ):
         """创建 Agent 池、意图识别器、融合器和路由反馈状态。"""
         kwargs: Dict[str, Any] = {"api_key": api_key}
@@ -578,12 +573,26 @@ class AgentOrchestrator:
         worker_profile = policy.profile(ModelRole.WORKER)
         react_profile = policy.profile(ModelRole.REACT)
         self._model_policy = policy
+        self._routing_policy_registry = (
+            routing_policy_registry or AgentRoutingPolicyRegistry.v1()
+        )
+        self._last_domain_decision = None
+        self._last_instance_decision = None
         self._intent_recognizer = intent_recognizer or IntentRecognizer(
             api_key=api_key,
             base_url=base_url,
             model=model,
             similarity_mode=intent_similarity_mode,
             model_profile=policy.profile(ModelRole.INTENT),
+            confidence_threshold=(
+                self._routing_policy_registry.intent_fusion.accept_threshold
+            ),
+            fusion_weights=(
+                self._routing_policy_registry.intent_fusion.weights_by_mode
+            ),
+            fusion_policy_version=(
+                self._routing_policy_registry.intent_fusion.version
+            ),
         )
         self._skill_manager = skill_manager
         self._run_store = run_store
@@ -665,6 +674,7 @@ class AgentOrchestrator:
 
     async def plan(self, req: Request) -> PlanningDecision:
         """拥有执行/澄清/越域处置；只有 EXECUTE 才能生成 TaskGraph。"""
+        self._ensure_routing_trace(req)
         if req.intent is None:
             intent_result = await self._intent_recognizer.recognize(
                 req.message, history=req.history, bundle=req.agent_bundle,
@@ -673,6 +683,16 @@ class AgentOrchestrator:
             req.intent_group = intent_result.intent_group
             req.urgency = intent_result.urgency
             req.intent_confidence = intent_result.confidence
+            trace = self._ensure_routing_trace(req)
+            trace.intent_classifier_fingerprint = str(
+                getattr(intent_result, "classifier_fingerprint", "") or ""
+            )
+            trace.intent_input_fingerprint = str(
+                getattr(intent_result, "input_fingerprint", "") or ""
+            )
+            trace.intent_source_scores = dict(
+                getattr(intent_result, "source_scores", {}) or {}
+            )
 
         if self._needs_clarification(req):
             return PlanningDecision(
@@ -706,6 +726,7 @@ class AgentOrchestrator:
           意图识别 → 路由选 Agent → 执行 → 检查升级 → 返回结果
         """
         t0 = time.monotonic()
+        self._ensure_routing_trace(req)
 
         # 1. 规划阶段拥有意图补全和 TaskPlan；执行路径消费同一个公开合同。
         decision = await self.plan(req)
@@ -725,6 +746,7 @@ class AgentOrchestrator:
                 synthesis_status="policy",
                 synthesis_reason="Planner 返回确定性澄清，不执行 Worker 或 Synthesizer",
                 bundle_version=req.bundle_version,
+                routing_policy_trace=req.routing_policy_trace.to_dict(),
             )
 
         if decision.disposition is PlanningDisposition.OUT_OF_SCOPE:
@@ -746,6 +768,7 @@ class AgentOrchestrator:
                 synthesis_status="policy",
                 synthesis_reason="Planner 返回确定性业务范围重定向，不执行 Worker 或 Synthesizer",
                 bundle_version=req.bundle_version,
+                routing_policy_trace=req.routing_policy_trace.to_dict(),
             )
 
         # 复杂问题自动并行协作，例如同一句同时涉及登录故障和扣款/退款。
@@ -812,6 +835,7 @@ class AgentOrchestrator:
             react_run_ids=[outcome.react_run_id] if outcome.react_run_id else [],
             pending_approval_call_ids=list(outcome.pending_approval_call_ids),
             bundle_version=req.bundle_version,
+            routing_policy_trace=req.routing_policy_trace.to_dict(),
         )
 
     async def run_parallel(
@@ -826,6 +850,7 @@ class AgentOrchestrator:
         适用于复杂问题（如同时涉及技术和账单）。
         """
         t0 = time.monotonic()
+        self._ensure_routing_trace(req)
         window = window or self._new_execution_window()
         budget = window.budget
         agent_types = plan.agent_types
@@ -957,27 +982,10 @@ class AgentOrchestrator:
                 for call_id in outcome.pending_approval_call_ids
             )),
             bundle_version=req.bundle_version,
+            routing_policy_trace=req.routing_policy_trace.to_dict(),
         )
 
     # ── 路由逻辑 ──────────────────────────────────────────────────────────────
-
-    def _route(self, intent: Optional[IntentCategory], urgency: Optional[UrgencyLevel]) -> AgentType:
-        """
-        三层路由决策：
-          1. 意图映射
-          2. 紧急度覆盖（CRITICAL 直接升级）
-          3. 默认 GENERAL
-        """
-        if urgency == UrgencyLevel.CRITICAL:
-            return AgentType.ESCALATION
-
-        if intent and intent in self._INTENT_ROUTING:
-            target = self._INTENT_ROUTING[intent]
-            # 如果目标类型有可用实例则使用，否则降级
-            if target in self._pool and self._pool[target]:
-                return target
-
-        return AgentType.GENERAL
 
     def _build_task_plan(self, req: Request) -> TaskPlan:
         """
@@ -1022,9 +1030,9 @@ class AgentOrchestrator:
 
         ordered = sorted(available_scores.items(), key=lambda item: item[1], reverse=True)
         primary_agent, primary_score = ordered[0]
-        supporting_threshold = self._bundle_number(
-            req, "routing_policy", "supporting_threshold", 0.45,
-        )
+        supporting_threshold = getattr(
+            self, "_routing_policy_registry", AgentRoutingPolicyRegistry.v1(),
+        ).domain_routing.supporting_threshold
         supporting_agents = [
             agent_type
             for agent_type, score in ordered[1:]
@@ -1129,84 +1137,18 @@ class AgentOrchestrator:
 
     def _domain_scores(self, req: Request) -> Dict[AgentType, float]:
         """按意图、关键词和实体为各领域 Agent 打分。"""
-        msg = req.message.lower()
-        scores = {
-            AgentType.GENERAL: 0.1,
-            AgentType.TECHNICAL: 0.0,
-            AgentType.BILLING: 0.0,
-            AgentType.ACCOUNT_SECURITY: 0.0,
-        }
-
-        if req.intent in (
-            IntentCategory.QUERY,
-            IntentCategory.ORDER_STATUS,
-            IntentCategory.LOGISTICS,
-            IntentCategory.REQUEST,
-            IntentCategory.COMPLAINT,
-            IntentCategory.GREETING,
-            IntentCategory.FEEDBACK,
-            IntentCategory.OTHER,
-            IntentCategory.ACCOUNT,
-        ):
-            scores[AgentType.GENERAL] += 0.55
-
-        if req.intent in (
-            IntentCategory.TECHNICAL,
-            IntentCategory.TECHNICAL_LOGIN,
-            IntentCategory.TECHNICAL_CRASH,
-        ):
-            scores[AgentType.TECHNICAL] += 0.75
-
-        if req.intent in (
-            IntentCategory.BILLING,
-            IntentCategory.REFUND,
-            IntentCategory.INVOICE,
-            IntentCategory.PAYMENT_ISSUE,
-        ):
-            scores[AgentType.BILLING] += 0.75
-
-        if req.intent == IntentCategory.ACCOUNT_SECURITY:
-            scores[AgentType.ACCOUNT_SECURITY] += 0.85
-
-        technical_kws = ["崩溃", "报错", "error", "crash", "无法登录", "登录失败", "500", "401", "验证码"]
-        billing_kws = [
-            "退款", "退货", "扣款", "扣费", "扣了", "重复扣", "多扣",
-            "发票", "账单", "支付", "订阅", "refund", "invoice",
-        ]
-        security_kws = [
-            "账号被盗", "账户被盗", "异常登录", "陌生设备", "密码泄露", "账号安全",
-            "账户安全", "身份验证", "冻结账号", "盗号", "unauthorized login", "hacked",
-        ]
-        general_kws = ["订单", "物流", "快递", "配送", "会员", "积分", "咨询", "帮助"]
-
-        technical_hits = self._affirmed_keyword_hits(msg, technical_kws)
-        billing_hits = self._affirmed_keyword_hits(msg, billing_kws)
-        security_hits = self._affirmed_keyword_hits(msg, security_kws)
-        general_hits = self._affirmed_keyword_hits(msg, general_kws)
-
-        # One explicit domain expression is sufficient evidence to involve that
-        # specialist. Additional matches increase confidence without allowing
-        # keyword density to dominate the intent signal.
-        if technical_hits:
-            scores[AgentType.TECHNICAL] += min(0.65, 0.45 + (technical_hits - 1) * 0.10)
-        if billing_hits:
-            scores[AgentType.BILLING] += min(0.65, 0.45 + (billing_hits - 1) * 0.10)
-        if security_hits:
-            scores[AgentType.ACCOUNT_SECURITY] += min(
-                0.75,
-                0.55 + (security_hits - 1) * 0.10,
-            )
-        scores[AgentType.GENERAL] += min(0.35, general_hits * 0.12)
-
-        entities = req.entities or {}
-        if entities.get("error_code"):
-            scores[AgentType.TECHNICAL] += 0.2
-        if entities.get("amount"):
-            scores[AgentType.BILLING] += 0.15
-        if entities.get("order_id"):
-            scores[AgentType.GENERAL] += 0.1
-
-        return {agent_type: round(score, 3) for agent_type, score in scores.items()}
+        registry = getattr(
+            self, "_routing_policy_registry", AgentRoutingPolicyRegistry.v1(),
+        )
+        decision = registry.domain_routing.decide(
+            message=req.message, intent=req.intent, urgency=req.urgency,
+            entities=req.entities or {}, available_owners=tuple(
+                owner for owner, agents in self._pool.items() if agents
+            ),
+        )
+        self._last_domain_decision = decision
+        self._ensure_routing_trace(req).domain_decisions.append(decision)
+        return dict(decision.scores)
 
     @staticmethod
     def _affirmed_keyword_hits(message: str, keywords: List[str]) -> int:
@@ -1249,9 +1191,9 @@ class AgentOrchestrator:
         """低置信度且无明确意图时，先追问，避免误路由。"""
         if req.intent != IntentCategory.OTHER:
             return False
-        threshold = self._bundle_number(
-            req, "routing_policy", "clarification_threshold", 0.5,
-        )
+        threshold = getattr(
+            self, "_routing_policy_registry", AgentRoutingPolicyRegistry.v1(),
+        ).domain_routing.clarification_threshold
         return req.intent_confidence < threshold
 
     @staticmethod
@@ -1268,7 +1210,11 @@ class AgentOrchestrator:
         values = getattr(bundle, surface, {})
         return float(values.get(key, default))
 
-    def _best_agent(self, agent_type: AgentType) -> Optional[BaseAgent]:
+    def _best_agent(
+        self,
+        agent_type: AgentType,
+        routing_trace: Optional[RoutingPolicyTrace] = None,
+    ) -> Optional[BaseAgent]:
         """
         性能路由：从同类 Agent 中选 routing_score() 最高的。
         这是"基于在线表现动态调整路由"的核心。
@@ -1276,7 +1222,29 @@ class AgentOrchestrator:
         agents = self._pool.get(agent_type, [])
         if not agents:
             return None
-        return max(agents, key=lambda a: a.stats.routing_score())
+        registry = getattr(
+            self, "_routing_policy_registry", AgentRoutingPolicyRegistry.v1(),
+        )
+        snapshots = tuple(
+            AgentHealthSnapshot(
+                instance_id=agent.instance_id,
+                total=agent.stats.total,
+                success=agent.stats.success,
+                total_ms=agent.stats.total_ms,
+                quality_samples=agent.stats.quality_samples,
+                quality_ewma=agent.stats.quality_ewma,
+                monitor_penalty=agent.stats.monitor_penalty,
+            )
+            for agent in agents
+        )
+        decision = registry.instance_selection.select(snapshots)
+        self._last_instance_decision = decision
+        if routing_trace is not None:
+            routing_trace.instance_decisions.append(decision)
+        return next(
+            agent for agent in agents
+            if agent.instance_id == decision.selected_instance_id
+        )
 
     def get_react_run(self, run_id: str, *, user_id: str) -> RunCheckpoint:
         """读取脱敏 Run 状态前先在持久 Owner 验证用户归属。"""
@@ -1310,9 +1278,9 @@ class AgentOrchestrator:
 
     async def _execute(self, req: Request, agent_type: AgentType) -> AgentResponse:
         """执行 Agent，失败时降级到 GeneralAgent。"""
-        agent = self._best_agent(agent_type)
+        agent = self._best_agent(agent_type, req.routing_policy_trace)
         if agent is None:
-            agent = self._best_agent(AgentType.GENERAL)
+            agent = self._best_agent(AgentType.GENERAL, req.routing_policy_trace)
         if agent is None:
             return AgentResponse(
                 agent_type=AgentType.GENERAL,
@@ -1325,7 +1293,7 @@ class AgentOrchestrator:
         # 专属 Agent 失败时降级到 GeneralAgent
         if response.allow_fallback and not response.success and agent_type != AgentType.GENERAL:
             logger.warning(f"{agent_type.value} 失败，降级到 GeneralAgent")
-            fallback = self._best_agent(AgentType.GENERAL)
+            fallback = self._best_agent(AgentType.GENERAL, req.routing_policy_trace)
             if fallback:
                 response = await fallback.handle(req)
 
@@ -1507,3 +1475,16 @@ class AgentOrchestrator:
                 key = agent.instance_id
                 penalty = penalties.get(key, 0.0)
                 agent.stats.monitor_penalty = min(max(penalty, 0.0), 0.9)
+
+    def _ensure_routing_trace(self, req: Request) -> RoutingPolicyTrace:
+        if req.routing_policy_trace is None:
+            registry = getattr(
+                self, "_routing_policy_registry", AgentRoutingPolicyRegistry.v1(),
+            )
+            req.routing_policy_trace = RoutingPolicyTrace(
+                pinned_config_ref=registry.pinned_config_ref(),
+                intent_classifier_fingerprint=req.intent_classifier_fingerprint,
+                intent_input_fingerprint=req.intent_input_fingerprint,
+                intent_source_scores=req.intent_source_scores,
+            )
+        return req.routing_policy_trace

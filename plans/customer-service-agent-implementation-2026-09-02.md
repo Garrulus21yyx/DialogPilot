@@ -28,6 +28,7 @@
 | M1-T05 Conversation/API read projections | implemented | PostgreSQL `0008`；turn/status/finalize watermark/close + PG delivery compatibility |
 | M1 完整会话事实与幂等发布 | in_progress | 按 T00–T05/T03A/T04A 子节点推进 |
 | M2-PF01 共享 PostgreSQL HybridRetrievalBackend | in_progress | PR-18P-A/B done；PR-18P-C pending |
+| M2-T01A Agent-owned Intent/Domain/Instance policy | done | V1 registry + typed decisions/trace；582 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
@@ -400,8 +401,30 @@
   tenant/scope/user/entity/corpus isolation、所有 fail-closed status；真实 PostgreSQL/pgvector 全套
   `575 passed`，Alembic head=`0011`。没有 online consumer 或 read pointer 切换。
 
+### M2-T01A（Agent-owned Intent / Domain / Instance policy）
+
+- 单一策略 owner：新增 immutable `AgentRoutingPolicyRegistry.v1()`，分别固定 IntentFusion、DomainRouting、
+  InstanceSelection version/fingerprint；registry 没有运行时 active-pointer mutation API，candidate surface
+  不能靠在线 feedback 改 active policy。
+- Intent migration：`IntentRecognizer` 不再直接选择模块常量，构造时消费 registry 的 V1 `ngram`
+  `.70/.20/.10`、`disabled` `.85/.15` 与 accept `.50`；classifier fingerprint 同时绑定 policy version 和
+  当前分支权重。两条分支分别验证。
+- Domain migration：原 `_INTENT_ROUTING/_route()` 已删除；唯一 `DomainRoutingPolicy` 输出 typed
+  `DomainDecision`，保留 M0 冻结的 prior、intent、affirmed keyword、entity 分项、supporting/clarification
+  threshold，并对 CRITICAL/明确人工请求记录 hard-rule reason。相同输入、可用 owner snapshot 和 policy
+  可重放完整 components/ordered owners/input fingerprint。
+- Instance split：Owner 选择与同 Owner 实例选择成为两个 policy surface。Instance policy 固定 success/
+  quality/latency `.35/.45/.20`、EWMA `.25`、prior `.50`、10 样本收缩、latency normalization 和 Monitor
+  penalty cap；单实例返回 `NOT_APPLICABLE(OWNER_POOL_SINGLETON)`，多实例按冻结 health snapshot 分数及
+  instance ID tie-break 确定性选择。
+- Trace/pinning：每个 request-local `RoutingPolicyTrace` 绑定 registry/三策略 version+fingerprint、Intent
+  classifier/input/source scores、Domain component decision 与每次 Instance snapshot/status；ChatApplication
+  结果证据保存该 trace。没有使用 orchestrator 级可变“last trace”承载并发请求事实。
+- 验证：策略独立变更、两条 Intent V1 分支、Domain 分项/hard rule/多领域、single/multi instance replay、
+  registry frozen、旧第二 producer 负向检查、Application trace 集成；全套 `582 passed`。
+
 ## 下一步
 
-1. M2-PF01 PR-18P-C：canonical outbox projection、backfill/shadow、delete/rebuild fault proof。
-2. 按 DAG 推进 M2-T01/T01A；M1 production cutover 未验证前只允许 flag-off build，不启动 dark shadow。
+1. M2-T01：在 T01A typed policy ports 上建立 RouteDecision/RouterInvocationPolicy 与完整 skip algebra。
+2. 随后推进 M2-T02/T03/T04A，再完成 M2-PF01 PR-18P-C canonical projection。
 3. 保持 PG_FTS_ZH_V1 与 LEGACY_BM25_V1 独立评分，未过质量/延迟/删除/重建 Gate 前不切 active consumer。

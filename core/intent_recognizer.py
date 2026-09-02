@@ -455,6 +455,8 @@ class IntentRecognizer:
         similarity_mode: str = "ngram",
         model_profile: Optional[ModelProfile] = None,
         cache_ttl_seconds: float = 3600.0,
+        fusion_weights: Optional[Mapping[str, Mapping[str, float]]] = None,
+        fusion_policy_version: str = "intent-fusion-v1",
     ):
         """创建模型客户端，并初始化模板向量与结果缓存。"""
         kwargs: Dict[str, Any] = {"api_key": api_key}
@@ -471,6 +473,14 @@ class IntentRecognizer:
         # embedding 不存在或失败时稳定退回本地字符向量。
         self._embedding_enabled = normalized_mode == "ngram"
         self.similarity_mode = normalized_mode
+        configured_weights = fusion_weights or _VOTE_WEIGHTS
+        if normalized_mode not in configured_weights:
+            raise ValueError("intent fusion policy does not support similarity mode")
+        self._vote_weights = {
+            mode: {str(source): float(weight) for source, weight in weights.items()}
+            for mode, weights in configured_weights.items()
+        }
+        self._fusion_policy_version = str(fusion_policy_version)
         self._cache_ttl_seconds = max(1.0, float(cache_ttl_seconds))
 
         self._tpl_embeddings: Dict[IntentCategory, List[List[float]]] = {}
@@ -689,7 +699,7 @@ class IntentRecognizer:
                 return pat["intent"], source_scores["pattern"], source_scores
             return IntentCategory.OTHER, 0.0, source_scores
 
-        configured = _VOTE_WEIGHTS[self.similarity_mode]
+        configured = self._vote_weights[self.similarity_mode]
         sources = {"llm": llm, "embedding": emb, "pattern": pat}
         scores: Dict[IntentCategory, float] = {}
         for name, w in configured.items():
@@ -814,7 +824,8 @@ class IntentRecognizer:
             },
             "confidence_threshold": self.threshold,
             "similarity_mode": self.similarity_mode,
-            "vote_weights": _VOTE_WEIGHTS[self.similarity_mode],
+            "vote_weights": self._vote_weights[self.similarity_mode],
+            "fusion_policy_version": self._fusion_policy_version,
             "prompt_policy": _INTENT_PROMPT_POLICY,
             "definitions": {
                 category.value: description

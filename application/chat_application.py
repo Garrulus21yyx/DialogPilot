@@ -345,6 +345,13 @@ class ChatApplication:
             bundle_version=bundle.version,
             agent_bundle=bundle,
             identity_metadata=identity_metadata,
+            intent_classifier_fingerprint=str(
+                getattr(intent_result, "classifier_fingerprint", "") or ""
+            ),
+            intent_input_fingerprint=str(
+                getattr(intent_result, "input_fingerprint", "") or ""
+            ),
+            intent_source_scores=dict(intent_result.source_scores),
         )
         result = await services.orchestrator.run(orchestration_request)
         stages.append(StageObservation("route_and_agent", StageStatus.OK, {
@@ -667,6 +674,7 @@ class ChatApplication:
             "ticket_status": ticket.status.value if ticket else None,
             "handoff_created": handoff_created,
             "bundle_version": bundle.version,
+            "routing_policy_trace": result.routing_policy_trace,
             "rollout_stage": assignment.primary_stage,
             "awaiting_approval": approval_pending,
             "react_run_ids": list(result.react_run_ids),
