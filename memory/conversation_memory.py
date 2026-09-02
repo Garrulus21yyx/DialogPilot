@@ -3,13 +3,13 @@
 
 三级记忆架构，模拟人类记忆机制：
   1. 工作记忆（Redis）—— 当前会话的最近 N 条消息，毫秒级读写
-  2. 情景记忆（ChromaDB）—— 跨会话的历史对话，按语义相似度检索
-  3. 用户画像（ChromaDB）—— 从对话中提炼的长期偏好和实体
+  2. 情景记忆（PostgreSQL ServiceEpisode）—— 跨会话的可验证服务经验
+  3. 用户画像（PostgreSQL MemoryFact）—— 从对话中提炼的长期偏好和实体
 
 关键设计：
   - 上下文构建时三级记忆融合，按重要性 + 时效性排序
   - 工作记忆超过阈值时自动压缩（LLM 摘要），防止 context 爆炸
-  - 情景记忆与画像的向量化由 ChromaDB collection 负责
+  - 跨会话检索与画像事实均由 PostgreSQL 权威表负责
 """
 import hashlib
 import asyncio
@@ -27,9 +27,9 @@ from anthropic import AsyncAnthropic
 from redis.exceptions import WatchError
 
 from core.llm_utils import extract_text_content
-from core.chroma_client import create_chroma_client
 from core.llm_metrics import create_message
 from core.model_policy import ModelProfile, ModelRole
+from application.memory_fact_store import InMemoryMemoryFactStore
 from memory.context import ContextSection, TokenEstimator
 from memory.hybrid_retrieval import MemoryHit
 
@@ -228,8 +228,8 @@ class MemoryManager:
     """
     分层记忆管理器。
 
-    Redis 保存带 seq 的追加事件流、范围摘要块和 checkpoint；ChromaDB 只保存
-    带来源的版本化用户事实。跨会话检索由 ServiceEpisode Owner 提供。
+    Redis 保存带 seq 的当前窗口；PostgreSQL 保存带来源的版本化用户事实。
+    跨会话检索由 ServiceEpisode Owner 提供。
     """
 
     WORKING_MAX   = 200   # 防御性读取上限；正常情况下由 token 预算控制
@@ -253,10 +253,7 @@ class MemoryManager:
     def __init__(
         self,
         redis_url:    str = "redis://localhost:6379/0",
-        chroma_host:  str = "localhost",
-        chroma_port:  int = 8000,
-        chroma_path:  str = "./data/chroma",
-        chroma_mode:  str = "remote",
+        fact_store=None,
         api_key:      str = "",
         base_url:     Optional[str] = None,
         model:        str = "claude-3-5-sonnet-20241022",
@@ -268,7 +265,7 @@ class MemoryManager:
         fact_worker_poll_seconds: float = 5.0,
         model_profile: Optional[ModelProfile] = None,
     ):
-        """初始化模型、Token 压缩策略、Redis 及事实类 Chroma collection。"""
+        """初始化模型、Token 压缩策略、Redis 与版本化事实存储。"""
         kwargs: Dict[str, Any] = {"api_key": api_key}
         if base_url:
             kwargs["base_url"] = base_url
@@ -302,20 +299,14 @@ class MemoryManager:
 
         self._redis = redis.from_url(redis_url, decode_responses=True)
 
-        chroma, self._chroma_backend = create_chroma_client(
-            mode=chroma_mode, host=chroma_host, port=chroma_port, path=chroma_path,
-        )
-        logger.info("记忆 ChromaDB 模式: %s (%s)", self._chroma_backend.mode, self._chroma_backend.location)
-
-        # 用户画像：存储提炼出的偏好和实体
-        self._profile  = chroma.get_or_create_collection("user_profile")
-        # 版本化事实：每条事实独立保存来源和 active/superseded/retracted 状态。
-        self._facts = chroma.get_or_create_collection("user_facts_v1")
+        self._facts = fact_store or InMemoryMemoryFactStore()
 
     @property
     def storage_backend(self) -> Dict[str, str]:
         """返回只读的实际存储身份，避免把部署模式留在隐式日志中。"""
-        return self._chroma_backend.to_dict()
+        return dict(getattr(
+            self._facts, "backend", {"mode": "custom", "location": "injected"},
+        ))
 
     # ── 写入 ──────────────────────────────────────────────────────────────────
 
@@ -494,12 +485,6 @@ class MemoryManager:
             {"user_id": {"$eq": user_id}},
             {"source_conversation_id": {"$eq": conv_id}},
         ]})
-        # Legacy profile documents have no source provenance.  Selective
-        # subtraction would be invented data, so privacy deletion fails safe
-        # by removing that non-authoritative fallback for the user.
-        await asyncio.to_thread(
-            self._profile.delete, ids=[self._profile_id(user_id)],
-        )
 
     async def extract_user_facts(
         self,
@@ -1318,7 +1303,7 @@ class MemoryManager:
         }
 
     async def _get_profile(self, user_id: str) -> Dict[str, Any]:
-        """把 active facts 投影为 Prompt 数据；无新事实时兼容旧 profile。"""
+        """把 PostgreSQL active facts 投影为 Prompt 数据。"""
         facts = await self._read_facts(user_id)
         active = sorted(
             (fact for fact in facts if fact.status == "active"),
@@ -1339,13 +1324,6 @@ class MemoryManager:
                     for fact in active
                 ]
             }
-        try:
-            results = await asyncio.to_thread(self._profile.get, ids=[self._profile_id(user_id)])
-            if results["documents"]:
-                legacy = json.loads(results["documents"][0])
-                return {"legacy_profile": legacy}
-        except Exception:
-            pass
         return {}
 
     async def _read_facts(self, user_id: str) -> List[MemoryFact]:
@@ -1595,10 +1573,6 @@ class MemoryManager:
         return value.astimezone(timezone.utc).isoformat()
 
     @staticmethod
-    def _profile_id(user_id: str) -> str:
-        return f"profile_{hashlib.sha256(user_id.encode('utf-8')).hexdigest()}"
-
-    @staticmethod
     def _safe_metadata_int(value: Any) -> int:
         """损坏的非权威索引定位退为未知，不能让整次长期检索失败。"""
         try:
@@ -1672,7 +1646,7 @@ class MemoryManager:
 
     @staticmethod
     def _safe_text(value: Any) -> str:
-        """转成 ChromaDB 可接受的普通 UTF-8 字符串。"""
+        """转成存储边界可接受的普通 UTF-8 字符串。"""
         if value is None:
             return ""
         if not isinstance(value, str):
@@ -1681,7 +1655,7 @@ class MemoryManager:
 
     @classmethod
     def _safe_metadata_value(cls, value: Any) -> Any:
-        """递归清洗 metadata，避免 Redis/ChromaDB 后续读写遇到非法 UTF-8。"""
+        """递归清洗 metadata，避免 Redis/PostgreSQL 后续读写遇到非法 UTF-8。"""
         if isinstance(value, str):
             return cls._safe_text(value)
         if isinstance(value, dict):

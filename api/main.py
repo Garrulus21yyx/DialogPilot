@@ -207,6 +207,7 @@ async def lifespan(app: FastAPI):
     from mcp.customer_operations_tools import customer_operation_tools
     from mcp.tool_manager import ApprovalMode, MCPToolManager, Tool
     from memory.conversation_memory import MemoryManager
+    from infrastructure.postgres_memory_fact_store import PostgresMemoryFactStore
     from monitor.performance_monitor import PerformanceMonitor
     from core.skill_loader import SkillManager
     from services.answer_verifier import AnswerVerifier
@@ -215,7 +216,6 @@ async def lifespan(app: FastAPI):
     cfg = _anthropic_cfg()
     _model_policy = cfg["policy"]
     similarity_mode = os.getenv("INTENT_SIMILARITY_MODE", "ngram")
-    chroma_mode = os.getenv("CHROMA_MODE", "remote")
     _authenticator = JWTAuthenticator.from_env()
     _run_store = RunStore(
         os.getenv(
@@ -395,13 +395,13 @@ async def lifespan(app: FastAPI):
         reserved_output_tokens=int(os.getenv("CONTEXT_OUTPUT_RESERVE", "1536")),
     )
 
-    # 记忆管理器（Redis 工作记忆 + ChromaDB 情景记忆/用户画像）
+    # 记忆管理器（Redis 当前窗口 + PostgreSQL 用户事实）
     _memory = MemoryManager(
         redis_url=os.getenv("REDIS_URL", "redis://redis:6379/0"),
-        chroma_host=os.getenv("CHROMA_HOST", "chromadb"),
-        chroma_port=int(os.getenv("CHROMA_PORT", "8000")),
-        chroma_path=os.getenv("CHROMA_PERSIST_DIRECTORY", "/app/data/chroma"),
-        chroma_mode=chroma_mode,
+        fact_store=(
+            PostgresMemoryFactStore(_postgres_pool)
+            if _postgres_pool is not None else None
+        ),
         api_key=cfg["api_key"],
         base_url=cfg.get("base_url"),
         model=cfg["model"],
@@ -3073,10 +3073,6 @@ async def _cli():
     )
     mem  = MemoryManager(
         redis_url=os.getenv("REDIS_URL", "redis://localhost:6379/0"),
-        chroma_host=os.getenv("CHROMA_HOST", "localhost"),
-        chroma_port=int(os.getenv("CHROMA_PORT", "8000")),
-        chroma_path=os.getenv("CHROMA_PERSIST_DIRECTORY", "/tmp/chroma"),
-        chroma_mode=os.getenv("CHROMA_MODE", "embedded"),
         api_key=cfg["api_key"],
         base_url=cfg.get("base_url"),
         model=cfg["model"],

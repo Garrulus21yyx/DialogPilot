@@ -106,9 +106,6 @@ async def capture(args) -> None:
             # Baseline characterizes the current code contract against an isolated,
             # freshly built index. It must never repair or reinterpret a deployed
             # legacy collection as part of evaluation.
-            "CHROMA_MODE": "embedded",
-            "CHROMA_PERSIST_DIRECTORY": str(root / "chroma"),
-            "RAG_SPARSE_INDEX_PATH": str(root / "knowledge-sparse.db"),
         })
         records = []
         async with main.lifespan(main.app):

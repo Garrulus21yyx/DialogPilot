@@ -82,7 +82,7 @@ class PostgresKnowledgeStore:
     embedding_model = "all-MiniLM-L6-v2"
     embedding_dimension = 384
     embedding_model_digest = hashlib.sha256(
-        b"chromadb-default-embedding-function:all-MiniLM-L6-v2:v1"
+        b"sentence-transformers:all-MiniLM-L6-v2:normalized:v1"
     ).hexdigest()
     chunk_schema_version = "knowledge-direct-ingest-v1"
 
@@ -98,9 +98,9 @@ class PostgresKnowledgeStore:
         embedding_function=None,
     ):
         if embedding_function is None:
-            from chromadb.utils.embedding_functions import DefaultEmbeddingFunction
+            from core.local_embedding import SentenceTransformerEmbeddingFunction
 
-            embedding_function = DefaultEmbeddingFunction()
+            embedding_function = SentenceTransformerEmbeddingFunction()
         self._pool = pool
         self._tenant_id = tenant_id
         self._locale = locale

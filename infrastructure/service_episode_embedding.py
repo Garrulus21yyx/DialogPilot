@@ -19,9 +19,9 @@ class ServiceEpisodeQueryEmbedder:
 
     def __init__(self, embedding_function: Callable | None = None):
         if embedding_function is None:
-            from chromadb.utils.embedding_functions import DefaultEmbeddingFunction
+            from core.local_embedding import SentenceTransformerEmbeddingFunction
 
-            embedding_function = DefaultEmbeddingFunction()
+            embedding_function = SentenceTransformerEmbeddingFunction()
         self._embedding_function = embedding_function
 
     def __call__(

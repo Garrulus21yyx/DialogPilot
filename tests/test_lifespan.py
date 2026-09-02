@@ -171,7 +171,6 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
     monkeypatch.setenv("TOOL_APPROVAL_MODE", "require_all")
     monkeypatch.setenv("TOOL_OUTPUT_MAX_CHARS", "2345")
     monkeypatch.setenv("PROMETHEUS_PORT", "0")
-    monkeypatch.setenv("CHROMA_MODE", "embedded")
     monkeypatch.setenv("INTENT_SIMILARITY_MODE", "ngram")
     monkeypatch.setenv("INTENT_CACHE_TTL_SECONDS", "987")
 
@@ -199,9 +198,11 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
             assert captured["memory"]["fact_batch_turns"] == 3
             assert captured["memory"]["fact_worker_poll_seconds"] == 5
             assert captured["memory_started"] is True
-            assert captured["memory"]["chroma_mode"] == "embedded"
+            assert captured["memory"]["fact_store"].backend == {
+                "mode": "postgres",
+                "location": "dialogpilot_app.memory_facts",
+            }
             assert captured["knowledge"]["tenant_id"] == "default"
-            assert "chroma_mode" not in captured["knowledge"]
             assert captured["orchestrator"]["intent_similarity_mode"] == "ngram"
             assert captured["orchestrator"]["react_max_steps"] == 6
             assert captured["orchestrator"]["intent_recognizer"] is not None

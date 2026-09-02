@@ -20,6 +20,7 @@
 | 删除 release gate/signature、双盲仲裁与 claim audit | done | `465d4fe` |
 | 删除 governance evidence/concurrency 冻结副本 | done | `d90ba81`；848 tests passed |
 | ServiceEpisode 直接解析唯一 ACTIVE generation | done | `679a89b`；844 tests passed |
+| Profile/MemoryFact 切换 PostgreSQL 并删除 Chroma 存储服务 | done | Redis 仅保留当前窗口投影 |
 | 删除生产迁移、Reviewer 签署与多副本演练材料 | done | 保留空库 Alembic 初始化和本地 dump/restore |
 | 删除 Eval Graduation/Pareto 与 baseline promotion API | done | `/eval/run` 保留确定性 dev/heldout 报告 |
 | 收缩本地评测并清理文档中的旧路径 | in_progress | 保留确定性 dev/heldout 与机器报告 |

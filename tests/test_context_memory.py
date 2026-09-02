@@ -719,7 +719,7 @@ def test_due_fact_job_batches_l0_range_advances_checkpoint_and_is_idempotent():
         (MsgRole.ASSISTANT, "好的", {}),
     ], extract_facts=True))
 
-    # 模拟进程重启：新的 Manager只有相同 Redis/Chroma，内存里没有旧 task。
+    # 模拟进程重启：新的 Manager 只有相同 Redis/事实存储，内存里没有旧 task。
     manager = bare_manager(budget=100000)
     manager._redis = redis
     manager._facts = RecordingFacts()

@@ -1,5 +1,5 @@
-# DialogPilot 智能客服系统 — Docker Compose 服务编排
-# 三级记忆架构：Redis（工作记忆）+ ChromaDB（情景记忆 + 用户画像）
+# DialogPilot 智能客服系统 — 本地作品集服务编排
+# PostgreSQL 权威事实 + Redis 当前会话投影
 
 services:
 
@@ -41,28 +41,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-  # ── ChromaDB 向量数据库（情景记忆 + 用户画像）────────────────────────────────
-  chromadb:
-    image: chromadb/chroma:0.5.23
-    container_name: dialogpilot-chromadb
-    ports:
-      - "8001:8000"
-    environment:
-      - IS_PERSISTENT=TRUE
-      - PERSIST_DIRECTORY=/chroma/chroma
-      - ANONYMIZED_TELEMETRY=FALSE
-    volumes:
-      - chromadb-data:/chroma/chroma
-    restart: unless-stopped
-    networks:
-      - dialogpilot-network
-    healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8000/api/v1/heartbeat || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
 
   # ── Prometheus 监控 ─────────────────────────────────────────────────────────
   prometheus:
@@ -106,11 +84,6 @@ services:
       - REDIS_URL=redis://:${REDIS_PASSWORD:-dialogpilot-local}@redis:6379/0
       - DATABASE_URL=postgresql://dialogpilot:${POSTGRES_PASSWORD:-dialogpilot-local}@postgres:5432/dialogpilot
       - RETRIEVAL_DATABASE_URL=postgresql://dialogpilot:${POSTGRES_PASSWORD:-dialogpilot-local}@postgres:5432/dialogpilot
-      - CHROMA_PERSIST_DIRECTORY=/app/data/chroma
-      # 容器网络地址由 Compose 拥有，不能继承宿主开发环境的 localhost:8001。
-      - CHROMA_HOST=chromadb
-      - CHROMA_PORT=8000
-      - CHROMA_MODE=${CHROMA_MODE:-remote}
       - RAG_CHUNK_MAX_TOKENS=${RAG_CHUNK_MAX_TOKENS:-512}
       - RAG_CHUNK_OVERLAP_TOKENS=${RAG_CHUNK_OVERLAP_TOKENS:-64}
       - RAG_CHUNK_STRATEGY=${RAG_CHUNK_STRATEGY:-fixed_tokens}
@@ -122,10 +95,8 @@ services:
       - RAG_CONTEXT_MAX_TOKENS=${RAG_CONTEXT_MAX_TOKENS:-2600}
       - RAG_RAW_QUERY_WEIGHT=${RAG_RAW_QUERY_WEIGHT:-0.25}
       - RAG_STANDALONE_QUERY_WEIGHT=${RAG_STANDALONE_QUERY_WEIGHT:-0.75}
-      - RAG_SPARSE_INDEX_PATH=/app/data/knowledge-sparse.db
       - INTENT_SIMILARITY_MODE=${INTENT_SIMILARITY_MODE:-ngram}
       - INTENT_CACHE_TTL_SECONDS=${INTENT_CACHE_TTL_SECONDS:-3600}
-      - EVAL_BASELINE_PATH=/app/data/eval-state/baseline.json
       - DIALOGPILOT_SKILLS_DIR=/app/skills
       - TICKET_DB_PATH=/app/data/tickets/tickets.db
       - TICKET_DISPATCH_WEBHOOK_URL=${TICKET_DISPATCH_WEBHOOK_URL:-}
@@ -134,7 +105,6 @@ services:
       - TICKET_DISPATCH_LEASE_SECONDS=${TICKET_DISPATCH_LEASE_SECONDS:-30}
       - TICKET_DISPATCH_RETRY_BASE_SECONDS=${TICKET_DISPATCH_RETRY_BASE_SECONDS:-5}
       - TICKET_DISPATCH_RETRY_MAX_SECONDS=${TICKET_DISPATCH_RETRY_MAX_SECONDS:-300}
-      - RESPONSE_DELIVERY_DB_PATH=/app/data/responses/responses.db
       - BADCASE_DB_PATH=/app/data/badcases/badcases.db
       - BADCASE_IDENTITY_SALT=${BADCASE_IDENTITY_SALT:-}
       - CUSTOMER_OPERATIONS_DB_PATH=/app/data/customer-operations/operations.db
@@ -152,12 +122,6 @@ services:
       - REACT_MAX_STEPS=${REACT_MAX_STEPS:-4}
       - REACT_RUN_DB_PATH=/app/data/react-runs/react-runs.db
       - AGENT_BUNDLE_DB_PATH=/app/data/evolution/agent-bundles.db
-      - ROLLOUT_BUCKET_SALT=${ROLLOUT_BUCKET_SALT:-}
-      - ROLLOUT_SOFT_MIN_CANDIDATE_SAMPLES=${ROLLOUT_SOFT_MIN_CANDIDATE_SAMPLES:-100}
-      - ROLLOUT_SOFT_MIN_BASELINE_SAMPLES=${ROLLOUT_SOFT_MIN_BASELINE_SAMPLES:-100}
-      - ROLLOUT_MAX_REJECT_RATE_DELTA=${ROLLOUT_MAX_REJECT_RATE_DELTA:-0.05}
-      - ROLLOUT_MAX_LATENCY_P95_RATIO=${ROLLOUT_MAX_LATENCY_P95_RATIO:-1.20}
-      - ROLLOUT_MAX_COST_MEAN_RATIO=${ROLLOUT_MAX_COST_MEAN_RATIO:-1.20}
       - REACT_APPROVAL_TTL_SECONDS=${REACT_APPROVAL_TTL_SECONDS:-900}
       - REACT_RECOVERY_GRACE_SECONDS=${REACT_RECOVERY_GRACE_SECONDS:-30}
       - TOOL_APPROVAL_MODE=${TOOL_APPROVAL_MODE:-default}
@@ -196,11 +160,8 @@ services:
       - AUTH_JWT_AUDIENCE=${AUTH_JWT_AUDIENCE:-dialogpilot-api}
       - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-}
     volumes:
-      # remote 模式只写 Chroma server 的 chromadb-data，不在应用容器再建第二份库。
       - ./data/eval:/app/data/eval:ro
-      - dialogpilot-eval-state:/app/data/eval-state
       - dialogpilot-tickets:/app/data/tickets
-      - dialogpilot-responses:/app/data/responses
       - dialogpilot-badcases:/app/data/badcases
       - dialogpilot-customer-operations:/app/data/customer-operations
       - dialogpilot-react-runs:/app/data/react-runs
@@ -211,8 +172,6 @@ services:
       postgres:
         condition: service_healthy
       redis:
-        condition: service_healthy
-      chromadb:
         condition: service_healthy
     restart: unless-stopped
     networks:
@@ -259,14 +218,11 @@ networks:
 volumes:
   postgres-data:
   redis-data:
-  chromadb-data:
   prometheus-data:
   nginx-logs:
   dialogpilot-tickets:
-  dialogpilot-responses:
   dialogpilot-badcases:
   dialogpilot-customer-operations:
   dialogpilot-react-runs:
   dialogpilot-evolution:
   dialogpilot-logs:
-  dialogpilot-eval-state:
