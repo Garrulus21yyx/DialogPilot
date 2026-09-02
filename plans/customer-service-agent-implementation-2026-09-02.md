@@ -36,7 +36,7 @@
 | M2-T04A SourceRevision v0 / active manifest | implemented (review pending) | PG owner/backfill/active validator done；independent human heldout review pending；650 tests passed |
 | M2-T05 统一 KnowledgeRetriever | implemented (canary blocked) | A1/A2/B + immutable PG dark-shadow report；675 tests passed |
 | M2-T06A Multi-Agent TaskGraph 收紧 | implemented | A/B/C policy、execution、dependency、native signal 与 terminal algebra 完成；697 tests passed |
-| M2-T06 自适应 RAG 发布路径 | in_progress | A/B1: path contract + typed executor done；ChatApplication adapter migration pending；723 tests passed |
+| M2-T06 自适应 RAG 发布路径 | in_progress | A/B1/B2a: path executor + selected-owner authority fixed；canonical producer/adapter pending；725 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
@@ -746,6 +746,17 @@
   Agent 无 pre-route grounded answer、semantic verifier 0/1 次；聚焦 `44 passed`、全套
   `723 passed in 19.25s`，ruff checks passed。现有 ChatApplication adapter 尚未切换，M2-T06
   保持 in_progress。
+
+### M2-T06-B2a（DomainDecision selected-owner authority）
+
+- 修复 canonical RouteDecision 接入前发现的 Owner 代数缺口：`ordered_owners` 只是完整排名，新增
+  `selected_owners` 作为 DomainRoutingPolicy 按 frozen supporting threshold 产生的实际选择事实；
+  hard route 同样显式产生单一 selected Owner。
+- RouterInvocationPolicy 只消费 `selected_owners`，不再把 0 分或阈值以下候选误投影为实际 Worker；
+  RoutingPolicyTrace 同时记录 ranked/selected，两者不再混义。旧手工 DomainDecision 无新字段时仅
+  保留兼容 fallback。
+- 验证：单域请求保持四候选可诊断排名但只选择 Billing；Router owner IDs 不再包含未选 General/
+  Technical；聚焦 `62 passed`、全套 `725 passed in 19.38s`，ruff checks passed。
 
 ## 下一步
 

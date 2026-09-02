@@ -67,6 +67,7 @@ class DomainDecision:
     policy_version: str
     policy_fingerprint: str
     input_fingerprint: str
+    selected_owners: tuple[AgentType, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -180,13 +181,21 @@ class DomainRoutingPolicy:
                 scores.items(), key=lambda item: (-item[1], item[0].value),
             )
         )
+        selected = (
+            (ordered[0],) + tuple(
+                owner for owner in ordered[1:]
+                if owner is not AgentType.GENERAL
+                and scores[owner] >= self.supporting_threshold
+            )
+            if ordered else ()
+        )
         return DomainDecision(
             ordered, MappingProxyType(scores),
             MappingProxyType({
                 owner: MappingProxyType(dict(values))
                 for owner, values in components.items() if owner in scores
             }),
-            None, self.version, self.fingerprint, input_fingerprint,
+            None, self.version, self.fingerprint, input_fingerprint, selected,
         )
 
     def _hard(
@@ -195,7 +204,7 @@ class DomainRoutingPolicy:
         return DomainDecision(
             (owner,), MappingProxyType({owner: 1.0}),
             MappingProxyType({owner: MappingProxyType({"hard_rule": 1.0})}),
-            reason, self.version, self.fingerprint, input_fingerprint,
+            reason, self.version, self.fingerprint, input_fingerprint, (owner,),
         )
 
 
@@ -375,6 +384,7 @@ class RoutingPolicyTrace:
                     "input_fingerprint": item.input_fingerprint,
                     "hard_rule_reason": item.hard_rule_reason,
                     "ordered_owners": [owner.value for owner in item.ordered_owners],
+                    "selected_owners": [owner.value for owner in item.selected_owners],
                     "scores": {owner.value: score for owner, score in item.scores.items()},
                     "components": {
                         owner.value: dict(values)

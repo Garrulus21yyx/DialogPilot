@@ -6,6 +6,7 @@ import pytest
 from agents.orchestration_contracts import AgentType
 from agents.routing_policy import (
     DomainDecision,
+    DomainRoutingPolicy,
     InstanceSelectionDecision,
     InstanceSelectionStatus,
 )
@@ -20,6 +21,7 @@ from application.route_decision import (
     RouterInvocation,
     RouterInvocationPolicy,
 )
+from core.intent_recognizer import IntentCategory, UrgencyLevel
 
 
 FP = "a" * 64
@@ -112,6 +114,42 @@ def test_personal_state_skips_intent_but_requires_domain_and_not_knowledge_answe
     assert decision.required_authorities == (RequiredAuthority.DOMAIN_TOOL,)
     assert (calls.intent, calls.domain, calls.instance) == (0, 1, 0)
     assert decision.component_invocations[2].status is ComponentStatus.NOT_APPLICABLE
+
+
+def test_domain_decision_separates_ranked_candidates_from_selected_owners():
+    policy = DomainRoutingPolicy("domain-routing-v1")
+    decision = policy.decide(
+        message="我的退款状态", intent=IntentCategory.REFUND,
+        urgency=UrgencyLevel.LOW, entities={},
+        available_owners=(
+            AgentType.GENERAL, AgentType.TECHNICAL, AgentType.BILLING,
+            AgentType.ACCOUNT_SECURITY,
+        ),
+    )
+
+    assert len(decision.ordered_owners) == 4
+    assert decision.selected_owners == (AgentType.BILLING,)
+
+
+def test_router_consumes_selected_owners_not_every_ranked_candidate():
+    calls = Calls()
+    ranked = calls.domain_port()
+    calls.domain_port = lambda: DomainDecision(
+        ordered_owners=(
+            AgentType.BILLING, AgentType.GENERAL, AgentType.TECHNICAL,
+        ),
+        scores=ranked.scores, components=ranked.components,
+        hard_rule_reason=None, policy_version=ranked.policy_version,
+        policy_fingerprint=ranked.policy_fingerprint,
+        input_fingerprint=ranked.input_fingerprint,
+        selected_owners=(AgentType.BILLING,),
+    )
+
+    decision = RouterInvocationPolicy().decide(_invocation(
+        calls, request_shape=RequestShape.BUSINESS_STATE,
+    ))
+
+    assert decision.owner_ids == ("billing",)
 
 
 def test_unknown_and_switch_invoke_one_intent_then_only_worker_components_needed():

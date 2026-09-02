@@ -285,7 +285,9 @@ class RouterInvocationPolicy:
             domain.hard_rule_reason or "WORKER_ROUTE_REQUIRES_OWNER",
             domain.input_fingerprint, domain.policy_version,
         )
-        owners = tuple(owner.value for owner in domain.ordered_owners)
+        owners = tuple(owner.value for owner in (
+            domain.selected_owners or domain.ordered_owners
+        ))
         if not owners:
             return self._handoff_domain_unavailable(
                 invocation, intent_trace, intent, authorities, risk, reasons,
