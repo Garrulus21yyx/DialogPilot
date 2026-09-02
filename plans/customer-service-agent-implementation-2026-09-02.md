@@ -53,6 +53,7 @@
 | M4-T01 MemoryProjectionResult | implemented | closed state/retrieval algebra、PG watermarks、raw fallback、pre-inference failure |
 | M4-T02A ThreadSummary schema/location owner | implemented | PG immutable chunks/checkpoint、DataLocation v5、deletion/epoch fence；projector 归 T02B |
 | M4-T02B ThreadSummary projector/CAS/rebuild | implemented (production model canary pending) | fixed range、versioned trigger policy、transactional CAS、typed degradation、raw-L0 generation rebuild、durable outbox composition |
+| M4-T03P Final provider-call budget | implemented | every call/step accounts system/messages/tools/protocol/output reserve；typed pre-side-effect rejection；T03 policy/cache/compaction 继续 |
 | M4 Memory/Context/Commitment/Handoff | in_progress | M4-T01 完成；按 T02–T08 及 release 子节点推进 |
 | M5 Knowledge Lifecycle/Multimodal | in_progress | M5-T01 implemented/behavior-gated；M5-T02A implemented/flag-off；其余按依赖推进 |
 | M6-T01 Dataset v2 / Rubric v2 | implemented (contract fixtures provisional) | 11 层 service-chain + deterministic hard rubric + fixed semantic adapter；835 tests passed |
@@ -1074,6 +1075,17 @@
   watermark、不修改 L0；API durable worker 已用新 projector 替换 legacy ThreadSummary writer。
 - [T02B evidence](../governance/evidence/m4-t02b/thread-summary-projector-build.md)。M4-T02 build 为
   `IMPLEMENTED`；真实模型质量/canary 与 M4-T03–T08/M4 Exit 仍未 VERIFIED/READY。
+
+### M4-T03P（M4-T03 provider budget foundation）
+
+- 根因：旧 ContextAssembler 只拥有上游 section/history 裁剪，无法看到真实 Worker system、tool schema、累计
+  tool results 和 reasoning profile 调整后的 output reserve，不能证明 provider request 不越界。
+- `create_message` 现为最终预算 Owner：对 `ModelProfile.request()` 的真实 payload 每次重新统计全部 prompt-bearing
+  字段；ReAct 每个 step 自动重算。超限在 provider side effect 前 typed fail，不在底层静默截断语义。
+- 每个 role 的 context limit 由 `MODEL_<ROLE>_MAX_CONTEXT_TOKENS` 冻结；usage 同时记录 estimated/provider actual
+  token、estimate ratio 与 context utilization，支持后续校准。
+- [build evidence](../governance/evidence/m4-t03p/provider-budget-build.md)。此 slice 不关闭 M4-T03；版本化
+  ContextPolicy、工具 receipt/locator 压缩、provider native cache/privacy conformance 与 shadow 对账仍待后续子节点。
 
 ### M6-T01（Dataset v2 / Rubric v2）
 

@@ -15,6 +15,7 @@ from typing import Any, Dict, Iterator, List, Optional
 
 from core.model_policy import ModelProfile, ModelRole
 from core.cost_budget import RouteBudgetExceeded, active_route_budget
+from core.provider_context_budget import DEFAULT_PROVIDER_CONTEXT_BUDGET
 
 
 @dataclass(frozen=True)
@@ -32,6 +33,9 @@ class LLMCallUsage:
     thinking_blocks: int = 0
     error: Optional[str] = None
     provider_request_id: str = ""
+    estimated_input_tokens: int = 0
+    max_context_tokens: int = 0
+    reserved_output_tokens: int = 0
 
 
 def _percentile(values: List[float], percentile: float) -> float:
@@ -71,6 +75,13 @@ class LLMUsageCollector:
 
         def aggregate(items: List[LLMCallUsage]) -> Dict[str, Any]:
             latencies = [item.latency_ms for item in items]
+            estimated_input = sum(item.estimated_input_tokens for item in items)
+            actual_input = sum(item.input_tokens for item in items)
+            context_utilization = [
+                (item.estimated_input_tokens + item.reserved_output_tokens)
+                / item.max_context_tokens
+                for item in items if item.max_context_tokens
+            ]
             return {
                 "calls": len(items),
                 "errors": sum(item.error is not None for item in items),
@@ -81,6 +92,15 @@ class LLMUsageCollector:
                 ),
                 "cache_read_input_tokens": sum(item.cache_read_input_tokens for item in items),
                 "thinking_calls": sum(item.thinking_blocks > 0 for item in items),
+                "estimated_input_tokens": estimated_input,
+                "input_estimation_ratio": (
+                    round(estimated_input / actual_input, 4)
+                    if actual_input and estimated_input else None
+                ),
+                "max_estimated_context_utilization": (
+                    round(max(context_utilization), 6)
+                    if context_utilization else None
+                ),
                 "latency_ms": {
                     "p50": round(_percentile(latencies, 0.50), 3),
                     "p95": round(_percentile(latencies, 0.95), 3),
@@ -194,12 +214,14 @@ async def create_message(
     **payload: Any,
 ) -> Any:
     """执行一次模型调用，并在活动上下文中记录官方 usage。"""
+    request = profile.request(**payload)
+    context_usage = DEFAULT_PROVIDER_CONTEXT_BUDGET.validate(profile, role, request)
     budget_tracker = active_route_budget()
     if budget_tracker is not None:
         budget_tracker.before_model_call()
     started = time.perf_counter()
     try:
-        response = await client.messages.create(**profile.request(**payload))
+        response = await client.messages.create(**request)
     # asyncio.CancelledError 继承 BaseException；它通常代表上层超时取消，
     # 仍属于一次真实供应商调用尝试，必须进入 attempts/error 口径。
     except BaseException as exc:
@@ -211,6 +233,9 @@ async def create_message(
                 reasoning=profile.reasoning.value,
                 latency_ms=(time.perf_counter() - started) * 1000,
                 error=type(exc).__name__,
+                estimated_input_tokens=context_usage.estimated_input_tokens,
+                max_context_tokens=context_usage.max_context_tokens,
+                reserved_output_tokens=context_usage.output_reserve_tokens,
             ))
         raise
 
@@ -237,5 +262,8 @@ async def create_message(
             cache_read_input_tokens=int(getattr(usage, "cache_read_input_tokens", 0) or 0),
             thinking_blocks=sum(getattr(block, "type", None) == "thinking" for block in content),
             provider_request_id=str(getattr(response, "id", "") or "")[:160],
+            estimated_input_tokens=context_usage.estimated_input_tokens,
+            max_context_tokens=context_usage.max_context_tokens,
+            reserved_output_tokens=context_usage.output_reserve_tokens,
         ))
     return response

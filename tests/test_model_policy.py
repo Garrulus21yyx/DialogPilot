@@ -16,15 +16,18 @@ def test_deepseek_defaults_tier_closed_tasks_and_quality_gates():
         assert policy.profile(role).to_dict() == {
             "model": "deepseek-v4-flash", "reasoning": "none",
             "min_completion_tokens": 0,
+            "max_context_tokens": 32768,
         }
     for role in (ModelRole.SYNTHESIS, ModelRole.VERIFIER):
         assert policy.profile(role).to_dict() == {
             "model": "deepseek-v4-pro", "reasoning": "none",
             "min_completion_tokens": 0,
+            "max_context_tokens": 32768,
         }
     assert policy.profile(ModelRole.JUDGE).to_dict() == {
         "model": "deepseek-v4-pro", "reasoning": "none",
         "min_completion_tokens": 0,
+        "max_context_tokens": 32768,
     }
     assert policy.base_url == "https://api.deepseek.com/anthropic"
 
@@ -72,6 +75,8 @@ def test_anthropic_sdk_v1_moves_sampling_parameters_to_extra_body():
     {"MODEL_PROVIDER": "deepseek", "MODEL_WORKER_REASONING": "medium"},
     {"MODEL_PROVIDER": "deepseek", "MODEL_JUDGE_REASONING": "high", "MODEL_JUDGE_MIN_COMPLETION_TOKENS": "64"},
     {"MODEL_PROVIDER": "other"},
+    {"MODEL_PROVIDER": "deepseek", "MODEL_REACT_MAX_CONTEXT_TOKENS": "bad"},
+    {"MODEL_PROVIDER": "deepseek", "MODEL_REACT_MAX_CONTEXT_TOKENS": "512"},
 ])
 def test_unsupported_policy_fails_at_startup(env):
     with pytest.raises(ValueError):

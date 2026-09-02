@@ -43,6 +43,7 @@ class ModelProfile:
     reasoning: ReasoningEffort = ReasoningEffort.NONE
     provider: str = "anthropic"
     min_completion_tokens: int = 0
+    max_context_tokens: int = 32_768
 
     def __post_init__(self) -> None:
         model = self.model.strip()
@@ -62,6 +63,10 @@ class ModelProfile:
             raise ValueError("min_completion_tokens must be between 0 and 8192")
         if self.reasoning is not ReasoningEffort.NONE and self.min_completion_tokens < 256:
             raise ValueError("reasoning profiles require min_completion_tokens >= 256")
+        if self.max_context_tokens < 1_024 or self.max_context_tokens > 2_000_000:
+            raise ValueError("max_context_tokens must be between 1024 and 2000000")
+        if self.min_completion_tokens >= self.max_context_tokens:
+            raise ValueError("completion floor must be below the context limit")
         object.__setattr__(self, "model", model)
         object.__setattr__(self, "provider", provider)
 
@@ -111,6 +116,7 @@ class ModelProfile:
             "model": self.model,
             "reasoning": self.reasoning.value,
             "min_completion_tokens": self.min_completion_tokens,
+            "max_context_tokens": self.max_context_tokens,
         }
 
 
@@ -171,7 +177,18 @@ class ModelPolicy:
                 raise ValueError(
                     f"invalid completion token floor for {role.value}: {raw_min_tokens}"
                 ) from exc
-            profiles[role] = ModelProfile(model, reasoning, provider, min_tokens)
+            raw_context_tokens = source.get(
+                f"MODEL_{role.value.upper()}_MAX_CONTEXT_TOKENS", "32768",
+            ).strip()
+            try:
+                context_tokens = int(raw_context_tokens)
+            except ValueError as exc:
+                raise ValueError(
+                    f"invalid context limit for {role.value}: {raw_context_tokens}"
+                ) from exc
+            profiles[role] = ModelProfile(
+                model, reasoning, provider, min_tokens, context_tokens,
+            )
         if provider == "deepseek":
             base_url = base_url or "https://api.deepseek.com/anthropic"
         return cls(provider=provider, base_url=base_url, profiles=profiles)

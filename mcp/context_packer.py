@@ -4,7 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Sequence
 
-from memory.context import TokenEstimator
+from core.token_estimator import TokenEstimator
 
 
 @dataclass(frozen=True)

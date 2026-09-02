@@ -1,0 +1,30 @@
+{
+  "contract_id": "m4-t03-provider-budget-v1",
+  "owner": "create_message provider boundary",
+  "accounted_components": [
+    "system",
+    "messages_and_history",
+    "tool_schemas",
+    "protocol_overhead",
+    "output_reserve"
+  ],
+  "recomputed_per_call": true,
+  "react_recomputed_per_step": true,
+  "limit_owner": "pinned ModelProfile.max_context_tokens",
+  "oversize_outcome": "ProviderContextBudgetExceeded",
+  "provider_side_effect_started_on_rejection": false,
+  "semantic_truncation_at_provider_boundary": false,
+  "observability": [
+    "estimated_input_tokens",
+    "reserved_output_tokens",
+    "max_context_tokens",
+    "provider_reported_input_tokens",
+    "input_estimation_ratio",
+    "max_estimated_context_utilization"
+  ],
+  "not_owned_here": [
+    "section selection",
+    "tool result semantic compaction",
+    "prompt cache eligibility"
+  ]
+}

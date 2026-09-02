@@ -7,13 +7,12 @@
 from __future__ import annotations
 
 import html
-import json
-import math
 import re
 from dataclasses import dataclass, field
-from typing import Any, Dict, Iterable, List, Sequence, Tuple
+from typing import Any, Dict, List, Sequence, Tuple
 
 from core.input_security import UntrustedContentGuard
+from core.token_estimator import TokenEstimator
 
 
 class ContextBudgetExceededError(ValueError):
@@ -26,56 +25,6 @@ class ContextBudgetExceededError(ValueError):
             f"mandatory context requires {self.required_tokens} tokens, "
             f"exceeding max_input_tokens={self.max_input_tokens}"
         )
-
-
-class TokenEstimator:
-    """与供应商无关的快速估算器，仅用于调用前预算而非精确计费。"""
-
-    @staticmethod
-    def estimate(value: Any) -> int:
-        """按中文字符与其他字符的经验比例估算 Token 数。"""
-        if value is None:
-            return 0
-        text = value if isinstance(value, str) else json.dumps(
-            value, ensure_ascii=False, sort_keys=True
-        )
-        units = 0.0
-        for char in text:
-            code = ord(char)
-            if 0x3400 <= code <= 0x9FFF:
-                units += 2 / 3
-            else:
-                units += 1 / 4
-        return max(1, math.ceil(units)) if text else 0
-
-    @classmethod
-    def estimate_messages(cls, messages: Iterable[Dict[str, Any]]) -> int:
-        """估算消息正文、工具字段及每条消息的协议开销。"""
-        total = 0
-        for message in messages:
-            total += 4
-            total += cls.estimate(message.get("content", ""))
-            total += cls.estimate(message.get("tool_calls"))
-            total += cls.estimate(message.get("tool_call_id"))
-        return total
-
-    @classmethod
-    def truncate(cls, text: str, max_tokens: int) -> str:
-        """用二分查找截取不超过预算的最长文本前缀。"""
-        text = str(text or "")
-        if max_tokens <= 0:
-            return ""
-        if cls.estimate(text) <= max_tokens:
-            return text
-        low, high = 0, len(text)
-        while low < high:
-            mid = (low + high + 1) // 2
-            if cls.estimate(text[:mid]) <= max_tokens:
-                low = mid
-            else:
-                high = mid - 1
-        clipped = text[:low].rstrip()
-        return f"{clipped}…" if clipped else ""
 
 
 @dataclass(frozen=True)
