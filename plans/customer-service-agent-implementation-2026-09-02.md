@@ -21,13 +21,14 @@
 | M1-T00 Admission/Execution/ChatOutcome v1 | done | CAS/ports/projection/OpenAPI/M3 cutover contract |
 | M1-T01 ConversationTurnStore schema | done | PostgreSQL migration `0002` + immutable scoped repositories |
 | M1-T02 Inbound-first / outbox dispatcher | implemented | PostgreSQL `0003`；生产 `/chat` cutover 归 M1-T05 |
-| M1-T02C Durable compatibility execution owner | implemented (not composed online) | stable work item、claim epoch/lease、terminal replay/deletion fence；在线 composition 归 T02D |
+| M1-T02C Durable compatibility execution owner | implemented | stable work item、claim epoch/lease、terminal replay/deletion fence |
+| M1-T02D Online durable composition | implemented (flag off) | admission/pinned assignment/canonical replay/lifespan pump；等待 T04B durable Memory projection 后激活 |
 | M1-T03 Unified publication/delivery | done | PostgreSQL `0004`；atomic publication/delivery outbox + canonical receipt lifecycle |
 | M1-T03A ResponseDelivery PostgreSQL 单主切换 | implemented | PR-10A/10B + local crash/restore drill；production snapshot cutover unverified |
 | M1-T04 Conversation projection outbox/deletion fence | implemented | PostgreSQL `0006`；4 projections + generation watermark + tombstone epoch |
 | M1-T04A DataLocationRegistry / pre-write fence | done | PostgreSQL `0007`；31 stable locations，4 write-approved，future writes fail closed |
 | M1-T05 Conversation/API read projections | implemented | PostgreSQL `0008`；turn/status/finalize watermark/close + PG delivery compatibility |
-| M1 Exit Gate | draft / not ready | online ChatApplication admission/sole-runner integration 缺失；production snapshot/delivery cutover/failover/signatures pending |
+| M1 Exit Gate | draft / not ready | T02D 在线 composition 已完成但 flag-off；T04B projection、production snapshot/delivery cutover/failover/signatures pending |
 | M1 完整会话事实与幂等发布 | in_progress | repository build 完成；在线 admission convergence 与 Exit evidence 未闭合 |
 | M2-PF01 共享 PostgreSQL HybridRetrievalBackend | implemented | PR-18P-A/B/C done；生产质量、RTO/OLTP gate 尚未 VERIFIED |
 | M2-T01A Agent-owned Intent/Domain/Instance policy | done | V1 registry + typed decisions/trace；582 tests passed |
@@ -245,8 +246,22 @@
 - 验证：四个 admission 事务故障点全部零残留；stale lease 只重领同一 item；CAS 后重试只创建一个
   run；ACK 后崩溃不重排；正常/合法 resume/非法 resume 的 start-vs-resume outbox 排他性质通过；
   Alembic head=`0003`，全套 `487 passed`。
-- 激活边界：当前同步 `/chat` 尚未切到 admission，因为 T03/T04 publication 与 compatibility worker 尚未
-  就绪；现在切换会产生永久 `Accepted`。M1-T05 将在整条恢复/发布链可用后执行唯一入口 cutover。
+- 激活边界：T02D 已补齐 publication/compatibility worker composition，但在 T04B durable Memory projection
+  完成前仍保持显式 flag-off；不得把 repository build 记作 production cutover。
+
+### M1-T02C / M1-T02D（IMPLEMENTED，activation pending M1-T04B）
+
+- T02C 以独立 durable work item 拥有整次 compatibility invocation 的 claim epoch/lease/attempt，不复制
+  Agent 节点状态；stable binder 在 admission CAS/ACK 前创建唯一 work item，崩溃只恢复同一 run。
+- T02D 在任何模型与外部 effect 前完成 admission，并固定 Bundle hash、route/Knowledge/retrieval refs、rollout
+  stage/bucket、shadow refs 与 authorization fingerprint；worker 从 pins 校验重建，不重新读取活动指针。
+- canonical final publication 优先于 compatibility terminal copy：worker ACK 前崩溃、或 publication 后
+  telemetry/legacy Memory 失败，都从 immutable publication payload 重建完整 public response，不再生成回答，
+  也不能降级成 `Failed`。
+- claim guard 在工单与 final publication 前验证 attempt/lease/deletion epoch；同 request 改 message 或 auth
+  fingerprint typed conflict。lifespan pump 可恢复 abandoned start/execution。
+- 在线 facade 由 `DIALOGPILOT_DURABLE_CHAT_MODE=enabled` 显式开启且要求 PostgreSQL delivery 单主。默认关闭，
+  直至 T04B 用 conversation projection outbox 替换 final publication 后的同步 Memory write。
 
 ### M1-T03
 
@@ -1014,9 +1029,9 @@
 - 新增可重放 `scripts/create_m1_exit_draft.py` 与 `evaluation/gates/m1-exit/v1.yaml`，精确列出 M1-PF01、
   T00–T05/T03A/T04A、X-T01/X-T02、production snapshot restore、ResponseDelivery cutover 与
   `M1-LEGACY-SQLITE-RETENTION`；M3/M4 release action 不被倒置成 build prerequisite。
-- 审计没有把 repository tests 冒充在线集成：ChatApplication 尚未先调用 PostgreSQL Admission port，当前会
-  在 inbound durable 前进入 Memory/Intent/Agent；StartOutboxDispatcher 也没有 lifespan consumer，因此
-  sole runner/replay/Accepted/Conflict 的在线闭环仍缺失。
+- T02D 已补上 Application-owned admission、sole-runner、canonical replay、Accepted/Conflict 与 lifespan
+  consumer，但默认保持 flag-off：T04B 尚未把 final publication 后的 direct Memory write 迁给 durable
+  projection adapters。因此旧审计的本地 integration gap 已缩小，不能据此把 draft gate 自动提升为 ready。
 - 修正 SQLite inventory 的真实 future cutover Owner：ResponseDelivery=M1-T03A、RunStore=M3-T06/T09、
   TicketService=M4-T07C；保留条件不等于提前迁移或停写。
 - [readiness audit](../governance/evidence/m1-exit/readiness-v1.md) 状态
@@ -1067,5 +1082,5 @@
 3. X-T05 build 已完成；任何新对外声明先登记 registry，`READY` 仍需真实 GateDecision 与 approver。
 4. M2-T05C 受 M2 Exit + `POSTGRES_RETRIEVAL_GA` candidate manifest 阻断，当前不执行 canary。
 5. T04/T04A live activation 仍受 M2 gate 与独立 review 约束。
-6. 下一本地修复是 Application-owned online admission/sole-runner/replay convergence；完成前 M1 Exit 不能只归因
-   于生产环境证据。
+6. 下一本地修复是 M1-T04B durable conversation projection composition；完成前 T02D 不启用，M1 Exit 仍不能
+   只归因于生产环境证据。

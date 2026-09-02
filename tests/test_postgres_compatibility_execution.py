@@ -13,7 +13,8 @@ from application.compatibility_execution import (
     CompatibilityExecutionWorker,
     outcome_from_terminal,
 )
-from application.chat_application import Completed, Failed
+from application.chat_application import ChatCommand, Completed, Conflict, Failed
+from application.compatibility_chat import CompatibilityChatCoordinator
 from infrastructure.postgres import (
     PostgresMigrationRunner,
     PostgresPool,
@@ -30,6 +31,11 @@ from infrastructure.postgres_compatibility_execution import (
 )
 from infrastructure.postgres_conversation import PostgresInvocationRepository
 from tests.test_postgres_admission import _identity, _new
+from services.evolution import (
+    PinnedExecutionRefs,
+    RolloutAssignment,
+    build_default_bundle,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -92,6 +98,21 @@ def test_frozen_contract_keeps_consumption_separate_from_business_authority():
     )
 
 
+def test_online_composition_contract_keeps_publication_authoritative_and_flagged():
+    contract = json.loads((
+        ROOT / "governance/concurrency/m1-t02d-online-composition-v1.json"
+    ).read_text("utf-8"))
+    assert contract["authority"]["completed_terminal"] == (
+        "response_deliveries final_response publication"
+    )
+    assert contract["replay"]["publication_before_worker_ack"] == (
+        "reconstruct Completed without regeneration"
+    )
+    assert contract["activation"]["default"] == (
+        "disabled until M1-T04B removes direct Memory projection"
+    )
+
+
 def test_binding_creates_one_durable_work_item_and_reuses_opaque_run(compat_pool):
     identity = _admit_and_bind(compat_pool)
     binder = PostgresCompatibilityRunBinder(compat_pool)
@@ -113,6 +134,104 @@ def test_binding_creates_one_durable_work_item_and_reuses_opaque_run(compat_pool
         assert connection.execute(
             "SELECT count(*) FROM dialogpilot_app.compatibility_execution_outbox"
         ).fetchone()[0] == 1
+
+
+def test_online_coordinator_admits_binds_executes_and_replays_one_terminal(compat_pool):
+    bundle = build_default_bundle({"worker": {"model": "test"}})
+    refs = PinnedExecutionRefs(
+        bundle_version=bundle.version,
+        bundle_hash=bundle.content_hash,
+        route_policy_ref="route-v1",
+        knowledge_backend_ref="knowledge-v1",
+        knowledge_generation_ref="generation-v1",
+        corpus_manifest_ref="corpus-v1",
+        retrieval_policy_ref="retrieval-v1",
+    )
+    assignment = RolloutAssignment(
+        primary=bundle, primary_stage="active", bucket=7, pinned_refs=refs,
+    )
+
+    class Rollout:
+        def resolve(self, _subject):
+            return assignment
+
+    class Registry:
+        def get(self, version):
+            assert version == bundle.version
+            return bundle
+
+    class CompletedReader:
+        completed = None
+
+        def completed_for_invocation(self, _key, *, user_id):
+            assert user_id == "compat-online-user"
+            return self.completed
+
+    class Application:
+        calls = 0
+
+        async def execute_pinned(
+            self, command, identity, *, assignment, publication_guard,
+        ):
+            self.calls += 1
+            await publication_guard()
+            assert command.message == "durable message"
+            assert assignment.primary.version == bundle.version
+            reader.completed = Completed("publication-online", {
+                "request_id": str(identity.request_id),
+                "response": "durable answer",
+            })
+            return Failed(
+                "post_publication_projection_failed", False, "trace-online",
+            )
+
+    application = Application()
+    reader = CompletedReader()
+    outbox = PostgresCompatibilityExecutionOutbox(compat_pool)
+    coordinator = CompatibilityChatCoordinator(
+        application,
+        admission=PostgresAdmissionUnitOfWork(compat_pool),
+        dispatcher=StartOutboxDispatcher(
+            PostgresStartOutbox(compat_pool),
+            PostgresInvocationRepository(compat_pool),
+            PostgresCompatibilityRunBinder(compat_pool),
+        ),
+        execution_outbox=outbox,
+        rollout_manager=Rollout(),
+        bundle_registry=Registry(),
+        completed_reader=reader,
+        worker_id="online-test",
+        execution_lease_seconds=30,
+        heartbeat_seconds=5,
+    )
+    command = ChatCommand(
+        message="durable message",
+        tenant_id="tenant-online",
+        user_id="compat-online-user",
+        conv_id="conversation-online",
+        request_id="request-online",
+        authorization_fingerprint="f" * 64,
+    )
+    first = asyncio.run(coordinator.handle(command))
+    replay = asyncio.run(coordinator.handle(command))
+    changed_authority = asyncio.run(coordinator.handle(ChatCommand(
+        **{**command.__dict__, "authorization_fingerprint": "e" * 64},
+    )))
+    assert first == replay
+    assert isinstance(first, Completed)
+    assert isinstance(changed_authority, Conflict)
+    assert changed_authority.code == "IDEMPOTENCY_CONFLICT"
+    assert first.response_id == "publication-online"
+    assert application.calls == 1
+    with compat_pool.transaction() as connection:
+        row = connection.execute("""
+            SELECT acknowledged_at IS NOT NULL, pinned_versions
+            FROM dialogpilot_app.compatibility_execution_outbox job
+            JOIN dialogpilot_app.workflow_invocations invocation
+              USING (invocation_key)
+        """).fetchone()
+    assert row[0] is True
+    assert row[1]["primary_bundle_version"] == bundle.version
 
 
 def test_concurrent_workers_claim_exactly_one_epoch(compat_pool):

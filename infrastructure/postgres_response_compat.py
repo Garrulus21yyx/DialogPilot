@@ -95,8 +95,41 @@ class PostgresResponseDeliveryCompatibilityService:
             projection_disposition=ProjectionDisposition(
                 metadata.get("projection_disposition") or "normal"
             ),
+            public_response=dict(metadata.get("public_response") or {}),
+            execution_stages=tuple(
+                dict(item) for item in metadata.get("execution_stages") or ()
+            ),
         ))
         return self._get(result.record.publication_id, user_id=user_id)
+
+    def completed_for_invocation(
+        self, invocation_key: InvocationKey, *, user_id: str,
+    ):
+        """Recover the immutable public response before any regeneration."""
+        from application.chat_application import Completed, StageObservation, StageStatus
+
+        with self.pool.transaction() as connection:
+            row = connection.execute("""
+                SELECT publication_id, seq, status, payload
+                FROM dialogpilot_app.response_deliveries
+                WHERE invocation_key=%s AND publication_kind='final_response'
+                  AND user_id=%s
+            """, (str(invocation_key), user_id)).fetchone()
+        if row is None:
+            return None
+        payload = dict(row[3])
+        response = dict(payload.get("public_response") or {})
+        response.update({
+            "response_id": row[0],
+            "response_seq": int(row[1]),
+            "delivery_status": _compat_status(DeliveryStatusV1(row[2])),
+            "response": payload["response"],
+        })
+        stages = tuple(StageObservation(
+            stage=str(item["stage"]), status=StageStatus(item["status"]),
+            detail=dict(item["detail"]),
+        ) for item in payload.get("execution_stages") or ())
+        return Completed(str(row[0]), response, stages)
 
     def acknowledge(
         self,

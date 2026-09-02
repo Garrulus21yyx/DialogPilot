@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Mapping, TypeAlias
 
@@ -62,6 +62,8 @@ class FinalResponseCommand:
     created_at: str
     policy: PublicationPolicy
     projection_disposition: ProjectionDisposition = ProjectionDisposition.NORMAL
+    public_response: Mapping[str, Any] = field(default_factory=dict)
+    execution_stages: tuple[Mapping[str, Any], ...] = ()
 
 
 @dataclass(frozen=True)

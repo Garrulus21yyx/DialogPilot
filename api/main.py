@@ -146,6 +146,9 @@ _proposal_generator = None
 _rollout_manager = None
 _postgres_pool = None
 _conversation_query = None
+_durable_chat_coordinator = None
+_durable_chat_task = None
+_durable_chat_stop = None
 _trace_recorder = TraceRecorder()
 _input_security_guard = PromptInjectionGuard()
 
@@ -196,7 +199,7 @@ def _anthropic_cfg() -> Dict[str, Any]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """按依赖顺序创建所有组件，并在退出时释放后台任务和连接。"""
-    global _orchestrator, _memory, _knowledge_base, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator, _rollout_manager, _grounded_answer_generator, _postgres_pool, _conversation_query, _knowledge_retriever, _retrieval_cache_client
+    global _orchestrator, _memory, _knowledge_base, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator, _rollout_manager, _grounded_answer_generator, _postgres_pool, _conversation_query, _knowledge_retriever, _retrieval_cache_client, _durable_chat_coordinator, _durable_chat_task, _durable_chat_stop
 
     print(BANNER, flush=True)
 
@@ -602,10 +605,67 @@ async def lifespan(app: FastAPI):
 
     await _memory.start()
     await _ticket_service.start()
+    if (
+        _postgres_pool is not None
+        and os.getenv("DIALOGPILOT_DURABLE_CHAT_MODE", "disabled").strip().lower()
+        == "enabled"
+    ):
+        from application.compatibility_chat import CompatibilityChatCoordinator
+        from infrastructure.postgres_admission import (
+            PostgresAdmissionUnitOfWork,
+            PostgresStartOutbox,
+            StartOutboxDispatcher,
+        )
+        from infrastructure.postgres_compatibility_execution import (
+            PostgresCompatibilityExecutionOutbox,
+            PostgresCompatibilityRunBinder,
+        )
+        from infrastructure.postgres_conversation import PostgresInvocationRepository
+        from infrastructure.postgres_response_compat import (
+            PostgresResponseDeliveryCompatibilityService,
+        )
+
+        if not isinstance(
+            _response_delivery, PostgresResponseDeliveryCompatibilityService,
+        ):
+            raise RuntimeError(
+                "durable chat requires POSTGRES_ACTIVE response publication"
+            )
+        execution_outbox = PostgresCompatibilityExecutionOutbox(_postgres_pool)
+        dispatcher = StartOutboxDispatcher(
+            PostgresStartOutbox(_postgres_pool),
+            PostgresInvocationRepository(_postgres_pool),
+            PostgresCompatibilityRunBinder(_postgres_pool),
+        )
+        _durable_chat_coordinator = CompatibilityChatCoordinator(
+            _core_chat_application(),
+            admission=PostgresAdmissionUnitOfWork(_postgres_pool),
+            dispatcher=dispatcher,
+            execution_outbox=execution_outbox,
+            rollout_manager=_rollout_manager,
+            bundle_registry=_bundle_registry,
+            completed_reader=_response_delivery,
+            worker_id=os.getenv("DIALOGPILOT_DURABLE_CHAT_WORKER_ID", "api-compat"),
+            start_lease_seconds=int(os.getenv("DIALOGPILOT_START_LEASE_SECONDS", "30")),
+            execution_lease_seconds=int(
+                os.getenv("DIALOGPILOT_EXECUTION_LEASE_SECONDS", "300")
+            ),
+            heartbeat_seconds=float(
+                os.getenv("DIALOGPILOT_EXECUTION_HEARTBEAT_SECONDS", "30")
+            ),
+        )
+        _durable_chat_stop = asyncio.Event()
+        _durable_chat_task = asyncio.create_task(
+            _run_durable_chat_worker(_durable_chat_coordinator, _durable_chat_stop),
+        )
     logger.info("DialogPilot 已就绪")
     try:
         yield
     finally:
+        if _durable_chat_stop is not None:
+            _durable_chat_stop.set()
+        if _durable_chat_task is not None:
+            await _durable_chat_task
         if _monitor is not None:
             await _monitor.stop()
         if _ticket_service is not None:
@@ -642,6 +702,9 @@ async def lifespan(app: FastAPI):
         _conversation_query = None
         _knowledge_retriever = None
         _retrieval_cache_client = None
+        _durable_chat_coordinator = None
+        _durable_chat_task = None
+        _durable_chat_stop = None
         logger.info("DialogPilot 已关闭")
 
 
@@ -1780,7 +1843,25 @@ async def register_agent_bundle(
     return {"bundle": registered.to_dict(), "content_hash": registered.content_hash, "active": False}
 
 
-def _chat_application() -> ChatApplication:
+async def _run_durable_chat_worker(coordinator, stop: asyncio.Event) -> None:
+    poll_seconds = max(
+        0.05, float(os.getenv("DIALOGPILOT_DURABLE_CHAT_POLL_SECONDS", "1")),
+    )
+    while not stop.is_set():
+        try:
+            work_count = await coordinator.pump_once()
+        except Exception:
+            logger.exception("durable compatibility worker iteration failed")
+            work_count = 0
+        if work_count:
+            continue
+        try:
+            await asyncio.wait_for(stop.wait(), timeout=poll_seconds)
+        except TimeoutError:
+            pass
+
+
+def _core_chat_application() -> ChatApplication:
     """Compose the application boundary from the current lifespan-owned services."""
     return ChatApplication(
         ChatServices(
@@ -1815,6 +1896,11 @@ def _chat_application() -> ChatApplication:
             evaluate_route_path=_evaluate_route_path,
         ),
     )
+
+
+def _chat_application():
+    """Select the gated durable boundary only after its complete composition."""
+    return _durable_chat_coordinator or _core_chat_application()
 
 
 def _compat_runtime_reader(invocation: Mapping[str, Any]) -> Mapping[str, Any] | None:

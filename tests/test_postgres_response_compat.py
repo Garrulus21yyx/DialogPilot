@@ -125,6 +125,42 @@ def test_select_retry_ack_read_and_replay_keep_legacy_shape_on_pg_authority(
     assert service.stats() == {"selected": 0, "delivered": 0, "read": 1}
 
 
+def test_canonical_publication_recovers_complete_public_response(compat_components):
+    _, identity, service = compat_components
+    metadata = {
+        **_metadata(identity),
+        "public_response": {
+            "request_id": str(identity.request_id),
+            "conv_id": str(identity.conversation_id),
+            "response": "answer",
+            "intent": "order_query",
+            "agent_type": "general",
+            "escalated": False,
+            "latency_ms": 4.0,
+            "verification_status": "pass",
+            "verified": True,
+            "grounded": True,
+        },
+        "execution_stages": [{
+            "stage": "verification", "status": "ok", "detail": {"passed": True},
+        }],
+    }
+    selected = service.select_response(
+        user_id=str(identity.user_id), conv_id=str(identity.conversation_id),
+        request_id=str(identity.request_id), response_text="answer",
+        identity_metadata=metadata,
+    )
+    recovered = service.completed_for_invocation(
+        identity.invocation_key, user_id=str(identity.user_id),
+    )
+    assert recovered.response_id == selected.response_id
+    assert recovered.response["response_id"] == selected.response_id
+    assert recovered.response["response_seq"] == selected.seq
+    assert recovered.response["delivery_status"] is DeliveryStatus.SELECTED
+    assert recovered.response["intent"] == "order_query"
+    assert recovered.stages[0].stage == "verification"
+
+
 def test_cross_user_response_is_not_enumerable(compat_components):
     _, identity, service = compat_components
     response = service.select_response(

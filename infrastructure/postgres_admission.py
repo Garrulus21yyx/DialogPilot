@@ -72,6 +72,9 @@ class PostgresAdmissionUnitOfWork:
             "request_id": str(identity.request_id),
             "continuation_id": str(identity.continuation_id),
             "message": command.message,
+            "authorization_fingerprint": str(
+                command.pinned_versions.get("authorization_fingerprint") or ""
+            ),
         })
         record = AdmissionRecord(
             invocation_key=identity.invocation_key,

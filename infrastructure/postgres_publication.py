@@ -229,6 +229,10 @@ class PostgresPublicationService:
                     "response": command.response_text,
                     "producer": command.producer,
                     "verification": dict(command.verification),
+                    "public_response": dict(command.public_response),
+                    "execution_stages": [
+                        dict(item) for item in command.execution_stages
+                    ],
                 },
                 "FINAL_RESPONSE_SELECTED",
             )

@@ -281,10 +281,58 @@ class ChatApplication:
                 safe_message=f"internal application failure: {type(exc).__name__}",
             )
 
+    async def execute_pinned(
+        self,
+        command: ChatCommand,
+        identity: InvocationIdentity,
+        *,
+        assignment: Any,
+        publication_guard: Callable[[], Awaitable[None]],
+    ) -> ChatOutcome:
+        """Execute one already-admitted invocation against its immutable pins."""
+        if not self._services.ready:
+            return Failed(
+                code="service_unavailable",
+                retryable=True,
+                correlation_id=self._ops.trace_id(),
+                safe_message="服务未就绪",
+            )
+        try:
+            span = (
+                self._services.trace_recorder.span(
+                    "application.chat.durable_execution",
+                    kind="internal",
+                    attributes=identity.metadata(),
+                )
+                if self._services.trace_recorder is not None
+                else nullcontext()
+            )
+            with span:
+                return await self._handle_ready(
+                    command,
+                    identity,
+                    assignment=assignment,
+                    publication_guard=publication_guard,
+                )
+        except Exception as exc:
+            logger.exception(
+                "durable chat execution failed invocation_key=%s",
+                identity.invocation_key,
+            )
+            return Failed(
+                code="chat_application_failed",
+                retryable=False,
+                correlation_id=self._ops.trace_id(),
+                safe_message=f"internal application failure: {type(exc).__name__}",
+            )
+
     async def _handle_ready(
         self,
         command: ChatCommand,
         identity: InvocationIdentity,
+        *,
+        assignment: Any = None,
+        publication_guard: Callable[[], Awaitable[None]] | None = None,
     ) -> ChatOutcome:
         from agents.agent_orchestrator import Request as OrcReq
         from memory.conversation_memory import MsgRole
@@ -299,7 +347,9 @@ class ChatApplication:
             "authorization_fingerprint": command.authorization_fingerprint,
         }
         stages: list[StageObservation] = []
-        assignment = await asyncio.to_thread(services.rollout_manager.resolve, user_id)
+        assignment = assignment or await asyncio.to_thread(
+            services.rollout_manager.resolve, user_id,
+        )
         if not getattr(assignment, "admission_allowed", True):
             return Failed(
                 code="rollout_admission_blocked",
@@ -521,6 +571,8 @@ class ChatApplication:
         ticket = None
         handoff_created = False
         if escalated:
+            if publication_guard is not None:
+                await publication_guard()
             ticket_operation_key = identity.operation_key(
                 "TicketService", "create_handoff", "primary",
             )
@@ -570,144 +622,17 @@ class ChatApplication:
                 "reason": "handoff_not_required",
             }))
 
-        try:
-            delivery_operation_key = identity.operation_key(
-                "ResponseDelivery", "select_final_response", "primary",
-            )
-            delivery = await asyncio.to_thread(
-                services.response_delivery.select_response,
-                user_id=user_id,
-                conv_id=conv_id,
-                request_id=request_id,
-                response_text=response_text,
-                identity_metadata={
-                    **identity_metadata,
-                    "operation_key": str(delivery_operation_key),
-                    "candidate_id": _publication_candidate_id(
-                        str(identity.invocation_key), response_text,
-                    ),
-                    "producer": "chat-application-compat-v1",
-                    "verifier_status": verification.status.value,
-                    "verification": {
-                        "status": verification.status.value,
-                        "grounded": verification.grounded,
-                        "need_escalation": verification.need_escalation,
-                        "reason": verification.reason,
-                        "reason_code": verification.reason_code.value,
-                    },
-                    "evidence_sha256": _canonical_sha256({
-                        "verification": {
-                            "status": verification.status.value,
-                            "grounded": verification.grounded,
-                            "need_escalation": verification.need_escalation,
-                            "reason": verification.reason,
-                            "reason_code": verification.reason_code.value,
-                        },
-                        "knowledge": knowledge_verification,
-                        "coverage": result.coverage,
-                    }),
-                    "bundle_version": bundle.version,
-                    "index_manifest_sha256": _knowledge_manifest_fingerprint(
-                        knowledge, services.knowledge_base,
-                    ),
-                    "projection_disposition": (
-                        "approval" if approval_pending else disposition
-                    ),
-                },
-            )
-        except Exception:
-            logger.exception("持久化回答选择事实失败 request_id=%s", request_id)
-            return Failed(
-                code="response_selection_unavailable",
-                retryable=True,
-                correlation_id=ops.trace_id(),
-                stages=tuple(stages) + (StageObservation(
-                    "delivery", StageStatus.FAILED,
-                    {"reason": "response_selection_unavailable"},
-                ),),
-            )
-        stages.append(StageObservation("delivery", StageStatus.OK, {
-            "response_id": delivery.response_id,
-            "response_seq": delivery.seq,
-            "status": delivery.status.value,
-        }))
-
         tool_audit = [
             record.to_dict()
             for record in services.tool_manager.audit_records(trace_id=ops.trace_id())
         ] if services.tool_manager else []
-        stages.append(StageObservation("tool", StageStatus.OK, {
-            "call_count": len(tool_audit),
-            "statuses": [str(item.get("status") or "") for item in tool_audit],
-        }))
-        await ops.capture_badcases(
-            req=command,
-            user_id=user_id,
-            request_id=request_id,
-            result=result,
-            verification=verification,
-            published_response=response_text,
-            tool_audit=tool_audit,
-            bundle=bundle,
-            approval_pending=approval_pending,
-        )
-        await asyncio.to_thread(
-            services.rollout_manager.record_outcome,
-            bundle_version=bundle.version,
-            stage=assignment.primary_stage,
-            verified=(
-                verification.publishable
-                and (
-                    disposition in {"clarify", "out_of_scope"}
-                    or bool(result.coverage.get("complete", False))
-                )
-                and not approval_pending
-            ),
-            latency_ms=result.latency_ms,
-            cost_units=float(len(result.agent_outcomes) + len(tool_audit)),
-            request_id=request_id,
-        )
-        if disposition != "out_of_scope":
-            await services.memory.add_messages(user_id, conv_id, [
-                (MsgRole.USER, command.message, identity_metadata),
-                (MsgRole.ASSISTANT, response_text, {
-                    **identity_metadata,
-                    "response_id": delivery.response_id,
-                    "response_seq": delivery.seq,
-                }),
-            ], extract_facts=(disposition == "execute"))
-            stages.append(StageObservation("memory_write", StageStatus.OK, {
-                "message_count": 2,
-                "extract_facts": disposition == "execute",
-            }))
-        else:
-            stages.append(StageObservation("memory_write", StageStatus.SKIPPED, {
-                "reason": "out_of_scope_projection_policy",
-            }))
-
-        if assignment.shadow is not None and disposition == "execute":
-            asyncio.create_task(ops.evaluate_shadow(
-                request=command,
-                user_id=user_id,
-                conv_id=conv_id,
-                request_id=request_id,
-                bundle=assignment.shadow,
-                base_sections=base_context_sections,
-                prompt_history=prompt_history,
-                intent_history=intent_history,
-                identity_metadata=identity_metadata,
-                pinned_execution_refs=getattr(
-                    assignment, "shadow_pinned_refs", None,
-                ),
-            ))
-
         response = {
             "request_id": request_id,
             "trace_id": ops.trace_id(),
             "conv_id": conv_id,
-            "response_id": delivery.response_id,
-            "response_seq": delivery.seq,
-            "delivery_status": delivery.status,
+            "response_id": "",
+            "response_seq": 0,
+            "delivery_status": "SELECTED",
             "response": response_text,
             "intent": result.intent.value if result.intent else "other",
             "intent_group": intent_result.intent_group,
@@ -776,6 +701,142 @@ class ChatApplication:
             "pending_approval_call_ids": list(result.pending_approval_call_ids),
             "pending_signals": list(result.pending_signals),
         }
+
+        try:
+            if publication_guard is not None:
+                await publication_guard()
+            delivery_operation_key = identity.operation_key(
+                "ResponseDelivery", "select_final_response", "primary",
+            )
+            delivery = await asyncio.to_thread(
+                services.response_delivery.select_response,
+                user_id=user_id,
+                conv_id=conv_id,
+                request_id=request_id,
+                response_text=response_text,
+                identity_metadata={
+                    **identity_metadata,
+                    "operation_key": str(delivery_operation_key),
+                    "candidate_id": _publication_candidate_id(
+                        str(identity.invocation_key), response_text,
+                    ),
+                    "producer": "chat-application-compat-v1",
+                    "verifier_status": verification.status.value,
+                    "verification": {
+                        "status": verification.status.value,
+                        "grounded": verification.grounded,
+                        "need_escalation": verification.need_escalation,
+                        "reason": verification.reason,
+                        "reason_code": verification.reason_code.value,
+                    },
+                    "evidence_sha256": _canonical_sha256({
+                        "verification": {
+                            "status": verification.status.value,
+                            "grounded": verification.grounded,
+                            "need_escalation": verification.need_escalation,
+                            "reason": verification.reason,
+                            "reason_code": verification.reason_code.value,
+                        },
+                        "knowledge": knowledge_verification,
+                        "coverage": result.coverage,
+                    }),
+                    "bundle_version": bundle.version,
+                    "index_manifest_sha256": _knowledge_manifest_fingerprint(
+                        knowledge, services.knowledge_base,
+                    ),
+                    "projection_disposition": (
+                        "approval" if approval_pending else disposition
+                    ),
+                    "public_response": response,
+                    "execution_stages": [item.to_dict() for item in stages],
+                },
+            )
+        except Exception:
+            logger.exception("持久化回答选择事实失败 request_id=%s", request_id)
+            return Failed(
+                code="response_selection_unavailable",
+                retryable=True,
+                correlation_id=ops.trace_id(),
+                stages=tuple(stages) + (StageObservation(
+                    "delivery", StageStatus.FAILED,
+                    {"reason": "response_selection_unavailable"},
+                ),),
+            )
+        stages.append(StageObservation("delivery", StageStatus.OK, {
+            "response_id": delivery.response_id,
+            "response_seq": delivery.seq,
+            "status": delivery.status.value,
+        }))
+        response.update({
+            "response_id": delivery.response_id,
+            "response_seq": delivery.seq,
+            "delivery_status": delivery.status,
+        })
+        stages.append(StageObservation("tool", StageStatus.OK, {
+            "call_count": len(tool_audit),
+            "statuses": [str(item.get("status") or "") for item in tool_audit],
+        }))
+        await ops.capture_badcases(
+            req=command,
+            user_id=user_id,
+            request_id=request_id,
+            result=result,
+            verification=verification,
+            published_response=response_text,
+            tool_audit=tool_audit,
+            bundle=bundle,
+            approval_pending=approval_pending,
+        )
+        await asyncio.to_thread(
+            services.rollout_manager.record_outcome,
+            bundle_version=bundle.version,
+            stage=assignment.primary_stage,
+            verified=(
+                verification.publishable
+                and (
+                    disposition in {"clarify", "out_of_scope"}
+                    or bool(result.coverage.get("complete", False))
+                )
+                and not approval_pending
+            ),
+            latency_ms=result.latency_ms,
+            cost_units=float(len(result.agent_outcomes) + len(tool_audit)),
+            request_id=request_id,
+        )
+        if disposition != "out_of_scope":
+            await services.memory.add_messages(user_id, conv_id, [
+                (MsgRole.USER, command.message, identity_metadata),
+                (MsgRole.ASSISTANT, response_text, {
+                    **identity_metadata,
+                    "response_id": delivery.response_id,
+                    "response_seq": delivery.seq,
+                }),
+            ], extract_facts=(disposition == "execute"))
+            stages.append(StageObservation("memory_write", StageStatus.OK, {
+                "message_count": 2,
+                "extract_facts": disposition == "execute",
+            }))
+        else:
+            stages.append(StageObservation("memory_write", StageStatus.SKIPPED, {
+                "reason": "out_of_scope_projection_policy",
+            }))
+
+        if assignment.shadow is not None and disposition == "execute":
+            asyncio.create_task(ops.evaluate_shadow(
+                request=command,
+                user_id=user_id,
+                conv_id=conv_id,
+                request_id=request_id,
+                bundle=assignment.shadow,
+                base_sections=base_context_sections,
+                prompt_history=prompt_history,
+                intent_history=intent_history,
+                identity_metadata=identity_metadata,
+                pinned_execution_refs=getattr(
+                    assignment, "shadow_pinned_refs", None,
+                ),
+            ))
+
         return Completed(
             response_id=delivery.response_id,
             response=response,
