@@ -6,50 +6,51 @@ permalink: /customer-service-agent-implementation-plan.html
 
 # DialogPilot 客服 Agent 颗粒度实施计划
 
-> 状态：实施提案（Implementation Proposal）
+> 状态：实施提案（本地直接替换版）
 >
-> 版本：v1.0
+> 版本：v1.1
 >
-> 日期：2026-09-01
+> 日期：2026-09-02
 >
 > 上游架构：[DialogPilot 客服 Agent 总体目标架构](./customer-service-agent-target-architecture.zh-CN.md)
 
 ## 1. 文档目的
 
-本文把目标架构拆成可独立开发、验证、灰度和回滚的任务单元，解决以下问题：
+本文把目标架构拆成可独立开发和验证的任务单元，解决以下问题：
 
 - 哪些工作是阻塞全局的 P0；
 - 哪些现有模块必须保留；
 - 什么时候引入 LangGraph；
-- Memory、RAG、Tool、Handoff、多模态如何分阶段迁移；
+- Memory、RAG、Tool、Handoff、多模态如何按依赖完成并直接替换；
 - 每项任务用什么性质和端到端场景验收；
 - 如何避免同时存在两个状态 Owner；
 - 什么时候可以在文档或简历中宣称某项能力已经完成。
 
 本计划不假设固定团队人数或发布日期。任务规模只表示相对复杂度：
 
-M0–M6 是**交付依赖 DAG**，不是在线请求运行时的阶段状态机。在线编排始终由现有 Agent/TaskGraph/ReAct 完成；里程碑只用于安排迁移、验证与放量。
+M0–M6 是**交付依赖 DAG**，不是在线请求运行时的阶段状态机。在线编排始终由现有 Agent/TaskGraph/ReAct 完成；里程碑只用于安排实现与验证。
 
 | 规模 | 含义 |
 |---|---|
 | S | 单一 Owner、局部合同和少量消费者 |
 | M | 跨 2–4 个模块，需要迁移消费者和集成测试 |
-| L | 跨领域状态、持久层和异常路径，需要灰度/回滚 |
+| L | 跨领域状态、持久层和异常路径，需要拆分实现与端到端验收 |
 | XL | 不允许一次提交完成，必须先拆任务或做试点 |
 
 ## 2. 实施总原则
 
 1. 先闭合完整会话和真实主链，再引入新运行时。
-2. 先定义正向合同，再删除旧路径。
-3. 一个事实只能有一个 Owner；迁移期允许双写，不允许双主。
-4. 生产与 Eval 必须调用同一个 `ChatApplication`。
+2. 先定义正向合同并跑通新链，再在同一交付阶段删除旧路径。
+3. 一个事实只能有一个 Owner；开发过程中可以保留离线对照 fixture，但运行 composition root 不允许双写、双读或双主。
+4. HTTP 服务入口与 Eval 必须调用同一个 `ChatApplication`。
 5. Checkpoint 只保证可恢复，不保证业务 exactly-once。
 6. 只读节点和写节点采用不同 retry 代数。
 7. 任何写工具无法确认结果时进入 reconciliation，不自动重试。
-8. 每个里程碑都有 feature flag、shadow 和 rollback。
+8. 每个里程碑都以本地/CI contract、property、E2E、fault-injection 和适用的 heldout 结果验收。
 9. 当前已验证的 ToolManager、TicketService、ResponseDelivery、Memory range summary、RAG provenance、Verifier 和 Bundle 机制优先复用。
 10. 不以“新增文件”“测试全绿”或“框架接入成功”作为架构闭环证明。
 11. Agent/现有 TaskGraph/ReAct 是业务编排主体；LangGraph 只做薄持久运行时，不把 route、RAG、Memory、Tool、Media、Ticket 重写成中央因果链状态机。
+12. 当前项目无线上流量、无必须保留的旧运行数据：每个 Owner slice 验收后直接切换自己的唯一 binding，并在同一原子交付中删除对应旧 reader/writer/adapter/toggle/dependency；最终 Exit 只聚合这些已完成 slice，不建设旧数据迁移、流量灰度或运行时旧链回退系统。
 
 ## 3. 完成定义
 
@@ -62,7 +63,7 @@ M0–M6 是**交付依赖 DAG**，不是在线请求运行时的阶段状态机�
 - 正向输入、状态、输出和 typed failure 合同已经实现；
 - 所有已知 producer/consumer 已迁移；
 - 正常、异常、取消、重试、并发和恢复路径按任务风险覆盖；
-- 涉及持久数据时，migration、backfill、retention 和 forward-fix/rollback 已定义；
+- 涉及持久数据时，clean schema bootstrap、fixture/source rebuild、retention、delete/restore 已定义；
 - Trace/metrics 能区分成功、拒绝、降级和不可用；
 - 文档与实际代码一致；
 - 没有通过新增调用方特判绕过领域 Owner；
@@ -75,115 +76,112 @@ M0–M6 是**交付依赖 DAG**，不是在线请求运行时的阶段状态机�
 里程碑只有在以下条件满足后可进一步标记 `VERIFIED`：
 
 - Gate 矩阵中的 required/适用 conditional 任务与 X-task prerequisite 均已 `IMPLEMENTED`；
-- Exit Gate 的 E2E、故障注入、数据迁移演练和独立复核通过；
-- feature flag 默认仍可关闭，rollback/forward-fix 已演练；
+- Exit Gate 的 E2E、故障注入、空库重建和独立复核通过；
+- composition root 只解析到目标实现，且该 milestone 范围内被替代的旧 producer、consumer、fallback、toggle 与依赖已经删除；仅“列为待删除”不能通过 `VERIFIED`；
 - 对应 Gate manifest 和机器可读报告已经归档。
 
-### 3.3 Release Profile `READY` 与放量阶段
+### 3.3 当前实现状态与直接替换
 
-Release Profile 控制的是**用户可见新能力的广泛生产放量**，不是语义等价的数据库单主迁移。每张改变在线行为的任务必须明确区分以下阶段：
+当前分支已有大量能力“实现但未成为唯一 binding”。任务状态必须使用以下分类，不能把提交存在等同于
+目标链已经接管：
+
+| 状态 | 含义 |
+|---|---|
+| `CURRENT_ACTIVE` | 当前 composition root 正在调用 |
+| `IMPLEMENTED_NOT_BOUND` | 合同、存储或 adapter 已实现且有测试，但当前入口尚未唯一绑定 |
+| `PLANNED` | 尚未实现 |
+| `SUPERSEDED_TO_REMOVE` | 已实现但只服务于旧数据迁移、双路径比较、流量试运行或旧链回退；不再继续建设，直接替换时删除 |
+
+当前基线摘要：
+
+- `CURRENT_ACTIVE`：`/chat` 已是调用 `ChatApplication.handle()` 的薄 HTTP adapter；其内部调用现有 AgentOrchestrator/TaskGraph/ReAct、已接入的 TaskFormation/KnowledgeRetriever 接口，以及仍由 Chroma/Redis 提供候选或记忆的兼容实现。
+- `IMPLEMENTED_NOT_BOUND`：PostgreSQL/Alembic、Conversation/Admission/Publication/Delivery contracts、
+  canonical Route/Authority、KnowledgeRetriever 的 PostgreSQL backend、ThreadSummary/ContextPolicy/
+  ActiveCase/ServiceEpisode 目标存储与投影等当前分支实现；对应目标 binding 尚未全部激活。
+- `PLANNED`：LangGraph、完整 Profile/Commitment/ServiceContinuity、完整多模态、OTel+Langfuse、最终评测闭环。
+- `SUPERSEDED_TO_REMOVE`：当前已经存在的旧数据迁移、双路径比较和流量试运行辅助模块。
+
+每个直接替换任务只走一条交付链：
 
 ```text
-FLAG_OFF/LOCAL → DARK_SHADOW → BOUNDED_CANARY → PROFILE_READY/GA
+完成目标 Owner/Schema/Adapter
+→ 从空库与 canonical source/fixture 重建
+→ unit/contract/property/integration/E2E/fault/heldout 验收
+→ 一次更新唯一 composition-root binding
+→ 同一任务删除旧 producer/consumer/fallback/toggle/dependency
 ```
 
-- `DARK_SHADOW` 不发布、不写业务事实、不改变 Memory/Commitment；
-- `BOUNDED_CANARY` 只能在本任务所属 Exit/Gate 通过、manifest 冻结、曝光上限和自动回滚均生效后运行；
-- 只有拟发布 profile 达到 `READY`，新行为才能超出 canary envelope 广泛生产启用或对外量化；
-- owner-preserving、行为语义等价的 PostgreSQL/worker 单主迁移由对应 Milestone Exit 与 cutover runbook 控制，但不得借此暗中开启新 route、模型、工具或多模态能力。
-
-Profile `READY` 还必须满足：
-
-- fresh heldout、shadow/canary 和线上观察窗口达到该 profile 的版本化门禁；
-- 零容忍安全性质为零失败；
-- 统计质量满足 per-route baseline/目标或非劣条件；
-- release approver 签署，且自动/人工 rollback 条件可执行。
+切换前失败则不修改 binding；切换后通过 Git revert/fix-forward 与 clean rebuild 修复，不保留第二条运行路径。
 
 ### 3.4 适用性规则
 
 | 证据项 | 适用条件 | 合法 `N/A` 示例 |
 |---|---|---|
-| migration/backfill | 修改 durable schema/事实 Owner | 纯接口类型别名且无持久数据 |
+| clean schema/rebuild | 修改 durable schema、projection 或事实 Owner | 纯接口类型别名且无持久数据 |
 | state-machine/fault injection | 改变状态、恢复、副作用 | 纯文档链接修订 |
 | fresh heldout | 改变模型、路由、检索、生成、视觉行为 | 确定性 DB 索引增加 |
-| shadow/canary | 会改变生产请求行为 | 本地测试 fixture |
 | retention/delete | 新增或复制用户/企业数据 | 无数据写入的纯计算函数 |
 
 `N/A` 必须记录理由和 approver，不能用来跳过本应适用的门禁。
 
-`IMPLEMENTED` 不等于 `VERIFIED`，`VERIFIED` 也不自动等于某个 Release Profile `READY`。
+`IMPLEMENTED` 不等于 `VERIFIED`；只有完成该任务的 direct-binding 与旧路径删除条件，目标链才可视为已替换。
 
 ## 4. 总体工作分解
 
 ```mermaid
 flowchart LR
-    M0[M0 主链/基线/Gate Foundation] --> M1[M1 Conversation/Admission/Delivery]
-    M0 --> M2B[M2 合同 flag-off 开发]
-    M1 --> M2E[M2 Exit/有限 canary]
-    M2B --> M2E
-    M1 --> M3[M3 薄 Durable Agent Runtime]
-    M2E --> M3
+    M0[M0 主链与基线] --> M1[M1 Conversation/Admission/Delivery]
+    M1 --> M2[M2 Route/Authority/Evidence/RAG]
+    M2 --> M3[M3 薄 Durable Agent Runtime]
     M3 --> M4[M4 Memory/Context/Commitment/Handoff]
-    M2E --> K[M5 Knowledge Lifecycle]
+    M2 --> K[M5 Knowledge Lifecycle]
     M4 --> MM[M5 Multimodal]
-    M4 --> GX[M5 Episode Graph Experiment]
-    M0 --> M6[M6 Eval/Observability Infrastructure]
-    M1 --> M6
-    M2E --> M6
-    M3 --> M6
-    M4 --> CORE[CORE_TEXT_GA]
-    M6 --> CORE
-    K --> KGA[KNOWLEDGE_LIFECYCLE_GA]
-    CORE --> KGA
-    MM --> MGA[MULTIMODAL_GA]
-    CORE --> MGA
+    M4 --> GX[M5 Episode Graph Experiment optional]
+    M0 --> M6[M6 Eval/Observability]
+    M2 --> M6
+    M4 --> M6
+    K --> M6
+    MM --> M6
 ```
 
-该图只表示主要 build/enable 分支；任务卡依赖与下方 Gate 矩阵是唯一权威 DAG。M5 和全部实验不阻塞 Core Text GA。
+该图只表示主要 build 分支；任务卡依赖与下方验证矩阵是唯一权威 DAG。M5-T08 图检索是可选实验，不阻塞主链。
 
-任务依赖与启用约束分四种：
+任务依赖只分两种：
 
 | 类型 | 含义 |
 |---|---|
 | `Build prerequisite` | 缺少它就不能正确编译或实现当前合同 |
-| `Verification prerequisite` | 可以 flag-off 开发，但不能宣称 milestone verified |
-| `Technical cutover gate` | 控制行为等价的事实 Owner、repository、worker 单主迁移和旧路删除；未通过不得换主或双写 |
-| `Behavior rollout gate` | 分别声明 dark shadow、bounded canary 与 broad GA；未通过对应层级不得接流量 |
+| `Verification prerequisite` | 可以并行开发，但缺少它不能宣称 milestone verified 或执行直接 binding |
 
-M1/M2 的合同与 flag-off 实现可以在 M0 后半段并行，但任何行为变化的 shadow 都必须等 M0-T04 基线冻结；bounded canary 必须再通过能力所属 Exit/Gate；广泛生产放量必须通过对应 Release Profile。M2 的 shadow 还必须通过 M1 Exit Gate，避免新路由读取不完整 transcript。M3 可在 M1/M2 后 build，dark shadow、bounded canary 和 GA 分别受 M2 Exit、M3 Exit 与 `CORE_TEXT_GA` 控制。
+M4 的部分 projection、M5 的离线 ingest、M6 的数据标注可以并行，但不能绕过主链和状态 Owner。
+每张任务卡中的“依赖”默认是 Build prerequisite。任何 direct-binding 动作都必须与旧 producer/consumer/
+fallback 删除位于同一任务或紧邻 cleanup task；不存在独立流量发布阶段。
 
-M4 的部分 projection、M5 的离线 ingest、M6 的数据标注可以并行，但不能绕过主链和状态 Owner 门禁。每张任务卡中的“依赖”默认是 Build prerequisite；额外 Verification、Technical cutover、Behavior rollout gate 在卡片或里程碑中单列。
+### 4.1 Milestone 验证矩阵
 
-### 4.1 Gate membership 与签署矩阵
-
-Gate prerequisite 使用可机器判定的 tagged union，不能把任务、Gate、产物和自然语言条件塞进同一字符串：
+验证 prerequisite 使用可机器判定的 tagged union：
 
 ```text
 TaskRef(id, expected=IMPLEMENTED)
-GateDecisionRef(id, expected=APPROVE)
 ArtifactRef(id, checksum, expected=FROZEN|VERIFIED)
 ConditionalRequirement(id, applicability_predicate, evidence, decision, na_reason?, na_approver?)
 ```
 
-下表简写为 `T:/G:/A:/C:`。只有 `C:` 可以经适用性判断变成 `N/A`；其余 prerequisite 必须达到期望状态。`non-blocking` 不得被悄悄升级为当前 Gate 前置。
+下表简写为 `T:/A:/C:`。只有 `C:` 可以经适用性判断变成 `N/A`。
 
-| Gate/Profile | required prerequisites | conditional / N/A | 明确 non-blocking | X-task prerequisite | evidence Owner | independent approver |
-|---|---|---|---|---|---|---|
-| M0 Exit | `T:M0-T01..T05` | 无 | M1+ | `无` | Evaluation | Application |
-| M1 Exit | `T:M1-PF01,T00..T05,T03A,T04A` | `C:M1-LEGACY-SQLITE-RETENTION` | M2+ | `T:X-T01,X-T02` | Application | Evaluation + Security + Privacy |
-| M2 Exit | `T:M2-PF01,M2-T01..T06,T01A,T04A,T06A,T06R` | `C:M2-AUTHORITY-ADAPTER-SET` | `T:M2-T05C`、LangGraph、多模态、图检索 | `T:X-T03,X-T04` | Application + Agent + Platform | Evaluation + Domain Tool |
-| M3 Exit | `T:M3-T01..T06,T03A,T08` | `C:M3-STREAMING-CHANNEL`（适用时要求 `T:M3-T07`） | `T:M3-T09`、M4/M5 | `T:X-T01..T04` | Agent Runtime | Evaluation + Application |
-| M4 Exit | `T:M4-T01..T08,M4-T03A,M4-T03B,M4-T03D,M4-T03E` | 无 | `T:M4-T03C,M4-T04C,M4-T05C,M4-T04R,M4-T07C`、多模态、图检索 | `T:X-T01,X-T03,X-T04` | Memory + Product/Support Ops | Evaluation + Privacy |
-| M5 Knowledge Gate | `T:M5-T01` | 无 | M5-T02～T09 | `T:X-T01,X-T04` | Knowledge | Evaluation + Product/Support Ops |
-| M5 Multimodal Gate | `T:M5-T02..T07,T09,M5-T02A` | `C:M5-MULTIMODAL-SCOPE` | M5-T08 图实验 | `T:X-T01,X-T03,X-T04` | Multimodal + Agent | Evaluation + Security + Privacy |
-| Episode Graph Experiment | `T:M4-T04,M5-T08`、`A:EPISODE-GRAPH-MANIFEST` | 无 | 所有 GA | `T:X-T04` | Knowledge | Evaluation |
-| CORE_TEXT_GA | `G:M0-EXIT..M4-EXIT`、`T:M3-T09,M4-T03C,M4-T04C,M4-T07C,M6-T01..T08,M6-T05A` | `C:CORE-STREAMING-CHANNEL` | M5 全部、M6-T09 | `T:X-T01..T05` | Evaluation | Product/Support Ops + Security |
-| POSTGRES_RETRIEVAL_GA | `G:CORE-TEXT-GA`、`T:M2-PF01,M2-T05C,M4-T04C,M4-T05C` | 无 | `T:M4-T04R`、图实验 | `T:X-T01,X-T04,X-T05` | Platform + Evaluation | Knowledge + Memory + Privacy |
-| LEGACY_RETRIEVAL_RETIREMENT | `G:POSTGRES_RETRIEVAL_GA`、`A:RETRIEVAL-RETIREMENT-MANIFEST` | 无 | 图实验 | `T:X-T01,X-T04,X-T05` | Platform + Privacy | Evaluation + Knowledge + Memory |
-| KNOWLEDGE_LIFECYCLE_GA | `G:CORE-TEXT-GA,M5-KNOWLEDGE-GATE` | 无 | 多模态、图实验 | `T:X-T01,X-T04,X-T05` | Evaluation | Knowledge + Product/Support Ops |
-| MULTIMODAL_GA | `G:CORE-TEXT-GA,M5-MULTIMODAL-GATE` | 无 | 图实验 | `T:X-T01,X-T03..T05` | Evaluation | Security + Privacy + Support Ops |
+| Milestone | required tasks | conditional / optional | X-task prerequisite | evidence Owner |
+|---|---|---|---|---|
+| M0 Exit | `T:M0-T01..T05` | 无 | 无 | Evaluation |
+| M1 Exit | `T:M1-PF01,T00..T05,T03A,T04A` | 无 | `T:X-T01,X-T02` | Application |
+| M2 Exit | `T:M2-PF01,M2-T01..T06,T01A,T04A,T05C,T06A,T06R` | `C:M2-AUTHORITY-ADAPTER-SET` | `T:X-T03,X-T04` | Application + Agent + Platform |
+| M3 Exit | `T:M3-T01..T06,T03A,T08,T09` | `C:M3-STREAMING-CHANNEL`（适用时 `T:M3-T07`） | `T:X-T01..T04` | Agent Runtime |
+| M4 Exit | `T:M4-T01..T08,M4-T03A,M4-T03B,M4-T03C,M4-T03D,M4-T03E,M4-T04C,M4-T04R,M4-T05C,M4-T07C` | 无 | `T:X-T01,X-T03,X-T04` | Memory + Product/Support Ops |
+| M5 Knowledge Exit | `T:M5-T01` | 无 | `T:X-T01,X-T04` | Knowledge |
+| M5 Multimodal Exit | `T:M5-T02..T07,T09,M5-T02A` | `T:M5-T08` optional | `T:X-T01,X-T03,X-T04` | Multimodal + Agent |
+| M6 Exit | `T:M6-T01..T06,T05A` | `T:M6-T09` optional | `T:X-T01..T05` | Evaluation |
 
-每个 Exit/Gate 在验证开始前必须引用冻结的 M0-T05 manifest；表内 evidence Owner 归档机器报告，independent approver 不能是该 Gate 的唯一实现者。Exit 段落描述的是附加验收性质，不会增删本矩阵 task membership；变更 membership 必须新建 manifest/version。
+每个 Exit 引用冻结的 EvaluationManifest 和机器报告。已实现但被新决策废弃的迁移辅助任务不列入
+required tasks，只在对应 cleanup 的删除清单中验收。
 
 ## 5. 角色 Owner
 
@@ -198,7 +196,7 @@ ConditionalRequirement(id, applicability_predicate, evidence, decision, na_reaso
 | Memory | transcript projection、summary、episode、profile |
 | Knowledge | source lifecycle、Retriever、EvidencePack、知识运营 |
 | Multimodal | attachment、OCR/VLM、视觉检索与 rerank |
-| Evaluation | 数据、runner、rubric、故障注入、release gate |
+| Evaluation | 数据、runner、rubric、故障注入、EvaluationDecision |
 | Platform | PostgreSQL、Redis、Object Storage、OTel、部署 |
 | Security | Auth、tenant、scope、approval、threat model |
 | Privacy | retention、用户控制、delete、合规例外 |
@@ -210,23 +208,24 @@ ConditionalRequirement(id, applicability_predicate, evidence, decision, na_reaso
 
 ### 目标
 
-在改变行为之前，让生产、评测和故障注入共享一条可调用主链，并建立后续对比基线。
+在改变行为之前，让 HTTP 服务入口、评测和故障注入共享一条可调用主链，并建立后续对比基线。
 
-### M0-T01：定义应用服务边界
+### M0-T01：核验并加固现有应用服务边界
 
 - 优先级：P0
 - 规模：M
 - Owner：Application
 - 依赖：无
-- 主要代码面：`api/main.py`、新建 `application/chat_application.py`
+- 主要代码面：已有 `application/chat_application.py`、`api/main.py`
+- 当前状态：`CURRENT_ACTIVE`（`/chat` 已调用 `ChatApplication.handle()`）；本任务只补齐边界加固与验证
 
 实施内容：
 
-1. 定义 `ChatApplication.handle(ChatCommand) -> ChatOutcome`。
-2. 将认证后用户身份、conversation/request ID、固定 Bundle 作为显式输入。
-3. 把 HTTPException 等协议错误留在 API adapter，领域结果使用 typed outcome。
-4. 第一阶段只搬运现有行为，不同时修改 RAG 路由和 Memory 语义。
-5. `/chat` 变为参数校验、认证和调用 `ChatApplication` 的薄适配器。
+1. 核验并冻结现有 `ChatApplication.handle(ChatCommand) -> ChatOutcome`，不新建第二个 Application 入口。
+2. 补齐认证后用户身份、conversation/request ID、固定 Bundle 的显式输入合同。
+3. 把 HTTPException 等协议错误留在已存在的 API adapter，领域结果使用 typed outcome。
+4. 用 characterization test 固定当前公开行为；本任务不同时修改 RAG 路由和 Memory 语义。
+5. 保持 `/chat` 只做参数校验、认证、命令构造和 `ChatOutcome→HTTP` 映射；把仍残留在 API composition 中的业务生命周期判断迁到 Application/领域端口。
 
 `ChatOutcome` 先冻结为 tagged union，后续里程碑只扩展版本，不以异常字符串表达业务状态：
 
@@ -266,7 +265,7 @@ M1-T00 必须冻结以下公开投影，不允许 adapter 自行解释状态。�
 
 验证：
 
-- characterization test 对比迁移前后相同输入的公开 ChatResponse；
+- characterization test 对比 HTTP adapter 与直接调用 ChatApplication 的相同公开 ChatResponse；
 - 所有旧 smoke 测试通过；
 - 直接调用 `ChatApplication` 不需要构造 HTTP request；
 - API 层不再自行选择 RAG、发布候选或写 Memory。
@@ -297,7 +296,7 @@ M1-T00 必须冻结以下公开投影，不允许 adapter 自行解释状态。�
 - 跨用户复用相同 request ID 不发生碰撞。
 - 普通追问创建新 request/run 并可继承 continuation ID；匹配 PendingSignal 的回复恢复原 run，二者不可混淆。
 
-### M0-T03：提取生产主链 Eval Runner
+### M0-T03：提取真实服务链 Eval Runner
 
 - 优先级：P0
 - 规模：M
@@ -331,7 +330,7 @@ M1-T00 必须冻结以下公开投影，不允许 adapter 自行解释状态。�
 1. 冻结当前 commit、Bundle、模型策略、RAG manifest 和数据 checksum。
 2. 记录各 route 的延迟、模型调用、工具调用、发布状态和失败类型。
 3. 将现有数据明确标为 `provisional/auto_mapped/consumed_regression`。
-4. 不生成“生产准确率”汇总数字。
+4. 不生成未经 fresh heldout 支持的“最终准确率”汇总数字。
 5. 另行冻结“决策策略基线”及有效指纹，不只冻结最终 Bundle：
    - Intent V1 `LLM/ngram/Pattern=.70/.20/.10`、accept `.50`；n-gram 关闭分支 `LLM/Pattern=.85/.15`；
    - Domain Router：General 先验 `.10`；意图项 General `.55`、Technical/Billing `.75`、Security `.85`；Technical/Billing 关键词 `+.45/+.10` 且封顶 `.65`，Security `+.55/+.10` 且封顶 `.75`，General 每词 `+.12` 且封顶 `.35`；`error_code/amount/order_id` 分别 `+.20/+.15/+.10`；supporting `.45`、clarify `.50`；
@@ -348,7 +347,7 @@ M1-T00 必须冻结以下公开投影，不允许 adapter 自行解释状态。�
 - 每条结果可追溯到请求与阶段 Trace。
 - 基线重放能区分 Intent fusion、Domain routing、Instance selection、Knowledge retrieval、Memory retrieval、ActiveCase context 六类策略，不把它们压成一个总分。
 
-### M0-T05：Gate Manifest Foundation
+### M0-T05：Evaluation Manifest Foundation
 
 - 优先级：P0
 - 规模：S
@@ -358,10 +357,10 @@ M1-T00 必须冻结以下公开投影，不允许 adapter 自行解释状态。�
 
 实施内容：
 
-1. 定义通用 `GateManifest/GateEvidence/GateDecision` 与 `GatePrerequisite` tagged-union schema、lint、存储路径和签署角色；它不依赖 M6 runtime。
+1. 定义通用 `EvaluationManifest/EvaluationEvidence/EvaluationDecision` 与 `EvaluationPrerequisite` tagged-union schema、lint、存储路径和签署角色；它不依赖 M6 runtime。
 2. 状态固定为 `DRAFT→FROZEN→RUNNING→DECIDED`；运行开始后阈值/数据不可修改，只能新建 superseding version。
-3. manifest 至少包含稳定 prerequisite ID/kind/expected status/applicability/evidence、dataset/checksum、oracle、零容忍性质、统计阈值、故障点、成本/SLO、evidence Owner、independent approver 和 rollback 条件；`N/A` 只允许 ConditionalRequirement 且必须有 reason/approver。
-4. 每个 milestone、release profile 和可选实验在执行验证/shadow/benchmark 前创建冻结实例，并将 ID 写入 Gate 报告。
+3. manifest 至少包含稳定 prerequisite ID/kind/expected status/applicability/evidence、dataset/checksum、oracle、零容忍性质、统计阈值、故障点、成本/SLO、evidence Owner 和 independent reviewer；`N/A` 只允许 ConditionalRequirement 且必须有 reason/reviewer。
+4. 每个 milestone 和可选实验在执行本地验证或 benchmark 前创建冻结实例，并将 ID 写入评测报告。
 
 验证：
 
@@ -375,9 +374,9 @@ M1-T00 必须冻结以下公开投影，不允许 adapter 自行解释状态。�
 - 旧公开 API 行为没有未经批准的漂移；
 - 基线报告带完整版本和数据身份；
 - 后续任务可以在应用服务层注入测试后端；
-- M0 Gate manifest 已冻结并归档 evidence/decision。
+- M0 Evaluation manifest 已冻结并归档 evidence/decision。
 
-回滚：feature flag `CHAT_APPLICATION_V2` 切回旧 adapter，但不得长期双主；M1 开始前必须决定唯一入口。
+M0 完成后，后续实现只通过 `ChatApplication` 入口继续；若新实现未通过验证就继续修复当前分支，不保留第二个运行时入口。
 
 ## 7. M1：完整会话事实与幂等发布
 
@@ -385,33 +384,32 @@ M1-T00 必须冻结以下公开投影，不允许 adapter 自行解释状态。�
 
 建立完整 transcript Owner，确保输入先于推理持久化，所有发布/恢复路径共享同一生命周期。
 
-### M1-PF01：PostgreSQL Platform Foundation 与迁移 ADR
+### M1-PF01：PostgreSQL Platform Foundation 与 clean-install ADR
 
 - 优先级：P0
 - 规模：L
 - Owner：Platform + Application
 - Build prerequisite：M0-T02
-- Technical cutover gate：M0 Exit Gate + 当前领域迁移卡自己的 backfill/reconcile/stop-old-write 条件
+- Verification prerequisite：M0 Exit Gate
 
-现状声明：ResponseDelivery、TicketService、RunStore 当前分别使用 SQLite，仓库尚未把 PostgreSQL 声明为生产依赖。本任务是平台前置，不得在文档中写成已完成。
+现状声明：PostgreSQL/Alembic foundation 与部分领域 repository 已经实现，但若干 composition binding 仍使用 SQLite/legacy 实现。本任务不迁移本地旧运行数据；它固定目标 clean-install 平台合同，并为后续任务直接替换 binding 提供基础。
 
 实施内容：
 
 1. ADR 固定 PostgreSQL 驱动、migration 工具、连接池、事务隔离、备份/恢复和 schema namespace。
-2. 增加本地 Compose 与 CI/Testcontainers fixture；SQLite 继续作为单元测试或兼容源，不再作为新增全局事实 Owner。
-3. 盘点三套 SQLite 数据：记录级唯一键、状态、时间、租户归属、导出/校验方式和 retention。
-4. 首期只让新的 Conversation/Invocation/Outbox 使用 PostgreSQL；Ticket、Delivery、RunStore 在各自 cutover 前仍是其领域单主，禁止同一事实双主。
-5. 定义 snapshot export/backfill/shadow-read → freeze/stop old claim+write → final delta backfill/reconcile → atomic binding switch → start new writer → forward-fix/restore 流程；禁止 `cutover→stop-old-write` 的双 writer 窗口。
-6. 建立 migration ledger、checksum/count reconciliation、备份恢复演练和凭据轮换。
+2. 增加本地 Compose 与 CI/Testcontainers fixture；SQLite 仅可保留为与目标无关的轻量单元测试实现，不作为目标服务事实 Owner。
+3. 定义空数据库逐版本建表、fixture/source seed、重建、备份/恢复与凭据轮换合同。
+4. Conversation、Invocation、Outbox、Delivery、Ticket/Handoff、Ledger 等按各任务建立 PostgreSQL schema；composition root 在相应任务验收后只绑定目标 repository。
+5. 不导入本地 SQLite/Chroma/Redis 旧运行数据；测试数据由 canonical fixture/source 重建。同一直接替换 slice 删除旧 binding、adapter、配置和依赖。
 
 验证：
 
-- 空库安装、逐版本升级、生产快照副本升级和 restore 演练；
+- 空库安装、逐版本升级、fixture seed 和 restore 演练；
 - PostgreSQL 不可用时 fail closed，不退回另一套隐式主库；
 - CI 能运行并发唯一键、事务 outbox 和隔离测试；
-- 每个旧库对象都有 `migrate/retain/retire` 决策与 Owner。
+- composition-root 测试证明目标领域只解析到一个 repository；旧路径不可达。
 
-完成产物：平台 ADR、migration runner、CI fixture、数据盘点与 cutover runbook。
+完成产物：平台 ADR、schema migration、CI fixture、clean rebuild/restore 命令。
 
 ### M1-T00：Admission 与薄 Execution/ChatOutcome v1 合同
 
@@ -442,7 +440,7 @@ M1 从兼容 runtime 只读投影 `RUNNING/WAITING/COMPLETED/HANDED_OFF/CANCELLE
 2. 冻结 `InvocationRepository/StartOutbox/Dispatcher` 端口、CAS/lease 命令、稳定 key 与 typed result；本卡不创建表、不启动 worker。
 3. 同 `invocation_key` 重投的合同绑定既有 run；同键异内容返回 `IDEMPOTENCY_CONFLICT`。
 4. 冻结 M0 中的 `ChatOutcome` tagged union、完整状态投影、HTTP 映射、retry hint 和客户端轮询/恢复语义。
-5. 定义 M3 cutover 映射：admission dispatcher 保留，停止旧 execution worker claim、等待/迁移 in-flight、绑定 opaque graph thread，再把 `ExecutionView` 的读取来源从兼容 executor 切到 checkpointer/领域终局引用；前后都只是投影。
+5. 定义 M3 直接替换映射：admission dispatcher 保留，LangGraph binding 验收后把 `ExecutionView` 的读取来源切到 checkpointer/领域终局引用，并在同一 slice 删除旧 execution worker/compat reader；前后都只是投影。
 6. 规定 final response、outbound event、delivery outbox 原子提交后，`ExecutionView` 即投影为 `COMPLETED`；即使 graph END checkpoint 稍后补写，恢复也只能读取既有 response 并结束，不得重新生成。interaction request 不终结 execution，human reply 不复活已 `HANDED_OFF` execution；Delivery retry/unknown/failed/optional READ 不能重启 execution。
 
 验证：
@@ -450,9 +448,9 @@ M1 从兼容 runtime 只读投影 `RUNNING/WAITING/COMPLETED/HANDED_OFF/CANCELLE
 - property 测试覆盖 admission CAS、ExecutionView 投影优先级和 PendingSignal 消费幂等性，不枚举 Agent 内部业务因果链；
 - fake repository/clock 下所有 state/outcome/HTTP/client-action 投影确定且未知值 fail closed；
 - contract test 证明 T01/T02 实现必须复用同一 key/CAS/lease 接口；
-- M3 cutover table 对每个旧状态有唯一映射或 typed terminal outcome。
+- M3 direct-binding contract 对每个支持状态有唯一投影或 typed terminal outcome。
 
-完成产物：`AdmissionContract v1`、`ThinExecutionContract v1`、`ChatOutcome v1`、HTTP/public-status mapping、repository/outbox/dispatcher ports、M3 cutover mapping。
+完成产物：`AdmissionContract v1`、`ThinExecutionContract v1`、`ChatOutcome v1`、HTTP/public-status mapping、repository/outbox/dispatcher ports、M3 direct-binding mapping。
 
 ### M1-T01：ConversationTurnStore schema
 
@@ -537,7 +535,7 @@ acknowledge_delivery(publication_id, channel_receipt)
 5. `select_final_response` 的原子事务成功后，`ExecutionView` 即显示 `COMPLETED`；若 graph END checkpoint 尚未写入，恢复路径只补齐 END，不再生成或发布。ResponseDelivery 独立推进 DeliveryStatus。
 6. connector capability 固定为 `IDEMPOTENT_SEND/QUERY_RECEIPT/NONE`；发送后断链先进入 `OUTCOME_UNKNOWN`，只有权威 `NOT_DELIVERED` 或同 operation key 幂等发送能力才允许重发，无二者则 `DELIVERY_UNCERTAIN`。
 7. 实现目标架构 canonical Delivery transition/receipt precedence；ResponseDelivery 拥有 attempt、max_attempts、next attempt、retry policy version 和 reconcile deadline，未知/非法事件 typed fail closed。
-8. 在 M1-T03A 完成前这些命令只做 contract/shadow 验证，不接生产 writer；切换时与 PostgreSQL Delivery repository 一起原子启用。
+8. 在 M1-T03A 完成前这些命令只做 contract/integration 验证；M1-T03A 验收后 composition root 只绑定 PostgreSQL Delivery repository，并删除旧 writer。
 
 验证：
 
@@ -551,31 +549,34 @@ acknowledge_delivery(publication_id, channel_receipt)
 - resume 后最终回答进入自己的 delivery lifecycle；
 - delivery retry/unknown/failed 不重新执行 Agent，缺少 READ ACK 不阻止 invocation 终止。
 
-### M1-T03A：ResponseDelivery PostgreSQL 单主切换
+### M1-T03A：ResponseDelivery PostgreSQL 直接绑定与旧迁移辅助清理
 
 - 优先级：P0
 - 规模：L
 - Owner：Application + Platform
 - Build prerequisite：M1-PF01、M1-T01、M1-T03
-- Technical cutover gate：M0 Exit Gate + 本卡 snapshot/backfill/shadow-read/单 writer 演练通过；M1 Exit 再验证已切换主链
+- Verification prerequisite：M0 Exit Gate
+- 目标能力状态：`IMPLEMENTED_NOT_BOUND`（PostgreSQL repository 已实现）
+- 剩余动作：`DIRECT_BINDING_CLEANUP (PLANNED)`
+- 旧迁移辅助：`SUPERSEDED_TO_REMOVE`
 
-目标决定：ResponseDelivery 随 M1 迁入 PostgreSQL；`response_deliveries` 不是第二份 shadow authority。切换前 SQLite 单主，切换后 PostgreSQL 单主，不采用长期双写。
+目标决定：ResponseDelivery 只使用 PostgreSQL。当前已实现的 SQLite 历史迁移/对账/切换辅助代码不再作为目标架构，完成目标 binding 后一并删除。
 
 实施内容：
 
-1. 固定 SQLite→PostgreSQL 字段/状态/ID 映射、`response_id→publication_id` 兼容映射、connector capability、schema version、retention 和 checksum/count 对账规则；旧 in-flight send 无 receipt 时不得假定可重试。
-2. 在维护切换窗口停止新 response selection/ACK，排空或冻结 delivery worker claim，导出并 backfill 全部 active + retention 范围记录。
-3. shadow read 只比较，不推进状态；对账通过后原子切换 repository binding 与 worker claim，再恢复新 admission。
-4. 所有 in-flight delivery 复用原 `response_id/outbox_id/attempt`，不得重新生成回答。
-5. 切换后停止 SQLite writer；旧库只读保留到 retention 到期。切换前失败回旧单主，切换后只允许 PostgreSQL restore/forward-fix，不把旧 SQLite 重新升主。
+1. 复用已实现的 PostgreSQL repository，并固定 publication ID、connector capability、状态转换、retention 与 schema version。
+2. 从空 PostgreSQL schema/fixture 验证 final、interaction、human publication 及 ACK/reconciliation 全链。
+3. 一次修改 composition binding 与 worker claim，使新请求只使用 PostgreSQL repository。
+4. 同一 slice 删除 SQLite Delivery writer/reader、历史迁移/对账/切换 helper、对应配置、脚本和运行时 fallback；保留与存储无关的领域测试。
+5. PostgreSQL 不可用返回 typed failure；不启用旧 repository 兜底。
 
 验证：
 
-- 每个状态与 active attempt 的 count/hash/ID 对账；
-- 在 freeze、export、backfill、binding switch、worker resume 前后 crash，始终只有一个 writer；
+- clean database 上每个状态、attempt 与 ID 合同可重建；
+- 在 commit、claim、send、ACK 前后 crash，始终只有一个 writer；
 - late ACK/retry 单调幂等，无重复 response/delivery；
 - send 后崩溃/ACK 丢失进入 OUTCOME_UNKNOWN；无 idempotent send/receipt query 的 connector 进入 DELIVERY_UNCERTAIN 且不自动重发；
-- rollback/forward-fix 与 PostgreSQL restore 演练通过。
+- PostgreSQL restore/forward-fix 演练通过；负向源码搜索证明旧 Delivery 运行路径不存在。
 
 ### M1-T04：统一会话写入与 projection outbox
 
@@ -610,16 +611,16 @@ acknowledge_delivery(publication_id, channel_receipt)
 实施内容：
 
 1. 交付版本化 `DataLocationRegistry` schema、位置 Owner、retention class、delete/de-identify adapter 接口、restore fence、proof artifact 与未知位置 fail-closed 校验。
-2. 为 checkpoint、LangGraph Store 的 TaskContinuationFrame namespace、Approval/Tool ledger、ThreadSummary/MemoryAtom/ServiceEpisode/Profile、ActiveCase/ServiceContinuity projection、Commitment/Handoff、attachment/derived asset、Redis exact/embedding/perception cache、Trace/eval/shadow 等后续新增的 subject-linked durable surface 分配稳定 location ID。任何 schema migration、backfill、dark-shadow writer 或新索引创建都必须引用已批准 registration artifact。
+2. 为 checkpoint、LangGraph Store 的 TaskContinuationFrame namespace、Approval/Tool ledger、ThreadSummary/MemoryAtom/ServiceEpisode/Profile、ActiveCase/ServiceContinuity projection、Commitment/Handoff、attachment/derived asset、Redis exact/embedding/perception cache、Trace/eval 等后续新增的 subject-linked durable surface 分配稳定 location ID。任何 schema migration、projection writer 或新索引创建都必须引用已批准 registration artifact。
 3. 复用 M1 deletion fence/tombstone epoch；adapter 尚未实现或 proof contract 不完整时，对应 producer 在首次 durable write 前必须拒绝执行。Conversation/outbox/Delivery 等 M1 已有位置也登记其 Owner 与 adapter，不因此复制事实 Owner。
 4. 本卡只建立注册与 pre-write 阻断基础，不宣称每个数据面已经完成删除；M4-T08 对已接入的全部实际 adapter、迟到写、备份恢复和部分失败做最终验证。
 
 验证：
 
-- 未注册位置、缺 adapter/proof、错 retention/version 的 migration/backfill/producer 全部 fail closed；
+- 未注册位置、缺 adapter/proof、错 retention/version 的 migration/producer 全部 fail closed；
 - 注册后删除围栏能阻止同一 subject 的迟到 projection 写；
-- registry artifact 可被任务 DAG、migration runner 与 PR evidence 机器读取；
-- M3 checkpoint/Ledger、M4 shadow/backfill、M5 attachment 和 M6 Trace/Gold 的首写测试均能证明 registration 先于 durable write。
+- registry artifact 可被任务 DAG、schema migration 与 PR evidence 机器读取；
+- M3 checkpoint/Ledger、M4 projection、M5 attachment 和 M6 Trace/Gold 的首写测试均能证明 registration 先于 durable write。
 
 ### M1-T05：会话状态与 API 投影
 
@@ -650,13 +651,13 @@ acknowledge_delivery(publication_id, channel_receipt)
 - 相同 invocation 不重复运行或发布；
 - admission 后崩溃不会永久卡在“运行中”，start outbox/lease 能确定性接管；
 - approval resume 与正常路径共享 transcript/delivery；
-- ResponseDelivery 已按 stop/backfill/reconcile/cutover 切到 PostgreSQL 单主，旧 SQLite writer 已停止；
+- ResponseDelivery composition root 只绑定 PostgreSQL，旧 SQLite 与迁移辅助路径已删除；
 - Redis 与 legacy Chroma/SQLite sparse projection 可从权威事件重建，且未被误当事实 Owner；
 - deletion fence 能阻止旧 projection/outbox 复活已删除 conversation 数据；
 - DataLocationRegistry 与 pre-write fence 已启用；M3 以后新增的 subject-linked durable surface 未登记时不能首写；
 - OOS、clarify、human turn 的记录策略显式且受测试保护。
 
-回滚 runbook：先停止新 v2 admission，再冻结 start-outbox/Delivery/projection 的新 claim；已 claim invocation 必须 drain 到 terminal、移交同一稳定 ID，或进入 reconciliation，不能交给旧链重跑。PostgreSQL Conversation 与已切换的 ResponseDelivery 始终保持单主；不得把 Redis、旧 Memory 或 SQLite writer 重新升为 authority。可暂停 projection 消费并让 API 返回 typed `Accepted/Failed`，修复后从 durable event/outbox watermark 续跑。恢复前必须完成 in-flight/unknown-effect 对账、lease 清理、数据 count/hash 和唯一 response 检查；采用 PostgreSQL restore 或 forward-fix，不删除已提交事件。
+故障处理：可停止新 admission/claim，已 claim invocation drain 到 terminal 或进入 reconciliation；修复后从 durable event/outbox watermark 续跑。使用 PostgreSQL restore、Git revert 或 forward-fix，不保留可重新接管的旧 runtime/repository。
 
 ## 8. M2：Route、Authority、Evidence 与统一 RAG
 
@@ -664,9 +665,9 @@ acknowledge_delivery(publication_id, channel_receipt)
 
 让系统先决定当前任务需要哪些权威来源，再调用 RAG、Memory 或业务工具；发布由证据覆盖而不是模型自觉控制。
 
-- Build prerequisite：M0-T01；可在 feature flag 关闭时与 M1 后半段并行。
+- Build prerequisite：M0-T01；可在不接入 composition root 时与 M1 后半段并行。
 - Verification prerequisite：M0 Exit Gate。
-- Behavior rollout gate：M1 Exit 后才可 dark shadow；M2 Exit 后才可 bounded canary；`CORE_TEXT_GA` READY 后才可广泛生产放量。完整 transcript/admission 未闭合前禁止把新路由结果返回给用户。
+- Direct-binding rule：完整 transcript/admission 与 M2 本地验收通过后，一次切换目标 Route/Retriever binding，并在同一组 slice 删除旧前置 RAG、旧路由 publisher、外层重复 cache 与运行时 fallback。
 
 ### M2-PF01：共享 PostgreSQL HybridRetrievalBackend（pgvector + 中文 FTS）
 
@@ -674,7 +675,7 @@ acknowledge_delivery(publication_id, channel_receipt)
 - 规模：L（拆 3 个 PR）
 - Owner：Platform + Knowledge + Memory + Evaluation；Platform 对 backend contract 负责，Knowledge/Memory 只对各自 corpus policy 负责
 - Build prerequisite：M0-T04、M1-PF01、M1-T04A
-- Rollout：本卡只建设 schema、adapter、projection 与 dark-shadow 能力，不切任何在线 consumer
+- 当前状态：`IMPLEMENTED_NOT_BOUND`（PostgreSQL/pgvector/中文 FTS foundation 与比较 harness 已有实现；目标 consumer binding 尚未完成）
 
 实施内容：
 
@@ -684,16 +685,16 @@ acknowledge_delivery(publication_id, channel_receipt)
    ServiceEpisodeRetriever、MediaRetriever 分别拥有。
 2. 建立 `retrieval_generation_registry`，固定 `corpus/backend/schema/source_watermark/embedding_model`
    `/dimension/digest/distance_metric/vector_extension_version/index_method+params/chinese_tokenizer/`
-   `lexical_ranker/manifest_hash/state/active_pointer/previous_pointer`。
+   `lexical_ranker/manifest_hash/state/current_generation_ref`。
    每个 invocation 固定 backend/generation/policy；embedding 模型或维度变化必须建新 generation，
-   禁止混维写入或原地重建 active generation。
+   禁止混维写入或原地重建 current generation。
 3. retrieval schema 使用独立 database role、连接池、statement timeout、并发/资源预算与指标；
    初期可同集群部署，但不能复用 OLTP 请求池。若检索影响领域事务，先按同一 backend contract
    切 PostgreSQL read replica/独立 retrieval cluster，再进入 ES/OpenSearch 候选比较。
 4. 建立分离的 `retrieval.knowledge_chunk_search`、`retrieval.service_episode_search`；M5 再注册
    `retrieval.asset_region_search`。每表都带 tenant、corpus generation、source identity、revision、
    provenance、delete-fence epoch；Knowledge 另带 scope/locale/product/source span，Episode 另带
-   user/entity/verified outcome refs。严禁跨 corpus 共排或共享 active pointer。
+   user/entity/verified outcome refs。严禁跨 corpus 共排或共享 generation identity。
 5. Dense 使用 pgvector cosine + generation-scoped HNSW；当前 legacy MiniLM migration generation
    固定 `all-MiniLM-L6-v2/384d`，模型权重 digest 未固定前不能宣称可跨环境重放。过滤列建 B-tree，
    Episode 先做 tenant/user/entity 过滤；小集合优先 exact search，ANN filtered recall 未验证前不得
@@ -702,12 +703,12 @@ acknowledge_delivery(publication_id, channel_receipt)
    `ascii-cjk-unigram-bigram-v1` 归一化/切词，将 lexeme 写入 `tsvector('simple')` + GIN。
    PostgreSQL `ts_rank_cd` 不是 BM25；`LEGACY_BM25_V1` 与 `PG_FTS_ZH_V1` 使用不同 backend
    fingerprint，不能以“融合权重没变”宣称无损。
-7. 实现 `LegacyHybridBackend=Chroma + SQLite/Python BM25` 与
-   `PostgresHybridBackend=pgvector + PostgreSQL FTS` 两个 adapter；使用同一 frozen corpus、query、
-   filter capture 做 shadow。Backend 不可用返回 `UNAVAILABLE`，不得投影成 no match。
+7. 实现唯一目标 `PostgresHybridBackend=pgvector + PostgreSQL FTS`。旧 Chroma + SQLite/Python BM25
+   只保留为冻结报告/fixture 的离线比较基线，不进入目标 runtime adapter。Backend 不可用返回
+   `UNAVAILABLE`，不得投影成 no match 或回落旧 backend。
 8. 所有 PG retrieval row 只由 canonical SourceRevision/ServiceEpisode/Asset outbox 生成；索引是
-   可重建 projection。writer 提交前同事务复查 subject tombstone/fence epoch，backfill/rebuild
-   anti-join tombstone。schema migration/backfill/shadow 前必须取得 M1-T04A 中 Knowledge/Episode/
+   可重建 projection。writer 提交前同事务复查 subject tombstone/fence epoch，rebuild
+   anti-join tombstone。schema migration/projection/rebuild 前必须取得 M1-T04A 中 Knowledge/Episode/
    Media retrieval locations 的 registration artifact 与 adapter/proof contract；完整删除/restore
    fault proof 再由 M4-T08 收口。
 9. 暂不引入 Elasticsearch/OpenSearch。只有 PG 方案在约定调优预算后仍无法通过中文质量、
@@ -716,7 +717,7 @@ acknowledge_delivery(publication_id, channel_receipt)
 
 验证：
 
-- 两个 adapter 通过同一 conformance/property suite，stable IDs、filters、status 与 source ranks 可重放；
+- PostgreSQL adapter 通过 conformance/property suite，stable IDs、filters、status 与 source ranks 可重放；
 - Knowledge/Episode 相同文本仍因 corpus/ACL 不同而不能互见；cross-tenant/cross-user 召回为零；
 - 缺 source revision、receipt、generation、embedding dimension 或 delete fence 时 fail closed；
 - PG FTS 与 BM25 分别报告 Recall@K/MRR/nDCG/harmful，不以 raw score 直接相加；
@@ -729,7 +730,7 @@ acknowledge_delivery(publication_id, channel_receipt)
 - 规模：M
 - Owner：Application + Agent
 - Build prerequisite：M0-T01、M2-T01A
-- Behavior rollout gate：沿用本 M2 里程碑的 shadow/canary/GA 三段门禁
+- Verification prerequisite：M1 Exit Gate
 
 实施内容：
 
@@ -771,8 +772,8 @@ acknowledge_delivery(publication_id, channel_receipt)
 
 - 同一冻结输入可重放 intent source scores、Domain 分项、hard-rule reason 和最终 Owner；调整一类 policy 不暗改另一类；
 - n-gram enabled/disabled 两条 V1 分支及单实例 `NOT_APPLICABLE` 有独立 fixture；多实例候选用固定 health snapshot 可确定性复现 EWMA/收缩/latency/penalty 与选择；
-- 负向搜索与 runtime trace 证明没有第二个 DomainDecision producer；Application 无法写 Agent policy active pointer；
-- V2/新权重必须通过 group-safe dev、fresh heldout、shadow/canary 与 safety/OOS hard gate 才可晋级。
+- 负向搜索与 runtime trace 证明没有第二个 DomainDecision producer；Application 无法写 Agent policy binding；
+- V2/新权重必须通过 group-safe dev、fresh heldout 与 safety/OOS hard gate 后才能成为 checked-in target version。
 
 ### M2-T02：FactRequirement 与 Authority Registry
 
@@ -850,7 +851,7 @@ acknowledge_delivery(publication_id, channel_receipt)
 - 未知 producer、错误 schema/version、伪造 locator 或 checksum 的 receipt 返回 `INVALID_EVIDENCE`，不能降级为 missing 或 success。
 - RouteMode×VerificationProfile property matrix 证明 required gate 不被跳过、forbidden verifier 调用为零；分别报告 semantic verifier invoked/avoided、unnecessary call、false skip 与 unavailable/fail-closed。
 
-### M2-T04A：SourceRevision v0 读合同与现有 corpus backfill
+### M2-T04A：SourceRevision v0 读合同与 clean corpus ingest
 
 - 优先级：P0
 - 规模：M
@@ -861,15 +862,15 @@ acknowledge_delivery(publication_id, channel_receipt)
 
 1. 为现有 source 建立最小 `source_id/revision_id/checksum/effective_from/effective_to/active_manifest`。
 2. 原始 source/revision 可解引用；chunk/span 是由 revision 生成的 projection。
-3. 将 legacy corpus 一次性 backfill 到 immutable generation，并以原子 active pointer 切换。
+3. 从 canonical source documents 全量 ingest 到 immutable generation；不导入旧 chunk/index 运行数据。
 4. 删除 `legacy-*`、空 checksum 和默认 `scope=public` 的静默补值路径；不合格记录为 `INVALID_CONTRACT`。
-5. 从真实政策/FAQ 冻结一小组 human-reviewed knowledge dev + fresh heldout，保存 manifest/checksum/reviewer；M6 再扩充生产规模 Gold。
+5. 从真实政策/FAQ 冻结一小组 human-reviewed knowledge dev + fresh heldout，保存 manifest/checksum/reviewer；M6 再扩充完整规模 Gold。
 
 验证：
 
-- 每个生产 Knowledge EvidenceReceipt 都可解引用 active revision 并复验 checksum/span；
-- active pointer 切换只看到完整旧或完整新 generation；
-- legacy 记录未 backfill 时不能通过 Knowledge Gate；
+- 每个目标 Knowledge EvidenceReceipt 都可解引用 current revision 并复验 checksum/span；
+- current manifest 只引用完整 immutable generation；
+- 非 canonical source 或不完整记录不能进入 serving generation；
 - 小型 heldout 独立于实现样例，且一旦参与修复即标记 consumed regression。
 
 ### M2-T05：统一 KnowledgeRetriever
@@ -887,12 +888,10 @@ acknowledge_delivery(publication_id, channel_receipt)
 3. Agent 工具只返回 EvidencePackResult，不生成最终答案。
 4. corpus generation/version 由 Retriever 自身进入 cache identity。
 5. `RetrievalStatus` 固定为 `OK/NO_EVIDENCE/AMBIGUOUS/UNAVAILABLE/INVALID_CONTRACT/CONFLICT`；诊断不可进入证据。
-6. 可重放迁移 `LEGACY_BM25_V1` comparison profile：Raw/Standalone `.25/.75`、Dense/BM25 `.25/.75`、RRF `k=10`、candidate `20`、final `5`、pack `2600` Token；无历史/rewrite 失败时 Raw=`1.0`。它不等价于 `PG_FTS_ZH_V1`；切换 lexical provider 必须创建新 backend/policy fingerprint 并过独立 Gate。
-7. 在 EvidencePack/Trace 记录各 query/retriever source rank、实际四路乘积质量、policy version 与 fallback；Rerank 是完整 permutation 合同，不虚构额外权重。
-8. 视觉融合、query decomposition、cross-encoder 和新权重作为独立 candidate profile，不在这张迁移卡中顺手改 Active 基线。
-9. 在 feature flag 关闭且 legacy 仍是唯一 publisher 时，由本卡通过 M2-PF01 adapter 执行
-   Knowledge PG pre-Exit dark shadow，生成与 frozen query/corpus/filter/policy 绑定的不可变比较报告；
-   M2-T05C 只消费该报告并负责 Exit 后 canary，不重复拥有 shadow 起点。
+6. 可重放离线 `LEGACY_BM25_V1` comparison profile：Raw/Standalone `.25/.75`、Dense/BM25 `.25/.75`、RRF `k=10`、candidate `20`、final `5`、pack `2600` Token；无历史/rewrite 失败时 Raw=`1.0`。它不等价于 `PG_FTS_ZH_V1`；目标 lexical provider 必须创建新 backend/policy fingerprint并通过独立 heldout/contract tests。
+7. 在 EvidencePack/Trace 记录各 query/retriever source rank、实际四路乘积质量、policy version 与 typed degradation；Rerank 是完整 permutation 合同，不虚构额外权重。
+8. 视觉融合、query decomposition、cross-encoder 和新权重作为独立 candidate profile，不在本卡顺手改 checked-in baseline。
+9. 用冻结 corpus/query/filter 在离线 runner 比较旧报告与 PostgreSQL 目标后端；比较结果只是评测证据，不建立第二个运行时 reader/publisher。
 10. 在唯一 Retriever 内定义 `RetrievalCachePort`，以现有 Redis/redis-py 落 exact-key cache；禁止 API、`/search` 和 ToolManager 在 Retriever 外再包一层不同合同的 `knowledge_search` 缓存。
 11. 分层缓存必须按“当前层已知输入”构造 exact key，禁止把尚未计算的输出反塞进上游 key：Query-transform key=`tenant+user scope+normalized current query/requirement+conversation range hash+transformer/prompt/model version`；query-embedding key=`tenant+user+deletion-fence epoch+normalized text+embedding/normalizer fingerprint`，source embedding 仅可使用经批准的 shared-corpus scope；candidate key=`tenant+user-or-approved-shared-scope+authorization-set/ACL-policy fingerprint+locale/product/filter+query-variant hash+manifest+backend/corpus generation+lexical/dense policy`；rerank key=`candidate-set hash+reranker/model/prompt/policy`；EvidencePack key 再加入 requirement signature、source revisions、packer policy 与全部上游 fingerprint。ACL 命中后过滤不能补回因另一权限集合漏召回的候选，因此 authorization-set/ACL-policy 必须在 candidate 生成前进入 key。TTL+jitter 只管资源，manifest/generation/version/deletion epoch 才负责正确性失效。
 12. embedding 直接复用 LangChain `CacheBackedEmbeddings + Redis ByteStore`，包在版本化 `EmbeddingProvider` adapter 后；Python v1 的 `langchain-classic` import/version 必须固定并做 compatibility test，业务层不直接引用其路径。query namespace 固定 tenant/user/deletion epoch，只有 canonical source embedding 可使用批准的 tenant/corpus shared namespace。并发同 fingerprint 使用 Redis `SET NX`/single-flight。缓存不可用时旁路执行同一 Retriever，不能变成 `NO_EVIDENCE`。
@@ -904,28 +903,29 @@ acknowledge_delivery(publication_id, channel_receipt)
 - 知识更新后所有入口同时失效旧缓存；
 - rewrite/rerank 不会只在某一路缺失；
 - no evidence/unavailable 在 API 与 Agent 中语义一致。
-- 相同 capture 重放能复现旧权重排名；任一权重/K/packing 变化都产生新 policy fingerprint，并在 fresh heldout 和 harmful gate 通过前不能成为 Active。
+- 相同 capture 重放能复现旧权重排名；任一权重/K/packing 变化都产生新 policy fingerprint，并在 fresh heldout 和 harmful gate 通过前不能成为目标默认版本。
 - 强制 miss/full recompute 与各层 cache hit 的 stable evidence IDs、Coverage 和安全结果等价；Redis 全丢或超时只增加延迟，跨 tenant/user 命中和 stale EvidencePack reuse 均为零。
 - 任一 SourceRevision、manifest、backend generation、transformer/embedding/reranker/packer version 变化只使受影响层 miss，旧缓存不能遮蔽 `UNAVAILABLE/CONFLICT`。
 
-### M2-T05C：Knowledge PostgreSQL retrieval bounded-canary release action
+### M2-T05C：Knowledge PostgreSQL 直接绑定与旧检索路径清理
 
 - 优先级：P0
 - 规模：S
 - Owner：Knowledge + Platform + Application
 - Build prerequisite：M2-PF01、M2-T04A、M2-T05
-- Behavior rollout gate：M2 Exit APPROVE + 冻结 `POSTGRES_RETRIEVAL_GA` candidate manifest；本卡只允许 bounded canary，默认 pointer 仍由该 Release Profile 决定
+- Verification prerequisite：M0-T05、M2-PF01、M2-T04A、M2-T05 的冻结本地证据
+- 目标能力状态：`IMPLEMENTED_NOT_BOUND`（PostgreSQL backend/foundation 已实现，在线 candidate source 尚未唯一绑定）
+- 剩余动作：`DIRECT_BINDING_CLEANUP (PLANNED)`
+- 旧检索比较/试运行辅助：`SUPERSEDED_TO_REMOVE`
 
-实施内容：保持 legacy Knowledge backend 为 publisher，读取 M2-T05 已冻结并通过 M2 Exit 的
-同 query/scope/filter dark-shadow 报告；随后按稳定 cohort 把 `corpus=KNOWLEDGE` 的
-`backend_generation_ref + KnowledgeRetrievalPolicy` 固定到 invocation。记录 old/new candidate、
-RRF、rerank、EvidencePack、cache、latency 与 deletion fence。失败时停止新 canary admission 并
-原子回 previous verified read pointer；in-flight 按 pinned generation 完成或返回 typed failure，
-不得逐请求静默 fallback，也不改写 active SourceRevision。
+实施内容：用 M2-T05 的冻结离线报告和真实 `ChatApplication` 集成测试验证 PostgreSQL
+`backend_generation_ref + KnowledgeRetrievalPolicy`。通过后一次修改三个 consumer 的 composition
+binding；同一 slice 删除 Chroma/SQLite/Python BM25 runtime adapter、旧前置 RAG、外层 cache、环境
+toggle 与 fallback。请求固定当前 generation；目标后端不可用返回 typed failure，不逐请求回落。
 
 验证：中文口语、短 query、订单/SKU/error-code 精确词、同义表达、scope/locale/product filter、
-no-evidence/unavailable/conflict、cache freshness、pointer/rollback/in-flight pin 均通过；新 backend
-没有第二份回答或第二个 Knowledge Owner。
+no-evidence/unavailable/conflict、cache freshness 与 clean rebuild 均通过；真实入口只解析到
+PostgreSQL backend，旧检索实现的运行时负向搜索为零。
 
 ### M2-T06：自适应 RAG 发布路径
 
@@ -933,7 +933,7 @@ no-evidence/unavailable/conflict、cache freshness、pointer/rollback/in-flight 
 - 规模：M
 - Owner：Application + Knowledge + Product/Support Ops
 - Build prerequisite：M2-T01、M2-T04、M2-T05、M2-T06A
-- Behavior rollout gate：M1 Exit 后只允许 dark shadow；M2 Exit 后允许 manifest 约束的 bounded canary；`CORE_TEXT_GA` READY 后才允许八条新路径广泛生产放量
+- Verification prerequisite：M1 Exit Gate
 
 实施内容：
 
@@ -943,7 +943,7 @@ no-evidence/unavailable/conflict、cache freshness、pointer/rollback/in-flight 
 4. `MULTI_DOMAIN`：调用 M2-T06A 拥有的 TaskGraph 编排，只执行 TaskFormation 后仍必要的 Task/Owner；Coverage 后按 `SynthesisInvocationPolicy` 直接发布、确定性拼装或至多调用一次 LLM Synthesizer。Application 只选择路径和提交发布，不拥有 Planner/TaskGraph/Worker 语义。
 5. `DIRECT`：规则回答，不检索、不运行通用 Verifier。
 6. `CLARIFY`：只发布明确缺失字段并进入 `NeedsInput`，禁止写工具。
-7. `HANDOFF`：M2 只冻结与目标 `HandoffContract` 同 schema 的 draft/兼容投影并验证路由，禁止发明残缺 `Envelope`；M4-T07 只负责 build/rehearsal，生产创建/迁移 Ticket 与返回 `HandedOff` 必须经过 M4-T07C 单主 release action 才允许 bounded canary，广泛放量仍依赖 `CORE_TEXT_GA`。此前沿用旧人工路径，但不得生成替代性知识答案或把 draft 宣称为已交接。
+7. `HANDOFF`：M2 冻结与目标 `HandoffContract` 同 schema 的 typed result，禁止发明残缺 `Envelope`；在 M4-T07 完成前返回明确 `UNAVAILABLE`/安全人工入口，不生成替代性知识答案。M4-T07C 完成后直接使用唯一 PostgreSQL Ticket/Handoff path。
 8. `OUT_OF_SCOPE`：规则化范围说明；不检索、不调业务工具，但仍记录 turn。
 9. 删除通过 tool audit 反推 knowledge final 的候选选择逻辑。
 10. 每条路径必须绑定 M2-T04 的 `VerificationProfile`，禁止在 route-specific gate 后再无条件追加通用 Verifier；`MIXED` 只有一份 candidate，Knowledge/Tool claim 分权威验证。
@@ -955,7 +955,7 @@ no-evidence/unavailable/conflict、cache freshness、pointer/rollback/in-flight 
 - 混合问题回答能逐 claim 绑定两种 authority；
 - 不发生重复知识检索；
 - 八种 RouteMode 均有 expected outcome、forbidden calls 和 E2E fixture。
-- Handoff draft 与 canonical schema 可兼容，但 M4-T07C 之前不会启用新的生产交接写路径。
+- Handoff result 与 canonical schema 一致，M4-T07C 之前不会误报“已交接”。
 
 ### M2-T06A：保留并收紧现有 Multi-Agent TaskGraph
 
@@ -991,22 +991,25 @@ no-evidence/unavailable/conflict、cache freshness、pointer/rollback/in-flight 
 - continuation delta plan 的旧 TaskPlan 保持不可变；同 Owner 续接不 fan-out，新领域 requirement 只增加对应 Worker，旧写动作不会因 outcome reuse 再执行。
 - 0/1/多个可模板拼装/多个需语义组织/权威冲突五种结果形态分别证明 Synthesizer 调用次数为 0/0/0/1/0；缺失 requirement 和冲突不能被流畅文本覆盖。
 
-### M2-T06R：路由 Bundle enable/rollback runbook
+### M2-T06R：路由 Bundle 直接绑定与旧 publisher 清理
 
 - 优先级：P0
 - 规模：S
 - Owner：Application + Evaluation
 - Build prerequisite：M2-T06、M0-T05
+- 目标能力状态：`IMPLEMENTED_NOT_BOUND`（Route/Authority/TaskFormation contracts 已实现但 canonical publication 尚未唯一绑定）
+- 剩余动作：`DIRECT_BINDING_CLEANUP (PLANNED)`
+- 旧 publisher/rollout 辅助：`SUPERSEDED_TO_REMOVE`
 
 实施内容：
 
-1. previous/new Bundle 都经过兼容性检查并使用单一 active pointer；同一请求固定 Bundle，不在运行中切版本；pinned refs 同时包含 Knowledge backend/generation、corpus manifest 与 retrieval policy。
-2. bounded canary 失败时先停止新 canary admission；已开始 run 按 pinned Bundle 完成、明确 Handoff 或 typed fail-closed，不能交给另一版本重跑写工具。
-3. 原子把新请求的唯一发布权切回 previous verified Bundle；切回后 previous 才能作为 sole publisher，不能与新路同时发布。
-4. 若 previous Bundle 已与 schema/Owner 不兼容，禁止强行回退，改用 safe response/Handoff + forward-fix。
-5. 固定触发阈值、值班 Owner、切换审计和恢复新 canary 的条件。
+1. 新 Bundle 经过兼容性检查并作为 checked-in 版本；同一请求固定 Bundle，不在运行中切版本；pinned refs 同时包含 Knowledge backend/generation、corpus manifest 与 retrieval policy。
+2. 用真实 `ChatApplication` 跑 route/authority/forbidden-call/E2E/fault fixtures。
+3. 验收后一次把新请求的唯一发布权绑定到目标 Route/Bundle。
+4. 同一 slice 删除旧 publisher、旧 routing toggle、compat adapter、RolloutManager/profile/cohort/promotion API、caller 自报 Gate 证据入口、active/previous pointer 与运行时 fallback；保留 `CandidateRunner` 的离线执行/评分能力。已开始 run 继续按自身 pinned Bundle 完成或 typed fail closed。
+5. 修订目标 Bundle 必须提交新版本并重新运行相同评测，不在运行时维持 previous pointer。
 
-验证：canary 各节点故障、rollback 中进程崩溃、pinned in-flight 与写工具 unknown effect 均不产生双 publisher、双写或丢失 transcript。
+验证：binding 前后故障、pinned in-flight 与写工具 unknown effect 均不产生双 publisher、重复 effect 或丢失 transcript；负向搜索证明旧 publisher 不可达。
 
 ### M2 Exit Gate
 
@@ -1015,14 +1018,14 @@ no-evidence/unavailable/conflict、cache freshness、pointer/rollback/in-flight 
 - KnowledgeRetriever 只有一个 Owner；
 - query/embedding/candidate/rerank/EvidencePack exact cache 均在 Retriever 内使用同一版本化 key/失效合同；Redis 故障旁路、强制重算等价、跨租户与 stale reuse hard gate 已通过，外层重复 cache 已删除；
 - `HybridRetrievalBackend` conformance、generation registry、PostgreSQL pgvector/中文 FTS schema、
-  delete fence 与 Knowledge dark-shadow 已通过；M2 Exit 本身不切默认 backend；
-- 最小 SourceRevision/active manifest/backfill 与 knowledge heldout 已通过；
+  delete fence、clean corpus ingest 与 Knowledge heldout 已通过；
+- 最小 SourceRevision/current manifest 与 knowledge heldout 已通过；
 - 纯知识、实时工具、混合、越域和人工路径都有 E2E fixture；
 - RouterInvocationPolicy、VerificationProfile、TaskFormationPolicy 与 SynthesisInvocationPolicy 均有 per-route invocation-count/forbidden-call 报告；无歧义快路径不会启动未使用的 Router、Worker、Verifier 或 Synthesizer；错误跳过为 safety hard fail；
-- 旧前置完整 RAG 和 audit-based final selection 已从 active path 移除，但 previous verified Bundle 在原子 rollback 后可以重新成为唯一 publisher；不能在 shadow 时发布第二份答案。
-- `HANDOFF` 的分类/合同 shadow 已通过；M4-T07 仅 build/rehearsal，新的生产交接必须由 M4-T07C 在单主 cutover 后启动 bounded canary，并在 `CORE_TEXT_GA` 后才广泛放量。
+- 旧前置完整 RAG、audit-based final selection、旧 routing publisher 与相关 toggle/fallback 已删除；真实入口只有目标路径。
+- `HANDOFF` 的分类/合同已验证；存储写路径在 M4-T07C 完成前明确返回 unavailable，而不是假装已交接。
 
-回滚：执行 M2-T06R。shadow 期间旧路只读；只有 active pointer 已原子切回后，previous Bundle 才恢复 sole publisher。无法安全回退时 typed fail-closed/Handoff，不把同一 invocation 交给旧路重跑。
+故障处理使用 pinned version、checkpoint/receipt、Git revert 或 forward-fix；不把同一 invocation 交给已删除的旧路重跑。
 
 ## 9. M3：LangGraph 薄 Durable Agent Runtime
 
@@ -1090,16 +1093,16 @@ no-evidence/unavailable/conflict、cache freshness、pointer/rollback/in-flight 
 - 规模：M
 - Owner：Agent + Agent Runtime
 - 依赖：M3-T02
-- Behavior rollout gate：M2 Exit 后只允许 dark shadow；M3 Exit 后允许 bounded canary；`CORE_TEXT_GA` READY 后才广泛生产放量
+- Verification prerequisite：M2 Exit Gate
 
 实施内容：
 
 1. runtime 只建 `hydrate_context → agent_loop → deterministic_gate → finalize`，以及真正需要的 tool-effect/interrupt 边界；delivery/projection 不作为 graph 节点等待。
-2. dark shadow 先将当前 Orchestrator（含 Route、TaskGraph、Worker、ReAct、Synthesizer）整体作为 `agent_loop`，验证 adapter 与 execution 单主；包含 Multi-Agent/interrupt 的 bounded canary 必须先完成 M3-T03A 的局部恢复适配。
+2. 将当前 Orchestrator（含 Route、TaskGraph、Worker、ReAct、Synthesizer）整体作为 `agent_loop`，在本地真实 composition fixture 验证 adapter；Multi-Agent/interrupt 必须先完成 M3-T03A 的局部恢复适配。
 3. `DIRECT/KNOWLEDGE_QA` 可由 agent_loop 内现有 Router 选择短路径；是否拆子图由 Eval 证明，不以框架美观为由拆分。
 4. `hydrate_context` 只加载已由 M1 admission 写入的 turn/refs，不再次写输入。
 5. 节点返回 typed delta；领域写入通过 Owner command/receipt，不直接篡改其他数据库。
-6. HTTP 生命周期与 graph worker 解耦；生产 execution Owner 切换是 M3 Exit 后的独立 release action。
+6. HTTP 生命周期与 graph worker 解耦；M3-T09 在 M3 验收后执行唯一 runtime binding 与旧 wrapper 删除。
 7. 子 Worker/ReAct 的 durable wave/outcome/resume 由 M3-T03A 实现；禁止只 checkpoint 一个 child 后让它单独发布。
 8. `pinned_config_ref` 引用有效 Intent/Domain/Instance/MultiAgentExecution/Knowledge/Memory/ActiveCase policy snapshot，不将这些权重展开成 LangGraph 业务状态。
 
@@ -1110,7 +1113,7 @@ no-evidence/unavailable/conflict、cache freshness、pointer/rollback/in-flight 
 - HTTP 断开后 durable run 继续；
 - 同 request 并发 invoke 只有一个活动执行；
 - publish commit 后 graph 终止，delivery retry 或无 READ ACK 不重开 graph。
-- opaque shadow 与局部恢复 adapter 的 Trace 可区分；未完成 M3-T03A 时 Multi-Agent/interrupt 流量不能进入 canary。
+- opaque wrapper 与局部恢复 adapter 的 Trace 可区分；未完成 M3-T03A 时不得切换目标 runtime binding。
 
 ### M3-T03A：现有 TaskGraph 的 Agent 局部持久恢复
 
@@ -1210,13 +1213,13 @@ RECONCILIATION_RESULT
 
 1. 将现 RunStore 的 tool intent/claim/lease/binding/attempt/reconciliation/receipt-ref 通过独立 `ToolExecutionLedger` 接口暴露；允许首期复用原表，不允许继续混入 Agent 执行位置，也不得让 Ledger 自行铸造业务 effect fact。
 2. 建立不可变 `ApprovalEventStore`；终态保留 actor、decision、scope、interrupt 和时间。
-3. 实现并 dark-compare M1-T00 的 ExecutionView projector/runtime-reader mapping；本 build 卡不切生产新 invocation，Application 继续拥有 AdmissionStatus，`workflow_invocations` 不新增 runtime status writer。
-4. 旧 WAITING_APPROVAL run 在冻结窗口内完成；超出窗口按明确 mapping 迁入 graph interrupt 或 typed `EXPIRED`，不保留开放二选一。
+3. 实现 M1-T00 的 ExecutionView projector/runtime-reader mapping；Application 继续拥有 AdmissionStatus，`workflow_invocations` 不新增 runtime status writer。
+4. 不导入本地旧 RunStore 中的等待 run；LangGraph 目标 binding 从空 durable state/fixture 开始，旧开发数据可清理。
 5. 为长时间 `executing` claim 增加 lease/reconciliation，而非永久 `in_progress`。
 6. replay/time-travel effect guard：写工具默认硬阻断；只有授权 Principal 在 dry-run/sandbox 可重放，且仍使用稳定 operation key。
 7. runtime 重试 opaque ReAct node 时必须复用 `child_run_id/task_id/operation_key`，禁止生成新 child run。
 8. 精确实现架构 `ToolOperationStatus` transition table；进入过 `INVOKING` 的 stale claim 必须先查权威 receipt/对账，只有 `NOT_COMMITTED` 才能复用 operation key 重试。
-9. 将旧 RunStore SQLite 中适用的 tool/approval 记录以稳定 run/task/operation/interrupt ID 导出到 PostgreSQL Ledger/EventStore；shadow-read 对账后冻结旧 writer/claim，再切单主。旧 workflow-only 行按 retention 归档，不伪装成领域 receipt。
+9. 用 fixture 在 PostgreSQL Ledger/EventStore 验证稳定 run/task/operation/interrupt ID；M3-T09 直接切换后删除 RunStore workflow/resume/status/approval writer 与迁移辅助代码。业务 effect 仍必须由领域 receipt 证明。
 
 验证：
 
@@ -1224,11 +1227,11 @@ RECONCILIATION_RESULT
 - ledger terminal result 可重复读取；
 - stale executing 不会被盲重试；
 - `SUCCEEDED` 必有可验证业务 receipt，Ledger 文本/本地状态不能替代 effect fact；
-- 旧审批 run 在兼容期可完成或明确过期；
+- 目标审批 run 可完成、拒绝、过期并在 crash 后恢复；
 - 负向测试证明 LangGraph、workflow_invocations 和旧 RunStore 不会同时推进同一 Agent run；
 - replay/write、跨用户 resume 和未授权 sandbox 均被拒绝。
 - Domain Tool 对 ledger/effect/reconciliation 合同签字，Security 对 ApprovalEvent/resume scope 签字；Workflow 只消费并调度这些事实。
-- SQLite→PostgreSQL count/hash/status/ID 对账、冻结窗口、切换和 restore/forward-fix 故障演练通过，旧 writer 不会复活。
+- clean database seed、restore/forward-fix 与故障演练通过，旧 writer 不会复活。
 
 ### M3-T07：运行时流式 API
 
@@ -1284,31 +1287,34 @@ projection 前后
 - Agent execution terminal 与 delivery terminal 相互独立；无 READ ACK、delivery retry 或 terminal delivery failure 都不重新生成 response。
 - 在非 primary child 的审批、timeout 和 receipt/checkpoint 间隙注入崩溃，不会伪造单任务 coverage complete，且全部 required Task 最终都有且只有一个 typed outcome。
 
-### M3-T09：Agent Runtime 单主 release action
+### M3-T09：LangGraph Runtime 直接绑定与旧执行 wrapper 清理
 
 - 优先级：P0
 - 规模：S
 - Owner：Agent + Agent Runtime + Application
 - Build prerequisite：M3-T03A、M3-T06、M3-T08
-- Behavior rollout gate：M3 Exit APPROVE + 冻结 `CORE_TEXT_GA` profile manifest
+- Verification prerequisite：M3-T01..T06、M3-T03A、M3-T08 的冻结本地证据
+- 目标能力状态：`PLANNED`（LangGraph runtime 尚未实现）
+- 当前兼容执行：`CURRENT_ACTIVE`
+- 旧 runtime release/migration 辅助：`SUPERSEDED_TO_REMOVE`
 
-实施内容：停止新 Agent admission，排空或按稳定 execution pointer 固定 in-flight；确认 dark projector/trace 对账后，原子把新 invocation 的 runtime binding 切到 LangGraph 并恢复 bounded canary。被停用的是 legacy API/direct-executor 入口，不是现有 `AgentOrchestrator`：后者继续作为 LangGraph `agent_loop` 的业务实现。回滚按 pinned runtime 处理 in-flight，并原子切回 previous verified binding；同一 invocation 不能同时被两种 runtime wrapper 驱动。
+实施内容：在本地停止新 Agent admission，清理开发态 in-flight 数据，原子把新 invocation 的 runtime binding 切到 LangGraph。被删除的是 legacy API/direct-executor/RunStore workflow-resume wrapper、相关配置与 fallback，不是现有 `AgentOrchestrator`：后者继续作为 `agent_loop`。请求一旦 admission 就固定 runtime；不允许两种 wrapper 驱动同一 invocation。
 
-验证：切换前后各 crash point、HTTP 重试、native interrupt、write-tool unknown effect 和 rollback 均只有一个 Agent executor/最终 publisher。
+验证：切换前后各 crash point、HTTP 重试、native interrupt、write-tool unknown effect 均只有一个 Agent executor/最终 publisher；composition-root 和负向源码搜索证明旧 execution wrapper 不可达。
 
 ### M3 Exit Gate
 
 - 完整 `/chat` 可跨进程恢复；
 - 普通错误与审批都能从原图继续；
 - Agent 局部 TaskGraph 在 wave/child/interrupt 边界可恢复，且不持久化或推进任何领域状态；
-- staging/dark 环境中 LangGraph 是唯一 Agent checkpoint Owner，生产切换由 M3-T09 在 Gate 后执行；
+- 真实本地 composition 中 LangGraph 是唯一 Agent checkpoint/runtime Owner，M3-T09 完成唯一 binding；
 - `workflow_invocations` 仅拥有 admission/pointer/pinned versions，公开 ExecutionView 可从 runtime/checkpoint/领域终态引用重建；
 - Agent Runtime 与 Delivery 各守边界，公开 API 只做组合投影；
 - Tool ledger 保留稳定 operation key、claim 与权威 receipt 引用；业务 adapter 的幂等/对账证明写副作用至多一次，不能把 checkpoint 宣称为 exactly-once；
 - 全部故障注入性质通过；
 - 写节点 replay/time travel 默认受禁。
 
-回滚：执行 M3-T09 runbook。`DIRECT/KNOWLEDGE_QA` 可保持同步；Agent route 回滚前先停止新 graph admission，pinned in-flight 留在原 runtime 完成/Handoff/reconciliation，再原子切回 previous binding。任何时刻不能两边执行同一 invocation。
+故障处理：停止新 graph admission；pinned in-flight 在 LangGraph 中完成、Handoff 或 reconciliation。使用 checkpoint restore、Git revert 或 forward-fix，不重新启用已删除的旧 runtime。
 
 ## 10. M4：Memory、Context、Commitment 与 Handoff
 
@@ -1316,7 +1322,7 @@ projection 前后
 
 把完整会话、当前工作现场、长期偏好、服务经历和企业责任分别建模，并确保正确时刻读写。
 
-M4-T04～T07 在 M1-T04A foundation 后可以并行 build；任何新 durable Episode/Profile/Commitment/Handoff 写路径在 backfill/dark shadow 前都必须先注册数据位置、delete-fence adapter 和 proof contract，完整删除故障证明由 M4-T08 收口。bounded canary 必须通过 M4 Exit，广泛用户可见放量还必须通过 `CORE_TEXT_GA`。不能先写派生数据、以后再补删除。
+M4-T04～T07 在 M1-T04A foundation 后可以并行 build；任何新 durable Episode/Profile/Commitment/Handoff 写路径在首次写入或重建前都必须先注册数据位置、delete-fence adapter 和 proof contract，完整删除故障证明由 M4-T08 收口。M4 验收后直接绑定目标读写路径并删除旧实现。不能先写派生数据、以后再补删除。
 
 本里程碑的 Memory 梯级是**语义投影，不是 LLM 压缩状态机**：
 
@@ -1412,7 +1418,7 @@ task-scoped context，并只可返回 `MemoryWriteProposal(ATOM_CANDIDATE|EPISOD
 - 任意工具数量/结果长度下不超 provider limit；
 - mandatory 超限 typed fail；
 - 摘要、历史、知识和工具结果优先级符合 ContextPolicy。
-- 旧基线与新 ContextPolicy 在 shadow 中输出可对账的选取/截断原因；任务无关工单不再因为全局 `90` 被无差别投递。
+- 旧冻结 fixture 与新 ContextPolicy 在离线 paired runner 中输出可对账的选取/截断原因；任务无关工单不再因为全局 `90` 被无差别投递。
 - provider cache 开关、tenant/region/retention/no-training/deletion capability、TTL、prefix breakpoint、图片增删与 tool-schema/version 变化有 conformance test；策略不匹配时 provider cache 必须关闭。hit/miss 在回答/Coverage/安全语义上等价，并记录 cache read/write token，不能因追求命中把实时事实放进稳定前缀。
 
 ### M4-T03A：WorkingContext 临时视图与按需 Memory 检索
@@ -1461,27 +1467,34 @@ task-scoped context，并只可返回 `MemoryWriteProposal(ATOM_CANDIDATE|EPISOD
 2. 冻结 legacy compare profile：仅排除 `CLOSED`（因此 `RESOLVED` 仍包含）、最多 `3` 张、`updated_at DESC, created_at DESC, ticket_id ASC`，section 裁剪优先级 `90`。
 3. 精确 ticket 引用、已违约 SLA/承诺和 critical/security case hard include；剩余 case 超预算时才由版本化 `ActiveCaseContextPolicy` 按任务相关度、业务 priority/SLA 与 recency 排序。未经 heldout 校准不写新数值。
 4. projection 关闭输出为 `NO_ACTIVE_CASE/CASES/UNAVAILABLE/CONFLICT`；读取失败不得伪装成“没有工单”。旧 `published_response` 只作为已发布文本引用，不能进入 `confirmed_facts`。
-5. legacy TicketService 先保持单主并 dark shadow compare；本卡只准备 versioned pointer/adapter/rollback，不执行 consumer enable。M4-T03C 在 M4 Exit 后负责 pinned bounded canary，默认 pointer 到 `CORE_TEXT_GA` 才由发布流程原子切换。`RESOLVED` 是否继续进入当前事项是显式 policy/version 变化，不随存储迁移暗改。
+5. 用旧 selection 的冻结 fixture 做离线 paired compare；本卡实现目标 `ActiveCaseContextPolicy + projection adapter`。M4-T03C 负责直接 consumer binding 与旧 selection path 删除。`RESOLVED` 是否继续进入当前事项是显式 policy/version 变化，不随存储替换暗改。
 6. Router 只读取有界摘要/ref；Worker 只接收 task-scoped case evidence，不再把所有未结工单广播给所有 Agent。
 
 验证：
 
 - `RESOLVED`、相同 `updated_at`、精确 ticket、SLA breach、critical/security、无工单、存储不可用和冲突均有确定性 fixture；
-- legacy profile 在相同 snapshot 上逐 ID/顺序对账；本卡完成连续性 heldout、dark shadow 与回滚演练但不启用 consumer，bounded canary 由 M4-T03C 执行；
+- 旧 profile 在相同 fixture 上逐 ID/顺序离线对账；本卡完成连续性 heldout，consumer 唯一 binding 由 M4-T03C 执行；
 - projection 字段逐一可追溯 Ticket/Commitment Owner，ContextPolicy 不可改写状态；
 - 任务无关工单不会因 section priority `90` 被投递给无关 Worker。
 
-### M4-T03C：ActiveCase consumer bounded-canary release action
+### M4-T03C：ActiveCase consumer 直接绑定与旧选择路径清理
 
 - 优先级：P0
 - 规模：S
 - Owner：Product/Support Ops + Agent + Application
 - Build prerequisite：M4-T03B、M4-T07、M4-T08
-- Behavior rollout gate：M4 Exit APPROVE + 冻结 `CORE_TEXT_GA` profile manifest
+- Verification prerequisite：M4-T03B、M4-T07、M4-T08 的本地合同证据
+- 目标能力状态：`IMPLEMENTED_NOT_BOUND`（ActiveCase projection/policy 已实现，目标 consumer 尚未唯一绑定）
+- 剩余动作：`DIRECT_BINDING_CLEANUP (PLANNED)`
+- 旧 shadow/rollback binding 辅助：`SUPERSEDED_TO_REMOVE`
 
-实施内容：保持 legacy TicketService 为事实单主，先按稳定 cohort 将 `ActiveCaseContextPolicy + projection adapter` 固定到 invocation 做 bounded canary；采集逐 case ID/顺序、Route/Worker 投递、连续性和 typed failure 对账。失败时原子回到 previous verified policy，in-flight 按 pinned version 完成。该任务不切 Ticket writer；M4-T07C 负责 ServiceCase 存储单主。默认 policy pointer 只能由 M6-T07 在 `CORE_TEXT_GA` 决议后切换。
+实施内容：冻结 fixture、连续性 heldout 与真实 ChatApplication 集成测试通过后，将
+`ActiveCaseContextPolicy + projection adapter` 设为唯一 consumer binding；同一 slice 删除 API 中旧
+top-3 selection、全量广播、toggle 与 fallback。该任务不切 Ticket writer；M4-T07C 负责目标
+ServiceCase repository。请求固定 policy version，读取失败返回 typed status。
 
-验证：cohort 稳定、同 request 重试仍固定同 policy、旧/new adapter 无双写、rollback 不改变 Ticket 事实；`RESOLVED`/tie-break/SLA/critical heldout 与 unavailable/conflict hard gate 全部通过。
+验证：同 request 重试固定同 policy；`RESOLVED`/tie-break/SLA/critical heldout 与
+unavailable/conflict 均通过；负向搜索证明旧 selection path 不可达且 Ticket 事实未被 ContextPolicy 改写。
 
 ### M4-T03D：ServiceContinuityReader（服务债务只读组合）
 
@@ -1586,7 +1599,7 @@ task-scoped context，并只可返回 `MemoryWriteProposal(ATOM_CANDIDATE|EPISOD
 实施内容：
 
 1. 定义问题、产品/版本、症状、材料、动作、权威结果、解决、根因和 outcome verification。
-   `service_episode_revisions` 与 retrieval projection 在首次 schema/backfill/shadow 前必须引用
+   `service_episode_revisions` 与 retrieval projection 在首次 schema/write/rebuild 前必须引用
    M1-T04A 已批准的 location/delete-fence artifact；没有 registration 时 producer fail closed。
 2. v1 只有 Case resolved/closed **且**Case Owner 已接受权威 outcome verification 时才形成 episode；
    `episode_id=case_id`。无 Case 的自助对话仍留在 L0/评测数据，普通 EvidenceReceipt、用户反馈、
@@ -1595,13 +1608,10 @@ task-scoped context，并只可返回 `MemoryWriteProposal(ATOM_CANDIDATE|EPISOD
 4. canonical episode revision 写 PostgreSQL；`retrieval.service_episode_search` 只是由 canonical
    outbox 生成的 pgvector/中文 lexical projection，建立独立 relevance/freshness threshold。
 5. assistant 文本与用户原话分开索引和权重。
-6. 首个 legacy comparison profile 沿用当前 Memory RRF 参数 Vector/BM25/Recency=`.30/.60/.10`、`k=60`、lexical pool=`20`；它固定的是 `MemoryRetrievalPolicy` 参数，不宣称把 raw conversation chunk 换成 ServiceEpisode、或把 BM25 换成 PG FTS 后排名“无损”。`PG_FTS_ZH_V1` 使用独立 fingerprint 与 Gate。
-7. 盘点旧 raw-memory/Chroma corpus 与 writer watermark；只有同时绑定原始 conversation、
-   resolved/closed `case_id` 与 Case Owner 接受的 outcome-verification refs 的记录，才可 backfill 为稳定
-   `episode_id/revision/provenance`。缺任一条件、无 Case 自助记录、单工具成功或旧 assistant 文本均
-   保留为 conversation/评测数据，不伪装成 resolution。
-8. 用相同 query capture 对旧 raw retrieval 与新 episode retrieval 做 shadow compare，分别报告 relevant continuity、provenance、freshness、unavailable 和 conflict；语料差异与权重差异分开归因。
-9. 建立单一 `MemoryRetrievalPolicy + backend generation + corpus generation` pointer 和切换 runbook；本卡只构建/backfill/dark shadow，不执行 consumer enable。M4-T04C 在 M4 Exit 后负责 PG pinned bounded canary，`POSTGRES_RETRIEVAL_GA` 批准后才由发布流程原子切默认 pointer 并冻结旧跨会话检索 writer。当前 Conversation Event Store 不因该切换退役。
+6. 首个离线 comparison profile 沿用当前 Memory RRF 参数 Vector/BM25/Recency=`.30/.60/.10`、`k=60`、lexical pool=`20`；它固定的是 `MemoryRetrievalPolicy` 参数，不宣称把 raw conversation chunk 换成 ServiceEpisode、或把 BM25 换成 PG FTS 后排名“无损”。`PG_FTS_ZH_V1` 使用独立 fingerprint 与 heldout。
+7. 初始 ServiceEpisode corpus 为空；只从 canonical conversation、resolved/closed Case 与 Case Owner 接受的 outcome-verification refs 生成。旧 raw-memory/Chroma 只可导出为脱敏 regression fixture，不导入 serving corpus。
+8. 用相同 query capture 做离线 paired compare，分别报告 relevant continuity、provenance、freshness、unavailable 和 conflict；语料差异与权重差异分开归因。
+9. 建立单一 `MemoryRetrievalPolicy + backend generation + corpus generation` binding；M4-T04C 在本卡与 M4-T08 验收后直接启用 PostgreSQL Episode retrieval 并删除旧跨会话 raw-memory retrieval。Conversation Event Store 不因该替换退役。
 
 验证：
 
@@ -1610,24 +1620,25 @@ task-scoped context，并只可返回 `MemoryWriteProposal(ATOM_CANDIDATE|EPISOD
 - current user/tenant 隔离；
 - role/provenance 进入 EvidenceReceipt。
 - 离线重放记录每路 source rank 和 policy fingerprint；recency 不能独立引入 Vector/BM25 都未召回的无关 episode。
-- backfill count/hash/provenance、旧/new dark-shadow 差异、active pointer 切换/回滚演练均有机器报告；本卡未开启生产 consumer，删除 tombstone 不会在重建旧索引时复活。
+- canonical fixture count/hash/provenance、离线 paired 差异与 clean rebuild 均有机器报告；删除 tombstone 不会在索引重建时复活。
 
-### M4-T04C：ServiceEpisode retrieval bounded-canary release action
+### M4-T04C：ServiceEpisode retrieval 直接绑定
 
 - 优先级：P0
 - 规模：S
 - Owner：Memory + Application + Platform
 - Build prerequisite：M4-T04、M4-T08
-- Behavior rollout gate：M4 Exit APPROVE + 冻结 `POSTGRES_RETRIEVAL_GA` candidate manifest
+- Verification prerequisite：M4-T04、M4-T08
+- 目标能力状态：`IMPLEMENTED_NOT_BOUND`（ServiceEpisode schema/writer/read contracts 已实现，consumer 仍 disabled）
+- 剩余动作：`DIRECT_BINDING_CLEANUP (PLANNED)`
 
-实施内容：不改变 Conversation Event Store，使用稳定 cohort 将
+实施内容：不改变 Conversation Event Store；在真实 ChatApplication 测试通过后，将
 `corpus=SERVICE_EPISODE` 的 `PostgresHybridBackend generation + MemoryRetrievalPolicy + corpus generation`
-固定到 invocation 做 bounded canary；记录 old/new query capture、Episode provenance、continuity、
-latency 和 deletion fence。失败时原子回到 previous verified read pointer，in-flight 按 pinned
-generation 完成。默认 pointer 只能由 M6-T07 在 `POSTGRES_RETRIEVAL_GA` 决议后执行；旧 writer
-退役还必须等 M4-T04R。
+设为唯一跨会话 Episode retrieval binding。请求固定 generation；不可用返回 typed failure。同一 slice 删除
+旧 raw-memory Episode reader/writer、toggle 与 fallback；M4-T04R 只负责所有检索消费者切换后共享
+Chroma/SQLite/Python BM25 基础和依赖的最终清理。
 
-验证：pointer claim/rollback、in-flight pin、backfill watermark、delete/restore fence、no-match/unavailable/conflict 和重复请求均通过；没有把未验证 assistant 文本升级为 ServiceEpisode resolution。
+验证：generation pin、clean rebuild、delete/restore fence、no-match/unavailable/conflict 和重复请求均通过；没有把未验证 assistant 文本升级为 ServiceEpisode resolution。
 
 ### M4-T05：User Profile revision、TTL 与用户控制
 
@@ -1669,53 +1680,41 @@ generation 完成。默认 pointer 只能由 M6-T07 在 `POSTGRES_RETRIEVAL_GA` 
 - extractor 不可用或返回未知字段只造成 candidate job degraded/rejected，不覆盖已有 Profile；
 - Worker/Synthesizer/在线 Agent 无法绕过 validator 直接写 atom/profile 表。
 
-### M4-T05C：Profile PostgreSQL single-owner cutover
+### M4-T05C：Profile PostgreSQL 直接绑定与旧 Profile writer 清理
 
 - 优先级：P0
 - 规模：M
 - Owner：Memory + Privacy + Platform
 - Build prerequisite：M1-PF01、M1-T04A、M4-T05、M4-T08
-- Technical cutover gate：M4 Exit APPROVE；广泛默认读取受 `POSTGRES_RETRIEVAL_GA` 控制
+- Verification prerequisite：M4-T05、M4-T08
+- 目标能力状态：`PLANNED`（完整 PostgreSQL Profile Owner 尚未完成）
 
 实施内容：
 
-1. 盘点 legacy Chroma `user_facts_v1/user_profile`、Redis 与当前 writer watermark；只把 supported、
-   用户明确表达且 source event 可解引用的偏好 backfill 为 PostgreSQL field revision。动态业务/事项、
-   情绪/persona 和无 source 记录拒绝晋升。
-2. 新旧 reader 对相同 user snapshot 做 field/revision/source/TTL shadow；删除 fence 与用户
-   view/change/retract/delete API 同时验证。
-3. M4 Exit 后在维护窗口 freeze legacy profile command writer、执行 final delta reconcile，并原子
-   切换 writer binding；新写只进 PostgreSQL。默认 reader 在 `POSTGRES_RETRIEVAL_GA` 前仍可读取
-   legacy-compatible projection，但不再以它为事实 Owner。
-4. PostgreSQL 单主后由 canonical PostgreSQL outbox 单向刷新有界 legacy primary/rollback read projection，带
-   source/projection watermark、delete fence 与 lag gate；它不是事实 writer/Owner。回滚只能切 reader
-   到该兼容投影或 forward-fix，不能恢复 legacy command/write path。默认 PG reader稳定且 rollback
-   window 到期后停止此兼容 projection。
+1. 不导入 legacy Chroma `user_facts_v1/user_profile` 或 Redis 旧 Profile 数据；使用 canonical
+   Conversation fixture 重新运行 Atom/Profile projector，并报告拒绝原因。
+2. 对同一 fixture 验证 field/revision/source/TTL、用户 view/change/retract/delete 与 deletion fence。
+3. 一次切换 Profile command/read binding 到 PostgreSQL；同一 slice 删除 legacy Profile writer/reader、
+   兼容 projection、toggle 与 fallback。
+4. PostgreSQL 不可用返回 typed failure；不得恢复旧 Profile path。
 
-验证：backfill count/hash/reject reasons、field CAS、TTL、concurrent retract、delete/late-worker、
-freeze/delta/binding crash points、M4 Exit 前 legacy 单主、M4-T05C 后 PG 单主、PG→legacy 单向兼容水位、
-reader rollback 和旧 command writer 永久 fenced 均有机器证明。
+验证：fixture count/hash/reject reasons、field CAS、TTL、concurrent retract、delete/late-worker、
+binding crash points和旧 command/read path 负向搜索均有机器证明。
 
-### M4-T04R：Legacy Chroma/SQLite BM25 retirement
+### M4-T04R：删除旧 Chroma/SQLite BM25 检索实现
 
 - 优先级：P1
 - 规模：M
 - Owner：Platform + Knowledge + Memory + Privacy
 - Build prerequisite：M2-T05C、M4-T04C、M4-T05C、M4-T08
-- Behavior rollout gate：`LEGACY_RETRIEVAL_RETIREMENT` APPROVE；必须引用冻结的
-  `RETRIEVAL-RETIREMENT-MANIFEST`，不阻塞此前 Core 能力
 
-实施内容：retirement manifest 必须绑定 `POSTGRES_RETRIEVAL_GA` decision、各 corpus 的
-active/previous pointer epoch、最终 generation/source watermark、`in_flight=0` 快照、已到期的 rollback
-deadline，以及同一 fence epoch 下 fresh deletion/restore/rebuild proof。执行前以 CAS 复核这些值未变，
-再按 corpus 停止 legacy projector/reader，归档 manifest、watermark 与 final reconcile
-报告；删除 Chroma collections 与 SQLite sparse 数据时服从 retention/deletion proof；最后移除
-`chromadb` dependency、旧 BM25 reader/writer 与 fallback 分支。任一 corpus 未完成 pointer 切换、
-仍有 pinned in-flight 或 proof 不完整时 fail closed，不允许部分删后端。
+实施内容：确认 Knowledge/Episode/Profile 各 Owner slice 已原子完成目标 binding 与自身旧 reader/writer
+删除，且 delete/restore/rebuild tests 已通过后，删除已不可达的共享 Chroma collections 初始化、
+SQLite/Python BM25 基础、环境变量、脚本和 `chromadb` dependency。旧数据无需保留；删除仍服从本地
+privacy/deletion proof，防止 restore 或迟到 worker 重建旧 projection。
 
-验证：stale/mismatched manifest、pointer epoch 变化、仍有 in-flight 或 rollback window 未到期均
-fail closed；停 writer/read、进程重启、旧 worker 迟到、backup restore、删除重试与 dependency removal
-后，生产只存在 PostgreSQL retrieval path，且没有隐藏逐请求 fallback 或双 Owner。
+验证：空库 rebuild、进程重启、旧 worker 迟到、backup restore、删除重试与 dependency removal 后，
+真实 composition root 只存在 PostgreSQL retrieval path，且负向源码搜索没有隐藏逐请求 fallback。
 
 ### M4-T06：CommitmentLedger
 
@@ -1767,9 +1766,9 @@ FULFILLED/LATE_FULFILLED/CANCELLED/ESCALATED → ARCHIVED
 4. 人工接管产生的新事件继续写原 conversation。
 5. 本次自动 invocation 在 ticket/contract receipt 成功后进入 `HANDED_OFF`；人工 Ticket/Service Case 使用独立状态机，不隐式复活原 run。
 6. 实现架构 canonical `ServiceCaseStatus` transition table、typed `INVALID_TRANSITION` 与 reopen 审计版本。
-7. 构建现有 Ticket 状态迁移：`OPEN` 按 assignee/事件确定性 backfill 到 `QUEUED/ACCEPTED_BY_HUMAN`；其余同义状态确定映射。
+7. 为测试 fixture 提供旧 `OPEN` 等状态到目标枚举的确定性转换，仅用于 regression import；目标运行库从新 schema 开始，不导入本地旧 Ticket 数据。
 8. human reply、status、commitment、resolution 和重新启动的 Agent invocation 全部绑定 `handoff_id/ticket_id/conversation_id`。
-9. 实现 SQLite Ticket/Outbox 的 stable ID export/backfill/shadow-read/reconcile 工具并在生产快照副本演练；本 build 卡不停止生产旧 writer，也不执行真实 cutover。
+9. 在 PostgreSQL clean fixture 上验证 Ticket/Outbox stable ID 与事件顺序；M4-T07C 负责目标 binding，并删除当前 SQLite writer 与既有迁移辅助代码。
 
 验证：
 
@@ -1778,21 +1777,23 @@ FULFILLED/LATE_FULFILLED/CANCELLED/ESCALATED → ARCHIVED
 - 转接后无需重新请求已提交材料；
 - contract 更新保留 revision history；
 - 全部合法/非法 ServiceCase transition、旧 OPEN 映射、reopen 与并发接单通过 state-machine/property 测试；
-- Gate 前新的 Handoff 只 shadow；测试环境证明旧/new Ticket writer 不会双主；
-- Ticket/Outbox count/hash/event-order 对账与 freeze/backfill/binding switch/restore rehearsal 通过。
+- 目标 binding 前不会误报 HandedOff；测试环境证明运行时只有一个 Ticket writer；
+- Ticket/Outbox count/hash/event-order、clean rebuild、binding switch 和 restore 通过。
 
-### M4-T07C：Ticket/Handoff 单主 release action
+### M4-T07C：Ticket/Handoff PostgreSQL 直接绑定与旧路径清理
 
 - 优先级：P0
 - 规模：S
 - Owner：Product/Support Ops + Application + Platform
 - Build prerequisite：M4-T07、M4-T08
-- Technical cutover gate：M4 Exit APPROVE + 冻结 `CORE_TEXT_GA` profile manifest
-- Behavior rollout gate：cutover 后只允许 bounded canary；`CORE_TEXT_GA` READY 后才广泛放量
+- Verification prerequisite：M4-T07、M4-T08
+- 目标能力状态：`PLANNED`（目标 ServiceCase/Handoff PostgreSQL Owner 尚未完成）
 
-实施内容：维护窗口先停止旧 Ticket/Outbox claim+write，执行 final delta backfill/reconcile，再原子切 repository/worker binding 并启动 PostgreSQL writer；切换前失败回旧单主，切换后只用 PostgreSQL restore/forward-fix。随后启用 M2 HANDOFF bounded canary，禁止任何双写或双 Ticket。
+实施内容：在 clean PostgreSQL fixture 与 Handoff E2E 通过后，原子切 repository/worker binding 并启动
+PostgreSQL writer；同一 slice 删除 SQLite Ticket/Outbox reader/writer、旧导出/迁移/对账 helper、
+toggle 与 fallback。随后启用 M2 HANDOFF 目标路径。PostgreSQL 故障只使用 restore/forward-fix。
 
-验证：freeze、delta、binding switch、worker start、CRM ACK 和 rollback 各 crash point 下均只有一个 Ticket generation；human reply 使用独立 publication，不复活已 HANDED_OFF Agent run。
+验证：binding switch、worker start、CRM ACK 各 crash point 下均只有一个 Ticket generation；human reply 使用独立 publication，不复活已 HANDED_OFF Agent run；旧路径不可达。
 
 ### M4-T08：Retention/Delete/Tombstone
 
@@ -1804,7 +1805,7 @@ FULFILLED/LATE_FULFILLED/CANCELLED/ESCALATED → ARCHIVED
 
 实施内容：
 
-1. 收口并冻结 M1-T04A 的版本化 `DataLocationRegistry`，覆盖 transcript/outbox、working/thread/episode/profile、TaskContinuationFrame/Store namespace、commitment、approval、tool ledger/receipt refs、ticket、delivery/feedback、eval/shadow、Redis exact/embedding/perception cache、index、checkpoint、Trace、backup/restore、运行中 Agent invocation 和外部 processor；显式登记 `retrieval_generation_registry`、PG Knowledge/Episode retrieval 表、legacy Chroma collections 与 SQLite/Python BM25 数据；M5 注册 attachment/derived asset adapter。
+1. 收口并冻结 M1-T04A 的版本化 `DataLocationRegistry`，覆盖 transcript/outbox、working/thread/episode/profile、TaskContinuationFrame/Store namespace、commitment、approval、tool ledger/receipt refs、ticket、delivery/feedback、eval、Redis exact/embedding/perception cache、index、checkpoint、Trace、backup/restore、运行中 Agent invocation 和外部 processor；显式登记目标 `retrieval_generation_registry` 与 PG Knowledge/Episode retrieval 表；M5 注册 attachment/derived asset adapter。旧 Chroma/SQLite 仅在清理任务中登记删除证明，不作为目标 data surface。
 2. 分别定义每个位置的 Owner、retention class、删除/去标识 adapter、外部处理合同、restore fence 与 proof；未知位置 fail closed。
 3. 复用 M1-T04 的权威 deletion fence/tombstone；实现 canonical `DeletionJobStatus`，包括 `RETAINED_EXCEPTION→RETENTION_REVIEW_DUE→RETAINED_EXCEPTION|FENCED`，复核释放后沿用 subject/fence epoch 并递增 purge generation。
 4. 删除开始后停止/屏蔽对应 worker/outbox 写入；in-flight task 通过 tombstone version 拒绝迟到写。
@@ -1828,21 +1829,18 @@ FULFILLED/LATE_FULFILLED/CANCELLED/ESCALATED → ARCHIVED
 - WorkingContext canonical 每个字段都有来源、重建和终结证据，Profile 不含活动事项或动态业务事实；
 - 跨会话 Memory 检索有唯一触发点和闭合 outcome；
 - Memory 不可用和没有命中可区分；
-- ServiceEpisode backfill、PG/legacy shadow、backend+policy+corpus pointer 与旧 writer 退役 runbook 均完成对账；M4 Exit 只允许 pinned bounded canary，默认 PG pointer 须等 `POSTGRES_RETRIEVAL_GA`，退役还须 rollback window 到期；参数沿用不得被表述成语料或 lexical provider 迁移“无损”；
-- Profile 的 Atom/Profile schema、source/validator/CAS、用户控制、delete fence 与 PostgreSQL target
-  dark projection 已通过；M4 Exit 不要求 writer/read cutover。inventory/freeze/delta/PG 单主与
-  PG→legacy 单向兼容水位由 post-Exit M4-T05C 证明，默认 PG reader 仍须
-  `POSTGRES_RETRIEVAL_GA`；
-- ActiveCase legacy profile 能确定性复现 `status != CLOSED`（含 `RESOLVED`）、max `3` 与完整 tie-break；新 policy 通过工单连续性 heldout 后才切换，Ticket/Context 权威不混淆；
+- ServiceEpisode canonical projector、PostgreSQL retrieval、离线 paired evaluation、clean rebuild 与唯一 consumer binding 已通过；参数沿用不得被表述成语料或 lexical provider “无损”；
+- Profile 的 Atom/Profile schema、source/validator/CAS、用户控制、delete fence 与 PostgreSQL 唯一读写 binding 已通过；旧 Profile path 已删除；
+- ActiveCase 冻结基线能确定性复现 `status != CLOSED`（含 `RESOLVED`）、max `3` 与完整 tie-break；目标 policy 通过工单连续性 heldout 并成为唯一 binding，Ticket/Context 权威不混淆；
 - ServiceContinuityReader 在 Router 前从 Ticket/Commitment/Handoff/Tool ledger/Conversation 生成同一份 typed brief；`NO_OPEN_OBLIGATION/UNAVAILABLE/CONFLICT` 可区分，服务债务 hard include 不被向量或 Token 软裁剪，ContextPolicy 不成为第二个组合 Owner；
 - 正常追问与 PendingSignal resume 可确定性区分；ContinuationGate/Frame/delta TaskPlan 在 `CONTINUE/EXPAND/SWITCH/AMBIGUOUS`、hard invalidation、Store/Redis 全丢和跨租户场景通过，且未引入 Continuation/ServiceDebt Agent 或全局会话状态机；
-- M4-T03C/T04C/T05C/T07C 是 Gate 后独立 release action，不属于 M4 Exit 的 build 证明；默认 ActiveCase pointer 仍须 `CORE_TEXT_GA`，默认 PostgreSQL Knowledge/Episode/Profile pointer 由 `POSTGRES_RETRIEVAL_GA` 决议；M4-T04R 只能在 `LEGACY_RETRIEVAL_RETIREMENT` APPROVE 后执行；
+- M4-T03C/T04C/T05C/T07C 完成目标 binding，M4-T04R 删除旧检索实现；真实 composition root 不保留旧 reader/writer/toggle/fallback；
 - summary 损坏不静默丢上下文；
 - 每次 provider 调用实际受预算；
 - Handoff 能传递证据、材料和责任；
 - M4 已接入的数据有可验证删除生命周期；M5 附件/派生产物必须注册并通过同一 Coordinator Gate。
 
-回滚：Context/Memory/Commitment/Handoff 均按独立 feature flag 启用。回滚只能停止新 projection/读取；已写入的 profile、episode、commitment、handoff 和 tombstone 必须由 forward-fix 或兼容 reader 继续处理，禁止删库或恢复旧异步任务越过 deletion fence。
+故障处理：可停止新 projection/读取；已写入的 profile、episode、commitment、handoff 和 tombstone 由 PostgreSQL restore、checkpoint 重放或 forward-fix 处理，禁止恢复已删除的旧异步任务越过 deletion fence。
 
 ## 11. M5：Knowledge Lifecycle 与多模态
 
@@ -1856,13 +1854,16 @@ FULFILLED/LATE_FULFILLED/CANCELLED/ESCALATED → ARCHIVED
 - 规模：L
 - Owner：Knowledge + Product/Support Ops
 - Build prerequisite：M2-T04A、M2-T05
-- Behavior rollout gate：M5 Knowledge Gate 后只允许 scoped/bounded canary manifest；`KNOWLEDGE_LIFECYCLE_GA` READY 后才可把新 manifest 设为全局 active
+- Verification prerequisite：M0-T05、M2-T04A、M2-T05 的冻结本地证据
+- 目标能力状态：`IMPLEMENTED_NOT_BOUND`（SourceRevision/lifecycle contracts 已实现，最终唯一知识 manifest binding 随本任务验收）
+- 剩余动作：`DIRECT_BINDING_CLEANUP (PLANNED)`
+- 旧 scoped/global pointer 与 runtime rollback 辅助：`SUPERSEDED_TO_REMOVE`
 
 实施内容：
 
 1. 在 M2 SourceRevision v0 上扩展 owner、scope、locale、product、region、review、supersedes 和运营审计。
 2. 精确复用 canonical 状态机：`DRAFT→REVIEWED/REJECTED`、`REVIEWED→STAGED`、`STAGED→ACTIVE/REJECTED`、`ACTIVE→SUPERSEDED/RETRACTED`；未知或未列 transition 返回 `INVALID_TRANSITION`。
-3. staging index 通过 M5 Knowledge Gate 后只能原子切到 scoped canary pointer；全局 active pointer 还必须通过 `KNOWLEDGE_LIFECYCLE_GA`。两个 pointer 均由 Knowledge Publication Owner 管理且请求固定 manifest。
+3. staging generation 通过本任务冻结的知识生命周期、检索、引用和修订测试后，由 Knowledge Publication Owner 原子设为唯一 current manifest；请求固定 manifest。这里的 `ACTIVE/SUPERSEDED/RETRACTED` 是知识内容生命周期，不是软件流量灰度。
 4. active revision 冲突时 Retriever 返回 `CONFLICT`。
 5. 点踩/工单/zero-hit 只生成 candidate，不自动发布。
 
@@ -1871,7 +1872,7 @@ FULFILLED/LATE_FULFILLED/CANCELLED/ESCALATED → ARCHIVED
 - 同逻辑文档只有合法 active revision；
 - 原子切换期间请求只看到旧或新完整 generation；
 - 过期政策不再被引用；
-- canary/global pointer rollback 均可恢复 previous verified manifest，in-flight 按 pinned manifest 完成；
+- 错误版本通过新 revision、retract/supersede 修复；in-flight 按 pinned manifest 完成；
 - reject/retract/supersede 与全部非法迁移有 property/state-machine 测试，retracted revision 不能继续产生 EvidenceReceipt。
 
 ### M5-T02：多模态 ChatRequest 与附件存储
@@ -1882,8 +1883,7 @@ FULFILLED/LATE_FULFILLED/CANCELLED/ESCALATED → ARCHIVED
 - Build prerequisite：M1-T01、M1-T02、M1-T04A、M3-T05、M5-T02A
 - Verification prerequisite：M4-T08
 - Delivery slice DAG：`M5-T02A(canonical Agent media-binding contract) → M5-T02-A(attachment/admission implementation) → M5-T02-B(storage/security/readiness aggregation + terminal service signal)`
-- Technical cutover gate：M4 Exit 后才可把附件存储/删除 adapter 接入在线主链
-- Behavior rollout gate：M5 Multimodal Gate 后才允许 bounded canary；`MULTIMODAL_GA` READY 后才广泛放量
+- Direct-binding rule：本任务及其 M5 依赖的冻结本地证据通过后，附件/媒体能力直接接入唯一目标链；若旧占位路径存在，在同一 slice 删除。M5 Multimodal Exit 随后聚合验证该事实，不作为反向前置依赖。
 
 实施内容：
 
@@ -1919,7 +1919,8 @@ FULFILLED/LATE_FULFILLED/CANCELLED/ESCALATED → ARCHIVED
 - 规模：S
 - Owner：Agent + Multimodal
 - Build prerequisite：M1-T01、M1-T02、M2-T06A
-- Behavior rollout gate：随 M5 Multimodal Gate bounded canary；`MULTIMODAL_GA` READY 后才广泛放量
+- Verification prerequisite：M0-T05、M2-T06A 的 canonical contract/evidence；M5-T02 负责后续 producer/runtime 集成验证
+- 目标能力状态：`IMPLEMENTED_NOT_BOUND`（canonical decision contract 已实现，完整媒体 producer/runtime 尚未完成）
 
 实施内容：
 
@@ -1962,7 +1963,7 @@ FULFILLED/LATE_FULFILLED/CANCELLED/ESCALATED → ARCHIVED
 - `asset_id`、asset checksum、zero-based page、坐标空间、bbox 边界与 crop transform contract/property test；缺 `asset_id`、任一 locator 字段不完整或 crop 不可逆时均 fail closed，不能进入 EvidencePack。
 - parser version 变化产生新 projection generation；
 - OCR/VLM 冲突保留而非覆盖；
-- EvidenceNode 无 provenance 不能进入生产 index。
+- EvidenceNode 无 provenance 不能进入目标 retrieval index。
 - 同 fingerprint 并发、producer retry、Redis eviction/timeout 与 PostgreSQL commit 前后崩溃只产生一个 current artifact；cache unavailable 旁路读取/计算但不改变 observation 语义。
 - 删除、ACL、producer/schema/preprocessing/version 变化必 miss；旧 artifact 不会越过 deletion fence 复活，强制重算与 cache hit 的 locator/observation coverage 等价。
 - `MediaReusePolicy` 对相同 requirement/artifact snapshot 确定；unknown/缺字段返回 INVALID_ARTIFACT，backend 故障返回 UNAVAILABLE，均不会被改写成“无需视觉”或擅自改变 Agent requirement。
@@ -1982,7 +1983,7 @@ FULFILLED/LATE_FULFILLED/CANCELLED/ESCALATED → ARCHIVED
 2. 比较 Tika/MinerU/OCR/layout parser 的结构与成本。
 3. 构建 text block 与 page image 双索引。
 4. 保留 section/step/figure parent-child 关系。
-5. 形成 parser selection report，不因工具知名度直接上线。
+5. 形成 parser selection report，不因工具知名度直接成为默认 parser binding。
 6. 按页执行条件级联：native parser → 仅文本缺失/扫描页 OCR → 仅复杂表格/阅读顺序 layout → 仅图示语义或前序不足 VLM；禁止全量文档默认调用 VLM。
 
 验证：
@@ -2037,7 +2038,7 @@ FULFILLED/LATE_FULFILLED/CANCELLED/ESCALATED → ARCHIVED
 - reranker 返回未知/重复/遗漏 ID 时整体回退；
 - 模态失败能独立降级。
 - VLM 输入可回溯到 selected EvidenceNode/crop，未入 Top 1–3 的页面不会被整本文档打包发送。
-- asset/media generation 的 shadow/canary 受 M5 Multimodal Gate；它可复用 PG backend，但不会因 Knowledge/Episode 已切 PG 而自动启用视觉路径。
+- asset/media generation 只有通过 M5 Multimodal Gate 才能成为目标 binding；它可复用 PG backend，但不会因 Knowledge/Episode 已切 PG 而自动启用视觉路径。
 
 ### M5-T07：安装、故障截图和维修 Agent Skills
 
@@ -2074,21 +2075,21 @@ FULFILLED/LATE_FULFILLED/CANCELLED/ESCALATED → ARCHIVED
 - 规模：M
 - Owner：Knowledge + Evaluation
 - Build prerequisite：M4-T04、M0-T05
-- Behavior rollout gate：冻结 `EPISODE_GRAPH_EXPERIMENT` manifest；未冻结不得跑 benchmark 或接收实验流量；该实验永不自动成为 GA 前置
+- Verification prerequisite：冻结 `EPISODE_GRAPH_EXPERIMENT` EvaluationManifest；未冻结不得跑 benchmark
 
 实施内容：
 
 1. 定义 Issue/Product/Symptom/RootCause/Step/Outcome 图 schema。
-2. 先从 verified ServiceEpisode 构建，禁止从任意聊天自动建生产事实。
+2. 先从 verified ServiceEpisode 构建，禁止从任意聊天自动建权威事实。
 3. 比较 text hybrid、structured filtering、graph retrieval。
 4. 测试相似故障、复发问题和多跳根因 slice。
-5. 只有 paired heldout 增益、延迟和运维成本过 gate 才上线。
+5. 只有 paired heldout 增益、延迟和运维成本通过验证，才提交为可选目标实现；否则删除实验代码/依赖。
 
 验证：
 
 - 报告含 MRR/Recall/nDCG、answer support、延迟和构建成本；
 - 图结果保留原 episode/receipt provenance；
-- 无增益时明确关闭候选，不把实验依赖留在生产路径。
+- 无增益时明确关闭候选，不把实验依赖留在目标路径。
 
 ### M5-T09：多模态 Eval v1
 
@@ -2103,7 +2104,7 @@ FULFILLED/LATE_FULFILLED/CANCELLED/ESCALATED → ARCHIVED
 2. 分层记录 perception、catalog match、page/image retrieval、rerank、evidence grounding、answer claim 和 safety outcome。
 3. 建立商品相似型号、遮挡/低清、OCR 冲突、错误版本、敏感截图、电气/燃气/结构风险和恶意附件 slice。
 4. zero-tolerance gate 覆盖跨租户 asset、unsafe advice、无 bbox/page provenance 和不确定时强答。
-5. M6 只扩展生产规模 Gold、统计置信、shadow/canary 和线上归因，不再补基本评测 schema。
+5. M6 扩展成熟公开集、自建 Gold、统计置信与本地/CI 归因，不再补基本评测 schema。
 6. 增加 L0/L1/L2 Gold slice：纯文本、带无关图的文本任务、OCR 足够、必须视觉理解；报告 media-level confusion matrix、unnecessary-VLM rate 与 L1→L2 upgrade precision/recall。
 7. 按意图报告 VLM 调用率、cache-hit、输入 pixel/token、延迟、成本、相对 L0/L1 baseline 的解决率增益和每解决工单增量视觉成本；没有质量/安全增益的意图不得启用 L2。
 8. 增加跨轮 media delta slice：同图下一步、同图新 region、新图新 checksum、图片无关、现场已改变、producer/schema 升级和 deletion fence；分别标注 expected artifact reuse 与 OCR/VLM 调用数。
@@ -2118,20 +2119,20 @@ FULFILLED/LATE_FULFILLED/CANCELLED/ESCALATED → ARCHIVED
 
 ### M5 Exit Gate
 
-M5 不设置一个强迫两条产品线同时完成的总 Gate；按 §4.1 独立出具两份 decision：
+M5 不设置一个强迫两条产品线同时完成的总 Gate；按 §4.1 独立出具两份 EvaluationDecision：
 
-- **M5 Knowledge Gate**：知识有 draft/review/reject/stage/active/supersede/retract 生命周期，非法迁移与 manifest rollback 通过；
+- **M5 Knowledge Gate**：知识有 draft/review/reject/stage/active/supersede/retract 生命周期，非法迁移、原子 manifest 选择与修订路径通过；
 - **M5 Multimodal Gate**：附件安全、租户隔离和删除闭环；默认 L0、无关附件不触发 VLM、OCR 足够停在 L1；L2 证据可回到 asset/page/bbox/crop/version；型号不确定时会澄清；安装/维修安全规则通过；同图下一步为 0 次 OCR/VLM、新视觉 requirement 只处理目标 region、新图只处理新 checksum，artifact cache 与强制重算等价；Eval 能区分 media-level route、perception、retrieval、rerank 和 generation 错误，并证明启用意图的解决率/安全增益与成本；M4 DeletionCoordinator 可证明附件及派生产物删除完成。
 
-M5-T08 图检索是 Experimental profile，不阻塞 Knowledge Lifecycle 或 Multimodal GA；是否采用由实验决定，而非架构先验。
+M5-T08 图检索是可选离线实验，不阻塞 Knowledge 或 Multimodal 主链；是否采用由实验决定，而非架构先验。
 
-回滚：知识发布通过 active manifest 原子回退；多模态通过 route/tenant flag 停止新附件路径并回到文本/人工澄清。已经上传的附件、ParseResult 与 deletion request 继续由兼容 worker 按 pinned producer/version 处理，不能因回滚绕过安全扫描或删除证明。
+故障处理：知识错误通过新 revision、retract/supersede 修复；多模态依赖不可用时返回 typed degradation、文本澄清或 Handoff。已上传附件、ParseResult 与 deletion request 按 pinned producer/version 处理，不能绕过安全扫描或删除证明。
 
-## 12. M6：评测、可观测性与生产发布
+## 12. M6：服务链评测、可观测性与直接绑定验收
 
 ### 目标
 
-把组件评测升级为服务链评测，并建立可归因的线上运营闭环。
+把组件评测升级为服务链评测，并建立可归因的本地/CI 观测闭环，为目标 composition binding 提供证据。
 
 ### M6-T01：Dataset v2 与 Rubric v2
 
@@ -2216,7 +2217,7 @@ Rubric 支持：
 
 实施内容：
 
-1. 脱敏真实工单分层抽样。
+1. 以人工编写/审核的客服 Gold、成熟公开集适配样本和可重复业务 fixture 分层抽样；真实工单仅在未来取得合法来源与授权时可选加入。
 2. 双人标注、冲突仲裁和 reviewer identity。
 3. 按 user/order/product/time/semantic group 切分。
 4. 单独保留 invalid、OOS、安全、复合、多轮、Handoff 和 multimodal slice。
@@ -2227,7 +2228,7 @@ Rubric 支持：
 - manifest/checksum/provenance/review status 完整；
 - group leakage validator；
 - inter-annotator agreement 与争议记录；
-- release 报告保存置信区间和 error slice。
+- evaluation 报告保存置信区间和 error slice。
 
 ### M6-T04：持久 OTel + Langfuse AI Observability
 
@@ -2256,8 +2257,8 @@ coverage / synthesis / publication / delivery / projection
 3. Collector 是 exporter routing/filter/tail-sampling 唯一 Owner：Tempo/Jaeger/APM 接收基础设施 span；Langfuse 只接收 allowlisted `agent/generation/retriever/tool/guardrail` observation；Prometheus/领域表保留未采样 KPI 分母。禁止应用与 Collector 双路导出同一 span。Evaluation 后续可按 observation ID 写 Langfuse score，但 score client 不安装 tracer/exporter。
 4. 统一 low-cardinality span name；只保存 opaque IDs、hashes、enum、状态、latency、token/usage/cost 和 Bundle/Prompt/Model/Index/Retrieval/Context/Tool-schema/producer version。Prompt、回复、OCR、图片和 Tool raw payload 进入带 ACL/retention/deletion 的受控 artifact。
 5. 服务端生成内部 trace/correlation identity；外部 `X-Trace-Id` 只能作为不可信 `client_request_id`，只有受信任服务边界才 extract W3C context。
-6. 应用不做会提前丢弃未知结果链路的 head sampling；先发送低内容 span，Collector 在完成/超时窗口做版本化 tail sampling：普通成功流可抽样，error、安全、write/approval、unknown effect、handoff、feedback、canary/eval 和多模态安全 100% 保留。队列溢出/超时形成 drop metric/alert 并阻断可观测性 Gate，但不反压或改变客服结果。采样 Trace 不用于计算真实生产分母。
-7. `create_message`/统一模型 adapter 产出 generation observation 与线上 token/usage/cost；不能只在 Eval collector 中统计。
+6. 应用不做会提前丢弃未知结果链路的 head sampling；先发送低内容 span，Collector 在完成/超时窗口做版本化 tail sampling：普通成功流可抽样，error、安全、write/approval、unknown effect、handoff、feedback/eval 和多模态安全 100% 保留。队列溢出/超时形成 drop metric/alert 并阻断可观测性验收，但不反压或改变客服结果。采样 Trace 不用于计算评测分母。
+7. `create_message`/统一模型 adapter 产出 generation observation 与运行 token/usage/cost；不能只在局部 Eval collector 中统计。
 8. 媒体 observation 记录 requested/executed level、reason code、asset/page/bbox 受控引用、producer/model/version、cache hit、pixel/token/cost、candidate/crop 数与 deficit/fallback/abstention；Retriever observation 记录各 exact cache layer、key fingerprint、hit/miss/bypass 与重验结果。
 9. 进程内 `TraceRecorder` 降为开发兼容投影；ToolAudit/receipt、Conversation、Ticket、Memory、Delivery 继续由各领域 Owner 持有。
 10. continuation observation 只记录 mode/reason/policy/frame version、carried/invalidated ref IDs 与 avoided/executed Router/Task/Worker/Retrieval/Media 计数，不导出 raw transcript、图片、OCR 或工具 payload。
@@ -2312,11 +2313,11 @@ coverage / synthesis / publication / delivery / projection
 验证：
 
 - 同一失败可从 response_id 回到 observation、权威 evidence 和 pinned versions；
-- sampled trace 不能冒充线上总量，candidate root cause 不能覆盖 verified fact；
+- sampled trace 不能冒充未采样服务总量，candidate root cause 不能覆盖 verified fact；
 - 人审前的数据不会进入 Gold/优化器；group leakage、PII、删除和 consumed-regression 检查 fail closed；
 - held-out 失败案例能分别定位到 media route、OCR、视觉召回、rerank、VLM、Tool effect、publication 或 service outcome。
 
-### M6-T06：线上 KPI 与 SLO
+### M6-T06：评测 KPI、性能预算与观测健康
 
 - 优先级：P1
 - 规模：M
@@ -2338,13 +2339,15 @@ coverage / synthesis / publication / delivery / projection
 - Knowledge freshness、Memory lag、deletion backlog。
 - Knowledge/Episode/Media 各自的 active backend+generation、PG FTS/pgvector QPS、P95/P99、
   filtered ANN recall audit、index lag、rebuild RTO、connection-pool saturation 与 PG OLTP 影响；
-  legacy fallback 命中必须为零或显式迁移期指标。
+  旧 backend/fallback 调用必须为零。
 - Multi-Agent fan-out rate、必需 Task coverage、same-owner multi-task completeness、parallel efficiency、budget-exceeded rate 和 parent-run resume success。
 - ActiveCase hard-include recall、无关工单注入率、`UNAVAILABLE`误当空集率，以及重复联系/reopen 与 case 选取的关联。
-- 每个决策记录 intent/domain/instance/knowledge/memory/active-case policy version，线上指标可按策略版本归因。
+- 每个决策记录 intent/domain/instance/knowledge/memory/active-case policy version，评测指标可按策略版本归因。
 - media-level confusion、unnecessary-VLM、L1→L2 upgrade precision/recall、VLM/cache 调用率、pixel/token、每意图解决率增益与每解决工单增量视觉成本。
 - 同图 continuation 的 OCR/VLM artifact hit、局部 L2 升级、新 checksum 增量处理和强制重算等价率。
 - Trace 完整率、W3C 跨进程关联率、critical sampling 保留率、Langfuse exporter drop/error 与未采样业务计数差异；这些观测健康指标不替代服务 KPI。
+
+这些指标由本地/CI runner、故障注入与多轮模拟器产生；24/72h repeat contact、reopen 和 confirmed resolution 使用模拟时钟/业务终态，不宣称线上业务数据。
 
 验收：
 
@@ -2352,94 +2355,13 @@ coverage / synthesis / publication / delivery / projection
 - SLO 报警对应可行动 Owner；
 - 自动解决率必须包含无重复联系窗口，而非仅有一条回复。
 
-### M6-T07：Shadow、Canary 与发布门禁
-
-- 优先级：P1
-- 规模：M
-- Owner：Evaluation + Platform
-- Build prerequisite：M6-T01 至 T06、M6-T05A
-- Behavior rollout gate：M6-T08（对应 profile manifest 已冻结）；本卡只能按 manifest 执行 shadow/canary，不能自行授予 GA
-
-实施内容：
-
-1. Shadow 不写业务、不发布、不修改 Memory/Commitment。
-2. 按 route、risk、tenant 稳定分桶。
-3. hard gates：wrong write、cross-user、unauthorized tool、unsafe visual advice、duplicate publish。
-4. soft gates：quality、latency、cost、handoff、repeat contact。
-5. 按冻结 manifest 的 bounded cohort → expanded cohort → profile GA 推进；百分比、最小样本和观察窗口由每次 release profile 明确给出，支持原子 rollback。
-6. 每次运行只读取冻结 manifest；结束后生成不可变 `GateEvidence` 与 `GateDecision(APPROVE/REJECT/ROLLBACK)`，由独立 approver 签署。
-7. 所有 Bundle/Policy candidate（手工或优化器生成）统一接入 `CandidateRunner` 的真实 GateRunner/GateArtifact；管理 API 不接受调用者自报 `hard_gates`、`fresh_heldout`、heldout checksum 或 latency/cost ratio 作为发布证据，也不能读取“最近一次进程内报告”代替与 candidate hash 绑定的不可变结果。
-8. `POSTGRES_RETRIEVAL_GA` 的发布动作按同一冻结 manifest 原子协调三个独立 read pointer：Knowledge
-   backend/generation、ServiceEpisode backend/corpus generation、Profile default-reader binding（Profile
-   writer 的 PostgreSQL 单主已由 M4-T05C 完成）。
-   它们仍由各自 Owner 签署；任一 hard gate 失败则不授予 profile READY。回滚只切 read pointer/
-   binding，不回滚 PostgreSQL canonical Conversation、Episode 或 Profile revision；旧后端退役由
-   M4-T04R 在 rollback window 后另经 `LEGACY_RETRIEVAL_RETIREMENT` 决议执行。
-
-验证：
-
-- shadow effect guard；
-- canary 分桶稳定；
-- hard signal 自动回滚；
-- 回滚后新请求使用 previous verified version；进行中的 Agent run 默认按 pinned version 完成，遇到安全禁用或未知副作用则 Handoff/reconciliation/typed fail-closed，不把同一 invocation 迁到另一 Bundle/runtime 重跑。
-- caller 伪造 Gate 布尔值、重贴其他 candidate 的报告、跳过 runner 直接启动 shadow/canary 均 fail closed；该性质属于 Core 发布边界，不依赖 M6-T09 是否启用。
-
-### M6-T08：预运行 Gate Manifest 与 Release Profiles
-
-- 优先级：P0
-- 规模：M
-- Owner：Evaluation + Product/Support Ops + Platform
-- Build prerequisite：M0-T05、M6-T01、M6-T03、M6-T04、M6-T06
-
-本任务虽然编号在 T07 之后，但属于 T07 的预运行 Enable gate。它复用 M0-T05 的通用 schema，为每个 release profile 实例化并冻结 `evaluation/gates/<profile>/<version>.yaml`：
-
-```text
-profile/version
-dataset manifests + checksums
-required slices + oracles
-fault injection points
-zero-tolerance invariants
-baseline + target/non-inferiority thresholds
-minimum sample + confidence method
-shadow/canary observation window
-latency/cost/SLO limits
-automatic/manual rollback conditions
-accountable DRI + independent approver
-```
-
-发布范围拆分：
-
-| Release Profile | 最低能力 Gate | 明确不阻塞项 |
-|---|---|---|
-| `CORE_TEXT_GA` | M0–M4 对应 Exit + M6 文本/服务生命周期/OTel+Langfuse/Trace analysis/反馈/canary | 多模态、图检索、GEPA-Lite optimizer |
-| `POSTGRES_RETRIEVAL_GA` | Core + M2-PF01/T05C + M4-T04C/T05C + Knowledge/Episode/Profile backend Gate | 多模态、图检索、legacy retirement cleanup |
-| `LEGACY_RETRIEVAL_RETIREMENT` | Postgres retrieval GA + frozen pointer/watermark/in-flight/rollback/deletion proof manifest | 图检索与其他实验 |
-| `KNOWLEDGE_LIFECYCLE_GA` | Core + M2 SourceRevision v0 + M5-T01 + knowledge gate | 多模态、图检索 |
-| `MULTIMODAL_GA` | Core + M5-T02–T07/T09 + M5-T02A + multimodal safety gate | 图检索 |
-| `EPISODE_GRAPH_EXPERIMENT` | M4-T04 + M5-T08 paired report | 所有 GA；无增益可直接关闭 |
-
-零容忍 gate 包括跨租户访问、未授权/重复写、重复发布、无权威动态 claim、删除后复活和 unsafe visual advice。`POSTGRES_RETRIEVAL_GA` 另要求 `UNAVAILABLE != NO_MATCH`、三 corpus/Projection ACL 隔离、source/provenance 完整、无逐请求静默 fallback、PG OLTP 影响与 rebuild RTO 过门禁。统计 gate 按 route/slice 设 baseline、目标/非劣条件和置信区间；不得以一个总分掩盖失败。
-
-M0-T05 拥有 manifest schema/lifecycle；本卡只拥有 release-profile scope、阈值与预运行签署；M6-T07 拥有运行、证据归档、最终 `GateDecision` 与发布/回滚动作，三者不存在环形依赖。
-`LEGACY_RETRIEVAL_RETIREMENT` 实例由 Platform 的只读 retirement planner 在
-`POSTGRES_RETRIEVAL_GA` 后生成 candidate manifest，Privacy 与独立 Evaluation approver 签署；
-manifest 必须绑定当前 pointer epoch、final watermark、in-flight snapshot、rollback deadline 与 fresh
-deletion/restore/rebuild proof。M4-T04R 只能消费已签署 manifest，不能在删除后反向补造证据。
-
-验证：
-
-- 缺任一 required artifact 时 gate runner fail closed；
-- profile 之间无反向依赖，P2/P3 实验不阻塞 Core Text；
-- T07 在没有已冻结 manifest 时不能启动，运行中不能静默修改阈值；
-- 报告可追溯到 commit、Bundle、Index、producer 和数据 checksum。
-
 ### M6-T09：GEPA-inspired 离线 Candidate Optimizer
 
 - 优先级：P2
 - 规模：M
 - Owner：Evaluation + Agent + Knowledge + Memory + Domain Tool
-- Build prerequisite：M6-T01、M6-T03、M6-T05A、M6-T07、M6-T08
-- Rollout：实验性、默认关闭且不阻塞 `CORE_TEXT_GA`；优化器自身不接用户流量，任何产出的 Bundle/Policy candidate 仍走 M6-T07 的既有 shadow/canary/rollback
+- Build prerequisite：M0-T05、M6-T01、M6-T03、M6-T05A
+- 适用性：实验性、默认关闭；优化器不进入 `/chat` 或 Agent graph，只产离线候选
 
 保留当前 `GEPALiteProposalGenerator` 作为兼容 adapter，但对外能力名改为 `ConstrainedCandidateOptimizer` / `GEPA-inspired bounded offline candidate optimizer`，不得宣称完整 GEPA 或在线自进化。
 
@@ -2450,32 +2372,31 @@ deletion/restore/rebuild proof。M4-T04R 只能消费已签署 manifest，不能
 3. 继续生成 4–8 个不可变候选，但只返回 owner-scoped typed patch；权限、approval、tenant、PII、Verifier、Gold、业务 receipt、安全规则和 Agent graph 不能成为优化面。
 4. Prompt/Tool description 即使通过字段 allowlist，也必须再经过 injection、越权、required-tool 和 safety adversarial gate；字段白名单不等于语义安全。
 5. proposal/dev 与 validation/fresh heldout 按 user/order/product/time/semantic group 隔离；optimizer 永远看不到最终 heldout，候选报告固定 dataset/runner/judge/scorer/model/prompt 版本。
-6. 复用 M6-T07 已接通的 `CandidateRunner`、真实 GateRunner/GateArtifact/Pareto 与发布链；optimizer 没有提交、覆盖或解释 Gate 证据的接口。
-7. 优化器只注册 candidate；Evaluation/Release Owner 签署不可变 GateDecision 后，M6-T07 才能启用 shadow/canary/active pointer。运行中的请求继续使用 admission 时 pinned 的已发布版本。
-8. 手工 Bundle 与优化器 Bundle 使用同一发布合同，不增加第二套生命周期；优化器关闭时也不得恢复旧 caller-self-attestation 路径。
-9. 同步修订 `docs/agent-evolution.md`，使其发布证据描述与 M6-T07 的真实实现一致。
+6. 复用迁入 M6-T01 的 `CandidateRunner`、EvaluationManifest、deterministic scorer 与 Pareto report；optimizer 没有提交、覆盖或解释评测证据的接口。
+7. 优化器只注册 candidate；领域 Policy Owner 与独立 reviewer 根据不可变 EvaluationDecision 选择是否把某个版本提交到代码/配置；未通过则不绑定。
+8. 手工 Bundle 与优化器 Bundle 使用同一离线评测合同，不增加第二套生命周期；优化器关闭时也不得恢复旧 caller-self-attestation 路径。
+9. 同步修订 `docs/agent-evolution.md`，使其证据描述与离线候选边界一致。
 
 验证：
 
 - `/chat`、TaskGraph 和 LangGraph checkpoint 不调用 optimizer；关闭 optimizer 不影响任何客服路径；
 - 未复现、归因模糊、跨 Owner、含 PII、Memory→Knowledge 错归因、试图修改安全面或读取 heldout 的 case 被拒绝；
 - caller 伪造 Gate 布尔值、重贴别的 candidate report、总体分掩盖 route/safety 退化均不能晋级；
-- 候选生成、评测、人工签署、shadow/canary、回滚全链绑定 candidate hash 与不可变证据；
-- 与冻结 baseline 做 paired evaluation，报告质量、风险、延迟和成本的 Pareto front；无增益时安全关闭，不在生产主链留下依赖。
+- 候选生成、评测、人工选择与 checked-in version 全链绑定 candidate hash 与不可变证据；
+- 与冻结 baseline 做 paired evaluation，报告质量、风险、延迟和成本的 Pareto front；无增益时安全关闭，不在目标主链留下依赖。
 
 ### M6 Exit Gate
 
-M6 不要求所有 profile 同时 Ready；每个 profile 独立判定。共同门禁：
+M6 对已实现能力分别出具 EvaluationDecision；可选多模态/图检索/GEPA 不阻塞核心文本链。共同验收：
 
-- Eval 真实执行生产 ChatApplication 和相应 Agent 路径；
+- Eval 真实执行目标 ChatApplication 和相应 Agent 路径；
 - 有人审 Gold 与独立 fresh heldout；
 - 可从 response_id 定位失败层；
-- 该 profile 所需 crash/retry/memory/handoff/multimodal 生命周期与不变量案例通过；
-- 线上指标按 route 可观测；
-- shadow/canary/rollback 经过演练；
-- Gate manifest 的 hard/soft 条件满足后，才可对外声明该 profile 的生产质量和量化提升。
+- 所需 crash/retry/memory/handoff/multimodal 生命周期与不变量案例通过；
+- 本地/CI 指标按 route 可观测；
+- EvaluationManifest 的 hard/soft 条件满足后，才可对外声明相应离线评测质量和量化提升。
 
-M6-T09 是非阻塞离线优化工具：未启用不影响任何 Release Profile；一旦启用，它只能提出候选，不能降低上述 Gate 或获得独立发布权。
+M6-T09 是非阻塞离线优化工具：未启用不影响主链；一旦启用，它只能提出候选，不能降低上述评测标准或获得独立 binding 权。
 
 ## 13. 跨里程碑专项任务
 
@@ -2488,7 +2409,7 @@ M6-T09 是非阻塞离线优化工具：未启用不影响任何 Release Profile
 
 交付：schema/version registry、migration/forward-fix、snapshot restore runbook；checkpoint 与 domain schema 独立版本；旧 Agent run 恢复前验证 code/schema compatibility。
 
-验证：空库/逐版本/跳版本/生产快照副本迁移、并发写入、失败恢复、数据 count/hash reconciliation。没有可证明 downgrade 时必须明确 forward-fix，不伪造可逆 migration。
+验证：空库/逐版本/跳版本/fixture seed、并发写入、失败恢复、restore 后 count/hash。没有可证明 downgrade 时必须明确 forward-fix，不伪造可逆 migration。
 
 ### X-T02：并发与多副本
 
@@ -2497,7 +2418,7 @@ M6-T09 是非阻塞离线优化工具：未启用不影响任何 Release Profile
 - Owner：Platform + Agent Runtime + Domain Tool
 - Build prerequisite：M1-T00、M1-T04
 
-交付：conversation invocation 单写者/CAS、可续租 projection lease、tool claim expiry/reconciliation、PostgreSQL/Redis failover runbook、immutable index generation + active pointer。
+交付：conversation invocation 单写者/CAS、可续租 projection lease、tool claim expiry/reconciliation、PostgreSQL/Redis failover runbook、immutable index generation + current generation reference。
 
 验证：多进程 property/stress test、lease owner crash、网络分区/failover、迟到 worker、双 active worker 负向测试；任何结果不得产生双主、重复 response 或重复业务 effect。
 
@@ -2564,28 +2485,28 @@ M6-T09 是非阻塞离线优化工具：未启用不影响任何 Release Profile
 
 ## 14. 可领取的 Pull Request / Delivery Slice
 
-下表每行是不超过 M 的最大可领取 slice，不是把整张 L 卡塞进一个 PR。实际提交可以更小，但不能把相邻行重新合并为跨两个事实 Owner 的大改。**任务卡是 Build/Verification/Cutover/Rollout DAG 的唯一来源**；CI 从任务卡/manifest 生成 PR 检查，本表不重复维护前置关系。Gate/enable 动作必须独立于 schema/build PR。
+下表每行是不超过 M 的最大可领取 slice，不是把整张 L 卡塞进一个 PR。实际提交可以更小，但不能把相邻行重新合并为跨两个事实 Owner 的大改。**任务卡是 Build/Verification DAG 的唯一来源**；CI 从任务卡/manifest 生成 PR 检查，本表不重复维护前置关系。目标 binding 与旧路径删除属于相应 Owner 的显式 delivery slice。
 
 任务卡含多个 delivery slice 时，每个 slice 使用稳定 `SliceRef(task_id,slice_id,requires)` 并产出不可变 `SliceArtifact`；任务的 `TaskCompletionArtifact` 是卡内全部 SliceArtifact 的 all-of 聚合，缺任一项或依赖未满足都不能把 TaskRef 标成 `IMPLEMENTED`。卡内未声明顺序的 slices 在共同 Build prerequisite 后可并行；声明 `Delivery slice DAG` 的任务必须按该 DAG 执行。下表中的 PR 名只映射 SliceRef，不反向发明依赖。
 
 | Slice | 对应任务 | 有界交付 |
 |---|---|---|
-| PR-01 | M0-T01 | ChatApplication skeleton + characterization adapter |
+| PR-01 | M0-T01 | existing ChatApplication boundary hardening + characterization tests |
 | PR-02 | M0-T02 | IDs/value objects + property tests |
-| PR-03 | M0-T03 | production-chain Eval runner |
+| PR-03 | M0-T03 | service-chain Eval runner |
 | PR-04 | M0-T04 | baseline manifest/report |
-| PR-04A | M0-T05 | GatePrerequisite/GateManifest schema + linter |
+| PR-04A | M0-T05 | EvaluationPrerequisite/EvaluationManifest schema + linter |
 | PR-04B | M0-T05 | 首个冻结 M0 manifest/evidence/decision |
 | PR-05A | M1-PF01 | PostgreSQL/CI fixture/migration runner |
-| PR-05B | M1-PF01 | SQLite inventory + backup/restore/cutover ADR |
+| PR-05B | M1-PF01 | clean-install/fixture seed + backup/restore ADR |
 | PR-06 | M1-T00 | Admission ports + ExecutionView/ChatOutcome projector |
 | PR-07A | M1-T01 | Conversation/event schema + immutable/sequence invariants |
 | PR-07B | M1-T01 | Invocation/Delivery schema + indexes/concurrency migrations |
 | PR-08 | M1-T02 | admission/start-outbox repository + lease dispatcher |
-| PR-09 | M1-T02 | inbound-first transaction + crash/cutover tests |
+| PR-09 | M1-T02 | inbound-first transaction + crash/direct-binding tests |
 | PR-10 | M1-T03 | final/interaction/human publication + delivery safety commands |
-| PR-10A | M1-T03A | Delivery export/backfill/shadow reconcile |
-| PR-10B | M1-T03A | Delivery freeze/single-owner cutover/restore drill |
+| PR-10A | M1-T03A | PostgreSQL Delivery composition binding + clean-fixture integration |
+| PR-10B | M1-T03A | SQLite Delivery/migration-helper/config removal + restore drill |
 | PR-11A | M1-T04 | conversation projection outbox/watermarks |
 | PR-11B | M1-T04 | deletion fence + projection rebuild |
 | PR-11C | M1-T04A | DataLocationRegistry schema + pre-write registration/fence gate |
@@ -2594,32 +2515,32 @@ M6-T09 是非阻塞离线优化工具：未启用不影响任何 Release Profile
 | PR-13A | M2-T01A | Agent-owned Intent/Domain/Instance policy registries, trace and replay |
 | PR-14 | M2-T02 | AuthorityPolicyRegistry + validated tool manifests |
 | PR-15 | M2-T03 | EvidenceReceipt adapters/contracts |
-| PR-16 | M2-T04A | SourceRevision v0 + corpus backfill/heldout |
+| PR-16 | M2-T04A | SourceRevision v0 + canonical-source ingest/heldout |
 | PR-17 | M2-T04 | CoverageGate/RequirementStatus + route-specific VerificationProfile |
 | PR-18P-A | M2-PF01 | HybridRetrievalBackend contract + generation registry + PostgreSQL migrations |
 | PR-18P-B | M2-PF01 | pgvector Dense + versioned Chinese FTS adapter/conformance tests |
-| PR-18P-C | M2-PF01 | canonical outbox projection + backfill/shadow/delete-fence proof |
+| PR-18P-C | M2-PF01 | canonical outbox projection + clean rebuild/delete-fence proof |
 | PR-18A1 | M2-T05 | `M2-T05-A1`：KnowledgeRetriever/cache port + Redis adapter + CacheBackedEmbeddings wrapper |
 | PR-18A2 | M2-T05 | `M2-T05-A2`：layered key/invalidation/single-flight + cache/full-recompute equivalence tests |
-| PR-18B | M2-T05 | `M2-T05-B`：API/Agent/search consumers + outer-cache/old-path removal + pre-Exit PG dark-shadow report |
-| PR-18C | M2-T05C | Knowledge PG pinned canary + atomic read-pointer rollback |
+| PR-18B | M2-T05 | `M2-T05-B`：API/Agent/search consumers + outer-cache/old-path removal + offline PG report |
+| PR-18C | M2-T05C | Knowledge PG direct binding + legacy retrieval removal |
 | PR-19 | M2-T06 | eight route-specific execution/publishing paths + forbidden-call/verification binding |
 | PR-19A | M2-T06A | Agent-owned TaskFormation/TaskGraph/Synthesis invocation policies + budget/dependency/coverage invariants |
-| PR-19B | M2-T06R | active Bundle enable/rollback runbook + fault tests |
+| PR-19B | M2-T06R | target Bundle direct binding + old publisher/rollout/profile/cohort/toggle removal |
 | PR-20 | M3-T01 | LangGraph ADR/spike/version lock |
 | PR-21 | M3-T02 | thin AgentRunState + Postgres checkpointer/projector |
 | PR-22 | M3-T03 | thin hydrate/gate/finalize graph shell |
 | PR-23A | M3-T03 | opaque orchestrator node + stable child IDs |
-| PR-23B | M3-T03 | dark graph worker + HTTP adapter（flag-off） |
+| PR-23B | M3-T03 | graph worker + HTTP adapter integration（not yet bound） |
 | PR-23C | M3-T03A | Agent-local TaskGraph plan/wave/outcome/resume checkpoint adapter |
 | PR-24 | M3-T04 | retry/timeout/error algebra |
 | PR-25A | M3-T05 | native interrupt payload schema/auth binding + immutable signal events |
 | PR-25B | M3-T05 | single blocking native interrupt/resume/restart integration |
-| PR-26A | M3-T06 | ToolExecutionLedger/ApprovalEvent interfaces + backfill |
-| PR-26B | M3-T06 | owner cutover/replay guard/old RunStore retirement |
+| PR-26A | M3-T06 | ToolExecutionLedger/ApprovalEvent interfaces + clean-fixture contracts |
+| PR-26B | M3-T06 | direct owner binding/replay guard/old RunStore removal |
 | PR-27A | M3-T08 | deterministic crash/fault harness |
 | PR-27B | M3-T08 | full cut-point matrix + Gate evidence |
-| PR-27C | M3-T09 | Agent Runtime single-owner release action/runbook |
+| PR-27C | M3-T09 | LangGraph direct runtime binding + old execution wrapper removal |
 | PR-28 | M3-T07 | optional SSE/WebSocket cursor stream |
 | PR-29 | M4-T01 | MemoryProjectionResult |
 | PR-30A | M4-T02 | ThreadSummaryProjector/schema/policy + embedded summarizer adapter |
@@ -2627,30 +2548,30 @@ M6-T09 是非阻塞离线优化工具：未启用不影响任何 Release Profile
 | PR-31A | M4-T03 | ContextPolicy/budget estimator |
 | PR-31B | M4-T03 | provider/ReAct boundary enforcement |
 | PR-32A | M4-T03A | WorkingContext view builder + adaptive cross-session retrieval consumer |
-| PR-32B | M4-T03B | ActiveCase projection/legacy profile/selector + dark shadow adapter |
-| PR-32C | M4-T03C | ActiveCase bounded-canary enable/rollback action |
+| PR-32B | M4-T03B | ActiveCase projection/frozen baseline/selector + paired tests |
+| PR-32C | M4-T03C | ActiveCase direct consumer binding + old selection removal |
 | PR-32D | M4-T03D | ServiceContinuityReader typed adapters/brief + Router/ContextPolicy scoped integration |
 | PR-32E-A | M4-T03E | `M4-T03E-A`：TaskContinuationProjector/FrameReader + continuation identity + AsyncPostgresStore/Redis adapter |
 | PR-32E-B | M4-T03E | `M4-T03E-B`：Agent-owned ContinuationGate + hard invalidation/property tests |
 | PR-32E-C | M4-T03E | `M4-T03E-C`：ReuseBindingIdFactory + receiving-adapter ports + PriorOutcomeBinding/delta TaskGraph/fault E2E |
 | PR-33A | M4-T04 | ServiceEpisode schema/verified writer |
 | PR-33B | M4-T04 | episode hybrid retrieval/provenance |
-| PR-33C | M4-T04 | raw-memory inventory/backfill/shadow + pointer/cutover preparation |
-| PR-33D | M4-T04C | ServiceEpisode retrieval bounded-canary enable/rollback action |
-| PR-33E | M4-T04R | legacy Chroma/SQLite BM25 retirement + purge/dependency removal |
+| PR-33C | M4-T04 | canonical Episode projection + offline paired retrieval report |
+| PR-33D | M4-T04C | ServiceEpisode PostgreSQL direct binding |
+| PR-33E | M4-T04R | Chroma/SQLite BM25 reader/writer/config/dependency removal |
 | PR-34A | M4-T05 | MemoryAtom schema + durable AtomProjector/LangMem adapter + validator |
 | PR-34B | M4-T05 | ProfileView projector + field revision/CAS/supported preference policy |
 | PR-34C | M4-T05 | user view/change/retract/delete APIs + deletion-fence tests |
-| PR-34D | M4-T05C | Profile inventory/backfill/freeze/delta/PostgreSQL single-owner cutover |
+| PR-34D | M4-T05C | Profile PostgreSQL direct binding + legacy Profile path removal |
 | PR-35A | M4-T06 | Commitment state/store/receipt |
 | PR-35B | M4-T06 | due worker/evidence/archive |
-| PR-36A | M4-T07 | Handoff schema + ServiceCase migration |
-| PR-36B | M4-T07 | CRM outbox/human publication links + migration rehearsal |
-| PR-36C | M4-T07C | Ticket/Handoff single-owner release action |
+| PR-36A | M4-T07 | Handoff schema + ServiceCase clean schema/fixture |
+| PR-36B | M4-T07 | CRM outbox/human publication links + E2E tests |
+| PR-36C | M4-T07C | Ticket/Handoff PostgreSQL direct binding + SQLite removal |
 | PR-37A | M4-T08 | Deletion coordinator/state + registered adapters |
 | PR-37B | M4-T08 | all-surface proof/fault/backup-restore tests |
 | PR-38A | M5-T01 | SourceRevision review/reject lifecycle |
-| PR-38B | M5-T01 | stage/activate/retract/manifest rollback |
+| PR-38B | M5-T01 | stage/activate/retract/current-manifest selection |
 | PR-39A | M5-T02 | `M5-T02-A`：attachment/asset/admission schemas |
 | PR-39B | M5-T02 | `M5-T02-B`：storage + scan/security + job-binding mapping + sealed readiness/`MEDIA_RESOLVED` + delete adapter |
 | PR-39C | M5-T02A | Agent-owned `MediaRequirementDecision` canonical schema/producer port + Multimodal validator contract |
@@ -2676,15 +2597,11 @@ M6-T09 是非阻塞离线优化工具：未启用不影响任何 Release Profile
 | PR-49B | M6-T03 | fresh-heldout lifecycle/leakage audit |
 | PR-50A | M6-T04 | single OTel bootstrap + W3C API/worker/outbox propagation |
 | PR-50B | M6-T04 | Collector redaction/tail sampling + filtered Tempo/Jaeger/Langfuse routes |
-| PR-50C | M6-T04 | Agent/Generation/Retriever/Tool/Media observations + online usage/cost |
+| PR-50C | M6-T04 | Agent/Generation/Retriever/Tool/Media observations + usage/cost |
 | PR-51 | M6-T05 | response-bound feedback |
 | PR-51A | M6-T05A | FailureObservation taxonomy + trace/receipt/service-outcome join |
 | PR-51B | M6-T05A | triage/annotation + trace-to-regression/score adapters |
-| PR-52 | M6-T06 | route KPI/SLO dashboards |
-| PR-53 | M6-T08 | release-profile manifest instances |
-| PR-54A | M6-T07 | shadow runner/effect guard |
-| PR-54B | M6-T07 | canary/decision/rollback |
-| PR-54C | M6-T07 | server-generated GateArtifact binding + caller-attestation bypass removal |
+| PR-52 | M6-T06 | route KPI/performance-budget reports |
 | PR-55A | M6-T09 | GEPA-inspired offline optimizer + owner-scoped typed PolicyPatch |
 | PR-55B | M6-T09 | optimizer-to-candidate registry adapter + owner/heldout boundary tests |
 | PR-X01A/B | X-T01 | schema registry；再做 migration/restore matrix |
@@ -2786,13 +2703,13 @@ ResponseDelivery 独立从 SELECTED→DELIVERING→OUTCOME_UNKNOWN/RECONCILING�
 ### 15.12 Chroma/BM25 → PostgreSQL pgvector/中文 FTS
 
 ```text
-相同 frozen Knowledge/Episode corpus 与 query capture 同时运行 legacy 和 PG backend。
+用同一 frozen Knowledge/Episode corpus 与 query capture 在离线 runner 中分别执行当前基线和 PostgreSQL backend；二者不同时进入服务 composition root。
 断言：
 - Knowledge/Episode/Media 分 corpus、generation、policy 和 ACL，不跨库共排；
 - LEGACY_BM25_V1 与 PG_FTS_ZH_V1 使用不同 fingerprint，分别评分；
-- shadow 不发布，canary invocation 固定 backend/generation，UNAVAILABLE 不静默 fallback/no-match；
-- Gate 前后任一 crash point 都只有一个 active read pointer，canonical PostgreSQL 事实不回滚；
-- deletion/restore/rebuild/in-flight/rollback-window 证明齐全后才退役 Chroma/SQLite BM25。
+- 从 canonical source/fixture clean rebuild 后，真实 ChatApplication 集成测试只连接 PostgreSQL generation；
+- 通过本地检索、引用、权限、删除、恢复、重建和故障测试后，一次绑定唯一 PostgreSQL reader/writer；
+- 同一交付阶段删除 Chroma/SQLite/Python BM25 reader、writer、fallback、toggle、脚本和依赖；PostgreSQL `UNAVAILABLE` 不静默回落或伪装成 no-match。
 ```
 
 ### 15.13 连续追问、增量检索与按需视觉
@@ -2825,20 +2742,21 @@ ResponseDelivery 独立从 SELECTED→DELIVERING→OUTCOME_UNKNOWN/RECONCILING�
 - Status: NOT_STARTED | IN_PROGRESS | IMPLEMENTED | VERIFIED | BLOCKED
 - Owner:
 - Target contract version:
-- Feature flag:
+- Current implementation status: CURRENT_ACTIVE | IMPLEMENTED_NOT_BOUND | PLANNED | SUPERSEDED_TO_REMOVE
 - Implemented tasks:
 - Open tasks:
-- Migration/backfill status:
+- Clean schema/source rebuild:
+- Target composition binding:
+- Replaced path deletion:
 - Unit/property/state-machine tests:
 - E2E/fault injection:
-- Fresh heldout/shadow evidence:
+- Fresh heldout/paired evidence:
 - Observability dashboard:
-- Rollback rehearsal:
 - Known limitations:
-- Exit Gate decision:
+- EvaluationDecision:
 ```
 
-`IMPLEMENTED` 不等于 `VERIFIED`。没有 fresh heldout、故障注入、灰度或独立复核时，只能标记实现完成，不能宣布架构闭环。
+`IMPLEMENTED` 不等于 `VERIFIED`。没有适用的 fresh heldout、故障注入、独立复核、唯一目标 binding 和旧路径删除证据时，只能标记实现完成，不能宣布架构闭环。
 
 ## 17. 简历成熟度对齐检查表
 
@@ -2851,16 +2769,16 @@ ResponseDelivery 独立从 SELECTED→DELIVERING→OUTCOME_UNKNOWN/RECONCILING�
 | Durable Agent Runtime | Agent loop crash/restart、interrupt/resume、幂等副作用、Postgres checkpoint |
 | 分层 Memory | transcript/working/episode/profile/commitment 合同和删除测试 |
 | 多模态 RAG | 真实 PDF/图片集、page/bbox grounding、视觉 abstention/safety |
-| Agent 评测与 A/B | ChatApplication runner、human Gold、shadow/canary、置信区间 |
-| 线上稳定性 | 单一 OTel 上下文、Langfuse AI observations、SLO、故障演练、恢复/重复发布指标 |
-| GEPA-inspired 优化 | M6-T09 完成，脱敏 FailurePacket、typed patch、真实 GateArtifact、fresh heldout 与 rollout 证据齐全；只能表述为离线受限候选优化 |
+| Agent paired/heldout 评测 | ChatApplication runner、human Gold、冻结 baseline、paired report、置信区间 |
+| Durable/可观测性 | 单一 OTel 上下文、Langfuse AI observations、本地/CI 性能预算、故障演练、恢复/重复发布指标 |
+| GEPA-inspired 优化 | M6-T09 完成，脱敏 FailurePacket、typed patch、冻结 EvaluationManifest 与 fresh heldout 证据齐全；只能表述为离线受限候选优化 |
 
 ### 不应复制的表述
 
 - 未在本项目测得的百分比；
 - 只因安装依赖就声称拥有该能力；
 - 把本地 SQLite checkpoint 称为分布式 durable runtime；
-- 把进程内 Trace 称为生产可观测平台；
+- 把进程内 Trace 称为完整可观测平台；
 - 把图片 caption + 文本搜索称为完整多模态 RAG；
 - 把 Agent 输出 SUCCESS 称为业务任务解决。
 - 把当前一次性受限候选生成称为完整 GEPA、在线自进化或自动根因分析。
@@ -2905,7 +2823,6 @@ knowledge/retrieval_cache.py
 retrieval/contracts.py
 retrieval/generation_registry.py
 retrieval/postgres_backend.py
-retrieval/legacy_backend.py
 retrieval/chinese_lexical.py
 retrieval/projectors.py
 
@@ -2919,7 +2836,7 @@ multimodal/retrieval.py
 evaluation/chat_application_runner.py
 evaluation/service_chain/
 evaluation/fault_injection/
-evaluation/gates/
+evaluation/manifests/
 evaluation/trace_analysis.py
 evaluation/failure_taxonomy.py
 evaluation/langfuse_adapter.py
@@ -2931,40 +2848,26 @@ observability/sampling.py
 services/evolution/failure_packet.py
 migrations/
 docs/runbooks/
-docs/runbooks/chroma-pgvector-cutover.md
+docs/runbooks/postgres-clean-rebuild.md
 ```
 
 目录名称可以根据仓库风格调整，但每个权威语义必须有一个明确 Owner，不能因为文件位置变化而重新落回 API、adapter 或 test fixture。
 
-## 19. 推荐开始顺序
+## 19. 按当前分支状态继续实施的顺序
 
-第一批只启动以下任务：
+不是从零重做已提交能力，而是按四类状态继续：
 
-1. M0-T01 `ChatApplication`；
-2. M0-T02 稳定身份；
-3. M0-T03 真实主链 Eval；
-4. M0-T05 Gate Manifest Foundation 可同步建立；
-5. M0-T04 冻结基线并签署首个 manifest；在它完成前不启用任何行为变化；
-6. M1-T00 纯 Admission/ThinExecution/ChatOutcome/ports 合同可与 M1-PF01 PostgreSQL foundation 并行；
-7. M1-T01 Conversation/Invocation/Delivery schema；
-8. M1-T02 inbound-first/start-outbox/dispatcher 与 M1-T03 统一发布在 schema 后开发；
-9. M1-T03A 完成 ResponseDelivery 单主切换，再启用 M1 主链；
-10. M2-T01 RouteDecision 与 M2-T02 AuthorityPolicyRegistry 可 flag-off 开发；dark shadow 等待 M1 Exit，bounded canary 等待 M2 Exit，广泛放量等待 `CORE_TEXT_GA`；
-11. M2-T04A SourceRevision v0/backfill 在 Knowledge Gate 验证前完成。
-12. M2-PF01 在 PostgreSQL/DataLocation foundation 后建设共享 pgvector/中文 FTS backend；M2-T05
-    接入 Knowledge dark shadow，M2-T05C 只做 pinned bounded canary，不提前切全局默认。
-13. M4 让 Thread Summary、L1 Atom、verified L2 Episode 分别从 L0/Case/receipt 构建独立投影，
-    L3 Profile 只从 `status=ACTIVE` 的 supported preference Atom 派生；同时接入 ServiceContinuity 确定性读取，
-    禁止把它们误写成逐层摘要链或把未结服务债务向量化。
-14. 在 transcript、统一 Retriever、TaskGraph 局部恢复和 ServiceContinuity 都可用后实施 M4-T03E：先接
-    AsyncPostgresStore/Redis Frame，再 shadow ContinuationGate，最后启用 immutable delta TaskPlan；M5 只扩展
-    Agent `MediaRequirementDecision` 后的确定性 Perception artifact `MediaReusePolicy`，不增加 Continuation/Vision/ServiceDebt Agent。
-15. M4-T04C 与 M4-T05C 完成 Episode canary 和 Profile 单主切换后，由
-    `POSTGRES_RETRIEVAL_GA` 同时决定 Knowledge/Episode/Profile 的默认 PG binding；rollback window
-    与删除/恢复证明完成并取得 `LEGACY_RETRIEVAL_RETIREMENT` 决议后，才执行 M4-T04R 退役
-    Chroma/SQLite BM25。
+1. 用 M0-T01/T02/T03/T04/T05 冻结当前 `ChatApplication` 真链、稳定身份、baseline 与 EvaluationManifest；`/chat` 已是薄 adapter，这一步补齐验证，不重复抽取入口。
+2. 对 M1 已实现的 PostgreSQL/Conversation/Admission/Publication/Delivery 合同补齐集成与故障测试；M1-T03A 一次绑定 PostgreSQL Delivery，并在同一变更删除 SQLite migration/cutover helper。
+3. 在已实现的 Route/Authority/TaskFormation 与 PostgreSQL retrieval foundation 上完成 M2 consumer；用离线 paired/fresh-heldout 证明后，M2-T05C/M2-T06R 一次绑定 Knowledge 与 Route/Bundle，并删除 Chroma/旧前置 RAG/旧 publisher/toggle/fallback。
+4. 实现 M3 LangGraph 薄 runtime，保留现有 AgentOrchestrator/TaskGraph/ReAct；checkpoint、interrupt、child outcome 与副作用故障测试通过后，由 M3-T09 一次绑定 runtime 并删除旧 execution wrapper/RunStore workflow-resume 路径。
+5. M4 让 Thread Summary、L1 Atom、verified L2 Episode 分别从 L0/Case/receipt 构建独立投影；L3 Profile 只从 `status=ACTIVE` 的 supported preference Atom 派生，并接入 ActiveCase、ServiceContinuity、Commitment 与 Handoff 的确定性读取。
+6. 在 transcript、统一 Retriever、TaskGraph 局部恢复和 ServiceContinuity 可用后实现 M4-T03E 的 TaskContinuationFrame/ContinuationGate/immutable delta TaskPlan；不用新增 Continuation、Vision 或 ServiceDebt Agent。
+7. M4-T03C/T04C/T05C/T07C 各自在同一 slice 完成目标 binding 与本领域旧 reader/writer/toggle/fallback 删除；M4-T04R 只清理此后已不可达的共享 Chroma/SQLite BM25 基础和依赖。开发数据从 canonical source/fixture clean rebuild，不导入旧运行数据。
+8. M5-T01 保留知识 SourceRevision 内容生命周期；M5 多模态按 L0/L1/L2 需求执行和 artifact 复用，只在本地多模态评测通过后接入唯一目标路径。
+9. M6 完成真实 ChatApplication 服务链、故障注入、OTel/Langfuse 和简历指标；GEPA-inspired 只产离线候选，经人工选择后提交新版本并重新运行同一 EvaluationManifest。
 
-在 M1/M2 Exit Gate 之前，不建议先进行：
+在 M1/M2 核心合同验收之前，不建议先进行：
 
 - 全量 LangGraph 重写；
 - ReAct 引擎替换；
@@ -2986,14 +2889,15 @@ docs/runbooks/chroma-pgvector-cutover.md
 → 为现有 Agent 增加 LangGraph 薄 durable runtime
 → Memory/Commitment/Handoff
 → Knowledge/Multimodal
-→ 真实服务链评测与发布
+→ 真实服务链评测与目标绑定
 ```
 
 目标数据面统一为 PostgreSQL：领域表保存 transcript、Memory 与服务责任事实，pgvector +
 版本化中文 FTS 保存 Knowledge/Episode/Media 的可重建检索投影；它们共享成熟基础设施，但按
-Owner/corpus 分表、分 policy、分 Gate。切换采用 shadow → pinned canary → 原子 pointer → 有界
-rollback → legacy retirement，不把旧 Chroma 变成永久 sidecar，也不为了存储迁移改写现有
-Agent/TaskGraph 编排。
+Owner/corpus 分表、分 policy、分 EvaluationManifest。当前分支只保留一个运行后端：从 canonical
+source/fixture clean rebuild，离线 paired/fresh-heldout 与真实 ChatApplication 测试通过后一次绑定
+PostgreSQL；同一 milestone 删除 Chroma/SQLite reader、writer、fallback、toggle、脚本和依赖。这里不把
+旧 Chroma 变成 sidecar，也不为了存储替换改写现有 Agent/TaskGraph 编排。
 
 完成后的判断标准不是目录里是否出现了 `langgraph`、`vlm` 或 `LightRAG`，而是以下性质是否成立：
 

@@ -6,13 +6,21 @@ permalink: /customer-service-agent-target-architecture.html
 
 # DialogPilot 客服 Agent 总体目标架构
 
-> 状态：目标架构提案（Target Architecture Proposal）
+> 状态：目标架构提案（本地直接替换版）
 >
-> 版本：v1.0
+> 版本：v1.1
 >
-> 日期：2026-09-01
+> 日期：2026-09-02
 >
 > 配套实施文档：[DialogPilot 客服 Agent 颗粒度实施计划](./customer-service-agent-implementation-plan.zh-CN.md)
+
+> 实施前提：当前是个人开发分支，没有线上流量，也没有必须保留的旧运行数据。本文采用
+> **clean rebuild + direct cutover**：新链从 source/fixture 重建并通过本地/CI 验收后，各领域 Owner
+> 逐 slice 直接切换自己的唯一 binding，并在同一原子交付中删除对应旧 reader、writer、adapter、配置与依赖；
+> 最终 composition root 只聚合已经完成的目标 binding。本文不设计
+> backfill、双写、shadow、canary、cohort、运行时旧链 fallback 或 rollback window。Git 历史用于
+> 开发回退，不在运行时保留第二条架构路径。若未来出现真实不可丢数据或线上流量，必须另立迁移 ADR，
+> 不能把那套复杂度预埋进当前架构。
 
 ## 1. 执行摘要
 
@@ -34,15 +42,15 @@ DialogPilot 下一阶段的目标不是把现有系统改造成一个更复杂�
 本提案作出以下核心决策：
 
 1. **不全量迁移 LangChain。** LangChain 只作为可选模型、工具或文档解析适配层，不拥有业务语义。
-2. **渐进引入 LangGraph。** LangGraph 只承载现有 Agent 的 checkpoint、interrupt、resume、retry 调度和执行历史；Planner、TaskGraph、ReAct 与各业务 Owner 继续拥有编排语义、事实、安全和副作用。
+2. **采用 LangGraph 薄运行时。** 先在当前分支按依赖顺序完成 checkpoint、interrupt、resume、retry 与执行历史适配，验收后一次切换唯一 runtime binding；Planner、TaskGraph、ReAct 与各业务 Owner 继续拥有编排语义、事实、安全和副作用。
 3. **建立唯一的完整会话事实。** 用户输入必须在推理前持久化；正常回复、越域回复、审批恢复、人工回复和送达回执统一进入同一会话生命周期。
 4. **重新划分 Memory。** 工作现场、短期会话、服务经历、用户偏好和企业承诺分别建模；实时订单、退款和账户状态不进入长期记忆。
 5. **统一证据合同。** 知识片段、业务工具回执、记忆事件、图片观察和人工确认统一投影为 `EvidenceReceipt`，但各自仍保留原始权威 Owner。
 6. **路由先确定任务形态和权威来源。** 纯知识问题走短路径，实时业务问题走工具路径，混合问题同时获取知识和业务证据，复杂跨域问题才启用多 Agent。
 7. **多模态不是“给模型看图”。** 商品识别、说明书检索、错误截图理解和维修诊断必须分别拥有输入、检索、证据坐标、置信度与安全升级合同。
-8. **评测真实服务链。** HTTP 生产入口与评测必须共用同一个 `ChatApplication.handle()`，以确定性状态和权威回执验证服务结果，而不是只比较最终文本。
+8. **评测真实服务链。** HTTP 服务入口与评测必须共用同一个 `ChatApplication.handle()`，以确定性状态和权威回执验证服务结果，而不是只比较最终文本。
 
-首要架构收敛目标是形成一个薄、持久、可恢复的 `AgentRunState`，让 `/chat`、resume、eval 和 handoff 共用同一个 Agent graph；Conversation、Memory、Tool、Delivery 和 Ticket 仍由领域 Owner 通过引用接入。实施顺序仍须先提取 `ChatApplication`、建立 admission/idempotency 与完整会话事实，再接入 LangGraph；不能把“首要目标”误解为先做框架迁移或自研重型流程引擎。
+首要架构收敛目标是形成一个薄、持久、可恢复的 `AgentRunState`，让 `/chat`、resume、eval 和 handoff 共用同一个 Agent graph；Conversation、Memory、Tool、Delivery 和 Ticket 仍由领域 Owner 通过引用接入。当前 `/chat → ChatApplication.handle()` 边界已经存在，实施顺序是先核验并加固该边界、补齐 admission/idempotency 与完整会话事实，再接入 LangGraph；不能把“首要目标”误解为重复抽取 Application、先做框架迁移或自研重型流程引擎。
 
 ## 2. 背景与根因
 
@@ -57,7 +65,7 @@ DialogPilot 下一阶段的目标不是把现有系统改造成一个更复杂�
 - 有序原始消息、范围摘要、CAS checkpoint、版本化用户事实；
 - BM25、Dense、RRF、Rerank、Packing 和 EvidencePack；
 - fail-closed 的发布前 Verifier；
-- 版本化 Bundle、灰度、回滚和 provisional Bad Case 生命周期。
+- 版本化 Bundle、离线候选评测和 provisional Bad Case 生命周期。
 
 现状证据地图用于区分“已实现”与“目标”：
 
@@ -70,16 +78,27 @@ DialogPilot 下一阶段的目标不是把现有系统改造成一个更复杂�
 | Memory/summary/context | [conversation_memory.py](../memory/conversation_memory.py)、[context.py](../memory/context.py) | [test_context_memory.py](../tests/test_context_memory.py) |
 | Knowledge/RAG | [knowledge_base.py](../mcp/knowledge_base.py)、[evidence_pack.py](../mcp/evidence_pack.py) | [test_knowledge_base_retrieval.py](../tests/test_knowledge_base_retrieval.py)、[test_rag_pipeline_evaluation.py](../tests/test_rag_pipeline_evaluation.py) |
 | 发布前 Verifier | [answer_verifier.py](../services/answer_verifier.py) | [test_answer_verifier.py](../tests/test_answer_verifier.py) |
-| 受限 Bundle 候选/rollout | [proposal_generator.py](../services/evolution/proposal_generator.py)、[candidate_runner.py](../evaluation/candidate_runner.py)、[rollout.py](../services/evolution/rollout.py) | [test_evolution_pipeline.py](../tests/test_evolution_pipeline.py)；当前是 GEPA-inspired 候选生成，不是完整 GEPA/在线自进化 |
-| 进程内 Trace | [tracing.py](../core/tracing.py) | [test_tool_security_trace.py](../tests/test_tool_security_trace.py)；当前不具备持久 OTel/W3C/Langfuse 生产链路 |
+| 受限 Bundle 候选/评测 | [proposal_generator.py](../services/evolution/proposal_generator.py)、[candidate_runner.py](../evaluation/candidate_runner.py) | [test_evolution_pipeline.py](../tests/test_evolution_pipeline.py)；当前是 GEPA-inspired 候选生成，不是完整 GEPA/在线自进化；既有 rollout 代码不属于目标运行链，直接替换完成后删除 |
+| 进程内 Trace | [tracing.py](../core/tracing.py) | [test_tool_security_trace.py](../tests/test_tool_security_trace.py)；当前不具备持久 OTel/W3C/Langfuse 服务链路 |
 
 该表证明组件能力存在，不证明完整 `/chat` 已具备目标架构性质；后者必须由真实主链 Eval 和故障注入验证。
+
+截至本分支当前 HEAD，实施状态必须按下面四类理解，避免“代码已经存在”和“目标链已经接管”混淆：
+
+| 状态 | 当前范围 |
+|---|---|
+| `CURRENT_ACTIVE` | `/chat` 已是调用 `ChatApplication.handle()` 的薄 HTTP adapter；Application 内部调用现有 AgentOrchestrator/TaskGraph/ReAct、已接入的 TaskFormation/KnowledgeRetriever 接口，以及仍由 Chroma/Redis 提供候选或记忆的兼容实现 |
+| `IMPLEMENTED_NOT_BOUND` | PostgreSQL/Alembic、Conversation/Admission/Publication/Delivery contracts、canonical Route/Authority、KnowledgeRetriever 的 PostgreSQL retrieval backend，以及 ThreadSummary/ContextPolicy/ActiveCase/ServiceEpisode 的目标存储/投影已有实现或测试；这些目标 binding 尚未全部激活 |
+| `PLANNED` | LangGraph runtime、完整 Profile/Commitment/ServiceContinuity、完整多模态、OTel+Langfuse 与最终服务链评测仍需完成 |
+| `SUPERSEDED_TO_REMOVE` | 当前分支里已经写出的旧数据迁移、双路径比较、流量试运行和运行时回退辅助代码；它们保留实施历史，但不属于目标架构，直接切换完成时删除 |
+
+因此本文描述的是从当前分支继续完成并直接替换的目标，不宣称新链已经全部启用，也不把已实现能力倒写成待开发。
 
 问题不在于组件数量不够，而在于现有 Agent 主链缺少统一 invocation 身份、持久恢复边界和端到端发布合同。修复点是给现有 Agent 加薄的 durable shell，而不是另造一个覆盖所有业务因果关系的流程引擎。
 
 ### 2.2 当前完整链路
 
-当前 `/chat` 近似执行：
+当前 `/chat` 已经是薄 HTTP adapter；`ChatApplication` 在目标 durable binding 尚未完成时，内部兼容执行近似为：
 
 ```text
 MemoryManager.get_context
@@ -97,7 +116,7 @@ MemoryManager.get_context
 
 其中：
 
-- [API 主链](../api/main.py) 是事实上的隐式总编排器，但没有请求级 durable invocation 外壳；
+- [API 主链](../api/main.py) 已把协议映射收敛到 `ChatApplication.handle()`；当前缺口位于 Application 内部兼容执行尚未切为唯一 durable target binding，而不是再次抽取 HTTP 入口；
 - [RunStore](../agents/run_store.py) 的作用域只覆盖单个 ReAct run，并暂时兼任审批与工具执行账本；
 - [ResponseDeliveryService](../services/response_delivery.py) 只拥有被选择的 assistant 回复及 ACK；
 - [MemoryManager](../memory/conversation_memory.py) 只保存部分 in-scope 对话投影；
@@ -112,7 +131,7 @@ MemoryManager.get_context
 | 审批完成后下一轮失忆 | 从 `/agent-runs/.../resume` 恢复 | 恢复路径不进入原 delivery/memory 链 | Resume 没有继续原完整 Agent run |
 | 普通执行不能恢复 | ReAct 工具执行中崩溃 | 恢复只接受审批状态 | Checkpoint Owner 仅覆盖 ReAct 子循环 |
 | 同 request 重试可能重复回复/写记忆 | HTTP 重试 | 没有完整 invocation 幂等状态 | 没有 `TurnKey` 和 invocation 幂等合同 |
-| Eval 通过但真实链仍有缺口 | 运行 `full_execution` | Eval 直接调用 Orchestrator | 生产与评测没有共用应用服务 |
+| Eval 通过但真实链仍有缺口 | 运行 `full_execution` | Eval 直接调用 Orchestrator | 服务入口与评测没有共用应用服务 |
 | Context 入口未超限但 provider 输入膨胀 | 多步 ReAct、工具多 | Skill、tool schema、tool result 在入口预算后追加 | 最终调用边界没有 Token Owner |
 | 旧回复重新影响当前决策 | 跨会话检索命中 assistant 文本 | 历史用户原话与 assistant 输出同权归档 | 记忆来源权威未分层 |
 | RAG、Memory、Tool 可能重复调用 | 每次请求统一前置检索且 Agent 仍可调用 | 两个调用位置共享或分叉能力 | RouteDecision 没有拥有调用时机 |
@@ -130,7 +149,7 @@ MemoryManager.get_context
 5. 每种 Memory 均有明确写入门槛、来源、有效期、冲突和删除合同。
 6. 同一运行可暂停等待审批、用户补充材料或人工处理，并从原状态继续。
 7. 图片、扫描文档和故障截图进入可追溯的多模态检索与诊断链。
-8. 生产和评测共用真实服务链；评测可以定位是感知、路由、记忆、检索、工具、生成、交接还是送达失败。
+8. HTTP 服务入口和评测共用真实服务链；评测可以定位是感知、路由、记忆、检索、工具、生成、交接还是送达失败。
 9. 支持按 route 观测质量、延迟、成本、恢复和业务结果。
 
 ### 3.2 非目标
@@ -141,7 +160,7 @@ MemoryManager.get_context
 4. 不因技术栈简历中出现 Elasticsearch、LightRAG 或知识图谱就直接引入。
 5. 不把 VLM 观察当成商品型号、故障根因或安全结论的最终权威。
 6. 不把历史聊天全部永久保存为“长期记忆”。
-7. 不把 provisional、auto-mapped 或已参与修复的数据声明为生产准确率。
+7. 不把 provisional、auto-mapped 或已参与修复的数据声明为最终 heldout 准确率。
 8. 不在 Agent graph 之外再造一套覆盖全部业务阶段的中央因果链状态机。
 
 ## 4. 架构原则与必须保持的不变量
@@ -172,9 +191,9 @@ MemoryManager.get_context
 
 `resume binding` 只能来自客户端显式 `signal_id`，或认证渠道携带且可由 `publication_id→signal_id` 确定性解引用的 reply metadata。没有 binding 的普通自由文本属于新 invocation；不能因为“当前只有一个开放 signal”把它改成 resume。`ResumeRequested` 以 `(signal_id,signal_version,inbound_turn_id)` 唯一，只引用既有 `workflow_run_id`，绝不创建新的 `workflow_invocation` 或 `WorkflowStartRequested`。
 
-`workflow_invocations` 只拥有 admission、幂等键、固定 Bundle/Index/代码版本和不透明 `execution_pointer`；LangGraph checkpointer 拥有执行位置。`execution_pointer` 同时记录 `runtime_kind/runtime_version/runtime_run_id`，因此 M1 可绑定兼容执行器，M3 再让新请求绑定 LangGraph，而不需要伪造一个尚不存在的 graph。前者暴露的运行状态只能由执行 Owner 的 checkpoint/event 投影得到，不能成为第二个 execution Owner。
-
-迁移例外是明确有界的：LangGraph 接入前，M1 只从兼容 executor 读取运行信息并生成 ExecutionView；M3 以后改从 checkpointer/领域终态引用投影。`workflow_invocations` 从一开始就不拥有可写 execution lifecycle，因此没有两套 Agent 编排器需要双主迁移。
+`workflow_invocations` 只拥有 admission、幂等键、固定 Bundle/Index/代码版本和不透明 `execution_pointer`；LangGraph checkpointer 拥有执行位置。目标 composition root 只写
+`runtime_kind=LANGGRAPH/runtime_version/runtime_run_id`。开发期间可以用测试 adapter 验证端口，但不形成第二个
+可服务 execution Owner；切换时直接删除兼容 executor 的 reader、writer、状态投影和配置。
 
 graph checkpoint 无法与应用事务原子提交时，使用 start outbox 关闭崩溃窗口。`WorkflowStartRequested` 以 `invocation_key` 唯一，worker claim 带 lease；重复消费必须读取同一个 opaque graph thread，而不是创建第二个 run。回答选择则在应用事务中同时写入唯一 `response_id`、outbound conversation event 和 delivery outbox；事务提交后 Agent run 可以结束，实际送达及可选已读回执由 `ResponseDelivery` 独立推进。
 
@@ -516,7 +535,7 @@ version；Eval 分别统计强 Router avoided rate、错误跳过率和由错误
 
 | 策略 Owner | 当前基线 | 目标合同 |
 |---|---|---|
-| `IntentRecognizer / IntentFusionPolicyRegistry` | LLM / n-gram / Pattern = `.70/.20/.10`，accept=`.50`；关闭 n-gram 时 `.85/.15` | 继续使用生产 V1；typed V2 只是候选，通过 fresh heldout + shadow/canary 前不接管 |
+| `IntentRecognizer / IntentFusionPolicyRegistry` | LLM / n-gram / Pattern = `.70/.20/.10`，accept=`.50`；关闭 n-gram 时 `.85/.15` | 现有 V1 作为离线对照；typed V2 通过 fresh heldout 与本地服务链验收后，在唯一 composition root 中直接接管 |
 | `AgentOrchestrator.RouterPlanner / DomainRoutingPolicyRegistry` | General 先验 `.10`；意图加分 General `.55`、Technical/Billing `.75`、Security `.85`；supporting=`.45`，clarify=`.50` | 意图、肯定关键词和实体证据保留可追踪分项；硬规则先于分数；消除未使用的第二套 `_route/_INTENT_ROUTING` 权威 |
 | `AgentOrchestrator.TaskGraphExecutor / MultiAgentExecutionPolicy` | legacy Planner 最多形成 `4` 个领域 Task；request/Worker timeout=`20s/15s`，实际最多执行 `3` 个 Task，Worker ReAct 最多 `4` step | 独立 `max_planned_tasks/max_executed_tasks_per_request/max_parallel_workers`；执行超额 Task 保留 typed outcome，不从计划中消失 |
 | `AgentOrchestrator.WorkerSelector / InstanceSelectionPolicy` | success/verified-quality/latency=`.35/.45/.20`，再乘 health penalty；当前每领域只有一个实例，因此不会真正改选 | 只在同 Owner 多实例时生效，与“选哪个领域”分开命名、评测和版本化 |
@@ -530,7 +549,7 @@ version；Eval 分别统计强 Router avoided rate、错误跳过率和由错误
 
 为了能精确重放，完整基线公式也必须进入 policy version：`quality_ewma` 初值/先验均为 `.50`、更新 `alpha=.25`，样本置信度 `min(1, quality_samples/10)`；`quality_score=(1-confidence)*.50+confidence*quality_ewma`；`latency_score=1/(1+avg_ms/1000)`；`base=.35*success_rate+.45*quality_score+.20*latency_score`。Monitor penalty 为 `min(.90, success_penalty+latency_penalty)`，其中成功率低于 `.90` 时 `success_penalty=min(.50,(.90-success_rate)*2)`，延迟高于 `3000ms` 时 `latency_penalty=min(.40,(avg_ms-3000)/10000)`；最终分为 `base*(1-penalty)`。任何公式、先验、样本收缩或 health snapshot 变化都生成新 fingerprint。
 
-一次 invocation 必须固定有效策略快照。`AgentRunState.pinned_config_ref` 指向 Bundle、intent contract、Knowledge manifest 及上表策略版本，不把每个权重复制进 LangGraph state。调整必须经过同数据的离线重放、不可补偿安全门禁、fresh heldout、shadow 和 canary；在线反馈不得直接改 Active 权重。
+一次 invocation 必须固定有效策略快照。`AgentRunState.pinned_config_ref` 指向 Bundle、intent contract、Knowledge manifest 及上表策略版本，不把每个权重复制进 LangGraph state。调整必须经过同数据的离线重放、不可补偿安全门禁、fresh heldout 与真实 `ChatApplication` 本地验收；通过后直接更新唯一配置绑定。反馈不得直接改当前权重。
 
 `max_executed_tasks_per_request=3` 的 legacy 选择也属于策略，不得由容器遍历偶然决定：先按 TaskGraph 生成稳定拓扑 waves，wave 内保持 immutable `TaskPlan.tasks` 原顺序，再展平并取前 3 个执行；其余 task 依原顺序写 `BUDGET_EXCEEDED`。因此选中前缀天然包含其依赖；plan fingerprint 必须覆盖 task 顺序与依赖。目标若改为 value/risk-aware allocation，必须作为新的 `MultiAgentExecutionPolicy` 候选评测，不能在 LangGraph 迁移时暗改。
 
@@ -596,7 +615,7 @@ v1 同时只支持一个 blocking interrupt，因此“只读”不自动等于�
 
 #### Agent 局部恢复边界
 
-把整个多 Agent 执行永久封装成一个不可见的 `agent_loop` 节点，无法在非主 Worker 审批或 wave 中途崩溃后准确续跑。生产 canary 前只为**现有 TaskGraph**增加最小恢复壳：
+把整个多 Agent 执行永久封装成一个不可见的 `agent_loop` 节点，无法在非主 Worker 审批或 wave 中途崩溃后准确续跑。首次切到 LangGraph composition root 前，只为**现有 TaskGraph**增加最小恢复壳：
 
 ```text
 agent_loop subgraph
@@ -634,7 +653,7 @@ AuthorityPolicy:
 5. `EvidenceReceipt` 只能由注册的 producer adapter 按指定 schema/version 铸造；
 6. CoverageGate 拒绝未知 authority、未知 producer、schema 不匹配、过期或伪造 receipt。
 
-Registry 是业务安全策略，不是 Prompt 内容；它必须有版本、代码审查、回归数据和灰度合同。
+Registry 是业务安全策略，不是 Prompt 内容；它必须有版本、代码审查、回归数据和确定性的直接切换合同。
 
 ### 7.5 FactRequirement
 
@@ -835,7 +854,7 @@ MediaCandidateDisposition =
 [OpenAI Prompt Caching](https://developers.openai.com/api/docs/guides/prompt-caching)、
 [Claude Prompt Caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching)、
 [Gemini Context Caching](https://ai.google.dev/gemini-api/docs/caching)。这些材料证明的是可复用原语，
-不是 DialogPilot 已完成实现；具体版本仍须 lock、compatibility test 和 shadow/canary。
+不是 DialogPilot 已完成实现；具体版本仍须 lock、compatibility test 和本地服务链验收。
 
 ## 8. Evidence Layer
 
@@ -880,7 +899,7 @@ class EvidenceReceipt:
 - Media：统一 `MediaLocator(asset_id/asset_checksum/page_index/coordinate_space/bbox/crop_artifact_id/crop_transform_version)`；
 - Human：`actor_id/ticket_event_id`。
 
-`MediaLocator` 是 MediaObservation、EvidenceNode、EvidencePack 与缓存共同使用的唯一坐标合同：`page_index` 固定 zero-based；`coordinate_space` 只能是 `ORIGINAL_PAGE_PIXELS` 或 `NORMALIZED_0_1`；`bbox=[x0,y0,x1,y1]` 且边界/方向合法；crop 必须保存可回到原页的 artifact ID 与 transform version。未知坐标空间、丢失 checksum 或不可逆 crop 不能进入生产 EvidencePack。
+`MediaLocator` 是 MediaObservation、EvidenceNode、EvidencePack 与缓存共同使用的唯一坐标合同：`page_index` 固定 zero-based；`coordinate_space` 只能是 `ORIGINAL_PAGE_PIXELS` 或 `NORMALIZED_0_1`；`bbox=[x0,y0,x1,y1]` 且边界/方向合法；crop 必须保存可回到原页的 artifact ID 与 transform version。未知坐标空间、丢失 checksum 或不可逆 crop 不能进入可发布 EvidencePack。
 
 ### 8.2 Claim 与 Evidence 的确定性门禁
 
@@ -1158,7 +1177,8 @@ Closed/verified Case
 - `NO_ACTIVE_CASE/CASES/UNAVAILABLE/CONFLICT` 必须是 typed 结果，读取失败不得伪装成“没有工单”；
 - `status/assignee/business_priority/SLA` 来自 Ticket Owner；旧 `published_response` 只是“曾发布的文本”，不得被整体标成权威业务事实；
 - 不再将所有未结工单无差别交给所有 Worker；ContextPolicy 按 route/task 选取，Router 在规划前已能看到有界的相关事项投影。
-- legacy profile 继续由当前 TicketService 单主提供并做 shadow compare；只有“工单连续性” heldout、同分 tie-break、`UNAVAILABLE/CONFLICT` 和回滚测试通过后，才原子切换 ActiveCase policy pointer。切换 `RESOLVED` 是否仍视为当前事项必须是显式 policy/version 变化，不能在 projection 重写时暗改。
+- 当前 TicketService 选择规则作为离线 baseline；“工单连续性” heldout、同分 tie-break 与
+  `UNAVAILABLE/CONFLICT` 合同通过后，唯一 `ActiveCaseContextPolicy` binding 直接替换旧选择路径，并删除旧 reader/config。`RESOLVED` 是否仍视为当前事项必须是显式 policy/version 变化，不能在 projection 重写时暗改。
 
 ### 9.4 长期服务经历
 
@@ -1187,7 +1207,11 @@ NOT_NEEDED / NO_MATCH / HITS / UNAVAILABLE / CONFLICT
 
 当前 Memory 检索基线为 Vector/BM25/Recency=`.30/.60/.10`、RRF `k=60`、lexical pool=`20`。时间信号只重排已被 Vector/BM25 召回的相关候选，不能独立把“新但无关”的记忆推进上下文。该组参数属于 `MemoryRetrievalPolicy`，与 Knowledge RAG 分开固定、追踪和校准。
 
-把同一组参数用于新的 ServiceEpisode corpus 只是 comparison profile，不代表语料迁移无损。旧 raw-memory 记录只有在同时绑定原始 conversation、resolved/closed `case_id` 与 Case Owner 接受的 outcome-verification refs 时才可 backfill 为 episode；只具备其中一项、无 Case 的自助对话、单工具成功和旧 assistant 文本都保留为可追源 Conversation/评测数据。旧/new retrieval 必须 shadow 对账并分别固定 policy 与 corpus generation；M4 Gate 后仅给 pinned canary 读取新 generation，Core GA 后才切默认 pointer 并退役旧跨会话检索 writer。
+把同一组参数用于新的 ServiceEpisode corpus 只是 comparison profile，不代表新旧语料或 ranker 等价。
+目标数据由 canonical Conversation、resolved/closed Case 与 Case Owner 接受的 outcome-verification refs
+重新投影；不从旧 raw-memory/assistant 文本导入运行数据。旧数据若仍有诊断价值，只能转成脱敏、
+固定 checksum 的 regression fixture。新 ServiceEpisode corpus 通过离线 paired replay、来源/权限/删除性质
+和真实 `ChatApplication` E2E 后直接成为唯一跨会话检索源，同时删除旧 raw-memory writer、reader、索引与配置。
 
 ### 9.5 Thread Summary 的 Owner、触发与完整性
 
@@ -1323,7 +1347,7 @@ Redis 故障时 Retriever 旁路缓存并执行同一计算，结果语义不变
 
 改写成功时四路 RRF 质量为 `raw:BM25=.1875`、`raw:Dense=.0625`、`standalone:BM25=.5625`、`standalone:Dense=.1875`，公式为 `Σ weight/(k+rank)`。Reranker 没有额外“rerank weight”：它必须返回 Top-20 候选的完整、唯一排列，合同失败则整体保留 first-stage 顺序。无历史或 rewrite 失败时 Raw 以 `1.0` 单路执行。
 
-这些数值必须随 `KnowledgeRetrievalPolicy/AgentBundle` 固定并进入 EvidencePack trace；环境变量只用于构造启动时 bootstrap policy，不允许同一 invocation 内在线自调。`.25/.75` 固定的是 legacy Dense/BM25 comparison profile；若 lexical provider 从 Python BM25 换成 PostgreSQL FTS，即使继续使用同一融合数值，也必须产生新的 backend/policy fingerprint 并独立评测。任何新权重、查询分解、视觉候选融合或 cross-encoder 只能作为候选，在同一 capture 上做 paired ablation，通过 fresh heldout 和 harmful/safety gate 后再发布。
+这些数值必须随 `KnowledgeRetrievalPolicy/AgentBundle` 固定并进入 EvidencePack trace；环境变量只用于构造启动时 bootstrap policy，不允许同一 invocation 内在线自调。`.25/.75` 固定的是现有 Dense/BM25 离线 comparison profile；若 lexical provider 从 Python BM25 换成 PostgreSQL FTS，即使继续使用同一融合数值，也必须产生新的 backend/policy fingerprint 并独立评测。任何新权重、查询分解、视觉候选融合或 cross-encoder 只能作为候选，在同一 capture 上做 paired ablation，通过 fresh heldout 和 harmful/safety gate 后再写入唯一目标配置。
 
 ### 10.2 知识生命周期
 
@@ -1349,14 +1373,14 @@ review_status / supersedes
 active_manifest
 ```
 
-依赖顺序必须分两步：
+目标知识库从 canonical source documents 直接按 `SourceRevision` schema ingest，生成不可变 revision、
+chunk 与 PostgreSQL retrieval generation；不从旧 chunk/index 迁移元数据。最小读合同与完整
+owner/reviewer、draft/review、supersede/retract、候选提炼合同可以分任务实现，但首次绑定到
+`ChatApplication` 前必须一起通过引用、有效期、删除和 heldout 验收。
 
-1. **M2 路由切换前的最小读合同**：为现有 corpus backfill `source_id/revision_id/checksum/active_manifest/effective time`，保证 Knowledge claim 已能绑定 active revision；同时冻结一小组人工审核的 knowledge heldout，作为激活门禁。
-2. **M5 的完整运营合同**：再增加 owner/reviewer、draft/review/staging、supersede/retract、候选提炼和原子发布工作流；M6 扩展生产规模 Gold、统计门禁和线上运营。
-
-因此，M2 不依赖尚不存在的完整知识运营平台，但也不能用 legacy/public 默认值伪造 active revision。
-
-点踩、未回答问题和人工工单只生成脱敏 `KnowledgeCandidate`；必须经人工审核、Dev + fresh heldout、staging index 和原子 manifest 切换后才能成为生产知识。
+点踩、未回答问题和人工工单只生成脱敏 `KnowledgeCandidate`；候选经人工审核、Dev + fresh heldout
+后，以一次原子 manifest 更新进入唯一知识读路径。这里的 `ACTIVE/SUPERSEDED/RETRACTED` 是知识
+内容生命周期，不是软件流量灰度。
 
 ### 10.3 知识图谱边界
 
@@ -1374,7 +1398,7 @@ Issue → Product/Version → Symptom/ErrorCode
 目标默认后端是 `PostgreSQL + pgvector + 经过评测的中文词法层`，而不是因为参考项目写了
 Elasticsearch 就照搬 Elasticsearch。Knowledge 与 ServiceEpisode 复用同一 PostgreSQL 平台、
 generation registry、embedding/lexical adapter、可观测与删除基础设施，但**不共享语料、
-ACL、融合权重或 active pointer**：
+ACL、融合权重或当前 manifest**：
 
 ```text
 HybridRetrievalBackend（Platform）
@@ -1407,7 +1431,7 @@ Profile、当前 Thread、ActiveCase 和 `ServiceContinuityBrief` 使用确定�
 
 `retrieval_generation_registry` 固定 corpus、backend、schema、source watermark、embedding
 model/dimension/digest、distance metric、vector extension/index method+params、中文 tokenizer、
-lexical ranker、manifest hash、active/previous pointer。
+lexical ranker与 manifest hash。
 embedding 变更必须创建新 generation，不能在同一 vector 列混维；每个 invocation 在 admission
 时固定所需 corpus 的 backend/generation/policy，resume 与重试不漂移。
 
@@ -1424,13 +1448,14 @@ query capture 和 filters 上分别报告 Recall@K/MRR/nDCG、P95/P99、index la
 通过 Gate 后才能切换。Weighted RRF 继续由应用侧 policy 拥有，不能把 ranker 的原始分数
 跨 provider 直接相加。
 
-当前 Chroma + SQLite/Python BM25 只作为迁移期 legacy adapter 和有界 rollback projection。
-切换采用 canonical source/outbox → PostgreSQL projection → old/new shadow → corpus-scoped
-pinned canary → 原子 read pointer；单次请求不在新后端不可用时偷偷换回旧后端，否则排名与
-证据不可重放。只有 PostgreSQL 在约定调优预算后仍无法满足过滤召回、中文检索质量、
-OLTP 隔离、规模或重建 RTO Gate，才通过同一 `HybridRetrievalBackend` port 比较
-Elasticsearch/OpenSearch；若升级，Knowledge、Episode 与 Media 仍分 index/policy，不能形成
-永久 PG/ES 双 Owner。
+Chroma + SQLite/Python BM25 不属于目标运行拓扑。Knowledge 从 canonical SourceRevision、Episode
+从 canonical ServiceEpisode、Media 从 canonical Asset/Parse revision 直接重建 PostgreSQL projection；
+旧、新实现只在离线 runner 上使用同一 frozen corpus/query/filter 做 paired comparison，不进入同一
+请求。通过检索、引用、权限、删除、重建与性能验收后，composition root 一次绑定 PostgreSQL backend，
+并删除 Chroma/SQLite reader、writer、外层 cache、开关、fallback 与依赖。目标 backend 不可用时返回
+typed `UNAVAILABLE`，不偷偷回到旧后端。只有 PostgreSQL 在约定调优预算后仍无法满足过滤召回、
+中文检索质量、OLTP 隔离、规模或重建 RTO，才通过同一 `HybridRetrievalBackend` port 离线比较
+Elasticsearch/OpenSearch；若未来替换，Knowledge、Episode 与 Media 仍分 index/policy。
 
 ## 11. Tool、动作安全与 Handoff
 
@@ -1532,7 +1557,7 @@ ServiceCaseStatus = QUEUED | ACCEPTED_BY_HUMAN | IN_PROGRESS |
 
 ## 12. LangGraph 运行时决策
 
-截至 2026-09-01，当前仓库没有声明 LangGraph/LangChain 运行时依赖；本节是目标选型，不是现状能力声明。官方能力核对依据如下：
+截至 2026-09-02，当前仓库尚未引入 LangGraph Agent runtime；`langchain-classic` 只在 `CacheBackedEmbeddings` adapter 边界使用，不拥有 Agent 编排。本节描述的是 LangGraph 目标选型，不把现有缓存依赖误写成 Agent runtime。官方能力核对依据如下：
 
 - [LangGraph Persistence](https://docs.langchain.com/oss/python/langgraph/persistence)：checkpointer 管 thread-scoped graph state，Store 面向跨 thread 应用数据；本项目仍由领域数据库拥有长期客服事实。
 - [LangGraph Checkpointers](https://docs.langchain.com/oss/python/langgraph/checkpointers)：checkpoint 位于 super-step 边界，并区分 `exit/async/sync` durability；PostgresSaver 适合生产持久化。
@@ -1547,7 +1572,10 @@ ServiceCaseStatus = QUEUED | ACCEPTED_BY_HUMAN | IN_PROGRESS |
 | 全量迁移 LangChain Agent / 重写现有编排 | 丢失现有 TaskGraph/ReAct、Tool 安全合同并扩大一次性迁移面 | 不采用 |
 | LangGraph 薄 runtime 包裹现有 Orchestrator | 需要 state adapter、Postgres checkpointer 与单主切换，但保留业务语义 | **推荐** |
 
-这里迁移的是运行时机制，不是 Agent 的“脑”。首轮 dark shadow 可以只有一个 `agent_loop` 业务节点；在多 Task、审批和故障恢复进入 canary 前，只把现有 TaskGraph 的 plan/wave/outcome/resume 边界暴露为 7.3 所述的 Agent 局部子图。除此之外是否继续拆节点，必须由故障恢复或 Eval 收益证明。
+这里替换的是运行时机制，不是 Agent 的“脑”。在分支内先用一个 `agent_loop` 业务节点包住现有
+Orchestrator，再把多 Task、审批和故障恢复需要的 plan/wave/outcome/resume 边界暴露为 7.3 所述的
+Agent 局部子图。真实 `ChatApplication`、checkpoint 恢复和故障注入全部通过后，一次切换唯一 runtime
+binding 并删除旧 RunStore workflow/resume 路径。除此之外是否继续拆节点，必须由故障恢复或 Eval 收益证明。
 
 ### 12.1 职责划分
 
@@ -1581,7 +1609,10 @@ hydrate_context
 → END
 ```
 
-dark shadow 首先把当前 `AgentOrchestrator.run()` 整体包成 `agent_loop`，验证状态适配和单主绑定。进入包含 Multi-Agent/interrupt 的 bounded canary 前，`agent_loop` 内按 7.3 的最小 Agent 子图持久化既有 TaskGraph wave 与 typed outcome；Planner、Worker、ReAct、Coverage 和 Synthesizer 的业务合同不变。只在 checkpoint、外部副作用、interrupt 和 finalize 等真正恢复边界拆节点；评测没有证明收益前，不把每个业务阶段拆成一条重型自研流程链。
+先把当前 `AgentOrchestrator.run()` 整体包成 `agent_loop`，验证状态适配；随后在切换唯一 runtime
+binding 前，按 7.3 的最小 Agent 子图持久化既有 TaskGraph wave 与 typed outcome。Planner、Worker、
+ReAct、Coverage 和 Synthesizer 的业务合同不变。只在 checkpoint、外部副作用、interrupt 和 finalize
+等真正恢复边界拆节点；评测没有证明收益前，不把每个业务阶段拆成一条重型自研流程链。
 
 `accept_turn` 只校验并加载已经由 admission 事务持久化的 `inbound_turn_id/invocation_key`，不再次拥有或补写用户输入；如果 start outbox 被重复消费，它必须绑定既有 graph thread。
 
@@ -1589,7 +1620,7 @@ dark shadow 首先把当前 `AgentOrchestrator.run()` 整体包成 `agent_loop`�
 
 ### 12.3 Checkpoint 和恢复要求
 
-- 生产使用共享 PostgreSQL checkpointer；内存或本地 SQLite 仅用于开发。
+- 目标运行链使用共享 PostgreSQL checkpointer；内存 checkpointer 仅用于单元测试。
 - `sync`/强持久模式用于审批和高风险写动作前后；低风险只读路径可按 SLO 选择异步持久。
 - checkpoint 保存 `workflow_schema_version` 和 `workflow_code_version`。
 - 多 Task checkpoint 保存固定 plan fingerprint、每个 task 唯一 outcome ref、dependency receipt refs 与 child run refs；重入按稳定 task ID 跳过已完成项，并回到 parent run 完成全图 Coverage/Synthesis。
@@ -1602,14 +1633,14 @@ dark shadow 首先把当前 `AgentOrchestrator.run()` 整体包成 `agent_loop`�
 
 目标合同不保留“继续复用或另建”的二选一：`ToolExecutionLedger` 是工具调用意图、claim/lease、binding、attempt、reconciliation 状态和权威 receipt 引用的永久 Owner；业务系统仍拥有 effect fact。初期可以在现有 RunStore 表之上实现该接口，最终删除其中的 workflow status 语义。`ApprovalEventStore` 保存不可变审批事实，LangGraph checkpointer 保存执行位置。
 
-迁移分阶段进行：
+直接替换顺序：
 
-| 阶段 | Agent execution Owner | ReAct 形态 | Approval Owner | Execution ledger Owner | Effect fact Owner | retry 规则 |
-|---|---|---|---|---|---|---|
-| 0 当前 | API/TaskGraph 内存 | RunStore 当前行 | RunStore/runtime + ToolManager | RunStore 兼容记录 | 业务系统/权威 receipt | 保持现状，仅做基线 |
-| 1 dark 包裹期 | LangGraph | 作为 opaque child node，复用稳定 `child_run_id`；只做 shadow，不承载 Multi-Agent/interrupt canary | 现有审批接口兼容投影 | `ToolExecutionLedger` 接口（可落现表） | 业务系统/权威 receipt | runtime retry 必须读取同一 child/operation ID，禁止新建 ReAct run |
-| 2 canary 收敛期 | LangGraph | 按 7.3 最小 Agent 子图持久化 plan/wave/outcome/resume；ReAct 仍可作为 child node | `ApprovalEventStore` + graph interrupt | 独立 `ToolExecutionLedger` | 业务系统/权威 receipt | 由 graph node policy 调度，已完成 task 不重跑 |
-| 3 清理期 | LangGraph | 保留最小恢复边界；更细粒度拆分仅由 Eval 收益驱动 | 同上 | 同上 | 业务系统/权威 receipt | 删除旧 RunStore workflow/resume API |
+1. 实现 LangGraph `AsyncPostgresSaver`、薄 `AgentRunState`、`ApprovalEventStore` 与独立
+   `ToolExecutionLedger`，并让现有 Orchestrator 作为 Agent 节点运行。
+2. 使用真实 `ChatApplication` 验证单 Task、多 Task、审批、崩溃恢复、重复 resume 与工具副作用；
+   旧 runtime 只作为离线 expected-output fixture，不参与同一次请求。
+3. 一次切换 execution composition root；同一变更删除旧 RunStore 的 workflow status、resume API、
+   adapter、配置与 fallback。目标依赖缺失或 checkpoint 不兼容时 typed fail closed。
 
 迁移完成后：
 
@@ -1829,11 +1860,10 @@ Tika、MinerU 或其他解析器可以作为 producer，但必须通过统一 Pa
 | Redis | 最近窗口、ContinuationFrame lookup、Retriever exact cache、embedding ByteStore、Perception lookup、single-flight/debounce/lease、限流和队列通知；可全量丢弃，不保存唯一 transcript、Profile、Episode 或 Evidence |
 | Object Storage | 原始附件、派生页面图、OCR/VLM artifacts；checksum 与租户隔离 |
 | Model provider native cache | 只在 `ProviderCachePolicy` 允许的 tenant/region、数据类别、retention/no-training/删除合同内复用完全一致前缀或媒体；不可作为 Evidence、Memory 或结果 Owner |
-| Chroma + SQLite/Python BM25 | 迁移期 legacy adapter 与有界 rollback projection；完成 corpus-scoped cutover、删除/恢复证明和 rollback window 后退役 |
 | Elasticsearch/OpenSearch | 仅当 PostgreSQL 方案在冻结评测中无法满足质量、过滤召回、OLTP 隔离、规模或 RTO 时，经同一 backend port 进入候选比较 |
 | OTel Collector + Trace Backend | 应用只向 Collector 发 OTLP；Collector 是 exporter routing/filter/tail-sampling 唯一 Owner：基础设施 span → Tempo/Jaeger/APM，allowlisted AI observation → Langfuse；Prometheus/业务表保留未采样 SLO 分母 |
 
-生产部署采用 API 与 durable worker 分离：
+目标运行拓扑采用 API 与 durable worker 分离：
 
 ```text
 API pods
@@ -1874,9 +1904,9 @@ DeletionCoordinator，不另外引入 Memory sidecar、第二套 Agent runtime�
 4. Profile 提供查看、修改、撤回和删除 API。
 5. Conversation、MemoryAtom、ServiceEpisode、Profile、Attachment、Trace、Ticket 分别定义 retention；不得用一个全局 TTL。
 6. ConversationTurnStore 在 M1 提供权威 deletion fence/tombstone 原语；任何 projection/outbox/worker 写入前都校验 fence，确保后台任务不会把已删除数据重新写回。
-7. `DeletionCoordinator` 以删除请求为权威，并读取版本化 `DataLocationRegistry`。Registry 必须覆盖 Conversation/outbox、ThreadSummary、MemoryAtom、ServiceEpisode、Profile、ActiveCase/ServiceContinuity projection、TaskContinuationFrame/Store namespace、Commitment、Approval、Tool ledger/receipt ref、Ticket、Delivery/Feedback、Eval/Shadow 样本、Redis exact/embedding/perception cache、vector/sparse index、object/derived assets、checkpoint、受控 Trace、备份/恢复链以及外部 OCR/VLM/model processor；每个位置声明 Owner、retention class、adapter、外部处理合同和 proof 方式。WorkingContext 本身无持久位置，只登记其 checkpoint/source refs。依法保留的 Ticket/财务/安全记录必须去标识或隔离，并记录 retention exception，不能谎报物理删除。
+7. `DeletionCoordinator` 以删除请求为权威，并读取版本化 `DataLocationRegistry`。Registry 必须覆盖 Conversation/outbox、ThreadSummary、MemoryAtom、ServiceEpisode、Profile、ActiveCase/ServiceContinuity projection、TaskContinuationFrame/Store namespace、Commitment、Approval、Tool ledger/receipt ref、Ticket、Delivery/Feedback、Eval/Regression 样本、Redis exact/embedding/perception cache、vector/sparse index、object/derived assets、checkpoint、受控 Trace、备份/恢复链以及外部 OCR/VLM/model processor；每个位置声明 Owner、retention class、adapter、外部处理合同和 proof 方式。WorkingContext 本身无持久位置，只登记其 checkpoint/source refs。依法保留的 Ticket/财务/安全记录必须去标识或隔离，并记录 retention exception，不能谎报物理删除。
 8. 高风险动作需要显式 Principal、scope、approval event 和 operation receipt。
-9. Replay/time travel 对写节点默认关闭；生产管理操作必须审计。
+9. Replay/time travel 对写节点默认关闭；管理操作必须审计。
 10. 不把 VLM 观察、模型情绪判断、旧 assistant 文本提升为可信身份、授权或业务事实。
 
 删除 job 使用闭合状态：
@@ -1915,16 +1945,16 @@ Handoff 的产品目标不是降低转人工率，而是让人工接管后无需
 
 ## 17. 评测与可观测性架构
 
-### 17.1 唯一生产/评测入口
+### 17.1 唯一服务/评测入口
 
 ```python
 result = await ChatApplication.handle(
     request,
-    runtime=production_or_eval_runtime,
+    runtime=service_or_eval_runtime,
 )
 ```
 
-HTTP `/chat`、离线 Eval、shadow、故障注入和 replay 都调用这一入口。测试可以替换模型、时间、业务后端和对象存储，但不能绕过主链 Owner。
+HTTP `/chat`、离线 Eval、故障注入和 replay 都调用这一入口。测试可以替换模型、时间、业务后端和对象存储，但不能绕过主链 Owner。
 
 ### 17.2 分层评测
 
@@ -1956,7 +1986,7 @@ input/perception
 
 RAGAS 可作为可替换的语义 scorer adapter，用于 faithfulness、answer relevancy、context precision/recall 等指标；它不能覆盖 required-tool、receipt、重复副作用、权限、安全和送达等确定性失败。报告必须固定 scorer/version/model/dataset，不能只写“接入 RAGAS”就宣称质量提升。
 
-### 17.3 在线指标
+### 17.3 运行与评测指标
 
 按 route 统计：
 
@@ -2006,7 +2036,7 @@ chat.request
 
 同步调用 inject/extract W3C carrier；延迟较长的 outbox、resume、human reply 可新建 trace 并用 span link 关联原 `workflow_run_id/event_id`，避免伪造跨数天的单一超长 span。span 名保持低基数，具体 task/tool/model/version 放 attributes。允许的关联字段包括 opaque request/response/conversation/workflow/task/call/receipt ID、RouteMode、Bundle/Prompt/Model/Index/Context/Tool schema 版本、risk、execution mode、latency 和 usage；原始 Prompt、回复、OCR、图片、用户身份与 Tool payload 只能作为有 ACL/retention/deletion 的受控 artifact，不进入普通 span attribute。
 
-采样采用“业务分母不采样、Collector 结果感知 tail sampling”：应用不做会提前丢弃结果未知链路的 head sampling，先把低内容 span 送到 Collector；Collector 在 trace 完成或超时窗口后，对普通成功 L0/FAQ 概率保留，对错误、安全、写工具、审批、`OUTCOME_UNKNOWN`、handoff、反馈、canary/eval 和多模态安全链路 100% 保留。Collector 队列溢出/超时产生独立 drop 指标和告警；未满足 critical-retention SLO 时 Gate 失败，但不反压或改变客服业务结果。百分率和 SLO 只从 Prometheus/领域表的未采样计数计算，不能用 Langfuse 样本直接充当生产分母。
+采样采用“业务分母不采样、Collector 结果感知 tail sampling”：应用不做会提前丢弃结果未知链路的 head sampling，先把低内容 span 送到 Collector；Collector 在 trace 完成或超时窗口后，对普通成功 L0/FAQ 概率保留，对错误、安全、写工具、审批、`OUTCOME_UNKNOWN`、handoff、反馈、eval/fault-injection 和多模态安全链路 100% 保留。Collector 队列溢出/超时产生独立 drop 指标和告警；未满足 critical-retention SLO 时验收失败，但不反压或改变客服业务结果。百分率和 SLO 只从 Prometheus/领域表的未采样计数计算，不能用 Langfuse 样本直接充当完整分母。
 
 Trace 分析复用现有 Bad Case 审核机制，不新增在线编排器：
 
@@ -2021,29 +2051,29 @@ OTel/Langfuse observation + 权威 receipt/event + response-bound feedback
 
 稳定失败层至少覆盖 `perception / route-authority / context-memory / retrieval-rerank / tool-selection-parameter-effect / generation-grounding / publication / handoff-delivery / service-outcome`。`FailureObservation` 保存 failure code、evidence refs、owner、retryable/user-visible/safety/effect 属性及各版本；模型提出的 root cause 只能是 candidate，不能覆盖已验证事实，也不能自动进入 Gold。
 
-### 17.5 数据集与发布门禁
+### 17.5 数据集与本地验收门禁
 
-- 从脱敏真实工单按意图、产品、风险、渠道、地区和问题复杂度分层抽样；
+- 以成熟公开数据集、人工审核自建 Gold 和可重建 fixtures 为主；未来如有脱敏真实工单，再按意图、产品、风险、渠道、地区和问题复杂度分层抽样；
 - 双人标注与仲裁形成 human-reviewed Gold；
 - 按用户、订单、产品、时间和语义 group 切分，避免泄漏；
 - 真实照片覆盖光照、角度、遮挡、压缩和错误型号；
 - 已参与修复的 case 只能是 consumed regression；
-- 发布采用 shadow → canary → active；
+- 验收通过后直接更新版本化 target config/binding，并在同一实现阶段删除旧路径；
 - 每个 route 分别比较质量、风险、延迟和成本，不用一个总分掩盖退化。
 
-### 17.6 可执行 Gate 合同
+### 17.6 可执行验收合同
 
-每个 release profile 必须冻结版本化 Gate manifest，包含 dataset/checksum、oracle、故障切点、baseline、阈值、最小样本、置信方法、观察窗口、Owner 和 rollback 条件。文档不预填未经测量的百分比。
+每项会改变行为的实现必须冻结版本化 `EvaluationManifest`，包含 dataset/checksum、oracle、故障切点、baseline、阈值、最小样本、置信方法和 Owner。文档不预填未经测量的百分比；manifest 是本地/CI 验收输入，不是流量发布系统。
 
 | Gate 类别 | 例子 | 判定方式 |
 |---|---|---|
 | 零容忍安全不变量 | 跨 tenant 读取、未授权写、重复副作用/发布、无权威动态 claim、危险维修建议 | property/state-machine/fault-injection 任一失败即阻断 |
 | 闭合合同 | 未知 enum、非法 transition、缺 receipt/provenance、删除后复活 | schema/contract/integration 全部通过 |
 | 统计质量 | route、retrieval、rerank、grounding、handoff summary | per-route/slice 相对冻结 baseline 的目标或非劣检验与置信区间 |
-| 运行质量 | latency、cost、恢复时延、projection lag | SLO + shadow/canary 观察窗口 |
+| 运行质量 | latency、cost、恢复时延、projection lag | 本地 benchmark + 故障注入 + 预算阈值 |
 | 业务结果 | 重复联系、reopen、确认解决、转接后一次解决 | 指定归因窗口与样本量，不用一次回复代理 |
 
-验收证据产物至少包括：Gate manifest、机器可读报告、失败样本、Trace/receipt 引用、审批记录和 rollback 演练结果。
+验收证据产物至少包括：EvaluationManifest、机器可读报告、失败样本、Trace/receipt 引用和恢复/故障注入结果。
 
 ### 17.7 GEPA-Lite 的保留边界
 
@@ -2054,16 +2084,16 @@ OTel/Langfuse observation + 权威 receipt/event + response-bound feedback
 → ConstrainedCandidateOptimizer 生成 4–8 个不可变 AgentBundle 候选
 → dev/validation 评测与 hard gates
 → 独立 fresh heldout
-→ 现有 shadow → canary → active/rollback
+→ 人工选择并提交版本化 AgentBundle
 ```
 
 边界如下：
 
-- 优化器属于 Evaluation control plane，默认关闭，不进入 `/chat` 请求路径；admin 触发也只能注册候选，不能修改 active pointer。
-- 只消费脱敏 FailurePacket/统计反馈，不读取原始生产 Trace、图片、Tool payload 或 PII。
+- 优化器属于 Evaluation control plane，默认关闭，不进入 `/chat` 请求路径；admin 触发也只能注册候选，不能修改服务配置绑定。
+- 只消费脱敏 FailurePacket/统计反馈，不读取原始服务 Trace、图片、Tool payload 或 PII。
 - Credit attribution 先确定责任 Owner 和允许改动面；Prompt、few-shot、路由/检索策略、工具描述或模型策略只能生成 typed patch。权限、审批、tenant、PII、Verifier、Gold、业务 receipt 与安全规则不可进化。
 - Knowledge retrieval 与 Memory retrieval 是不同 Owner；Memory failure 不能通过修改知识 RAG 权重“修好”。
-- 候选生成不是发布证据。候选选择、Pareto、fresh heldout、人工 review、Gate、rollout 和 rollback 仍由 Evaluation/Release Owner 决定；同一线上 invocation 只读取已签署且 pinned 的 Bundle/Policy 版本。
+- 候选生成不是启用证据。候选选择、Pareto、fresh heldout、人工 review 和 EvaluationManifest 判定由 Evaluation Owner 负责；只有开发者显式提交的 Bundle/Policy 版本才能成为唯一配置，同一 invocation 始终读取 pinned 版本。
 - 提案数据与最终 test/heldout 分离；参与提案或调参的 case 立即标为 consumed regression，不能再证明泛化。
 
 因此 GEPA-Lite 的价值是缩小人工试配置的搜索空间，而不是取代 Trace 分析、根因归属、评测或发布治理。若未来实现真正的多轮反思/演化优化，应作为这个离线端口的替换 producer，不改变在线 Agent 架构。
@@ -2080,12 +2110,12 @@ OTel/Langfuse observation + 权威 receipt/event + response-bound feedback
 - Memory 的稳定 message ID、范围摘要与事实来源；
 - RAG source/span、manifest、rerank、packing 和 grounded generation；
 - Verifier fail-closed；
-- `GEPALiteProposalGenerator` 候选端口、不可变 Bundle、CandidateRunner/Graduation、rollout 与 Bad Case 审核端口；其中 Bundle 只是请求级 pinned 配置引用，GEPA-Lite 只是默认关闭的离线候选 producer，不进入 Agent 请求图或拥有发布权。现有归因/输入筛选行为不作为兼容承诺。
-- Intent V1、Domain Router、Instance Selector、Knowledge RAG、Memory RRF 和 active-ticket context 的当前数值作为可重放迁移基线；新候选通过 Gate 后才能替换，不在框架迁移时顺便改参数。
+- `GEPALiteProposalGenerator` 候选端口、不可变 Bundle、CandidateRunner/Graduation 与 Bad Case 审核端口；其中 Bundle 只是请求级 pinned 配置引用，GEPA-Lite 只是默认关闭的离线候选 producer，不进入 Agent 请求图或拥有配置切换权。现有归因/输入筛选行为不作为兼容承诺。
+- Intent V1、Domain Router、Instance Selector、Knowledge RAG、Memory RRF 和 active-ticket context 的当前数值作为可重放离线基线；新候选通过本地验收后直接替换唯一 binding，不在框架替换时顺便改参数。
 
-### 18.2 重构
+### 18.2 完善
 
-- `/chat` 逻辑迁到 `ChatApplication`；
+- 保留已存在的 `/chat → ChatApplication.handle()` 薄 adapter，移除 API composition 中残余的业务生命周期判断并用 characterization/真链测试锁定边界；
 - 增加 ConversationTurnStore 和 invocation 幂等；
 - Planner 输出 RouteMode 和 FactRequirements；
 - CoverageGate 验证 authority/receipt；
@@ -2104,41 +2134,37 @@ OTel/Langfuse observation + 权威 receipt/event + response-bound feedback
 - 用 LangChain agent 替换现有 ReAct；
 - 全量 Elasticsearch/OpenSearch；
 - 图数据库或 LightRAG；
-- 自动写入生产知识；
+- 自动写入权威知识；
 - 主动回访自动执行；
 - 高风险视觉自动诊断。
 
-### 18.4 Memory 与检索存储切换
+### 18.4 本地直接替换合同
 
-切换不是一次性“把 Chroma 换成 pgvector”，而是按 Owner/corpus 分开的可回滚迁移：
+本项目当前没有线上流量和必须保留的旧运行数据，因此不建设新旧链并存的数据迁移系统。直接替换按
+以下顺序完成：
 
-1. **先冻结合同**：固定 `MEM_L0..MEM_L3` schema、source/watermark、
-   `HybridRetrievalBackend`、Knowledge/Episode/Media 各自 policy 与 legacy fingerprint。
-2. **先切权威原文**：Conversation admission-first 写 PostgreSQL，形成唯一 L0；Redis/Chroma
-   不再接收新的权威 transcript 写入。
-3. **重建 Memory 投影**：Summary、Atom、Episode、Profile 各自从 L0 与权威 receipt 通过
-   outbox 重放；只有满足写入门槛的数据可 backfill，无法验证的旧 assistant 文本只保留为
-   conversation history。
-4. **重建检索 generation**：Knowledge 从 active SourceRevision、Episode 从 canonical
-   ServiceEpisode、Media 从 Asset/Parse revision 写入各自 PostgreSQL retrieval 表；projection
-   job 同时固定 subject fence、source version 和 target generation。
-5. **双读不双主**：legacy 继续发布，新 PostgreSQL backend 只做同 query/filter capture 的
-   dark shadow；分别比较候选、融合、证据、延迟、跨租户、删除与不可用语义。
-6. **按 corpus 做 pinned canary**：Knowledge、Episode、Media 分别切稳定 cohort；一次
-   invocation 固定 backend/generation/policy。新后端不可用返回 typed failure，不做逐请求
-   静默 fallback。
-7. **原子切 read pointer**：Gate 通过后只切对应 corpus 的 active pointer。切换前失败可回
-   legacy；切换后 canonical PostgreSQL 事实不回滚，只能切回有界 legacy read projection 或
-   forward-fix。rollback window 内 legacy projection 可由同一 canonical outbox 暂时同步，
-   但它不是 sidecar Owner。
-8. **退役与升级判定**：全部适用 corpus 完成切换、in-flight 清零、删除/restore/rebuild
-   证明通过且 rollback window 到期后，停止 Chroma/SQLite BM25 writer/reader 并移除依赖。
-   若 PostgreSQL Gate 失败则保持 legacy active，形成有数据的 ES/OpenSearch ADR，而不是同时
-   长期运行两套目标后端。
+1. **冻结目标合同**：固定 `MEM_L0..MEM_L3`、SourceRevision、ServiceEpisode、Media、
+   `HybridRetrievalBackend`、LangGraph `AgentRunState` 与各 policy fingerprint。
+2. **完成目标实现**：复用当前分支已经实现的 PostgreSQL、统一 Retriever、Memory projection、
+   Route/TaskGraph 等能力；补齐尚未实现的 LangGraph、Profile/Commitment/ServiceContinuity、完整多模态
+   与 OTel/Langfuse。已实现但只服务于旧数据迁移或流量试运行的辅助模块标为
+   `SUPERSEDED_TO_REMOVE`，不倒写成未实现。
+3. **从空状态重建**：清空开发派生数据；Knowledge 从 canonical source documents ingest，Conversation、
+   Memory、Episode、Profile 与媒体数据由 fixtures 和后续真实事件建立。旧 raw-memory、assistant 文本、
+   Chroma collection 或 SQLite sparse 数据不晋升为目标事实。
+4. **离线与真链验收**：运行 unit/contract/property/integration/E2E/fault-injection/fresh-heldout；旧实现
+   仅可作为离线 expected-output baseline，不能与新实现共同服务一次请求。
+5. **按 Owner 原子替换**：Conversation/Delivery、Route/Retriever、Agent Runtime、Memory、Ticket/Handoff、
+   Media 各自在一个可审查 slice 中同时完成 target binding 与对应旧 reader/writer/fallback 删除；不要求把
+   所有领域塞进一个超大提交，也不允许留下“先切换、以后再清理”的运行窗口。缺少目标依赖或 manifest
+   不兼容时 typed fail closed。
+6. **最终聚合与共享清理**：全部 Owner slice 完成后，最终 composition root 只解析目标实现；再删除已经
+   不可达的共享 RunStore workflow、Chroma/SQLite 基础、外层 knowledge cache、迁移辅助模块、feature
+   toggle、环境变量、脚本、测试和依赖。负向源码搜索必须证明旧路径不可达。
 
-Profile、ActiveCase、ServiceContinuity、Commitment 与当前 Thread 始终走 PostgreSQL
-确定性读取，不参与上述向量后端切换。这样迁移改变的是可重建的检索投影，不改变服务债务
-和业务事实的 Owner。
+切换前验收失败就不切；切换后修复使用 Git revert/fix-forward 和从 canonical source/fixture 重新构建，
+不保留运行时旧链 fallback。Profile、ActiveCase、ServiceContinuity、Commitment 与当前 Thread 始终走
+PostgreSQL 确定性读取，不进入向量召回。
 
 ## 19. 架构验收标准
 
@@ -2157,18 +2183,18 @@ Profile、ActiveCase、ServiceContinuity、Commitment 与当前 Thread 始终走
 11. 多模态默认 L0；无关附件不调用 VLM，OCR 足够时停在 L1；L2 回答可以回到 attachment/page/bbox/crop/model version，不确定时澄清或拒答。
 12. HandoffContract 能让无背景人工正确回答“发生了什么、查过什么、做过什么、还缺什么、谁负责”。
 13. Eval 调用与 `/chat` 相同的 `ChatApplication`，并覆盖发布、送达、Memory、Handoff 和异常路径。
-14. fresh heldout、故障注入、shadow/canary 通过，且没有通过为单个新 case 增加生产特判获得闭环。
+14. fresh heldout、故障注入和真实 `ChatApplication` E2E 通过，且没有通过为单个新 case 增加特判获得闭环。
 15. Agent 执行位置只由 LangGraph checkpointer 表达，公开 ExecutionView 只读；Delivery 有独立 Owner，ACK 丢失不会盲目重发或重新运行 Agent。
 16. AgentRunState 保持薄：没有把 route、Memory、Tool、Media、Ticket、Commitment 的领域状态复制成中央因果链状态机。
 17. 任一 response 可通过一个 OTel 上下文关联 Agent/LLM/Retrieval/Tool observation 与基础设施 span；Trace 不冒充业务事实，Langfuse 样本不冒充未采样 SLO 分母。
-18. GEPA-Lite 不读取 fresh heldout 或原始生产 PII；它生成的任何候选都必须经过不可伪造 GateArtifact、人工签署和既有 shadow/canary 发布链，不能自行激活。
+18. GEPA-Lite 不读取 fresh heldout 或原始敏感数据；它生成的任何候选都必须经过不可伪造 EvaluationArtifact、人工选择和完整重测，不能自行修改服务 binding。
 19. 单 Task、跨 Owner 多 Task、同 Owner 多 Task、依赖阻塞、预算超限和 child resume 均保留全图 Task outcome/Coverage，不存在子 Agent 单独发布或静默丢任务。
-20. 每次 invocation 能报告 Intent、Domain、Instance、Knowledge、Memory 和 ActiveCase 的有效 policy version；现行基线可重放，新权重没有 fresh heldout/shadow/canary 证据时不能成为 Active。
+20. 每次 invocation 能报告 Intent、Domain、Instance、Knowledge、Memory 和 ActiveCase 的有效 policy version；现行基线可重放，新权重没有 fresh heldout 与真链验收证据时不能写入目标配置。
 21. 精确工单引用、SLA/承诺违约、unknown tool effect 和 critical/security case 由 `ServiceContinuityBrief` hard include，不被向量/软排序挤掉；Owner 不可用与“没有服务债务”可区分。
 22. L0、Thread Summary、L1 Atom、L2 Episode、L3 Profile 都能报告 producer/source/watermark/version；摘要损坏、projection lag 和删除 fence 不会改写或隐藏 L0。
 23. Knowledge、ServiceEpisode 与 Media 共用 PostgreSQL retrieval 基础设施但分 corpus/generation/policy；Profile、ActiveCase 与服务债务不进入向量召回。
 24. `LEGACY_BM25_V1` 与 `PG_FTS_ZH_V1` 能在同一 capture 上分别重放；新 lexical provider 未过中文 slice、过滤、延迟、删除、重建和 OLTP Gate 时不能成为 Active。
-25. Chroma/SQLite BM25 的退役有 shadow、pinned canary、原子 pointer、rollback window、in-flight、删除/restore/rebuild 机器证据；`UNAVAILABLE` 从不被投影成 `NO_EVIDENCE/NO_MATCH`。
+25. 目标 composition root 只解析到 PostgreSQL pgvector/中文 FTS；Chroma/SQLite BM25 的 reader、writer、fallback、toggle 与依赖已经删除，且 PostgreSQL 路径有删除/restore/rebuild 机器证据；`UNAVAILABLE` 从不被投影成 `NO_EVIDENCE/NO_MATCH`。
 26. 普通追问创建新 invocation；只有匹配的开放 PendingSignal 才恢复旧 run。`CONTINUE/EXPAND/SWITCH/AMBIGUOUS` 对实体、Authority、风险和服务债务变化有确定性 fixture。
 27. Redis/Store/Provider cache 全部失效时结果仍正确，只增加延迟；任一跨 tenant/user cache 命中、过期 receipt、旧 source revision 或旧 media producer 被复用均为 hard failure。
 28. 同一 FAQ/商品/安装任务的后续轮次只执行新增或失效 requirement；旧 TaskPlan 不修改，写动作不重放，Coverage 与强制 full recompute 等价。
@@ -2189,7 +2215,7 @@ CommitmentLedger 管企业未来责任；
 Handoff 转移服务控制权；
 Context Engineering 决定每一步读取什么；
 LangGraph 持久化并恢复整个执行过程；
-ChatApplication 统一生产与评测服务链。
+ChatApplication 统一 HTTP 服务入口与评测服务链。
 ```
 
 PostgreSQL 同时承载权威客服事实与可重建检索投影：pgvector/中文词法层复用成熟存储和运维，
