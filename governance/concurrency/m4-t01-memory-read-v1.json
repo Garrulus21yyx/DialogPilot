@@ -10,6 +10,9 @@
   "unavailable_behavior": "stop before inference when neither source watermarks nor raw context can be trusted",
   "scope": "tenant_id + user_id + conversation_id",
   "current_turn": "excluded from raw fallback by request_id because it is supplied separately to the model",
+  "current_thread_load": "MemoryManager.get_current_context; no cross-session retrieval",
+  "cross_session_retrieval": "on-demand ServiceEpisodeRetriever owned by Planner/Agent tool",
+  "chat_application_pre_retrieval_outcome": "NOT_NEEDED",
   "trace_fields": [
     "state",
     "source_watermark",

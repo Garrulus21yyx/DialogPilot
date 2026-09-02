@@ -869,16 +869,14 @@ class MemoryManager:
         conv_id = self._safe_text(conv_id)
         query = self._safe_text(query)
 
-        checkpoint, _ = await self._read_checkpoint(user_id, conv_id)
-        chunks = await self._get_summary_chunks(user_id, conv_id)
-        recent = await self._get_working_memory(
-            user_id,
-            conv_id,
-            covered_until_seq=checkpoint.covered_until_seq,
+        current = await self.get_current_context(
+            user_id, conv_id, diagnostics=diagnostics,
         )
 
         # 2. 情景记忆（跨会话混合检索）；摘要不再是唯一事实源。
-        retrieval_query = query or (recent[-1].content if recent else "")
+        retrieval_query = query or (
+            current.recent_messages[-1].content if current.recent_messages else ""
+        )
         retrieval_hits = await self.search_long_term(
             user_id,
             retrieval_query,
@@ -888,18 +886,36 @@ class MemoryManager:
         )
         history = await self._expand_retrieval_hits(user_id, retrieval_hits)
 
-        # 3. active facts 的兼容 profile 投影
-        profile = await self._get_profile(user_id)
+        return MemoryContext(
+            recent_messages=current.recent_messages,
+            relevant_history=history,
+            user_profile=current.user_profile,
+            summary=current.summary,
+            retrieval_hits=retrieval_hits,
+        )
 
-        # 4. 摘要视图由不可变范围块确定性重建，不再 summary-of-summary。
-        summary = self._build_summary_view(chunks, checkpoint)
-
+    async def get_current_context(
+        self,
+        user_id: str,
+        conv_id: str,
+        *,
+        diagnostics: Optional[Dict[str, Any]] = None,
+    ) -> MemoryContext:
+        """Read the fixed current-thread window without cross-session retrieval."""
+        del diagnostics
+        user_id = self._safe_text(user_id)
+        conv_id = self._safe_text(conv_id)
+        checkpoint, _ = await self._read_checkpoint(user_id, conv_id)
+        chunks = await self._get_summary_chunks(user_id, conv_id)
+        recent = await self._get_working_memory(
+            user_id, conv_id, covered_until_seq=checkpoint.covered_until_seq,
+        )
         return MemoryContext(
             recent_messages=recent,
-            relevant_history=history,
-            user_profile=profile,
-            summary=summary,
-            retrieval_hits=retrieval_hits,
+            relevant_history=[],
+            user_profile=await self._get_profile(user_id),
+            summary=self._build_summary_view(chunks, checkpoint),
+            retrieval_hits=[],
         )
 
     # ── 压缩（防止 context 爆炸）─────────────────────────────────────────────

@@ -69,6 +69,18 @@ class Memory:
         return MemoryContext([], [], {}, "", [])
 
 
+class CurrentThreadOnlyMemory:
+    def __init__(self):
+        self.current_calls = []
+
+    async def get_current_context(self, user_id, conv_id, *, diagnostics=None):
+        self.current_calls.append((user_id, conv_id))
+        return MemoryContext([], [], {}, "", [])
+
+    async def get_context(self, *_args, **_kwargs):
+        raise AssertionError("ChatApplication projection must not pre-retrieve episodes")
+
+
 def test_projection_lag_returns_raw_source_fallback_and_omitted_ranges(
     memory_projection_scope,
 ):
@@ -115,6 +127,26 @@ def test_retrieval_backend_failure_is_degraded_not_no_match(
     assert result.reason_codes == (
         "EPISODIC_VECTOR_UNAVAILABLE", "EPISODIC_LEXICAL_UNAVAILABLE",
     )
+
+
+def test_production_projection_loads_fixed_thread_without_episode_pre_retrieval(
+    memory_projection_scope,
+):
+    pool, identity = memory_projection_scope
+    memory = CurrentThreadOnlyMemory()
+    result = asyncio.run(PostgresMemoryProjectionReader(
+        pool, memory,
+    ).get_projection_result(
+        str(identity.tenant_id), str(identity.user_id),
+        str(identity.conversation_id), query="E401 登录失败",
+        current_request_id="different-request",
+    ))
+    assert memory.current_calls == [
+        (str(identity.user_id), str(identity.conversation_id)),
+    ]
+    assert result.retrieval_outcome is MemoryRetrievalOutcome.NOT_NEEDED
+    assert result.context.retrieval_hits == []
+    assert result.context.relevant_history == []
 
 
 def test_ready_contract_rejects_hidden_omission_or_lag():

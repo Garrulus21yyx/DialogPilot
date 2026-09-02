@@ -2,6 +2,7 @@
 
 import asyncio
 from datetime import datetime, timedelta, timezone
+from types import SimpleNamespace
 
 import pytest
 
@@ -122,6 +123,39 @@ def test_memory_manager_fuses_user_scoped_chroma_candidates():
     assert hits[0].event_seq == 8
     assert hits[0].role == "user"
     assert manager._episodic.where_values == [{"user_id": "user-1"}, {"user_id": "user-1"}]
+
+
+def test_current_thread_context_never_runs_cross_session_search(monkeypatch):
+    manager = MemoryManager.__new__(MemoryManager)
+
+    async def checkpoint(*_args):
+        return SimpleNamespace(covered_until_seq=3), None
+
+    async def chunks(*_args):
+        return []
+
+    async def recent(*_args, **_kwargs):
+        return [Message(MsgRole.USER, "当前会话", seq=4)]
+
+    async def profile(*_args):
+        return {"language": "zh-CN"}
+
+    async def forbidden(*_args, **_kwargs):
+        raise AssertionError("cross-session search is not part of current context")
+
+    monkeypatch.setattr(manager, "_read_checkpoint", checkpoint)
+    monkeypatch.setattr(manager, "_get_summary_chunks", chunks)
+    monkeypatch.setattr(manager, "_get_working_memory", recent)
+    monkeypatch.setattr(manager, "_get_profile", profile)
+    monkeypatch.setattr(manager, "_build_summary_view", lambda *_args: "summary")
+    monkeypatch.setattr(manager, "search_long_term", forbidden)
+
+    context = asyncio.run(manager.get_current_context("user-1", "conversation-1"))
+    assert [item.content for item in context.recent_messages] == ["当前会话"]
+    assert context.summary == "summary"
+    assert context.user_profile == {"language": "zh-CN"}
+    assert context.relevant_history == []
+    assert context.retrieval_hits == []
 
 
 def test_cross_conversation_search_excludes_current_conversation():

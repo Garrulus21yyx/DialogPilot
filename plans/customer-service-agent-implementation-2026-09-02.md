@@ -1180,6 +1180,14 @@
 - PostgreSQL 证明相同 query/entity 下 tenant 与 user 双重隔离。[build evidence](../governance/evidence/m4-t04b/service-episode-retrieval-build.md)。
   当前阈值仅为 contract fixtures，真实离线校准与 ChatApplication E2E 待后续节点，consumer 未启用。
 
+### M4-T04B4（current-thread / cross-session read boundary）
+
+- `MemoryManager.get_current_context` 只读取当前 thread working window、range summary 与 active profile；不会运行跨会话检索。
+- PostgreSQL `ChatApplication` projection 路径固定使用 current-context 端口，非空 query 仍记录
+  `retrieval_outcome=NOT_NEEDED`；ServiceEpisode 只允许后续 Planner/Agent tool 按需触发，避免入口和 Agent 重复检索。
+- [build evidence](../governance/evidence/m4-t04b/current-thread-memory-boundary-build.md)。legacy `get_context/search_long_term`
+  当前仅供未迁移离线 fixture，必须在唯一 ServiceEpisode tool composition 验收时一并删除，不能进入 active runtime。
+
 ### M6-T01（Dataset v2 / Rubric v2）
 
 - 新增独立 service-chain v2，不改变 v1 数据身份；闭合 perception→service_outcome 11 层 observation，case

@@ -45,14 +45,23 @@ class PostgresMemoryProjectionReader:
             )
 
         diagnostics: dict = {}
+        current_context_reader = getattr(self.memory, "get_current_context", None)
         try:
-            context = await self.memory.get_context(
-                user_id, conv_id, query=query, diagnostics=diagnostics,
-            )
+            if current_context_reader is not None:
+                context = await current_context_reader(
+                    user_id, conv_id, diagnostics=diagnostics,
+                )
+                cross_session_requested = False
+            else:
+                context = await self.memory.get_context(
+                    user_id, conv_id, query=query, diagnostics=diagnostics,
+                )
+                cross_session_requested = True
             memory_available = True
         except Exception as exc:
             context = empty
             memory_available = False
+            cross_session_requested = current_context_reader is None
             diagnostics["failures"] = [f"MEMORY_READ_{type(exc).__name__}"]
 
         conflicts = tuple(
@@ -70,6 +79,7 @@ class PostgresMemoryProjectionReader:
         failures = tuple(dict.fromkeys(diagnostics.get("failures") or ()))
         retrieval_outcome = self._retrieval_outcome(
             query, context, failures, conflicts,
+            cross_session_requested=cross_session_requested,
         )
 
         raw_fallback = False
@@ -162,9 +172,13 @@ class PostgresMemoryProjectionReader:
         ) for role, content, created_at, metadata, turn_id, seq in reversed(rows)]
 
     @staticmethod
-    def _retrieval_outcome(query, context, failures, conflicts):
+    def _retrieval_outcome(
+        query, context, failures, conflicts, *, cross_session_requested=True,
+    ):
         if conflicts:
             return MemoryRetrievalOutcome.CONFLICT
+        if not cross_session_requested:
+            return MemoryRetrievalOutcome.NOT_NEEDED
         retrieval_failures = [
             item for item in failures if "EPISODIC" in item or "MEMORY_READ" in item
         ]
