@@ -1159,6 +1159,16 @@
 - [build evidence](../governance/evidence/m4-t04b/service-episode-backfill-shadow-build.md)。真实 Chroma inventory report 与 durable
   PostgreSQL pointer/CAS 仍待后续 slice，target consumer 继续关闭。
 
+### M4-T04B2（durable retrieval binding / rollback）
+
+- PostgreSQL `memory_retrieval_bindings` 以 tenant+ServiceEpisode corpus 单主保存 active/previous/candidate 的完整
+  policy fingerprint + backend generation + corpus generation tuple；mode/candidate algebra 由 DB CHECK 闭合。
+- 初始化相同 shadow 幂等、异 tuple conflict；所有切换一次 expected-version CAS，数据库强制 version 只增 1；rollback
+  一次恢复 previous tuple 并清空 candidate，in-flight 使用 immutable snapshot。
+- [build evidence](../governance/evidence/m4-t04b/memory-retrieval-binding-build.md) 与
+  [runbook](../docs/m4-t04-memory-retrieval-binding-runbook.zh-CN.md)。未执行 canary/ACTIVE；真实 inventory/shadow/Gate
+  仍阻断 M4-T04 verified closure。
+
 ### M6-T01（Dataset v2 / Rubric v2）
 
 - 新增独立 service-chain v2，不改变 v1 数据身份；闭合 perception→service_outcome 11 层 observation，case

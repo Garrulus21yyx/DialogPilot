@@ -11,6 +11,7 @@ from application.memory_retrieval_policy import (
     LEGACY_MEMORY_RETRIEVAL_POLICY,
     MemoryRetrievalBinding,
     MemoryRetrievalConsumerMode,
+    MemoryRetrievalTarget,
 )
 from application.service_episode_backfill import (
     BackfillDisposition,
@@ -91,15 +92,23 @@ def test_inventory_is_order_independent_replayable_and_tombstone_fenced():
 
 def test_memory_binding_rolls_back_policy_backend_and_corpus_as_one_tuple():
     binding = MemoryRetrievalBinding(
-        MemoryRetrievalConsumerMode.SHADOW, "b" * 64, "pg", "pg-gen",
-        "episode-gen", "a" * 64, "legacy", "legacy-gen",
-        "raw-memory-v4", 3,
+        MemoryRetrievalConsumerMode.SHADOW,
+        active=MemoryRetrievalTarget(
+            "a" * 64, "legacy", "legacy-gen", "raw-memory-v4",
+        ),
+        previous=MemoryRetrievalTarget(
+            "a" * 64, "legacy", "legacy-gen", "raw-memory-v4",
+        ),
+        candidate=MemoryRetrievalTarget(
+            "b" * 64, "pg", "pg-gen", "episode-gen",
+        ),
+        version=3,
     )
     rolled = binding.rollback()
     assert rolled.mode is MemoryRetrievalConsumerMode.LEGACY
     assert (
-        rolled.policy_fingerprint, rolled.backend_id,
-        rolled.backend_generation, rolled.corpus_generation,
+        rolled.active.policy_fingerprint, rolled.active.backend_id,
+        rolled.active.backend_generation, rolled.active.corpus_generation,
     ) == ("a" * 64, "legacy", "legacy-gen", "raw-memory-v4")
     assert rolled.version == 4
 

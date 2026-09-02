@@ -49,6 +49,15 @@
     "continuity", "provenance", "freshness", "unavailable", "conflict",
     "corpus_difference", "ranking_difference"
   ],
+  "durable_binding": {
+    "owner": "retrieval.memory_retrieval_bindings",
+    "identity": ["tenant_id", "SERVICE_EPISODE"],
+    "atomic_tuple": ["policy_fingerprint", "backend_generation", "corpus_generation"],
+    "modes": ["SHADOW", "PINNED_CANARY", "ACTIVE", "LEGACY"],
+    "update": "single expected-version CAS",
+    "rollback": "restore previous tuple and clear candidate in one version",
+    "in_flight": "immutable binding snapshot"
+  },
   "deletion": "conversation tombstone purges canonical head/revisions and fences retrieval",
   "remaining_release_owner": "M4-T04C after M4 Exit and POSTGRES_RETRIEVAL_GA"
 }

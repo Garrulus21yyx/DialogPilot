@@ -20,10 +20,10 @@
         "strategy": "read_migrate"
       },
       "postgres": {
-        "current_version": "20260902_0020",
+        "current_version": "20260902_0021",
         "owner": "postgres-domain",
         "readable_versions": [
-          "20260902_0020"
+          "20260902_0021"
         ],
         "strategy": "forward_only"
       }
@@ -161,11 +161,16 @@
         "down_revision": "20260902_0019",
         "file_sha256": "fec80e99e3eeb4e6c30df7c647afa63b8d44ed0d62691040bc3cf37b5774027e",
         "revision": "20260902_0020"
+      },
+      {
+        "down_revision": "20260902_0020",
+        "file_sha256": "6ca179ea08531345f58d6f521eb937f33a2577111e22552d47b5ecfa83087214",
+        "revision": "20260902_0021"
       }
     ],
     "registry_version": "schema-version-registry-v1"
   },
-  "payload_sha256": "9fe568cf8a29d2784463ad8157c80732a16745dbbcffe575ae80728d4ed6de98",
+  "payload_sha256": "9da178d00b4a0e615ba2938c47a2867ca538d3f8be438f9e70835f46b036991e",
   "schema_version": "x-t01-schema-registry-artifact-v1",
   "verification_status": "BUILD_LOCAL_RESTORE_PRODUCTION_SNAPSHOT_PENDING"
 }

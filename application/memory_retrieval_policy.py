@@ -41,40 +41,45 @@ class MemoryRetrievalConsumerMode(str, Enum):
 
 
 @dataclass(frozen=True)
-class MemoryRetrievalBinding:
-    """One pinned tuple; policy/backend/corpus generations cannot drift apart."""
-
-    mode: MemoryRetrievalConsumerMode
+class MemoryRetrievalTarget:
     policy_fingerprint: str
     backend_id: str
     backend_generation: str
     corpus_generation: str
-    previous_policy_fingerprint: str
-    previous_backend_id: str
-    previous_backend_generation: str
-    previous_corpus_generation: str
+
+    def __post_init__(self) -> None:
+        if any(not value.strip() for value in (
+            self.policy_fingerprint, self.backend_id, self.backend_generation,
+            self.corpus_generation,
+        )):
+            raise ValueError("memory retrieval target is incomplete")
+
+
+@dataclass(frozen=True)
+class MemoryRetrievalBinding:
+    """One pinned binding; its policy/backend/corpus tuples change by one CAS."""
+
+    mode: MemoryRetrievalConsumerMode
+    active: MemoryRetrievalTarget
+    previous: MemoryRetrievalTarget
+    candidate: MemoryRetrievalTarget | None
     version: int
 
     def __post_init__(self) -> None:
-        required = (
-            self.policy_fingerprint, self.backend_id, self.backend_generation,
-            self.corpus_generation, self.previous_policy_fingerprint,
-            self.previous_backend_id, self.previous_backend_generation,
-            self.previous_corpus_generation,
-        )
-        if any(not value.strip() for value in required) or self.version < 1:
+        if self.version < 1:
             raise ValueError("memory retrieval binding is incomplete")
+        needs_candidate = self.mode in {
+            MemoryRetrievalConsumerMode.SHADOW,
+            MemoryRetrievalConsumerMode.PINNED_CANARY,
+        }
+        if needs_candidate != (self.candidate is not None):
+            raise ValueError("memory retrieval mode/candidate mismatch")
 
     def rollback(self) -> "MemoryRetrievalBinding":
         return MemoryRetrievalBinding(
             mode=MemoryRetrievalConsumerMode.LEGACY,
-            policy_fingerprint=self.previous_policy_fingerprint,
-            backend_id=self.previous_backend_id,
-            backend_generation=self.previous_backend_generation,
-            corpus_generation=self.previous_corpus_generation,
-            previous_policy_fingerprint=self.previous_policy_fingerprint,
-            previous_backend_id=self.previous_backend_id,
-            previous_backend_generation=self.previous_backend_generation,
-            previous_corpus_generation=self.previous_corpus_generation,
+            active=self.previous,
+            previous=self.previous,
+            candidate=None,
             version=self.version + 1,
         )
