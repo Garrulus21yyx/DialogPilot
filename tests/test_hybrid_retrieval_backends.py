@@ -1,4 +1,4 @@
-"""M2-PF01 conformance for legacy and PostgreSQL candidate backends."""
+"""M2-PF01 conformance for the PostgreSQL candidate backend."""
 from __future__ import annotations
 
 from dataclasses import replace
@@ -22,9 +22,6 @@ from application.hybrid_retrieval import (
     RetrievalStatus,
 )
 from infrastructure.hybrid_retrieval_backend import (
-    ChromaBm25KnowledgeCandidateSource,
-    LegacyHybridBackend,
-    LegacyRawCandidate,
     PostgresHybridBackend,
     create_generation_hnsw_index,
     hnsw_index_name,
@@ -283,131 +280,6 @@ def test_episode_search_is_cross_user_isolated_and_never_cross_ranks_knowledge(
     assert result.lexical_candidates[0].corpus is RetrievalCorpus.SERVICE_EPISODE
     assert result.lexical_candidates[0].freshness_at
     assert result.index_watermark == episode.source_watermark
-
-
-class _LegacySource:
-    def dense_candidates(self, request):
-        return (
-            LegacyRawCandidate("dense-a", "source-a", "revision-a", 0.9, SHA),
-        )
-
-    def lexical_candidates(self, request):
-        return (
-            LegacyRawCandidate("lexical-a", "source-a", "revision-a", 2.1, SHA),
-        )
-
-
-class _FakeChromaCollection:
-    def __init__(self, *, include_revision=True):
-        self.metadata = {
-            "scope": "public", "locale": "zh-CN", "product": "payments",
-            "source_id": "source-a",
-            **({
-                "source_revision": "revision-a",
-                "provenance_sha256": SHA,
-            } if include_revision else {}),
-        }
-
-    def count(self):
-        return 1
-
-    def query(self, **kwargs):
-        assert kwargs["where"]["$and"] == [
-            {"scope": "public"}, {"locale": "zh-CN"}, {"product": "payments"},
-        ]
-        return {
-            "ids": [["chunk-a"]],
-            "metadatas": [[self.metadata]],
-            "distances": [[0.1]],
-        }
-
-    def get(self, **kwargs):
-        return {"ids": ["chunk-a"], "metadatas": [self.metadata]}
-
-
-class _FakeSparseIndex:
-    def search(self, query, *, top_k):
-        assert query == "退款"
-        assert top_k == 1
-        return ["chunk-a"]
-
-
-@pytest.mark.parametrize("with_source", [True, False])
-def test_legacy_adapter_uses_same_status_rank_and_candidate_contract(with_source):
-    generation = replace(
-        _generation("legacy"),
-        backend_id="LEGACY_CHROMA_BM25_V1",
-        backend_fingerprint="legacy-backend-v1",
-        lexical_ranker="LEGACY_BM25_V1",
-        vector_extension_version="chroma-0.5.23",
-    )
-    backend = LegacyHybridBackend(
-        generations={generation.generation_id: generation},
-        sources=(
-            {RetrievalCorpus.KNOWLEDGE: _LegacySource()} if with_source else {}
-        ),
-    )
-    result = backend.retrieve(_knowledge_request(generation))
-    assert result.status is (
-        RetrievalStatus.OK if with_source else RetrievalStatus.UNAVAILABLE
-    )
-    if with_source:
-        assert result.dense_candidates[0].rank == 1
-        assert result.lexical_candidates[0].rank == 1
-        assert result.dense_candidates[0].score == 0.9
-        assert result.lexical_candidates[0].score == 2.1
-
-
-@pytest.mark.parametrize("include_revision", [True, False])
-def test_concrete_chroma_bm25_source_requires_acl_and_source_revision(
-    include_revision,
-):
-    generation = replace(
-        _generation("legacy-concrete"),
-        backend_id="LEGACY_CHROMA_BM25_V1",
-        backend_fingerprint="legacy-backend-v1",
-        lexical_ranker="LEGACY_BM25_V1",
-        vector_extension_version="chroma-0.5.23",
-    )
-    source = ChromaBm25KnowledgeCandidateSource(
-        collection=_FakeChromaCollection(include_revision=include_revision),
-        sparse_index=_FakeSparseIndex(), tenant_id="tenant-a",
-    )
-    backend = LegacyHybridBackend(
-        generations={generation.generation_id: generation},
-        sources={RetrievalCorpus.KNOWLEDGE: source},
-    )
-    result = backend.retrieve(_knowledge_request(generation))
-    assert result.status is (
-        RetrievalStatus.OK
-        if include_revision else RetrievalStatus.INVALID_CONTRACT
-    )
-    if include_revision:
-        assert result.dense_candidates[0].score == pytest.approx(0.9)
-        assert result.lexical_candidates[0].candidate_id == "chunk-a"
-
-
-def test_concrete_legacy_source_never_invents_missing_provenance():
-    generation = replace(
-        _generation("legacy-no-provenance"),
-        backend_id="LEGACY_CHROMA_BM25_V1",
-        backend_fingerprint="legacy-backend-v1",
-        lexical_ranker="LEGACY_BM25_V1",
-        vector_extension_version="chroma-0.5.23",
-    )
-    collection = _FakeChromaCollection(include_revision=True)
-    collection.metadata.pop("provenance_sha256")
-    result = LegacyHybridBackend(
-        generations={generation.generation_id: generation},
-        sources={
-            RetrievalCorpus.KNOWLEDGE: ChromaBm25KnowledgeCandidateSource(
-                collection=collection,
-                sparse_index=_FakeSparseIndex(),
-                tenant_id="tenant-a",
-            ),
-        },
-    ).retrieve(_knowledge_request(generation))
-    assert result.status is RetrievalStatus.INVALID_CONTRACT
 
 
 def test_episode_scope_type_remains_separate_from_knowledge():

@@ -1,7 +1,0 @@
-{"case_id":"ks-dev-refund-policy","split":"dev","query":"退款一般退回哪里？","standalone":"退款一般退回哪里？","expected_source_id":"source-eval-refund-channel","forbidden_source_ids":["source-eval-account-security"]}
-{"case_id":"ks-dev-address-policy","split":"dev","query":"包裹打包后还能修改地址吗？","standalone":"包裹打包后还能修改地址吗？","expected_source_id":"source-eval-address-change","forbidden_source_ids":[]}
-{"case_id":"ks-dev-security-handoff","split":"dev","query":"旧邮箱不能用了，怎么修改邮箱？","standalone":"旧邮箱不能用了，怎么修改邮箱？","expected_source_id":"source-eval-account-profile","forbidden_source_ids":["source-eval-refund-channel"]}
-{"case_id":"ks-dev-no-personal-state","split":"dev","query":"我的退款到账了吗？","standalone":"我的退款到账了吗？","expected_source_id":null,"forbidden_source_ids":["source-eval-refund-channel"]}
-{"case_id":"ks-heldout-crash","split":"heldout_candidate","query":"APP-OOM 崩溃应该先做什么？","standalone":"APP-OOM 崩溃应该先做什么？","expected_source_id":"source-eval-client-crash","forbidden_source_ids":[]}
-{"case_id":"ks-heldout-service-500","split":"heldout_candidate","query":"遇到 E500 可以连续重试吗？","standalone":"遇到 E500 可以连续重试吗？","expected_source_id":"source-eval-service-500","forbidden_source_ids":["source-eval-client-crash"]}
-{"case_id":"ks-heldout-unknown-private-state","split":"heldout_candidate","query":"我的账户现在被冻结了吗？","standalone":"我的账户现在被冻结了吗？","expected_source_id":null,"forbidden_source_ids":["source-eval-account-profile"]}

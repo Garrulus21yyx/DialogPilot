@@ -5,7 +5,23 @@
   - `docs/customer-service-agent-target-architecture.zh-CN.md`
   - `docs/customer-service-agent-implementation-plan.zh-CN.md`
 - 执行原则：按依赖 DAG 推进；每张任务卡独立验证、记录文件、commit 并 push；不把 `IMPLEMENTED` 冒充 `VERIFIED` 或 `READY`。
-- 当前阶段：M4
+- 当前阶段：本地简历版架构收敛
+
+## 本地简历版收敛（2026-09-02）
+
+| 节点 | 状态 | 验证 / 产物 |
+|---|---|---|
+| 删除 raw episodic Chroma writer/reader 与空 backfill | done | `e9fe382`、`9957966` |
+| 删除 Agent/Route shadow、canary/promotion 与 rollout 状态机 | done | `a7ada9f`、`cd2878d`、`15dce38`、`c55e6e1` |
+| ActiveCase relevance selector 成为唯一消费者 | done | `2dd226d` |
+| PostgreSQL ResponseDelivery 单主，删除 SQLite cutover/binding | done | `bfc28e7`；941 tests passed |
+| 删除 Knowledge PG/Chroma shadow 比较框架 | done | 删除 shadow runner、fixture、legacy backend adapter |
+| PostgreSQL Knowledge retrieval/ingestion 单主 | in_progress | 迁移在线 reader、Bundle refs 与 ingestion API |
+| 治理/评测收缩为测试 + 本地 E2E + 机器报告 + Demo | pending | Knowledge 单主后执行 |
+
+约束：不存在需要保留的历史数据；不实施 backfill、双写、shadow/canary 或生产审批模拟。保留
+TaskGraph/ReAct/ContextPolicy、checkpoint/idempotency/tool receipt、ServiceEpisode/Profile/Commitment/
+Handoff、OCR/VLM、基础 OTel/Langfuse 与本地恢复测试。
 
 ## 状态
 
