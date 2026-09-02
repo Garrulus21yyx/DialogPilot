@@ -699,6 +699,7 @@ class ChatResponse(BaseModel):
     awaiting_approval: bool = False
     react_run_ids: List[str] = Field(default_factory=list)
     pending_approval_call_ids: List[str] = Field(default_factory=list)
+    pending_signals: List[Dict[str, Any]] = Field(default_factory=list)
 
 
 class AcceptedChatResponse(BaseModel):

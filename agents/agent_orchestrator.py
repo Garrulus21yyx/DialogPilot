@@ -33,6 +33,9 @@ from agents.orchestration_contracts import (
     ExecutionBudget,
     ExecutionWindow,
     DependencyInput,
+    PendingSignal,
+    PendingSignalKind,
+    PriorOutcomeBinding,
     TaskArtifact,
     TaskPlan,
     TaskEffect,
@@ -156,6 +159,23 @@ class AgentResponse:
     allow_fallback: bool = True
     evidence_receipt_refs: List[str] = field(default_factory=list)
     authority_conflicts: List[str] = field(default_factory=list)
+    terminal_outcome_status: str = ""
+
+
+@dataclass(frozen=True)
+class TaskExecution:
+    """Exactly one execution fact: a terminal outcome or a native interrupt."""
+
+    outcome: Optional[AgentOutcome] = None
+    pending_signal: Optional[PendingSignal] = None
+    pending_content: str = ""
+    responding_agent_type: str = ""
+    react_run_id: str = ""
+    pending_approval_call_ids: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        if (self.outcome is None) == (self.pending_signal is None):
+            raise ValueError("task execution requires exactly one outcome or pending signal")
 
 
 @dataclass
@@ -185,6 +205,7 @@ class Request:
     intent_source_scores: Dict[str, float] = field(default_factory=dict)
     routing_policy_trace: Optional[RoutingPolicyTrace] = None
     dependency_artifacts: tuple[TaskArtifact, ...] = ()
+    prior_outcome_bindings: tuple[PriorOutcomeBinding, ...] = ()
 
 
 class PlanningDisposition(str, Enum):
@@ -221,6 +242,7 @@ class OrchestratorResult:
     awaiting_approval: bool = False
     react_run_ids: List[str] = field(default_factory=list)
     pending_approval_call_ids: List[str] = field(default_factory=list)
+    pending_signals: List[Dict[str, Any]] = field(default_factory=list)
     bundle_version: str = "unversioned"
     routing_policy_trace: Dict[str, Any] = field(default_factory=dict)
 
@@ -805,12 +827,48 @@ class AgentOrchestrator:
             return await self.run_parallel(req, plan, window=window)
 
         # 2. 执行主 Agent（含降级），与并行路径共用同一个 deadline/outcome 边界。
-        outcome = await self._execute_outcome(
+        execution = await self._execute_task(
             req,
             plan.primary_task,
             is_primary=True,
             window=window,
         )
+        if execution.pending_signal is not None:
+            signal = execution.pending_signal
+            coverage = CoverageGate.evaluate_with_signals(plan, (), (signal,))
+            responding_type = (
+                AgentType(execution.responding_agent_type)
+                if execution.responding_agent_type else plan.primary_agent
+            )
+            return OrchestratorResult(
+                request_id=req.request_id,
+                response=execution.pending_content or "高风险操作已暂停并等待宿主审批。",
+                agent_type=responding_type,
+                intent=req.intent,
+                escalated=False,
+                latency_ms=(time.monotonic() - t0) * 1000,
+                agent_types=[responding_type],
+                primary_agent=plan.primary_agent,
+                supporting_agents=[],
+                routing_reason=plan.reason,
+                routing_confidence=plan.confidence,
+                routing_disposition=PlanningDisposition.EXECUTE,
+                synthesis_status="awaiting_signal",
+                synthesis_reason=f"native PendingSignal({signal.kind.value}) blocks publication",
+                agent_outcomes=[],
+                task_plan=plan.to_dict(),
+                coverage=coverage.to_dict(),
+                execution_budget=window.budget.to_dict(),
+                awaiting_approval=signal.kind is PendingSignalKind.APPROVAL,
+                react_run_ids=[execution.react_run_id] if execution.react_run_id else [],
+                pending_approval_call_ids=list(execution.pending_approval_call_ids),
+                pending_signals=[signal.to_dict()],
+                bundle_version=req.bundle_version,
+                routing_policy_trace=req.routing_policy_trace.to_dict(),
+            )
+        outcome = execution.outcome
+        if outcome is None:  # TaskExecution xor invariant; unreachable.
+            raise RuntimeError("terminal task execution lacks an outcome")
         coverage = CoverageGate.evaluate(plan, [outcome])
         succeeded = outcome.status is AgentOutcomeStatus.SUCCESS
         responding_type = (
@@ -818,13 +876,12 @@ class AgentOrchestrator:
             if outcome.responding_agent_type
             else plan.primary_agent
         )
-        awaiting_approval = outcome.status is AgentOutcomeStatus.AWAITING_APPROVAL
-        response_content = outcome.content if succeeded or awaiting_approval else (
+        response_content = outcome.content if succeeded else (
             "专业 Agent 未能在限定时间内完成处理，已转交人工进一步确认。"
         )
 
         # 4. 升级检查
-        escalated = not succeeded and not awaiting_approval
+        escalated = not succeeded
         if outcome.escalate or req.urgency == UrgencyLevel.CRITICAL or req.intent in (
             IntentCategory.ESCALATION,
             IntentCategory.HUMAN_HANDOFF,
@@ -856,7 +913,7 @@ class AgentOrchestrator:
             task_plan=plan.to_dict(),
             coverage=coverage.to_dict(),
             execution_budget=window.budget.to_dict(),
-            awaiting_approval=awaiting_approval,
+            awaiting_approval=False,
             react_run_ids=[outcome.react_run_id] if outcome.react_run_id else [],
             pending_approval_call_ids=list(outcome.pending_approval_call_ids),
             bundle_version=req.bundle_version,
@@ -900,6 +957,7 @@ class AgentOrchestrator:
         deferred_tasks = selection.deferred
         executable_ids = {task.task_id for task in executable_tasks}
         outcome_by_task: Dict[str, AgentOutcome] = {}
+        pending_execution: Optional[TaskExecution] = None
         for wave in plan.execution_waves(executable_ids):
             ready = []
             for task in wave:
@@ -932,11 +990,34 @@ class AgentOrchestrator:
                     else:
                         ready.append((task, artifacts))
 
-            wave_outcomes = await self._execute_wave(
+            wave_executions = await self._execute_wave(
                 req, ready, plan=plan, window=window,
                 max_parallel_workers=execution_policy.max_parallel_workers,
             )
-            outcome_by_task.update({outcome.task_id: outcome for outcome in wave_outcomes})
+            for execution in wave_executions:
+                if execution.pending_signal is not None:
+                    if pending_execution is None:
+                        pending_execution = execution
+                    else:
+                        signal = execution.pending_signal
+                        outcome_by_task[signal.task_id] = AgentOutcome(
+                            task_id=signal.task_id,
+                            required=next(
+                                task.required for task in plan.tasks
+                                if task.task_id == signal.task_id
+                            ),
+                            agent_type=next(
+                                task.owner.value for task in plan.tasks
+                                if task.task_id == signal.task_id
+                            ),
+                            status=AgentOutcomeStatus.ERROR,
+                            is_primary=signal.task_id == plan.primary_task_id,
+                            error="UNSUPPORTED_CONCURRENT_INTERRUPT: v1 permits one blocking signal",
+                        )
+                elif execution.outcome is not None:
+                    outcome_by_task[execution.outcome.task_id] = execution.outcome
+            if pending_execution is not None:
+                break
 
         deferred_outcomes = [
             AgentOutcome(
@@ -953,7 +1034,16 @@ class AgentOrchestrator:
             for task in deferred_tasks
         ]
         outcome_by_task.update({outcome.task_id: outcome for outcome in deferred_outcomes})
-        outcomes = [outcome_by_task[task.task_id] for task in plan.ordered_tasks]
+        outcomes = [
+            outcome_by_task[task.task_id]
+            for task in plan.ordered_tasks
+            if task.task_id in outcome_by_task
+        ]
+
+        if pending_execution is not None:
+            return self._pending_parallel_result(
+                req, plan, outcomes, pending_execution, window, t0,
+            )
 
         remaining = window.remaining_s()
         if remaining <= 0:
@@ -976,6 +1066,55 @@ class AgentOrchestrator:
                 )
 
         return self._parallel_result(req, plan, outcomes, synthesis, window, t0)
+
+    def _pending_parallel_result(
+        self,
+        req: Request,
+        plan: TaskPlan,
+        outcomes: list[AgentOutcome],
+        execution: TaskExecution,
+        window: ExecutionWindow,
+        started_at: float,
+    ) -> OrchestratorResult:
+        """Project one native interrupt and block Coverage/Synthesis publication."""
+        signal = execution.pending_signal
+        if signal is None:
+            raise ValueError("pending projection requires a signal")
+        coverage = CoverageGate.evaluate_with_signals(plan, outcomes, (signal,))
+        successful_types = [
+            AgentType(outcome.agent_type) for outcome in outcomes
+            if outcome.status is AgentOutcomeStatus.SUCCESS
+        ]
+        return OrchestratorResult(
+            request_id=req.request_id,
+            response=execution.pending_content or "高风险操作已暂停并等待宿主审批。",
+            agent_type=plan.primary_agent,
+            intent=req.intent,
+            escalated=False,
+            latency_ms=(time.monotonic() - started_at) * 1000,
+            agent_types=successful_types or plan.agent_types,
+            primary_agent=plan.primary_agent,
+            supporting_agents=plan.supporting_agents,
+            routing_reason=plan.reason,
+            routing_confidence=plan.confidence,
+            routing_disposition=PlanningDisposition.EXECUTE,
+            synthesis_status="awaiting_signal",
+            synthesis_reason=f"native PendingSignal({signal.kind.value}) blocks publication",
+            agent_outcomes=[outcome.to_dict() for outcome in outcomes],
+            producer_agent_keys=[],
+            task_plan=plan.to_dict(),
+            coverage=coverage.to_dict(),
+            execution_budget=window.budget.to_dict(),
+            awaiting_approval=signal.kind is PendingSignalKind.APPROVAL,
+            react_run_ids=list(dict.fromkeys([
+                *(outcome.react_run_id for outcome in outcomes if outcome.react_run_id),
+                *([execution.react_run_id] if execution.react_run_id else []),
+            ])),
+            pending_approval_call_ids=list(execution.pending_approval_call_ids),
+            pending_signals=[signal.to_dict()],
+            bundle_version=req.bundle_version,
+            routing_policy_trace=req.routing_policy_trace.to_dict(),
+        )
 
     def _parallel_result(
         self, req, plan, outcomes, synthesis, window, started_at,
@@ -1051,9 +1190,9 @@ class AgentOrchestrator:
         plan: TaskPlan,
         window: ExecutionWindow,
         max_parallel_workers: int,
-    ) -> list[AgentOutcome]:
+    ) -> list[TaskExecution]:
         """Execute stable-order safe-read batches; effects/interrupts stay serial."""
-        outcomes: list[AgentOutcome] = []
+        executions: list[TaskExecution] = []
         batch: list[tuple[TaskSpec, tuple[TaskArtifact, ...]]] = []
 
         async def flush() -> None:
@@ -1061,13 +1200,13 @@ class AgentOrchestrator:
             if not batch:
                 return
             results = await asyncio.gather(*(
-                self._execute_outcome(
+                self._execute_task(
                     req, task, is_primary=task.task_id == plan.primary_task_id,
                     window=window, dependency_artifacts=artifacts,
                 )
                 for task, artifacts in batch
             ))
-            outcomes.extend(results)
+            executions.extend(results)
             batch = []
 
         for task, artifacts in ready:
@@ -1077,12 +1216,15 @@ class AgentOrchestrator:
                     await flush()
             else:
                 await flush()
-                outcomes.append(await self._execute_outcome(
+                execution = await self._execute_task(
                     req, task, is_primary=task.task_id == plan.primary_task_id,
                     window=window, dependency_artifacts=artifacts,
-                ))
+                )
+                executions.append(execution)
+                if execution.pending_signal is not None:
+                    break
         await flush()
-        return outcomes
+        return executions
 
     @staticmethod
     def _dependency_artifacts(
@@ -1258,6 +1400,7 @@ class AgentOrchestrator:
                 TaskEffect.WRITE_REQUIRES_APPROVAL
                 if write_requested else TaskEffect.READ_ONLY
             ),
+            may_interrupt=write_requested,
         )
 
     @staticmethod
@@ -1448,7 +1591,7 @@ class AgentOrchestrator:
 
         return response
 
-    async def _execute_outcome(
+    async def _execute_task(
         self,
         req: Request,
         task: TaskSpec,
@@ -1456,20 +1599,20 @@ class AgentOrchestrator:
         is_primary: bool,
         window: Optional[ExecutionWindow] = None,
         dependency_artifacts: tuple[TaskArtifact, ...] = (),
-    ) -> AgentOutcome:
-        """把一次选中 Agent 的执行收敛为闭合的 outcome 结果代数。"""
+    ) -> TaskExecution:
+        """Return either one terminal outcome or one native PendingSignal."""
         started = time.monotonic()
         window = window or self._new_execution_window()
         timeout_s = window.agent_timeout()
         if timeout_s <= 0:
-            return AgentOutcome(
+            return TaskExecution(outcome=AgentOutcome(
                 task_id=task.task_id,
                 required=task.required,
                 agent_type=task.owner.value,
                 status=AgentOutcomeStatus.BUDGET_EXCEEDED,
                 is_primary=is_primary,
                 error="request execution budget exhausted before agent start",
-            )
+            ))
         request_limited = timeout_s < window.budget.agent_timeout_s
         scoped_request = self._scoped_request(
             req, task, dependency_artifacts=dependency_artifacts,
@@ -1480,7 +1623,7 @@ class AgentOrchestrator:
                 timeout=timeout_s,
             )
         except asyncio.TimeoutError:
-            return AgentOutcome(
+            return TaskExecution(outcome=AgentOutcome(
                 task_id=task.task_id,
                 required=task.required,
                 agent_type=task.owner.value,
@@ -1496,9 +1639,9 @@ class AgentOrchestrator:
                     if request_limited
                     else f"agent exceeded {timeout_s:.3f}s timeout"
                 ),
-            )
+            ))
         except Exception as exc:
-            return AgentOutcome(
+            return TaskExecution(outcome=AgentOutcome(
                 task_id=task.task_id,
                 required=task.required,
                 agent_type=task.owner.value,
@@ -1506,9 +1649,46 @@ class AgentOrchestrator:
                 is_primary=is_primary,
                 latency_ms=(time.monotonic() - started) * 1000,
                 error=f"{type(exc).__name__}: {str(exc)[:300]}",
-            )
+            ))
 
         awaiting_approval = response.react_status == "waiting_approval"
+        if awaiting_approval:
+            signal_key = (
+                response.react_run_id
+                or next(iter(response.pending_approval_call_ids), "")
+                or req.request_id
+                or req.conv_id
+                or "unbound"
+            )
+            return TaskExecution(
+                pending_signal=PendingSignal(
+                    kind=PendingSignalKind.APPROVAL,
+                    signal_id=f"approval:{signal_key}:{task.task_id}",
+                    task_id=task.task_id,
+                    workflow_run_id=response.react_run_id,
+                    payload_schema_version="approval-decision-v1",
+                ),
+                pending_content=response.content,
+                responding_agent_type=response.agent_type.value,
+                react_run_id=response.react_run_id,
+                pending_approval_call_ids=tuple(response.pending_approval_call_ids),
+            )
+
+        explicit_status: Optional[AgentOutcomeStatus] = None
+        if response.terminal_outcome_status:
+            try:
+                explicit_status = AgentOutcomeStatus(response.terminal_outcome_status)
+            except ValueError:
+                explicit_status = AgentOutcomeStatus.ERROR
+                response.error = (
+                    "INVALID_TERMINAL_STATUS: " + response.terminal_outcome_status
+                )
+            if explicit_status is AgentOutcomeStatus.AWAITING_APPROVAL:
+                explicit_status = AgentOutcomeStatus.ERROR
+                response.error = "INVALID_TERMINAL_STATUS: waiting must use PendingSignal"
+            if explicit_status is AgentOutcomeStatus.SUCCESS and not response.success:
+                explicit_status = AgentOutcomeStatus.ERROR
+                response.error = "INVALID_TERMINAL_STATUS: success response is false"
         artifacts = (
             (TaskArtifact(
                 artifact_ref=f"task-artifact:v1:{task.task_id}",
@@ -1519,21 +1699,18 @@ class AgentOrchestrator:
             ),)
             if response.success else ()
         )
-        return AgentOutcome(
+        return TaskExecution(outcome=AgentOutcome(
             task_id=task.task_id,
             required=task.required,
             agent_type=task.owner.value,
             agent_key=response.agent_key,
             responding_agent_type=response.agent_type.value,
             status=(
-                AgentOutcomeStatus.SUCCESS
-                if response.success
-                else AgentOutcomeStatus.AWAITING_APPROVAL
-                if awaiting_approval
-                else AgentOutcomeStatus.ERROR
+                explicit_status
+                or (AgentOutcomeStatus.SUCCESS if response.success else AgentOutcomeStatus.ERROR)
             ),
             is_primary=is_primary,
-            content=response.content if response.success or awaiting_approval else "",
+            content=response.content if response.success else "",
             confidence=response.confidence,
             latency_ms=response.latency_ms,
             escalate=response.escalate,
@@ -1545,7 +1722,28 @@ class AgentOrchestrator:
             pending_approval_call_ids=response.pending_approval_call_ids,
             artifacts=artifacts,
             authority_conflicts=response.authority_conflicts,
+        ))
+
+    async def _execute_outcome(
+        self,
+        req: Request,
+        task: TaskSpec,
+        *,
+        is_primary: bool,
+        window: Optional[ExecutionWindow] = None,
+        dependency_artifacts: tuple[TaskArtifact, ...] = (),
+    ) -> AgentOutcome:
+        """Compatibility helper for callers that require an already-terminal task."""
+        execution = await self._execute_task(
+            req,
+            task,
+            is_primary=is_primary,
+            window=window,
+            dependency_artifacts=dependency_artifacts,
         )
+        if execution.outcome is None:
+            raise RuntimeError("task is awaiting a native PendingSignal, not terminal")
+        return execution.outcome
 
     @staticmethod
     def _scoped_request(

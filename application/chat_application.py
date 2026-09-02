@@ -687,6 +687,7 @@ class ChatApplication:
             "awaiting_approval": approval_pending,
             "react_run_ids": list(result.react_run_ids),
             "pending_approval_call_ids": list(result.pending_approval_call_ids),
+            "pending_signals": list(result.pending_signals),
         }
         return Completed(
             response_id=delivery.response_id,

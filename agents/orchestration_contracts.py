@@ -40,6 +40,47 @@ class TaskEffect(str, Enum):
     WRITE_REQUIRES_APPROVAL = "write_requires_approval"
 
 
+class PendingSignalKind(str, Enum):
+    """A non-terminal external input awaited by the current task."""
+
+    USER_INPUT = "user_input"
+    APPROVAL = "approval"
+    HUMAN_RESULT = "human_result"
+    MEDIA_RESOLVED = "media_resolved"
+    RECONCILIATION_RESULT = "reconciliation_result"
+
+
+@dataclass(frozen=True)
+class PendingSignal:
+    """Native interrupt fact; it must never be stored as a terminal task outcome."""
+
+    kind: PendingSignalKind
+    signal_id: str
+    task_id: str
+    version: str = "pending-signal-v1"
+    workflow_run_id: str = ""
+    payload_schema_version: str = "pending-signal-payload-v1"
+
+    def __post_init__(self) -> None:
+        if any(not str(value).strip() for value in (
+            self.signal_id,
+            self.task_id,
+            self.version,
+            self.payload_schema_version,
+        )):
+            raise ValueError("pending signal identity/version is required")
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "kind": self.kind.value,
+            "signal_id": self.signal_id,
+            "task_id": self.task_id,
+            "version": self.version,
+            "workflow_run_id": self.workflow_run_id,
+            "payload_schema_version": self.payload_schema_version,
+        }
+
+
 @dataclass(frozen=True)
 class DependencyInput:
     """Typed upstream artifact that a dependent task must actually consume."""
@@ -349,6 +390,8 @@ class CoverageReport:
     unresolved_required_task_ids: Tuple[str, ...]
     duplicate_task_ids: Tuple[str, ...] = field(default_factory=tuple)
     unexpected_task_ids: Tuple[str, ...] = field(default_factory=tuple)
+    awaiting_signal_task_ids: Tuple[str, ...] = field(default_factory=tuple)
+    awaiting_signal_kinds: Tuple[str, ...] = field(default_factory=tuple)
 
     def to_dict(self) -> Dict[str, Any]:
         """把不可变内部元组投影为 JSON 数组。"""
@@ -361,6 +404,12 @@ class CoverageReport:
             "unresolved_required_task_ids": list(self.unresolved_required_task_ids),
             "duplicate_task_ids": list(self.duplicate_task_ids),
             "unexpected_task_ids": list(self.unexpected_task_ids),
+            "awaiting_signal_task_ids": list(self.awaiting_signal_task_ids),
+            "awaiting_signal_kinds": list(self.awaiting_signal_kinds),
+            "projection": (
+                "AWAITING_SIGNAL(" + ",".join(self.awaiting_signal_kinds) + ")"
+                if self.awaiting_signal_task_ids else "TERMINAL"
+            ),
         }
 
 

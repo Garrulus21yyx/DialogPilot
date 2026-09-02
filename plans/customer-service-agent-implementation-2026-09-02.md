@@ -35,7 +35,7 @@
 | M2-T04 Requirement CoverageGate / VerificationProfile | implemented (flag-off) | build complete；Knowledge verification waits T04A；642 tests passed |
 | M2-T04A SourceRevision v0 / active manifest | implemented (review pending) | PG owner/backfill/active validator done；independent human heldout review pending；650 tests passed |
 | M2-T05 统一 KnowledgeRetriever | implemented (canary blocked) | A1/A2/B + immutable PG dark-shadow report；675 tests passed |
-| M2-T06A Multi-Agent TaskGraph 收紧 | in_progress | A/B contracts + execution/dependency/synthesis done；native signal/terminal algebra pending；690 tests passed |
+| M2-T06A Multi-Agent TaskGraph 收紧 | implemented | A/B/C policy、execution、dependency、native signal 与 terminal algebra 完成；697 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
@@ -692,9 +692,28 @@
   0/1/template/LLM/conflict 实际模型调用次数；聚焦 `53 passed`，全套
   `690 passed in 19.21s`，ruff/diff checks passed。PendingSignal 和 CANCELLED/EXPIRED 终态仍待收口。
 
+### M2-T06A-C（native PendingSignal / terminal outcome closure）
+
+- 编排执行边界改为互斥 `TaskExecution(outcome | pending_signal)`：ReAct
+  `waiting_approval` 只产生版本化 `PendingSignal(APPROVAL, signal_id, task_id, version)`，不再写
+  `AWAITING_APPROVAL` 伪终态；旧 `awaiting_approval/pending_approval_call_ids` 仅由公开兼容投影读取。
+- CoverageGate 独立接收 terminal outcomes 与 native signals；等待 task 投影
+  `AWAITING_SIGNAL(kind)`、不进入 failed outcome，同时保持 required unresolved 并阻止
+  Synthesizer/发布。公开 response 增加 `pending_signals` 诊断合同。
+- effect-aware 串行任务在首个 signal 后停止本 wave/后续 wave；Planner 漏标导致并发产生第二个
+  interrupt 时，稳定保留 plan 顺序第一项，第二项写 typed
+  `ERROR/UNSUPPORTED_CONCURRENT_INTERRUPT`，v1 不自建多 interrupt barrier。
+- terminal outcome 闭合 `CANCELLED/EXPIRED`，Worker 通过显式 terminal producer 字段传递；未知值、
+  `AWAITING_APPROVAL` 冒充终态或矛盾 success 均 fail closed 为 `ERROR/INVALID_TERMINAL_STATUS`。
+  `PriorOutcomeBinding` 作为 Request 只读 delta-plan 输入端口保留，不复制为本轮 outcome。
+- 验证：native signal 不调用 Synthesizer、单 signal claim、串行停止、漏标并发 fail-closed、
+  cancel/expire/unknown terminal、prior binding 隔离；聚焦 `46 passed`，全套
+  `697 passed`，本次文件 ruff/diff checks passed。M2-T06A 标记 IMPLEMENTED；LangGraph native
+  checkpointer/resume 的持久化迁移仍属于 M3，不在本节点伪造。
+
 ## 下一步
 
-1. 实施 M2-T06A：保留并收紧 Multi-Agent TaskGraph，先冻结 TaskFormation/Execution/
-   Synthesis policy 及 typed dependency/outcome 合同。
+1. 实施 M2-T06：接通八种 route-specific execution/publishing paths，并消费已完成的
+   TaskGraph/SynthesisInvocationPolicy 合同。
 2. M2-T05C 受 M2 Exit + `POSTGRES_RETRIEVAL_GA` candidate manifest 阻断，当前不执行 canary。
 3. T04/T04A live activation 仍受 M2 gate 与独立 review 约束。

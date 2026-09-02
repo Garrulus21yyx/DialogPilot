@@ -16,6 +16,8 @@ from agents.agent_orchestrator import (
 from agents.orchestration_contracts import (
     DependencyInput,
     ExecutionBudget,
+    PendingSignalKind,
+    PriorOutcomeBinding,
     TaskEffect,
     TaskPlan,
     TaskRisk,
@@ -947,4 +949,173 @@ class CapturingSynthesizer:
             successful_agents=["technical"],
             failed_agents=["billing"],
         )
-"""Agent 路由、超时与并行结果代数的核心不变量测试。"""
+
+
+def test_waiting_approval_is_native_signal_not_terminal_outcome():
+    """等待外部审批不污染 task_outcomes，Coverage 只投影 AWAITING_SIGNAL。"""
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    orchestrator._agent_timeout_s = 1.0
+    orchestrator._execution_budget = ExecutionBudget(1.0, 1.0, 3)
+
+    class MustNotSynthesize:
+        async def synthesize(self, *_args, **_kwargs):
+            raise AssertionError("pending signal must block synthesis")
+
+    orchestrator._result_synthesizer = MustNotSynthesize()
+
+    async def execute(_req, agent_type):
+        return AgentResponse(
+            agent_type=agent_type, content="等待审批", success=False,
+            react_status="waiting_approval", react_run_id="run-1",
+            pending_approval_call_ids=["call-1"], allow_fallback=False,
+        )
+
+    orchestrator._execute = execute
+    task = TaskSpec(
+        "billing-write", AgentType.BILLING, "refund",
+        effect=TaskEffect.WRITE_REQUIRES_APPROVAL, may_interrupt=True,
+    )
+    result = asyncio.run(orchestrator.run_parallel(
+        Request(message="refund", user_id="u", conv_id="c", request_id="req-1"),
+        TaskPlan((task,), task.task_id),
+    ))
+
+    assert result.agent_outcomes == []
+    assert result.synthesis_status == "awaiting_signal"
+    assert result.pending_signals == [{
+        "kind": PendingSignalKind.APPROVAL.value,
+        "signal_id": "approval:run-1:billing-write",
+        "task_id": "billing-write",
+        "version": "pending-signal-v1",
+        "workflow_run_id": "run-1",
+        "payload_schema_version": "approval-decision-v1",
+    }]
+    assert result.coverage["projection"] == "AWAITING_SIGNAL(approval)"
+    assert result.coverage["awaiting_signal_task_ids"] == ["billing-write"]
+    assert result.coverage["failed_task_ids"] == []
+    assert result.awaiting_approval is True
+
+
+def test_first_serial_interrupt_stops_later_interrupt_capable_tasks():
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    orchestrator._agent_timeout_s = 1.0
+    orchestrator._execution_budget = ExecutionBudget(1.0, 1.0, 3)
+    orchestrator._result_synthesizer = ResultSynthesizer(client=None, model="test")
+    called = []
+
+    async def execute(scoped, agent_type):
+        called.append(scoped.assigned_task.task_id)
+        return AgentResponse(
+            agent_type=agent_type, content="wait", success=False,
+            react_status="waiting_approval", react_run_id="run-first",
+            pending_approval_call_ids=["call-first"], allow_fallback=False,
+        )
+
+    orchestrator._execute = execute
+    tasks = tuple(TaskSpec(
+        f"write-{index}", owner, "write",
+        effect=TaskEffect.WRITE_REQUIRES_APPROVAL, may_interrupt=True,
+    ) for index, owner in enumerate((AgentType.BILLING, AgentType.ACCOUNT_SECURITY)))
+    result = asyncio.run(orchestrator.run_parallel(
+        Request(message="writes", user_id="u", conv_id="c"),
+        TaskPlan(tasks, tasks[0].task_id),
+    ))
+
+    assert called == ["write-0"]
+    assert [item["task_id"] for item in result.pending_signals] == ["write-0"]
+    assert result.coverage["missing_task_ids"] == ["write-1"]
+
+
+def test_concurrent_interrupt_contract_violation_fails_closed():
+    """即使 Planner 错标为可并行，v1 也只保留一个 blocking signal。"""
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    orchestrator._agent_timeout_s = 1.0
+    orchestrator._execution_budget = ExecutionBudget(1.0, 1.0, 3)
+    orchestrator._result_synthesizer = ResultSynthesizer(client=None, model="test")
+
+    async def execute(scoped, agent_type):
+        task_id = scoped.assigned_task.task_id
+        return AgentResponse(
+            agent_type=agent_type, content="wait", success=False,
+            react_status="waiting_approval", react_run_id=f"run-{task_id}",
+            pending_approval_call_ids=[f"call-{task_id}"], allow_fallback=False,
+        )
+
+    orchestrator._execute = execute
+    tasks = (
+        TaskSpec("a", AgentType.BILLING, "a"),
+        TaskSpec("b", AgentType.TECHNICAL, "b"),
+    )
+    result = asyncio.run(orchestrator.run_parallel(
+        Request(message="bad plan", user_id="u", conv_id="c"),
+        TaskPlan(tasks, "a"),
+    ))
+
+    assert [item["task_id"] for item in result.pending_signals] == ["a"]
+    assert result.agent_outcomes[0]["task_id"] == "b"
+    assert result.agent_outcomes[0]["status"] == "error"
+    assert "UNSUPPORTED_CONCURRENT_INTERRUPT" in result.agent_outcomes[0]["error"]
+    assert result.coverage["complete"] is False
+
+
+@pytest.mark.parametrize("terminal_status", ["cancelled", "expired"])
+def test_cancelled_and_expired_are_terminal_coverage_outcomes(terminal_status):
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    orchestrator._agent_timeout_s = 1.0
+
+    async def execute(_req, agent_type):
+        return AgentResponse(
+            agent_type=agent_type, content="", success=False,
+            terminal_outcome_status=terminal_status, allow_fallback=False,
+        )
+
+    orchestrator._execute = execute
+    task = TaskSpec("task", AgentType.GENERAL, "task")
+    terminal = asyncio.run(orchestrator._execute_outcome(
+        Request(message="x", user_id="u", conv_id="c"), task, is_primary=True,
+    ))
+    coverage = CoverageGate.evaluate(TaskPlan((task,), "task"), (terminal,))
+
+    assert terminal.status.value == terminal_status
+    assert coverage.failed_task_ids == ("task",)
+    assert coverage.missing_task_ids == ()
+
+
+def test_unknown_terminal_status_is_typed_error():
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    orchestrator._agent_timeout_s = 1.0
+
+    async def execute(_req, agent_type):
+        return AgentResponse(
+            agent_type=agent_type, content="", success=False,
+            terminal_outcome_status="future_status", allow_fallback=False,
+        )
+
+    orchestrator._execute = execute
+    terminal = asyncio.run(orchestrator._execute_outcome(
+        Request(message="x", user_id="u", conv_id="c"),
+        TaskSpec("task", AgentType.GENERAL, "task"), is_primary=True,
+    ))
+
+    assert terminal.status is AgentOutcomeStatus.ERROR
+    assert terminal.error == "INVALID_TERMINAL_STATUS: future_status"
+
+
+def test_prior_outcome_binding_is_read_only_input_not_current_outcome():
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    binding = PriorOutcomeBinding(
+        task_id="prior-billing", requirement_ids=("refund.current_state",),
+        artifact_refs=("artifact:prior",), evidence_receipt_refs=("receipt:prior",),
+        producer_version="task-outcome-v1",
+    )
+    request = Request(
+        message="new delta", user_id="u", conv_id="c",
+        prior_outcome_bindings=(binding,),
+    )
+    task = TaskSpec("current", AgentType.BILLING, "current delta")
+
+    scoped = orchestrator._scoped_request(request, task)
+
+    assert scoped.prior_outcome_bindings == (binding,)
+    assert scoped.assigned_task is task
+    assert scoped.dependency_artifacts == ()

@@ -11,7 +11,12 @@ from dataclasses import asdict, dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Sequence
 
-from agents.orchestration_contracts import CoverageReport, TaskArtifact, TaskPlan
+from agents.orchestration_contracts import (
+    CoverageReport,
+    PendingSignal,
+    TaskArtifact,
+    TaskPlan,
+)
 from agents.task_policies import (
     SynthesisInvocationPolicy,
     SynthesisMode,
@@ -28,6 +33,10 @@ class AgentOutcomeStatus(str, Enum):
     ERROR = "error"
     BUDGET_EXCEEDED = "budget_exceeded"
     BLOCKED_DEPENDENCY = "blocked_dependency"
+    CANCELLED = "cancelled"
+    EXPIRED = "expired"
+    # Read compatibility only. Runtime execution must represent waiting through
+    # PendingSignal, never by adding this value to task_outcomes.
     AWAITING_APPROVAL = "awaiting_approval"
 
 
@@ -89,13 +98,23 @@ class CoverageGate:
 
     @staticmethod
     def evaluate(plan: TaskPlan, outcomes: Sequence[AgentOutcome]) -> CoverageReport:
-        """以 task_id 对齐事实，并显式暴露缺失、重复和越界结果。"""
+        """以 task_id 对齐终态事实；PendingSignal 仅投影等待，不算 outcome。"""
+        return CoverageGate.evaluate_with_signals(plan, outcomes, ())
+
+    @staticmethod
+    def evaluate_with_signals(
+        plan: TaskPlan,
+        outcomes: Sequence[AgentOutcome],
+        pending_signals: Sequence[PendingSignal],
+    ) -> CoverageReport:
+        """Project terminal coverage and native interrupts without conflating them."""
         plan_ids = [task.task_id for task in plan.ordered_tasks]
         required_ids = [task.task_id for task in plan.ordered_tasks if task.required]
         outcome_ids = [outcome.task_id for outcome in outcomes]
+        signal_ids = [signal.task_id for signal in pending_signals]
         seen: set[str] = set()
         duplicate_ids: list[str] = []
-        for task_id in outcome_ids:
+        for task_id in (*outcome_ids, *signal_ids):
             if task_id in seen and task_id not in duplicate_ids:
                 duplicate_ids.append(task_id)
             seen.add(task_id)
@@ -115,14 +134,25 @@ class CoverageGate:
             if task_id in outcome_by_id
             and outcome_by_id[task_id].status is not AgentOutcomeStatus.SUCCESS
         ]
-        missing_ids = [task_id for task_id in plan_ids if task_id not in outcome_by_id]
+        pending_plan_ids = [
+            task_id for task_id in plan_ids if task_id in set(signal_ids)
+        ]
+        missing_ids = [
+            task_id for task_id in plan_ids
+            if task_id not in outcome_by_id and task_id not in set(signal_ids)
+        ]
         unresolved_required = [
             task_id for task_id in required_ids if task_id not in completed_ids
         ]
         unexpected_ids = list(dict.fromkeys(
-            task_id for task_id in outcome_ids if task_id not in plan_ids
+            task_id for task_id in (*outcome_ids, *signal_ids) if task_id not in plan_ids
         ))
-        complete = not unresolved_required and not duplicate_ids and not unexpected_ids
+        complete = (
+            not unresolved_required
+            and not duplicate_ids
+            and not unexpected_ids
+            and not pending_plan_ids
+        )
         return CoverageReport(
             complete=complete,
             required_task_ids=tuple(required_ids),
@@ -132,6 +162,12 @@ class CoverageGate:
             unresolved_required_task_ids=tuple(unresolved_required),
             duplicate_task_ids=tuple(duplicate_ids),
             unexpected_task_ids=tuple(unexpected_ids),
+            awaiting_signal_task_ids=tuple(pending_plan_ids),
+            awaiting_signal_kinds=tuple(dict.fromkeys(
+                signal.kind.value
+                for signal in pending_signals
+                if signal.task_id in plan_ids
+            )),
         )
 
 
@@ -162,21 +198,6 @@ class ResultSynthesizer:
         coverage = CoverageGate.evaluate(plan, outcomes)
         successful = [outcome for outcome in outcomes if outcome.status is AgentOutcomeStatus.SUCCESS]
         failed = [outcome for outcome in outcomes if outcome.status is not AgentOutcomeStatus.SUCCESS]
-        pending = [
-            outcome for outcome in outcomes
-            if outcome.status is AgentOutcomeStatus.AWAITING_APPROVAL
-        ]
-        hard_failed = [outcome for outcome in failed if outcome not in pending]
-        if pending and not hard_failed:
-            return SynthesisResult(
-                status=SynthesisStatus.AWAITING_APPROVAL,
-                content=self._approval_message(successful, pending),
-                reason="one or more tool calls await host approval",
-                escalate=False,
-                coverage=coverage,
-                successful_agents=[outcome.agent_type for outcome in successful],
-                failed_agents=[outcome.agent_type for outcome in pending],
-            )
         if not successful:
             return SynthesisResult(
                 status=SynthesisStatus.FAILED,
@@ -207,28 +228,12 @@ class ResultSynthesizer:
         coverage = CoverageGate.evaluate(plan, outcomes)
         successful = [outcome for outcome in outcomes if outcome.status is AgentOutcomeStatus.SUCCESS]
         failed = [outcome for outcome in outcomes if outcome.status is not AgentOutcomeStatus.SUCCESS]
-        pending = [
-            outcome for outcome in outcomes
-            if outcome.status is AgentOutcomeStatus.AWAITING_APPROVAL
-        ]
-        hard_failed = [outcome for outcome in failed if outcome not in pending]
         successful_agents = [outcome.agent_type for outcome in successful]
         failed_agents = [outcome.agent_type for outcome in failed]
         inherited_escalation = any(outcome.escalate for outcome in successful)
         authority_conflicts = list(dict.fromkeys(
             conflict for outcome in outcomes for conflict in outcome.authority_conflicts
         ))
-
-        if pending and not hard_failed:
-            return SynthesisResult(
-                status=SynthesisStatus.AWAITING_APPROVAL,
-                content=self._approval_message(successful, pending),
-                reason="one or more tool calls await host approval",
-                escalate=False,
-                coverage=coverage,
-                successful_agents=successful_agents,
-                failed_agents=[outcome.agent_type for outcome in pending],
-            )
 
         mode = self._invocation_policy.decide(
             plan,
