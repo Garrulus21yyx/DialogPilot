@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import sqlite3
 from types import SimpleNamespace
 
@@ -313,3 +314,46 @@ def test_approval_identity_denial_and_expiry_are_fail_closed(tmp_path):
     assert expired.status is ReActStatus.BLOCKED
     assert store.get(expiring.run_id).status is RunStatus.EXPIRED
     assert effects == []
+
+
+def test_checkpoint_database_is_owner_read_write_only(tmp_path):
+    path = tmp_path / "runs.db"
+    store = RunStore(str(path))
+    with store._connect():
+        pass
+
+    assert os.stat(path).st_mode & 0o777 == 0o600
+    assert os.stat(f"{path}-wal").st_mode & 0o777 == 0o600
+    assert os.stat(f"{path}-shm").st_mode & 0o777 == 0o600
+
+
+def test_checkpoint_owner_redacts_credentials_before_persistence(tmp_path):
+    path = tmp_path / "runs.db"
+    store = RunStore(str(path))
+    created = store.create(
+        run_id="secret-run", request_id="request", user_id="user", conv_id="conv",
+        agent_type="billing", task_id="task", bundle_version="bundle",
+        system="policy api_key=server-secret-value",
+        messages=({"role": "user", "content": "Bearer customer-token-value"},),
+        execution_context={
+            "password": "database-password-value",
+            "authorization_fingerprint": "safe-fingerprint",
+        },
+        max_steps=2,
+    )
+    completed = store.checkpoint(
+        run_id=created.run_id, expected_version=created.version,
+        status=RunStatus.COMPLETED,
+        messages=created.messages,
+        runtime={"nested": {"refresh_token": "refresh-token-value"}},
+        step=1, tool_call_ids=(), result={"text": "token=result-token-value"},
+    )
+
+    serialized = repr(completed)
+    assert "server-secret-value" not in serialized
+    assert "customer-token-value" not in serialized
+    assert "database-password-value" not in serialized
+    assert "refresh-token-value" not in serialized
+    assert "result-token-value" not in serialized
+    assert completed.execution_context["authorization_fingerprint"] == "safe-fingerprint"
+    assert "[REDACTED]" in serialized

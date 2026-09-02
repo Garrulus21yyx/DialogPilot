@@ -174,3 +174,21 @@ class PromptInjectionGuard:
         text = unicodedata.normalize("NFKC", str(message or ""))
         text = cls._INVISIBLE.sub("", text)
         return re.sub(r"[\t\r\f\v ]+", " ", text).strip()
+
+
+class UntrustedContentGuard:
+    """Quarantine indirect instructions from Memory/RAG/tool-produced data."""
+
+    def __init__(self):
+        self._classifier = PromptInjectionGuard()
+
+    def analyze(self, content: str) -> InputSecurityDecision:
+        classified = self._classifier.analyze(content)
+        if not classified.categories:
+            return classified
+        return InputSecurityDecision(
+            action=InputSecurityAction.BLOCK,
+            categories=classified.categories,
+            risk_score=classified.risk_score,
+            input_fingerprint=classified.input_fingerprint,
+        )

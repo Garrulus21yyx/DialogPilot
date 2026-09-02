@@ -1,0 +1,139 @@
+{
+  "model_id": "dialogpilot-x-t03-v1",
+  "assets": [
+    {"asset_id": "identity", "owner": "Authentication/Application"},
+    {"asset_id": "conversation_memory", "owner": "Conversation/Memory"},
+    {"asset_id": "knowledge_evidence", "owner": "Knowledge"},
+    {"asset_id": "tool_authority_effect", "owner": "Domain Tool"},
+    {"asset_id": "checkpoint", "owner": "Agent Runtime"},
+    {"asset_id": "trace_audit", "owner": "Observability/Security"},
+    {"asset_id": "uploaded_source", "owner": "Knowledge Ingestion"}
+  ],
+  "trust_boundaries": [
+    {"boundary_id": "http_principal", "from": "client", "to": "Application", "authoritative_fact": "signed Principal subject/scopes"},
+    {"boundary_id": "context_data", "from": "Memory/Knowledge/Ticket", "to": "LLM context", "authoritative_fact": "data-only evidence; never instruction/authorization"},
+    {"boundary_id": "tool_call", "from": "Agent proposal", "to": "Domain Tool", "authoritative_fact": "server allowlist/approval/idempotency/receipt"},
+    {"boundary_id": "retrieval_scope", "from": "Application identity", "to": "Knowledge backend/cache", "authoritative_fact": "tenant/user/auth/deletion/generation refs"},
+    {"boundary_id": "checkpoint_projection", "from": "Agent Runtime", "to": "public/trace", "authoritative_fact": "public allowlist and redacted diagnostics"},
+    {"boundary_id": "knowledge_upload", "from": "admin upload", "to": "SourceRevision", "authoritative_fact": "text-only format/magic/UTF-8/source contract"}
+  ],
+  "threats": [
+    {
+      "threat_id": "USER_PROMPT_INJECTION",
+      "surface": "authenticated chat message",
+      "asset": "system policy/tool authority",
+      "owner": "Application Security",
+      "applicability": "ACTIVE",
+      "abuse_case": "customer asks the model to override policy, exfiltrate prompts or spoof approval",
+      "controls": [
+        {"control_id": "direct-input-guard", "kind": "PREVENT", "owner": "Application", "evidence_refs": ["core/input_security.py", "tests/test_input_security.py"]},
+        {"control_id": "security-span-fingerprint", "kind": "DETECT", "owner": "Observability", "evidence_refs": ["api/main.py:_enforce_user_input_security"]}
+      ],
+      "disable_action": "block chat at ingress; keep tools unreachable",
+      "residual_risk": "pattern guard is defense-in-depth; hard authorization remains server-owned"
+    },
+    {
+      "threat_id": "INDIRECT_CONTEXT_INJECTION",
+      "surface": "Memory/RAG/Ticket/tool output",
+      "asset": "LLM decision and tool proposal",
+      "owner": "Context + Tool Runtime",
+      "applicability": "ACTIVE",
+      "abuse_case": "stored or retrieved data contains role/instruction text that attempts to become policy",
+      "controls": [
+        {"control_id": "context-quarantine", "kind": "PREVENT", "owner": "ContextAssembler", "evidence_refs": ["memory/context.py", "tests/test_context_memory.py"]},
+        {"control_id": "tool-output-quarantine", "kind": "PREVENT", "owner": "MCPToolManager", "evidence_refs": ["mcp/tool_manager.py", "tests/test_tool_security_trace.py"]},
+        {"control_id": "quarantine-reason", "kind": "DETECT", "owner": "Context/Tool Runtime", "evidence_refs": ["PromptContext.quarantined_sections", "ToolCallStatus.UNTRUSTED_OUTPUT"]}
+      ],
+      "disable_action": "disable affected corpus/tool and rollback its Bundle/generation pointer",
+      "residual_risk": "novel semantic attacks may evade patterns; deterministic authority gates still constrain effects"
+    },
+    {
+      "threat_id": "CROSS_TENANT_ACCESS",
+      "surface": "conversation/retrieval/cache/tool identity",
+      "asset": "tenant/user data",
+      "owner": "Application + Platform",
+      "applicability": "ACTIVE",
+      "abuse_case": "body IDs, cache keys or backend filters select another tenant/user",
+      "controls": [
+        {"control_id": "principal-owned-subject", "kind": "PREVENT", "owner": "Authentication", "evidence_refs": ["tests/test_auth_boundary.py"]},
+        {"control_id": "scoped-storage-and-cache", "kind": "PREVENT", "owner": "Platform", "evidence_refs": ["tests/test_postgres_conversation_store.py", "tests/test_hybrid_retrieval_backends.py", "tests/test_knowledge_retriever.py"]},
+        {"control_id": "cross-scope-negative-tests", "kind": "DETECT", "owner": "Evaluation", "evidence_refs": ["tests/test_postgres_conversation_query.py"]}
+      ],
+      "disable_action": "stop affected admission and revoke backend credentials",
+      "residual_risk": "production database role/RLS verification remains deployment evidence"
+    },
+    {
+      "threat_id": "APPROVAL_PRIVILEGE_REPLAY",
+      "surface": "tool approval resume",
+      "asset": "business write authority",
+      "owner": "Agent Runtime + Domain Tool",
+      "applicability": "ACTIVE",
+      "abuse_case": "another user, expired approval or altered parameters resumes a privileged call",
+      "controls": [
+        {"control_id": "identity-bound-resume", "kind": "PREVENT", "owner": "RunStore", "evidence_refs": ["tests/test_react_resume.py"]},
+        {"control_id": "binding-hash-ledger", "kind": "PREVENT", "owner": "MCPToolManager", "evidence_refs": ["tests/test_tool_security_trace.py"]},
+        {"control_id": "approval-audit", "kind": "DETECT", "owner": "Tool Runtime", "evidence_refs": ["ToolExecutionReceipt", "ToolAuditRecord"]}
+      ],
+      "disable_action": "set TOOL_APPROVAL_MODE=require_all and disable affected write tool",
+      "residual_risk": "unknown effect remains RECONCILING; it is never retried from local inference"
+    },
+    {
+      "threat_id": "CHECKPOINT_TRACE_DISCLOSURE",
+      "surface": "legacy ReAct SQLite/public status/trace attributes",
+      "asset": "conversation PII, server secrets and tool diagnostics",
+      "owner": "Agent Runtime + Observability",
+      "applicability": "ACTIVE",
+      "abuse_case": "checkpoint or trace projection exposes prompts, credentials, PII or tool outputs",
+      "controls": [
+        {"control_id": "checkpoint-public-allowlist", "kind": "PREVENT", "owner": "RunStore", "evidence_refs": ["RunCheckpoint.to_public_dict", "tests/test_react_resume.py"]},
+        {"control_id": "checkpoint-file-mode", "kind": "PREVENT", "owner": "RunStore", "evidence_refs": ["agents/run_store.py", "tests/test_react_resume.py"]},
+        {"control_id": "trace-value-redaction", "kind": "PREVENT", "owner": "TraceRecorder", "evidence_refs": ["core/tracing.py", "tests/test_tool_security_trace.py"]},
+        {"control_id": "secret-scan-tests", "kind": "DETECT", "owner": "Security", "evidence_refs": ["tests/test_auth_boundary.py", "tests/test_badcase_closure.py"]}
+      ],
+      "disable_action": "disable trace export/checkpoint admission; rotate exposed credentials",
+      "residual_risk": "authorized resume state remains plaintext inside owner-only local DB; production volume encryption is required"
+    },
+    {
+      "threat_id": "ATTACHMENT_POLYGLOT",
+      "surface": "admin knowledge text upload",
+      "asset": "Knowledge source corpus",
+      "owner": "Knowledge Ingestion",
+      "applicability": "ACTIVE",
+      "abuse_case": "binary/archive/executable content is renamed to an accepted text suffix",
+      "controls": [
+        {"control_id": "text-upload-magic-policy", "kind": "PREVENT", "owner": "Knowledge Ingestion", "evidence_refs": ["core/upload_security.py", "tests/test_knowledge_ingestion_api.py"]},
+        {"control_id": "typed-upload-rejection", "kind": "DETECT", "owner": "Application", "evidence_refs": ["polyglot_content_rejected", "binary_content_rejected"]}
+      ],
+      "disable_action": "remove knowledge upload route at ingress and quarantine new revisions",
+      "residual_risk": "malware scanning for future binary/media formats is out of current text-only scope"
+    },
+    {
+      "threat_id": "VLM_HIDDEN_INSTRUCTION",
+      "surface": "QR/screenshot/media instruction",
+      "asset": "tool authority and user safety",
+      "owner": "Multimodal + Security",
+      "applicability": "NOT_APPLICABLE",
+      "abuse_case": "VLM treats pixels or OCR text as executable instruction",
+      "controls": [],
+      "na_reason": "M2 exposes no customer media/VLM ingestion or execution path; unknown formats are rejected",
+      "activation_owner": "M5-T02A/M5 Multimodal Gate",
+      "disable_action": "keep media/VLM feature absent and reject unsupported formats",
+      "residual_risk": "must become ACTIVE with a new signed threat-model revision before media enablement"
+    },
+    {
+      "threat_id": "WRITE_EFFECT_REPLAY",
+      "surface": "tool timeout/crash/rollback/resume",
+      "asset": "business side effect",
+      "owner": "Domain Tool + ToolExecutionLedger",
+      "applicability": "ACTIVE",
+      "abuse_case": "an invocation or Bundle rollback repeats a write whose effect is unknown or committed",
+      "controls": [
+        {"control_id": "operation-binding-and-claim", "kind": "PREVENT", "owner": "MCPToolManager", "evidence_refs": ["tests/test_tool_security_trace.py", "tests/test_react_resume.py"]},
+        {"control_id": "unknown-effect-reconciliation", "kind": "PREVENT", "owner": "Domain Tool", "evidence_refs": ["ToolEffectStatus.OUTCOME_UNKNOWN", "docs/customer-service-route-bundle-rollout-runbook.zh-CN.md"]},
+        {"control_id": "duplicate-effect-negative-tests", "kind": "DETECT", "owner": "Evaluation", "evidence_refs": ["tests/test_tool_security_trace.py"]}
+      ],
+      "disable_action": "disable write tool, preserve ledger and reconcile by authoritative receipt",
+      "residual_risk": "provider without authoritative receipt stays blocked/reconciling rather than guessed terminal"
+    }
+  ]
+}

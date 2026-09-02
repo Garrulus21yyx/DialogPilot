@@ -15,19 +15,18 @@
 | TaskGraph/formation/synthesis | M2-T06A | IMPLEMENTED |
 | Route Bundle pinned rollback | M2-T06R + crash tests/runbook | IMPLEMENTED；canary blocked |
 | Handoff 分类/目标兼容 draft | M2-T06 B7/B8 | IMPLEMENTED dark-shadow；无生产 Handoff write |
+| X-T03 threat/control/corpus/disable | X-T03 build evidence + 13-case corpus | IMPLEMENTED；生产安全复核待补 |
 
 ## 阻断项
 
-1. `X-T03` 安全威胁模型尚未 IMPLEMENTED；缺完整 trust-boundary/control mapping、安全 corpus、incident
-   disable runbook 与对应零容忍报告。
-2. `X-T04` 成本预算尚未 IMPLEMENTED；缺 per-RouteMode 模型/工具/retrieval/token 上限、typed exhaustion
+1. `X-T04` 成本预算尚未 IMPLEMENTED；缺 per-RouteMode 模型/工具/retrieval/token 上限、typed exhaustion
    以及真实 provider usage/账单抽样对账。
-3. `M2-KNOWLEDGE-HELDOUT` 当前 manifest 明确为 `REVIEW_REQUIRED / PROVISIONAL_NOT_GOLD`；实现上下文
+2. `M2-KNOWLEDGE-HELDOUT` 当前 manifest 明确为 `REVIEW_REQUIRED / PROVISIONAL_NOT_GOLD`；实现上下文
    作者创建的 heldout 不能代替独立 human review。
-4. `M2-T04A` 与 `M2-PF01` 的 build 已完成，但生产快照/Recall/latency/rebuild RTO/OLTP 影响仍没有
+3. `M2-T04A` 与 `M2-PF01` 的 build 已完成，但生产快照/Recall/latency/rebuild RTO/OLTP 影响仍没有
    VERIFIED 证据。
-5. M2 route shadow 的行为前置仍受 `M1 Exit` 约束；当前 M1 总状态不是 APPROVE，不能据本草稿开启流量。
-6. Gate 尚无 Application+Agent+Platform owner signature，也无 Evaluation+Domain Tool independent approval；
+4. M2 route shadow 的行为前置仍受 `M1 Exit` 约束；当前 M1 总状态不是 APPROVE，不能据本草稿开启流量。
+5. Gate 尚无 Application+Agent+Platform owner signature，也无 Evaluation+Domain Tool independent approval；
    禁止生成伪造 evidence/decision 文件。
 
 ## 非阻断项边界
@@ -38,6 +37,6 @@
 
 ## 恢复审计条件
 
-完成 X-T03/X-T04；由独立 reviewer 封存 unseen knowledge heldout；补齐生产平台证据；确认 M1 Exit
+完成 X-T04；由独立 reviewer 复核 X-T03 并封存 unseen knowledge heldout；补齐生产平台证据；确认 M1 Exit
 行为前置；随后由声明的 evidence owners 冻结/运行 manifest，Evaluation 与 Domain Tool 独立审阅。
 只有生成 checksum 一致的 `APPROVE` decision 后，M2 bounded canary 才可进入单独 release action。

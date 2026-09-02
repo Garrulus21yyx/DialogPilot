@@ -38,13 +38,14 @@
 | M2-T06A Multi-Agent TaskGraph 收紧 | implemented | A/B/C policy、execution、dependency、native signal 与 terminal algebra 完成；697 tests passed |
 | M2-T06 自适应 RAG 发布路径 | implemented (dark-shadow) | A/B1-B8: eight-route typed outcome algebra + unsupported-authority Handoff；765 tests passed；active/canary gated |
 | M2-T06R Route Bundle enable/rollback | implemented (canary blocked) | pinned execution refs、single publisher、atomic crash rollback、forward-fix runbook；771 tests passed |
-| M2 Exit Gate | draft / not ready | unsigned reproducible manifest；X-T03/X-T04、independent heldout、production evidence、M1 Exit blocked；774 tests passed |
+| X-T03 安全威胁模型 | implemented (production review pending) | 8 threats/control map、13-case corpus、incident disable runbook；799 tests passed |
+| M2 Exit Gate | draft / not ready | unsigned reproducible manifest；X-T04、independent security/heldout、production evidence、M1 Exit blocked；799 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | build nodes done；Exit prerequisites/evidence not closed |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
 | M5 Knowledge Lifecycle/Multimodal | pending | 按 M5-T01–T09 子节点推进 |
 | M6 Eval/Observability/Release | pending | 按 M6-T01–T09 子节点推进 |
-| X-T01–X-T05 跨里程碑治理 | pending | 在各 Gate 依赖点前完成适用项 |
+| X-T01–X-T05 跨里程碑治理 | in_progress | X-T03 build complete；其余按各 Gate 依赖点推进 |
 
 ## 变更记录
 
@@ -914,10 +915,27 @@
   非 prerequisite、provisional heldout 不能满足 VERIFIED artifact；聚焦 `15 passed`、全套
   `774 passed in 19.37s`，ruff/diff checks passed。
 
+### X-T03（security threat model / deterministic controls）
+
+- 冻结 `dialogpilot-x-t03-v1`：显式列出资产、六个信任边界与 direct/indirect injection、跨租户、
+  approval replay、checkpoint/trace disclosure、attachment polyglot、VLM hidden instruction、write replay
+  八类 threat；每个 ACTIVE threat 都有 PREVENT+DETECT owner/control/evidence/disable/residual-risk。
+- ContextAssembler 与 MCPToolManager 在各自 receiving boundary 隔离不可信指令；PromptContext 记录
+  quarantined section，Tool 返回 typed `UNTRUSTED_OUTPUT`，并保留已发生 effect 的 receipt/status，不把
+  quarantine 错报成“无副作用”。旧 stateful contract 同步迁移为 quarantine invariant。
+- Knowledge upload 在 UTF-8 parse/persistence 前执行 text-only suffix/size/NUL/magic policy；EXE/ELF/ZIP/
+  PDF/image polyglot typed reject。checkpoint credential 在 Owner 持久化边界清除，SQLite DB/WAL/SHM
+  强制 `0600`；Trace 同时按 key/value 清除 secret、raw prompt/tool output 与 email/phone。
+- 新增 13-case frozen adversarial corpus、machine threat-model validator、control evidence path gate 与
+  [incident/disable runbook](../docs/customer-service-security-incident-disable-runbook.zh-CN.md)。M2 无媒体路径，
+  VLM threat 明确 N/A 并绑定 M5 activation owner，未把未来能力伪装成已验证。
+- 验证：安全/状态聚焦 `86 passed`，全套 `799 passed in 18.66s`；
+  [build evidence](../governance/evidence/x-t03/security-build-v1.md) 状态为
+  `IMPLEMENTED / PRODUCTION REVIEW PENDING`，不替代独立 pen test、生产 RLS/ACL/加密卷/轮换与演练。
+
 ## 下一步
 
-1. 实施 M2 Exit prerequisite `X-T03`：安全 threat model/control mapping/corpus/incident disable runbook 与
-   零容忍自动化；不把尚未实现的 multimodal 输入面伪装成已验证。
-2. 随后实施 `X-T04` per-RouteMode 成本预算与 usage reconciliation。
+1. 实施 `X-T04` per-RouteMode 成本预算与 usage reconciliation。
+2. 安排 X-T03 独立安全复核及生产 RLS/ACL/加密卷/credential rotation/disable drill 证据。
 3. M2-T05C 受 M2 Exit + `POSTGRES_RETRIEVAL_GA` candidate manifest 阻断，当前不执行 canary。
 4. T04/T04A live activation 仍受 M2 gate 与独立 review 约束。

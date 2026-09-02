@@ -442,7 +442,8 @@ async def _memory_context_budget(case: FixtureRequest) -> FixtureEvidence:
     )
     prompt = assembler.assemble(
         sections=[
-            ContextSection("memory", hostile * 30, priority=100),
+            ContextSection("memory", "trusted service facts " * 30, priority=100),
+            ContextSection("hostile_memory", hostile * 30, priority=90),
             ContextSection("noise", "low priority " * 300, priority=10),
         ],
         history=history,
@@ -454,14 +455,15 @@ async def _memory_context_budget(case: FixtureRequest) -> FixtureEvidence:
         "current_turn_preserved": messages[-1] == {"role": "user", "content": "当前问题"},
         "high_priority_retained": "<memory" in prompt.system_context,
         "old_history_dropped": prompt.dropped_history > 0,
-        "untrusted_content_escaped": (
-            "<system>" not in prompt.system_context
-            and "&lt;system&gt;" in prompt.system_context
+        "untrusted_content_quarantined": (
+            "hostile_memory" in prompt.quarantined_sections
+            and "&lt;system&gt;" not in prompt.system_context
         ),
     }, {
         "estimated_tokens": prompt.estimated_tokens,
         "dropped_history": prompt.dropped_history,
         "hostile_input": hostile,
+        "quarantined_sections": list(prompt.quarantined_sections),
         "owner_path": "ContextAssembler.assemble",
     })
 

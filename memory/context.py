@@ -13,6 +13,8 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Dict, Iterable, List, Sequence, Tuple
 
+from core.input_security import UntrustedContentGuard
+
 
 class ContextBudgetExceededError(ValueError):
     """强制保留内容已超出输入预算，调用方必须缩短当前轮次或提高上限。"""
@@ -109,6 +111,7 @@ class PromptContext:
     dropped_history: int = 0
     truncated_sections: Tuple[str, ...] = field(default_factory=tuple)
     section_blocks: Tuple[Tuple[str, str], ...] = field(default_factory=tuple)
+    quarantined_sections: Tuple[str, ...] = field(default_factory=tuple)
 
     def to_messages(self, current_user_message: str) -> List[Dict[str, str]]:
         """复制历史并将当前用户消息追加为最后一条真实对话。"""
@@ -143,6 +146,7 @@ class PromptContext:
                 tag for tag in self.truncated_sections if tag in allowed
             ),
             section_blocks=blocks,
+            quarantined_sections=self.quarantined_sections,
         )
 
 
@@ -164,6 +168,7 @@ class ContextAssembler:
         self.fixed_system_reserve = int(fixed_system_reserve)
         self.section_ratio = min(max(float(section_ratio), 0.2), 0.8)
         self.estimator = TokenEstimator()
+        self.untrusted_content_guard = UntrustedContentGuard()
 
     def assemble(
         self,
@@ -173,6 +178,17 @@ class ContextAssembler:
         current_user_message: str,
     ) -> PromptContext:
         """按优先级装配 section，并保证每个成功结果都满足总预算不变量。"""
+        safe_sections: List[ContextSection] = []
+        quarantined: List[str] = []
+        for section in sections:
+            if (
+                section.untrusted_data
+                and self.untrusted_content_guard.analyze(section.content).blocked
+            ):
+                quarantined.append(section.tag)
+            else:
+                safe_sections.append(section)
+
         current_tokens = self.estimator.estimate_messages(
             [{"role": "user", "content": current_user_message}]
         )
@@ -188,7 +204,7 @@ class ContextAssembler:
 
         section_budget = int(available * self.section_ratio)
         rendered_sections, used_section_tokens, truncated, section_blocks = self._fit_sections(
-            sections, section_budget
+            safe_sections, section_budget
         )
         history_budget = available - used_section_tokens
         fitted_history, used_history_tokens, dropped = self._fit_history(
@@ -199,7 +215,7 @@ class ContextAssembler:
         final_section_budget = max(0, available - used_history_tokens)
         if truncated and final_section_budget > used_section_tokens:
             rendered_sections, used_section_tokens, truncated, section_blocks = self._fit_sections(
-                sections, final_section_budget
+                safe_sections, final_section_budget
             )
 
         system_context = "\n\n".join(rendered_sections)
@@ -223,6 +239,7 @@ class ContextAssembler:
             dropped_history=dropped,
             truncated_sections=tuple(truncated),
             section_blocks=tuple(section_blocks),
+            quarantined_sections=tuple(dict.fromkeys(quarantined)),
         )
 
     def _fit_sections(

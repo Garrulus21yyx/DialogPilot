@@ -111,10 +111,13 @@ def register_fresh_fixtures(
         raw = str(data["sections"][0]["content"])
         prompt = assembler.assemble(sections=sections_for(data), history=(), current_user_message=message)
         return FixtureEvidence({
-            "escaped_expansion_charged": prompt.estimated_tokens <= assembler.max_input_tokens,
-            "hostile_input_reaches_owner": "&lt;system" in prompt.system_context,
+            "prompt_within_budget": prompt.estimated_tokens <= assembler.max_input_tokens,
+            "hostile_section_quarantined": "memory/../../system" in prompt.quarantined_sections,
             "raw_control_tags_absent": "<system" not in prompt.system_context and "</assistant>" not in prompt.system_context,
-        }, {"raw_chars": len(raw), "rendered": prompt.system_context})
+        }, {
+            "raw_chars": len(raw), "rendered": prompt.system_context,
+            "quarantined_sections": list(prompt.quarantined_sections),
+        })
 
     @register("reviewer_b_context_mixed_history_algebra")
     async def context_history(request):

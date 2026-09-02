@@ -3029,21 +3029,21 @@ async def upload_knowledge(
     kb = _knowledge_base
 
     content = await file.read()
-    if len(content) > 10 * 1024 * 1024:
-        raise HTTPException(413, "文件大小超过 10MB 限制")
+    filename = pathlib.PurePath(file.filename or "unknown").name
+    suffix = pathlib.PurePath(filename).suffix.lower()
+    from core.upload_security import TextUploadPolicy, UploadSecurityError
+    try:
+        TextUploadPolicy().validate(content, suffix=suffix)
+    except UploadSecurityError as exc:
+        status = 413 if exc.code == "upload_too_large" else 415
+        raise HTTPException(
+            status, {"code": exc.code, "message": str(exc)},
+        ) from exc
 
     try:
         text = content.decode("utf-8-sig")
     except UnicodeDecodeError as exc:
         raise HTTPException(400, {"code": "invalid_utf8", "message": "文件必须是 UTF-8 编码"}) from exc
-    filename = pathlib.PurePath(file.filename or "unknown").name
-    suffix = pathlib.PurePath(filename).suffix.lower()
-    if suffix not in {".txt", ".md", ".json"}:
-        raise HTTPException(415, {
-            "code": "unsupported_source_type",
-            "message": "仅支持 .txt、.md、.json",
-        })
-
     if suffix == ".json":
         import json as _json
         try:

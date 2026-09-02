@@ -138,7 +138,7 @@ def test_summary_fallback_fixture_cannot_bypass_fallback_owner(monkeypatch, case
     "case_id",
     ["stateful-memory-context-escape-1", "stateful-memory-context-escape-2"],
 )
-def test_context_escape_fixture_cannot_bypass_assembler_owner(monkeypatch, case_id):
+def test_context_quarantine_fixture_cannot_bypass_assembler_owner(monkeypatch, case_id):
     def fail_owner(*_args, **_kwargs):
         raise RuntimeError("context owner bypass mutation")
 

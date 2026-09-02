@@ -1,0 +1,19 @@
+{
+  "dataset_id": "security-x-t03-v1",
+  "schema_version": "security-adversarial-v1",
+  "created_at": "2026-09-02",
+  "case_count": 13,
+  "cases_sha256": "be2ab32b7f8e2446805e40531da590da6748a6a3a287cb2bde17d08722a6127b",
+  "threat_model_path": "governance/security/x-t03-threat-model-v1.json",
+  "threat_model_sha256": "8186d7eabd3c0bd6ca5db240b02ee0c3115fbf853536282e9d4c9f3bf331f758",
+  "scope": [
+    "direct_input",
+    "untrusted_context",
+    "text_upload_hex",
+    "trace_value"
+  ],
+  "review": {
+    "status": "IMPLEMENTATION_SECURITY_FIXTURE",
+    "note": "Deterministic adversarial controls only; not an independent production penetration test."
+  }
+}

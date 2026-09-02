@@ -7,6 +7,7 @@ from enum import Enum
 import json
 import os
 from pathlib import Path
+import re
 import sqlite3
 import threading
 from typing import Any, Dict, Optional, Tuple
@@ -130,6 +131,7 @@ class RunStore:
         self._recovery_grace_s = max(0.0, float(recovery_grace_s))
         self._lock = threading.RLock()
         self._initialize()
+        self._restrict_storage_permissions()
 
     def create(
         self,
@@ -173,8 +175,10 @@ class RunStore:
                     (
                         values["run_id"], values["request_id"], values["user_id"],
                         values["conv_id"], values["agent_type"], values["task_id"],
-                        values["bundle_version"], RunStatus.RUNNING.value, str(system),
-                        self._json(list(messages)), self._json(execution_context),
+                        values["bundle_version"], RunStatus.RUNNING.value,
+                        self._sanitize_checkpoint_value(str(system)),
+                        self._json(self._sanitize_checkpoint_value(list(messages))),
+                        self._json(self._sanitize_checkpoint_value(execution_context)),
                         int(max_steps), expires, now, now,
                     ),
                 )
@@ -218,9 +222,13 @@ class RunStore:
                 WHERE run_id=? AND version=?
                 """,
                 (
-                    status.value, self._json(list(messages)), self._json(runtime), int(step),
-                    self._json(list(tool_call_ids)), self._json(pending or {}),
-                    self._json(result or {}), expires, now, run_id, int(expected_version),
+                    status.value,
+                    self._json(self._sanitize_checkpoint_value(list(messages))),
+                    self._json(self._sanitize_checkpoint_value(runtime)), int(step),
+                    self._json(list(tool_call_ids)),
+                    self._json(self._sanitize_checkpoint_value(pending or {})),
+                    self._json(self._sanitize_checkpoint_value(result or {})),
+                    expires, now, run_id, int(expected_version),
                 ),
             )
             if updated.rowcount != 1:
@@ -343,7 +351,11 @@ class RunStore:
                 UPDATE react_tool_executions SET status=?, result_json=?, updated_at=?
                 WHERE run_id=? AND call_id=? AND status='executing'
                 """,
-                (status, self._json(result), self._now(), run_id, call_id),
+                (
+                    status,
+                    self._json(self._sanitize_checkpoint_value(result)),
+                    self._now(), run_id, call_id,
+                ),
             )
 
     def _expire_if_due(
@@ -422,17 +434,26 @@ class RunStore:
                 );
                 """
             )
-        try:
-            os.chmod(self._path, 0o600)
-        except OSError:
-            pass
-
     def _connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(str(self._path), timeout=10.0)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA foreign_keys=ON")
         conn.execute("PRAGMA journal_mode=WAL")
+        self._restrict_storage_permissions()
         return conn
+
+    def _restrict_storage_permissions(self) -> None:
+        """Keep the checkpoint DB and SQLite WAL/SHM readable only by its owner."""
+        try:
+            for path in (
+                self._path,
+                Path(f"{self._path}-wal"),
+                Path(f"{self._path}-shm"),
+            ):
+                if path.exists():
+                    os.chmod(path, 0o600)
+        except OSError as exc:
+            raise RunStoreError("checkpoint file permissions cannot be restricted") from exc
 
     @classmethod
     def _row(cls, row: sqlite3.Row) -> RunCheckpoint:
@@ -460,6 +481,37 @@ class RunStore:
     @staticmethod
     def _json(value: Any) -> str:
         return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), default=str)
+
+    @classmethod
+    def _sanitize_checkpoint_value(cls, value: Any, *, key: str = "") -> Any:
+        """Preserve resumable structure while removing raw credentials."""
+        normalized_key = re.sub(r"[^a-z0-9]", "", key.casefold())
+        if normalized_key and not normalized_key.endswith(("fingerprint", "hash")) and any(
+            token in normalized_key for token in (
+                "authorization", "password", "passwd", "secret", "apikey",
+                "accesstoken", "refreshtoken", "cookie",
+            )
+        ):
+            return "[REDACTED]"
+        if isinstance(value, dict):
+            return {
+                str(item_key): cls._sanitize_checkpoint_value(
+                    item_value, key=str(item_key),
+                )
+                for item_key, item_value in value.items()
+            }
+        if isinstance(value, (list, tuple)):
+            return [cls._sanitize_checkpoint_value(item) for item in value]
+        if isinstance(value, str):
+            text = value
+            for pattern in (
+                r"(?i)\bBearer\s+[A-Za-z0-9._~+/=-]+",
+                r"\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b",
+                r"(?i)\b(api[_-]?key|password|passwd|secret|token)\s*[:=]\s*[^\s,;]+",
+            ):
+                text = re.sub(pattern, "[REDACTED]", text)
+            return text
+        return value
 
     @staticmethod
     def _required(value: Any, name: str, limit: int) -> str:

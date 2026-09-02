@@ -28,6 +28,7 @@ from typing import Any, Callable, Deque, Dict, List, Optional, Tuple
 
 from anthropic import AsyncAnthropic
 
+from core.input_security import UntrustedContentGuard
 from core.model_policy import ModelProfile
 from core.tracing import TraceRecorder, current_trace_id, trace_scope
 from core.identity import InvocationKey, OperationKey
@@ -72,6 +73,7 @@ class ToolCallStatus(str, Enum):
     TIMEOUT = "timeout"
     CANCELLED = "cancelled"
     DENIED = "denied"
+    UNTRUSTED_OUTPUT = "untrusted_output"
 
 
 class ToolEffectStatus(str, Enum):
@@ -980,6 +982,20 @@ class MCPToolManager:
             result.output_schema_version = tool.output_schema_version
             result.receipt_schema_version = tool.receipt_schema_version
         result.output_for_model = self._render_for_model(result)
+        output_decision = UntrustedContentGuard().analyze(result.output_for_model)
+        if output_decision.blocked:
+            result.success = False
+            result.data = None
+            result.error = "untrusted tool output quarantined"
+            status = ToolCallStatus.UNTRUSTED_OUTPUT
+            result.status = status.value
+            result.output_for_model = json.dumps({
+                "status": status.value,
+                "success": False,
+                "error": "tool output was quarantined by input security policy",
+                "effect_status": result.effect_status,
+                "receipt_id": result.receipt_id,
+            }, sort_keys=True)
         risk = tool.risk if tool else ToolRisk.HIGH
         read_only = tool.read_only if tool else True
         payload = json.dumps(params, ensure_ascii=False, sort_keys=True, default=str)

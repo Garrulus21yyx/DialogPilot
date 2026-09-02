@@ -9,6 +9,7 @@ from dataclasses import asdict, dataclass, field
 import threading
 import time
 import uuid
+import re
 from typing import Any, Deque, Dict, Iterator, List, Optional
 
 
@@ -125,10 +126,38 @@ class TraceRecorder:
         clean: Dict[str, Any] = {}
         for key, value in list(attributes.items())[:32]:
             safe_key = str(key)[:80]
+            if cls._sensitive_key(safe_key):
+                clean[safe_key] = "[REDACTED]"
+                continue
             if isinstance(value, (bool, int, float)) or value is None:
                 clean[safe_key] = value
             elif isinstance(value, (list, tuple, set)):
-                clean[safe_key] = [str(item)[:120] for item in list(value)[:16]]
+                clean[safe_key] = [
+                    cls._redact_text(str(item))[:120] for item in list(value)[:16]
+                ]
             else:
-                clean[safe_key] = str(value)[:240]
+                clean[safe_key] = cls._redact_text(str(value))[:240]
         return clean
+
+    @staticmethod
+    def _sensitive_key(key: str) -> bool:
+        normalized = re.sub(r"[^a-z0-9]", "", key.casefold())
+        return any(token in normalized for token in (
+            "authorization", "password", "passwd", "secret", "apikey",
+            "accesstoken", "refreshtoken", "cookie", "setcookie",
+            "prompt", "messagecontent", "tooloutput", "rawinput",
+        ))
+
+    @staticmethod
+    def _redact_text(value: str) -> str:
+        text = str(value)
+        patterns = (
+            r"(?i)\bBearer\s+[A-Za-z0-9._~+/=-]+",
+            r"\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b",
+            r"(?i)\b(api[_-]?key|password|passwd|secret|token)\s*[:=]\s*[^\s,;]+",
+            r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b",
+            r"(?<!\d)(?:\+?\d[\d -]{8,}\d)(?!\d)",
+        )
+        for pattern in patterns:
+            text = re.sub(pattern, "[REDACTED]", text, flags=re.IGNORECASE)
+        return text

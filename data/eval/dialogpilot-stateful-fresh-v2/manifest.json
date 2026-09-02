@@ -1,6 +1,6 @@
 {
   "case_count": 27,
-  "cases_sha256": "5e1453b638c2bcba2460556a79d098cf1047664c29a25e7c5daa339e62bd7dad",
+  "cases_sha256": "21e4bf67f7b6e1327bd526dbc51e801ab3ffed60c69d8cab55f68c9f7e458007",
   "created_at": "2026-08-30",
   "dataset_id": "dialogpilot-stateful-fresh-v2",
   "description": "Reviewer B adversarial Stateful suite; originally sealed fresh, now a consumed regression set after contract migrations.",
@@ -24,7 +24,7 @@
   },
   "freshness_provenance": {
     "blind_preliminary_review_sha256": "d82716d23a76edd6a2512727a7a4a4f49decc374d006c084faa2e02b4883b845",
-    "contract_migration": "Memory summary/finalize cases were revised for append-only events and checkpoint semantics; this invalidates unseen-holdout status.",
+    "contract_migration": "Memory summary/finalize cases were revised for append-only events and checkpoint semantics; hostile context was migrated from escaped rendering to quarantine semantics. These changes invalidate unseen-holdout status.",
     "comparison_after_seal": {
       "exact_action_overlap": 0,
       "exact_group_id_overlap": 0,
@@ -36,7 +36,7 @@
     "target_commit": "684dd8dad84726abb5daa2b7905dd69a95e46675"
   },
   "parent_dataset": {
-    "cases_sha256": "00ba40789eaa27c4aa420eedd51d86b3fa115b879d88e8eff65ff1f2616f4c95",
+    "cases_sha256": "1140044613df475ecfd706f56cd20bca9115ead64a9283e4b6f584e099e13802",
     "dataset_id": "dialogpilot-500-v1",
     "version": "1.0.0-provisional"
   },

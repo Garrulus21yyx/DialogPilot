@@ -67,6 +67,25 @@ def test_upload_rejects_unknown_format_and_lossy_utf8(monkeypatch):
     assert invalid_utf8.value.status_code == 400
 
 
+@pytest.mark.parametrize("payload", [
+    b"%PDF-1.7\npretend this is markdown",
+    b"PK\x03\x04archive bytes renamed to notes.txt",
+    b"MZexecutable renamed to policy.json",
+    b"safe prefix\x00binary suffix",
+])
+def test_text_upload_rejects_binary_and_polyglot_content(monkeypatch, payload):
+    wire(monkeypatch)
+    with pytest.raises(HTTPException) as rejected:
+        asyncio.run(main.upload_knowledge(
+            UploadFile(filename="policy.md", file=io.BytesIO(payload)), admin(),
+        ))
+
+    assert rejected.value.status_code == 415
+    assert rejected.value.detail["code"] in {
+        "polyglot_content_rejected", "binary_content_rejected",
+    }
+
+
 def test_json_upload_rejects_private_scope(monkeypatch):
     wire(monkeypatch)
     payload = b'[{"title":"internal","content":"secret","scope":"internal"}]'
