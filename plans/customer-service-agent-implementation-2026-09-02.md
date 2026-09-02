@@ -27,7 +27,7 @@
 | 本地 E2E、恢复验证、Demo 复现 | done | `4a0a0f4`；835 tests passed；两份机器报告 PASS |
 | OCR/VLM 分级调用 | done | `c0b7d96`、`ac8ee64`、`5ad83d6`、`b77a196`；L1/L2 两份真实 E2E PASS；887 tests passed |
 | Handoff PostgreSQL 收敛 | complete | Ticket/Event/Outbox 已直接绑定 PostgreSQL，SQLite writer/config/test 已删除 |
-| Commitment 最小闭环 | pending | 仅实现简历展示所需的明确承诺、履约和违约闭环 |
+| Commitment 最小闭环 | complete | PostgreSQL owner、显式来源、自动违约、receipt 履约、Agent read tool 与 Handoff critical 联动；HTTP E2E PASS |
 | 持久 OTel/Langfuse | pending | 当前只有 TraceId、进程内 span 与 Prometheus |
 
 ## 必须保留的核心

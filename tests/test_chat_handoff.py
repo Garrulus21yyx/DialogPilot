@@ -102,7 +102,7 @@ class FakeOrchestrator:
         return SimpleNamespace(
             intent=IntentCategory.HUMAN_HANDOFF,
             intent_group="escalation",
-            urgency=UrgencyLevel.CRITICAL,
+            urgency=UrgencyLevel.HIGH,
             confidence=0.99,
             entities={},
             source_scores={"pattern": 0.99},
@@ -266,6 +266,13 @@ def test_chat_escalation_creates_one_persistent_idempotent_ticket(
     monkeypatch.setattr(main, "_memory", memory)
     monkeypatch.setattr(main, "_answer_verifier", FakeVerifier())
     monkeypatch.setattr(main, "_ticket_service", ticket_service)
+
+    class BreachedCommitments:
+        def breached_refs(self, *, user_id):
+            assert user_id == "user-1"
+            return ("breached:commitment:promise-1:v2",)
+
+    monkeypatch.setattr(main, "_commitment_service", BreachedCommitments())
     monkeypatch.setattr(
         main, "_response_delivery",
         FakeResponseDeliveryService(),
@@ -299,7 +306,11 @@ def test_chat_escalation_creates_one_persistent_idempotent_ticket(
     assert retry.ticket_id == first.ticket_id
     assert retry.response_seq == 2
     assert retry.response_id != first.response_id
-    assert ticket_service.get_ticket(first.ticket_id).priority is TicketPriority.CRITICAL
+    persisted_ticket = ticket_service.get_ticket(first.ticket_id)
+    assert persisted_ticket.priority is TicketPriority.CRITICAL
+    assert persisted_ticket.identity_metadata["commitment_refs"] == (
+        "breached:commitment:promise-1:v2"
+    )
     assert len(ticket_service.list_tickets()) == 1
     assert memory.profile_updates == 2
     first_identity = orchestrator.requests[0].identity_metadata

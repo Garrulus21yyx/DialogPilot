@@ -1,0 +1,16 @@
+{
+  "schema_version": "dialogpilot-local-commitment-e2e-v1",
+  "verification": "PASS",
+  "executed_at": "2026-09-02T16:27:51.880020+00:00",
+  "observed_duration_seconds": 0.367,
+  "commitment_id": "2cede71bf1064a3199b36429a238be02",
+  "final_status": "late_fulfilled",
+  "version": 3,
+  "event_states": [
+    "scheduled",
+    "breached",
+    "late_fulfilled"
+  ],
+  "breach_preserved_after_late_fulfillment": true,
+  "scope_limit": "Synthetic local admin/API flow; no production SLA claim."
+}

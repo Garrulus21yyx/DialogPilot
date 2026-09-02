@@ -214,8 +214,11 @@ class AuthorityPolicyRegistry:
             ),
             FactRequirement(
                 "commitment.current_state", "commitment.current_state",
-                (), 60, read, (), ("knowledge_search",), "", unsupported,
-                "Commitment:pending-m4",
+                (
+                    "commitment_id", "kind", "description", "due_at", "owner",
+                    "status", "version", "source_receipt_ref", "ticket_id",
+                ), 60, read, ("commitment_list",), (), "", supported,
+                "Commitment:state-v1",
             ),
         )
         adapters = (
@@ -229,7 +232,7 @@ class AuthorityPolicyRegistry:
                 "BUSINESS_TOOL", (
                     "order.current_state", "refund.current_state",
                     "refund.eligibility", "account.security_events",
-                    "support.ticket_state",
+                    "support.ticket_state", "commitment.current_state",
                 ), (
                     ("order_lookup", "order-view-v1"),
                     ("refund_status", "refund-view-v1"),
@@ -237,6 +240,7 @@ class AuthorityPolicyRegistry:
                     ("account_security_event_list", "security-events-v1"),
                     ("support_ticket_list", "ticket-list-v1"),
                     ("support_ticket_get", "ticket-view-v1"),
+                    ("commitment_list", "commitment-list-v1"),
                 ),
             ),
             EvidenceAdapterRegistration(

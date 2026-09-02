@@ -11,6 +11,7 @@ from psycopg import sql
 
 from infrastructure.postgres import PostgresMigrationRunner, PostgresPool, PostgresPoolConfig
 from infrastructure.postgres_ticket_service import PostgresTicketService
+from infrastructure.postgres_commitment_service import PostgresCommitmentService
 
 
 def _database_urls(base_url: str, database_name: str) -> tuple[str, str]:
@@ -114,5 +115,18 @@ def ticket_service(postgres_database_url):
     service = PostgresTicketService(pool)
     try:
         yield service
+    finally:
+        pool.close()
+
+
+@pytest.fixture
+def commitment_service(postgres_database_url):
+    PostgresMigrationRunner(postgres_database_url).upgrade()
+    pool = PostgresPool(PostgresPoolConfig(postgres_database_url))
+    pool.open()
+    with pool.transaction() as connection:
+        connection.execute("TRUNCATE dialogpilot_app.commitments CASCADE")
+    try:
+        yield PostgresCommitmentService(pool)
     finally:
         pool.close()

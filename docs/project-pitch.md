@@ -14,7 +14,7 @@ DialogPilot 是一个可恢复的多 Agent 客服后端。我把原本容易混�
 
 可使用：
 
-> 设计并实现 FastAPI 多 Agent 客服后端，以 PostgreSQL 持久化请求准入、会话事件、Knowledge/ServiceEpisode、附件和回答发布，以 Redis 提供可重建当前会话投影；通过 TaskGraph、受控 ReAct、工具幂等 receipt、Evidence/Coverage 和 fail-closed Verifier 实现可恢复、可追溯的客服服务链；实现 Agent 按需选择 Tesseract OCR 与 DeepSeek Vision 的 L0/L1/L2 多模态路径，并用 Docker E2E、887 项测试与本地 dump/restore 报告验证。
+> 设计并实现 FastAPI 多 Agent 客服后端，以 PostgreSQL 持久化请求准入、会话事件、Knowledge/ServiceEpisode、Commitment/Handoff、附件和回答发布，以 Redis 提供可重建当前会话投影；通过 TaskGraph、受控 ReAct、工具幂等 receipt、Evidence/Coverage 和 fail-closed Verifier 实现可恢复、可追溯的客服服务链；实现 Agent 按需选择 Tesseract OCR 与 DeepSeek Vision 的 L0/L1/L2 多模态路径，并用 Docker E2E、881 项测试与本地 dump/restore 报告验证。
 
 不要使用：
 
@@ -22,7 +22,7 @@ DialogPilot 是一个可恢复的多 Agent 客服后端。我把原本容易混�
 - “视觉观察可直接决定退款/故障根因”——VLM 只产带 provenance 的派生观察，业务事实仍由对应 Owner 决定。
 - “接入完整 OTel/Langfuse”——当前只有 TraceId、进程内 span 与 Prometheus。
 - “准确率达到生产标准”——项目数据仍含 provisional 标签，没有 human-reviewed Gold。
-- “所有数据都在 PostgreSQL”——Ticket、BadCase、ReAct/Bundle metadata 仍有本地 store。
+- “所有数据都在 PostgreSQL”——核心 Ticket/Commitment 已在 PostgreSQL，BadCase、ReAct/Bundle metadata 仍有本地 store。
 
 ## 最值得讲的三个问题
 
@@ -83,4 +83,4 @@ PYTHONPATH=. .venv/bin/python scripts/run_local_vlm_e2e.py \
 
 ## 当前边界
 
-这是本地作品集系统，不声称有生产流量、生产 RPO/RTO 或组织级发布治理。后续最有价值的节点是 Commitment/Handoff 的 PostgreSQL 收敛，以及持久 OTel/Langfuse；它们应以真实 E2E 和机器报告完成，而不是先增加状态机与签署文件。
+这是本地作品集系统，不声称有生产流量、生产 RPO/RTO 或组织级发布治理。Commitment/Handoff 已完成 PostgreSQL 收敛，并由真实 HTTP Demo 证明自动违约与 receipt 履约；下一节点是基础持久 OTel/Langfuse。

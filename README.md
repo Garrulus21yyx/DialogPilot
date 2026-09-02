@@ -68,16 +68,18 @@ PYTHONPATH=. .venv/bin/python scripts/run_local_vlm_e2e.py \
 
 最近一次仓库验证结果：
 
-- 全量测试：`887 passed`
+- 全量测试：`881 passed`
 - Docker Compose：应用、PostgreSQL、Redis、Nginx、Prometheus 均 healthy
 - L1 E2E：真实 PNG 经 Tesseract 识别 `E42`，Technical Agent 回答且 `verified=true`，VLM 调用为零
 - L2 E2E：红框 UI 图经 OCR + `deepseek-v4-flash-vision-exp`，回答使用视觉观察且 `verified=true`
+- Commitment E2E：显式承诺自动进入违约，带业务 receipt 后转为迟到履约并保留 breach 历史
 - PostgreSQL：空库升级到 Alembic head，并完成隔离 dump/restore 对账
 
 对应机器报告：
 
 - [`evaluation/reports/local-e2e-v1.json`](evaluation/reports/local-e2e-v1.json)
 - [`evaluation/reports/local-vlm-e2e-v1.json`](evaluation/reports/local-vlm-e2e-v1.json)
+- [`evaluation/reports/local-commitment-e2e-v1.json`](evaluation/reports/local-commitment-e2e-v1.json)
 - [`evaluation/reports/local-postgres-restore-v1.json`](evaluation/reports/local-postgres-restore-v1.json)
 
 Swagger UI：<http://localhost:18000/docs>
@@ -123,9 +125,10 @@ flowchart LR
 | Knowledge | PostgreSQL + pgvector/FTS | 原文 revision、chunk、active generation、混合检索 |
 | ServiceEpisode / 用户事实 | PostgreSQL | 跨会话服务经历与带来源事实 |
 | Attachment | PostgreSQL | 原始字节、checksum、安全状态和 turn binding；OCR/VLM 是派生观察 |
+| Commitment | PostgreSQL | 显式来源、due_at、版本 CAS、违约/履约事件和 receipt |
 | 当前会话窗口 | Redis | PostgreSQL Conversation 事件的快速投影，可重建 |
 | ReAct checkpoint / receipt | 本地持久 Store | 本地 Demo 的审批恢复与副作用防重 |
-| Ticket / Handoff | 本地 TicketService | 幂等工单、状态转换和 outbox；后续可直接收敛到 PostgreSQL |
+| Ticket / Handoff | PostgreSQL | 幂等工单、状态转换、事件和 outbox |
 
 仓库已经删除 Chroma、SQLite ResponseDelivery、legacy Knowledge、raw episodic 双路径以及所有 backfill/cutover 协调器。不存在旧数据，因此新安装直接从空 PostgreSQL 初始化。
 
@@ -168,6 +171,7 @@ flowchart LR
 | `POST` | `/knowledge/upload` | 上传 UTF-8 txt/md/JSON |
 | `GET` | `/knowledge/stats` | Knowledge 后端与 manifest |
 | `GET/POST` | `/tickets` | Handoff 工单读写 |
+| `POST/GET/PATCH` | `/commitments` | 显式创建、查询和迁移服务承诺；模型不能静默创建 |
 | `POST` | `/feedback` | 绑定真实预测的反馈 |
 | `GET` | `/metrics` | Prometheus 指标 |
 | `POST` | `/eval/run` | 本地分层评测 |

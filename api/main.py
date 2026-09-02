@@ -38,6 +38,13 @@ from services.ticket_service import (
     TicketStatus,
     TicketWebhookDispatcher,
 )
+from services.commitment_service import (
+    CommitmentIdempotencyConflictError,
+    CommitmentNotFoundError,
+    CommitmentStatus,
+    CommitmentVersionConflictError,
+    InvalidCommitmentTransitionError,
+)
 from services.response_delivery import DeliveryStatus, ResponseNotFoundError
 from services.badcase_registry import (
     BadCaseContractError,
@@ -122,6 +129,7 @@ _evaluator    = None
 _skill_manager = None
 _answer_verifier = None
 _ticket_service = None
+_commitment_service = None
 _response_delivery = None
 _badcase_registry = None
 _customer_operations = None
@@ -196,7 +204,7 @@ def _anthropic_cfg() -> Dict[str, Any]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """按依赖顺序创建所有组件，并在退出时释放后台任务和连接。"""
-    global _orchestrator, _memory, _knowledge_store, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator, _bundle_resolver, _grounded_answer_generator, _postgres_pool, _conversation_query, _knowledge_retriever, _retrieval_cache_client, _durable_chat_coordinator, _durable_chat_task, _durable_chat_stop, _retrieval_postgres_pool, _service_episode_search, _media_asset_store, _media_asset_service, _vlm_provider
+    global _orchestrator, _memory, _knowledge_store, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _commitment_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator, _bundle_resolver, _grounded_answer_generator, _postgres_pool, _conversation_query, _knowledge_retriever, _retrieval_cache_client, _durable_chat_coordinator, _durable_chat_task, _durable_chat_stop, _retrieval_postgres_pool, _service_episode_search, _media_asset_store, _media_asset_service, _vlm_provider
 
     print(BANNER, flush=True)
 
@@ -206,6 +214,7 @@ async def lifespan(app: FastAPI):
     from evaluation.evaluator import EndToEndEvaluator
     from evaluation.chat_application_runner import ChatApplicationRunner
     from mcp.customer_support_tools import ticket_tools
+    from mcp.commitment_tools import commitment_tools
     from mcp.customer_operations_tools import customer_operation_tools
     from mcp.tool_manager import ApprovalMode, MCPToolManager, Tool
     from memory.conversation_memory import MemoryManager
@@ -342,6 +351,14 @@ async def lifespan(app: FastAPI):
             dispatch_retry_max_seconds=float(os.getenv(
                 "TICKET_DISPATCH_RETRY_MAX_SECONDS", "300",
             )),
+        )
+        from infrastructure.postgres_commitment_service import (
+            PostgresCommitmentService,
+        )
+
+        _commitment_service = PostgresCommitmentService(
+            _postgres_pool,
+            due_poll_seconds=float(os.getenv("COMMITMENT_DUE_POLL_SECONDS", "30")),
         )
         from application.memory_retrieval_policy import (
             DEFAULT_MEMORY_RETRIEVAL_POLICY,
@@ -550,6 +567,8 @@ async def lifespan(app: FastAPI):
     ))
     for ticket_tool in ticket_tools(_ticket_service):
         _tool_manager.register(ticket_tool)
+    for commitment_tool in commitment_tools(_commitment_service):
+        _tool_manager.register(commitment_tool)
     for operation_tool in customer_operation_tools(_customer_operations):
         _tool_manager.register(operation_tool)
     AuthorityPolicyRegistry.v1().validate_tools(_tool_manager.registered_tools)
@@ -607,6 +626,7 @@ async def lifespan(app: FastAPI):
 
     await _memory.start()
     await _ticket_service.start()
+    await _commitment_service.start()
     if _postgres_pool is not None:
         from application.compatibility_chat import CompatibilityChatCoordinator
         from infrastructure.postgres_admission import (
@@ -728,6 +748,8 @@ async def lifespan(app: FastAPI):
             await _monitor.stop()
         if _ticket_service is not None:
             await _ticket_service.close()
+        if _commitment_service is not None:
+            await _commitment_service.close()
         if _memory is not None:
             await _memory.close()
         if _retrieval_cache_client is not None:
@@ -746,6 +768,7 @@ async def lifespan(app: FastAPI):
         _skill_manager = None
         _answer_verifier = None
         _ticket_service = None
+        _commitment_service = None
         _response_delivery = None
         _badcase_registry = None
         _customer_operations = None
@@ -1019,6 +1042,29 @@ class TicketStatusUpdate(BaseModel):
     actor: str = Field(min_length=1, max_length=200)
     note: str = Field(default="", max_length=1000)
     assignee: Optional[str] = Field(default=None, max_length=200)
+
+
+class CommitmentCreateRequest(BaseModel):
+    """仅供人工或已有业务动作 receipt 显式创建承诺。"""
+    idempotency_key: str = Field(min_length=1, max_length=200)
+    user_id: str = Field(min_length=1, max_length=200)
+    conversation_id: str = Field(min_length=1, max_length=200)
+    ticket_id: Optional[str] = Field(default=None, max_length=200)
+    kind: str = Field(min_length=1, max_length=100)
+    description: str = Field(min_length=1, max_length=2000)
+    due_at: datetime
+    owner: str = Field(min_length=1, max_length=200)
+    source_kind: Literal["manual", "business_action"]
+    source_receipt_ref: Optional[str] = Field(default=None, max_length=500)
+    retention_class: str = Field(default="support_standard", min_length=1, max_length=100)
+
+
+class CommitmentTransitionRequest(BaseModel):
+    status: CommitmentStatus
+    expected_version: int = Field(ge=1)
+    actor: str = Field(min_length=1, max_length=200)
+    receipt_ref: Optional[str] = Field(default=None, max_length=500)
+    note: str = Field(default="", max_length=1000)
 
 
 class ResponseAckRequest(BaseModel):
@@ -1644,6 +1690,7 @@ def _core_chat_application(
             media_requirement_validator=media_validator,
             media_asset_store=_media_asset_store,
             perception_service=perception_service,
+            commitment_service=_commitment_service,
         ),
         ChatOperations(
             active_ticket_context=_active_ticket_context,
@@ -2204,6 +2251,83 @@ async def update_ticket_status(
                 "target": exc.target.value,
             },
         ) from exc
+
+
+@app.post("/commitments", tags=["服务承诺"])
+async def create_commitment(
+    body: CommitmentCreateRequest,
+    _principal: Principal = Depends(_admin_principal),
+):
+    """Create an explicit promise; generated assistant wording is not an input."""
+    if _commitment_service is None:
+        raise HTTPException(503, "承诺服务未就绪")
+    try:
+        item, created = await asyncio.to_thread(
+            _commitment_service.create, **body.model_dump(),
+        )
+        return {"created": created, "commitment": item.to_dict()}
+    except CommitmentIdempotencyConflictError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+
+@app.get("/commitments", tags=["服务承诺"])
+async def list_commitments(
+    user_id: str,
+    active_only: bool = False,
+    limit: int = Query(default=50, ge=1, le=200),
+    _principal: Principal = Depends(_admin_principal),
+):
+    if _commitment_service is None:
+        raise HTTPException(503, "承诺服务未就绪")
+    items = await asyncio.to_thread(
+        _commitment_service.list_for_user,
+        user_id=user_id, active_only=active_only, limit=limit,
+    )
+    return {"commitments": [item.to_dict() for item in items], "count": len(items)}
+
+
+@app.get("/commitments/{commitment_id}", tags=["服务承诺"])
+async def get_commitment(
+    commitment_id: str,
+    _principal: Principal = Depends(_admin_principal),
+):
+    if _commitment_service is None:
+        raise HTTPException(503, "承诺服务未就绪")
+    try:
+        item = await asyncio.to_thread(_commitment_service.get, commitment_id)
+        events = await asyncio.to_thread(_commitment_service.events, commitment_id)
+        return {**item.to_dict(), "events": events}
+    except CommitmentNotFoundError as exc:
+        raise HTTPException(404, str(exc)) from exc
+
+
+@app.patch("/commitments/{commitment_id}/status", tags=["服务承诺"])
+async def update_commitment_status(
+    commitment_id: str,
+    body: CommitmentTransitionRequest,
+    _principal: Principal = Depends(_admin_principal),
+):
+    if _commitment_service is None:
+        raise HTTPException(503, "承诺服务未就绪")
+    try:
+        item = await asyncio.to_thread(
+            _commitment_service.transition,
+            commitment_id,
+            body.status,
+            expected_version=body.expected_version,
+            actor=body.actor,
+            receipt_ref=body.receipt_ref,
+            note=body.note,
+        )
+        return item.to_dict()
+    except CommitmentNotFoundError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except (CommitmentVersionConflictError, InvalidCommitmentTransitionError) as exc:
+        raise HTTPException(409, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
 
 
 @app.post("/feedback", tags=["质量闭环"])

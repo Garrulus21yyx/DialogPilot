@@ -89,7 +89,7 @@ DialogPilot 下一阶段的目标不是把现有系统改造成一个更复杂�
 |---|---|
 | `CURRENT_ACTIVE` | `/chat` 已是调用 `ChatApplication.handle()` 的薄 HTTP adapter；Application 内部调用现有 AgentOrchestrator/TaskGraph/ReAct、已接入的 TaskFormation/KnowledgeRetriever 接口，以及仍由 Chroma/Redis 提供候选或记忆的兼容实现 |
 | `IMPLEMENTED_NOT_BOUND` | PostgreSQL/Alembic、Conversation/Admission/Publication/Delivery contracts、canonical Route/Authority、KnowledgeRetriever 的 PostgreSQL retrieval backend，以及 ThreadSummary/ContextPolicy/ActiveCase/ServiceEpisode 的目标存储/投影已有实现或测试；这些目标 binding 尚未全部激活 |
-| `PLANNED` | LangGraph runtime、完整 Profile/Commitment/ServiceContinuity、完整多模态、OTel+Langfuse 与最终服务链评测仍需完成 |
+| `PLANNED` | LangGraph runtime、完整 Profile/ServiceContinuity、OTel+Langfuse 与最终服务链评测仍需完成；Commitment 与多模态本地闭环已实现 |
 | `SUPERSEDED_TO_REMOVE` | 当前分支里已经写出的旧数据迁移、双路径比较、流量试运行和运行时回退辅助代码；它们保留实施历史，但不属于目标架构，直接切换完成时删除 |
 
 因此本文描述的是从当前分支继续完成并直接替换的目标，不宣称新链已经全部启用，也不把已实现能力倒写成待开发。

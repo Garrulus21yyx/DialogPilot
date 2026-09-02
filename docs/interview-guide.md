@@ -12,7 +12,7 @@ permalink: /interview-guide.html
 
 ### Q：用一分钟介绍项目。
 
-DialogPilot 是 FastAPI 多 Agent 客服后端。请求通过 JWT 后先持久化到 PostgreSQL，再由 Router/Planner 产生闭合 RouteDecision。`EXECUTE` 构建 TaskGraph，领域 Worker 在任务内执行有界 ReAct 和白名单工具；附件由 Agent 按需选择 L0/L1/L2，Tesseract 与 DeepSeek Vision 只产可追溯派生观察。Evidence、Coverage 和 AnswerVerifier 决定回答能否发布。最终回答先写 PostgreSQL，再返回客户端并投影到 Redis 当前窗口。项目用 Docker Compose、887 项测试、L1/L2 真实鉴权 E2E 和本地恢复报告验证。
+DialogPilot 是 FastAPI 多 Agent 客服后端。请求通过 JWT 后先持久化到 PostgreSQL，再由 Router/Planner 产生闭合 RouteDecision。`EXECUTE` 构建 TaskGraph，领域 Worker 在任务内执行有界 ReAct 和白名单工具；附件由 Agent 按需选择 L0/L1/L2，Tesseract 与 DeepSeek Vision 只产可追溯派生观察。Evidence、Coverage 和 AnswerVerifier 决定回答能否发布。最终回答先写 PostgreSQL，再返回客户端并投影到 Redis 当前窗口。项目用 Docker Compose、881 项测试、L1/L2 与 Commitment 真实 HTTP E2E、本地恢复报告验证。
 
 ### Q：为什么不是一个大 Prompt？
 
@@ -104,7 +104,7 @@ Handoff 是客服闭环的一部分。它负责工单 identity、幂等、状态
 
 ### Q：怎样验证项目完整跑通？
 
-三层证据：887 项 pytest；Docker Compose health；L1/L2 脚本通过真实 JWT 请求附件与 `/chat`。L1 报告证明 OCR 足够时 VLM 调用为零；L2 报告证明 DeepSeek Vision producer/model/version、视觉 artifact 和回答消费均可追踪。
+三层证据：881 项 pytest；Docker Compose health；L1/L2 脚本通过真实 JWT 请求附件与 `/chat`，Commitment 脚本通过管理 API 验证自动违约和 receipt 履约。L1 报告证明 OCR 足够时 VLM 调用为零；L2 报告证明 DeepSeek Vision producer/model/version、视觉 artifact 和回答消费均可追踪。
 
 ### Q：恢复报告证明什么？
 
@@ -118,7 +118,7 @@ Handoff 是客服闭环的一部分。它负责工单 identity、幂等、状态
 
 ### Q：项目还缺什么？
 
-当前已有附件、Tesseract OCR 与可配置 DeepSeek Vision 单路径；仍没有持久 OTel Collector/Langfuse，Ticket、BadCase、ReAct/Bundle metadata 还未全部迁到 PostgreSQL，也没有未消费的人工 Gold heldout。这些限制不应包装成已完成。
+当前已有附件、Tesseract OCR、可配置 DeepSeek Vision、PostgreSQL Ticket/Handoff 与 Commitment；仍没有持久 OTel Collector/Langfuse，BadCase、ReAct/Bundle metadata 仍是本地 store，也没有未消费的人工 Gold heldout。这些限制不应包装成已完成。
 
 ### Q：为什么删除 Shadow/Canary？
 
@@ -126,4 +126,4 @@ Handoff 是客服闭环的一部分。它负责工单 identity、幂等、状态
 
 ### Q：下一步优先做什么？
 
-优先做 Commitment/Handoff PostgreSQL 收敛，删除对应本地 SQLite 单点；随后接入持久 OTel/Langfuse。多模态节点已通过 L1 零 VLM 与真实 DeepSeek L2 两份 E2E，不再列为未来能力。
+Commitment/Handoff PostgreSQL 收敛已经完成：显式承诺会自动违约，迟到履约必须带 receipt，未闭合违约会把 Handoff 提升为 critical。下一步接入基础持久 OTel/Langfuse。多模态节点已通过 L1 零 VLM 与真实 DeepSeek L2 两份 E2E。

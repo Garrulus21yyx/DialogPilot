@@ -1722,6 +1722,7 @@ privacy/deletion proof，防止 restore 或迟到 worker 重建旧 projection。
 - 规模：L
 - Owner：Product/Support Ops + Application
 - Build prerequisite：M1-T01、M1-T04A、M3-T05
+- 目标能力状态：`IMPLEMENTED`（本地简历版：PostgreSQL owner、自动违约、receipt 履约、只读 Agent tool 与 Handoff 风险联动）
 
 直接实现架构 canonical `CommitmentStatus`：
 

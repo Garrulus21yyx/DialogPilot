@@ -19,6 +19,7 @@ from application.route_decision import (
 from mcp.tool_manager import Tool
 from mcp.customer_operations_tools import customer_operation_tools
 from mcp.customer_support_tools import ticket_tools
+from mcp.commitment_tools import commitment_tools
 from services.customer_operations import CustomerOperationsService
 
 
@@ -153,7 +154,7 @@ def test_unsupported_authority_cannot_be_replaced_by_knowledge():
     with pytest.raises(UnsupportedAuthority):
         registry.resolve_requirements(
             _route((RequiredAuthority.ORDER_STATE,)),
-            ("commitment.current_state", "knowledge.active_source"),
+            ("account.current_state", "knowledge.active_source"),
         )
 
 
@@ -268,7 +269,7 @@ def test_knowledge_evidence_pack_is_the_only_supported_nested_knowledge_output()
 
 
 def test_all_builtin_tool_manifests_pass_the_same_startup_gate(
-    ticket_service, tmp_path,
+    ticket_service, commitment_service, tmp_path,
 ):
     knowledge = _tool(
         "knowledge_search", authority="knowledge.active_source",
@@ -287,6 +288,7 @@ def test_all_builtin_tool_manifests_pass_the_same_startup_gate(
         knowledge,
         memory,
         *ticket_tools(ticket_service),
+        *commitment_tools(commitment_service),
         *customer_operation_tools(
             CustomerOperationsService(str(tmp_path / "operations.db"))
         ),

@@ -31,7 +31,7 @@ class SchemaContract:
 class SchemaVersionRegistry:
     version = "schema-version-registry-v1"
     postgres = SchemaContract(
-        "postgres-domain", "20260902_0024", ("20260902_0024",),
+        "postgres-domain", "20260902_0025", ("20260902_0025",),
         MigrationStrategy.FORWARD_ONLY,
     )
     agent_checkpoint = SchemaContract(

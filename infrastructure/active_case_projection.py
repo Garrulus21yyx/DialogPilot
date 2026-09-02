@@ -48,6 +48,12 @@ class TicketServiceActiveCaseReader:
         tags = tuple(dict.fromkeys(filter(None, (
             str(ticket.intent or ""), str(ticket.agent_type or ""),
         ))))
+        commitment_refs = tuple(filter(None, (
+            ref.strip()
+            for ref in str(
+                ticket.identity_metadata.get("commitment_refs") or ""
+            ).split(",")
+        )))
         return ActiveCase(
             case_id=case_id, ticket_id=ticket.ticket_id,
             issue_summary=ticket.question,
@@ -55,7 +61,7 @@ class TicketServiceActiveCaseReader:
             product_order_entity_refs=opaque_refs(ticket.identity_metadata),
             status=ticket.status.value,
             business_priority=ticket.priority.value,
-            sla_and_commitment_refs=(), assignee=ticket.assignee or "",
+            sla_and_commitment_refs=commitment_refs, assignee=ticket.assignee or "",
             created_at=ticket.created_at, updated_at=ticket.updated_at,
             version=ticket.version,
         )

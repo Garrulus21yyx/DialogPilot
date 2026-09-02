@@ -41,9 +41,9 @@ COPY --from=dependencies /usr/local/bin /usr/local/bin
 COPY --chown=dialogpilot:dialogpilot . .
 
 # 创建必要目录，只调整运行期需要写入的目录权限，避免递归 chown 整个应用。
-RUN mkdir -p /app/data/tickets /app/data/badcases /app/data/customer-operations /app/data/react-runs /app/data/evolution /app/logs /app/config && \
+RUN mkdir -p /app/data/badcases /app/data/customer-operations /app/data/react-runs /app/data/evolution /app/logs /app/config && \
     chown dialogpilot:dialogpilot \
-        /app/data /app/data/tickets /app/data/badcases /app/data/customer-operations /app/data/react-runs /app/data/evolution \
+        /app/data /app/data/badcases /app/data/customer-operations /app/data/react-runs /app/data/evolution \
         /app/logs /app/config
 USER dialogpilot
 
@@ -59,7 +59,7 @@ FROM dependencies AS development
 
 COPY . .
 
-RUN mkdir -p /app/data/tickets /app/data/badcases /app/data/customer-operations /app/data/react-runs /app/data/evolution /app/logs /app/config /app/tests && \
+RUN mkdir -p /app/data/badcases /app/data/customer-operations /app/data/react-runs /app/data/evolution /app/logs /app/config /app/tests && \
     chmod -R 777 /app/data /app/logs
 
 EXPOSE 8000

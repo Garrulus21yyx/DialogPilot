@@ -57,6 +57,7 @@ flowchart TB
 | 当前会话 | Redis projection | 从 PostgreSQL 事件重建，不反向成为事实 Owner |
 | 跨会话记忆 | ServiceEpisode / MemoryFact | PostgreSQL 记录来源、revision、有效状态 |
 | 人工升级 | `infrastructure/postgres_ticket_service.py` | PostgreSQL 事务内的幂等 ticket、合法状态迁移、event 与 outbox |
+| 服务承诺 | `infrastructure/postgres_commitment_service.py` | 显式来源、版本 CAS、自动违约、receipt 履约与 Handoff 风险引用 |
 
 ## `/chat` 时序
 
@@ -161,7 +162,7 @@ Redis 投影失败不会改写 PostgreSQL 事实；后台 outbox 会重试。删
 ## 尚未实现
 
 - 持久 OpenTelemetry Collector、Tempo/Jaeger 或 Langfuse。
-- Ticket/BadCase/ReAct metadata 的 PostgreSQL 最终收敛。
+- BadCase/ReAct metadata 的 PostgreSQL 最终收敛；Ticket 与 Commitment 已完成。
 - human-reviewed Gold 和未消费的 fresh heldout。
 
 这些条目是后续实施节点，不属于当前能力声明。

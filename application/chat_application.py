@@ -194,6 +194,7 @@ class ChatServices:
     media_requirement_validator: Any = None
     media_asset_store: Any = None
     perception_service: Any = None
+    commitment_service: Any = None
 
     @property
     def ready(self) -> bool:
@@ -653,6 +654,19 @@ class ChatApplication:
                 "TicketService", "create_handoff", "primary",
             )
             try:
+                breached_commitment_refs: tuple[str, ...] = ()
+                if services.commitment_service is not None:
+                    breached_commitment_refs = await asyncio.to_thread(
+                        services.commitment_service.breached_refs,
+                        user_id=user_id,
+                    )
+                priority = ops.handoff_priority(
+                    intent_result.urgency, verification.status.value,
+                )
+                if breached_commitment_refs:
+                    from services.ticket_service import TicketPriority
+
+                    priority = TicketPriority.CRITICAL
                 ticket, handoff_created = await asyncio.to_thread(
                     services.ticket_service.create_ticket,
                     idempotency_key=str(ticket_operation_key),
@@ -666,9 +680,7 @@ class ChatApplication:
                         f"coverage={result.coverage.get('complete', 'unknown')}; "
                         f"routing={result.routing_reason}"
                     )[:5000],
-                    priority=ops.handoff_priority(
-                        intent_result.urgency, verification.status.value,
-                    ),
+                    priority=priority,
                     agent_type=(
                         result.agent_type.value if result.agent_type else "orchestrator"
                     ),
@@ -677,6 +689,7 @@ class ChatApplication:
                     identity_metadata={
                         **identity_metadata,
                         "operation_key": str(ticket_operation_key),
+                        "commitment_refs": ",".join(breached_commitment_refs),
                     },
                 )
                 stages.append(StageObservation("ticket", StageStatus.OK, {

@@ -36,7 +36,10 @@ def test_reader_projects_owner_fields_and_excludes_closed_only(ticket_service):
     service = ticket_service
     active = _create(
         service, "active", intent="delivery",
-        metadata={"order_ref": "order:A123"},
+        metadata={
+            "order_ref": "order:A123",
+            "commitment_refs": "breached:commitment:c1:v2,commitment:c2:v1",
+        },
     )
     resolved = _create(service, "resolved")
     closed = _create(service, "closed")
@@ -52,6 +55,9 @@ def test_reader_projects_owner_fields_and_excludes_closed_only(ticket_service):
     projected = next(case for case in result.cases if case.ticket_id == active.ticket_id)
     assert projected.product_order_entity_refs == ("order:A123",)
     assert projected.issue_summary == "issue active"
+    assert projected.sla_and_commitment_refs == (
+        "breached:commitment:c1:v2", "commitment:c2:v1",
+    )
     assert projected.version == 1
 
 
