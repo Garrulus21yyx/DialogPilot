@@ -24,7 +24,8 @@ from agents.orchestration_contracts import (
     TaskSpec,
 )
 from agents.task_policies import MultiAgentExecutionPolicy
-from core.intent_recognizer import IntentCategory
+from application.route_decision import RequestShape, RouteMode
+from core.intent_recognizer import IntentCategory, UrgencyLevel
 from memory.context import ContextAssembler, ContextSection
 from services.result_synthesizer import (
     AgentOutcome,
@@ -1119,3 +1120,51 @@ def test_prior_outcome_binding_is_read_only_input_not_current_outcome():
     assert scoped.prior_outcome_bindings == (binding,)
     assert scoped.assigned_task is task
     assert scoped.dependency_artifacts == ()
+
+
+def test_canonical_route_decision_reuses_agent_domain_owner_selection():
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    orchestrator._pool = {
+        owner: [object()] for owner in (
+            AgentType.GENERAL, AgentType.TECHNICAL, AgentType.BILLING,
+            AgentType.ACCOUNT_SECURITY,
+        )
+    }
+    request = Request(
+        message="我的退款状态", user_id="u", conv_id="c",
+        intent=IntentCategory.REFUND, intent_group="billing",
+        urgency=UrgencyLevel.LOW,
+        intent_confidence=0.95, intent_input_fingerprint="a" * 64,
+    )
+
+    decision = asyncio.run(orchestrator.decide_route(
+        request, RequestShape.BUSINESS_STATE,
+    ))
+    task_plan = orchestrator._build_task_plan(request)
+
+    assert decision.mode is RouteMode.AGENT_TASK
+    assert decision.owner_ids == ("billing",)
+    assert tuple(owner.value for owner in task_plan.agent_types) == decision.owner_ids
+    assert len(request.routing_policy_trace.domain_decisions) == 1
+
+
+def test_knowledge_route_skips_domain_and_instance_selection():
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    orchestrator._pool = {
+        AgentType.GENERAL: [object()], AgentType.BILLING: [object()],
+    }
+    request = Request(
+        message="退款政策是什么", user_id="u", conv_id="c",
+        intent=IntentCategory.QUERY, intent_group="query",
+        urgency=UrgencyLevel.LOW,
+        intent_confidence=0.95, intent_input_fingerprint="b" * 64,
+    )
+
+    decision = asyncio.run(orchestrator.decide_route(
+        request, RequestShape.KNOWLEDGE_FAQ,
+    ))
+
+    assert decision.mode is RouteMode.KNOWLEDGE_QA
+    assert decision.owner_ids == ()
+    assert request.routing_policy_trace.domain_decisions == []
+    assert request.routing_policy_trace.instance_decisions == []

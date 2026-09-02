@@ -36,7 +36,7 @@
 | M2-T04A SourceRevision v0 / active manifest | implemented (review pending) | PG owner/backfill/active validator done；independent human heldout review pending；650 tests passed |
 | M2-T05 统一 KnowledgeRetriever | implemented (canary blocked) | A1/A2/B + immutable PG dark-shadow report；675 tests passed |
 | M2-T06A Multi-Agent TaskGraph 收紧 | implemented | A/B/C policy、execution、dependency、native signal 与 terminal algebra 完成；697 tests passed |
-| M2-T06 自适应 RAG 发布路径 | in_progress | A/B1/B2a: path executor + selected-owner authority fixed；canonical producer/adapter pending；725 tests passed |
+| M2-T06 自适应 RAG 发布路径 | in_progress | A/B1/B2a/B2b: canonical RouteDecision producer done；request-shape + ChatApplication adapter pending；727 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
@@ -757,6 +757,19 @@
   保留兼容 fallback。
 - 验证：单域请求保持四候选可诊断排名但只选择 Billing；Router owner IDs 不再包含未选 General/
   Technical；聚焦 `62 passed`、全套 `725 passed in 19.38s`，ruff checks passed。
+
+### M2-T06-B2b（Agent RouterPlanner canonical RouteDecision producer）
+
+- AgentOrchestrator 新增 `decide_route(Request, RequestShape)`：复用本 invocation 已有 Intent，按需调用
+  effective DomainRoutingPolicy/InstanceSelectionPolicy，再由 RouterInvocationPolicy 规范化唯一
+  RouteDecision；Knowledge 等无 Worker 路径不会触发 Domain/Instance。
+- `Request.domain_decision` 成为 request-scoped 只读缓存；RouteDecision 与后续 TaskPlan 在 input/policy
+  fingerprint 相同时复用同一选择事实与 Trace，不再二次筛 Owner。Bundle 的 supporting threshold
+  先进入 effective DomainRoutingPolicy，因此变化会产生新 policy fingerprint，而非 Planner 旁路阈值。
+- TaskPlanner 改为直接消费 `DomainDecision.selected_owners`；排名、选择、TaskFormation 形成单向数据流。
+- 验证：Knowledge 跳过昂贵路由；Refund business-state 只选 Billing；RouteDecision owner IDs 与 TaskPlan
+  owners 一致且 Trace 只有一份 DomainDecision；聚焦 `90 passed`、全套 `727 passed in 19.30s`，
+  ruff/diff checks passed。下一步仍需 hard-rule `RequestShape` producer 与 ChatApplication adapter。
 
 ## 下一步
 

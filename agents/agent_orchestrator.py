@@ -16,6 +16,7 @@
   - Agent 置信度低于阈值 → 自动升级到更高级 Agent 或转人工
 """
 import asyncio
+import hashlib
 import json
 import logging
 import re
@@ -25,6 +26,14 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from anthropic import AsyncAnthropic
+
+from application.route_decision import (
+    RequestShape,
+    RouteDecision,
+    RouteRisk,
+    RouterInvocation,
+    RouterInvocationPolicy,
+)
 
 from agents.react_engine import ReActExecutionEngine, ReActResult
 from agents.run_store import RunCheckpoint, RunStore
@@ -52,6 +61,7 @@ from agents.task_policies import (
 from agents.routing_policy import (
     AgentHealthSnapshot,
     AgentRoutingPolicyRegistry,
+    DomainDecision,
     RoutingPolicyTrace,
 )
 from core.intent_recognizer import IntentCategory, IntentRecognizer, UrgencyLevel
@@ -206,6 +216,7 @@ class Request:
     routing_policy_trace: Optional[RoutingPolicyTrace] = None
     dependency_artifacts: tuple[TaskArtifact, ...] = ()
     prior_outcome_bindings: tuple[PriorOutcomeBinding, ...] = ()
+    domain_decision: Optional[DomainDecision] = None
 
 
 class PlanningDisposition(str, Enum):
@@ -722,24 +733,7 @@ class AgentOrchestrator:
     async def plan(self, req: Request) -> PlanningDecision:
         """拥有执行/澄清/越域处置；只有 EXECUTE 才能生成 TaskGraph。"""
         self._ensure_routing_trace(req)
-        if req.intent is None:
-            intent_result = await self._intent_recognizer.recognize(
-                req.message, history=req.history, bundle=req.agent_bundle,
-            )
-            req.intent = intent_result.intent
-            req.intent_group = intent_result.intent_group
-            req.urgency = intent_result.urgency
-            req.intent_confidence = intent_result.confidence
-            trace = self._ensure_routing_trace(req)
-            trace.intent_classifier_fingerprint = str(
-                getattr(intent_result, "classifier_fingerprint", "") or ""
-            )
-            trace.intent_input_fingerprint = str(
-                getattr(intent_result, "input_fingerprint", "") or ""
-            )
-            trace.intent_source_scores = dict(
-                getattr(intent_result, "source_scores", {}) or {}
-            )
+        await self._ensure_intent(req)
 
         if self._needs_clarification(req):
             return PlanningDecision(
@@ -764,6 +758,71 @@ class AgentOrchestrator:
             disposition=PlanningDisposition.EXECUTE,
             reason=plan.reason,
         )
+
+    async def decide_route(
+        self,
+        req: Request,
+        request_shape: RequestShape,
+    ) -> RouteDecision:
+        """Normalize cached Intent + Agent-owned domain/instance policies once."""
+        self._ensure_routing_trace(req)
+        await self._ensure_intent(req)
+        input_fingerprint = req.intent_input_fingerprint or hashlib.sha256(
+            json.dumps({
+                "message": req.message,
+                "intent": req.intent.value if req.intent else None,
+                "entities": req.entities,
+                "request_shape": request_shape.value,
+            }, ensure_ascii=False, sort_keys=True).encode()
+        ).hexdigest()
+
+        def domain_port():
+            self._domain_scores(req)
+            return self._last_domain_decision
+
+        def instance_port(owner: str):
+            self._best_agent(AgentType(owner), req.routing_policy_trace)
+            return self._last_instance_decision
+
+        risk = RouteRisk[
+            (req.urgency or UrgencyLevel.LOW).name
+        ]
+        return RouterInvocationPolicy().decide(RouterInvocation(
+            input_fingerprint=input_fingerprint,
+            request_shape=request_shape,
+            prior_intent=req.intent.value if req.intent else "",
+            prior_risk=risk,
+            domain_port=domain_port,
+            instance_port=instance_port,
+            owner_pool_sizes={
+                owner.value: len(agents) for owner, agents in self._pool.items()
+            },
+        ))
+
+    async def _ensure_intent(self, req: Request) -> None:
+        """Populate the one canonical Intent decision; consumers must reuse it."""
+        if req.intent is not None:
+            return
+        intent_result = await self._intent_recognizer.recognize(
+            req.message, history=req.history, bundle=req.agent_bundle,
+        )
+        req.intent = intent_result.intent
+        req.intent_group = intent_result.intent_group
+        req.urgency = intent_result.urgency
+        req.intent_confidence = intent_result.confidence
+        req.intent_classifier_fingerprint = str(
+            getattr(intent_result, "classifier_fingerprint", "") or ""
+        )
+        req.intent_input_fingerprint = str(
+            getattr(intent_result, "input_fingerprint", "") or ""
+        )
+        req.intent_source_scores = dict(
+            getattr(intent_result, "source_scores", {}) or {}
+        )
+        trace = self._ensure_routing_trace(req)
+        trace.intent_classifier_fingerprint = req.intent_classifier_fingerprint
+        trace.intent_input_fingerprint = req.intent_input_fingerprint
+        trace.intent_source_scores = dict(req.intent_source_scores)
 
     # ── 主入口 ────────────────────────────────────────────────────────────────
 
@@ -1273,6 +1332,7 @@ class AgentOrchestrator:
             )
 
         scores = self._domain_scores(req)
+        domain_decision = self._last_domain_decision
         available_scores = {
             agent_type: score
             for agent_type, score in scores.items()
@@ -1284,19 +1344,17 @@ class AgentOrchestrator:
                 (task,), task.task_id, "无可用专属 Agent，降级到 GeneralAgent", 0.1,
             )
 
-        ordered = sorted(available_scores.items(), key=lambda item: item[1], reverse=True)
-        primary_agent, primary_score = ordered[0]
-        supporting_threshold = getattr(
-            self, "_routing_policy_registry", AgentRoutingPolicyRegistry.v1(),
-        ).domain_routing.supporting_threshold
-        supporting_agents = [
-            agent_type
-            for agent_type, score in ordered[1:]
-            if agent_type != AgentType.GENERAL and score >= supporting_threshold
-        ]
+        selected_agents = list(domain_decision.selected_owners)
+        if not selected_agents:
+            task = self._task_for_agent(req, AgentType.GENERAL)
+            return self._form_task_plan(
+                (task,), task.task_id, "DomainRoutingPolicy 未选择可执行 Owner", 0.1,
+            )
+        primary_agent = selected_agents[0]
+        primary_score = available_scores[primary_agent]
+        supporting_agents = selected_agents[1:]
 
         reason = self._routing_reason(req, available_scores, primary_agent, supporting_agents)
-        selected_agents = [primary_agent] + supporting_agents
         planned_tasks = tuple(self._task_for_agent(req, agent_type) for agent_type in selected_agents)
         # 可疑账号同时出现资金问题时，账务结论依赖先完成安全止损。
         if AgentType.ACCOUNT_SECURITY in selected_agents and AgentType.BILLING in selected_agents:
@@ -1432,14 +1490,39 @@ class AgentOrchestrator:
         registry = getattr(
             self, "_routing_policy_registry", AgentRoutingPolicyRegistry.v1(),
         )
-        decision = registry.domain_routing.decide(
+        base_policy = registry.domain_routing
+        effective_policy = replace(
+            base_policy,
+            supporting_threshold=self._bundle_number(
+                req, "routing_policy", "supporting_threshold",
+                base_policy.supporting_threshold,
+            ),
+        )
+        projected = effective_policy.decide(
             message=req.message, intent=req.intent, urgency=req.urgency,
             entities=req.entities or {}, available_owners=tuple(
                 owner for owner, agents in self._pool.items() if agents
             ),
         )
+        cached = req.domain_decision
+        decision = (
+            cached
+            if cached is not None
+            and cached.input_fingerprint == projected.input_fingerprint
+            and cached.policy_fingerprint == projected.policy_fingerprint
+            else projected
+        )
+        is_new = decision is projected
+        if is_new:
+            req.domain_decision = decision
         self._last_domain_decision = decision
-        self._ensure_routing_trace(req).domain_decisions.append(decision)
+        trace = self._ensure_routing_trace(req)
+        if is_new or not any(
+            item.input_fingerprint == decision.input_fingerprint
+            and item.policy_fingerprint == decision.policy_fingerprint
+            for item in trace.domain_decisions
+        ):
+            trace.domain_decisions.append(decision)
         return dict(decision.scores)
 
     @staticmethod
