@@ -198,7 +198,7 @@ def build_hierarchy(documents: Sequence[RagDocument]) -> HierarchyIndex:
 def transform_leaf_hit(
     hit: Mapping[str, Any], hierarchy: HierarchyIndex,
 ) -> dict[str, Any]:
-    """Project a KnowledgeBase hit inside a Haystack leaf to its source span."""
+    """Project a retrieval hit inside a Haystack leaf to its source span."""
     leaf = hierarchy.nodes[str(hit["document_id"])]
     relative_start = int(hit.get("source_start_char") or 0)
     relative_end = int(hit.get("source_end_char") or len(leaf.text))

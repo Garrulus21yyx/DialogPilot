@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 from types import SimpleNamespace
 from typing import Any, Mapping
@@ -14,9 +15,8 @@ from agents.orchestration_contracts import AgentType, TaskPlan, TaskRisk, TaskSp
 from application.service_episode_memory_search import ServiceEpisodeMemorySearch
 from core.auth import Principal
 from core.model_policy import ModelProfile
-from mcp.knowledge_base import KnowledgeBase
-from mcp.document_chunker import ChunkStrategy
-from mcp.sparse_index import PersistentBM25Index
+from application.chinese_lexical import tokenize_ascii_cjk_unigram_bigram
+from mcp.document_chunker import ChunkStrategy, DocumentChunker
 from mcp.tool_manager import (
     ApprovalMode,
     MCPToolManager,
@@ -27,7 +27,6 @@ from mcp.tool_manager import (
 )
 from memory.context import ContextAssembler, ContextBudgetExceededError, ContextSection, TokenEstimator
 from memory.conversation_memory import MemoryManager, Message, MsgRole
-from memory.hybrid_retrieval import HybridMemoryRetriever
 from services.answer_verifier import AnswerVerifier, VerificationStatus
 from services.result_synthesizer import AgentOutcome, AgentOutcomeStatus, CoverageGate
 
@@ -259,25 +258,43 @@ def register_fresh_fixtures(
             "target_tool_required": context.relevant_history == [],
         }, {"legacy_calls": calls, "fact_calls": fact_calls})
 
-    class KBCollection:
-        def __init__(self): self.records = {}
-        def count(self): return len(self.records)
-        def add(self, *, ids, documents, metadatas):
-            for key, document, meta in zip(ids, documents, metadatas): self.records[key] = (document, meta)
-        def query(self, **_kwargs):
-            ids = list(self.records); return {"ids": [ids], "documents": [[self.records[key][0] for key in ids]], "metadatas": [[self.records[key][1] for key in ids]], "distances": [[0.5] * len(ids)]}
-        def get(self, **_kwargs):
-            ids = list(self.records); return {"ids": ids, "documents": [self.records[key][0] for key in ids], "metadatas": [self.records[key][1] for key in ids]}
+    class FixtureKnowledgeIndex:
+        def __init__(self, documents, *, max_tokens=360, overlap=48):
+            self.records = {}
+            chunker = DocumentChunker(TokenEstimator())
+            for document in documents:
+                source_id = str(document["id"])
+                for chunk in chunker.split(
+                    str(document["content"]), max_tokens=max_tokens,
+                    overlap_tokens=overlap, strategy=ChunkStrategy.STRUCTURE_AWARE,
+                ):
+                    chunk_id = "fixture-chunk-" + hashlib.sha256(
+                        f"{source_id}:{chunk.start_char}:{chunk.end_char}".encode()
+                    ).hexdigest()
+                    metadata = {
+                        "document_id": source_id, "title": str(document["title"]),
+                        "chunk_id": chunk_id, "chunk_index": chunk.chunk_index,
+                    }
+                    self.records[chunk_id] = (chunk.content, metadata)
+
+        def search(self, query, *, top_k):
+            query_tokens = set(tokenize_ascii_cjk_unigram_bigram(query))
+            rows = []
+            for chunk_id, (content, metadata) in self.records.items():
+                content_tokens = set(tokenize_ascii_cjk_unigram_bigram(content))
+                score = len(query_tokens & content_tokens)
+                rows.append({
+                    **metadata, "content": content, "chunk": metadata["chunk_index"],
+                    "score": score,
+                })
+            return sorted(
+                rows, key=lambda row: (-row["score"], row["chunk_id"]),
+            )[:top_k]
 
     def kb_with(documents, *, max_tokens=360, overlap=48):
-        kb = KnowledgeBase.__new__(KnowledgeBase); kb._collection = KBCollection(); kb._hybrid_retriever = HybridMemoryRetriever(recency_weight=0.0)
-        kb._token_estimator = TokenEstimator(); kb._chunk_max_tokens = max_tokens; kb._chunk_overlap_tokens = overlap
-        kb._chunk_strategy = ChunkStrategy.STRUCTURE_AWARE
-        kb._sparse_index = PersistentBM25Index(":memory:")
-        kb.add_documents([
-            {**document, "scope": "public"} for document in documents
-        ])
-        return kb
+        return FixtureKnowledgeIndex(
+            documents, max_tokens=max_tokens, overlap=overlap,
+        )
 
     async def rag_case(request, expected_id, content):
         kb = kb_with([
@@ -308,7 +325,7 @@ def register_fresh_fixtures(
         content = (("FIRST-CHUNK-NO-TARGET filler " * 80) + ("TARGET-LATE E777 " * 50))
         kb = kb_with([{"id": doc["id"], "title": doc["title"], "content": content}], max_tokens=80, overlap=12)
         hit = kb.search("TARGET-LATE E777", top_k=1)[0]
-        stored_content, stored_meta = kb._collection.records[hit["chunk_id"]]
+        stored_content, stored_meta = kb.records[hit["chunk_id"]]
         return FixtureEvidence({
             "chunk_index_matches_content": hit["chunk"] == stored_meta["chunk_index"] and hit["content"] == stored_content,
             "late_chunk_evidence_projected": "TARGET-LATE E777" in hit["content"],
@@ -319,7 +336,7 @@ def register_fresh_fixtures(
     async def rag_stability(request):
         data = inputs(request); source_id = str(data["document_id"])
         kb = kb_with([{"id": source_id, "title": data["title"], "content": "stable source marker " * 300}], max_tokens=60, overlap=8)
-        metas = [meta for _, meta in kb._collection.records.values()]; hit = kb.search("stable source marker", top_k=5)[0]
+        metas = [meta for _, meta in kb.records.values()]; hit = kb.search("stable source marker", top_k=5)[0]
         return FixtureEvidence({
             "chunk_hash_not_projected_as_document_id": hit["document_id"] == source_id and hit["chunk_id"] != source_id,
             "document_id_stable_across_chunks": len(metas) >= 3 and {meta["document_id"] for meta in metas} == {source_id},

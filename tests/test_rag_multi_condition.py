@@ -7,8 +7,11 @@ import pytest
 from pydantic_ai import ModelRetry
 
 from core.model_policy import ModelProfile
-from evaluation.rag_multi_condition_ablation import _round_robin_union
-from evaluation.rag_cross_encoder_ablation import _cascade_replay, _select_requirements
+from evaluation.retrieval_eval_utils import (
+    cascade_replay,
+    round_robin_union,
+    select_requirements,
+)
 from mcp.evidence_set_selector import (
     EvidenceSetSelector,
     _EvidenceSetDeps,
@@ -25,7 +28,7 @@ from mcp.result_reranker import RerankCandidate
 
 
 def test_round_robin_union_preserves_every_requirement_before_depth():
-    result = _round_robin_union({
+    result = round_robin_union({
         "R1": ["a", "shared", "c"],
         "R2": ["b", "shared", "d"],
         "R0": ["raw", "a", "e"],
@@ -129,7 +132,7 @@ def test_cross_encoder_selection_reserves_one_anchor_per_requirement():
             }
             return [values[pair] for pair in pairs]
 
-    result = _select_requirements(FakeCrossEncoder(), {
+    result = select_requirements(FakeCrossEncoder(), {
         "requirements": (
             RetrievalRequirement("R1", "refund"),
             RetrievalRequirement("R2", "shipping"),
@@ -164,7 +167,7 @@ def test_low_margin_cascade_replay_charges_fallback_and_uses_llm_outcome():
         },
     } for index in range(10)]
 
-    replay = _cascade_replay(cross_rows, llm_rows)
+    replay = cascade_replay(cross_rows, llm_rows)
     ten_percent = next(row for row in replay if row["fallback_count"] == 1)
 
     assert ten_percent["packed_recall"] == pytest.approx(0.1)

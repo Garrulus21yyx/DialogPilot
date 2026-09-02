@@ -23,11 +23,8 @@ from core.cost_budget import (
 )
 from core.llm_metrics import capture_llm_usage, create_message
 from core.model_policy import ModelProfile, ModelRole
-from memory.context import TokenEstimator
-from memory.hybrid_retrieval import HybridMemoryRetriever
-from mcp.document_chunker import ChunkStrategy
-from mcp.knowledge_base import KnowledgeBase
-from mcp.sparse_index import PersistentBM25Index
+from infrastructure.postgres_knowledge_store import PostgresKnowledgeStore
+from mcp.source_document import SourceDocument
 from mcp.tool_manager import MCPToolManager, Tool
 from scripts.create_x_t04_cost_manifest import build_manifest
 
@@ -142,45 +139,32 @@ def test_tool_limit_blocks_handler_in_the_controlled_runtime():
     assert tracker.outcome().fallback is BudgetFallback.HANDOFF  # type: ignore[union-attr]
 
 
-def test_offline_ingest_budget_is_independent_and_blocks_before_persistence():
-    class Collection:
-        def __init__(self):
-            self.add_calls = 0
-
-        def add(self, **_kwargs):
-            self.add_calls += 1
-
-    knowledge = KnowledgeBase.__new__(KnowledgeBase)
-    knowledge._collection = Collection()
-    knowledge._hybrid_retriever = HybridMemoryRetriever(recency_weight=0.0)
-    knowledge._token_estimator = TokenEstimator()
-    knowledge._chunk_max_tokens = 32
-    knowledge._chunk_overlap_tokens = 0
-    knowledge._chunk_strategy = ChunkStrategy.FIXED_TOKENS
-    knowledge._sparse_index = PersistentBM25Index(":memory:")
-    knowledge._offline_ingest_budget = OfflineIngestBudget(
+def test_offline_ingest_budget_is_independent_and_blocks_before_persistence(
+    monkeypatch,
+):
+    budget = OfflineIngestBudget(
         max_sources_per_batch=2, max_source_bytes=8, max_total_source_bytes=12,
         max_chunks_per_batch=10, max_embedding_tokens_per_batch=100,
         policy_version="offline-test-v1",
     )
+    monkeypatch.setattr(
+        "infrastructure.postgres_knowledge_store.OFFLINE_KNOWLEDGE_INGEST_BUDGET",
+        budget,
+    )
 
     with pytest.raises(OfflineIngestBudgetExceeded) as raised:
-        knowledge.add_documents([{
-            "id": "too-large", "title": "large", "content": "0123456789",
-            "scope": "public",
-        }])
+        PostgresKnowledgeStore._validate_budget((SourceDocument.create(
+            source_id="too-large", title="large", content="0123456789",
+        ),))
 
     assert raised.value.code == "OFFLINE_INGEST_BUDGET_EXHAUSTED"
     assert raised.value.dimension == "source_bytes"
-    assert knowledge._collection.add_calls == 0
-
     with pytest.raises(OfflineIngestBudgetExceeded) as batch_raised:
-        knowledge.add_documents([
-            {"id": "one", "title": "one", "content": "1234567", "scope": "public"},
-            {"id": "two", "title": "two", "content": "7654321", "scope": "public"},
-        ])
+        PostgresKnowledgeStore._validate_budget(tuple(
+            SourceDocument.create(source_id=value, title=value, content=content)
+            for value, content in (("one", "1234567"), ("two", "7654321"))
+        ))
     assert batch_raised.value.dimension == "total_source_bytes"
-    assert knowledge._collection.add_calls == 0
     assert OFFLINE_KNOWLEDGE_INGEST_BUDGET.policy_version != (
         RouteCostBudgetRegistry.version
     )

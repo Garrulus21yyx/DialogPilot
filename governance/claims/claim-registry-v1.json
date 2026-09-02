@@ -103,7 +103,7 @@
       "code_paths": [
         "core/cost_budget.py",
         "application/route_execution.py",
-        "mcp/knowledge_base.py"
+        "infrastructure/postgres_knowledge_store.py"
       ],
       "automated_tests": [
         "tests/test_cost_budget.py",

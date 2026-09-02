@@ -44,7 +44,7 @@ from core.model_policy import ModelProfile
 from evaluation.rag_pipeline.selection import paired_group_bootstrap_delta
 from evaluation.rag_pipeline.query_metrics import extract_negations
 from scripts.build_doc2dial_rag_subset import build_subset
-from evaluation.rag_query_ablation import _variants, _weights
+from evaluation.retrieval_eval_utils import query_variants, query_weights
 from evaluation.rag_query_capture import capture_raw_queries
 
 
@@ -199,8 +199,8 @@ def test_query_ablation_weights_reserve_raw_mass_and_keep_hyde_vector_only():
         "expansions": ["refund eligibility A123", "refund failure A123"],
         "hyde": "A help article about refund eligibility",
     }
-    variants = _variants(row, "all")
-    weights = _weights(
+    variants = query_variants(row, "all")
+    weights = query_weights(
         variants, raw_mass=0.5, lexical_weight=0.75, vector_weight=0.25,
     )
     assert sum(weights.values()) == 1.0
