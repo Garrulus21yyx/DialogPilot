@@ -213,7 +213,6 @@ class ChatOperations:
     active_ticket_context: Callable[..., Awaitable[Any]]
     build_knowledge_context: Callable[..., Awaitable[Any]]
     capture_badcases: Callable[..., Awaitable[None]]
-    evaluate_shadow: Callable[..., Awaitable[None]]
     handoff_priority: Callable[[Any, str], Any]
     policy_terminal_verification: Callable[[Any], Optional[VerificationResult]]
     publish_candidate: Callable[[str, VerificationResult], str]
@@ -924,22 +923,6 @@ class ChatApplication:
             stages.append(StageObservation("memory_write", StageStatus.SKIPPED, {
                 "reason": "out_of_scope_projection_policy",
             }))
-
-        if assignment.shadow is not None and disposition == "execute":
-            asyncio.create_task(ops.evaluate_shadow(
-                request=command,
-                user_id=user_id,
-                conv_id=conv_id,
-                request_id=request_id,
-                bundle=assignment.shadow,
-                base_sections=base_context_sections,
-                prompt_history=prompt_history,
-                intent_history=intent_history,
-                identity_metadata=identity_metadata,
-                pinned_execution_refs=getattr(
-                    assignment, "shadow_pinned_refs", None,
-                ),
-            ))
 
         return Completed(
             response_id=delivery.response_id,

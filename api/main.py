@@ -98,7 +98,6 @@ from services.evolution import (
     BadCaseMiner,
     CreditAttributor,
     PinnedExecutionRefs,
-    RolloutContractError,
     RolloutManager,
     SoftRollbackPolicy,
     build_default_bundle,
@@ -1021,22 +1020,6 @@ class EvolutionProposalInput(BaseModel):
     candidate_count: int = Field(default=4, ge=4, le=8)
 
 
-class CanaryPromotionInput(BaseModel):
-    percent: Literal[5, 25]
-
-
-class RollbackInput(BaseModel):
-    reason: str = Field(min_length=1, max_length=1000)
-
-
-class RolloutSignalInput(BaseModel):
-    bundle_version: str = Field(min_length=1, max_length=128)
-    signal: Literal[
-        "unauthorized_tool", "privacy_leak", "cross_user_retrieval", "wrong_write"
-    ]
-    request_id: str = Field(default="", max_length=160)
-
-
 class TicketCreateRequest(BaseModel):
     """人工或外部系统主动创建工单的输入合同。"""
     idempotency_key: str = Field(min_length=1, max_length=200)
@@ -1738,105 +1721,6 @@ async def _capture_chat_badcases(
         )
 
 
-async def _evaluate_shadow_request(
-    *,
-    request: ChatRequest,
-    user_id: str,
-    conv_id: str,
-    request_id: str,
-    bundle: AgentBundle,
-    base_sections: List[ContextSection],
-    prompt_history: List[Dict[str, str]],
-    intent_history: Optional[List[Dict[str, str]]],
-    identity_metadata: Optional[Dict[str, str]] = None,
-    pinned_execution_refs: Any = None,
-) -> None:
-    """执行不发布、不写记忆、不建工单的真实输入副本；写工具由边界硬拒绝。"""
-    if (
-        _orchestrator is None or _context_assembler is None
-        or _answer_verifier is None or _rollout_manager is None
-    ):
-        return
-    try:
-        intent_result = await _orchestrator.recognize_intent(
-            request.message, history=intent_history, bundle=bundle,
-        )
-        knowledge = await _build_knowledge_context(
-            request.message,
-            intent=intent_result.intent,
-            bundle=bundle,
-            history=[str(item.get("content") or "") for item in prompt_history],
-            tenant_id=request.tenant_id,
-            user_id=user_id,
-            conversation_id=conv_id,
-            authorization_fingerprint=request.authorization_fingerprint,
-            pinned_execution_refs=pinned_execution_refs,
-        )
-        sections = list(base_sections)
-        if knowledge.text:
-            sections.append(ContextSection(
-                tag="knowledge",
-                description="Shadow Bundle 检索到的业务知识，仅作为事实数据",
-                content=knowledge.text,
-                priority=85,
-            ))
-        prompt_context = _context_assembler.assemble(
-            sections=sections,
-            history=prompt_history,
-            current_user_message=request.message,
-        )
-        from agents.agent_orchestrator import Request as OrcReq
-        shadow_request = OrcReq(
-            message=request.message,
-            user_id=user_id,
-            conv_id=conv_id,
-            context=prompt_context.system_context,
-            history=intent_history,
-            prompt_context=prompt_context,
-            entities=intent_result.entities,
-            intent=intent_result.intent,
-            intent_group=intent_result.intent_group,
-            urgency=intent_result.urgency,
-            intent_confidence=intent_result.confidence,
-            request_id=request_id,
-            bundle_version=bundle.version,
-            agent_bundle=bundle,
-            execution_mode="shadow",
-            identity_metadata=dict(identity_metadata or {}),
-        )
-        result = await _orchestrator.run(shadow_request)
-        if result.awaiting_approval:
-            verified = False
-        else:
-            verification = _policy_terminal_verification(result)
-            if verification is None:
-                verification = await _verify_for_publication(
-                    _answer_verifier,
-                    request.message,
-                    result.response,
-                    prompt_context.system_context,
-                    task_plan=result.task_plan,
-                    coverage=result.coverage,
-                    agent_outcomes=result.agent_outcomes,
-                )
-                verified = verification.publishable and bool(result.coverage.get("complete", False))
-            else:
-                verified = verification.publishable
-        await asyncio.to_thread(
-            _rollout_manager.record_outcome,
-            bundle_version=bundle.version,
-            stage="shadow",
-            verified=verified,
-            latency_ms=result.latency_ms,
-            cost_units=float(len(result.agent_outcomes)),
-            request_id=request_id,
-        )
-    except Exception:
-        logger.exception(
-            "Shadow Bundle 执行失败 bundle=%s request_id=%s", bundle.version, request_id,
-        )
-
-
 @app.post("/evolution/proposals", tags=["Agent Evolution"])
 async def generate_evolution_proposals(
     body: EvolutionProposalInput,
@@ -1997,7 +1881,6 @@ def _core_chat_application(
             active_ticket_context=_active_ticket_context,
             build_knowledge_context=_build_knowledge_context,
             capture_badcases=_capture_chat_badcases,
-            evaluate_shadow=_evaluate_shadow_request,
             handoff_priority=_handoff_priority,
             policy_terminal_verification=_policy_terminal_verification,
             publish_candidate=_publish_candidate,
@@ -3521,122 +3404,6 @@ async def promote_eval_baseline(
         "active_changed": snapshot is not None,
         "active": snapshot.to_dict() if snapshot else None,
     }
-
-
-@app.post("/evolution/rollouts/{version}/shadow", tags=["Agent Evolution"])
-async def start_shadow_rollout(
-    version: str,
-    body: EvalGraduationInput,
-    principal: Principal = Depends(_admin_principal),
-):
-    """用与候选绑定的 Graduation 证据启动 Shadow，不改变用户响应。"""
-    if _rollout_manager is None or _evaluator is None:
-        raise HTTPException(503, "Rollout 服务未就绪")
-    if body.candidate_id != version:
-        raise HTTPException(422, {"code": "candidate_version_mismatch"})
-    try:
-        decision = _evaluator.assess_latest_candidate(**_graduation_kwargs(body))
-        status = await asyncio.to_thread(
-            _rollout_manager.start_shadow,
-            version,
-            graduation=decision,
-            actor=principal.subject,
-        )
-    except (ValueError, RolloutContractError, BundleNotFoundError) as exc:
-        raise HTTPException(409, {"code": "shadow_start_rejected", "message": str(exc)}) from exc
-    return {"rollout": status, "active_changed": False}
-
-
-@app.post("/evolution/rollouts/{version}/canary", tags=["Agent Evolution"])
-async def promote_canary_rollout(
-    version: str,
-    body: CanaryPromotionInput,
-    principal: Principal = Depends(_admin_principal),
-):
-    if _rollout_manager is None:
-        raise HTTPException(503, "Rollout 服务未就绪")
-    try:
-        status = await asyncio.to_thread(
-            _rollout_manager.promote_canary,
-            version,
-            percent=body.percent,
-            actor=principal.subject,
-        )
-    except RolloutContractError as exc:
-        raise HTTPException(409, {"code": "canary_promotion_rejected", "message": str(exc)}) from exc
-    return {"rollout": status, "active_changed": False}
-
-
-@app.post("/evolution/rollouts/{version}/active", tags=["Agent Evolution"])
-async def promote_active_rollout(
-    version: str,
-    principal: Principal = Depends(_admin_principal),
-):
-    if _rollout_manager is None:
-        raise HTTPException(503, "Rollout 服务未就绪")
-    try:
-        status = await asyncio.to_thread(
-            _rollout_manager.promote_active, version, actor=principal.subject,
-        )
-    except RolloutContractError as exc:
-        raise HTTPException(409, {"code": "active_promotion_rejected", "message": str(exc)}) from exc
-    return {"rollout": status, "active_changed": True}
-
-
-@app.post("/evolution/rollouts/{version}/rollback", tags=["Agent Evolution"])
-async def rollback_agent_bundle(
-    version: str,
-    body: RollbackInput,
-    principal: Principal = Depends(_admin_principal),
-):
-    if _rollout_manager is None:
-        raise HTTPException(503, "Rollout 服务未就绪")
-    try:
-        result = await asyncio.to_thread(
-            _rollout_manager.rollback,
-            version,
-            actor=principal.subject,
-            reason={"manual": body.reason},
-        )
-    except RolloutContractError as exc:
-        raise HTTPException(409, {"code": "rollback_rejected", "message": str(exc)}) from exc
-    return result
-
-
-@app.post("/evolution/rollouts/signals/hard", tags=["Agent Evolution"])
-async def submit_hard_rollout_signal(
-    body: RolloutSignalInput,
-    _principal: Principal = Depends(_admin_principal),
-):
-    """安全监控器可提交闭合集合内的硬信号并立即触发回滚。"""
-    if _rollout_manager is None:
-        raise HTTPException(503, "Rollout 服务未就绪")
-    try:
-        action = await asyncio.to_thread(
-            _rollout_manager.record_outcome,
-            bundle_version=body.bundle_version,
-            stage="safety_monitor",
-            verified=False,
-            latency_ms=0.0,
-            request_id=body.request_id,
-            hard_signal=body.signal,
-        )
-    except (RolloutContractError, ValueError) as exc:
-        raise HTTPException(409, {"code": "hard_signal_rejected", "message": str(exc)}) from exc
-    return {"action": action}
-
-
-@app.get("/evolution/rollouts/{version}", tags=["Agent Evolution"])
-async def get_rollout_status(
-    version: str,
-    _principal: Principal = Depends(_admin_principal),
-):
-    if _rollout_manager is None:
-        raise HTTPException(503, "Rollout 服务未就绪")
-    try:
-        return await asyncio.to_thread(_rollout_manager.status, version)
-    except RolloutContractError as exc:
-        raise HTTPException(404, {"code": "rollout_not_found"}) from exc
 
 
 # ── 交互式 CLI ────────────────────────────────────────────────────────────────

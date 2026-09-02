@@ -98,15 +98,14 @@ usage, cost, and failure cases, is in
 - Anthropic-compatible chat API
 - Role-tiered DeepSeek Flash/Pro profiles with explicit reasoning policy
 - Redis append-only conversation events, summary chunks, and checkpoints
-- ChromaDB knowledge, episodic memory, and source-linked user facts
-- BM25 + weighted RRF hybrid long-term memory retrieval
+- PostgreSQL ServiceEpisode/Knowledge retrieval plus ChromaDB source-linked user facts
+- BM25 + vector + recency fusion behind authenticated on-demand tools
 - Bounded ReAct tool execution with allowlists, approval gates, and TraceId audit
 - Dependency-aware TaskGraph execution with scoped context and typed blocked outcomes
 - Typed no-worker Planner terminals for clarification and benign out-of-scope requests
 - Durable ReAct checkpoints, approval resume, and idempotent tool-call claims
 - Nine production Agent tools spanning knowledge, memory, tickets, orders, refund requests, and security events
-- Immutable AgentBundle versions, GEPA-lite constrained proposals, provenance-bearing graduation gates, and Pareto selection
-- Shadow, stable 5%/25% canaries, atomic activation, and hard/soft automatic rollback
+- Immutable AgentBundle versions and GEPA-lite constrained proposals for local evaluation
 - Prometheus monitoring and anomaly detection
 - Docker Compose with Nginx, Redis, ChromaDB, and Prometheus
 - Pytest and GitHub Actions
@@ -179,11 +178,6 @@ fails startup when the declared server is unavailable; `embedded` uses only
 | `POST` | `/agent-runs/{run_id}/resume` | Approve and idempotently resume the bound pending tool call |
 | `POST` | `/evolution/proposals` | Generate 4–8 constrained candidates from one attributed Bad Case group |
 | `GET/POST` | `/evolution/bundles` | Inspect or register immutable AgentBundle versions |
-| `POST` | `/evolution/rollouts/{version}/shadow` | Start a rollout from matching graduation evidence |
-| `POST` | `/evolution/rollouts/{version}/canary` | Move monotonically through 5% and 25% canary stages |
-| `POST` | `/evolution/rollouts/{version}/active` | Atomically activate a successful 25% canary |
-| `POST` | `/evolution/rollouts/{version}/rollback` | Manually restore the recorded baseline pointer |
-| `POST` | `/evolution/rollouts/signals/hard` | Immediately roll back on a closed hard-safety signal |
 | `POST` | `/tickets` | Manually create an idempotent handoff ticket |
 | `GET` | `/tickets` | List tickets by user and/or status |
 | `GET` | `/tickets/{ticket_id}` | Read a ticket and its transition history |
@@ -355,8 +349,8 @@ and component hashes plus producer/task/tool-call IDs. A deterministic
 attributor blocks security, infrastructure, cancellation, timeout, and unknown
 side-effect cases from automatic evolution. Only already-wired prompt,
 few-shot, routing, retrieval, and tool-description surfaces may become
-immutable candidates. Candidates cannot update the active pointer directly:
-they require real gate artifacts, graduation, and Shadow -> 5% -> 25% rollout.
+immutable candidates. Candidates are compared offline; the local runtime executes
+one configured active Bundle and never duplicates user requests for shadow/canary release simulation.
 
 ## Verification contract
 
