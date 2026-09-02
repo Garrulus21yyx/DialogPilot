@@ -19,6 +19,7 @@ class ContextCandidate:
     ranks: tuple[tuple[str, int], ...] = ()
     source_type: str = ""
     source_checksum: str = ""
+    source_revision: str = ""
     scope: str = "public"
     scope_decision: str = "allowed_public"
     index_manifest_fingerprint: str = ""

@@ -13,6 +13,7 @@ PyJWT==2.10.1               # HTTP Bearer JWT 签名、issuer/audience/exp 验�
 
 # ── 数据存储 ──────────────────────────────────────────────────────────────────
 redis==5.2.1
+langchain-classic==1.0.8  # CacheBackedEmbeddings compatibility boundary
 chromadb==0.5.23           # 向量数据库（长期记忆）
 psycopg[binary]==3.3.5     # PostgreSQL 18 sync driver；事实写入 fail closed
 psycopg-pool==3.3.1        # 显式连接池，不在请求内临时建池

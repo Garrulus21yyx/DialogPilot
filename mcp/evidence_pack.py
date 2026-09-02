@@ -5,12 +5,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping
 
-from mcp.context_packer import ContextCandidate, PackedContext
+from mcp.context_packer import PackedContext
 
 
 @dataclass(frozen=True)
 class SourceReference:
     source_id: str
+    source_revision: str
     start_char: int
     end_char: int
     source_type: str
@@ -20,6 +21,7 @@ class SourceReference:
     def to_dict(self) -> dict[str, Any]:
         return {
             "source_id": self.source_id,
+            "source_revision": self.source_revision,
             "start_char": self.start_char,
             "end_char": self.end_char,
             "source_type": self.source_type,
@@ -83,6 +85,7 @@ class EvidencePack:
                 title=item.title,
                 source_ref=SourceReference(
                     source_id=item.document_id,
+                    source_revision=item.source_revision,
                     start_char=item.start_char,
                     end_char=item.end_char,
                     source_type=item.source_type,

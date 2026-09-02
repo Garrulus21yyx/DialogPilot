@@ -34,6 +34,7 @@
 | M2-T03 Canonical EvidenceReceipt | done (consumer flag-off) | 7 kind typed algebra + registered adapters + resolver verification；624 tests passed |
 | M2-T04 Requirement CoverageGate / VerificationProfile | implemented (flag-off) | build complete；Knowledge verification waits T04A；642 tests passed |
 | M2-T04A SourceRevision v0 / active manifest | implemented (review pending) | PG owner/backfill/active validator done；independent human heldout review pending；650 tests passed |
+| M2-T05 统一 KnowledgeRetriever | in_progress | A1 done；A2/A3 pending；664 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
@@ -571,8 +572,29 @@
   真实 PostgreSQL/pgvector 全套 `655 passed in 21.40s`，ruff/diff checks passed。节点标记 IMPLEMENTED；生产
   Recall/latency/rebuild RTO/OLTP 影响证据仍未满足，不声明 VERIFIED。
 
+### M2-T05-A1（KnowledgeRetriever / cache port）
+
+- 唯一 Owner：新增 Knowledge-owned `KnowledgeRetriever`，统一拥有 Raw/Standalone fallback、legacy
+  Dense/BM25 policy、candidate/final/packing budget、完整 rerank permutation fallback、EvidencePack 与闭合
+  `RetrievalStatus`；backend 只提供候选，不拥有 fusion/rerank/packing。候选 manifest/source revision/checksum/
+  scope 不完整时返回 `INVALID_CONTRACT`，重复 stable ID 返回 `CONFLICT`，backend 异常为 `UNAVAILABLE`，
+  非 OK 结果绝不携带 partial evidence 或诊断文本。
+- Profile：冻结 `LEGACY_BM25_V1` comparison 数值 Raw/Standalone `.25/.75`、Dense/BM25 `.25/.75`、
+  RRF `k=10`、`20→5`、pack `2600`；所有权重、budget、backend/lexical/transformer/embedding/reranker/packer
+  version 都进入 canonical policy fingerprint。rewrite 失败将 Raw 质量恢复为 `1.0`；非法 rerank 结果整体保留
+  first-stage order，不虚构 rerank weight。
+- Evidence：现有 `SourceReference` 补齐 canonical `source_revision`，EvidencePack trace 记录 query variants、
+  source ranks、manifest/generation/backend/policy 与两类 fallback。
+- Cache 边界：定义 Knowledge `RetrievalCachePort`，Infrastructure 提供 Redis exact-byte adapter；Redis 错误只
+  旁路为 miss，不改变 retrieval status。固定 `langchain-classic==1.0.8`，唯一 Infrastructure adapter 使用官方
+  `CacheBackedEmbeddings.from_bytes_store`、显式 query store 与 `sha256` key encoder；业务代码不引用易变 import。
+- 验证：legacy variants/trace/pack、rewrite/rerank fallback、六态关键分支无 partial evidence、每个 owned 参数
+  fingerprint 变化、真实 LangChain query/document cache compatibility 与 Redis outage bypass；聚焦 `39 passed`，
+  全套 `664 passed in 19.15s`，ruff/diff checks passed。A1 完成；A2 exact layered key/invalidation/single-flight
+  与 A3 consumer migration 尚未完成，因此 M2-T05 保持 in_progress。
+
 ## 下一步
 
-1. 进入 M2-T05 统一 Retriever，消费 backend-neutral Dense/Lexical candidates 并保持 corpus policy owner 独立。
+1. 实施 M2-T05-A2：exact layered cache key、correctness invalidation、single-flight 与强制重算等价。
 2. T04/T04A live activation 仍受 M2 gate 与独立 review 约束。
 3. 保持 PG_FTS_ZH_V1 与 LEGACY_BM25_V1 独立评分，未过质量/延迟/删除/重建 Gate 前不切 active consumer。
