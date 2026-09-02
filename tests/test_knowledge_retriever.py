@@ -7,6 +7,7 @@ from langchain_core.stores import InMemoryByteStore
 
 from application.hybrid_retrieval import RetrievalStatus
 from application.knowledge_retriever import (
+    KnowledgeCandidateResult,
     KnowledgeRetrievalPolicy,
     KnowledgeRetrievalRequest,
     KnowledgeRetriever,
@@ -82,11 +83,15 @@ class _Source:
         self.error = error
         self.calls = []
 
-    async def search_variants_async(self, variants, *, top_k, retrieval_policy):
-        self.calls.append((variants, top_k, retrieval_policy))
+    async def search_variants_async(self, request, variants, *, top_k):
+        self.calls.append((request, variants, top_k))
         if self.error:
             raise self.error
-        return self.rows
+        if not self.rows:
+            return KnowledgeCandidateResult(
+                RetrievalStatus.NO_EVIDENCE, detail_code="NO_AUTHORIZED_CANDIDATES",
+            )
+        return KnowledgeCandidateResult(RetrievalStatus.OK, tuple(self.rows))
 
 
 class _Reranker:
@@ -116,8 +121,8 @@ def test_retriever_owns_legacy_profile_variants_trace_and_canonical_pack():
         ("raw", "退款多久到账", 0.25),
         ("standalone", "退款审核后到账时间", 0.75),
     )
-    assert source.calls[0][1] == 20
-    assert source.calls[0][2]["policy_fingerprint"] == _policy().fingerprint
+    assert source.calls[0][0] == _request()
+    assert source.calls[0][2] == 20
 
 
 def test_rewrite_failure_preserves_all_mass_and_rerank_contract_falls_back():
@@ -310,10 +315,10 @@ def test_exact_layer_cache_hit_and_forced_recompute_are_evidence_equivalent():
 
 def test_concurrent_candidate_miss_uses_single_flight_without_semantic_change():
     class SlowSource(_Source):
-        async def search_variants_async(self, variants, *, top_k, retrieval_policy):
-            self.calls.append((variants, top_k, retrieval_policy))
+        async def search_variants_async(self, request, variants, *, top_k):
+            self.calls.append((request, variants, top_k))
             await asyncio.sleep(0.04)
-            return self.rows
+            return KnowledgeCandidateResult(RetrievalStatus.OK, tuple(self.rows))
 
     async def run():
         source = SlowSource()

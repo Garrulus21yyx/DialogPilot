@@ -16,7 +16,8 @@
 | ActiveCase relevance selector 成为唯一消费者 | done | `2dd226d` |
 | PostgreSQL ResponseDelivery 单主，删除 SQLite cutover/binding | done | `bfc28e7`；941 tests passed |
 | 删除 Knowledge PG/Chroma shadow 比较框架 | done | 删除 shadow runner、fixture、legacy backend adapter |
-| PostgreSQL Knowledge retrieval/ingestion 单主 | in_progress | 迁移在线 reader、Bundle refs 与 ingestion API |
+| PostgreSQL Knowledge reader 合同 | done | typed backend outcome、request scope、RRF、SourceRevision span 校验 |
+| PostgreSQL Knowledge retrieval/ingestion 单主 | in_progress | 切换在线 composition、Bundle refs 与 ingestion API |
 | 治理/评测收缩为测试 + 本地 E2E + 机器报告 + Demo | pending | Knowledge 单主后执行 |
 
 约束：不存在需要保留的历史数据；不实施 backfill、双写、shadow/canary 或生产审批模拟。保留

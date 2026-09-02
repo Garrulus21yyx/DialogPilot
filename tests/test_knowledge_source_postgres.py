@@ -25,6 +25,7 @@ from application.knowledge_source import (
     KnowledgeSourceManifest,
     SourceRevision,
 )
+from application.chinese_lexical import postgres_lexical_document
 from infrastructure.postgres import PostgresMigrationRunner, PostgresPool, PostgresPoolConfig
 from infrastructure.postgres_knowledge_source import PostgresKnowledgeSourceRepository
 from infrastructure.postgres_retrieval_projection import (
@@ -126,7 +127,7 @@ def _chunk(source, generation_id):
         source_checksum=source.checksum,
         start_char=0,
         end_char=len(source.content),
-        lexical_document=source.content,
+        lexical_document=postgres_lexical_document(source.content),
         provenance_sha256=provenance,
         embedding=(0.1, 0.2, 0.3),
     )

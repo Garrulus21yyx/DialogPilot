@@ -12,6 +12,7 @@ from application.knowledge_source import (
     KnowledgeSourceManifest,
     SourceRevision,
 )
+from application.chinese_lexical import postgres_lexical_document
 
 
 @dataclass(frozen=True)
@@ -79,7 +80,7 @@ def build_v0_backfill(
             source_checksum=source.checksum,
             start_char=0,
             end_char=len(source.content),
-            lexical_document=source.content,
+            lexical_document=postgres_lexical_document(source.content),
             provenance_sha256=hashlib.sha256(
                 f"knowledge-backfill-v0\0{tenant_id}\0{backend_id}\0"
                 f"{generation_id}\0{source.source_id}\0{source.revision_id}\0"

@@ -5,6 +5,7 @@ import hashlib
 import json
 from typing import Sequence
 
+from application.chinese_lexical import postgres_lexical_document
 from application.evidence_receipt import (
     EvidenceReceipt,
     KnowledgeLocator,
@@ -65,9 +66,10 @@ class PostgresKnowledgeSourceRepository:
             source = source_by_identity.get((chunk.source_id, chunk.revision_id))
             if source is None or source.checksum != chunk.source_checksum:
                 raise KnowledgeSourceContractError("chunk source revision is unknown")
-            if source.content[chunk.start_char:chunk.end_char] != chunk.lexical_document:
+            source_text = source.content[chunk.start_char:chunk.end_char]
+            if postgres_lexical_document(source_text) != chunk.lexical_document:
                 raise KnowledgeSourceContractError(
-                    "chunk content is not a source revision projection"
+                    "chunk lexical text is not a source revision projection"
                 )
 
         with self.pool.transaction() as connection:

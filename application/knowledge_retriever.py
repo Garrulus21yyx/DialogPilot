@@ -178,6 +178,23 @@ class EvidencePackResult:
         }
 
 
+@dataclass(frozen=True)
+class KnowledgeCandidateResult:
+    """Candidate-source outcome without collapsing backend failures into absence."""
+
+    status: RetrievalStatus
+    candidates: tuple[Mapping[str, Any], ...] = ()
+    detail_code: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.status is RetrievalStatus.OK and not self.candidates:
+            raise KnowledgeRetrievalContractError("OK requires candidates")
+        if self.status is not RetrievalStatus.OK and self.candidates:
+            raise KnowledgeRetrievalContractError(
+                "non-OK candidate result must not carry partial candidates",
+            )
+
+
 class RetrievalCachePort(Protocol):
     def get(self, key: str) -> bytes | None: ...
     def set(self, key: str, value: bytes, *, ttl_seconds: int) -> bool: ...
@@ -303,11 +320,11 @@ class RetrievalCacheKeyBuilder:
 class KnowledgeCandidateSource(Protocol):
     async def search_variants_async(
         self,
+        request: KnowledgeRetrievalRequest,
         variants: list[tuple[str, str, float]],
         *,
         top_k: int,
-        retrieval_policy: Mapping[str, Any],
-    ) -> Sequence[Mapping[str, Any]]: ...
+    ) -> KnowledgeCandidateResult: ...
 
 
 class KnowledgeQueryTransformer(Protocol):
@@ -401,10 +418,14 @@ class KnowledgeRetriever:
                         break
             try:
                 if raw is None:
-                    raw = tuple(await self._source.search_variants_async(
-                        list(variants), top_k=policy.candidate_k,
-                        retrieval_policy=policy.legacy_mapping(),
-                    ))
+                    generated = await self._source.search_variants_async(
+                        request, list(variants), top_k=policy.candidate_k,
+                    )
+                    if generated.status is not RetrievalStatus.OK:
+                        return EvidencePackResult(
+                            generated.status, None, None, generated.detail_code,
+                        )
+                    raw = generated.candidates
                 if raw and "candidates" not in cache_hits:
                     self._cache_set(candidate_key, [dict(item) for item in raw])
             except Exception:
