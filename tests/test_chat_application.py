@@ -15,6 +15,12 @@ from application.chat_application import (
     Failed,
     StageStatus,
 )
+from application.memory_projection import (
+    MemoryProjectionResult,
+    MemoryProjectionState,
+    MemoryRetrievalOutcome,
+)
+from memory.conversation_memory import MemoryContext
 from agents.request_shape_policy import RequestShapePolicy
 from application.route_decision import (
     ComponentInvocation,
@@ -128,6 +134,50 @@ def test_rollout_blocked_assignment_stops_before_any_application_side_effect():
     assert outcome.stages[0].detail["reason_code"] == (
         "ROLLBACK_BASELINE_INCOMPATIBLE"
     )
+
+
+def test_unavailable_memory_projection_fails_before_intent_or_agent_work():
+    class Memory:
+        async def get_projection_result(self, *_args, **_kwargs):
+            return MemoryProjectionResult(
+                MemoryProjectionState.UNAVAILABLE,
+                MemoryContext([], [], {}, "", []),
+                0,
+                {},
+                MemoryRetrievalOutcome.UNAVAILABLE,
+                reason_codes=("SOURCE_WATERMARK_UNAVAILABLE",),
+            )
+
+    class Rollout:
+        def resolve(self, _subject):
+            return SimpleNamespace(
+                admission_allowed=True,
+                primary=SimpleNamespace(version="bundle-v1"),
+                primary_stage="active",
+                pinned_refs=None,
+            )
+
+    class MustNotRun:
+        async def recognize_intent(self, *_args, **_kwargs):
+            raise AssertionError("unavailable Memory must stop before inference")
+
+    services = _ready_services()
+    services = ChatServices(**{
+        **services.__dict__,
+        "memory": Memory(),
+        "rollout_manager": Rollout(),
+        "orchestrator": MustNotRun(),
+    })
+    app = ChatApplication(
+        services, SimpleNamespace(trace_id=lambda: "trace-memory-unavailable"),
+    )
+    outcome = asyncio.run(app.handle(ChatCommand(
+        message="continue prior service", user_id="user-memory",
+    )))
+    assert isinstance(outcome, Failed)
+    assert outcome.code == "memory_projection_unavailable"
+    assert outcome.retryable is True
+    assert outcome.stages[0].detail["state"] == "UNAVAILABLE"
 
 
 def test_http_chat_is_a_thin_command_and_outcome_adapter(monkeypatch):

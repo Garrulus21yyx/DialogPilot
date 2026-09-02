@@ -385,11 +385,64 @@ class ChatApplication:
             ),
         }))
 
-        mem_ctx = await services.memory.get_context(user_id, conv_id, query=command.message)
-        stages.append(StageObservation("memory_load", StageStatus.OK, {
-            "recent_message_count": len(mem_ctx.recent_messages),
-            "retrieval_hit_count": len(mem_ctx.retrieval_hits),
-        }))
+        projection_reader = getattr(services.memory, "get_projection_result", None)
+        if projection_reader is not None:
+            from application.memory_projection import MemoryProjectionState
+
+            memory_result = await projection_reader(
+                str(identity.tenant_id), user_id, conv_id,
+                query=command.message, current_request_id=request_id,
+            )
+            if memory_result.state is MemoryProjectionState.UNAVAILABLE:
+                return Failed(
+                    code="memory_projection_unavailable",
+                    retryable=True,
+                    correlation_id=ops.trace_id(),
+                    safe_message="会话上下文暂不可用，请使用相同 request_id 重试。",
+                    stages=(StageObservation(
+                        "memory_load", StageStatus.FAILED, {
+                            "state": memory_result.state.value,
+                            "reason_codes": list(memory_result.reason_codes),
+                        },
+                    ),),
+                )
+            mem_ctx = memory_result.context
+            stages.append(StageObservation(
+                "memory_load",
+                (
+                    StageStatus.OK
+                    if memory_result.state is MemoryProjectionState.READY
+                    else StageStatus.DEGRADED
+                ),
+                {
+                    "state": memory_result.state.value,
+                    "source_watermark": memory_result.source_watermark,
+                    "projection_watermarks": dict(
+                        memory_result.projection_watermarks
+                    ),
+                    "retrieval_outcome": memory_result.retrieval_outcome.value,
+                    "raw_fallback_used": memory_result.raw_fallback_used,
+                    "included_ranges": [
+                        item.to_dict() for item in memory_result.included_ranges
+                    ],
+                    "omitted_ranges": [
+                        item.to_dict() for item in memory_result.omitted_ranges
+                    ],
+                    "conflicts": list(memory_result.conflicts),
+                    "reason_codes": list(memory_result.reason_codes),
+                    "recent_message_count": len(mem_ctx.recent_messages),
+                    "retrieval_hit_count": len(mem_ctx.retrieval_hits),
+                },
+            ))
+        else:
+            mem_ctx = await services.memory.get_context(
+                user_id, conv_id, query=command.message,
+            )
+            stages.append(StageObservation("memory_load", StageStatus.OK, {
+                "state": "LEGACY_DIRECT",
+                "recent_message_count": len(mem_ctx.recent_messages),
+                "retrieval_hit_count": len(mem_ctx.retrieval_hits),
+            }))
         prompt_history = [
             {"role": message.role.value, "content": message.content}
             for message in mem_ctx.recent_messages

@@ -624,6 +624,9 @@ async def lifespan(app: FastAPI):
         from infrastructure.memory_projection_adapter import (
             PostgresLegacyMemoryProjectionAdapter,
         )
+        from infrastructure.postgres_memory_projection import (
+            PostgresMemoryProjectionReader,
+        )
         from infrastructure.postgres_projection import (
             ConversationProjectionDispatcher,
             PostgresConversationDeletionRepository,
@@ -649,6 +652,9 @@ async def lifespan(app: FastAPI):
         _durable_chat_coordinator = CompatibilityChatCoordinator(
             _core_chat_application(
                 memory_projection_mode="durable_event_outbox",
+                memory_service=PostgresMemoryProjectionReader(
+                    _postgres_pool, _memory,
+                ),
             ),
             admission=PostgresAdmissionUnitOfWork(_postgres_pool),
             dispatcher=dispatcher,
@@ -1908,12 +1914,13 @@ async def _run_durable_chat_worker(
 
 def _core_chat_application(
     *, memory_projection_mode: str = "direct",
+    memory_service=None,
 ) -> ChatApplication:
     """Compose the application boundary from the current lifespan-owned services."""
     return ChatApplication(
         ChatServices(
             orchestrator=_orchestrator,
-            memory=_memory,
+            memory=memory_service or _memory,
             answer_verifier=_answer_verifier,
             ticket_service=_ticket_service,
             response_delivery=_response_delivery,

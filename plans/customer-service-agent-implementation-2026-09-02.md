@@ -22,15 +22,15 @@
 | M1-T01 ConversationTurnStore schema | done | PostgreSQL migration `0002` + immutable scoped repositories |
 | M1-T02 Inbound-first / outbox dispatcher | implemented | PostgreSQL `0003`；生产 `/chat` cutover 归 M1-T05 |
 | M1-T02C Durable compatibility execution owner | implemented | stable work item、claim epoch/lease、terminal replay/deletion fence |
-| M1-T02D Online durable composition | implemented (flag off) | admission/pinned assignment/canonical replay/lifespan pump；等待 T04B durable Memory projection 后激活 |
+| M1-T02D Online durable composition | implemented (flag off) | admission/pinned assignment/canonical replay/lifespan + T04B projection pump；等待 production gate |
 | M1-T03 Unified publication/delivery | done | PostgreSQL `0004`；atomic publication/delivery outbox + canonical receipt lifecycle |
 | M1-T03A ResponseDelivery PostgreSQL 单主切换 | implemented | PR-10A/10B + local crash/restore drill；production snapshot cutover unverified |
 | M1-T04 Conversation projection outbox/deletion fence | implemented | PostgreSQL `0006`；4 projections + generation watermark + tombstone epoch |
 | M1-T04B Production Memory projection composition | implemented (flag off) | target-specific Redis/Chroma adapters、lifespan consumer、direct-write removal；等待 production gate |
 | M1-T04A DataLocationRegistry / pre-write fence | done | PostgreSQL `0007`；31 stable locations，4 write-approved，future writes fail closed |
 | M1-T05 Conversation/API read projections | implemented | PostgreSQL `0008`；turn/status/finalize watermark/close + PG delivery compatibility |
-| M1 Exit Gate | draft / not ready | T02D 在线 composition 已完成但 flag-off；T04B projection、production snapshot/delivery cutover/failover/signatures pending |
-| M1 完整会话事实与幂等发布 | in_progress | repository build 完成；在线 admission convergence 与 Exit evidence 未闭合 |
+| M1 Exit Gate | draft / not ready | local integration gap 已关闭；production snapshot/delivery cutover/failover/signatures pending |
+| M1 完整会话事实与幂等发布 | implemented / production gated | repository + online composition build 完成；Exit production evidence 未闭合 |
 | M2-PF01 共享 PostgreSQL HybridRetrievalBackend | implemented | PR-18P-A/B/C done；生产质量、RTO/OLTP gate 尚未 VERIFIED |
 | M2-T01A Agent-owned Intent/Domain/Instance policy | done | V1 registry + typed decisions/trace；582 tests passed |
 | M2-T01 RouteDecision / RouterInvocationPolicy | done (flag-off) | 8 modes + call/skip algebra；602 tests passed |
@@ -50,7 +50,8 @@
 | M2 Exit Gate | draft / not ready | unsigned reproducible manifest；independent security/heldout、production billing/platform evidence、M1 Exit blocked；806 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | build nodes done；Exit prerequisites/evidence not closed |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
-| M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
+| M4-T01 MemoryProjectionResult | implemented | closed state/retrieval algebra、PG watermarks、raw fallback、pre-inference failure |
+| M4 Memory/Context/Commitment/Handoff | in_progress | M4-T01 完成；按 T02–T08 及 release 子节点推进 |
 | M5 Knowledge Lifecycle/Multimodal | in_progress | M5-T01 implemented/behavior-gated；M5-T02A implemented/flag-off；其余按依赖推进 |
 | M6-T01 Dataset v2 / Rubric v2 | implemented (contract fixtures provisional) | 11 层 service-chain + deterministic hard rubric + fixed semantic adapter；835 tests passed |
 | M6-T03 Gold / fresh heldout | workflow implemented / real data blocked | privacy+dual review+arbitration+group split+consumed transition；真实标注/Privacy evidence pending |
@@ -1097,5 +1098,5 @@
 3. X-T05 build 已完成；任何新对外声明先登记 registry，`READY` 仍需真实 GateDecision 与 approver。
 4. M2-T05C 受 M2 Exit + `POSTGRES_RETRIEVAL_GA` candidate manifest 阻断，当前不执行 canary。
 5. T04/T04A live activation 仍受 M2 gate 与独立 review 约束。
-6. T02D/T04B 本地在线闭环已完成并保持 flag-off；下一步重建 M1 Exit draft，区分已关闭的 local integration
-   gap 与仍缺失的 production snapshot/cutover/failover/independent evidence。
+6. M1 Exit draft 已区分已关闭的 local integration gap 与 production evidence gap；durable online flag 仍关闭。
+7. 下一本地 DAG 节点为 M4-T01 MemoryProjectionResult；完成后按 M4-T02 summary integrity 继续。

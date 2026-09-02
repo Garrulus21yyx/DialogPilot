@@ -852,7 +852,14 @@ class MemoryManager:
 
     # ── 读取 ──────────────────────────────────────────────────────────────────
 
-    async def get_context(self, user_id: str, conv_id: str, query: str = "") -> MemoryContext:
+    async def get_context(
+        self,
+        user_id: str,
+        conv_id: str,
+        query: str = "",
+        *,
+        diagnostics: Optional[Dict[str, Any]] = None,
+    ) -> MemoryContext:
         """
         构建完整的记忆上下文。
 
@@ -877,6 +884,7 @@ class MemoryManager:
             retrieval_query,
             top_k=self.HISTORY_TOP_K,
             exclude_conversation_id=conv_id,
+            diagnostics=diagnostics,
         )
         history = await self._expand_retrieval_hits(user_id, retrieval_hits)
 
@@ -1320,6 +1328,7 @@ class MemoryManager:
         *,
         top_k: int = HISTORY_TOP_K,
         exclude_conversation_id: str = "",
+        diagnostics: Optional[Dict[str, Any]] = None,
     ) -> List[MemoryHit]:
         """按用户过滤后融合向量、BM25 和时间排名检索原始情景记忆。"""
         query_text = self._normalize_retrieval_query(query)
@@ -1345,9 +1354,17 @@ class MemoryManager:
             )
             if isinstance(vector_result, Exception):
                 logger.warning("长期记忆向量召回降级: %s", vector_result)
+                if diagnostics is not None:
+                    diagnostics.setdefault("failures", []).append(
+                        "EPISODIC_VECTOR_UNAVAILABLE"
+                    )
                 vector_result = {}
             if isinstance(corpus_result, Exception):
                 logger.warning("长期记忆 BM25 语料读取降级: %s", corpus_result)
+                if diagnostics is not None:
+                    diagnostics.setdefault("failures", []).append(
+                        "EPISODIC_LEXICAL_UNAVAILABLE"
+                    )
                 corpus_result = {}
             vector_documents = self._memory_documents(vector_result, nested=True)
             corpus_documents = self._memory_documents(corpus_result, nested=False)
@@ -1369,6 +1386,10 @@ class MemoryManager:
             )
         except Exception as ex:
             logger.warning(f"混合情景记忆检索失败: {ex}")
+            if diagnostics is not None:
+                diagnostics.setdefault("failures", []).append(
+                    "EPISODIC_RETRIEVAL_UNAVAILABLE"
+                )
             return []
 
     @classmethod
