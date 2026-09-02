@@ -21,7 +21,7 @@
 | M1-T00 Admission/Execution/ChatOutcome v1 | done | CAS/ports/projection/OpenAPI/M3 cutover contract |
 | M1-T01 ConversationTurnStore schema | done | PostgreSQL migration `0002` + immutable scoped repositories |
 | M1-T02 Inbound-first / outbox dispatcher | implemented | PostgreSQL `0003`；生产 `/chat` cutover 归 M1-T05 |
-| M1-T03 Unified publication/delivery | in_progress | canonical Delivery state machine done；publication transaction pending |
+| M1-T03 Unified publication/delivery | done | PostgreSQL `0004`；atomic publication/delivery outbox + canonical receipt lifecycle |
 | M1 完整会话事实与幂等发布 | in_progress | 按 T00–T05/T03A/T04A 子节点推进 |
 | M2 Route/Authority/Evidence/RAG | pending | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
@@ -220,7 +220,7 @@
 - 激活边界：当前同步 `/chat` 尚未切到 admission，因为 T03/T04 publication 与 compatibility worker 尚未
   就绪；现在切换会产生永久 `Accepted`。M1-T05 将在整条恢复/发布链可用后执行唯一入口 cutover。
 
-### M1-T03（in progress）
+### M1-T03
 
 - 已冻结 canonical `DeliveryStatusV1`、connector capability 与 receipt/event algebra：
   `SELECTED/DELIVERING/DELIVERED/OUTCOME_UNKNOWN/DELIVERY_UNCERTAIN/FAILED/READ`，connector 仅为
@@ -230,11 +230,26 @@
   retry exhaustion 不超过 max_attempts。
 - property-style product 测试遍历所有 state × capability × event，每一组合必须得到 typed transition
   或 `InvalidDeliveryTransition`，不存在未知字符串/fallthrough。
-- 待完成：三类 publication 命令、PostgreSQL 原子 outbound/event/delivery/outbox 与 crash replay tests。
+- 三类命令：FINAL_RESPONSE 以 InvocationKey 唯一选择并绑定 candidate/verifier/evidence/Bundle/Index；
+  INTERACTION_REQUEST 以 signal/version 唯一且签名绑定 resume；HUMAN_REPLY 以
+  ticket/handoff/human-message 唯一。三类共享 publication/delivery identity，不共享业务终态。
+- 原子事务：锁定 conversation 序列 owner 后，同事务追加 outbound turn、conversation event、
+  immutable response-delivery selection 与 delivery outbox；四个故障注入点均整体回滚。加锁后复查
+  publication，12 路并发相同命令只提交一份事实，turn/event/publication 序列无洞。
+- 幂等与冲突：同命令重放为 `ALREADY_APPLIED`，同业务身份改变内容为
+  `IDEMPOTENCY_CONFLICT`；final selection 唯一能产出 `FinalPublicationCommitted`，interaction 与
+  human publication 均不修改 invocation admission/terminal 状态。
+- 投递回执：每个 receipt ID 绑定 event+payload checksum；发布行锁内判定回执并转移 canonical state，
+  重放稳定、异内容 typed conflict。首次 delivered/read 时间保持单调，迟到 delivered 不会把 READ
+  降级或覆盖时间；无 connector guarantee 的未知发送结果进入 `DELIVERY_UNCERTAIN` 且禁止重发。
+- Migration `0004` 在 T03A cutover 前显式要求 PostgreSQL `response_deliveries` 为空，不对未知 legacy
+  行猜测回填；legacy SQLite backfill/shadow/reconcile/binding switch 仍由 M1-T03A 执行。
+- 验证：canonical state product tests、原子 crash/retry、并发幂等、三类语义、ACK/READ 单调性均通过；
+  Alembic head=`0004`，全套 `502 passed`。
 
 ## 下一步
 
-1. 提交并推送 M1-T02 admission/outbox owner 实现。
-2. 完成 M1-T03：统一 final response、interaction request、human reply 与 delivery ACK 命令/事务 outbox。
+1. 完成 M1-T03A：ResponseDelivery legacy export/backfill、shadow reconcile 与单 writer binding cutover。
+2. 完成 M1-T04/T04A：PendingSignal owner、原子 consume 与 legacy audit/cutover。
 3. 保持 production snapshot restore 和 deployed Chroma legacy index 不兼容为显式未满足证据，
    不让后续 migration/cutover 静默越过。
