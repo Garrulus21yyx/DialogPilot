@@ -51,6 +51,7 @@
 | M5 Knowledge Lifecycle/Multimodal | pending | 按 M5-T01–T09 子节点推进 |
 | M6-T01 Dataset v2 / Rubric v2 | implemented (contract fixtures provisional) | 11 层 service-chain + deterministic hard rubric + fixed semantic adapter；835 tests passed |
 | M6-T03 Gold / fresh heldout | workflow implemented / real data blocked | privacy+dual review+arbitration+group split+consumed transition；真实标注/Privacy evidence pending |
+| M5-T02A Agent MediaRequirementDecision | implemented (flag-off) | canonical binding/decision IDs、Agent-only producer、ACL/requiredness/stage validator；854 tests passed |
 | M6 Eval/Observability/Release | in_progress | T01 build 完成；T02–T09 按依赖推进 |
 | X-T01–X-T05 跨里程碑治理 | implemented / production reviews pending | 五个 build 节点完成；生产 snapshot/failover/security/billing 与独立文案 review 不伪造 |
 
@@ -1043,6 +1044,17 @@
 - [build evidence](../governance/evidence/m6-t03/gold-review-workflow-build.md) 状态
   `WORKFLOW IMPLEMENTED / REAL GOLD DATA BLOCKED`：未读取/修改用户未跟踪 draft dataset；真实工单、两名
   reviewer、Privacy、仲裁、IAA、sealed fresh heldout 与运行报告不存在，不能创建 Gold/Gate evidence。
+
+### M5-T02A（Agent-owned MediaRequirementDecision）
+
+- Agent 发布唯一 canonical decision/binding identity；NO_MEDIA_REQUIRED 绑定为空且不创建 aggregation/job/signal，
+  MEDIA_TARGETS 将 requirement→asset/region/necessity/L1|L2/omission policy 逐项显式绑定，不推导笛卡尔积。
+- Multimodal 只有验证权：exact schema/producer/task/policy、asset ACL、region、FactRequirement requiredness、
+  risk stage 与 Authority omission policy。required→optional、L2→L1、伪造 producer/未知字段/version typed
+  `INVALID_MEDIA_REQUIREMENT`，不重写 decision；Application 不成为第二 producer。
+- frozen contract SHA-256=`cca389b958c095f32bafc562e0a7cb5edb8bb20ae52ac870edb4d8ae9f51cc25`；
+  聚焦 `11 passed`，全套 `854 passed in 51.17s`，ruff/diff checks passed；
+  [build evidence](../governance/evidence/m5-t02a/media-requirement-contract-build.md)。附件/runtime/视觉行为均未启用。
 
 ## 下一步
 
