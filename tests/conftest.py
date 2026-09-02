@@ -17,7 +17,7 @@ def postgres_database_url():
     if not base_url and os.getenv("RUN_POSTGRES_TESTCONTAINER") == "1":
         from testcontainers.postgres import PostgresContainer
 
-        container = PostgresContainer("postgres:18.1-alpine")
+        container = PostgresContainer("pgvector/pgvector:0.8.6-pg18-bookworm")
         container.start()
         base_url = container.get_connection_url().replace(
             "postgresql+psycopg2://", "postgresql://",

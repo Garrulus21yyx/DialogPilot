@@ -112,15 +112,18 @@ def _intent(
 def test_registry_is_machine_readable_bounded_and_separates_registration_from_write():
     registry = DataLocationRegistry.load(default_registry_path())
     summary = registry.artifact_summary()
-    assert summary["version"] == "v1"
+    assert summary["version"] == "v2"
     assert summary["location_count"] == 31
-    assert summary["write_approved_count"] == 4
+    assert summary["write_approved_count"] == 6
     assert registry.get(
         "location:pg-response-delivery:v1"
     ).readiness.value == "WRITE_APPROVED"
     assert registry.get(
         "location:agent-checkpoint:v1"
     ).readiness.value == "REGISTERED"
+    assert registry.get(
+        "location:knowledge-index:v1"
+    ).readiness.value == "WRITE_APPROVED"
     with pytest.raises(UnknownDataLocation):
         registry.get("location:unknown:v1")
 
@@ -128,12 +131,28 @@ def test_registry_is_machine_readable_bounded_and_separates_registration_from_wr
 def test_write_approved_registration_requires_adapter_proof_and_restore_fence(
     tmp_path,
 ):
-    raw = json.loads(default_registry_path().read_text("utf-8"))
+    raw = json.loads(
+        (default_registry_path().parent / "v1.json").read_text("utf-8")
+    )
     raw["locations"][0]["proof_contract_id"] = None
     path = tmp_path / "invalid-registry.json"
     path.write_text(json.dumps(raw), encoding="utf-8")
     with pytest.raises(DataLocationArtifactInvalid, match="lacks deletion/proof"):
         DataLocationRegistry.load(path)
+
+
+def test_overlay_fingerprint_binds_the_effective_base_artifact(tmp_path):
+    source_dir = default_registry_path().parent
+    base_path = tmp_path / "v1.json"
+    overlay_path = tmp_path / "v2.json"
+    base_raw = json.loads((source_dir / "v1.json").read_text("utf-8"))
+    overlay_raw = json.loads((source_dir / "v2.json").read_text("utf-8"))
+    base_path.write_text(json.dumps(base_raw), encoding="utf-8")
+    overlay_path.write_text(json.dumps(overlay_raw), encoding="utf-8")
+    original = DataLocationRegistry.load(overlay_path).fingerprint
+    base_raw["locations"][0]["allowed_producers"].append("unexpected-writer")
+    base_path.write_text(json.dumps(base_raw), encoding="utf-8")
+    assert DataLocationRegistry.load(overlay_path).fingerprint != original
 
 
 def test_unknown_planned_wrong_producer_schema_and_retention_fail_closed():
@@ -168,9 +187,9 @@ def test_installed_registry_and_subject_epoch_authorize_existing_location(
     authorization = PostgresDataLocationWriteFence(location_pool).authorize(
         _intent(identity),
     )
-    assert authorization.registry_version == "v1"
+    assert authorization.registry_version == "v2"
     assert authorization.registry_fingerprint == (
-        "92760d381381231733d03ac8f11b6cd4d8aa75931c68988aa01719545c40fd28"
+        "51e227f466f05185b20c8175b03dbfc852450b1644c371a23ccf5dcedbd5d745"
     )
     assert authorization.subject_exists is True
     assert authorization.deletion_epoch == 0
@@ -218,7 +237,7 @@ def test_database_registry_binding_is_immutable_and_migration_runner_verifies_it
     location_pool, postgres_database_url,
 ):
     assert PostgresMigrationRunner(postgres_database_url).verify()["head"] == (
-        "20260902_0008"
+        "20260902_0010"
     )
     with pytest.raises(psycopg.errors.ObjectNotInPrerequisiteState, match="immutable"):
         with location_pool.transaction() as connection:

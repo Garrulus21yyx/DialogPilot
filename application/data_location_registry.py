@@ -103,6 +103,7 @@ class DataWriteIntent:
 
 class DataLocationRegistry:
     schema = "dialogpilot.data-location-registry.v1"
+    overlay_schema = "dialogpilot.data-location-registry-overlay.v1"
 
     def __init__(
         self,
@@ -122,7 +123,9 @@ class DataLocationRegistry:
 
     @classmethod
     def load(cls, path: str | Path) -> "DataLocationRegistry":
-        raw = json.loads(Path(path).read_text("utf-8"))
+        artifact_path = Path(path).resolve()
+        artifact_raw = json.loads(artifact_path.read_text("utf-8"))
+        raw = cls._resolve_artifact(artifact_raw, artifact_path, seen=set())
         if raw.get("schema") != cls.schema:
             raise DataLocationArtifactInvalid("unsupported registry schema")
         if not str(raw.get("version") or "").strip():
@@ -186,8 +189,76 @@ class DataLocationRegistry:
             version=str(raw["version"]),
             approved_by=str(raw["approved_by"]),
             registrations=tuple(registrations),
-            fingerprint=_canonical_hash(raw),
+            fingerprint=_canonical_hash(
+                artifact_raw
+                if artifact_raw.get("schema") == cls.schema
+                else {"artifact": artifact_raw, "effective_registry": raw}
+            ),
         )
+
+    @classmethod
+    def _resolve_artifact(
+        cls,
+        raw: Mapping[str, Any],
+        path: Path,
+        *,
+        seen: set[Path],
+    ) -> dict[str, Any]:
+        if path in seen:
+            raise DataLocationArtifactInvalid("registry overlay cycle")
+        if raw.get("schema") == cls.schema:
+            return dict(raw)
+        if raw.get("schema") != cls.overlay_schema:
+            raise DataLocationArtifactInvalid("unsupported registry schema")
+        seen.add(path)
+        base_ref = str(raw.get("base_artifact") or "").strip()
+        if not base_ref or Path(base_ref).is_absolute():
+            raise DataLocationArtifactInvalid("overlay base artifact must be relative")
+        base_path = (path.parent / base_ref).resolve()
+        if path.parent not in base_path.parents:
+            raise DataLocationArtifactInvalid("overlay base artifact escapes registry directory")
+        try:
+            base_raw = json.loads(base_path.read_text("utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise DataLocationArtifactInvalid("overlay base artifact is unavailable") from exc
+        effective = cls._resolve_artifact(base_raw, base_path, seen=seen)
+        version = str(raw.get("version") or "").strip()
+        approved_by = str(raw.get("approved_by") or "").strip()
+        if not version or not approved_by:
+            raise DataLocationArtifactInvalid("overlay version and approver are required")
+        effective["version"] = version
+        effective["approved_by"] = approved_by
+        additions = raw.get("contract_catalog_additions", {})
+        if not isinstance(additions, dict):
+            raise DataLocationArtifactInvalid("contract catalog additions must be an object")
+        for kind, entries in additions.items():
+            if kind not in effective["contract_catalog"] or not isinstance(entries, list):
+                raise DataLocationArtifactInvalid("invalid contract catalog addition")
+            known = {item["id"] for item in effective["contract_catalog"][kind]}
+            for entry in entries:
+                if not isinstance(entry, dict) or not str(entry.get("id") or "").strip():
+                    raise DataLocationArtifactInvalid("invalid contract catalog entry")
+                if entry["id"] in known:
+                    raise DataLocationArtifactInvalid("contract catalog ID is immutable")
+                effective["contract_catalog"][kind].append(entry)
+                known.add(entry["id"])
+        by_id = {item["location_id"]: item for item in effective["locations"]}
+        updates = raw.get("location_updates", [])
+        if not isinstance(updates, list):
+            raise DataLocationArtifactInvalid("location updates must be a list")
+        for update in updates:
+            if not isinstance(update, dict) or set(update) != {"location_id", "set"}:
+                raise DataLocationArtifactInvalid("invalid location update")
+            location_id = str(update["location_id"])
+            changes = update["set"]
+            if location_id not in by_id or not isinstance(changes, dict):
+                raise DataLocationArtifactInvalid("location update target is unknown")
+            immutable = {"location_id", "owner", "retention_class"}
+            if immutable.intersection(changes):
+                raise DataLocationArtifactInvalid("location identity/owner is immutable")
+            by_id[location_id].update(changes)
+        seen.remove(path)
+        return effective
 
     @staticmethod
     def _validate_registration(item: DataLocationRegistration) -> None:
@@ -256,7 +327,7 @@ class DataLocationRegistry:
 
 
 def default_registry_path() -> Path:
-    return Path(__file__).resolve().parents[1] / "governance" / "data_locations" / "v1.json"
+    return Path(__file__).resolve().parents[1] / "governance" / "data_locations" / "v2.json"
 
 
 def _optional(value: object) -> str | None:

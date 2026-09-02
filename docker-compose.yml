@@ -5,7 +5,7 @@ services:
 
   # ── PostgreSQL（新增 Conversation/Invocation/Outbox 的事实 Owner）────────────
   postgres:
-    image: postgres:18.1-alpine
+    image: pgvector/pgvector:0.8.6-pg18-bookworm
     container_name: dialogpilot-postgres
     ports:
       - "${DIALOGPILOT_POSTGRES_PORT:-15432}:5432"
@@ -105,6 +105,7 @@ services:
       # 容器内固定值，覆盖 .env 中的本地路径
       - REDIS_URL=redis://:${REDIS_PASSWORD:-dialogpilot-local}@redis:6379/0
       - DATABASE_URL=postgresql://dialogpilot:${POSTGRES_PASSWORD:-dialogpilot-local}@postgres:5432/dialogpilot
+      - RETRIEVAL_DATABASE_URL=postgresql://dialogpilot:${POSTGRES_PASSWORD:-dialogpilot-local}@postgres:5432/dialogpilot
       - CHROMA_PERSIST_DIRECTORY=/app/data/chroma
       # 容器网络地址由 Compose 拥有，不能继承宿主开发环境的 localhost:8001。
       - CHROMA_HOST=chromadb

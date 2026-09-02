@@ -5,7 +5,7 @@
   - `docs/customer-service-agent-target-architecture.zh-CN.md`
   - `docs/customer-service-agent-implementation-plan.zh-CN.md`
 - 执行原则：按依赖 DAG 推进；每张任务卡独立验证、记录文件、commit 并 push；不把 `IMPLEMENTED` 冒充 `VERIFIED` 或 `READY`。
-- 当前阶段：M1
+- 当前阶段：M2
 
 ## 状态
 
@@ -27,7 +27,8 @@
 | M1-T04A DataLocationRegistry / pre-write fence | done | PostgreSQL `0007`；31 stable locations，4 write-approved，future writes fail closed |
 | M1-T05 Conversation/API read projections | implemented | PostgreSQL `0008`；turn/status/finalize watermark/close + PG delivery compatibility |
 | M1 完整会话事实与幂等发布 | in_progress | 按 T00–T05/T03A/T04A 子节点推进 |
-| M2 Route/Authority/Evidence/RAG | pending | 按 M2-PF01、T01–T06R 子节点推进 |
+| M2-PF01 共享 PostgreSQL HybridRetrievalBackend | in_progress | PR-18P-A done；PR-18P-B/C pending |
+| M2 Route/Authority/Evidence/RAG | in_progress | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
 | M5 Knowledge Lifecycle/Multimodal | pending | 按 M5-T01–T09 子节点推进 |
@@ -349,9 +350,35 @@
 - 验证：read model/HTTP adapter、脱敏/分页/权限、WAITING→COMPLETED、delivery 独立、watermark、close
   fence、PG compatibility select/retry/ACK/READ/replay 全覆盖；Alembic head=`0008`，全套 `554 passed`。
 
+### M2-PF01 / PR-18P-A（合同、generation registry、PostgreSQL foundation）
+
+- Backend-neutral contract：`HybridRetrievalBackend` 只返回 Dense/Lexical 两路带连续 source rank 的
+  candidate 与六种 typed status；请求固定 tenant/corpus/backend/generation/policy，并用不同 scope type
+  约束 Knowledge 与 ServiceEpisode。合同不包含 RRF、recency、rerank、packing、evidence sufficiency
+  或最终答案。
+- Generation owner：不可变 generation 固定 backend/schema/watermark/embedding/dimension/digest/cosine/
+  pgvector/index/tokenizer/lexical/manifest；状态只允许
+  `REGISTERED→BUILDING→READY→ACTIVE→RETIRED`（任一构建前状态可按合同失败），active pointer 使用 corpus+
+  backend 独立 CAS 并保留 previous pointer。未固定 64 位模型 digest 的 legacy MiniLM generation 明确标记
+  不可跨环境重放。
+- DataLocation：新增不可修改 v1 的 v2 overlay；只把 Knowledge/Episode index 两个 location 提升为
+  `WRITE_APPROVED`，绑定 retrieval projection deletion adapter/proof/restore fence，其他 planned location
+  保持 `REGISTERED`。Migration `0009` 先安装 v2 fingerprint，`0010` 才创建 subject-linked schema。
+- PostgreSQL：Compose/Testcontainers 固定官方 `pgvector/pgvector:0.8.6-pg18-bookworm`；独立
+  `dialogpilot_retrieval` NOLOGIN role、`retrieval` schema、pool/resource budget、statement timeout 和 pool
+  metrics，不复用 OLTP 请求池。role 只能读 generation/pointer，并写删两张 projection 表，不能修改 registry。
+- Corpus schema：`knowledge_chunk_search` 与 `service_episode_search` 独立，分别含 ACL/filter/source revision/
+  provenance/deletion epoch 及各自专属字段；DB trigger 在写入事务中验证 corpus generation 可写、embedding
+  dimension 和 canonical Conversation deletion epoch。缺 subject、tombstone、epoch 漂移或混维全部 fail
+  closed；generation definition DB trigger 禁止原地修改。
+- 激活边界：本提交没有 adapter 查询、HNSW、中文 tokenizer/FTS candidate 生成、canonical outbox projection、
+  backfill/shadow 或任何在线 consumer 切换；这些属于 PR-18P-B/C。
+- 验证：backend/status/rank/scope 与 generation state-machine property-style tests；真实 pgvector 0.8.6 上验证
+  空库/重复 migration、独立 role/timeout/权限、registry CAS/不可变、混维与 deletion fence；全套
+  `566 passed`，Alembic head=`0010`。
+
 ## 下一步
 
-1. 完成 M1-T03A：ResponseDelivery legacy export/backfill、shadow reconcile 与单 writer binding cutover。
-2. 完成 M1-T04/T04A：PendingSignal owner、原子 consume 与 legacy audit/cutover。
-3. 保持 production snapshot restore 和 deployed Chroma legacy index 不兼容为显式未满足证据，
-   不让后续 migration/cutover 静默越过。
+1. M2-PF01 PR-18P-B：实现冻结的中文 tokenizer、PG FTS 与 pgvector exact/HNSW adapter，同一 conformance。
+2. M2-PF01 PR-18P-C：canonical outbox projection、backfill/shadow、delete/rebuild fault proof。
+3. 并行按 DAG 推进 M2-T01/T01A；M1 production cutover 未验证前只允许 flag-off build，不启动 dark shadow。

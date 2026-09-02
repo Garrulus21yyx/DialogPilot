@@ -1,0 +1,45 @@
+{
+  "schema": "dialogpilot.data-location-registry-overlay.v1",
+  "version": "v2",
+  "approved_by": "privacy-platform-retrieval-review",
+  "base_artifact": "v1.json",
+  "contract_catalog_additions": {
+    "delete_adapters": [
+      {
+        "id": "adapter:pg-retrieval-projection-fence:v1",
+        "status": "IMPLEMENTED",
+        "evidence": "M2-PF01 retrieval tables enforce canonical subject fence and immutable source identity"
+      }
+    ],
+    "proof_contracts": [
+      {
+        "id": "proof:m2-pf01-retrieval-fence:v1",
+        "status": "IMPLEMENTED",
+        "evidence": "tests/test_postgres_retrieval_foundation.py"
+      }
+    ],
+    "restore_fences": []
+  },
+  "location_updates": [
+    {
+      "location_id": "location:knowledge-index:v1",
+      "set": {
+        "schema_version": "retrieval-v1",
+        "readiness": "WRITE_APPROVED",
+        "delete_adapter_id": "adapter:pg-retrieval-projection-fence:v1",
+        "proof_contract_id": "proof:m2-pf01-retrieval-fence:v1",
+        "restore_fence_id": "restore-fence:pg-deletion-epoch:v1"
+      }
+    },
+    {
+      "location_id": "location:episode-index:v1",
+      "set": {
+        "schema_version": "retrieval-v1",
+        "readiness": "WRITE_APPROVED",
+        "delete_adapter_id": "adapter:pg-retrieval-projection-fence:v1",
+        "proof_contract_id": "proof:m2-pf01-retrieval-fence:v1",
+        "restore_fence_id": "restore-fence:pg-deletion-epoch:v1"
+      }
+    }
+  ]
+}
