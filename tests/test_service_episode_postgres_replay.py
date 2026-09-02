@@ -58,7 +58,6 @@ def replay_chain(postgres_database_url):
         connection.execute("""
             TRUNCATE retrieval.memory_retrieval_bindings,
                      retrieval.service_episode_search,
-                     retrieval.retrieval_generation_pointers,
                      retrieval.retrieval_generation_registry,
                      dialogpilot_app.conversations CASCADE
         """)

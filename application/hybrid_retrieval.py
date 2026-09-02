@@ -248,15 +248,6 @@ class RetrievalGeneration:
         }).encode("utf-8")).hexdigest()
 
 
-@dataclass(frozen=True)
-class GenerationPointer:
-    corpus: RetrievalCorpus
-    backend_id: str
-    active_generation_id: str
-    previous_generation_id: str | None
-    version: int
-
-
 class InMemoryRetrievalGenerationRegistry:
     """Reference state machine used by adapters and conformance tests."""
 
@@ -271,7 +262,6 @@ class InMemoryRetrievalGenerationRegistry:
 
     def __init__(self) -> None:
         self._generations: dict[str, RetrievalGeneration] = {}
-        self._pointers: dict[tuple[RetrievalCorpus, str], GenerationPointer] = {}
 
     def register(self, generation: RetrievalGeneration) -> RetrievalGeneration:
         existing = self._generations.get(generation.generation_id)
@@ -294,34 +284,39 @@ class InMemoryRetrievalGenerationRegistry:
         self._generations[generation_id] = updated
         return updated
 
-    def activate(self, generation_id: str, *, expected_version: int) -> GenerationPointer:
+    def activate_direct(self, generation_id: str) -> RetrievalGeneration:
         generation = self._generations[generation_id]
+        if generation.state is GenerationState.ACTIVE:
+            return generation
         if generation.state is not GenerationState.READY:
             raise GenerationConflict("only READY generation can become active")
         key = (generation.corpus, generation.backend_id)
-        current = self._pointers.get(key)
-        actual_version = current.version if current else 0
-        if actual_version != expected_version:
-            raise GenerationConflict("generation pointer version conflict")
-        if current and current.active_generation_id == generation_id:
-            raise GenerationConflict("generation is already active")
-        pointer = GenerationPointer(
-            corpus=generation.corpus,
-            backend_id=generation.backend_id,
-            active_generation_id=generation_id,
-            previous_generation_id=(current.active_generation_id if current else None),
-            version=actual_version + 1,
-        )
-        if current:
-            self.transition(current.active_generation_id, GenerationState.RETIRED)
-        self._generations[generation_id] = RetrievalGeneration(**{
+        active = [
+            item for item in self._generations.values()
+            if (item.corpus, item.backend_id) == key
+            and item.state is GenerationState.ACTIVE
+        ]
+        if len(active) > 1:
+            raise GenerationConflict("multiple active generations")
+        if active:
+            self.transition(active[0].generation_id, GenerationState.RETIRED)
+        updated = RetrievalGeneration(**{
             **generation.__dict__, "state": GenerationState.ACTIVE,
         })
-        self._pointers[key] = pointer
-        return pointer
+        self._generations[generation_id] = updated
+        return updated
 
-    def pointer(self, corpus: RetrievalCorpus, backend_id: str) -> GenerationPointer | None:
-        return self._pointers.get((corpus, backend_id))
+    def active(
+        self, corpus: RetrievalCorpus, *, backend_id: str,
+    ) -> RetrievalGeneration:
+        values = [
+            item for item in self._generations.values()
+            if item.corpus is corpus and item.backend_id == backend_id
+            and item.state is GenerationState.ACTIVE
+        ]
+        if len(values) != 1:
+            raise GenerationConflict("exactly one active generation is required")
+        return values[0]
 
 
 def _canonical_json(value: object) -> str:

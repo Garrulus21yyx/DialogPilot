@@ -102,7 +102,6 @@ def backend_foundation(postgres_database_url):
             TRUNCATE TABLE
                 retrieval.knowledge_chunk_search,
                 retrieval.service_episode_search,
-                retrieval.retrieval_generation_pointers,
                 retrieval.retrieval_generation_registry
             CASCADE
         """)
@@ -163,7 +162,7 @@ def test_postgres_dense_exact_ann_and_pg_fts_are_stable_and_acl_scoped(
             hnsw_index_name(generation)
         )
     registry.transition(generation.generation_id, GenerationState.READY)
-    registry.activate(generation.generation_id, expected_version=0)
+    registry.activate_direct(generation.generation_id)
 
     backend = PostgresHybridBackend(retrieval)
     ann = backend.retrieve(_knowledge_request(generation))

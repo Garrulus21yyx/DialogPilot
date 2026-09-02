@@ -61,23 +61,9 @@ def upgrade() -> None:
         )
     """)
     op.execute("""
-        CREATE TABLE retrieval.retrieval_generation_pointers (
-            corpus TEXT NOT NULL,
-            backend_id TEXT NOT NULL,
-            active_generation_id TEXT NOT NULL,
-            previous_generation_id TEXT,
-            version BIGINT NOT NULL CHECK(version > 0),
-            changed_at TIMESTAMPTZ NOT NULL DEFAULT transaction_timestamp(),
-            PRIMARY KEY (corpus, backend_id),
-            FOREIGN KEY (corpus, backend_id, active_generation_id)
-                REFERENCES retrieval.retrieval_generation_registry
-                (corpus, backend_id, generation_id),
-            FOREIGN KEY (corpus, backend_id, previous_generation_id)
-                REFERENCES retrieval.retrieval_generation_registry
-                (corpus, backend_id, generation_id),
-            CHECK(previous_generation_id IS NULL OR
-                  previous_generation_id <> active_generation_id)
-        )
+        CREATE UNIQUE INDEX retrieval_generation_single_active
+        ON retrieval.retrieval_generation_registry (corpus, backend_id)
+        WHERE state='ACTIVE'
     """)
     op.execute("""
         CREATE OR REPLACE FUNCTION retrieval.guard_generation_transition()

@@ -62,7 +62,6 @@ def retrieval_foundation(postgres_database_url):
             TRUNCATE TABLE
                 retrieval.knowledge_chunk_search,
                 retrieval.service_episode_search,
-                retrieval.retrieval_generation_pointers,
                 retrieval.retrieval_generation_registry
             CASCADE
         """)
@@ -92,7 +91,7 @@ def test_retrieval_pool_has_independent_role_budget_timeout_and_metrics(
     assert retrieval.metrics().transactions_succeeded == 1
 
 
-def test_generation_definition_is_immutable_and_pointer_activation_is_atomic(
+def test_generation_definition_is_immutable_and_direct_activation_is_atomic(
     retrieval_foundation,
 ):
     _, platform, _ = retrieval_foundation
@@ -106,11 +105,12 @@ def test_generation_definition_is_immutable_and_pointer_activation_is_atomic(
     registry.transition(first.generation_id, GenerationState.BUILDING)
     ready = registry.transition(first.generation_id, GenerationState.READY)
     assert registry.get(first.generation_id) == ready
-    pointer = registry.activate(first.generation_id, expected_version=0)
-    assert pointer.active_generation_id == first.generation_id
-    assert pointer.version == 1
-    with pytest.raises(GenerationConflict, match="only READY"):
-        registry.activate(first.generation_id, expected_version=1)
+    active = registry.activate_direct(first.generation_id)
+    assert active.generation_id == first.generation_id
+    assert registry.active(
+        RetrievalCorpus.KNOWLEDGE, backend_id=first.backend_id,
+    ) == active
+    assert registry.activate_direct(first.generation_id) == active
     with pytest.raises(psycopg.errors.ObjectNotInPrerequisiteState, match="immutable"):
         with platform.transaction() as connection:
             connection.execute("""

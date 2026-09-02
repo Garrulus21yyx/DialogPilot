@@ -6,11 +6,7 @@ import json
 from typing import Sequence
 
 from application.chinese_lexical import postgres_lexical_document
-from application.evidence_receipt import (
-    EvidenceReceipt,
-    KnowledgeLocator,
-    RequirementStatus,
-)
+from application.evidence_receipt import KnowledgeLocator
 from application.knowledge_source import (
     KnowledgeChunkProjection,
     KnowledgeSourceContractError,
@@ -116,31 +112,6 @@ class PostgresKnowledgeSourceRepository:
                 )).fetchone()
                 if row is None or row[0] != source.immutable_fingerprint:
                     raise KnowledgeSourceConflict("SourceRevision identity changed")
-                initial_status = (
-                    "ACTIVE" if source.schema_version == "knowledge-source-v0"
-                    else "DRAFT"
-                )
-                connection.execute("""
-                    INSERT INTO retrieval.knowledge_source_revision_lifecycle (
-                        tenant_id, source_id, revision_id, status, version
-                    ) VALUES (%s,%s,%s,%s,1) ON CONFLICT DO NOTHING
-                """, (
-                    source.tenant_id, source.source_id, source.revision_id,
-                    initial_status,
-                ))
-                lifecycle = connection.execute("""
-                    SELECT status FROM retrieval.knowledge_source_revision_lifecycle
-                    WHERE tenant_id=%s AND source_id=%s AND revision_id=%s
-                """, (
-                    source.tenant_id, source.source_id, source.revision_id,
-                )).fetchone()
-                if source.schema_version == "knowledge-source-v1" and (
-                    lifecycle is None or lifecycle[0] != "STAGED"
-                ):
-                    raise KnowledgeSourceConflict(
-                        "operational SourceRevision must be STAGED before indexing"
-                    )
-
             connection.execute("""
                 INSERT INTO retrieval.knowledge_source_manifests (
                     tenant_id, backend_id, generation_id, scope, locale, product,
@@ -284,16 +255,11 @@ class PostgresKnowledgeSourceRepository:
                   ON revision.tenant_id=entry.tenant_id
                  AND revision.source_id=entry.source_id
                  AND revision.revision_id=entry.revision_id
-                JOIN retrieval.knowledge_source_revision_lifecycle lifecycle
-                  ON lifecycle.tenant_id=revision.tenant_id
-                 AND lifecycle.source_id=revision.source_id
-                 AND lifecycle.revision_id=revision.revision_id
                 WHERE entry.tenant_id=%s AND entry.backend_id=%s
                   AND entry.generation_id=%s AND entry.scope=%s
                   AND entry.locale=%s AND entry.product=%s
                   AND entry.source_id=%s AND entry.revision_id=%s
                   AND entry.checksum=%s
-                  AND lifecycle.status NOT IN ('REJECTED','RETRACTED')
             """, (
                 locator.tenant_id, locator.backend_id, locator.generation_id,
                 locator.scope, locator.locale, locator.product or "",
@@ -311,32 +277,3 @@ class PostgresKnowledgeSourceRepository:
             "checksum": str(row[0]),
             "content": content[locator.start_char:locator.end_char],
         }
-
-    def validate_active(self, receipt: EvidenceReceipt) -> RequirementStatus:
-        if not isinstance(receipt.locator, KnowledgeLocator):
-            return RequirementStatus.INVALID_EVIDENCE
-        locator = receipt.locator
-        with self.pool.transaction() as connection:
-            row = connection.execute("""
-                SELECT pointer.active_generation_id=entry.generation_id AS active
-                FROM retrieval.knowledge_source_manifest_entries entry
-                JOIN retrieval.retrieval_generation_pointers pointer
-                  ON pointer.corpus='KNOWLEDGE'
-                 AND pointer.backend_id=entry.backend_id
-                WHERE entry.tenant_id=%s AND entry.backend_id=%s
-                  AND entry.generation_id=%s AND entry.scope=%s
-                  AND entry.locale=%s AND entry.product=%s
-                  AND entry.source_id=%s AND entry.revision_id=%s
-                  AND entry.checksum=%s
-            """, (
-                locator.tenant_id, locator.backend_id, locator.generation_id,
-                locator.scope, locator.locale, locator.product or "",
-                locator.source_id, locator.source_revision,
-                locator.source_checksum,
-            )).fetchone()
-        if row is None:
-            return RequirementStatus.INVALID_EVIDENCE
-        return (
-            RequirementStatus.SATISFIED if row[0]
-            else RequirementStatus.STALE
-        )

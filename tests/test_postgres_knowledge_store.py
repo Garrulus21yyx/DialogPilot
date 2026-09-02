@@ -25,10 +25,8 @@ def store(postgres_database_url):
                 retrieval.knowledge_source_chunk_specs,
                 retrieval.knowledge_source_manifest_entries,
                 retrieval.knowledge_source_manifests,
-                retrieval.knowledge_source_revision_lifecycle,
                 retrieval.knowledge_source_revisions,
                 retrieval.knowledge_chunk_search,
-                retrieval.retrieval_generation_pointers,
                 retrieval.retrieval_generation_registry
             CASCADE
         """)
@@ -51,7 +49,7 @@ def _document(source_id: str, content: str) -> SourceDocument:
     )
 
 
-def test_direct_ingest_replaces_active_generation_without_rollout_pointer(store):
+def test_direct_ingest_replaces_the_single_active_generation(store):
     knowledge, pool = store
     assert knowledge.add_documents((_document("refund", "退款三个工作日到账。"),)) == 1
     first = knowledge.active_generation()
@@ -70,12 +68,7 @@ def test_direct_ingest_replaces_active_generation_without_rollout_pointer(store)
             WHERE corpus='KNOWLEDGE' AND backend_id=%s
             GROUP BY state ORDER BY state
         """, (knowledge.backend_id,)).fetchall()
-        pointer_count = connection.execute("""
-            SELECT count(*) FROM retrieval.retrieval_generation_pointers
-            WHERE corpus='KNOWLEDGE' AND backend_id=%s
-        """, (knowledge.backend_id,)).fetchone()[0]
     assert states == [("ACTIVE", 1), ("RETIRED", 1)]
-    assert pointer_count == 0
     assert knowledge.doc_count() == 2
 
 

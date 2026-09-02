@@ -95,7 +95,6 @@ def knowledge_source(postgres_database_url):
                 retrieval.knowledge_chunk_search,
                 retrieval.knowledge_source_manifests,
                 retrieval.knowledge_source_revisions,
-                retrieval.retrieval_generation_pointers,
                 retrieval.retrieval_generation_registry
             CASCADE
         """)
@@ -145,7 +144,7 @@ def knowledge_source(postgres_database_url):
             postgres_lexical_document(CONTENT),
         ))
     registry.transition(generation.generation_id, GenerationState.READY)
-    registry.activate(generation.generation_id, expected_version=0)
+    registry.activate_direct(generation.generation_id)
     source = PostgresKnowledgeCandidateSource(
         backend=PostgresHybridBackend(retrieval), generations=registry,
         pool=retrieval,

@@ -19,6 +19,7 @@
 | PostgreSQL Knowledge reader 合同 | done | typed backend outcome、request scope、RRF、SourceRevision span 校验 |
 | PostgreSQL Knowledge retrieval/ingestion 单主 | done | 默认语料、在线 reader、Bundle refs、add/upload/stats 均为 PG |
 | 删除离线 Chroma KnowledgeBase 与旧 ablation | done | 删除 Chroma/BM25 store、旧 runner/ablation；保留纯本地 eval helpers |
+| 删除 Knowledge publication/review/canary/rollback 状态机 | done | 单一 ACTIVE generation + 原子 direct activation |
 | 治理/评测收缩为测试 + 本地 E2E + 机器报告 + Demo | pending | Knowledge 单主后执行 |
 
 约束：不存在需要保留的历史数据；不实施 backfill、双写、shadow/canary 或生产审批模拟。保留

@@ -1,16 +1,11 @@
-"""M2-PF01 canonical outbox, replay, shadow and deletion-fence proofs."""
-from concurrent.futures import ThreadPoolExecutor
+"""Canonical projection replay and deletion-fence proofs."""
 from datetime import datetime, timezone
 
 import psycopg
 import pytest
 
 from application.conversation_projection import ConversationSubject
-from application.hybrid_retrieval import (
-    GenerationConflict,
-    GenerationState,
-    RetrievalCorpus,
-)
+from application.hybrid_retrieval import GenerationState, RetrievalCorpus
 from application.knowledge_source import KnowledgeSourceManifest, SourceRevision
 from infrastructure.postgres import PostgresMigrationRunner, PostgresPool, PostgresPoolConfig
 from infrastructure.postgres_knowledge_source import PostgresKnowledgeSourceRepository
@@ -39,7 +34,6 @@ def projection_pool(postgres_database_url):
                 retrieval.knowledge_source_revisions,
                 retrieval.knowledge_chunk_search,
                 retrieval.service_episode_search,
-                retrieval.retrieval_generation_pointers,
                 retrieval.retrieval_generation_registry,
                 dialogpilot_app.conversations CASCADE
         """)
@@ -135,61 +129,6 @@ def test_closed_generation_and_canonical_drift_fail_closed(projection_pool):
     drift = PostgresCanonicalRetrievalProjector(projection_pool).project(event2)
     assert drift.code.value == "CANONICAL_SOURCE_DRIFT"
     assert manifest2.generation_id == "projection-drift"
-
-
-def test_shadow_generation_never_moves_active_pointer(projection_pool):
-    registry, first, _, first_event = _enqueue(projection_pool, "active-one")
-    PostgresCanonicalRetrievalProjector(projection_pool).project(first_event)
-    registry.transition(first.generation_id, GenerationState.READY)
-    registry.activate(first.generation_id, expected_version=0)
-    _, shadow, _, shadow_event = _enqueue(projection_pool, "dark-shadow", "shadow")
-    PostgresCanonicalRetrievalProjector(projection_pool).project(shadow_event)
-    with projection_pool.transaction() as connection:
-        pointer = connection.execute("""
-            SELECT active_generation_id FROM retrieval.retrieval_generation_pointers
-            WHERE corpus='KNOWLEDGE' AND backend_id=%s
-        """, (first.backend_id,)).fetchone()[0]
-    assert pointer == first.generation_id
-    assert shadow.generation_id != pointer
-
-
-def test_concurrent_generation_activation_cas_allows_only_one_active_winner(
-    projection_pool,
-):
-    registry, first, _, first_event = _enqueue(projection_pool, "active-race-one")
-    PostgresCanonicalRetrievalProjector(projection_pool).project(first_event)
-    registry.transition(first.generation_id, GenerationState.READY)
-    _, second, _, second_event = _enqueue(
-        projection_pool, "active-race-two", "race-two",
-    )
-    PostgresCanonicalRetrievalProjector(projection_pool).project(second_event)
-    registry.transition(second.generation_id, GenerationState.READY)
-
-    def activate(generation_id):
-        try:
-            return registry.activate(generation_id, expected_version=0).active_generation_id
-        except GenerationConflict:
-            return "VERSION_CONFLICT"
-
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        outcomes = list(executor.map(
-            activate, (first.generation_id, second.generation_id),
-        ))
-
-    assert outcomes.count("VERSION_CONFLICT") == 1
-    winner = next(item for item in outcomes if item != "VERSION_CONFLICT")
-    with projection_pool.transaction() as connection:
-        pointer = connection.execute("""
-            SELECT active_generation_id, version
-            FROM retrieval.retrieval_generation_pointers
-            WHERE corpus='KNOWLEDGE' AND backend_id=%s
-        """, (first.backend_id,)).fetchone()
-        active_count = connection.execute("""
-            SELECT count(*) FROM retrieval.retrieval_generation_registry
-            WHERE corpus='KNOWLEDGE' AND backend_id=%s AND state='ACTIVE'
-        """, (first.backend_id,)).fetchone()[0]
-    assert pointer == (winner, 1)
-    assert active_count == 1
 
 
 def test_episode_enqueue_and_late_projection_are_deletion_fenced(projection_pool):

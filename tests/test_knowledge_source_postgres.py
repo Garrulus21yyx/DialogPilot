@@ -1,23 +1,16 @@
-"""M2-T04A immutable SourceRevision, backfill, and active-manifest tests."""
+"""Immutable SourceRevision and direct active-generation tests."""
 from datetime import datetime, timezone
 import hashlib
 
 import psycopg
 import pytest
 
-from application.authority_policy import AuthorityPolicyRegistry
-from application.coverage_gate import RequirementCoverageGate
-from application.evidence_receipt import (
-    EvidenceReceiptIssuer,
-    KnowledgeLocator,
-    RequirementStatus,
-)
+from application.evidence_receipt import KnowledgeLocator
 from application.hybrid_retrieval import (
     DistanceMetric,
     GenerationState,
     RetrievalCorpus,
     RetrievalGeneration,
-    RetrievalStatus,
 )
 from application.knowledge_source import (
     KnowledgeChunkProjection,
@@ -47,12 +40,6 @@ def source_pool(postgres_database_url):
     with pool.transaction() as connection:
         connection.execute("""
             TRUNCATE TABLE
-                retrieval.knowledge_request_manifest_pins,
-                retrieval.knowledge_publication_audit,
-                retrieval.knowledge_publication_pointers,
-                retrieval.knowledge_candidates,
-                retrieval.knowledge_source_revision_audit,
-                retrieval.knowledge_source_revision_lifecycle,
                 retrieval.canonical_projection_receipts,
                 retrieval.canonical_projection_outbox,
                 retrieval.knowledge_source_chunk_specs,
@@ -61,7 +48,6 @@ def source_pool(postgres_database_url):
                 retrieval.knowledge_source_revisions,
                 retrieval.knowledge_chunk_search,
                 retrieval.service_episode_search,
-                retrieval.retrieval_generation_pointers,
                 retrieval.retrieval_generation_registry
             CASCADE
         """)
@@ -156,22 +142,7 @@ def _locator(source, generation_id):
     )
 
 
-def _receipt(repository, source, generation_id):
-    locator = _locator(source, generation_id)
-    return EvidenceReceiptIssuer(AuthorityPolicyRegistry.v1()).adapter(
-        "knowledge-evidence-adapter", "knowledge-evidence-adapter-v1"
-    ).issue(
-        requirement_id="knowledge.active_source",
-        producer_id="knowledge_search",
-        producer_version="knowledge-evidence-pack-result-v1",
-        locator=locator,
-        status=RetrievalStatus.OK,
-        observed_at=NOW,
-        payload=repository.resolve(locator),
-    )
-
-
-def test_backfill_is_idempotent_and_source_revision_is_dereferenceable(source_pool):
+def test_generation_write_is_idempotent_and_source_revision_is_dereferenceable(source_pool):
     source = _source()
     manifest, generations, repository = _build(
         source_pool, source, "knowledge-generation-1"
@@ -185,7 +156,7 @@ def test_backfill_is_idempotent_and_source_revision_is_dereferenceable(source_po
             WHERE generation_id=%s
         """, (manifest.generation_id,)).fetchone()[0] == 1
     generations.transition(manifest.generation_id, GenerationState.READY)
-    generations.activate(manifest.generation_id, expected_version=0)
+    generations.activate_direct(manifest.generation_id)
 
     payload = repository.resolve(_locator(source, manifest.generation_id))
     assert payload == {
@@ -200,49 +171,6 @@ def test_backfill_is_idempotent_and_source_revision_is_dereferenceable(source_po
                 UPDATE retrieval.knowledge_source_revisions
                 SET title='mutated' WHERE tenant_id=%s AND source_id=%s
             """, (source.tenant_id, source.source_id))
-
-
-def test_active_pointer_exposes_complete_old_or_new_manifest(source_pool):
-    old = _source("旧版退款政策。", "policy")
-    old_manifest, generations, repository = _build(
-        source_pool, old, "knowledge-generation-old"
-    )
-    generations.transition(old_manifest.generation_id, GenerationState.READY)
-    generations.activate(old_manifest.generation_id, expected_version=0)
-    old_receipt = _receipt(repository, old, old_manifest.generation_id)
-    assert repository.validate_active(old_receipt) is RequirementStatus.SATISFIED
-
-    new = _source("新版退款政策。", "policy")
-    new_manifest, _same_registry, _same_repository = _build(
-        source_pool, new, "knowledge-generation-new"
-    )
-    new_receipt = _receipt(repository, new, new_manifest.generation_id)
-    assert repository.validate_active(new_receipt) is RequirementStatus.STALE
-    assert repository.validate_active(old_receipt) is RequirementStatus.SATISFIED
-
-    generations.transition(new_manifest.generation_id, GenerationState.READY)
-    generations.activate(new_manifest.generation_id, expected_version=1)
-    assert repository.validate_active(old_receipt) is RequirementStatus.STALE
-    assert repository.validate_active(new_receipt) is RequirementStatus.SATISFIED
-
-
-def test_t04_knowledge_gate_accepts_only_active_resolvable_revision(source_pool):
-    source = _source()
-    manifest, generations, repository = _build(
-        source_pool, source, "knowledge-generation-coverage"
-    )
-    generations.transition(manifest.generation_id, GenerationState.READY)
-    generations.activate(manifest.generation_id, expected_version=0)
-    receipt = _receipt(repository, source, manifest.generation_id)
-    policies = AuthorityPolicyRegistry.v1()
-
-    report = RequirementCoverageGate(policies).evaluate(
-        (policies.get("knowledge.active_source"),), (receipt,),
-        resolvers={"knowledge_search": repository},
-        knowledge_revision_validator=repository.validate_active,
-        now=NOW,
-    )
-    assert report.complete is True
 
 
 def test_legacy_identity_and_non_source_chunk_projection_fail_closed(source_pool):

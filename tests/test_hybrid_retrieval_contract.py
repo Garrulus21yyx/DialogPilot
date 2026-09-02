@@ -126,7 +126,7 @@ def test_candidate_routes_preserve_source_rank_without_fusion_contract():
         )
 
 
-def test_generation_state_machine_is_immutable_cas_and_corpus_scoped():
+def test_generation_state_machine_is_immutable_direct_and_corpus_scoped():
     registry = InMemoryRetrievalGenerationRegistry()
     first = registry.register(_generation())
     assert first.replayable_across_environments is False
@@ -136,20 +136,20 @@ def test_generation_state_machine_is_immutable_cas_and_corpus_scoped():
             **first.__dict__, "embedding_dimension": 768,
         }))
     with pytest.raises(GenerationConflict, match="only READY"):
-        registry.activate(first.generation_id, expected_version=0)
+        registry.activate_direct(first.generation_id)
     registry.transition(first.generation_id, GenerationState.BUILDING)
     registry.transition(first.generation_id, GenerationState.READY)
-    pointer = registry.activate(first.generation_id, expected_version=0)
-    assert pointer.previous_generation_id is None
-    assert pointer.version == 1
+    active = registry.activate_direct(first.generation_id)
+    assert registry.active(
+        RetrievalCorpus.KNOWLEDGE, backend_id=first.backend_id,
+    ) == active
 
     episode = registry.register(_generation(
         "episode", corpus=RetrievalCorpus.SERVICE_EPISODE,
     ))
     registry.transition(episode.generation_id, GenerationState.BUILDING)
     registry.transition(episode.generation_id, GenerationState.READY)
-    episode_pointer = registry.activate(episode.generation_id, expected_version=0)
-    assert episode_pointer.version == 1
-    assert registry.pointer(RetrievalCorpus.KNOWLEDGE, first.backend_id) != (
-        episode_pointer
-    )
+    active_episode = registry.activate_direct(episode.generation_id)
+    assert registry.active(
+        RetrievalCorpus.SERVICE_EPISODE, backend_id=episode.backend_id,
+    ) == active_episode

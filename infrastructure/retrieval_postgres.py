@@ -15,7 +15,6 @@ from psycopg_pool import ConnectionPool
 from application.hybrid_retrieval import (
     DistanceMetric,
     GenerationConflict,
-    GenerationPointer,
     GenerationState,
     RetrievalCorpus,
     RetrievalGeneration,
@@ -262,51 +261,6 @@ class PostgresRetrievalGenerationRegistry:
             if row is None:
                 raise GenerationConflict("generation disappeared")
             return RetrievalGeneration(**{**current.__dict__, "state": target})
-
-    def activate(
-        self, generation_id: str, *, expected_version: int,
-    ) -> GenerationPointer:
-        with self.pool.transaction() as connection:
-            target = self._get(connection, generation_id, for_update=True)
-            if target.state is not GenerationState.READY:
-                raise GenerationConflict("only READY generation can become active")
-            pointer_row = connection.execute("""
-                SELECT active_generation_id, version
-                FROM retrieval.retrieval_generation_pointers
-                WHERE corpus=%s AND backend_id=%s FOR UPDATE
-            """, (target.corpus.value, target.backend_id)).fetchone()
-            actual_version = int(pointer_row[1]) if pointer_row else 0
-            if actual_version != expected_version:
-                raise GenerationConflict("generation pointer version conflict")
-            previous = str(pointer_row[0]) if pointer_row else None
-            if previous:
-                connection.execute("""
-                    UPDATE retrieval.retrieval_generation_registry
-                    SET state='RETIRED' WHERE generation_id=%s
-                """, (previous,))
-                connection.execute("""
-                    UPDATE retrieval.retrieval_generation_pointers
-                    SET active_generation_id=%s, previous_generation_id=%s,
-                        version=version+1, changed_at=transaction_timestamp()
-                    WHERE corpus=%s AND backend_id=%s
-                """, (
-                    generation_id, previous, target.corpus.value, target.backend_id,
-                ))
-            else:
-                connection.execute("""
-                    INSERT INTO retrieval.retrieval_generation_pointers (
-                        corpus, backend_id, active_generation_id,
-                        previous_generation_id, version
-                    ) VALUES (%s, %s, %s, NULL, 1)
-                """, (target.corpus.value, target.backend_id, generation_id))
-            connection.execute("""
-                UPDATE retrieval.retrieval_generation_registry
-                SET state='ACTIVE' WHERE generation_id=%s
-            """, (generation_id,))
-        return GenerationPointer(
-            target.corpus, target.backend_id, generation_id,
-            previous, actual_version + 1,
-        )
 
     @staticmethod
     def _get(

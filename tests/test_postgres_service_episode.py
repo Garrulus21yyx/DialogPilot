@@ -54,7 +54,6 @@ def episode_scope(postgres_database_url):
                 retrieval.canonical_projection_receipts,
                 retrieval.canonical_projection_outbox,
                 retrieval.service_episode_search,
-                retrieval.retrieval_generation_pointers,
                 retrieval.retrieval_generation_registry,
                 dialogpilot_app.projection_watermarks,
                 dialogpilot_app.conversation_projection_outbox,
