@@ -527,60 +527,10 @@ async def lifespan(app: FastAPI):
         output_fields=("status", "evidence_pack", "trace", "detail_code"),
     ))
 
-    async def service_episode_search(
-        params: Dict[str, Any], context: Optional[Dict[str, Any]],
-    ):
-        """Use only authenticated scope and the direct-cutover episode binding."""
-        context = context or {}
-        tenant_id = str(context.get("tenant_id") or "").strip()
-        user_id = str(context.get("user_id") or "").strip()
-        if not tenant_id or not user_id:
-            raise ValueError(
-                "service_episode_search requires trusted tenant/user context"
-            )
-        if _service_episode_search is None:
-            return {
-                "status": "UNAVAILABLE", "hits": [],
-                "detail_code": "SERVICE_EPISODE_SEARCH_UNAVAILABLE",
-            }
-        result = await asyncio.to_thread(
-            _service_episode_search.search,
-            tenant_id=tenant_id,
-            user_id=user_id,
-            query=str(params.get("query") or ""),
-            entity_ids=tuple(map(str, params.get("entity_ids") or ())),
-            top_k=min(max(int(params.get("top_k", 5)), 1), 10),
-        )
-        return result.to_dict()
+    from application.service_episode_tool import build_service_episode_tool
 
-    _tool_manager.register(Tool(
-        name="service_episode_search",
-        description="按需检索当前租户和用户已验证的历史服务经历",
-        handler=service_episode_search,
-        schema={
-            "type": "object",
-            "properties": {
-                "query": {"type": "string"},
-                "top_k": {"type": "integer"},
-                "entity_ids": {"type": "array", "items": {"type": "string"}},
-            },
-            "required": ["query"],
-        },
-        allowed_agents=("general", "technical", "billing", "account_security"),
-        read_only=True,
-        authority="memory.service_episode",
-        manifest_version="tool-manifest-v1",
-        output_schema_version="service-episode-search-result-v1",
-        preconditions=("authenticated_tenant", "authenticated_user"),
-        idempotency="read_only",
-        retry_policy="safe_read_retry",
-        typed_outcomes=("OK", "NO_EVIDENCE", "UNAVAILABLE", "INVALID_CONTRACT"),
-        output_fields=(
-            "status", "hits", "detail_code", "tenant_id", "user_id",
-            "backend_id", "generation_id", "episode_id", "episode_revision",
-            "outcome_receipt_ref", "provenance_sha256", "verified_at",
-            "user_evidence_refs", "assistant_evidence_refs",
-        ),
+    _tool_manager.register(build_service_episode_tool(
+        lambda: _service_episode_search,
     ))
     for ticket_tool in ticket_tools(_ticket_service):
         _tool_manager.register(ticket_tool)

@@ -12,6 +12,7 @@ from application.chat_application import (
     ChatCommand,
     ChatServices,
 )
+from application.service_episode_tool import build_service_episode_tool
 from application.route_decision import RouteMode
 from application.route_execution import (
     CandidateOwner,
@@ -26,6 +27,7 @@ from application.route_path_executor import (
 )
 from application.route_outcomes import HandoffContractDraft, NeedsInputDraft
 from core.intent_recognizer import IntentCategory, UrgencyLevel
+from mcp.tool_manager import MCPToolManager
 
 
 CASES = (
@@ -57,6 +59,68 @@ def _orchestrator():
         )
     }
     return orchestrator
+
+
+def test_chat_application_agent_path_calls_service_episode_tool_with_identity():
+    search_calls = []
+
+    class Search:
+        def search(self, **kwargs):
+            search_calls.append(kwargs)
+            return SimpleNamespace(to_dict=lambda: {
+                "status": "OK",
+                "hits": [{
+                    "episode_id": "case-e401", "episode_revision": "1",
+                    "provenance_sha256": "a" * 64,
+                }],
+                "detail_code": None,
+            })
+
+    manager = MCPToolManager(api_key="test-key")
+    manager.register(build_service_episode_tool(lambda: Search()))
+    observed = []
+
+    async def evaluate(invocation):
+        assert invocation.route_decision.mode in {
+            RouteMode.AGENT_TASK, RouteMode.MULTI_DOMAIN,
+        }
+        result = await manager.call(
+            "service_episode_search",
+            {"query": invocation.command.message, "entity_ids": ["device-1"]},
+            dict(invocation.identity_metadata),
+        )
+        assert result.success is True
+        observed.append(result.data)
+
+    services = ChatServices(
+        orchestrator=_orchestrator(), memory=object(), answer_verifier=object(),
+        ticket_service=object(), response_delivery=object(),
+        context_assembler=object(), bundle_registry=object(),
+        rollout_manager=object(), tool_manager=manager,
+        route_execution_mode="evaluation",
+    )
+    app = ChatApplication(services, SimpleNamespace(evaluate_route_path=evaluate))
+    intent_result = SimpleNamespace(
+        intent=IntentCategory.TECHNICAL_LOGIN, intent_group="technical",
+        urgency=UrgencyLevel.LOW, confidence=0.95,
+        entities={"device_id": ["device-1"]}, source_scores={},
+        classifier_fingerprint="intent-v1", input_fingerprint="a" * 64,
+    )
+    asyncio.run(app._dispatch_route_path_if_enabled(
+        command=ChatCommand(
+            message="E401 登录失败", user_id="user-1", tenant_id="tenant-1",
+        ),
+        identity_metadata={"tenant_id": "tenant-1", "user_id": "user-1"},
+        bundle=SimpleNamespace(version="bundle-v1"),
+        intent_result=intent_result, user_id="user-1", conv_id="conversation-1",
+        request_id="request-1", stages=[],
+    ))
+
+    assert observed[0]["hits"][0]["episode_id"] == "case-e401"
+    assert search_calls == [{
+        "tenant_id": "tenant-1", "user_id": "user-1",
+        "query": "E401 登录失败", "entity_ids": ("device-1",), "top_k": 5,
+    }]
 
 
 @pytest.mark.parametrize(

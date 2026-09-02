@@ -203,12 +203,6 @@ class AuthorityPolicyRegistry:
                 "Ticket:handoff-v1",
             ),
             FactRequirement(
-                "memory.prior_event", "memory.prior_event",
-                ("memory_id", "conversation_id", "event_seq"), 604800,
-                read, ("memory_search",), (), "", supported,
-                "Memory:event-v1",
-            ),
-            FactRequirement(
                 "memory.service_episode", "memory.service_episode",
                 (
                     "tenant_id", "user_id", "backend_id", "generation_id",
@@ -253,11 +247,6 @@ class AuthorityPolicyRegistry:
                     ("refund_request_create", "refund-request-result-v1"),
                     ("support_ticket_create", "ticket-create-result-v1"),
                 ),
-            ),
-            EvidenceAdapterRegistration(
-                "memory-event-evidence-adapter", "memory-event-evidence-adapter-v1",
-                "MEMORY_EVENT", ("memory.prior_event",),
-                (("memory_search", "memory-hit-v1"),),
             ),
             EvidenceAdapterRegistration(
                 "service-episode-evidence-adapter",

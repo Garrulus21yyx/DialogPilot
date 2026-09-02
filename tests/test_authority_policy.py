@@ -274,8 +274,13 @@ def test_all_builtin_tool_manifests_pass_the_same_startup_gate(tmp_path):
         output_fields=("source_id", "source_revision", "checksum", "content"),
     )
     memory = _tool(
-        "memory_search", authority="memory.prior_event",
-        output_fields=("memory_id", "conversation_id", "event_seq", "content"),
+        "service_episode_search", authority="memory.service_episode",
+        output_fields=(
+            "tenant_id", "user_id", "backend_id", "generation_id",
+            "episode_id", "episode_revision", "outcome_receipt_ref",
+            "provenance_sha256", "verified_at", "user_evidence_refs",
+            "assistant_evidence_refs",
+        ),
     )
     tools = (
         knowledge,

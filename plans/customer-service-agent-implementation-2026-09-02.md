@@ -1215,6 +1215,15 @@
 - [build evidence](../governance/evidence/m4-t04b/service-episode-tool-composition-build.md)。真实 ChatApplication agent tool-call E2E、
   legacy Evidence adapter/writer 删除及 binding activation 仍是下一节点前置。
 
+### M4-T04B8（ChatApplication agent tool E2E）
+
+- API 与测试共用 `build_service_episode_tool`；ChatApplication canonical route evaluation 经真实 ToolManager 调用 target tool，
+  tenant/user 只能来自 invocation identity，query/entity IDs 才来自 Agent 参数。
+- Authority registry 删除 `memory.prior_event→memory_search/memory-hit-v1` producer，只保留
+  `memory.service_episode→service_episode_search/service-episode-hit-v1`。
+- [build evidence](../governance/evidence/m4-t04b/service-episode-chat-tool-e2e-build.md)。raw Chroma episodic writer/projection
+  enum/config 与离线兼容方法仍待删除，binding 未激活。
+
 ### M6-T01（Dataset v2 / Rubric v2）
 
 - 新增独立 service-chain v2，不改变 v1 数据身份；闭合 perception→service_outcome 11 层 observation，case
