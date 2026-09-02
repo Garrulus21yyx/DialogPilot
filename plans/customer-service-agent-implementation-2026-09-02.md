@@ -38,7 +38,8 @@
 | M2-T06A Multi-Agent TaskGraph 收紧 | implemented | A/B/C policy、execution、dependency、native signal 与 terminal algebra 完成；697 tests passed |
 | M2-T06 自适应 RAG 发布路径 | implemented (dark-shadow) | A/B1-B8: eight-route typed outcome algebra + unsupported-authority Handoff；765 tests passed；active/canary gated |
 | M2-T06R Route Bundle enable/rollback | implemented (canary blocked) | pinned execution refs、single publisher、atomic crash rollback、forward-fix runbook；771 tests passed |
-| M2 Route/Authority/Evidence/RAG | in_progress | 按 M2-PF01、T01–T06R 子节点推进 |
+| M2 Exit Gate | draft / not ready | unsigned reproducible manifest；X-T03/X-T04、independent heldout、production evidence、M1 Exit blocked；774 tests passed |
+| M2 Route/Authority/Evidence/RAG | in_progress | build nodes done；Exit prerequisites/evidence not closed |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
 | M5 Knowledge Lifecycle/Multimodal | pending | 按 M5-T01–T09 子节点推进 |
@@ -899,9 +900,24 @@
 - 验证：聚焦 `95 passed`，全套 `771 passed in 19.70s`，ruff/diff checks passed。T06R 标记
   `implemented (canary blocked)`；本文与代码不构成生产 release 授权。
 
+### M2 Exit readiness audit（unsigned draft）
+
+- 新增可重放 `scripts/create_m2_exit_draft.py` 与 `evaluation/gates/m2-exit/v1.yaml`，按 Gate membership
+  精确列出 M2-PF01、T01–T06/T01A/T04A/T06A/T06R、X-T03/X-T04、VERIFIED knowledge heldout 与
+  REQUIRED authority adapter set；M2-T05C 保持 Gate 后 release action，不被错误加入 build prerequisites。
+- draft 冻结八 route、authority/receipt、single Knowledge Owner、single publisher rollback 四类 oracle，及
+  跨租户、未授权/重复写、无权威动态 claim、双发布、删除复活/静默 fallback 五类 zero-tolerance 属性。
+- [readiness audit](../governance/evidence/m2-exit/readiness-v1.md) 明确 `NOT_READY / DRAFT_ONLY`：X-T03、
+  X-T04 未实现；knowledge heldout 仍是实现作者创建的 `REVIEW_REQUIRED/PROVISIONAL_NOT_GOLD`；生产
+  Recall/latency/RTO/OLTP 证据与 M1 Exit 前置未闭合；owner/independent signatures 不存在。
+- 未生成 evidence 或 decision 文件，也未伪造独立 reviewer。测试证明 draft checksum 可重建、release action
+  非 prerequisite、provisional heldout 不能满足 VERIFIED artifact；聚焦 `15 passed`、全套
+  `774 passed in 19.37s`，ruff/diff checks passed。
+
 ## 下一步
 
-1. 执行 M2 Exit 差距复核：对照 Exit 条件与 gate manifest，区分 build-complete、外部 review/生产验证和
-   尚未实现项；不把 blocked external gate 冒充 READY。
-2. M2-T05C 受 M2 Exit + `POSTGRES_RETRIEVAL_GA` candidate manifest 阻断，当前不执行 canary。
-3. T04/T04A live activation 仍受 M2 gate 与独立 review 约束。
+1. 实施 M2 Exit prerequisite `X-T03`：安全 threat model/control mapping/corpus/incident disable runbook 与
+   零容忍自动化；不把尚未实现的 multimodal 输入面伪装成已验证。
+2. 随后实施 `X-T04` per-RouteMode 成本预算与 usage reconciliation。
+3. M2-T05C 受 M2 Exit + `POSTGRES_RETRIEVAL_GA` candidate manifest 阻断，当前不执行 canary。
+4. T04/T04A live activation 仍受 M2 gate 与独立 review 约束。
