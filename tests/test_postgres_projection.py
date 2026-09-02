@@ -177,6 +177,44 @@ def test_each_source_event_atomically_enqueues_all_registered_projections(
     ]
 
 
+def test_projection_lease_epoch_fences_late_worker_and_supports_renewal(
+    projection_components,
+):
+    _, _, outbox, _ = projection_components
+    stale = outbox.claim(
+        projection_name=ProjectionName.WORKING_WINDOW,
+        worker_id="projection-stable-name",
+        now=CREATED,
+        lease_until="2026-09-02T09:01:00+00:00",
+        limit=1,
+    )[0]
+    current = outbox.claim(
+        projection_name=ProjectionName.WORKING_WINDOW,
+        worker_id="projection-stable-name",
+        now="2026-09-02T09:01:01+00:00",
+        lease_until="2026-09-02T09:02:00+00:00",
+        limit=1,
+    )[0]
+
+    assert current.attempt == stale.attempt + 1
+    with pytest.raises(ProjectionClaimError, match="lease is not owned"):
+        outbox.renew(
+            stale, worker_id="projection-stable-name",
+            now="2026-09-02T09:01:02+00:00",
+            lease_until="2026-09-02T09:03:00+00:00",
+        )
+    outbox.renew(
+        current, worker_id="projection-stable-name",
+        now="2026-09-02T09:01:02+00:00",
+        lease_until="2026-09-02T09:03:00+00:00",
+    )
+    with pytest.raises(ProjectionClaimError, match="lease is not owned"):
+        outbox.release(
+            stale, worker_id="projection-stable-name",
+            available_at="2026-09-02T09:04:00+00:00", error_code="late",
+        )
+
+
 def test_source_transaction_failure_leaves_no_event_or_projection_outbox(
     postgres_database_url,
 ):

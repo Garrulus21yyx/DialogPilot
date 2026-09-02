@@ -1,5 +1,7 @@
 """M1-T02 inbound-first transaction, outbox lease and stable dispatch tests."""
+from concurrent.futures import ProcessPoolExecutor
 from dataclasses import replace
+import multiprocessing
 
 import pytest
 
@@ -94,6 +96,18 @@ def _reset(pool):
         """)
 
 
+def _multiprocess_admit(database_url: str) -> str:
+    pool = PostgresPool(PostgresPoolConfig(database_url, min_size=0, max_size=1))
+    pool.open()
+    try:
+        result = PostgresAdmissionUnitOfWork(pool).admit_new(
+            _new(_identity("multiprocess", conversation="conv-multiprocess"))
+        )
+        return type(result).__name__
+    finally:
+        pool.close()
+
+
 def test_new_inbound_commits_turn_event_invocation_and_start_once(
     admission_components,
 ):
@@ -157,6 +171,51 @@ def test_start_outbox_lease_expiry_reclaims_same_item_not_new_identity(
     assert worker_two[0].outbox_id == worker_one[0].outbox_id
     assert worker_two[0].invocation_key == identity.invocation_key
     assert worker_two[0].attempt == 2
+
+
+def test_start_outbox_attempt_fences_late_worker_even_when_name_is_reused(
+    admission_components,
+):
+    _, admission, outbox = admission_components
+    identity = _identity("fence", conversation="conv-fence")
+    admission.admit_new(_new(identity))
+    stale = outbox.claim(ClaimStart(
+        "worker-stable-name", "2026-09-02T04:00:00+02:00",
+        "2026-09-02T04:01:00+02:00", 1,
+    ))[0]
+    current = outbox.claim(ClaimStart(
+        "worker-stable-name", "2026-09-02T04:01:01+02:00",
+        "2026-09-02T04:02:01+02:00", 1,
+    ))[0]
+
+    assert current.attempt == stale.attempt + 1
+    assert outbox.acknowledge(
+        stale.outbox_id, worker_id="worker-stable-name", attempt=stale.attempt,
+    ) is False
+    assert outbox.renew(
+        stale.outbox_id, worker_id="worker-stable-name", attempt=stale.attempt,
+        now="2026-09-02T04:01:02+02:00",
+        lease_until="2026-09-02T04:03:00+02:00",
+    ) is False
+    assert outbox.acknowledge(
+        current.outbox_id, worker_id="worker-stable-name", attempt=current.attempt,
+    ) is True
+
+
+def test_multiprocess_same_invocation_has_one_primary_writer(
+    postgres_database_url, admission_components,
+):
+    pool, _, _ = admission_components
+    with ProcessPoolExecutor(
+        max_workers=8, mp_context=multiprocessing.get_context("spawn"),
+    ) as executor:
+        outcomes = list(executor.map(
+            _multiprocess_admit, [postgres_database_url] * 16,
+        ))
+
+    assert outcomes.count("AdmissionCreated") == 1
+    assert outcomes.count("AdmissionExisting") == 15
+    assert _counts(pool) == (1, 1, 1, 1, 0)
 
 
 def test_dispatch_retry_binds_same_run_and_acknowledges_same_outbox(

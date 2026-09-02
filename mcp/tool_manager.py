@@ -537,6 +537,7 @@ class MCPToolManager:
             context=context,
         )
         claimed = False
+        claim_token = ""
         if self._execution_store is not None and run_id:
             try:
                 claim = self._execution_store.claim_tool_call(
@@ -590,13 +591,17 @@ class MCPToolManager:
                     status=replay_status,
                     approved=approved or not needs_approval,
                 )
-            if claim.state == "in_progress":
+            if claim.state in {"in_progress", "reconciling"}:
                 return self._finish_controlled_call(
                     result=ToolResult(
                         False,
                         None,
                         name,
-                        error="tool call already executing; retry is suppressed",
+                        error=(
+                            "tool call awaits authoritative reconciliation"
+                            if claim.state == "reconciling"
+                            else "tool call already executing; retry is suppressed"
+                        ),
                         effect_status=(
                             ToolEffectStatus.NONE.value
                             if tool.read_only else ToolEffectStatus.OUTCOME_UNKNOWN.value
@@ -615,6 +620,29 @@ class MCPToolManager:
                     approved=approved or not needs_approval,
                 )
             claimed = claim.state == "claimed"
+            claim_token = claim.claim_token
+            if claimed:
+                try:
+                    self._execution_store.begin_tool_call(
+                        run_id=run_id,
+                        call_id=resolved_call_id,
+                        binding_hash=binding_hash,
+                        claim_token=claim_token,
+                    )
+                except Exception as exc:
+                    return self._finish_controlled_call(
+                        result=ToolResult(
+                            False, None, name,
+                            error=f"tool claim activation rejected: {type(exc).__name__}",
+                            effect_status=ToolEffectStatus.NONE.value,
+                        ),
+                        tool=tool, agent_type=normalized_agent, params=params,
+                        context=context, trace_id=trace_id,
+                        call_id=resolved_call_id, request_id=request_id,
+                        started_iso=started_iso, started=started,
+                        status=ToolCallStatus.DENIED,
+                        approved=approved or not needs_approval,
+                    )
 
         span_attributes = {
             "tool.name": name,
@@ -673,7 +701,7 @@ class MCPToolManager:
             )
             if claimed:
                 self._complete_execution_ledger(
-                    run_id, resolved_call_id, binding_hash, finished
+                    run_id, resolved_call_id, binding_hash, claim_token, finished
                 )
             raise
         except Exception as exc:  # call() 应闭合异常，此处保护未来适配器。
@@ -695,7 +723,7 @@ class MCPToolManager:
         )
         if claimed:
             self._complete_execution_ledger(
-                run_id, resolved_call_id, binding_hash, finished
+                run_id, resolved_call_id, binding_hash, claim_token, finished
             )
         return finished
 
@@ -1065,6 +1093,7 @@ class MCPToolManager:
         run_id: str,
         call_id: str,
         binding_hash: str,
+        claim_token: str,
         result: ToolResult,
     ) -> None:
         """账本落盘失败时不重试 handler；占位保持 executing 以阻止重复写。"""
@@ -1073,6 +1102,7 @@ class MCPToolManager:
                 run_id=run_id,
                 call_id=call_id,
                 binding_hash=binding_hash,
+                claim_token=claim_token,
                 result=self._tool_result_to_dict(result),
             )
         except Exception:

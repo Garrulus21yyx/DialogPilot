@@ -227,6 +227,7 @@ async def lifespan(app: FastAPI):
         ),
         approval_ttl_s=float(os.getenv("REACT_APPROVAL_TTL_SECONDS", "900")),
         recovery_grace_s=float(os.getenv("REACT_RECOVERY_GRACE_SECONDS", "30")),
+        tool_claim_lease_s=float(os.getenv("REACT_TOOL_CLAIM_LEASE_SECONDS", "30")),
     )
     _bundle_registry = AgentBundleRegistry(
         os.getenv(

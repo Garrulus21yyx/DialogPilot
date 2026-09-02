@@ -277,6 +277,118 @@ def test_in_progress_write_is_not_reexecuted_after_uncertain_crash(tmp_path):
     assert effects == []
 
 
+def test_expired_write_invocation_requires_authoritative_reconciliation(tmp_path):
+    store = RunStore(str(tmp_path / "runs.db"), tool_claim_lease_s=1)
+    context = _context("react-reconcile-1")
+    store.create(
+        run_id=context["run_id"], request_id=context["request_id"],
+        user_id=context["user_id"], conv_id=context["conv_id"],
+        agent_type="billing", task_id=context["task_id"], bundle_version="agent-v1",
+        system="worker", messages=({"role": "user", "content": "refund"},),
+        execution_context=context, max_steps=4,
+    )
+    first = store.claim_tool_call(
+        run_id=context["run_id"], call_id="call-reconcile",
+        binding_hash="binding-v1", read_only=False,
+    )
+    store.begin_tool_call(
+        run_id=context["run_id"], call_id="call-reconcile",
+        binding_hash="binding-v1", claim_token=first.claim_token,
+    )
+    with store._connect() as connection:
+        connection.execute(
+            "UPDATE react_tool_executions SET lease_until=? WHERE run_id=? AND call_id=?",
+            ("2000-01-01T00:00:00+00:00", context["run_id"], "call-reconcile"),
+        )
+
+    assert store.claim_tool_call(
+        run_id=context["run_id"], call_id="call-reconcile",
+        binding_hash="binding-v1", read_only=False,
+    ).state == "reconciling"
+    assert store.claim_tool_call(
+        run_id=context["run_id"], call_id="call-reconcile",
+        binding_hash="binding-v1", read_only=False,
+    ).state == "reconciling"
+    store.reconcile_tool_call(
+        run_id=context["run_id"], call_id="call-reconcile",
+        binding_hash="binding-v1", receipt_status="NOT_COMMITTED",
+        receipt_ref="customer-ops/receipt/not-committed-1",
+    )
+    retry = store.claim_tool_call(
+        run_id=context["run_id"], call_id="call-reconcile",
+        binding_hash="binding-v1", read_only=False,
+    )
+    assert retry.state == "claimed"
+    assert retry.claim_token != first.claim_token
+    with pytest.raises(RunStoreError, match="no longer owned"):
+        store.complete_tool_call(
+            run_id=context["run_id"], call_id="call-reconcile",
+            binding_hash="binding-v1", claim_token=first.claim_token,
+            result={"status": "success"},
+        )
+    store.begin_tool_call(
+        run_id=context["run_id"], call_id="call-reconcile",
+        binding_hash="binding-v1", claim_token=retry.claim_token,
+    )
+    with store._connect() as connection:
+        connection.execute(
+            "UPDATE react_tool_executions SET lease_until=? WHERE run_id=? AND call_id=?",
+            ("2000-01-01T00:00:00+00:00", context["run_id"], "call-reconcile"),
+        )
+    assert store.claim_tool_call(
+        run_id=context["run_id"], call_id="call-reconcile",
+        binding_hash="binding-v1", read_only=False,
+    ).state == "reconciling"
+    committed = {
+        "success": True, "data": {"accepted": True}, "tool_name": "refund_create",
+        "status": "success", "effect_status": "committed",
+        "receipt_id": "refund-committed-1",
+    }
+    store.reconcile_tool_call(
+        run_id=context["run_id"], call_id="call-reconcile",
+        binding_hash="binding-v1", receipt_status="COMMITTED",
+        receipt_ref="customer-ops/receipt/committed-1", result=committed,
+    )
+    terminal = store.claim_tool_call(
+        run_id=context["run_id"], call_id="call-reconcile",
+        binding_hash="binding-v1", read_only=False,
+    )
+    assert terminal.state == "terminal"
+    assert terminal.result == committed
+
+
+def test_expired_read_only_claim_can_be_safely_reclaimed(tmp_path):
+    store = RunStore(str(tmp_path / "runs.db"), tool_claim_lease_s=1)
+    context = _context("react-read-reclaim-1")
+    store.create(
+        run_id=context["run_id"], request_id=context["request_id"],
+        user_id=context["user_id"], conv_id=context["conv_id"],
+        agent_type="billing", task_id=context["task_id"], bundle_version="agent-v1",
+        system="worker", messages=({"role": "user", "content": "read"},),
+        execution_context=context, max_steps=4,
+    )
+    first = store.claim_tool_call(
+        run_id=context["run_id"], call_id="call-read",
+        binding_hash="binding-read", read_only=True,
+    )
+    store.begin_tool_call(
+        run_id=context["run_id"], call_id="call-read",
+        binding_hash="binding-read", claim_token=first.claim_token,
+    )
+    with store._connect() as connection:
+        connection.execute(
+            "UPDATE react_tool_executions SET lease_until=? WHERE run_id=? AND call_id=?",
+            ("2000-01-01T00:00:00+00:00", context["run_id"], "call-read"),
+        )
+
+    retry = store.claim_tool_call(
+        run_id=context["run_id"], call_id="call-read",
+        binding_hash="binding-read", read_only=True,
+    )
+    assert retry.state == "claimed"
+    assert retry.claim_token != first.claim_token
+
+
 def test_approval_identity_denial_and_expiry_are_fail_closed(tmp_path):
     path = tmp_path / "runs.db"
     store = RunStore(str(path), approval_ttl_s=60)

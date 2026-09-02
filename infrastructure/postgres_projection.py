@@ -204,9 +204,11 @@ class PostgresConversationProjectionOutbox:
                 SET acknowledged_at=%s, outcome=%s,
                     claimed_by=NULL, lease_until=NULL, last_error_code=NULL
                 WHERE outbox_id=%s AND acknowledged_at IS NULL AND claimed_by=%s
+                  AND attempt=%s
                 RETURNING event_seq
             """, (
                 acknowledged_at, outcome.value, event.outbox_id, worker_id,
+                event.attempt,
             )).fetchone()
             if row is None:
                 existing = connection.execute(
@@ -247,6 +249,27 @@ class PostgresConversationProjectionOutbox:
                 deletion_epoch, acknowledged_at,
             ))
 
+    def renew(
+        self,
+        event: ProjectableConversationEvent,
+        *,
+        worker_id: str,
+        now: str,
+        lease_until: str,
+    ) -> None:
+        """Renew the current claim epoch without reviving an expired lease."""
+        with self.pool.transaction() as connection:
+            updated = connection.execute("""
+                UPDATE dialogpilot_app.conversation_projection_outbox
+                SET lease_until=%s
+                WHERE outbox_id=%s AND acknowledged_at IS NULL
+                  AND claimed_by=%s AND attempt=%s AND lease_until > %s
+            """, (
+                lease_until, event.outbox_id, worker_id, event.attempt, now,
+            )).rowcount
+        if updated != 1:
+            raise ProjectionClaimError("projection lease is not owned")
+
     def release(
         self,
         event: ProjectableConversationEvent,
@@ -261,8 +284,10 @@ class PostgresConversationProjectionOutbox:
                 SET claimed_by=NULL, lease_until=NULL, available_at=%s,
                     last_error_code=%s
                 WHERE outbox_id=%s AND acknowledged_at IS NULL AND claimed_by=%s
+                  AND attempt=%s
             """, (
                 available_at, error_code[:200], event.outbox_id, worker_id,
+                event.attempt,
             )).rowcount
         if updated != 1:
             raise ProjectionClaimError("projection lease is not owned")

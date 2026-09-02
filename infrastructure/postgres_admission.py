@@ -422,13 +422,41 @@ class PostgresStartOutbox:
                     ))
                 return tuple(result)
 
-    def acknowledge(self, outbox_id: OperationKey, *, worker_id: str) -> bool:
+    def renew(
+        self,
+        outbox_id: OperationKey,
+        *,
+        worker_id: str,
+        attempt: int,
+        now: str,
+        lease_until: str,
+    ) -> bool:
+        """Renew only the exact claim epoch held by this dispatcher.
+
+        ``worker_id`` is operational identity, not a fencing token: a process may
+        restart with the same name after another worker has reclaimed the row.
+        The monotonically increasing attempt is the lease epoch and therefore
+        participates in every ownership mutation.
+        """
+        with self.pool.transaction() as connection:
+            result = connection.execute("""
+                UPDATE dialogpilot_app.workflow_start_outbox
+                SET lease_until=%s
+                WHERE outbox_id=%s AND claimed_by=%s AND attempts=%s
+                  AND acknowledged_at IS NULL AND lease_until > %s
+            """, (lease_until, str(outbox_id), worker_id, attempt, now))
+            return result.rowcount == 1
+
+    def acknowledge(
+        self, outbox_id: OperationKey, *, worker_id: str, attempt: int,
+    ) -> bool:
         with self.pool.transaction() as connection:
             result = connection.execute("""
                 UPDATE dialogpilot_app.workflow_start_outbox
                 SET acknowledged_at=transaction_timestamp()
-                WHERE outbox_id=%s AND claimed_by=%s AND acknowledged_at IS NULL
-            """, (str(outbox_id), worker_id))
+                WHERE outbox_id=%s AND claimed_by=%s AND attempts=%s
+                  AND acknowledged_at IS NULL
+            """, (str(outbox_id), worker_id, attempt))
             if result.rowcount == 1:
                 return True
             row = connection.execute(
@@ -438,14 +466,20 @@ class PostgresStartOutbox:
             return bool(row and row[0])
 
     def release(
-        self, outbox_id: OperationKey, *, worker_id: str, available_at: str,
+        self,
+        outbox_id: OperationKey,
+        *,
+        worker_id: str,
+        attempt: int,
+        available_at: str,
     ) -> bool:
         with self.pool.transaction() as connection:
             result = connection.execute("""
                 UPDATE dialogpilot_app.workflow_start_outbox
                 SET claimed_by=NULL, lease_until=NULL, available_at=%s
-                WHERE outbox_id=%s AND claimed_by=%s AND acknowledged_at IS NULL
-            """, (available_at, str(outbox_id), worker_id))
+                WHERE outbox_id=%s AND claimed_by=%s AND attempts=%s
+                  AND acknowledged_at IS NULL
+            """, (available_at, str(outbox_id), worker_id, attempt))
             return result.rowcount == 1
 
     def is_acknowledged(self, outbox_id: OperationKey) -> bool:
@@ -495,6 +529,7 @@ class StartOutboxDispatcher:
                 self.fault_hook("after_admission_cas")
                 if not self.outbox.acknowledge(
                     item.outbox_id, worker_id=command.worker_id,
+                    attempt=item.attempt,
                 ):
                     raise RuntimeError("start outbox ACK rejected")
                 self.fault_hook("after_outbox_ack")
@@ -510,6 +545,7 @@ class StartOutboxDispatcher:
                 self.outbox.release(
                     item.outbox_id,
                     worker_id=command.worker_id,
+                    attempt=item.attempt,
                     available_at=command.lease_until,
                 )
                 results.append(DispatchAttempt(

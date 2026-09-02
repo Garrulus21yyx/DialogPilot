@@ -967,10 +967,29 @@
   [build evidence](../governance/evidence/x-t01/schema-governance-build-v1.md) 明确仅为本地演练，生产 snapshot
   副本、RPO/RTO 与独立 review 仍未 VERIFIED。
 
+### X-T02（concurrency / multi-replica / failover contract）
+
+- 根因收敛为 claim identity、lease epoch 与业务 effect authority 未分离：可复用 `worker_id` 不再充当 fencing
+  token；start/projection outbox 以递增 attempt 作为 epoch，ACK/release/renew 必须匹配 outbox、worker、epoch，
+  renew 不能复活过期 lease。
+- RunStore 兼容 tool ledger 增加 `claimed → invoking` 边界、随机 claim token、expiry 与 reconciliation：调用前
+  crash 可重领，只读 invoking 可重算，写 invoking 过期后固定 fail closed；只有 Domain Owner 权威
+  `NOT_COMMITTED` receipt 才允许复用同 operation，旧 token 无法提交迟到终态。M3-T06 仍拥有 PostgreSQL
+  ledger 迁移与生产单主切换，本节点没有把 SQLite 宣称为多副本 authority。
+- 16 个 spawn process 并发同 invocation 只产生 `1 Created + 15 Existing`；同名迟到 worker 被 epoch fence；
+  两个 READY retrieval generation 并发 CAS 恰好一个 active，shadow/迟到 projector 不移动 pointer。Redis
+  timeout 仍是 cache miss，compare-token release 不删除新 owner lease。
+- 冻结 [concurrency contract](../governance/concurrency/x-t02-concurrency-contract-v1.json) 与
+  [PostgreSQL/Redis failover runbook](../docs/postgresql-redis-multi-replica-failover-runbook.zh-CN.md)；聚焦
+  `76 passed`，全套 `820 passed in 51.49s`，ruff/diff checks passed。
+- [build evidence](../governance/evidence/x-t02/concurrency-build-v1.md) 标记
+  `IMPLEMENTED / PRODUCTION FAILOVER REHEARSAL PENDING`：真实 PostgreSQL promote、Redis cluster partition、
+  production drain/RPO/RTO 和独立 SRE review 尚未执行，不构成 M1/M2 Exit 签署。
+
 ## 下一步
 
 1. M2 Exit 仍需独立 X-T03/X-T04 review、unseen Knowledge heldout、真实 provider billing sample、生产
    Recall/latency/RTO/OLTP 与 M1 Exit evidence；当前不得签署或开启 canary。
-2. 继续 X-T02 并发与多副本；不依赖未获授权生产证据，也不越过 M1/M2 Exit 开启行为流量。
+2. X-T02 build 已完成；M1/M2 Exit 仍需真实多副本 failover rehearsal 与独立 SRE/Owner review。
 3. M2-T05C 受 M2 Exit + `POSTGRES_RETRIEVAL_GA` candidate manifest 阻断，当前不执行 canary。
 4. T04/T04A live activation 仍受 M2 gate 与独立 review 约束。
