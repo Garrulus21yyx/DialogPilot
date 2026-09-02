@@ -20,7 +20,7 @@
 3. **completed** — 深度重写首页完整教程，恢复代码级顺序、配置、状态表、故障路径和大规模连续追问。
 4. **completed** — 深化其余 7 页，使职责互补但正文自足，并补充新架构延伸问答。
 5. **completed** — 自动核查 API/模块/配置引用、站内链接、导航、Jekyll 构建与页面规模；运行相关和全量测试。
-6. **in_progress** — 审阅提交范围，推送当前分支与 `main`，等待 Pages built 后逐页线上验收。
+6. **completed** — 审阅提交范围，推送当前分支与 `main`，等待 Pages built 后逐页线上验收。
 
 ## 产出文件
 
@@ -44,3 +44,4 @@
 - 8 个主页面的站内链接检查通过；源码/机器报告链接已改为 main 上的 GitHub blob。
 - 相关链路测试：77 passed、5 skipped。
 - 全量测试在提供 Compose PostgreSQL 测试 URL 后：884 passed；未提供 URL 的首次运行只有 2 个 stateful PostgreSQL fixture 因环境前置缺失失败，不属于文档或实现回归。
+- `3b7a1fe` 已推送到当前分支与 `main`；GitHub Pages 构建状态为 `built` 且 commit 与之相同，8 个线上 URL 均返回 HTTP 200 并命中各页新增深度章节。
