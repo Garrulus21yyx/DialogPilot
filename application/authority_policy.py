@@ -84,13 +84,54 @@ class RequirementOutputCheck:
     reason_code: str
 
 
+@dataclass(frozen=True)
+class EvidenceAdapterRegistration:
+    adapter_id: str
+    adapter_version: str
+    evidence_kind: str
+    requirement_ids: tuple[str, ...]
+    producer_versions: tuple[tuple[str, str], ...]
+    receipt_schema_version: str = "evidence-receipt-v1"
+
+    def __post_init__(self) -> None:
+        if any(not value for value in (
+            self.adapter_id, self.adapter_version, self.evidence_kind,
+            self.receipt_schema_version,
+        )):
+            raise AuthorityContractError("evidence adapter identity is required")
+        if not self.requirement_ids or not self.producer_versions:
+            raise AuthorityContractError("evidence adapter scope is required")
+        producer_ids = [item[0] for item in self.producer_versions]
+        if len(set(producer_ids)) != len(producer_ids) or any(
+            not producer_id or not version
+            for producer_id, version in self.producer_versions
+        ):
+            raise AuthorityContractError("evidence producer versions are invalid")
+
+    @property
+    def producer_ids(self) -> tuple[str, ...]:
+        return tuple(item[0] for item in self.producer_versions)
+
+
 class AuthorityPolicyRegistry:
     version = "authority-policy-registry-v1"
 
-    def __init__(self, requirements: Sequence[FactRequirement]):
+    def __init__(
+        self,
+        requirements: Sequence[FactRequirement],
+        evidence_adapters: Sequence[EvidenceAdapterRegistration] = (),
+    ):
         self._requirements = {item.requirement_id: item for item in requirements}
         if len(self._requirements) != len(requirements):
             raise AuthorityContractError("duplicate requirement ID")
+        self._evidence_adapters = {
+            item.adapter_id: item for item in evidence_adapters
+        }
+        if len(self._evidence_adapters) != len(evidence_adapters):
+            raise AuthorityContractError("duplicate evidence adapter ID")
+        for adapter in evidence_adapters:
+            for requirement_id in adapter.requirement_ids:
+                self.get(requirement_id)
 
     @classmethod
     def v1(cls) -> "AuthorityPolicyRegistry":
@@ -98,7 +139,7 @@ class AuthorityPolicyRegistry:
         write = RequirementEffect.WRITE
         supported = AuthoritySupport.SUPPORTED
         unsupported = AuthoritySupport.UNSUPPORTED
-        return cls((
+        requirements = (
             FactRequirement(
                 "knowledge.active_source", "knowledge.active_source",
                 ("source_id", "source_revision", "checksum", "content"), 86400,
@@ -163,18 +204,59 @@ class AuthorityPolicyRegistry:
                 (), 60, read, (), ("knowledge_search",), "", unsupported,
                 "Commitment:pending-m4",
             ),
-        ))
+        )
+        adapters = (
+            EvidenceAdapterRegistration(
+                "knowledge-evidence-adapter", "knowledge-evidence-adapter-v1",
+                "KNOWLEDGE", ("knowledge.active_source",),
+                (("knowledge_search", "knowledge-candidates-v1"),),
+            ),
+            EvidenceAdapterRegistration(
+                "business-tool-evidence-adapter", "business-tool-evidence-adapter-v1",
+                "BUSINESS_TOOL", (
+                    "order.current_state", "refund.current_state",
+                    "refund.eligibility", "account.security_events",
+                    "support.ticket_state",
+                ), (
+                    ("order_lookup", "order-view-v1"),
+                    ("refund_status", "refund-view-v1"),
+                    ("refund_eligibility_check", "refund-eligibility-v1"),
+                    ("account_security_event_list", "security-events-v1"),
+                    ("support_ticket_list", "ticket-list-v1"),
+                    ("support_ticket_get", "ticket-view-v1"),
+                ),
+            ),
+            EvidenceAdapterRegistration(
+                "action-receipt-evidence-adapter", "action-receipt-evidence-adapter-v1",
+                "ACTION_RECEIPT", (
+                    "refund.request_action", "support.handoff_action",
+                ), (
+                    ("refund_request_create", "refund-request-result-v1"),
+                    ("support_ticket_create", "ticket-create-result-v1"),
+                ),
+            ),
+            EvidenceAdapterRegistration(
+                "memory-event-evidence-adapter", "memory-event-evidence-adapter-v1",
+                "MEMORY_EVENT", ("memory.prior_event",),
+                (("memory_search", "memory-hit-v1"),),
+            ),
+        )
+        return cls(requirements, adapters)
 
     @property
     def fingerprint(self) -> str:
-        payload = [
-            {
+        payload = {
+            "requirements": [{
                 **item.__dict__,
                 "effect": item.effect.value,
                 "support": item.support.value,
             }
             for item in sorted(self._requirements.values(), key=lambda row: row.requirement_id)
-        ]
+            ],
+            "evidence_adapters": [item.__dict__ for item in sorted(
+                self._evidence_adapters.values(), key=lambda row: row.adapter_id
+            )],
+        }
         return hashlib.sha256(json.dumps(
             payload, ensure_ascii=False, sort_keys=True,
             separators=(",", ":"), allow_nan=False,
@@ -187,6 +269,43 @@ class AuthorityPolicyRegistry:
             raise AuthorityContractError(
                 f"unknown fact requirement: {requirement_id}"
             ) from exc
+
+    def authorize_evidence_adapter(
+        self,
+        *,
+        requirement_id: str,
+        adapter_id: str,
+        adapter_version: str,
+        producer_id: str,
+        producer_version: str,
+    ) -> EvidenceAdapterRegistration:
+        """Authorize the sole versioned conversion boundary for producer output."""
+        requirement = self.get(requirement_id)
+        adapter = self.get_evidence_adapter(adapter_id, adapter_version)
+        if requirement_id not in adapter.requirement_ids:
+            raise AuthorityContractError("adapter cannot issue this requirement")
+        if producer_id not in adapter.producer_ids:
+            raise AuthorityContractError("producer is not registered for adapter")
+        if (producer_id, producer_version) not in adapter.producer_versions:
+            raise AuthorityContractError("producer version is not registered for adapter")
+        if producer_id not in requirement.allowed_tools:
+            raise AuthorityContractError("producer is not allowed for requirement")
+        return adapter
+
+    def get_evidence_adapter(
+        self,
+        adapter_id: str,
+        adapter_version: str,
+    ) -> EvidenceAdapterRegistration:
+        try:
+            adapter = self._evidence_adapters[adapter_id]
+        except KeyError as exc:
+            raise AuthorityContractError(
+                f"unregistered evidence adapter: {adapter_id}"
+            ) from exc
+        if adapter.adapter_version != adapter_version:
+            raise AuthorityContractError("evidence adapter version mismatch")
+        return adapter
 
     def minimum_requirements(self, route: RouteDecision) -> tuple[FactRequirement, ...]:
         ids: list[str] = []

@@ -31,6 +31,7 @@
 | M2-T01A Agent-owned Intent/Domain/Instance policy | done | V1 registry + typed decisions/trace；582 tests passed |
 | M2-T01 RouteDecision / RouterInvocationPolicy | done (flag-off) | 8 modes + call/skip algebra；602 tests passed |
 | M2-T02 FactRequirement / AuthorityPolicyRegistry | done (planner flag-off) | minimum requirements + startup manifest gate + refund_status；609 tests passed |
+| M2-T03 Canonical EvidenceReceipt | done (consumer flag-off) | 7 kind typed algebra + registered adapters + resolver verification；624 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
@@ -470,8 +471,33 @@
 - 验证：聚焦 `26 passed`；真实 PostgreSQL/pgvector 全套 `609 passed in 17.61s`；ruff 与
   `git diff --check` passed。
 
+### M2-T03（Canonical EvidenceReceipt）
+
+- 证据代数：新增闭合 `EvidenceKind` 七类 `KNOWLEDGE/BUSINESS_TOOL/ACTION_RECEIPT/MEMORY_EVENT/
+  COMMITMENT/MEDIA_OBSERVATION/HUMAN_ASSERTION`；Knowledge/Business/Action 分别复用闭合
+  `RetrievalStatus/ToolCallStatus/ToolEffectStatus`，Memory/Commitment/Media/Human 各有独立 typed status，
+  Coverage 结果固定为 `RequirementStatus` 六态，不使用跨 producer 自由字符串。
+- 唯一签发边界：AuthorityPolicyRegistry v1 登记 Knowledge、Business Tool、Action、Memory 四个现有 adapter
+  的固定 ID/version、requirement scope 与 producer output-schema version；Issuer 只能返回 Registry 创建的
+  `RegisteredEvidenceAdapter`。未实现的 Commitment/Media/Human 保留闭合 schema，但没有注册 producer，
+  因而不能签发 receipt。
+- 最小 receipt：canonical `EvidenceReceipt` 仅保存稳定 locator、required field names、kind/status、authority、
+  producer/adapter/policy/schema version、observed/expires time、Owner payload hash 与 receipt hash；不复制原文、
+  私有返回值或默认 `legacy/public` provenance。Receipt ID 由 canonical body hash 确定性派生。
+- 可复验性：恢复 wire receipt 时重新校验 Registry 授权、producer version、evidence kind、required fields、
+  authority、policy fingerprint、receipt schema/ID/hash；Resolver 回到原 Owner 后复验 payload hash、locator
+  身份/version/checksum/receipt binding 与 freshness。COMMITTED/OK/SUCCESS 等可满足，合法但非成功状态保持
+  typed MISSING/CONFLICTING/INVALID，不被误升为 evidence success。
+- 现有对象边界：`EvidencePack` 继续是 Knowledge Owner 的上下文对象，`ToolResult` 继续是工具执行结果；
+  二者都不直接成为跨域权威事实，避免复制敏感内容或形成第二 authority。
+- 激活边界：canonical schema/issuer/verifier 已完成，尚未接入线上 legacy Planner/Verifier；等待 T04
+  CoverageGate 与 T04A active SourceRevision 后成为消费主链。
+- 验证：7 kind schema property、kind/status/locator 错配、未注册 adapter/producer/version、诊断文本、缺
+  provenance、wire 篡改、Owner 内容漂移、checksum/receipt 绑定、freshness 与非 committed action；聚焦
+  `22 passed`，真实 PostgreSQL/pgvector 全套 `624 passed in 17.73s`，ruff/diff checks passed。
+
 ## 下一步
 
-1. M2-T03：建立 EvidenceReceipt 唯一投影与注册 adapter，闭合 producer/schema/freshness/effect 验证。
-2. 随后推进 M2-T04A，再完成 M2-PF01 PR-18P-C canonical projection。
+1. M2-T04：建立 requirement-level CoverageGate/VerificationProfile（build），验证闭环依赖 T04A。
+2. M2-T04A：建立 active SourceRevision/backfill 后完成 Knowledge coverage 验证，再完成 M2-PF01 PR-18P-C。
 3. 保持 PG_FTS_ZH_V1 与 LEGACY_BM25_V1 独立评分，未过质量/延迟/删除/重建 Gate 前不切 active consumer。

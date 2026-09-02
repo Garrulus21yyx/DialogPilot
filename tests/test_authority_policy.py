@@ -166,6 +166,15 @@ def test_unknown_requirement_and_invalid_manifest_versions_cannot_mint_evidence(
     with pytest.raises(AuthorityContractError, match="omits required fields"):
         registry.validate_tool_manifest(_tool(output_fields=("order_id",)))
 
+    with pytest.raises(AuthorityContractError, match="producer version"):
+        registry.authorize_evidence_adapter(
+            requirement_id="order.current_state",
+            adapter_id="business-tool-evidence-adapter",
+            adapter_version="business-tool-evidence-adapter-v1",
+            producer_id="order_lookup",
+            producer_version="order-view-v99",
+        )
+
 
 def test_fresh_structured_authority_output_satisfies_requirement():
     result = AuthorityPolicyRegistry.v1().validate_output(
