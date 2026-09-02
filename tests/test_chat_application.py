@@ -104,6 +104,32 @@ def test_chat_application_projects_unexpected_failure_to_typed_outcome(monkeypat
     )
 
 
+def test_rollout_blocked_assignment_stops_before_any_application_side_effect():
+    class Rollout:
+        def resolve(self, _subject):
+            return SimpleNamespace(
+                admission_allowed=False,
+                admission_reason="ROLLBACK_BASELINE_INCOMPATIBLE",
+            )
+
+    services = _ready_services()
+    services = ChatServices(**{
+        **services.__dict__, "rollout_manager": Rollout(),
+    })
+    app = ChatApplication(
+        services, SimpleNamespace(trace_id=lambda: "trace-rollout-blocked"),
+    )
+
+    outcome = asyncio.run(app.handle(ChatCommand(message="查询退款", user_id="u")))
+
+    assert isinstance(outcome, Failed)
+    assert outcome.code == "rollout_admission_blocked"
+    assert outcome.retryable is False
+    assert outcome.stages[0].detail["reason_code"] == (
+        "ROLLBACK_BASELINE_INCOMPATIBLE"
+    )
+
+
 def test_http_chat_is_a_thin_command_and_outcome_adapter(monkeypatch):
     response = main.ChatResponse(
         request_id="request-1",

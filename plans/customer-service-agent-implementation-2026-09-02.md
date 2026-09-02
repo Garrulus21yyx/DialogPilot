@@ -37,6 +37,7 @@
 | M2-T05 统一 KnowledgeRetriever | implemented (canary blocked) | A1/A2/B + immutable PG dark-shadow report；675 tests passed |
 | M2-T06A Multi-Agent TaskGraph 收紧 | implemented | A/B/C policy、execution、dependency、native signal 与 terminal algebra 完成；697 tests passed |
 | M2-T06 自适应 RAG 发布路径 | implemented (dark-shadow) | A/B1-B8: eight-route typed outcome algebra + unsupported-authority Handoff；765 tests passed；active/canary gated |
+| M2-T06R Route Bundle enable/rollback | implemented (canary blocked) | pinned execution refs、single publisher、atomic crash rollback、forward-fix runbook；771 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
@@ -877,9 +878,30 @@
 - M2-T06 标记 `implemented (dark-shadow)`：八路径 build 合同已闭合；`active` 仍被服务端拒绝，bounded
   canary 需 M2 Exit manifest，广泛放量需 `CORE_TEXT_GA`，新的生产 Handoff write 需 M4-T07C。
 
+### M2-T06R（Route Bundle enable / rollback runbook）
+
+- `RolloutManager` 新增 immutable `PinnedExecutionRefs`，在 Bundle 第一次 admission 时固定 Bundle/hash、
+  Route policy、Knowledge backend/generation、corpus manifest 与 retrieval policy；SQLite 持久化内容与
+  fingerprint，后续 `resolve()` 不从漂移的 live pointer 重建。生产配置启用 strict concrete refs，旧兼容
+  Rollout 未启用 strict 时不向数据面伪装 unbound refs。
+- Shadow/Canary/Active 每次晋级都重新验证 runtime 与 pinned refs；Assignment 明确唯一
+  `publisher_version`，Shadow 只有独立 refs 和观测权。Chat stage 记录 assignment/publisher/ref fingerprint，
+  Agent Knowledge tool 与 pre-route Retriever 消费同一 refs；legacy backend 无法服务 pinned generation
+  时在检索前返回 `PINNED_EXECUTION_REFS_UNAVAILABLE`，不静默读取新 generation。
+- promote-active 与 rollback pointer/state 仍由同一 SQLite transaction 的 RolloutManager 单主写入；新增
+  故障注入证明 pointer swap 前崩溃、停止 admission 后崩溃都只能观察到完整旧态或新态。rollback 前取得
+  的 Assignment 保持 candidate refs，新 admission 才读取 restored previous。
+- rollback 会先验证 previous Bundle/runtime/refs；不兼容时禁止强退，active 进入
+  `BLOCKED_FORWARD_FIX`，新请求无 publisher 并返回 typed `rollout_admission_blocked`。已验证新版本可从
+  blocked baseline 重新走 shadow→5%→25%→active，并原子退役 blocked Bundle。
+- 新增 [Route Bundle runbook](../docs/customer-service-route-bundle-rollout-runbook.zh-CN.md)，冻结 hard/soft
+  thresholds、值班/审计、enable/rollback 操作、in-flight/write-unknown 规则、恢复 canary 条件和演练清单。
+- 验证：聚焦 `95 passed`，全套 `771 passed in 19.70s`，ruff/diff checks passed。T06R 标记
+  `implemented (canary blocked)`；本文与代码不构成生产 release 授权。
+
 ## 下一步
 
-1. 实施 M2-T06R：冻结 route Bundle enable/rollback runbook、单 publisher 与 pinned in-flight 故障测试；
-   不执行生产 canary。
+1. 执行 M2 Exit 差距复核：对照 Exit 条件与 gate manifest，区分 build-complete、外部 review/生产验证和
+   尚未实现项；不把 blocked external gate 冒充 READY。
 2. M2-T05C 受 M2 Exit + `POSTGRES_RETRIEVAL_GA` candidate manifest 阻断，当前不执行 canary。
 3. T04/T04A live activation 仍受 M2 gate 与独立 review 约束。

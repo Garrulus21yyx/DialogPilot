@@ -97,6 +97,7 @@ from services.evolution import (
     EvolutionEnvelope,
     BadCaseMiner,
     CreditAttributor,
+    PinnedExecutionRefs,
     RolloutContractError,
     RolloutManager,
     SoftRollbackPolicy,
@@ -519,10 +520,51 @@ async def lifespan(app: FastAPI):
             errors.append(f"unknown tool descriptions: {sorted(unknown_tools)}")
         return tuple(errors)
 
+    def route_execution_refs(bundle: AgentBundle) -> Dict[str, str]:
+        """Freeze every route/Knowledge read pointer before rollout admission."""
+        from agents.request_shape_policy import RequestShapePolicy
+        from application.route_decision import RouterInvocationPolicy
+        from application.route_execution import RouteExecutionPolicy
+        from application.route_path_executor import RoutePathExecutor
+
+        manifest = str(
+            _knowledge_base.index_manifest.get("manifest_fingerprint") or "",
+        )
+        route_ref = "|".join((
+            RequestShapePolicy.version,
+            RouterInvocationPolicy.version,
+            RouteExecutionPolicy.version,
+            RoutePathExecutor.version,
+        ))
+        return {
+            "route_policy_ref": route_ref,
+            "knowledge_backend_ref": "LEGACY_BM25_V1",
+            "knowledge_generation_ref": f"legacy-knowledge:{manifest}",
+            "corpus_manifest_ref": manifest,
+            "retrieval_policy_ref": bundle.component_hash("retrieval_policy"),
+        }
+
+    def validate_route_execution_refs(
+        refs: PinnedExecutionRefs,
+    ) -> tuple[str, ...]:
+        try:
+            bundle = _bundle_registry.get(refs.bundle_version)
+        except BundleNotFoundError:
+            return ("bundle no longer exists",)
+        expected = route_execution_refs(bundle)
+        return tuple(
+            f"{name} is unavailable"
+            for name, value in expected.items()
+            if getattr(refs, name) != value
+        )
+
     _rollout_manager = RolloutManager(
         _bundle_registry,
         bucket_salt=(os.getenv("ROLLOUT_BUCKET_SALT") or os.getenv("AUTH_JWT_SECRET", "")),
         activation_validator=validate_bundle_activation,
+        execution_ref_resolver=route_execution_refs,
+        execution_ref_validator=validate_route_execution_refs,
+        strict_execution_refs=True,
         soft_policy=SoftRollbackPolicy(
             min_candidate_samples=int(os.getenv("ROLLOUT_SOFT_MIN_CANDIDATE_SAMPLES", "100")),
             min_baseline_samples=int(os.getenv("ROLLOUT_SOFT_MIN_BASELINE_SAMPLES", "100")),
@@ -1174,6 +1216,9 @@ async def _evaluate_route_path(invocation: Any) -> Any:
             conversation_id=str(invocation.identity_metadata.get("conversation_id") or ""),
             authorization_fingerprint=invocation.command.authorization_fingerprint,
             generate_answer=False,
+            pinned_execution_refs=(
+                invocation.orchestration_request.pinned_execution_refs
+            ),
         )
 
     async def grounded_generate(_contract, knowledge):
@@ -1487,6 +1532,7 @@ async def _evaluate_shadow_request(
     prompt_history: List[Dict[str, str]],
     intent_history: Optional[List[Dict[str, str]]],
     identity_metadata: Optional[Dict[str, str]] = None,
+    pinned_execution_refs: Any = None,
 ) -> None:
     """执行不发布、不写记忆、不建工单的真实输入副本；写工具由边界硬拒绝。"""
     if (
@@ -1507,6 +1553,7 @@ async def _evaluate_shadow_request(
             user_id=user_id,
             conversation_id=conv_id,
             authorization_fingerprint=request.authorization_fingerprint,
+            pinned_execution_refs=pinned_execution_refs,
         )
         sections = list(base_sections)
         if knowledge.text:
@@ -2485,6 +2532,8 @@ async def _retrieve_knowledge(
     conversation_id: str,
     authorization_fingerprint: str,
     requirement_signature: str,
+    pinned_execution_refs: Any = None,
+    bundle_version: str = "",
 ) -> EvidencePackResult:
     if _knowledge_retriever is None or _knowledge_base is None:
         return EvidencePackResult(
@@ -2506,6 +2555,33 @@ async def _retrieve_knowledge(
     manifest = str(
         _knowledge_base.index_manifest.get("manifest_fingerprint") or "",
     )
+    current_backend = "LEGACY_BM25_V1"
+    pinned = (
+        dict(pinned_execution_refs)
+        if isinstance(pinned_execution_refs, Mapping)
+        else dict(getattr(pinned_execution_refs, "__dict__", {}) or {})
+    )
+    if pinned:
+        if (
+            str(pinned.get("bundle_version") or "") != bundle_version
+            or str(pinned.get("knowledge_backend_ref") or "") != current_backend
+            or str(pinned.get("corpus_manifest_ref") or "") != manifest
+            or str(pinned.get("retrieval_policy_ref") or "") != policy_version
+            or str(pinned.get("knowledge_generation_ref") or "")
+            != f"legacy-knowledge:{manifest}"
+        ):
+            return EvidencePackResult(
+                RetrievalStatus.CONFLICT, None, None,
+                "PINNED_EXECUTION_REFS_UNAVAILABLE",
+            )
+        generation_id = str(pinned.get("knowledge_generation_ref") or "")
+        if not generation_id:
+            return EvidencePackResult(
+                RetrievalStatus.INVALID_CONTRACT, None, None,
+                "PINNED_GENERATION_MISSING",
+            )
+    else:
+        generation_id = f"legacy-knowledge:{manifest}"
     request = KnowledgeRetrievalRequest(
         tenant_id=tenant_id, user_scope=user_scope,
         authorization_fingerprint=authorization_fingerprint,
@@ -2514,7 +2590,7 @@ async def _retrieve_knowledge(
         query=query, history=history,
         conversation_range_hash=_fingerprint({"history": list(history)}),
         locale="zh-CN", product=None, manifest_fingerprint=manifest,
-        generation_id=f"legacy-knowledge:{manifest}",
+        generation_id=generation_id,
         policy=_knowledge_policy(policy_values, policy_version=policy_version),
     )
     return await _knowledge_retriever.retrieve(request)
@@ -2537,6 +2613,8 @@ async def _knowledge_tool_handler(
             context.get("authorization_fingerprint") or ""
         ),
         requirement_signature="knowledge.active_source",
+        pinned_execution_refs=context.get("pinned_execution_refs"),
+        bundle_version=str(context.get("bundle_version") or ""),
     )
     return result.to_dict(include_text=True)
 
@@ -2552,6 +2630,7 @@ async def _build_knowledge_context(
     conversation_id: str = "",
     authorization_fingerprint: str = "",
     generate_answer: bool = True,
+    pinned_execution_refs: Any = None,
 ) -> KnowledgeContextResult:
     """
     为 /chat 主链路构建 RAG 知识上下文。
@@ -2577,6 +2656,8 @@ async def _build_knowledge_context(
             conversation_id=conversation_id,
             authorization_fingerprint=authorization_fingerprint,
             requirement_signature="knowledge.active_source",
+            pinned_execution_refs=pinned_execution_refs,
+            bundle_version=str(getattr(bundle, "version", "") or ""),
         )
         if result.status is not RetrievalStatus.OK or result.evidence_pack is None:
             return KnowledgeContextResult(generation_status=result.status.value.lower())

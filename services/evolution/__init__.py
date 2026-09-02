@@ -12,6 +12,7 @@ from .miner import BadCaseCluster, BadCaseMiner
 from .proposal_generator import GEPALiteProposalGenerator, build_llm_proposal_generator
 from .rollout import (
     HardSignal,
+    PinnedExecutionRefs,
     RolloutAssignment,
     RolloutContractError,
     RolloutManager,
@@ -33,6 +34,7 @@ __all__ = [
     "EvolutionSurface",
     "GEPALiteProposalGenerator",
     "HardSignal",
+    "PinnedExecutionRefs",
     "RolloutAssignment",
     "RolloutContractError",
     "RolloutManager",

@@ -268,6 +268,7 @@ def test_chat_escalation_creates_one_persistent_idempotent_ticket(tmp_path, monk
     assert isinstance(application_outcome, Completed)
     assert {stage.stage for stage in application_outcome.stages} == {
         "memory_load",
+        "rollout_admission",
         "intent",
         "knowledge_retrieval",
         "route_and_agent",

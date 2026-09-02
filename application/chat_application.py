@@ -300,13 +300,39 @@ class ChatApplication:
         }
         stages: list[StageObservation] = []
         assignment = await asyncio.to_thread(services.rollout_manager.resolve, user_id)
+        if not getattr(assignment, "admission_allowed", True):
+            return Failed(
+                code="rollout_admission_blocked",
+                retryable=False,
+                correlation_id=ops.trace_id(),
+                safe_message=(
+                    "当前服务版本无法安全回退，已停止自动处理并等待人工处置。"
+                ),
+                stages=(StageObservation("rollout_admission", StageStatus.FAILED, {
+                    "reason_code": getattr(
+                        assignment, "admission_reason", "ROLLOUT_BLOCKED",
+                    ),
+                }),),
+            )
         bundle = command.pinned_bundle or assignment.primary
         if command.pinned_bundle is not None:
             assignment = type("EvalAssignment", (), {
                 "primary": bundle,
                 "primary_stage": "evaluation",
                 "shadow": None,
+                "pinned_refs": None,
+                "shadow_pinned_refs": None,
+                "admission_allowed": True,
             })()
+        pinned_refs = getattr(assignment, "pinned_refs", None)
+        stages.append(StageObservation("rollout_admission", StageStatus.OK, {
+            "bundle_version": bundle.version,
+            "assignment_stage": assignment.primary_stage,
+            "publisher_version": bundle.version,
+            "pinned_refs_fingerprint": (
+                pinned_refs.fingerprint if pinned_refs is not None else "evaluation"
+            ),
+        }))
 
         mem_ctx = await services.memory.get_context(user_id, conv_id, query=command.message)
         stages.append(StageObservation("memory_load", StageStatus.OK, {
@@ -345,6 +371,7 @@ class ChatApplication:
             user_id=user_id,
             conv_id=conv_id,
             request_id=request_id,
+            pinned_execution_refs=getattr(assignment, "pinned_refs", None),
             stages=stages,
         )
         route_mode = route_path.route_decision.mode.value if route_path else "legacy"
@@ -359,6 +386,7 @@ class ChatApplication:
                 conversation_id=conv_id,
                 authorization_fingerprint=command.authorization_fingerprint,
                 generate_answer=route_mode != "mixed",
+                pinned_execution_refs=getattr(assignment, "pinned_refs", None),
             )
         else:
             knowledge = SkippedKnowledgeContext()
@@ -400,6 +428,10 @@ class ChatApplication:
             request_id=request_id,
             bundle_version=bundle.version,
             agent_bundle=bundle,
+            pinned_execution_refs=(
+                getattr(assignment, "pinned_refs", None).__dict__
+                if getattr(assignment, "pinned_refs", None) is not None else {}
+            ),
             identity_metadata=identity_metadata,
             intent_classifier_fingerprint=str(
                 getattr(intent_result, "classifier_fingerprint", "") or ""
@@ -664,6 +696,9 @@ class ChatApplication:
                 prompt_history=prompt_history,
                 intent_history=intent_history,
                 identity_metadata=identity_metadata,
+                pinned_execution_refs=getattr(
+                    assignment, "shadow_pinned_refs", None,
+                ),
             ))
 
         response = {
@@ -758,6 +793,7 @@ class ChatApplication:
         conv_id: str,
         request_id: str,
         stages: list[StageObservation],
+        pinned_execution_refs: Any = None,
     ) -> Optional[RoutePathInvocation]:
         """Build one canonical route contract and dispatch only to a gated shadow."""
         mode = str(self._services.route_execution_mode or "legacy").strip().lower()
@@ -792,6 +828,10 @@ class ChatApplication:
             request_id=request_id,
             bundle_version=bundle.version,
             agent_bundle=bundle,
+            pinned_execution_refs=(
+                pinned_execution_refs.__dict__
+                if pinned_execution_refs is not None else {}
+            ),
             execution_mode="shadow",
             identity_metadata=dict(identity_metadata),
             intent_classifier_fingerprint=str(

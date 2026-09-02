@@ -221,6 +221,7 @@ class Request:
     dependency_artifacts: tuple[TaskArtifact, ...] = ()
     prior_outcome_bindings: tuple[PriorOutcomeBinding, ...] = ()
     domain_decision: Optional[DomainDecision] = None
+    pinned_execution_refs: Dict[str, str] = field(default_factory=dict)
 
 
 class PlanningDisposition(str, Enum):
@@ -461,6 +462,7 @@ class BaseAgent:
                         req.agent_bundle.component_hash("retrieval_policy")
                         if req.agent_bundle else req.bundle_version
                     ),
+                    "pinned_execution_refs": dict(req.pinned_execution_refs),
                     "execution_mode": req.execution_mode,
                     "task_input": req.message,
                 },

@@ -8,13 +8,16 @@ from core.intent_recognizer import IntentCategory
 from mcp.context_packer import ContextCandidate, PackedContext
 from mcp.evidence_pack import EvidencePack
 from core.auth import Principal
+from services.evolution import AgentBundle, PinnedExecutionRefs
 
 
 class FakeRetriever:
     def __init__(self, items):
         self._items = items
+        self.requests = []
 
     async def retrieve(self, request):
+        self.requests.append(request)
         if not self._items:
             return EvidencePackResult(
                 RetrievalStatus.UNAVAILABLE, None, None, "TEST_UNAVAILABLE",
@@ -293,3 +296,34 @@ def test_unavailable_status_is_identical_for_api_agent_and_pre_knowledge(monkeyp
     assert pre_knowledge.used is False
     assert pre_knowledge.generation_status == "unavailable"
 """RAG 真实证据与工具降级信息之间的信任边界测试。"""
+
+
+def test_pinned_knowledge_generation_drift_fails_closed_before_retrieval(monkeypatch):
+    retriever = FakeRetriever([{
+        "chunk_id": "chunk-one", "source_id": "refund-policy",
+        "title": "退款政策", "content": "七天内可申请退款。",
+    }])
+    bundle = AgentBundle(version="agent-v1")
+    pinned = PinnedExecutionRefs(
+        bundle_version=bundle.version,
+        bundle_hash=bundle.content_hash,
+        route_policy_ref="route-contract-v1",
+        knowledge_backend_ref="LEGACY_BM25_V1",
+        knowledge_generation_ref=f"legacy-knowledge:{'a' * 64}",
+        corpus_manifest_ref="a" * 64,
+        retrieval_policy_ref=bundle.component_hash("retrieval_policy"),
+    )
+    monkeypatch.setattr(main, "_knowledge_retriever", retriever)
+    monkeypatch.setattr(main, "_knowledge_base", SimpleNamespace(
+        index_manifest={"manifest_fingerprint": "b" * 64},
+        DENSE_EMBEDDING_MODEL="test", DENSE_EMBEDDING_FUNCTION="test",
+    ))
+
+    result = asyncio.run(main._build_knowledge_context(
+        "退款政策是什么", intent=IntentCategory.REFUND, bundle=bundle,
+        tenant_id="tenant", user_id="user", conversation_id="",
+        authorization_fingerprint="auth", pinned_execution_refs=pinned,
+    ))
+
+    assert result.generation_status == "conflict"
+    assert retriever.requests == []
