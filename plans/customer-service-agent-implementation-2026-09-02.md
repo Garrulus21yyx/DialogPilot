@@ -44,13 +44,14 @@
 | M2-T06R Route Bundle enable/rollback | implemented (canary blocked) | pinned execution refs、single publisher、atomic crash rollback、forward-fix runbook；771 tests passed |
 | X-T03 安全威胁模型 | implemented (production review pending) | 8 threats/control map、13-case corpus、incident disable runbook；799 tests passed |
 | X-T04 成本预算 | implemented (route flag-off) | 8 route + offline ingest budgets、typed exhaustion、provider usage reconciliation；806 tests passed |
-| X-T01 schema/version 治理 | implemented (production snapshot pending) | linear 17-revision registry、forward-only/concurrent migration、checkpoint compatibility、local restore；M5-T01/M1-T02C 迁移已纳入 registry |
+| X-T01 schema/version 治理 | implemented (production snapshot pending) | linear 18-revision registry、forward-only/concurrent migration、checkpoint compatibility、local restore；M4-T02A 已纳入 registry |
 | X-T02 并发与多副本 | implemented (production rehearsal pending) | claim epoch fencing、tool reconciliation、multi-process/dual-active tests、PG/Redis runbook；820 tests passed |
 | X-T05 文档与简历事实门禁 | implemented | 4 条 claim registry、evidence template/checklist、seeded audit；824 tests passed |
 | M2 Exit Gate | draft / not ready | unsigned reproducible manifest；independent security/heldout、production billing/platform evidence、M1 Exit blocked；806 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | build nodes done；Exit prerequisites/evidence not closed |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4-T01 MemoryProjectionResult | implemented | closed state/retrieval algebra、PG watermarks、raw fallback、pre-inference failure |
+| M4-T02A ThreadSummary schema/location owner | implemented | PG immutable chunks/checkpoint、DataLocation v5、deletion/epoch fence；projector 归 T02B |
 | M4 Memory/Context/Commitment/Handoff | in_progress | M4-T01 完成；按 T02–T08 及 release 子节点推进 |
 | M5 Knowledge Lifecycle/Multimodal | in_progress | M5-T01 implemented/behavior-gated；M5-T02A implemented/flag-off；其余按依赖推进 |
 | M6-T01 Dataset v2 / Rubric v2 | implemented (contract fixtures provisional) | 11 层 service-chain + deterministic hard rubric + fixed semantic adapter；835 tests passed |
@@ -1053,6 +1054,18 @@
   `NOT_READY / DRAFT_ONLY / PRODUCTION EVIDENCE GAP`。无 owner/independent signature，不生成
   evidence/decision，不启用 durable online flag，也不解除 M2 shadow/M3 build。聚焦 `51 passed`，最终全量
   `881 passed in 63.17s`，Ruff/diff checks passed。
+
+### M4-T01 / M4-T02A（M4-T02 projector in progress）
+
+- M4-T01 关闭 `READY/LAGGING/DEGRADED/UNAVAILABLE` 与 retrieval outcome algebra；durable facade 按
+  PostgreSQL source/current-generation watermarks 判断 lag，回读同 scope canonical turns，并把 current request
+  排除出 fallback history。backend failure 不再投影为 NO_MATCH；source/raw 均不可用时推理前停止。
+- M4-T02A 新增 migration `0018` 的 immutable fixed-range chunks 与 monotonic checkpoint schema；DataLocation
+  registry v5 将 `location:thread-summary:v1` 晋升 WRITE_APPROVED，绑定唯一 producer、proof、delete adapter
+  与 restore fence。Conversation deletion 原子清除 checkpoint/chunks，late epoch write fail closed。
+- [T01 evidence](../governance/evidence/m4-t01/memory-read-build.md)；
+  [T02A evidence](../governance/evidence/m4-t02a/thread-summary-schema-build.md)。T02B projector/CAS/rebuild 未完成，
+  因此 M4-T02 与 M4 Exit 均保持 non-closed。
 
 ### M6-T01（Dataset v2 / Rubric v2）
 
