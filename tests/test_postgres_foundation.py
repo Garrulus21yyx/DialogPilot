@@ -46,7 +46,7 @@ def test_empty_install_upgrade_pool_and_ledger_are_replayable(postgres_database_
     first = runner.upgrade()
     second = runner.upgrade()
     assert first == second
-    assert first["head"] == "20260902_0002"
+    assert first["head"] == "20260902_0003"
 
     pool = PostgresPool(PostgresPoolConfig(
         postgres_database_url, min_size=1, max_size=2,
@@ -65,7 +65,7 @@ def test_empty_install_upgrade_pool_and_ledger_are_replayable(postgres_database_
             ).fetchone()[0]
         assert isolation == "read committed"
         assert schemas[:2] == ["dialogpilot_app", "dialogpilot_platform"]
-        assert ledger_count == 2
+        assert ledger_count == 3
     finally:
         pool.close()
 

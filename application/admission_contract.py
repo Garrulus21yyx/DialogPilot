@@ -147,6 +147,9 @@ class StartOutboxItem:
     outbox_id: OperationKey
     invocation_key: InvocationKey
     workflow_run_id: WorkflowRunId
+    tenant_id: str
+    user_id: str
+    pinned_versions: Mapping[str, str]
     attempt: int
     available_at: str
     claimed_by: str = ""

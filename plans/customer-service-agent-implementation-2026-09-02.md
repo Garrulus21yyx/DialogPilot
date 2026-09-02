@@ -20,6 +20,7 @@
 | M1-PF01 PostgreSQL Platform Foundation | implemented | 生产快照副本验证待真实快照；本地 restore drill 通过 |
 | M1-T00 Admission/Execution/ChatOutcome v1 | done | CAS/ports/projection/OpenAPI/M3 cutover contract |
 | M1-T01 ConversationTurnStore schema | done | PostgreSQL migration `0002` + immutable scoped repositories |
+| M1-T02 Inbound-first / outbox dispatcher | implemented | PostgreSQL `0003`；生产 `/chat` cutover 归 M1-T05 |
 | M1 完整会话事实与幂等发布 | in_progress | 按 T00–T05/T03A/T04A 子节点推进 |
 | M2 Route/Authority/Evidence/RAG | pending | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
@@ -198,10 +199,29 @@
   admission replay/conflict/bind CAS 均在真实 PostgreSQL 18 验证；Alembic head=`0002`，全套
   `472 passed`。
 
+### M1-T02（IMPLEMENTED，cutover pending M1-T05）
+
+- InboundDisposition：无显式 binding 的自由文本始终是 `NewInvocationInbound`，不会因开放 signal 自动
+  resume；显式 binding 只经 `SignalAuthority` 的 tenant/user/conversation/version/kind/schema 校验，
+  不调用 Memory/RAG/LLM/Tool，结果为 typed valid/invalid disposition。
+- New admission 单事务：inbound turn、`REQUEST_ACCEPTED` event、`START_QUEUED` invocation 与唯一
+  `WorkflowStartRequested` outbox 一起提交；canonical request fingerprint 绑定 authenticated scope、
+  continuation 和 message，重试返回 existing，异内容 conflict。
+- Resume 单事务：合法 binding 只写 inbound、`RESUME_REQUESTED` 与唯一 resume outbox，绝不新建
+  invocation/start outbox；非法/过期/越权/version-kind-schema 错误写 `RESUME_REJECTED` event 且两种
+  outbox 都不产生。同 request 改 binding 为 typed idempotency conflict。
+- Dispatcher：`FOR UPDATE SKIP LOCKED` claim + stable outbox ID/lease/attempt；binder 必须按同一
+  InvocationKey get-or-create 同一 run，再用 T00 status/version CAS 绑定。CAS 前后或 ACK 后崩溃分别
+  release/reclaim、already-applied/ACK、known-bound，均不创建第二执行身份。
+- 验证：四个 admission 事务故障点全部零残留；stale lease 只重领同一 item；CAS 后重试只创建一个
+  run；ACK 后崩溃不重排；正常/合法 resume/非法 resume 的 start-vs-resume outbox 排他性质通过；
+  Alembic head=`0003`，全套 `487 passed`。
+- 激活边界：当前同步 `/chat` 尚未切到 admission，因为 T03/T04 publication 与 compatibility worker 尚未
+  就绪；现在切换会产生永久 `Accepted`。M1-T05 将在整条恢复/发布链可用后执行唯一入口 cutover。
+
 ## 下一步
 
-1. 提交并推送 M1-T01 schema/repositories。
-2. 实施 M1-T02：把 inbound turn、REQUEST_ACCEPTED、queued invocation 与唯一 start outbox 收敛到
-   单个 PostgreSQL 事务，并实现 lease dispatcher/同 run binding。
+1. 提交并推送 M1-T02 admission/outbox owner 实现。
+2. 实施 M1-T03：统一 final response、interaction request、human reply 与 delivery ACK 命令/事务 outbox。
 3. 保持 production snapshot restore 和 deployed Chroma legacy index 不兼容为显式未满足证据，
    不让后续 migration/cutover 静默越过。
