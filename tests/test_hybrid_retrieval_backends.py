@@ -225,6 +225,11 @@ def test_episode_search_is_cross_user_isolated_and_never_cross_ranks_knowledge(
                     tenant_id, user_id, conversation_id
                 ) VALUES ('tenant-a', %s, %s)
             """, (user_id, f"conversation-{user_id}"))
+        connection.execute("""
+            INSERT INTO dialogpilot_app.conversations (
+                tenant_id, user_id, conversation_id
+            ) VALUES ('tenant-b', 'user-a', 'conversation-other-tenant')
+        """)
     with platform.transaction() as connection:
         for user_id in ("user-a", "user-b"):
             connection.execute("""
@@ -244,6 +249,23 @@ def test_episode_search_is_cross_user_isolated_and_never_cross_ranks_knowledge(
                 episode.backend_id, episode.generation_id, f"episode-{user_id}",
                 SHA, postgres_lexical_document("退款 成功"),
             ))
+        connection.execute("""
+            INSERT INTO retrieval.service_episode_search (
+                candidate_id, tenant_id, user_id, entity_ids,
+                source_conversation_id, backend_id, generation_id,
+                episode_id, episode_revision, outcome_receipt_ref,
+                provenance_sha256, deletion_epoch, verified_at,
+                lexical_document, projected_at
+            ) VALUES (
+                'candidate-other-tenant', 'tenant-b', 'user-a',
+                ARRAY['order-1'], 'conversation-other-tenant', %s, %s,
+                'episode-other-tenant', 'revision-1', 'receipt-1', %s, 0,
+                now(), %s, now()
+            )
+        """, (
+            episode.backend_id, episode.generation_id, SHA,
+            postgres_lexical_document("退款 成功"),
+        ))
     registry.transition(episode.generation_id, GenerationState.READY)
     request = HybridRetrievalRequest(
         tenant_id="tenant-a", corpus=RetrievalCorpus.SERVICE_EPISODE,
@@ -259,6 +281,8 @@ def test_episode_search_is_cross_user_isolated_and_never_cross_ranks_knowledge(
         "candidate-user-a",
     ]
     assert result.lexical_candidates[0].corpus is RetrievalCorpus.SERVICE_EPISODE
+    assert result.lexical_candidates[0].freshness_at
+    assert result.index_watermark == episode.source_watermark
 
 
 class _LegacySource:

@@ -221,6 +221,7 @@ class LegacyHybridBackend:
             generation_id=request.generation_id,
             dense_candidates=dense_candidates,
             lexical_candidates=lexical_candidates,
+            index_watermark=generation.source_watermark,
         )
 
 
@@ -241,7 +242,8 @@ class PostgresHybridBackend:
             with self.pool.transaction() as connection:
                 row = connection.execute("""
                     SELECT backend_fingerprint, embedding_dimension, state,
-                           distance_metric, chinese_tokenizer, lexical_ranker
+                           distance_metric, chinese_tokenizer, lexical_ranker,
+                           source_watermark
                     FROM retrieval_generation_registry
                     WHERE corpus=%s AND backend_id IS NOT NULL AND generation_id=%s
                 """, (request.corpus.value, request.generation_id)).fetchone()
@@ -300,6 +302,7 @@ class PostgresHybridBackend:
             generation_id=request.generation_id,
             dense_candidates=dense,
             lexical_candidates=lexical,
+            index_watermark=str(row[6]),
         )
 
     def _dense(
@@ -314,10 +317,14 @@ class PostgresHybridBackend:
             connection.execute("SET LOCAL enable_indexscan=off")
             connection.execute("SET LOCAL enable_bitmapscan=off")
         embedding = "[" + ",".join(format(value, ".17g") for value in request.query_embedding) + "]"
-        table, source_column, revision_column, filters, params = _scope_sql(request)
+        (
+            table, source_column, revision_column, freshness_column,
+            filters, params,
+        ) = _scope_sql(request)
         query = sql.SQL("""
             SELECT candidate_id, {source_column}, {revision_column}, provenance_sha256,
-                   1 - (embedding::vector({dimension}) <=> %s::vector({dimension})) AS score
+                   1 - (embedding::vector({dimension}) <=> %s::vector({dimension})) AS score,
+                   {freshness_column}
             FROM retrieval.{table}
             WHERE tenant_id=%s AND generation_id=%s AND {filters}
               AND embedding IS NOT NULL
@@ -327,7 +334,8 @@ class PostgresHybridBackend:
         """).format(
             dimension=sql.Literal(dimension), table=sql.Identifier(table),
             source_column=sql.Identifier(source_column),
-            revision_column=sql.Identifier(revision_column), filters=filters,
+            revision_column=sql.Identifier(revision_column),
+            freshness_column=sql.Identifier(freshness_column), filters=filters,
         )
         rows = connection.execute(query, (
             embedding, request.tenant_id, request.generation_id,
@@ -343,13 +351,17 @@ class PostgresHybridBackend:
         lexical_query = postgres_websearch_or_query(request.query_text)
         if not lexical_query:
             return ()
-        table, source_column, revision_column, filters, params = _scope_sql(request)
+        (
+            table, source_column, revision_column, freshness_column,
+            filters, params,
+        ) = _scope_sql(request)
         query = sql.SQL("""
             WITH query AS (
                 SELECT websearch_to_tsquery('simple', %s) AS value
             )
             SELECT candidate_id, {source_column}, {revision_column}, provenance_sha256,
-                   ts_rank_cd(search_tsv, query.value) AS score
+                   ts_rank_cd(search_tsv, query.value) AS score,
+                   {freshness_column}
             FROM retrieval.{table}, query
             WHERE tenant_id=%s AND generation_id=%s AND {filters}
               AND search_tsv @@ query.value
@@ -358,7 +370,8 @@ class PostgresHybridBackend:
         """).format(
             table=sql.Identifier(table),
             source_column=sql.Identifier(source_column),
-            revision_column=sql.Identifier(revision_column), filters=filters,
+            revision_column=sql.Identifier(revision_column),
+            freshness_column=sql.Identifier(freshness_column), filters=filters,
         )
         rows = connection.execute(query, (
             lexical_query, request.tenant_id, request.generation_id,
@@ -441,6 +454,7 @@ def _scope_sql(request: HybridRetrievalRequest):
             params.append(scope.product)
         return (
             "knowledge_chunk_search", "source_id", "source_revision",
+            "projected_at",
             filters, params,
         )
     scope = request.scope
@@ -452,6 +466,7 @@ def _scope_sql(request: HybridRetrievalRequest):
         params.append(list(scope.entity_ids))
     return (
         "service_episode_search", "episode_id", "episode_revision",
+        "verified_at",
         filters, params,
     )
 
@@ -463,6 +478,7 @@ def _rows_to_candidates(rows, request):
             generation_id=request.generation_id, source_id=str(row[1]),
             source_revision=str(row[2]), rank=rank, score=float(row[4]),
             provenance_sha256=str(row[3]),
+            freshness_at=row[5].isoformat(),
         )
         for rank, row in enumerate(rows, 1)
     )

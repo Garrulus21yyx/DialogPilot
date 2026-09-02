@@ -128,6 +128,7 @@ class RetrievalCandidate:
     rank: int
     score: float
     provenance_sha256: str
+    freshness_at: str = ""
 
     def __post_init__(self) -> None:
         if any(not value.strip() for value in (
@@ -149,6 +150,7 @@ class HybridRetrievalResult:
     dense_candidates: tuple[RetrievalCandidate, ...] = ()
     lexical_candidates: tuple[RetrievalCandidate, ...] = ()
     detail_code: str | None = None
+    index_watermark: str = ""
 
     def __post_init__(self) -> None:
         for route in (self.dense_candidates, self.lexical_candidates):

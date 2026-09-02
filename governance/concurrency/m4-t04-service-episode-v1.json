@@ -26,7 +26,7 @@
   },
   "retrieval_projection": {
     "canonical_transport": "retrieval.canonical_projection_outbox",
-    "consumer_mode": "dark shadow only",
+    "consumer_mode": "disabled until direct cutover acceptance",
     "user_weight": "A",
     "canonical_weight": "B",
     "assistant_weight": "D",
@@ -63,10 +63,17 @@
       "assistant_evidence_refs"
     ]
   },
-  "shadow_attribution": [
-    "continuity", "provenance", "freshness", "unavailable", "conflict",
-    "corpus_difference", "ranking_difference"
-  ],
+  "retrieval_policy_owner": {
+    "owner": "ServiceEpisodeRetriever",
+    "candidate_owner": "PostgresHybridBackend",
+    "independent_gates": ["minimum_fused_relevance", "freshness_max_age_seconds"],
+    "trace": [
+      "vector_rank", "lexical_rank", "recency_rank", "policy_fingerprint",
+      "freshness_at", "index_watermark"
+    ],
+    "recency_candidate_rule": "dense or lexical candidate union only",
+    "cutover": "offline paired replay plus ChatApplication E2E then one binding"
+  },
   "durable_binding": {
     "owner": "retrieval.memory_retrieval_bindings",
     "identity": ["tenant_id", "SERVICE_EPISODE"],

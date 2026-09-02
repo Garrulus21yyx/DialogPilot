@@ -1172,6 +1172,15 @@
   [runbook](../docs/m4-t04-memory-retrieval-binding-runbook.zh-CN.md)。未执行 canary/ACTIVE；空 legacy corpus 已由机器
   inventory 证明，迁移与 old/new query shadow 不适用；新 corpus heldout 与 Gate 仍阻断 M4-T04 verified closure。
 
+### M4-T04B3（ServiceEpisode retrieval owner）
+
+- `PostgresHybridBackend` 只产出 tenant/user scoped candidates，并带 canonical verified_at 与 generation watermark；
+  `ServiceEpisodeRetriever` 独占 RRF、relevance/freshness gates 和 final ordering。
+- recency 只重排 dense/lexical union；hit 固定三路 rank、policy fingerprint、revision/provenance、freshness/watermark。
+  同 ID 权威字段冲突、policy 漂移、缺 watermark 或非法 freshness 均 typed fail closed。
+- PostgreSQL 证明相同 query/entity 下 tenant 与 user 双重隔离。[build evidence](../governance/evidence/m4-t04b/service-episode-retrieval-build.md)。
+  当前阈值仅为 contract fixtures，真实离线校准与 ChatApplication E2E 待后续节点，consumer 未启用。
+
 ### M6-T01（Dataset v2 / Rubric v2）
 
 - 新增独立 service-chain v2，不改变 v1 数据身份；闭合 perception→service_outcome 11 层 observation，case
