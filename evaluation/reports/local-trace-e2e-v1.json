@@ -1,0 +1,18 @@
+{
+  "schema_version": "dialogpilot-local-trace-e2e-v1",
+  "verification": "PASS",
+  "executed_at": "2026-09-02T16:55:36.207346+00:00",
+  "trace_id": "f55bf60df2ce4461a53f0a2aa25764c5",
+  "persisted_span_count": 1,
+  "root": {
+    "name": "http.get",
+    "kind": "server",
+    "status": "ok",
+    "attributes": {
+      "http.path": "/health",
+      "http.method": "GET"
+    }
+  },
+  "langfuse_export": "not_configured",
+  "scope_limit": "Sanitized local HTTP trace; no production telemetry claim."
+}

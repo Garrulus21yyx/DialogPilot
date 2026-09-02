@@ -17,9 +17,9 @@
 - ParseResult/EvidenceNode 保留 asset checksum、page/bbox、producer/model/version；媒体观察只作为非权威数据进入 TaskGraph。
 - Coverage + AnswerVerifier 发布门禁；只有可发布结果直接返回，其余安全升级到 Handoff。
 - `response_id + response_seq + selected/delivered/read` 送达状态。
-- TraceId、Prometheus 指标、本地评测、空库初始化、恢复演练和机器可读 E2E 报告。
+- TraceId、脱敏 PostgreSQL span、可选 Langfuse v4 exporter、Prometheus、本地评测、恢复演练和机器报告。
 
-当前文本知识与多模态客服链均可本地复现；持久 OTel/Langfuse 属于后续节点，README 不把它描述成已实现能力。
+当前文本知识、多模态、Commitment 与基础持久可观测链均可本地复现；生产级 Collector/tail-sampling 不属于本地简历版范围。
 
 ## 快速开始
 
@@ -66,9 +66,20 @@ PYTHONPATH=. .venv/bin/python scripts/run_local_vlm_e2e.py \
 
 模型名与图片 content block 以 [DeepSeek Vision 官方文档](https://api-docs.deepseek.com/guides/vision/) 为准。`VLM_ENABLED=false` 时 L2 返回 typed unavailable；L0/L1 不会调用 VLM。
 
+Langfuse 是可选 exporter，默认关闭且不影响本地持久 Trace：
+
+```env
+LANGFUSE_ENABLED=true
+LANGFUSE_PUBLIC_KEY=pk-lf-...
+LANGFUSE_SECRET_KEY=sk-lf-...
+LANGFUSE_BASE_URL=https://cloud.langfuse.com
+```
+
+应用始终先保存脱敏 PostgreSQL span；Langfuse 使用 OTel-native Python SDK，不记录完整 Prompt、工具输出或密钥。
+
 最近一次仓库验证结果：
 
-- 全量测试：`881 passed`
+- 全量测试：`884 passed`
 - Docker Compose：应用、PostgreSQL、Redis、Nginx、Prometheus 均 healthy
 - L1 E2E：真实 PNG 经 Tesseract 识别 `E42`，Technical Agent 回答且 `verified=true`，VLM 调用为零
 - L2 E2E：红框 UI 图经 OCR + `deepseek-v4-flash-vision-exp`，回答使用视觉观察且 `verified=true`
@@ -80,6 +91,7 @@ PYTHONPATH=. .venv/bin/python scripts/run_local_vlm_e2e.py \
 - [`evaluation/reports/local-e2e-v1.json`](evaluation/reports/local-e2e-v1.json)
 - [`evaluation/reports/local-vlm-e2e-v1.json`](evaluation/reports/local-vlm-e2e-v1.json)
 - [`evaluation/reports/local-commitment-e2e-v1.json`](evaluation/reports/local-commitment-e2e-v1.json)
+- [`evaluation/reports/local-trace-e2e-v1.json`](evaluation/reports/local-trace-e2e-v1.json)
 - [`evaluation/reports/local-postgres-restore-v1.json`](evaluation/reports/local-postgres-restore-v1.json)
 
 Swagger UI：<http://localhost:18000/docs>
@@ -172,6 +184,7 @@ flowchart LR
 | `GET` | `/knowledge/stats` | Knowledge 后端与 manifest |
 | `GET/POST` | `/tickets` | Handoff 工单读写 |
 | `POST/GET/PATCH` | `/commitments` | 显式创建、查询和迁移服务承诺；模型不能静默创建 |
+| `GET` | `/traces/{trace_id}` | 管理员查询脱敏后的持久 Trace |
 | `POST` | `/feedback` | 绑定真实预测的反馈 |
 | `GET` | `/metrics` | Prometheus 指标 |
 | `POST` | `/eval/run` | 本地分层评测 |
@@ -227,7 +240,7 @@ docs/             已完成的目标架构、实施计划和展示文档
 ## 边界与非目标
 
 - DeepSeek Vision 是显式启用的实验模型；关闭或不可用时 L2 fail-closed，不影响 L0/L1。
-- 当前 TraceRecorder 是进程内实现，尚未接入持久 OTel Collector/Langfuse。
+- TraceRecorder 同时保留进程内投影和 7 天脱敏 PostgreSQL Trace；Langfuse v4 需显式凭据，生产 Collector/tail sampling 不在本项目范围。
 - Ticket/Event/Outbox 已由 PostgreSQL 单路径持久化；Bad Case、ReAct checkpoint 和 Bundle metadata 仍是本地 SQLite store。
 - 评测集包含 provisional/公开数据映射，不能宣称生产准确率或 human-reviewed Gold。
 - 没有生产流量，因此不模拟 Shadow、Canary、promotion、回滚指针、双盲签署或生产 RPO/RTO。

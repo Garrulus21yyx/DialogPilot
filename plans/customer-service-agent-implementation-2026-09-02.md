@@ -28,7 +28,7 @@
 | OCR/VLM 分级调用 | done | `c0b7d96`、`ac8ee64`、`5ad83d6`、`b77a196`；L1/L2 两份真实 E2E PASS；887 tests passed |
 | Handoff PostgreSQL 收敛 | complete | Ticket/Event/Outbox 已直接绑定 PostgreSQL，SQLite writer/config/test 已删除 |
 | Commitment 最小闭环 | complete | PostgreSQL owner、显式来源、自动违约、receipt 履约、Agent read tool 与 Handoff critical 联动；HTTP E2E PASS |
-| 持久 OTel/Langfuse | pending | 当前只有 TraceId、进程内 span 与 Prometheus |
+| 基础持久 OTel/Langfuse | complete | 脱敏 PostgreSQL span、Agent/Generation/Tool 类型与 usage、可选 Langfuse v4 SDK；真实 HTTP Trace E2E PASS |
 
 ## 必须保留的核心
 
@@ -36,7 +36,7 @@
 - PostgreSQL checkpoint、幂等键、Tool receipt、ServiceEpisode、Profile、Commitment、Handoff。
 - Redis 当前会话窗口，作为 PostgreSQL 事件的可重建快速投影。
 - Knowledge / Business tools、Evidence / Coverage，以及 Agent-owned L0/L1/L2 媒体决策。
-- TraceId/Prometheus、本地崩溃恢复、确定性评测和 Demo；持久 OTel/Langfuse 待实现。
+- TraceId/Prometheus、脱敏 PostgreSQL Trace、可选 Langfuse、本地崩溃恢复、确定性评测和 Demo。
 
 ## 完成标准
 

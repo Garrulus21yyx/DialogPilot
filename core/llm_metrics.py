@@ -21,6 +21,7 @@ from core.provider_cache_policy import (
     ProviderCacheInvocation,
     ProviderCacheStatus,
 )
+from core.tracing import active_trace_recorder
 
 
 @dataclass(frozen=True)
@@ -238,7 +239,7 @@ async def create_message(
         budget_tracker.before_model_call()
     started = time.perf_counter()
     try:
-        response = await client.messages.create(**request)
+        response = await _observed_provider_call(client, request, profile, role)
     # asyncio.CancelledError 继承 BaseException；它通常代表上层超时取消，
     # 仍属于一次真实供应商调用尝试，必须进入 attempts/error 口径。
     except BaseException as exc:
@@ -298,3 +299,28 @@ async def create_message(
             ),
         ))
     return response
+
+
+async def _observed_provider_call(
+    client: Any, request: Dict[str, Any], profile: ModelProfile, role: ModelRole,
+) -> Any:
+    recorder = active_trace_recorder()
+    if recorder is None:
+        return await client.messages.create(**request)
+    with recorder.span(
+        "llm.generate",
+        kind="llm",
+        attributes={
+            "model": profile.model,
+            "model_role": role.value,
+            "reasoning": profile.reasoning.value,
+        },
+    ) as observation:
+        response = await client.messages.create(**request)
+        usage = getattr(response, "usage", None)
+        observation.set_attributes(
+            input_tokens=int(getattr(usage, "input_tokens", 0) or 0),
+            output_tokens=int(getattr(usage, "output_tokens", 0) or 0),
+            provider_request_id=str(getattr(response, "id", "") or "")[:160],
+        )
+        return response

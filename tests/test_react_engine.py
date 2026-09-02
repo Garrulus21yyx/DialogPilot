@@ -115,7 +115,11 @@ def test_react_executes_read_tool_and_pairs_result_before_final_answer():
     assert projected["result_locator"] == ""
     assert projected["authority"] == "CustomerOperations"
     assert "refunding" in projected["result_excerpt"]
-    assert len(recorder.get_trace("trace-react")) == 3  # 两个 LLM step + 一个 tool
+    spans = recorder.get_trace("trace-react")
+    assert len(spans) == 5  # 两个 Agent step、两个 generation、一个 tool
+    assert [span.kind for span in spans].count("agent") == 2
+    assert [span.kind for span in spans].count("llm") == 2
+    assert [span.kind for span in spans].count("tool") == 1
 
 
 def test_react_high_risk_call_pauses_before_second_model_step_without_side_effect():

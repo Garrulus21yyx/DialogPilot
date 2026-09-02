@@ -356,9 +356,10 @@ class ReActExecutionEngine:
             for step in range(start_step, self._max_steps + 1):
                 with self._trace_recorder.span(
                 "agent.react.step",
-                kind="llm",
+                kind="agent",
                 attributes={
                     "agent.type": agent_type,
+                    "model": self._model,
                     "react.step": step,
                     "react.max_steps": self._max_steps,
                     "tool.count": len(tools),

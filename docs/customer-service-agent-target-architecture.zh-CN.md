@@ -79,7 +79,7 @@ DialogPilot 下一阶段的目标不是把现有系统改造成一个更复杂�
 | Knowledge/RAG | [knowledge_base.py](../mcp/knowledge_base.py)、[evidence_pack.py](../mcp/evidence_pack.py) | [test_knowledge_base_retrieval.py](../tests/test_knowledge_base_retrieval.py)、[test_rag_pipeline_evaluation.py](../tests/test_rag_pipeline_evaluation.py) |
 | 发布前 Verifier | [answer_verifier.py](../services/answer_verifier.py) | [test_answer_verifier.py](../tests/test_answer_verifier.py) |
 | 受限 Bundle 候选/评测 | [proposal_generator.py](../services/evolution/proposal_generator.py)、[candidate_runner.py](../evaluation/candidate_runner.py) | [test_evolution_pipeline.py](../tests/test_evolution_pipeline.py)；当前是 GEPA-inspired 候选生成，不是完整 GEPA/在线自进化；既有 rollout 代码不属于目标运行链，直接替换完成后删除 |
-| 进程内 Trace | [tracing.py](../core/tracing.py) | [test_tool_security_trace.py](../tests/test_tool_security_trace.py)；当前不具备持久 OTel/W3C/Langfuse 服务链路 |
+| 持久 Trace / 可选 Langfuse | [tracing.py](../core/tracing.py)、[postgres_trace_sink.py](../infrastructure/postgres_trace_sink.py)、[langfuse_trace_sink.py](../infrastructure/langfuse_trace_sink.py) | [test_persistent_tracing.py](../tests/test_persistent_tracing.py)；本地持久与 AI observation 已完成，生产 Collector/W3C outbox 传播仍未实现 |
 
 该表证明组件能力存在，不证明完整 `/chat` 已具备目标架构性质；后者必须由真实主链 Eval 和故障注入验证。
 
@@ -89,7 +89,7 @@ DialogPilot 下一阶段的目标不是把现有系统改造成一个更复杂�
 |---|---|
 | `CURRENT_ACTIVE` | `/chat` 已是调用 `ChatApplication.handle()` 的薄 HTTP adapter；Application 内部调用现有 AgentOrchestrator/TaskGraph/ReAct、已接入的 TaskFormation/KnowledgeRetriever 接口，以及仍由 Chroma/Redis 提供候选或记忆的兼容实现 |
 | `IMPLEMENTED_NOT_BOUND` | PostgreSQL/Alembic、Conversation/Admission/Publication/Delivery contracts、canonical Route/Authority、KnowledgeRetriever 的 PostgreSQL retrieval backend，以及 ThreadSummary/ContextPolicy/ActiveCase/ServiceEpisode 的目标存储/投影已有实现或测试；这些目标 binding 尚未全部激活 |
-| `PLANNED` | LangGraph runtime、完整 Profile/ServiceContinuity、OTel+Langfuse 与最终服务链评测仍需完成；Commitment 与多模态本地闭环已实现 |
+| `PLANNED` | LangGraph runtime、完整 Profile/ServiceContinuity、生产 Collector/W3C outbox 传播与最终服务链评测仍需完成；Commitment、多模态和基础持久 Trace 已实现 |
 | `SUPERSEDED_TO_REMOVE` | 当前分支里已经写出的旧数据迁移、双路径比较、流量试运行和运行时回退辅助代码；它们保留实施历史，但不属于目标架构，直接切换完成时删除 |
 
 因此本文描述的是从当前分支继续完成并直接替换的目标，不宣称新链已经全部启用，也不把已实现能力倒写成待开发。

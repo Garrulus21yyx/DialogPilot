@@ -2237,6 +2237,7 @@ Rubric 支持：
 - 规模：L
 - Owner：Platform + Evaluation
 - Build prerequisite：M0-T02、M1-T04A、M3-T03
+- 目标能力状态：`PARTIAL`（本地简历范围已实现 PostgreSQL 脱敏 Trace、正确 AI observation 类型与可选 Langfuse v4；生产 Collector/W3C/outbox link 不在本轮范围）
 
 采用一个全局 `TracerProvider`、W3C context 与 Collector fan-out。Span/observation 至少包含：
 

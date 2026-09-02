@@ -3,18 +3,21 @@
 from __future__ import annotations
 
 from collections import deque
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 from contextvars import ContextVar
 from dataclasses import asdict, dataclass, field
 import threading
 import time
 import uuid
 import re
-from typing import Any, Deque, Dict, Iterator, List, Optional
+from typing import Any, Deque, Dict, Iterator, List, Optional, Protocol
 
 
 _trace_id: ContextVar[str] = ContextVar("dialogpilot_trace_id", default="")
 _span_id: ContextVar[str] = ContextVar("dialogpilot_span_id", default="")
+_active_recorder: ContextVar[Optional["TraceRecorder"]] = ContextVar(
+    "dialogpilot_trace_recorder", default=None,
+)
 
 
 def current_trace_id() -> str:
@@ -25,6 +28,10 @@ def current_trace_id() -> str:
 def current_span_id() -> str:
     """返回当前 SpanId，供子 Span 建立父子关系。"""
     return _span_id.get()
+
+
+def active_trace_recorder() -> Optional["TraceRecorder"]:
+    return _active_recorder.get()
 
 
 @contextmanager
@@ -60,6 +67,30 @@ class SpanRecord:
         return asdict(self)
 
 
+@dataclass
+class SpanHandle:
+    """Mutable in-flight span state shared with persistence/export sinks."""
+
+    trace_id: str
+    span_id: str
+    parent_span_id: str
+    name: str
+    kind: str
+    started_at: float
+    attributes: Dict[str, Any]
+    status: str = "ok"
+    error_type: str = ""
+    duration_ms: float = 0.0
+
+    def set_attributes(self, **attributes: Any) -> None:
+        self.attributes.update(attributes)
+
+
+class TraceSink(Protocol):
+    def span(self, handle: SpanHandle): ...
+    def close(self) -> None: ...
+
+
 class TraceRecorder:
     """进程内有界 Trace Owner；生产环境可在同一接口后替换 OTel exporter。"""
 
@@ -68,6 +99,22 @@ class TraceRecorder:
             raise ValueError("max_spans must be positive")
         self._records: Deque[SpanRecord] = deque(maxlen=int(max_spans))
         self._lock = threading.RLock()
+        self._sinks: list[TraceSink] = []
+
+    def configure_sinks(self, sinks: List[TraceSink]) -> None:
+        """Replace export sinks at lifespan startup; local ring remains available."""
+        with self._lock:
+            self._sinks = list(sinks)
+
+    def close(self) -> None:
+        with self._lock:
+            sinks, self._sinks = self._sinks, []
+        for sink in sinks:
+            try:
+                sink.close()
+            except Exception:
+                # Telemetry must never break application shutdown.
+                pass
 
     @contextmanager
     def span(
@@ -76,38 +123,56 @@ class TraceRecorder:
         *,
         kind: str = "internal",
         attributes: Optional[Dict[str, Any]] = None,
-    ) -> Iterator[str]:
+    ) -> Iterator[SpanHandle]:
         """记录一个 Span，并在异常路径同样产生 error 终态。"""
         trace_id = current_trace_id() or uuid.uuid4().hex
         span_id = uuid.uuid4().hex[:16]
         parent_span_id = current_span_id()
         token = _span_id.set(span_id)
+        recorder_token = _active_recorder.set(self)
         started_at = time.time()
         started_monotonic = time.monotonic()
-        status = "ok"
-        error_type = ""
-        try:
-            yield span_id
-        except BaseException as exc:
-            status = "error"
-            error_type = type(exc).__name__
-            raise
-        finally:
-            record = SpanRecord(
-                trace_id=trace_id,
-                span_id=span_id,
-                parent_span_id=parent_span_id,
-                name=str(name)[:160],
-                kind=str(kind)[:40],
-                status=status,
-                started_at=started_at,
-                duration_ms=round((time.monotonic() - started_monotonic) * 1000, 3),
-                attributes=self._sanitize_attributes(attributes or {}),
-                error_type=error_type,
-            )
+        handle = SpanHandle(
+            trace_id=trace_id, span_id=span_id, parent_span_id=parent_span_id,
+            name=str(name)[:160], kind=str(kind)[:40], started_at=started_at,
+            attributes=self._sanitize_attributes(attributes or {}),
+        )
+        with ExitStack() as stack:
             with self._lock:
-                self._records.append(record)
-            _span_id.reset(token)
+                sinks = tuple(self._sinks)
+            for sink in sinks:
+                try:
+                    stack.enter_context(sink.span(handle))
+                except Exception:
+                    # An unavailable exporter cannot alter the Agent outcome.
+                    continue
+            try:
+                yield handle
+            except BaseException as exc:
+                handle.status = "error"
+                handle.error_type = type(exc).__name__
+                raise
+            finally:
+                handle.duration_ms = round(
+                    (time.monotonic() - started_monotonic) * 1000, 3,
+                )
+                handle.attributes = self._sanitize_attributes(handle.attributes)
+                record = SpanRecord(
+                    trace_id=trace_id,
+                    span_id=span_id,
+                    parent_span_id=parent_span_id,
+                    name=handle.name,
+                    kind=handle.kind,
+                    status=handle.status,
+                    started_at=started_at,
+                    duration_ms=handle.duration_ms,
+                    attributes=handle.attributes,
+                    error_type=handle.error_type,
+                )
+                with self._lock:
+                    self._records.append(record)
+                _span_id.reset(token)
+                _active_recorder.reset(recorder_token)
 
     def get_trace(self, trace_id: str) -> List[SpanRecord]:
         """按开始时间返回一个请求的全部已闭合 Span。"""

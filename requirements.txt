@@ -21,6 +21,7 @@ alembic==1.19.1            # 唯一 PostgreSQL schema migration owner
 
 # ── 监控 ──────────────────────────────────────────────────────────────────────
 prometheus-client==0.21.1
+langfuse==4.15.1           # 可选 OTel-native LLM trace exporter；未配置凭据时禁用
 
 # ── HTTP 客户端 ───────────────────────────────────────────────────────────────
 httpx==0.28.1              # monitor/performance_monitor.py webhook 告警

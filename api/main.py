@@ -151,6 +151,7 @@ _conversation_query = None
 _media_asset_store = None
 _media_asset_service = None
 _vlm_provider = None
+_postgres_trace_sink = None
 _durable_chat_coordinator = None
 _durable_chat_task = None
 _durable_chat_stop = None
@@ -204,7 +205,7 @@ def _anthropic_cfg() -> Dict[str, Any]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """按依赖顺序创建所有组件，并在退出时释放后台任务和连接。"""
-    global _orchestrator, _memory, _knowledge_store, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _commitment_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator, _bundle_resolver, _grounded_answer_generator, _postgres_pool, _conversation_query, _knowledge_retriever, _retrieval_cache_client, _durable_chat_coordinator, _durable_chat_task, _durable_chat_stop, _retrieval_postgres_pool, _service_episode_search, _media_asset_store, _media_asset_service, _vlm_provider
+    global _orchestrator, _memory, _knowledge_store, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _commitment_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator, _bundle_resolver, _grounded_answer_generator, _postgres_pool, _conversation_query, _knowledge_retriever, _retrieval_cache_client, _durable_chat_coordinator, _durable_chat_task, _durable_chat_stop, _retrieval_postgres_pool, _service_episode_search, _media_asset_store, _media_asset_service, _vlm_provider, _postgres_trace_sink
 
     print(BANNER, flush=True)
 
@@ -334,6 +335,27 @@ async def lifespan(app: FastAPI):
         PostgresMigrationRunner(database_url).upgrade()
         _postgres_pool = PostgresPool(PostgresPoolConfig.from_env())
         _postgres_pool.open()
+        from infrastructure.postgres_trace_sink import PostgresTraceSink
+
+        _postgres_trace_sink = PostgresTraceSink(
+            _postgres_pool,
+            retention_days=int(os.getenv("TRACE_RETENTION_DAYS", "7")),
+        )
+        trace_sinks = [_postgres_trace_sink]
+        if os.getenv("LANGFUSE_ENABLED", "false").strip().lower() in {
+            "1", "true", "yes", "on",
+        }:
+            if not os.getenv("LANGFUSE_PUBLIC_KEY") or not os.getenv(
+                "LANGFUSE_SECRET_KEY"
+            ):
+                raise RuntimeError(
+                    "LANGFUSE_ENABLED requires LANGFUSE_PUBLIC_KEY and "
+                    "LANGFUSE_SECRET_KEY"
+                )
+            from infrastructure.langfuse_trace_sink import LangfuseTraceSink
+
+            trace_sinks.append(LangfuseTraceSink())
+        _trace_recorder.configure_sinks(trace_sinks)
         from infrastructure.postgres_ticket_service import PostgresTicketService
 
         _ticket_service = PostgresTicketService(
@@ -756,6 +778,7 @@ async def lifespan(app: FastAPI):
             await asyncio.to_thread(_retrieval_cache_client.close)
         if _retrieval_postgres_pool is not None:
             _retrieval_postgres_pool.close()
+        _trace_recorder.close()
         if _postgres_pool is not None:
             _postgres_pool.close()
         # lifespan 结束后不留下指向已关闭资源的进程全局引用。
@@ -786,6 +809,7 @@ async def lifespan(app: FastAPI):
         _media_asset_store = None
         _media_asset_service = None
         _vlm_provider = None
+        _postgres_trace_sink = None
         _knowledge_retriever = None
         _retrieval_cache_client = None
         _durable_chat_coordinator = None
@@ -828,6 +852,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.get("/traces/{trace_id}", tags=["可观测性"])
+async def get_persisted_trace(
+    trace_id: str,
+    _principal: Principal = Depends(_admin_principal),
+):
+    """Read sanitized local spans; raw prompts, tool outputs and secrets are absent."""
+    if _postgres_trace_sink is None:
+        raise HTTPException(503, "持久 Trace 服务未就绪")
+    spans = await asyncio.to_thread(_postgres_trace_sink.get_trace, trace_id)
+    if not spans:
+        raise HTTPException(404, {"error": "trace_not_found"})
+    return {"trace_id": trace_id, "spans": spans, "count": len(spans)}
 
 
 # ── 请求/响应模型 ─────────────────────────────────────────────────────────────
@@ -1150,6 +1188,12 @@ async def health():
         "memory_fact_jobs": _memory.fact_job_stats if _memory is not None else {},
         "response_delivery": _response_delivery.stats() if _response_delivery is not None else {},
         "ticket_outbox": _ticket_service.outbox_stats() if _ticket_service is not None else {},
+        "observability": {
+            "postgres_trace_persistence": _postgres_trace_sink is not None,
+            "langfuse_enabled": os.getenv(
+                "LANGFUSE_ENABLED", "false",
+            ).strip().lower() in {"1", "true", "yes", "on"},
+        },
     }
 
 

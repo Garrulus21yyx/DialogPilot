@@ -138,10 +138,11 @@ Redis 投影失败不会改写 PostgreSQL 事实；后台 outbox 会重试。删
 
 - HTTP 与内部边界传播 TraceId。
 - Prometheus 暴露 Agent、Tool 和健康指标。
-- TraceRecorder 当前为进程内存，不是持久 OTel backend。
+- TraceRecorder 保留进程内快速投影，同时把脱敏 span 写入 PostgreSQL；配置凭据后通过 OTel-native Langfuse v4 SDK 导出 Agent/Generation/Tool/Guardrail。
 - `/eval/run` 和离线脚本生成确定性报告；provisional 数据不包装为 Gold。
 - `scripts/run_local_e2e.py` 验证健康、Knowledge 后端和真实鉴权对话。
 - `scripts/run_local_vlm_e2e.py` 验证真实 DeepSeek Vision L2 与回答消费。
+- `scripts/run_local_trace_e2e.py` 验证 HTTP span 跨进程内存后仍可从 PostgreSQL 查询。
 - `scripts/rehearse_x_t01_restore.py` 验证空库 schema 的本地 dump/restore。
 
 ## 已删除的旧路径
@@ -161,7 +162,7 @@ Redis 投影失败不会改写 PostgreSQL 事实；后台 outbox 会重试。删
 
 ## 尚未实现
 
-- 持久 OpenTelemetry Collector、Tempo/Jaeger 或 Langfuse。
+- 生产级 OpenTelemetry Collector、Tempo/Jaeger fan-out 与 tail sampling；本地 PostgreSQL Trace 和可选 Langfuse 已实现。
 - BadCase/ReAct metadata 的 PostgreSQL 最终收敛；Ticket 与 Commitment 已完成。
 - human-reviewed Gold 和未消费的 fresh heldout。
 
