@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 from enum import Enum
+import hashlib
+import json
 import time
 from typing import Any, Dict, Iterable, Tuple
 
@@ -39,6 +41,42 @@ class TaskEffect(str, Enum):
 
 
 @dataclass(frozen=True)
+class DependencyInput:
+    """Typed upstream artifact that a dependent task must actually consume."""
+
+    upstream_task_id: str
+    artifact_kind: str
+    receipt_schema: str
+
+    def __post_init__(self) -> None:
+        if any(not str(value).strip() for value in (
+            self.upstream_task_id, self.artifact_kind, self.receipt_schema,
+        )):
+            raise ValueError("dependency input identity is required")
+
+
+@dataclass(frozen=True)
+class PriorOutcomeBinding:
+    """Read-only prior outcome input for a future dependency-closed delta plan."""
+
+    task_id: str
+    requirement_ids: Tuple[str, ...]
+    artifact_refs: Tuple[str, ...]
+    evidence_receipt_refs: Tuple[str, ...]
+    producer_version: str
+
+    def __post_init__(self) -> None:
+        if not self.task_id.strip() or not self.producer_version.strip():
+            raise ValueError("prior outcome identity/version is required")
+        if not self.requirement_ids:
+            raise ValueError("prior outcome must bind requirements")
+        if any(not item.strip() for item in (
+            *self.requirement_ids, *self.artifact_refs, *self.evidence_receipt_refs,
+        )):
+            raise ValueError("prior outcome references must not be blank")
+
+
+@dataclass(frozen=True)
 class TaskSpec:
     """一个有 Owner、证据、上下文范围和依赖的可验收子任务。"""
 
@@ -52,6 +90,13 @@ class TaskSpec:
     context_refs: Tuple[str, ...] = field(default_factory=tuple)
     depends_on: Tuple[str, ...] = field(default_factory=tuple)
     effect: TaskEffect = TaskEffect.READ_ONLY
+    requirement_ids: Tuple[str, ...] = field(default_factory=tuple)
+    dependency_inputs: Tuple[DependencyInput, ...] = field(default_factory=tuple)
+    permission_scope: str = "authenticated_user"
+    interrupt_boundary: str = "request"
+    may_interrupt: bool = False
+    split_reasons: Tuple[str, ...] = field(default_factory=tuple)
+    deterministic_assembly: bool = False
 
     def __post_init__(self) -> None:
         """拒绝无法追踪或无法执行的空任务。"""
@@ -65,6 +110,22 @@ class TaskSpec:
             raise ValueError("task dependencies must be unique")
         if any(not str(item).strip() for item in self.depends_on):
             raise ValueError("task dependencies must not be empty")
+        if any(not str(item).strip() for item in self.requirement_ids):
+            raise ValueError("task requirements must not be empty")
+        if len(self.requirement_ids) != len(set(self.requirement_ids)):
+            raise ValueError("task requirements must be unique")
+        if not self.permission_scope.strip() or not self.interrupt_boundary.strip():
+            raise ValueError("task permission/interrupt boundary is required")
+        if len(self.dependency_inputs) != len(set(self.dependency_inputs)):
+            raise ValueError("dependency inputs must be unique")
+        undeclared = {
+            item.upstream_task_id for item in self.dependency_inputs
+            if item.upstream_task_id not in self.depends_on
+        }
+        if undeclared:
+            raise ValueError(
+                f"dependency inputs reference undeclared tasks: {sorted(undeclared)}"
+            )
 
     @property
     def scoped_input(self) -> str:
@@ -81,6 +142,9 @@ class TaskSpec:
         data["evidence_spans"] = list(self.evidence_spans)
         data["context_refs"] = list(self.context_refs)
         data["depends_on"] = list(self.depends_on)
+        data["requirement_ids"] = list(self.requirement_ids)
+        data["dependency_inputs"] = [asdict(item) for item in self.dependency_inputs]
+        data["split_reasons"] = list(self.split_reasons)
         return data
 
 
@@ -92,6 +156,10 @@ class TaskGraph:
     primary_task_id: str
     reason: str = ""
     confidence: float = 0.0
+    formation_policy_version: str = "legacy-task-formation-v1"
+    execution_policy_version: str = "legacy-multi-agent-execution-v1"
+    synthesis_policy_version: str = "legacy-synthesis-invocation-v1"
+    pinned_config_ref: str = "legacy-unpinned"
 
     def __post_init__(self) -> None:
         """在执行前关闭重复 ID、悬空依赖和有向环。"""
@@ -113,6 +181,25 @@ class TaskGraph:
             raise ValueError(f"task graph contains dangling dependencies: {dangling}")
         # 执行一次拓扑分层，在调用任何 Worker 前拒绝环。
         self.execution_waves()
+        if any(not value.strip() for value in (
+            self.formation_policy_version, self.execution_policy_version,
+            self.synthesis_policy_version, self.pinned_config_ref,
+        )):
+            raise ValueError("task graph policy versions must be pinned")
+        if self.formation_policy_version != "legacy-task-formation-v1":
+            missing_inputs = {
+                dependency
+                for task in self.tasks
+                for dependency in task.depends_on
+                if not any(
+                    item.upstream_task_id == dependency
+                    for item in task.dependency_inputs
+                )
+            }
+            if missing_inputs:
+                raise ValueError(
+                    f"versioned task dependencies lack typed inputs: {sorted(missing_inputs)}"
+                )
 
     @property
     def primary_task(self) -> TaskSpec:
@@ -148,6 +235,23 @@ class TaskGraph:
     def multi_agent(self) -> bool:
         """只有多个不同 Owner 时才属于多 Agent fan-out。"""
         return len(self.agent_types) > 1
+
+    @property
+    def fingerprint(self) -> str:
+        """Bind immutable task order, dependencies and all execution policies."""
+        payload = {
+            "tasks": [task.to_dict() for task in self.tasks],
+            "primary_task_id": self.primary_task_id,
+            "reason": self.reason, "confidence": self.confidence,
+            "formation_policy_version": self.formation_policy_version,
+            "execution_policy_version": self.execution_policy_version,
+            "synthesis_policy_version": self.synthesis_policy_version,
+            "pinned_config_ref": self.pinned_config_ref,
+        }
+        return hashlib.sha256(json.dumps(
+            payload, ensure_ascii=False, sort_keys=True,
+            separators=(",", ":"), allow_nan=False,
+        ).encode("utf-8")).hexdigest()
 
     def execution_waves(
         self,
@@ -193,7 +297,12 @@ class TaskGraph:
     def to_dict(self) -> Dict[str, Any]:
         """生成可诊断且不重复建立权威的计划投影。"""
         return {
-            "graph_version": 1,
+            "graph_version": 2,
+            "plan_fingerprint": self.fingerprint,
+            "formation_policy_version": self.formation_policy_version,
+            "execution_policy_version": self.execution_policy_version,
+            "synthesis_policy_version": self.synthesis_policy_version,
+            "pinned_config_ref": self.pinned_config_ref,
             "primary_task_id": self.primary_task_id,
             "reason": self.reason,
             "confidence": self.confidence,

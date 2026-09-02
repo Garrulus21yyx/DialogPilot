@@ -35,6 +35,7 @@
 | M2-T04 Requirement CoverageGate / VerificationProfile | implemented (flag-off) | build complete；Knowledge verification waits T04A；642 tests passed |
 | M2-T04A SourceRevision v0 / active manifest | implemented (review pending) | PG owner/backfill/active validator done；independent human heldout review pending；650 tests passed |
 | M2-T05 统一 KnowledgeRetriever | implemented (canary blocked) | A1/A2/B + immutable PG dark-shadow report；675 tests passed |
+| M2-T06A Multi-Agent TaskGraph 收紧 | in_progress | A contracts/policies done；execution/dependency/signal/synthesis migration pending；684 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
@@ -652,6 +653,25 @@
   `APPLIED`、generation `READY`、active pointer count `0`；全套 `675 passed in 19.11s`，ruff/diff
   checks passed。A1/A2/B 三个 delivery artifact 已完成，M2-T05 标记 IMPLEMENTED；canary/GA
   仍由 M2-T05C 与 release profile 阻断。
+
+### M2-T06A-A（versioned TaskFormation / Execution / Synthesis contracts）
+
+- `TaskSpec` 补齐 requirement IDs、permission/interrupt boundary、`may_interrupt`、typed
+  `DependencyInput(upstream_task_id, artifact_kind, receipt_schema)`、split reason 和 deterministic
+  assembly capability；版本化 TaskGraph 对每条 dependency 强制 typed input，并将 task 原始顺序、
+  dependencies 与三项 policy/pinned config 写入 immutable plan fingerprint。
+- `TaskFormationPolicy v1` 只合并同 Owner/风险/权限/context/interrupt boundary、无独立依赖、
+  read-only 且 ReAct budget 可容纳的 requirements；write/approval、permission、interrupt、dependency
+  或不同 Owner 保持独立 Task。
+- `MultiAgentExecutionPolicy v1` 将迁移基线正名为 max planned=`4`、max executed=`3`、
+  max parallel workers=`3`、request/worker timeout=`20s/15s`、Worker ReAct=`4`；选择精确展开
+  `execution_waves()` 并保持 plan 顺序，超过 plan 安全边界返回 typed `PLAN_TOO_LARGE`，不截断。
+- `SynthesisInvocationPolicy v1` 闭合 `NONE/DIRECT/DETERMINISTIC/LLM/CONFLICT`；缺 coverage
+  不调用 synthesis，单 outcome 直接使用，可模板多 outcome 确定性组装，只有需要跨来源
+  语义组织时允许 LLM，authority conflict 始终不调用模型。
+- 验证：合并/拆分边界、typed dependency、fingerprint drift、4→3 dependency-closed replay、
+  plan overflow 和五种 synthesis 代数；聚焦 `41 passed`，全套 `684 passed in 19.19s`，
+  ruff/diff checks passed。执行器迁移尚未完成，M2-T06A 保持 in_progress。
 
 ## 下一步
 
