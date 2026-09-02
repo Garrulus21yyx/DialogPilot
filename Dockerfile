@@ -15,6 +15,7 @@ ENV PYTHONUNBUFFERED=1 \
 # curl 用于健康检查；不再需要 gcc/g++（已移除本地 ML 模型）
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
+    tesseract-ocr \
     && rm -rf /var/lib/apt/lists/*
 
 # ── 阶段 2：安装 Python 依赖 ──────────────────────────────────────────────────
