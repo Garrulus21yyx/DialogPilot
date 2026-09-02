@@ -40,7 +40,8 @@ def test_m1_membership_contains_concurrency_and_excludes_future_release_actions(
 
     assert {
         "M1-PF01", "M1-T00", "M1-T01", "M1-T02", "M1-T03", "M1-T04",
-        "M1-T05", "M1-T03A", "M1-T04A", "X-T01", "X-T02",
+        "M1-T05", "M1-T02C", "M1-T02D", "M1-T03A", "M1-T04A",
+        "M1-T04B", "X-T01", "X-T02",
     } == task_ids
     assert "M3-T09" not in task_ids
     artifact_ids = {

@@ -32,7 +32,8 @@ def build_spec(root: Path) -> GateSpec:
     )
     prerequisites = tuple(TaskRef(item) for item in (
         "M1-PF01", "M1-T00", "M1-T01", "M1-T02", "M1-T03", "M1-T04",
-        "M1-T05", "M1-T03A", "M1-T04A", "X-T01", "X-T02",
+        "M1-T05", "M1-T02C", "M1-T02D", "M1-T03A", "M1-T04A",
+        "M1-T04B", "X-T01", "X-T02",
     )) + (
         ArtifactRef(
             "M1-PRODUCTION-SNAPSHOT-RESTORE", _sha256(foundation_restore),
@@ -67,9 +68,10 @@ def build_spec(root: Path) -> GateSpec:
         ),),
         oracles=(
             "inbound-first durable turn/event/invocation/start-outbox transaction",
-            "one invocation execution binding and one response identity",
+            "one durable compatibility claim and one response identity",
+            "canonical final replay without model regeneration",
             "independent publication, delivery and read receipt lifecycle",
-            "ordered transcript/status/finalize projections and deletion fencing",
+            "ordered real Redis/Chroma effects and deletion fencing",
             "registered durable locations and explicit legacy SQLite retention",
         ),
         zero_tolerance_properties=(
@@ -91,6 +93,7 @@ def build_spec(root: Path) -> GateSpec:
         fault_injection_points=(
             "admission transaction after each durable fact",
             "start claim, stable run bind, invocation CAS and outbox ACK",
+            "compatibility lease loss before ticket/final publication and after final commit",
             "publication commit and delivery ACK/read receipt",
             "projection effect before ACK and deletion during projection",
             "PostgreSQL primary loss and stale lease owner",

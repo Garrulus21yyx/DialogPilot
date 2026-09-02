@@ -4,7 +4,7 @@
   "decided_at": "",
   "decision_id": "",
   "frozen_at": "",
-  "manifest_sha256": "067ebd7cc83dd45737d27441d45d733bf0902662441f56d14b1a21b7fa0942c9",
+  "manifest_sha256": "2628a20814f41b1d9745a8b423d7d5ab6d9446781a738ba43f396de5c1bd57d2",
   "owner_signature": null,
   "schema_version": 1,
   "spec": {
@@ -25,6 +25,7 @@
     "fault_injection_points": [
       "admission transaction after each durable fact",
       "start claim, stable run bind, invocation CAS and outbox ACK",
+      "compatibility lease loss before ticket/final publication and after final commit",
       "publication commit and delivery ACK/read receipt",
       "projection effect before ACK and deletion during projection",
       "PostgreSQL primary loss and stale lease owner",
@@ -37,9 +38,10 @@
     ],
     "oracles": [
       "inbound-first durable turn/event/invocation/start-outbox transaction",
-      "one invocation execution binding and one response identity",
+      "one durable compatibility claim and one response identity",
+      "canonical final replay without model regeneration",
       "independent publication, delivery and read receipt lifecycle",
-      "ordered transcript/status/finalize projections and deletion fencing",
+      "ordered real Redis/Chroma effects and deletion fencing",
       "registered durable locations and explicit legacy SQLite retention"
     ],
     "prerequisites": [
@@ -80,12 +82,27 @@
       },
       {
         "expected": "IMPLEMENTED",
+        "id": "M1-T02C",
+        "kind": "TaskRef"
+      },
+      {
+        "expected": "IMPLEMENTED",
+        "id": "M1-T02D",
+        "kind": "TaskRef"
+      },
+      {
+        "expected": "IMPLEMENTED",
         "id": "M1-T03A",
         "kind": "TaskRef"
       },
       {
         "expected": "IMPLEMENTED",
         "id": "M1-T04A",
+        "kind": "TaskRef"
+      },
+      {
+        "expected": "IMPLEMENTED",
+        "id": "M1-T04B",
         "kind": "TaskRef"
       },
       {
@@ -146,7 +163,7 @@
       "no unregistered subject-linked durable writer"
     ]
   },
-  "spec_sha256": "b1d69c4c22b68bdfdc05f7d23524d3916127ab2d17b1748670ab9d9de6b19491",
+  "spec_sha256": "fd6a6c3f5979a0ab59ed2024985777b8467fa82c1c0f49e943c0a32b76f3abcf",
   "started_at": "",
   "state": "DRAFT"
 }

@@ -1041,16 +1041,17 @@
 ### M1 Exit readiness audit（unsigned draft）
 
 - 新增可重放 `scripts/create_m1_exit_draft.py` 与 `evaluation/gates/m1-exit/v1.yaml`，精确列出 M1-PF01、
-  T00–T05/T03A/T04A、X-T01/X-T02、production snapshot restore、ResponseDelivery cutover 与
+  T00–T05/T02C/T02D/T03A/T04A/T04B、X-T01/X-T02、production snapshot restore、ResponseDelivery cutover 与
   `M1-LEGACY-SQLITE-RETENTION`；M3/M4 release action 不被倒置成 build prerequisite。
-- T02D 已补上 Application-owned admission、sole-runner、canonical replay、Accepted/Conflict 与 lifespan
-  consumer，但默认保持 flag-off：T04B 尚未把 final publication 后的 direct Memory write 迁给 durable
-  projection adapters。因此旧审计的本地 integration gap 已缩小，不能据此把 draft gate 自动提升为 ready。
+- T02D/T04B 已补上 Application-owned admission、sole-runner、canonical replay、Accepted/Conflict、lifespan
+  consumer 与真实 Redis/Chroma projection adapters。旧 `LOCAL INTEGRATION GAP` 已关闭，但默认仍 flag-off；
+  不把 local build 自动提升为 production ready。
 - 修正 SQLite inventory 的真实 future cutover Owner：ResponseDelivery=M1-T03A、RunStore=M3-T06/T09、
   TicketService=M4-T07C；保留条件不等于提前迁移或停写。
 - [readiness audit](../governance/evidence/m1-exit/readiness-v1.md) 状态
-  `NOT_READY / DRAFT_ONLY / LOCAL INTEGRATION GAP`。聚焦 `19 passed`，全套 `828 passed in 59.24s`，
-  ruff/diff checks passed；无 owner/independent signature，不生成 evidence/decision，不解除 M2 shadow/M3 build。
+  `NOT_READY / DRAFT_ONLY / PRODUCTION EVIDENCE GAP`。无 owner/independent signature，不生成
+  evidence/decision，不启用 durable online flag，也不解除 M2 shadow/M3 build。聚焦 `51 passed`，最终全量
+  `881 passed in 63.17s`，Ruff/diff checks passed。
 
 ### M6-T01（Dataset v2 / Rubric v2）
 
