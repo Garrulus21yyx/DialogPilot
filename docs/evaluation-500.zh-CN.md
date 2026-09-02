@@ -4,159 +4,165 @@ title: 500 条分层评测：设计与运行
 permalink: /evaluation-500/
 ---
 
-# 500 条不是一个指标，而是四个可定位的质量边界
+# 500 条分层评测：覆盖四个责任边界，不制造一个总分
 
-> 本页记录 `dialogpilot-500-v1` 的 provisional 四层 fixture，其中 Retrieval 是 25 篇隔离 corpus、100 条 query、Recall@5 口径。它与后续 [Doc2Dial 客服 RAG 全链路评测](../rag-pipeline-evaluation/) 不是同一数据集：后者使用 100 文档、300 case、488 个官方 span，并继续评测 Chunk、Query、Rerank、Packing 和 Generation。两页数字不能横向拼接；当前 API 已采用 Doc2Dial Dev 选择并经小型测试冻结的检索默认，本页旧配置只保留为历史基线。
+> `dialogpilot-500-v1` 是当前实现保留的 provisional 合同数据集。它用于定位 Intent、TaskPlan、Retrieval 与 Stateful 四层问题；其中部分 heldout 已参与修复，不能被重新命名为 fresh Gold。当前 PostgreSQL RAG 的选型证据另见 [Doc2Dial 全链路评测]({{ '/rag-pipeline-evaluation/' | relative_url }})。
 
-如果把 500 条全部做成意图分类，只能回答“入口标签是否识别正确”，无法回答
-主 Agent 是否拆对任务、RAG 是否找到证据、短会话是否归档、伪造审批是否产生
-副作用。DialogPilot 因此固定采用四层、总计 500 条的评测矩阵。
+## 1. 数据矩阵
 
-| 评测层 | Dev | Heldout | 总数 | 主要指标 |
+| 评测层 | Dev | Heldout | 总数 | 权威真值 |
 |---|---:|---:|---:|---|
-| Intent / OOS | 144 | 36 | 180 | Accuracy、Macro-F1、OOS Recall |
-| TaskPlan Routing | 96 | 24 | 120 | Owner Exact、Task Exact、Jaccard、Fan-out |
-| RAG Retrieval | 80 | 20 | 100 | Recall@K、MRR、nDCG |
-| Memory + ReAct/Tool | 80 | 20 | 100 | Assertion Pass、All Assertions Pass |
-| **总计** | **400** | **100** | **500** | 分层报告，不压成一个虚假的总准确率 |
+| Intent / OOS | 144 | 36 | 180 | 意图标签与 OOS |
+| TaskPlan Routing | 96 | 24 | 120 | route、Owner、task id |
+| RAG Retrieval | 80 | 20 | 100 | relevant document ids |
+| Memory + ReAct/Tool | 80 | 20 | 100 | 状态与副作用断言 |
+| **总计** | **400** | **100** | **500** | 分层报告 |
 
-## 数据是怎么来的
+如果把 500 条都做成意图分类，只能回答入口标签问题，无法发现错误 Owner、缺失任务、越权工具、无证据发布或记忆污染。这里没有跨层“总准确率”；每层按自己的 Owner 和失败代数评分。
 
-意图层从 BANKING77 选出 7 个项目重叠标签、每类 20 条，再从 CLINC150
-选 40 条 OOS，共 180 条。它们保留原始标签、许可证和来源，只是自动映射，
-所以状态是 `auto_mapped`。
+## 2. 数据来源与审阅状态
 
-路由层由 30 个语义 family、每组 4 个改写组成。覆盖单 Owner、技术+账务、
-安全+账务、通用+技术、否定表达和人工接管。每条都明确期望 Owner 与
-`task_id`，CI 会用当前确定性 Planner 逐条核对 120 条，标签漂移会直接失败。
+- Intent 的 180 条来自 BANKING77 与 CLINC150 OOS 许可子集，状态为 `auto_mapped`。
+- 其余 320 条是项目合同场景，状态为 `provisional`。
+- 相同语义 family 共享 `group_id`，必须整体进入同一个 split，避免改写泄漏。
+- manifest 固定 case/corpus checksum、分布、来源、版本与 review policy。
+- Stateful 20 条 heldout 已用于缺陷定位，状态是 `consumed_regression_after_repair`。
+- 恢复 verified closure 仍需要未见的 fresh cases 与独立 reviewer。
 
-检索层包含 25 篇隔离评测文档，每篇对应词面、语义改写、精确实体/错误码、
-抗干扰四类 query。这样能分别暴露 BM25、向量召回、融合排序和否定干扰问题。
+因此本页的数字只能叫开发基线或机械回归，不能写成“500 条人工 Gold 的生产准确率”。
 
-Stateful 层严格一半测记忆、一半测 ReAct/工具安全。每条不只是自然语言，
-还包含结构化 `setup`、`action` 和布尔断言。当前真实 fixture 覆盖显式会话归档、
-画像合并与 ID 区分、混合召回、宿主布尔审批、零副作用、trace、超时、Coverage
-Gate 和 verifier fail-closed。它尚未证明真实空闲检测、签名 `approval_token`、
-HTTP 公共响应投影或跨用户检索，因此不再用这些更强的名字包装现有结果。
-
-## 为什么固定 400 / 100
-
-最初设计是 400 条 dev 用来调 Prompt、阈值、召回策略和模型分层，100 条
-heldout 在配置冻结后只运行一次。当前 Stateful heldout 已经参与两次缺陷定位，
-所以它的 20 条只能作为 `consumed_regression_after_repair`，不能再证明泛化。
-恢复 verified closure 前必须由未看过修复的人另写新鲜用例并独立复核。
-
-## 真正运行
+## 3. 当前分支如何生成与校验
 
 ```bash
-# 1. 验证数据合同，不调用模型
-.venv/bin/python -m evaluation.dataset data/eval/dialogpilot-500-v1
+PYTHONPATH=. .venv/bin/python scripts/build_project_eval_500.py
+PYTHONPATH=. .venv/bin/python -m evaluation.dataset \
+  data/eval/dialogpilot-500-v1
+```
 
-# 2. 启动服务后，先运行 dev 的意图与路由
+普通评分不需要下载第三方大语料；选中的样本、corpus 和 checksum 已提交。重新构建外部候选池时才需要联网，并必须保留数据许可证与来源。
+
+## 4. Intent 与 Routing
+
+服务启动后，通过同一个数据集注册表运行 Dev：
+
+```bash
 curl -sS -X POST http://localhost:18000/eval/run \
   -H "Authorization: Bearer $DIALOGPILOT_TOKEN" \
   -H 'Content-Type: application/json' \
-  -d '{"dataset_id":"dialogpilot-500-v1","split":"dev",\
-       "layers":["intent","routing"],"include_non_gold":true}'
+  -d '{
+    "dataset_id":"dialogpilot-500-v1",
+    "split":"dev",
+    "layers":["intent","routing"],
+    "include_non_gold":true
+  }'
+```
 
-# 3. Stateful fixture 调用真实组件并自动评分
-.venv/bin/python -m evaluation.stateful_runner \
+`include_non_gold=true` 是对当前 review 状态的显式承认，不是放宽通过标准。
+
+Routing 的确定性真值是 route mode、Owner 和 task id。它不执行 Worker、工具、Coverage 或 Verifier，因此 `routing passed` 不能推导为完整服务链通过。
+
+## 5. Stateful fixture
+
+```bash
+TEST_DATABASE_URL=postgresql://dialogpilot:dialogpilot-local@localhost:15432/dialogpilot \
+PYTHONPATH=. .venv/bin/python -m evaluation.stateful_runner \
   data/eval/dialogpilot-500-v1 --split dev \
   --predictions artifacts/eval/stateful-dev-predictions.jsonl \
   --report artifacts/eval/stateful-dev-report.json
-
-# 4. 在临时 embedded Chroma 中装载版本化 corpus，执行生产 KnowledgeBase
-.venv/bin/python -m evaluation.retrieval_runner \
-  data/eval/dialogpilot-500-v1 --split dev --top-k 5 \
-  --predictions artifacts/eval/retrieval-dev.predictions.jsonl \
-  --report artifacts/eval/retrieval-dev.report.json
-
-# 5. 只在 dev 上比较 vector / BM25 / RRF；heldout 只做冻结配置回归
-.venv/bin/python -m evaluation.retrieval_ablation \
-  data/eval/dialogpilot-500-v1 --split dev --top-k 5 \
-  --output artifacts/eval/retrieval-ablation-dev.json
 ```
 
-当前 180 条外部样本是 `auto_mapped`，320 条项目样本是 `provisional`。
-因此当前结果只能叫“候选集回归结果”；完成人工复核并留下 reviewer、时间和
-notes 后，才可以叫 gold heldout 结果。
+执行器只把冻结的 `FixtureRequest(case_id, scenario, message)` 交给 actual producer，类型上不暴露 `expected`。fixture 调用真实 Memory、Context、ToolManager、ReAct、Coverage、Verifier 和 PostgreSQL Ticket Owner；未注册 action、异常、缺少探针或非布尔观测都会显式失败。
 
-目前服务端可以直接运行 Intent 与 Routing。Stateful 的 100 条已经全部绑定
-真实 fixture，当前机械回归为 Dev 80/80、已消费 Heldout 20/20。针对审查指出的
-7 条假阳性，Owner 变异测试会在 `MemoryManager.get_context`、`ServiceEpisodeMemorySearch.search`、`_fallback_summary`、
-`finalize_conversation` 或 `ContextAssembler.assemble` 被破坏时强制失败。
+这关闭了“fixture 读取 expected 后制造通过”的 harness 缺口，但仍不把固定 fixture 等同于真实服务链或未见泛化。
 
-Reviewer B 进一步证明：只靠约定 fixture “不读取 expected”仍可绕过，因为旧接口
-把完整 `EvalCase` 交给 actual 生产者。现在 fixture 只接收递归冻结的
-`FixtureRequest(case_id, scenario, message)`，类型上不存在 `expected`；故意复制
-`request.expected` 的攻击会在评分前以 `AttributeError` 失败。Reviewer B 新写的
-27 条 fresh-v2 action 也已全部注册并执行，结果为 27/27。由于这些用例已经被本轮
-开发者读取并用于修复，它们现称 `consumed fresh-v2 regression`，不能继续叫未见
-holdout；恢复 verified closure 仍需另一位 reviewer 封存新用例。
+## 6. Retrieval 层的当前定位
 
-工具状态机也拆开了“调用终态”和“业务副作用事实”：timeout 返回显式 `timeout`，
-外部取消留下唯一 `cancelled` 审计；对于 manager 无法观察事务提交的写调用，审计
-记录 `outcome_unknown`，不再把超时误写成零副作用。模型参数中的 `approved` 与
-`approval_token` 会在 handler 前移除，只有宿主参数能批准调用。仅含 Unicode
-空白或 `U+200B/U+FEFF` 的记忆 query 会在访问 Chroma 前短路。
+`dialogpilot-500-v1` 的 Retrieval 是 25 篇隔离 corpus、100 条 query 的早期开发基线。它记录过 vector/BM25/RRF 的历史比较，但当前分支已删除 Chroma `KnowledgeBase`、`evaluation.retrieval_runner` 和旧 retrieval ablation 运行时，在线唯一 Owner 已迁移到 PostgreSQL SourceRevision + pgvector + 中文 FTS。
 
-Retrieval producer 现已接线：它把 25 篇 corpus 装入临时 embedded Chroma，调用
-生产 `KnowledgeBase` 并输出证据 ID。固定索引和 80 条 dev 的消融结果是：
-vector-only Recall@5 0.6125 / MRR 0.4852；旧 0.30/0.70 RRF 为 0.9125 / 0.7479；
-BM25-only 为 **0.9500 / 0.8575**，因此该旧 fixture 当时选择 BM25-only。后来独立
-Doc2Dial 全链路实验已取代它作为当前知识 RAG 默认的选型依据；本节只保留历史证据。
-冻结配置在已消费的
-20 条 regression 上得到 Recall@5 0.9500、MRR 0.8058、nDCG@5 0.8409。
+因此：
 
-Reviewer B 随后用多 chunk 文档发现父 `document_id` 被过早当成候选 ID，可能
-组合不同 chunk 的内容与 metadata。当时修到 360/48；当前生产合同已继续迁移为
-fixed 512/64、index v4，唯一 `chunk_id` 贯穿向量、BM25、RRF、重排、packing 和引用。
+- 不再发布已删除模块的“当前运行命令”；
+- 旧 Retrieval case 仍可用于数据合同、离线 scorer 和历史对照；
+- 当前在线 RAG 参数与发布资格必须由 Doc2Dial 分层实验、PostgreSQL Owner 测试和真实 `/chat` E2E 共同证明；
+- 需要重新激活这 100 条时，应为 `HybridRetrievalBackend` 实现新的 producer，而不是复活 Chroma。
 
-两次复核暴露的是同一个验收缺口。第一次发现 HTML 转义会扩大 section；第二次
-发现 section 分隔符未计费，且二次预算返还重复计算容量。现在预算唯一事实是
-最终拼接文本；历史确定后 section 上限严格等于剩余容量，强制当前轮次本身放不下
-时返回 `ContextBudgetExceededError`。CI 固定种子 3000 组组合测试覆盖描述属性、
-多 section、转义和历史；同种生成合同本地扩大到 20000 组，19405 组成功装配、
-595 组得到预期有类型拒绝，预算违规为 0。
+## 7. 从 500 条到 Service-chain v2
 
-## 2026-08-30 收敛运行结果
+四层 fixture 暴露了覆盖缺口，但还不能表达完整客服生命周期。当前分支新增 Service-chain v2，将一次请求拆成 11 个可审计层：
 
-| 层 | 结果 | 与旧实现的区别 |
-|---|---:|---|
-| Intent | 170/180，Accuracy 0.9444 | 标签定义成为单一业务合同；旧基线 120/180 |
-| Intent dev | 136/144，Macro-F1 0.8361 | 可用于本轮 prompt/规则开发 |
-| Intent consumed regression | 34/36，Macro-F1 0.9504 | 已被查看，不能再叫 fresh heldout |
-| Fast Routing | 120/120 | 直接调用 Planner；P50 0.051ms、P95 0.082ms、LLM 0 调用 |
-| Retrieval dev | Recall@5 0.9500、MRR 0.8575 | dev 消融选择 BM25-only |
-| Retrieval consumed regression | Recall@5 0.9500、MRR 0.8058 | 冻结配置验证，不反向选型 |
-| Stateful | Dev 80/80、consumed regression 20/20 | 仍只代表当前 fixture 的机械合同 |
+```text
+perception → route_mode → context_memory → retrieval
+→ tool_authority → tool_effect → generation_claims
+→ publication → handoff → delivery_feedback → service_outcome
+```
 
-Intent 剩余 10 条不是继续堆关键词就能诚实解决：其中“陌生扣款”在业务上像
-`account_security`，公开数据映射却期望 `payment_issue`；“新卡被拒”又落在
-`payment_issue` 与 `technical` 边界。这些样本已列为标签仲裁项，不通过改 gold
-或写 case-id 分支制造 100%。
+每条 case 固定 required/forbidden layer、Owner、工具参数子集、receipt 字段、task owner/dependency、parallel wave、claim-evidence、状态迁移、publication/effect 上限和零容忍安全标志。
 
-Routing 的 120/120 只证明给定 gold intent/entities 时，确定性 Planner 生成了正确
-Owner 和 task_id。它不执行 Worker、工具、Synthesizer 或 Verifier，也不再用
-`coverage_complete` 冒充尚未发生的执行完成度。完整执行质量必须单独跑
-Full Execution Eval。
+`ChatApplicationRunner` 调用与服务相同的 `ChatApplication`，并采集 typed stages 与 Owner state。grader 在执行后比较 rubric；可选 semantic scorer 不能覆盖确定性失败。
 
-这套做法与 Anthropic 对 agent eval 中 task、trial、grader、transcript、outcome
-和 harness 的区分一致：确定性 grader 要检查权威 outcome 与实际 trace，不能只
-检查一个叫“通过”的字段。重复查看过的 heldout 也应降级为回归证据，而不是继续
-声称未见泛化（[Anthropic agent eval 指南](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents)、
-[holdout 污染研究](https://arxiv.org/abs/2407.01502)）。
+当前合同测试入口：
 
-## 面试追问
+```bash
+PYTHONPATH=. .venv/bin/pytest -q \
+  tests/test_service_chain_eval_v2.py \
+  tests/test_chat_application_runner.py \
+  tests/test_behavior_baseline.py
+```
 
-**为什么不让 LLM Judge 判断所有层？**  
-Owner、task_id、证据 ID 和副作用都有确定性真值。让另一个模型
-判断会引入方差，也会掩盖安全错误。LLM Judge 只适合回答质量等主观维度。
+## 8. 选择、回归与 fresh evidence
 
-**为什么 500 条不直接跑三个模型？**  
-数据覆盖与模型选型是两个正交维度。先用小型消融确认候选配置，再在 400 条
-dev 上分层比较；配置冻结后只跑一次新鲜 heldout，才能避免反复看考试答案。
+正确流程：
 
-**最重要的门禁是什么？**  
-不是平均分，而是 OOS、用户过滤、未审批工具零副作用、必需任务覆盖等关键
-切片必须单独过线。平均数不能抵消一次越权调用。
+1. 在 Dev 上定位层与 slice；
+2. 建立根因、Owner 和正向合同；
+3. 用状态机/属性/集成测试修复整个因果面；
+4. 固定候选、数据、代码和环境 fingerprint；
+5. 在未参与开发的 fresh cases 上反证；
+6. 由独立 reviewer 核对报告、实现和文档；
+7. 已读 heldout 自动降级为 regression，不重复声称泛化。
+
+一个回归示例只证明该示例。身份隔离、未审批副作用、唯一 publication、证据覆盖、ACK 单调等应使用 invariant 或状态机测试。
+
+## 9. 已记录的历史结果如何解读
+
+历史收敛运行记录包括：Intent 170/180、Fast Routing 120/120、Stateful Dev 80/80 和 consumed regression 20/20。它们属于固定版本和数据状态的证据快照，不是当前提交自动继承的承诺。
+
+Intent 的剩余分歧包含标签边界问题，例如“陌生扣款”可落在 account security 或 payment issue。正确处理是人工仲裁标签与支持范围，而不是用 case id 或更多关键词制造 100%。
+
+每次重新引用数字时必须同时写出：commit、dataset checksum、split/review 状态、配置 fingerprint、环境与生成报告。若缺少这些字段，只能称为历史描述。
+
+## 10. 零容忍门禁
+
+以下失败不能被平均分抵消：
+
+- JWT subject / tenant 越权；
+- OOS 被当作业务执行；
+- 模型伪造审批字段触发写工具；
+- 同一 operation 产生重复副作用；
+- 必需任务或 requirement 缺失却正常发布；
+- 无合法 authority 的 claim 获得 citation；
+- 同一 Invocation 出现多个权威 publication；
+- `REJECT / UNKNOWN` 被改写为普通成功；
+- projection 或 cache 反向覆盖 PostgreSQL 事实。
+
+## 11. 面试追问
+
+### Q1：为什么 500 条不直接乘三个模型？
+
+数据覆盖和模型配置是两个维度。先在 Dev 比较候选并定位分层差异，再冻结配置只使用真正 fresh 的 heldout，才能避免反复看答案。
+
+### Q2：为什么不全部交给 LLM Judge？
+
+Owner、task id、receipt、publication count 和状态迁移都有确定性真值。LLM Judge 适合人工校准后的语义质量，不应决定权限或副作用是否安全。
+
+### Q3：为什么删除 Retrieval 的旧运行命令？
+
+当前分支已删除其 Chroma producer。保留不可执行命令会把历史实现冒充当前链路；新的 producer 应接 PostgreSQL `HybridRetrievalBackend`。
+
+### Q4：500 条与 Service-chain v2 是替代关系吗？
+
+不是。500 条提供四层覆盖与历史回归，v2 扩展到真实应用边界和服务生命周期。两者的 case identity、rubric 和可证明结论不同。
+
+### Q5：最重要的评测纪律是什么？
+
+先固定事实 Owner 和 supported algebra，再让 runner 观察真实 outcome；报告必须保留失败，不能让 harness、projection 或 semantic scorer替系统完成任务。

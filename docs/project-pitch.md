@@ -1,10 +1,12 @@
 ---
 layout: default
-title: DialogPilot 项目讲述
+title: 项目讲述与技术取舍
 permalink: /project-pitch.html
 ---
 
 # DialogPilot 项目讲述
+
+> 以下表述以重构后的当前实现为准。面试中把机器报告的 commit、环境和 `scope_limit` 一起展示，不把某次测试数量当作永久项目属性。
 
 ## 30 秒版本
 
@@ -14,7 +16,7 @@ DialogPilot 是一个可恢复的多 Agent 客服后端。我把原本容易混�
 
 可使用：
 
-> 设计并实现 FastAPI 多 Agent 客服后端，以 PostgreSQL 持久化请求准入、会话事件、Knowledge/ServiceEpisode、Commitment/Handoff、附件和回答发布，以 Redis 提供可重建当前会话投影；通过 TaskGraph、受控 ReAct、工具幂等 receipt、Evidence/Coverage 和 fail-closed Verifier 实现可恢复、可追溯的客服服务链；实现 Agent 按需选择 Tesseract OCR 与 DeepSeek Vision 的 L0/L1/L2 多模态路径，并用 Docker E2E、884 项测试与本地 dump/restore 报告验证。
+> 设计并实现 FastAPI 多 Agent 客服后端，以 PostgreSQL 持久化请求准入、会话事件、Knowledge/ServiceEpisode、Commitment/Handoff、附件和回答发布，以 Redis 提供可重建当前会话投影；通过 TaskGraph、受控 ReAct、工具幂等 receipt、Evidence/Coverage 和 fail-closed Verifier 实现可恢复、可追溯的客服服务链；实现 Agent 按需选择 Tesseract OCR 与 DeepSeek Vision 的 L0/L1/L2 多模态路径，并用状态机/集成测试、真实 JWT Docker E2E 与本地 dump/restore 报告验证。
 
 不要使用：
 
@@ -84,3 +86,10 @@ PYTHONPATH=. .venv/bin/python scripts/run_local_vlm_e2e.py \
 ## 当前边界
 
 这是本地作品集系统，不声称有生产流量、生产 RPO/RTO 或组织级发布治理。Commitment/Handoff 与基础持久可观测均已完成：默认 PostgreSQL Trace 可查询，配置凭据可发送到 OTel-native Langfuse v4；不模拟生产 Collector 治理。
+
+## 证据索引
+
+- 主链与 Owner：[完整架构教程]({{ '/' | relative_url }})、[架构边界]({{ '/architecture.html' | relative_url }})。
+- 评测：[500 条分层评测]({{ '/evaluation-500/' | relative_url }})、[RAG 全链路评测]({{ '/rag-pipeline-evaluation/' | relative_url }})。
+- 生产责任缺口：[RAG 生产化审计]({{ '/customer-service-rag-production-audit/' | relative_url }})。
+- 机器报告：[`local-e2e-v1.json`](../evaluation/reports/local-e2e-v1.json)、[`local-vlm-e2e-v1.json`](../evaluation/reports/local-vlm-e2e-v1.json)、[`local-postgres-restore-v1.json`](../evaluation/reports/local-postgres-restore-v1.json)。

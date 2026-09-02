@@ -4,32 +4,37 @@ title: 客服 RAG 全链路评测
 permalink: /rag-pipeline-evaluation/
 ---
 
-# DialogPilot 客服 RAG 全链路评测
+# 客服 RAG 全链路评测：选择默认值，也保留失败实验
 
-> 本页保存 Doc2Dial 上选择检索配置与 grounded v3/v4 的历史实验依据。当前仓库以 PostgreSQL SourceRevision、唯一 ACTIVE generation 与 EvidencePack 为在线边界，并用局部 PydanticAI ToolOutput 约束 rerank permutation 与 grounded v5；rerank 使用短别名后再映射回 stable chunk ID。
+> 本页区分两类事实：Doc2Dial 历史实验回答“为什么选择当前默认”，当前分支的 PostgreSQL Owner 测试与本地 `/chat` 报告回答“重构后链路是否仍满足合同”。已删除的旧 ablation 模块不再作为可运行入口。
 
-## 1. 目标与边界
+## 1. 评测对象
 
-本评测把 source document 与 evidence span 作为权威事实，逐层区分：
+RAG 不是一个 Recall 指标，而是一条有损数据流：
 
-```text
-文档解析/Chunk → Query 变换 → BM25/Dense → RRF → Rerank
-→ Context Packing → Generation/Citation
+```mermaid
+flowchart LR
+    D[Source document + official span] --> C[Chunk]
+    Q[User turn + history] --> X[Raw / Standalone]
+    C --> R[Dense + Lexical + RRF]
+    X --> R
+    R --> K[Rerank / Select]
+    K --> P[Context Packing]
+    P --> G[Grounded Generation]
+    G --> V[Citation / Claim / Coverage / Verifier]
 ```
 
-Chunk ID、检索排名、最终回答都是投影，不能替代原文 `document_id + [start_char, end_char)`。
-配置只能在 Dev 上选择；Heldout 只报告，评测代码不会给出推荐配置。
+每层都单独报告输入、输出和损失，避免 Generation 的流畅文字掩盖检索失败，也避免候选 Recall 掩盖 packing 后证据丢失。
 
-## 2. 小规模真实客服数据
+## 2. 数据与 split
 
-使用官方 Doc2Dial v1.0.1 的确定性子集：
+历史实验使用官方 Doc2Dial v1.0.1 的确定性小子集：
 
-- 100 篇文档；
-- 300 个用户问题/客服回答 turn；
-- 4 个服务领域均衡抽取；
-- 488 个官方 grounding span；
-- 相关文档之外补入确定性 distractor；
-- 不在仓库提交第三方大语料，生成物位于 `artifacts/eval/`。
+- Dev：最多 100 文档、300 case、四个服务领域、488 个官方 grounding span；
+- Heldout snapshot：官方 test split 的 40 文档、48 case；
+- 相关文档之外加入确定性 distractor；
+- 原始第三方大语料不提交，生成物在 `artifacts/eval/`；
+- group 按 dialogue 固定，避免同一对话泄漏到选择与验证两侧。
 
 ```bash
 PYTHONPATH=. .venv/bin/python scripts/build_doc2dial_rag_subset.py \
@@ -37,9 +42,11 @@ PYTHONPATH=. .venv/bin/python scripts/build_doc2dial_rag_subset.py \
   --split dev --max-documents 100 --max-cases 300
 ```
 
-## 3. Chunk 选择
+Dev 可以选择配置；Heldout 只能报告冻结配置。被用于修复的 heldout 会降级为 consumed regression。
 
-先运行不依赖检索器的 evidence-preservation 评测：
+## 3. Chunk：先保护官方 span
+
+Chunk 评测不调用检索器，只检查官方 evidence span 是否被完整保留、跨越多少 chunk、是否出现 offset 漂移和极端碎片。
 
 ```bash
 PYTHONPATH=. .venv/bin/python -m evaluation.rag_chunk_ablation \
@@ -47,255 +54,160 @@ PYTHONPATH=. .venv/bin/python -m evaluation.rag_chunk_ablation \
   --output artifacts/eval/doc2dial-rag-mini-dev-v1/chunk-ablation.json
 ```
 
-当前结果：
+历史 Dev 在 `256/32`、`512/64`、`768/96` token 配置中选择 fixed `512/64`：它在证据保持、候选粒度和上下文成本间更平衡。实验也修复了全文 `strip()` 导致原始 evidence offset 漂移的问题。
 
-| 配置 | Gold span containment | fragmentation | chunks |
-|---|---:|---:|---:|
-| fixed 256/32 | 0.9918 | 0.0082 | 588 |
-| fixed 384/48 | 0.9980 | 0.0020 | 399 |
-| fixed 512/64 | 1.0000 | 0.0000 | 314 |
+当前 PostgreSQL SourceRevision 保留 revision/checksum 与 `[start_char, end_char)`；chunk id、dense vector 和 FTS posting 都是可重建投影。
 
-结构切分 512/64 与 fixed 512/64 在本子集的结果相同，因此按“质量相同时选择更简单策略”的成本顺序选择 fixed 512/64。该结论只适用于当前 Dev corpus；中文 FAQ、表格或 Markdown 仍需单独验证。
+## 4. Retrieval：Dense、Lexical 与 RRF
 
-评测过程中发现并修复了旧 chunker 对全文 `strip()` 导致原始 evidence offset 漂移的问题。生产 KnowledgeBase 与评测现共用 `DocumentChunker`，并记录 source offsets；生产默认切换后 chunking version 升至 4。
+历史分层结果支持当前默认：
 
-## 4. 检索权重与 RRF K
+| 配置 | 结论 |
+|---|---|
+| Dense only | 对语义改写有帮助，但精确业务词和实体不足 |
+| BM25/lexical only | 客服政策词面强，整体可靠，但语义补召回不足 |
+| Dense `.25` + Lexical `.75`, RRF `k=10` | 在 Doc2Dial Dev 上取得更稳的综合排序 |
 
-同一 case 的 BM25 和 Dense 排名只采集一次，再离线重放以下权重比例：
+当前分支的在线实现已迁移为 PostgreSQL pgvector + 中文 FTS，候选 20、最终 5。旧 `evaluation.rag_retrieval_ablation` 和 Chroma producer 已删除，因此历史数值用于解释默认值，不应再复制旧命令声称可以在当前 head 复现。
 
-```text
-BM25/Dense = 1/0, 0.75/0.25, 0.5/0.5, 0.25/0.75, 0/1
-RRF k      = 10, 30, 60（混合配置）
-```
+重构后的验证重点是：
 
-因此不同权重不会因为重复 embedding 或模型随机性而获得不同输入。权重只比较比例，因为 RRF 的公共倍数不改变排序。
-
-```bash
-PYTHONPATH=. .venv/bin/python -m evaluation.rag_retrieval_ablation \
-  artifacts/eval/doc2dial-rag-mini-dev-v1 --split dev \
-  --chunk-strategy fixed_tokens --chunk-max-tokens 512 \
-  --chunk-overlap-tokens 64 --candidate-k 20 \
-  --output artifacts/eval/doc2dial-rag-mini-dev-v1/retrieval-ablation-512-64.json
-```
-
-当前 Dev 结果：
-
-| Chunk | 最佳融合 | Evidence Recall@20 | Document Recall@20 | MRR | nDCG@20 |
-|---|---|---:|---:|---:|---:|
-| 256/32 | BM25 .75 / Dense .25 / k=10 | 0.5622 | 0.7567 | 0.3533 | 0.4045 |
-| 384/48 | BM25 .75 / Dense .25 / k=10 | 0.5944 | 0.7533 | 0.3439 | 0.4028 |
-| 512/64 | BM25 .75 / Dense .25 / k=10 | **0.6244** | 0.7533 | **0.4054** | **0.4596** |
-
-在 512/64 下，推荐融合相对 BM25-only：
-
-- Evidence Recall 差值 `+0.0606`，group-paired bootstrap 95% CI `[+0.0319, +0.0911]`；
-- MRR 差值 `-0.0149`，95% CI `[-0.0415, +0.0121]`，不能证明有稳定退化；
-- nDCG 差值 `+0.0035`，95% CI `[-0.0174, +0.0246]`，不能证明有稳定差异。
-
-选择 `.75/.25` 的理由是 first-stage 的主要合同为证据覆盖，且它相对 BM25-only 的召回增益置信区间整体大于零。相对 `.5/.5, k=10`，Recall 差异不显著，但 MRR 与 nDCG 的差值置信区间整体大于零，因此选择更偏 BM25 的 `.75/.25`。`k=10` 与相同权重的 `k=30` Recall 一致，但 MRR 差值 `+0.0550`、95% CI `[+0.0354, +0.0771]`，所以不沿用默认 `k=60`。
-
-三组检索曾并行执行，报告里的 wall-clock latency 受到资源竞争影响，当前不能作为跨 chunk 配置的验收证据；正式延迟比较必须单进程顺序重跑并记录机器环境。
+- 同一 stable chunk id 贯穿 dense、lexical、RRF、rerank、packing 和 citation；
+- 唯一 ACTIVE generation 完整绑定 source/chunk/index/scope；
+- 任一投影缺失或版本不一致时 fail closed；
+- local E2E 的 health 暴露 `postgresql+pgvector+pg_fts`。
 
 ## 5. Query Transformation
 
-模型输出只捕获一次，权重通过离线重放选择。压力子集从 52 个 dialogue 中按四个服务域 round-robin，每个 dialogue 最多一个 case，并优先选择 history 最长的 turn，共 48 case。它用于暴露指代和省略问题，不代表线上流量比例。
+Raw query 保留用户原话；Standalone query 只消解对话指代。当前默认按 Raw `.25` / Standalone `.75` 进入相同检索 Owner。
+
+查询捕获仍可运行：
 
 ```bash
-set -a; source .env; set +a
 PYTHONPATH=. .venv/bin/python -m evaluation.rag_query_capture \
-  artifacts/eval/doc2dial-rag-mini-dev-v1 --max-cases 48 \
-  --expansion-count 2 --concurrency 3 \
-  --output artifacts/eval/doc2dial-rag-mini-dev-v1/query-transform-capture.json
-
-PYTHONPATH=. .venv/bin/python -m evaluation.rag_query_ablation \
-  artifacts/eval/doc2dial-rag-mini-dev-v1 \
-  artifacts/eval/doc2dial-rag-mini-dev-v1/query-transform-capture.json \
-  --output artifacts/eval/doc2dial-rag-mini-dev-v1/query-ablation-report.json
+  artifacts/eval/doc2dial-rag-mini-dev-v1 --split dev \
+  --max-cases 48 --concurrency 3 \
+  --output artifacts/eval/doc2dial-rag-mini-dev-v1/query-capture.json
 ```
 
-每个策略比较 raw query mass `0.75 / 0.50 / 0.25`。剩余权重平均分给生成 query；普通 query 内部继续使用已选出的 BM25/Dense `.75/.25`，HyDE 只进入 Dense 且永远不能作为回答证据。安全门槛在看质量前检查：保留 raw、实体保留 ≥ .95、否定保留 ≥ .95、虚构实体 ≤ .05、相对 Raw 的 harmful case ≤ 10%。
+捕获文件固定模型和输出，后续离线重放可把 Query 影响与检索/生成随机性分开。改写必须保留否定、实体和用户约束；失败时保留 Raw 路径，而不是生成未经证明的新需求。
 
-| Query 策略 | Raw mass | Recall@20 | MRR | Harmful | 否定保留 | 结果 |
-|---|---:|---:|---:|---:|---:|---|
-| Raw | 1.00 | 0.6667 | 0.3662 | 0 | 1.0000 | baseline |
-| Standalone | 0.75 | 0.7292 | 0.3843 | 0 | 0.9583 | eligible |
-| Standalone | 0.50 | 0.7500 | 0.4243 | 0 | 0.9583 | eligible |
-| **Standalone** | **0.25** | **0.7708** | **0.4458** | **0** | **0.9583** | **selected** |
-| Multi-query | 0.50 | 0.7708 | 0.4590 | 0.0208 | 0.9167 | reject |
-| HyDE | 0.75 | 0.7708 | 0.3713 | 0.0208 | 0.9514 | eligible, lower MRR |
-| All | 0.50 | 0.7917 | 0.4207 | 0.0208 | 0.9271 | reject |
+## 6. Rerank 与结构化排列
 
-推荐配置相对 Raw：Recall `+0.1042`，95% CI `[+0.0208,+0.1875]`；MRR `+0.0797`，CI `[+0.0196,+0.1477]`；nDCG `+0.0841`，CI `[+0.0262,+0.1505]`。所以 `.25/.75` 不是经验权重，而是通过安全约束后在 Dev 上三项质量均有正向区间的配置。Multi-query/All 的更高点估计不能覆盖否定词风险。
+Rerank 的合同是候选 permutation，不是新文档或新证据。当前局部 PydanticAI ToolOutput 使用短别名，验证无缺项、无重复、无越界后再映射到 stable chunk id。
 
-## 6. Rerank
+历史实验中 Flash rerank 提升部分 MRR，但也带来延迟和 Token。MiniLM cross-encoder 在 12 条合成双条件压力集上更快、平均更好，却在普通长文 36 条上退化并出现 harmful cases，所以没有替换当前默认。
 
-`ResultReranker` 使用 stable chunk ID 返回完整 permutation；模型返回 JSON 对象或裸 ID 数组都在同一 typed boundary 校验，未知 ID 被拒绝，失败保留 first-stage 顺序。固定 Query 配置后，从 20 个候选 listwise 重排到 5 个：
-
-| 配置 | Recall@5 | MRR@5 | nDCG@5 | Harmful vs no-rerank |
-|---|---:|---:|---:|---:|
-| no rerank | 0.5938 | 0.4330 | 0.4764 | — |
-| LLM listwise | **0.7500** | **0.5903** | **0.6543** | 0.0208 |
-
-三项 delta 的 95% CI 分别为 `[+0.0417,+0.2812]`、`[+0.0653,+0.2569]`、`[+0.0841,+0.2823]`。第一版只接受 JSON object，产生 6/48 typed fallback；确认供应商返回裸 ID array 后扩展解析合同并只重试失败 case，最终失败 0/48。门槛为 harmful ≤ 5%、typed fallback ≤ 1%，当前通过。
+“平均更好”不满足非劣门禁。若 fallback signal 与错误不单调，不能选择一个方便 margin 阈值假装风险已关闭。
 
 ## 7. Context Packing
 
-`ContextPacker` 严格执行 token/chunk 上限，并可根据同文档 source-offset overlap 去重。选择合同不是加权分：必须先保住 reranked Top-5 的 evidence recall `0.75`，再选择 token 更少者。
+当前默认 Top-5、2600 estimated tokens。Packing 评测检查：
 
-| 配置 | Evidence Recall | 平均 tokens | 平均 chunks |
-|---|---:|---:|---:|
-| Top-5 / 1200 | 0.6458 | 1091.7 | 2.98 |
-| Top-3 / 1800 | 0.7083 | 1404.2 | 3.00 |
-| Top-5 / 1800 | 0.7083 | 1695.6 | 4.15 |
-| **Top-5 / 2600** | **0.7500** | **2296.7** | **4.96** |
-| Dedup50 Top-5 / 2600 | 0.7500 | 2302.9 | 4.96 |
+- packed evidence recall；
+- chunk 数和最终文本 Token；
+- source header、分隔符和 HTML 转义是否计费；
+- 当前问题能否完整容纳；
+- citation identity 是否与输入候选一致。
 
-只有 2600 token 配置满足 evidence-preservation 合同；50% overlap 去重没有收益，因此选普通 Top-5 / 2600。
+```bash
+PYTHONPATH=. .venv/bin/python -m evaluation.rag_packing_ablation \
+  artifacts/eval/doc2dial-rag-mini-dev-v1 \
+  artifacts/eval/doc2dial-rag-mini-dev-v1/rerank-report.json \
+  --output artifacts/eval/doc2dial-rag-mini-dev-v1/packing-ablation.json
+```
+
+脚本按源码中的 `PACKING_CONFIGS` 比较 Top-3/Top-5、1200/1800/2600 和去重配置；在 heldout 上只允许用 `--fixed-config` 报告 Dev 已冻结的候选。它需要历史 rerank capture 作为输入，不能在当前分支凭空重建已删除的旧 rerank producer。
+
+预算唯一事实是最终拼接文本。若当前轮次自身无法装入，返回 `ContextBudgetExceededError`，不能只截断用户问题并继续回答。
 
 ## 8. Generation 与 Citation
 
-`GroundedAnswerGenerator` 只允许引用已打包 chunk ID，非拒答必须有引用，矛盾/非法输出至多修复一次后 fail closed。英文问题使用英文控制提示，中文问题使用中文提示，避免 system prompt 泄漏回答语言。
+Generation 不能用“返回了 JSON”代替质量。评测同时检查：
 
-最终 v3（48 case）：
-
-| 指标 | 结果 | Gate |
-|---|---:|---:|
-| Generator / Judge failure | 0 / 0 | ≤1% / ≤5% |
-| Language match | 1.0000 | ≥.95 |
-| Evidence citation recall（context 有 gold 时） | 0.9167 | ≥.90 |
-| Judge grounded | 0.9792 | ≥.95 |
-| Judge citation relevance | 1.0000 | ≥.90 |
-| Judge correct / complete | 0.7917 / 0.7917 | correct ≥.75 |
-| Abstention | 0.1042 | diagnostic |
-
-`gold_evidence_citation_precision_when_available=0.6944` 只作 diagnostic：Doc2Dial 给的是客服回复使用的 grounding span，不是“所有可支持回答的 chunk”穷举集合，不能把额外有效引用直接判错。Judge 仍是次级指标，正式上线前需要从这 48 条中人工盲审一部分，计算与 Judge 的一致性；当前不能把模型自评当成唯一闭环。
-
-V1/V2 报告保留了失败演进：V1 的中文提示导致跨语言 token-F1 异常；V2 虽要求跟随语言，language match 仍只有 .4375；V3 按 query language 路由模板后达到 1.0。这个过程没有改变上游上下文或降低 gate。
-
-## 9. 为什么不使用单一总分
-
-本实验使用 constraint-first + lexicographic selection，而不是人为写一个 `0.4*Recall + 0.3*Faithfulness + ...`：
-
-1. 否定词丢失、非法引用、生成失败属于不可补偿的安全约束，不能用 Recall 抵消；
-2. Retrieval 先最大化 evidence coverage，再比较 MRR/nDCG；
-3. Context 必须保住已获得的 evidence，再最小化 token；
-4. Generation 分别报告 grounded、correct、citation、failure 和 abstention。
-
-权重只有 RRF 与 query mass，均通过固定捕获、离线网格和 paired bootstrap 选择；随后冻结到 Doc2Dial test split 报告，真实脱敏客服流量仍需复验。
-
-## 10. 验证
+- structured contract failure；
+- `answered / insufficient_evidence / conflicting_evidence` typed outcome；
+- claim support 与 citation correctness；
+- evidence citation recall；
+- 语言、相关性、准确性和完整性；
+- generator/Judge failure 是否显式暴露。
 
 ```bash
-PYTHONPATH=. .venv/bin/pytest \
-  tests/test_rag_pipeline_evaluation.py \
-  tests/test_knowledge_base_retrieval.py \
-  tests/test_retrieval_ablation.py \
-  tests/test_layered_eval_dataset.py -q
+PYTHONPATH=. .venv/bin/python -m evaluation.rag_generation_evaluation \
+  artifacts/eval/doc2dial-rag-mini-dev-v1 \
+  artifacts/eval/doc2dial-rag-mini-dev-v1/packing-ablation.json \
+  --concurrency 2 \
+  --output artifacts/eval/doc2dial-rag-mini-dev-v1/generation-report.json
 ```
 
-## 11. 冻结 Test 报告与生产接入
+grounded v4 曾暴露高比例合同失败/拒答；v5 收紧结构化输出后，历史重放中的合同错误归零，但仍保留 typed abstention。拒答不是 parser failure，也不能被当作“模型没工作”。
 
-Dev 选择结束后，使用 Doc2Dial 官方 test split 构建 40 文档、48 case 的确定性子集。配置不再选择；`select_configuration()` 在 `heldout` 上始终返回 `recommended=null`。其中 Query/Rerank/Generation 为避免同一 dialogue 重复，只覆盖 9 个 group，因此这里只是小样本反证，不把它包装成高置信生产结论。
+## 9. 历史冻结快照
 
-```bash
-PYTHONPATH=. .venv/bin/python scripts/build_doc2dial_rag_subset.py \
-  --output artifacts/eval/doc2dial-rag-mini-heldout-v1 \
-  --split heldout --max-documents 40 --max-cases 48
+Doc2Dial 小型 heldout 快照的机器摘要记录在 [rag-heldout-summary-2026-09-01.json](data/rag-heldout-summary-2026-09-01.json)。关键切片包括：
 
-PYTHONPATH=. .venv/bin/python -m evaluation.rag_retrieval_ablation \
-  artifacts/eval/doc2dial-rag-mini-heldout-v1 --split heldout \
-  --chunk-strategy fixed_tokens --chunk-max-tokens 512 \
-  --chunk-overlap-tokens 64 --candidate-k 20 \
-  --output artifacts/eval/doc2dial-rag-mini-heldout-v1/retrieval-heldout.json
-
-# Query capture、query ablation、rerank 与 Dev 命令相同，只把 dataset/output 换为 heldout。
-PYTHONPATH=. .venv/bin/python -m evaluation.rag_packing_ablation \
-  artifacts/eval/doc2dial-rag-mini-heldout-v1 \
-  artifacts/eval/doc2dial-rag-mini-heldout-v1/rerank-ablation-report.json \
-  --fixed-config top5-2600 \
-  --output artifacts/eval/doc2dial-rag-mini-heldout-v1/packing-ablation-report.json
-```
-
-冻结结果：
-
-机器可读摘要及完整报告 SHA-256 见 [`docs/data/rag-heldout-summary-2026-09-01.json`](../data/rag-heldout-summary-2026-09-01.json)。
-
-| 阶段 | Test 结果 |
+| 阶段 | 冻结快照 |
 |---|---|
-| First stage（48 case） | BM25 .75/Dense .25/k=10 evidence Recall@20 `.6875`，MRR `.4711`；只报告，不重选 |
-| Query（9 groups） | Raw 与 Standalone-raw25 Recall@20 均 `.6667`；MRR `.3648→.4537`；harmful `0` |
-| Rerank（9 groups） | Recall@5 均 `.6667`；MRR `.4537→.6111`；harmful `0`，typed failure `0/9` |
-| Packing | 冻结 Top-5/2600 保持 evidence recall `.6667`，平均 5 chunks / 2321 estimated tokens |
-| Generation（9 groups） | generator/Judge failure `0/0`，language `1.0`，evidence citation recall `1.0`，Judge grounded `1.0`、correct `.7778` |
+| First stage, 48 cases | evidence Recall@20 `.6875`，MRR `.4711` |
+| Query, 9 groups | Recall@20 `.6667`；MRR `.3648 → .4537`；harmful `0` |
+| Rerank, 9 groups | Recall@5 `.6667`；MRR `.4537 → .6111` |
+| Packing | Top-5/2600，平均 5 chunks / 2321 estimated tokens |
+| Generation, 9 groups | citation recall `1.0`；Judge grounded `1.0`；correct `.7778` |
 
-首次报告中 `know` 被旧 evaluator 以子串方式误识别为否定词 `no`。修复为英文词边界后，用同一模型 capture 离线重放，Standalone negation preservation 为 `1.0`；没有重调 Prompt 或权重。
+这是小样本反证和配置快照，不是高置信生产结论。报告日期、case 数、group 数和 scope 与指标同等重要。
 
-仓库保留该冻结检索配置：`KnowledgeBase` fixed 512/64、BM25 .75/Dense .25/k=10；`MCPToolManager` Raw .25/Standalone .75、20→5；`/chat` 使用 Top-5/2600。生产边界已将在线全量 BM25 换为持久 posting index，增加 source/index contract 和 EvidencePack，生成输出已收紧为 grounded v5 PydanticAI tool output。`agent-v1` 仅在仍是精确旧默认时原子迁移到内容寻址的 `agent-v2-rag-*`，自定义 Active 指针不会被覆盖；非空索引缺少任一 source/chunk/dense/sparse/scope 合同都会 fail closed，要求从权威原文重导。
+## 10. 长文、父子结构与多条件实验
 
-当前状态是 **retrieval baseline integrated; grounded v5 passes the Dev contract gate; topology candidates still rejected**。grounded v4 在 48 条 Dev 上的 `85.42%–89.58%` 失败/拒答仍作为历史反例；修复后同一 36 group×3 长文档链路中结构化合同错误为 `0/108`，typed abstention 为 `6/36`，claim support/citation correctness 为 `.7778–.8056`。但父子 Chunk 仍没有改善 multi-condition completeness，因此保留 512/64，修复后的 baseline 仍需 fresh Heldout、人工校准和 Shadow。
+后续实验分别检查了：
 
-## 12. 多条件拆分与低成本 Cross-encoder（2026-09-01）
+- `>=8000` 字符相关文档的长文压力集；
+- 相邻 multi-span 与真正双 requirement 的区别；
+- fixed parent、dynamic auto-merge 与 unique-parent aggregation；
+- Flash set selector 与 MiniLM cross-encoder；
+- Gold-free 条件路由在 Doc2Dial 与 WixQA 的迁移性。
 
-前一轮把 `evidence_count >= 2` 称为 multi-condition 不够准确。抽查 36 条长文 case 后发现，其中 16 条多数只是同一客服答案被标成相邻的 2–3 个 span；结构化规划器也将 36/36 判为 `simple`。因此本轮保留它作为 multi-span 完整性回归，另从已有 Doc2Dial case 构造 12 条同领域双问题压力集；每条问题显式包含两个独立 requirement，Gold 是两个原 case 的 evidence 并集，Gold 不进入规划、检索或选择。
+共同结论：一些候选能提升 Candidate recall 或局部 packed recall，但改善没有稳定穿透 Rerank/Packing，多条件 completeness 或跨数据集 non-regression。父子拓扑和低成本 cross-encoder 因此保持“实验未晋级”，当前默认仍是 fixed 512/64。
 
-分层结果验证了两个不同 Owner：
+这说明评测的价值不只在选出更复杂的方案，也在拒绝无法证明的复杂度。
 
-| 12 条真正并列条件 | Candidate@20 | Selected@5 | Packed | P95 检索+选择 | 在线 Rerank Token |
-|---|---:|---:|---:|---:|---:|
-| Flash LLM baseline 512/64 | `.7292` | `.5903` | `.5903` | `2366ms` | `69,798 / 1,500` |
-| 拆 Query + Flash set selector | **`.7708`** | `.4931` | `.4931` | `5408ms` | `84,815 / 1,906` |
-| 拆 Query + MiniLM cross-encoder，每条件 2 anchors | **`.7708`** | **`.6319`** | **`.6319`** | **`203ms`** | **0** |
-| 上行 + dynamic parent | `.7153` | `.5208` | `.5903` | `279ms` | **0** |
+## 11. 当前 PostgreSQL 主链的复核
 
-因此 Query decomposition 本身有效：Candidate Recall 提升 `4.17pp`。当前瓶颈是集合选择；Flash set selector 把 Candidate→Selected 损失扩大到 `27.78pp`。英文 MiniLM + 每条件 2 anchors 在该压力集上平均 Packed 比 LLM baseline 高 `4.17pp`，约省去 90% 的本次选择 P95，并消除在线 rerank Token；但逐 case 是 3 条改善、6 条不变、3 条退化，harmful=`25%`，不能用均值宣称“不退化”。Parent 也没有在该 cross-encoder 路径上提供额外收益。
-
-普通长文反向门禁同样否决了全量替换：
-
-| 36 条普通/长文 | Flash LLM | MiniLM cross-encoder |
-|---|---:|---:|
-| Candidate Recall@20 | `.7778` | `.7778` |
-| Selected/Packed Recall@5 | **`.7222`** | `.6111` |
-| Harmful cases | — | `6/36 = 16.67%` |
-| P95 检索+选择 | `2651ms` | **`160ms`** |
-| 在线 Rerank Token | `208,823 / 4,500` | **0** |
-
-又用 rank-5 与 rank-6 的 cross-encoder 分差回放低置信 fallback。该信号与错误不单调：fallback `11.1%–61.1%` 都没有恢复质量，达到相对 LLM baseline `-1pp` 非劣界需要 `100%` fallback。因此不能把一个方便的 margin 阈值直接上线。
-
-结论是 **有成本潜力，但没有通过发布门禁**：保持 512/64 + Flash LLM rerank 默认；不运行后续 Generation/Judge。下一候选应换成客服域/多语言 cross-encoder 或蒸馏模型，并在自然的 untouched 多条件 Heldout 上校准可证明的 fallback 信号，而不是继续在这 12 条合成压力集调阈值。脱敏结果见[多条件与 Cascade 摘要 JSON](../assets/eval/rag-multi-condition-cascade-dev-v1.json)。
-
-复现命令：
+历史配置迁移到新 Owner 后，需要用当前代码验证合同，而不是只引用旧指标：
 
 ```bash
-PYTHONPATH=. .venv/bin/python -m evaluation.rag_parallel_stress_builder \
-  artifacts/eval/doc2dial-rag-long8000-dev-v1 \
-  --query-capture artifacts/eval/doc2dial-rag-long8000-dev-v1/query-transform-capture.json \
-  --output artifacts/eval/doc2dial-rag-parallel-stress-v1
-
-set -a; source .env; set +a
-PYTHONPATH=. .venv/bin/python -m evaluation.rag_requirement_capture \
-  artifacts/eval/doc2dial-rag-parallel-stress-v1 \
-  --query-capture artifacts/eval/doc2dial-rag-parallel-stress-v1/query-capture.json \
-  --output artifacts/eval/doc2dial-rag-parallel-stress-v1/query-requirement-capture-v1.json
-
-PYTHONPATH=. .venv/bin/python -m evaluation.rag_multi_condition_ablation \
-  artifacts/eval/doc2dial-rag-parallel-stress-v1 \
-  --query-capture artifacts/eval/doc2dial-rag-parallel-stress-v1/query-capture.json \
-  --requirement-capture artifacts/eval/doc2dial-rag-parallel-stress-v1/query-requirement-capture-v1.json \
-  --output artifacts/eval/doc2dial-rag-parallel-stress-v1/multi-condition-ablation-v1.json
-
-pip install -r requirements-semantic.txt
-PYTHONPATH=. .venv/bin/python -m evaluation.rag_cross_encoder_ablation \
-  artifacts/eval/doc2dial-rag-parallel-stress-v1 \
-  --query-capture artifacts/eval/doc2dial-rag-parallel-stress-v1/query-capture.json \
-  --requirement-capture artifacts/eval/doc2dial-rag-parallel-stress-v1/query-requirement-capture-v1.json \
-  --llm-report artifacts/eval/doc2dial-rag-parallel-stress-v1/multi-condition-ablation-v1.json \
-  --output artifacts/eval/doc2dial-rag-parallel-stress-v1/cross-encoder-ablation-v3.json
+PYTHONPATH=. .venv/bin/pytest -q \
+  tests/test_hybrid_retrieval_contract.py \
+  tests/test_postgres_retrieval_foundation.py \
+  tests/test_postgres_retrieval_projection.py \
+  tests/test_postgres_knowledge_retriever.py \
+  tests/test_knowledge_retriever.py \
+  tests/test_requirement_coverage.py \
+  tests/test_rag_pipeline_evaluation.py
 ```
 
-随后增加的长文档结构预检不改变这一默认：`>=8000` 字符的 Doc2Dial span-Gold slice 中，父子方案把 packed evidence recall `.5278→.5833` 且 harmful `0`，但 multi-condition 不升。进一步真测的 Gold-free 条件路由（Top-5 有长文档且 BM25/Dense 首名文档分歧）触发 21/36，将 Candidate `.7222→.7500`，Packed 仍为 `.5833`，级联 P95 约 `110ms`；在 WixQA 又使 packed document recall `.9635→.9531`、multi-article completeness `.7667→.7000`，harmful `3.125%`。该简单路由没有跨集泛化，保持实验失败状态。脱敏结果见[长文档摘要 JSON](../assets/eval/rag-long-document-dev-v1.json)。
+```bash
+PYTHONPATH=. .venv/bin/python scripts/run_local_e2e.py \
+  --output evaluation/reports/local-e2e-v1.json
+```
 
-同一 36 group 随后补齐 Raw `.25` + Standalone `.75`、rerank 20→5 和 grounded v4：Standalone 将 baseline Candidate `.7222→.7778`；条件路由达到 Candidate `.8056`、Rerank `.7639`，但 Packing 后回到 `.7361`，与 baseline 持平，多条件完整性还从 `.7188` 降到 `.6563`，harmful `5.56%`。v4 的 `83.33%–91.67%` 失败/拒答已经用 v5 重放拆解：合同错误 `0%`，证据不足拒答 `16.67%`。因此现在的分层结论是：Rewrite 已有增益，Generation 合同已修复，拓扑增益仍没有穿透 Rerank/Packing。
+E2E 报告应同时出现 PostgreSQL engine/generation/manifest、真实 JWT 请求、Evidence/Coverage/Verifier 结果和明确 `scope_limit`。只有 unit metric 或 health 字符串都不足以证明完整回答链。
 
-最新层级复测不再用该 fixed parent 代表 Parent-child 全类：评测依赖复用 Haystack splitter/auto-merger，并加入 unique-parent aggregation 与预算降级。Dynamic auto-merge 把 reranked span recall `.7222` 扩成 packed `.7500`，但 16 条 multi-condition completeness 只有 `.6875`，低于 baseline `.7188`，harmful 为 `8.33%`，所以它只保留为本地实验结果。脱敏摘要见[层级检索 JSON](../assets/eval/rag-hierarchical-retrieval-dev-v1.json)。
+## 12. 选择纪律
 
-全仓验证结果与提交信息见计划文件中的 verification record。
+候选配置只有同时满足以下条件才可替换当前默认：
+
+1. Dev 目标 slice 有清晰、可重复改善；
+2. 普通问题、长文、多条件、否定与 OOS slice 无不可接受退化；
+3. 延迟、Token、内存和依赖成本在预算内；
+4. stable identity、scope、provenance 和 fail-closed 性质保持；
+5. fresh heldout 与独立 reviewer 没有新反例；
+6. 当前 PostgreSQL Owner 测试和真实 `/chat` E2E 通过。
+
+当前没有真实线上流量，结论是显式替换本地 binding，而不是 Shadow/Canary。未来若进入生产，再单独定义 cohort、窗口、回退和迁移 ADR。
+
+## 13. 页面间口径
+
+- [500 条分层评测]({{ '/evaluation-500/' | relative_url }})解释项目级四层覆盖，不是当前 RAG 选型报告。
+- 本页解释实验与当前默认之间的因果关系。
+- [生产化审计]({{ '/customer-service-rag-production-audit/' | relative_url }})检查 Owner、安全、数据治理和 readiness 缺口。
+- [完整教程]({{ '/' | relative_url }})把 RAG 放回 admission、TaskGraph、publication 与 service continuity 的总链路。

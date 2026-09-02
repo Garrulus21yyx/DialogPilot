@@ -1,18 +1,18 @@
 ---
 layout: default
-title: DialogPilot 面试追问
+title: DialogPilot 面经校准与追问手册
 permalink: /interview-guide.html
 ---
 
 # DialogPilot 面试追问
 
-回答原则：先说 Owner 和正向合同，再说数据流、失败语义、验证证据与当前边界。只讲仓库能证明的能力。
+> 本页按重构后的当前实现校准。回答原则：先说 Owner 和正向合同，再说数据流、失败语义、验证证据与当前边界；测试数与运行结果引用对应 commit 的机器报告，不背诵会漂移的总数。
 
 ## 项目与架构
 
 ### Q：用一分钟介绍项目。
 
-DialogPilot 是 FastAPI 多 Agent 客服后端。请求通过 JWT 后先持久化到 PostgreSQL，再由 Router/Planner 产生闭合 RouteDecision。`EXECUTE` 构建 TaskGraph，领域 Worker 在任务内执行有界 ReAct 和白名单工具；附件由 Agent 按需选择 L0/L1/L2，Tesseract 与 DeepSeek Vision 只产可追溯派生观察。Evidence、Coverage 和 AnswerVerifier 决定回答能否发布。最终回答先写 PostgreSQL，再返回客户端并投影到 Redis 当前窗口。项目用 Docker Compose、884 项测试、L1/L2、Commitment 与 Trace 真实 HTTP E2E、本地恢复报告验证。
+DialogPilot 是 FastAPI 多 Agent 客服后端。请求通过 JWT 后先持久化到 PostgreSQL，再由 Router/Planner 产生闭合 RouteDecision。`EXECUTE` 构建 TaskGraph，领域 Worker 在任务内执行有界 ReAct 和白名单工具；附件由 Agent 按需选择 L0/L1/L2，Tesseract 与 DeepSeek Vision 只产可追溯派生观察。Evidence、Coverage 和 AnswerVerifier 决定回答能否发布。最终回答先写 PostgreSQL，再返回客户端并投影到 Redis 当前窗口。项目用 pytest、Docker Compose、L1/L2、Commitment、Trace 真实 HTTP E2E和本地恢复报告验证，数量与状态以当次 commit/report 为准。
 
 ### Q：为什么不是一个大 Prompt？
 
@@ -98,13 +98,13 @@ Projection worker 曾在线程里用 `asyncio.run` 调共享 async Redis client�
 
 ### Q：为什么还保留 TicketService？
 
-Handoff 是客服闭环的一部分。它负责工单 identity、幂等、状态迁移与 outbox。当前为本地持久 store，后续可以收敛到 PostgreSQL；它不是已经删除的 SQLite ResponseDelivery 双路径。
+Handoff 是客服闭环的一部分。当前 PostgreSQL TicketService 负责工单 identity、幂等、合法状态迁移、event 与 outbox；它不是回答末尾的 `escalated=true`，也不是已经删除的 SQLite ResponseDelivery 双路径。
 
 ## 测试与证据
 
 ### Q：怎样验证项目完整跑通？
 
-三层证据：884 项 pytest；Docker Compose health；L1/L2 脚本通过真实 JWT 请求附件与 `/chat`，Commitment 与 Trace 脚本通过管理 API 验证持久状态。L1 报告证明 OCR 足够时 VLM 调用为零；L2 报告证明 DeepSeek Vision producer/model/version、视觉 artifact 和回答消费均可追踪。
+三层证据：Owner 合同、状态机与集成 pytest；Docker Compose health；L1/L2 脚本通过真实 JWT 请求附件与 `/chat`，Commitment 与 Trace 脚本通过管理 API 验证持久状态。L1 报告证明 OCR 足够时 VLM 调用为零；L2 报告证明 DeepSeek Vision producer/model/version、视觉 artifact 和回答消费均可追踪。完整性必须由相同 commit 的测试输出和机器报告共同证明。
 
 ### Q：恢复报告证明什么？
 
@@ -126,4 +126,4 @@ Handoff 是客服闭环的一部分。它负责工单 identity、幂等、状态
 
 ### Q：下一步优先做什么？
 
-Commitment/Handoff 与基础持久 Trace 已完成：显式承诺会自动违约，未闭合违约提升 Handoff；Agent/Generation/Tool span 默认持久化，Langfuse 显式配置后启用。多模态节点已通过 L1 零 VLM 与真实 DeepSeek L2 两份 E2E。
+先完成 fresh human-reviewed Gold 与 Service-chain v2 的真实 runner/独立复核，再按证据决定是否引入更强中文 embedding、复杂文档 ingest 或 LangGraph 薄 runtime。生产 Collector、容量与恢复目标只有在存在真实部署约束时才立项，不能用模拟流程冒充成熟度。

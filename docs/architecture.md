@@ -1,12 +1,12 @@
 ---
 layout: default
-title: DialogPilot 架构边界
+title: 架构边界与职责归属
 permalink: /architecture.html
 ---
 
 # DialogPilot 架构边界
 
-本文描述当前代码，而不是未来路线图。完整目标与分阶段任务分别见[目标架构](customer-service-agent-target-architecture.zh-CN.md)和[实施计划](customer-service-agent-implementation-plan.zh-CN.md)。
+> 本文描述重构后的当前代码，而不是未来路线图。完整目标与分阶段验收分别见[目标架构]({{ '/customer-service-agent-target-architecture.html' | relative_url }})和[实施计划]({{ '/customer-service-agent-implementation-plan.html' | relative_url }})。
 
 ## 设计原则
 
@@ -37,6 +37,8 @@ flowchart TB
     PUB --> REDIS[Redis Working Projection]
     PUB --> ACK[Delivery ACK / Replay]
     PUB --> EPISODE[ServiceEpisode / Memory Facts]
+    HANDOFF --> TICKET[PostgreSQL Ticket + Outbox]
+    PUB --> COMMIT[Commitment lifecycle]
 ```
 
 ## 权威边界
@@ -165,5 +167,6 @@ Redis 投影失败不会改写 PostgreSQL 事实；后台 outbox 会重试。删
 - 生产级 OpenTelemetry Collector、Tempo/Jaeger fan-out 与 tail sampling；本地 PostgreSQL Trace 和可选 Langfuse 已实现。
 - BadCase/ReAct metadata 的 PostgreSQL 最终收敛；Ticket 与 Commitment 已完成。
 - human-reviewed Gold 和未消费的 fresh heldout。
+- LangGraph 薄 runtime、复杂文档摄取和生产级容量治理；它们仍在目标/计划合同中，不是当前 composition root 的能力。
 
 这些条目是后续实施节点，不属于当前能力声明。
