@@ -36,7 +36,7 @@
 | M2-T04A SourceRevision v0 / active manifest | implemented (review pending) | PG owner/backfill/active validator done；independent human heldout review pending；650 tests passed |
 | M2-T05 统一 KnowledgeRetriever | implemented (canary blocked) | A1/A2/B + immutable PG dark-shadow report；675 tests passed |
 | M2-T06A Multi-Agent TaskGraph 收紧 | implemented | A/B/C policy、execution、dependency、native signal 与 terminal algebra 完成；697 tests passed |
-| M2-T06 自适应 RAG 发布路径 | in_progress | A/B1/B2a-c: canonical shape/route producer done；ChatApplication adapter pending；742 tests passed |
+| M2-T06 自适应 RAG 发布路径 | in_progress | A/B1/B2/B3: gated ChatApplication adapter done；native tool receipts + shadow executor pending；744 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
@@ -783,6 +783,20 @@
   否定的第二领域不会触发 MultiDomain。
 - 验证：12 类 shape fixture、authority/risk、否定 evidence、shape→RouteDecision；聚焦 `79 passed`、
   全套 `742 passed in 19.53s`，ruff/diff checks passed。下一步迁移 ChatApplication adapter。
+
+### M2-T06-B3（gated ChatApplication route adapter）
+
+- ChatApplication 在 canonical Intent 后构造 immutable `RoutePathInvocation`：包含 shape、route、
+  minimum FactRequirements、VerificationProfile 与 RouteExecutionContract；Application 只组合 Owner
+  输出，不重新解释 route/authority。
+- 服务端 `route_execution_mode` 仅支持 `legacy/dark_shadow/evaluation`：legacy 不触发新路径；
+  evaluation 同步执行 adapter；dark shadow 后台执行且不能发布；任何 `active`/未知值在 M1/M2/
+  CORE_TEXT_GA release action 前 fail closed，客户端 ChatCommand 没有开关字段。
+- 新 adapter 缺失时显式失败，不静默回 legacy 冒充 shadow；Trace stage 保存 mode/shape/contract
+  fingerprint，legacy response/delivery publisher 保持不变。
+- 验证：Knowledge route invocation 绑定 `knowledge.active_source` 与 grounded profile；evaluation
+  callback 恰好一次；pre-release active 被拒；聚焦 `38 passed`、全套 `744 passed in 18.23s`，
+  ruff checks passed。下一步由 Agent/ReAct 原生返回 tool/evidence receipts 后接真实 shadow executor。
 
 ## 下一步
 

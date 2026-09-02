@@ -63,6 +63,21 @@ class ChatCommand:
 
 
 @dataclass(frozen=True)
+class RoutePathInvocation:
+    """Immutable input passed to the gated route-specific execution adapter."""
+
+    command: ChatCommand
+    identity_metadata: Mapping[str, str]
+    bundle: Any
+    intent_result: Any
+    orchestration_request: Any
+    shape_decision: Any
+    route_decision: Any
+    requirements: tuple[Any, ...]
+    execution_contract: Any
+
+
+@dataclass(frozen=True)
 class Completed:
     response_id: str
     response: Mapping[str, Any]
@@ -158,6 +173,7 @@ class ChatServices:
     tool_manager: Any = None
     trace_recorder: Any = None
     knowledge_base: Any = None
+    route_execution_mode: str = "legacy"
 
     @property
     def ready(self) -> bool:
@@ -190,6 +206,9 @@ class ChatOperations:
     select_publication_candidate: Callable[..., tuple[str, bool]]
     trace_id: Callable[[], str]
     verify_for_publication: Callable[..., Awaitable[VerificationResult]]
+    evaluate_route_path: Optional[
+        Callable[[RoutePathInvocation], Awaitable[Any]]
+    ] = None
 
 
 class ChatApplication:
@@ -303,6 +322,16 @@ class ChatApplication:
             user_id=user_id,
             message=command.message,
             bundle=bundle,
+        )
+        await self._dispatch_route_path_if_enabled(
+            command=command,
+            identity_metadata=identity_metadata,
+            bundle=bundle,
+            intent_result=intent_result,
+            user_id=user_id,
+            conv_id=conv_id,
+            request_id=request_id,
+            stages=stages,
         )
         knowledge = await ops.build_knowledge_context(
             command.message,
@@ -694,6 +723,87 @@ class ChatApplication:
             response=response,
             stages=tuple(stages),
         )
+
+    async def _dispatch_route_path_if_enabled(
+        self,
+        *,
+        command: ChatCommand,
+        identity_metadata: Mapping[str, str],
+        bundle: Any,
+        intent_result: Any,
+        user_id: str,
+        conv_id: str,
+        request_id: str,
+        stages: list[StageObservation],
+    ) -> None:
+        """Build one canonical route contract and dispatch only to a gated shadow."""
+        mode = str(self._services.route_execution_mode or "legacy").strip().lower()
+        if mode == "legacy":
+            return
+        if mode not in {"dark_shadow", "evaluation"}:
+            raise RuntimeError(
+                "route execution cannot publish before the release action"
+            )
+        callback = self._ops.evaluate_route_path
+        if callback is None:
+            raise RuntimeError("route execution adapter is unavailable")
+
+        from agents.agent_orchestrator import Request as OrcReq
+        from application.authority_policy import AuthorityPolicyRegistry
+        from application.coverage_gate import VerificationProfileRegistry
+        from application.route_execution import RouteExecutionPolicy
+
+        request = OrcReq(
+            message=command.message,
+            user_id=user_id,
+            conv_id=conv_id,
+            entities=intent_result.entities,
+            intent=intent_result.intent,
+            intent_group=intent_result.intent_group,
+            urgency=intent_result.urgency,
+            intent_confidence=intent_result.confidence,
+            request_id=request_id,
+            bundle_version=bundle.version,
+            agent_bundle=bundle,
+            execution_mode="shadow",
+            identity_metadata=dict(identity_metadata),
+            intent_classifier_fingerprint=str(
+                getattr(intent_result, "classifier_fingerprint", "") or ""
+            ),
+            intent_input_fingerprint=str(
+                getattr(intent_result, "input_fingerprint", "") or ""
+            ),
+            intent_source_scores=dict(intent_result.source_scores),
+        )
+        shape = await self._services.orchestrator.classify_request_shape(request)
+        route = await self._services.orchestrator.decide_route(request, shape)
+        policies = AuthorityPolicyRegistry.v1()
+        requirements = policies.minimum_requirements(route)
+        verification = VerificationProfileRegistry().contract_for(
+            route.mode, requirements,
+        )
+        contract = RouteExecutionPolicy().plan(route, verification)
+        invocation = RoutePathInvocation(
+            command=command,
+            identity_metadata=dict(identity_metadata),
+            bundle=bundle,
+            intent_result=intent_result,
+            orchestration_request=request,
+            shape_decision=shape,
+            route_decision=route,
+            requirements=requirements,
+            execution_contract=contract,
+        )
+        stages.append(StageObservation("route_path_plan", StageStatus.OK, {
+            "mode": route.mode.value,
+            "shape": shape.shape.value,
+            "contract_fingerprint": contract.fingerprint,
+            "execution_mode": mode,
+        }))
+        if mode == "evaluation":
+            await callback(invocation)
+        else:
+            asyncio.create_task(callback(invocation))
 
 
 def _publication_candidate_id(invocation_key: str, response_text: str) -> str:

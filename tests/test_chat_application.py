@@ -4,6 +4,8 @@ import json
 from contextlib import contextmanager
 from types import SimpleNamespace
 
+import pytest
+
 from api import main
 from application.chat_application import (
     ChatApplication,
@@ -11,7 +13,18 @@ from application.chat_application import (
     ChatServices,
     Completed,
     Failed,
+    StageStatus,
 )
+from agents.request_shape_policy import RequestShapePolicy
+from application.route_decision import (
+    ComponentInvocation,
+    ComponentStatus,
+    RequiredAuthority,
+    RouteDecision,
+    RouteMode,
+    RouteRisk,
+)
+from core.intent_recognizer import IntentCategory, UrgencyLevel
 from core.auth import Principal
 
 
@@ -157,3 +170,82 @@ def test_http_chat_maps_typed_retryable_failure(monkeypatch):
         "client_action": "retry_same_request",
         "retry_hint": "reuse_request_id",
     }
+
+
+def test_route_path_evaluation_receives_canonical_immutable_contract():
+    captured = []
+    shape = RequestShapePolicy().decide(
+        message="退款政策", intent=IntentCategory.QUERY, confidence=0.95,
+        urgency=UrgencyLevel.LOW, entities={},
+    )
+    components = tuple(ComponentInvocation(
+        name, ComponentStatus.SKIPPED, "TEST", "a" * 64, "test-v1",
+    ) for name in ("intent_fusion", "domain_routing", "instance_selection"))
+    route = RouteDecision(
+        RouteMode.KNOWLEDGE_QA, "knowledge_query", 0.95,
+        (RequiredAuthority.KNOWLEDGE,), RouteRisk.LOW, ("STATIC",), (), (),
+        components, "router-v1", "a" * 64,
+    )
+
+    class Orchestrator:
+        async def classify_request_shape(self, _request):
+            return shape
+
+        async def decide_route(self, _request, received):
+            assert received is shape
+            return route
+
+    async def evaluate(invocation):
+        captured.append(invocation)
+
+    services = ChatServices(**{
+        **_ready_services().__dict__,
+        "orchestrator": Orchestrator(),
+        "route_execution_mode": "evaluation",
+    })
+    app = ChatApplication(
+        services,
+        SimpleNamespace(evaluate_route_path=evaluate),
+    )
+    intent = SimpleNamespace(
+        intent=IntentCategory.QUERY, intent_group="query",
+        urgency=UrgencyLevel.LOW, confidence=0.95, entities={},
+        classifier_fingerprint="intent-v1", input_fingerprint="a" * 64,
+        source_scores={},
+    )
+    stages = []
+
+    asyncio.run(app._dispatch_route_path_if_enabled(
+        command=ChatCommand(message="退款政策", user_id="u"),
+        identity_metadata={"tenant_id": "default"},
+        bundle=SimpleNamespace(version="bundle-v1"), intent_result=intent,
+        user_id="u", conv_id="c", request_id="r", stages=stages,
+    ))
+
+    assert len(captured) == 1
+    assert captured[0].route_decision is route
+    assert captured[0].execution_contract.mode is RouteMode.KNOWLEDGE_QA
+    assert [item.requirement_id for item in captured[0].requirements] == [
+        "knowledge.active_source",
+    ]
+    assert stages[0].stage == "route_path_plan"
+    assert stages[0].status is StageStatus.OK
+
+
+def test_route_path_active_mode_is_rejected_before_release_action():
+    services = ChatServices(**{
+        **_ready_services().__dict__,
+        "route_execution_mode": "active",
+    })
+    app = ChatApplication(
+        services,
+        SimpleNamespace(evaluate_route_path=lambda _invocation: None),
+    )
+
+    with pytest.raises(RuntimeError, match="cannot publish before the release action"):
+        asyncio.run(app._dispatch_route_path_if_enabled(
+            command=ChatCommand(message="hello", user_id="u"),
+            identity_metadata={}, bundle=SimpleNamespace(version="v1"),
+            intent_result=SimpleNamespace(), user_id="u", conv_id="c",
+            request_id="r", stages=[],
+        ))
