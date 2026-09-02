@@ -54,6 +54,7 @@
 | M4-T02A ThreadSummary schema/location owner | implemented | PG immutable chunks/checkpoint、DataLocation v5、deletion/epoch fence；projector 归 T02B |
 | M4-T02B ThreadSummary projector/CAS/rebuild | implemented (production model canary pending) | fixed range、versioned trigger policy、transactional CAS、typed degradation、raw-L0 generation rebuild、durable outbox composition |
 | M4-T03P Final provider-call budget | implemented | every call/step accounts system/messages/tools/protocol/output reserve；typed pre-side-effect rejection；T03 policy/cache/compaction 继续 |
+| M4-T03C Versioned ContextPolicy | implemented | node/task/route selection、90/85/75/65/55 priority owner、closed failure、selection/truncation trace；T03 尚未整体关闭 |
 | M4 Memory/Context/Commitment/Handoff | in_progress | M4-T01 完成；按 T02–T08 及 release 子节点推进 |
 | M5 Knowledge Lifecycle/Multimodal | in_progress | M5-T01 implemented/behavior-gated；M5-T02A implemented/flag-off；其余按依赖推进 |
 | M6-T01 Dataset v2 / Rubric v2 | implemented (contract fixtures provisional) | 11 层 service-chain + deterministic hard rubric + fixed semantic adapter；835 tests passed |
@@ -1086,6 +1087,17 @@
   token、estimate ratio 与 context utilization，支持后续校准。
 - [build evidence](../governance/evidence/m4-t03p/provider-budget-build.md)。此 slice 不关闭 M4-T03；版本化
   ContextPolicy、工具 receipt/locator 压缩、provider native cache/privacy conformance 与 shadow 对账仍待后续子节点。
+
+### M4-T03C（versioned ContextPolicy slice）
+
+- `ContextPolicyV1` 集中拥有 node/task/route section selection，以及 active tickets/Knowledge/Profile/History/Summary
+  的 `90/85/75/65/55` baseline priority；已知 tag 不再接受 producer 自行改权重。
+- Router 只接收有界 case/continuity/summary/profile/commitment section；Worker 有 task refs 时只接收声明 section。
+  未知 node/route typed fail closed，ChatApplication planner 绑定实际 route 装配。
+- PromptContext 记录逐 section selected/truncated/policy-drop/budget-drop/quarantine/empty 原因与新旧 priority，scoped
+  worker view 同步裁剪 trace。
+- [build evidence](../governance/evidence/m4-t03c/context-policy-build.md)。WorkingContext、ActiveCase relevance、
+  tool locator compaction 与 provider cache privacy policy 尚未完成，M4-T03 继续 in progress。
 
 ### M6-T01（Dataset v2 / Rubric v2）
 

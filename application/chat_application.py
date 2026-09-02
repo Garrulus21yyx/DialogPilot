@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Awaitable, Callable, Mapping, Optional, TypeAlias
 
-from memory.context import ContextSection
+from memory.context import ContextNode, ContextSection
 from core.identity import IdentityContractError, IdentityFactory, InvocationIdentity
 from services.answer_verifier import (
     VerificationReasonCode,
@@ -515,6 +515,8 @@ class ChatApplication:
             sections=context_sections,
             history=prompt_history,
             current_user_message=command.message,
+            node=ContextNode.PLANNER,
+            route=route_mode,
         )
         full_context = prompt_context.system_context
         orchestration_request = OrcReq(

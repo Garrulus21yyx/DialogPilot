@@ -2,6 +2,7 @@ import json
 import asyncio
 import random
 from datetime import datetime
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -9,6 +10,10 @@ import pytest
 from memory.context import (
     ContextAssembler,
     ContextBudgetExceededError,
+    ContextNode,
+    ContextPolicyError,
+    ContextPolicyV1,
+    ContextSelectionStatus,
     ContextSection,
     TokenEstimator,
 )
@@ -141,6 +146,77 @@ def test_indirect_prompt_injection_sections_are_quarantined_not_rendered():
     assert attack not in prompt.system_context
     assert "退款政策为七天" in prompt.system_context
     assert all(tag != "memory" for tag, _content in prompt.section_blocks)
+
+
+def test_context_policy_owns_baseline_priorities_and_worker_task_selection():
+    sections = (
+        ContextSection("active_tickets", "ticket", priority=1),
+        ContextSection("knowledge", "knowledge", priority=100),
+        ContextSection("user_profile", "profile", priority=100),
+        ContextSection("relevant_history", "history", priority=100),
+        ContextSection("conversation_summary", "summary", priority=100),
+    )
+    selected, decisions = ContextPolicyV1().select(
+        sections, node=ContextNode.WORKER, route="agent_task",
+        task_context_refs=("knowledge", "conversation_summary", "entity:order_id"),
+    )
+    assert [(item.tag, item.priority) for item in selected] == [
+        ("knowledge", 85), ("conversation_summary", 55),
+    ]
+    assert {
+        item.tag for item in decisions
+        if item.status is ContextSelectionStatus.DROPPED_POLICY
+    } == {"active_tickets", "user_profile", "relevant_history"}
+
+
+def test_router_policy_does_not_receive_detailed_knowledge_or_history():
+    prompt = ContextAssembler(
+        max_input_tokens=800, reserved_output_tokens=100, fixed_system_reserve=100,
+    ).assemble(
+        sections=(
+            ContextSection("active_tickets", "case-ref"),
+            ContextSection("conversation_summary", "bounded summary"),
+            ContextSection("knowledge", "detailed corpus"),
+            ContextSection("relevant_history", "cross conversation hit"),
+        ),
+        history=(), current_user_message="continue",
+        node=ContextNode.ROUTER, route="agent_task",
+    )
+    assert "case-ref" in prompt.system_context
+    assert "bounded summary" in prompt.system_context
+    assert "detailed corpus" not in prompt.system_context
+    assert "cross conversation hit" not in prompt.system_context
+    assert prompt.policy_version == "context-policy-v1"
+    assert {item.status for item in prompt.selection_trace} == {
+        ContextSelectionStatus.SELECTED,
+        ContextSelectionStatus.DROPPED_POLICY,
+    }
+
+
+@pytest.mark.parametrize("kwargs", [
+    {"node": "unknown", "route": "legacy"},
+    {"node": ContextNode.PLANNER, "route": "unknown"},
+])
+def test_unknown_context_node_or_route_fails_closed(kwargs):
+    with pytest.raises(ContextPolicyError):
+        ContextAssembler(
+            max_input_tokens=400, reserved_output_tokens=50,
+            fixed_system_reserve=50,
+        ).assemble(
+            sections=(), history=(), current_user_message="current", **kwargs,
+        )
+
+
+def test_frozen_context_policy_matches_runtime_algebras():
+    contract = json.loads((
+        Path(__file__).resolve().parents[1]
+        / "governance/concurrency/m4-t03-context-policy-v1.json"
+    ).read_text("utf-8"))
+    assert contract["nodes"] == [item.value for item in ContextNode]
+    assert contract["baseline_priorities"] == dict(ContextPolicyV1.priorities)
+    assert contract["decision_statuses"] == [
+        item.value for item in ContextSelectionStatus
+    ]
 
 
 def test_context_budget_charges_descriptions_and_join_separators_exactly():

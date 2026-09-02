@@ -8,8 +8,9 @@ from __future__ import annotations
 
 import html
 import re
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Sequence, Tuple
+from dataclasses import dataclass, field, replace
+from enum import Enum
+from typing import Any, Dict, List, Mapping, Sequence, Tuple
 
 from core.input_security import UntrustedContentGuard
 from core.token_estimator import TokenEstimator
@@ -25,6 +26,113 @@ class ContextBudgetExceededError(ValueError):
             f"mandatory context requires {self.required_tokens} tokens, "
             f"exceeding max_input_tokens={self.max_input_tokens}"
         )
+
+
+class ContextPolicyError(ValueError):
+    pass
+
+
+class ContextNode(str, Enum):
+    LEGACY = "legacy"
+    ROUTER = "router"
+    PLANNER = "planner"
+    WORKER = "worker"
+    VERIFIER = "verifier"
+    SYNTHESIS = "synthesis"
+
+
+class ContextSelectionStatus(str, Enum):
+    SELECTED = "SELECTED"
+    TRUNCATED = "TRUNCATED"
+    DROPPED_POLICY = "DROPPED_POLICY"
+    DROPPED_BUDGET = "DROPPED_BUDGET"
+    QUARANTINED = "QUARANTINED"
+    EMPTY = "EMPTY"
+
+
+@dataclass(frozen=True)
+class ContextSelectionDecision:
+    tag: str
+    status: ContextSelectionStatus
+    reason: str
+    policy_priority: int
+    legacy_priority: int
+
+
+class ContextPolicyV1:
+    """Versioned node/task/route selection and section priority owner."""
+
+    version = "context-policy-v1"
+    priorities: Mapping[str, int] = {
+        "active_tickets": 90,
+        "knowledge": 85,
+        "user_profile": 75,
+        "relevant_history": 65,
+        "conversation_summary": 55,
+    }
+    node_allowlists: Mapping[ContextNode, frozenset[str] | None] = {
+        ContextNode.LEGACY: None,
+        ContextNode.ROUTER: frozenset({
+            "active_tickets", "service_continuity", "conversation_summary",
+            "user_profile", "open_commitments",
+        }),
+        ContextNode.PLANNER: None,
+        ContextNode.WORKER: None,
+        ContextNode.VERIFIER: frozenset({
+            "knowledge", "active_tickets", "tool_receipts",
+            "conversation_summary", "service_continuity",
+        }),
+        ContextNode.SYNTHESIS: frozenset({
+            "agent_outcomes", "tool_receipts", "knowledge", "active_tickets",
+        }),
+    }
+    supported_routes = frozenset({
+        "legacy", "direct", "knowledge_qa", "agent_task", "mixed",
+        "multi_domain", "handoff", "clarify", "out_of_scope",
+    })
+
+    def select(
+        self,
+        sections: Sequence["ContextSection"],
+        *,
+        node: ContextNode,
+        route: str,
+        task_context_refs: Sequence[str],
+    ) -> tuple[tuple["ContextSection", ...], tuple[ContextSelectionDecision, ...]]:
+        if route not in self.supported_routes:
+            raise ContextPolicyError(f"unsupported context route: {route}")
+        allowlist = self.node_allowlists[node]
+        task_tags = {
+            str(ref) for ref in task_context_refs
+            if str(ref).strip() and not str(ref).startswith("entity:")
+        }
+        selected, decisions = [], []
+        for section in sections:
+            priority = int(self.priorities.get(section.tag, section.priority))
+            if not str(section.content or "").strip():
+                decisions.append(ContextSelectionDecision(
+                    section.tag, ContextSelectionStatus.EMPTY,
+                    "empty section has no provider input value",
+                    priority, section.priority,
+                ))
+                continue
+            allowed = allowlist is None or section.tag in allowlist
+            if node is ContextNode.WORKER and task_tags:
+                allowed = allowed and section.tag in task_tags
+            if not allowed:
+                decisions.append(ContextSelectionDecision(
+                    section.tag, ContextSelectionStatus.DROPPED_POLICY,
+                    f"not selected for node={node.value}/route={route}",
+                    priority, section.priority,
+                ))
+                continue
+            selected.append(replace(section, priority=priority))
+            decisions.append(ContextSelectionDecision(
+                section.tag, ContextSelectionStatus.SELECTED,
+                f"selected by {self.version} for node={node.value}/route={route}",
+                priority, section.priority,
+            ))
+        return tuple(selected), tuple(decisions)
 
 
 @dataclass(frozen=True)
@@ -61,6 +169,10 @@ class PromptContext:
     truncated_sections: Tuple[str, ...] = field(default_factory=tuple)
     section_blocks: Tuple[Tuple[str, str], ...] = field(default_factory=tuple)
     quarantined_sections: Tuple[str, ...] = field(default_factory=tuple)
+    policy_version: str = "context-policy-v1"
+    node: str = ContextNode.LEGACY.value
+    route: str = "legacy"
+    selection_trace: Tuple[ContextSelectionDecision, ...] = field(default_factory=tuple)
 
     def to_messages(self, current_user_message: str) -> List[Dict[str, str]]:
         """复制历史并将当前用户消息追加为最后一条真实对话。"""
@@ -96,6 +208,13 @@ class PromptContext:
             ),
             section_blocks=blocks,
             quarantined_sections=self.quarantined_sections,
+            policy_version=self.policy_version,
+            node=self.node,
+            route=self.route,
+            selection_trace=tuple(
+                decision for decision in self.selection_trace
+                if decision.tag in allowed
+            ),
         )
 
 
@@ -108,6 +227,7 @@ class ContextAssembler:
         reserved_output_tokens: int = 1536,
         fixed_system_reserve: int = 768,
         section_ratio: float = 0.55,
+        policy: ContextPolicyV1 | None = None,
     ):
         """配置输入、输出和固定系统开销，并校验预算存在可用空间。"""
         if max_input_tokens <= reserved_output_tokens + fixed_system_reserve:
@@ -118,6 +238,7 @@ class ContextAssembler:
         self.section_ratio = min(max(float(section_ratio), 0.2), 0.8)
         self.estimator = TokenEstimator()
         self.untrusted_content_guard = UntrustedContentGuard()
+        self.policy = policy or ContextPolicyV1()
 
     def assemble(
         self,
@@ -125,11 +246,22 @@ class ContextAssembler:
         sections: Sequence[ContextSection],
         history: Sequence[Dict[str, Any]],
         current_user_message: str,
+        node: ContextNode | str = ContextNode.LEGACY,
+        route: str = "legacy",
+        task_context_refs: Sequence[str] = (),
     ) -> PromptContext:
         """按优先级装配 section，并保证每个成功结果都满足总预算不变量。"""
+        try:
+            resolved_node = ContextNode(node)
+        except ValueError as exc:
+            raise ContextPolicyError(f"unsupported context node: {node}") from exc
+        policy_sections, policy_decisions = self.policy.select(
+            sections, node=resolved_node, route=route,
+            task_context_refs=task_context_refs,
+        )
         safe_sections: List[ContextSection] = []
         quarantined: List[str] = []
-        for section in sections:
+        for section in policy_sections:
             if (
                 section.untrusted_data
                 and self.untrusted_content_guard.analyze(section.content).blocked
@@ -181,6 +313,29 @@ class ContextAssembler:
                 required_tokens=estimated,
                 max_input_tokens=self.max_input_tokens,
             )
+        final_decisions = []
+        block_tags = {tag for tag, _ in section_blocks}
+        truncated_tags = set(truncated)
+        quarantined_tags = set(quarantined)
+        for decision in policy_decisions:
+            status, reason = decision.status, decision.reason
+            if status is ContextSelectionStatus.SELECTED:
+                if decision.tag in quarantined_tags:
+                    status, reason = (
+                        ContextSelectionStatus.QUARANTINED,
+                        "untrusted content guard rejected section",
+                    )
+                elif decision.tag in truncated_tags:
+                    status, reason = (
+                        ContextSelectionStatus.TRUNCATED,
+                        "selected section exceeded its available budget",
+                    )
+                elif decision.tag not in block_tags:
+                    status, reason = (
+                        ContextSelectionStatus.DROPPED_BUDGET,
+                        "selected section received no remaining budget",
+                    )
+            final_decisions.append(replace(decision, status=status, reason=reason))
         return PromptContext(
             system_context=system_context,
             history=tuple(fitted_history),
@@ -189,6 +344,10 @@ class ContextAssembler:
             truncated_sections=tuple(truncated),
             section_blocks=tuple(section_blocks),
             quarantined_sections=tuple(dict.fromkeys(quarantined)),
+            policy_version=self.policy.version,
+            node=resolved_node.value,
+            route=route,
+            selection_trace=tuple(final_decisions),
         )
 
     def _fit_sections(
@@ -208,7 +367,10 @@ class ContextAssembler:
 
         for index, section in ordered:
             content = str(section.content or "")
-            if not content.strip() or budget <= 0:
+            if not content.strip():
+                continue
+            if budget <= 0:
+                truncated.append(section.tag)
                 continue
             empty_rendered = section.render("")
             if self.estimator.estimate(joined(index, empty_rendered)) > budget:
