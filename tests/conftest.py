@@ -10,6 +10,19 @@ import pytest
 from psycopg import sql
 
 
+def _database_urls(base_url: str, database_name: str) -> tuple[str, str]:
+    parsed = urlsplit(base_url)
+    admin_url = urlunsplit((
+        parsed.scheme, parsed.netloc, parsed.path or "/postgres",
+        parsed.query, parsed.fragment,
+    ))
+    isolated_url = urlunsplit((
+        parsed.scheme, parsed.netloc, f"/{database_name}",
+        parsed.query, parsed.fragment,
+    ))
+    return admin_url, isolated_url
+
+
 @pytest.fixture(scope="session")
 def postgres_database_url():
     base_url = str(os.getenv("TEST_DATABASE_URL") or "").strip()
@@ -55,3 +68,29 @@ def postgres_database_url():
             ))
         if container is not None:
             container.stop()
+
+
+@pytest.fixture
+def fresh_postgres_database_url():
+    """Provide a per-test empty database for migration-path tests."""
+    base_url = str(os.getenv("TEST_DATABASE_URL") or "").strip()
+    if not base_url:
+        pytest.skip("set TEST_DATABASE_URL for fresh PostgreSQL migration tests")
+    database_name = f"dialogpilot_migration_{uuid.uuid4().hex[:12]}"
+    admin_url, isolated_url = _database_urls(base_url, database_name)
+    with psycopg.connect(admin_url, autocommit=True) as connection:
+        connection.execute(sql.SQL("CREATE DATABASE {}").format(
+            sql.Identifier(database_name),
+        ))
+    try:
+        yield isolated_url
+    finally:
+        with psycopg.connect(admin_url, autocommit=True) as connection:
+            connection.execute(
+                "SELECT pg_terminate_backend(pid) FROM pg_stat_activity "
+                "WHERE datname = %s AND pid <> pg_backend_pid()",
+                (database_name,),
+            )
+            connection.execute(sql.SQL("DROP DATABASE IF EXISTS {}").format(
+                sql.Identifier(database_name),
+            ))

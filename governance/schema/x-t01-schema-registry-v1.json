@@ -1,0 +1,136 @@
+{
+  "payload": {
+    "contracts": {
+      "agent_checkpoint": {
+        "current_version": "react-checkpoint-v1",
+        "owner": "agent-checkpoint",
+        "readable_versions": [
+          "legacy-react-checkpoint-v0",
+          "react-checkpoint-v1"
+        ],
+        "strategy": "read_migrate"
+      },
+      "agent_code": {
+        "current_version": "legacy-react-engine-v1",
+        "owner": "agent-runtime-code",
+        "readable_versions": [
+          "legacy-react-engine-v0",
+          "legacy-react-engine-v1"
+        ],
+        "strategy": "read_migrate"
+      },
+      "postgres": {
+        "current_version": "20260902_0015",
+        "owner": "postgres-domain",
+        "readable_versions": [
+          "20260902_0015"
+        ],
+        "strategy": "forward_only"
+      }
+    },
+    "data_location_transitions": [
+      {
+        "fingerprint": "92760d381381231733d03ac8f11b6cd4d8aa75931c68988aa01719545c40fd28",
+        "registry_version": "v1",
+        "revision": "20260902_0007"
+      },
+      {
+        "fingerprint": "51e227f466f05185b20c8175b03dbfc852450b1644c371a23ccf5dcedbd5d745",
+        "registry_version": "v2",
+        "revision": "20260902_0009"
+      },
+      {
+        "fingerprint": "14bda1d84d888883c2d4f42bfbc0b88c04860441c0d243b2b01e3a9cdfc98ade",
+        "registry_version": "v3",
+        "revision": "20260902_0012"
+      },
+      {
+        "fingerprint": "2aae62ba01ac4195ae50a7dbd7b619f433d5a800b3fce8698a1e3a9a3f49f502",
+        "registry_version": "v4",
+        "revision": "20260902_0013"
+      }
+    ],
+    "downgrade_policy": "FORBIDDEN_FORWARD_FIX_OR_FULL_RESTORE",
+    "postgres_migrations": [
+      {
+        "down_revision": null,
+        "file_sha256": "bc0846387356b26cc4261221ab52a24aa54cce480240b361cfd1da1cec905058",
+        "revision": "20260902_0001"
+      },
+      {
+        "down_revision": "20260902_0001",
+        "file_sha256": "e7cf62795a366a5de7e9c3a7ec9d645f95b80827f092fc185739babf7c2204bb",
+        "revision": "20260902_0002"
+      },
+      {
+        "down_revision": "20260902_0002",
+        "file_sha256": "fbc3056f883a91fef7b08ef3585a56eb7c21415b3e95e391d40b379b39d74811",
+        "revision": "20260902_0003"
+      },
+      {
+        "down_revision": "20260902_0003",
+        "file_sha256": "36544bdbeedf5d175f23cea64d7d1693c4467ae0984a005226cc20b93149bd1d",
+        "revision": "20260902_0004"
+      },
+      {
+        "down_revision": "20260902_0004",
+        "file_sha256": "7b8ed8e80e78cc6da951bd905ca6f67e2e580ccd19b8c4b78fd63fd1b1ee8ec4",
+        "revision": "20260902_0005"
+      },
+      {
+        "down_revision": "20260902_0005",
+        "file_sha256": "419da76eb46136fd9e86c26b18cccd58822cf5364559c1f6dc2e00f24a47009b",
+        "revision": "20260902_0006"
+      },
+      {
+        "down_revision": "20260902_0006",
+        "file_sha256": "bb355c92b0b279d45df2de7919b4efaaba95e211628d6e0970cb3bbf92095367",
+        "revision": "20260902_0007"
+      },
+      {
+        "down_revision": "20260902_0007",
+        "file_sha256": "30fa3ba34fa561c300867c300abd75889b4e70e9798f95ca10e7b2cf7e2a662b",
+        "revision": "20260902_0008"
+      },
+      {
+        "down_revision": "20260902_0008",
+        "file_sha256": "5512700e52ff97b8abb5ec114017f6162981dc6650647954de02f90235ee898b",
+        "revision": "20260902_0009"
+      },
+      {
+        "down_revision": "20260902_0009",
+        "file_sha256": "524b71d4c58f71900acae263eb388ffd0b67b54206a4cd41c8b00db5f8633609",
+        "revision": "20260902_0010"
+      },
+      {
+        "down_revision": "20260902_0010",
+        "file_sha256": "a439b71e196f2fc560b1f68493c2fb11aafa39995b375419d88db143f2807984",
+        "revision": "20260902_0011"
+      },
+      {
+        "down_revision": "20260902_0011",
+        "file_sha256": "bac36f438d38db2fb36753f68027b927b70ebf9641e8e5b4945a74c4e4b69adf",
+        "revision": "20260902_0012"
+      },
+      {
+        "down_revision": "20260902_0012",
+        "file_sha256": "2778d64e85d5728b98512459c35bab790196833594d89aae9cc841cc0162b6ca",
+        "revision": "20260902_0013"
+      },
+      {
+        "down_revision": "20260902_0013",
+        "file_sha256": "685b847a49cc26c77b8fc771a8027f0176c162cda95a608d4c15f132212602d3",
+        "revision": "20260902_0014"
+      },
+      {
+        "down_revision": "20260902_0014",
+        "file_sha256": "e57345baacde04923ff27e14226dbbbeb043a55c7e70ef5e9759628c87c93747",
+        "revision": "20260902_0015"
+      }
+    ],
+    "registry_version": "schema-version-registry-v1"
+  },
+  "payload_sha256": "2ed5e4d1bb737bf646a6da19bacb6aafd399b52fef516f46005288d53866493e",
+  "schema_version": "x-t01-schema-registry-artifact-v1",
+  "verification_status": "BUILD_LOCAL_RESTORE_PRODUCTION_SNAPSHOT_PENDING"
+}

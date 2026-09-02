@@ -40,6 +40,7 @@
 | M2-T06R Route Bundle enable/rollback | implemented (canary blocked) | pinned execution refs、single publisher、atomic crash rollback、forward-fix runbook；771 tests passed |
 | X-T03 安全威胁模型 | implemented (production review pending) | 8 threats/control map、13-case corpus、incident disable runbook；799 tests passed |
 | X-T04 成本预算 | implemented (route flag-off) | 8 route + offline ingest budgets、typed exhaustion、provider usage reconciliation；806 tests passed |
+| X-T01 schema/version 治理 | implemented (production snapshot pending) | linear 15-revision registry、forward-only/concurrent migration、checkpoint compatibility、local restore；812 tests passed |
 | M2 Exit Gate | draft / not ready | unsigned reproducible manifest；independent security/heldout、production billing/platform evidence、M1 Exit blocked；806 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | build nodes done；Exit prerequisites/evidence not closed |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
@@ -952,10 +953,24 @@
   `IMPLEMENTED / ROUTE FLAG-OFF / PRODUCTION BILLING REVIEW PENDING`。无真实 invoice/export sample，不宣称
   production billing reconciliation 或 M2 Exit 已通过。
 
+### X-T01（schema/version registry / migration and restore）
+
+- 新增 closed `schema-version-registry-v1`，把 PostgreSQL domain、legacy Agent checkpoint 与 runtime code
+  分成三个 Owner/compatibility contract；DataLocation v1–v4 transition 由 registry 显式绑定 revision/hash，
+  不再按同事务时间戳或迁移模块偶然字段猜当前版本。
+- PostgresMigrationRunner 验证单 head 线性链，支持 `upgrade_to()` 逐版本/跳版本前向迁移，advisory lock
+  串行化多进程 owner；较低 target typed `ForwardOnlyMigrationError`，不调用 downgrade。
+- RunStore 覆盖 caller 提供的 schema/code 值并固定当前版本；legacy v0 在显式 allowlist 内 read-migrate，
+  unknown version 在恢复前 fail closed。
+- frozen registry 包含 15 个 revision/checksum；隔离 dump/restore 对 migration+DataLocation 19 条治理事实做
+  count/hash reconciliation。聚焦 `18 passed`、全套 `812 passed in 46.38s`；
+  [build evidence](../governance/evidence/x-t01/schema-governance-build-v1.md) 明确仅为本地演练，生产 snapshot
+  副本、RPO/RTO 与独立 review 仍未 VERIFIED。
+
 ## 下一步
 
 1. M2 Exit 仍需独立 X-T03/X-T04 review、unseen Knowledge heldout、真实 provider billing sample、生产
    Recall/latency/RTO/OLTP 与 M1 Exit evidence；当前不得签署或开启 canary。
-2. 在不依赖未获授权生产证据的前提下，继续下一个 DAG 可实施节点。
+2. 继续 X-T02 并发与多副本；不依赖未获授权生产证据，也不越过 M1/M2 Exit 开启行为流量。
 3. M2-T05C 受 M2 Exit + `POSTGRES_RETRIEVAL_GA` candidate manifest 阻断，当前不执行 canary。
 4. T04/T04A live activation 仍受 M2 gate 与独立 review 约束。

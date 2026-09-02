@@ -12,6 +12,8 @@ import sqlite3
 import threading
 from typing import Any, Dict, Optional, Tuple
 
+from core.schema_version_registry import SchemaCompatibilityError, SchemaVersionRegistry
+
 
 class RunStatus(str, Enum):
     """持久 Run 支持的闭合状态代数。"""
@@ -178,7 +180,15 @@ class RunStore:
                         values["bundle_version"], RunStatus.RUNNING.value,
                         self._sanitize_checkpoint_value(str(system)),
                         self._json(self._sanitize_checkpoint_value(list(messages))),
-                        self._json(self._sanitize_checkpoint_value(execution_context)),
+                        self._json(self._sanitize_checkpoint_value({
+                            **dict(execution_context),
+                            "_checkpoint_schema_version": (
+                                SchemaVersionRegistry.agent_checkpoint.current_version
+                            ),
+                            "_agent_code_version": (
+                                SchemaVersionRegistry.agent_code.current_version
+                            ),
+                        })),
                         int(max_steps), expires, now, now,
                     ),
                 )
@@ -457,12 +467,25 @@ class RunStore:
 
     @classmethod
     def _row(cls, row: sqlite3.Row) -> RunCheckpoint:
+        execution_context = cls._loads(row["execution_context_json"], {})
+        checkpoint_version = str(execution_context.get(
+            "_checkpoint_schema_version", "legacy-react-checkpoint-v0",
+        ))
+        code_version = str(execution_context.get(
+            "_agent_code_version", "legacy-react-engine-v0",
+        ))
+        try:
+            SchemaVersionRegistry.validate_agent_resume(
+                checkpoint_version=checkpoint_version, code_version=code_version,
+            )
+        except SchemaCompatibilityError as exc:
+            raise RunStoreError("checkpoint schema/code version is incompatible") from exc
         return RunCheckpoint(
             run_id=row["run_id"], request_id=row["request_id"], user_id=row["user_id"],
             conv_id=row["conv_id"], agent_type=row["agent_type"], task_id=row["task_id"],
             bundle_version=row["bundle_version"], status=RunStatus(row["status"]),
             system=row["system_text"], messages=tuple(cls._loads(row["messages_json"], [])),
-            execution_context=cls._loads(row["execution_context_json"], {}),
+            execution_context=execution_context,
             runtime=cls._loads(row["runtime_json"], {}), step=int(row["step"]),
             max_steps=int(row["max_steps"]),
             tool_call_ids=tuple(cls._loads(row["tool_call_ids_json"], [])),

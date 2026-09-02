@@ -1,8 +1,11 @@
 """M1-PF01 migration, pool and fail-closed integration contracts."""
+from concurrent.futures import ThreadPoolExecutor
+
 import psycopg
 import pytest
 
 from infrastructure.postgres import (
+    ForwardOnlyMigrationError,
     MigrationDriftError,
     PostgresMigrationRunner,
     PostgresPool,
@@ -33,7 +36,7 @@ def test_unavailable_migration_is_typed_and_does_not_fallback():
     runner = PostgresMigrationRunner(
         "postgresql://invalid:invalid@127.0.0.1:1/missing?connect_timeout=1"
     )
-    with pytest.raises(PostgresUnavailableError, match="ledger check failed"):
+    with pytest.raises(PostgresUnavailableError, match="migration failed"):
         runner.upgrade()
 
 
@@ -91,3 +94,48 @@ def test_applied_migration_checksum_drift_fails_closed(postgres_database_url):
             "WHERE revision='20260902_0001'",
             (original,),
         )
+
+
+def test_progressive_and_skipped_forward_upgrades_share_one_linear_registry(
+    fresh_postgres_database_url,
+):
+    runner = PostgresMigrationRunner(fresh_postgres_database_url)
+    manifest = runner.revision_manifest()
+
+    assert len(manifest) == 15
+    assert manifest[0]["down_revision"] is None
+    assert all(
+        row["down_revision"] == manifest[index - 1]["revision"]
+        for index, row in enumerate(manifest[1:], 1)
+    )
+    for row in manifest:
+        revision = str(row["revision"])
+        assert runner.upgrade_to(revision)["head"] == revision
+    assert runner.upgrade()["head"] == "20260902_0015"
+
+
+def test_migration_runner_rejects_downgrade_and_requires_forward_fix(
+    postgres_database_url,
+):
+    runner = PostgresMigrationRunner(postgres_database_url)
+    runner.upgrade()
+
+    with pytest.raises(ForwardOnlyMigrationError, match="downgrade is forbidden"):
+        runner.upgrade_to("20260902_0014")
+
+    assert runner.verify()["head"] == "20260902_0015"
+
+
+def test_concurrent_empty_database_migration_owners_serialize(
+    fresh_postgres_database_url,
+):
+    def migrate(actor):
+        return PostgresMigrationRunner(
+            fresh_postgres_database_url, actor=actor,
+        ).upgrade()
+
+    with ThreadPoolExecutor(max_workers=2) as workers:
+        results = list(workers.map(migrate, ("runner-a", "runner-b")))
+
+    assert {row["head"] for row in results} == {"20260902_0015"}
+    assert len({row["ledger_sha256"] for row in results}) == 1

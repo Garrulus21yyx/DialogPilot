@@ -21,6 +21,7 @@ from application.data_location_registry import (
     LocationReadiness,
     default_registry_path,
 )
+from core.schema_version_registry import SchemaVersionRegistry
 
 
 class PostgresUnavailableError(RuntimeError):
@@ -28,6 +29,10 @@ class PostgresUnavailableError(RuntimeError):
 
 
 class MigrationDriftError(RuntimeError):
+    pass
+
+
+class ForwardOnlyMigrationError(RuntimeError):
     pass
 
 
@@ -139,18 +144,36 @@ class PostgresMigrationRunner:
         )
 
     def upgrade(self) -> dict[str, str]:
+        return self.upgrade_to("head")
+
+    def upgrade_to(self, target: str) -> dict[str, str]:
         try:
+            target_revision = self._resolve_target(target)
             self._validate_data_location_metadata()
-            self._verify_known_ledger(allow_absent=True)
-            command.upgrade(self.config, "head")
-            self._record_known_revisions()
-            return self.verify()
+            self._validate_revision_chain()
+            with self._migration_lock():
+                self._verify_known_ledger(allow_absent=True)
+                current = self._database_revision(allow_absent=True)
+                ordered = self._ordered_revisions()
+                positions = {
+                    revision.revision: index
+                    for index, revision in enumerate(ordered)
+                }
+                if current is not None and positions[current] > positions[target_revision]:
+                    raise ForwardOnlyMigrationError(
+                        f"downgrade is forbidden: {current} -> {target_revision}"
+                    )
+                command.upgrade(self.config, target_revision)
+                self._record_applied_revisions(target_revision)
+            return self.verify(target_revision)
         except (psycopg.Error, SQLAlchemyError, OSError) as exc:
             raise PostgresUnavailableError("PostgreSQL migration failed") from exc
 
-    def verify(self) -> dict[str, str]:
+    def verify(self, target: str = "head") -> dict[str, str]:
         self._validate_data_location_metadata()
-        expected = self._revision_checksums()
+        self._validate_revision_chain()
+        target_revision = self._resolve_target(target)
+        expected = self._revision_checksums(target_revision)
         try:
             with psycopg.connect(self.database_url) as connection:
                 current = connection.execute(
@@ -168,7 +191,7 @@ class PostgresMigrationRunner:
                     connection.execute(
                         "SELECT registry_version, artifact_fingerprint FROM "
                         "dialogpilot_platform.data_location_registry_revisions "
-                        "ORDER BY installed_at DESC LIMIT 1"
+                        "ORDER BY registry_version DESC LIMIT 1"
                     ).fetchone()
                     if registry_table else None
                 )
@@ -180,18 +203,24 @@ class PostgresMigrationRunner:
                 f"migration ledger mismatch: expected={sorted(expected)} "
                 f"actual={sorted(actual)}"
             )
-        head = self._script().get_current_head()
-        if not current or current[0] != head:
+        if not current or current[0] != target_revision:
             raise MigrationDriftError(
-                f"database revision {current[0] if current else None!r} != head {head!r}"
+                f"database revision {current[0] if current else None!r} "
+                f"!= target {target_revision!r}"
             )
         if registry_row is not None:
-            registry = DataLocationRegistry.load(default_registry_path())
-            if registry_row != (registry.version, registry.fingerprint):
+            expected_registry = self._registry_at(target_revision)
+            if expected_registry is None or registry_row != expected_registry:
                 raise MigrationDriftError(
-                    "installed data-location registry differs from approved artifact"
+                    "installed data-location registry differs from migration chain"
                 )
-        return {"head": head, "ledger_sha256": _mapping_hash(actual)}
+            if target_revision == self._script().get_current_head():
+                registry = DataLocationRegistry.load(default_registry_path())
+                if expected_registry != (registry.version, registry.fingerprint):
+                    raise MigrationDriftError(
+                        "migration head differs from approved data-location artifact"
+                    )
+        return {"head": target_revision, "ledger_sha256": _mapping_hash(actual)}
 
     def _validate_data_location_metadata(self) -> None:
         registry = DataLocationRegistry.load(default_registry_path())
@@ -242,8 +271,8 @@ class PostgresMigrationRunner:
             if expected.get(revision) != checksum:
                 raise MigrationDriftError(f"applied migration changed: {revision}")
 
-    def _record_known_revisions(self) -> None:
-        expected = self._revision_checksums()
+    def _record_applied_revisions(self, target_revision: str) -> None:
+        expected = self._revision_checksums(target_revision)
         with psycopg.connect(self.database_url) as connection:
             for revision, checksum in expected.items():
                 connection.execute("""
@@ -254,12 +283,100 @@ class PostgresMigrationRunner:
                 """, (revision, checksum, self.actor, self.application_version))
         self._verify_known_ledger(allow_absent=False)
 
-    def _revision_checksums(self) -> dict[str, str]:
-        revisions = list(self._script().walk_revisions(base="base", head="heads"))
+    def _revision_checksums(self, target: str = "head") -> dict[str, str]:
+        target_revision = self._resolve_target(target)
         return {
             revision.revision: _file_sha256(Path(revision.path))
-            for revision in reversed(revisions)
+            for revision in self._ordered_revisions()
+            if self._revision_position(revision.revision) <= self._revision_position(target_revision)
         }
+
+    def revision_manifest(self) -> tuple[dict[str, str | None], ...]:
+        self._validate_revision_chain()
+        return tuple({
+            "revision": revision.revision,
+            "down_revision": revision.down_revision,
+            "file_sha256": _file_sha256(Path(revision.path)),
+        } for revision in self._ordered_revisions())
+
+    def _validate_revision_chain(self) -> None:
+        script = self._script()
+        heads = script.get_heads()
+        if len(heads) != 1:
+            raise MigrationDriftError(f"migration chain requires one head: {heads}")
+        ordered = self._ordered_revisions()
+        for index, revision in enumerate(ordered):
+            expected = ordered[index - 1].revision if index else None
+            if revision.down_revision != expected:
+                raise MigrationDriftError(
+                    f"migration chain is not linear at {revision.revision}"
+                )
+        if heads[0] != SchemaVersionRegistry.postgres.current_version:
+            raise MigrationDriftError(
+                "PostgreSQL head differs from schema-version registry"
+            )
+
+    def _ordered_revisions(self):
+        return list(reversed(list(
+            self._script().walk_revisions(base="base", head="heads")
+        )))
+
+    def _resolve_target(self, target: str) -> str:
+        resolved = (
+            self._script().get_current_head() if target == "head" else str(target)
+        )
+        if resolved not in {item.revision for item in self._ordered_revisions()}:
+            raise MigrationDriftError(f"unknown migration target: {target}")
+        return resolved
+
+    def _revision_position(self, revision: str) -> int:
+        return next(
+            index for index, item in enumerate(self._ordered_revisions())
+            if item.revision == revision
+        )
+
+    def _database_revision(self, *, allow_absent: bool) -> str | None:
+        try:
+            with psycopg.connect(self.database_url) as connection:
+                exists = connection.execute(
+                    "SELECT to_regclass('dialogpilot_platform.alembic_version')"
+                ).fetchone()[0]
+                if not exists and allow_absent:
+                    return None
+                row = connection.execute(
+                    "SELECT version_num FROM dialogpilot_platform.alembic_version"
+                ).fetchone()
+                return str(row[0]) if row else None
+        except psycopg.Error as exc:
+            raise PostgresUnavailableError("PostgreSQL revision check failed") from exc
+
+    @contextmanager
+    def _migration_lock(self):
+        """Serialize migration owners across processes without a schema dependency."""
+        lock_key = int.from_bytes(
+            hashlib.sha256(b"dialogpilot:postgres-migration:v1").digest()[:8],
+            "big", signed=True,
+        )
+        with psycopg.connect(self.database_url, autocommit=True) as connection:
+            connection.execute("SELECT pg_advisory_lock(%s)", (lock_key,))
+            try:
+                yield
+            finally:
+                connection.execute("SELECT pg_advisory_unlock(%s)", (lock_key,))
+
+    def _registry_at(self, target_revision: str) -> tuple[str, str] | None:
+        result = None
+        target_position = self._revision_position(target_revision)
+        positions = {
+            revision.revision: index
+            for index, revision in enumerate(self._ordered_revisions())
+        }
+        for revision, version, fingerprint in (
+            SchemaVersionRegistry.data_location_transitions
+        ):
+            if positions[revision] <= target_position:
+                result = (version, fingerprint)
+        return result
 
     def _script(self) -> ScriptDirectory:
         return ScriptDirectory.from_config(self.config)

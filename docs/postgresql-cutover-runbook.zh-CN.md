@@ -34,6 +34,21 @@ python scripts/run_postgres_migrations.py --database-url "$RESTORE_DATABASE_URL"
 验收证据必须包含：备份 SHA-256、起止时间、PostgreSQL major、Alembic head、ledger、关键表 count/
 checksum、RPO/RTO、执行人与清理确认。恢复演练只对隔离数据库执行。
 
+X-T01 的仓库级 schema registry 由以下命令重建；输出必须与冻结 artifact 完全相同：
+
+```bash
+python scripts/create_x_t01_schema_registry.py \
+  --output governance/schema/x-t01-schema-registry-v1.json
+python scripts/rehearse_x_t01_restore.py \
+  --database-url "$DATABASE_URL" \
+  --output governance/evidence/x-t01/restore-local-v1.json
+```
+
+若宿主没有 `pg_dump/pg_restore`，本地 Compose 演练可额外指定
+`--postgres-container dialogpilot-postgres`。`upgrade_to()` 只允许沿冻结线性链向前；已在更高 revision 的
+数据库请求较低 target 会返回 `ForwardOnlyMigrationError`。禁止执行 Alembic downgrade 来伪造可逆性；
+逻辑修复发布新 revision，灾难恢复使用完整备份并重新做 count/hash reconciliation。
+
 ## ResponseDelivery 专用流程（M1-T03A）
 
 1. 升级到 Alembic `20260902_0005`。旧 SQLite 仍是唯一 writer；先执行 `export` 和 `backfill`，

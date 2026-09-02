@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 import sqlite3
 from types import SimpleNamespace
@@ -13,6 +14,7 @@ from agents.run_store import (
     RunAccessDeniedError,
     RunStatus,
     RunStore,
+    RunStoreError,
 )
 from mcp.tool_manager import (
     MCPToolManager,
@@ -357,3 +359,29 @@ def test_checkpoint_owner_redacts_credentials_before_persistence(tmp_path):
     assert "result-token-value" not in serialized
     assert completed.execution_context["authorization_fingerprint"] == "safe-fingerprint"
     assert "[REDACTED]" in serialized
+
+
+def test_checkpoint_owner_pins_schema_and_rejects_unknown_resume_version(tmp_path):
+    path = tmp_path / "runs.db"
+    store = RunStore(str(path))
+    created = store.create(
+        run_id="schema-run", request_id="request", user_id="user", conv_id="conv",
+        agent_type="general", task_id="task", bundle_version="bundle",
+        system="system", messages=(),
+        execution_context={"_checkpoint_schema_version": "caller-forged"},
+        max_steps=2,
+    )
+
+    assert created.execution_context["_checkpoint_schema_version"] == (
+        "react-checkpoint-v1"
+    )
+    with sqlite3.connect(path) as connection:
+        context = dict(created.execution_context)
+        context["_checkpoint_schema_version"] = "unknown-v99"
+        connection.execute(
+            "UPDATE react_runs SET execution_context_json=? WHERE run_id=?",
+            (json.dumps(context), created.run_id),
+        )
+
+    with pytest.raises(RunStoreError, match="schema/code version is incompatible"):
+        store.get(created.run_id)
