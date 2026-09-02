@@ -342,6 +342,14 @@ class VerificationProfileRegistry:
             "SEMANTIC_AMBIGUITY_REQUIRES_VERIFIER",
         )
 
+    def contract_for(
+        self,
+        mode: RouteMode,
+        requirements: Sequence[FactRequirement],
+    ) -> VerificationProfileContract:
+        """Return the authoritative deterministic gate/profile contract for a route."""
+        return self._contract(mode, requirements)
+
     @staticmethod
     def _contract(
         mode: RouteMode,

@@ -36,6 +36,7 @@
 | M2-T04A SourceRevision v0 / active manifest | implemented (review pending) | PG owner/backfill/active validator done；independent human heldout review pending；650 tests passed |
 | M2-T05 统一 KnowledgeRetriever | implemented (canary blocked) | A1/A2/B + immutable PG dark-shadow report；675 tests passed |
 | M2-T06A Multi-Agent TaskGraph 收紧 | implemented | A/B/C policy、execution、dependency、native signal 与 terminal algebra 完成；697 tests passed |
+| M2-T06 自适应 RAG 发布路径 | in_progress | A: eight-mode execution/publication contract frozen；Application migration pending |
 | M2 Route/Authority/Evidence/RAG | in_progress | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
@@ -710,6 +711,23 @@
   cancel/expire/unknown terminal、prior binding 隔离；聚焦 `46 passed`，全套
   `697 passed`，本次文件 ruff/diff checks passed。M2-T06A 标记 IMPLEMENTED；LangGraph native
   checkpointer/resume 的持久化迁移仍属于 M3，不在本节点伪造。
+
+### M2-T06-A（eight-mode execution/publication contract）
+
+- 新增 `RouteExecutionPolicy v1`，将八种 `RouteMode` 闭合为唯一 candidate Owner、expected
+  outcome，以及穷尽且互斥的 required/conditional/forbidden component algebra；每条路径均强制
+  `TURN_RECORD`，合同 fingerprint 绑定 route input/policy 与 verification gates。
+- `KNOWLEDGE_QA` 唯一候选 Owner 为 GroundedAnswerGenerator；`AGENT_TASK` 禁止 pre-route
+  grounded generation，仅允许 Agent 内按需 Knowledge/业务工具；`MIXED` 只形成一份
+  mixed-authority Agent candidate；`MULTI_DOMAIN` 委托 TaskGraph 并只条件允许 synthesis。
+- `DIRECT/OUT_OF_SCOPE/CLARIFY` 禁止 Retriever、Agent、业务工具和 semantic verifier；
+  `CLARIFY` 投影 `NEEDS_INPUT`；`HANDOFF` 在 M4-T07C 前只允许 schema-compatible draft，明确
+  禁止新 handoff write。
+- `VerificationProfileRegistry.contract_for()` 成为执行路径读取 deterministic gates/profile 的公开
+  Owner 端口，route executor 不复制 verification 决策。
+- 验证：八 mode 组件集合完备/互斥、逐路径 forbidden calls、单 candidate Owner、handoff release
+  fence 与 fingerprint replay；聚焦 `55 passed`、全套 `714 passed in 19.36s`，ruff checks passed。主链路仍待 T06-B 迁移，
+  因此 M2-T06 保持 in_progress。
 
 ## 下一步
 
