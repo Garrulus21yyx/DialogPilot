@@ -99,6 +99,7 @@ class Ticket:
     assignee: Optional[str]
     created_at: str
     updated_at: str
+    version: int
     identity_metadata: Dict[str, str] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -323,6 +324,7 @@ class TicketService:
                 "verification_status": values["verification_status"],
                 "identity_metadata": values["identity_metadata"],
                 "created_at": now,
+                "version": 1,
             }
             conn.execute(
                 """
@@ -559,7 +561,8 @@ class TicketService:
             if target is TicketStatus.IN_PROGRESS and not next_assignee:
                 next_assignee = actor
             conn.execute(
-                "UPDATE tickets SET status = ?, assignee = ?, updated_at = ? WHERE ticket_id = ?",
+                "UPDATE tickets SET status = ?, assignee = ?, updated_at = ?, "
+                "version = version + 1 WHERE ticket_id = ?",
                 (target.value, next_assignee, now, ticket_id),
             )
             self._insert_event(
@@ -614,6 +617,7 @@ class TicketService:
                     created_at TEXT NOT NULL,
                     updated_at TEXT NOT NULL
                     ,identity_metadata_json TEXT NOT NULL DEFAULT '{}'
+                    ,version INTEGER NOT NULL DEFAULT 1 CHECK(version >= 1)
                 );
 
                 CREATE INDEX IF NOT EXISTS idx_tickets_user_created
@@ -658,6 +662,11 @@ class TicketService:
                 conn.execute(
                     "ALTER TABLE tickets "
                     "ADD COLUMN identity_metadata_json TEXT NOT NULL DEFAULT '{}'"
+                )
+            if "version" not in columns:
+                conn.execute(
+                    "ALTER TABLE tickets "
+                    "ADD COLUMN version INTEGER NOT NULL DEFAULT 1"
                 )
 
     def _connect(self) -> sqlite3.Connection:
@@ -717,6 +726,7 @@ class TicketService:
             assignee=row["assignee"],
             created_at=row["created_at"],
             updated_at=row["updated_at"],
+            version=int(row["version"]),
             identity_metadata=json.loads(row["identity_metadata_json"] or "{}"),
         )
 

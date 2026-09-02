@@ -1,0 +1,33 @@
+{
+  "contract_id": "m4-t03b-active-case-v1",
+  "fact_owner": "TicketService",
+  "projection_producer": "ticket-service-active-case-v1",
+  "projection_states": ["NO_ACTIVE_CASE", "CASES", "UNAVAILABLE", "CONFLICT"],
+  "legacy_profile": {
+    "policy_version": "active-case-legacy-recency-v1",
+    "excluded_statuses": ["closed"],
+    "included_status_witness": "resolved",
+    "limit": 3,
+    "order": ["updated_at DESC", "created_at DESC", "ticket_id ASC"],
+    "section_priority": 90
+  },
+  "candidate_policy_version": "active-case-context-policy-v1",
+  "hard_include": [
+    "exact_ticket_or_case_ref", "breached_sla_or_commitment",
+    "critical_priority", "security_case"
+  ],
+  "soft_order": [
+    "task_topic_or_entity_match", "business_priority", "legacy_recency_order"
+  ],
+  "consumer_binding": {
+    "default_mode": "SHADOW",
+    "active_policy_version": "active-case-legacy-recency-v1",
+    "candidate_policy_version": "active-case-context-policy-v1",
+    "previous_verified_policy_version": "active-case-legacy-recency-v1",
+    "enable_owner": "M4-T03C pinned bounded canary"
+  },
+  "router_contract": "bounded summary and refs only",
+  "worker_contract": "reselect and render evidence from task query/topics/entity refs",
+  "forbidden_projection_fields": ["published_response"],
+  "unsupported_or_conflicting_reads": "typed fail-closed projection state"
+}

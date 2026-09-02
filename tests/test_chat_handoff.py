@@ -271,6 +271,7 @@ def test_chat_escalation_creates_one_persistent_idempotent_ticket(tmp_path, monk
         "rollout_admission",
         "intent",
         "knowledge_retrieval",
+        "active_case",
         "route_and_agent",
         "verification",
         "ticket",
@@ -400,12 +401,16 @@ def test_active_ticket_context_is_bounded_authoritative_projection(tmp_path, mon
     )
     monkeypatch.setattr(main, "_ticket_service", service)
 
-    section = asyncio.run(main._active_ticket_context("user-1"))
+    view = asyncio.run(main._active_ticket_context(
+        "user-1", query="继续订单问题", intent_or_topics=("other",),
+    ))
+    section = view.section
     payload = __import__("json").loads(section.content)
 
     assert section.tag == "active_tickets"
     assert section.priority == 90
     assert payload["authority"] == "TicketService"
-    assert payload["tickets"][0]["ticket_id"] == ticket.ticket_id
-    assert payload["tickets"][0]["status"] == "open"
+    assert payload["cases"][0]["ticket_id"] == ticket.ticket_id
+    assert payload["cases"][0]["status"] == "open"
+    assert "published_response" not in payload["cases"][0]
 """聊天发布边界与持久人工工单闭环的端到端测试。"""

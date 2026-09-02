@@ -1175,46 +1175,48 @@ def _enforce_user_input_security(message: str) -> None:
     )
 
 
-async def _active_ticket_context(user_id: str) -> Optional[ContextSection]:
-    """把 TicketService 未关闭工单投影为有界上下文，不复制其状态权威。"""
-    if _ticket_service is None:
-        return None
-    try:
-        tickets = await asyncio.to_thread(
-            _ticket_service.list_active_tickets,
-            user_id=user_id,
-            limit=3,
-        )
-    except Exception as exc:
-        logger.warning("读取未关闭工单上下文失败: %s", exc)
-        return None
-    if not tickets:
-        return None
-    content = json.dumps({
-        "authority": "TicketService",
-        "tickets": [
-            {
-                "ticket_id": ticket.ticket_id,
-                "status": ticket.status.value,
-                "priority": ticket.priority.value,
-                "intent": ticket.intent,
-                "question": ticket.question,
-                "published_response": ticket.published_response,
-                "assignee": ticket.assignee,
-                "updated_at": ticket.updated_at,
-            }
-            for ticket in tickets
-        ],
-    }, ensure_ascii=False, sort_keys=True)
-    return ContextSection(
-        tag="active_tickets",
-        description=(
-            "TicketService 提供的当前客服事项状态；状态字段高于历史对话和摘要，"
-            "实时业务工具结果仍是订单、退款和账户事实的最高权威"
-        ),
-        content=content,
-        priority=90,
+async def _active_ticket_context(
+    user_id: str,
+    *,
+    query: str = "",
+    intent_or_topics: tuple[str, ...] = (),
+    entity_refs: tuple[str, ...] = (),
+):
+    """把 TicketService 当前事项投影为 typed、task-relevant 上下文。"""
+    from application.active_case import (
+        ActiveCaseContextRenderer,
+        ActiveCaseContextPolicy,
+        ActiveCaseContextView,
+        ActiveCaseState,
     )
+    from infrastructure.active_case_projection import TicketServiceActiveCaseReader
+
+    if _ticket_service is None:
+        from application.active_case import ActiveCaseProjection
+        projection = ActiveCaseProjection(
+            ActiveCaseState.UNAVAILABLE,
+            reason_codes=("TICKET_SERVICE_NOT_COMPOSED",),
+        )
+        return ActiveCaseContextView(
+            projection, ActiveCaseContextPolicy().select(
+                projection, query=query,
+                intent_or_topics=intent_or_topics, entity_refs=entity_refs,
+            ),
+        )
+    projection = await asyncio.to_thread(
+        TicketServiceActiveCaseReader(_ticket_service).read,
+        user_id=user_id, limit=20,
+    )
+    selection = ActiveCaseContextPolicy().select(
+        projection, query=query,
+        intent_or_topics=intent_or_topics, entity_refs=entity_refs,
+    )
+    if projection.state is not ActiveCaseState.CASES:
+        return ActiveCaseContextView(projection, selection)
+    # M4-T03B is dark shadow only: keep the legacy recency consumer while the
+    # target selection is compared in trace.  M4-T03C owns pinned canary enable.
+    section = ActiveCaseContextRenderer().legacy_section(projection)
+    return ActiveCaseContextView(projection, selection, section)
 
 
 def _public_agent_outcomes(outcomes: List[Dict[str, Any]]) -> List[Dict[str, Any]]:

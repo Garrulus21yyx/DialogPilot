@@ -16,6 +16,7 @@ from enum import Enum
 from typing import Any, Awaitable, Callable, Mapping, Optional, TypeAlias
 
 from memory.context import ContextNode, ContextSection
+from application.active_case import ActiveCaseContextView, ActiveCaseState
 from core.identity import IdentityContractError, IdentityFactory, InvocationIdentity
 from services.answer_verifier import (
     VerificationReasonCode,
@@ -209,7 +210,7 @@ class ChatServices:
 
 @dataclass(frozen=True)
 class ChatOperations:
-    active_ticket_context: Callable[[str], Awaitable[Any]]
+    active_ticket_context: Callable[..., Awaitable[Any]]
     build_knowledge_context: Callable[..., Awaitable[Any]]
     capture_badcases: Callable[..., Awaitable[None]]
     evaluate_shadow: Callable[..., Awaitable[None]]
@@ -500,7 +501,50 @@ class ChatApplication:
             "citation_count": len(knowledge.citations),
         }))
         base_context_sections = list(mem_ctx.to_sections())
-        active_ticket_section = await ops.active_ticket_context(user_id)
+        active_case_view = await ops.active_ticket_context(
+            user_id,
+            query=command.message,
+            intent_or_topics=(
+                intent_result.intent.value, intent_result.intent_group,
+            ),
+            entity_refs=tuple(
+                str(value)
+                for values in intent_result.entities.values()
+                for value in (values if isinstance(values, list) else [values])
+            ),
+        )
+        if isinstance(active_case_view, ActiveCaseContextView):
+            active_ticket_section = active_case_view.section
+            shadow_state = active_case_view.projection.state
+            stages.append(StageObservation("active_case", (
+                StageStatus.DEGRADED
+                if shadow_state in {
+                    ActiveCaseState.UNAVAILABLE, ActiveCaseState.CONFLICT,
+                }
+                else StageStatus.OK
+            ), {
+                "state": active_case_view.projection.state.value,
+                "consumer_mode": active_case_view.policy_binding.mode.value,
+                "active_policy_version": (
+                    active_case_view.policy_binding.active_policy_version
+                ),
+                "candidate_policy_version": (
+                    active_case_view.policy_binding.candidate_policy_version
+                ),
+                "selected_case_ids": list(
+                    active_case_view.selection.target_case_ids
+                ),
+                "legacy_case_ids": list(
+                    active_case_view.selection.legacy_case_ids
+                ),
+                "shadow_matches_legacy": (
+                    active_case_view.selection.shadow_matches_legacy
+                ),
+                "policy_version": active_case_view.selection.policy_version,
+            }))
+        else:
+            # Compatibility for non-production test/application adapters.
+            active_ticket_section = active_case_view
         if active_ticket_section is not None:
             base_context_sections.append(active_ticket_section)
         context_sections = list(base_context_sections)

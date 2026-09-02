@@ -71,6 +71,7 @@ def test_ticket_persists_invocation_identity_in_fact_and_outbox(tmp_path):
     outbox = service._claim_outbox_message()
     assert outbox is not None
     assert outbox.payload["identity_metadata"] == ticket.identity_metadata
+    assert outbox.payload["version"] == ticket.version == 1
 
 
 def test_ticket_forward_migrates_legacy_table_before_writing_metadata(tmp_path):
@@ -96,6 +97,7 @@ def test_ticket_forward_migrates_legacy_table_before_writing_metadata(tmp_path):
         identity_metadata={"invocation_key": "invocation:v1:x"},
     )
     assert ticket.identity_metadata["invocation_key"] == "invocation:v1:x"
+    assert ticket.version == 1
 
 
 def test_same_idempotent_request_returns_existing_ticket(tmp_path):
@@ -228,6 +230,33 @@ def test_active_ticket_projection_excludes_only_closed_terminal_state(tmp_path):
 
     assert {ticket.ticket_id for ticket in active} == {open_ticket.ticket_id, waiting.ticket_id}
     assert all(ticket.status is not TicketStatus.CLOSED for ticket in active)
+
+
+def test_ticket_version_advances_only_on_authoritative_state_change(tmp_path):
+    service = TicketService(str(tmp_path / "tickets.db"))
+    ticket, _ = create(service)
+    assert ticket.version == 1
+    changed = service.transition(
+        ticket.ticket_id, TicketStatus.IN_PROGRESS, actor="agent-1",
+    )
+    replay = service.transition(
+        ticket.ticket_id, TicketStatus.IN_PROGRESS, actor="agent-1",
+    )
+    assert changed.version == replay.version == 2
+
+
+def test_active_ticket_legacy_order_has_complete_deterministic_tie_break(tmp_path):
+    service = TicketService(str(tmp_path / "tickets.db"))
+    tickets = [create(service, key=f"tie-{index}")[0] for index in range(3)]
+    with service._connect() as conn:
+        conn.execute(
+            "UPDATE tickets SET updated_at = ?, created_at = ?",
+            ("2026-09-02T12:00:00+00:00", "2026-09-01T12:00:00+00:00"),
+        )
+    active = service.list_active_tickets(user_id="user-1", limit=3)
+    assert [item.ticket_id for item in active] == sorted(
+        item.ticket_id for item in tickets
+    )
 
 
 def test_ticket_and_outbox_event_commit_in_same_transaction(tmp_path):

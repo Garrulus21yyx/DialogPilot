@@ -1127,6 +1127,17 @@
 - 该状态只满足 M4-T03B 的 build prerequisite，不满足 M4 Exit：真实 provider calibration/cache canary、T03B
   ActiveCase relevance 与 T03A WorkingContext 仍需独立证据。
 
+### M4-T03B（ActiveCase projection / selector build）
+
+- TicketService 单主投影闭合 `NO_ACTIVE_CASE/CASES/UNAVAILABLE/CONFLICT`，Ticket 状态 version 只随真实迁移递增；
+  projection 不携带旧 `published_response`。
+- 冻结 legacy `status != CLOSED`（含 `RESOLVED`）、limit 3、完整三字段 tie-break 与 priority 90；candidate 对精确引用、
+  breached SLA/commitment、critical/security hard include，其余使用无新数值的 task relevance/priority/recency 顺序。
+- Router renderer 只给有界 summary/ref，Worker renderer 按 task query/topic/entity refs 重新选择 evidence；默认 binding 仍为
+  legacy active + target shadow，M4-T03C 前不启用 consumer，rollback 回 previous verified legacy pointer。
+- [build evidence](../governance/evidence/m4-t03b/active-case-build.md)。真实 SLA/Commitment backfill、连续性 heldout、
+  bounded canary 与生产 rollback 演练依赖 M4-T07/M4-T03C，因此当前为 `IMPLEMENTED / SHADOW ONLY`。
+
 ### M6-T01（Dataset v2 / Rubric v2）
 
 - 新增独立 service-chain v2，不改变 v1 数据身份；闭合 perception→service_outcome 11 层 observation，case
