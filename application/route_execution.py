@@ -10,7 +10,11 @@ from application.coverage_gate import (
     SemanticVerifierPolicy,
     VerificationProfileContract,
 )
-from application.route_decision import RouteDecision, RouteMode
+from application.route_decision import (
+    RequiredAuthority,
+    RouteDecision,
+    RouteMode,
+)
 
 
 class RouteExecutionContractError(ValueError):
@@ -126,7 +130,7 @@ class RouteExecutionPolicy:
         route: RouteDecision,
         verification: VerificationProfileContract,
     ) -> RouteExecutionContract:
-        owner, outcome, required, conditional = self._shape(route.mode)
+        owner, outcome, required, conditional = self._shape(route)
         if (
             verification.semantic_policy is SemanticVerifierPolicy.CONDITIONAL
             and RouteComponent.SEMANTIC_VERIFIER not in conditional
@@ -162,7 +166,8 @@ class RouteExecutionPolicy:
         )
 
     @staticmethod
-    def _shape(mode: RouteMode):
+    def _shape(route: RouteDecision):
+        mode = route.mode
         turn = {RouteComponent.TURN_RECORD}
         semantic = {RouteComponent.SEMANTIC_VERIFIER}
         if mode is RouteMode.DIRECT or mode is RouteMode.OUT_OF_SCOPE:
@@ -188,14 +193,20 @@ class RouteExecutionPolicy:
                 }, semantic,
             )
         if mode is RouteMode.AGENT_TASK:
+            required_tools = (
+                {RouteComponent.BUSINESS_TOOL}
+                if any(authority is not RequiredAuthority.KNOWLEDGE
+                       for authority in route.required_authorities)
+                else set()
+            )
             return (
                 CandidateOwner.AGENT, RouteExpectedOutcome.COMPLETED,
                 turn | {
                     RouteComponent.AGENT_ORCHESTRATOR,
                     RouteComponent.REQUIREMENT_COVERAGE_GATE,
-                }, semantic | {
+                } | required_tools, semantic | {
                     RouteComponent.AGENT_KNOWLEDGE_TOOL,
-                    RouteComponent.BUSINESS_TOOL,
+                    *(set() if required_tools else {RouteComponent.BUSINESS_TOOL}),
                 },
             )
         if mode is RouteMode.MIXED:
@@ -216,9 +227,9 @@ class RouteExecutionPolicy:
                     RouteComponent.AGENT_ORCHESTRATOR,
                     RouteComponent.TASK_GRAPH,
                     RouteComponent.REQUIREMENT_COVERAGE_GATE,
+                    RouteComponent.BUSINESS_TOOL,
                 }, semantic | {
                     RouteComponent.AGENT_KNOWLEDGE_TOOL,
-                    RouteComponent.BUSINESS_TOOL,
                     RouteComponent.CONDITIONAL_SYNTHESIS,
                 },
             )

@@ -36,7 +36,7 @@
 | M2-T04A SourceRevision v0 / active manifest | implemented (review pending) | PG owner/backfill/active validator done；independent human heldout review pending；650 tests passed |
 | M2-T05 统一 KnowledgeRetriever | implemented (canary blocked) | A1/A2/B + immutable PG dark-shadow report；675 tests passed |
 | M2-T06A Multi-Agent TaskGraph 收紧 | implemented | A/B/C policy、execution、dependency、native signal 与 terminal algebra 完成；697 tests passed |
-| M2-T06 自适应 RAG 发布路径 | in_progress | A: eight-mode execution/publication contract frozen；Application migration pending |
+| M2-T06 自适应 RAG 发布路径 | in_progress | A/B1: path contract + typed executor done；ChatApplication adapter migration pending；723 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
@@ -728,6 +728,24 @@
 - 验证：八 mode 组件集合完备/互斥、逐路径 forbidden calls、单 candidate Owner、handoff release
   fence 与 fingerprint replay；聚焦 `55 passed`、全套 `714 passed in 19.36s`，ruff checks passed。主链路仍待 T06-B 迁移，
   因此 M2-T06 保持 in_progress。
+
+### M2-T06-B1（typed RoutePathExecutor / single-candidate enforcement）
+
+- 新增 `RoutePathExecutor v1`，Application 只消费已归一化 `RouteExecutionContract` 并在
+  rule / Knowledge / Agent / mixed / TaskGraph / handoff-draft 端口间择一；不重新解释 intent、
+  authority 或 TaskGraph 内部语义。
+- 每条执行只接受一个带 `CandidateOwner` 的 `RouteCandidate`；Owner 不匹配、重复 component
+  receipt、禁止调用或遗漏必需组件均 typed fail closed，不能靠 tool audit 在结束后猜测候选来源。
+- KnowledgeQA 固定 `retrieve → grounded generate`；AgentTask 禁止前置 RAG，业务状态必须由 Agent
+  回传 `BUSINESS_TOOL` receipt；Mixed 固定 `retrieve evidence → one mixed-authority Agent candidate`；
+  MultiDomain 仅委托 TaskGraph，conditional synthesis 是否实际调用仍由 T06A policy/receipt 声明。
+- deterministic profile gates 总是先运行；仅其明确返回 semantic ambiguity 且 profile 允许时，才调用
+  semantic verifier 一次。无论 publishable 与否都执行 `TURN_RECORD`；新 Handoff path 仍只有 draft，
+  `HANDOFF_WRITE` 保持 forbidden。
+- 验证：八 RouteMode E2E call trace、required/forbidden receipts、单 candidate、mixed 无双答案、
+  Agent 无 pre-route grounded answer、semantic verifier 0/1 次；聚焦 `44 passed`、全套
+  `723 passed in 19.25s`，ruff checks passed。现有 ChatApplication adapter 尚未切换，M2-T06
+  保持 in_progress。
 
 ## 下一步
 
