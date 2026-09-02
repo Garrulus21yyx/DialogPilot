@@ -195,3 +195,7 @@ RAG 实验显示 Query rewrite 在部分集合提升 Candidate recall，但父�
 - [ ] 复杂文档 ingest 与跨页/版面证据门禁。
 
 复现实验细节见[客服 RAG 全链路评测]({{ '/rag-pipeline-evaluation/' | relative_url }})，系统边界见[架构边界]({{ '/architecture.html' | relative_url }})。
+
+---
+
+{% include_relative _includes/rag-evaluation-deep-dive.md %}

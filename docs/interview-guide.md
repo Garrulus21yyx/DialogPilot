@@ -127,3 +127,11 @@ Handoff 是客服闭环的一部分。当前 PostgreSQL TicketService 负责工�
 ### Q：下一步优先做什么？
 
 先完成 fresh human-reviewed Gold 与 Service-chain v2 的真实 runner/独立复核，再按证据决定是否引入更强中文 embedding、复杂文档 ingest 或 LangGraph 薄 runtime。生产 Collector、容量与恢复目标只有在存在真实部署约束时才立项，不能用模拟流程冒充成熟度。
+
+---
+
+## 深挖题底稿：从 FastAPI 到 LangGraph 取舍
+
+以下材料补齐每个追问的代码链、触发条件、状态代数、存储和失败路径。面试时按问题截取，不要整段背诵。
+
+{% include_relative _includes/current-runtime-deep-dive.md %}

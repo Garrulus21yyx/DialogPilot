@@ -92,4 +92,12 @@ PYTHONPATH=. .venv/bin/python scripts/run_local_vlm_e2e.py \
 - 主链与 Owner：[完整架构教程]({{ '/' | relative_url }})、[架构边界]({{ '/architecture.html' | relative_url }})。
 - 评测：[500 条分层评测]({{ '/evaluation-500/' | relative_url }})、[RAG 全链路评测]({{ '/rag-pipeline-evaluation/' | relative_url }})。
 - 生产责任缺口：[RAG 生产化审计]({{ '/customer-service-rag-production-audit/' | relative_url }})。
-- 机器报告：[`local-e2e-v1.json`](../evaluation/reports/local-e2e-v1.json)、[`local-vlm-e2e-v1.json`](../evaluation/reports/local-vlm-e2e-v1.json)、[`local-postgres-restore-v1.json`](../evaluation/reports/local-postgres-restore-v1.json)。
+- 机器报告：[`local-e2e-v1.json`](https://github.com/garrulus21yyx/DialogPilot/blob/main/evaluation/reports/local-e2e-v1.json)、[`local-vlm-e2e-v1.json`](https://github.com/garrulus21yyx/DialogPilot/blob/main/evaluation/reports/local-vlm-e2e-v1.json)、[`local-postgres-restore-v1.json`](https://github.com/garrulus21yyx/DialogPilot/blob/main/evaluation/reports/local-postgres-restore-v1.json)。
+
+---
+
+## 技术答辩底稿
+
+这一部分不是简历摘要，而是为了在追问时能从 FastAPI 入口一路讲到 RAG、Memory、多模态、并发、Reducer、发布与 LangGraph 取舍。
+
+{% include_relative _includes/current-runtime-deep-dive.md %}

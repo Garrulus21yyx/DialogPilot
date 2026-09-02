@@ -144,7 +144,7 @@ grounded v4 曾暴露高比例合同失败/拒答；v5 收紧结构化输出后�
 
 ## 9. 历史冻结快照
 
-Doc2Dial 小型 heldout 快照的机器摘要记录在 [rag-heldout-summary-2026-09-01.json](data/rag-heldout-summary-2026-09-01.json)。关键切片包括：
+Doc2Dial 小型 heldout 快照的机器摘要记录在 [rag-heldout-summary-2026-09-01.json]({{ '/data/rag-heldout-summary-2026-09-01.json' | relative_url }})。关键切片包括：
 
 | 阶段 | 冻结快照 |
 |---|---|
@@ -211,3 +211,7 @@ E2E 报告应同时出现 PostgreSQL engine/generation/manifest、真实 JWT 请
 - 本页解释实验与当前默认之间的因果关系。
 - [生产化审计]({{ '/customer-service-rag-production-audit/' | relative_url }})检查 Owner、安全、数据治理和 readiness 缺口。
 - [完整教程]({{ '/' | relative_url }})把 RAG 放回 admission、TaskGraph、publication 与 service continuity 的总链路。
+
+---
+
+{% include_relative _includes/rag-evaluation-deep-dive.md %}

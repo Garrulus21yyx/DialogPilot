@@ -170,3 +170,11 @@ Redis 投影失败不会改写 PostgreSQL 事实；后台 outbox 会重试。删
 - LangGraph 薄 runtime、复杂文档摄取和生产级容量治理；它们仍在目标/计划合同中，不是当前 composition root 的能力。
 
 这些条目是后续实施节点，不属于当前能力声明。
+
+---
+
+## 当前运行链逐层展开
+
+下面按 FastAPI、API、Intent、在线/离线 RAG、Memory、多模态、TaskGraph、Reducer、Verifier、Delivery 的顺序展开当前实现，作为上面 Owner 图的逐节点说明。
+
+{% include_relative _includes/current-runtime-deep-dive.md %}

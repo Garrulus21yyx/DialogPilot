@@ -165,3 +165,138 @@ Runner 只接收运行请求，fixture 不暴露 expected；grader 在运行结�
 ### Q6：如何证明一次修复已经收敛？
 
 用一个因果模型解释已知缺陷，在 Owner 层关闭不变量，并通过属性/状态机测试、fresh adversarial cases 和独立复核，而不是每遇到一个例子就增加一个分支。
+
+## 11. 一条 Bad Case 的实际处理链
+
+以“用户问退款进度，系统引用退款政策后直接说已到账”为例：
+
+```text
+response_id / request_id / trace_id
+→ 查 RouteDecision：mixed 还是 knowledge_qa
+→ 查 FactRequirement：是否要求 refund_state
+→ 查 Tool receipt：是否真的调用退款状态 Owner
+→ 查 EvidencePack：政策证据是否只证明规则
+→ 查 Coverage：为何缺少业务 receipt 仍 complete
+→ 查 Verifier：claim-authority 是否被错误放行
+→ 定位根因 Owner
+→ 生成最小候选
+→ owner tests + service-chain regression + fresh cases
+→ 显式替换 binding 或拒绝候选
+```
+
+若 Route 被误判成纯知识，修复 RequestShape/AuthorityPolicy；若 Route 正确但 Agent 未调用工具，修复 task formation 或 tool contract；若 receipt 缺失但 Coverage 通过，修复 RequirementCoverage；若所有前序正确而 Verifier 放行无依据 claim，才修复发布门禁。不能看到“回答错”就默认改 Prompt。
+
+## 12. Proposal 能改什么，不能改什么
+
+候选面应是闭合白名单：
+
+| 可候选化 | 例子 | 必须固定的证据 |
+|---|---|---|
+| Prompt/Few-shot | Intent 边界、Worker 表达 | base bundle、patch、case group |
+| Routing policy | 阈值、领域映射 | route registry 与受影响 slice |
+| Retrieval policy | weights、top-k、packing | generation、manifest、消融报告 |
+| Tool description | 参数说明、返回 schema 提示 | registry/schema fingerprint |
+| Model policy | 角色模型与 reasoning | 成本、延迟、质量对照 |
+
+权限、JWT、审批规则、PII redaction、Gold 标签、Verifier hard gate、业务 receipt 定义不能由 Proposal 自动修改。需要改变这些内容时，应作为代码/治理变更由 Owner 审阅，而不是包装成“Agent 自进化”。
+
+## 13. CandidateRunner 的逐步合同
+
+1. 读取 immutable base bundle，验证 candidate `base_version`；
+2. 应用白名单 patch，并拒绝未知字段、空变化和重复候选；
+3. 生成内容 fingerprint，同名不同内容失败；
+4. 固定 dataset manifest、commit、model/retrieval/tool refs；
+5. 运行确定性 hard gates；
+6. 运行 Intent/Route/Retrieval/Stateful/Service-chain 分层评测；
+7. 记录每个 case 的原始 typed outcome，不只存聚合分；
+8. 计算质量、延迟与 cost proxy 的 Pareto 关系；
+9. 用 fresh evidence 或独立 reviewer 反驳候选；
+10. 输出 accept/reject/insufficient-evidence，不自行改 Active。
+
+`insufficient-evidence` 不是失败异常，而是重要结论：样本太少或 judge 不可用时不能做发布决定。
+
+## 14. 与当前运行链的接点
+
+Bundle 在 `/chat` 开始时解析并固定；Intent cache key 包含 Prompt/Few-shot 指纹，RAG cache key 包含 retrieval policy/generation，ReAct checkpoint 保存 bundle version，feedback 和 Bad Case 保存 producer/task/call 引用。这样候选比较不会发生“外层是新版本、缓存或 resume 仍用旧版本”。
+
+当前本地替换是直接 binding replacement，不经过模拟的 Shadow/Canary。一次切换必须同时更新：composition root、默认 bundle、测试 fixture、机器报告和 Pages；被替代 reader/writer/config 随同删除，避免长期维护双路径。
+
+## 15. 归因所需的最小观测字段
+
+- request/invocation/response/trace identity；
+- tenant/user/conversation 的脱敏 scope；
+- bundle、model、prompt、route、retrieval、tool registry fingerprints；
+- Intent source scores、RequestShape、RouteDecision；
+- TaskGraph、dependency、outcome、pending signal、coverage；
+- Evidence refs、claim refs、Verifier status/reason；
+- tool call/effect status 与 receipt ref；
+- publication kind/seq、ticket/commitment/delivery 状态；
+- stage latency、token/cost proxy、异常类型。
+
+原始密钥、完整工具参数、未脱敏用户正文不应复制进 EvolutionEnvelope。学习所需 provenance 与隐私最小化必须同时满足。
+
+## 16. 更多面试追问
+
+### Q7：Attribution 能不能全部交给 LLM？
+
+不能。task 缺失、receipt 不存在、publication 重复、状态迁移非法都有确定性事实。LLM 只适合对开放文本症状做辅助分类，且输出仍需映射到受支持 surface。
+
+### Q8：为什么报告要保存 fingerprint，而不只保存版本名？
+
+版本名可以被误用或重复；内容 hash 能证明两次运行的 Prompt、policy、manifest 是否真的相同。
+
+### Q9：Dev 提升、heldout 下降怎么办？
+
+拒绝候选或判证据不足，分析 slice 差异；不能把 heldout 重新命名为 Dev 后继续调到通过。
+
+### Q10：什么是 consumed heldout？
+
+一旦开发者看过其失败并据此修改实现，它就不再提供独立泛化证据，只能保留为 regression。
+
+### Q11：为什么安全指标不进加权总分？
+
+平均值允许一次越权被许多普通成功抵消。权限、跨用户召回、未审批写和重复副作用必须零容忍。
+
+### Q12：Pareto 比单一分数好在哪里？
+
+它保留质量、延迟和成本之间的真实取舍，不用一个任意权重把明显更慢或更贵的候选包装为“总分最好”。
+
+### Q13：候选生成器输出 20 个方案是否更好？
+
+不一定。候选数会线性增加真实评测成本，并放大对 Dev 的选择偏差。当前应限制少量、可解释、彼此有差异的 patch。
+
+### Q14：模型升级是不是一种 Agent 进化？
+
+它是 ModelPolicy 候选。必须在相同 bundle、数据、预算和工具面上比较，而不能同时换模型、Prompt、检索后把收益全部归给模型。
+
+### Q15：为什么进化不能修改 Gold？
+
+Gold 是评测权威；允许候选改标签等于让考生改答案。标签修订必须走独立审阅、版本和仲裁。
+
+### Q16：Bad Case 聚类的目的是什么？
+
+寻找共享 Owner/invariant，而不是为每个句子建特殊规则。若多个 reopening 指向同一 authority gap，应做架构级收敛审查。
+
+### Q17：什么时候需要线上 Canary？
+
+只有存在真实流量、不可完全离线模拟的分布和明确 rollback Owner 时。要先定义 cohort、观察窗口、硬/软信号与在途请求版本固定。
+
+### Q18：当前项目为什么删掉 Canary？
+
+没有线上流量，模拟 5%/25% 不产生真实风险证据，反而维护重复执行与版本指针。当前直接切换更符合实际约束。
+
+### Q19：替换 binding 后怎样回退？
+
+当前开发阶段依赖 Git 历史和重新部署，不在运行时保留旧 reader/writer。未来有真实不可丢数据时另立迁移和 rollback ADR。
+
+### Q20：如何避免 Evolution 污染生产统计？
+
+离线 runner 使用固定执行模式和独立报告，不写生产 Memory/Ticket/Feedback；候选不更新线上 cache、breaker 或 Agent quality stats。
+
+### Q21：如何判断是环境问题而不是候选回归？
+
+保存 provider、模型、seed、依赖版本、数据库 generation、错误类型和重试轨迹；环境不可用标为 infrastructure/insufficient evidence，不回填成质量 0 或 1。
+
+### Q22：什么才算闭环完成？
+
+根因、Owner 修复、所有消费者、异常路径、持久投影、文档和验收一致；fresh/adversarial case 未出现同一不变量的新分支，才能从“实现完成”升级为“验证闭合”。

@@ -166,3 +166,7 @@ Owner、task id、receipt、publication count 和状态迁移都有确定性真�
 ### Q5：最重要的评测纪律是什么？
 
 先固定事实 Owner 和 supported algebra，再让 runner 观察真实 outcome；报告必须保留失败，不能让 harness、projection 或 semantic scorer替系统完成任务。
+
+---
+
+{% include_relative _includes/rag-evaluation-deep-dive.md %}
