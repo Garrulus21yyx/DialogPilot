@@ -22,6 +22,7 @@
 | M1-T01 ConversationTurnStore schema | done | PostgreSQL migration `0002` + immutable scoped repositories |
 | M1-T02 Inbound-first / outbox dispatcher | implemented | PostgreSQL `0003`；生产 `/chat` cutover 归 M1-T05 |
 | M1-T03 Unified publication/delivery | done | PostgreSQL `0004`；atomic publication/delivery outbox + canonical receipt lifecycle |
+| M1-T03A ResponseDelivery PostgreSQL 单主切换 | in_progress | PR-10A export/backfill/shadow reconcile implemented；freeze/binding/restore drill pending |
 | M1 完整会话事实与幂等发布 | in_progress | 按 T00–T05/T03A/T04A 子节点推进 |
 | M2 Route/Authority/Evidence/RAG | pending | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
@@ -246,6 +247,23 @@
   行猜测回填；legacy SQLite backfill/shadow/reconcile/binding switch 仍由 M1-T03A 执行。
 - 验证：canonical state product tests、原子 crash/retry、并发幂等、三类语义、ACK/READ 单调性均通过；
   Alembic head=`0004`，全套 `502 passed`。
+
+### M1-T03A（in progress）
+
+- PR-10A 已实现只读 SQLite snapshot exporter、版本化字段/状态/ID 映射、单事务 PostgreSQL backfill、
+  shadow-only reconcile 与运维 CLI；snapshot 自校验 row/status/ID/content checksum、final invocation、
+  outbox 和会话 publication seq 唯一性。
+- owner 边界：旧 SQLite 在切换前仍为唯一 authority；export/backfill 不写旧库。缺失 tenant/invocation、
+  metadata scope 冲突、目标 Conversation/Invocation 不存在、多份 legacy final 或 target 非匹配数据均 typed
+  fail closed，不伪造 transcript/admission authority。
+- legacy `response_id` 原样成为 `publication_id`；legacy 没有 outbox ID，因此 exporter 首次确定性生成并冻结
+  compatibility outbox ID。`delivered/read` 单调映射；无 receipt 的 `selected` 使用 connector=`NONE` 映射为
+  `DELIVERY_UNCERTAIN`，所有迁入 outbox 均 ACK 且 `automatic_send_disabled`，不假定可重试或重复发送。
+- 对账逐一覆盖 count、canonical status count、publication ID hash 和包含 scope/request/invocation/seq/text/
+  timestamps/outbox 的 content hash；重复 backfill 仅在完整匹配时幂等成功。
+- 验证：三状态迁移、snapshot round-trip、缺失身份、scope 冲突、重复 final、缺失 target invocation 整批
+  回滚均通过；全套 `508 passed`。待 PR-10B 完成 freeze/claim、原子 binding switch、crash matrix 与
+  PostgreSQL restore/forward-fix 演练后才可声明本卡完成。
 
 ## 下一步
 
