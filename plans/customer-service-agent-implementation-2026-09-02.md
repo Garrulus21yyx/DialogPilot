@@ -21,6 +21,7 @@
 | M1-T00 Admission/Execution/ChatOutcome v1 | done | CAS/ports/projection/OpenAPI/M3 cutover contract |
 | M1-T01 ConversationTurnStore schema | done | PostgreSQL migration `0002` + immutable scoped repositories |
 | M1-T02 Inbound-first / outbox dispatcher | implemented | PostgreSQL `0003`；生产 `/chat` cutover 归 M1-T05 |
+| M1-T03 Unified publication/delivery | in_progress | canonical Delivery state machine done；publication transaction pending |
 | M1 完整会话事实与幂等发布 | in_progress | 按 T00–T05/T03A/T04A 子节点推进 |
 | M2 Route/Authority/Evidence/RAG | pending | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
@@ -219,9 +220,21 @@
 - 激活边界：当前同步 `/chat` 尚未切到 admission，因为 T03/T04 publication 与 compatibility worker 尚未
   就绪；现在切换会产生永久 `Accepted`。M1-T05 将在整条恢复/发布链可用后执行唯一入口 cutover。
 
+### M1-T03（in progress）
+
+- 已冻结 canonical `DeliveryStatusV1`、connector capability 与 receipt/event algebra：
+  `SELECTED/DELIVERING/DELIVERED/OUTCOME_UNKNOWN/DELIVERY_UNCERTAIN/FAILED/READ`，connector 仅为
+  `IDEMPOTENT_SEND/QUERY_RECEIPT/NONE`。
+- send 断链只有 idempotent send 能自动重发；query-receipt 必须先得到权威 `NOT_DELIVERED`；NONE
+  直接 uncertain。READ 与 delivered receipt 单调优先，READ 后 `NOT_DELIVERED` 为 typed conflict；
+  retry exhaustion 不超过 max_attempts。
+- property-style product 测试遍历所有 state × capability × event，每一组合必须得到 typed transition
+  或 `InvalidDeliveryTransition`，不存在未知字符串/fallthrough。
+- 待完成：三类 publication 命令、PostgreSQL 原子 outbound/event/delivery/outbox 与 crash replay tests。
+
 ## 下一步
 
 1. 提交并推送 M1-T02 admission/outbox owner 实现。
-2. 实施 M1-T03：统一 final response、interaction request、human reply 与 delivery ACK 命令/事务 outbox。
+2. 完成 M1-T03：统一 final response、interaction request、human reply 与 delivery ACK 命令/事务 outbox。
 3. 保持 production snapshot restore 和 deployed Chroma legacy index 不兼容为显式未满足证据，
    不让后续 migration/cutover 静默越过。
