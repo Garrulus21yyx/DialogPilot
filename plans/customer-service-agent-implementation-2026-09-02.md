@@ -29,6 +29,7 @@
 | M1 完整会话事实与幂等发布 | in_progress | 按 T00–T05/T03A/T04A 子节点推进 |
 | M2-PF01 共享 PostgreSQL HybridRetrievalBackend | in_progress | PR-18P-A/B done；PR-18P-C pending |
 | M2-T01A Agent-owned Intent/Domain/Instance policy | done | V1 registry + typed decisions/trace；582 tests passed |
+| M2-T01 RouteDecision / RouterInvocationPolicy | done (flag-off) | 8 modes + call/skip algebra；602 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
@@ -423,8 +424,30 @@
 - 验证：策略独立变更、两条 Intent V1 分支、Domain 分项/hard rule/多领域、single/multi instance replay、
   registry frozen、旧第二 producer 负向检查、Application trace 集成；全套 `582 passed`。
 
+### M2-T01（RouteDecision / RouterInvocationPolicy，flag-off build）
+
+- Canonical route：新增闭合 `RouteMode` 八态 `DIRECT/KNOWLEDGE_QA/AGENT_TASK/MIXED/MULTI_DOMAIN/
+  CLARIFY/HANDOFF/OUT_OF_SCOPE`，输出 typed required authorities、risk、missing inputs、owner IDs、reason
+  codes、policy/input fingerprint；旧 `execute/clarify/out_of_scope` 只由只读 compatibility property 投影。
+- Invocation order：`RouterInvocationPolicy` 只规范化 PendingSignal/Continuation/request shape 和 T01A typed
+  ports，不包含第二个 LLM。每次固定记录 IntentFusion/DomainRouting/InstanceSelection 三个 component 的
+  `INVOKED/SKIPPED/NOT_APPLICABLE`、reason、input fingerprint 与 policy version，缺项或顺序漂移直接拒绝。
+- 短路径：Greeting/Thanks/FAQ/MissingInput/ExplicitHandoff/OOS/UnsupportedOperation 在 hard shape 已确定时
+  三个昂贵组件全部 skip；FAQ 只声明 Knowledge，个人实时状态必须声明 DomainTool 并调用 Domain port，
+  Mixed 同时声明 Knowledge+DomainTool，明确人工不会被 RAG/情绪信号覆盖。
+- Continuation：PendingSignal reply 与 `CONTINUE` 复用 pinned child/route，三个组件全部 skip；`SWITCH`/
+  `AMBIGUOUS` 调用一次强 Intent；`EXPAND` 只有新增 requirement 歧义时调用 Intent，并只为新增 Worker
+  调 Domain/Instance。无 Intent port 时澄清、无 Domain owner 时 Handoff，均 typed fail closed。
+- Instance：Worker route 必须消费 T01A DomainDecision；所有 selected owner pool size=1 时 Instance 返回
+  `NOT_APPLICABLE`，只有 pool>1 才调用 typed Instance port。Emotion 仅写 auxiliary signal，不改变 mode、
+  authority 或 risk。
+- 激活边界：本卡提供稳定 `RouteDecisionPort` 与 property/forbidden-call fixture，未替换当前线上 legacy
+  Planner/同步 `/chat`；M1 production gate 未闭合前保持 flag-off，不把 build 描述为 dark shadow。
+- 验证：所有确定性 shape、FAQ/个人状态/Mixed/Security/Handoff、CONTINUE/SWITCH、single/multi pool、
+  missing port fail-closed、legacy projection 与 emotion auxiliary；全套 `602 passed`。
+
 ## 下一步
 
-1. M2-T01：在 T01A typed policy ports 上建立 RouteDecision/RouterInvocationPolicy 与完整 skip algebra。
-2. 随后推进 M2-T02/T03/T04A，再完成 M2-PF01 PR-18P-C canonical projection。
+1. M2-T02：建立 FactRequirement/AuthorityPolicyRegistry 与工具 manifest 权威合同。
+2. 随后推进 M2-T03/T04A，再完成 M2-PF01 PR-18P-C canonical projection。
 3. 保持 PG_FTS_ZH_V1 与 LEGACY_BM25_V1 独立评分，未过质量/延迟/删除/重建 Gate 前不切 active consumer。
