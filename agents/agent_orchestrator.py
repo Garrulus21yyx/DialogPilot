@@ -222,6 +222,7 @@ class Request:
     prior_outcome_bindings: tuple[PriorOutcomeBinding, ...] = ()
     domain_decision: Optional[DomainDecision] = None
     pinned_execution_refs: Dict[str, str] = field(default_factory=dict)
+    media_context_refs: tuple[str, ...] = ()
 
 
 class PlanningDisposition(str, Enum):
@@ -1473,6 +1474,10 @@ class AgentOrchestrator:
             ),
         }
         objective, risk, criteria, context_refs = definitions[agent_type]
+        if req.media_context_refs:
+            context_refs = tuple(dict.fromkeys(
+                (*context_refs, *req.media_context_refs),
+            ))
         requirement_ids = {
             AgentType.GENERAL: ("knowledge.active_source",),
             AgentType.TECHNICAL: ("knowledge.active_source",),

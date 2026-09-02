@@ -52,6 +52,12 @@ class PerceptionOutcome:
     reason_code: str = ""
 
 
+@dataclass(frozen=True)
+class PerceptionBatch:
+    outcomes: tuple[PerceptionOutcome, ...]
+    artifacts: tuple[PerceptionArtifact, ...]
+
+
 class OCRProviderPort(Protocol):
     version: str
 
@@ -101,11 +107,23 @@ class TieredPerceptionService:
         tenant_id: str,
         user_id: str,
     ) -> tuple[PerceptionOutcome, ...]:
+        return self.execute_with_artifacts(
+            decision, tenant_id=tenant_id, user_id=user_id,
+        ).outcomes
+
+    def execute_with_artifacts(
+        self,
+        decision: MediaRequirementDecision,
+        *,
+        tenant_id: str,
+        user_id: str,
+    ) -> PerceptionBatch:
         if decision.mode is MediaRequirementMode.NO_MEDIA_REQUIRED:
             if decision.bindings:
                 raise ValueError("NO_MEDIA_REQUIRED cannot execute bindings")
-            return ()
+            return PerceptionBatch((), ())
         outcomes = []
+        artifacts = []
         ocr_refs: dict[str, str] = {}
         for binding in decision.bindings:
             try:
@@ -130,6 +148,7 @@ class TieredPerceptionService:
                         self._validate_artifact(
                             artifact, asset, MediaStage.L1_TEXT_EXTRACTION,
                         )
+                        artifacts.append(artifact)
                         ocr_refs[binding.asset_id] = _artifact_ref(artifact)
                     refs.append(ocr_refs[binding.asset_id])
                 if binding.required_stage is MediaStage.L2_VISUAL_REASONING:
@@ -148,6 +167,7 @@ class TieredPerceptionService:
                     self._validate_artifact(
                         artifact, asset, MediaStage.L2_VISUAL_REASONING,
                     )
+                    artifacts.append(artifact)
                     refs.append(_artifact_ref(artifact))
                 outcomes.append(PerceptionOutcome(
                     binding.media_binding_id, binding.asset_id,
@@ -166,7 +186,7 @@ class TieredPerceptionService:
                     binding.required_stage, PerceptionStatus.FAILED,
                     reason_code=type(exc).__name__,
                 ))
-        return tuple(outcomes)
+        return PerceptionBatch(tuple(outcomes), tuple(artifacts))
 
     @staticmethod
     def _validate_artifact(

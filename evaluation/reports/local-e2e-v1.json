@@ -11,16 +11,37 @@
     "escalated": false,
     "grounded": true,
     "http_status": 200,
-    "intent": "refund",
-    "knowledge_used": true,
-    "latency_ms": 3426.9,
-    "primary_agent": "billing",
+    "intent": "technical_crash",
+    "knowledge_used": false,
+    "latency_ms": 8858.3,
+    "media": {
+      "asset_ids": [
+        "asset:v1:97d031e4393cc6d5db1717e8bdcb8d7a6f11563b6853bc2cfe0b9bbfe1517bd9"
+      ],
+      "decision_id": "media-decision:v1:df05caa2983888da072f4253fe84d16cf294e7f41f2323cdfb427c8fabe37881",
+      "mode": "MEDIA_TARGETS",
+      "ocr_invoked": true,
+      "outcomes": [
+        {
+          "artifact_refs": [
+            "parse:tesseract:v1:cefe5aa73b2108e4c31c2ef4bfda1d3bcf87d3eaa2fe0d9b703081af57c3f606:eng:700x180"
+          ],
+          "asset_id": "asset:v1:97d031e4393cc6d5db1717e8bdcb8d7a6f11563b6853bc2cfe0b9bbfe1517bd9",
+          "reason_code": "PERCEPTION_COMPLETE",
+          "required_stage": "L1_TEXT_EXTRACTION",
+          "status": "SUCCEEDED"
+        }
+      ],
+      "vlm_invoked": false
+    },
+    "primary_agent": "technical",
+    "response_mentions_error_code": true,
     "response_present": true,
     "verification_status": "pass",
     "verified": true
   },
   "environment": "docker-compose-local",
-  "executed_at": "2026-09-02T14:54:05.813202+00:00",
+  "executed_at": "2026-09-02T15:27:06.278324+00:00",
   "health": {
     "http_status": 200,
     "status": "ok",
@@ -47,7 +68,7 @@
     },
     "total_chunks": 6
   },
-  "observed_duration_seconds": 10.485,
+  "observed_duration_seconds": 11.121,
   "schema_version": "dialogpilot-local-e2e-v1",
   "scope_limit": "Synthetic local request; no production traffic or legacy-data claim.",
   "verification": "PASS"

@@ -129,7 +129,8 @@ class PostgresCompatibilityExecutionOutbox:
                       AND turn.turn_key=invocation.inbound_turn_key
                     RETURNING job.*, invocation.request_id,
                               invocation.continuation_id,
-                              invocation.pinned_versions, turn.content
+                              invocation.pinned_versions, turn.content,
+                              turn.metadata AS turn_metadata
                 """, tuple(parameters)).fetchall()
         return tuple(self._item(row) for row in rows)
 
@@ -257,6 +258,9 @@ class PostgresCompatibilityExecutionOutbox:
             tenant_id=row["tenant_id"], user_id=row["user_id"],
             conversation_id=row["conversation_id"], request_id=row["request_id"],
             continuation_id=row["continuation_id"], message=row["content"],
+            asset_ids=tuple(
+                str(item) for item in dict(row["turn_metadata"]).get("asset_ids", [])
+            ),
             pinned_versions={
                 str(key): str(value)
                 for key, value in dict(row["pinned_versions"]).items()

@@ -72,6 +72,7 @@ class PostgresAdmissionUnitOfWork:
             "request_id": str(identity.request_id),
             "continuation_id": str(identity.continuation_id),
             "message": command.message,
+            "asset_ids": list(command.asset_ids),
             "authorization_fingerprint": str(
                 command.pinned_versions.get("authorization_fingerprint") or ""
             ),
@@ -105,7 +106,10 @@ class PostgresAdmissionUnitOfWork:
                 str(identity.conversation_id), turn_seq, command.message,
                 content_hash({"role": "inbound", "content": command.message}),
                 str(identity.request_id), str(identity.invocation_key),
-                Jsonb(identity.metadata()), command.created_at, command.retention_until,
+                Jsonb({
+                    **identity.metadata(),
+                    "asset_ids": list(command.asset_ids),
+                }), command.created_at, command.retention_until,
             ))
             self._advance_seq(connection, identity, "next_turn_seq", command.created_at)
             self.fault_hook("after_inbound")

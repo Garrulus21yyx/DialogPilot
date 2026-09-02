@@ -93,6 +93,7 @@ class CompatibilityChatCoordinator:
                     message=command.message,
                     pinned_versions=pins,
                     created_at=now.isoformat(),
+                    asset_ids=command.asset_ids,
                 ),
             )
             if isinstance(admitted, AdmissionConflict):
@@ -166,6 +167,7 @@ class CompatibilityChatCoordinator:
             request_id=item.request_id,
             continuation_id=item.continuation_id,
             authorization_fingerprint=item.pinned_versions["authorization_fingerprint"],
+            asset_ids=item.asset_ids,
         )
         outcome = await self.application.execute_pinned(
             command, identity, assignment=assignment, publication_guard=guard,

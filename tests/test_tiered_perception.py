@@ -152,6 +152,19 @@ def test_l1_runs_ocr_only():
     assert vlm.calls == []
 
 
+def test_execution_batch_returns_exact_artifacts_for_context_building():
+    batch = TieredPerceptionService(
+        Assets(), ocr=OCR(), vlm=None,
+    ).execute_with_artifacts(
+        _decision(MediaStage.L1_TEXT_EXTRACTION),
+        tenant_id="tenant-a", user_id="user-a",
+    )
+
+    assert batch.outcomes[0].status is PerceptionStatus.SUCCEEDED
+    assert len(batch.artifacts) == 1
+    assert batch.artifacts[0].parse_result.parse_result_id == "parse-fixture"
+
+
 def test_l2_runs_ocr_once_then_vlm_for_each_explicit_binding():
     ocr, vlm = OCR(), VLM()
     outcomes = TieredPerceptionService(

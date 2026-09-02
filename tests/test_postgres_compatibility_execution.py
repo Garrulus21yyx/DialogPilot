@@ -141,6 +141,7 @@ def test_online_coordinator_admits_binds_executes_and_replays_one_terminal(compa
             self.calls += 1
             await publication_guard()
             assert command.message == "durable message"
+            assert command.asset_ids == ("asset-one", "asset-two")
             assert assignment.primary.version == bundle.version
             reader.completed = Completed("publication-online", {
                 "request_id": str(identity.request_id),
@@ -176,6 +177,7 @@ def test_online_coordinator_admits_binds_executes_and_replays_one_terminal(compa
         conv_id="conversation-online",
         request_id="request-online",
         authorization_fingerprint="f" * 64,
+        asset_ids=("asset-one", "asset-two"),
     )
     first = asyncio.run(coordinator.handle(command))
     replay = asyncio.run(coordinator.handle(command))

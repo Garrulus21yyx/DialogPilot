@@ -783,6 +783,7 @@ class ChatRequest(BaseModel):
     user_id:     Optional[str] = Field(default=None, min_length=1, max_length=200)
     conv_id:     Optional[str] = None
     request_id:  Optional[str] = Field(default=None, max_length=128)
+    asset_ids: List[str] = Field(default_factory=list, max_length=5)
 
 
 class ChatResponse(BaseModel):
@@ -839,6 +840,7 @@ class ChatResponse(BaseModel):
     react_run_ids: List[str] = Field(default_factory=list)
     pending_approval_call_ids: List[str] = Field(default_factory=list)
     pending_signals: List[Dict[str, Any]] = Field(default_factory=list)
+    media: Dict[str, Any] = Field(default_factory=dict)
 
 
 class AcceptedChatResponse(BaseModel):
@@ -1579,6 +1581,20 @@ def _core_chat_application(
     memory_service=None,
 ) -> ChatApplication:
     """Compose the application boundary from the current lifespan-owned services."""
+    media_agent = None
+    media_validator = None
+    perception_service = None
+    if _media_asset_store is not None:
+        from agents.media_requirement import LocalMediaRequirementAgent
+        from application.media_requirement import MediaRequirementValidator
+        from application.perception import TieredPerceptionService
+        from infrastructure.tesseract_ocr_provider import TesseractOCRProvider
+
+        media_agent = LocalMediaRequirementAgent()
+        media_validator = MediaRequirementValidator()
+        perception_service = TieredPerceptionService(
+            _media_asset_store, ocr=TesseractOCRProvider(), vlm=None,
+        )
     return ChatApplication(
         ChatServices(
             orchestrator=_orchestrator,
@@ -1593,6 +1609,10 @@ def _core_chat_application(
             trace_recorder=_trace_recorder,
             knowledge_base=_knowledge_store,
             memory_projection_mode=memory_projection_mode,
+            media_requirement_agent=media_agent,
+            media_requirement_validator=media_validator,
+            media_asset_store=_media_asset_store,
+            perception_service=perception_service,
         ),
         ChatOperations(
             active_ticket_context=_active_ticket_context,
@@ -1682,6 +1702,7 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
             "subject": principal.subject,
             "scopes": sorted(principal.scopes),
         }),
+        asset_ids=tuple(req.asset_ids),
     )
     outcome = await _chat_application().handle(command)
     if isinstance(outcome, Completed):

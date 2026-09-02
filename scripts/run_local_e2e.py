@@ -8,13 +8,28 @@ import os
 from pathlib import Path
 import time
 import uuid
+from io import BytesIO
 
 import httpx
 import jwt
 from dotenv import load_dotenv
+from PIL import Image, ImageDraw, ImageFont
 
 
-DEMO_PNG = b"\x89PNG\r\n\x1a\n" + b"dialogpilot-local-e2e"
+def _demo_png() -> bytes:
+    image = Image.new("RGB", (700, 180), "white")
+    try:
+        font = ImageFont.truetype(
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 52,
+        )
+    except OSError:
+        font = ImageFont.load_default()
+    ImageDraw.Draw(image).text(
+        (24, 52), "ERROR CODE E42", fill="black", font=font,
+    )
+    output = BytesIO()
+    image.save(output, format="PNG")
+    return output.getvalue()
 
 
 def _token() -> str:
@@ -54,7 +69,7 @@ def run(base_url: str, message: str) -> dict[str, object]:
             "/assets/upload",
             headers=headers,
             params={"conv_id": conv_id, "request_id": request_id},
-            files={"file": ("screen.png", DEMO_PNG, "image/png")},
+            files={"file": ("screen.png", _demo_png(), "image/png")},
         )
         asset_response.raise_for_status()
         asset = asset_response.json()
@@ -65,6 +80,7 @@ def run(base_url: str, message: str) -> dict[str, object]:
             json={
                 "message": message, "conv_id": conv_id,
                 "request_id": request_id,
+                "asset_ids": [asset["asset_id"]],
             },
         )
         chat_response.raise_for_status()
@@ -80,6 +96,10 @@ def run(base_url: str, message: str) -> dict[str, object]:
         and asset.get("vlm_invoked") is False
         and bool(chat.get("response"))
         and chat.get("request_id") == request_id
+        and chat.get("verified") is True
+        and "E42" in str(chat.get("response") or "")
+        and chat.get("media", {}).get("ocr_invoked") is True
+        and chat.get("media", {}).get("vlm_invoked") is False
     )
     return {
         "schema_version": "dialogpilot-local-e2e-v1",
@@ -116,6 +136,8 @@ def run(base_url: str, message: str) -> dict[str, object]:
             "escalated": chat.get("escalated"),
             "latency_ms": chat.get("latency_ms"),
             "response_present": bool(chat.get("response")),
+            "response_mentions_error_code": "E42" in str(chat.get("response") or ""),
+            "media": chat.get("media"),
         },
         "scope_limit": "Synthetic local request; no production traffic or legacy-data claim.",
     }
@@ -126,7 +148,9 @@ def main() -> int:
     parser.add_argument("--base-url", default="http://localhost:18000")
     parser.add_argument("--env-file", type=Path, default=Path(".env"))
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--message", default="退款需要满足什么条件？")
+    parser.add_argument(
+        "--message", default="请读取截图中的错误码，并告诉我下一步如何排查。",
+    )
     args = parser.parse_args()
     load_dotenv(args.env_file)
     report = run(args.base_url, args.message)

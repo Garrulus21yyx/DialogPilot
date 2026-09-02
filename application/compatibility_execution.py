@@ -44,6 +44,7 @@ class CompatibilityExecutionItem:
     request_id: str
     continuation_id: str
     message: str
+    asset_ids: tuple[str, ...]
     pinned_versions: Mapping[str, str]
     deletion_epoch: int
     attempt: int

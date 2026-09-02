@@ -25,6 +25,7 @@ class NewInvocationInbound:
     pinned_versions: Mapping[str, str]
     created_at: str
     retention_until: str | None = None
+    asset_ids: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
