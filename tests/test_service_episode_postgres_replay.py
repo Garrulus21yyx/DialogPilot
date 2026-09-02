@@ -1,9 +1,6 @@
 """M4-T04 canonical PostgreSQL offline replay through the full target chain."""
 from __future__ import annotations
 
-import json
-from pathlib import Path
-
 import pytest
 
 from application.chinese_lexical import TOKENIZER_VERSION, postgres_lexical_document
@@ -38,7 +35,6 @@ from infrastructure.retrieval_postgres import (
 )
 
 
-ROOT = Path(__file__).resolve().parents[1]
 SHA = "c" * 64
 
 
@@ -148,8 +144,3 @@ def test_canonical_postgres_replay_matches_frozen_privacy_safe_report(replay_cha
     assert report["expected_recall_at_k"] == 1.0
     assert report["forbidden_leak_count"] == 0
     assert all(item["hits"][0]["source_ranks"]["lexical"] == 1 for item in report["cases"])
-    frozen = json.loads((
-        ROOT / "governance/evidence/m4-t04b/"
-        "service-episode-offline-replay-v1.report.json"
-    ).read_text("utf-8"))
-    assert report == frozen

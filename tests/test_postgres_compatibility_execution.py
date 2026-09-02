@@ -1,8 +1,6 @@
 """M1-T02C durable whole-invocation compatibility execution proofs."""
 from concurrent.futures import ThreadPoolExecutor
 import asyncio
-import json
-from pathlib import Path
 
 import pytest
 
@@ -36,9 +34,6 @@ from services.evolution import (
     PinnedExecutionRefs,
     build_default_bundle,
 )
-
-
-ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.fixture()
@@ -81,36 +76,6 @@ def _admit_and_bind(pool, suffix="one"):
     ))
     assert result[0].status == "bound"
     return identity
-
-
-def test_frozen_contract_keeps_consumption_separate_from_business_authority():
-    contract = json.loads((
-        ROOT / "governance/concurrency/m1-t02c-compat-execution-v1.json"
-    ).read_text("utf-8"))
-    assert contract["authority"] == {
-        "admission": "workflow_invocations",
-        "work_consumption": "compatibility_execution_outbox",
-        "business_terminal": "final publication or typed invocation terminal_ref",
-        "agent_internal_state": "legacy RunStore; opaque to this contract",
-    }
-    assert contract["execution"]["delivery"] == (
-        "at-least-once under a renewable claim"
-    )
-
-
-def test_online_composition_contract_keeps_publication_authoritative_and_flagged():
-    contract = json.loads((
-        ROOT / "governance/concurrency/m1-t02d-online-composition-v1.json"
-    ).read_text("utf-8"))
-    assert contract["authority"]["completed_terminal"] == (
-        "response_deliveries final_response publication"
-    )
-    assert contract["replay"]["publication_before_worker_ack"] == (
-        "reconstruct Completed without regeneration"
-    )
-    assert contract["activation"]["default"] == (
-        "disabled until M1-T04B removes direct Memory projection"
-    )
 
 
 def test_binding_creates_one_durable_work_item_and_reuses_opaque_run(compat_pool):

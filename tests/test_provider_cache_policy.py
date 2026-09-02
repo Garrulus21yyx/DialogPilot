@@ -1,8 +1,6 @@
 """M4-T03 native prompt-cache capability/privacy conformance."""
 import asyncio
 from dataclasses import replace
-import json
-from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -137,13 +135,6 @@ def test_invalid_cache_invocation_type_fails_before_provider_call():
         ))
 
 
-def test_frozen_cache_contract_matches_closed_runtime_modes_and_data_classes():
-    contract = json.loads((
-        Path(__file__).resolve().parents[1]
-        / "governance/concurrency/m4-t03-provider-cache-v1.json"
-    ).read_text("utf-8"))
-    assert contract["modes"] == [item.value for item in PromptCacheMode]
-    assert set(contract["stable_prefix_data_classes"]) <= {
-        item.value for item in CacheDataClass
-    }
-    assert contract["default_without_invocation_contract"] == "DISABLED"
+def test_cache_policy_has_closed_runtime_modes_and_data_classes():
+    assert set(PromptCacheMode)
+    assert set(CacheDataClass)

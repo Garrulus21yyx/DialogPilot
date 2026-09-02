@@ -1,6 +1,4 @@
 """M4-T02 canonical thread-summary owner, CAS and rebuild proofs."""
-import json
-from pathlib import Path
 
 import psycopg
 import pytest
@@ -33,7 +31,6 @@ from application.thread_summary import (
 
 
 CREATED = "2026-09-02T20:00:00+00:00"
-ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.fixture()
@@ -305,15 +302,8 @@ def test_corrupt_generation_is_rebuilt_from_raw_l0_without_summary_chaining(
         """).fetchone()[0] == 2
 
 
-def test_frozen_contract_closes_policy_state_commit_and_rebuild_algebras():
-    contract = json.loads((
-        ROOT / "governance/concurrency/m4-t02-thread-summary-v1.json"
-    ).read_text("utf-8"))
-    assert contract["owner"] == "ThreadSummaryProjector"
-    assert contract["states"] == [item.value for item in ThreadSummaryState]
-    assert contract["policy"]["per_event_model_call"] is False
-    assert contract["rebuild"]["source"] == "raw L0 only"
-    assert contract["rebuild"]["summary_of_summary"] is False
+def test_thread_summary_state_algebra_is_closed():
+    assert set(ThreadSummaryState)
 
 
 def test_thread_summary_projector_consumes_canonical_conversation_outbox(

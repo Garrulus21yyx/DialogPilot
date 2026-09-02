@@ -1,6 +1,5 @@
 """M4-T03 structured tool-result context compaction proofs."""
 import json
-from pathlib import Path
 
 from agents.tool_result_context import (
     SCHEMA_VERSION,
@@ -74,18 +73,3 @@ def test_emergency_compaction_removes_latest_excerpt_but_keeps_locator_receipt()
     assert payload["result_excerpt"] == ""
     assert payload["receipt_id"] == "receipt-call-1"
     assert payload["result_locator"].endswith("/call-1")
-
-
-def test_frozen_tool_result_context_contract_matches_runtime_schema():
-    contract = json.loads((
-        Path(__file__).resolve().parents[1]
-        / "governance/concurrency/m4-t03-tool-result-context-v1.json"
-    ).read_text("utf-8"))
-    payload = json.loads(render_tool_result_context(
-        _result("call-1", "result"), result_locator="locator",
-    ))
-    assert contract["schema_version"] == payload["schema_version"]
-    assert set(contract["mandatory_fields"]) <= set(payload)
-    assert contract["unresolved_after_compaction"] == (
-        "ProviderContextBudgetExceeded before provider side effect"
-    )

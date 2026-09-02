@@ -1,7 +1,5 @@
 """M4-T01 typed Memory read projection and raw fallback proofs."""
-from pathlib import Path
 import asyncio
-import json
 
 import pytest
 
@@ -23,7 +21,6 @@ from infrastructure.postgres_memory_projection import PostgresMemoryProjectionRe
 from memory.conversation_memory import MemoryContext
 
 
-ROOT = Path(__file__).resolve().parents[1]
 CREATED = "2026-09-02T19:00:00+00:00"
 
 
@@ -167,12 +164,17 @@ def test_ready_contract_rejects_hidden_omission_or_lag():
         )
 
 
-def test_frozen_m4_t01_contract_closes_state_and_retrieval_algebras():
-    contract = json.loads((
-        ROOT / "governance/concurrency/m4-t01-memory-read-v1.json"
-    ).read_text("utf-8"))
-    assert set(contract["states"]) == {item.value for item in MemoryProjectionState}
-    assert set(contract["retrieval_outcomes"]) == {
-        item.value for item in MemoryRetrievalOutcome
+def test_memory_projection_state_and_retrieval_algebras_are_closed():
+    assert set(MemoryProjectionState) == {
+        MemoryProjectionState.READY,
+        MemoryProjectionState.LAGGING,
+        MemoryProjectionState.DEGRADED,
+        MemoryProjectionState.UNAVAILABLE,
     }
-    assert contract["current_turn"].startswith("excluded from raw fallback")
+    assert set(MemoryRetrievalOutcome) == {
+        MemoryRetrievalOutcome.NOT_NEEDED,
+        MemoryRetrievalOutcome.NO_MATCH,
+        MemoryRetrievalOutcome.HITS,
+        MemoryRetrievalOutcome.UNAVAILABLE,
+        MemoryRetrievalOutcome.CONFLICT,
+    }

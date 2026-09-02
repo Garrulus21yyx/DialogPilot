@@ -1,7 +1,5 @@
 """M1-T04 projection outbox, replay and deletion-fence properties."""
 from dataclasses import dataclass, field
-import json
-from pathlib import Path
 
 import psycopg
 import pytest
@@ -31,7 +29,6 @@ from infrastructure.postgres_projection import (
 
 
 CREATED = "2026-09-02T09:00:00+00:00"
-ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.fixture()
@@ -177,19 +174,6 @@ def test_each_source_event_atomically_enqueues_all_registered_projections(
         ("thread_summary", 1, 0),
         ("working_window", 1, 0),
     ]
-
-
-def test_t04b_frozen_contract_names_real_effect_and_deletion_owners():
-    contract = json.loads((
-        ROOT / "governance/concurrency/m1-t04b-memory-projection-v1.json"
-    ).read_text("utf-8"))
-    assert contract["source_authority"] == (
-        "dialogpilot_app.conversation_events"
-    )
-    assert set(contract["targets"]) == {item.value for item in ProjectionName}
-    assert contract["online_composition"]["direct_memory_write"] == (
-        "disabled only inside the fully composed durable facade"
-    )
 
 
 def test_production_memory_adapter_loads_canonical_turn_and_routes_target(

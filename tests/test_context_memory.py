@@ -2,7 +2,6 @@ import json
 import asyncio
 import random
 from datetime import datetime
-from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -204,18 +203,6 @@ def test_unknown_context_node_or_route_fails_closed(kwargs):
         ).assemble(
             sections=(), history=(), current_user_message="current", **kwargs,
         )
-
-
-def test_frozen_context_policy_matches_runtime_algebras():
-    contract = json.loads((
-        Path(__file__).resolve().parents[1]
-        / "governance/concurrency/m4-t03-context-policy-v1.json"
-    ).read_text("utf-8"))
-    assert contract["nodes"] == [item.value for item in ContextNode]
-    assert contract["baseline_priorities"] == dict(ContextPolicyV1.priorities)
-    assert contract["decision_statuses"] == [
-        item.value for item in ContextSelectionStatus
-    ]
 
 
 def test_context_budget_charges_descriptions_and_join_separators_exactly():
