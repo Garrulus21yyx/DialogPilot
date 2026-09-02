@@ -23,16 +23,19 @@
 | Profile/MemoryFact 切换 PostgreSQL 并删除 Chroma 存储服务 | done | Redis 仅保留当前窗口投影 |
 | 删除生产迁移、Reviewer 签署与多副本演练材料 | done | 保留空库 Alembic 初始化和本地 dump/restore |
 | 删除 Eval Graduation/Pareto 与 baseline promotion API | done | `/eval/run` 保留确定性 dev/heldout 报告 |
-| 收缩本地评测并清理文档中的旧路径 | in_progress | 保留确定性 dev/heldout 与机器报告 |
-| 本地 E2E、恢复验证、Demo 复现 | pending | 最终验收 |
+| 收缩本地评测并清理展示文档中的旧路径 | done | README/架构/项目讲述/面试文档以当前代码为准 |
+| 本地 E2E、恢复验证、Demo 复现 | done | `4a0a0f4`；835 tests passed；两份机器报告 PASS |
+| OCR/VLM 分级调用 | pending | 当前代码无图片输入；作为下一实施节点，不提前宣称完成 |
+| Commitment/Handoff PostgreSQL 收敛 | pending | 先保留本地闭环，再删除对应 SQLite store |
+| 持久 OTel/Langfuse | pending | 当前只有 TraceId、进程内 span 与 Prometheus |
 
 ## 必须保留的核心
 
 - Router / Planner / TaskGraph / Worker / ReAct / ContextPolicy。
 - PostgreSQL checkpoint、幂等键、Tool receipt、ServiceEpisode、Profile、Commitment、Handoff。
 - Redis 当前会话窗口，作为 PostgreSQL 事件的可重建快速投影。
-- Knowledge / Business / OCR / VLM tools 与 Evidence / Coverage。
-- 基础 OpenTelemetry / Langfuse、本地崩溃恢复、确定性评测和 Demo。
+- Knowledge / Business tools 与 Evidence / Coverage；OCR/VLM 是下一实现节点。
+- TraceId/Prometheus、本地崩溃恢复、确定性评测和 Demo；持久 OTel/Langfuse 待实现。
 
 ## 完成标准
 

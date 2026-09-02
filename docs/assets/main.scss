@@ -674,118 +674,6 @@ summary:focus-visible {
   background: linear-gradient(145deg, rgba(185, 85, 85, 0.24), rgba(255, 255, 255, 0.02));
 }
 
-/* 版本交通控制台：横向表达发布单调性，回弯箭头单独表达回滚。 */
-.dp-rollout-board {
-  display: grid;
-  grid-template-columns:
-    minmax(105px, 1fr) 26px minmax(125px, 1.15fr) 26px minmax(120px, 1.05fr)
-    26px minmax(110px, 1fr) 26px minmax(115px, 1.05fr) 32px minmax(115px, 1.05fr);
-  gap: 0;
-  align-items: stretch;
-  margin: 24px 0 28px;
-  padding: 12px;
-  overflow-x: auto;
-  border: 1px solid #253e52;
-  border-radius: 14px;
-  color: #e8f1f7;
-  background:
-    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-    #102130;
-  background-size: 100% 28px;
-  box-shadow: 0 18px 46px rgba(16, 36, 51, 0.2);
-}
-
-.rollout-lane {
-  position: relative;
-  min-width: 105px;
-  padding: 15px 12px 14px;
-  border: 1px solid #3e596e;
-  border-top: 4px solid #6f8ca2;
-  border-radius: 9px;
-  background: rgba(20, 43, 61, 0.88);
-}
-
-.rollout-lane::after {
-  position: absolute;
-  top: 9px;
-  right: 9px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #7891a5;
-  box-shadow: 0 0 9px currentColor;
-  content: "";
-}
-
-.rollout-lane span,
-.rollout-lane small {
-  display: block;
-  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-}
-
-.rollout-lane span {
-  color: #91b6d1;
-  font-size: 9px;
-  font-weight: 900;
-  letter-spacing: 0.1em;
-}
-
-.rollout-lane strong {
-  display: block;
-  margin-top: 7px;
-  color: #ffffff;
-  font-size: 12px;
-  line-height: 1.3;
-}
-
-.rollout-lane small {
-  margin-top: 7px;
-  color: #8fa6b7;
-  font-size: 9px;
-}
-
-.rollout-lane.candidate,
-.rollout-lane.gate {
-  border-top-color: var(--dp-blue);
-}
-
-.rollout-lane.shadow,
-.rollout-lane.canary {
-  border-top-color: var(--dp-amber);
-}
-
-.rollout-lane.shadow::after,
-.rollout-lane.canary::after {
-  color: #e0a351;
-  background: #e0a351;
-}
-
-.rollout-lane.active,
-.rollout-lane.baseline {
-  border-top-color: var(--dp-green);
-}
-
-.rollout-lane.active::after,
-.rollout-lane.baseline::after {
-  color: #62c58f;
-  background: #62c58f;
-}
-
-.rollout-arrow {
-  display: grid;
-  min-width: 26px;
-  place-items: center;
-  color: #6f93ab;
-  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-  font-size: 18px;
-  font-weight: 900;
-}
-
-.rollout-arrow.rollback {
-  color: #df7d72;
-  transform: rotate(-12deg);
-}
-
 /* Evidence Board 用“示波器轨道”表达四条真实的合同迁移，不把技术栈做成装饰卡片。 */
 .dp-evidence-board {
   display: grid;
@@ -1399,17 +1287,6 @@ body.dp-viewer-open {
 
   .dp-task-ledger {
     grid-template-columns: 1fr;
-  }
-
-  .dp-rollout-board {
-    grid-template-columns: repeat(11, max-content);
-    padding: 10px;
-    scroll-snap-type: x proximity;
-  }
-
-  .rollout-lane {
-    min-width: 145px;
-    scroll-snap-align: start;
   }
 
   .dp-task-ledger > div {

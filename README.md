@@ -1,394 +1,209 @@
 # DialogPilot
 
-DialogPilot is an asynchronous multi-agent customer-support backend built with
-Python and FastAPI. It combines intent recognition, retrieval-augmented
-generation, dynamic business skills, layered conversation memory, observable
-agent routing, and a fail-closed answer-verification boundary.
+面向客服场景的可恢复多 Agent 后端。它不是把多个 Prompt 串起来，而是把路由、任务图、工具副作用、知识证据、上下文、发布资格和送达状态分别交给明确的 Owner。
 
-Knowledge ingestion normalizes public customer-support sources into stable IDs,
-SHA-256 checksums, source types, and fixed 512/64 chunks. Chroma owns the public
-chunk corpus; a persistent SQLite BM25 posting index is rebuilt from that corpus
-instead of scanning every chunk per query. An index manifest fixes the source,
-chunk, dense, sparse, and scope contracts, while an Evidence Pack preserves
-provenance and ranks through packing. Pure knowledge answers publish the
-claim-citation-validated grounded result; private order/account state remains a
-business-tool concern. Incompatible non-empty indexes fail closed and require
-re-import from authoritative sources.
+当前仓库以“本地完整跑通、可复现、适合简历展示”为目标：在线请求只走一条 PostgreSQL 主链，不包含旧数据迁移、双写、Shadow/Canary 或模拟企业审批发布流程。
 
-中文文档：[完整架构教程](https://garrulus21yyx.github.io/DialogPilot/) · [架构边界](https://garrulus21yyx.github.io/DialogPilot/architecture.html) · [项目讲述](https://garrulus21yyx.github.io/DialogPilot/project-pitch.html) · [客服 RAG 评测](https://garrulus21yyx.github.io/DialogPilot/rag-pipeline-evaluation/) · [代码校准面经](https://garrulus21yyx.github.io/DialogPilot/interview-guide.html)
+## 已实现能力
 
-## Why this project exists
+- FastAPI + JWT 身份边界；请求体不能冒充其他用户。
+- `EXECUTE / CLARIFY / OUT_OF_SCOPE` 闭合路由，以及依赖感知的 TaskGraph。
+- General、Technical、Billing、Account Security 等领域 Worker；任务内执行有界 ReAct。
+- 工具白名单、写操作审批、持久 checkpoint、幂等调用和 typed receipt。
+- PostgreSQL 准入、Conversation/Invocation、回答发布、Knowledge、ServiceEpisode 与用户事实。
+- Redis 当前会话窗口及可重建投影；PostgreSQL 事件保持权威。
+- PostgreSQL pgvector + 中文 FTS + weighted RRF，Evidence Pack 保留来源、版本与 chunk 坐标。
+- Coverage + AnswerVerifier 发布门禁；只有可发布结果直接返回，其余安全升级到 Handoff。
+- `response_id + response_seq + selected/delivered/read` 送达状态。
+- TraceId、Prometheus 指标、本地评测、空库初始化、恢复演练和机器可读 E2E 报告。
 
-A single-prompt chatbot mixes routing, knowledge access, memory, and response
-generation into one opaque operation. DialogPilot gives each concern a clear
-owner and exposes the routing and verification decisions in the API response.
+当前文本知识链路已完成；OCR/VLM、多模态附件和持久 OTel/Langfuse 属于后续节点，README 不把它们描述成已实现能力。
 
-## Request flow
+## 快速开始
 
-```text
-POST /chat
-  -> normalize and screen high-confidence direct prompt-injection attempts before any model or memory access
-  -> resolve and pin one immutable AgentBundle from the active/canary rollout pointer
-  -> load uncovered Redis events, range summaries, sourced facts, and hybrid episodic memory with bounded neighbor windows
-  -> assemble a bounded prompt from those projections
-  -> classify intent with LLM + local semantic similarity + patterns under one classifier fingerprint
-  -> best-effort append a redacted prediction event; return prediction_id when attributable route feedback is available
-  -> resolve one typed Planner disposition: EXECUTE / CLARIFY / OUT_OF_SCOPE
-  -> publish CLARIFY / OUT_OF_SCOPE policy terminals without workers, RAG, tools, verifier, or tickets; OUT_OF_SCOPE also skips memory writes
-  -> for EXECUTE only, retrieve business knowledge and project active TicketService cases
-  -> build a dependency-aware, context-isolated TaskGraph for domain owners
-  -> execute topological waves under one request deadline and max-Agent budget
-  -> inside each worker, execute a bounded ReAct loop through allowlisted tools
-  -> verify required-task coverage from typed task outcomes
-  -> persist write-tool approval checkpoints and idempotently resume the original run when approved
-  -> synthesize one candidate from typed task outcomes, including blocked dependencies and approval waits
-  -> verify coverage, grounding, completeness, and safety (PASS / REJECT / UNKNOWN)
-  -> feed PASS / REJECT quality back to the exact producing Agent instances
-  -> publish only PASS answers; escalate every other outcome
-  -> persist each escalation and its ticket.created outbox event in one SQLite transaction
-  -> persist verifier, coverage, and uncertain tool-effect failures as deduplicated Bad Case candidates
-  -> accept wrong-route feedback only against the authenticated user's real prediction; keep it pending until admin annotation
-  -> persist response_id + conversation-local response_seq before returning; accept authenticated delivered/read ACKs
-  -> append the published turn with contiguous conversation-local sequence numbers and immediately upsert its raw events into episodic search
-  -> atomically schedule source-linked fact reflection with the L0 turn, then debounce it in a recoverable Redis queue
-  -> explicitly finalize short sessions by compensating any missing index metadata and advancing their summary checkpoint
-  -> attach a redacted EvolutionEnvelope to actionable Bad Cases for version/owner attribution
-  -> record pinned-bundle quality, latency, and cost-proxy evidence for controlled rollout
-  -> return redacted TraceId, tool audit, and hybrid-memory retrieval evidence
-```
-
-Context input is bounded independently from model output. Every conversation turn
-is first retained as an append-only raw event with a monotonic `seq`. Compression
-creates immutable, structured chunks for explicit sequence ranges and advances a
-checkpoint with optimistic CAS; it never rewrites or deletes the raw event log.
-Newer messages therefore do not invalidate a completed older-range summary.
-Every completed in-scope published turn is immediately upserted into long-term search;
-compression/finalize remain idempotent compensation paths. Retrieval excludes the
-current conversation, preserves event locators, and expands the strongest old
-conversation hits into bounded neighboring raw-message windows. Active non-closed
-tickets are projected from TicketService as higher-authority service state.
-Long-term ranking fuses vector, BM25, and recency with weighted reciprocal-rank
-fusion. User memory is stored as typed facts
-with source message IDs and active/superseded/retracted lifecycle, not one mutable
-profile blob. Eligible EXECUTE turns atomically update one Redis sorted-set job
-with their L0 append; a lifecycle-managed worker flushes after three pending turns
-or five idle minutes, advances a per-conversation fact checkpoint only after a
-successful bounded extraction, and retries failures after restart. Explicit
-finalize forces the same queued range without making profile completion part of
-the raw-conversation archive truth. Retrieved knowledge and memory are tagged as data while actual
-conversation history remains user/assistant messages.
-
-The production registry exposes nine bounded tools: knowledge, user memory,
-ticket list/detail/create, order lookup, refund eligibility, refund-request
-creation, and account-security events. Write tools require host approval and
-return typed SQLite receipts. A refund receipt proves that the local request was
-committed; it does not claim that an external payment rail moved money.
-
-文档入口：[docs/architecture.md](docs/architecture.md) 说明组件职责归属，
-[docs/project-pitch.md](docs/project-pitch.md) 提供中文项目讲述与技术取舍，
-[docs/full-architecture-tutorial.zh-CN.md](docs/full-architecture-tutorial.zh-CN.md)
-提供完整仓库教程、改造历史、故障分析和项目追问指南。
-The reproducible Flash/off vs Flash/high vs Pro/high pilot, including latency,
-usage, cost, and failure cases, is in
-[docs/model-ablation-report.zh-CN.md](docs/model-ablation-report.zh-CN.md).
-
-## Technology
-
-- Python 3.12, FastAPI, Pydantic, asyncio
-- Anthropic-compatible chat API
-- Role-tiered DeepSeek Flash/Pro profiles with explicit reasoning policy
-- Redis append-only conversation events, summary chunks, and checkpoints
-- PostgreSQL ServiceEpisode/Knowledge retrieval plus ChromaDB source-linked user facts
-- BM25 + vector + recency fusion behind authenticated on-demand tools
-- Bounded ReAct tool execution with allowlists, approval gates, and TraceId audit
-- Dependency-aware TaskGraph execution with scoped context and typed blocked outcomes
-- Typed no-worker Planner terminals for clarification and benign out-of-scope requests
-- Durable ReAct checkpoints, approval resume, and idempotent tool-call claims
-- Nine production Agent tools spanning knowledge, memory, tickets, orders, refund requests, and security events
-- Immutable AgentBundle versions and GEPA-lite constrained proposals for local evaluation
-- Prometheus monitoring and anomaly detection
-- Docker Compose with Nginx, Redis, ChromaDB, and Prometheus
-- Pytest and GitHub Actions
-
-## Local development
-
-Create configuration:
+要求：Docker Compose，以及一个支持 Anthropic Messages 协议的模型 API Key。默认配置使用 DeepSeek 兼容端点。
 
 ```bash
 cp .env.example .env
 ```
 
-Set at least:
+至少修改以下两项：
 
 ```env
-ANTHROPIC_API_KEY=your_key
+ANTHROPIC_API_KEY=your_api_key
+AUTH_JWT_SECRET=replace_with_at_least_32_random_bytes
 ```
 
-The checked-in example selects DeepSeek's Anthropic-compatible endpoint and
-uses Flash without thinking for intent, workers, ReAct, memory, rewrite, and
-rerank. Cross-domain synthesis, answer verification, and the offline judge use
-Pro with thinking disabled by default. A live three-case verifier pilot found
-Flash/none and Pro/none both parsed 3/3 cases, while Pro/high was roughly three
-times slower and had previously exhausted short completion budgets. Every role can be overridden independently with
-`MODEL_<ROLE>` and `MODEL_<ROLE>_REASONING`; `/health` and evaluation metadata
-record the effective, non-secret policy. See `.env.example` for the complete
-matrix. Reasoning profiles enforce a minimum completion budget so thinking
-cannot silently consume the entire response before structured JSON is emitted.
-
-Start the complete stack:
+启动完整本地栈：
 
 ```bash
-docker compose up -d --build
+docker compose up -d --build --remove-orphans
 curl http://localhost:18000/health
 ```
 
-Swagger UI is available at `http://localhost:18000/docs`.
+运行一次真实鉴权对话并生成脱敏报告：
 
-For a source-based development environment:
+```bash
+PYTHONPATH=. .venv/bin/python scripts/run_local_e2e.py \
+  --output evaluation/reports/local-e2e-v1.json
+```
+
+最近一次仓库验证结果：
+
+- 全量测试：`835 passed`
+- Docker Compose：应用、PostgreSQL、Redis、Nginx、Prometheus 均 healthy
+- 本地 E2E：退款问题路由到 Billing，使用 Knowledge，`verified=true`、`grounded=true`
+- PostgreSQL：空库升级到 Alembic head，并完成隔离 dump/restore 对账
+
+对应机器报告：
+
+- [`evaluation/reports/local-e2e-v1.json`](evaluation/reports/local-e2e-v1.json)
+- [`evaluation/reports/local-postgres-restore-v1.json`](evaluation/reports/local-postgres-restore-v1.json)
+
+Swagger UI：<http://localhost:18000/docs>
+
+## 核心链路
+
+```mermaid
+flowchart LR
+    A[FastAPI + JWT] --> B[Durable Admission]
+    B --> C[Router / Planner]
+    C -->|EXECUTE| D[TaskGraph]
+    C -->|CLARIFY / OOS| K[Policy Terminal]
+    D --> E[Worker + bounded ReAct]
+    E --> F[Knowledge / Business Tools]
+    F --> G[Evidence + Coverage]
+    G --> H[Answer Verifier]
+    H -->|PASS| I[PostgreSQL Publication]
+    H -->|REJECT / UNKNOWN| J[Handoff]
+    I --> L[Redis Current Window Projection]
+    I --> M[ACK / Replay]
+```
+
+一次 `/chat` 的关键顺序是：
+
+1. JWT 生成可信 Principal，输入安全边界先于模型与记忆访问。
+2. PostgreSQL 原子写入请求、Invocation 和 start outbox；相同 `request_id` 可安全重试。
+3. Router 产生唯一 RouteDecision；策略终态不启动 Worker。
+4. `EXECUTE` 路径构建 TaskGraph，Worker 只看到声明的上下文和允许工具。
+5. Knowledge 与业务工具返回带来源或 receipt 的证据，Coverage 检查必做任务是否完整。
+6. Verifier 输出 `PASS / REJECT / UNKNOWN`；只有 `PASS` 进入正常发布。
+7. PostgreSQL 先持久化最终回答与 seq，再返回 HTTP；Redis 只投影当前会话窗口。
+8. 客户端 ACK 单调推进 `selected → delivered → read`，断线后可按 seq 续取。
+
+## 数据所有权
+
+| 事实 | 唯一 Owner | 说明 |
+|---|---|---|
+| 请求与 Invocation | PostgreSQL | 准入、固定版本、执行状态和幂等身份 |
+| 最终回答与送达 | PostgreSQL | publication、response seq、ACK、重放 |
+| Knowledge | PostgreSQL + pgvector/FTS | 原文 revision、chunk、active generation、混合检索 |
+| ServiceEpisode / 用户事实 | PostgreSQL | 跨会话服务经历与带来源事实 |
+| 当前会话窗口 | Redis | PostgreSQL Conversation 事件的快速投影，可重建 |
+| ReAct checkpoint / receipt | 本地持久 Store | 本地 Demo 的审批恢复与副作用防重 |
+| Ticket / Handoff | 本地 TicketService | 幂等工单、状态转换和 outbox；后续可直接收敛到 PostgreSQL |
+
+仓库已经删除 Chroma、SQLite ResponseDelivery、legacy Knowledge、raw episodic 双路径以及所有 backfill/cutover 协调器。不存在旧数据，因此新安装直接从空 PostgreSQL 初始化。
+
+## Knowledge RAG
+
+```mermaid
+flowchart LR
+    S[SourceRevision] --> C[Fixed-token Chunk]
+    C --> V[pgvector]
+    C --> T[PostgreSQL FTS]
+    Q[Raw + Standalone Query] --> V
+    Q --> T
+    V --> R[Weighted RRF]
+    T --> R
+    R --> P[Context Packer]
+    P --> E[Evidence Pack]
+    E --> G[Grounded Generation]
+    G --> A[Verifier]
+```
+
+- 默认 chunk：512 tokens，64 tokens overlap。
+- 默认召回：Dense `0.25` + Lexical `0.75`，RRF `k=10`，候选 20，最终 5。
+- 本地向量使用确定性 384 维 feature hashing，不下载大型模型或 CUDA 依赖。
+- Evidence Pack 保存 source revision、checksum、字符范围、scope、rank 和 manifest fingerprint。
+- 订单、退款和账户的实时状态必须来自业务工具，公共知识不能冒充用户私有事实。
+
+## 主要接口
+
+| Method | Path | 用途 |
+|---|---|---|
+| `GET` | `/health` | 服务和存储状态 |
+| `POST` | `/chat` | 完整客服 Agent 主链 |
+| `GET` | `/conversations/{conv_id}/turns` | 会话事实视图 |
+| `GET` | `/invocations/{invocation_key}` | Invocation 组合视图 |
+| `POST` | `/responses/{response_id}/ack` | delivered/read ACK |
+| `GET` | `/conversations/{conv_id}/responses` | 按 seq 断线续取 |
+| `POST` | `/agent-runs/{run_id}/resume` | 审批后恢复原 ReAct 调用 |
+| `POST` | `/knowledge/add` | 添加结构化文本知识 |
+| `POST` | `/knowledge/upload` | 上传 UTF-8 txt/md/JSON |
+| `GET` | `/knowledge/stats` | Knowledge 后端与 manifest |
+| `GET/POST` | `/tickets` | Handoff 工单读写 |
+| `POST` | `/feedback` | 绑定真实预测的反馈 |
+| `GET` | `/metrics` | Prometheus 指标 |
+| `POST` | `/eval/run` | 本地分层评测 |
+
+除 `/health`、`/metrics` 外，业务接口需要 Bearer JWT；具体 scope 以 OpenAPI 为准。
+
+## 本地开发与验证
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements-dev.txt
-pytest -q
-uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+
+TEST_DATABASE_URL=postgresql://dialogpilot:dialogpilot-local@localhost:15432/dialogpilot \
+PYTHONPATH=. pytest -q
 ```
 
-Redis must be reachable. Chroma uses the explicit `CHROMA_MODE`: `remote`
-fails startup when the declared server is unavailable; `embedded` uses only
-`CHROMA_PERSIST_DIRECTORY` and never silently switches to the remote store.
-
-## Primary endpoints
-
-| Method | Path | Purpose |
-|---|---|---|
-| `GET` | `/health` | Readiness and agent statistics |
-| `POST` | `/chat` | Complete multi-agent conversation flow |
-| `POST` | `/conversations/{conv_id}/finalize` | Idempotently archive a short session before clearing Redis |
-| `POST` | `/search` | Query rewrite, parallel retrieval, and reranking |
-| `POST` | `/knowledge/add` | Add knowledge documents |
-| `POST` | `/knowledge/upload` | Upload text, Markdown, or JSON knowledge |
-| `GET` | `/skills` | Inspect loaded dynamic skills |
-| `POST` | `/skills/reload` | Reload skills without a process restart |
-| `GET` | `/monitor` | Agent/tool metrics, alerts, and suggestions |
-| `GET` | `/eval/datasets` | List versioned evaluation sets and review state |
-| `POST` | `/eval/run` | Run selected intent/routing dataset slices or smoke cases |
-| `POST` | `/eval/baseline/promote` | Promote a graduated immutable evaluation snapshot |
-| `GET` | `/agent-runs/{run_id}` | Read the minimal public state of a persisted ReAct run |
-| `POST` | `/agent-runs/{run_id}/resume` | Approve and idempotently resume the bound pending tool call |
-| `POST` | `/evolution/proposals` | Generate 4–8 constrained candidates from one attributed Bad Case group |
-| `GET/POST` | `/evolution/bundles` | Inspect or register immutable AgentBundle versions |
-| `POST` | `/tickets` | Manually create an idempotent handoff ticket |
-| `GET` | `/tickets` | List tickets by user and/or status |
-| `GET` | `/tickets/{ticket_id}` | Read a ticket and its transition history |
-| `PATCH` | `/tickets/{ticket_id}/status` | Apply a legal ticket status transition |
-| `POST` | `/feedback` | Submit authenticated negative feedback as a provisional Bad Case candidate |
-| `GET` | `/bad-cases` | Admin queue filtered by lifecycle, stage, and severity |
-| `GET` | `/bad-cases/{badcase_id}` | Read a Bad Case and immutable transition audit |
-| `PATCH` | `/bad-cases/{badcase_id}/status` | Apply an evidence-gated Bad Case transition |
-
-Example chat request:
+空库迁移和恢复演练：
 
 ```bash
-# Create a development token. Use a different long secret outside this example.
-export AUTH_JWT_SECRET='replace-with-at-least-32-random-bytes'
-export DIALOGPILOT_TOKEN="$(python - <<'PY'
-import os, time, jwt
-now = int(time.time())
-print(jwt.encode({
-    "sub": "demo-user", "scope": "chat", "iat": now, "exp": now + 3600,
-    "iss": "dialogpilot", "aud": "dialogpilot-api",
-}, os.environ["AUTH_JWT_SECRET"], algorithm="HS256"))
-PY
-)"
+PYTHONPATH=. .venv/bin/python scripts/run_postgres_migrations.py \
+  --database-url postgresql://dialogpilot:dialogpilot-local@localhost:15432/dialogpilot
 
-curl -X POST http://localhost:18000/chat \
-  -H "Authorization: Bearer $DIALOGPILOT_TOKEN" \
-  -H 'Content-Type: application/json' \
-  -d '{"request_id":"client-request-001","message":"订单 #A123 登录失败后又被扣款了"}'
+PYTHONPATH=. .venv/bin/python scripts/rehearse_x_t01_restore.py \
+  --database-url postgresql://dialogpilot:dialogpilot-local@localhost:15432/postgres \
+  --postgres-container dialogpilot-postgres \
+  --output evaluation/reports/local-postgres-restore-v1.json
 ```
 
-The response includes the selected intent and agents, structured task plan,
-required-task coverage, execution budget, routing reason,
-knowledge usage, typed verification status, groundedness, and escalation flag.
-It also exposes `trace_id`, redacted `tool_audit`, and `memory_retrieval`
-rank evidence. Public Agent outcomes retain status and timing diagnostics but
-remove candidate content, raw internal errors, producer keys, and tool call IDs.
-Parallel responses also expose `synthesis_status`, conflict details, and each
-selected task's typed execution outcome. Workers share one request deadline and
-max-Agent budget; `BUDGET_EXCEEDED` remains attached to the unresolved task.
-Coverage gaps, duplicate/unexpected outcomes, or detected conflicts trigger a
-fail-closed handoff instead of being hidden by a fluent partial answer.
-
-## Versioned evaluation data
-
-The committed `dialogpilot-500-v1` suite contains 500 cases: 180 intent/OOS,
-120 TaskGraph routing, 100 retrieval, and 100 stateful memory/tool-safety cases,
-with a group-safe 400/100 dev/heldout split. External intent cases remain
-`auto_mapped`; project cases remain `provisional`, so the default scorer still
-excludes them from project-gold metrics until human review.
-
-```bash
-# Validate schema, checksums, references, and group-safe dev/heldout splits.
-python -m evaluation.dataset data/eval/dialogpilot-500-v1
-
-# Execute real repository-owner fixtures for the stateful layer.
-python -m evaluation.stateful_runner data/eval/dialogpilot-500-v1 \
-  --split dev --predictions artifacts/eval/stateful-dev-predictions.jsonl \
-  --report artifacts/eval/stateful-dev-report.json
-
-# After inspecting/correcting selected case inputs and expected labels:
-python scripts/review_eval_dataset.py data/eval/dialogpilot-500-v1 \
-  --case-id intent-dev-negation-01 \
-  --reviewer reviewer-a --notes 'intent and ambiguity checked' \
-  --confirm-human-review
-
-# Build external pressure-test data (generated output is gitignored and non-gold).
-python scripts/build_eval_dataset.py --source banking77 --max-per-label 20
-python scripts/build_eval_dataset.py --source clinc150-oos --max-per-label 20
-
-# Score a complete prediction JSONL for one split. Default: human-reviewed only.
-python -m evaluation.benchmark data/eval/dialogpilot-500-v1 predictions.jsonl --split heldout
-
-# Dry-run provisional/auto-mapped cases; do not publish this as project accuracy.
-python -m evaluation.benchmark data/eval/dialogpilot-500-v1 predictions.jsonl \
-  --split heldout --include-non-gold
-
-# Export only a reproduced/fixed case into a versioned dev regression bundle.
-# The output stays provisional; this command cannot create Gold or heldout.
-python scripts/promote_badcase.py \
-  --database ./data/badcases/badcases.db \
-  --badcase-id BADCASE_ID \
-  --output ./data/eval/dialogpilot-badcase-regression-v1 \
-  --actor reviewer-a
-```
-
-BANKING77 contributes overlapping customer-support intents and CLINC150
-contributes out-of-scope examples. Their original label, upstream split,
-license, URL, and mapping version remain in every generated case. Bitext is
-opt-in because its CDLA-Sharing-1.0 obligations must be accepted explicitly:
-
-```bash
-python scripts/build_eval_dataset.py --source bitext --max-per-label 20 \
-  --accept-cdla-sharing
-```
-
-With an admin token, `GET /eval/datasets` exposes counts and review status.
-`POST /eval/run` accepts `dataset_id`, `split`, `layers`, and
-`include_non_gold`; intent/routing execute through the live runtime. Stateful
-memory/security cases execute through isolated real-owner fixtures and the
-deterministic scorer. Retrieval uses its isolated Chroma prediction producer;
-an unsupported live layer cannot be silently reported as run.
-Every runtime report carries dataset version, checksum, split, layer set, and
-review scope.
-
-Reviewer B's 27-case fresh-v2 specification is fully registered and executes
-the context, memory, RAG, tool, verifier, coverage and publication owners. It
-passes 27/27 as a **consumed regression set**, not as an unseen holdout. Fixture
-producers receive an immutable `FixtureRequest` without `expected`; write-tool
-timeout/cancellation use explicit terminal audit states and report
-`outcome_unknown` whenever the runtime cannot prove the business commit.
-
-Runtime Agent statistics separate execution availability from verified answer
-quality. `PASS` and `REJECT` update a sample-aware EWMA quality score for the
-exact producer instances; verifier `UNKNOWN` is counted for observability but
-does not penalize Agent quality. Routing combines availability, verified
-quality, latency, and monitor penalties. `adaptive_routing_active` is true only
-when a type has at least two instances that can actually replace one another.
-When escalation is required it also returns `ticket_id`, `ticket_status`, and
-whether that request created the ticket or reused an idempotent existing one.
-
-## Human-ticket lifecycle
-
-SQLite is the authoritative ticket store. The supported lifecycle is:
+## 仓库导航
 
 ```text
-OPEN -> IN_PROGRESS -> WAITING_CUSTOMER -> IN_PROGRESS
-                    \-> RESOLVED -> IN_PROGRESS
-OPEN / IN_PROGRESS / WAITING_CUSTOMER / RESOLVED -> CLOSED
-CLOSED -> terminal
+api/              HTTP 合同与应用装配
+application/      Chat、路由、准入、投影、Coverage 等用例层
+agents/           Planner、TaskGraph、Worker、ReAct
+mcp/              ToolManager、Evidence Pack、RAG 打包与 grounded generation
+infrastructure/   PostgreSQL/Redis 仓储、检索、outbox、projection
+memory/           当前窗口、上下文与事实提取
+services/         Verifier、Ticket、Bad Case、Bundle 等领域服务
+evaluation/       数据合同、评分器和机器报告
+scripts/          本地迁移、恢复、E2E 与离线实验入口
+docs/             已完成的目标架构、实施计划和展示文档
 ```
 
-Every successful transition appends an immutable event with actor, note, and
-timestamp. Repeating the same status is an idempotent no-op; unsupported
-transitions return HTTP `409`. A stable chat `request_id` guarantees that
-network retries reuse the first handoff ticket. Ticket creation also inserts an
-immutable `ticket.created` outbox row in the same transaction. When
-`TICKET_DISPATCH_WEBHOOK_URL` is configured, a leased worker retries delivery
-with exponential backoff and a stable event idempotency key; without a webhook,
-the outbox remains truthfully pending.
+重点文档：
 
-## Response delivery receipts
+- [目标架构](docs/customer-service-agent-target-architecture.zh-CN.md)
+- [实施计划](docs/customer-service-agent-implementation-plan.zh-CN.md)
+- [架构边界](docs/architecture.md)
+- [项目讲述](docs/project-pitch.md)
+- [面试追问](docs/interview-guide.md)
 
-Every `/chat` response includes `response_id`, conversation-local
-`response_seq`, and `delivery_status=selected`. After rendering, an authenticated
-client calls `POST /responses/{response_id}/ack` with `delivered` (and optionally
-later `read`). Transitions are monotonic and idempotent. Reconnecting clients use
-`GET /conversations/{conv_id}/responses?after_seq=N`; this application ACK is what
-proves terminal delivery—an MQ acknowledgement would only prove broker/consumer
-progress.
+## 边界与非目标
 
-## Bad Case quality loop
+- 当前没有 OCR/VLM 或图片输入；安全模型将 VLM hidden instruction 标记为 `NOT_APPLICABLE`。
+- 当前 TraceRecorder 是进程内实现，尚未接入持久 OTel Collector/Langfuse。
+- Ticket、Bad Case、ReAct checkpoint 和 Bundle metadata 仍有本地 SQLite store；它们不是已删除的 ResponseDelivery/Knowledge 双路径。
+- 评测集包含 provisional/公开数据映射，不能宣称生产准确率或 human-reviewed Gold。
+- 没有生产流量，因此不模拟 Shadow、Canary、promotion、回滚指针、双盲签署或生产 RPO/RTO。
+- `MCPToolManager` 是项目内部工具运行时，不是远程 MCP Server。
 
-`BadCaseRegistry` separately owns production-quality incidents. Verifier
-REJECT/UNKNOWN, incomplete required-task coverage, and failed or uncertain tool
-effects are captured without blocking the current response. `/feedback` adds
-authenticated user reports. Inputs and evidence are bounded and redacted,
-users are stored as keyed HMAC pseudonyms, and unpublished candidates are never copied.
+## License
 
-The lifecycle is `candidate -> triaged -> reproduced -> fixing ->
-regression_pass -> verified -> closed`. Reproduction requires an Owner fixture,
-assertion list, and evidence SHA-256; a fixed commit is required before a
-regression can pass. Recurrence reopens a closed record. Exported cases always
-use the existing intent/routing/retrieval/stateful layers with `split=dev`,
-`status=provisional`, and `consumed_regression`; human Gold remains a separate,
-explicit review action.
-
-Bad Cases also carry a redacted `EvolutionEnvelope` containing the exact Bundle
-and component hashes plus producer/task/tool-call IDs. A deterministic
-attributor blocks security, infrastructure, cancellation, timeout, and unknown
-side-effect cases from automatic evolution. Only already-wired prompt,
-few-shot, routing, retrieval, and tool-description surfaces may become
-immutable candidates. Candidates are compared offline; the local runtime executes
-one configured active Bundle and never duplicates user requests for shadow/canary release simulation.
-
-## Verification contract
-
-The answer verifier owns the publication decision:
-
-- `pass`: publish the generated answer.
-- `reject`: replace it with a safe handoff response and escalate.
-- `unknown`: verifier failure or unsupported output; fail closed and escalate.
-
-Malformed model output never becomes an implicit pass. Focused tests cover all
-three states plus empty answers and model failures.
-
-## Repository hygiene
-
-Runtime databases, virtual environments, local secrets, logs, IDE settings,
-and generated caches are intentionally excluded. Never commit `.env`.
-
-## Current limitations
-
-- HTTP routes verify HS256 bearer tokens; chat memory identity comes from the
-  signed `sub`, while admin and knowledge routes require scopes. Multi-tenant
-  organization policy and external IdP/JWKS integration remain future work.
-- SQLite remains only for local TicketService, BadCaseRegistry, RunStore, and
-  immutable Bundle metadata; the runtime selects one bootstrapped Active Bundle.
-- LLM verification adds latency and model cost to each published response.
-- The repository has a 500-case provisional layered suite but no human-reviewed
-  gold cases yet. Stateful heldout has been consumed as regression evidence;
-  none of these results supports a production accuracy claim.
-- Evaluation runs create candidates, not an implicit baseline. Only explicit
-  graduation plus `/eval/baseline/promote` changes the immutable active snapshot.
-- Local development expects Redis; Chroma must be explicitly `remote` or `embedded`.
-- Trace spans and tool audits are process-local bounded memory, not durable
-  OpenTelemetry storage; restarts remove them.
-- Approval resume is persisted and bound to the original user/task/Bundle/tool
-  call. It resumes that ReAct task; it is not yet a general distributed workflow
-  engine that replays an entire multi-agent graph across process topologies.
-- Shadow execution consumes model/retrieval capacity. Online `cost_units` is
-  currently an Agent/tool-count proxy rather than provider-billed currency, and
-  hard-signal detection still needs an external safety monitor to call the
-  closed admin endpoint.
-- `MCPToolManager` is an internal tool runtime, not a remote MCP protocol server.
+仓库当前没有独立的开源许可证文件。第三方数据与依赖说明见 [NOTICE.md](NOTICE.md)；在添加明确许可证前，不应默认视为可自由再分发。

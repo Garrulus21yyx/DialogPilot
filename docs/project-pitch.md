@@ -1,235 +1,83 @@
 ---
 layout: default
-title: 项目讲述与技术取舍
+title: DialogPilot 项目讲述
 permalink: /project-pitch.html
 ---
 
-# 项目讲述与技术取舍
-
-> 全中文项目讲述页：先说解决了什么问题，再用 Owner、合同、失败路径和证据解释技术选择；页面中的架构图可点击放大。
-
-这页回答两个面试问题：**“你的项目到底解决什么问题？”**和**“为什么这样设计？”**。完整调用链和源码定位请看[完整架构教程](./)。
+# DialogPilot 项目讲述
 
 ## 30 秒版本
 
-DialogPilot 是一个使用 Python 和 FastAPI 实现的多 Agent 客服后端。我不是把所有能力塞进一个 Prompt，而是先用 LLM、本地字符 n-gram 和规则融合识别意图，再由 Orchestrator 将请求收敛为 `EXECUTE / CLARIFY / OUT_OF_SCOPE`；只有执行态才转换成带依赖、上下文范围、风险和验收条件的 `TaskGraph`，由 General、Technical、Billing、Account Security 等 Worker 分波执行。
+DialogPilot 是一个可恢复的多 Agent 客服后端。我把原本容易混在一次模型调用里的路由、任务规划、工具副作用、知识证据、回答校验和送达状态拆成明确 Owner。请求先在 PostgreSQL 持久准入，再运行 TaskGraph 和有界 ReAct；只有 Coverage 与 Verifier 通过的回答才能发布。PostgreSQL 是事实库，Redis 只做当前会话投影。本地 Docker Compose 可一键启动，并有真实鉴权 E2E、全量测试与恢复报告。
 
-每个 Worker 内部使用有界 ReAct，只能调用 ToolManager 暴露的白名单工具。ToolManager 而不是模型负责风险分级、写操作审批、超时、审计和结果脱敏。并行结果必须先通过 `CoverageGate`，证明所有必做任务都有闭合结果，再由 `ResultSynthesizer` 处理顺序、冲突和部分成功。最终只有 `AnswerVerifier` 明确判为 `PASS` 的候选可以发布；失败则确定性转入带幂等键和状态历史的 SQLite 人工工单。
+## 简历表述
 
-记忆层以 Redis 原始事件日志为事实来源，每个完整发布轮次立即用稳定 ID 幂等写入 ChromaDB，Token 压缩只负责固定序列范围的摘要/checkpoint。长期召回融合 BM25、向量和时效性排名，排除当前会话，并对最相关旧会话展开有界前后消息窗口。未关闭工单直接从 TicketService 投影，结构化事实保留来源及替代/撤销状态。这样既能恢复客服事项，又不会因为只搜索摘要或孤立片段而丢失订单号、纠正语境和处理进度。
+可使用：
 
-HTTP 边界从签名 JWT 中取得用户身份，不信任请求体提交的 `user_id`。请求级 `TraceId` 串联 HTTP、ReAct 和工具调用。质量库可用时，每次意图判断都记录不可变 `prediction_id`、分类器指纹和脱敏输入指纹；记录失败不阻断客服主链，但该轮不开放可归因的错路由反馈。用户报告错路由时只能提交待审核建议，管理员确认后才形成版本化 Annotation，不能在请求线程里改 Prompt 或模板。写操作等待审批时持久化 Run checkpoint，授权后以原 Bundle 和 task_id 幂等恢复。校验失败、任务覆盖失败、工具副作用不确定以及可信用户反馈会进入独立的 Bad Case 状态机；复现和修复后的样本只作为 provisional dev regression，不冒充人工 Gold 或全新 heldout。
+> 设计并实现 FastAPI 多 Agent 客服后端，以 PostgreSQL 持久化请求准入、会话事件、Knowledge/ServiceEpisode 和回答发布，以 Redis 提供可重建当前会话投影；通过 TaskGraph、受控 ReAct、工具幂等 receipt、Evidence/Coverage 和 fail-closed Verifier 实现可恢复、可追溯的客服服务链，并用 Docker E2E、835 项测试与本地 dump/restore 报告验证。
 
-Bad Case 不会在线改运行时 Prompt。系统先用脱敏版本信封做责任归因，只对 Prompt、Few-shot、路由、检索和工具描述生成不可变候选；候选只在本地 dev/heldout 与 Demo 中比较。运行时由 ActiveBundleResolver 固定唯一 Bundle，不复制请求做 Shadow/Canary。
+不要使用：
 
-## 主链路怎么讲
+- “已支持生产 Shadow/Canary 和自动回滚”——相关模拟已删除。
+- “已完成 OCR/VLM 多模态客服”——当前没有图片输入链路。
+- “接入完整 OTel/Langfuse”——当前只有 TraceId、进程内 span 与 Prometheus。
+- “准确率达到生产标准”——项目数据仍含 provisional 标签，没有 human-reviewed Gold。
+- “所有数据都在 PostgreSQL”——Ticket、BadCase、ReAct/Bundle metadata 仍有本地 store。
 
-```text
-请求与可信身份
-  → 解析并固定 AgentBundle / Rollout 版本
-  → 读取记忆
-  → 多信号意图识别
-  → 记录 prediction_id / classifier fingerprint
-  → Planner 处置：EXECUTE / CLARIFY / OUT_OF_SCOPE
-      ├─ CLARIFY / OUT_OF_SCOPE：固定策略回复并结束
-      └─ EXECUTE：继续客服执行链
-  → 按业务意图检索知识
-  → 读取未关闭工单并构建 TaskGraph
-  → 按依赖波次执行 Worker / ReAct / Tool
-  → 必要时持久化审批 Checkpoint 并 Resume
-  → CoverageGate
-  → ResultSynthesizer
-  → AnswerVerifier
-  → 创建人工工单 + 同事务 outbox（按需）
-  → 持久化 response_id / response_seq 与真实发布结果
-  → HTTP 返回；客户端渲染后 ACK，断线按 seq 续取
-  → Redis 防抖任务批量抽取 L1 事实，并记录 Bad Case
-  → 错路由反馈绑定原 Prediction → 人工 Annotation
-  → 脱敏归因 → 离线候选 → Graduation → 灰度/回滚
+## 最值得讲的三个问题
+
+### 1. 为什么回答发布会 503？
+
+切换为 PostgreSQL ResponseDelivery 后，最终 publication 必须引用已经存在的 Invocation，但在线 `/chat` 仍默认绕过 durable admission。症状是 LLM 正常完成，发布阶段报 `invocation not found`。
+
+修复不是在 Delivery 中临时补一行 Invocation，而是让运行服务固定走 `admission → execution → publication` 单主链。这样请求身份、固定版本、outbox、执行和最终回答共享同一权威生命周期。
+
+### 2. 为什么 Knowledge 正常检索却降级？
+
+Evidence 的 `source_type` 属于 `SourceReference`，校验器却从 `EvidenceItem` 顶层读取。直接检索测试覆盖了候选生成，但缓存 Evidence Pack 的再校验路径没有覆盖。
+
+修复发生在 provenance 转换边界，并新增测试证明 validator 从 `source_ref` 读取。真实 E2E 随后得到 `knowledge_used=true / grounded=true / verified=true`。
+
+### 3. 为什么 Redis Worker 会出现 closed transport？
+
+PostgreSQL projection dispatcher 在工作线程中调用 `asyncio.run`，驱动同一个 lifespan-owned Redis async client。客户端被跨事件循环使用，连接 transport 随临时 loop 关闭。
+
+修复是增加异步 projection dispatcher：PostgreSQL claim/ack 放在线程，Redis effect 始终在应用主事件循环执行。这关闭了共享资源的事件循环所有权不变量。
+
+## 核心取舍
+
+### 直接 Python TaskGraph，而不是先引入框架
+
+当前任务状态和失败代数已经闭合，直接实现更容易展示依赖、预算、Coverage 和恢复语义。只有当需要跨进程长图、动态节点和框架级持久调度时，才值得引入 LangGraph 一类依赖。
+
+### PostgreSQL + Redis，而不是两个事实库
+
+PostgreSQL 保存可审计事实；Redis 优化当前对话读取。投影可以重建，因此缓存丢失不会产生第二权威答案。
+
+### 轻量本地 embedding，而不是默认下载大模型
+
+Docker 本地展示优先确定性、体积和启动速度。384 维 feature hashing 保证 Knowledge/ServiceEpisode 路径完整跑通；它不冒充高质量语义模型，后续可以在同一 embedding port 替换。
+
+### 失败关闭，而不是流畅优先
+
+Coverage 不完整、Verifier `REJECT/UNKNOWN`、工具副作用未知都不能当成成功。系统返回安全结果或 Handoff，并保留 typed reason。
+
+## Demo 顺序
+
+```bash
+docker compose up -d --build --remove-orphans
+curl http://localhost:18000/health
+PYTHONPATH=. .venv/bin/python scripts/run_local_e2e.py \
+  --output evaluation/reports/local-e2e-v1.json
 ```
 
-```mermaid
-flowchart LR
-    A[认证请求] --> B[固定 Bundle]
-    B --> C[Memory / Intent]
-    C --> V[版本化 Prediction]
-    C --> P{PlanningDisposition}
-    P -->|CLARIFY| Q[固定澄清]
-    P -->|OUT_OF_SCOPE| O[固定范围重定向]
-    P -->|EXECUTE| R[按业务意图 RAG]
-    R --> D[TaskGraph]
-    D --> E[Worker + ReAct + Tools]
-    E --> F[Coverage + Synthesis]
-    F --> G{Verifier}
-    G -->|PASS| H[选定回答 + response seq]
-    G -->|其他| I[工单 + Outbox + Bad Case]
-    H --> A1[HTTP + Client ACK]
-    I --> H
-    I --> J[离线候选 / Graduation]
-    V --> L[Pending Feedback / Annotation]
-    L --> J
-    J --> K[Shadow / Canary / Rollback]
-```
+展示报告时重点指出：
 
-## 关键技术取舍
+- Knowledge engine 是 `postgresql+pgvector+pg_fts`。
+- 请求经过真实 JWT，而不是测试内直接调用函数。
+- E2E 问题被路由到 Billing，并通过 grounding 与 verification。
+- 报告不保存 JWT、API Key 或完整用户回答。
 
-### 为什么融合三路意图信号？
+## 当前边界
 
-当前实现把三路信号当成误差互补的工程基线，而不是三个能力相同的分类器。LLM 负责结合最近历史理解口语、省略和复杂语义；本地字符 n-gram 捕获退款、扣款、验证码等稳定词面，是无额外模型部署成本的确定性相似度基线，但不是语义 Embedding；Pattern 只擅长订单号、错误码和少量高精度业务表达，覆盖率低，不应承担开放语义分类。
-
-当前权重 LLM 0.70、n-gram 0.20、Pattern 0.10 最初来自能力边界的工程先验，后来在500条 Dev 上以五折 group-safe 校准搜索2,332个候选，并用冻结的300条上游集验证；没有候选同时改善总体、OOS 与安全召回，因此保留原权重，但不声称它是理论最优。Pattern 现在输出 `positive/negative/uncertain/quoted` 极性：常规融合中正向贡献 `+w×confidence`，负向贡献 `-w×confidence`，不确定和引用为0；只有正向细粒度证据可以触发大类到子类纠偏。三路分数的主要价值仍是可降级、可解释和可归因。
-
-代价是系统比单模型分类复杂，因此合同明确规定只分类一次，知识选择和 Agent 路由必须复用同一个 `IntentResult`，避免两个识别实例或两次调用产生分叉结论。
-
-我也验证了是否应直接换成真正的语义 Encoder。冻结 BGE-M3、训练 Logistic Regression 分类头后，纯 Encoder 在 300 条上游 test 为 281/300、在 85 条中文/混合诊断为 75/85；97% 接受精度的 Encoder→LLM 级联分别为 283/300 和 82/85，而当前 V1 为 283/300 和 84/85。级联把上游 LLM fallback 降到 4.7%，说明它有成本和延迟潜力，但没有在总体、OOS 和安全指标上同时支配当前方案。因此当前决策是保留 V1，把 Encoder 级联作为离线候选，而不是因为模型更新就替换生产路径。完整实验见[本地 Encoder 可行性试验](./local-encoder-feasibility-2026-08-31.zh-CN.html)与[Encoder → LLM 级联试验](./encoder-llm-cascade-2026-08-31.zh-CN.html)。
-
-### 为什么不能让 `learn()` 在线修改意图模板？
-
-一次点踩可能来自意图、TaskGraph、RAG、工具或业务服务，用户建议也不天然是正确标签。如果请求线程直接改模板，会让同一版本的分类器含义漂移：旧结果无法复现，缓存可能返回旧策略结果，评测和回滚也失去版本锚点。
-
-因此运行面只做两件事：以 `classifier_fingerprint + full_input_fingerprint` 作为缓存身份，并记录不可变 Prediction。错路由反馈必须携带真实 `prediction_id`，服务端校验它属于当前认证用户，再进入 `PENDING`；管理员执行 `APPROVED / REJECTED` 审核，批准时写入 `annotation_id + dataset_version`。只有已批准 Annotation 才能进入意图候选生成，仍需走既有 Graduation、Shadow 和 Canary；审核本身不会修改 Active Bundle。
-
-当前热缓存是进程内 TTL 缓存，适合单实例个人项目；分类器、Bundle、模型策略、Prompt、Few-shot、规则或阈值变化都会产生新指纹，因此不会复用旧版本结果。多副本部署时可以换 Redis 共享热点，但 SQLite Prediction/Annotation 仍是学习证据的事实来源，缓存不能成为标签数据库。
-
-### 为什么只对业务意图检索知识？
-
-知识库能提升业务回答的事实性，但把检索结果塞进问候、闲聊或人工转接请求只会污染上下文、增加延迟和重排成本。因此由意图结果控制检索门，而不是每条请求都无条件执行 RAG。
-
-知识 RAG 也不是“向量搜一下就结束”。生产与评测共用 source-offset 保真的 `DocumentChunker`、QueryTransformer 和 stable-ID ResultReranker；Standalone、Multi-query、HyDE 只能生成检索提示，Raw 始终保留，HyDE 不能成为答案证据。独立 Doc2Dial Dev 实验在 100 篇文档、300 个 case、488 个官方 grounding span 上选择 fixed 512/64 与 BM25 .75/Dense .25/RRF k=10；48 条多轮压力集选择 Raw .25 + Standalone .75，并将 Recall@20 从 0.6667 提到 0.7708。LLM rerank 20→5 将 Recall@5 从 0.5938 提到 0.7500。
-
-仓库默认现已切到 fixed 512/64、BM25 .75/Dense .25/k=10、Raw .25/Standalone .75、20→5 和 Top-5/2600。写路径先形成 public `SourceDocument`，把 stable ID、checksum、type 和 source offset 写入 chunk；Chroma 是权威 corpus，SQLite BM25 posting 是按 corpus fingerprint 可重建投影，因此在线查询不再拉取全库。IndexManifest 与 EvidencePack 将 source/chunker/dense/sparse 版本、query variants、score/rank 和 packing drop 贯穿到生成。纯知识问答不再被 Agent 二次改写；grounded v5 仅在 RAG 边界使用 PydanticAI tool output，由 segments 单向派生正文/claims/citations。同一 36 group×3 Dev 重放合同错误 `0/108`，证据不足拒答 `6/36`；它修复了 v4 的可用性缺口，但仍需 fresh Heldout/Shadow，也没有将全局 Agent 迁到 PydanticAI。
-
-父子 Chunk 也已分层真测：普通 Doc2Dial Dev 上 256/32 child → 1024/128 parent 将 Recall@20 `.8333→.9167`，但多条件 packed completeness `.8261→.7826`。在 `>=8000` 字符的 36 个 Doc2Dial span-Gold group 上，Standalone 先将 baseline Candidate `.7222→.7778`；条件路由达到 Candidate `.8056`、Rerank `.7639`，但 Packed 回落到 `.7361`，与 baseline 持平，多条件完整性 `.7188→.6563`、harmful `5.56%`。grounded v5 重放已将生成合同错误降为 `0%`，却不改变这个拓扑判断：WixQA 也出现 packing 退化。因此全局默认仍为 512/64，这条条件路由不上线，没有消费 untouched Heldout。
-
-### 为什么业务范围外请求不交给 GeneralAgent？
-
-无恶意不等于属于产品范围。天气、股票、通识和写代码等请求会被识别为高置信度 `OTHER`，由 Orchestrator 返回 `OUT_OF_SCOPE` 固定回复；低置信度 `OTHER` 则返回 `CLARIFY`。这两个 Planner 终态都不能携带 TaskGraph，所以不会调用 Worker、RAG、ReAct、工具、Verifier、Shadow 或人工工单。
-
-如果只在 GeneralAgent Prompt 里写“不要回答无关问题”，边界仍由概率模型决定；即使它完整回答了“六边形有几条边”，AnswerVerifier 也可能认为答案与问题相关而放行。类型化处置把范围策略变成可测试的代码合同。明确问候和感谢仍由 GeneralAgent 接待；`OUT_OF_SCOPE` 轮次不会写入客服工作记忆、情景索引或用户画像。
-
-### 为什么是 TaskGraph，而不是简单选择几个 Agent？
-
-General、Technical、Billing 和 Account Security 不只是不同 Prompt，它们对应不同业务责任与风险边界。Orchestrator 生成的不是 Agent 名单，而是 `TaskGraph`：每个必做任务都有稳定 ID、唯一 Owner、范围、依赖、可见上下文、副作用上界、风险和完成标准。旧名 `TaskPlan` 只是兼容导入别名。
-
-Worker 共享一个 `ExecutionWindow`，最终结果只能是：
-
-```text
-SUCCESS / TIMEOUT / ERROR / BUDGET_EXCEEDED /
-BLOCKED_DEPENDENCY / AWAITING_APPROVAL
-```
-
-`CoverageGate` 负责完整性，`ResultSynthesizer` 负责去重、冲突、输出顺序和部分成功证据。这样并发不会把“有 Agent 返回”误当成“用户问题已经完整解决”。
-
-### 为什么外层确定性规划、内层有界 ReAct？
-
-外层 `TaskGraph` 固定必做工作、依赖、上下文范围、风险、截止时间和覆盖要求，使客服流程可复现；ReAct 只负责一个任务 Owner 内部的工具选择。这样保留了 Worker 根据观察结果继续行动的能力，又防止自由委派抹掉任务身份或绕过工具授权。
-
-### 为什么按 Token 而不是消息条数压缩？
-
-消息数量无法准确代表模型输入长度。DialogPilot 估算 Prompt Token，保留最近原始轮次，只把最老且尚未覆盖的固定序列范围压缩成不可变 Chunk。Redis 乐观事务只推进该范围的检查点；后来到达的消息序号更大，不会让正在生成的摘要失效。
-
-完整发布轮次写入 Redis 后会立即用确定性消息 ID 幂等写入情景记忆；压缩和会话结束 API 是补偿路径，并只在对应范围归档成功后推进检查点。原始事件日志不删除。用户画像只是活跃 L1 类型化事实的投影，不是每轮生成的 L3 Persona。`EXECUTE` 轮次把原文和一个会话级 Redis 延迟任务原子提交，默认累计 3 轮或空闲 5 分钟后批量提取；Worker崩溃后任务仍可恢复，成功才推进 fact checkpoint，显式 finalize 会立即尝试刷新。
-
-### 为什么长期记忆使用混合召回？
-
-摘要适合放进有界 Prompt，却可能丢掉订单号和错误码。系统因此检索原始情景 Chunk，分别得到 BM25 与向量候选，再用加权 RRF 融合并加入较小的时效性信号。当前 `conv_id` 由 Redis recent history 承担，不参与跨会话候选；命中保留事件定位，最相关的两个旧会话各展开前后两条消息，避免孤立回答脱离用户纠正语境。每条结果保留来源排名，效果可以用 `Recall@K`、`MRR` 和 `nDCG` 测量，而不是只凭一段流畅回答判断。
-
-### 为什么工具权限不能交给模型？
-
-模型只提出“想调用什么工具”，无权决定“是否允许调用”。ToolManager 根据 Agent 白名单、工具风险、宿主审批和执行状态机作决定；只读工具可以并发，潜在写操作串行并默认要求审批。超时、取消和未知副作用以类型化结果返回，审计记录只保存脱敏参数和结果摘要。
-
-这能回答用户提示注入场景：即使用户要求忽略规则或伪造审批，模型也拿不到白名单外工具，写操作也无法绕过宿主授权。
-
-### 为什么发布校验必须 fail-closed？
-
-`AnswerVerifier` 拥有候选答案能否发布的最终决定权。如果解析失败或校验模型异常时默认放行，就等于绕过安全边界。因此结论集合闭合为 `PASS / REJECT / UNKNOWN`，只有 `PASS` 发布，其余状态进入安全人工转接。
-
-校验结论也用于在线路由反馈，但不混淆模型可用性和答案质量。`PASS`、`REJECT` 更新真正候选生产者的样本感知 EWMA；`UNKNOWN` 只记录校验基础设施异常，不降低 Agent 质量。
-
-### 为什么工单服务拥有独立状态机？
-
-API 和 Orchestrator 可以申请人工升级，但只有 `TicketService` 负责工单身份、幂等、持久化、合法状态迁移和事件历史。这样 Controller 不能随意发明状态，相同 `request_id` 的重试也不会创建重复工单。
-
-新建工单与 `ticket.created` outbox 在同一个 SQLite 事务提交；配置外部 CRM webhook 后，Worker 以稳定 event id 做至少一次投递和指数退避，成功才标记 delivered。未配置接收端时 outbox 保持 pending，不把“本地已建单”冒充“外部队列已接收”。
-
-新请求会读取该用户最近三个未进入 `CLOSED` 终态的工单，并作为高于历史记忆的 `active_tickets` 数据 section 提供给 Worker；订单、退款和账户的实时状态仍由业务工具拥有。这样用现有工单状态承担轻量 Case Memory，不再复制一套案件数据库。
-
-当前使用 SQLite 是为了让个人项目易部署；服务合同保持窄边界，多副本写入时可以迁移 PostgreSQL，而不用重写 Agent 主链。
-
-### 如何证明回答真的到了客户端？
-
-`/chat` 返回前由 `ResponseDeliveryService` 持久化 `response_id + response_seq + SELECTED`。客户端渲染后认证 ACK 为 `DELIVERED`，可选继续 ACK 为 `READ`；状态只单调上升。断线按 `after_seq` 续取。这里不用 MQ 冒充终端回执，因为 broker ACK 无法证明浏览器已经展示。
-
-### 为什么 Bad Case 不等于 Ticket 或 Trace？
-
-Ticket 负责用户人工处理流程，Trace 负责一次请求的诊断；二者都不拥有“工程缺陷是否复现、修复、验证或复发”的事实。`BadCaseRegistry` 因而单独持久化脱敏观察、合并重复症状，并要求 Owner、expected、fixture 和证据哈希齐全后才能进入 `REPRODUCED`，提交修复后才能进入回归验证，关闭后复发则自动重新打开。
-
-### 为什么 Bad Case 不能直接回滚成 Agent 自我修改？
-
-因为失败需要先做 Credit Assignment：意图错、任务拆分错、召回错、工具选错和权限漏洞的 Owner 不同。系统用 `EvolutionEnvelope` 固定请求实际使用的 Bundle 及组件哈希；安全、基础设施、timeout/cancel 和未知副作用直接阻断自动进化。只有配置 Owner 明确的问题，反思模型才可在闭合白名单中生成不可变候选。
-
-候选不会直接覆盖 Active。`CandidateRunner` 产生本地可复现的指标与 provenance；运行时只消费启动时固定的 Active Bundle。
-
-## 业务范围改造如何用 STAR 讲
-
-**S：** 原 Planner 把高置信度 `OTHER` 也生成成 `general_task`，例如“六边形有几条边”会进入 GeneralAgent；即使答案正确，Verifier 也只能证明它回应了问题，不能证明符合客服产品范围。
-
-**T：** 在不把正常无关问题误判为攻击的前提下，让模糊请求可澄清、越域请求可重定向，并确定性证明没有 Worker、工具、工单和长期记忆污染。
-
-**A：** 在 Orchestrator 增加闭合 `PlanningDisposition`，规定 `EXECUTE` 必须有 TaskGraph，`CLARIFY/OUT_OF_SCOPE` 必须无图；API 对策略终态发布固定回复并跳过模型 Verifier，`OUT_OF_SCOPE` 额外跳过 Redis/Chroma/画像写入。路由评测增加 disposition exact match，HTTP 集成测试使用会抛错的假 Worker、RAG、工具和 Verifier 证明这些路径未被调用。
-
-**R：** 越域请求公开投影为 `agent_type=orchestrator`、空 Agent/Task/Outcome、`verification_reason_code=policy_terminal`，不创建人工工单；低置信度请求仍追问，明确问候仍由 GeneralAgent 执行，当前全仓 355 项测试通过。
-
-## Agent 进化改造如何用 STAR 讲
-
-**S：** 原有 Bad Case 能入库和导出回归，但人工直接改 Prompt 缺少版本归因，复合任务没有依赖/上下文隔离，写工具等待批准后也无法恢复。
-
-**T：** 让运行时任务可依赖执行、写操作可恢复，同时让线上失败只能通过可验证、可灰度、可回滚的方式推动 Agent 策略升级。
-
-**A：** 将兼容 `TaskPlan` 升级为 `TaskGraph`，增加依赖波次、`context_refs` 与阻塞状态；用 SQLite RunStore 固定 task/Bundle/工具调用并通过 CAS Resume；再实现 EvolutionEnvelope、不可变 AgentBundle、GEPA-lite 受限候选和本地 dev/heldout 对比，运行时固定唯一 Active Bundle。
-
-**R：** 请求内版本不漂移，依赖失败不再误调后继，审批重放不重复写，候选不能修改权限或绕过 Gate，灰度与回滚收敛为原子状态迁移；当前全仓 355 项测试通过。评测数据仍是 provisional，因此结果只表述为合同回归，不虚构生产准确率。
-
-## RAG 生产化改造如何用 STAR 讲
-
-**S：** 原知识链把 chunk、查询改写、召回和 LLM 重排连在一起，但没有 source-span 权威坐标和逐阶段归因；全文切片前的 `strip()` 还会让带前导空白的 gold evidence offset 漂移。参数主要是工程默认，无法回答 chunk、overlap、query expansion 和 rerank 到底贡献了什么。
-
-**T：** 建立一个有界客服 RAG 实验，使预处理、Query、BM25/Dense/RRF、Rerank、Packing、Generation 各自可测；安全失败不能被平均质量分抵消，模型输出只捕获一次并可离线重放。
-
-**A：** 把 `source_id + checksum + [start,end)` 定为证据坐标，建立 public SourceDocument 与完整 IndexManifest；将在线全量 BM25 改为可从 Chroma 重建的持久 posting index；适配 Doc2Dial 100 文档/300 case/488 spans，以实体、否定、虚构实体和 harmful rate 为硬约束，用 dialogue-group paired bootstrap 选择权重；stable chunk ID 贯穿 RRF，rerank 在 PydanticAI ToolOutput 中只排列短别名、校验完整 permutation 后映射回 stable ID；EvidencePack 保留 score/rank/version/drop。长文档实验不手写树算法，复用 Haystack splitter/auto-merger，只在项目边界实现 source-span、parent score aggregation 与预算降级；grounded v5 同样在 RAG 局部边界约束 segments/conflicts/abstention，代码单向派生 answer/claims/citations。
-
-**R：** 历史 Dev 把检索冻结为 fixed 512/64、BM25 .75/Dense .25/k=10、Raw .25/Standalone .75、rerank 20→5、packing 2600。成熟 dynamic auto-merge 在 36 个长文档 group 上把 packed span recall `.7083→.7500`，但 multi-condition `.7188→.6875`、harmful `8.33%`，因此仍保留 512/64；短别名 rerank 把层级批次合同失败 `4/36→0/36`、output token `37,477→4,500`。grounded v5 的 36 group×3 重放为 `0/108` 生成合同错误、`6/36` 证据不足拒答，生成请求 `203→108`。候选未过 Dev 就停止 generation/Judge，不消费 Heldout 调参，下一步才是 baseline fresh Heldout/Shadow。
-
-## 意图反馈闭环如何用 STAR 讲
-
-**S：** 原意图识别器带有进程内 `learn()`，用户反馈可以直接修改模板；缓存键又没有绑定完整分类器配置和完整输入，导致同名版本语义漂移、旧缓存复用以及反馈被误当作 Gold。
-
-**T：** 分离在线推理和离线改进，让每条错路由建议都能追溯到真实预测、认证用户、分类器版本和人工裁决，同时保证反馈不会直接影响生产流量。
-
-**A：** 删除在线模板修改入口，把模板改为只读；计算覆盖模型策略、Prompt、Few-shot、规则、阈值和 Bundle 的分类器指纹，并用完整输入哈希组成 TTL 缓存键；为 `/chat` 记录不可变 Prediction，让 `/feedback` 只创建带 ownership 校验的 Pending 记录，再由管理员审批为版本化 Annotation；Attributor 和 ProposalGenerator 双重拒绝未审核意图样本。
-
-**R：** 在线路径只读且可复现，长输入不再因前缀截断发生缓存碰撞，错路由反馈不能伪造别人的 Prediction，也不能越过人工标注和 Graduation 直接改 Active Bundle。这里证明的是合同闭环，不把单人审核称为 human Gold，也不宣称线上准确率提升。
-
-## 意图模型选型如何用 STAR 讲
-
-**S：** 当前识别器采用 LLM、字符 n-gram 和 Pattern 融合，但初版权重来自工程先验；字符 n-gram 也只能表达词面相似，面试和工程上都需要回答为什么不直接换成语义 Encoder。
-
-**T：** 在不凭模型名做决策的前提下，对比当前 V1、纯 Encoder 和 Encoder→LLM 低置信级联，兼顾总体正确率、OOS、安全召回与 LLM 调用比例。
-
-**A：** 冻结 BGE-M3 表征并训练 Logistic Regression 分类头；补充 500 条仅用于训练的中文合成增强；以 group-safe 五折 OOF 按 selective risk/coverage 校准级联阈值，预先选择 97% 接受精度档，再冻结阈值回放上游 test 和中文诊断集。实验中保留纯 Encoder、纯 LLM 和当前 V1 对照，不在测试集上反向搜索最优阈值。
-
-**R：** 97% 级联在上游 test 达到 283/300，与 V1 持平且仅 4.7% 请求回退 LLM；中文诊断为 82/85，仍低于 V1 的 84/85，且 OOS 与安全指标没有同时形成无回退优势。因此没有切换生产实现。这个结果证明的是 Encoder 级联值得继续验证，而不是已经优于当前方案；训练增强和中文诊断没有人工 Gold，也必须主动说明。
-
-## 面试时应该诚实说明的指标边界
-
-调用 `/eval/run` 得到结果时，必须同时说明数据集规模、模型、日期和运行配置。仓库目前有两套不能混算的评测：500 条 provisional 四层项目 fixture + 25 篇 corpus；以及独立 Doc2Dial RAG，Dev 为 100 文档/300 case/488 spans、模型阶段 48 条多轮压力集，test 冻结报告为 40 文档/48 条检索且模型链只有 9 个 group。前者尚无独立人工 Gold，后者尚无人工 Judge 校准与真实流量灰度。
-
-因此可以说：
-
-> 我建立了覆盖意图、路由、RAG 和 Stateful 合同的版本化回归体系；RAG 以 source-span 为权威坐标，从 Chunk、Query、Recall/Rerank、Packing 到 Grounded Generation 分层归因，并用约束优先选择与 paired bootstrap 避免拍脑袋权重。
-
-不能说：
-
-> 项目已达到生产准确率，或 500 条数据全部属于人工 Gold。
-
-内置 11+5 条用例只是 smoke test，也不能代替代表真实业务分布的 heldout 评测。
+这是本地作品集系统，不声称有生产流量、生产 RPO/RTO 或组织级发布治理。后续最有价值的节点是 OCR/VLM 分级调用、Commitment/Handoff 的 PostgreSQL 收敛，以及持久 OTel/Langfuse；它们应以真实 E2E 和机器报告完成，而不是先增加状态机与签署文件。

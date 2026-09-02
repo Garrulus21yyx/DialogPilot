@@ -24,8 +24,8 @@
         signals: ["主张", "源码", "Owner", "合同", "取舍", "故障", "指标", "Trace", "边界", "追问"]
       },
       evolution: {
-        eyebrow: "版本控制 · Agent 进化闭环",
-        signals: ["Bad Case", "归因", "基线", "候选", "门禁", "Pareto", "Shadow", "5%", "25%", "回滚"]
+        eyebrow: "本地验证 · Agent 质量闭环",
+        signals: ["Bad Case", "归因", "候选", "Dev", "Heldout", "E2E", "报告", "复现"]
       },
       overview: {
         eyebrow: "架构证据 · DialogPilot",
@@ -61,9 +61,9 @@
     }).length;
     const metaByMode = {
       interview: [questionCount + " 个代码校准追问", "答案对应当前实现", "不支持的主张已标记", "STAR + 连续追问"],
-      evolution: [chapterCount + " 个闭环章节", "4–8 个受限候选", "Shadow → 5% → 25%", "硬信号立即回滚"],
+      evolution: [chapterCount + " 个闭环章节", "离线受限候选", "本地 E2E", "机器报告"],
       overview: [chapterCount + " 个架构切面", "单一事实 Owner", "依赖感知 TaskGraph", "发布与学习分离"],
-      tutorial: [chapterCount + " 个仓库章节", questionCount + " 个面试追问", "258 项回归测试", "4 层评测合同"]
+      tutorial: [chapterCount + " 个仓库章节", questionCount + " 个面试追问", "835 项回归测试", "本地 E2E"]
     };
     const metaLabels = metaByMode[mode] || metaByMode.tutorial;
     metaLabels.forEach(function (label) {
@@ -507,7 +507,7 @@
     if (!root) return;
     const pageTitle = textOf(root.querySelector(":scope > h1"));
     let mode = "";
-    if (root.querySelector("#面经使用说明")) mode = "interview";
+    if (root.querySelector("#面经使用说明") || pageTitle.indexOf("面试追问") !== -1) mode = "interview";
     else if (pageTitle.indexOf("进化") !== -1) mode = "evolution";
     else if (pageTitle.indexOf("架构边界") !== -1 || pageTitle.indexOf("项目讲述") !== -1) mode = "overview";
     else if (root.querySelector("#快速导航")) mode = "tutorial";

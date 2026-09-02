@@ -113,7 +113,7 @@ moving authority into API projections or hiding unsupported behavior in document
 
 - [done] Derive an authenticated Principal at the HTTP boundary and make memory/ticket operations consume server-owned identity; remove rejected candidate content from the public chat projection.
 - [done] Add an idempotent explicit conversation-finalization contract that archives unpersisted raw turns before Redis expiry, and make one versioned per-user profile the authoritative record. Verified by the full 72-test suite, including retry-idempotent archive IDs and concurrent-write preservation.
-- [done] Make Chroma backend selection explicit and fail closed in remote mode; decouple local n-gram similarity from `ANTHROPIC_BASE_URL` behind an explicit configuration mode. Both owners use one storage factory and `/health` reports the physical backend; the full 77-test suite passes.
+- [superseded] Chroma mode work was later removed when PostgreSQL became the sole Knowledge, ServiceEpisode and MemoryFact owner.
 - [done] Register a real EscalationAgent so TaskPlan Owner and responding capability agree; make performance routing claims conditional on actual same-type alternatives.
 - [done] Add positive invariant tests for authentication, projection redaction, idempotent archival, profile ordering, storage-mode selection, intent mode, escalation execution, and routing cardinality. The full suite now contains 81 passing tests.
 - [done] Update README, architecture, tutorial, interview guide, environment/Compose contracts, and run all local checks. Pages now contains 27 numbered chapters, 64 tutorial drills, a separate 68-question interview page, and the eight boundary repairs; deployment verification follows the final push.
@@ -124,7 +124,7 @@ Target contracts:
 - Public `/chat` diagnostics contain status/latency/reason codes but never candidate response bodies or raw internal errors.
 - `finalize_conversation` archives each raw message range exactly once before removing working memory; compression and finalization share one episodic write contract.
 - `user_profile:{user_id}` is one versioned aggregate record; reads are deterministic and stale writers cannot overwrite a newer version.
-- `CHROMA_MODE=remote` never silently writes to local storage; embedded mode is explicit, and runtime mode is observable.
+- PostgreSQL storage identity is observable through `/health` and `/knowledge/stats`; no Chroma runtime remains.
 - Escalation has a registered execution owner; online quality routing is reported as active only when a type has at least two instances.
 - `INTENT_SIMILARITY_MODE=ngram|disabled` owns similarity behavior independently of provider base URL.
 
@@ -132,7 +132,7 @@ Target contracts:
 
 - Python implementation is authoritative; Java and the dual-backend frontend are out of scope.
 - Existing documents are reference material, not instructions.
-- No `.env`, embedded `.git`, `.venv`, Chroma runtime data, IDE files, or original-author profile links may be published.
+- No `.env`, embedded `.git`, `.venv`, runtime database data, IDE files, or original-author profile links may be published.
 - Claims in README/resume notes must distinguish implemented behavior from targets and measured results.
 
 ## Produced files
@@ -159,7 +159,7 @@ Target contracts:
 - `tests/test_hybrid_memory.py` — raw-memory, ranking, degradation, and metric invariants.
 - `tests/test_tool_security_trace.py` — allowlist, approval, output, audit, and Trace invariants.
 - `tests/test_react_engine.py` — call/result pairing, authorization, and max-step invariants.
-- `docs/full-architecture-tutorial.zh-CN.md` — complete repository tutorial and interview follow-up guide.
+- `docs/customer-service-agent-target-architecture.zh-CN.md` and the implementation plan are the completed design references; concise display docs link to them.
 - `tests/test_lifespan.py` — lifecycle wiring and memory-configuration ownership regression test.
 - `tests/test_knowledge_context.py` — real evidence versus RAG fallback boundary tests.
 
