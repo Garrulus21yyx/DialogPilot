@@ -1,0 +1,33 @@
+{
+  "artifact_id": "m1-t02c-compat-execution-v1",
+  "schema_version": "compatibility-execution-contract-v1",
+  "owner": "Application compatibility executor",
+  "authority": {
+    "admission": "workflow_invocations",
+    "work_consumption": "compatibility_execution_outbox",
+    "business_terminal": "final publication or typed invocation terminal_ref",
+    "agent_internal_state": "legacy RunStore; opaque to this contract"
+  },
+  "binding": {
+    "sequence": [
+      "durably create one compatibility work item",
+      "CAS START_QUEUED to EXECUTION_BOUND with stable workflow_run_id",
+      "acknowledge the original start outbox"
+    ],
+    "runtime_kind": "compat",
+    "runtime_version": "chat-application-compat-v1"
+  },
+  "claim": {
+    "identity": "job_id + invocation_key + workflow_run_id",
+    "fence": "claimed_by + monotonically increasing attempt",
+    "lease": "renew only before expiry; expired or stale epoch cannot publish/ack",
+    "deletion": "source deletion_epoch must equal current non-deleted conversation epoch"
+  },
+  "execution": {
+    "delivery": "at-least-once under a renewable claim",
+    "retryable_failure": "release same job with the next claim epoch",
+    "non_retryable_terminal": "atomically acknowledge job and set invocation terminal_ref",
+    "completed_recovery": "read canonical final publication; do not regenerate"
+  },
+  "rollout_status": "IMPLEMENTED_NOT_YET_COMPOSED_ONLINE"
+}

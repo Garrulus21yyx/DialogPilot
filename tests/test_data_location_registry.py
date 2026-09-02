@@ -240,7 +240,7 @@ def test_database_registry_binding_is_immutable_and_migration_runner_verifies_it
     location_pool, postgres_database_url,
 ):
     assert PostgresMigrationRunner(postgres_database_url).verify()["head"] == (
-        "20260902_0016"
+        "20260902_0017"
     )
     with pytest.raises(psycopg.errors.ObjectNotInPrerequisiteState, match="immutable"):
         with location_pool.transaction() as connection:

@@ -24,9 +24,9 @@
 
 | 产物 | SHA-256 |
 |---|---|
-| Claim registry | `7fe2522cc479b2adb012128bb3547cab2d7fbe1c5ae16e3d7e07a2fd0a287be3` |
+| Claim registry | `74449c312cb1e04d831c3464f8bf438f5c9122749ca9b3428227696d5894e022` |
 | Evidence template | `c920efde3bb22e26308672668ac6c90ff814a513a1891d4e2f11daaca68a890f` |
-| Frozen audit | `47e55c810ff456c718f6dc4c9236fc805d4b5900cbeb1b65494400a3e875fe28` |
+| Frozen audit | `f511f2b870df96d69e0b90914765b6794491b3323298242b32ac0a42d6298931` |
 | Review checklist | `12de28d2c07df8a91ff0a2e4aac6af3ea8c55daf089ef0287e62f9b11316c0f2` |
 
 聚焦 claim/schema/security/cost suite：`31 passed in 1.24s`；全仓：`824 passed in 52.87s`；ruff 与 `git diff --check` 通过。

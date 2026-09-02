@@ -21,6 +21,7 @@
 | M1-T00 Admission/Execution/ChatOutcome v1 | done | CAS/ports/projection/OpenAPI/M3 cutover contract |
 | M1-T01 ConversationTurnStore schema | done | PostgreSQL migration `0002` + immutable scoped repositories |
 | M1-T02 Inbound-first / outbox dispatcher | implemented | PostgreSQL `0003`；生产 `/chat` cutover 归 M1-T05 |
+| M1-T02C Durable compatibility execution owner | implemented (not composed online) | stable work item、claim epoch/lease、terminal replay/deletion fence；在线 composition 归 T02D |
 | M1-T03 Unified publication/delivery | done | PostgreSQL `0004`；atomic publication/delivery outbox + canonical receipt lifecycle |
 | M1-T03A ResponseDelivery PostgreSQL 单主切换 | implemented | PR-10A/10B + local crash/restore drill；production snapshot cutover unverified |
 | M1-T04 Conversation projection outbox/deletion fence | implemented | PostgreSQL `0006`；4 projections + generation watermark + tombstone epoch |
@@ -41,7 +42,7 @@
 | M2-T06R Route Bundle enable/rollback | implemented (canary blocked) | pinned execution refs、single publisher、atomic crash rollback、forward-fix runbook；771 tests passed |
 | X-T03 安全威胁模型 | implemented (production review pending) | 8 threats/control map、13-case corpus、incident disable runbook；799 tests passed |
 | X-T04 成本预算 | implemented (route flag-off) | 8 route + offline ingest budgets、typed exhaustion、provider usage reconciliation；806 tests passed |
-| X-T01 schema/version 治理 | implemented (production snapshot pending) | linear 16-revision registry、forward-only/concurrent migration、checkpoint compatibility、local restore；M5-T01 迁移已纳入 registry |
+| X-T01 schema/version 治理 | implemented (production snapshot pending) | linear 17-revision registry、forward-only/concurrent migration、checkpoint compatibility、local restore；M5-T01/M1-T02C 迁移已纳入 registry |
 | X-T02 并发与多副本 | implemented (production rehearsal pending) | claim epoch fencing、tool reconciliation、multi-process/dual-active tests、PG/Redis runbook；820 tests passed |
 | X-T05 文档与简历事实门禁 | implemented | 4 条 claim registry、evidence template/checklist、seeded audit；824 tests passed |
 | M2 Exit Gate | draft / not ready | unsigned reproducible manifest；independent security/heldout、production billing/platform evidence、M1 Exit blocked；806 tests passed |
