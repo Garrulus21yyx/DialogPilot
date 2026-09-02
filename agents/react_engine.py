@@ -17,6 +17,11 @@ from agents.run_store import RunStatus, RunStore, TERMINAL_RUN_STATUSES
 from core.tracing import TraceRecorder, current_trace_id
 from core.llm_metrics import create_message
 from core.model_policy import ModelProfile, ModelRole
+from core.provider_context_budget import ProviderContextBudgetExceeded
+from agents.tool_result_context import (
+    ToolResultContextCompactor,
+    render_tool_result_context,
+)
 from mcp.tool_manager import (
     MCPToolManager,
     ToolCallStatus,
@@ -118,6 +123,7 @@ class ReActExecutionEngine:
         self._max_steps = int(max_steps)
         self._max_tokens = max(64, int(max_tokens))
         self._run_store = run_store
+        self._tool_result_compactor = ToolResultContextCompactor()
 
     async def run(
         self,
@@ -267,7 +273,10 @@ class ReActExecutionEngine:
         working_messages = [dict(message) for message in checkpoint.messages]
         working_messages.append({
             "role": "user",
-            "content": [self._tool_result_block(result) for result in ordered_results],
+            "content": [
+                self._tool_result_block(result, run_id=run_id)
+                for result in ordered_results
+            ],
         })
         saw_blocked = bool(runtime.get("saw_blocked")) or any(
             result.status == ToolCallStatus.DENIED.value for result in ordered_results
@@ -355,15 +364,28 @@ class ReActExecutionEngine:
                     "tool.count": len(tools),
                 },
                 ):
-                    response = await create_message(
-                    self._client,
-                    self._model_profile,
-                    ModelRole.REACT,
-                    max_tokens=self._max_tokens,
-                    system=system,
-                    messages=working_messages,
-                    tools=tools,
+                    provider_messages, _ = self._tool_result_compactor.compact(
+                        working_messages, preserve_latest_excerpt=True,
                     )
+                    try:
+                        response = await create_message(
+                            self._client, self._model_profile, ModelRole.REACT,
+                            max_tokens=self._max_tokens, system=system,
+                            messages=provider_messages, tools=tools,
+                        )
+                    except ProviderContextBudgetExceeded:
+                        provider_messages, compacted = (
+                            self._tool_result_compactor.compact(
+                                working_messages, preserve_latest_excerpt=False,
+                            )
+                        )
+                        if not compacted:
+                            raise
+                        response = await create_message(
+                            self._client, self._model_profile, ModelRole.REACT,
+                            max_tokens=self._max_tokens, system=system,
+                            messages=provider_messages, tools=tools,
+                        )
                 blocks, text, tool_calls = self._parse_content(response.content)
                 if text:
                     last_text = text
@@ -490,7 +512,10 @@ class ReActExecutionEngine:
                 )
                 working_messages.append({
                     "role": "user",
-                    "content": [self._tool_result_block(result) for result in results],
+                    "content": [
+                        self._tool_result_block(result, run_id=run_id)
+                        for result in results
+                    ],
                 })
                 current_version = self._persist_checkpoint(
                     run_id=run_id,
@@ -688,12 +713,24 @@ class ReActExecutionEngine:
         """兼容 Anthropic SDK block 对象和测试/代理端字典。"""
         return block.get(name) if isinstance(block, dict) else getattr(block, name, None)
 
-    @staticmethod
-    def _tool_result_block(result: ToolResult) -> Dict[str, Any]:
+    def _tool_result_block(
+        self, result: ToolResult, *, run_id: str,
+    ) -> Dict[str, Any]:
         """构造与 tool_use_id 配对的 Anthropic tool_result block。"""
+        locator = ""
+        if self._run_store is not None:
+            candidate = self._run_store.tool_result_locator(run_id, result.call_id)
+            try:
+                self._run_store.resolve_tool_result(candidate)
+            except Exception:
+                pass
+            else:
+                locator = candidate
         return {
             "type": "tool_result",
             "tool_use_id": result.call_id,
-            "content": result.output_for_model,
+            "content": render_tool_result_context(
+                result, result_locator=locator,
+            ),
             "is_error": not result.success,
         }

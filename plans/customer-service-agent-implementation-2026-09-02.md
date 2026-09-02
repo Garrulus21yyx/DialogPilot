@@ -56,6 +56,8 @@
 | M4-T03P Final provider-call budget | implemented | every call/step accounts system/messages/tools/protocol/output reserve；typed pre-side-effect rejection；T03 policy/cache/compaction 继续 |
 | M4-T03C Versioned ContextPolicy | implemented | node/task/route selection、90/85/75/65/55 priority owner、closed failure、selection/truncation trace；T03 尚未整体关闭 |
 | M4-T03Cache Provider native cache policy | foundation implemented (disabled default) | capability×tenant/region/privacy/retention/deletion gate、stable prefix breakpoint、usage fields；runtime conformance pending |
+| M4-T03R Structured tool-result context | implemented | full result ledger locator、receipt/schema-preserving envelope、per-step old excerpt compaction、pre-call emergency compaction |
+| M4-T03 ContextPolicy/provider boundary | implemented (verification dependencies pending) | T03P/T03C/T03Cache/T03R build closed；real provider calibration/cache canary 与 T03B relevance pending |
 | M4 Memory/Context/Commitment/Handoff | in_progress | M4-T01 完成；按 T02–T08 及 release 子节点推进 |
 | M5 Knowledge Lifecycle/Multimodal | in_progress | M5-T01 implemented/behavior-gated；M5-T02A implemented/flag-off；其余按依赖推进 |
 | M6-T01 Dataset v2 / Rubric v2 | implemented (contract fixtures provisional) | 11 层 service-chain + deterministic hard rubric + fixed semantic adapter；835 tests passed |
@@ -1108,6 +1110,22 @@
   breakpoint。create_message 只接受 typed invocation，并记录 policy 与 provider cache token。
 - [build evidence](../governance/evidence/m4-t03cache/provider-cache-policy-build.md)。当前生产 caller 不默认启用；staging
   provider conformance、图片变化与 hit/miss 语义等价尚未验证，M4-T03 继续 in progress。
+
+### M4-T03R（structured tool-result context）
+
+- ReAct provider input 不再累计复制完整工具结果；每个结果投影为 `tool-result-context-v1`，保留 status/effect、
+  authority、receipt/output schema、receipt ID、ledger locator 与 bounded excerpt。
+- RunStore compatibility ToolExecutionLedger 提供 user/conversation-scoped locator resolver。每步从 immutable checkpoint
+  重建 provider view：旧 excerpt 清除；若 admission 仍超限，清除最新 excerpt 后只重试一次，receipt/locator 不丢。
+- [build evidence](../governance/evidence/m4-t03r/tool-result-context-build.md)。M3 PostgreSQL ledger migration 需保持
+  resolver contract；真实 tokenizer/cache canary 与 ActiveCase/WorkingContext 仍阻断 M4-T03 verified closure。
+
+### M4-T03 aggregate build status
+
+- 七项 build contract 已由 T03P/T03C/T03Cache/T03R 聚合闭合；[aggregate evidence](../governance/evidence/m4-t03/context-policy-provider-build.md)
+  状态为 `IMPLEMENTED / VERIFICATION DEPENDENCIES PENDING`。
+- 该状态只满足 M4-T03B 的 build prerequisite，不满足 M4 Exit：真实 provider calibration/cache canary、T03B
+  ActiveCase relevance 与 T03A WorkingContext 仍需独立证据。
 
 ### M6-T01（Dataset v2 / Rubric v2）
 

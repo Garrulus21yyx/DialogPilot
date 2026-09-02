@@ -145,6 +145,17 @@ def test_waiting_run_resumes_after_runtime_recreation_and_write_executes_once(tm
     tool_result = client.calls[1]["messages"][-1]["content"][0]
     assert tool_result["tool_use_id"] == "call-refund-1"
     assert tool_result["is_error"] is False
+    context_projection = json.loads(tool_result["content"])
+    assert context_projection["schema_version"] == "tool-result-context-v1"
+    assert context_projection["receipt_id"] == "refund-1"
+    resolved = resumed_store.resolve_tool_result(
+        context_projection["result_locator"], user_id="user-1", conv_id="conv-1",
+    )
+    assert resolved.result["receipt_id"] == "refund-1"
+    with pytest.raises(RunAccessDeniedError):
+        resumed_store.resolve_tool_result(
+            context_projection["result_locator"], user_id="other-user",
+        )
 
     replay = asyncio.run(resumed_engine.resume(
         waiting.run_id,

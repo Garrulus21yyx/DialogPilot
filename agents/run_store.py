@@ -11,6 +11,7 @@ import re
 import sqlite3
 import threading
 from typing import Any, Dict, Optional, Tuple
+from urllib.parse import quote, unquote
 import uuid
 
 from core.schema_version_registry import SchemaCompatibilityError, SchemaVersionRegistry
@@ -117,6 +118,16 @@ class ToolExecutionClaim:
     state: str
     result: Dict[str, Any] = field(default_factory=dict)
     claim_token: str = ""
+
+
+@dataclass(frozen=True)
+class ToolResultRecord:
+    locator: str
+    run_id: str
+    call_id: str
+    status: str
+    result: Dict[str, Any]
+    receipt_ref: str = ""
 
 
 class RunStore:
@@ -441,6 +452,52 @@ class RunStore:
                     self._now(), run_id, call_id, claim_token,
                 ),
             )
+
+    @staticmethod
+    def tool_result_locator(run_id: str, call_id: str) -> str:
+        if not str(run_id).strip() or not str(call_id).strip():
+            raise ValueError("tool result locator requires run_id and call_id")
+        return (
+            "react-tool-result:v1/"
+            f"{quote(str(run_id), safe='')}/{quote(str(call_id), safe='')}"
+        )
+
+    def resolve_tool_result(
+        self,
+        locator: str,
+        *,
+        user_id: str | None = None,
+        conv_id: str | None = None,
+    ) -> ToolResultRecord:
+        prefix = "react-tool-result:v1/"
+        if not str(locator).startswith(prefix):
+            raise RunStoreError("unsupported tool result locator")
+        parts = str(locator)[len(prefix):].split("/")
+        if len(parts) != 2 or not all(parts):
+            raise RunStoreError("invalid tool result locator")
+        run_id, call_id = map(unquote, parts)
+        with self._lock, self._connect() as conn:
+            row = conn.execute("""
+                SELECT execution.status, execution.result_json,
+                       execution.receipt_ref, run.user_id, run.conv_id
+                FROM react_tool_executions execution
+                JOIN react_runs run ON run.run_id=execution.run_id
+                WHERE execution.run_id=? AND execution.call_id=?
+            """, (run_id, call_id)).fetchone()
+        if row is None:
+            raise RunNotFoundError("tool result locator is unavailable")
+        if user_id is not None and row[3] != str(user_id):
+            raise RunAccessDeniedError("tool result belongs to another user")
+        if conv_id is not None and row[4] != str(conv_id):
+            raise RunAccessDeniedError("tool result belongs to another conversation")
+        if row[0] not in {"succeeded", "failed_terminal", "reconciling"}:
+            raise RunTransitionError("tool result is not terminal or reconciling")
+        result = self._loads(row[1], {})
+        if not isinstance(result, dict) or not result:
+            raise RunStoreError("tool result locator has no replayable result")
+        return ToolResultRecord(
+            locator, run_id, call_id, row[0], result, str(row[2] or ""),
+        )
 
     def reconcile_tool_call(
         self,

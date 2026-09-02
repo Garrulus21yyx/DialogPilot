@@ -1,12 +1,18 @@
 """有界 ReAct 循环、工具结果配对和失败终态测试。"""
 
 import asyncio
+import json
 from types import SimpleNamespace
 
 from agents.react_engine import ReActExecutionEngine, ReActStatus
+from agents.tool_result_context import render_tool_result_context
+from core.provider_context_budget import (
+    ProviderContextBudget,
+    ProviderContextBudgetExceeded,
+)
 from core.tracing import TraceRecorder, trace_scope
-from core.model_policy import ModelProfile, ReasoningEffort
-from mcp.tool_manager import MCPToolManager, Tool, ToolRisk
+from core.model_policy import ModelProfile, ModelRole, ReasoningEffort
+from mcp.tool_manager import MCPToolManager, Tool, ToolResult, ToolRisk
 
 
 def text(value):
@@ -104,6 +110,11 @@ def test_react_executes_read_tool_and_pairs_result_before_final_answer():
     tool_results = client.calls[1]["messages"][-1]["content"]
     assert tool_results[0]["tool_use_id"] == "call-1"
     assert tool_results[0]["is_error"] is False
+    projected = json.loads(tool_results[0]["content"])
+    assert projected["schema_version"] == "tool-result-context-v1"
+    assert projected["result_locator"] == ""
+    assert projected["authority"] == "CustomerOperations"
+    assert "refunding" in projected["result_excerpt"]
     assert len(recorder.get_trace("trace-react")) == 3  # 两个 LLM step + 一个 tool
 
 
@@ -246,3 +257,62 @@ def test_react_returns_thinking_block_before_tool_result_turn():
         "type": "thinking", "thinking": "need a lookup", "signature": "sig-1",
     }
     assert assistant_blocks[1]["type"] == "tool_use"
+
+
+def test_react_compacts_latest_tool_excerpt_before_single_provider_attempt():
+    tools = runtime()
+    tools.register(Tool(
+        name="lookup", description="lookup", handler=lambda *_args: {},
+        schema={"type": "object", "properties": {}},
+        allowed_agents=("general",),
+    ))
+    result = ToolResult(
+        True, {}, "lookup", call_id="old-call", status="success",
+        output_for_model="large result " * 1_000,
+    )
+    messages = [{
+        "role": "user",
+        "content": [{
+            "type": "tool_result", "tool_use_id": "old-call",
+            "content": render_tool_result_context(result, result_locator="locator"),
+            "is_error": False,
+        }],
+    }]
+    profile = ModelProfile("test-model", max_context_tokens=1024)
+    tool_schemas = tools.anthropic_tools_for_agent("general")
+    budget = ProviderContextBudget()
+    compacted = [json.loads(json.dumps(messages[0]))]
+    payload = json.loads(compacted[0]["content"][0]["content"])
+    payload["result_excerpt"] = ""
+    payload["compacted"] = True
+    compacted[0]["content"][0]["content"] = json.dumps(payload, sort_keys=True)
+    system = None
+    for size in range(1_000, 5_000, 10):
+        candidate = "s" * size
+        request = {
+            "max_tokens": 64, "system": candidate,
+            "messages": messages, "tools": tool_schemas,
+        }
+        compact_request = {**request, "messages": compacted}
+        try:
+            budget.validate(profile, ModelRole.REACT, request)
+        except ProviderContextBudgetExceeded:
+            if budget.validate(
+                profile, ModelRole.REACT, compact_request,
+            ).total_reserved_tokens <= 1024:
+                system = candidate
+                break
+    assert system is not None
+    client = ScriptedClient([[text("done")]])
+    react = ReActExecutionEngine(
+        client=client, model=profile.model, model_profile=profile,
+        tool_manager=tools, max_tokens=64,
+    )
+    outcome = asyncio.run(react.run(
+        system=system, messages=messages, agent_type="general",
+    ))
+    assert outcome.status is ReActStatus.COMPLETED
+    assert len(client.calls) == 1
+    sent = json.loads(client.calls[0]["messages"][0]["content"][0]["content"])
+    assert sent["result_excerpt"] == ""
+    assert sent["result_locator"] == "locator"
