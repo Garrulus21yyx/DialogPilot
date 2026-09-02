@@ -1,0 +1,368 @@
+"""Direct local Knowledge ingestion into canonical PostgreSQL generations."""
+from __future__ import annotations
+
+import asyncio
+import hashlib
+import json
+import math
+import threading
+from dataclasses import replace
+from datetime import datetime, timezone
+from typing import Sequence
+
+from application.chinese_lexical import TOKENIZER_VERSION, postgres_lexical_document
+from application.cost_budget_policy import OFFLINE_KNOWLEDGE_INGEST_BUDGET
+from application.hybrid_retrieval import (
+    DistanceMetric,
+    GenerationConflict,
+    GenerationState,
+    RetrievalCorpus,
+    RetrievalGeneration,
+)
+from application.knowledge_source import (
+    KnowledgeChunkProjection,
+    KnowledgeSourceManifest,
+    SourceRevision,
+)
+from core.cost_budget import OfflineIngestBudgetExceeded
+from mcp.document_chunker import ChunkStrategy, DocumentChunker
+from mcp.source_document import SourceDocument
+
+from .hybrid_retrieval_backend import create_generation_hnsw_index
+from .postgres_knowledge_source import PostgresKnowledgeSourceRepository
+from .postgres_retrieval_projection import PostgresCanonicalRetrievalProjector
+from .retrieval_postgres import PostgresRetrievalGenerationRegistry
+
+
+DEFAULT_KNOWLEDGE_DOCUMENTS = (
+    SourceDocument.create(
+        source_id="refund-policy", title="退款政策", content=(
+            "用户在购买后 7 天内可以申请无理由退款。退款申请将在 1-3 个工作日内审核；"
+            "审核通过后，款项将在 5-7 个工作日内原路退回。商品已发货时需先完成退货。"
+        ),
+    ),
+    SourceDocument.create(
+        source_id="order-query", title="订单查询", content=(
+            "用户可以通过订单号查询订单状态。物流信息通常在发货后 24 小时内更新；"
+            "已发货超过 7 天未收到时，可以联系客服申请查件。"
+        ),
+    ),
+    SourceDocument.create(
+        source_id="account-security", title="账户安全", content=(
+            "忘记密码时可以通过绑定手机号或邮箱重置。发现异常登录时系统会锁定账户并通知用户。"
+            "客服人员不会索要用户密码。"
+        ),
+    ),
+    SourceDocument.create(
+        source_id="technical-troubleshooting", title="技术故障排查", content=(
+            "应用崩溃时请清除缓存并重启，问题持续时更新到最新版。401 表示认证失败；"
+            "500 表示服务端异常，可稍后重试或联系技术支持。"
+        ),
+    ),
+    SourceDocument.create(
+        source_id="membership-points", title="会员与积分", content=(
+            "每消费 1 元累积 1 积分，100 积分可抵扣 1 元。积分有效期为 1 年。"
+            "银卡会员享受 95 折，金卡会员享受 9 折。"
+        ),
+    ),
+    SourceDocument.create(
+        source_id="delivery", title="配送说明", content=(
+            "标准配送 3-5 个工作日送达；加急配送 1-2 个工作日送达。偏远地区可能额外需要 2-3 天。"
+            "修改收货地址需在发货前联系客服。"
+        ),
+    ),
+)
+
+
+class PostgresKnowledgeStore:
+    """Replace the active local corpus by building one immutable PG generation."""
+
+    backend_id = "POSTGRES_PG_FTS_ZH_V1"
+    backend_fingerprint = "POSTGRES_PGVECTOR_PG_FTS_ZH_V1"
+    embedding_model = "all-MiniLM-L6-v2"
+    embedding_dimension = 384
+    embedding_model_digest = hashlib.sha256(
+        b"chromadb-default-embedding-function:all-MiniLM-L6-v2:v1"
+    ).hexdigest()
+    chunk_schema_version = "knowledge-direct-ingest-v1"
+
+    def __init__(
+        self,
+        pool,
+        *,
+        tenant_id: str,
+        locale: str = "zh-CN",
+        product: str = "",
+        chunk_max_tokens: int = 512,
+        chunk_overlap_tokens: int = 64,
+        embedding_function=None,
+    ):
+        if embedding_function is None:
+            from chromadb.utils.embedding_functions import DefaultEmbeddingFunction
+
+            embedding_function = DefaultEmbeddingFunction()
+        self._pool = pool
+        self._tenant_id = tenant_id
+        self._locale = locale
+        self._product = product
+        self._chunker = DocumentChunker()
+        self._chunk_max_tokens = chunk_max_tokens
+        self._chunk_overlap_tokens = chunk_overlap_tokens
+        self._embedding_function = embedding_function
+        self._generations = PostgresRetrievalGenerationRegistry(pool)
+        self._sources = PostgresKnowledgeSourceRepository(pool)
+        self._projector = PostgresCanonicalRetrievalProjector(pool)
+        self._write_lock = threading.Lock()
+
+    async def ensure_defaults_async(self) -> RetrievalGeneration:
+        try:
+            return await asyncio.to_thread(self.active_generation)
+        except GenerationConflict:
+            await self.add_documents_async(DEFAULT_KNOWLEDGE_DOCUMENTS)
+            return await asyncio.to_thread(self.active_generation)
+
+    async def add_documents_async(
+        self, documents: Sequence[SourceDocument],
+    ) -> int:
+        return await asyncio.to_thread(self.add_documents, documents)
+
+    def add_documents(self, documents: Sequence[SourceDocument]) -> int:
+        incoming = tuple(documents)
+        self._validate_budget(incoming)
+        with self._write_lock:
+            current = {item.source_id: item for item in self._active_sources()}
+            for document in incoming:
+                current[document.source_id] = self._source_revision(document)
+            sources = tuple(sorted(current.values(), key=lambda item: item.source_id))
+            chunks = self._chunks(sources)
+            self._validate_chunk_budget(chunks)
+            generation_id = self._generation_id(sources)
+            try:
+                active = self.active_generation()
+                if active.generation_id == generation_id:
+                    return len(chunks)
+            except GenerationConflict:
+                pass
+            manifest = KnowledgeSourceManifest.build(
+                tenant_id=self._tenant_id, backend_id=self.backend_id,
+                generation_id=generation_id, scope="public", locale=self._locale,
+                product=self._product, sources=sources,
+                reviewer_manifest_ref="local-direct-ingest",
+            )
+            vectors = self._embed([chunk.lexical_document for chunk in chunks])
+            chunks = tuple(
+                replace(chunk, embedding=vector)
+                for chunk, vector in zip(chunks, vectors, strict=True)
+            )
+            generation = self._generations.register(RetrievalGeneration(
+                generation_id=generation_id, corpus=RetrievalCorpus.KNOWLEDGE,
+                backend_id=self.backend_id,
+                backend_fingerprint=self.backend_fingerprint,
+                schema_version="retrieval-v1",
+                source_watermark=hashlib.sha256("\n".join(
+                    item.revision_id for item in sources
+                ).encode()).hexdigest(),
+                embedding_model=self.embedding_model,
+                embedding_dimension=self.embedding_dimension,
+                embedding_model_digest=self.embedding_model_digest,
+                distance_metric=DistanceMetric.COSINE,
+                vector_extension_version="0.8.6", index_method="HNSW",
+                index_params_json='{"ef_construction":64,"m":16}',
+                chinese_tokenizer=TOKENIZER_VERSION,
+                lexical_ranker="PG_FTS_ZH_V1", manifest_hash=manifest.manifest_hash,
+            ))
+            if generation.state is GenerationState.REGISTERED:
+                self._generations.transition(generation_id, GenerationState.BUILDING)
+            self._sources.write_generation(manifest, sources, chunks)
+            event_id = self._event_id(generation_id)
+            result = self._projector.project(event_id)
+            if result.code.value not in {"APPLIED", "ALREADY_APPLIED"}:
+                raise RuntimeError(f"knowledge projection failed: {result.code.value}")
+            with self._pool.transaction() as connection:
+                create_generation_hnsw_index(connection, generation)
+            current_generation = self._generations.get(generation_id)
+            if current_generation.state is GenerationState.BUILDING:
+                self._generations.transition(generation_id, GenerationState.READY)
+            self._generations.activate_direct(generation_id)
+            return len(chunks)
+
+    def active_generation(self) -> RetrievalGeneration:
+        return self._generations.active(
+            RetrievalCorpus.KNOWLEDGE, backend_id=self.backend_id,
+        )
+
+    async def doc_count_async(self) -> int:
+        return await asyncio.to_thread(self.doc_count)
+
+    def doc_count(self) -> int:
+        generation = self.active_generation()
+        with self._pool.transaction() as connection:
+            return int(connection.execute("""
+                SELECT count(*) FROM retrieval.knowledge_chunk_search
+                WHERE tenant_id=%s AND backend_id=%s AND generation_id=%s
+            """, (
+                self._tenant_id, self.backend_id, generation.generation_id,
+            )).fetchone()[0])
+
+    @property
+    def index_manifest(self) -> dict[str, str]:
+        generation = self.active_generation()
+        return {
+            "manifest_fingerprint": generation.manifest_hash,
+            "generation_id": generation.generation_id,
+            "backend_fingerprint": generation.backend_fingerprint,
+        }
+
+    @property
+    def storage_backend(self) -> dict[str, str]:
+        generation = self.active_generation()
+        return {
+            "engine": "postgresql+pgvector+pg_fts",
+            "backend_id": generation.backend_id,
+            "generation_id": generation.generation_id,
+            "manifest_fingerprint": generation.manifest_hash,
+        }
+
+    def _active_sources(self) -> tuple[SourceRevision, ...]:
+        try:
+            generation = self.active_generation()
+        except GenerationConflict:
+            return ()
+        with self._pool.transaction() as connection:
+            rows = connection.execute("""
+                SELECT revision.tenant_id, revision.source_id,
+                       revision.revision_id, revision.checksum, revision.title,
+                       revision.source_type, revision.content,
+                       revision.effective_from, revision.effective_to,
+                       revision.owner_id, revision.scope, revision.locale,
+                       revision.product, revision.region,
+                       revision.supersedes_revision_id,
+                       revision.operations_audit_ref, revision.schema_version
+                FROM retrieval.knowledge_source_manifest_entries entry
+                JOIN retrieval.knowledge_source_revisions revision
+                  ON revision.tenant_id=entry.tenant_id
+                 AND revision.source_id=entry.source_id
+                 AND revision.revision_id=entry.revision_id
+                WHERE entry.tenant_id=%s AND entry.backend_id=%s
+                  AND entry.generation_id=%s AND entry.scope='public'
+                  AND entry.locale=%s AND entry.product=%s
+                ORDER BY revision.source_id
+            """, (
+                self._tenant_id, self.backend_id, generation.generation_id,
+                self._locale, self._product,
+            )).fetchall()
+        return tuple(SourceRevision(*row) for row in rows)
+
+    def _source_revision(self, document: SourceDocument) -> SourceRevision:
+        with self._pool.transaction() as connection:
+            row = connection.execute("""
+                SELECT tenant_id, source_id, revision_id, checksum, title,
+                       source_type, content, effective_from, effective_to,
+                       owner_id, scope, locale, product, region,
+                       supersedes_revision_id, operations_audit_ref, schema_version
+                FROM retrieval.knowledge_source_revisions
+                WHERE tenant_id=%s AND source_id=%s AND checksum=%s
+            """, (
+                self._tenant_id, document.source_id, document.checksum,
+            )).fetchone()
+        if row is not None:
+            return SourceRevision(*row)
+        return SourceRevision.create(
+            tenant_id=self._tenant_id, source_id=document.source_id,
+            title=document.title, source_type=document.source_type,
+            content=document.content, effective_from=datetime.now(timezone.utc),
+            owner_id="local-admin", scope="public", locale=self._locale,
+            product=self._product, region="local",
+            operations_audit_ref="local-direct-ingest",
+        )
+
+    def _chunks(
+        self, sources: Sequence[SourceRevision],
+    ) -> tuple[KnowledgeChunkProjection, ...]:
+        rows = []
+        generation_id = self._generation_id(sources)
+        for source in sources:
+            for chunk in self._chunker.split(
+                source.content, max_tokens=self._chunk_max_tokens,
+                overlap_tokens=self._chunk_overlap_tokens,
+                strategy=ChunkStrategy.STRUCTURE_AWARE,
+            ):
+                identity = (
+                    f"{generation_id}\0{source.source_id}\0{source.revision_id}\0"
+                    f"{chunk.start_char}\0{chunk.end_char}"
+                )
+                rows.append(KnowledgeChunkProjection(
+                    candidate_id=(
+                        f"knowledge-chunk-{hashlib.sha256(identity.encode()).hexdigest()}"
+                    ),
+                    source_id=source.source_id, revision_id=source.revision_id,
+                    source_checksum=source.checksum,
+                    start_char=chunk.start_char, end_char=chunk.end_char,
+                    lexical_document=postgres_lexical_document(chunk.content),
+                    provenance_sha256=hashlib.sha256(
+                        f"{identity}\0{source.checksum}".encode()
+                    ).hexdigest(),
+                ))
+        return tuple(rows)
+
+    def _generation_id(self, sources: Sequence[SourceRevision]) -> str:
+        digest = hashlib.sha256(json.dumps({
+            "tenant_id": self._tenant_id,
+            "sources": [(item.source_id, item.revision_id) for item in sources],
+            "chunk_schema": self.chunk_schema_version,
+            "chunk_max_tokens": self._chunk_max_tokens,
+            "chunk_overlap_tokens": self._chunk_overlap_tokens,
+            "embedding_model_digest": self.embedding_model_digest,
+        }, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        return f"knowledge-generation-{digest[:32]}"
+
+    def _embed(self, texts: Sequence[str]) -> tuple[tuple[float, ...], ...]:
+        vectors = self._embedding_function(list(texts))
+        projected = tuple(tuple(float(value) for value in vector) for vector in vectors)
+        if len(projected) != len(texts) or any(
+            len(vector) != self.embedding_dimension
+            or any(not math.isfinite(value) for value in vector)
+            for vector in projected
+        ):
+            raise ValueError("knowledge embedding provider returned invalid vectors")
+        return projected
+
+    def _event_id(self, generation_id: str) -> str:
+        with self._pool.transaction() as connection:
+            rows = connection.execute("""
+                SELECT event_id FROM retrieval.canonical_projection_outbox
+                WHERE corpus='KNOWLEDGE' AND tenant_id=%s
+                  AND backend_id=%s AND generation_id=%s
+            """, (self._tenant_id, self.backend_id, generation_id)).fetchall()
+        if len(rows) != 1:
+            raise RuntimeError("knowledge projection event is not unique")
+        return str(rows[0][0])
+
+    @staticmethod
+    def _validate_budget(documents: Sequence[SourceDocument]) -> None:
+        budget = OFFLINE_KNOWLEDGE_INGEST_BUDGET
+        dimensions = (
+            ("sources", len(documents), budget.max_sources_per_batch),
+            ("source_bytes", max(
+                (len(item.content.encode()) for item in documents), default=0,
+            ), budget.max_source_bytes),
+            ("total_source_bytes", sum(
+                len(item.content.encode()) for item in documents
+            ), budget.max_total_source_bytes),
+        )
+        for dimension, observed, limit in dimensions:
+            if observed > limit:
+                raise OfflineIngestBudgetExceeded(
+                    dimension=dimension, observed=observed, limit=limit,
+                    policy_version=budget.policy_version,
+                )
+
+    @staticmethod
+    def _validate_chunk_budget(chunks: Sequence[KnowledgeChunkProjection]) -> None:
+        budget = OFFLINE_KNOWLEDGE_INGEST_BUDGET
+        if len(chunks) > budget.max_chunks_per_batch:
+            raise OfflineIngestBudgetExceeded(
+                dimension="chunks", observed=len(chunks),
+                limit=budget.max_chunks_per_batch,
+                policy_version=budget.policy_version,
+            )

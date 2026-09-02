@@ -104,7 +104,7 @@ def _stage(pool, source: SourceRevision, generation_id: str):
     generations.register(_generation(manifest))
     generations.transition(generation_id, GenerationState.BUILDING)
     source_repository = PostgresKnowledgeSourceRepository(pool)
-    source_repository.backfill_generation(
+    source_repository.write_generation(
         manifest, (source,), (_chunk(source, generation_id),),
     )
     assert PostgresCanonicalRetrievalProjector(pool).project_next() is not None

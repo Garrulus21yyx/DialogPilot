@@ -203,6 +203,49 @@ class PostgresRetrievalGenerationRegistry:
         with self.pool.transaction() as connection:
             return self._get(connection, generation_id, for_update=False)
 
+    def active(
+        self, corpus: RetrievalCorpus, *, backend_id: str,
+    ) -> RetrievalGeneration:
+        """Resolve the single active generation without a rollout pointer."""
+        with self.pool.transaction() as connection:
+            rows = connection.execute("""
+                SELECT generation_id
+                FROM retrieval.retrieval_generation_registry
+                WHERE corpus=%s AND backend_id=%s AND state='ACTIVE'
+                ORDER BY generation_id
+            """, (corpus.value, backend_id)).fetchall()
+            if len(rows) != 1:
+                raise GenerationConflict(
+                    "exactly one active retrieval generation is required"
+                )
+            return self._get(connection, str(rows[0][0]), for_update=False)
+
+    def activate_direct(self, generation_id: str) -> RetrievalGeneration:
+        """Atomically replace the local active generation; no previous pointer."""
+        with self.pool.transaction() as connection:
+            target = self._get(connection, generation_id, for_update=True)
+            connection.execute(
+                "SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))",
+                (f"{target.corpus.value}:{target.backend_id}",),
+            )
+            target = self._get(connection, generation_id, for_update=True)
+            if target.state is GenerationState.ACTIVE:
+                return target
+            if target.state is not GenerationState.READY:
+                raise GenerationConflict("only READY generation can become active")
+            connection.execute("""
+                UPDATE retrieval.retrieval_generation_registry
+                SET state='RETIRED'
+                WHERE corpus=%s AND backend_id=%s AND state='ACTIVE'
+            """, (target.corpus.value, target.backend_id))
+            connection.execute("""
+                UPDATE retrieval.retrieval_generation_registry
+                SET state='ACTIVE' WHERE generation_id=%s
+            """, (generation_id,))
+            return RetrievalGeneration(**{
+                **target.__dict__, "state": GenerationState.ACTIVE,
+            })
+
     def transition(
         self, generation_id: str, target: GenerationState,
     ) -> RetrievalGeneration:

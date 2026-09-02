@@ -114,7 +114,7 @@ async def capture(args) -> None:
         async with main.lifespan(main.app):
             Path(args.rag_index_manifest).write_text(
                 json.dumps(
-                    main._knowledge_base.index_manifest,
+                    main._knowledge_store.index_manifest,
                     ensure_ascii=False,
                     indent=2,
                     sort_keys=True,

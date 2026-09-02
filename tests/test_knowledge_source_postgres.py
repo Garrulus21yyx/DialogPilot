@@ -139,7 +139,7 @@ def _build(pool, source, generation_id):
     generations.register(_generation(manifest))
     generations.transition(generation_id, GenerationState.BUILDING)
     repository = PostgresKnowledgeSourceRepository(pool)
-    repository.backfill_generation(
+    repository.write_generation(
         manifest, (source,), (_chunk(source, generation_id),)
     )
     result = PostgresCanonicalRetrievalProjector(pool).project_next()
@@ -176,7 +176,7 @@ def test_backfill_is_idempotent_and_source_revision_is_dereferenceable(source_po
     manifest, generations, repository = _build(
         source_pool, source, "knowledge-generation-1"
     )
-    repository.backfill_generation(
+    repository.write_generation(
         manifest, (source,), (_chunk(source, manifest.generation_id),)
     )
     with source_pool.transaction() as connection:
@@ -263,6 +263,6 @@ def test_legacy_identity_and_non_source_chunk_projection_fail_closed(source_pool
         }
     )
     with pytest.raises(KnowledgeSourceContractError, match="not a source revision"):
-        PostgresKnowledgeSourceRepository(source_pool).backfill_generation(
+        PostgresKnowledgeSourceRepository(source_pool).write_generation(
             manifest, (source,), (invalid_chunk,),
         )

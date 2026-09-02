@@ -49,13 +49,26 @@ def _identity_kwargs():
     }
 
 
+class FakeKnowledgeStore:
+    def __init__(self, manifest="a" * 64, generation_id="knowledge-generation-a"):
+        self.manifest = manifest
+        self.generation_id = generation_id
+
+    def active_generation(self):
+        return SimpleNamespace(
+            manifest_hash=self.manifest,
+            generation_id=self.generation_id,
+            backend_fingerprint="POSTGRES_PGVECTOR_PG_FTS_ZH_V1",
+            lexical_ranker="PG_FTS_ZH_V1",
+            embedding_model="all-MiniLM-L6-v2",
+            embedding_model_digest="b" * 64,
+        )
+
+
 def test_rag_fallback_is_not_published_as_business_evidence(monkeypatch):
     """证明 fallback 诊断文本不会被标记为知识证据或注入回答上下文。"""
     monkeypatch.setattr(main, "_knowledge_retriever", FakeRetriever([]))
-    monkeypatch.setattr(main, "_knowledge_base", SimpleNamespace(
-        index_manifest={"manifest_fingerprint": "a" * 64},
-        DENSE_EMBEDDING_MODEL="test", DENSE_EMBEDDING_FUNCTION="test",
-    ))
+    monkeypatch.setattr(main, "_knowledge_store", FakeKnowledgeStore())
 
     context, used = asyncio.run(main._build_knowledge_context(
         "退款政策是什么",
@@ -74,10 +87,7 @@ def test_real_rag_result_is_marked_as_used(monkeypatch):
         "title": "退款政策",
         "content": "购买后七天内可以申请退款。",
     }]))
-    monkeypatch.setattr(main, "_knowledge_base", SimpleNamespace(
-        index_manifest={"manifest_fingerprint": "a" * 64},
-        DENSE_EMBEDDING_MODEL="test", DENSE_EMBEDDING_FUNCTION="test",
-    ))
+    monkeypatch.setattr(main, "_knowledge_store", FakeKnowledgeStore())
 
     context, used = asyncio.run(main._build_knowledge_context(
         "退款政策是什么",
@@ -114,10 +124,7 @@ def test_chat_rag_packs_top_five_and_injects_only_validated_grounded_draft(monke
             )
 
     monkeypatch.setattr(main, "_knowledge_retriever", FakeRetriever(items))
-    monkeypatch.setattr(main, "_knowledge_base", SimpleNamespace(
-        index_manifest={"manifest_fingerprint": "a" * 64},
-        DENSE_EMBEDDING_MODEL="test", DENSE_EMBEDDING_FUNCTION="test",
-    ))
+    monkeypatch.setattr(main, "_knowledge_store", FakeKnowledgeStore())
     monkeypatch.setattr(main, "_grounded_answer_generator", Generator())
 
     result = asyncio.run(main._build_knowledge_context(
@@ -184,18 +191,16 @@ def test_rag_cache_scope_changes_with_index_manifest(monkeypatch):
             captured.append(request)
             return EvidencePackResult(RetrievalStatus.NO_EVIDENCE, None, None)
 
-    fake = SimpleNamespace(
-        index_manifest={"manifest_fingerprint": "a" * 64},
-        DENSE_EMBEDDING_MODEL="test", DENSE_EMBEDDING_FUNCTION="test",
-    )
-    monkeypatch.setattr(main, "_knowledge_base", fake)
+    fake = FakeKnowledgeStore()
+    monkeypatch.setattr(main, "_knowledge_store", fake)
     monkeypatch.setattr(main, "_knowledge_retriever", CapturingRetriever())
     asyncio.run(main._retrieve_knowledge(
         "退款", history=(), policy_values={}, policy_version="bundle-x",
         tenant_id="tenant", user_scope="user", conversation_id="",
         authorization_fingerprint="auth", requirement_signature="knowledge",
     ))
-    fake.index_manifest = {"manifest_fingerprint": "b" * 64}
+    fake.manifest = "b" * 64
+    fake.generation_id = "knowledge-generation-b"
     asyncio.run(main._retrieve_knowledge(
         "退款", history=(), policy_values={}, policy_version="bundle-x",
         tenant_id="tenant", user_scope="user", conversation_id="",
@@ -221,10 +226,7 @@ def test_all_knowledge_consumers_share_one_evidence_pack_and_identity(monkeypatc
 
     bundle = Bundle()
     monkeypatch.setattr(main, "_knowledge_retriever", retriever)
-    monkeypatch.setattr(main, "_knowledge_base", SimpleNamespace(
-        index_manifest={"manifest_fingerprint": "a" * 64},
-        DENSE_EMBEDDING_MODEL="test", DENSE_EMBEDDING_FUNCTION="test",
-    ))
+    monkeypatch.setattr(main, "_knowledge_store", FakeKnowledgeStore())
     monkeypatch.setattr(main, "_bundle_registry", SimpleNamespace(active=lambda: bundle))
     monkeypatch.setattr(main, "_grounded_answer_generator", None)
     principal = Principal(subject="user-test", scopes=frozenset({"knowledge:read"}))
@@ -266,10 +268,7 @@ def test_all_knowledge_consumers_share_one_evidence_pack_and_identity(monkeypatc
 
 def test_unavailable_status_is_identical_for_api_agent_and_pre_knowledge(monkeypatch):
     monkeypatch.setattr(main, "_knowledge_retriever", FakeRetriever([]))
-    monkeypatch.setattr(main, "_knowledge_base", SimpleNamespace(
-        index_manifest={"manifest_fingerprint": "a" * 64},
-        DENSE_EMBEDDING_MODEL="test", DENSE_EMBEDDING_FUNCTION="test",
-    ))
+    monkeypatch.setattr(main, "_knowledge_store", FakeKnowledgeStore())
     monkeypatch.setattr(main, "_bundle_registry", None)
     principal = Principal(subject="user-test", scopes=frozenset({"knowledge:read"}))
     authorization = main._fingerprint({
@@ -308,16 +307,16 @@ def test_pinned_knowledge_generation_drift_fails_closed_before_retrieval(monkeyp
         bundle_version=bundle.version,
         bundle_hash=bundle.content_hash,
         route_policy_ref="route-contract-v1",
-        knowledge_backend_ref="LEGACY_BM25_V1",
-        knowledge_generation_ref=f"legacy-knowledge:{'a' * 64}",
+        knowledge_backend_ref="POSTGRES_PGVECTOR_PG_FTS_ZH_V1",
+        knowledge_generation_ref="knowledge-generation-a",
         corpus_manifest_ref="a" * 64,
         retrieval_policy_ref=bundle.component_hash("retrieval_policy"),
     )
     monkeypatch.setattr(main, "_knowledge_retriever", retriever)
-    monkeypatch.setattr(main, "_knowledge_base", SimpleNamespace(
-        index_manifest={"manifest_fingerprint": "b" * 64},
-        DENSE_EMBEDDING_MODEL="test", DENSE_EMBEDDING_FUNCTION="test",
-    ))
+    monkeypatch.setattr(
+        main, "_knowledge_store",
+        FakeKnowledgeStore("b" * 64, "knowledge-generation-b"),
+    )
 
     result = asyncio.run(main._build_knowledge_context(
         "退款政策是什么", intent=IntentCategory.REFUND, bundle=bundle,

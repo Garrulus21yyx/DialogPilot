@@ -14,7 +14,7 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
     import core.intent_recognizer as intent_module
     import core.skill_loader as skill_module
     import evaluation.evaluator as evaluation_module
-    import mcp.knowledge_base as knowledge_module
+    import infrastructure.postgres_knowledge_store as knowledge_module
     import mcp.tool_manager as tool_module
     import memory.conversation_memory as memory_module
     import monitor.performance_monitor as monitor_module
@@ -95,12 +95,22 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
         def get_stats(self):
             return {}
 
-    class FakeKnowledgeBase:
-        def __init__(self, **kwargs):
+    class FakeKnowledgeStore:
+        def __init__(self, *_args, **kwargs):
             captured["knowledge"] = kwargs
+
+        async def ensure_defaults_async(self):
+            return self.active_generation()
 
         async def doc_count_async(self):
             return 0
+
+        def active_generation(self):
+            return SimpleNamespace(
+                manifest_hash="a" * 64,
+                generation_id="knowledge-generation-test",
+                backend_fingerprint="POSTGRES_PGVECTOR_PG_FTS_ZH_V1",
+            )
 
         @property
         def index_manifest(self):
@@ -132,7 +142,9 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
     monkeypatch.setattr(verifier_module, "AnswerVerifier", FakeAnswerVerifier)
     monkeypatch.setattr(memory_module, "MemoryManager", FakeMemoryManager)
     monkeypatch.setattr(tool_module, "MCPToolManager", FakeToolManager)
-    monkeypatch.setattr(knowledge_module, "KnowledgeBase", FakeKnowledgeBase)
+    monkeypatch.setattr(
+        knowledge_module, "PostgresKnowledgeStore", FakeKnowledgeStore,
+    )
     monkeypatch.setattr(monitor_module, "PerformanceMonitor", FakeMonitor)
     monkeypatch.setattr(evaluation_module, "EndToEndEvaluator", FakeEvaluator)
 
@@ -188,7 +200,8 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
             assert captured["memory"]["fact_worker_poll_seconds"] == 5
             assert captured["memory_started"] is True
             assert captured["memory"]["chroma_mode"] == "embedded"
-            assert captured["knowledge"]["chroma_mode"] == "embedded"
+            assert captured["knowledge"]["tenant_id"] == "default"
+            assert "chroma_mode" not in captured["knowledge"]
             assert captured["orchestrator"]["intent_similarity_mode"] == "ngram"
             assert captured["orchestrator"]["react_max_steps"] == 6
             assert captured["orchestrator"]["intent_recognizer"] is not None

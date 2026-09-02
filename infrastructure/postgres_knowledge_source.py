@@ -1,4 +1,4 @@
-"""PostgreSQL SourceRevision backfill and canonical projection enqueue."""
+"""PostgreSQL SourceRevision generation write and canonical projection enqueue."""
 from __future__ import annotations
 
 import hashlib
@@ -29,7 +29,7 @@ class PostgresKnowledgeSourceRepository:
     def __init__(self, pool):
         self.pool = pool
 
-    def backfill_generation(
+    def write_generation(
         self,
         manifest: KnowledgeSourceManifest,
         sources: Sequence[SourceRevision],
@@ -81,7 +81,7 @@ class PostgresKnowledgeSourceRepository:
             """, (manifest.backend_id, manifest.generation_id)).fetchone()
             if generation is None or generation[0] != "BUILDING":
                 raise KnowledgeSourceConflict(
-                    "backfill requires a registered BUILDING generation"
+                    "write requires a registered BUILDING generation"
                 )
             if str(generation[2]) != manifest.manifest_hash:
                 raise KnowledgeSourceConflict(
@@ -273,7 +273,7 @@ class PostgresKnowledgeSourceRepository:
                 manifest.scope, manifest.locale, manifest.product,
             )).fetchone()
             if counts != (len(manifest.entries), len(chunks)):
-                raise KnowledgeSourceConflict("backfill generation is incomplete")
+                raise KnowledgeSourceConflict("knowledge generation is incomplete")
 
     def resolve(self, locator: KnowledgeLocator) -> dict[str, object]:
         with self.pool.transaction() as connection:

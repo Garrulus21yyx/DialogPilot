@@ -116,7 +116,7 @@ BANNER = r"""
 # ── 全局组件（lifespan 中初始化）─────────────────────────────────────────────
 _orchestrator = None
 _memory       = None
-_knowledge_base = None
+_knowledge_store = None
 _tool_manager = None
 _monitor      = None
 _evaluator    = None
@@ -194,7 +194,7 @@ def _anthropic_cfg() -> Dict[str, Any]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """按依赖顺序创建所有组件，并在退出时释放后台任务和连接。"""
-    global _orchestrator, _memory, _knowledge_base, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator, _bundle_resolver, _grounded_answer_generator, _postgres_pool, _conversation_query, _knowledge_retriever, _retrieval_cache_client, _durable_chat_coordinator, _durable_chat_task, _durable_chat_stop, _retrieval_postgres_pool, _service_episode_search
+    global _orchestrator, _memory, _knowledge_store, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator, _bundle_resolver, _grounded_answer_generator, _postgres_pool, _conversation_query, _knowledge_retriever, _retrieval_cache_client, _durable_chat_coordinator, _durable_chat_task, _durable_chat_stop, _retrieval_postgres_pool, _service_episode_search
 
     print(BANNER, flush=True)
 
@@ -203,7 +203,6 @@ async def lifespan(app: FastAPI):
     from core.intent_recognizer import IntentRecognizer
     from evaluation.evaluator import EndToEndEvaluator
     from evaluation.chat_application_runner import ChatApplicationRunner
-    from mcp.knowledge_base import KnowledgeBase
     from mcp.customer_support_tools import ticket_tools
     from mcp.customer_operations_tools import customer_operation_tools
     from mcp.tool_manager import ApprovalMode, MCPToolManager, Tool
@@ -419,7 +418,7 @@ async def lifespan(app: FastAPI):
         model_profile=_model_policy.profile(ModelRole.MEMORY),
     )
 
-    # MCP 工具管理器 + RAG 知识库（基于 ChromaDB 的真实检索）
+    # MCP 工具管理器 + PostgreSQL Knowledge 单一路径。
     _tool_manager = MCPToolManager(
         api_key=cfg["api_key"],
         base_url=cfg.get("base_url"),
@@ -434,41 +433,49 @@ async def lifespan(app: FastAPI):
     _grounded_answer_generator = GroundedAnswerGenerator(
         _tool_manager.llm_client, _model_policy.profile(ModelRole.SYNTHESIS),
     )
-    from application.cost_budget_policy import OFFLINE_KNOWLEDGE_INGEST_BUDGET
-    _knowledge_base = KnowledgeBase(
-        chroma_host=os.getenv("CHROMA_HOST", "chromadb"),
-        chroma_port=int(os.getenv("CHROMA_PORT", "8000")),
-        chroma_path=os.getenv("CHROMA_PERSIST_DIRECTORY", "/app/data/chroma"),
-        chroma_mode=chroma_mode,
+    from infrastructure.postgres_knowledge_store import PostgresKnowledgeStore
+
+    _knowledge_store = PostgresKnowledgeStore(
+        _postgres_pool,
+        tenant_id=os.getenv("DEFAULT_TENANT_ID", "default"),
         chunk_max_tokens=int(os.getenv("RAG_CHUNK_MAX_TOKENS", "512")),
         chunk_overlap_tokens=int(os.getenv("RAG_CHUNK_OVERLAP_TOKENS", "64")),
-        chunk_strategy=os.getenv("RAG_CHUNK_STRATEGY", "fixed_tokens"),
-        retrieval_rrf_k=int(bootstrap_rag_policy["rrf_k"]),
-        retrieval_vector_weight=float(bootstrap_rag_policy["vector_weight"]),
-        retrieval_lexical_weight=float(bootstrap_rag_policy["lexical_weight"]),
-        sparse_index_path=os.getenv("RAG_SPARSE_INDEX_PATH", ""),
-        offline_ingest_budget=OFFLINE_KNOWLEDGE_INGEST_BUDGET,
     )
-    logger.info(f"知识库已加载: {await _knowledge_base.doc_count_async()} 个文档片段")
+    await _knowledge_store.ensure_defaults_async()
+    logger.info(
+        "PostgreSQL 知识库已加载: %s 个文档片段",
+        await _knowledge_store.doc_count_async(),
+    )
 
     import redis
-    from infrastructure.legacy_knowledge_retriever import (
-        LegacyKnowledgeEvidenceValidator,
+    from infrastructure.knowledge_retriever_adapters import (
         ToolManagerQueryTransformerAdapter,
         ToolManagerRerankerAdapter,
+    )
+    from infrastructure.postgres_knowledge_retriever import (
+        PostgresKnowledgeCandidateSource,
+        PostgresKnowledgeEvidenceValidator,
     )
     from infrastructure.retrieval_cache import RedisRetrievalCache
 
     _retrieval_cache_client = redis.Redis.from_url(
         os.getenv("REDIS_URL", "redis://redis:6379/0"), decode_responses=False,
     )
+    knowledge_candidate_source = PostgresKnowledgeCandidateSource(
+        backend=PostgresHybridBackend(_retrieval_postgres_pool),
+        generations=PostgresRetrievalGenerationRegistry(_postgres_pool),
+        pool=_retrieval_postgres_pool,
+        embed_query=ServiceEpisodeQueryEmbedder(),
+    )
     _knowledge_retriever = KnowledgeRetriever(
-        candidate_source=_knowledge_base,
+        candidate_source=knowledge_candidate_source,
         transformer=ToolManagerQueryTransformerAdapter(_tool_manager),
         reranker=ToolManagerRerankerAdapter(_tool_manager),
         packer=_rag_context_packer,
         cache=RedisRetrievalCache(_retrieval_cache_client),
-        evidence_validator=LegacyKnowledgeEvidenceValidator(_knowledge_base),
+        evidence_validator=PostgresKnowledgeEvidenceValidator(
+            knowledge_candidate_source,
+        ),
     )
 
     _tool_manager.register(Tool(
@@ -517,9 +524,8 @@ async def lifespan(app: FastAPI):
         from application.route_execution import RouteExecutionPolicy
         from application.route_path_executor import RoutePathExecutor
 
-        manifest = str(
-            _knowledge_base.index_manifest.get("manifest_fingerprint") or "",
-        )
+        generation = _knowledge_store.active_generation()
+        manifest = generation.manifest_hash
         route_ref = "|".join((
             RequestShapePolicy.version,
             RouterInvocationPolicy.version,
@@ -528,8 +534,8 @@ async def lifespan(app: FastAPI):
         ))
         return {
             "route_policy_ref": route_ref,
-            "knowledge_backend_ref": "LEGACY_BM25_V1",
-            "knowledge_generation_ref": f"legacy-knowledge:{manifest}",
+            "knowledge_backend_ref": generation.backend_fingerprint,
+            "knowledge_generation_ref": generation.generation_id,
             "corpus_manifest_ref": manifest,
             "retrieval_policy_ref": bundle.component_hash("retrieval_policy"),
         }
@@ -691,8 +697,6 @@ async def lifespan(app: FastAPI):
             await _ticket_service.close()
         if _memory is not None:
             await _memory.close()
-        if _knowledge_base is not None and hasattr(_knowledge_base, "close"):
-            await asyncio.to_thread(_knowledge_base.close)
         if _retrieval_cache_client is not None:
             await asyncio.to_thread(_retrieval_cache_client.close)
         if _retrieval_postgres_pool is not None:
@@ -702,7 +706,7 @@ async def lifespan(app: FastAPI):
         # lifespan 结束后不留下指向已关闭资源的进程全局引用。
         _orchestrator = None
         _memory = None
-        _knowledge_base = None
+        _knowledge_store = None
         _tool_manager = None
         _monitor = None
         _evaluator = None
@@ -1044,7 +1048,7 @@ async def health():
         raise HTTPException(503, "服务未就绪")
     storage = {
         "memory": _memory.storage_backend if _memory is not None else None,
-        "knowledge": _knowledge_base.storage_backend if _knowledge_base is not None else None,
+        "knowledge": _knowledge_store.storage_backend if _knowledge_store is not None else None,
     }
     active_bundle = (
         await asyncio.to_thread(_bundle_registry.active)
@@ -1255,7 +1259,7 @@ def _badcase_versions(bundle: Optional[AgentBundle] = None) -> Dict[str, Any]:
         "commit_sha": os.getenv("GIT_COMMIT_SHA", "unknown")[:80],
         "model_policy": _model_policy.to_dict() if _model_policy is not None else {},
         "skill_registry_sha256": skill_sha,
-        "knowledge": _knowledge_base.storage_backend if _knowledge_base is not None else {},
+        "knowledge": _knowledge_store.storage_backend if _knowledge_store is not None else {},
     }
     if bundle is not None:
         versions["agent_bundle_version"] = bundle.version
@@ -1583,7 +1587,7 @@ def _core_chat_application(
             bundle_resolver=_bundle_resolver,
             tool_manager=_tool_manager,
             trace_recorder=_trace_recorder,
-            knowledge_base=_knowledge_base,
+            knowledge_base=_knowledge_store,
             memory_projection_mode=memory_projection_mode,
         ),
         ChatOperations(
@@ -2334,14 +2338,14 @@ def _knowledge_policy(
     from mcp.result_reranker import RERANK_PROMPT_VERSION
 
     policy = {**DEFAULT_RAG_RETRIEVAL_POLICY, **dict(values)}
+    generation = _knowledge_store.active_generation()
     return KnowledgeRetrievalPolicy(
         policy_version=policy_version,
-        backend_fingerprint="LEGACY_BM25_V1",
-        lexical_provider="LEGACY_BM25_V1",
+        backend_fingerprint=generation.backend_fingerprint,
+        lexical_provider=generation.lexical_ranker,
         transformer_version=QUERY_TRANSFORM_PROMPT_VERSION,
         embedding_version=(
-            f"{getattr(_knowledge_base, 'DENSE_EMBEDDING_MODEL', 'unknown')}:"
-            f"{getattr(_knowledge_base, 'DENSE_EMBEDDING_FUNCTION', 'unknown')}"
+            f"{generation.embedding_model}:{generation.embedding_model_digest}"
         ),
         reranker_version=RERANK_PROMPT_VERSION,
         packer_version="context-packer-v1",
@@ -2390,7 +2394,7 @@ async def _retrieve_knowledge(
     pinned_execution_refs: Any = None,
     bundle_version: str = "",
 ) -> EvidencePackResult:
-    if _knowledge_retriever is None or _knowledge_base is None:
+    if _knowledge_retriever is None or _knowledge_store is None:
         return EvidencePackResult(
             RetrievalStatus.UNAVAILABLE, None, None, "RETRIEVER_UNAVAILABLE",
         )
@@ -2407,10 +2411,9 @@ async def _retrieve_knowledge(
         return EvidencePackResult(
             RetrievalStatus.CONFLICT, None, None, "SUBJECT_DELETION_FENCED",
         )
-    manifest = str(
-        _knowledge_base.index_manifest.get("manifest_fingerprint") or "",
-    )
-    current_backend = "LEGACY_BM25_V1"
+    generation = _knowledge_store.active_generation()
+    manifest = generation.manifest_hash
+    current_backend = generation.backend_fingerprint
     pinned = (
         dict(pinned_execution_refs)
         if isinstance(pinned_execution_refs, Mapping)
@@ -2423,7 +2426,7 @@ async def _retrieve_knowledge(
             or str(pinned.get("corpus_manifest_ref") or "") != manifest
             or str(pinned.get("retrieval_policy_ref") or "") != policy_version
             or str(pinned.get("knowledge_generation_ref") or "")
-            != f"legacy-knowledge:{manifest}"
+            != generation.generation_id
         ):
             return EvidencePackResult(
                 RetrievalStatus.CONFLICT, None, None,
@@ -2436,7 +2439,7 @@ async def _retrieve_knowledge(
                 "PINNED_GENERATION_MISSING",
             )
     else:
-        generation_id = f"legacy-knowledge:{manifest}"
+        generation_id = generation.generation_id
     request = KnowledgeRetrievalRequest(
         tenant_id=tenant_id, user_scope=user_scope,
         authorization_fingerprint=authorization_fingerprint,
@@ -2824,7 +2827,7 @@ async def add_knowledge(body: BatchDocInput, _principal: Principal = Depends(_ad
     """
     批量导入文档到知识库。
 
-    文档按配置的 Token 估算上限、结构边界和 overlap 切片后存入 ChromaDB。
+    文档按配置的 Token 估算上限、结构边界和 overlap 切片后写入 PostgreSQL。
 
     示例请求体：
     ```json
@@ -2836,9 +2839,9 @@ async def add_knowledge(body: BatchDocInput, _principal: Principal = Depends(_ad
     }
     ```
     """
-    if _knowledge_base is None:
+    if _knowledge_store is None:
         raise HTTPException(503, "知识库未初始化")
-    kb = _knowledge_base
+    kb = _knowledge_store
     try:
         sources = [SourceDocument.create(
             source_id=d.source_id or "",
@@ -2887,9 +2890,9 @@ async def upload_knowledge(
 
     文件大小限制：10MB
     """
-    if _knowledge_base is None:
+    if _knowledge_store is None:
         raise HTTPException(503, "知识库未初始化")
-    kb = _knowledge_base
+    kb = _knowledge_store
 
     content = await file.read()
     filename = pathlib.PurePath(file.filename or "unknown").name
@@ -2963,9 +2966,9 @@ async def upload_knowledge(
 @app.get("/knowledge/stats", tags=["知识库"])
 async def knowledge_stats(_principal: Principal = Depends(_admin_principal)):
     """查看知识库片段数、物理存储身份和实际索引/检索合同。"""
-    if _knowledge_base is None:
+    if _knowledge_store is None:
         raise HTTPException(503, "知识库未初始化")
-    kb = _knowledge_base
+    kb = _knowledge_store
     return {
         "total_chunks": await kb.doc_count_async(),
         "storage_backend": kb.storage_backend,

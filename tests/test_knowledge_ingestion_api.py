@@ -10,7 +10,7 @@ from api import main
 from core.auth import Principal
 
 
-class FakeKnowledgeBase:
+class FakeKnowledgeStore:
     def __init__(self):
         self.sources = []
 
@@ -23,9 +23,9 @@ class FakeKnowledgeBase:
 
 
 def wire(monkeypatch):
-    knowledge_base = FakeKnowledgeBase()
-    monkeypatch.setattr(main, "_knowledge_base", knowledge_base)
-    return knowledge_base
+    knowledge_store = FakeKnowledgeStore()
+    monkeypatch.setattr(main, "_knowledge_store", knowledge_store)
+    return knowledge_store
 
 
 def admin():

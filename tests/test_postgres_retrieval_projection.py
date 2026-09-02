@@ -67,7 +67,7 @@ def _enqueue(pool, generation_id, suffix="one"):
     registry = PostgresRetrievalGenerationRegistry(pool)
     registry.register(_generation(manifest))
     registry.transition(generation_id, GenerationState.BUILDING)
-    PostgresKnowledgeSourceRepository(pool).backfill_generation(
+    PostgresKnowledgeSourceRepository(pool).write_generation(
         manifest, (source,), (_chunk(source, generation_id),),
     )
     with pool.transaction() as connection:
