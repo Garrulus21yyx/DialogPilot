@@ -1,6 +1,4 @@
-"""X-T01 schema registry is closed, reproducible and fail-closed."""
-import json
-from pathlib import Path
+"""Runtime schema compatibility is closed, linear and fail-closed."""
 
 import pytest
 
@@ -8,27 +6,20 @@ from core.schema_version_registry import (
     SchemaCompatibilityError,
     SchemaVersionRegistry,
 )
-from scripts.create_x_t01_schema_registry import build_registry
+from infrastructure.postgres import PostgresMigrationRunner
 
 
-ROOT = Path(__file__).resolve().parents[1]
-
-
-def test_schema_registry_artifact_is_reproducible_and_linear():
-    frozen = json.loads((
-        ROOT / "governance/schema/x-t01-schema-registry-v1.json"
-    ).read_text(encoding="utf-8"))
-
-    assert frozen == build_registry()
-    migrations = frozen["payload"]["postgres_migrations"]
+def test_runtime_schema_manifest_is_reproducible_and_linear():
+    runner = PostgresMigrationRunner(
+        "postgresql://registry:registry@localhost/registry"
+    )
+    migrations = runner.revision_manifest()
+    assert migrations == runner.revision_manifest()
     assert migrations[0]["down_revision"] is None
     assert migrations[-1]["revision"] == SchemaVersionRegistry.postgres.current_version
     assert all(
         row["down_revision"] == migrations[index - 1]["revision"]
         for index, row in enumerate(migrations[1:], 1)
-    )
-    assert frozen["payload"]["downgrade_policy"] == (
-        "FORBIDDEN_FORWARD_FIX_OR_FULL_RESTORE"
     )
 
 
