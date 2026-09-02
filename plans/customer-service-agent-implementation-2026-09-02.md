@@ -36,7 +36,7 @@
 | M2-T04A SourceRevision v0 / active manifest | implemented (review pending) | PG owner/backfill/active validator done；independent human heldout review pending；650 tests passed |
 | M2-T05 统一 KnowledgeRetriever | implemented (canary blocked) | A1/A2/B + immutable PG dark-shadow report；675 tests passed |
 | M2-T06A Multi-Agent TaskGraph 收紧 | implemented | A/B/C policy、execution、dependency、native signal 与 terminal algebra 完成；697 tests passed |
-| M2-T06 自适应 RAG 发布路径 | in_progress | A/B1-B5: audit inference removed + route-specific pre-RAG done；eight-route heldout/E2E pending；747 tests passed |
+| M2-T06 自适应 RAG 发布路径 | in_progress | A/B1-B6: eight-route Application E2E done；typed NeedsInput/Handoff draft pending；755 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
@@ -829,6 +829,18 @@
 - 兼容测试 double 缺 canonical producer 时只在 `legacy` 回退；dark-shadow/evaluation 仍 typed fail。
   验证：Knowledge-only/Mixed/abstention candidate matrix、Chat/Handoff 回归、负向源码搜索；全套
   `747 passed in 19.15s`，ruff/diff passed。下一步补八 route 的生产链 E2E/heldout fixture。
+
+### M2-T06-B6（eight-route Application-boundary E2E）
+
+- 新增 8 个由真实 `RequestShapePolicy → RouterInvocationPolicy → AuthorityPolicy →
+  VerificationProfile → RouteExecutionPolicy → ChatApplication adapter → RoutePathExecutor` 构成的
+  application-boundary fixture，覆盖 DIRECT/KNOWLEDGE_QA/AGENT_TASK/MIXED/MULTI_DOMAIN/CLARIFY/
+  HANDOFF/OUT_OF_SCOPE。
+- 每例同时断言 expected outcome、唯一 CandidateOwner、pre-Retriever/Grounded/Agent/TaskGraph/
+  Handoff/Rule 的实际 call trace、required component 完整和 forbidden component 交集为空；Mixed
+  仅 `retrieve→agent`，Knowledge 仅 `retrieve→grounded`，Multi 不做 pre-RAG。
+- 聚焦 `36 passed`、全套 `755 passed in 18.54s`。T06 仍保持 in_progress：CLARIFY 需要真正
+  `NeedsInput` typed projection，Handoff draft 需要冻结 M4 target-compatible schema，不能以文本冒充。
 
 ## 下一步
 
