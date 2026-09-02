@@ -128,9 +128,6 @@ def test_chat_out_of_scope_is_a_policy_terminal_without_worker_verifier_or_memor
             raise AssertionError("policy terminal must not call AnswerVerifier")
 
     class MustNotSearchOrExecuteTools:
-        async def search_with_rewrite(self, *_args, **_kwargs):
-            raise AssertionError("out-of-scope request must not run RAG")
-
         @staticmethod
         def audit_records(*_args, **_kwargs):
             return []

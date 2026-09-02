@@ -34,7 +34,7 @@
 | M2-T03 Canonical EvidenceReceipt | done (consumer flag-off) | 7 kind typed algebra + registered adapters + resolver verification；624 tests passed |
 | M2-T04 Requirement CoverageGate / VerificationProfile | implemented (flag-off) | build complete；Knowledge verification waits T04A；642 tests passed |
 | M2-T04A SourceRevision v0 / active manifest | implemented (review pending) | PG owner/backfill/active validator done；independent human heldout review pending；650 tests passed |
-| M2-T05 统一 KnowledgeRetriever | in_progress | A1/A2 done；A3 pending；671 tests passed |
+| M2-T05 统一 KnowledgeRetriever | in_progress | A1/A2 + B consumer migration done；pre-Exit dark-shadow report pending；672 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
@@ -613,8 +613,28 @@
   `671 passed in 19.01s`，ruff/diff checks passed。A2 完成；外层 ToolManager cache 删除和三个 consumer
   切换归 A3，因此 M2-T05 仍保持 in_progress。
 
+### M2-T05-B1（consumer migration / outer-cache removal）
+
+- 唯一消费合同：`/search`、pre-Knowledge QA 与 Agent `knowledge_search` 全部调用
+  Knowledge-owned `KnowledgeRetriever`；工具只返回版本化 `EvidencePackResult`，Grounded Answer 仍由
+  pre-Knowledge 投影层按本轮 Context 生成。
+- 身份边界：HTTP 认证入口产生 authorization fingerprint，经 `ChatCommand`/Invocation metadata
+  传入 Agent tool；工具端不再用 Agent 名称临时伪造授权身份，缺 tenant/user/auth/
+  deletion fence 时按 Retriever 合同 fail closed。
+- 旧路移除：删除 `MCPToolManager.search_with_rewrite` 及 KnowledgeBase MCP handler；Knowledge 工具
+  `cache_ttl=0` 且 `supports_rerank=False`，不再存在 Retriever 外的二次 cache/rewrite/rerank。导入
+  API 直接使用 KnowledgeBase Owner，不再通过 `handler.__self__` 反向定位。
+- 证据合同：Authority registry 登记 `knowledge-evidence-pack-result-v1`，只允许 `OK` 且
+  EvidencePack item 具有 source ID/revision/checksum/text 时满足 `knowledge.active_source`；其他状态
+  或缺 provenance 均 fail closed。
+- 验证：直接 Retriever、`/search`、Agent handler 与 pre-Knowledge QA 在同一 query/
+  identity/policy 下的 EvidencePack 字节等价，`UNAVAILABLE` 语义一致；聚焦 `46 passed`，
+  全套 `672 passed in 19.49s`，ruff（忽略历史 E402）/diff checks passed。consumer slice 完成；
+  pre-Exit PG dark-shadow 不可变比较报告尚未生成，因此 M2-T05 不标记 IMPLEMENTED。
+
 ## 下一步
 
-1. 实施 M2-T05-A3：迁移 `/search`、前置 Knowledge QA 与 Agent tool，删除 ToolManager 外层 cache/旧链。
+1. 实施 M2-T05-B2：固定 query/corpus/filter/policy，运行 Knowledge PG pre-Exit dark shadow
+   并生成不可变比较报告；legacy 仍是唯一 publisher。
 2. T04/T04A live activation 仍受 M2 gate 与独立 review 约束。
 3. 保持 PG_FTS_ZH_V1 与 LEGACY_BM25_V1 独立评分，未过质量/延迟/删除/重建 Gate 前不切 active consumer。

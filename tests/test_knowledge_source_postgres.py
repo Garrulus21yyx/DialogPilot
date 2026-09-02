@@ -156,7 +156,7 @@ def _receipt(repository, source, generation_id):
     ).issue(
         requirement_id="knowledge.active_source",
         producer_id="knowledge_search",
-        producer_version="knowledge-candidates-v1",
+        producer_version="knowledge-evidence-pack-result-v1",
         locator=locator,
         status=RetrievalStatus.OK,
         observed_at=NOW,

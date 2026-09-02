@@ -2,8 +2,6 @@
 
 import asyncio
 import io
-from types import SimpleNamespace
-
 import pytest
 from fastapi import HTTPException, UploadFile
 from pydantic import ValidationError
@@ -16,9 +14,6 @@ class FakeKnowledgeBase:
     def __init__(self):
         self.sources = []
 
-    async def search_handler(self, _params, _context):
-        return []
-
     async def add_documents_async(self, sources):
         self.sources.extend(sources)
         return len(sources)
@@ -29,9 +24,7 @@ class FakeKnowledgeBase:
 
 def wire(monkeypatch):
     knowledge_base = FakeKnowledgeBase()
-    monkeypatch.setattr(main, "_tool_manager", SimpleNamespace(
-        _tools={"knowledge_search": SimpleNamespace(handler=knowledge_base.search_handler)},
-    ))
+    monkeypatch.setattr(main, "_knowledge_base", knowledge_base)
     return knowledge_base
 
 

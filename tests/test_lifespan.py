@@ -1,5 +1,6 @@
 import asyncio
 import os
+from types import SimpleNamespace
 
 from api import main
 
@@ -78,6 +79,8 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
             captured["tool_manager"] = kwargs
             self.tools = []
             self.llm_client = object()
+            self._query_transformer = SimpleNamespace(standalone=None)
+            self._result_reranker = SimpleNamespace(rerank=None)
 
         def register(self, tool):
             self.tools.append(tool)
@@ -97,7 +100,14 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
         async def doc_count_async(self):
             return 0
 
-        async def search_handler(self, _params, _context):
+        @property
+        def index_manifest(self):
+            return {"manifest_fingerprint": "a" * 64}
+
+        def validate_cached_candidates(self, _candidates):
+            return True
+
+        async def search_variants_async(self, *_args, **_kwargs):
             return []
 
     class FakeMonitor:
@@ -193,6 +203,15 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
                 "refund_request_create",
                 "account_security_event_list",
             }
+            knowledge_tool = next(
+                tool for tool in main._tool_manager.registered_tools
+                if tool.name == "knowledge_search"
+            )
+            assert knowledge_tool.cache_ttl == 0.0
+            assert knowledge_tool.supports_rerank is False
+            assert knowledge_tool.output_schema_version == (
+                "knowledge-evidence-pack-result-v1"
+            )
 
     asyncio.run(exercise_lifespan())
     assert captured["memory_closed"] is True

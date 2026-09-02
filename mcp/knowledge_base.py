@@ -460,29 +460,55 @@ class KnowledgeBase:
         """释放本地 Sparse sidecar；Chroma 客户端生命周期仍由其驱动拥有。"""
         self._sparse_index.close()
 
-    # ── MCP 工具 handler ─────────────────────────────────────────────────────
-
-    async def search_handler(self, params: Dict[str, Any], context: Any) -> List[Dict]:
-        """
-        作为 MCP 工具的 handler 注册。
-
-        MCPToolManager.register(Tool(
-            name="knowledge_search",
-            handler=kb.search_handler,
-            ...
-        ))
-        """
-        query = params.get("query", "")
-        top_k = params.get("top_k", 5)
-        policy = dict((context or {}).get("retrieval_policy") or {})
-        variants = params.get("query_variants")
-        if isinstance(variants, list):
-            parsed = [
-                (str(item.get("kind")), str(item.get("query")), float(item.get("weight", 0)))
-                for item in variants if isinstance(item, dict)
-            ]
-            return await self.search_variants_async(parsed, top_k=top_k, retrieval_policy=policy)
-        return await self.search_async(query, top_k=top_k, retrieval_policy=policy)
+    def validate_cached_candidates(
+        self, candidates: Sequence[Mapping[str, Any]],
+    ) -> bool:
+        """Re-resolve cached candidate refs against the current source projection."""
+        if not candidates:
+            return False
+        ids = [str(item.get("chunk_id") or "") for item in candidates]
+        if any(not item for item in ids) or len(set(ids)) != len(ids):
+            return False
+        result = self._collection.get(
+            ids=ids, include=["documents", "metadatas"],
+            where={"scope": self.KNOWLEDGE_SCOPE},
+        )
+        stored_ids = result.get("ids") or []
+        documents = result.get("documents") or []
+        metadatas = result.get("metadatas") or []
+        stored = {}
+        for index, stored_id in enumerate(stored_ids):
+            metadata = (
+                metadatas[index]
+                if index < len(metadatas) and isinstance(metadatas[index], dict)
+                else {}
+            )
+            chunk_id = str(metadata.get("chunk_id") or stored_id)
+            stored[chunk_id] = (
+                str(documents[index] if index < len(documents) else ""), metadata,
+            )
+        for item in candidates:
+            chunk_id = str(item.get("chunk_id") or "")
+            row = stored.get(chunk_id)
+            if row is None:
+                return False
+            content, metadata = row
+            if (
+                content != str(item.get("content") or "")
+                or str(metadata.get("source_id") or "")
+                != str(item.get("source_id") or "")
+                or str(metadata.get("source_revision") or "")
+                != str(item.get("source_revision") or "")
+                or str(metadata.get("source_checksum") or "")
+                != str(item.get("source_checksum") or "")
+                or int(metadata.get("source_start_char") or 0)
+                != int(item.get("source_start_char") or 0)
+                or int(metadata.get("source_end_char") or len(content))
+                != int(item.get("source_end_char") or len(content))
+                or str(metadata.get("scope") or "") != str(item.get("scope") or "")
+            ):
+                return False
+        return True
 
     # ── 内部方法 ──────────────────────────────────────────────────────────────
 

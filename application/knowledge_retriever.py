@@ -150,6 +150,33 @@ class EvidencePackResult:
                 "non-OK retrieval must not carry partial evidence",
             )
 
+    def to_dict(self, *, include_text: bool = False) -> dict[str, Any]:
+        return {
+            "status": self.status.value,
+            "evidence_pack": (
+                self.evidence_pack.to_dict(include_text=include_text)
+                if self.evidence_pack is not None else None
+            ),
+            "trace": (
+                {
+                    "variants": [list(item) for item in self.trace.variants],
+                    "source_ranks": [
+                        [chunk_id, dict(ranks)]
+                        for chunk_id, ranks in self.trace.source_ranks
+                    ],
+                    "policy_fingerprint": self.trace.policy_fingerprint,
+                    "backend_fingerprint": self.trace.backend_fingerprint,
+                    "generation_id": self.trace.generation_id,
+                    "manifest_fingerprint": self.trace.manifest_fingerprint,
+                    "rewrite_fallback": self.trace.rewrite_fallback,
+                    "rerank_fallback": self.trace.rerank_fallback,
+                    "cache_hits": list(self.trace.cache_hits),
+                }
+                if self.trace is not None else None
+            ),
+            "detail_code": self.detail_code,
+        }
+
 
 class RetrievalCachePort(Protocol):
     def get(self, key: str) -> bytes | None: ...

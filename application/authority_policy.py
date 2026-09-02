@@ -209,7 +209,7 @@ class AuthorityPolicyRegistry:
             EvidenceAdapterRegistration(
                 "knowledge-evidence-adapter", "knowledge-evidence-adapter-v1",
                 "KNOWLEDGE", ("knowledge.active_source",),
-                (("knowledge_search", "knowledge-candidates-v1"),),
+                (("knowledge_search", "knowledge-evidence-pack-result-v1"),),
             ),
             EvidenceAdapterRegistration(
                 "business-tool-evidence-adapter", "business-tool-evidence-adapter-v1",
@@ -383,6 +383,11 @@ class AuthorityPolicyRegistry:
         required_output_fields = {
             field for item in matching for field in item.required_fields
         }
+        if (
+            tool.output_schema_version == "knowledge-evidence-pack-result-v1"
+            and "evidence_pack" in tool.output_fields
+        ):
+            required_output_fields = set()
         missing_manifest_fields = required_output_fields.difference(tool.output_fields)
         if missing_manifest_fields:
             raise AuthorityContractError(
@@ -426,9 +431,17 @@ class AuthorityPolicyRegistry:
                 requirement_id, False, requirement.required_fields,
                 "STRUCTURED_TOOL_OUTPUT_REQUIRED",
             )
+        normalized_output = output
+        if tool.output_schema_version == "knowledge-evidence-pack-result-v1":
+            normalized_output = self._knowledge_pack_output(output)
+            if normalized_output is None:
+                return RequirementOutputCheck(
+                    requirement_id, False, requirement.required_fields,
+                    "KNOWLEDGE_EVIDENCE_PACK_INVALID",
+                )
         missing = tuple(
             field for field in requirement.required_fields
-            if field not in output or output[field] is None
+            if field not in normalized_output or normalized_output[field] is None
         )
         if missing:
             return RequirementOutputCheck(
@@ -452,6 +465,34 @@ class AuthorityPolicyRegistry:
         return RequirementOutputCheck(
             requirement_id, True, (), "REQUIREMENT_SATISFIED",
         )
+
+    @staticmethod
+    def _knowledge_pack_output(output: Mapping[str, Any]) -> Mapping[str, Any] | None:
+        if output.get("status") != "OK":
+            return None
+        pack = output.get("evidence_pack")
+        if not isinstance(pack, Mapping):
+            return None
+        items = pack.get("items")
+        if not isinstance(items, list) or not items:
+            return None
+        normalized = []
+        for item in items:
+            if not isinstance(item, Mapping):
+                return None
+            source = item.get("source_ref")
+            if not isinstance(source, Mapping):
+                return None
+            row = {
+                "source_id": source.get("source_id"),
+                "source_revision": source.get("source_revision"),
+                "checksum": source.get("checksum"),
+                "content": item.get("text"),
+            }
+            if any(value is None or value == "" for value in row.values()):
+                return None
+            normalized.append(row)
+        return normalized[0]
 
     @staticmethod
     def _domain_requirement(intent: str) -> str:

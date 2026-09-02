@@ -109,12 +109,12 @@ def test_http_chat_is_a_thin_command_and_outcome_adapter(monkeypatch):
 
     class FakeApplication:
         async def handle(self, command):
-            assert command == ChatCommand(
-                message="查询订单",
-                user_id="user-1",
-                conv_id="conversation-1",
-                request_id="request-1",
-            )
+            assert command.message == "查询订单"
+            assert command.user_id == "user-1"
+            assert command.tenant_id == "default"
+            assert command.conv_id == "conversation-1"
+            assert command.request_id == "request-1"
+            assert len(command.authorization_fingerprint) == 64
             return Completed(
                 response_id=response.response_id,
                 response=response.model_dump(),

@@ -59,6 +59,7 @@ class ChatCommand:
     request_id: Optional[str] = None
     continuation_id: Optional[str] = None
     pinned_bundle: Any = None
+    authorization_fingerprint: str = ""
 
 
 @dataclass(frozen=True)
@@ -260,7 +261,10 @@ class ChatApplication:
         user_id = str(identity.user_id)
         conv_id = str(identity.conversation_id)
         request_id = str(identity.request_id)
-        identity_metadata = identity.metadata()
+        identity_metadata = {
+            **identity.metadata(),
+            "authorization_fingerprint": command.authorization_fingerprint,
+        }
         stages: list[StageObservation] = []
         assignment = await asyncio.to_thread(services.rollout_manager.resolve, user_id)
         bundle = command.pinned_bundle or assignment.primary
@@ -305,6 +309,10 @@ class ChatApplication:
             intent=intent_result.intent,
             bundle=bundle,
             history=[str(item.get("content") or "") for item in prompt_history],
+            tenant_id=str(identity.tenant_id),
+            user_id=user_id,
+            conversation_id=conv_id,
+            authorization_fingerprint=command.authorization_fingerprint,
         )
         stages.append(StageObservation("knowledge_retrieval", StageStatus.OK, {
             "used": bool(knowledge.used),

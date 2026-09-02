@@ -29,11 +29,10 @@ from typing import Any, Callable, Deque, Dict, List, Optional, Tuple
 from anthropic import AsyncAnthropic
 
 from core.model_policy import ModelProfile
-from core.rag_policy import DEFAULT_RAG_RETRIEVAL_POLICY
 from core.tracing import TraceRecorder, current_trace_id, trace_scope
 from core.identity import InvocationKey, OperationKey
-from mcp.query_transformer import QUERY_TRANSFORM_PROMPT_VERSION, QueryTransformer
-from mcp.result_reranker import RERANK_PROMPT_VERSION, RerankResult, ResultReranker, candidates_from_items
+from mcp.query_transformer import QueryTransformer
+from mcp.result_reranker import RerankResult, ResultReranker, candidates_from_items
 
 logger = logging.getLogger(__name__)
 
@@ -584,7 +583,9 @@ class MCPToolManager:
                 with self._trace_recorder.span(
                     f"tool.{name}", kind="tool", attributes=span_attributes
                 ):
-                    result = await self.call(name, params, context)
+                    result = await self.call(name, params, {
+                        **dict(context or {}), "_agent_type": normalized_agent,
+                    })
             status = (
                 ToolCallStatus(result.status)
                 if result.status
@@ -832,72 +833,6 @@ class MCPToolManager:
         """
         expansions, _error = await self._query_transformer.expand(query, n=n)
         return list(dict.fromkeys([query, *expansions]))
-
-    async def search_with_rewrite(
-        self,
-        tool_name: str,
-        query: str,
-        top_k: int = 5,
-        context: Optional[Dict[str, Any]] = None,
-    ) -> ToolResult:
-        """
-        客服检索链路：Raw/Standalone → 跨查询与检索器加权 RRF → 重排 → Top-K。
-
-        Raw 永远保留；Standalone 失败时其质量退回 Raw，不会让检索变成空集。
-        """
-        context = dict(context or {})
-        policy = dict(context.get("retrieval_policy") or {})
-        history = tuple(str(item) for item in context.get("query_history") or ())
-        candidate_k = max(int(policy.get("candidate_k", DEFAULT_RAG_RETRIEVAL_POLICY["candidate_k"])), int(top_k))
-        raw_weight = float(policy.get("raw_query_weight", DEFAULT_RAG_RETRIEVAL_POLICY["raw_query_weight"]))
-        standalone_weight = float(policy.get("standalone_query_weight", DEFAULT_RAG_RETRIEVAL_POLICY["standalone_query_weight"]))
-        if raw_weight < 0 or standalone_weight < 0 or raw_weight + standalone_weight <= 0:
-            return ToolResult(
-                success=False, data=[], tool_name=tool_name,
-                error="invalid Raw/Standalone retrieval weights",
-            )
-        standalone, rewrite_error = await self._query_transformer.standalone(query, history)
-        if rewrite_error or standalone == query:
-            variants = [{"kind": "raw", "query": query, "weight": 1.0}]
-        else:
-            total = raw_weight + standalone_weight
-            variants = [
-                {"kind": "raw", "query": query, "weight": raw_weight / total},
-                {"kind": "standalone", "query": standalone, "weight": standalone_weight / total},
-            ]
-        logger.info("查询路由: %r → %s", query, variants)
-        result = await self.call(
-            tool_name,
-            {"query": query, "query_variants": variants, "top_k": candidate_k},
-            context,
-            use_cache=True,
-        )
-        if not result.success or not isinstance(result.data, list) or not result.data:
-            return ToolResult(
-                success=False, data=[], tool_name=tool_name,
-                error=result.error or "加权召回无结果",
-            )
-        reranked, rerank_result = await self._rerank_detailed(
-            query, result.data[:candidate_k], top_k,
-        )
-        trace = {
-            "raw_query": query,
-            "variants": variants,
-            "rewrite_prompt_version": QUERY_TRANSFORM_PROMPT_VERSION,
-            "rewrite_error": rewrite_error or "",
-            "rerank_prompt_version": RERANK_PROMPT_VERSION,
-            "rerank_error": rerank_result.error or "",
-            "rerank_model_ids": list(rerank_result.model_ordered_ids),
-        }
-        traced = [
-            {**item, "retrieval_trace": trace}
-            if isinstance(item, dict) else item
-            for item in reranked
-        ]
-        return ToolResult(
-            success=True, data=traced, tool_name=tool_name,
-            reranked=rerank_result.error is None,
-        )
 
     # ── 结果重排（解决召回不好）──────────────────────────────────────────────
 

@@ -36,6 +36,7 @@ def _tool(
     authority="order.current_state",
     output_fields=("order_id", "status", "version", "updated_at"),
     manifest_version="tool-manifest-v1",
+    output_schema_version="test-output-v1",
 ):
     return Tool(
         name=name,
@@ -44,7 +45,7 @@ def _tool(
         schema={"type": "object"},
         authority=authority,
         manifest_version=manifest_version,
-        output_schema_version="test-output-v1",
+        output_schema_version=output_schema_version,
         preconditions=("authenticated_user",),
         idempotency="read_only",
         retry_policy="safe_read_retry",
@@ -189,6 +190,55 @@ def test_fresh_structured_authority_output_satisfies_requirement():
     )
     assert result.satisfied is True
     assert result.reason_code == "REQUIREMENT_SATISFIED"
+
+
+def test_knowledge_evidence_pack_is_the_only_supported_nested_knowledge_output():
+    tool = _tool(
+        "knowledge_search", authority="knowledge.active_source",
+        output_fields=("status", "evidence_pack", "trace", "detail_code"),
+        output_schema_version="knowledge-evidence-pack-result-v1",
+    )
+    output = {
+        "status": "OK",
+        "evidence_pack": {"items": [{
+            "chunk_id": "chunk-one",
+            "text": "七天内可申请退款。",
+            "source_ref": {
+                "source_id": "refund-policy",
+                "source_revision": "revision-one",
+                "checksum": "a" * 64,
+            },
+        }]},
+        "trace": {},
+        "detail_code": None,
+    }
+
+    valid = AuthorityPolicyRegistry.v1().validate_output(
+        "knowledge.active_source", tool=tool, output=output,
+        observed_at=NOW, now=NOW,
+    )
+    missing_revision = AuthorityPolicyRegistry.v1().validate_output(
+        "knowledge.active_source", tool=tool,
+        output={
+            **output,
+            "evidence_pack": {"items": [{
+                **output["evidence_pack"]["items"][0],
+                "source_ref": {
+                    "source_id": "refund-policy", "checksum": "a" * 64,
+                },
+            }]},
+        },
+        observed_at=NOW, now=NOW,
+    )
+    no_evidence = AuthorityPolicyRegistry.v1().validate_output(
+        "knowledge.active_source", tool=tool,
+        output={**output, "status": "NO_EVIDENCE", "evidence_pack": None},
+        observed_at=NOW, now=NOW,
+    )
+
+    assert valid.satisfied is True
+    assert missing_revision.reason_code == "KNOWLEDGE_EVIDENCE_PACK_INVALID"
+    assert no_evidence.reason_code == "KNOWLEDGE_EVIDENCE_PACK_INVALID"
 
 
 def test_all_builtin_tool_manifests_pass_the_same_startup_gate(tmp_path):

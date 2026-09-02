@@ -469,6 +469,9 @@ class EndToEndEvaluator:
                     tenant_id="evaluation",
                     user_id=user_id,
                     conv_id=conv_id,
+                    authorization_fingerprint=hashlib.sha256(
+                        f"evaluation:{user_id}".encode("utf-8")
+                    ).hexdigest(),
                     request_id=request_id,
                     pinned_bundle=agent_bundle,
                 ))

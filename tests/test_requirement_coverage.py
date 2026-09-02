@@ -74,7 +74,7 @@ def _knowledge_receipt():
     ).issue(
         requirement_id="knowledge.active_source",
         producer_id="knowledge_search",
-        producer_version="knowledge-candidates-v1",
+        producer_version="knowledge-evidence-pack-result-v1",
         locator=KnowledgeLocator(
             "tenant-1", "backend-1", "generation-1", "public", "zh-CN",
             None, "source-1", "revision-1", SHA, 0, 6
