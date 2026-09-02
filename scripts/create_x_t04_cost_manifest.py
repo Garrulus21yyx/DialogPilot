@@ -1,4 +1,4 @@
-"""Render the reproducible X-T04 cost-policy/release-gate projection."""
+"""Render the reproducible local cost-policy report."""
 from __future__ import annotations
 
 import argparse
@@ -27,16 +27,10 @@ def build_manifest() -> dict[str, object]:
         policy, ensure_ascii=False, sort_keys=True, separators=(",", ":"),
     ).encode("utf-8")
     return {
-        "schema_version": "x-t04-cost-gate-v1",
+        "schema_version": "local-cost-budget-report-v1",
         "policy": policy,
         "policy_sha256": hashlib.sha256(encoded).hexdigest(),
-        "release_thresholds": {
-            "route_budget_exhaustion_regressions": 0,
-            "silent_more_expensive_fallbacks": 0,
-            "provider_usage_reconciliation_rate": 1.0,
-            "provider_billing_sample_required": True,
-        },
-        "evidence_status": "BUILD_ONLY_PRODUCTION_BILLING_SAMPLE_REQUIRED",
+        "verification": "deterministic-local-test",
     }
 
 

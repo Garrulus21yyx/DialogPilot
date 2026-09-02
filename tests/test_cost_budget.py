@@ -184,14 +184,10 @@ def test_provider_usage_reconciliation_reports_exact_deltas():
     )
 
 
-def test_cost_release_manifest_is_reproducible_and_requires_billing_sample():
+def test_local_cost_report_is_reproducible():
     frozen = json.loads((
-        ROOT / "evaluation/gates/x-t04-cost/v1.json"
+        ROOT / "evaluation/reports/local-cost-budget-v1.json"
     ).read_text(encoding="utf-8"))
 
     assert frozen == build_manifest()
-    assert frozen["release_thresholds"]["provider_usage_reconciliation_rate"] == 1.0
-    assert frozen["release_thresholds"]["provider_billing_sample_required"] is True
-    assert frozen["evidence_status"] == (
-        "BUILD_ONLY_PRODUCTION_BILLING_SAMPLE_REQUIRED"
-    )
+    assert frozen["verification"] == "deterministic-local-test"

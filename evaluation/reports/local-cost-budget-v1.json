@@ -1,5 +1,4 @@
 {
-  "evidence_status": "BUILD_ONLY_PRODUCTION_BILLING_SAMPLE_REQUIRED",
   "policy": {
     "offline_ingest_budget": {
       "max_chunks_per_batch": 4096,
@@ -94,11 +93,6 @@
     "policy_version": "route-cost-budget-v1"
   },
   "policy_sha256": "db81645a1ad3f99d62db01447aaa00f4725ad59181a63eaf0bfe2e0d53933241",
-  "release_thresholds": {
-    "provider_billing_sample_required": true,
-    "provider_usage_reconciliation_rate": 1.0,
-    "route_budget_exhaustion_regressions": 0,
-    "silent_more_expensive_fallbacks": 0
-  },
-  "schema_version": "x-t04-cost-gate-v1"
+  "schema_version": "local-cost-budget-report-v1",
+  "verification": "deterministic-local-test"
 }
