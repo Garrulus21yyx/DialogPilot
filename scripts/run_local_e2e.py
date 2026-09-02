@@ -14,6 +14,9 @@ import jwt
 from dotenv import load_dotenv
 
 
+DEMO_PNG = b"\x89PNG\r\n\x1a\n" + b"dialogpilot-local-e2e"
+
+
 def _token() -> str:
     secret = os.environ.get("AUTH_JWT_SECRET", "")
     if len(secret.encode("utf-8")) < 32:
@@ -37,6 +40,7 @@ def run(base_url: str, message: str) -> dict[str, object]:
     started = time.monotonic()
     headers = {"Authorization": f"Bearer {_token()}"}
     request_id = f"local-e2e-{uuid.uuid4().hex}"
+    conv_id = f"local-e2e-conversation-{uuid.uuid4().hex}"
     with httpx.Client(base_url=base_url.rstrip("/"), timeout=120.0) as client:
         health_response = client.get("/health")
         health_response.raise_for_status()
@@ -46,10 +50,22 @@ def run(base_url: str, message: str) -> dict[str, object]:
         knowledge_response.raise_for_status()
         knowledge = knowledge_response.json()
 
+        asset_response = client.post(
+            "/assets/upload",
+            headers=headers,
+            params={"conv_id": conv_id, "request_id": request_id},
+            files={"file": ("screen.png", DEMO_PNG, "image/png")},
+        )
+        asset_response.raise_for_status()
+        asset = asset_response.json()
+
         chat_response = client.post(
             "/chat",
             headers=headers,
-            json={"message": message, "request_id": request_id},
+            json={
+                "message": message, "conv_id": conv_id,
+                "request_id": request_id,
+            },
         )
         chat_response.raise_for_status()
         chat = chat_response.json()
@@ -59,6 +75,9 @@ def run(base_url: str, message: str) -> dict[str, object]:
         health.get("status") == "ok"
         and storage.get("engine") == "postgresql+pgvector+pg_fts"
         and int(knowledge.get("total_chunks") or 0) > 0
+        and asset.get("status") == "SCANNED"
+        and asset.get("ocr_invoked") is False
+        and asset.get("vlm_invoked") is False
         and bool(chat.get("response"))
         and chat.get("request_id") == request_id
     )
@@ -77,6 +96,14 @@ def run(base_url: str, message: str) -> dict[str, object]:
             "http_status": knowledge_response.status_code,
             "storage_backend": knowledge.get("storage_backend"),
             "total_chunks": knowledge.get("total_chunks"),
+        },
+        "attachment": {
+            "http_status": asset_response.status_code,
+            "modality": asset.get("modality"),
+            "media_type": asset.get("media_type"),
+            "status": asset.get("status"),
+            "ocr_invoked": asset.get("ocr_invoked"),
+            "vlm_invoked": asset.get("vlm_invoked"),
         },
         "chat": {
             "http_status": chat_response.status_code,

@@ -141,6 +141,8 @@ _postgres_pool = None
 _retrieval_postgres_pool = None
 _service_episode_search = None
 _conversation_query = None
+_media_asset_store = None
+_media_asset_service = None
 _durable_chat_coordinator = None
 _durable_chat_task = None
 _durable_chat_stop = None
@@ -194,7 +196,7 @@ def _anthropic_cfg() -> Dict[str, Any]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """按依赖顺序创建所有组件，并在退出时释放后台任务和连接。"""
-    global _orchestrator, _memory, _knowledge_store, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator, _bundle_resolver, _grounded_answer_generator, _postgres_pool, _conversation_query, _knowledge_retriever, _retrieval_cache_client, _durable_chat_coordinator, _durable_chat_task, _durable_chat_stop, _retrieval_postgres_pool, _service_episode_search
+    global _orchestrator, _memory, _knowledge_store, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator, _bundle_resolver, _grounded_answer_generator, _postgres_pool, _conversation_query, _knowledge_retriever, _retrieval_cache_client, _durable_chat_coordinator, _durable_chat_task, _durable_chat_stop, _retrieval_postgres_pool, _service_episode_search, _media_asset_store, _media_asset_service
 
     print(BANNER, flush=True)
 
@@ -308,7 +310,7 @@ async def lifespan(app: FastAPI):
             PostgresConversationQueryService,
         )
 
-        PostgresMigrationRunner(database_url).verify()
+        PostgresMigrationRunner(database_url).upgrade()
         _postgres_pool = PostgresPool(PostgresPoolConfig.from_env())
         _postgres_pool.open()
         from application.memory_retrieval_policy import (
@@ -374,6 +376,16 @@ async def lifespan(app: FastAPI):
                 os.getenv("RESUME_BINDING_SECRET")
                 or os.getenv("AUTH_JWT_SECRET", "")
             ),
+        )
+        from infrastructure.postgres_media_asset_store import (
+            MediaAssetService,
+            PostgresMediaAssetStore,
+            local_signature_scan,
+        )
+
+        _media_asset_store = PostgresMediaAssetStore(_postgres_pool)
+        _media_asset_service = MediaAssetService(
+            _media_asset_store, local_signature_scan,
         )
     if _postgres_pool is None or _response_delivery is None:
         raise RuntimeError("DATABASE_URL is required for the PostgreSQL runtime")
@@ -718,6 +730,8 @@ async def lifespan(app: FastAPI):
         _service_episode_search = None
         _postgres_pool = None
         _conversation_query = None
+        _media_asset_store = None
+        _media_asset_service = None
         _knowledge_retriever = None
         _retrieval_cache_client = None
         _durable_chat_coordinator = None
@@ -1674,6 +1688,67 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
         return ChatResponse.model_validate(outcome.response)
     projection = project_chat_outcome(outcome)
     return JSONResponse(status_code=projection.status_code, content=projection.body)
+
+
+@app.post("/assets/upload", status_code=201, tags=["多模态"])
+async def upload_asset(
+    conv_id: str = Query(min_length=1, max_length=200),
+    request_id: str = Query(min_length=1, max_length=128),
+    file: UploadFile = File(...),
+    principal: Principal = Depends(_chat_principal),
+):
+    """Store and security-scan one turn-bound image/PDF without OCR or VLM."""
+    if _media_asset_service is None:
+        raise HTTPException(503, "附件服务未就绪")
+    from application.media_asset import (
+        AssetAdmissionPolicy,
+        AssetStatus,
+        MediaAssetError,
+    )
+
+    max_bytes = int(os.getenv("MEDIA_ASSET_MAX_BYTES", str(10 * 1024 * 1024)))
+    content = await file.read(max_bytes + 1)
+    identity = IdentityFactory().create_invocation(
+        tenant_id=os.getenv("DEFAULT_TENANT_ID", "default"),
+        user_id=principal.subject,
+        conversation_id=conv_id,
+        request_id=request_id,
+    )
+    try:
+        admission = AssetAdmissionPolicy(max_bytes=max_bytes).admit(
+            tenant_id=str(identity.tenant_id), user_id=str(identity.user_id),
+            turn_key=str(identity.turn_key), filename=file.filename or "attachment",
+            declared_media_type=file.content_type or "", content=content,
+        )
+        stored = await asyncio.to_thread(
+            _media_asset_service.admit_and_scan, admission, content,
+        )
+    except MediaAssetError as exc:
+        status = 413 if exc.code == "ASSET_TOO_LARGE" else 415
+        raise HTTPException(
+            status, {"code": exc.code, "message": str(exc)},
+        ) from exc
+    if stored.status is AssetStatus.QUARANTINED:
+        raise HTTPException(422, {
+            "code": "ASSET_QUARANTINED",
+            "message": "attachment failed the local security scan",
+        })
+    if stored.status is not AssetStatus.SCANNED:
+        raise HTTPException(503, {
+            "code": "ASSET_SCAN_FAILED",
+            "message": "attachment scan is unavailable",
+        })
+    return {
+        "asset_id": stored.asset_id,
+        "modality": stored.modality.value,
+        "media_type": stored.media_type,
+        "byte_size": stored.byte_size,
+        "checksum": stored.checksum,
+        "status": stored.status.value,
+        "turn_key": stored.turn_key,
+        "ocr_invoked": False,
+        "vlm_invoked": False,
+    }
 
 
 @app.get("/agent-runs/{run_id}", tags=["Agent Run"])

@@ -98,7 +98,7 @@ def rehearse(base_url: str, *, postgres_container: str = "") -> dict[str, object
             if not report.matched:
                 raise RuntimeError("restored governance data does not match source snapshot")
             return {
-                "schema_version": "x-t01-restore-evidence-v1",
+                "schema_version": "dialogpilot-local-postgres-restore-v1",
                 "environment": "local isolated PostgreSQL",
                 "verification": "PASS",
                 "alembic_head": source_verification["head"],
@@ -108,7 +108,7 @@ def rehearse(base_url: str, *, postgres_container: str = "") -> dict[str, object
                 "records_sha256": source.sha256,
                 "observed_rto_seconds": round(time.monotonic() - started, 3),
                 "scope_limit": (
-                    "Local empty-to-head governance snapshot only; no production snapshot "
+                    "Local empty-to-head schema snapshot only; no production snapshot "
                     "or production RTO claim."
                 ),
             }
