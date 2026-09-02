@@ -1,0 +1,5 @@
+{"source_id":"source-eval-refund-channel","title":"退款渠道","source_type":"text","scope":"public","locale":"zh-CN","content":"退款审核通过后按原支付渠道退回；个人退款是否到账必须查询退款系统。"}
+{"source_id":"source-eval-address-change","title":"修改地址","source_type":"text","scope":"public","locale":"zh-CN","content":"订单进入 packed 前可修改地址；packed 后需联系承运商。"}
+{"source_id":"source-eval-account-profile","title":"账户资料","source_type":"text","scope":"public","locale":"zh-CN","content":"邮箱修改需要验证旧邮箱；旧邮箱不可用时转人工验证。"}
+{"source_id":"source-eval-client-crash","title":"客户端崩溃","source_type":"text","scope":"public","locale":"zh-CN","content":"客户端崩溃代码 APP-OOM 应上传脱敏日志并关闭高内存插件。"}
+{"source_id":"source-eval-service-500","title":"服务 500","source_type":"text","scope":"public","locale":"zh-CN","content":"错误 E500 先记录 trace_id，再重试一次；仍失败则提交技术工单。"}

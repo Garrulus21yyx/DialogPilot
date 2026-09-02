@@ -1,0 +1,3 @@
+{"case_id":"ks-heldout-crash","query":"APP-OOM 崩溃应该先做什么？","expected_source_id":"source-eval-client-crash","expected_revision_status":"ACTIVE","forbidden_source_ids":[]}
+{"case_id":"ks-heldout-service-500","query":"遇到 E500 可以连续重试吗？","expected_source_id":"source-eval-service-500","expected_revision_status":"ACTIVE","forbidden_source_ids":["source-eval-client-crash"]}
+{"case_id":"ks-heldout-unknown-private-state","query":"我的账户现在被冻结了吗？","expected_source_id":null,"expected_revision_status":"DYNAMIC_AUTHORITY_REQUIRED","forbidden_source_ids":["source-eval-account-profile"]}

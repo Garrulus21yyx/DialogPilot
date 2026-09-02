@@ -112,9 +112,9 @@ def _intent(
 def test_registry_is_machine_readable_bounded_and_separates_registration_from_write():
     registry = DataLocationRegistry.load(default_registry_path())
     summary = registry.artifact_summary()
-    assert summary["version"] == "v2"
-    assert summary["location_count"] == 31
-    assert summary["write_approved_count"] == 6
+    assert summary["version"] == "v3"
+    assert summary["location_count"] == 32
+    assert summary["write_approved_count"] == 7
     assert registry.get(
         "location:pg-response-delivery:v1"
     ).readiness.value == "WRITE_APPROVED"
@@ -124,6 +124,9 @@ def test_registry_is_machine_readable_bounded_and_separates_registration_from_wr
     assert registry.get(
         "location:knowledge-index:v1"
     ).readiness.value == "WRITE_APPROVED"
+    assert registry.get(
+        "location:knowledge-source:v1"
+    ).owner == "Knowledge"
     with pytest.raises(UnknownDataLocation):
         registry.get("location:unknown:v1")
 
@@ -187,9 +190,9 @@ def test_installed_registry_and_subject_epoch_authorize_existing_location(
     authorization = PostgresDataLocationWriteFence(location_pool).authorize(
         _intent(identity),
     )
-    assert authorization.registry_version == "v2"
+    assert authorization.registry_version == "v3"
     assert authorization.registry_fingerprint == (
-        "51e227f466f05185b20c8175b03dbfc852450b1644c371a23ccf5dcedbd5d745"
+        "14bda1d84d888883c2d4f42bfbc0b88c04860441c0d243b2b01e3a9cdfc98ade"
     )
     assert authorization.subject_exists is True
     assert authorization.deletion_epoch == 0
@@ -237,7 +240,7 @@ def test_database_registry_binding_is_immutable_and_migration_runner_verifies_it
     location_pool, postgres_database_url,
 ):
     assert PostgresMigrationRunner(postgres_database_url).verify()["head"] == (
-        "20260902_0011"
+        "20260902_0012"
     )
     with pytest.raises(psycopg.errors.ObjectNotInPrerequisiteState, match="immutable"):
         with location_pool.transaction() as connection:

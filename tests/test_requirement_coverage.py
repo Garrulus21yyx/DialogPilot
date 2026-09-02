@@ -76,7 +76,8 @@ def _knowledge_receipt():
         producer_id="knowledge_search",
         producer_version="knowledge-candidates-v1",
         locator=KnowledgeLocator(
-            "generation-1", "source-1", "revision-1", SHA, 0, 6
+            "tenant-1", "backend-1", "generation-1", "public", "zh-CN",
+            None, "source-1", "revision-1", SHA, 0, 6
         ),
         status=RetrievalStatus.OK,
         observed_at=NOW,

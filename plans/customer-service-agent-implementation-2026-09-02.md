@@ -33,6 +33,7 @@
 | M2-T02 FactRequirement / AuthorityPolicyRegistry | done (planner flag-off) | minimum requirements + startup manifest gate + refund_status；609 tests passed |
 | M2-T03 Canonical EvidenceReceipt | done (consumer flag-off) | 7 kind typed algebra + registered adapters + resolver verification；624 tests passed |
 | M2-T04 Requirement CoverageGate / VerificationProfile | implemented (flag-off) | build complete；Knowledge verification waits T04A；642 tests passed |
+| M2-T04A SourceRevision v0 / active manifest | implemented (review pending) | PG owner/backfill/active validator done；independent human heldout review pending；650 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
@@ -518,8 +519,35 @@
   action claim binding、Knowledge validator prerequisite、RouteMode×Profile 和 invoked/avoided/unavailable；
   聚焦 `18 passed`，真实 PostgreSQL/pgvector 全套 `642 passed in 17.93s`，ruff/diff checks passed。
 
+### M2-T04A（SourceRevision v0 / active manifest）
+
+- Authority owner：新增 immutable `SourceRevision`（tenant/source/revision/checksum/content/effective interval）与
+  `KnowledgeSourceManifest`；revision 由内容 checksum 确定性派生，`legacy-*`、空 provenance、checksum 漂移、
+  隐式 scope/locale 全部拒绝。Chunk 只允许是原 revision 的精确 span projection。
+- 单一 active transition：manifest/entries 一对一绑定已有 retrieval generation；不创建第二 active pointer。
+  继续由 `retrieval_generation_pointers` 原子切换，Knowledge validator join 同一 pointer，因此任一事务快照只见
+  完整旧或完整新 generation。切换后旧 receipt 为 STALE，未知 revision/checksum/span 为 INVALID_EVIDENCE。
+- PostgreSQL：migration `0012` 增加 raw source revisions、generation manifests/entries、immutability 和 BUILDING
+  generation write fence；`PostgresKnowledgeSourceRepository` 可重入 backfill sources/manifest/chunks，验证
+  generation manifest hash、embedding dimension、source projection 与完整计数，并提供 locator dereference/
+  active validation。DataLocationRegistry v3 新增 Knowledge-owned `location:knowledge-source:v1`，共 32 locations/
+  7 write-approved，fingerprint=`14bda1d84d888883c2d4f42bfbc0b88c04860441c0d243b2b01e3a9cdfc98ade`。
+- Legacy conversion：`build_v0_backfill` 只接收完整 raw source export 和显式 tenant/backend/generation/scope/
+  locale/reviewer ref，生成 content-addressed revisions、full-source chunks 与 provenance；Chroma/BM25 adapter 不再
+  补 provenance，SourceDocument mapping 不再默认 public。KnowledgeBase contract 升至 source v2/index v3，
+  chunk metadata/output 增加 canonical source revision/checksum，旧索引必须显式 reimport。
+- T04 闭环：KnowledgeLocator 新增 tenant/backend/scope/locale/product，消除跨租户/过滤范围歧义；真实 PG
+  repository 同时作为 resolver 与 active-revision validator，T04 Knowledge coverage 集成测试通过。
+- Evaluation honesty：冻结 `data/eval/knowledge-source-v0` 的 synthetic sources/dev 与 author-created heldout
+  candidate，全部 checksum 绑定；manifest 明确 `REVIEW_REQUIRED/PROVISIONAL_NOT_GOLD`。该候选由实现上下文
+  创建，不能冒充 fresh independent human-reviewed heldout，因此 T04A 保持 implemented、未 VERIFIED；独立
+  reviewer 替换或封存未见集合后才能关闭验证门槛。
+- 验证：backfill 重入、source immutability/dereference、old/new pointer、active CoverageGate、legacy/provenance/
+  scope fail-closed、artifact checksum；Alembic head=`0012`，真实 PostgreSQL/pgvector 全套
+  `650 passed in 18.57s`。涉及原有压缩 fixture 文件只做显式 scope 消费者迁移，未将其历史风格问题纳入本卡。
+
 ## 下一步
 
-1. M2-T04A：建立 SourceRevision v0、legacy corpus backfill 与 active manifest validator，完成 T04 Knowledge gate。
-2. 随后完成 M2-PF01 PR-18P-C canonical projection，再进入 M2-T05 统一 Retriever。
+1. M2-PF01 PR-18P-C：只消费 canonical SourceRevision/ServiceEpisode producer 投影，完成平台 prerequisite。
+2. 随后进入 M2-T05 统一 Retriever；T04/T04A live activation 仍受 M2 gate 与独立 review 约束。
 3. 保持 PG_FTS_ZH_V1 与 LEGACY_BM25_V1 独立评分，未过质量/延迟/删除/重建 Gate 前不切 active consumer。

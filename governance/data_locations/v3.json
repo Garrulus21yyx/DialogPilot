@@ -1,0 +1,44 @@
+{
+  "schema": "dialogpilot.data-location-registry-overlay.v1",
+  "version": "v3",
+  "approved_by": "knowledge-source-lifecycle-review",
+  "base_artifact": "v2.json",
+  "contract_catalog_additions": {
+    "delete_adapters": [
+      {
+        "id": "adapter:pg-knowledge-source-retention:v1",
+        "status": "IMPLEMENTED",
+        "evidence": "immutable SourceRevision plus active-manifest exclusion"
+      }
+    ],
+    "proof_contracts": [
+      {
+        "id": "proof:m2-t04a-source-lifecycle:v1",
+        "status": "IMPLEMENTED",
+        "evidence": "tests/test_knowledge_source_postgres.py"
+      }
+    ],
+    "restore_fences": [
+      {
+        "id": "restore-fence:knowledge-active-manifest:v1",
+        "status": "IMPLEMENTED",
+        "evidence": "active retrieval generation pointer and manifest hash validation"
+      }
+    ]
+  },
+  "location_additions": [
+    {
+      "location_id": "location:knowledge-source:v1",
+      "owner": "Knowledge",
+      "schema_version": "knowledge-source-v0",
+      "retention_class": "knowledge_governed",
+      "readiness": "WRITE_APPROVED",
+      "allowed_producers": ["source-revision-service", "knowledge-backfill"],
+      "delete_adapter_id": "adapter:pg-knowledge-source-retention:v1",
+      "proof_contract_id": "proof:m2-t04a-source-lifecycle:v1",
+      "restore_fence_id": "restore-fence:knowledge-active-manifest:v1",
+      "allow_subject_create": false
+    }
+  ],
+  "location_updates": []
+}

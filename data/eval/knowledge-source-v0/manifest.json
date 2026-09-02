@@ -1,0 +1,24 @@
+{
+  "dataset_id": "knowledge-source-v0",
+  "schema_version": "knowledge-source-eval-v1",
+  "created_at": "2026-09-02",
+  "dev_count": 4,
+  "heldout_count": 3,
+  "source_count": 5,
+  "sources_sha256": "5951ea322cf717739356b50a2d13c3e44192456f0171ba8694096b6fe2f3fa19",
+  "dev_sha256": "845a634b56891f4cc95317a7568022c4cb99d3e21af00c431f1018f783c3fe5f",
+  "heldout_sha256": "a73cf432ed4c864b606e7b9b700e6dd3f2ce8c377c388e324e0196a1da119e70",
+  "split_policy": "semantic topics are disjoint; heldout is an author-created candidate until independently replaced or sealed",
+  "source_basis": "project synthetic policy fixtures only; no production customer data",
+  "review": {
+    "status": "REVIEW_REQUIRED",
+    "reviewer": null,
+    "reviewed_at": null,
+    "note": "Implementation may use dev. The heldout candidate was authored in the implementation context and cannot establish fresh independent closure; an independent human reviewer must replace or seal an unseen set before VERIFIED closure."
+  },
+  "consumption": {
+    "dev": "development",
+    "heldout": "author_created_candidate_not_independent"
+  },
+  "status": "PROVISIONAL_NOT_GOLD"
+}

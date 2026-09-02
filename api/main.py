@@ -2637,6 +2637,7 @@ async def add_knowledge(body: BatchDocInput, _principal: Principal = Depends(_ad
         "total_chunks": total,
         "sources": [{
             "source_id": source.source_id,
+            "source_revision": source.revision_id,
             "source_type": source.source_type,
             "checksum": source.checksum,
             "scope": source.scope,
@@ -2695,6 +2696,7 @@ async def upload_knowledge(
             "title": pathlib.PurePath(filename).stem,
             "content": text,
             "source_type": "markdown" if suffix == ".md" else "text",
+            "scope": SourceDocument.PUBLIC_SCOPE,
         }]
 
     try:
@@ -2712,6 +2714,7 @@ async def upload_knowledge(
         "total_chunks": total,
         "sources": [{
             "source_id": source.source_id,
+            "source_revision": source.revision_id,
             "source_type": source.source_type,
             "checksum": source.checksum,
             "scope": source.scope,

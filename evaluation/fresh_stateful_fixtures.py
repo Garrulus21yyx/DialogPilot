@@ -255,7 +255,10 @@ def register_fresh_fixtures(
         kb._token_estimator = TokenEstimator(); kb._chunk_max_tokens = max_tokens; kb._chunk_overlap_tokens = overlap
         kb._chunk_strategy = ChunkStrategy.STRUCTURE_AWARE
         kb._sparse_index = PersistentBM25Index(":memory:")
-        kb.add_documents(documents); return kb
+        kb.add_documents([
+            {**document, "scope": "public"} for document in documents
+        ])
+        return kb
 
     async def rag_case(request, expected_id, content):
         kb = kb_with([

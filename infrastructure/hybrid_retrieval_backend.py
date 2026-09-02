@@ -167,9 +167,9 @@ class ChromaBm25KnowledgeCandidateSource:
             )
         provenance = str(metadata.get("provenance_sha256") or "")
         if len(provenance) != 64:
-            provenance = hashlib.sha256(
-                f"{candidate_id}\0{source_id}\0{source_revision}".encode("utf-8")
-            ).hexdigest()
+            raise LegacySourceInvalidContract(
+                "legacy candidate lacks canonical provenance"
+            )
         return LegacyRawCandidate(
             candidate_id, source_id, source_revision, float(score), provenance,
         )

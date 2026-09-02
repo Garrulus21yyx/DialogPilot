@@ -49,8 +49,8 @@ class KnowledgeBase:
     DEFAULT_CHUNK_MAX_TOKENS = 512
     DEFAULT_CHUNK_OVERLAP_TOKENS = 64
     CHUNKING_VERSION = 4
-    SOURCE_CONTRACT_VERSION = 1
-    INDEX_SCHEMA_VERSION = 2
+    SOURCE_CONTRACT_VERSION = 2
+    INDEX_SCHEMA_VERSION = 3
     KNOWLEDGE_SCOPE = SourceDocument.PUBLIC_SCOPE
     DENSE_EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
     DENSE_EMBEDDING_FUNCTION = "ONNXMiniLM_L6_V2"
@@ -153,7 +153,12 @@ class KnowledgeBase:
         for index, metadata in enumerate(metadatas):
             metadata = metadata if isinstance(metadata, dict) else {}
             actual = {key: metadata.get(key) for key in self.index_contract}
-            if actual != self.index_contract:
+            canonical_source = all(str(metadata.get(key) or "").strip() for key in (
+                "source_id", "source_revision", "source_checksum", "scope",
+            )) and not any(str(metadata.get(key)).startswith("legacy-") for key in (
+                "source_id", "source_revision",
+            ))
+            if actual != self.index_contract or not canonical_source:
                 mismatches.append({"chunk": index, "actual": actual})
                 if len(mismatches) >= 3:
                     break
@@ -245,6 +250,7 @@ class KnowledgeBase:
                     "sparse_schema_version": PersistentBM25Index.SCHEMA_VERSION,
                     "sparse_tokenizer_version": PersistentBM25Index.TOKENIZER_VERSION,
                     "source_id": source.source_id,
+                    "source_revision": source.revision_id,
                     "source_type": source.source_type,
                     "source_checksum": source.checksum,
                     "chunking_version": self.CHUNKING_VERSION,
@@ -404,7 +410,10 @@ class KnowledgeBase:
                 "source_start_char": meta.get("source_start_char", 0),
                 "source_end_char": meta.get("source_end_char", len(document.content)),
                 "source_type": meta.get("source_type", ""),
+                "source_id": meta.get("source_id", ""),
+                "source_revision": meta.get("source_revision", ""),
                 "source_checksum": meta.get("source_checksum", ""),
+                "checksum": meta.get("source_checksum", ""),
                 "scope": meta.get("scope", ""),
                 "scope_decision": "allowed_public",
                 "index_manifest_fingerprint": manifest_fingerprint,
@@ -596,7 +605,9 @@ class KnowledgeBase:
                 ),
             },
         ]
-        self.add_documents(default_docs)
+        self.add_documents([
+            {**item, "scope": self.KNOWLEDGE_SCOPE} for item in default_docs
+        ])
         logger.info(f"已导入默认知识库: {len(default_docs)} 篇文档")
 
     def _synchronize_sparse_index(self) -> None:
@@ -613,7 +624,15 @@ class KnowledgeBase:
         for index, stored_id in enumerate(ids):
             metadata = metadatas[index] if index < len(metadatas) and isinstance(metadatas[index], dict) else {}
             if metadata.get("scope") != self.KNOWLEDGE_SCOPE:
-                continue
+                raise IncompatibleKnowledgeIndexError(
+                    "knowledge chunk lacks explicit supported scope"
+                )
+            if not all(str(metadata.get(key) or "").strip() for key in (
+                "source_id", "source_revision", "source_checksum",
+            )):
+                raise IncompatibleKnowledgeIndexError(
+                    "knowledge chunk lacks canonical source revision"
+                )
             text = str(documents[index] if index < len(documents) else "")
             chunk_id = str(metadata.get("chunk_id") or stored_id)
             rows.append(SparseDocument(chunk_id, text))

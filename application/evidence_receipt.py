@@ -77,7 +77,12 @@ def _sha256(value: str) -> None:
 
 @dataclass(frozen=True)
 class KnowledgeLocator:
+    tenant_id: str
+    backend_id: str
     generation_id: str
+    scope: str
+    locale: str
+    product: str | None
     source_id: str
     source_revision: str
     source_checksum: str
@@ -85,7 +90,10 @@ class KnowledgeLocator:
     end_char: int
 
     def __post_init__(self) -> None:
-        _required(self.generation_id, self.source_id, self.source_revision)
+        _required(
+            self.tenant_id, self.backend_id, self.generation_id,
+            self.scope, self.locale, self.source_id, self.source_revision,
+        )
         _sha256(self.source_checksum)
         if self.start_char < 0 or self.end_char <= self.start_char:
             raise EvidenceContractError("knowledge span is invalid")

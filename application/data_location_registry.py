@@ -242,6 +242,21 @@ class DataLocationRegistry:
                     raise DataLocationArtifactInvalid("contract catalog ID is immutable")
                 effective["contract_catalog"][kind].append(entry)
                 known.add(entry["id"])
+        location_additions = raw.get("location_additions", [])
+        if not isinstance(location_additions, list):
+            raise DataLocationArtifactInvalid("location additions must be a list")
+        known_locations = {
+            str(item.get("location_id")) for item in effective["locations"]
+        }
+        for entry in location_additions:
+            if not isinstance(entry, dict) or not str(
+                entry.get("location_id") or ""
+            ).strip():
+                raise DataLocationArtifactInvalid("invalid location addition")
+            if entry["location_id"] in known_locations:
+                raise DataLocationArtifactInvalid("location ID is immutable")
+            effective["locations"].append(dict(entry))
+            known_locations.add(entry["location_id"])
         by_id = {item["location_id"]: item for item in effective["locations"]}
         updates = raw.get("location_updates", [])
         if not isinstance(updates, list):
@@ -327,7 +342,7 @@ class DataLocationRegistry:
 
 
 def default_registry_path() -> Path:
-    return Path(__file__).resolve().parents[1] / "governance" / "data_locations" / "v2.json"
+    return Path(__file__).resolve().parents[1] / "governance" / "data_locations" / "v3.json"
 
 
 def _optional(value: object) -> str | None:

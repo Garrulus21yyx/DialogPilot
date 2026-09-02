@@ -59,6 +59,11 @@ class SourceDocument:
         """当前 collection 的固定可见范围，不是文档级 ACL。"""
         return self.PUBLIC_SCOPE
 
+    @property
+    def revision_id(self) -> str:
+        """Content-addressed v0 revision; never synthesized from legacy labels."""
+        return f"revision-v0-{self.checksum[:32]}"
+
     @staticmethod
     def content_checksum(content: str) -> str:
         return hashlib.sha256(str(content).encode("utf-8")).hexdigest()
@@ -106,7 +111,9 @@ class SourceDocument:
             raise SourceDocumentContractError(
                 "unsupported source document fields: " + ", ".join(unsupported)
             )
-        requested_scope = str(value.get("scope") or cls.PUBLIC_SCOPE).strip().lower()
+        if "scope" not in value:
+            raise SourceDocumentContractError("source scope must be explicit")
+        requested_scope = str(value.get("scope") or "").strip().lower()
         if requested_scope != cls.PUBLIC_SCOPE:
             raise SourceDocumentContractError(
                 "this knowledge collection supports scope=public only"

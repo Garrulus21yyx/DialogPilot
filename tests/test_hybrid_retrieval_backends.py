@@ -278,7 +278,10 @@ class _FakeChromaCollection:
         self.metadata = {
             "scope": "public", "locale": "zh-CN", "product": "payments",
             "source_id": "source-a",
-            **({"source_revision": "revision-a"} if include_revision else {}),
+            **({
+                "source_revision": "revision-a",
+                "provenance_sha256": SHA,
+            } if include_revision else {}),
         }
 
     def count(self):
@@ -358,6 +361,29 @@ def test_concrete_chroma_bm25_source_requires_acl_and_source_revision(
     if include_revision:
         assert result.dense_candidates[0].score == pytest.approx(0.9)
         assert result.lexical_candidates[0].candidate_id == "chunk-a"
+
+
+def test_concrete_legacy_source_never_invents_missing_provenance():
+    generation = replace(
+        _generation("legacy-no-provenance"),
+        backend_id="LEGACY_CHROMA_BM25_V1",
+        backend_fingerprint="legacy-backend-v1",
+        lexical_ranker="LEGACY_BM25_V1",
+        vector_extension_version="chroma-0.5.23",
+    )
+    collection = _FakeChromaCollection(include_revision=True)
+    collection.metadata.pop("provenance_sha256")
+    result = LegacyHybridBackend(
+        generations={generation.generation_id: generation},
+        sources={
+            RetrievalCorpus.KNOWLEDGE: ChromaBm25KnowledgeCandidateSource(
+                collection=collection,
+                sparse_index=_FakeSparseIndex(),
+                tenant_id="tenant-a",
+            ),
+        },
+    ).retrieve(_knowledge_request(generation))
+    assert result.status is RetrievalStatus.INVALID_CONTRACT
 
 
 def test_episode_scope_type_remains_separate_from_knowledge():

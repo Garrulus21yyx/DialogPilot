@@ -1,0 +1,4 @@
+{"case_id":"ks-dev-refund-policy","query":"退款一般退回哪里？","expected_source_id":"source-eval-refund-channel","expected_revision_status":"ACTIVE","forbidden_source_ids":["source-eval-account-security"]}
+{"case_id":"ks-dev-address-policy","query":"包裹打包后还能修改地址吗？","expected_source_id":"source-eval-address-change","expected_revision_status":"ACTIVE","forbidden_source_ids":[]}
+{"case_id":"ks-dev-security-handoff","query":"旧邮箱不能用了，怎么修改邮箱？","expected_source_id":"source-eval-account-profile","expected_revision_status":"ACTIVE","forbidden_source_ids":["source-eval-refund-channel"]}
+{"case_id":"ks-dev-no-personal-state","query":"我的退款到账了吗？","expected_source_id":null,"expected_revision_status":"DYNAMIC_AUTHORITY_REQUIRED","forbidden_source_ids":["source-eval-refund-channel"]}

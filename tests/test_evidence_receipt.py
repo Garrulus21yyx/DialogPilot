@@ -39,7 +39,10 @@ SHA = "a" * 64
     [
         (
             EvidenceKind.KNOWLEDGE,
-            KnowledgeLocator("generation-1", "source-1", "revision-1", SHA, 0, 10),
+            KnowledgeLocator(
+                "tenant-1", "backend-1", "generation-1", "public", "zh-CN",
+                None, "source-1", "revision-1", SHA, 0, 10,
+            ),
             RetrievalStatus.OK,
         ),
         (
@@ -222,7 +225,8 @@ def test_knowledge_locator_binds_source_revision_and_checksum():
         producer_id="knowledge_search",
         producer_version="knowledge-candidates-v1",
         locator=KnowledgeLocator(
-            "generation-1", "source-1", "revision-1", SHA, 0, 10
+            "tenant-1", "backend-1", "generation-1", "public", "zh-CN",
+            None, "source-1", "revision-1", SHA, 0, 10
         ),
         status=RetrievalStatus.OK,
         observed_at=NOW,
@@ -237,7 +241,8 @@ def test_knowledge_locator_binds_source_revision_and_checksum():
             producer_id="knowledge_search",
             producer_version="knowledge-candidates-v1",
             locator=KnowledgeLocator(
-                "generation-1", "source-1", "wrong-revision", SHA, 0, 10
+                "tenant-1", "backend-1", "generation-1", "public", "zh-CN",
+                None, "source-1", "wrong-revision", SHA, 0, 10
             ),
             status=RetrievalStatus.OK,
             observed_at=NOW,

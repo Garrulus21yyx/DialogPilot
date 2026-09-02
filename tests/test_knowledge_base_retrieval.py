@@ -75,8 +75,8 @@ def bare_knowledge_base(*, max_tokens=512, overlap_tokens=64):
 def test_knowledge_base_preserves_source_document_ids_and_returns_rank_evidence():
     knowledge_base = bare_knowledge_base()
     inserted = knowledge_base.add_documents([
-        {"id": "kb-target", "title": "登录", "content": "登录错误 E401 表示令牌过期。"},
-        {"id": "kb-noise", "title": "配送", "content": "配送通常需要三天。"},
+        {"id": "kb-target", "title": "登录", "content": "登录错误 E401 表示令牌过期。", "scope": "public"},
+        {"id": "kb-noise", "title": "配送", "content": "配送通常需要三天。", "scope": "public"},
     ])
 
     hits = knowledge_base.search("E401 令牌", top_k=2)
@@ -89,6 +89,9 @@ def test_knowledge_base_preserves_source_document_ids_and_returns_rank_evidence(
     assert knowledge_base._collection.metadatas[0]["document_id"] == "kb-target"
     assert knowledge_base._collection.metadatas[0]["source_id"] == "kb-target"
     assert knowledge_base._collection.metadatas[0]["source_type"] == "text"
+    assert knowledge_base._collection.metadatas[0]["source_revision"].startswith(
+        "revision-v0-"
+    )
     assert knowledge_base._collection.metadatas[0]["scope"] == "public"
     assert len(knowledge_base._collection.metadatas[0]["source_checksum"]) == 64
     assert knowledge_base._collection.metadatas[0]["chunking_version"] == 4
@@ -114,6 +117,8 @@ def test_source_document_contract_is_stable_public_and_checksum_verified():
         SourceDocument.from_mapping({
             "title": "内部手册", "content": "敏感内容", "scope": "internal",
         })
+    with pytest.raises(SourceDocumentContractError, match="scope must be explicit"):
+        SourceDocument.from_mapping({"title": "旧记录", "content": "无 scope"})
 
 
 def test_persistent_sparse_index_reopens_without_retokenizing_corpus(tmp_path):
@@ -166,7 +171,9 @@ def test_persistent_sparse_ranking_matches_reference_bm25_for_seeded_corpora():
 
 def test_knowledge_base_empty_query_does_not_touch_vector_query():
     knowledge_base = bare_knowledge_base()
-    knowledge_base.add_documents([{"id": "kb-one", "title": "x", "content": "事实"}])
+    knowledge_base.add_documents([{
+        "id": "kb-one", "title": "x", "content": "事实", "scope": "public",
+    }])
 
     assert knowledge_base.search("   ") == []
 
@@ -177,7 +184,7 @@ def test_bm25_only_strategy_does_not_pay_for_unused_vector_query():
         vector_weight=0.0, lexical_weight=1.0, recency_weight=0.0,
     )
     knowledge_base.add_documents([
-        {"id": "kb-one", "title": "登录", "content": "登录错误 E401 表示令牌过期。"},
+        {"id": "kb-one", "title": "登录", "content": "登录错误 E401 表示令牌过期。", "scope": "public"},
     ])
     knowledge_base._collection.query = lambda **_kwargs: (_ for _ in ()).throw(
         AssertionError("BM25-only must not execute vector query")
@@ -192,8 +199,8 @@ def test_bm25_only_strategy_does_not_pay_for_unused_vector_query():
 def test_search_uses_persistent_postings_and_never_hydrates_the_full_corpus():
     knowledge_base = bare_knowledge_base()
     knowledge_base.add_documents([
-        {"id": "refund", "title": "退款", "content": "退款错误码 R-7。"},
-        {"id": "delivery", "title": "配送", "content": "配送需要三天。"},
+        {"id": "refund", "title": "退款", "content": "退款错误码 R-7。", "scope": "public"},
+        {"id": "delivery", "title": "配送", "content": "配送需要三天。", "scope": "public"},
     ])
     knowledge_base._collection.get_calls.clear()
 
@@ -210,7 +217,7 @@ def test_public_only_scope_filters_sparse_and_dense_before_retrieval():
         vector_weight=0.0, lexical_weight=1.0, recency_weight=0.0,
     )
     knowledge_base.add_documents([
-        {"id": "public", "title": "公开政策", "content": "公开退款说明。"},
+        {"id": "public", "title": "公开政策", "content": "公开退款说明。", "scope": "public"},
     ])
     knowledge_base._collection.add(
         ids=["internal::chunk-0"], documents=["SECRET-INTERNAL"],
@@ -239,7 +246,7 @@ def test_sparse_sync_failure_never_serves_a_half_updated_hybrid_index():
     knowledge_base._sparse_index = BrokenSparse()
     with pytest.raises(OSError, match="disk unavailable"):
         knowledge_base.add_documents([
-            {"id": "new-policy", "title": "新政策", "content": "新的退款期限。"},
+            {"id": "new-policy", "title": "新政策", "content": "新的退款期限。", "scope": "public"},
         ])
 
     assert knowledge_base._collection.count() == 1
@@ -371,8 +378,8 @@ def test_multi_chunk_projection_keeps_content_metadata_and_rank_identity_aligned
     knowledge_base = bare_knowledge_base(max_tokens=40, overlap_tokens=0)
     content = "第一片只有普通背景。" * 20 + "第二片唯一证据 TARGET-Z9。" * 8
     knowledge_base.add_documents([
-        {"id": "persisted-document-777", "title": "多片文档", "content": content},
-        {"id": "noise-document", "title": "噪声", "content": "无关配送说明。" * 10},
+        {"id": "persisted-document-777", "title": "多片文档", "content": content, "scope": "public"},
+        {"id": "noise-document", "title": "噪声", "content": "无关配送说明。" * 10, "scope": "public"},
     ])
 
     hit = knowledge_base.search("TARGET-Z9", top_k=2)[0]
@@ -395,8 +402,8 @@ def test_multi_chunk_projection_keeps_content_metadata_and_rank_identity_aligned
 def test_chunk_candidates_keep_stable_ids_until_context_packing():
     knowledge_base = bare_knowledge_base(max_tokens=32, overlap_tokens=4)
     knowledge_base.add_documents([
-        {"id": "parent-a", "title": "A", "content": "关键词 ALPHA。" * 100},
-        {"id": "parent-b", "title": "B", "content": "关键词 ALPHA 与其他证据。" * 8},
+        {"id": "parent-a", "title": "A", "content": "关键词 ALPHA。" * 100, "scope": "public"},
+        {"id": "parent-b", "title": "B", "content": "关键词 ALPHA 与其他证据。" * 8, "scope": "public"},
     ])
 
     hits = knowledge_base.search("ALPHA", top_k=5)
