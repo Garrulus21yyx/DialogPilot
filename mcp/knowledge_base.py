@@ -25,6 +25,7 @@ from memory.context import TokenEstimator
 from core.rag_policy import DEFAULT_RAG_RETRIEVAL_POLICY
 from memory.hybrid_retrieval import HybridMemoryRetriever, MemoryDocument
 from mcp.document_chunker import ChunkStrategy, DocumentChunk, DocumentChunker
+from core.cost_budget import OfflineIngestBudget, OfflineIngestBudgetExceeded
 from mcp.rank_fusion import fuse_rankings
 from mcp.source_document import SourceDocument
 from mcp.sparse_index import PersistentBM25Index, SparseDocument
@@ -70,6 +71,7 @@ class KnowledgeBase:
         retrieval_vector_weight: float = float(DEFAULT_RAG_RETRIEVAL_POLICY["vector_weight"]),
         retrieval_lexical_weight: float = float(DEFAULT_RAG_RETRIEVAL_POLICY["lexical_weight"]),
         sparse_index_path: str = "",
+        offline_ingest_budget: OfflineIngestBudget | None = None,
     ):
         """按显式部署模式连接 ChromaDB，不在两套物理存储间静默切换。"""
         chunk_max_tokens = int(chunk_max_tokens)
@@ -93,6 +95,7 @@ class KnowledgeBase:
         self._chunk_max_tokens = chunk_max_tokens
         self._chunk_overlap_tokens = chunk_overlap_tokens
         self._chunk_strategy = ChunkStrategy(chunk_strategy)
+        self._offline_ingest_budget = offline_ingest_budget
         self._embedding_function = DefaultEmbeddingFunction()
         if not sparse_index_path:
             collection_key = hashlib.sha256(collection_name.encode("utf-8")).hexdigest()[:12]
@@ -228,13 +231,41 @@ class KnowledgeBase:
         长文档按结构边界和 Token 预算切片，并保留有界 overlap。
         """
         ids, docs, metas = [], [], []
+        ingest_source_bytes = 0
+        ingest_embedding_tokens = 0
         chunk_strategy = getattr(
             self, "_chunk_strategy", ChunkStrategy.STRUCTURE_AWARE,
         )
 
+        budget = getattr(self, "_offline_ingest_budget", None)
+        if budget is not None and len(documents) > budget.max_sources_per_batch:
+            raise OfflineIngestBudgetExceeded(
+                dimension="sources", observed=len(documents),
+                limit=budget.max_sources_per_batch,
+                policy_version=budget.policy_version,
+            )
         for value in documents:
             source = value if isinstance(value, SourceDocument) else SourceDocument.from_mapping(value)
             chunks = self._chunk_spans(source.content)
+            if budget is not None:
+                source_bytes = len(source.content.encode("utf-8"))
+                embedding_tokens = sum(
+                    self._token_estimator.estimate(chunk.content) for chunk in chunks
+                )
+                ingest_source_bytes += source_bytes
+                ingest_embedding_tokens += embedding_tokens
+                dimensions = (
+                    ("source_bytes", source_bytes, budget.max_source_bytes),
+                    ("total_source_bytes", ingest_source_bytes, budget.max_total_source_bytes),
+                    ("chunks", len(ids) + len(chunks), budget.max_chunks_per_batch),
+                    ("embedding_tokens", ingest_embedding_tokens, budget.max_embedding_tokens_per_batch),
+                )
+                for dimension, observed, limit in dimensions:
+                    if observed > limit:
+                        raise OfflineIngestBudgetExceeded(
+                            dimension=dimension, observed=observed, limit=limit,
+                            policy_version=budget.policy_version,
+                        )
 
             for i, chunk in enumerate(chunks):
                 chunk_id = f"{source.source_id}::chunk-{i}"

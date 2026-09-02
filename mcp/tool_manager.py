@@ -29,6 +29,7 @@ from typing import Any, Callable, Deque, Dict, List, Optional, Tuple
 from anthropic import AsyncAnthropic
 
 from core.input_security import UntrustedContentGuard
+from core.cost_budget import active_route_budget
 from core.model_policy import ModelProfile
 from core.tracing import TraceRecorder, current_trace_id, trace_scope
 from core.identity import InvocationKey, OperationKey
@@ -622,6 +623,14 @@ class MCPToolManager:
             "tool.call_id": resolved_call_id,
         }
         try:
+            budget_tracker = active_route_budget()
+            if budget_tracker is not None:
+                budget_tracker.before_tool_call()
+                if (
+                    name == "knowledge_search"
+                    or "knowledge" in str(tool.authority or "").casefold()
+                ):
+                    budget_tracker.before_retrieval()
             scope = nullcontext(trace_id) if current_trace_id() == trace_id else trace_scope(trace_id)
             with scope:
                 with self._trace_recorder.span(

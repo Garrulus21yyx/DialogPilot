@@ -1,8 +1,8 @@
 """Execute one RouteExecutionContract without guessing route or authority semantics."""
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any, Awaitable, Callable, Optional
+from dataclasses import dataclass, field
+from typing import Any, Awaitable, Callable, Mapping, Optional
 
 from application.route_execution import (
     CandidateOwner,
@@ -52,6 +52,8 @@ class RoutePathResult:
     publishable: bool
     invocation_trace: tuple[RouteComponent, ...]
     reason_code: str
+    cost_usage: Mapping[str, object] = field(default_factory=dict)
+    cost_budget_policy_version: str = ""
 
     @property
     def outcome_payload(self) -> RouteOutcomePayload:

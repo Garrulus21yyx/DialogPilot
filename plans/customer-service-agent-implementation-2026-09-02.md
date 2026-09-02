@@ -39,7 +39,8 @@
 | M2-T06 自适应 RAG 发布路径 | implemented (dark-shadow) | A/B1-B8: eight-route typed outcome algebra + unsupported-authority Handoff；765 tests passed；active/canary gated |
 | M2-T06R Route Bundle enable/rollback | implemented (canary blocked) | pinned execution refs、single publisher、atomic crash rollback、forward-fix runbook；771 tests passed |
 | X-T03 安全威胁模型 | implemented (production review pending) | 8 threats/control map、13-case corpus、incident disable runbook；799 tests passed |
-| M2 Exit Gate | draft / not ready | unsigned reproducible manifest；X-T04、independent security/heldout、production evidence、M1 Exit blocked；799 tests passed |
+| X-T04 成本预算 | implemented (route flag-off) | 8 route + offline ingest budgets、typed exhaustion、provider usage reconciliation；806 tests passed |
+| M2 Exit Gate | draft / not ready | unsigned reproducible manifest；independent security/heldout、production billing/platform evidence、M1 Exit blocked；806 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | build nodes done；Exit prerequisites/evidence not closed |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
@@ -933,9 +934,28 @@
   [build evidence](../governance/evidence/x-t03/security-build-v1.md) 状态为
   `IMPLEMENTED / PRODUCTION REVIEW PENDING`，不替代独立 pen test、生产 RLS/ACL/加密卷/轮换与演练。
 
+### X-T04（per-RouteMode / offline ingest cost budgets）
+
+- 新增 `route-cost-budget-v1`，按八种 RouteMode 冻结 model/tool/retrieval call 与 provider input/output token
+  总额；数值由 route component algebra、ReAct 4 steps、最多 3 个 executed Worker 和 conditional
+  synthesis/verifier 推导，不由 caller 或 Prompt 改写。
+- request-scoped tracker 接入统一 LLM metrics、controlled Tool runtime 与 KnowledgeRetriever；调用额度在
+  side effect 前阻断，官方 provider tokens 在响应后计账，越界返回 typed
+  `ROUTE_COST_BUDGET_EXHAUSTED + rule_clarify|abstain|handoff`，不静默升级到更昂贵路径。
+- RoutePath result 与低内容 Trace 保存 policy/version、资源实际值和官方 provider usage；新增 response ID
+  correlation 与 captured/billed exact reconciliation contract。frozen cost gate manifest 要求 reconciliation
+  rate=1.0、budget regression=0、silent expensive fallback=0。
+- offline Knowledge ingest 独立限制 batch sources、单/总 bytes、总 chunks 和 embedding token estimate；先
+  完整验证再写 Chroma/Sparse，不与在线 Route counter 共享或借额。
+- 验证：聚焦 `99 passed`、全套 `806 passed in 19.02s`，ruff/diff checks passed；
+  [build evidence](../governance/evidence/x-t04/cost-build-v1.md) 标记
+  `IMPLEMENTED / ROUTE FLAG-OFF / PRODUCTION BILLING REVIEW PENDING`。无真实 invoice/export sample，不宣称
+  production billing reconciliation 或 M2 Exit 已通过。
+
 ## 下一步
 
-1. 实施 `X-T04` per-RouteMode 成本预算与 usage reconciliation。
-2. 安排 X-T03 独立安全复核及生产 RLS/ACL/加密卷/credential rotation/disable drill 证据。
+1. M2 Exit 仍需独立 X-T03/X-T04 review、unseen Knowledge heldout、真实 provider billing sample、生产
+   Recall/latency/RTO/OLTP 与 M1 Exit evidence；当前不得签署或开启 canary。
+2. 在不依赖未获授权生产证据的前提下，继续下一个 DAG 可实施节点。
 3. M2-T05C 受 M2 Exit + `POSTGRES_RETRIEVAL_GA` candidate manifest 阻断，当前不执行 canary。
 4. T04/T04A live activation 仍受 M2 gate 与独立 review 约束。

@@ -10,6 +10,7 @@ from core.model_policy import ModelProfile, ModelRole, ReasoningEffort
 class FakeMessages:
     async def create(self, **_payload):
         return SimpleNamespace(
+            id="msg_provider_123",
             content=[
                 SimpleNamespace(type="thinking"),
                 SimpleNamespace(type="text"),
@@ -49,6 +50,7 @@ def test_usage_collector_aggregates_official_tokens_and_marks_reasoning_unknown(
     assert summary["total"]["reasoning_tokens"] is None
     assert summary["groups"][0]["role"] == "intent"
     assert summary["groups"][0]["reasoning"] == "high"
+    assert summary["calls"][0]["provider_request_id"] == "msg_provider_123"
 
 
 def test_calls_outside_capture_do_not_leak_into_later_run():

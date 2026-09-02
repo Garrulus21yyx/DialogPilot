@@ -405,6 +405,7 @@ async def lifespan(app: FastAPI):
     _grounded_answer_generator = GroundedAnswerGenerator(
         _tool_manager.llm_client, _model_policy.profile(ModelRole.SYNTHESIS),
     )
+    from application.cost_budget_policy import OFFLINE_KNOWLEDGE_INGEST_BUDGET
     _knowledge_base = KnowledgeBase(
         chroma_host=os.getenv("CHROMA_HOST", "chromadb"),
         chroma_port=int(os.getenv("CHROMA_PORT", "8000")),
@@ -417,6 +418,7 @@ async def lifespan(app: FastAPI):
         retrieval_vector_weight=float(bootstrap_rag_policy["vector_weight"]),
         retrieval_lexical_weight=float(bootstrap_rag_policy["lexical_weight"]),
         sparse_index_path=os.getenv("RAG_SPARSE_INDEX_PATH", ""),
+        offline_ingest_budget=OFFLINE_KNOWLEDGE_INGEST_BUDGET,
     )
     logger.info(f"知识库已加载: {await _knowledge_base.doc_count_async()} 个文档片段")
 
@@ -1171,6 +1173,7 @@ def _select_publication_candidate(
 
 async def _evaluate_route_path(invocation: Any) -> Any:
     """Execute the new route path as a non-publishing, write-forbidden shadow."""
+    from application.cost_budget_policy import RouteCostBudgetRegistry
     from application.route_decision import RouteMode
     from application.route_execution import CandidateOwner
     from application.route_path_executor import (
@@ -1181,6 +1184,12 @@ async def _evaluate_route_path(invocation: Any) -> Any:
         agent_route_candidate,
     )
     from application.route_outcomes import HandoffContractDraft, NeedsInputDraft
+    from core.cost_budget import (
+        RouteBudgetExceeded,
+        active_route_budget,
+        enforce_route_budget,
+    )
+    from core.llm_metrics import capture_llm_usage
 
     contract = invocation.execution_contract
 
@@ -1207,6 +1216,9 @@ async def _evaluate_route_path(invocation: Any) -> Any:
         )
 
     async def retrieve(_contract):
+        budget_tracker = active_route_budget()
+        if budget_tracker is not None:
+            budget_tracker.before_retrieval()
         return await _build_knowledge_context(
             invocation.command.message,
             intent=invocation.intent_result.intent,
@@ -1317,7 +1329,7 @@ async def _evaluate_route_path(invocation: Any) -> Any:
     async def record_turn(_contract, _candidate, _publishable):
         return None
 
-    return await RoutePathExecutor().execute(contract, RoutePathOperations(
+    operations = RoutePathOperations(
         rule_candidate=rule_candidate,
         retrieve=retrieve,
         grounded_generate=grounded_generate,
@@ -1326,7 +1338,59 @@ async def _evaluate_route_path(invocation: Any) -> Any:
         deterministic_gate=deterministic_gate,
         semantic_verifier=semantic_verifier,
         record_turn=record_turn,
-    ))
+    )
+    budget = RouteCostBudgetRegistry().for_route(invocation.route_decision.mode)
+    with enforce_route_budget(budget) as tracker, capture_llm_usage() as provider_usage:
+        def record_cost_observation(*, exhausted_dimension: str = "") -> Dict[str, Any]:
+            summary = provider_usage.summary()
+            if _trace_recorder is not None:
+                total = summary["total"]
+                with _trace_recorder.span(
+                    "route.cost_budget",
+                    kind="internal",
+                    attributes={
+                        "route.mode": budget.route_mode,
+                        "cost.policy_version": budget.policy_version,
+                        "cost.model_calls": tracker.usage.model_calls,
+                        "cost.tool_calls": tracker.usage.tool_calls,
+                        "cost.retrieval_calls": tracker.usage.retrieval_calls,
+                        "cost.input_tokens": total["input_tokens"],
+                        "cost.output_tokens": total["output_tokens"],
+                        "cost.exhausted_dimension": exhausted_dimension,
+                    },
+                ):
+                    pass
+            return summary
+
+        try:
+            result = await RoutePathExecutor().execute(contract, operations)
+        except RouteBudgetExceeded:
+            outcome = tracker.outcome()
+            if outcome is None:
+                raise
+            return replace(
+                outcome,
+                provider_usage=record_cost_observation(
+                    exhausted_dimension=outcome.dimension,
+                ),
+            )
+        outcome = tracker.outcome()
+        if outcome is not None:
+            return replace(
+                outcome,
+                provider_usage=record_cost_observation(
+                    exhausted_dimension=outcome.dimension,
+                ),
+            )
+        usage_summary = record_cost_observation()
+        return replace(
+            result,
+            cost_usage={
+                "route": tracker.usage.to_dict(),
+                "provider": usage_summary,
+            },
+            cost_budget_policy_version=budget.policy_version,
+        )
 
 
 def _badcase_versions(bundle: Optional[AgentBundle] = None) -> Dict[str, Any]:
@@ -2994,7 +3058,15 @@ async def add_knowledge(body: BatchDocInput, _principal: Principal = Depends(_ad
         ) for d in body.documents]
     except SourceDocumentContractError as exc:
         raise HTTPException(422, {"code": "source_document_invalid", "message": str(exc)}) from exc
-    count = await kb.add_documents_async(sources)
+    from core.cost_budget import OfflineIngestBudgetExceeded
+    try:
+        count = await kb.add_documents_async(sources)
+    except OfflineIngestBudgetExceeded as exc:
+        raise HTTPException(429, {
+            "code": exc.code, "dimension": exc.dimension,
+            "observed": exc.observed, "limit": exc.limit,
+            "policy_version": exc.policy_version,
+        }) from exc
     total = await kb.doc_count_async()
     return {
         "message": f"成功导入 {count} 个文档片段",
@@ -3031,9 +3103,12 @@ async def upload_knowledge(
     content = await file.read()
     filename = pathlib.PurePath(file.filename or "unknown").name
     suffix = pathlib.PurePath(filename).suffix.lower()
+    from application.cost_budget_policy import OFFLINE_KNOWLEDGE_INGEST_BUDGET
     from core.upload_security import TextUploadPolicy, UploadSecurityError
     try:
-        TextUploadPolicy().validate(content, suffix=suffix)
+        TextUploadPolicy(
+            max_bytes=OFFLINE_KNOWLEDGE_INGEST_BUDGET.max_source_bytes,
+        ).validate(content, suffix=suffix)
     except UploadSecurityError as exc:
         status = 413 if exc.code == "upload_too_large" else 415
         raise HTTPException(
@@ -3070,7 +3145,15 @@ async def upload_knowledge(
         ]
     except SourceDocumentContractError as exc:
         raise HTTPException(422, {"code": "source_document_invalid", "message": str(exc)}) from exc
-    count = await kb.add_documents_async(sources)
+    from core.cost_budget import OfflineIngestBudgetExceeded
+    try:
+        count = await kb.add_documents_async(sources)
+    except OfflineIngestBudgetExceeded as exc:
+        raise HTTPException(429, {
+            "code": exc.code, "dimension": exc.dimension,
+            "observed": exc.observed, "limit": exc.limit,
+            "policy_version": exc.policy_version,
+        }) from exc
     total = await kb.doc_count_async()
     return {
         "message": f"文件 {filename} 导入成功",

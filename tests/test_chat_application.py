@@ -261,6 +261,8 @@ def test_route_path_evaluation_receives_canonical_immutable_contract():
     assert shadow.candidate.owner.value == "grounded_answer_generator"
     assert shadow.publishable is False
     assert shadow.reason_code == "SHADOW_RECEIPTS_MISSING"
+    assert shadow.cost_budget_policy_version == "route-cost-budget-v1"
+    assert shadow.cost_usage["route"]["retrieval_calls"] == 1
 
 
 def test_route_path_active_mode_is_rejected_before_release_action():

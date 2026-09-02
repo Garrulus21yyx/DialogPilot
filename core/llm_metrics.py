@@ -14,6 +14,7 @@ from dataclasses import asdict, dataclass
 from typing import Any, Dict, Iterator, List, Optional
 
 from core.model_policy import ModelProfile, ModelRole
+from core.cost_budget import RouteBudgetExceeded, active_route_budget
 
 
 @dataclass(frozen=True)
@@ -30,6 +31,7 @@ class LLMCallUsage:
     cache_read_input_tokens: int = 0
     thinking_blocks: int = 0
     error: Optional[str] = None
+    provider_request_id: str = ""
 
 
 def _percentile(values: List[float], percentile: float) -> float:
@@ -148,6 +150,16 @@ def record_external_llm_run(
     if requests == 0:
         return
 
+    budget_tracker = active_route_budget()
+    if budget_tracker is not None:
+        for _ in range(requests):
+            try:
+                budget_tracker.before_model_call()
+            except RouteBudgetExceeded:
+                # The external run has already happened. Preserve exact provider
+                # usage and let the Application boundary return the typed outcome.
+                break
+
     def split(value: int) -> list[int]:
         quotient, remainder = divmod(max(0, int(value)), requests)
         return [quotient + int(index < remainder) for index in range(requests)]
@@ -158,6 +170,10 @@ def record_external_llm_run(
     cache_read = split(getattr(usage, "cache_read_tokens", 0) or 0)
     per_request_latency = max(0.0, float(latency_ms)) / requests
     for index in range(requests):
+        if budget_tracker is not None:
+            budget_tracker.record_provider_tokens(
+                input_tokens=input_tokens[index], output_tokens=output_tokens[index],
+            )
         collector.add(LLMCallUsage(
             role=role.value,
             model=profile.model,
@@ -178,6 +194,9 @@ async def create_message(
     **payload: Any,
 ) -> Any:
     """执行一次模型调用，并在活动上下文中记录官方 usage。"""
+    budget_tracker = active_route_budget()
+    if budget_tracker is not None:
+        budget_tracker.before_model_call()
     started = time.perf_counter()
     try:
         response = await client.messages.create(**profile.request(**payload))
@@ -196,20 +215,27 @@ async def create_message(
         raise
 
     collector = _ACTIVE_COLLECTOR.get()
+    usage = getattr(response, "usage", None)
+    input_tokens = int(getattr(usage, "input_tokens", 0) or 0)
+    output_tokens = int(getattr(usage, "output_tokens", 0) or 0)
+    if budget_tracker is not None:
+        budget_tracker.record_provider_tokens(
+            input_tokens=input_tokens, output_tokens=output_tokens,
+        )
     if collector is not None:
-        usage = getattr(response, "usage", None)
         content = list(getattr(response, "content", None) or [])
         collector.add(LLMCallUsage(
             role=role.value,
             model=profile.model,
             reasoning=profile.reasoning.value,
             latency_ms=(time.perf_counter() - started) * 1000,
-            input_tokens=int(getattr(usage, "input_tokens", 0) or 0),
-            output_tokens=int(getattr(usage, "output_tokens", 0) or 0),
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
             cache_creation_input_tokens=int(
                 getattr(usage, "cache_creation_input_tokens", 0) or 0
             ),
             cache_read_input_tokens=int(getattr(usage, "cache_read_input_tokens", 0) or 0),
             thinking_blocks=sum(getattr(block, "type", None) == "thinking" for block in content),
+            provider_request_id=str(getattr(response, "id", "") or "")[:160],
         ))
     return response

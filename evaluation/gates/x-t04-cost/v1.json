@@ -1,0 +1,104 @@
+{
+  "evidence_status": "BUILD_ONLY_PRODUCTION_BILLING_SAMPLE_REQUIRED",
+  "policy": {
+    "offline_ingest_budget": {
+      "max_chunks_per_batch": 4096,
+      "max_embedding_tokens_per_batch": 2000000,
+      "max_source_bytes": 10485760,
+      "max_sources_per_batch": 256,
+      "max_total_source_bytes": 10485760,
+      "policy_version": "offline-knowledge-ingest-budget-v1"
+    },
+    "online_route_budgets": [
+      {
+        "fallback": "rule_clarify",
+        "max_input_tokens": 0,
+        "max_model_calls": 0,
+        "max_output_tokens": 0,
+        "max_retrieval_calls": 0,
+        "max_tool_calls": 0,
+        "policy_version": "route-cost-budget-v1",
+        "route_mode": "direct"
+      },
+      {
+        "fallback": "abstain",
+        "max_input_tokens": 24000,
+        "max_model_calls": 2,
+        "max_output_tokens": 2048,
+        "max_retrieval_calls": 1,
+        "max_tool_calls": 0,
+        "policy_version": "route-cost-budget-v1",
+        "route_mode": "knowledge_qa"
+      },
+      {
+        "fallback": "handoff",
+        "max_input_tokens": 60000,
+        "max_model_calls": 5,
+        "max_output_tokens": 5120,
+        "max_retrieval_calls": 4,
+        "max_tool_calls": 4,
+        "policy_version": "route-cost-budget-v1",
+        "route_mode": "agent_task"
+      },
+      {
+        "fallback": "handoff",
+        "max_input_tokens": 60000,
+        "max_model_calls": 5,
+        "max_output_tokens": 5120,
+        "max_retrieval_calls": 5,
+        "max_tool_calls": 4,
+        "policy_version": "route-cost-budget-v1",
+        "route_mode": "mixed"
+      },
+      {
+        "fallback": "handoff",
+        "max_input_tokens": 168000,
+        "max_model_calls": 14,
+        "max_output_tokens": 14336,
+        "max_retrieval_calls": 12,
+        "max_tool_calls": 12,
+        "policy_version": "route-cost-budget-v1",
+        "route_mode": "multi_domain"
+      },
+      {
+        "fallback": "rule_clarify",
+        "max_input_tokens": 0,
+        "max_model_calls": 0,
+        "max_output_tokens": 0,
+        "max_retrieval_calls": 0,
+        "max_tool_calls": 0,
+        "policy_version": "route-cost-budget-v1",
+        "route_mode": "clarify"
+      },
+      {
+        "fallback": "handoff",
+        "max_input_tokens": 0,
+        "max_model_calls": 0,
+        "max_output_tokens": 0,
+        "max_retrieval_calls": 0,
+        "max_tool_calls": 0,
+        "policy_version": "route-cost-budget-v1",
+        "route_mode": "handoff"
+      },
+      {
+        "fallback": "rule_clarify",
+        "max_input_tokens": 0,
+        "max_model_calls": 0,
+        "max_output_tokens": 0,
+        "max_retrieval_calls": 0,
+        "max_tool_calls": 0,
+        "policy_version": "route-cost-budget-v1",
+        "route_mode": "out_of_scope"
+      }
+    ],
+    "policy_version": "route-cost-budget-v1"
+  },
+  "policy_sha256": "db81645a1ad3f99d62db01447aaa00f4725ad59181a63eaf0bfe2e0d53933241",
+  "release_thresholds": {
+    "provider_billing_sample_required": true,
+    "provider_usage_reconciliation_rate": 1.0,
+    "route_budget_exhaustion_regressions": 0,
+    "silent_more_expensive_fallbacks": 0
+  },
+  "schema_version": "x-t04-cost-gate-v1"
+}
