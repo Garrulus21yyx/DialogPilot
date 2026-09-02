@@ -11,7 +11,11 @@ from dataclasses import asdict, dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Sequence
 
-from agents.orchestration_contracts import CoverageReport, TaskPlan
+from agents.orchestration_contracts import CoverageReport, TaskArtifact, TaskPlan
+from agents.task_policies import (
+    SynthesisInvocationPolicy,
+    SynthesisMode,
+)
 from core.llm_metrics import create_message
 from core.llm_utils import extract_text_content
 from core.model_policy import ModelProfile, ModelRole
@@ -57,6 +61,8 @@ class AgentOutcome:
     tool_call_ids: List[str] = field(default_factory=list)
     react_run_id: str = ""
     pending_approval_call_ids: List[str] = field(default_factory=list)
+    artifacts: tuple[TaskArtifact, ...] = ()
+    authority_conflicts: List[str] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         """转换为 API 可序列化字典，并显式展开枚举值。"""
@@ -137,11 +143,13 @@ class ResultSynthesizer:
         client: Optional[Any],
         model: str,
         model_profile: Optional[ModelProfile] = None,
+        invocation_policy: Optional[SynthesisInvocationPolicy] = None,
     ):
         """保存可选融合客户端；客户端为空时仍提供确定性降级。"""
         self._client = client
         self._model_profile = model_profile or ModelProfile(model)
         self._model = self._model_profile.model
+        self._invocation_policy = invocation_policy or SynthesisInvocationPolicy()
 
     def unavailable_result(
         self,
@@ -207,6 +215,9 @@ class ResultSynthesizer:
         successful_agents = [outcome.agent_type for outcome in successful]
         failed_agents = [outcome.agent_type for outcome in failed]
         inherited_escalation = any(outcome.escalate for outcome in successful)
+        authority_conflicts = list(dict.fromkeys(
+            conflict for outcome in outcomes for conflict in outcome.authority_conflicts
+        ))
 
         if pending and not hard_failed:
             return SynthesisResult(
@@ -217,6 +228,32 @@ class ResultSynthesizer:
                 coverage=coverage,
                 successful_agents=successful_agents,
                 failed_agents=[outcome.agent_type for outcome in pending],
+            )
+
+        mode = self._invocation_policy.decide(
+            plan,
+            successful_task_ids=(outcome.task_id for outcome in successful),
+            coverage_complete=coverage.complete,
+            authority_conflicts=authority_conflicts,
+        )
+
+        if mode is SynthesisMode.CONFLICT:
+            return SynthesisResult(
+                status=SynthesisStatus.CONFLICT,
+                content="权威来源存在冲突，无法安全合并结论，请人工复核。",
+                reason="authority conflict must not be resolved by synthesis",
+                escalate=True, coverage=coverage,
+                successful_agents=successful_agents,
+                failed_agents=failed_agents, conflicts=authority_conflicts,
+            )
+
+        if mode is SynthesisMode.NONE:
+            return self.unavailable_result(
+                plan, outcomes,
+                reason=(
+                    "no successful outcome" if not successful
+                    else "required task coverage is incomplete"
+                ),
             )
 
         if not successful:
@@ -230,7 +267,7 @@ class ResultSynthesizer:
                 failed_agents=failed_agents,
             )
 
-        if len(successful) == 1:
+        if mode is SynthesisMode.DIRECT:
             # 单路成功不需要再次调用模型；若其他路失败则保留内容但标记 PARTIAL。
             only = successful[0]
             return SynthesisResult(
@@ -246,6 +283,17 @@ class ResultSynthesizer:
                     else "single successful result"
                 ),
                 escalate=inherited_escalation or bool(failed) or not coverage.complete,
+                coverage=coverage,
+                successful_agents=successful_agents,
+                failed_agents=failed_agents,
+            )
+
+        if mode is SynthesisMode.DETERMINISTIC:
+            return SynthesisResult(
+                status=SynthesisStatus.SUCCESS,
+                content=self._deterministic_fallback(successful),
+                reason="deterministic multi-outcome assembly",
+                escalate=inherited_escalation,
                 coverage=coverage,
                 successful_agents=successful_agents,
                 failed_agents=failed_agents,

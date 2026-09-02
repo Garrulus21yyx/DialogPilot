@@ -77,6 +77,25 @@ class PriorOutcomeBinding:
 
 
 @dataclass(frozen=True)
+class TaskArtifact:
+    """Typed in-memory task product; durable meaning stays with its receipt Owner."""
+
+    artifact_ref: str
+    artifact_kind: str
+    schema_version: str
+    content: str
+    evidence_receipt_refs: Tuple[str, ...] = field(default_factory=tuple)
+
+    def __post_init__(self) -> None:
+        if any(not str(value).strip() for value in (
+            self.artifact_ref, self.artifact_kind, self.schema_version,
+        )):
+            raise ValueError("task artifact identity is required")
+        if any(not item.strip() for item in self.evidence_receipt_refs):
+            raise ValueError("evidence receipt refs must not be blank")
+
+
+@dataclass(frozen=True)
 class TaskSpec:
     """一个有 Owner、证据、上下文范围和依赖的可验收子任务。"""
 
@@ -352,6 +371,9 @@ class ExecutionBudget:
     request_timeout_s: float = 20.0
     agent_timeout_s: float = 15.0
     max_agents: int = 3
+    max_planned_tasks: int = 4
+    max_parallel_workers: int = 0
+    worker_react_steps: int = 4
 
     def __post_init__(self) -> None:
         """配置错误应在启动时失败，不能退化成随机运行时行为。"""
@@ -361,6 +383,14 @@ class ExecutionBudget:
             raise ValueError("agent_timeout_s must be positive")
         if self.max_agents < 1:
             raise ValueError("max_agents must be at least one")
+        if self.max_planned_tasks < self.max_agents:
+            raise ValueError("max_planned_tasks must cover max_agents")
+        if self.max_parallel_workers == 0:
+            object.__setattr__(self, "max_parallel_workers", min(3, self.max_agents))
+        if not 1 <= self.max_parallel_workers <= self.max_agents:
+            raise ValueError("max_parallel_workers must fit max_agents")
+        if self.worker_react_steps < 1:
+            raise ValueError("worker_react_steps must be at least one")
 
     def start(self) -> "ExecutionWindow":
         """为一次请求创建使用单调时钟的运行窗口。"""
@@ -375,6 +405,10 @@ class ExecutionBudget:
             "request_timeout_s": self.request_timeout_s,
             "agent_timeout_s": self.agent_timeout_s,
             "max_agents": self.max_agents,
+            "max_executed_tasks_per_request": self.max_agents,
+            "max_planned_tasks": self.max_planned_tasks,
+            "max_parallel_workers": self.max_parallel_workers,
+            "worker_react_steps": self.worker_react_steps,
         }
 
 

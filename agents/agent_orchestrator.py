@@ -32,10 +32,19 @@ from agents.orchestration_contracts import (
     AgentType,
     ExecutionBudget,
     ExecutionWindow,
+    DependencyInput,
+    TaskArtifact,
     TaskPlan,
     TaskEffect,
     TaskRisk,
     TaskSpec,
+)
+from agents.task_policies import (
+    MultiAgentExecutionPolicy,
+    SynthesisInvocationPolicy,
+    TaskFormationPolicy,
+    TaskPolicyError,
+    pinned_config_ref,
 )
 from agents.routing_policy import (
     AgentHealthSnapshot,
@@ -145,6 +154,8 @@ class AgentResponse:
     react_run_id: str = ""
     pending_approval_call_ids: List[str] = field(default_factory=list)
     allow_fallback: bool = True
+    evidence_receipt_refs: List[str] = field(default_factory=list)
+    authority_conflicts: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -173,6 +184,7 @@ class Request:
     intent_input_fingerprint: str = ""
     intent_source_scores: Dict[str, float] = field(default_factory=dict)
     routing_policy_trace: Optional[RoutingPolicyTrace] = None
+    dependency_artifacts: tuple[TaskArtifact, ...] = ()
 
 
 class PlanningDisposition(str, Enum):
@@ -601,11 +613,24 @@ class AgentOrchestrator:
             request_timeout_s=float(request_timeout_s),
             agent_timeout_s=self._agent_timeout_s,
             max_agents=int(max_agents_per_request),
+            max_planned_tasks=4,
+            max_parallel_workers=min(3, int(max_agents_per_request)),
+            worker_react_steps=int(react_max_steps),
         )
+        self._task_formation_policy = TaskFormationPolicy()
+        self._task_execution_policy = MultiAgentExecutionPolicy(
+            max_executed_tasks_per_request=int(max_agents_per_request),
+            max_parallel_workers=min(3, int(max_agents_per_request)),
+            request_timeout_s=float(request_timeout_s),
+            worker_timeout_s=self._agent_timeout_s,
+            worker_react_steps=int(react_max_steps),
+        )
+        self._synthesis_invocation_policy = SynthesisInvocationPolicy()
         self._result_synthesizer = result_synthesizer or ResultSynthesizer(
             client,
             policy.profile(ModelRole.SYNTHESIS).model,
             model_profile=policy.profile(ModelRole.SYNTHESIS),
+            invocation_policy=self._synthesis_invocation_policy,
         )
 
         # Agent 池：每种类型可有多个实例（水平扩展）
@@ -776,7 +801,7 @@ class AgentOrchestrator:
         if plan is None:  # PlanningDecision 的类型不变量保护；正常路径不可达。
             raise RuntimeError("executable planning decision must contain a task plan")
         window = self._new_execution_window()
-        if plan.multi_agent:
+        if len(plan.tasks) > 1:
             return await self.run_parallel(req, plan, window=window)
 
         # 2. 执行主 Agent（含降级），与并行路径共用同一个 deadline/outcome 边界。
@@ -852,13 +877,27 @@ class AgentOrchestrator:
         t0 = time.monotonic()
         self._ensure_routing_trace(req)
         window = window or self._new_execution_window()
-        budget = window.budget
-        agent_types = plan.agent_types
         # 按拓扑顺序而非展示顺序分配总 fan-out 预算，
         # 保证一个被选中任务的依赖不会被偷偷延后。
-        topological = plan.topological_tasks
-        executable_tasks = topological[: budget.max_agents]
-        deferred_tasks = topological[budget.max_agents :]
+        execution_policy = self._execution_policy(window)
+        try:
+            selection = execution_policy.select(plan)
+        except TaskPolicyError as exc:
+            if exc.code != "PLAN_TOO_LARGE":
+                raise
+            outcomes = [AgentOutcome(
+                task_id=task.task_id, required=task.required,
+                agent_type=task.owner.value,
+                status=AgentOutcomeStatus.BUDGET_EXCEEDED,
+                is_primary=task.task_id == plan.primary_task_id,
+                error=f"PLAN_TOO_LARGE: {exc}",
+            ) for task in plan.ordered_tasks]
+            synthesis = self._result_synthesizer.unavailable_result(
+                plan, outcomes, reason=f"PLAN_TOO_LARGE: {exc}",
+            )
+            return self._parallel_result(req, plan, outcomes, synthesis, window, t0)
+        executable_tasks = selection.selected
+        deferred_tasks = selection.deferred
         executable_ids = {task.task_id for task in executable_tasks}
         outcome_by_task: Dict[str, AgentOutcome] = {}
         for wave in plan.execution_waves(executable_ids):
@@ -879,29 +918,25 @@ class AgentOrchestrator:
                         error=f"blocked by failed dependencies: {failed_dependencies}",
                     )
                 else:
-                    ready.append(task)
-
-            # 同波次只读任务可并行；任何可能写入的任务都按计划顺序串行。
-            read_tasks = [task for task in ready if task.effect is TaskEffect.READ_ONLY]
-            write_tasks = [task for task in ready if task.effect is not TaskEffect.READ_ONLY]
-            if read_tasks:
-                read_outcomes = await asyncio.gather(*[
-                    self._execute_outcome(
-                        req,
-                        task,
-                        is_primary=task.task_id == plan.primary_task_id,
-                        window=window,
+                    artifacts = self._dependency_artifacts(
+                        task, outcome_by_task,
                     )
-                    for task in read_tasks
-                ])
-                outcome_by_task.update({outcome.task_id: outcome for outcome in read_outcomes})
-            for task in write_tasks:
-                outcome_by_task[task.task_id] = await self._execute_outcome(
-                    req,
-                    task,
-                    is_primary=task.task_id == plan.primary_task_id,
-                    window=window,
-                )
+                    if artifacts is None:
+                        outcome_by_task[task.task_id] = AgentOutcome(
+                            task_id=task.task_id, required=task.required,
+                            agent_type=task.owner.value,
+                            status=AgentOutcomeStatus.BLOCKED_DEPENDENCY,
+                            is_primary=task.task_id == plan.primary_task_id,
+                            error="dependency artifact/receipt schema is missing or invalid",
+                        )
+                    else:
+                        ready.append((task, artifacts))
+
+            wave_outcomes = await self._execute_wave(
+                req, ready, plan=plan, window=window,
+                max_parallel_workers=execution_policy.max_parallel_workers,
+            )
+            outcome_by_task.update({outcome.task_id: outcome for outcome in wave_outcomes})
 
         deferred_outcomes = [
             AgentOutcome(
@@ -910,7 +945,10 @@ class AgentOrchestrator:
                 agent_type=task.owner.value,
                 status=AgentOutcomeStatus.BUDGET_EXCEEDED,
                 is_primary=task.task_id == plan.primary_task_id,
-                error=f"max_agents_per_request={budget.max_agents} prevented execution",
+                error=(
+                    "max_executed_tasks_per_request="
+                    f"{execution_policy.max_executed_tasks_per_request} prevented execution"
+                ),
             )
             for task in deferred_tasks
         ]
@@ -937,13 +975,19 @@ class AgentOrchestrator:
                     reason="request execution budget exhausted during synthesis",
                 )
 
+        return self._parallel_result(req, plan, outcomes, synthesis, window, t0)
+
+    def _parallel_result(
+        self, req, plan, outcomes, synthesis, window, started_at,
+    ) -> OrchestratorResult:
+        agent_types = plan.agent_types
         return OrchestratorResult(
             request_id=req.request_id,
             response=synthesis.content,
             agent_type=plan.primary_agent,
             intent=req.intent,
             escalated=synthesis.escalate,
-            latency_ms=(time.monotonic() - t0) * 1000,
+            latency_ms=(time.monotonic() - started_at) * 1000,
             agent_types=[
                 AgentType(outcome.agent_type) for outcome in outcomes
                 if outcome.status is AgentOutcomeStatus.SUCCESS
@@ -985,6 +1029,83 @@ class AgentOrchestrator:
             routing_policy_trace=req.routing_policy_trace.to_dict(),
         )
 
+    def _execution_policy(self, window: ExecutionWindow) -> MultiAgentExecutionPolicy:
+        policy = getattr(self, "_task_execution_policy", None)
+        if policy is not None:
+            return policy
+        budget = window.budget
+        return MultiAgentExecutionPolicy(
+            max_planned_tasks=budget.max_planned_tasks,
+            max_executed_tasks_per_request=budget.max_agents,
+            max_parallel_workers=budget.max_parallel_workers,
+            request_timeout_s=budget.request_timeout_s,
+            worker_timeout_s=budget.agent_timeout_s,
+            worker_react_steps=budget.worker_react_steps,
+        )
+
+    async def _execute_wave(
+        self,
+        req: Request,
+        ready: list[tuple[TaskSpec, tuple[TaskArtifact, ...]]],
+        *,
+        plan: TaskPlan,
+        window: ExecutionWindow,
+        max_parallel_workers: int,
+    ) -> list[AgentOutcome]:
+        """Execute stable-order safe-read batches; effects/interrupts stay serial."""
+        outcomes: list[AgentOutcome] = []
+        batch: list[tuple[TaskSpec, tuple[TaskArtifact, ...]]] = []
+
+        async def flush() -> None:
+            nonlocal batch
+            if not batch:
+                return
+            results = await asyncio.gather(*(
+                self._execute_outcome(
+                    req, task, is_primary=task.task_id == plan.primary_task_id,
+                    window=window, dependency_artifacts=artifacts,
+                )
+                for task, artifacts in batch
+            ))
+            outcomes.extend(results)
+            batch = []
+
+        for task, artifacts in ready:
+            if task.effect is TaskEffect.READ_ONLY and not task.may_interrupt:
+                batch.append((task, artifacts))
+                if len(batch) >= max_parallel_workers:
+                    await flush()
+            else:
+                await flush()
+                outcomes.append(await self._execute_outcome(
+                    req, task, is_primary=task.task_id == plan.primary_task_id,
+                    window=window, dependency_artifacts=artifacts,
+                ))
+        await flush()
+        return outcomes
+
+    @staticmethod
+    def _dependency_artifacts(
+        task: TaskSpec,
+        outcome_by_task: Dict[str, AgentOutcome],
+    ) -> tuple[TaskArtifact, ...] | None:
+        if not task.depends_on:
+            return ()
+        selected: list[TaskArtifact] = []
+        for requirement in task.dependency_inputs:
+            upstream = outcome_by_task.get(requirement.upstream_task_id)
+            if upstream is None:
+                return None
+            matches = [
+                artifact for artifact in upstream.artifacts
+                if artifact.artifact_kind == requirement.artifact_kind
+                and artifact.schema_version == requirement.receipt_schema
+            ]
+            if not matches:
+                return None
+            selected.extend(matches)
+        return tuple(dict.fromkeys(selected))
+
     # ── 路由逻辑 ──────────────────────────────────────────────────────────────
 
     def _build_task_plan(self, req: Request) -> TaskPlan:
@@ -997,20 +1118,16 @@ class AgentOrchestrator:
         """
         if req.urgency == UrgencyLevel.CRITICAL:
             task = self._task_for_agent(req, AgentType.ESCALATION)
-            return TaskPlan(
-                tasks=(task,),
-                primary_task_id=task.task_id,
-                reason="紧急度为 CRITICAL，触发升级路由",
-                confidence=1.0,
+            return self._form_task_plan(
+                (task,), task.task_id, "紧急度为 CRITICAL，触发升级路由", 1.0,
             )
 
         if req.intent in (IntentCategory.ESCALATION, IntentCategory.HUMAN_HANDOFF):
             task = self._task_for_agent(req, AgentType.ESCALATION)
-            return TaskPlan(
-                tasks=(task,),
-                primary_task_id=task.task_id,
-                reason=f"意图为 {req.intent.value if req.intent else 'unknown'}，触发升级路由",
-                confidence=max(req.intent_confidence, 0.8),
+            return self._form_task_plan(
+                (task,), task.task_id,
+                f"意图为 {req.intent.value if req.intent else 'unknown'}，触发升级路由",
+                max(req.intent_confidence, 0.8),
             )
 
         scores = self._domain_scores(req)
@@ -1021,11 +1138,8 @@ class AgentOrchestrator:
         }
         if not available_scores:
             task = self._task_for_agent(req, AgentType.GENERAL)
-            return TaskPlan(
-                tasks=(task,),
-                primary_task_id=task.task_id,
-                reason="无可用专属 Agent，降级到 GeneralAgent",
-                confidence=0.1,
+            return self._form_task_plan(
+                (task,), task.task_id, "无可用专属 Agent，降级到 GeneralAgent", 0.1,
             )
 
         ordered = sorted(available_scores.items(), key=lambda item: item[1], reverse=True)
@@ -1045,15 +1159,38 @@ class AgentOrchestrator:
         # 可疑账号同时出现资金问题时，账务结论依赖先完成安全止损。
         if AgentType.ACCOUNT_SECURITY in selected_agents and AgentType.BILLING in selected_agents:
             planned_tasks = tuple(
-                replace(task, depends_on=("account_security_task",))
+                replace(
+                    task, depends_on=("account_security_task",),
+                    dependency_inputs=(DependencyInput(
+                        "account_security_task", "agent_candidate",
+                        "agent-candidate-v1",
+                    ),),
+                )
                 if task.owner is AgentType.BILLING else task
                 for task in planned_tasks
             )
-        return TaskPlan(
-            tasks=planned_tasks,
-            primary_task_id=planned_tasks[0].task_id,
-            reason=reason,
-            confidence=round(min(primary_score, 1.0), 3),
+        return self._form_task_plan(
+            planned_tasks, planned_tasks[0].task_id, reason,
+            round(min(primary_score, 1.0), 3),
+        )
+
+    def _form_task_plan(
+        self,
+        tasks: tuple[TaskSpec, ...],
+        primary_task_id: str,
+        reason: str,
+        confidence: float,
+    ) -> TaskPlan:
+        formation = getattr(self, "_task_formation_policy", TaskFormationPolicy())
+        execution = getattr(self, "_task_execution_policy", MultiAgentExecutionPolicy())
+        synthesis = getattr(
+            self, "_synthesis_invocation_policy", SynthesisInvocationPolicy(),
+        )
+        return formation.form(
+            tasks, primary_task_id=primary_task_id, reason=reason,
+            confidence=confidence, execution_policy_version=execution.version,
+            synthesis_policy_version=synthesis.version,
+            pinned_config_ref=pinned_config_ref(formation, execution, synthesis),
         )
 
     @staticmethod
@@ -1092,6 +1229,17 @@ class AgentOrchestrator:
             ),
         }
         objective, risk, criteria, context_refs = definitions[agent_type]
+        requirement_ids = {
+            AgentType.GENERAL: ("knowledge.active_source",),
+            AgentType.TECHNICAL: ("knowledge.active_source",),
+            AgentType.BILLING: (
+                "refund.current_state"
+                if req.intent is IntentCategory.REFUND
+                else "order.current_state",
+            ),
+            AgentType.ACCOUNT_SECURITY: ("account.security_events",),
+            AgentType.ESCALATION: ("support.handoff_action",),
+        }[agent_type]
         write_requested = (
             agent_type is AgentType.BILLING
             and bool(re.search(r"(?:帮我|我要|申请|立即|现在).{0,8}(?:退款|退款申请)", req.message))
@@ -1105,6 +1253,7 @@ class AgentOrchestrator:
             success_criteria=criteria,
             evidence_spans=AgentOrchestrator._evidence_spans(req.message, agent_type),
             context_refs=context_refs,
+            requirement_ids=requirement_ids,
             effect=(
                 TaskEffect.WRITE_REQUIRES_APPROVAL
                 if write_requested else TaskEffect.READ_ONLY
@@ -1306,6 +1455,7 @@ class AgentOrchestrator:
         *,
         is_primary: bool,
         window: Optional[ExecutionWindow] = None,
+        dependency_artifacts: tuple[TaskArtifact, ...] = (),
     ) -> AgentOutcome:
         """把一次选中 Agent 的执行收敛为闭合的 outcome 结果代数。"""
         started = time.monotonic()
@@ -1321,7 +1471,9 @@ class AgentOrchestrator:
                 error="request execution budget exhausted before agent start",
             )
         request_limited = timeout_s < window.budget.agent_timeout_s
-        scoped_request = self._scoped_request(req, task)
+        scoped_request = self._scoped_request(
+            req, task, dependency_artifacts=dependency_artifacts,
+        )
         try:
             response = await asyncio.wait_for(
                 self._execute(scoped_request, task.owner),
@@ -1357,6 +1509,16 @@ class AgentOrchestrator:
             )
 
         awaiting_approval = response.react_status == "waiting_approval"
+        artifacts = (
+            (TaskArtifact(
+                artifact_ref=f"task-artifact:v1:{task.task_id}",
+                artifact_kind="agent_candidate",
+                schema_version="agent-candidate-v1",
+                content=response.content,
+                evidence_receipt_refs=tuple(response.evidence_receipt_refs),
+            ),)
+            if response.success else ()
+        )
         return AgentOutcome(
             task_id=task.task_id,
             required=task.required,
@@ -1381,10 +1543,17 @@ class AgentOrchestrator:
             tool_call_ids=response.tool_call_ids,
             react_run_id=response.react_run_id,
             pending_approval_call_ids=response.pending_approval_call_ids,
+            artifacts=artifacts,
+            authority_conflicts=response.authority_conflicts,
         )
 
     @staticmethod
-    def _scoped_request(req: Request, task: TaskSpec) -> Request:
+    def _scoped_request(
+        req: Request,
+        task: TaskSpec,
+        *,
+        dependency_artifacts: tuple[TaskArtifact, ...] = (),
+    ) -> Request:
         """TaskSpec 是范围权威；在 Worker 边界投影当前证据与允许上下文。"""
         refs = set(task.context_refs)
         section_tags = tuple(ref for ref in refs if not ref.startswith("entity:") and ref != "history")
@@ -1406,14 +1575,29 @@ class AgentOrchestrator:
             for key, values in (req.entities or {}).items()
             if key in allowed_entity_keys
         }
+        dependency_context = ""
+        if dependency_artifacts:
+            dependency_context = "\n\n<dependency_artifacts>\n" + json.dumps([
+                {
+                    "artifact_ref": item.artifact_ref,
+                    "artifact_kind": item.artifact_kind,
+                    "schema_version": item.schema_version,
+                    "content": item.content,
+                    "evidence_receipt_refs": list(item.evidence_receipt_refs),
+                }
+                for item in dependency_artifacts
+            ], ensure_ascii=False, sort_keys=True) + "\n</dependency_artifacts>"
         return replace(
             req,
             message=task.scoped_input,
-            context=scoped_prompt.system_context if scoped_prompt is not None else "",
+            context=(
+                scoped_prompt.system_context if scoped_prompt is not None else ""
+            ) + dependency_context,
             history=req.history if include_history else None,
             prompt_context=scoped_prompt,
             entities=entities,
             assigned_task=task,
+            dependency_artifacts=dependency_artifacts,
         )
 
     def _new_execution_window(self) -> ExecutionWindow:

@@ -100,7 +100,7 @@ class TaskFormationPolicy:
             return first
         return replace(
             first,
-            task_id=f"{first.owner.value}_task",
+            task_id=first.task_id,
             objective="\n".join(dict.fromkeys(item.objective for item in group)),
             required=any(item.required for item in group),
             success_criteria=tuple(dict.fromkeys(

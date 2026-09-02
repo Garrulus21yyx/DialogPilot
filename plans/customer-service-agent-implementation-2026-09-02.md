@@ -35,7 +35,7 @@
 | M2-T04 Requirement CoverageGate / VerificationProfile | implemented (flag-off) | build complete；Knowledge verification waits T04A；642 tests passed |
 | M2-T04A SourceRevision v0 / active manifest | implemented (review pending) | PG owner/backfill/active validator done；independent human heldout review pending；650 tests passed |
 | M2-T05 统一 KnowledgeRetriever | implemented (canary blocked) | A1/A2/B + immutable PG dark-shadow report；675 tests passed |
-| M2-T06A Multi-Agent TaskGraph 收紧 | in_progress | A contracts/policies done；execution/dependency/signal/synthesis migration pending；684 tests passed |
+| M2-T06A Multi-Agent TaskGraph 收紧 | in_progress | A/B contracts + execution/dependency/synthesis done；native signal/terminal algebra pending；690 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
@@ -672,6 +672,25 @@
 - 验证：合并/拆分边界、typed dependency、fingerprint drift、4→3 dependency-closed replay、
   plan overflow 和五种 synthesis 代数；聚焦 `41 passed`，全套 `684 passed in 19.19s`，
   ruff/diff checks passed。执行器迁移尚未完成，M2-T06A 保持 in_progress。
+
+### M2-T06A-B（TaskGraph execution / dependency binding / synthesis migration）
+
+- DAG 触发从 `plan.multi_agent` 修正为 `len(tasks)>1`；`multi_agent` 仍只表示
+  `distinct_owner_count>1`，因此同 Owner 确需拆分的 read/write 任务全部执行但不冒充
+  multi-Agent fan-out。Planner 新计划统一经 TaskFormationPolicy 生成并 pinned 三项 policy。
+- 调度器使用 `MultiAgentExecutionPolicy.select()` 而不再自行截断；同波次保持 plan
+  原顺序，safe read 按 `max_parallel_workers` 分批，write/approval 与 `may_interrupt`
+  任务在调度 Owner 内串行。超过 plan 边界的执行返回 typed `PLAN_TOO_LARGE`
+  诊断且不启动 Worker。
+- 每个成功 Worker 产生 typed `TaskArtifact(agent_candidate, agent-candidate-v1, receipt refs)`；
+  下游只有在 upstream `SUCCESS` 且 kind/schema 精确匹配 `DependencyInput` 时执行，artifact
+  作为结构化 dependency context 进入 scoped Request；缺失/错 schema 为 `BLOCKED_DEPENDENCY`。
+- ResultSynthesizer 消费 `SynthesisInvocationPolicy`：required coverage 不完整为 `UNKNOWN`
+  fail-closed，单成功直接候选，多个 template-capable outcome 确定性组装，只有完整、
+  非模板、无 authority conflict 的多结果调用一次 LLM；冲突返回 `CONFLICT` 并转复核。
+- 验证：同 Owner split DAG、valid/wrong dependency schema、parallel cap、interrupt serialization、
+  0/1/template/LLM/conflict 实际模型调用次数；聚焦 `53 passed`，全套
+  `690 passed in 19.21s`，ruff/diff checks passed。PendingSignal 和 CANCELLED/EXPIRED 终态仍待收口。
 
 ## 下一步
 

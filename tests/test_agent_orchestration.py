@@ -14,12 +14,14 @@ from agents.agent_orchestrator import (
     Request,
 )
 from agents.orchestration_contracts import (
+    DependencyInput,
     ExecutionBudget,
     TaskEffect,
     TaskPlan,
     TaskRisk,
     TaskSpec,
 )
+from agents.task_policies import MultiAgentExecutionPolicy
 from core.intent_recognizer import IntentCategory
 from memory.context import ContextAssembler, ContextSection
 from services.result_synthesizer import (
@@ -87,8 +89,8 @@ def test_human_handoff_executes_the_registered_escalation_owner():
     assert escalation._react_engine is None
 
 
-def test_synthesizer_returns_partial_success_without_discarding_valid_answer():
-    """证明部分失败时保留有效回答，同时返回 PARTIAL 并升级。"""
+def test_synthesizer_does_not_publish_partial_required_coverage_as_synthesized():
+    """Required coverage 不完整时保留诊断内容，但不声称已融合完成。"""
     synthesizer = ResultSynthesizer(client=None, model="test")
     result = asyncio.run(synthesizer.synthesize(
         "question",
@@ -99,8 +101,8 @@ def test_synthesizer_returns_partial_success_without_discarding_valid_answer():
         ],
     ))
 
-    assert result.status is SynthesisStatus.PARTIAL
-    assert result.content == "technical answer"
+    assert result.status is SynthesisStatus.UNKNOWN
+    assert "technical answer" in result.content
     assert result.successful_agents == ["technical"]
     assert result.failed_agents == ["billing"]
     assert result.escalate is True
@@ -754,6 +756,151 @@ def test_planning_decision_rejects_task_and_disposition_split_brain():
             task_plan=plan,
             disposition=PlanningDisposition.OUT_OF_SCOPE,
         )
+
+
+def test_same_owner_split_tasks_execute_the_graph_without_becoming_multi_agent():
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    orchestrator._agent_timeout_s = 1.0
+    orchestrator._execution_budget = ExecutionBudget(1.0, 1.0, 3)
+    orchestrator._result_synthesizer = CapturingSynthesizer()
+    tasks = (
+        TaskSpec("billing-read", AgentType.BILLING, "read"),
+        TaskSpec(
+            "billing-write", AgentType.BILLING, "write",
+            effect=TaskEffect.WRITE_REQUIRES_APPROVAL,
+        ),
+    )
+    plan = TaskPlan(tasks, "billing-read")
+    called = []
+
+    async def planning(_request):
+        return PlanningDecision(IntentCategory.BILLING, plan)
+
+    async def execute(scoped, agent_type):
+        called.append(scoped.assigned_task.task_id)
+        return AgentResponse(agent_type=agent_type, content="ok", success=True)
+
+    orchestrator.plan = planning
+    orchestrator._execute = execute
+    result = asyncio.run(orchestrator.run(Request(
+        message="query then write", user_id="u", conv_id="c",
+        intent=IntentCategory.BILLING,
+    )))
+    assert plan.multi_agent is False
+    assert called == ["billing-read", "billing-write"]
+    assert len(result.agent_outcomes) == 2
+
+
+@pytest.mark.parametrize("receipt_schema", ["agent-candidate-v1", "wrong-v1"])
+def test_downstream_consumes_declared_artifact_or_is_blocked(receipt_schema):
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    orchestrator._agent_timeout_s = 1.0
+    orchestrator._execution_budget = ExecutionBudget(1.0, 1.0, 3)
+    orchestrator._result_synthesizer = CapturingSynthesizer()
+    captured = []
+    graph = TaskPlan((
+        TaskSpec("upstream", AgentType.ACCOUNT_SECURITY, "secure"),
+        TaskSpec(
+            "downstream", AgentType.BILLING, "bill",
+            depends_on=("upstream",),
+            dependency_inputs=(DependencyInput(
+                "upstream", "agent_candidate", receipt_schema,
+            ),),
+        ),
+    ), "upstream")
+
+    async def execute(scoped, agent_type):
+        captured.append((scoped.assigned_task.task_id, scoped.dependency_artifacts))
+        return AgentResponse(agent_type=agent_type, content="owned result", success=True)
+
+    orchestrator._execute = execute
+    result = asyncio.run(orchestrator.run_parallel(
+        Request(message="security billing", user_id="u", conv_id="c"), graph,
+    ))
+    if receipt_schema == "agent-candidate-v1":
+        assert [item[0] for item in captured] == ["upstream", "downstream"]
+        assert captured[1][1][0].content == "owned result"
+        assert captured[1][1][0].schema_version == "agent-candidate-v1"
+    else:
+        assert [item[0] for item in captured] == ["upstream"]
+        assert result.agent_outcomes[1]["status"] == "blocked_dependency"
+
+
+@pytest.mark.parametrize(("may_interrupt", "expected_max"), [(False, 2), (True, 1)])
+def test_parallel_cap_and_interrupt_boundary_are_enforced(may_interrupt, expected_max):
+    async def exercise():
+        orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+        orchestrator._agent_timeout_s = 1.0
+        orchestrator._execution_budget = ExecutionBudget(1.0, 1.0, 3)
+        orchestrator._task_execution_policy = MultiAgentExecutionPolicy(
+            max_parallel_workers=2,
+        )
+        orchestrator._result_synthesizer = CapturingSynthesizer()
+        active = maximum = 0
+
+        async def execute(_scoped, agent_type):
+            nonlocal active, maximum
+            active += 1
+            maximum = max(maximum, active)
+            await asyncio.sleep(0.01)
+            active -= 1
+            return AgentResponse(agent_type=agent_type, content="ok", success=True)
+
+        orchestrator._execute = execute
+        graph = TaskPlan(tuple(
+            TaskSpec(
+                f"task-{index}", owner, "read", may_interrupt=may_interrupt,
+            )
+            for index, owner in enumerate((
+                AgentType.GENERAL, AgentType.TECHNICAL, AgentType.BILLING,
+            ))
+        ), "task-0")
+        await orchestrator.run_parallel(
+            Request(message="multi", user_id="u", conv_id="c"), graph,
+        )
+        return maximum
+
+    assert asyncio.run(exercise()) == expected_max
+
+
+def test_synthesis_invokes_model_only_for_complete_non_template_multi_outcome():
+    class CountingSynthesizer(ResultSynthesizer):
+        def __init__(self):
+            super().__init__(client=object(), model="test")
+            self.calls = 0
+
+        async def _synthesize_with_model(self, question, successful):
+            self.calls += 1
+            return {"answer": "merged", "conflicts": [], "reason": "merged"}
+
+    async def mode(tasks, outcomes):
+        synth = CountingSynthesizer()
+        result = await synth.synthesize(
+            "question", TaskPlan(tuple(tasks), tasks[0].task_id), outcomes,
+        )
+        return synth.calls, result
+
+    a = TaskSpec("a", AgentType.BILLING, "a")
+    b = TaskSpec("b", AgentType.TECHNICAL, "b")
+    successes = (
+        AgentOutcome("a", True, "billing", AgentOutcomeStatus.SUCCESS, True, content="a"),
+        AgentOutcome("b", True, "technical", AgentOutcomeStatus.SUCCESS, False, content="b"),
+    )
+    calls, result = asyncio.run(mode((a, b), successes))
+    assert (calls, result.status) == (1, SynthesisStatus.SUCCESS)
+
+    templates = (
+        TaskSpec(**{**a.__dict__, "deterministic_assembly": True}),
+        TaskSpec(**{**b.__dict__, "deterministic_assembly": True}),
+    )
+    calls, result = asyncio.run(mode(templates, successes))
+    assert (calls, result.status) == (0, SynthesisStatus.SUCCESS)
+
+    conflict = AgentOutcome(
+        **{**successes[1].__dict__, "authority_conflicts": ["state drift"]}
+    )
+    calls, result = asyncio.run(mode((a, b), (successes[0], conflict)))
+    assert (calls, result.status) == (0, SynthesisStatus.CONFLICT)
 
 
 class JsonClient:
