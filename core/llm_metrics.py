@@ -16,6 +16,11 @@ from typing import Any, Dict, Iterator, List, Optional
 from core.model_policy import ModelProfile, ModelRole
 from core.cost_budget import RouteBudgetExceeded, active_route_budget
 from core.provider_context_budget import DEFAULT_PROVIDER_CONTEXT_BUDGET
+from core.provider_cache_policy import (
+    DEFAULT_PROVIDER_CACHE_GATE,
+    ProviderCacheInvocation,
+    ProviderCacheStatus,
+)
 
 
 @dataclass(frozen=True)
@@ -36,6 +41,8 @@ class LLMCallUsage:
     estimated_input_tokens: int = 0
     max_context_tokens: int = 0
     reserved_output_tokens: int = 0
+    cache_policy_status: str = ProviderCacheStatus.DISABLED.value
+    cache_policy_reason: str = "not_requested"
 
 
 def _percentile(values: List[float], percentile: float) -> float:
@@ -214,7 +221,17 @@ async def create_message(
     **payload: Any,
 ) -> Any:
     """执行一次模型调用，并在活动上下文中记录官方 usage。"""
-    request = profile.request(**payload)
+    cache_invocation = payload.pop("provider_cache", None)
+    if cache_invocation is not None and not isinstance(
+        cache_invocation, ProviderCacheInvocation,
+    ):
+        raise TypeError("provider_cache must be a ProviderCacheInvocation")
+    cache_payload, cache_decision = (
+        DEFAULT_PROVIDER_CACHE_GATE.apply(payload, cache_invocation)
+        if cache_invocation is not None
+        else (payload, None)
+    )
+    request = profile.request(**cache_payload)
     context_usage = DEFAULT_PROVIDER_CONTEXT_BUDGET.validate(profile, role, request)
     budget_tracker = active_route_budget()
     if budget_tracker is not None:
@@ -236,6 +253,13 @@ async def create_message(
                 estimated_input_tokens=context_usage.estimated_input_tokens,
                 max_context_tokens=context_usage.max_context_tokens,
                 reserved_output_tokens=context_usage.output_reserve_tokens,
+                cache_policy_status=(
+                    cache_decision.status.value if cache_decision
+                    else ProviderCacheStatus.DISABLED.value
+                ),
+                cache_policy_reason=(
+                    cache_decision.reason if cache_decision else "not_requested"
+                ),
             ))
         raise
 
@@ -265,5 +289,12 @@ async def create_message(
             estimated_input_tokens=context_usage.estimated_input_tokens,
             max_context_tokens=context_usage.max_context_tokens,
             reserved_output_tokens=context_usage.output_reserve_tokens,
+            cache_policy_status=(
+                cache_decision.status.value if cache_decision
+                else ProviderCacheStatus.DISABLED.value
+            ),
+            cache_policy_reason=(
+                cache_decision.reason if cache_decision else "not_requested"
+            ),
         ))
     return response

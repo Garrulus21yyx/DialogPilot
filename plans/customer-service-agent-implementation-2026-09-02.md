@@ -55,6 +55,7 @@
 | M4-T02B ThreadSummary projector/CAS/rebuild | implemented (production model canary pending) | fixed range、versioned trigger policy、transactional CAS、typed degradation、raw-L0 generation rebuild、durable outbox composition |
 | M4-T03P Final provider-call budget | implemented | every call/step accounts system/messages/tools/protocol/output reserve；typed pre-side-effect rejection；T03 policy/cache/compaction 继续 |
 | M4-T03C Versioned ContextPolicy | implemented | node/task/route selection、90/85/75/65/55 priority owner、closed failure、selection/truncation trace；T03 尚未整体关闭 |
+| M4-T03Cache Provider native cache policy | foundation implemented (disabled default) | capability×tenant/region/privacy/retention/deletion gate、stable prefix breakpoint、usage fields；runtime conformance pending |
 | M4 Memory/Context/Commitment/Handoff | in_progress | M4-T01 完成；按 T02–T08 及 release 子节点推进 |
 | M5 Knowledge Lifecycle/Multimodal | in_progress | M5-T01 implemented/behavior-gated；M5-T02A implemented/flag-off；其余按依赖推进 |
 | M6-T01 Dataset v2 / Rubric v2 | implemented (contract fixtures provisional) | 11 层 service-chain + deterministic hard rubric + fixed semantic adapter；835 tests passed |
@@ -1098,6 +1099,15 @@
   worker view 同步裁剪 trace。
 - [build evidence](../governance/evidence/m4-t03c/context-policy-build.md)。WorkingContext、ActiveCase relevance、
   tool locator compaction 与 provider cache privacy policy 尚未完成，M4-T03 继续 in progress。
+
+### M4-T03Cache（provider native prompt cache policy foundation）
+
+- capability 与 tenant policy 分权；tenant/region/data class/TTL/multimodal/no-training/zero-retention/deletion/usage fields
+  必须全匹配，否则带 reason 关闭 cache 并正常未缓存推理。
+- explicit mode 只标记 caller 声明的 stable system prefix 与最后一个 stable tool schema；current input/live suffix 不进入
+  breakpoint。create_message 只接受 typed invocation，并记录 policy 与 provider cache token。
+- [build evidence](../governance/evidence/m4-t03cache/provider-cache-policy-build.md)。当前生产 caller 不默认启用；staging
+  provider conformance、图片变化与 hit/miss 语义等价尚未验证，M4-T03 继续 in progress。
 
 ### M6-T01（Dataset v2 / Rubric v2）
 
