@@ -49,7 +49,8 @@
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
 | M5 Knowledge Lifecycle/Multimodal | pending | 按 M5-T01–T09 子节点推进 |
-| M6 Eval/Observability/Release | pending | 按 M6-T01–T09 子节点推进 |
+| M6-T01 Dataset v2 / Rubric v2 | implemented (contract fixtures provisional) | 11 层 service-chain + deterministic hard rubric + fixed semantic adapter；835 tests passed |
+| M6 Eval/Observability/Release | in_progress | T01 build 完成；T02–T09 按依赖推进 |
 | X-T01–X-T05 跨里程碑治理 | implemented / production reviews pending | 五个 build 节点完成；生产 snapshot/failover/security/billing 与独立文案 review 不伪造 |
 
 ## 变更记录
@@ -1016,6 +1017,19 @@
 - [readiness audit](../governance/evidence/m1-exit/readiness-v1.md) 状态
   `NOT_READY / DRAFT_ONLY / LOCAL INTEGRATION GAP`。聚焦 `19 passed`，全套 `828 passed in 59.24s`，
   ruff/diff checks passed；无 owner/independent signature，不生成 evidence/decision，不解除 M2 shadow/M3 build。
+
+### M6-T01（Dataset v2 / Rubric v2）
+
+- 新增独立 service-chain v2，不改变 v1 数据身份；闭合 perception→service_outcome 11 层 observation，case
+  必须绑定 group-safe split、source/license/review、authoritative backend state 与分层 decision Gold。
+- deterministic Rubric 覆盖 required/forbidden Tool、顺序/参数/receipt、claim-evidence、transition、Handoff、
+  TaskGraph owner/dependency/parallel wave/dependency receipt/budget、重复 effect/publication 与 zero-tolerance flags。
+  unknown layer/rubric fail closed。
+- RAGAS-compatible scorer 只有固定 scorer ID/version 的补充投影权；满分语义不能覆盖缺 receipt、重复发布或
+  其他 hard fail。Knowledge/Episode/Media retrieval slices 与指标按 corpus 分开，不合成掩盖失败的总分。
+- 冻结 3 条 `PROVISIONAL_NOT_GOLD` contract fixtures，含一条已可见 heldout；只验证 schema/runner，不宣称
+  human Gold/fresh 泛化。聚焦 `7 passed`、全套 `835 passed in 51.39s`，ruff/diff checks passed；
+  [build evidence](../governance/evidence/m6-t01/service-chain-eval-v2-build.md)。
 
 ## 下一步
 

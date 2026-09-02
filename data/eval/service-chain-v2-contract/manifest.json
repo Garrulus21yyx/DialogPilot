@@ -1,0 +1,28 @@
+{
+  "case_count": 3,
+  "cases_sha256": "6b51366980dfab6fe8392ade7663adafe8fcec70a35f00fdca509c8100763b8c",
+  "dataset_id": "dialogpilot-service-chain-v2-contract",
+  "review_status": "PROVISIONAL_NOT_GOLD",
+  "retrieval_slices": {
+    "KNOWLEDGE": ["zh_colloquial", "short_query", "sku", "error_code", "synonym", "scope_filter"],
+    "MEDIA": ["asset", "page", "region", "provenance", "unnecessary_vlm"],
+    "SERVICE_EPISODE": ["tenant", "user", "entity", "continuity", "provenance"]
+  },
+  "retrieval_metrics_per_corpus": ["Recall@K", "MRR", "nDCG", "filtered_exact_vs_ann"],
+  "schema_version": 2,
+  "service_layers": [
+    "perception",
+    "route_mode",
+    "context_memory",
+    "retrieval",
+    "tool_authority",
+    "tool_effect",
+    "generation_claims",
+    "publication",
+    "handoff",
+    "delivery_feedback",
+    "service_outcome"
+  ],
+  "status": "CONTRACT_FIXTURE_ONLY",
+  "version": "2.0.0-contract-v1"
+}
