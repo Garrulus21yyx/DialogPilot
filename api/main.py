@@ -1113,19 +1113,15 @@ def _policy_terminal_verification(result: Any) -> Optional[VerificationResult]:
 def _select_publication_candidate(
     agent_response: str,
     knowledge: "KnowledgeContextResult",
-    tool_audit: List[Dict[str, Any]],
     *,
     approval_pending: bool,
+    route_mode: str,
 ) -> tuple[str, bool]:
-    """纯公共知识问答发布已校验 grounded result；混合业务事实仍由 Agent 合成。"""
-    business_tool_used = any(
-        str(record.get("tool") or record.get("tool_name") or "") != "knowledge_search"
-        for record in tool_audit
-    )
+    """Select by canonical RouteMode; audit observations never own candidate meaning."""
     knowledge_is_final = bool(
-        knowledge.answer
+        route_mode == "knowledge_qa"
+        and knowledge.answer
         and knowledge.generation_status in {"grounded_draft", "abstained"}
-        and not business_tool_used
         and not approval_pending
     )
     return (knowledge.answer if knowledge_is_final else agent_response), knowledge_is_final

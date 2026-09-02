@@ -821,7 +821,8 @@ class AgentOrchestrator:
             domain_port=domain_port,
             instance_port=instance_port,
             owner_pool_sizes={
-                owner.value: len(agents) for owner, agents in self._pool.items()
+                owner.value: len(agents)
+                for owner, agents in getattr(self, "_pool", {}).items()
             },
         ))
 

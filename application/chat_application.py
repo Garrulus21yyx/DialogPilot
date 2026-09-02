@@ -78,6 +78,20 @@ class RoutePathInvocation:
 
 
 @dataclass(frozen=True)
+class SkippedKnowledgeContext:
+    text: str = ""
+    used: bool = False
+    citations: tuple[str, ...] = ()
+    generation_status: str = "not_applicable"
+    answer: str = ""
+    claims: tuple[Mapping[str, Any], ...] = ()
+    conflicts: tuple[Mapping[str, Any], ...] = ()
+    abstained: bool = False
+    reason: str = "route_forbids_pre_retrieval"
+    evidence_pack: Any = None
+
+
+@dataclass(frozen=True)
 class Completed:
     response_id: str
     response: Mapping[str, Any]
@@ -323,7 +337,7 @@ class ChatApplication:
             message=command.message,
             bundle=bundle,
         )
-        await self._dispatch_route_path_if_enabled(
+        route_path = await self._dispatch_route_path_if_enabled(
             command=command,
             identity_metadata=identity_metadata,
             bundle=bundle,
@@ -333,16 +347,21 @@ class ChatApplication:
             request_id=request_id,
             stages=stages,
         )
-        knowledge = await ops.build_knowledge_context(
-            command.message,
-            intent=intent_result.intent,
-            bundle=bundle,
-            history=[str(item.get("content") or "") for item in prompt_history],
-            tenant_id=str(identity.tenant_id),
-            user_id=user_id,
-            conversation_id=conv_id,
-            authorization_fingerprint=command.authorization_fingerprint,
-        )
+        route_mode = route_path.route_decision.mode.value if route_path else "legacy"
+        if route_mode in {"knowledge_qa", "mixed", "legacy"}:
+            knowledge = await ops.build_knowledge_context(
+                command.message,
+                intent=intent_result.intent,
+                bundle=bundle,
+                history=[str(item.get("content") or "") for item in prompt_history],
+                tenant_id=str(identity.tenant_id),
+                user_id=user_id,
+                conversation_id=conv_id,
+                authorization_fingerprint=command.authorization_fingerprint,
+                generate_answer=route_mode != "mixed",
+            )
+        else:
+            knowledge = SkippedKnowledgeContext()
         stages.append(StageObservation("knowledge_retrieval", StageStatus.OK, {
             "used": bool(knowledge.used),
             "generation_status": knowledge.generation_status,
@@ -389,6 +408,14 @@ class ChatApplication:
                 getattr(intent_result, "input_fingerprint", "") or ""
             ),
             intent_source_scores=dict(intent_result.source_scores),
+            domain_decision=(
+                route_path.orchestration_request.domain_decision
+                if route_path is not None else None
+            ),
+            routing_policy_trace=(
+                route_path.orchestration_request.routing_policy_trace
+                if route_path is not None else None
+            ),
         )
         result = await services.orchestrator.run(orchestration_request)
         stages.append(StageObservation("route_and_agent", StageStatus.OK, {
@@ -400,15 +427,11 @@ class ChatApplication:
         }))
 
         approval_pending = bool(result.awaiting_approval)
-        prepublication_audit = [
-            record.to_dict()
-            for record in services.tool_manager.audit_records(trace_id=ops.trace_id())
-        ] if services.tool_manager else []
         publication_candidate, knowledge_is_final = ops.select_publication_candidate(
             result.response,
             knowledge,
-            prepublication_audit,
             approval_pending=approval_pending,
+            route_mode=route_mode,
         )
         knowledge_verification = {
             "mode": "grounded_final" if knowledge_is_final else "mixed_or_context_only",
@@ -735,18 +758,22 @@ class ChatApplication:
         conv_id: str,
         request_id: str,
         stages: list[StageObservation],
-    ) -> None:
+    ) -> Optional[RoutePathInvocation]:
         """Build one canonical route contract and dispatch only to a gated shadow."""
         mode = str(self._services.route_execution_mode or "legacy").strip().lower()
-        if mode == "legacy":
-            return
-        if mode not in {"dark_shadow", "evaluation"}:
+        if mode not in {"legacy", "dark_shadow", "evaluation"}:
             raise RuntimeError(
                 "route execution cannot publish before the release action"
             )
         callback = self._ops.evaluate_route_path
-        if callback is None:
+        if mode != "legacy" and callback is None:
             raise RuntimeError("route execution adapter is unavailable")
+        if not all(hasattr(self._services.orchestrator, name) for name in (
+            "classify_request_shape", "decide_route",
+        )):
+            if mode == "legacy":
+                return None
+            raise RuntimeError("canonical route producer is unavailable")
 
         from agents.agent_orchestrator import Request as OrcReq
         from application.authority_policy import AuthorityPolicyRegistry
@@ -802,8 +829,9 @@ class ChatApplication:
         }))
         if mode == "evaluation":
             await callback(invocation)
-        else:
+        elif mode == "dark_shadow":
             asyncio.create_task(callback(invocation))
+        return invocation
 
 
 def _publication_candidate_id(invocation_key: str, response_text: str) -> str:

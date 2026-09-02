@@ -145,15 +145,14 @@ def test_publication_uses_grounded_answer_only_for_knowledge_only_request():
 
     candidate, final = main._select_publication_candidate(
         "Agent 改写后的政策答案", knowledge,
-        [{"tool_name": "knowledge_search"}], approval_pending=False,
+        approval_pending=False, route_mode="knowledge_qa",
     )
     assert candidate == knowledge.answer
     assert final is True
 
     mixed_candidate, mixed_final = main._select_publication_candidate(
         "政策允许，订单 A1 当前也符合。", knowledge,
-        [{"tool_name": "knowledge_search"}, {"tool_name": "order_lookup"}],
-        approval_pending=False,
+        approval_pending=False, route_mode="mixed",
     )
     assert mixed_candidate == "政策允许，订单 A1 当前也符合。"
     assert mixed_final is False
@@ -168,7 +167,7 @@ def test_publication_uses_grounded_answer_only_for_knowledge_only_request():
     )
     abstained_candidate, abstained_final = main._select_publication_candidate(
         "Agent 自行选择了七天。", abstention,
-        [{"tool_name": "knowledge_search"}], approval_pending=False,
+        approval_pending=False, route_mode="knowledge_qa",
     )
     assert abstained_candidate == abstention.answer
     assert abstained_final is True

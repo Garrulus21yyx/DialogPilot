@@ -36,7 +36,7 @@
 | M2-T04A SourceRevision v0 / active manifest | implemented (review pending) | PG owner/backfill/active validator done；independent human heldout review pending；650 tests passed |
 | M2-T05 统一 KnowledgeRetriever | implemented (canary blocked) | A1/A2/B + immutable PG dark-shadow report；675 tests passed |
 | M2-T06A Multi-Agent TaskGraph 收紧 | implemented | A/B/C policy、execution、dependency、native signal 与 terminal algebra 完成；697 tests passed |
-| M2-T06 自适应 RAG 发布路径 | in_progress | A/B1-B4: native receipts + real non-publishing shadow executor done；legacy candidate inference/E2E pending；747 tests passed |
+| M2-T06 自适应 RAG 发布路径 | in_progress | A/B1-B5: audit inference removed + route-specific pre-RAG done；eight-route heldout/E2E pending；747 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
@@ -814,6 +814,21 @@
 - `DIALOGPILOT_ROUTE_EXECUTION_MODE` 仅可开启 dark_shadow/evaluation，active 仍被 Application gate
   拒绝。验证：read receipt、跨 step、approval resume/replay、AgentOutcome 传播、audit-independent
   projection、真实 Knowledge shadow；聚焦 `88 passed`、全套 `747 passed in 19.26s`，ruff passed。
+
+### M2-T06-B5（RouteMode-owned candidate selection / pre-RAG removal）
+
+- ChatApplication 现在为真实 Orchestrator 的每次 invocation 准备 canonical route contract（执行仍受
+  legacy/dark-shadow/evaluation gate 控制），并把同一 request-scoped DomainDecision/Trace 交给后续
+  TaskPlanner，避免 adapter 与执行重新选 Owner。
+- pre-route Knowledge 只允许 `KNOWLEDGE_QA/MIXED`：AgentTask/MultiDomain/Direct/Clarify/Handoff/
+  OutOfScope 返回 typed skipped context；Mixed 只检索 sources、禁止独立 Grounded Answer，知识 evidence
+  进入单一 Agent candidate；KnowledgeQA 才生成 Grounded candidate。
+- `_select_publication_candidate` 删除 `business_tool_used` 与 prepublication tool-audit 推断，唯一读取
+  canonical `route_mode`：只有 KnowledgeQA 可选择 grounded answer，Mixed/Agent 始终选择 Agent
+  candidate。Tool audit 后续仅用于观测与 badcase，不拥有候选语义。
+- 兼容测试 double 缺 canonical producer 时只在 `legacy` 回退；dark-shadow/evaluation 仍 typed fail。
+  验证：Knowledge-only/Mixed/abstention candidate matrix、Chat/Handoff 回归、负向源码搜索；全套
+  `747 passed in 19.15s`，ruff/diff passed。下一步补八 route 的生产链 E2E/heldout fixture。
 
 ## 下一步
 
