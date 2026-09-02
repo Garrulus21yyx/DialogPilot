@@ -97,16 +97,15 @@ def test_chat_application_agent_path_calls_service_episode_tool_with_identity():
         ticket_service=object(), response_delivery=object(),
         context_assembler=object(), bundle_registry=object(),
         bundle_resolver=object(), tool_manager=manager,
-        route_execution_mode="evaluation",
     )
-    app = ChatApplication(services, SimpleNamespace(evaluate_route_path=evaluate))
+    app = ChatApplication(services, SimpleNamespace())
     intent_result = SimpleNamespace(
         intent=IntentCategory.TECHNICAL_LOGIN, intent_group="technical",
         urgency=UrgencyLevel.LOW, confidence=0.95,
         entities={"device_id": ["device-1"]}, source_scores={},
         classifier_fingerprint="intent-v1", input_fingerprint="a" * 64,
     )
-    asyncio.run(app._dispatch_route_path_if_enabled(
+    plan = asyncio.run(app._plan_route_path(
         command=ChatCommand(
             message="E401 登录失败", user_id="user-1", tenant_id="tenant-1",
         ),
@@ -115,6 +114,7 @@ def test_chat_application_agent_path_calls_service_episode_tool_with_identity():
         intent_result=intent_result, user_id="user-1", conv_id="conversation-1",
         request_id="request-1", stages=[],
     ))
+    asyncio.run(evaluate(plan))
 
     assert observed[0]["hits"][0]["episode_id"] == "case-e401"
     assert search_calls == [{
@@ -220,9 +220,9 @@ def test_eight_route_modes_execute_expected_path_and_forbid_all_others(
         orchestrator=_orchestrator(), memory=component, answer_verifier=component,
         ticket_service=component, response_delivery=component,
         context_assembler=component, bundle_registry=component,
-        bundle_resolver=component, route_execution_mode="evaluation",
+        bundle_resolver=component,
     )
-    app = ChatApplication(services, SimpleNamespace(evaluate_route_path=evaluate))
+    app = ChatApplication(services, SimpleNamespace())
     intent_result = SimpleNamespace(
         intent=intent, intent_group=intent.value, urgency=UrgencyLevel.LOW,
         confidence=confidence, entities={}, source_scores={},
@@ -230,16 +230,16 @@ def test_eight_route_modes_execute_expected_path_and_forbid_all_others(
     )
     stages = []
 
-    asyncio.run(app._dispatch_route_path_if_enabled(
+    plan = asyncio.run(app._plan_route_path(
         command=ChatCommand(message=message, user_id="u"),
         identity_metadata={"tenant_id": "default", "user_id": "u"},
         bundle=SimpleNamespace(version="bundle-v1"), intent_result=intent_result,
         user_id="u", conv_id="c", request_id="r", stages=stages,
     ))
+    asyncio.run(evaluate(plan))
 
     contract_mode = stages[0].detail["mode"]
     assert contract_mode == expected_mode.value
-    assert stages[0].detail["execution_mode"] == "evaluation"
     assert executed[-1] == "record"
     assert ("retrieve" in executed) is (
         expected_mode in {RouteMode.KNOWLEDGE_QA, RouteMode.MIXED}

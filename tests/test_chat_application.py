@@ -4,8 +4,6 @@ import json
 from contextlib import contextmanager
 from types import SimpleNamespace
 
-import pytest
-
 from api import main
 from application.chat_application import (
     ChatApplication,
@@ -220,8 +218,7 @@ def test_http_chat_maps_typed_retryable_failure(monkeypatch):
     }
 
 
-def test_route_path_evaluation_receives_canonical_immutable_contract():
-    captured = []
+def test_chat_route_plan_is_the_canonical_immutable_contract():
     shape = RequestShapePolicy().decide(
         message="退款政策", intent=IntentCategory.QUERY, confidence=0.95,
         urgency=UrgencyLevel.LOW, entities={},
@@ -243,18 +240,11 @@ def test_route_path_evaluation_receives_canonical_immutable_contract():
             assert received is shape
             return route
 
-    async def evaluate(invocation):
-        captured.append(invocation)
-
     services = ChatServices(**{
         **_ready_services().__dict__,
         "orchestrator": Orchestrator(),
-        "route_execution_mode": "evaluation",
     })
-    app = ChatApplication(
-        services,
-        SimpleNamespace(evaluate_route_path=evaluate),
-    )
+    app = ChatApplication(services, SimpleNamespace())
     intent = SimpleNamespace(
         intent=IntentCategory.QUERY, intent_group="query",
         urgency=UrgencyLevel.LOW, confidence=0.95, entities={},
@@ -263,44 +253,17 @@ def test_route_path_evaluation_receives_canonical_immutable_contract():
     )
     stages = []
 
-    asyncio.run(app._dispatch_route_path_if_enabled(
+    plan = asyncio.run(app._plan_route_path(
         command=ChatCommand(message="退款政策", user_id="u"),
         identity_metadata={"tenant_id": "default"},
         bundle=SimpleNamespace(version="bundle-v1"), intent_result=intent,
         user_id="u", conv_id="c", request_id="r", stages=stages,
     ))
 
-    assert len(captured) == 1
-    assert captured[0].route_decision is route
-    assert captured[0].execution_contract.mode is RouteMode.KNOWLEDGE_QA
-    assert [item.requirement_id for item in captured[0].requirements] == [
+    assert plan.route_decision is route
+    assert plan.execution_contract.mode is RouteMode.KNOWLEDGE_QA
+    assert [item.requirement_id for item in plan.requirements] == [
         "knowledge.active_source",
     ]
     assert stages[0].stage == "route_path_plan"
     assert stages[0].status is StageStatus.OK
-
-    shadow = asyncio.run(main._evaluate_route_path(captured[0]))
-    assert shadow.candidate.owner.value == "grounded_answer_generator"
-    assert shadow.publishable is False
-    assert shadow.reason_code == "SHADOW_RECEIPTS_MISSING"
-    assert shadow.cost_budget_policy_version == "route-cost-budget-v1"
-    assert shadow.cost_usage["route"]["retrieval_calls"] == 1
-
-
-def test_route_path_active_mode_is_rejected_before_release_action():
-    services = ChatServices(**{
-        **_ready_services().__dict__,
-        "route_execution_mode": "active",
-    })
-    app = ChatApplication(
-        services,
-        SimpleNamespace(evaluate_route_path=lambda _invocation: None),
-    )
-
-    with pytest.raises(RuntimeError, match="cannot publish before the release action"):
-        asyncio.run(app._dispatch_route_path_if_enabled(
-            command=ChatCommand(message="hello", user_id="u"),
-            identity_metadata={}, bundle=SimpleNamespace(version="v1"),
-            intent_result=SimpleNamespace(), user_id="u", conv_id="c",
-            request_id="r", stages=[],
-        ))

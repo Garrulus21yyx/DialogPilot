@@ -13,7 +13,7 @@ import re
 import sys
 import uuid
 from contextlib import asynccontextmanager
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Literal, Mapping, Optional
 
@@ -54,7 +54,7 @@ from services.badcase_registry import (
     BadCaseTransitionError,
     IntentFeedbackStatus,
 )
-from memory.context import ContextAssembler, ContextSection
+from memory.context import ContextAssembler
 from mcp.context_packer import ContextCandidate, ContextPacker
 from mcp.grounded_answer_generator import GroundedAnswerGenerator
 from mcp.evidence_pack import EvidencePack
@@ -1256,228 +1256,6 @@ def _select_publication_candidate(
     return (knowledge.answer if knowledge_is_final else agent_response), knowledge_is_final
 
 
-async def _evaluate_route_path(invocation: Any) -> Any:
-    """Execute the new route path as a non-publishing, write-forbidden shadow."""
-    from application.cost_budget_policy import RouteCostBudgetRegistry
-    from application.route_decision import RouteMode
-    from application.route_execution import CandidateOwner
-    from application.route_path_executor import (
-        DeterministicGateResult,
-        RouteCandidate,
-        RoutePathExecutor,
-        RoutePathOperations,
-        agent_route_candidate,
-    )
-    from application.route_outcomes import HandoffContractDraft, NeedsInputDraft
-    from core.cost_budget import (
-        RouteBudgetExceeded,
-        active_route_budget,
-        enforce_route_budget,
-    )
-    from core.llm_metrics import capture_llm_usage
-
-    contract = invocation.execution_contract
-
-    async def rule_candidate(_contract):
-        content = {
-            RouteMode.DIRECT: "您好，我是 DialogPilot 客服助手。请问有什么可以帮您？",
-            RouteMode.OUT_OF_SCOPE: "我是 DialogPilot 客服助手，可以协助订单、退款、账户与技术问题。",
-            RouteMode.CLARIFY: "请补充您要处理的是订单、退款、账户还是技术问题。",
-        }.get(invocation.route_decision.mode, "请补充您的客服诉求。")
-        payload = None
-        if invocation.route_decision.mode is RouteMode.CLARIFY:
-            request_id = str(invocation.orchestration_request.request_id or "unbound")
-            payload = NeedsInputDraft(
-                workflow_run_id=f"draft-run:{request_id}",
-                signal_id=f"draft-signal:{request_id}",
-                kind="user_input",
-                expires_at="draft:not-persisted",
-                interaction_publication_id=f"draft-publication:{request_id}",
-                missing_inputs=contract.missing_inputs,
-                prompt=content,
-            )
-        return RouteCandidate(
-            content, CandidateOwner.RULE_POLICY, outcome_payload=payload,
-        )
-
-    async def retrieve(_contract):
-        budget_tracker = active_route_budget()
-        if budget_tracker is not None:
-            budget_tracker.before_retrieval()
-        return await _build_knowledge_context(
-            invocation.command.message,
-            intent=invocation.intent_result.intent,
-            bundle=invocation.bundle,
-            tenant_id=str(invocation.identity_metadata.get("tenant_id") or "default"),
-            user_id=str(invocation.identity_metadata.get("user_id") or ""),
-            conversation_id=str(invocation.identity_metadata.get("conversation_id") or ""),
-            authorization_fingerprint=invocation.command.authorization_fingerprint,
-            generate_answer=False,
-            pinned_execution_refs=(
-                invocation.orchestration_request.pinned_execution_refs
-            ),
-        )
-
-    async def grounded_generate(_contract, knowledge):
-        if (
-            _grounded_answer_generator is None
-            or knowledge.evidence_pack is None
-            or not knowledge.evidence_pack.items
-        ):
-            return RouteCandidate(
-                "当前知识证据不足，无法可靠回答。",
-                CandidateOwner.GROUNDED_ANSWER_GENERATOR,
-            )
-        candidates = tuple(ContextCandidate(
-            chunk_id=item.chunk_id,
-            document_id=item.source_ref.source_id,
-            text=item.text,
-            start_char=item.source_ref.start_char,
-            end_char=item.source_ref.end_char,
-            title=item.title,
-            score=item.score,
-            ranks=item.source_ranks,
-            source_type=item.source_ref.source_type,
-            source_checksum=item.source_ref.checksum,
-            source_revision=item.source_ref.source_revision,
-            scope=item.source_ref.scope,
-            scope_decision=item.scope_decision,
-            index_manifest_fingerprint=knowledge.evidence_pack.index_manifest_fingerprint,
-        ) for item in knowledge.evidence_pack.items)
-        answer = await _grounded_answer_generator.generate(
-            invocation.command.message, candidates, history=(),
-        )
-        content = answer.answer or "当前知识证据不足，无法可靠回答。"
-        return RouteCandidate(
-            content,
-            CandidateOwner.GROUNDED_ANSWER_GENERATOR,
-            evidence_refs=tuple(answer.citations),
-        )
-
-    async def run_agent(_contract, knowledge):
-        request = invocation.orchestration_request
-        if knowledge is not None and knowledge.text and _context_assembler is not None:
-            prompt = _context_assembler.assemble(
-                sections=[ContextSection(
-                    tag="knowledge",
-                    description="canonical KnowledgeRetriever shadow evidence",
-                    content=knowledge.text,
-                    priority=85,
-                )],
-                history=[],
-                current_user_message=invocation.command.message,
-            )
-            request = replace(
-                request, context=prompt.system_context, prompt_context=prompt,
-            )
-        result = await _orchestrator.run(request)
-        return agent_route_candidate(contract, result)
-
-    async def handoff_draft(_contract):
-        request_id = str(invocation.orchestration_request.request_id or "unbound")
-        payload = HandoffContractDraft(
-            handoff_id=f"draft-handoff:{request_id}",
-            reason_codes=contract.reason_codes or ("HANDOFF_ROUTE",),
-            target_queue_or_owner="support:triage",
-            problem_summary=invocation.command.message,
-            user_goal=invocation.command.message,
-            verified_facts=(),
-            user_assertions=(invocation.command.message,),
-            actions_attempted=(),
-            action_receipts=(),
-            missing_materials=tuple(contract.missing_inputs),
-            media_evidence=(),
-            emotion_and_user_request=invocation.command.message,
-            commitments_and_sla=(),
-            risk=contract.risk,
-            recommended_next_action="人工核验事实与权限后继续处理",
-        )
-        return RouteCandidate(
-            "已整理人工接管所需的问题与风险信息；当前仅生成兼容草稿。",
-            CandidateOwner.HANDOFF_DRAFT,
-            outcome_payload=payload,
-        )
-
-    async def deterministic_gate(_contract, candidate):
-        profile = contract.verification_profile
-        if profile in {"rule_only", "handoff_contract"}:
-            return DeterministicGateResult(True, False, "SHADOW_RULE_GATE_PASSED")
-        publishable = bool(candidate.evidence_refs)
-        return DeterministicGateResult(
-            publishable, False,
-            "SHADOW_RECEIPTS_PRESENT" if publishable else "SHADOW_RECEIPTS_MISSING",
-        )
-
-    async def semantic_verifier(_contract, _candidate):
-        raise RuntimeError("shadow deterministic gate did not request semantic verification")
-
-    async def record_turn(_contract, _candidate, _publishable):
-        return None
-
-    operations = RoutePathOperations(
-        rule_candidate=rule_candidate,
-        retrieve=retrieve,
-        grounded_generate=grounded_generate,
-        run_agent=run_agent,
-        handoff_draft=handoff_draft,
-        deterministic_gate=deterministic_gate,
-        semantic_verifier=semantic_verifier,
-        record_turn=record_turn,
-    )
-    budget = RouteCostBudgetRegistry().for_route(invocation.route_decision.mode)
-    with enforce_route_budget(budget) as tracker, capture_llm_usage() as provider_usage:
-        def record_cost_observation(*, exhausted_dimension: str = "") -> Dict[str, Any]:
-            summary = provider_usage.summary()
-            if _trace_recorder is not None:
-                total = summary["total"]
-                with _trace_recorder.span(
-                    "route.cost_budget",
-                    kind="internal",
-                    attributes={
-                        "route.mode": budget.route_mode,
-                        "cost.policy_version": budget.policy_version,
-                        "cost.model_calls": tracker.usage.model_calls,
-                        "cost.tool_calls": tracker.usage.tool_calls,
-                        "cost.retrieval_calls": tracker.usage.retrieval_calls,
-                        "cost.input_tokens": total["input_tokens"],
-                        "cost.output_tokens": total["output_tokens"],
-                        "cost.exhausted_dimension": exhausted_dimension,
-                    },
-                ):
-                    pass
-            return summary
-
-        try:
-            result = await RoutePathExecutor().execute(contract, operations)
-        except RouteBudgetExceeded:
-            outcome = tracker.outcome()
-            if outcome is None:
-                raise
-            return replace(
-                outcome,
-                provider_usage=record_cost_observation(
-                    exhausted_dimension=outcome.dimension,
-                ),
-            )
-        outcome = tracker.outcome()
-        if outcome is not None:
-            return replace(
-                outcome,
-                provider_usage=record_cost_observation(
-                    exhausted_dimension=outcome.dimension,
-                ),
-            )
-        usage_summary = record_cost_observation()
-        return replace(
-            result,
-            cost_usage={
-                "route": tracker.usage.to_dict(),
-                "provider": usage_summary,
-            },
-            cost_budget_policy_version=budget.policy_version,
-        )
-
-
 def _badcase_versions(bundle: Optional[AgentBundle] = None) -> Dict[str, Any]:
     """生成不含密钥的复现版本投影。"""
     raw_skill_rows = (_skill_manager.summary().get("skills") or []) if _skill_manager else []
@@ -1821,9 +1599,6 @@ def _core_chat_application(
             tool_manager=_tool_manager,
             trace_recorder=_trace_recorder,
             knowledge_base=_knowledge_base,
-            route_execution_mode=os.getenv(
-                "DIALOGPILOT_ROUTE_EXECUTION_MODE", "legacy",
-            ),
             memory_projection_mode=memory_projection_mode,
         ),
         ChatOperations(
@@ -1838,7 +1613,6 @@ def _core_chat_application(
             select_publication_candidate=_select_publication_candidate,
             trace_id=current_trace_id,
             verify_for_publication=_verify_for_publication,
-            evaluate_route_path=_evaluate_route_path,
         ),
     )
 

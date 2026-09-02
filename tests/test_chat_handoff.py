@@ -9,6 +9,14 @@ from agents.agent_orchestrator import (
 from agents.react_engine import ReActResult, ReActStatus
 from api import main
 from application.chat_application import ChatCommand, Completed
+from application.route_decision import (
+    ComponentInvocation,
+    ComponentStatus,
+    RouteDecision,
+    RouteMode,
+    RouteRisk,
+)
+from agents.request_shape_policy import RequestShapePolicy
 from core.intent_recognizer import IntentCategory, UrgencyLevel
 from core.auth import Principal
 from services.answer_verifier import (
@@ -73,6 +81,25 @@ class FakeOrchestrator:
             confidence=0.99,
             entities={},
             source_scores={"pattern": 0.99},
+        )
+
+    async def classify_request_shape(self, request):
+        return RequestShapePolicy().decide(
+            message=request.message,
+            intent=request.intent,
+            confidence=request.intent_confidence,
+            urgency=request.urgency,
+            entities=request.entities,
+        )
+
+    async def decide_route(self, request, shape):
+        components = tuple(ComponentInvocation(
+            name, ComponentStatus.SKIPPED, "FIXTURE", "a" * 64, "test-v1",
+        ) for name in ("intent_fusion", "domain_routing", "instance_selection"))
+        return RouteDecision(
+            RouteMode.HANDOFF, "explicit_handoff", request.intent_confidence,
+            (), RouteRisk.CRITICAL, ("USER_REQUESTED_HANDOFF",), (), (),
+            components, "router-v1", shape.input_fingerprint,
         )
 
     async def run(self, request):
@@ -272,6 +299,7 @@ def test_chat_escalation_creates_one_persistent_idempotent_ticket(tmp_path, monk
         "intent",
         "knowledge_retrieval",
         "active_case",
+        "route_path_plan",
         "route_and_agent",
         "verification",
         "ticket",

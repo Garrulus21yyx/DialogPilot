@@ -188,7 +188,6 @@ class ChatServices:
     tool_manager: Any = None
     trace_recorder: Any = None
     knowledge_base: Any = None
-    route_execution_mode: str = "legacy"
     memory_projection_mode: str = "direct"
 
     @property
@@ -221,9 +220,6 @@ class ChatOperations:
     select_publication_candidate: Callable[..., tuple[str, bool]]
     trace_id: Callable[[], str]
     verify_for_publication: Callable[..., Awaitable[VerificationResult]]
-    evaluate_route_path: Optional[
-        Callable[[RoutePathInvocation], Awaitable[Any]]
-    ] = None
 
 
 class ChatApplication:
@@ -447,7 +443,7 @@ class ChatApplication:
             message=command.message,
             bundle=bundle,
         )
-        route_path = await self._dispatch_route_path_if_enabled(
+        route_path = await self._plan_route_path(
             command=command,
             identity_metadata=identity_metadata,
             bundle=bundle,
@@ -458,8 +454,8 @@ class ChatApplication:
             pinned_execution_refs=getattr(assignment, "pinned_refs", None),
             stages=stages,
         )
-        route_mode = route_path.route_decision.mode.value if route_path else "legacy"
-        if route_mode in {"knowledge_qa", "mixed", "legacy"}:
+        route_mode = route_path.route_decision.mode.value
+        if route_mode in {"knowledge_qa", "mixed"}:
             knowledge = await ops.build_knowledge_context(
                 command.message,
                 intent=intent_result.intent,
@@ -556,11 +552,9 @@ class ChatApplication:
             intent_source_scores=dict(intent_result.source_scores),
             domain_decision=(
                 route_path.orchestration_request.domain_decision
-                if route_path is not None else None
             ),
             routing_policy_trace=(
                 route_path.orchestration_request.routing_policy_trace
-                if route_path is not None else None
             ),
         )
         result = await services.orchestrator.run(orchestration_request)
@@ -878,7 +872,7 @@ class ChatApplication:
             stages=tuple(stages),
         )
 
-    async def _dispatch_route_path_if_enabled(
+    async def _plan_route_path(
         self,
         *,
         command: ChatCommand,
@@ -890,21 +884,11 @@ class ChatApplication:
         request_id: str,
         stages: list[StageObservation],
         pinned_execution_refs: Any = None,
-    ) -> Optional[RoutePathInvocation]:
-        """Build one canonical route contract and dispatch only to a gated shadow."""
-        mode = str(self._services.route_execution_mode or "legacy").strip().lower()
-        if mode not in {"legacy", "dark_shadow", "evaluation"}:
-            raise RuntimeError(
-                "route execution cannot publish before the release action"
-            )
-        callback = self._ops.evaluate_route_path
-        if mode != "legacy" and callback is None:
-            raise RuntimeError("route execution adapter is unavailable")
+    ) -> RoutePathInvocation:
+        """Build the canonical route contract used by the only chat execution path."""
         if not all(hasattr(self._services.orchestrator, name) for name in (
             "classify_request_shape", "decide_route",
         )):
-            if mode == "legacy":
-                return None
             raise RuntimeError("canonical route producer is unavailable")
 
         from agents.agent_orchestrator import Request as OrcReq
@@ -928,7 +912,7 @@ class ChatApplication:
                 pinned_execution_refs.__dict__
                 if pinned_execution_refs is not None else {}
             ),
-            execution_mode="shadow",
+            execution_mode="normal",
             identity_metadata=dict(identity_metadata),
             intent_classifier_fingerprint=str(
                 getattr(intent_result, "classifier_fingerprint", "") or ""
@@ -961,12 +945,7 @@ class ChatApplication:
             "mode": route.mode.value,
             "shape": shape.shape.value,
             "contract_fingerprint": contract.fingerprint,
-            "execution_mode": mode,
         }))
-        if mode == "evaluation":
-            await callback(invocation)
-        elif mode == "dark_shadow":
-            asyncio.create_task(callback(invocation))
         return invocation
 
 
