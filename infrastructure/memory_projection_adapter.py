@@ -1,7 +1,6 @@
-"""Production adapters from canonical PostgreSQL events to legacy Memory stores."""
+"""Adapters from canonical PostgreSQL events to the Redis memory projection."""
 from __future__ import annotations
 
-import asyncio
 from datetime import timezone
 
 from application.conversation_projection import (
@@ -18,7 +17,7 @@ class MemoryProjectionContractError(RuntimeError):
 
 
 class PostgresLegacyMemoryProjectionAdapter:
-    """One target-specific adapter over MemoryManager's existing store owners."""
+    """One target-specific adapter over the lifespan-owned MemoryManager."""
 
     def __init__(self, pool, memory, projection_name: ProjectionName):
         self.pool = pool
@@ -26,6 +25,13 @@ class PostgresLegacyMemoryProjectionAdapter:
         self.projection_name = projection_name
 
     def apply(self, event: ProjectableConversationEvent) -> ProjectionApplyStatus:
+        raise MemoryProjectionContractError(
+            "async memory projection requires dispatch_once_async"
+        )
+
+    async def apply_async(
+        self, event: ProjectableConversationEvent,
+    ) -> ProjectionApplyStatus:
         if event.projection_name is not self.projection_name:
             raise MemoryProjectionContractError("projection adapter target changed")
         turn = self._turn(event)
@@ -50,7 +56,7 @@ class PostgresLegacyMemoryProjectionAdapter:
             seq=int(turn[6]),
         )
         event_key = f"{event.event_id}:e{event.source_deletion_epoch}"
-        applied = asyncio.run(self._apply(event, message, event_key))
+        applied = await self._apply(event, message, event_key)
         return (
             ProjectionApplyStatus.APPLIED
             if applied else ProjectionApplyStatus.ALREADY_APPLIED
@@ -62,10 +68,20 @@ class PostgresLegacyMemoryProjectionAdapter:
         *,
         through_deletion_epoch: int,
     ) -> None:
+        raise MemoryProjectionContractError(
+            "async memory projection requires dispatch_once_async"
+        )
+
+    async def delete_subject_async(
+        self,
+        subject: ConversationSubject,
+        *,
+        through_deletion_epoch: int,
+    ) -> None:
         del through_deletion_epoch
-        asyncio.run(self.memory.delete_conversation_projection(
+        await self.memory.delete_conversation_projection(
             subject.user_id, subject.conversation_id,
-        ))
+        )
 
     async def _apply(
         self,

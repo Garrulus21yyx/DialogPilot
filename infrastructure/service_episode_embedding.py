@@ -12,16 +12,16 @@ class ServiceEpisodeEmbeddingContractError(ValueError):
 
 
 class ServiceEpisodeQueryEmbedder:
-    """Bind the existing MiniLM provider to an immutable retrieval generation."""
+    """Bind the deterministic local provider to an immutable generation."""
 
-    model_id = "all-MiniLM-L6-v2"
+    model_id = "dialogpilot-hash-embedding-v1"
     dimension = 384
 
     def __init__(self, embedding_function: Callable | None = None):
         if embedding_function is None:
-            from core.local_embedding import SentenceTransformerEmbeddingFunction
+            from core.local_embedding import LocalHashEmbeddingFunction
 
-            embedding_function = SentenceTransformerEmbeddingFunction()
+            embedding_function = LocalHashEmbeddingFunction()
         self._embedding_function = embedding_function
 
     def __call__(

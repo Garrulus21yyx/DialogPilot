@@ -801,8 +801,8 @@ class ChatApplication:
                     "index_manifest_sha256": _knowledge_manifest_fingerprint(
                         knowledge, services.knowledge_base,
                     ),
-                    "projection_disposition": (
-                        "approval" if approval_pending else disposition
+                    "projection_disposition": _publication_disposition(
+                        disposition, approval_pending=approval_pending,
                     ),
                     "public_response": response,
                     "execution_stages": [item.to_dict() for item in stages],
@@ -954,6 +954,25 @@ def _publication_candidate_id(invocation_key: str, response_text: str) -> str:
         'invocation_key': invocation_key,
         'response_text': response_text,
     })}"
+
+
+def _publication_disposition(
+    routing_disposition: str, *, approval_pending: bool,
+) -> str:
+    """Translate the routing algebra at the publication boundary."""
+    if approval_pending:
+        return "approval"
+    dispositions = {
+        "execute": "normal",
+        "clarify": "clarification",
+        "out_of_scope": "out_of_scope",
+    }
+    try:
+        return dispositions[routing_disposition]
+    except KeyError as exc:
+        raise ValueError(
+            f"unsupported routing disposition: {routing_disposition}"
+        ) from exc
 
 
 def _canonical_sha256(value: Any) -> str:

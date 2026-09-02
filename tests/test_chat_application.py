@@ -12,6 +12,7 @@ from application.chat_application import (
     Completed,
     Failed,
     StageStatus,
+    _publication_disposition,
 )
 from application.memory_projection import (
     MemoryProjectionResult,
@@ -44,6 +45,13 @@ def _ready_services() -> ChatServices:
         bundle_registry=component,
         bundle_resolver=component,
     )
+
+
+def test_routing_disposition_is_closed_at_publication_boundary():
+    assert _publication_disposition("execute", approval_pending=False) == "normal"
+    assert _publication_disposition("clarify", approval_pending=False) == "clarification"
+    assert _publication_disposition("out_of_scope", approval_pending=False) == "out_of_scope"
+    assert _publication_disposition("execute", approval_pending=True) == "approval"
 
 
 def test_chat_application_is_directly_callable_without_http(monkeypatch):

@@ -79,10 +79,10 @@ class PostgresKnowledgeStore:
 
     backend_id = "POSTGRES_PG_FTS_ZH_V1"
     backend_fingerprint = "POSTGRES_PGVECTOR_PG_FTS_ZH_V1"
-    embedding_model = "all-MiniLM-L6-v2"
+    embedding_model = "dialogpilot-hash-embedding-v1"
     embedding_dimension = 384
     embedding_model_digest = hashlib.sha256(
-        b"sentence-transformers:all-MiniLM-L6-v2:normalized:v1"
+        b"dialogpilot-hash-embedding-v1:ascii-cjk-unigram-bigram:384d"
     ).hexdigest()
     chunk_schema_version = "knowledge-direct-ingest-v1"
 
@@ -98,9 +98,9 @@ class PostgresKnowledgeStore:
         embedding_function=None,
     ):
         if embedding_function is None:
-            from core.local_embedding import SentenceTransformerEmbeddingFunction
+            from core.local_embedding import LocalHashEmbeddingFunction
 
-            embedding_function = SentenceTransformerEmbeddingFunction()
+            embedding_function = LocalHashEmbeddingFunction()
         self._pool = pool
         self._tenant_id = tenant_id
         self._locale = locale

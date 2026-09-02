@@ -414,6 +414,112 @@ class ConversationProjectionDispatcher:
                 ))
         return tuple(results)
 
+    async def dispatch_once_async(
+        self,
+        *,
+        projection_name: ProjectionName,
+        worker_id: str,
+        now: str,
+        lease_until: str,
+        retry_at: str,
+        limit: int = 20,
+    ) -> tuple[ProjectionDispatchResult, ...]:
+        """Apply async projections on their owning event loop; keep PostgreSQL I/O off it."""
+        import asyncio
+
+        adapter = self.adapters.get(projection_name)
+        if adapter is None:
+            raise ProjectionClaimError(
+                f"projection adapter is unavailable: {projection_name.value}"
+            )
+        claimed = await asyncio.to_thread(
+            self.outbox.claim,
+            projection_name=projection_name, worker_id=worker_id,
+            now=now, lease_until=lease_until, limit=limit,
+        )
+        results = []
+        for event in claimed:
+            acknowledged = False
+            result = None
+            try:
+                result = await self._dispatch_async(event, adapter)
+                self.fault_hook("after_projection_effect")
+                fence = await asyncio.to_thread(self.deletion.fence, event.subject)
+                await asyncio.to_thread(
+                    self.outbox.acknowledge,
+                    event, worker_id=worker_id, outcome=result,
+                    acknowledged_at=now, deletion_epoch=fence.deletion_epoch,
+                )
+                acknowledged = True
+                self.fault_hook("after_projection_ack")
+                results.append(ProjectionDispatchResult(event.outbox_id, result.value))
+            except Exception as exc:
+                if acknowledged:
+                    results.append(ProjectionDispatchResult(
+                        event.outbox_id, result.value, type(exc).__name__,
+                    ))
+                    continue
+                try:
+                    await asyncio.to_thread(
+                        self.outbox.release,
+                        event, worker_id=worker_id, available_at=retry_at,
+                        error_code=type(exc).__name__,
+                    )
+                except ProjectionClaimError:
+                    pass
+                results.append(ProjectionDispatchResult(
+                    event.outbox_id, "RETRY", type(exc).__name__,
+                ))
+        return tuple(results)
+
+    async def _dispatch_async(
+        self,
+        event: ProjectableConversationEvent,
+        adapter: ConversationProjectionAdapter,
+    ) -> ProjectionOutboxOutcome:
+        import asyncio
+
+        before = await asyncio.to_thread(self.deletion.fence, event.subject)
+        if (
+            event.event_type == "CONVERSATION_DELETED"
+            or before.deleted
+            or before.deletion_epoch != event.source_deletion_epoch
+        ):
+            await self._delete_async(adapter, event.subject, before.deletion_epoch)
+            return ProjectionOutboxOutcome.DELETION_FENCED
+        if not self.policy.allows(event):
+            return ProjectionOutboxOutcome.POLICY_SKIPPED
+        apply_async = getattr(adapter, "apply_async", None)
+        applied = (
+            await apply_async(event)
+            if apply_async is not None
+            else await asyncio.to_thread(adapter.apply, event)
+        )
+        after = await asyncio.to_thread(self.deletion.fence, event.subject)
+        if after.deleted or after.deletion_epoch != event.source_deletion_epoch:
+            await self._delete_async(adapter, event.subject, after.deletion_epoch)
+            return ProjectionOutboxOutcome.DELETION_FENCED
+        return (
+            ProjectionOutboxOutcome.APPLIED
+            if applied is ProjectionApplyStatus.APPLIED
+            else ProjectionOutboxOutcome.ALREADY_APPLIED
+        )
+
+    @staticmethod
+    async def _delete_async(adapter, subject, deletion_epoch: int) -> None:
+        import asyncio
+
+        delete_async = getattr(adapter, "delete_subject_async", None)
+        if delete_async is not None:
+            await delete_async(
+                subject, through_deletion_epoch=deletion_epoch,
+            )
+            return
+        await asyncio.to_thread(
+            adapter.delete_subject,
+            subject, through_deletion_epoch=deletion_epoch,
+        )
+
     def _dispatch(
         self,
         event: ProjectableConversationEvent,

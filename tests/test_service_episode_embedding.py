@@ -21,7 +21,7 @@ def generation():
     return RetrievalGeneration(
         "generation-1", RetrievalCorpus.SERVICE_EPISODE, "POSTGRES_HYBRID_V1",
         "backend-v1", "service-episode-v1", "episode-outbox:1",
-        "all-MiniLM-L6-v2", 384, SHA, DistanceMetric.COSINE, "0.8.6",
+        "dialogpilot-hash-embedding-v1", 384, SHA, DistanceMetric.COSINE, "0.8.6",
         "HNSW", '{"ef_construction":64,"m":16}',
         "ascii-cjk-unigram-bigram-v1", "PG_FTS_ZH_V1", SHA,
     )
@@ -34,6 +34,15 @@ def test_embedder_accepts_one_finite_vector_matching_generation():
     vector = embedder("E401 登录失败", generation())
     assert len(vector) == 384
     assert vector[1] == pytest.approx(1 / 384)
+
+
+def test_default_local_embedding_is_deterministic_normalized_and_dependency_free():
+    embedder = ServiceEpisodeQueryEmbedder()
+    first = embedder("订单 A123 重复扣款", generation())
+    second = embedder("订单 A123 重复扣款", generation())
+    assert first == second
+    assert len(first) == 384
+    assert sum(value * value for value in first) == pytest.approx(1.0)
 
 
 @pytest.mark.parametrize("changed", [

@@ -283,6 +283,6 @@ class PostgresKnowledgeEvidenceValidator:
             "scope": item.source_ref.scope,
             "content": item.text,
             "title": item.title,
-            "source_type": item.source_type,
+            "source_type": item.source_ref.source_type,
         } for item in pack.items]
         return self._source.validate_candidates(candidates, request)

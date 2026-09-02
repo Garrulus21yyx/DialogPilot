@@ -565,11 +565,7 @@ async def lifespan(app: FastAPI):
 
     await _memory.start()
     await _ticket_service.start()
-    if (
-        _postgres_pool is not None
-        and os.getenv("DIALOGPILOT_DURABLE_CHAT_MODE", "disabled").strip().lower()
-        == "enabled"
-    ):
+    if _postgres_pool is not None:
         from application.compatibility_chat import CompatibilityChatCoordinator
         from infrastructure.postgres_admission import (
             PostgresAdmissionUnitOfWork,
@@ -1541,8 +1537,7 @@ async def _run_durable_chat_worker(
             work_count = await coordinator.pump_once()
             now = datetime.now(timezone.utc)
             for name in ProjectionName:
-                results = await asyncio.to_thread(
-                    projection_dispatcher.dispatch_once,
+                results = await projection_dispatcher.dispatch_once_async(
                     projection_name=name,
                     worker_id=(
                         f"{os.getenv('DIALOGPILOT_DURABLE_CHAT_WORKER_ID', 'api-compat')}"
@@ -1602,7 +1597,7 @@ def _core_chat_application(
 
 
 def _chat_application():
-    """Select the gated durable boundary only after its complete composition."""
+    """Use durable admission in the running service; tests may compose the core directly."""
     return _durable_chat_coordinator or _core_chat_application()
 
 

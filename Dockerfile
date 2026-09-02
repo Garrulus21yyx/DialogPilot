@@ -24,14 +24,6 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt
 
-# 预下载 ChromaDB 内置的 ONNX embedding 模型（~79MB），避免运行时下载超时
-RUN mkdir -p /root/.cache/chroma/onnx_models/all-MiniLM-L6-v2 && \
-    curl -L --retry 3 --retry-delay 5 -o /root/.cache/chroma/onnx_models/all-MiniLM-L6-v2/onnx.tar.gz \
-    https://chroma-onnx-models.s3.amazonaws.com/all-MiniLM-L6-v2/onnx.tar.gz && \
-    cd /root/.cache/chroma/onnx_models/all-MiniLM-L6-v2 && \
-    tar -xzf onnx.tar.gz && \
-    rm onnx.tar.gz
-
 # ── 阶段 3：生产镜像 ──────────────────────────────────────────────────────────
 FROM base AS production
 
@@ -44,17 +36,14 @@ RUN useradd -m -u 1000 dialogpilot
 # 从依赖阶段复制已安装的包
 COPY --from=dependencies /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=dependencies /usr/local/bin /usr/local/bin
-# 复制预下载的 ONNX 模型缓存
-COPY --from=dependencies --chown=dialogpilot:dialogpilot /root/.cache/chroma /home/dialogpilot/.cache/chroma
-
 # 复制应用代码
 COPY --chown=dialogpilot:dialogpilot . .
 
 # 创建必要目录，只调整运行期需要写入的目录权限，避免递归 chown 整个应用。
-RUN mkdir -p /app/data/chroma /app/data/tickets /app/data/badcases /app/data/customer-operations /app/data/react-runs /app/data/evolution /app/data/eval-state /app/logs /app/config && \
+RUN mkdir -p /app/data/tickets /app/data/badcases /app/data/customer-operations /app/data/react-runs /app/data/evolution /app/logs /app/config && \
     chown dialogpilot:dialogpilot \
-        /app/data /app/data/chroma /app/data/tickets /app/data/badcases /app/data/customer-operations /app/data/react-runs /app/data/evolution \
-        /app/data/eval-state /app/logs /app/config
+        /app/data /app/data/tickets /app/data/badcases /app/data/customer-operations /app/data/react-runs /app/data/evolution \
+        /app/logs /app/config
 USER dialogpilot
 
 EXPOSE 8000
@@ -69,7 +58,7 @@ FROM dependencies AS development
 
 COPY . .
 
-RUN mkdir -p /app/data/chroma /app/data/tickets /app/data/badcases /app/data/customer-operations /app/data/react-runs /app/data/evolution /app/logs /app/config /app/tests && \
+RUN mkdir -p /app/data/tickets /app/data/badcases /app/data/customer-operations /app/data/react-runs /app/data/evolution /app/logs /app/config /app/tests && \
     chmod -R 777 /app/data /app/logs
 
 EXPOSE 8000

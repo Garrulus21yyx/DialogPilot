@@ -1,35 +1,33 @@
-"""Shared local embedding provider for PostgreSQL retrieval corpora."""
+"""Dependency-free deterministic embeddings for the local PostgreSQL demo."""
 from __future__ import annotations
 
-import threading
+import hashlib
+import math
+import re
+import unicodedata
 
 
-class SentenceTransformerEmbeddingFunction:
-    """Lazy, process-shared SentenceTransformer callable."""
+class LocalHashEmbeddingFunction:
+    """Map ASCII words and CJK unigram/bigrams into a normalized 384-d vector."""
 
-    model_id = "sentence-transformers/all-MiniLM-L6-v2"
+    model_id = "dialogpilot-hash-embedding-v1"
     dimension = 384
-    _model = None
-    _lock = threading.Lock()
 
     def __call__(self, texts):
-        values = [str(item) for item in texts]
-        if not values:
-            return []
-        model = self._load_model()
-        return model.encode(
-            values,
-            normalize_embeddings=True,
-            convert_to_numpy=True,
-            show_progress_bar=False,
-        ).tolist()
+        return [self.embed(str(text)) for text in texts]
 
     @classmethod
-    def _load_model(cls):
-        if cls._model is None:
-            with cls._lock:
-                if cls._model is None:
-                    from sentence_transformers import SentenceTransformer
-
-                    cls._model = SentenceTransformer(cls.model_id)
-        return cls._model
+    def embed(cls, text: str) -> list[float]:
+        normalized = unicodedata.normalize("NFKC", text).lower()
+        ascii_words = re.findall(r"[a-z0-9]+", normalized)
+        cjk = re.findall(r"[\u3400-\u9fff]", normalized)
+        tokens = ascii_words + cjk + [
+            cjk[index] + cjk[index + 1] for index in range(len(cjk) - 1)
+        ]
+        vector = [0.0] * cls.dimension
+        for token in tokens:
+            digest = hashlib.sha256(token.encode("utf-8")).digest()
+            index = int.from_bytes(digest[:4], "big") % cls.dimension
+            vector[index] += 1.0 if digest[4] & 1 else -1.0
+        norm = math.sqrt(sum(value * value for value in vector))
+        return [value / norm for value in vector] if norm else vector

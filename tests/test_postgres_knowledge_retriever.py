@@ -20,7 +20,11 @@ from application.knowledge_retriever import (
 )
 from infrastructure.hybrid_retrieval_backend import PostgresHybridBackend
 from infrastructure.postgres import PostgresMigrationRunner, PostgresPool, PostgresPoolConfig
-from infrastructure.postgres_knowledge_retriever import PostgresKnowledgeCandidateSource
+from infrastructure.postgres_knowledge_retriever import (
+    PostgresKnowledgeCandidateSource,
+    PostgresKnowledgeEvidenceValidator,
+)
+from mcp.evidence_pack import EvidenceItem, EvidencePack, SourceReference
 from infrastructure.retrieval_postgres import (
     PostgresRetrievalGenerationRegistry,
     RetrievalPoolConfig,
@@ -188,3 +192,29 @@ def test_source_rejects_manifest_drift_without_partial_candidates(knowledge_sour
     assert result.status is RetrievalStatus.CONFLICT
     assert result.detail_code == "MANIFEST_FINGERPRINT_DRIFT"
     assert result.candidates == ()
+
+
+def test_evidence_validator_reads_source_type_from_provenance_owner():
+    class CapturingSource:
+        def validate_candidates(self, candidates, _request):
+            assert candidates[0]["source_type"] == "text"
+            return True
+
+    pack = EvidencePack(
+        query="退款多久到账", index_manifest_fingerprint=MANIFEST,
+        retrieval_policy=(),
+        items=(EvidenceItem(
+            chunk_id="chunk-refund", title="退款政策",
+            source_ref=SourceReference(
+                source_id="refund-policy", source_revision="revision-one",
+                start_char=0, end_char=len(CONTENT), source_type="text",
+                checksum=CHECKSUM,
+            ),
+            score=1.0, rank=1, source_ranks=(("raw:vector", 1),),
+            scope_decision="allowed_public", text=CONTENT,
+        ),),
+    )
+
+    assert PostgresKnowledgeEvidenceValidator(CapturingSource()).validate(
+        pack, _request(),
+    )

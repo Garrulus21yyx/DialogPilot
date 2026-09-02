@@ -1,4 +1,5 @@
 """M1-T04 projection outbox, replay and deletion-fence properties."""
+import asyncio
 from dataclasses import dataclass, field
 
 import psycopg
@@ -204,7 +205,7 @@ def test_production_memory_adapter_loads_canonical_turn_and_routes_target(
     adapter = PostgresLegacyMemoryProjectionAdapter(
         pool, memory, ProjectionName.WORKING_WINDOW,
     )
-    assert adapter.apply(event) is ProjectionApplyStatus.APPLIED
+    assert asyncio.run(adapter.apply_async(event)) is ProjectionApplyStatus.APPLIED
     assert memory.calls == [(
         "working", "user-projection", "projection-conversation", "question",
         str(_identity("one").turn_id), 1,
@@ -231,7 +232,9 @@ def test_fact_adapter_does_not_schedule_non_final_inbound_event(
     adapter = PostgresLegacyMemoryProjectionAdapter(
         pool, Memory(), ProjectionName.FACT_EXTRACTION,
     )
-    assert adapter.apply(event) is ProjectionApplyStatus.ALREADY_APPLIED
+    assert asyncio.run(
+        adapter.apply_async(event)
+    ) is ProjectionApplyStatus.ALREADY_APPLIED
 
     policy_dispatcher = ConversationProjectionDispatcher(
         outbox=outbox,
