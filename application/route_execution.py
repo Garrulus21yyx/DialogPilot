@@ -67,6 +67,9 @@ class RouteExecutionContract:
     policy_version: str
     route_policy_version: str
     input_fingerprint: str
+    missing_inputs: tuple[str, ...] = ()
+    reason_codes: tuple[str, ...] = ()
+    risk: str = "low"
 
     def __post_init__(self) -> None:
         required = set(self.required_components)
@@ -98,6 +101,9 @@ class RouteExecutionContract:
             "policy_version": self.policy_version,
             "route_policy_version": self.route_policy_version,
             "input_fingerprint": self.input_fingerprint,
+            "missing_inputs": list(self.missing_inputs),
+            "reason_codes": list(self.reason_codes),
+            "risk": self.risk,
         }
         return hashlib.sha256(json.dumps(
             payload, sort_keys=True, separators=(",", ":"), allow_nan=False,
@@ -116,6 +122,9 @@ class RouteExecutionContract:
             "policy_version": self.policy_version,
             "route_policy_version": self.route_policy_version,
             "input_fingerprint": self.input_fingerprint,
+            "missing_inputs": list(self.missing_inputs),
+            "reason_codes": list(self.reason_codes),
+            "risk": self.risk,
             "fingerprint": self.fingerprint,
         }
 
@@ -163,6 +172,9 @@ class RouteExecutionPolicy:
             policy_version=self.version,
             route_policy_version=route.policy_version,
             input_fingerprint=route.input_fingerprint,
+            missing_inputs=route.missing_inputs,
+            reason_codes=route.reason_codes,
+            risk=route.risk.value,
         )
 
     @staticmethod

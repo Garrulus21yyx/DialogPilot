@@ -1138,6 +1138,7 @@ async def _evaluate_route_path(invocation: Any) -> Any:
         RoutePathOperations,
         agent_route_candidate,
     )
+    from application.route_outcomes import HandoffContractDraft, NeedsInputDraft
 
     contract = invocation.execution_contract
 
@@ -1147,7 +1148,21 @@ async def _evaluate_route_path(invocation: Any) -> Any:
             RouteMode.OUT_OF_SCOPE: "我是 DialogPilot 客服助手，可以协助订单、退款、账户与技术问题。",
             RouteMode.CLARIFY: "请补充您要处理的是订单、退款、账户还是技术问题。",
         }.get(invocation.route_decision.mode, "请补充您的客服诉求。")
-        return RouteCandidate(content, CandidateOwner.RULE_POLICY)
+        payload = None
+        if invocation.route_decision.mode is RouteMode.CLARIFY:
+            request_id = str(invocation.orchestration_request.request_id or "unbound")
+            payload = NeedsInputDraft(
+                workflow_run_id=f"draft-run:{request_id}",
+                signal_id=f"draft-signal:{request_id}",
+                kind="user_input",
+                expires_at="draft:not-persisted",
+                interaction_publication_id=f"draft-publication:{request_id}",
+                missing_inputs=contract.missing_inputs,
+                prompt=content,
+            )
+        return RouteCandidate(
+            content, CandidateOwner.RULE_POLICY, outcome_payload=payload,
+        )
 
     async def retrieve(_contract):
         return await _build_knowledge_context(
@@ -1217,9 +1232,28 @@ async def _evaluate_route_path(invocation: Any) -> Any:
         return agent_route_candidate(contract, result)
 
     async def handoff_draft(_contract):
+        request_id = str(invocation.orchestration_request.request_id or "unbound")
+        payload = HandoffContractDraft(
+            handoff_id=f"draft-handoff:{request_id}",
+            reason_codes=contract.reason_codes or ("HANDOFF_ROUTE",),
+            target_queue_or_owner="support:triage",
+            problem_summary=invocation.command.message,
+            user_goal=invocation.command.message,
+            verified_facts=(),
+            user_assertions=(invocation.command.message,),
+            actions_attempted=(),
+            action_receipts=(),
+            missing_materials=tuple(contract.missing_inputs),
+            media_evidence=(),
+            emotion_and_user_request=invocation.command.message,
+            commitments_and_sla=(),
+            risk=contract.risk,
+            recommended_next_action="人工核验事实与权限后继续处理",
+        )
         return RouteCandidate(
             "已整理人工接管所需的问题与风险信息；当前仅生成兼容草稿。",
             CandidateOwner.HANDOFF_DRAFT,
+            outcome_payload=payload,
         )
 
     async def deterministic_gate(_contract, candidate):

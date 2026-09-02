@@ -23,6 +23,7 @@ from application.route_path_executor import (
     RoutePathExecutor,
     RoutePathOperations,
 )
+from application.route_outcomes import HandoffContractDraft, NeedsInputDraft
 from core.intent_recognizer import IntentCategory, UrgencyLevel
 
 
@@ -74,7 +75,20 @@ def test_eight_route_modes_execute_expected_path_and_forbid_all_others(
 
         async def rule(_contract):
             executed.append("rule")
-            return RouteCandidate("rule", CandidateOwner.RULE_POLICY)
+            payload = None
+            if _contract.expected_outcome is RouteExpectedOutcome.NEEDS_INPUT:
+                payload = NeedsInputDraft(
+                    workflow_run_id="draft-run:r",
+                    signal_id="draft-signal:r",
+                    kind="user_input",
+                    expires_at="draft:not-persisted",
+                    interaction_publication_id="draft-publication:r",
+                    missing_inputs=_contract.missing_inputs,
+                    prompt="请补充客服诉求",
+                )
+            return RouteCandidate(
+                "rule", CandidateOwner.RULE_POLICY, outcome_payload=payload,
+            )
 
         async def retrieve(_contract):
             executed.append("retrieve")
@@ -99,7 +113,26 @@ def test_eight_route_modes_execute_expected_path_and_forbid_all_others(
 
         async def handoff(_contract):
             executed.append("handoff")
-            return RouteCandidate("draft", CandidateOwner.HANDOFF_DRAFT)
+            payload = HandoffContractDraft(
+                handoff_id="draft-handoff:r",
+                reason_codes=_contract.reason_codes,
+                target_queue_or_owner="support:triage",
+                problem_summary=message,
+                user_goal=message,
+                verified_facts=(),
+                user_assertions=(message,),
+                actions_attempted=(),
+                action_receipts=(),
+                missing_materials=_contract.missing_inputs,
+                media_evidence=(),
+                emotion_and_user_request=message,
+                commitments_and_sla=(),
+                risk=_contract.risk,
+                recommended_next_action="人工核验后继续处理",
+            )
+            return RouteCandidate(
+                "draft", CandidateOwner.HANDOFF_DRAFT, outcome_payload=payload,
+            )
 
         async def gate(_contract, _candidate):
             executed.append("gate")

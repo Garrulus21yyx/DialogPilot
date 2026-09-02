@@ -36,7 +36,7 @@
 | M2-T04A SourceRevision v0 / active manifest | implemented (review pending) | PG owner/backfill/active validator done；independent human heldout review pending；650 tests passed |
 | M2-T05 统一 KnowledgeRetriever | implemented (canary blocked) | A1/A2/B + immutable PG dark-shadow report；675 tests passed |
 | M2-T06A Multi-Agent TaskGraph 收紧 | implemented | A/B/C policy、execution、dependency、native signal 与 terminal algebra 完成；697 tests passed |
-| M2-T06 自适应 RAG 发布路径 | in_progress | A/B1-B6: eight-route Application E2E done；typed NeedsInput/Handoff draft pending；755 tests passed |
+| M2-T06 自适应 RAG 发布路径 | in_progress | A/B1-B7: eight-route E2E + typed NeedsInput/Handoff draft；unsupported-authority fail-closed review pending；759 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
@@ -842,9 +842,26 @@
 - 聚焦 `36 passed`、全套 `755 passed in 18.54s`。T06 仍保持 in_progress：CLARIFY 需要真正
   `NeedsInput` typed projection，Handoff draft 需要冻结 M4 target-compatible schema，不能以文本冒充。
 
+### M2-T06-B7（typed NeedsInput / target-compatible Handoff draft）
+
+- 新增 `NeedsInputDraft`，把 `workflow_run_id/signal_id/kind/expires_at/
+  interaction_publication_id` 与 canonical `RouteDecision.missing_inputs`、明确 prompt 绑定；缺失字段为空、
+  identity 不完整或试图去掉 draft-only 标记均 fail closed。
+- 新增与目标 `HandoffContract` 同字段集合的 `HandoffContractDraft`，完整覆盖 reason/queue/problem/user
+  goal/verified facts/user assertions/actions/receipts/missing materials/media/emotion/commitments/risk/next
+  action；M2 合同只允许 `release_status=draft_only`，不创建 Ticket、不写 Handoff、不宣称已经交接。
+- `RouteExecutionContract` 现在携带 Route Owner 产生的 `missing_inputs/reason_codes/risk`，fingerprint 同步
+  绑定这些权威事实；`RoutePathExecutor` 在 deterministic gates 之前验证 typed payload 与 route contract，
+  纯文本 Clarify/Handoff candidate 被稳定拒绝。
+- API dark-shadow/evaluation adapter 生成确定性的 draft identities 与完整 handoff compatibility projection；
+  八 route application-boundary fixture 已迁移并继续证明 Handoff write forbidden。
+- 验证：不完整 payload、missing-input binding、canonical Handoff 字段集合、禁止伪造 released 状态；聚焦
+  `46 passed`、全套 `759 passed in 19.24s`，ruff checks passed。T06 保持 in_progress，下一步收敛
+  unsupported authority 的 canonical typed fail-closed 路径，再复核 build-complete 边界。
+
 ## 下一步
 
-1. 实施 M2-T06：接通八种 route-specific execution/publishing paths，并消费已完成的
-   TaskGraph/SynthesisInvocationPolicy 合同。
+1. 完成 M2-T06：收敛 unsupported authority 的 canonical HANDOFF/fail-closed 语义，并复核八路径
+   build-complete 边界；生产 active/canary 仍不在本节点授权范围内。
 2. M2-T05C 受 M2 Exit + `POSTGRES_RETRIEVAL_GA` candidate manifest 阻断，当前不执行 canary。
 3. T04/T04A live activation 仍受 M2 gate 与独立 review 约束。

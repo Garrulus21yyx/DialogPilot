@@ -26,6 +26,11 @@ from application.route_path_executor import (
     RoutePathOperations,
     agent_route_candidate,
 )
+from application.route_outcomes import (
+    HandoffContractDraft,
+    NeedsInputDraft,
+    RouteOutcomeContractError,
+)
 
 
 SHA = "a" * 64
@@ -46,8 +51,9 @@ def route(mode: RouteMode, *, input_fingerprint: str = SHA) -> RouteDecision:
         ),
         RouteMode.MULTI_DOMAIN: (RequiredAuthority.DOMAIN_TOOL,),
     }[mode]
+    missing_inputs = ("customer_request",) if mode is RouteMode.CLARIFY else ()
     return RouteDecision(
-        mode, "test", 1.0, authorities, RouteRisk.LOW, ("TEST",), (), (),
+        mode, "test", 1.0, authorities, RouteRisk.LOW, ("TEST",), missing_inputs, (),
         components, "router-v1", input_fingerprint,
     )
 
@@ -56,6 +62,38 @@ def plan(mode: RouteMode):
     decision = route(mode)
     verification = VerificationProfileRegistry().contract_for(mode, ())
     return RouteExecutionPolicy().plan(decision, verification)
+
+
+def needs_input_draft(contract):
+    return NeedsInputDraft(
+        workflow_run_id="draft-run:r",
+        signal_id="draft-signal:r",
+        kind="user_input",
+        expires_at="draft:not-persisted",
+        interaction_publication_id="draft-publication:r",
+        missing_inputs=contract.missing_inputs,
+        prompt="请补充客服诉求",
+    )
+
+
+def handoff_contract_draft(contract):
+    return HandoffContractDraft(
+        handoff_id="draft-handoff:r",
+        reason_codes=contract.reason_codes,
+        target_queue_or_owner="support:triage",
+        problem_summary="用户要求人工处理退款问题",
+        user_goal="由人工核验退款状态",
+        verified_facts=("退款单 R-1 已提交",),
+        user_assertions=("用户表示已等待三天",),
+        actions_attempted=("查询退款状态",),
+        action_receipts=("receipt-1",),
+        missing_materials=("支付凭证",),
+        media_evidence=(),
+        emotion_and_user_request="用户焦虑并明确要求人工",
+        commitments_and_sla=("尚未作出 SLA 承诺",),
+        risk=contract.risk,
+        recommended_next_action="人工核验 receipt-1 后联系用户",
+    )
 
 
 @pytest.mark.parametrize("mode", tuple(RouteMode))
@@ -179,7 +217,14 @@ def test_route_path_executor_runs_only_the_selected_path(mode):
 
     async def rule(_contract):
         calls.append("rule")
-        return candidate(CandidateOwner.RULE_POLICY)
+        payload = (
+            needs_input_draft(_contract)
+            if _contract.expected_outcome is RouteExpectedOutcome.NEEDS_INPUT
+            else None
+        )
+        return RouteCandidate(
+            "candidate", CandidateOwner.RULE_POLICY, outcome_payload=payload,
+        )
 
     async def retrieve(_contract):
         calls.append("retrieve")
@@ -204,7 +249,10 @@ def test_route_path_executor_runs_only_the_selected_path(mode):
 
     async def handoff(_contract):
         calls.append("handoff_draft")
-        return candidate(CandidateOwner.HANDOFF_DRAFT)
+        return RouteCandidate(
+            "candidate", CandidateOwner.HANDOFF_DRAFT,
+            outcome_payload=handoff_contract_draft(_contract),
+        )
 
     async def gate(_contract, _candidate):
         calls.append("deterministic_gate")
@@ -245,6 +293,63 @@ def test_route_path_executor_runs_only_the_selected_path(mode):
     if mode is RouteMode.HANDOFF:
         assert calls[0] == "handoff_draft"
         assert RouteComponent.HANDOFF_WRITE not in result.invocation_trace
+
+
+@pytest.mark.parametrize(
+    ("mode", "error_code"),
+    [
+        (RouteMode.CLARIFY, "INVALID_NEEDS_INPUT_PAYLOAD"),
+        (RouteMode.HANDOFF, "INVALID_HANDOFF_DRAFT"),
+    ],
+)
+def test_typed_nonterminal_route_payload_is_required(mode, error_code):
+    contract = plan(mode)
+
+    async def candidate_operation(_contract):
+        return RouteCandidate("text is insufficient", contract.candidate_owner)
+
+    async def forbidden(*_args):
+        raise AssertionError("executor continued past invalid route outcome")
+
+    operations = RoutePathOperations(
+        candidate_operation, forbidden, forbidden, forbidden,
+        candidate_operation, forbidden, forbidden, forbidden,
+    )
+
+    with pytest.raises(Exception) as exc_info:
+        asyncio.run(RoutePathExecutor().execute(contract, operations))
+
+    assert getattr(exc_info.value, "code", None) == error_code
+
+
+def test_handoff_draft_matches_target_schema_and_cannot_claim_release():
+    contract = plan(RouteMode.HANDOFF)
+    draft = handoff_contract_draft(contract)
+
+    assert set(draft.__dataclass_fields__) >= {
+        "handoff_id", "reason_codes", "target_queue_or_owner",
+        "problem_summary", "user_goal", "verified_facts", "user_assertions",
+        "actions_attempted", "action_receipts", "missing_materials",
+        "media_evidence", "emotion_and_user_request", "commitments_and_sla",
+        "risk", "recommended_next_action",
+    }
+    assert draft.release_status == "draft_only"
+
+    values = {
+        field: getattr(draft, field) for field in draft.__dataclass_fields__
+    }
+    values["release_status"] = "handed_off"
+    with pytest.raises(RouteOutcomeContractError):
+        HandoffContractDraft(**values)
+
+
+def test_needs_input_draft_rejects_empty_missing_input_contract():
+    with pytest.raises(RouteOutcomeContractError):
+        NeedsInputDraft(
+            workflow_run_id="run", signal_id="signal", kind="user_input",
+            expires_at="later", interaction_publication_id="publication",
+            missing_inputs=(), prompt="please clarify",
+        )
 
 
 def test_semantic_verifier_runs_once_only_after_deterministic_gates_request_it():

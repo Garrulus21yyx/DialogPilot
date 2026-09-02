@@ -10,6 +10,7 @@ from application.route_execution import (
     RouteExecutionContract,
     RouteExpectedOutcome,
 )
+from application.route_outcomes import HandoffContractDraft, NeedsInputDraft
 
 
 class RoutePathError(RuntimeError):
@@ -24,6 +25,7 @@ class RouteCandidate:
     owner: CandidateOwner
     component_receipts: tuple[RouteComponent, ...] = ()
     evidence_refs: tuple[str, ...] = ()
+    outcome_payload: Any = None
 
     def __post_init__(self) -> None:
         if not self.content.strip():
@@ -117,6 +119,23 @@ class RoutePathExecutor:
                 "CANDIDATE_OWNER_MISMATCH",
                 f"expected {contract.candidate_owner.value}, got {candidate.owner.value}",
             )
+        if contract.expected_outcome is RouteExpectedOutcome.NEEDS_INPUT:
+            if not isinstance(candidate.outcome_payload, NeedsInputDraft):
+                raise RoutePathError(
+                    "INVALID_NEEDS_INPUT_PAYLOAD",
+                    "clarify route requires a typed NeedsInputDraft",
+                )
+            if candidate.outcome_payload.missing_inputs != contract.missing_inputs:
+                raise RoutePathError(
+                    "MISSING_INPUT_BINDING_MISMATCH",
+                    "NeedsInput payload does not match RouteDecision missing_inputs",
+                )
+        if contract.expected_outcome is RouteExpectedOutcome.HANDOFF_DRAFT:
+            if not isinstance(candidate.outcome_payload, HandoffContractDraft):
+                raise RoutePathError(
+                    "INVALID_HANDOFF_DRAFT",
+                    "handoff route requires a complete HandoffContractDraft",
+                )
         invoked.extend(candidate.component_receipts)
         self._validate_invocations(contract, invoked)
 
