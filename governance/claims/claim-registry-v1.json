@@ -1,0 +1,128 @@
+{
+  "registry_id": "dialogpilot-capability-claims-v1",
+  "schema_version": "capability-claim-v1",
+  "claims": [
+    {
+      "claim_id": "x-t01-local-schema-governance",
+      "statement": "DialogPilot implements a linear forward-only PostgreSQL migration registry and a locally rehearsed governance restore check.",
+      "maturity": "IMPLEMENTED",
+      "scope": "Repository migration chain and local empty governance snapshot only.",
+      "code_owner": "Platform",
+      "code_paths": [
+        "core/schema_version_registry.py",
+        "infrastructure/postgres.py"
+      ],
+      "automated_tests": [
+        "tests/test_schema_version_registry.py",
+        "tests/test_postgres_foundation.py"
+      ],
+      "data_manifest": {
+        "path": "governance/schema/x-t01-schema-registry-v1.json",
+        "sha256": "4b46f0d6e0831f7a645023adfba0feffeb0b0565e5508b4a9e716e79dcf1a86f"
+      },
+      "run_report": {
+        "path": "governance/evidence/x-t01/schema-governance-build-v1.md",
+        "sha256": "f253470731ea269b6c086c390807994e7fa32607a05fddf147ebaaa82723de99"
+      },
+      "commit": "c0d2ad69a14a22cf2d0854a3a0580afa19ca5469",
+      "version": "schema-version-registry-v1",
+      "limitations": [
+        "No production snapshot, RPO/RTO, lock-duration or independent Platform review evidence.",
+        "The rehearsal covers local governance records, not production business data."
+      ]
+    },
+    {
+      "claim_id": "x-t02-replica-fencing-build",
+      "statement": "DialogPilot implements claim-epoch fencing, fail-closed ambiguous write reconciliation, and single-active retrieval pointer CAS in repository tests.",
+      "maturity": "IMPLEMENTED",
+      "scope": "Build-time PostgreSQL tests and the legacy local tool-ledger compatibility path.",
+      "code_owner": "Platform + Agent Runtime + Domain Tool",
+      "code_paths": [
+        "infrastructure/postgres_admission.py",
+        "infrastructure/postgres_projection.py",
+        "agents/run_store.py",
+        "infrastructure/retrieval_postgres.py"
+      ],
+      "automated_tests": [
+        "tests/test_postgres_admission.py",
+        "tests/test_postgres_projection.py",
+        "tests/test_postgres_retrieval_projection.py",
+        "tests/test_react_resume.py"
+      ],
+      "data_manifest": {
+        "path": "governance/concurrency/x-t02-concurrency-contract-v1.json",
+        "sha256": "bf8139f0f3d48bbdcc414f990df1cc99e79238d59cf243bad908ce18f05c8cc4"
+      },
+      "run_report": {
+        "path": "governance/evidence/x-t02/concurrency-build-v1.md",
+        "sha256": "6cea2518f985ee1f5829290f7a5abe5d1ef4e97678653e99df319969dd388406"
+      },
+      "commit": "735b10bf770f516bfb50dc7b105e5faab62994c9",
+      "version": "x-t02-concurrency-contract-v1",
+      "limitations": [
+        "No real PostgreSQL primary promotion, Redis cluster partition, production drain or independent SRE review.",
+        "The SQLite RunStore is not claimed as the production multi-replica Agent ledger."
+      ]
+    },
+    {
+      "claim_id": "x-t03-deterministic-security-controls",
+      "statement": "DialogPilot implements deterministic controls for the eight threats frozen in its X-T03 threat model and a 13-case adversarial corpus.",
+      "maturity": "IMPLEMENTED",
+      "scope": "Registered repository threat cases and receiving-boundary controls.",
+      "code_owner": "Security + Domain Tool + Multimodal",
+      "code_paths": [
+        "core/input_security.py",
+        "mcp/tool_manager.py",
+        "agents/run_store.py"
+      ],
+      "automated_tests": [
+        "tests/test_security_threat_model.py",
+        "tests/test_tool_security_trace.py"
+      ],
+      "data_manifest": {
+        "path": "data/eval/security-x-t03-v1/manifest.json",
+        "sha256": "012a214cbfdc77732bcab0b433cb9e5d35df29425554ad1337dda90535cdb02c"
+      },
+      "run_report": {
+        "path": "governance/evidence/x-t03/security-build-v1.md",
+        "sha256": "7b1609fcc9a40b2ae5274dd88306bbfb1d807a1ff308bd4808cb39f240f7e407"
+      },
+      "commit": "505bdd0905cece0be62f5dc7d439326c1c3e4b95",
+      "version": "dialogpilot-x-t03-v1",
+      "limitations": [
+        "No independent penetration test or production infrastructure review.",
+        "VLM hidden-instruction handling remains inactive until the M5 media path exists."
+      ]
+    },
+    {
+      "claim_id": "x-t04-route-cost-budgets",
+      "statement": "DialogPilot enforces versioned per-route and offline-ingest call/token budgets with typed exhaustion in repository tests.",
+      "maturity": "IMPLEMENTED",
+      "scope": "Eight frozen RouteMode budgets and offline Knowledge ingest limits.",
+      "code_owner": "Platform + Evaluation",
+      "code_paths": [
+        "core/cost_budget.py",
+        "application/route_execution.py",
+        "mcp/knowledge_base.py"
+      ],
+      "automated_tests": [
+        "tests/test_cost_budget.py",
+        "tests/test_route_execution.py"
+      ],
+      "data_manifest": {
+        "path": "evaluation/gates/x-t04-cost/v1.json",
+        "sha256": "460906533e3b4ce503e4f63e4625c6dd4092f915c5cdab8e13bb4a5668eeae2b"
+      },
+      "run_report": {
+        "path": "governance/evidence/x-t04/cost-build-v1.md",
+        "sha256": "8aae04bcb4fbd2b7b66789e731602060d5e7ce5c7825bd67907917f37fc8a430"
+      },
+      "commit": "c7cd83adf202b5f17d8716d7ad97b89bf643d4ec",
+      "version": "route-cost-budget-v1",
+      "limitations": [
+        "No real provider invoice/export sample has been reconciled.",
+        "The new route remains flag-off and this claim is not a production cost-reduction percentage."
+      ]
+    }
+  ]
+}

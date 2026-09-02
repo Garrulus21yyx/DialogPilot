@@ -41,13 +41,15 @@
 | X-T03 安全威胁模型 | implemented (production review pending) | 8 threats/control map、13-case corpus、incident disable runbook；799 tests passed |
 | X-T04 成本预算 | implemented (route flag-off) | 8 route + offline ingest budgets、typed exhaustion、provider usage reconciliation；806 tests passed |
 | X-T01 schema/version 治理 | implemented (production snapshot pending) | linear 15-revision registry、forward-only/concurrent migration、checkpoint compatibility、local restore；812 tests passed |
+| X-T02 并发与多副本 | implemented (production rehearsal pending) | claim epoch fencing、tool reconciliation、multi-process/dual-active tests、PG/Redis runbook；820 tests passed |
+| X-T05 文档与简历事实门禁 | implemented | 4 条 claim registry、evidence template/checklist、seeded audit；824 tests passed |
 | M2 Exit Gate | draft / not ready | unsigned reproducible manifest；independent security/heldout、production billing/platform evidence、M1 Exit blocked；806 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | build nodes done；Exit prerequisites/evidence not closed |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
 | M5 Knowledge Lifecycle/Multimodal | pending | 按 M5-T01–T09 子节点推进 |
 | M6 Eval/Observability/Release | pending | 按 M6-T01–T09 子节点推进 |
-| X-T01–X-T05 跨里程碑治理 | in_progress | X-T03 build complete；其余按各 Gate 依赖点推进 |
+| X-T01–X-T05 跨里程碑治理 | implemented / production reviews pending | 五个 build 节点完成；生产 snapshot/failover/security/billing 与独立文案 review 不伪造 |
 
 ## 变更记录
 
@@ -986,10 +988,25 @@
   `IMPLEMENTED / PRODUCTION FAILOVER REHEARSAL PENDING`：真实 PostgreSQL promote、Redis cluster partition、
   production drain/RPO/RTO 和独立 SRE review 尚未执行，不构成 M1/M2 Exit 签署。
 
+### X-T05（capability claim / documentation fact gate）
+
+- 新增 closed `dialogpilot-capability-claims-v1`，每条对外能力声明必须绑定 bounded statement/maturity/scope、
+  代码 Owner、自动化测试、带 SHA-256 的 data manifest 和 run report、完整 commit/version 及明确 limitations。
+- validator 校验唯一 claim identity、闭合字段/maturity、仓库内 Owner/test path、artifact exact hash 与当前历史
+  commit；缺证据或 hash drift fail closed。evidence template 与 review checklist 禁止把组件测试冒充 E2E、
+  provisional 冒充 Gold、checkpoint 冒充 exactly-once、adapter 冒充完整多模态能力或复制外部百分比。
+- 首批四条 claim 均为 bounded `IMPLEMENTED`，没有 `VERIFIED/READY`。固定 seed 随机抽中 X-T02/X-T03/
+  X-T04，逐条回到代码、tests、manifest、report、commit、scope/limitations；机器 audit PASS，内容抽检没有
+  抹去 production failover/pen-test/invoice 缺口。
+- 聚焦 `31 passed`，全套 `824 passed in 52.87s`，ruff/diff checks passed；
+  [build evidence](../governance/evidence/x-t05/claim-gate-build-v1.md) 状态 `IMPLEMENTED / NO READY CLAIMS`。
+  实现上下文 review 不替代未来 Product/Support Ops 对真实发布文案的独立批准。
+
 ## 下一步
 
 1. M2 Exit 仍需独立 X-T03/X-T04 review、unseen Knowledge heldout、真实 provider billing sample、生产
    Recall/latency/RTO/OLTP 与 M1 Exit evidence；当前不得签署或开启 canary。
 2. X-T02 build 已完成；M1/M2 Exit 仍需真实多副本 failover rehearsal 与独立 SRE/Owner review。
-3. M2-T05C 受 M2 Exit + `POSTGRES_RETRIEVAL_GA` candidate manifest 阻断，当前不执行 canary。
-4. T04/T04A live activation 仍受 M2 gate 与独立 review 约束。
+3. X-T05 build 已完成；任何新对外声明先登记 registry，`READY` 仍需真实 GateDecision 与 approver。
+4. M2-T05C 受 M2 Exit + `POSTGRES_RETRIEVAL_GA` candidate manifest 阻断，当前不执行 canary。
+5. T04/T04A live activation 仍受 M2 gate 与独立 review 约束。

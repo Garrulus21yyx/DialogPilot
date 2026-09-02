@@ -1,0 +1,21 @@
+{
+  "checks": [
+    "closed_schema",
+    "owner_paths_exist",
+    "automated_tests_exist",
+    "manifest_checksum",
+    "run_report_checksum",
+    "commit_in_history",
+    "explicit_scope_and_limitations"
+  ],
+  "registry_id": "dialogpilot-capability-claims-v1",
+  "registry_sha256": "baada001a2bcfbd9ac55da3cc968257fb0b43b6c807ffa31f238a12d92c46b8f",
+  "result": "PASS",
+  "sample_seed": 20260902,
+  "sampled_claim_ids": [
+    "x-t02-replica-fencing-build",
+    "x-t03-deterministic-security-controls",
+    "x-t04-route-cost-budgets"
+  ],
+  "validated_claim_count": 4
+}
