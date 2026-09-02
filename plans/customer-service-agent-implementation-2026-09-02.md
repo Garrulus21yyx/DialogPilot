@@ -1148,6 +1148,17 @@
 - [build evidence](../governance/evidence/m4-t04a/service-episode-schema-build.md)。legacy corpus 盘点/backfill、query shadow、
   retrieval pointer/rollback 与 heldout 尚未完成，M4-T04 保持 in progress，consumer 不启用。
 
+### M4-T04B1（legacy inventory / query shadow contract）
+
+- 冻结 Memory legacy RRF `.30/.60/.10`, `k=60`, lexical pool 20，并由唯一 policy 生成 fingerprint；recency 只重排
+  dense/lexical union。
+- legacy raw-memory v4 缺 tenant/Case/outcome verification/source refs；backfill policy 只读显式 metadata，缺任一条件或
+  tombstoned 均保留为 conversation/eval data，不从文本猜测 resolution。inventory 输出稳定 watermark/count/hash/逐记录原因。
+- same-query shadow 分开记录 route source rank、continuity、provenance、freshness、unavailable/conflict，并区分 corpus 与
+  ranking difference；policy/backend/corpus generation 定义为单一 rollback tuple。
+- [build evidence](../governance/evidence/m4-t04b/service-episode-backfill-shadow-build.md)。真实 Chroma inventory report 与 durable
+  PostgreSQL pointer/CAS 仍待后续 slice，target consumer 继续关闭。
+
 ### M6-T01（Dataset v2 / Rubric v2）
 
 - 新增独立 service-chain v2，不改变 v1 数据身份；闭合 perception→service_outcome 11 层 observation，case

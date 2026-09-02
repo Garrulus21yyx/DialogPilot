@@ -32,6 +32,23 @@
     "assistant_weight": "D",
     "current_revision_only": true
   },
+  "legacy_comparison_profile": {
+    "policy_version": "memory-retrieval-policy-v1",
+    "vector_weight": 0.30,
+    "lexical_weight": 0.60,
+    "recency_weight": 0.10,
+    "rrf_k": 60,
+    "lexical_pool": 20,
+    "recency_candidate_rule": "may rerank only dense or lexical candidate union"
+  },
+  "backfill_eligibility": [
+    "tenant/user/conversation", "source_event_refs", "resolved_or_closed_case_id",
+    "accepted_case_owner_outcome_verification", "subject_not_tombstoned"
+  ],
+  "shadow_attribution": [
+    "continuity", "provenance", "freshness", "unavailable", "conflict",
+    "corpus_difference", "ranking_difference"
+  ],
   "deletion": "conversation tombstone purges canonical head/revisions and fences retrieval",
   "remaining_release_owner": "M4-T04C after M4 Exit and POSTGRES_RETRIEVAL_GA"
 }

@@ -13,6 +13,10 @@ import math
 from typing import Dict, Iterable, List, Sequence, Tuple
 
 from application.chinese_lexical import tokenize_ascii_cjk_unigram_bigram
+from application.memory_retrieval_policy import (
+    LEGACY_MEMORY_RETRIEVAL_POLICY,
+    MemoryRetrievalPolicy,
+)
 
 
 
@@ -74,7 +78,14 @@ class HybridMemoryRetriever:
         lexical_weight: float = 0.60,
         recency_weight: float = 0.10,
         lexical_pool: int = 20,
+        policy: MemoryRetrievalPolicy | None = None,
     ):
+        if policy is not None:
+            rrf_k = policy.rrf_k
+            vector_weight = policy.vector_weight
+            lexical_weight = policy.lexical_weight
+            recency_weight = policy.recency_weight
+            lexical_pool = policy.lexical_pool
         if rrf_k < 1:
             raise ValueError("rrf_k must be positive")
         if lexical_pool < 1:
@@ -87,6 +98,21 @@ class HybridMemoryRetriever:
         self.lexical_weight = float(lexical_weight)
         self.recency_weight = float(recency_weight)
         self.lexical_pool = int(lexical_pool)
+        self.policy = policy or (
+            LEGACY_MEMORY_RETRIEVAL_POLICY
+            if (rrf_k, vector_weight, lexical_weight, recency_weight, lexical_pool)
+            == (60, 0.30, 0.60, 0.10, 20)
+            else MemoryRetrievalPolicy(
+                version="memory-retrieval-policy-custom-v1",
+                vector_weight=vector_weight, lexical_weight=lexical_weight,
+                recency_weight=recency_weight, rrf_k=rrf_k,
+                lexical_pool=lexical_pool,
+            )
+        )
+
+    @property
+    def policy_fingerprint(self) -> str:
+        return self.policy.fingerprint
 
     def rank(
         self,
