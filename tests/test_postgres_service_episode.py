@@ -1,4 +1,4 @@
-"""M4-T04 ServiceEpisode promotion, CAS, deletion and projection proofs."""
+"""ServiceEpisode lifecycle, CAS, deletion and projection proofs."""
 from dataclasses import replace
 
 import psycopg

@@ -597,7 +597,7 @@ async def lifespan(app: FastAPI):
     _orchestrator.set_tool_manager(_tool_manager)
 
     def route_execution_refs(bundle: AgentBundle) -> Dict[str, str]:
-        """Freeze every route/Knowledge read pointer before rollout admission."""
+        """Pin every route and Knowledge dependency for one request execution."""
         from agents.request_shape_policy import RequestShapePolicy
         from application.route_decision import RouterInvocationPolicy
         from application.route_execution import RouteExecutionPolicy

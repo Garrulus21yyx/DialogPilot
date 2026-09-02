@@ -31,10 +31,7 @@ class LocationReadiness(str, Enum):
 
 
 class DurableWriteKind(str, Enum):
-    MIGRATION = "MIGRATION"
-    BACKFILL = "BACKFILL"
     PRODUCER = "PRODUCER"
-    DARK_SHADOW = "DARK_SHADOW"
     RESTORE = "RESTORE"
 
 

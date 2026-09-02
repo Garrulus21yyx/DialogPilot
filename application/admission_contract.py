@@ -368,7 +368,7 @@ class ExecutionViewProjector:
         }))
 
 
-M3_COMPATIBILITY_CUTOVER = {
+RUN_STATUS_PROJECTION_CONTRACT = {
     "RUNNING": "ExecutionView.RUNNING",
     "WAITING_APPROVAL": "ExecutionView.WAITING:PendingSignal.PRINCIPAL",
     "COMPLETED": "ExecutionView.COMPLETED:requires_atomic_final_publication",

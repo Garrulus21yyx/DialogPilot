@@ -1,4 +1,4 @@
-"""M4-T04 canonical ServiceEpisode promotion contract."""
+"""Canonical ServiceEpisode lifecycle and persistence contract."""
 from __future__ import annotations
 
 import hashlib

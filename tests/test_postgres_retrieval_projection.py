@@ -76,7 +76,7 @@ def _enqueue(pool, generation_id, suffix="one"):
     return registry, manifest, source, str(event_id)
 
 
-def test_backfill_only_enqueues_and_projection_is_exactly_replayable(projection_pool):
+def test_canonical_ingest_enqueues_and_projection_is_exactly_replayable(projection_pool):
     _, manifest, _, event_id = _enqueue(projection_pool, "projection-replay")
     projector = PostgresCanonicalRetrievalProjector(projection_pool)
     first = projector.project(event_id)

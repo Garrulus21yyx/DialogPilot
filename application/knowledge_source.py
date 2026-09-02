@@ -33,7 +33,7 @@ class SourceRevision:
     content: str
     effective_from: datetime
     effective_to: datetime | None = None
-    owner_id: str = "m2-backfill-owner"
+    owner_id: str = "knowledge-ingest-owner"
     scope: str = "public"
     locale: str = "und"
     product: str = ""
@@ -72,7 +72,7 @@ class SourceRevision:
         content: str,
         effective_from: datetime,
         effective_to: datetime | None = None,
-        owner_id: str = "m2-backfill-owner",
+        owner_id: str = "knowledge-ingest-owner",
         scope: str = "public",
         locale: str = "und",
         product: str = "",

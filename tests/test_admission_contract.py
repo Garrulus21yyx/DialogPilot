@@ -5,7 +5,7 @@ import pytest
 
 from application.admission_contract import (
     LEGAL_ADMISSION_TRANSITIONS,
-    M3_COMPATIBILITY_CUTOVER,
+    RUN_STATUS_PROJECTION_CONTRACT,
     AdmissionContractError,
     AdmissionRecord,
     AdmissionStatus,
@@ -192,8 +192,8 @@ def test_expired_before_start_never_revives_old_run():
     assert view.outcome.new_request_required is True
 
 
-def test_each_compat_runtime_state_has_one_explicit_m3_cutover_mapping():
-    assert M3_COMPATIBILITY_CUTOVER == {
+def test_each_runtime_state_has_one_explicit_projection_mapping():
+    assert RUN_STATUS_PROJECTION_CONTRACT == {
         "RUNNING": "ExecutionView.RUNNING",
         "WAITING_APPROVAL": "ExecutionView.WAITING:PendingSignal.PRINCIPAL",
         "COMPLETED": "ExecutionView.COMPLETED:requires_atomic_final_publication",
@@ -203,7 +203,7 @@ def test_each_compat_runtime_state_has_one_explicit_m3_cutover_mapping():
         "CANCELLED": "ExecutionView.CANCELLED",
         "EXPIRED": "Expired(stage=RUNTIME,new_request_required=true)",
     }
-    assert set(M3_COMPATIBILITY_CUTOVER) == {status.name for status in RunStatus}
+    assert set(RUN_STATUS_PROJECTION_CONTRACT) == {status.name for status in RunStatus}
 
 
 @pytest.mark.parametrize("terminal", [

@@ -29,6 +29,7 @@
 | Handoff PostgreSQL 收敛 | complete | Ticket/Event/Outbox 已直接绑定 PostgreSQL，SQLite writer/config/test 已删除 |
 | Commitment 最小闭环 | complete | PostgreSQL owner、显式来源、自动违约、receipt 履约、Agent read tool 与 Handoff critical 联动；HTTP E2E PASS |
 | 基础持久 OTel/Langfuse | complete | 脱敏 PostgreSQL span、Agent/Generation/Tool 类型与 usage、可选 Langfuse v4 SDK；真实 HTTP Trace E2E PASS |
+| 最终单主链一致性审计 | complete | 删除运行契约中残留的 migration/backfill/dark-shadow 写入类型，统一当前正向命名；884 tests passed |
 
 ## 必须保留的核心
 

@@ -503,10 +503,10 @@ class ChatApplication:
         )
         if isinstance(active_case_view, ActiveCaseContextView):
             active_ticket_section = active_case_view.section
-            shadow_state = active_case_view.projection.state
+            active_case_state = active_case_view.projection.state
             stages.append(StageObservation("active_case", (
                 StageStatus.DEGRADED
-                if shadow_state in {
+                if active_case_state in {
                     ActiveCaseState.UNAVAILABLE, ActiveCaseState.CONFLICT,
                 }
                 else StageStatus.OK

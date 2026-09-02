@@ -211,7 +211,7 @@ def test_only_registered_subject_owner_can_authorize_first_write(location_pool):
         fence.authorize(_intent(identity))
 
 
-def test_tombstone_and_epoch_change_block_late_producer_backfill_and_restore(
+def test_tombstone_and_epoch_change_block_late_producer_and_restore(
     location_pool,
 ):
     identity = _identity("deleted")
@@ -226,13 +226,11 @@ def test_tombstone_and_epoch_change_block_late_producer_backfill_and_restore(
     fence = PostgresDataLocationWriteFence(location_pool)
     for kind in (
         DurableWriteKind.PRODUCER,
-        DurableWriteKind.BACKFILL,
-        DurableWriteKind.DARK_SHADOW,
         DurableWriteKind.RESTORE,
     ):
         with pytest.raises(DataLocationWriteDenied, match="deletion-fenced"):
             fence.authorize(_intent(
-                identity, producer="delivery-backfill", kind=kind, epoch=0,
+                identity, producer="publication", kind=kind, epoch=0,
             ))
 
 

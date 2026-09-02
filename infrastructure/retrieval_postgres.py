@@ -205,7 +205,7 @@ class PostgresRetrievalGenerationRegistry:
     def active(
         self, corpus: RetrievalCorpus, *, backend_id: str,
     ) -> RetrievalGeneration:
-        """Resolve the single active generation without a rollout pointer."""
+        """Resolve the single authoritative active generation."""
         with self.pool.transaction() as connection:
             rows = connection.execute("""
                 SELECT generation_id
