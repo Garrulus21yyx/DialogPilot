@@ -10,12 +10,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 import math
-import re
 from typing import Dict, Iterable, List, Sequence, Tuple
 
+from application.chinese_lexical import tokenize_ascii_cjk_unigram_bigram
 
-_ASCII_TOKEN = re.compile(r"[a-zA-Z0-9_#.-]+")
-_CJK_RUN = re.compile(r"[\u3400-\u9fff]+")
 
 
 @dataclass(frozen=True)
@@ -214,12 +212,7 @@ class HybridMemoryRetriever:
     @staticmethod
     def tokenize(text: str) -> List[str]:
         """同时保留英文/编号 token、中文单字和二元词，覆盖精确实体。"""
-        normalized = str(text or "").lower()
-        tokens = [token for token in _ASCII_TOKEN.findall(normalized) if token.strip(".-")]
-        for run in _CJK_RUN.findall(normalized):
-            tokens.extend(run)
-            tokens.extend(run[index : index + 2] for index in range(len(run) - 1))
-        return tokens
+        return list(tokenize_ascii_cjk_unigram_bigram(text))
 
     @staticmethod
     def _dedupe(documents: Iterable[MemoryDocument]) -> List[MemoryDocument]:

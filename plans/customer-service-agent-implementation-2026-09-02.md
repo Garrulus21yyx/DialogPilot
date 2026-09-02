@@ -27,7 +27,7 @@
 | M1-T04A DataLocationRegistry / pre-write fence | done | PostgreSQL `0007`；31 stable locations，4 write-approved，future writes fail closed |
 | M1-T05 Conversation/API read projections | implemented | PostgreSQL `0008`；turn/status/finalize watermark/close + PG delivery compatibility |
 | M1 完整会话事实与幂等发布 | in_progress | 按 T00–T05/T03A/T04A 子节点推进 |
-| M2-PF01 共享 PostgreSQL HybridRetrievalBackend | in_progress | PR-18P-A done；PR-18P-B/C pending |
+| M2-PF01 共享 PostgreSQL HybridRetrievalBackend | in_progress | PR-18P-A/B done；PR-18P-C pending |
 | M2 Route/Authority/Evidence/RAG | in_progress | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
@@ -377,8 +377,31 @@
   空库/重复 migration、独立 role/timeout/权限、registry CAS/不可变、混维与 deletion fence；全套
   `566 passed`，Alembic head=`0010`。
 
+### M2-PF01 / PR-18P-B（pgvector Dense、中文 FTS、Legacy conformance）
+
+- Tokenizer owner：把既有 `ascii-cjk-unigram-bigram-v1` 提升为 Platform 版本化函数；legacy BM25 改为
+  委托该函数，保持 ASCII/编号、中文单字和二元词的原行为。PG lexical document 只接收预分词 lexeme，
+  migration `0011` 将 `search_tsv` 改为数据库生成的 `to_tsvector('simple', lexical_document)` + GIN，
+  producer 不能写入另一份 tsvector truth。
+- PostgreSQL adapter：同一事务固定并验证 corpus/generation/backend fingerprint/dimension/cosine/tokenizer/
+  lexical ranker；Dense 用 cosine 距离，支持显式 exact baseline，PG FTS 用参数绑定的 OR websearch query 与
+  `ts_rank_cd`，两路只保留各自 source rank/score，不做融合。Knowledge 按 tenant/scope/locale/product，
+  Episode 按 tenant/user/entity 过滤，跨 tenant/user/corpus 不互见。
+- HNSW：按 generation 创建 partial expression index，固定 dimension、cosine opclass 与 m/ef_construction；
+  index ID 由 generation 稳定派生，重试时验证现有 index method/definition/options，漂移 fail closed。
+  小语料 exact 与 ANN 在同一 capture 上逐 candidate ID 对比。
+- Legacy adapter：`LegacyHybridBackend` 与 PG 使用同一 request/result/status/rank contract；具体
+  `ChromaBm25KnowledgeCandidateSource` 分别读取 Chroma raw distance 与 SQLite/Python BM25 source order。
+  frozen comparison corpus 缺 tenant/ACL/source revision 时返回 `INVALID_CONTRACT`，backend 故障返回
+  `UNAVAILABLE`，两者都不伪装为 `NO_EVIDENCE`。
+- 状态语义：generation 不可读/维度/lexical contract/schema 漂移为 `INVALID_CONTRACT`，backend fingerprint
+  漂移为 `CONFLICT`，真实空结果为 `NO_EVIDENCE`，连接/执行故障为 `UNAVAILABLE`。
+- 验证：tokenizer golden、Legacy/PG conformance、PG generated tsvector/GIN、HNSW 重入、exact-vs-ANN、
+  tenant/scope/user/entity/corpus isolation、所有 fail-closed status；真实 PostgreSQL/pgvector 全套
+  `575 passed`，Alembic head=`0011`。没有 online consumer 或 read pointer 切换。
+
 ## 下一步
 
-1. M2-PF01 PR-18P-B：实现冻结的中文 tokenizer、PG FTS 与 pgvector exact/HNSW adapter，同一 conformance。
-2. M2-PF01 PR-18P-C：canonical outbox projection、backfill/shadow、delete/rebuild fault proof。
-3. 并行按 DAG 推进 M2-T01/T01A；M1 production cutover 未验证前只允许 flag-off build，不启动 dark shadow。
+1. M2-PF01 PR-18P-C：canonical outbox projection、backfill/shadow、delete/rebuild fault proof。
+2. 按 DAG 推进 M2-T01/T01A；M1 production cutover 未验证前只允许 flag-off build，不启动 dark shadow。
+3. 保持 PG_FTS_ZH_V1 与 LEGACY_BM25_V1 独立评分，未过质量/延迟/删除/重建 Gate 前不切 active consumer。

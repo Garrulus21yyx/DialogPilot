@@ -57,6 +57,15 @@ def retrieval_foundation(postgres_database_url):
     ))
     platform.open()
     retrieval.open()
+    with platform.transaction() as connection:
+        connection.execute("""
+            TRUNCATE TABLE
+                retrieval.knowledge_chunk_search,
+                retrieval.service_episode_search,
+                retrieval.retrieval_generation_pointers,
+                retrieval.retrieval_generation_registry
+            CASCADE
+        """)
     try:
         yield result, platform, retrieval
     finally:
@@ -68,7 +77,7 @@ def test_retrieval_pool_has_independent_role_budget_timeout_and_metrics(
     retrieval_foundation,
 ):
     result, _, retrieval = retrieval_foundation
-    assert result["head"] == "20260902_0010"
+    assert result["head"] == "20260902_0011"
     assert retrieval.config.max_size == 2
     with retrieval.transaction() as connection:
         row = connection.execute("""
@@ -124,13 +133,12 @@ def test_search_projection_fails_closed_on_dimension_missing_subject_and_epoch(
                     candidate_id, tenant_id, backend_id, generation_id,
                     source_id, source_revision, source_checksum, source_span,
                     provenance_sha256, scope, locale, deletion_epoch,
-                    embedding, lexical_document, search_tsv, projected_at
+                    embedding, lexical_document, projected_at
                 ) VALUES (
                     'bad-dimension', 'tenant-a', %s, %s,
                     'source-a', 'revision-a', %s, '{}'::jsonb,
                     %s, 'public', 'zh-CN', 0,
-                    '[0.1,0.2]'::vector, '退款 流程',
-                    to_tsvector('simple', '退款 流程'), now()
+                    '[0.1,0.2]'::vector, '退款 流程', now()
                 )
             """, (knowledge.backend_id, knowledge.generation_id, SHA, SHA))
 
@@ -148,11 +156,11 @@ def test_search_projection_fails_closed_on_dimension_missing_subject_and_epoch(
                     candidate_id, tenant_id, user_id, source_conversation_id,
                     backend_id, generation_id, episode_id, episode_revision,
                     outcome_receipt_ref, provenance_sha256, deletion_epoch,
-                    verified_at, lexical_document, search_tsv, projected_at
+                    verified_at, lexical_document, projected_at
                 ) VALUES (
                     'missing-subject', 'tenant-a', 'user-a', 'conversation-a',
                     %s, %s, 'episode-a', 'revision-a', 'receipt-a', %s, 0,
-                    now(), '退款 结果', to_tsvector('simple', '退款 结果'), now()
+                    now(), '退款 结果', now()
                 )
             """, (episode.backend_id, episode.generation_id, SHA))
 
