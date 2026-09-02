@@ -24,7 +24,7 @@ from services.answer_verifier import (
     VerificationResult,
     VerificationStatus,
 )
-from services.ticket_service import TicketPriority, TicketService
+from services.ticket_service import TicketPriority
 from services.response_delivery import DeliveryStatus, ResponseDelivery
 from services.badcase_registry import BadCaseRegistry
 from services.evolution import ActiveBundleResolver, AgentBundleRegistry, build_default_bundle
@@ -159,7 +159,7 @@ class FakeVerifier:
 
 
 def test_chat_out_of_scope_is_a_policy_terminal_without_worker_verifier_or_memory_write(
-    tmp_path, monkeypatch,
+    tmp_path, monkeypatch, ticket_service,
 ):
     """无恶意越域请求只做范围重定向，不污染客服执行、工单和长期记忆链路。"""
     class ScopeRecognizer:
@@ -196,7 +196,7 @@ def test_chat_out_of_scope_is_a_policy_terminal_without_worker_verifier_or_memor
 
     orchestrator._execute = must_not_execute
     memory = FakeMemory()
-    tickets = TicketService(str(tmp_path / "scope-tickets.db"))
+    tickets = ticket_service
     bundles = AgentBundleRegistry(str(tmp_path / "scope-agent-bundles.db"))
     bundles.bootstrap(build_default_bundle({}))
 
@@ -256,10 +256,11 @@ def test_chat_out_of_scope_is_a_policy_terminal_without_worker_verifier_or_memor
     assert tickets.list_tickets() == []
 
 
-def test_chat_escalation_creates_one_persistent_idempotent_ticket(tmp_path, monkeypatch):
+def test_chat_escalation_creates_one_persistent_idempotent_ticket(
+    tmp_path, monkeypatch, ticket_service,
+):
     """证明同一请求重试只创建一张持久工单，并返回相同 ticket_id。"""
     memory = FakeMemory()
-    ticket_service = TicketService(str(tmp_path / "tickets.db"))
     orchestrator = FakeOrchestrator()
     monkeypatch.setattr(main, "_orchestrator", orchestrator)
     monkeypatch.setattr(main, "_memory", memory)
@@ -342,7 +343,9 @@ def test_handoff_priority_preserves_typed_critical_urgency():
     assert main._handoff_priority(UrgencyLevel.HIGH, "pass") is TicketPriority.NORMAL
 
 
-def test_chat_waiting_approval_does_not_create_handoff_or_badcase(tmp_path, monkeypatch):
+def test_chat_waiting_approval_does_not_create_handoff_or_badcase(
+    tmp_path, monkeypatch, ticket_service,
+):
     """预期审批等待不是 Agent 故障，不应偷偷创建人工工单。"""
     class PendingOrchestrator(FakeOrchestrator):
         async def run(self, request):
@@ -369,7 +372,7 @@ def test_chat_waiting_approval_does_not_create_handoff_or_badcase(tmp_path, monk
             raise AssertionError("pending approval is not a publishable candidate")
 
     memory = FakeMemory()
-    tickets = TicketService(str(tmp_path / "tickets.db"))
+    tickets = ticket_service
     monkeypatch.setattr(main, "_orchestrator", PendingOrchestrator())
     monkeypatch.setattr(main, "_memory", memory)
     monkeypatch.setattr(main, "_answer_verifier", MustNotVerify())
@@ -442,8 +445,10 @@ def test_resume_endpoint_reverifies_completed_candidate(monkeypatch):
     assert response["response"] == "退款申请已提交。"
 
 
-def test_active_ticket_context_is_bounded_authoritative_projection(tmp_path, monkeypatch):
-    service = TicketService(str(tmp_path / "tickets.db"))
+def test_active_ticket_context_is_bounded_authoritative_projection(
+    tmp_path, monkeypatch, ticket_service,
+):
+    service = ticket_service
     ticket, _ = service.create_ticket(
         idempotency_key="request-1",
         user_id="user-1",

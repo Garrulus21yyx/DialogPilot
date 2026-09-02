@@ -1787,7 +1787,7 @@ FULFILLED/LATE_FULFILLED/CANCELLED/ESCALATED → ARCHIVED
 - Owner：Product/Support Ops + Application + Platform
 - Build prerequisite：M4-T07、M4-T08
 - Verification prerequisite：M4-T07、M4-T08
-- 目标能力状态：`PLANNED`（目标 ServiceCase/Handoff PostgreSQL Owner 尚未完成）
+- 目标能力状态：`IMPLEMENTED`（Ticket/Event/Outbox 已直接绑定 PostgreSQL；结构化 HandoffContract 仍由 M4-T07 单独完成）
 
 实施内容：在 clean PostgreSQL fixture 与 Handoff E2E 通过后，原子切 repository/worker binding 并启动
 PostgreSQL writer；同一 slice 删除 SQLite Ticket/Outbox reader/writer、旧导出/迁移/对账 helper、

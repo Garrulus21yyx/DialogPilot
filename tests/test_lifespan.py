@@ -158,7 +158,6 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
     monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
     monkeypatch.setenv("AUTH_JWT_SECRET", "test-secret-that-is-at-least-32-bytes-long")
     monkeypatch.setenv("DATABASE_URL", postgres_database_url)
-    monkeypatch.setenv("TICKET_DB_PATH", str(tmp_path / "tickets.db"))
     monkeypatch.delenv("TICKET_DISPATCH_WEBHOOK_URL", raising=False)
     monkeypatch.setenv("CUSTOMER_OPERATIONS_DB_PATH", str(tmp_path / "operations.db"))
     monkeypatch.setenv("REACT_RUN_DB_PATH", str(tmp_path / "react-runs.db"))

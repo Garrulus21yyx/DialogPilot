@@ -35,7 +35,6 @@ from services.ticket_service import (
     InvalidTransitionError,
     TicketNotFoundError,
     TicketPriority,
-    TicketService,
     TicketStatus,
     TicketWebhookDispatcher,
 )
@@ -312,17 +311,6 @@ async def lifespan(app: FastAPI):
         ticket_webhook_url,
         timeout_seconds=float(os.getenv("TICKET_DISPATCH_TIMEOUT_SECONDS", "5")),
     ) if ticket_webhook_url else None
-    _ticket_service = TicketService(
-        os.getenv(
-            "TICKET_DB_PATH",
-            str(pathlib.Path(_ROOT) / "data" / "tickets" / "tickets.db"),
-        ),
-        dispatcher=ticket_dispatcher,
-        dispatch_poll_seconds=float(os.getenv("TICKET_DISPATCH_POLL_SECONDS", "5")),
-        dispatch_lease_seconds=float(os.getenv("TICKET_DISPATCH_LEASE_SECONDS", "30")),
-        dispatch_retry_base_seconds=float(os.getenv("TICKET_DISPATCH_RETRY_BASE_SECONDS", "5")),
-        dispatch_retry_max_seconds=float(os.getenv("TICKET_DISPATCH_RETRY_MAX_SECONDS", "300")),
-    )
     database_url = os.getenv("DATABASE_URL", "").strip()
     if database_url:
         from infrastructure.postgres import (
@@ -337,6 +325,24 @@ async def lifespan(app: FastAPI):
         PostgresMigrationRunner(database_url).upgrade()
         _postgres_pool = PostgresPool(PostgresPoolConfig.from_env())
         _postgres_pool.open()
+        from infrastructure.postgres_ticket_service import PostgresTicketService
+
+        _ticket_service = PostgresTicketService(
+            _postgres_pool,
+            dispatcher=ticket_dispatcher,
+            dispatch_poll_seconds=float(os.getenv(
+                "TICKET_DISPATCH_POLL_SECONDS", "5",
+            )),
+            dispatch_lease_seconds=float(os.getenv(
+                "TICKET_DISPATCH_LEASE_SECONDS", "30",
+            )),
+            dispatch_retry_base_seconds=float(os.getenv(
+                "TICKET_DISPATCH_RETRY_BASE_SECONDS", "5",
+            )),
+            dispatch_retry_max_seconds=float(os.getenv(
+                "TICKET_DISPATCH_RETRY_MAX_SECONDS", "300",
+            )),
+        )
         from application.memory_retrieval_policy import (
             DEFAULT_MEMORY_RETRIEVAL_POLICY,
         )

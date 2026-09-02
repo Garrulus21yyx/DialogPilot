@@ -2,7 +2,6 @@ from fastapi.testclient import TestClient
 
 from api import main
 from core.auth import Principal
-from services.ticket_service import TicketService
 
 
 def payload():
@@ -30,9 +29,9 @@ def admin_client():
     return TestClient(main.app)
 
 
-def test_ticket_api_create_list_detail_and_transition(tmp_path, monkeypatch):
+def test_ticket_api_create_list_detail_and_transition(ticket_service, monkeypatch):
     """证明创建、列表、详情和合法迁移的完整 API 主路径。"""
-    service = TicketService(str(tmp_path / "tickets.db"))
+    service = ticket_service
     monkeypatch.setattr(main, "_ticket_service", service)
     client = admin_client()
 
@@ -68,9 +67,9 @@ def test_ticket_api_create_list_detail_and_transition(tmp_path, monkeypatch):
     ]
 
 
-def test_ticket_api_maps_conflict_and_missing_states(tmp_path, monkeypatch):
+def test_ticket_api_maps_conflict_and_missing_states(ticket_service, monkeypatch):
     """证明幂等冲突与缺失工单映射为稳定 HTTP 错误。"""
-    service = TicketService(str(tmp_path / "tickets.db"))
+    service = ticket_service
     monkeypatch.setattr(main, "_ticket_service", service)
     client = admin_client()
 

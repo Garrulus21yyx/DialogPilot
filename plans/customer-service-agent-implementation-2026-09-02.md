@@ -26,7 +26,8 @@
 | 收缩本地评测并清理展示文档中的旧路径 | done | README/架构/项目讲述/面试文档以当前代码为准 |
 | 本地 E2E、恢复验证、Demo 复现 | done | `4a0a0f4`；835 tests passed；两份机器报告 PASS |
 | OCR/VLM 分级调用 | done | `c0b7d96`、`ac8ee64`、`5ad83d6`、`b77a196`；L1/L2 两份真实 E2E PASS；887 tests passed |
-| Commitment/Handoff PostgreSQL 收敛 | pending | 先保留本地闭环，再删除对应 SQLite store |
+| Handoff PostgreSQL 收敛 | complete | Ticket/Event/Outbox 已直接绑定 PostgreSQL，SQLite writer/config/test 已删除 |
+| Commitment 最小闭环 | pending | 仅实现简历展示所需的明确承诺、履约和违约闭环 |
 | 持久 OTel/Langfuse | pending | 当前只有 TraceId、进程内 span 与 Prometheus |
 
 ## 必须保留的核心

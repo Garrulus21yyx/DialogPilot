@@ -74,7 +74,7 @@ DialogPilot 下一阶段的目标不是把现有系统改造成一个更复杂�
 | TaskGraph、依赖/并发与 Worker 编排 | [agent_orchestrator.py](../agents/agent_orchestrator.py)、[orchestration_contracts.py](../agents/orchestration_contracts.py) | [test_agent_orchestration.py](../tests/test_agent_orchestration.py) |
 | ReAct 审批恢复与工具执行账本 | [react_engine.py](../agents/react_engine.py)、[run_store.py](../agents/run_store.py) | [test_react_resume.py](../tests/test_react_resume.py) |
 | Response 选择与 ACK | [response_delivery.py](../services/response_delivery.py) | [test_response_delivery.py](../tests/test_response_delivery.py) |
-| Ticket 状态与 outbox | [ticket_service.py](../services/ticket_service.py) | [test_ticket_service.py](../tests/test_ticket_service.py) |
+| Ticket 状态与 outbox | [postgres_ticket_service.py](../infrastructure/postgres_ticket_service.py) | [test_postgres_ticket_service.py](../tests/test_postgres_ticket_service.py) |
 | Memory/summary/context | [conversation_memory.py](../memory/conversation_memory.py)、[context.py](../memory/context.py) | [test_context_memory.py](../tests/test_context_memory.py) |
 | Knowledge/RAG | [knowledge_base.py](../mcp/knowledge_base.py)、[evidence_pack.py](../mcp/evidence_pack.py) | [test_knowledge_base_retrieval.py](../tests/test_knowledge_base_retrieval.py)、[test_rag_pipeline_evaluation.py](../tests/test_rag_pipeline_evaluation.py) |
 | 发布前 Verifier | [answer_verifier.py](../services/answer_verifier.py) | [test_answer_verifier.py](../tests/test_answer_verifier.py) |
@@ -120,7 +120,7 @@ MemoryManager.get_context
 - [RunStore](../agents/run_store.py) 的作用域只覆盖单个 ReAct run，并暂时兼任审批与工具执行账本；
 - [ResponseDeliveryService](../services/response_delivery.py) 只拥有被选择的 assistant 回复及 ACK；
 - [MemoryManager](../memory/conversation_memory.py) 只保存部分 in-scope 对话投影；
-- [TicketService](../services/ticket_service.py) 只拥有人工工单域；
+- [TicketService](../services/ticket_service.py) 定义人工工单领域端口，[PostgresTicketService](../infrastructure/postgres_ticket_service.py) 是唯一持久 Owner；
 - 外层 TaskGraph、其他 Agent outcome、Synthesizer、发布、Memory 写入没有统一恢复入口。
 
 ### 2.3 根因归纳（用于诊断，不是运行时状态图）

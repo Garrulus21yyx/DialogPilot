@@ -8,7 +8,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
-import tempfile
+import os
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -38,7 +38,9 @@ from memory.conversation_memory import MemoryManager, Message, MsgRole
 from memory.hybrid_retrieval import HybridMemoryRetriever, MemoryDocument
 from services.answer_verifier import AnswerVerifier, VerificationStatus
 from services.result_synthesizer import AgentOutcome, AgentOutcomeStatus, CoverageGate
-from services.ticket_service import TicketPriority, TicketService, TicketStatus
+from infrastructure.postgres import PostgresMigrationRunner, PostgresPool, PostgresPoolConfig
+from infrastructure.postgres_ticket_service import PostgresTicketService
+from services.ticket_service import TicketPriority, TicketStatus
 
 
 class StatefulExecutionError(RuntimeError):
@@ -741,10 +743,26 @@ async def _verifier_fail_closed(case: FixtureRequest) -> FixtureEvidence:
 
 @fixture("ticket_idempotent")
 async def _ticket_idempotent(case: FixtureRequest) -> FixtureEvidence:
-    with tempfile.TemporaryDirectory(prefix="dialogpilot-stateful-") as temp_dir:
-        service = TicketService(str(Path(temp_dir) / "tickets.db"))
+    database_url = str(
+        os.getenv("TEST_DATABASE_URL") or os.getenv("DATABASE_URL") or ""
+    ).strip()
+    if not database_url:
+        raise StatefulExecutionError(
+            "ticket_idempotent requires TEST_DATABASE_URL or DATABASE_URL"
+        )
+    PostgresMigrationRunner(database_url, actor="stateful-eval").upgrade()
+    pool = PostgresPool(PostgresPoolConfig(database_url, min_size=1, max_size=2))
+    pool.open()
+    idempotency_key = f"stateful-eval:{case.case_id}"
+    try:
+        service = PostgresTicketService(pool)
+        with pool.transaction() as connection:
+            connection.execute(
+                "DELETE FROM dialogpilot_app.handoff_tickets WHERE idempotency_key=%s",
+                (idempotency_key,),
+            )
         kwargs = {
-            "idempotency_key": f"stateful-{_variant(case)}", "user_id": "user-a",
+            "idempotency_key": idempotency_key, "user_id": "user-a",
             "conv_id": "conv-a", "request_id": f"request-{_variant(case)}",
             "question": "需要人工", "published_response": "已创建人工工单",
             "reason": "fixture", "priority": TicketPriority.HIGH,
@@ -759,6 +777,13 @@ async def _ticket_idempotent(case: FixtureRequest) -> FixtureEvidence:
             "single_create_event": len(events) == 1,
             "ticket_open": first.status is TicketStatus.OPEN,
         }, {"ticket_id": first.ticket_id, "created_flags": [first_created, second_created], "event_count": len(events)})
+    finally:
+        with pool.transaction() as connection:
+            connection.execute(
+                "DELETE FROM dialogpilot_app.handoff_tickets WHERE idempotency_key=%s",
+                (idempotency_key,),
+            )
+        pool.close()
 
 
 # Fresh Reviewer B action 在独立模块中注册，避免把主 runner 继续膨胀。

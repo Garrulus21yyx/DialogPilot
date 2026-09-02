@@ -56,7 +56,7 @@ flowchart TB
 | 回答与送达 | PostgreSQL publication/delivery | publication 先于 HTTP 返回，ACK 单调且可重放 |
 | 当前会话 | Redis projection | 从 PostgreSQL 事件重建，不反向成为事实 Owner |
 | 跨会话记忆 | ServiceEpisode / MemoryFact | PostgreSQL 记录来源、revision、有效状态 |
-| 人工升级 | `services/ticket_service.py` | 幂等 ticket、合法状态迁移、outbox |
+| 人工升级 | `infrastructure/postgres_ticket_service.py` | PostgreSQL 事务内的幂等 ticket、合法状态迁移、event 与 outbox |
 
 ## `/chat` 时序
 

@@ -34,8 +34,8 @@ def create_params():
     }
 
 
-def test_ticket_write_waits_for_host_approval_then_returns_committed_receipt(tmp_path):
-    service = TicketService(str(tmp_path / "tickets.db"))
+def test_ticket_write_waits_for_host_approval_then_returns_committed_receipt(ticket_service):
+    service = ticket_service
     manager = runtime(service)
 
     pending = asyncio.run(manager.execute_for_agent(
@@ -62,8 +62,8 @@ def test_ticket_write_waits_for_host_approval_then_returns_committed_receipt(tmp
     assert manager.audit_records()[-1].receipt_id == approved.receipt_id
 
 
-def test_ticket_create_is_idempotent_for_same_request(tmp_path):
-    service = TicketService(str(tmp_path / "tickets.db"))
+def test_ticket_create_is_idempotent_for_same_request(ticket_service):
+    service = ticket_service
     manager = runtime(service)
 
     first = asyncio.run(manager.execute_for_agent(
@@ -81,8 +81,8 @@ def test_ticket_create_is_idempotent_for_same_request(tmp_path):
     assert len(service.list_tickets(user_id="user-1")) == 1
 
 
-def test_ticket_read_tools_enforce_trusted_user_ownership(tmp_path):
-    service = TicketService(str(tmp_path / "tickets.db"))
+def test_ticket_read_tools_enforce_trusted_user_ownership(ticket_service):
+    service = ticket_service
     manager = runtime(service)
     created = asyncio.run(manager.execute_for_agent(
         "support_ticket_create", create_params(), agent_type="billing",
@@ -113,8 +113,8 @@ def test_ticket_read_tools_enforce_trusted_user_ownership(tmp_path):
     assert other_detail.data is None
 
 
-def test_tool_context_overwrites_spoofed_agent_identity_and_has_no_user_id_schema(tmp_path):
-    service = TicketService(str(tmp_path / "tickets.db"))
+def test_tool_context_overwrites_spoofed_agent_identity_and_has_no_user_id_schema(ticket_service):
+    service = ticket_service
     manager = runtime(service)
     definitions = {
         item["name"]: item for item in manager.anthropic_tools_for_agent("billing")

@@ -224,7 +224,7 @@ docs/             已完成的目标架构、实施计划和展示文档
 
 - DeepSeek Vision 是显式启用的实验模型；关闭或不可用时 L2 fail-closed，不影响 L0/L1。
 - 当前 TraceRecorder 是进程内实现，尚未接入持久 OTel Collector/Langfuse。
-- Ticket、Bad Case、ReAct checkpoint 和 Bundle metadata 仍有本地 SQLite store；它们不是已删除的 ResponseDelivery/Knowledge 双路径。
+- Ticket/Event/Outbox 已由 PostgreSQL 单路径持久化；Bad Case、ReAct checkpoint 和 Bundle metadata 仍是本地 SQLite store。
 - 评测集包含 provisional/公开数据映射，不能宣称生产准确率或 human-reviewed Gold。
 - 没有生产流量，因此不模拟 Shadow、Canary、promotion、回滚指针、双盲签署或生产 RPO/RTO。
 - `MCPToolManager` 是项目内部工具运行时，不是远程 MCP Server。

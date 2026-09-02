@@ -20,7 +20,6 @@ from mcp.tool_manager import Tool
 from mcp.customer_operations_tools import customer_operation_tools
 from mcp.customer_support_tools import ticket_tools
 from services.customer_operations import CustomerOperationsService
-from services.ticket_service import TicketService
 
 
 NOW = datetime(2026, 9, 2, 12, 0, tzinfo=timezone.utc)
@@ -268,7 +267,9 @@ def test_knowledge_evidence_pack_is_the_only_supported_nested_knowledge_output()
     assert no_evidence.reason_code == "KNOWLEDGE_EVIDENCE_PACK_INVALID"
 
 
-def test_all_builtin_tool_manifests_pass_the_same_startup_gate(tmp_path):
+def test_all_builtin_tool_manifests_pass_the_same_startup_gate(
+    ticket_service, tmp_path,
+):
     knowledge = _tool(
         "knowledge_search", authority="knowledge.active_source",
         output_fields=("source_id", "source_revision", "checksum", "content"),
@@ -285,7 +286,7 @@ def test_all_builtin_tool_manifests_pass_the_same_startup_gate(tmp_path):
     tools = (
         knowledge,
         memory,
-        *ticket_tools(TicketService(str(tmp_path / "tickets.db"))),
+        *ticket_tools(ticket_service),
         *customer_operation_tools(
             CustomerOperationsService(str(tmp_path / "operations.db"))
         ),

@@ -7,7 +7,7 @@ from application.active_case import (
     ActiveCaseState,
 )
 from infrastructure.active_case_projection import TicketServiceActiveCaseReader
-from services.ticket_service import TicketPriority, TicketService, TicketStatus
+from services.ticket_service import TicketPriority, TicketStatus
 
 
 def _create(service, key, *, priority=TicketPriority.NORMAL, intent="other", metadata=None):
@@ -32,8 +32,8 @@ def _case(index, *, priority="normal", tags=(), refs=(), commitments=()):
     )
 
 
-def test_reader_projects_owner_fields_and_excludes_closed_only(tmp_path):
-    service = TicketService(str(tmp_path / "tickets.db"))
+def test_reader_projects_owner_fields_and_excludes_closed_only(ticket_service):
+    service = ticket_service
     active = _create(
         service, "active", intent="delivery",
         metadata={"order_ref": "order:A123"},
@@ -55,10 +55,8 @@ def test_reader_projects_owner_fields_and_excludes_closed_only(tmp_path):
     assert projected.version == 1
 
 
-def test_empty_unavailable_and_conflict_are_distinct_closed_outcomes(tmp_path):
-    empty = TicketServiceActiveCaseReader(
-        TicketService(str(tmp_path / "empty.db"))
-    ).read(user_id="user-1")
+def test_empty_unavailable_and_conflict_are_distinct_closed_outcomes(ticket_service):
+    empty = TicketServiceActiveCaseReader(ticket_service).read(user_id="user-1")
     assert empty.state is ActiveCaseState.NO_ACTIVE_CASE
 
     class Failing:
@@ -69,7 +67,7 @@ def test_empty_unavailable_and_conflict_are_distinct_closed_outcomes(tmp_path):
     assert unavailable.state is ActiveCaseState.UNAVAILABLE
     assert unavailable.reason_codes == ("TICKET_SERVICE_TIMEOUTERROR",)
 
-    service = TicketService(str(tmp_path / "duplicate.db"))
+    service = ticket_service
     ticket = _create(service, "duplicate")
 
     class Duplicate:

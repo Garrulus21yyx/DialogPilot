@@ -9,6 +9,9 @@ import psycopg
 import pytest
 from psycopg import sql
 
+from infrastructure.postgres import PostgresMigrationRunner, PostgresPool, PostgresPoolConfig
+from infrastructure.postgres_ticket_service import PostgresTicketService
+
 
 def _database_urls(base_url: str, database_name: str) -> tuple[str, str]:
     parsed = urlsplit(base_url)
@@ -94,3 +97,22 @@ def fresh_postgres_database_url():
             connection.execute(sql.SQL("DROP DATABASE IF EXISTS {}").format(
                 sql.Identifier(database_name),
             ))
+
+
+@pytest.fixture
+def ticket_service(postgres_database_url):
+    """Provide the sole Handoff owner with clean PostgreSQL facts per test."""
+    PostgresMigrationRunner(postgres_database_url).upgrade()
+    pool = PostgresPool(PostgresPoolConfig(postgres_database_url))
+    pool.open()
+    with pool.transaction() as connection:
+        connection.execute(
+            "TRUNCATE dialogpilot_app.handoff_ticket_outbox, "
+            "dialogpilot_app.handoff_ticket_events, "
+            "dialogpilot_app.handoff_tickets RESTART IDENTITY CASCADE"
+        )
+    service = PostgresTicketService(pool)
+    try:
+        yield service
+    finally:
+        pool.close()
