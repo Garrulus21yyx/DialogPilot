@@ -1,0 +1,26 @@
+{
+  "confidence_method": "wilson-95",
+  "direct_contact_identifiers": "REJECT",
+  "disagreement": "INDEPENDENT_ARBITRATION_REQUIRED",
+  "fix_participation_transition": "FRESH_HELDOUT_TO_CONSUMED_REGRESSION",
+  "gold_promotion_owner": "Evaluation + Product/Support Ops + Privacy",
+  "policy_id": "m6-t03-gold-review-policy-v1",
+  "required_group_dimensions": [
+    "user",
+    "order",
+    "product",
+    "time",
+    "semantic"
+  ],
+  "required_reviewers": 2,
+  "supported_slices": [
+    "invalid",
+    "oos",
+    "security",
+    "compound",
+    "multi_turn",
+    "handoff",
+    "multimodal",
+    "standard"
+  ]
+}

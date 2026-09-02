@@ -50,6 +50,7 @@
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
 | M5 Knowledge Lifecycle/Multimodal | pending | 按 M5-T01–T09 子节点推进 |
 | M6-T01 Dataset v2 / Rubric v2 | implemented (contract fixtures provisional) | 11 层 service-chain + deterministic hard rubric + fixed semantic adapter；835 tests passed |
+| M6-T03 Gold / fresh heldout | workflow implemented / real data blocked | privacy+dual review+arbitration+group split+consumed transition；真实标注/Privacy evidence pending |
 | M6 Eval/Observability/Release | in_progress | T01 build 完成；T02–T09 按依赖推进 |
 | X-T01–X-T05 跨里程碑治理 | implemented / production reviews pending | 五个 build 节点完成；生产 snapshot/failover/security/billing 与独立文案 review 不伪造 |
 
@@ -1030,6 +1031,18 @@
 - 冻结 3 条 `PROVISIONAL_NOT_GOLD` contract fixtures，含一条已可见 heldout；只验证 schema/runner，不宣称
   human Gold/fresh 泛化。聚焦 `7 passed`、全套 `835 passed in 51.39s`，ruff/diff checks passed；
   [build evidence](../governance/evidence/m6-t01/service-chain-eval-v2-build.md)。
+
+### M6-T03（Gold / fresh-heldout workflow slice）
+
+- 新增 Privacy-reviewed candidate、双人 blind annotation、第三方 conflict arbitration、五维 group-safe split、
+  Cohen's kappa、consumed-regression 单调迁移与 Wilson-95/error-slice report 合同。
+- 直接 email/phone 在 review boundary 拒绝；manifest 只保存 opaque refs/hashes 与 reviewer/arbitrator evidence。
+  一旦参与修复必须绑定完整 fix commit，不能继续计入 fresh heldout。
+- frozen `m6-t03-gold-review-policy-v1` 明确唯一 Gold promotion Owner 为 Evaluation + Product/Support Ops +
+  Privacy。聚焦 `8 passed`，全套 `843 passed in 51.37s`；ruff/diff checks passed。
+- [build evidence](../governance/evidence/m6-t03/gold-review-workflow-build.md) 状态
+  `WORKFLOW IMPLEMENTED / REAL GOLD DATA BLOCKED`：未读取/修改用户未跟踪 draft dataset；真实工单、两名
+  reviewer、Privacy、仲裁、IAA、sealed fresh heldout 与运行报告不存在，不能创建 Gold/Gate evidence。
 
 ## 下一步
 
