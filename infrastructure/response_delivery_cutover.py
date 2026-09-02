@@ -388,6 +388,7 @@ class PostgresResponseDeliveryBackfill:
             "publication_kind": "final_response",
             "outbound_turn_key": turn_key,
             "migration": "dialogpilot.delivery-cutover.v1",
+            "projection_disposition": "normal",
         }
         connection.execute("""
             INSERT INTO dialogpilot_app.conversation_events (

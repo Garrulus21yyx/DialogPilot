@@ -23,6 +23,13 @@ class PublicationApplyStatus(str, Enum):
     IDEMPOTENCY_CONFLICT = "IDEMPOTENCY_CONFLICT"
 
 
+class ProjectionDisposition(str, Enum):
+    NORMAL = "normal"
+    OUT_OF_SCOPE = "out_of_scope"
+    CLARIFICATION = "clarification"
+    APPROVAL = "approval"
+
+
 @dataclass(frozen=True)
 class PublicationPolicy:
     connector_capability: ConnectorCapability
@@ -54,6 +61,7 @@ class FinalResponseCommand:
     index_manifest_sha256: str
     created_at: str
     policy: PublicationPolicy
+    projection_disposition: ProjectionDisposition = ProjectionDisposition.NORMAL
 
 
 @dataclass(frozen=True)
@@ -68,6 +76,7 @@ class InteractionRequestCommand:
     resume_schema: Mapping[str, Any]
     created_at: str
     policy: PublicationPolicy
+    projection_disposition: ProjectionDisposition = ProjectionDisposition.APPROVAL
 
 
 @dataclass(frozen=True)
@@ -81,6 +90,7 @@ class HumanReplyCommand:
     text: str
     created_at: str
     policy: PublicationPolicy
+    projection_disposition: ProjectionDisposition = ProjectionDisposition.NORMAL
 
 
 PublicationCommand: TypeAlias = (

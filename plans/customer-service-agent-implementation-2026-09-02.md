@@ -23,6 +23,7 @@
 | M1-T02 Inbound-first / outbox dispatcher | implemented | PostgreSQL `0003`；生产 `/chat` cutover 归 M1-T05 |
 | M1-T03 Unified publication/delivery | done | PostgreSQL `0004`；atomic publication/delivery outbox + canonical receipt lifecycle |
 | M1-T03A ResponseDelivery PostgreSQL 单主切换 | implemented | PR-10A/10B + local crash/restore drill；production snapshot cutover unverified |
+| M1-T04 Conversation projection outbox/deletion fence | implemented | PostgreSQL `0006`；4 projections + generation watermark + tombstone epoch |
 | M1 完整会话事实与幂等发布 | in_progress | 按 T00–T05/T03A/T04A 子节点推进 |
 | M2 Route/Authority/Evidence/RAG | pending | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
@@ -276,6 +277,32 @@
   已归档到 `docs/data/response-delivery-cutover-restore-evidence-2026-09-02.json`。
 - 验证：全套 `518 passed`。当前没有生产 SQLite/PG snapshot 副本和维护窗口授权，因此不声明生产
   technical cutover `VERIFIED`；旧生产 writer 仍按现状单主，M1-T05 只在真实 T03A gate 后恢复新 admission。
+
+### M1-T04（IMPLEMENTED，activation pending M1-T05）
+
+- Event owner：migration `0006` 在 `conversation_events` AFTER INSERT trigger 中为
+  `working_window/thread_summary/episodic_index/fact_extraction` 原子生成 projection outbox；admission、
+  resume、final/interaction/human publication 和 deletion 不再各自负责补写。source 事务回滚时 outbox 一起
+  回滚，外部 projection 失败只释放 lease，不撤销已发生的会话事件。
+- Projection contract：每个 target 有稳定 generation/policy/location ID，每个
+  target+generation+subject 保存 source event watermark；同 subject 严格按 event seq claim，不同 subject
+  可 `SKIP LOCKED` 并发。重建先原子晋升 generation，再从 immutable event stream 重新排队，不覆盖旧
+  generation 证据。
+- 幂等/恢复：adapter effect 使用 `projection+generation+event+deletion_epoch` operation key；effect 后崩溃
+  重试得到 `ALREADY_APPLIED`，ACK 后崩溃为 known-applied 且不再 claim。backend unavailable 时 source
+  event、outbox 与 watermark 责任边界保持明确。
+- 显式策略：normal inbound/resume/final/human 可进入四类 projection；OOS、clarification、approval 和
+  rejected resume 只进入 working window/thread summary；deletion event 必须进入所有 target 执行清理。
+- 删除 owner：Conversation 行持有单调 `deletion_epoch/deleted_at`，删除 command 写 immutable deletion fact
+  和 `CONVERSATION_DELETED` event。数据库 BEFORE INSERT fence 阻断 tombstone 后的 turn/event/publication；
+  worker 在外部 effect 前后复查 epoch，竞态时调用 delete adapter 并 ACK `DELETION_FENCED`，防止补偿任务
+  复活旧数据。
+- 验证：source/outbox 原子性、lease retry、effect/ACK crash、policy algebra、generation rebuild、adapter
+  unavailable、delete-vs-write race 和 late-write DB fence 全覆盖；Alembic head=`0006`，全套
+  `537 passed`。
+- 激活边界：当前同步 legacy `ConversationMemory.add_messages` 仍随旧 `/chat` 单主运行；M1-T05 在新
+  admission/publication 主链启用时关闭该直写并启动 projection adapters。当前卡不把未切流量表述成生产
+  projection 已启用。
 
 ## 下一步
 

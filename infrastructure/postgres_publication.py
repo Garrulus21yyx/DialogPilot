@@ -139,6 +139,7 @@ class PostgresPublicationService:
                 "publication_id": publication_id,
                 "publication_kind": kind.value,
                 "outbound_turn_key": turn_key,
+                "projection_disposition": command.projection_disposition.value,
             }
             connection.execute("""
                 INSERT INTO dialogpilot_app.conversation_events (
