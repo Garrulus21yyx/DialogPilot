@@ -51,12 +51,32 @@ class ServiceEpisodeHit:
     index_watermark: str
     policy_fingerprint: str
 
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "candidate_id": self.candidate_id,
+            "episode_id": self.episode_id,
+            "episode_revision": self.episode_revision,
+            "provenance_sha256": self.provenance_sha256,
+            "score": self.score,
+            "source_ranks": dict(self.source_ranks),
+            "freshness_at": self.freshness_at,
+            "index_watermark": self.index_watermark,
+            "policy_fingerprint": self.policy_fingerprint,
+        }
+
 
 @dataclass(frozen=True)
 class ServiceEpisodeRetrievalResult:
     status: RetrievalStatus
     hits: tuple[ServiceEpisodeHit, ...] = ()
     detail_code: str | None = None
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "status": self.status.value,
+            "hits": [item.to_dict() for item in self.hits],
+            "detail_code": self.detail_code,
+        }
 
 
 class ServiceEpisodeRetriever:

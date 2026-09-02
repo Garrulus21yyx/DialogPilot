@@ -65,6 +65,7 @@
   },
   "retrieval_policy_owner": {
     "owner": "ServiceEpisodeRetriever",
+    "tool_composition_owner": "ServiceEpisodeMemorySearch",
     "candidate_owner": "PostgresHybridBackend",
     "independent_gates": ["minimum_fused_relevance", "freshness_max_age_seconds"],
     "trace": [

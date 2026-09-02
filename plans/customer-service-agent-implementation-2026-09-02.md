@@ -1188,6 +1188,15 @@
 - [build evidence](../governance/evidence/m4-t04b/current-thread-memory-boundary-build.md)。legacy `get_context/search_long_term`
   当前仅供未迁移离线 fixture，必须在唯一 ServiceEpisode tool composition 验收时一并删除，不能进入 active runtime。
 
+### M4-T04B5（on-demand ServiceEpisode tool composition）
+
+- `ServiceEpisodeMemorySearch` 只从认证 tenant/user/entity scope、single target binding 与 generation registry 构造请求；
+  模型不能指定 tenant、policy 或 generation。
+- disabled binding 在 provider/backend 前 fail closed；policy/backend/generation/watermark 漂移为 `CONFLICT`，registry 故障为
+  `UNAVAILABLE`，embedding 故障只降级 lexical route；tool result 保留完整可解释 hit trace。
+- [build evidence](../governance/evidence/m4-t04b/service-episode-tool-composition-build.md)。尚未替换 API legacy tool 或激活
+  binding；canonical offline replay 与真实 tool-call E2E 是直接切换前置条件。
+
 ### M6-T01（Dataset v2 / Rubric v2）
 
 - 新增独立 service-chain v2，不改变 v1 数据身份；闭合 perception→service_outcome 11 层 observation，case
