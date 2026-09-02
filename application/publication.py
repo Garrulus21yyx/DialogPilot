@@ -129,6 +129,8 @@ def publication_identity(command: PublicationCommand) -> tuple[str, str, str]:
 
 def command_fingerprint(command: PublicationCommand) -> str:
     raw = dict(command.__dict__)
+    # Retry timing is transport metadata, not part of the selected publication fact.
+    raw.pop("created_at", None)
     raw["policy"] = dict(command.policy.__dict__)
     raw["invocation_key"] = str(raw.get("invocation_key") or "")
     encoded = json.dumps(

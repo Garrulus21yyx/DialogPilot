@@ -34,6 +34,40 @@ python scripts/run_postgres_migrations.py --database-url "$RESTORE_DATABASE_URL"
 验收证据必须包含：备份 SHA-256、起止时间、PostgreSQL major、Alembic head、ledger、关键表 count/
 checksum、RPO/RTO、执行人与清理确认。恢复演练只对隔离数据库执行。
 
+## ResponseDelivery 专用流程（M1-T03A）
+
+1. 升级到 Alembic `20260902_0005`。旧 SQLite 仍是唯一 writer；先执行 `export` 和 `backfill`，
+   再用 `reconcile` 做只读 shadow compare。缺 tenant/invocation、重复 final、scope 冲突或 checksum
+   不符必须停止。
+2. 维护窗口先停止新 admission 和 legacy delivery worker，再执行 `freeze`。该命令先在 SQLite
+   `BEGIN IMMEDIATE` 内把 selection/ACK writer fence 设为 `FROZEN`，随后才把 PostgreSQL binding
+   从 `SQLITE_ACTIVE` CAS 到 `FROZEN`，所以中途崩溃只会损失可用性，不会出现双 writer。
+3. 冻结后执行 `activate`：重新导出 final snapshot、以 `FINAL_DELTA` 补齐、在 binding 行锁事务内
+   重新计算 count/status/ID/content hash，匹配后切成 `POSTGRES_ACTIVE`，最后把 SQLite fence 设为
+   不可逆 `RETIRED`。只有 binding active 且 legacy retired 后才能恢复 PG worker claim/new admission。
+4. binding switch 前可执行 `abort-before-switch`：先把 PG binding 恢复为 `SQLITE_ACTIVE`，再释放相同
+   freeze ID 的 SQLite fence。switch 后此命令 fail closed；只允许 PG restore 或 forward-fix。
+
+```bash
+python scripts/migrate_response_deliveries.py export \
+  --sqlite-path "$RESPONSE_DELIVERY_DB_PATH" --output delivery-snapshot.json
+python scripts/migrate_response_deliveries.py backfill \
+  --snapshot delivery-snapshot.json --database-url "$DATABASE_URL"
+python scripts/migrate_response_deliveries.py reconcile \
+  --snapshot delivery-snapshot.json --database-url "$DATABASE_URL"
+python scripts/migrate_response_deliveries.py freeze \
+  --sqlite-path "$RESPONSE_DELIVERY_DB_PATH" --database-url "$DATABASE_URL" \
+  --freeze-id "$FREEZE_ID" --actor "$OPERATOR"
+python scripts/migrate_response_deliveries.py activate \
+  --sqlite-path "$RESPONSE_DELIVERY_DB_PATH" --database-url "$DATABASE_URL" \
+  --freeze-id "$FREEZE_ID" --actor "$OPERATOR" --switched-at "$SWITCHED_AT"
+```
+
+Legacy `selected` 没有发送 receipt，固定迁成 connector=`NONE` 的 `DELIVERY_UNCERTAIN`；所有 legacy
+outbox 都是 acknowledged/automatic-send-disabled，不会因 backfill、进程恢复或 restore 自动重发。
+旧 SQLite 没有 outbox ID，exporter 首次确定性生成 compatibility ID 并由 snapshot checksum 冻结；
+`response_id` 原样成为 `publication_id`。
+
 ## 凭据轮换
 
 1. 创建新 role credential 并赋予同一最小权限；2. 部署新 secret 并等待旧 pool 排空；3. 撤销旧凭据；

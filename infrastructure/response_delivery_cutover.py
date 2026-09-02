@@ -294,7 +294,6 @@ class PostgresResponseDeliveryBackfill:
         *,
         mode: BackfillMode = BackfillMode.SNAPSHOT,
     ) -> DeliveryReconciliationReport:
-        del mode  # Both modes share one idempotent mapping; orchestration owns freeze.
         with self.pool.transaction() as connection:
             target_count = connection.execute(
                 "SELECT count(*) FROM dialogpilot_app.response_deliveries"
@@ -303,12 +302,24 @@ class PostgresResponseDeliveryBackfill:
                 report = self._reconcile(connection, snapshot)
                 if report.matched:
                     return report
-                raise TargetNotEmptyError(
-                    "target response_deliveries is non-empty and does not match snapshot"
-                )
+                if mode is BackfillMode.SNAPSHOT:
+                    raise TargetNotEmptyError(
+                        "target response_deliveries is non-empty and does not match "
+                        "snapshot"
+                    )
             for row in snapshot.rows:
-                self._insert(connection, row)
-            return self._reconcile(connection, snapshot)
+                exists = connection.execute(
+                    "SELECT 1 FROM dialogpilot_app.response_deliveries "
+                    "WHERE publication_id=%s", (row.response_id,),
+                ).fetchone()
+                if exists is None:
+                    self._insert(connection, row)
+            report = self._reconcile(connection, snapshot)
+            if not report.matched:
+                raise ReconciliationError(
+                    "target does not exactly match final delta snapshot"
+                )
+            return report
 
     def reconcile(
         self, snapshot: LegacyDeliverySnapshot,

@@ -11,12 +11,17 @@ from infrastructure.postgres import (
     PostgresPool,
     PostgresPoolConfig,
 )
+from infrastructure.delivery_binding import (
+    PostgresDeliveryBindingRepository,
+    ResponseDeliveryCutoverCoordinator,
+)
 from infrastructure.response_delivery_cutover import (
     LegacyResponseDeliveryExporter,
     PostgresResponseDeliveryBackfill,
     read_snapshot,
     write_snapshot,
 )
+from services.response_delivery import ResponseDeliveryService
 
 
 def main() -> int:
@@ -29,6 +34,23 @@ def main() -> int:
         command = subparsers.add_parser(name)
         command.add_argument("--snapshot", required=True)
         command.add_argument("--database-url", required=True)
+    freeze = subparsers.add_parser("freeze")
+    freeze.add_argument("--sqlite-path", required=True)
+    freeze.add_argument("--database-url", required=True)
+    freeze.add_argument("--freeze-id", required=True)
+    freeze.add_argument("--actor", required=True)
+    activate = subparsers.add_parser("activate")
+    activate.add_argument("--sqlite-path", required=True)
+    activate.add_argument("--database-url", required=True)
+    activate.add_argument("--freeze-id", required=True)
+    activate.add_argument("--actor", required=True)
+    activate.add_argument("--switched-at", required=True)
+    abort = subparsers.add_parser("abort-before-switch")
+    abort.add_argument("--sqlite-path", required=True)
+    abort.add_argument("--database-url", required=True)
+    abort.add_argument("--freeze-id", required=True)
+    abort.add_argument("--actor", required=True)
+    abort.add_argument("--reason", required=True)
     args = parser.parse_args()
 
     if args.command == "export":
@@ -49,6 +71,31 @@ def main() -> int:
     pool.open()
     try:
         repository = PostgresResponseDeliveryBackfill(pool)
+        if args.command in {"freeze", "activate", "abort-before-switch"}:
+            legacy = ResponseDeliveryService(args.sqlite_path)
+            binding = PostgresDeliveryBindingRepository(pool)
+            coordinator = ResponseDeliveryCutoverCoordinator(
+                legacy=legacy,
+                legacy_database_path=args.sqlite_path,
+                binding=binding,
+                backfill=repository,
+            )
+            if args.command == "freeze":
+                result = coordinator.prepare_freeze(
+                    freeze_id=args.freeze_id, actor=args.actor,
+                )
+            elif args.command == "abort-before-switch":
+                result = coordinator.abort_before_switch(
+                    freeze_id=args.freeze_id, actor=args.actor, reason=args.reason,
+                )
+            else:
+                result = coordinator.finalize_and_activate(
+                    freeze_id=args.freeze_id,
+                    actor=args.actor,
+                    switched_at=args.switched_at,
+                )
+            print(json.dumps(asdict(result), sort_keys=True, default=str))
+            return 0
         snapshot = read_snapshot(args.snapshot)
         report = (
             repository.apply(snapshot)

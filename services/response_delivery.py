@@ -31,6 +31,10 @@ class ResponseNotFoundError(ResponseDeliveryError):
     """回答不存在，或不属于当前认证用户。"""
 
 
+class ResponseDeliveryWritesFrozen(ResponseDeliveryError):
+    """Legacy selection/ACK is fenced for PostgreSQL cutover."""
+
+
 @dataclass(frozen=True)
 class ResponseDelivery:
     response_id: str
@@ -84,6 +88,7 @@ class ResponseDeliveryService:
         now = self._now()
         with self._lock, self._connect() as conn:
             conn.execute("BEGIN IMMEDIATE")
+            self._assert_writable(conn)
             row = conn.execute(
                 """
                 SELECT COALESCE(MAX(seq), 0) + 1 AS next_seq
@@ -126,6 +131,7 @@ class ResponseDeliveryService:
 
         with self._lock, self._connect() as conn:
             conn.execute("BEGIN IMMEDIATE")
+            self._assert_writable(conn)
             row = conn.execute(
                 "SELECT * FROM response_deliveries WHERE response_id = ? AND user_id = ?",
                 (response_id, user_id),
@@ -190,6 +196,67 @@ class ResponseDeliveryService:
         counts.update({str(row["status"]): int(row["count"]) for row in rows})
         return counts
 
+    def writer_state(self) -> tuple[str, str | None]:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT state, freeze_id FROM response_delivery_writer_control "
+                "WHERE singleton = 1"
+            ).fetchone()
+        return str(row["state"]), row["freeze_id"]
+
+    def freeze_writes(self, freeze_id: str) -> None:
+        freeze_id = self._required(freeze_id, "freeze_id")
+        with self._lock, self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            state, current_id = self._writer_state(conn)
+            if state == "RETIRED":
+                raise ResponseDeliveryWritesFrozen("legacy writer is retired")
+            if state == "FROZEN" and current_id == freeze_id:
+                return
+            if state != "ACTIVE":
+                raise ResponseDeliveryWritesFrozen(
+                    f"legacy writer already frozen by {current_id}"
+                )
+            conn.execute(
+                "UPDATE response_delivery_writer_control "
+                "SET state='FROZEN', freeze_id=?, updated_at=? WHERE singleton=1",
+                (freeze_id, self._now()),
+            )
+
+    def unfreeze_before_cutover(self, freeze_id: str) -> None:
+        freeze_id = self._required(freeze_id, "freeze_id")
+        with self._lock, self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            state, current_id = self._writer_state(conn)
+            if state == "ACTIVE":
+                return
+            if state != "FROZEN" or current_id != freeze_id:
+                raise ResponseDeliveryWritesFrozen(
+                    "only the matching pre-cutover freeze can be released"
+                )
+            conn.execute(
+                "UPDATE response_delivery_writer_control "
+                "SET state='ACTIVE', freeze_id=NULL, updated_at=? WHERE singleton=1",
+                (self._now(),),
+            )
+
+    def retire_writes(self, freeze_id: str) -> None:
+        freeze_id = self._required(freeze_id, "freeze_id")
+        with self._lock, self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            state, current_id = self._writer_state(conn)
+            if state == "RETIRED" and current_id == freeze_id:
+                return
+            if state != "FROZEN" or current_id != freeze_id:
+                raise ResponseDeliveryWritesFrozen(
+                    "legacy writer must have the matching freeze before retirement"
+                )
+            conn.execute(
+                "UPDATE response_delivery_writer_control "
+                "SET state='RETIRED', updated_at=? WHERE singleton=1",
+                (self._now(),),
+            )
+
     def _initialize(self) -> None:
         with self._lock, self._connect() as conn:
             conn.executescript(
@@ -210,7 +277,22 @@ class ResponseDeliveryService:
                 );
                 CREATE INDEX IF NOT EXISTS idx_response_delivery_replay
                     ON response_deliveries(user_id, conv_id, seq);
+                CREATE TABLE IF NOT EXISTS response_delivery_writer_control (
+                    singleton INTEGER PRIMARY KEY CHECK(singleton = 1),
+                    state TEXT NOT NULL CHECK(state IN ('ACTIVE', 'FROZEN', 'RETIRED')),
+                    freeze_id TEXT,
+                    updated_at TEXT NOT NULL,
+                    CHECK (
+                        (state = 'ACTIVE' AND freeze_id IS NULL)
+                        OR (state IN ('FROZEN', 'RETIRED') AND freeze_id IS NOT NULL)
+                    )
+                );
                 """
+            )
+            conn.execute(
+                "INSERT OR IGNORE INTO response_delivery_writer_control "
+                "(singleton, state, freeze_id, updated_at) VALUES (1,'ACTIVE',NULL,?)",
+                (self._now(),),
             )
             columns = {
                 str(row["name"])
@@ -228,6 +310,22 @@ class ResponseDeliveryService:
         conn.execute("PRAGMA journal_mode = WAL")
         conn.execute("PRAGMA busy_timeout = 5000")
         return conn
+
+    @staticmethod
+    def _writer_state(conn: sqlite3.Connection) -> tuple[str, str | None]:
+        row = conn.execute(
+            "SELECT state, freeze_id FROM response_delivery_writer_control "
+            "WHERE singleton = 1"
+        ).fetchone()
+        return str(row["state"]), row["freeze_id"]
+
+    @classmethod
+    def _assert_writable(cls, conn: sqlite3.Connection) -> None:
+        state, freeze_id = cls._writer_state(conn)
+        if state != "ACTIVE":
+            raise ResponseDeliveryWritesFrozen(
+                f"legacy response writer is {state.lower()} ({freeze_id})"
+            )
 
     @staticmethod
     def _row_to_delivery(row: sqlite3.Row) -> ResponseDelivery:

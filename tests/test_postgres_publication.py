@@ -214,6 +214,20 @@ def test_concurrent_same_publication_commits_one_fact_without_sequence_holes(
     assert sequences == (3, 3, 2)
 
 
+def test_retry_timestamp_does_not_change_publication_idempotency(
+    publication_components,
+):
+    _, identity, service, _ = publication_components
+    command = _final(identity)
+    assert service.select_final_response(
+        command,
+    ).status is PublicationApplyStatus.APPLIED
+    retry = replace(command, created_at="2026-09-02T05:30:00+02:00")
+    assert service.select_final_response(
+        retry,
+    ).status is PublicationApplyStatus.ALREADY_APPLIED
+
+
 @pytest.mark.parametrize("stage", [
     "after_outbound_turn", "after_outbound_event",
     "after_delivery_fact", "after_delivery_outbox",

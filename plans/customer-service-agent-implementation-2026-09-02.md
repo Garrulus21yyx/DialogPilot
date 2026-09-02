@@ -22,7 +22,7 @@
 | M1-T01 ConversationTurnStore schema | done | PostgreSQL migration `0002` + immutable scoped repositories |
 | M1-T02 Inbound-first / outbox dispatcher | implemented | PostgreSQL `0003`；生产 `/chat` cutover 归 M1-T05 |
 | M1-T03 Unified publication/delivery | done | PostgreSQL `0004`；atomic publication/delivery outbox + canonical receipt lifecycle |
-| M1-T03A ResponseDelivery PostgreSQL 单主切换 | in_progress | PR-10A export/backfill/shadow reconcile implemented；freeze/binding/restore drill pending |
+| M1-T03A ResponseDelivery PostgreSQL 单主切换 | implemented | PR-10A/10B + local crash/restore drill；production snapshot cutover unverified |
 | M1 完整会话事实与幂等发布 | in_progress | 按 T00–T05/T03A/T04A 子节点推进 |
 | M2 Route/Authority/Evidence/RAG | pending | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
@@ -248,7 +248,7 @@
 - 验证：canonical state product tests、原子 crash/retry、并发幂等、三类语义、ACK/READ 单调性均通过；
   Alembic head=`0004`，全套 `502 passed`。
 
-### M1-T03A（in progress）
+### M1-T03A（IMPLEMENTED，尚未 production-verified）
 
 - PR-10A 已实现只读 SQLite snapshot exporter、版本化字段/状态/ID 映射、单事务 PostgreSQL backfill、
   shadow-only reconcile 与运维 CLI；snapshot 自校验 row/status/ID/content checksum、final invocation、
@@ -261,9 +261,21 @@
   `DELIVERY_UNCERTAIN`，所有迁入 outbox 均 ACK 且 `automatic_send_disabled`，不假定可重试或重复发送。
 - 对账逐一覆盖 count、canonical status count、publication ID hash 和包含 scope/request/invocation/seq/text/
   timestamps/outbox 的 content hash；重复 backfill 仅在完整匹配时幂等成功。
-- 验证：三状态迁移、snapshot round-trip、缺失身份、scope 冲突、重复 final、缺失 target invocation 整批
-  回滚均通过；全套 `508 passed`。待 PR-10B 完成 freeze/claim、原子 binding switch、crash matrix 与
-  PostgreSQL restore/forward-fix 演练后才可声明本卡完成。
+- PR-10B：SQLite 新增事务内持久 writer fence；selection/ACK 在 `BEGIN IMMEDIATE` 后检查
+  `ACTIVE/FROZEN/RETIRED`。PG `delivery_repository_binding` 用 generation CAS 管理
+  `SQLITE_ACTIVE→FROZEN→POSTGRES_ACTIVE`，每次迁移写 immutable audit event；PG active 后没有回到
+  SQLite 的 transition。
+- Cutover coordinator 固定次序为 legacy freeze→PG freeze→final export/delta→同事务 reconcile+binding
+  switch→legacy retire；只有 PG active 且 SQLite retired 才允许 worker resume。switch 前 abort 先恢复
+  PG binding 再释放相同 freeze ID，switch 后只允许 PG restore/forward-fix。
+- 崩溃性质：六个注入点（legacy freeze、binding freeze、final export、final backfill、binding switch、
+  legacy retire）均能重入收敛，且任何观察点都不存在两个 active writer。final delta 只补缺失稳定 ID，
+  既有 target 异内容或额外记录使整批回滚。
+- 本地 restore：PostgreSQL 18.1 custom dump/restore 后保持 head=`0005`、binding=`POSTGRES_ACTIVE:3`、
+  delivery/outbox=`1/1`、binding events=`2`，count/status/ID/content hash 全匹配；dump SHA 和 scope limit
+  已归档到 `docs/data/response-delivery-cutover-restore-evidence-2026-09-02.json`。
+- 验证：全套 `518 passed`。当前没有生产 SQLite/PG snapshot 副本和维护窗口授权，因此不声明生产
+  technical cutover `VERIFIED`；旧生产 writer 仍按现状单主，M1-T05 只在真实 T03A gate 后恢复新 admission。
 
 ## 下一步
 
