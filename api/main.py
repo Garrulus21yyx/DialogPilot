@@ -14,7 +14,7 @@ import sys
 import uuid
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, replace
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Literal, Mapping, Optional
 
 
@@ -621,6 +621,15 @@ async def lifespan(app: FastAPI):
             PostgresCompatibilityRunBinder,
         )
         from infrastructure.postgres_conversation import PostgresInvocationRepository
+        from infrastructure.memory_projection_adapter import (
+            PostgresLegacyMemoryProjectionAdapter,
+        )
+        from infrastructure.postgres_projection import (
+            ConversationProjectionDispatcher,
+            PostgresConversationDeletionRepository,
+            PostgresConversationProjectionOutbox,
+        )
+        from application.conversation_projection import ProjectionName
         from infrastructure.postgres_response_compat import (
             PostgresResponseDeliveryCompatibilityService,
         )
@@ -638,7 +647,9 @@ async def lifespan(app: FastAPI):
             PostgresCompatibilityRunBinder(_postgres_pool),
         )
         _durable_chat_coordinator = CompatibilityChatCoordinator(
-            _core_chat_application(),
+            _core_chat_application(
+                memory_projection_mode="durable_event_outbox",
+            ),
             admission=PostgresAdmissionUnitOfWork(_postgres_pool),
             dispatcher=dispatcher,
             execution_outbox=execution_outbox,
@@ -655,8 +666,22 @@ async def lifespan(app: FastAPI):
             ),
         )
         _durable_chat_stop = asyncio.Event()
+        projection_dispatcher = ConversationProjectionDispatcher(
+            outbox=PostgresConversationProjectionOutbox(_postgres_pool),
+            deletion=PostgresConversationDeletionRepository(_postgres_pool),
+            adapters={
+                name: PostgresLegacyMemoryProjectionAdapter(
+                    _postgres_pool, _memory, name,
+                )
+                for name in ProjectionName
+            },
+        )
         _durable_chat_task = asyncio.create_task(
-            _run_durable_chat_worker(_durable_chat_coordinator, _durable_chat_stop),
+            _run_durable_chat_worker(
+                _durable_chat_coordinator,
+                projection_dispatcher,
+                _durable_chat_stop,
+            ),
         )
     logger.info("DialogPilot 已就绪")
     try:
@@ -1843,13 +1868,33 @@ async def register_agent_bundle(
     return {"bundle": registered.to_dict(), "content_hash": registered.content_hash, "active": False}
 
 
-async def _run_durable_chat_worker(coordinator, stop: asyncio.Event) -> None:
+async def _run_durable_chat_worker(
+    coordinator, projection_dispatcher, stop: asyncio.Event,
+) -> None:
+    from application.conversation_projection import ProjectionName
+
     poll_seconds = max(
         0.05, float(os.getenv("DIALOGPILOT_DURABLE_CHAT_POLL_SECONDS", "1")),
     )
+    lease_seconds = int(os.getenv("DIALOGPILOT_PROJECTION_LEASE_SECONDS", "30"))
     while not stop.is_set():
         try:
             work_count = await coordinator.pump_once()
+            now = datetime.now(timezone.utc)
+            for name in ProjectionName:
+                results = await asyncio.to_thread(
+                    projection_dispatcher.dispatch_once,
+                    projection_name=name,
+                    worker_id=(
+                        f"{os.getenv('DIALOGPILOT_DURABLE_CHAT_WORKER_ID', 'api-compat')}"
+                        f"-projection-{name.value}"
+                    ),
+                    now=now.isoformat(),
+                    lease_until=(now + timedelta(seconds=lease_seconds)).isoformat(),
+                    retry_at=(now + timedelta(seconds=poll_seconds)).isoformat(),
+                    limit=20,
+                )
+                work_count += len(results)
         except Exception:
             logger.exception("durable compatibility worker iteration failed")
             work_count = 0
@@ -1861,7 +1906,9 @@ async def _run_durable_chat_worker(coordinator, stop: asyncio.Event) -> None:
             pass
 
 
-def _core_chat_application() -> ChatApplication:
+def _core_chat_application(
+    *, memory_projection_mode: str = "direct",
+) -> ChatApplication:
     """Compose the application boundary from the current lifespan-owned services."""
     return ChatApplication(
         ChatServices(
@@ -1879,6 +1926,7 @@ def _core_chat_application() -> ChatApplication:
             route_execution_mode=os.getenv(
                 "DIALOGPILOT_ROUTE_EXECUTION_MODE", "legacy",
             ),
+            memory_projection_mode=memory_projection_mode,
         ),
         ChatOperations(
             active_ticket_context=_active_ticket_context,

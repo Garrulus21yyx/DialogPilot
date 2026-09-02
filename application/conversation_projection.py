@@ -62,6 +62,11 @@ class SubjectFence:
 class ConversationProjectionPolicyV1:
     version = "conversation-projection-v1"
 
+    _FACT_TRIGGER_EVENTS = {
+        "FINAL_RESPONSE_SELECTED",
+        "LEGACY_FINAL_RESPONSE_IMPORTED",
+    }
+
     _CONTEXT_ONLY_EVENTS = {
         "INTERACTION_REQUEST_PUBLISHED",
         "RESUME_REJECTED",
@@ -70,6 +75,11 @@ class ConversationProjectionPolicyV1:
     def allows(self, event: ProjectableConversationEvent) -> bool:
         if event.event_type == "CONVERSATION_DELETED":
             return True
+        if (
+            event.projection_name is ProjectionName.FACT_EXTRACTION
+            and event.event_type not in self._FACT_TRIGGER_EVENTS
+        ):
+            return False
         if event.projection_name in {
             ProjectionName.WORKING_WINDOW,
             ProjectionName.THREAD_SUMMARY,

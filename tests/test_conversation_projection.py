@@ -68,13 +68,21 @@ def test_non_factual_events_only_enter_working_and_summary(
     "HUMAN_REPLY_PUBLISHED",
     "LEGACY_FINAL_RESPONSE_IMPORTED",
 ])
-def test_normal_inbound_outbound_and_human_events_are_projectable_everywhere(
+def test_normal_events_follow_closed_target_specific_projection_policy(
     event_type,
 ):
     policy = ConversationProjectionPolicyV1()
-    assert all(policy.allows(_event(
-        projection, event_type=event_type,
-    )) for projection in ProjectionName)
+    allowed = {
+        projection
+        for projection in ProjectionName
+        if policy.allows(_event(projection, event_type=event_type))
+    }
+    expected = set(ProjectionName)
+    if event_type not in {
+        "FINAL_RESPONSE_SELECTED", "LEGACY_FINAL_RESPONSE_IMPORTED",
+    }:
+        expected.remove(ProjectionName.FACT_EXTRACTION)
+    assert allowed == expected
 
 
 def test_deletion_event_always_reaches_every_projection_for_cleanup():

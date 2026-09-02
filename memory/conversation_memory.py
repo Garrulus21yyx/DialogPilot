@@ -19,7 +19,7 @@ import unicodedata
 import uuid
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
@@ -423,6 +423,134 @@ class MemoryManager:
         if await self._needs_compression(user_id, conv_id):
             await self._compress(user_id, conv_id)
         return messages
+
+    async def project_working_message(
+        self,
+        user_id: str,
+        conv_id: str,
+        message: Message,
+        *,
+        event_key: str,
+    ) -> bool:
+        """Idempotently project one canonical turn into the Redis raw window."""
+        user_id = self._safe_text(user_id)
+        conv_id = self._safe_text(conv_id)
+        marker = self._projection_marker_key(user_id, conv_id, "working", event_key)
+        sequence = self._seq_key(user_id, conv_id)
+        encoded = self._encode_message(message)
+        try:
+            async with self._redis.pipeline(transaction=True) as pipe:
+                await pipe.watch(marker, sequence)
+                if await pipe.get(marker) is not None:
+                    await pipe.unwatch()
+                    return False
+                current = int(await pipe.get(sequence) or 0)
+                pipe.multi()
+                pipe.lpush(self._wm_key(user_id, conv_id), encoded)
+                pipe.persist(self._wm_key(user_id, conv_id))
+                pipe.set(sequence, max(current, message.seq))
+                pipe.set(marker, "1")
+                await pipe.execute()
+                return True
+        except WatchError:
+            return False
+
+    async def project_episodic_message(
+        self,
+        user_id: str,
+        conv_id: str,
+        message: Message,
+        *,
+        event_key: str,
+    ) -> bool:
+        """Use stable Chroma IDs; a crash before the marker safely repeats upsert."""
+        marker = self._projection_marker_key(user_id, conv_id, "episodic", event_key)
+        if await self._redis.get(marker) is not None:
+            return False
+        if not await self._archive_messages(
+            user_id, conv_id, [message], summary="", reason="canonical_event",
+        ):
+            raise RuntimeError("episodic projection is unavailable")
+        return bool(await self._redis.set(marker, "1", nx=True))
+
+    async def project_thread_summary(
+        self,
+        user_id: str,
+        conv_id: str,
+        *,
+        event_key: str,
+    ) -> bool:
+        marker = self._projection_marker_key(user_id, conv_id, "summary", event_key)
+        if await self._redis.get(marker) is not None:
+            return False
+        working = self._projection_marker_key(user_id, conv_id, "working", event_key)
+        if await self._redis.get(working) is None:
+            raise RuntimeError("working projection prerequisite is pending")
+        if await self._needs_compression(user_id, conv_id):
+            await self._compress(user_id, conv_id)
+        return bool(await self._redis.set(marker, "1", nx=True))
+
+    async def project_fact_schedule(
+        self,
+        user_id: str,
+        conv_id: str,
+        *,
+        event_key: str,
+    ) -> bool:
+        marker = self._projection_marker_key(user_id, conv_id, "facts", event_key)
+        if await self._redis.get(marker) is not None:
+            return False
+        working = self._projection_marker_key(user_id, conv_id, "working", event_key)
+        if await self._redis.get(working) is None:
+            raise RuntimeError("working projection prerequisite is pending")
+        member = self._fact_job_member(user_id, conv_id)
+        async with self._redis.pipeline(transaction=True) as pipe:
+            await pipe.watch(marker)
+            if await pipe.get(marker) is not None:
+                await pipe.unwatch()
+                return False
+            pipe.multi()
+            pipe.zadd(self.FACT_JOB_QUEUE_KEY, {member: datetime.now(timezone.utc).timestamp()})
+            pipe.set(marker, "1")
+            await pipe.execute()
+        self._fact_job_stats["scheduled"] += 1
+        return True
+
+    async def delete_conversation_projection(
+        self, user_id: str, conv_id: str,
+    ) -> None:
+        """Erase every conversation-scoped Memory surface; user facts are filtered."""
+        user_id = self._safe_text(user_id)
+        conv_id = self._safe_text(conv_id)
+        keys = [
+            self._wm_key(user_id, conv_id),
+            self._seq_key(user_id, conv_id),
+            self._summary_key(user_id, conv_id),
+            self._legacy_summary_key(user_id, conv_id),
+            self._summary_chunks_key(user_id, conv_id),
+            self._fact_checkpoint_key(user_id, conv_id),
+        ]
+        marker_pattern = self._projection_marker_key(user_id, conv_id, "*", "*")
+        async for key in self._redis.scan_iter(match=marker_pattern):
+            keys.append(key)
+        if keys:
+            await self._redis.delete(*keys)
+        await self._redis.zrem(self.FACT_JOB_QUEUE_KEY, self._fact_job_member(user_id, conv_id))
+        where = {"$and": [
+            {"user_id": {"$eq": user_id}},
+            {"conv_id": {"$eq": conv_id}},
+        ]}
+        await asyncio.to_thread(self._episodic.delete, where=where)
+        await asyncio.to_thread(self._facts.delete, where={"$and": [
+            {"user_id": {"$eq": user_id}},
+            {"source_conversation_id": {"$eq": conv_id}},
+        ]})
+        # Legacy profile documents have no source provenance.  Selective
+        # subtraction would be invented data, so privacy deletion fails safe
+        # by removing that non-authoritative fallback for the user.
+        await asyncio.to_thread(
+            self._profile.delete, ids=[self._profile_id(user_id)],
+        )
 
     async def extract_user_facts(
         self,
@@ -1852,6 +1980,17 @@ class MemoryManager:
     @staticmethod
     def _seq_key(user_id: str, conv_id: str) -> str:
         return f"conversation_seq:{user_id}:{conv_id}"
+
+    @staticmethod
+    def _projection_marker_key(
+        user_id: str, conv_id: str, projection: str, event_key: str,
+    ) -> str:
+        subject = hashlib.sha256(f"{user_id}\0{conv_id}".encode("utf-8")).hexdigest()
+        event = (
+            "*" if event_key == "*"
+            else hashlib.sha256(event_key.encode("utf-8")).hexdigest()
+        )
+        return f"memory_projection:{subject}:{projection}:{event}"
 
     @staticmethod
     def _safe_text(value: Any) -> str:

@@ -1,0 +1,38 @@
+{
+  "contract_id": "m1-t04b-memory-projection-v1",
+  "status": "IMPLEMENTED_FLAG_OFF_PENDING_PRODUCTION_GATE",
+  "source_authority": "dialogpilot_app.conversation_events",
+  "dispatch_authority": "dialogpilot_app.conversation_projection_outbox",
+  "targets": {
+    "working_window": "Redis canonical-turn raw window",
+    "thread_summary": "Redis source-range summary checkpoint",
+    "episodic_index": "Chroma stable canonical-turn upsert",
+    "fact_extraction": "Redis durable fact job schedule from final-response events"
+  },
+  "idempotency": {
+    "working_window": "Redis transaction commits raw message and event marker together",
+    "thread_summary": "source-range checkpoint CAS then event marker",
+    "episodic_index": "stable message/chunk IDs allow upsert replay before marker",
+    "fact_extraction": "Redis transaction commits job score and event marker together"
+  },
+  "ordering": {
+    "within_target_subject": "strict source event sequence",
+    "summary_and_fact_prerequisite": "same-event working marker or RETRY",
+    "cross_subject": "SKIP LOCKED concurrency"
+  },
+  "deletion": {
+    "fence": "conversation deletion_epoch before and after every external effect",
+    "surfaces": [
+      "Redis raw/sequence/summary/chunks/fact checkpoint/job/markers",
+      "Chroma episodic rows scoped by user and conversation",
+      "Chroma facts scoped by source conversation",
+      "legacy unprovenanced profile fallback for the user"
+    ],
+    "late_effect": "delete again and ACK DELETION_FENCED"
+  },
+  "online_composition": {
+    "mode": "DIALOGPILOT_DURABLE_CHAT_MODE=enabled",
+    "direct_memory_write": "disabled only inside the fully composed durable facade",
+    "default": "disabled pending production ResponseDelivery/failover gate"
+  }
+}

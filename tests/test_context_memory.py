@@ -630,6 +630,57 @@ def test_batched_appends_allocate_monotonic_sequence_and_preserve_turn_order():
     ]
 
 
+def test_canonical_projection_targets_are_idempotent_and_dependency_fenced():
+    manager = bare_manager(budget=100000)
+    manager._redis = FakeRedis([])
+    archived = []
+
+    async def archive(_user, _conv, messages, *, summary, reason):
+        archived.extend(message.message_id for message in messages)
+        assert summary == ""
+        assert reason == "canonical_event"
+        return True
+
+    manager._archive_messages = archive
+    message = Message(
+        MsgRole.USER, "canonical question", message_id="turn-1", seq=3,
+    )
+    assert asyncio.run(manager.project_working_message(
+        "u", "c", message, event_key="event-1",
+    )) is True
+    assert asyncio.run(manager.project_working_message(
+        "u", "c", message, event_key="event-1",
+    )) is False
+    assert [(item.seq, item.message_id) for item in asyncio.run(
+        manager._get_event_log("u", "c")
+    )] == [(3, "turn-1")]
+
+    assert asyncio.run(manager.project_episodic_message(
+        "u", "c", message, event_key="event-1",
+    )) is True
+    assert asyncio.run(manager.project_episodic_message(
+        "u", "c", message, event_key="event-1",
+    )) is False
+    assert archived == ["turn-1"]
+    assert asyncio.run(manager.project_thread_summary(
+        "u", "c", event_key="event-1",
+    )) is True
+    assert asyncio.run(manager.project_fact_schedule(
+        "u", "c", event_key="event-1",
+    )) is True
+    member = manager._fact_job_member("u", "c")
+    assert member in manager._redis.zsets[manager.FACT_JOB_QUEUE_KEY]
+
+
+def test_summary_projection_retries_until_same_event_working_turn_exists():
+    manager = bare_manager(budget=100000)
+    manager._redis = FakeRedis([])
+    with pytest.raises(RuntimeError, match="prerequisite is pending"):
+        asyncio.run(manager.project_thread_summary(
+            "u", "c", event_key="event-before-working",
+        ))
+
+
 def test_fact_job_is_durable_debounced_and_reaches_batch_threshold():
     """L0 和待提取标记同事务提交；同一会话只有一个可更新的延迟任务。"""
     manager = bare_manager(budget=100000)

@@ -1,5 +1,7 @@
 """M1-T04 projection outbox, replay and deletion-fence properties."""
 from dataclasses import dataclass, field
+import json
+from pathlib import Path
 
 import psycopg
 import pytest
@@ -19,6 +21,9 @@ from infrastructure.postgres import (
 )
 from infrastructure.postgres_admission import PostgresAdmissionUnitOfWork
 from infrastructure.postgres_conversation import PostgresConversationTurnStore
+from infrastructure.memory_projection_adapter import (
+    PostgresLegacyMemoryProjectionAdapter,
+)
 from infrastructure.postgres_projection import (
     ConversationProjectionDispatcher,
     PostgresConversationDeletionRepository,
@@ -28,6 +33,7 @@ from infrastructure.postgres_projection import (
 
 
 CREATED = "2026-09-02T09:00:00+00:00"
+ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.fixture()
@@ -175,6 +181,97 @@ def test_each_source_event_atomically_enqueues_all_registered_projections(
         ("thread_summary", 1, 0),
         ("working_window", 1, 0),
     ]
+
+
+def test_t04b_frozen_contract_names_real_effect_and_deletion_owners():
+    contract = json.loads((
+        ROOT / "governance/concurrency/m1-t04b-memory-projection-v1.json"
+    ).read_text("utf-8"))
+    assert contract["source_authority"] == (
+        "dialogpilot_app.conversation_events"
+    )
+    assert set(contract["targets"]) == {item.value for item in ProjectionName}
+    assert contract["online_composition"]["direct_memory_write"] == (
+        "disabled only inside the fully composed durable facade"
+    )
+
+
+def test_production_memory_adapter_loads_canonical_turn_and_routes_target(
+    projection_components,
+):
+    pool, _, outbox, _ = projection_components
+
+    class Memory:
+        calls = []
+
+        async def project_working_message(
+            self, user_id, conv_id, message, *, event_key,
+        ):
+            self.calls.append((
+                "working", user_id, conv_id, message.content,
+                message.message_id, message.seq, event_key,
+            ))
+            return True
+
+    memory = Memory()
+    event = outbox.claim(
+        projection_name=ProjectionName.WORKING_WINDOW,
+        worker_id="real-memory-adapter",
+        now=CREATED,
+        lease_until="2026-09-02T09:01:00+00:00",
+        limit=1,
+    )[0]
+    adapter = PostgresLegacyMemoryProjectionAdapter(
+        pool, memory, ProjectionName.WORKING_WINDOW,
+    )
+    assert adapter.apply(event) is ProjectionApplyStatus.APPLIED
+    assert memory.calls == [(
+        "working", "user-projection", "projection-conversation", "question",
+        str(_identity("one").turn_id), 1,
+        f"{event.event_id}:e0",
+    )]
+
+
+def test_fact_adapter_does_not_schedule_non_final_inbound_event(
+    projection_components,
+):
+    pool, _, outbox, _ = projection_components
+
+    class Memory:
+        async def project_fact_schedule(self, *_args, **_kwargs):
+            raise AssertionError("inbound event must not schedule fact extraction")
+
+    event = outbox.claim(
+        projection_name=ProjectionName.FACT_EXTRACTION,
+        worker_id="fact-adapter",
+        now=CREATED,
+        lease_until="2026-09-02T09:01:00+00:00",
+        limit=1,
+    )[0]
+    adapter = PostgresLegacyMemoryProjectionAdapter(
+        pool, Memory(), ProjectionName.FACT_EXTRACTION,
+    )
+    assert adapter.apply(event) is ProjectionApplyStatus.ALREADY_APPLIED
+
+    policy_dispatcher = ConversationProjectionDispatcher(
+        outbox=outbox,
+        deletion=PostgresConversationDeletionRepository(pool),
+        adapters={ProjectionName.FACT_EXTRACTION: adapter},
+    )
+    # Release the direct claim so the policy owner can classify the same fact.
+    outbox.release(
+        event, worker_id="fact-adapter",
+        available_at="2026-09-02T09:00:01+00:00",
+        error_code="test-policy-owner",
+    )
+    result = policy_dispatcher.dispatch_once(
+        projection_name=ProjectionName.FACT_EXTRACTION,
+        worker_id="fact-policy",
+        now="2026-09-02T09:00:01+00:00",
+        lease_until="2026-09-02T09:01:00+00:00",
+        retry_at="2026-09-02T09:02:00+00:00",
+    )
+    assert result[0].status == "POLICY_SKIPPED"
 
 
 def test_projection_lease_epoch_fences_late_worker_and_supports_renewal(

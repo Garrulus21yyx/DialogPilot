@@ -26,6 +26,7 @@
 | M1-T03 Unified publication/delivery | done | PostgreSQL `0004`；atomic publication/delivery outbox + canonical receipt lifecycle |
 | M1-T03A ResponseDelivery PostgreSQL 单主切换 | implemented | PR-10A/10B + local crash/restore drill；production snapshot cutover unverified |
 | M1-T04 Conversation projection outbox/deletion fence | implemented | PostgreSQL `0006`；4 projections + generation watermark + tombstone epoch |
+| M1-T04B Production Memory projection composition | implemented (flag off) | target-specific Redis/Chroma adapters、lifespan consumer、direct-write removal；等待 production gate |
 | M1-T04A DataLocationRegistry / pre-write fence | done | PostgreSQL `0007`；31 stable locations，4 write-approved，future writes fail closed |
 | M1-T05 Conversation/API read projections | implemented | PostgreSQL `0008`；turn/status/finalize watermark/close + PG delivery compatibility |
 | M1 Exit Gate | draft / not ready | T02D 在线 composition 已完成但 flag-off；T04B projection、production snapshot/delivery cutover/failover/signatures pending |
@@ -344,6 +345,19 @@
 - 激活边界：当前同步 legacy `ConversationMemory.add_messages` 仍随旧 `/chat` 单主运行；M1-T05 在新
   admission/publication 主链启用时关闭该直写并启动 projection adapters。当前卡不把未切流量表述成生产
   projection 已启用。
+
+### M1-T04B（IMPLEMENTED，production activation gated）
+
+- 四个 production adapter 都从同 scope canonical turn 回读，不信任外部 payload content。working raw 与
+  event marker 同 Redis 事务；episodic stable upsert；summary checkpoint CAS；fact job+marker 同事务且只接受
+  policy-allowed final response。
+- summary/fact 若同 event working prerequisite 未完成则 retry；每 target/subject 继续使用 T04 strict event
+  ordering，不以推进 watermark 代替真实 external effect。
+- deletion fence 清理 Redis raw/sequence/summary/chunks/fact job/checkpoint/markers、Chroma episodic 与带来源
+  conversation 的 facts；无 provenance 的 legacy profile fallback 整体删除，不猜测性回填。
+- durable facade 内 direct `add_messages` 已关闭并由 outbox consumer 接管；未完整组合 PostgreSQL 时仍使用
+  direct mode，避免单设 flag 导致静默漏写。默认 flag-off 现在只剩 production ResponseDelivery/failover/
+  independent gate，而非本地 adapter 缺口。
 
 ### M1-T04A
 
@@ -1082,5 +1096,5 @@
 3. X-T05 build 已完成；任何新对外声明先登记 registry，`READY` 仍需真实 GateDecision 与 approver。
 4. M2-T05C 受 M2 Exit + `POSTGRES_RETRIEVAL_GA` candidate manifest 阻断，当前不执行 canary。
 5. T04/T04A live activation 仍受 M2 gate 与独立 review 约束。
-6. 下一本地修复是 M1-T04B durable conversation projection composition；完成前 T02D 不启用，M1 Exit 仍不能
-   只归因于生产环境证据。
+6. T02D/T04B 本地在线闭环已完成并保持 flag-off；下一步重建 M1 Exit draft，区分已关闭的 local integration
+   gap 与仍缺失的 production snapshot/cutover/failover/independent evidence。

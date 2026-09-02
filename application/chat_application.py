@@ -188,6 +188,7 @@ class ChatServices:
     trace_recorder: Any = None
     knowledge_base: Any = None
     route_execution_mode: str = "legacy"
+    memory_projection_mode: str = "direct"
 
     @property
     def ready(self) -> bool:
@@ -803,7 +804,11 @@ class ChatApplication:
             cost_units=float(len(result.agent_outcomes) + len(tool_audit)),
             request_id=request_id,
         )
-        if disposition != "out_of_scope":
+        if services.memory_projection_mode == "durable_event_outbox":
+            stages.append(StageObservation("memory_write", StageStatus.SKIPPED, {
+                "reason": "owned_by_conversation_projection_outbox",
+            }))
+        elif disposition != "out_of_scope":
             await services.memory.add_messages(user_id, conv_id, [
                 (MsgRole.USER, command.message, identity_metadata),
                 (MsgRole.ASSISTANT, response_text, {
