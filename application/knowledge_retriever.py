@@ -1,9 +1,12 @@
 """Knowledge-owned retrieval orchestration and cache boundary."""
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 import math
+import secrets
+import unicodedata
 from dataclasses import dataclass
 from typing import Any, Mapping, Protocol, Sequence
 
@@ -103,6 +106,7 @@ class KnowledgeRetrievalRequest:
     manifest_fingerprint: str
     generation_id: str
     policy: KnowledgeRetrievalPolicy
+    force_recompute: bool = False
 
     def __post_init__(self) -> None:
         required = (
@@ -127,6 +131,7 @@ class KnowledgeRetrievalTrace:
     manifest_fingerprint: str
     rewrite_fallback: bool
     rerank_fallback: bool
+    cache_hits: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -150,6 +155,122 @@ class RetrievalCachePort(Protocol):
     def get(self, key: str) -> bytes | None: ...
     def set(self, key: str, value: bytes, *, ttl_seconds: int) -> bool: ...
     def delete(self, key: str) -> bool: ...
+
+
+class KnowledgeEvidenceValidator(Protocol):
+    def validate_candidates(
+        self, candidates: Sequence[Mapping[str, Any]],
+        request: KnowledgeRetrievalRequest,
+    ) -> bool: ...
+
+    def validate(
+        self, pack: EvidencePack, request: KnowledgeRetrievalRequest,
+    ) -> bool: ...
+
+
+def normalize_retrieval_text(value: str) -> str:
+    return " ".join(unicodedata.normalize("NFKC", value).casefold().split())
+
+
+class RetrievalCacheKeyBuilder:
+    """Exact layered keys; no layer incorporates a future stage output."""
+
+    schema = "knowledge-retrieval-cache-v1"
+
+    @classmethod
+    def transform(cls, request: KnowledgeRetrievalRequest) -> str:
+        return cls._key("transform", {
+            "tenant": request.tenant_id, "user_scope": request.user_scope,
+            "query": normalize_retrieval_text(request.query),
+            "requirement": request.requirement_signature,
+            "conversation_range": request.conversation_range_hash,
+            "transformer": request.policy.transformer_version,
+        })
+
+    @classmethod
+    def embedding(
+        cls, request: KnowledgeRetrievalRequest, *, normalized_text: str,
+    ) -> str:
+        return cls._key("embedding", {
+            "tenant": request.tenant_id, "user_scope": request.user_scope,
+            "deletion_epoch": request.deletion_epoch,
+            "text": normalize_retrieval_text(normalized_text),
+            "embedding": request.policy.embedding_version,
+            "normalizer": "nfkc-casefold-whitespace-v1",
+        })
+
+    @classmethod
+    def candidates(
+        cls, request: KnowledgeRetrievalRequest,
+        variants: Sequence[tuple[str, str, float]],
+    ) -> str:
+        return cls._key("candidates", {
+            "tenant": request.tenant_id, "user_scope": request.user_scope,
+            "authorization": request.authorization_fingerprint,
+            "acl_policy": request.acl_policy_fingerprint,
+            "deletion_epoch": request.deletion_epoch,
+            "locale": request.locale, "product": request.product,
+            "variants": [
+                [kind, normalize_retrieval_text(query), weight]
+                for kind, query, weight in variants
+            ],
+            "manifest": request.manifest_fingerprint,
+            "generation": request.generation_id,
+            "backend": request.policy.backend_fingerprint,
+            "lexical_provider": request.policy.lexical_provider,
+            "dense_policy": request.policy.dense_weight,
+            "lexical_policy": request.policy.lexical_weight,
+            "rrf_k": request.policy.rrf_k,
+            "candidate_k": request.policy.candidate_k,
+        })
+
+    @classmethod
+    def rerank(
+        cls, request: KnowledgeRetrievalRequest,
+        candidates: Sequence[ContextCandidate],
+    ) -> str:
+        return cls._key("rerank", {
+            "candidate_set": _hash(sorted([
+                [item.chunk_id, item.document_id, item.source_revision,
+                 item.source_checksum]
+                for item in candidates
+            ])),
+            "query": normalize_retrieval_text(request.query),
+            "reranker": request.policy.reranker_version,
+            "policy": request.policy.fingerprint,
+        })
+
+    @classmethod
+    def evidence_pack(
+        cls, request: KnowledgeRetrievalRequest,
+        *,
+        variants: Sequence[tuple[str, str, float]],
+        candidates: Sequence[ContextCandidate],
+        ordered_ids: Sequence[str],
+    ) -> str:
+        return cls._key("evidence-pack", {
+            "tenant": request.tenant_id, "user_scope": request.user_scope,
+            "authorization": request.authorization_fingerprint,
+            "acl_policy": request.acl_policy_fingerprint,
+            "deletion_epoch": request.deletion_epoch,
+            "requirement": request.requirement_signature,
+            "manifest": request.manifest_fingerprint,
+            "generation": request.generation_id,
+            "source_revisions": sorted([
+                [item.document_id, item.source_revision, item.source_checksum]
+                for item in candidates
+            ]),
+            "variants": [list(item) for item in variants],
+            "ordered_ids": list(ordered_ids),
+            "packer": request.policy.packer_version,
+            "context_max_tokens": request.policy.context_max_tokens,
+            "final_k": request.policy.final_k,
+            "policy": request.policy.fingerprint,
+        })
+
+    @classmethod
+    def _key(cls, layer: str, value: Mapping[str, Any]) -> str:
+        return f"{cls.schema}:{layer}:{_hash(value)}"
 
 
 class KnowledgeCandidateSource(Protocol):
@@ -185,18 +306,31 @@ class KnowledgeRetriever:
         reranker: KnowledgeReranker,
         packer: ContextPacker | None = None,
         cache: RetrievalCachePort | None = None,
+        evidence_validator: KnowledgeEvidenceValidator | None = None,
     ):
         self._source = candidate_source
         self._transformer = transformer
         self._reranker = reranker
         self._packer = packer or ContextPacker()
         self._cache = cache
+        self._evidence_validator = evidence_validator
 
     async def retrieve(self, request: KnowledgeRetrievalRequest) -> EvidencePackResult:
         policy = request.policy
-        standalone, rewrite_error = await self._transformer.standalone(
-            request.query, request.history,
-        )
+        cache_hits: list[str] = []
+        transform_key = RetrievalCacheKeyBuilder.transform(request)
+        transformed = self._cache_get(transform_key, request)
+        if isinstance(transformed, dict) and set(transformed) == {"query", "error"}:
+            standalone = str(transformed["query"])
+            rewrite_error = str(transformed["error"]) or None
+            cache_hits.append("transform")
+        else:
+            standalone, rewrite_error = await self._transformer.standalone(
+                request.query, request.history,
+            )
+            self._cache_set(transform_key, {
+                "query": standalone, "error": rewrite_error or "",
+            })
         if rewrite_error or not standalone.strip() or standalone == request.query:
             variants = (("raw", request.query, 1.0),)
             rewrite_fallback = True
@@ -207,15 +341,53 @@ class KnowledgeRetriever:
                 ("standalone", standalone, policy.standalone_query_weight / total),
             )
             rewrite_fallback = False
-        try:
-            raw = tuple(await self._source.search_variants_async(
-                list(variants), top_k=policy.candidate_k,
-                retrieval_policy=policy.legacy_mapping(),
-            ))
-        except Exception:
-            return EvidencePackResult(
-                RetrievalStatus.UNAVAILABLE, None, None, "CANDIDATE_SOURCE_UNAVAILABLE",
+        candidate_key = RetrievalCacheKeyBuilder.candidates(request, variants)
+        cached_candidates = self._cache_get(candidate_key, request)
+        if (
+            isinstance(cached_candidates, list) and bool(cached_candidates)
+            and all(
+                isinstance(item, dict) for item in cached_candidates
+            ) and self._evidence_validator is not None
+            and self._evidence_validator.validate_candidates(
+                cached_candidates, request,
             )
+        ):
+            raw = tuple(cached_candidates)
+            cache_hits.append("candidates")
+        else:
+            lease_token = self._acquire_lease(candidate_key)
+            raw = None
+            if lease_token == "":
+                for _attempt in range(10):
+                    await asyncio.sleep(0.01)
+                    waited = self._cache_get(candidate_key, request)
+                    if (
+                        isinstance(waited, list) and bool(waited)
+                        and all(isinstance(item, dict) for item in waited)
+                        and self._evidence_validator is not None
+                        and self._evidence_validator.validate_candidates(
+                            waited, request,
+                        )
+                    ):
+                        raw = tuple(waited)
+                        cache_hits.append("candidates")
+                        break
+            try:
+                if raw is None:
+                    raw = tuple(await self._source.search_variants_async(
+                        list(variants), top_k=policy.candidate_k,
+                        retrieval_policy=policy.legacy_mapping(),
+                    ))
+                if raw and "candidates" not in cache_hits:
+                    self._cache_set(candidate_key, [dict(item) for item in raw])
+            except Exception:
+                return EvidencePackResult(
+                    RetrievalStatus.UNAVAILABLE, None, None,
+                    "CANDIDATE_SOURCE_UNAVAILABLE",
+                )
+            finally:
+                if lease_token:
+                    self._release_lease(candidate_key, lease_token)
         if not raw:
             return EvidencePackResult(
                 RetrievalStatus.NO_EVIDENCE, None, None, "NO_AUTHORIZED_CANDIDATES",
@@ -232,13 +404,47 @@ class KnowledgeRetriever:
             return EvidencePackResult(
                 RetrievalStatus.CONFLICT, None, None, "DUPLICATE_CANDIDATE_ID",
             )
-        ordered_ids, rerank_fallback = await self._reranker.rerank(
-            request.query, raw,
-        )
+        rerank_key = RetrievalCacheKeyBuilder.rerank(request, candidates)
+        cached_rerank = self._cache_get(rerank_key, request)
+        if isinstance(cached_rerank, dict) and isinstance(
+            cached_rerank.get("ordered_ids"), list,
+        ):
+            ordered_ids = tuple(map(str, cached_rerank["ordered_ids"]))
+            rerank_fallback = bool(cached_rerank.get("fallback"))
+            cache_hits.append("rerank")
+        else:
+            ordered_ids, rerank_fallback = await self._reranker.rerank(
+                request.query, raw,
+            )
         if len(ordered_ids) != len(ids) or set(ordered_ids) != set(ids):
             ordered_ids, rerank_fallback = ids, True
+        self._cache_set(rerank_key, {
+            "ordered_ids": list(ordered_ids), "fallback": rerank_fallback,
+        })
         by_id = {item.chunk_id: item for item in candidates}
         ordered = tuple(by_id[item] for item in ordered_ids)
+        pack_key = RetrievalCacheKeyBuilder.evidence_pack(
+            request, variants=variants, candidates=candidates,
+            ordered_ids=ordered_ids,
+        )
+        cached_pack = self._cache_get(pack_key, request)
+        if isinstance(cached_pack, dict):
+            try:
+                pack = self._pack_from_dict(cached_pack)
+            except (KeyError, TypeError, ValueError):
+                pack = None
+            if (
+                pack is not None and self._evidence_validator is not None
+                and self._evidence_validator.validate(pack, request)
+            ):
+                cache_hits.append("evidence-pack")
+                trace = KnowledgeRetrievalTrace(
+                    variants, tuple((item.chunk_id, item.ranks) for item in candidates),
+                    policy.fingerprint, policy.backend_fingerprint,
+                    request.generation_id, request.manifest_fingerprint,
+                    rewrite_fallback, rerank_fallback, tuple(cache_hits),
+                )
+                return EvidencePackResult(RetrievalStatus.OK, pack, trace)
         packed = self._packer.pack(
             ordered, max_tokens=policy.context_max_tokens,
             max_chunks=policy.final_k, redundancy_threshold=1.0,
@@ -254,6 +460,7 @@ class KnowledgeRetriever:
             variants, source_ranks, policy.fingerprint,
             policy.backend_fingerprint, request.generation_id,
             request.manifest_fingerprint, rewrite_fallback, rerank_fallback,
+            tuple(cache_hits),
         )
         pack = EvidencePack.from_packed(
             request.query, packed,
@@ -269,7 +476,85 @@ class KnowledgeRetriever:
                 "rerank_error": "fallback" if rerank_fallback else "",
             },
         )
+        self._cache_set(pack_key, pack.to_dict(include_text=True))
         return EvidencePackResult(RetrievalStatus.OK, pack, trace)
+
+    def _cache_get(
+        self, key: str, request: KnowledgeRetrievalRequest,
+    ) -> object | None:
+        if self._cache is None or request.force_recompute:
+            return None
+        raw = self._cache.get(key)
+        if raw is None:
+            return None
+        try:
+            return json.loads(raw.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            self._cache.delete(key)
+            return None
+
+    def _cache_set(self, key: str, value: object) -> None:
+        if self._cache is None:
+            return
+        encoded = json.dumps(
+            value, ensure_ascii=False, sort_keys=True, separators=(",", ":"),
+            allow_nan=False,
+        ).encode("utf-8")
+        jitter = int(key[-2:], 16) % 61
+        self._cache.set(key, encoded, ttl_seconds=300 + jitter)
+
+    def _acquire_lease(self, key: str) -> str | None:
+        if self._cache is None or not hasattr(self._cache, "acquire"):
+            return None
+        token = secrets.token_hex(16)
+        acquired = self._cache.acquire(key, token, lease_seconds=10)
+        return token if acquired else ""
+
+    def _release_lease(self, key: str, token: str) -> None:
+        if self._cache is not None and hasattr(self._cache, "release"):
+            self._cache.release(key, token)
+
+    @staticmethod
+    def _pack_from_dict(value: Mapping[str, Any]) -> EvidencePack:
+        from mcp.evidence_pack import EvidenceItem, SourceReference
+
+        items = []
+        for item in value["items"]:
+            source = item["source_ref"]
+            items.append(EvidenceItem(
+                chunk_id=str(item["chunk_id"]), title=str(item["title"]),
+                source_ref=SourceReference(
+                    source_id=str(source["source_id"]),
+                    source_revision=str(source["source_revision"]),
+                    start_char=int(source["start_char"]),
+                    end_char=int(source["end_char"]),
+                    source_type=str(source["source_type"]),
+                    checksum=str(source["checksum"]), scope=str(source["scope"]),
+                ),
+                score=float(item["score"]), rank=int(item["rank"]),
+                source_ranks=tuple(sorted(
+                    (str(key), int(rank))
+                    for key, rank in item["source_ranks"].items()
+                )),
+                scope_decision=str(item["scope_decision"]),
+                text=str(item["text"]),
+            ))
+        return EvidencePack(
+            query=str(value["query"]),
+            index_manifest_fingerprint=str(value["index_manifest_fingerprint"]),
+            retrieval_policy=tuple(sorted(value["retrieval_policy"].items())),
+            items=tuple(items),
+            query_variants=tuple(
+                (str(item["kind"]), str(item["query"]), float(item["weight"]))
+                for item in value.get("query_variants", [])
+            ),
+            rewrite_prompt_version=str(value.get("rewrite_prompt_version") or ""),
+            rewrite_error=str(value.get("rewrite_error") or ""),
+            rerank_prompt_version=str(value.get("rerank_prompt_version") or ""),
+            rerank_error=str(value.get("rerank_error") or ""),
+            skipped_redundant=tuple(map(str, value.get("skipped_redundant", []))),
+            skipped_budget=tuple(map(str, value.get("skipped_budget", []))),
+        )
 
     @staticmethod
     def _candidate(

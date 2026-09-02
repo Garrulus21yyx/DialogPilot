@@ -34,7 +34,7 @@
 | M2-T03 Canonical EvidenceReceipt | done (consumer flag-off) | 7 kind typed algebra + registered adapters + resolver verification；624 tests passed |
 | M2-T04 Requirement CoverageGate / VerificationProfile | implemented (flag-off) | build complete；Knowledge verification waits T04A；642 tests passed |
 | M2-T04A SourceRevision v0 / active manifest | implemented (review pending) | PG owner/backfill/active validator done；independent human heldout review pending；650 tests passed |
-| M2-T05 统一 KnowledgeRetriever | in_progress | A1 done；A2/A3 pending；664 tests passed |
+| M2-T05 统一 KnowledgeRetriever | in_progress | A1/A2 done；A3 pending；671 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
@@ -593,8 +593,28 @@
   全套 `664 passed in 19.15s`，ruff/diff checks passed。A1 完成；A2 exact layered key/invalidation/single-flight
   与 A3 consumer migration 尚未完成，因此 M2-T05 保持 in_progress。
 
+### M2-T05-A2（exact layered key / invalidation / equivalence）
+
+- 分层 key：新增 `RetrievalCacheKeyBuilder`，transform 只含当前 query/requirement/conversation range 与
+  transformer version；embedding 加 subject deletion epoch/text/model/normalizer；candidate 在生成前加入
+  tenant/user scope、authorization-set、ACL policy、epoch、locale/product/filter variants、manifest、backend/
+  generation 与 lexical/dense policy；rerank 绑定 canonical candidate-set hash 和 model/policy；EvidencePack 再
+  加 requirement、source revision/checksum、packer/budget 与全部上游 fingerprint。未来 stage 输出不反塞上游 key。
+- Correctness invalidation：candidate cache hit 必须通过 Owner validator 复验 active manifest/ACL；pack hit 还要
+  复验 source revision/freshness/coverage。validator 缺失或失败时只 miss 并回源；已证明 stale candidate cache
+  不会遮蔽 backend `UNAVAILABLE`。空候选不缓存，损坏 JSON 删除后重算；TTL+deterministic jitter 只管理资源。
+- Subject/source embedding scope：query namespace 强制 tenant/user/deletion epoch/model；source 默认同 subject，
+  只有显式 approved shared corpus 才能移除 user scope，且仍保留 tenant/corpus/model。LangChain adapter 同时启用
+  query/document cache 与 SHA-256 encoder。
+- 等价/击穿：`force_recompute` 绕过所有读 cache，full recompute 与 transform/candidate/rerank/pack 全命中的
+  stable evidence IDs 相同；并发 candidate miss 经 Redis `SET NX` lease、bounded wait 与 compare-token release
+  只执行一次 Owner source 调用，lease/cache 故障仍可重算且不改变 Retriever 结果合同。
+- 验证：16 个 A1/A2 专项测试，相关 retrieval/context 聚焦 `52 passed`；全套
+  `671 passed in 19.01s`，ruff/diff checks passed。A2 完成；外层 ToolManager cache 删除和三个 consumer
+  切换归 A3，因此 M2-T05 仍保持 in_progress。
+
 ## 下一步
 
-1. 实施 M2-T05-A2：exact layered cache key、correctness invalidation、single-flight 与强制重算等价。
+1. 实施 M2-T05-A3：迁移 `/search`、前置 Knowledge QA 与 Agent tool，删除 ToolManager 外层 cache/旧链。
 2. T04/T04A live activation 仍受 M2 gate 与独立 review 约束。
 3. 保持 PG_FTS_ZH_V1 与 LEGACY_BM25_V1 独立评分，未过质量/延迟/删除/重建 Gate 前不切 active consumer。
