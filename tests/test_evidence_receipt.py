@@ -23,6 +23,7 @@ from application.evidence_receipt import (
     MediaObservationLocator,
     MediaObservationStatus,
     MemoryEventLocator,
+    ServiceEpisodeLocator,
     MemoryEventStatus,
     RequirementStatus,
 )
@@ -153,6 +154,47 @@ def test_receipt_keeps_only_locator_fields_and_hash_and_round_trips():
     assert len(serialized["content_sha256"]) == 64
     assert EvidenceReceiptVerifier().verify(
         restored, Resolver(_order_payload()), now=NOW
+    ) is RequirementStatus.SATISFIED
+
+
+def test_service_episode_receipt_binds_role_provenance_and_owner_outcome():
+    payload = {
+        "tenant_id": "tenant-1",
+        "user_id": "user-1",
+        "backend_id": "pg-hybrid-v1",
+        "generation_id": "episode-generation-1",
+        "episode_id": "case-1",
+        "episode_revision": "1",
+        "outcome_receipt_ref": "receipt:case-owner:1",
+        "provenance_sha256": "a" * 64,
+        "verified_at": NOW.isoformat(),
+        "user_evidence_refs": ["event:user:1"],
+        "assistant_evidence_refs": ["event:assistant:1"],
+    }
+    locator = ServiceEpisodeLocator(
+        "tenant-1", "user-1", "pg-hybrid-v1", "episode-generation-1",
+        "case-1", "1", "a" * 64,
+    )
+    receipt = _adapter(
+        "service-episode-evidence-adapter",
+        "service-episode-evidence-adapter-v1",
+    ).issue(
+        requirement_id="memory.service_episode",
+        producer_id="service_episode_search",
+        producer_version="service-episode-hit-v1",
+        locator=locator,
+        status=RetrievalStatus.OK,
+        observed_at=NOW,
+        payload=payload,
+    )
+    assert receipt.kind is EvidenceKind.SERVICE_EPISODE
+    assert receipt.locator == locator
+    assert set(receipt.field_names) >= {
+        "provenance_sha256", "outcome_receipt_ref",
+        "user_evidence_refs", "assistant_evidence_refs",
+    }
+    assert EvidenceReceiptVerifier().verify(
+        receipt, Resolver(payload), now=NOW,
     ) is RequirementStatus.SATISFIED
 
 

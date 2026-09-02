@@ -45,6 +45,24 @@
     "tenant/user/conversation", "source_event_refs", "resolved_or_closed_case_id",
     "accepted_case_owner_outcome_verification", "subject_not_tombstoned"
   ],
+  "legacy_inventory": {
+    "status": "NOT_APPLICABLE",
+    "record_count": 0,
+    "source_watermark": "chroma:episodic:count:0",
+    "migration_writer": "NOT_IMPLEMENTED"
+  },
+  "evidence_receipt": {
+    "kind": "SERVICE_EPISODE",
+    "canonical_resolver": "PostgresServiceEpisodeEvidenceResolver",
+    "required_bindings": [
+      "tenant_id", "user_id", "backend_id", "generation_id",
+      "episode_id", "episode_revision", "provenance_sha256"
+    ],
+    "required_owner_facts": [
+      "outcome_receipt_ref", "verified_at", "user_evidence_refs",
+      "assistant_evidence_refs"
+    ]
+  },
   "shadow_attribution": [
     "continuity", "provenance", "freshness", "unavailable", "conflict",
     "corpus_difference", "ranking_difference"

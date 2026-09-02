@@ -209,6 +209,16 @@ class AuthorityPolicyRegistry:
                 "Memory:event-v1",
             ),
             FactRequirement(
+                "memory.service_episode", "memory.service_episode",
+                (
+                    "tenant_id", "user_id", "backend_id", "generation_id",
+                    "episode_id", "episode_revision", "outcome_receipt_ref",
+                    "provenance_sha256", "verified_at", "user_evidence_refs",
+                    "assistant_evidence_refs",
+                ), 604800, read, ("service_episode_search",), (), "", supported,
+                "Memory:service-episode-v1",
+            ),
+            FactRequirement(
                 "commitment.current_state", "commitment.current_state",
                 (), 60, read, (), ("knowledge_search",), "", unsupported,
                 "Commitment:pending-m4",
@@ -248,6 +258,12 @@ class AuthorityPolicyRegistry:
                 "memory-event-evidence-adapter", "memory-event-evidence-adapter-v1",
                 "MEMORY_EVENT", ("memory.prior_event",),
                 (("memory_search", "memory-hit-v1"),),
+            ),
+            EvidenceAdapterRegistration(
+                "service-episode-evidence-adapter",
+                "service-episode-evidence-adapter-v1",
+                "SERVICE_EPISODE", ("memory.service_episode",),
+                (("service_episode_search", "service-episode-hit-v1"),),
             ),
         )
         return cls(requirements, adapters)

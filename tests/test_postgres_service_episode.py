@@ -10,6 +10,7 @@ from application.data_location_registry import (
     default_registry_path,
 )
 from application.inbound_admission import NewInvocationInbound
+from application.evidence_receipt import ServiceEpisodeLocator
 from application.service_episode import (
     CaseOutcomeVerification,
     EpisodeEvidence,
@@ -30,6 +31,7 @@ from infrastructure.postgres_retrieval_projection import (
 )
 from infrastructure.postgres_service_episode import (
     PostgresServiceEpisodeRepository,
+    PostgresServiceEpisodeEvidenceResolver,
     PostgresServiceEpisodeResolver,
 )
 
@@ -226,6 +228,16 @@ def test_projection_uses_canonical_current_revision_and_weighted_roles(episode_s
         candidate.provenance_sha256,
     )
     assert row[4] > row[5]
+    payload = PostgresServiceEpisodeEvidenceResolver(pool).resolve(
+        ServiceEpisodeLocator(
+            "tenant-episode", "user-episode", "pg-hybrid-v1",
+            "episode-generation-1", candidate.episode_id, "1",
+            candidate.provenance_sha256,
+        )
+    )
+    assert payload["outcome_receipt_ref"] == "receipt:case-owner:1"
+    assert payload["user_evidence_refs"] == ["event:user:1"]
+    assert payload["assistant_evidence_refs"] == ["event:assistant:1"]
 
 
 def test_conversation_tombstone_purges_episode_canonical_state(episode_scope):

@@ -1145,8 +1145,10 @@
 - DataLocation v6 先批准 `location:service-episode:v1`，forward-only `0020` 再建立 immutable revisions、head CAS、
   deletion epoch trigger；user/canonical/assistant lexical 权重分别为 A/B/D。
 - canonical commit 与 retrieval projection outbox 同事务；resolver 只投影 current revision/provenance，并携带 outcome receipt。
-- [build evidence](../governance/evidence/m4-t04a/service-episode-schema-build.md)。legacy corpus 盘点/backfill、query shadow、
-  retrieval pointer/rollback 与 heldout 尚未完成，M4-T04 保持 in progress，consumer 不启用。
+- canonical hit 由 `PostgresServiceEpisodeEvidenceResolver` 按 tenant/user/backend/generation/revision/provenance
+  解引用；EvidenceReceipt 同时绑定 Case Owner outcome receipt、verified_at 与分角色 source event refs。
+- [build evidence](../governance/evidence/m4-t04a/service-episode-schema-build.md)。legacy corpus 为空，backfill 不适用；
+  relevance/freshness heldout 尚未完成，M4-T04 保持 in progress，consumer 不启用。
 
 ### M4-T04B1（legacy inventory / query shadow contract）
 
@@ -1156,8 +1158,9 @@
   tombstoned 均保留为 conversation/eval data，不从文本猜测 resolution。inventory 输出稳定 watermark/count/hash/逐记录原因。
 - same-query shadow 分开记录 route source rank、continuity、provenance、freshness、unavailable/conflict，并区分 corpus 与
   ranking difference；policy/backend/corpus generation 定义为单一 rollback tuple。
-- [build evidence](../governance/evidence/m4-t04b/service-episode-backfill-shadow-build.md)。真实 Chroma inventory report 与 durable
-  PostgreSQL pointer/CAS 仍待后续 slice，target consumer 继续关闭。
+- 当前真实 Chroma `episodic` count=0，且用户确认没有旧数据；冻结只读 inventory 后将 backfill 标为 `NOT_APPLICABLE`，
+  不建设空迁移 writer，报告不含 raw text。[build evidence](../governance/evidence/m4-t04b/service-episode-backfill-shadow-build.md)。
+  真实 query capture/heldout 仍待后续，target consumer 继续关闭。
 
 ### M4-T04B2（durable retrieval binding / rollback）
 
@@ -1166,8 +1169,8 @@
 - 初始化相同 shadow 幂等、异 tuple conflict；所有切换一次 expected-version CAS，数据库强制 version 只增 1；rollback
   一次恢复 previous tuple 并清空 candidate，in-flight 使用 immutable snapshot。
 - [build evidence](../governance/evidence/m4-t04b/memory-retrieval-binding-build.md) 与
-  [runbook](../docs/m4-t04-memory-retrieval-binding-runbook.zh-CN.md)。未执行 canary/ACTIVE；真实 inventory/shadow/Gate
-  仍阻断 M4-T04 verified closure。
+  [runbook](../docs/m4-t04-memory-retrieval-binding-runbook.zh-CN.md)。未执行 canary/ACTIVE；空 legacy corpus 已由机器
+  inventory 证明，迁移与 old/new query shadow 不适用；新 corpus heldout 与 Gate 仍阻断 M4-T04 verified closure。
 
 ### M6-T01（Dataset v2 / Rubric v2）
 

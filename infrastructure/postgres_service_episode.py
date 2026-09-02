@@ -16,6 +16,7 @@ from application.service_episode import (
     ServiceEpisodeConflict,
     evidence_json,
 )
+from application.evidence_receipt import ServiceEpisodeLocator
 from infrastructure.data_location_fence import PostgresDataLocationWriteFence
 
 
@@ -213,6 +214,57 @@ class PostgresServiceEpisodeResolver:
             user_text, assistant_text,
         ))
         return (candidate_id, row[11])
+
+
+class PostgresServiceEpisodeEvidenceResolver:
+    """Dereference a search hit back to canonical role/provenance evidence."""
+
+    def __init__(self, pool):
+        self.pool = pool
+
+    def resolve(self, locator: ServiceEpisodeLocator) -> dict[str, object]:
+        if not isinstance(locator, ServiceEpisodeLocator):
+            raise ValueError("service episode locator is required")
+        with self.pool.transaction() as connection:
+            row = connection.execute("""
+                SELECT revision.outcome_verification_ref,revision.verified_at,
+                       revision.user_evidence,revision.assistant_evidence,
+                       revision.provenance_sha256
+                FROM retrieval.service_episode_search search
+                JOIN dialogpilot_app.service_episode_revisions revision
+                  ON revision.episode_id=search.episode_id
+                 AND revision.revision::text=search.episode_revision
+                JOIN dialogpilot_app.service_episode_heads head
+                  ON head.episode_id=revision.episode_id
+                 AND head.current_revision=revision.revision
+                WHERE search.tenant_id=%s AND search.user_id=%s
+                  AND search.backend_id=%s AND search.generation_id=%s
+                  AND search.episode_id=%s AND search.episode_revision=%s
+                  AND search.provenance_sha256=%s
+            """, (
+                locator.tenant_id, locator.user_id, locator.backend_id,
+                locator.generation_id, locator.episode_id,
+                locator.episode_revision, locator.provenance_sha256,
+            )).fetchone()
+        if row is None or str(row[4]) != locator.provenance_sha256:
+            raise KeyError("service episode evidence is unavailable")
+        return {
+            "tenant_id": locator.tenant_id,
+            "user_id": locator.user_id,
+            "backend_id": locator.backend_id,
+            "generation_id": locator.generation_id,
+            "episode_id": locator.episode_id,
+            "episode_revision": locator.episode_revision,
+            "outcome_receipt_ref": str(row[0]),
+            "provenance_sha256": str(row[4]),
+            "verified_at": row[1].isoformat(),
+            "user_evidence_refs": [
+                str(item["source_event_ref"]) for item in row[2]
+            ],
+            "assistant_evidence_refs": [
+                str(item["source_event_ref"]) for item in row[3]
+            ],
+        }
 
 
 def _scope(candidate: ServiceEpisodeCandidate) -> tuple[str, str, str]:

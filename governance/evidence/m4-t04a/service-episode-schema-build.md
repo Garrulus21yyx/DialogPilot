@@ -26,9 +26,9 @@ DataLocation v6 在首次 schema/write 前把 `location:service-episode:v1` 晋�
 ## Projection 边界与未关闭项
 
 canonical commit 可在同事务写 `SERVICE_EPISODE` projection event；resolver 只接受当前 head、相同 provenance 与当前 subject，
-并将 outcome receipt/provenance 写入检索投影。默认 consumer 未切换。本 slice 尚未完成 legacy corpus 盘点、backfill
-count/hash/provenance report、旧/new query dark shadow、MemoryRetrievalPolicy pointer/rollback，也没有真实 heldout relevance/
-freshness 证据，因此 M4-T04 仍为 in progress，M4-T04C 不可启动。
+并将 outcome receipt/provenance 写入检索投影。默认 consumer 未切换。legacy corpus 已确认 count=0，用户确认没有旧数据，
+因此 backfill 不适用；durable MemoryRetrievalPolicy pointer/rollback 已由 M4-T04B 补齐。旧/new query dark shadow 与真实
+heldout relevance/freshness 证据尚未完成，因此 M4-T04 仍为 in progress，M4-T04C 不可启动。
 
-聚焦 PostgreSQL/schema/promotion 回归：`31 passed in 22.06s`；全仓：
-`959 passed in 90.58s`。Ruff 与 `git diff --check` 通过。
+聚焦 PostgreSQL/schema/promotion 回归：`31 passed in 22.06s`；加入 canonical EvidenceReceipt resolver 后全仓：
+`971 passed in 99.71s`。Ruff 与 `git diff --check` 通过。

@@ -25,6 +25,7 @@ class EvidenceKind(str, Enum):
     BUSINESS_TOOL = "BUSINESS_TOOL"
     ACTION_RECEIPT = "ACTION_RECEIPT"
     MEMORY_EVENT = "MEMORY_EVENT"
+    SERVICE_EPISODE = "SERVICE_EPISODE"
     COMMITMENT = "COMMITMENT"
     MEDIA_OBSERVATION = "MEDIA_OBSERVATION"
     HUMAN_ASSERTION = "HUMAN_ASSERTION"
@@ -133,6 +134,24 @@ class MemoryEventLocator:
 
 
 @dataclass(frozen=True)
+class ServiceEpisodeLocator:
+    tenant_id: str
+    user_id: str
+    backend_id: str
+    generation_id: str
+    episode_id: str
+    episode_revision: str
+    provenance_sha256: str
+
+    def __post_init__(self) -> None:
+        _required(
+            self.tenant_id, self.user_id, self.backend_id, self.generation_id,
+            self.episode_id, self.episode_revision,
+        )
+        _sha256(self.provenance_sha256)
+
+
+@dataclass(frozen=True)
 class CommitmentLocator:
     commitment_id: str
     version: int
@@ -166,7 +185,8 @@ class HumanAssertionLocator:
 
 EvidenceLocator: TypeAlias = (
     KnowledgeLocator | BusinessToolLocator | ActionReceiptLocator
-    | MemoryEventLocator | CommitmentLocator | MediaObservationLocator
+    | MemoryEventLocator | ServiceEpisodeLocator | CommitmentLocator
+    | MediaObservationLocator
     | HumanAssertionLocator
 )
 EvidenceStatus: TypeAlias = (
@@ -180,6 +200,7 @@ _LOCATOR_BY_KIND = {
     EvidenceKind.BUSINESS_TOOL: BusinessToolLocator,
     EvidenceKind.ACTION_RECEIPT: ActionReceiptLocator,
     EvidenceKind.MEMORY_EVENT: MemoryEventLocator,
+    EvidenceKind.SERVICE_EPISODE: ServiceEpisodeLocator,
     EvidenceKind.COMMITMENT: CommitmentLocator,
     EvidenceKind.MEDIA_OBSERVATION: MediaObservationLocator,
     EvidenceKind.HUMAN_ASSERTION: HumanAssertionLocator,
@@ -189,6 +210,7 @@ _STATUS_BY_KIND = {
     EvidenceKind.BUSINESS_TOOL: ToolCallStatus,
     EvidenceKind.ACTION_RECEIPT: ToolEffectStatus,
     EvidenceKind.MEMORY_EVENT: MemoryEventStatus,
+    EvidenceKind.SERVICE_EPISODE: RetrievalStatus,
     EvidenceKind.COMMITMENT: CommitmentEvidenceStatus,
     EvidenceKind.MEDIA_OBSERVATION: MediaObservationStatus,
     EvidenceKind.HUMAN_ASSERTION: HumanAssertionStatus,
@@ -611,6 +633,18 @@ def _locator_binds_payload(
             str(payload.get("memory_id") or "") == locator.memory_id
             and str(payload.get("conversation_id") or "") == locator.conversation_id
             and str(payload.get("event_seq") or "") == str(locator.event_seq)
+        )
+    if isinstance(locator, ServiceEpisodeLocator):
+        return (
+            str(payload.get("tenant_id") or "") == locator.tenant_id
+            and str(payload.get("user_id") or "") == locator.user_id
+            and str(payload.get("backend_id") or "") == locator.backend_id
+            and str(payload.get("generation_id") or "") == locator.generation_id
+            and str(payload.get("episode_id") or "") == locator.episode_id
+            and str(payload.get("episode_revision") or "")
+            == locator.episode_revision
+            and str(payload.get("provenance_sha256") or "")
+            == locator.provenance_sha256
         )
     if isinstance(locator, CommitmentLocator):
         return (

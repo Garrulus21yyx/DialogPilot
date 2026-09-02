@@ -1,5 +1,7 @@
 """M4-T04B legacy inventory, frozen policy and shadow attribution proofs."""
 from dataclasses import replace
+import json
+from pathlib import Path
 
 from application.hybrid_retrieval import (
     HybridRetrievalResult,
@@ -27,6 +29,7 @@ from memory.hybrid_retrieval import HybridMemoryRetriever
 
 
 SHA = "a" * 64
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def _candidate(source, rank, *, provenance=SHA):
@@ -52,6 +55,18 @@ def test_legacy_memory_policy_is_frozen_and_owned_by_retriever():
     ) == (0.30, 0.60, 0.10, 60, 20)
     retriever = HybridMemoryRetriever()
     assert retriever.policy_fingerprint == policy.fingerprint
+
+
+def test_frozen_real_legacy_inventory_is_machine_replayable_without_raw_text():
+    frozen = json.loads((
+        ROOT / "governance/evidence/m4-t04b/"
+        "legacy-episodic-inventory-v1.report.json"
+    ).read_text("utf-8"))
+    replay = ServiceEpisodeBackfillPolicy().inventory(
+        (), source_watermark="chroma:episodic:count:0",
+    ).to_dict()
+    assert {key: frozen[key] for key in replay} == replay
+    assert frozen["source"]["raw_content_exported"] is False
 
 
 def test_current_legacy_chunk_is_retained_not_inferred_as_resolution():

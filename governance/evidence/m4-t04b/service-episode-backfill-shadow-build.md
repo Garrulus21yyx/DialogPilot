@@ -1,6 +1,6 @@
 # M4-T04B legacy inventory and query-shadow contract
 
-日期：2026-09-02。状态：`CONTRACT IMPLEMENTED / REAL INVENTORY AND POINTER PENDING`。
+日期：2026-09-02。状态：`NO LEGACY DATA / BACKFILL NOT APPLICABLE / QUERY SHADOW PENDING`。
 
 ## 根因与资格边界
 
@@ -11,8 +11,11 @@ tenant/source/Case/accepted verification、Case 未闭合或 subject tombstoned 
 `RETAIN_CONVERSATION_ONLY` 和逐项 reason codes。inventory 按 legacy ID 稳定排序并输出 watermark、count、eligible/retained
 count 与内容/metadata hash，同 snapshot 重放与输入顺序无关。
 
-这意味着现有未增强的 raw-memory v4 corpus 按正向合同应是零可晋升，而不是做启发式 backfill。真实 Chroma 实例的
-count/hash/watermark 尚未采集，本 evidence 不伪造生产 inventory 数量。
+这意味着现有未增强的 raw-memory v4 corpus 即便有记录也不能按文本启发式晋升。2026-09-02 对当前配置
+`localhost:8001/episodic` 执行只读 inventory：collection count=`0`、eligible=`0`、retained=`0`、watermark=
+`chroma:episodic:count:0`、empty inventory SHA-256=`4f53cda...b945`；用户确认没有旧数据，故 backfill 明确为
+`NOT_APPLICABLE`，不建设或执行迁移 writer，也不把空源表述成迁移成功。机器报告：
+`legacy-episodic-inventory-v1.report.json`，且不导出 raw content。
 
 ## Policy 与 shadow
 
@@ -22,7 +25,7 @@ count/hash/watermark 尚未采集，本 evidence 不伪造生产 inventory 数�
 `MATCH/RANKING_DIFFERENCE/CORPUS_DIFFERENCE/UNAVAILABLE/CONFLICT`，不把语料差异归因成权重差异。
 
 `MemoryRetrievalBinding` 把 policy/backend generation/corpus generation 作为一个不可拆 tuple，并提供整体 rollback 语义；
-durable PostgreSQL pointer/CAS 尚未落地，因此本 slice 不满足 M4-T04 第 9 项，也不启用 target consumer。
+durable PostgreSQL pointer/CAS 已在 M4-T04B2 落地，但没有真实 query capture/heldout，因此不启用 target consumer。
 
-聚焦 policy/inventory/shadow 与 legacy hybrid 回归：`32 passed, 3 skipped in 1.24s`；全仓：
-`965 passed in 98.98s`。Ruff 与 `git diff --check` 通过。
+聚焦 policy/inventory/shadow 与 legacy hybrid 回归：`32 passed, 3 skipped in 1.24s`；加入真实空库存报告与
+ServiceEpisode EvidenceReceipt resolver 后全仓：`971 passed in 99.71s`。Ruff 与 `git diff --check` 通过。
