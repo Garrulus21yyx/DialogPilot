@@ -1197,6 +1197,15 @@
 - [build evidence](../governance/evidence/m4-t04b/service-episode-tool-composition-build.md)。尚未替换 API legacy tool 或激活
   binding；canonical offline replay 与真实 tool-call E2E 是直接切换前置条件。
 
+### M4-T04B6（canonical PostgreSQL offline replay）
+
+- 从空 schema 注册 ServiceEpisode generation，并以目标 tenant/user、同 tenant 异 user、异 tenant 同 user 的 canonical
+  fixtures 贯穿 binding→generation→Postgres backend→fusion/application service。
+- 两条相似故障/精确订单 query 的 Recall@K=`1.0`、forbidden scope leak=`0`；机器报告仅保存 query/scope hash 和
+  revision/provenance/source ranks/freshness/watermark/policy fingerprint，不保存原文。
+- [build evidence](../governance/evidence/m4-t04b/service-episode-offline-replay-build.md) 与
+  [machine report](../governance/evidence/m4-t04b/service-episode-offline-replay-v1.report.json)。API tool-call E2E 与 legacy 删除仍待下一节点。
+
 ### M6-T01（Dataset v2 / Rubric v2）
 
 - 新增独立 service-chain v2，不改变 v1 数据身份；闭合 perception→service_outcome 11 层 observation，case

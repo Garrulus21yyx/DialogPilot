@@ -1,0 +1,48 @@
+{
+  "case_count": 2,
+  "cases": [
+    {
+      "case_id": "similar-e401",
+      "detail_code": null,
+      "expected_episode_ids": ["case-e401"],
+      "forbidden_leaks": [],
+      "hit_episode_ids": ["case-e401"],
+      "hits": [{
+        "episode_id": "case-e401",
+        "episode_revision": "1",
+        "freshness_at": "2026-09-01T00:00:00+00:00",
+        "index_watermark": "episode-outbox:fixture-4",
+        "policy_fingerprint": "e3de308729d7a1e673efb5bf5021e23dcbb7806364fa526d0fc3ca70b97d7e93",
+        "provenance_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "source_ranks": {"lexical": 1, "recency": 1}
+      }],
+      "query_sha256": "ad9ecd99006a8cc683d050d61eb3e614ab7c021f86500a6f15300dca5e5771aa",
+      "status": "OK"
+    },
+    {
+      "case_id": "exact-order-refund",
+      "detail_code": null,
+      "expected_episode_ids": ["case-refund"],
+      "forbidden_leaks": [],
+      "hit_episode_ids": ["case-refund"],
+      "hits": [{
+        "episode_id": "case-refund",
+        "episode_revision": "1",
+        "freshness_at": "2026-09-01T00:00:00+00:00",
+        "index_watermark": "episode-outbox:fixture-4",
+        "policy_fingerprint": "e3de308729d7a1e673efb5bf5021e23dcbb7806364fa526d0fc3ca70b97d7e93",
+        "provenance_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "source_ranks": {"lexical": 1, "recency": 1}
+      }],
+      "query_sha256": "1ce358b78225816d43a0dda1c3c377daec340ed6c4385c7d2c1b47ed99323260",
+      "status": "OK"
+    }
+  ],
+  "expected_recall_at_k": 1.0,
+  "forbidden_leak_count": 0,
+  "report_sha256": "a4cb83a818ad4beff41bcd3aa01674746e362ed094e1f904e104c55be2d0f2fc",
+  "result": "PASS",
+  "schema_version": "service-episode-offline-replay-v1",
+  "tenant_scope_sha256": "5c0541599dd9012938e85c29a8d4d5b8537ae42837debd22413e867ec1347b4a",
+  "user_scope_sha256": "9a2b447c20bcb98dc4fb4f5ab03b472d30bce30f65561f06206738ba8afed7e4"
+}
