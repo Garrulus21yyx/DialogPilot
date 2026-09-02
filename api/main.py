@@ -143,6 +143,7 @@ _service_episode_search = None
 _conversation_query = None
 _media_asset_store = None
 _media_asset_service = None
+_vlm_provider = None
 _durable_chat_coordinator = None
 _durable_chat_task = None
 _durable_chat_stop = None
@@ -196,7 +197,7 @@ def _anthropic_cfg() -> Dict[str, Any]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """按依赖顺序创建所有组件，并在退出时释放后台任务和连接。"""
-    global _orchestrator, _memory, _knowledge_store, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator, _bundle_resolver, _grounded_answer_generator, _postgres_pool, _conversation_query, _knowledge_retriever, _retrieval_cache_client, _durable_chat_coordinator, _durable_chat_task, _durable_chat_stop, _retrieval_postgres_pool, _service_episode_search, _media_asset_store, _media_asset_service
+    global _orchestrator, _memory, _knowledge_store, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator, _bundle_resolver, _grounded_answer_generator, _postgres_pool, _conversation_query, _knowledge_retriever, _retrieval_cache_client, _durable_chat_coordinator, _durable_chat_task, _durable_chat_stop, _retrieval_postgres_pool, _service_episode_search, _media_asset_store, _media_asset_service, _vlm_provider
 
     print(BANNER, flush=True)
 
@@ -217,6 +218,29 @@ async def lifespan(app: FastAPI):
 
     cfg = _anthropic_cfg()
     _model_policy = cfg["policy"]
+    vlm_enabled = os.getenv("VLM_ENABLED", "false").strip().lower()
+    if vlm_enabled not in {"true", "false"}:
+        raise RuntimeError("VLM_ENABLED must be true or false")
+    if vlm_enabled == "true":
+        from anthropic import Anthropic
+        from infrastructure.deepseek_vision_provider import (
+            DeepSeekVisionProvider,
+        )
+
+        vision_key = os.getenv("VLM_API_KEY") or os.getenv("ANTHROPIC_API_KEY", "")
+        vision_model = os.getenv(
+            "MODEL_VISION", "deepseek-v4-flash-vision-exp",
+        ).strip()
+        vision_base_url = os.getenv(
+            "VLM_BASE_URL", "https://api.deepseek.com/anthropic",
+        ).strip()
+        if not vision_key or not vision_model or not vision_base_url:
+            raise RuntimeError("enabled DeepSeek vision configuration is incomplete")
+        _vlm_provider = DeepSeekVisionProvider(
+            Anthropic(api_key=vision_key, base_url=vision_base_url),
+            model=vision_model,
+            max_tokens=int(os.getenv("VLM_MAX_TOKENS", "512")),
+        )
     similarity_mode = os.getenv("INTENT_SIMILARITY_MODE", "ngram")
     _authenticator = JWTAuthenticator.from_env()
     _run_store = RunStore(
@@ -732,6 +756,7 @@ async def lifespan(app: FastAPI):
         _conversation_query = None
         _media_asset_store = None
         _media_asset_service = None
+        _vlm_provider = None
         _knowledge_retriever = None
         _retrieval_cache_client = None
         _durable_chat_coordinator = None
@@ -1593,7 +1618,7 @@ def _core_chat_application(
         media_agent = LocalMediaRequirementAgent()
         media_validator = MediaRequirementValidator()
         perception_service = TieredPerceptionService(
-            _media_asset_store, ocr=TesseractOCRProvider(), vlm=None,
+            _media_asset_store, ocr=TesseractOCRProvider(), vlm=_vlm_provider,
         )
     return ChatApplication(
         ChatServices(

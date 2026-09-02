@@ -980,6 +980,16 @@ class ChatApplication:
                 for item in batch.artifacts
             ),
             "outcomes": outcomes,
+            "producers": [{
+                "stage": item.stage.name,
+                "producer": item.producer,
+                "producer_version": item.producer_version,
+                "model": (
+                    item.parse_result.producer_model
+                    if item.parse_result is not None
+                    else item.evidence_nodes[0].producer_model
+                ),
+            } for item in batch.artifacts],
         }
         failed = next((
             item for item in batch.outcomes

@@ -8,12 +8,12 @@
     "vlm_invoked": false
   },
   "chat": {
-    "escalated": false,
+    "escalated": true,
     "grounded": true,
     "http_status": 200,
     "intent": "technical_crash",
     "knowledge_used": false,
-    "latency_ms": 8858.3,
+    "latency_ms": 7935.2,
     "media": {
       "asset_ids": [
         "asset:v1:97d031e4393cc6d5db1717e8bdcb8d7a6f11563b6853bc2cfe0b9bbfe1517bd9"
@@ -32,6 +32,14 @@
           "status": "SUCCEEDED"
         }
       ],
+      "producers": [
+        {
+          "model": "tesseract-eng",
+          "producer": "tesseract",
+          "producer_version": "tesseract-ocr-provider-v1",
+          "stage": "L1_TEXT_EXTRACTION"
+        }
+      ],
       "vlm_invoked": false
     },
     "primary_agent": "technical",
@@ -41,7 +49,7 @@
     "verified": true
   },
   "environment": "docker-compose-local",
-  "executed_at": "2026-09-02T15:27:06.278324+00:00",
+  "executed_at": "2026-09-02T15:48:21.143638+00:00",
   "health": {
     "http_status": 200,
     "status": "ok",
@@ -68,7 +76,7 @@
     },
     "total_chunks": 6
   },
-  "observed_duration_seconds": 11.121,
+  "observed_duration_seconds": 11.825,
   "schema_version": "dialogpilot-local-e2e-v1",
   "scope_limit": "Synthetic local request; no production traffic or legacy-data claim.",
   "verification": "PASS"

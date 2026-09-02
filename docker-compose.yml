@@ -128,6 +128,10 @@ services:
       - TOOL_OUTPUT_MAX_CHARS=${TOOL_OUTPUT_MAX_CHARS:-4000}
       - MODEL_PROVIDER=${MODEL_PROVIDER:-deepseek}
       - ANTHROPIC_BASE_URL=${ANTHROPIC_BASE_URL:-https://api.deepseek.com/anthropic}
+      - VLM_ENABLED=${VLM_ENABLED:-false}
+      - MODEL_VISION=${MODEL_VISION:-deepseek-v4-flash-vision-exp}
+      - VLM_BASE_URL=${VLM_BASE_URL:-https://api.deepseek.com/anthropic}
+      - VLM_MAX_TOKENS=${VLM_MAX_TOKENS:-512}
       - MODEL_INTENT=${MODEL_INTENT:-deepseek-v4-flash}
       - MODEL_INTENT_REASONING=${MODEL_INTENT_REASONING:-none}
       - MODEL_INTENT_MIN_COMPLETION_TOKENS=${MODEL_INTENT_MIN_COMPLETION_TOKENS:-0}

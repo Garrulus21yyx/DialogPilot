@@ -65,7 +65,7 @@ def test_error_code_prefers_l1_ocr_and_validates_against_task_policy():
 
 def test_visual_relation_requests_target_l2_and_keep_region():
     agent = LocalMediaRequirementAgent()
-    task = {"message": "红框里的按钮位置对吗", "region_key": "red-box"}
+    task = {"message": "红框里的按钮位置对吗"}
     decision = _decide(
         agent,
         task=task, asset_ids=("asset-a",),
@@ -73,7 +73,7 @@ def test_visual_relation_requests_target_l2_and_keep_region():
 
     binding = decision.bindings[0]
     assert binding.required_stage is MediaStage.L2_VISUAL_REASONING
-    assert binding.region_key == "red-box"
+    assert binding.region_key == "mentioned:red-box"
     assert binding.reason_code == "VISUAL_EVIDENCE_REQUIRED"
 
 

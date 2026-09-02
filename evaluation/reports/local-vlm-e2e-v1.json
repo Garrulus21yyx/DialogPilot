@@ -1,0 +1,56 @@
+{
+  "attachment": {
+    "http_status": 201,
+    "media_type": "image/png",
+    "status": "SCANNED"
+  },
+  "chat": {
+    "http_status": 200,
+    "intent": "technical_login",
+    "media": {
+      "asset_ids": [
+        "asset:v1:1c51052ef5ed58024af225d1a0031e32bd750f5716952e671e2c684358334047"
+      ],
+      "decision_id": "media-decision:v1:3aef04dcc53fabeeeada64443b15e4fd8f6396ce74a2986b53bd189106efe739",
+      "mode": "MEDIA_TARGETS",
+      "ocr_invoked": true,
+      "outcomes": [
+        {
+          "artifact_refs": [
+            "parse:tesseract:v1:70a8fe3876647a5d579ca5e1507199d6e00ca5905d8b1b39c02d4625f1d059ee:eng:800x500",
+            "media-evidence:v1:04972e40804d8b37f3c19dc83766abee022e7e6da20072782af700e0d71b35d9"
+          ],
+          "asset_id": "asset:v1:1c51052ef5ed58024af225d1a0031e32bd750f5716952e671e2c684358334047",
+          "reason_code": "PERCEPTION_COMPLETE",
+          "required_stage": "L2_VISUAL_REASONING",
+          "status": "SUCCEEDED"
+        }
+      ],
+      "producers": [
+        {
+          "model": "tesseract-eng",
+          "producer": "tesseract",
+          "producer_version": "tesseract-ocr-provider-v1",
+          "stage": "L1_TEXT_EXTRACTION"
+        },
+        {
+          "model": "deepseek-v4-flash-vision-exp",
+          "producer": "deepseek-anthropic-messages",
+          "producer_version": "deepseek-vision-provider-v1",
+          "stage": "L2_VISUAL_REASONING"
+        }
+      ],
+      "vlm_invoked": true
+    },
+    "primary_agent": "technical",
+    "response_uses_visual_observation": true,
+    "verification_status": "pass",
+    "verified": true
+  },
+  "environment": "docker-compose-local-vlm-enabled",
+  "executed_at": "2026-09-02T15:45:51.096086+00:00",
+  "observed_duration_seconds": 9.783,
+  "schema_version": "dialogpilot-local-vlm-e2e-v1",
+  "scope_limit": "Synthetic local image and request; DeepSeek experimental vision model enabled explicitly; no production-traffic claim.",
+  "verification": "PASS"
+}

@@ -1493,6 +1493,14 @@ class AgentOrchestrator:
             agent_type is AgentType.BILLING
             and bool(re.search(r"(?:帮我|我要|申请|立即|现在).{0,8}(?:退款|退款申请)", req.message))
         )
+        evidence_spans = AgentOrchestrator._evidence_spans(
+            req.message, agent_type,
+        )
+        if req.media_context_refs:
+            evidence_spans = tuple(dict.fromkeys((
+                *evidence_spans,
+                *AgentOrchestrator._media_evidence_spans(req.message),
+            )))
         return TaskSpec(
             task_id=f"{agent_type.value}_task",
             owner=agent_type,
@@ -1500,7 +1508,7 @@ class AgentOrchestrator:
             required=True,
             risk=risk,
             success_criteria=criteria,
-            evidence_spans=AgentOrchestrator._evidence_spans(req.message, agent_type),
+            evidence_spans=evidence_spans,
             context_refs=context_refs,
             requirement_ids=requirement_ids,
             effect=(
@@ -1533,6 +1541,26 @@ class AgentOrchestrator:
             if any(keyword.casefold() in part.casefold() for keyword in keywords)
         )
         return selected or (str(message or "").strip(),)
+
+    @staticmethod
+    def _media_evidence_spans(message: str) -> tuple[str, ...]:
+        keywords = (
+            "截图", "图片", "图中", "红框", "圈出", "按钮", "位置", "状态",
+            "破损", "损坏", "少件", "错发", "外观", "布局", "接线", "孔歪",
+            "screenshot", "image", "red box", "button", "damaged", "layout",
+        )
+        parts = tuple(
+            part.strip()
+            for part in re.split(
+                r"(?:[\s]*[，,。；;!！?？][\s]*|而且|同时|另外|以及|并且)",
+                str(message or ""),
+            )
+            if part.strip()
+        )
+        return tuple(
+            part for part in parts
+            if any(term in part.casefold() for term in keywords)
+        )
 
     def _domain_scores(self, req: Request) -> Dict[AgentType, float]:
         """按意图、关键词和实体为各领域 Agent 打分。"""

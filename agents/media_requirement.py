@@ -48,6 +48,12 @@ class LocalMediaRequirementAgent:
     def analyze(self, task: Mapping[str, Any]) -> AgentMediaPlan:
         explicit = str(task.get("media_need") or "").strip().upper()
         region = str(task.get("region_key") or "").strip() or None
+        message = str(task.get("message") or "").casefold()
+        if region is None:
+            if "红框" in message or "red box" in message:
+                region = "mentioned:red-box"
+            elif "圈出" in message:
+                region = "mentioned:marked-region"
         if explicit:
             aliases = {
                 "L0": None,
@@ -62,7 +68,6 @@ class LocalMediaRequirementAgent:
                 raise UnsupportedMediaTask(f"unsupported media_need: {explicit}")
             stage = aliases[explicit]
         else:
-            message = str(task.get("message") or "").casefold()
             if any(term in message for term in self._l1_terms):
                 stage = MediaStage.L1_TEXT_EXTRACTION
             elif any(term in message for term in self._l2_terms):
