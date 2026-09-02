@@ -193,7 +193,7 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
             assert captured["tool_manager_wired"] is True
             assert set(captured["registered_tool_names"]) == {
                 "knowledge_search",
-                "memory_search",
+                "service_episode_search",
                 "support_ticket_list",
                 "support_ticket_get",
                 "support_ticket_create",
@@ -212,6 +212,30 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
             assert knowledge_tool.output_schema_version == (
                 "knowledge-evidence-pack-result-v1"
             )
+            episode_tool = next(
+                tool for tool in main._tool_manager.registered_tools
+                if tool.name == "service_episode_search"
+            )
+            calls = []
+
+            class Search:
+                def search(self, **kwargs):
+                    calls.append(kwargs)
+                    return SimpleNamespace(to_dict=lambda: {
+                        "status": "OK", "hits": [{"episode_id": "case-1"}],
+                        "detail_code": None,
+                    })
+
+            main._service_episode_search = Search()
+            output = await episode_tool.handler(
+                {"query": "E401", "entity_ids": ["device-1"], "top_k": 2},
+                {"tenant_id": "tenant-1", "user_id": "user-1"},
+            )
+            assert output["hits"][0]["episode_id"] == "case-1"
+            assert calls == [{
+                "tenant_id": "tenant-1", "user_id": "user-1",
+                "query": "E401", "entity_ids": ("device-1",), "top_k": 2,
+            }]
 
     asyncio.run(exercise_lifespan())
     assert captured["memory_closed"] is True

@@ -150,3 +150,21 @@ def test_generation_or_policy_binding_drift_fails_before_backend():
         RetrievalStatus.CONFLICT, "GENERATION_BINDING_DRIFT",
     )
     assert backend.requests == []
+
+
+def test_embedding_contract_failure_does_not_silently_become_lexical_only():
+    retrieval_policy = policy()
+    backend = Backend()
+    service = ServiceEpisodeMemorySearch(
+        bindings=Bindings(binding(retrieval_policy, enabled=True)),
+        generations=Generations(generation()),
+        retriever=ServiceEpisodeRetriever(backend, retrieval_policy),
+        embed_query=lambda *_args: (_ for _ in ()).throw(ValueError("drift")),
+    )
+    result = service.search(
+        tenant_id="tenant-1", user_id="user-1", query="退款",
+    )
+    assert (result.status, result.detail_code) == (
+        RetrievalStatus.INVALID_CONTRACT, "QUERY_EMBEDDING_CONTRACT",
+    )
+    assert backend.requests == []

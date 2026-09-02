@@ -1206,6 +1206,15 @@
 - [build evidence](../governance/evidence/m4-t04b/service-episode-offline-replay-build.md) 与
   [machine report](../governance/evidence/m4-t04b/service-episode-offline-replay-v1.report.json)。API tool-call E2E 与 legacy 删除仍待下一节点。
 
+### M4-T04B7（composition root target tool）
+
+- API 工具从 `memory_search→MemoryManager.search_long_term` 直接替换为
+  `service_episode_search→ServiceEpisodeMemorySearch`；组合独立 retrieval pool、generation registry、single binding 与 PG backend。
+- query embedding adapter 强制 generation model=`all-MiniLM-L6-v2`、dimension=`384` 和可重放 digest；合同漂移在 DB 前 fail closed，
+  provider 临时故障才降级 lexical。工具 tenant/user 只能来自 trusted context。
+- [build evidence](../governance/evidence/m4-t04b/service-episode-tool-composition-build.md)。真实 ChatApplication agent tool-call E2E、
+  legacy Evidence adapter/writer 删除及 binding activation 仍是下一节点前置。
+
 ### M6-T01（Dataset v2 / Rubric v2）
 
 - 新增独立 service-chain v2，不改变 v1 数据身份；闭合 perception→service_outcome 11 层 observation，case

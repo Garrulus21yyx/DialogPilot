@@ -145,6 +145,8 @@ _bundle_registry = None
 _proposal_generator = None
 _rollout_manager = None
 _postgres_pool = None
+_retrieval_postgres_pool = None
+_service_episode_search = None
 _conversation_query = None
 _durable_chat_coordinator = None
 _durable_chat_task = None
@@ -199,7 +201,7 @@ def _anthropic_cfg() -> Dict[str, Any]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """按依赖顺序创建所有组件，并在退出时释放后台任务和连接。"""
-    global _orchestrator, _memory, _knowledge_base, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator, _rollout_manager, _grounded_answer_generator, _postgres_pool, _conversation_query, _knowledge_retriever, _retrieval_cache_client, _durable_chat_coordinator, _durable_chat_task, _durable_chat_stop
+    global _orchestrator, _memory, _knowledge_base, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator, _rollout_manager, _grounded_answer_generator, _postgres_pool, _conversation_query, _knowledge_retriever, _retrieval_cache_client, _durable_chat_coordinator, _durable_chat_task, _durable_chat_stop, _retrieval_postgres_pool, _service_episode_search
 
     print(BANNER, flush=True)
 
@@ -334,6 +336,58 @@ async def lifespan(app: FastAPI):
         PostgresMigrationRunner(database_url).verify()
         _postgres_pool = PostgresPool(PostgresPoolConfig.from_env())
         _postgres_pool.open()
+        from application.memory_retrieval_policy import (
+            LEGACY_MEMORY_RETRIEVAL_POLICY,
+        )
+        from application.service_episode_memory_search import (
+            ServiceEpisodeMemorySearch,
+        )
+        from application.service_episode_retriever import (
+            ServiceEpisodeRetrievalPolicy,
+            ServiceEpisodeRetriever,
+        )
+        from infrastructure.hybrid_retrieval_backend import PostgresHybridBackend
+        from infrastructure.postgres_memory_retrieval_binding import (
+            PostgresMemoryRetrievalBindingRepository,
+        )
+        from infrastructure.retrieval_postgres import (
+            PostgresRetrievalGenerationRegistry,
+            RetrievalPoolConfig,
+            RetrievalPostgresPool,
+        )
+        from infrastructure.service_episode_embedding import (
+            ServiceEpisodeQueryEmbedder,
+        )
+
+        _retrieval_postgres_pool = RetrievalPostgresPool(RetrievalPoolConfig(
+            database_url,
+            min_size=int(os.getenv("RETRIEVAL_POOL_MIN_SIZE", "1")),
+            max_size=int(os.getenv("RETRIEVAL_POOL_MAX_SIZE", "4")),
+            pool_timeout_seconds=float(os.getenv(
+                "RETRIEVAL_POOL_TIMEOUT_SECONDS", "2",
+            )),
+            statement_timeout_ms=int(os.getenv(
+                "RETRIEVAL_STATEMENT_TIMEOUT_MS", "750",
+            )),
+        ))
+        _retrieval_postgres_pool.open()
+        episode_policy = ServiceEpisodeRetrievalPolicy(
+            os.getenv(
+                "SERVICE_EPISODE_POLICY_VERSION",
+                "service-episode-retrieval-policy-v1",
+            ),
+            LEGACY_MEMORY_RETRIEVAL_POLICY,
+            float(os.getenv("SERVICE_EPISODE_MINIMUM_FUSED_RELEVANCE", "0")),
+            int(os.getenv("SERVICE_EPISODE_FRESHNESS_MAX_AGE_SECONDS", "31536000")),
+        )
+        _service_episode_search = ServiceEpisodeMemorySearch(
+            bindings=PostgresMemoryRetrievalBindingRepository(_postgres_pool),
+            generations=PostgresRetrievalGenerationRegistry(_postgres_pool),
+            retriever=ServiceEpisodeRetriever(
+                PostgresHybridBackend(_retrieval_postgres_pool), episode_policy,
+            ),
+            embed_query=ServiceEpisodeQueryEmbedder(),
+        )
         _conversation_query = PostgresConversationQueryService(
             _postgres_pool,
             runtime_reader=_compat_runtime_reader,
@@ -473,41 +527,60 @@ async def lifespan(app: FastAPI):
         output_fields=("status", "evidence_pack", "trace", "detail_code"),
     ))
 
-    async def memory_search(params: Dict[str, Any], context: Optional[Dict[str, Any]]):
-        """在当前用户边界内执行混合长期记忆检索。"""
+    async def service_episode_search(
+        params: Dict[str, Any], context: Optional[Dict[str, Any]],
+    ):
+        """Use only authenticated scope and the direct-cutover episode binding."""
         context = context or {}
+        tenant_id = str(context.get("tenant_id") or "").strip()
         user_id = str(context.get("user_id") or "").strip()
-        if not user_id:
-            raise ValueError("memory_search requires trusted user_id context")
-        hits = await _memory.search_long_term(
-            user_id,
-            str(params.get("query") or ""),
+        if not tenant_id or not user_id:
+            raise ValueError(
+                "service_episode_search requires trusted tenant/user context"
+            )
+        if _service_episode_search is None:
+            return {
+                "status": "UNAVAILABLE", "hits": [],
+                "detail_code": "SERVICE_EPISODE_SEARCH_UNAVAILABLE",
+            }
+        result = await asyncio.to_thread(
+            _service_episode_search.search,
+            tenant_id=tenant_id,
+            user_id=user_id,
+            query=str(params.get("query") or ""),
+            entity_ids=tuple(map(str, params.get("entity_ids") or ())),
             top_k=min(max(int(params.get("top_k", 5)), 1), 10),
         )
-        return [{**hit.to_dict(), "content": hit.content} for hit in hits]
+        return result.to_dict()
 
     _tool_manager.register(Tool(
-        name="memory_search",
-        description="检索当前用户的跨会话长期记忆；适合核对历史订单号、错误码和偏好",
-        handler=memory_search,
+        name="service_episode_search",
+        description="按需检索当前租户和用户已验证的历史服务经历",
+        handler=service_episode_search,
         schema={
             "type": "object",
             "properties": {
                 "query": {"type": "string"},
                 "top_k": {"type": "integer"},
+                "entity_ids": {"type": "array", "items": {"type": "string"}},
             },
             "required": ["query"],
         },
         allowed_agents=("general", "technical", "billing", "account_security"),
         read_only=True,
-        authority="memory.prior_event",
+        authority="memory.service_episode",
         manifest_version="tool-manifest-v1",
-        output_schema_version="memory-hit-v1",
-        preconditions=("authenticated_user",),
+        output_schema_version="service-episode-search-result-v1",
+        preconditions=("authenticated_tenant", "authenticated_user"),
         idempotency="read_only",
         retry_policy="safe_read_retry",
         typed_outcomes=("OK", "NO_EVIDENCE", "UNAVAILABLE", "INVALID_CONTRACT"),
-        output_fields=("memory_id", "conversation_id", "event_seq", "content"),
+        output_fields=(
+            "status", "hits", "detail_code", "tenant_id", "user_id",
+            "backend_id", "generation_id", "episode_id", "episode_revision",
+            "outcome_receipt_ref", "provenance_sha256", "verified_at",
+            "user_evidence_refs", "assistant_evidence_refs",
+        ),
     ))
     for ticket_tool in ticket_tools(_ticket_service):
         _tool_manager.register(ticket_tool)
@@ -736,6 +809,8 @@ async def lifespan(app: FastAPI):
             await asyncio.to_thread(_knowledge_base.close)
         if _retrieval_cache_client is not None:
             await asyncio.to_thread(_retrieval_cache_client.close)
+        if _retrieval_postgres_pool is not None:
+            _retrieval_postgres_pool.close()
         if _postgres_pool is not None:
             _postgres_pool.close()
         # lifespan 结束后不留下指向已关闭资源的进程全局引用。
@@ -758,6 +833,8 @@ async def lifespan(app: FastAPI):
         _bundle_registry = None
         _proposal_generator = None
         _rollout_manager = None
+        _retrieval_postgres_pool = None
+        _service_episode_search = None
         _postgres_pool = None
         _conversation_query = None
         _knowledge_retriever = None

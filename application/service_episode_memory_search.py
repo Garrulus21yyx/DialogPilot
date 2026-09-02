@@ -65,6 +65,8 @@ class ServiceEpisodeMemorySearch:
             return _conflict("GENERATION_BINDING_DRIFT")
         try:
             embedding = self._embed_query(query, generation)
+        except ValueError:
+            return _invalid("QUERY_EMBEDDING_CONTRACT")
         except Exception:
             embedding = None
         request = HybridRetrievalRequest(
