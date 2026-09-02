@@ -1,4 +1,4 @@
-"""Add atomic Memory retrieval policy/backend/corpus binding.
+"""Add the single direct-cutover Memory retrieval binding.
 
 Revision ID: 20260902_0021
 Revises: 20260902_0020
@@ -21,39 +21,15 @@ def upgrade() -> None:
         CREATE TABLE retrieval.memory_retrieval_bindings (
             tenant_id TEXT NOT NULL,
             corpus TEXT NOT NULL CHECK(corpus='SERVICE_EPISODE'),
-            mode TEXT NOT NULL CHECK(mode IN ('SHADOW','PINNED_CANARY','ACTIVE','LEGACY')),
-            active_policy_fingerprint TEXT NOT NULL
-                CHECK(active_policy_fingerprint ~ '^[0-9a-f]{64}$'),
-            active_backend_id TEXT NOT NULL,
-            active_backend_generation TEXT NOT NULL,
-            active_corpus_generation TEXT NOT NULL,
-            previous_policy_fingerprint TEXT NOT NULL
-                CHECK(previous_policy_fingerprint ~ '^[0-9a-f]{64}$'),
-            previous_backend_id TEXT NOT NULL,
-            previous_backend_generation TEXT NOT NULL,
-            previous_corpus_generation TEXT NOT NULL,
-            candidate_policy_fingerprint TEXT,
-            candidate_backend_id TEXT,
-            candidate_backend_generation TEXT,
-            candidate_corpus_generation TEXT,
+            policy_fingerprint TEXT NOT NULL
+                CHECK(policy_fingerprint ~ '^[0-9a-f]{64}$'),
+            backend_id TEXT NOT NULL,
+            backend_generation TEXT NOT NULL,
+            corpus_generation TEXT NOT NULL,
+            enabled BOOLEAN NOT NULL DEFAULT FALSE,
             version BIGINT NOT NULL CHECK(version >= 1),
             updated_at TIMESTAMPTZ NOT NULL DEFAULT transaction_timestamp(),
-            PRIMARY KEY (tenant_id, corpus),
-            CHECK(
-                (candidate_policy_fingerprint IS NULL
-                 AND candidate_backend_id IS NULL
-                 AND candidate_backend_generation IS NULL
-                 AND candidate_corpus_generation IS NULL)
-                OR
-                (candidate_policy_fingerprint ~ '^[0-9a-f]{64}$'
-                 AND candidate_backend_id IS NOT NULL
-                 AND candidate_backend_generation IS NOT NULL
-                 AND candidate_corpus_generation IS NOT NULL)
-            ),
-            CHECK(
-                (mode IN ('SHADOW','PINNED_CANARY')) =
-                (candidate_policy_fingerprint IS NOT NULL)
-            )
+            PRIMARY KEY (tenant_id, corpus)
         )
     """)
     op.execute("""
@@ -67,6 +43,16 @@ def upgrade() -> None:
             END IF;
             IF NEW.version <> OLD.version + 1 THEN
                 RAISE EXCEPTION 'memory retrieval binding version must increment once'
+                    USING ERRCODE='55000';
+            END IF;
+            IF OLD.enabled AND ROW(
+                NEW.policy_fingerprint,NEW.backend_id,NEW.backend_generation,
+                NEW.corpus_generation,NEW.enabled
+            ) IS DISTINCT FROM ROW(
+                OLD.policy_fingerprint,OLD.backend_id,OLD.backend_generation,
+                OLD.corpus_generation,TRUE
+            ) THEN
+                RAISE EXCEPTION 'enabled memory retrieval binding is immutable'
                     USING ERRCODE='55000';
             END IF;
             RETURN NEW;

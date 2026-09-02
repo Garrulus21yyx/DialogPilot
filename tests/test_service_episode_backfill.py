@@ -11,9 +11,6 @@ from application.hybrid_retrieval import (
 )
 from application.memory_retrieval_policy import (
     LEGACY_MEMORY_RETRIEVAL_POLICY,
-    MemoryRetrievalBinding,
-    MemoryRetrievalConsumerMode,
-    MemoryRetrievalTarget,
 )
 from application.service_episode_backfill import (
     BackfillDisposition,
@@ -103,29 +100,6 @@ def test_inventory_is_order_independent_replayable_and_tombstone_fenced():
     assert (first.record_count, first.eligible_count, first.retained_count) == (2, 1, 1)
     assert first.decisions[0].reason_codes == ("SUBJECT_TOMBSTONED",)
     assert first.decisions[1].episode_id == "case-1"
-
-
-def test_memory_binding_rolls_back_policy_backend_and_corpus_as_one_tuple():
-    binding = MemoryRetrievalBinding(
-        MemoryRetrievalConsumerMode.SHADOW,
-        active=MemoryRetrievalTarget(
-            "a" * 64, "legacy", "legacy-gen", "raw-memory-v4",
-        ),
-        previous=MemoryRetrievalTarget(
-            "a" * 64, "legacy", "legacy-gen", "raw-memory-v4",
-        ),
-        candidate=MemoryRetrievalTarget(
-            "b" * 64, "pg", "pg-gen", "episode-gen",
-        ),
-        version=3,
-    )
-    rolled = binding.rollback()
-    assert rolled.mode is MemoryRetrievalConsumerMode.LEGACY
-    assert (
-        rolled.active.policy_fingerprint, rolled.active.backend_id,
-        rolled.active.backend_generation, rolled.active.corpus_generation,
-    ) == ("a" * 64, "legacy", "legacy-gen", "raw-memory-v4")
-    assert rolled.version == 4
 
 
 def test_same_query_shadow_separates_corpus_and_ranking_differences():

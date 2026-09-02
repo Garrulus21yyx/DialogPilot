@@ -77,10 +77,10 @@
   "durable_binding": {
     "owner": "retrieval.memory_retrieval_bindings",
     "identity": ["tenant_id", "SERVICE_EPISODE"],
-    "atomic_tuple": ["policy_fingerprint", "backend_generation", "corpus_generation"],
-    "modes": ["SHADOW", "PINNED_CANARY", "ACTIVE", "LEGACY"],
-    "update": "single expected-version CAS",
-    "rollback": "restore previous tuple and clear candidate in one version",
+    "single_target": ["policy_fingerprint", "backend_generation", "corpus_generation"],
+    "pre_cutover": "disabled target may be replaced by expected-version CAS",
+    "activation": "one-way disabled to enabled",
+    "runtime_rollback": "NOT_SUPPORTED",
     "in_flight": "immutable binding snapshot"
   },
   "deletion": "conversation tombstone purges canonical head/revisions and fences retrieval",

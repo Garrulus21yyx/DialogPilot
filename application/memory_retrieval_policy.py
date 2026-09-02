@@ -4,7 +4,6 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import asdict, dataclass
-from enum import Enum
 
 
 @dataclass(frozen=True)
@@ -33,13 +32,6 @@ class MemoryRetrievalPolicy:
 LEGACY_MEMORY_RETRIEVAL_POLICY = MemoryRetrievalPolicy()
 
 
-class MemoryRetrievalConsumerMode(str, Enum):
-    SHADOW = "SHADOW"
-    PINNED_CANARY = "PINNED_CANARY"
-    ACTIVE = "ACTIVE"
-    LEGACY = "LEGACY"
-
-
 @dataclass(frozen=True)
 class MemoryRetrievalTarget:
     policy_fingerprint: str
@@ -53,33 +45,23 @@ class MemoryRetrievalTarget:
             self.corpus_generation,
         )):
             raise ValueError("memory retrieval target is incomplete")
+        if len(self.policy_fingerprint) != 64:
+            raise ValueError("memory retrieval policy fingerprint must be SHA-256")
 
 
 @dataclass(frozen=True)
 class MemoryRetrievalBinding:
-    """One pinned binding; its policy/backend/corpus tuples change by one CAS."""
+    """The only ServiceEpisode target; disabled until direct-cutover acceptance."""
 
-    mode: MemoryRetrievalConsumerMode
-    active: MemoryRetrievalTarget
-    previous: MemoryRetrievalTarget
-    candidate: MemoryRetrievalTarget | None
+    target: MemoryRetrievalTarget
+    enabled: bool
     version: int
 
     def __post_init__(self) -> None:
         if self.version < 1:
             raise ValueError("memory retrieval binding is incomplete")
-        needs_candidate = self.mode in {
-            MemoryRetrievalConsumerMode.SHADOW,
-            MemoryRetrievalConsumerMode.PINNED_CANARY,
-        }
-        if needs_candidate != (self.candidate is not None):
-            raise ValueError("memory retrieval mode/candidate mismatch")
 
-    def rollback(self) -> "MemoryRetrievalBinding":
-        return MemoryRetrievalBinding(
-            mode=MemoryRetrievalConsumerMode.LEGACY,
-            active=self.previous,
-            previous=self.previous,
-            candidate=None,
-            version=self.version + 1,
-        )
+    def activate(self) -> "MemoryRetrievalBinding":
+        if self.enabled:
+            raise ValueError("memory retrieval binding is already enabled")
+        return MemoryRetrievalBinding(self.target, True, self.version + 1)

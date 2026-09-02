@@ -24,8 +24,8 @@ count 与内容/metadata hash，同 snapshot 重放与输入顺序无关。
 记录 legacy/target status、generation、逐 route source rank、policy fingerprint、provenance 和 freshness refs，明确区分
 `MATCH/RANKING_DIFFERENCE/CORPUS_DIFFERENCE/UNAVAILABLE/CONFLICT`，不把语料差异归因成权重差异。
 
-`MemoryRetrievalBinding` 把 policy/backend generation/corpus generation 作为一个不可拆 tuple，并提供整体 rollback 语义；
-durable PostgreSQL pointer/CAS 已在 M4-T04B2 落地，但没有真实 query capture/heldout，因此不启用 target consumer。
+项目没有 legacy 运行数据，old/new runtime shadow 不适用；原比较器只保留为离线 fixture attribution 工具，不形成第二条
+reader。`MemoryRetrievalBinding` 已按 direct-cutover 收敛为一个 disabled 新 target；offline replay/主链 E2E 前不启用 consumer。
 
 聚焦 policy/inventory/shadow 与 legacy hybrid 回归：`32 passed, 3 skipped in 1.24s`；加入真实空库存报告与
 ServiceEpisode EvidenceReceipt resolver 后全仓：`971 passed in 99.71s`。Ruff 与 `git diff --check` 通过。

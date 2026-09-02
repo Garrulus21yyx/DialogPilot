@@ -1162,15 +1162,14 @@
   不建设空迁移 writer，报告不含 raw text。[build evidence](../governance/evidence/m4-t04b/service-episode-backfill-shadow-build.md)。
   真实 query capture/heldout 仍待后续，target consumer 继续关闭。
 
-### M4-T04B2（durable retrieval binding / rollback）
+### M4-T04B2（single direct-cutover retrieval binding）
 
-- PostgreSQL `memory_retrieval_bindings` 以 tenant+ServiceEpisode corpus 单主保存 active/previous/candidate 的完整
-  policy fingerprint + backend generation + corpus generation tuple；mode/candidate algebra 由 DB CHECK 闭合。
-- 初始化相同 shadow 幂等、异 tuple conflict；所有切换一次 expected-version CAS，数据库强制 version 只增 1；rollback
-  一次恢复 previous tuple 并清空 candidate，in-flight 使用 immutable snapshot。
+- 用户确认没有旧运行数据后，binding 收敛为一个 disabled/ enabled 新 ServiceEpisode target；不保存 legacy、previous、
+  candidate、shadow/canary mode 或运行时 rollback 路径。
+- disabled target 可在离线验收期间用 expected-version CAS 完整替换；activation 单向，数据库禁止启用后修改 target 或退回
+  disabled。`0021` 尚未发布且无数据，直接修正原 migration，不创建空迁移脚本。
 - [build evidence](../governance/evidence/m4-t04b/memory-retrieval-binding-build.md) 与
-  [runbook](../docs/m4-t04-memory-retrieval-binding-runbook.zh-CN.md)。未执行 canary/ACTIVE；空 legacy corpus 已由机器
-  inventory 证明，迁移与 old/new query shadow 不适用；新 corpus heldout 与 Gate 仍阻断 M4-T04 verified closure。
+  [checklist](../docs/m4-t04-memory-retrieval-binding-runbook.zh-CN.md)。offline replay 与 ChatApplication E2E 前 binding 保持 disabled。
 
 ### M4-T04B3（ServiceEpisode retrieval owner）
 

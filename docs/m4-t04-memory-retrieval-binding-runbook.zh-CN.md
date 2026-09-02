@@ -1,19 +1,13 @@
-# M4-T04 Memory retrieval binding 切换与回滚
+# M4-T04 ServiceEpisode direct-cutover checklist
 
-适用范围：`corpus=SERVICE_EPISODE`。本 runbook 只描述 build/dark-shadow binding；没有 M4 Exit APPROVE 与
-`POSTGRES_RETRIEVAL_GA` 时不得把默认 mode 切到 `ACTIVE`。
+本项目当前没有线上流量或必须保留的旧运行数据。`retrieval.memory_retrieval_bindings` 只保存一个新
+ServiceEpisode target，不保存 legacy、previous、candidate、shadow、canary 或运行时 rollback 路径。
 
-1. 读取 tenant 当前 `retrieval.memory_retrieval_bindings` 行并固定 `version`。确认 active/previous 是完整的
-   `policy fingerprint + backend generation + corpus generation` tuple，不能分别修改三个字段。
-2. 初始化 dark shadow 时用 `initialize_shadow()`：active/previous 均指 verified legacy，candidate 指 PG ServiceEpisode。
-   重复相同 tuple 幂等；任何字段不同都返回 conflict。
-3. M4-T04C bounded canary 只能用 `compare_and_swap(expected_version)` 把 mode 改为 `PINNED_CANARY`。每次 invocation
-   在 admission 时复制完整 binding；运行中不重新读取 pointer。
-4. promotion 到 `ACTIVE` 必须绑定正式 GateDecision、真实 inventory/backfill reconciliation、same-query shadow 和
-   deletion-fence 报告，并以一次 CAS 将 candidate 变成 active、旧 active 变成 previous、candidate 清空。
-5. 任何 continuity/provenance/freshness、UNAVAILABLE/CONFLICT、延迟或删除 fence gate 失败时，调用
-   `rollback(expected_version)`；该操作在一次版本递增中恢复 previous policy/backend/corpus tuple并清空 candidate。
-6. CAS conflict 时停止操作、重新读取全行并重新评估，不得按字段重试或覆盖。已开始 invocation 按其 pinned snapshot
-   完成；rollback 只影响后续 admission。
+1. 用 `initialize(tenant_id, target)` 创建 `enabled=false` 的唯一 binding；相同 tuple 重放幂等，异 tuple 冲突。
+2. 离线校准期间如需替换 generation，只能对 disabled binding 调用
+   `replace_before_cutover(expected_version)`；每次 CAS 必须完整替换 policy/backend/corpus generation tuple。
+3. 验收 canonical fixture replay、tenant/user/deletion 性质、EvidenceReceipt 和真实 `ChatApplication` E2E。
+4. 验收通过后调用一次 `activate(expected_version)`。数据库使 enabled target 单调且不可变；不存在切回旧链的运行时操作。
+5. 同一变更删除旧 raw-memory reader、writer、adapter、索引配置与依赖。开发回退使用 Git，不在运行时保留第二条链。
 
-当前默认状态必须保持 `SHADOW` 或 `LEGACY`；本 runbook 不是生产切换授权。
+当前实现只完成 1～2 和单向 activation 合同；第 3 项完成前不得执行第 4～5 项。
