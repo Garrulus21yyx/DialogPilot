@@ -62,42 +62,6 @@ def test_retrieval_metrics_are_deterministic():
     assert 0 < metrics.ndcg_at_k < 1
 
 
-def test_episodic_store_persists_raw_chunks_not_summary():
-    """证明摘要只进 metadata，Chroma document 保存可还原的原始片段。"""
-    manager = MemoryManager.__new__(MemoryManager)
-    manager._episodic = RecordingCollection()
-    messages = [
-        Message(MsgRole.USER, "订单 A123 重复扣款", message_id="m1"),
-        Message(MsgRole.ASSISTANT, "已记录原始事实", message_id="m2"),
-    ]
-    summary = '{"user_goal":"处理扣款"}'
-
-    assert asyncio.run(manager._archive_messages(
-        "user-1", "conv-1", messages, summary=summary, reason="test",
-    )) is True
-
-    call = manager._episodic.upsert_call
-    assert call["documents"] == ["user: 订单 A123 重复扣款", "assistant: 已记录原始事实"]
-    assert call["documents"] != [summary]
-    assert call["metadatas"][0]["summary"] == summary
-    assert call["metadatas"][0]["memory_version"] == 4
-    assert call["metadatas"][0]["message_id"] == "m1"
-
-
-def test_episodic_archive_is_idempotent_for_the_same_messages():
-    """证明压缩 CAS 冲突后的重试会 upsert 同一组 ID，不产生重复记忆。"""
-    manager = MemoryManager.__new__(MemoryManager)
-    manager._episodic = RecordingCollection()
-    messages = [Message(MsgRole.USER, "订单 A123", message_id="stable-message")]
-
-    asyncio.run(manager._archive_messages("u", "c", messages, summary="", reason="compression"))
-    first_ids = manager._episodic.upsert_calls[-1]["ids"]
-    asyncio.run(manager._archive_messages("u", "c", messages, summary="", reason="compression"))
-    second_ids = manager._episodic.upsert_calls[-1]["ids"]
-
-    assert first_ids == second_ids
-
-
 def test_fact_identity_is_stable_for_the_same_source_operation():
     """证明同一来源事实重试得到同一 ID，而不同来源保留独立历史。"""
     first = MemoryManager._fact_id("user-1", "preferred_language", "zh", ["m1"])
@@ -210,16 +174,6 @@ def test_vector_failure_preserves_bm25_recall():
 
     assert [hit.memory_id for hit in hits] == ["exact"]
     assert hits[0].sources == ("bm25", "recency")
-
-
-class RecordingCollection:
-    def __init__(self):
-        self.upsert_call = None
-        self.upsert_calls = []
-
-    def upsert(self, **kwargs):
-        self.upsert_call = kwargs
-        self.upsert_calls.append(kwargs)
 
 
 class SearchCollection:

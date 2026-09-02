@@ -9,7 +9,6 @@ from typing import Any, Mapping, Protocol
 class ProjectionName(str, Enum):
     WORKING_WINDOW = "working_window"
     THREAD_SUMMARY = "thread_summary"
-    EPISODIC_INDEX = "episodic_index"
     FACT_EXTRACTION = "fact_extraction"
 
 

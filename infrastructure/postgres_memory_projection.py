@@ -13,7 +13,7 @@ from memory.conversation_memory import MemoryContext, Message, MsgRole
 
 
 _TARGETS = (
-    "working_window", "thread_summary", "episodic_index", "fact_extraction",
+    "working_window", "thread_summary", "fact_extraction",
 )
 
 

@@ -45,7 +45,6 @@ class QueryDouble:
             watermarks={
                 "working_window": 4 if self.caught_up else 3,
                 "thread_summary": 4,
-                "episodic_index": 4,
                 "fact_extraction": 4,
             },
             caught_up=self.caught_up,

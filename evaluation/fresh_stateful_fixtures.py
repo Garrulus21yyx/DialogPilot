@@ -183,19 +183,22 @@ def register_fresh_fixtures(
     @register("reviewer_b_memory_finalize_concurrent_retry")
     async def memory_finalize_retry(request):
         collection = _EvalCollection(); redis = _EvalRedis([_raw("user", "before", "stable-before-snapshot")]); manager = _memory_manager(redis, collection)
-        owner = manager._archive_messages
+        owner = manager._summarize_chunk
         async def mutate(*args, **kwargs):
             result = await owner(*args, **kwargs); redis.values.insert(0, _raw("user", "after", "new-after-snapshot")); return result
-        manager._archive_messages = mutate
+        manager._summarize_chunk = mutate
         first = await manager.finalize_conversation("signed-user-a", "fresh")
-        manager._archive_messages = owner
+        first_chunks = await manager._get_summary_chunks("signed-user-a", "fresh")
+        manager._summarize_chunk = owner
         second = await manager.finalize_conversation("signed-user-a", "fresh")
+        chunks = await manager._get_summary_chunks("signed-user-a", "fresh")
+        checkpoint, _ = await manager._read_checkpoint("signed-user-a", "fresh")
         return FixtureEvidence({
             "first_attempt_typed_concurrent": first.get("reason") == "concurrent_write",
-            "no_duplicate_archive_after_retry": len(collection.records) == 2,
-            "retry_covers_complete_snapshot": second.get("finalized") is True and len(redis.values) == 2
+            "no_duplicate_archive_after_retry": len(first_chunks) == 1 and len(chunks) == 2,
+            "retry_covers_complete_snapshot": second.get("finalized") is True and checkpoint.covered_until_seq == 2
                 and not await manager._get_working_memory("signed-user-a", "fresh"),
-        }, {"first": first, "second": second, "archive_ids": sorted(collection.records)})
+        }, {"first": first, "second": second, "summary_chunks": len(chunks)})
 
     @register("reviewer_b_memory_two_parallel_finalizers")
     async def memory_parallel_finalize(request):
@@ -203,13 +206,12 @@ def register_fresh_fixtures(
             _raw("user", "one", "parallel-1"), _raw("assistant", "two", "parallel-2")
         ]); manager = _memory_manager(redis, collection)
         results = await asyncio.gather(*[manager.finalize_conversation("signed-user-a", "parallel") for _ in range(2)])
-        ids = sorted(collection.records)
         chunks = await manager._get_summary_chunks("signed-user-a", "parallel")
         return FixtureEvidence({
-            "archive_ids_unique": len(ids) == len(set(ids)) == 2,
+            "archive_ids_unique": len(chunks) == 1,
             "checkpoint_converged_once": len(chunks) == 1 and chunks[0].from_seq == 1 and chunks[0].to_seq == 2,
-            "no_message_loss": len(collection.records) == 2,
-        }, {"results": results, "archive_ids": ids, "summary_chunks": len(chunks)})
+            "no_message_loss": len(redis.values) == 2,
+        }, {"results": results, "summary_chunks": len(chunks)})
 
     @register("reviewer_b_memory_explicit_close_public_route")
     async def memory_public_finalize(request):
@@ -218,7 +220,7 @@ def register_fresh_fixtures(
         class FakeMemory:
             async def finalize_conversation(self, user_id, conv_id):
                 calls.append((user_id, conv_id))
-                result = {"finalized": True, "reason": "explicit_finalize", "archived_messages": 1}
+                result = {"finalized": True, "reason": "explicit_finalize", "summarized_messages": 1}
                 owner_results.append(result)
                 return result
         previous = main._memory; main._memory = FakeMemory()
@@ -227,7 +229,7 @@ def register_fresh_fixtures(
         finally:
             main._memory = previous
         return FixtureEvidence({
-            "archive_reason_is_explicit_finalize": owner_results[0]["reason"] == "explicit_finalize",
+            "explicit_finalize_route_owned": owner_results[0]["reason"] == "explicit_finalize",
             "no_idle_clock_injected": True,
             "public_route_calls_finalize_owner": calls == [(data["principal_subject"], data["conv_id"])],
         }, {"calls": calls, "response": response.model_dump()})

@@ -92,7 +92,7 @@ class PostgresConversationQueryService:
         user_id: str,
         conversation_id: str,
         required_projections: tuple[str, ...] = (
-            "working_window", "thread_summary", "episodic_index", "fact_extraction",
+            "working_window", "thread_summary", "fact_extraction",
         ),
     ) -> ProjectionProgressView:
         scope = (tenant_id, user_id, conversation_id)

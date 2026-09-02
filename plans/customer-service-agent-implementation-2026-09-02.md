@@ -1224,6 +1224,16 @@
 - [build evidence](../governance/evidence/m4-t04b/service-episode-chat-tool-e2e-build.md)。raw Chroma episodic writer/projection
   enum/config 与离线兼容方法仍待删除，binding 未激活。
 
+### M4-T04B9（raw episodic writer/projection direct retirement）
+
+- 跨会话写 authority 只保留 canonical PostgreSQL ServiceEpisode generation；删除 `MemoryManager` raw Chroma writer、
+  canonical episodic projector 及 `episodic_index` outbox/dispatcher/watermark 注册。
+- summary checkpoint 只依赖固定 raw-L0 source range 与 CAS；stateful acceptance 改验 event-log idempotency、并发 append 保留、
+  summary range retry convergence，不再把 Chroma raw upsert 当完成条件。
+- 用户确认无旧数据且只读 inventory count=`0`，因此直接修正未发布的新部署 migration，不建设迁移、backfill、兼容双写或
+  shadow reader。[build evidence](../governance/evidence/m4-t04b/raw-episodic-writer-retirement-build.md)。legacy 离线 reader/config
+  收口与 binding activation 仍是后续节点。
+
 ### M6-T01（Dataset v2 / Rubric v2）
 
 - 新增独立 service-chain v2，不改变 v1 数据身份；闭合 perception→service_outcome 11 层 observation，case

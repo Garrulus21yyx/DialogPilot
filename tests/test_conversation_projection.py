@@ -50,11 +50,6 @@ def test_non_factual_events_only_enter_working_and_summary(
         disposition=disposition,
     ))
     assert not policy.allows(_event(
-        ProjectionName.EPISODIC_INDEX,
-        event_type=event_type,
-        disposition=disposition,
-    ))
-    assert not policy.allows(_event(
         ProjectionName.FACT_EXTRACTION,
         event_type=event_type,
         disposition=disposition,

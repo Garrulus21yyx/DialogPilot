@@ -11,7 +11,6 @@ from application.conversation_projection import (
     ProjectionApplyStatus,
     ProjectionName,
 )
-from application.conversation_store import ConversationScope, EventToAppend
 from application.inbound_admission import NewInvocationInbound
 from core.identity import IdentityFactory
 from infrastructure.postgres import (
@@ -20,7 +19,6 @@ from infrastructure.postgres import (
     PostgresPoolConfig,
 )
 from infrastructure.postgres_admission import PostgresAdmissionUnitOfWork
-from infrastructure.postgres_conversation import PostgresConversationTurnStore
 from infrastructure.memory_projection_adapter import (
     PostgresLegacyMemoryProjectionAdapter,
 )
@@ -144,8 +142,7 @@ def _dispatcher(outbox, deletion, adapter, *, fault_hook=None):
     return ConversationProjectionDispatcher(
         outbox=outbox,
         deletion=deletion,
-        adapters={ProjectionName.WORKING_WINDOW: adapter,
-                  ProjectionName.EPISODIC_INDEX: adapter},
+        adapters={ProjectionName.WORKING_WINDOW: adapter},
         fault_hook=fault_hook,
     )
 
@@ -176,7 +173,6 @@ def test_each_source_event_atomically_enqueues_all_registered_projections(
         """).fetchall()
     assert source_count == 1
     assert outboxes == [
-        ("episodic_index", 1, 0),
         ("fact_extraction", 1, 0),
         ("thread_summary", 1, 0),
         ("working_window", 1, 0),
@@ -409,34 +405,6 @@ def test_crash_after_projection_ack_is_known_applied_and_not_reclaimed(
         _dispatcher(outbox, deletion, adapter),
         now="2026-09-02T09:03:00+00:00",
     ) == ()
-
-
-def test_projection_policy_keeps_interaction_out_of_episode_and_fact_surfaces(
-    projection_components,
-):
-    pool, identity, outbox, deletion = projection_components
-    scope = ConversationScope(
-        identity.tenant_id, identity.user_id, identity.conversation_id,
-    )
-    PostgresConversationTurnStore(pool).append_event(scope, EventToAppend(
-        event_id="interaction-event",
-        operation_key=identity.operation_key(
-            "ProjectionTest", "interaction", "signal-1",
-        ),
-        event_type="INTERACTION_REQUEST_PUBLISHED",
-        payload={"projection_disposition": "approval"},
-        created_at="2026-09-02T09:00:01+00:00",
-        invocation_key=identity.invocation_key,
-    ))
-    adapter = MemoryProjectionAdapter()
-    dispatcher = _dispatcher(outbox, deletion, adapter)
-    assert _dispatch(dispatcher, ProjectionName.EPISODIC_INDEX)[0].status == "APPLIED"
-    skipped = _dispatch(
-        dispatcher, ProjectionName.EPISODIC_INDEX,
-        now="2026-09-02T09:00:02+00:00",
-    )
-    assert skipped[0].status == "POLICY_SKIPPED"
-    assert len(adapter.effects[_subject_key(_subject(identity))]) == 1
 
 
 def test_deletion_during_external_write_removes_stale_effect_and_fences_late_writes(

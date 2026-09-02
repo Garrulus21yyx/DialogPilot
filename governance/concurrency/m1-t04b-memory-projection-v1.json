@@ -6,13 +6,11 @@
   "targets": {
     "working_window": "Redis canonical-turn raw window",
     "thread_summary": "Redis source-range summary checkpoint",
-    "episodic_index": "Chroma stable canonical-turn upsert",
     "fact_extraction": "Redis durable fact job schedule from final-response events"
   },
   "idempotency": {
     "working_window": "Redis transaction commits raw message and event marker together",
     "thread_summary": "source-range checkpoint CAS then event marker",
-    "episodic_index": "stable message/chunk IDs allow upsert replay before marker",
     "fact_extraction": "Redis transaction commits job score and event marker together"
   },
   "ordering": {

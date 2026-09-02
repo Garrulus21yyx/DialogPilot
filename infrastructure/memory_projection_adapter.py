@@ -83,11 +83,6 @@ class PostgresLegacyMemoryProjectionAdapter:
             return await self.memory.project_thread_summary(
                 subject.user_id, subject.conversation_id, event_key=event_key,
             )
-        if self.projection_name is ProjectionName.EPISODIC_INDEX:
-            return await self.memory.project_episodic_message(
-                subject.user_id, subject.conversation_id, message,
-                event_key=event_key,
-            )
         if self.projection_name is ProjectionName.FACT_EXTRACTION:
             if event.event_type not in {
                 "FINAL_RESPONSE_SELECTED", "LEGACY_FINAL_RESPONSE_IMPORTED",

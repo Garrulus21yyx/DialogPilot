@@ -44,8 +44,6 @@ def upgrade() -> None:
              'location:redis-working-window:v1'),
             ('thread_summary', 1, 'conversation-projection-v1',
              'location:thread-summary:v1'),
-            ('episodic_index', 1, 'conversation-projection-v1',
-             'location:episodic-index:v1'),
             ('fact_extraction', 1, 'conversation-projection-v1',
              'location:fact-extraction:v1')
     """)

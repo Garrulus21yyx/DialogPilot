@@ -1103,7 +1103,7 @@ class BadCaseTransitionRequest(BaseModel):
 class ConversationFinalizeResponse(BaseModel):
     """Deprecated compatibility wait for projection watermark convergence."""
     conv_id: str
-    archived_messages: int
+    summarized_messages: int
     finalized: bool
     already_empty: bool = False
     facts_flushed: bool = True
@@ -2235,7 +2235,7 @@ async def finalize_conversation(
             raise HTTPException(404, {"error": "conversation_not_found"}) from exc
         body = ConversationFinalizeResponse(
             conv_id=conv_id,
-            archived_messages=0,
+            summarized_messages=0,
             finalized=progress.caught_up,
             already_empty=progress.target_event_seq == 0,
             facts_flushed=(

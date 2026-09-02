@@ -403,22 +403,6 @@ class MemoryManager:
         if extract_facts:
             self._fact_job_stats["scheduled"] += 1
 
-        # 完整轮次一旦成为原始事件，就应立即进入跨会话索引。范围压缩仍会用
-        # 同一稳定 ID 幂等补写摘要 metadata，但不再拥有“是否可检索”的时机。
-        archived = await self._archive_messages(
-            user_id,
-            conv_id,
-            messages,
-            summary="",
-            reason="turn_completed",
-        )
-        if not archived:
-            logger.warning(
-                "完整轮次已写入 Redis，但长期记忆索引暂不可用，将由压缩/finalize 补偿: %s/%s",
-                user_id,
-                conv_id,
-            )
-
         # Token 预算是压缩的权威触发条件，消息条数只用于防御性读取。
         if await self._needs_compression(user_id, conv_id):
             await self._compress(user_id, conv_id)
@@ -454,24 +438,6 @@ class MemoryManager:
                 return True
         except WatchError:
             return False
-
-    async def project_episodic_message(
-        self,
-        user_id: str,
-        conv_id: str,
-        message: Message,
-        *,
-        event_key: str,
-    ) -> bool:
-        """Use stable Chroma IDs; a crash before the marker safely repeats upsert."""
-        marker = self._projection_marker_key(user_id, conv_id, "episodic", event_key)
-        if await self._redis.get(marker) is not None:
-            return False
-        if not await self._archive_messages(
-            user_id, conv_id, [message], summary="", reason="canonical_event",
-        ):
-            raise RuntimeError("episodic projection is unavailable")
-        return bool(await self._redis.set(marker, "1", nx=True))
 
     async def project_thread_summary(
         self,
@@ -928,7 +894,6 @@ class MemoryManager:
         force: bool = False,
         cover_all: bool = False,
         target_high_water: Optional[int] = None,
-        archive_reason: str = "compression",
     ) -> bool:
         """
         对 checkpoint 之后的一个有界事件范围生成独立摘要块。
@@ -964,16 +929,6 @@ class MemoryManager:
         try:
             summary = await self._summarize_chunk(to_compress)
             chunk = self._make_summary_chunk(user_id, conv_id, to_compress, summary)
-            # 原始事件先按稳定 ID 幂等进入 episodic index；事件流本身永不删除。
-            archived = await self._archive_messages(
-                user_id,
-                conv_id,
-                to_compress,
-                summary=summary,
-                reason=archive_reason,
-            )
-            if not archived:
-                raise RuntimeError("episodic archive failed before summary checkpoint commit")
             committed = await self._commit_summary_chunk(
                 user_id=user_id,
                 conv_id=conv_id,
@@ -1517,57 +1472,6 @@ class MemoryManager:
             return rendered
         return self._token_estimator.truncate(hit.content, max_tokens)
 
-    async def _archive_messages(
-        self,
-        user_id: str,
-        conv_id: str,
-        messages: List[Message],
-        *,
-        summary: str,
-        reason: str,
-    ) -> bool:
-        """以稳定 message_id 幂等归档原始消息；压缩和会话结束共用此 Owner。"""
-        try:
-            user_id = self._safe_text(user_id)
-            conv_id = self._safe_text(conv_id)
-            summary = self._safe_text(summary)
-            ids: List[str] = []
-            documents: List[str] = []
-            metadatas: List[Dict[str, Any]] = []
-            for message in messages:
-                chunks = self._chunk_episodic_text(f"{message.role.value}: {message.content}")
-                stable_message_id = message.message_id or hashlib.sha256(
-                    f"{message.role.value}:{message.timestamp.isoformat()}:{message.content}".encode("utf-8")
-                ).hexdigest()
-                for index, chunk in enumerate(chunks):
-                    ids.append(f"episodic_{hashlib.sha256(f'{user_id}:{conv_id}:{stable_message_id}'.encode()).hexdigest()}_{index}")
-                    documents.append(chunk)
-                    metadatas.append({
-                        "user_id": user_id,
-                        "conv_id": conv_id,
-                        "ts": self._utc_timestamp(message.timestamp),
-                        "summary": summary[:4000],
-                        "chunk_index": index,
-                        "message_id": stable_message_id,
-                        "event_seq": message.seq,
-                        "role": message.role.value,
-                        "archive_reason": reason,
-                        "memory_version": 4,
-                    })
-            if not ids:
-                return True
-            # 原始片段是长期事实载体；摘要仅作为 metadata 和 Prompt 背景。
-            await asyncio.to_thread(
-                self._episodic.upsert,
-                ids=ids,
-                documents=documents,
-                metadatas=metadatas,
-            )
-            return True
-        except Exception as ex:
-            logger.warning(f"存储情景记忆失败: {ex}")
-            return False
-
     async def finalize_conversation(self, user_id: str, conv_id: str) -> Dict[str, Any]:
         """固定 high-water 形成摘要，并立即尝试刷新同范围的 L1 事实。"""
         messages = await self._get_event_log(user_id, conv_id)
@@ -1584,7 +1488,7 @@ class MemoryManager:
                 target_high_water=target_high_water,
             )
             return {
-                "archived_messages": 0,
+                "summarized_messages": 0,
                 "finalized": True,
                 "already_empty": True,
                 "facts_flushed": facts_flushed,
@@ -1598,12 +1502,11 @@ class MemoryManager:
                 force=True,
                 cover_all=True,
                 target_high_water=target_high_water,
-                archive_reason="conversation_finalize",
             )
             current, _ = await self._read_checkpoint(user_id, conv_id)
             if current.covered_until_seq <= last_covered:
                 return {
-                    "archived_messages": current.covered_until_seq - checkpoint.covered_until_seq,
+                    "summarized_messages": current.covered_until_seq - checkpoint.covered_until_seq,
                     "finalized": False,
                     "reason": "summary_checkpoint_failed" if not committed else "checkpoint_stalled",
                 }
@@ -1612,7 +1515,7 @@ class MemoryManager:
         current_events = await self._get_event_log(user_id, conv_id)
         if max((message.seq for message in current_events), default=0) > target_high_water:
             return {
-                "archived_messages": len(initial_uncovered),
+                "summarized_messages": len(initial_uncovered),
                 "finalized": False,
                 "reason": "concurrent_write",
             }
@@ -1622,7 +1525,7 @@ class MemoryManager:
             target_high_water=target_high_water,
         )
         return {
-            "archived_messages": len(initial_uncovered),
+            "summarized_messages": len(initial_uncovered),
             "finalized": True,
             "already_empty": False,
             "facts_flushed": facts_flushed,

@@ -365,13 +365,6 @@ def test_new_event_does_not_invalidate_fixed_high_water_summary():
     manager._client = MutatingClient(redis)
     manager._model = "test-model"
 
-    archived = []
-
-    async def record_archive(*args, **_kwargs):
-        archived.append(args)
-        return True
-
-    manager._archive_messages = record_archive
     asyncio.run(manager._compress("user", "conversation"))
 
     assert json.loads(redis.values[0])["content"] == "压缩期间到达的新消息"
@@ -381,7 +374,6 @@ def test_new_event_does_not_invalidate_fixed_high_water_summary():
     assert checkpoint.covered_until_seq < 9
     assert len(redis.lists["summary_chunks:user:conversation"]) == 1
     assert manager.compression_stats()["conflicts"] == 0
-    assert len(archived) == 1
 
 
 def test_successful_compression_keeps_event_log_and_advances_checkpoint():
@@ -395,13 +387,6 @@ def test_successful_compression_keeps_event_log_and_advances_checkpoint():
     manager._redis = redis
     manager._client = StableClient()
     manager._model = "test-model"
-    stored = []
-
-    async def record_store(*args, **_kwargs):
-        stored.append(args)
-        return True
-
-    manager._archive_messages = record_store
     asyncio.run(manager._compress("user", "conversation"))
 
     assert redis.values == original
@@ -411,7 +396,6 @@ def test_successful_compression_keeps_event_log_and_advances_checkpoint():
     assert chunk["from_seq"] == 1
     assert chunk["to_seq"] == checkpoint.covered_until_seq
     assert json.loads(chunk["content"])["user_goal"] == "解决问题"
-    assert len(stored) == 1
     assert manager.compression_stats()["completed"] == 1
 
 
@@ -423,10 +407,6 @@ def test_legacy_summary_survives_first_range_checkpoint_migration():
     manager._redis = redis
     manager._client = StableClient()
 
-    async def archive(*_args, **_kwargs):
-        return True
-
-    manager._archive_messages = archive
     committed = asyncio.run(manager._compress(
         "user", "conversation", force=True, cover_all=True
     ))
@@ -442,7 +422,7 @@ def test_legacy_summary_survives_first_range_checkpoint_migration():
     assert "旧版唯一保留的事实" in view
 
 
-def test_finalize_archives_short_session_without_deleting_raw_events():
+def test_finalize_summarizes_short_session_without_deleting_raw_events():
     """证明短会话 finalize 推进 checkpoint，但保留可重建原文。"""
     manager = bare_manager()
     redis = FakeRedis([
@@ -451,30 +431,21 @@ def test_finalize_archives_short_session_without_deleting_raw_events():
     ])
     manager._redis = redis
     manager._client = StableClient()
-    archived = []
-
-    async def record_archive(_user_id, _conv_id, messages, **kwargs):
-        archived.append((messages, kwargs))
-        return True
-
-    manager._archive_messages = record_archive
     result = asyncio.run(manager.finalize_conversation("user", "short-conversation"))
 
     assert result == {
-        "archived_messages": 2,
+        "summarized_messages": 2,
         "finalized": True,
         "already_empty": False,
         "facts_flushed": True,
     }
-    assert [message.role for message in archived[0][0]] == [MsgRole.USER, MsgRole.ASSISTANT]
-    assert archived[0][1]["reason"] == "conversation_finalize"
     assert len(redis.values) == 2
     checkpoint = SummaryCheckpoint.from_raw(redis.strings["summary_checkpoint:user:short-conversation"])
     assert checkpoint.covered_until_seq == 2
 
     repeated = asyncio.run(manager.finalize_conversation("user", "short-conversation"))
     assert repeated == {
-        "archived_messages": 0,
+        "summarized_messages": 0,
         "finalized": True,
         "already_empty": True,
         "facts_flushed": True,
@@ -490,10 +461,6 @@ def test_finalize_forces_not_yet_due_fact_job_and_reports_flush_state():
     manager._fact_idle_seconds = 3600
     manager._fact_batch_turns = 99
 
-    async def archive(*_args, **_kwargs):
-        return True
-
-    manager._archive_messages = archive
     asyncio.run(manager.add_messages("u", "c", [
         (MsgRole.USER, "以后都用中文", {}),
         (MsgRole.ASSISTANT, "好的", {}),
@@ -516,11 +483,11 @@ def test_finalize_concurrent_write_preserves_redis_for_retry():
     manager._redis = redis
     manager._client = StableClient()
 
-    async def archive_then_receive_new_message(*_args, **_kwargs):
+    async def summarize_then_receive_new_message(*_args, **_kwargs):
         redis.values.insert(0, raw_message("assistant", "并发到达的新消息", seq=2))
-        return True
+        return manager._bounded_summary({"user_goal": "原消息"})
 
-    manager._archive_messages = archive_then_receive_new_message
+    manager._summarize_chunk = summarize_then_receive_new_message
     result = asyncio.run(manager.finalize_conversation("user", "conversation"))
 
     assert result["finalized"] is False
@@ -678,14 +645,6 @@ def test_cross_conversation_fact_order_uses_source_time_not_local_seq():
 def test_batched_appends_allocate_monotonic_sequence_and_preserve_turn_order():
     manager = bare_manager(budget=100000)
     manager._redis = FakeRedis([])
-    archives = []
-
-    async def archive(user_id, conv_id, messages, *, summary, reason):
-        archives.append((user_id, conv_id, [message.content for message in messages], summary, reason))
-        return True
-
-    manager._archive_messages = archive
-
     first = asyncio.run(manager.add_messages("u", "c", [
         (MsgRole.USER, "q1", {}),
         (MsgRole.ASSISTANT, "a1", {}),
@@ -700,24 +659,11 @@ def test_batched_appends_allocate_monotonic_sequence_and_preserve_turn_order():
     assert [(message.seq, message.content) for message in event_log] == [
         (1, "q1"), (2, "a1"), (3, "q2"), (4, "a2")
     ]
-    assert archives == [
-        ("u", "c", ["q1", "a1"], "", "turn_completed"),
-        ("u", "c", ["q2", "a2"], "", "turn_completed"),
-    ]
 
 
 def test_canonical_projection_targets_are_idempotent_and_dependency_fenced():
     manager = bare_manager(budget=100000)
     manager._redis = FakeRedis([])
-    archived = []
-
-    async def archive(_user, _conv, messages, *, summary, reason):
-        archived.extend(message.message_id for message in messages)
-        assert summary == ""
-        assert reason == "canonical_event"
-        return True
-
-    manager._archive_messages = archive
     message = Message(
         MsgRole.USER, "canonical question", message_id="turn-1", seq=3,
     )
@@ -731,13 +677,6 @@ def test_canonical_projection_targets_are_idempotent_and_dependency_fenced():
         manager._get_event_log("u", "c")
     )] == [(3, "turn-1")]
 
-    assert asyncio.run(manager.project_episodic_message(
-        "u", "c", message, event_key="event-1",
-    )) is True
-    assert asyncio.run(manager.project_episodic_message(
-        "u", "c", message, event_key="event-1",
-    )) is False
-    assert archived == ["turn-1"]
     assert asyncio.run(manager.project_thread_summary(
         "u", "c", event_key="event-1",
     )) is True
@@ -764,10 +703,6 @@ def test_fact_job_is_durable_debounced_and_reaches_batch_threshold():
     manager._fact_idle_seconds = 300
     manager._fact_batch_turns = 3
 
-    async def archive(*_args, **_kwargs):
-        return True
-
-    manager._archive_messages = archive
     for index in range(3):
         asyncio.run(manager.add_messages("u", "c", [
             (MsgRole.USER, f"q{index}", {}),
@@ -793,10 +728,6 @@ def test_due_fact_job_batches_l0_range_advances_checkpoint_and_is_idempotent():
     writer._redis = redis
     writer._fact_batch_turns = 1
 
-    async def archive(*_args, **_kwargs):
-        return True
-
-    writer._archive_messages = archive
     asyncio.run(writer.add_messages("u", "c", [
         (MsgRole.USER, "以后都用中文", {}),
         (MsgRole.ASSISTANT, "好的", {}),
@@ -808,8 +739,6 @@ def test_due_fact_job_batches_l0_range_advances_checkpoint_and_is_idempotent():
     manager._facts = RecordingFacts()
     manager._client = FactClient()
     manager._fact_batch_turns = 1
-    manager._archive_messages = archive
-
     assert asyncio.run(manager.process_due_fact_jobs()) == 1
     assert manager._redis.strings["fact_checkpoint:u:c"] == "2"
     assert manager._redis.zsets[manager.FACT_JOB_QUEUE_KEY] == {}
@@ -831,10 +760,6 @@ def test_failed_fact_job_keeps_checkpoint_and_reschedules_for_retry():
     manager._client = FactClient(fail=True)
     manager._fact_batch_turns = 1
 
-    async def archive(*_args, **_kwargs):
-        return True
-
-    manager._archive_messages = archive
     asyncio.run(manager.add_messages("u", "c", [
         (MsgRole.USER, "以后都用中文", {}),
         (MsgRole.ASSISTANT, "好的", {}),
@@ -856,10 +781,6 @@ def test_fact_backlog_is_chunked_without_advancing_past_unprocessed_events():
     manager._client = FactClient()
     manager._fact_batch_turns = 1
 
-    async def archive(*_args, **_kwargs):
-        return True
-
-    manager._archive_messages = archive
     for index in range(12):
         asyncio.run(manager.add_messages("u", "c", [
             (MsgRole.USER, f"偏好证据-{index}", {}),
@@ -917,10 +838,6 @@ def test_repeated_forced_summary_ranges_are_contiguous_and_rebuildable():
     manager._redis = redis
     manager._client = StableClient()
 
-    async def archive(*_args, **_kwargs):
-        return True
-
-    manager._archive_messages = archive
     while True:
         checkpoint, _ = asyncio.run(manager._read_checkpoint("u", "c"))
         if checkpoint.covered_until_seq == 12:

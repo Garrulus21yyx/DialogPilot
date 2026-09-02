@@ -27,12 +27,10 @@ from mcp.tool_manager import (
     MCPToolManager,
     Tool,
     ToolCallStatus,
-    ToolEffectStatus,
     ToolRisk,
 )
 from memory.context import (
     ContextAssembler,
-    ContextBudgetExceededError,
     ContextSection,
     TokenEstimator,
 )
@@ -117,12 +115,18 @@ class _EvalPipeline:
     async def unwatch(self): return None
     async def get(self, key): return await self.redis.get(key)
     def multi(self): return None
+    def lpush(self, key, *values): self.commands.append(("lpush", key, values))
+    def persist(self, key): self.commands.append(("persist", key))
     def rpush(self, key, *values): self.commands.append(("rpush", key, values))
     def set(self, key, value): self.commands.append(("set", key, value))
 
     async def execute(self):
         for command in self.commands:
-            if command[0] == "rpush":
+            if command[0] == "lpush":
+                target = self.redis.values if str(command[1]).startswith("wm:") else self.redis.lists[command[1]]
+                for value in command[2]:
+                    target.insert(0, value)
+            elif command[0] == "rpush":
                 self.redis.lists[command[1]].extend(command[2])
             elif command[0] == "set":
                 self.redis.strings[command[1]] = command[2]
@@ -243,13 +247,13 @@ async def _memory_finalize(case: FixtureRequest) -> FixtureEvidence:
     collection = _EvalCollection()
     manager = _memory_manager(redis, collection)
     result = await manager.finalize_conversation("user-a", "conv-a")
-    documents = [row["document"] for row in collection.records.values()]
+    checkpoint, _ = await manager._read_checkpoint("user-a", "conv-a")
     return FixtureEvidence({
-        "episodic_archived": result["finalized"] and len(collection.records) == 2,
+        "episodic_archived": result["finalized"] and checkpoint.covered_until_seq == 2,
         "event_log_retained": len(redis.values) == 2,
         "checkpoint_covers_session": result["finalized"] and not await manager._get_working_memory("user-a", "conv-a"),
-        "raw_turns_preserved": any("DP-884" in item for item in documents),
-    }, {"result": result, "archive_ids": sorted(collection.records)})
+        "raw_turns_preserved": any("DP-884" in item for item in redis.values),
+    }, {"result": result, "covered_until_seq": checkpoint.covered_until_seq})
 
 
 @fixture("memory_finalize_idempotent")
@@ -259,14 +263,15 @@ async def _memory_finalize_idempotent(case: FixtureRequest) -> FixtureEvidence:
     collection = _EvalCollection()
     manager = _memory_manager(redis, collection)
     first = await manager.finalize_conversation("user-a", "conv-idem")
-    first_ids = sorted(collection.records)
+    first_chunks = await manager._get_summary_chunks("user-a", "conv-idem")
     second = await manager.finalize_conversation("user-a", "conv-idem")
+    second_chunks = await manager._get_summary_chunks("user-a", "conv-idem")
     return FixtureEvidence({
-        "archive_idempotent": len(collection.records) == len(first_ids),
+        "archive_idempotent": second_chunks == first_chunks,
         "second_finalize_empty": second.get("already_empty") is True,
-        "stable_archive_ids": sorted(collection.records) == first_ids,
-        "single_logical_archive": first["finalized"] and len(collection.records) == 1,
-    }, {"first": first, "second": second, "archive_ids": first_ids})
+        "stable_archive_ids": second_chunks == first_chunks,
+        "single_logical_archive": first["finalized"] and len(first_chunks) == 1,
+    }, {"first": first, "second": second, "summary_chunks": len(first_chunks)})
 
 
 @fixture("memory_finalize_concurrent")
@@ -275,19 +280,20 @@ async def _memory_finalize_concurrent(case: FixtureRequest) -> FixtureEvidence:
     redis = _EvalRedis([_raw("user", "原消息", f"original-{suffix}")])
     collection = _EvalCollection()
     manager = _memory_manager(redis, collection)
-    production_archive = manager._archive_messages
+    production_summarize = manager._summarize_chunk
 
-    async def archive_then_mutate(*args, **kwargs):
-        archived = await production_archive(*args, **kwargs)
+    async def summarize_then_mutate(*args, **kwargs):
+        summary = await production_summarize(*args, **kwargs)
         redis.values.insert(0, _raw("assistant", "并发新消息", f"new-{suffix}"))
-        return archived
+        return summary
 
-    manager._archive_messages = archive_then_mutate  # type: ignore[method-assign]
+    manager._summarize_chunk = summarize_then_mutate  # type: ignore[method-assign]
     result = await manager.finalize_conversation("user-a", "conv-race")
+    checkpoint, _ = await manager._read_checkpoint("user-a", "conv-race")
     return FixtureEvidence({
         "concurrent_write_typed": result.get("reason") == "concurrent_write",
         "new_message_preserved": any("并发新消息" in raw for raw in redis.values),
-        "episodic_archived": bool(collection.records),
+        "episodic_archived": checkpoint.covered_until_seq == 1,
         "event_log_retained": len(redis.values) == 2,
     }, {"result": result, "working_count": len(redis.values)})
 
@@ -296,19 +302,19 @@ async def _memory_finalize_concurrent(case: FixtureRequest) -> FixtureEvidence:
 async def _memory_archive_idempotent(case: FixtureRequest) -> FixtureEvidence:
     suffix = str(_variant(case))
     collection = _EvalCollection()
-    manager = _memory_manager(_EvalRedis([]), collection)
+    redis = _EvalRedis([])
+    manager = _memory_manager(redis, collection)
     message = Message(MsgRole.USER, f"订单 RAW-{suffix}", message_id=f"raw-{suffix}")
     summary = '{"user_goal":"摘要不是原文"}'
-    await manager._archive_messages("u", "c", [message], summary=summary, reason="fixture")
-    first_ids = sorted(collection.records)
-    await manager._archive_messages("u", "c", [message], summary=summary, reason="fixture")
-    documents = [row["document"] for row in collection.records.values()]
+    first = await manager.project_working_message("u", "c", message, event_key=f"event-{suffix}")
+    second = await manager.project_working_message("u", "c", message, event_key=f"event-{suffix}")
+    event_log = await manager._get_event_log("u", "c")
     return FixtureEvidence({
-        "raw_turns_preserved": documents == [f"user: 订单 RAW-{suffix}"],
-        "summary_not_document": summary not in documents,
-        "stable_archive_ids": sorted(collection.records) == first_ids,
-        "archive_idempotent": len(collection.records) == 1,
-    }, {"archive_ids": first_ids, "documents": documents})
+        "raw_turns_preserved": [item.content for item in event_log] == [f"订单 RAW-{suffix}"],
+        "summary_not_document": all(item.content != summary for item in event_log),
+        "stable_archive_ids": [item.message_id for item in event_log] == [f"raw-{suffix}"],
+        "archive_idempotent": first is True and second is False and len(event_log) == 1,
+    }, {"message_ids": [item.message_id for item in event_log]})
 
 
 def _doc(memory_id: str, content: str, days_ago: int) -> MemoryDocument:

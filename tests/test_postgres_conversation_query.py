@@ -262,13 +262,16 @@ def test_close_is_audited_idempotent_and_fences_subsequent_writes(
               (SELECT count(*) FROM dialogpilot_app.conversation_close_events),
               (SELECT count(*) FROM dialogpilot_app.conversation_events
                WHERE event_type='CONVERSATION_CLOSED'),
-              (SELECT count(*) FROM dialogpilot_app.conversation_projection_outbox
+              (SELECT array_agg(projection_name ORDER BY projection_name)
+               FROM dialogpilot_app.conversation_projection_outbox
                WHERE event_id IN (
                  SELECT event_id FROM dialogpilot_app.conversation_events
                  WHERE event_type='CONVERSATION_CLOSED'
                ))
         """).fetchone()
-    assert facts == (1, 1, 4)
+    assert facts == (
+        1, 1, ["fact_extraction", "thread_summary", "working_window"],
+    )
     with pytest.raises(
         psycopg.errors.ObjectNotInPrerequisiteState, match="conversation is closed",
     ):

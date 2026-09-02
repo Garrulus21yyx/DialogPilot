@@ -99,7 +99,7 @@ def test_projection_lag_returns_raw_source_fallback_and_omitted_ranges(
         "canonical prior turn"
     ]
     assert {item.projection for item in result.omitted_ranges} == {
-        "working_window", "thread_summary", "episodic_index", "fact_extraction",
+        "working_window", "thread_summary", "fact_extraction",
     }
     assert result.retrieval_outcome is MemoryRetrievalOutcome.NO_MATCH
     current_excluded = asyncio.run(PostgresMemoryProjectionReader(
@@ -157,7 +157,7 @@ def test_ready_contract_rejects_hidden_omission_or_lag():
             2,
             {"working_window": 2},
             MemoryRetrievalOutcome.NO_MATCH,
-            omitted_ranges=(ProjectionRange("episodic_index", 1, 2, "lag"),),
+            omitted_ranges=(ProjectionRange("fact_extraction", 1, 2, "lag"),),
         )
     with pytest.raises(ValueError, match="must cover"):
         MemoryProjectionResult(
