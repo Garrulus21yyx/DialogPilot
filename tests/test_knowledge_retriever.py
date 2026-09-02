@@ -145,6 +145,10 @@ def test_rewrite_failure_preserves_all_mass_and_rerank_contract_falls_back():
          "CANDIDATE_PROVENANCE_INVALID"),
         (_Source([_candidate("same"), _candidate("same")]), RetrievalStatus.CONFLICT,
          "DUPLICATE_CANDIDATE_ID"),
+        (_Source([
+            _candidate("old"),
+            {**_candidate("new"), "source_revision": "revision-two"},
+        ]), RetrievalStatus.CONFLICT, "ACTIVE_SOURCE_REVISION_CONFLICT"),
     ],
 )
 def test_status_algebra_never_carries_partial_or_diagnostic_evidence(

@@ -46,6 +46,12 @@ def source_pool(postgres_database_url):
     with pool.transaction() as connection:
         connection.execute("""
             TRUNCATE TABLE
+                retrieval.knowledge_request_manifest_pins,
+                retrieval.knowledge_publication_audit,
+                retrieval.knowledge_publication_pointers,
+                retrieval.knowledge_candidates,
+                retrieval.knowledge_source_revision_audit,
+                retrieval.knowledge_source_revision_lifecycle,
                 retrieval.canonical_projection_receipts,
                 retrieval.canonical_projection_outbox,
                 retrieval.knowledge_source_chunk_specs,

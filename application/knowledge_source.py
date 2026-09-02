@@ -33,12 +33,21 @@ class SourceRevision:
     content: str
     effective_from: datetime
     effective_to: datetime | None = None
+    owner_id: str = "m2-backfill-owner"
+    scope: str = "public"
+    locale: str = "und"
+    product: str = ""
+    region: str = "global"
+    supersedes_revision_id: str | None = None
+    operations_audit_ref: str = "m2-source-revision-v0"
     schema_version: str = "knowledge-source-v0"
 
     def __post_init__(self) -> None:
         _required(
             self.tenant_id, self.source_id, self.revision_id, self.title,
-            self.source_type, self.content, self.schema_version,
+            self.source_type, self.content, self.owner_id, self.scope,
+            self.locale, self.region, self.operations_audit_ref,
+            self.schema_version,
         )
         if self.source_id.startswith("legacy-") or self.revision_id.startswith("legacy-"):
             raise KnowledgeSourceContractError("legacy source identities are unsupported")
@@ -63,13 +72,62 @@ class SourceRevision:
         content: str,
         effective_from: datetime,
         effective_to: datetime | None = None,
+        owner_id: str = "m2-backfill-owner",
+        scope: str = "public",
+        locale: str = "und",
+        product: str = "",
+        region: str = "global",
+        supersedes_revision_id: str | None = None,
+        operations_audit_ref: str = "m2-source-revision-v0",
+        schema_version: str = "knowledge-source-v0",
     ) -> "SourceRevision":
         checksum = hashlib.sha256(str(content).encode("utf-8")).hexdigest()
+        revision_prefix = (
+            "revision-v1" if str(schema_version) == "knowledge-source-v1"
+            else "revision-v0"
+        )
         return cls(
             tenant_id=str(tenant_id), source_id=str(source_id),
-            revision_id=f"revision-v0-{checksum[:32]}", checksum=checksum,
+            revision_id=f"{revision_prefix}-{checksum[:32]}", checksum=checksum,
             title=str(title), source_type=str(source_type), content=str(content),
             effective_from=effective_from, effective_to=effective_to,
+            owner_id=str(owner_id), scope=str(scope), locale=str(locale),
+            product=str(product), region=str(region),
+            supersedes_revision_id=(
+                str(supersedes_revision_id) if supersedes_revision_id else None
+            ),
+            operations_audit_ref=str(operations_audit_ref),
+            schema_version=str(schema_version),
+        )
+
+    @classmethod
+    def draft(
+        cls,
+        *,
+        tenant_id: str,
+        source_id: str,
+        title: str,
+        source_type: str,
+        content: str,
+        effective_from: datetime,
+        owner_id: str,
+        scope: str,
+        locale: str,
+        product: str,
+        region: str,
+        operations_audit_ref: str,
+        effective_to: datetime | None = None,
+        supersedes_revision_id: str | None = None,
+    ) -> "SourceRevision":
+        """Create an M5 operational draft with explicit applicability/provenance."""
+        return cls.create(
+            tenant_id=tenant_id, source_id=source_id, title=title,
+            source_type=source_type, content=content,
+            effective_from=effective_from, effective_to=effective_to,
+            owner_id=owner_id, scope=scope, locale=locale, product=product,
+            region=region, supersedes_revision_id=supersedes_revision_id,
+            operations_audit_ref=operations_audit_ref,
+            schema_version="knowledge-source-v1",
         )
 
     @property
@@ -120,6 +178,10 @@ class KnowledgeSourceManifest:
         if identities != sorted(identities) or len(set(identities)) != len(identities):
             raise KnowledgeSourceContractError(
                 "manifest entries must be sorted and unique"
+            )
+        if len({item.source_id for item in self.entries}) != len(self.entries):
+            raise KnowledgeSourceContractError(
+                "manifest cannot contain conflicting revisions for one source"
             )
         _checksum(self.manifest_hash)
         if self.manifest_hash != self.calculate_hash(

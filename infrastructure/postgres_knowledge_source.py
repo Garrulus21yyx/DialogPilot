@@ -41,6 +41,17 @@ class PostgresKnowledgeSourceRepository:
             raise KnowledgeSourceContractError("source revisions must be unique")
         if any(item.tenant_id != manifest.tenant_id for item in sources):
             raise KnowledgeSourceContractError("source tenant differs from manifest")
+        if any(
+            item.schema_version == "knowledge-source-v1" and (
+                item.scope != manifest.scope
+                or item.locale != manifest.locale
+                or item.product != manifest.product
+            )
+            for item in sources
+        ):
+            raise KnowledgeSourceContractError(
+                "operational source applicability differs from manifest"
+            )
         expected_entries = {
             (item.source_id, item.revision_id, item.checksum)
             for item in manifest.entries
@@ -80,14 +91,19 @@ class PostgresKnowledgeSourceRepository:
                     INSERT INTO retrieval.knowledge_source_revisions (
                         tenant_id, source_id, revision_id, checksum, title,
                         source_type, content, effective_from, effective_to,
-                        immutable_fingerprint
-                    ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                        immutable_fingerprint, owner_id, scope, locale, product,
+                        region, supersedes_revision_id, operations_audit_ref,
+                        schema_version
+                    ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                     ON CONFLICT (tenant_id, source_id, revision_id) DO NOTHING
                 """, (
                     source.tenant_id, source.source_id, source.revision_id,
                     source.checksum, source.title, source.source_type,
                     source.content, source.effective_from, source.effective_to,
                     source.immutable_fingerprint,
+                    source.owner_id, source.scope, source.locale, source.product,
+                    source.region, source.supersedes_revision_id,
+                    source.operations_audit_ref, source.schema_version,
                 ))
                 row = connection.execute("""
                     SELECT immutable_fingerprint
@@ -98,6 +114,30 @@ class PostgresKnowledgeSourceRepository:
                 )).fetchone()
                 if row is None or row[0] != source.immutable_fingerprint:
                     raise KnowledgeSourceConflict("SourceRevision identity changed")
+                initial_status = (
+                    "ACTIVE" if source.schema_version == "knowledge-source-v0"
+                    else "DRAFT"
+                )
+                connection.execute("""
+                    INSERT INTO retrieval.knowledge_source_revision_lifecycle (
+                        tenant_id, source_id, revision_id, status, version
+                    ) VALUES (%s,%s,%s,%s,1) ON CONFLICT DO NOTHING
+                """, (
+                    source.tenant_id, source.source_id, source.revision_id,
+                    initial_status,
+                ))
+                lifecycle = connection.execute("""
+                    SELECT status FROM retrieval.knowledge_source_revision_lifecycle
+                    WHERE tenant_id=%s AND source_id=%s AND revision_id=%s
+                """, (
+                    source.tenant_id, source.source_id, source.revision_id,
+                )).fetchone()
+                if source.schema_version == "knowledge-source-v1" and (
+                    lifecycle is None or lifecycle[0] != "STAGED"
+                ):
+                    raise KnowledgeSourceConflict(
+                        "operational SourceRevision must be STAGED before indexing"
+                    )
 
             connection.execute("""
                 INSERT INTO retrieval.knowledge_source_manifests (
@@ -242,11 +282,16 @@ class PostgresKnowledgeSourceRepository:
                   ON revision.tenant_id=entry.tenant_id
                  AND revision.source_id=entry.source_id
                  AND revision.revision_id=entry.revision_id
+                JOIN retrieval.knowledge_source_revision_lifecycle lifecycle
+                  ON lifecycle.tenant_id=revision.tenant_id
+                 AND lifecycle.source_id=revision.source_id
+                 AND lifecycle.revision_id=revision.revision_id
                 WHERE entry.tenant_id=%s AND entry.backend_id=%s
                   AND entry.generation_id=%s AND entry.scope=%s
                   AND entry.locale=%s AND entry.product=%s
                   AND entry.source_id=%s AND entry.revision_id=%s
                   AND entry.checksum=%s
+                  AND lifecycle.status NOT IN ('REJECTED','RETRACTED')
             """, (
                 locator.tenant_id, locator.backend_id, locator.generation_id,
                 locator.scope, locator.locale, locator.product or "",

@@ -41,17 +41,18 @@
 | M2-T06R Route Bundle enable/rollback | implemented (canary blocked) | pinned execution refs、single publisher、atomic crash rollback、forward-fix runbook；771 tests passed |
 | X-T03 安全威胁模型 | implemented (production review pending) | 8 threats/control map、13-case corpus、incident disable runbook；799 tests passed |
 | X-T04 成本预算 | implemented (route flag-off) | 8 route + offline ingest budgets、typed exhaustion、provider usage reconciliation；806 tests passed |
-| X-T01 schema/version 治理 | implemented (production snapshot pending) | linear 15-revision registry、forward-only/concurrent migration、checkpoint compatibility、local restore；812 tests passed |
+| X-T01 schema/version 治理 | implemented (production snapshot pending) | linear 16-revision registry、forward-only/concurrent migration、checkpoint compatibility、local restore；M5-T01 迁移已纳入 registry |
 | X-T02 并发与多副本 | implemented (production rehearsal pending) | claim epoch fencing、tool reconciliation、multi-process/dual-active tests、PG/Redis runbook；820 tests passed |
 | X-T05 文档与简历事实门禁 | implemented | 4 条 claim registry、evidence template/checklist、seeded audit；824 tests passed |
 | M2 Exit Gate | draft / not ready | unsigned reproducible manifest；independent security/heldout、production billing/platform evidence、M1 Exit blocked；806 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | build nodes done；Exit prerequisites/evidence not closed |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
-| M5 Knowledge Lifecycle/Multimodal | pending | 按 M5-T01–T09 子节点推进 |
+| M5 Knowledge Lifecycle/Multimodal | in_progress | M5-T01 implemented/behavior-gated；M5-T02A implemented/flag-off；其余按依赖推进 |
 | M6-T01 Dataset v2 / Rubric v2 | implemented (contract fixtures provisional) | 11 层 service-chain + deterministic hard rubric + fixed semantic adapter；835 tests passed |
 | M6-T03 Gold / fresh heldout | workflow implemented / real data blocked | privacy+dual review+arbitration+group split+consumed transition；真实标注/Privacy evidence pending |
 | M5-T02A Agent MediaRequirementDecision | implemented (flag-off) | canonical binding/decision IDs、Agent-only producer、ACL/requiredness/stage validator；854 tests passed |
+| M5-T01 SourceRevision lifecycle/publication | implemented (behavior gated) | canonical state machine、scoped/global CAS pointer、request manifest pin、rollback/candidate/evidence fences；862 tests passed |
 | M6 Eval/Observability/Release | in_progress | T01 build 完成；T02–T09 按依赖推进 |
 | X-T01–X-T05 跨里程碑治理 | implemented / production reviews pending | 五个 build 节点完成；生产 snapshot/failover/security/billing 与独立文案 review 不伪造 |
 
@@ -968,7 +969,7 @@
   串行化多进程 owner；较低 target typed `ForwardOnlyMigrationError`，不调用 downgrade。
 - RunStore 覆盖 caller 提供的 schema/code 值并固定当前版本；legacy v0 在显式 allowlist 内 read-migrate，
   unknown version 在恢复前 fail closed。
-- frozen registry 包含 15 个 revision/checksum；隔离 dump/restore 对 migration+DataLocation 19 条治理事实做
+- frozen registry 当前包含 16 个 revision/checksum；既有隔离 dump/restore 对当时 migration+DataLocation 19 条治理事实做
   count/hash reconciliation。聚焦 `18 passed`、全套 `812 passed in 46.38s`；
   [build evidence](../governance/evidence/x-t01/schema-governance-build-v1.md) 明确仅为本地演练，生产 snapshot
   副本、RPO/RTO 与独立 review 仍未 VERIFIED。

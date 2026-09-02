@@ -431,6 +431,16 @@ class KnowledgeRetriever:
             return EvidencePackResult(
                 RetrievalStatus.CONFLICT, None, None, "DUPLICATE_CANDIDATE_ID",
             )
+        revisions_by_source: dict[str, set[str]] = {}
+        for item in candidates:
+            revisions_by_source.setdefault(
+                item.document_id, set(),
+            ).add(item.source_revision)
+        if any(len(revisions) > 1 for revisions in revisions_by_source.values()):
+            return EvidencePackResult(
+                RetrievalStatus.CONFLICT, None, None,
+                "ACTIVE_SOURCE_REVISION_CONFLICT",
+            )
         rerank_key = RetrievalCacheKeyBuilder.rerank(request, candidates)
         cached_rerank = self._cache_get(rerank_key, request)
         if isinstance(cached_rerank, dict) and isinstance(
