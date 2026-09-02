@@ -1138,6 +1138,16 @@
 - [build evidence](../governance/evidence/m4-t03b/active-case-build.md)。真实 SLA/Commitment backfill、连续性 heldout、
   bounded canary 与生产 rollback 演练依赖 M4-T07/M4-T03C，因此当前为 `IMPLEMENTED / SHADOW ONLY`。
 
+### M4-T04A（ServiceEpisode schema / promotion foundation）
+
+- 只有 resolved/closed Case + Case Owner `ACCEPTED` outcome verification 能构造 `episode_id=case_id` candidate；
+  assistant/published text、用户反馈、单工具成功或无 source refs 的 raw conversation 不能单独晋升。
+- DataLocation v6 先批准 `location:service-episode:v1`，forward-only `0020` 再建立 immutable revisions、head CAS、
+  deletion epoch trigger；user/canonical/assistant lexical 权重分别为 A/B/D。
+- canonical commit 与 retrieval projection outbox 同事务；resolver 只投影 current revision/provenance，并携带 outcome receipt。
+- [build evidence](../governance/evidence/m4-t04a/service-episode-schema-build.md)。legacy corpus 盘点/backfill、query shadow、
+  retrieval pointer/rollback 与 heldout 尚未完成，M4-T04 保持 in progress，consumer 不启用。
+
 ### M6-T01（Dataset v2 / Rubric v2）
 
 - 新增独立 service-chain v2，不改变 v1 数据身份；闭合 perception→service_outcome 11 层 observation，case

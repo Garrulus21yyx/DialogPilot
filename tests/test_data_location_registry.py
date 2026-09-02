@@ -112,9 +112,9 @@ def _intent(
 def test_registry_is_machine_readable_bounded_and_separates_registration_from_write():
     registry = DataLocationRegistry.load(default_registry_path())
     summary = registry.artifact_summary()
-    assert summary["version"] == "v5"
+    assert summary["version"] == "v6"
     assert summary["location_count"] == 33
-    assert summary["write_approved_count"] == 9
+    assert summary["write_approved_count"] == 10
     assert registry.get(
         "location:pg-response-delivery:v1"
     ).readiness.value == "WRITE_APPROVED"
@@ -190,9 +190,9 @@ def test_installed_registry_and_subject_epoch_authorize_existing_location(
     authorization = PostgresDataLocationWriteFence(location_pool).authorize(
         _intent(identity),
     )
-    assert authorization.registry_version == "v5"
+    assert authorization.registry_version == "v6"
     assert authorization.registry_fingerprint == (
-        "cd86f3a57adaaa2e25fb4cc6c9e59fb64ebc43f12243463ca83335198382a1e5"
+        "cbf99367f299650413996974cf981a58c8485d984d8df9cea7d0d0790babedf3"
     )
     assert authorization.subject_exists is True
     assert authorization.deletion_epoch == 0
@@ -240,7 +240,7 @@ def test_database_registry_binding_is_immutable_and_migration_runner_verifies_it
     location_pool, postgres_database_url,
 ):
     assert PostgresMigrationRunner(postgres_database_url).verify()["head"] == (
-        "20260902_0019"
+        "20260902_0020"
     )
     with pytest.raises(psycopg.errors.ObjectNotInPrerequisiteState, match="immutable"):
         with location_pool.transaction() as connection:

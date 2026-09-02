@@ -1,0 +1,34 @@
+{
+  "schema": "dialogpilot.data-location-registry-overlay.v1",
+  "version": "v6",
+  "approved_by": "m4-t04-service-episode-owner-review",
+  "base_artifact": "v5.json",
+  "contract_catalog_additions": {
+    "delete_adapters": [
+      {
+        "id": "adapter:pg-service-episode-delete:v1",
+        "status": "IMPLEMENTED",
+        "evidence": "conversation tombstone purges episode revisions/heads and retrieval projection fence purges search rows"
+      }
+    ],
+    "proof_contracts": [
+      {
+        "id": "proof:m4-t04-service-episode:v1",
+        "status": "IMPLEMENTED",
+        "evidence": "tests/test_postgres_service_episode.py"
+      }
+    ],
+    "restore_fences": []
+  },
+  "location_additions": [],
+  "location_updates": [
+    {
+      "location_id": "location:service-episode:v1",
+      "set": {
+        "readiness": "WRITE_APPROVED",
+        "delete_adapter_id": "adapter:pg-service-episode-delete:v1",
+        "proof_contract_id": "proof:m4-t04-service-episode:v1"
+      }
+    }
+  ]
+}

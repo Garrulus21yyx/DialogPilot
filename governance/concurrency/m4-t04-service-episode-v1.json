@@ -1,0 +1,37 @@
+{
+  "contract_id": "m4-t04-service-episode-v1",
+  "canonical_owner": "PostgresServiceEpisodeRepository",
+  "promotion_owner": "Case Owner outcome verification",
+  "location_id": "location:service-episode:v1",
+  "schema_version": "service-episode-v1",
+  "episode_identity": "episode_id equals case_id",
+  "eligible_case_statuses": ["resolved", "closed"],
+  "required_verification_status": "ACCEPTED",
+  "forbidden_promotion_sources": [
+    "assistant_text", "published_response", "user_feedback_only",
+    "single_tool_success", "unscoped_conversation_chunk"
+  ],
+  "revision_contract": {
+    "canonical_rows": "immutable",
+    "head_update": "expected_version CAS",
+    "replay": "same revision and provenance is idempotent",
+    "conflict": "typed ServiceEpisodeConflict"
+  },
+  "provenance": {
+    "required": [
+      "source_event_refs", "outcome_verification_ref", "case_id",
+      "source_deletion_epoch", "extractor_version", "schema_version"
+    ],
+    "user_assistant_evidence": "stored separately"
+  },
+  "retrieval_projection": {
+    "canonical_transport": "retrieval.canonical_projection_outbox",
+    "consumer_mode": "dark shadow only",
+    "user_weight": "A",
+    "canonical_weight": "B",
+    "assistant_weight": "D",
+    "current_revision_only": true
+  },
+  "deletion": "conversation tombstone purges canonical head/revisions and fences retrieval",
+  "remaining_release_owner": "M4-T04C after M4 Exit and POSTGRES_RETRIEVAL_GA"
+}
