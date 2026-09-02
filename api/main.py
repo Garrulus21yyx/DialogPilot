@@ -312,7 +312,7 @@ async def lifespan(app: FastAPI):
         _postgres_pool = PostgresPool(PostgresPoolConfig.from_env())
         _postgres_pool.open()
         from application.memory_retrieval_policy import (
-            LEGACY_MEMORY_RETRIEVAL_POLICY,
+            DEFAULT_MEMORY_RETRIEVAL_POLICY,
         )
         from application.service_episode_memory_search import (
             ServiceEpisodeMemorySearch,
@@ -322,9 +322,6 @@ async def lifespan(app: FastAPI):
             ServiceEpisodeRetriever,
         )
         from infrastructure.hybrid_retrieval_backend import PostgresHybridBackend
-        from infrastructure.postgres_memory_retrieval_binding import (
-            PostgresMemoryRetrievalBindingRepository,
-        )
         from infrastructure.retrieval_postgres import (
             PostgresRetrievalGenerationRegistry,
             RetrievalPoolConfig,
@@ -351,12 +348,11 @@ async def lifespan(app: FastAPI):
                 "SERVICE_EPISODE_POLICY_VERSION",
                 "service-episode-retrieval-policy-v1",
             ),
-            LEGACY_MEMORY_RETRIEVAL_POLICY,
+            DEFAULT_MEMORY_RETRIEVAL_POLICY,
             float(os.getenv("SERVICE_EPISODE_MINIMUM_FUSED_RELEVANCE", "0")),
             int(os.getenv("SERVICE_EPISODE_FRESHNESS_MAX_AGE_SECONDS", "31536000")),
         )
         _service_episode_search = ServiceEpisodeMemorySearch(
-            bindings=PostgresMemoryRetrievalBindingRepository(_postgres_pool),
             generations=PostgresRetrievalGenerationRegistry(_postgres_pool),
             retriever=ServiceEpisodeRetriever(
                 PostgresHybridBackend(_retrieval_postgres_pool), episode_policy,

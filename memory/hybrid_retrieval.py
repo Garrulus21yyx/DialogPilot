@@ -14,7 +14,7 @@ from typing import Dict, Iterable, List, Sequence, Tuple
 
 from application.chinese_lexical import tokenize_ascii_cjk_unigram_bigram
 from application.memory_retrieval_policy import (
-    LEGACY_MEMORY_RETRIEVAL_POLICY,
+    DEFAULT_MEMORY_RETRIEVAL_POLICY,
     MemoryRetrievalPolicy,
 )
 
@@ -99,7 +99,7 @@ class HybridMemoryRetriever:
         self.recency_weight = float(recency_weight)
         self.lexical_pool = int(lexical_pool)
         self.policy = policy or (
-            LEGACY_MEMORY_RETRIEVAL_POLICY
+            DEFAULT_MEMORY_RETRIEVAL_POLICY
             if (rrf_k, vector_weight, lexical_weight, recency_weight, lexical_pool)
             == (60, 0.30, 0.60, 0.10, 20)
             else MemoryRetrievalPolicy(

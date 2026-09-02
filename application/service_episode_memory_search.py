@@ -1,4 +1,4 @@
-"""On-demand ServiceEpisode search owner for the direct-cutover tool boundary."""
+"""On-demand ServiceEpisode search over the single active PostgreSQL generation."""
 from __future__ import annotations
 
 from typing import Callable
@@ -24,15 +24,15 @@ class ServiceEpisodeMemorySearch:
     def __init__(
         self,
         *,
-        bindings,
         generations,
         retriever: ServiceEpisodeRetriever,
         embed_query: Callable[[str, RetrievalGeneration], tuple[float, ...] | None],
+        backend_id: str = "POSTGRES_PG_FTS_ZH_V1",
     ):
-        self._bindings = bindings
         self._generations = generations
         self._retriever = retriever
         self._embed_query = embed_query
+        self._backend_id = backend_id
 
     def search(
         self,
@@ -46,25 +46,20 @@ class ServiceEpisodeMemorySearch:
         query_text = self._normalize_query(query)
         if not tenant_id.strip() or not user_id.strip() or not query_text:
             return _invalid("SEARCH_SCOPE_INCOMPLETE")
-        binding = self._bindings.get(tenant_id)
-        if binding is None or not binding.enabled:
-            return _invalid("DIRECT_CUTOVER_DISABLED")
-        target = binding.target
-        if target.policy_fingerprint != self._retriever.policy.fingerprint:
-            return _conflict("POLICY_BINDING_DRIFT")
         try:
-            generation = self._generations.get(target.backend_generation)
+            generation = self._generations.active(
+                RetrievalCorpus.SERVICE_EPISODE, backend_id=self._backend_id,
+            )
         except Exception:
             return ServiceEpisodeRetrievalResult(
                 RetrievalStatus.UNAVAILABLE, detail_code="GENERATION_UNAVAILABLE",
             )
         if (
             generation.corpus is not RetrievalCorpus.SERVICE_EPISODE
-            or generation.backend_id != target.backend_id
-            or generation.source_watermark != target.corpus_generation
-            or generation.state not in {GenerationState.READY, GenerationState.ACTIVE}
+            or generation.backend_id != self._backend_id
+            or generation.state is not GenerationState.ACTIVE
         ):
-            return _conflict("GENERATION_BINDING_DRIFT")
+            return _conflict("ACTIVE_GENERATION_DRIFT")
         try:
             embedding = self._embed_query(query_text, generation)
         except ValueError:
@@ -76,7 +71,7 @@ class ServiceEpisodeMemorySearch:
             corpus=RetrievalCorpus.SERVICE_EPISODE,
             backend_fingerprint=generation.backend_fingerprint,
             generation_id=generation.generation_id,
-            policy_fingerprint=target.policy_fingerprint,
+            policy_fingerprint=self._retriever.policy.fingerprint,
             query_text=query_text,
             query_embedding=embedding,
             scope=EpisodeSearchScope(user_id, entity_ids),

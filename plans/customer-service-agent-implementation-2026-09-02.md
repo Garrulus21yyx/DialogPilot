@@ -20,6 +20,7 @@
 | PostgreSQL Knowledge retrieval/ingestion 单主 | done | 默认语料、在线 reader、Bundle refs、add/upload/stats 均为 PG |
 | 删除离线 Chroma KnowledgeBase 与旧 ablation | done | 删除 Chroma/BM25 store、旧 runner/ablation；保留纯本地 eval helpers |
 | 删除 Knowledge publication/review/canary/rollback 状态机 | done | 单一 ACTIVE generation + 原子 direct activation |
+| ServiceEpisode 直接解析唯一 ACTIVE generation | done | 删除 tenant rollout binding、shadow comparator 与 binding schema |
 | 删除 release gate/signature、双盲仲裁与 claim audit | done | 成本预算改为 `evaluation/reports/local-cost-budget-v1.json` |
 | 删除剩余 governance evidence/concurrency 文档绑定 | done | 删除冻结副本断言；保留运行时、并发、幂等与恢复行为测试 |
 | 治理/评测收缩为测试 + 本地 E2E + 机器报告 + Demo | in_progress | 清理生产迁移/多副本演练材料后执行完整本地验收 |

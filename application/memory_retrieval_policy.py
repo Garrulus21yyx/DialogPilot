@@ -1,4 +1,4 @@
-"""Versioned Memory retrieval fusion and rollout binding contracts."""
+"""Versioned ServiceEpisode retrieval fusion policy."""
 from __future__ import annotations
 
 import hashlib
@@ -29,39 +29,4 @@ class MemoryRetrievalPolicy:
         ).encode("utf-8")).hexdigest()
 
 
-LEGACY_MEMORY_RETRIEVAL_POLICY = MemoryRetrievalPolicy()
-
-
-@dataclass(frozen=True)
-class MemoryRetrievalTarget:
-    policy_fingerprint: str
-    backend_id: str
-    backend_generation: str
-    corpus_generation: str
-
-    def __post_init__(self) -> None:
-        if any(not value.strip() for value in (
-            self.policy_fingerprint, self.backend_id, self.backend_generation,
-            self.corpus_generation,
-        )):
-            raise ValueError("memory retrieval target is incomplete")
-        if len(self.policy_fingerprint) != 64:
-            raise ValueError("memory retrieval policy fingerprint must be SHA-256")
-
-
-@dataclass(frozen=True)
-class MemoryRetrievalBinding:
-    """The only ServiceEpisode target; disabled until direct-cutover acceptance."""
-
-    target: MemoryRetrievalTarget
-    enabled: bool
-    version: int
-
-    def __post_init__(self) -> None:
-        if self.version < 1:
-            raise ValueError("memory retrieval binding is incomplete")
-
-    def activate(self) -> "MemoryRetrievalBinding":
-        if self.enabled:
-            raise ValueError("memory retrieval binding is already enabled")
-        return MemoryRetrievalBinding(self.target, True, self.version + 1)
+DEFAULT_MEMORY_RETRIEVAL_POLICY = MemoryRetrievalPolicy()

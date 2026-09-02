@@ -11,8 +11,7 @@ from application.hybrid_retrieval import (
     RetrievalGeneration,
 )
 from application.memory_retrieval_policy import (
-    LEGACY_MEMORY_RETRIEVAL_POLICY,
-    MemoryRetrievalTarget,
+    DEFAULT_MEMORY_RETRIEVAL_POLICY,
 )
 from application.service_episode_memory_search import ServiceEpisodeMemorySearch
 from application.service_episode_retriever import (
@@ -25,9 +24,6 @@ from evaluation.service_episode_replay import (
 )
 from infrastructure.hybrid_retrieval_backend import PostgresHybridBackend
 from infrastructure.postgres import PostgresMigrationRunner, PostgresPool, PostgresPoolConfig
-from infrastructure.postgres_memory_retrieval_binding import (
-    PostgresMemoryRetrievalBindingRepository,
-)
 from infrastructure.retrieval_postgres import (
     PostgresRetrievalGenerationRegistry,
     RetrievalPoolConfig,
@@ -51,14 +47,16 @@ def replay_chain(postgres_database_url):
     platform.open()
     retrieval.open()
     with platform.transaction() as connection:
+        assert connection.execute(
+            "SELECT to_regclass('retrieval.memory_retrieval_bindings')"
+        ).fetchone()[0] is None
         connection.execute("""
-            TRUNCATE retrieval.memory_retrieval_bindings,
-                     retrieval.service_episode_search,
+            TRUNCATE retrieval.service_episode_search,
                      retrieval.retrieval_generation_registry,
                      dialogpilot_app.conversations CASCADE
         """)
     policy = ServiceEpisodeRetrievalPolicy(
-        "service-episode-offline-replay-v1", LEGACY_MEMORY_RETRIEVAL_POLICY,
+        "service-episode-offline-replay-v1", DEFAULT_MEMORY_RETRIEVAL_POLICY,
         0.0, 365 * 86400,
     )
     generation = RetrievalGeneration(
@@ -107,14 +105,9 @@ def replay_chain(postgres_database_url):
                 f"receipt:{episode_id}", SHA, postgres_lexical_document(text),
             ))
     registry.transition(generation.generation_id, GenerationState.READY)
-    bindings = PostgresMemoryRetrievalBindingRepository(platform)
-    bindings.initialize("tenant-replay", target=MemoryRetrievalTarget(
-        policy.fingerprint, generation.backend_id, generation.generation_id,
-        generation.source_watermark,
-    ))
-    bindings.activate("tenant-replay", expected_version=1)
+    registry.activate_direct(generation.generation_id)
     search = ServiceEpisodeMemorySearch(
-        bindings=bindings, generations=registry,
+        generations=registry,
         retriever=ServiceEpisodeRetriever(PostgresHybridBackend(retrieval), policy),
         embed_query=lambda _query, _generation: None,
     )

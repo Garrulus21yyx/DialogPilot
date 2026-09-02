@@ -10,7 +10,7 @@ from application.hybrid_retrieval import (
     RetrievalCorpus,
     RetrievalStatus,
 )
-from application.memory_retrieval_policy import LEGACY_MEMORY_RETRIEVAL_POLICY
+from application.memory_retrieval_policy import DEFAULT_MEMORY_RETRIEVAL_POLICY
 from application.service_episode_retriever import (
     ServiceEpisodeRetrievalPolicy,
     ServiceEpisodeRetriever,
@@ -32,7 +32,7 @@ class Backend:
 def policy(*, minimum=0.0, max_age=90 * 86400):
     return ServiceEpisodeRetrievalPolicy(
         "service-episode-retrieval-policy-heldout-v1",
-        LEGACY_MEMORY_RETRIEVAL_POLICY,
+        DEFAULT_MEMORY_RETRIEVAL_POLICY,
         minimum,
         max_age,
     )

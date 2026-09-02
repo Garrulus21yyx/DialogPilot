@@ -38,7 +38,7 @@ def build_registry() -> dict[str, object]:
         "schema_version": "x-t01-schema-registry-artifact-v1",
         "payload": payload,
         "payload_sha256": hashlib.sha256(encoded).hexdigest(),
-        "verification_status": "BUILD_LOCAL_RESTORE_PRODUCTION_SNAPSHOT_PENDING",
+        "verification_status": "LOCAL_EMPTY_DATABASE_REPRODUCIBLE",
     }
 
 
