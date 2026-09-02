@@ -27,6 +27,7 @@ from application.evidence_receipt import (
     MemoryEventStatus,
     RequirementStatus,
 )
+from application.media_evidence import CoordinateSpace
 from application.hybrid_retrieval import RetrievalStatus
 from mcp.tool_manager import ToolCallStatus, ToolEffectStatus
 
@@ -68,7 +69,10 @@ SHA = "a" * 64
         ),
         (
             EvidenceKind.MEDIA_OBSERVATION,
-            MediaObservationLocator("asset-1", SHA, "page:1"),
+            MediaObservationLocator(
+                "asset-1", SHA, 0, CoordinateSpace.NORMALIZED_0_1,
+                (0.0, 0.0, 1.0, 1.0),
+            ),
             MediaObservationStatus.OBSERVED,
         ),
         (

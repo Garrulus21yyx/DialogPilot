@@ -13,6 +13,7 @@ from application.authority_policy import (
     AuthorityPolicyRegistry,
 )
 from application.hybrid_retrieval import RetrievalStatus
+from application.media_evidence import MediaLocator
 from mcp.tool_manager import ToolCallStatus, ToolEffectStatus
 
 
@@ -162,15 +163,7 @@ class CommitmentLocator:
             raise EvidenceContractError("commitment version must be positive")
 
 
-@dataclass(frozen=True)
-class MediaObservationLocator:
-    asset_id: str
-    asset_checksum: str
-    region_key: str
-
-    def __post_init__(self) -> None:
-        _required(self.asset_id, self.region_key)
-        _sha256(self.asset_checksum)
+MediaObservationLocator = MediaLocator
 
 
 @dataclass(frozen=True)
@@ -655,7 +648,10 @@ def _locator_binds_payload(
         return (
             str(payload.get("asset_id") or "") == locator.asset_id
             and str(payload.get("checksum") or "") == locator.asset_checksum
-            and str(payload.get("region_key") or "") == locator.region_key
+            and int(payload.get("page_index", -1)) == locator.page_index
+            and str(payload.get("coordinate_space") or "")
+            == locator.coordinate_space.value
+            and tuple(payload.get("bbox") or ()) == locator.bbox
         )
     if isinstance(locator, HumanAssertionLocator):
         return (
