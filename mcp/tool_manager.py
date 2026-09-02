@@ -241,6 +241,15 @@ class Tool:
     risk: ToolRisk = ToolRisk.LOW
     read_only: bool = True
     requires_approval: bool = False
+    authority: str = ""
+    manifest_version: str = ""
+    output_schema_version: str = ""
+    receipt_schema_version: str = ""
+    preconditions: Tuple[str, ...] = ()
+    idempotency: str = "not_declared"
+    retry_policy: str = "not_declared"
+    typed_outcomes: Tuple[str, ...] = ()
+    output_fields: Tuple[str, ...] = ()
 
     # 运行时状态（不参与构造）
     stats:   ToolStats    = field(default_factory=ToolStats, init=False)
@@ -337,6 +346,15 @@ class MCPToolManager:
             "risk": tool.risk.value,
             "read_only": tool.read_only,
             "requires_approval": tool.requires_approval,
+            "authority": tool.authority,
+            "manifest_version": tool.manifest_version,
+            "output_schema_version": tool.output_schema_version,
+            "receipt_schema_version": tool.receipt_schema_version,
+            "preconditions": sorted(tool.preconditions),
+            "idempotency": tool.idempotency,
+            "retry_policy": tool.retry_policy,
+            "typed_outcomes": sorted(tool.typed_outcomes),
+            "output_fields": sorted(tool.output_fields),
         } for tool in sorted(self._tools.values(), key=lambda item: item.name)]
         return hashlib.sha256(
             json.dumps(rows, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
@@ -346,6 +364,11 @@ class MCPToolManager:
     def registered_tool_names(self) -> Tuple[str, ...]:
         """返回注册身份快照，供 Bundle 激活校验，不暴露 handler。"""
         return tuple(sorted(self._tools))
+
+    @property
+    def registered_tools(self) -> Tuple[Tool, ...]:
+        """Return an immutable snapshot for owner-level manifest validation."""
+        return tuple(self._tools[name] for name in sorted(self._tools))
 
     @property
     def llm_client(self) -> Any:

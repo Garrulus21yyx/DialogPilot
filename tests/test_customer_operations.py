@@ -58,6 +58,9 @@ def test_refund_eligibility_and_create_are_owned_by_one_transaction(tmp_path):
     assert eligibility.eligible is True
     assert eligibility.reason_code == "eligible"
     assert refund.refund_id == retry.refund_id
+    assert owner.get_refund_status(
+        user_id="user-1", order_id="order-1"
+    ) == refund
     assert created is True and retry_created is False
     assert owner.check_refund_eligibility(
         user_id="user-1", order_id="order-1"
@@ -147,6 +150,8 @@ def test_cross_user_reads_fail_closed_and_idempotency_conflicts_are_typed(tmp_pa
         expected_order_version=order.version,
         reason="原因一",
     )
+    with pytest.raises(BusinessObjectNotFoundError):
+        owner.get_refund_status(user_id="user-2", order_id=order.order_id)
     with pytest.raises(OperationIdempotencyConflictError):
         owner.create_refund_request(
             idempotency_key="same-key",

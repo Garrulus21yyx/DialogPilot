@@ -47,7 +47,8 @@ def test_tool_discovery_is_agent_scoped_and_never_exposes_user_identity(tmp_path
     security = {item["name"]: item for item in manager.anthropic_tools_for_agent("account_security")}
 
     assert set(billing) == {
-        "order_lookup", "refund_eligibility_check", "refund_request_create",
+        "order_lookup", "refund_status", "refund_eligibility_check",
+        "refund_request_create",
     }
     assert set(security) == {"account_security_event_list"}
     for definition in [*billing.values(), *security.values()]:
@@ -103,6 +104,14 @@ def test_refund_write_requires_host_approval_and_returns_committed_receipt(tmp_p
     assert approved.receipt_id == retry.receipt_id
     assert approved.data["created"] is True
     assert retry.data["created"] is False
+
+    status = asyncio.run(manager.execute_for_agent(
+        "refund_status", {"order_id": "order-1"},
+        agent_type="billing", context=context(),
+    ))
+    assert status.success is True
+    assert status.data["refund_id"] == approved.data["refund_id"]
+    assert "user_id" not in status.data
 
 
 def test_refund_write_rejects_wrong_agent_before_side_effect(tmp_path):

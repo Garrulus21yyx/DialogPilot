@@ -206,6 +206,18 @@ class CustomerOperationsService:
         order = self._row_to_order(row)
         return self._eligibility(order, has_refund=existing is not None)
 
+    def get_refund_status(self, *, user_id: str, order_id: str) -> RefundRequest:
+        """Read the current refund request for an authenticated user's order."""
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM refund_requests WHERE order_id=? AND user_id=?",
+                (self._required(order_id, "order_id"),
+                 self._required(user_id, "user_id")),
+            ).fetchone()
+        if row is None:
+            raise BusinessObjectNotFoundError("refund request not found")
+        return self._row_to_refund(row)
+
     def create_refund_request(
         self,
         *,

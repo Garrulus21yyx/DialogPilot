@@ -83,6 +83,10 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
             self.tools.append(tool)
             captured.setdefault("registered_tool_names", []).append(tool.name)
 
+        @property
+        def registered_tools(self):
+            return tuple(self.tools)
+
         def get_stats(self):
             return {}
 
@@ -184,6 +188,7 @@ def test_lifespan_wires_memory_budget_to_memory_owner(tmp_path, monkeypatch):
                 "support_ticket_get",
                 "support_ticket_create",
                 "order_lookup",
+                "refund_status",
                 "refund_eligibility_check",
                 "refund_request_create",
                 "account_security_event_list",

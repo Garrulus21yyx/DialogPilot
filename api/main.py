@@ -74,6 +74,7 @@ from application.chat_application import (
     ChatServices,
     Completed,
 )
+from application.authority_policy import AuthorityPolicyRegistry
 from application.public_chat_contract import project_chat_outcome
 from services.answer_verifier import (
     VerificationReasonCode,
@@ -437,6 +438,14 @@ async def lifespan(app: FastAPI):
         fallback=knowledge_fallback,
         allowed_agents=("general", "technical", "billing", "account_security"),
         read_only=True,
+        authority="knowledge.active_source",
+        manifest_version="tool-manifest-v1",
+        output_schema_version="knowledge-candidates-v1",
+        preconditions=("active_source_manifest",),
+        idempotency="read_only",
+        retry_policy="safe_read_retry",
+        typed_outcomes=("OK", "NO_EVIDENCE", "AMBIGUOUS", "UNAVAILABLE", "INVALID_CONTRACT", "CONFLICT"),
+        output_fields=("chunk_id", "source_id", "source_revision", "checksum", "score", "content"),
     ))
 
     async def memory_search(params: Dict[str, Any], context: Optional[Dict[str, Any]]):
@@ -466,11 +475,20 @@ async def lifespan(app: FastAPI):
         },
         allowed_agents=("general", "technical", "billing", "account_security"),
         read_only=True,
+        authority="memory.prior_event",
+        manifest_version="tool-manifest-v1",
+        output_schema_version="memory-hit-v1",
+        preconditions=("authenticated_user",),
+        idempotency="read_only",
+        retry_policy="safe_read_retry",
+        typed_outcomes=("OK", "NO_EVIDENCE", "UNAVAILABLE", "INVALID_CONTRACT"),
+        output_fields=("memory_id", "conversation_id", "event_seq", "content"),
     ))
     for ticket_tool in ticket_tools(_ticket_service):
         _tool_manager.register(ticket_tool)
     for operation_tool in customer_operation_tools(_customer_operations):
         _tool_manager.register(operation_tool)
+    AuthorityPolicyRegistry.v1().validate_tools(_tool_manager.registered_tools)
     _orchestrator.set_tool_manager(_tool_manager)
 
     def validate_bundle_activation(bundle: AgentBundle) -> tuple[str, ...]:

@@ -32,6 +32,16 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
         )
         return result.to_dict()
 
+    async def refund_status(params: Dict[str, Any], context: Optional[Dict[str, Any]]):
+        result = await asyncio.to_thread(
+            service.get_refund_status,
+            user_id=_trusted(context, "user_id"),
+            order_id=_bounded(params.get("order_id"), "order_id", 128),
+        )
+        data = result.to_dict()
+        data.pop("user_id", None)
+        return data
+
     async def refund_create(params: Dict[str, Any], context: Optional[Dict[str, Any]]):
         user_id = _trusted(context, "user_id")
         conv_id = _trusted(context, "conv_id")
@@ -87,6 +97,30 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
             schema=order_schema,
             allowed_agents=("general", "billing", "technical"),
             read_only=True,
+            authority="order.current_state",
+            manifest_version="tool-manifest-v1",
+            output_schema_version="order-view-v1",
+            preconditions=("authenticated_user", "order_id"),
+            idempotency="read_only",
+            retry_policy="safe_read_retry",
+            typed_outcomes=("OK", "NOT_FOUND", "UNAVAILABLE", "UNAUTHORIZED"),
+            output_fields=("order_id", "status", "amount_minor", "currency", "version", "updated_at"),
+        ),
+        Tool(
+            name="refund_status",
+            description="按当前认证用户和订单 ID 读取退款申请的当前权威状态",
+            handler=refund_status,
+            schema=order_schema,
+            allowed_agents=("general", "billing"),
+            read_only=True,
+            authority="refund.current_state",
+            manifest_version="tool-manifest-v1",
+            output_schema_version="refund-view-v1",
+            preconditions=("authenticated_user", "order_id"),
+            idempotency="read_only",
+            retry_policy="safe_read_retry",
+            typed_outcomes=("OK", "NOT_FOUND", "UNAVAILABLE", "UNAUTHORIZED"),
+            output_fields=("refund_id", "order_id", "status", "amount_minor", "currency", "updated_at"),
         ),
         Tool(
             name="refund_eligibility_check",
@@ -98,6 +132,14 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
             schema=order_schema,
             allowed_agents=("general", "billing"),
             read_only=True,
+            authority="refund.eligibility",
+            manifest_version="tool-manifest-v1",
+            output_schema_version="refund-eligibility-v1",
+            preconditions=("authenticated_user", "order_id"),
+            idempotency="read_only",
+            retry_policy="safe_read_retry",
+            typed_outcomes=("OK", "NOT_FOUND", "UNAVAILABLE", "UNAUTHORIZED"),
+            output_fields=("order_id", "eligible", "reason_code", "amount_minor", "currency", "order_version", "refundable_until"),
         ),
         Tool(
             name="refund_request_create",
@@ -123,6 +165,15 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
             read_only=False,
             requires_approval=True,
             timeout_s=5.0,
+            authority="refund.request_action",
+            manifest_version="tool-manifest-v1",
+            output_schema_version="refund-request-result-v1",
+            receipt_schema_version="action-receipt-v1",
+            preconditions=("authenticated_user", "approved", "fresh_refund_eligibility"),
+            idempotency="tool_call_operation_key",
+            retry_policy="receipt_reconcile_before_retry",
+            typed_outcomes=("COMMITTED", "NOT_COMMITTED", "OUTCOME_UNKNOWN"),
+            output_fields=("created", "refund_id", "order_id", "status", "amount_minor", "currency"),
         ),
         Tool(
             name="account_security_event_list",
@@ -144,6 +195,14 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
             },
             allowed_agents=("account_security",),
             read_only=True,
+            authority="account.security_events",
+            manifest_version="tool-manifest-v1",
+            output_schema_version="security-events-v1",
+            preconditions=("authenticated_user",),
+            idempotency="read_only",
+            retry_policy="safe_read_retry",
+            typed_outcomes=("OK", "UNAVAILABLE", "UNAUTHORIZED"),
+            output_fields=("event_id", "event_type", "severity", "summary", "occurred_at"),
         ),
     )
 

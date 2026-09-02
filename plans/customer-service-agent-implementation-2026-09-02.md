@@ -30,6 +30,7 @@
 | M2-PF01 共享 PostgreSQL HybridRetrievalBackend | in_progress | PR-18P-A/B done；PR-18P-C pending |
 | M2-T01A Agent-owned Intent/Domain/Instance policy | done | V1 registry + typed decisions/trace；582 tests passed |
 | M2-T01 RouteDecision / RouterInvocationPolicy | done (flag-off) | 8 modes + call/skip algebra；602 tests passed |
+| M2-T02 FactRequirement / AuthorityPolicyRegistry | done (planner flag-off) | minimum requirements + startup manifest gate + refund_status；609 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
@@ -446,8 +447,31 @@
 - 验证：所有确定性 shape、FAQ/个人状态/Mixed/Security/Handoff、CONTINUE/SWITCH、single/multi pool、
   missing port fail-closed、legacy projection 与 emotion auxiliary；全套 `602 passed`。
 
+### M2-T02（FactRequirement / AuthorityPolicyRegistry）
+
+- 单一策略 owner：Application 新增 immutable `AuthorityPolicyRegistry.v1()`，登记 Knowledge、Order、Refund、
+  Account、Security、Support、Memory、Commitment 权威，固定 required fields、freshness、read/write effect、
+  allowed/forbidden tools、receipt schema、owner approval 与 registry fingerprint；未知 requirement/version
+  fail closed。
+- 最低要求：Registry 从 `RouteDecision.required_authorities + intent/action` 产生最低 requirement；Planner
+  proposal 只能并集追加，不能删除 minimum。非 DIRECT/OOS/CLARIFY/HANDOFF 的空集合拒绝；缺少
+  Account/Commitment API 返回 typed `UnsupportedAuthority`，Knowledge 不能代替个人动态状态。
+- 工具合同：`Tool` manifest 补齐 authority、manifest/output/receipt schema version、preconditions、approval、
+  idempotency、timeout、retry、typed outcomes 与 output fields；registry fingerprint 绑定这些安全字段。
+  API 在全部生产工具注册后统一执行 startup validation，测试 Fake manager 同步迁移只读注册快照端口。
+- Owner API：CustomerOperations 新增 user-scoped `get_refund_status` 与 `refund_status` 只读工具；不存在或
+  跨用户均 typed not-found。工单读写、订单/退款/安全、Knowledge、Memory 的现有 manifest 全部迁移；
+  启动门禁实际捕获并修复 `support_ticket_get.updated_at` 清单遗漏。
+- 输出验收：只有 registry 允许的注册工具及结构化字段可满足 requirement；普通生成文本、错误工具、
+  缺字段、缺 `observed_at`、未来或超 freshness 观察均返回确定性失败 reason。EvidenceReceipt 的 canonical
+  构造与 schema 签发仍归下一节点 M2-T03，本节点不提前建立第二套 receipt authority。
+- 激活边界：生产工具 manifest startup gate 已启用；FactRequirement 尚未替换线上 legacy Planner，等待
+  T03 receipt 与 T04 CoverageGate 后按既定 M2 gate 接入。
+- 验证：聚焦 `26 passed`；真实 PostgreSQL/pgvector 全套 `609 passed in 17.61s`；ruff 与
+  `git diff --check` passed。
+
 ## 下一步
 
-1. M2-T02：建立 FactRequirement/AuthorityPolicyRegistry 与工具 manifest 权威合同。
-2. 随后推进 M2-T03/T04A，再完成 M2-PF01 PR-18P-C canonical projection。
+1. M2-T03：建立 EvidenceReceipt 唯一投影与注册 adapter，闭合 producer/schema/freshness/effect 验证。
+2. 随后推进 M2-T04A，再完成 M2-PF01 PR-18P-C canonical projection。
 3. 保持 PG_FTS_ZH_V1 与 LEGACY_BM25_V1 独立评分，未过质量/延迟/删除/重建 Gate 前不切 active consumer。
