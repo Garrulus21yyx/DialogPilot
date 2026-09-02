@@ -26,7 +26,8 @@
 | M1-T04 Conversation projection outbox/deletion fence | implemented | PostgreSQL `0006`；4 projections + generation watermark + tombstone epoch |
 | M1-T04A DataLocationRegistry / pre-write fence | done | PostgreSQL `0007`；31 stable locations，4 write-approved，future writes fail closed |
 | M1-T05 Conversation/API read projections | implemented | PostgreSQL `0008`；turn/status/finalize watermark/close + PG delivery compatibility |
-| M1 完整会话事实与幂等发布 | in_progress | 按 T00–T05/T03A/T04A 子节点推进 |
+| M1 Exit Gate | draft / not ready | online ChatApplication admission/sole-runner integration 缺失；production snapshot/delivery cutover/failover/signatures pending |
+| M1 完整会话事实与幂等发布 | in_progress | repository build 完成；在线 admission convergence 与 Exit evidence 未闭合 |
 | M2-PF01 共享 PostgreSQL HybridRetrievalBackend | implemented | PR-18P-A/B/C done；生产质量、RTO/OLTP gate 尚未 VERIFIED |
 | M2-T01A Agent-owned Intent/Domain/Instance policy | done | V1 registry + typed decisions/trace；582 tests passed |
 | M2-T01 RouteDecision / RouterInvocationPolicy | done (flag-off) | 8 modes + call/skip algebra；602 tests passed |
@@ -1002,6 +1003,20 @@
   [build evidence](../governance/evidence/x-t05/claim-gate-build-v1.md) 状态 `IMPLEMENTED / NO READY CLAIMS`。
   实现上下文 review 不替代未来 Product/Support Ops 对真实发布文案的独立批准。
 
+### M1 Exit readiness audit（unsigned draft）
+
+- 新增可重放 `scripts/create_m1_exit_draft.py` 与 `evaluation/gates/m1-exit/v1.yaml`，精确列出 M1-PF01、
+  T00–T05/T03A/T04A、X-T01/X-T02、production snapshot restore、ResponseDelivery cutover 与
+  `M1-LEGACY-SQLITE-RETENTION`；M3/M4 release action 不被倒置成 build prerequisite。
+- 审计没有把 repository tests 冒充在线集成：ChatApplication 尚未先调用 PostgreSQL Admission port，当前会
+  在 inbound durable 前进入 Memory/Intent/Agent；StartOutboxDispatcher 也没有 lifespan consumer，因此
+  sole runner/replay/Accepted/Conflict 的在线闭环仍缺失。
+- 修正 SQLite inventory 的真实 future cutover Owner：ResponseDelivery=M1-T03A、RunStore=M3-T06/T09、
+  TicketService=M4-T07C；保留条件不等于提前迁移或停写。
+- [readiness audit](../governance/evidence/m1-exit/readiness-v1.md) 状态
+  `NOT_READY / DRAFT_ONLY / LOCAL INTEGRATION GAP`。聚焦 `19 passed`，全套 `828 passed in 59.24s`，
+  ruff/diff checks passed；无 owner/independent signature，不生成 evidence/decision，不解除 M2 shadow/M3 build。
+
 ## 下一步
 
 1. M2 Exit 仍需独立 X-T03/X-T04 review、unseen Knowledge heldout、真实 provider billing sample、生产
@@ -1010,3 +1025,5 @@
 3. X-T05 build 已完成；任何新对外声明先登记 registry，`READY` 仍需真实 GateDecision 与 approver。
 4. M2-T05C 受 M2 Exit + `POSTGRES_RETRIEVAL_GA` candidate manifest 阻断，当前不执行 canary。
 5. T04/T04A live activation 仍受 M2 gate 与独立 review 约束。
+6. 下一本地修复是 Application-owned online admission/sole-runner/replay convergence；完成前 M1 Exit 不能只归因
+   于生产环境证据。

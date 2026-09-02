@@ -14,7 +14,7 @@
       "export": "SQLite read transaction + canonical JSONL ordered by primary key + SHA-256/count/high-watermark",
       "retention": "retain read-only through ticket cutover and rollback window; retirement requires Privacy approval",
       "decision": "migrate",
-      "cutover_owner_task": "M1-T04A"
+      "cutover_owner_task": "M4-T07C"
     },
     {
       "store": "ResponseDelivery",
@@ -28,7 +28,7 @@
       "export": "SQLite read transaction + canonical JSONL ordered by response_id + SHA-256/count",
       "retention": "retain read-only through delivery cutover and rollback window",
       "decision": "migrate",
-      "cutover_owner_task": "M1-T03/M1-T04A"
+      "cutover_owner_task": "M1-T03A"
     },
     {
       "store": "RunStore",
@@ -42,7 +42,7 @@
       "export": "SQLite read transaction + canonical JSONL ordered by run_id/call_id + SHA-256/count",
       "retention": "retain as compatibility runtime through M3 cutover; retire only after in-flight drain and restore proof",
       "decision": "retain_then_retire",
-      "cutover_owner_task": "M3-T03A/M3-T08"
+      "cutover_owner_task": "M3-T06/M3-T09"
     }
   ]
 }
