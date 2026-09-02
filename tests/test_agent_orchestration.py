@@ -1168,3 +1168,25 @@ def test_knowledge_route_skips_domain_and_instance_selection():
     assert decision.owner_ids == ()
     assert request.routing_policy_trace.domain_decisions == []
     assert request.routing_policy_trace.instance_decisions == []
+
+
+def test_request_shape_to_route_decision_preserves_mixed_authorities():
+    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
+    orchestrator._pool = {
+        AgentType.GENERAL: [object()], AgentType.BILLING: [object()],
+    }
+    request = Request(
+        message="我的退款进度，一般多久到账", user_id="u", conv_id="c",
+        intent=IntentCategory.REFUND, intent_group="billing",
+        urgency=UrgencyLevel.LOW, intent_confidence=0.95,
+    )
+
+    shape = asyncio.run(orchestrator.classify_request_shape(request))
+    decision = asyncio.run(orchestrator.decide_route(request, shape))
+
+    assert shape.shape is RequestShape.MIXED_POLICY_STATE
+    assert decision.mode is RouteMode.MIXED
+    assert [item.value for item in decision.required_authorities] == [
+        "knowledge", "domain_tool",
+    ]
+    assert decision.owner_ids == ("billing",)

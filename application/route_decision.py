@@ -52,6 +52,8 @@ class RequestShape(str, Enum):
     THANKS = "thanks"
     KNOWLEDGE_FAQ = "knowledge_faq"
     BUSINESS_STATE = "business_state"
+    ACTION_REQUEST = "action_request"
+    AGENT_ASSISTANCE = "agent_assistance"
     MIXED_POLICY_STATE = "mixed_policy_state"
     MULTI_DOMAIN_TASK = "multi_domain_task"
     MISSING_INPUT = "missing_input"
@@ -397,6 +399,16 @@ def _shape_contract(shape: RequestShape):
             RouteMode.AGENT_TASK, "business_state",
             (RequiredAuthority.DOMAIN_TOOL,), RouteRisk.MEDIUM,
             "PERSONAL_STATE_REQUIRES_TOOL", (),
+        ),
+        RequestShape.ACTION_REQUEST: (
+            RouteMode.AGENT_TASK, "action_request",
+            (RequiredAuthority.ACTION_APPROVAL,), RouteRisk.HIGH,
+            "ACTION_REQUIRES_APPROVAL", (),
+        ),
+        RequestShape.AGENT_ASSISTANCE: (
+            RouteMode.AGENT_TASK, "agent_assistance",
+            (RequiredAuthority.KNOWLEDGE,), RouteRisk.MEDIUM,
+            "AGENT_ASSISTANCE_REQUIRED", (),
         ),
         RequestShape.MIXED_POLICY_STATE: (
             RouteMode.MIXED, "mixed_policy_state",

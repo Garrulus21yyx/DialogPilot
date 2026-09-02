@@ -36,7 +36,7 @@
 | M2-T04A SourceRevision v0 / active manifest | implemented (review pending) | PG owner/backfill/active validator done；independent human heldout review pending；650 tests passed |
 | M2-T05 统一 KnowledgeRetriever | implemented (canary blocked) | A1/A2/B + immutable PG dark-shadow report；675 tests passed |
 | M2-T06A Multi-Agent TaskGraph 收紧 | implemented | A/B/C policy、execution、dependency、native signal 与 terminal algebra 完成；697 tests passed |
-| M2-T06 自适应 RAG 发布路径 | in_progress | A/B1/B2a/B2b: canonical RouteDecision producer done；request-shape + ChatApplication adapter pending；727 tests passed |
+| M2-T06 自适应 RAG 发布路径 | in_progress | A/B1/B2a-c: canonical shape/route producer done；ChatApplication adapter pending；742 tests passed |
 | M2 Route/Authority/Evidence/RAG | in_progress | 按 M2-PF01、T01–T06R 子节点推进 |
 | M3 薄 Durable Agent Runtime | pending | 按 M3-T01–T09 子节点推进 |
 | M4 Memory/Context/Commitment/Handoff | pending | 按 M4-T01–T08 及 release 子节点推进 |
@@ -770,6 +770,19 @@
 - 验证：Knowledge 跳过昂贵路由；Refund business-state 只选 Billing；RouteDecision owner IDs 与 TaskPlan
   owners 一致且 Trace 只有一份 DomainDecision；聚焦 `90 passed`、全套 `727 passed in 19.30s`，
   ruff/diff checks passed。下一步仍需 hard-rule `RequestShape` producer 与 ChatApplication adapter。
+
+### M2-T06-B2c（versioned RequestShapePolicy）
+
+- 新增 Agent-owned `RequestShapePolicy v1`，以已有 canonical Intent、confidence、urgency、entities
+  和肯定/否定 message evidence 产出 immutable shape/authority/risk/reason/fingerprint；不新增模型调用。
+- 闭合 greeting/thanks、FAQ、personal business state、write action、bounded Agent assistance、
+  mixed policy+state、multi-domain、security、clarify、handoff 与 out-of-scope；新增
+  `ACTION_REQUEST` 和 `AGENT_ASSISTANCE`，避免把写动作或技术排障误投影为静态 Knowledge final。
+- AgentOrchestrator `classify_request_shape → decide_route` 保留 shape 产生的 authority/risk；Mixed
+  实测保持 `Knowledge + DomainTool` 且只选择 Billing。低置信 OTHER 只澄清，高置信 OTHER 才越域；
+  否定的第二领域不会触发 MultiDomain。
+- 验证：12 类 shape fixture、authority/risk、否定 evidence、shape→RouteDecision；聚焦 `79 passed`、
+  全套 `742 passed in 19.53s`，ruff/diff checks passed。下一步迁移 ChatApplication adapter。
 
 ## 下一步
 

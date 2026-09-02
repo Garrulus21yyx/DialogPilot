@@ -36,6 +36,7 @@ from application.route_decision import (
 )
 
 from agents.react_engine import ReActExecutionEngine, ReActResult
+from agents.request_shape_policy import RequestShapeDecision, RequestShapePolicy
 from agents.run_store import RunCheckpoint, RunStore
 from agents.orchestration_contracts import (
     AgentType,
@@ -762,17 +763,33 @@ class AgentOrchestrator:
     async def decide_route(
         self,
         req: Request,
-        request_shape: RequestShape,
+        request_shape: RequestShape | RequestShapeDecision,
     ) -> RouteDecision:
         """Normalize cached Intent + Agent-owned domain/instance policies once."""
         self._ensure_routing_trace(req)
         await self._ensure_intent(req)
-        input_fingerprint = req.intent_input_fingerprint or hashlib.sha256(
+        shape = (
+            request_shape.shape
+            if isinstance(request_shape, RequestShapeDecision) else request_shape
+        )
+        shape_authorities = (
+            request_shape.required_authorities
+            if isinstance(request_shape, RequestShapeDecision) else ()
+        )
+        shape_risk = (
+            request_shape.risk
+            if isinstance(request_shape, RequestShapeDecision) else None
+        )
+        input_fingerprint = (
+            request_shape.input_fingerprint
+            if isinstance(request_shape, RequestShapeDecision)
+            else req.intent_input_fingerprint
+        ) or hashlib.sha256(
             json.dumps({
                 "message": req.message,
                 "intent": req.intent.value if req.intent else None,
                 "entities": req.entities,
-                "request_shape": request_shape.value,
+                "request_shape": shape.value,
             }, ensure_ascii=False, sort_keys=True).encode()
         ).hexdigest()
 
@@ -789,15 +806,29 @@ class AgentOrchestrator:
         ]
         return RouterInvocationPolicy().decide(RouterInvocation(
             input_fingerprint=input_fingerprint,
-            request_shape=request_shape,
+            request_shape=shape,
             prior_intent=req.intent.value if req.intent else "",
-            prior_risk=risk,
+            prior_authorities=shape_authorities,
+            prior_risk=shape_risk or risk,
             domain_port=domain_port,
             instance_port=instance_port,
             owner_pool_sizes={
                 owner.value: len(agents) for owner, agents in self._pool.items()
             },
         ))
+
+    async def classify_request_shape(self, req: Request) -> RequestShapeDecision:
+        """Run the versioned, model-free hard-rule/authority shape policy."""
+        await self._ensure_intent(req)
+        if req.intent is None:
+            raise RuntimeError("request shape requires a canonical intent")
+        return RequestShapePolicy().decide(
+            message=req.message,
+            intent=req.intent,
+            confidence=req.intent_confidence,
+            urgency=req.urgency or UrgencyLevel.LOW,
+            entities=req.entities or {},
+        )
 
     async def _ensure_intent(self, req: Request) -> None:
         """Populate the one canonical Intent decision; consumers must reuse it."""
