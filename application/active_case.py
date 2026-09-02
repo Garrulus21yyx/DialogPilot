@@ -16,46 +16,6 @@ class ActiveCaseState(str, Enum):
     CONFLICT = "CONFLICT"
 
 
-class ActiveCaseConsumerMode(str, Enum):
-    LEGACY = "LEGACY"
-    SHADOW = "SHADOW"
-    PINNED_CANARY = "PINNED_CANARY"
-
-
-@dataclass(frozen=True)
-class ActiveCasePolicyBinding:
-    """Version pointer carried by an invocation; M4-T03C owns switching it."""
-
-    mode: ActiveCaseConsumerMode
-    active_policy_version: str
-    candidate_policy_version: str
-    previous_verified_policy_version: str
-
-    def __post_init__(self) -> None:
-        if any(not value.strip() for value in (
-            self.active_policy_version,
-            self.candidate_policy_version,
-            self.previous_verified_policy_version,
-        )):
-            raise ValueError("active case policy binding is incomplete")
-
-    def rollback(self) -> "ActiveCasePolicyBinding":
-        return ActiveCasePolicyBinding(
-            mode=ActiveCaseConsumerMode.LEGACY,
-            active_policy_version=self.previous_verified_policy_version,
-            candidate_policy_version=self.candidate_policy_version,
-            previous_verified_policy_version=self.previous_verified_policy_version,
-        )
-
-
-DEFAULT_ACTIVE_CASE_POLICY_BINDING = ActiveCasePolicyBinding(
-    mode=ActiveCaseConsumerMode.SHADOW,
-    active_policy_version="active-case-legacy-recency-v1",
-    candidate_policy_version="active-case-context-policy-v1",
-    previous_verified_policy_version="active-case-legacy-recency-v1",
-)
-
-
 @dataclass(frozen=True)
 class ActiveCase:
     case_id: str
@@ -124,31 +84,22 @@ class ActiveCaseSelectionDecision:
 class ActiveCaseSelection:
     cases: tuple[ActiveCase, ...]
     decisions: tuple[ActiveCaseSelectionDecision, ...]
-    legacy_case_ids: tuple[str, ...]
-    target_case_ids: tuple[str, ...]
     policy_version: str = "active-case-context-policy-v1"
 
     @property
-    def shadow_matches_legacy(self) -> bool:
-        return self.legacy_case_ids == self.target_case_ids
+    def case_ids(self) -> tuple[str, ...]:
+        return tuple(case.case_id for case in self.cases)
 
 
 @dataclass(frozen=True)
 class ActiveCaseContextView:
     projection: ActiveCaseProjection
     selection: ActiveCaseSelection
-    # Until M4-T03C enables a pinned canary this remains the legacy, recency-only
-    # consumer projection.  `selection` is target-policy shadow evidence.
     section: object | None = None
-    policy_binding: ActiveCasePolicyBinding = DEFAULT_ACTIVE_CASE_POLICY_BINDING
 
 
 class ActiveCaseContextRenderer:
-    """Render bounded router summaries or task-scoped worker evidence.
-
-    This is deliberately a build-only adapter in M4-T03B.  The online consumer
-    keeps using ``legacy_section`` until M4-T03C pins a canary policy.
-    """
+    """Render bounded router summaries or task-scoped worker evidence."""
 
     priority = 90
 
@@ -160,21 +111,6 @@ class ActiveCaseContextRenderer:
             content=json.dumps(payload, ensure_ascii=False, sort_keys=True),
             priority=ActiveCaseContextRenderer.priority,
         )
-
-    def legacy_section(self, projection: ActiveCaseProjection) -> ContextSection | None:
-        if projection.state is not ActiveCaseState.CASES:
-            return None
-        cases = projection.cases[:ActiveCaseContextPolicy.legacy_limit]
-        return self._section({
-            "authority": "TicketService",
-            "projection_state": projection.state.value,
-            "producer": projection.producer,
-            "policy_version": "active-case-legacy-recency-v1",
-            "cases": [case.to_dict() for case in cases],
-        }, (
-            "TicketService 提供的当前客服事项状态；状态字段高于历史对话和摘要，"
-            "实时业务工具结果仍是订单、退款和账户事实的最高权威"
-        ))
 
     def router_section(self, selection: ActiveCaseSelection) -> ContextSection | None:
         if not selection.cases:
@@ -224,7 +160,7 @@ class ActiveCaseContextRenderer:
 
 class ActiveCaseContextPolicy:
     version = "active-case-context-policy-v1"
-    legacy_limit = 3
+    max_cases = 3
     _PRIORITY = {"critical": 0, "high": 1, "normal": 2}
 
     def select(
@@ -236,7 +172,7 @@ class ActiveCaseContextPolicy:
         entity_refs: Sequence[str] = (),
     ) -> ActiveCaseSelection:
         if projection.state is not ActiveCaseState.CASES:
-            return ActiveCaseSelection((), (), (), ())
+            return ActiveCaseSelection((), ())
         query_folded = str(query).casefold()
         topic_set = {str(item).casefold() for item in intent_or_topics if str(item)}
         entity_set = {str(item).casefold() for item in entity_refs if str(item)}
@@ -272,7 +208,7 @@ class ActiveCaseContextPolicy:
                     (topic_match, "TOPIC_MATCH"),
                     (entity_match, "ENTITY_MATCH"),
                 ) if condition
-            ) or ("LEGACY_RECENCY_FALLBACK",)
+            ) or ("RECENCY_FALLBACK",)
             key = (
                 0 if hard else 1,
                 0 if (topic_match or entity_match) else 1,
@@ -283,7 +219,7 @@ class ActiveCaseContextPolicy:
             metadata[case.case_id] = (hard, reasons)
         hard_cases = [case for key, case in sorted(ranked) if key[0] == 0]
         soft_cases = [case for key, case in sorted(ranked) if key[0] != 0]
-        soft_limit = max(0, self.legacy_limit - len(hard_cases))
+        soft_limit = max(0, self.max_cases - len(hard_cases))
         selected = tuple(hard_cases + soft_cases[:soft_limit])
         selected_ids = {case.case_id for case in selected}
         decisions = tuple(
@@ -293,9 +229,7 @@ class ActiveCaseContextPolicy:
             )
             for case in projection.cases
         )
-        legacy = tuple(case.case_id for case in projection.cases[:self.legacy_limit])
-        target = tuple(case.case_id for case in selected)
-        return ActiveCaseSelection(selected, decisions, legacy, target)
+        return ActiveCaseSelection(selected, decisions)
 
 
 def opaque_refs(metadata: Mapping[str, str]) -> tuple[str, ...]:

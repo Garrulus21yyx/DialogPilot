@@ -503,22 +503,7 @@ class ChatApplication:
                 else StageStatus.OK
             ), {
                 "state": active_case_view.projection.state.value,
-                "consumer_mode": active_case_view.policy_binding.mode.value,
-                "active_policy_version": (
-                    active_case_view.policy_binding.active_policy_version
-                ),
-                "candidate_policy_version": (
-                    active_case_view.policy_binding.candidate_policy_version
-                ),
-                "selected_case_ids": list(
-                    active_case_view.selection.target_case_ids
-                ),
-                "legacy_case_ids": list(
-                    active_case_view.selection.legacy_case_ids
-                ),
-                "shadow_matches_legacy": (
-                    active_case_view.selection.shadow_matches_legacy
-                ),
+                "selected_case_ids": list(active_case_view.selection.case_ids),
                 "policy_version": active_case_view.selection.policy_version,
             }))
         else:

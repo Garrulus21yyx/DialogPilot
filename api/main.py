@@ -1174,9 +1174,7 @@ async def _active_ticket_context(
     )
     if projection.state is not ActiveCaseState.CASES:
         return ActiveCaseContextView(projection, selection)
-    # M4-T03B is dark shadow only: keep the legacy recency consumer while the
-    # target selection is compared in trace.  M4-T03C owns pinned canary enable.
-    section = ActiveCaseContextRenderer().legacy_section(projection)
+    section = ActiveCaseContextRenderer().router_section(selection)
     return ActiveCaseContextView(projection, selection, section)
 
 

@@ -3,10 +3,8 @@ from application.active_case import (
     ActiveCase,
     ActiveCaseContextPolicy,
     ActiveCaseContextRenderer,
-    ActiveCaseConsumerMode,
     ActiveCaseProjection,
     ActiveCaseState,
-    DEFAULT_ACTIVE_CASE_POLICY_BINDING,
 )
 from infrastructure.active_case_projection import TicketServiceActiveCaseReader
 from services.ticket_service import TicketPriority, TicketService, TicketStatus
@@ -95,15 +93,14 @@ def test_policy_hard_includes_exact_critical_security_then_selects_relevant_soft
         projection, query="continue ticket-3", intent_or_topics=("delivery",),
         entity_refs=("order:A123",),
     )
-    # Hard includes are never dropped by the legacy soft limit of three.
-    assert selection.target_case_ids == (
+    # Hard includes are never dropped by the soft limit of three.
+    assert selection.case_ids == (
         "case-4", "case-3", "case-5", "case-6",
     )
     assert all(
         decision.hard_include for decision in selection.decisions
         if decision.selected
     )
-    assert selection.shadow_matches_legacy is False
 
 
 def test_policy_uses_relevance_before_priority_without_unfrozen_numeric_score():
@@ -116,8 +113,7 @@ def test_policy_uses_relevance_before_priority_without_unfrozen_numeric_score():
     selection = ActiveCaseContextPolicy().select(
         projection, query="delivery issue", intent_or_topics=("delivery",),
     )
-    assert selection.target_case_ids == ("case-4", "case-1", "case-2")
-    assert selection.legacy_case_ids == ("case-1", "case-2", "case-3")
+    assert selection.case_ids == ("case-4", "case-1", "case-2")
 
 
 def test_renderer_separates_bounded_router_summary_from_task_scoped_evidence():
@@ -146,12 +142,3 @@ def test_renderer_separates_bounded_router_summary_from_task_scoped_evidence():
     assert worker_payload["task_scope"] == {
         "entity_refs": ["order:SHIP"], "topics": ["delivery"],
     }
-
-
-def test_default_pointer_is_shadow_and_rollback_keeps_legacy_single_consumer():
-    binding = DEFAULT_ACTIVE_CASE_POLICY_BINDING
-    assert binding.mode is ActiveCaseConsumerMode.SHADOW
-    assert binding.active_policy_version == "active-case-legacy-recency-v1"
-    rolled_back = binding.rollback()
-    assert rolled_back.mode is ActiveCaseConsumerMode.LEGACY
-    assert rolled_back.active_policy_version == binding.previous_verified_policy_version
