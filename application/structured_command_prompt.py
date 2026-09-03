@@ -12,7 +12,7 @@ from application.turn_state import TurnStateSnapshot
 from application.turn_understanding import CommandKind
 
 
-COMMAND_ROUTER_PROMPT_VERSION = "structured-command-router-prompt-v3"
+COMMAND_ROUTER_PROMPT_VERSION = "structured-command-router-prompt-v5"
 _SYSTEM_PROMPT = """You convert one customer turn into command proposals.
 Return exactly one JSON object and no surrounding text.
 The root keys must be exactly: status, commands.
@@ -28,8 +28,14 @@ Do not choose a work command when it depends on a state or asset reference that
 is absent from the supplied state. Do not choose a knowledge command while an
 unresolved reference prevents a self-contained knowledge query.
 Each command must have exactly these keys:
-kind, source_flow_instance_id, target_flow_id, target_flow_version.
+kind, source_flow_instance_id, target_flow_id, target_flow_version, arguments.
 Use null for a flow field that the command does not require.
+arguments must be a JSON object. For START_FLOW, include every required argument
+available from the message or history. For a command with a source flow, its
+bindings are inherited: include values introduced or changed by this turn and
+do not repeat unchanged bindings. A new value overrides the inherited value.
+Include optional arguments only when explicitly stated and never invent a value.
+Use {} when the selected command adds or changes no arguments.
 Use a source flow for CONTINUE_FLOW, PAUSE_FLOW, COMPLETE_FLOW, or CANCEL_FLOW.
 Use a target flow for START_FLOW.
 Use both source and target flows for EXPAND_FLOW, SWITCH_FLOW, or INTERRUPT_FLOW.
@@ -128,6 +134,15 @@ def _registry_commands(registry: FlowActionRegistry) -> list[dict[str, object]]:
             "flow_role": _flow_role(action.command_kind),
             "objective": action.objective,
             "required_arguments": list(action.required_arguments),
+            "optional_arguments": list(action.optional_arguments),
+            "argument_definitions": [
+                {
+                    "name": item.name,
+                    "description": item.description,
+                    "possible_values": list(item.possible_values),
+                }
+                for item in action.argument_definitions
+            ],
         }
     ordered = sorted(commands, key=lambda item: tuple(part or "" for part in item))
     return [commands[key] for key in ordered]

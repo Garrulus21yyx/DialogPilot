@@ -40,6 +40,13 @@ class FlowDefinition:
 
 
 @dataclass(frozen=True)
+class ArgumentDefinition:
+    name: str
+    description: str
+    possible_values: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
 class ActionDefinition:
     action_id: str
     version: str
@@ -55,6 +62,8 @@ class ActionDefinition:
     objective: str
     media_policy: TaskMediaPolicy | None = None
     required_arguments: tuple[str, ...] = ()
+    optional_arguments: tuple[str, ...] = ()
+    argument_definitions: tuple[ArgumentDefinition, ...] = ()
 
     @property
     def key(self) -> tuple[CommandKind, tuple[str, str] | None]:
@@ -80,11 +89,17 @@ class FlowActionRegistry:
         if len(action_keys) != len(set(action_keys)):
             raise RoutePolicyError("registry contains ambiguous actions")
         for action in self.actions:
+            arguments = (*action.required_arguments, *action.optional_arguments)
             if (
-                any(not item.strip() for item in action.required_arguments)
-                or len(action.required_arguments) != len(set(action.required_arguments))
+                any(not item.strip() for item in arguments)
+                or len(arguments) != len(set(arguments))
             ):
-                raise RoutePolicyError("action required arguments are invalid")
+                raise RoutePolicyError("action arguments are invalid")
+            definitions = [item.name for item in action.argument_definitions]
+            if len(definitions) != len(set(definitions)) or (
+                definitions and set(definitions) != set(arguments)
+            ):
+                raise RoutePolicyError("action argument definitions are invalid")
             if (
                 any(not item.strip() for item in action.allowed_tools)
                 or len(action.allowed_tools) != len(set(action.allowed_tools))
@@ -130,6 +145,15 @@ class FlowActionRegistry:
                     "requirements": item.requirement_ids,
                     "tools": sorted(item.allowed_tools),
                     "required_arguments": sorted(item.required_arguments),
+                    "optional_arguments": sorted(item.optional_arguments),
+                    "argument_definitions": [
+                        {
+                            "name": definition.name,
+                            "description": definition.description,
+                            "possible_values": definition.possible_values,
+                        }
+                        for definition in item.argument_definitions
+                    ],
                     "approval": item.approval.value,
                     "objective": item.objective,
                     "media_policy": (
@@ -224,11 +248,30 @@ class RoutePolicy:
             )
             if action is not None:
                 supplied = {item.name for item in proposal.arguments}
-                missing = set(action.required_arguments).difference(supplied)
+                inherited = {
+                    item.name for item in (
+                        proposal.source_flow.bindings
+                        if proposal.source_flow is not None else ()
+                    )
+                }
+                missing = set(action.required_arguments).difference(
+                    supplied.union(inherited)
+                )
                 if missing:
                     raise RoutePolicyError(
                         "command omits required arguments: "
                         + ",".join(sorted(missing))
+                    )
+                allowed = set(action.required_arguments).union(
+                    action.optional_arguments
+                )
+                if proposal.kind is CommandKind.FILL_SLOT:
+                    allowed.update(("field_name", "field_value"))
+                unknown = supplied.difference(allowed)
+                if unknown:
+                    raise RoutePolicyError(
+                        "command contains unsupported arguments: "
+                        + ",".join(sorted(unknown))
                     )
             accepted.append(AcceptedCommand(proposal, action))
         return self._result(

@@ -144,6 +144,7 @@ def test_structured_knowledge_primary_runs_without_legacy_intent():
                                         "source_flow_instance_id": None,
                                         "target_flow_id": None,
                                         "target_flow_version": None,
+                                        "arguments": {},
                                     }
                                 ],
                             }

@@ -1,0 +1,5891 @@
+{
+  "case_count": 1200,
+  "dimensions": {
+    "arguments": {
+      "correct": 254,
+      "rate": 0.42333333333333334,
+      "total": 600
+    },
+    "command": {
+      "correct": 347,
+      "rate": 0.5783333333333334,
+      "total": 600
+    },
+    "exact": {
+      "correct": 690,
+      "rate": 0.575,
+      "total": 1200
+    },
+    "flow": {
+      "correct": 340,
+      "rate": 0.5666666666666667,
+      "total": 600
+    },
+    "next_state": {
+      "correct": 815,
+      "rate": 0.6791666666666667,
+      "total": 1200
+    },
+    "status": {
+      "correct": 810,
+      "rate": 0.675,
+      "total": 1200
+    }
+  },
+  "extra_prediction_ids": [],
+  "failures": [
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:10_00004:turn-12",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:10_00022:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:10_00026:turn-4",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:10_00035:turn-2",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:10_00048:turn-4",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:10_00050:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:10_00064:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:10_00091:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:10_00093:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:10_00098:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:10_00103:turn-2",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:10_00109:turn-12",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "INVALID_PROVIDER_OUTPUT",
+      "case_id": "sgd:dev:10_00119:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:11_00007:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:11_00017:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:11_00019:turn-4",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:11_00026:turn-4",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:11_00037:turn-8",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:11_00044:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:11_00062:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:11_00066:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:11_00079:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:11_00092:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:11_00115:turn-18",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:11_00116:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:11_00126:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:12_00002:turn-12",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:12_00002:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "INVALID_PROVIDER_OUTPUT",
+      "case_id": "sgd:dev:12_00003:turn-24",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:12_00004:turn-24",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:12_00011:turn-20",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:12_00012:turn-16",
+      "expected_status": "CLARIFY",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:12_00015:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:12_00020:turn-12",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "INVALID_PROVIDER_OUTPUT",
+      "case_id": "sgd:dev:12_00022:turn-2",
+      "expected_status": "CLARIFY",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:12_00023:turn-22",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:12_00030:turn-14",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:12_00031:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:12_00033:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "INVALID_PROVIDER_OUTPUT",
+      "case_id": "sgd:dev:12_00034:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:12_00034:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:12_00036:turn-14",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "INVALID_PROVIDER_OUTPUT",
+      "case_id": "sgd:dev:12_00037:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:12_00038:turn-18",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:12_00041:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:12_00042:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:12_00042:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:12_00042:turn-16",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:12_00044:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:12_00044:turn-16",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:12_00047:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:12_00047:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:12_00048:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:12_00050:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:12_00051:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:12_00052:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:12_00053:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:12_00056:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "INVALID_PROVIDER_OUTPUT",
+      "case_id": "sgd:dev:12_00056:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:12_00057:turn-20",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:12_00058:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:12_00059:turn-12",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:12_00059:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:12_00062:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:12_00063:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "INVALID_PROVIDER_OUTPUT",
+      "case_id": "sgd:dev:12_00063:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:12_00067:turn-22",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:12_00072:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:12_00074:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:12_00077:turn-8",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:12_00078:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:12_00079:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "INVALID_PROVIDER_OUTPUT",
+      "case_id": "sgd:dev:12_00086:turn-14",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:12_00092:turn-8",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:12_00102:turn-16",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "INVALID_PROVIDER_OUTPUT",
+      "case_id": "sgd:dev:12_00104:turn-18",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:12_00111:turn-2",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:12_00117:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:12_00125:turn-2",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:13_00027:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:13_00038:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:13_00045:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:13_00048:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:13_00054:turn-16",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:13_00056:turn-4",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:13_00057:turn-16",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:13_00057:turn-6",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:13_00059:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:13_00059:turn-20",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:13_00062:turn-18",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "INVALID_PROVIDER_OUTPUT",
+      "case_id": "sgd:dev:13_00066:turn-16",
+      "expected_status": "CLARIFY",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:13_00069:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:13_00074:turn-16",
+      "expected_status": "CLARIFY",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:13_00077:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:13_00078:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:13_00079:turn-12",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:13_00080:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:13_00081:turn-16",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:13_00091:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "INVALID_PROVIDER_OUTPUT",
+      "case_id": "sgd:dev:13_00102:turn-30",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "INVALID_PROVIDER_OUTPUT",
+      "case_id": "sgd:dev:13_00111:turn-26",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:13_00115:turn-16",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:13_00120:turn-22",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:13_00123:turn-28",
+      "expected_status": "CLARIFY",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:13_00126:turn-18",
+      "expected_status": "CLARIFY",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:14_00000:turn-22",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:14_00003:turn-16",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:14_00005:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:14_00013:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:14_00017:turn-4",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:14_00039:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:14_00043:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:14_00047:turn-10",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:14_00081:turn-12",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:14_00083:turn-4",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:14_00087:turn-10",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "INVALID_PROVIDER_OUTPUT",
+      "case_id": "sgd:dev:14_00088:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:14_00093:turn-12",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:14_00096:turn-12",
+      "expected_status": "CLARIFY",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:14_00098:turn-16",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:14_00099:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:14_00100:turn-18",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:14_00101:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:14_00103:turn-18",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:14_00114:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:14_00116:turn-22",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:14_00116:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:14_00117:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:14_00118:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:14_00125:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:14_00125:turn-8",
+      "expected_status": "CLARIFY",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:14_00127:turn-16",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:15_00004:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:15_00007:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:15_00015:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:15_00017:turn-12",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:15_00017:turn-16",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:15_00020:turn-18",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:15_00026:turn-16",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:15_00029:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:15_00031:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:15_00033:turn-12",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:15_00035:turn-16",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:15_00040:turn-16",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:15_00042:turn-18",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:15_00044:turn-18",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:15_00048:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "INVALID_PROVIDER_OUTPUT",
+      "case_id": "sgd:dev:15_00050:turn-18",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:15_00055:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:15_00056:turn-18",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:15_00059:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:15_00064:turn-18",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:15_00064:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:15_00084:turn-6",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:15_00091:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:15_00091:turn-20",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:15_00097:turn-12",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:15_00098:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:15_00098:turn-22",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:15_00103:turn-16",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:15_00106:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:15_00121:turn-12",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:15_00121:turn-18",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:15_00124:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:15_00126:turn-2",
+      "expected_status": "CLARIFY",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:15_00127:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:16_00007:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:16_00013:turn-18",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:16_00022:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:16_00025:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:16_00027:turn-18",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:16_00027:turn-20",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:16_00037:turn-12",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:16_00038:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:16_00038:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:16_00039:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:16_00040:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:16_00056:turn-0",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:16_00058:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:16_00062:turn-6",
+      "expected_status": "CLARIFY",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:16_00068:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:16_00071:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:16_00076:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:16_00079:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:16_00081:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:16_00085:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:16_00093:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:16_00094:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:16_00097:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:16_00100:turn-18",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:16_00107:turn-18",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:16_00118:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:16_00127:turn-16",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:17_00004:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:17_00013:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:17_00016:turn-0",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:17_00022:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:17_00038:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "command",
+        "flow",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:17_00040:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:17_00042:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:17_00042:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:17_00044:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:17_00045:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:17_00046:turn-10",
+      "expected_status": "CLARIFY",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:17_00060:turn-12",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "INVALID_PROVIDER_OUTPUT",
+      "case_id": "sgd:dev:17_00061:turn-32",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:17_00062:turn-16",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:17_00063:turn-30",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:17_00066:turn-22",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:17_00069:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:17_00072:turn-10",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:17_00072:turn-28",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:17_00073:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "command",
+        "flow",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:17_00074:turn-12",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:17_00074:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:17_00075:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:17_00076:turn-24",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:17_00076:turn-36",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:17_00083:turn-30",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:17_00084:turn-22",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:17_00085:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "INVALID_PROVIDER_OUTPUT",
+      "case_id": "sgd:dev:17_00087:turn-28",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:17_00089:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:17_00091:turn-30",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:17_00091:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "INVALID_PROVIDER_OUTPUT",
+      "case_id": "sgd:dev:17_00092:turn-26",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:17_00092:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:17_00093:turn-12",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:17_00093:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:17_00095:turn-34",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:17_00095:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:17_00096:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:17_00101:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:17_00106:turn-28",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "INVALID_PROVIDER_OUTPUT",
+      "case_id": "sgd:dev:17_00109:turn-50",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:17_00112:turn-26",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:17_00115:turn-32",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:18_00021:turn-32",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:18_00027:turn-24",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:18_00027:turn-26",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:18_00031:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:18_00040:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:18_00041:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:18_00042:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:18_00042:turn-24",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:18_00042:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:18_00044:turn-16",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:18_00058:turn-12",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:18_00063:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:18_00067:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:18_00092:turn-4",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:18_00096:turn-8",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:18_00100:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "INVALID_PROVIDER_OUTPUT",
+      "case_id": "sgd:dev:18_00103:turn-2",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:18_00107:turn-10",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:18_00107:turn-2",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:18_00116:turn-12",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:18_00126:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:18_00127:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:18_00127:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:19_00002:turn-16",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "INVALID_PROVIDER_OUTPUT",
+      "case_id": "sgd:dev:19_00002:turn-22",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "INVALID_PROVIDER_OUTPUT",
+      "case_id": "sgd:dev:19_00008:turn-18",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:19_00011:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:19_00012:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:19_00020:turn-12",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:19_00024:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:19_00026:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:19_00027:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:19_00029:turn-16",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:19_00034:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:19_00051:turn-20",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:19_00056:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:19_00058:turn-24",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:19_00065:turn-8",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:19_00069:turn-16",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:19_00070:turn-18",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:19_00073:turn-16",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:19_00073:turn-20",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "INVALID_PROVIDER_OUTPUT",
+      "case_id": "sgd:dev:19_00078:turn-16",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:19_00079:turn-16",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:19_00079:turn-20",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:19_00080:turn-22",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:19_00088:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:19_00090:turn-16",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:19_00095:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:19_00096:turn-12",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:19_00102:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "command",
+        "flow",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:19_00107:turn-18",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:19_00111:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:19_00115:turn-0",
+      "expected_status": "CLARIFY",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:19_00116:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:19_00117:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:1_00002:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:1_00003:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:1_00022:turn-4",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:1_00032:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:1_00034:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:1_00046:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:1_00087:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:1_00087:turn-14",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:1_00090:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:1_00093:turn-8",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:1_00097:turn-8",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:1_00101:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:1_00114:turn-4",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:1_00115:turn-12",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:1_00118:turn-8",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:20_00001:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:20_00002:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:20_00003:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:20_00005:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:20_00006:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:20_00010:turn-16",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:20_00010:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:20_00014:turn-16",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:20_00014:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:20_00019:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:20_00027:turn-14",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:20_00031:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:20_00031:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:20_00031:turn-20",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:20_00031:turn-24",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:20_00032:turn-10",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:20_00036:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:20_00041:turn-12",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:20_00044:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:20_00044:turn-8",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:20_00048:turn-6",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:20_00049:turn-12",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:20_00055:turn-10",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:20_00056:turn-12",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:20_00075:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:20_00076:turn-0",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:20_00109:turn-10",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "INVALID_PROVIDER_OUTPUT",
+      "case_id": "sgd:dev:2_00004:turn-2",
+      "expected_status": "CLARIFY",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:2_00013:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:2_00024:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:2_00029:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "INVALID_PROVIDER_OUTPUT",
+      "case_id": "sgd:dev:2_00031:turn-2",
+      "expected_status": "CLARIFY",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:2_00038:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:2_00045:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:2_00046:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:2_00046:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:2_00051:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:2_00052:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:2_00053:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:2_00059:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:2_00060:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:2_00067:turn-4",
+      "expected_status": "CLARIFY",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:2_00070:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:2_00073:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:2_00073:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:2_00082:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:2_00085:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:2_00087:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:2_00104:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:2_00108:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:2_00109:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:2_00120:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:2_00122:turn-20",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:3_00055:turn-10",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:3_00077:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:3_00092:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "command",
+        "flow",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:3_00096:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:3_00099:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:4_00034:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:4_00038:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:4_00052:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:4_00066:turn-6",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:4_00070:turn-2",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:4_00074:turn-10",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:4_00075:turn-10",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:4_00078:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:4_00089:turn-10",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:4_00107:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:4_00109:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:4_00111:turn-2",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:4_00112:turn-6",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:4_00120:turn-10",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:4_00122:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:5_00009:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:5_00021:turn-4",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:5_00022:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:5_00025:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:5_00027:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:5_00039:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:5_00049:turn-0",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:5_00056:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:5_00057:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:5_00074:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:5_00100:turn-4",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:5_00114:turn-2",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:6_00000:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:6_00034:turn-4",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:6_00043:turn-6",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:6_00049:turn-4",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:6_00058:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:6_00061:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:6_00061:turn-4",
+      "expected_status": "CLARIFY",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:6_00075:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:6_00077:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:6_00079:turn-12",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:6_00089:turn-0",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:6_00100:turn-12",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:6_00101:turn-0",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:6_00106:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:6_00107:turn-0",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:6_00107:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:6_00107:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:6_00109:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:6_00111:turn-0",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:6_00113:turn-0",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:6_00125:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:7_00000:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:7_00002:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:7_00004:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:7_00008:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:7_00012:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:7_00014:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:7_00017:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:7_00017:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:7_00019:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:7_00024:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:7_00040:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:7_00045:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:7_00047:turn-12",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:7_00047:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:7_00049:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:7_00051:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:7_00059:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "command",
+        "flow",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:7_00060:turn-0",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:7_00060:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "command",
+        "flow",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:7_00062:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:7_00067:turn-12",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:8_00000:turn-12",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:8_00001:turn-26",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:8_00001:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:8_00002:turn-16",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:8_00002:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:8_00007:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:8_00011:turn-16",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:8_00011:turn-22",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:8_00014:turn-12",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:8_00017:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:8_00017:turn-12",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:8_00018:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:8_00019:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:8_00022:turn-20",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:8_00026:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:8_00027:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:8_00029:turn-20",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:8_00029:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:8_00030:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:8_00031:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:8_00032:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:8_00035:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:8_00036:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:8_00038:turn-12",
+      "expected_status": "CLARIFY",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:8_00038:turn-18",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:8_00038:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:8_00039:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:8_00040:turn-20",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "INVALID_PROVIDER_OUTPUT",
+      "case_id": "sgd:dev:8_00041:turn-4",
+      "expected_status": "CLARIFY",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:8_00041:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:8_00048:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:8_00049:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:8_00051:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:8_00061:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:8_00071:turn-16",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:8_00076:turn-8",
+      "expected_status": "CLARIFY",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:8_00077:turn-14",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:8_00079:turn-10",
+      "expected_status": "CLARIFY",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:8_00079:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:8_00082:turn-20",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:8_00086:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:8_00094:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:8_00095:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:8_00097:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:8_00105:turn-20",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:8_00108:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:8_00110:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:8_00114:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:8_00118:turn-0",
+      "expected_status": "CLARIFY",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:8_00126:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:9_00002:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:9_00003:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:9_00003:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:9_00024:turn-24",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:9_00024:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:9_00027:turn-10",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:9_00027:turn-18",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:9_00032:turn-20",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:9_00036:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:9_00040:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:9_00043:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "command",
+        "flow",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:9_00051:turn-2",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:9_00051:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:9_00054:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:9_00057:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:9_00060:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:9_00064:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "command",
+        "flow",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:9_00070:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:9_00077:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:9_00088:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:9_00104:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:9_00104:turn-4",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:9_00107:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:9_00122:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:9_00124:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    }
+  ],
+  "macro_mapping_rule_exact": 0.5750000000000001,
+  "mapping_rule_exact": {
+    "SGD_REQUIRED_SLOT_REQUEST": {
+      "correct": 279,
+      "rate": 0.93,
+      "total": 300
+    },
+    "SGD_SERVICE_CALL_FIRST": {
+      "correct": 57,
+      "rate": 0.19,
+      "total": 300
+    },
+    "SGD_SERVICE_CALL_REPEAT": {
+      "correct": 189,
+      "rate": 0.63,
+      "total": 300
+    },
+    "SGD_SERVICE_OUTSIDE_TRAIN_REGISTRY": {
+      "correct": 165,
+      "rate": 0.55,
+      "total": 300
+    }
+  },
+  "missing_prediction_count": 0,
+  "prediction_count": 1200,
+  "schema_version": "dialogpilot-public-command-score-v1",
+  "status_confusion": {
+    "CLARIFY": {
+      "CLARIFY": 279,
+      "INVALID_PROVIDER_OUTPUT": 5,
+      "NO_SUPPORTED_FLOW": 6,
+      "RESOLVED": 10
+    },
+    "NO_SUPPORTED_FLOW": {
+      "CLARIFY": 109,
+      "INVALID_PROVIDER_OUTPUT": 5,
+      "NO_SUPPORTED_FLOW": 165,
+      "RESOLVED": 21
+    },
+    "RESOLVED": {
+      "CLARIFY": 152,
+      "INVALID_PROVIDER_OUTPUT": 15,
+      "NO_SUPPORTED_FLOW": 67,
+      "RESOLVED": 366
+    }
+  }
+}

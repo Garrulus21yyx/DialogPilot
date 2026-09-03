@@ -14,6 +14,7 @@ from application.structured_command_prompt import (
 )
 from application.turn_state import ActiveFlowRef, FlowDefinitionRef, TurnStateSnapshot
 from application.turn_understanding import (
+    CommandArgument,
     CommandKind,
     CommandProposal,
     UnderstandingError,
@@ -138,6 +139,7 @@ class StructuredLLMCommandProducer:
             "source_flow_instance_id",
             "target_flow_id",
             "target_flow_version",
+            "arguments",
         }
         if not isinstance(value, dict) or set(value) != fields:
             raise _InvalidCommandOutput("command shape is invalid")
@@ -145,6 +147,12 @@ class StructuredLLMCommandProducer:
         source_id = _optional_string(value["source_flow_instance_id"])
         target_id = _optional_string(value["target_flow_id"])
         target_version = _optional_string(value["target_flow_version"])
+        raw_arguments = value["arguments"]
+        if not isinstance(raw_arguments, dict) or any(
+            not isinstance(name, str) or not name.strip()
+            for name in raw_arguments
+        ):
+            raise _InvalidCommandOutput("command arguments must be an object")
         if (target_id is None) != (target_version is None):
             raise _InvalidCommandOutput("target flow identity is incomplete")
         source = _active_flow(source_id, state)
@@ -163,6 +171,10 @@ class StructuredLLMCommandProducer:
             evidence_refs=(f"message:{message_fingerprint}",),
             source_flow=source,
             target_flow=target,
+            arguments=tuple(
+                CommandArgument.create(name, raw_arguments[name])
+                for name in sorted(raw_arguments)
+            ),
         )
         _require_registry_command(proposal, registry)
         return proposal

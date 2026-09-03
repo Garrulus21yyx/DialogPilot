@@ -47,14 +47,24 @@ class ExplicitIdentifierArgumentBinder:
             if required != ("order_id",):
                 raise ValueError("explicit identifier binder has unsupported arguments")
             existing = {item.name: item for item in proposal.arguments}
-            if "order_id" not in existing:
-                matches = tuple(dict.fromkeys(_ORDER_ID.findall(message)))
-                if len(matches) != 1:
-                    return UnderstandingResult(
-                        UnderstandingStatus.CLARIFY,
-                        reason_code="EXPLICIT_ORDER_ID_REQUIRED",
-                    )
-                existing["order_id"] = CommandArgument.create("order_id", matches[0])
+            matches = tuple(dict.fromkeys(_ORDER_ID.findall(message)))
+            if len(matches) != 1:
+                return UnderstandingResult(
+                    UnderstandingStatus.CLARIFY,
+                    reason_code="EXPLICIT_ORDER_ID_REQUIRED",
+                )
+            explicit_order_id = matches[0]
+            supplied_order_id = existing.get("order_id")
+            if supplied_order_id is not None and (
+                supplied_order_id.value != explicit_order_id
+            ):
+                return UnderstandingResult(
+                    UnderstandingStatus.INVALID_PROVIDER_OUTPUT,
+                    reason_code="MODEL_ARGUMENT_CONTRADICTS_EXPLICIT_ID",
+                )
+            existing["order_id"] = CommandArgument.create(
+                "order_id", explicit_order_id
+            )
             commands.append(
                 replace(
                     proposal,

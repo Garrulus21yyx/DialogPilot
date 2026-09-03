@@ -314,13 +314,15 @@ class TurnPlanCompiler:
 
 def _work_arguments(command: AcceptedCommand) -> tuple[CommandArgument, ...]:
     proposal = command.proposal
-    arguments = {item.name: item for item in proposal.arguments}
-    arguments.update({
+    arguments = {
         binding.name: CommandArgument(binding.name, binding.value_json)
         for binding in (
             proposal.source_flow.bindings if proposal.source_flow else ()
         )
-    })
+    }
+    # A continuation carries a delta over authoritative flow state. Values
+    # explicitly supplied for this turn must win over inherited bindings.
+    arguments.update({item.name: item for item in proposal.arguments})
     return tuple(arguments[name] for name in sorted(arguments))
 
 

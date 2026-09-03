@@ -1,0 +1,2773 @@
+{
+  "authority": "official train/schema.json",
+  "fingerprint": "2df09306d002f3ad2470069c594b259a75d94f10a6adec2d05bee24a1c98027f",
+  "flows": [
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "argument_definitions": [
+        {
+          "description": "The account type of the user",
+          "name": "account_type",
+          "possible_values": [
+            "checking",
+            "savings"
+          ]
+        }
+      ],
+      "description": "Check the amount of money in a user's bank account",
+      "effect": "read_only",
+      "flow_id": "sgd.Banks_1.CheckBalance",
+      "intent": "CheckBalance",
+      "optional_arguments": [],
+      "required_arguments": [
+        "account_type"
+      ],
+      "service": "Banks_1",
+      "tool": "sgd_service:Banks_1:CheckBalance",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "argument_definitions": [
+        {
+          "description": "The account type of the user",
+          "name": "account_type",
+          "possible_values": [
+            "checking",
+            "savings"
+          ]
+        },
+        {
+          "description": "The amount of money to transfer",
+          "name": "amount",
+          "possible_values": []
+        },
+        {
+          "description": "The account name of the recipient who is to receive the transfered money",
+          "name": "recipient_account_name",
+          "possible_values": []
+        },
+        {
+          "description": "The account type of the recipient whom the user is transfering money to",
+          "name": "recipient_account_type",
+          "possible_values": [
+            "checking",
+            "savings"
+          ]
+        }
+      ],
+      "description": "Transfer money from one bank account to another user's account",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Banks_1.TransferMoney",
+      "intent": "TransferMoney",
+      "optional_arguments": [
+        "recipient_account_type"
+      ],
+      "required_arguments": [
+        "account_type",
+        "amount",
+        "recipient_account_name"
+      ],
+      "service": "Banks_1",
+      "tool": "sgd_service:Banks_1:TransferMoney",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "argument_definitions": [
+        {
+          "description": "City where bus is leaving from",
+          "name": "from_location",
+          "possible_values": []
+        },
+        {
+          "description": "City where bus is going to",
+          "name": "to_location",
+          "possible_values": []
+        },
+        {
+          "description": "Date of bus leaving for journey. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "leaving_date",
+          "possible_values": []
+        },
+        {
+          "description": "Time of bus leaving for journey. Use 24-hour HH:MM.",
+          "name": "leaving_time",
+          "possible_values": []
+        },
+        {
+          "description": "Number of travelers for journey",
+          "name": "travelers",
+          "possible_values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+          ]
+        }
+      ],
+      "description": "Buy tickets for a bus journey",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Buses_1.BuyBusTicket",
+      "intent": "BuyBusTicket",
+      "optional_arguments": [],
+      "required_arguments": [
+        "from_location",
+        "to_location",
+        "leaving_date",
+        "leaving_time",
+        "travelers"
+      ],
+      "service": "Buses_1",
+      "tool": "sgd_service:Buses_1:BuyBusTicket",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "argument_definitions": [
+        {
+          "description": "City where bus is leaving from",
+          "name": "from_location",
+          "possible_values": []
+        },
+        {
+          "description": "City where bus is going to",
+          "name": "to_location",
+          "possible_values": []
+        },
+        {
+          "description": "Date of bus leaving for journey. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "leaving_date",
+          "possible_values": []
+        },
+        {
+          "description": "Number of travelers for journey",
+          "name": "travelers",
+          "possible_values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+          ]
+        }
+      ],
+      "description": "Find a bus journey for a given pair of cities",
+      "effect": "read_only",
+      "flow_id": "sgd.Buses_1.FindBus",
+      "intent": "FindBus",
+      "optional_arguments": [
+        "travelers"
+      ],
+      "required_arguments": [
+        "from_location",
+        "to_location",
+        "leaving_date"
+      ],
+      "service": "Buses_1",
+      "tool": "sgd_service:Buses_1:FindBus",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "argument_definitions": [
+        {
+          "description": "Origin city for journey",
+          "name": "origin",
+          "possible_values": []
+        },
+        {
+          "description": "Destination city for journey",
+          "name": "destination",
+          "possible_values": []
+        },
+        {
+          "description": "Date of bus departure. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "departure_date",
+          "possible_values": []
+        },
+        {
+          "description": "Time of bus departure. Use 24-hour HH:MM.",
+          "name": "departure_time",
+          "possible_values": []
+        },
+        {
+          "description": "Size of group for the booking",
+          "name": "group_size",
+          "possible_values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+          ]
+        },
+        {
+          "description": "Type of fare for the booking",
+          "name": "fare_type",
+          "possible_values": [
+            "Economy",
+            "Economy extra",
+            "Flexible"
+          ]
+        }
+      ],
+      "description": "Buy tickets for a bus itinerary",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Buses_2.BuyBusTicket",
+      "intent": "BuyBusTicket",
+      "optional_arguments": [
+        "fare_type"
+      ],
+      "required_arguments": [
+        "origin",
+        "destination",
+        "departure_date",
+        "departure_time",
+        "group_size"
+      ],
+      "service": "Buses_2",
+      "tool": "sgd_service:Buses_2:BuyBusTicket",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "argument_definitions": [
+        {
+          "description": "Origin city for journey",
+          "name": "origin",
+          "possible_values": []
+        },
+        {
+          "description": "Destination city for journey",
+          "name": "destination",
+          "possible_values": []
+        },
+        {
+          "description": "Date of bus departure. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "departure_date",
+          "possible_values": []
+        },
+        {
+          "description": "Type of fare for the booking",
+          "name": "fare_type",
+          "possible_values": [
+            "Economy",
+            "Economy extra",
+            "Flexible"
+          ]
+        },
+        {
+          "description": "Size of group for the booking",
+          "name": "group_size",
+          "possible_values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+          ]
+        }
+      ],
+      "description": "Find a bus itinerary between cities for a given date",
+      "effect": "read_only",
+      "flow_id": "sgd.Buses_2.FindBus",
+      "intent": "FindBus",
+      "optional_arguments": [
+        "fare_type",
+        "group_size"
+      ],
+      "required_arguments": [
+        "origin",
+        "destination",
+        "departure_date"
+      ],
+      "service": "Buses_2",
+      "tool": "sgd_service:Buses_2:FindBus",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "argument_definitions": [
+        {
+          "description": "Title of event",
+          "name": "event_name",
+          "possible_values": []
+        },
+        {
+          "description": "Date of event or for checking availability. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "event_date",
+          "possible_values": []
+        },
+        {
+          "description": "Location of event",
+          "name": "event_location",
+          "possible_values": []
+        },
+        {
+          "description": "Start time of event. Use 24-hour HH:MM.",
+          "name": "event_time",
+          "possible_values": []
+        }
+      ],
+      "description": "Add event to the user's calendar",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Calendar_1.AddEvent",
+      "intent": "AddEvent",
+      "optional_arguments": [],
+      "required_arguments": [
+        "event_name",
+        "event_date",
+        "event_location",
+        "event_time"
+      ],
+      "service": "Calendar_1",
+      "tool": "sgd_service:Calendar_1:AddEvent",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "argument_definitions": [
+        {
+          "description": "Date of event or for checking availability. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "event_date",
+          "possible_values": []
+        }
+      ],
+      "description": "Get a list of available times for the user on a given day",
+      "effect": "read_only",
+      "flow_id": "sgd.Calendar_1.GetAvailableTime",
+      "intent": "GetAvailableTime",
+      "optional_arguments": [],
+      "required_arguments": [
+        "event_date"
+      ],
+      "service": "Calendar_1",
+      "tool": "sgd_service:Calendar_1:GetAvailableTime",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "argument_definitions": [
+        {
+          "description": "Date of event or for checking availability. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "event_date",
+          "possible_values": []
+        }
+      ],
+      "description": "Get list of all calendar events for the user on a given day",
+      "effect": "read_only",
+      "flow_id": "sgd.Calendar_1.GetEvents",
+      "intent": "GetEvents",
+      "optional_arguments": [],
+      "required_arguments": [
+        "event_date"
+      ],
+      "service": "Calendar_1",
+      "tool": "sgd_service:Calendar_1:GetEvents",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "argument_definitions": [
+        {
+          "description": "Name of event",
+          "name": "event_name",
+          "possible_values": []
+        },
+        {
+          "description": "Number of seats to find event tickets for",
+          "name": "number_of_seats",
+          "possible_values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9"
+          ]
+        },
+        {
+          "description": "Date of occurrence of event. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "date",
+          "possible_values": []
+        },
+        {
+          "description": "City where event is happening",
+          "name": "city_of_event",
+          "possible_values": []
+        }
+      ],
+      "description": "Buy tickets for an event",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Events_1.BuyEventTickets",
+      "intent": "BuyEventTickets",
+      "optional_arguments": [],
+      "required_arguments": [
+        "event_name",
+        "number_of_seats",
+        "date",
+        "city_of_event"
+      ],
+      "service": "Events_1",
+      "tool": "sgd_service:Events_1:BuyEventTickets",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "argument_definitions": [
+        {
+          "description": "Type of event",
+          "name": "category",
+          "possible_values": [
+            "Music",
+            "Sports"
+          ]
+        },
+        {
+          "description": "City where event is happening",
+          "name": "city_of_event",
+          "possible_values": []
+        },
+        {
+          "description": "Date of occurrence of event. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "date",
+          "possible_values": []
+        },
+        {
+          "description": "Subcategory of event, either a music genre or sport name",
+          "name": "subcategory",
+          "possible_values": []
+        }
+      ],
+      "description": "Find events in a given city",
+      "effect": "read_only",
+      "flow_id": "sgd.Events_1.FindEvents",
+      "intent": "FindEvents",
+      "optional_arguments": [
+        "date",
+        "subcategory"
+      ],
+      "required_arguments": [
+        "category",
+        "city_of_event"
+      ],
+      "service": "Events_1",
+      "tool": "sgd_service:Events_1:FindEvents",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "argument_definitions": [
+        {
+          "description": "Name of match or artist for event",
+          "name": "event_name",
+          "possible_values": []
+        },
+        {
+          "description": "Number of tickets to buy for event",
+          "name": "number_of_tickets",
+          "possible_values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9"
+          ]
+        },
+        {
+          "description": "Date of event. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "date",
+          "possible_values": []
+        },
+        {
+          "description": "City where the event is taking place",
+          "name": "city",
+          "possible_values": []
+        }
+      ],
+      "description": "Buy tickets for an event",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Events_2.BuyEventTickets",
+      "intent": "BuyEventTickets",
+      "optional_arguments": [],
+      "required_arguments": [
+        "event_name",
+        "number_of_tickets",
+        "date",
+        "city"
+      ],
+      "service": "Events_2",
+      "tool": "sgd_service:Events_2:BuyEventTickets",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "argument_definitions": [
+        {
+          "description": "Type of event",
+          "name": "event_type",
+          "possible_values": [
+            "Music",
+            "Sports"
+          ]
+        },
+        {
+          "description": "City where the event is taking place",
+          "name": "city",
+          "possible_values": []
+        },
+        {
+          "description": "The sport or music subcategory",
+          "name": "category",
+          "possible_values": []
+        },
+        {
+          "description": "Date of event. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "date",
+          "possible_values": []
+        }
+      ],
+      "description": "Find concerts and games happening in your area",
+      "effect": "read_only",
+      "flow_id": "sgd.Events_2.FindEvents",
+      "intent": "FindEvents",
+      "optional_arguments": [
+        "category",
+        "date"
+      ],
+      "required_arguments": [
+        "event_type",
+        "city"
+      ],
+      "service": "Events_2",
+      "tool": "sgd_service:Events_2:FindEvents",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "argument_definitions": [
+        {
+          "description": "Name of match or artist for event",
+          "name": "event_name",
+          "possible_values": []
+        },
+        {
+          "description": "City where the event is taking place",
+          "name": "city",
+          "possible_values": []
+        }
+      ],
+      "description": "Get dates on which a given event is taking place",
+      "effect": "read_only",
+      "flow_id": "sgd.Events_2.GetEventDates",
+      "intent": "GetEventDates",
+      "optional_arguments": [],
+      "required_arguments": [
+        "event_name",
+        "city"
+      ],
+      "service": "Events_2",
+      "tool": "sgd_service:Events_2:GetEventDates",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "argument_definitions": [
+        {
+          "description": "Starting city for the trip",
+          "name": "origin_city",
+          "possible_values": []
+        },
+        {
+          "description": "Ending city for the trip",
+          "name": "destination_city",
+          "possible_values": []
+        },
+        {
+          "description": "Name of airline",
+          "name": "airlines",
+          "possible_values": [
+            "United Airlines",
+            "American Airlines",
+            "Delta Airlines",
+            "Southwest Airlines",
+            "Alaska Airlines",
+            "British Airways",
+            "Air Canada",
+            "Air France"
+          ]
+        },
+        {
+          "description": "Start date for the trip. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "departure_date",
+          "possible_values": []
+        },
+        {
+          "description": "Number of passengers in the booking",
+          "name": "passengers",
+          "possible_values": [
+            "1",
+            "2",
+            "3",
+            "4"
+          ]
+        },
+        {
+          "description": "Whether the booking is refundable or not",
+          "name": "refundable",
+          "possible_values": [
+            "True",
+            "False"
+          ]
+        },
+        {
+          "description": "Seating class for the booking",
+          "name": "seating_class",
+          "possible_values": [
+            "Economy",
+            "Premium Economy",
+            "Business",
+            "First Class"
+          ]
+        }
+      ],
+      "description": "Reserve a one-way flight",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Flights_1.ReserveOnewayFlight",
+      "intent": "ReserveOnewayFlight",
+      "optional_arguments": [
+        "passengers",
+        "refundable",
+        "seating_class"
+      ],
+      "required_arguments": [
+        "origin_city",
+        "destination_city",
+        "airlines",
+        "departure_date"
+      ],
+      "service": "Flights_1",
+      "tool": "sgd_service:Flights_1:ReserveOnewayFlight",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "argument_definitions": [
+        {
+          "description": "Starting city for the trip",
+          "name": "origin_city",
+          "possible_values": []
+        },
+        {
+          "description": "Ending city for the trip",
+          "name": "destination_city",
+          "possible_values": []
+        },
+        {
+          "description": "Name of airline",
+          "name": "airlines",
+          "possible_values": [
+            "United Airlines",
+            "American Airlines",
+            "Delta Airlines",
+            "Southwest Airlines",
+            "Alaska Airlines",
+            "British Airways",
+            "Air Canada",
+            "Air France"
+          ]
+        },
+        {
+          "description": "Start date for the trip. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "departure_date",
+          "possible_values": []
+        },
+        {
+          "description": "Date of the return flight. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "return_date",
+          "possible_values": []
+        },
+        {
+          "description": "Departure time for the outbound leg flight. Use 24-hour HH:MM.",
+          "name": "outbound_departure_time",
+          "possible_values": []
+        },
+        {
+          "description": "Departure time for the return leg flight. Use 24-hour HH:MM.",
+          "name": "inbound_departure_time",
+          "possible_values": []
+        },
+        {
+          "description": "Number of passengers in the booking",
+          "name": "passengers",
+          "possible_values": [
+            "1",
+            "2",
+            "3",
+            "4"
+          ]
+        },
+        {
+          "description": "Whether the booking is refundable or not",
+          "name": "refundable",
+          "possible_values": [
+            "True",
+            "False"
+          ]
+        },
+        {
+          "description": "Seating class for the booking",
+          "name": "seating_class",
+          "possible_values": [
+            "Economy",
+            "Premium Economy",
+            "Business",
+            "First Class"
+          ]
+        }
+      ],
+      "description": "Reserve a round-trip flight",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Flights_1.ReserveRoundtripFlights",
+      "intent": "ReserveRoundtripFlights",
+      "optional_arguments": [
+        "passengers",
+        "refundable",
+        "seating_class"
+      ],
+      "required_arguments": [
+        "origin_city",
+        "destination_city",
+        "airlines",
+        "departure_date",
+        "return_date",
+        "outbound_departure_time",
+        "inbound_departure_time"
+      ],
+      "service": "Flights_1",
+      "tool": "sgd_service:Flights_1:ReserveRoundtripFlights",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "argument_definitions": [
+        {
+          "description": "Starting city for the trip",
+          "name": "origin_city",
+          "possible_values": []
+        },
+        {
+          "description": "Ending city for the trip",
+          "name": "destination_city",
+          "possible_values": []
+        },
+        {
+          "description": "Start date for the trip. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "departure_date",
+          "possible_values": []
+        },
+        {
+          "description": "Name of airline",
+          "name": "airlines",
+          "possible_values": [
+            "United Airlines",
+            "American Airlines",
+            "Delta Airlines",
+            "Southwest Airlines",
+            "Alaska Airlines",
+            "British Airways",
+            "Air Canada",
+            "Air France"
+          ]
+        },
+        {
+          "description": "Number of passengers in the booking",
+          "name": "passengers",
+          "possible_values": [
+            "1",
+            "2",
+            "3",
+            "4"
+          ]
+        },
+        {
+          "description": "Whether the booking is refundable or not",
+          "name": "refundable",
+          "possible_values": [
+            "True",
+            "False"
+          ]
+        },
+        {
+          "description": "Seating class for the booking",
+          "name": "seating_class",
+          "possible_values": [
+            "Economy",
+            "Premium Economy",
+            "Business",
+            "First Class"
+          ]
+        }
+      ],
+      "description": "Search for one-way flights to a destination",
+      "effect": "read_only",
+      "flow_id": "sgd.Flights_1.SearchOnewayFlight",
+      "intent": "SearchOnewayFlight",
+      "optional_arguments": [
+        "airlines",
+        "passengers",
+        "refundable",
+        "seating_class"
+      ],
+      "required_arguments": [
+        "origin_city",
+        "destination_city",
+        "departure_date"
+      ],
+      "service": "Flights_1",
+      "tool": "sgd_service:Flights_1:SearchOnewayFlight",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "argument_definitions": [
+        {
+          "description": "Starting city for the trip",
+          "name": "origin_city",
+          "possible_values": []
+        },
+        {
+          "description": "Ending city for the trip",
+          "name": "destination_city",
+          "possible_values": []
+        },
+        {
+          "description": "Start date for the trip. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "departure_date",
+          "possible_values": []
+        },
+        {
+          "description": "Date of the return flight. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "return_date",
+          "possible_values": []
+        },
+        {
+          "description": "Name of airline",
+          "name": "airlines",
+          "possible_values": [
+            "United Airlines",
+            "American Airlines",
+            "Delta Airlines",
+            "Southwest Airlines",
+            "Alaska Airlines",
+            "British Airways",
+            "Air Canada",
+            "Air France"
+          ]
+        },
+        {
+          "description": "Number of passengers in the booking",
+          "name": "passengers",
+          "possible_values": [
+            "1",
+            "2",
+            "3",
+            "4"
+          ]
+        },
+        {
+          "description": "Whether the booking is refundable or not",
+          "name": "refundable",
+          "possible_values": [
+            "True",
+            "False"
+          ]
+        },
+        {
+          "description": "Seating class for the booking",
+          "name": "seating_class",
+          "possible_values": [
+            "Economy",
+            "Premium Economy",
+            "Business",
+            "First Class"
+          ]
+        }
+      ],
+      "description": "Search for round-trip flights to a destination",
+      "effect": "read_only",
+      "flow_id": "sgd.Flights_1.SearchRoundtripFlights",
+      "intent": "SearchRoundtripFlights",
+      "optional_arguments": [
+        "airlines",
+        "passengers",
+        "refundable",
+        "seating_class"
+      ],
+      "required_arguments": [
+        "origin_city",
+        "destination_city",
+        "departure_date",
+        "return_date"
+      ],
+      "service": "Flights_1",
+      "tool": "sgd_service:Flights_1:SearchRoundtripFlights",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "argument_definitions": [
+        {
+          "description": "City of origin for the flight",
+          "name": "origin",
+          "possible_values": []
+        },
+        {
+          "description": "City of destination for the flight",
+          "name": "destination",
+          "possible_values": []
+        },
+        {
+          "description": "Date of departure flight on the ticket. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "departure_date",
+          "possible_values": []
+        },
+        {
+          "description": "Name of the airline to book with",
+          "name": "airlines",
+          "possible_values": [
+            "United Airlines",
+            "American Airlines",
+            "Delta Airlines",
+            "Southwest Airlines",
+            "Alaska Airlines",
+            "British Airways",
+            "Air Canada",
+            "Air France"
+          ]
+        },
+        {
+          "description": "Number of passengers to book tickets for",
+          "name": "passengers",
+          "possible_values": [
+            "1",
+            "2",
+            "3",
+            "4"
+          ]
+        },
+        {
+          "description": "Seating class for the flight tickets",
+          "name": "seating_class",
+          "possible_values": [
+            "Economy",
+            "Premium Economy",
+            "Business",
+            "First Class"
+          ]
+        }
+      ],
+      "description": "Search for a one way flight with your set of preferences",
+      "effect": "read_only",
+      "flow_id": "sgd.Flights_2.SearchOnewayFlight",
+      "intent": "SearchOnewayFlight",
+      "optional_arguments": [
+        "airlines",
+        "passengers",
+        "seating_class"
+      ],
+      "required_arguments": [
+        "origin",
+        "destination",
+        "departure_date"
+      ],
+      "service": "Flights_2",
+      "tool": "sgd_service:Flights_2:SearchOnewayFlight",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "argument_definitions": [
+        {
+          "description": "City of origin for the flight",
+          "name": "origin",
+          "possible_values": []
+        },
+        {
+          "description": "City of destination for the flight",
+          "name": "destination",
+          "possible_values": []
+        },
+        {
+          "description": "Date of departure flight on the ticket. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "departure_date",
+          "possible_values": []
+        },
+        {
+          "description": "Date of return flight on the ticket. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "return_date",
+          "possible_values": []
+        },
+        {
+          "description": "Name of the airline to book with",
+          "name": "airlines",
+          "possible_values": [
+            "United Airlines",
+            "American Airlines",
+            "Delta Airlines",
+            "Southwest Airlines",
+            "Alaska Airlines",
+            "British Airways",
+            "Air Canada",
+            "Air France"
+          ]
+        },
+        {
+          "description": "Number of passengers to book tickets for",
+          "name": "passengers",
+          "possible_values": [
+            "1",
+            "2",
+            "3",
+            "4"
+          ]
+        },
+        {
+          "description": "Seating class for the flight tickets",
+          "name": "seating_class",
+          "possible_values": [
+            "Economy",
+            "Premium Economy",
+            "Business",
+            "First Class"
+          ]
+        }
+      ],
+      "description": "Search for round trip flights with your set of preferences",
+      "effect": "read_only",
+      "flow_id": "sgd.Flights_2.SearchRoundtripFlights",
+      "intent": "SearchRoundtripFlights",
+      "optional_arguments": [
+        "airlines",
+        "passengers",
+        "seating_class"
+      ],
+      "required_arguments": [
+        "origin",
+        "destination",
+        "departure_date",
+        "return_date"
+      ],
+      "service": "Flights_2",
+      "tool": "sgd_service:Flights_2:SearchRoundtripFlights",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "argument_definitions": [
+        {
+          "description": "City where the apartment is located",
+          "name": "area",
+          "possible_values": []
+        },
+        {
+          "description": "Number of bed rooms",
+          "name": "number_of_beds",
+          "possible_values": [
+            "1",
+            "2",
+            "3",
+            "4"
+          ]
+        },
+        {
+          "description": "Boolean flag indicating if the property is furnished",
+          "name": "furnished",
+          "possible_values": [
+            "True",
+            "False"
+          ]
+        },
+        {
+          "description": "Number of baths in the apartment",
+          "name": "number_of_baths",
+          "possible_values": [
+            "1",
+            "2",
+            "3",
+            "4"
+          ]
+        },
+        {
+          "description": "Boolean flag indicating if pets are allowed",
+          "name": "pets_allowed",
+          "possible_values": [
+            "True",
+            "False"
+          ]
+        }
+      ],
+      "description": "Find an apartment in a city for a given number of bedrooms",
+      "effect": "read_only",
+      "flow_id": "sgd.Homes_1.FindApartment",
+      "intent": "FindApartment",
+      "optional_arguments": [
+        "furnished",
+        "number_of_baths",
+        "pets_allowed"
+      ],
+      "required_arguments": [
+        "area",
+        "number_of_beds"
+      ],
+      "service": "Homes_1",
+      "tool": "sgd_service:Homes_1:FindApartment",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "argument_definitions": [
+        {
+          "description": "Name of the apartment",
+          "name": "property_name",
+          "possible_values": []
+        },
+        {
+          "description": "Date for the visit to the apartment. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "visit_date",
+          "possible_values": []
+        }
+      ],
+      "description": "Schedule a visit for a given property on a particular date",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Homes_1.ScheduleVisit",
+      "intent": "ScheduleVisit",
+      "optional_arguments": [],
+      "required_arguments": [
+        "property_name",
+        "visit_date"
+      ],
+      "service": "Homes_1",
+      "tool": "sgd_service:Homes_1:ScheduleVisit",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "argument_definitions": [
+        {
+          "description": "Name of the hotel",
+          "name": "hotel_name",
+          "possible_values": []
+        },
+        {
+          "description": "Start date for the reservation. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "check_in_date",
+          "possible_values": []
+        },
+        {
+          "description": "Number of days in the reservation",
+          "name": "number_of_days",
+          "possible_values": []
+        },
+        {
+          "description": "Location of the hotel",
+          "name": "destination",
+          "possible_values": []
+        },
+        {
+          "description": "Number of rooms in the reservation",
+          "name": "number_of_rooms",
+          "possible_values": [
+            "1",
+            "2",
+            "3"
+          ]
+        }
+      ],
+      "description": "Reserve a selected hotel for given dates",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Hotels_1.ReserveHotel",
+      "intent": "ReserveHotel",
+      "optional_arguments": [
+        "number_of_rooms"
+      ],
+      "required_arguments": [
+        "hotel_name",
+        "check_in_date",
+        "number_of_days",
+        "destination"
+      ],
+      "service": "Hotels_1",
+      "tool": "sgd_service:Hotels_1:ReserveHotel",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "argument_definitions": [
+        {
+          "description": "Location of the hotel",
+          "name": "destination",
+          "possible_values": []
+        },
+        {
+          "description": "Boolean flag indicating if the hotel has wifi",
+          "name": "has_wifi",
+          "possible_values": [
+            "True",
+            "False"
+          ]
+        },
+        {
+          "description": "Number of rooms in the reservation",
+          "name": "number_of_rooms",
+          "possible_values": [
+            "1",
+            "2",
+            "3"
+          ]
+        },
+        {
+          "description": "Star rating of the hotel",
+          "name": "star_rating",
+          "possible_values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+          ]
+        }
+      ],
+      "description": "Find a hotel at a given location",
+      "effect": "read_only",
+      "flow_id": "sgd.Hotels_1.SearchHotel",
+      "intent": "SearchHotel",
+      "optional_arguments": [
+        "has_wifi",
+        "number_of_rooms",
+        "star_rating"
+      ],
+      "required_arguments": [
+        "destination"
+      ],
+      "service": "Hotels_1",
+      "tool": "sgd_service:Hotels_1:SearchHotel",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "argument_definitions": [
+        {
+          "description": "Location of the house",
+          "name": "where_to",
+          "possible_values": []
+        },
+        {
+          "description": "Number of people for the reservation",
+          "name": "number_of_adults",
+          "possible_values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+          ]
+        },
+        {
+          "description": "Start date for the reservation or to find the house. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "check_in_date",
+          "possible_values": []
+        },
+        {
+          "description": "End date for the reservation or to find the house. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "check_out_date",
+          "possible_values": []
+        }
+      ],
+      "description": "Book the selected house for given dates and number of adults",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Hotels_2.BookHouse",
+      "intent": "BookHouse",
+      "optional_arguments": [],
+      "required_arguments": [
+        "where_to",
+        "number_of_adults",
+        "check_in_date",
+        "check_out_date"
+      ],
+      "service": "Hotels_2",
+      "tool": "sgd_service:Hotels_2:BookHouse",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "argument_definitions": [
+        {
+          "description": "Location of the house",
+          "name": "where_to",
+          "possible_values": []
+        },
+        {
+          "description": "Boolean flag indicating if the house has laundry service",
+          "name": "has_laundry_service",
+          "possible_values": [
+            "True",
+            "False"
+          ]
+        },
+        {
+          "description": "Number of people for the reservation",
+          "name": "number_of_adults",
+          "possible_values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+          ]
+        },
+        {
+          "description": "Review rating of the house",
+          "name": "rating",
+          "possible_values": []
+        }
+      ],
+      "description": "Find a house at a given location",
+      "effect": "read_only",
+      "flow_id": "sgd.Hotels_2.SearchHouse",
+      "intent": "SearchHouse",
+      "optional_arguments": [
+        "has_laundry_service",
+        "number_of_adults",
+        "rating"
+      ],
+      "required_arguments": [
+        "where_to"
+      ],
+      "service": "Hotels_2",
+      "tool": "sgd_service:Hotels_2:SearchHouse",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "argument_definitions": [
+        {
+          "description": "Name of the hotel",
+          "name": "hotel_name",
+          "possible_values": []
+        },
+        {
+          "description": "Location of the hotel",
+          "name": "location",
+          "possible_values": []
+        },
+        {
+          "description": "Start date for the hotel reservation. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "check_in_date",
+          "possible_values": []
+        },
+        {
+          "description": "End date for the hotel reservation. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "check_out_date",
+          "possible_values": []
+        },
+        {
+          "description": "Number of rooms to book",
+          "name": "number_of_rooms",
+          "possible_values": [
+            "1",
+            "2",
+            "3"
+          ]
+        }
+      ],
+      "description": "Reserve a selected hotel for given dates",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Hotels_3.ReserveHotel",
+      "intent": "ReserveHotel",
+      "optional_arguments": [
+        "number_of_rooms"
+      ],
+      "required_arguments": [
+        "hotel_name",
+        "location",
+        "check_in_date",
+        "check_out_date"
+      ],
+      "service": "Hotels_3",
+      "tool": "sgd_service:Hotels_3:ReserveHotel",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "argument_definitions": [
+        {
+          "description": "Location of the hotel",
+          "name": "location",
+          "possible_values": []
+        },
+        {
+          "description": "Number of rooms to book",
+          "name": "number_of_rooms",
+          "possible_values": [
+            "1",
+            "2",
+            "3"
+          ]
+        },
+        {
+          "description": "Boolean flag indicating if pets are allowed in the hotel",
+          "name": "pets_welcome",
+          "possible_values": [
+            "True",
+            "False"
+          ]
+        }
+      ],
+      "description": "Search for a hotel based on location",
+      "effect": "read_only",
+      "flow_id": "sgd.Hotels_3.SearchHotel",
+      "intent": "SearchHotel",
+      "optional_arguments": [
+        "number_of_rooms",
+        "pets_welcome"
+      ],
+      "required_arguments": [
+        "location"
+      ],
+      "service": "Hotels_3",
+      "tool": "sgd_service:Hotels_3:SearchHotel",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "argument_definitions": [
+        {
+          "description": "Genre of the movie",
+          "name": "genre",
+          "possible_values": []
+        },
+        {
+          "description": "Name of the director of the movie",
+          "name": "directed_by",
+          "possible_values": []
+        }
+      ],
+      "description": "Find movies by genre and optionally director",
+      "effect": "read_only",
+      "flow_id": "sgd.Media_1.FindMovies",
+      "intent": "FindMovies",
+      "optional_arguments": [
+        "directed_by"
+      ],
+      "required_arguments": [
+        "genre"
+      ],
+      "service": "Media_1",
+      "tool": "sgd_service:Media_1:FindMovies",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "argument_definitions": [
+        {
+          "description": "Title of the movie",
+          "name": "title",
+          "possible_values": []
+        },
+        {
+          "description": "Boolean flag indicating if subtitles are desired for this movie",
+          "name": "subtitles",
+          "possible_values": [
+            "True",
+            "False"
+          ]
+        }
+      ],
+      "description": "Play the selected movie",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Media_1.PlayMovie",
+      "intent": "PlayMovie",
+      "optional_arguments": [
+        "subtitles"
+      ],
+      "required_arguments": [
+        "title"
+      ],
+      "service": "Media_1",
+      "tool": "sgd_service:Media_1:PlayMovie",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "argument_definitions": [
+        {
+          "description": "Name of the movie",
+          "name": "movie_name",
+          "possible_values": []
+        },
+        {
+          "description": "Number of the movie tickets to be purchased",
+          "name": "number_of_tickets",
+          "possible_values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9"
+          ]
+        },
+        {
+          "description": "Date of the show. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "show_date",
+          "possible_values": []
+        },
+        {
+          "description": "City where the theatre is located",
+          "name": "location",
+          "possible_values": []
+        },
+        {
+          "description": "Time of the show. Use 24-hour HH:MM.",
+          "name": "show_time",
+          "possible_values": []
+        },
+        {
+          "description": "Type of show",
+          "name": "show_type",
+          "possible_values": [
+            "regular",
+            "3d",
+            "imax"
+          ]
+        }
+      ],
+      "description": "Buy movie tickets for a particular show",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Movies_1.BuyMovieTickets",
+      "intent": "BuyMovieTickets",
+      "optional_arguments": [],
+      "required_arguments": [
+        "movie_name",
+        "number_of_tickets",
+        "show_date",
+        "location",
+        "show_time",
+        "show_type"
+      ],
+      "service": "Movies_1",
+      "tool": "sgd_service:Movies_1:BuyMovieTickets",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "argument_definitions": [
+        {
+          "description": "City where the theatre is located",
+          "name": "location",
+          "possible_values": []
+        },
+        {
+          "description": "Genre of the movie",
+          "name": "genre",
+          "possible_values": []
+        },
+        {
+          "description": "Type of show",
+          "name": "show_type",
+          "possible_values": [
+            "regular",
+            "3d",
+            "imax"
+          ]
+        },
+        {
+          "description": "Name of the theatre",
+          "name": "theater_name",
+          "possible_values": []
+        }
+      ],
+      "description": "Search for movies by location, genre or other attributes",
+      "effect": "read_only",
+      "flow_id": "sgd.Movies_1.FindMovies",
+      "intent": "FindMovies",
+      "optional_arguments": [
+        "genre",
+        "show_type",
+        "theater_name"
+      ],
+      "required_arguments": [
+        "location"
+      ],
+      "service": "Movies_1",
+      "tool": "sgd_service:Movies_1:FindMovies",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "argument_definitions": [
+        {
+          "description": "Name of the movie",
+          "name": "movie_name",
+          "possible_values": []
+        },
+        {
+          "description": "City where the theatre is located",
+          "name": "location",
+          "possible_values": []
+        },
+        {
+          "description": "Date of the show. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "show_date",
+          "possible_values": []
+        },
+        {
+          "description": "Type of show",
+          "name": "show_type",
+          "possible_values": [
+            "regular",
+            "3d",
+            "imax"
+          ]
+        },
+        {
+          "description": "Name of the theatre",
+          "name": "theater_name",
+          "possible_values": []
+        }
+      ],
+      "description": "Get show times for a movie at a location on a given date",
+      "effect": "read_only",
+      "flow_id": "sgd.Movies_1.GetTimesForMovie",
+      "intent": "GetTimesForMovie",
+      "optional_arguments": [
+        "show_type",
+        "theater_name"
+      ],
+      "required_arguments": [
+        "movie_name",
+        "location",
+        "show_date"
+      ],
+      "service": "Movies_1",
+      "tool": "sgd_service:Movies_1:GetTimesForMovie",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "argument_definitions": [
+        {
+          "description": "Album the song belongs to",
+          "name": "album",
+          "possible_values": []
+        },
+        {
+          "description": "Artist who performed the song",
+          "name": "artist",
+          "possible_values": []
+        },
+        {
+          "description": "Genre of the song",
+          "name": "genre",
+          "possible_values": []
+        },
+        {
+          "description": "Year in which the song was released",
+          "name": "year",
+          "possible_values": [
+            "2010",
+            "2011",
+            "2012",
+            "2013",
+            "2014",
+            "2015",
+            "2016",
+            "2017",
+            "2018",
+            "2019"
+          ]
+        }
+      ],
+      "description": "Search for a song",
+      "effect": "read_only",
+      "flow_id": "sgd.Music_1.LookupSong",
+      "intent": "LookupSong",
+      "optional_arguments": [
+        "album",
+        "artist",
+        "genre",
+        "year"
+      ],
+      "required_arguments": [],
+      "service": "Music_1",
+      "tool": "sgd_service:Music_1:LookupSong",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "argument_definitions": [
+        {
+          "description": "Name of the song",
+          "name": "song_name",
+          "possible_values": []
+        },
+        {
+          "description": "Artist who performed the song",
+          "name": "artist",
+          "possible_values": []
+        },
+        {
+          "description": "Playback device on which the song is to be played",
+          "name": "playback_device",
+          "possible_values": [
+            "TV",
+            "Kitchen speaker",
+            "Bedroom speaker"
+          ]
+        }
+      ],
+      "description": "Play the selected song on the device",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Music_1.PlaySong",
+      "intent": "PlaySong",
+      "optional_arguments": [
+        "artist",
+        "playback_device"
+      ],
+      "required_arguments": [
+        "song_name"
+      ],
+      "service": "Music_1",
+      "tool": "sgd_service:Music_1:PlaySong",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "argument_definitions": [
+        {
+          "description": "Album the song belongs to",
+          "name": "album",
+          "possible_values": []
+        },
+        {
+          "description": "Name of the artist the song is performed by",
+          "name": "artist",
+          "possible_values": []
+        },
+        {
+          "description": "Genre of the song",
+          "name": "genre",
+          "possible_values": []
+        }
+      ],
+      "description": "Search for a song based on the name and optionally other attributes",
+      "effect": "read_only",
+      "flow_id": "sgd.Music_2.LookupMusic",
+      "intent": "LookupMusic",
+      "optional_arguments": [
+        "album",
+        "artist",
+        "genre"
+      ],
+      "required_arguments": [],
+      "service": "Music_2",
+      "tool": "sgd_service:Music_2:LookupMusic",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "argument_definitions": [
+        {
+          "description": "Name of the song",
+          "name": "song_name",
+          "possible_values": []
+        },
+        {
+          "description": "Name of the artist the song is performed by",
+          "name": "artist",
+          "possible_values": []
+        },
+        {
+          "description": "Playback device on which the song is to be played",
+          "name": "playback_device",
+          "possible_values": [
+            "TV",
+            "kitchen speaker",
+            "bedroom speaker"
+          ]
+        }
+      ],
+      "description": "Play a song by its name and optionally artist",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Music_2.PlayMedia",
+      "intent": "PlayMedia",
+      "optional_arguments": [
+        "artist",
+        "playback_device"
+      ],
+      "required_arguments": [
+        "song_name"
+      ],
+      "service": "Music_2",
+      "tool": "sgd_service:Music_2:PlayMedia",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "argument_definitions": [
+        {
+          "description": "City to pick up the rental car",
+          "name": "pickup_city",
+          "possible_values": []
+        },
+        {
+          "description": "Date of rental car pickup. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "pickup_date",
+          "possible_values": []
+        },
+        {
+          "description": "Time of rental car pickup. Use 24-hour HH:MM.",
+          "name": "pickup_time",
+          "possible_values": []
+        },
+        {
+          "description": "Date of rental car drop-off. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "dropoff_date",
+          "possible_values": []
+        },
+        {
+          "description": "Category to which rental car belongs",
+          "name": "type",
+          "possible_values": [
+            "Compact",
+            "Standard",
+            "Full-size"
+          ]
+        }
+      ],
+      "description": "Search for available rental cars by city and date",
+      "effect": "read_only",
+      "flow_id": "sgd.RentalCars_1.GetCarsAvailable",
+      "intent": "GetCarsAvailable",
+      "optional_arguments": [
+        "type"
+      ],
+      "required_arguments": [
+        "pickup_city",
+        "pickup_date",
+        "pickup_time",
+        "dropoff_date"
+      ],
+      "service": "RentalCars_1",
+      "tool": "sgd_service:RentalCars_1:GetCarsAvailable",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "argument_definitions": [
+        {
+          "description": "Location of rental car pickup",
+          "name": "pickup_location",
+          "possible_values": []
+        },
+        {
+          "description": "Date of rental car pickup. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "pickup_date",
+          "possible_values": []
+        },
+        {
+          "description": "Time of rental car pickup. Use 24-hour HH:MM.",
+          "name": "pickup_time",
+          "possible_values": []
+        },
+        {
+          "description": "Date of rental car drop-off. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "dropoff_date",
+          "possible_values": []
+        },
+        {
+          "description": "Category to which rental car belongs",
+          "name": "type",
+          "possible_values": [
+            "Compact",
+            "Standard",
+            "Full-size"
+          ]
+        }
+      ],
+      "description": "Reserve car rental for given dates and location",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.RentalCars_1.ReserveCar",
+      "intent": "ReserveCar",
+      "optional_arguments": [],
+      "required_arguments": [
+        "pickup_location",
+        "pickup_date",
+        "pickup_time",
+        "dropoff_date",
+        "type"
+      ],
+      "service": "RentalCars_1",
+      "tool": "sgd_service:RentalCars_1:ReserveCar",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "argument_definitions": [
+        {
+          "description": "City in which to pick up rental car",
+          "name": "pickup_city",
+          "possible_values": []
+        },
+        {
+          "description": "Date of pickup for car rental. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "pickup_date",
+          "possible_values": []
+        },
+        {
+          "description": "Time of pickup for car rental. Use 24-hour HH:MM.",
+          "name": "pickup_time",
+          "possible_values": []
+        },
+        {
+          "description": "End date of car rental reservation. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "dropoff_date",
+          "possible_values": []
+        },
+        {
+          "description": "Type of car for rental",
+          "name": "car_type",
+          "possible_values": [
+            "Compact",
+            "Standard",
+            "Full-size"
+          ]
+        }
+      ],
+      "description": "See available cars for rental in a particular city and a date",
+      "effect": "read_only",
+      "flow_id": "sgd.RentalCars_2.GetCarsAvailable",
+      "intent": "GetCarsAvailable",
+      "optional_arguments": [
+        "car_type"
+      ],
+      "required_arguments": [
+        "pickup_city",
+        "pickup_date",
+        "pickup_time",
+        "dropoff_date"
+      ],
+      "service": "RentalCars_2",
+      "tool": "sgd_service:RentalCars_2:GetCarsAvailable",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "argument_definitions": [
+        {
+          "description": "Pickup location for car rental",
+          "name": "pickup_location",
+          "possible_values": []
+        },
+        {
+          "description": "Date of pickup for car rental. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "pickup_date",
+          "possible_values": []
+        },
+        {
+          "description": "Time of pickup for car rental. Use 24-hour HH:MM.",
+          "name": "pickup_time",
+          "possible_values": []
+        },
+        {
+          "description": "End date of car rental reservation. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "dropoff_date",
+          "possible_values": []
+        },
+        {
+          "description": "Type of car for rental",
+          "name": "car_type",
+          "possible_values": [
+            "Compact",
+            "Standard",
+            "Full-size"
+          ]
+        }
+      ],
+      "description": "Reserve a rental car for specified pickup location and dates",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.RentalCars_2.ReserveCar",
+      "intent": "ReserveCar",
+      "optional_arguments": [],
+      "required_arguments": [
+        "pickup_location",
+        "pickup_date",
+        "pickup_time",
+        "dropoff_date",
+        "car_type"
+      ],
+      "service": "RentalCars_2",
+      "tool": "sgd_service:RentalCars_2:ReserveCar",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "argument_definitions": [
+        {
+          "description": "Cuisine of food served in the restaurant",
+          "name": "cuisine",
+          "possible_values": [
+            "Mexican",
+            "Chinese",
+            "Indian",
+            "American",
+            "Italian"
+          ]
+        },
+        {
+          "description": "City in which the restaurant is located",
+          "name": "city",
+          "possible_values": []
+        },
+        {
+          "description": "Boolean flag indicating if the restaurant has live music",
+          "name": "has_live_music",
+          "possible_values": [
+            "True",
+            "False"
+          ]
+        },
+        {
+          "description": "Price range for the restaurant",
+          "name": "price_range",
+          "possible_values": [
+            "inexpensive",
+            "moderate",
+            "expensive",
+            "very expensive"
+          ]
+        },
+        {
+          "description": "Boolean flag indicating if the restaurant serves alcohol",
+          "name": "serves_alcohol",
+          "possible_values": [
+            "True",
+            "False"
+          ]
+        }
+      ],
+      "description": "Find a restaurant of a particular cuisine in a city",
+      "effect": "read_only",
+      "flow_id": "sgd.Restaurants_1.FindRestaurants",
+      "intent": "FindRestaurants",
+      "optional_arguments": [
+        "has_live_music",
+        "price_range",
+        "serves_alcohol"
+      ],
+      "required_arguments": [
+        "cuisine",
+        "city"
+      ],
+      "service": "Restaurants_1",
+      "tool": "sgd_service:Restaurants_1:FindRestaurants",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "argument_definitions": [
+        {
+          "description": "Name of the restaurant",
+          "name": "restaurant_name",
+          "possible_values": []
+        },
+        {
+          "description": "City in which the restaurant is located",
+          "name": "city",
+          "possible_values": []
+        },
+        {
+          "description": "Time for the reservation or to find availability. Use 24-hour HH:MM.",
+          "name": "time",
+          "possible_values": []
+        },
+        {
+          "description": "Date for the reservation or to find availability. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "date",
+          "possible_values": []
+        },
+        {
+          "description": "Party size for a reservation",
+          "name": "party_size",
+          "possible_values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6"
+          ]
+        }
+      ],
+      "description": "Reserve a table at a restaurant",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Restaurants_1.ReserveRestaurant",
+      "intent": "ReserveRestaurant",
+      "optional_arguments": [
+        "date",
+        "party_size"
+      ],
+      "required_arguments": [
+        "restaurant_name",
+        "city",
+        "time"
+      ],
+      "service": "Restaurants_1",
+      "tool": "sgd_service:Restaurants_1:ReserveRestaurant",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "argument_definitions": [
+        {
+          "description": "Destination for taxi ride",
+          "name": "destination",
+          "possible_values": []
+        },
+        {
+          "description": "Number of riders to call taxi for",
+          "name": "number_of_riders",
+          "possible_values": [
+            "1",
+            "2",
+            "3",
+            "4"
+          ]
+        },
+        {
+          "description": "Boolean flag whether ride is shared with other passengers",
+          "name": "shared_ride",
+          "possible_values": [
+            "True",
+            "False"
+          ]
+        }
+      ],
+      "description": "Call a taxi to head to a given destination",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.RideSharing_1.GetRide",
+      "intent": "GetRide",
+      "optional_arguments": [],
+      "required_arguments": [
+        "destination",
+        "number_of_riders",
+        "shared_ride"
+      ],
+      "service": "RideSharing_1",
+      "tool": "sgd_service:RideSharing_1:GetRide",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "argument_definitions": [
+        {
+          "description": "Destination address or location for cab",
+          "name": "destination",
+          "possible_values": []
+        },
+        {
+          "description": "Number of seats to reserve in the cab",
+          "name": "number_of_seats",
+          "possible_values": [
+            "1",
+            "2",
+            "3",
+            "4"
+          ]
+        },
+        {
+          "description": "Type of cab ride",
+          "name": "ride_type",
+          "possible_values": [
+            "Pool",
+            "Regular",
+            "Luxury"
+          ]
+        }
+      ],
+      "description": "Book a cab for any destination, number of seats and ride type",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.RideSharing_2.GetRide",
+      "intent": "GetRide",
+      "optional_arguments": [],
+      "required_arguments": [
+        "destination",
+        "number_of_seats",
+        "ride_type"
+      ],
+      "service": "RideSharing_2",
+      "tool": "sgd_service:RideSharing_2:GetRide",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "argument_definitions": [
+        {
+          "description": "Name of the hair stylist/salon",
+          "name": "stylist_name",
+          "possible_values": []
+        },
+        {
+          "description": "Time of the appointment. Use 24-hour HH:MM.",
+          "name": "appointment_time",
+          "possible_values": []
+        },
+        {
+          "description": "Date for the appointment. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "appointment_date",
+          "possible_values": []
+        }
+      ],
+      "description": "Book an appointment at a hair stylist",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Services_1.BookAppointment",
+      "intent": "BookAppointment",
+      "optional_arguments": [],
+      "required_arguments": [
+        "stylist_name",
+        "appointment_time",
+        "appointment_date"
+      ],
+      "service": "Services_1",
+      "tool": "sgd_service:Services_1:BookAppointment",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "argument_definitions": [
+        {
+          "description": "City where the salon is located",
+          "name": "city",
+          "possible_values": []
+        },
+        {
+          "description": "Boolean flag indicating if the salon is unisex",
+          "name": "is_unisex",
+          "possible_values": [
+            "True",
+            "False"
+          ]
+        }
+      ],
+      "description": "Search for a hair stylist by city and optionally other attributes",
+      "effect": "read_only",
+      "flow_id": "sgd.Services_1.FindProvider",
+      "intent": "FindProvider",
+      "optional_arguments": [
+        "is_unisex"
+      ],
+      "required_arguments": [
+        "city"
+      ],
+      "service": "Services_1",
+      "tool": "sgd_service:Services_1:FindProvider",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "argument_definitions": [
+        {
+          "description": "Name of the dentist",
+          "name": "dentist_name",
+          "possible_values": []
+        },
+        {
+          "description": "Time for the appointment. Use 24-hour HH:MM.",
+          "name": "appointment_time",
+          "possible_values": []
+        },
+        {
+          "description": "Date for the appointment. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "appointment_date",
+          "possible_values": []
+        }
+      ],
+      "description": "Book an appointment at a dentist for a given time and date",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Services_2.BookAppointment",
+      "intent": "BookAppointment",
+      "optional_arguments": [],
+      "required_arguments": [
+        "dentist_name",
+        "appointment_time",
+        "appointment_date"
+      ],
+      "service": "Services_2",
+      "tool": "sgd_service:Services_2:BookAppointment",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "argument_definitions": [
+        {
+          "description": "City where the dentist is located",
+          "name": "city",
+          "possible_values": []
+        },
+        {
+          "description": "Boolean flag indicating if the dentist offers cosmetic services",
+          "name": "offers_cosmetic_services",
+          "possible_values": [
+            "True",
+            "False"
+          ]
+        }
+      ],
+      "description": "Find a dentist by location and optionally by services offered",
+      "effect": "read_only",
+      "flow_id": "sgd.Services_2.FindProvider",
+      "intent": "FindProvider",
+      "optional_arguments": [
+        "offers_cosmetic_services"
+      ],
+      "required_arguments": [
+        "city"
+      ],
+      "service": "Services_2",
+      "tool": "sgd_service:Services_2:FindProvider",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "argument_definitions": [
+        {
+          "description": "Name of the doctor or the medical practice",
+          "name": "doctor_name",
+          "possible_values": []
+        },
+        {
+          "description": "Time for the appointment with the doctor. Use 24-hour HH:MM.",
+          "name": "appointment_time",
+          "possible_values": []
+        },
+        {
+          "description": "Date for scheduling the appointment with the doctor. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "appointment_date",
+          "possible_values": []
+        }
+      ],
+      "description": "Book an appointment with a specific doctor for the given date and time",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Services_3.BookAppointment",
+      "intent": "BookAppointment",
+      "optional_arguments": [],
+      "required_arguments": [
+        "doctor_name",
+        "appointment_time",
+        "appointment_date"
+      ],
+      "service": "Services_3",
+      "tool": "sgd_service:Services_3:BookAppointment",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "argument_definitions": [
+        {
+          "description": "City where the doctor is located",
+          "name": "city",
+          "possible_values": []
+        },
+        {
+          "description": "Speciality of the doctor",
+          "name": "type",
+          "possible_values": [
+            "Gynecologist",
+            "ENT Specialist",
+            "Ophthalmologist",
+            "General Practitioner",
+            "Dermatologist"
+          ]
+        }
+      ],
+      "description": "Find a medical service provider based on their location and speciality",
+      "effect": "read_only",
+      "flow_id": "sgd.Services_3.FindProvider",
+      "intent": "FindProvider",
+      "optional_arguments": [],
+      "required_arguments": [
+        "city",
+        "type"
+      ],
+      "service": "Services_3",
+      "tool": "sgd_service:Services_3:FindProvider",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "argument_definitions": [
+        {
+          "description": "City or town where the attraction is located",
+          "name": "location",
+          "possible_values": []
+        },
+        {
+          "description": "Category to which the attraction belongs",
+          "name": "category",
+          "possible_values": [
+            "Place of Worship",
+            "Theme Park",
+            "Museum",
+            "Historical Landmark",
+            "Park",
+            "Tourist Attraction",
+            "Sports Venue",
+            "Shopping Area",
+            "Performing Arts Venue",
+            "Nature Preserve"
+          ]
+        },
+        {
+          "description": "Boolean flag indicating whether entrance to attraction is free",
+          "name": "free_entry",
+          "possible_values": [
+            "True",
+            "False"
+          ]
+        },
+        {
+          "description": "Boolean flag indicating whether attraction is good for to take kids to",
+          "name": "good_for_kids",
+          "possible_values": [
+            "True",
+            "False"
+          ]
+        }
+      ],
+      "description": "Browse attractions in a given city",
+      "effect": "read_only",
+      "flow_id": "sgd.Travel_1.FindAttractions",
+      "intent": "FindAttractions",
+      "optional_arguments": [
+        "category",
+        "free_entry",
+        "good_for_kids"
+      ],
+      "required_arguments": [
+        "location"
+      ],
+      "service": "Travel_1",
+      "tool": "sgd_service:Travel_1:FindAttractions",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "argument_definitions": [
+        {
+          "description": "Name of the city",
+          "name": "city",
+          "possible_values": []
+        },
+        {
+          "description": "Date for the weather. Use YYYY-MM-DD; in this public benchmark, today is 2019-03-01.",
+          "name": "date",
+          "possible_values": []
+        }
+      ],
+      "description": "Get the weather of a certain location on a date",
+      "effect": "read_only",
+      "flow_id": "sgd.Weather_1.GetWeather",
+      "intent": "GetWeather",
+      "optional_arguments": [
+        "date"
+      ],
+      "required_arguments": [
+        "city"
+      ],
+      "service": "Weather_1",
+      "tool": "sgd_service:Weather_1:GetWeather",
+      "transactional": false,
+      "version": "sgd-v1"
+    }
+  ],
+  "generation": "sgd-e852981ae349",
+  "registry_id": "sgd-train-schema-registry-v1",
+  "schema_version": "dialogpilot-public-flow-registry-v1"
+}

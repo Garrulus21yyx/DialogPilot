@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import re
+from dataclasses import replace
 from datetime import datetime, timezone
 
 import pytest
@@ -24,6 +25,7 @@ from application.route_policy_v2 import (
 from application.turn_plan import FlowMutationKind, TurnPlanCompiler
 from application.turn_state import (
     ActiveFlowRef,
+    FlowBinding,
     FlowAggregateVersion,
     FlowDefinitionRef,
     PendingSlotRef,
@@ -33,6 +35,7 @@ from application.turn_state import (
     TurnStateSnapshot,
 )
 from application.turn_understanding import (
+    CommandArgument,
     CommandKind,
     CommandProposal,
     PendingSlotResolver,
@@ -234,6 +237,49 @@ def test_sticky_continuation_uses_the_exact_active_flow() -> None:
     assert mutation.kind is FlowMutationKind.ADVANCE
     assert mutation.source_instance_id == current.active_flows[0].instance_id
     assert mutation.expected_source_version == 7
+
+
+def test_continuation_inherits_required_bindings_and_turn_delta_wins() -> None:
+    current = state(pending=False)
+    active = replace(
+        current.active_flows[0],
+        bindings=(
+            FlowBinding.create("order_id", "DP-OLD"),
+            FlowBinding.create("locale", "zh-CN"),
+        ),
+    )
+    current = replace(current, active_flows=(active,))
+    base_registry = registry()
+    actions = tuple(
+        replace(
+            action,
+            required_arguments=("order_id", "locale"),
+        )
+        if action.command_kind is CommandKind.CONTINUE_FLOW else action
+        for action in base_registry.actions
+    )
+    current_registry = replace(base_registry, actions=actions)
+    proposal = CommandProposal(
+        CommandKind.CONTINUE_FLOW,
+        UnderstandingSource.LLM,
+        "a" * 64,
+        "command-router-v1",
+        ("message:a",),
+        source_flow=active,
+        arguments=(CommandArgument.create("order_id", "DP-NEW"),),
+    )
+
+    accepted = RoutePolicy().accept(
+        UnderstandingResult(UnderstandingStatus.RESOLVED, (proposal,)),
+        current,
+        current_registry,
+    )
+    plan = TurnPlanCompiler().compile(accepted, current, current_registry)
+    arguments = {
+        item.name: item.value for item in plan.work.items[0].arguments
+    }
+
+    assert arguments == {"locale": "zh-CN", "order_id": "DP-NEW"}
 
 
 def test_route_policy_rejects_a_command_without_registered_action() -> None:

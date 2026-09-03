@@ -80,6 +80,7 @@ class _Messages:
             "source_flow_instance_id": None,
             "target_flow_id": "refund_eligibility",
             "target_flow_version": "v1",
+            "arguments": {},
         }
         return SimpleNamespace(
             id="shadow-command",

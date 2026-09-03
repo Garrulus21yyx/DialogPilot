@@ -100,6 +100,7 @@ def test_anthropic_adapter_produces_a_registry_backed_knowledge_command() -> Non
                     "source_flow_instance_id": None,
                     "target_flow_id": None,
                     "target_flow_version": None,
+                    "arguments": {},
                 }
             ],
         }
@@ -128,6 +129,44 @@ def test_anthropic_adapter_produces_a_registry_backed_knowledge_command() -> Non
         ("START_FLOW", "refund_eligibility", "v1"),
         ("START_FLOW", "media_text_read", "v1"),
     }
+
+
+def test_structured_completion_canonicalizes_registry_arguments() -> None:
+    state = _state()
+    output = json.dumps({
+        "status": "RESOLVED",
+        "commands": [{
+            "kind": "START_FLOW",
+            "source_flow_instance_id": None,
+            "target_flow_id": "refund_eligibility",
+            "target_flow_version": "v1",
+            "arguments": {"order_id": "DP-123"},
+        }],
+    })
+    result = asyncio.run(StructuredLLMCommandProducer(FakeCompletion(output)).produce(
+        "订单号 DP-123 能退款吗？",
+        fingerprint_message("订单号 DP-123 能退款吗？"),
+        state,
+        command_primary_flow_registry(state.principal.tenant_id),
+    ))
+
+    assert result.status is UnderstandingStatus.RESOLVED
+    assert result.commands[0].arguments[0].name == "order_id"
+    assert result.commands[0].arguments[0].value == "DP-123"
+
+
+def test_structured_completion_rejects_missing_arguments_field() -> None:
+    result = _run(StructuredLLMCommandProducer(FakeCompletion(json.dumps({
+        "status": "RESOLVED",
+        "commands": [{
+            "kind": "ANSWER_KNOWLEDGE",
+            "source_flow_instance_id": None,
+            "target_flow_id": None,
+            "target_flow_version": None,
+        }],
+    }))))
+
+    assert result.status is UnderstandingStatus.INVALID_PROVIDER_OUTPUT
 
 
 def test_structured_completion_can_request_clarification() -> None:

@@ -1,0 +1,20 @@
+{
+  "available_mapping_counts": {
+    "SGD_REQUIRED_SLOT_REQUEST": 2355,
+    "SGD_SERVICE_CALL_FIRST": 3303,
+    "SGD_SERVICE_CALL_REPEAT": 486,
+    "SGD_SERVICE_OUTSIDE_TRAIN_REGISTRY": 9271
+  },
+  "case_count": 1200,
+  "cases_sha256": "2f5b462961227e1434b09b037d121de0a3ed4958c6ac8e97f486f0c905b0d766",
+  "conversation_count": 926,
+  "conversations_sha256": "efea0749f12f0586e6931dbbc892705e816f27e569d5c613c635671da525a218",
+  "schema_version": "dialogpilot-sgd-selection-report-v1",
+  "selected_mapping_counts": {
+    "SGD_REQUIRED_SLOT_REQUEST": 300,
+    "SGD_SERVICE_CALL_FIRST": 300,
+    "SGD_SERVICE_CALL_REPEAT": 300,
+    "SGD_SERVICE_OUTSIDE_TRAIN_REGISTRY": 300
+  },
+  "split": "dev"
+}
