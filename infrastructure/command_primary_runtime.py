@@ -1,17 +1,23 @@
 """Compose the selective command-primary migration seam."""
+
 from __future__ import annotations
 
 from collections.abc import Mapping
 from typing import Any
 
+from application.always_defer_command_encoder import AlwaysDeferCommandEncoder
 from application.command_primary_chat import CommandPrimaryChatPlanner
 from application.command_primary_planner import CommandPrimaryPlanner
 from application.default_flow_registry import command_primary_flow_registry
-from application.route_decision import RouteMode
 from application.legacy_intent_command_adapter import LegacyIntentKnowledgeAdapter
+from application.route_decision import RouteMode
 from application.route_policy_v2 import RoutePolicy
+from application.selective_command_producer import SelectiveCommandProducer
+from application.structured_command_producer import StructuredLLMCommandProducer
 from application.turn_plan import TurnPlanCompiler
 from application.turn_understanding import PendingSlotResolver
+from core.model_policy import ModelProfile
+from infrastructure.anthropic_command_completion import AnthropicCommandCompletion
 from infrastructure.postgres_flow_state import PostgresFlowStateStore
 
 
@@ -20,17 +26,41 @@ def build_command_primary_chat_planner(
     config: Mapping[str, str],
     *,
     postgres_pool: Any = None,
+    command_completion_client: Any = None,
+    command_model_profile: ModelProfile | None = None,
 ) -> CommandPrimaryChatPlanner | None:
     mode = config.get("COMMAND_PRIMARY_MODE", "off").strip().lower()
     if mode == "off":
         return None
-    if mode not in {"shadow", "knowledge_primary"}:
+    if mode not in {
+        "shadow",
+        "knowledge_primary",
+        "structured_knowledge_primary",
+    }:
         raise RuntimeError(
-            "COMMAND_PRIMARY_MODE must be off, shadow, or knowledge_primary"
+            "COMMAND_PRIMARY_MODE must be off, shadow, knowledge_primary, "
+            "or structured_knowledge_primary"
         )
+    if mode == "structured_knowledge_primary":
+        if command_completion_client is None or command_model_profile is None:
+            raise RuntimeError(
+                "structured_knowledge_primary requires an explicit command "
+                "completion client and model profile"
+            )
+        semantic = SelectiveCommandProducer(
+            AlwaysDeferCommandEncoder(),
+            StructuredLLMCommandProducer(
+                AnthropicCommandCompletion(
+                    command_completion_client,
+                    command_model_profile,
+                )
+            ),
+        )
+    else:
+        semantic = LegacyIntentKnowledgeAdapter(orchestrator.recognize_intent)
     planner = CommandPrimaryPlanner(
         PendingSlotResolver(lambda _signal, _message: None),
-        LegacyIntentKnowledgeAdapter(orchestrator.recognize_intent),
+        semantic,
         RoutePolicy(),
         TurnPlanCompiler(),
     )
@@ -39,10 +69,10 @@ def build_command_primary_chat_planner(
         command_primary_flow_registry,
         primary_route_modes=(
             (RouteMode.KNOWLEDGE_QA,)
-            if mode == "knowledge_primary" else ()
+            if mode in {"knowledge_primary", "structured_knowledge_primary"}
+            else ()
         ),
         flow_state_store=(
-            PostgresFlowStateStore(postgres_pool)
-            if postgres_pool is not None else None
+            PostgresFlowStateStore(postgres_pool) if postgres_pool is not None else None
         ),
     )

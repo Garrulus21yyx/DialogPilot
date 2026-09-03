@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 from types import SimpleNamespace
 
 from application.active_case import (
@@ -16,22 +17,8 @@ from application.chat_application import (
     ChatServices,
     Completed,
 )
-from application.command_primary_chat import CommandPrimaryChatPlanner
-from application.command_primary_planner import CommandPrimaryPlanner
-from application.default_flow_registry import command_primary_flow_registry
-from application.flow_state import FlowStateAggregate
-from application.route_decision import RouteMode
-from application.route_policy_v2 import RoutePolicy
-from application.turn_plan import TurnPlanCompiler
-from application.turn_understanding import (
-    CommandKind,
-    CommandProposal,
-    PendingSlotResolver,
-    UnderstandingResult,
-    UnderstandingSource,
-    UnderstandingStatus,
-)
-from application.turn_state import ActiveFlowRef, FlowBinding, FlowDefinitionRef
+from core.model_policy import ModelProfile
+from infrastructure.command_primary_runtime import build_command_primary_chat_planner
 from services.answer_verifier import (
     VerificationReasonCode,
     VerificationResult,
@@ -39,35 +26,14 @@ from services.answer_verifier import (
 )
 
 
-class KnowledgeSemantic:
-    def __init__(self, events):
-        self.events = events
-
-    async def understand(
-        self, message, message_fingerprint, state, registry, **_context,
-    ):
-        self.events.append("understanding")
-        assert state.active_case_refs == ()
-        assert state.active_flows[0].definition.flow_id == "refund_status"
-        assert state.active_flows[0].bindings[0].value == "DP1234"
-        assert registry.tenant_id == "tenant-1"
-        return UnderstandingResult(
-            UnderstandingStatus.RESOLVED,
-            (CommandProposal(
-                CommandKind.ANSWER_KNOWLEDGE,
-                UnderstandingSource.LLM,
-                message_fingerprint,
-                "command-router-test-v1",
-                (f"message:{message_fingerprint}",),
-            ),),
-        )
-
-
-def test_knowledge_primary_runs_through_chat_application_without_legacy_intent():
+def test_structured_knowledge_primary_runs_without_legacy_intent():
     events = []
 
     class Orchestrator:
+        intent_calls = 0
+
         async def recognize_intent(self, *_args, **_kwargs):
+            self.intent_calls += 1
             raise AssertionError("primary route must not call legacy Intent")
 
         async def run(self, *_args, **_kwargs):
@@ -88,24 +54,6 @@ def test_knowledge_primary_runs_through_chat_application_without_legacy_intent()
 
         async def add_messages(self, *_args, **_kwargs):
             events.append("memory_write")
-
-    class FlowState:
-        @staticmethod
-        def load(principal):
-            events.append("flow_state")
-            return FlowStateAggregate.empty(
-                principal,
-                deletion_epoch=0,
-            ).next(
-                active_flows=(ActiveFlowRef(
-                    FlowDefinitionRef("refund_status", "v1"),
-                    "refund-status-1",
-                    1,
-                    principal.fingerprint,
-                    (FlowBinding.create("order_id", "DP1234"),),
-                ),),
-                pending_slot=None,
-            )
 
     class ContextAssembler:
         @staticmethod
@@ -171,19 +119,47 @@ def test_knowledge_primary_runs_through_chat_application_without_legacy_intent()
     async def no_intent_record(**_kwargs):
         raise AssertionError("command projection is not an Intent prediction")
 
-    planner = CommandPrimaryChatPlanner(
-        CommandPrimaryPlanner(
-            PendingSlotResolver(lambda _signal, _message: None),
-            KnowledgeSemantic(events),
-            RoutePolicy(),
-            TurnPlanCompiler(),
-        ),
-        command_primary_flow_registry,
-        primary_route_modes=(RouteMode.KNOWLEDGE_QA,),
-        flow_state_store=FlowState(),
+    class Messages:
+        def __init__(self):
+            self.requests = []
+
+        async def create(self, **request):
+            events.append("understanding")
+            self.requests.append(request)
+            return SimpleNamespace(
+                id="message-1",
+                content=[
+                    SimpleNamespace(
+                        type="text",
+                        text=json.dumps(
+                            {
+                                "status": "RESOLVED",
+                                "commands": [
+                                    {
+                                        "kind": "ANSWER_KNOWLEDGE",
+                                        "source_flow_instance_id": None,
+                                        "target_flow_id": None,
+                                        "target_flow_version": None,
+                                    }
+                                ],
+                            }
+                        ),
+                    )
+                ],
+                usage=SimpleNamespace(input_tokens=20, output_tokens=10),
+            )
+
+    orchestrator = Orchestrator()
+    messages = Messages()
+    planner = build_command_primary_chat_planner(
+        orchestrator,
+        {"COMMAND_PRIMARY_MODE": "structured_knowledge_primary"},
+        command_completion_client=SimpleNamespace(messages=messages),
+        command_model_profile=ModelProfile("command-router-test"),
     )
+    assert planner is not None
     services = ChatServices(
-        orchestrator=Orchestrator(),
+        orchestrator=orchestrator,
         memory=Memory(),
         answer_verifier=object(),
         ticket_service=object(),
@@ -210,13 +186,17 @@ def test_knowledge_primary_runs_through_chat_application_without_legacy_intent()
         verify_for_publication=verify,
     )
 
-    outcome = asyncio.run(ChatApplication(services, operations).handle(ChatCommand(
-        message="退款通常多久到账？",
-        tenant_id="tenant-1",
-        user_id="user-1",
-        conv_id="conversation-1",
-        request_id="request-1",
-    )))
+    outcome = asyncio.run(
+        ChatApplication(services, operations).handle(
+            ChatCommand(
+                message="退款通常多久到账？",
+                tenant_id="tenant-1",
+                user_id="user-1",
+                conv_id="conversation-1",
+                request_id="request-1",
+            )
+        )
+    )
 
     assert isinstance(outcome, Completed)
     assert outcome.response["response"] == "退款通常会在 3 至 5 个工作日到账。"
@@ -224,8 +204,19 @@ def test_knowledge_primary_runs_through_chat_application_without_legacy_intent()
         "command_primary"
     )
     assert outcome.response["intent_prediction_id"] == ""
-    assert events[:4] == ["state", "active_case", "flow_state", "understanding"]
-    assert events[4:] == ["knowledge", "verification", "delivery", "memory_write"]
+    assert orchestrator.intent_calls == 0
+    assert len(messages.requests) == 1
+    prompt_input = json.loads(messages.requests[0]["messages"][0]["content"])
+    assert prompt_input["encoder_candidates"] == []
+    assert events == [
+        "state",
+        "active_case",
+        "understanding",
+        "knowledge",
+        "verification",
+        "delivery",
+        "memory_write",
+    ]
     stages = {stage.stage: stage for stage in outcome.stages}
     assert stages["intent"].status.value == "skipped"
     assert stages["route_path_plan"].detail["source"] == "command_primary"

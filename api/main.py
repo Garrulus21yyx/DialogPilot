@@ -1697,6 +1697,13 @@ def _core_chat_application(
         _orchestrator,
         os.environ,
         postgres_pool=_postgres_pool,
+        command_completion_client=(
+            _tool_manager.llm_client if _tool_manager is not None else None
+        ),
+        command_model_profile=(
+            _model_policy.profile(ModelRole.INTENT)
+            if _model_policy is not None else None
+        ),
     )
     media_agent = None
     media_validator = None
