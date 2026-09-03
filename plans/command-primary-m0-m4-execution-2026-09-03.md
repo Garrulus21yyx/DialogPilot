@@ -87,6 +87,8 @@ Status: `IN_PROGRESS — READ-ONLY STICKY VERTICAL SLICE COMPLETE`
   embedding profile and no implicit hash fallback.
 - [x] Wire independent Knowledge and ServiceEpisode provider selection into
   production composition; keep each rollout separately configurable.
+- [x] Add an explicit ServiceEpisode canonical replay and immutable-generation
+  activation owner; do not run it implicitly during application startup.
 - [ ] Provision the pinned BGE-M3 artifact and rebuild/activate new immutable
   Knowledge and ServiceEpisode generations before benchmark runs.
 - [ ] Replace the temporary selective legacy candidate adapter with the frozen
@@ -94,13 +96,15 @@ Status: `IN_PROGRESS — READ-ONLY STICKY VERTICAL SLICE COMPLETE`
 
 ### S4 — Evaluation runners and shadow gates
 
-Status: `IN_PROGRESS — SHARED ARTIFACTS + UNDERSTANDING DIRECT RUNNER COMPLETE`
+Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 
 - [x] Add the shared three-artifact eval schema and Understanding direct runner.
 - [x] Add Knowledge, Memory, and Media direct adapters/runners.
-- [ ] Add invocation/consumption/state-transition assertions.
+- [x] Add invocation/consumption/state-transition assertions.
 - [ ] Run component heldout only after lane-specific freeze.
-- [ ] Run real `ChatApplication.handle()` contract E2E.
+- [x] Run one positive contract through the real `ChatApplication.handle()`.
+- [ ] Seed and run the locked 80-case contract set; its current run status is
+  deliberately `NOT_RUN`.
 - [ ] Shadow and legacy-intent invariance gate before cutover.
 
 ## Produced files
@@ -112,6 +116,7 @@ Status: `IN_PROGRESS — SHARED ARTIFACTS + UNDERSTANDING DIRECT RUNNER COMPLETE
 - `research/command-primary-evaluation-v1/03-memory-rag-evaluation.zh-CN.md`
 - `research/command-primary-evaluation-v1/04-multimodal-evaluation.zh-CN.md`
 - `research/command-primary-evaluation-v1/05-e2e-evaluation-and-scorecard.zh-CN.md`
+- `data/eval/dialogpilot-synthetic-contract-v1/`
 
 ## Verification log
 
@@ -194,6 +199,23 @@ Status: `IN_PROGRESS — SHARED ARTIFACTS + UNDERSTANDING DIRECT RUNNER COMPLETE
   independently, while a joint rollout shares one local model instance.
   Configuration/load failure never falls back. Focused suite:
   `84 passed, 1 skipped`; focused real-PostgreSQL suite: `36 passed`.
+- 2026-09-03: The 80-case synthetic architecture contract is now repository
+  locked. Static validation reports `80 cases / 100 turns`, 40 counterfactual
+  pairs, 159 resolved references, 18 matching file checksums, and `valid=true`.
+  Its manifest remains honestly marked `run_status=NOT_RUN` and
+  `promotion_allowed=false`. Dataset tests: `4 passed`.
+- 2026-09-03: A thin E2E adapter now calls the real
+  `ChatApplication.handle()` and reuses the shared artifact runner. The first
+  sticky read-only contract verifies the visible result, FlowState CAS,
+  component invocation/skips, and the exact read-only tool effect, while
+  writing the standard three artifacts. Focused adjacent suite: `7 passed`.
+- 2026-09-03: ServiceEpisode retrieval now exposes one explicit generation
+  manager. It snapshots current canonical episode heads, reuses the production
+  projector, validates the complete projection, builds the scoped HNSW index,
+  and only then activates the new immutable generation. A real-PostgreSQL test
+  proves the old hash generation remains truthfully labelled and becomes
+  `RETIRED` while the new `MODEL` generation becomes `ACTIVE`. Focused and
+  adjacent suite: `74 passed`.
 
 ## Commit log
 
@@ -209,3 +231,6 @@ Status: `IN_PROGRESS — SHARED ARTIFACTS + UNDERSTANDING DIRECT RUNNER COMPLETE
 - Stage 3 pinned local BGE-M3 provider: `9f3e39e`.
 - Stage 1 contract simplification: `1bcae69`.
 - Stage 4 direct evidence runners: `a385fb4`.
+- Stage 3 independent dense-provider rollout: `8ec08e1`.
+- Stage 4 locked synthetic contract: `0706d41`.
+- Stage 4 real-chat E2E slice: `e22839c`.

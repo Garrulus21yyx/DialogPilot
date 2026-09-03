@@ -32,6 +32,9 @@ from infrastructure.service_episode_embedding import (
     ServiceEpisodeDocumentEmbedder,
     ServiceEpisodeQueryEmbedder,
 )
+from infrastructure.service_episode_generation import (
+    PostgresServiceEpisodeGenerationManager,
+)
 
 
 @dataclass(frozen=True)
@@ -39,6 +42,7 @@ class RetrievalRuntime:
     pool: RetrievalPostgresPool
     service_episode_search: ServiceEpisodeMemorySearch
     projector: PostgresCanonicalRetrievalProjector
+    service_episode_generations: PostgresServiceEpisodeGenerationManager
 
 
 def build_retrieval_runtime(
@@ -112,4 +116,9 @@ def build_retrieval_runtime(
             ),
         },
     )
-    return RetrievalRuntime(pool, search, projector)
+    generations = PostgresServiceEpisodeGenerationManager(
+        platform_pool,
+        projector=projector,
+        embedding_profile=provider.profile,
+    )
+    return RetrievalRuntime(pool, search, projector, generations)

@@ -11,7 +11,11 @@ from application.data_location_registry import (
 )
 from application.inbound_admission import NewInvocationInbound
 from application.evidence_receipt import ServiceEpisodeLocator
-from application.hybrid_retrieval import EmbeddingProfile, EmbeddingProviderKind
+from application.hybrid_retrieval import (
+    EmbeddingProfile,
+    EmbeddingProviderKind,
+    GenerationState,
+)
 from application.service_episode import (
     CaseOutcomeVerification,
     EpisodeEvidence,
@@ -36,9 +40,13 @@ from infrastructure.postgres_service_episode import (
     PostgresServiceEpisodeResolver,
 )
 from infrastructure.service_episode_embedding import (
+    LocalHashServiceEpisodeEmbeddingBaseline,
     ServiceEpisodeDocumentEmbedder,
     ServiceEpisodeEmbeddingContractError,
     ServiceEpisodeEmbeddingFailure,
+)
+from infrastructure.service_episode_generation import (
+    PostgresServiceEpisodeGenerationManager,
 )
 
 
@@ -353,3 +361,81 @@ def test_conversation_tombstone_purges_episode_canonical_state(episode_scope):
         assert connection.execute(
             "SELECT count(*) FROM dialogpilot_app.service_episode_heads"
         ).fetchone()[0] == 0
+
+
+def test_model_generation_replays_current_episode_and_activates(episode_scope):
+    pool, identity = episode_scope
+    repository = PostgresServiceEpisodeRepository(pool)
+    first = _candidate(identity)
+    repository.commit(first)
+    current = replace(
+        first,
+        revision=2,
+        expected_version=1,
+        resolution="verified token rotation completed",
+    )
+    repository.commit(current)
+    baseline_provider = LocalHashServiceEpisodeEmbeddingBaseline()
+    baseline_projector = PostgresCanonicalRetrievalProjector(
+        pool,
+        resolvers={
+            "SERVICE_EPISODE": PostgresServiceEpisodeResolver(
+                ServiceEpisodeDocumentEmbedder(
+                    baseline_provider, allow_hash_baseline=True,
+                ),
+            ),
+        },
+    )
+    PostgresServiceEpisodeGenerationManager(
+        pool,
+        projector=baseline_projector,
+        embedding_profile=baseline_provider.profile,
+    ).rebuild_and_activate("episode-hash-generation-v1")
+    provider = EpisodeEmbeddingProvider()
+    projector = PostgresCanonicalRetrievalProjector(
+        pool,
+        resolvers={
+            "SERVICE_EPISODE": PostgresServiceEpisodeResolver(
+                ServiceEpisodeDocumentEmbedder(provider),
+            ),
+        },
+    )
+    manager = PostgresServiceEpisodeGenerationManager(
+        pool, projector=projector, embedding_profile=provider.profile,
+    )
+
+    build = manager.rebuild_and_activate("episode-model-generation-v1")
+
+    assert build.generation.state is GenerationState.ACTIVE
+    assert build.generation.embedding_profile == provider.profile
+    assert build.episode_count == 1
+    assert provider.document_inputs[0][0] == current.canonical_retrieval_text
+    with pool.transaction() as connection:
+        projection = connection.execute("""
+            SELECT episode_revision,provenance_sha256,embedding::text
+            FROM retrieval.service_episode_search
+            WHERE generation_id='episode-model-generation-v1'
+        """).fetchone()
+        event_state = connection.execute("""
+            SELECT status FROM retrieval.canonical_projection_outbox
+            WHERE generation_id='episode-model-generation-v1'
+        """).fetchone()[0]
+        receipt_count = connection.execute("""
+            SELECT count(*)
+            FROM retrieval.canonical_projection_receipts receipt
+            JOIN retrieval.canonical_projection_outbox event
+              ON event.event_id=receipt.event_id
+            WHERE event.generation_id='episode-model-generation-v1'
+        """).fetchone()[0]
+        generations = connection.execute("""
+            SELECT generation_id,state,embedding_provider_kind
+            FROM retrieval.retrieval_generation_registry
+            ORDER BY generation_id
+        """).fetchall()
+    assert projection == ("2", current.provenance_sha256, "[0.1,0.2,0.3]")
+    assert event_state == "APPLIED"
+    assert receipt_count == 1
+    assert generations == [
+        ("episode-hash-generation-v1", "RETIRED", "HASH_BASELINE"),
+        ("episode-model-generation-v1", "ACTIVE", "MODEL"),
+    ]
