@@ -24,6 +24,7 @@ class DocumentChunk:
     start_char: int
     end_char: int
     chunk_index: int
+    section_path: tuple[str, ...] = ()
 
 
 class DocumentChunker:
@@ -53,7 +54,10 @@ class DocumentChunker:
         if max_tokens < 1 or overlap_tokens < 0 or overlap_tokens >= max_tokens:
             raise ValueError("chunk token budgets require 0 <= overlap_tokens < max_tokens")
         if self._token_estimator.estimate(text) <= max_tokens:
-            return [DocumentChunk(text, 0, len(text), 0)]
+            return [DocumentChunk(
+                text, 0, len(text), 0,
+                self.section_path_at(text, 0, strategy=strategy),
+            )]
 
         chunks: List[DocumentChunk] = []
         start = 0
@@ -66,7 +70,10 @@ class DocumentChunker:
                 if strategy is ChunkStrategy.STRUCTURE_AWARE
                 else max_end
             )
-            chunks.append(DocumentChunk(text[start:end], start, end, len(chunks)))
+            chunks.append(DocumentChunk(
+                text[start:end], start, end, len(chunks),
+                self.section_path_at(text, start, strategy=strategy),
+            ))
             if end >= len(text):
                 break
             next_start = self.overlap_start(text, start, end, overlap_tokens)
@@ -113,3 +120,32 @@ class DocumentChunker:
             else:
                 low = middle + 1
         return best
+
+    @staticmethod
+    def section_path_at(
+        text: str,
+        start: int,
+        *,
+        strategy: ChunkStrategy | str,
+    ) -> tuple[str, ...]:
+        """Return the Markdown heading path governing ``start``.
+
+        Plain text has no authoritative heading syntax, so it deliberately gets
+        no invented path.  ATX headings are deterministic and remain useful even
+        when the chunk strategy itself is fixed-token.
+        """
+        del strategy  # Heading ownership is independent from boundary strategy.
+        levels: dict[int, str] = {}
+        cursor = 0
+        for line in str(text).splitlines(keepends=True):
+            if cursor > max(0, int(start)):
+                break
+            match = re.match(r"^[ \t]{0,3}(#{1,6})[ \t]+(.+?)[ \t]*#*[ \t]*$", line.rstrip("\r\n"))
+            if match:
+                level = len(match.group(1))
+                heading = " ".join(match.group(2).split())
+                levels = {key: value for key, value in levels.items() if key < level}
+                if heading:
+                    levels[level] = heading
+            cursor += len(line)
+        return tuple(levels[level] for level in sorted(levels))

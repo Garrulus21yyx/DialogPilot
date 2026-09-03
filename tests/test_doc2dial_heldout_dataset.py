@@ -53,6 +53,15 @@ def test_freeze_balances_domains_and_lengths_without_reusing_conversations(tmp_p
         per_stratum=1,
         expected_archive_sha256=None,
     )
+    fresh = freeze_doc2dial_heldout(
+        archive,
+        tmp_path / "fresh",
+        excluded_dataset=(excluded, first),
+        per_stratum=1,
+        expected_archive_sha256=None,
+        dataset_id="fresh-v2",
+        selection_seed="fresh-v2",
+    )
 
     assert len(first.documents) == 12
     assert len(first.cases) == 12
@@ -60,11 +69,15 @@ def test_freeze_balances_domains_and_lengths_without_reusing_conversations(tmp_p
     assert "doc2dial-old-dialogue" not in {case.group_id for case in first.cases}
     assert first.manifest["corpus_sha256"] == second.manifest["corpus_sha256"]
     assert first.manifest["cases_sha256"] == second.manifest["cases_sha256"]
+    assert {case.group_id for case in first.cases}.isdisjoint(
+        {case.group_id for case in fresh.cases}
+    )
     assert first.manifest["source"]["strata_counts"] == {
         f"{domain}/{bucket}": 1
         for domain in DOMAINS
         for bucket in ("short", "medium", "long")
     }
+    assert first.manifest["source"]["excluded_group_count"] == 1
     assert all(len(case.history) == 2 for case in first.cases)
     for case in first.cases:
         evidence = case.evidence[0]
@@ -74,6 +87,22 @@ def test_freeze_balances_domains_and_lengths_without_reusing_conversations(tmp_p
         assert (
             document.content[evidence.start_char : evidence.end_char] == evidence.quote
         )
+
+    quotas = {
+        (domain, bucket): 1
+        for domain in DOMAINS
+        for bucket in ("short", "medium", "long")
+    }
+    quotas[("dmv", "short")] = 2
+    quota_dataset = freeze_doc2dial_heldout(
+        archive,
+        tmp_path / "quota",
+        excluded_dataset=excluded,
+        expected_archive_sha256=None,
+        stratum_quotas=quotas,
+    )
+    assert len(quota_dataset.cases) == 13
+    assert quota_dataset.manifest["source"]["strata_counts"]["dmv/short"] == 2
 
 
 def _write_archive(path):
@@ -100,6 +129,7 @@ def _write_archive(path):
             dialogue_id = f"{domain}-{bucket}-dialogue"
             dial_data[domain][document_id] = [
                 _dialogue(dialogue_id, evidence),
+                _dialogue(f"{dialogue_id}-alternate", evidence),
                 *(
                     [_dialogue("old-dialogue", evidence)]
                     if domain == "dmv" and bucket == "short"

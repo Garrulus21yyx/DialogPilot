@@ -7,7 +7,7 @@ import json
 import zipfile
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Mapping, Sequence
 
 from evaluation.rag_pipeline.dataset import RagDataset, write_dataset
 
@@ -20,19 +20,48 @@ DATASET_ID = "doc2dial-rag-en-heldout-balanced-v1"
 SELECTION_SEED = "doc2dial-en-heldout-balanced-v1"
 DOMAINS = ("dmv", "ssa", "studentaid", "va")
 LENGTH_BUCKETS = ("short", "medium", "long")
+DOMAIN_BALANCED_SUPPLEMENT_QUOTAS = {
+    ("dmv", "short"): 8,
+    ("dmv", "medium"): 22,
+    ("dmv", "long"): 0,
+    ("ssa", "short"): 17,
+    ("ssa", "medium"): 5,
+    ("ssa", "long"): 8,
+    ("studentaid", "short"): 8,
+    ("studentaid", "medium"): 5,
+    ("studentaid", "long"): 17,
+    ("va", "short"): 15,
+    ("va", "medium"): 13,
+    ("va", "long"): 2,
+}
 
 
 def freeze_doc2dial_heldout(
     archive: Path,
     output: Path,
     *,
-    excluded_dataset: RagDataset,
+    excluded_dataset: RagDataset | Sequence[RagDataset],
     per_stratum: int = 10,
     expected_archive_sha256: str | None = DOC2DIAL_ARCHIVE_SHA256,
+    dataset_id: str = DATASET_ID,
+    selection_seed: str = SELECTION_SEED,
+    stratum_quotas: Mapping[tuple[str, str], int] | None = None,
 ) -> RagDataset:
     """Select one maximum-history turn per conversation in 12 fixed strata."""
     if per_stratum < 1:
         raise ValueError("per_stratum must be positive")
+    expected_strata = {
+        (domain, bucket) for domain in DOMAINS for bucket in LENGTH_BUCKETS
+    }
+    quotas = (
+        dict(stratum_quotas)
+        if stratum_quotas is not None
+        else {key: per_stratum for key in expected_strata}
+    )
+    if set(quotas) != expected_strata or any(value < 0 for value in quotas.values()):
+        raise ValueError("stratum quotas must cover every domain/length bucket")
+    if not sum(quotas.values()):
+        raise ValueError("stratum quotas must select at least one case")
     archive_sha256 = hashlib.sha256(archive.read_bytes()).hexdigest()
     if expected_archive_sha256 and archive_sha256 != expected_archive_sha256:
         raise ValueError("Doc2Dial archive checksum mismatch")
@@ -42,7 +71,18 @@ def freeze_doc2dial_heldout(
     if set(docs_by_domain) != set(DOMAINS) or set(dials_by_domain) != set(DOMAINS):
         raise ValueError("Doc2Dial domain set drift")
 
-    excluded_groups = {case.group_id for case in excluded_dataset.cases}
+    excluded_datasets = (
+        (excluded_dataset,)
+        if isinstance(excluded_dataset, RagDataset)
+        else tuple(excluded_dataset)
+    )
+    if not excluded_datasets:
+        raise ValueError("at least one excluded dataset is required")
+    excluded_groups = {
+        case.group_id
+        for dataset in excluded_datasets
+        for case in dataset.cases
+    }
     by_stratum: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
     for domain in DOMAINS:
         for document_id in sorted(dials_by_domain[domain]):
@@ -67,13 +107,17 @@ def freeze_doc2dial_heldout(
     for domain in DOMAINS:
         for bucket in LENGTH_BUCKETS:
             key = (domain, bucket)
-            candidates = sorted(by_stratum[key], key=_selection_key)
-            if len(candidates) < per_stratum:
+            candidates = sorted(
+                by_stratum[key],
+                key=lambda case: _selection_key(case, selection_seed),
+            )
+            quota = quotas[key]
+            if len(candidates) < quota:
                 raise ValueError(
                     f"insufficient Doc2Dial cases for {domain}/{bucket}: "
-                    f"{len(candidates)} < {per_stratum}"
+                    f"{len(candidates)} < {quota}"
                 )
-            selected = candidates[:per_stratum]
+            selected = candidates[:quota]
             cases.extend(selected)
             strata_counts[f"{domain}/{bucket}"] = len(selected)
 
@@ -94,7 +138,7 @@ def freeze_doc2dial_heldout(
         for document_id, document in sorted(docs_by_domain[domain].items())
     ]
     cases.sort(key=lambda item: str(item["id"]))
-    expected_count = len(DOMAINS) * len(LENGTH_BUCKETS) * per_stratum
+    expected_count = sum(quotas.values())
     if len(cases) != expected_count or len({item["group_id"] for item in cases}) != len(
         cases
     ):
@@ -102,7 +146,7 @@ def freeze_doc2dial_heldout(
 
     write_dataset(
         output,
-        dataset_id=DATASET_ID,
+        dataset_id=dataset_id,
         documents=documents,
         cases=cases,
         source={
@@ -113,7 +157,7 @@ def freeze_doc2dial_heldout(
             "official_split": "test",
             "locale": "en",
             "selection_profile": "conversation-domain-length-balanced-v1",
-            "selection_seed": SELECTION_SEED,
+            "selection_seed": selection_seed,
             "selection_policy": (
                 "one maximum-history answerable turn per conversation; "
                 "SHA-256 order within domain/document-length stratum"
@@ -126,12 +170,15 @@ def freeze_doc2dial_heldout(
             "strata_counts": strata_counts,
             "grounding_granularity": "character-span",
             "corpus_policy": "all_official_documents",
-            "excluded_dataset": {
-                "dataset_id": str(excluded_dataset.manifest["dataset_id"]),
-                "cases_sha256": str(excluded_dataset.manifest["cases_sha256"]),
-                "group_count": len(excluded_groups),
-                "group_ids_sha256": _text_sha256("\n".join(sorted(excluded_groups))),
-            },
+            "excluded_datasets": [{
+                "dataset_id": str(dataset.manifest["dataset_id"]),
+                "cases_sha256": str(dataset.manifest["cases_sha256"]),
+                "group_count": len({case.group_id for case in dataset.cases}),
+            } for dataset in excluded_datasets],
+            "excluded_group_count": len(excluded_groups),
+            "excluded_group_ids_sha256": _text_sha256(
+                "\n".join(sorted(excluded_groups))
+            ),
         },
     )
     return RagDataset.load(output, verify_checksum=True)
@@ -200,9 +247,11 @@ def _maximum_history_case(
     }
 
 
-def _selection_key(case: Mapping[str, Any]) -> tuple[str, str]:
+def _selection_key(
+    case: Mapping[str, Any], selection_seed: str,
+) -> tuple[str, str]:
     case_id = str(case["id"])
-    return _text_sha256(f"{SELECTION_SEED}\0{case_id}"), case_id
+    return _text_sha256(f"{selection_seed}\0{case_id}"), case_id
 
 
 def _load_member(archive: Path, member: str) -> Mapping[str, Any]:
