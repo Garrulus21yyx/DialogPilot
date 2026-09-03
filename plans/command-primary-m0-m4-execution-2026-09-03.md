@@ -106,8 +106,10 @@ Status: `IN_PROGRESS — READ-ONLY STICKY VERTICAL SLICE COMPLETE`
   without legacy Intent, message-keyword tier selection, or business tools.
 - [ ] Load a non-empty canonical ServiceEpisode evaluation corpus, then build
   and activate its BGE-M3 generation before the Memory benchmark. The current
-  local canonical owner has zero episodes, so an empty generation is not
-  presented as readiness evidence.
+  local canonical owner has zero episodes. This is explicitly
+  `BLOCKED_BY_MISSING_CASE_OWNER_FACT`: Ticket lacks an authenticated accepted
+  resolution/outcome plus dereferenceable source turns, so an empty or
+  synthetic-reference generation is not presented as readiness evidence.
 - [ ] Replace the temporary selective legacy candidate adapter with the frozen
   Encoder → LLM command producer after its component gate passes.
 
@@ -353,6 +355,12 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   episodes with a real Case Owner acceptance receipt and resolvable source
   events. It remains valid for canonical commit/projection/generation smoke,
   but no production Memory retrieval score will be reported from it.
+- 2026-09-03: The upstream blocker was localized to the Case Owner rather than
+  retrieval. Ticket persistence has status and free-text notes but no
+  authenticated accepted resolution/outcome or dereferenceable source-turn
+  binding. The next production Memory step therefore requires one real
+  accepted case lifecycle before projection; no adapter or benchmark fixture
+  is allowed to manufacture that fact.
 - 2026-09-03: The locked `dp-screen-03` asset ran through the real local
   Tesseract 5.5.0 provider. Trigger, artifact, consumption, and outcome all
   passed; one OCR call produced grounded page-level provenance and all declared

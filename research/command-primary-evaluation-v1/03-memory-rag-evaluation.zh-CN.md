@@ -1,6 +1,6 @@
 # Memory RAG 迁移与评测
 
-状态：`DRAFT_FOR_IMPLEMENTATION`
+状态：`PUBLIC_SESSION_DEV_COMPLETE — PRODUCTION_EPISODE_BLOCKED_BY_OWNER_FACT`
 目标：将每轮状态恢复与长期记忆检索彻底分开，并分别验证 ServiceEpisode、Commitment 和可选 Preference 的事实语义、检索目的与安全边界。
 
 ## 1. 最重要的概念分离
@@ -255,6 +255,26 @@ production_service_episode_semantics=NOT_EVALUATED
 - 可回溯 source evidence/provenance；
 - tenant/user/entity/time 范围；
 - 一个真实 BGE-M3 immutable generation。
+
+当前这条线不是被 embedding、PostgreSQL 或 evaluator 阻塞，而是缺少上游权威
+事实。生产 Ticket 目前只有 status、actor 和自由文本 note；没有由认证 Case
+Owner 原子接受的 resolution/outcome，也没有可反查的 source turn refs。
+因此已有 synthetic receipt/event 字符串只能证明 transport，不能作为生产
+ServiceEpisode 语料。
+
+最小解锁条件是一条真实生命周期记录：
+
+```text
+authenticated Case Owner accepts resolution/outcomes
+→ same-subject source turn refs can be dereferenced
+→ ServiceEpisode canonical commit
+→ BGE-M3 generation rebuild/activate
+→ same authenticated subject retrieves the episode
+```
+
+在这条事实存在前，本线状态保持
+`BLOCKED_BY_MISSING_CASE_OWNER_FACT`，不新增适配器去猜 resolution，也不把
+LoCoMo/LongMemEval 写入生产 owner。
 
 LoCoMo 可以给 embedding/fusion 方向性参考，不能直接冻结
 `memory-reference-resolution-v1` 或 `memory-historical-evidence-v1` 的生产阈值。
