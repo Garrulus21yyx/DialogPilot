@@ -81,8 +81,11 @@ class BoundedTargetUnderstanding:
         order_id = str(fields.get("order_id") or (identifiers[0] if identifiers else ""))
         asset_id = str(fields.get("asset_id") or "")
 
-        product_signal = bool(asset_id) or any(
-            token in lowered for token in ("型号", "商品", "product", "model")
+        product_identification_signal = bool(asset_id) or any(
+            token in lowered for token in (
+                "识别这张", "识别图片", "图里是什么", "图片型号",
+                "identify this", "identify the product",
+            )
         )
         refund_signal = any(
             token in lowered for token in ("退款", "退掉", "退货", "refund")
@@ -192,7 +195,7 @@ class BoundedTargetUnderstanding:
                 ("order.current_state",),
                 tool_id="order_lookup",
             ))
-        if product_signal and asset_id:
+        if product_identification_signal and asset_id:
             commands.append(CommandProposal(
                 "product-identification",
                 CommandKind.RUN_SKILL,
@@ -223,7 +226,7 @@ class BoundedTargetUnderstanding:
                 "ORDER_ID_REQUIRED",
                 ("order_id",),
             )
-        if product_signal and not asset_id:
+        if product_identification_signal and not asset_id:
             return TurnProposal(
                 ProposalDisposition.CLARIFY,
                 (),

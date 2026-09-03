@@ -25,6 +25,7 @@ _GOALS = {
     "execute_refund",
     "invoice_qa",
     "product_identification",
+    "product_qa",
     "human_handoff",
 }
 _MISSING_FIELDS = {"order_id", "asset_id", "customer_service_goal"}
@@ -199,6 +200,14 @@ class StructuredTargetCommandRouter:
                 "Identify the product from supplied media",
                 (ArgumentValue.create("asset_id", asset_id),),
                 ("product.canonical_model",), skill_id="product_identification",
+            )
+        if kind == "product_qa":
+            registry.skill("product_qa")
+            return CommandProposal(
+                goal_id, CommandKind.RUN_SKILL, "product_technical",
+                "Answer a product question from governed product evidence",
+                (ArgumentValue.create("question", text),),
+                ("knowledge.active_source",), skill_id="product_qa",
             )
         if kind == "invoice_qa":
             registry.skill("invoice_qa")

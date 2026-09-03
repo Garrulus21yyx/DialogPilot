@@ -51,9 +51,9 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
             ("media_read", "catalog_search"), CapabilityRisk.MEDIUM, profile.ref,
         ),
         _skill(
-            "product_specification_qa", "product_technical",
-            "Answer product specification and installation questions",
-            ("product_id",), ("knowledge.active_source",), ("knowledge_search",),
+            "product_qa", "product_technical",
+            "Answer product questions from governed catalog and knowledge evidence",
+            ("question",), ("knowledge.active_source",), ("knowledge_search",),
             CapabilityRisk.LOW, profile.ref,
         ),
         _skill(
@@ -77,7 +77,7 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
         _agent(
             "product_technical",
             ("media_read", "catalog_search", "knowledge_search"),
-            ("product_identification", "product_specification_qa"),
+            ("product_identification", "product_qa"),
             profile.ref,
         ),
         _agent("order_logistics", ("order_lookup",), (), profile.ref),

@@ -23,6 +23,7 @@ class AnthropicTargetSemanticProvider:
                 "status is resolved, insufficient_context, or out_of_scope. "
                 "For resolved, goals is a list of {goal_id,kind,order_id?,asset_id?}; "
                 "kind must come from supported_goals. Never invent entity values. "
+                "Product categories and attributes are evidence filters, not goal kinds. "
                 "For insufficient_context, missing_fields must use the supplied schema."
             ),
             messages=[{

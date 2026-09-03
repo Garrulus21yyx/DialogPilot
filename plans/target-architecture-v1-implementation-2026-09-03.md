@@ -67,7 +67,7 @@
 | 14B | done | Target Skill/Command Encoder dataset, class-scoped calibration, heldout gate and public fast-path binding | 91 Target tests; reproducible training; real HTTP/PostgreSQL Encoder bypass | this stage commit |
 | 15 | done | Target-native evaluation funnel, capability-scoped gates, observability and architecture/runbook convergence | 96 Target tests; repository 1148 passed / 6 unrelated dirty-RAG failures | this stage commit |
 | 16A | done | Separate logistics, refund policy, refund eligibility and invoice read commands from refund execution | unit contracts plus real HTTP/PostgreSQL read-path E2E | this stage commit |
-| 16B | in progress | Versioned installation compatibility authority and Product-domain assessment Skill | pending | pending |
+| 16B | done | Generic Product QA task contract; category and attributes remain evidence data rather than Skill identities | 93 Target tests including real PostgreSQL/HTTP boundaries | this stage commit |
 
 ## Stage record
 
@@ -131,6 +131,10 @@
   persisted response-level evaluation traces, and an operational runbook.
 - Stage 16A: read-only logistics, refund policy, refund eligibility and invoice
   command bindings; refund eligibility queries no longer start refund workflows.
+- Stage 16B: one task-level `product_qa` capability shared across product
+  categories; category names and category-specific attributes remain catalog/RAG
+  evidence rather than global router fields, Skill identities, or fixed missing-input
+  schemas.
 
 ## Scope correction after executable-core review
 
@@ -293,3 +297,29 @@ continuation.
   `PREPARE_WORKFLOW` mutation for `execute_refund:v1`.
 - Structured goals cannot invent an order ID. Real ASGI/PostgreSQL tests cover the
   eligibility, policy and invoice paths and retain the shortest execution shapes.
+
+## Stage 16B verification notes
+
+- Root cause corrected: an installation example had leaked category-specific fields
+  (`wall_material`, installation width and wet-area constraints) into the global
+  semantic router, capability registry, Product Catalog owner and tool contract.
+  Those uncommitted specializations were removed together rather than retained as
+  a category Skill layer.
+- The Product domain now exposes task-level `product_identification` and
+  `product_qa` Skills. Keyboard compatibility, apparel sizing and camera-network
+  questions compile to the same `product_qa` WorkItem and governed
+  `knowledge_search` evidence path.
+- Product category and arbitrary category attributes are retrieval/catalog data.
+  A new category does not require a Router goal, Agent, Skill, missing-input field,
+  or tool registration. A distinct Skill remains justified only by a different
+  reusable execution contract; a Flow remains justified by controlled cross-turn
+  state or side effects.
+- The bounded path now reserves missing-media clarification for actual image
+  identification language. Generic Product questions defer to structured semantic
+  routing instead of being recast as identification requests.
+- The complete Target suite passed 93 tests, including real ASGI/PostgreSQL state,
+  write, Product upload, orchestration and publication boundaries.
+- The repository-wide suite passed 1156 tests and retained the same 6 failures from
+  the unrelated uncommitted RAG-policy migration: the policy producer emits
+  `expansion_query_weight`, `query_expansion_count` and `metadata_hint_weight`, while
+  the legacy `AgentBundle` consumer does not yet admit those keys.
