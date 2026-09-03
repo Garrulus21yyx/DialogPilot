@@ -1,6 +1,6 @@
 # Knowledge RAG 迁移与评测
 
-状态：`DEV_CHUNK_FUSION_QUERY_PACKING_SELECTED — HELDOUT_NOT_RUN`
+状态：`ENGLISH_HELDOUT_FIXED_BASELINE_COMPLETE — PRODUCTION_NOT_PROMOTED`
 目标：在真实 PostgreSQL FTS/pgvector、版本固定的多语言 Dense 模型和生产 EvidencePack 上重新建立可复现基线；保留既有 Chunk、CrossEncoder 与 Parent 实验作为历史证据。
 
 ## 1. 在线职责
@@ -190,8 +190,8 @@ Parent/Window 仅在至少 30 个 loss witness 中，“正确 anchor 已命中�
 | long `>=8000` | 71 | `57/71=.8028` | `.8028` | `.4380` |
 
 这是 consumed Dev 的 candidate 诊断；它没有显示 long slice 特别退化，因此
-不为“再看一次长文”重跑旧父子实验。正式英文 heldout 可从本地官方
-Doc2Dial test archive 中排除已消费 conversation 后机械冻结，无需人工 Gold。
+不为“再看一次长文”重跑旧父子实验。后续英文 heldout 已从官方 Doc2Dial
+test archive 中排除已消费 conversation 后机械冻结，无需人工补写 Gold。
 
 ## 7. 调参顺序
 
@@ -414,9 +414,48 @@ Candidate@20 的 `.8333`，Top-5 选择本身损失 `18.75pp`。Top-8 虽在打�
 Candidate→Top-5 选择，不是 Parent，也不是 2600-budget packing。该结果仍是
 `VIEWED_DEV_SELECTION_PACKING`，`promotion_allowed=false`。
 
-下一步是在冻结的、conversation-isolated 英文 heldout 上复测完整候选与
-packing baseline；中文/code-switch 先完成项目 Trigger/Consumption 合同。
-只有前述 reranker 或 Parent 触发条件成立，才分别开启对应实验。
+固定配置随后在 conversation-isolated 的 Doc2Dial 英文 heldout 上只运行一次。
+该数据集来自官方 v1.0.1 test archive，archive SHA-256 为
+`94499fa5…152dc23`；索引全部 488 篇文档，而不是按 Gold 选择语料。120 条
+case 分属 120 个独立 conversation，并按 4 个 domain × 3 个文档长度桶 × 10
+机械冻结；与此前 Doc2Dial diagnostic conversation 的交集为 0。固定链为：
+
+```text
+live standalone rewrite（每 case 最多一次）
+→ 有效改写使用 standalone；相同/空/错误使用 raw
+→ fixed-512/64 + pinned BGE-M3 Dense Top-40
+→ Candidate Top-20
+→ identity/no-rerank Top-5
+→ ContextPacker 2600
+→ EvidencePack
+```
+
+120/120 retrieval 为 `OK`，system failure 为 0；120 次 rewrite 均有唯一
+provider request ID，51 次产生有效 standalone，69 次按生产合同使用 raw
+fallback，provider error 为 0。固定结果如下：
+
+| 阶段 | All-evidence | Evidence R | Document R | MRR | nDCG |
+|---|---:|---:|---:|---:|---:|
+| Candidate@20 | `78/120=.6500` | `.6500` | `.7333` | `.3951` | `.4556` |
+| Identity Top-5 | `65/120=.5417` | `.5417` | `.6250` | `.3815` | `.4215` |
+| Packed Top-5/2600 | `65/120=.5417` | `.5417` | `.6250` | `.3815` | `.4215` |
+
+Packing helpful/harmful 均为 0，mean/P95 context tokens 为 `2203/2560`；
+Candidate→Top-5 损失 `10.83pp`。Packed All-evidence 的长度切片为 short
+`.625`、medium `.475`、long `.525`；domain 切片为 DMV `.4333`、SSA
+`.6333`、StudentAid `.6000`、VA `.5000`。rewrite P95 为 `1049.5ms`，
+retrieval P95 为 `34.08ms`。
+
+三件运行产物的 SHA-256 分别为：manifest `bacd368f…0e34`、predictions
+`6204badc…ad8`、report `7181a08e…23b`。独立复核重新校验了 488 篇文档、
+211 个 Gold span、每条路由与全部指标，结果零不一致；专用评测数据库已删除。
+
+这是 `HELDOUT_FIXED_BASELINE`，不是发布通过。viewed Dev 的 `.8333` 没有在
+heldout 上复现，当前也没有同一 120-case 的 legacy paired baseline，因此不能
+宣称非劣或提升。Candidate Recall 仍低于预声明的 `.95` reranker 触发前提，
+本地 BGE reranker artifact 也不完整；Parent 的边界碎片条件同样没有成立。
+因此本轮既不追加 reranker，也不追加 Parent。下一步是中文/code-switch 的
+独立数据准备，以及在不改配置的前提下做 Trigger/Consumption 与 E2E 验证。
 
 实际调用必须从 retriever result、Stage 与 E2E audit 读取；Evaluator adapter 不得临时建立另一套内存检索链拿分。
 

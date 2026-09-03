@@ -296,6 +296,14 @@ Encoder accepted precision 使用适当的二项置信区间下界；样本不�
 
 不同 benchmark 不能拼成一个平均 Accuracy。
 
+当前已完成的独立组件基线只有 Knowledge 英文 heldout：官方 Doc2Dial test
+中机械冻结 120 个互不重复的 conversation，固定配置下 Candidate@20
+All-evidence 为 `78/120=.6500`，Packed Top-5/2600 为 `65/120=.5417`，
+120/120 retrieval 为 `OK`。这是一项 `HELDOUT_FIXED_BASELINE`，没有与
+legacy 做同集 paired comparison，也尚未覆盖中文/code-switch、生成 grounding
+或 E2E Trigger/Consumption，因此状态是“已测基线、未晋级”，不能与 Intent、
+Memory、Media 或完整 80 条合同合成一个总分。
+
 ### Layer D：成本
 
 只有 A–C 合格后才用于选择：

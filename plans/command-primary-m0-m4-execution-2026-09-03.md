@@ -132,7 +132,9 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 - [x] Add a dedicated PostgreSQL raw-query candidate runner that records the
   real BGE-M3 generation and explicitly excludes rewrite, rerank, parent
   expansion, packing, generation, and judge stages.
-- [ ] Run component heldout only after lane-specific freeze.
+- [x] Run the fixed Knowledge component baseline once on a mechanically frozen,
+  conversation-isolated English Doc2Dial heldout after the Dev configuration
+  freeze; keep Memory and official Media heldout separately not run.
 - [x] Run all four predeclared Knowledge chunk profiles on the already-viewed
   Doc2Dial heldout only as `DIAGNOSTIC_ONLY`; do not use those results to choose
   a configuration.
@@ -473,6 +475,13 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   cases ran `10/10` through the real provider with `10/0` calls/errors and no
   Knowledge, Media, or Tool invocation. This proves one composition slice, not
   a full `x/80` score.
+- 2026-09-03: The frozen Knowledge baseline ran once on 120 independent
+  Doc2Dial test conversations and all 488 official documents. All 120
+  retrievals were `OK`; Candidate@20 All-evidence was `78/120=.6500` and
+  Packed Top-5/2600 was `65/120=.5417`, with zero packing harm. An independent
+  review reproduced all 211 Gold-span bindings and report metrics. This is an
+  English `HELDOUT_FIXED_BASELINE`, not production promotion: it has no paired
+  legacy result, no Chinese/code-switch score, and no generation/E2E gate.
 
 ## Commit log
 
@@ -526,3 +535,4 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 - Accepted Case Owner to ServiceEpisode projection: `46734c0`.
 - Accepted resolution API and explicit projection drain: `2b7f5ff`.
 - Structured clarification production composition: `9854b54`.
+- Fixed English Knowledge heldout baseline: `193ede1`.
