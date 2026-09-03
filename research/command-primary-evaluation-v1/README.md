@@ -33,7 +33,7 @@
 |---|---|---|
 | Intent | state-first planner、Registry、selective producer、严格结构化 LLM command producer、历史 V1/V2 | 旧 9 类 artifact 不能充当 Command/Flow 头；需新标注、真实 artifact、校准与 heldout 门禁 |
 | Knowledge | raw Dense/FTS 输入已分离；同一 provider/profile；本地 BGE-M3 generation 与四组 candidate 诊断已跑通 | 必须在 Doc2Dial Dev 选 Chunk，再调融合/查询/选择；不得用已查看 heldout 选参 |
-| Memory | Turn State 已与 ServiceEpisode 检索分离；Dense projection、两套 purpose policy、generation manager 已接通 | 需 owner-valid 非空 ServiceEpisode corpus；LoCoMo/LongMemEval 另测会话 session retrieval，不伪装 production Episode |
+| Memory | Turn State 与 ServiceEpisode 已分离；Dense/purpose/generation 已接通；LoCoMo session baseline 已跑通 | 需 owner-valid 非空 ServiceEpisode corpus；公开线还需 BGE/RRF 与 LongMemEval S-cleaned frozen test |
 | Multimodal | 显式 routing probe、asset/evidence 合同、task-owned 单资产 L1 command-primary 消费链 | L2、多资产、跨轮复用、PDF/layout 与 page/region retrieval 尚未闭环 |
 | E2E | 真实 `ChatApplication.handle()` 已跑通 Knowledge、sticky read-only 和 L1 transport 切片 | 80 条合同仍为 `NOT_RUN`；Intent/Media 门禁、Shadow 与 τ³ bridge 尚未完成 |
 

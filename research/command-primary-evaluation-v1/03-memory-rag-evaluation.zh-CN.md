@@ -295,6 +295,15 @@ official session JSON
 它只复用 embedding、lexical、RRF 和评分基础设施，不调用
 `PostgresServiceEpisodeRepository.commit()`，也不改 production active generation。
 
+当前第一条公开入口是 `scripts/run_locomo_session_eval.py`。它固定
+LoCoMo revision `3eb6f2c585f5e1699204e3c3bdf7adc5c28cb376` 和源文件
+SHA-256 `79fa87e90f04081343b8c8debecb80a9a6842b76a7aa537dc9fdf651ea698ff4`，
+只支持 `conv-26/category=4` 这个正向切片：19 个 session documents、70 个
+single-hop questions。它使用明确标注的 token-overlap baseline 证明
+adapter→retrieval→grader 可运行，当前 `Recall-all@5=.9143`、`MRR=.7681`；
+该数字不是 BGE/RRF 选参结论，也不是 ServiceEpisode 分数。临时产物不含
+原始对话文本，原数据不提交到仓库。
+
 ## 11. 通过条件
 
 - 每轮状态恢复不再隐式触发 ServiceEpisode RAG；

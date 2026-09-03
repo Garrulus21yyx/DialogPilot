@@ -114,6 +114,8 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 
 - [x] Add the shared three-artifact eval schema and Understanding direct runner.
 - [x] Add Knowledge, Memory, and Media direct adapters/runners.
+- [x] Add a benchmark-only LoCoMo session retrieval adapter and baseline without
+  writing public conversations into the production ServiceEpisode owner.
 - [x] Add invocation/consumption/state-transition assertions.
 - [x] Add a dedicated PostgreSQL raw-query candidate runner that records the
   real BGE-M3 generation and explicitly excludes rewrite, rerank, parent
@@ -122,7 +124,7 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 - [x] Run all four predeclared Knowledge chunk profiles on the already-viewed
   Doc2Dial heldout only as `DIAGNOSTIC_ONLY`; do not use those results to choose
   a configuration.
-- [ ] Select the Knowledge chunk profile on untouched Doc2Dial Dev using the
+- [ ] Select the Knowledge chunk profile on the designated Doc2Dial Dev using the
   predeclared All-evidence → Evidence Recall ordering.
 - [x] Run one positive contract through the real `ChatApplication.handle()`.
 - [x] Prove the existing L1 media transport through the real chat lifecycle;
@@ -308,6 +310,12 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   not be written to the ServiceEpisode owner. LongMemEval oracle is reserved
   for reader/consumption because its answer sessions are already supplied;
   distractor retrieval requires the cleaned S/M corpus.
+- 2026-09-03: The first benchmark-only LoCoMo slice ran the pinned
+  `conv-26/category=4` source as 19 session documents and 70 single-hop cases.
+  The explicit token-overlap transport baseline produced
+  `Recall-all@5=.9143` and `MRR=.7681`, with three standard artifacts and no raw
+  conversation text in predictions. It is not a ServiceEpisode score or a
+  BGE/RRF selection result.
 
 ## Commit log
 
@@ -344,3 +352,4 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 - CI PostgreSQL service with pgvector: `99af3cf`.
 - Structured Registry-backed LLM command producer: `6c62aca`.
 - CI command-artifact test dependencies: `fc58f93`.
+- LoCoMo benchmark-session baseline: `bba8efb`.
