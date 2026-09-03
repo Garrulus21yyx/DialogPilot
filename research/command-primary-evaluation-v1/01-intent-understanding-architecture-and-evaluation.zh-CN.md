@@ -1,6 +1,6 @@
 # Intent / TurnUnderstanding 架构、迁移与评测
 
-状态：`DRAFT_FOR_IMPLEMENTATION`
+状态：`IMPLEMENTED_PARTIALLY — REAL COMMAND ARTIFACT NOT FROZEN`
 目标：将旧的“首句 → 单 intent → 下游执行”改造成 state-first、selective、command-primary 的入口理解链；保留旧 Intent 作为后置兼容投影。
 
 ## 1. 最终结论
@@ -83,23 +83,22 @@ source watermarks + availability
 
 ## 5. Deterministic Command Compiler
 
-只允许处理有确定协议或状态绑定的情况：
+这一层不从自由文本做业务语义分类，只消费已经存在的协议或状态绑定：
 
-- 纯问候、感谢；
-- 唯一 pending slot 的合法回复；
-- 绑定了 signal ID/version 的 approval/resume；
-- 唯一 active flow 的明确 continuation；
-- 唯一、可取消目标的明确 cancel；
-- 无否定、引用或条件歧义的明确 handoff；
-- 明确安全中断。
+- 唯一 pending slot 的 flow-owned 值解析；
+- 带 signal ID/version 的 approval/resume 协议请求；
+- 客户端明确发送的 cancel/handoff/control command；
+- admission/idempotency 已绑定的 resume target。
 
-非法或多义情况必须返回 `UNRESOLVED` 或 `AMBIGUOUS`。例如“不要转人工”不得因命中“转人工”而创建 Handoff；“取消刚才那个”在存在两个 pending operation 时必须澄清。
+“还是没到账”、“不要转人工”、“取消刚才那个”即使对人来说很明确，也仍然是自然语言理解问题。active flow 用来缩小候选和提供粘性，不能单凭“只有一个 active flow”就机械推出 continuation。这些输入进入 Encoder/LLM，而不是通过中英文关键词表扩充“确定性”。
 
-确定性 continuation 的依据表示为：
+当前代码的机械正向路径是 `PendingSlotResolver`；其余输入统一 `DEFER`。
+
+确定性命令的依据表示为：
 
 ```text
 decision_source = PINNED_WORKFLOW_STATE
-resolution_basis = PENDING_SIGNAL_BINDING | UNIQUE_ACTIVE_FLOW
+resolution_basis = PENDING_SLOT_BINDING | EXPLICIT_RESUME_BINDING | CLIENT_CONTROL_BINDING
 semantic_confidence = null
 ```
 
@@ -144,6 +143,18 @@ Encoder 第一版只负责：
 - 仍需轻量语义确认的低风险 continuation。
 
 写操作、安全、多 flow 和 underpowered 类别一律 `DEFER`。
+
+### 7.1 现有 Encoder artifact 的处置
+
+以前的 `classifier.joblib` 可以作历史 baseline 和训练方法参考，但不能接入新 fast path：
+
+- 它预测 9 类旧 Intent，不是 `command_kind + flow_id@version`；
+- `refund` 没有分开政策、状态和执行，`other` 没有分开 OOS 和信息不足；
+- `0.522578` 是 raw softmax 的全局 cutoff，不是校准后的正确概率；
+- 该阈值的 accepted precision 在 heldout / verification / 中文诊断上分别为 `97.07% / 96.15% / 95.71%`；
+- 即使改用历史严格阈值 `0.892519`，verification 的 `180/180` 对应单侧 95% 置信下界仍约为 `98.35%`，不足以开放 99% gate。
+
+新 artifact 必须直接预测 Registry candidate，并固定：BGE revision/digest、input renderer version、Registry fingerprint、candidate-to-command mapping、候选级 calibrator/threshold 和数据 checksum。`__DEFER__` 只表示不走 fast path，不是 OOS 类别。
 
 ## 8. LLM Command Router
 
@@ -297,7 +308,7 @@ MASSIVE zh-CN、BANKING77、CLINC150 只证明闭集/OOS 分类能力；它们�
 5. Encoder/LLM 统一输出 CommandProposal；
 6. RoutePolicy 与 TurnPlanCompiler 分离；
 7. Authority、risk、tool、Knowledge trigger 脱离旧 intent；
-8. CapabilityDecision/Trace 从真实生产 Owner 发出；
+8. 实际调用、跳过和消费记录从真实运行 Owner 发出；
 9. 新链 Shadow 且零副作用；
 10. 通过 legacy-intent 静态依赖与动态不变量门禁。
 
@@ -305,7 +316,7 @@ MASSIVE zh-CN、BANKING77、CLINC150 只证明闭集/OOS 分类能力；它们�
 
 ## 15. 产物与通过条件
 
-组件 runner：`run_understanding_eval.py`。每次输出 manifest、case results、CapabilityTrace 和 report。
+当前组件入口是 `evaluation/command_primary_eval/understanding.py` 和 `selective_adapter.py`，复用同一 `DirectRunner`。每次固定输出 `manifest.json`、`predictions.jsonl` 和 `report.json`，并分开记录 Trigger、Artifact、Consumption、Outcome 与 Cost。在生产运行时尚未有统一 trace owner 之前，不为了报表再造一个无消费者的 trace 模块。
 
 发布选择采用字典序：
 
