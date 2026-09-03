@@ -20,6 +20,7 @@ from application.deterministic_resolution import (
 )
 from application.orchestration_runtime import OrchestrationRuntime
 from application.result_board import ResultBoardSnapshot
+from application.agent_result import AgentResultStatus
 from application.turn_planning import (
     MutationApplyStage,
     RoutePolicy,
@@ -127,6 +128,7 @@ class TargetConversationManager:
                 "conv_id": str(invocation.conversation_id),
             },
         )
+        state = self._apply_successful_workflows(state, plan, board)
         return ManagedTurnResult(
             state_before,
             state,
@@ -135,6 +137,40 @@ class TargetConversationManager:
             board,
             thread_id,
         )
+
+    def _apply_successful_workflows(
+        self,
+        state: ConversationState,
+        plan: TurnPlan,
+        board: ResultBoardSnapshot,
+    ) -> ConversationState:
+        if plan.transitions is None or plan.work is None:
+            return state
+        results = {item.work_item_id: item for item in board.results}
+        for mutation in plan.transitions.mutations:
+            result = results.get(mutation.bound_work_item_id)
+            if result is None or result.status is not AgentResultStatus.SUCCEEDED:
+                continue
+            stream = next(
+                item for item in state.workstreams
+                if item.workstream_id == mutation.workstream_id
+            )
+            next_state = state.complete_workstream(
+                stream.workstream_id,
+                expected_version=stream.state_version,
+            )
+            self._persist(state, next_state)
+            state = next_state
+            handoff_receipt = next((
+                receipt for receipt in result.action_receipts
+                if receipt.requirement_id == "support.handoff_action"
+                and receipt.effect_status == "COMMITTED"
+            ), None)
+            if handoff_receipt is not None:
+                next_state = state.transfer_to_human(handoff_receipt)
+                self._persist(state, next_state)
+                state = next_state
+        return state
 
     def _apply_deterministic(
         self,

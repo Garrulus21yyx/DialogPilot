@@ -133,6 +133,7 @@ class TargetChatApplication:
                 f"Target runtime failed closed: {type(exc).__name__}",
             )
 
+        handoff_receipt = None
         if managed.plan.work is None:
             disposition = managed.plan.route.mode.value
             response_text = _terminal_response(managed.plan.route.reason_code)
@@ -173,6 +174,13 @@ class TargetChatApplication:
             ]
             facts = board.facts
             missing = list(board.missing_requirement_ids)
+            handoff_receipt = next((
+                receipt
+                for result in board.results
+                for receipt in result.action_receipts
+                if receipt.requirement_id == "support.handoff_action"
+                and receipt.effect_status == "COMMITTED"
+            ), None)
 
         evidence_sha = hashlib.sha256(json.dumps(
             [
@@ -210,7 +218,7 @@ class TargetChatApplication:
                 "complete": verifier_status == "PASS",
                 "missing_requirement_ids": missing,
             },
-            "escalated": False,
+            "escalated": handoff_receipt is not None,
             "latency_ms": (time.monotonic() - started) * 1000,
             "verification_status": verifier_status.lower(),
             "verified": verifier_status == "PASS",
@@ -220,6 +228,16 @@ class TargetChatApplication:
                 if verifier_status == "PASS" else "TARGET_RESULT_INCOMPLETE"
             ),
             "bundle_version": self._bundle_version,
+            "ticket_id": (
+                handoff_receipt.receipt_id
+                if handoff_receipt is not None else None
+            ),
+            "ticket_status": (
+                "open" if handoff_receipt is not None else None
+            ),
+            "handoff_created": bool(
+                handoff_receipt is not None
+            ),
         }
         published = self._publication.publish(
             identity,
@@ -249,6 +267,16 @@ def _board_response(board) -> str:
     sections = []
     for result in board.results:
         if result.status in {AgentResultStatus.SUCCEEDED, AgentResultStatus.PARTIAL}:
+            handoff = next((
+                receipt for receipt in result.action_receipts
+                if receipt.requirement_id == "support.handoff_action"
+                and receipt.effect_status == "COMMITTED"
+            ), None)
+            if handoff is not None:
+                sections.append(
+                    f"人工工单已创建，工单号：{handoff.receipt_id}。"
+                )
+                continue
             text = str(result.candidate_response or "").strip()
             if not text:
                 owned = [

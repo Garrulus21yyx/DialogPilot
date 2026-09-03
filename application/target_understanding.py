@@ -53,6 +53,11 @@ class BoundedTargetUnderstanding:
                 CommandKind.START_WORKFLOW,
                 "human_service",
                 "Create a human-service handoff ticket",
+                (
+                    ArgumentValue.create("summary", text),
+                    ArgumentValue.create("reason", "EXPLICIT_USER_HANDOFF"),
+                    ArgumentValue.create("priority", "normal"),
+                ),
                 requirement_ids=("support.handoff_action",),
                 flow_ref="human_handoff:v1",
                 action_ref="support.handoff.create:v1",

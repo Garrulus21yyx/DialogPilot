@@ -377,6 +377,19 @@ class ConversationState:
             status=WorkstreamStatus.CANCELLED,
         )
 
+    def complete_workstream(
+        self,
+        workstream_id: str,
+        *,
+        expected_version: int,
+    ) -> "ConversationState":
+        return self._transition_workstream(
+            workstream_id,
+            expected_version=expected_version,
+            status=WorkstreamStatus.COMPLETED,
+            phase="COMPLETE",
+        )
+
     def transfer_to_human(self, receipt: ReceiptRef) -> "ConversationState":
         if receipt.requirement_id != "support.handoff_action":
             raise ConversationStateError("receipt does not prove a handoff")
@@ -407,12 +420,14 @@ class ConversationState:
         *,
         expected_version: int,
         status: WorkstreamStatus,
+        phase: str | None = None,
     ) -> "ConversationState":
         current = self._workstream(workstream_id)
         if current.state_version != expected_version:
             raise ConversationStateConflict("workstream version changed")
         updated = tuple(
-            item.transition(status) if item.workstream_id == workstream_id else item
+            item.transition(status, phase=phase)
+            if item.workstream_id == workstream_id else item
             for item in self.workstreams
         )
         # The aggregate owns every binding to a workstream version.  Invalidate

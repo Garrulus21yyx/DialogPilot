@@ -1,6 +1,7 @@
 """PostgreSQL admission/publication adapters for Target v1 `/chat`."""
 from __future__ import annotations
 
+import hashlib
 from datetime import datetime, timezone
 
 from application.admission_contract import (
@@ -17,6 +18,11 @@ from application.target_chat_application import (
 )
 from core.identity import InvocationIdentity
 from infrastructure.postgres_admission import PostgresAdmissionUnitOfWork
+
+
+_NO_INDEX_MANIFEST_SHA256 = hashlib.sha256(
+    b"dialogpilot:target:no-index-manifest:v1"
+).hexdigest()
 
 
 class PostgresTargetAdmission:
@@ -95,7 +101,7 @@ class PostgresTargetPublication:
                 },
                 "evidence_sha256": evidence_sha256,
                 "bundle_version": bundle_version,
-                "index_manifest_sha256": "not-applicable",
+                "index_manifest_sha256": _NO_INDEX_MANIFEST_SHA256,
                 "public_response": dict(public_response),
             },
         )

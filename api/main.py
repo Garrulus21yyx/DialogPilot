@@ -593,20 +593,22 @@ async def lifespan(app: FastAPI):
     from application.target_chat_application import TargetChatApplication
     from application.target_conversation_manager import TargetConversationManager
     from application.target_understanding import BoundedTargetUnderstanding
-    from infrastructure.langgraph_checkpoint import PostgresCheckpointOwner
+    from infrastructure.langgraph_checkpoint import AsyncPostgresCheckpointOwner
     from infrastructure.postgres_target_runtime import PostgresConversationStateStore
     from infrastructure.target_chat_adapters import (
         PostgresTargetAdmission,
         PostgresTargetPublication,
     )
     from infrastructure.target_tool_execution import TargetToolExecutor
+    from infrastructure.target_workflow_execution import TargetWorkflowExecutor
 
     target_registry = build_default_capability_registry(
         os.getenv("DEFAULT_TENANT_ID", "default")
     )
-    _target_checkpoint_owner = PostgresCheckpointOwner(database_url, setup=True)
-    target_checkpointer = _target_checkpoint_owner.__enter__()
+    _target_checkpoint_owner = AsyncPostgresCheckpointOwner(database_url, setup=True)
+    target_checkpointer = await _target_checkpoint_owner.__aenter__()
     target_tool_executor = TargetToolExecutor(_tool_manager)
+    target_workflow_executor = TargetWorkflowExecutor(_postgres_pool, _tool_manager)
     target_orchestration = OrchestrationRuntime(
         direct_executor=target_tool_executor,
         domain_workers={
@@ -615,6 +617,7 @@ async def lifespan(app: FastAPI):
             "order_logistics": target_tool_executor,
             "billing_refund": target_tool_executor,
             "account_security": target_tool_executor,
+            "human_service": target_workflow_executor,
         },
         checkpointer=target_checkpointer,
     )
@@ -815,7 +818,7 @@ async def lifespan(app: FastAPI):
             _retrieval_postgres_pool.close()
         _trace_recorder.close()
         if _target_checkpoint_owner is not None:
-            _target_checkpoint_owner.__exit__(None, None, None)
+            await _target_checkpoint_owner.__aexit__(None, None, None)
         if _postgres_pool is not None:
             _postgres_pool.close()
         # lifespan 结束后不留下指向已关闭资源的进程全局引用。

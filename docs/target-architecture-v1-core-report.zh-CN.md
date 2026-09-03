@@ -4,8 +4,8 @@
 
 ## 当前结论
 
-Target Architecture v1 的新核心合同和内存级执行闭环已经实现，但尚未切换
-`/chat` 主链。当前状态是“新核心可执行”，不是“迁移完成”。
+Target Architecture v1 已成为 `/chat` 的唯一编排主链，并完成真实 HTTP 与
+PostgreSQL 边界验证。当前状态是“有界 v1 主链已切换”，不是“所有规划能力均已开放”。
 
 已实现：
 
@@ -19,15 +19,18 @@ Target Architecture v1 的新核心合同和内存级执行闭环已经实现，
 - Ticket Receipt 驱动的人工作业权转移和唯一 Publication command；
 - Memory 理解补证一次上限，以及 Media reuse/OCR/VLM 选择；
 - capability-scoped fail-closed safety gate。
+- PostgreSQL event-backed ConversationState CAS 与 Operation Ledger；
+- LangGraph PostgreSQL async checkpointer（只保存执行位置）；
+- Target Admission、Publication 与 `/chat` 唯一组合入口；
+- Ticket Receipt 驱动的人工接管闭环。
 
-尚未实现：
+有意保持关闭或仍待后续实现：
 
-- 新 ConversationManager 对 `/chat` 的主链接管；
-- ConversationState 和 OperationLedger 的 PostgreSQL 实现；
-- LangGraph durable checkpointer；
-- 当前业务 ToolManager 到新 WorkItem Runtime 的正式适配；
-- 旧 command-primary、旧 AgentOrchestrator 和旧合同的删除；
-- 基于真实 PostgreSQL 和 HTTP API 的最终 E2E。
+- `execute_refund` 的显式确认/恢复写入链；当前只做资格预检，写工具 fail-closed；
+- 真正的 Encoder + Structured LLM fallback；当前是有界确定性理解器；
+- Product Media/Catalog 的生产适配器；E2E 使用受控工具替身验证编排边界；
+- 旧 command-primary、旧 AgentOrchestrator 和旧合同的物理删除。它们不再是
+  `/chat` 的运行时回退权威，但仓库中的其他测试/接口仍引用旧模块。
 
 ## 六条垂直场景
 
@@ -35,17 +38,25 @@ Target Architecture v1 的新核心合同和内存级执行闭环已经实现，
 |---|---|---|
 | 订单状态查询 | DIRECT | 只执行一次原子读取，不启动领域 Agent |
 | 商品识别 | 单领域 DELEGATED | 只启动 Product Agent，并使用注册 Skill 能力包络 |
-| 退款申请 | WORKFLOW | operation key、审批、Receipt、重复调用不产生第二次副作用 |
+| 退款申请 | 资格预检 | 未取得显式确认前不调用写工具；正式写入链仍保持关闭 |
 | 退款查询 + 商品问题 | MULTI_DOMAIN | 两个无依赖 Worker 同波并发 |
 | Product 失败、Refund 成功 | 部分失败 | Refund 结果保留，Product 保持 typed failure |
 | 用户要求人工 | WORKFLOW + Publication | 只有 Ticket Receipt 能转移会话 Owner 并宣称创建成功 |
 
-## 验证结果
+## 第 11 阶段验证结果
 
-- Target v1 专项测试：54 passed。
-- 仓库级回归（阶段 4 后）：926 passed、156 skipped、3 failed。
-- 3 个仓库级失败来自未提交 RAG policy 字段与旧 Bundle 白名单不一致，以及
-  stateful ticket 测试缺少 PostgreSQL URL；均不属于 Target v1 新代码路径。
+- Target v1 专项测试：68 passed。
+- 真实边界：1 个测试连续覆盖六场景，使用真实 ASGI `/chat`、PostgreSQL
+  Admission/Event/State/Operation/Publication 表和 async LangGraph checkpoint。
+- 订单路径断言为 `DIRECT`，没有派发领域 Agent；单领域任务只运行一个 Worker；
+  只有退款状态与商品识别两个独立任务使用 `MULTI_DOMAIN`。
+- 人工接管只有在 `support_ticket_create` 返回 committed Receipt 后才把会话 Owner
+  转成 HUMAN，并把 Workstream 收敛为 `COMPLETED/COMPLETE`。
+- 退款申请测试明确断言 `refund_request_create` 未被调用。
+- 仓库级回归：1120 passed、6 failed。6 个失败均由工作树中另一路未提交的
+  RAG 策略改动触发：默认 retrieval policy 已产生 `expansion_query_weight`、
+  `query_expansion_count`、`metadata_hint_weight`，但旧 `AgentBundle` 白名单尚未
+  接受这些字段；失败不经过 Target v1 新执行路径，本阶段未代替该工作修改或提交。
 
 ## 安全门禁语义
 
@@ -53,14 +64,12 @@ Target Architecture v1 的新核心合同和内存级执行闭环已经实现，
 `execute_refund`；`order_status` 和 `product_identification` 等无关能力继续运行。
 门禁结果必须保留失败 invariant 和 evidence reference，不能被聚合总分掩盖。
 
-## 下一步退出条件
+## 后续能力退出条件
 
-只有满足以下条件，Target Architecture v1 才能标记迁移完成：
+以下能力不能因主链切换而被误称为已完成：
 
-1. `/chat` 只经过新 ConversationManager；
-2. Conversation、Operation、Receipt 和 Publication 各有唯一 PostgreSQL Owner；
-3. LangGraph checkpoint 只保存执行位置，不替代业务事实；
-4. 旧主链和重复权威被删除；
-5. 六条场景通过真实 HTTP/PostgreSQL E2E；
-6. 专项测试、全量测试、文档和运行时声明一致。
-
+1. `execute_refund` 必须完成 eligibility → interaction/approval → resume → write →
+   reconcile 的真实 PostgreSQL E2E，才能开放写入；
+2. Product Media/Catalog 必须接入真实注册工具并验证来源/版本，才能离开测试替身；
+3. Encoder Fast Path 必须用 Accepted Precision/Coverage 验收后才能替换确定性规则；
+4. 删除旧模块前必须先迁移剩余消费者，不能通过在新主链增加兼容回退来掩盖。

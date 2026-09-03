@@ -6,6 +6,7 @@ from contextlib import AbstractContextManager
 from psycopg import Connection
 from psycopg.rows import dict_row
 from langgraph.checkpoint.postgres import PostgresSaver
+from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
 
 
@@ -66,6 +67,37 @@ class PostgresCheckpointOwner(AbstractContextManager):
         finally:
             self.checkpointer = None
             self._connection = None
+
+
+class AsyncPostgresCheckpointOwner:
+    """Async checkpoint lifecycle for graphs invoked through ``ainvoke``."""
+
+    def __init__(self, database_url: str, *, setup: bool = False) -> None:
+        if not str(database_url or "").strip():
+            raise ValueError("database_url is required")
+        self._database_url = database_url
+        self._setup = setup
+        self._context = None
+        self.checkpointer = None
+
+    async def __aenter__(self):
+        self._context = AsyncPostgresSaver.from_conn_string(
+            self._database_url,
+            serde=target_checkpoint_serializer(),
+        )
+        self.checkpointer = await self._context.__aenter__()
+        if self._setup:
+            await self.checkpointer.setup()
+        return self.checkpointer
+
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        try:
+            if self._context is not None:
+                return await self._context.__aexit__(exc_type, exc_value, traceback)
+            return None
+        finally:
+            self.checkpointer = None
+            self._context = None
 
 
 def checkpoint_thread_id(invocation_key: object) -> str:
