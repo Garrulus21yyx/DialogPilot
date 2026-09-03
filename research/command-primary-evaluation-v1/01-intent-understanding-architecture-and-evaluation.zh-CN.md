@@ -179,6 +179,23 @@ ActionDefinition、能编译成 Work 的 command；输出还必须通过
 `registry.action_for()` 才会成为 proposal。当前尚未将它设为默认生产
 producer，因为新 Encoder artifact 和 conversation-heldout 门禁还未完成。
 
+为了先验证正确性而不让未校准 Encoder 获得决策权，生产组装已提供
+显式 `COMMAND_PRIMARY_MODE=structured_knowledge_primary` 切片：
+
+```text
+state/deterministic
+→ AlwaysDeferCommandEncoder
+→ StructuredLLMCommandProducer
+→ RoutePolicy / Registry
+→ Knowledge Work
+→ ChatApplication publication lifecycle
+```
+
+该模式的 Encoder calibration 明确是 `not-applicable`；它只建立 LLM-only
+correctness baseline。真实 `ChatApplication.handle()` 正向测试已证明旧
+`recognize_intent()` 调用为 0。默认模式仍是 `off`，并未将该切片扩大到
+写操作、安全或全部 Flow。
+
 ## 9. RoutePolicy、TurnPlanCompiler 与 Approval
 
 `RoutePolicy` 只验证：

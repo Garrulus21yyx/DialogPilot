@@ -86,6 +86,9 @@ Status: `IN_PROGRESS — READ-ONLY STICKY VERTICAL SLICE COMPLETE`
 - [x] Add a strict Registry-backed LLM command producer and the existing
   observed Anthropic transport; keep default production wiring unchanged until
   the semantic quality gate passes.
+- [x] Add an explicit LLM-only correctness mode whose Encoder always defers;
+  prove one real Knowledge request without invoking legacy Intent while the
+  default runtime mode remains off.
 - [x] Add a pinned, local-only BGE-M3 provider with one truthful document/query
   embedding profile and no implicit hash fallback.
 - [x] Verify the configured local BGE-M3 weight artifact against its declared
@@ -299,6 +302,12 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   provider versus invalid-output outcomes. Risk, requirements, authority, and
   tools remain absent from its input/output authority. Adjacent suite:
   `13 passed`; Ruff, formatting, compile, and diff checks passed.
+- 2026-09-03: `structured_knowledge_primary` now composes an explicitly
+  uncalibrated always-defer Encoder with the structured LLM producer. A real
+  `ChatApplication.handle()` FAQ request invoked the provider once, invoked
+  legacy Intent zero times, and completed Registry compilation, Knowledge,
+  verification, Publication, Delivery, and Memory write. Default mode remains
+  `off`; adjacent root suite: `30 passed`.
 - 2026-09-03: A controlled heldout diagnostic ran all four predeclared chunk
   profiles with one BGE-M3 profile and candidate policy. Structure 384/48 led
   Evidence/Document Recall; fixed 512/64 led MRR/nDCG. Because the heldout was
@@ -353,3 +362,4 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 - Structured Registry-backed LLM command producer: `6c62aca`.
 - CI command-artifact test dependencies: `fc58f93`.
 - LoCoMo benchmark-session baseline: `bba8efb`.
+- Structured command correctness runtime: `81f2271`.
