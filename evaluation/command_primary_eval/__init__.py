@@ -13,6 +13,9 @@ from evaluation.command_primary_eval.understanding import (
     UnderstandingDirectResult,
     UnderstandingDirectRunner,
 )
+from evaluation.command_primary_eval.selective_adapter import (
+    SelectiveUnderstandingAdapter,
+)
 
 __all__ = [
     "CheckResult",
@@ -22,6 +25,7 @@ __all__ = [
     "Prediction",
     "Report",
     "RunManifest",
+    "SelectiveUnderstandingAdapter",
     "UnderstandingDirectResult",
     "UnderstandingDirectRunner",
 ]

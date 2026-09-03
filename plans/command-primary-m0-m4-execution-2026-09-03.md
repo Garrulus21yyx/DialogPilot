@@ -80,6 +80,8 @@ Status: `IN_PROGRESS — READ-ONLY STICKY VERTICAL SLICE COMPLETE`
   continuation in production.
 - [x] Compile and commit a positive sticky read-only continuation through the
   existing tool, verification, publication, delivery, and Memory-write lifecycle.
+- [x] Add the selective Encoder `ACCEPT/DEFER` → structured LLM command
+  producer contract and its direct-evaluation adapter.
 - [ ] Replace the temporary selective legacy candidate adapter with the frozen
   Encoder → LLM command producer after its component gate passes.
 
@@ -155,6 +157,12 @@ Status: `IN_PROGRESS — SHARED ARTIFACTS + UNDERSTANDING DIRECT RUNNER COMPLETE
   Consumption, Outcome, and Cost, and writes exactly `manifest.json`,
   `predictions.jsonl`, and `report.json`. Focused suite: `1 passed`; `ruff`,
   `compileall`, and diff whitespace checks passed.
+- 2026-09-03: Intent M3 added a selective command producer. Encoder output can
+  bypass the LLM only when the versioned Registry resolves it to a low-risk,
+  read-only action for which the current user command is sufficient; deferred
+  and higher-risk proposals use the structured LLM producer. The S4 adapter
+  records producer stage, command artifact, candidate consumption, status, and
+  cascade cost. Focused suite: `9 passed`; no production cutover is claimed.
 
 ## Commit log
 
