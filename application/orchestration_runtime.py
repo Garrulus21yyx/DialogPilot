@@ -4,7 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import operator
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from typing import Annotated, Awaitable, Callable, Mapping, Protocol, TypedDict
 
 from langgraph.graph import END, START, StateGraph
@@ -27,6 +27,7 @@ class AgentContextView:
     recent_relevant_turns: tuple[str, ...]
     evidence_refs: tuple[str, ...]
     token_budget: int
+    trusted_context: Mapping[str, str] = field(default_factory=dict)
 
 
 class WorkExecutor(Protocol):
@@ -44,6 +45,7 @@ class ParentGraphState(TypedDict, total=False):
     agent_results: Annotated[list[AgentResult], operator.add]
     facts: tuple[FactRecord, ...]
     board: ResultBoardSnapshot
+    trusted_context: Mapping[str, str]
 
 
 class WorkerState(TypedDict):
@@ -53,6 +55,7 @@ class WorkerState(TypedDict):
     evidence_refs: tuple[str, ...]
     token_budget: int
     facts: tuple[FactRecord, ...]
+    trusted_context: Mapping[str, str]
 
 
 class OrchestrationRuntime:
@@ -111,6 +114,7 @@ class OrchestrationRuntime:
                 "evidence_refs": state.get("evidence_refs", ()),
                 "token_budget": state.get("token_budget", 6000),
                 "facts": state.get("facts", ()),
+                "trusted_context": state.get("trusted_context", {}),
             })
             for item in ready
         ]
@@ -124,6 +128,7 @@ class OrchestrationRuntime:
             state["recent_relevant_turns"],
             state["evidence_refs"],
             state["token_budget"],
+            state.get("trusted_context", {}),
         )
         if item.control_mode is ControlMode.DIRECT:
             executor = self._direct_executor
@@ -165,6 +170,7 @@ class OrchestrationRuntime:
         evidence_refs: tuple[str, ...] = (),
         token_budget: int = 6000,
         thread_id: str | None = None,
+        trusted_context: Mapping[str, str] | None = None,
     ) -> ResultBoardSnapshot:
         if self._checkpointer is not None and not str(thread_id or "").strip():
             raise OrchestrationRuntimeError("checkpointed execution requires thread_id")
@@ -181,6 +187,7 @@ class OrchestrationRuntime:
             "token_budget": token_budget,
             "agent_results": [],
             "facts": (),
+            "trusted_context": dict(trusted_context or {}),
         }
         if self._checkpointer is not None:
             snapshot = await self.graph.aget_state(config)

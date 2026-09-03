@@ -56,8 +56,8 @@
 | 6 | done | Handoff commit/receipt, human ownership, and single publication command path | 5 handoff/publication tests; 41 cumulative | `1ce7a6f` |
 | 7 | done | Encoder fast path and memory/media evidence routing | 6 precision/binding tests; 47 cumulative | `6b54922` |
 | 8 | done | Six in-memory vertical E2E scenarios, default registry, capability-scoped safety gates, and measured report | 7 E2E tests; 54 cumulative | `e66facd` |
-| 9 | done | New ConversationManager, durable PostgreSQL event-backed state/operation adapters, and LangGraph checkpointer | 7 local persistence/resume tests; 61 cumulative; 1 real-PostgreSQL test skipped without database URL | stage-9 runtime persistence commit |
-| 10 | pending | `/chat` cutover to Target v1 and removal of legacy command/orchestration authorities | HTTP contract and negative source gates | pending |
+| 9 | done | New ConversationManager, durable PostgreSQL event-backed state/operation adapters, and LangGraph checkpointer | 7 local persistence/resume tests; 61 cumulative; 1 real-PostgreSQL test skipped without database URL | `b0886a9` |
+| 10 | done | `/chat` read-path cutover to Target v1, synchronous target admission, trusted tool context, and removal of legacy fallback authority | 4 local HTTP/cutover tests; 65 cumulative; 2 real-PostgreSQL tests skipped without database URL | stage-10 API cutover commit |
 | 11 | pending | Real PostgreSQL/HTTP six-scenario E2E, documentation convergence, and fresh-context review | full suite and independent review | pending |
 
 ## Stage record
@@ -99,6 +99,11 @@
   operation event adapters in `infrastructure/postgres_target_runtime.py`,
   explicit LangGraph PostgreSQL checkpoint lifecycle/serializer, and
   invocation-scoped checkpoint replay.
+- Stage 10: `application/target_chat_application.py`, bounded fast-path
+  understanding, governed read-tool adapter, synchronous Target admission,
+  PostgreSQL publication adapter, and `/chat` composition cutover. Refund
+  mutation remains capability-disabled until the eligibility/approval resume
+  path is closed in the real-boundary stage.
 
 ## Scope correction after executable-core review
 

@@ -159,6 +159,8 @@ _postgres_trace_sink = None
 _durable_chat_coordinator = None
 _durable_chat_task = None
 _durable_chat_stop = None
+_target_chat_runtime = None
+_target_checkpoint_owner = None
 _trace_recorder = TraceRecorder()
 _input_security_guard = PromptInjectionGuard()
 
@@ -209,7 +211,7 @@ def _anthropic_cfg() -> Dict[str, Any]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """按依赖顺序创建所有组件，并在退出时释放后台任务和连接。"""
-    global _orchestrator, _memory, _knowledge_store, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _commitment_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator, _bundle_resolver, _grounded_answer_generator, _postgres_pool, _conversation_query, _knowledge_retriever, _retrieval_cache_client, _durable_chat_coordinator, _durable_chat_task, _durable_chat_stop, _retrieval_postgres_pool, _service_episode_search, _media_asset_store, _media_asset_service, _vlm_provider, _postgres_trace_sink
+    global _orchestrator, _memory, _knowledge_store, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _commitment_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator, _bundle_resolver, _grounded_answer_generator, _postgres_pool, _conversation_query, _knowledge_retriever, _retrieval_cache_client, _durable_chat_coordinator, _durable_chat_task, _durable_chat_stop, _retrieval_postgres_pool, _service_episode_search, _media_asset_store, _media_asset_service, _vlm_provider, _postgres_trace_sink, _target_chat_runtime, _target_checkpoint_owner
 
     print(BANNER, flush=True)
 
@@ -582,6 +584,52 @@ async def lifespan(app: FastAPI):
     AuthorityPolicyRegistry.v1().validate_tools(_tool_manager.registered_tools)
     _orchestrator.set_tool_manager(_tool_manager)
 
+    # Target v1 is the sole /chat execution authority.  It selects direct,
+    # single-domain, multi-domain, or workflow shapes from one ConversationManager.
+    from application.default_capability_registry import (
+        build_default_capability_registry,
+    )
+    from application.orchestration_runtime import OrchestrationRuntime
+    from application.target_chat_application import TargetChatApplication
+    from application.target_conversation_manager import TargetConversationManager
+    from application.target_understanding import BoundedTargetUnderstanding
+    from infrastructure.langgraph_checkpoint import PostgresCheckpointOwner
+    from infrastructure.postgres_target_runtime import PostgresConversationStateStore
+    from infrastructure.target_chat_adapters import (
+        PostgresTargetAdmission,
+        PostgresTargetPublication,
+    )
+    from infrastructure.target_tool_execution import TargetToolExecutor
+
+    target_registry = build_default_capability_registry(
+        os.getenv("DEFAULT_TENANT_ID", "default")
+    )
+    _target_checkpoint_owner = PostgresCheckpointOwner(database_url, setup=True)
+    target_checkpointer = _target_checkpoint_owner.__enter__()
+    target_tool_executor = TargetToolExecutor(_tool_manager)
+    target_orchestration = OrchestrationRuntime(
+        direct_executor=target_tool_executor,
+        domain_workers={
+            "general": target_tool_executor,
+            "product_technical": target_tool_executor,
+            "order_logistics": target_tool_executor,
+            "billing_refund": target_tool_executor,
+            "account_security": target_tool_executor,
+        },
+        checkpointer=target_checkpointer,
+    )
+    _target_chat_runtime = TargetChatApplication(
+        manager=TargetConversationManager(
+            state_store=PostgresConversationStateStore(_postgres_pool),
+            registry=target_registry,
+            understanding=BoundedTargetUnderstanding(),
+            orchestration=target_orchestration,
+        ),
+        admission=PostgresTargetAdmission(_postgres_pool),
+        publication=PostgresTargetPublication(_response_delivery),
+        bundle_version=target_registry.bundle_version,
+    )
+
     def route_execution_refs(bundle: AgentBundle) -> Dict[str, str]:
         """Pin every route and Knowledge dependency for one request execution."""
         from agents.request_shape_policy import RequestShapePolicy
@@ -766,6 +814,8 @@ async def lifespan(app: FastAPI):
         if _retrieval_postgres_pool is not None:
             _retrieval_postgres_pool.close()
         _trace_recorder.close()
+        if _target_checkpoint_owner is not None:
+            _target_checkpoint_owner.__exit__(None, None, None)
         if _postgres_pool is not None:
             _postgres_pool.close()
         # lifespan 结束后不留下指向已关闭资源的进程全局引用。
@@ -802,6 +852,8 @@ async def lifespan(app: FastAPI):
         _durable_chat_coordinator = None
         _durable_chat_task = None
         _durable_chat_stop = None
+        _target_chat_runtime = None
+        _target_checkpoint_owner = None
         logger.info("DialogPilot 已关闭")
 
 
@@ -1772,8 +1824,10 @@ def _core_chat_application(
 
 
 def _chat_application():
-    """Use durable admission in the running service; tests may compose the core directly."""
-    return _durable_chat_coordinator or _core_chat_application()
+    """Return the sole Target v1 /chat lifecycle owner."""
+    if _target_chat_runtime is None:
+        raise RuntimeError("Target chat runtime is not ready")
+    return _target_chat_runtime
 
 
 def _compat_runtime_reader(invocation: Mapping[str, Any]) -> Mapping[str, Any] | None:

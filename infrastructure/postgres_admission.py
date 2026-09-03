@@ -63,6 +63,114 @@ class PostgresAdmissionUnitOfWork:
         self.pool = pool
         self.fault_hook = fault_hook or (lambda _stage: None)
 
+    def admit_synchronous(
+        self,
+        command: NewInvocationInbound,
+        execution_pointer: ExecutionPointer,
+    ) -> AdmissionResult:
+        """Atomically admit and bind a synchronous Target v1 invocation.
+
+        No compatibility start-outbox row is created: the caller already owns
+        execution and must commit a Publication before claiming completion.
+        """
+        identity = command.identity
+        fingerprint = request_fingerprint({
+            "tenant_id": str(identity.tenant_id),
+            "user_id": str(identity.user_id),
+            "conversation_id": str(identity.conversation_id),
+            "request_id": str(identity.request_id),
+            "continuation_id": str(identity.continuation_id),
+            "message": command.message,
+            "asset_ids": list(command.asset_ids),
+            "authorization_fingerprint": str(
+                command.pinned_versions.get("authorization_fingerprint") or ""
+            ),
+        })
+        record = AdmissionRecord(
+            identity.invocation_key,
+            identity.workflow_run_id,
+            fingerprint,
+            AdmissionStatus.EXECUTION_BOUND,
+            0,
+            dict(command.pinned_versions),
+            execution_pointer,
+        )
+        with self.pool.transaction() as connection:
+            existing = self._invocation(connection, identity.invocation_key)
+            if existing is not None:
+                return self._admission_replay(existing, record)
+            self._lock_conversation(connection, identity)
+            existing = self._invocation(connection, identity.invocation_key)
+            if existing is not None:
+                return self._admission_replay(existing, record)
+            turn_seq = self._next_seq(connection, identity, "next_turn_seq")
+            connection.execute("""
+                INSERT INTO dialogpilot_app.conversation_turns (
+                    turn_key,turn_id,tenant_id,user_id,conversation_id,seq,
+                    role,content,content_sha256,request_id,invocation_key,
+                    metadata,created_at,retention_until
+                ) VALUES (%s,%s,%s,%s,%s,%s,'inbound',%s,%s,%s,%s,%s,%s,%s)
+            """, (
+                str(identity.turn_key), str(identity.turn_id),
+                str(identity.tenant_id), str(identity.user_id),
+                str(identity.conversation_id), turn_seq, command.message,
+                content_hash({"role": "inbound", "content": command.message}),
+                str(identity.request_id), str(identity.invocation_key),
+                Jsonb({**identity.metadata(), "asset_ids": list(command.asset_ids)}),
+                command.created_at, command.retention_until,
+            ))
+            self._advance_seq(connection, identity, "next_turn_seq", command.created_at)
+
+            event_seq = self._next_seq(connection, identity, "next_event_seq")
+            accepted_operation = identity.operation_key(
+                "Application", "TARGET_REQUEST_ACCEPTED", str(identity.request_id),
+            )
+            accepted_payload = {
+                "invocation_key": str(identity.invocation_key),
+                "workflow_run_id": str(identity.workflow_run_id),
+                "runtime_kind": execution_pointer.runtime_kind,
+                "runtime_version": execution_pointer.runtime_version,
+            }
+            connection.execute("""
+                INSERT INTO dialogpilot_app.conversation_events (
+                    event_id,operation_key,tenant_id,user_id,conversation_id,seq,
+                    event_type,payload,content_sha256,request_id,invocation_key,
+                    created_at,retention_until
+                ) VALUES (%s,%s,%s,%s,%s,%s,'TARGET_REQUEST_ACCEPTED',%s,%s,%s,%s,%s,%s)
+            """, (
+                _fact_id("event", str(accepted_operation)), str(accepted_operation),
+                str(identity.tenant_id), str(identity.user_id),
+                str(identity.conversation_id), event_seq, Jsonb(accepted_payload),
+                content_hash({
+                    "event_type": "TARGET_REQUEST_ACCEPTED",
+                    "payload": accepted_payload,
+                }),
+                str(identity.request_id), str(identity.invocation_key),
+                command.created_at, command.retention_until,
+            ))
+            self._advance_seq(connection, identity, "next_event_seq", command.created_at)
+
+            connection.execute("""
+                INSERT INTO dialogpilot_app.workflow_invocations (
+                    invocation_key,tenant_id,user_id,conversation_id,request_id,
+                    workflow_run_id,continuation_id,inbound_turn_key,
+                    request_fingerprint,admission_status,pinned_versions,
+                    execution_runtime_kind,execution_runtime_version,
+                    execution_run_id,version,created_at,updated_at,retention_until
+                ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,'EXECUTION_BOUND',%s,
+                          %s,%s,%s,0,%s,%s,%s)
+            """, (
+                str(identity.invocation_key), str(identity.tenant_id),
+                str(identity.user_id), str(identity.conversation_id),
+                str(identity.request_id), str(identity.workflow_run_id),
+                str(identity.continuation_id), str(identity.turn_key), fingerprint,
+                Jsonb(dict(command.pinned_versions)),
+                execution_pointer.runtime_kind, execution_pointer.runtime_version,
+                execution_pointer.run_id, command.created_at, command.created_at,
+                command.retention_until,
+            ))
+            return AdmissionCreated(record)
+
     def admit_new(self, command: NewInvocationInbound) -> AdmissionResult:
         identity = command.identity
         fingerprint = request_fingerprint({

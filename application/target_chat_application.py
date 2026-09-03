@@ -1,0 +1,264 @@
+"""Protocol-neutral `/chat` facade for Target Architecture v1."""
+from __future__ import annotations
+
+import hashlib
+import json
+import time
+from dataclasses import dataclass
+from enum import Enum
+from typing import Mapping, Protocol
+
+from application.agent_result import AgentResultStatus
+from application.chat_application import (
+    ChatCommand,
+    ChatOutcome,
+    Completed,
+    Conflict,
+    Failed,
+    Reconciling,
+    Rejected,
+)
+from application.deterministic_resolution import TurnObservations
+from application.target_conversation_manager import TargetConversationManager
+from application.turn_planning import ProposalDisposition
+from core.identity import IdentityContractError, IdentityFactory, InvocationIdentity
+
+
+class TargetAdmissionStatus(str, Enum):
+    CREATED = "CREATED"
+    EXISTING = "EXISTING"
+    CONFLICT = "CONFLICT"
+
+
+@dataclass(frozen=True)
+class TargetAdmission:
+    status: TargetAdmissionStatus
+    existing: Mapping[str, object] | None = None
+
+
+@dataclass(frozen=True)
+class PublishedTargetResponse:
+    response_id: str
+    response_seq: int
+    delivery_status: str
+
+
+class TargetAdmissionPort(Protocol):
+    def admit(
+        self,
+        command: ChatCommand,
+        identity: InvocationIdentity,
+        *,
+        bundle_version: str,
+    ) -> TargetAdmission: ...
+
+
+class TargetPublicationPort(Protocol):
+    def completed(
+        self,
+        identity: InvocationIdentity,
+    ) -> Completed | None: ...
+
+    def publish(
+        self,
+        identity: InvocationIdentity,
+        *,
+        response_text: str,
+        public_response: Mapping[str, object],
+        bundle_version: str,
+        evidence_sha256: str,
+        verifier_status: str,
+    ) -> PublishedTargetResponse: ...
+
+
+class TargetChatApplication:
+    """Admission -> one ConversationManager -> one Publication boundary."""
+
+    version = "target-chat-application-v1"
+
+    def __init__(
+        self,
+        *,
+        manager: TargetConversationManager,
+        admission: TargetAdmissionPort,
+        publication: TargetPublicationPort,
+        bundle_version: str,
+        identity_factory: IdentityFactory | None = None,
+    ) -> None:
+        self._manager = manager
+        self._admission = admission
+        self._publication = publication
+        self._bundle_version = bundle_version
+        self._identity_factory = identity_factory or IdentityFactory()
+
+    async def handle(self, command: ChatCommand) -> ChatOutcome:
+        started = time.monotonic()
+        try:
+            identity = self._identity_factory.create_invocation(
+                tenant_id=command.tenant_id,
+                user_id=command.user_id,
+                conversation_id=command.conv_id,
+                request_id=command.request_id,
+                continuation_id=command.continuation_id,
+            )
+        except IdentityContractError:
+            return Rejected("invalid_invocation_identity", "请求身份字段无效")
+
+        admission = self._admission.admit(
+            command,
+            identity,
+            bundle_version=self._bundle_version,
+        )
+        if admission.status is TargetAdmissionStatus.CONFLICT:
+            return Conflict("IDEMPOTENCY_CONFLICT", admission.existing or {})
+        if admission.status is TargetAdmissionStatus.EXISTING:
+            completed = self._publication.completed(identity)
+            if completed is not None:
+                return completed
+
+        observations = TurnObservations(
+            command.message,
+            tuple(
+                ("asset_id", asset_id)
+                for asset_id in command.asset_ids[:1]
+            ),
+        )
+        try:
+            managed = await self._manager.handle(identity, observations)
+        except Exception as exc:
+            return Failed(
+                "target_runtime_failed",
+                False,
+                str(identity.invocation_key),
+                f"Target runtime failed closed: {type(exc).__name__}",
+            )
+
+        if managed.plan.work is None:
+            disposition = managed.plan.route.mode.value
+            response_text = _terminal_response(managed.plan.route.reason_code)
+            verifier_status = "CLARIFY" if disposition == "CLARIFY" else "PASS"
+            outcomes = []
+            facts = ()
+            missing = list(managed.plan.route.missing_inputs)
+        else:
+            board = managed.board
+            if board is None:
+                return Failed(
+                    "target_result_missing", False, str(identity.invocation_key),
+                    "Target runtime produced no result board",
+                )
+            if any(
+                item.status is AgentResultStatus.RECONCILING
+                for item in board.results
+            ):
+                return Reconciling(
+                    str(identity.workflow_run_id),
+                    {"execution": "RECONCILING"},
+                    1.0,
+                )
+            response_text = _board_response(board)
+            verifier_status = (
+                "PASS"
+                if not board.missing_requirement_ids and not board.conflict_keys
+                else "PARTIAL" if board.partial_delivery_allowed else "UNKNOWN"
+            )
+            outcomes = [
+                {
+                    "work_item_id": item.work_item_id,
+                    "owner_agent": item.owner_agent,
+                    "status": item.status.value,
+                    "reason_code": item.reason_code,
+                }
+                for item in board.results
+            ]
+            facts = board.facts
+            missing = list(board.missing_requirement_ids)
+
+        evidence_sha = hashlib.sha256(json.dumps(
+            [
+                (fact.requirement_id, fact.source_ref, fact.producer_version)
+                for fact in facts
+            ],
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")).hexdigest()
+        route = managed.plan.route
+        public_response = {
+            "request_id": str(identity.request_id),
+            "conv_id": str(identity.conversation_id),
+            "response": response_text,
+            "intent": route.reason_code,
+            "intent_group": route.owner_ids[0] if route.owner_ids else "other",
+            "agent_type": route.owner_ids[0] if route.owner_ids else "general",
+            "agent_types": list(route.owner_ids),
+            "primary_agent": route.owner_ids[0] if route.owner_ids else "",
+            "supporting_agents": list(route.owner_ids[1:]),
+            "routing_reason": route.reason_code,
+            "routing_disposition": route.mode.value.lower(),
+            "synthesis_status": "deterministic",
+            "synthesis_reason": "verified Target v1 result board",
+            "synthesis_conflicts": list(getattr(managed.board, "conflict_keys", ()) or ()),
+            "agent_outcomes": outcomes,
+            "task_plan": {
+                "plan_id": managed.plan.plan_id,
+                "work_item_ids": (
+                    [item.work_item_id for item in managed.plan.work.items]
+                    if managed.plan.work else []
+                ),
+            },
+            "coverage": {
+                "complete": verifier_status == "PASS",
+                "missing_requirement_ids": missing,
+            },
+            "escalated": False,
+            "latency_ms": (time.monotonic() - started) * 1000,
+            "verification_status": verifier_status.lower(),
+            "verified": verifier_status == "PASS",
+            "grounded": verifier_status == "PASS",
+            "verification_reason_code": (
+                "TARGET_REQUIREMENTS_SATISFIED"
+                if verifier_status == "PASS" else "TARGET_RESULT_INCOMPLETE"
+            ),
+            "bundle_version": self._bundle_version,
+        }
+        published = self._publication.publish(
+            identity,
+            response_text=response_text,
+            public_response=public_response,
+            bundle_version=self._bundle_version,
+            evidence_sha256=evidence_sha,
+            verifier_status=verifier_status,
+        )
+        public_response.update({
+            "response_id": published.response_id,
+            "response_seq": published.response_seq,
+            "delivery_status": published.delivery_status,
+        })
+        return Completed(published.response_id, public_response)
+
+
+def _terminal_response(reason_code: str) -> str:
+    return {
+        "ORDER_ID_REQUIRED": "请提供需要查询的订单号。",
+        "PRODUCT_MEDIA_REQUIRED": "请上传包含商品型号或铭牌的清晰图片。",
+        "SUPPORTED_GOAL_UNCLEAR": "请说明您要处理订单、退款、商品识别还是人工服务。",
+    }.get(reason_code, "请补充完成该任务所需的信息。")
+
+
+def _board_response(board) -> str:
+    sections = []
+    for result in board.results:
+        if result.status in {AgentResultStatus.SUCCEEDED, AgentResultStatus.PARTIAL}:
+            text = str(result.candidate_response or "").strip()
+            if not text:
+                owned = [
+                    json.loads(fact.value_json)
+                    for fact in result.facts
+                ]
+                text = json.dumps(owned, ensure_ascii=False, sort_keys=True)
+            sections.append(f"{result.owner_agent}：{text}")
+        else:
+            sections.append(
+                f"{result.owner_agent}：未完成（{result.reason_code}）"
+            )
+    return "\n".join(sections) or "暂时没有可发布的结果。"

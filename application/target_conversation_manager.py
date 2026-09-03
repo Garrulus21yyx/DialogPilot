@@ -46,7 +46,7 @@ class ManagedTurnResult:
     state_after: ConversationState
     deterministic: DeterministicResolution
     plan: TurnPlan
-    board: ResultBoardSnapshot
+    board: ResultBoardSnapshot | None
     checkpoint_thread_id: str
 
 
@@ -105,9 +105,16 @@ class TargetConversationManager:
             self._persist(state, planned_state)
             state = planned_state
 
-        if plan.work is None:
-            raise ConversationStateConflict("non-executable plan requires publication handling")
         thread_id = str(invocation.invocation_key)
+        if plan.work is None:
+            return ManagedTurnResult(
+                state_before,
+                state,
+                deterministic,
+                plan,
+                None,
+                thread_id,
+            )
         board = await self._orchestration.execute(
             plan.work,
             current_message=observations.raw_text,
@@ -115,6 +122,10 @@ class TargetConversationManager:
             evidence_refs=evidence_refs,
             token_budget=token_budget,
             thread_id=thread_id,
+            trusted_context={
+                **invocation.metadata(),
+                "conv_id": str(invocation.conversation_id),
+            },
         )
         return ManagedTurnResult(
             state_before,
