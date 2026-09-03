@@ -108,10 +108,12 @@ Status: `IN_PROGRESS — READ-ONLY STICKY VERTICAL SLICE COMPLETE`
   resolution/outcome, bind its real invocation turns, atomically resolve the
   Ticket, compile the canonical ServiceEpisode, rebuild its generation, and
   retrieve it for the same subject.
-- [ ] Connect the accepted-resolution write and Episode projector to the
-  production composition, then seed and freeze a non-empty lifecycle-backed
-  ServiceEpisode evaluation corpus before reporting production Memory scores.
-  The current database smoke proves transport, not retrieval quality.
+- [x] Expose accepted resolution through an authenticated Case Owner HTTP
+  boundary and make the explicit generation CLI drain all pending Episode
+  projections before rebuilding; keep it out of application startup.
+- [ ] Seed and freeze a non-empty lifecycle-backed ServiceEpisode evaluation
+  corpus before reporting production Memory scores. The current database and
+  API smokes prove transport, not retrieval quality.
 - [ ] Replace the temporary selective legacy candidate adapter with the frozen
   Encoder → LLM command producer after its component gate passes.
 
@@ -378,6 +380,12 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   immutable MODEL generation, and retrieves it for the same subject. Root and
   independent review passed; focused PostgreSQL suite: `39 passed`. API/worker
   composition and a real non-empty evaluation corpus remain separate work.
+- 2026-09-03: Production composition now exposes the accepted-resolution fact
+  through an admin-authenticated endpoint whose service Owner also requires the
+  principal to be the assigned Case Owner. The explicit generation CLI drains
+  all pending accepted facts in bounded batches before rebuilding, so an active
+  generation cannot omit facts after the first batch. Focused API/CLI/PostgreSQL
+  suite: `22 passed`; no startup worker or evaluation score is claimed.
 - 2026-09-03: The locked `dp-screen-03` asset ran through the real local
   Tesseract 5.5.0 provider. Trigger, artifact, consumption, and outcome all
   passed; one OCR call produced grounded page-level provenance and all declared
@@ -497,3 +505,4 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 - Knowledge Query source capture and offline replay: `b38ad07`.
 - Knowledge identity-selection and packing baseline: `0d3eecb`.
 - Accepted Case Owner to ServiceEpisode projection: `46734c0`.
+- Accepted resolution API and explicit projection drain: `2b7f5ff`.

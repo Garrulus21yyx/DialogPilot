@@ -1,6 +1,6 @@
 # Memory RAG 迁移与评测
 
-状态：`PUBLIC_SESSION_DEV_COMPLETE — PRODUCTION_EPISODE_OWNER_CHAIN_IMPLEMENTED`
+状态：`PUBLIC_SESSION_DEV_COMPLETE — PRODUCTION_EPISODE_OWNER_CHAIN_WIRED — CORPUS_NOT_SEEDED`
 目标：将每轮状态恢复与长期记忆检索彻底分开，并分别验证 ServiceEpisode、Commitment 和可选 Preference 的事实语义、检索目的与安全边界。
 
 ## 1. 最重要的概念分离
@@ -272,11 +272,17 @@ authenticated Case Owner accepts resolution/outcomes
 → same authenticated subject retrieves the episode
 ```
 
-这关闭了缺失 Owner 的代码级阻塞，但还不是生产 Memory 质量成绩：当前尚未把
-该写入口接到生产 API/自动 projector 调度，也尚未由真实业务生命周期产生非空
-评测 corpus。现有一条数据库 smoke 只证明 owner→projection→generation→search
-运输闭环；在真实 corpus 注入并冻结前，不报告 production ServiceEpisode Recall、
-时效性或 supersession 分数。LoCoMo/LongMemEval 仍不得写入 production owner。
+该写入口现已通过 `/tickets/{ticket_id}/resolution` 暴露：HTTP 边界要求 admin
+principal，Owner 还要求 principal subject 等于当前 ticket assignee；请求体不能
+提供 actor 或 subject。显式 generation CLI 在 `service_episode/all` 模式下会先分批
+排空 accepted-resolution 投影，再构建和激活 generation。它不会在应用启动时自动
+运行。
+
+这关闭了缺失 Owner 和生产装配的代码级阻塞，但还不是 production Memory 质量
+成绩：尚未由真实业务生命周期产生并冻结非空评测 corpus。现有数据库/API smoke
+只证明 owner→projection→generation→search 运输闭环；在真实 corpus 注入并冻结
+前，不报告 production ServiceEpisode Recall、时效性或 supersession 分数。
+LoCoMo/LongMemEval 仍不得写入 production owner。
 
 LoCoMo 可以给 embedding/fusion 方向性参考，不能直接冻结
 `memory-reference-resolution-v1` 或 `memory-historical-evidence-v1` 的生产阈值。
