@@ -12,6 +12,8 @@ Migrate DialogPilot incrementally from intent-primary routing to a state-first, 
 
 - Do not overwrite unrelated dirty-worktree changes.
 - Make owner-level changes; evaluators must not manufacture missing production capabilities.
+- Prefer small positive interfaces and one executable vertical path over defensive
+  fields, counterexample-specific branches, or an all-purpose contract module.
 - Keep legacy intent behavior as baseline/compatibility until command-primary invariants pass.
 - No model downloads or final benchmark claims during M0/M1 implementation.
 - All new contracts require typed failure behavior and focused tests.
@@ -30,20 +32,27 @@ Migrate DialogPilot incrementally from intent-primary routing to a state-first, 
 
 ### S0 — Baseline and ownership audit
 
-Status: `IN_PROGRESS`
+Status: `COMPLETED`
 
 - [x] Create target architecture and evaluation documents.
 - [x] Confirm current unconditional intent ordering and downstream intent coupling.
-- [ ] Record current focused test baseline for touched subsystems.
+- [x] Record current focused test baseline for touched subsystems.
 
 ### S1 — M0/M1 shared contracts
 
-Status: `IN_PROGRESS`
+Status: `IMPLEMENTED_FOR_VERTICAL_INTEGRATION`
 
-- [ ] Define command-primary types with closed state/outcome algebra.
-- [ ] Define multi-mutation `FlowTransitionPlan` with positive invariants.
-- [ ] Define `CapabilityDecision` separately from runtime `CapabilityTrace`.
-- [ ] Add property/contract tests.
+- [x] Define command-primary types with closed state/outcome algebra.
+- [x] Define the minimal `FlowTransitionPlan` needed by the supported command path.
+- [x] Define `CapabilityDecision` separately from runtime `CapabilityTrace`.
+- [x] Prove a positive vertical slice: state-first resolution or semantic defer,
+  registry-owned policy, then deterministic turn-plan compilation.
+
+This status does not claim that the production chain has cut over. It means the
+shared boundary is ready to be wired into the production chain in S3. The S1
+implementation is split by responsibility; no command-primary module exceeds
+330 lines. New validation is added only when a supported production invariant
+requires it, not by accumulating hypothetical counterexamples.
 
 ### S2 — Parallel production capability prerequisites
 
@@ -86,7 +95,14 @@ Status: `PENDING`
 ## Verification log
 
 - 2026-09-03: Research-document relative links and fenced blocks validated.
+- 2026-09-03: S1 focused vertical suite: `43 passed`.
+- 2026-09-03: Full non-database suite: `850 passed, 141 skipped`; two existing
+  stateful-runner tests require `TEST_DATABASE_URL`/`DATABASE_URL` for the
+  `ticket_idempotent` fixture and are recorded as environment-blocked, not
+  converted into product skips.
+- 2026-09-03: `ruff`, `compileall`, and diff whitespace checks passed for the
+  focused S1 code/test files.
 
 ## Commit log
 
-- Stage 0 documentation/plan: recorded by the commit containing this plan revision.
+- Stage 0 documentation/plan: `63fdf2f`.
