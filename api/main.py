@@ -382,54 +382,17 @@ async def lifespan(app: FastAPI):
             _postgres_pool,
             due_poll_seconds=float(os.getenv("COMMITMENT_DUE_POLL_SECONDS", "30")),
         )
-        from application.memory_retrieval_policy import (
-            DEFAULT_MEMORY_RETRIEVAL_POLICY,
-        )
-        from application.service_episode_memory_search import (
-            ServiceEpisodeMemorySearch,
-        )
-        from application.service_episode_retriever import (
-            ServiceEpisodeRetrievalPolicy,
-            ServiceEpisodeRetriever,
-        )
-        from infrastructure.hybrid_retrieval_backend import PostgresHybridBackend
-        from infrastructure.retrieval_postgres import (
-            PostgresRetrievalGenerationRegistry,
-            RetrievalPoolConfig,
-            RetrievalPostgresPool,
-        )
-        from infrastructure.service_episode_embedding import (
-            ServiceEpisodeQueryEmbedder,
-        )
+        from infrastructure.retrieval_runtime import build_retrieval_runtime
 
-        _retrieval_postgres_pool = RetrievalPostgresPool(RetrievalPoolConfig(
+        retrieval_runtime = build_retrieval_runtime(
+            _postgres_pool,
             database_url,
-            min_size=int(os.getenv("RETRIEVAL_POOL_MIN_SIZE", "1")),
-            max_size=int(os.getenv("RETRIEVAL_POOL_MAX_SIZE", "4")),
-            pool_timeout_seconds=float(os.getenv(
-                "RETRIEVAL_POOL_TIMEOUT_SECONDS", "2",
-            )),
-            statement_timeout_ms=int(os.getenv(
-                "RETRIEVAL_STATEMENT_TIMEOUT_MS", "750",
-            )),
-        ))
+            os.environ,
+        )
+        _retrieval_postgres_pool = retrieval_runtime.pool
         _retrieval_postgres_pool.open()
-        episode_policy = ServiceEpisodeRetrievalPolicy(
-            os.getenv(
-                "SERVICE_EPISODE_POLICY_VERSION",
-                "service-episode-retrieval-policy-v1",
-            ),
-            DEFAULT_MEMORY_RETRIEVAL_POLICY,
-            float(os.getenv("SERVICE_EPISODE_MINIMUM_FUSED_RELEVANCE", "0")),
-            int(os.getenv("SERVICE_EPISODE_FRESHNESS_MAX_AGE_SECONDS", "31536000")),
-        )
-        _service_episode_search = ServiceEpisodeMemorySearch(
-            generations=PostgresRetrievalGenerationRegistry(_postgres_pool),
-            retriever=ServiceEpisodeRetriever(
-                PostgresHybridBackend(_retrieval_postgres_pool), episode_policy,
-            ),
-            embed_query=ServiceEpisodeQueryEmbedder(),
-        )
+        _service_episode_search = retrieval_runtime.service_episode_search
+        retrieval_projector = retrieval_runtime.projector
         _conversation_query = PostgresConversationQueryService(
             _postgres_pool,
             runtime_reader=_compat_runtime_reader,
@@ -510,13 +473,21 @@ async def lifespan(app: FastAPI):
     _grounded_answer_generator = GroundedAnswerGenerator(
         _tool_manager.llm_client, _model_policy.profile(ModelRole.SYNTHESIS),
     )
+    from infrastructure.knowledge_embedding import (
+        LocalHashKnowledgeEmbeddingBaseline,
+    )
+    from infrastructure.hybrid_retrieval_backend import PostgresHybridBackend
     from infrastructure.postgres_knowledge_store import PostgresKnowledgeStore
+    from infrastructure.retrieval_postgres import (
+        PostgresRetrievalGenerationRegistry,
+    )
 
     _knowledge_store = PostgresKnowledgeStore(
         _postgres_pool,
         tenant_id=os.getenv("DEFAULT_TENANT_ID", "default"),
         chunk_max_tokens=int(os.getenv("RAG_CHUNK_MAX_TOKENS", "512")),
         chunk_overlap_tokens=int(os.getenv("RAG_CHUNK_OVERLAP_TOKENS", "64")),
+        embedding_provider=LocalHashKnowledgeEmbeddingBaseline(),
     )
     await _knowledge_store.ensure_defaults_async()
     logger.info(
@@ -542,7 +513,7 @@ async def lifespan(app: FastAPI):
         backend=PostgresHybridBackend(_retrieval_postgres_pool),
         generations=PostgresRetrievalGenerationRegistry(_postgres_pool),
         pool=_retrieval_postgres_pool,
-        embed_query=ServiceEpisodeQueryEmbedder(),
+        embed_query=_knowledge_store.embed_query,
     )
     _knowledge_retriever = KnowledgeRetriever(
         candidate_source=knowledge_candidate_source,
@@ -755,6 +726,7 @@ async def lifespan(app: FastAPI):
             _run_durable_chat_worker(
                 _durable_chat_coordinator,
                 projection_dispatcher,
+                retrieval_projector,
                 _durable_chat_stop,
             ),
         )
@@ -1661,7 +1633,7 @@ async def register_agent_bundle(
 
 
 async def _run_durable_chat_worker(
-    coordinator, projection_dispatcher, stop: asyncio.Event,
+    coordinator, projection_dispatcher, retrieval_projector, stop: asyncio.Event,
 ) -> None:
     from application.conversation_projection import ProjectionName
 
@@ -1686,6 +1658,10 @@ async def _run_durable_chat_worker(
                     limit=20,
                 )
                 work_count += len(results)
+            retrieval_result = await asyncio.to_thread(
+                retrieval_projector.project_next,
+            )
+            work_count += int(retrieval_result is not None)
         except Exception:
             logger.exception("durable compatibility worker iteration failed")
             work_count = 0
@@ -2630,7 +2606,7 @@ def _knowledge_policy(
         lexical_provider=generation.lexical_ranker,
         transformer_version=QUERY_TRANSFORM_PROMPT_VERSION,
         embedding_version=(
-            f"{generation.embedding_model}:{generation.embedding_model_digest}"
+            generation.embedding_profile.fingerprint
         ),
         reranker_version=RERANK_PROMPT_VERSION,
         packer_version="context-packer-v1",

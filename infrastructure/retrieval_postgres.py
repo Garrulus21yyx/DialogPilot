@@ -14,6 +14,7 @@ from psycopg_pool import ConnectionPool
 
 from application.hybrid_retrieval import (
     DistanceMetric,
+    EmbeddingProviderKind,
     GenerationConflict,
     GenerationState,
     RetrievalCorpus,
@@ -171,13 +172,18 @@ class PostgresRetrievalGenerationRegistry:
                 INSERT INTO retrieval.retrieval_generation_registry (
                     corpus, backend_id, generation_id, backend_fingerprint,
                     immutable_fingerprint, schema_version, source_watermark,
-                    embedding_model, embedding_dimension, embedding_model_digest,
+                    embedding_provider, embedding_provider_kind,
+                    embedding_model, embedding_model_version,
+                    embedding_dimension, embedding_model_digest,
+                    embedding_document_preprocessing,
+                    embedding_query_preprocessing,
                     distance_metric, vector_extension_version, index_method,
                     index_params, chinese_tokenizer, lexical_ranker, manifest_hash,
                     state
                 ) VALUES (
                     %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                    %s, %s, %s, %s::jsonb, %s, %s, %s, %s
+                    %s, %s, %s, %s, %s, %s, %s, %s,
+                    %s::jsonb, %s, %s, %s, %s
                 )
                 ON CONFLICT (generation_id) DO NOTHING
                 RETURNING generation_id
@@ -185,8 +191,12 @@ class PostgresRetrievalGenerationRegistry:
                 generation.corpus.value, generation.backend_id,
                 generation.generation_id, generation.backend_fingerprint,
                 generation.immutable_fingerprint(), generation.schema_version,
-                generation.source_watermark, generation.embedding_model,
+                generation.source_watermark, generation.embedding_provider,
+                generation.embedding_provider_kind.value,
+                generation.embedding_model, generation.embedding_model_version,
                 generation.embedding_dimension, generation.embedding_model_digest,
+                generation.embedding_document_preprocessing,
+                generation.embedding_query_preprocessing,
                 generation.distance_metric.value, generation.vector_extension_version,
                 generation.index_method, generation.index_params_json,
                 generation.chinese_tokenizer, generation.lexical_ranker,
@@ -268,8 +278,11 @@ class PostgresRetrievalGenerationRegistry:
     ) -> RetrievalGeneration:
         row = connection.execute("""
             SELECT generation_id, corpus, backend_id, backend_fingerprint,
-                   schema_version, source_watermark, embedding_model,
-                   embedding_dimension, embedding_model_digest, distance_metric,
+                   schema_version, source_watermark, embedding_provider,
+                   embedding_provider_kind, embedding_model,
+                   embedding_model_version, embedding_dimension,
+                   embedding_model_digest, embedding_document_preprocessing,
+                   embedding_query_preprocessing, distance_metric,
                    vector_extension_version, index_method,
                    index_params, chinese_tokenizer, lexical_ranker,
                    manifest_hash, state
@@ -281,12 +294,16 @@ class PostgresRetrievalGenerationRegistry:
         return RetrievalGeneration(
             generation_id=row[0], corpus=RetrievalCorpus(row[1]),
             backend_id=row[2], backend_fingerprint=row[3], schema_version=row[4],
-            source_watermark=row[5], embedding_model=row[6],
-            embedding_dimension=int(row[7]), embedding_model_digest=row[8],
-            distance_metric=DistanceMetric(row[9]), vector_extension_version=row[10],
-            index_method=row[11], index_params_json=json.dumps(
-                row[12], sort_keys=True, separators=(",", ":"),
+            source_watermark=row[5], embedding_provider=row[6],
+            embedding_provider_kind=EmbeddingProviderKind(row[7]),
+            embedding_model=row[8], embedding_model_version=row[9],
+            embedding_dimension=int(row[10]), embedding_model_digest=row[11],
+            embedding_document_preprocessing=row[12],
+            embedding_query_preprocessing=row[13],
+            distance_metric=DistanceMetric(row[14]), vector_extension_version=row[15],
+            index_method=row[16], index_params_json=json.dumps(
+                row[17], sort_keys=True, separators=(",", ":"),
             ),
-            chinese_tokenizer=row[13], lexical_ranker=row[14], manifest_hash=row[15],
-            state=GenerationState(row[16]),
+            chinese_tokenizer=row[18], lexical_ranker=row[19], manifest_hash=row[20],
+            state=GenerationState(row[21]),
         )

@@ -97,6 +97,10 @@ class ServiceEpisodeCandidate:
         refs = [item.source_event_ref for item in self.evidence]
         if len(refs) != len(set(refs)):
             raise ValueError("service episode source event refs must be unique")
+        if any(not isinstance(item, str) or not item.strip() for item in self.entity_ids):
+            raise ValueError("service episode entity IDs must not be blank")
+        if len(self.entity_ids) != len(set(self.entity_ids)):
+            raise ValueError("service episode entity IDs must be unique")
         if self.schema_version != "service-episode-v1":
             raise ValueError("unsupported service episode schema")
 
@@ -145,6 +149,20 @@ class ServiceEpisodeCandidate:
             payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"),
         ).encode("utf-8")).hexdigest()
 
+    @property
+    def canonical_retrieval_text(self) -> str:
+        return service_episode_retrieval_text(
+            problem=self.problem,
+            product_version=self.product_version,
+            symptoms=self.symptoms,
+            materials=self.materials,
+            actions=self.actions,
+            authoritative_outcomes=self.authoritative_outcomes,
+            resolution=self.resolution,
+            root_cause=self.root_cause,
+            entity_ids=self.entity_ids,
+        )
+
 
 @dataclass(frozen=True)
 class EpisodeProjectionTarget:
@@ -167,3 +185,39 @@ class ServiceEpisodeCommit:
 
 def evidence_json(items: tuple[EpisodeEvidence, ...]) -> list[dict[str, str]]:
     return [asdict(item) for item in items]
+
+
+def service_episode_retrieval_text(
+    *,
+    problem: str,
+    product_version: str,
+    symptoms: tuple[str, ...],
+    materials: tuple[str, ...],
+    actions: tuple[str, ...],
+    authoritative_outcomes: tuple[str, ...],
+    resolution: str,
+    root_cause: str,
+    entity_ids: tuple[str, ...],
+) -> str:
+    """Canonical raw text input shared by dense and lexical projection.
+
+    The labels and field order are part of ``service-episode-v1``.  Provider-
+    specific tokenization remains inside its declared preprocessing contract.
+    """
+
+    fields = (
+        ("problem", (problem,)),
+        ("product_version", (product_version,)),
+        ("symptoms", symptoms),
+        ("materials", materials),
+        ("actions", actions),
+        ("authoritative_outcomes", authoritative_outcomes),
+        ("resolution", (resolution,)),
+        ("root_cause", (root_cause,)),
+        ("entity_ids", entity_ids),
+    )
+    return "\n".join(
+        f"{label}: {' | '.join(str(item).strip() for item in values if str(item).strip())}"
+        for label, values in fields
+        if any(str(item).strip() for item in values)
+    )

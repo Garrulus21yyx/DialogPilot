@@ -48,6 +48,87 @@ class DistanceMetric(str, Enum):
     COSINE = "COSINE"
 
 
+class EmbeddingProviderKind(str, Enum):
+    """Operational class of an embedding provider.
+
+    ``HASH_BASELINE`` is intentionally separate from a model-backed provider so
+    a dependency-free test/demo vectorizer cannot be reported as a learned
+    dense model.  ``LEGACY_UNSPECIFIED`` exists only to replay generations that
+    predate the complete profile contract.
+    """
+
+    MODEL = "MODEL"
+    HASH_BASELINE = "HASH_BASELINE"
+    LEGACY_UNSPECIFIED = "LEGACY_UNSPECIFIED"
+
+
+@dataclass(frozen=True)
+class EmbeddingProfile:
+    """Versioned identity shared by document and query embedding producers."""
+
+    provider: str
+    provider_kind: EmbeddingProviderKind
+    model: str
+    model_version: str
+    dimension: int
+    model_digest: str
+    document_preprocessing: str
+    query_preprocessing: str
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.provider_kind, EmbeddingProviderKind):
+            raise RetrievalContractError("embedding provider kind is invalid")
+        required = (
+            self.provider,
+            self.model,
+            self.model_version,
+            self.model_digest,
+            self.document_preprocessing,
+            self.query_preprocessing,
+        )
+        if any(not value.strip() for value in required):
+            raise RetrievalContractError("embedding profile fields must not be blank")
+        if self.dimension < 1:
+            raise RetrievalContractError("embedding profile dimension must be positive")
+        if (
+            self.provider_kind is not EmbeddingProviderKind.LEGACY_UNSPECIFIED
+            and any(value == "legacy-unrecorded" for value in required)
+        ):
+            raise RetrievalContractError(
+                "complete embedding profile cannot use legacy metadata"
+            )
+        if self.provider_kind is not EmbeddingProviderKind.LEGACY_UNSPECIFIED and (
+            len(self.model_digest) != 64
+            or any(char not in "0123456789abcdef" for char in self.model_digest)
+        ):
+            raise RetrievalContractError(
+                "versioned embedding model digest must be lowercase SHA-256"
+            )
+    @property
+    def is_baseline(self) -> bool:
+        return self.provider_kind is EmbeddingProviderKind.HASH_BASELINE
+
+    @property
+    def is_complete(self) -> bool:
+        return self.provider_kind is not EmbeddingProviderKind.LEGACY_UNSPECIFIED
+
+    @property
+    def fingerprint(self) -> str:
+        return hashlib.sha256(_canonical_json({
+            "provider": self.provider,
+            "provider_kind": self.provider_kind.value,
+            "model": self.model,
+            "model_version": self.model_version,
+            "dimension": self.dimension,
+            "model_digest": self.model_digest,
+            "document_preprocessing": self.document_preprocessing,
+            "query_preprocessing": self.query_preprocessing,
+        }).encode("utf-8")).hexdigest()
+
+    def matches_generation(self, generation: "RetrievalGeneration") -> bool:
+        return self == generation.embedding_profile
+
+
 @dataclass(frozen=True)
 class KnowledgeSearchScope:
     scope: str
@@ -201,6 +282,13 @@ class RetrievalGeneration:
     lexical_ranker: str
     manifest_hash: str
     state: GenerationState = GenerationState.REGISTERED
+    embedding_provider: str = "legacy-unrecorded"
+    embedding_provider_kind: EmbeddingProviderKind = (
+        EmbeddingProviderKind.LEGACY_UNSPECIFIED
+    )
+    embedding_model_version: str = "legacy-unrecorded"
+    embedding_document_preprocessing: str = "legacy-unrecorded"
+    embedding_query_preprocessing: str = "legacy-unrecorded"
 
     def __post_init__(self) -> None:
         required = (
@@ -208,7 +296,10 @@ class RetrievalGeneration:
             self.schema_version, self.source_watermark, self.embedding_model,
             self.embedding_model_digest, self.vector_extension_version,
             self.index_method, self.chinese_tokenizer, self.lexical_ranker,
-            self.manifest_hash,
+            self.manifest_hash, self.embedding_provider,
+            self.embedding_model_version,
+            self.embedding_document_preprocessing,
+            self.embedding_query_preprocessing,
         )
         if any(not value.strip() for value in required):
             raise RetrievalContractError("generation fields must not be blank")
@@ -216,6 +307,10 @@ class RetrievalGeneration:
             raise RetrievalContractError("embedding dimension must be positive")
         if len(self.manifest_hash) != 64:
             raise RetrievalContractError("generation manifest must be SHA-256")
+        if not isinstance(self.embedding_provider_kind, EmbeddingProviderKind):
+            raise RetrievalContractError("embedding provider kind is invalid")
+        if self.embedding_provider_kind is not EmbeddingProviderKind.LEGACY_UNSPECIFIED:
+            self.embedding_profile
         try:
             parsed = json.loads(self.index_params_json)
         except json.JSONDecodeError as exc:
@@ -225,10 +320,27 @@ class RetrievalGeneration:
 
     @property
     def replayable_across_environments(self) -> bool:
-        return len(self.embedding_model_digest) == 64
+        return self.embedding_metadata_complete and len(self.embedding_model_digest) == 64
+
+    @property
+    def embedding_metadata_complete(self) -> bool:
+        return self.embedding_provider_kind is not EmbeddingProviderKind.LEGACY_UNSPECIFIED
+
+    @property
+    def embedding_profile(self) -> EmbeddingProfile:
+        return EmbeddingProfile(
+            provider=self.embedding_provider,
+            provider_kind=self.embedding_provider_kind,
+            model=self.embedding_model,
+            model_version=self.embedding_model_version,
+            dimension=self.embedding_dimension,
+            model_digest=self.embedding_model_digest,
+            document_preprocessing=self.embedding_document_preprocessing,
+            query_preprocessing=self.embedding_query_preprocessing,
+        )
 
     def immutable_fingerprint(self) -> str:
-        return hashlib.sha256(_canonical_json({
+        identity = {
             "generation_id": self.generation_id,
             "corpus": self.corpus.value,
             "backend_id": self.backend_id,
@@ -245,7 +357,18 @@ class RetrievalGeneration:
             "chinese_tokenizer": self.chinese_tokenizer,
             "lexical_ranker": self.lexical_ranker,
             "manifest_hash": self.manifest_hash,
-        }).encode("utf-8")).hexdigest()
+        }
+        # Preserve the historical fingerprint of pre-profile generations while
+        # making every complete provider/preprocessing profile immutable.
+        if self.embedding_metadata_complete:
+            identity["embedding_profile"] = {
+                "provider": self.embedding_provider,
+                "provider_kind": self.embedding_provider_kind.value,
+                "model_version": self.embedding_model_version,
+                "document_preprocessing": self.embedding_document_preprocessing,
+                "query_preprocessing": self.embedding_query_preprocessing,
+            }
+        return hashlib.sha256(_canonical_json(identity).encode("utf-8")).hexdigest()
 
 
 class InMemoryRetrievalGenerationRegistry:

@@ -109,7 +109,10 @@ def replay_chain(postgres_database_url):
     search = ServiceEpisodeMemorySearch(
         generations=registry,
         retriever=ServiceEpisodeRetriever(PostgresHybridBackend(retrieval), policy),
-        embed_query=lambda _query, _generation: None,
+        # Rows in this frozen lexical replay intentionally have no dense vector,
+        # but the serving request still carries an explicit query vector rather
+        # than silently treating provider failure as lexical-only success.
+        embed_query=lambda _query, _generation: (0.1, 0.2),
     )
     try:
         yield search

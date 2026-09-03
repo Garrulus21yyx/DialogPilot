@@ -119,6 +119,9 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
         def validate_cached_candidates(self, _candidates):
             return True
 
+        def embed_query(self, _query, _generation):
+            return (0.0,)
+
         async def search_variants_async(self, *_args, **_kwargs):
             return []
 
@@ -253,7 +256,10 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
             assert output["hits"][0]["episode_id"] == "case-1"
             assert calls == [{
                 "tenant_id": "tenant-1", "user_id": "user-1",
-                "query": "E401", "entity_ids": ("device-1",), "top_k": 2,
+                "query": "E401", "entity_ids": ("device-1",),
+                "purpose": "HISTORICAL_EVIDENCE",
+                "explicit_time_reference": False,
+                "top_k": 2,
             }]
 
     asyncio.run(exercise_lifespan())

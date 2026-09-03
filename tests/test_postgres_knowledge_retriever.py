@@ -9,6 +9,8 @@ import pytest
 from application.chinese_lexical import TOKENIZER_VERSION, postgres_lexical_document
 from application.hybrid_retrieval import (
     DistanceMetric,
+    EmbeddingProfile,
+    EmbeddingProviderKind,
     GenerationState,
     RetrievalCorpus,
     RetrievalGeneration,
@@ -35,6 +37,16 @@ from infrastructure.retrieval_postgres import (
 MANIFEST = "a" * 64
 CONTENT = "退款审核完成后，款项将在三个工作日内原路退回。"
 CHECKSUM = hashlib.sha256(CONTENT.encode()).hexdigest()
+EMBEDDING_PROFILE = EmbeddingProfile(
+    provider="test-model-provider",
+    provider_kind=EmbeddingProviderKind.MODEL,
+    model="all-MiniLM-L6-v2",
+    model_version="test-revision-1",
+    dimension=384,
+    model_digest="b" * 64,
+    document_preprocessing="raw-document-test-v1",
+    query_preprocessing="raw-query-test-v1",
+)
 
 
 def _generation() -> RetrievalGeneration:
@@ -55,6 +67,13 @@ def _generation() -> RetrievalGeneration:
         chinese_tokenizer=TOKENIZER_VERSION,
         lexical_ranker="PG_FTS_ZH_V1",
         manifest_hash=MANIFEST,
+        embedding_provider=EMBEDDING_PROFILE.provider,
+        embedding_provider_kind=EMBEDDING_PROFILE.provider_kind,
+        embedding_model_version=EMBEDDING_PROFILE.model_version,
+        embedding_document_preprocessing=(
+            EMBEDDING_PROFILE.document_preprocessing
+        ),
+        embedding_query_preprocessing=EMBEDDING_PROFILE.query_preprocessing,
     )
 
 
@@ -64,7 +83,7 @@ def _policy() -> KnowledgeRetrievalPolicy:
         backend_fingerprint="postgres-knowledge-v1",
         lexical_provider="PG_FTS_ZH_V1",
         transformer_version="standalone-v1",
-        embedding_version="all-MiniLM-L6-v2",
+        embedding_version=EMBEDDING_PROFILE.fingerprint,
         reranker_version="reranker-v1",
         packer_version="context-packer-v1",
     )
@@ -191,6 +210,23 @@ def test_source_rejects_manifest_drift_without_partial_candidates(knowledge_sour
     ))
     assert result.status is RetrievalStatus.CONFLICT
     assert result.detail_code == "MANIFEST_FINGERPRINT_DRIFT"
+    assert result.candidates == ()
+
+
+def test_source_rejects_policy_embedding_profile_drift(knowledge_source):
+    request = _request()
+    request = KnowledgeRetrievalRequest(**{
+        **request.__dict__,
+        "policy": KnowledgeRetrievalPolicy(**{
+            **request.policy.__dict__, "embedding_version": "different-profile",
+        }),
+    })
+    result = asyncio.run(knowledge_source.search_variants_async(
+        request, [("raw", request.query, 1.0)], top_k=20,
+    ))
+
+    assert result.status is RetrievalStatus.CONFLICT
+    assert result.detail_code == "EMBEDDING_PROFILE_FINGERPRINT_DRIFT"
     assert result.candidates == ()
 
 

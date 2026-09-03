@@ -95,8 +95,8 @@ class PostgresCanonicalRetrievalProjector:
             return self._reject(
                 connection, event, ProjectionResultCode.SUBJECT_DELETION_FENCED,
             )
-        resolver.project(connection, event)
-        return self._complete(connection, event, ())
+        projected = resolver.project(connection, event)
+        return self._complete(connection, event, projected)
 
     def _project_knowledge(self, connection, event: ProjectionEvent) -> ProjectionResult:
         manifest = connection.execute("""

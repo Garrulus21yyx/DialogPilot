@@ -11,6 +11,7 @@ from application.data_location_registry import (
 )
 from application.inbound_admission import NewInvocationInbound
 from application.evidence_receipt import ServiceEpisodeLocator
+from application.hybrid_retrieval import EmbeddingProfile, EmbeddingProviderKind
 from application.service_episode import (
     CaseOutcomeVerification,
     EpisodeEvidence,
@@ -34,9 +35,38 @@ from infrastructure.postgres_service_episode import (
     PostgresServiceEpisodeEvidenceResolver,
     PostgresServiceEpisodeResolver,
 )
+from infrastructure.service_episode_embedding import (
+    ServiceEpisodeDocumentEmbedder,
+    ServiceEpisodeEmbeddingContractError,
+    ServiceEpisodeEmbeddingFailure,
+)
 
 
 CREATED = "2026-09-02T20:00:00+00:00"
+SHA = "a" * 64
+
+
+class EpisodeEmbeddingProvider:
+    profile = EmbeddingProfile(
+        provider="fixture-service-episode-model-provider-v1",
+        provider_kind=EmbeddingProviderKind.MODEL,
+        model="fixture-service-episode-model",
+        model_version="revision-1",
+        dimension=3,
+        model_digest="b" * 64,
+        document_preprocessing="raw-service-episode-canonical-text-v1",
+        query_preprocessing="raw-service-episode-query-v1",
+    )
+
+    def __init__(self):
+        self.document_inputs = []
+
+    def embed_documents(self, texts):
+        self.document_inputs.append(tuple(texts))
+        return [[0.1, 0.2, 0.3] for _ in texts]
+
+    def embed_queries(self, texts):
+        return [[0.3, 0.2, 0.1] for _ in texts]
 
 
 @pytest.fixture()
@@ -105,25 +135,33 @@ def _candidate(identity, **changes):
             EpisodeEvidence("event:assistant:1", "assistant", "assistant suggestion"),
         ),
         extractor_version="episode-projector-v1",
+        entity_ids=("account-42", "device-7"),
     )
     return replace(candidate, **changes)
 
 
-def _generation(pool):
+def _generation(pool, profile=EpisodeEmbeddingProvider.profile):
     with pool.transaction() as connection:
         connection.execute("""
             INSERT INTO retrieval.retrieval_generation_registry (
                 corpus,backend_id,generation_id,backend_fingerprint,
                 immutable_fingerprint,schema_version,source_watermark,
-                embedding_model,embedding_dimension,embedding_model_digest,
+                embedding_provider,embedding_provider_kind,embedding_model,
+                embedding_model_version,embedding_dimension,embedding_model_digest,
+                embedding_document_preprocessing,embedding_query_preprocessing,
                 distance_metric,vector_extension_version,index_method,index_params,
                 chinese_tokenizer,lexical_ranker,manifest_hash,state
             ) VALUES (
                 'SERVICE_EPISODE','pg-hybrid-v1','episode-generation-1','backend-v1',
-                %s,'service-episode-search-v1','0','none',3,%s,'COSINE','0.8.0',
-                'EXACT','{}','simple','ts_rank_cd',%s,'BUILDING'
+                %s,'service-episode-search-v1','0',%s,%s,%s,%s,%s,%s,%s,%s,
+                'COSINE','0.8.0','EXACT','{}','simple','ts_rank_cd',%s,'BUILDING'
             )
-        """, ("a" * 64, "b" * 64, "c" * 64))
+        """, (
+            SHA, profile.provider, profile.provider_kind.value, profile.model,
+            profile.model_version, profile.dimension, profile.model_digest,
+            profile.document_preprocessing, profile.query_preprocessing,
+            "c" * 64,
+        ))
 
 
 def test_location_is_write_approved_before_service_episode_schema():
@@ -156,6 +194,21 @@ def test_unaccepted_outcome_cannot_form_episode():
         _candidate(identity, outcome_verification=verification)
 
 
+@pytest.mark.parametrize(
+    ("entity_ids", "message"),
+    [
+        (("account-42", ""), "must not be blank"),
+        (("account-42", "account-42"), "must be unique"),
+    ],
+)
+def test_canonical_episode_rejects_invalid_entity_scope(entity_ids, message):
+    identity = type("Identity", (), {
+        "tenant_id": "t", "user_id": "u", "conversation_id": "c",
+    })()
+    with pytest.raises(ValueError, match=message):
+        _candidate(identity, entity_ids=entity_ids)
+
+
 def test_commit_is_canonical_idempotent_and_keeps_roles_separate(episode_scope):
     pool, identity = episode_scope
     candidate = _candidate(identity)
@@ -169,7 +222,7 @@ def test_commit_is_canonical_idempotent_and_keeps_roles_separate(episode_scope):
     with pool.transaction() as connection:
         row = connection.execute("""
             SELECT user_evidence,assistant_evidence,source_event_refs,
-                   outcome_verification_ref,provenance_sha256
+                   outcome_verification_ref,provenance_sha256,entity_ids
             FROM dialogpilot_app.service_episode_revisions
         """).fetchone()
         assert row[0][0]["content"] == "customer symptom"
@@ -177,6 +230,7 @@ def test_commit_is_canonical_idempotent_and_keeps_roles_separate(episode_scope):
         assert row[2] == ["event:user:1", "event:assistant:1"]
         assert row[3] == "receipt:case-owner:1"
         assert row[4] == candidate.provenance_sha256
+        assert row[5] == ["account-42", "device-7"]
 
 
 def test_revision_cas_conflict_and_canonical_rows_are_immutable(episode_scope):
@@ -201,6 +255,7 @@ def test_revision_cas_conflict_and_canonical_rows_are_immutable(episode_scope):
 def test_projection_uses_canonical_current_revision_and_weighted_roles(episode_scope):
     pool, identity = episode_scope
     _generation(pool)
+    provider = EpisodeEmbeddingProvider()
     candidate = _candidate(identity)
     committed = PostgresServiceEpisodeRepository(pool).commit(
         candidate,
@@ -210,14 +265,17 @@ def test_projection_uses_canonical_current_revision_and_weighted_roles(episode_s
     )
     result = PostgresCanonicalRetrievalProjector(
         pool, resolvers={
-            "SERVICE_EPISODE": PostgresServiceEpisodeResolver(),
+            "SERVICE_EPISODE": PostgresServiceEpisodeResolver(
+                ServiceEpisodeDocumentEmbedder(provider),
+            ),
         },
     ).project(committed.projection_event_id)
     assert result.code.value == "APPLIED"
+    assert result.candidate_count == 1
     with pool.transaction() as connection:
         row = connection.execute("""
             SELECT episode_id,episode_revision,outcome_receipt_ref,
-                   provenance_sha256,
+                   provenance_sha256,entity_ids,embedding::text,
                    ts_rank_cd(search_tsv,plainto_tsquery('simple','customer symptom')),
                    ts_rank_cd(search_tsv,plainto_tsquery('simple','assistant suggestion'))
             FROM retrieval.service_episode_search
@@ -226,7 +284,14 @@ def test_projection_uses_canonical_current_revision_and_weighted_roles(episode_s
         candidate.episode_id, "1", "receipt:case-owner:1",
         candidate.provenance_sha256,
     )
-    assert row[4] > row[5]
+    assert row[4] == ["account-42", "device-7"]
+    assert row[5] == "[0.1,0.2,0.3]"
+    assert row[6] > row[7]
+    assert len(provider.document_inputs) == 1
+    embedded_text = provider.document_inputs[0][0]
+    assert "problem: customer symptom after upgrade" in embedded_text
+    assert "materials: log-ref:abc" in embedded_text
+    assert "entity_ids: account-42 | device-7" in embedded_text
     payload = PostgresServiceEpisodeEvidenceResolver(pool).resolve(
         ServiceEpisodeLocator(
             "tenant-episode", "user-episode", "pg-hybrid-v1",
@@ -237,6 +302,37 @@ def test_projection_uses_canonical_current_revision_and_weighted_roles(episode_s
     assert payload["outcome_receipt_ref"] == "receipt:case-owner:1"
     assert payload["user_evidence_refs"] == ["event:user:1"]
     assert payload["assistant_evidence_refs"] == ["event:assistant:1"]
+
+
+def test_projection_rejects_provider_profile_drift_before_search_write(episode_scope):
+    pool, identity = episode_scope
+    _generation(pool)
+    candidate = _candidate(identity)
+    committed = PostgresServiceEpisodeRepository(pool).commit(
+        candidate,
+        projection_target=EpisodeProjectionTarget(
+            "pg-hybrid-v1", "episode-generation-1",
+        ),
+    )
+    provider = EpisodeEmbeddingProvider()
+    provider.profile = replace(provider.profile, model_version="revision-2")
+    projector = PostgresCanonicalRetrievalProjector(
+        pool,
+        resolvers={
+            "SERVICE_EPISODE": PostgresServiceEpisodeResolver(
+                ServiceEpisodeDocumentEmbedder(provider),
+            ),
+        },
+    )
+
+    with pytest.raises(ServiceEpisodeEmbeddingContractError) as raised:
+        projector.project(committed.projection_event_id)
+
+    assert raised.value.code is ServiceEpisodeEmbeddingFailure.PROFILE_MISMATCH
+    with pool.transaction() as connection:
+        assert connection.execute(
+            "SELECT count(*) FROM retrieval.service_episode_search"
+        ).fetchone()[0] == 0
 
 
 def test_conversation_tombstone_purges_episode_canonical_state(episode_scope):

@@ -2,6 +2,8 @@
 from dataclasses import replace
 from datetime import datetime, timezone
 
+import pytest
+
 from application.hybrid_retrieval import (
     EpisodeSearchScope,
     HybridRetrievalRequest,
@@ -12,7 +14,11 @@ from application.hybrid_retrieval import (
 )
 from application.memory_retrieval_policy import DEFAULT_MEMORY_RETRIEVAL_POLICY
 from application.service_episode_retriever import (
+    ServiceEpisodeFreshnessMode,
+    ServiceEpisodePurposeOutcome,
     ServiceEpisodeRetrievalPolicy,
+    ServiceEpisodeRetrievalPurpose,
+    ServiceEpisodeRetrievalResult,
     ServiceEpisodeRetriever,
 )
 
@@ -24,17 +30,29 @@ SHA = "a" * 64
 class Backend:
     def __init__(self, result):
         self.result = result
+        self.calls = 0
 
     def retrieve(self, _request):
+        self.calls += 1
         return self.result
 
 
-def policy(*, minimum=0.0, max_age=90 * 86400):
+def policy(
+    *,
+    minimum=0.0,
+    max_age=90 * 86400,
+    purpose=ServiceEpisodeRetrievalPurpose.HISTORICAL_EVIDENCE,
+    freshness_mode=ServiceEpisodeFreshnessMode.HARD_WINDOW,
+    unique_binding_margin=None,
+):
     return ServiceEpisodeRetrievalPolicy(
         "service-episode-retrieval-policy-heldout-v1",
         DEFAULT_MEMORY_RETRIEVAL_POLICY,
         minimum,
         max_age,
+        purpose,
+        freshness_mode,
+        unique_binding_margin,
     )
 
 
@@ -124,3 +142,153 @@ def test_candidate_authority_conflict_and_missing_watermark_fail_closed():
     assert (missing.status, missing.detail_code) == (
         RetrievalStatus.INVALID_CONTRACT, "INDEX_WATERMARK_MISSING",
     )
+
+
+def test_reference_and_historical_policies_are_not_interchangeable():
+    reference = policy(
+        purpose=ServiceEpisodeRetrievalPurpose.REFERENCE_RESOLUTION,
+        freshness_mode=ServiceEpisodeFreshnessMode.ANCHORED_OR_RECENT,
+        unique_binding_margin=0.001,
+    )
+    backend = Backend(result(lexical=(
+        candidate("one", 1, "2026-09-01T00:00:00+00:00"),
+    )))
+    rejected = ServiceEpisodeRetriever(backend, reference).retrieve(
+        request(reference),
+        purpose=ServiceEpisodeRetrievalPurpose.HISTORICAL_EVIDENCE,
+        now=NOW,
+    )
+
+    assert (rejected.status, rejected.detail_code) == (
+        RetrievalStatus.INVALID_CONTRACT, "RETRIEVAL_PURPOSE_MISMATCH",
+    )
+    assert rejected.purpose is ServiceEpisodeRetrievalPurpose.HISTORICAL_EVIDENCE
+    assert rejected.purpose_outcome is ServiceEpisodePurposeOutcome.FAILED
+
+
+def test_reference_resolution_requires_a_unique_score_margin():
+    reference = policy(
+        purpose=ServiceEpisodeRetrievalPurpose.REFERENCE_RESOLUTION,
+        freshness_mode=ServiceEpisodeFreshnessMode.ANCHORED_OR_RECENT,
+        unique_binding_margin=0.001,
+    )
+    first = candidate("one", 1, "2026-09-01T00:00:00+00:00")
+    second = candidate("two", 2, "2026-09-01T00:00:00+00:00")
+    ambiguous = ServiceEpisodeRetriever(Backend(result(
+        lexical=(first, second),
+    )), reference).retrieve(
+        request(reference),
+        purpose=ServiceEpisodeRetrievalPurpose.REFERENCE_RESOLUTION,
+        now=NOW,
+    )
+
+    assert (ambiguous.status, ambiguous.detail_code) == (
+        RetrievalStatus.AMBIGUOUS, "REFERENCE_MARGIN_NOT_MET",
+    )
+    assert [hit.episode_id for hit in ambiguous.hits] == [
+        "case-one", "case-two",
+    ]
+    assert ambiguous.purpose_outcome is ServiceEpisodePurposeOutcome.AMBIGUOUS
+
+
+def test_historical_evidence_keeps_old_relevant_history_when_age_is_rank_only():
+    historical = policy(
+        max_age=None,
+        freshness_mode=ServiceEpisodeFreshnessMode.RANK_ONLY,
+    )
+    old = candidate("old", 1, "2020-01-01T00:00:00+00:00")
+    ranked = ServiceEpisodeRetriever(
+        Backend(result(dense=(old,))), historical,
+    ).retrieve(
+        request(historical),
+        purpose=ServiceEpisodeRetrievalPurpose.HISTORICAL_EVIDENCE,
+        now=NOW,
+    )
+
+    assert ranked.status is RetrievalStatus.OK
+    assert (
+        ranked.purpose_outcome
+        is ServiceEpisodePurposeOutcome.EVIDENCE_AVAILABLE
+    )
+    assert [hit.episode_id for hit in ranked.hits] == ["case-old"]
+
+
+def test_reference_policy_allows_old_history_only_with_an_explicit_anchor():
+    reference = policy(
+        max_age=86400,
+        purpose=ServiceEpisodeRetrievalPurpose.REFERENCE_RESOLUTION,
+        freshness_mode=ServiceEpisodeFreshnessMode.ANCHORED_OR_RECENT,
+        unique_binding_margin=0.001,
+    )
+    old = candidate("old", 1, "2020-01-01T00:00:00+00:00")
+    retriever = ServiceEpisodeRetriever(Backend(result(lexical=(old,))), reference)
+
+    unanchored = retriever.retrieve(
+        request(reference),
+        purpose=ServiceEpisodeRetrievalPurpose.REFERENCE_RESOLUTION,
+        now=NOW,
+    )
+    anchored = retriever.retrieve(
+        request(reference),
+        purpose=ServiceEpisodeRetrievalPurpose.REFERENCE_RESOLUTION,
+        explicit_time_reference=True,
+        now=NOW,
+    )
+
+    assert (unanchored.status, unanchored.detail_code) == (
+        RetrievalStatus.NO_EVIDENCE, "FRESHNESS_THRESHOLD",
+    )
+    assert anchored.status is RetrievalStatus.OK
+    assert anchored.purpose_outcome is ServiceEpisodePurposeOutcome.UNIQUE_BINDING
+    assert anchored.hits[0].episode_id == "case-old"
+
+
+def test_policy_rejects_cross_purpose_and_freshness_illegal_states():
+    with pytest.raises(ValueError, match="unique-binding"):
+        policy(
+            purpose=ServiceEpisodeRetrievalPurpose.REFERENCE_RESOLUTION,
+            freshness_mode=ServiceEpisodeFreshnessMode.ANCHORED_OR_RECENT,
+        )
+    with pytest.raises(ValueError, match="must not apply"):
+        policy(unique_binding_margin=0.01)
+    with pytest.raises(ValueError, match="must not declare"):
+        policy(freshness_mode=ServiceEpisodeFreshnessMode.RANK_ONLY)
+    with pytest.raises(ValueError, match="purpose is invalid"):
+        policy(purpose="REFERENCE_RESOLUTION")
+    with pytest.raises(ValueError, match="freshness mode is invalid"):
+        policy(freshness_mode="HARD_WINDOW")
+
+
+def test_reference_resolution_requires_runner_up_and_typed_anchor_flag():
+    reference = policy(
+        purpose=ServiceEpisodeRetrievalPurpose.REFERENCE_RESOLUTION,
+        freshness_mode=ServiceEpisodeFreshnessMode.ANCHORED_OR_RECENT,
+        unique_binding_margin=0.001,
+    )
+    backend = Backend(result(lexical=(
+        candidate("one", 1, "2026-09-01T00:00:00+00:00"),
+    )))
+    retriever = ServiceEpisodeRetriever(backend, reference)
+
+    too_small = retriever.retrieve(request(reference), top_k=1, now=NOW)
+    bad_anchor = retriever.retrieve(
+        request(reference), explicit_time_reference="true", now=NOW,
+    )
+
+    assert (too_small.status, too_small.detail_code) == (
+        RetrievalStatus.INVALID_CONTRACT, "REFERENCE_TOP_K_TOO_SMALL",
+    )
+    assert (bad_anchor.status, bad_anchor.detail_code) == (
+        RetrievalStatus.INVALID_CONTRACT, "EXPLICIT_TIME_REFERENCE_INVALID",
+    )
+    assert backend.calls == 0
+
+
+def test_result_algebra_rejects_unbound_success_and_ambiguous_evidence_use():
+    with pytest.raises(ValueError, match="requires evidence"):
+        ServiceEpisodeRetrievalResult(RetrievalStatus.OK)
+    with pytest.raises(ValueError, match="ambiguous reference"):
+        ServiceEpisodeRetrievalResult(
+            RetrievalStatus.AMBIGUOUS,
+            purpose=ServiceEpisodeRetrievalPurpose.HISTORICAL_EVIDENCE,
+        )

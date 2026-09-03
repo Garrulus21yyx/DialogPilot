@@ -4,7 +4,6 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
-import math
 import threading
 from dataclasses import replace
 from datetime import datetime, timezone
@@ -14,6 +13,7 @@ from application.chinese_lexical import TOKENIZER_VERSION, postgres_lexical_docu
 from application.cost_budget_policy import OFFLINE_KNOWLEDGE_INGEST_BUDGET
 from application.hybrid_retrieval import (
     DistanceMetric,
+    EmbeddingProfile,
     GenerationConflict,
     GenerationState,
     RetrievalCorpus,
@@ -29,6 +29,12 @@ from mcp.document_chunker import ChunkStrategy, DocumentChunker
 from mcp.source_document import SourceDocument
 
 from .hybrid_retrieval_backend import create_generation_hnsw_index
+from .knowledge_embedding import (
+    KnowledgeDocumentEmbedder,
+    KnowledgeEmbeddingProvider,
+    KnowledgeQueryEmbedder,
+    LocalHashKnowledgeEmbeddingBaseline,
+)
 from .postgres_knowledge_source import PostgresKnowledgeSourceRepository
 from .postgres_retrieval_projection import PostgresCanonicalRetrievalProjector
 from .retrieval_postgres import PostgresRetrievalGenerationRegistry
@@ -79,11 +85,6 @@ class PostgresKnowledgeStore:
 
     backend_id = "POSTGRES_PG_FTS_ZH_V1"
     backend_fingerprint = "POSTGRES_PGVECTOR_PG_FTS_ZH_V1"
-    embedding_model = "dialogpilot-hash-embedding-v1"
-    embedding_dimension = 384
-    embedding_model_digest = hashlib.sha256(
-        b"dialogpilot-hash-embedding-v1:ascii-cjk-unigram-bigram:384d"
-    ).hexdigest()
     chunk_schema_version = "knowledge-direct-ingest-v1"
 
     def __init__(
@@ -95,12 +96,9 @@ class PostgresKnowledgeStore:
         product: str = "",
         chunk_max_tokens: int = 512,
         chunk_overlap_tokens: int = 64,
-        embedding_function=None,
+        embedding_provider: KnowledgeEmbeddingProvider | None = None,
     ):
-        if embedding_function is None:
-            from core.local_embedding import LocalHashEmbeddingFunction
-
-            embedding_function = LocalHashEmbeddingFunction()
+        provider = embedding_provider or LocalHashKnowledgeEmbeddingBaseline()
         self._pool = pool
         self._tenant_id = tenant_id
         self._locale = locale
@@ -108,7 +106,9 @@ class PostgresKnowledgeStore:
         self._chunker = DocumentChunker()
         self._chunk_max_tokens = chunk_max_tokens
         self._chunk_overlap_tokens = chunk_overlap_tokens
-        self._embedding_function = embedding_function
+        self._embedding_provider = provider
+        self._document_embedder = KnowledgeDocumentEmbedder(provider)
+        self._query_embedder = KnowledgeQueryEmbedder(provider)
         self._generations = PostgresRetrievalGenerationRegistry(pool)
         self._sources = PostgresKnowledgeSourceRepository(pool)
         self._projector = PostgresCanonicalRetrievalProjector(pool)
@@ -116,10 +116,16 @@ class PostgresKnowledgeStore:
 
     async def ensure_defaults_async(self) -> RetrievalGeneration:
         try:
-            return await asyncio.to_thread(self.active_generation)
+            generation = await asyncio.to_thread(self.active_generation)
         except GenerationConflict:
             await self.add_documents_async(DEFAULT_KNOWLEDGE_DOCUMENTS)
             return await asyncio.to_thread(self.active_generation)
+        if self.embedding_profile.matches_generation(generation):
+            return generation
+        # A pre-profile or differently configured active generation remains
+        # immutable; build and activate a new identity rather than relabel it.
+        await self.add_documents_async(DEFAULT_KNOWLEDGE_DOCUMENTS)
+        return await asyncio.to_thread(self.active_generation)
 
     async def add_documents_async(
         self, documents: Sequence[SourceDocument],
@@ -149,7 +155,8 @@ class PostgresKnowledgeStore:
                 product=self._product, sources=sources,
                 reviewer_manifest_ref="local-direct-ingest",
             )
-            vectors = self._embed([chunk.lexical_document for chunk in chunks])
+            raw_chunk_texts = self._raw_chunk_texts(sources, chunks)
+            vectors = self._document_embedder(raw_chunk_texts)
             chunks = tuple(
                 replace(chunk, embedding=vector)
                 for chunk, vector in zip(chunks, vectors, strict=True)
@@ -162,14 +169,23 @@ class PostgresKnowledgeStore:
                 source_watermark=hashlib.sha256("\n".join(
                     item.revision_id for item in sources
                 ).encode()).hexdigest(),
-                embedding_model=self.embedding_model,
-                embedding_dimension=self.embedding_dimension,
-                embedding_model_digest=self.embedding_model_digest,
+                embedding_model=self.embedding_profile.model,
+                embedding_dimension=self.embedding_profile.dimension,
+                embedding_model_digest=self.embedding_profile.model_digest,
                 distance_metric=DistanceMetric.COSINE,
                 vector_extension_version="0.8.6", index_method="HNSW",
                 index_params_json='{"ef_construction":64,"m":16}',
                 chinese_tokenizer=TOKENIZER_VERSION,
                 lexical_ranker="PG_FTS_ZH_V1", manifest_hash=manifest.manifest_hash,
+                embedding_provider=self.embedding_profile.provider,
+                embedding_provider_kind=self.embedding_profile.provider_kind,
+                embedding_model_version=self.embedding_profile.model_version,
+                embedding_document_preprocessing=(
+                    self.embedding_profile.document_preprocessing
+                ),
+                embedding_query_preprocessing=(
+                    self.embedding_profile.query_preprocessing
+                ),
             ))
             if generation.state is GenerationState.REGISTERED:
                 self._generations.transition(generation_id, GenerationState.BUILDING)
@@ -191,6 +207,15 @@ class PostgresKnowledgeStore:
             RetrievalCorpus.KNOWLEDGE, backend_id=self.backend_id,
         )
 
+    @property
+    def embedding_profile(self) -> EmbeddingProfile:
+        return self._embedding_provider.profile
+
+    def embed_query(
+        self, raw_query: str, generation: RetrievalGeneration,
+    ) -> tuple[float, ...]:
+        return self._query_embedder(raw_query, generation)
+
     async def doc_count_async(self) -> int:
         return await asyncio.to_thread(self.doc_count)
 
@@ -211,6 +236,18 @@ class PostgresKnowledgeStore:
             "manifest_fingerprint": generation.manifest_hash,
             "generation_id": generation.generation_id,
             "backend_fingerprint": generation.backend_fingerprint,
+            "embedding_profile_fingerprint": (
+                generation.embedding_profile.fingerprint
+            ),
+            "embedding_provider_kind": generation.embedding_provider_kind.value,
+            "embedding_model": generation.embedding_model,
+            "embedding_model_version": generation.embedding_model_version,
+            "embedding_document_preprocessing": (
+                generation.embedding_document_preprocessing
+            ),
+            "embedding_query_preprocessing": (
+                generation.embedding_query_preprocessing
+            ),
         }
 
     @property
@@ -308,24 +345,32 @@ class PostgresKnowledgeStore:
     def _generation_id(self, sources: Sequence[SourceRevision]) -> str:
         digest = hashlib.sha256(json.dumps({
             "tenant_id": self._tenant_id,
+            "locale": self._locale,
+            "product": self._product,
             "sources": [(item.source_id, item.revision_id) for item in sources],
             "chunk_schema": self.chunk_schema_version,
+            "chunk_strategy": ChunkStrategy.STRUCTURE_AWARE.value,
             "chunk_max_tokens": self._chunk_max_tokens,
             "chunk_overlap_tokens": self._chunk_overlap_tokens,
-            "embedding_model_digest": self.embedding_model_digest,
+            "embedding_profile": self.embedding_profile.fingerprint,
+            "lexical_tokenizer": TOKENIZER_VERSION,
+            "lexical_ranker": "PG_FTS_ZH_V1",
         }, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
         return f"knowledge-generation-{digest[:32]}"
 
-    def _embed(self, texts: Sequence[str]) -> tuple[tuple[float, ...], ...]:
-        vectors = self._embedding_function(list(texts))
-        projected = tuple(tuple(float(value) for value in vector) for vector in vectors)
-        if len(projected) != len(texts) or any(
-            len(vector) != self.embedding_dimension
-            or any(not math.isfinite(value) for value in vector)
-            for vector in projected
-        ):
-            raise ValueError("knowledge embedding provider returned invalid vectors")
-        return projected
+    @staticmethod
+    def _raw_chunk_texts(
+        sources: Sequence[SourceRevision],
+        chunks: Sequence[KnowledgeChunkProjection],
+    ) -> tuple[str, ...]:
+        source_by_identity = {
+            (source.source_id, source.revision_id): source for source in sources
+        }
+        values = []
+        for chunk in chunks:
+            source = source_by_identity[(chunk.source_id, chunk.revision_id)]
+            values.append(source.content[chunk.start_char:chunk.end_char])
+        return tuple(values)
 
     def _event_id(self, generation_id: str) -> str:
         with self._pool.transaction() as connection:

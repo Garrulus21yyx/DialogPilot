@@ -56,11 +56,16 @@ requires it, not by accumulating hypothetical counterexamples.
 
 ### S2 — Parallel production capability prerequisites
 
-Status: `IN_PROGRESS`
+Status: `COMPLETED`
 
-- [ ] Knowledge raw-text Dense and truthful generation metadata.
-- [ ] Memory ServiceEpisode Dense projection and purpose-specific policy.
-- [ ] Routing-level media probe and bounded typed outcomes.
+- [x] Knowledge raw-text Dense and truthful generation metadata.
+- [x] Memory ServiceEpisode Dense projection and purpose-specific policy.
+- [x] Routing-level media probe and bounded typed outcomes.
+
+S2 closes provider/profile plumbing and independently testable component paths.
+The API deliberately labels its current local providers as `HASH_BASELINE`.
+Replacing those providers with pinned BGE-M3 and rebuilding active generations
+remains an M3 production capability task; S2 does not claim that score.
 
 ### S3 — State-first integration and downstream decoupling
 
@@ -106,7 +111,14 @@ Status: `PENDING`
   component; it consumes an explicit routing media need instead of classifying
   natural language with keyword lists. Focused suite: `7 passed`; `ruff`
   passed.
+- 2026-09-03: S2 Knowledge/Memory focused real-PostgreSQL suite: `117 passed`.
+  Complete repository suite with isolated PostgreSQL databases: `984 passed`.
+  Knowledge raw chunks and queries now share one explicit embedding profile;
+  ServiceEpisode projection and query use the same explicit provider, with
+  separate reference-resolution and historical-evidence policies.
 
 ## Commit log
 
 - Stage 0 documentation/plan: `63fdf2f`.
+- Stage 1 minimal command-primary slice: `d863261`.
+- Stage 2 routing media probe: `b2a4334`.

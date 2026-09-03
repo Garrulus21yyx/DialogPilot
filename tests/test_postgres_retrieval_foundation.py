@@ -76,7 +76,7 @@ def test_retrieval_pool_has_independent_role_budget_timeout_and_metrics(
     retrieval_foundation,
 ):
     result, _, retrieval = retrieval_foundation
-    assert result["head"] == "20260902_0026"
+    assert result["head"] == "20260903_0028"
     assert retrieval.config.max_size == 2
     with retrieval.transaction() as connection:
         row = connection.execute("""
@@ -116,6 +116,13 @@ def test_generation_definition_is_immutable_and_direct_activation_is_atomic(
             connection.execute("""
                 UPDATE retrieval.retrieval_generation_registry
                 SET embedding_dimension=768 WHERE generation_id=%s
+            """, (first.generation_id,))
+    with pytest.raises(psycopg.errors.ObjectNotInPrerequisiteState, match="immutable"):
+        with platform.transaction() as connection:
+            connection.execute("""
+                UPDATE retrieval.retrieval_generation_registry
+                SET embedding_query_preprocessing='mutated-v2'
+                WHERE generation_id=%s
             """, (first.generation_id,))
 
 

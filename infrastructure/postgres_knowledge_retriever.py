@@ -168,6 +168,15 @@ class PostgresKnowledgeCandidateSource:
             return KnowledgeCandidateResult(
                 RetrievalStatus.CONFLICT, detail_code="MANIFEST_FINGERPRINT_DRIFT",
             )
+        if (
+            generation.embedding_metadata_complete
+            and generation.embedding_profile.fingerprint
+            != request.policy.embedding_version
+        ):
+            return KnowledgeCandidateResult(
+                RetrievalStatus.CONFLICT,
+                detail_code="EMBEDDING_PROFILE_FINGERPRINT_DRIFT",
+            )
         return None
 
     def _load_rows(

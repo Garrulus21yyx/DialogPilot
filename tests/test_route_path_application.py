@@ -119,7 +119,10 @@ def test_chat_application_agent_path_calls_service_episode_tool_with_identity():
     assert observed[0]["hits"][0]["episode_id"] == "case-e401"
     assert search_calls == [{
         "tenant_id": "tenant-1", "user_id": "user-1",
-        "query": "E401 登录失败", "entity_ids": ("device-1",), "top_k": 5,
+        "query": "E401 登录失败", "entity_ids": ("device-1",),
+        "purpose": "HISTORICAL_EVIDENCE",
+        "explicit_time_reference": False,
+        "top_k": 5,
     }]
 
 

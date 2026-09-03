@@ -2,7 +2,11 @@ import asyncio
 from types import SimpleNamespace
 
 from api import main
-from application.hybrid_retrieval import RetrievalStatus
+from application.hybrid_retrieval import (
+    EmbeddingProfile,
+    EmbeddingProviderKind,
+    RetrievalStatus,
+)
 from application.knowledge_retriever import EvidencePackResult
 from core.intent_recognizer import IntentCategory
 from mcp.context_packer import ContextCandidate, PackedContext
@@ -55,6 +59,16 @@ class FakeKnowledgeStore:
         self.generation_id = generation_id
 
     def active_generation(self):
+        profile = EmbeddingProfile(
+            provider="test-model-provider",
+            provider_kind=EmbeddingProviderKind.MODEL,
+            model="all-MiniLM-L6-v2",
+            model_version="test-revision-1",
+            dimension=384,
+            model_digest="b" * 64,
+            document_preprocessing="raw-document-test-v1",
+            query_preprocessing="raw-query-test-v1",
+        )
         return SimpleNamespace(
             manifest_hash=self.manifest,
             generation_id=self.generation_id,
@@ -62,6 +76,7 @@ class FakeKnowledgeStore:
             lexical_ranker="PG_FTS_ZH_V1",
             embedding_model="all-MiniLM-L6-v2",
             embedding_model_digest="b" * 64,
+            embedding_profile=profile,
         )
 
 
