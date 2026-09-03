@@ -1,6 +1,6 @@
 # Knowledge RAG 迁移与评测
 
-状态：`DEV_CHUNK_FUSION_QUERY_SELECTED — HELDOUT_NOT_RUN`
+状态：`DEV_CHUNK_FUSION_QUERY_PACKING_SELECTED — HELDOUT_NOT_RUN`
 目标：在真实 PostgreSQL FTS/pgvector、版本固定的多语言 Dense 模型和生产 EvidencePack 上重新建立可复现基线；保留既有 Chunk、CrossEncoder 与 Parent 实验作为历史证据。
 
 ## 1. 在线职责
@@ -146,6 +146,12 @@ code-switch
 - 每个语言 slice 单独报告 Candidate、Reranked 和 Packed Recall；
 - 多语言 reranker 的结论不能由英文 MiniLM 外推。
 
+当前仓库数据边界已经核清：现有公开 RAG Gold 只能诚实支持英文；中文和
+code-switch 只有项目合成/临时 smoke，适合测 Trigger、Evidence consumption
+和业务权威边界，不能报告自然分布检索质量。MTRAG 尚未落盘。若最终需要
+自然中文或 code-switch 成绩，必须另取并冻结对应公开数据，不能用旧 intent
+或短脚本文档代替。
+
 ## 6. 长文档与父子 Chunk
 
 长文档至少按原文长度、section 数或页面数分桶，例如 short/medium/long；阈值写入 manifest 后固定。报告：
@@ -174,6 +180,18 @@ Parent/window context
 不要在 Candidate 阶段展开所有 parent，否则会挤占候选多样性。
 
 Parent/Window 仅在至少 30 个 loss witness 中，“正确 anchor 已命中但局部边界不足”占剩余 evidence miss 至少 50% 时重开。多个独立 requirement 尚未分别召回时，Parent expansion 不适用。
+
+现有 300 条 Doc2Dial Dev 可零模型调用地按 Gold 文档长度聚合：
+
+| 长度桶 | cases | All-evidence@20 | Evidence R@20 | MRR@20 |
+|---|---:|---:|---:|---:|
+| short `<4000` chars | 92 | `65/92=.7065` | `.7065` | `.4436` |
+| medium `4000–7999` | 137 | `94/137=.6861` | `.6886` | `.4466` |
+| long `>=8000` | 71 | `57/71=.8028` | `.8028` | `.4380` |
+
+这是 consumed Dev 的 candidate 诊断；它没有显示 long slice 特别退化，因此
+不为“再看一次长文”重跑旧父子实验。正式英文 heldout 可从本地官方
+Doc2Dial test archive 中排除已消费 conversation 后机械冻结，无需人工 Gold。
 
 ## 7. 调参顺序
 
@@ -374,9 +392,31 @@ Query 候选。capture P95 为 `227.48ms`，artifact SHA-256 为
 `aba106ad…d9f04`。线上与离线现共用同一个 RRF 排序 Owner，生产默认参数
 仍未切换。
 
-下一步先在独立 slice 验证中文、英文、code-switch 与长文档，然后测
-candidate→Top-5/packing loss。只有前述 reranker 或 Parent 触发条件成立，
-才分别开启对应实验。
+`scripts/run_rag_selection_eval.py` 随后从上述 Query 三件 artifact 恢复
+candidate 正文并校验 source checksum/revision/span，使用同一
+`fuse_rankings()`、真实 `ContextPacker` 和 `EvidencePack` 重放
+`K=3/5/8 × budget=1800/2600`。本轮没有 PostgreSQL、Embedding、rewrite、
+rerank、Parent、generation 或 judge 调用。48 条 viewed Dev 结果为：
+
+| K / budget | Pre-pack All-evidence | Packed All-evidence | mean / P95 tokens |
+|---|---:|---:|---:|
+| 3 / 1800 | `25/48=.5208` | `.5208` | `1385 / 1536` |
+| 3 / 2600 | `25/48=.5208` | `.5208` | `1385 / 1536` |
+| 5 / 1800 | `31/48=.6458` | `30/48=.6250` | `1667 / 1796` |
+| 5 / 2600 | `31/48=.6458` | **`31/48=.6458`** | `2281 / 2560` |
+| 8 / 1800 | `36/48=.7500` | `30/48=.6250` | `1692 / 1796` |
+| 8 / 2600 | `36/48=.7500` | `31/48=.6458` | `2505 / 2588` |
+
+按 Packed All-evidence → Packed Evidence → mean tokens → config ID 选择
+`Top-5 / 2600`。其 packing harmful 为 0、packing loss 为 0；相对
+Candidate@20 的 `.8333`，Top-5 选择本身损失 `18.75pp`。Top-8 虽在打包前
+多找回 5 条，但 2600 token 预算将收益全部抹掉。因此当前下一瓶颈是
+Candidate→Top-5 选择，不是 Parent，也不是 2600-budget packing。该结果仍是
+`VIEWED_DEV_SELECTION_PACKING`，`promotion_allowed=false`。
+
+下一步是在冻结的、conversation-isolated 英文 heldout 上复测完整候选与
+packing baseline；中文/code-switch 先完成项目 Trigger/Consumption 合同。
+只有前述 reranker 或 Parent 触发条件成立，才分别开启对应实验。
 
 实际调用必须从 retriever result、Stage 与 E2E audit 读取；Evaluator adapter 不得临时建立另一套内存检索链拿分。
 

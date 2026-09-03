@@ -139,6 +139,9 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 - [x] Reuse the bound 48-case Dev standalone artifact, capture fresh Raw and
   Standalone Dense Top-40 on the frozen chunk/fusion path, replay four query
   weights offline, and freeze the production-fallback-compatible query candidate.
+- [x] Replay the frozen Query candidates through identity selection and the
+  production ContextPacker for `K=3/5/8 × budget=1800/2600`, then freeze the
+  viewed-Dev no-rerank packing baseline without changing production defaults.
 - [x] Run one positive contract through the real `ChatApplication.handle()`.
 - [x] Prove the existing L1 media transport through the real chat lifecycle;
   keep it labelled as transport evidence, not command-primary media closure.
@@ -419,6 +422,20 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   The current 48-case Query cohort also does not meet the predeclared
   100-natural-multicondition / `.95` candidate-recall trigger. No reranker or
   Parent stage was opened; the complete English MiniLM remains historical only.
+- 2026-09-03: Frozen Query candidates were replayed through the production
+  ContextPacker and EvidencePack over six `K × budget` configurations. The
+  viewed-Dev baseline selected `Top-5/2600`: Packed All-evidence was
+  `31/48=.6458`, mean/P95 context tokens `2281/2560`, and packing harmful was
+  zero. Candidate@20 was `.8333`, so the remaining `18.75pp` loss is caused by
+  Candidate→Top-5 selection. Top-8 found more evidence before packing but its
+  gain was eliminated by the same budget; Parent remains inapplicable.
+- 2026-09-03: Existing public Knowledge Gold covers English only. The consumed
+  Doc2Dial Dev can still report deterministic length slices: short `.7065`,
+  medium `.6861`, and long `.8028` All-evidence@20. Chinese/code-switch project
+  cases remain Trigger/Consumption smoke, not natural-distribution quality.
+  MTRAG is not present. A conversation-isolated English heldout can be frozen
+  mechanically from the unconsumed official Doc2Dial test pool after the Dev
+  pipeline is fixed, without authoring new Gold.
 
 ## Commit log
 
@@ -468,3 +485,4 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 - Command-primary out-of-scope terminal: `28ff1b6`.
 - Explicit media region grounding: `285ff13`.
 - Knowledge Query source capture and offline replay: `b38ad07`.
+- Knowledge identity-selection and packing baseline: `0d3eecb`.
