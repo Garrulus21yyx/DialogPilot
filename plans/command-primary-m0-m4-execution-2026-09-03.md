@@ -95,6 +95,9 @@ Status: `IN_PROGRESS — READ-ONLY STICKY VERTICAL SLICE COMPLETE`
   Knowledge and/or ServiceEpisode generation and reports the pointer change.
 - [x] Provision and verify the pinned local BGE-M3 artifact, then rebuild and
   activate the development Knowledge generation through the explicit CLI.
+- [x] Compile a task-owned, current-turn single-asset L1 media requirement,
+  execute OCR, consume its artifact, and publish through the real chat lifecycle
+  without legacy Intent, message-keyword tier selection, or business tools.
 - [ ] Load a non-empty canonical ServiceEpisode evaluation corpus, then build
   and activate its BGE-M3 generation before the Memory benchmark. The current
   local canonical owner has zero episodes, so an empty generation is not
@@ -254,6 +257,13 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   representation: blank input is canonicalized to `None` (no product filter).
   This closed the mismatch between canonical manifest `''` and projected search
   `NULL`; focused real-PostgreSQL suite: `34 passed`.
+- 2026-09-03: The first task-owned command-primary media path now compiles L1
+  from the versioned Action definition, binds one current-turn asset, runs OCR,
+  consumes the resulting artifact, and publishes `E401` through
+  `ChatApplication.handle()`. Legacy Intent, Knowledge, and business tools are
+  skipped. Focused root recheck: `54 passed`; isolated-PostgreSQL full suite:
+  `983 passed`. Supported scope remains one current-turn asset at L1; L2,
+  region selection, cross-turn reuse, and joint Media+Knowledge are still open.
 
 ## Commit log
 
@@ -278,3 +288,8 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 - Stage 4 current L1 media transport: `acf0478`.
 - Stage 3 explicit generation rebuild CLI: `429cfe8`.
 - Stage 3 Knowledge optional-scope canonicalization: `e3d4855`.
+- Documentation/runtime alignment: `b06fe38`.
+- Optional semantic runtime image: `e70a081`.
+- Knowledge chunk-strategy ownership: `c746c00`.
+- Calibrated command-encoder artifact contract: `7df9b6a`.
+- Stage 3 task-owned L1 media execution: `33ecf99`.
