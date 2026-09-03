@@ -368,6 +368,28 @@ MASSIVE zh-CN、BANKING77、CLINC150 只证明闭集/OOS 分类能力；它们�
 
 历史 V1/V2/Encoder artifacts 可作 baseline、回归和错误 taxonomy；出现过的样本不得重新称为 fresh test。
 
+### 13.1 当前公共数据 readiness
+
+仓库当前不能诚实报告三个官方 benchmark 分数：
+
+| 数据 | 本地状态 | 可报告口径 |
+|---|---|---|
+| MASSIVE zh-CN | 无数据、manifest、adapter 或缓存 | `NOT_RUN` |
+| BANKING77 | 有 460 条 auto-mapped bundle，tracked 数据另含 800/200 子集；只映射到 8 个 legacy labels | legacy mapping regression，不是 77 类官方成绩 |
+| CLINC150 | 只有 OOS 子集（generated 40、tracked 200/100），全部合并为 legacy `other` | OOS/OTHER regression，不是 150 类官方成绩 |
+
+tracked calibration 与 verification 的 checksum 可复现，但两者都已经被旧 BGE、
+augmentation 和 cascade 实验消费。当前 workspace 对旧 V1/candidate/V2 与
+verification 的离线 replay 可以复现原报告，且旧 BGE classifier 能从本地缓存
+离线加载；这些只证明旧 artifact 没坏，不产生新的分数。相关 runner、model
+outputs 和 classifier 仍有未跟踪 workspace 依赖，clean checkout 也不能据此宣称
+可复现实验包。
+
+因此当前阶段不重新付费调用 LLM 或重跑相同 BGE 数据。公共线下一次有效工作是
+先冻结带官方版本、split、locale 和原生 label 的 MASSIVE/BANKING77/CLINC150
+输入，再单独报告 legacy representation/OOS；command-primary 晋级仍只接受
+state-aware conversation heldout，绝不把这些 intent labels 映射成 command Gold。
+
 ## 14. 评测前必须完成的 Intent 迁移
 
 1. 冻结 Flow/Action Registry 与产品支持范围；

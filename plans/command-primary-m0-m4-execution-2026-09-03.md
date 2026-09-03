@@ -461,6 +461,12 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   visual page retrieval, and question-conditioned L2 remain missing production
   capabilities. Project `dp-screen-03` stays a project diagnostic and is not
   counted as an official score.
+- 2026-09-03: Public Intent readiness was audited without rerunning consumed
+  data. MASSIVE zh-CN is absent locally; BANKING77 is only an auto-mapped
+  eight-legacy-label subset; CLINC150 contains only OOS examples collapsed to
+  legacy `other`. Existing calibration/verification inputs have already been
+  consumed and their workspace replay is only a legacy integrity regression,
+  not an official score or command-primary promotion gate.
 
 ## Commit log
 
