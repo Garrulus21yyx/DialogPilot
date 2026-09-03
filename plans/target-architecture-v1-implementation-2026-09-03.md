@@ -54,8 +54,11 @@
 | 4 | done | Parent orchestration graph, direct runtime, delegated domain workers, result board, and partial failure | 5 graph integration tests; 27 cumulative | `eee65a0` |
 | 5 | done | Governed write workflows, approval binding, operation keys, receipts, and reconciliation | 9 write state-machine/integration tests; 36 cumulative | `499e906` |
 | 6 | done | Handoff commit/receipt, human ownership, and single publication command path | 5 handoff/publication tests; 41 cumulative | `1ce7a6f` |
-| 7 | done | Encoder fast path and memory/media evidence routing | 6 precision/binding tests; 47 cumulative | stage-7 encoder commit |
-| 8 | pending | Six vertical E2E scenarios, capability-scoped safety gates, docs, and measured report | full suite and held-out cases | pending |
+| 7 | done | Encoder fast path and memory/media evidence routing | 6 precision/binding tests; 47 cumulative | `6b54922` |
+| 8 | done | Six in-memory vertical E2E scenarios, default registry, capability-scoped safety gates, and measured report | 7 E2E tests; 54 cumulative | stage-8 core E2E commit |
+| 9 | pending | New ConversationManager, durable PostgreSQL state/operation adapters, and LangGraph checkpointer | persistence and resume integration tests | pending |
+| 10 | pending | `/chat` cutover to Target v1 and removal of legacy command/orchestration authorities | HTTP contract and negative source gates | pending |
+| 11 | pending | Real PostgreSQL/HTTP six-scenario E2E, documentation convergence, and fresh-context review | full suite and independent review | pending |
 
 ## Stage record
 
@@ -88,3 +91,14 @@
   ticket-receipt-gated publication and handoff tests
 - Stage 7: `application/encoder_fast_path.py`, precision-first encoder and
   bounded Memory/Media evidence-routing tests
+- Stage 8: `application/default_capability_registry.py`,
+  `application/capability_safety.py`, six vertical E2E scenarios and
+  capability-scoped safety-gate tests
+- Stage 8 report: `docs/target-architecture-v1-core-report.zh-CN.md`
+
+## Scope correction after executable-core review
+
+The original eight-stage list ended at in-memory E2E. That is not sufficient to
+claim migration completion because the public API still owns the old runtime path.
+Stages 9-11 were added to cover the actual remaining causal surface: durable owners,
+API cutover, removal of duplicated authorities, and real boundary E2E.
