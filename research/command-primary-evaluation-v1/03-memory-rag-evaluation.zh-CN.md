@@ -1,6 +1,6 @@
 # Memory RAG 迁移与评测
 
-状态：`PUBLIC_SESSION_DEV_COMPLETE — PRODUCTION_EPISODE_BLOCKED_BY_OWNER_FACT`
+状态：`PUBLIC_SESSION_DEV_COMPLETE — PRODUCTION_EPISODE_OWNER_CHAIN_IMPLEMENTED`
 目标：将每轮状态恢复与长期记忆检索彻底分开，并分别验证 ServiceEpisode、Commitment 和可选 Preference 的事实语义、检索目的与安全边界。
 
 ## 1. 最重要的概念分离
@@ -256,13 +256,13 @@ production_service_episode_semantics=NOT_EVALUATED
 - tenant/user/entity/time 范围；
 - 一个真实 BGE-M3 immutable generation。
 
-当前这条线不是被 embedding、PostgreSQL 或 evaluator 阻塞，而是缺少上游权威
-事实。生产 Ticket 目前只有 status、actor 和自由文本 note；没有由认证 Case
-Owner 原子接受的 resolution/outcome，也没有可反查的 source turn refs。
-因此已有 synthetic receipt/event 字符串只能证明 transport，不能作为生产
-ServiceEpisode 语料。
+生产线现已补上最小的权威事实来源。被指派且已认证的 Case Owner 可以提交
+resolution 与 authoritative outcomes；系统从工单绑定的真实 invocation 反查
+同一 tenant/user/conversation 的 source turns，并在一个 PostgreSQL 事务中写入
+`CASE_RESOLUTION_ACCEPTED`、将 Ticket 通过 CAS 置为 `RESOLVED`、追加工单审计事件。
+专用 projector 再把这个不可变事实确定性编译为现有 ServiceEpisode。
 
-最小解锁条件是一条真实生命周期记录：
+真实 PostgreSQL 正向 smoke 已证明：
 
 ```text
 authenticated Case Owner accepts resolution/outcomes
@@ -272,9 +272,11 @@ authenticated Case Owner accepts resolution/outcomes
 → same authenticated subject retrieves the episode
 ```
 
-在这条事实存在前，本线状态保持
-`BLOCKED_BY_MISSING_CASE_OWNER_FACT`，不新增适配器去猜 resolution，也不把
-LoCoMo/LongMemEval 写入生产 owner。
+这关闭了缺失 Owner 的代码级阻塞，但还不是生产 Memory 质量成绩：当前尚未把
+该写入口接到生产 API/自动 projector 调度，也尚未由真实业务生命周期产生非空
+评测 corpus。现有一条数据库 smoke 只证明 owner→projection→generation→search
+运输闭环；在真实 corpus 注入并冻结前，不报告 production ServiceEpisode Recall、
+时效性或 supersession 分数。LoCoMo/LongMemEval 仍不得写入 production owner。
 
 LoCoMo 可以给 embedding/fusion 方向性参考，不能直接冻结
 `memory-reference-resolution-v1` 或 `memory-historical-evidence-v1` 的生产阈值。

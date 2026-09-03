@@ -104,12 +104,14 @@ Status: `IN_PROGRESS — READ-ONLY STICKY VERTICAL SLICE COMPLETE`
 - [x] Compile a task-owned, current-turn single-asset L1 media requirement,
   execute OCR, consume its artifact, and publish through the real chat lifecycle
   without legacy Intent, message-keyword tier selection, or business tools.
-- [ ] Load a non-empty canonical ServiceEpisode evaluation corpus, then build
-  and activate its BGE-M3 generation before the Memory benchmark. The current
-  local canonical owner has zero episodes. This is explicitly
-  `BLOCKED_BY_MISSING_CASE_OWNER_FACT`: Ticket lacks an authenticated accepted
-  resolution/outcome plus dereferenceable source turns, so an empty or
-  synthetic-reference generation is not presented as readiness evidence.
+- [x] Add the authenticated Case Owner fact and projection chain: accept one
+  resolution/outcome, bind its real invocation turns, atomically resolve the
+  Ticket, compile the canonical ServiceEpisode, rebuild its generation, and
+  retrieve it for the same subject.
+- [ ] Connect the accepted-resolution write and Episode projector to the
+  production composition, then seed and freeze a non-empty lifecycle-backed
+  ServiceEpisode evaluation corpus before reporting production Memory scores.
+  The current database smoke proves transport, not retrieval quality.
 - [ ] Replace the temporary selective legacy candidate adapter with the frozen
   Encoder → LLM command producer after its component gate passes.
 
@@ -368,6 +370,14 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   binding. The next production Memory step therefore requires one real
   accepted case lifecycle before projection; no adapter or benchmark fixture
   is allowed to manufacture that fact.
+- 2026-09-03: The Case Owner gap is now closed at its owner boundary. An
+  authenticated assignee accepts resolution/outcomes; one transaction writes
+  the immutable accepted fact, advances the conversation sequence, resolves
+  the Ticket with CAS, and appends its audit event. A dedicated projector binds
+  the recorded source turns, commits a canonical ServiceEpisode, rebuilds an
+  immutable MODEL generation, and retrieves it for the same subject. Root and
+  independent review passed; focused PostgreSQL suite: `39 passed`. API/worker
+  composition and a real non-empty evaluation corpus remain separate work.
 - 2026-09-03: The locked `dp-screen-03` asset ran through the real local
   Tesseract 5.5.0 provider. Trigger, artifact, consumption, and outcome all
   passed; one OCR call produced grounded page-level provenance and all declared
@@ -486,3 +496,4 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 - Explicit media region grounding: `285ff13`.
 - Knowledge Query source capture and offline replay: `b38ad07`.
 - Knowledge identity-selection and packing baseline: `0d3eecb`.
+- Accepted Case Owner to ServiceEpisode projection: `46734c0`.
