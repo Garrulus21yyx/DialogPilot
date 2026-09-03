@@ -51,8 +51,8 @@
 | 1 | done | New registry, work-item, agent-result, fact/evidence, and interaction contracts | 8 contract tests | `7682bf3` |
 | 2 | done | Conversation state, workstreams, pending interaction, and deterministic resolver with CAS semantics | 7 state-machine tests; 15 cumulative | `8954756` |
 | 3 | done | Turn policy/compiler producing direct, delegated, multi-domain, and workflow plans | 7 compiler/policy tests; 22 cumulative | `12bc26b` |
-| 4 | done | Parent orchestration graph, direct runtime, delegated domain workers, result board, and partial failure | 5 graph integration tests; 27 cumulative | stage-4 orchestration commit |
-| 5 | pending | Governed write workflows, approval binding, operation keys, receipts, and reconciliation | write state-machine tests | pending |
+| 4 | done | Parent orchestration graph, direct runtime, delegated domain workers, result board, and partial failure | 5 graph integration tests; 27 cumulative | `eee65a0` |
+| 5 | done | Governed write workflows, approval binding, operation keys, receipts, and reconciliation | 9 write state-machine/integration tests; 36 cumulative | stage-5 write commit |
 | 6 | pending | Handoff commit/receipt and single publication/delivery path | handoff and delivery tests | pending |
 | 7 | pending | Encoder fast path and memory/media evidence routing | accepted-precision and binding tests | pending |
 | 8 | pending | Six vertical E2E scenarios, capability-scoped safety gates, docs, and measured report | full suite and held-out cases | pending |
@@ -82,3 +82,5 @@
   and work-plan contracts, `tests/test_target_turn_planning.py`
 - Stage 4: `application/orchestration_runtime.py`,
   `application/result_board.py`, LangGraph dependency and orchestration tests
+- Stage 5: `application/write_workflow.py`, operation/approval/receipt/
+  reconciliation state-machine tests and LangGraph worker integration

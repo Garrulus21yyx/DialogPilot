@@ -102,6 +102,7 @@ class ReceiptRef:
     schema_version: str
     operation_key: str
     effect_status: str
+    requirement_id: str
 
     def __post_init__(self) -> None:
         _required(
@@ -109,6 +110,7 @@ class ReceiptRef:
             self.schema_version,
             self.operation_key,
             self.effect_status,
+            self.requirement_id,
         )
 
 

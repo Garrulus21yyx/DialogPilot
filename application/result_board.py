@@ -91,7 +91,13 @@ class ResultBoard:
 
         facts = tuple(fact for result in effective for fact in result.facts)
         conflicts = self._conflicts(facts)
-        satisfied = {fact.requirement_id for fact in facts}
+        satisfied = {
+            fact.requirement_id for fact in facts
+        }.union(
+            receipt.requirement_id
+            for result in effective
+            for receipt in result.action_receipts
+        )
         required = {
             requirement for item in plan.items for requirement in item.requirement_ids
         }
@@ -120,4 +126,3 @@ class ResultBoard:
             if prior != fact.value_json:
                 conflicts.add(f"{key[0]}:{key[1]}")
         return tuple(sorted(conflicts))
-
