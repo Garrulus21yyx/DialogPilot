@@ -64,14 +64,18 @@ def build_command_primary_chat_planner(
         RoutePolicy(),
         TurnPlanCompiler(),
     )
+    primary_route_modes = {
+        "shadow": (),
+        "knowledge_primary": (RouteMode.KNOWLEDGE_QA,),
+        "structured_knowledge_primary": (
+            RouteMode.KNOWLEDGE_QA,
+            RouteMode.CLARIFY,
+        ),
+    }[mode]
     return CommandPrimaryChatPlanner(
         planner,
         command_primary_flow_registry,
-        primary_route_modes=(
-            (RouteMode.KNOWLEDGE_QA,)
-            if mode in {"knowledge_primary", "structured_knowledge_primary"}
-            else ()
-        ),
+        primary_route_modes=primary_route_modes,
         flow_state_store=(
             PostgresFlowStateStore(postgres_pool) if postgres_pool is not None else None
         ),

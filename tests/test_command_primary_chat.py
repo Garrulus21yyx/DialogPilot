@@ -17,6 +17,7 @@ from application.chat_application import (
     ChatServices,
     Completed,
 )
+from application.route_decision import RouteMode
 from core.model_policy import ModelProfile
 from infrastructure.command_primary_runtime import build_command_primary_chat_planner
 from services.answer_verifier import (
@@ -220,3 +221,50 @@ def test_structured_knowledge_primary_runs_without_legacy_intent():
     stages = {stage.stage: stage for stage in outcome.stages}
     assert stages["intent"].status.value == "skipped"
     assert stages["route_path_plan"].detail["source"] == "command_primary"
+
+
+def test_structured_knowledge_primary_accepts_existing_clarify_terminal():
+    class Orchestrator:
+        async def recognize_intent(self, *_args, **_kwargs):
+            raise AssertionError("structured mode must not call legacy Intent")
+
+    class Messages:
+        async def create(self, **_request):
+            return SimpleNamespace(
+                id="message-clarify",
+                content=[SimpleNamespace(
+                    type="text",
+                    text='{"status":"CLARIFY","commands":[]}',
+                )],
+                usage=SimpleNamespace(input_tokens=10, output_tokens=5),
+            )
+
+    planner = build_command_primary_chat_planner(
+        Orchestrator(),
+        {"COMMAND_PRIMARY_MODE": "structured_knowledge_primary"},
+        command_completion_client=SimpleNamespace(messages=Messages()),
+        command_model_profile=ModelProfile("command-router-test"),
+    )
+    assert planner is not None
+    active_case = ActiveCaseContextView(
+        ActiveCaseProjection(ActiveCaseState.NO_ACTIVE_CASE),
+        ActiveCaseSelection((), ()),
+    )
+
+    result = asyncio.run(planner.prepare(
+        message="帮我看看这个是不是我需要的铭牌型号？",
+        identity=SimpleNamespace(
+            tenant_id="tenant-1",
+            user_id="user-1",
+            conversation_id="conversation-1",
+            request_id="request-clarify",
+        ),
+        recent_messages=(),
+        active_case_view=active_case,
+        history=(),
+        bundle=SimpleNamespace(version="bundle-v1"),
+    ))
+
+    assert result.plan is not None
+    assert result.plan.route.mode is RouteMode.CLARIFY
+    assert result.use_primary is True
