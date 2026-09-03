@@ -132,7 +132,7 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   a configuration.
 - [x] Select the Knowledge chunk profile on the designated Doc2Dial Dev using the
   predeclared All-evidence → Evidence Recall ordering.
-- [ ] Capture lexical/dense Top-40 once for the selected `fixed-512-64` profile,
+- [x] Capture lexical/dense Top-40 once for the selected `fixed-512-64` profile,
   replay the predeclared fusion grid offline, and freeze one candidate policy.
 - [x] Run one positive contract through the real `ChatApplication.handle()`.
 - [x] Prove the existing L1 media transport through the real chat lifecycle;
@@ -353,6 +353,13 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   ASCII observation fragments were consumed. The manifest states
   `PROJECT_DIAGNOSTIC`, `locked_contract_score_eligible=false`, and
   `official_benchmarks=NOT_RUN`; region selection remains out of scope.
+- 2026-09-03: Fixed `fixed-512-64` Dev retrieval captured lexical and dense
+  Top-40 once for each of 300 raw queries, then replayed the 15 declared fusion
+  settings from the persisted artifact. All captures were `OK`; dense-only won
+  with All-evidence Recall@20 `216/300=.7200`, Evidence Recall `.7211`, MRR
+  `.4437`, and nDCG `.5078`. Dense-only makes RRF k irrelevant, so `k=10` is
+  only the stable tie-break. No online default changed and all downstream RAG
+  stages remain unexecuted.
 
 ## Commit log
 
@@ -396,3 +403,4 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 - LoCoMo BGE/RRF diagnostics: `036cee0`.
 - Structured-command optional-dependency repair: `71075c1`.
 - Grounded L1 project diagnostic: `c24603f`.
+- Knowledge source capture and offline fusion replay: `19237ba`.

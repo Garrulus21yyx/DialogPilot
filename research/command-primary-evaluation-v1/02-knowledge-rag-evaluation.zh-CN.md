@@ -1,6 +1,6 @@
 # Knowledge RAG 迁移与评测
 
-状态：`DRAFT_FOR_IMPLEMENTATION`
+状态：`DEV_CHUNK_AND_FUSION_SELECTED — HELDOUT_NOT_RUN`
 目标：在真实 PostgreSQL FTS/pgvector、版本固定的多语言 Dense 模型和生产 EvidencePack 上重新建立可复现基线；保留既有 Chunk、CrossEncoder 与 Parent 实验作为历史证据。
 
 ## 1. 在线职责
@@ -283,7 +283,7 @@ Knowledge invocation:
 
 ## 11. Runner 与产物
 
-当前组件入口是 `scripts/run_postgres_rag_eval.py`。它只负责第一段可归因实验：
+当前 Chunk 入口是 `scripts/run_postgres_rag_eval.py`。它只负责第一段可归因实验：
 
 ```text
 SourceDocument ingest
@@ -326,6 +326,26 @@ predictions、system failure 0：
 下一阶段融合调参的唯一 Chunk 候选。这不是线上默认切换；还需要融合、
 query、selection/packing 与 frozen heldout/E2E 门禁。该组 P95 的单次异常不改变
 已声明的质量选择顺序，但在 SLO 结论前必须独立复测。
+
+固定该 Chunk 后，`scripts/run_postgres_rag_fusion_eval.py` 对同一 300 条 Dev
+query 各执行一次 raw lexical/dense Top-40 捕获，先将未融合排名持久化，再从
+该 artifact 离线重放 5 组权重 × 3 个 RRF k。300 条均为 `OK`，系统失败为
+`0`，capture P95 为 `147.73ms`。按同一预声明质量顺序选出：
+
+```text
+Lexical/Dense = 0/1
+All-evidence Recall@20 = 216/300 = .7200
+Evidence Recall@20 = .7211
+MRR@20 = .4437
+nDCG@20 = .5078
+```
+
+Dense-only 下 `k=10/30/60` 完全同分；报告中的 `k=10` 只是稳定
+`config_id` tie-break，不能解释成 k=10 优于其他值。本次只冻结下一阶段的
+`fixed-512-64 + source_k=40 + candidate_k=20 + dense-only` Dev 候选；没有运行
+standalone rewrite、rerank、Parent expansion、packing、generation 或 judge，
+也没有改变生产默认配置。下一步先在独立 slice 验证中文、英文、code-switch
+与长文档，再决定是否开启 query/selection 阶段。
 
 实际调用必须从 retriever result、Stage 与 E2E audit 读取；Evaluator adapter 不得临时建立另一套内存检索链拿分。
 
