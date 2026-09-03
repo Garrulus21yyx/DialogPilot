@@ -33,6 +33,15 @@ class SemanticUnderstandingPort(Protocol):
     ) -> UnderstandingResult: ...
 
 
+class CommandArgumentBindingPort(Protocol):
+    def bind(
+        self,
+        understanding: UnderstandingResult,
+        message: str,
+        registry: FlowActionRegistry,
+    ) -> UnderstandingResult: ...
+
+
 class PlanningStatus(str, Enum):
     PLANNED = "PLANNED"
     FALLBACK = "FALLBACK"
@@ -55,11 +64,13 @@ class CommandPrimaryPlanner:
         semantic: SemanticUnderstandingPort,
         route_policy: RoutePolicy,
         compiler: TurnPlanCompiler,
+        argument_binder: CommandArgumentBindingPort | None = None,
     ) -> None:
         self._deterministic = deterministic
         self._semantic = semantic
         self._route_policy = route_policy
         self._compiler = compiler
+        self._argument_binder = argument_binder
 
     async def plan(
         self,
@@ -94,6 +105,10 @@ class CommandPrimaryPlanner:
                     True,
                     understanding.reason_code,
                 )
+        if self._argument_binder is not None:
+            understanding = self._argument_binder.bind(
+                understanding, message, registry
+            )
         accepted = self._route_policy.accept(understanding, state, registry)
         if accepted.status is RoutePolicyStatus.FAILURE:
             return PlanningResult(

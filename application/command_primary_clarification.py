@@ -9,7 +9,6 @@ from agents.agent_orchestrator import OrchestratorResult, PlanningDisposition
 from application.command_primary_chat import CommandPrimaryChatPlan
 from application.route_decision import RouteMode
 from application.route_outcomes import NeedsInputDraft
-from core.intent_recognizer import IntentCategory
 
 
 _PROMPT = "请补充你希望处理的具体对象或必要信息，我再继续。"
@@ -46,7 +45,7 @@ def clarification_execution_result(
         request_id=request_id,
         response=draft.prompt,
         agent_type=None,
-        intent=IntentCategory.REQUEST,
+        intent=chat_plan.projected_intent,
         agent_types=[],
         primary_agent=None,
         routing_reason=plan.route.reason_code,

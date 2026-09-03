@@ -127,6 +127,7 @@ def _registry_commands(registry: FlowActionRegistry) -> list[dict[str, object]]:
             "flow_version": action.flow.version if action.flow else None,
             "flow_role": _flow_role(action.command_kind),
             "objective": action.objective,
+            "required_arguments": list(action.required_arguments),
         }
     ordered = sorted(commands, key=lambda item: tuple(part or "" for part in item))
     return [commands[key] for key in ordered]

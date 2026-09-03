@@ -16,7 +16,7 @@ from application.route_policy_v2 import (
     RoutePolicyStatus,
     WorkKind,
 )
-from application.turn_state import FlowDefinitionRef, TurnStateSnapshot
+from application.turn_state import FlowBinding, FlowDefinitionRef, TurnStateSnapshot
 from application.task_media import TaskMediaPolicy
 from application.turn_understanding import CommandArgument, CommandKind
 
@@ -58,6 +58,7 @@ class FlowMutation:
     target_flow: FlowDefinitionRef | None
     slot_update: SlotUpdate | None
     slot_consumption: SlotConsumption | None
+    initial_bindings: tuple[FlowBinding, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -201,6 +202,10 @@ class TurnPlanCompiler:
             target_flow=proposal.target_flow,
             slot_update=slot_update,
             slot_consumption=slot_consumption,
+            initial_bindings=(
+                tuple(FlowBinding(item.name, item.value_json) for item in proposal.arguments)
+                if proposal.kind is CommandKind.START_FLOW else ()
+            ),
         )
 
     def _work(

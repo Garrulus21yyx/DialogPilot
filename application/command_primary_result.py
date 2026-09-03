@@ -5,7 +5,6 @@ from typing import Any
 
 from agents.agent_orchestrator import OrchestratorResult, PlanningDisposition
 from application.command_primary_chat import CommandPrimaryChatPlan
-from core.intent_recognizer import IntentCategory
 
 
 def knowledge_execution_result(
@@ -26,7 +25,7 @@ def knowledge_execution_result(
         request_id=request_id,
         response=response,
         agent_type=None,
-        intent=IntentCategory.QUERY,
+        intent=chat_plan.projected_intent,
         agent_types=[],
         primary_agent=None,
         routing_reason=plan.route.reason_code,
@@ -57,7 +56,7 @@ def read_only_execution_result(
         request_id=request_id,
         response=execution.response,
         agent_type=execution.owner,
-        intent=IntentCategory.REFUND,
+        intent=chat_plan.projected_intent,
         agent_types=[execution.owner],
         primary_agent=execution.owner,
         routing_reason=plan.route.reason_code,
@@ -68,8 +67,14 @@ def read_only_execution_result(
         agent_outcomes=[{
             "task_id": execution.task_id,
             "agent_type": execution.owner.value,
-            "status": "success" if execution.tool_result.success else "error",
+            "status": "success" if execution.succeeded else "error",
             "is_primary": True,
+            "tool_receipts": [
+                item.to_dict() for item in execution.tool_receipts
+            ],
+            "evidence_receipt_ids": [
+                item.receipt_id for item in execution.evidence_receipts
+            ],
         }],
         task_plan=plan.work.graph.to_dict(),
         coverage=execution.coverage,
@@ -94,7 +99,7 @@ def media_read_execution_result(
         request_id=request_id,
         response=execution.response,
         agent_type=execution.owner,
-        intent=IntentCategory.TECHNICAL,
+        intent=chat_plan.projected_intent,
         agent_types=[execution.owner],
         primary_agent=execution.owner,
         routing_reason=plan.route.reason_code,

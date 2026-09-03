@@ -7,6 +7,7 @@ from typing import Any
 
 from application.always_defer_command_encoder import AlwaysDeferCommandEncoder
 from application.command_primary_chat import CommandPrimaryChatPlanner
+from application.command_argument_binding import ExplicitIdentifierArgumentBinder
 from application.command_primary_planner import CommandPrimaryPlanner
 from application.default_flow_registry import command_primary_flow_registry
 from application.legacy_intent_command_adapter import LegacyIntentKnowledgeAdapter
@@ -36,15 +37,16 @@ def build_command_primary_chat_planner(
         "shadow",
         "knowledge_primary",
         "structured_knowledge_primary",
+        "structured_read_only_primary",
     }:
         raise RuntimeError(
             "COMMAND_PRIMARY_MODE must be off, shadow, knowledge_primary, "
-            "or structured_knowledge_primary"
+            "structured_knowledge_primary, or structured_read_only_primary"
         )
-    if mode == "structured_knowledge_primary":
+    if mode in {"structured_knowledge_primary", "structured_read_only_primary"}:
         if command_completion_client is None or command_model_profile is None:
             raise RuntimeError(
-                "structured_knowledge_primary requires an explicit command "
+                "structured command-primary modes require an explicit command "
                 "completion client and model profile"
             )
         semantic = SelectiveCommandProducer(
@@ -63,6 +65,7 @@ def build_command_primary_chat_planner(
         semantic,
         RoutePolicy(),
         TurnPlanCompiler(),
+        ExplicitIdentifierArgumentBinder(),
     )
     primary_route_modes = {
         "shadow": (),
@@ -70,6 +73,11 @@ def build_command_primary_chat_planner(
         "structured_knowledge_primary": (
             RouteMode.KNOWLEDGE_QA,
             RouteMode.CLARIFY,
+        ),
+        "structured_read_only_primary": (
+            RouteMode.KNOWLEDGE_QA,
+            RouteMode.CLARIFY,
+            RouteMode.AGENT_TASK,
         ),
     }[mode]
     return CommandPrimaryChatPlanner(

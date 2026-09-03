@@ -35,8 +35,10 @@ async def execute_command_primary_work(
             media_read_execution_result(request_id, chat_plan, execution),
             True,
         )
-    execution = await execute_read_only_work(plan, tool_manager, identity)
+    execution = await execute_read_only_work(
+        plan, tool_manager, identity, chat_plan.requirements
+    )
     return CommandPrimaryWorkOutcome(
         read_only_execution_result(request_id, chat_plan, execution),
-        execution.tool_result.success,
+        execution.succeeded,
     )

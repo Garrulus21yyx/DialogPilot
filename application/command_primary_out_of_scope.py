@@ -4,7 +4,6 @@ from __future__ import annotations
 from agents.agent_orchestrator import OrchestratorResult, PlanningDisposition
 from application.command_primary_chat import CommandPrimaryChatPlan
 from application.route_decision import RouteMode
-from core.intent_recognizer import IntentCategory
 
 
 _RESPONSE = (
@@ -30,7 +29,7 @@ def out_of_scope_execution_result(
         request_id=request_id,
         response=_RESPONSE,
         agent_type=None,
-        intent=IntentCategory.OTHER,
+        intent=chat_plan.projected_intent,
         agent_types=[],
         primary_agent=None,
         routing_reason=plan.route.reason_code,

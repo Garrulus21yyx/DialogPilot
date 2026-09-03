@@ -125,6 +125,7 @@ def test_anthropic_adapter_produces_a_registry_backed_knowledge_command() -> Non
     } == {
         ("ANSWER_KNOWLEDGE", None, None),
         ("CONTINUE_FLOW", "refund_status", "v1"),
+        ("START_FLOW", "refund_eligibility", "v1"),
         ("START_FLOW", "media_text_read", "v1"),
     }
 

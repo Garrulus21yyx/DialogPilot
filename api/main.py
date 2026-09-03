@@ -1699,7 +1699,7 @@ def _core_chat_application(
 
     structured_command_mode = (
         os.environ.get("COMMAND_PRIMARY_MODE", "off").strip().lower()
-        == "structured_knowledge_primary"
+        in {"structured_knowledge_primary", "structured_read_only_primary"}
     )
     command_primary_chat_planner = build_command_primary_chat_planner(
         _orchestrator,

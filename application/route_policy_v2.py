@@ -54,6 +54,7 @@ class ActionDefinition:
     approval: ApprovalPolicy
     objective: str
     media_policy: TaskMediaPolicy | None = None
+    required_arguments: tuple[str, ...] = ()
 
     @property
     def key(self) -> tuple[CommandKind, tuple[str, str] | None]:
@@ -78,6 +79,17 @@ class FlowActionRegistry:
             raise RoutePolicyError("registry contains duplicate flows")
         if len(action_keys) != len(set(action_keys)):
             raise RoutePolicyError("registry contains ambiguous actions")
+        for action in self.actions:
+            if (
+                any(not item.strip() for item in action.required_arguments)
+                or len(action.required_arguments) != len(set(action.required_arguments))
+            ):
+                raise RoutePolicyError("action required arguments are invalid")
+            if (
+                any(not item.strip() for item in action.allowed_tools)
+                or len(action.allowed_tools) != len(set(action.allowed_tools))
+            ):
+                raise RoutePolicyError("action allowed tools are invalid")
 
     def flow(self, ref: FlowDefinitionRef) -> FlowDefinition:
         try:
@@ -116,7 +128,8 @@ class FlowActionRegistry:
                     "effect": item.effect.value,
                     "risk": item.risk.value,
                     "requirements": item.requirement_ids,
-                    "tools": item.allowed_tools,
+                    "tools": sorted(item.allowed_tools),
+                    "required_arguments": sorted(item.required_arguments),
                     "approval": item.approval.value,
                     "objective": item.objective,
                     "media_policy": (
@@ -209,6 +222,14 @@ class RoutePolicy:
                 registry.action_for(proposal)
                 if proposal.kind in _WORK_COMMANDS else None
             )
+            if action is not None:
+                supplied = {item.name for item in proposal.arguments}
+                missing = set(action.required_arguments).difference(supplied)
+                if missing:
+                    raise RoutePolicyError(
+                        "command omits required arguments: "
+                        + ",".join(sorted(missing))
+                    )
             accepted.append(AcceptedCommand(proposal, action))
         return self._result(
             RoutePolicyStatus.ACCEPTED,

@@ -39,6 +39,12 @@ class CommandPrimaryChatPlan:
     intent_projection: IntentResult | None = None
     use_primary: bool = False
 
+    @property
+    def projected_intent(self) -> IntentCategory:
+        if self.intent_projection is None:
+            raise ValueError("command-primary result requires an intent projection")
+        return self.intent_projection.intent
+
 
 class CommandPrimaryChatPlanner:
     """Prepare one selective primary route; all other routes remain legacy."""
@@ -198,6 +204,7 @@ class CommandPrimaryChatPlanner:
             next_state = chat_plan.flow_state.start_flow(
                 mutation.target_flow,
                 command_id=mutation.command_id,
+                bindings=mutation.initial_bindings,
             )
         else:
             raise FlowStateError("read-only primary transition is unsupported")

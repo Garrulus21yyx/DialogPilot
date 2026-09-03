@@ -7,6 +7,7 @@ from typing import Protocol
 
 from application.turn_state import (
     ActiveFlowRef,
+    FlowBinding,
     FlowAggregateVersion,
     FlowDefinitionRef,
     PendingSlotRef,
@@ -118,6 +119,7 @@ class FlowStateAggregate:
         definition: FlowDefinitionRef,
         *,
         command_id: str,
+        bindings: tuple[FlowBinding, ...] = (),
     ) -> "FlowStateAggregate":
         if not isinstance(definition, FlowDefinitionRef):
             raise FlowStateError("new flow definition is invalid")
@@ -129,6 +131,7 @@ class FlowStateAggregate:
             instance_id,
             1,
             self.principal.fingerprint,
+            bindings,
         )
         return self.next(
             active_flows=(*self.active_flows, started),
