@@ -12,7 +12,7 @@ from scripts import run_media_eval
 DATASET = Path("data/eval/dialogpilot-synthetic-contract-v1")
 
 
-def test_locked_fixture_builds_an_explicit_asset_level_l1_request():
+def test_locked_fixture_builds_an_explicit_region_l1_request():
     bundle = run_media_eval.load_synthetic_media_l1(
         DATASET,
         source_case_id="dp-screen-03",
@@ -27,8 +27,8 @@ def test_locked_fixture_builds_an_explicit_asset_level_l1_request():
     )
     assert bundle.request.need.stage.name == "L1_TEXT_EXTRACTION"
     binding = bundle.request.perception_decision.bindings[0]
-    assert binding.region_key is None
-    assert bundle.case.initial_state["evaluation_scope"] == "ASSET_LEVEL_L1_ONLY"
+    assert binding.region_key == "region://synthetic/screenshot/panel-03"
+    assert bundle.case.initial_state["evaluation_scope"] == "EXPLICIT_REGION_L1_ONLY"
 
 
 def test_runner_uses_tesseract_port_and_writes_diagnostic_artifacts(
@@ -68,11 +68,11 @@ def test_runner_uses_tesseract_port_and_writes_diagnostic_artifacts(
     prediction = json.loads((tmp_path / "predictions.jsonl").read_text())
     assert manifest["configuration"] == {
         "evaluated_scope": "routing_probe_and_perception_artifact_only",
-        "grounding_scope": "ASSET_PAGE",
+        "grounding_scope": "EXPLICIT_PAGE_REGION",
         "locked_contract_score_eligible": "false",
         "official_benchmarks": "NOT_RUN",
-        "perception_provider": "tesseract-ocr-provider-v1",
-        "region_selection": "NOT_RUN",
+        "perception_provider": "tesseract-ocr-provider-v2",
+        "region_selection": "MEDIA_REQUIREMENT_BINDING",
         "score_role": "PROJECT_DIAGNOSTIC",
         "source_case_id": "dp-screen-03",
     }
@@ -81,5 +81,10 @@ def test_runner_uses_tesseract_port_and_writes_diagnostic_artifacts(
         "f38593f5635e42e8bcc4c58e93c3c097723c261fcc015937fceb8748367f5424"
     )
     assert grounding["producer"] == "tesseract"
+    assert grounding["locators"][0]["page_index"] == 0
     assert grounding["locators"][0]["bbox"] == [0.0, 0.0, 1800.0, 600.0]
+    assert grounding["locators"][1]["bbox"] == [720.0, 0.0, 1080.0, 300.0]
+    assert grounding["locators"][1]["crop_artifact_id"].startswith(
+        "media-crop:v1:"
+    )
     assert prediction["outcome"]["detail"]["missing_fragments"] == []

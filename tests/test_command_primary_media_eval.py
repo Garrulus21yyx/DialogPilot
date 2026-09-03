@@ -128,8 +128,8 @@ def test_media_direct_runner_records_probe_perception_and_consumption(tmp_path):
     class OCR:
         version = "fixture-ocr-v1"
 
-        def extract(self, received, _content):
-            locator = MediaLocator(
+        def extract(self, received, _content, *, locator=None):
+            locator = locator or MediaLocator(
                 received.asset_id,
                 received.checksum,
                 0,

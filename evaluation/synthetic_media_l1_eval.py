@@ -53,23 +53,32 @@ def load_synthetic_media_l1(
         source_case_id=source_case_id,
     )
     asset = fixture.asset
-    parse_ref = _tesseract_parse_ref(fixture, language)
-    locator = {
-        "asset_id": asset.asset_id,
-        "asset_checksum": asset.checksum,
-        "page_index": 0,
-        "coordinate_space": "ORIGINAL_PAGE_PIXELS",
-        "bbox": [0.0, 0.0, float(fixture.width), float(fixture.height)],
-        "crop_artifact_id": None,
-        "crop_transform_version": None,
-    }
+    output_locator = TesseractOCRProvider.output_locator(
+        asset,
+        locator=fixture.locator,
+        width=fixture.width,
+        height=fixture.height,
+    )
+    parse_ref = TesseractOCRProvider.parse_result_id(
+        asset,
+        language=language,
+        width=fixture.width,
+        height=fixture.height,
+        locator=output_locator,
+    )
+    page_locator = TesseractOCRProvider.output_locator(
+        asset,
+        locator=None,
+        width=fixture.width,
+        height=fixture.height,
+    )
     eval_case = EvalCase(
-        case_id=f"{source_case_id}:asset-level-l1-diagnostic",
+        case_id=f"{source_case_id}:region-l1-diagnostic",
         message=fixture.message,
         initial_state={
             "source_case_id": source_case_id,
             "source_annotation_ref": fixture.annotation_ref,
-            "evaluation_scope": "ASSET_LEVEL_L1_ONLY",
+            "evaluation_scope": "EXPLICIT_REGION_L1_ONLY",
         },
         expected={
             "trigger": "INVOKED",
@@ -88,8 +97,13 @@ def load_synthetic_media_l1(
                         "producer": "tesseract",
                         "producer_model": f"tesseract-{language}",
                         "producer_version": TesseractOCRProvider.version,
-                        "preprocessing_version": "original-image-v1",
-                        "locators": [locator, locator],
+                        "preprocessing_version": (
+                            TesseractOCRProvider.crop_transform_version
+                        ),
+                        "locators": [
+                            page_locator.to_dict(),
+                            output_locator.to_dict(),
+                        ],
                     }
                 ],
             },
@@ -104,6 +118,7 @@ def load_synthetic_media_l1(
         necessity=MediaNecessity.REQUIRED,
         required_stage=MediaStage.L1_TEXT_EXTRACTION,
         reason_code="TEXT_EXTRACTION_REQUIRED",
+        region_key=fixture.region_ref,
     )
     request = MediaDirectRequest(
         need=RoutingMediaNeed(
@@ -125,7 +140,7 @@ def load_synthetic_media_l1(
             bindings=(binding,),
             decision_reason_codes=("TEXT_EXTRACTION_REQUIRED",),
             task_schema_hash=hashlib.sha256(
-                b"synthetic-media-asset-text-v1"
+                b"synthetic-media-region-text-v1"
             ).hexdigest(),
         ),
         tenant_id=fixture.tenant_id,
@@ -171,13 +186,3 @@ async def consume_expected_text(
 
 def _normalize(text: str) -> str:
     return " ".join(re.sub(r"[^a-z0-9_-]+", " ", text.casefold()).split())
-
-
-def _tesseract_parse_ref(
-    fixture: SyntheticMediaFixture,
-    language: str,
-) -> str:
-    return (
-        f"parse:tesseract:v1:{fixture.asset.checksum}:"
-        f"{language}:{fixture.width}x{fixture.height}"
-    )

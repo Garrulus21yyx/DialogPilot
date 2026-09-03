@@ -62,9 +62,9 @@ class OCR:
     def __init__(self):
         self.calls = 0
 
-    def extract(self, asset, _content):
+    def extract(self, asset, _content, *, locator=None):
         self.calls += 1
-        locator = MediaLocator(
+        locator = locator or MediaLocator(
             asset.asset_id, asset.checksum, 0,
             CoordinateSpace.ORIGINAL_PAGE_PIXELS, (0.0, 0.0, 100.0, 40.0),
         )
@@ -171,7 +171,7 @@ def test_l2_without_configured_vlm_is_typed_unavailable_after_ocr():
     identity = _identity()
     store, ocr = Store(identity), OCR()
     command = ChatCommand(
-        message="红框里的按钮位置对吗", user_id="user-a",
+        message="按钮位置对吗", user_id="user-a",
         asset_ids=(store.asset.asset_id,),
     )
 

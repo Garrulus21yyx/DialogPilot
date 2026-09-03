@@ -6,7 +6,7 @@ from enum import Enum
 from typing import Protocol
 
 from application.media_asset import AssetAdmission, AssetStatus, MediaAssetError
-from application.media_evidence import EvidenceNode, ParseResult
+from application.media_evidence import EvidenceNode, MediaLocator, ParseResult
 from application.media_requirement import (
     MediaRequirementDecision,
     MediaRequirementMode,
@@ -62,7 +62,11 @@ class OCRProviderPort(Protocol):
     version: str
 
     def extract(
-        self, asset: AssetAdmission, content: bytes,
+        self,
+        asset: AssetAdmission,
+        content: bytes,
+        *,
+        locator: MediaLocator | None = None,
     ) -> PerceptionArtifact: ...
 
 
@@ -86,6 +90,16 @@ class MediaAssetReadPort(Protocol):
     ) -> tuple[AssetAdmission, bytes]: ...
 
 
+class MediaRegionResolverPort(Protocol):
+    """Resolve an explicit task region to original asset coordinates."""
+
+    def resolve(
+        self,
+        asset: AssetAdmission,
+        region_key: str,
+    ) -> MediaLocator: ...
+
+
 class TieredPerceptionService:
     """Execute exactly the stages fixed by a validated Agent decision."""
 
@@ -95,10 +109,12 @@ class TieredPerceptionService:
         *,
         ocr: OCRProviderPort | None,
         vlm: VLMProviderPort | None,
+        regions: MediaRegionResolverPort | None = None,
     ):
         self.assets = assets
         self.ocr = ocr
         self.vlm = vlm
+        self.regions = regions
 
     def execute(
         self,
@@ -124,7 +140,7 @@ class TieredPerceptionService:
             return PerceptionBatch((), ())
         outcomes = []
         artifacts = []
-        ocr_refs: dict[str, str] = {}
+        ocr_refs: dict[tuple[object, ...], str] = {}
         for binding in decision.bindings:
             try:
                 asset, content = self.assets.get(
@@ -136,6 +152,13 @@ class TieredPerceptionService:
                     )
                 refs = []
                 if binding.required_stage >= MediaStage.L1_TEXT_EXTRACTION:
+                    if binding.region_key is not None and self.regions is None:
+                        outcomes.append(PerceptionOutcome(
+                            binding.media_binding_id, binding.asset_id,
+                            binding.required_stage, PerceptionStatus.UNAVAILABLE,
+                            reason_code="REGION_RESOLVER_UNAVAILABLE",
+                        ))
+                        continue
                     if self.ocr is None:
                         outcomes.append(PerceptionOutcome(
                             binding.media_binding_id, binding.asset_id,
@@ -143,14 +166,20 @@ class TieredPerceptionService:
                             reason_code="OCR_PROVIDER_UNAVAILABLE",
                         ))
                         continue
-                    if binding.asset_id not in ocr_refs:
-                        artifact = self.ocr.extract(asset, content)
+                    locator = self._resolve_locator(asset, binding.region_key)
+                    ocr_key = self._ocr_key(asset.asset_id, locator)
+                    if ocr_key not in ocr_refs:
+                        artifact = self.ocr.extract(
+                            asset,
+                            content,
+                            locator=locator,
+                        )
                         self._validate_artifact(
                             artifact, asset, MediaStage.L1_TEXT_EXTRACTION,
                         )
                         artifacts.append(artifact)
-                        ocr_refs[binding.asset_id] = _artifact_ref(artifact)
-                    refs.append(ocr_refs[binding.asset_id])
+                        ocr_refs[ocr_key] = _artifact_ref(artifact)
+                    refs.append(ocr_refs[ocr_key])
                 if binding.required_stage is MediaStage.L2_VISUAL_REASONING:
                     if self.vlm is None:
                         outcomes.append(PerceptionOutcome(
@@ -187,6 +216,35 @@ class TieredPerceptionService:
                     reason_code=type(exc).__name__,
                 ))
         return PerceptionBatch(tuple(outcomes), tuple(artifacts))
+
+    def _resolve_locator(
+        self,
+        asset: AssetAdmission,
+        region_key: str | None,
+    ) -> MediaLocator | None:
+        if region_key is None or self.regions is None:
+            return None
+        locator = self.regions.resolve(asset, region_key)
+        if (
+            locator.asset_id != asset.asset_id
+            or locator.asset_checksum != asset.checksum
+        ):
+            raise ValueError("resolved media region provenance drift")
+        return locator
+
+    @staticmethod
+    def _ocr_key(
+        asset_id: str,
+        locator: MediaLocator | None,
+    ) -> tuple[object, ...]:
+        if locator is None:
+            return (asset_id, None)
+        return (
+            asset_id,
+            locator.page_index,
+            locator.coordinate_space.value,
+            *locator.bbox,
+        )
 
     @staticmethod
     def _validate_artifact(

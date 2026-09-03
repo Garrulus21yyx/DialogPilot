@@ -13,6 +13,7 @@ from application.media_asset import (
     AssetAdmissionPolicy,
     AssetStatus,
 )
+from application.media_evidence import CoordinateSpace, MediaLocator
 
 
 class SyntheticMediaFixtureError(ValueError):
@@ -31,11 +32,13 @@ class SyntheticMediaFixture:
     width: int
     height: int
     annotation_ref: str
+    region_ref: str
+    locator: MediaLocator
     expected_fragments: tuple[str, ...]
 
 
 class SingleAssetStore:
-    """Read one admitted fixture through the production perception port."""
+    """Read one asset and resolve its one locked diagnostic region."""
 
     def __init__(self, fixture: SyntheticMediaFixture) -> None:
         self._fixture = fixture
@@ -53,6 +56,16 @@ class SingleAssetStore:
         if (tenant_id, user_id) != (fixture.tenant_id, fixture.user_id):
             raise SyntheticMediaFixtureError("fixture asset principal mismatch")
         return fixture.asset, fixture.content
+
+    def resolve(
+        self,
+        asset: AssetAdmission,
+        region_key: str,
+    ) -> MediaLocator:
+        fixture = self._fixture
+        if asset != fixture.asset or region_key != fixture.region_ref:
+            raise SyntheticMediaFixtureError("fixture media region mismatch")
+        return fixture.locator
 
 
 def load_synthetic_media_fixture(
@@ -73,12 +86,17 @@ def load_synthetic_media_fixture(
     if media.get("media_need") != "L1":
         raise SyntheticMediaFixtureError("source case is not an explicit L1 case")
     asset_ref = str(_one(media.get("required_asset_refs"), "asset ref"))
+    region_ref = str(_one(media.get("required_region_refs"), "region ref"))
     annotation_ref = str(
         _one(source.get("provenance", {}).get("annotation_refs"), "annotation ref")
     )
     asset_spec = dict(catalog.get("assets", {}).get(asset_ref) or {})
     annotation = dict(catalog.get("annotations", {}).get(annotation_ref) or {})
-    if not asset_spec or annotation.get("asset_ref") != asset_ref:
+    if (
+        not asset_spec
+        or annotation.get("asset_ref") != asset_ref
+        or annotation.get("region_ref") != region_ref
+    ):
         raise SyntheticMediaFixtureError("fixture annotation is not bound to the asset")
 
     relative_path = str(asset_spec.get("path") or "")
@@ -99,6 +117,13 @@ def load_synthetic_media_fixture(
     asset = replace(asset, status=AssetStatus.SCANNED)
     if asset.checksum != str(asset_spec.get("sha256") or ""):
         raise SyntheticMediaFixtureError("admitted asset checksum drift")
+    locator = MediaLocator(
+        asset.asset_id,
+        asset.checksum,
+        0,
+        CoordinateSpace.ORIGINAL_PAGE_PIXELS,
+        tuple(float(value) for value in annotation["bbox_xyxy"]),
+    )
     fragments = _ascii_fragments(str(annotation.get("allowed_observation") or ""))
     if not fragments:
         raise SyntheticMediaFixtureError("annotation has no English OCR fragment")
@@ -113,6 +138,8 @@ def load_synthetic_media_fixture(
         width=int(asset_spec["width"]),
         height=int(asset_spec["height"]),
         annotation_ref=annotation_ref,
+        region_ref=region_ref,
+        locator=locator,
         expected_fragments=fragments,
     )
 

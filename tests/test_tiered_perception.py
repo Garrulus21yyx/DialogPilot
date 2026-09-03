@@ -59,17 +59,26 @@ def _locator(asset):
     )
 
 
+class Regions:
+    def resolve(self, asset, region_key):
+        assert region_key.startswith("region-")
+        return _locator(asset)
+
+
 class OCR:
     version = "fixture-ocr-v1"
 
     def __init__(self):
         self.calls = 0
+        self.locators = []
 
-    def extract(self, asset, _content):
+    def extract(self, asset, _content, *, locator=None):
         self.calls += 1
-        page = ParseNode("page-0", ParseNodeKind.PAGE, _locator(asset))
+        self.locators.append(locator)
+        locator = locator or _locator(asset)
+        page = ParseNode("page-0", ParseNodeKind.PAGE, locator)
         block = ParseNode(
-            "block-0", ParseNodeKind.BLOCK, _locator(asset), text="E42",
+            "block-0", ParseNodeKind.BLOCK, locator, text="E42",
             parent_node_id="page-0", confidence=1.0,
         )
         return PerceptionArtifact(
@@ -152,6 +161,86 @@ def test_l1_runs_ocr_only():
     assert vlm.calls == []
 
 
+def test_l1_resolves_the_explicit_region_before_calling_ocr():
+    asset = _asset()
+    region = MediaLocator(
+        asset.asset_id,
+        asset.checksum,
+        0,
+        CoordinateSpace.ORIGINAL_PAGE_PIXELS,
+        (10.0, 5.0, 70.0, 25.0),
+    )
+    binding = MediaRequirementBinding.create(
+        requirement_id="media.screen.region",
+        asset_id=asset.asset_id,
+        necessity=MediaNecessity.REQUIRED,
+        required_stage=MediaStage.L1_TEXT_EXTRACTION,
+        reason_code="TEXT_EXTRACTION_REQUIRED",
+        region_key="region://screen/error",
+    )
+    decision = MediaRequirementDecision.create(
+        mode=MediaRequirementMode.MEDIA_TARGETS,
+        bindings=(binding,),
+        decision_reason_codes=("TEXT_EXTRACTION_REQUIRED",),
+        task_schema_hash="a" * 64,
+    )
+
+    class Regions:
+        def resolve(self, received, region_key):
+            assert received == asset
+            assert region_key == "region://screen/error"
+            return region
+
+    ocr = OCR()
+    batch = TieredPerceptionService(
+        Assets(asset),
+        ocr=ocr,
+        vlm=None,
+        regions=Regions(),
+    ).execute_with_artifacts(
+        decision,
+        tenant_id="tenant-a",
+        user_id="user-a",
+    )
+
+    assert batch.outcomes[0].status is PerceptionStatus.SUCCEEDED
+    assert ocr.locators == [region]
+    assert batch.artifacts[0].parse_result.nodes[1].locator == region
+
+
+def test_explicit_region_without_resolver_is_typed_unavailable():
+    asset = _asset()
+    binding = MediaRequirementBinding.create(
+        requirement_id="media.screen.region",
+        asset_id=asset.asset_id,
+        necessity=MediaNecessity.REQUIRED,
+        required_stage=MediaStage.L1_TEXT_EXTRACTION,
+        reason_code="TEXT_EXTRACTION_REQUIRED",
+        region_key="region://screen/error",
+    )
+    decision = MediaRequirementDecision.create(
+        mode=MediaRequirementMode.MEDIA_TARGETS,
+        bindings=(binding,),
+        decision_reason_codes=("TEXT_EXTRACTION_REQUIRED",),
+        task_schema_hash="a" * 64,
+    )
+    ocr = OCR()
+
+    outcome = TieredPerceptionService(
+        Assets(asset),
+        ocr=ocr,
+        vlm=None,
+    ).execute(
+        decision,
+        tenant_id="tenant-a",
+        user_id="user-a",
+    )[0]
+
+    assert outcome.status is PerceptionStatus.UNAVAILABLE
+    assert outcome.reason_code == "REGION_RESOLVER_UNAVAILABLE"
+    assert ocr.calls == 0
+
+
 def test_execution_batch_returns_exact_artifacts_for_context_building():
     batch = TieredPerceptionService(
         Assets(), ocr=OCR(), vlm=None,
@@ -168,7 +257,7 @@ def test_execution_batch_returns_exact_artifacts_for_context_building():
 def test_l2_runs_ocr_once_then_vlm_for_each_explicit_binding():
     ocr, vlm = OCR(), VLM()
     outcomes = TieredPerceptionService(
-        Assets(), ocr=ocr, vlm=vlm,
+        Assets(), ocr=ocr, vlm=vlm, regions=Regions(),
     ).execute(
         _decision(MediaStage.L2_VISUAL_REASONING, count=2),
         tenant_id="tenant-a", user_id="user-a",
@@ -184,7 +273,7 @@ def test_l2_runs_ocr_once_then_vlm_for_each_explicit_binding():
 def test_missing_vlm_is_typed_unavailable_and_keeps_ocr_ref():
     ocr = OCR()
     outcome = TieredPerceptionService(
-        Assets(), ocr=ocr, vlm=None,
+        Assets(), ocr=ocr, vlm=None, regions=Regions(),
     ).execute(
         _decision(MediaStage.L2_VISUAL_REASONING),
         tenant_id="tenant-a", user_id="user-a",

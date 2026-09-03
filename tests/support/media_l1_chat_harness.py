@@ -270,9 +270,14 @@ def _explicit_l1_producer() -> Any:
 def _ocr() -> Any:
     ocr = SimpleNamespace(calls=0, version="fixture-ocr-v1")
 
-    def extract(asset: Any, _content: bytes) -> PerceptionArtifact:
+    def extract(
+        asset: Any,
+        _content: bytes,
+        *,
+        locator: MediaLocator | None = None,
+    ) -> PerceptionArtifact:
         ocr.calls += 1
-        locator = MediaLocator(
+        locator = locator or MediaLocator(
             asset.asset_id,
             asset.checksum,
             0,

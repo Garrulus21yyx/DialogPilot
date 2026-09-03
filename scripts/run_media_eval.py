@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run an asset-level L1 project diagnostic over a locked local fixture."""
+"""Run an explicit-region L1 project diagnostic over a locked local fixture."""
 
 from __future__ import annotations
 
@@ -61,6 +61,7 @@ def run(args: argparse.Namespace) -> dict[str, object]:
             bundle.assets,
             ocr=TesseractOCRProvider(language=args.language),
             vlm=None,
+            regions=bundle.assets,
         ),
         request_loader=lambda _case: bundle.request,
         consumer=partial(consume_expected_text, bundle),
@@ -78,8 +79,8 @@ def run(args: argparse.Namespace) -> dict[str, object]:
                 "locked_contract_score_eligible": "false",
                 "source_case_id": bundle.fixture.source_case_id,
                 "perception_provider": TesseractOCRProvider.version,
-                "grounding_scope": "ASSET_PAGE",
-                "region_selection": "NOT_RUN",
+                "grounding_scope": "EXPLICIT_PAGE_REGION",
+                "region_selection": "MEDIA_REQUIREMENT_BINDING",
             },
         )
     )
