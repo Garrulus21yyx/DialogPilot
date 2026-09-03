@@ -209,10 +209,58 @@ Knowledge 查询通常寻找公共说明；Memory 查询同时受到主体、实
 - P50/P95；
 - 额外澄清轮数。
 
-## 9. 数据角色与调参
+## 9. 两类语料不得混用
 
-- LoCoMo：按完整 conversation/group 切 Dev，选择 fusion、top-k、threshold 与时间规则；
-- LongMemEval：配置冻结后的外部测试，不用于回调参数；
+### 9.1 公开会话历史基准
+
+[LoCoMo](https://github.com/snap-research/locomo) 和
+[LongMemEval](https://github.com/xiaowu0162/LongMemEval) 提供会话、问题和证据位置，
+但不提供 DialogPilot ServiceEpisode 要求的 closed/resolved case、
+Case Owner 接受的 authoritative outcome 和业务 verification。因此这些
+session 只能进入 evaluator-owned 的 `BENCHMARK_CONVERSATION_SESSION` 索引，
+不得写入或伪装成 production ServiceEpisode、Commitment 或 Preference。
+
+公开线的正确用法是：
+
+```text
+LoCoMo Dev
+→ 选择 conversation-session retrieval 的 BGE/lexical/RRF/Top-K
+
+LongMemEval S-cleaned frozen test
+→ 检验含 distractor 的 session retrieval + reader
+
+LongMemEval oracle frozen test
+→ 只检验 oracle evidence 下的 consumption/reader/时间/更新/拒答
+```
+
+LongMemEval oracle 的 evidence 已给定，不得报告 retrieval 分数。
+[cleaned dataset](https://huggingface.co/datasets/xiaowu0162/longmemeval-cleaned)
+的 S/M 版本才用于含干扰会话的 frozen retrieval。
+
+这条公开线报告：`Recall-all@5`、MRR、nDCG、P95，以及官方
+reader 的 category F1/accuracy 和 abstention。manifest 必须显式写入：
+
+```text
+corpus_semantics=BENCHMARK_CONVERSATION_SESSION
+production_service_episode_semantics=NOT_EVALUATED
+```
+
+### 9.2 生产 ServiceEpisode 线
+
+生产权重、unique-binding margin、freshness、supersession 和中文/code-switch
+结论必须使用 owner-valid 客服数据：
+
+- resolved/closed case；
+- accepted authoritative outcome；
+- 可回溯 source evidence/provenance；
+- tenant/user/entity/time 范围；
+- 一个真实 BGE-M3 immutable generation。
+
+LoCoMo 可以给 embedding/fusion 方向性参考，不能直接冻结
+`memory-reference-resolution-v1` 或 `memory-historical-evidence-v1` 的生产阈值。
+
+其余数据角色保持不变：
+
 - 80 条合成合同：Memory 是否应调用、连续服务、Commitment 与跨用户边界；
 - 项目状态反事实：active state sufficient、多个历史引用、过期/替代记录；
 - 历史 ServiceEpisode replay：生命周期和 provenance regression。
@@ -221,7 +269,7 @@ Knowledge 查询通常寻找公共说明；Memory 查询同时受到主体、实
 
 ## 10. Runner 与产物
 
-组件入口：`run_memory_rag_eval.py`。
+生产组件入口：`run_memory_rag_eval.py`。
 
 真实路径：
 
@@ -234,11 +282,25 @@ canonical ServiceEpisode projection
 
 输出 manifest、predictions、EvidencePack 明细与 report。组件评测不得经过旧 Intent；Trigger/Consumption 和 E2E 才进入完整 `ChatApplication.handle()`。
 
+公开会话基准使用独立薄 adapter：
+
+```text
+official session JSON
+→ BenchmarkSessionDocument
+→ benchmark-only candidate retrieval
+→ ranked session IDs
+→ official/gold-session grader
+```
+
+它只复用 embedding、lexical、RRF 和评分基础设施，不调用
+`PostgresServiceEpisodeRepository.commit()`，也不改 production active generation。
+
 ## 11. 通过条件
 
 - 每轮状态恢复不再隐式触发 ServiceEpisode RAG；
-- 两套 purpose policy 独立冻结；
-- heldout retrieval/temporal/supersession 指标通过；
+- 两套 production purpose policy 在 owner-valid 客服 Dev 上独立冻结；
+- 公开 session benchmark 与 production ServiceEpisode 分表发布；
+- production heldout retrieval/temporal/supersession 指标通过；
 - backend unavailable 与 no evidence 行为可区分；
 - 跨用户/租户泄漏 observed `0/N`；
 - Trigger 和 Consumption 合同通过；

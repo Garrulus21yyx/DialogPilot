@@ -83,6 +83,9 @@ Status: `IN_PROGRESS — READ-ONLY STICKY VERTICAL SLICE COMPLETE`
   existing tool, verification, publication, delivery, and Memory-write lifecycle.
 - [x] Add the selective Encoder `ACCEPT/DEFER` → structured LLM command
   producer contract and its direct-evaluation adapter.
+- [x] Add a strict Registry-backed LLM command producer and the existing
+  observed Anthropic transport; keep default production wiring unchanged until
+  the semantic quality gate passes.
 - [x] Add a pinned, local-only BGE-M3 provider with one truthful document/query
   embedding profile and no implicit hash fallback.
 - [x] Verify the configured local BGE-M3 weight artifact against its declared
@@ -116,6 +119,11 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   real BGE-M3 generation and explicitly excludes rewrite, rerank, parent
   expansion, packing, generation, and judge stages.
 - [ ] Run component heldout only after lane-specific freeze.
+- [x] Run all four predeclared Knowledge chunk profiles on the already-viewed
+  Doc2Dial heldout only as `DIAGNOSTIC_ONLY`; do not use those results to choose
+  a configuration.
+- [ ] Select the Knowledge chunk profile on untouched Doc2Dial Dev using the
+  predeclared All-evidence → Evidence Recall ordering.
 - [x] Run one positive contract through the real `ChatApplication.handle()`.
 - [x] Prove the existing L1 media transport through the real chat lifecycle;
   keep it labelled as transport evidence, not command-primary media closure.
@@ -284,6 +292,22 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   `TRANSPORT_SMOKE` and `score_eligible=false`; the locked manifest remains
   `NOT_RUN`. Focused suite: `57 passed`; full isolated-PostgreSQL suite:
   `986 passed`.
+- 2026-09-03: The structured LLM producer now renders only action-backed
+  Registry commands, accepts strict whole-object JSON, and returns typed
+  provider versus invalid-output outcomes. Risk, requirements, authority, and
+  tools remain absent from its input/output authority. Adjacent suite:
+  `13 passed`; Ruff, formatting, compile, and diff checks passed.
+- 2026-09-03: A controlled heldout diagnostic ran all four predeclared chunk
+  profiles with one BGE-M3 profile and candidate policy. Structure 384/48 led
+  Evidence/Document Recall; fixed 512/64 led MRR/nDCG. Because the heldout was
+  observed and the metrics disagree, all four results are
+  `DIAGNOSTIC_ONLY`; selection has moved to untouched Doc2Dial Dev.
+- 2026-09-03: The Memory benchmark audit separated public conversation-session
+  retrieval from production ServiceEpisode semantics. LoCoMo and LongMemEval
+  do not contain resolved cases with accepted authoritative outcomes and must
+  not be written to the ServiceEpisode owner. LongMemEval oracle is reserved
+  for reader/consumption because its answer sessions are already supplied;
+  distractor retrieval requires the cleaned S/M corpus.
 
 ## Commit log
 
@@ -315,3 +339,8 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 - Stage 3 task-owned L1 media execution: `33ecf99`.
 - Raw PostgreSQL/BGE candidate evaluator: `65c3059`.
 - Stage 3 command-primary clarification publication: `326b25a`.
+- Candidate/clarification documentation alignment: `8670aba`.
+- Direct migration runner import boundary: `75d1808`.
+- CI PostgreSQL service with pgvector: `99af3cf`.
+- Structured Registry-backed LLM command producer: `6c62aca`.
+- CI command-artifact test dependencies: `fc58f93`.

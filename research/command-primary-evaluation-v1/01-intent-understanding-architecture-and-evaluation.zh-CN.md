@@ -173,6 +173,12 @@ NoSupportedFlow(candidate_summary)
 
 Provider adapter 拥有 `PROVIDER_FAILURE`；schema/JSON 校验失败是 `INVALID_PROVIDER_OUTPUT`；LLM 自己不得把这些情况输出成 OOS 或信息不足。
 
+当前已有的最小实现将这个边界拆为 prompt renderer、strict output parser
+和 Anthropic transport 三个小模块。LLM 目录只包含当前 Registry 中有
+ActionDefinition、能编译成 Work 的 command；输出还必须通过
+`registry.action_for()` 才会成为 proposal。当前尚未将它设为默认生产
+producer，因为新 Encoder artifact 和 conversation-heldout 门禁还未完成。
+
 ## 9. RoutePolicy、TurnPlanCompiler 与 Approval
 
 `RoutePolicy` 只验证：
