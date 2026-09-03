@@ -283,18 +283,20 @@ Knowledge invocation:
 
 ## 11. Runner 与产物
 
-组件入口：`run_postgres_rag_eval.py`。
-
-真实路径必须是：
+当前组件入口是 `scripts/run_postgres_rag_eval.py`。它只负责第一段可归因实验：
 
 ```text
-SourceRevision ingest
-→ PG FTS/pgvector
-→ fusion/rerank/packing
-→ KnowledgeEvidencePack
+SourceDocument ingest
+→ production chunker
+→ PG FTS + pgvector
+→ weighted RRF candidate@20
 ```
 
-输出 manifest、query/candidate capture、predictions、EvidencePack 明细和 report。实际调用从 retriever result、Stage 与 E2E audit 读取；Evaluator adapter 不得临时建立另一套内存检索链拿分。
+它强制使用独立 `EVAL_DATABASE_URL`、显式 pinned BGE-M3，并一次只接受一个预声明 Chunk profile。产物固定为 `manifest.json`、`predictions.jsonl` 和 `report.json`；manifest 将 standalone rewrite、rerank、parent expansion、packing、generation 和 judge 明确标记为 `not_run`。后续阶段在本轮候选配置冻结后，分别增加 selection/packing 和 grounded-generation runner，不能把未执行阶段写成已测。
+
+2026-09-03 的第一条真实 smoke 使用 Doc2Dial heldout 40 篇文档和 48 条 raw query。`structure-aware 256/32` 产生 292 chunks；48/48 检索状态为 OK，system failure 为 0。candidate@20 的 Evidence Recall 为 `.4896`、Document Recall `.6042`、All-evidence Recall `23/48=.4792`、MRR `.2718`、nDCG `.3249`、检索 P95 `140.64ms`。这只证明第一组真实 candidate 链可运行，不是四组 Chunk 选择结论。
+
+实际调用必须从 retriever result、Stage 与 E2E audit 读取；Evaluator adapter 不得临时建立另一套内存检索链拿分。
 
 ## 12. 通过条件
 

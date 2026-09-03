@@ -287,16 +287,15 @@ Encoder accepted precision 使用适当的二项置信区间下界；样本不�
 
 ## 11. 标准产物
 
-每次 run 统一产生：
+每次 run 的共同索引统一产生：
 
 ```text
 manifest.json
-case_results.jsonl
-capability_traces.jsonl
+predictions.jsonl
 report.json
 ```
 
-必要时附加 query/candidate/evidence capture，但上述四项是共同索引。Manifest 固定 dataset/split/checksum、配置/模型/Prompt/Registry、index generation、tool/evaluator version、trial count、随机种子和环境。
+`predictions.jsonl` 中直接引用本次运行实际产生的 Stage、evidence、tool audit、state transition 与 Publication；当数据量较大时可另附 query/candidate/evidence capture，但不复制一套生产事实。Manifest 固定 dataset/split/checksum、配置/模型/Prompt/Registry、index generation、tool/evaluator version、trial count、随机种子和环境。
 
 每个指标必须携带 numerator/denominator、slice 和状态：
 

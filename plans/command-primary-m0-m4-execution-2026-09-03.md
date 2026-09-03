@@ -112,12 +112,18 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 - [x] Add the shared three-artifact eval schema and Understanding direct runner.
 - [x] Add Knowledge, Memory, and Media direct adapters/runners.
 - [x] Add invocation/consumption/state-transition assertions.
+- [x] Add a dedicated PostgreSQL raw-query candidate runner that records the
+  real BGE-M3 generation and explicitly excludes rewrite, rerank, parent
+  expansion, packing, generation, and judge stages.
 - [ ] Run component heldout only after lane-specific freeze.
 - [x] Run one positive contract through the real `ChatApplication.handle()`.
 - [x] Prove the existing L1 media transport through the real chat lifecycle;
   keep it labelled as transport evidence, not command-primary media closure.
 - [ ] Seed and run the locked 80-case contract set; its current run status is
   deliberately `NOT_RUN`.
+- [x] Run one locked L0 input through the real clarification publication path
+  as a non-scoring `TRANSPORT_SMOKE`; it remains ineligible for `x/80` until a
+  frozen semantic producer replaces the test stub.
 - [ ] Shadow and legacy-intent invariance gate before cutover.
 
 ## Produced files
@@ -264,6 +270,20 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   skipped. Focused root recheck: `54 passed`; isolated-PostgreSQL full suite:
   `983 passed`. Supported scope remains one current-turn asset at L1; L2,
   region selection, cross-turn reuse, and joint Media+Knowledge are still open.
+- 2026-09-03: A dedicated eval database and the pinned local BGE-M3 provider
+  ran the Doc2Dial heldout candidate smoke: 40 documents became 292 chunks and
+  all 48 raw queries completed without system failure. For
+  `structure-aware 256/32`, candidate@20 Evidence Recall was `.4896`, Document
+  Recall `.6042`, All-evidence Recall `23/48=.4792`, MRR `.2718`, nDCG `.3249`,
+  and retrieval P95 `140.64ms`. This is one raw-only baseline, not a four-profile
+  selection result.
+- 2026-09-03: Command-primary CLARIFY now uses the existing terminal execution
+  algebra and publication lifecycle. One locked L0 input ran through the real
+  chat handler with Intent, Knowledge, Media, Agent, and tools skipped. Because
+  the semantic producer is a fixed test stub, the adapter records
+  `TRANSPORT_SMOKE` and `score_eligible=false`; the locked manifest remains
+  `NOT_RUN`. Focused suite: `57 passed`; full isolated-PostgreSQL suite:
+  `986 passed`.
 
 ## Commit log
 
@@ -293,3 +313,5 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 - Knowledge chunk-strategy ownership: `c746c00`.
 - Calibrated command-encoder artifact contract: `7df9b6a`.
 - Stage 3 task-owned L1 media execution: `33ecf99`.
+- Raw PostgreSQL/BGE candidate evaluator: `65c3059`.
+- Stage 3 command-primary clarification publication: `326b25a`.
