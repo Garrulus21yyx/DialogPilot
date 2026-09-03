@@ -35,7 +35,7 @@
 | Knowledge | raw Dense/FTS 已分离；真实 BGE-M3/PG 已打通；Dev 已选 `fixed 512/64`，120 条固定英文 heldout baseline 已完成 | Candidate@20 到 Packed Top-5 仍有明显选择损失；尚缺中文/code-switch、paired legacy、generation 与真实 E2E |
 | Memory | Turn State 与 ServiceEpisode 已分离；Dense/purpose/generation 已接通；LoCoMo session baseline 已跑通 | 需 owner-valid 非空 ServiceEpisode corpus；公开线还需 BGE/RRF 与 LongMemEval S-cleaned frozen test |
 | Multimodal | 显式 routing probe、asset/evidence 合同、task-owned 单资产 L1 command-primary 消费链 | L2、多资产、跨轮复用、PDF/layout 与 page/region retrieval 尚未闭环 |
-| E2E | 真实 `ChatApplication.handle()` 已跑通 Knowledge、sticky read-only、双业务读取与 L1 transport 切片 | 80 条合同仍为 `NOT_RUN`；双业务读取使用固定 completion transport，只证明 owner/执行链；Intent/Media 门禁、Shadow 与 τ³ bridge 尚未完成 |
+| E2E | 真实 `ChatApplication.handle()` 已跑通 Knowledge、sticky read-only、双业务读取与 L1 transport；Structured shadow 已通过单条非干扰成对测试；四层 Scorecard 索引可运行 | 80 条合同仍为 `NOT_RUN`；双业务读取使用固定 completion transport；完整 Shadow telemetry/paired gate、Intent/Media 门禁与 τ³ bridge 尚未完成 |
 
 ## 文档权威边界
 

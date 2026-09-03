@@ -232,6 +232,14 @@ CommandProposal
 已接受的 TurnPlan 生成一次兼容投影，Knowledge、只读工作、Media、CLARIFY
 和 OOS 结果都读取该投影，不能反向影响 Route、Authority 或 Tool。
 
+`COMMAND_PRIMARY_MODE=shadow` 现在复用同一条 AlwaysDefer → StructuredLLM
+理解链，但 `primary_route_modes=()`。它只观察计划，实际响应仍由 legacy 主链
+生成。成对真实 Chat 测试中，Structured provider 调用一次，legacy Intent
+也只调用一次；两边的公开响应和 Delivery 完全一致，额外 Tool 调用与 Flow
+CAS 都为零。这关闭了旧 shadow 内部再次调用 Legacy Intent 的重复语义，但
+当前只是一条非干扰正例；完整 plan telemetry 和 conversation-level paired
+invariance 仍属于切换前门禁。
+
 2026-09-03 又在锁定合同的 20 条无附件 L0 澄清 slice 上执行了一个真实
 `DEV_CONTRACT_DIAGNOSTIC`。每条都由 `AlwaysDeferCommandEncoder` 进入
 Structured LLM，再经过 RoutePolicy/Registry 与真实 `ChatApplication.handle()`：

@@ -238,6 +238,13 @@ task_media_plan()                 # route 后的任务级媒体证据
 
 Shadow 不得调用业务工具、写 Memory、消费 pending signal、改变 flow、创建 ticket 或创建 Publication，只允许产生 dry-run plan 和 trace。
 
+当前已有的 `shadow` 已直接使用 AlwaysDefer → Structured LLM command producer，
+不再通过 Legacy Intent adapter 生成候选；其 primary route 集为空。单条成对
+`ChatApplication.handle()` 已证明 shadow 会形成有效 plan，但不会增加工具调用、
+Flow CAS 或可见 Publication，旧主链的回复与 Delivery 保持不变。当前 trace 只
+记录 planning status/reason/primary，尚未形成完整 plan telemetry，也尚未运行
+conversation-level paired 数据集，因此第 8.4 的完整 Shadow 门禁仍未通过。
+
 ### 8.3 选择规则
 
 采用字典序，而不是单一加权总分：

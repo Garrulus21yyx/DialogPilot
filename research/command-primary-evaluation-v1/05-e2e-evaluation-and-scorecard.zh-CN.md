@@ -326,6 +326,21 @@ Memory、Media 或完整 80 条合同合成一个总分。
 
 选择顺序为安全硬门禁 → E2E 非劣 → 组件门禁 → 成本，不使用单一权重求和。
 
+当前已经实现一个只读 Scorecard 索引器，而不是新的评分 Owner：
+
+```text
+explicit run catalog
+→ verify manifest/report run_id + SHA-256
+→ read canonical status
+→ project declared report JSON Pointers into Layer A/B/C/D
+→ scorecard.json
+```
+
+同一 run 可以分别贡献 Layer C 质量和 Layer D 成本。`COMPLETED` 仅表示运行
+结束，若 report 没有 canonical judgment，索引结果必须是 `INCONCLUSIVE`；
+缺文件、run ID 或摘要不一致是 `BLOCKED`。索引器不读取 predictions、不重算
+指标、不生成 `overall_score` 或 `weighted_score`。
+
 ## 11. 标准产物
 
 每次 run 的共同索引统一产生：
@@ -348,6 +363,17 @@ NOT_APPLICABLE
 NOT_RUN
 BLOCKED_MISSING_SYSTEM_CAPABILITY
 ```
+
+汇总入口为：
+
+```bash
+python scripts/build_command_primary_scorecard.py \
+  --catalog path/to/run-catalog.json \
+  --output path/to/scorecard.json
+```
+
+Catalog 只声明 run artifact、固定摘要、所属 layer 和要展示的 report JSON
+Pointer；它不能声明或覆盖评测结果。
 
 失败或基础设施错误不能静默删除后重跑到成功。
 

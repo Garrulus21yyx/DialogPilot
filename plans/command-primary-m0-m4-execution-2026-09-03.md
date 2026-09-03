@@ -173,6 +173,13 @@ Status: `IN_PROGRESS — COMPONENT RUNNERS + BOUNDED E2E SLICES`
   business-tool owners as a two-case owner/transport slice. The completion
   transport is a fixed test provider, so this is not counted as semantic
   `x/80`.
+- [x] Add a read-only four-layer scorecard index over explicit manifest/report
+  pairs. It preserves canonical run status and artifact identity and never
+  computes a weighted aggregate score.
+- [x] Replace the legacy-backed `shadow` producer with the Structured command
+  producer and prove one paired chat has the same legacy response, Delivery,
+  tool audit, and FlowState. Keep the full dataset/telemetry invariance gate
+  open.
 - [ ] Shadow and legacy-intent invariance gate before cutover.
 
 ## Produced files
@@ -500,6 +507,19 @@ Status: `IN_PROGRESS — COMPONENT RUNNERS + BOUNDED E2E SLICES`
   remained a fixed test provider, so this proves owner/execution closure rather
   than semantic accuracy. Full PostgreSQL suite: `1022 passed`; independent
   review passed.
+- 2026-09-03: The M4 scorecard is now an artifact index rather than another
+  evaluator. Its explicit catalog binds each manifest/report by run ID and
+  SHA-256, projects existing headline fields into layers A–D, preserves
+  `PASS/FAIL/INCONCLUSIVE/NOT_RUN/BLOCKED`, and maps bare `COMPLETED` to
+  `INCONCLUSIVE`. It does not open predictions, recompute metrics, or emit an
+  overall/weighted score. Direct-runner adjacent suite: `8 passed`.
+- 2026-09-03: Existing `shadow` now runs the same AlwaysDefer → StructuredLLM
+  producer as the target correctness path, but with no primary route modes.
+  One paired real-chat test produced a valid shadow plan, then proved the
+  legacy response and Delivery were unchanged, no tool or Flow CAS was added,
+  and legacy Intent ran only once. The full suite including Scorecard and
+  Shadow was `1026 passed`; full shadow telemetry and a dataset-level paired
+  gate remain open.
 
 ## Commit log
 
@@ -555,3 +575,5 @@ Status: `IN_PROGRESS — COMPONENT RUNNERS + BOUNDED E2E SLICES`
 - Structured clarification production composition: `9854b54`.
 - Fixed English Knowledge heldout baseline: `193ede1`.
 - Registry-backed refund-eligibility reads: `f0f7776`.
+- Layered scorecard artifact index: `c64911f`.
+- Structured command shadow: `bf4301e`.
