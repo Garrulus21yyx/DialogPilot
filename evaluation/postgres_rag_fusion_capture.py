@@ -103,7 +103,8 @@ async def capture_postgres_sources_and_replay(
         result = await candidate_source.capture_source_rankings_async(
             request,
             [("raw", case.query, 1.0)],
-            source_k=SOURCE_K,
+            dense_k=SOURCE_K,
+            lexical_k=SOURCE_K,
         )
         latency_ms = (time.perf_counter() - started) * 1000
         candidates = list(result.candidates)

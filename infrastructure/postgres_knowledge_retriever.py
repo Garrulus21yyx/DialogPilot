@@ -20,6 +20,7 @@ from application.knowledge_retriever import (
     KnowledgeRetrievalRequest,
 )
 from mcp.evidence_pack import EvidencePack
+from mcp.rank_fusion import fuse_rankings
 
 
 @dataclass(frozen=True)
@@ -53,14 +54,16 @@ class PostgresKnowledgeCandidateSource:
         request: KnowledgeRetrievalRequest,
         variants: list[tuple[str, str, float]],
         *,
-        source_k: int,
+        dense_k: int,
+        lexical_k: int,
     ) -> KnowledgeCandidateResult:
         """Return the complete per-route source union before weighted fusion."""
         return await asyncio.to_thread(
             self._capture_source_rankings,
             request,
             variants,
-            source_k,
+            dense_k,
+            lexical_k,
         )
 
     def _search(
@@ -69,14 +72,33 @@ class PostgresKnowledgeCandidateSource:
         variants: Sequence[tuple[str, str, float]],
         top_k: int,
     ) -> KnowledgeCandidateResult:
-        collected = self._collect_sources(request, variants, top_k)
+        collected = self._collect_sources(
+            request,
+            variants,
+            dense_k=top_k,
+            lexical_k=top_k,
+        )
         if isinstance(collected, KnowledgeCandidateResult):
             return collected
-        authority = collected.authority
         ranks = collected.ranks
         route_weights = collected.route_weights
-        scored = []
-        for candidate_id in authority:
+        ranked_ids = fuse_rankings(
+            {
+                route: tuple(
+                    candidate_id
+                    for candidate_id, _rank in sorted(
+                        route_rank.items(),
+                        key=lambda item: (item[1], item[0]),
+                    )
+                )
+                for route, route_rank in ranks.items()
+            },
+            weights=route_weights,
+            rrf_k=request.policy.rrf_k,
+            top_k=top_k,
+        )
+        selected = []
+        for candidate_id in ranked_ids:
             source_ranks = {
                 route: route_rank[candidate_id]
                 for route, route_rank in ranks.items()
@@ -86,9 +108,7 @@ class PostgresKnowledgeCandidateSource:
                 route_weights[route] / (request.policy.rrf_k + rank)
                 for route, rank in source_ranks.items()
             )
-            scored.append((candidate_id, score, source_ranks))
-        scored.sort(key=lambda item: (-item[1], item[0]))
-        selected = scored[:top_k]
+            selected.append((candidate_id, score, source_ranks))
         rows = self._load_rows(
             request,
             collected.generation,
@@ -116,9 +136,15 @@ class PostgresKnowledgeCandidateSource:
         self,
         request: KnowledgeRetrievalRequest,
         variants: Sequence[tuple[str, str, float]],
-        source_k: int,
+        dense_k: int,
+        lexical_k: int,
     ) -> KnowledgeCandidateResult:
-        collected = self._collect_sources(request, variants, source_k)
+        collected = self._collect_sources(
+            request,
+            variants,
+            dense_k=dense_k,
+            lexical_k=lexical_k,
+        )
         if isinstance(collected, KnowledgeCandidateResult):
             return collected
         selected = sorted(collected.authority)
@@ -147,7 +173,9 @@ class PostgresKnowledgeCandidateSource:
         self,
         request: KnowledgeRetrievalRequest,
         variants: Sequence[tuple[str, str, float]],
-        source_k: int,
+        *,
+        dense_k: int,
+        lexical_k: int,
     ) -> _CollectedSources | KnowledgeCandidateResult:
         try:
             generation = self._generations.get(request.generation_id)
@@ -185,8 +213,8 @@ class PostgresKnowledgeCandidateSource:
                         locale=request.locale,
                         product=request.product,
                     ),
-                    dense_limit=source_k,
-                    lexical_limit=source_k,
+                    dense_limit=dense_k,
+                    lexical_limit=lexical_k,
                 )
             )
             if generated.status is RetrievalStatus.NO_EVIDENCE:

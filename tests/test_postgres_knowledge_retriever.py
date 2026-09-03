@@ -262,7 +262,8 @@ def test_source_captures_unfused_route_rankings_from_one_backend_request(
         knowledge_source.capture_source_rankings_async(
             _request(),
             [("raw", "退款多久到账", 1.0)],
-            source_k=40,
+            dense_k=40,
+            lexical_k=40,
         )
     )
 
@@ -278,6 +279,30 @@ def test_source_captures_unfused_route_rankings_from_one_backend_request(
     backend_request = retrieve.call_args.args[0]
     assert backend_request.dense_limit == 40
     assert backend_request.lexical_limit == 40
+
+
+def test_source_capture_can_disable_the_unselected_lexical_route(
+    knowledge_source,
+    monkeypatch,
+):
+    retrieve = Mock(wraps=knowledge_source._backend.retrieve)
+    monkeypatch.setattr(knowledge_source._backend, "retrieve", retrieve)
+
+    result = asyncio.run(
+        knowledge_source.capture_source_rankings_async(
+            _request(),
+            [("raw", "退款多久到账", 1.0)],
+            dense_k=40,
+            lexical_k=0,
+        )
+    )
+
+    assert result.status is RetrievalStatus.OK
+    assert result.candidates[0]["ranks"] == {"raw:vector": 1}
+    assert retrieve.call_count == 1
+    backend_request = retrieve.call_args.args[0]
+    assert backend_request.dense_limit == 40
+    assert backend_request.lexical_limit == 0
 
 
 def test_source_rejects_manifest_drift_without_partial_candidates(knowledge_source):
