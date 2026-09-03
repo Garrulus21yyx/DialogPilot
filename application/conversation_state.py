@@ -8,7 +8,7 @@ from enum import Enum
 from threading import RLock
 from typing import Protocol
 
-from application.agent_result import RequestedField
+from application.agent_result import ReceiptRef, RequestedField
 from application.work_item import ArgumentValue
 from core.identity import ConversationId, TenantId, UserId
 
@@ -29,6 +29,11 @@ class WorkstreamStatus(str, Enum):
     RECONCILING = "RECONCILING"
     COMPLETED = "COMPLETED"
     CANCELLED = "CANCELLED"
+
+
+class ConversationOwner(str, Enum):
+    AUTOMATION = "AUTOMATION"
+    HUMAN = "HUMAN"
 
 
 @dataclass(frozen=True)
@@ -153,11 +158,19 @@ class ConversationState:
     resume_bindings: tuple[ResumeBinding, ...] = ()
     consumed_signal_ids: tuple[str, ...] = ()
     schema_version: str = "conversation-state-v1"
+    owner: ConversationOwner = ConversationOwner.AUTOMATION
+    human_ticket_ref: str | None = None
 
     def __post_init__(self) -> None:
         if self.version < 0:
             raise ConversationStateError("conversation version must be non-negative")
         _required(self.schema_version)
+        if self.owner is ConversationOwner.HUMAN and not str(
+            self.human_ticket_ref or ""
+        ).strip():
+            raise ConversationStateError("human-owned conversation requires ticket receipt")
+        if self.owner is ConversationOwner.AUTOMATION and self.human_ticket_ref is not None:
+            raise ConversationStateError("automation cannot claim a human ticket")
         _unique((item.workstream_id for item in self.workstreams), "workstreams")
         _unique((item.token for item in self.resume_bindings), "resume tokens")
         _unique(self.consumed_signal_ids, "consumed signals")
@@ -225,6 +238,8 @@ class ConversationState:
             ],
             "consumed": self.consumed_signal_ids,
             "schema": self.schema_version,
+            "owner": self.owner.value,
+            "human_ticket_ref": self.human_ticket_ref,
         }
         raw = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
         return "conversation-state:v1:" + hashlib.sha256(raw).hexdigest()
@@ -345,6 +360,30 @@ class ConversationState:
             workstream_id,
             expected_version=expected_version,
             status=WorkstreamStatus.CANCELLED,
+        )
+
+    def transfer_to_human(self, receipt: ReceiptRef) -> "ConversationState":
+        if receipt.requirement_id != "support.handoff_action":
+            raise ConversationStateError("receipt does not prove a handoff")
+        if receipt.effect_status != "COMMITTED":
+            raise ConversationStateError("handoff receipt is not committed")
+        if self.owner is ConversationOwner.HUMAN:
+            if self.human_ticket_ref == receipt.receipt_id:
+                return self
+            raise ConversationStateConflict("conversation already belongs to another ticket")
+        return replace(
+            self,
+            version=self.version + 1,
+            owner=ConversationOwner.HUMAN,
+            human_ticket_ref=receipt.receipt_id,
+            pending_interaction=None,
+            pending_approval=None,
+            resume_bindings=(),
+            workstreams=tuple(
+                item.transition(WorkstreamStatus.PAUSED)
+                if not item.terminal else item
+                for item in self.workstreams
+            ),
         )
 
     def _transition_workstream(

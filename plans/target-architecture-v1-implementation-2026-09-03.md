@@ -52,8 +52,8 @@
 | 2 | done | Conversation state, workstreams, pending interaction, and deterministic resolver with CAS semantics | 7 state-machine tests; 15 cumulative | `8954756` |
 | 3 | done | Turn policy/compiler producing direct, delegated, multi-domain, and workflow plans | 7 compiler/policy tests; 22 cumulative | `12bc26b` |
 | 4 | done | Parent orchestration graph, direct runtime, delegated domain workers, result board, and partial failure | 5 graph integration tests; 27 cumulative | `eee65a0` |
-| 5 | done | Governed write workflows, approval binding, operation keys, receipts, and reconciliation | 9 write state-machine/integration tests; 36 cumulative | stage-5 write commit |
-| 6 | pending | Handoff commit/receipt and single publication/delivery path | handoff and delivery tests | pending |
+| 5 | done | Governed write workflows, approval binding, operation keys, receipts, and reconciliation | 9 write state-machine/integration tests; 36 cumulative | `499e906` |
+| 6 | done | Handoff commit/receipt, human ownership, and single publication command path | 5 handoff/publication tests; 41 cumulative | stage-6 handoff commit |
 | 7 | pending | Encoder fast path and memory/media evidence routing | accepted-precision and binding tests | pending |
 | 8 | pending | Six vertical E2E scenarios, capability-scoped safety gates, docs, and measured report | full suite and held-out cases | pending |
 
@@ -84,3 +84,5 @@
   `application/result_board.py`, LangGraph dependency and orchestration tests
 - Stage 5: `application/write_workflow.py`, operation/approval/receipt/
   reconciliation state-machine tests and LangGraph worker integration
+- Stage 6: `application/handoff_runtime.py`, human ownership transition,
+  ticket-receipt-gated publication and handoff tests
