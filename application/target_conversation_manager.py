@@ -203,16 +203,35 @@ class TargetConversationManager:
                 item for item in state.workstreams
                 if item.workstream_id == mutation.workstream_id
             )
-            if mutation.target_version_field:
+            if mutation.preparation_requirement_id:
+                bindings = (
+                    mutation.readiness_field,
+                    mutation.readiness_value_json,
+                    mutation.target_version_field,
+                    mutation.target_version_argument,
+                )
+                if any(not str(item or "").strip() for item in bindings):
+                    raise ConversationStateConflict(
+                        "workflow preparation binding is incomplete"
+                    )
                 fact = next(
                     (
                         item for item in result.facts
-                        if item.requirement_id in plan.route.requirement_ids
+                        if item.requirement_id == mutation.preparation_requirement_id
                     ),
                     None,
                 )
-                value = json.loads(fact.value_json) if fact is not None else {}
-                if value.get("eligible") is not True:
+                if fact is None:
+                    raise ConversationStateConflict(
+                        "workflow preparation lacks its authoritative requirement"
+                    )
+                value = json.loads(fact.value_json)
+                if not isinstance(value, dict):
+                    raise ConversationStateConflict(
+                        "workflow preparation fact must be an object"
+                    )
+                readiness_value = json.loads(str(mutation.readiness_value_json))
+                if value.get(str(mutation.readiness_field)) != readiness_value:
                     next_state = state.cancel_workstream(
                         stream.workstream_id,
                         expected_version=stream.state_version,
@@ -220,11 +239,12 @@ class TargetConversationManager:
                     self._persist(state, next_state)
                     state = next_state
                     continue
-                target_version = str(value.get(mutation.target_version_field) or "")
-                if not target_version:
+                target_version_value = value.get(str(mutation.target_version_field))
+                if target_version_value is None or target_version_value == "":
                     raise ConversationStateConflict(
                         "workflow preparation lacks authoritative target version"
                     )
+                target_version = str(target_version_value)
                 action = next(
                     item for item in self._registry.actions
                     if item.ref == mutation.action_ref
@@ -239,8 +259,10 @@ class TargetConversationManager:
                 ).hexdigest()
                 arguments = tuple(
                     item for item in stream.slots
-                    if item.name != "expected_order_version"
-                ) + (ArgumentValue.create("expected_order_version", int(target_version)),)
+                    if item.name != mutation.target_version_argument
+                ) + (ArgumentValue.create(
+                    str(mutation.target_version_argument), target_version_value,
+                ),)
                 next_state = state.wait_for_approval(PendingApprovalState(
                     approval_id,
                     1,

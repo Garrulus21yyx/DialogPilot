@@ -77,7 +77,6 @@ class CommandProposal:
     approval_binding: str | None = None
     operation_key: str | None = None
     approval_signal_version: int | None = None
-    target_version_field: str | None = None
 
     def __post_init__(self) -> None:
         if any(not str(value or "").strip() for value in (
@@ -284,23 +283,34 @@ class RoutePolicy:
                 action,
             )
         if command.kind is CommandKind.PREPARE_WORKFLOW:
-            if not all((command.flow_ref, command.action_ref, command.tool_id)):
-                raise TurnPlanningError("PREPARE_WORKFLOW requires flow, action, and read tool")
+            if not all((command.flow_ref, command.action_ref)):
+                raise TurnPlanningError("PREPARE_WORKFLOW requires flow and action")
+            if command.tool_id or command.skill_id:
+                raise TurnPlanningError(
+                    "workflow preparation capability must come from the action registry"
+                )
             flow = registry.flow(str(command.flow_ref))
             action = next(
                 (item for item in registry.actions if item.ref == command.action_ref), None,
             )
-            tool = registry.tool(str(command.tool_id))
             if action is None or action.flow_ref != flow.ref:
                 raise TurnPlanningError("preparation action is not owned by flow")
+            preparation = action.preparation
+            if preparation is None:
+                raise TurnPlanningError("action has no registered preparation contract")
+            tool = registry.tool(preparation.tool_id)
             if flow.owner_agent != command.target_agent or action.owner_agent != command.target_agent:
                 raise TurnPlanningError("preparation owner differs from workflow")
             if tool.effect is not CapabilityEffect.READ:
                 raise TurnPlanningError("workflow preparation must be read-only")
             if tool.tool_id not in agent.allowed_tool_ids:
                 raise TurnPlanningError("preparation tool is outside agent allowlist")
-            if not command.target_entity_ref or not command.target_version_field:
-                raise TurnPlanningError("workflow preparation requires target version source")
+            if command.requirement_ids != (preparation.requirement_id,):
+                raise TurnPlanningError(
+                    "workflow preparation requirement differs from action registry"
+                )
+            if not command.target_entity_ref:
+                raise TurnPlanningError("workflow preparation requires a target entity")
             self._validate_requirements(command, (tool.tool_id,), requirements)
             return ValidatedCommand(
                 command, (tool.tool_id,), (), CapabilityEffect.READ,
@@ -385,7 +395,11 @@ class FlowMutation:
     bound_work_item_id: str
     action_ref: str | None = None
     target_entity_ref: str | None = None
+    preparation_requirement_id: str | None = None
+    readiness_field: str | None = None
+    readiness_value_json: str | None = None
     target_version_field: str | None = None
+    target_version_argument: str | None = None
 
 
 @dataclass(frozen=True)
@@ -486,7 +500,26 @@ class TurnPlanCompiler:
                 work_item.work_item_id,
                 item.proposal.action_ref,
                 item.proposal.target_entity_ref,
-                item.proposal.target_version_field,
+                (
+                    item.action.preparation.requirement_id
+                    if item.action and item.action.preparation else None
+                ),
+                (
+                    item.action.preparation.readiness_field
+                    if item.action and item.action.preparation else None
+                ),
+                (
+                    item.action.preparation.readiness_value_json
+                    if item.action and item.action.preparation else None
+                ),
+                (
+                    item.action.preparation.target_version_field
+                    if item.action and item.action.preparation else None
+                ),
+                (
+                    item.action.preparation.target_version_argument
+                    if item.action and item.action.preparation else None
+                ),
             )
             for item, work_item in zip(validated.commands, items)
             if item.proposal.kind in {

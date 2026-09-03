@@ -68,6 +68,7 @@
 | 15 | done | Target-native evaluation funnel, capability-scoped gates, observability and architecture/runbook convergence | 96 Target tests; repository 1148 passed / 6 unrelated dirty-RAG failures | this stage commit |
 | 16A | done | Separate logistics, refund policy, refund eligibility and invoice read commands from refund execution | unit contracts plus real HTTP/PostgreSQL read-path E2E | this stage commit |
 | 16B | done | Generic Product QA task contract; category and attributes remain evidence data rather than Skill identities | 93 Target tests including real PostgreSQL/HTTP boundaries | this stage commit |
+| 17 | done | Registry-owned generic write-preparation binding with no refund fields in ConversationManager | 95 Target tests including real PostgreSQL/HTTP boundaries | this stage commit |
 
 ## Stage record
 
@@ -135,6 +136,9 @@
   categories; category names and category-specific attributes remain catalog/RAG
   evidence rather than global router fields, Skill identities, or fixed missing-input
   schemas.
+- Stage 17: Action Registry owns the authoritative preparation tool, requirement,
+  readiness predicate, source entity-version field and write-argument binding;
+  ConversationManager applies that typed contract without knowing refund semantics.
 
 ## Scope correction after executable-core review
 
@@ -323,3 +327,24 @@ continuation.
   the unrelated uncommitted RAG-policy migration: the policy producer emits
   `expansion_query_weight`, `query_expansion_count` and `metadata_hint_weight`, while
   the legacy `AgentBundle` consumer does not yet admit those keys.
+
+## Stage 17 verification notes
+
+- Observed root cause: `PREPARE_WORKFLOW` looked reusable, but command proposals and
+  ConversationManager jointly owned refund-specific preparation semantics through
+  `refund_eligibility_check`, `eligible`, `order_version` and
+  `expected_order_version`. Every second write Flow would otherwise require another
+  business branch in the conversation lifecycle owner.
+- `ActionPreparationDefinition` is now the single versioned owner of the preparation
+  tool, read requirement, readiness field/value, target-version source and target
+  write argument. Registry construction verifies that its tool is read-only,
+  authorized by the requirement, and inside both Flow and Agent allowlists.
+- Routers now propose the user goal and action identity only. RoutePolicy resolves
+  the preparation capability from Registry; `FlowMutation` carries the accepted
+  immutable binding into ConversationManager.
+- ConversationManager reads only the declared requirement and fields. A positive
+  invariant test replaces the refund names with `permitted`, `revision_token` and
+  `expected_revision`; approval creation and version binding still succeed without
+  a caller-side compatibility branch.
+- The complete Target suite passed 95 tests, including real ASGI/PostgreSQL state,
+  workflow, Product, orchestration and publication boundaries.

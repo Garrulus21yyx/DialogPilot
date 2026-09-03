@@ -179,11 +179,9 @@ class BoundedTargetUnderstanding:
                     ArgumentValue.create("reason", text),
                 ),
                 ("refund.eligibility",),
-                tool_id="refund_eligibility_check",
                 flow_ref="execute_refund:v1",
                 action_ref="refund.request.create:v1",
                 target_entity_ref=f"order:{order_id}",
-                target_version_field="order_version",
             ))
         if order_signal and order_id and not refund_signal:
             commands.append(CommandProposal(

@@ -4,6 +4,7 @@ from __future__ import annotations
 from application.authority_policy import AuthoritySupport, FactRequirement, RequirementEffect
 from application.capability_registry import (
     ActionDefinition,
+    ActionPreparationDefinition,
     AgentDefinition,
     ApprovalPolicy,
     CapabilityEffect,
@@ -115,6 +116,14 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
             CapabilityEffect.WRITE, CapabilityRisk.HIGH, ("refund.request_action",),
             ("refund_request_create",), ApprovalPolicy.EXPLICIT_CONFIRMATION_REQUIRED,
             "action-receipt-v1", "refund-status-by-operation-v1", profile.ref,
+            ActionPreparationDefinition.create(
+                tool_id="refund_eligibility_check",
+                requirement_id="refund.eligibility",
+                readiness_field="eligible",
+                readiness_value=True,
+                target_version_field="order_version",
+                target_version_argument="expected_order_version",
+            ),
         ),
         ActionDefinition(
             "support.handoff.create", "v1", "human_service", "human_handoff:v1",

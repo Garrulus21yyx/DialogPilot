@@ -186,10 +186,9 @@ class StructuredTargetCommandRouter:
                     ArgumentValue.create("order_id", order_id),
                     ArgumentValue.create("reason", text),
                 ),
-                ("refund.eligibility",), tool_id="refund_eligibility_check",
+                ("refund.eligibility",),
                 flow_ref="execute_refund:v1", action_ref="refund.request.create:v1",
                 target_entity_ref=f"order:{order_id}",
-                target_version_field="order_version",
             )
         if kind == "product_identification":
             if not asset_id:

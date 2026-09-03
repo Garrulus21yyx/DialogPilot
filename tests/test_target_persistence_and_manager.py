@@ -13,6 +13,7 @@ from application.agent_result import (
     FactSourceKind,
     RequestedField,
 )
+from application.capability_registry import ActionPreparationDefinition
 from application.conversation_state import (
     ConversationState,
     InMemoryConversationStateStore,
@@ -131,6 +132,28 @@ class _EligibilityExecutor:
                 "eligibility-receipt",
                 "refund_eligibility_check",
                 "refund-eligibility-v1",
+                datetime.now(timezone.utc),
+            ),),
+        )
+
+
+class _RegistryDrivenPreparationExecutor:
+    async def __call__(self, context: AgentContextView):
+        item = context.work_item
+        return AgentResult(
+            item.work_item_id,
+            item.owner_agent,
+            AgentResultStatus.SUCCEEDED,
+            "PREPARATION_READ",
+            "registry-preparation-test-v1",
+            facts=(FactRecord(
+                "order:DP1234",
+                "refund.eligibility",
+                '{"permitted":"yes","revision_token":"revision-7"}',
+                FactSourceKind.VERIFIED_STATE,
+                "preparation-receipt",
+                "refund_eligibility_check",
+                "generic-preparation-v1",
                 datetime.now(timezone.utc),
             ),),
         )
@@ -297,6 +320,46 @@ def test_refund_preparation_derives_control_state_from_authoritative_eligibility
             "reason": "把订单 DP1234 退款",
             "expected_order_version": 7,
         }
+
+
+def test_manager_interprets_workflow_preparation_only_from_registry_bindings():
+    identity = _identity("request-registry-preparation")
+    store = InMemoryConversationStateStore()
+    base = build_default_capability_registry("tenant-target")
+    action = replace(
+        base.actions[0],
+        preparation=ActionPreparationDefinition.create(
+            tool_id="refund_eligibility_check",
+            requirement_id="refund.eligibility",
+            readiness_field="permitted",
+            readiness_value="yes",
+            target_version_field="revision_token",
+            target_version_argument="expected_revision",
+        ),
+    )
+    registry = replace(base, actions=(action, *base.actions[1:]))
+    manager = TargetConversationManager(
+        state_store=store,
+        registry=registry,
+        understanding=BoundedTargetUnderstanding(),
+        orchestration=OrchestrationRuntime(
+            direct_executor=_RegistryDrivenPreparationExecutor(),
+            domain_workers={},
+        ),
+    )
+
+    result = asyncio.run(manager.handle(
+        identity, TurnObservations("把订单 DP1234 退款"),
+    ))
+
+    pending = result.state_after.pending_approval
+    assert pending is not None
+    assert pending.target_entity_version == "revision-7"
+    assert dict((item.name, item.value) for item in pending.arguments) == {
+        "order_id": "DP1234",
+        "reason": "把订单 DP1234 退款",
+        "expected_revision": "revision-7",
+    }
 
 
 def test_manager_consumes_pending_input_before_understanding_and_persists_it():

@@ -1,3 +1,4 @@
+from dataclasses import replace
 from datetime import datetime, timezone
 
 import pytest
@@ -18,6 +19,7 @@ from application.authority_policy import (
 )
 from application.capability_registry import (
     ActionDefinition,
+    ActionPreparationDefinition,
     AgentDefinition,
     ApprovalPolicy,
     CapabilityEffect,
@@ -146,6 +148,27 @@ def _registry() -> CapabilityRegistryBundle:
             ("authority", "freshness", "required_fields"),
         ),),
     )
+
+
+def test_registry_rejects_write_tools_as_action_preparation_authority():
+    registry = _registry()
+    action = replace(
+        registry.actions[0],
+        preparation=ActionPreparationDefinition.create(
+            tool_id="refund_request_create",
+            requirement_id="refund.request_action",
+            readiness_field="committed",
+            readiness_value=True,
+            target_version_field="version",
+            target_version_argument="expected_version",
+        ),
+    )
+
+    with pytest.raises(
+        CapabilityRegistryError,
+        match="preparation tool must be read-only",
+    ):
+        replace(registry, actions=(action,))
 
 
 def _work(**changes) -> WorkItem:

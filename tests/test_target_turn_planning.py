@@ -3,6 +3,7 @@ import pytest
 from application.authority_policy import AuthoritySupport, FactRequirement, RequirementEffect
 from application.capability_registry import (
     ActionDefinition,
+    ActionPreparationDefinition,
     AgentDefinition,
     ApprovalPolicy,
     CapabilityEffect,
@@ -108,6 +109,14 @@ def _registry():
             CapabilityEffect.WRITE, CapabilityRisk.HIGH, ("refund.request_action",),
             ("refund_request_create",), ApprovalPolicy.EXPLICIT_CONFIRMATION_REQUIRED,
             "write-receipt-v1", "refund-reconcile-v1", profile.ref,
+            ActionPreparationDefinition.create(
+                tool_id="refund_eligibility_check",
+                requirement_id="refund.eligibility",
+                readiness_field="eligible",
+                readiness_value=True,
+                target_version_field="order_version",
+                target_version_argument="expected_order_version",
+            ),
         ),),
         (
             _requirement("order.current_state", RequirementEffect.READ, "order_lookup"),
@@ -227,11 +236,9 @@ def test_workflow_preparation_is_read_only_but_starts_versioned_workstream():
         "Check eligibility",
         (ArgumentValue.create("order_id", "DP1234"),),
         ("refund.eligibility",),
-        tool_id="refund_eligibility_check",
         flow_ref="execute_refund:v1",
         action_ref="refund.request.create:v1",
         target_entity_ref="order:DP1234",
-        target_version_field="order_version",
     ))
 
     item = plan.work.items[0]
@@ -240,7 +247,11 @@ def test_workflow_preparation_is_read_only_but_starts_versioned_workstream():
     assert item.effect is CapabilityEffect.READ
     assert item.operation_key is None
     assert mutation.action_ref == "refund.request.create:v1"
+    assert mutation.preparation_requirement_id == "refund.eligibility"
+    assert mutation.readiness_field == "eligible"
+    assert mutation.readiness_value_json == "true"
     assert mutation.target_version_field == "order_version"
+    assert mutation.target_version_argument == "expected_order_version"
 
 
 def test_workflow_continuation_requires_consumed_bound_approval():

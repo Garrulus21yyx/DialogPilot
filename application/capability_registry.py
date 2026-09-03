@@ -150,6 +150,62 @@ class FlowDefinition:
 
 
 @dataclass(frozen=True)
+class ActionPreparationDefinition:
+    """Registry-owned binding from an authoritative read to a write approval."""
+
+    tool_id: str
+    requirement_id: str
+    readiness_field: str
+    readiness_value_json: str
+    target_version_field: str
+    target_version_argument: str
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        tool_id: str,
+        requirement_id: str,
+        readiness_field: str,
+        readiness_value: object,
+        target_version_field: str,
+        target_version_argument: str,
+    ) -> "ActionPreparationDefinition":
+        return cls(
+            tool_id,
+            requirement_id,
+            readiness_field,
+            _canonical_json(readiness_value),
+            target_version_field,
+            target_version_argument,
+        )
+
+    def __post_init__(self) -> None:
+        _required(
+            self.tool_id,
+            self.requirement_id,
+            self.readiness_field,
+            self.readiness_value_json,
+            self.target_version_field,
+            self.target_version_argument,
+        )
+        try:
+            value = json.loads(self.readiness_value_json)
+        except (TypeError, json.JSONDecodeError) as exc:
+            raise CapabilityRegistryError(
+                "action preparation readiness value must be JSON"
+            ) from exc
+        if _canonical_json(value) != self.readiness_value_json:
+            raise CapabilityRegistryError(
+                "action preparation readiness value must use canonical JSON"
+            )
+
+    @property
+    def readiness_value(self) -> object:
+        return json.loads(self.readiness_value_json)
+
+
+@dataclass(frozen=True)
 class ActionDefinition:
     action_id: str
     version: str
@@ -163,6 +219,7 @@ class ActionDefinition:
     receipt_schema_version: str
     reconciliation_policy: str
     verification_profile: str
+    preparation: ActionPreparationDefinition | None = None
 
     @property
     def ref(self) -> str:
@@ -267,6 +324,33 @@ class CapabilityRegistryBundle:
             if any(tools[item].effect is not CapabilityEffect.WRITE for item in action.allowed_tool_ids):
                 raise CapabilityRegistryError("action may execute only registered write tools")
             _validate_effect(action.effect, action.requirement_ids, requirements)
+            preparation = action.preparation
+            if preparation is not None:
+                tool = _get(tools, preparation.tool_id, "action preparation tool")
+                requirement = _get(
+                    requirements,
+                    preparation.requirement_id,
+                    "action preparation requirement",
+                )
+                if preparation.tool_id not in flow.allowed_tool_ids:
+                    raise CapabilityRegistryError(
+                        "action preparation tool exceeds flow allowlist"
+                    )
+                if preparation.tool_id not in owner.allowed_tool_ids:
+                    raise CapabilityRegistryError(
+                        "action preparation tool exceeds owner agent allowlist"
+                    )
+                if tool.effect is not CapabilityEffect.READ:
+                    raise CapabilityRegistryError(
+                        "action preparation tool must be read-only"
+                    )
+                if (
+                    requirement.effect is not RequirementEffect.READ
+                    or preparation.tool_id not in requirement.allowed_tools
+                ):
+                    raise CapabilityRegistryError(
+                        "action preparation requirement does not authorize its tool"
+                    )
 
     @property
     def fingerprint(self) -> str:
@@ -358,3 +442,13 @@ def _validate_effect(
     expected = RequirementEffect(effect.value)
     if any(requirements[item].effect is not expected for item in requirement_ids):
         raise CapabilityRegistryError("capability and requirement effects differ")
+
+
+def _canonical_json(value: object) -> str:
+    return json.dumps(
+        value,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    )
