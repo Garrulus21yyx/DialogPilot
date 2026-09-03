@@ -29,6 +29,8 @@ PostgreSQL 边界验证。当前状态是“有界 v1 主链已切换”，不�
   Command 编译（LLM 不决定 Tool、Risk 或 Requirement）。
 - 可重复训练的 Target Encoder、类别级阈值与 heldout 能力门禁；线上纯 JSON
   推理已接入 `/chat`，只启用通过门禁的退款状态快速路径。
+- 退款政策、退款资格、退款状态、退款执行四种命令已分离；物流复用订单原子 Tool，
+  发票/退款政策复用 Billing Knowledge Skills。
 
 有意保持关闭或仍待后续实现：
 

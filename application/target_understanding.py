@@ -84,7 +84,10 @@ class BoundedTargetUnderstanding:
         product_signal = bool(asset_id) or any(
             token in lowered for token in ("型号", "商品", "product", "model")
         )
-        refund_signal = any(token in lowered for token in ("退款", "refund"))
+        refund_signal = any(
+            token in lowered for token in ("退款", "退掉", "退货", "refund")
+        )
+        invoice_signal = any(token in lowered for token in ("发票", "invoice"))
         order_signal = any(
             token in lowered for token in ("订单", "物流", "发货", "order", "shipping")
         )
@@ -110,7 +113,47 @@ class BoundedTargetUnderstanding:
                 target_entity_ref=f"conversation:{state.conversation_id}",
                 target_entity_version=f"conversation:{state.conversation_id}:v{state.version}",
             ))
-        if refund_signal and order_id and any(
+        refund_policy_signal = refund_signal and any(
+            token in lowered for token in (
+                "政策", "规则", "一般多久", "通常多久", "多久到账", "时效",
+            )
+        )
+        refund_eligibility_signal = refund_signal and order_id and any(
+            token in lowered for token in (
+                "能退", "可以退", "可退款", "资格", "符合退款", "eligible",
+            )
+        )
+        if invoice_signal:
+            commands.append(CommandProposal(
+                "invoice-policy",
+                CommandKind.RUN_SKILL,
+                "billing_refund",
+                "Answer an invoice policy question",
+                (ArgumentValue.create("question", text),),
+                ("knowledge.active_source",),
+                skill_id="invoice_qa",
+            ))
+        if refund_policy_signal:
+            commands.append(CommandProposal(
+                "refund-policy",
+                CommandKind.RUN_SKILL,
+                "billing_refund",
+                "Answer a refund policy question",
+                (ArgumentValue.create("question", text),),
+                ("knowledge.active_source",),
+                skill_id="refund_policy_qa",
+            ))
+        elif refund_eligibility_signal:
+            commands.append(CommandProposal(
+                "refund-eligibility",
+                CommandKind.DIRECT_TOOL,
+                "billing_refund",
+                "Check current refund eligibility without starting a refund",
+                (ArgumentValue.create("order_id", order_id),),
+                ("refund.eligibility",),
+                tool_id="refund_eligibility_check",
+            ))
+        elif refund_signal and order_id and any(
             token in lowered for token in ("状态", "进度", "到账", "status")
         ):
             commands.append(CommandProposal(
@@ -166,7 +209,14 @@ class BoundedTargetUnderstanding:
                 tuple(commands),
                 "BOUNDED_FAST_PATH",
             )
-        if (refund_signal or order_signal) and not order_id:
+        if refund_signal and not order_id and not refund_policy_signal:
+            return TurnProposal(
+                ProposalDisposition.CLARIFY,
+                (),
+                "ORDER_ID_REQUIRED",
+                ("order_id",),
+            )
+        if order_signal and not order_id:
             return TurnProposal(
                 ProposalDisposition.CLARIFY,
                 (),

@@ -66,7 +66,8 @@
 | 14A | done | Target-native structured semantic router and typed provider boundary behind deterministic resolution | 66 focused Target tests; real HTTP/PostgreSQL semantic fallback; provider failure remains typed | this stage commit |
 | 14B | done | Target Skill/Command Encoder dataset, class-scoped calibration, heldout gate and public fast-path binding | 91 Target tests; reproducible training; real HTTP/PostgreSQL Encoder bypass | this stage commit |
 | 15 | done | Target-native evaluation funnel, capability-scoped gates, observability and architecture/runbook convergence | 96 Target tests; repository 1148 passed / 6 unrelated dirty-RAG failures | this stage commit |
-| 16 | in progress | Expand registered read capabilities: logistics, refund policy/eligibility, invoice and installation assessment | pending | pending |
+| 16A | done | Separate logistics, refund policy, refund eligibility and invoice read commands from refund execution | unit contracts plus real HTTP/PostgreSQL read-path E2E | this stage commit |
+| 16B | in progress | Versioned installation compatibility authority and Product-domain assessment Skill | pending | pending |
 
 ## Stage record
 
@@ -128,6 +129,8 @@
   public Encoder → single Worker execution.
 - Stage 15: six-layer Target evaluation funnel, required-evidence safety gates,
   persisted response-level evaluation traces, and an operational runbook.
+- Stage 16A: read-only logistics, refund policy, refund eligibility and invoice
+  command bindings; refund eligibility queries no longer start refund workflows.
 
 ## Scope correction after executable-core review
 
@@ -277,3 +280,16 @@ continuation.
   whitelist tests: the uncommitted retrieval owner emits `expansion_query_weight`,
   `query_expansion_count`, and `metadata_hint_weight`, while the legacy bundle
   whitelist has not yet been migrated. Stage 15 does not own or stage that work.
+
+## Stage 16A verification notes
+
+- `order_lookup` remains the single business authority for both order and logistics
+  status; no wrapper Skill or Agent dispatch was added to the direct path.
+- Refund policy and invoice questions use separate Billing-owned knowledge Skills so
+  they remain independently measurable while sharing the governed Knowledge tool.
+- Refund eligibility is a direct read of `refund_eligibility_check`. The positive
+  contract test proves that “订单 DP1234 能退款吗” produces no Flow transition,
+  PendingApproval or write capability. Explicit execution language still compiles a
+  `PREPARE_WORKFLOW` mutation for `execute_refund:v1`.
+- Structured goals cannot invent an order ID. Real ASGI/PostgreSQL tests cover the
+  eligibility, policy and invoice paths and retain the shortest execution shapes.

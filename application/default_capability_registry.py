@@ -61,6 +61,16 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
             ("order_id",), ("refund.current_state",), ("refund_status",),
             CapabilityRisk.MEDIUM, profile.ref,
         ),
+        _skill(
+            "refund_policy_qa", "billing_refund", "Answer refund policy questions",
+            ("question",), ("knowledge.active_source",), ("knowledge_search",),
+            CapabilityRisk.LOW, profile.ref,
+        ),
+        _skill(
+            "invoice_qa", "billing_refund", "Answer invoice policy questions",
+            ("question",), ("knowledge.active_source",), ("knowledge_search",),
+            CapabilityRisk.LOW, profile.ref,
+        ),
     )
     agents = (
         _agent("general", ("knowledge_search",), ("general_qa",), profile.ref),
@@ -73,8 +83,11 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
         _agent("order_logistics", ("order_lookup",), (), profile.ref),
         _agent(
             "billing_refund",
-            ("order_lookup", "refund_status", "refund_eligibility_check", "refund_request_create"),
-            ("refund_status_summary",),
+            (
+                "knowledge_search", "order_lookup", "refund_status",
+                "refund_eligibility_check", "refund_request_create",
+            ),
+            ("refund_status_summary", "refund_policy_qa", "invoice_qa"),
             profile.ref,
         ),
         _agent("account_security", (), (), profile.ref),

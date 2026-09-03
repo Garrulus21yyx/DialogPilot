@@ -18,8 +18,12 @@ _IDENTIFIER = re.compile(r"\b[A-Za-z]{1,12}[-_]?\d{2,64}\b")
 _GOALS = {
     "general_qa",
     "order_status",
+    "logistics_status",
+    "refund_policy",
+    "refund_eligibility",
     "refund_status",
     "execute_refund",
+    "invoice_qa",
     "product_identification",
     "human_handoff",
 }
@@ -132,7 +136,7 @@ class StructuredTargetCommandRouter:
                 (ArgumentValue.create("question", text),),
                 ("knowledge.active_source",), skill_id="general_qa",
             )
-        if kind == "order_status":
+        if kind in {"order_status", "logistics_status"}:
             if not order_id:
                 raise ValueError("order status lacks observed order ID")
             registry.tool("order_lookup")
@@ -141,6 +145,24 @@ class StructuredTargetCommandRouter:
                 "Query current order status",
                 (ArgumentValue.create("order_id", order_id),),
                 ("order.current_state",), tool_id="order_lookup",
+            )
+        if kind == "refund_policy":
+            registry.skill("refund_policy_qa")
+            return CommandProposal(
+                goal_id, CommandKind.RUN_SKILL, "billing_refund",
+                "Answer a refund policy question",
+                (ArgumentValue.create("question", text),),
+                ("knowledge.active_source",), skill_id="refund_policy_qa",
+            )
+        if kind == "refund_eligibility":
+            if not order_id:
+                raise ValueError("refund eligibility lacks observed order ID")
+            registry.tool("refund_eligibility_check")
+            return CommandProposal(
+                goal_id, CommandKind.DIRECT_TOOL, "billing_refund",
+                "Check current refund eligibility without starting a refund",
+                (ArgumentValue.create("order_id", order_id),),
+                ("refund.eligibility",), tool_id="refund_eligibility_check",
             )
         if kind == "refund_status":
             if not order_id:
@@ -177,6 +199,14 @@ class StructuredTargetCommandRouter:
                 "Identify the product from supplied media",
                 (ArgumentValue.create("asset_id", asset_id),),
                 ("product.canonical_model",), skill_id="product_identification",
+            )
+        if kind == "invoice_qa":
+            registry.skill("invoice_qa")
+            return CommandProposal(
+                goal_id, CommandKind.RUN_SKILL, "billing_refund",
+                "Answer an invoice policy question",
+                (ArgumentValue.create("question", text),),
+                ("knowledge.active_source",), skill_id="invoice_qa",
             )
         registry.flow("human_handoff:v1")
         return CommandProposal(

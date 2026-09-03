@@ -14,6 +14,11 @@
    多领域 WorkItem 才由 LangGraph `Send` 并行派发；
 6. 写操作进入预定义 Flow，经 approval、operation key、Receipt 和 reconciliation。
 
+退款领域特别区分：政策问题进入 `refund_policy_qa`，资格问题直接调用只读
+`refund_eligibility_check`，状态问题进入 `refund_status_summary`，只有明确要求执行
+退款才创建 `execute_refund:v1` Workstream。物流状态直接复用 `order_lookup`；发票政策
+由 `invoice_qa` 使用 Knowledge Provider，不读取或伪造个人账单状态。
+
 ## 启动配置
 
 默认加载仓库内的 `artifacts/target-encoder-zh-v1`。可配置：

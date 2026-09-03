@@ -49,6 +49,17 @@ class _ScenarioTools:
                 authority="order.current_state",
                 text=f"订单 {params['order_id']} 已发货。",
             )
+        if name == "knowledge_search":
+            query = str(params["query"])
+            return _result(
+                name,
+                data={
+                    "source_id": "policy:billing-v1",
+                    "content": f"已验证政策：{query}",
+                },
+                authority="knowledge.active_source",
+                text=f"根据当前政策处理：{query}",
+            )
         if name == "refund_status":
             if context["conversation_id"] in self.uncertain_refunds:
                 return _result(
@@ -249,6 +260,13 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                     })
 
                 order = await chat("order", "查订单 DP1234 物流")
+                eligibility = await chat(
+                    "eligibility", "订单 DP7777 能退款吗？",
+                )
+                refund_policy = await chat(
+                    "refund-policy", "退款政策和一般时效是什么？",
+                )
+                invoice = await chat("invoice", "电子发票怎么开？")
                 encoder_refund = await chat(
                     "encoder-refund", "确认 RF3100 的退回进展",
                 )
@@ -340,7 +358,8 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                 )
                 handoff = await chat("handoff", "我要人工客服处理这个问题")
                 return (
-                    order, encoder_refund, semantic_order, product,
+                    order, eligibility, refund_policy, invoice,
+                    encoder_refund, semantic_order, product,
                     refund_precheck, refund_precheck_replay,
                     refund_committed, refund_commit_replay, stale_approval,
                     changed_approval_replay, cross_conversation_approval,
@@ -352,7 +371,8 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
         responses = asyncio.run(run())
         for name, response in zip(
             (
-                "order", "encoder-refund", "semantic-order", "product",
+                "order", "eligibility", "refund-policy", "invoice",
+                "encoder-refund", "semantic-order", "product",
                 "refund-precheck", "refund-replay",
                 "refund-commit", "refund-commit-replay", "stale-approval",
                 "changed-approval-replay", "cross-conversation-approval",
@@ -374,7 +394,8 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
             )
             assert response.status_code == expected, f"{name}: {response.text}"
         (
-            order, encoder_refund, semantic_order, product,
+            order, eligibility, refund_policy, invoice,
+            encoder_refund, semantic_order, product,
             refund_precheck, refund_precheck_replay,
             refund_committed, refund_commit_replay, stale_approval,
             changed_approval_replay, cross_conversation_approval,
@@ -384,6 +405,13 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
             item.json() for item in responses
         )
         assert order["routing_disposition"] == "direct"
+        assert eligibility["routing_disposition"] == "direct"
+        assert eligibility["agent_types"] == ["billing_refund"]
+        assert "符合退款条件" in eligibility["response"]
+        assert refund_policy["routing_disposition"] == "agent_task"
+        assert "当前政策" in refund_policy["response"]
+        assert invoice["routing_disposition"] == "agent_task"
+        assert "电子发票" in invoice["response"]
         assert encoder_refund["routing_reason"] == "ENCODER_FAST_PATH_ACCEPTED"
         assert encoder_refund["routing_disposition"] == "agent_task"
         assert "RF3100" in encoder_refund["response"]
