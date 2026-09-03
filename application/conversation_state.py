@@ -245,9 +245,24 @@ class ConversationState:
         return "conversation-state:v1:" + hashlib.sha256(raw).hexdigest()
 
     def start_workstream(self, workstream: WorkstreamState) -> "ConversationState":
-        if any(item.workstream_id == workstream.workstream_id for item in self.workstreams):
+        return self.start_workstreams((workstream,))
+
+    def start_workstreams(
+        self,
+        workstreams: tuple[WorkstreamState, ...],
+    ) -> "ConversationState":
+        """Accept all plan-level starts as one aggregate transition."""
+        if not workstreams:
+            raise ConversationStateError("workstream transition is empty")
+        current_ids = {item.workstream_id for item in self.workstreams}
+        new_ids = tuple(item.workstream_id for item in workstreams)
+        if len(new_ids) != len(set(new_ids)) or current_ids.intersection(new_ids):
             raise ConversationStateConflict("workstream already exists")
-        return replace(self, version=self.version + 1, workstreams=(*self.workstreams, workstream))
+        return replace(
+            self,
+            version=self.version + 1,
+            workstreams=(*self.workstreams, *workstreams),
+        )
 
     def wait_for_interaction(self, pending: PendingInteractionState) -> "ConversationState":
         if self.pending_interaction is not None or self.pending_approval is not None:

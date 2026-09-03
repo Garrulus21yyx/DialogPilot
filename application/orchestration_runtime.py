@@ -1,8 +1,10 @@
 """LangGraph parent runtime for direct, single-agent, and multi-agent work."""
 from __future__ import annotations
 
+import hashlib
+import json
 import operator
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Annotated, Awaitable, Callable, Mapping, Protocol, TypedDict
 
 from langgraph.graph import END, START, StateGraph
@@ -33,6 +35,7 @@ class WorkExecutor(Protocol):
 
 class ParentGraphState(TypedDict, total=False):
     work_plan: WorkPlan
+    work_plan_fingerprint: str
     current_message: str
     recent_relevant_turns: tuple[str, ...]
     evidence_refs: tuple[str, ...]
@@ -61,10 +64,12 @@ class OrchestrationRuntime:
         direct_executor: WorkExecutor,
         domain_workers: Mapping[str, WorkExecutor],
         result_board: ResultBoard | None = None,
+        checkpointer=None,
     ) -> None:
         self._direct_executor = direct_executor
         self._domain_workers = dict(domain_workers)
         self._result_board = result_board or ResultBoard()
+        self._checkpointer = checkpointer
         self.graph = self._build_graph()
 
     def _build_graph(self):
@@ -82,7 +87,7 @@ class OrchestrationRuntime:
             "merge_results", self._dispatch, ["execute_work_item", "finish"],
         )
         builder.add_edge("finish", END)
-        return builder.compile()
+        return builder.compile(checkpointer=self._checkpointer)
 
     async def _initialize(self, state: ParentGraphState):
         plan = state["work_plan"]
@@ -159,15 +164,73 @@ class OrchestrationRuntime:
         recent_relevant_turns: tuple[str, ...] = (),
         evidence_refs: tuple[str, ...] = (),
         token_budget: int = 6000,
+        thread_id: str | None = None,
     ) -> ResultBoardSnapshot:
-        result = await self.graph.ainvoke({
+        if self._checkpointer is not None and not str(thread_id or "").strip():
+            raise OrchestrationRuntimeError("checkpointed execution requires thread_id")
+        config = (
+            {"configurable": {"thread_id": thread_id}}
+            if thread_id is not None else None
+        )
+        graph_input = {
             "work_plan": work_plan,
+            "work_plan_fingerprint": _work_plan_fingerprint(work_plan),
             "current_message": current_message,
             "recent_relevant_turns": recent_relevant_turns,
             "evidence_refs": evidence_refs,
             "token_budget": token_budget,
             "agent_results": [],
             "facts": (),
-        })
+        }
+        if self._checkpointer is not None:
+            snapshot = await self.graph.aget_state(config)
+            if snapshot.values:
+                if snapshot.values.get("work_plan_fingerprint") != _work_plan_fingerprint(
+                    work_plan
+                ):
+                    raise OrchestrationRuntimeError(
+                        "checkpoint thread is bound to another work plan"
+                    )
+                board = snapshot.values.get("board")
+                if board is not None and board.complete:
+                    return _normalize_board(board)
+                graph_input = None
+        result = await self.graph.ainvoke(graph_input, config=config)
         return result["board"]
 
+
+def _work_plan_fingerprint(plan: WorkPlan) -> str:
+    raw = json.dumps(
+        {
+            "primary": plan.primary_work_item_id,
+            "items": [item.fingerprint for item in plan.items],
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return "work-plan:v1:" + hashlib.sha256(raw).hexdigest()
+
+
+def _normalize_board(board: ResultBoardSnapshot) -> ResultBoardSnapshot:
+    """Restore tuple-based public contracts at the checkpoint boundary."""
+    def normalize_result(result: AgentResult) -> AgentResult:
+        return replace(
+            result,
+            facts=tuple(result.facts),
+            evidence_refs=tuple(result.evidence_refs),
+            action_receipts=tuple(result.action_receipts),
+            missing_inputs=tuple(result.missing_inputs),
+            requested_evidence=tuple(result.requested_evidence),
+            state_mutation_proposals=tuple(result.state_mutation_proposals),
+        )
+
+    return ResultBoardSnapshot(
+        tuple(normalize_result(item) for item in board.results),
+        tuple(board.facts),
+        tuple(board.ready_items),
+        tuple(normalize_result(item) for item in board.blocked_results),
+        tuple(board.missing_requirement_ids),
+        tuple(board.conflict_keys),
+        bool(board.complete),
+        bool(board.partial_delivery_allowed),
+    )

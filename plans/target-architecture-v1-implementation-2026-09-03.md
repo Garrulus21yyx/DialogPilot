@@ -55,8 +55,8 @@
 | 5 | done | Governed write workflows, approval binding, operation keys, receipts, and reconciliation | 9 write state-machine/integration tests; 36 cumulative | `499e906` |
 | 6 | done | Handoff commit/receipt, human ownership, and single publication command path | 5 handoff/publication tests; 41 cumulative | `1ce7a6f` |
 | 7 | done | Encoder fast path and memory/media evidence routing | 6 precision/binding tests; 47 cumulative | `6b54922` |
-| 8 | done | Six in-memory vertical E2E scenarios, default registry, capability-scoped safety gates, and measured report | 7 E2E tests; 54 cumulative | stage-8 core E2E commit |
-| 9 | pending | New ConversationManager, durable PostgreSQL state/operation adapters, and LangGraph checkpointer | persistence and resume integration tests | pending |
+| 8 | done | Six in-memory vertical E2E scenarios, default registry, capability-scoped safety gates, and measured report | 7 E2E tests; 54 cumulative | `e66facd` |
+| 9 | done | New ConversationManager, durable PostgreSQL event-backed state/operation adapters, and LangGraph checkpointer | 7 local persistence/resume tests; 61 cumulative; 1 real-PostgreSQL test skipped without database URL | stage-9 runtime persistence commit |
 | 10 | pending | `/chat` cutover to Target v1 and removal of legacy command/orchestration authorities | HTTP contract and negative source gates | pending |
 | 11 | pending | Real PostgreSQL/HTTP six-scenario E2E, documentation convergence, and fresh-context review | full suite and independent review | pending |
 
@@ -95,6 +95,10 @@
   `application/capability_safety.py`, six vertical E2E scenarios and
   capability-scoped safety-gate tests
 - Stage 8 report: `docs/target-architecture-v1-core-report.zh-CN.md`
+- Stage 9: `application/target_conversation_manager.py`, durable state and
+  operation event adapters in `infrastructure/postgres_target_runtime.py`,
+  explicit LangGraph PostgreSQL checkpoint lifecycle/serializer, and
+  invocation-scoped checkpoint replay.
 
 ## Scope correction after executable-core review
 
