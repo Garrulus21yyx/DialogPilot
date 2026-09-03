@@ -91,6 +91,7 @@ class RouteDecisionV2:
     requirement_ids: tuple[str, ...]
     flow_refs: tuple[FlowDefinitionRef, ...]
     risk: RouteRisk
+    missing_inputs: tuple[str, ...]
     reason_code: str
     policy_version: str
 
@@ -114,6 +115,7 @@ class TurnPlan:
                 "requirements": self.route.requirement_ids,
                 "flows": [item.key for item in self.route.flow_refs],
                 "risk": self.route.risk.value,
+                "missing_inputs": self.route.missing_inputs,
             },
             "mutations": [item.command_id for item in self.transitions.mutations]
             if self.transitions else [],
@@ -296,6 +298,10 @@ class TurnPlanCompiler:
             requirement_ids=requirements,
             flow_refs=tuple(flows.values()),
             risk=risk,
+            missing_inputs=(
+                ("request_goal",)
+                if accepted.status is RoutePolicyStatus.CLARIFY else ()
+            ),
             reason_code=accepted.reason_code,
             policy_version=accepted.policy_version,
         )

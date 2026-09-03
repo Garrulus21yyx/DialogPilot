@@ -601,6 +601,16 @@ class ChatApplication:
                     command_primary,
                     knowledge,
                 )
+            elif command_primary.plan.route.mode is RouteMode.CLARIFY:
+                from application.command_primary_clarification import (
+                    clarification_execution_result,
+                )
+
+                result = clarification_execution_result(
+                    request_id,
+                    identity,
+                    command_primary,
+                )
             else:
                 from application.command_primary_work import (
                     execute_command_primary_work,

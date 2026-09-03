@@ -187,13 +187,17 @@ class RouteExecutionPolicy:
         verification: VerificationProfileContract,
         *,
         input_fingerprint: str,
-        work: WorkPlan,
+        work: WorkPlan | None,
     ) -> RouteExecutionContract:
         """Compile the first command-primary path directly from its route."""
 
-        if route.mode is RouteMode.KNOWLEDGE_QA:
+        if route.mode in {RouteMode.KNOWLEDGE_QA, RouteMode.CLARIFY}:
             owner, outcome, required, conditional = self._shape(route)
         elif route.mode is RouteMode.AGENT_TASK:
+            if work is None:
+                raise RouteExecutionContractError(
+                    "command-primary Agent route requires a work plan"
+                )
             media_items = tuple(
                 item for item in work.items if item.media_policy is not None
             )
@@ -235,6 +239,7 @@ class RouteExecutionPolicy:
             policy_version=self.version,
             route_policy_version=route.policy_version,
             input_fingerprint=input_fingerprint,
+            missing_inputs=route.missing_inputs,
             reason_codes=(route.reason_code,),
             risk=route.risk.value,
         )

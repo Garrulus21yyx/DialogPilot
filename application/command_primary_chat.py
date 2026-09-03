@@ -100,7 +100,11 @@ class CommandPrimaryChatPlanner:
                 plan=None,
                 flow_state=flow_state,
             )
-        if plan.route.mode not in {RouteMode.KNOWLEDGE_QA, RouteMode.AGENT_TASK}:
+        if plan.route.mode not in {
+            RouteMode.KNOWLEDGE_QA,
+            RouteMode.AGENT_TASK,
+            RouteMode.CLARIFY,
+        }:
             return CommandPrimaryChatPlan(
                 planning=planning,
                 plan=plan,
