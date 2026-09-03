@@ -168,6 +168,27 @@ def test_preprocessing_change_builds_new_immutable_generation(store):
     assert states[second.generation_id] == "ACTIVE"
 
 
+def test_chunk_strategy_change_builds_a_distinct_generation(store):
+    knowledge, pool, provider = store
+    document = _document("refund", "退款三个工作日到账。")
+    knowledge.add_documents((document,))
+    first = knowledge.active_generation()
+
+    fixed_store = PostgresKnowledgeStore(
+        pool,
+        tenant_id="tenant-a",
+        chunk_strategy="fixed_tokens",
+        embedding_provider=provider,
+    )
+    fixed_store.add_documents((document,))
+    second = fixed_store.active_generation()
+
+    assert second.generation_id != first.generation_id
+    assert fixed_store.index_manifest["chunk_strategy"] == "fixed_tokens"
+    assert fixed_store.index_manifest["chunk_max_tokens"] == 512
+    assert fixed_store.index_manifest["chunk_overlap_tokens"] == 64
+
+
 def test_default_provider_is_explicitly_a_hash_baseline():
     knowledge = PostgresKnowledgeStore(object(), tenant_id="tenant-baseline")
     assert knowledge.embedding_profile.provider_kind is (

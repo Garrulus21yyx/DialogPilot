@@ -94,6 +94,7 @@ class PostgresKnowledgeStore:
         tenant_id: str,
         locale: str = "zh-CN",
         product: str = "",
+        chunk_strategy: ChunkStrategy | str = ChunkStrategy.STRUCTURE_AWARE,
         chunk_max_tokens: int = 512,
         chunk_overlap_tokens: int = 64,
         embedding_provider: KnowledgeEmbeddingProvider | None = None,
@@ -104,6 +105,7 @@ class PostgresKnowledgeStore:
         self._locale = locale
         self._product = product
         self._chunker = DocumentChunker()
+        self._chunk_strategy = ChunkStrategy(chunk_strategy)
         self._chunk_max_tokens = chunk_max_tokens
         self._chunk_overlap_tokens = chunk_overlap_tokens
         self._embedding_provider = provider
@@ -120,7 +122,11 @@ class PostgresKnowledgeStore:
         except GenerationConflict:
             await self.add_documents_async(DEFAULT_KNOWLEDGE_DOCUMENTS)
             return await asyncio.to_thread(self.active_generation)
-        if self.embedding_profile.matches_generation(generation):
+        sources = await asyncio.to_thread(self._active_sources)
+        if (
+            self.embedding_profile.matches_generation(generation)
+            and generation.generation_id == self._generation_id(sources)
+        ):
             return generation
         # A pre-profile or differently configured active generation remains
         # immutable; build and activate a new identity rather than relabel it.
@@ -230,7 +236,7 @@ class PostgresKnowledgeStore:
             )).fetchone()[0])
 
     @property
-    def index_manifest(self) -> dict[str, str]:
+    def index_manifest(self) -> dict[str, object]:
         generation = self.active_generation()
         return {
             "manifest_fingerprint": generation.manifest_hash,
@@ -248,6 +254,9 @@ class PostgresKnowledgeStore:
             "embedding_query_preprocessing": (
                 generation.embedding_query_preprocessing
             ),
+            "chunk_strategy": self._chunk_strategy.value,
+            "chunk_max_tokens": self._chunk_max_tokens,
+            "chunk_overlap_tokens": self._chunk_overlap_tokens,
         }
 
     @property
@@ -322,7 +331,7 @@ class PostgresKnowledgeStore:
             for chunk in self._chunker.split(
                 source.content, max_tokens=self._chunk_max_tokens,
                 overlap_tokens=self._chunk_overlap_tokens,
-                strategy=ChunkStrategy.STRUCTURE_AWARE,
+                strategy=self._chunk_strategy,
             ):
                 identity = (
                     f"{generation_id}\0{source.source_id}\0{source.revision_id}\0"
@@ -349,7 +358,7 @@ class PostgresKnowledgeStore:
             "product": self._product,
             "sources": [(item.source_id, item.revision_id) for item in sources],
             "chunk_schema": self.chunk_schema_version,
-            "chunk_strategy": ChunkStrategy.STRUCTURE_AWARE.value,
+            "chunk_strategy": self._chunk_strategy.value,
             "chunk_max_tokens": self._chunk_max_tokens,
             "chunk_overlap_tokens": self._chunk_overlap_tokens,
             "embedding_profile": self.embedding_profile.fingerprint,

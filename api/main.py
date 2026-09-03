@@ -492,6 +492,7 @@ async def lifespan(app: FastAPI):
     _knowledge_store = PostgresKnowledgeStore(
         _postgres_pool,
         tenant_id=os.getenv("DEFAULT_TENANT_ID", "default"),
+        chunk_strategy=os.getenv("RAG_CHUNK_STRATEGY", "structure_aware"),
         chunk_max_tokens=int(os.getenv("RAG_CHUNK_MAX_TOKENS", "512")),
         chunk_overlap_tokens=int(os.getenv("RAG_CHUNK_OVERLAP_TOKENS", "64")),
         embedding_provider=dense_embedding_factory.build(

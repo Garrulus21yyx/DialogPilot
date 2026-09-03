@@ -91,6 +91,9 @@ def _compose(corpus: str, env: Mapping[str, str]) -> _Owners:
             knowledge = PostgresKnowledgeStore(
                 pool,
                 tenant_id=values.get("DEFAULT_TENANT_ID", "default"),
+                chunk_strategy=values.get(
+                    "RAG_CHUNK_STRATEGY", "structure_aware",
+                ),
                 chunk_max_tokens=int(values.get("RAG_CHUNK_MAX_TOKENS", "512")),
                 chunk_overlap_tokens=int(
                     values.get("RAG_CHUNK_OVERLAP_TOKENS", "64")

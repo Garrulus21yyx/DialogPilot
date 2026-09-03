@@ -86,7 +86,7 @@ services:
       - RETRIEVAL_DATABASE_URL=postgresql://dialogpilot:${POSTGRES_PASSWORD:-dialogpilot-local}@postgres:5432/dialogpilot
       - RAG_CHUNK_MAX_TOKENS=${RAG_CHUNK_MAX_TOKENS:-512}
       - RAG_CHUNK_OVERLAP_TOKENS=${RAG_CHUNK_OVERLAP_TOKENS:-64}
-      - RAG_CHUNK_STRATEGY=${RAG_CHUNK_STRATEGY:-fixed_tokens}
+      - RAG_CHUNK_STRATEGY=${RAG_CHUNK_STRATEGY:-structure_aware}
       - RAG_RRF_K=${RAG_RRF_K:-10}
       - RAG_VECTOR_WEIGHT=${RAG_VECTOR_WEIGHT:-0.25}
       - RAG_LEXICAL_WEIGHT=${RAG_LEXICAL_WEIGHT:-0.75}
