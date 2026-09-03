@@ -192,13 +192,22 @@ Dev slice 的改进外推成合同成绩。其余 60 条以及完整 100 turns �
 | 层次 | cases / turns | 真实状态 |
 |---|---:|---|
 | structured eval composition | `20/80` / `20/100` | L0 CLARIFY 已运行，viewed Dev `13/20` |
-| transport only | `20/80` / `20/100` | Policy/Tool、Continuity、Memory、Handoff fixture 尚未 hydrate |
+| owner/execution diagnostic | `2/80` / `2/100` | Policy/Tool `01-a/b` 已接真实 PostgreSQL FlowState 与业务 Owner；固定 completion transport，不计合同分 |
+| transport only | `18/80` / `18/100` | 其余 Policy/Tool、Continuity、Memory、Handoff fixture 尚未 hydrate |
 | attachment path unsupported by locked adapter | `40/80` / `60/100` | Media+Knowledge/L2/reuse Work 与 fixture 尚未闭环 |
 
 显式生产 `structured_knowledge_primary` 现在也接管现有 CLARIFY terminal；
 Product-a 10 条经真实 provider 为 `10/10`，所有禁止能力仍未调用。默认 mode
 仍为 `off`。这把一个正向 slice 从评测专用装配移到实际 composition，但完整
 合同 manifest 仍是 `NOT_RUN`，不得写成 `10/80` 或 `13/80`。
+
+另一个显式模式 `structured_read_only_primary` 只在 Registry 已接受低风险只读
+Action 时增加 `AGENT_TASK`。`dp-policy-01-a/b` 已证明：同一显式 `order_id`
+依次绑定 `order_lookup` 与 `refund_eligibility_check`，两份 ToolReceipt 和两份
+EvidenceReceipt 使 Coverage 完整后，FlowState 以 CAS 从 version 0 提交到 1，
+随后才进行 Verification 与 Publication/Delivery。该切片使用固定 completion
+transport，故它是 owner/execution diagnostic，不是 Understanding 成绩，也不
+改变完整 80 条的 `NOT_RUN` 状态。
 
 ## 7. τ³
 

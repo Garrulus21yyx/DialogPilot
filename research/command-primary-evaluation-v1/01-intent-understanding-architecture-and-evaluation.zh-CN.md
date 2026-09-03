@@ -202,6 +202,36 @@ off 不变。Product-a 的 10 条已查看 Dev 通过实际 structured compositi
 `10/10`，provider calls/errors 为 `10/0`，Knowledge、Media 和 Tool 均保持禁止。
 这证明 composition 接通，不把该 viewed slice 当作新 heldout 或完整 80 分数。
 
+只读业务 Action 使用另一个显式权限面：
+
+```text
+structured_knowledge_primary
+  = KNOWLEDGE_QA + CLARIFY
+
+structured_read_only_primary
+  = KNOWLEDGE_QA + CLARIFY + Registry-backed read-only AGENT_TASK
+```
+
+后一个模式不会让 LLM 决定工具。LLM 只提出 `START_FLOW`；Registry 决定
+Action、required arguments、requirements 和允许工具，字段 binder 只在 Action
+选定后绑定消息中显式标记且唯一的 `order_id`。`dp-policy-01-a/b` 已通过真实
+`ChatApplication.handle()`、PostgreSQL FlowState 与两个业务工具，顺序为：
+
+```text
+CommandProposal
+→ RoutePolicy / Registry
+→ order.current_state + refund.eligibility
+→ 2 ToolReceipts + 2 EvidenceReceipts + Coverage complete
+→ FlowState CAS（保留 order_id binding）
+→ Verification → Publication / Delivery
+```
+
+该两例的 completion transport 是固定测试 provider，因此只证明接口、Owner
+和执行链闭合，不计作 Understanding 质量分或 `2/80`。默认 mode 仍为 `off`；
+`structured_knowledge_primary` 也没有因此获得业务工具权限。旧 Intent 仅由
+已接受的 TurnPlan 生成一次兼容投影，Knowledge、只读工作、Media、CLARIFY
+和 OOS 结果都读取该投影，不能反向影响 Route、Authority 或 Tool。
+
 2026-09-03 又在锁定合同的 20 条无附件 L0 澄清 slice 上执行了一个真实
 `DEV_CONTRACT_DIAGNOSTIC`。每条都由 `AlwaysDeferCommandEncoder` 进入
 Structured LLM，再经过 RoutePolicy/Registry 与真实 `ChatApplication.handle()`：

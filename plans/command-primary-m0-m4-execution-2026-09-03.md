@@ -51,9 +51,10 @@ Status: `IMPLEMENTED_FOR_VERTICAL_INTEGRATION`
 
 This status does not claim that the production chain has cut over. It means the
 shared boundary is ready to be wired into the production chain in S3. The S1
-implementation is split by responsibility; no command-primary module exceeds
-330 lines. New validation is added only when a supported production invariant
-requires it, not by accumulating hypothetical counterexamples.
+implementation is split by owner and change reason: planning, state, execution,
+evidence, and compatibility projection remain separate modules. New validation
+is added only when a supported production invariant requires it, not by
+accumulating hypothetical counterexamples.
 
 ### S2 — Parallel production capability prerequisites
 
@@ -70,7 +71,7 @@ remains an M3 production capability task; S2 does not claim that score.
 
 ### S3 — State-first integration and downstream decoupling
 
-Status: `IN_PROGRESS — READ-ONLY STICKY VERTICAL SLICE COMPLETE`
+Status: `IN_PROGRESS — BOUNDED READ-ONLY PRIMARY SLICES COMPLETE`
 
 - [x] Split Turn State loading from optional ServiceEpisode retrieval.
 - [x] Move current-thread state and active case before semantic routing.
@@ -111,6 +112,9 @@ Status: `IN_PROGRESS — READ-ONLY STICKY VERTICAL SLICE COMPLETE`
 - [x] Expose accepted resolution through an authenticated Case Owner HTTP
   boundary and make the explicit generation CLI drain all pending Episode
   projections before rebuilding; keep it out of application startup.
+- [x] Compile one Registry-backed refund-eligibility action into two authorized
+  read-only requirements, issue and cover both EvidenceReceipts, persist its
+  bound `order_id` with one FlowState CAS, and reuse verification/publication.
 - [ ] Seed and freeze a non-empty lifecycle-backed ServiceEpisode evaluation
   corpus before reporting production Memory scores. The current database and
   API smokes prove transport, not retrieval quality.
@@ -119,7 +123,7 @@ Status: `IN_PROGRESS — READ-ONLY STICKY VERTICAL SLICE COMPLETE`
 
 ### S4 — Evaluation runners and shadow gates
 
-Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
+Status: `IN_PROGRESS — COMPONENT RUNNERS + BOUNDED E2E SLICES`
 
 - [x] Add the shared three-artifact eval schema and Understanding direct runner.
 - [x] Add Knowledge, Memory, and Media direct adapters/runners.
@@ -165,6 +169,10 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   slice and keep command-primary promotion blocked pending fresh heldout.
 - [x] Keep `NO_SUPPORTED_FLOW → OUT_OF_SCOPE` on the command-primary policy
   terminal path, with legacy Intent and Agent execution skipped.
+- [x] Run locked `dp-policy-01-a/b` through real PostgreSQL FlowState and real
+  business-tool owners as a two-case owner/transport slice. The completion
+  transport is a fixed test provider, so this is not counted as semantic
+  `x/80`.
 - [ ] Shadow and legacy-intent invariance gate before cutover.
 
 ## Produced files
@@ -482,6 +490,16 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   review reproduced all 211 Gold-span bindings and report metrics. This is an
   English `HELDOUT_FIXED_BASELINE`, not production promotion: it has no paired
   legacy result, no Chinese/code-switch score, and no generation/E2E gate.
+- 2026-09-03: A Registry-backed refund-eligibility read now compiles one
+  `START_FLOW` into the ordered `order.current_state` and
+  `refund.eligibility` requirements. Their authorized tools run with the same
+  mechanically bound `order_id`, produce two tool receipts and two governed
+  EvidenceReceipts, complete the coverage gate, then commit FlowState before
+  response verification and Publication/Delivery. Locked `dp-policy-01-a/b`
+  passed through real PostgreSQL and business owners; the completion transport
+  remained a fixed test provider, so this proves owner/execution closure rather
+  than semantic accuracy. Full PostgreSQL suite: `1022 passed`; independent
+  review passed.
 
 ## Commit log
 
@@ -536,3 +554,4 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 - Accepted resolution API and explicit projection drain: `2b7f5ff`.
 - Structured clarification production composition: `9854b54`.
 - Fixed English Knowledge heldout baseline: `193ede1`.
+- Registry-backed refund-eligibility reads: `f0f7776`.

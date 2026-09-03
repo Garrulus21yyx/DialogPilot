@@ -1,6 +1,6 @@
 # DialogPilot M0–M4 总迁移计划
 
-状态：`DRAFT_FOR_IMPLEMENTATION`
+状态：`IMPLEMENTATION_IN_PROGRESS`
 目标：在不重写现有执行、工具、Publication 和 Delivery 基础设施的前提下，将入口从 intent-primary 迁移为 state-first、command-primary，并建立可归因的分层评测。
 
 ## 1. 要修复的共同根因
@@ -57,7 +57,13 @@ Encoder ACCEPT/DEFER                       │
                                              ↓
                                Per-WorkItem Execution Contract
                                              ↓
-                         Evidence / Agent / Tool / Verification
+                              Evidence / Agent / Tool
+                                             ↓
+                              Evidence Receipt / Coverage
+                                             ↓
+                          successful FlowTransition CAS
+                                             ↓
+                                  Response Verification
                                              ↓
                               Publication + delivery outbox
                                              ↓
