@@ -454,6 +454,13 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   MTRAG is not present. A conversation-isolated English heldout can be frozen
   mechanically from the unconsumed official Doc2Dial test pool after the Dev
   pipeline is fixed, without authoring new Gold.
+- 2026-09-03: Public multimodal readiness was audited without manufacturing an
+  adapter. No OmniDocBench, ViDoRe, or PM209 data/evaluator is present locally.
+  The existing Tesseract path can support an English raster OCR-only
+  OmniDocBench slice after those fixed artifacts arrive; layout/table/formula,
+  visual page retrieval, and question-conditioned L2 remain missing production
+  capabilities. Project `dp-screen-03` stays a project diagnostic and is not
+  counted as an official score.
 
 ## Commit log
 

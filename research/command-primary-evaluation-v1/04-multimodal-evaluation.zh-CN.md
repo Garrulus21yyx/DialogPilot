@@ -87,7 +87,20 @@ Route/WorkItem 确定后生成版本化 `MediaRequirementBinding`：
 
 ### 3.4 完整公开评测的缺口
 
-当前可直接验证图片附件 L0/L1/L2 和 EvidenceNode；以下能力不存在时必须标 `BLOCKED_MISSING_SYSTEM_CAPABILITY`：
+当前仓库、主机缓存和应用容器均没有 OmniDocBench、ViDoRe、PM209/MPMQA
+数据或官方 evaluator，因此不能先猜外部 schema 后声称官方分数。现有生产镜像
+有 Tesseract 5.5，但只装 `eng/osd`，也没有 PDF rasterizer。
+
+当前能力状态是：
+
+| Benchmark | 可诚实执行的范围 | 状态 |
+|---|---|---|
+| OmniDocBench | 固定英文 raster 的 OCR-only slice | `READY_AFTER_EXTERNAL_ARTIFACTS` |
+| OmniDocBench layout/table/formula | 无相应 producer | `BLOCKED_MISSING_SYSTEM_CAPABILITY` |
+| ViDoRe | 无 page embedding/index/retriever | `BLOCKED_MISSING_SYSTEM_CAPABILITY` |
+| PM209 Oracle/Retrieved | 无 question-conditioned L2 WorkItem/consumer；Retrieved 还依赖 page retrieval | `BLOCKED_MISSING_SYSTEM_CAPABILITY` |
+
+以下能力不存在时必须保持 `BLOCKED_MISSING_SYSTEM_CAPABILITY`：
 
 - 复杂 PDF 分页与 layout/table parser；
 - 视觉 page index；
@@ -95,6 +108,19 @@ Route/WorkItem 确定后生成版本化 `MediaRequirementBinding`：
 - 对应生产缓存、版本与删除治理。
 
 Evaluator Adapter 不得临时创建一条仅为跑分的视觉检索主链。
+
+取得固定官方数据和 evaluator 后，第一条公开线只做：
+
+```text
+OmniDocBench English raster OCR slice
+→ AssetAdmission
+→ TieredPerceptionService
+→ TesseractOCRProvider
+→ official prediction schema/evaluator
+```
+
+它必须标为 `OCR_ONLY_EN_RASTER`，layout/table/formula 为
+`NOT_APPLICABLE`，不能命名为完整 OmniDocBench 成绩。
 
 ## 4. 媒体是证据，不是业务 Authority
 
@@ -261,6 +287,17 @@ consumer。显式 region 缺少 resolver 时返回
 `UNAVAILABLE / REGION_RESOLVER_UNAVAILABLE`，不会退化成整页 OCR。它仍只是单图
 L1 项目诊断，不是自动 region retrieval、连续图片复用、80 条合同或
 OmniDocBench/ViDoRe/PM209 成绩。
+
+### 11.2 官方入口当前状态
+
+官方入口暂不创建。原因是本地既无固定 benchmark artifact，也无官方 evaluator；
+此时写 adapter 会把猜测固化为接口。拿到并校验官方输入后，OCR-only 首批只需
+一个格式 adapter、一个薄 runner 和一个 fixture contract test，继续复用现有
+AssetAdmission、Perception、ParseResult/MediaLocator 与三产物 writer。
+
+ViDoRe 与 PM209 不应复用文本 Knowledge RAG 或 RoutingMediaProbe 冒充页面检索。
+它们要等独立的 page embedding/index/retriever 与 L2 task consumer 成为生产能力后
+再接官方 evaluator。
 
 ## 12. 通过条件
 
