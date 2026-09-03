@@ -71,7 +71,7 @@ remains an M3 production capability task; S2 does not claim that score.
 
 Status: `IN_PROGRESS — READ-ONLY STICKY VERTICAL SLICE COMPLETE`
 
-- [ ] Split Turn State loading from optional ServiceEpisode retrieval.
+- [x] Split Turn State loading from optional ServiceEpisode retrieval.
 - [x] Move current-thread state and active case before semantic routing.
 - [x] Run deterministic resolution before the optional semantic producer.
 - [x] Migrate Knowledge Authority/Execution compilation away from `route.intent`.
@@ -85,9 +85,10 @@ Status: `IN_PROGRESS — READ-ONLY STICKY VERTICAL SLICE COMPLETE`
 
 ### S4 — Evaluation runners and shadow gates
 
-Status: `PENDING`
+Status: `IN_PROGRESS — SHARED ARTIFACTS + UNDERSTANDING DIRECT RUNNER COMPLETE`
 
-- [ ] Add shared eval schema and component adapters/runners.
+- [x] Add the shared three-artifact eval schema and Understanding direct runner.
+- [ ] Add Knowledge, Memory, and Media direct adapters/runners.
 - [ ] Add invocation/consumption/state-transition assertions.
 - [ ] Run component heldout only after lane-specific freeze.
 - [ ] Run real `ChatApplication.handle()` contract E2E.
@@ -144,6 +145,16 @@ Status: `PENDING`
   Knowledge RAG, and Agent re-planning are skipped. Complete isolated
   PostgreSQL suite: `986 passed`. This proves transport/execution; it does not
   claim that the final Encoder/LLM producer has passed its quality gate.
+- 2026-09-03: Current-thread Memory is confirmed as the bounded state read:
+  production projection calls `get_current_context()`, and both direct and
+  PostgreSQL paths return no ServiceEpisode hits. Cross-session retrieval stays
+  behind its explicit authenticated ServiceEpisode capability; no additional
+  production code was needed for this boundary.
+- 2026-09-03: S4 introduced a thin Understanding direct runner with one shared
+  `EvalCase`/manifest/prediction/report shape. It records Trigger, Artifact,
+  Consumption, Outcome, and Cost, and writes exactly `manifest.json`,
+  `predictions.jsonl`, and `report.json`. Focused suite: `1 passed`; `ruff`,
+  `compileall`, and diff whitespace checks passed.
 
 ## Commit log
 
@@ -153,3 +164,4 @@ Status: `PENDING`
 - Stage 2 retrieval embedding ownership: `f83bddb`.
 - Stage 3 Knowledge primary vertical slice: `07b42f8`.
 - Stage 3 conversation FlowState owner: `61a8349`.
+- Stage 3 sticky read-only vertical slice: `9e75275`.
