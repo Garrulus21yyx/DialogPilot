@@ -581,6 +581,21 @@ async def lifespan(app: FastAPI):
         _tool_manager.register(commitment_tool)
     for operation_tool in customer_operation_tools(_customer_operations):
         _tool_manager.register(operation_tool)
+    if _media_asset_store is not None:
+        from infrastructure.tesseract_ocr_provider import TesseractOCRProvider
+        from mcp.product_tools import product_tools
+        from services.product_catalog import ProductCatalogService
+
+        product_catalog = ProductCatalogService(
+            os.getenv(
+                "PRODUCT_CATALOG_PATH",
+                str(pathlib.Path(_ROOT) / "data" / "product-catalog.v1.json"),
+            )
+        )
+        for product_tool in product_tools(
+            _media_asset_store, TesseractOCRProvider(), product_catalog,
+        ):
+            _tool_manager.register(product_tool)
     AuthorityPolicyRegistry.v1().validate_tools(_tool_manager.registered_tools)
     _orchestrator.set_tool_manager(_tool_manager)
 
@@ -600,6 +615,7 @@ async def lifespan(app: FastAPI):
         PostgresTargetPublication,
     )
     from infrastructure.target_tool_execution import TargetToolExecutor
+    from infrastructure.target_product_execution import TargetProductExecutor
     from infrastructure.target_workflow_execution import TargetWorkflowExecutor
 
     target_registry = build_default_capability_registry(
@@ -608,12 +624,13 @@ async def lifespan(app: FastAPI):
     _target_checkpoint_owner = AsyncPostgresCheckpointOwner(database_url, setup=True)
     target_checkpointer = await _target_checkpoint_owner.__aenter__()
     target_tool_executor = TargetToolExecutor(_tool_manager)
+    target_product_executor = TargetProductExecutor(_tool_manager)
     target_workflow_executor = TargetWorkflowExecutor(_postgres_pool, _tool_manager)
     target_orchestration = OrchestrationRuntime(
         direct_executor=target_tool_executor,
         domain_workers={
             "general": target_tool_executor,
-            "product_technical": target_tool_executor,
+            "product_technical": target_product_executor,
             "order_logistics": target_tool_executor,
             "billing_refund": target_tool_executor,
             "account_security": target_tool_executor,

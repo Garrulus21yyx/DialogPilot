@@ -61,6 +61,9 @@
 | 11 | done | Real PostgreSQL/HTTP six-scenario E2E, async checkpoint ownership, committed handoff workflow completion, and documentation convergence | 68 Target tests pass against PostgreSQL; repository suite 1120 passed / 6 unrelated dirty-RAG contract failures | `9a19ce8` |
 | 12A | done | Refund preparation, persisted approval, deterministic resume, governed commit, rejection/expiry/stale handling | 75 Target tests; repository 1127 passed / 6 unrelated dirty-RAG failures | `57658ce` |
 | 12B | done | Public retry/poll entry for `OUTCOME_UNKNOWN`, stable operation binding, authoritative reconciliation, and terminal Receipt publication | 76 Target tests; repository 1128 passed / 6 unrelated dirty-RAG failures | this stage commit |
+| 13A | done | Real `media_read` and `catalog_search` tools plus a Product skill executor that passes verified media observations into catalog lookup | Product owner/tool contract tests | this stage commit |
+| 13B | done | Real upload-to-chat Product E2E, typed unavailable/no-match/ambiguous paths, documentation, commit and push | 80 Target tests including real PostgreSQL Asset/HTTP E2E | this stage commit |
+| 14 | pending | Bind the evaluated Intent Encoder fast path and structured fallback to the public understanding path | pending | pending |
 
 ## Stage record
 
@@ -110,6 +113,9 @@
   checkpoint lifecycle, governed `support_ticket_create`, Receipt-gated human
   ownership transfer, workflow completion, and a schema-valid deterministic
   no-index publication fingerprint.
+- Stage 13: versioned local Product Catalog owner, governed `media_read` and
+  `catalog_search` tools, Product composite Skill executor, and real upload →
+  PostgreSQL Asset → OCR evidence → Catalog Fact → `/chat` publication E2E.
 
 ## Scope correction after executable-core review
 
@@ -123,8 +129,10 @@ API cutover, removal of duplicated authorities, and real boundary E2E.
 - The bounded refund flow now covers preparation, explicit approval, committed
   execution, declined/expired/stale signals, `OUTCOME_UNKNOWN`, public polling,
   authoritative status reconciliation, and terminal Receipt publication.
-- Product media/catalog orchestration is boundary-tested with a governed tool double;
-  production registrations for `media_read` and `catalog_search` remain pending.
+- Product identification now uses registered local-project adapters backed by the
+  PostgreSQL Asset owner, OCR evidence and a versioned catalog generation. The bounded
+  v1 identifies printed model labels; general visual-only recognition still requires
+  the configured VLM extension and is not claimed by this stage.
 - The public understanding path is deterministic and bounded. The evaluated encoder
   policy contract exists, but no production encoder/Structured LLM fallback is claimed.
 - Legacy modules remain in the repository for non-`/chat` consumers. The `/chat`

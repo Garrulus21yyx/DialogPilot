@@ -224,6 +224,8 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
                 "refund_eligibility_check",
                 "refund_request_create",
                 "account_security_event_list",
+                "media_read",
+                "catalog_search",
             }
             knowledge_tool = next(
                 tool for tool in main._tool_manager.registered_tools

@@ -156,6 +156,22 @@ class AuthorityPolicyRegistry:
                 "Knowledge:source-contract-v0",
             ),
             FactRequirement(
+                "media.visible_text", "media.visible_text",
+                (
+                    "asset_id", "asset_checksum", "text", "evidence_ref",
+                    "producer", "producer_version",
+                ), 86400, read, ("media_read",), (), "", supported,
+                "Media:visible-text-v1",
+            ),
+            FactRequirement(
+                "product.canonical_model", "product.canonical_model",
+                (
+                    "status", "canonical_model", "product_name",
+                    "catalog_version", "source_ref",
+                ), 86400, read, ("catalog_search",), (), "", supported,
+                "ProductCatalog:model-v1",
+            ),
+            FactRequirement(
                 "order.current_state", "order.current_state",
                 ("order_id", "status", "version", "updated_at"), 60,
                 read, ("order_lookup",), ("knowledge_search",), "", supported,
@@ -233,6 +249,7 @@ class AuthorityPolicyRegistry:
                     "order.current_state", "refund.current_state",
                     "refund.eligibility", "account.security_events",
                     "support.ticket_state", "commitment.current_state",
+                    "product.canonical_model",
                 ), (
                     ("order_lookup", "order-view-v1"),
                     ("refund_status", "refund-view-v1"),
@@ -241,7 +258,13 @@ class AuthorityPolicyRegistry:
                     ("support_ticket_list", "ticket-list-v1"),
                     ("support_ticket_get", "ticket-view-v1"),
                     ("commitment_list", "commitment-list-v1"),
+                    ("catalog_search", "product-catalog-match-v1"),
                 ),
+            ),
+            EvidenceAdapterRegistration(
+                "media-evidence-adapter", "media-evidence-adapter-v1",
+                "MEDIA", ("media.visible_text",),
+                (("media_read", "media-visible-text-v1"),),
             ),
             EvidenceAdapterRegistration(
                 "action-receipt-evidence-adapter", "action-receipt-evidence-adapter-v1",

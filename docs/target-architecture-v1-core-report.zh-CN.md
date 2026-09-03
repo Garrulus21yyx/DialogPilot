@@ -23,13 +23,16 @@ PostgreSQL 边界验证。当前状态是“有界 v1 主链已切换”，不�
 - LangGraph PostgreSQL async checkpointer（只保存执行位置）；
 - Target Admission、Publication 与 `/chat` 唯一组合入口；
 - Ticket Receipt 驱动的人工接管闭环。
+- PostgreSQL Asset、可追溯 OCR、版本化 Product Catalog 与 Product 复合 Skill
+  的真实 `/chat` 绑定。
 
 有意保持关闭或仍待后续实现：
 
 - `execute_refund` 已支持资格预检、持久确认、拒绝/过期取消、确认后幂等提交，
   并已闭合 `OUTCOME_UNKNOWN → RECONCILING → 权威状态查询 → Receipt`；
 - 真正的 Encoder + Structured LLM fallback；当前是有界确定性理解器；
-- Product Media/Catalog 的生产适配器；E2E 使用受控工具替身验证编排边界；
+- 没有可读型号文字的纯视觉商品识别仍需要启用 VLM；当前本地简历版只声明
+  “图片铭牌/OCR 型号 → Catalog 精确匹配”；
 - 旧 command-primary、旧 AgentOrchestrator 和旧合同的物理删除。它们不再是
   `/chat` 的运行时回退权威，但仓库中的其他测试/接口仍引用旧模块。
 
@@ -46,7 +49,7 @@ PostgreSQL 边界验证。当前状态是“有界 v1 主链已切换”，不�
 
 ## 第 12B 阶段验证结果
 
-- Target v1 专项测试：76 passed。
+- Target v1 专项测试：80 passed。
 - 真实边界：1 个测试连续覆盖六场景，使用真实 ASGI `/chat`、PostgreSQL
   Admission/Event/State/Operation/Publication 表和 async LangGraph checkpoint。
 - 订单路径断言为 `DIRECT`，没有派发领域 Agent；单领域任务只运行一个 Worker；
@@ -62,6 +65,10 @@ PostgreSQL 边界验证。当前状态是“有界 v1 主链已切换”，不�
 - Ledger 使用稳定的业务 `operation_fingerprint` 绑定副作用语义；新的轮次快照、
   WorkItem ID 和执行预算不会制造冲突，但参数、目标版本或授权包络变化会
   fail closed。真实边界测试证明未知结果场景的写工具只调用一次。
+- Product 真实边界从 `/assets/upload` 开始，Asset 先持久化并通过安全扫描；
+  Product Skill 再调用 `media_read` 获取带 checksum/producer/version 的 OCR 证据，
+  将其结构化传给 `catalog_search`。只有 Catalog 的唯一匹配可以产生
+  `product.canonical_model`，无匹配不会由 Agent 自行猜测。
 - 仓库级回归：1128 passed、6 failed。6 个失败均由工作树中另一路未提交的
   RAG 策略改动触发：默认 retrieval policy 已产生 `expansion_query_weight`、
   `query_expansion_count`、`metadata_hint_weight`，但旧 `AgentBundle` 白名单尚未
@@ -77,6 +84,6 @@ PostgreSQL 边界验证。当前状态是“有界 v1 主链已切换”，不�
 
 以下能力不能因主链切换而被误称为已完成：
 
-1. Product Media/Catalog 必须接入真实注册工具并验证来源/版本，才能离开测试替身；
-2. Encoder Fast Path 必须用 Accepted Precision/Coverage 验收后才能替换确定性规则；
+1. Encoder Fast Path 必须用 Accepted Precision/Coverage 验收后才能替换确定性规则；
+2. 纯视觉识别只有在 VLM provider 配置、证据合同与失败路径通过后才能宣称支持；
 3. 删除旧模块前必须先迁移剩余消费者，不能通过在新主链增加兼容回退来掩盖。
