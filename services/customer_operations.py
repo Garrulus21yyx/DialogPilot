@@ -218,6 +218,30 @@ class CustomerOperationsService:
             raise BusinessObjectNotFoundError("refund request not found")
         return self._row_to_refund(row)
 
+    def get_refund_status_for_operation(
+        self,
+        *,
+        user_id: str,
+        order_id: str,
+        idempotency_key: str,
+    ) -> RefundRequest:
+        """Read only the refund created by one exact governed operation."""
+        with self._connect() as conn:
+            row = conn.execute(
+                """
+                SELECT * FROM refund_requests
+                WHERE order_id=? AND user_id=? AND idempotency_key=?
+                """,
+                (
+                    self._required(order_id, "order_id"),
+                    self._required(user_id, "user_id"),
+                    self._required(idempotency_key, "idempotency_key"),
+                ),
+            ).fetchone()
+        if row is None:
+            raise BusinessObjectNotFoundError("refund operation not found")
+        return self._row_to_refund(row)
+
     def create_refund_request(
         self,
         *,

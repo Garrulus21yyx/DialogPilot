@@ -35,6 +35,7 @@ class BoundedTargetUnderstanding:
         if deterministic.kind in {
             ResolutionKind.APPROVAL_DECISION,
             ResolutionKind.APPROVAL_EXPIRED,
+            ResolutionKind.RECONCILE_WORKFLOW,
         }:
             if not deterministic.approved:
                 return TurnProposal(
@@ -67,7 +68,11 @@ class BoundedTargetUnderstanding:
                     approval_signal_version=deterministic.signal_version,
                     operation_key=deterministic.operation_key,
                 ),),
-                "APPROVED_WORKFLOW_RESUME",
+                (
+                    "RECONCILIATION_RESUME"
+                    if deterministic.kind is ResolutionKind.RECONCILE_WORKFLOW
+                    else "APPROVED_WORKFLOW_RESUME"
+                ),
             )
         text = observations.raw_text.strip()
         lowered = text.lower()

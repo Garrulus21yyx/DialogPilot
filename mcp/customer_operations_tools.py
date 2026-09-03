@@ -33,13 +33,27 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
         return result.to_dict()
 
     async def refund_status(params: Dict[str, Any], context: Optional[Dict[str, Any]]):
-        result = await asyncio.to_thread(
-            service.get_refund_status,
-            user_id=_trusted(context, "user_id"),
-            order_id=_bounded(params.get("order_id"), "order_id", 128),
-        )
+        user_id = _trusted(context, "user_id")
+        order_id = _bounded(params.get("order_id"), "order_id", 128)
+        operation_key = str(params.get("operation_key") or "").strip()
+        if operation_key:
+            conv_id = _trusted(context, "conv_id")
+            result = await asyncio.to_thread(
+                service.get_refund_status_for_operation,
+                user_id=user_id,
+                order_id=order_id,
+                idempotency_key=f"refund-tool:{user_id}:{conv_id}:{operation_key}",
+            )
+        else:
+            result = await asyncio.to_thread(
+                service.get_refund_status,
+                user_id=user_id,
+                order_id=order_id,
+            )
         data = result.to_dict()
         data.pop("user_id", None)
+        if operation_key:
+            data["operation_key"] = operation_key
         return data
 
     async def refund_create(params: Dict[str, Any], context: Optional[Dict[str, Any]]):
@@ -86,6 +100,17 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
         },
         "required": ["order_id"],
     }
+    refund_status_schema = {
+        "type": "object",
+        "properties": {
+            **order_schema["properties"],
+            "operation_key": {
+                "type": "string",
+                "description": "宿主在未知写结果对账时注入的原操作标识",
+            },
+        },
+        "required": ["order_id"],
+    }
     return (
         Tool(
             name="order_lookup",
@@ -108,9 +133,12 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
         ),
         Tool(
             name="refund_status",
-            description="按当前认证用户和订单 ID 读取退款申请的当前权威状态",
+            description=(
+                "按当前认证用户和订单 ID 读取退款申请的当前权威状态；"
+                "operation_key 仅供宿主对账时绑定原操作"
+            ),
             handler=refund_status,
-            schema=order_schema,
+            schema=refund_status_schema,
             allowed_agents=("general", "billing"),
             read_only=True,
             authority="refund.current_state",
@@ -120,7 +148,10 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
             idempotency="read_only",
             retry_policy="safe_read_retry",
             typed_outcomes=("OK", "NOT_FOUND", "UNAVAILABLE", "UNAUTHORIZED"),
-            output_fields=("refund_id", "order_id", "status", "amount_minor", "currency", "updated_at"),
+            output_fields=(
+                "refund_id", "order_id", "status", "amount_minor", "currency",
+                "updated_at", "operation_key",
+            ),
         ),
         Tool(
             name="refund_eligibility_check",

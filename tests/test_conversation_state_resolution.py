@@ -199,10 +199,41 @@ def test_pending_approval_requires_explicit_id_and_rejects_stale_signal():
     consumed = state.consume_approval(
         approval_id="approval-1", approval_version=1, approved=True,
     )
+    reconciliation = resolver.resolve(TurnObservations(
+        "查询结果", approval_decision=True, approval_id="approval-1",
+    ), consumed)
+    assert reconciliation.kind is ResolutionKind.RECONCILE_WORKFLOW
+
+    completed = consumed.complete_workstream(
+        "refund-ws-1",
+        expected_version=consumed.workstreams[0].state_version,
+    )
     with pytest.raises(DeterministicResolutionError, match="stale or unknown"):
         resolver.resolve(TurnObservations(
             "再次确认", approval_decision=True, approval_id="approval-1",
-        ), consumed)
+        ), completed)
+
+
+def test_reconciling_transition_is_explicit_and_idempotent_at_current_version():
+    state = _state(_workstream("refund-ws-1"))
+
+    reconciling = state.mark_workstream_reconciling(
+        "refund-ws-1",
+        expected_version=1,
+    )
+
+    assert reconciling.version == state.version + 1
+    assert reconciling.workstreams[0].status is WorkstreamStatus.RECONCILING
+    assert reconciling.workstreams[0].phase == "RECONCILE"
+    assert reconciling.mark_workstream_reconciling(
+        "refund-ws-1",
+        expected_version=2,
+    ) is reconciling
+    with pytest.raises(ConversationStateConflict, match="version changed"):
+        reconciling.mark_workstream_reconciling(
+            "refund-ws-1",
+            expected_version=1,
+        )
 
 
 def test_expired_approval_fails_before_state_consumption():

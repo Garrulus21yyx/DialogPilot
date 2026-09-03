@@ -26,8 +26,8 @@ PostgreSQL 边界验证。当前状态是“有界 v1 主链已切换”，不�
 
 有意保持关闭或仍待后续实现：
 
-- `execute_refund` 已支持资格预检、持久确认、拒绝/过期取消、确认后幂等提交；
-  `OUTCOME_UNKNOWN` 可以进入 RECONCILING，但公开轮询/再次对账入口仍待 12B；
+- `execute_refund` 已支持资格预检、持久确认、拒绝/过期取消、确认后幂等提交，
+  并已闭合 `OUTCOME_UNKNOWN → RECONCILING → 权威状态查询 → Receipt`；
 - 真正的 Encoder + Structured LLM fallback；当前是有界确定性理解器；
 - Product Media/Catalog 的生产适配器；E2E 使用受控工具替身验证编排边界；
 - 旧 command-primary、旧 AgentOrchestrator 和旧合同的物理删除。它们不再是
@@ -44,9 +44,9 @@ PostgreSQL 边界验证。当前状态是“有界 v1 主链已切换”，不�
 | Product 失败、Refund 成功 | 部分失败 | Refund 结果保留，Product 保持 typed failure |
 | 用户要求人工 | WORKFLOW + Publication | 只有 Ticket Receipt 能转移会话 Owner 并宣称创建成功 |
 
-## 第 11 阶段验证结果
+## 第 12B 阶段验证结果
 
-- Target v1 专项测试：75 passed。
+- Target v1 专项测试：76 passed。
 - 真实边界：1 个测试连续覆盖六场景，使用真实 ASGI `/chat`、PostgreSQL
   Admission/Event/State/Operation/Publication 表和 async LangGraph checkpoint。
 - 订单路径断言为 `DIRECT`，没有派发领域 Agent；单领域任务只运行一个 Worker；
@@ -55,7 +55,14 @@ PostgreSQL 边界验证。当前状态是“有界 v1 主链已切换”，不�
   转成 HUMAN，并把 Workstream 收敛为 `COMPLETED/COMPLETE`。
 - 退款链断言确认前、拒绝和过期均不写；确认后只写一次；相同请求重放、
   篡改确认值、stale signal 和跨会话 signal 均按绑定规则处理。
-- 仓库级回归：1127 passed、6 failed。6 个失败均由工作树中另一路未提交的
+- 写调用返回未知结果时，Conversation Owner 显式持久化
+  `RECONCILING/RECONCILE`；客户端使用新 request identity 和原 approval binding
+  发起查询，Ledger 先调用只读 `refund_status`，并由业务 Owner 按原 operation key
+  精确对账；同订单的历史退款不能冒充本次结果，也不会再次提交退款。
+- Ledger 使用稳定的业务 `operation_fingerprint` 绑定副作用语义；新的轮次快照、
+  WorkItem ID 和执行预算不会制造冲突，但参数、目标版本或授权包络变化会
+  fail closed。真实边界测试证明未知结果场景的写工具只调用一次。
+- 仓库级回归：1128 passed、6 failed。6 个失败均由工作树中另一路未提交的
   RAG 策略改动触发：默认 retrieval policy 已产生 `expansion_query_weight`、
   `query_expansion_count`、`metadata_hint_weight`，但旧 `AgentBundle` 白名单尚未
   接受这些字段；失败不经过 Target v1 新执行路径，本阶段未代替该工作修改或提交。
@@ -70,9 +77,6 @@ PostgreSQL 边界验证。当前状态是“有界 v1 主链已切换”，不�
 
 以下能力不能因主链切换而被误称为已完成：
 
-1. `execute_refund` 的 committed 路径已经完成 eligibility → interaction/approval
-   → resume → write → Receipt；`OUTCOME_UNKNOWN` 的公开 poll/reconcile 闭环完成前，
-   未知结果仍保持 fail-closed，禁止盲目重试；
-2. Product Media/Catalog 必须接入真实注册工具并验证来源/版本，才能离开测试替身；
-3. Encoder Fast Path 必须用 Accepted Precision/Coverage 验收后才能替换确定性规则；
-4. 删除旧模块前必须先迁移剩余消费者，不能通过在新主链增加兼容回退来掩盖。
+1. Product Media/Catalog 必须接入真实注册工具并验证来源/版本，才能离开测试替身；
+2. Encoder Fast Path 必须用 Accepted Precision/Coverage 验收后才能替换确定性规则；
+3. 删除旧模块前必须先迁移剩余消费者，不能通过在新主链增加兼容回退来掩盖。

@@ -22,6 +22,7 @@ class ResolutionKind(str, Enum):
     FILL_PENDING_INPUT = "FILL_PENDING_INPUT"
     APPROVAL_DECISION = "APPROVAL_DECISION"
     APPROVAL_EXPIRED = "APPROVAL_EXPIRED"
+    RECONCILE_WORKFLOW = "RECONCILE_WORKFLOW"
     RESUME_WORKSTREAM = "RESUME_WORKSTREAM"
     CANCEL_WORKSTREAM = "CANCEL_WORKSTREAM"
     CONTINUE_WORKSTREAM = "CONTINUE_WORKSTREAM"
@@ -139,6 +140,32 @@ class DeterministicResolver:
                 arguments=tuple((item.name, item.value) for item in approval.arguments),
             )
         if observations.approval_decision is not None:
+            accepted = next((
+                item for item in state.accepted_approvals
+                if item.approval_id == observations.approval_id
+            ), None)
+            stream = next((
+                item for item in state.active_workstreams
+                if accepted is not None and item.workstream_id == accepted.workstream_id
+            ), None)
+            if accepted is not None and stream is not None and observations.approval_decision:
+                return DeterministicResolution(
+                    ResolutionKind.RECONCILE_WORKFLOW,
+                    "ACCEPTED_OPERATION_RECONCILIATION",
+                    state.fingerprint,
+                    stream.workstream_id,
+                    stream.state_version,
+                    accepted.approval_id,
+                    accepted.version,
+                    True,
+                    action_ref=accepted.action_ref,
+                    operation_key=accepted.operation_key,
+                    target_entity_ref=accepted.target_entity_ref,
+                    target_entity_version=accepted.target_entity_version,
+                    arguments=tuple(
+                        (item.name, item.value) for item in accepted.arguments
+                    ),
+                )
             raise DeterministicResolutionError("approval signal is stale or unknown")
 
         if observations.resume_token is not None:

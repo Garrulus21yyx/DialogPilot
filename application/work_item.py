@@ -166,6 +166,45 @@ class WorkItem:
         ).encode("utf-8")
         return "work-item:v1:" + hashlib.sha256(raw).hexdigest()
 
+    @property
+    def operation_fingerprint(self) -> str:
+        """Stable identity of a governed side effect across turn retries.
+
+        A WorkItem fingerprint identifies one execution attempt and therefore
+        includes its snapshot and execution budget.  The operation ledger owns
+        a different invariant: one operation key must always denote the same
+        business mutation, even when a later turn only reconciles its outcome.
+        """
+        if self.effect is not CapabilityEffect.WRITE:
+            raise WorkItemContractError("only write work has an operation fingerprint")
+        payload = {
+            "owner_agent": self.owner_agent,
+            "control_mode": self.control_mode.value,
+            "allowed_tools": self.allowed_tools,
+            "allowed_skills": self.allowed_skills,
+            "arguments": [(item.name, item.value_json) for item in self.arguments],
+            "requirements": self.requirement_ids,
+            "effect": self.effect.value,
+            "risk": self.risk.value,
+            "expected_output_schema": self.expected_output_schema,
+            "verification_profile": self.verification_profile,
+            "registry_fingerprint": self.registry_fingerprint,
+            "flow_ref": self.flow_ref,
+            "operation_key": self.operation_key,
+            "approval_binding": self.approval_binding,
+            "target_entity_version": self.target_entity_version,
+            "reconciliation_policy": self.reconciliation_policy,
+            "aggregate_ref": self.aggregate_ref,
+        }
+        raw = json.dumps(
+            payload,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+            allow_nan=False,
+        ).encode("utf-8")
+        return "operation-contract:v1:" + hashlib.sha256(raw).hexdigest()
+
 
 @dataclass(frozen=True)
 class WorkPlan:

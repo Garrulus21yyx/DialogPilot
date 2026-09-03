@@ -205,7 +205,11 @@ class TargetChatApplication:
             ):
                 return Reconciling(
                     str(identity.workflow_run_id),
-                    {"execution": "RECONCILING"},
+                    {
+                        "execution": "RECONCILING",
+                        "approval_id": managed.deterministic.signal_id,
+                        "next_request": "submit a new request_id with the same approval_id",
+                    },
                     1.0,
                 )
             response_text = _board_response(board)

@@ -61,6 +61,13 @@ def test_refund_eligibility_and_create_are_owned_by_one_transaction(tmp_path):
     assert owner.get_refund_status(
         user_id="user-1", order_id="order-1"
     ) == refund
+    assert owner.get_refund_status_for_operation(
+        user_id="user-1", order_id="order-1", idempotency_key="refund-op-1",
+    ) == refund
+    with pytest.raises(BusinessObjectNotFoundError):
+        owner.get_refund_status_for_operation(
+            user_id="user-1", order_id="order-1", idempotency_key="another-op",
+        )
     assert created is True and retry_created is False
     assert owner.check_refund_eligibility(
         user_id="user-1", order_id="order-1"

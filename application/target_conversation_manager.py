@@ -170,19 +170,27 @@ class TargetConversationManager:
             return state
         if (
             deterministic.kind is ResolutionKind.APPROVAL_DECISION
-            and deterministic.approved
-        ):
+            or deterministic.kind is ResolutionKind.RECONCILE_WORKFLOW
+        ) and deterministic.approved:
             result = next(iter(board.results), None)
+            stream = next(
+                item for item in state.workstreams
+                if item.workstream_id == deterministic.workstream_id
+            )
             if result is not None and result.status is AgentResultStatus.SUCCEEDED:
-                stream = next(
-                    item for item in state.workstreams
-                    if item.workstream_id == deterministic.workstream_id
-                )
                 next_state = state.complete_workstream(
                     stream.workstream_id,
                     expected_version=stream.state_version,
                 )
                 self._persist(state, next_state)
+                return next_state
+            if result is not None and result.status is AgentResultStatus.RECONCILING:
+                next_state = state.mark_workstream_reconciling(
+                    stream.workstream_id,
+                    expected_version=stream.state_version,
+                )
+                if next_state is not state:
+                    self._persist(state, next_state)
                 return next_state
         if plan.transitions is None:
             return state

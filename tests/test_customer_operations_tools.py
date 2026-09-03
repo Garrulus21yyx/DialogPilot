@@ -113,6 +113,20 @@ def test_refund_write_requires_host_approval_and_returns_committed_receipt(tmp_p
     assert status.data["refund_id"] == approved.data["refund_id"]
     assert "user_id" not in status.data
 
+    reconciled = asyncio.run(manager.execute_for_agent(
+        "refund_status",
+        {"order_id": "order-1", "operation_key": "refund-call-1"},
+        agent_type="billing", context=context(),
+    ))
+    unrelated = asyncio.run(manager.execute_for_agent(
+        "refund_status",
+        {"order_id": "order-1", "operation_key": "another-operation"},
+        agent_type="billing", context=context(),
+    ))
+    assert reconciled.success is True
+    assert reconciled.data["operation_key"] == "refund-call-1"
+    assert unrelated.success is False
+
 
 def test_refund_write_rejects_wrong_agent_before_side_effect(tmp_path):
     _owner, manager = setup_runtime(tmp_path)

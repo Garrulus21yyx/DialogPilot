@@ -27,6 +27,8 @@ class _ScenarioTools:
     def __init__(self):
         self.calls = []
         self.fail_catalog_for = set()
+        self.unknown_refund_for = set()
+        self.uncertain_refunds = set()
 
     async def execute_for_agent(
         self, name, params, *, agent_type, context, approved=False, call_id=None,
@@ -42,6 +44,18 @@ class _ScenarioTools:
                 text=f"订单 {params['order_id']} 已发货。",
             )
         if name == "refund_status":
+            if context["conversation_id"] in self.uncertain_refunds:
+                return _result(
+                    name,
+                    data={
+                        "refund_id": "refund-reconciled-1",
+                        "order_id": params["order_id"],
+                        "operation_key": params["operation_key"],
+                        "status": "REQUESTED",
+                    },
+                    authority="refund.current_state",
+                    text="退款申请已提交。",
+                )
             return _result(
                 name,
                 data={"order_id": params["order_id"], "status": "PROCESSING"},
@@ -81,6 +95,14 @@ class _ScenarioTools:
             )
         if name == "refund_request_create":
             assert approved is True
+            if context["conversation_id"] in self.unknown_refund_for:
+                self.uncertain_refunds.add(context["conversation_id"])
+                return _result(
+                    name,
+                    success=False,
+                    status="timeout",
+                    effect_status="outcome_unknown",
+                )
             return _result(
                 name,
                 data={
@@ -236,6 +258,33 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                     approval_id=decline_signal,
                     approved=False,
                 )
+                unknown_conv = f"{prefix}-refund-unknown"
+                tools.unknown_refund_for.add(unknown_conv)
+                refund_unknown_prepare = await chat(
+                    "refund-unknown", "把订单 DP9012 退款",
+                )
+                unknown_signal = refund_unknown_prepare.json()["signal_id"]
+                refund_unknown = await chat(
+                    "refund-unknown",
+                    "确认提交退款",
+                    request_suffix="approval",
+                    approval_id=unknown_signal,
+                    approved=True,
+                )
+                unknown_state = state_store.load(
+                    registry.tenant_id,
+                    "user-target-e2e",
+                    unknown_conv,
+                )
+                assert unknown_state.workstreams[0].status.value == "RECONCILING"
+                assert unknown_state.workstreams[0].phase == "RECONCILE"
+                refund_reconciled = await chat(
+                    "refund-unknown",
+                    "查询刚才退款结果",
+                    request_suffix="reconcile",
+                    approval_id=unknown_signal,
+                    approved=True,
+                )
                 multi = await chat(
                     "multi", "退款 DP1234 状态，还有这个商品型号", assets=("IMG10",),
                 )
@@ -250,6 +299,7 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                     refund_committed, refund_commit_replay, stale_approval,
                     changed_approval_replay, cross_conversation_approval,
                     refund_decline, refund_declined, multi, partial, handoff,
+                    refund_unknown_prepare, refund_unknown, refund_reconciled,
                 )
 
     try:
@@ -260,12 +310,16 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                 "refund-commit", "refund-commit-replay", "stale-approval",
                 "changed-approval-replay", "cross-conversation-approval",
                 "refund-decline", "refund-declined", "multi", "partial", "handoff",
+                "refund-unknown-prepare", "refund-unknown", "refund-reconciled",
             ),
             responses,
         ):
             expected = (
                 202
-                if name in {"refund-precheck", "refund-replay", "refund-decline"}
+                if name in {
+                    "refund-precheck", "refund-replay", "refund-decline",
+                    "refund-unknown-prepare", "refund-unknown",
+                }
                 else 409 if name in {
                     "stale-approval", "changed-approval-replay",
                     "cross-conversation-approval",
@@ -277,6 +331,7 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
             refund_committed, refund_commit_replay, stale_approval,
             changed_approval_replay, cross_conversation_approval,
             refund_decline, refund_declined, multi, partial, handoff,
+            refund_unknown_prepare, refund_unknown, refund_reconciled,
         ) = (
             item.json() for item in responses
         )
@@ -290,7 +345,16 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
         assert changed_approval_replay["code"] == "IDEMPOTENCY_CONFLICT"
         assert cross_conversation_approval["code"] == "APPROVAL_SIGNAL_CONFLICT"
         assert "未执行退款操作" in refund_declined["response"]
-        assert [item[0] for item in tools.calls].count("refund_request_create") == 1
+        assert refund_unknown["outcome"] == "reconciling"
+        assert "refund-reconciled-1" in refund_reconciled["response"]
+        refund_write_calls = [
+            item for item in tools.calls if item[0] == "refund_request_create"
+        ]
+        assert len(refund_write_calls) == 2
+        assert sum(
+            item[3]["conversation_id"] == f"{prefix}-refund-unknown"
+            for item in refund_write_calls
+        ) == 1
         assert multi["routing_disposition"] == "multi_domain"
         assert len(multi["agent_outcomes"]) == 2
         assert partial["verification_status"] == "partial"
@@ -312,6 +376,12 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
             f"{prefix}-refund-decline",
         )
         assert declined_state.workstreams[0].status.value == "CANCELLED"
+        reconciled_state = state_store.load(
+            registry.tenant_id,
+            "user-target-e2e",
+            f"{prefix}-refund-unknown",
+        )
+        assert reconciled_state.workstreams[0].status.value == "COMPLETED"
     finally:
         main.app.dependency_overrides.clear()
         monkeypatch.setattr(main, "_target_chat_runtime", None)

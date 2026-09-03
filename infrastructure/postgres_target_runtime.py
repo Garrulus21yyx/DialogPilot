@@ -128,14 +128,14 @@ class PostgresOperationLedger:
             if current is None:
                 current = OperationRecord(
                     operation_key,
-                    item.fingerprint,
+                    item.operation_fingerprint,
                     OperationStatus.PLANNED,
                     1,
                     0,
                     reason_code="OPERATION_REGISTERED",
                 )
                 _append_operation(connection, self.scope, current)
-            elif current.work_item_fingerprint != item.fingerprint:
+            elif current.work_item_fingerprint != item.operation_fingerprint:
                 raise OperationConflict("operation key is bound to another work item")
             return current
 

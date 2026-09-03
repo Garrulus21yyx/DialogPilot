@@ -219,11 +219,27 @@ def test_concurrent_duplicate_operation_executes_the_side_effect_once():
     assert len(tool.calls) == 1
 
 
-def test_operation_key_cannot_be_rebound_to_changed_work_item():
+def test_operation_binding_survives_a_new_turn_snapshot_but_rejects_changed_arguments():
     ledger = InMemoryOperationLedger()
     first = _item()
-    ledger.acquire(first)
-    changed = WorkItem(**{**first.__dict__, "objective": "A different write"})
+    original = ledger.acquire(first)
+    next_turn = WorkItem(**{
+        **first.__dict__,
+        "work_item_id": "refund-write-reconcile-2",
+        "objective": "Reconcile the refund outcome",
+        "state_snapshot_version": first.state_snapshot_version + 1,
+        "timeout_seconds": first.timeout_seconds + 5,
+    })
+
+    assert ledger.acquire(next_turn) == original
+
+    changed = WorkItem(**{
+        **next_turn.__dict__,
+        "arguments": (
+            ArgumentValue.create("order_id", "DP9999"),
+            *next_turn.arguments[1:],
+        ),
+    })
 
     with pytest.raises(OperationConflict, match="another work item"):
         ledger.acquire(changed)

@@ -63,7 +63,7 @@ class TargetWorkflowExecutor:
         runtime = GovernedWriteRuntime(
             ledger=PostgresOperationLedger(self._pool, scope),
             tool_port=_ToolPort(self._tools, context),
-            reconciliation_port=_UnknownReconciler(),
+            reconciliation_port=_ToolReconciler(self._tools, context),
             approval_grants=grants,
         )
         return await runtime(context)
@@ -106,8 +106,41 @@ class _ToolPort:
         )
 
 
-class _UnknownReconciler:
+class _ToolReconciler:
+    def __init__(self, tool_manager, context: AgentContextView) -> None:
+        self._tools = tool_manager
+        self._context = context
+
     async def reconcile(self, item, *, operation_key):
+        if item.flow_ref == "execute_refund:v1":
+            arguments = {
+                argument.name: argument.value for argument in item.arguments
+            }
+            result = await self._tools.execute_for_agent(
+                "refund_status",
+                {
+                    "order_id": arguments["order_id"],
+                    "operation_key": operation_key,
+                },
+                agent_type=_AGENT_TYPE[item.owner_agent],
+                context=dict(self._context.trusted_context),
+                approved=False,
+                call_id=f"reconcile:{operation_key}",
+            )
+            data = result.data if isinstance(result.data, dict) else {}
+            if (
+                result.success
+                and result.authority == "refund.current_state"
+                and str(data.get("order_id") or "") == str(arguments["order_id"])
+                and str(data.get("operation_key") or "") == operation_key
+                and str(data.get("refund_id") or "")
+            ):
+                return WriteToolOutcome(
+                    WriteOutcomeStatus.COMMITTED,
+                    str(data["refund_id"]),
+                    item.expected_output_schema,
+                    "RECONCILED_COMMITTED",
+                )
         return WriteToolOutcome(
             WriteOutcomeStatus.OUTCOME_UNKNOWN,
             reason_code="RECONCILIATION_REQUIRED",

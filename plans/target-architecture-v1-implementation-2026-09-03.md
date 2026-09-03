@@ -58,9 +58,9 @@
 | 8 | done | Six in-memory vertical E2E scenarios, default registry, capability-scoped safety gates, and measured report | 7 E2E tests; 54 cumulative | `e66facd` |
 | 9 | done | New ConversationManager, durable PostgreSQL event-backed state/operation adapters, and LangGraph checkpointer | 7 local persistence/resume tests; 61 cumulative; 1 real-PostgreSQL test skipped without database URL | `b0886a9` |
 | 10 | done | `/chat` read-path cutover to Target v1, synchronous target admission, trusted tool context, and removal of legacy fallback authority | 4 local HTTP/cutover tests; 65 cumulative; 2 real-PostgreSQL tests skipped without database URL | `b57e02f` |
-| 11 | done | Real PostgreSQL/HTTP six-scenario E2E, async checkpoint ownership, committed handoff workflow completion, and documentation convergence | 68 Target tests pass against PostgreSQL; repository suite 1120 passed / 6 unrelated dirty-RAG contract failures | this stage commit |
-| 12A | done | Refund preparation, persisted approval, deterministic resume, governed commit, rejection/expiry/stale handling | 75 Target tests; repository 1127 passed / 6 unrelated dirty-RAG failures | this stage commit |
-| 12B | pending | Public retry/poll entry for `OUTCOME_UNKNOWN` reconciliation and terminal Receipt publication | existing write state machine is covered; public-boundary E2E pending | pending |
+| 11 | done | Real PostgreSQL/HTTP six-scenario E2E, async checkpoint ownership, committed handoff workflow completion, and documentation convergence | 68 Target tests pass against PostgreSQL; repository suite 1120 passed / 6 unrelated dirty-RAG contract failures | `9a19ce8` |
+| 12A | done | Refund preparation, persisted approval, deterministic resume, governed commit, rejection/expiry/stale handling | 75 Target tests; repository 1127 passed / 6 unrelated dirty-RAG failures | `57658ce` |
+| 12B | done | Public retry/poll entry for `OUTCOME_UNKNOWN`, stable operation binding, authoritative reconciliation, and terminal Receipt publication | 76 Target tests; repository 1128 passed / 6 unrelated dirty-RAG failures | this stage commit |
 
 ## Stage record
 
@@ -118,11 +118,11 @@ claim migration completion because the public API still owns the old runtime pat
 Stages 9-11 were added to cover the actual remaining causal surface: durable owners,
 API cutover, removal of duplicated authorities, and real boundary E2E.
 
-## Bounded v1 omissions after stage 11
+## Bounded v1 omissions after stage 12B
 
-- Stage 11 left refund eligibility-only. Stage 12A now adds explicit approval,
-  deterministic resume and committed Receipt handling; public reconciliation of
-  an unknown write remains pending in stage 12B.
+- The bounded refund flow now covers preparation, explicit approval, committed
+  execution, declined/expired/stale signals, `OUTCOME_UNKNOWN`, public polling,
+  authoritative status reconciliation, and terminal Receipt publication.
 - Product media/catalog orchestration is boundary-tested with a governed tool double;
   production registrations for `media_read` and `catalog_search` remain pending.
 - The public understanding path is deterministic and bounded. The evaluated encoder
@@ -174,4 +174,25 @@ paths. `ChatRequest` now carries an explicit signal identity and decision;
 `PREPARE_WORKFLOW` and `CONTINUE_WORKFLOW` separate read preparation from the
 write; `PendingApprovalState` and `AcceptedApprovalState` preserve the exact
 operation/action/entity/version binding; and RoutePolicy rejects any modified
-continuation. `OUTCOME_UNKNOWN` public reconciliation remains stage 12B.
+continuation.
+
+## Stage 12B verification notes
+
+- A write transport timeout persists `OUTCOME_UNKNOWN` in the operation ledger and
+  advances the conversation-owned Workstream to `RECONCILING/RECONCILE`.
+- A later request with a new request identity and the same accepted approval binding
+  deterministically rebuilds the original operation contract. It calls the registered
+  read-only `refund_status` authority with the original operation key before any
+  execution decision. The business owner performs an exact user/conversation/order/
+  idempotency-key lookup, so an older refund for the same order cannot satisfy the poll.
+- The operation ledger binds `operation_key` to `operation_fingerprint`, which excludes
+  turn-local identity, snapshot and execution budget but includes arguments, target
+  version, action envelope, registry, approval, flow and reconciliation policy.
+  Therefore legitimate cross-turn reconciliation is stable while changed mutation
+  semantics fail with `OperationConflict`.
+- Real ASGI/PostgreSQL E2E proves the uncertain mutation is invoked once, reconciliation
+  uses the status tool, a committed Receipt is published, and the Workstream terminates
+  as `COMPLETED/COMPLETE`.
+- The cumulative Target suite passes 76 tests. The repository suite passes 1128 tests
+  and retains the same 6 unrelated dirty-RAG `AgentBundle` whitelist failures recorded
+  in stage 12A; stage 12B introduces no new failing test.
