@@ -119,6 +119,9 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 - [x] Add Knowledge, Memory, and Media direct adapters/runners.
 - [x] Add a benchmark-only LoCoMo session retrieval adapter and baseline without
   writing public conversations into the production ServiceEpisode owner.
+- [x] Run token, pinned BGE-M3 cosine, and fixed lexical+dense RRF over the
+  70-case LoCoMo session slice as `DEV_DIAGNOSTIC`, not as production Memory
+  policy selection.
 - [x] Add invocation/consumption/state-transition assertions.
 - [x] Add a dedicated PostgreSQL raw-query candidate runner that records the
   real BGE-M3 generation and explicitly excludes rewrite, rerank, parent
@@ -333,6 +336,10 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   `Recall-all@5=.9143` and `MRR=.7681`, with three standard artifacts and no raw
   conversation text in predictions. It is not a ServiceEpisode score or a
   BGE/RRF selection result.
+- 2026-09-03: The same 70 cases then ran through token overlap, pinned BGE-M3
+  cosine, and fixed lexical+dense RRF. Their Recall-all@5 values were `.9143`,
+  `.8714`, and `.9286`; RRF MRR was `.7767`. All manifests say
+  `DEV_DIAGNOSTIC` and `production_service_episode_semantics=NOT_EVALUATED`.
 
 ## Commit log
 
@@ -371,3 +378,6 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 - CI command-artifact test dependencies: `fc58f93`.
 - LoCoMo benchmark-session baseline: `bba8efb`.
 - Structured command correctness runtime: `81f2271`.
+- Structured correctness mode documentation: `264946a`.
+- Knowledge Dev chunk selection: `83b3a8d`.
+- LoCoMo BGE/RRF diagnostics: `036cee0`.

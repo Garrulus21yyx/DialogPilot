@@ -304,6 +304,19 @@ adapter→retrieval→grader 可运行，当前 `Recall-all@5=.9143`、`MRR=.768
 该数字不是 BGE/RRF 选参结论，也不是 ServiceEpisode 分数。临时产物不含
 原始对话文本，原数据不提交到仓库。
 
+同一 70-case 切片随后运行了三路 `DEV_DIAGNOSTIC`：
+
+| session retriever | Recall-all@5 | MRR | P95 |
+|---|---:|---:|---:|
+| token overlap | `.9143` | `.7681` | `5.12ms` |
+| BGE-M3 cosine | `.8714` | `.6031` | `110.51ms` |
+| lexical `.60` + dense `.30`, RRF `k=60` | `.9286` | `.7767` | `119.75ms` |
+
+BGE 与 RRF 均使用 profile `9cae2189…824`；RRF manifest 显式标记
+`FIXED_DEV_DIAGNOSTIC_NOT_SELECTED`。这说明公开 session 检索链可以消费真实
+BGE 并记录融合配置，但一个 conversation 的 70 题不足以冻结公开线参数，
+更不能迁移为 production ServiceEpisode policy。
+
 ## 11. 通过条件
 
 - 每轮状态恢复不再隐式触发 ServiceEpisode RAG；
