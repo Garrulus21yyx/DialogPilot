@@ -64,6 +64,12 @@ def test_request_scope_is_corpus_typed_and_pins_backend_generation_policy():
         })
 
 
+def test_blank_product_scope_means_no_product_restriction():
+    scope = KnowledgeSearchScope("public", "zh-CN", "  ")
+
+    assert scope.product is None
+
+
 @pytest.mark.parametrize("status", [
     RetrievalStatus.NO_EVIDENCE,
     RetrievalStatus.UNAVAILABLE,

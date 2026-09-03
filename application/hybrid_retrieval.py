@@ -138,6 +138,10 @@ class KnowledgeSearchScope:
     def __post_init__(self) -> None:
         if not self.scope.strip() or not self.locale.strip():
             raise RetrievalContractError("knowledge scope and locale are required")
+        normalized_product = (
+            self.product.strip() if self.product is not None else None
+        )
+        object.__setattr__(self, "product", normalized_product or None)
 
 
 @dataclass(frozen=True)

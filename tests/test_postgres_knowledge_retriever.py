@@ -181,10 +181,14 @@ def knowledge_source(postgres_database_url):
 
 
 def test_source_fuses_pg_routes_and_resolves_canonical_source(knowledge_source):
+    request = KnowledgeRetrievalRequest(**{
+        **_request().__dict__, "product": "  ",
+    })
     result = asyncio.run(knowledge_source.search_variants_async(
-        _request(), [("raw", "退款多久到账", 1.0)], top_k=20,
+        request, [("raw", "退款多久到账", 1.0)], top_k=20,
     ))
 
+    assert request.product is None
     assert result.status is RetrievalStatus.OK
     assert result.candidates == ({
         "chunk_id": "chunk-refund", "source_id": "refund-policy",
@@ -197,7 +201,7 @@ def test_source_fuses_pg_routes_and_resolves_canonical_source(knowledge_source):
         "score": pytest.approx(1 / 11),
         "scope_decision": "allowed_public",
     },)
-    assert knowledge_source.validate_candidates(result.candidates, _request())
+    assert knowledge_source.validate_candidates(result.candidates, request)
 
 
 def test_source_rejects_manifest_drift_without_partial_candidates(knowledge_source):

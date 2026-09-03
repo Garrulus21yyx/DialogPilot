@@ -119,6 +119,10 @@ class KnowledgeRetrievalRequest:
             raise KnowledgeRetrievalContractError("retrieval identity is incomplete")
         if self.deletion_epoch < 0:
             raise KnowledgeRetrievalContractError("deletion epoch is invalid")
+        normalized_product = (
+            self.product.strip() if self.product is not None else None
+        )
+        object.__setattr__(self, "product", normalized_product or None)
 
 
 @dataclass(frozen=True)
