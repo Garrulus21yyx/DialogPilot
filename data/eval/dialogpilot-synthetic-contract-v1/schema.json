@@ -1,0 +1,115 @@
+{
+  "$id": "dialogpilot-synthetic-contract-case-v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "authoring_notes": {
+      "type": "array"
+    },
+    "case_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "counterfactual": {
+      "type": "object"
+    },
+    "deterministic_assertions": {
+      "type": "array"
+    },
+    "difficulty": {
+      "enum": [
+        "BASIC",
+        "COMPOSITIONAL",
+        "ADVERSARIAL"
+      ],
+      "type": "string"
+    },
+    "expected_outcome": {
+      "type": "object"
+    },
+    "group_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "human_rubric": {
+      "type": "array"
+    },
+    "initial_state": {
+      "type": "object"
+    },
+    "language": {
+      "const": "zh-CN"
+    },
+    "missing_authoring_inputs": {
+      "type": "array"
+    },
+    "provenance": {
+      "type": "object"
+    },
+    "risk": {
+      "enum": [
+        "LOW",
+        "MEDIUM",
+        "HIGH",
+        "CRITICAL"
+      ],
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "dialogpilot-synthetic-contract-case-v1"
+    },
+    "self_check": {
+      "type": "object"
+    },
+    "slice": {
+      "enum": [
+        "PRODUCT_ID",
+        "INSTALLATION",
+        "DAMAGE",
+        "SCREENSHOT",
+        "POLICY_TOOL",
+        "MEMORY",
+        "SERVICE_CONTINUITY",
+        "HANDOFF",
+        "SECURITY",
+        "OTHER"
+      ],
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "SYNTHETIC_CONTRACT_LOCKED"
+      ],
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "turns": {
+      "minItems": 1,
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "case_id",
+    "group_id",
+    "status",
+    "title",
+    "slice",
+    "difficulty",
+    "risk",
+    "language",
+    "provenance",
+    "initial_state",
+    "turns",
+    "expected_outcome",
+    "deterministic_assertions",
+    "human_rubric",
+    "counterfactual",
+    "missing_authoring_inputs",
+    "authoring_notes",
+    "self_check"
+  ],
+  "type": "object"
+}

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="600" viewBox="0 0 1800 600">
+  <style>
+    .panel { fill:#f7f8fa; stroke:#d6dae1; stroke-width:4 }
+    .bar { fill:#27364b }
+    .title { font:700 22px sans-serif; fill:#fff }
+    .body { font:20px sans-serif; fill:#1d2733 }
+    .muted { font:16px sans-serif; fill:#667085 }
+    .error { font:700 25px monospace; fill:#c4322b }
+    .ok { font:700 22px sans-serif; fill:#18794e }
+    .button { fill:#1769aa }
+    .buttonText { font:700 17px sans-serif; fill:#fff }
+  </style>
+  <rect width="1800" height="600" fill="#fff"/>
+
+  <g transform="translate(0 0)"><rect class="panel" x="4" y="4" width="352" height="292"/><rect class="bar" x="4" y="4" width="352" height="48"/><text class="title" x="22" y="36">登录</text><text class="error" x="24" y="112">E-AUTH-17</text><text class="body" x="24" y="152">登录凭据已过期</text><text class="muted" x="24" y="190">请重新登录后再试</text></g>
+  <g transform="translate(360 0)"><rect class="panel" x="4" y="4" width="352" height="292"/><rect class="bar" x="4" y="4" width="352" height="48"/><text class="title" x="22" y="36">支付结果</text><text class="error" x="24" y="112">PAY-DECLINED</text><text class="body" x="24" y="152">本次支付未完成</text><text class="muted" x="24" y="190">未生成成功支付记录</text></g>
+  <g transform="translate(720 0)"><rect class="panel" x="4" y="4" width="352" height="292"/><rect class="bar" x="4" y="4" width="352" height="48"/><text class="title" x="22" y="36">API 响应</text><text class="error" x="24" y="112">HTTP 401</text><text class="body" x="24" y="152">invalid_token</text><text class="muted" x="24" y="190">request_id: req-syn-401</text></g>
+  <g transform="translate(1080 0)"><rect class="panel" x="4" y="4" width="352" height="292"/><rect class="bar" x="4" y="4" width="352" height="48"/><text class="title" x="22" y="36">API 响应</text><text class="error" x="24" y="112">HTTP 500</text><text class="body" x="24" y="152">internal_error</text><text class="muted" x="24" y="190">request_id: req-syn-500</text></g>
+  <g transform="translate(1440 0)"><rect class="panel" x="4" y="4" width="352" height="292"/><rect class="bar" x="4" y="4" width="352" height="48"/><text class="title" x="22" y="36">订阅管理</text><text class="body" x="24" y="112">方案：月度标准版</text><text class="body" x="24" y="150">自动续费：已开启</text><text class="muted" x="24" y="190">下次续费：2026-10-01</text></g>
+
+  <g transform="translate(0 300)"><rect class="panel" x="4" y="4" width="352" height="292"/><rect class="bar" x="4" y="4" width="352" height="48"/><text class="title" x="22" y="36">物流详情</text><text class="body" x="24" y="112">状态：运输中</text><text class="muted" x="24" y="150">最后更新：2026-09-02 08:30</text><text class="muted" x="24" y="188">尚未签收</text></g>
+  <g transform="translate(360 300)"><rect class="panel" x="4" y="4" width="352" height="292"/><rect class="bar" x="4" y="4" width="352" height="48"/><text class="title" x="22" y="36">退款详情</text><text class="body" x="24" y="112">状态：审核中</text><text class="muted" x="24" y="150">申请编号：rf-syn-7</text><text class="muted" x="24" y="188">页面未显示到账结果</text></g>
+  <g transform="translate(720 300)"><rect class="panel" x="4" y="4" width="352" height="292"/><rect class="bar" x="4" y="4" width="352" height="48"/><text class="title" x="22" y="36">访问受限</text><text class="error" x="24" y="112">HTTP 403</text><text class="body" x="24" y="152">missing_scope: reports.read</text><text class="muted" x="24" y="190">请联系管理员授权</text></g>
+  <g transform="translate(1080 300)"><rect class="panel" x="4" y="4" width="352" height="292"/><rect class="bar" x="4" y="4" width="352" height="48"/><text class="title" x="22" y="36">回调配置</text><text class="body" x="24" y="112">签名校验：开启</text><text class="body" x="24" y="150">回调状态：失败</text><text class="error" x="24" y="194">DNS_LOOKUP_FAILED</text></g>
+  <g transform="translate(1440 300)"><rect class="panel" x="4" y="4" width="352" height="292"/><rect class="bar" x="4" y="4" width="352" height="48"/><text class="title" x="22" y="36">应用异常</text><text class="error" x="24" y="112">APP-CRASH-09</text><text class="body" x="24" y="152">应用意外退出</text><text class="muted" x="24" y="190">诊断 ID：diag-syn-09</text></g>
+</svg>

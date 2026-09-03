@@ -1,0 +1,102 @@
+{
+  "authoring_provenance": "MODEL_AUTHORED_SYNTHETIC",
+  "batches": [
+    {
+      "batch_id": "product-id-01",
+      "case_count": 10,
+      "file": "product-id-01.jsonl",
+      "sha256": "7f57e432a256511612ffcde1aeebdd0e3de38ef7cb0a315098b40564d6ae6966"
+    },
+    {
+      "batch_id": "product-id-02",
+      "case_count": 10,
+      "file": "product-id-02.jsonl",
+      "sha256": "8d4bf596978e956ad4d24efa5baa18f9a92e02ee4d95db6a670f4ade8796d22b"
+    },
+    {
+      "batch_id": "installation-01",
+      "case_count": 10,
+      "file": "installation-01.jsonl",
+      "sha256": "fc37b25c50736d269e25eeebc815374b874272326c4e2bd99f8cfbabb6066bab"
+    },
+    {
+      "batch_id": "installation-02",
+      "case_count": 10,
+      "file": "installation-02.jsonl",
+      "sha256": "6fcf1e970a1cf2bb91c34e1a646ce07ac8cef1eb564e338b64e477ad16e26675"
+    },
+    {
+      "batch_id": "damage-screen-01",
+      "case_count": 10,
+      "file": "damage-screen-01.jsonl",
+      "sha256": "5a6d436de3187ea5a7a78045cf060109a207519acfd1d62c9ca5cd293db02194"
+    },
+    {
+      "batch_id": "damage-screen-02",
+      "case_count": 10,
+      "file": "damage-screen-02.jsonl",
+      "sha256": "ad1532ed9818e50f6e045c7e3b275e29cc91025d9c9170c87aa89e50941d355d"
+    },
+    {
+      "batch_id": "mixed-service-01",
+      "case_count": 10,
+      "file": "mixed-service-01.jsonl",
+      "sha256": "846bdef390ff3a505c11b40a934c9bd25b85586b335dca59c2e5f97a7095d62d"
+    },
+    {
+      "batch_id": "mixed-service-02",
+      "case_count": 10,
+      "file": "mixed-service-02.jsonl",
+      "sha256": "6feb00b52fbcf0dd4ddaf275e08ca4b60949c52b2dfc237572fd78a7fa87adc3"
+    }
+  ],
+  "case_count": 80,
+  "case_ids_sha256": "b5add2864ea6fd04cc91f01172f7607d7aef055b8d01cc9d87388ba5ddbc0335",
+  "cases_sha256": "afd03a0cc99afe43259fff7a3c5f25f226fa41f3c606a27ac45a20be55b5793b",
+  "dataset_id": "dialogpilot-synthetic-contract-v1",
+  "dataset_role": "ARCHITECTURE_CONTRACT",
+  "fixture_provenance": "SYNTHETIC_FABRICATED_FOR_EVALUATION",
+  "lock_status": "SYNTHETIC_CONTRACT_LOCKED",
+  "locked_file_sha256": {
+    "README.md": "7bcfa8f63c9f99078de4a95e61722608889322aa94af15c9a31dd53e528c6e6a",
+    "assets/damage-contact-sheet.png": "7de4d24b3f83470c970fa08dc19384650048e611c3713e80362e6bcff13cf90e",
+    "assets/installation-after-contact-sheet.png": "d6400a19fae655abb8908928c5a0d3e2e36f3eae669db2b3eb23c8bb943493da",
+    "assets/installation-before-contact-sheet.png": "dfb3fe4eba1491f2a95f1faf1231a7752888501f0aaf0ca43e2b1b84825171d0",
+    "assets/product-contact-sheet.png": "3d90c340fa557a9caee3e988c5468377165eddbef408301b3f532c16f30dd50e",
+    "assets/screenshot-contact-sheet.png": "f38593f5635e42e8bcc4c58e93c3c097723c261fcc015937fceb8748367f5424",
+    "assets/screenshot-contact-sheet.svg": "8d8dbac6c896e1c979a2d750b86c94bf07aa004edad27640a132f60e76e84ea0",
+    "cases.jsonl": "afd03a0cc99afe43259fff7a3c5f25f226fa41f3c606a27ac45a20be55b5793b",
+    "damage-screen-01.jsonl": "5a6d436de3187ea5a7a78045cf060109a207519acfd1d62c9ca5cd293db02194",
+    "damage-screen-02.jsonl": "ad1532ed9818e50f6e045c7e3b275e29cc91025d9c9170c87aa89e50941d355d",
+    "installation-01.jsonl": "fc37b25c50736d269e25eeebc815374b874272326c4e2bd99f8cfbabb6066bab",
+    "installation-02.jsonl": "6fcf1e970a1cf2bb91c34e1a646ce07ac8cef1eb564e338b64e477ad16e26675",
+    "mixed-service-01.jsonl": "846bdef390ff3a505c11b40a934c9bd25b85586b335dca59c2e5f97a7095d62d",
+    "mixed-service-02.jsonl": "6feb00b52fbcf0dd4ddaf275e08ca4b60949c52b2dfc237572fd78a7fa87adc3",
+    "product-id-01.jsonl": "7f57e432a256511612ffcde1aeebdd0e3de38ef7cb0a315098b40564d6ae6966",
+    "product-id-02.jsonl": "8d4bf596978e956ad4d24efa5baa18f9a92e02ee4d95db6a670f4ade8796d22b",
+    "schema.json": "0c556221e185c593968de7f2679ce106ba177a8764ff1e1dbaf00c882ad7ff8c",
+    "synthetic-fixtures.json": "15ac32c25f3440fe0c388fdf45c318b5d5c14183fa74c72b4edef3e6c30d76aa"
+  },
+  "promotion_allowed": false,
+  "run_status": "NOT_RUN",
+  "schema_version": "dialogpilot-synthetic-contract-case-v1",
+  "scope_limit": "Synthetic contracts verify declared architecture behavior; they do not estimate natural-distribution or production accuracy.",
+  "slice_counts": {
+    "DAMAGE": 10,
+    "HANDOFF": 4,
+    "INSTALLATION": 20,
+    "MEMORY": 2,
+    "POLICY_TOOL": 10,
+    "PRODUCT_ID": 20,
+    "SCREENSHOT": 10,
+    "SERVICE_CONTINUITY": 4
+  },
+  "status_counts": {
+    "SYNTHETIC_CONTRACT_LOCKED": 80
+  },
+  "terminal_media_need_counts": {
+    "L0": 40,
+    "L1": 20,
+    "L2": 20
+  }
+}

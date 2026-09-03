@@ -1,0 +1,1275 @@
+{
+  "annotations": {
+    "annotation://synthetic/damage/panel-01": {
+      "allowed_observation": "塑料外壳表面存在可见裂纹",
+      "asset_ref": "asset://synthetic/damage-contact-sheet.png",
+      "bbox_xyxy": [
+        0,
+        0,
+        355,
+        444
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/damage/panel-01",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/damage/panel-02": {
+      "allowed_observation": "暗色屏幕表面存在一个小亮点",
+      "asset_ref": "asset://synthetic/damage-contact-sheet.png",
+      "bbox_xyxy": [
+        355,
+        0,
+        710,
+        444
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/damage/panel-02",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/damage/panel-03": {
+      "allowed_observation": "USB 接口金属外壳可见变形",
+      "asset_ref": "asset://synthetic/damage-contact-sheet.png",
+      "bbox_xyxy": [
+        710,
+        0,
+        1064,
+        444
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/damage/panel-03",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/damage/panel-04": {
+      "allowed_observation": "纸箱一角明显挤压，图中看不到内部商品",
+      "asset_ref": "asset://synthetic/damage-contact-sheet.png",
+      "bbox_xyxy": [
+        1064,
+        0,
+        1419,
+        444
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/damage/panel-04",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/damage/panel-05": {
+      "allowed_observation": "设备接缝附近有干燥水渍",
+      "asset_ref": "asset://synthetic/damage-contact-sheet.png",
+      "bbox_xyxy": [
+        1419,
+        0,
+        1774,
+        444
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/damage/panel-05",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/damage/panel-06": {
+      "allowed_observation": "编织线外层破损且内层绝缘可见",
+      "asset_ref": "asset://synthetic/damage-contact-sheet.png",
+      "bbox_xyxy": [
+        0,
+        444,
+        355,
+        887
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/damage/panel-06",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/damage/panel-07": {
+      "allowed_observation": "铰链盖脱离并露出铰链结构",
+      "asset_ref": "asset://synthetic/damage-contact-sheet.png",
+      "bbox_xyxy": [
+        355,
+        444,
+        710,
+        887
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/damage/panel-07",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/damage/panel-08": {
+      "allowed_observation": "一个键帽缺失且轴体仍在",
+      "asset_ref": "asset://synthetic/damage-contact-sheet.png",
+      "bbox_xyxy": [
+        710,
+        444,
+        1064,
+        887
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/damage/panel-08",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/damage/panel-09": {
+      "allowed_observation": "镜片保护盖表面有一道划痕",
+      "asset_ref": "asset://synthetic/damage-contact-sheet.png",
+      "bbox_xyxy": [
+        1064,
+        444,
+        1419,
+        887
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/damage/panel-09",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/damage/panel-10": {
+      "allowed_observation": "手机后盖有轻微隆起；图片本身不证明电池状态或原因",
+      "asset_ref": "asset://synthetic/damage-contact-sheet.png",
+      "bbox_xyxy": [
+        1419,
+        444,
+        1774,
+        887
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/damage/panel-10",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/install-after/panel-01": {
+      "allowed_observation": "支架连接件已对齐并就位",
+      "asset_ref": "asset://synthetic/installation-after-contact-sheet.png",
+      "bbox_xyxy": [
+        0,
+        0,
+        397,
+        396
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/install-after/panel-01",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/install-after/panel-02": {
+      "allowed_observation": "USB-C 插头已插入 USB-C 端口",
+      "asset_ref": "asset://synthetic/installation-after-contact-sheet.png",
+      "bbox_xyxy": [
+        397,
+        0,
+        793,
+        396
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/install-after/panel-02",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/install-after/panel-03": {
+      "allowed_observation": "短螺丝位于目标孔位旁但尚未拧紧",
+      "asset_ref": "asset://synthetic/installation-after-contact-sheet.png",
+      "bbox_xyxy": [
+        793,
+        0,
+        1190,
+        396
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/install-after/panel-03",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/install-after/panel-04": {
+      "allowed_observation": "固件更新显示 Complete",
+      "asset_ref": "asset://synthetic/installation-after-contact-sheet.png",
+      "bbox_xyxy": [
+        1190,
+        0,
+        1586,
+        396
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/install-after/panel-04",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/install-after/panel-05": {
+      "allowed_observation": "密封圈已均匀进入槽内",
+      "asset_ref": "asset://synthetic/installation-after-contact-sheet.png",
+      "bbox_xyxy": [
+        1586,
+        0,
+        1983,
+        396
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/install-after/panel-05",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/install-after/panel-06": {
+      "allowed_observation": "键帽已压入并与相邻键基本齐平",
+      "asset_ref": "asset://synthetic/installation-after-contact-sheet.png",
+      "bbox_xyxy": [
+        0,
+        396,
+        397,
+        793
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/install-after/panel-06",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/install-after/panel-07": {
+      "allowed_observation": "塑料卡扣已闭合且表面齐平",
+      "asset_ref": "asset://synthetic/installation-after-contact-sheet.png",
+      "bbox_xyxy": [
+        397,
+        396,
+        793,
+        793
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/install-after/panel-07",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/install-after/panel-08": {
+      "allowed_observation": "适配器输出标签可见且仍未通电",
+      "asset_ref": "asset://synthetic/installation-after-contact-sheet.png",
+      "bbox_xyxy": [
+        793,
+        396,
+        1190,
+        793
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/install-after/panel-08",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/install-after/panel-09": {
+      "allowed_observation": "底盖螺丝已全部移除",
+      "asset_ref": "asset://synthetic/installation-after-contact-sheet.png",
+      "bbox_xyxy": [
+        1190,
+        396,
+        1586,
+        793
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/install-after/panel-09",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/install-after/panel-10": {
+      "allowed_observation": "设置界面显示支持代码 E-204",
+      "asset_ref": "asset://synthetic/installation-after-contact-sheet.png",
+      "bbox_xyxy": [
+        1586,
+        396,
+        1983,
+        793
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/install-after/panel-10",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/install-before/panel-01": {
+      "allowed_observation": "支架连接件尚未完全对齐",
+      "asset_ref": "asset://synthetic/installation-before-contact-sheet.png",
+      "bbox_xyxy": [
+        0,
+        0,
+        397,
+        396
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/install-before/panel-01",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/install-before/panel-02": {
+      "allowed_observation": "USB-C 插头尚未插入端口",
+      "asset_ref": "asset://synthetic/installation-before-contact-sheet.png",
+      "bbox_xyxy": [
+        397,
+        0,
+        793,
+        396
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/install-before/panel-02",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/install-before/panel-03": {
+      "allowed_observation": "孔位旁有两种长度螺丝待选择",
+      "asset_ref": "asset://synthetic/installation-before-contact-sheet.png",
+      "bbox_xyxy": [
+        793,
+        0,
+        1190,
+        396
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/install-before/panel-03",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/install-before/panel-04": {
+      "allowed_observation": "固件更新显示 Downloading 72%",
+      "asset_ref": "asset://synthetic/installation-before-contact-sheet.png",
+      "bbox_xyxy": [
+        1190,
+        0,
+        1586,
+        396
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/install-before/panel-04",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/install-before/panel-05": {
+      "allowed_observation": "密封圈位于槽外",
+      "asset_ref": "asset://synthetic/installation-before-contact-sheet.png",
+      "bbox_xyxy": [
+        1586,
+        0,
+        1983,
+        396
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/install-before/panel-05",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/install-before/panel-06": {
+      "allowed_observation": "键帽未完全压入轴体",
+      "asset_ref": "asset://synthetic/installation-before-contact-sheet.png",
+      "bbox_xyxy": [
+        0,
+        396,
+        397,
+        793
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/install-before/panel-06",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/install-before/panel-07": {
+      "allowed_observation": "塑料卡扣尚未闭合",
+      "asset_ref": "asset://synthetic/installation-before-contact-sheet.png",
+      "bbox_xyxy": [
+        397,
+        396,
+        793,
+        793
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/install-before/panel-07",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/install-before/panel-08": {
+      "allowed_observation": "电源插头未连接，适合先核对规格",
+      "asset_ref": "asset://synthetic/installation-before-contact-sheet.png",
+      "bbox_xyxy": [
+        793,
+        396,
+        1190,
+        793
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/install-before/panel-08",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/install-before/panel-09": {
+      "allowed_observation": "底盖仍有一颗螺丝",
+      "asset_ref": "asset://synthetic/installation-before-contact-sheet.png",
+      "bbox_xyxy": [
+        1190,
+        396,
+        1586,
+        793
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/install-before/panel-09",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/install-before/panel-10": {
+      "allowed_observation": "设置界面仅显示未标号错误图标",
+      "asset_ref": "asset://synthetic/installation-before-contact-sheet.png",
+      "bbox_xyxy": [
+        1586,
+        396,
+        1983,
+        793
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/install-before/panel-10",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/product/panel-01": {
+      "allowed_observation": "SYN-KB-87 机械键盘底部铭牌区域",
+      "asset_ref": "asset://synthetic/product-contact-sheet.png",
+      "bbox_xyxy": [
+        0,
+        0,
+        355,
+        444
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/product/panel-01",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/product/panel-02": {
+      "allowed_observation": "SYN-HUB-5P USB-C 五口扩展坞接口区域",
+      "asset_ref": "asset://synthetic/product-contact-sheet.png",
+      "bbox_xyxy": [
+        355,
+        0,
+        710,
+        444
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/product/panel-02",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/product/panel-03": {
+      "allowed_observation": "SYN-MSE-2A 无线鼠标电池仓",
+      "asset_ref": "asset://synthetic/product-contact-sheet.png",
+      "bbox_xyxy": [
+        710,
+        0,
+        1064,
+        444
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/product/panel-03",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/product/panel-04": {
+      "allowed_observation": "SYN-PSU-120W 电源适配器标签区域",
+      "asset_ref": "asset://synthetic/product-contact-sheet.png",
+      "bbox_xyxy": [
+        1064,
+        0,
+        1419,
+        444
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/product/panel-04",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/product/panel-05": {
+      "allowed_observation": "SYN-CBL-A2C USB-A 转 USB-C 线缆",
+      "asset_ref": "asset://synthetic/product-contact-sheet.png",
+      "bbox_xyxy": [
+        1419,
+        0,
+        1774,
+        444
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/product/panel-05",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/product/panel-06": {
+      "allowed_observation": "SYN-STAND-V1 显示器支架安装板",
+      "asset_ref": "asset://synthetic/product-contact-sheet.png",
+      "bbox_xyxy": [
+        0,
+        444,
+        355,
+        887
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/product/panel-06",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/product/panel-07": {
+      "allowed_observation": "SYN-CAM-CLIP 摄像头夹具",
+      "asset_ref": "asset://synthetic/product-contact-sheet.png",
+      "bbox_xyxy": [
+        355,
+        444,
+        710,
+        887
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/product/panel-07",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/product/panel-08": {
+      "allowed_observation": "SYN-RTR-4L 路由器背部接口",
+      "asset_ref": "asset://synthetic/product-contact-sheet.png",
+      "bbox_xyxy": [
+        710,
+        444,
+        1064,
+        887
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/product/panel-08",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/product/panel-09": {
+      "allowed_observation": "SYN-HS-MIC 可拆卸麦克风耳机插孔",
+      "asset_ref": "asset://synthetic/product-contact-sheet.png",
+      "bbox_xyxy": [
+        1064,
+        444,
+        1419,
+        887
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/product/panel-09",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/product/panel-10": {
+      "allowed_observation": "SYN-KEYCAP-31 31 键键帽套装",
+      "asset_ref": "asset://synthetic/product-contact-sheet.png",
+      "bbox_xyxy": [
+        1419,
+        444,
+        1774,
+        887
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/product/panel-10",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/screenshot/panel-01": {
+      "allowed_observation": "E-AUTH-17；登录凭据已过期；请重新登录后再试",
+      "asset_ref": "asset://synthetic/screenshot-contact-sheet.png",
+      "bbox_xyxy": [
+        0,
+        0,
+        360,
+        300
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/screenshot/panel-01",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/screenshot/panel-02": {
+      "allowed_observation": "PAY-DECLINED；本次支付未完成；未生成成功支付记录",
+      "asset_ref": "asset://synthetic/screenshot-contact-sheet.png",
+      "bbox_xyxy": [
+        360,
+        0,
+        720,
+        300
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/screenshot/panel-02",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/screenshot/panel-03": {
+      "allowed_observation": "HTTP 401；invalid_token；request_id=req-syn-401",
+      "asset_ref": "asset://synthetic/screenshot-contact-sheet.png",
+      "bbox_xyxy": [
+        720,
+        0,
+        1080,
+        300
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/screenshot/panel-03",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/screenshot/panel-04": {
+      "allowed_observation": "HTTP 500；internal_error；request_id=req-syn-500",
+      "asset_ref": "asset://synthetic/screenshot-contact-sheet.png",
+      "bbox_xyxy": [
+        1080,
+        0,
+        1440,
+        300
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/screenshot/panel-04",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/screenshot/panel-05": {
+      "allowed_observation": "月度标准版；自动续费已开启；下次续费 2026-10-01",
+      "asset_ref": "asset://synthetic/screenshot-contact-sheet.png",
+      "bbox_xyxy": [
+        1440,
+        0,
+        1800,
+        300
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/screenshot/panel-05",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/screenshot/panel-06": {
+      "allowed_observation": "物流状态为运输中；最后更新 2026-09-02 08:30；尚未签收",
+      "asset_ref": "asset://synthetic/screenshot-contact-sheet.png",
+      "bbox_xyxy": [
+        0,
+        300,
+        360,
+        600
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/screenshot/panel-06",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/screenshot/panel-07": {
+      "allowed_observation": "退款状态为审核中；申请编号 rf-syn-7；页面未显示到账结果",
+      "asset_ref": "asset://synthetic/screenshot-contact-sheet.png",
+      "bbox_xyxy": [
+        360,
+        300,
+        720,
+        600
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/screenshot/panel-07",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/screenshot/panel-08": {
+      "allowed_observation": "HTTP 403；missing_scope: reports.read；请联系管理员授权",
+      "asset_ref": "asset://synthetic/screenshot-contact-sheet.png",
+      "bbox_xyxy": [
+        720,
+        300,
+        1080,
+        600
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/screenshot/panel-08",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/screenshot/panel-09": {
+      "allowed_observation": "签名校验开启；回调失败；DNS_LOOKUP_FAILED",
+      "asset_ref": "asset://synthetic/screenshot-contact-sheet.png",
+      "bbox_xyxy": [
+        1080,
+        300,
+        1440,
+        600
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/screenshot/panel-09",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    },
+    "annotation://synthetic/screenshot/panel-10": {
+      "allowed_observation": "APP-CRASH-09；应用意外退出；诊断 ID diag-syn-09",
+      "asset_ref": "asset://synthetic/screenshot-contact-sheet.png",
+      "bbox_xyxy": [
+        1440,
+        300,
+        1800,
+        600
+      ],
+      "forbidden_inferences": [
+        "真实品牌或真实 SKU",
+        "损坏原因",
+        "退款/换货资格",
+        "订单归属",
+        "业务动作已完成"
+      ],
+      "region_ref": "region://synthetic/screenshot/panel-10",
+      "review_status": "SYNTHETIC_AUTHOR_ANNOTATED_NOT_HUMAN_SIGNED"
+    }
+  },
+  "assets": {
+    "asset://synthetic/damage-contact-sheet.png": {
+      "acl_scope": "tenant-synthetic-contract-v1",
+      "height": 887,
+      "media_type": "image/png",
+      "path": "assets/damage-contact-sheet.png",
+      "provenance": "SYNTHETIC_MODEL_GENERATED",
+      "sha256": "7de4d24b3f83470c970fa08dc19384650048e611c3713e80362e6bcff13cf90e",
+      "width": 1774
+    },
+    "asset://synthetic/installation-after-contact-sheet.png": {
+      "acl_scope": "tenant-synthetic-contract-v1",
+      "height": 793,
+      "media_type": "image/png",
+      "path": "assets/installation-after-contact-sheet.png",
+      "provenance": "SYNTHETIC_MODEL_GENERATED",
+      "sha256": "d6400a19fae655abb8908928c5a0d3e2e36f3eae669db2b3eb23c8bb943493da",
+      "width": 1983
+    },
+    "asset://synthetic/installation-before-contact-sheet.png": {
+      "acl_scope": "tenant-synthetic-contract-v1",
+      "height": 793,
+      "media_type": "image/png",
+      "path": "assets/installation-before-contact-sheet.png",
+      "provenance": "SYNTHETIC_MODEL_GENERATED",
+      "sha256": "dfb3fe4eba1491f2a95f1faf1231a7752888501f0aaf0ca43e2b1b84825171d0",
+      "width": 1983
+    },
+    "asset://synthetic/product-contact-sheet.png": {
+      "acl_scope": "tenant-synthetic-contract-v1",
+      "height": 887,
+      "media_type": "image/png",
+      "path": "assets/product-contact-sheet.png",
+      "provenance": "SYNTHETIC_MODEL_GENERATED",
+      "sha256": "3d90c340fa557a9caee3e988c5468377165eddbef408301b3f532c16f30dd50e",
+      "width": 1774
+    },
+    "asset://synthetic/screenshot-contact-sheet.png": {
+      "acl_scope": "tenant-synthetic-contract-v1",
+      "height": 600,
+      "media_type": "image/png",
+      "path": "assets/screenshot-contact-sheet.png",
+      "provenance": "SYNTHETIC_CODE_GENERATED",
+      "sha256": "f38593f5635e42e8bcc4c58e93c3c097723c261fcc015937fceb8748367f5424",
+      "width": 1800
+    }
+  },
+  "disclaimer": "All entries are fabricated test fixtures. They are not real products, policies, customers, orders, or business outcomes.",
+  "fixture_set_id": "dialogpilot-synthetic-customer-world-v1",
+  "knowledge_sources": {
+    "source://synthetic/damage-policy-v1#observation-01": {
+      "authority": "KNOWLEDGE",
+      "content": {
+        "observation": "塑料外壳表面存在可见裂纹",
+        "rule": "图片只证明可观察事实，不决定原因、保修或退换资格。"
+      },
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/damage-policy-v1#observation-02": {
+      "authority": "KNOWLEDGE",
+      "content": {
+        "observation": "暗色屏幕表面存在一个小亮点",
+        "rule": "图片只证明可观察事实，不决定原因、保修或退换资格。"
+      },
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/damage-policy-v1#observation-03": {
+      "authority": "KNOWLEDGE",
+      "content": {
+        "observation": "USB 接口金属外壳可见变形",
+        "rule": "图片只证明可观察事实，不决定原因、保修或退换资格。"
+      },
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/damage-policy-v1#observation-04": {
+      "authority": "KNOWLEDGE",
+      "content": {
+        "observation": "纸箱一角明显挤压，图中看不到内部商品",
+        "rule": "图片只证明可观察事实，不决定原因、保修或退换资格。"
+      },
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/damage-policy-v1#observation-05": {
+      "authority": "KNOWLEDGE",
+      "content": {
+        "observation": "设备接缝附近有干燥水渍",
+        "rule": "图片只证明可观察事实，不决定原因、保修或退换资格。"
+      },
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/damage-policy-v1#observation-06": {
+      "authority": "KNOWLEDGE",
+      "content": {
+        "observation": "编织线外层破损且内层绝缘可见",
+        "rule": "图片只证明可观察事实，不决定原因、保修或退换资格。"
+      },
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/damage-policy-v1#observation-07": {
+      "authority": "KNOWLEDGE",
+      "content": {
+        "observation": "铰链盖脱离并露出铰链结构",
+        "rule": "图片只证明可观察事实，不决定原因、保修或退换资格。"
+      },
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/damage-policy-v1#observation-08": {
+      "authority": "KNOWLEDGE",
+      "content": {
+        "observation": "一个键帽缺失且轴体仍在",
+        "rule": "图片只证明可观察事实，不决定原因、保修或退换资格。"
+      },
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/damage-policy-v1#observation-09": {
+      "authority": "KNOWLEDGE",
+      "content": {
+        "observation": "镜片保护盖表面有一道划痕",
+        "rule": "图片只证明可观察事实，不决定原因、保修或退换资格。"
+      },
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/damage-policy-v1#observation-10": {
+      "authority": "KNOWLEDGE",
+      "content": {
+        "observation": "手机后盖有轻微隆起；图片本身不证明电池状态或原因",
+        "rule": "图片只证明可观察事实，不决定原因、保修或退换资格。"
+      },
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/install-guide-v1#step-01": {
+      "authority": "KNOWLEDGE",
+      "content": {
+        "after": "支架连接件已对齐并就位",
+        "before": "支架连接件尚未完全对齐",
+        "rule": "只基于当前区域给出低风险下一步；通电、鼓包或不确定高风险状态必须停止并升级。"
+      },
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/install-guide-v1#step-02": {
+      "authority": "KNOWLEDGE",
+      "content": {
+        "after": "USB-C 插头已插入 USB-C 端口",
+        "before": "USB-C 插头尚未插入端口",
+        "rule": "只基于当前区域给出低风险下一步；通电、鼓包或不确定高风险状态必须停止并升级。"
+      },
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/install-guide-v1#step-03": {
+      "authority": "KNOWLEDGE",
+      "content": {
+        "after": "短螺丝位于目标孔位旁但尚未拧紧",
+        "before": "孔位旁有两种长度螺丝待选择",
+        "rule": "只基于当前区域给出低风险下一步；通电、鼓包或不确定高风险状态必须停止并升级。"
+      },
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/install-guide-v1#step-04": {
+      "authority": "KNOWLEDGE",
+      "content": {
+        "after": "固件更新显示 Complete",
+        "before": "固件更新显示 Downloading 72%",
+        "rule": "只基于当前区域给出低风险下一步；通电、鼓包或不确定高风险状态必须停止并升级。"
+      },
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/install-guide-v1#step-05": {
+      "authority": "KNOWLEDGE",
+      "content": {
+        "after": "密封圈已均匀进入槽内",
+        "before": "密封圈位于槽外",
+        "rule": "只基于当前区域给出低风险下一步；通电、鼓包或不确定高风险状态必须停止并升级。"
+      },
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/install-guide-v1#step-06": {
+      "authority": "KNOWLEDGE",
+      "content": {
+        "after": "键帽已压入并与相邻键基本齐平",
+        "before": "键帽未完全压入轴体",
+        "rule": "只基于当前区域给出低风险下一步；通电、鼓包或不确定高风险状态必须停止并升级。"
+      },
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/install-guide-v1#step-07": {
+      "authority": "KNOWLEDGE",
+      "content": {
+        "after": "塑料卡扣已闭合且表面齐平",
+        "before": "塑料卡扣尚未闭合",
+        "rule": "只基于当前区域给出低风险下一步；通电、鼓包或不确定高风险状态必须停止并升级。"
+      },
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/install-guide-v1#step-08": {
+      "authority": "KNOWLEDGE",
+      "content": {
+        "after": "适配器输出标签可见且仍未通电",
+        "before": "电源插头未连接，适合先核对规格",
+        "rule": "只基于当前区域给出低风险下一步；通电、鼓包或不确定高风险状态必须停止并升级。"
+      },
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/install-guide-v1#step-09": {
+      "authority": "KNOWLEDGE",
+      "content": {
+        "after": "底盖螺丝已全部移除",
+        "before": "底盖仍有一颗螺丝",
+        "rule": "只基于当前区域给出低风险下一步；通电、鼓包或不确定高风险状态必须停止并升级。"
+      },
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/install-guide-v1#step-10": {
+      "authority": "KNOWLEDGE",
+      "content": {
+        "after": "设置界面显示支持代码 E-204",
+        "before": "设置界面仅显示未标号错误图标",
+        "rule": "只基于当前区域给出低风险下一步；通电、鼓包或不确定高风险状态必须停止并升级。"
+      },
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/product-catalog-v1#item-01": {
+      "authority": "KNOWLEDGE",
+      "content": "SYN-KB-87 机械键盘底部铭牌区域",
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/product-catalog-v1#item-02": {
+      "authority": "KNOWLEDGE",
+      "content": "SYN-HUB-5P USB-C 五口扩展坞接口区域",
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/product-catalog-v1#item-03": {
+      "authority": "KNOWLEDGE",
+      "content": "SYN-MSE-2A 无线鼠标电池仓",
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/product-catalog-v1#item-04": {
+      "authority": "KNOWLEDGE",
+      "content": "SYN-PSU-120W 电源适配器标签区域",
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/product-catalog-v1#item-05": {
+      "authority": "KNOWLEDGE",
+      "content": "SYN-CBL-A2C USB-A 转 USB-C 线缆",
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/product-catalog-v1#item-06": {
+      "authority": "KNOWLEDGE",
+      "content": "SYN-STAND-V1 显示器支架安装板",
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/product-catalog-v1#item-07": {
+      "authority": "KNOWLEDGE",
+      "content": "SYN-CAM-CLIP 摄像头夹具",
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/product-catalog-v1#item-08": {
+      "authority": "KNOWLEDGE",
+      "content": "SYN-RTR-4L 路由器背部接口",
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/product-catalog-v1#item-09": {
+      "authority": "KNOWLEDGE",
+      "content": "SYN-HS-MIC 可拆卸麦克风耳机插孔",
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/product-catalog-v1#item-10": {
+      "authority": "KNOWLEDGE",
+      "content": "SYN-KEYCAP-31 31 键键帽套装",
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/screenshot-guide-v1#screen-01": {
+      "authority": "KNOWLEDGE",
+      "content": "E-AUTH-17；登录凭据已过期；请重新登录后再试",
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/screenshot-guide-v1#screen-02": {
+      "authority": "KNOWLEDGE",
+      "content": "PAY-DECLINED；本次支付未完成；未生成成功支付记录",
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/screenshot-guide-v1#screen-03": {
+      "authority": "KNOWLEDGE",
+      "content": "HTTP 401；invalid_token；request_id=req-syn-401",
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/screenshot-guide-v1#screen-04": {
+      "authority": "KNOWLEDGE",
+      "content": "HTTP 500；internal_error；request_id=req-syn-500",
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/screenshot-guide-v1#screen-05": {
+      "authority": "KNOWLEDGE",
+      "content": "月度标准版；自动续费已开启；下次续费 2026-10-01",
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/screenshot-guide-v1#screen-06": {
+      "authority": "KNOWLEDGE",
+      "content": "物流状态为运输中；最后更新 2026-09-02 08:30；尚未签收",
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/screenshot-guide-v1#screen-07": {
+      "authority": "KNOWLEDGE",
+      "content": "退款状态为审核中；申请编号 rf-syn-7；页面未显示到账结果",
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/screenshot-guide-v1#screen-08": {
+      "authority": "KNOWLEDGE",
+      "content": "HTTP 403；missing_scope: reports.read；请联系管理员授权",
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/screenshot-guide-v1#screen-09": {
+      "authority": "KNOWLEDGE",
+      "content": "签名校验开启；回调失败；DNS_LOOKUP_FAILED",
+      "revision": "synthetic-v1"
+    },
+    "source://synthetic/screenshot-guide-v1#screen-10": {
+      "authority": "KNOWLEDGE",
+      "content": "APP-CRASH-09；应用意外退出；诊断 ID diag-syn-09",
+      "revision": "synthetic-v1"
+    }
+  }
+}
