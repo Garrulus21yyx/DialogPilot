@@ -91,6 +91,8 @@ Status: `IN_PROGRESS — READ-ONLY STICKY VERTICAL SLICE COMPLETE`
   production composition; keep each rollout separately configurable.
 - [x] Add an explicit ServiceEpisode canonical replay and immutable-generation
   activation owner; do not run it implicitly during application startup.
+- [x] Add one explicit pre-evaluation CLI that rebuilds only the selected
+  Knowledge and/or ServiceEpisode generation and reports the pointer change.
 - [ ] Provision the pinned BGE-M3 artifact and rebuild/activate new immutable
   Knowledge and ServiceEpisode generations before benchmark runs.
 - [ ] Replace the temporary selective legacy candidate adapter with the frozen
@@ -232,6 +234,12 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   VLM and business tools zero times. This does not claim that the routing probe
   or task-conditioned media policy has moved to command-primary ownership.
   Focused adjacent suite: `31 passed, 4 skipped`.
+- 2026-09-03: A thin offline CLI now composes the existing Knowledge store and
+  ServiceEpisode generation manager, runs only the explicitly selected corpus,
+  and reports old/new immutable identities, complete embedding profiles, and
+  indexed counts as JSON. It does not migrate schemas, download models, or run
+  during application startup. CLI unit test: `1 passed`; adjacent real-
+  PostgreSQL suite: `19 passed`.
 
 ## Commit log
 

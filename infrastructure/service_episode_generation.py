@@ -107,6 +107,12 @@ class PostgresServiceEpisodeGenerationManager:
         generation = self._generations.activate_direct(generation_id)
         return ServiceEpisodeGenerationBuild(generation, len(snapshot))
 
+    def active_generation(self) -> RetrievalGeneration:
+        return self._generations.active(
+            RetrievalCorpus.SERVICE_EPISODE,
+            backend_id=self.backend_id,
+        )
+
     def _generation(
         self, generation_id: str, manifest_hash: str,
     ) -> RetrievalGeneration:
