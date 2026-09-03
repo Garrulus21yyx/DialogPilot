@@ -191,7 +191,11 @@ class RouteExecutionPolicy:
     ) -> RouteExecutionContract:
         """Compile the first command-primary path directly from its route."""
 
-        if route.mode in {RouteMode.KNOWLEDGE_QA, RouteMode.CLARIFY}:
+        if route.mode in {
+            RouteMode.KNOWLEDGE_QA,
+            RouteMode.CLARIFY,
+            RouteMode.OUT_OF_SCOPE,
+        }:
             owner, outcome, required, conditional = self._shape(route)
         elif route.mode is RouteMode.AGENT_TASK:
             if work is None:

@@ -611,6 +611,15 @@ class ChatApplication:
                     identity,
                     command_primary,
                 )
+            elif command_primary.plan.route.mode is RouteMode.OUT_OF_SCOPE:
+                from application.command_primary_out_of_scope import (
+                    out_of_scope_execution_result,
+                )
+
+                result = out_of_scope_execution_result(
+                    request_id,
+                    command_primary,
+                )
             else:
                 from application.command_primary_work import (
                     execute_command_primary_work,

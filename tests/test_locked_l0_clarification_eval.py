@@ -40,6 +40,14 @@ class StaticClarifyCompletion:
         return '{"status":"CLARIFY","commands":[]}'
 
 
+class StaticNoSupportedFlowCompletion:
+    provider_version = "fake-messages-v1"
+
+    async def complete(self, *, system: str, input_json: str) -> str:
+        assert system and input_json
+        return '{"status":"NO_SUPPORTED_FLOW","commands":[]}'
+
+
 class FailingCompletion:
     provider_version = "fake-messages-v1"
 
@@ -125,6 +133,24 @@ def test_static_output_proves_chat_chain_but_is_not_score_eligible(tmp_path) -> 
     assert manifest["runtime"]["entrypoint"] == "ChatApplication.handle"
     assert manifest["provider"]["real_provider"] is False
     assert manifest["runtime"]["flow_registry_fingerprint"] == registry.fingerprint
+
+
+def test_no_supported_flow_stays_on_command_primary_policy_terminal() -> None:
+    runtime = build_locked_l0_chat_runtime(StaticNoSupportedFlowCompletion())
+    transport = LockedConversationTransportAdapter(runtime.application, DATASET)
+
+    turns = asyncio.run(transport.run(CASE_ID))
+
+    assert isinstance(turns[0].outcome, Completed)
+    response = turns[0].outcome.response
+    assert response["routing_disposition"] == "out_of_scope"
+    assert response["routing_policy_trace"]["decision_source"] == "command_primary"
+    assert response["intent_prediction_id"] == ""
+    stages = {stage.stage: stage for stage in turns[0].outcome.stages}
+    assert stages["intent"].status.value == "skipped"
+    assert "rule_response" in stages["route_path_plan"].detail["required_components"]
+    assert "agent_orchestrator" in stages["route_path_plan"].detail["forbidden_components"]
+    assert stages["knowledge_retrieval"].detail["used"] is False
 
 
 def test_provider_failure_is_typed_and_not_retried() -> None:

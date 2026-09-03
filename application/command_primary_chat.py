@@ -104,6 +104,7 @@ class CommandPrimaryChatPlanner:
             RouteMode.KNOWLEDGE_QA,
             RouteMode.AGENT_TASK,
             RouteMode.CLARIFY,
+            RouteMode.OUT_OF_SCOPE,
         }:
             return CommandPrimaryChatPlan(
                 planning=planning,
@@ -140,20 +141,19 @@ class CommandPrimaryChatPlanner:
             plan.work.graph.tasks[0].owner
             if plan.work is not None else AgentType.GENERAL
         )
-        projected_intent = (
-            IntentCategory.QUERY
-            if plan.route.mode is RouteMode.KNOWLEDGE_QA
-            else {
+        if plan.route.mode is RouteMode.KNOWLEDGE_QA:
+            projected_intent = IntentCategory.QUERY
+            projected_group = "query"
+        elif plan.route.mode is RouteMode.OUT_OF_SCOPE:
+            projected_intent = IntentCategory.OTHER
+            projected_group = "other"
+        else:
+            projected_intent = {
                 AgentType.BILLING: IntentCategory.REFUND,
                 AgentType.TECHNICAL: IntentCategory.TECHNICAL,
                 AgentType.ACCOUNT_SECURITY: IntentCategory.ACCOUNT_SECURITY,
             }.get(primary_owner, IntentCategory.REQUEST)
-        )
-        projected_group = (
-            "query"
-            if plan.route.mode is RouteMode.KNOWLEDGE_QA
-            else primary_owner.value
-        )
+            projected_group = primary_owner.value
         projection = IntentResult(
             intent=projected_intent,
             confidence=0.0,
