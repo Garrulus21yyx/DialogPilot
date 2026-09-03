@@ -484,6 +484,17 @@ class ChatApplication:
             stages.append(StageObservation("route_path_plan", StageStatus.OK, {
                 "mode": route_mode,
                 "source": "command_primary",
+                "candidate_owner": (
+                    command_primary.execution_contract.candidate_owner.value
+                ),
+                "required_components": [
+                    item.value
+                    for item in command_primary.execution_contract.required_components
+                ],
+                "forbidden_components": [
+                    item.value
+                    for item in command_primary.execution_contract.forbidden_components
+                ],
                 "contract_fingerprint": (
                     command_primary.execution_contract.fingerprint
                 ),
@@ -518,7 +529,14 @@ class ChatApplication:
             route_mode = route_path.route_decision.mode.value
         media_section, media_projection, media_rejection = (
             await self._prepare_media_context(
-                command=command, identity=identity, stages=stages,
+                command=command,
+                identity=identity,
+                stages=stages,
+                command_primary=(
+                    command_primary
+                    if command_primary is not None and command_primary.use_primary
+                    else None
+                ),
             )
         )
         if media_rejection is not None:
@@ -584,20 +602,19 @@ class ChatApplication:
                     knowledge,
                 )
             else:
-                from application.command_primary_result import read_only_execution_result
-                from application.read_only_work import execute_read_only_work
-
-                execution = await execute_read_only_work(
-                    command_primary.plan,
-                    services.tool_manager,
-                    identity,
+                from application.command_primary_work import (
+                    execute_command_primary_work,
                 )
-                result = read_only_execution_result(
+
+                work_outcome = await execute_command_primary_work(
                     request_id,
                     command_primary,
-                    execution,
+                    tool_manager=services.tool_manager,
+                    identity=identity,
+                    media=media_section,
                 )
-                if execution.tool_result.success:
+                result = work_outcome.result
+                if work_outcome.succeeded:
                     applied = await (
                         services.command_primary_chat_planner
                         .commit_flow_transition(command_primary)
@@ -982,18 +999,37 @@ class ChatApplication:
         command: ChatCommand,
         identity: InvocationIdentity,
         stages: list[StageObservation],
+        command_primary: Any = None,
     ) -> tuple[ContextSection | None, Mapping[str, Any], Rejected | None]:
         """Validate turn ownership and execute only the Agent-requested media tier."""
         services = self._services
+        from application.command_primary_media import media_policy_for
+
+        primary_media_policy = media_policy_for(
+            command_primary.plan if command_primary is not None else None
+        )
         empty = {
             "mode": "NO_MEDIA_REQUIRED", "asset_ids": [],
             "ocr_invoked": False, "vlm_invoked": False,
             "outcomes": [],
         }
+        if command_primary is not None and primary_media_policy is None:
+            stages.append(StageObservation("media", StageStatus.SKIPPED, {
+                "reason": "WORK_PLAN_FORBIDS_MEDIA",
+            }))
+            return None, empty, None
         if not command.asset_ids:
             stages.append(StageObservation("media", StageStatus.SKIPPED, {
-                "reason": "NO_RELEVANT_ASSET",
+                "reason": (
+                    "REQUIRED_MEDIA_MISSING"
+                    if primary_media_policy is not None else "NO_RELEVANT_ASSET"
+                ),
             }))
+            if primary_media_policy is not None:
+                return None, empty, Rejected(
+                    "required_media_missing",
+                    "当前任务需要一个附件，请上传后重试。",
+                )
             return None, empty, None
         components = (
             services.media_requirement_agent,
@@ -1028,16 +1064,41 @@ class ChatApplication:
                 "asset_access_denied",
                 "附件不属于当前请求，请重新上传后再试。",
             )
-        task = {"message": command.message}
-        decision = await services.media_requirement_agent.decide_media_requirement(
-            task=task, asset_ids=asset_ids,
-        )
-        policies = services.media_requirement_agent.policies_for_task(
-            task, has_assets=True,
-        )
-        services.media_requirement_validator.validate(
-            decision, policies=policies, allowed_asset_ids=asset_ids,
-        )
+        if primary_media_policy is not None:
+            from application.command_primary_media import (
+                CommandPrimaryMediaError,
+                decide_command_primary_media,
+            )
+            try:
+                decision, asset_ids = await decide_command_primary_media(
+                    command_primary.plan,
+                    asset_ids=asset_ids,
+                    tenant_id=tenant_id,
+                    user_id=user_id,
+                    turn_ref=turn_key,
+                    asset_store=services.media_asset_store,
+                    producer=services.media_requirement_agent,
+                    validator=services.media_requirement_validator,
+                )
+            except CommandPrimaryMediaError:
+                stages.append(StageObservation("media", StageStatus.FAILED, {
+                    "reason": "MEDIA_TARGET_UNRESOLVED",
+                }))
+                return None, empty, Rejected(
+                    "media_target_unresolved",
+                    "无法唯一确定要读取的附件，请只选择一个附件后重试。",
+                )
+        else:
+            task = {"message": command.message}
+            policies = services.media_requirement_agent.policies_for_task(
+                task, has_assets=True,
+            )
+            decision = await services.media_requirement_agent.decide_media_requirement(
+                task=task, asset_ids=asset_ids,
+            )
+            services.media_requirement_validator.validate(
+                decision, policies=policies, allowed_asset_ids=asset_ids,
+            )
         batch = await asyncio.to_thread(
             services.perception_service.execute_with_artifacts,
             decision, tenant_id=tenant_id, user_id=user_id,

@@ -17,6 +17,7 @@ from application.route_policy_v2 import (
     WorkKind,
 )
 from application.turn_state import FlowDefinitionRef, TurnStateSnapshot
+from application.task_media import TaskMediaPolicy
 from application.turn_understanding import CommandArgument, CommandKind
 
 
@@ -74,6 +75,7 @@ class CompiledWorkItem:
     allowed_tools: tuple[str, ...]
     approval: ApprovalPolicy
     arguments: tuple[CommandArgument, ...]
+    media_policy: TaskMediaPolicy | None = None
 
 
 @dataclass(frozen=True)
@@ -228,6 +230,7 @@ class TurnPlanCompiler:
                 allowed_tools=action.allowed_tools,
                 approval=action.approval,
                 arguments=_work_arguments(command),
+                media_policy=action.media_policy,
             ))
         graph = TaskGraph(
             tasks=tuple(tasks),

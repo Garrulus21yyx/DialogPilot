@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Callable, Mapping, Sequence
 
-from agents.orchestration_contracts import TaskEffect
+from agents.orchestration_contracts import AgentType, TaskEffect
 from application.active_case import ActiveCaseState
 from application.authority_policy import AuthorityPolicyRegistry, FactRequirement
 from application.command_primary_planner import (
@@ -130,20 +130,31 @@ class CommandPrimaryChatPlanner:
             plan.route,
             verification,
             input_fingerprint=plan.plan_id,
+            work=plan.work,
+        )
+        primary_owner = (
+            plan.work.graph.tasks[0].owner
+            if plan.work is not None else AgentType.GENERAL
         )
         projected_intent = (
             IntentCategory.QUERY
             if plan.route.mode is RouteMode.KNOWLEDGE_QA
-            else IntentCategory.REFUND
+            else {
+                AgentType.BILLING: IntentCategory.REFUND,
+                AgentType.TECHNICAL: IntentCategory.TECHNICAL,
+                AgentType.ACCOUNT_SECURITY: IntentCategory.ACCOUNT_SECURITY,
+            }.get(primary_owner, IntentCategory.REQUEST)
+        )
+        projected_group = (
+            "query"
+            if plan.route.mode is RouteMode.KNOWLEDGE_QA
+            else primary_owner.value
         )
         projection = IntentResult(
             intent=projected_intent,
             confidence=0.0,
             urgency=UrgencyLevel.LOW,
-            intent_group=(
-                "query"
-                if plan.route.mode is RouteMode.KNOWLEDGE_QA else "billing"
-            ),
+            intent_group=projected_group,
             entities={},
             reasoning="post-decision compatibility projection",
             latency_ms=0.0,
@@ -174,12 +185,18 @@ class CommandPrimaryChatPlanner:
         if len(transitions.mutations) != 1:
             raise FlowStateError("read-only primary supports one flow transition")
         mutation = transitions.mutations[0]
-        if mutation.kind is not FlowMutationKind.ADVANCE:
-            raise FlowStateError("read-only primary supports ADVANCE")
-        next_state = chat_plan.flow_state.advance_flow(
-            mutation.source_instance_id,
-            expected_version=mutation.expected_source_version,
-        )
+        if mutation.kind is FlowMutationKind.ADVANCE:
+            next_state = chat_plan.flow_state.advance_flow(
+                mutation.source_instance_id,
+                expected_version=mutation.expected_source_version,
+            )
+        elif mutation.kind is FlowMutationKind.START:
+            next_state = chat_plan.flow_state.start_flow(
+                mutation.target_flow,
+                command_id=mutation.command_id,
+            )
+        else:
+            raise FlowStateError("read-only primary transition is unsupported")
         return await asyncio.to_thread(
             self._flow_state_store.compare_and_set,
             chat_plan.flow_state,

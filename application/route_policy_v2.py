@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from enum import Enum
 
 from agents.orchestration_contracts import AgentType, TaskEffect, TaskRisk
+from application.task_media import TaskMediaPolicy
 from application.turn_state import FlowDefinitionRef, TurnStateSnapshot
 from application.turn_understanding import (
     CommandKind,
@@ -52,6 +53,7 @@ class ActionDefinition:
     allowed_tools: tuple[str, ...]
     approval: ApprovalPolicy
     objective: str
+    media_policy: TaskMediaPolicy | None = None
 
     @property
     def key(self) -> tuple[CommandKind, tuple[str, str] | None]:
@@ -117,6 +119,26 @@ class FlowActionRegistry:
                     "tools": item.allowed_tools,
                     "approval": item.approval.value,
                     "objective": item.objective,
+                    "media_policy": (
+                        {
+                            "requirement_id": (
+                                item.media_policy.requirement.requirement_id
+                            ),
+                            "media_required": (
+                                item.media_policy.requirement.media_required
+                            ),
+                            "required": item.media_policy.requirement.required,
+                            "minimum_stage": (
+                                item.media_policy.requirement.minimum_stage.name
+                            ),
+                            "scope": item.media_policy.scope.value,
+                            "omission_policies": (
+                                item.media_policy.requirement
+                                .allowed_omission_policy_refs
+                            ),
+                        }
+                        if item.media_policy is not None else None
+                    ),
                 }
                 for item in self.actions
             ],

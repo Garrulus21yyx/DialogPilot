@@ -15,7 +15,7 @@ from application.route_decision import (
     RouteDecision,
     RouteMode,
 )
-from application.turn_plan import RouteDecisionV2
+from application.turn_plan import RouteDecisionV2, WorkPlan
 
 
 class RouteExecutionContractError(ValueError):
@@ -30,6 +30,7 @@ class RouteComponent(str, Enum):
     AGENT_ORCHESTRATOR = "agent_orchestrator"
     AGENT_KNOWLEDGE_TOOL = "agent_knowledge_tool"
     BUSINESS_TOOL = "business_tool"
+    MEDIA_PERCEPTION = "media_perception"
     TASK_GRAPH = "task_graph"
     REQUIREMENT_COVERAGE_GATE = "requirement_coverage_gate"
     CITATION_CLAIM_GATE = "citation_claim_gate"
@@ -48,6 +49,7 @@ class CandidateOwner(str, Enum):
     TASK_GRAPH = "task_graph"
     HANDOFF_DRAFT = "handoff_draft"
     BUSINESS_TOOL = "business_tool"
+    MEDIA_EVIDENCE = "media_evidence"
 
 
 class RouteExpectedOutcome(str, Enum):
@@ -185,16 +187,26 @@ class RouteExecutionPolicy:
         verification: VerificationProfileContract,
         *,
         input_fingerprint: str,
+        work: WorkPlan,
     ) -> RouteExecutionContract:
         """Compile the first command-primary path directly from its route."""
 
         if route.mode is RouteMode.KNOWLEDGE_QA:
             owner, outcome, required, conditional = self._shape(route)
         elif route.mode is RouteMode.AGENT_TASK:
-            owner = CandidateOwner.BUSINESS_TOOL
+            media_items = tuple(
+                item for item in work.items if item.media_policy is not None
+            )
+            owner = (
+                CandidateOwner.MEDIA_EVIDENCE
+                if media_items else CandidateOwner.BUSINESS_TOOL
+            )
             outcome = RouteExpectedOutcome.COMPLETED
             required = {
-                RouteComponent.BUSINESS_TOOL,
+                (
+                    RouteComponent.MEDIA_PERCEPTION
+                    if media_items else RouteComponent.BUSINESS_TOOL
+                ),
                 RouteComponent.REQUIREMENT_COVERAGE_GATE,
                 RouteComponent.TURN_RECORD,
             }

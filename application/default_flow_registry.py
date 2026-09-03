@@ -9,11 +9,15 @@ from application.route_policy_v2 import (
     FlowDefinition,
     WorkKind,
 )
+from application.media_requirement import MediaRequirementPolicy, MediaStage
+from application.routing_media_probe import RoutingMediaScope
+from application.task_media import TaskMediaPolicy
 from application.turn_state import FlowDefinitionRef
 from application.turn_understanding import CommandKind
 
 
 REFUND_STATUS = FlowDefinitionRef("refund_status", "v1")
+MEDIA_TEXT_READ = FlowDefinitionRef("media_text_read", "v1")
 
 
 def command_primary_flow_registry(tenant_id: str) -> FlowActionRegistry:
@@ -21,11 +25,17 @@ def command_primary_flow_registry(tenant_id: str) -> FlowActionRegistry:
 
     return FlowActionRegistry(
         tenant_id=tenant_id,
-        generation="command-primary-read-only-v1",
-        flows=(FlowDefinition(
-            REFUND_STATUS,
-            (CommandKind.CONTINUE_FLOW,),
-        ),),
+        generation="command-primary-read-only-v2",
+        flows=(
+            FlowDefinition(
+                REFUND_STATUS,
+                (CommandKind.CONTINUE_FLOW,),
+            ),
+            FlowDefinition(
+                MEDIA_TEXT_READ,
+                (CommandKind.START_FLOW,),
+            ),
+        ),
         actions=(
             ActionDefinition(
                 action_id="knowledge.answer",
@@ -54,6 +64,29 @@ def command_primary_flow_registry(tenant_id: str) -> FlowActionRegistry:
                 allowed_tools=("refund_status",),
                 approval=ApprovalPolicy.USER_COMMAND_SUFFICIENT,
                 objective="read the current refund status",
+            ),
+            ActionDefinition(
+                action_id="media.text.read",
+                version="v1",
+                command_kind=CommandKind.START_FLOW,
+                flow=MEDIA_TEXT_READ,
+                work_kind=WorkKind.AGENT,
+                owner=AgentType.TECHNICAL,
+                effect=TaskEffect.READ_ONLY,
+                risk=TaskRisk.LOW,
+                requirement_ids=(),
+                allowed_tools=(),
+                approval=ApprovalPolicy.USER_COMMAND_SUFFICIENT,
+                objective="read visible text from the selected media asset",
+                media_policy=TaskMediaPolicy(
+                    requirement=MediaRequirementPolicy(
+                        requirement_id="media.visible_text",
+                        media_required=True,
+                        required=True,
+                        minimum_stage=MediaStage.L1_TEXT_EXTRACTION,
+                    ),
+                    scope=RoutingMediaScope.CURRENT_TURN,
+                ),
             ),
         ),
     )

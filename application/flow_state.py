@@ -8,6 +8,7 @@ from typing import Protocol
 from application.turn_state import (
     ActiveFlowRef,
     FlowAggregateVersion,
+    FlowDefinitionRef,
     PendingSlotRef,
     PrincipalScope,
 )
@@ -109,6 +110,28 @@ class FlowStateAggregate:
             raise FlowStateError("active flow is unavailable")
         return self.next(
             active_flows=tuple(active_flows),
+            pending_slot=self.pending_slot,
+        )
+
+    def start_flow(
+        self,
+        definition: FlowDefinitionRef,
+        *,
+        command_id: str,
+    ) -> "FlowStateAggregate":
+        if not isinstance(definition, FlowDefinitionRef):
+            raise FlowStateError("new flow definition is invalid")
+        instance_id = "flow-instance:v1:" + hashlib.sha256(
+            f"{self.aggregate.aggregate_id}:{command_id}".encode("utf-8")
+        ).hexdigest()
+        started = ActiveFlowRef(
+            definition,
+            instance_id,
+            1,
+            self.principal.fingerprint,
+        )
+        return self.next(
+            active_flows=(*self.active_flows, started),
             pending_slot=self.pending_slot,
         )
 

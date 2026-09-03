@@ -80,3 +80,40 @@ def read_only_execution_result(
             "plan_id": plan.plan_id,
         },
     )
+
+
+def media_read_execution_result(
+    request_id: str,
+    chat_plan: CommandPrimaryChatPlan,
+    execution: Any,
+) -> OrchestratorResult:
+    plan = chat_plan.plan
+    if plan is None or plan.work is None:
+        raise ValueError("media read requires a compiled work plan")
+    return OrchestratorResult(
+        request_id=request_id,
+        response=execution.response,
+        agent_type=execution.owner,
+        intent=IntentCategory.TECHNICAL,
+        agent_types=[execution.owner],
+        primary_agent=execution.owner,
+        routing_reason=plan.route.reason_code,
+        routing_confidence=0.0,
+        routing_disposition=PlanningDisposition.EXECUTE,
+        synthesis_status="media_evidence_read",
+        synthesis_reason="command-primary L1 media work",
+        agent_outcomes=[{
+            "task_id": execution.task_id,
+            "agent_type": execution.owner.value,
+            "status": "success",
+            "is_primary": True,
+        }],
+        task_plan=plan.work.graph.to_dict(),
+        coverage=execution.coverage,
+        execution_budget={},
+        bundle_version="",
+        routing_policy_trace={
+            "decision_source": "command_primary",
+            "plan_id": plan.plan_id,
+        },
+    )
