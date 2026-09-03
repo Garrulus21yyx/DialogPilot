@@ -7,6 +7,9 @@ from dataclasses import asdict, dataclass, field
 from enum import Enum
 from typing import Any, Optional, Protocol
 
+from application.case_resolution import AcceptCaseResolution, AcceptedCaseResolution
+from core.auth import Principal
+
 
 class TicketStatus(str, Enum):
     OPEN = "open"
@@ -100,6 +103,13 @@ class TicketService(Protocol):
     def get_ticket_view(self, ticket_id: str) -> dict[str, Any]: ...
     def list_tickets(self, **kwargs: Any) -> list[Ticket]: ...
     def list_active_tickets(self, **kwargs: Any) -> list[Ticket]: ...
+    def accept_resolution(
+        self,
+        ticket_id: str,
+        command: AcceptCaseResolution,
+        *,
+        principal: Principal,
+    ) -> tuple[AcceptedCaseResolution, bool]: ...
 
 
 class TicketWebhookDispatcher:

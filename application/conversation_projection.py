@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Mapping, Protocol
 
+from application.case_resolution import CASE_RESOLUTION_ACCEPTED
+
 
 class ProjectionName(str, Enum):
     WORKING_WINDOW = "working_window"
@@ -71,9 +73,13 @@ class ConversationProjectionPolicyV1:
         "RESUME_REJECTED",
     }
 
+    _NON_TURN_EVENTS = {CASE_RESOLUTION_ACCEPTED}
+
     def allows(self, event: ProjectableConversationEvent) -> bool:
         if event.event_type == "CONVERSATION_DELETED":
             return True
+        if event.event_type in self._NON_TURN_EVENTS:
+            return False
         if (
             event.projection_name is ProjectionName.FACT_EXTRACTION
             and event.event_type not in self._FACT_TRIGGER_EVENTS

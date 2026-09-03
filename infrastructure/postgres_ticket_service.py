@@ -10,6 +10,9 @@ import uuid
 
 from psycopg.types.json import Jsonb
 
+from application.case_resolution import AcceptCaseResolution, AcceptedCaseResolution
+from core.auth import Principal
+from infrastructure.postgres_case_resolution import accept_case_resolution
 from services.ticket_service import (
     IdempotencyConflictError,
     InvalidTransitionError,
@@ -194,6 +197,20 @@ class PostgresTicketService:
                 ORDER BY updated_at DESC,created_at DESC,ticket_id LIMIT %s
             """, (_required(user_id, "user_id"), max(1, min(int(limit), 20)))).fetchall()
         return [_ticket(row) for row in rows]
+
+    def accept_resolution(
+        self,
+        ticket_id: str,
+        command: AcceptCaseResolution,
+        *,
+        principal: Principal,
+    ) -> tuple[AcceptedCaseResolution, bool]:
+        return accept_case_resolution(
+            self.pool,
+            ticket_id,
+            command,
+            principal=principal,
+        )
 
     def transition(
         self, ticket_id: str, target: TicketStatus, *, actor: str,
