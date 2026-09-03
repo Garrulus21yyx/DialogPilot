@@ -3,6 +3,7 @@
 # ── AI / LLM ──────────────────────────────────────────────────────────────────
 anthropic==1.2.0           # LLM 调用；PydanticAI Anthropic provider 需要 1.x SDK
 pydantic-ai-slim[anthropic]==2.37.0  # 仅用于 RAG grounded structured-output 边界
+langgraph==1.2.11        # Target Architecture v1 父图、Worker 派发和 interrupt/checkpoint
 
 # ── Web 框架 ──────────────────────────────────────────────────────────────────
 fastapi==0.115.5
