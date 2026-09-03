@@ -1,4 +1,4 @@
-# Optional explicit semantic-intent runtime. The default V1 application does not load it.
+# Optional learned embedding and semantic-intent runtime; model artifacts stay local.
 sentence-transformers==5.7.0
 transformers==4.46.3
 tokenizers==0.20.3

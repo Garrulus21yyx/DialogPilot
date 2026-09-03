@@ -82,6 +82,10 @@ Status: `IN_PROGRESS — READ-ONLY STICKY VERTICAL SLICE COMPLETE`
   existing tool, verification, publication, delivery, and Memory-write lifecycle.
 - [x] Add the selective Encoder `ACCEPT/DEFER` → structured LLM command
   producer contract and its direct-evaluation adapter.
+- [x] Add a pinned, local-only BGE-M3 provider with one truthful document/query
+  embedding profile and no implicit hash fallback.
+- [ ] Inject BGE-M3 into production Knowledge composition and rebuild/activate
+  a new immutable generation.
 - [ ] Replace the temporary selective legacy candidate adapter with the frozen
   Encoder → LLM command producer after its component gate passes.
 
@@ -163,6 +167,11 @@ Status: `IN_PROGRESS — SHARED ARTIFACTS + UNDERSTANDING DIRECT RUNNER COMPLETE
   and higher-risk proposals use the structured LLM producer. The S4 adapter
   records producer stage, command artifact, candidate consumption, status, and
   cascade cost. Focused suite: `9 passed`; no production cutover is claimed.
+- 2026-09-03: Knowledge M3 added a 207-line local BGE-M3 provider adapter. It
+  pins upstream revision and artifact digest, uses raw text for both document
+  and query embeddings, exposes one 1024-dimensional MODEL profile, and never
+  downloads or falls back to hash. Focused suite: `63 passed, 10 skipped`.
+  Production injection and generation rebuild remain separate pending work.
 
 ## Commit log
 
@@ -173,3 +182,5 @@ Status: `IN_PROGRESS — SHARED ARTIFACTS + UNDERSTANDING DIRECT RUNNER COMPLETE
 - Stage 3 Knowledge primary vertical slice: `07b42f8`.
 - Stage 3 conversation FlowState owner: `61a8349`.
 - Stage 3 sticky read-only vertical slice: `9e75275`.
+- Stage 4 thin Understanding eval runner: `57bdb48`.
+- Stage 3 selective command producer: `483066f`.
