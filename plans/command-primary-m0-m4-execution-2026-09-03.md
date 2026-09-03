@@ -145,8 +145,11 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   as a non-scoring `TRANSPORT_SMOKE`; it remains ineligible for `x/80` until a
   frozen semantic producer replaces the test stub.
 - [x] Run the 20-case locked L0 clarification slice with the live structured
-  provider as `DEV_CONTRACT_DIAGNOSTIC`; record the failing `2/20` result and
-  keep command-primary promotion blocked.
+  provider as `DEV_CONTRACT_DIAGNOSTIC`; after one generic status-semantics
+  repair the progression is `2/20 → 11/20 → 13/20`. Stop tuning this viewed
+  slice and keep command-primary promotion blocked pending fresh heldout.
+- [x] Keep `NO_SUPPORTED_FLOW → OUT_OF_SCOPE` on the command-primary policy
+  terminal path, with legacy Intent and Agent execution skipped.
 - [ ] Shadow and legacy-intent invariance gate before cutover.
 
 ## Produced files
@@ -370,6 +373,16 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   and Tool forbidden-invocation checks were each `20/20`. The run consumed
   8,426 input and 331 output tokens with mean/P95 latency
   `987.0ms/1361.3ms`. This is a Dev contract diagnostic and blocks cutover.
+- 2026-09-03: One generic status-semantics repair defined CLARIFY as missing
+  required context and NO_SUPPORTED_FLOW as a complete request outside the
+  Registry. The viewed Dev slice progressed `2/20 → 11/20 → 13/20`; v3 used
+  6,823 input and 261 output tokens with mean/P95 `913.8ms/1109.7ms`. Seven
+  missing-context requests remain OOS, so tuning stopped and promotion remains
+  blocked until an independent frozen conversation-heldout gate.
+- 2026-09-03: `NO_SUPPORTED_FLOW` now compiles and publishes as a native
+  command-primary OUT_OF_SCOPE policy terminal. A real chat-handler test proves
+  legacy Intent, Agent, and Knowledge are skipped. Focused adjacent suite:
+  `70 passed`; this owner repair does not change the `13/20` semantic score.
 
 ## Commit log
 
@@ -415,3 +428,5 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 - Grounded L1 project diagnostic: `c24603f`.
 - Knowledge source capture and offline fusion replay: `19237ba`.
 - Live locked L0 clarification diagnostic: `0c4d194`.
+- Structured status-semantics contract: `6617853`.
+- Command-primary out-of-scope terminal: `28ff1b6`.

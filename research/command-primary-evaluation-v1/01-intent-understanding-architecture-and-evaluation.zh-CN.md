@@ -1,6 +1,6 @@
 # Intent / TurnUnderstanding 架构、迁移与评测
 
-状态：`LIVE_L0_DIAGNOSTIC_2_OF_20 — NOT_PROMOTED`
+状态：`LIVE_L0_DEV_13_OF_20 — NOT_PROMOTED`
 目标：将旧的“首句 → 单 intent → 下游执行”改造成 state-first、selective、command-primary 的入口理解链；保留旧 Intent 作为后置兼容投影。
 
 ## 1. 最终结论
@@ -212,9 +212,26 @@ mean/P95 = 987.0ms/1361.3ms
 
 Knowledge、OCR、VLM 与 Tool 的禁止调用均为 `20/20`；问题集中在 LLM 把
 “信息不足，需要澄清”误判成“没有支持的 Flow”。这证明接口和调用边界能
-运行，但同时明确否决当前 prompt/model 作为 Intent 替代方案。该 slice 已被
-查看，只能用于后续开发诊断；调整后必须用独立 conversation-heldout 数据验收，
-不能在同 20 条上调到通过后称为最终成绩。
+运行，但同时明确否决初版 prompt/model 作为 Intent 替代方案。
+
+随后只修订了一个通用语义合同，没有加入商品、安装或逐 case 关键词：先判断
+是否缺少必要对象/指代/资产，再判断请求是否真的超出 Registry 支持范围。两次
+Dev 结果从 `2/20 → 11/20 → 13/20`；当前 v3 为：
+
+```text
+provider calls/errors = 20/0
+CLARIFY 且全部合同通过 = 13
+NO_SUPPORTED_FLOW（预期应澄清） = 7
+input/output tokens = 6823/261
+mean/P95 = 913.8ms/1109.7ms
+```
+
+因此这里停止继续追同一 Dev slice。该 20 条已被查看，只能保留为开发回归；
+当前 `13/20` 仍然阻止晋级。下一次质量结论必须来自独立、冻结的
+conversation-heldout 集，同时包含信息不足、明确可路由和明确 OOS。另已单独
+证明 `NO_SUPPORTED_FLOW → OUT_OF_SCOPE` 可以完整留在 command-primary
+规则终态中，旧 Intent、Agent 和 Knowledge 均跳过；这只修复主链所有权，
+不把 7 个语义误判算成通过。
 
 ## 9. RoutePolicy、TurnPlanCompiler 与 Approval
 

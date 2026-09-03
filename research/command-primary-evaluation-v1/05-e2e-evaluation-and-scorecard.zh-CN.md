@@ -176,12 +176,16 @@ Mock artifact 结果不能报告为完整 E2E。最终 E2E 的所有 actual stat
 
 报告真实 `x/80`，closure gate 是全部 hard assertions 通过。默认一次确定性运行，不产生 `pass^4`。
 
-当前不是 `x/80`。已执行的首个可计分子集是 20 条无附件 L0 澄清
-`DEV_CONTRACT_DIAGNOSTIC`：真实 Structured LLM 调用 `20` 次、provider error
-为 `0`，但只有 `2/20` 同时满足 CLARIFY terminal、Route oracle 与
-command-primary owner。Knowledge、Media 和 Tool 禁止调用各为 `20/20`。
-因此当前结论是“主链运输可运行，Understanding 质量未过”，而不是把 2 条
-通过外推成完整合同成绩。其余 60 条以及完整 100 turns 仍为 `NOT_RUN`。
+当前不是 `x/80`。20 条无附件 L0 澄清只作为
+`DEV_CONTRACT_DIAGNOSTIC` 使用。初版真实 Structured LLM 为 `2/20`；通用状态
+语义合同修订后，v2/v3 依次为 `11/20`、`13/20`，当前 v3 仍有 7 条把信息不足
+判成 `NO_SUPPORTED_FLOW`。v3 调用/错误为 `20/0`，Knowledge、Media 和 Tool
+仍全部禁止。另有一条独立真实主链正例证明 `NO_SUPPORTED_FLOW` 会由
+command-primary 发布 OOS 规则终态，不会回落旧 Intent。
+
+因此当前结论仍是“主链运输可运行，Understanding 质量未过”，不能把同一
+Dev slice 的改进外推成合同成绩。其余 60 条以及完整 100 turns 仍为
+`NOT_RUN`；新的质量验收必须使用独立冻结的 conversation-heldout 数据。
 
 ## 7. τ³
 
