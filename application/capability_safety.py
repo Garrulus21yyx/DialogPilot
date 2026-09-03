@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
+from typing import Mapping
 
 
 class SafetyInvariant(str, Enum):
@@ -42,8 +43,12 @@ class CapabilitySafetyGate:
         self,
         capability_ids: tuple[str, ...],
         observations: tuple[SafetyObservation, ...],
+        *,
+        required_invariants: Mapping[str, tuple[SafetyInvariant, ...]] | None = None,
     ) -> tuple[CapabilityGateDecision, ...]:
+        required = dict(required_invariants or {})
         unknown = {item.capability_id for item in observations}.difference(capability_ids)
+        unknown.update(set(required).difference(capability_ids))
         if unknown:
             raise ValueError(f"safety observations reference unknown capabilities: {sorted(unknown)}")
         decisions = []
@@ -51,14 +56,21 @@ class CapabilitySafetyGate:
             scoped = tuple(
                 item for item in observations if item.capability_id == capability_id
             )
-            failures = tuple(dict.fromkeys(
-                item.invariant for item in scoped if not item.passed
-            ))
+            observed = {item.invariant for item in scoped}
+            missing = tuple(
+                item for item in required.get(capability_id, ()) if item not in observed
+            )
+            failures = tuple(dict.fromkeys((
+                *(item.invariant for item in scoped if not item.passed),
+                *missing,
+            )))
             decisions.append(CapabilityGateDecision(
                 capability_id,
                 not failures,
                 failures,
-                tuple(item.evidence_ref for item in scoped if not item.passed),
+                (
+                    *(item.evidence_ref for item in scoped if not item.passed),
+                    *(f"missing:{capability_id}:{item.value}" for item in missing),
+                ),
             ))
         return tuple(decisions)
-

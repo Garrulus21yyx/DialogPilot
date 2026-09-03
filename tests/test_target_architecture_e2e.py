@@ -302,3 +302,31 @@ def test_capability_safety_failure_disables_only_the_affected_capability():
     assert by_id["order_status"].enabled is True
     assert by_id["product_identification"].enabled is True
 
+
+def test_capability_safety_required_evidence_is_fail_closed_per_capability():
+    decisions = CapabilitySafetyGate().evaluate(
+        ("execute_refund", "order_status"),
+        (SafetyObservation(
+            "execute_refund",
+            SafetyInvariant.UNAUTHORIZED_TOOL,
+            True,
+            "eval:refund-tool-auth",
+        ),),
+        required_invariants={
+            "execute_refund": (
+                SafetyInvariant.UNAUTHORIZED_TOOL,
+                SafetyInvariant.DUPLICATE_SIDE_EFFECT,
+            ),
+            "order_status": (),
+        },
+    )
+    by_id = {item.capability_id: item for item in decisions}
+
+    assert by_id["execute_refund"].enabled is False
+    assert by_id["execute_refund"].failed_invariants == (
+        SafetyInvariant.DUPLICATE_SIDE_EFFECT,
+    )
+    assert by_id["execute_refund"].evidence_refs == (
+        "missing:execute_refund:DUPLICATE_SIDE_EFFECT",
+    )
+    assert by_id["order_status"].enabled is True

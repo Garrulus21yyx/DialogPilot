@@ -268,6 +268,58 @@ class TargetChatApplication:
             separators=(",", ":"),
         ).encode("utf-8")).hexdigest()
         route = managed.plan.route
+        work_items = managed.plan.work.items if managed.plan.work else ()
+        receipt_refs = tuple(
+            receipt.receipt_id
+            for result in (managed.board.results if managed.board else ())
+            for receipt in result.action_receipts
+            if receipt.effect_status == "COMMITTED"
+        )
+        elapsed_ms = (time.monotonic() - started) * 1000
+        evaluation_trace = {
+            "schema_version": "target-evaluation-trace-v1",
+            "trigger": {
+                "invocation_admitted": True,
+                "deterministic_resolution": managed.deterministic.kind.value,
+            },
+            "artifact": {
+                "plan_id": managed.plan.plan_id,
+                "registry_fingerprint": managed.plan.registry_fingerprint,
+                "route_mode": route.mode.value,
+                "owner_ids": list(route.owner_ids),
+                "understanding_reason": route.reason_code,
+            },
+            "consumption": {
+                "work_items": [{
+                    "work_item_id": item.work_item_id,
+                    "control_mode": item.control_mode.value,
+                    "owner_agent": item.owner_agent,
+                    "allowed_tools": list(item.allowed_tools),
+                    "allowed_skills": list(item.allowed_skills),
+                } for item in work_items],
+                "result_statuses": [item["status"] for item in outcomes],
+            },
+            "state_side_effect": {
+                "state_version_before": managed.state_before.version,
+                "state_version_after": managed.state_after.version,
+                "workstream_statuses": [
+                    item.status.value for item in managed.state_after.workstreams
+                ],
+                "committed_receipt_refs": list(receipt_refs),
+            },
+            "outcome": {
+                "kind": "COMPLETED",
+                "verifier_status": verifier_status,
+                "missing_requirement_ids": missing,
+            },
+            "cost": {
+                "semantic_provider_invoked": (
+                    route.reason_code == "STRUCTURED_SEMANTIC_ROUTER"
+                ),
+                "work_item_count": len(work_items),
+                "latency_ms": elapsed_ms,
+            },
+        }
         public_response = {
             "request_id": str(identity.request_id),
             "conv_id": str(identity.conversation_id),
@@ -296,7 +348,8 @@ class TargetChatApplication:
                 "missing_requirement_ids": missing,
             },
             "escalated": handoff_receipt is not None,
-            "latency_ms": (time.monotonic() - started) * 1000,
+            "latency_ms": elapsed_ms,
+            "evaluation_trace": evaluation_trace,
             "verification_status": verifier_status.lower(),
             "verified": verifier_status == "PASS",
             "grounded": verifier_status == "PASS",

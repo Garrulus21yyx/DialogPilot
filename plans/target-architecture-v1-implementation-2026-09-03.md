@@ -65,7 +65,8 @@
 | 13B | done | Real upload-to-chat Product E2E, typed unavailable/no-match/ambiguous paths, documentation, commit and push | 80 Target tests including real PostgreSQL Asset/HTTP E2E | this stage commit |
 | 14A | done | Target-native structured semantic router and typed provider boundary behind deterministic resolution | 66 focused Target tests; real HTTP/PostgreSQL semantic fallback; provider failure remains typed | this stage commit |
 | 14B | done | Target Skill/Command Encoder dataset, class-scoped calibration, heldout gate and public fast-path binding | 91 Target tests; reproducible training; real HTTP/PostgreSQL Encoder bypass | this stage commit |
-| 15 | in progress | Target-native evaluation funnel, capability-scoped gates, observability and final architecture/runbook convergence | pending | pending |
+| 15 | done | Target-native evaluation funnel, capability-scoped gates, observability and architecture/runbook convergence | 96 Target tests; repository 1148 passed / 6 unrelated dirty-RAG failures | this stage commit |
+| 16 | in progress | Expand registered read capabilities: logistics, refund policy/eligibility, invoice and installation assessment | pending | pending |
 
 ## Stage record
 
@@ -125,6 +126,8 @@
   character n-gram classifier, class-scoped calibration/heldout gates,
   dependency-free checked artifact loading, semantic-signal constraints, and
   public Encoder → single Worker execution.
+- Stage 15: six-layer Target evaluation funnel, required-evidence safety gates,
+  persisted response-level evaluation traces, and an operational runbook.
 
 ## Scope correction after executable-core review
 
@@ -255,3 +258,22 @@ continuation.
 - The complete Target-focused suite passed 91 tests against PostgreSQL. The dataset
   is synthetic prototype evidence and is not represented as production traffic or
   an external benchmark.
+
+## Stage 15 verification notes
+
+- Every completed response now carries one bounded `target-evaluation-trace-v1`
+  projection across Trigger, Artifact, Consumption, State/Side-effect, Outcome and
+  Cost. It records identifiers, typed states and capability envelopes, never prompts,
+  raw tool output, credentials or user secrets.
+- `CapabilitySafetyGate` accepts an explicit required-invariant profile per
+  capability. Missing proof fails that capability with a stable
+  `missing:<capability>:<invariant>` evidence ref; unrelated capabilities retain
+  their own decisions.
+- `TargetArchitectureEvaluator` emits six independent layer checks and a separate
+  hard gate. A functionally correct response with an unauthorized-tool observation
+  remains failed; there is no weighted score that can offset it.
+- The complete Target-focused suite passed 96 tests against PostgreSQL. The full
+  repository passed 1148 tests and failed the same 6 dirty-RAG `AgentBundle`
+  whitelist tests: the uncommitted retrieval owner emits `expansion_query_weight`,
+  `query_expansion_count`, and `metadata_hint_weight`, while the legacy bundle
+  whitelist has not yet been migrated. Stage 15 does not own or stage that work.

@@ -54,7 +54,7 @@ PostgreSQL 边界验证。当前状态是“有界 v1 主链已切换”，不�
 
 ## 当前验证结果
 
-- Target v1 专项测试：91 passed（真实 PostgreSQL）。
+- Target v1 专项测试：96 passed（真实 PostgreSQL）。
 - 真实边界：1 个测试连续覆盖六场景，使用真实 ASGI `/chat`、PostgreSQL
   Admission/Event/State/Operation/Publication 表和 async LangGraph checkpoint。
 - 订单路径断言为 `DIRECT`，没有派发领域 Agent；单领域任务只运行一个 Worker；
@@ -81,10 +81,13 @@ PostgreSQL 边界验证。当前状态是“有界 v1 主链已切换”，不�
 - structured provider 只能输出冻结的 Target goal 与消息中已有的实体；Tool、Risk、
   Requirement、Effect 和 Owner 都由 Registry-backed 编译器补全。provider 超时与
   无效输出保留为不同 typed failure，均不会调用工具或伪装成用户缺信息。
-- 仓库级回归：1128 passed、6 failed。6 个失败均由工作树中另一路未提交的
+- 仓库级回归：1148 passed、6 failed。6 个失败均由工作树中另一路未提交的
   RAG 策略改动触发：默认 retrieval policy 已产生 `expansion_query_weight`、
   `query_expansion_count`、`metadata_hint_weight`，但旧 `AgentBundle` 白名单尚未
   接受这些字段；失败不经过 Target v1 新执行路径，本阶段未代替该工作修改或提交。
+- Completed 响应现在持久化六层 `evaluation_trace`；安全 gate 对每个 capability
+  显式要求 invariant evidence，缺证据即只关闭该能力。功能层全部通过也不能覆盖
+  hard gate 失败。
 
 ## 安全门禁语义
 

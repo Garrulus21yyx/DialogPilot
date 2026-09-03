@@ -387,8 +387,16 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
         assert encoder_refund["routing_reason"] == "ENCODER_FAST_PATH_ACCEPTED"
         assert encoder_refund["routing_disposition"] == "agent_task"
         assert "RF3100" in encoder_refund["response"]
+        assert encoder_refund["evaluation_trace"]["cost"] == {
+            "semantic_provider_invoked": False,
+            "work_item_count": 1,
+            "latency_ms": encoder_refund["latency_ms"],
+        }
         assert semantic_order["routing_disposition"] == "direct"
         assert "DP2468" in semantic_order["response"]
+        assert semantic_order["evaluation_trace"]["cost"][
+            "semantic_provider_invoked"
+        ] is True
         assert len(semantic_provider.calls) == 1
         assert "PX-200" in product["response"]
         assert refund_precheck["outcome"] == "needs_input"

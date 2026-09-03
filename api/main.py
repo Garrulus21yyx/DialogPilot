@@ -994,6 +994,7 @@ class ChatResponse(BaseModel):
     task_plan: Dict[str, Any] = Field(default_factory=dict)
     coverage: Dict[str, Any] = Field(default_factory=dict)
     execution_budget: Dict[str, Any] = Field(default_factory=dict)
+    evaluation_trace: Dict[str, Any] = Field(default_factory=dict)
     tool_audit: List[Dict[str, Any]] = Field(default_factory=list)
     memory_retrieval: List[Dict[str, Any]] = Field(default_factory=list)
     escalated:   bool

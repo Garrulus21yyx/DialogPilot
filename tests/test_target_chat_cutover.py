@@ -142,6 +142,14 @@ def test_target_chat_direct_order_path_publishes_once_and_replays():
     assert first.response["routing_disposition"] == "direct"
     assert first.response["verified"] is True
     assert "已发货" in first.response["response"]
+    trace = first.response["evaluation_trace"]
+    assert tuple(trace) == (
+        "schema_version", "trigger", "artifact", "consumption",
+        "state_side_effect", "outcome", "cost",
+    )
+    assert trace["artifact"]["route_mode"] == "DIRECT"
+    assert trace["consumption"]["work_items"][0]["control_mode"] == "DIRECT"
+    assert trace["cost"]["semantic_provider_invoked"] is False
     assert len(tools.calls) == 1
     assert tools.calls[0][3]["user_id"] == "user-a"
     assert tools.calls[0][1] == {"order_id": "DP1234"}
@@ -203,6 +211,7 @@ def test_http_chat_function_projects_target_completed_response(monkeypatch):
     assert response.response_id.startswith("response:")
     assert response.routing_disposition == "direct"
     assert response.verified is True
+    assert response.evaluation_trace["outcome"]["verifier_status"] == "PASS"
 
 
 def test_postgres_target_admission_binds_without_legacy_start_outbox(
