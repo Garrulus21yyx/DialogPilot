@@ -2,3 +2,7 @@
 -r requirements-rag-eval.txt
 pytest==8.3.5
 testcontainers[postgres]==4.15.0
+
+# Command-encoder artifact export/load tests; the online runtime stays optional.
+scikit-learn==1.9.0
+joblib==1.5.3
