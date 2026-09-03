@@ -12,12 +12,21 @@ from application.turn_state import TurnStateSnapshot
 from application.turn_understanding import CommandKind
 
 
-COMMAND_ROUTER_PROMPT_VERSION = "structured-command-router-prompt-v1"
+COMMAND_ROUTER_PROMPT_VERSION = "structured-command-router-prompt-v3"
 _SYSTEM_PROMPT = """You convert one customer turn into command proposals.
 Return exactly one JSON object and no surrounding text.
 The root keys must be exactly: status, commands.
 status must be RESOLVED, CLARIFY, or NO_SUPPORTED_FLOW.
 commands must be empty unless status is RESOLVED.
+Use CLARIFY when the request could match a registry objective but an essential
+referent, target, asset, or piece of context is missing or ambiguous.
+Use NO_SUPPORTED_FLOW only when the request is sufficiently complete to
+understand and is clearly outside every registry objective.
+Assess missing or ambiguous context before scope. If an essential reference is
+absent, choose CLARIFY rather than inferring scope from the incomplete request.
+Do not choose a work command when it depends on a state or asset reference that
+is absent from the supplied state. Do not choose a knowledge command while an
+unresolved reference prevents a self-contained knowledge query.
 Each command must have exactly these keys:
 kind, source_flow_instance_id, target_flow_id, target_flow_version.
 Use null for a flow field that the command does not require.
