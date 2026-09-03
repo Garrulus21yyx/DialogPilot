@@ -127,8 +127,10 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 - [x] Run all four predeclared Knowledge chunk profiles on the already-viewed
   Doc2Dial heldout only as `DIAGNOSTIC_ONLY`; do not use those results to choose
   a configuration.
-- [ ] Select the Knowledge chunk profile on the designated Doc2Dial Dev using the
+- [x] Select the Knowledge chunk profile on the designated Doc2Dial Dev using the
   predeclared All-evidence → Evidence Recall ordering.
+- [ ] Capture lexical/dense Top-40 once for the selected `fixed-512-64` profile,
+  replay the predeclared fusion grid offline, and freeze one candidate policy.
 - [x] Run one positive contract through the real `ChatApplication.handle()`.
 - [x] Prove the existing L1 media transport through the real chat lifecycle;
   keep it labelled as transport evidence, not command-primary media closure.
@@ -312,7 +314,13 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   profiles with one BGE-M3 profile and candidate policy. Structure 384/48 led
   Evidence/Document Recall; fixed 512/64 led MRR/nDCG. Because the heldout was
   observed and the metrics disagree, all four results are
-  `DIAGNOSTIC_ONLY`; selection has moved to untouched Doc2Dial Dev.
+  `DIAGNOSTIC_ONLY`; selection has moved to the designated Doc2Dial Dev split.
+- 2026-09-03: The designated Doc2Dial Dev selection ran all four profiles over
+  300 cases with zero system failures. `fixed-512-64` won the predeclared first
+  criterion with All-evidence `140/300=.4667` and also led Evidence Recall
+  (`.4700`), MRR (`.3064`), and nDCG (`.3470`). It is frozen only for the next
+  fusion experiment, not deployed. Its one-run P95 (`564.18ms`) is treated as
+  anomalous and must be remeasured before any SLO claim.
 - 2026-09-03: The Memory benchmark audit separated public conversation-session
   retrieval from production ServiceEpisode semantics. LoCoMo and LongMemEval
   do not contain resolved cases with accepted authoritative outcomes and must

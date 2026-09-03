@@ -310,6 +310,23 @@ fixed 512/64 的 MRR/nDCG 更高，且数据已被查看。因此不从这些数
 选 winner。正式选择必须在 Doc2Dial Dev 按预声明的 All-evidence Recall@20
 → Evidence Recall@20 字典序完成，然后才能冻结 Chunk 并进入融合调参。
 
+2026-09-03 的 designated Dev/current-pipeline selection 已按这一规则运行。
+四组共享 corpus SHA `89a8828b…281`、cases SHA `f0e282d4…363`、BGE profile
+`9cae2189…824` 和 candidate policy `945b2231…10a`，每组均为 300/300
+predictions、system failure 0：
+
+| Chunk profile | chunks | All-evidence@20 | Evidence R@20 | Document R@20 | MRR | nDCG | P95 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| structure 256/32 | 589 | `131/300=.4367` | `.4456` | `.6067` | `.2717` | `.3144` | `159.62ms` |
+| structure 384/48 | 399 | `136/300=.4533` | `.4567` | `.6067` | `.2738` | `.3178` | `147.56ms` |
+| structure 512/64 | 314 | `138/300=.4600` | `.4633` | `.5667` | `.2993` | `.3399` | `168.76ms` |
+| fixed 512/64 | 314 | **`140/300=.4667`** | **`.4700`** | `.5767` | **`.3064`** | **`.3470`** | `564.18ms` |
+
+按预声明字典序，`fixed 512/64` 在第一个指标已胜出，因此成为
+下一阶段融合调参的唯一 Chunk 候选。这不是线上默认切换；还需要融合、
+query、selection/packing 与 frozen heldout/E2E 门禁。该组 P95 的单次异常不改变
+已声明的质量选择顺序，但在 SLO 结论前必须独立复测。
+
 实际调用必须从 retriever result、Stage 与 E2E audit 读取；Evaluator adapter 不得临时建立另一套内存检索链拿分。
 
 ## 12. 通过条件
