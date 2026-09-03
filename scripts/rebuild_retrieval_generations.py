@@ -28,8 +28,14 @@ from infrastructure.knowledge_embedding import (  # noqa: E402
     LocalHashKnowledgeEmbeddingBaseline,
 )
 from infrastructure.postgres import PostgresPool, PostgresPoolConfig  # noqa: E402
+from infrastructure.postgres_case_resolution_episode import (  # noqa: E402
+    PostgresCaseResolutionEpisodeProjector,
+)
 from infrastructure.postgres_knowledge_store import (  # noqa: E402
     PostgresKnowledgeStore,
+)
+from infrastructure.postgres_service_episode import (  # noqa: E402
+    PostgresServiceEpisodeRepository,
 )
 from infrastructure.retrieval_runtime import (  # noqa: E402
     RetrievalRuntime,
@@ -42,6 +48,7 @@ class _Owners:
     pool: PostgresPool
     knowledge: KnowledgeGenerationOwner | None
     service_episode: ServiceEpisodeGenerationOwner | None
+    service_episode_projector: PostgresCaseResolutionEpisodeProjector | None
     retrieval_runtime: RetrievalRuntime | None
 
     def close(self) -> None:
@@ -114,6 +121,13 @@ def _compose(corpus: str, env: Mapping[str, str]) -> _Owners:
         service_episode=(
             runtime.service_episode_generations if runtime is not None else None
         ),
+        service_episode_projector=(
+            PostgresCaseResolutionEpisodeProjector(
+                pool,
+                PostgresServiceEpisodeRepository(pool),
+            )
+            if runtime is not None else None
+        ),
         retrieval_runtime=runtime,
     )
 
@@ -124,6 +138,13 @@ async def _execute(
     generation_id: str | None,
     owners: _Owners,
 ) -> dict[str, object]:
+    projected_service_episodes = 0
+    if corpus in {"service_episode", "all"}:
+        if owners.service_episode_projector is None:
+            raise ValueError("ServiceEpisode source projector is required")
+        projected_service_episodes = _project_all_pending(
+            owners.service_episode_projector
+        )
     results = await rebuild_selected_generations(
         corpus,
         knowledge=owners.knowledge,
@@ -132,8 +153,18 @@ async def _execute(
     )
     return {
         "corpus": corpus,
+        "projected_service_episodes": projected_service_episodes,
         "results": [result.to_dict() for result in results],
     }
+
+
+def _project_all_pending(
+    projector: PostgresCaseResolutionEpisodeProjector,
+) -> int:
+    projected = 0
+    while batch := projector.project_pending(limit=500):
+        projected += len(batch)
+    return projected
 
 
 def main(argv: Sequence[str] | None = None) -> int:

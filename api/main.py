@@ -76,6 +76,10 @@ from application.chat_application import (
     ChatServices,
     Completed,
 )
+from api.ticket_resolution import (
+    TicketResolutionAcceptRequest,
+    accept_ticket_resolution_request,
+)
 from application.authority_policy import AuthorityPolicyRegistry
 from application.hybrid_retrieval import RetrievalStatus
 from application.knowledge_retriever import (
@@ -2306,6 +2310,21 @@ async def update_ticket_status(
                 "target": exc.target.value,
             },
         ) from exc
+
+
+@app.post("/tickets/{ticket_id}/resolution", tags=["人工工单"])
+async def accept_ticket_resolution(
+    ticket_id: str,
+    body: TicketResolutionAcceptRequest,
+    principal: Principal = Depends(_admin_principal),
+):
+    """Accept a resolution as the authenticated, assigned case owner."""
+    return await accept_ticket_resolution_request(
+        _ticket_service,
+        ticket_id,
+        body,
+        principal=principal,
+    )
 
 
 @app.post("/commitments", tags=["服务承诺"])

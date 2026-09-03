@@ -74,17 +74,34 @@ class _KnowledgeOwner:
 
 
 class _EpisodeOwner:
-    def __init__(self, old, new):
+    def __init__(self, old, new, calls):
         self.old = old
         self.new = new
+        self.calls = calls
         self.generation_ids: list[str] = []
 
     def active_generation(self):
         return self.old
 
     def rebuild_and_activate(self, generation_id):
+        self.calls.append("rebuild")
         self.generation_ids.append(generation_id)
         return SimpleNamespace(generation=self.new, episode_count=3)
+
+
+class _EpisodeProjector:
+    def __init__(self, calls):
+        self.calls = calls
+        self.batches = [
+            (SimpleNamespace(episode_id="episode-1"),),
+            (SimpleNamespace(episode_id="episode-2"),),
+            (),
+        ]
+
+    def project_pending(self, *, limit):
+        assert limit == 500
+        self.calls.append("project_pending")
+        return self.batches.pop(0)
 
 
 class _Pool:
@@ -113,12 +130,14 @@ def test_cli_rebuilds_both_generation_owners_and_reports_transition(
         model_version="revision-2",
     )
     knowledge = _KnowledgeOwner(old_knowledge, new_knowledge)
-    episode = _EpisodeOwner(old_episode, new_episode)
+    calls = []
+    episode = _EpisodeOwner(old_episode, new_episode, calls)
     pool = _Pool()
     owners = cli._Owners(
         pool=pool,
         knowledge=knowledge,
         service_episode=episode,
+        service_episode_projector=_EpisodeProjector(calls),
         retrieval_runtime=None,
     )
     monkeypatch.setattr(cli, "_compose", lambda _corpus, _env: owners)
@@ -129,8 +148,15 @@ def test_cli_rebuilds_both_generation_owners_and_reports_transition(
 
     payload = json.loads(capsys.readouterr().out)
     assert knowledge.ensure_calls == 1
+    assert calls == [
+        "project_pending",
+        "project_pending",
+        "project_pending",
+        "rebuild",
+    ]
     assert episode.generation_ids == ["episode-eval-v2"]
     assert pool.closed is True
+    assert payload["projected_service_episodes"] == 2
     assert [(item["old"]["generation_id"], item["new"]["generation_id"])
             for item in payload["results"]] == [
         ("knowledge-old", "knowledge-new"),
