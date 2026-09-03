@@ -48,8 +48,8 @@
 | Stage | Status | Deliverable | Verification | Commit |
 |---|---|---|---|---|
 | 0 | done | Repository audit and this implementation ledger | dirty-worktree and dependency audit | `f6ee532` |
-| 1 | done | New registry, work-item, agent-result, fact/evidence, and interaction contracts | 8 contract tests | stage-1 contract commit |
-| 2 | pending | Conversation state, workstreams, pending interaction, and deterministic resolver with CAS semantics | state-machine/property tests | pending |
+| 1 | done | New registry, work-item, agent-result, fact/evidence, and interaction contracts | 8 contract tests | `7682bf3` |
+| 2 | done | Conversation state, workstreams, pending interaction, and deterministic resolver with CAS semantics | 7 state-machine tests; 15 cumulative | stage-2 state commit |
 | 3 | pending | Turn policy/compiler producing direct, delegated, multi-domain, and workflow plans | compiler/policy tests | pending |
 | 4 | pending | Parent orchestration graph, direct runtime, delegated domain workers, result board, and partial failure | orchestration integration tests | pending |
 | 5 | pending | Governed write workflows, approval binding, operation keys, receipts, and reconciliation | write state-machine tests | pending |
@@ -75,3 +75,6 @@
 - Stage 0: `plans/target-architecture-v1-implementation-2026-09-03.md`
 - Stage 1: `application/capability_registry.py`, `application/work_item.py`,
   `application/agent_result.py`, `tests/test_target_architecture_contracts.py`
+- Stage 2: `application/conversation_state.py`,
+  `application/deterministic_resolution.py`,
+  `tests/test_conversation_state_resolution.py`
