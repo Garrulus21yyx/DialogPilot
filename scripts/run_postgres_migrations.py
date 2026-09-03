@@ -5,8 +5,14 @@ from __future__ import annotations
 import argparse
 import json
 import os
+from pathlib import Path
+import sys
 
-from infrastructure.postgres import PostgresMigrationRunner
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from infrastructure.postgres import PostgresMigrationRunner  # noqa: E402
 
 
 def main() -> int:

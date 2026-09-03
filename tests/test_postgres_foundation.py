@@ -1,5 +1,8 @@
 """M1-PF01 migration, pool and fail-closed integration contracts."""
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+import subprocess
+import sys
 
 import psycopg
 import pytest
@@ -12,6 +15,19 @@ from infrastructure.postgres import (
     PostgresPoolConfig,
     PostgresUnavailableError,
 )
+
+
+def test_migration_script_is_a_direct_cli_entrypoint():
+    root = Path(__file__).resolve().parents[1]
+    result = subprocess.run(
+        [sys.executable, "scripts/run_postgres_migrations.py", "--help"],
+        cwd=root,
+        capture_output=True,
+        check=False,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert "--database-url" in result.stdout
 
 
 def test_pool_config_requires_postgres_authority_and_valid_bounds():
