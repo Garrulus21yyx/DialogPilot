@@ -59,6 +59,7 @@
 | 9 | done | New ConversationManager, durable PostgreSQL event-backed state/operation adapters, and LangGraph checkpointer | 7 local persistence/resume tests; 61 cumulative; 1 real-PostgreSQL test skipped without database URL | `b0886a9` |
 | 10 | done | `/chat` read-path cutover to Target v1, synchronous target admission, trusted tool context, and removal of legacy fallback authority | 4 local HTTP/cutover tests; 65 cumulative; 2 real-PostgreSQL tests skipped without database URL | `b57e02f` |
 | 11 | done | Real PostgreSQL/HTTP six-scenario E2E, async checkpoint ownership, committed handoff workflow completion, and documentation convergence | 68 Target tests pass against PostgreSQL; repository suite 1120 passed / 6 unrelated dirty-RAG contract failures | this stage commit |
+| 12 | in progress | Refund approval/resume/write/reconciliation public lifecycle | contract audit complete; implementation pending | stage-12 contract commit |
 
 ## Stage record
 
@@ -143,3 +144,33 @@ API cutover, removal of duplicated authorities, and real boundary E2E.
   fallback; direct order work remains zero-agent; independent two-domain work is the
   only tested multi-worker shape; business state and operation receipts remain in
   PostgreSQL rather than LangGraph checkpoints.
+
+## Stage 12 positive contract — refund approval and resume
+
+1. The initial refund command creates one versioned `execute_refund:v1`
+   workstream and a stable operation identity; it cannot invoke the write tool.
+2. Eligibility must succeed before the conversation owner creates one
+   `PendingApprovalState` bound to workstream version, action, operation key,
+   target entity and target entity version.
+3. Publication emits an `InteractionRequestCommand`; a normal final response is
+   not an approval signal and cannot grant authority.
+4. A later authenticated `/chat` request carries an explicit approval decision
+   and signal identity. The deterministic resolver consumes it exactly once;
+   stale, cross-conversation and duplicate signals fail with typed conflicts.
+5. Only an approved consumed signal may construct an `ApprovalGrant`. Resume
+   reuses the original operation key and target version and continues the
+   existing workstream; it never starts a second workstream.
+6. Rejection cancels the workstream without calling `refund_request_create`.
+   Commit requires a typed Receipt; transport uncertainty enters reconciliation
+   and never blind-retries the write.
+7. LangGraph checkpoint remains execution-position state only. Pending approval,
+   operation state and Receipt remain PostgreSQL business facts.
+
+### Audit finding
+
+The current code has the state primitives but not the complete conversion
+boundary: `ChatRequest` carries no approval signal, `START_WORKFLOW` always emits a
+new START mutation, and `PendingApprovalState` does not retain target-version data
+needed to rebuild the original write contract. Connecting the write executor now
+would therefore create either an unbound grant or a second operation. Stage 12
+must migrate these contracts together rather than special-case the refund text.
