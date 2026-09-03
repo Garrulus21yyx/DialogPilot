@@ -3,18 +3,15 @@
 from __future__ import annotations
 
 import math
-import re
 import statistics
 import time
-from collections import Counter
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Mapping
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from evaluation.command_primary_eval.direct_runner import write_json, write_jsonl
 from evaluation.command_primary_eval.locomo_session_contracts import (
-    BenchmarkSessionDocument,
     LocomoSessionSlice,
     RankedSessionHit,
     SessionCandidateRetriever,
@@ -25,38 +22,7 @@ TOP_K = 5
 RUNNER_VERSION = "locomo-session-retrieval-eval-v1"
 CORPUS_SEMANTICS = "BENCHMARK_CONVERSATION_SESSION"
 PRODUCTION_SEMANTICS = "NOT_EVALUATED"
-
-
-class TokenOverlapSessionRetriever:
-    """Small deterministic CLI baseline; stronger retrievers use the same port."""
-
-    version = "token-overlap-session-baseline-v1"
-    _token = re.compile(r"[a-z0-9]+")
-
-    def retrieve(
-        self,
-        *,
-        query: str,
-        documents: Sequence[BenchmarkSessionDocument],
-        top_k: int,
-    ) -> Sequence[RankedSessionHit]:
-        query_terms = Counter(self._token.findall(query.casefold()))
-        ranked = []
-        for document in documents:
-            terms = Counter(self._token.findall(document.content.casefold()))
-            score = float(
-                sum(
-                    min(count, terms.get(term, 0))
-                    for term, count in query_terms.items()
-                )
-            )
-            ranked.append(RankedSessionHit(document.session_id, score))
-        return tuple(
-            sorted(
-                ranked,
-                key=lambda item: (-item.score, _session_number(item.session_id)),
-            )[:top_k]
-        )
+EVALUATION_ROLE = "DEV_DIAGNOSTIC"
 
 
 def evaluate_locomo_session_slice(
@@ -122,6 +88,7 @@ def evaluate_locomo_session_slice(
         "run_id": run_id,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "component": "public_memory_session_retrieval",
+        "evaluation_role": EVALUATION_ROLE,
         "corpus_semantics": CORPUS_SEMANTICS,
         "production_service_episode_semantics": PRODUCTION_SEMANTICS,
         "dataset": {
@@ -136,6 +103,7 @@ def evaluate_locomo_session_slice(
             "case_count": len(dataset.cases),
         },
         "candidate_retriever": {
+            **retriever.descriptor,
             "version": retriever.version,
             "top_k": TOP_K,
         },
@@ -165,6 +133,7 @@ def _report(run_id: str, predictions: list[dict[str, Any]]) -> dict[str, Any]:
         "runner_version": RUNNER_VERSION,
         "run_id": run_id,
         "run_status": "COMPLETED" if predictions else "NOT_RUN",
+        "evaluation_role": EVALUATION_ROLE,
         "evaluation_scope": "benchmark_conversation_session_candidate_retrieval",
         "corpus_semantics": CORPUS_SEMANTICS,
         "production_service_episode_semantics": PRODUCTION_SEMANTICS,
@@ -196,7 +165,3 @@ def _nearest_rank_percentile(values: list[float], quantile: float) -> float | No
         return None
     ordered = sorted(values)
     return ordered[max(0, math.ceil(quantile * len(ordered)) - 1)]
-
-
-def _session_number(session_id: str) -> int:
-    return int(session_id.removeprefix("S"))

@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from application.hybrid_retrieval import EmbeddingProfile, EmbeddingProviderKind
 from evaluation.command_primary_eval.locomo_session_adapter import (
     LOCOMO_CASE_COUNT,
     LOCOMO_DOCUMENT_COUNT,
@@ -20,9 +21,21 @@ from evaluation.command_primary_eval.locomo_session_contracts import (
 )
 from evaluation.command_primary_eval.locomo_session_eval import (
     CORPUS_SEMANTICS,
+    EVALUATION_ROLE,
     PRODUCTION_SEMANTICS,
     evaluate_locomo_session_slice,
 )
+from evaluation.command_primary_eval.locomo_session_retrievers import (
+    RRF_DENSE_WEIGHT,
+    RRF_K,
+    RRF_LEXICAL_WEIGHT,
+    RRF_SELECTION_STATUS,
+    DenseCosineSessionRetriever,
+    LexicalDenseRRFSessionRetriever,
+    TokenOverlapSessionRetriever,
+)
+from infrastructure.bge_m3_embedding import BGEM3EmbeddingConfigurationError
+from scripts.run_locomo_session_eval import _build_retriever, parse_args
 
 
 REVISION = "test-source-revision"
@@ -30,6 +43,14 @@ REVISION = "test-source-revision"
 
 class MappingRetriever:
     version = "mapping-retriever-test-v1"
+
+    @property
+    def descriptor(self) -> dict[str, object]:
+        return {
+            "kind": "mapping_test",
+            "embedding_profile": None,
+            "fusion": None,
+        }
 
     def __init__(self, rankings: dict[str, tuple[str, ...]]) -> None:
         self._rankings = rankings
@@ -101,6 +122,14 @@ def test_pinned_single_hop_slice_and_three_artifacts(tmp_path: Path) -> None:
 
     assert manifest["corpus_semantics"] == CORPUS_SEMANTICS
     assert manifest["production_service_episode_semantics"] == PRODUCTION_SEMANTICS
+    assert manifest["evaluation_role"] == EVALUATION_ROLE
+    assert manifest["candidate_retriever"] == {
+        "embedding_profile": None,
+        "fusion": None,
+        "kind": "mapping_test",
+        "top_k": 5,
+        "version": MappingRetriever.version,
+    }
     assert manifest["dataset"] == {
         "case_count": 70,
         "category": 4,
@@ -123,6 +152,72 @@ def test_pinned_single_hop_slice_and_three_artifacts(tmp_path: Path) -> None:
     assert persisted == report
 
 
+def test_dense_cosine_uses_one_profile_and_caches_document_vectors() -> None:
+    provider = FakeVectorProvider()
+    retriever = DenseCosineSessionRetriever(provider)
+    documents = _retriever_documents()
+
+    first = retriever.retrieve(query="dense target", documents=documents, top_k=2)
+    second = retriever.retrieve(query="dense target", documents=documents, top_k=2)
+
+    assert tuple(item.session_id for item in first) == ("S2", "S1")
+    assert second == first
+    assert provider.document_calls == [tuple(item.content for item in documents)]
+    assert provider.query_calls == [("dense target",), ("dense target",)]
+    assert retriever.descriptor["embedding_profile"] == {
+        "provider": FAKE_PROFILE.provider,
+        "provider_kind": "MODEL",
+        "model": FAKE_PROFILE.model,
+        "model_version": FAKE_PROFILE.model_version,
+        "dimension": 2,
+        "model_digest": "a" * 64,
+        "document_preprocessing": "raw-session-v1",
+        "query_preprocessing": "raw-question-v1",
+        "fingerprint": FAKE_PROFILE.fingerprint,
+    }
+
+
+def test_fixed_rrf_combines_lexical_and_dense_without_recency() -> None:
+    retriever = LexicalDenseRRFSessionRetriever(
+        DenseCosineSessionRetriever(FakeVectorProvider())
+    )
+
+    hits = retriever.retrieve(
+        query="needle",
+        documents=_retriever_documents(),
+        top_k=3,
+    )
+
+    assert tuple(item.session_id for item in hits) == ("S1", "S2", "S3")
+    assert retriever.descriptor["fusion"] == {
+        "method": "weighted_rrf",
+        "rrf_k": RRF_K,
+        "weights": {
+            "lexical": RRF_LEXICAL_WEIGHT,
+            "dense": RRF_DENSE_WEIGHT,
+            "recency": None,
+        },
+        "selection_status": RRF_SELECTION_STATUS,
+    }
+
+
+def test_cli_defaults_to_token_overlap_and_bge_fails_without_pin(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    args = parse_args(["--dataset", "input.json", "--output", "results"])
+    assert args.retriever == "token_overlap"
+    assert isinstance(_build_retriever(args.retriever), TokenOverlapSessionRetriever)
+
+    for name in (
+        "BGE_M3_LOCAL_MODEL_PATH",
+        "BGE_M3_MODEL_REVISION",
+        "BGE_M3_MODEL_SHA256",
+    ):
+        monkeypatch.delenv(name, raising=False)
+    with pytest.raises(BGEM3EmbeddingConfigurationError, match="missing BGE-M3"):
+        _build_retriever("bge_m3")
+
+
 def test_source_checksum_is_mandatory(tmp_path: Path) -> None:
     source = tmp_path / "locomo10.json"
     source.write_text("[]", encoding="utf-8")
@@ -132,6 +227,59 @@ def test_source_checksum_is_mandatory(tmp_path: Path) -> None:
             source,
             source=LocomoSourcePin(REVISION, "0" * 64),
         )
+
+
+FAKE_PROFILE = EmbeddingProfile(
+    provider="fake-vector-provider",
+    provider_kind=EmbeddingProviderKind.MODEL,
+    model="fake-multilingual-bi-encoder",
+    model_version="revision-1",
+    dimension=2,
+    model_digest="a" * 64,
+    document_preprocessing="raw-session-v1",
+    query_preprocessing="raw-question-v1",
+)
+
+
+class FakeVectorProvider:
+    profile = FAKE_PROFILE
+
+    def __init__(self) -> None:
+        self.document_calls: list[tuple[str, ...]] = []
+        self.query_calls: list[tuple[str, ...]] = []
+
+    def embed_documents(self, texts: tuple[str, ...]) -> list[list[float]]:
+        self.document_calls.append(tuple(texts))
+        vectors = {
+            "needle is in this session": [0.0, 1.0],
+            "dense candidate": [1.0, 0.0],
+            "unrelated": [-1.0, 0.0],
+        }
+        return [vectors[text] for text in texts]
+
+    def embed_queries(self, texts: tuple[str, ...]) -> list[list[float]]:
+        self.query_calls.append(tuple(texts))
+        return [[1.0, 0.0] for _ in texts]
+
+
+def _retriever_documents() -> tuple[BenchmarkSessionDocument, ...]:
+    return tuple(
+        BenchmarkSessionDocument(
+            conversation_id="conv-test",
+            session_id=f"S{index}",
+            occurred_at=f"{index} January, 2026",
+            content=content,
+            source_refs=(f"D{index}:1",),
+        )
+        for index, content in enumerate(
+            (
+                "needle is in this session",
+                "dense candidate",
+                "unrelated",
+            ),
+            start=1,
+        )
+    )
 
 
 def _source_payload() -> list[dict[str, object]]:

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -65,6 +65,9 @@ class RankedSessionHit:
 
 class SessionCandidateRetriever(Protocol):
     version: str
+
+    @property
+    def descriptor(self) -> Mapping[str, object]: ...
 
     def retrieve(
         self,
