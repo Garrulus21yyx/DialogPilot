@@ -187,6 +187,19 @@ command-primary 发布 OOS 规则终态，不会回落旧 Intent。
 Dev slice 的改进外推成合同成绩。其余 60 条以及完整 100 turns 仍为
 `NOT_RUN`；新的质量验收必须使用独立冻结的 conversation-heldout 数据。
 
+当前可运行覆盖需要按装配层次分开：
+
+| 层次 | cases / turns | 真实状态 |
+|---|---:|---|
+| structured eval composition | `20/80` / `20/100` | L0 CLARIFY 已运行，viewed Dev `13/20` |
+| transport only | `20/80` / `20/100` | Policy/Tool、Continuity、Memory、Handoff fixture 尚未 hydrate |
+| attachment path unsupported by locked adapter | `40/80` / `60/100` | Media+Knowledge/L2/reuse Work 与 fixture 尚未闭环 |
+
+显式生产 `structured_knowledge_primary` 现在也接管现有 CLARIFY terminal；
+Product-a 10 条经真实 provider 为 `10/10`，所有禁止能力仍未调用。默认 mode
+仍为 `off`。这把一个正向 slice 从评测专用装配移到实际 composition，但完整
+合同 manifest 仍是 `NOT_RUN`，不得写成 `10/80` 或 `13/80`。
+
 ## 7. τ³
 
 `tau3_adapter.py` 只做：

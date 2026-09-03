@@ -187,7 +187,7 @@ state/deterministic
 → AlwaysDeferCommandEncoder
 → StructuredLLMCommandProducer
 → RoutePolicy / Registry
-→ Knowledge Work
+→ Knowledge Work or CLARIFY terminal
 → ChatApplication publication lifecycle
 ```
 
@@ -195,6 +195,12 @@ state/deterministic
 correctness baseline。真实 `ChatApplication.handle()` 正向测试已证明旧
 `recognize_intent()` 调用为 0。默认模式仍是 `off`，并未将该切片扩大到
 写操作、安全或全部 Flow。
+
+该显式 structured mode 现已让现有 `CLARIFY` 与 `KNOWLEDGE_QA` 一样成为
+primary terminal；普通 `knowledge_primary` 仍只接管 Knowledge，shadow 与默认
+off 不变。Product-a 的 10 条已查看 Dev 通过实际 structured composition 得到
+`10/10`，provider calls/errors 为 `10/0`，Knowledge、Media 和 Tool 均保持禁止。
+这证明 composition 接通，不把该 viewed slice 当作新 heldout 或完整 80 分数。
 
 2026-09-03 又在锁定合同的 20 条无附件 L0 澄清 slice 上执行了一个真实
 `DEV_CONTRACT_DIAGNOSTIC`。每条都由 `AlwaysDeferCommandEncoder` 进入

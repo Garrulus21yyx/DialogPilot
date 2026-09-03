@@ -467,6 +467,12 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   legacy `other`. Existing calibration/verification inputs have already been
   consumed and their workspace replay is only a legacy integrity regression,
   not an official score or command-primary promotion gate.
+- 2026-09-03: The explicit structured production composition now accepts the
+  existing CLARIFY terminal in addition to Knowledge. Default off, shadow, and
+  legacy Knowledge-only behavior are unchanged. Product-a's ten viewed Dev
+  cases ran `10/10` through the real provider with `10/0` calls/errors and no
+  Knowledge, Media, or Tool invocation. This proves one composition slice, not
+  a full `x/80` score.
 
 ## Commit log
 
@@ -519,3 +525,4 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 - Knowledge identity-selection and packing baseline: `0d3eecb`.
 - Accepted Case Owner to ServiceEpisode projection: `46734c0`.
 - Accepted resolution API and explicit projection drain: `2b7f5ff`.
+- Structured clarification production composition: `9854b54`.
