@@ -7,7 +7,7 @@
 
 ## 决策
 
-1. 生产关系数据库固定为 PostgreSQL 18；本地与 CI 使用官方 `postgres:18.1-alpine` 镜像。
+1. 生产关系数据库固定为 PostgreSQL 18；本地与 CI 使用固定的 `pgvector/pgvector:0.8.6-pg18-bookworm` 镜像，使迁移声明的 `vector` 扩展在验收环境真实可用。
 2. Python 驱动固定为 Psycopg 3.3.5 binary distribution，连接池固定为 psycopg-pool 3.3.1。
    在线代码只从进程级 pool 获取连接；数据库不可用时返回 typed unavailable 并 fail closed，禁止回退
    SQLite 或另一事实库。

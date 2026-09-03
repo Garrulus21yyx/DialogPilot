@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:18.1-alpine
+        image: pgvector/pgvector:0.8.6-pg18-bookworm
         env:
           POSTGRES_DB: dialogpilot_test
           POSTGRES_USER: dialogpilot
