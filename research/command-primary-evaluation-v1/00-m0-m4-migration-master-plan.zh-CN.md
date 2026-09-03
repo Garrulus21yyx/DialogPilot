@@ -126,7 +126,6 @@ STRONG_AUTH_REQUIRED
 
 ```text
 TurnStateSnapshot
-TurnObservations
 UnderstandingResult
 ContextResolutionRequest
 CommandProposal
@@ -134,29 +133,25 @@ ValidatedCommandPlan
 RouteDecisionV2
 FlowTransitionPlan
 WorkPlan
-CapabilityDecision
-CapabilityTrace
 ```
 
-`TurnObservations` 必须区分 `VERIFIED_STATE`、`PROTOCOL_ASSERTED`、`USER_ASSERTED`、`MEDIA_OBSERVED` 与 `DERIVED`，并保留 polarity、source ref 和 producer/version。
+生产合同只保留当前支持路径真正消费的状态、命令与计划。媒体、知识和历史证据继续使用各自已有的 Evidence artifact；在没有真实运行时 emitter 前，不另建一个汇总一切的 Observation/Trace 超类型。
 
-### 5.2 调用决策与实际调用分开
+### 5.2 评测中的计划与实际使用分开
 
 ```text
-CapabilityDecision:
-  REQUIRED | ALLOWED | FORBIDDEN | NOT_APPLICABLE
-
-CapabilityTrace:
-  INVOKED | REUSED | SKIPPED | DEGRADED | FAILED
+expected invocation
+  与
+actual direct/runtime result
 ```
 
-Trace 由生产 Owner 发出，Evaluator 只比较。每条 Trace 至少包含 request/span/attempt、reason/outcome code、policy/producer/model/index version、artifact/evidence refs、latency 与 token usage。Fingerprint 用于一致性，不能替代可评分 artifact。
+直接评测 adapter 记录 Trigger、Artifact、Consumption、Outcome 与 Cost；E2E adapter 读取现有 Stage、tool audit、state version、Evidence 和 Publication。Evaluator 只比较，不反向制造生产状态。以后只有真实 runtime owner 需要跨能力 trace 时才增加窄事件，不先把所有能力塞入共享 DTO。
 
 ### 5.3 M1 出口
 
-- 旧主链也能发出相同格式的 Trace，形成 paired baseline；
+- legacy 与 command-primary 对同一 case 产出可比较的评测记录；
 - Understanding、Knowledge、Memory、Media 有直接 Port adapter；
-- 每次运行统一写 manifest、case results、traces 和 report；
+- 每次运行统一写 manifest、predictions 和 report；
 - 所有版本和数据 provenance 可重放。
 
 ## 6. M2：入口改为 state-first、command-primary

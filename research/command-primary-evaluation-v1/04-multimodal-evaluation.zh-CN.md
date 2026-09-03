@@ -236,7 +236,7 @@ Oracle page/region 只给出生成上限，不能当完整检索成绩。OmniDoc
 - manifest；
 - asset/page/region case results；
 - Perception artifacts/EvidencePack refs；
-- CapabilityDecision/Trace；
+- expected invocation 与来自 probe/perception/cache 的实际观测；
 - tier/reuse/grounding report；
 - 官方 evaluator 原始结果。
 

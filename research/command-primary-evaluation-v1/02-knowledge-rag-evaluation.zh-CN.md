@@ -39,12 +39,12 @@ KnowledgeEvidencePack
 
 不是把旧实验原样再跑一遍。旧结果继续保留为 `HISTORICAL_BASELINE`，新实验的目的则是建立 `CURRENT_PRODUCTION_BASELINE`。
 
-必须重建的原因：
+历史基线仍需在当前实现上重建的原因：
 
-1. 当前 PostgreSQL Dense 默认仍为 384 维 hash embedding；
-2. 文档侧 Dense 输入使用中文预分词后的 `lexical_document`，查询侧使用原始 query，输入合同不对称；
-3. 换成真实 BGE-M3 后，chunk 长度、overlap、标题上下文对相似度分布和 Candidate Recall 的影响会改变；
-4. PG FTS、pgvector、过滤、stable ID、generation 与旧实验主链并不完全相同；
+1. 历史报告产生时，PostgreSQL Dense 仍是 384 维 hash baseline；
+2. 历史报告产生时，文档 Dense 与查询输入合同不对称；该实现缺口现已修复，但旧分数不会因此自动成为新分数；
+3. 真实 BGE-M3 下，chunk 长度、overlap、标题上下文对相似度分布和 Candidate Recall 的影响会改变；
+4. 当前 PG FTS、pgvector、过滤、stable ID、generation 与旧实验主链并不完全相同；
 5. 旧实验主要回答“某组历史数据上哪种设置更好”，不能证明中英文、code-switch 和长文档下的新生产组合仍成立。
 
 因此执行方式是：
@@ -84,6 +84,8 @@ Dense 绝不能继续使用 `lexical_document`。Query 和 Document 必须使用
 - manifest checksum。
 
 旧 hash generation 仅作 baseline，不允许改 metadata 冒充 BGE-M3。
+
+截至 2026-09-03，代码已完成 document/query provider 对称、完整 profile 持久化、本地权重 SHA-256 校验和显式 generation rebuild。开发 PostgreSQL 已激活一个包含 6 个默认文档 chunk 的 1024 维 BGE-M3 generation；中文退款查询和英文配送查询均在真实 pgvector/FTS candidate 路径得到正确 Top-1。它是链路冒烟证据，不是 heldout 质量分数。正式评测仍需用冻结语料重新建 generation，并在 manifest 中记录 provider/profile/generation。
 
 ### 3.3 Evidence gold
 
@@ -248,10 +250,10 @@ CrossEncoder 与 Parent/Window 只在各自触发条件成立后作为第二轮�
 
 ## 9. Trigger 与 Consumption
 
-E2E case 声明：
+E2E case 声明预期调用：
 
 ```text
-Knowledge CapabilityDecision:
+Knowledge invocation:
   REQUIRED | FORBIDDEN | NOT_APPLICABLE
 ```
 
@@ -290,7 +292,7 @@ SourceRevision ingest
 → KnowledgeEvidencePack
 ```
 
-输出 manifest、query/candidate capture、case results、evidence packs、CapabilityTrace 和 report。Evaluator adapter 不得临时建立另一套内存检索链拿分。
+输出 manifest、query/candidate capture、predictions、EvidencePack 明细和 report。实际调用从 retriever result、Stage 与 E2E audit 读取；Evaluator adapter 不得临时建立另一套内存检索链拿分。
 
 ## 12. 通过条件
 

@@ -25,24 +25,24 @@ REQUIRED
 
 不能只看最终答案，因为模型可能猜对答案掩盖检索失败，也可能回答正确但已经发生禁止调用或错误副作用。
 
-## 2. CapabilityDecision 与 CapabilityTrace
+## 2. 预期调用与实际观测
 
 ### 2.1 预期/运行时决策
 
 ```text
-CapabilityDecision:
+expected invocation:
   REQUIRED
   ALLOWED
   FORBIDDEN
   NOT_APPLICABLE
 ```
 
-Decision 由 Route/WorkItem contract 的生产 Owner 编译；测试 case 另有 expected decision，用于比较。
+Route/WorkItem contract 决定生产计划；测试 case 另有 expected invocation，用于比较。二者是不同 artifact，Evaluator 不能把测试期望注入生产计划。
 
 ### 2.2 实际观测
 
 ```text
-CapabilityTrace:
+actual observation:
   INVOKED
   REUSED
   SKIPPED
@@ -50,7 +50,7 @@ CapabilityTrace:
   FAILED
 ```
 
-Trace 至少包含：
+实际观测优先复用已有 Stage、Evidence、tool audit、state version、Publication 和 provider result，并至少汇总：
 
 ```text
 request/invocation/span/attempt
@@ -62,7 +62,7 @@ producer/policy/model/index versions
 latency_ms + token_usage
 ```
 
-`REUSED` 用于旧媒体 observation 或缓存 artifact；`DEGRADED` 用于有明确受控 fallback 的结果。`FAILED` 与 `NO_EVIDENCE` 不得混同。Trace 由真实组件/执行器发出，Evaluator 不得根据最终回答反推。
+`REUSED` 用于旧媒体 observation 或缓存 artifact；`DEGRADED` 用于有明确受控 fallback 的结果。`FAILED` 与 `NO_EVIDENCE` 不得混同。Evaluator 不得根据最终回答反推调用；也不要求生产代码预先实现一个汇总所有能力的 Trace 超类型。
 
 ## 3. E2E case 必须断言什么
 
@@ -72,7 +72,7 @@ latency_ms + token_usage
 2. Understanding/Validated commands；
 3. RouteDecision；
 4. FlowTransitionPlan 与 state after；
-5. CapabilityDecision vs Trace；
+5. expected invocation vs actual observation；
 6. Evidence artifact 与 Consumption；
 7. Tool/action side effects；
 8. Publication、Delivery 与 authoritative events。
@@ -92,7 +92,7 @@ expected:
   commands:
     - continue_flow: refund_status
   flow_mutations:
-    - kind: KEEP
+    - kind: ADVANCE
       expected_version: 4
   route:
     mode: AGENT_TASK

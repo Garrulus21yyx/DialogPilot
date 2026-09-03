@@ -1,6 +1,6 @@
 # DialogPilot command-primary 迁移与评测专题
 
-状态：`DRAFT_FOR_IMPLEMENTATION`
+状态：`IMPLEMENTATION_IN_PROGRESS`
 基准日期：2026-09-03
 
 本目录把生产架构迁移、组件评测和最终端到端验收拆开记录。它不覆盖现有已发布文档，也不把历史实验重新解释成新架构的最终成绩。
@@ -31,11 +31,11 @@
 
 | 能力 | 可以复用 | 仍阻塞最终成绩 |
 |---|---|---|
-| Intent | V1/V2 capture、Encoder 训练与校准骨架、历史错误样本 | Flow/OOS 合同未统一；生产主链仍由旧 intent 驱动 |
-| Knowledge | Chunk、query、rerank、packing 指标与历史 artifacts | 当前 PG Dense 为 hash 且文档/查询输入不对称；需真实 BGE-M3 generation |
-| Memory | ServiceEpisode 生命周期、检索/证据合同、Commitment 独立 Owner | Turn State 与检索需要彻底分离；ServiceEpisode Dense projection 与目的化 policy 尚需冻结 |
-| Multimodal | 直接图片的 L0/L1/L2、asset/evidence 合同、本地 E2E | 完整 PDF/layout、视觉 page index、page/region retriever 尚未齐全 |
-| E2E | `ChatApplicationRunner`、Admission/CAS、Publication/Delivery 基础 | command-primary 主链、统一 Capability Trace、80 条真实 runner、τ³ bridge |
+| Intent | state-first planner、Registry、selective producer、历史 V1/V2 与旧 Encoder artifacts | 旧 9 类 artifact 不能充当 Command/Flow 头；需新标注、校准与 heldout 门禁 |
+| Knowledge | raw Dense/FTS 输入已分离；同一 provider/profile；本地 BGE-M3 generation 与中英文召回已打通 | 需在当前生产链上重跑 Chunk/融合/选择 heldout，并冻结评测运行环境 |
+| Memory | Turn State 已与 ServiceEpisode 检索分离；Dense projection、两套 purpose policy、generation manager 已接通 | 需非空 canonical eval corpus、LoCoMo 调参和 LongMemEval 冻结测试 |
+| Multimodal | 显式 routing probe、asset/evidence 合同、L1 chat transport | task-conditioned command-primary consumer、完整 PDF/layout 与 page/region retrieval 尚未闭环 |
+| E2E | 真实 `ChatApplication.handle()` 已跑通 Knowledge、sticky read-only 和 L1 transport 切片 | 80 条合同仍为 `NOT_RUN`；Intent/Media 门禁、Shadow 与 τ³ bridge 尚未完成 |
 
 ## 文档权威边界
 

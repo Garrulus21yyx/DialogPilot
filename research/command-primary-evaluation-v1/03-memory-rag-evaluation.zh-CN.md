@@ -106,7 +106,7 @@ Memory evidence 不得覆盖业务当前状态；需要当前事实时仍调用 
 7. `NO_EVIDENCE`、`BACKEND_UNAVAILABLE`、`INVALID_CONTRACT`、`CONFLICT` 分开；
 8. 建立 reference-resolution 与 historical-evidence 两套 policy；
 9. Commitment 当前状态由独立 Authority 提供；
-10. CapabilityDecision/Trace 区分未调用、复用、降级和失败。
+10. 直接评测记录请求 purpose、是否调用、retrieval typed status、证据消费和成本；E2E 再与期望调用比较，不另造一套 Memory 权威状态。
 
 ## 5. 为什么不能照抄 Knowledge RAG 权重
 
@@ -232,7 +232,7 @@ canonical ServiceEpisode projection
 → MemoryEvidencePack
 ```
 
-输出 manifest、candidate capture、case results、EvidencePack、CapabilityTrace 与 report。组件评测不得经过旧 Intent；Trigger/Consumption 和 E2E 才进入完整 `ChatApplication.handle()`。
+输出 manifest、predictions、EvidencePack 明细与 report。组件评测不得经过旧 Intent；Trigger/Consumption 和 E2E 才进入完整 `ChatApplication.handle()`。
 
 ## 11. 通过条件
 

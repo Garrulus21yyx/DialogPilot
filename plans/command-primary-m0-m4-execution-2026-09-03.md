@@ -93,8 +93,12 @@ Status: `IN_PROGRESS — READ-ONLY STICKY VERTICAL SLICE COMPLETE`
   activation owner; do not run it implicitly during application startup.
 - [x] Add one explicit pre-evaluation CLI that rebuilds only the selected
   Knowledge and/or ServiceEpisode generation and reports the pointer change.
-- [ ] Provision the pinned BGE-M3 artifact and rebuild/activate new immutable
-  Knowledge and ServiceEpisode generations before benchmark runs.
+- [x] Provision and verify the pinned local BGE-M3 artifact, then rebuild and
+  activate the development Knowledge generation through the explicit CLI.
+- [ ] Load a non-empty canonical ServiceEpisode evaluation corpus, then build
+  and activate its BGE-M3 generation before the Memory benchmark. The current
+  local canonical owner has zero episodes, so an empty generation is not
+  presented as readiness evidence.
 - [ ] Replace the temporary selective legacy candidate adapter with the frozen
   Encoder → LLM command producer after its component gate passes.
 
@@ -240,6 +244,16 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   indexed counts as JSON. It does not migrate schemas, download models, or run
   during application startup. CLI unit test: `1 passed`; adjacent real-
   PostgreSQL suite: `19 passed`.
+- 2026-09-03: The explicit CLI activated development Knowledge generation
+  `knowledge-generation-5c2770ace16dde4211f11c4b62852d46` with the verified
+  1024-dimensional BGE-M3 profile and 6 projected chunks. A real PostgreSQL
+  candidate smoke placed the refund policy Top-1 for a Chinese refund query and
+  delivery guidance Top-1 for an English delivery query. This is transport and
+  retrieval evidence, not a heldout score.
+- 2026-09-03: Optional Knowledge product scope now has one retrieval-side
+  representation: blank input is canonicalized to `None` (no product filter).
+  This closed the mismatch between canonical manifest `''` and projected search
+  `NULL`; focused real-PostgreSQL suite: `34 passed`.
 
 ## Commit log
 
@@ -258,3 +272,9 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 - Stage 3 independent dense-provider rollout: `8ec08e1`.
 - Stage 4 locked synthetic contract: `0706d41`.
 - Stage 4 real-chat E2E slice: `e22839c`.
+- Stage 3 ServiceEpisode generation activation: `abb0fdb`.
+- Stage 3 pinned BGE-M3 artifact verification: `12288d4`.
+- Intent deterministic-boundary documentation: `23e1573`.
+- Stage 4 current L1 media transport: `acf0478`.
+- Stage 3 explicit generation rebuild CLI: `429cfe8`.
+- Stage 3 Knowledge optional-scope canonicalization: `e3d4855`.
