@@ -1,6 +1,6 @@
 # 多模态迁移与评测
 
-状态：`DRAFT_FOR_IMPLEMENTATION`
+状态：`PROJECT_L1_DIAGNOSTIC_COMPLETE — PUBLIC_BENCHMARK_NOT_RUN`
 目标：分别验证媒体是否应处理、处理到哪个层级、产生什么可定位证据、下游是否正确消费，以及媒体证据是否遵守业务权威边界。
 
 ## 1. 在线职责与两阶段结构
@@ -239,6 +239,23 @@ Oracle page/region 只给出生成上限，不能当完整检索成绩。OmniDoc
 - expected invocation 与来自 probe/perception/cache 的实际观测；
 - tier/reuse/grounding report；
 - 官方 evaluator 原始结果。
+
+### 11.1 当前已执行范围
+
+`run_media_eval.py` 已复用现有 `RoutingMediaProbe`、
+`TieredPerceptionService` 与统一三产物 writer，在锁定项目素材
+`dp-screen-03` 上调用本地 Tesseract 5.5.0 跑通一条整页 L1 正向链：
+
+- OCR provider 调用 `1` 次，VLM 与业务工具均未调用；
+- Trigger、Artifact、Consumption、Outcome 均通过；
+- prediction 保存 asset checksum、page locator、producer/version 和
+  observation 文本摘要，而不保存原始 OCR 文本；
+- manifest 明确记录 `score_role=PROJECT_DIAGNOSTIC`、
+  `locked_contract_score_eligible=false`、`official_benchmarks=NOT_RUN`。
+
+这只证明整页 OCR artifact 能被真实产生并消费。当前
+`MediaRequirementBinding.region_key` 尚未进入 OCR port，因此它不是区域定位、
+连续图片复用、80 条合同或 OmniDocBench/ViDoRe/PM209 成绩。
 
 ## 12. 通过条件
 

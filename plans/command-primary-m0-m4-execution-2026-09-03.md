@@ -137,6 +137,8 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 - [x] Run one positive contract through the real `ChatApplication.handle()`.
 - [x] Prove the existing L1 media transport through the real chat lifecycle;
   keep it labelled as transport evidence, not command-primary media closure.
+- [x] Run one locked, asset-level L1 fixture with the real local Tesseract
+  provider and record grounding plus consumption as `PROJECT_DIAGNOSTIC`.
 - [ ] Seed and run the locked 80-case contract set; its current run status is
   deliberately `NOT_RUN`.
 - [x] Run one locked L0 input through the real clarification publication path
@@ -340,6 +342,17 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   cosine, and fixed lexical+dense RRF. Their Recall-all@5 values were `.9143`,
   `.8714`, and `.9286`; RRF MRR was `.7767`. All manifests say
   `DEV_DIAGNOSTIC` and `production_service_episode_semantics=NOT_EVALUATED`.
+- 2026-09-03: The production ServiceEpisode corpus audit found one reusable
+  synthetic canonical transport fixture but zero lifecycle-backed evaluation
+  episodes with a real Case Owner acceptance receipt and resolvable source
+  events. It remains valid for canonical commit/projection/generation smoke,
+  but no production Memory retrieval score will be reported from it.
+- 2026-09-03: The locked `dp-screen-03` asset ran through the real local
+  Tesseract 5.5.0 provider. Trigger, artifact, consumption, and outcome all
+  passed; one OCR call produced grounded page-level provenance and all declared
+  ASCII observation fragments were consumed. The manifest states
+  `PROJECT_DIAGNOSTIC`, `locked_contract_score_eligible=false`, and
+  `official_benchmarks=NOT_RUN`; region selection remains out of scope.
 
 ## Commit log
 
@@ -381,3 +394,5 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 - Structured correctness mode documentation: `264946a`.
 - Knowledge Dev chunk selection: `83b3a8d`.
 - LoCoMo BGE/RRF diagnostics: `036cee0`.
+- Structured-command optional-dependency repair: `71075c1`.
+- Grounded L1 project diagnostic: `c24603f`.
