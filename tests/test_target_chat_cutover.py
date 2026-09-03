@@ -2,7 +2,7 @@ import asyncio
 import inspect
 from types import SimpleNamespace
 
-from application.chat_application import ChatCommand, Completed
+from application.chat_application import ChatCommand, Completed, Failed
 from application.conversation_state import InMemoryConversationStateStore
 from application.default_capability_registry import build_default_capability_registry
 from application.orchestration_runtime import OrchestrationRuntime
@@ -13,6 +13,10 @@ from application.target_chat_application import (
     TargetChatApplication,
 )
 from application.target_conversation_manager import TargetConversationManager
+from application.structured_target_router import (
+    CascadedTargetUnderstanding,
+    StructuredTargetCommandRouter,
+)
 from application.target_understanding import BoundedTargetUnderstanding
 from core.identity import IdentityFactory
 from infrastructure.target_tool_execution import TargetToolExecutor
@@ -88,14 +92,14 @@ class _ToolManager:
         )
 
 
-def _application():
+def _application(understanding=None):
     tools = _ToolManager()
     executor = TargetToolExecutor(tools)
     registry = build_default_capability_registry("tenant-a")
     manager = TargetConversationManager(
         state_store=InMemoryConversationStateStore(),
         registry=registry,
-        understanding=BoundedTargetUnderstanding(),
+        understanding=understanding or BoundedTargetUnderstanding(),
         orchestration=OrchestrationRuntime(
             direct_executor=executor,
             domain_workers={
@@ -111,6 +115,13 @@ def _application():
         bundle_version=registry.bundle_version,
         identity_factory=IdentityFactory(lambda: "generated"),
     ), tools
+
+
+class _FailingSemanticProvider:
+    version = "failing-semantic-provider-test-v1"
+
+    async def route(self, payload):
+        raise TimeoutError("provider unavailable")
 
 
 def test_target_chat_direct_order_path_publishes_once_and_replays():
@@ -144,6 +155,23 @@ def test_target_chat_unclear_request_uses_zero_tool_clarification():
 
     assert isinstance(outcome, Completed)
     assert outcome.response["routing_disposition"] == "clarify"
+    assert tools.calls == []
+
+
+def test_target_chat_preserves_semantic_provider_failure_as_retryable_failure():
+    application, tools = _application(CascadedTargetUnderstanding(
+        BoundedTargetUnderstanding(),
+        StructuredTargetCommandRouter(_FailingSemanticProvider()),
+    ))
+
+    outcome = asyncio.run(application.handle(ChatCommand(
+        "帮我看看 DP1234 走到哪一步了",
+        "user-a", "tenant-a", "conversation-a", "request-provider-failure",
+    )))
+
+    assert isinstance(outcome, Failed)
+    assert outcome.code == "semantic_provider_unavailable"
+    assert outcome.retryable is True
     assert tools.calls == []
 
 

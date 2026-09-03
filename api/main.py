@@ -607,6 +607,10 @@ async def lifespan(app: FastAPI):
     from application.orchestration_runtime import OrchestrationRuntime
     from application.target_chat_application import TargetChatApplication
     from application.target_conversation_manager import TargetConversationManager
+    from application.structured_target_router import (
+        CascadedTargetUnderstanding,
+        StructuredTargetCommandRouter,
+    )
     from application.target_understanding import BoundedTargetUnderstanding
     from infrastructure.langgraph_checkpoint import AsyncPostgresCheckpointOwner
     from infrastructure.postgres_target_runtime import PostgresConversationStateStore
@@ -616,6 +620,7 @@ async def lifespan(app: FastAPI):
     )
     from infrastructure.target_tool_execution import TargetToolExecutor
     from infrastructure.target_product_execution import TargetProductExecutor
+    from infrastructure.target_semantic_provider import AnthropicTargetSemanticProvider
     from infrastructure.target_workflow_execution import TargetWorkflowExecutor
 
     target_registry = build_default_capability_registry(
@@ -639,11 +644,18 @@ async def lifespan(app: FastAPI):
         workflow_executor=target_workflow_executor,
         checkpointer=target_checkpointer,
     )
+    target_understanding = CascadedTargetUnderstanding(
+        BoundedTargetUnderstanding(),
+        StructuredTargetCommandRouter(AnthropicTargetSemanticProvider(
+            _tool_manager.llm_client,
+            model=_model_policy.profile(ModelRole.INTENT).model,
+        )),
+    )
     _target_chat_runtime = TargetChatApplication(
         manager=TargetConversationManager(
             state_store=PostgresConversationStateStore(_postgres_pool),
             registry=target_registry,
-            understanding=BoundedTargetUnderstanding(),
+            understanding=target_understanding,
             orchestration=target_orchestration,
         ),
         admission=PostgresTargetAdmission(_postgres_pool),

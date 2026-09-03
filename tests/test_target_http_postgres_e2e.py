@@ -9,6 +9,10 @@ from application.default_capability_registry import build_default_capability_reg
 from application.orchestration_runtime import OrchestrationRuntime
 from application.target_chat_application import TargetChatApplication
 from application.target_conversation_manager import TargetConversationManager
+from application.structured_target_router import (
+    CascadedTargetUnderstanding,
+    StructuredTargetCommandRouter,
+)
 from application.target_understanding import BoundedTargetUnderstanding
 from core.auth import Principal
 from infrastructure.langgraph_checkpoint import AsyncPostgresCheckpointOwner
@@ -118,6 +122,29 @@ class _ScenarioTools:
         return _result(name, success=False, status="denied")
 
 
+class _ScenarioSemanticProvider:
+    version = "scenario-semantic-provider-v1"
+
+    def __init__(self):
+        self.calls = []
+
+    async def route(self, payload):
+        self.calls.append(payload)
+        if "走到哪一步" in str(payload["message"]):
+            return {
+                "status": "resolved",
+                "goals": [{
+                    "goal_id": "semantic-order",
+                    "kind": "order_status",
+                    "order_id": "DP2468",
+                }],
+            }
+        return {
+            "status": "insufficient_context",
+            "missing_fields": ["customer_service_goal"],
+        }
+
+
 def _result(
     name,
     *,
@@ -156,6 +183,7 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
     ))
     pool.open()
     tools = _ScenarioTools()
+    semantic_provider = _ScenarioSemanticProvider()
     read_executor = TargetToolExecutor(tools)
     workflow_executor = TargetWorkflowExecutor(pool, tools)
     registry = build_default_capability_registry("tenant-target-e2e")
@@ -175,7 +203,10 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                 manager=TargetConversationManager(
                     state_store=state_store,
                     registry=registry,
-                    understanding=BoundedTargetUnderstanding(),
+                    understanding=CascadedTargetUnderstanding(
+                        BoundedTargetUnderstanding(),
+                        StructuredTargetCommandRouter(semantic_provider),
+                    ),
                     orchestration=OrchestrationRuntime(
                         direct_executor=read_executor,
                         domain_workers={
@@ -210,6 +241,9 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                     })
 
                 order = await chat("order", "查订单 DP1234 物流")
+                semantic_order = await chat(
+                    "semantic-order", "帮我看看 DP2468 走到哪一步了",
+                )
                 product = await chat("product", "识别这张图的商品型号", assets=("IMG9",))
                 refund_precheck = await chat("refund", "把订单 DP1234 退款")
                 assert refund_precheck.status_code == 202, refund_precheck.text
@@ -295,7 +329,7 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                 )
                 handoff = await chat("handoff", "我要人工客服处理这个问题")
                 return (
-                    order, product, refund_precheck, refund_precheck_replay,
+                    order, semantic_order, product, refund_precheck, refund_precheck_replay,
                     refund_committed, refund_commit_replay, stale_approval,
                     changed_approval_replay, cross_conversation_approval,
                     refund_decline, refund_declined, multi, partial, handoff,
@@ -306,7 +340,7 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
         responses = asyncio.run(run())
         for name, response in zip(
             (
-                "order", "product", "refund-precheck", "refund-replay",
+                "order", "semantic-order", "product", "refund-precheck", "refund-replay",
                 "refund-commit", "refund-commit-replay", "stale-approval",
                 "changed-approval-replay", "cross-conversation-approval",
                 "refund-decline", "refund-declined", "multi", "partial", "handoff",
@@ -327,7 +361,7 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
             )
             assert response.status_code == expected, f"{name}: {response.text}"
         (
-            order, product, refund_precheck, refund_precheck_replay,
+            order, semantic_order, product, refund_precheck, refund_precheck_replay,
             refund_committed, refund_commit_replay, stale_approval,
             changed_approval_replay, cross_conversation_approval,
             refund_decline, refund_declined, multi, partial, handoff,
@@ -336,6 +370,9 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
             item.json() for item in responses
         )
         assert order["routing_disposition"] == "direct"
+        assert semantic_order["routing_disposition"] == "direct"
+        assert "DP2468" in semantic_order["response"]
+        assert len(semantic_provider.calls) == 1
         assert "PX-200" in product["response"]
         assert refund_precheck["outcome"] == "needs_input"
         assert refund_precheck_replay == refund_precheck

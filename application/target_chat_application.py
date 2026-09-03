@@ -184,6 +184,28 @@ class TargetChatApplication:
                 published.response_id,
             )
 
+        if managed.plan.work is None:
+            failure = {
+                "SEMANTIC_PROVIDER_FAILURE": (
+                    "semantic_provider_unavailable",
+                    True,
+                    "语义服务暂时不可用，请稍后重试。",
+                ),
+                "SEMANTIC_PROVIDER_OUTPUT_INVALID": (
+                    "semantic_provider_output_invalid",
+                    False,
+                    "语义服务返回了无效结果，本次未执行任何操作。",
+                ),
+            }.get(managed.plan.route.reason_code)
+            if failure is not None:
+                code, retryable, message = failure
+                return Failed(
+                    code,
+                    retryable,
+                    str(identity.invocation_key),
+                    message,
+                )
+
         handoff_receipt = None
         if managed.plan.work is None:
             disposition = managed.plan.route.mode.value

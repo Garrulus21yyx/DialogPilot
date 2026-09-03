@@ -63,7 +63,8 @@
 | 12B | done | Public retry/poll entry for `OUTCOME_UNKNOWN`, stable operation binding, authoritative reconciliation, and terminal Receipt publication | 76 Target tests; repository 1128 passed / 6 unrelated dirty-RAG failures | this stage commit |
 | 13A | done | Real `media_read` and `catalog_search` tools plus a Product skill executor that passes verified media observations into catalog lookup | Product owner/tool contract tests | this stage commit |
 | 13B | done | Real upload-to-chat Product E2E, typed unavailable/no-match/ambiguous paths, documentation, commit and push | 80 Target tests including real PostgreSQL Asset/HTTP E2E | this stage commit |
-| 14 | pending | Bind the evaluated Intent Encoder fast path and structured fallback to the public understanding path | pending | pending |
+| 14A | done | Target-native structured semantic router and typed provider boundary behind deterministic resolution | 66 focused Target tests; real HTTP/PostgreSQL semantic fallback; provider failure remains typed | this stage commit |
+| 14B | in progress | Target Skill/Command Encoder dataset, class-scoped calibration, heldout gate and public fast-path binding | pending | pending |
 
 ## Stage record
 
@@ -116,6 +117,9 @@
 - Stage 13: versioned local Product Catalog owner, governed `media_read` and
   `catalog_search` tools, Product composite Skill executor, and real upload →
   PostgreSQL Asset → OCR evidence → Catalog Fact → `/chat` publication E2E.
+- Stage 14A: Target-native structured semantic schema, Anthropic-compatible
+  provider adapter, deterministic Registry command compilation, bounded-first
+  cascade, typed provider failures, and real `/chat` + PostgreSQL fallback E2E.
 
 ## Scope correction after executable-core review
 
@@ -133,8 +137,10 @@ API cutover, removal of duplicated authorities, and real boundary E2E.
   PostgreSQL Asset owner, OCR evidence and a versioned catalog generation. The bounded
   v1 identifies printed model labels; general visual-only recognition still requires
   the configured VLM extension and is not claimed by this stage.
-- The public understanding path is deterministic and bounded. The evaluated encoder
-  policy contract exists, but no production encoder/Structured LLM fallback is claimed.
+- The public understanding path runs deterministic bounded resolution before a
+  structured semantic provider. Provider output may propose only Target-native goals;
+  Registry-owned compilation supplies tools, effects, risks and requirements. A real
+  encoder fast path is not yet claimed.
 - Legacy modules remain in the repository for non-`/chat` consumers. The `/chat`
   accessor has no legacy fallback authority.
 
@@ -204,3 +210,18 @@ continuation.
 - The cumulative Target suite passes 76 tests. The repository suite passes 1128 tests
   and retains the same 6 unrelated dirty-RAG `AgentBundle` whitelist failures recorded
   in stage 12A; stage 12B introduces no new failing test.
+
+## Stage 14A verification notes
+
+- A bounded direct order request performs zero semantic-provider calls. A paraphrased
+  request unresolved by the bounded layer invokes the provider exactly once and is
+  compiled into the registered `order_lookup` direct work item; no Agent dispatch is
+  introduced for this simple path.
+- Provider-returned entity identifiers must already occur in trusted structured
+  observations or the current message. Unknown goal kinds, invented entities and
+  malformed outputs fail as `INVALID_PROVIDER_OUTPUT` before RoutePolicy.
+- Provider transport failures remain retryable typed application failures and invalid
+  output remains a non-retryable typed application failure. Neither is published as a
+  request for more user information, and neither can execute a tool.
+- The focused Target suite passed 66 tests, including real ASGI `/chat`, PostgreSQL
+  admission/state/publication boundaries and the semantic fallback case.
