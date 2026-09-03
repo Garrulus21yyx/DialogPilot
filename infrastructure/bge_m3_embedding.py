@@ -1,11 +1,12 @@
 """Offline-only BGE-M3 dense embedding provider.
 
-The local directory is a deployment locator, not model identity.  A pinned
-upstream revision and an artifact SHA-256 are required separately so the same
-``EmbeddingProfile`` can be reproduced when deployments use different paths.
+The local directory is a deployment locator, not model identity. A pinned
+upstream revision and the ``pytorch_model.bin`` SHA-256 are required separately
+so the same ``EmbeddingProfile`` can be reproduced across deployment paths.
 """
 from __future__ import annotations
 
+import hashlib
 import os
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
@@ -17,6 +18,7 @@ from application.hybrid_retrieval import EmbeddingProfile, EmbeddingProviderKind
 
 BGE_M3_MODEL_ID = "BAAI/bge-m3"
 BGE_M3_DIMENSION = 1024
+BGE_M3_WEIGHT_FILENAME = "pytorch_model.bin"
 BGE_M3_PROVIDER_ID = (
     "dialogpilot-sentence-transformers-5.7.0-local-bge-m3-v1"
 )
@@ -120,6 +122,7 @@ class LocalBGEM3EmbeddingProvider:
         model_loader: _ModelLoader | None = None,
     ):
         self.config = config
+        _verify_local_weight_artifact(config)
         self.profile = EmbeddingProfile(
             provider=BGE_M3_PROVIDER_ID,
             provider_kind=EmbeddingProviderKind.MODEL,
@@ -183,6 +186,22 @@ class LocalBGEM3EmbeddingProvider:
                 "local BGE-M3 encoding failed"
             ) from exc
         return vectors.tolist() if hasattr(vectors, "tolist") else vectors
+
+
+def _verify_local_weight_artifact(config: BGEM3EmbeddingConfig) -> None:
+    """Match the declared model identity to the supported local weight file."""
+    artifact_path = config.model_path / BGE_M3_WEIGHT_FILENAME
+    try:
+        with artifact_path.open("rb") as artifact:
+            actual_digest = hashlib.file_digest(artifact, "sha256").hexdigest()
+    except (OSError, ValueError) as exc:
+        raise BGEM3EmbeddingConfigurationError(
+            f"BGE-M3 model path must contain readable {BGE_M3_WEIGHT_FILENAME}"
+        ) from exc
+    if actual_digest != config.model_digest:
+        raise BGEM3EmbeddingConfigurationError(
+            "BGE-M3 weight artifact does not match the declared SHA-256"
+        )
 
 
 def _load_local_sentence_transformer(

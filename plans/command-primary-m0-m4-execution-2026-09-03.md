@@ -85,6 +85,8 @@ Status: `IN_PROGRESS — READ-ONLY STICKY VERTICAL SLICE COMPLETE`
   producer contract and its direct-evaluation adapter.
 - [x] Add a pinned, local-only BGE-M3 provider with one truthful document/query
   embedding profile and no implicit hash fallback.
+- [x] Verify the configured local BGE-M3 weight artifact against its declared
+  SHA-256 before loading it.
 - [x] Wire independent Knowledge and ServiceEpisode provider selection into
   production composition; keep each rollout separately configurable.
 - [x] Add an explicit ServiceEpisode canonical replay and immutable-generation
@@ -216,6 +218,11 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   proves the old hash generation remains truthfully labelled and becomes
   `RETIRED` while the new `MODEL` generation becomes `ACTIVE`. Focused and
   adjacent suite: `74 passed`.
+- 2026-09-03: The BGE-M3 provider now hashes the supported local weight file
+  before model construction and fails closed on a missing or mismatched
+  artifact. The available pinned snapshot (`5617a9f…`) was loaded fully
+  offline and produced normalized 1024-dimensional Chinese and English query
+  embeddings. Focused suite: `49 passed`.
 
 ## Commit log
 

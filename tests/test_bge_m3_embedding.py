@@ -1,6 +1,7 @@
 """Offline BGE-M3 provider preserves one truthful document/query profile."""
 from __future__ import annotations
 
+import hashlib
 import sys
 from dataclasses import replace
 from types import SimpleNamespace
@@ -30,7 +31,8 @@ from infrastructure.knowledge_embedding import (
 )
 
 
-SHA = "a" * 64
+WEIGHT_BYTES = b"test-only-bge-m3-weights"
+SHA = hashlib.sha256(WEIGHT_BYTES).hexdigest()
 
 
 class FakeVectors(list):
@@ -56,6 +58,7 @@ class FakeModel:
 def config(tmp_path, **changes):
     model_path = tmp_path / "bge-m3"
     model_path.mkdir(exist_ok=True)
+    (model_path / "pytorch_model.bin").write_bytes(WEIGHT_BYTES)
     values = {
         "model_path": model_path,
         "model_revision": "commit-0123456789abcdef",
@@ -119,6 +122,21 @@ def test_provider_exposes_truthful_model_profile_and_preserves_raw_inputs(tmp_pa
     assert provider.profile.dimension == BGE_M3_DIMENSION
     assert provider.profile.document_preprocessing == BGE_M3_PREPROCESSING
     assert provider.profile.query_preprocessing == BGE_M3_PREPROCESSING
+
+
+def test_provider_rejects_weight_digest_mismatch_before_model_loader(tmp_path):
+    loader_calls = []
+
+    with pytest.raises(
+        BGEM3EmbeddingConfigurationError,
+        match="does not match the declared SHA-256",
+    ):
+        LocalBGEM3EmbeddingProvider(
+            config(tmp_path, model_digest="a" * 64),
+            model_loader=lambda value: loader_calls.append(value),
+        )
+
+    assert loader_calls == []
 
 
 def test_default_loader_can_only_open_a_local_non_remote_code_artifact(
@@ -209,8 +227,14 @@ def test_runtime_path_is_not_generation_identity_but_revision_and_digest_are(
 ):
     first_path = tmp_path / "deployment-a"
     second_path = tmp_path / "deployment-b"
+    changed_path = tmp_path / "deployment-c"
     first_path.mkdir()
     second_path.mkdir()
+    changed_path.mkdir()
+    (first_path / "pytorch_model.bin").write_bytes(WEIGHT_BYTES)
+    (second_path / "pytorch_model.bin").write_bytes(WEIGHT_BYTES)
+    changed_weight = b"different-test-only-bge-m3-weights"
+    (changed_path / "pytorch_model.bin").write_bytes(changed_weight)
     first = LocalBGEM3EmbeddingProvider(
         BGEM3EmbeddingConfig(first_path, "commit-1", SHA),
         model_loader=lambda _config: FakeModel(),
@@ -220,7 +244,11 @@ def test_runtime_path_is_not_generation_identity_but_revision_and_digest_are(
         model_loader=lambda _config: FakeModel(),
     )
     changed = LocalBGEM3EmbeddingProvider(
-        BGEM3EmbeddingConfig(second_path, "commit-2", "b" * 64),
+        BGEM3EmbeddingConfig(
+            changed_path,
+            "commit-2",
+            hashlib.sha256(changed_weight).hexdigest(),
+        ),
         model_loader=lambda _config: FakeModel(),
     )
 
