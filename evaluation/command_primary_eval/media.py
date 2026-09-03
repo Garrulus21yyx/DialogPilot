@@ -1,13 +1,19 @@
 """Direct evaluation of an explicit routing-media need and perception artifact."""
+
 from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from time import perf_counter
+from typing import Any, Mapping
 
 from application.media_requirement import MediaRequirementDecision, MediaStage
-from application.perception import PerceptionBatch, TieredPerceptionService
+from application.perception import (
+    PerceptionArtifact,
+    PerceptionBatch,
+    TieredPerceptionService,
+)
 from application.routing_media_probe import (
     RoutingMediaContext,
     RoutingMediaNeed,
@@ -40,12 +46,14 @@ class MediaArtifactObservation:
     stage: MediaStage | None
     artifact_refs: tuple[str, ...]
     perception_statuses: tuple[str, ...]
+    artifacts: tuple[PerceptionArtifact, ...] = ()
 
 
 @dataclass(frozen=True)
 class MediaConsumption:
     artifact_refs: tuple[str, ...]
     outcome: str
+    detail: Mapping[str, Any] = field(default_factory=dict)
 
 
 MediaRequestLoader = Callable[[EvalCase], MediaDirectRequest]
@@ -80,15 +88,14 @@ class MediaDirectAdapter:
         observation, provider_calls = await self._observe(request, resolution)
         consumed = await self._consumer(case, observation)
 
-        actual_trigger = (
-            "SKIPPED" if request.need.stage is None else "INVOKED"
-        )
+        actual_trigger = "SKIPPED" if request.need.stage is None else "INVOKED"
         expected_trigger = str(case.expected["trigger"])
         expected_probe = str(case.expected["probe_outcome"])
         actual_artifact = {
             "asset_id": observation.asset_id,
             "stage": observation.stage.name if observation.stage else None,
             "artifact_refs": list(observation.artifact_refs),
+            "grounding": [_artifact_grounding(item) for item in observation.artifacts],
         }
         expected_artifact = dict(case.expected["artifact"])
         expected_consumption = tuple(case.expected["consumed_artifact_refs"])
@@ -122,6 +129,7 @@ class MediaDirectAdapter:
                     "expected": expected_outcome,
                     "actual": consumed.outcome,
                     "perception_statuses": observation.perception_statuses,
+                    **dict(consumed.detail),
                 },
             ),
             cost=CostResult(
@@ -140,7 +148,9 @@ class MediaDirectAdapter:
             return MediaArtifactObservation(
                 asset_id=resolution.asset.asset_id if resolution.asset else None,
                 stage=resolution.stage,
-                artifact_refs=(resolution.artifact_ref,) if resolution.artifact_ref else (),
+                artifact_refs=(resolution.artifact_ref,)
+                if resolution.artifact_ref
+                else (),
                 perception_statuses=("REUSED",),
             ), 0
         if resolution.outcome not in {
@@ -172,4 +182,31 @@ class MediaDirectAdapter:
             stage=resolution.stage,
             artifact_refs=refs,
             perception_statuses=tuple(item.status.value for item in outcomes),
+            artifacts=tuple(
+                item for item in batch.artifacts if item.asset_id == selected_asset
+            ),
         ), 1
+
+
+def _artifact_grounding(artifact: PerceptionArtifact) -> dict[str, Any]:
+    result = artifact.parse_result
+    if result is None:
+        return {
+            "asset_id": artifact.asset_id,
+            "stage": artifact.stage.name,
+            "producer": artifact.producer,
+            "producer_version": artifact.producer_version,
+            "evidence_refs": [item.evidence_id for item in artifact.evidence_nodes],
+        }
+    return {
+        "artifact_ref": result.parse_result_id,
+        "asset_id": result.asset_id,
+        "asset_checksum": result.asset_checksum,
+        "stage": artifact.stage.name,
+        "status": result.status.value,
+        "producer": result.producer,
+        "producer_model": result.producer_model,
+        "producer_version": result.producer_version,
+        "preprocessing_version": result.preprocessing_version,
+        "locators": [item.locator.to_dict() for item in result.nodes],
+    }

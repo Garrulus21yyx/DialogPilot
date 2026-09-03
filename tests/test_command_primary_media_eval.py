@@ -78,6 +78,15 @@ def test_media_direct_runner_records_probe_perception_and_consumption(tmp_path):
         tenant_id="tenant-a",
         user_id="user-a",
     )
+    expected_locator = {
+        "asset_id": asset.asset_id,
+        "asset_checksum": asset.checksum,
+        "page_index": 0,
+        "coordinate_space": "NORMALIZED_0_1",
+        "bbox": [0.0, 0.0, 1.0, 1.0],
+        "crop_artifact_id": None,
+        "crop_transform_version": None,
+    }
     case = EvalCase(
         case_id="media-routing-l1-001",
         message="message content is not used to infer a media tier",
@@ -89,6 +98,20 @@ def test_media_direct_runner_records_probe_perception_and_consumption(tmp_path):
                 "asset_id": asset.asset_id,
                 "stage": "L1_TEXT_EXTRACTION",
                 "artifact_refs": ["parse-fixture"],
+                "grounding": [
+                    {
+                        "artifact_ref": "parse-fixture",
+                        "asset_id": asset.asset_id,
+                        "asset_checksum": asset.checksum,
+                        "stage": "L1_TEXT_EXTRACTION",
+                        "status": "COMPLETE",
+                        "producer": "fixture-ocr",
+                        "producer_model": "fixture-model",
+                        "producer_version": "fixture-ocr-v1",
+                        "preprocessing_version": "fixture-preprocess-v1",
+                        "locators": [expected_locator, expected_locator],
+                    }
+                ],
             },
             "consumed_artifact_refs": ["parse-fixture"],
             "outcome": "ROUTING_CONTEXT_READY",
@@ -161,13 +184,15 @@ def test_media_direct_runner_records_probe_perception_and_consumption(tmp_path):
         request_loader=lambda received: request,
         consumer=consumer,
     )
-    report = asyncio.run(MediaDirectRunner(adapter).run(
-        (case,),
-        tmp_path,
-        run_id="media-run-001",
-        dataset_id="synthetic-contract-v1",
-        split="dev",
-    ))
+    report = asyncio.run(
+        MediaDirectRunner(adapter).run(
+            (case,),
+            tmp_path,
+            run_id="media-run-001",
+            dataset_id="synthetic-contract-v1",
+            split="dev",
+        )
+    )
 
     assert report.status is EvaluationStatus.PASS
     assert consumed[0][0] == case.case_id
