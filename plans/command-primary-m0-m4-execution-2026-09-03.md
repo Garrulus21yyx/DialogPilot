@@ -95,7 +95,7 @@ Status: `IN_PROGRESS — READ-ONLY STICKY VERTICAL SLICE COMPLETE`
 Status: `IN_PROGRESS — SHARED ARTIFACTS + UNDERSTANDING DIRECT RUNNER COMPLETE`
 
 - [x] Add the shared three-artifact eval schema and Understanding direct runner.
-- [ ] Add Knowledge, Memory, and Media direct adapters/runners.
+- [x] Add Knowledge, Memory, and Media direct adapters/runners.
 - [ ] Add invocation/consumption/state-transition assertions.
 - [ ] Run component heldout only after lane-specific freeze.
 - [ ] Run real `ChatApplication.handle()` contract E2E.
@@ -179,6 +179,13 @@ Status: `IN_PROGRESS — SHARED ARTIFACTS + UNDERSTANDING DIRECT RUNNER COMPLETE
   `PendingSlotRef` it actually owns; approval/resume remain with their existing
   Admission/ReAct owners. Focused suite: `13 passed, 2 skipped`; complete
   isolated PostgreSQL suite: `964 passed`.
+- 2026-09-03: S4 direct component evaluation now has separate Knowledge,
+  ServiceEpisode Memory, and routing-probe/Perception adapters. All reuse one
+  188-line artifact runner instead of copying manifest/report logic. Knowledge
+  reports evidence/document Recall, MRR, and nDCG; Memory reports Recall@K and
+  MRR separately for reference-resolution and historical-evidence purposes;
+  Media consumes an explicit tier request and never infers L1/L2 from message
+  keywords. Focused component and adjacent suites: `60 passed`.
 
 ## Commit log
 
@@ -191,3 +198,5 @@ Status: `IN_PROGRESS — SHARED ARTIFACTS + UNDERSTANDING DIRECT RUNNER COMPLETE
 - Stage 3 sticky read-only vertical slice: `9e75275`.
 - Stage 4 thin Understanding eval runner: `57bdb48`.
 - Stage 3 selective command producer: `483066f`.
+- Stage 3 pinned local BGE-M3 provider: `9f3e39e`.
+- Stage 1 contract simplification: `1bcae69`.

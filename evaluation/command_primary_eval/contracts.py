@@ -46,6 +46,47 @@ class EvalCase:
 
 
 @dataclass(frozen=True)
+class CheckResult:
+    passed: bool
+    detail: Mapping[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"passed": self.passed, "detail": dict(self.detail)}
+
+
+@dataclass(frozen=True)
+class CostResult:
+    latency_ms: float
+    token_usage: int
+    invocation_count: int = 1
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "latency_ms": self.latency_ms,
+            "token_usage": self.token_usage,
+            "invocation_count": self.invocation_count,
+        }
+
+
+@dataclass(frozen=True)
+class DirectEvaluationResult:
+    trigger: CheckResult
+    artifact: CheckResult
+    consumption: CheckResult
+    outcome: CheckResult
+    cost: CostResult
+
+    @property
+    def passed(self) -> bool:
+        return all((
+            self.trigger.passed,
+            self.artifact.passed,
+            self.consumption.passed,
+            self.outcome.passed,
+        ))
+
+
+@dataclass(frozen=True)
 class RunManifest:
     schema_version: str
     run_id: str

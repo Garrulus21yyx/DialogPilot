@@ -16,11 +16,11 @@ from application.turn_understanding import (
     UnderstandingStatus,
     fingerprint_message,
 )
-from evaluation.command_primary_eval.contracts import EvalCase
-from evaluation.command_primary_eval.understanding import (
+from evaluation.command_primary_eval.contracts import (
     CheckResult,
     CostResult,
-    UnderstandingDirectResult,
+    DirectEvaluationResult,
+    EvalCase,
 )
 
 
@@ -39,7 +39,7 @@ class SelectiveUnderstandingAdapter:
         self._state_loader = state_loader
         self._registry_loader = registry_loader
 
-    async def evaluate(self, case: EvalCase) -> UnderstandingDirectResult:
+    async def evaluate(self, case: EvalCase) -> DirectEvaluationResult:
         state = self._state_loader(case)
         registry = self._registry_loader(state)
         history = tuple(
@@ -83,7 +83,7 @@ class SelectiveUnderstandingAdapter:
             or UnderstandingStatus.RESOLVED.value
         )
         status_passed = outcome.understanding.status.value == expected_status
-        return UnderstandingDirectResult(
+        return DirectEvaluationResult(
             trigger=CheckResult(trigger_passed, {
                 "expected_stage": expected_stage or None,
                 "actual_stage": outcome.stage.value,
