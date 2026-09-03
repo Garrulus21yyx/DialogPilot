@@ -4,6 +4,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass
 
+from application.hybrid_retrieval import EmbeddingProviderKind
 from application.memory_retrieval_policy import DEFAULT_MEMORY_RETRIEVAL_POLICY
 from application.service_episode_memory_search import ServiceEpisodeMemorySearch
 from application.service_episode_retriever import (
@@ -13,6 +14,10 @@ from application.service_episode_retriever import (
     ServiceEpisodeRetriever,
 )
 from infrastructure.hybrid_retrieval_backend import PostgresHybridBackend
+from infrastructure.dense_embedding_factory import (
+    SERVICE_EPISODE_DENSE_EMBEDDING_PROVIDER,
+    DenseEmbeddingProviderFactory,
+)
 from infrastructure.postgres_retrieval_projection import (
     PostgresCanonicalRetrievalProjector,
 )
@@ -40,8 +45,10 @@ def build_retrieval_runtime(
     platform_pool,
     database_url: str,
     config: Mapping[str, str],
+    *,
+    embedding_factory: DenseEmbeddingProviderFactory,
 ) -> RetrievalRuntime:
-    """Build an explicit baseline runtime; M3 swaps only the provider."""
+    """Build retrieval around the provider selected by composition."""
 
     pool = RetrievalPostgresPool(RetrievalPoolConfig(
         database_url,
@@ -50,7 +57,13 @@ def build_retrieval_runtime(
         pool_timeout_seconds=float(config.get("RETRIEVAL_POOL_TIMEOUT_SECONDS", "2")),
         statement_timeout_ms=int(config.get("RETRIEVAL_STATEMENT_TIMEOUT_MS", "750")),
     ))
-    provider = LocalHashServiceEpisodeEmbeddingBaseline()
+    provider = embedding_factory.build(
+        selection_key=SERVICE_EPISODE_DENSE_EMBEDDING_PROVIDER,
+        baseline_factory=LocalHashServiceEpisodeEmbeddingBaseline,
+    )
+    allow_hash_baseline = (
+        provider.profile.provider_kind is EmbeddingProviderKind.HASH_BASELINE
+    )
     policies = (
         ServiceEpisodeRetrievalPolicy(
             config.get(
@@ -85,7 +98,7 @@ def build_retrieval_runtime(
         },
         embed_query=ServiceEpisodeQueryEmbedder(
             provider,
-            allow_hash_baseline=True,
+            allow_hash_baseline=allow_hash_baseline,
         ),
     )
     projector = PostgresCanonicalRetrievalProjector(
@@ -94,7 +107,7 @@ def build_retrieval_runtime(
             "SERVICE_EPISODE": PostgresServiceEpisodeResolver(
                 ServiceEpisodeDocumentEmbedder(
                     provider,
-                    allow_hash_baseline=True,
+                    allow_hash_baseline=allow_hash_baseline,
                 ),
             ),
         },

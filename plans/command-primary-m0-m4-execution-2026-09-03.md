@@ -85,8 +85,10 @@ Status: `IN_PROGRESS — READ-ONLY STICKY VERTICAL SLICE COMPLETE`
   producer contract and its direct-evaluation adapter.
 - [x] Add a pinned, local-only BGE-M3 provider with one truthful document/query
   embedding profile and no implicit hash fallback.
-- [ ] Inject BGE-M3 into production Knowledge composition and rebuild/activate
-  a new immutable generation.
+- [x] Wire independent Knowledge and ServiceEpisode provider selection into
+  production composition; keep each rollout separately configurable.
+- [ ] Provision the pinned BGE-M3 artifact and rebuild/activate new immutable
+  Knowledge and ServiceEpisode generations before benchmark runs.
 - [ ] Replace the temporary selective legacy candidate adapter with the frozen
   Encoder → LLM command producer after its component gate passes.
 
@@ -186,6 +188,12 @@ Status: `IN_PROGRESS — SHARED ARTIFACTS + UNDERSTANDING DIRECT RUNNER COMPLETE
   MRR separately for reference-resolution and historical-evidence purposes;
   Media consumes an explicit tier request and never infers L1/L2 from message
   keywords. Focused component and adjacent suites: `60 passed`.
+- 2026-09-03: Production composition now has one 72-line dense-provider
+  factory with independent Knowledge and ServiceEpisode selection keys. Each
+  defaults to its corpus-specific hash baseline; either can move to BGE-M3
+  independently, while a joint rollout shares one local model instance.
+  Configuration/load failure never falls back. Focused suite:
+  `84 passed, 1 skipped`; focused real-PostgreSQL suite: `36 passed`.
 
 ## Commit log
 
@@ -200,3 +208,4 @@ Status: `IN_PROGRESS — SHARED ARTIFACTS + UNDERSTANDING DIRECT RUNNER COMPLETE
 - Stage 3 selective command producer: `483066f`.
 - Stage 3 pinned local BGE-M3 provider: `9f3e39e`.
 - Stage 1 contract simplification: `1bcae69`.
+- Stage 4 direct evidence runners: `a385fb4`.

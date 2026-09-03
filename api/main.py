@@ -227,6 +227,12 @@ async def lifespan(app: FastAPI):
 
     cfg = _anthropic_cfg()
     _model_policy = cfg["policy"]
+    from infrastructure.dense_embedding_factory import (
+        KNOWLEDGE_DENSE_EMBEDDING_PROVIDER,
+        DenseEmbeddingProviderFactory,
+    )
+
+    dense_embedding_factory = DenseEmbeddingProviderFactory(os.environ)
     vlm_enabled = os.getenv("VLM_ENABLED", "false").strip().lower()
     if vlm_enabled not in {"true", "false"}:
         raise RuntimeError("VLM_ENABLED must be true or false")
@@ -388,6 +394,7 @@ async def lifespan(app: FastAPI):
             _postgres_pool,
             database_url,
             os.environ,
+            embedding_factory=dense_embedding_factory,
         )
         _retrieval_postgres_pool = retrieval_runtime.pool
         _retrieval_postgres_pool.open()
@@ -487,7 +494,10 @@ async def lifespan(app: FastAPI):
         tenant_id=os.getenv("DEFAULT_TENANT_ID", "default"),
         chunk_max_tokens=int(os.getenv("RAG_CHUNK_MAX_TOKENS", "512")),
         chunk_overlap_tokens=int(os.getenv("RAG_CHUNK_OVERLAP_TOKENS", "64")),
-        embedding_provider=LocalHashKnowledgeEmbeddingBaseline(),
+        embedding_provider=dense_embedding_factory.build(
+            selection_key=KNOWLEDGE_DENSE_EMBEDDING_PROVIDER,
+            baseline_factory=LocalHashKnowledgeEmbeddingBaseline,
+        ),
     )
     await _knowledge_store.ensure_defaults_async()
     logger.info(
