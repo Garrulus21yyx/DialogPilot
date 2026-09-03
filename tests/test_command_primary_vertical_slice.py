@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import re
 from datetime import datetime, timezone
 
@@ -136,7 +137,9 @@ class SemanticStub:
         self.seen_state = None
         self._result_factory = result_factory
 
-    def understand(self, message, message_fingerprint, snapshot):
+    async def understand(
+        self, message, message_fingerprint, snapshot, registry, **_context,
+    ):
         self.calls += 1
         self.seen_state = snapshot
         return self._result_factory(message_fingerprint, snapshot)
@@ -157,12 +160,15 @@ def planner(semantic: SemanticStub) -> CommandPrimaryPlanner:
 
 def test_pending_slot_runs_state_first_without_encoder_or_llm() -> None:
     semantic = SemanticStub(lambda *_: pytest.fail("semantic router was called"))
-    result = planner(semantic).plan("DP1234", state(pending=True), registry())
+    result = asyncio.run(
+        planner(semantic).plan("DP1234", state(pending=True), registry())
+    )
 
     assert result.status is PlanningStatus.PLANNED
     assert result.semantic_router_used is False
     assert semantic.calls == 0
     assert result.plan.route.mode is RouteMode.AGENT_TASK
+    assert result.plan.transitions is not None
     assert result.plan.transitions.expected_aggregate_version == 9
     mutation = result.plan.transitions.mutations[0]
     assert mutation.kind is FlowMutationKind.FILL_SLOT
@@ -187,14 +193,16 @@ def test_semantic_router_receives_state_and_compiles_knowledge_work() -> None:
 
     semantic = SemanticStub(answer)
     current = state(pending=False)
-    result = planner(semantic).plan("退款通常多久到账？", current, registry())
+    result = asyncio.run(
+        planner(semantic).plan("退款通常多久到账？", current, registry())
+    )
 
     assert result.status is PlanningStatus.PLANNED
     assert result.semantic_router_used is True
     assert semantic.calls == 1
     assert semantic.seen_state is current
     assert result.plan.route.mode is RouteMode.KNOWLEDGE_QA
-    assert result.plan.transitions.mutations == ()
+    assert result.plan.transitions is None
     assert result.plan.work.graph.tasks[0].requirement_ids == (
         "knowledge.policy",
     )
@@ -215,12 +223,15 @@ def test_sticky_continuation_uses_the_exact_active_flow() -> None:
         )
 
     current = state(pending=False)
-    result = planner(SemanticStub(continue_flow)).plan(
-        "还是没到账",
-        current,
-        registry(),
+    result = asyncio.run(
+        planner(SemanticStub(continue_flow)).plan(
+            "还是没到账",
+            current,
+            registry(),
+        )
     )
 
+    assert result.plan.transitions is not None
     mutation = result.plan.transitions.mutations[0]
     assert mutation.kind is FlowMutationKind.ADVANCE
     assert mutation.source_instance_id == current.active_flows[0].instance_id

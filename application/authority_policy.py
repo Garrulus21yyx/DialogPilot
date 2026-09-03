@@ -288,6 +288,28 @@ class AuthorityPolicyRegistry:
                 f"unknown fact requirement: {requirement_id}"
             ) from exc
 
+    def requirements_for_ids(
+        self,
+        requirement_ids: Iterable[str],
+    ) -> tuple[FactRequirement, ...]:
+        """Resolve command-registry requirements without consulting an intent."""
+
+        requirements = tuple(
+            self.get(requirement_id)
+            for requirement_id in dict.fromkeys(map(str, requirement_ids))
+        )
+        unsupported = tuple(
+            item.requirement_id
+            for item in requirements
+            if item.support is AuthoritySupport.UNSUPPORTED
+        )
+        if unsupported:
+            raise UnsupportedAuthority(
+                "unsupported authority: " + ",".join(unsupported),
+                requirement_ids=unsupported,
+            )
+        return requirements
+
     def authorize_evidence_adapter(
         self,
         *,

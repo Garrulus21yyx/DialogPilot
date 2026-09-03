@@ -130,7 +130,7 @@ class FlowAggregateVersion:
 class TurnStateSnapshot:
     request_id: str
     principal: PrincipalScope
-    flow_aggregate: FlowAggregateVersion
+    flow_aggregate: FlowAggregateVersion | None
     active_flows: tuple[ActiveFlowRef, ...]
     pending_signal: PendingSignalRef | None
     recent_turn_refs: tuple[str, ...]
@@ -144,8 +144,10 @@ class TurnStateSnapshot:
         _nonblank(self.request_id, "request_id")
         if not isinstance(self.principal, PrincipalScope):
             raise TurnStateError("snapshot requires an authenticated principal")
-        if not isinstance(self.flow_aggregate, FlowAggregateVersion):
-            raise TurnStateError("snapshot requires a flow aggregate version")
+        if self.flow_aggregate is not None and not isinstance(
+            self.flow_aggregate, FlowAggregateVersion,
+        ):
+            raise TurnStateError("flow_aggregate must be a versioned reference")
         for name in (
             "active_flows",
             "recent_turn_refs",
@@ -180,10 +182,13 @@ class TurnStateSnapshot:
         return _fingerprint({
             "request_id": self.request_id,
             "principal": self.principal.fingerprint,
-            "flow_aggregate": {
-                "id": self.flow_aggregate.aggregate_id,
-                "version": self.flow_aggregate.version,
-            },
+            "flow_aggregate": (
+                {
+                    "id": self.flow_aggregate.aggregate_id,
+                    "version": self.flow_aggregate.version,
+                }
+                if self.flow_aggregate else None
+            ),
             "active_flows": [
                 {
                     "flow": item.definition.key,

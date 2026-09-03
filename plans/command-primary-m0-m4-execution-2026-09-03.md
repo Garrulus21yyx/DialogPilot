@@ -69,13 +69,17 @@ remains an M3 production capability task; S2 does not claim that score.
 
 ### S3 — State-first integration and downstream decoupling
 
-Status: `PENDING`
+Status: `IN_PROGRESS — KNOWLEDGE VERTICAL SLICE COMPLETE`
 
 - [ ] Split Turn State loading from optional ServiceEpisode retrieval.
-- [ ] Move active state/case/pending binding before semantic routing.
-- [ ] Integrate deterministic resolution before Encoder/LLM.
-- [ ] Migrate Authority/Execution compilation away from `route.intent`.
-- [ ] Keep legacy intent as post-decision projection only.
+- [x] Move current-thread state and active case before semantic routing.
+- [x] Run deterministic resolution before the optional semantic producer.
+- [x] Migrate Knowledge Authority/Execution compilation away from `route.intent`.
+- [x] Use a post-decision compatibility projection on the Knowledge primary path.
+- [ ] Add the authoritative active-flow/pending-slot store before enabling sticky
+  continuation in production.
+- [ ] Replace the temporary selective legacy candidate adapter with the frozen
+  Encoder → LLM command producer after its component gate passes.
 
 ### S4 — Evaluation runners and shadow gates
 
@@ -116,9 +120,18 @@ Status: `PENDING`
   Knowledge raw chunks and queries now share one explicit embedding profile;
   ServiceEpisode projection and query use the same explicit provider, with
   separate reference-resolution and historical-evidence policies.
+- 2026-09-03: S3 Knowledge command-primary path runs through the real
+  `ChatApplication.handle()` lifecycle. Current-thread state and active case are
+  read before understanding; a native command producer skips legacy Intent and
+  Agent execution, then reuses Knowledge retrieval, verification, Publication,
+  Delivery, and Memory projection. The optional production migration adapter is
+  still explicitly legacy-backed until the Encoder/LLM command producer is
+  frozen. Focused suite: `78 passed`; complete isolated PostgreSQL suite:
+  `983 passed`.
 
 ## Commit log
 
 - Stage 0 documentation/plan: `63fdf2f`.
 - Stage 1 minimal command-primary slice: `d863261`.
 - Stage 2 routing media probe: `b2a4334`.
+- Stage 2 retrieval embedding ownership: `f83bddb`.

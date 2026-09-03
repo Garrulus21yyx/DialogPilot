@@ -195,6 +195,7 @@ class ChatServices:
     media_asset_store: Any = None
     perception_service: Any = None
     commitment_service: Any = None
+    command_primary_chat_planner: Any = None
 
     @property
     def ready(self) -> bool:
@@ -434,72 +435,9 @@ class ChatApplication:
             for message in mem_ctx.recent_messages[-5:]
         ] if mem_ctx.recent_messages else None
 
-        intent_result = await services.orchestrator.recognize_intent(
-            command.message, history=intent_history, bundle=bundle,
-        )
-        stages.append(StageObservation("intent", StageStatus.OK, {
-            "intent": intent_result.intent.value,
-            "confidence": intent_result.confidence,
-        }))
-        intent_prediction = await ops.record_intent_prediction(
-            intent_result=intent_result,
-            request_id=request_id,
-            conv_id=conv_id,
-            user_id=user_id,
-            message=command.message,
-            bundle=bundle,
-        )
-        route_path = await self._plan_route_path(
-            command=command,
-            identity_metadata=identity_metadata,
-            bundle=bundle,
-            intent_result=intent_result,
-            user_id=user_id,
-            conv_id=conv_id,
-            request_id=request_id,
-            pinned_execution_refs=getattr(assignment, "pinned_refs", None),
-            stages=stages,
-        )
-        media_section, media_projection, media_rejection = (
-            await self._prepare_media_context(
-                command=command, identity=identity, stages=stages,
-            )
-        )
-        if media_rejection is not None:
-            return media_rejection
-        route_mode = route_path.route_decision.mode.value
-        if route_mode in {"knowledge_qa", "mixed"}:
-            knowledge = await ops.build_knowledge_context(
-                command.message,
-                intent=intent_result.intent,
-                bundle=bundle,
-                history=[str(item.get("content") or "") for item in prompt_history],
-                tenant_id=str(identity.tenant_id),
-                user_id=user_id,
-                conversation_id=conv_id,
-                authorization_fingerprint=command.authorization_fingerprint,
-                generate_answer=route_mode != "mixed",
-                pinned_execution_refs=getattr(assignment, "pinned_refs", None),
-            )
-        else:
-            knowledge = SkippedKnowledgeContext()
-        stages.append(StageObservation("knowledge_retrieval", StageStatus.OK, {
-            "used": bool(knowledge.used),
-            "generation_status": knowledge.generation_status,
-            "citation_count": len(knowledge.citations),
-        }))
-        base_context_sections = list(mem_ctx.to_sections())
         active_case_view = await ops.active_ticket_context(
             user_id,
             query=command.message,
-            intent_or_topics=(
-                intent_result.intent.value, intent_result.intent_group,
-            ),
-            entity_refs=tuple(
-                str(value)
-                for values in intent_result.entities.values()
-                for value in (values if isinstance(values, list) else [values])
-            ),
         )
         if isinstance(active_case_view, ActiveCaseContextView):
             active_ticket_section = active_case_view.section
@@ -516,8 +454,105 @@ class ChatApplication:
                 "policy_version": active_case_view.selection.policy_version,
             }))
         else:
-            # Compatibility for non-production test/application adapters.
             active_ticket_section = active_case_view
+
+        command_primary = None
+        if services.command_primary_chat_planner is not None:
+            command_primary = await services.command_primary_chat_planner.prepare(
+                message=command.message,
+                identity=identity,
+                recent_messages=mem_ctx.recent_messages,
+                active_case_view=active_case_view,
+                history=tuple(intent_history or ()),
+                bundle=bundle,
+            )
+            stages.append(StageObservation("turn_understanding", StageStatus.OK, {
+                "status": command_primary.planning.status.value,
+                "semantic_router_used": command_primary.planning.semantic_router_used,
+                "reason_code": command_primary.planning.reason_code,
+                "primary": command_primary.use_primary,
+            }))
+
+        if command_primary is not None and command_primary.use_primary:
+            intent_result = command_primary.intent_projection
+            intent_prediction = None
+            route_mode = command_primary.plan.route.mode.value
+            stages.append(StageObservation("intent", StageStatus.SKIPPED, {
+                "reason": "command_primary_route",
+            }))
+            stages.append(StageObservation("route_path_plan", StageStatus.OK, {
+                "mode": route_mode,
+                "source": "command_primary",
+                "contract_fingerprint": (
+                    command_primary.execution_contract.fingerprint
+                ),
+            }))
+        else:
+            intent_result = await services.orchestrator.recognize_intent(
+                command.message, history=intent_history, bundle=bundle,
+            )
+            stages.append(StageObservation("intent", StageStatus.OK, {
+                "intent": intent_result.intent.value,
+                "confidence": intent_result.confidence,
+            }))
+            intent_prediction = await ops.record_intent_prediction(
+                intent_result=intent_result,
+                request_id=request_id,
+                conv_id=conv_id,
+                user_id=user_id,
+                message=command.message,
+                bundle=bundle,
+            )
+            route_path = await self._plan_route_path(
+                command=command,
+                identity_metadata=identity_metadata,
+                bundle=bundle,
+                intent_result=intent_result,
+                user_id=user_id,
+                conv_id=conv_id,
+                request_id=request_id,
+                pinned_execution_refs=getattr(assignment, "pinned_refs", None),
+                stages=stages,
+            )
+            route_mode = route_path.route_decision.mode.value
+        media_section, media_projection, media_rejection = (
+            await self._prepare_media_context(
+                command=command, identity=identity, stages=stages,
+            )
+        )
+        if media_rejection is not None:
+            return media_rejection
+        if route_mode in {"knowledge_qa", "mixed"}:
+            knowledge_args = {
+                "intent": (
+                    None if command_primary is not None and command_primary.use_primary
+                    else intent_result.intent
+                ),
+                "bundle": bundle,
+                "history": [
+                    str(item.get("content") or "") for item in prompt_history
+                ],
+                "tenant_id": str(identity.tenant_id),
+                "user_id": user_id,
+                "conversation_id": conv_id,
+                "authorization_fingerprint": command.authorization_fingerprint,
+                "generate_answer": route_mode != "mixed",
+                "pinned_execution_refs": getattr(assignment, "pinned_refs", None),
+            }
+            if command_primary is not None and command_primary.use_primary:
+                knowledge_args["required_by_plan"] = True
+            knowledge = await ops.build_knowledge_context(
+                command.message,
+                **knowledge_args,
+            )
+        else:
+            knowledge = SkippedKnowledgeContext()
+        stages.append(StageObservation("knowledge_retrieval", StageStatus.OK, {
+            "used": bool(knowledge.used),
+            "generation_status": knowledge.generation_status,
+            "citation_count": len(knowledge.citations),
+        }))
+        base_context_sections = list(mem_ctx.to_sections())
         if active_ticket_section is not None:
             base_context_sections.append(active_ticket_section)
         context_sections = list(base_context_sections)
@@ -538,45 +573,54 @@ class ChatApplication:
             route=route_mode,
         )
         full_context = prompt_context.system_context
-        orchestration_request = OrcReq(
-            message=command.message,
-            user_id=user_id,
-            conv_id=conv_id,
-            context=full_context,
-            history=intent_history,
-            prompt_context=prompt_context,
-            entities=intent_result.entities,
-            intent=intent_result.intent,
-            intent_group=intent_result.intent_group,
-            urgency=intent_result.urgency,
-            intent_confidence=intent_result.confidence,
-            request_id=request_id,
-            bundle_version=bundle.version,
-            agent_bundle=bundle,
-            pinned_execution_refs=(
-                getattr(assignment, "pinned_refs", None).__dict__
-                if getattr(assignment, "pinned_refs", None) is not None else {}
-            ),
-            identity_metadata=identity_metadata,
-            intent_classifier_fingerprint=str(
-                getattr(intent_result, "classifier_fingerprint", "") or ""
-            ),
-            intent_input_fingerprint=str(
-                getattr(intent_result, "input_fingerprint", "") or ""
-            ),
-            intent_source_scores=dict(intent_result.source_scores),
-            domain_decision=(
-                route_path.orchestration_request.domain_decision
-            ),
-            routing_policy_trace=(
-                route_path.orchestration_request.routing_policy_trace
-            ),
-            media_context_refs=(
-                ("media_observations",)
-                if media_section is not None else ()
-            ),
-        )
-        result = await services.orchestrator.run(orchestration_request)
+        if command_primary is not None and command_primary.use_primary:
+            from application.command_primary_chat import knowledge_execution_result
+
+            result = knowledge_execution_result(
+                request_id,
+                command_primary,
+                knowledge,
+            )
+        else:
+            orchestration_request = OrcReq(
+                message=command.message,
+                user_id=user_id,
+                conv_id=conv_id,
+                context=full_context,
+                history=intent_history,
+                prompt_context=prompt_context,
+                entities=intent_result.entities,
+                intent=intent_result.intent,
+                intent_group=intent_result.intent_group,
+                urgency=intent_result.urgency,
+                intent_confidence=intent_result.confidence,
+                request_id=request_id,
+                bundle_version=bundle.version,
+                agent_bundle=bundle,
+                pinned_execution_refs=(
+                    getattr(assignment, "pinned_refs", None).__dict__
+                    if getattr(assignment, "pinned_refs", None) is not None else {}
+                ),
+                identity_metadata=identity_metadata,
+                intent_classifier_fingerprint=str(
+                    getattr(intent_result, "classifier_fingerprint", "") or ""
+                ),
+                intent_input_fingerprint=str(
+                    getattr(intent_result, "input_fingerprint", "") or ""
+                ),
+                intent_source_scores=dict(intent_result.source_scores),
+                domain_decision=(
+                    route_path.orchestration_request.domain_decision
+                ),
+                routing_policy_trace=(
+                    route_path.orchestration_request.routing_policy_trace
+                ),
+                media_context_refs=(
+                    ("media_observations",)
+                    if media_section is not None else ()
+                ),
+            )
+            result = await services.orchestrator.run(orchestration_request)
         stages.append(StageObservation("route_and_agent", StageStatus.OK, {
             "routing_disposition": getattr(
                 result.routing_disposition, "value", result.routing_disposition,

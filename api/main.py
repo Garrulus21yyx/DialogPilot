@@ -1678,6 +1678,14 @@ def _core_chat_application(
     memory_service=None,
 ) -> ChatApplication:
     """Compose the application boundary from the current lifespan-owned services."""
+    from infrastructure.command_primary_runtime import (
+        build_command_primary_chat_planner,
+    )
+
+    command_primary_chat_planner = build_command_primary_chat_planner(
+        _orchestrator,
+        os.environ,
+    )
     media_agent = None
     media_validator = None
     perception_service = None
@@ -1711,6 +1719,7 @@ def _core_chat_application(
             media_asset_store=_media_asset_store,
             perception_service=perception_service,
             commitment_service=_commitment_service,
+            command_primary_chat_planner=command_primary_chat_planner,
         ),
         ChatOperations(
             active_ticket_context=_active_ticket_context,
@@ -2750,6 +2759,7 @@ async def _build_knowledge_context(
     authorization_fingerprint: str = "",
     generate_answer: bool = True,
     pinned_execution_refs: Any = None,
+    required_by_plan: bool = False,
 ) -> KnowledgeContextResult:
     """
     为 /chat 主链路构建 RAG 知识上下文。
@@ -2758,7 +2768,7 @@ async def _build_knowledge_context(
     """
     if _knowledge_retriever is None:
         return KnowledgeContextResult()
-    if not _should_use_knowledge(message, intent=intent):
+    if not required_by_plan and not _should_use_knowledge(message, intent=intent):
         return KnowledgeContextResult()
     try:
         policy = {

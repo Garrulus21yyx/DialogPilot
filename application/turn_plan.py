@@ -95,7 +95,7 @@ class RouteDecisionV2:
 @dataclass(frozen=True)
 class TurnPlan:
     route: RouteDecisionV2
-    transitions: FlowTransitionPlan
+    transitions: FlowTransitionPlan | None
     work: WorkPlan | None
     command_ids: tuple[str, ...]
     state_fingerprint: str
@@ -112,7 +112,8 @@ class TurnPlan:
                 "flows": [item.key for item in self.route.flow_refs],
                 "risk": self.route.risk.value,
             },
-            "mutations": [item.command_id for item in self.transitions.mutations],
+            "mutations": [item.command_id for item in self.transitions.mutations]
+            if self.transitions else [],
             "work": [item.source_command_id for item in self.work.items]
             if self.work else [],
             "commands": self.command_ids,
@@ -145,14 +146,19 @@ class TurnPlanCompiler:
             for command in commands
             if (mutation := self._mutation(command)) is not None
         )
+        if mutations and state.flow_aggregate is None:
+            raise TurnPlanError("flow mutations require authoritative flow state")
         work = self._work(commands, registry)
         route = self._route(accepted, commands, work)
         return TurnPlan(
             route=route,
-            transitions=FlowTransitionPlan(
-                aggregate_id=state.flow_aggregate.aggregate_id,
-                expected_aggregate_version=state.flow_aggregate.version,
-                mutations=mutations,
+            transitions=(
+                FlowTransitionPlan(
+                    aggregate_id=state.flow_aggregate.aggregate_id,
+                    expected_aggregate_version=state.flow_aggregate.version,
+                    mutations=mutations,
+                )
+                if state.flow_aggregate is not None and mutations else None
             ),
             work=work,
             command_ids=tuple(item.proposal.proposal_id for item in commands),

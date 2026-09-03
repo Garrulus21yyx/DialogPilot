@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Protocol
+from typing import Any, Mapping, Protocol
 
 from application.route_policy_v2 import (
     FlowActionRegistry,
@@ -21,16 +21,21 @@ from application.turn_understanding import (
 
 
 class SemanticUnderstandingPort(Protocol):
-    def understand(
+    async def understand(
         self,
         message: str,
         message_fingerprint: str,
         state: TurnStateSnapshot,
+        registry: FlowActionRegistry,
+        *,
+        history: tuple[Mapping[str, str], ...] = (),
+        bundle: Any = None,
     ) -> UnderstandingResult: ...
 
 
 class PlanningStatus(str, Enum):
     PLANNED = "PLANNED"
+    FALLBACK = "FALLBACK"
     FAILED = "FAILED"
 
 
@@ -56,11 +61,14 @@ class CommandPrimaryPlanner:
         self._route_policy = route_policy
         self._compiler = compiler
 
-    def plan(
+    async def plan(
         self,
         message: str,
         state: TurnStateSnapshot,
         registry: FlowActionRegistry,
+        *,
+        history: tuple[Mapping[str, str], ...] = (),
+        bundle: Any = None,
     ) -> PlanningResult:
         message_fingerprint = fingerprint_message(message)
         understanding = self._deterministic.resolve(
@@ -70,11 +78,22 @@ class CommandPrimaryPlanner:
         )
         semantic_used = understanding.status is UnderstandingStatus.DEFER
         if semantic_used:
-            understanding = self._semantic.understand(
+            understanding = await self._semantic.understand(
                 message,
                 message_fingerprint,
                 state,
+                registry,
+                history=history,
+                bundle=bundle,
             )
+            if understanding.status is UnderstandingStatus.DEFER:
+                return PlanningResult(
+                    PlanningStatus.FALLBACK,
+                    understanding,
+                    None,
+                    True,
+                    understanding.reason_code,
+                )
         accepted = self._route_policy.accept(understanding, state, registry)
         if accepted.status is RoutePolicyStatus.FAILURE:
             return PlanningResult(

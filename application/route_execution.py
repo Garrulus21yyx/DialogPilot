@@ -15,6 +15,7 @@ from application.route_decision import (
     RouteDecision,
     RouteMode,
 )
+from application.turn_plan import RouteDecisionV2
 
 
 class RouteExecutionContractError(ValueError):
@@ -177,8 +178,46 @@ class RouteExecutionPolicy:
             risk=route.risk.value,
         )
 
+    def plan_command_primary(
+        self,
+        route: RouteDecisionV2,
+        verification: VerificationProfileContract,
+        *,
+        input_fingerprint: str,
+    ) -> RouteExecutionContract:
+        """Compile the first command-primary path directly from its route."""
+
+        if route.mode is not RouteMode.KNOWLEDGE_QA:
+            raise RouteExecutionContractError(
+                "only the knowledge command-primary path is enabled"
+            )
+        owner, outcome, required, conditional = self._shape(route)
+        forbidden = tuple(
+            component for component in RouteComponent
+            if component not in required and component not in conditional
+        )
+        return RouteExecutionContract(
+            mode=route.mode,
+            candidate_owner=owner,
+            expected_outcome=outcome,
+            required_components=tuple(
+                component for component in RouteComponent if component in required
+            ),
+            conditional_components=tuple(
+                component for component in RouteComponent if component in conditional
+            ),
+            forbidden_components=forbidden,
+            verification_profile=verification.profile.value,
+            deterministic_gates=verification.deterministic_gates,
+            policy_version=self.version,
+            route_policy_version=route.policy_version,
+            input_fingerprint=input_fingerprint,
+            reason_codes=(route.reason_code,),
+            risk=route.risk.value,
+        )
+
     @staticmethod
-    def _shape(route: RouteDecision):
+    def _shape(route: RouteDecision | RouteDecisionV2):
         mode = route.mode
         turn = {RouteComponent.TURN_RECORD}
         semantic = {RouteComponent.SEMANTIC_VERIFIER}
