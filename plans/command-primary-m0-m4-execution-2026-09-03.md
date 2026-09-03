@@ -136,6 +136,9 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   predeclared All-evidence → Evidence Recall ordering.
 - [x] Capture lexical/dense Top-40 once for the selected `fixed-512-64` profile,
   replay the predeclared fusion grid offline, and freeze one candidate policy.
+- [x] Reuse the bound 48-case Dev standalone artifact, capture fresh Raw and
+  Standalone Dense Top-40 on the frozen chunk/fusion path, replay four query
+  weights offline, and freeze the production-fallback-compatible query candidate.
 - [x] Run one positive contract through the real `ChatApplication.handle()`.
 - [x] Prove the existing L1 media transport through the real chat lifecycle;
   keep it labelled as transport evidence, not command-primary media closure.
@@ -397,6 +400,25 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   command-primary OUT_OF_SCOPE policy terminal. A real chat-handler test proves
   legacy Intent, Agent, and Knowledge are skipped. Focused adjacent suite:
   `70 passed`; this owner repair does not change the `13/20` semantic score.
+- 2026-09-03: The Knowledge Query Dev stage reused a checksum-bound 48-case
+  transform artifact, then captured fresh Raw/Standalone Dense Top-40 from the
+  frozen `fixed-512-64` BGE-M3 PostgreSQL generation. All 48 captures were OK.
+  Raw-only reached All-evidence `.7500`; `.5/.5`, `.25/.75`, and standalone-first
+  each reached `.8333`. The declared MRR/nDCG tie-break selected `0/1`, with the
+  production rule retaining Raw for 23 identical/fallback cases. This is viewed
+  Dev, not heldout; live rewrite, lexical retrieval, rerank, Parent, packing,
+  generation, and judge were not run. Focused and adjacent suite: `34 passed`.
+- 2026-09-03: A repository-wide Understanding data audit found no unconsumed,
+  state-aware heldout with direct CLARIFY, Registry-backed RESOLVED, and OOS
+  oracle. Existing public and project datasets remain valid for their declared
+  legacy/component roles, but none can be relabelled after the fact as the
+  command-primary promotion gate. Under the no-new-Gold scope, Intent remains
+  `NOT_PROMOTED` and the Encoder correctness mode remains all-DEFER.
+- 2026-09-03: The proposed multilingual BGE reranker is not locally runnable:
+  its cache has a dangling revision ref but no config, tokenizer, or weights.
+  The current 48-case Query cohort also does not meet the predeclared
+  100-natural-multicondition / `.95` candidate-recall trigger. No reranker or
+  Parent stage was opened; the complete English MiniLM remains historical only.
 
 ## Commit log
 
@@ -445,3 +467,4 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 - Structured status-semantics contract: `6617853`.
 - Command-primary out-of-scope terminal: `28ff1b6`.
 - Explicit media region grounding: `285ff13`.
+- Knowledge Query source capture and offline replay: `b38ad07`.

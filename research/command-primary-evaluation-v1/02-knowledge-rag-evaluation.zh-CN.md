@@ -1,6 +1,6 @@
 # Knowledge RAG 迁移与评测
 
-状态：`DEV_CHUNK_AND_FUSION_SELECTED — HELDOUT_NOT_RUN`
+状态：`DEV_CHUNK_FUSION_QUERY_SELECTED — HELDOUT_NOT_RUN`
 目标：在真实 PostgreSQL FTS/pgvector、版本固定的多语言 Dense 模型和生产 EvidencePack 上重新建立可复现基线；保留既有 Chunk、CrossEncoder 与 Parent 实验作为历史证据。
 
 ## 1. 在线职责
@@ -120,6 +120,12 @@ Top-20/40 candidates
 - CrossEncoder 需要在自然中文、英文和 code-switch heldout 上通过 harmful/non-inferiority 门禁。
 
 建议触发条件沿用总评测计划：自然多条件 Dev 至少 100 个 task、All-evidence Candidate Recall@20 `>= .95`、candidate 与 packed gap 至少 `.05`，且该 gap 解释至少 50% 的剩余 packed loss。否则记为 `NOT_APPLICABLE_TRIGGER_NOT_MET`。
+
+截至 2026-09-03，这一触发条件尚未满足：当前 Query cohort 只有 48 条，
+不是至少 100 条的自然多条件集合，而且所选配置的 All-evidence Recall@20
+为 `.8333`。计划使用的 `BAAI/bge-reranker-v2-m3` 本地目录也只有一个
+revision 引用，没有 config、tokenizer 或权重，无法离线校验身份和运行。
+因此本阶段不接 CrossEncoder；完整缓存的英文 MiniLM 继续仅作历史诊断。
 
 ## 5. 中英文与 code-switch
 
@@ -344,8 +350,33 @@ Dense-only 下 `k=10/30/60` 完全同分；报告中的 `k=10` 只是稳定
 `config_id` tie-break，不能解释成 k=10 优于其他值。本次只冻结下一阶段的
 `fixed-512-64 + source_k=40 + candidate_k=20 + dense-only` Dev 候选；没有运行
 standalone rewrite、rerank、Parent expansion、packing、generation 或 judge，
-也没有改变生产默认配置。下一步先在独立 slice 验证中文、英文、code-switch
-与长文档，再决定是否开启 query/selection 阶段。
+也没有改变生产默认配置。
+
+随后 `scripts/run_postgres_rag_query_eval.py` 复用了已经生成并校验身份的
+48 条 Dev standalone artifact，在新的 `fixed-512-64 + BGE-M3 + PG HNSW`
+generation 上分别捕获 Raw/Standalone Dense Top-40，再从落盘的
+`predictions.jsonl` 离线重放四组权重。本轮没有再次调用 rewrite 模型；
+25 条为有效改写，23 条与 raw 相同并按生产规则退回 raw。48/48 检索为
+`OK`，系统失败为 0：
+
+| Raw/Standalone | All-evidence@20 | Evidence R@20 | MRR@20 | nDCG@20 |
+|---|---:|---:|---:|---:|
+| 1/0 | `36/48=.7500` | `.7569` | `.3729` | `.4626` |
+| .5/.5 | `40/48=.8333` | `.8333` | `.4255` | `.5192` |
+| .25/.75 | `40/48=.8333` | `.8333` | `.4668` | `.5516` |
+| 0/1 | **`40/48=.8333`** | **`.8333`** | **`.4706`** | **`.5545`** |
+
+按预声明字典序选择 `0/1`。这表示“有有效 standalone 时使用 standalone；
+改写失败、为空或与原句相同时使用 raw”，不是无条件删除 raw。三组配置在
+两个 Recall 主指标上打平，`0/1` 只凭 MRR/nDCG 胜出。该 48 条 cohort 已被
+查看、不同于 fusion 的 300 条 Dev，也不是 heldout；它只冻结下一阶段的
+Query 候选。capture P95 为 `227.48ms`，artifact SHA-256 为
+`aba106ad…d9f04`。线上与离线现共用同一个 RRF 排序 Owner，生产默认参数
+仍未切换。
+
+下一步先在独立 slice 验证中文、英文、code-switch 与长文档，然后测
+candidate→Top-5/packing loss。只有前述 reranker 或 Parent 触发条件成立，
+才分别开启对应实验。
 
 实际调用必须从 retriever result、Stage 与 E2E audit 读取；Evaluator adapter 不得临时建立另一套内存检索链拿分。
 

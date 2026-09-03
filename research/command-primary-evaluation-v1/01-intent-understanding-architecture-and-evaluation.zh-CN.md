@@ -233,6 +233,15 @@ conversation-heldout 集，同时包含信息不足、明确可路由和明确 O
 规则终态中，旧 Intent、Agent 和 Knowledge 均跳过；这只修复主链所有权，
 不把 7 个语义误判算成通过。
 
+仓库级数据审计确认目前不存在可冻结的这类 heldout：80 条合成合同中的
+20 条 L0 已参与上述开发，且整套没有 OOS；其余数据只有旧 intent/`other`
+标签、没有会改变判断的对话状态或精确 `command + flow@version` oracle，
+不能事后映射成新 Gold。现有 runner 已足够，阻塞项是独立数据而非评测框架。
+按当前“不再新增人工 Gold”的范围，本阶段保持 `NOT_PROMOTED`，继续以
+LLM-only/all-DEFER 作为 correctness baseline，Encoder 不取得生产 fast-path
+权力。公开 MASSIVE/BANKING77/CLINC150 仍可报告旧闭集/OOS表示能力，但不能
+冒充 command-primary 多轮门禁。
+
 ## 9. RoutePolicy、TurnPlanCompiler 与 Approval
 
 `RoutePolicy` 只验证：
