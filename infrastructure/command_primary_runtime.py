@@ -6,7 +6,8 @@ from typing import Any
 
 from application.command_primary_chat import CommandPrimaryChatPlanner
 from application.command_primary_planner import CommandPrimaryPlanner
-from application.default_flow_registry import knowledge_flow_registry
+from application.default_flow_registry import command_primary_flow_registry
+from application.route_decision import RouteMode
 from application.legacy_intent_command_adapter import LegacyIntentKnowledgeAdapter
 from application.route_policy_v2 import RoutePolicy
 from application.turn_plan import TurnPlanCompiler
@@ -35,8 +36,11 @@ def build_command_primary_chat_planner(
     )
     return CommandPrimaryChatPlanner(
         planner,
-        knowledge_flow_registry,
-        knowledge_primary=mode == "knowledge_primary",
+        command_primary_flow_registry,
+        primary_route_modes=(
+            (RouteMode.KNOWLEDGE_QA,)
+            if mode == "knowledge_primary" else ()
+        ),
         flow_state_store=(
             PostgresFlowStateStore(postgres_pool)
             if postgres_pool is not None else None

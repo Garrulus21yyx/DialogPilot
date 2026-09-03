@@ -86,6 +86,35 @@ class FlowStateAggregate:
             self.schema_version,
         )
 
+    def advance_flow(
+        self,
+        instance_id: str,
+        *,
+        expected_version: int,
+    ) -> "FlowStateAggregate":
+        matched = False
+        active_flows = []
+        for flow in self.active_flows:
+            if flow.instance_id != instance_id:
+                active_flows.append(flow)
+                continue
+            if flow.state_version != expected_version:
+                raise FlowStateError("active flow version changed")
+            matched = True
+            active_flows.append(ActiveFlowRef(
+                flow.definition,
+                flow.instance_id,
+                flow.state_version + 1,
+                flow.principal_fingerprint,
+                flow.bindings,
+            ))
+        if not matched:
+            raise FlowStateError("active flow is unavailable")
+        return self.next(
+            active_flows=tuple(active_flows),
+            pending_slot=self.pending_slot,
+        )
+
 
 class FlowStateStore(Protocol):
     def load(self, principal: PrincipalScope) -> FlowStateAggregate: ...

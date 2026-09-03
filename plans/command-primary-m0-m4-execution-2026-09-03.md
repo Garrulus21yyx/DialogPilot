@@ -69,7 +69,7 @@ remains an M3 production capability task; S2 does not claim that score.
 
 ### S3 — State-first integration and downstream decoupling
 
-Status: `IN_PROGRESS — FLOW STATE OWNER COMPLETE; STICKY EXECUTION PENDING`
+Status: `IN_PROGRESS — READ-ONLY STICKY VERTICAL SLICE COMPLETE`
 
 - [ ] Split Turn State loading from optional ServiceEpisode retrieval.
 - [x] Move current-thread state and active case before semantic routing.
@@ -78,7 +78,7 @@ Status: `IN_PROGRESS — FLOW STATE OWNER COMPLETE; STICKY EXECUTION PENDING`
 - [x] Use a post-decision compatibility projection on the Knowledge primary path.
 - [x] Add the authoritative active-flow/pending-slot store before enabling sticky
   continuation in production.
-- [ ] Compile and commit a positive sticky read-only continuation through the
+- [x] Compile and commit a positive sticky read-only continuation through the
   existing tool, verification, publication, delivery, and Memory-write lifecycle.
 - [ ] Replace the temporary selective legacy candidate adapter with the frozen
   Encoder → LLM command producer after its component gate passes.
@@ -136,6 +136,14 @@ Status: `PENDING`
   persistence lifecycle is covered by round-trip, one-winner CAS, and
   conversation tombstone cleanup; complete isolated PostgreSQL suite:
   `985 passed`. No natural-language keyword matcher was added.
+- 2026-09-03: S3 sticky positive slice loads a bound `refund_status` flow,
+  lets the semantic command producer propose `CONTINUE_FLOW`, compiles the
+  registered `refund.current_state` requirement and `refund_status` tool,
+  executes exactly that read-only work, commits `ADVANCE` with CAS, then reuses
+  verification, Publication, Delivery, and Memory write. Legacy Intent,
+  Knowledge RAG, and Agent re-planning are skipped. Complete isolated
+  PostgreSQL suite: `986 passed`. This proves transport/execution; it does not
+  claim that the final Encoder/LLM producer has passed its quality gate.
 
 ## Commit log
 
@@ -144,3 +152,4 @@ Status: `PENDING`
 - Stage 2 routing media probe: `b2a4334`.
 - Stage 2 retrieval embedding ownership: `f83bddb`.
 - Stage 3 Knowledge primary vertical slice: `07b42f8`.
+- Stage 3 conversation FlowState owner: `61a8349`.

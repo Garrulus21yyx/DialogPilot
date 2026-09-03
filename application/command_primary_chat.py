@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Callable, Mapping, Sequence
 
+from agents.orchestration_contracts import TaskEffect
 from application.active_case import ActiveCaseState
 from application.authority_policy import AuthorityPolicyRegistry, FactRequirement
 from application.command_primary_planner import (
@@ -14,11 +15,11 @@ from application.command_primary_planner import (
     PlanningStatus,
 )
 from application.coverage_gate import VerificationProfileRegistry
-from application.flow_state import FlowStateAggregate, FlowStateStore
+from application.flow_state import FlowStateAggregate, FlowStateError, FlowStateStore
 from application.route_decision import RouteMode
 from application.route_execution import RouteExecutionContract, RouteExecutionPolicy
 from application.route_policy_v2 import FlowActionRegistry
-from application.turn_plan import TurnPlan
+from application.turn_plan import FlowMutationKind, TurnPlan
 from application.turn_state import (
     PrincipalScope,
     StateAvailability,
@@ -32,6 +33,7 @@ from core.intent_recognizer import IntentCategory, IntentResult, UrgencyLevel
 class CommandPrimaryChatPlan:
     planning: PlanningResult
     plan: TurnPlan | None
+    flow_state: FlowStateAggregate | None = None
     requirements: tuple[FactRequirement, ...] = ()
     execution_contract: RouteExecutionContract | None = None
     intent_projection: IntentResult | None = None
@@ -46,12 +48,12 @@ class CommandPrimaryChatPlanner:
         planner: CommandPrimaryPlanner,
         registry_factory: Callable[[str], FlowActionRegistry],
         *,
-        knowledge_primary: bool = False,
+        primary_route_modes: tuple[RouteMode, ...] = (),
         flow_state_store: FlowStateStore | None = None,
     ) -> None:
         self._planner = planner
         self._registry_factory = registry_factory
-        self._knowledge_primary = knowledge_primary
+        self._primary_route_modes = frozenset(primary_route_modes)
         self._flow_state_store = flow_state_store
         self._authority = AuthorityPolicyRegistry.v1()
         self._verification = VerificationProfileRegistry()
@@ -93,9 +95,29 @@ class CommandPrimaryChatPlanner:
         )
         plan = planning.plan
         if planning.status is not PlanningStatus.PLANNED or plan is None:
-            return CommandPrimaryChatPlan(planning, None)
-        if plan.route.mode is not RouteMode.KNOWLEDGE_QA:
-            return CommandPrimaryChatPlan(planning, plan)
+            return CommandPrimaryChatPlan(
+                planning=planning,
+                plan=None,
+                flow_state=flow_state,
+            )
+        if plan.route.mode not in {RouteMode.KNOWLEDGE_QA, RouteMode.AGENT_TASK}:
+            return CommandPrimaryChatPlan(
+                planning=planning,
+                plan=plan,
+                flow_state=flow_state,
+            )
+        if (
+            plan.route.mode is RouteMode.AGENT_TASK
+            and any(
+                task.effect is not TaskEffect.READ_ONLY
+                for task in plan.work.graph.tasks
+            )
+        ):
+            return CommandPrimaryChatPlan(
+                planning=planning,
+                plan=plan,
+                flow_state=flow_state,
+            )
 
         requirements = self._authority.requirements_for_ids(
             plan.route.requirement_ids,
@@ -109,11 +131,19 @@ class CommandPrimaryChatPlanner:
             verification,
             input_fingerprint=plan.plan_id,
         )
+        projected_intent = (
+            IntentCategory.QUERY
+            if plan.route.mode is RouteMode.KNOWLEDGE_QA
+            else IntentCategory.REFUND
+        )
         projection = IntentResult(
-            intent=IntentCategory.QUERY,
+            intent=projected_intent,
             confidence=0.0,
             urgency=UrgencyLevel.LOW,
-            intent_group="query",
+            intent_group=(
+                "query"
+                if plan.route.mode is RouteMode.KNOWLEDGE_QA else "billing"
+            ),
             entities={},
             reasoning="post-decision compatibility projection",
             latency_ms=0.0,
@@ -122,12 +152,38 @@ class CommandPrimaryChatPlanner:
             input_fingerprint=plan.plan_id,
         )
         return CommandPrimaryChatPlan(
-            planning,
-            plan,
-            requirements,
-            execution,
-            projection,
-            self._knowledge_primary,
+            planning=planning,
+            plan=plan,
+            flow_state=flow_state,
+            requirements=requirements,
+            execution_contract=execution,
+            intent_projection=projection,
+            use_primary=plan.route.mode in self._primary_route_modes,
+        )
+
+    async def commit_flow_transition(
+        self,
+        chat_plan: CommandPrimaryChatPlan,
+    ) -> bool:
+        plan = chat_plan.plan
+        transitions = plan.transitions if plan else None
+        if transitions is None:
+            return True
+        if self._flow_state_store is None or chat_plan.flow_state is None:
+            raise FlowStateError("flow transition has no state owner")
+        if len(transitions.mutations) != 1:
+            raise FlowStateError("read-only primary supports one flow transition")
+        mutation = transitions.mutations[0]
+        if mutation.kind is not FlowMutationKind.ADVANCE:
+            raise FlowStateError("read-only primary supports ADVANCE")
+        next_state = chat_plan.flow_state.advance_flow(
+            mutation.source_instance_id,
+            expected_version=mutation.expected_source_version,
+        )
+        return await asyncio.to_thread(
+            self._flow_state_store.compare_and_set,
+            chat_plan.flow_state,
+            next_state,
         )
 
 
@@ -188,45 +244,4 @@ def _turn_state(
         ),
         captured_at=datetime.now(timezone.utc),
         producer_version="command-primary-chat-state-v1",
-    )
-
-
-def knowledge_execution_result(
-    request_id: str,
-    chat_plan: CommandPrimaryChatPlan,
-    knowledge: Any,
-) -> Any:
-    """Project an executed Knowledge work item onto the legacy response shell."""
-
-    from agents.agent_orchestrator import OrchestratorResult, PlanningDisposition
-
-    plan = chat_plan.plan
-    if plan is None or plan.work is None:
-        raise ValueError("knowledge execution requires a compiled work plan")
-    response = str(getattr(knowledge, "answer", "") or "").strip()
-    if not response:
-        response = "当前知识库没有足够证据回答这个问题。"
-    complete = bool(getattr(knowledge, "used", False)) and bool(
-        getattr(knowledge, "answer", "") or getattr(knowledge, "abstained", False)
-    )
-    return OrchestratorResult(
-        request_id=request_id,
-        response=response,
-        agent_type=None,
-        intent=IntentCategory.QUERY,
-        agent_types=[],
-        primary_agent=None,
-        routing_reason=plan.route.reason_code,
-        routing_confidence=0.0,
-        routing_disposition=PlanningDisposition.EXECUTE,
-        synthesis_status="grounded_knowledge",
-        synthesis_reason="command-primary Knowledge candidate",
-        task_plan=plan.work.graph.to_dict(),
-        coverage={"complete": complete},
-        execution_budget={},
-        bundle_version="",
-        routing_policy_trace={
-            "decision_source": "command_primary",
-            "plan_id": plan.plan_id,
-        },
     )

@@ -47,6 +47,7 @@ class CandidateOwner(str, Enum):
     MIXED_AUTHORITY_AGENT = "mixed_authority_agent"
     TASK_GRAPH = "task_graph"
     HANDOFF_DRAFT = "handoff_draft"
+    BUSINESS_TOOL = "business_tool"
 
 
 class RouteExpectedOutcome(str, Enum):
@@ -187,11 +188,21 @@ class RouteExecutionPolicy:
     ) -> RouteExecutionContract:
         """Compile the first command-primary path directly from its route."""
 
-        if route.mode is not RouteMode.KNOWLEDGE_QA:
+        if route.mode is RouteMode.KNOWLEDGE_QA:
+            owner, outcome, required, conditional = self._shape(route)
+        elif route.mode is RouteMode.AGENT_TASK:
+            owner = CandidateOwner.BUSINESS_TOOL
+            outcome = RouteExpectedOutcome.COMPLETED
+            required = {
+                RouteComponent.BUSINESS_TOOL,
+                RouteComponent.REQUIREMENT_COVERAGE_GATE,
+                RouteComponent.TURN_RECORD,
+            }
+            conditional = {RouteComponent.SEMANTIC_VERIFIER}
+        else:
             raise RouteExecutionContractError(
-                "only the knowledge command-primary path is enabled"
+                "command-primary route is not enabled"
             )
-        owner, outcome, required, conditional = self._shape(route)
         forbidden = tuple(
             component for component in RouteComponent
             if component not in required and component not in conditional

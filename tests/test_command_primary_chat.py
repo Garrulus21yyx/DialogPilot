@@ -18,8 +18,9 @@ from application.chat_application import (
 )
 from application.command_primary_chat import CommandPrimaryChatPlanner
 from application.command_primary_planner import CommandPrimaryPlanner
-from application.default_flow_registry import knowledge_flow_registry
+from application.default_flow_registry import command_primary_flow_registry
 from application.flow_state import FlowStateAggregate
+from application.route_decision import RouteMode
 from application.route_policy_v2 import RoutePolicy
 from application.turn_plan import TurnPlanCompiler
 from application.turn_understanding import (
@@ -177,8 +178,8 @@ def test_knowledge_primary_runs_through_chat_application_without_legacy_intent()
             RoutePolicy(),
             TurnPlanCompiler(),
         ),
-        knowledge_flow_registry,
-        knowledge_primary=True,
+        command_primary_flow_registry,
+        primary_route_modes=(RouteMode.KNOWLEDGE_QA,),
         flow_state_store=FlowState(),
     )
     services = ChatServices(

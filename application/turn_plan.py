@@ -17,7 +17,7 @@ from application.route_policy_v2 import (
     WorkKind,
 )
 from application.turn_state import FlowDefinitionRef, TurnStateSnapshot
-from application.turn_understanding import CommandKind
+from application.turn_understanding import CommandArgument, CommandKind
 
 
 class TurnPlanError(ValueError):
@@ -73,6 +73,7 @@ class CompiledWorkItem:
     action_ref: str
     allowed_tools: tuple[str, ...]
     approval: ApprovalPolicy
+    arguments: tuple[CommandArgument, ...]
 
 
 @dataclass(frozen=True)
@@ -226,6 +227,7 @@ class TurnPlanCompiler:
                 action_ref=action.ref,
                 allowed_tools=action.allowed_tools,
                 approval=action.approval,
+                arguments=_work_arguments(command),
             ))
         graph = TaskGraph(
             tasks=tuple(tasks),
@@ -294,6 +296,18 @@ class TurnPlanCompiler:
             reason_code=accepted.reason_code,
             policy_version=accepted.policy_version,
         )
+
+
+def _work_arguments(command: AcceptedCommand) -> tuple[CommandArgument, ...]:
+    proposal = command.proposal
+    arguments = {item.name: item for item in proposal.arguments}
+    arguments.update({
+        binding.name: CommandArgument(binding.name, binding.value_json)
+        for binding in (
+            proposal.source_flow.bindings if proposal.source_flow else ()
+        )
+    })
+    return tuple(arguments[name] for name in sorted(arguments))
 
 
 _FLOW_MUTATIONS = {

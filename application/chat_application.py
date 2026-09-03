@@ -17,6 +17,7 @@ from typing import Any, Awaitable, Callable, Mapping, Optional, TypeAlias
 
 from memory.context import ContextNode, ContextSection
 from application.active_case import ActiveCaseContextView, ActiveCaseState
+from application.route_decision import RouteMode
 from core.identity import IdentityContractError, IdentityFactory, InvocationIdentity
 from services.answer_verifier import (
     VerificationReasonCode,
@@ -574,13 +575,40 @@ class ChatApplication:
         )
         full_context = prompt_context.system_context
         if command_primary is not None and command_primary.use_primary:
-            from application.command_primary_chat import knowledge_execution_result
+            if command_primary.plan.route.mode is RouteMode.KNOWLEDGE_QA:
+                from application.command_primary_result import knowledge_execution_result
 
-            result = knowledge_execution_result(
-                request_id,
-                command_primary,
-                knowledge,
-            )
+                result = knowledge_execution_result(
+                    request_id,
+                    command_primary,
+                    knowledge,
+                )
+            else:
+                from application.command_primary_result import read_only_execution_result
+                from application.read_only_work import execute_read_only_work
+
+                execution = await execute_read_only_work(
+                    command_primary.plan,
+                    services.tool_manager,
+                    identity,
+                )
+                result = read_only_execution_result(
+                    request_id,
+                    command_primary,
+                    execution,
+                )
+                if execution.tool_result.success:
+                    applied = await (
+                        services.command_primary_chat_planner
+                        .commit_flow_transition(command_primary)
+                    )
+                    if not applied:
+                        raise RuntimeError("flow state changed before commit")
+                    stages.append(StageObservation(
+                        "flow_transition",
+                        StageStatus.OK,
+                        {"status": "applied"},
+                    ))
         else:
             orchestration_request = OrcReq(
                 message=command.message,
