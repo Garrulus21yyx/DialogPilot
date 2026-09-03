@@ -607,6 +607,8 @@ async def lifespan(app: FastAPI):
     from application.orchestration_runtime import OrchestrationRuntime
     from application.target_chat_application import TargetChatApplication
     from application.target_conversation_manager import TargetConversationManager
+    from application.target_encoder_artifact import load_target_text_encoder_artifact
+    from application.target_encoder_understanding import TargetEncoderUnderstanding
     from application.structured_target_router import (
         CascadedTargetUnderstanding,
         StructuredTargetCommandRouter,
@@ -644,12 +646,27 @@ async def lifespan(app: FastAPI):
         workflow_executor=target_workflow_executor,
         checkpointer=target_checkpointer,
     )
+    target_encoder_enabled = os.getenv(
+        "TARGET_ENCODER_ENABLED", "true",
+    ).strip().lower()
+    if target_encoder_enabled not in {"true", "false"}:
+        raise RuntimeError("TARGET_ENCODER_ENABLED must be true or false")
+    target_encoder = None
+    if target_encoder_enabled == "true":
+        target_encoder_dir = pathlib.Path(os.getenv(
+            "TARGET_ENCODER_ARTIFACT_DIR",
+            str(pathlib.Path(_ROOT) / "artifacts" / "target-encoder-zh-v1"),
+        ))
+        target_encoder = TargetEncoderUnderstanding(
+            load_target_text_encoder_artifact(target_encoder_dir)
+        )
     target_understanding = CascadedTargetUnderstanding(
         BoundedTargetUnderstanding(),
         StructuredTargetCommandRouter(AnthropicTargetSemanticProvider(
             _tool_manager.llm_client,
             model=_model_policy.profile(ModelRole.INTENT).model,
         )),
+        encoder=target_encoder,
     )
     _target_chat_runtime = TargetChatApplication(
         manager=TargetConversationManager(

@@ -207,9 +207,10 @@ class CascadedTargetUnderstanding:
 
     version = "cascaded-target-understanding-v1"
 
-    def __init__(self, bounded, semantic) -> None:
+    def __init__(self, bounded, semantic, *, encoder=None) -> None:
         self._bounded = bounded
         self._semantic = semantic
+        self._encoder = encoder
 
     async def __call__(self, observations, state, deterministic, registry):
         primary = await self._bounded(observations, state, deterministic, registry)
@@ -220,4 +221,8 @@ class CascadedTargetUnderstanding:
             "APPROVAL_DECLINED", "APPROVAL_EXPIRED",
         }:
             return primary
+        if self._encoder is not None:
+            decision = await self._encoder(observations, state, registry)
+            if decision.accepted:
+                return decision.proposal
         return await self._semantic(observations, state, deterministic, registry)

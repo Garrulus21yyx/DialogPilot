@@ -9,6 +9,8 @@ from application.default_capability_registry import build_default_capability_reg
 from application.orchestration_runtime import OrchestrationRuntime
 from application.target_chat_application import TargetChatApplication
 from application.target_conversation_manager import TargetConversationManager
+from application.target_encoder_artifact import load_target_text_encoder_artifact
+from application.target_encoder_understanding import TargetEncoderUnderstanding
 from application.structured_target_router import (
     CascadedTargetUnderstanding,
     StructuredTargetCommandRouter,
@@ -206,6 +208,12 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                     understanding=CascadedTargetUnderstanding(
                         BoundedTargetUnderstanding(),
                         StructuredTargetCommandRouter(semantic_provider),
+                        encoder=TargetEncoderUnderstanding(
+                            load_target_text_encoder_artifact(
+                                __import__("pathlib").Path(__file__).resolve().parents[1]
+                                / "artifacts" / "target-encoder-zh-v1"
+                            )
+                        ),
                     ),
                     orchestration=OrchestrationRuntime(
                         direct_executor=read_executor,
@@ -241,6 +249,9 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                     })
 
                 order = await chat("order", "查订单 DP1234 物流")
+                encoder_refund = await chat(
+                    "encoder-refund", "确认 RF3100 的退回进展",
+                )
                 semantic_order = await chat(
                     "semantic-order", "帮我看看 DP2468 走到哪一步了",
                 )
@@ -329,7 +340,8 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                 )
                 handoff = await chat("handoff", "我要人工客服处理这个问题")
                 return (
-                    order, semantic_order, product, refund_precheck, refund_precheck_replay,
+                    order, encoder_refund, semantic_order, product,
+                    refund_precheck, refund_precheck_replay,
                     refund_committed, refund_commit_replay, stale_approval,
                     changed_approval_replay, cross_conversation_approval,
                     refund_decline, refund_declined, multi, partial, handoff,
@@ -340,7 +352,8 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
         responses = asyncio.run(run())
         for name, response in zip(
             (
-                "order", "semantic-order", "product", "refund-precheck", "refund-replay",
+                "order", "encoder-refund", "semantic-order", "product",
+                "refund-precheck", "refund-replay",
                 "refund-commit", "refund-commit-replay", "stale-approval",
                 "changed-approval-replay", "cross-conversation-approval",
                 "refund-decline", "refund-declined", "multi", "partial", "handoff",
@@ -361,7 +374,8 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
             )
             assert response.status_code == expected, f"{name}: {response.text}"
         (
-            order, semantic_order, product, refund_precheck, refund_precheck_replay,
+            order, encoder_refund, semantic_order, product,
+            refund_precheck, refund_precheck_replay,
             refund_committed, refund_commit_replay, stale_approval,
             changed_approval_replay, cross_conversation_approval,
             refund_decline, refund_declined, multi, partial, handoff,
@@ -370,6 +384,9 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
             item.json() for item in responses
         )
         assert order["routing_disposition"] == "direct"
+        assert encoder_refund["routing_reason"] == "ENCODER_FAST_PATH_ACCEPTED"
+        assert encoder_refund["routing_disposition"] == "agent_task"
+        assert "RF3100" in encoder_refund["response"]
         assert semantic_order["routing_disposition"] == "direct"
         assert "DP2468" in semantic_order["response"]
         assert len(semantic_provider.calls) == 1

@@ -64,7 +64,8 @@
 | 13A | done | Real `media_read` and `catalog_search` tools plus a Product skill executor that passes verified media observations into catalog lookup | Product owner/tool contract tests | this stage commit |
 | 13B | done | Real upload-to-chat Product E2E, typed unavailable/no-match/ambiguous paths, documentation, commit and push | 80 Target tests including real PostgreSQL Asset/HTTP E2E | this stage commit |
 | 14A | done | Target-native structured semantic router and typed provider boundary behind deterministic resolution | 66 focused Target tests; real HTTP/PostgreSQL semantic fallback; provider failure remains typed | this stage commit |
-| 14B | in progress | Target Skill/Command Encoder dataset, class-scoped calibration, heldout gate and public fast-path binding | pending | pending |
+| 14B | done | Target Skill/Command Encoder dataset, class-scoped calibration, heldout gate and public fast-path binding | 91 Target tests; reproducible training; real HTTP/PostgreSQL Encoder bypass | this stage commit |
+| 15 | in progress | Target-native evaluation funnel, capability-scoped gates, observability and final architecture/runbook convergence | pending | pending |
 
 ## Stage record
 
@@ -120,6 +121,10 @@
 - Stage 14A: Target-native structured semantic schema, Anthropic-compatible
   provider adapter, deterministic Registry command compilation, bounded-first
   cascade, typed provider failures, and real `/chat` + PostgreSQL fallback E2E.
+- Stage 14B: Target-native four-way supervision data, reproducible hashed
+  character n-gram classifier, class-scoped calibration/heldout gates,
+  dependency-free checked artifact loading, semantic-signal constraints, and
+  public Encoder → single Worker execution.
 
 ## Scope correction after executable-core review
 
@@ -225,3 +230,28 @@ continuation.
   request for more user information, and neither can execute a tool.
 - The focused Target suite passed 66 tests, including real ASGI `/chat`, PostgreSQL
   admission/state/publication boundaries and the semantic fallback case.
+
+## Stage 14B verification notes
+
+- The Target artifact is trained only against `general_qa`,
+  `product_identification`, `refund_status_summary`, and `__DEFER__`; it does not
+  reuse or translate the legacy 53-label Intent taxonomy.
+- Calibration selects a separate threshold for each read Skill. A class is enabled
+  only when its calibration one-sided 95% Wilson lower bound is at least `0.88`,
+  heldout accepted precision is at least `0.98`, and heldout acceptance support is
+  at least 10. Only `refund_status_summary` passed both gates (13/13 accepted
+  heldout cases); General and Product remain capability-scoped deferred paths.
+- The model is a learned hashed character n-gram logistic regression exported as
+  checked JSON. Online inference has no sklearn dependency; the loader binds model
+  digest, dataset digests, bundle version and live read-Skill ownership/effect.
+- A class-specific observed-signal gate prevents generic order progress language
+  from becoming a refund query. Missing entity, active workstream, disabled class,
+  boundary/low margin, write language and multi-domain language defer to the
+  structured semantic router.
+- Real ASGI/PostgreSQL E2E proves a semantic refund-status utterance bypasses the
+  provider, dispatches exactly one Billing worker, and publishes verified tool
+  evidence. A generic order-progress paraphrase invokes the provider exactly once
+  and remains a zero-Agent direct tool path.
+- The complete Target-focused suite passed 91 tests against PostgreSQL. The dataset
+  is synthetic prototype evidence and is not represented as production traffic or
+  an external benchmark.

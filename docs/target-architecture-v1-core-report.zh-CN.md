@@ -25,12 +25,17 @@ PostgreSQL 边界验证。当前状态是“有界 v1 主链已切换”，不�
 - Ticket Receipt 驱动的人工接管闭环。
 - PostgreSQL Asset、可追溯 OCR、版本化 Product Catalog 与 Product 复合 Skill
   的真实 `/chat` 绑定。
+- Target-native 结构化语义 Router、类型化 provider 失败，以及 Registry 驱动的
+  Command 编译（LLM 不决定 Tool、Risk 或 Requirement）。
+- 可重复训练的 Target Encoder、类别级阈值与 heldout 能力门禁；线上纯 JSON
+  推理已接入 `/chat`，只启用通过门禁的退款状态快速路径。
 
 有意保持关闭或仍待后续实现：
 
 - `execute_refund` 已支持资格预检、持久确认、拒绝/过期取消、确认后幂等提交，
   并已闭合 `OUTCOME_UNKNOWN → RECONCILING → 权威状态查询 → Receipt`；
-- 真正的 Encoder + Structured LLM fallback；当前是有界确定性理解器；
+- General/Product Encoder 类别尚未通过 heldout 门禁，继续由 Structured LLM
+  fallback 处理；不会随退款类别一起放行；
 - 没有可读型号文字的纯视觉商品识别仍需要启用 VLM；当前本地简历版只声明
   “图片铭牌/OCR 型号 → Catalog 精确匹配”；
 - 旧 command-primary、旧 AgentOrchestrator 和旧合同的物理删除。它们不再是
@@ -47,9 +52,9 @@ PostgreSQL 边界验证。当前状态是“有界 v1 主链已切换”，不�
 | Product 失败、Refund 成功 | 部分失败 | Refund 结果保留，Product 保持 typed failure |
 | 用户要求人工 | WORKFLOW + Publication | 只有 Ticket Receipt 能转移会话 Owner 并宣称创建成功 |
 
-## 第 12B 阶段验证结果
+## 当前验证结果
 
-- Target v1 专项测试：80 passed。
+- Target v1 专项测试：91 passed（真实 PostgreSQL）。
 - 真实边界：1 个测试连续覆盖六场景，使用真实 ASGI `/chat`、PostgreSQL
   Admission/Event/State/Operation/Publication 表和 async LangGraph checkpoint。
 - 订单路径断言为 `DIRECT`，没有派发领域 Agent；单领域任务只运行一个 Worker；
@@ -69,6 +74,13 @@ PostgreSQL 边界验证。当前状态是“有界 v1 主链已切换”，不�
   Product Skill 再调用 `media_read` 获取带 checksum/producer/version 的 OCR 证据，
   将其结构化传给 `catalog_search`。只有 Catalog 的唯一匹配可以产生
   `product.canonical_model`，无匹配不会由 Agent 自行猜测。
+- 确定性/规则边界未解析的请求先进入 Target Encoder。artifact 使用三份不重叠
+  synthetic contract split；退款状态类别在 heldout 接受 13/13，General 与
+  Product 未通过类别门禁并保持 DEFER。Encoder 命中后只派发一个 Billing Worker；
+  普通订单进度改写不会被误当退款，仍由 structured provider 产生 DIRECT Tool。
+- structured provider 只能输出冻结的 Target goal 与消息中已有的实体；Tool、Risk、
+  Requirement、Effect 和 Owner 都由 Registry-backed 编译器补全。provider 超时与
+  无效输出保留为不同 typed failure，均不会调用工具或伪装成用户缺信息。
 - 仓库级回归：1128 passed、6 failed。6 个失败均由工作树中另一路未提交的
   RAG 策略改动触发：默认 retrieval policy 已产生 `expansion_query_weight`、
   `query_expansion_count`、`metadata_hint_weight`，但旧 `AgentBundle` 白名单尚未
@@ -84,6 +96,7 @@ PostgreSQL 边界验证。当前状态是“有界 v1 主链已切换”，不�
 
 以下能力不能因主链切换而被误称为已完成：
 
-1. Encoder Fast Path 必须用 Accepted Precision/Coverage 验收后才能替换确定性规则；
+1. 目前 Encoder 数据是 synthetic prototype evidence；扩大类别覆盖前必须使用新的
+   独立数据继续验证 Accepted Precision/Coverage，不能把 13% 总覆盖率包装成生产效果；
 2. 纯视觉识别只有在 VLM provider 配置、证据合同与失败路径通过后才能宣称支持；
 3. 删除旧模块前必须先迁移剩余消费者，不能通过在新主链增加兼容回退来掩盖。
