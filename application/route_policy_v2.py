@@ -203,8 +203,8 @@ class RoutePolicy:
     ) -> None:
         if command.source_flow is not None and command.source_flow not in state.active_flows:
             raise RoutePolicyError("source flow is not in the current state")
-        if command.pending_signal is not None and command.pending_signal != state.pending_signal:
-            raise RoutePolicyError("pending signal is not in the current state")
+        if command.pending_slot is not None and command.pending_slot != state.pending_slot:
+            raise RoutePolicyError("pending slot is not in the current state")
         for flow in (
             command.source_flow.definition if command.source_flow else None,
             command.target_flow,

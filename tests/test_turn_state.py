@@ -6,8 +6,7 @@ from application.turn_state import (
     ActiveFlowRef,
     FlowAggregateVersion,
     FlowDefinitionRef,
-    PendingInputKind,
-    PendingSignalRef,
+    PendingSlotRef,
     PrincipalScope,
     StateAvailability,
     StateSourceStatus,
@@ -16,7 +15,7 @@ from application.turn_state import (
 )
 
 
-def test_snapshot_binds_active_flow_and_signal_to_authenticated_principal() -> None:
+def test_snapshot_binds_active_flow_and_slot_to_authenticated_principal() -> None:
     principal = PrincipalScope("tenant-1", "user-1", "conversation-1")
     flow = ActiveFlowRef(
         FlowDefinitionRef("refund_status", "v1"),
@@ -24,10 +23,9 @@ def test_snapshot_binds_active_flow_and_signal_to_authenticated_principal() -> N
         7,
         principal.fingerprint,
     )
-    signal = PendingSignalRef(
+    slot = PendingSlotRef(
         "signal-1",
         4,
-        PendingInputKind.SLOT_VALUE,
         flow.instance_id,
         "order_id",
         principal.fingerprint,
@@ -37,7 +35,7 @@ def test_snapshot_binds_active_flow_and_signal_to_authenticated_principal() -> N
         principal,
         FlowAggregateVersion("flow-state:conversation-1", 9),
         (flow,),
-        signal,
+        slot,
         (),
         (),
         (),
@@ -46,7 +44,7 @@ def test_snapshot_binds_active_flow_and_signal_to_authenticated_principal() -> N
         ),),
         datetime(2026, 9, 3, tzinfo=timezone.utc),
     )
-    assert snapshot.pending_signal.flow_instance_id == snapshot.active_flows[0].instance_id
+    assert snapshot.pending_slot.flow_instance_id == snapshot.active_flows[0].instance_id
 
 
 def test_snapshot_rejects_cross_principal_state() -> None:

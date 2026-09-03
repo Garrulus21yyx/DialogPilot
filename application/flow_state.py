@@ -8,8 +8,7 @@ from typing import Protocol
 from application.turn_state import (
     ActiveFlowRef,
     FlowAggregateVersion,
-    PendingInputKind,
-    PendingSignalRef,
+    PendingSlotRef,
     PrincipalScope,
 )
 
@@ -23,7 +22,7 @@ class FlowStateAggregate:
     principal: PrincipalScope
     aggregate: FlowAggregateVersion
     active_flows: tuple[ActiveFlowRef, ...]
-    pending_slot: PendingSignalRef | None
+    pending_slot: PendingSlotRef | None
     deletion_epoch: int
     schema_version: str = "conversation-flow-state-v1"
 
@@ -36,8 +35,6 @@ class FlowStateAggregate:
         ):
             raise FlowStateError("active flow and principal differ")
         if self.pending_slot is not None:
-            if self.pending_slot.kind is not PendingInputKind.SLOT_VALUE:
-                raise FlowStateError("flow state only owns pending slot values")
             if self.pending_slot.principal_fingerprint != self.principal.fingerprint:
                 raise FlowStateError("pending slot and principal differ")
             if self.pending_slot.flow_instance_id not in {
@@ -72,7 +69,7 @@ class FlowStateAggregate:
         self,
         *,
         active_flows: tuple[ActiveFlowRef, ...],
-        pending_slot: PendingSignalRef | None,
+        pending_slot: PendingSlotRef | None,
     ) -> "FlowStateAggregate":
         return FlowStateAggregate(
             self.principal,

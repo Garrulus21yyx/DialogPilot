@@ -15,8 +15,7 @@ from application.turn_state import (
     FlowBinding,
     FlowAggregateVersion,
     FlowDefinitionRef,
-    PendingInputKind,
-    PendingSignalRef,
+    PendingSlotRef,
     PrincipalScope,
 )
 from infrastructure.data_location_fence import PostgresDataLocationWriteFence
@@ -128,8 +127,8 @@ def _state_payload(state: FlowStateAggregate) -> dict[str, object]:
             } for binding in flow.bindings],
         } for flow in state.active_flows],
         "pending_slot": ({
-            "signal_id": pending.signal_id,
-            "signal_version": pending.signal_version,
+            "signal_id": pending.slot_id,
+            "signal_version": pending.slot_version,
             "flow_instance_id": pending.flow_instance_id,
             "field_name": pending.field_name,
         } if pending else None),
@@ -151,10 +150,9 @@ def _restore(principal: PrincipalScope, row) -> FlowStateAggregate:
         ) for binding in item.get("bindings", ())),
     ) for item in payload.get("active_flows", ()))
     raw_pending = payload.get("pending_slot")
-    pending = PendingSignalRef(
+    pending = PendingSlotRef(
         str(raw_pending["signal_id"]),
         int(raw_pending["signal_version"]),
-        PendingInputKind.SLOT_VALUE,
         str(raw_pending["flow_instance_id"]),
         str(raw_pending["field_name"]),
         principal.fingerprint,

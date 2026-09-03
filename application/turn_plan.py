@@ -37,8 +37,8 @@ class FlowMutationKind(str, Enum):
 
 
 @dataclass(frozen=True)
-class SignalConsumption:
-    signal_id: str
+class SlotConsumption:
+    slot_id: str
     expected_version: int
 
 
@@ -56,7 +56,7 @@ class FlowMutation:
     expected_source_version: int | None
     target_flow: FlowDefinitionRef | None
     slot_update: SlotUpdate | None
-    signal_consumption: SignalConsumption | None
+    slot_consumption: SlotConsumption | None
 
 
 @dataclass(frozen=True)
@@ -175,15 +175,15 @@ class TurnPlanCompiler:
             return None
         arguments = {item.name: item for item in proposal.arguments}
         slot_update = None
-        signal = None
+        slot_consumption = None
         if proposal.kind is CommandKind.FILL_SLOT:
             slot_update = SlotUpdate(
                 str(arguments["field_name"].value),
                 arguments["field_value"].value_json,
             )
-            signal = SignalConsumption(
-                proposal.pending_signal.signal_id,
-                proposal.pending_signal.signal_version,
+            slot_consumption = SlotConsumption(
+                proposal.pending_slot.slot_id,
+                proposal.pending_slot.slot_version,
             )
         return FlowMutation(
             kind=kind,
@@ -196,7 +196,7 @@ class TurnPlanCompiler:
             ),
             target_flow=proposal.target_flow,
             slot_update=slot_update,
-            signal_consumption=signal,
+            slot_consumption=slot_consumption,
         )
 
     def _work(

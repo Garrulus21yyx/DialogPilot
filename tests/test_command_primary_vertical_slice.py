@@ -26,8 +26,7 @@ from application.turn_state import (
     ActiveFlowRef,
     FlowAggregateVersion,
     FlowDefinitionRef,
-    PendingInputKind,
-    PendingSignalRef,
+    PendingSlotRef,
     PrincipalScope,
     StateAvailability,
     StateSourceStatus,
@@ -49,11 +48,10 @@ REFUND = FlowDefinitionRef("refund_status", "v1")
 def state(*, pending: bool) -> TurnStateSnapshot:
     principal = PrincipalScope("tenant-1", "user-1", "conversation-1")
     flow = ActiveFlowRef(REFUND, "refund-flow-1", 7, principal.fingerprint)
-    signal = (
-        PendingSignalRef(
+    slot = (
+        PendingSlotRef(
             "signal-order-id",
             4,
-            PendingInputKind.SLOT_VALUE,
             flow.instance_id,
             "order_id",
             principal.fingerprint,
@@ -65,7 +63,7 @@ def state(*, pending: bool) -> TurnStateSnapshot:
         principal,
         FlowAggregateVersion("flow-state:conversation-1", 9),
         (flow,),
-        signal,
+        slot,
         ("turn-previous",),
         ("case-refund-1",),
         (),
@@ -173,7 +171,7 @@ def test_pending_slot_runs_state_first_without_encoder_or_llm() -> None:
     mutation = result.plan.transitions.mutations[0]
     assert mutation.kind is FlowMutationKind.FILL_SLOT
     assert mutation.expected_source_version == 7
-    assert mutation.signal_consumption.expected_version == 4
+    assert mutation.slot_consumption.expected_version == 4
     assert result.plan.work.items[0].allowed_tools == ("refund_status_lookup",)
     assert not hasattr(result.plan.route, "intent")
 

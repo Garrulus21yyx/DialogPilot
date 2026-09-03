@@ -44,7 +44,8 @@ Status: `IMPLEMENTED_FOR_VERTICAL_INTEGRATION`
 
 - [x] Define command-primary types with closed state/outcome algebra.
 - [x] Define the minimal `FlowTransitionPlan` needed by the supported command path.
-- [x] Define `CapabilityDecision` separately from runtime `CapabilityTrace`.
+- [x] Keep planned invocation and observed use separate in the evaluation
+  artifacts; defer any production trace type until a real runtime owner emits it.
 - [x] Prove a positive vertical slice: state-first resolution or semantic defer,
   registry-owned policy, then deterministic turn-plan compilation.
 
@@ -172,6 +173,12 @@ Status: `IN_PROGRESS — SHARED ARTIFACTS + UNDERSTANDING DIRECT RUNNER COMPLETE
   and query embeddings, exposes one 1024-dimensional MODEL profile, and never
   downloads or falls back to hash. Focused suite: `63 passed, 10 skipped`.
   Production injection and generation rebuild remain separate pending work.
+- 2026-09-03: The core contract surface was simplified before further wiring.
+  The unused standalone `CapabilityDecision`/`CapabilityTrace` prototype and
+  unused `Observation` DTOs were removed. FlowState now exposes only the
+  `PendingSlotRef` it actually owns; approval/resume remain with their existing
+  Admission/ReAct owners. Focused suite: `13 passed, 2 skipped`; complete
+  isolated PostgreSQL suite: `964 passed`.
 
 ## Commit log
 

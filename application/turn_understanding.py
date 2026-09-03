@@ -10,52 +10,13 @@ from typing import Any, Callable
 from application.turn_state import (
     ActiveFlowRef,
     FlowDefinitionRef,
-    PendingInputKind,
-    PendingSignalRef,
+    PendingSlotRef,
     TurnStateSnapshot,
 )
 
 
 class UnderstandingError(ValueError):
     pass
-
-
-class ObservationKind(str, Enum):
-    STATE = "STATE"
-    USER_ASSERTION = "USER_ASSERTION"
-    ENTITY_CANDIDATE = "ENTITY_CANDIDATE"
-    MEDIA = "MEDIA"
-
-
-@dataclass(frozen=True)
-class Observation:
-    kind: ObservationKind
-    name: str
-    value: str
-    source_ref: str
-    producer_version: str
-
-    def __post_init__(self) -> None:
-        if not isinstance(self.kind, ObservationKind):
-            raise UnderstandingError("unsupported observation kind")
-        for value in (
-            self.name,
-            self.value,
-            self.source_ref,
-            self.producer_version,
-        ):
-            if not str(value).strip():
-                raise UnderstandingError("observation fields must not be blank")
-
-    @property
-    def observation_id(self) -> str:
-        return "observation:v1:" + _fingerprint({
-            "kind": self.kind.value,
-            "name": self.name,
-            "value": self.value,
-            "source_ref": self.source_ref,
-            "producer_version": self.producer_version,
-        })
 
 
 class UnderstandingSource(str, Enum):
@@ -108,7 +69,7 @@ class CommandArgument:
 class CommandShape:
     source_flow: bool
     target_flow: bool
-    pending_signal: bool
+    pending_slot: bool
 
 
 _COMMAND_SHAPES = {
@@ -137,7 +98,7 @@ class CommandProposal:
     evidence_refs: tuple[str, ...]
     source_flow: ActiveFlowRef | None = None
     target_flow: FlowDefinitionRef | None = None
-    pending_signal: PendingSignalRef | None = None
+    pending_slot: PendingSlotRef | None = None
     arguments: tuple[CommandArgument, ...] = ()
 
     def __post_init__(self) -> None:
@@ -161,9 +122,9 @@ class CommandProposal:
         actual = (
             self.source_flow is not None,
             self.target_flow is not None,
-            self.pending_signal is not None,
+            self.pending_slot is not None,
         )
-        expected = (shape.source_flow, shape.target_flow, shape.pending_signal)
+        expected = (shape.source_flow, shape.target_flow, shape.pending_slot)
         if actual != expected:
             raise UnderstandingError(
                 f"{self.kind.value} requires source/target/signal={expected}"
@@ -189,8 +150,8 @@ class CommandProposal:
             ),
             "target_flow": self.target_flow.key if self.target_flow else None,
             "signal": (
-                (self.pending_signal.signal_id, self.pending_signal.signal_version)
-                if self.pending_signal else None
+                (self.pending_slot.slot_id, self.pending_slot.slot_version)
+                if self.pending_slot else None
             ),
             "arguments": [
                 (item.name, item.value_json)
@@ -232,7 +193,7 @@ class PendingSlotResolver:
 
     def __init__(
         self,
-        parse_value: Callable[[PendingSignalRef, str], Any | None],
+        parse_value: Callable[[PendingSlotRef, str], Any | None],
         *,
         producer_version: str = "pending-slot-resolver-v1",
     ) -> None:
@@ -245,13 +206,13 @@ class PendingSlotResolver:
         message_fingerprint: str,
         state: TurnStateSnapshot,
     ) -> UnderstandingResult:
-        signal = state.pending_signal
-        if signal is None or signal.kind is not PendingInputKind.SLOT_VALUE:
+        slot = state.pending_slot
+        if slot is None:
             return UnderstandingResult(
                 UnderstandingStatus.DEFER,
                 reason_code="NO_PROTOCOL_BINDING",
             )
-        value = self._parse_value(signal, message)
+        value = self._parse_value(slot, message)
         if value is None:
             return UnderstandingResult(
                 UnderstandingStatus.CLARIFY,
@@ -259,7 +220,7 @@ class PendingSlotResolver:
             )
         source_flow = next(
             item for item in state.active_flows
-            if item.instance_id == signal.flow_instance_id
+            if item.instance_id == slot.flow_instance_id
         )
         proposal = CommandProposal(
             kind=CommandKind.FILL_SLOT,
@@ -268,12 +229,12 @@ class PendingSlotResolver:
             producer_version=self._producer_version,
             evidence_refs=(
                 f"message:{message_fingerprint}",
-                f"pending-signal:{signal.signal_id}:{signal.signal_version}",
+                f"pending-slot:{slot.slot_id}:{slot.slot_version}",
             ),
             source_flow=source_flow,
-            pending_signal=signal,
+            pending_slot=slot,
             arguments=(
-                CommandArgument.create("field_name", signal.field_name),
+                CommandArgument.create("field_name", slot.field_name),
                 CommandArgument.create("field_value", value),
             ),
         )

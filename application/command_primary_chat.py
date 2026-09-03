@@ -208,7 +208,7 @@ def _turn_state(
         principal=principal,
         flow_aggregate=flow_state.aggregate if flow_state else None,
         active_flows=flow_state.active_flows if flow_state else (),
-        pending_signal=flow_state.pending_slot if flow_state else None,
+        pending_slot=flow_state.pending_slot if flow_state else None,
         recent_turn_refs=tuple(
             str(item.message_id)
             for item in recent_messages

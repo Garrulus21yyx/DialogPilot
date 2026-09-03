@@ -128,29 +128,20 @@ class ActiveFlowRef:
         _unique((item.name for item in self.bindings), "flow bindings")
 
 
-class PendingInputKind(str, Enum):
-    SLOT_VALUE = "SLOT_VALUE"
-    APPROVAL = "APPROVAL"
-    RESUME = "RESUME"
-
-
 @dataclass(frozen=True)
-class PendingSignalRef:
-    signal_id: str
-    signal_version: int
-    kind: PendingInputKind
+class PendingSlotRef:
+    slot_id: str
+    slot_version: int
     flow_instance_id: str
     field_name: str
     principal_fingerprint: str
 
     def __post_init__(self) -> None:
-        _nonblank(self.signal_id, "signal_id")
-        _positive_int(self.signal_version, "signal_version")
-        if not isinstance(self.kind, PendingInputKind):
-            raise TurnStateError("unsupported pending input kind")
-        _nonblank(self.flow_instance_id, "signal flow_instance_id")
-        _nonblank(self.field_name, "signal field_name")
-        _sha256(self.principal_fingerprint, "signal principal_fingerprint")
+        _nonblank(self.slot_id, "slot_id")
+        _positive_int(self.slot_version, "slot_version")
+        _nonblank(self.flow_instance_id, "slot flow_instance_id")
+        _nonblank(self.field_name, "slot field_name")
+        _sha256(self.principal_fingerprint, "slot principal_fingerprint")
 
 
 @dataclass(frozen=True)
@@ -172,7 +163,7 @@ class TurnStateSnapshot:
     principal: PrincipalScope
     flow_aggregate: FlowAggregateVersion | None
     active_flows: tuple[ActiveFlowRef, ...]
-    pending_signal: PendingSignalRef | None
+    pending_slot: PendingSlotRef | None
     recent_turn_refs: tuple[str, ...]
     active_case_refs: tuple[str, ...]
     reusable_media_refs: tuple[str, ...]
@@ -209,13 +200,13 @@ class TurnStateSnapshot:
             for item in self.active_flows
         ):
             raise TurnStateError("active flow belongs to another principal")
-        if self.pending_signal is not None:
-            if self.pending_signal.principal_fingerprint != self.principal.fingerprint:
-                raise TurnStateError("pending signal belongs to another principal")
-            if self.pending_signal.flow_instance_id not in {
+        if self.pending_slot is not None:
+            if self.pending_slot.principal_fingerprint != self.principal.fingerprint:
+                raise TurnStateError("pending slot belongs to another principal")
+            if self.pending_slot.flow_instance_id not in {
                 item.instance_id for item in self.active_flows
             }:
-                raise TurnStateError("pending signal is not bound to an active flow")
+                raise TurnStateError("pending slot is not bound to an active flow")
 
     @property
     def fingerprint(self) -> str:
@@ -244,15 +235,14 @@ class TurnStateSnapshot:
                 }
                 for item in sorted(self.active_flows, key=lambda value: value.instance_id)
             ],
-            "pending_signal": (
+            "pending_slot": (
                 {
-                    "id": self.pending_signal.signal_id,
-                    "version": self.pending_signal.signal_version,
-                    "kind": self.pending_signal.kind.value,
-                    "flow": self.pending_signal.flow_instance_id,
-                    "field": self.pending_signal.field_name,
+                    "id": self.pending_slot.slot_id,
+                    "version": self.pending_slot.slot_version,
+                    "flow": self.pending_slot.flow_instance_id,
+                    "field": self.pending_slot.field_name,
                 }
-                if self.pending_signal else None
+                if self.pending_slot else None
             ),
             "recent_turn_refs": self.recent_turn_refs,
             "active_case_refs": self.active_case_refs,
