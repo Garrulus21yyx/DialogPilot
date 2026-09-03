@@ -139,8 +139,9 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 - [x] Run one positive contract through the real `ChatApplication.handle()`.
 - [x] Prove the existing L1 media transport through the real chat lifecycle;
   keep it labelled as transport evidence, not command-primary media closure.
-- [x] Run one locked, asset-level L1 fixture with the real local Tesseract
-  provider and record grounding plus consumption as `PROJECT_DIAGNOSTIC`.
+- [x] Run one locked, explicit-region L1 fixture with the real local Tesseract
+  provider and record page/bbox/crop grounding plus consumption as
+  `PROJECT_DIAGNOSTIC`.
 - [ ] Seed and run the locked 80-case contract set; its current run status is
   deliberately `NOT_RUN`.
 - [x] Run one locked L0 input through the real clarification publication path
@@ -366,7 +367,12 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   passed; one OCR call produced grounded page-level provenance and all declared
   ASCII observation fragments were consumed. The manifest states
   `PROJECT_DIAGNOSTIC`, `locked_contract_score_eligible=false`, and
-  `official_benchmarks=NOT_RUN`; region selection remains out of scope.
+  `official_benchmarks=NOT_RUN`.
+- 2026-09-03: The same project diagnostic now resolves the declared region to
+  original-page bbox `[720,0,1080,300]`, crops only that region for Tesseract,
+  and retains page, region, crop-transform, and source checksum provenance.
+  Missing region resolution returns typed `REGION_RESOLVER_UNAVAILABLE` rather
+  than silently running whole-page OCR. Media suite: `69 passed, 4 skipped`.
 - 2026-09-03: Fixed `fixed-512-64` Dev retrieval captured lexical and dense
   Top-40 once for each of 300 raw queries, then replayed the 15 declared fusion
   settings from the persisted artifact. All captures were `OK`; dense-only won
@@ -438,3 +444,4 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 - Live locked L0 clarification diagnostic: `0c4d194`.
 - Structured status-semantics contract: `6617853`.
 - Command-primary out-of-scope terminal: `28ff1b6`.
+- Explicit media region grounding: `285ff13`.

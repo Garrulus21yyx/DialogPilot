@@ -244,18 +244,23 @@ Oracle page/region 只给出生成上限，不能当完整检索成绩。OmniDoc
 
 `run_media_eval.py` 已复用现有 `RoutingMediaProbe`、
 `TieredPerceptionService` 与统一三产物 writer，在锁定项目素材
-`dp-screen-03` 上调用本地 Tesseract 5.5.0 跑通一条整页 L1 正向链：
+`dp-screen-03` 上调用本地 Tesseract 5.5.0 跑通一条显式区域 L1 正向链：
 
 - OCR provider 调用 `1` 次，VLM 与业务工具均未调用；
 - Trigger、Artifact、Consumption、Outcome 均通过；
-- prediction 保存 asset checksum、page locator、producer/version 和
+- `MediaRequirementBinding.region_key` 由 fixture resolver 解析为原图
+  `page_index=0` 与 bbox `[720,0,1080,300]`，Tesseract 只处理该裁剪；
+- prediction 同时保存整页 locator、原图坐标 region locator、crop artifact、
+  asset checksum 和 producer/version，
   observation 文本摘要，而不保存原始 OCR 文本；
 - manifest 明确记录 `score_role=PROJECT_DIAGNOSTIC`、
   `locked_contract_score_eligible=false`、`official_benchmarks=NOT_RUN`。
 
-这只证明整页 OCR artifact 能被真实产生并消费。当前
-`MediaRequirementBinding.region_key` 尚未进入 OCR port，因此它不是区域定位、
-连续图片复用、80 条合同或 OmniDocBench/ViDoRe/PM209 成绩。
+这证明显式 page/region 能贯穿 binding、Perception、OCR、artifact provenance 与
+consumer。显式 region 缺少 resolver 时返回
+`UNAVAILABLE / REGION_RESOLVER_UNAVAILABLE`，不会退化成整页 OCR。它仍只是单图
+L1 项目诊断，不是自动 region retrieval、连续图片复用、80 条合同或
+OmniDocBench/ViDoRe/PM209 成绩。
 
 ## 12. 通过条件
 
