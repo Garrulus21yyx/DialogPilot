@@ -1,0 +1,14 @@
+services:
+  dialogpilot:
+    build:
+      target: production-semantic
+    environment:
+      KNOWLEDGE_DENSE_EMBEDDING_PROVIDER: ${KNOWLEDGE_DENSE_EMBEDDING_PROVIDER:-bge_m3}
+      SERVICE_EPISODE_DENSE_EMBEDDING_PROVIDER: ${SERVICE_EPISODE_DENSE_EMBEDDING_PROVIDER:-hash_baseline}
+      BGE_M3_LOCAL_MODEL_PATH: /srv/dialogpilot/models/bge-m3
+      BGE_M3_MODEL_REVISION: ${BGE_M3_MODEL_REVISION:?BGE_M3_MODEL_REVISION is required}
+      BGE_M3_MODEL_SHA256: ${BGE_M3_MODEL_SHA256:?BGE_M3_MODEL_SHA256 is required}
+      BGE_M3_DEVICE: ${BGE_M3_DEVICE:-cpu}
+      BGE_M3_BATCH_SIZE: ${BGE_M3_BATCH_SIZE:-32}
+    volumes:
+      - ${BGE_M3_HOST_MODEL_PATH:?BGE_M3_HOST_MODEL_PATH is required}:/srv/dialogpilot/models/bge-m3:ro

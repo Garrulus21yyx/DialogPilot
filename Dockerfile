@@ -12,7 +12,7 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PYTHONPATH=/app
 
-# curl 用于健康检查；不再需要 gcc/g++（已移除本地 ML 模型）
+# curl 用于健康检查；模型权重通过只读卷提供，不烘焙进镜像。
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     tesseract-ocr \
@@ -24,6 +24,13 @@ FROM base AS dependencies
 COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt
+
+# 可选语义检索依赖。默认 production 不包含本地 ML runtime；需要
+# BGE-M3 的评测/部署显式选择 production-semantic target。
+FROM dependencies AS semantic-dependencies
+
+COPY requirements-semantic.txt .
+RUN pip install -r requirements-semantic.txt
 
 # ── 阶段 3：生产镜像 ──────────────────────────────────────────────────────────
 FROM base AS production
@@ -53,6 +60,14 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
 CMD ["python", "-m", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+# 保留与 production 相同的应用层，只增加本地语义模型运行依赖。
+FROM production AS production-semantic
+
+USER root
+COPY --from=semantic-dependencies /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=semantic-dependencies /usr/local/bin /usr/local/bin
+USER dialogpilot
 
 # ── 阶段 4：开发镜像 ──────────────────────────────────────────────────────────
 FROM dependencies AS development

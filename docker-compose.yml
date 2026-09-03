@@ -71,7 +71,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: production
+      target: ${DIALOGPILOT_IMAGE_TARGET:-production}
       args:
         GIT_COMMIT_SHA: ${GIT_COMMIT_SHA:-local}
     container_name: dialogpilot-app

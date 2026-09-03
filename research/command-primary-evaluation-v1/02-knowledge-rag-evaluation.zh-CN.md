@@ -87,6 +87,8 @@ Dense 绝不能继续使用 `lexical_document`。Query 和 Document 必须使用
 
 截至 2026-09-03，代码已完成 document/query provider 对称、完整 profile 持久化、本地权重 SHA-256 校验和显式 generation rebuild。开发 PostgreSQL 已激活一个包含 6 个默认文档 chunk 的 1024 维 BGE-M3 generation；中文退款查询和英文配送查询均在真实 pgvector/FTS candidate 路径得到正确 Top-1。它是链路冒烟证据，不是 heldout 质量分数。正式评测仍需用冻结语料重新建 generation，并在 manifest 中记录 provider/profile/generation。
 
+容器评测使用 `production-semantic` target，并通过 `docker-compose.semantic.yml` 只读挂载固定模型目录；默认 `production` 镜像仍不安装本地 ML 依赖。两条路径不能混用，也不能在模型加载失败时回退 hash。
+
 ### 3.3 Evidence gold
 
 组件评分必须有 document/article/page/span/claim 中至少一种与数据集能力相符的 Gold。WixQA 只有文章相关性时只报告 Article Recall；不能冒充 Chunk Span Recall。
