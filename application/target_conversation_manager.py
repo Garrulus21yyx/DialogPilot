@@ -2,6 +2,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import hashlib
+import json
+from datetime import datetime, timedelta, timezone
 from typing import Protocol
 
 from application.capability_registry import CapabilityRegistryBundle
@@ -9,6 +12,7 @@ from application.conversation_state import (
     ConversationState,
     ConversationStateConflict,
     ConversationStateStore,
+    PendingApprovalState,
     WorkstreamState,
     WorkstreamStatus,
 )
@@ -28,6 +32,7 @@ from application.turn_planning import (
     TurnPlanCompiler,
     TurnProposal,
 )
+from application.work_item import ArgumentValue
 from core.identity import InvocationIdentity
 
 
@@ -126,9 +131,24 @@ class TargetConversationManager:
             trusted_context={
                 **invocation.metadata(),
                 "conv_id": str(invocation.conversation_id),
+                **(
+                    {
+                        "approved_operation_key": str(deterministic.operation_key),
+                        "approval_binding": str(deterministic.signal_id),
+                        "approval_target_version": str(
+                            deterministic.target_entity_version
+                        ),
+                        "approval_actor": str(invocation.user_id),
+                    }
+                    if deterministic.kind is ResolutionKind.APPROVAL_DECISION
+                    and deterministic.approved
+                    else {}
+                ),
             },
         )
-        state = self._apply_successful_workflows(state, plan, board)
+        state = self._apply_successful_workflows(
+            state, plan, board, invocation, deterministic,
+        )
         return ManagedTurnResult(
             state_before,
             state,
@@ -143,8 +163,28 @@ class TargetConversationManager:
         state: ConversationState,
         plan: TurnPlan,
         board: ResultBoardSnapshot,
+        invocation: InvocationIdentity,
+        deterministic: DeterministicResolution,
     ) -> ConversationState:
-        if plan.transitions is None or plan.work is None:
+        if plan.work is None:
+            return state
+        if (
+            deterministic.kind is ResolutionKind.APPROVAL_DECISION
+            and deterministic.approved
+        ):
+            result = next(iter(board.results), None)
+            if result is not None and result.status is AgentResultStatus.SUCCEEDED:
+                stream = next(
+                    item for item in state.workstreams
+                    if item.workstream_id == deterministic.workstream_id
+                )
+                next_state = state.complete_workstream(
+                    stream.workstream_id,
+                    expected_version=stream.state_version,
+                )
+                self._persist(state, next_state)
+                return next_state
+        if plan.transitions is None:
             return state
         results = {item.work_item_id: item for item in board.results}
         for mutation in plan.transitions.mutations:
@@ -155,6 +195,59 @@ class TargetConversationManager:
                 item for item in state.workstreams
                 if item.workstream_id == mutation.workstream_id
             )
+            if mutation.target_version_field:
+                fact = next(
+                    (
+                        item for item in result.facts
+                        if item.requirement_id in plan.route.requirement_ids
+                    ),
+                    None,
+                )
+                value = json.loads(fact.value_json) if fact is not None else {}
+                if value.get("eligible") is not True:
+                    next_state = state.cancel_workstream(
+                        stream.workstream_id,
+                        expected_version=stream.state_version,
+                    )
+                    self._persist(state, next_state)
+                    state = next_state
+                    continue
+                target_version = str(value.get(mutation.target_version_field) or "")
+                if not target_version:
+                    raise ConversationStateConflict(
+                        "workflow preparation lacks authoritative target version"
+                    )
+                action = next(
+                    item for item in self._registry.actions
+                    if item.ref == mutation.action_ref
+                )
+                operation_key = str(invocation.operation_key(
+                    stream.owner_agent,
+                    action.action_id,
+                    str(mutation.target_entity_ref),
+                ))
+                approval_id = "approval:v1:" + hashlib.sha256(
+                    operation_key.encode("utf-8")
+                ).hexdigest()
+                arguments = tuple(
+                    item for item in stream.slots
+                    if item.name != "expected_order_version"
+                ) + (ArgumentValue.create("expected_order_version", int(target_version)),)
+                next_state = state.wait_for_approval(PendingApprovalState(
+                    approval_id,
+                    1,
+                    stream.workstream_id,
+                    mutation.bound_work_item_id,
+                    str(mutation.action_ref),
+                    operation_key,
+                    str(mutation.target_entity_ref),
+                    target_version,
+                    (datetime.now(timezone.utc) + timedelta(minutes=15)).isoformat(),
+                    arguments,
+                ))
+                self._persist(state, next_state)
+                state = next_state
+                continue
             next_state = state.complete_workstream(
                 stream.workstream_id,
                 expected_version=stream.state_version,
@@ -188,7 +281,10 @@ class TargetConversationManager:
                     for item in resolution.fields
                 ),
             )
-        if resolution.kind is ResolutionKind.APPROVAL_DECISION:
+        if resolution.kind in {
+            ResolutionKind.APPROVAL_DECISION,
+            ResolutionKind.APPROVAL_EXPIRED,
+        }:
             return state.consume_approval(
                 approval_id=str(resolution.signal_id),
                 approval_version=int(resolution.signal_version),

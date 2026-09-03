@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
 
 from application.conversation_state import ConversationState
@@ -20,6 +21,7 @@ class ResolutionKind(str, Enum):
     UNRESOLVED = "UNRESOLVED"
     FILL_PENDING_INPUT = "FILL_PENDING_INPUT"
     APPROVAL_DECISION = "APPROVAL_DECISION"
+    APPROVAL_EXPIRED = "APPROVAL_EXPIRED"
     RESUME_WORKSTREAM = "RESUME_WORKSTREAM"
     CANCEL_WORKSTREAM = "CANCEL_WORKSTREAM"
     CONTINUE_WORKSTREAM = "CONTINUE_WORKSTREAM"
@@ -42,6 +44,8 @@ class TurnObservations:
             raise DeterministicResolutionError("structured fields must have unique names")
         if self.approval_decision is not None and not str(self.approval_id or "").strip():
             raise DeterministicResolutionError("approval decision requires approval identity")
+        if self.approval_id is not None and self.approval_decision is None:
+            raise DeterministicResolutionError("approval identity requires a decision")
 
 
 @dataclass(frozen=True)
@@ -62,6 +66,11 @@ class DeterministicResolution:
     signal_version: int | None = None
     approved: bool | None = None
     fields: tuple[ResolvedField, ...] = ()
+    action_ref: str | None = None
+    operation_key: str | None = None
+    target_entity_ref: str | None = None
+    target_entity_version: str | None = None
+    arguments: tuple[tuple[str, object], ...] = ()
 
     @property
     def resolved(self) -> bool:
@@ -70,6 +79,9 @@ class DeterministicResolution:
 
 class DeterministicResolver:
     version = "deterministic-resolver-v1"
+
+    def __init__(self, clock=None) -> None:
+        self._clock = clock or (lambda: datetime.now(timezone.utc))
 
     def resolve(
         self,
@@ -93,6 +105,20 @@ class DeterministicResolver:
         if approval is not None and observations.approval_decision is not None:
             if observations.approval_id != approval.approval_id:
                 raise DeterministicResolutionError("approval reply targets another interaction")
+            if self._clock() >= datetime.fromisoformat(approval.expires_at):
+                return DeterministicResolution(
+                    ResolutionKind.APPROVAL_EXPIRED,
+                    "PENDING_APPROVAL_EXPIRED",
+                    state.fingerprint,
+                    approval.workstream_id,
+                    next(
+                        item.state_version for item in state.workstreams
+                        if item.workstream_id == approval.workstream_id
+                    ),
+                    approval.approval_id,
+                    approval.version,
+                    False,
+                )
             stream = next(
                 item for item in state.workstreams
                 if item.workstream_id == approval.workstream_id
@@ -106,7 +132,14 @@ class DeterministicResolver:
                 approval.approval_id,
                 approval.version,
                 observations.approval_decision,
+                action_ref=approval.action_ref,
+                operation_key=approval.operation_key,
+                target_entity_ref=approval.target_entity_ref,
+                target_entity_version=approval.target_entity_version,
+                arguments=tuple((item.name, item.value) for item in approval.arguments),
             )
+        if observations.approval_decision is not None:
+            raise DeterministicResolutionError("approval signal is stale or unknown")
 
         if observations.resume_token is not None:
             matches = tuple(
@@ -184,4 +217,3 @@ class DeterministicResolver:
             ResolvedField(item.target_work_item_id, item.field_name, provided[item.field_name])
             for item in requested_fields
         )
-

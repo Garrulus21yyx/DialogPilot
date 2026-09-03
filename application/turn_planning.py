@@ -6,6 +6,7 @@ import json
 from dataclasses import dataclass
 from enum import Enum
 
+from application.authority_policy import RequirementEffect
 from application.capability_registry import (
     ActionDefinition,
     ApprovalPolicy,
@@ -27,6 +28,8 @@ class CommandKind(str, Enum):
     DELEGATE_TASK = "DELEGATE_TASK"
     RUN_SKILL = "RUN_SKILL"
     START_WORKFLOW = "START_WORKFLOW"
+    PREPARE_WORKFLOW = "PREPARE_WORKFLOW"
+    CONTINUE_WORKFLOW = "CONTINUE_WORKFLOW"
 
 
 class ProposalDisposition(str, Enum):
@@ -72,6 +75,9 @@ class CommandProposal:
     target_entity_ref: str | None = None
     target_entity_version: str | None = None
     approval_binding: str | None = None
+    operation_key: str | None = None
+    approval_signal_version: int | None = None
+    target_version_field: str | None = None
 
     def __post_init__(self) -> None:
         if any(not str(value or "").strip() for value in (
@@ -150,7 +156,9 @@ class RoutePolicy:
             raise TurnPlanningError("command IDs must be unique")
         if any(set(item.dependencies).difference(command_ids) for item in proposal.commands):
             raise TurnPlanningError("command dependency is outside this proposal")
-        validated = tuple(self._accept_command(item, registry) for item in proposal.commands)
+        validated = tuple(
+            self._accept_command(item, registry, state) for item in proposal.commands
+        )
         return ValidatedCommandPlan(
             ProposalDisposition.RESOLVED,
             validated,
@@ -165,6 +173,7 @@ class RoutePolicy:
         self,
         command: CommandProposal,
         registry: CapabilityRegistryBundle,
+        state: ConversationState,
     ) -> ValidatedCommand:
         agent = registry.agent(command.target_agent)
         requirement_index = {
@@ -205,6 +214,11 @@ class RoutePolicy:
             if not set(skill_ids).issubset(agent.allowed_skill_ids):
                 raise TurnPlanningError("delegated skill is outside agent allowlist")
             skills = tuple(registry.skill(item) for item in skill_ids)
+            if any(
+                requirement.effect is RequirementEffect.WRITE
+                for requirement in requirements
+            ):
+                raise TurnPlanningError("business writes must use a workflow command")
             candidate_tools = tuple(dict.fromkeys(
                 tool
                 for skill in skills
@@ -269,6 +283,87 @@ class RoutePolicy:
                 action.verification_profile,
                 action,
             )
+        if command.kind is CommandKind.PREPARE_WORKFLOW:
+            if not all((command.flow_ref, command.action_ref, command.tool_id)):
+                raise TurnPlanningError("PREPARE_WORKFLOW requires flow, action, and read tool")
+            flow = registry.flow(str(command.flow_ref))
+            action = next(
+                (item for item in registry.actions if item.ref == command.action_ref), None,
+            )
+            tool = registry.tool(str(command.tool_id))
+            if action is None or action.flow_ref != flow.ref:
+                raise TurnPlanningError("preparation action is not owned by flow")
+            if flow.owner_agent != command.target_agent or action.owner_agent != command.target_agent:
+                raise TurnPlanningError("preparation owner differs from workflow")
+            if tool.effect is not CapabilityEffect.READ:
+                raise TurnPlanningError("workflow preparation must be read-only")
+            if tool.tool_id not in agent.allowed_tool_ids:
+                raise TurnPlanningError("preparation tool is outside agent allowlist")
+            if not command.target_entity_ref or not command.target_version_field:
+                raise TurnPlanningError("workflow preparation requires target version source")
+            self._validate_requirements(command, (tool.tool_id,), requirements)
+            return ValidatedCommand(
+                command, (tool.tool_id,), (), CapabilityEffect.READ,
+                max((tool.risk, action.risk), key=_risk_rank),
+                tool.verification_profile, action,
+            )
+        if command.kind is CommandKind.CONTINUE_WORKFLOW:
+            if not all((
+                command.flow_ref, command.action_ref, command.operation_key,
+                command.approval_binding, command.approval_signal_version,
+                command.target_entity_ref, command.target_entity_version,
+            )):
+                raise TurnPlanningError("workflow continuation bindings are incomplete")
+            signal = (
+                f"approval:{command.approval_binding}:"
+                f"v{command.approval_signal_version}"
+            )
+            if signal not in state.consumed_signal_ids:
+                raise TurnPlanningError("workflow continuation has no consumed approval")
+            grant = next((
+                item for item in state.accepted_approvals
+                if item.approval_id == command.approval_binding
+                and item.version == command.approval_signal_version
+            ), None)
+            if grant is None:
+                raise TurnPlanningError("workflow continuation has no accepted approval")
+            if (
+                grant.action_ref,
+                grant.operation_key,
+                grant.target_entity_ref,
+                grant.target_entity_version,
+            ) != (
+                command.action_ref,
+                command.operation_key,
+                command.target_entity_ref,
+                command.target_entity_version,
+            ):
+                raise TurnPlanningError(
+                    "workflow continuation differs from accepted approval"
+                )
+            if command.arguments != grant.arguments:
+                raise TurnPlanningError(
+                    "workflow continuation arguments differ from accepted approval"
+                )
+            if not any(
+                item.workstream_id == grant.workstream_id
+                for item in state.active_workstreams
+            ):
+                raise TurnPlanningError("approved workstream is not active")
+            flow = registry.flow(str(command.flow_ref))
+            action = next(
+                (item for item in registry.actions if item.ref == command.action_ref), None,
+            )
+            if action is None or action.flow_ref != flow.ref:
+                raise TurnPlanningError("continuation action is not owned by flow")
+            if flow.owner_agent != command.target_agent or action.owner_agent != command.target_agent:
+                raise TurnPlanningError("continuation owner differs from workflow")
+            if set(command.requirement_ids) != set(action.requirement_ids):
+                raise TurnPlanningError("continuation requirements differ from action")
+            return ValidatedCommand(
+                command, action.allowed_tool_ids, (), action.effect, action.risk,
+                action.verification_profile, action,
+            )
         raise TurnPlanningError("unsupported command kind")
 
     @staticmethod
@@ -288,6 +383,9 @@ class FlowMutation:
     expected_state_version: int
     apply_stage: MutationApplyStage
     bound_work_item_id: str
+    action_ref: str | None = None
+    target_entity_ref: str | None = None
+    target_version_field: str | None = None
 
 
 @dataclass(frozen=True)
@@ -386,9 +484,15 @@ class TurnPlanCompiler:
                 0,
                 MutationApplyStage.PLAN_ACCEPTED,
                 work_item.work_item_id,
+                item.proposal.action_ref,
+                item.proposal.target_entity_ref,
+                item.proposal.target_version_field,
             )
             for item, work_item in zip(validated.commands, items)
-            if item.proposal.kind is CommandKind.START_WORKFLOW
+            if item.proposal.kind in {
+                CommandKind.START_WORKFLOW,
+                CommandKind.PREPARE_WORKFLOW,
+            }
         )
         owners = tuple(dict.fromkeys(item.owner_agent for item in items))
         requirements = tuple(dict.fromkeys(
@@ -426,6 +530,8 @@ class TurnPlanCompiler:
             CommandKind.DELEGATE_TASK: ControlMode.DELEGATED,
             CommandKind.RUN_SKILL: ControlMode.DELEGATED,
             CommandKind.START_WORKFLOW: ControlMode.WORKFLOW,
+            CommandKind.PREPARE_WORKFLOW: ControlMode.DIRECT,
+            CommandKind.CONTINUE_WORKFLOW: ControlMode.WORKFLOW,
         }[proposal.kind]
         action = command.action
         write = command.effect is CapabilityEffect.WRITE
@@ -442,7 +548,7 @@ class TurnPlanCompiler:
             effect=command.effect,
             risk=command.risk,
             expected_output_schema=(
-                f"{action.receipt_schema_version}" if action
+                f"{action.receipt_schema_version}" if action and write
                 else "agent-result-v1"
             ),
             verification_profile=command.verification_profile,
@@ -451,21 +557,27 @@ class TurnPlanCompiler:
             timeout_seconds=15 if write else 8,
             max_steps=8 if write else (1 if control_mode is ControlMode.DIRECT else 4),
             skill_hint=proposal.skill_id if proposal.kind is CommandKind.RUN_SKILL else None,
-            flow_ref=proposal.flow_ref,
+            flow_ref=(
+                proposal.flow_ref
+                if proposal.kind in {CommandKind.START_WORKFLOW, CommandKind.CONTINUE_WORKFLOW}
+                else None
+            ),
             operation_key=(
-                str(invocation.operation_key(
+                proposal.operation_key or str(invocation.operation_key(
                     proposal.target_agent,
                     action.action_id,
                     proposal.target_entity_ref,
-                )) if action else None
+                )) if action and write else None
             ),
             approval_binding=(
                 proposal.approval_binding
                 or f"user-command:{invocation.invocation_key}"
-                if action else None
+                if action and write else None
             ),
             target_entity_version=proposal.target_entity_version if write else None,
-            reconciliation_policy=action.reconciliation_policy if action else None,
+            reconciliation_policy=(
+                action.reconciliation_policy if action and write else None
+            ),
             aggregate_ref=proposal.target_entity_ref if write else None,
         )
 

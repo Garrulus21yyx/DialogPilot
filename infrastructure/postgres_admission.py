@@ -85,6 +85,10 @@ class PostgresAdmissionUnitOfWork:
             "authorization_fingerprint": str(
                 command.pinned_versions.get("authorization_fingerprint") or ""
             ),
+            # Target synchronous inputs may carry state-changing approval
+            # semantics. All pinned execution inputs therefore participate in
+            # idempotency, not only the authorization fingerprint.
+            "pinned_versions": dict(command.pinned_versions),
         })
         record = AdmissionRecord(
             identity.invocation_key,

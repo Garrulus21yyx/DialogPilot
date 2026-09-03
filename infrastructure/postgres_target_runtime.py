@@ -15,6 +15,7 @@ from psycopg.types.json import Jsonb
 
 from application.agent_result import RequestedField
 from application.conversation_state import (
+    AcceptedApprovalState,
     ConversationOwner,
     ConversationState,
     ConversationStateError,
@@ -196,17 +197,40 @@ def conversation_state_to_payload(state: ConversationState) -> dict[str, object]
             if state.pending_interaction else None
         ),
         "pending_approval": (
-            dict(state.pending_approval.__dict__)
+            {
+                **{
+                    key: value
+                    for key, value in state.pending_approval.__dict__.items()
+                    if key != "arguments"
+                },
+                "arguments": [
+                    {"name": item.name, "value_json": item.value_json}
+                    for item in state.pending_approval.arguments
+                ],
+            }
             if state.pending_approval else None
         ),
         "resume_bindings": [dict(item.__dict__) for item in state.resume_bindings],
         "consumed_signal_ids": list(state.consumed_signal_ids),
+        "accepted_approvals": [
+            {
+                **{
+                    key: value for key, value in item.__dict__.items()
+                    if key != "arguments"
+                },
+                "arguments": [
+                    {"name": arg.name, "value_json": arg.value_json}
+                    for arg in item.arguments
+                ],
+            }
+            for item in state.accepted_approvals
+        ],
     }
 
 
 def conversation_state_from_payload(raw: Mapping[str, object]) -> ConversationState:
     payload = dict(raw)
-    if payload.get("schema_version") != "conversation-state-v1":
+    if payload.get("schema_version") != "conversation-state-v2":
         raise ConversationStateError("unsupported conversation state schema")
     pending_raw = payload.get("pending_interaction")
     approval_raw = payload.get("pending_approval")
@@ -258,6 +282,13 @@ def conversation_state_from_payload(raw: Mapping[str, object]) -> ConversationSt
                 str(approval_raw["work_item_id"]),
                 str(approval_raw["action_ref"]),
                 str(approval_raw["operation_key"]),
+                str(approval_raw["target_entity_ref"]),
+                str(approval_raw["target_entity_version"]),
+                str(approval_raw["expires_at"]),
+                tuple(
+                    ArgumentValue(str(item["name"]), str(item["value_json"]))
+                    for item in approval_raw.get("arguments", ())
+                ),
             )
             if isinstance(approval_raw, Mapping) else None
         ),
@@ -275,6 +306,22 @@ def conversation_state_from_payload(raw: Mapping[str, object]) -> ConversationSt
         (
             str(payload["human_ticket_ref"])
             if payload.get("human_ticket_ref") is not None else None
+        ),
+        tuple(
+            AcceptedApprovalState(
+                str(item["approval_id"]),
+                int(item["version"]),
+                str(item["workstream_id"]),
+                str(item["action_ref"]),
+                str(item["operation_key"]),
+                str(item["target_entity_ref"]),
+                str(item["target_entity_version"]),
+                tuple(
+                    ArgumentValue(str(arg["name"]), str(arg["value_json"]))
+                    for arg in item.get("arguments", ())
+                ),
+            )
+            for item in payload.get("accepted_approvals", ())
         ),
     )
 

@@ -48,6 +48,18 @@ class TargetWorkflowExecutor:
                 True,
                 f"user-command:{trusted['request_id']}",
             )
+        elif (
+            trusted.get("approved_operation_key") == item.operation_key
+            and trusted.get("approval_binding") == item.approval_binding
+            and trusted.get("approval_target_version") == item.target_entity_version
+        ):
+            grants[str(item.approval_binding)] = ApprovalGrant(
+                str(item.approval_binding),
+                str(item.operation_key),
+                str(item.target_entity_version),
+                True,
+                str(trusted.get("approval_actor") or trusted["user_id"]),
+            )
         runtime = GovernedWriteRuntime(
             ledger=PostgresOperationLedger(self._pool, scope),
             tool_port=_ToolPort(self._tools, context),
@@ -72,10 +84,15 @@ class _ToolPort:
             call_id=operation_key,
         )
         if result.success and str(result.effect_status).lower() == "committed":
+            receipt_schema = str(
+                getattr(result, "receipt_schema_version", "") or ""
+            )
+            if receipt_schema != item.expected_output_schema:
+                raise ValueError("committed tool receipt schema differs from registry")
             return WriteToolOutcome(
                 WriteOutcomeStatus.COMMITTED,
                 str(result.receipt_id),
-                item.expected_output_schema,
+                receipt_schema,
                 "TOOL_COMMITTED",
             )
         if str(result.effect_status).lower() == "not_committed":

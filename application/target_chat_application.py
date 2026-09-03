@@ -15,10 +15,14 @@ from application.chat_application import (
     Completed,
     Conflict,
     Failed,
+    NeedsInput,
     Reconciling,
     Rejected,
 )
-from application.deterministic_resolution import TurnObservations
+from application.deterministic_resolution import (
+    DeterministicResolutionError,
+    TurnObservations,
+)
 from application.target_conversation_manager import TargetConversationManager
 from application.turn_planning import ProposalDisposition
 from core.identity import IdentityContractError, IdentityFactory, InvocationIdentity
@@ -68,6 +72,17 @@ class TargetPublicationPort(Protocol):
         bundle_version: str,
         evidence_sha256: str,
         verifier_status: str,
+    ) -> PublishedTargetResponse: ...
+
+    def publish_interaction(
+        self,
+        identity: InvocationIdentity,
+        *,
+        signal_id: str,
+        signal_version: int,
+        challenge: str,
+        resume_schema: Mapping[str, object],
+        expires_at: str,
     ) -> PublishedTargetResponse: ...
 
 
@@ -122,15 +137,51 @@ class TargetChatApplication:
                 ("asset_id", asset_id)
                 for asset_id in command.asset_ids[:1]
             ),
+            approval_decision=command.approval_decision,
+            approval_id=command.approval_id,
         )
         try:
             managed = await self._manager.handle(identity, observations)
+        except DeterministicResolutionError as exc:
+            return Conflict(
+                "APPROVAL_SIGNAL_CONFLICT",
+                {"reason": str(exc)},
+            )
         except Exception as exc:
             return Failed(
                 "target_runtime_failed",
                 False,
                 str(identity.invocation_key),
                 f"Target runtime failed closed: {type(exc).__name__}",
+            )
+
+        pending = managed.state_after.pending_approval
+        if pending is not None and (
+            managed.state_before.pending_approval is None
+            or managed.state_before.pending_approval.approval_id != pending.approval_id
+        ):
+            expires_at = pending.expires_at
+            published = self._publication.publish_interaction(
+                identity,
+                signal_id=pending.approval_id,
+                signal_version=pending.version,
+                challenge="退款资格已确认。是否提交退款申请？",
+                resume_schema={
+                    "type": "object",
+                    "required": ["approval_id", "approved"],
+                    "properties": {
+                        "approval_id": {"const": pending.approval_id},
+                        "approved": {"type": "boolean"},
+                    },
+                },
+                expires_at=expires_at,
+            )
+            return NeedsInput(
+                str(identity.workflow_run_id),
+                pending.approval_id,
+                "APPROVAL",
+                expires_at,
+                published.response_id,
             )
 
         handoff_receipt = None
@@ -256,6 +307,10 @@ class TargetChatApplication:
 
 
 def _terminal_response(reason_code: str) -> str:
+    if reason_code == "APPROVAL_DECLINED":
+        return "已取消退款申请，本次未执行退款操作。"
+    if reason_code == "APPROVAL_EXPIRED":
+        return "退款确认已过期，本次未执行退款操作；如仍需要退款，请重新发起。"
     return {
         "ORDER_ID_REQUIRED": "请提供需要查询的订单号。",
         "PRODUCT_MEDIA_REQUIRED": "请上传包含商品型号或铭牌的清晰图片。",
@@ -275,6 +330,15 @@ def _board_response(board) -> str:
             if handoff is not None:
                 sections.append(
                     f"人工工单已创建，工单号：{handoff.receipt_id}。"
+                )
+                continue
+            committed_receipt = next((
+                receipt for receipt in result.action_receipts
+                if receipt.effect_status == "COMMITTED"
+            ), None)
+            if committed_receipt is not None:
+                sections.append(
+                    f"操作已完成，凭证号：{committed_receipt.receipt_id}。"
                 )
                 continue
             text = str(result.candidate_response or "").strip()

@@ -11,6 +11,8 @@ from application.admission_contract import (
 )
 from application.chat_application import ChatCommand
 from application.inbound_admission import NewInvocationInbound
+from application.delivery_contract import ConnectorCapability
+from application.publication import InteractionRequestCommand, PublicationPolicy
 from application.target_chat_application import (
     PublishedTargetResponse,
     TargetAdmission,
@@ -39,6 +41,12 @@ class PostgresTargetAdmission:
                     "bundle_version": bundle_version,
                     "target_runtime_version": "target-chat-application-v1",
                     "authorization_fingerprint": command.authorization_fingerprint,
+                    "approval_id": command.approval_id or "",
+                    "approval_decision": (
+                        "approved" if command.approval_decision is True
+                        else "declined" if command.approval_decision is False
+                        else "none"
+                    ),
                 },
                 created_at,
                 asset_ids=command.asset_ids,
@@ -70,9 +78,63 @@ class PostgresTargetPublication:
         self._delivery = response_delivery
 
     def completed(self, identity):
-        return self._delivery.completed_for_invocation(
+        completed = self._delivery.completed_for_invocation(
             identity.invocation_key,
             user_id=str(identity.user_id),
+        )
+        if completed is not None:
+            return completed
+        with self._delivery.pool.transaction() as connection:
+            row = connection.execute("""
+                SELECT publication_id, signal_id, signal_version,
+                       reconcile_deadline
+                FROM dialogpilot_app.response_deliveries
+                WHERE invocation_key=%s AND user_id=%s
+                  AND publication_kind='interaction_request'
+                ORDER BY seq DESC LIMIT 1
+            """, (str(identity.invocation_key), str(identity.user_id))).fetchone()
+        if row is None:
+            return None
+        from application.chat_application import NeedsInput
+        return NeedsInput(
+            str(identity.workflow_run_id), str(row[1]), "APPROVAL",
+            row[3].isoformat(), str(row[0]),
+        )
+
+    def publish_interaction(
+        self,
+        identity,
+        *,
+        signal_id,
+        signal_version,
+        challenge,
+        resume_schema,
+        expires_at,
+    ):
+        now = datetime.now(timezone.utc).isoformat()
+        result = self._delivery.publication.publish_interaction_request(
+            InteractionRequestCommand(
+                identity.invocation_key,
+                str(identity.tenant_id),
+                str(identity.user_id),
+                str(identity.conversation_id),
+                signal_id,
+                signal_version,
+                challenge,
+                dict(resume_schema),
+                now,
+                PublicationPolicy(
+                    ConnectorCapability.NONE,
+                    1,
+                    "http-client-approval-v1",
+                    expires_at,
+                ),
+            )
+        )
+        return PublishedTargetResponse(
+            result.record.publication_id,
+            result.record.seq,
+            result.record.status.value,
         )
 
     def publish(

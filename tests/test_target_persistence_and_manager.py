@@ -17,6 +17,7 @@ from application.conversation_state import (
     ConversationState,
     InMemoryConversationStateStore,
     PendingInteractionState,
+    PendingApprovalState,
     WorkstreamState,
     WorkstreamStatus,
 )
@@ -25,6 +26,7 @@ from application.default_capability_registry import build_default_capability_reg
 from application.deterministic_resolution import ResolutionKind, TurnObservations
 from application.orchestration_runtime import AgentContextView, OrchestrationRuntime
 from application.target_conversation_manager import TargetConversationManager
+from application.target_understanding import BoundedTargetUnderstanding
 from application.turn_planning import (
     CommandKind,
     CommandProposal,
@@ -105,6 +107,35 @@ class _TerminalExecutor:
         )
 
 
+class _EligibilityExecutor:
+    def __init__(self, eligible: bool):
+        self.eligible = eligible
+
+    async def __call__(self, context: AgentContextView):
+        item = context.work_item
+        return AgentResult(
+            item.work_item_id,
+            item.owner_agent,
+            AgentResultStatus.SUCCEEDED,
+            "ELIGIBILITY_READ",
+            "eligibility-test-v1",
+            facts=(FactRecord(
+                "order:DP1234",
+                "refund.eligibility",
+                (
+                    '{"eligible":true,"order_version":7}'
+                    if self.eligible
+                    else '{"eligible":false,"order_version":7}'
+                ),
+                FactSourceKind.VERIFIED_STATE,
+                "eligibility-receipt",
+                "refund_eligibility_check",
+                "refund-eligibility-v1",
+                datetime.now(timezone.utc),
+            ),),
+        )
+
+
 def _order_proposal():
     return TurnProposal(
         ProposalDisposition.RESOLVED,
@@ -138,6 +169,39 @@ def test_conversation_state_event_codec_round_trips_bound_pending_state():
 
     assert restored == state
     assert restored.fingerprint == state.fingerprint
+
+
+def test_conversation_state_codec_preserves_approval_execution_bindings():
+    state = ConversationState.empty(
+        tenant_id="tenant-a", user_id="user-a", conversation_id="conversation-a",
+    ).start_workstream(WorkstreamState(
+        "refund-ws", "billing_refund", "execute_refund:v1", "CHECK",
+        WorkstreamStatus.ACTIVE, 1, flow_ref="execute_refund:v1",
+    ))
+    state = state.wait_for_approval(PendingApprovalState(
+        "approval-1", 1, "refund-ws", "prepare-work",
+        "refund.request.create:v1", "operation-1", "order:DP1234", "7",
+        "2099-01-01T00:00:00+00:00",
+        (
+            ArgumentValue.create("order_id", "DP1234"),
+            ArgumentValue.create("expected_order_version", 7),
+        ),
+    ))
+
+    restored = conversation_state_from_payload(conversation_state_to_payload(state))
+
+    assert restored == state
+    assert restored.pending_approval.operation_key == "operation-1"
+    assert restored.pending_approval.target_entity_version == "7"
+
+    accepted = restored.consume_approval(
+        approval_id="approval-1", approval_version=1, approved=True,
+    )
+    accepted_restored = conversation_state_from_payload(
+        conversation_state_to_payload(accepted)
+    )
+    assert accepted_restored == accepted
+    assert accepted_restored.accepted_approvals[0].operation_key == "operation-1"
 
 
 def test_operation_event_codec_preserves_monotonic_record():
@@ -198,6 +262,41 @@ def test_manager_uses_direct_path_and_checkpoint_thread_without_agent_fanout():
 
     replay = asyncio.run(manager.handle(identity, TurnObservations("DP1234 到哪了")))
     assert replay.board == result.board
+
+
+@pytest.mark.parametrize(("eligible", "expected_status"), [
+    (True, WorkstreamStatus.WAITING_APPROVAL),
+    (False, WorkstreamStatus.CANCELLED),
+])
+def test_refund_preparation_derives_control_state_from_authoritative_eligibility(
+    eligible,
+    expected_status,
+):
+    identity = _identity(f"request-eligibility-{eligible}")
+    store = InMemoryConversationStateStore()
+    manager = TargetConversationManager(
+        state_store=store,
+        registry=build_default_capability_registry("tenant-target"),
+        understanding=BoundedTargetUnderstanding(),
+        orchestration=OrchestrationRuntime(
+            direct_executor=_EligibilityExecutor(eligible), domain_workers={},
+        ),
+    )
+
+    result = asyncio.run(manager.handle(
+        identity, TurnObservations("把订单 DP1234 退款"),
+    ))
+
+    assert result.state_after.workstreams[0].status is expected_status
+    assert (result.state_after.pending_approval is not None) is eligible
+    if eligible:
+        pending = result.state_after.pending_approval
+        assert pending.target_entity_version == "7"
+        assert dict((item.name, item.value) for item in pending.arguments) == {
+            "order_id": "DP1234",
+            "reason": "把订单 DP1234 退款",
+            "expected_order_version": 7,
+        }
 
 
 def test_manager_consumes_pending_input_before_understanding_and_persists_it():

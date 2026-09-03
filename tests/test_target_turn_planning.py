@@ -15,6 +15,7 @@ from application.capability_registry import (
 )
 from application.conversation_state import (
     ConversationState,
+    PendingApprovalState,
     WorkstreamState,
     WorkstreamStatus,
 )
@@ -66,6 +67,11 @@ def _registry():
             CapabilityEffect.WRITE, CapabilityRisk.HIGH, "refund.request_action",
             profile.ref, "write-receipt-v1",
         ),
+        ToolDefinition(
+            "refund_eligibility_check", "v1", "eligibility-input-v1",
+            "eligibility-output-v1", CapabilityEffect.READ, CapabilityRisk.MEDIUM,
+            "refund.eligibility", profile.ref,
+        ),
     )
     agents = (
         AgentDefinition(
@@ -77,7 +83,8 @@ def _registry():
             "product-model-v1", "product-context-v1", profile.ref,
         ),
         AgentDefinition(
-            "billing_refund", "v1", ("refund_request_create",), (),
+            "billing_refund", "v1",
+            ("refund_eligibility_check", "refund_request_create"), (),
             "refund-model-v1", "refund-context-v1", profile.ref,
         ),
     )
@@ -93,7 +100,8 @@ def _registry():
         (FlowDefinition(
             "execute_refund", "v1", "billing_refund",
             ("CHECK", "APPROVE", "EXECUTE", "RECONCILE", "COMPLETE"),
-            "CHECK", ("COMPLETE",), ("refund_request_create",),
+            "CHECK", ("COMPLETE",),
+            ("refund_eligibility_check", "refund_request_create"),
         ),),
         (ActionDefinition(
             "refund.request.create", "v1", "billing_refund", "execute_refund:v1",
@@ -105,6 +113,7 @@ def _registry():
             _requirement("order.current_state", RequirementEffect.READ, "order_lookup"),
             _requirement("product.canonical_model", RequirementEffect.READ, "catalog_search"),
             _requirement("refund.request_action", RequirementEffect.WRITE, "refund_request_create"),
+            _requirement("refund.eligibility", RequirementEffect.READ, "refund_eligibility_check"),
         ),
         tools,
         (profile,),
@@ -210,6 +219,100 @@ def test_write_plan_derives_operation_identity_and_plan_accepted_flow_mutation()
     assert plan.transitions.mutations[0].apply_stage is MutationApplyStage.PLAN_ACCEPTED
 
 
+def test_workflow_preparation_is_read_only_but_starts_versioned_workstream():
+    plan = _compile(CommandProposal(
+        "prepare-refund",
+        CommandKind.PREPARE_WORKFLOW,
+        "billing_refund",
+        "Check eligibility",
+        (ArgumentValue.create("order_id", "DP1234"),),
+        ("refund.eligibility",),
+        tool_id="refund_eligibility_check",
+        flow_ref="execute_refund:v1",
+        action_ref="refund.request.create:v1",
+        target_entity_ref="order:DP1234",
+        target_version_field="order_version",
+    ))
+
+    item = plan.work.items[0]
+    mutation = plan.transitions.mutations[0]
+    assert item.control_mode is ControlMode.DIRECT
+    assert item.effect is CapabilityEffect.READ
+    assert item.operation_key is None
+    assert mutation.action_ref == "refund.request.create:v1"
+    assert mutation.target_version_field == "order_version"
+
+
+def test_workflow_continuation_requires_consumed_bound_approval():
+    registry = _registry()
+    state = _state().start_workstream(WorkstreamState(
+        "refund-ws", "billing_refund", "execute_refund:v1", "CHECK",
+        WorkstreamStatus.ACTIVE, 1, flow_ref="execute_refund:v1",
+    ))
+    state = state.wait_for_approval(PendingApprovalState(
+        "approval-1", 1, "refund-ws", "prepare-work",
+        "refund.request.create:v1", "operation-1", "order:DP1234", "7",
+        "2099-01-01T00:00:00+00:00",
+        (
+            ArgumentValue.create("order_id", "DP1234"),
+            ArgumentValue.create("reason", "用户申请退款"),
+            ArgumentValue.create("expected_order_version", 7),
+        ),
+    ))
+    command = CommandProposal(
+        "continue-refund", CommandKind.CONTINUE_WORKFLOW, "billing_refund",
+        "Execute approved refund",
+        state.pending_approval.arguments,
+        ("refund.request_action",),
+        flow_ref="execute_refund:v1",
+        action_ref="refund.request.create:v1",
+        target_entity_ref="order:DP1234",
+        target_entity_version="7",
+        approval_binding="approval-1",
+        approval_signal_version=1,
+        operation_key="operation-1",
+    )
+    proposal = TurnProposal(ProposalDisposition.RESOLVED, (command,), "RESUME")
+
+    with pytest.raises(TurnPlanningError, match="no consumed approval"):
+        RoutePolicy().accept(proposal, state, registry)
+
+    approved = state.consume_approval(
+        approval_id="approval-1", approval_version=1, approved=True,
+    )
+    tampered = TurnProposal(
+        ProposalDisposition.RESOLVED,
+        (CommandProposal(**{
+            **command.__dict__,
+            "operation_key": "operation-other",
+        }),),
+        "RESUME",
+    )
+    with pytest.raises(TurnPlanningError, match="differs from accepted approval"):
+        RoutePolicy().accept(tampered, approved, registry)
+    tampered_arguments = TurnProposal(
+        ProposalDisposition.RESOLVED,
+        (CommandProposal(**{
+            **command.__dict__,
+            "arguments": (
+                ArgumentValue.create("order_id", "DP9999"),
+                *command.arguments[1:],
+            ),
+        }),),
+        "RESUME",
+    )
+    with pytest.raises(TurnPlanningError, match="arguments differ"):
+        RoutePolicy().accept(tampered_arguments, approved, registry)
+
+    accepted = RoutePolicy().accept(proposal, approved, registry)
+    plan = TurnPlanCompiler().compile(
+        accepted, approved, registry, _invocation(),
+    )
+    assert plan.transitions is None
+    assert plan.work.items[0].operation_key == "operation-1"
+    assert plan.work.items[0].target_entity_version == "7"
+
+
 def test_route_policy_rejects_cross_agent_tool_and_uncontrolled_write():
     registry = _registry()
     state = _state()
@@ -232,7 +335,7 @@ def test_route_policy_rejects_cross_agent_tool_and_uncontrolled_write():
         ),),
         "UNDERSTOOD",
     )
-    with pytest.raises(TurnPlanningError, match="no read-only capability"):
+    with pytest.raises(TurnPlanningError, match="business writes must use a workflow"):
         RoutePolicy().accept(write_as_delegation, state, registry)
 
 

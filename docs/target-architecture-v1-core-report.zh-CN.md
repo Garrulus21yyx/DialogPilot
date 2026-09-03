@@ -26,7 +26,8 @@ PostgreSQL 边界验证。当前状态是“有界 v1 主链已切换”，不�
 
 有意保持关闭或仍待后续实现：
 
-- `execute_refund` 的显式确认/恢复写入链；当前只做资格预检，写工具 fail-closed；
+- `execute_refund` 已支持资格预检、持久确认、拒绝/过期取消、确认后幂等提交；
+  `OUTCOME_UNKNOWN` 可以进入 RECONCILING，但公开轮询/再次对账入口仍待 12B；
 - 真正的 Encoder + Structured LLM fallback；当前是有界确定性理解器；
 - Product Media/Catalog 的生产适配器；E2E 使用受控工具替身验证编排边界；
 - 旧 command-primary、旧 AgentOrchestrator 和旧合同的物理删除。它们不再是
@@ -38,22 +39,23 @@ PostgreSQL 边界验证。当前状态是“有界 v1 主链已切换”，不�
 |---|---|---|
 | 订单状态查询 | DIRECT | 只执行一次原子读取，不启动领域 Agent |
 | 商品识别 | 单领域 DELEGATED | 只启动 Product Agent，并使用注册 Skill 能力包络 |
-| 退款申请 | 资格预检 | 未取得显式确认前不调用写工具；正式写入链仍保持关闭 |
+| 退款申请 | PREPARE + APPROVAL + CONTINUE_WORKFLOW | 资格通过后发布绑定式确认；确认后复用原 operation/version，写工具至多调用一次 |
 | 退款查询 + 商品问题 | MULTI_DOMAIN | 两个无依赖 Worker 同波并发 |
 | Product 失败、Refund 成功 | 部分失败 | Refund 结果保留，Product 保持 typed failure |
 | 用户要求人工 | WORKFLOW + Publication | 只有 Ticket Receipt 能转移会话 Owner 并宣称创建成功 |
 
 ## 第 11 阶段验证结果
 
-- Target v1 专项测试：68 passed。
+- Target v1 专项测试：75 passed。
 - 真实边界：1 个测试连续覆盖六场景，使用真实 ASGI `/chat`、PostgreSQL
   Admission/Event/State/Operation/Publication 表和 async LangGraph checkpoint。
 - 订单路径断言为 `DIRECT`，没有派发领域 Agent；单领域任务只运行一个 Worker；
   只有退款状态与商品识别两个独立任务使用 `MULTI_DOMAIN`。
 - 人工接管只有在 `support_ticket_create` 返回 committed Receipt 后才把会话 Owner
   转成 HUMAN，并把 Workstream 收敛为 `COMPLETED/COMPLETE`。
-- 退款申请测试明确断言 `refund_request_create` 未被调用。
-- 仓库级回归：1120 passed、6 failed。6 个失败均由工作树中另一路未提交的
+- 退款链断言确认前、拒绝和过期均不写；确认后只写一次；相同请求重放、
+  篡改确认值、stale signal 和跨会话 signal 均按绑定规则处理。
+- 仓库级回归：1127 passed、6 failed。6 个失败均由工作树中另一路未提交的
   RAG 策略改动触发：默认 retrieval policy 已产生 `expansion_query_weight`、
   `query_expansion_count`、`metadata_hint_weight`，但旧 `AgentBundle` 白名单尚未
   接受这些字段；失败不经过 Target v1 新执行路径，本阶段未代替该工作修改或提交。
@@ -68,8 +70,9 @@ PostgreSQL 边界验证。当前状态是“有界 v1 主链已切换”，不�
 
 以下能力不能因主链切换而被误称为已完成：
 
-1. `execute_refund` 必须完成 eligibility → interaction/approval → resume → write →
-   reconcile 的真实 PostgreSQL E2E，才能开放写入；
+1. `execute_refund` 的 committed 路径已经完成 eligibility → interaction/approval
+   → resume → write → Receipt；`OUTCOME_UNKNOWN` 的公开 poll/reconcile 闭环完成前，
+   未知结果仍保持 fail-closed，禁止盲目重试；
 2. Product Media/Catalog 必须接入真实注册工具并验证来源/版本，才能离开测试替身；
 3. Encoder Fast Path 必须用 Accepted Precision/Coverage 验收后才能替换确定性规则；
 4. 删除旧模块前必须先迁移剩余消费者，不能通过在新主链增加兼容回退来掩盖。

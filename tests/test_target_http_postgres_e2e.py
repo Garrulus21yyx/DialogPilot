@@ -79,6 +79,20 @@ class _ScenarioTools:
                 effect_status="committed",
                 receipt_id="ticket-target-1",
             )
+        if name == "refund_request_create":
+            assert approved is True
+            return _result(
+                name,
+                data={
+                    "refund_id": "refund-target-1",
+                    "order_id": params["order_id"],
+                    "status": "REQUESTED",
+                },
+                authority="refund.request_action",
+                text="退款申请已提交。",
+                effect_status="committed",
+                receipt_id="refund-target-1",
+            )
         return _result(name, success=False, status="denied")
 
 
@@ -92,6 +106,7 @@ def _result(
     text="",
     effect_status="none",
     receipt_id="",
+    receipt_schema_version="action-receipt-v1",
 ):
     return SimpleNamespace(
         success=success,
@@ -103,6 +118,7 @@ def _result(
         output_for_model=text,
         status=status,
         effect_status=effect_status,
+        receipt_schema_version=receipt_schema_version,
     )
 
 
@@ -145,6 +161,7 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                             "product_technical": read_executor,
                             "human_service": workflow_executor,
                         },
+                        workflow_executor=workflow_executor,
                         checkpointer=checkpointer,
                     ),
                 ),
@@ -159,17 +176,66 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
             async with httpx.AsyncClient(
                 transport=transport, base_url="http://target.test",
             ) as client:
-                async def chat(case, message, *, assets=()):
+                async def chat(
+                    case, message, *, assets=(), request_suffix="request", **extra,
+                ):
                     return await client.post("/chat", json={
                         "message": message,
                         "conv_id": f"{prefix}-{case}",
-                        "request_id": f"{prefix}-{case}-request",
+                        "request_id": f"{prefix}-{case}-{request_suffix}",
                         "asset_ids": list(assets),
+                        **extra,
                     })
 
                 order = await chat("order", "查订单 DP1234 物流")
                 product = await chat("product", "识别这张图的商品型号", assets=("IMG9",))
                 refund_precheck = await chat("refund", "把订单 DP1234 退款")
+                assert refund_precheck.status_code == 202, refund_precheck.text
+                refund_precheck_replay = await chat("refund", "把订单 DP1234 退款")
+                approval = refund_precheck.json()["signal_id"]
+                refund_committed = await chat(
+                    "refund",
+                    "确认提交退款",
+                    request_suffix="approval",
+                    approval_id=approval,
+                    approved=True,
+                )
+                refund_commit_replay = await chat(
+                    "refund",
+                    "确认提交退款",
+                    request_suffix="approval",
+                    approval_id=approval,
+                    approved=True,
+                )
+                changed_approval_replay = await chat(
+                    "refund",
+                    "确认提交退款",
+                    request_suffix="approval",
+                    approval_id=approval,
+                    approved=False,
+                )
+                stale_approval = await chat(
+                    "refund",
+                    "再次确认",
+                    request_suffix="stale-approval",
+                    approval_id=approval,
+                    approved=True,
+                )
+                cross_conversation_approval = await chat(
+                    "approval-other-conversation",
+                    "确认提交退款",
+                    approval_id=approval,
+                    approved=True,
+                )
+                refund_decline = await chat("refund-decline", "把订单 DP5678 退款")
+                decline_signal = refund_decline.json()["signal_id"]
+                refund_declined = await chat(
+                    "refund-decline",
+                    "不退款了",
+                    request_suffix="decline",
+                    approval_id=decline_signal,
+                    approved=False,
+                )
                 multi = await chat(
                     "multi", "退款 DP1234 状态，还有这个商品型号", assets=("IMG10",),
                 )
@@ -179,22 +245,52 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                     "partial", "退款 DP1234 状态，还有这个商品型号", assets=("IMG11",),
                 )
                 handoff = await chat("handoff", "我要人工客服处理这个问题")
-                return order, product, refund_precheck, multi, partial, handoff
+                return (
+                    order, product, refund_precheck, refund_precheck_replay,
+                    refund_committed, refund_commit_replay, stale_approval,
+                    changed_approval_replay, cross_conversation_approval,
+                    refund_decline, refund_declined, multi, partial, handoff,
+                )
 
     try:
         responses = asyncio.run(run())
         for name, response in zip(
-            ("order", "product", "refund", "multi", "partial", "handoff"),
+            (
+                "order", "product", "refund-precheck", "refund-replay",
+                "refund-commit", "refund-commit-replay", "stale-approval",
+                "changed-approval-replay", "cross-conversation-approval",
+                "refund-decline", "refund-declined", "multi", "partial", "handoff",
+            ),
             responses,
         ):
-            assert response.status_code == 200, f"{name}: {response.text}"
-        order, product, refund_precheck, multi, partial, handoff = (
+            expected = (
+                202
+                if name in {"refund-precheck", "refund-replay", "refund-decline"}
+                else 409 if name in {
+                    "stale-approval", "changed-approval-replay",
+                    "cross-conversation-approval",
+                } else 200
+            )
+            assert response.status_code == expected, f"{name}: {response.text}"
+        (
+            order, product, refund_precheck, refund_precheck_replay,
+            refund_committed, refund_commit_replay, stale_approval,
+            changed_approval_replay, cross_conversation_approval,
+            refund_decline, refund_declined, multi, partial, handoff,
+        ) = (
             item.json() for item in responses
         )
         assert order["routing_disposition"] == "direct"
         assert "PX-200" in product["response"]
-        assert "尚未提交" in refund_precheck["response"]
-        assert "refund_request_create" not in [item[0] for item in tools.calls]
+        assert refund_precheck["outcome"] == "needs_input"
+        assert refund_precheck_replay == refund_precheck
+        assert "refund-target-1" in refund_committed["response"]
+        assert refund_commit_replay == refund_committed
+        assert stale_approval["code"] == "APPROVAL_SIGNAL_CONFLICT"
+        assert changed_approval_replay["code"] == "IDEMPOTENCY_CONFLICT"
+        assert cross_conversation_approval["code"] == "APPROVAL_SIGNAL_CONFLICT"
+        assert "未执行退款操作" in refund_declined["response"]
+        assert [item[0] for item in tools.calls].count("refund_request_create") == 1
         assert multi["routing_disposition"] == "multi_domain"
         assert len(multi["agent_outcomes"]) == 2
         assert partial["verification_status"] == "partial"
@@ -210,6 +306,12 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
         assert len(handoff_state.workstreams) == 1
         assert handoff_state.workstreams[0].phase == "COMPLETE"
         assert handoff_state.workstreams[0].status.value == "COMPLETED"
+        declined_state = state_store.load(
+            registry.tenant_id,
+            "user-target-e2e",
+            f"{prefix}-refund-decline",
+        )
+        assert declined_state.workstreams[0].status.value == "CANCELLED"
     finally:
         main.app.dependency_overrides.clear()
         monkeypatch.setattr(main, "_target_chat_runtime", None)

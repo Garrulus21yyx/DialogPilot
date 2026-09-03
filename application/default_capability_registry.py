@@ -101,13 +101,13 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
             "refund.request.create", "v1", "billing_refund", "execute_refund:v1",
             CapabilityEffect.WRITE, CapabilityRisk.HIGH, ("refund.request_action",),
             ("refund_request_create",), ApprovalPolicy.EXPLICIT_CONFIRMATION_REQUIRED,
-            "refund-receipt-v1", "refund-status-by-operation-v1", profile.ref,
+            "action-receipt-v1", "refund-status-by-operation-v1", profile.ref,
         ),
         ActionDefinition(
             "support.handoff.create", "v1", "human_service", "human_handoff:v1",
             CapabilityEffect.WRITE, CapabilityRisk.HIGH, ("support.handoff_action",),
             ("support_ticket_create",), ApprovalPolicy.USER_COMMAND_SUFFICIENT,
-            "ticket-receipt-v1", "ticket-by-operation-v1", profile.ref,
+            "action-receipt-v1", "ticket-by-operation-v1", profile.ref,
         ),
     )
     requirements = tuple(
@@ -181,4 +181,3 @@ def _requirement(requirement_id: str, tool: ToolDefinition):
         AuthoritySupport.SUPPORTED,
         f"{tool.authority}-owner-v1",
     )
-

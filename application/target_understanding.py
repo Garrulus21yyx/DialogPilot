@@ -3,7 +3,11 @@ from __future__ import annotations
 
 import re
 
-from application.deterministic_resolution import DeterministicResolution, TurnObservations
+from application.deterministic_resolution import (
+    DeterministicResolution,
+    ResolutionKind,
+    TurnObservations,
+)
 from application.turn_planning import (
     CommandKind,
     CommandProposal,
@@ -27,7 +31,44 @@ class BoundedTargetUnderstanding:
     version = "bounded-target-understanding-v1"
 
     async def __call__(self, observations, state, deterministic, registry):
-        del deterministic, registry
+        del registry
+        if deterministic.kind in {
+            ResolutionKind.APPROVAL_DECISION,
+            ResolutionKind.APPROVAL_EXPIRED,
+        }:
+            if not deterministic.approved:
+                return TurnProposal(
+                    ProposalDisposition.CLARIFY,
+                    (),
+                    (
+                        "APPROVAL_EXPIRED"
+                        if deterministic.kind is ResolutionKind.APPROVAL_EXPIRED
+                        else "APPROVAL_DECLINED"
+                    ),
+                )
+            arguments = tuple(
+                ArgumentValue.create(name, value)
+                for name, value in deterministic.arguments
+            )
+            return TurnProposal(
+                ProposalDisposition.RESOLVED,
+                (CommandProposal(
+                    "continue-approved-workflow",
+                    CommandKind.CONTINUE_WORKFLOW,
+                    "billing_refund",
+                    "Execute the explicitly approved refund operation",
+                    arguments,
+                    ("refund.request_action",),
+                    flow_ref="execute_refund:v1",
+                    action_ref=deterministic.action_ref,
+                    target_entity_ref=deterministic.target_entity_ref,
+                    target_entity_version=deterministic.target_entity_version,
+                    approval_binding=deterministic.signal_id,
+                    approval_signal_version=deterministic.signal_version,
+                    operation_key=deterministic.operation_key,
+                ),),
+                "APPROVED_WORKFLOW_RESUME",
+            )
         text = observations.raw_text.strip()
         lowered = text.lower()
         fields = dict(observations.structured_fields)
@@ -77,16 +118,21 @@ class BoundedTargetUnderstanding:
                 skill_id="refund_status_summary",
             ))
         elif refund_signal and order_id:
-            # The first API cutover does not enable the write until its approval/
-            # eligibility resume path is fully bound.  Querying eligibility is safe.
             commands.append(CommandProposal(
-                "refund-eligibility",
-                CommandKind.DIRECT_TOOL,
+                "prepare-refund",
+                CommandKind.PREPARE_WORKFLOW,
                 "billing_refund",
                 "Check refund eligibility before a governed write",
-                (ArgumentValue.create("order_id", order_id),),
+                (
+                    ArgumentValue.create("order_id", order_id),
+                    ArgumentValue.create("reason", text),
+                ),
                 ("refund.eligibility",),
                 tool_id="refund_eligibility_check",
+                flow_ref="execute_refund:v1",
+                action_ref="refund.request.create:v1",
+                target_entity_ref=f"order:{order_id}",
+                target_version_field="order_version",
             ))
         if order_signal and order_id and not refund_signal:
             commands.append(CommandProposal(

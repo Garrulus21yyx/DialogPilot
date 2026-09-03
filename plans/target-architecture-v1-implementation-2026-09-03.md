@@ -59,7 +59,8 @@
 | 9 | done | New ConversationManager, durable PostgreSQL event-backed state/operation adapters, and LangGraph checkpointer | 7 local persistence/resume tests; 61 cumulative; 1 real-PostgreSQL test skipped without database URL | `b0886a9` |
 | 10 | done | `/chat` read-path cutover to Target v1, synchronous target admission, trusted tool context, and removal of legacy fallback authority | 4 local HTTP/cutover tests; 65 cumulative; 2 real-PostgreSQL tests skipped without database URL | `b57e02f` |
 | 11 | done | Real PostgreSQL/HTTP six-scenario E2E, async checkpoint ownership, committed handoff workflow completion, and documentation convergence | 68 Target tests pass against PostgreSQL; repository suite 1120 passed / 6 unrelated dirty-RAG contract failures | this stage commit |
-| 12 | in progress | Refund approval/resume/write/reconciliation public lifecycle | contract audit complete; implementation pending | stage-12 contract commit |
+| 12A | done | Refund preparation, persisted approval, deterministic resume, governed commit, rejection/expiry/stale handling | 75 Target tests; repository 1127 passed / 6 unrelated dirty-RAG failures | this stage commit |
+| 12B | pending | Public retry/poll entry for `OUTCOME_UNKNOWN` reconciliation and terminal Receipt publication | existing write state machine is covered; public-boundary E2E pending | pending |
 
 ## Stage record
 
@@ -119,9 +120,9 @@ API cutover, removal of duplicated authorities, and real boundary E2E.
 
 ## Bounded v1 omissions after stage 11
 
-- Refund request remains eligibility-only at the public API. No approval grant is
-  synthesized and `refund_request_create` is asserted absent. Approval/resume/write/
-  reconciliation is a subsequent capability stage, not part of the stage-11 claim.
+- Stage 11 left refund eligibility-only. Stage 12A now adds explicit approval,
+  deterministic resume and committed Receipt handling; public reconciliation of
+  an unknown write remains pending in stage 12B.
 - Product media/catalog orchestration is boundary-tested with a governed tool double;
   production registrations for `media_read` and `catalog_search` remain pending.
 - The public understanding path is deterministic and bounded. The evaluated encoder
@@ -168,9 +169,9 @@ API cutover, removal of duplicated authorities, and real boundary E2E.
 
 ### Audit finding
 
-The current code has the state primitives but not the complete conversion
-boundary: `ChatRequest` carries no approval signal, `START_WORKFLOW` always emits a
-new START mutation, and `PendingApprovalState` does not retain target-version data
-needed to rebuild the original write contract. Connecting the write executor now
-would therefore create either an unbound grant or a second operation. Stage 12
-must migrate these contracts together rather than special-case the refund text.
+The audit gap has been closed for committed, declined, expired and stale approval
+paths. `ChatRequest` now carries an explicit signal identity and decision;
+`PREPARE_WORKFLOW` and `CONTINUE_WORKFLOW` separate read preparation from the
+write; `PendingApprovalState` and `AcceptedApprovalState` preserve the exact
+operation/action/entity/version binding; and RoutePolicy rejects any modified
+continuation. `OUTCOME_UNKNOWN` public reconciliation remains stage 12B.

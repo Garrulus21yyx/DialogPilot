@@ -617,8 +617,9 @@ async def lifespan(app: FastAPI):
             "order_logistics": target_tool_executor,
             "billing_refund": target_tool_executor,
             "account_security": target_tool_executor,
-            "human_service": target_workflow_executor,
+            "human_service": target_tool_executor,
         },
+        workflow_executor=target_workflow_executor,
         checkpointer=target_checkpointer,
     )
     _target_chat_runtime = TargetChatApplication(
@@ -918,6 +919,8 @@ class ChatRequest(BaseModel):
     conv_id:     Optional[str] = None
     request_id:  Optional[str] = Field(default=None, max_length=128)
     asset_ids: List[str] = Field(default_factory=list, max_length=5)
+    approval_id: Optional[str] = Field(default=None, min_length=1, max_length=200)
+    approved: Optional[bool] = None
 
 
 class ChatResponse(BaseModel):
@@ -1901,6 +1904,8 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
             "scopes": sorted(principal.scopes),
         }),
         asset_ids=tuple(req.asset_ids),
+        approval_id=req.approval_id,
+        approval_decision=req.approved,
     )
     outcome = await _chat_application().handle(command)
     if isinstance(outcome, Completed):

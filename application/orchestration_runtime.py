@@ -66,11 +66,13 @@ class OrchestrationRuntime:
         *,
         direct_executor: WorkExecutor,
         domain_workers: Mapping[str, WorkExecutor],
+        workflow_executor: WorkExecutor | None = None,
         result_board: ResultBoard | None = None,
         checkpointer=None,
     ) -> None:
         self._direct_executor = direct_executor
         self._domain_workers = dict(domain_workers)
+        self._workflow_executor = workflow_executor
         self._result_board = result_board or ResultBoard()
         self._checkpointer = checkpointer
         self.graph = self._build_graph()
@@ -132,6 +134,11 @@ class OrchestrationRuntime:
         )
         if item.control_mode is ControlMode.DIRECT:
             executor = self._direct_executor
+        elif (
+            item.control_mode is ControlMode.WORKFLOW
+            and self._workflow_executor is not None
+        ):
+            executor = self._workflow_executor
         else:
             try:
                 executor = self._domain_workers[item.owner_agent]

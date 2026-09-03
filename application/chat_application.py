@@ -63,6 +63,8 @@ class ChatCommand:
     pinned_bundle: Any = None
     authorization_fingerprint: str = ""
     asset_ids: tuple[str, ...] = ()
+    approval_id: str | None = None
+    approval_decision: bool | None = None
 
 
 @dataclass(frozen=True)

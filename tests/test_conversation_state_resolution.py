@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 import pytest
 
 from application.agent_result import RequestedField
@@ -148,6 +150,9 @@ def test_approval_is_bound_to_identity_and_transitions_only_its_workstream():
         "refund-write-1",
         "refund.request.create:v1",
         "operation-refund-1",
+        "order:DP1234",
+        "3",
+        "2099-01-01T00:00:00+00:00",
     ))
     resolver = DeterministicResolver()
 
@@ -172,6 +177,55 @@ def test_approval_is_bound_to_identity_and_transitions_only_its_workstream():
     )
     assert approved.pending_approval is None
     assert approved.active_workstreams[0].status is WorkstreamStatus.ACTIVE
+
+
+def test_pending_approval_requires_explicit_id_and_rejects_stale_signal():
+    state = _state(_workstream()).wait_for_approval(PendingApprovalState(
+        "approval-1", 1, "refund-ws-1", "refund-write-1",
+        "refund.request.create:v1", "operation-refund-1",
+        "order:DP1234", "3", "2099-01-01T00:00:00+00:00",
+    ))
+    resolver = DeterministicResolver()
+
+    with pytest.raises(DeterministicResolutionError, match="requires approval identity"):
+        TurnObservations("确认", approval_decision=True)
+
+    bound = resolver.resolve(TurnObservations(
+        "确认", approval_decision=True, approval_id="approval-1",
+    ), state)
+    assert bound.signal_id == "approval-1"
+    assert bound.operation_key == "operation-refund-1"
+
+    consumed = state.consume_approval(
+        approval_id="approval-1", approval_version=1, approved=True,
+    )
+    with pytest.raises(DeterministicResolutionError, match="stale or unknown"):
+        resolver.resolve(TurnObservations(
+            "再次确认", approval_decision=True, approval_id="approval-1",
+        ), consumed)
+
+
+def test_expired_approval_fails_before_state_consumption():
+    state = _state(_workstream()).wait_for_approval(PendingApprovalState(
+        "approval-1", 1, "refund-ws-1", "refund-write-1",
+        "refund.request.create:v1", "operation-refund-1",
+        "order:DP1234", "3", "2026-09-04T10:00:00+00:00",
+    ))
+    resolver = DeterministicResolver(
+        lambda: datetime(2026, 9, 4, 10, 0, tzinfo=timezone.utc),
+    )
+
+    resolution = resolver.resolve(TurnObservations(
+        "确认", approval_decision=True, approval_id="approval-1",
+    ), state)
+    assert resolution.kind is ResolutionKind.APPROVAL_EXPIRED
+    expired = state.consume_approval(
+        approval_id=resolution.signal_id,
+        approval_version=resolution.signal_version,
+        approved=False,
+    )
+    assert expired.pending_approval is None
+    assert expired.workstreams[0].status is WorkstreamStatus.CANCELLED
 
 
 def test_resume_token_and_explicit_cancel_are_version_bound():
@@ -233,4 +287,3 @@ def test_store_compare_and_set_rejects_stale_writer():
     assert store.compare_and_set(first, first_next) is True
     assert store.compare_and_set(concurrent, concurrent_next) is False
     assert store.load(*identity).workstreams == (_workstream(),)
-

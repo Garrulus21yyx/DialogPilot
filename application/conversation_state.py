@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass, replace
+from datetime import datetime
 from enum import Enum
 from threading import RLock
 from typing import Protocol
@@ -121,6 +122,10 @@ class PendingApprovalState:
     work_item_id: str
     action_ref: str
     operation_key: str
+    target_entity_ref: str
+    target_entity_version: str
+    expires_at: str
+    arguments: tuple[ArgumentValue, ...] = ()
 
     def __post_init__(self) -> None:
         _required(
@@ -129,9 +134,44 @@ class PendingApprovalState:
             self.work_item_id,
             self.action_ref,
             self.operation_key,
+            self.target_entity_ref,
+            self.target_entity_version,
+            self.expires_at,
         )
         if self.version < 1:
             raise ConversationStateError("approval version must be positive")
+        _unique((item.name for item in self.arguments), "approval arguments")
+        try:
+            expires = datetime.fromisoformat(self.expires_at)
+        except ValueError as exc:
+            raise ConversationStateError("approval expiry is invalid") from exc
+        if expires.utcoffset() is None:
+            raise ConversationStateError("approval expiry must be timezone-aware")
+
+
+@dataclass(frozen=True)
+class AcceptedApprovalState:
+    approval_id: str
+    version: int
+    workstream_id: str
+    action_ref: str
+    operation_key: str
+    target_entity_ref: str
+    target_entity_version: str
+    arguments: tuple[ArgumentValue, ...]
+
+    def __post_init__(self) -> None:
+        _required(
+            self.approval_id,
+            self.workstream_id,
+            self.action_ref,
+            self.operation_key,
+            self.target_entity_ref,
+            self.target_entity_version,
+        )
+        if self.version < 1:
+            raise ConversationStateError("accepted approval version must be positive")
+        _unique((item.name for item in self.arguments), "accepted approval arguments")
 
 
 @dataclass(frozen=True)
@@ -157,9 +197,10 @@ class ConversationState:
     pending_approval: PendingApprovalState | None = None
     resume_bindings: tuple[ResumeBinding, ...] = ()
     consumed_signal_ids: tuple[str, ...] = ()
-    schema_version: str = "conversation-state-v1"
+    schema_version: str = "conversation-state-v2"
     owner: ConversationOwner = ConversationOwner.AUTOMATION
     human_ticket_ref: str | None = None
+    accepted_approvals: tuple[AcceptedApprovalState, ...] = ()
 
     def __post_init__(self) -> None:
         if self.version < 0:
@@ -174,7 +215,15 @@ class ConversationState:
         _unique((item.workstream_id for item in self.workstreams), "workstreams")
         _unique((item.token for item in self.resume_bindings), "resume tokens")
         _unique(self.consumed_signal_ids, "consumed signals")
+        _unique(
+            ((item.approval_id, item.version) for item in self.accepted_approvals),
+            "accepted approvals",
+        )
         by_id = {item.workstream_id: item for item in self.workstreams}
+        if any(
+            item.workstream_id not in by_id for item in self.accepted_approvals
+        ):
+            raise ConversationStateError("accepted approval references unknown workstream")
         if self.pending_interaction is not None:
             expected = dict(self.pending_interaction.workstream_versions)
             if set(expected).difference(by_id):
@@ -240,9 +289,18 @@ class ConversationState:
             "schema": self.schema_version,
             "owner": self.owner.value,
             "human_ticket_ref": self.human_ticket_ref,
+            "accepted_approvals": [
+                (
+                    item.approval_id, item.version, item.workstream_id,
+                    item.action_ref, item.operation_key, item.target_entity_ref,
+                    item.target_entity_version,
+                    tuple((arg.name, arg.value_json) for arg in item.arguments),
+                )
+                for item in self.accepted_approvals
+            ],
         }
         raw = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
-        return "conversation-state:v1:" + hashlib.sha256(raw).hexdigest()
+        return "conversation-state:v2:" + hashlib.sha256(raw).hexdigest()
 
     def start_workstream(self, workstream: WorkstreamState) -> "ConversationState":
         return self.start_workstreams((workstream,))
@@ -368,6 +426,19 @@ class ConversationState:
             pending_approval=None,
             consumed_signal_ids=(*updated.consumed_signal_ids, signal_id),
             resume_bindings=(),
+            accepted_approvals=(
+                (*updated.accepted_approvals, AcceptedApprovalState(
+                    pending.approval_id,
+                    pending.version,
+                    pending.workstream_id,
+                    pending.action_ref,
+                    pending.operation_key,
+                    pending.target_entity_ref,
+                    pending.target_entity_version,
+                    pending.arguments,
+                ))
+                if approved else updated.accepted_approvals
+            ),
         )
 
     def cancel_workstream(self, workstream_id: str, *, expected_version: int) -> "ConversationState":
