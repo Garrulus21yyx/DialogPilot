@@ -1,8 +1,10 @@
 """PostgreSQL is the authoritative online Knowledge candidate source."""
+
 from __future__ import annotations
 
 import asyncio
 import hashlib
+from unittest.mock import Mock
 
 import pytest
 
@@ -21,7 +23,11 @@ from application.knowledge_retriever import (
     KnowledgeRetrievalRequest,
 )
 from infrastructure.hybrid_retrieval_backend import PostgresHybridBackend
-from infrastructure.postgres import PostgresMigrationRunner, PostgresPool, PostgresPoolConfig
+from infrastructure.postgres import (
+    PostgresMigrationRunner,
+    PostgresPool,
+    PostgresPoolConfig,
+)
 from infrastructure.postgres_knowledge_retriever import (
     PostgresKnowledgeCandidateSource,
     PostgresKnowledgeEvidenceValidator,
@@ -70,9 +76,7 @@ def _generation() -> RetrievalGeneration:
         embedding_provider=EMBEDDING_PROFILE.provider,
         embedding_provider_kind=EMBEDDING_PROFILE.provider_kind,
         embedding_model_version=EMBEDDING_PROFILE.model_version,
-        embedding_document_preprocessing=(
-            EMBEDDING_PROFILE.document_preprocessing
-        ),
+        embedding_document_preprocessing=(EMBEDDING_PROFILE.document_preprocessing),
         embedding_query_preprocessing=EMBEDDING_PROFILE.query_preprocessing,
     )
 
@@ -91,25 +95,41 @@ def _policy() -> KnowledgeRetrievalPolicy:
 
 def _request() -> KnowledgeRetrievalRequest:
     return KnowledgeRetrievalRequest(
-        tenant_id="tenant-a", user_scope="user-a",
-        authorization_fingerprint="auth-a", acl_policy_fingerprint="public-v1",
-        deletion_epoch=0, requirement_signature="knowledge.active_source",
-        query="退款多久到账", history=(), conversation_range_hash="range-a",
-        locale="zh-CN", product=None, manifest_fingerprint=MANIFEST,
-        generation_id="knowledge-online-generation", policy=_policy(),
+        tenant_id="tenant-a",
+        user_scope="user-a",
+        authorization_fingerprint="auth-a",
+        acl_policy_fingerprint="public-v1",
+        deletion_epoch=0,
+        requirement_signature="knowledge.active_source",
+        query="退款多久到账",
+        history=(),
+        conversation_range_hash="range-a",
+        locale="zh-CN",
+        product=None,
+        manifest_fingerprint=MANIFEST,
+        generation_id="knowledge-online-generation",
+        policy=_policy(),
     )
 
 
 @pytest.fixture()
 def knowledge_source(postgres_database_url):
     PostgresMigrationRunner(postgres_database_url).upgrade()
-    platform = PostgresPool(PostgresPoolConfig(
-        postgres_database_url, min_size=1, max_size=2,
-    ))
-    retrieval = RetrievalPostgresPool(RetrievalPoolConfig(
-        postgres_database_url, min_size=1, max_size=2,
-        statement_timeout_ms=2000,
-    ))
+    platform = PostgresPool(
+        PostgresPoolConfig(
+            postgres_database_url,
+            min_size=1,
+            max_size=2,
+        )
+    )
+    retrieval = RetrievalPostgresPool(
+        RetrievalPoolConfig(
+            postgres_database_url,
+            min_size=1,
+            max_size=2,
+            statement_timeout_ms=2000,
+        )
+    )
     platform.open()
     retrieval.open()
     with platform.transaction() as connection:
@@ -126,7 +146,8 @@ def knowledge_source(postgres_database_url):
     registry.transition(generation.generation_id, GenerationState.BUILDING)
     embedding = "[" + ",".join(["1"] + ["0"] * 383) + "]"
     with platform.transaction() as connection:
-        connection.execute("""
+        connection.execute(
+            """
             INSERT INTO retrieval.knowledge_source_revisions (
                 tenant_id, source_id, revision_id, checksum, title,
                 source_type, content, effective_from, immutable_fingerprint,
@@ -138,8 +159,11 @@ def knowledge_source(postgres_database_url):
                 'local-owner', 'public', 'zh-CN', '', 'local',
                 'local-direct-ingest', 'knowledge-source-v0'
             )
-        """, (CHECKSUM, CONTENT, "c" * 64))
-        connection.execute("""
+        """,
+            (CHECKSUM, CONTENT, "c" * 64),
+        )
+        connection.execute(
+            """
             INSERT INTO retrieval.knowledge_source_manifests (
                 tenant_id, backend_id, generation_id, scope, locale,
                 product, manifest_hash, source_count, schema_version,
@@ -148,8 +172,11 @@ def knowledge_source(postgres_database_url):
                 'tenant-a', %s, %s, 'public', 'zh-CN', '', %s, 1,
                 'knowledge-source-v0', 'local-direct-ingest'
             )
-        """, (generation.backend_id, generation.generation_id, MANIFEST))
-        connection.execute("""
+        """,
+            (generation.backend_id, generation.generation_id, MANIFEST),
+        )
+        connection.execute(
+            """
             INSERT INTO retrieval.knowledge_chunk_search (
                 candidate_id, tenant_id, backend_id, generation_id,
                 source_id, source_revision, source_checksum, source_span,
@@ -161,15 +188,22 @@ def knowledge_source(postgres_database_url):
                 jsonb_build_object('start_char', 0, 'end_char', %s),
                 %s, 'public', 'zh-CN', NULL, 0, %s::vector, %s, now()
             )
-        """, (
-            generation.backend_id, generation.generation_id, CHECKSUM,
-            len(CONTENT), "d" * 64, embedding,
-            postgres_lexical_document(CONTENT),
-        ))
+        """,
+            (
+                generation.backend_id,
+                generation.generation_id,
+                CHECKSUM,
+                len(CONTENT),
+                "d" * 64,
+                embedding,
+                postgres_lexical_document(CONTENT),
+            ),
+        )
     registry.transition(generation.generation_id, GenerationState.READY)
     registry.activate_direct(generation.generation_id)
     source = PostgresKnowledgeCandidateSource(
-        backend=PostgresHybridBackend(retrieval), generations=registry,
+        backend=PostgresHybridBackend(retrieval),
+        generations=registry,
         pool=retrieval,
         embed_query=lambda _query, _generation: tuple([1.0] + [0.0] * 383),
     )
@@ -181,37 +215,86 @@ def knowledge_source(postgres_database_url):
 
 
 def test_source_fuses_pg_routes_and_resolves_canonical_source(knowledge_source):
-    request = KnowledgeRetrievalRequest(**{
-        **_request().__dict__, "product": "  ",
-    })
-    result = asyncio.run(knowledge_source.search_variants_async(
-        request, [("raw", "退款多久到账", 1.0)], top_k=20,
-    ))
+    request = KnowledgeRetrievalRequest(
+        **{
+            **_request().__dict__,
+            "product": "  ",
+        }
+    )
+    result = asyncio.run(
+        knowledge_source.search_variants_async(
+            request,
+            [("raw", "退款多久到账", 1.0)],
+            top_k=20,
+        )
+    )
 
     assert request.product is None
     assert result.status is RetrievalStatus.OK
-    assert result.candidates == ({
-        "chunk_id": "chunk-refund", "source_id": "refund-policy",
-        "source_revision": "revision-one", "source_checksum": CHECKSUM,
-        "source_start_char": 0, "source_end_char": len(CONTENT),
-        "content": CONTENT, "title": "退款政策",
-        "source_type": "text", "scope": "public",
-        "index_manifest_fingerprint": MANIFEST,
-        "ranks": {"raw:vector": 1, "raw:lexical": 1},
-        "score": pytest.approx(1 / 11),
-        "scope_decision": "allowed_public",
-    },)
+    assert result.candidates == (
+        {
+            "chunk_id": "chunk-refund",
+            "source_id": "refund-policy",
+            "source_revision": "revision-one",
+            "source_checksum": CHECKSUM,
+            "source_start_char": 0,
+            "source_end_char": len(CONTENT),
+            "content": CONTENT,
+            "title": "退款政策",
+            "source_type": "text",
+            "scope": "public",
+            "index_manifest_fingerprint": MANIFEST,
+            "ranks": {"raw:vector": 1, "raw:lexical": 1},
+            "score": pytest.approx(1 / 11),
+            "scope_decision": "allowed_public",
+        },
+    )
     assert knowledge_source.validate_candidates(result.candidates, request)
+
+
+def test_source_captures_unfused_route_rankings_from_one_backend_request(
+    knowledge_source,
+    monkeypatch,
+):
+    retrieve = Mock(wraps=knowledge_source._backend.retrieve)
+    monkeypatch.setattr(knowledge_source._backend, "retrieve", retrieve)
+    result = asyncio.run(
+        knowledge_source.capture_source_rankings_async(
+            _request(),
+            [("raw", "退款多久到账", 1.0)],
+            source_k=40,
+        )
+    )
+
+    assert result.status is RetrievalStatus.OK
+    assert len(result.candidates) == 1
+    assert result.candidates[0]["chunk_id"] == "chunk-refund"
+    assert result.candidates[0]["ranks"] == {
+        "raw:vector": 1,
+        "raw:lexical": 1,
+    }
+    assert "score" not in result.candidates[0]
+    assert retrieve.call_count == 1
+    backend_request = retrieve.call_args.args[0]
+    assert backend_request.dense_limit == 40
+    assert backend_request.lexical_limit == 40
 
 
 def test_source_rejects_manifest_drift_without_partial_candidates(knowledge_source):
     request = _request()
-    request = KnowledgeRetrievalRequest(**{
-        **request.__dict__, "manifest_fingerprint": "e" * 64,
-    })
-    result = asyncio.run(knowledge_source.search_variants_async(
-        request, [("raw", request.query, 1.0)], top_k=20,
-    ))
+    request = KnowledgeRetrievalRequest(
+        **{
+            **request.__dict__,
+            "manifest_fingerprint": "e" * 64,
+        }
+    )
+    result = asyncio.run(
+        knowledge_source.search_variants_async(
+            request,
+            [("raw", request.query, 1.0)],
+            top_k=20,
+        )
+    )
     assert result.status is RetrievalStatus.CONFLICT
     assert result.detail_code == "MANIFEST_FINGERPRINT_DRIFT"
     assert result.candidates == ()
@@ -219,15 +302,24 @@ def test_source_rejects_manifest_drift_without_partial_candidates(knowledge_sour
 
 def test_source_rejects_policy_embedding_profile_drift(knowledge_source):
     request = _request()
-    request = KnowledgeRetrievalRequest(**{
-        **request.__dict__,
-        "policy": KnowledgeRetrievalPolicy(**{
-            **request.policy.__dict__, "embedding_version": "different-profile",
-        }),
-    })
-    result = asyncio.run(knowledge_source.search_variants_async(
-        request, [("raw", request.query, 1.0)], top_k=20,
-    ))
+    request = KnowledgeRetrievalRequest(
+        **{
+            **request.__dict__,
+            "policy": KnowledgeRetrievalPolicy(
+                **{
+                    **request.policy.__dict__,
+                    "embedding_version": "different-profile",
+                }
+            ),
+        }
+    )
+    result = asyncio.run(
+        knowledge_source.search_variants_async(
+            request,
+            [("raw", request.query, 1.0)],
+            top_k=20,
+        )
+    )
 
     assert result.status is RetrievalStatus.CONFLICT
     assert result.detail_code == "EMBEDDING_PROFILE_FINGERPRINT_DRIFT"
@@ -241,20 +333,31 @@ def test_evidence_validator_reads_source_type_from_provenance_owner():
             return True
 
     pack = EvidencePack(
-        query="退款多久到账", index_manifest_fingerprint=MANIFEST,
+        query="退款多久到账",
+        index_manifest_fingerprint=MANIFEST,
         retrieval_policy=(),
-        items=(EvidenceItem(
-            chunk_id="chunk-refund", title="退款政策",
-            source_ref=SourceReference(
-                source_id="refund-policy", source_revision="revision-one",
-                start_char=0, end_char=len(CONTENT), source_type="text",
-                checksum=CHECKSUM,
+        items=(
+            EvidenceItem(
+                chunk_id="chunk-refund",
+                title="退款政策",
+                source_ref=SourceReference(
+                    source_id="refund-policy",
+                    source_revision="revision-one",
+                    start_char=0,
+                    end_char=len(CONTENT),
+                    source_type="text",
+                    checksum=CHECKSUM,
+                ),
+                score=1.0,
+                rank=1,
+                source_ranks=(("raw:vector", 1),),
+                scope_decision="allowed_public",
+                text=CONTENT,
             ),
-            score=1.0, rank=1, source_ranks=(("raw:vector", 1),),
-            scope_decision="allowed_public", text=CONTENT,
-        ),),
+        ),
     )
 
     assert PostgresKnowledgeEvidenceValidator(CapturingSource()).validate(
-        pack, _request(),
+        pack,
+        _request(),
     )
