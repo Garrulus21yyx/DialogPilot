@@ -1,6 +1,6 @@
 # Intent / TurnUnderstanding 架构、迁移与评测
 
-状态：`IMPLEMENTED_PARTIALLY — REAL COMMAND ARTIFACT NOT FROZEN`
+状态：`LIVE_L0_DIAGNOSTIC_2_OF_20 — NOT_PROMOTED`
 目标：将旧的“首句 → 单 intent → 下游执行”改造成 state-first、selective、command-primary 的入口理解链；保留旧 Intent 作为后置兼容投影。
 
 ## 1. 最终结论
@@ -196,6 +196,26 @@ correctness baseline。真实 `ChatApplication.handle()` 正向测试已证明�
 `recognize_intent()` 调用为 0。默认模式仍是 `off`，并未将该切片扩大到
 写操作、安全或全部 Flow。
 
+2026-09-03 又在锁定合同的 20 条无附件 L0 澄清 slice 上执行了一个真实
+`DEV_CONTRACT_DIAGNOSTIC`。每条都由 `AlwaysDeferCommandEncoder` 进入
+Structured LLM，再经过 RoutePolicy/Registry 与真实 `ChatApplication.handle()`：
+
+```text
+provider calls/errors = 20/0
+CLARIFY = 2
+NO_SUPPORTED_FLOW = 16
+其他错误命令/编译结果 = 2
+最终通过 = 2/20 = .10
+input/output tokens = 8426/331
+mean/P95 = 987.0ms/1361.3ms
+```
+
+Knowledge、OCR、VLM 与 Tool 的禁止调用均为 `20/20`；问题集中在 LLM 把
+“信息不足，需要澄清”误判成“没有支持的 Flow”。这证明接口和调用边界能
+运行，但同时明确否决当前 prompt/model 作为 Intent 替代方案。该 slice 已被
+查看，只能用于后续开发诊断；调整后必须用独立 conversation-heldout 数据验收，
+不能在同 20 条上调到通过后称为最终成绩。
+
 ## 9. RoutePolicy、TurnPlanCompiler 与 Approval
 
 `RoutePolicy` 只验证：
@@ -339,7 +359,7 @@ MASSIVE zh-CN、BANKING77、CLINC150 只证明闭集/OOS 分类能力；它们�
 
 ## 15. 产物与通过条件
 
-当前组件入口是 `evaluation/command_primary_eval/understanding.py` 和 `selective_adapter.py`，复用同一 `DirectRunner`。每次固定输出 `manifest.json`、`predictions.jsonl` 和 `report.json`，并分开记录 Trigger、Artifact、Consumption、Outcome 与 Cost。在生产运行时尚未有统一 trace owner 之前，不为了报表再造一个无消费者的 trace 模块。
+当前组件入口是 `evaluation/command_primary_eval/understanding.py` 和 `selective_adapter.py`，复用同一 `DirectRunner`。真实 L0 入口是 `scripts/run_locked_l0_clarification_eval.py`；它只保存模型输入/输出摘要、版本和聚合 Token/延迟，不把密钥、prompt 或模型原文写入产物。每次固定输出 `manifest.json`、`predictions.jsonl` 和 `report.json`，并分开记录 Trigger、Artifact、Consumption、Outcome 与 Cost。在生产运行时尚未有统一 trace owner 之前，不为了报表再造一个无消费者的 trace 模块。
 
 发布选择采用字典序：
 

@@ -144,6 +144,9 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 - [x] Run one locked L0 input through the real clarification publication path
   as a non-scoring `TRANSPORT_SMOKE`; it remains ineligible for `x/80` until a
   frozen semantic producer replaces the test stub.
+- [x] Run the 20-case locked L0 clarification slice with the live structured
+  provider as `DEV_CONTRACT_DIAGNOSTIC`; record the failing `2/20` result and
+  keep command-primary promotion blocked.
 - [ ] Shadow and legacy-intent invariance gate before cutover.
 
 ## Produced files
@@ -360,6 +363,13 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   `.4437`, and nDCG `.5078`. Dense-only makes RRF k irrelevant, so `k=10` is
   only the stable tie-break. No online default changed and all downstream RAG
   stages remain unexecuted.
+- 2026-09-03: The live structured command baseline ran all 20 locked,
+  attachment-free L0 clarification cases through `ChatApplication.handle()`.
+  Provider calls/errors were `20/0`, but only `2/20` passed; 16 turns were
+  classified as `NO_SUPPORTED_FLOW` instead of `CLARIFY`. Knowledge, Media,
+  and Tool forbidden-invocation checks were each `20/20`. The run consumed
+  8,426 input and 331 output tokens with mean/P95 latency
+  `987.0ms/1361.3ms`. This is a Dev contract diagnostic and blocks cutover.
 
 ## Commit log
 
@@ -404,3 +414,4 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 - Structured-command optional-dependency repair: `71075c1`.
 - Grounded L1 project diagnostic: `c24603f`.
 - Knowledge source capture and offline fusion replay: `19237ba`.
+- Live locked L0 clarification diagnostic: `0c4d194`.

@@ -1,6 +1,6 @@
 # E2E、故障注入与成绩汇总
 
-状态：`DRAFT_FOR_IMPLEMENTATION`
+状态：`SUPPORTED_SLICES_RUNNING — FULL_80_AND_TAU3_NOT_RUN`
 目标：在唯一真实 `ChatApplication.handle()` 主链上同时验证用户结果、状态转换、组件调用、证据消费、副作用、Publication/Delivery 与成本，并用不可被平均分掩盖的方式汇总。
 
 ## 1. 统一评测坐标
@@ -175,6 +175,13 @@ Mock artifact 结果不能报告为完整 E2E。最终 E2E 的所有 actual stat
 - 故障和 typed outcome。
 
 报告真实 `x/80`，closure gate 是全部 hard assertions 通过。默认一次确定性运行，不产生 `pass^4`。
+
+当前不是 `x/80`。已执行的首个可计分子集是 20 条无附件 L0 澄清
+`DEV_CONTRACT_DIAGNOSTIC`：真实 Structured LLM 调用 `20` 次、provider error
+为 `0`，但只有 `2/20` 同时满足 CLARIFY terminal、Route oracle 与
+command-primary owner。Knowledge、Media 和 Tool 禁止调用各为 `20/20`。
+因此当前结论是“主链运输可运行，Understanding 质量未过”，而不是把 2 条
+通过外推成完整合同成绩。其余 60 条以及完整 100 turns 仍为 `NOT_RUN`。
 
 ## 7. τ³
 
