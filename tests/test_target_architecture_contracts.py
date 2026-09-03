@@ -71,6 +71,7 @@ def _registry() -> CapabilityRegistryBundle:
             CapabilityEffect.READ,
             CapabilityRisk.MEDIUM,
             "refund.current_state",
+            "refund-status:v1",
             inject_identity_fields=("tenant_id", "user_id"),
             concurrency_key_fields=("order_id",),
         ),
@@ -82,6 +83,7 @@ def _registry() -> CapabilityRegistryBundle:
             CapabilityEffect.WRITE,
             CapabilityRisk.HIGH,
             "refund.request_action",
+            "refund-status:v1",
             receipt_schema_version="refund-receipt-v1",
             inject_identity_fields=("tenant_id", "user_id"),
             concurrency_key_fields=("order_id",),
@@ -97,6 +99,7 @@ def _registry() -> CapabilityRegistryBundle:
             ("refund_status_summary",),
             "refund-agent-v1",
             "refund-context-v1",
+            "refund-status:v1",
             max_parallelism=2,
         ),),
         skills=(SkillDefinition(
@@ -133,6 +136,7 @@ def _registry() -> CapabilityRegistryBundle:
             ApprovalPolicy.EXPLICIT_CONFIRMATION_REQUIRED,
             "refund-receipt-v1",
             "refund-operation-query-v1",
+            "refund-status:v1",
         ),),
         requirements=(read_requirement, write_requirement),
         tools=tools,
@@ -336,4 +340,3 @@ def test_fact_requires_versioned_provenance_and_timezone():
             "v2",
             datetime.now(),
         )
-

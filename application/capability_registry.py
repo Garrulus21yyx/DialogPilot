@@ -48,6 +48,7 @@ class ToolDefinition:
     effect: CapabilityEffect
     risk: CapabilityRisk
     authority: str
+    verification_profile: str
     receipt_schema_version: str = ""
     inject_identity_fields: tuple[str, ...] = ()
     concurrency_key_fields: tuple[str, ...] = ()
@@ -59,6 +60,7 @@ class ToolDefinition:
             self.input_schema_version,
             self.output_schema_version,
             self.authority,
+            self.verification_profile,
         )
         _unique_nonblank(self.inject_identity_fields, "tool identity fields")
         _unique_nonblank(self.concurrency_key_fields, "tool concurrency fields")
@@ -74,6 +76,7 @@ class AgentDefinition:
     allowed_skill_ids: tuple[str, ...]
     model_profile: str
     context_policy: str
+    verification_profile: str
     max_parallelism: int = 1
 
     def __post_init__(self) -> None:
@@ -82,6 +85,7 @@ class AgentDefinition:
             self.version,
             self.model_profile,
             self.context_policy,
+            self.verification_profile,
         )
         _unique_nonblank(self.allowed_tool_ids, "agent tools")
         _unique_nonblank(self.allowed_skill_ids, "agent skills")
@@ -158,6 +162,7 @@ class ActionDefinition:
     approval_policy: ApprovalPolicy
     receipt_schema_version: str
     reconciliation_policy: str
+    verification_profile: str
 
     @property
     def ref(self) -> str:
@@ -171,6 +176,7 @@ class ActionDefinition:
             self.flow_ref,
             self.receipt_schema_version,
             self.reconciliation_policy,
+            self.verification_profile,
         )
         _unique_nonblank(self.requirement_ids, "action requirements")
         _unique_nonblank(self.allowed_tool_ids, "action tools")
@@ -224,6 +230,9 @@ class CapabilityRegistryBundle:
         for agent in self.agents:
             _known(agent.allowed_tool_ids, tools, f"agent {agent.agent_id} tools")
             _known(agent.allowed_skill_ids, skills, f"agent {agent.agent_id} skills")
+            _get(profiles, agent.verification_profile, "agent verification profile")
+        for tool in self.tools:
+            _get(profiles, tool.verification_profile, "tool verification profile")
         for skill in self.skills:
             owner = _get(agents, skill.owner_agent, "skill owner")
             _known(skill.allowed_tool_ids, tools, f"skill {skill.skill_id} tools")
@@ -248,6 +257,7 @@ class CapabilityRegistryBundle:
             flow = _get(flows, action.flow_ref, "action flow")
             _known(action.allowed_tool_ids, tools, f"action {action.ref} tools")
             _known(action.requirement_ids, requirements, f"action {action.ref} requirements")
+            _get(profiles, action.verification_profile, "action verification profile")
             if flow.owner_agent != action.owner_agent:
                 raise CapabilityRegistryError("action and flow owners differ")
             if not set(action.allowed_tool_ids).issubset(flow.allowed_tool_ids):
@@ -348,4 +358,3 @@ def _validate_effect(
     expected = RequirementEffect(effect.value)
     if any(requirements[item].effect is not expected for item in requirement_ids):
         raise CapabilityRegistryError("capability and requirement effects differ")
-

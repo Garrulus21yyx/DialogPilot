@@ -49,8 +49,8 @@
 |---|---|---|---|---|
 | 0 | done | Repository audit and this implementation ledger | dirty-worktree and dependency audit | `f6ee532` |
 | 1 | done | New registry, work-item, agent-result, fact/evidence, and interaction contracts | 8 contract tests | `7682bf3` |
-| 2 | done | Conversation state, workstreams, pending interaction, and deterministic resolver with CAS semantics | 7 state-machine tests; 15 cumulative | stage-2 state commit |
-| 3 | pending | Turn policy/compiler producing direct, delegated, multi-domain, and workflow plans | compiler/policy tests | pending |
+| 2 | done | Conversation state, workstreams, pending interaction, and deterministic resolver with CAS semantics | 7 state-machine tests; 15 cumulative | `8954756` |
+| 3 | done | Turn policy/compiler producing direct, delegated, multi-domain, and workflow plans | 7 compiler/policy tests; 22 cumulative | stage-3 planning commit |
 | 4 | pending | Parent orchestration graph, direct runtime, delegated domain workers, result board, and partial failure | orchestration integration tests | pending |
 | 5 | pending | Governed write workflows, approval binding, operation keys, receipts, and reconciliation | write state-machine tests | pending |
 | 6 | pending | Handoff commit/receipt and single publication/delivery path | handoff and delivery tests | pending |
@@ -78,3 +78,5 @@
 - Stage 2: `application/conversation_state.py`,
   `application/deterministic_resolution.py`,
   `tests/test_conversation_state_resolution.py`
+- Stage 3: `application/turn_planning.py`, extensions to the Target v1 registry
+  and work-plan contracts, `tests/test_target_turn_planning.py`

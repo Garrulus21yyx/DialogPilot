@@ -5,6 +5,7 @@ import hashlib
 import json
 from dataclasses import dataclass
 from enum import Enum
+from typing import Iterable
 
 from application.capability_registry import CapabilityEffect, CapabilityRisk
 
@@ -166,6 +167,52 @@ class WorkItem:
         return "work-item:v1:" + hashlib.sha256(raw).hexdigest()
 
 
+@dataclass(frozen=True)
+class WorkPlan:
+    items: tuple[WorkItem, ...]
+    primary_work_item_id: str
+
+    def __post_init__(self) -> None:
+        if not self.items:
+            raise WorkItemContractError("work plan requires items")
+        ids = tuple(item.work_item_id for item in self.items)
+        _unique(ids, "work item IDs")
+        if self.primary_work_item_id not in ids:
+            raise WorkItemContractError("primary work item is not in the plan")
+        known = set(ids)
+        if any(set(item.dependencies).difference(known) for item in self.items):
+            raise WorkItemContractError("work item depends on an unknown item")
+        self.execution_waves()
+
+    def execution_waves(
+        self,
+        selected_ids: Iterable[str] | None = None,
+    ) -> tuple[tuple[WorkItem, ...], ...]:
+        selected = set(selected_ids) if selected_ids is not None else {
+            item.work_item_id for item in self.items
+        }
+        known = {item.work_item_id for item in self.items}
+        if selected.difference(known):
+            raise WorkItemContractError("work selection contains unknown items")
+        remaining = [item for item in self.items if item.work_item_id in selected]
+        if any(set(item.dependencies).difference(selected) for item in remaining):
+            raise WorkItemContractError("work selection omits a dependency")
+        completed: set[str] = set()
+        waves: list[tuple[WorkItem, ...]] = []
+        while remaining:
+            ready = tuple(
+                item for item in remaining
+                if set(item.dependencies).issubset(completed)
+            )
+            if not ready:
+                raise WorkItemContractError("work plan contains a dependency cycle")
+            waves.append(ready)
+            ready_ids = {item.work_item_id for item in ready}
+            completed.update(ready_ids)
+            remaining = [item for item in remaining if item.work_item_id not in ready_ids]
+        return tuple(waves)
+
+
 def _canonical_json(value: object) -> str:
     return json.dumps(
         value,
@@ -182,4 +229,3 @@ def _unique(values: object, label: str) -> None:
         raise WorkItemContractError(f"{label} must not contain blank values")
     if len(materialized) != len(set(materialized)):
         raise WorkItemContractError(f"{label} must be unique")
-
