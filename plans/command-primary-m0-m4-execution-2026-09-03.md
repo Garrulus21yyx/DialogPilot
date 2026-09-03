@@ -102,6 +102,10 @@ Status: `PENDING`
   converted into product skips.
 - 2026-09-03: `ruff`, `compileall`, and diff whitespace checks passed for the
   focused S1 code/test files.
+- 2026-09-03: S2 Media Probe reduced to a 165-line asset binding/reuse
+  component; it consumes an explicit routing media need instead of classifying
+  natural language with keyword lists. Focused suite: `7 passed`; `ruff`
+  passed.
 
 ## Commit log
 
