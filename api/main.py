@@ -1685,6 +1685,7 @@ def _core_chat_application(
     command_primary_chat_planner = build_command_primary_chat_planner(
         _orchestrator,
         os.environ,
+        postgres_pool=_postgres_pool,
     )
     media_agent = None
     media_validator = None

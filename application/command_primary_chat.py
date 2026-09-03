@@ -1,6 +1,7 @@
 """Small bridge from state-first planning to the existing chat lifecycle."""
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Callable, Mapping, Sequence
@@ -13,6 +14,7 @@ from application.command_primary_planner import (
     PlanningStatus,
 )
 from application.coverage_gate import VerificationProfileRegistry
+from application.flow_state import FlowStateAggregate, FlowStateStore
 from application.route_decision import RouteMode
 from application.route_execution import RouteExecutionContract, RouteExecutionPolicy
 from application.route_policy_v2 import FlowActionRegistry
@@ -45,10 +47,12 @@ class CommandPrimaryChatPlanner:
         registry_factory: Callable[[str], FlowActionRegistry],
         *,
         knowledge_primary: bool = False,
+        flow_state_store: FlowStateStore | None = None,
     ) -> None:
         self._planner = planner
         self._registry_factory = registry_factory
         self._knowledge_primary = knowledge_primary
+        self._flow_state_store = flow_state_store
         self._authority = AuthorityPolicyRegistry.v1()
         self._verification = VerificationProfileRegistry()
         self._execution = RouteExecutionPolicy()
@@ -63,7 +67,22 @@ class CommandPrimaryChatPlanner:
         history: tuple[Mapping[str, str], ...],
         bundle: Any,
     ) -> CommandPrimaryChatPlan:
-        state = _turn_state(identity, recent_messages, active_case_view)
+        principal = PrincipalScope(
+            str(identity.tenant_id),
+            str(identity.user_id),
+            str(identity.conversation_id),
+        )
+        flow_state = (
+            await asyncio.to_thread(self._flow_state_store.load, principal)
+            if self._flow_state_store is not None else None
+        )
+        state = _turn_state(
+            identity,
+            recent_messages,
+            active_case_view,
+            principal=principal,
+            flow_state=flow_state,
+        )
         registry = self._registry_factory(state.principal.tenant_id)
         planning = await self._planner.plan(
             message,
@@ -116,6 +135,9 @@ def _turn_state(
     identity: Any,
     recent_messages: Sequence[Any],
     active_case_view: Any,
+    *,
+    principal: PrincipalScope,
+    flow_state: FlowStateAggregate | None,
 ) -> TurnStateSnapshot:
     projection = getattr(active_case_view, "projection", None)
     case_state = getattr(projection, "state", ActiveCaseState.NO_ACTIVE_CASE)
@@ -127,14 +149,10 @@ def _turn_state(
     case_reasons = tuple(getattr(projection, "reason_codes", ()) or ())
     return TurnStateSnapshot(
         request_id=str(identity.request_id),
-        principal=PrincipalScope(
-            str(identity.tenant_id),
-            str(identity.user_id),
-            str(identity.conversation_id),
-        ),
-        flow_aggregate=None,
-        active_flows=(),
-        pending_signal=None,
+        principal=principal,
+        flow_aggregate=flow_state.aggregate if flow_state else None,
+        active_flows=flow_state.active_flows if flow_state else (),
+        pending_signal=flow_state.pending_slot if flow_state else None,
         recent_turn_refs=tuple(
             str(item.message_id)
             for item in recent_messages
@@ -159,6 +177,14 @@ def _turn_state(
                     if case_availability is StateAvailability.UNAVAILABLE else ""
                 ),
             ),
+            *((StateSourceStatus(
+                "flow_state",
+                StateAvailability.CURRENT,
+                (
+                    f"{flow_state.schema_version}:"
+                    f"{flow_state.aggregate.version}"
+                ),
+            ),) if flow_state else ()),
         ),
         captured_at=datetime.now(timezone.utc),
         producer_version="command-primary-chat-state-v1",

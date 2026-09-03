@@ -1,0 +1,22 @@
+{
+  "schema": "dialogpilot.data-location-registry-overlay.v1",
+  "version": "v7",
+  "approved_by": "command-primary-flow-state-owner-review",
+  "base_artifact": "v6.json",
+  "contract_catalog_additions": {},
+  "location_additions": [
+    {
+      "location_id": "location:conversation-flow-state:v1",
+      "owner": "FlowState",
+      "schema_version": "conversation-flow-state-v1",
+      "retention_class": "conversation_operational",
+      "readiness": "WRITE_APPROVED",
+      "allowed_producers": ["flow-state-store"],
+      "delete_adapter_id": "adapter:pg-conversation-tombstone:v1",
+      "proof_contract_id": "proof:m1-t04-deletion-fence:v1",
+      "restore_fence_id": "restore-fence:pg-deletion-epoch:v1",
+      "allow_subject_create": false
+    }
+  ],
+  "location_updates": []
+}

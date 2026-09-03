@@ -19,6 +19,7 @@ from application.chat_application import (
 from application.command_primary_chat import CommandPrimaryChatPlanner
 from application.command_primary_planner import CommandPrimaryPlanner
 from application.default_flow_registry import knowledge_flow_registry
+from application.flow_state import FlowStateAggregate
 from application.route_policy_v2 import RoutePolicy
 from application.turn_plan import TurnPlanCompiler
 from application.turn_understanding import (
@@ -29,6 +30,7 @@ from application.turn_understanding import (
     UnderstandingSource,
     UnderstandingStatus,
 )
+from application.turn_state import ActiveFlowRef, FlowBinding, FlowDefinitionRef
 from services.answer_verifier import (
     VerificationReasonCode,
     VerificationResult,
@@ -45,6 +47,8 @@ class KnowledgeSemantic:
     ):
         self.events.append("understanding")
         assert state.active_case_refs == ()
+        assert state.active_flows[0].definition.flow_id == "refund_status"
+        assert state.active_flows[0].bindings[0].value == "DP1234"
         assert registry.tenant_id == "tenant-1"
         return UnderstandingResult(
             UnderstandingStatus.RESOLVED,
@@ -83,6 +87,24 @@ def test_knowledge_primary_runs_through_chat_application_without_legacy_intent()
 
         async def add_messages(self, *_args, **_kwargs):
             events.append("memory_write")
+
+    class FlowState:
+        @staticmethod
+        def load(principal):
+            events.append("flow_state")
+            return FlowStateAggregate.empty(
+                principal,
+                deletion_epoch=0,
+            ).next(
+                active_flows=(ActiveFlowRef(
+                    FlowDefinitionRef("refund_status", "v1"),
+                    "refund-status-1",
+                    1,
+                    principal.fingerprint,
+                    (FlowBinding.create("order_id", "DP1234"),),
+                ),),
+                pending_slot=None,
+            )
 
     class ContextAssembler:
         @staticmethod
@@ -157,6 +179,7 @@ def test_knowledge_primary_runs_through_chat_application_without_legacy_intent()
         ),
         knowledge_flow_registry,
         knowledge_primary=True,
+        flow_state_store=FlowState(),
     )
     services = ChatServices(
         orchestrator=Orchestrator(),
@@ -200,8 +223,8 @@ def test_knowledge_primary_runs_through_chat_application_without_legacy_intent()
         "command_primary"
     )
     assert outcome.response["intent_prediction_id"] == ""
-    assert events[:3] == ["state", "active_case", "understanding"]
-    assert events[3:] == ["knowledge", "verification", "delivery", "memory_write"]
+    assert events[:4] == ["state", "active_case", "flow_state", "understanding"]
+    assert events[4:] == ["knowledge", "verification", "delivery", "memory_write"]
     stages = {stage.stage: stage for stage in outcome.stages}
     assert stages["intent"].status.value == "skipped"
     assert stages["route_path_plan"].detail["source"] == "command_primary"

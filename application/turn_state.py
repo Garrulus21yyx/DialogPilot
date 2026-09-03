@@ -74,11 +74,48 @@ class FlowDefinitionRef:
 
 
 @dataclass(frozen=True)
+class FlowBinding:
+    name: str
+    value_json: str
+
+    @classmethod
+    def create(cls, name: str, value: object) -> "FlowBinding":
+        return cls(name, json.dumps(
+            value,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+            allow_nan=False,
+        ))
+
+    def __post_init__(self) -> None:
+        _nonblank(self.name, "flow binding name")
+        try:
+            parsed = json.loads(self.value_json)
+        except (TypeError, json.JSONDecodeError) as exc:
+            raise TurnStateError("flow binding value must be JSON") from exc
+        canonical = json.dumps(
+            parsed,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+            allow_nan=False,
+        )
+        if canonical != self.value_json:
+            raise TurnStateError("flow binding value must use canonical JSON")
+
+    @property
+    def value(self) -> object:
+        return json.loads(self.value_json)
+
+
+@dataclass(frozen=True)
 class ActiveFlowRef:
     definition: FlowDefinitionRef
     instance_id: str
     state_version: int
     principal_fingerprint: str
+    bindings: tuple[FlowBinding, ...] = ()
 
     def __post_init__(self) -> None:
         if not isinstance(self.definition, FlowDefinitionRef):
@@ -86,6 +123,9 @@ class ActiveFlowRef:
         _nonblank(self.instance_id, "flow instance_id")
         _positive_int(self.state_version, "flow state_version")
         _sha256(self.principal_fingerprint, "flow principal_fingerprint")
+        if not isinstance(self.bindings, tuple):
+            raise TurnStateError("flow bindings must be an immutable tuple")
+        _unique((item.name for item in self.bindings), "flow bindings")
 
 
 class PendingInputKind(str, Enum):
@@ -194,6 +234,13 @@ class TurnStateSnapshot:
                     "flow": item.definition.key,
                     "instance_id": item.instance_id,
                     "state_version": item.state_version,
+                    "bindings": [
+                        (binding.name, binding.value_json)
+                        for binding in sorted(
+                            item.bindings,
+                            key=lambda value: value.name,
+                        )
+                    ],
                 }
                 for item in sorted(self.active_flows, key=lambda value: value.instance_id)
             ],
