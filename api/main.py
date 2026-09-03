@@ -1693,16 +1693,23 @@ def _core_chat_application(
         build_command_primary_chat_planner,
     )
 
+    structured_command_mode = (
+        os.environ.get("COMMAND_PRIMARY_MODE", "off").strip().lower()
+        == "structured_knowledge_primary"
+    )
     command_primary_chat_planner = build_command_primary_chat_planner(
         _orchestrator,
         os.environ,
         postgres_pool=_postgres_pool,
         command_completion_client=(
-            _tool_manager.llm_client if _tool_manager is not None else None
+            _tool_manager.llm_client
+            if structured_command_mode and _tool_manager is not None
+            else None
         ),
         command_model_profile=(
             _model_policy.profile(ModelRole.INTENT)
-            if _model_policy is not None else None
+            if structured_command_mode and _model_policy is not None
+            else None
         ),
     )
     media_agent = None
