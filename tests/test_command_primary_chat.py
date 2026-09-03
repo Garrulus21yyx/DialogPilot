@@ -25,6 +25,9 @@ from services.answer_verifier import (
     VerificationResult,
     VerificationStatus,
 )
+from tests.support.command_primary_shadow_harness import (
+    run_structured_shadow_comparison,
+)
 
 
 def test_structured_knowledge_primary_runs_without_legacy_intent():
@@ -268,3 +271,30 @@ def test_structured_knowledge_primary_accepts_existing_clarify_terminal():
     assert result.plan is not None
     assert result.plan.route.mode is RouteMode.CLARIFY
     assert result.use_primary is True
+
+
+def test_shadow_runs_structured_plan_without_changing_legacy_delivery():
+    result = run_structured_shadow_comparison()
+
+    assert result.provider_calls == 1
+    assert result.counters["off"]["intent"] == 1
+    assert result.counters["shadow"]["intent"] == 1
+    assert result.counters["off"]["run"] == result.counters["shadow"]["run"] == 1
+    assert result.off.response == result.shadow.response
+    off_delivery = result.counters["off"]["delivery"][0]
+    shadow_delivery = result.counters["shadow"]["delivery"][0]
+    assert off_delivery["response_text"] == shadow_delivery["response_text"]
+    assert (
+        off_delivery["identity_metadata"]["public_response"]
+        == (shadow_delivery["identity_metadata"]["public_response"])
+    )
+    assert (
+        result.off.response["tool_audit"] == result.shadow.response["tool_audit"] == []
+    )
+    assert result.flow_version == 0
+    assert result.flow_commit_calls == 0
+    stages = {item.stage: item for item in result.shadow.stages}
+    assert stages["turn_understanding"].detail["status"] == "PLANNED"
+    assert stages["turn_understanding"].detail["semantic_router_used"] is True
+    assert stages["turn_understanding"].detail["primary"] is False
+    assert "flow_transition" not in stages

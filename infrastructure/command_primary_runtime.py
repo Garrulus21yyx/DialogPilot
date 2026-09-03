@@ -43,7 +43,11 @@ def build_command_primary_chat_planner(
             "COMMAND_PRIMARY_MODE must be off, shadow, knowledge_primary, "
             "structured_knowledge_primary, or structured_read_only_primary"
         )
-    if mode in {"structured_knowledge_primary", "structured_read_only_primary"}:
+    if mode in {
+        "shadow",
+        "structured_knowledge_primary",
+        "structured_read_only_primary",
+    }:
         if command_completion_client is None or command_model_profile is None:
             raise RuntimeError(
                 "structured command-primary modes require an explicit command "
