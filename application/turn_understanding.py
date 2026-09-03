@@ -166,6 +166,7 @@ class UnderstandingStatus(str, Enum):
     CLARIFY = "CLARIFY"
     NO_SUPPORTED_FLOW = "NO_SUPPORTED_FLOW"
     PROVIDER_FAILURE = "PROVIDER_FAILURE"
+    INVALID_PROVIDER_OUTPUT = "INVALID_PROVIDER_OUTPUT"
 
 
 @dataclass(frozen=True)

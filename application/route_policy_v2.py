@@ -186,6 +186,7 @@ class RoutePolicy:
             UnderstandingStatus.CLARIFY: RoutePolicyStatus.CLARIFY,
             UnderstandingStatus.NO_SUPPORTED_FLOW: RoutePolicyStatus.OUT_OF_SCOPE,
             UnderstandingStatus.PROVIDER_FAILURE: RoutePolicyStatus.FAILURE,
+            UnderstandingStatus.INVALID_PROVIDER_OUTPUT: RoutePolicyStatus.FAILURE,
         }
         if understanding.status in terminal:
             return self._result(
