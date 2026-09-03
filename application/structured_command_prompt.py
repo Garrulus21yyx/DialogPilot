@@ -12,12 +12,18 @@ from application.turn_state import TurnStateSnapshot
 from application.turn_understanding import CommandKind
 
 
-COMMAND_ROUTER_PROMPT_VERSION = "structured-command-router-prompt-v5"
+COMMAND_ROUTER_PROMPT_VERSION = "structured-command-router-prompt-v6"
 _SYSTEM_PROMPT = """You convert one customer turn into command proposals.
 Return exactly one JSON object and no surrounding text.
-The root keys must be exactly: status, commands.
+The root keys must be exactly: status, commands, clarification.
 status must be RESOLVED, CLARIFY, or NO_SUPPORTED_FLOW.
 commands must be empty unless status is RESOLVED.
+clarification must be null unless status is CLARIFY. For CLARIFY it must have
+exactly: reason, missing_dimensions, candidate_flow_ids. reason must be one of
+MISSING_REQUIRED_ARGUMENT, MISSING_REFERENT, MULTIPLE_SUPPORTED_FLOWS, or
+MODEL_UNCERTAIN. missing_dimensions must name the smallest information needed.
+candidate_flow_ids must contain only Registry flow ids; include competing flows
+when ambiguity is between supported flows.
 Use CLARIFY when the request could match a registry objective but an essential
 referent, target, asset, or piece of context is missing or ambiguous.
 Use NO_SUPPORTED_FLOW only when the request is sufficiently complete to

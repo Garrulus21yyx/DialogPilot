@@ -7,6 +7,8 @@ from dataclasses import replace
 
 from application.route_policy_v2 import FlowActionRegistry
 from application.turn_understanding import (
+    ClarificationDecision,
+    ClarificationReason,
     CommandArgument,
     CommandKind,
     UnderstandingResult,
@@ -52,6 +54,15 @@ class ExplicitIdentifierArgumentBinder:
                 return UnderstandingResult(
                     UnderstandingStatus.CLARIFY,
                     reason_code="EXPLICIT_ORDER_ID_REQUIRED",
+                    clarification=ClarificationDecision(
+                        ClarificationReason.MISSING_REQUIRED_ARGUMENT,
+                        ("order_id",),
+                        (
+                            proposal.target_flow.flow_id
+                            if proposal.target_flow is not None
+                            else proposal.source_flow.definition.flow_id
+                        ,),
+                    ),
                 )
             explicit_order_id = matches[0]
             supplied_order_id = existing.get("order_id")

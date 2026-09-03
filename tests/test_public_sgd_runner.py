@@ -34,14 +34,29 @@ class FixtureCompletion:
         payload = json.loads(input_json)
         message = payload["message"]
         if message == "Find me a restaurant":
-            value = {"status": "CLARIFY", "commands": []}
+            value = {
+                "status": "CLARIFY",
+                "commands": [],
+                "clarification": {
+                    "reason": "MISSING_REQUIRED_ARGUMENT",
+                    "missing_dimensions": ["city"],
+                    "candidate_flow_ids": [
+                        "sgd.Restaurants_1.FindRestaurants"
+                    ],
+                },
+            }
         elif message == "Find me a flight":
-            value = {"status": "NO_SUPPORTED_FLOW", "commands": []}
+            value = {
+                "status": "NO_SUPPORTED_FLOW",
+                "commands": [],
+                "clarification": None,
+            }
         else:
             city = "Berlin" if message == "In Berlin" else "Potsdam"
             active = payload["state"]["active_flows"]
             value = {
                 "status": "RESOLVED",
+                "clarification": None,
                 "commands": [{
                     "kind": "CONTINUE_FLOW" if active else "START_FLOW",
                     "source_flow_instance_id": (
@@ -130,6 +145,7 @@ def test_route_policy_rejects_model_argument_outside_registry(tmp_path) -> None:
         async def complete(self, **_kwargs):
             return json.dumps({
                 "status": "RESOLVED",
+                "clarification": None,
                 "commands": [{
                     "kind": "START_FLOW",
                     "source_flow_instance_id": None,

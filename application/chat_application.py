@@ -472,10 +472,26 @@ class ChatApplication:
                 "semantic_router_used": command_primary.planning.semantic_router_used,
                 "reason_code": command_primary.planning.reason_code,
                 "primary": command_primary.use_primary,
+                "authority_claimed": command_primary.authority_claimed,
             }))
 
+        if (
+            command_primary is not None
+            and command_primary.authority_claimed
+            and not command_primary.use_primary
+        ):
+            return Failed(
+                code="command_primary_planning_failed",
+                retryable=(
+                    command_primary.planning.status.value == "FAILED"
+                ),
+                correlation_id=ops.trace_id(),
+                safe_message="当前请求暂时无法生成可验证的处理计划。",
+                stages=tuple(stages),
+            )
+
         if command_primary is not None and command_primary.use_primary:
-            intent_result = command_primary.intent_projection
+            intent_result = command_primary.compatibility_projection
             intent_prediction = None
             route_mode = command_primary.plan.route.mode.value
             stages.append(StageObservation("intent", StageStatus.SKIPPED, {

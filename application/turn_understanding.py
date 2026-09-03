@@ -169,11 +169,49 @@ class UnderstandingStatus(str, Enum):
     INVALID_PROVIDER_OUTPUT = "INVALID_PROVIDER_OUTPUT"
 
 
+class ClarificationReason(str, Enum):
+    MISSING_REQUIRED_ARGUMENT = "MISSING_REQUIRED_ARGUMENT"
+    MISSING_REFERENT = "MISSING_REFERENT"
+    MULTIPLE_SUPPORTED_FLOWS = "MULTIPLE_SUPPORTED_FLOWS"
+    MODEL_UNCERTAIN = "MODEL_UNCERTAIN"
+
+
+@dataclass(frozen=True)
+class ClarificationDecision:
+    reason: ClarificationReason
+    missing_dimensions: tuple[str, ...]
+    candidate_flow_ids: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.reason, ClarificationReason):
+            raise UnderstandingError("unsupported clarification reason")
+        for name, values in (
+            ("missing_dimensions", self.missing_dimensions),
+            ("candidate_flow_ids", self.candidate_flow_ids),
+        ):
+            if not isinstance(values, tuple):
+                raise UnderstandingError(f"{name} must be an immutable tuple")
+            if any(not value.strip() for value in values):
+                raise UnderstandingError(f"{name} cannot contain blanks")
+            if len(values) != len(set(values)):
+                raise UnderstandingError(f"{name} must be unique")
+        if not self.missing_dimensions:
+            raise UnderstandingError("clarification requires missing dimensions")
+        if (
+            self.reason is ClarificationReason.MULTIPLE_SUPPORTED_FLOWS
+            and len(self.candidate_flow_ids) < 2
+        ):
+            raise UnderstandingError(
+                "multiple-flow clarification requires at least two candidates"
+            )
+
+
 @dataclass(frozen=True)
 class UnderstandingResult:
     status: UnderstandingStatus
     commands: tuple[CommandProposal, ...] = ()
     reason_code: str = ""
+    clarification: ClarificationDecision | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.status, UnderstandingStatus):
@@ -187,6 +225,13 @@ class UnderstandingResult:
             raise UnderstandingError(f"{self.status.value} cannot carry commands")
         if self.status is not UnderstandingStatus.RESOLVED and not self.reason_code:
             raise UnderstandingError(f"{self.status.value} requires a reason")
+        if self.status is UnderstandingStatus.CLARIFY:
+            if self.clarification is None:
+                raise UnderstandingError("CLARIFY requires a clarification decision")
+        elif self.clarification is not None:
+            raise UnderstandingError(
+                f"{self.status.value} cannot carry a clarification decision"
+            )
 
 
 class PendingSlotResolver:
@@ -213,16 +258,21 @@ class PendingSlotResolver:
                 UnderstandingStatus.DEFER,
                 reason_code="NO_PROTOCOL_BINDING",
             )
+        source_flow = next(
+            item for item in state.active_flows
+            if item.instance_id == slot.flow_instance_id
+        )
         value = self._parse_value(slot, message)
         if value is None:
             return UnderstandingResult(
                 UnderstandingStatus.CLARIFY,
                 reason_code="PENDING_SLOT_VALUE_INVALID",
+                clarification=ClarificationDecision(
+                    ClarificationReason.MISSING_REQUIRED_ARGUMENT,
+                    (slot.field_name,),
+                    (source_flow.definition.flow_id,),
+                ),
             )
-        source_flow = next(
-            item for item in state.active_flows
-            if item.instance_id == slot.flow_instance_id
-        )
         proposal = CommandProposal(
             kind=CommandKind.FILL_SLOT,
             source=UnderstandingSource.PROTOCOL,

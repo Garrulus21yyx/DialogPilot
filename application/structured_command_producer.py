@@ -14,6 +14,8 @@ from application.structured_command_prompt import (
 )
 from application.turn_state import ActiveFlowRef, FlowDefinitionRef, TurnStateSnapshot
 from application.turn_understanding import (
+    ClarificationDecision,
+    ClarificationReason,
     CommandArgument,
     CommandKind,
     CommandProposal,
@@ -99,7 +101,9 @@ class StructuredLLMCommandProducer:
         registry: FlowActionRegistry,
     ) -> UnderstandingResult:
         value = json.loads(raw)
-        if not isinstance(value, dict) or set(value) != {"status", "commands"}:
+        if not isinstance(value, dict) or set(value) != {
+            "status", "commands", "clarification"
+        }:
             raise _InvalidCommandOutput("command output root is invalid")
         status = UnderstandingStatus(value["status"])
         if status not in {
@@ -109,17 +113,27 @@ class StructuredLLMCommandProducer:
         }:
             raise _InvalidCommandOutput("provider cannot emit this status")
         raw_commands = value["commands"]
+        raw_clarification = value["clarification"]
         if not isinstance(raw_commands, list):
             raise _InvalidCommandOutput("commands must be a list")
         if status is not UnderstandingStatus.RESOLVED:
             if raw_commands:
                 raise _InvalidCommandOutput("terminal status cannot carry commands")
-            reason = (
-                "LLM_CLARIFICATION_REQUIRED"
-                if status is UnderstandingStatus.CLARIFY
-                else "LLM_NO_SUPPORTED_FLOW"
-            )
-            return UnderstandingResult(status, reason_code=reason)
+            if status is UnderstandingStatus.CLARIFY:
+                clarification = _clarification(raw_clarification, registry)
+                return UnderstandingResult(
+                    status,
+                    reason_code=f"LLM_{clarification.reason.value}",
+                    clarification=clarification,
+                )
+            if raw_clarification is not None:
+                raise _InvalidCommandOutput(
+                    "non-clarify terminal cannot carry clarification"
+                )
+            return UnderstandingResult(status, reason_code="LLM_NO_SUPPORTED_FLOW")
+
+        if raw_clarification is not None:
+            raise _InvalidCommandOutput("RESOLVED cannot carry clarification")
 
         commands = tuple(
             self._command(item, message_fingerprint, state, registry)
@@ -219,3 +233,30 @@ def _require_registry_command(
             if proposal.kind not in registry.flow(flow).allowed_commands:
                 raise _InvalidCommandOutput("command is not allowed for this flow")
     registry.action_for(proposal)
+
+
+def _clarification(
+    value: object,
+    registry: FlowActionRegistry,
+) -> ClarificationDecision:
+    fields = {"reason", "missing_dimensions", "candidate_flow_ids"}
+    if not isinstance(value, dict) or set(value) != fields:
+        raise _InvalidCommandOutput("clarification shape is invalid")
+    missing = value["missing_dimensions"]
+    candidates = value["candidate_flow_ids"]
+    if not isinstance(missing, list) or not all(
+        isinstance(item, str) for item in missing
+    ):
+        raise _InvalidCommandOutput("missing dimensions must be strings")
+    if not isinstance(candidates, list) or not all(
+        isinstance(item, str) for item in candidates
+    ):
+        raise _InvalidCommandOutput("candidate flows must be strings")
+    registered = {item.ref.flow_id for item in registry.flows}
+    if not set(candidates).issubset(registered):
+        raise _InvalidCommandOutput("clarification references unsupported flow")
+    return ClarificationDecision(
+        ClarificationReason(value["reason"]),
+        tuple(missing),
+        tuple(candidates),
+    )

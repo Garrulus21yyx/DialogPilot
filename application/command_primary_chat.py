@@ -38,16 +38,22 @@ class CommandPrimaryChatPlan:
     execution_contract: RouteExecutionContract | None = None
     intent_projection: IntentResult | None = None
     use_primary: bool = False
+    authority_claimed: bool = False
 
     @property
     def projected_intent(self) -> IntentCategory:
-        if self.intent_projection is None:
-            raise ValueError("command-primary result requires an intent projection")
-        return self.intent_projection.intent
+        return self.compatibility_projection.intent
+
+    @property
+    def compatibility_projection(self) -> IntentResult:
+        """Derive a non-authoritative legacy shell from the immutable TurnPlan."""
+        if self.plan is None:
+            raise ValueError("command-primary result requires a compiled plan")
+        return _compatibility_projection(self.plan)
 
 
 class CommandPrimaryChatPlanner:
-    """Prepare one selective primary route; all other routes remain legacy."""
+    """Prepare a bounded primary route with an explicit authority disposition."""
 
     def __init__(
         self,
@@ -56,11 +62,13 @@ class CommandPrimaryChatPlanner:
         *,
         primary_route_modes: tuple[RouteMode, ...] = (),
         flow_state_store: FlowStateStore | None = None,
+        authoritative: bool = False,
     ) -> None:
         self._planner = planner
         self._registry_factory = registry_factory
         self._primary_route_modes = frozenset(primary_route_modes)
         self._flow_state_store = flow_state_store
+        self._authoritative = authoritative
         self._authority = AuthorityPolicyRegistry.v1()
         self._verification = VerificationProfileRegistry()
         self._execution = RouteExecutionPolicy()
@@ -105,6 +113,7 @@ class CommandPrimaryChatPlanner:
                 planning=planning,
                 plan=None,
                 flow_state=flow_state,
+                authority_claimed=self._authoritative,
             )
         if plan.route.mode not in {
             RouteMode.KNOWLEDGE_QA,
@@ -116,6 +125,7 @@ class CommandPrimaryChatPlanner:
                 planning=planning,
                 plan=plan,
                 flow_state=flow_state,
+                authority_claimed=self._authoritative,
             )
         if (
             plan.route.mode is RouteMode.AGENT_TASK
@@ -128,6 +138,7 @@ class CommandPrimaryChatPlanner:
                 planning=planning,
                 plan=plan,
                 flow_state=flow_state,
+                authority_claimed=self._authoritative,
             )
 
         requirements = self._authority.requirements_for_ids(
@@ -143,35 +154,7 @@ class CommandPrimaryChatPlanner:
             input_fingerprint=plan.plan_id,
             work=plan.work,
         )
-        primary_owner = (
-            plan.work.graph.tasks[0].owner
-            if plan.work is not None else AgentType.GENERAL
-        )
-        if plan.route.mode is RouteMode.KNOWLEDGE_QA:
-            projected_intent = IntentCategory.QUERY
-            projected_group = "query"
-        elif plan.route.mode is RouteMode.OUT_OF_SCOPE:
-            projected_intent = IntentCategory.OTHER
-            projected_group = "other"
-        else:
-            projected_intent = {
-                AgentType.BILLING: IntentCategory.REFUND,
-                AgentType.TECHNICAL: IntentCategory.TECHNICAL,
-                AgentType.ACCOUNT_SECURITY: IntentCategory.ACCOUNT_SECURITY,
-            }.get(primary_owner, IntentCategory.REQUEST)
-            projected_group = primary_owner.value
-        projection = IntentResult(
-            intent=projected_intent,
-            confidence=0.0,
-            urgency=UrgencyLevel.LOW,
-            intent_group=projected_group,
-            entities={},
-            reasoning="post-decision compatibility projection",
-            latency_ms=0.0,
-            source_scores={"command_primary_projection": 1.0},
-            classifier_fingerprint="",
-            input_fingerprint=plan.plan_id,
-        )
+        projection = _compatibility_projection(plan)
         return CommandPrimaryChatPlan(
             planning=planning,
             plan=plan,
@@ -180,6 +163,7 @@ class CommandPrimaryChatPlanner:
             execution_contract=execution,
             intent_projection=projection,
             use_primary=plan.route.mode in self._primary_route_modes,
+            authority_claimed=self._authoritative,
         )
 
     async def commit_flow_transition(
@@ -213,6 +197,38 @@ class CommandPrimaryChatPlanner:
             chat_plan.flow_state,
             next_state,
         )
+
+
+def _compatibility_projection(plan: TurnPlan) -> IntentResult:
+    primary_owner = (
+        plan.work.graph.tasks[0].owner
+        if plan.work is not None else AgentType.GENERAL
+    )
+    if plan.route.mode is RouteMode.KNOWLEDGE_QA:
+        projected_intent = IntentCategory.QUERY
+        projected_group = "query"
+    elif plan.route.mode is RouteMode.OUT_OF_SCOPE:
+        projected_intent = IntentCategory.OTHER
+        projected_group = "other"
+    else:
+        projected_intent = {
+            AgentType.BILLING: IntentCategory.REFUND,
+            AgentType.TECHNICAL: IntentCategory.TECHNICAL,
+            AgentType.ACCOUNT_SECURITY: IntentCategory.ACCOUNT_SECURITY,
+        }.get(primary_owner, IntentCategory.REQUEST)
+        projected_group = primary_owner.value
+    return IntentResult(
+        intent=projected_intent,
+        confidence=0.0,
+        urgency=UrgencyLevel.LOW,
+        intent_group=projected_group,
+        entities={},
+        reasoning="post-decision compatibility projection",
+        latency_ms=0.0,
+        source_scores={"command_primary_projection": 1.0},
+        classifier_fingerprint="",
+        input_fingerprint=plan.plan_id,
+    )
 
 
 def _turn_state(

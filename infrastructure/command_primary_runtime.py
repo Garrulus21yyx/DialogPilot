@@ -82,6 +82,7 @@ def build_command_primary_chat_planner(
             RouteMode.KNOWLEDGE_QA,
             RouteMode.CLARIFY,
             RouteMode.AGENT_TASK,
+            RouteMode.OUT_OF_SCOPE,
         ),
     }[mode]
     return CommandPrimaryChatPlanner(
@@ -91,4 +92,7 @@ def build_command_primary_chat_planner(
         flow_state_store=(
             PostgresFlowStateStore(postgres_pool) if postgres_pool is not None else None
         ),
+        authoritative=mode in {
+            "structured_read_only_primary",
+        },
     )

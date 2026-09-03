@@ -11,9 +11,6 @@ from application.route_decision import RouteMode
 from application.route_outcomes import NeedsInputDraft
 
 
-_PROMPT = "请补充你希望处理的具体对象或必要信息，我再继续。"
-
-
 def clarification_execution_result(
     request_id: str,
     identity: object,
@@ -39,7 +36,7 @@ def clarification_execution_result(
         ).isoformat(),
         interaction_publication_id=_id("clarify-publication", identity_seed),
         missing_inputs=contract.missing_inputs,
-        prompt=_PROMPT,
+        prompt=_prompt(chat_plan),
     )
     return OrchestratorResult(
         request_id=request_id,
@@ -68,3 +65,26 @@ def clarification_execution_result(
 
 def _id(kind: str, seed: str) -> str:
     return f"{kind}:v1:" + hashlib.sha256(seed.encode("utf-8")).hexdigest()
+
+
+def _prompt(chat_plan: CommandPrimaryChatPlan) -> str:
+    decision = chat_plan.plan.route.clarification
+    if decision is None:
+        raise ValueError("clarification route requires a structured decision")
+    fields = "、".join(
+        _DISPLAY_NAMES.get(item, item) for item in decision.missing_dimensions
+    )
+    if len(decision.candidate_flow_ids) >= 2:
+        choices = "，还是".join(decision.candidate_flow_ids)
+        return f"你想处理的是{choices}？请补充{fields}。"
+    return f"请补充{fields}，我再继续处理。"
+
+
+_DISPLAY_NAMES = {
+    "order_id": "订单号",
+    "request_goal": "你希望处理的具体问题",
+    "product_or_media_reference": "商品型号或对应图片",
+    "media_asset": "需要读取的图片",
+    "refund_goal": "是查询退款状态还是判断退款条件",
+    "transaction_or_refund_reference": "具体交易或退款记录",
+}

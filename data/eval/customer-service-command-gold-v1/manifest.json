@@ -1,0 +1,15 @@
+{
+  "schema_version": "dialogpilot-customer-service-command-manifest-v1",
+  "dataset_id": "customer-service-command-gold-v1",
+  "provenance": "PROJECT_AUTHORED_SYNTHETIC",
+  "independent_review": false,
+  "production_traffic": false,
+  "registry_generation": "command-primary-read-only-v3",
+  "split_policy": "DEV_VISIBLE_HELDOUT_SEALED",
+  "files": {
+    "dev.jsonl": {"cases": 8, "sha256": "642d7da645265cef2ff48356e53d05acb48e3dc2e3af932ff9b7737423049439"},
+    "heldout.jsonl": {"cases": 4, "sha256": "a384c66e0a7cc70406a985737fb94c58b2600507b5005e50990f028bd8d018b0"},
+    "clarification-dev.jsonl": {"cases": 4, "sha256": "8a49df0ed889c66feb8a7407140fc6d40798262ed295ef479af7842593bbc2a9"},
+    "schema.json": {"sha256": "68a6a3694b86a413296aefce8c27c5ef8f0b295adcdbb861ce10c9fbde01a2f2"}
+  }
+}

@@ -14,6 +14,8 @@ from application.route_decision import RouteMode
 from application.route_policy_v2 import RoutePolicy
 from application.turn_plan import TurnPlanCompiler
 from application.turn_understanding import (
+    ClarificationDecision,
+    ClarificationReason,
     PendingSlotResolver,
     UnderstandingResult,
     UnderstandingStatus,
@@ -42,6 +44,10 @@ class ClarifySemanticStub:
         return UnderstandingResult(
             UnderstandingStatus.CLARIFY,
             reason_code="SEMANTIC_INPUT_INSUFFICIENT",
+            clarification=ClarificationDecision(
+                ClarificationReason.MISSING_REFERENT,
+                ("product_or_media_reference",),
+            ),
         )
 
 

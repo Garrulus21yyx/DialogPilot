@@ -18,7 +18,11 @@ from application.route_policy_v2 import (
 )
 from application.turn_state import FlowBinding, FlowDefinitionRef, TurnStateSnapshot
 from application.task_media import TaskMediaPolicy
-from application.turn_understanding import CommandArgument, CommandKind
+from application.turn_understanding import (
+    ClarificationDecision,
+    CommandArgument,
+    CommandKind,
+)
 
 
 class TurnPlanError(ValueError):
@@ -95,6 +99,7 @@ class RouteDecisionV2:
     missing_inputs: tuple[str, ...]
     reason_code: str
     policy_version: str
+    clarification: ClarificationDecision | None = None
 
 
 @dataclass(frozen=True)
@@ -304,11 +309,12 @@ class TurnPlanCompiler:
             flow_refs=tuple(flows.values()),
             risk=risk,
             missing_inputs=(
-                ("request_goal",)
-                if accepted.status is RoutePolicyStatus.CLARIFY else ()
+                accepted.clarification.missing_dimensions
+                if accepted.clarification is not None else ()
             ),
             reason_code=accepted.reason_code,
             policy_version=accepted.policy_version,
+            clarification=accepted.clarification,
         )
 
 

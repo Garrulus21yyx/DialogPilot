@@ -18,6 +18,8 @@ from application.turn_state import (
     TurnStateSnapshot,
 )
 from application.turn_understanding import (
+    ClarificationDecision,
+    ClarificationReason,
     CommandKind,
     UnderstandingResult,
     UnderstandingSource,
@@ -94,6 +96,7 @@ def test_anthropic_adapter_produces_a_registry_backed_knowledge_command() -> Non
     output = json.dumps(
         {
             "status": "RESOLVED",
+            "clarification": None,
             "commands": [
                 {
                     "kind": "ANSWER_KNOWLEDGE",
@@ -135,6 +138,7 @@ def test_structured_completion_canonicalizes_registry_arguments() -> None:
     state = _state()
     output = json.dumps({
         "status": "RESOLVED",
+        "clarification": None,
         "commands": [{
             "kind": "START_FLOW",
             "source_flow_instance_id": None,
@@ -158,6 +162,7 @@ def test_structured_completion_canonicalizes_registry_arguments() -> None:
 def test_structured_completion_rejects_missing_arguments_field() -> None:
     result = _run(StructuredLLMCommandProducer(FakeCompletion(json.dumps({
         "status": "RESOLVED",
+        "clarification": None,
         "commands": [{
             "kind": "ANSWER_KNOWLEDGE",
             "source_flow_instance_id": None,
@@ -175,6 +180,11 @@ def test_structured_completion_can_request_clarification() -> None:
             {
                 "status": "CLARIFY",
                 "commands": [],
+                "clarification": {
+                    "reason": "MISSING_REFERENT",
+                    "missing_dimensions": ["request_goal"],
+                    "candidate_flow_ids": [],
+                },
             }
         )
     )
@@ -183,7 +193,11 @@ def test_structured_completion_can_request_clarification() -> None:
 
     assert result == UnderstandingResult(
         UnderstandingStatus.CLARIFY,
-        reason_code="LLM_CLARIFICATION_REQUIRED",
+        reason_code="LLM_MISSING_REFERENT",
+        clarification=ClarificationDecision(
+            ClarificationReason.MISSING_REFERENT,
+            ("request_goal",),
+        ),
     )
 
 

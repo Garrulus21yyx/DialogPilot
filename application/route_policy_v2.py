@@ -10,6 +10,7 @@ from agents.orchestration_contracts import AgentType, TaskEffect, TaskRisk
 from application.task_media import TaskMediaPolicy
 from application.turn_state import FlowDefinitionRef, TurnStateSnapshot
 from application.turn_understanding import (
+    ClarificationDecision,
     CommandKind,
     CommandProposal,
     UnderstandingResult,
@@ -203,6 +204,7 @@ class RoutePolicyResult:
     registry_fingerprint: str
     policy_version: str
     reason_code: str
+    clarification: ClarificationDecision | None = None
 
 
 class RoutePolicy:
@@ -232,6 +234,7 @@ class RoutePolicy:
                 understanding.reason_code,
                 state,
                 registry,
+                understanding.clarification,
             )
         if understanding.status is UnderstandingStatus.DEFER:
             raise RoutePolicyError("DEFER must be resolved before RoutePolicy")
@@ -280,6 +283,7 @@ class RoutePolicy:
             "COMMANDS_ACCEPTED",
             state,
             registry,
+            None,
         )
 
     def _validate_state_and_flow(
@@ -311,6 +315,7 @@ class RoutePolicy:
         reason_code: str,
         state: TurnStateSnapshot,
         registry: FlowActionRegistry,
+        clarification: ClarificationDecision | None,
     ) -> RoutePolicyResult:
         return RoutePolicyResult(
             status,
@@ -319,6 +324,7 @@ class RoutePolicy:
             registry.fingerprint,
             self.policy_version,
             reason_code,
+            clarification if status is RoutePolicyStatus.CLARIFY else None,
         )
 
 

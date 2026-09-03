@@ -29,13 +29,15 @@ def test_locked_l0_case_runs_as_non_scoring_clarify_transport_smoke() -> None:
     assert isinstance(turns[0].outcome, Completed)
     response = turns[0].outcome.response
     assert response["routing_disposition"] == "clarify"
-    assert response["response"] == "请补充你希望处理的具体对象或必要信息，我再继续。"
+    assert response["response"] == (
+        "请补充商品型号或对应图片，我再继续处理。"
+    )
     assert response["coverage"] == {
         "complete": False,
-        "missing_inputs": ["request_goal"],
+        "missing_inputs": ["product_or_media_reference"],
     }
     assert response["pending_signals"][0]["missing_inputs"] == (
-        "request_goal",
+        "product_or_media_reference",
     )
     assert response["tool_audit"] == []
     assert harness.published == [response["response"]]

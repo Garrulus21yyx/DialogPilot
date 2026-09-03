@@ -113,6 +113,7 @@ def build_locked_l0_chat_runtime(
             ),
             command_primary_flow_registry,
             primary_route_modes=(RouteMode.CLARIFY, RouteMode.OUT_OF_SCOPE),
+            authoritative=True,
         )
     )
 

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "case_id", "initial_state", "history", "message", "expected"],
+  "properties": {
+    "schema_version": {"const": "dialogpilot-customer-service-command-case-v1"},
+    "case_id": {"type": "string", "minLength": 1},
+    "initial_state": {"type": "object"},
+    "history": {"type": "array"},
+    "message": {"type": "string", "minLength": 1},
+    "expected": {
+      "type": "object",
+      "required": ["status", "commands", "clarification", "next_state"],
+      "properties": {
+        "status": {"enum": ["RESOLVED", "CLARIFY", "NO_SUPPORTED_FLOW"]},
+        "commands": {"type": "array"},
+        "clarification": {"type": ["object", "null"]},
+        "next_state": {"type": "object"}
+      }
+    }
+  }
+}

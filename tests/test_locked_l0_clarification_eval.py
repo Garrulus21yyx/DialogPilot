@@ -37,7 +37,9 @@ class StaticClarifyCompletion:
     async def complete(self, *, system: str, input_json: str) -> str:
         assert system
         self.inputs.append(input_json)
-        return '{"status":"CLARIFY","commands":[]}'
+        return ('{"status":"CLARIFY","commands":[],"clarification":'
+                '{"reason":"MISSING_REFERENT","missing_dimensions":'
+                '["product_or_media_reference"],"candidate_flow_ids":[]}}')
 
 
 class StaticNoSupportedFlowCompletion:
@@ -45,7 +47,7 @@ class StaticNoSupportedFlowCompletion:
 
     async def complete(self, *, system: str, input_json: str) -> str:
         assert system and input_json
-        return '{"status":"NO_SUPPORTED_FLOW","commands":[]}'
+        return '{"status":"NO_SUPPORTED_FLOW","commands":[],"clarification":null}'
 
 
 class FailingCompletion:
@@ -178,6 +180,7 @@ def test_provider_failure_is_typed_and_not_retried() -> None:
 
     assert completion.calls == 1
     assert isinstance(turns[0].outcome, Failed)
+    assert turns[0].outcome.code == "command_primary_planning_failed"
     assert runtime.planner.results[0].planning.understanding.status.value == (
         "PROVIDER_FAILURE"
     )

@@ -138,6 +138,7 @@ def test_structured_knowledge_primary_runs_without_legacy_intent():
                         text=json.dumps(
                             {
                                 "status": "RESOLVED",
+                                "clarification": None,
                                 "commands": [
                                     {
                                         "kind": "ANSWER_KNOWLEDGE",
@@ -238,7 +239,12 @@ def test_structured_knowledge_primary_accepts_existing_clarify_terminal():
                 id="message-clarify",
                 content=[SimpleNamespace(
                     type="text",
-                    text='{"status":"CLARIFY","commands":[]}',
+                    text=(
+                        '{"status":"CLARIFY","commands":[],"clarification":'
+                        '{"reason":"MISSING_REFERENT","missing_dimensions":'
+                        '["product_or_media_reference"],'
+                        '"candidate_flow_ids":[]}}'
+                    ),
                 )],
                 usage=SimpleNamespace(input_tokens=10, output_tokens=5),
             )

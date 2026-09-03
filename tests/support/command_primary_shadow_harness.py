@@ -90,6 +90,7 @@ class _Messages:
                     text=json.dumps(
                         {
                             "status": "RESOLVED",
+                            "clarification": None,
                             "commands": [command],
                         }
                     ),

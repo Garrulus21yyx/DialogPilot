@@ -54,6 +54,7 @@ class RefundEligibilityMessages:
                     text=json.dumps(
                         {
                             "status": "RESOLVED",
+                            "clarification": None,
                             "commands": [
                                 {
                                     "kind": "START_FLOW",
