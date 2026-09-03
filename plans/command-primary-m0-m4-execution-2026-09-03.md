@@ -105,6 +105,8 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
 - [x] Add invocation/consumption/state-transition assertions.
 - [ ] Run component heldout only after lane-specific freeze.
 - [x] Run one positive contract through the real `ChatApplication.handle()`.
+- [x] Prove the existing L1 media transport through the real chat lifecycle;
+  keep it labelled as transport evidence, not command-primary media closure.
 - [ ] Seed and run the locked 80-case contract set; its current run status is
   deliberately `NOT_RUN`.
 - [ ] Shadow and legacy-intent invariance gate before cutover.
@@ -223,6 +225,13 @@ Status: `IN_PROGRESS — DIRECT RUNNERS + ONE REAL E2E SLICE COMPLETE`
   artifact. The available pinned snapshot (`5617a9f…`) was loaded fully
   offline and produced normalized 1024-dimensional Chinese and English query
   embeddings. Focused suite: `49 passed`.
+- 2026-09-03: A current-media transport test now runs an explicit L1 decision
+  through `ChatApplication.handle()`, the real `TieredPerceptionService`, an OCR
+  artifact, worker consumption, verification, Publication, Delivery, and
+  Memory write. The answer consumes and publishes `E401`; OCR is invoked once,
+  VLM and business tools zero times. This does not claim that the routing probe
+  or task-conditioned media policy has moved to command-primary ownership.
+  Focused adjacent suite: `31 passed, 4 skipped`.
 
 ## Commit log
 
