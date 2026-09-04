@@ -48,15 +48,15 @@ class TargetEncoderTrainingConfig:
 
 TARGETS = {
     "general_qa": (
-        "general", "general_qa",
+        "general", "tool", "knowledge_search", ("query",),
         ("政策", "规则", "保修", "质保", "发票", "安装", "售后", "配送", "运费", "说明书"),
     ),
     "product_identification": (
-        "product_technical", "product_identification",
+        "product_technical", "skill", "product_identification", ("asset_id",),
         ("图", "照片", "附件", "设备", "机器", "实物", "产品"),
     ),
     "refund_status_summary": (
-        "billing_refund", "refund_status_summary",
+        "billing_refund", "tool", "refund_status", ("order_id",),
         ("退款", "返款", "退回", "退回来", "款项", "原路返回"),
     ),
 }
@@ -116,7 +116,10 @@ def train_target_encoder(
     )
     heldout_expected = tuple(item.label for item in splits["heldout"])
     class_records = []
-    for label, (owner, skill, required_signal_terms) in TARGETS.items():
+    for label, (
+        owner, capability_kind, capability_id, required_arguments,
+        required_signal_terms,
+    ) in TARGETS.items():
         calibration = calibrations[label]
         heldout = _evaluate_threshold(
             label, classes, heldout_probabilities, heldout_expected,
@@ -131,7 +134,9 @@ def train_target_encoder(
         class_records.append(TargetEncoderClass(
             label=label,
             owner_agent=owner,
-            skill_id=skill,
+            capability_kind=capability_kind,
+            capability_id=capability_id,
+            required_arguments=required_arguments,
             required_signal_terms=required_signal_terms,
             threshold=float(calibration["threshold"]),
             enabled=enabled,

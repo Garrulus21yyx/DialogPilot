@@ -737,12 +737,11 @@ def test_manager_persists_and_resumes_generic_read_work_from_typed_missing_input
         ProposalDisposition.RESOLVED,
         (CommandProposal(
             "product-question",
-            CommandKind.RUN_SKILL,
+            CommandKind.DELEGATE_TASK,
             "product_technical",
             "Answer a product question from governed evidence",
             (ArgumentValue.create("question", "这个商品支持我的设备吗？"),),
             ("knowledge.active_source",),
-            skill_id="product_qa",
         ),),
         "PRODUCT_QUESTION_UNDERSTOOD",
     )
@@ -766,7 +765,7 @@ def test_manager_persists_and_resumes_generic_read_work_from_typed_missing_input
     assert pending is not None
     assert len(pending.suspended_work_items) == 1
     suspended = pending.suspended_work_items[0]
-    assert suspended.skill_hint == "product_qa"
+    assert suspended.skill_hint is None
     assert tuple(field.field_name for field in pending.requested_fields) == (
         "product_reference",
     )
@@ -816,12 +815,11 @@ def test_manager_aggregates_multi_domain_missing_inputs_into_one_interaction():
             ),
             CommandProposal(
                 "product-question",
-                CommandKind.RUN_SKILL,
+                CommandKind.DELEGATE_TASK,
                 "product_technical",
                 "Answer a product question from governed evidence",
                 (ArgumentValue.create("question", "这个商品兼容吗？"),),
                 ("knowledge.active_source",),
-                skill_id="product_qa",
             ),
         ),
         "MULTI_DOMAIN_UNDERSTOOD",

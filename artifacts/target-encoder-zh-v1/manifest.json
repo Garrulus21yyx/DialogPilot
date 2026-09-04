@@ -12,6 +12,9 @@
       "heldout_precision_lower_bound": 0.7688664806802434,
       "label": "general_qa",
       "owner_agent": "general",
+      "capability_kind": "tool",
+      "capability_id": "knowledge_search",
+      "required_arguments": ["query"],
       "required_signal_terms": [
         "政策",
         "规则",
@@ -24,7 +27,6 @@
         "运费",
         "说明书"
       ],
-      "skill_id": "general_qa",
       "threshold": 0.3402385115623474
     },
     {
@@ -37,6 +39,9 @@
       "heldout_precision_lower_bound": 0.7768791263392315,
       "label": "product_identification",
       "owner_agent": "product_technical",
+      "capability_kind": "skill",
+      "capability_id": "product_identification",
+      "required_arguments": ["asset_id"],
       "required_signal_terms": [
         "图",
         "照片",
@@ -46,7 +51,6 @@
         "实物",
         "产品"
       ],
-      "skill_id": "product_identification",
       "threshold": 0.3627763092517853
     },
     {
@@ -59,6 +63,9 @@
       "heldout_precision_lower_bound": 0.8277332164911549,
       "label": "refund_status_summary",
       "owner_agent": "billing_refund",
+      "capability_kind": "tool",
+      "capability_id": "refund_status",
+      "required_arguments": ["order_id"],
       "required_signal_terms": [
         "退款",
         "返款",
@@ -67,7 +74,6 @@
         "款项",
         "原路返回"
       ],
-      "skill_id": "refund_status_summary",
       "threshold": 0.4536190330982208
     }
   ],

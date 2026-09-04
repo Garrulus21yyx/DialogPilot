@@ -535,12 +535,12 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
         assert eligibility["routing_disposition"] == "direct"
         assert eligibility["agent_types"] == ["billing_refund"]
         assert "符合退款条件" in eligibility["response"]
-        assert refund_policy["routing_disposition"] == "agent_task"
+        assert refund_policy["routing_disposition"] == "direct"
         assert "当前政策" in refund_policy["response"]
-        assert invoice["routing_disposition"] == "agent_task"
+        assert invoice["routing_disposition"] == "direct"
         assert "电子发票" in invoice["response"]
         assert encoder_refund["routing_reason"] == "ENCODER_FAST_PATH_ACCEPTED"
-        assert encoder_refund["routing_disposition"] == "agent_task"
+        assert encoder_refund["routing_disposition"] == "direct"
         assert "RF3100" in encoder_refund["response"]
         assert encoder_refund["evaluation_trace"]["cost"] == {
             "semantic_provider_invoked": False,
@@ -594,7 +594,7 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
             item[3]["conversation_id"] == f"{prefix}-refund-unknown"
             for item in refund_write_calls
         ) == 1
-        assert multi["routing_disposition"] == "multi_domain"
+        assert multi["routing_disposition"] == "mixed"
         assert len(multi["agent_outcomes"]) == 2
         assert partial["verification_status"] == "partial"
         assert "refund" in partial["response"]

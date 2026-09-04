@@ -58,8 +58,8 @@ def _invoke(cascade, message):
 def test_active_artifact_enables_only_class_that_passed_both_gates():
     artifact = load_target_text_encoder_artifact(ARTIFACT_DIR)
 
-    assert artifact.manifest.threshold_by_skill == {
-        "refund_status_summary": pytest.approx(0.4536190330982208),
+    assert artifact.manifest.threshold_by_capability == {
+        "tool:refund_status": pytest.approx(0.4536190330982208),
     }
     assert artifact.manifest.classes[0].enabled is False
     assert artifact.manifest.classes[1].enabled is False
@@ -80,7 +80,8 @@ def test_encoder_accepts_grounded_refund_status_and_skips_semantic_provider():
 
     assert proposal.disposition is ProposalDisposition.RESOLVED
     assert proposal.reason_code == "ENCODER_FAST_PATH_ACCEPTED"
-    assert proposal.commands[0].skill_id == "refund_status_summary"
+    assert proposal.commands[0].tool_id == "refund_status"
+    assert proposal.commands[0].skill_id is None
     assert dict(
         (item.name, item.value) for item in proposal.commands[0].arguments
     ) == {"order_id": "RF3100"}
@@ -101,8 +102,9 @@ def test_encoder_defers_generic_progress_and_write_language_to_semantic_router()
     assert len(provider.calls) == 1
 
     write = _invoke(cascade, "把 DP2468 直接退掉")
-    assert write.reason_code == "STRUCTURED_SEMANTIC_ROUTER"
-    assert len(provider.calls) == 2
+    assert write.reason_code == "BOUNDED_FAST_PATH"
+    assert write.commands[0].kind.value == "PREPARE_WORKFLOW"
+    assert len(provider.calls) == 1
 
 
 def test_artifact_digest_tampering_fails_closed(tmp_path):
@@ -131,6 +133,6 @@ def test_training_reproduces_the_gated_artifact_contract(tmp_path):
         "accepted_precision": 1.0,
         "coverage": 0.13,
     }
-    assert artifact.manifest.threshold_by_skill == {
-        "refund_status_summary": pytest.approx(0.4536190330982208),
+    assert artifact.manifest.threshold_by_capability == {
+        "tool:refund_status": pytest.approx(0.4536190330982208),
     }

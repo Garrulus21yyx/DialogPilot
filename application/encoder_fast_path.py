@@ -33,7 +33,7 @@ class RankedCandidate:
 @dataclass(frozen=True)
 class IntentEncoderOutput:
     domains: tuple[RankedCandidate, ...]
-    skills: tuple[RankedCandidate, ...]
+    capabilities: tuple[RankedCandidate, ...]
     entities: tuple[tuple[str, object], ...]
     boundary_score: float
     multi_intent: bool
@@ -61,11 +61,13 @@ class EncoderFastPathPolicy:
     def __init__(
         self,
         *,
-        skill_thresholds: Mapping[str, float],
+        capability_thresholds: Mapping[str, float],
+        required_arguments: Mapping[str, tuple[str, ...]] | None = None,
         max_boundary_score: float = 0.15,
         minimum_margin: float = 0.1,
     ) -> None:
-        self._thresholds = dict(skill_thresholds)
+        self._thresholds = dict(capability_thresholds)
+        self._required_arguments = dict(required_arguments or {})
         self._max_boundary = max_boundary_score
         self._minimum_margin = minimum_margin
 
@@ -85,39 +87,69 @@ class EncoderFastPathPolicy:
             return FastPathDecision(False, "ENCODER_BOUNDARY")
         if state.pending_interaction or state.pending_approval or state.active_workstreams:
             return FastPathDecision(False, "ENCODER_STATE_CONFLICT")
-        if len(output.domains) != 1 or not output.skills:
+        if len(output.domains) != 1 or not output.capabilities:
             return FastPathDecision(False, "ENCODER_NOT_UNIQUE")
-        top = output.skills[0]
-        runner_up = output.skills[1].score if len(output.skills) > 1 else 0.0
+        top = output.capabilities[0]
+        runner_up = (
+            output.capabilities[1].score
+            if len(output.capabilities) > 1 else 0.0
+        )
         threshold = self._thresholds.get(top.candidate_id)
         if threshold is None:
             return FastPathDecision(False, "ENCODER_UNCALIBRATED_SKILL")
         if top.score < threshold or top.score - runner_up < self._minimum_margin:
             return FastPathDecision(False, "ENCODER_LOW_CONFIDENCE")
         try:
-            skill = registry.skill(top.candidate_id)
-            owner = registry.agent(skill.owner_agent)
+            kind, capability_id = top.candidate_id.split(":", 1)
+            if kind == "skill":
+                skill = registry.skill(capability_id)
+                owner = registry.agent(skill.owner_agent)
+                effect = skill.effect
+                required = skill.required_arguments
+            elif kind == "tool":
+                tool = registry.tool(capability_id)
+                owner = registry.agent(output.domains[0].candidate_id)
+                if tool.tool_id not in owner.allowed_tool_ids:
+                    return FastPathDecision(False, "ENCODER_UNSUPPORTED_CAPABILITY")
+                effect = tool.effect
+                required = self._required_arguments.get(top.candidate_id, ())
+            else:
+                return FastPathDecision(False, "ENCODER_UNSUPPORTED_CAPABILITY")
         except Exception:
-            return FastPathDecision(False, "ENCODER_UNSUPPORTED_SKILL")
-        if skill.effect is not CapabilityEffect.READ:
+            return FastPathDecision(False, "ENCODER_UNSUPPORTED_CAPABILITY")
+        if effect is not CapabilityEffect.READ:
             return FastPathDecision(False, "ENCODER_WRITE_DEFERRED")
         entities = dict(output.entities)
-        if set(skill.required_arguments).difference(entities):
+        if set(required).difference(entities):
             return FastPathDecision(False, "ENCODER_REQUIRED_ARGUMENT_MISSING")
-        allowed_arguments = set(skill.required_arguments).union(skill.optional_arguments)
+        allowed_arguments = (
+            set(skill.required_arguments).union(skill.optional_arguments)
+            if kind == "skill" else set(required)
+        )
         arguments = tuple(
             ArgumentValue.create(name, value)
             for name, value in output.entities
             if name in allowed_arguments
         )
-        command = CommandProposal(
-            command_id=f"encoder:{skill.skill_id}",
-            kind=CommandKind.RUN_SKILL,
-            target_agent=owner.agent_id,
-            objective=skill.objective,
-            arguments=arguments,
-            requirement_ids=skill.requirement_ids,
-            skill_id=skill.skill_id,
+        command = (
+            CommandProposal(
+                command_id=f"encoder:skill:{skill.skill_id}",
+                kind=CommandKind.RUN_SKILL,
+                target_agent=owner.agent_id,
+                objective=skill.objective,
+                arguments=arguments,
+                requirement_ids=skill.requirement_ids,
+                skill_id=skill.skill_id,
+            )
+            if kind == "skill" else CommandProposal(
+                command_id=f"encoder:tool:{tool.tool_id}",
+                kind=CommandKind.DIRECT_TOOL,
+                target_agent=owner.agent_id,
+                objective=f"Execute calibrated read capability {tool.tool_id}",
+                arguments=arguments,
+                requirement_ids=(tool.authority,),
+                tool_id=tool.tool_id,
+            )
         )
         return FastPathDecision(
             True,
@@ -197,4 +229,3 @@ class UnderstandingEvidencePolicy:
             tuple(steps),
             1 if request_memory else memory_attempt,
         )
-

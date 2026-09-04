@@ -7,17 +7,17 @@
 1. Pending input、approval、reconciliation 等已绑定状态由 Deterministic Resolver
    直接恢复；
 2. 明确请求由 bounded fast path 生成 Registry-backed Command；
-3. 其余请求先经过 Target Encoder。只有 artifact 中 `enabled: true` 的只读 Skill
-   可以 ACCEPT；
+3. 其余请求先经过 Target Encoder。只有 artifact 中 `enabled: true` 且与当前
+   Registry 绑定的只读 Tool 或复合 Skill 可以 ACCEPT；
 4. Encoder DEFER 后调用 Structured Semantic Router；
 5. `DIRECT` 不启动领域 Agent，`AGENT_TASK` 只启动一个领域 Worker；只有互相独立的
    多领域 WorkItem 才由 LangGraph `Send` 并行派发；
 6. 写操作进入预定义 Flow，经 approval、operation key、Receipt 和 reconciliation。
 
-退款领域特别区分：政策问题进入 `refund_policy_qa`，资格问题直接调用只读
-`refund_eligibility_check`，状态问题进入 `refund_status_summary`，只有明确要求执行
-退款才创建 `execute_refund:v1` Workstream。物流状态直接复用 `order_lookup`；发票政策
-由 `invoice_qa` 使用 Knowledge Provider，不读取或伪造个人账单状态。
+退款领域特别区分：政策问题直接读取 `knowledge_search`，资格问题直接调用
+`refund_eligibility_check`，状态问题直接调用 `refund_status`；只有明确要求执行退款
+才创建 `execute_refund:v1` Workstream。物流状态复用 `order_lookup`，发票政策复用
+Knowledge Provider。单 Tool 任务不包装成 Skill，也不启动领域 Agent。
 
 ## 启动配置
 
@@ -30,7 +30,7 @@ TARGET_ENCODER_ARTIFACT_DIR=/absolute/path/to/target-encoder-zh-v1
 
 `TARGET_ENCODER_ENABLED=false` 是能力级 kill switch：它只关闭 Encoder ACCEPT，
 请求继续进入 structured provider，不关闭 DIRECT、Worker、Flow 或其他业务能力。
-artifact 缺失、摘要不一致、Bundle 版本过期或 Skill owner/effect 不一致时启动失败，
+artifact 缺失、摘要不一致、Bundle 版本过期或 capability owner/effect 不一致时启动失败，
 不会静默加载不兼容模型。
 
 Structured provider 使用 `ModelRole.INTENT` 的模型配置。provider 超时返回 retryable

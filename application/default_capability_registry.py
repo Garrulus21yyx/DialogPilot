@@ -78,44 +78,18 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
     )
     skills = (
         _skill(
-            "general_qa", "general", "Answer a supported customer-service FAQ",
-            ("question",), ("knowledge.active_source",), ("knowledge_search",),
-            CapabilityRisk.LOW, profile.ref,
-        ),
-        _skill(
             "product_identification", "product_technical",
             "Identify a canonical product from media and catalog evidence",
             ("asset_id",), ("product.canonical_model",),
             ("media_read", "catalog_search"), CapabilityRisk.MEDIUM, profile.ref,
         ),
-        _skill(
-            "product_qa", "product_technical",
-            "Answer product questions from governed catalog and knowledge evidence",
-            ("question",), ("knowledge.active_source",), ("knowledge_search",),
-            CapabilityRisk.LOW, profile.ref,
-        ),
-        _skill(
-            "refund_status_summary", "billing_refund", "Query current refund state",
-            ("order_id",), ("refund.current_state",), ("refund_status",),
-            CapabilityRisk.MEDIUM, profile.ref,
-        ),
-        _skill(
-            "refund_policy_qa", "billing_refund", "Answer refund policy questions",
-            ("question",), ("knowledge.active_source",), ("knowledge_search",),
-            CapabilityRisk.LOW, profile.ref,
-        ),
-        _skill(
-            "invoice_qa", "billing_refund", "Answer invoice policy questions",
-            ("question",), ("knowledge.active_source",), ("knowledge_search",),
-            CapabilityRisk.LOW, profile.ref,
-        ),
     )
     agents = (
-        _agent("general", ("knowledge_search",), ("general_qa",), profile.ref),
+        _agent("general", ("knowledge_search",), (), profile.ref),
         _agent(
             "product_technical",
             ("media_read", "catalog_search", "knowledge_search"),
-            ("product_identification", "product_qa"),
+            ("product_identification",),
             profile.ref,
         ),
         _agent(
@@ -133,7 +107,7 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
                 "knowledge_search", "order_lookup", "refund_status",
                 "refund_eligibility_check", "refund_request_create",
             ),
-            ("refund_status_summary", "refund_policy_qa", "invoice_qa"),
+            (),
             profile.ref,
         ),
         _agent(

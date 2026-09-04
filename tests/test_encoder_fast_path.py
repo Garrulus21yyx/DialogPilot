@@ -48,39 +48,12 @@ def _registry():
             "billing_refund",
             "v1",
             ("refund_status", "refund_create"),
-            ("refund_status_summary", "execute_refund_skill"),
+            (),
             "refund-model-v1",
             "refund-context-v1",
             profile.ref,
         ),),
-        (
-            SkillDefinition(
-                "refund_status_summary",
-                "v1",
-                "billing_refund",
-                "Query refund status",
-                ("order_id",),
-                (),
-                ("refund.current_state",),
-                ("refund_status",),
-                CapabilityEffect.READ,
-                CapabilityRisk.MEDIUM,
-                profile.ref,
-            ),
-            SkillDefinition(
-                "execute_refund_skill",
-                "v1",
-                "billing_refund",
-                "Create refund",
-                ("order_id",),
-                (),
-                ("refund.request_action",),
-                ("refund_create",),
-                CapabilityEffect.WRITE,
-                CapabilityRisk.HIGH,
-                profile.ref,
-            ),
-        ),
+        (),
         (),
         (),
         (
@@ -109,10 +82,10 @@ def _state():
     )
 
 
-def _output(skill="refund_status_summary", score=0.98, **changes):
+def _output(capability="tool:refund_status", score=0.98, **changes):
     values = {
         "domains": (RankedCandidate("billing_refund", 0.99),),
-        "skills": (RankedCandidate(skill, score),),
+        "capabilities": (RankedCandidate(capability, score),),
         "entities": (("order_id", "DP1234"),),
         "boundary_score": 0.03,
         "multi_intent": False,
@@ -123,18 +96,25 @@ def _output(skill="refund_status_summary", score=0.98, **changes):
 
 
 def _policy():
-    return EncoderFastPathPolicy(skill_thresholds={
-        "refund_status_summary": 0.95,
-        "execute_refund_skill": 0.99,
-    })
+    return EncoderFastPathPolicy(
+        capability_thresholds={
+            "tool:refund_status": 0.95,
+            "tool:refund_create": 0.99,
+        },
+        required_arguments={
+            "tool:refund_status": ("order_id",),
+            "tool:refund_create": ("order_id",),
+        },
+    )
 
 
-def test_calibrated_read_skill_fast_path_produces_registry_backed_command():
+def test_calibrated_atomic_read_fast_path_produces_direct_registry_command():
     decision = _policy().decide(_output(), _state(), _registry())
 
     assert decision.accepted is True
     command = decision.proposal.commands[0]
-    assert command.kind is CommandKind.RUN_SKILL
+    assert command.kind is CommandKind.DIRECT_TOOL
+    assert command.tool_id == "refund_status"
     assert command.target_agent == "billing_refund"
     assert command.arguments[0].value == "DP1234"
 
@@ -144,9 +124,9 @@ def test_fast_path_defers_low_margin_boundary_and_multi_intent_cases():
     registry = _registry()
     state = _state()
 
-    low_margin = _output(skills=(
-        RankedCandidate("refund_status_summary", 0.98),
-        RankedCandidate("other", 0.93),
+    low_margin = _output(capabilities=(
+        RankedCandidate("tool:refund_status", 0.98),
+        RankedCandidate("tool:other", 0.93),
     ))
     assert policy.decide(low_margin, state, registry).reason_code == "ENCODER_LOW_CONFIDENCE"
     assert policy.decide(_output(boundary_score=0.4), state, registry).accepted is False
@@ -156,12 +136,12 @@ def test_fast_path_defers_low_margin_boundary_and_multi_intent_cases():
 def test_fast_path_defers_write_and_any_active_conversation_binding():
     registry = _registry()
     write = _policy().decide(
-        _output(skill="execute_refund_skill", score=1.0), _state(), registry,
+        _output(capability="tool:refund_create", score=1.0), _state(), registry,
     )
     assert write.reason_code == "ENCODER_WRITE_DEFERRED"
 
     active = _state().start_workstream(WorkstreamState(
-        "refund-ws-1", "billing_refund", "refund_status_summary:v1",
+        "refund-ws-1", "billing_refund", "execute_refund:v1",
         "ACTIVE", WorkstreamStatus.ACTIVE, 1,
     ))
     state_bound = _policy().decide(_output(), active, registry)
@@ -210,4 +190,3 @@ def test_media_policy_reuses_evidence_then_chooses_ocr_or_vlm_by_need():
         MediaEvidenceAction.VLM,
     ]
     assert plan.media_steps[0].evidence_ref == "media:IMG1:v1"
-

@@ -197,9 +197,9 @@ def test_e2e_refund_application_is_receipt_backed_and_idempotent():
 def test_e2e_refund_and_product_questions_fan_out_to_two_domains():
     plan = _compile(
         CommandProposal(
-            "refund", CommandKind.RUN_SKILL, "billing_refund", "Query refund",
+            "refund", CommandKind.DIRECT_TOOL, "billing_refund", "Query refund",
             (ArgumentValue.create("order_id", "DP1234"),),
-            ("refund.current_state",), skill_id="refund_status_summary",
+            ("refund.current_state",), tool_id="refund_status",
         ),
         CommandProposal(
             "product", CommandKind.RUN_SKILL, "product_technical", "Identify product",
@@ -212,16 +212,16 @@ def test_e2e_refund_and_product_questions_fan_out_to_two_domains():
         plan.work, current_message="Refund status and identify this product",
     ))
 
-    assert plan.route.mode is RouteMode.MULTI_DOMAIN
+    assert plan.route.mode is RouteMode.MIXED
     assert board.complete and len(executor.calls) == 2
 
 
 def test_e2e_product_failure_preserves_refund_success_as_partial_result():
     plan = _compile(
         CommandProposal(
-            "refund", CommandKind.RUN_SKILL, "billing_refund", "Query refund",
+            "refund", CommandKind.DIRECT_TOOL, "billing_refund", "Query refund",
             (ArgumentValue.create("order_id", "DP1234"),),
-            ("refund.current_state",), skill_id="refund_status_summary",
+            ("refund.current_state",), tool_id="refund_status",
         ),
         CommandProposal(
             "product", CommandKind.RUN_SKILL, "product_technical", "Identify product",

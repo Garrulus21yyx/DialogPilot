@@ -143,11 +143,11 @@ class StructuredTargetCommandRouter:
         goal_id, kind, text, state, order_id, asset_id, new_address, registry,
     ):
         if kind == "general_qa":
-            registry.skill("general_qa")
+            registry.tool("knowledge_search")
             return CommandProposal(
-                goal_id, CommandKind.RUN_SKILL, "general", "Answer a supported FAQ",
-                (ArgumentValue.create("question", text),),
-                ("knowledge.active_source",), skill_id="general_qa",
+                goal_id, CommandKind.DIRECT_TOOL, "general", "Answer a supported FAQ",
+                (ArgumentValue.create("query", text),),
+                ("knowledge.active_source",), tool_id="knowledge_search",
             )
         if kind == "security_review":
             registry.tool("account_security_event_list")
@@ -212,12 +212,12 @@ class StructuredTargetCommandRouter:
                 target_entity_ref=f"order:{order_id}",
             )
         if kind == "refund_policy":
-            registry.skill("refund_policy_qa")
+            registry.tool("knowledge_search")
             return CommandProposal(
-                goal_id, CommandKind.RUN_SKILL, "billing_refund",
+                goal_id, CommandKind.DIRECT_TOOL, "billing_refund",
                 "Answer a refund policy question",
-                (ArgumentValue.create("question", text),),
-                ("knowledge.active_source",), skill_id="refund_policy_qa",
+                (ArgumentValue.create("query", text),),
+                ("knowledge.active_source",), tool_id="knowledge_search",
             )
         if kind == "refund_eligibility":
             if not order_id:
@@ -232,12 +232,12 @@ class StructuredTargetCommandRouter:
         if kind == "refund_status":
             if not order_id:
                 raise ValueError("refund status lacks observed order ID")
-            registry.skill("refund_status_summary")
+            registry.tool("refund_status")
             return CommandProposal(
-                goal_id, CommandKind.RUN_SKILL, "billing_refund",
+                goal_id, CommandKind.DIRECT_TOOL, "billing_refund",
                 "Query current refund status",
                 (ArgumentValue.create("order_id", order_id),),
-                ("refund.current_state",), skill_id="refund_status_summary",
+                ("refund.current_state",), tool_id="refund_status",
             )
         if kind == "execute_refund":
             if not order_id:
@@ -265,20 +265,20 @@ class StructuredTargetCommandRouter:
                 ("product.canonical_model",), skill_id="product_identification",
             )
         if kind == "product_qa":
-            registry.skill("product_qa")
+            registry.tool("knowledge_search")
             return CommandProposal(
-                goal_id, CommandKind.RUN_SKILL, "product_technical",
+                goal_id, CommandKind.DIRECT_TOOL, "product_technical",
                 "Answer a product question from governed product evidence",
-                (ArgumentValue.create("question", text),),
-                ("knowledge.active_source",), skill_id="product_qa",
+                (ArgumentValue.create("query", text),),
+                ("knowledge.active_source",), tool_id="knowledge_search",
             )
         if kind == "invoice_qa":
-            registry.skill("invoice_qa")
+            registry.tool("knowledge_search")
             return CommandProposal(
-                goal_id, CommandKind.RUN_SKILL, "billing_refund",
+                goal_id, CommandKind.DIRECT_TOOL, "billing_refund",
                 "Answer an invoice policy question",
-                (ArgumentValue.create("question", text),),
-                ("knowledge.active_source",), skill_id="invoice_qa",
+                (ArgumentValue.create("query", text),),
+                ("knowledge.active_source",), tool_id="knowledge_search",
             )
         registry.flow("human_handoff:v1")
         return CommandProposal(

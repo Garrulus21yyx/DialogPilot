@@ -25,7 +25,9 @@ class TargetEncoderArtifactError(ValueError):
 class TargetEncoderClass:
     label: str
     owner_agent: str
-    skill_id: str
+    capability_kind: str
+    capability_id: str
+    required_arguments: tuple[str, ...]
     required_signal_terms: tuple[str, ...]
     threshold: float
     enabled: bool
@@ -36,9 +38,22 @@ class TargetEncoderClass:
     heldout_correct: int
     heldout_precision_lower_bound: float
 
+    @property
+    def capability_ref(self) -> str:
+        return f"{self.capability_kind}:{self.capability_id}"
+
     def __post_init__(self) -> None:
-        if not self.label.strip() or not self.owner_agent.strip() or not self.skill_id.strip():
+        if (
+            not self.label.strip()
+            or not self.owner_agent.strip()
+            or self.capability_kind not in {"tool", "skill"}
+            or not self.capability_id.strip()
+        ):
             raise TargetEncoderArtifactError("encoder class identity is required")
+        if len(self.required_arguments) != len(set(self.required_arguments)) or any(
+            not item.strip() for item in self.required_arguments
+        ):
+            raise TargetEncoderArtifactError("encoder class arguments are invalid")
         if not self.required_signal_terms or any(
             not item.strip() for item in self.required_signal_terms
         ):
@@ -105,9 +120,17 @@ class TargetEncoderManifest:
             _digest(value, split)
 
     @property
-    def threshold_by_skill(self) -> dict[str, float]:
+    def threshold_by_capability(self) -> dict[str, float]:
         return {
-            item.skill_id: item.threshold
+            item.capability_ref: item.threshold
+            for item in self.classes
+            if item.enabled
+        }
+
+    @property
+    def required_arguments_by_capability(self) -> dict[str, tuple[str, ...]]:
+        return {
+            item.capability_ref: item.required_arguments
             for item in self.classes
             if item.enabled
         }
@@ -127,6 +150,7 @@ class TargetEncoderManifest:
                     **{
                         **item,
                         "required_signal_terms": tuple(item["required_signal_terms"]),
+                        "required_arguments": tuple(item["required_arguments"]),
                     }
                 ) for item in value["classes"]),
                 dataset_sha256=tuple(
@@ -172,8 +196,14 @@ class TargetTextEncoderArtifact:
         if registry.bundle_version != self.manifest.bundle_version:
             raise TargetEncoderArtifactError("encoder bundle version is stale")
         for item in self.manifest.classes:
-            skill = registry.skill(item.skill_id)
-            if skill.owner_agent != item.owner_agent or skill.effect is not CapabilityEffect.READ:
+            owner = registry.agent(item.owner_agent)
+            if item.capability_kind == "skill":
+                capability = registry.skill(item.capability_id)
+                valid_owner = capability.owner_agent == item.owner_agent
+            else:
+                capability = registry.tool(item.capability_id)
+                valid_owner = capability.tool_id in owner.allowed_tool_ids
+            if not valid_owner or capability.effect is not CapabilityEffect.READ:
                 raise TargetEncoderArtifactError("encoder class capability binding is invalid")
 
     def predict(self, text: str) -> tuple[tuple[RankedCandidate, ...], float]:

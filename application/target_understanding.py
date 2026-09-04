@@ -232,22 +232,22 @@ class BoundedTargetUnderstanding:
         if invoice_signal:
             commands.append(CommandProposal(
                 "invoice-policy",
-                CommandKind.RUN_SKILL,
+                CommandKind.DIRECT_TOOL,
                 "billing_refund",
                 "Answer an invoice policy question",
-                (ArgumentValue.create("question", text),),
+                (ArgumentValue.create("query", text),),
                 ("knowledge.active_source",),
-                skill_id="invoice_qa",
+                tool_id="knowledge_search",
             ))
         if refund_policy_signal:
             commands.append(CommandProposal(
                 "refund-policy",
-                CommandKind.RUN_SKILL,
+                CommandKind.DIRECT_TOOL,
                 "billing_refund",
                 "Answer a refund policy question",
-                (ArgumentValue.create("question", text),),
+                (ArgumentValue.create("query", text),),
                 ("knowledge.active_source",),
-                skill_id="refund_policy_qa",
+                tool_id="knowledge_search",
             ))
         elif refund_eligibility_signal:
             commands.append(CommandProposal(
@@ -264,12 +264,12 @@ class BoundedTargetUnderstanding:
         ):
             commands.append(CommandProposal(
                 "refund-status",
-                CommandKind.RUN_SKILL,
+                CommandKind.DIRECT_TOOL,
                 "billing_refund",
                 "Query current refund status",
                 (ArgumentValue.create("order_id", order_id),),
                 ("refund.current_state",),
-                skill_id="refund_status_summary",
+                tool_id="refund_status",
             ))
         elif refund_signal and order_id:
             commands.append(CommandProposal(

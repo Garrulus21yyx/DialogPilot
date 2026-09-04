@@ -20,7 +20,8 @@ class TargetEncoderUnderstanding:
     def __init__(self, artifact: TargetTextEncoderArtifact) -> None:
         self._artifact = artifact
         self._policy = EncoderFastPathPolicy(
-            skill_thresholds=artifact.manifest.threshold_by_skill,
+            capability_thresholds=artifact.manifest.threshold_by_capability,
+            required_arguments=artifact.manifest.required_arguments_by_capability,
             max_boundary_score=0.65,
             minimum_margin=0.08,
         )
@@ -38,16 +39,22 @@ class TargetEncoderUnderstanding:
             return FastPathDecision(False, "ENCODER_REQUIRED_SIGNAL_MISSING")
         fields = dict(observations.structured_fields)
         identifiers = _IDENTIFIER.findall(observations.raw_text)
-        if target.skill_id == "refund_status_summary" and identifiers:
+        if "order_id" in target.required_arguments and identifiers:
             fields.setdefault("order_id", identifiers[0])
-        if target.skill_id == "general_qa":
+        if "query" in target.required_arguments:
+            fields["query"] = observations.raw_text
+        if "question" in target.required_arguments:
             fields["question"] = observations.raw_text
-        required = registry.skill(target.skill_id).required_arguments
-        missing = tuple(name for name in required if not fields.get(name))
+        missing = tuple(
+            name for name in target.required_arguments if not fields.get(name)
+        )
         output = IntentEncoderOutput(
             domains=(type(top)(target.owner_agent, top.score),),
-            skills=tuple(
-                type(item)(class_by_label[item.candidate_id].skill_id, item.score)
+            capabilities=tuple(
+                type(item)(
+                    class_by_label[item.candidate_id].capability_ref,
+                    item.score,
+                )
                 for item in candidates
             ),
             entities=tuple(fields.items()),

@@ -75,6 +75,8 @@
 | 21 | done | Generic typed missing-input aggregation, durable suspended read work, exact signal resume, and one Interaction publication across domains | 125 focused Target/owner/tool tests with real PostgreSQL enabled | this stage commit |
 | 22 | done | Registry-governed `NEEDS_EVIDENCE` resolution and bounded same-WorkItem resume without user clarification | 130 focused Target/owner/tool tests with real PostgreSQL enabled | this stage commit |
 | 23 | done | Governed shipping-address change Flow with authoritative order version, explicit confirmation, idempotent Receipt and reconciliation | 146 focused Target/owner/tool/authority tests with real PostgreSQL enabled | this stage commit |
+| 24 | done | Account-security reads and governed freeze Flow with trusted principal, version binding, Receipt and reconciliation | 180 Target and affected-consumer tests with real PostgreSQL enabled | `d991360` |
+| 25 | done | Remove one-Tool pseudo-Skills and let the calibrated Encoder fast path select registered Tool or composite Skill capabilities | 186 Target and affected-consumer tests with real PostgreSQL enabled | this stage commit |
 
 ## Stage record
 
@@ -154,6 +156,10 @@
 - Stage 20: `cancel_order:v1` proves the generic write lifecycle with a second domain
   Action, while approval resume now derives owner, requirements and Flow from the
   bound pending Action/Workstream instead of assuming every approval is a refund.
+- Stage 25: the default Registry retains only the genuinely composite
+  `product_identification` Skill. Policy, invoice, Product QA and refund-status reads
+  use their atomic Tools directly; Encoder artifacts bind an explicit Tool-or-Skill
+  capability kind rather than requiring fake Skill wrappers.
 
 ## Scope correction after executable-core review
 
@@ -519,3 +525,22 @@ continuation.
 - Real ASGI/PostgreSQL E2E proves security review is a direct read and freeze follows
   prepare → InteractionRequest → approval → one committed write Receipt. The expanded
   Target and affected-consumer suite passed 180 tests with PostgreSQL enabled.
+
+## Stage 25 verification notes
+
+- The default capability bundle now contains one composite Skill:
+  `product_identification`, which combines media extraction and catalog resolution.
+  The former one-Tool wrappers for general QA, Product QA, refund status, refund
+  policy and invoice policy were removed from both Registry and Agent allowlists.
+- Clear policy and Product knowledge questions compile directly to governed
+  `knowledge_search`; refund status compiles directly to `refund_status`. These paths
+  therefore run no domain Agent. Cross-domain turns project to `MIXED` when they
+  contain both direct work and one genuinely delegated Product-identification task.
+- Encoder class labels remain analytical labels, not Skill identities. The versioned
+  artifact now binds each class to an explicit `tool:<id>` or `skill:<id>` capability
+  plus required arguments. Runtime validates that binding against the live owner and
+  read effect; the only enabled class now produces a direct refund-status Tool command.
+- Training output, checked artifact metadata, runtime validation, route compilation,
+  public ASGI/PostgreSQL behavior and affected resume tests were migrated together.
+  The expanded Target and affected-consumer suite passed 186 tests with PostgreSQL
+  enabled.

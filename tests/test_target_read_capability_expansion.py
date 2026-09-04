@@ -87,7 +87,7 @@ def test_order_cancellation_uses_registry_preparation_and_not_status_read_path()
     assert mutation.target_version_argument == "expected_order_version"
 
 
-def test_refund_policy_and_invoice_are_separate_registered_knowledge_skills():
+def test_refund_policy_and_invoice_use_the_same_atomic_knowledge_tool():
     refund, state, registry = _proposal(
         BoundedTargetUnderstanding(), "退款政策和一般时效是什么？",
     )
@@ -95,11 +95,14 @@ def test_refund_policy_and_invoice_are_separate_registered_knowledge_skills():
         BoundedTargetUnderstanding(), "电子发票怎么开？",
     )
 
-    assert refund.commands[0].skill_id == "refund_policy_qa"
-    assert invoice.commands[0].skill_id == "invoice_qa"
-    assert registry.skill("refund_policy_qa").owner_agent == "billing_refund"
-    assert registry.skill("invoice_qa").allowed_tool_ids == ("knowledge_search",)
-    assert _plan(refund, state, registry, "refund-policy").route.mode is RouteMode.AGENT_TASK
+    assert refund.commands[0].tool_id == "knowledge_search"
+    assert invoice.commands[0].tool_id == "knowledge_search"
+    assert refund.commands[0].skill_id is None
+    assert invoice.commands[0].skill_id is None
+    assert tuple(skill.skill_id for skill in registry.skills) == (
+        "product_identification",
+    )
+    assert _plan(refund, state, registry, "refund-policy").route.mode is RouteMode.DIRECT
 
 
 class _Provider:
@@ -157,15 +160,11 @@ def test_structured_refund_eligibility_cannot_invent_missing_order_id():
     assert proposal.disposition is ProposalDisposition.INVALID_PROVIDER_OUTPUT
 
 
-def test_product_qa_is_one_task_skill_across_unrelated_product_categories():
+def test_product_qa_uses_one_atomic_knowledge_tool_across_product_categories():
     registry = build_default_capability_registry("tenant-a")
     product_agent = registry.agent("product_technical")
 
-    assert product_agent.allowed_skill_ids == (
-        "product_identification", "product_qa",
-    )
-    assert registry.skill("product_qa").required_arguments == ("question",)
-    assert registry.skill("product_qa").allowed_tool_ids == ("knowledge_search",)
+    assert product_agent.allowed_skill_ids == ("product_identification",)
 
     for index, question in enumerate((
         "这款机械键盘支持 Mac 吗？",
@@ -181,11 +180,12 @@ def test_product_qa_is_one_task_skill_across_unrelated_product_categories():
             proposal, state, current_registry, f"generic-product-{index}",
         )
 
-        assert proposal.commands[0].skill_id == "product_qa"
+        assert proposal.commands[0].skill_id is None
+        assert proposal.commands[0].tool_id == "knowledge_search"
         assert dict(
             (item.name, item.value) for item in proposal.commands[0].arguments
-        ) == {"question": question}
-        assert plan.route.mode is RouteMode.AGENT_TASK
+        ) == {"query": question}
+        assert plan.route.mode is RouteMode.DIRECT
         assert plan.work.items[0].allowed_tools == ("knowledge_search",)
 
 
@@ -238,6 +238,6 @@ def test_generic_product_qa_executes_the_shared_knowledge_tool_contract():
     assert result.candidate_response == "支持 macOS。"
     assert tools.calls[0][0:3] == (
         "knowledge_search",
-        {"question": question, "query": question},
+        {"query": question},
         "technical",
     )
