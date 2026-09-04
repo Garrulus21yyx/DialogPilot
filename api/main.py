@@ -595,6 +595,7 @@ async def lifespan(app: FastAPI):
         )
         for product_tool in product_tools(
             _media_asset_store, TesseractOCRProvider(), product_catalog,
+            vlm_provider=_vlm_provider,
         ):
             _tool_manager.register(product_tool)
     AuthorityPolicyRegistry.v1().validate_tools(_tool_manager.registered_tools)

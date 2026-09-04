@@ -6,6 +6,7 @@ from application.authority_policy import AuthorityPolicyRegistry
 from application.media_asset import AssetAdmission, AssetModality, AssetStatus
 from application.media_evidence import (
     CoordinateSpace,
+    EvidenceNode,
     MediaLocator,
     ParseNode,
     ParseNodeKind,
@@ -40,7 +41,8 @@ class OCR:
     def __init__(self, text="Model: PX-200"):
         self.text = text
 
-    def extract(self, asset, _content):
+    def extract(self, asset, _content, *, locator=None):
+        del locator
         locator = MediaLocator(
             asset.asset_id, asset.checksum, 0,
             CoordinateSpace.ORIGINAL_PAGE_PIXELS, (0, 0, 100, 100),
@@ -60,14 +62,45 @@ class OCR:
         )
 
 
-def _manager(ocr, catalog_path):
+def _manager(ocr, catalog_path, *, vlm=None):
     manager = MCPToolManager(api_key="test", model="test")
     for tool in product_tools(
-        AssetStore(), ocr, ProductCatalogService(catalog_path),
+        AssetStore(), ocr, ProductCatalogService(catalog_path), vlm_provider=vlm,
     ):
         manager.register(tool)
     AuthorityPolicyRegistry.v1().validate_tools(manager.registered_tools)
     return manager
+
+
+class VLM:
+    version = "fake-vlm-v1"
+
+    def observe(
+        self, asset, _content, *, region_key, requirement_id, task_schema_hash,
+    ):
+        assert region_key is None
+        assert requirement_id == "media.visual_observation"
+        assert len(task_schema_hash) == 64
+        locator = MediaLocator(
+            asset.asset_id, asset.checksum, 0,
+            CoordinateSpace.NORMALIZED_0_1, (0.1, 0.1, 0.9, 0.9),
+        )
+        node = EvidenceNode.create(
+            observation_type="visible_damage",
+            value={"damaged": True, "area": "upper-right"},
+            locator=locator,
+            confidence=0.92,
+            producer_model="fake-vlm",
+            producer_version=self.version,
+            created_at=datetime.now(timezone.utc),
+        )
+        return PerceptionArtifact(
+            asset.asset_id,
+            MediaStage.L2_VISUAL_REASONING,
+            "fake-vlm",
+            self.version,
+            evidence_nodes=(node,),
+        )
 
 
 def _item():
@@ -142,3 +175,29 @@ def test_product_skill_does_not_choose_between_ambiguous_catalog_models(tmp_path
     assert result.status.value == "TERMINAL_FAILURE"
     assert result.reason_code == "PRODUCT_MODEL_AMBIGUOUS"
     assert result.facts == ()
+
+
+def test_shared_media_tool_runs_ocr_then_vlm_and_returns_grounded_observation(tmp_path):
+    catalog = tmp_path / "catalog.json"
+    catalog.write_text(
+        '{"schema_version":"product-catalog-v1","catalog_version":"test-v1",'
+        '"products":[{"canonical_model":"PX-200","product_name":"Dock",'
+        '"aliases":[]}]}',
+        encoding="utf-8",
+    )
+    manager = _manager(OCR("package image"), catalog, vlm=VLM())
+
+    result = asyncio.run(manager.execute_for_agent(
+        "media_observe",
+        {"asset_id": "IMG9", "question": "包装右上角是否破损？"},
+        agent_type="general",
+        context={"tenant_id": "tenant-a", "user_id": "user-a"},
+        allowed_tool_ids=("media_observe",),
+    ))
+
+    assert result.success is True
+    assert result.authority == "media.visual_observation"
+    assert result.data["observations"][0]["value"] == {
+        "damaged": True, "area": "upper-right",
+    }
+    assert result.data["observations"][0]["locator"]["asset_id"] == "IMG9"

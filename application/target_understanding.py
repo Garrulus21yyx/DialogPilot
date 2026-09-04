@@ -136,10 +136,17 @@ class BoundedTargetUnderstanding:
         order_id = str(fields.get("order_id") or (identifiers[0] if identifiers else ""))
         asset_id = str(fields.get("asset_id") or "")
 
-        product_identification_signal = bool(asset_id) or any(
+        product_identification_signal = any(
             token in lowered for token in (
                 "识别这张", "识别图片", "图里是什么", "图片型号",
+                "商品型号", "产品型号", "product model",
                 "identify this", "identify the product",
+            )
+        )
+        media_text_signal = bool(asset_id) and any(
+            token in lowered for token in (
+                "截图文字", "图片文字", "读取截图", "识别文字", "错误码",
+                "订单号", "运单号", "read the text", "error code", "ocr",
             )
         )
         compound_product_signal = product_identification_signal and any(
@@ -329,7 +336,17 @@ class BoundedTargetUnderstanding:
                 ("order.current_state",),
                 tool_id="order_lookup",
             ))
-        if product_identification_signal and asset_id and not compound_product_signal:
+        if media_text_signal:
+            commands.append(CommandProposal(
+                "media-text-read",
+                CommandKind.DIRECT_TOOL,
+                "general",
+                "Read visible text from the supplied media",
+                (ArgumentValue.create("asset_id", asset_id),),
+                ("media.visible_text",),
+                tool_id="media_read",
+            ))
+        elif product_identification_signal and asset_id and not compound_product_signal:
             commands.append(CommandProposal(
                 "product-identification",
                 CommandKind.RUN_SKILL,

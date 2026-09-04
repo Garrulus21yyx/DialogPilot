@@ -163,6 +163,15 @@ class AuthorityPolicyRegistry:
                 "Media:visible-text-v1",
             ),
             FactRequirement(
+                "media.visual_observation", "media.visual_observation",
+                (
+                    "asset_id", "asset_checksum", "observations",
+                    "evidence_refs", "producer", "producer_version",
+                ),
+                86400, read, ("media_observe",), (), "", supported,
+                "Media:visual-observation-v1",
+            ),
+            FactRequirement(
                 "product.canonical_model", "product.canonical_model",
                 (
                     "status", "canonical_model", "product_name",
@@ -323,8 +332,11 @@ class AuthorityPolicyRegistry:
             ),
             EvidenceAdapterRegistration(
                 "media-evidence-adapter", "media-evidence-adapter-v1",
-                "MEDIA", ("media.visible_text",),
-                (("media_read", "media-visible-text-v1"),),
+                "MEDIA", ("media.visible_text", "media.visual_observation"),
+                (
+                    ("media_read", "media-visible-text-v1"),
+                    ("media_observe", "media-visual-observation-v1"),
+                ),
             ),
             EvidenceAdapterRegistration(
                 "action-receipt-evidence-adapter", "action-receipt-evidence-adapter-v1",

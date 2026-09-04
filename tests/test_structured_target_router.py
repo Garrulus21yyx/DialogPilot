@@ -242,6 +242,84 @@ def test_compound_product_goal_delegates_one_domain_agent_with_capability_envelo
     }
 
 
+def test_media_text_is_direct_but_visual_reasoning_delegates_one_agent():
+    text_proposal, text_state, registry = _invoke(
+        StructuredTargetCommandRouter(Provider({
+            "status": "resolved",
+            "goals": [{"kind": "media_text_read", "asset_id": "IMG9"}],
+        })),
+        "读取图片 IMG9 中的错误码",
+        fields=(("asset_id", "IMG9"),),
+    )
+    visual_proposal, visual_state, _ = _invoke(
+        StructuredTargetCommandRouter(Provider({
+            "status": "resolved",
+            "goals": [{"kind": "media_visual_analysis", "asset_id": "IMG9"}],
+        })),
+        "图片 IMG9 右上角是否破损？",
+        fields=(("asset_id", "IMG9"),),
+    )
+
+    direct = TurnPlanCompiler().compile(
+        RoutePolicy().accept(text_proposal, text_state, registry),
+        text_state,
+        registry,
+        IdentityFactory().create_invocation(
+            tenant_id="tenant-a", user_id="user-a",
+            conversation_id="conversation-a", request_id="media-text",
+        ),
+    )
+    delegated = TurnPlanCompiler().compile(
+        RoutePolicy().accept(visual_proposal, visual_state, registry),
+        visual_state,
+        registry,
+        IdentityFactory().create_invocation(
+            tenant_id="tenant-a", user_id="user-a",
+            conversation_id="conversation-a", request_id="media-visual",
+        ),
+    )
+
+    assert direct.route.mode is RouteMode.DIRECT
+    assert direct.work.items[0].allowed_tools == ("media_read",)
+    assert delegated.route.mode is RouteMode.AGENT_TASK
+    assert delegated.work.items[0].allowed_tools == ("media_observe",)
+    assert delegated.work.items[0].allowed_skills == ()
+
+
+def test_asset_presence_alone_does_not_imply_product_identification():
+    proposal, _, _ = _invoke(
+        BoundedTargetUnderstanding(),
+        "请看看附件 IMG9",
+        fields=(("asset_id", "IMG9"),),
+    )
+
+    assert proposal.disposition is ProposalDisposition.CLARIFY
+    assert proposal.commands == ()
+
+
+def test_explicit_product_model_request_with_asset_is_identification():
+    proposal, state, registry = _invoke(
+        BoundedTargetUnderstanding(),
+        "退款 DP1234 状态，还有这个商品型号",
+        fields=(("asset_id", "IMG9"),),
+    )
+
+    plan = TurnPlanCompiler().compile(
+        RoutePolicy().accept(proposal, state, registry),
+        state,
+        registry,
+        IdentityFactory().create_invocation(
+            tenant_id="tenant-a", user_id="user-a",
+            conversation_id="conversation-a", request_id="explicit-model",
+        ),
+    )
+
+    assert plan.route.mode is RouteMode.MIXED
+    assert {item.owner_agent for item in plan.work.items} == {
+        "billing_refund", "product_technical",
+    }
+
+
 def test_semantic_router_preserves_typed_rejection_and_provider_failure():
     insufficient = Provider({
         "status": "insufficient_context", "missing_fields": ["customer_service_goal"],

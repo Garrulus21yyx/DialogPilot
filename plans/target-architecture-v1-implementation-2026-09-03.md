@@ -606,3 +606,23 @@ continuation.
 - Context, routing, persistence, planning, ReAct and Target HTTP focused suites pass;
   the lifespan suite is currently blocked before Target composition by the separate
   uncommitted RAG policy adding three keys without migrating `AgentBundle` validation.
+
+## Stage 29 verification notes
+
+- Media is a shared evidence capability rather than a Product-category taxonomy.
+  `media_read` provides deterministic L1 text extraction; `media_observe` provides
+  task-conditioned L2 visual observations grounded by asset checksum, locator,
+  producer and version. Both remain atomic governed Tools.
+- The default Registry exposes these Tools to the relevant domain Agents while the
+  accepted WorkItem envelope determines what a particular invocation can discover
+  and execute. No per-product, installation or attribute-specific Skill was added;
+  the bundle still contains only the reusable composite `product_identification`.
+- Asset presence alone no longer implies Product identification. Explicit OCR/text
+  goals compile to one direct Tool call, explicit visual-reasoning goals delegate to
+  one bounded Agent, and explicit Product-model identification may use the composite
+  Product Skill. A genuine refund-plus-model request retains both independent tasks.
+- `media.visual_observation` is now an authority requirement backed only by the
+  registered media evidence adapter. Media observations cannot satisfy current
+  order, refund, account or other business-state requirements.
+- Media contracts, routing, Product runtime, Tool governance and real
+  ASGI/PostgreSQL Target scenarios pass 97 focused tests.

@@ -31,6 +31,10 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
             CapabilityRisk.LOW, profile.ref,
         ),
         _tool("media_read", "media.visible_text", CapabilityRisk.LOW, profile.ref),
+        _tool(
+            "media_observe", "media.visual_observation",
+            CapabilityRisk.LOW, profile.ref,
+        ),
         _tool("catalog_search", "product.canonical_model", CapabilityRisk.LOW, profile.ref),
         _tool("order_lookup", "order.current_state", CapabilityRisk.MEDIUM, profile.ref),
         _tool(
@@ -90,13 +94,16 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
     )
     agents = (
         _agent(
-            "general", ("knowledge_search", "service_episode_search"), (),
+            "general", (
+                "knowledge_search", "service_episode_search",
+                "media_read", "media_observe",
+            ), (),
             profile.ref,
         ),
         _agent(
             "product_technical",
             (
-                "media_read", "catalog_search", "knowledge_search",
+                "media_read", "media_observe", "catalog_search", "knowledge_search",
                 "service_episode_search",
             ),
             ("product_identification",),
@@ -108,6 +115,7 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
                 "order_lookup", "order_cancel_status", "order_cancel",
                 "shipping_address_change_status", "shipping_address_change",
                 "service_episode_search",
+                "media_read", "media_observe",
             ),
             (),
             profile.ref,
@@ -117,6 +125,7 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
             (
                 "knowledge_search", "service_episode_search", "order_lookup", "refund_status",
                 "refund_eligibility_check", "refund_request_create",
+                "media_read", "media_observe",
             ),
             (),
             profile.ref,
@@ -126,6 +135,7 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
             (
                 "service_episode_search", "account_security_event_list", "account_security_state",
                 "account_freeze_status", "account_freeze",
+                "media_read", "media_observe",
             ),
             (),
             profile.ref,

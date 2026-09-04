@@ -29,6 +29,8 @@ _GOALS = {
     "product_identification",
     "product_qa",
     "product_assistance",
+    "media_text_read",
+    "media_visual_analysis",
     "human_handoff",
     "security_review",
     "freeze_account",
@@ -285,6 +287,34 @@ class StructuredTargetCommandRouter:
                 ),
                 ("product.canonical_model", "knowledge.active_source"),
                 candidate_skill_ids=("product_identification",),
+            )
+        if kind == "media_text_read":
+            if not asset_id:
+                raise ValueError("media text reading lacks observed asset")
+            registry.tool("media_read")
+            return CommandProposal(
+                goal_id,
+                CommandKind.DIRECT_TOOL,
+                "general",
+                "Read visible text from the supplied media",
+                (ArgumentValue.create("asset_id", asset_id),),
+                ("media.visible_text",),
+                tool_id="media_read",
+            )
+        if kind == "media_visual_analysis":
+            if not asset_id:
+                raise ValueError("visual analysis lacks observed asset")
+            registry.tool("media_observe")
+            return CommandProposal(
+                goal_id,
+                CommandKind.DELEGATE_TASK,
+                "general",
+                "Interpret task-relevant visual evidence from the supplied media",
+                (
+                    ArgumentValue.create("asset_id", asset_id),
+                    ArgumentValue.create("question", text),
+                ),
+                ("media.visual_observation",),
             )
         if kind == "product_qa":
             registry.tool("knowledge_search")
