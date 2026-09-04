@@ -353,9 +353,15 @@ class GovernedWriteRuntime:
 
     @staticmethod
     def _write_tool(item: WorkItem) -> str:
-        if len(item.allowed_tools) != 1:
+        reconciliation_tool = (
+            item.reconciliation.tool_id if item.reconciliation else None
+        )
+        write_tools = tuple(
+            tool for tool in item.allowed_tools if tool != reconciliation_tool
+        )
+        if len(write_tools) != 1:
             raise WriteWorkflowError("write step must pin exactly one tool")
-        return item.allowed_tools[0]
+        return write_tools[0]
 
     def _committed_result(
         self,

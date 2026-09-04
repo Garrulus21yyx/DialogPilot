@@ -6,6 +6,7 @@ import pytest
 
 from application.agent_result import AgentResult, AgentResultStatus, ReceiptRef
 from application.capability_registry import (
+    ActionReconciliationDefinition,
     ApprovalPolicy,
     CapabilityEffect,
     CapabilityRisk,
@@ -30,7 +31,10 @@ from application.write_workflow import (
     WriteToolOutcome,
 )
 from core.identity import IdentityFactory
-from infrastructure.target_workflow_execution import TargetWorkflowExecutor
+from infrastructure.target_workflow_execution import (
+    TargetWorkflowExecutor,
+    _ToolReconciler,
+)
 
 
 def _invocation():
@@ -68,7 +72,7 @@ def _item():
         "human_service",
         "Create human support ticket",
         ControlMode.WORKFLOW,
-        ("support_ticket_create",),
+        ("support_ticket_create", "support_ticket_by_operation"),
         (),
         (),
         ("support.handoff_action",),
@@ -85,7 +89,10 @@ def _item():
         operation_key="handoff-operation-1",
         approval_binding="handoff-approval-1",
         target_entity_version="conversation-a:v2",
-        reconciliation_policy="ticket-idempotency-query-v1",
+        reconciliation=ActionReconciliationDefinition(
+            "support_ticket_by_operation", "support.ticket_state",
+            "operation_key", "operation_key", (), "ticket_id",
+        ),
         aggregate_ref="conversation:conversation-a",
         action_ref="support.handoff.create:v1",
         approval_policy=ApprovalPolicy.USER_COMMAND_SUFFICIENT,
@@ -129,6 +136,39 @@ def test_user_command_approval_is_selected_by_policy_not_flow_name():
     grant = grants[item.approval_binding]
     assert grant.operation_key == item.operation_key
     assert grant.actor_ref == "user-command:request-a"
+
+
+def test_unknown_handoff_outcome_uses_registry_reconciliation_not_flow_name():
+    item = replace(_item(), flow_ref="renamed-handoff-flow:v9")
+
+    class Tools:
+        def __init__(self):
+            self.calls = []
+
+        async def execute_for_agent(self, name, params, **kwargs):
+            self.calls.append((name, params, kwargs))
+            return SimpleNamespace(
+                success=True,
+                authority="support.ticket_state",
+                data={
+                    "ticket_id": "ticket-1",
+                    "operation_key": item.operation_key,
+                },
+            )
+
+    tools = Tools()
+    context = AgentContextView(
+        item, "human please", (), (), (), 1000,
+        {"tenant_id": "tenant-a", "user_id": "user-a", "conversation_id": "conversation-a"},
+    )
+
+    outcome = asyncio.run(_ToolReconciler(tools, context).reconcile(
+        item, operation_key=item.operation_key,
+    ))
+
+    assert outcome.status is WriteOutcomeStatus.COMMITTED
+    assert outcome.receipt_id == "ticket-1"
+    assert tools.calls[0][0] == "support_ticket_by_operation"
 
 
 def test_handoff_commit_receipt_transfers_owner_and_allows_success_claim():

@@ -5,6 +5,7 @@ from application.authority_policy import AuthoritySupport, FactRequirement, Requ
 from application.capability_registry import (
     ActionDefinition,
     ActionPreparationDefinition,
+    ActionReconciliationDefinition,
     AgentDefinition,
     ApprovalPolicy,
     CapabilityEffect,
@@ -37,6 +38,10 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
         _tool(
             "support_ticket_create", "support.handoff_action", CapabilityRisk.HIGH,
             profile.ref, write=True,
+        ),
+        _tool(
+            "support_ticket_by_operation", "support.ticket_state",
+            CapabilityRisk.LOW, profile.ref,
         ),
     )
     skills = (
@@ -92,7 +97,12 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
             profile.ref,
         ),
         _agent("account_security", (), (), profile.ref),
-        _agent("human_service", ("support_ticket_create",), (), profile.ref),
+        _agent(
+            "human_service",
+            ("support_ticket_create", "support_ticket_by_operation"),
+            (),
+            profile.ref,
+        ),
     )
     flows = (
         FlowDefinition(
@@ -107,7 +117,8 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
         FlowDefinition(
             "human_handoff", "v1", "human_service",
             ("PREPARE", "CHECK_POLICY", "CREATE_TICKET", "COMPLETE", "CANCELLED"),
-            "PREPARE", ("COMPLETE", "CANCELLED"), ("support_ticket_create",),
+            "PREPARE", ("COMPLETE", "CANCELLED"),
+            ("support_ticket_create", "support_ticket_by_operation"),
         ),
     )
     actions = (
@@ -115,7 +126,16 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
             "refund.request.create", "v1", "billing_refund", "execute_refund:v1",
             CapabilityEffect.WRITE, CapabilityRisk.HIGH, ("refund.request_action",),
             ("refund_request_create",), ApprovalPolicy.EXPLICIT_CONFIRMATION_REQUIRED,
-            "action-receipt-v1", "refund-status-by-operation-v1", profile.ref,
+            "action-receipt-v1",
+            ActionReconciliationDefinition(
+                "refund_status",
+                "refund.current_state",
+                "operation_key",
+                "operation_key",
+                ("order_id",),
+                "refund_id",
+            ),
+            profile.ref,
             ActionPreparationDefinition.create(
                 tool_id="refund_eligibility_check",
                 requirement_id="refund.eligibility",
@@ -129,7 +149,16 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
             "support.handoff.create", "v1", "human_service", "human_handoff:v1",
             CapabilityEffect.WRITE, CapabilityRisk.HIGH, ("support.handoff_action",),
             ("support_ticket_create",), ApprovalPolicy.USER_COMMAND_SUFFICIENT,
-            "action-receipt-v1", "ticket-by-operation-v1", profile.ref,
+            "action-receipt-v1",
+            ActionReconciliationDefinition(
+                "support_ticket_by_operation",
+                "support.ticket_state",
+                "operation_key",
+                "operation_key",
+                (),
+                "ticket_id",
+            ),
+            profile.ref,
         ),
     )
     requirements = tuple(

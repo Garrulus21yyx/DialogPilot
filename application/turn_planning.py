@@ -275,7 +275,10 @@ class RoutePolicy:
                 raise TurnPlanningError("workflow requires an approval binding")
             return ValidatedCommand(
                 command,
-                action.allowed_tool_ids,
+                tuple(dict.fromkeys((
+                    *action.allowed_tool_ids,
+                    action.reconciliation.tool_id,
+                ))),
                 (),
                 action.effect,
                 action.risk,
@@ -371,7 +374,12 @@ class RoutePolicy:
             if set(command.requirement_ids) != set(action.requirement_ids):
                 raise TurnPlanningError("continuation requirements differ from action")
             return ValidatedCommand(
-                command, action.allowed_tool_ids, (), action.effect, action.risk,
+                command,
+                tuple(dict.fromkeys((
+                    *action.allowed_tool_ids,
+                    action.reconciliation.tool_id,
+                ))),
+                (), action.effect, action.risk,
                 action.verification_profile, action,
             )
         raise TurnPlanningError("unsupported command kind")
@@ -608,9 +616,7 @@ class TurnPlanCompiler:
                 if action and write else None
             ),
             target_entity_version=proposal.target_entity_version if write else None,
-            reconciliation_policy=(
-                action.reconciliation_policy if action and write else None
-            ),
+            reconciliation=action.reconciliation if action and write else None,
             aggregate_ref=proposal.target_entity_ref if write else None,
             action_ref=action.ref if action and write else None,
             approval_policy=action.approval_policy if action and write else None,

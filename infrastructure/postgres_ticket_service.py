@@ -164,6 +164,27 @@ class PostgresTicketService:
             raise TicketNotFoundError(f"ticket not found: {ticket_id}")
         return _ticket(row)
 
+    def get_ticket_by_idempotency_key(
+        self,
+        *,
+        idempotency_key: str,
+        user_id: str,
+        conv_id: str,
+    ) -> Ticket:
+        """Resolve one exact operation without exposing another user's ticket."""
+        with self.pool.transaction() as connection:
+            row = connection.execute(f"""
+                SELECT {_TICKET_COLUMNS} FROM dialogpilot_app.handoff_tickets
+                WHERE idempotency_key=%s AND user_id=%s AND conversation_id=%s
+            """, (
+                _required(idempotency_key, "idempotency_key"),
+                _required(user_id, "user_id"),
+                _required(conv_id, "conv_id"),
+            )).fetchone()
+        if row is None:
+            raise TicketNotFoundError("ticket operation not found")
+        return _ticket(row)
+
     def get_ticket_view(self, ticket_id: str) -> dict[str, Any]:
         result = self.get_ticket(ticket_id).to_dict()
         result["events"] = self.get_events(ticket_id)

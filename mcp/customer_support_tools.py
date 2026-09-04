@@ -12,7 +12,7 @@ from mcp.tool_manager import Tool, ToolEffectReceipt, ToolEffectStatus, ToolRisk
 from services.ticket_service import TicketNotFoundError, TicketPriority, TicketService, TicketStatus
 
 
-_AGENTS = ("general", "technical", "billing", "account_security")
+_AGENTS = ("general", "technical", "billing", "account_security", "escalation")
 
 
 def ticket_tools(service: TicketService) -> Tuple[Tool, ...]:
@@ -55,6 +55,9 @@ def ticket_tools(service: TicketService) -> Tuple[Tool, ...]:
         user_id = _trusted(context, "user_id")
         conv_id = _trusted(context, "conv_id")
         request_id = _trusted(context, "request_id")
+        operation_key = str(
+            (context or {}).get("business_operation_key") or request_id
+        ).strip()
         summary = _bounded(params.get("summary"), "summary", 1000)
         reason = _bounded(params.get("reason"), "reason", 1000)
         priority = TicketPriority(str(params.get("priority") or TicketPriority.NORMAL.value))
@@ -62,7 +65,7 @@ def ticket_tools(service: TicketService) -> Tuple[Tool, ...]:
         intent = str((context or {}).get("intent") or "other")
         ticket, created = await asyncio.to_thread(
             service.create_ticket,
-            idempotency_key=f"agent-tool:{user_id}:{conv_id}:{request_id}",
+            idempotency_key=f"agent-tool:{user_id}:{conv_id}:{operation_key}",
             user_id=user_id,
             conv_id=conv_id,
             request_id=request_id,
@@ -85,6 +88,28 @@ def ticket_tools(service: TicketService) -> Tuple[Tool, ...]:
             effect_status=ToolEffectStatus.COMMITTED,
             receipt_id=ticket.ticket_id,
         )
+
+    async def ticket_by_operation(
+        params: Dict[str, Any], context: Optional[Dict[str, Any]],
+    ):
+        user_id = _trusted(context, "user_id")
+        conv_id = _trusted(context, "conv_id")
+        operation_key = _bounded(
+            params.get("operation_key"), "operation_key", 512,
+        )
+        ticket = await asyncio.to_thread(
+            service.get_ticket_by_idempotency_key,
+            idempotency_key=f"agent-tool:{user_id}:{conv_id}:{operation_key}",
+            user_id=user_id,
+            conv_id=conv_id,
+        )
+        return {
+            "ticket_id": ticket.ticket_id,
+            "operation_key": operation_key,
+            "status": ticket.status.value,
+            "priority": ticket.priority.value,
+            "updated_at": ticket.updated_at,
+        }
 
     return (
         Tool(
@@ -136,6 +161,36 @@ def ticket_tools(service: TicketService) -> Tuple[Tool, ...]:
             output_fields=(
                 "ticket_id", "status", "priority", "question", "reason",
                 "events", "updated_at",
+            ),
+        ),
+        Tool(
+            name="support_ticket_by_operation",
+            description=(
+                "按宿主提供的原业务 operation key 查询当前用户会话中的人工工单；"
+                "仅用于未知写结果对账"
+            ),
+            handler=ticket_by_operation,
+            schema={
+                "type": "object",
+                "properties": {
+                    "operation_key": {
+                        "type": "string",
+                        "description": "原人工工单创建操作标识",
+                    },
+                },
+                "required": ["operation_key"],
+            },
+            allowed_agents=_AGENTS,
+            read_only=True,
+            authority="support.ticket_state",
+            manifest_version="tool-manifest-v1",
+            output_schema_version="ticket-operation-view-v1",
+            preconditions=("authenticated_user", "operation_key"),
+            idempotency="read_only",
+            retry_policy="safe_read_retry",
+            typed_outcomes=("OK", "NOT_FOUND", "UNAVAILABLE", "UNAUTHORIZED"),
+            output_fields=(
+                "ticket_id", "operation_key", "status", "priority", "updated_at",
             ),
         ),
         Tool(

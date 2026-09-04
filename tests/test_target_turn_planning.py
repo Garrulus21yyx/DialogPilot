@@ -4,6 +4,7 @@ from application.authority_policy import AuthoritySupport, FactRequirement, Requ
 from application.capability_registry import (
     ActionDefinition,
     ActionPreparationDefinition,
+    ActionReconciliationDefinition,
     AgentDefinition,
     ApprovalPolicy,
     CapabilityEffect,
@@ -108,7 +109,12 @@ def _registry():
             "refund.request.create", "v1", "billing_refund", "execute_refund:v1",
             CapabilityEffect.WRITE, CapabilityRisk.HIGH, ("refund.request_action",),
             ("refund_request_create",), ApprovalPolicy.EXPLICIT_CONFIRMATION_REQUIRED,
-            "write-receipt-v1", "refund-reconcile-v1", profile.ref,
+            "write-receipt-v1",
+            ActionReconciliationDefinition(
+                "refund_eligibility_check", "refund.eligibility",
+                "operation_key", "operation_key", ("order_id",), "order_id",
+            ),
+            profile.ref,
             ActionPreparationDefinition.create(
                 tool_id="refund_eligibility_check",
                 requirement_id="refund.eligibility",
@@ -224,7 +230,7 @@ def test_write_plan_derives_operation_identity_and_plan_accepted_flow_mutation()
     item = plan.work.items[0]
     assert item.control_mode is ControlMode.WORKFLOW
     assert item.operation_key.startswith("operation:v1:")
-    assert item.reconciliation_policy == "refund-reconcile-v1"
+    assert item.reconciliation.tool_id == "refund_eligibility_check"
     assert item.action_ref == "refund.request.create:v1"
     assert item.approval_policy is ApprovalPolicy.EXPLICIT_CONFIRMATION_REQUIRED
     assert plan.transitions.mutations[0].apply_stage is MutationApplyStage.PLAN_ACCEPTED

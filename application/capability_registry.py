@@ -206,6 +206,35 @@ class ActionPreparationDefinition:
 
 
 @dataclass(frozen=True)
+class ActionReconciliationDefinition:
+    """Registry-owned read contract for resolving an unknown write outcome."""
+
+    tool_id: str
+    requirement_id: str
+    operation_key_argument: str
+    operation_key_field: str
+    passthrough_arguments: tuple[str, ...]
+    receipt_id_field: str
+
+    def __post_init__(self) -> None:
+        _required(
+            self.tool_id,
+            self.requirement_id,
+            self.operation_key_argument,
+            self.operation_key_field,
+            self.receipt_id_field,
+        )
+        _unique_nonblank(
+            self.passthrough_arguments,
+            "action reconciliation passthrough arguments",
+        )
+        if self.operation_key_argument in self.passthrough_arguments:
+            raise CapabilityRegistryError(
+                "reconciliation operation key cannot be a passthrough argument"
+            )
+
+
+@dataclass(frozen=True)
 class ActionDefinition:
     action_id: str
     version: str
@@ -217,7 +246,7 @@ class ActionDefinition:
     allowed_tool_ids: tuple[str, ...]
     approval_policy: ApprovalPolicy
     receipt_schema_version: str
-    reconciliation_policy: str
+    reconciliation: ActionReconciliationDefinition
     verification_profile: str
     preparation: ActionPreparationDefinition | None = None
 
@@ -232,7 +261,6 @@ class ActionDefinition:
             self.owner_agent,
             self.flow_ref,
             self.receipt_schema_version,
-            self.reconciliation_policy,
             self.verification_profile,
         )
         _unique_nonblank(self.requirement_ids, "action requirements")
@@ -324,6 +352,35 @@ class CapabilityRegistryBundle:
             if any(tools[item].effect is not CapabilityEffect.WRITE for item in action.allowed_tool_ids):
                 raise CapabilityRegistryError("action may execute only registered write tools")
             _validate_effect(action.effect, action.requirement_ids, requirements)
+            reconciliation = action.reconciliation
+            reconciliation_tool = _get(
+                tools, reconciliation.tool_id, "action reconciliation tool",
+            )
+            reconciliation_requirement = _get(
+                requirements,
+                reconciliation.requirement_id,
+                "action reconciliation requirement",
+            )
+            if reconciliation.tool_id not in flow.allowed_tool_ids:
+                raise CapabilityRegistryError(
+                    "action reconciliation tool exceeds flow allowlist"
+                )
+            if reconciliation.tool_id not in owner.allowed_tool_ids:
+                raise CapabilityRegistryError(
+                    "action reconciliation tool exceeds owner agent allowlist"
+                )
+            if reconciliation_tool.effect is not CapabilityEffect.READ:
+                raise CapabilityRegistryError(
+                    "action reconciliation tool must be read-only"
+                )
+            if (
+                reconciliation_requirement.effect is not RequirementEffect.READ
+                or reconciliation.tool_id
+                not in reconciliation_requirement.allowed_tools
+            ):
+                raise CapabilityRegistryError(
+                    "action reconciliation requirement does not authorize its tool"
+                )
             preparation = action.preparation
             if preparation is not None:
                 tool = _get(tools, preparation.tool_id, "action preparation tool")

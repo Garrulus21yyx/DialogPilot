@@ -113,6 +113,40 @@ def test_ticket_read_tools_enforce_trusted_user_ownership(ticket_service):
     assert other_detail.data is None
 
 
+def test_ticket_unknown_outcome_can_be_read_by_exact_operation_key(ticket_service):
+    manager = runtime(ticket_service)
+    operation_key = "operation:v1:handoff-1"
+    trusted = {**context(), "business_operation_key": operation_key}
+    created = asyncio.run(manager.execute_for_agent(
+        "support_ticket_create",
+        create_params(),
+        agent_type="escalation",
+        context=trusted,
+        approved=True,
+        call_id=operation_key,
+    ))
+
+    reconciled = asyncio.run(manager.execute_for_agent(
+        "support_ticket_by_operation",
+        {"operation_key": operation_key},
+        agent_type="escalation",
+        context=context(),
+        call_id=f"reconcile:{operation_key}",
+    ))
+    other_user = asyncio.run(manager.execute_for_agent(
+        "support_ticket_by_operation",
+        {"operation_key": operation_key},
+        agent_type="escalation",
+        context=context("user-2"),
+    ))
+
+    assert reconciled.success is True
+    assert reconciled.authority == "support.ticket_state"
+    assert reconciled.data["ticket_id"] == created.receipt_id
+    assert reconciled.data["operation_key"] == operation_key
+    assert other_user.success is False
+
+
 def test_tool_context_overwrites_spoofed_agent_identity_and_has_no_user_id_schema(ticket_service):
     service = ticket_service
     manager = runtime(service)
@@ -132,5 +166,6 @@ def test_tool_context_overwrites_spoofed_agent_identity_and_has_no_user_id_schem
     assert ticket.agent_type == "billing"
     assert "user_id" not in definitions["support_ticket_create"]["input_schema"]["properties"]
     assert set(definitions) >= {
-        "support_ticket_list", "support_ticket_get", "support_ticket_create",
+        "support_ticket_list", "support_ticket_get",
+        "support_ticket_by_operation", "support_ticket_create",
     }

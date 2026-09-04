@@ -209,7 +209,10 @@ class AuthorityPolicyRegistry:
             FactRequirement(
                 "support.ticket_state", "support.ticket_state",
                 ("ticket_id", "status", "priority", "updated_at"), 60,
-                read, ("support_ticket_list", "support_ticket_get"), (), "",
+                read, (
+                    "support_ticket_list", "support_ticket_get",
+                    "support_ticket_by_operation",
+                ), (), "",
                 supported, "Ticket:state-v1",
             ),
             FactRequirement(
@@ -257,6 +260,7 @@ class AuthorityPolicyRegistry:
                     ("account_security_event_list", "security-events-v1"),
                     ("support_ticket_list", "ticket-list-v1"),
                     ("support_ticket_get", "ticket-view-v1"),
+                    ("support_ticket_by_operation", "ticket-operation-view-v1"),
                     ("commitment_list", "commitment-list-v1"),
                     ("catalog_search", "product-catalog-match-v1"),
                 ),

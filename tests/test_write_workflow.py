@@ -4,6 +4,7 @@ import pytest
 
 from application.agent_result import AgentResultStatus
 from application.capability_registry import (
+    ActionReconciliationDefinition,
     ApprovalPolicy,
     CapabilityEffect,
     CapabilityRisk,
@@ -27,7 +28,7 @@ def _item(operation_key="operation-1"):
         "billing_refund",
         "Create a refund request",
         ControlMode.WORKFLOW,
-        ("refund_request_create",),
+        ("refund_request_create", "refund_status"),
         (),
         (
             ArgumentValue.create("order_id", "DP1234"),
@@ -48,7 +49,10 @@ def _item(operation_key="operation-1"):
         operation_key=operation_key,
         approval_binding="approval-1:v1",
         target_entity_version="order:DP1234:v7",
-        reconciliation_policy="refund-reconcile-v1",
+        reconciliation=ActionReconciliationDefinition(
+            "refund_status", "refund.current_state",
+            "operation_key", "operation_key", ("order_id",), "refund_id",
+        ),
         aggregate_ref="order:DP1234",
         action_ref="refund.request.create:v1",
         approval_policy=ApprovalPolicy.EXPLICIT_CONFIRMATION_REQUIRED,

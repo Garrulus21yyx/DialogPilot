@@ -70,6 +70,7 @@
 | 16B | done | Generic Product QA task contract; category and attributes remain evidence data rather than Skill identities | 93 Target tests including real PostgreSQL/HTTP boundaries | this stage commit |
 | 17 | done | Registry-owned generic write-preparation binding with no refund fields in ConversationManager | 95 Target tests including real PostgreSQL/HTTP boundaries | this stage commit |
 | 18 | done | WorkItem-bound Action identity and Registry approval policy; workflow executor no longer branches on Flow names | 96 Target tests including real PostgreSQL/HTTP boundaries | this stage commit |
+| 19 | done | Registry-owned reconciliation contracts plus operation-bound Handoff lookup; no Flow-name branches in workflow execution | 113 Target/tool/authority tests with real PostgreSQL/HTTP boundaries | this stage commit |
 
 ## Stage record
 
@@ -143,6 +144,9 @@
 - Stage 18: accepted write WorkItems carry the Action identity and approval policy
   selected by RoutePolicy; workflow execution grants authority by that policy rather
   than by recognizing a refund or handoff Flow name.
+- Stage 19: each Action owns a typed reconciliation read contract; refund and Handoff
+  unknown outcomes use the same executor algorithm, and Handoff can query the ticket
+  owner by its exact operation key without replaying ticket creation.
 
 ## Scope correction after executable-core review
 
@@ -369,3 +373,25 @@ continuation.
 - A policy-invariance test renames the handoff Flow to an unrelated version and
   still obtains the same grant. The complete Target suite passed 96 tests, including
   real ASGI/PostgreSQL refund, handoff, reconciliation and Publication boundaries.
+
+## Stage 19 verification notes
+
+- Observed root cause: `_ToolReconciler` recognized `execute_refund:v1` and embedded
+  refund parameter and Receipt fields. `reconciliation_policy` was only an opaque
+  label, so Registry could not validate or execute another Action's unknown outcome.
+- `ActionReconciliationDefinition` now owns the read tool, read requirement,
+  operation-key request/response fields, source arguments that must round-trip, and
+  Receipt identity field. Registry rejects write tools or unauthorized requirements
+  in that role; the complete definition is compiled into the WorkItem safety envelope
+  and both work and operation fingerprints.
+- `_ToolReconciler` now executes one generic algorithm and contains no refund or
+  handoff Flow names. It accepts COMMITTED only when authority, operation key,
+  passthrough entity fields and Receipt identity all match the registered contract.
+- Handoff gained `support_ticket_by_operation`, backed by a user-and-conversation
+  scoped PostgreSQL lookup of the exact idempotency key. Target ticket creation binds
+  that same business operation key; unknown transport outcomes can therefore be
+  observed without blindly repeating the write.
+- A renamed-Flow invariant test proves reconciliation is selected by the compiled
+  Action contract. 113 Target, tool, authority and real PostgreSQL/HTTP tests passed.
+  The isolated lifespan test remains blocked before tool assertions by the unrelated
+  dirty RAG/legacy `AgentBundle` key mismatch already recorded in Stage 16B.

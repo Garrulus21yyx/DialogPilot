@@ -20,6 +20,7 @@ from application.authority_policy import (
 from application.capability_registry import (
     ActionDefinition,
     ActionPreparationDefinition,
+    ActionReconciliationDefinition,
     AgentDefinition,
     ApprovalPolicy,
     CapabilityEffect,
@@ -137,7 +138,10 @@ def _registry() -> CapabilityRegistryBundle:
             ("refund_request_create",),
             ApprovalPolicy.EXPLICIT_CONFIRMATION_REQUIRED,
             "refund-receipt-v1",
-            "refund-operation-query-v1",
+            ActionReconciliationDefinition(
+                "refund_status", "refund.current_state",
+                "operation_key", "operation_key", ("order_id",), "refund_id",
+            ),
             "refund-status:v1",
         ),),
         requirements=(read_requirement, write_requirement),
@@ -167,6 +171,27 @@ def test_registry_rejects_write_tools_as_action_preparation_authority():
     with pytest.raises(
         CapabilityRegistryError,
         match="preparation tool must be read-only",
+    ):
+        replace(registry, actions=(action,))
+
+
+def test_registry_rejects_write_tools_as_reconciliation_authority():
+    registry = _registry()
+    action = replace(
+        registry.actions[0],
+        reconciliation=ActionReconciliationDefinition(
+            "refund_request_create",
+            "refund.request_action",
+            "operation_key",
+            "operation_key",
+            (),
+            "refund_id",
+        ),
+    )
+
+    with pytest.raises(
+        CapabilityRegistryError,
+        match="reconciliation tool must be read-only",
     ):
         replace(registry, actions=(action,))
 
@@ -265,7 +290,7 @@ def test_business_write_requires_workflow_and_all_safety_bindings():
     workflow = _work(
         work_item_id="execute-refund-1",
         control_mode=ControlMode.WORKFLOW,
-        allowed_tools=("refund_status", "refund_request_create"),
+        allowed_tools=("refund_request_create", "refund_status"),
         effect=CapabilityEffect.WRITE,
         risk=CapabilityRisk.HIGH,
         requirement_ids=("refund.request_action",),
@@ -273,7 +298,10 @@ def test_business_write_requires_workflow_and_all_safety_bindings():
         operation_key="op-refund-1",
         approval_binding="approval-1:v1",
         target_entity_version="order:DP1234:v7",
-        reconciliation_policy="refund-operation-query-v1",
+        reconciliation=ActionReconciliationDefinition(
+            "refund_status", "refund.current_state",
+            "operation_key", "operation_key", ("order_id",), "refund_id",
+        ),
         aggregate_ref="refund:DP1234",
         action_ref="refund.request.create:v1",
         approval_policy=ApprovalPolicy.EXPLICIT_CONFIRMATION_REQUIRED,

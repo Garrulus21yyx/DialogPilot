@@ -81,11 +81,15 @@ class _ToolPort:
         self._context = context
 
     async def execute(self, item, *, tool_id, arguments, operation_key):
+        context = {
+            **dict(self._context.trusted_context),
+            "business_operation_key": operation_key,
+        }
         result = await self._tools.execute_for_agent(
             tool_id,
             dict(arguments),
             agent_type=_AGENT_TYPE[item.owner_agent],
-            context=dict(self._context.trusted_context),
+            context=context,
             approved=True,
             call_id=operation_key,
         )
@@ -118,35 +122,53 @@ class _ToolReconciler:
         self._context = context
 
     async def reconcile(self, item, *, operation_key):
-        if item.flow_ref == "execute_refund:v1":
-            arguments = {
-                argument.name: argument.value for argument in item.arguments
-            }
-            result = await self._tools.execute_for_agent(
-                "refund_status",
-                {
-                    "order_id": arguments["order_id"],
-                    "operation_key": operation_key,
-                },
-                agent_type=_AGENT_TYPE[item.owner_agent],
-                context=dict(self._context.trusted_context),
-                approved=False,
-                call_id=f"reconcile:{operation_key}",
+        reconciliation = item.reconciliation
+        if reconciliation is None:
+            return WriteToolOutcome(
+                WriteOutcomeStatus.OUTCOME_UNKNOWN,
+                reason_code="RECONCILIATION_CONTRACT_MISSING",
             )
-            data = result.data if isinstance(result.data, dict) else {}
-            if (
-                result.success
-                and result.authority == "refund.current_state"
-                and str(data.get("order_id") or "") == str(arguments["order_id"])
-                and str(data.get("operation_key") or "") == operation_key
-                and str(data.get("refund_id") or "")
-            ):
-                return WriteToolOutcome(
-                    WriteOutcomeStatus.COMMITTED,
-                    str(data["refund_id"]),
-                    item.expected_output_schema,
-                    "RECONCILED_COMMITTED",
-                )
+        arguments = {
+            argument.name: argument.value for argument in item.arguments
+        }
+        try:
+            params = {
+                name: arguments[name]
+                for name in reconciliation.passthrough_arguments
+            }
+        except KeyError:
+            return WriteToolOutcome(
+                WriteOutcomeStatus.OUTCOME_UNKNOWN,
+                reason_code="RECONCILIATION_ARGUMENT_MISSING",
+            )
+        params[reconciliation.operation_key_argument] = operation_key
+        result = await self._tools.execute_for_agent(
+            reconciliation.tool_id,
+            params,
+            agent_type=_AGENT_TYPE[item.owner_agent],
+            context=dict(self._context.trusted_context),
+            approved=False,
+            call_id=f"reconcile:{operation_key}",
+        )
+        data = result.data if isinstance(result.data, dict) else {}
+        passthrough_matches = all(
+            str(data.get(name) or "") == str(arguments[name])
+            for name in reconciliation.passthrough_arguments
+        )
+        receipt_id = str(data.get(reconciliation.receipt_id_field) or "")
+        if (
+            result.success
+            and result.authority == reconciliation.requirement_id
+            and str(data.get(reconciliation.operation_key_field) or "") == operation_key
+            and passthrough_matches
+            and receipt_id
+        ):
+            return WriteToolOutcome(
+                WriteOutcomeStatus.COMMITTED,
+                receipt_id,
+                item.expected_output_schema,
+                "RECONCILED_COMMITTED",
+            )
         return WriteToolOutcome(
             WriteOutcomeStatus.OUTCOME_UNKNOWN,
             reason_code="RECONCILIATION_REQUIRED",

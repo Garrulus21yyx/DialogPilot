@@ -8,6 +8,7 @@ from enum import Enum
 from typing import Iterable
 
 from application.capability_registry import (
+    ActionReconciliationDefinition,
     ApprovalPolicy,
     CapabilityEffect,
     CapabilityRisk,
@@ -72,7 +73,7 @@ class WorkItem:
     operation_key: str | None = None
     approval_binding: str | None = None
     target_entity_version: str | None = None
-    reconciliation_policy: str | None = None
+    reconciliation: ActionReconciliationDefinition | None = None
     aggregate_ref: str | None = None
     action_ref: str | None = None
     approval_policy: ApprovalPolicy | None = None
@@ -124,7 +125,7 @@ class WorkItem:
             self.operation_key,
             self.approval_binding,
             self.target_entity_version,
-            self.reconciliation_policy,
+            self.reconciliation,
             self.aggregate_ref,
             self.action_ref,
             self.approval_policy,
@@ -134,6 +135,10 @@ class WorkItem:
                 raise WorkItemContractError("business writes require WORKFLOW control")
             if any(not str(value or "").strip() for value in write_fields):
                 raise WorkItemContractError("write work lacks execution safety bindings")
+            if self.reconciliation.tool_id not in self.allowed_tools:
+                raise WorkItemContractError(
+                    "write work excludes its reconciliation tool"
+                )
         elif any(value is not None for value in write_fields):
             raise WorkItemContractError("read work cannot carry write-only bindings")
 
@@ -162,7 +167,17 @@ class WorkItem:
             "operation_key": self.operation_key,
             "approval_binding": self.approval_binding,
             "target_entity_version": self.target_entity_version,
-            "reconciliation_policy": self.reconciliation_policy,
+            "reconciliation": (
+                {
+                    "tool_id": self.reconciliation.tool_id,
+                    "requirement_id": self.reconciliation.requirement_id,
+                    "operation_key_argument": self.reconciliation.operation_key_argument,
+                    "operation_key_field": self.reconciliation.operation_key_field,
+                    "passthrough_arguments": self.reconciliation.passthrough_arguments,
+                    "receipt_id_field": self.reconciliation.receipt_id_field,
+                }
+                if self.reconciliation else None
+            ),
             "aggregate_ref": self.aggregate_ref,
             "action_ref": self.action_ref,
             "approval_policy": (
@@ -205,8 +220,22 @@ class WorkItem:
             "operation_key": self.operation_key,
             "approval_binding": self.approval_binding,
             "target_entity_version": self.target_entity_version,
-            "reconciliation_policy": self.reconciliation_policy,
+            "reconciliation": (
+                {
+                    "tool_id": self.reconciliation.tool_id,
+                    "requirement_id": self.reconciliation.requirement_id,
+                    "operation_key_argument": self.reconciliation.operation_key_argument,
+                    "operation_key_field": self.reconciliation.operation_key_field,
+                    "passthrough_arguments": self.reconciliation.passthrough_arguments,
+                    "receipt_id_field": self.reconciliation.receipt_id_field,
+                }
+                if self.reconciliation else None
+            ),
             "aggregate_ref": self.aggregate_ref,
+            "action_ref": self.action_ref,
+            "approval_policy": (
+                self.approval_policy.value if self.approval_policy else None
+            ),
         }
         raw = json.dumps(
             payload,
