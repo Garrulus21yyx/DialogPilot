@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from application.agent_result import AgentResult, AgentResultStatus
+from application.capability_registry import ApprovalPolicy
 from application.conversation_store import ConversationScope
 from application.orchestration_runtime import AgentContextView
 from application.write_workflow import (
@@ -37,10 +38,19 @@ class TargetWorkflowExecutor:
             UserId(trusted["user_id"]),
             ConversationId(trusted["conversation_id"]),
         )
+        grants = self._approval_grants(item, trusted)
+        runtime = GovernedWriteRuntime(
+            ledger=PostgresOperationLedger(self._pool, scope),
+            tool_port=_ToolPort(self._tools, context),
+            reconciliation_port=_ToolReconciler(self._tools, context),
+            approval_grants=grants,
+        )
+        return await runtime(context)
+
+    @staticmethod
+    def _approval_grants(item, trusted):
         grants = {}
-        # The registry marks human handoff as USER_COMMAND_SUFFICIENT.  Refund
-        # intentionally has no grant here and therefore stops before its tool.
-        if item.flow_ref == "human_handoff:v1":
+        if item.approval_policy is ApprovalPolicy.USER_COMMAND_SUFFICIENT:
             grants[str(item.approval_binding)] = ApprovalGrant(
                 str(item.approval_binding),
                 str(item.operation_key),
@@ -49,6 +59,8 @@ class TargetWorkflowExecutor:
                 f"user-command:{trusted['request_id']}",
             )
         elif (
+            item.approval_policy is ApprovalPolicy.EXPLICIT_CONFIRMATION_REQUIRED
+            and
             trusted.get("approved_operation_key") == item.operation_key
             and trusted.get("approval_binding") == item.approval_binding
             and trusted.get("approval_target_version") == item.target_entity_version
@@ -60,13 +72,7 @@ class TargetWorkflowExecutor:
                 True,
                 str(trusted.get("approval_actor") or trusted["user_id"]),
             )
-        runtime = GovernedWriteRuntime(
-            ledger=PostgresOperationLedger(self._pool, scope),
-            tool_port=_ToolPort(self._tools, context),
-            reconciliation_port=_ToolReconciler(self._tools, context),
-            approval_grants=grants,
-        )
-        return await runtime(context)
+        return grants
 
 
 class _ToolPort:

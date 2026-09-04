@@ -7,7 +7,11 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Iterable
 
-from application.capability_registry import CapabilityEffect, CapabilityRisk
+from application.capability_registry import (
+    ApprovalPolicy,
+    CapabilityEffect,
+    CapabilityRisk,
+)
 
 
 class WorkItemContractError(ValueError):
@@ -70,6 +74,8 @@ class WorkItem:
     target_entity_version: str | None = None
     reconciliation_policy: str | None = None
     aggregate_ref: str | None = None
+    action_ref: str | None = None
+    approval_policy: ApprovalPolicy | None = None
 
     def __post_init__(self) -> None:
         required = (
@@ -120,6 +126,8 @@ class WorkItem:
             self.target_entity_version,
             self.reconciliation_policy,
             self.aggregate_ref,
+            self.action_ref,
+            self.approval_policy,
         )
         if self.effect is CapabilityEffect.WRITE:
             if self.control_mode is not ControlMode.WORKFLOW:
@@ -156,6 +164,10 @@ class WorkItem:
             "target_entity_version": self.target_entity_version,
             "reconciliation_policy": self.reconciliation_policy,
             "aggregate_ref": self.aggregate_ref,
+            "action_ref": self.action_ref,
+            "approval_policy": (
+                self.approval_policy.value if self.approval_policy else None
+            ),
         }
         raw = json.dumps(
             payload,

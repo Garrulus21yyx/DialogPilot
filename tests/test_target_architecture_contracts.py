@@ -275,6 +275,8 @@ def test_business_write_requires_workflow_and_all_safety_bindings():
         target_entity_version="order:DP1234:v7",
         reconciliation_policy="refund-operation-query-v1",
         aggregate_ref="refund:DP1234",
+        action_ref="refund.request.create:v1",
+        approval_policy=ApprovalPolicy.EXPLICIT_CONFIRMATION_REQUIRED,
     )
 
     assert workflow.control_mode is ControlMode.WORKFLOW

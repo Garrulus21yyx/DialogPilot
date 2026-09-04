@@ -69,6 +69,7 @@
 | 16A | done | Separate logistics, refund policy, refund eligibility and invoice read commands from refund execution | unit contracts plus real HTTP/PostgreSQL read-path E2E | this stage commit |
 | 16B | done | Generic Product QA task contract; category and attributes remain evidence data rather than Skill identities | 93 Target tests including real PostgreSQL/HTTP boundaries | this stage commit |
 | 17 | done | Registry-owned generic write-preparation binding with no refund fields in ConversationManager | 95 Target tests including real PostgreSQL/HTTP boundaries | this stage commit |
+| 18 | done | WorkItem-bound Action identity and Registry approval policy; workflow executor no longer branches on Flow names | 96 Target tests including real PostgreSQL/HTTP boundaries | this stage commit |
 
 ## Stage record
 
@@ -139,6 +140,9 @@
 - Stage 17: Action Registry owns the authoritative preparation tool, requirement,
   readiness predicate, source entity-version field and write-argument binding;
   ConversationManager applies that typed contract without knowing refund semantics.
+- Stage 18: accepted write WorkItems carry the Action identity and approval policy
+  selected by RoutePolicy; workflow execution grants authority by that policy rather
+  than by recognizing a refund or handoff Flow name.
 
 ## Scope correction after executable-core review
 
@@ -348,3 +352,20 @@ continuation.
   a caller-side compatibility branch.
 - The complete Target suite passed 95 tests, including real ASGI/PostgreSQL state,
   workflow, Product, orchestration and publication boundaries.
+
+## Stage 18 verification notes
+
+- Observed root cause: `TargetWorkflowExecutor` granted
+  `USER_COMMAND_SUFFICIENT` only when `flow_ref == human_handoff:v1`. That made a
+  specific Flow name a hidden second approval authority beside Registry and prevented
+  new actions from inheriting their declared policy.
+- TurnPlanCompiler now binds `action_ref` and the validated `ApprovalPolicy` into
+  every write WorkItem. Both fields participate in work/operation fingerprints and
+  are mandatory write safety bindings.
+- Workflow execution grants a user-command approval for any Action whose compiled
+  policy is `USER_COMMAND_SUFFICIENT`, accepts an approval-resume binding only for
+  `EXPLICIT_CONFIRMATION_REQUIRED`, and leaves stronger policies fail-closed until
+  their own trusted grant adapters exist.
+- A policy-invariance test renames the handoff Flow to an unrelated version and
+  still obtains the same grant. The complete Target suite passed 96 tests, including
+  real ASGI/PostgreSQL refund, handoff, reconciliation and Publication boundaries.

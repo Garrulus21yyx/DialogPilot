@@ -225,6 +225,8 @@ def test_write_plan_derives_operation_identity_and_plan_accepted_flow_mutation()
     assert item.control_mode is ControlMode.WORKFLOW
     assert item.operation_key.startswith("operation:v1:")
     assert item.reconciliation_policy == "refund-reconcile-v1"
+    assert item.action_ref == "refund.request.create:v1"
+    assert item.approval_policy is ApprovalPolicy.EXPLICIT_CONFIRMATION_REQUIRED
     assert plan.transitions.mutations[0].apply_stage is MutationApplyStage.PLAN_ACCEPTED
 
 

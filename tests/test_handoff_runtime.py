@@ -1,10 +1,15 @@
 import asyncio
+from dataclasses import replace
 from types import SimpleNamespace
 
 import pytest
 
 from application.agent_result import AgentResult, AgentResultStatus, ReceiptRef
-from application.capability_registry import CapabilityEffect, CapabilityRisk
+from application.capability_registry import (
+    ApprovalPolicy,
+    CapabilityEffect,
+    CapabilityRisk,
+)
 from application.conversation_state import ConversationOwner, ConversationState, ConversationStateError
 from application.delivery_contract import ConnectorCapability
 from application.handoff_runtime import (
@@ -25,6 +30,7 @@ from application.write_workflow import (
     WriteToolOutcome,
 )
 from core.identity import IdentityFactory
+from infrastructure.target_workflow_execution import TargetWorkflowExecutor
 
 
 def _invocation():
@@ -81,6 +87,8 @@ def _item():
         target_entity_version="conversation-a:v2",
         reconciliation_policy="ticket-idempotency-query-v1",
         aggregate_ref="conversation:conversation-a",
+        action_ref="support.handoff.create:v1",
+        approval_policy=ApprovalPolicy.USER_COMMAND_SUFFICIENT,
     )
 
 
@@ -108,6 +116,19 @@ def _publication_policy():
         "delivery-retry-v1",
         "2026-09-04T00:00:00+00:00",
     )
+
+
+def test_user_command_approval_is_selected_by_policy_not_flow_name():
+    item = replace(_item(), flow_ref="renamed-handoff-flow:v9")
+
+    grants = TargetWorkflowExecutor._approval_grants(item, {
+        "request_id": "request-a",
+        "user_id": "user-a",
+    })
+
+    grant = grants[item.approval_binding]
+    assert grant.operation_key == item.operation_key
+    assert grant.actor_ref == "user-command:request-a"
 
 
 def test_handoff_commit_receipt_transfers_owner_and_allows_success_claim():

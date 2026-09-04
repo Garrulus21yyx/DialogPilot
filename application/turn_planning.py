@@ -612,6 +612,8 @@ class TurnPlanCompiler:
                 action.reconciliation_policy if action and write else None
             ),
             aggregate_ref=proposal.target_entity_ref if write else None,
+            action_ref=action.ref if action and write else None,
+            approval_policy=action.approval_policy if action and write else None,
         )
 
 

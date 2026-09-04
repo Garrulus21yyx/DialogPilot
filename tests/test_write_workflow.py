@@ -3,7 +3,11 @@ import asyncio
 import pytest
 
 from application.agent_result import AgentResultStatus
-from application.capability_registry import CapabilityEffect, CapabilityRisk
+from application.capability_registry import (
+    ApprovalPolicy,
+    CapabilityEffect,
+    CapabilityRisk,
+)
 from application.orchestration_runtime import AgentContextView, OrchestrationRuntime
 from application.work_item import ArgumentValue, ControlMode, WorkItem, WorkPlan
 from application.write_workflow import (
@@ -46,6 +50,8 @@ def _item(operation_key="operation-1"):
         target_entity_version="order:DP1234:v7",
         reconciliation_policy="refund-reconcile-v1",
         aggregate_ref="order:DP1234",
+        action_ref="refund.request.create:v1",
+        approval_policy=ApprovalPolicy.EXPLICIT_CONFIRMATION_REQUIRED,
     )
 
 
