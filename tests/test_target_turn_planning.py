@@ -193,6 +193,7 @@ def test_multi_domain_is_projected_only_from_delegated_work_plan():
     )
 
     assert plan.route.mode is RouteMode.MULTI_DOMAIN
+    assert plan.route.risk is CapabilityRisk.MEDIUM
     assert [len(wave) for wave in plan.work.execution_waves()] == [1, 1]
     assert plan.work.items[1].dependencies == (plan.work.items[0].work_item_id,)
 

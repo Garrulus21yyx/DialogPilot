@@ -11,6 +11,7 @@ from application.agent_result import (
     AgentResultStatus,
     FactRecord,
     FactSourceKind,
+    MissingInputSpec,
     ReceiptRef,
     RequestedField,
 )
@@ -95,6 +96,79 @@ class _Understanding:
     async def __call__(self, observations, state, deterministic, registry):
         self.calls.append((state, deterministic))
         return self.proposal
+
+
+class _ResumeAwareUnderstanding:
+    def __init__(self, initial):
+        self.initial = initial
+        self.bounded = BoundedTargetUnderstanding()
+
+    async def __call__(self, observations, state, deterministic, registry):
+        if deterministic.kind is ResolutionKind.FILL_PENDING_INPUT:
+            return await self.bounded(observations, state, deterministic, registry)
+        return self.initial
+
+
+class _ProductReferenceWorker:
+    def __init__(self):
+        self.calls = []
+
+    async def __call__(self, context: AgentContextView):
+        item = context.work_item
+        arguments = {value.name: value.value for value in item.arguments}
+        self.calls.append(arguments)
+        if "product_reference" not in arguments:
+            return AgentResult(
+                item.work_item_id,
+                item.owner_agent,
+                AgentResultStatus.NEEDS_USER_INPUT,
+                "PRODUCT_REFERENCE_REQUIRED",
+                "product-worker-test-v1",
+                missing_inputs=(MissingInputSpec(
+                    "product_reference",
+                    item.work_item_id,
+                    "PRODUCT_REFERENCE_REQUIRED",
+                    "string",
+                    "请提供商品链接、SKU 或商品名称。",
+                ),),
+            )
+        return AgentResult(
+            item.work_item_id,
+            item.owner_agent,
+            AgentResultStatus.SUCCEEDED,
+            "PRODUCT_ANSWER_FOUND",
+            "product-worker-test-v1",
+            facts=(FactRecord(
+                f"product:{arguments['product_reference']}",
+                "knowledge.active_source",
+                '{"answer":"supported"}',
+                FactSourceKind.KNOWLEDGE_ASSERTED,
+                "knowledge:product-answer",
+                "knowledge_search",
+                "knowledge-v1",
+                datetime.now(timezone.utc),
+            ),),
+            candidate_response="已根据该商品的目录与知识证据回答。",
+        )
+
+
+class _OrderVerificationWorker:
+    async def __call__(self, context: AgentContextView):
+        item = context.work_item
+        return AgentResult(
+            item.work_item_id,
+            item.owner_agent,
+            AgentResultStatus.NEEDS_USER_INPUT,
+            "ORDER_VERIFICATION_REQUIRED",
+            "order-worker-test-v1",
+            missing_inputs=(MissingInputSpec(
+                "verification_reference",
+                item.work_item_id,
+                "ORDER_VERIFICATION_REQUIRED",
+                "string",
+                "请提供订单核验信息。",
+            ),),
+        )
 
 
 class _TerminalExecutor:
@@ -230,7 +304,7 @@ def test_conversation_state_event_codec_round_trips_bound_pending_state():
     ))
     state = state.wait_for_interaction(PendingInteractionState(
         "interaction-1", 1,
-        (RequestedField("wall_material", "work-1", "string"),),
+        (RequestedField("product_reference", "work-1", "string"),),
         (),
     ))
 
@@ -478,7 +552,9 @@ def test_manager_consumes_pending_input_before_understanding_and_persists_it():
         ),
     )
 
-    result = asyncio.run(manager.handle(identity, TurnObservations("DP1234")))
+    result = asyncio.run(manager.handle(identity, TurnObservations(
+        "DP1234", interaction_id="interaction-1", interaction_version=1,
+    )))
 
     observed_state, deterministic = understanding.calls[0]
     assert deterministic.kind is ResolutionKind.FILL_PENDING_INPUT
@@ -487,6 +563,127 @@ def test_manager_consumes_pending_input_before_understanding_and_persists_it():
         "order_id": "DP1234",
     }
     assert result.state_after == observed_state
+
+
+def test_manager_persists_and_resumes_generic_read_work_from_typed_missing_input():
+    identity = _identity("request-product-missing")
+    store = InMemoryConversationStateStore()
+    proposal = TurnProposal(
+        ProposalDisposition.RESOLVED,
+        (CommandProposal(
+            "product-question",
+            CommandKind.RUN_SKILL,
+            "product_technical",
+            "Answer a product question from governed evidence",
+            (ArgumentValue.create("question", "这个商品支持我的设备吗？"),),
+            ("knowledge.active_source",),
+            skill_id="product_qa",
+        ),),
+        "PRODUCT_QUESTION_UNDERSTOOD",
+    )
+    worker = _ProductReferenceWorker()
+    manager = TargetConversationManager(
+        state_store=store,
+        registry=build_default_capability_registry("tenant-target"),
+        understanding=_ResumeAwareUnderstanding(proposal),
+        orchestration=OrchestrationRuntime(
+            direct_executor=_ReadExecutor(),
+            domain_workers={"product_technical": worker},
+        ),
+    )
+
+    first = asyncio.run(manager.handle(
+        identity,
+        TurnObservations("这个商品支持我的设备吗？"),
+    ))
+
+    pending = first.state_after.pending_interaction
+    assert pending is not None
+    assert len(pending.suspended_work_items) == 1
+    suspended = pending.suspended_work_items[0]
+    assert suspended.skill_hint == "product_qa"
+    assert tuple(field.field_name for field in pending.requested_fields) == (
+        "product_reference",
+    )
+    restored_waiting = conversation_state_from_payload(
+        conversation_state_to_payload(first.state_after)
+    )
+    assert restored_waiting == first.state_after
+    assert restored_waiting.fingerprint == first.state_after.fingerprint
+
+    resumed = asyncio.run(manager.handle(
+        _identity("request-product-resume"),
+        TurnObservations(
+            "SKU-9",
+            interaction_id=pending.interaction_id,
+            interaction_version=pending.version,
+            interaction_values=((
+                suspended.work_item_id,
+                "product_reference",
+                "SKU-9",
+            ),),
+        ),
+    ))
+
+    assert resumed.deterministic.kind is ResolutionKind.FILL_PENDING_INPUT
+    assert resumed.plan.route.reason_code == "PENDING_INPUT_RESUMED"
+    assert resumed.state_after.pending_interaction is None
+    assert resumed.board is not None
+    assert resumed.board.results[0].status is AgentResultStatus.SUCCEEDED
+    assert worker.calls == [
+        {"question": "这个商品支持我的设备吗？"},
+        {"product_reference": "SKU-9", "question": "这个商品支持我的设备吗？"},
+    ]
+
+
+def test_manager_aggregates_multi_domain_missing_inputs_into_one_interaction():
+    proposal = TurnProposal(
+        ProposalDisposition.RESOLVED,
+        (
+            CommandProposal(
+                "order-question",
+                CommandKind.DIRECT_TOOL,
+                "order_logistics",
+                "Query current order status",
+                (ArgumentValue.create("order_id", "DP1234"),),
+                ("order.current_state",),
+                tool_id="order_lookup",
+            ),
+            CommandProposal(
+                "product-question",
+                CommandKind.RUN_SKILL,
+                "product_technical",
+                "Answer a product question from governed evidence",
+                (ArgumentValue.create("question", "这个商品兼容吗？"),),
+                ("knowledge.active_source",),
+                skill_id="product_qa",
+            ),
+        ),
+        "MULTI_DOMAIN_UNDERSTOOD",
+    )
+    state_store = InMemoryConversationStateStore()
+    manager = TargetConversationManager(
+        state_store=state_store,
+        registry=build_default_capability_registry("tenant-target"),
+        understanding=_Understanding(proposal),
+        orchestration=OrchestrationRuntime(
+            direct_executor=_OrderVerificationWorker(),
+            domain_workers={"product_technical": _ProductReferenceWorker()},
+        ),
+    )
+
+    result = asyncio.run(manager.handle(
+        _identity("request-multi-missing"),
+        TurnObservations("查订单，同时回答商品兼容性"),
+    ))
+
+    pending = result.state_after.pending_interaction
+    assert pending is not None
+    assert len(pending.suspended_work_items) == 2
+    assert {
+        field.field_name for field in pending.requested_fields
+    } == {"verification_reference", "product_reference"}
+    assert result.state_after.version == 1
 
 
 def test_manager_commits_workflow_start_before_dispatch():

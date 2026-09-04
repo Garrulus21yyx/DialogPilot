@@ -72,6 +72,7 @@
 | 18 | done | WorkItem-bound Action identity and Registry approval policy; workflow executor no longer branches on Flow names | 96 Target tests including real PostgreSQL/HTTP boundaries | this stage commit |
 | 19 | done | Registry-owned reconciliation contracts plus operation-bound Handoff lookup; no Flow-name branches in workflow execution | 113 Target/tool/authority tests with real PostgreSQL/HTTP boundaries | this stage commit |
 | 20 | done | Order cancellation as a second governed write Flow using the generic preparation, approval, Receipt and reconciliation contracts | 136 Target/owner/tool/authority tests with real PostgreSQL/HTTP boundaries | this stage commit |
+| 21 | done | Generic typed missing-input aggregation, durable suspended read work, exact signal resume, and one Interaction publication across domains | 125 focused Target/owner/tool tests with real PostgreSQL enabled | this stage commit |
 
 ## Stage record
 
@@ -422,3 +423,30 @@ continuation.
   the same Flow contract; 136 relevant tests passed.
 - Approval decline and expiry publication is action-neutral, so cancelling or timing
   out a non-refund Action cannot produce refund-specific user-visible text.
+
+## Stage 21 verification notes
+
+- The product boundary remains task-level: `product_identification` and `product_qa`
+  are shared by all catalog categories. Product category and arbitrary attributes are
+  evidence/filter data; no category-specific Skill, Router goal, state field or tool
+  was added. Architecture tests no longer use an installation-specific capability as
+  the global missing-input example.
+- The contract mismatch between `MissingInputSpec.target_work_item_id` and persisted
+  Workstream identity is closed at the Conversation owner. A pending interaction now
+  durably suspends the exact read WorkItems that requested input; legacy Flow-bound
+  fields remain explicitly separate rather than pretending a WorkItem is a Flow.
+- ConversationManager aggregates all required fields from independent AgentResults
+  into one `PendingInteractionState`. PostgreSQL serialization preserves the complete
+  capability envelope and its fingerprint, including direct Tool versus delegated
+  task-level Skill execution.
+- Resume requires the exact interaction id, version, WorkItem id and field name. The
+  deterministic resolver binds values to the suspended items, and bounded
+  understanding reconstructs Registry-validated commands without reclassifying the
+  user's task. Stale or cross-interaction replies fail with a typed conflict.
+- Publication emits one `FIELDS` InteractionRequest with a machine-readable resume
+  schema. Admission fingerprints include the interaction payload, and replay restores
+  the original interaction kind instead of labeling every interaction as approval.
+- Registry-derived Tool risk is retained for freely delegated read work even when no
+  Skill hint is present. The focused Target suite passed 125 tests with PostgreSQL
+  enabled, covering state codec, exact resume, multi-domain aggregation, public
+  publication, partial execution, writes and existing real HTTP boundaries.

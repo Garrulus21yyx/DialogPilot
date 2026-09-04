@@ -5,6 +5,7 @@ import hashlib
 import json
 import time
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Mapping, Protocol
 
@@ -131,20 +132,28 @@ class TargetChatApplication:
             if completed is not None:
                 return completed
 
-        observations = TurnObservations(
-            command.message,
-            tuple(
-                ("asset_id", asset_id)
-                for asset_id in command.asset_ids[:1]
-            ),
-            approval_decision=command.approval_decision,
-            approval_id=command.approval_id,
-        )
         try:
+            observations = TurnObservations(
+                command.message,
+                tuple(
+                    ("asset_id", asset_id)
+                    for asset_id in command.asset_ids[:1]
+                ),
+                approval_decision=command.approval_decision,
+                approval_id=command.approval_id,
+                interaction_id=command.interaction_id,
+                interaction_version=command.interaction_version,
+                interaction_values=command.interaction_values,
+            )
             managed = await self._manager.handle(identity, observations)
         except DeterministicResolutionError as exc:
             return Conflict(
-                "APPROVAL_SIGNAL_CONFLICT",
+                (
+                    "INTERACTION_SIGNAL_CONFLICT"
+                    if command.interaction_id is not None
+                    or command.interaction_values
+                    else "APPROVAL_SIGNAL_CONFLICT"
+                ),
                 {"reason": str(exc)},
             )
         except Exception as exc:
@@ -180,6 +189,63 @@ class TargetChatApplication:
                 str(identity.workflow_run_id),
                 pending.approval_id,
                 "APPROVAL",
+                expires_at,
+                published.response_id,
+            )
+
+        pending_input = managed.state_after.pending_interaction
+        if pending_input is not None and (
+            managed.state_before.pending_interaction is None
+            or managed.state_before.pending_interaction.interaction_id
+            != pending_input.interaction_id
+        ):
+            specs = tuple(
+                spec
+                for result in (managed.board.results if managed.board else ())
+                if result.status is AgentResultStatus.NEEDS_USER_INPUT
+                for spec in result.missing_inputs
+                if spec.required
+            )
+            hints = tuple(dict.fromkeys(
+                spec.question_hint for spec in specs if spec.question_hint.strip()
+            ))
+            challenge = "\n".join(hints) or "请补充完成任务所需的信息。"
+            expires_at = (
+                datetime.now(timezone.utc) + timedelta(days=7)
+            ).isoformat()
+            published = self._publication.publish_interaction(
+                identity,
+                signal_id=pending_input.interaction_id,
+                signal_version=pending_input.version,
+                challenge=challenge,
+                resume_schema={
+                    "interaction_kind": "FIELDS",
+                    "type": "object",
+                    "required": [
+                        "interaction_id", "interaction_version", "values",
+                    ],
+                    "properties": {
+                        "interaction_id": {"const": pending_input.interaction_id},
+                        "interaction_version": {"const": pending_input.version},
+                        "values": {
+                            "type": "array",
+                            "items": [
+                                {
+                                    "target_work_item_id": field.target_work_item_id,
+                                    "field_name": field.field_name,
+                                    "value_schema": field.value_schema,
+                                }
+                                for field in pending_input.requested_fields
+                            ],
+                        },
+                    },
+                },
+                expires_at=expires_at,
+            )
+            return NeedsInput(
+                str(identity.workflow_run_id),
+                pending_input.interaction_id,
+                "FIELDS",
                 expires_at,
                 published.response_id,
             )

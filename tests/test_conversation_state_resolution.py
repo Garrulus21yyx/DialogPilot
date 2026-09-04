@@ -60,7 +60,9 @@ def test_single_pending_field_binds_raw_reply_without_semantic_router():
     ))
 
     resolution = DeterministicResolver().resolve(
-        TurnObservations("DP1234"),
+        TurnObservations(
+            "DP1234", interaction_id="interaction-1", interaction_version=1,
+        ),
         state,
     )
 
@@ -84,10 +86,10 @@ def test_multi_workstream_interaction_requires_all_bound_fields_once():
     state = _state(
         _workstream(),
         WorkstreamState(
-            "installation-ws-1",
+            "product-question-ws-1",
             "product_technical",
-            "installation_compatibility:v1",
-            "WAIT_ENVIRONMENT",
+            "product_qa:v1",
+            "WAIT_PRODUCT_REFERENCE",
             WorkstreamStatus.ACTIVE,
             1,
         ),
@@ -97,7 +99,7 @@ def test_multi_workstream_interaction_requires_all_bound_fields_once():
         1,
         (
             RequestedField("order_id", "refund-ws-1", "string"),
-            RequestedField("wall_material", "installation-ws-1", "string"),
+            RequestedField("product_reference", "product-question-ws-1", "string"),
         ),
         (),
     ))
@@ -110,12 +112,14 @@ def test_multi_workstream_interaction_requires_all_bound_fields_once():
     assert unresolved.kind is ResolutionKind.UNRESOLVED
 
     resolved = resolver.resolve(TurnObservations(
-        "DP1234, concrete",
-        structured_fields=(("order_id", "DP1234"), ("wall_material", "concrete")),
+        "DP1234, SKU-9",
+        structured_fields=(("order_id", "DP1234"), ("product_reference", "SKU-9")),
+        interaction_id="interaction-2",
+        interaction_version=1,
     ), state)
     assert resolved.kind is ResolutionKind.FILL_PENDING_INPUT
     assert {item.workstream_id for item in resolved.fields} == {
-        "refund-ws-1", "installation-ws-1",
+        "refund-ws-1", "product-question-ws-1",
     }
 
 
@@ -290,10 +294,10 @@ def test_ambiguous_control_signal_requests_target_instead_of_guessing():
     state = _state(
         _workstream(),
         WorkstreamState(
-            "installation-ws-1",
+            "product-question-ws-1",
             "product_technical",
-            "installation_compatibility:v1",
-            "WAIT_ENVIRONMENT",
+            "product_qa:v1",
+            "WAIT_PRODUCT_REFERENCE",
             WorkstreamStatus.ACTIVE,
             1,
         ),

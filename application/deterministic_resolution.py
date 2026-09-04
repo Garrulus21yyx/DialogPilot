@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from enum import Enum
 
 from application.conversation_state import ConversationState
+from application.work_item import ArgumentValue, WorkItem
 
 
 class DeterministicResolutionError(ValueError):
@@ -38,6 +39,9 @@ class TurnObservations:
     resume_token: str | None = None
     explicit_control: ExplicitControlSignal | None = None
     target_workstream_id: str | None = None
+    interaction_id: str | None = None
+    interaction_version: int | None = None
+    interaction_values: tuple[tuple[str, str, object], ...] = ()
 
     def __post_init__(self) -> None:
         names = tuple(item[0] for item in self.structured_fields)
@@ -47,6 +51,19 @@ class TurnObservations:
             raise DeterministicResolutionError("approval decision requires approval identity")
         if self.approval_id is not None and self.approval_decision is None:
             raise DeterministicResolutionError("approval identity requires a decision")
+        interaction_keys = tuple(
+            (work_item_id, field_name)
+            for work_item_id, field_name, _ in self.interaction_values
+        )
+        if len(interaction_keys) != len(set(interaction_keys)):
+            raise DeterministicResolutionError("interaction values must be unique")
+        if self.interaction_values and not all((
+            str(self.interaction_id or "").strip(),
+            self.interaction_version is not None,
+        )):
+            raise DeterministicResolutionError(
+                "interaction values require interaction identity and version"
+            )
 
 
 @dataclass(frozen=True)
@@ -72,6 +89,7 @@ class DeterministicResolution:
     target_entity_ref: str | None = None
     target_entity_version: str | None = None
     arguments: tuple[tuple[str, object], ...] = ()
+    resumed_work_items: tuple[WorkItem, ...] = ()
 
     @property
     def resolved(self) -> bool:
@@ -91,8 +109,19 @@ class DeterministicResolver:
     ) -> DeterministicResolution:
         pending = state.pending_interaction
         if pending is not None:
+            if observations.interaction_id is not None and (
+                observations.interaction_id != pending.interaction_id
+                or observations.interaction_version != pending.version
+            ):
+                raise DeterministicResolutionError(
+                    "interaction reply targets another interaction"
+                )
             fields = self._bind_pending_fields(observations, pending.requested_fields)
             if fields is not None:
+                if observations.interaction_id is None:
+                    raise DeterministicResolutionError(
+                        "pending input requires interaction identity"
+                    )
                 return DeterministicResolution(
                     ResolutionKind.FILL_PENDING_INPUT,
                     "PENDING_FIELDS_BOUND",
@@ -100,6 +129,9 @@ class DeterministicResolver:
                     signal_id=pending.interaction_id,
                     signal_version=pending.version,
                     fields=fields,
+                    resumed_work_items=self._resume_work_items(
+                        pending.suspended_work_items, fields,
+                    ),
                 )
 
         approval = state.pending_approval
@@ -229,6 +261,25 @@ class DeterministicResolver:
 
     @staticmethod
     def _bind_pending_fields(observations, requested_fields):
+        if observations.interaction_values:
+            provided = {
+                (work_item_id, field_name): value
+                for work_item_id, field_name, value in observations.interaction_values
+            }
+            requested = {
+                (item.target_work_item_id, item.field_name)
+                for item in requested_fields
+            }
+            if set(provided) != requested:
+                return None
+            return tuple(
+                ResolvedField(
+                    item.target_work_item_id,
+                    item.field_name,
+                    provided[(item.target_work_item_id, item.field_name)],
+                )
+                for item in requested_fields
+            )
         provided = dict(observations.structured_fields)
         if len(requested_fields) == 1 and not provided and observations.raw_text.strip():
             requested = requested_fields[0]
@@ -244,3 +295,25 @@ class DeterministicResolver:
             ResolvedField(item.target_work_item_id, item.field_name, provided[item.field_name])
             for item in requested_fields
         )
+
+    @staticmethod
+    def _resume_work_items(
+        suspended: tuple[WorkItem, ...],
+        fields: tuple[ResolvedField, ...],
+    ) -> tuple[WorkItem, ...]:
+        values: dict[str, list[ArgumentValue]] = {}
+        for field in fields:
+            values.setdefault(field.workstream_id, []).append(
+                ArgumentValue.create(field.field_name, field.value)
+            )
+        resumed = []
+        for item in suspended:
+            merged = {argument.name: argument for argument in item.arguments}
+            merged.update({argument.name: argument for argument in values.get(
+                item.work_item_id, (),
+            )})
+            resumed.append(WorkItem(**{
+                **item.__dict__,
+                "arguments": tuple(merged[name] for name in sorted(merged)),
+            }))
+        return tuple(resumed)

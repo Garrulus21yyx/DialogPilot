@@ -164,6 +164,13 @@ class AgentResult:
             raise AgentResultContractError("evidence request targets another work item")
         if self.status is AgentResultStatus.NEEDS_USER_INPUT and not self.missing_inputs:
             raise AgentResultContractError("NEEDS_USER_INPUT requires missing inputs")
+        if (
+            self.status is AgentResultStatus.NEEDS_USER_INPUT
+            and not any(item.required for item in self.missing_inputs)
+        ):
+            raise AgentResultContractError(
+                "NEEDS_USER_INPUT requires at least one required input"
+            )
         if self.status is AgentResultStatus.NEEDS_EVIDENCE and not self.requested_evidence:
             raise AgentResultContractError("NEEDS_EVIDENCE requires evidence requests")
         if self.status is AgentResultStatus.SUCCEEDED and (

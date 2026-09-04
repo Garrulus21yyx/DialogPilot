@@ -1,7 +1,7 @@
 """Single lifecycle owner for Target Architecture v1 chat turns."""
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import hashlib
 import json
 from datetime import datetime, timedelta, timezone
@@ -13,6 +13,7 @@ from application.conversation_state import (
     ConversationStateConflict,
     ConversationStateStore,
     PendingApprovalState,
+    PendingInteractionState,
     WorkstreamState,
     WorkstreamStatus,
 )
@@ -24,7 +25,7 @@ from application.deterministic_resolution import (
 )
 from application.orchestration_runtime import OrchestrationRuntime
 from application.result_board import ResultBoardSnapshot
-from application.agent_result import AgentResultStatus
+from application.agent_result import AgentResultStatus, RequestedField
 from application.turn_planning import (
     MutationApplyStage,
     RoutePolicy,
@@ -149,6 +150,7 @@ class TargetConversationManager:
         state = self._apply_successful_workflows(
             state, plan, board, invocation, deterministic,
         )
+        state = self._apply_missing_inputs(state, plan, board)
         return ManagedTurnResult(
             state_before,
             state,
@@ -157,6 +159,76 @@ class TargetConversationManager:
             board,
             thread_id,
         )
+
+    def _apply_missing_inputs(
+        self,
+        state: ConversationState,
+        plan: TurnPlan,
+        board: ResultBoardSnapshot,
+    ) -> ConversationState:
+        missing_results = tuple(
+            result for result in board.results
+            if result.status is AgentResultStatus.NEEDS_USER_INPUT
+        )
+        if not missing_results:
+            return state
+        if state.pending_approval is not None or state.pending_interaction is not None:
+            raise ConversationStateConflict(
+                "work result cannot create a second pending interaction"
+            )
+        if plan.work is None:
+            raise ConversationStateConflict("missing input has no work plan")
+        transition_items = {
+            mutation.bound_work_item_id
+            for mutation in (plan.transitions.mutations if plan.transitions else ())
+        }
+        item_by_id = {item.work_item_id: item for item in plan.work.items}
+        suspended = []
+        fields = []
+        for result in missing_results:
+            if result.work_item_id in transition_items:
+                raise ConversationStateConflict(
+                    "workflow input must be resolved before its state transition"
+                )
+            item = item_by_id[result.work_item_id]
+            suspended.append(replace(item, dependencies=()))
+            fields.extend(
+                RequestedField(
+                    spec.field_name,
+                    spec.target_work_item_id,
+                    spec.value_schema,
+                )
+                for spec in result.missing_inputs
+                if spec.required
+            )
+        if not fields:
+            raise ConversationStateConflict(
+                "NEEDS_USER_INPUT produced no required fields"
+            )
+        identity_payload = json.dumps(
+            {
+                "plan": plan.plan_id,
+                "state_version": state.version,
+                "fields": sorted(
+                    (item.target_work_item_id, item.field_name, item.value_schema)
+                    for item in fields
+                ),
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        interaction_id = "interaction:v1:" + hashlib.sha256(
+            identity_payload.encode("utf-8")
+        ).hexdigest()
+        next_state = state.wait_for_interaction(PendingInteractionState(
+            interaction_id,
+            1,
+            tuple(fields),
+            (),
+            tuple(suspended),
+        ))
+        self._persist(state, next_state)
+        return next_state
 
     def _apply_successful_workflows(
         self,

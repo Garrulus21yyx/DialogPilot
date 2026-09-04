@@ -14,6 +14,12 @@ from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 
 from application.agent_result import RequestedField
+from application.capability_registry import (
+    ActionReconciliationDefinition,
+    ApprovalPolicy,
+    CapabilityEffect,
+    CapabilityRisk,
+)
 from application.conversation_state import (
     AcceptedApprovalState,
     ConversationOwner,
@@ -26,7 +32,7 @@ from application.conversation_state import (
     WorkstreamStatus,
 )
 from application.conversation_store import ConversationScope
-from application.work_item import ArgumentValue, WorkItem
+from application.work_item import ArgumentValue, ControlMode, WorkItem
 from application.write_workflow import (
     OperationConflict,
     OperationRecord,
@@ -193,6 +199,10 @@ def conversation_state_to_payload(state: ConversationState) -> dict[str, object]
                     for item in state.pending_interaction.requested_fields
                 ],
                 "workstream_versions": list(state.pending_interaction.workstream_versions),
+                "suspended_work_items": [
+                    _work_item_to_payload(item)
+                    for item in state.pending_interaction.suspended_work_items
+                ],
             }
             if state.pending_interaction else None
         ),
@@ -271,6 +281,10 @@ def conversation_state_from_payload(raw: Mapping[str, object]) -> ConversationSt
                     (str(item[0]), int(item[1]))
                     for item in pending_raw.get("workstream_versions", ())
                 ),
+                tuple(
+                    _work_item_from_payload(item)
+                    for item in pending_raw.get("suspended_work_items", ())
+                ),
             )
             if isinstance(pending_raw, Mapping) else None
         ),
@@ -323,6 +337,104 @@ def conversation_state_from_payload(raw: Mapping[str, object]) -> ConversationSt
             )
             for item in payload.get("accepted_approvals", ())
         ),
+    )
+
+
+def _work_item_to_payload(item: WorkItem) -> dict[str, object]:
+    return {
+        "work_item_id": item.work_item_id,
+        "owner_agent": item.owner_agent,
+        "objective": item.objective,
+        "control_mode": item.control_mode.value,
+        "allowed_tools": list(item.allowed_tools),
+        "allowed_skills": list(item.allowed_skills),
+        "arguments": [
+            {"name": value.name, "value_json": value.value_json}
+            for value in item.arguments
+        ],
+        "requirement_ids": list(item.requirement_ids),
+        "dependencies": list(item.dependencies),
+        "effect": item.effect.value,
+        "risk": item.risk.value,
+        "expected_output_schema": item.expected_output_schema,
+        "verification_profile": item.verification_profile,
+        "state_snapshot_version": item.state_snapshot_version,
+        "registry_fingerprint": item.registry_fingerprint,
+        "timeout_seconds": item.timeout_seconds,
+        "max_steps": item.max_steps,
+        "skill_hint": item.skill_hint,
+        "flow_ref": item.flow_ref,
+        "operation_key": item.operation_key,
+        "approval_binding": item.approval_binding,
+        "target_entity_version": item.target_entity_version,
+        "aggregate_ref": item.aggregate_ref,
+        "action_ref": item.action_ref,
+        "approval_policy": (
+            item.approval_policy.value if item.approval_policy else None
+        ),
+        "reconciliation": (
+            {
+                "tool_id": item.reconciliation.tool_id,
+                "requirement_id": item.reconciliation.requirement_id,
+                "operation_key_argument": item.reconciliation.operation_key_argument,
+                "operation_key_field": item.reconciliation.operation_key_field,
+                "passthrough_arguments": list(item.reconciliation.passthrough_arguments),
+                "receipt_id_field": item.reconciliation.receipt_id_field,
+            }
+            if item.reconciliation else None
+        ),
+    }
+
+
+def _work_item_from_payload(raw: Mapping[str, object]) -> WorkItem:
+    reconciliation_raw = raw.get("reconciliation")
+    reconciliation = (
+        ActionReconciliationDefinition(
+            str(reconciliation_raw["tool_id"]),
+            str(reconciliation_raw["requirement_id"]),
+            str(reconciliation_raw["operation_key_argument"]),
+            str(reconciliation_raw["operation_key_field"]),
+            tuple(str(value) for value in reconciliation_raw.get(
+                "passthrough_arguments", (),
+            )),
+            str(reconciliation_raw["receipt_id_field"]),
+        )
+        if isinstance(reconciliation_raw, Mapping) else None
+    )
+    approval_policy = raw.get("approval_policy")
+    return WorkItem(
+        str(raw["work_item_id"]),
+        str(raw["owner_agent"]),
+        str(raw["objective"]),
+        ControlMode(str(raw["control_mode"])),
+        tuple(str(value) for value in raw.get("allowed_tools", ())),
+        tuple(str(value) for value in raw.get("allowed_skills", ())),
+        tuple(
+            ArgumentValue(str(value["name"]), str(value["value_json"]))
+            for value in raw.get("arguments", ())
+        ),
+        tuple(str(value) for value in raw.get("requirement_ids", ())),
+        tuple(str(value) for value in raw.get("dependencies", ())),
+        CapabilityEffect(str(raw["effect"])),
+        CapabilityRisk(str(raw["risk"])),
+        str(raw["expected_output_schema"]),
+        str(raw["verification_profile"]),
+        int(raw["state_snapshot_version"]),
+        str(raw["registry_fingerprint"]),
+        raw["timeout_seconds"],
+        int(raw["max_steps"]),
+        str(raw["skill_hint"]) if raw.get("skill_hint") is not None else None,
+        str(raw["flow_ref"]) if raw.get("flow_ref") is not None else None,
+        str(raw["operation_key"]) if raw.get("operation_key") is not None else None,
+        str(raw["approval_binding"]) if raw.get("approval_binding") is not None else None,
+        (
+            str(raw["target_entity_version"])
+            if raw.get("target_entity_version") is not None else None
+        ),
+        reconciliation,
+        str(raw["aggregate_ref"]) if raw.get("aggregate_ref") is not None else None,
+        str(raw["action_ref"]) if raw.get("action_ref") is not None else None,
+        ApprovalPolicy(str(approval_policy)) if approval_policy is not None else None,
     )
 
 

@@ -233,7 +233,10 @@ class RoutePolicy:
                 )
             self._validate_requirements(command, tools, requirements)
             risk = max(
-                (skill.risk for skill in skills),
+                (
+                    *(skill.risk for skill in skills),
+                    *(registry.tool(tool_id).risk for tool_id in tools),
+                ),
                 default=CapabilityRisk.LOW,
                 key=_risk_rank,
             )

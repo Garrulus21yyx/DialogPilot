@@ -10,7 +10,7 @@ from threading import RLock
 from typing import Protocol
 
 from application.agent_result import ReceiptRef, RequestedField
-from application.work_item import ArgumentValue
+from application.work_item import ArgumentValue, WorkItem
 from core.identity import ConversationId, TenantId, UserId
 
 
@@ -99,6 +99,7 @@ class PendingInteractionState:
     version: int
     requested_fields: tuple[RequestedField, ...]
     workstream_versions: tuple[tuple[str, int], ...]
+    suspended_work_items: tuple[WorkItem, ...] = ()
 
     def __post_init__(self) -> None:
         _required(self.interaction_id)
@@ -112,6 +113,15 @@ class PendingInteractionState:
         _unique((item[0] for item in self.workstream_versions), "pending workstreams")
         if any(version < 1 for _, version in self.workstream_versions):
             raise ConversationStateError("pending workstream version must be positive")
+        suspended_ids = tuple(item.work_item_id for item in self.suspended_work_items)
+        _unique(suspended_ids, "suspended work items")
+        requested_targets = {item.target_work_item_id for item in self.requested_fields}
+        if self.suspended_work_items and requested_targets.difference(suspended_ids):
+            raise ConversationStateError(
+                "requested field target must be a suspended work item"
+            )
+        if any(item.effect.value != "READ" for item in self.suspended_work_items):
+            raise ConversationStateError("user-input suspension supports read work only")
 
 
 @dataclass(frozen=True)
@@ -276,6 +286,18 @@ class ConversationState:
             "pending_interaction": (
                 self.pending_interaction.interaction_id,
                 self.pending_interaction.version,
+                tuple(
+                    (
+                        item.target_work_item_id,
+                        item.field_name,
+                        item.value_schema,
+                    )
+                    for item in self.pending_interaction.requested_fields
+                ),
+                tuple(
+                    item.fingerprint
+                    for item in self.pending_interaction.suspended_work_items
+                ),
             ) if self.pending_interaction else None,
             "pending_approval": (
                 self.pending_approval.approval_id,
@@ -327,18 +349,26 @@ class ConversationState:
             raise ConversationStateConflict("conversation already has a pending interaction")
         by_id = {item.workstream_id: item for item in self.workstreams}
         requested_ids = {item.target_work_item_id for item in pending.requested_fields}
-        if requested_ids.difference(by_id):
-            raise ConversationStateError("requested field target must be a workstream")
+        suspended_ids = {item.work_item_id for item in pending.suspended_work_items}
+        legacy_workstream_ids = requested_ids.difference(suspended_ids)
+        if legacy_workstream_ids.difference(by_id):
+            raise ConversationStateError(
+                "requested field target must be a suspended work item or workstream"
+            )
         updated = tuple(
             item.transition(WorkstreamStatus.WAITING_INPUT)
-            if item.workstream_id in requested_ids else item
+            if item.workstream_id in legacy_workstream_ids else item
             for item in self.workstreams
         )
         rebound = PendingInteractionState(
             pending.interaction_id,
             pending.version,
             pending.requested_fields,
-            tuple((item.workstream_id, item.state_version) for item in updated if item.workstream_id in requested_ids),
+            tuple(
+                (item.workstream_id, item.state_version)
+                for item in updated if item.workstream_id in legacy_workstream_ids
+            ),
+            pending.suspended_work_items,
         )
         return replace(
             self,

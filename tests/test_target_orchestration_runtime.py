@@ -152,8 +152,8 @@ def test_dependency_failure_blocks_only_downstream_and_preserves_independent_suc
         "product.canonical_model",
     )
     blocked = _item(
-        "install-1", "product_technical", ControlMode.DELEGATED,
-        "installation.compatibility", dependencies=("product-1",),
+        "product-answer-1", "product_technical", ControlMode.DELEGATED,
+        "knowledge.active_source", dependencies=("product-1",),
     )
     refund = _item(
         "refund-1", "billing_refund", ControlMode.DELEGATED, "refund.current_state",
@@ -172,7 +172,7 @@ def test_dependency_failure_blocks_only_downstream_and_preserves_independent_suc
 
     by_id = {item.work_item_id: item for item in board.results}
     assert by_id["product-1"].status is AgentResultStatus.RETRYABLE_FAILURE
-    assert by_id["install-1"].status is AgentResultStatus.BLOCKED
+    assert by_id["product-answer-1"].status is AgentResultStatus.BLOCKED
     assert by_id["refund-1"].status is AgentResultStatus.SUCCEEDED
     assert board.partial_delivery_allowed is True
 
@@ -228,4 +228,3 @@ def test_result_board_rejects_cross_owner_result_and_fact_conflict():
     )
     assert board.conflict_keys == ("subject:refund-1:refund.current_state",)
     assert board.partial_delivery_allowed is False
-

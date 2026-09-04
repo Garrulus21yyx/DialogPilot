@@ -65,6 +65,9 @@ class ChatCommand:
     asset_ids: tuple[str, ...] = ()
     approval_id: str | None = None
     approval_decision: bool | None = None
+    interaction_id: str | None = None
+    interaction_version: int | None = None
+    interaction_values: tuple[tuple[str, str, object], ...] = ()
 
 
 @dataclass(frozen=True)

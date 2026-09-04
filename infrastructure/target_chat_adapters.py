@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 from datetime import datetime, timezone
 
 from application.admission_contract import (
@@ -12,7 +13,11 @@ from application.admission_contract import (
 from application.chat_application import ChatCommand
 from application.inbound_admission import NewInvocationInbound
 from application.delivery_contract import ConnectorCapability
-from application.publication import InteractionRequestCommand, PublicationPolicy
+from application.publication import (
+    InteractionRequestCommand,
+    ProjectionDisposition,
+    PublicationPolicy,
+)
 from application.target_chat_application import (
     PublishedTargetResponse,
     TargetAdmission,
@@ -46,6 +51,14 @@ class PostgresTargetAdmission:
                         "approved" if command.approval_decision is True
                         else "declined" if command.approval_decision is False
                         else "none"
+                    ),
+                    "interaction_id": command.interaction_id or "",
+                    "interaction_version": str(command.interaction_version or ""),
+                    "interaction_values": json.dumps(
+                        command.interaction_values,
+                        ensure_ascii=False,
+                        sort_keys=True,
+                        separators=(",", ":"),
                     ),
                 },
                 created_at,
@@ -87,7 +100,7 @@ class PostgresTargetPublication:
         with self._delivery.pool.transaction() as connection:
             row = connection.execute("""
                 SELECT publication_id, signal_id, signal_version,
-                       reconcile_deadline
+                       reconcile_deadline, payload
                 FROM dialogpilot_app.response_deliveries
                 WHERE invocation_key=%s AND user_id=%s
                   AND publication_kind='interaction_request'
@@ -96,8 +109,12 @@ class PostgresTargetPublication:
         if row is None:
             return None
         from application.chat_application import NeedsInput
+        payload = dict(row[4] or {})
+        kind = str(dict(payload.get("resume_schema") or {}).get(
+            "interaction_kind", "APPROVAL",
+        ))
         return NeedsInput(
-            str(identity.workflow_run_id), str(row[1]), "APPROVAL",
+            str(identity.workflow_run_id), str(row[1]), kind,
             row[3].isoformat(), str(row[0]),
         )
 
@@ -128,6 +145,11 @@ class PostgresTargetPublication:
                     1,
                     "http-client-approval-v1",
                     expires_at,
+                ),
+                (
+                    ProjectionDisposition.CLARIFICATION
+                    if resume_schema.get("interaction_kind") == "FIELDS"
+                    else ProjectionDisposition.APPROVAL
                 ),
             )
         )

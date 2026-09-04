@@ -1,8 +1,22 @@
 import asyncio
 import inspect
+from datetime import datetime, timezone
 from types import SimpleNamespace
 
-from application.chat_application import ChatCommand, Completed, Failed
+from application.agent_result import (
+    AgentResult,
+    AgentResultStatus,
+    FactRecord,
+    FactSourceKind,
+    MissingInputSpec,
+)
+from application.chat_application import (
+    ChatCommand,
+    Completed,
+    Conflict,
+    Failed,
+    NeedsInput,
+)
 from application.conversation_state import InMemoryConversationStateStore
 from application.default_capability_registry import build_default_capability_registry
 from application.orchestration_runtime import OrchestrationRuntime
@@ -30,7 +44,14 @@ class _Admission:
 
     def admit(self, command, identity, *, bundle_version):
         key = str(identity.invocation_key)
-        fingerprint = (command.message, command.asset_ids, bundle_version)
+        fingerprint = (
+            command.message,
+            command.asset_ids,
+            command.interaction_id,
+            command.interaction_version,
+            command.interaction_values,
+            bundle_version,
+        )
         existing = self.records.get(key)
         if existing is None:
             self.records[key] = fingerprint
@@ -70,6 +91,70 @@ class _Publication:
         })
         self.responses[key] = Completed(published.response_id, body)
         return published
+
+    def publish_interaction(
+        self,
+        identity,
+        *,
+        signal_id,
+        signal_version,
+        challenge,
+        resume_schema,
+        expires_at,
+    ):
+        key = str(identity.invocation_key)
+        published = PublishedTargetResponse(f"interaction:{key}", 1, "selected")
+        self.responses[key] = NeedsInput(
+            str(identity.workflow_run_id),
+            signal_id,
+            str(resume_schema.get("interaction_kind", "APPROVAL")),
+            expires_at,
+            published.response_id,
+        )
+        return published
+
+
+class _MissingThenReadExecutor:
+    def __init__(self):
+        self.calls = []
+
+    async def __call__(self, context):
+        item = context.work_item
+        arguments = {argument.name: argument.value for argument in item.arguments}
+        self.calls.append(arguments)
+        if "verification_reference" not in arguments:
+            return AgentResult(
+                item.work_item_id,
+                item.owner_agent,
+                AgentResultStatus.NEEDS_USER_INPUT,
+                "VERIFICATION_REFERENCE_REQUIRED",
+                "missing-read-test-v1",
+                missing_inputs=(MissingInputSpec(
+                    "verification_reference",
+                    item.work_item_id,
+                    "VERIFICATION_REFERENCE_REQUIRED",
+                    "string",
+                    "请提供订单核验信息。",
+                ),),
+            )
+        return AgentResult(
+            item.work_item_id,
+            item.owner_agent,
+            AgentResultStatus.SUCCEEDED,
+            "ORDER_READ",
+            "missing-read-test-v1",
+            facts=(FactRecord(
+                "order:DP1234",
+                "order.current_state",
+                '{"status":"SHIPPED"}',
+                FactSourceKind.VERIFIED_STATE,
+                "receipt:order-read",
+                "order_lookup",
+                "order-view-v1",
+                datetime.now(timezone.utc),
+            ),),
+            candidate_response="订单已发货。",
+        )
 
 
 class _ToolManager:
@@ -164,6 +249,66 @@ def test_target_chat_unclear_request_uses_zero_tool_clarification():
     assert isinstance(outcome, Completed)
     assert outcome.response["routing_disposition"] == "clarify"
     assert tools.calls == []
+
+
+def test_target_chat_publishes_one_typed_interaction_and_resumes_exact_work_item():
+    registry = build_default_capability_registry("tenant-a")
+    executor = _MissingThenReadExecutor()
+    state_store = InMemoryConversationStateStore()
+    application = TargetChatApplication(
+        manager=TargetConversationManager(
+            state_store=state_store,
+            registry=registry,
+            understanding=BoundedTargetUnderstanding(),
+            orchestration=OrchestrationRuntime(
+                direct_executor=executor,
+                domain_workers={},
+            ),
+        ),
+        admission=_Admission(),
+        publication=_Publication(),
+        bundle_version=registry.bundle_version,
+        identity_factory=IdentityFactory(lambda: "generated"),
+    )
+
+    first = asyncio.run(application.handle(ChatCommand(
+        "查询订单 DP1234", "user-a", "tenant-a", "conversation-input",
+        "request-input-1",
+    )))
+
+    assert isinstance(first, NeedsInput)
+    assert first.kind == "FIELDS"
+    state = state_store.load(
+        "tenant-a", "user-a", "conversation-input",
+    )
+    pending = state.pending_interaction
+    assert pending is not None
+    target = pending.requested_fields[0].target_work_item_id
+
+    stale = asyncio.run(application.handle(ChatCommand(
+        "补充核验信息", "user-a", "tenant-a", "conversation-input",
+        "request-input-stale",
+        interaction_id="another-interaction",
+        interaction_version=pending.version,
+        interaction_values=((target, "verification_reference", "REF-9"),),
+    )))
+    assert isinstance(stale, Conflict)
+    assert stale.code == "INTERACTION_SIGNAL_CONFLICT"
+
+    second = asyncio.run(application.handle(ChatCommand(
+        "补充核验信息", "user-a", "tenant-a", "conversation-input",
+        "request-input-2",
+        interaction_id=pending.interaction_id,
+        interaction_version=pending.version,
+        interaction_values=((target, "verification_reference", "REF-9"),),
+    )))
+
+    assert isinstance(second, Completed)
+    assert "订单已发货" in second.response["response"]
+    assert executor.calls == [
+        {"order_id": "DP1234"},
+        {"order_id": "DP1234", "verification_reference": "REF-9"},
+    ]
 
 
 def test_target_chat_preserves_semantic_provider_failure_as_retryable_failure():

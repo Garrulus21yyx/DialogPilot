@@ -313,34 +313,51 @@ def test_business_write_requires_workflow_and_all_safety_bindings():
 
 def test_agent_result_separates_missing_user_input_from_external_evidence():
     missing = AgentResult(
-        "installation-1",
+        "product-question-1",
         "product_technical",
         AgentResultStatus.NEEDS_USER_INPUT,
-        "WALL_MATERIAL_REQUIRED",
+        "PRODUCT_REFERENCE_REQUIRED",
         "product-agent-v1",
         missing_inputs=(MissingInputSpec(
-            "wall_material",
-            "installation-1",
-            "WALL_MATERIAL_REQUIRED",
-            "concrete | brick | drywall | unknown",
-            "What is the wall material?",
+            "product_reference",
+            "product-question-1",
+            "PRODUCT_REFERENCE_REQUIRED",
+            "string",
+            "Which product are you asking about?",
         ),),
     )
     evidence = AgentResult(
-        "installation-1",
+        "product-question-1",
         "product_technical",
         AgentResultStatus.NEEDS_EVIDENCE,
         "PRODUCT_MODEL_REQUIRED",
         "product-agent-v1",
         requested_evidence=(EvidenceRequest(
             "product.canonical_model",
-            "installation-1",
+            "product-question-1",
             ("product_catalog", "media_perception"),
         ),),
     )
 
     assert missing.missing_inputs and not missing.requested_evidence
     assert evidence.requested_evidence and not evidence.missing_inputs
+
+    with pytest.raises(AgentResultContractError, match="at least one required"):
+        AgentResult(
+            "product-question-2",
+            "product_technical",
+            AgentResultStatus.NEEDS_USER_INPUT,
+            "OPTIONAL_DETAIL_ONLY",
+            "product-agent-v1",
+            missing_inputs=(MissingInputSpec(
+                "optional_detail",
+                "product-question-2",
+                "OPTIONAL_DETAIL_ONLY",
+                "string",
+                "You may add more detail.",
+                required=False,
+            ),),
+        )
 
 
 def test_agent_result_rejects_retry_or_success_state_contradictions():

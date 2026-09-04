@@ -958,6 +958,12 @@ async def get_persisted_trace(
 
 
 # ── 请求/响应模型 ─────────────────────────────────────────────────────────────
+class InteractionValueInput(BaseModel):
+    target_work_item_id: str = Field(min_length=1, max_length=200)
+    field_name: str = Field(min_length=1, max_length=120)
+    value: Any
+
+
 class ChatRequest(BaseModel):
     """聊天入口的外部请求合同。"""
     message:     str = Field(min_length=1, max_length=10000)
@@ -967,6 +973,12 @@ class ChatRequest(BaseModel):
     asset_ids: List[str] = Field(default_factory=list, max_length=5)
     approval_id: Optional[str] = Field(default=None, min_length=1, max_length=200)
     approved: Optional[bool] = None
+    interaction_id: Optional[str] = Field(default=None, min_length=1, max_length=200)
+    interaction_version: Optional[int] = Field(default=None, ge=1)
+    interaction_values: List[InteractionValueInput] = Field(
+        default_factory=list,
+        max_length=20,
+    )
 
 
 class ChatResponse(BaseModel):
@@ -1953,6 +1965,12 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
         asset_ids=tuple(req.asset_ids),
         approval_id=req.approval_id,
         approval_decision=req.approved,
+        interaction_id=req.interaction_id,
+        interaction_version=req.interaction_version,
+        interaction_values=tuple(
+            (item.target_work_item_id, item.field_name, item.value)
+            for item in req.interaction_values
+        ),
     )
     outcome = await _chat_application().handle(command)
     if isinstance(outcome, Completed):

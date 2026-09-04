@@ -14,7 +14,7 @@ from application.turn_planning import (
     ProposalDisposition,
     TurnProposal,
 )
-from application.work_item import ArgumentValue
+from application.work_item import ArgumentValue, ControlMode
 
 
 _IDENTIFIER = re.compile(r"\b[A-Za-z]{1,12}[-_]?\d{2,64}\b")
@@ -31,6 +31,52 @@ class BoundedTargetUnderstanding:
     version = "bounded-target-understanding-v1"
 
     async def __call__(self, observations, state, deterministic, registry):
+        if (
+            deterministic.kind is ResolutionKind.FILL_PENDING_INPUT
+            and deterministic.resumed_work_items
+        ):
+            commands = []
+            for index, item in enumerate(deterministic.resumed_work_items, start=1):
+                if item.control_mode is ControlMode.WORKFLOW:
+                    raise ValueError("business workflows use their approval/resume contract")
+                if item.control_mode is ControlMode.DIRECT:
+                    if len(item.allowed_tools) != 1:
+                        raise ValueError("resumed direct work must bind one tool")
+                    commands.append(CommandProposal(
+                        f"resume-input-{index}",
+                        CommandKind.DIRECT_TOOL,
+                        item.owner_agent,
+                        item.objective,
+                        item.arguments,
+                        item.requirement_ids,
+                        tool_id=item.allowed_tools[0],
+                    ))
+                    continue
+                if item.skill_hint is not None:
+                    commands.append(CommandProposal(
+                        f"resume-input-{index}",
+                        CommandKind.RUN_SKILL,
+                        item.owner_agent,
+                        item.objective,
+                        item.arguments,
+                        item.requirement_ids,
+                        skill_id=item.skill_hint,
+                    ))
+                else:
+                    commands.append(CommandProposal(
+                        f"resume-input-{index}",
+                        CommandKind.DELEGATE_TASK,
+                        item.owner_agent,
+                        item.objective,
+                        item.arguments,
+                        item.requirement_ids,
+                        candidate_skill_ids=item.allowed_skills,
+                    ))
+            return TurnProposal(
+                ProposalDisposition.RESOLVED,
+                tuple(commands),
+                "PENDING_INPUT_RESUMED",
+            )
         if deterministic.kind in {
             ResolutionKind.APPROVAL_DECISION,
             ResolutionKind.APPROVAL_EXPIRED,
