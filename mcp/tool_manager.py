@@ -24,7 +24,7 @@ from contextlib import nullcontext
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Callable, Deque, Dict, List, Optional, Tuple
+from typing import Any, Callable, Collection, Deque, Dict, List, Optional, Tuple
 
 from anthropic import AsyncAnthropic
 
@@ -357,19 +357,40 @@ class MCPToolManager:
         """幂等移除工具定义。"""
         self._tools.pop(name, None)
 
-    def tools_for_agent(self, agent_type: str) -> List[Tool]:
-        """只返回 Agent allowlist 中可发现的工具；隐藏即第一道权限边界。"""
+    def tools_for_agent(
+        self,
+        agent_type: str,
+        *,
+        allowed_tool_ids: Optional[Collection[str]] = None,
+    ) -> List[Tool]:
+        """返回 Agent 与当前 WorkItem 能力包络的交集。
+
+        ``allowed_tool_ids`` 是宿主编译出的可信约束，不属于模型输入。显式
+        包络含未知或 Agent 无权使用的工具时直接拒绝，避免配置错误被静默裁剪。
+        """
         normalized = str(getattr(agent_type, "value", agent_type))
-        return [
+        agent_tools = [
             tool for tool in self._tools.values()
             if "*" in tool.allowed_agents or normalized in tool.allowed_agents
         ]
+        if allowed_tool_ids is None:
+            return agent_tools
+        requested = tuple(dict.fromkeys(map(str, allowed_tool_ids)))
+        agent_names = {tool.name for tool in agent_tools}
+        invalid = sorted(set(requested) - agent_names)
+        if invalid:
+            raise ValueError(
+                f"work-item tool envelope is invalid for {normalized}: {invalid}"
+            )
+        requested_set = set(requested)
+        return [tool for tool in agent_tools if tool.name in requested_set]
 
     def anthropic_tools_for_agent(
         self,
         agent_type: str,
         *,
         description_overrides: Optional[Dict[str, str]] = None,
+        allowed_tool_ids: Optional[Collection[str]] = None,
     ) -> List[Dict[str, Any]]:
         """投影允许工具；Bundle 只能覆盖描述，不能改变 schema 或权限。"""
         overrides = dict(description_overrides or {})
@@ -377,7 +398,9 @@ class MCPToolManager:
             "name": tool.name,
             "description": str(overrides.get(tool.name) or tool.description),
             "input_schema": tool.schema,
-        } for tool in self.tools_for_agent(agent_type)]
+        } for tool in self.tools_for_agent(
+            agent_type, allowed_tool_ids=allowed_tool_ids,
+        )]
 
     def registry_fingerprint(self, description_overrides: Optional[Dict[str, str]] = None) -> str:
         """哈希实际模型可见合同及安全属性，不包含 handler 和运行统计。"""
@@ -433,6 +456,7 @@ class MCPToolManager:
         context: Optional[Dict[str, Any]] = None,
         approved: bool = False,
         call_id: Optional[str] = None,
+        allowed_tool_ids: Optional[Collection[str]] = None,
     ) -> ToolResult:
         """在身份、审批、审计和 Trace 边界内执行一次 Agent 工具调用。
 
@@ -464,6 +488,22 @@ class MCPToolManager:
             return self._finish_controlled_call(
                 result=ToolResult(False, None, name, error="工具不存在"),
                 tool=None,
+                agent_type=normalized_agent,
+                params=params,
+                context=context,
+                trace_id=trace_id,
+                call_id=resolved_call_id,
+                request_id=request_id,
+                started_iso=started_iso,
+                started=started,
+                status=ToolCallStatus.DENIED,
+                approved=False,
+            )
+
+        if allowed_tool_ids is not None and name not in set(map(str, allowed_tool_ids)):
+            return self._finish_controlled_call(
+                result=ToolResult(False, None, name, error="工具不在当前 WorkItem 能力包络内"),
+                tool=tool,
                 agent_type=normalized_agent,
                 params=params,
                 context=context,

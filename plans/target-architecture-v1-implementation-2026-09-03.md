@@ -544,3 +544,24 @@ continuation.
   public ASGI/PostgreSQL behavior and affected resume tests were migrated together.
   The expanded Target and affected-consumer suite passed 186 tests with PostgreSQL
   enabled.
+
+## Stage 26 verification notes
+
+- LangGraph remains the parent scheduler. A new thin Worker adapter invokes the
+  existing `BaseAgent`/`ReActExecutionEngine` selected from `AgentOrchestrator` only
+  for `DELEGATED` WorkItems; direct Tool and governed Flow paths remain unchanged.
+- `MCPToolManager` now owns the intersection between an Agent allowlist and the
+  current WorkItem Tool envelope at both discovery and execution. Invalid envelopes
+  fail closed, and a model-generated call outside the envelope is denied even if the
+  Agent normally owns that Tool.
+- ReAct returns internal structured Tool results alongside receipts. The adapter
+  creates facts only from successful Tool authority metadata matching a declared
+  requirement; Agent prose cannot manufacture an authoritative business fact.
+- A pinned composite Skill executes through its registered Skill executor without a
+  second Agent planning call. Unpinned delegated work retains the existing bounded
+  ReAct loop and its dynamic ordering of permitted read Tools.
+- Focused ReAct, Tool security, planning, LangGraph, Product and Target HTTP suites
+  pass 71 tests. The full repository run reached
+  1,191 passes; its eight failures are pre-existing cross-consumer inconsistencies in
+  the separate uncommitted RAG policy work and stale legacy account-authority tests,
+  not failures on this Stage 26 causal surface.

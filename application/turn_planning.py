@@ -206,7 +206,11 @@ class RoutePolicy:
             skill_ids = (
                 (command.skill_id,)
                 if command.kind is CommandKind.RUN_SKILL and command.skill_id
-                else command.candidate_skill_ids
+                else (
+                    command.candidate_skill_ids
+                    if command.candidate_skill_ids
+                    else agent.allowed_skill_ids
+                )
             )
             if command.kind is CommandKind.RUN_SKILL and not skill_ids:
                 raise TurnPlanningError("RUN_SKILL requires a skill")
@@ -218,11 +222,17 @@ class RoutePolicy:
                 for requirement in requirements
             ):
                 raise TurnPlanningError("business writes must use a workflow command")
-            candidate_tools = tuple(dict.fromkeys(
-                tool
-                for skill in skills
-                for tool in skill.allowed_tool_ids
-            )) or agent.allowed_tool_ids
+            candidate_tools = tuple(dict.fromkeys((
+                *(
+                    agent.allowed_tool_ids
+                    if command.kind is CommandKind.DELEGATE_TASK else ()
+                ),
+                *(
+                    tool
+                    for skill in skills
+                    for tool in skill.allowed_tool_ids
+                ),
+            )))
             tools = tuple(
                 tool_id for tool_id in candidate_tools
                 if registry.tool(tool_id).effect is CapabilityEffect.READ

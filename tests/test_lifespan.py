@@ -55,6 +55,9 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
         def set_tool_manager(self, _tool_manager):
             captured["tool_manager_wired"] = True
 
+        def worker_for(self, agent_type):
+            return SimpleNamespace(agent_type=agent_type)
+
         def get_stats(self):
             return {}
 

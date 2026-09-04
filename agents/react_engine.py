@@ -52,6 +52,7 @@ class ReActResult:
     run_id: str = ""
     pending_approval_call_ids: Tuple[str, ...] = field(default_factory=tuple)
     tool_receipts: Tuple[ToolExecutionReceipt, ...] = field(default_factory=tuple)
+    tool_results: Tuple[ToolResult, ...] = field(default_factory=tuple)
 
     @property
     def success(self) -> bool:
@@ -132,12 +133,21 @@ class ReActExecutionEngine:
         messages: Sequence[Dict[str, Any]],
         agent_type: str,
         execution_context: Optional[Dict[str, Any]] = None,
+        allowed_tool_ids: Optional[Sequence[str]] = None,
     ) -> ReActResult:
         """创建稳定 Run 并循环调用模型/工具，每个可恢复边界均落盘。"""
         execution_context = dict(execution_context or {})
+        # This constraint is accepted only through the dedicated host argument;
+        # never trust a same-named value carried in generic execution context.
+        execution_context.pop("allowed_tool_ids", None)
+        trusted_allowed_tools = (
+            tuple(dict.fromkeys(map(str, allowed_tool_ids)))
+            if allowed_tool_ids is not None else None
+        )
         tools = self._tool_manager.anthropic_tools_for_agent(
             agent_type,
             description_overrides=dict(execution_context.get("tool_description_overrides") or {}),
+            allowed_tool_ids=trusted_allowed_tools,
         )
         if not tools:
             raise ValueError(f"no tools are available for agent {agent_type}")
@@ -145,6 +155,8 @@ class ReActExecutionEngine:
         execution_context.setdefault("trace_id", current_trace_id())
         run_id = str(execution_context.get("run_id") or f"react_{uuid.uuid4().hex}")
         execution_context["run_id"] = run_id
+        if trusted_allowed_tools is not None:
+            execution_context["allowed_tool_ids"] = list(trusted_allowed_tools)
         checkpoint_version: Optional[int] = None
         if self._run_store is not None:
             checkpoint = self._run_store.create(
@@ -173,6 +185,7 @@ class ReActExecutionEngine:
             saw_blocked=False,
             saw_tool_error=False,
             tool_receipts=[],
+            tool_results=[],
             run_id=run_id,
             checkpoint_version=checkpoint_version,
         )
@@ -315,6 +328,7 @@ class ReActExecutionEngine:
         tools = self._tool_manager.anthropic_tools_for_agent(
             checkpoint.agent_type,
             description_overrides=dict(execution_context.get("tool_description_overrides") or {}),
+            allowed_tool_ids=execution_context.get("allowed_tool_ids"),
         )
         return await self._continue(
             system=checkpoint.system,
@@ -328,6 +342,7 @@ class ReActExecutionEngine:
             saw_blocked=saw_blocked,
             saw_tool_error=saw_tool_error,
             tool_receipts=tool_receipts,
+            tool_results=ordered_results,
             run_id=run_id,
             checkpoint_version=checkpoint.version,
         )
@@ -346,6 +361,7 @@ class ReActExecutionEngine:
         saw_blocked: bool,
         saw_tool_error: bool,
         tool_receipts: List[ToolExecutionReceipt],
+        tool_results: List[ToolResult],
         run_id: str,
         checkpoint_version: Optional[int],
     ) -> ReActResult:
@@ -400,6 +416,7 @@ class ReActExecutionEngine:
                         reason="model returned neither text nor tool calls",
                             run_id=run_id,
                             tool_receipts=tuple(tool_receipts),
+                            tool_results=tuple(tool_results),
                         )
                     else:
                         status = (
@@ -421,6 +438,7 @@ class ReActExecutionEngine:
                             ),
                             run_id=run_id,
                             tool_receipts=tuple(tool_receipts),
+                            tool_results=tuple(tool_results),
                         )
                     self._persist_terminal(result, tuple(working_messages), current_version)
                     return result
@@ -449,6 +467,7 @@ class ReActExecutionEngine:
                 tool_receipts.extend(
                     ToolExecutionReceipt.from_result(result) for result in results
                 )
+                tool_results.extend(results)
                 for result in results:
                     if result.call_id not in tool_call_ids:
                         tool_call_ids.append(result.call_id)
@@ -499,6 +518,7 @@ class ReActExecutionEngine:
                             call.call_id for call in tool_calls if call.call_id in waiting_ids
                         ),
                         tool_receipts=tuple(tool_receipts),
+                        tool_results=tuple(tool_results),
                     )
                 saw_blocked = saw_blocked or any(
                     result.status == ToolCallStatus.DENIED.value for result in results
@@ -542,6 +562,7 @@ class ReActExecutionEngine:
                 reason=f"react exceeded max_steps={self._max_steps}",
                 run_id=run_id,
                 tool_receipts=tuple(tool_receipts),
+                tool_results=tuple(tool_results),
             )
             self._persist_terminal(result, tuple(working_messages), current_version)
             return result
@@ -555,6 +576,7 @@ class ReActExecutionEngine:
                     reason="react run was cancelled",
                     run_id=run_id,
                     tool_receipts=tuple(tool_receipts),
+                    tool_results=tuple(tool_results),
                 )
                 try:
                     self._run_store.checkpoint(
@@ -589,6 +611,7 @@ class ReActExecutionEngine:
                 context=execution_context,
                 call_id=call.call_id,
                 approved=approved,
+                allowed_tool_ids=execution_context.get("allowed_tool_ids"),
             )
 
         if self._tool_manager.calls_are_parallel_safe([call.name for call in calls]):

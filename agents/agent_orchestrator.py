@@ -174,6 +174,7 @@ class AgentResponse:
     authority_conflicts: List[str] = field(default_factory=list)
     terminal_outcome_status: str = ""
     tool_receipts: tuple[ToolExecutionReceipt, ...] = ()
+    tool_results: tuple[Any, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -223,6 +224,8 @@ class Request:
     domain_decision: Optional[DomainDecision] = None
     pinned_execution_refs: Dict[str, str] = field(default_factory=dict)
     media_context_refs: tuple[str, ...] = ()
+    # 由 TurnPlanCompiler 生成的可信 WorkItem 能力包络；不进入模型参数。
+    allowed_tool_ids: tuple[str, ...] | None = None
 
 
 class PlanningDisposition(str, Enum):
@@ -360,6 +363,7 @@ class BaseAgent:
                 react_run_id = model_result.run_id
                 pending_approval_call_ids = list(model_result.pending_approval_call_ids)
                 tool_receipts = model_result.tool_receipts
+                tool_results = model_result.tool_results
                 react_error = "" if completed else model_result.reason
             else:
                 content = model_result
@@ -370,6 +374,7 @@ class BaseAgent:
                 react_run_id = ""
                 pending_approval_call_ids = []
                 tool_receipts = ()
+                tool_results = ()
                 react_error = ""
             ms = (time.monotonic() - t0) * 1000
             if completed and record_stats:
@@ -394,6 +399,7 @@ class BaseAgent:
                 react_run_id=react_run_id,
                 pending_approval_call_ids=pending_approval_call_ids,
                 tool_receipts=tool_receipts,
+                tool_results=tool_results,
                 evidence_receipt_refs=[
                     item.receipt_id for item in tool_receipts if item.receipt_id
                 ],
@@ -467,6 +473,7 @@ class BaseAgent:
                     "execution_mode": req.execution_mode,
                     "task_input": req.message,
                 },
+                allowed_tool_ids=req.allowed_tool_ids,
             )
 
         resp = await create_message(self._client, self._model_profile, ModelRole.WORKER,
@@ -733,6 +740,18 @@ class AgentOrchestrator:
         for agents in self._pool.values():
             for agent in agents:
                 agent.set_tool_manager(tool_manager)
+
+    def worker_for(self, agent_type: AgentType) -> BaseAgent:
+        """Return the existing domain worker selected by the pool owner.
+
+        Target LangGraph uses this as an execution adapter only; routing remains
+        owned by its compiled WorkPlan and is not delegated back to this legacy
+        orchestrator.
+        """
+        worker = self._best_agent(agent_type)
+        if worker is None:
+            raise ValueError(f"no worker is available for {agent_type.value}")
+        return worker
 
     async def recognize_intent(
         self,

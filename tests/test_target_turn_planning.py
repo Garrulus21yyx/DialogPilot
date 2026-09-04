@@ -196,6 +196,7 @@ def test_multi_domain_is_projected_only_from_delegated_work_plan():
     assert plan.route.risk is CapabilityRisk.MEDIUM
     assert [len(wave) for wave in plan.work.execution_waves()] == [1, 1]
     assert plan.work.items[1].dependencies == (plan.work.items[0].work_item_id,)
+    assert plan.work.items[1].allowed_tools == ("order_lookup",)
 
 
 def test_mixed_direct_and_delegated_work_is_not_mislabeled_multi_agent():

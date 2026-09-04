@@ -47,6 +47,45 @@ def test_tool_discovery_and_execution_share_agent_allowlist():
     assert runtime.audit_records()[0].status is ToolCallStatus.DENIED
 
 
+def test_work_item_tool_envelope_limits_discovery_and_execution():
+    """Agent 领域权限不能扩大本次 WorkItem 编译出的能力包络。"""
+    runtime = manager()
+    called = []
+
+    async def handler(_params, _context):
+        called.append(True)
+        return {"ok": True}
+
+    for name in ("order_lookup", "order_cancel"):
+        runtime.register(Tool(
+            name=name,
+            description=name,
+            handler=handler,
+            schema={"type": "object", "properties": {}},
+            allowed_agents=("general",),
+        ))
+
+    visible = runtime.anthropic_tools_for_agent(
+        "general", allowed_tool_ids=("order_lookup",),
+    )
+    denied = asyncio.run(runtime.execute_for_agent(
+        "order_cancel", {}, agent_type="general",
+        allowed_tool_ids=("order_lookup",),
+    ))
+
+    assert [tool["name"] for tool in visible] == ["order_lookup"]
+    assert denied.status == ToolCallStatus.DENIED.value
+    assert called == []
+
+
+def test_invalid_work_item_tool_envelope_fails_closed():
+    runtime = manager()
+    with pytest.raises(ValueError, match="tool envelope is invalid"):
+        runtime.anthropic_tools_for_agent(
+            "general", allowed_tool_ids=("not_registered",),
+        )
+
+
 def test_tool_execution_derives_operation_key_from_application_invocation():
     runtime = manager()
     observed_context = {}

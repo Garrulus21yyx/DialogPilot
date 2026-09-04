@@ -107,6 +107,9 @@ def test_react_executes_read_tool_and_pairs_result_before_final_answer():
         "effect_status": "none",
         "receipt_id": "",
     }]
+    assert result.tool_results[0].data == {
+        "order_id": "A123", "status": "refunding",
+    }
     tool_results = client.calls[1]["messages"][-1]["content"]
     assert tool_results[0]["tool_use_id"] == "call-1"
     assert tool_results[0]["is_error"] is False
@@ -120,6 +123,29 @@ def test_react_executes_read_tool_and_pairs_result_before_final_answer():
     assert [span.kind for span in spans].count("agent") == 2
     assert [span.kind for span in spans].count("llm") == 2
     assert [span.kind for span in spans].count("tool") == 1
+
+
+def test_react_discovers_only_tools_in_current_work_item_envelope():
+    tools = runtime()
+    for name in ("order_lookup", "order_cancel"):
+        tools.register(Tool(
+            name=name,
+            description=name,
+            handler=lambda *_args: {"ok": True},
+            schema={"type": "object", "properties": {}},
+            allowed_agents=("general",),
+        ))
+    client = ScriptedClient([[text("done")]])
+
+    result = asyncio.run(engine(client, tools).run(
+        system="order worker",
+        messages=[{"role": "user", "content": "inspect order"}],
+        agent_type="general",
+        allowed_tool_ids=("order_lookup",),
+    ))
+
+    assert result.status is ReActStatus.COMPLETED
+    assert [tool["name"] for tool in client.calls[0]["tools"]] == ["order_lookup"]
 
 
 def test_react_high_risk_call_pauses_before_second_model_step_without_side_effect():

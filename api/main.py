@@ -216,6 +216,7 @@ async def lifespan(app: FastAPI):
     print(BANNER, flush=True)
 
     from agents.agent_orchestrator import AgentOrchestrator
+    from agents.orchestration_contracts import AgentType
     from agents.run_store import RunStore
     from core.intent_recognizer import IntentRecognizer
     from evaluation.evaluator import EndToEndEvaluator
@@ -604,6 +605,7 @@ async def lifespan(app: FastAPI):
     from application.default_capability_registry import (
         build_default_capability_registry,
     )
+    from infrastructure.target_agent_execution import TargetAgentExecutor
     from application.orchestration_runtime import OrchestrationRuntime
     from application.target_chat_application import TargetChatApplication
     from application.target_conversation_manager import TargetConversationManager
@@ -634,6 +636,19 @@ async def lifespan(app: FastAPI):
     target_tool_executor = TargetToolExecutor(_tool_manager)
     target_product_executor = TargetProductExecutor(_tool_manager)
     target_workflow_executor = TargetWorkflowExecutor(_postgres_pool, _tool_manager)
+    target_agent_executor = TargetAgentExecutor(
+        {
+            agent_type: _orchestrator.worker_for(agent_type)
+            for agent_type in (
+                AgentType.GENERAL,
+                AgentType.TECHNICAL,
+                AgentType.BILLING,
+                AgentType.ACCOUNT_SECURITY,
+                AgentType.ESCALATION,
+            )
+        },
+        skill_executors={"product_identification": target_product_executor},
+    )
     target_evidence_resolver = TargetEvidenceResolver(
         target_registry,
         target_tool_executor,
@@ -641,12 +656,12 @@ async def lifespan(app: FastAPI):
     target_orchestration = OrchestrationRuntime(
         direct_executor=target_tool_executor,
         domain_workers={
-            "general": target_tool_executor,
-            "product_technical": target_product_executor,
-            "order_logistics": target_tool_executor,
-            "billing_refund": target_tool_executor,
-            "account_security": target_tool_executor,
-            "human_service": target_tool_executor,
+            "general": target_agent_executor,
+            "product_technical": target_agent_executor,
+            "order_logistics": target_agent_executor,
+            "billing_refund": target_agent_executor,
+            "account_security": target_agent_executor,
+            "human_service": target_agent_executor,
         },
         workflow_executor=target_workflow_executor,
         evidence_resolver=target_evidence_resolver,
