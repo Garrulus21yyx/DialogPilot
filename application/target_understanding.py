@@ -142,6 +142,9 @@ class BoundedTargetUnderstanding:
                 "identify this", "identify the product",
             )
         )
+        compound_product_signal = product_identification_signal and any(
+            token in lowered for token in ("并且", "并根据", "同时", "然后", "以及")
+        )
         refund_signal = any(
             token in lowered for token in ("退款", "退掉", "退货", "refund")
         )
@@ -326,7 +329,7 @@ class BoundedTargetUnderstanding:
                 ("order.current_state",),
                 tool_id="order_lookup",
             ))
-        if product_identification_signal and asset_id:
+        if product_identification_signal and asset_id and not compound_product_signal:
             commands.append(CommandProposal(
                 "product-identification",
                 CommandKind.RUN_SKILL,

@@ -647,6 +647,7 @@ async def lifespan(app: FastAPI):
                 AgentType.ESCALATION,
             )
         },
+        registry=target_registry,
         skill_executors={"product_identification": target_product_executor},
     )
     target_evidence_resolver = TargetEvidenceResolver(

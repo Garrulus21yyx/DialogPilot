@@ -565,3 +565,24 @@ continuation.
   1,191 passes; its eight failures are pre-existing cross-consumer inconsistencies in
   the separate uncommitted RAG policy work and stale legacy account-authority tests,
   not failures on this Stage 26 causal surface.
+
+## Stage 27 verification notes
+
+- The existing ReAct loop now accepts host-provided composite capabilities beside
+  atomic Tool schemas. These capabilities are read-only and invocation-scoped; they
+  do not enter Tool Registry identity, do not survive as hidden workflow state, and
+  cannot replace a high-risk Flow.
+- `TargetAgentExecutor` projects only Registry-allowed Skills that have a concrete
+  executor. The Agent may choose one dynamically, while a `RUN_SKILL` fast path still
+  invokes a pinned Skill directly without spending another model turn.
+- Composite Skill arguments are validated against the Registry contract. The Skill
+  receives only its own Tool subset, and its internal Tool calls continue through
+  `MCPToolManager`, preserving schema, identity, audit and authority enforcement.
+- A general compound Product request now defers to structured understanding and
+  compiles one `DELEGATED` Product WorkItem. It is not split into category-specific
+  Skills and does not trigger Multi-Agent fan-out merely because it needs multiple
+  capabilities.
+- An integration test drives the real `TechnicalAgent` and `ReActExecutionEngine`
+  through dynamic `product_identification` Skill selection, then an atomic Knowledge
+  Tool, and verifies both authoritative requirements in one `AgentResult`. The
+  expanded focused suite passes 90 tests with PostgreSQL-enabled HTTP coverage.

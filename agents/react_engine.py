@@ -11,7 +11,7 @@ import asyncio
 from dataclasses import dataclass, field
 from enum import Enum
 import uuid
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Sequence, Tuple
 
 from agents.run_store import RunStatus, RunStore, TERMINAL_RUN_STATUSES
 from core.tracing import TraceRecorder, current_trace_id
@@ -25,6 +25,7 @@ from agents.tool_result_context import (
 from mcp.tool_manager import (
     MCPToolManager,
     ToolCallStatus,
+    ToolEffectStatus,
     ToolExecutionReceipt,
     ToolResult,
 )
@@ -99,6 +100,20 @@ class ParsedToolCall:
     arguments: Dict[str, Any]
 
 
+@dataclass(frozen=True)
+class ReActCapability:
+    """Host-provided composite capability exposed beside atomic Tools.
+
+    The executor is not serialised into checkpoints. Target only exposes read-only
+    Skills here; persistent/high-risk work remains a parent Flow.
+    """
+
+    name: str
+    description: str
+    input_schema: Dict[str, Any]
+    execute: Callable[[Dict[str, Any], Dict[str, Any], str], Awaitable[ToolResult]]
+
+
 class ReActExecutionEngine:
     """Anthropic tool_use 协议上的有限循环执行器。"""
 
@@ -134,6 +149,7 @@ class ReActExecutionEngine:
         agent_type: str,
         execution_context: Optional[Dict[str, Any]] = None,
         allowed_tool_ids: Optional[Sequence[str]] = None,
+        additional_capabilities: Sequence[ReActCapability] = (),
     ) -> ReActResult:
         """创建稳定 Run 并循环调用模型/工具，每个可恢复边界均落盘。"""
         execution_context = dict(execution_context or {})
@@ -149,6 +165,12 @@ class ReActExecutionEngine:
             description_overrides=dict(execution_context.get("tool_description_overrides") or {}),
             allowed_tool_ids=trusted_allowed_tools,
         )
+        capability_by_name = self._capability_map(additional_capabilities, tools)
+        tools.extend({
+            "name": capability.name,
+            "description": capability.description,
+            "input_schema": capability.input_schema,
+        } for capability in capability_by_name.values())
         if not tools:
             raise ValueError(f"no tools are available for agent {agent_type}")
         working_messages = [dict(message) for message in messages]
@@ -186,6 +208,7 @@ class ReActExecutionEngine:
             saw_tool_error=False,
             tool_receipts=[],
             tool_results=[],
+            additional_capabilities=capability_by_name,
             run_id=run_id,
             checkpoint_version=checkpoint_version,
         )
@@ -343,6 +366,7 @@ class ReActExecutionEngine:
             saw_tool_error=saw_tool_error,
             tool_receipts=tool_receipts,
             tool_results=ordered_results,
+            additional_capabilities={},
             run_id=run_id,
             checkpoint_version=checkpoint.version,
         )
@@ -362,6 +386,7 @@ class ReActExecutionEngine:
         saw_tool_error: bool,
         tool_receipts: List[ToolExecutionReceipt],
         tool_results: List[ToolResult],
+        additional_capabilities: Dict[str, ReActCapability],
         run_id: str,
         checkpoint_version: Optional[int],
     ) -> ReActResult:
@@ -463,6 +488,7 @@ class ReActExecutionEngine:
                     tool_calls,
                     agent_type=agent_type,
                     execution_context=execution_context,
+                    additional_capabilities=additional_capabilities,
                 )
                 tool_receipts.extend(
                     ToolExecutionReceipt.from_result(result) for result in results
@@ -601,9 +627,18 @@ class ReActExecutionEngine:
         agent_type: str,
         execution_context: Dict[str, Any],
         approved: bool = False,
+        additional_capabilities: Optional[Dict[str, ReActCapability]] = None,
     ) -> List[ToolResult]:
         """只读批次可并行；任何潜在写操作都保持稳定串行顺序。"""
         async def execute(call: ParsedToolCall) -> ToolResult:
+            capability = (additional_capabilities or {}).get(call.name)
+            if capability is not None:
+                result = await capability.execute(
+                    call.arguments, execution_context, call.call_id,
+                )
+                if result.effect_status != ToolEffectStatus.NONE.value:
+                    raise ValueError("ReAct composite capabilities must be read-only")
+                return result
             return await self._tool_manager.execute_for_agent(
                 call.name,
                 call.arguments,
@@ -614,12 +649,31 @@ class ReActExecutionEngine:
                 allowed_tool_ids=execution_context.get("allowed_tool_ids"),
             )
 
-        if self._tool_manager.calls_are_parallel_safe([call.name for call in calls]):
+        if not any(
+            call.name in (additional_capabilities or {}) for call in calls
+        ) and self._tool_manager.calls_are_parallel_safe([call.name for call in calls]):
             return list(await asyncio.gather(*(execute(call) for call in calls)))
         results = []
         for call in calls:
             results.append(await execute(call))
         return results
+
+    @staticmethod
+    def _capability_map(
+        capabilities: Sequence[ReActCapability],
+        tool_schemas: Sequence[Dict[str, Any]],
+    ) -> Dict[str, ReActCapability]:
+        by_name: Dict[str, ReActCapability] = {}
+        tool_names = {str(item.get("name") or "") for item in tool_schemas}
+        for capability in capabilities:
+            if not capability.name.strip():
+                raise ValueError("ReAct capability name is required")
+            if capability.name in tool_names or capability.name in by_name:
+                raise ValueError(f"duplicate ReAct capability: {capability.name}")
+            if capability.input_schema.get("type") != "object":
+                raise ValueError("ReAct capability requires an object input schema")
+            by_name[capability.name] = capability
+        return by_name
 
     def _persist_checkpoint(
         self,

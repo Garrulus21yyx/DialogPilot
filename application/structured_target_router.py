@@ -28,6 +28,7 @@ _GOALS = {
     "invoice_qa",
     "product_identification",
     "product_qa",
+    "product_assistance",
     "human_handoff",
     "security_review",
     "freeze_account",
@@ -263,6 +264,23 @@ class StructuredTargetCommandRouter:
                 "Identify the product from supplied media",
                 (ArgumentValue.create("asset_id", asset_id),),
                 ("product.canonical_model",), skill_id="product_identification",
+            )
+        if kind == "product_assistance":
+            if not asset_id:
+                raise ValueError("product assistance lacks observed asset")
+            registry.skill("product_identification")
+            registry.tool("knowledge_search")
+            return CommandProposal(
+                goal_id,
+                CommandKind.DELEGATE_TASK,
+                "product_technical",
+                "Identify the supplied product and answer the related product question",
+                (
+                    ArgumentValue.create("asset_id", asset_id),
+                    ArgumentValue.create("question", text),
+                ),
+                ("product.canonical_model", "knowledge.active_source"),
+                candidate_skill_ids=("product_identification",),
             )
         if kind == "product_qa":
             registry.tool("knowledge_search")

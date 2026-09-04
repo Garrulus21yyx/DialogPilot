@@ -207,6 +207,41 @@ def test_semantic_security_goals_cannot_select_unregistered_capabilities():
     assert review.commands[0].tool_id == "account_security_event_list"
     assert freeze.commands[0].action_ref == "account.freeze:v1"
 
+
+def test_compound_product_goal_delegates_one_domain_agent_with_capability_envelope():
+    provider = Provider({
+        "status": "resolved",
+        "goals": [{"kind": "product_assistance", "asset_id": "IMG9"}],
+    })
+    proposal, state, registry = _invoke(
+        StructuredTargetCommandRouter(provider),
+        "识别图片 IMG9 中的商品，并根据说明告诉我是否支持 Mac",
+        fields=(("asset_id", "IMG9"),),
+    )
+
+    command = proposal.commands[0]
+    assert command.kind is CommandKind.DELEGATE_TASK
+    assert command.target_agent == "product_technical"
+    plan = TurnPlanCompiler().compile(
+        RoutePolicy().accept(proposal, state, registry),
+        state,
+        registry,
+        IdentityFactory().create_invocation(
+            tenant_id="tenant-a",
+            user_id="user-a",
+            conversation_id="conversation-a",
+            request_id="compound-product-request",
+        ),
+    )
+    item = plan.work.items[0]
+    assert plan.route.mode is RouteMode.AGENT_TASK
+    assert item.skill_hint is None
+    assert item.allowed_skills == ("product_identification",)
+    assert set(item.allowed_tools) == {
+        "media_read", "catalog_search", "knowledge_search",
+    }
+
+
 def test_semantic_router_preserves_typed_rejection_and_provider_failure():
     insufficient = Provider({
         "status": "insufficient_context", "missing_fields": ["customer_service_goal"],

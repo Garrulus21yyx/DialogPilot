@@ -4,7 +4,7 @@ import asyncio
 import json
 from types import SimpleNamespace
 
-from agents.react_engine import ReActExecutionEngine, ReActStatus
+from agents.react_engine import ReActCapability, ReActExecutionEngine, ReActStatus
 from agents.tool_result_context import render_tool_result_context
 from core.provider_context_budget import (
     ProviderContextBudget,
@@ -146,6 +146,57 @@ def test_react_discovers_only_tools_in_current_work_item_envelope():
 
     assert result.status is ReActStatus.COMPLETED
     assert [tool["name"] for tool in client.calls[0]["tools"]] == ["order_lookup"]
+
+
+def test_react_can_select_registered_composite_capability_beside_atomic_tools():
+    tools = runtime()
+    tools.register(Tool(
+        name="catalog_search",
+        description="catalog",
+        handler=lambda *_args: {"match": "PX-200"},
+        schema={"type": "object", "properties": {}},
+        allowed_agents=("technical",),
+    ))
+    calls = []
+
+    async def identify(arguments, _context, call_id):
+        calls.append(arguments)
+        return ToolResult(
+            True,
+            {"canonical_model": "PX-200"},
+            "product_identification",
+            call_id=call_id,
+            status="success",
+            output_for_model='{"canonical_model":"PX-200"}',
+        )
+
+    client = ScriptedClient([
+        [tool_use("skill-1", "product_identification", {"asset_id": "IMG9"})],
+        [text("识别到 PX-200。")],
+    ])
+    result = asyncio.run(engine(client, tools).run(
+        system="product worker",
+        messages=[{"role": "user", "content": "识别这个商品"}],
+        agent_type="technical",
+        allowed_tool_ids=("catalog_search",),
+        additional_capabilities=(ReActCapability(
+            "product_identification",
+            "identify a product",
+            {
+                "type": "object",
+                "properties": {"asset_id": {"type": "string"}},
+                "required": ["asset_id"],
+            },
+            identify,
+        ),),
+    ))
+
+    assert result.status is ReActStatus.COMPLETED
+    assert calls == [{"asset_id": "IMG9"}]
+    assert {tool["name"] for tool in client.calls[0]["tools"]} == {
+        "catalog_search", "product_identification",
+    }
+    assert result.tool_results[0].tool_name == "product_identification"
 
 
 def test_react_high_risk_call_pauses_before_second_model_step_without_side_effect():

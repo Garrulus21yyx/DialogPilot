@@ -36,7 +36,7 @@ from application.route_decision import (
     RouterInvocationPolicy,
 )
 
-from agents.react_engine import ReActExecutionEngine, ReActResult
+from agents.react_engine import ReActCapability, ReActExecutionEngine, ReActResult
 from agents.request_shape_policy import RequestShapeDecision, RequestShapePolicy
 from agents.run_store import RunCheckpoint, RunStore
 from agents.orchestration_contracts import (
@@ -226,6 +226,7 @@ class Request:
     media_context_refs: tuple[str, ...] = ()
     # 由 TurnPlanCompiler 生成的可信 WorkItem 能力包络；不进入模型参数。
     allowed_tool_ids: tuple[str, ...] | None = None
+    react_capabilities: tuple[ReActCapability, ...] = ()
 
 
 class PlanningDisposition(str, Enum):
@@ -474,6 +475,7 @@ class BaseAgent:
                     "task_input": req.message,
                 },
                 allowed_tool_ids=req.allowed_tool_ids,
+                additional_capabilities=req.react_capabilities,
             )
 
         resp = await create_message(self._client, self._model_profile, ModelRole.WORKER,
