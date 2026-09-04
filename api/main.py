@@ -624,6 +624,7 @@ async def lifespan(app: FastAPI):
     )
     from infrastructure.target_evidence_resolution import TargetEvidenceResolver
     from infrastructure.target_tool_execution import TargetToolExecutor
+    from infrastructure.target_turn_context import TargetTurnContextLoader
     from infrastructure.target_product_execution import TargetProductExecutor
     from infrastructure.target_semantic_provider import AnthropicTargetSemanticProvider
     from infrastructure.target_workflow_execution import TargetWorkflowExecutor
@@ -696,6 +697,7 @@ async def lifespan(app: FastAPI):
             registry=target_registry,
             understanding=target_understanding,
             orchestration=target_orchestration,
+            context_provider=TargetTurnContextLoader(_memory, _tool_manager),
         ),
         admission=PostgresTargetAdmission(_postgres_pool),
         publication=PostgresTargetPublication(_response_delivery),

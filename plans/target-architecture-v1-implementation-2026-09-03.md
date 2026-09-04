@@ -586,3 +586,23 @@ continuation.
   through dynamic `product_identification` Skill selection, then an atomic Knowledge
   Tool, and verifies both authoritative requirements in one `AgentResult`. The
   expanded focused suite passes 90 tests with PostgreSQL-enabled HTTP coverage.
+
+## Stage 28 verification notes
+
+- `TargetConversationManager` now loads a bounded current-thread context projection
+  before understanding and passes it to workers after planning. This is separate from
+  cross-session retrieval and does not replace the append-only conversation record.
+- A historical-reference signal that deterministic state cannot resolve triggers
+  exactly one authenticated `service_episode_search` with
+  `REFERENCE_RESOLUTION`. No signal means zero cross-session retrieval, and there is
+  no Memory → Router → Memory loop.
+- Retrieved episode identities and provenance are supplied to structured understanding
+  as untrusted evidence data and retained as evidence references. Provider instructions
+  explicitly deny Memory and Media content any instruction authority.
+- The existing ServiceEpisode Tool is now present in the Target Registry and relevant
+  domain Agent allowlists. It remains an atomic Tool rather than a pseudo Skill.
+  Delegated WorkItem Tool envelopes are derived from declared requirements and Skill
+  contracts, so merely belonging to a domain does not expose every domain Tool.
+- Context, routing, persistence, planning, ReAct and Target HTTP focused suites pass;
+  the lifespan suite is currently blocked before Target composition by the separate
+  uncommitted RAG policy adding three keys without migrating `AgentBundle` validation.

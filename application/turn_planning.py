@@ -224,8 +224,9 @@ class RoutePolicy:
                 raise TurnPlanningError("business writes must use a workflow command")
             candidate_tools = tuple(dict.fromkeys((
                 *(
-                    agent.allowed_tool_ids
-                    if command.kind is CommandKind.DELEGATE_TASK else ()
+                    tool_id
+                    for requirement in requirements
+                    for tool_id in requirement.allowed_tools
                 ),
                 *(
                     tool
@@ -233,6 +234,10 @@ class RoutePolicy:
                     for tool in skill.allowed_tool_ids
                 ),
             )))
+            if not set(candidate_tools).issubset(agent.allowed_tool_ids):
+                raise TurnPlanningError(
+                    "delegated requirement tool is outside agent allowlist"
+                )
             tools = tuple(
                 tool_id for tool_id in candidate_tools
                 if registry.tool(tool_id).effect is CapabilityEffect.READ

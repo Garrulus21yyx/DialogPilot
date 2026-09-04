@@ -42,6 +42,7 @@ class TurnObservations:
     interaction_id: str | None = None
     interaction_version: int | None = None
     interaction_values: tuple[tuple[str, str, object], ...] = ()
+    understanding_evidence: tuple[tuple[str, object], ...] = ()
 
     def __post_init__(self) -> None:
         names = tuple(item[0] for item in self.structured_fields)
@@ -64,6 +65,9 @@ class TurnObservations:
             raise DeterministicResolutionError(
                 "interaction values require interaction identity and version"
             )
+        evidence_kinds = tuple(item[0] for item in self.understanding_evidence)
+        if any(not item.strip() for item in evidence_kinds):
+            raise DeterministicResolutionError("understanding evidence kind is required")
 
 
 @dataclass(frozen=True)

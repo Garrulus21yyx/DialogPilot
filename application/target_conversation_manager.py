@@ -48,6 +48,25 @@ class TurnUnderstanding(Protocol):
 
 
 @dataclass(frozen=True)
+class TargetTurnContext:
+    recent_relevant_turns: tuple[str, ...] = ()
+    evidence_refs: tuple[str, ...] = ()
+    understanding_evidence: tuple[tuple[str, object], ...] = ()
+    memory_attempted: bool = False
+    memory_status: str = "NOT_REQUIRED"
+
+
+class TargetTurnContextProvider(Protocol):
+    async def load(
+        self,
+        invocation: InvocationIdentity,
+        observations: TurnObservations,
+        state: ConversationState,
+        deterministic: DeterministicResolution,
+    ) -> TargetTurnContext: ...
+
+
+@dataclass(frozen=True)
 class ManagedTurnResult:
     state_before: ConversationState
     state_after: ConversationState
@@ -72,6 +91,7 @@ class TargetConversationManager:
         resolver: DeterministicResolver | None = None,
         route_policy: RoutePolicy | None = None,
         compiler: TurnPlanCompiler | None = None,
+        context_provider: TargetTurnContextProvider | None = None,
     ) -> None:
         self._state_store = state_store
         self._registry = registry
@@ -80,6 +100,7 @@ class TargetConversationManager:
         self._resolver = resolver or DeterministicResolver()
         self._route_policy = route_policy or RoutePolicy()
         self._compiler = compiler or TurnPlanCompiler()
+        self._context_provider = context_provider
 
     async def handle(
         self,
@@ -101,6 +122,19 @@ class TargetConversationManager:
         state = self._apply_deterministic(state_before, deterministic)
         if state is not state_before:
             self._persist(state_before, state)
+
+        turn_context = (
+            await self._context_provider.load(
+                invocation, observations, state, deterministic,
+            )
+            if self._context_provider is not None
+            else TargetTurnContext()
+        )
+        if turn_context.understanding_evidence:
+            observations = replace(
+                observations,
+                understanding_evidence=turn_context.understanding_evidence,
+            )
 
         proposal = await self._understanding(
             observations, state, deterministic, self._registry,
@@ -125,8 +159,14 @@ class TargetConversationManager:
         board = await self._orchestration.execute(
             plan.work,
             current_message=observations.raw_text,
-            recent_relevant_turns=recent_relevant_turns,
-            evidence_refs=evidence_refs,
+            recent_relevant_turns=tuple(dict.fromkeys((
+                *recent_relevant_turns,
+                *turn_context.recent_relevant_turns,
+            ))),
+            evidence_refs=tuple(dict.fromkeys((
+                *evidence_refs,
+                *turn_context.evidence_refs,
+            ))),
             token_budget=token_budget,
             thread_id=thread_id,
             trusted_context={

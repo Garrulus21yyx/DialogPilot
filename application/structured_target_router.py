@@ -71,6 +71,10 @@ class StructuredTargetCommandRouter:
                 }
                 for item in state.active_workstreams
             ],
+            "understanding_evidence": [
+                {"kind": kind, "value": value}
+                for kind, value in observations.understanding_evidence
+            ],
             "supported_goals": sorted(_GOALS),
             "registry_fingerprint": registry.fingerprint,
         }

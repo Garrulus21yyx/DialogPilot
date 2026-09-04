@@ -257,6 +257,36 @@ def test_semantic_router_preserves_typed_rejection_and_provider_failure():
     assert proposal.disposition is ProposalDisposition.PROVIDER_FAILURE
 
 
+def test_semantic_router_receives_bounded_memory_evidence_as_data():
+    provider = Provider({
+        "status": "insufficient_context",
+        "missing_fields": ["customer_service_goal"],
+    })
+    state = _state()
+    observations = TurnObservations(
+        "继续上次那个问题",
+        understanding_evidence=((
+            "memory.service_episode",
+            {"purpose_outcome": "UNIQUE_BINDING", "hits": [{"episode_id": "e1"}]},
+        ),),
+    )
+    deterministic = DeterministicResolver().resolve(observations, state)
+    asyncio.run(StructuredTargetCommandRouter(provider)(
+        observations,
+        state,
+        deterministic,
+        build_default_capability_registry("tenant-a"),
+    ))
+
+    assert provider.calls[0]["understanding_evidence"] == [{
+        "kind": "memory.service_episode",
+        "value": {
+            "purpose_outcome": "UNIQUE_BINDING",
+            "hits": [{"episode_id": "e1"}],
+        },
+    }]
+
+
 def test_cascade_uses_zero_provider_calls_for_clear_fast_path_and_calls_on_defer():
     provider = Provider({
         "status": "resolved",
