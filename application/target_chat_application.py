@@ -387,9 +387,9 @@ class TargetChatApplication:
 
 def _terminal_response(reason_code: str) -> str:
     if reason_code == "APPROVAL_DECLINED":
-        return "已取消退款申请，本次未执行退款操作。"
+        return "已取消该操作，本次未执行任何业务写入。"
     if reason_code == "APPROVAL_EXPIRED":
-        return "退款确认已过期，本次未执行退款操作；如仍需要退款，请重新发起。"
+        return "操作确认已过期，本次未执行；如仍需要，请重新发起。"
     return {
         "ORDER_ID_REQUIRED": "请提供需要查询的订单号。",
         "PRODUCT_MEDIA_REQUIRED": "请上传包含商品型号或铭牌的清晰图片。",

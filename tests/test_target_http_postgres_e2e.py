@@ -469,7 +469,7 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
         assert stale_approval["code"] == "APPROVAL_SIGNAL_CONFLICT"
         assert changed_approval_replay["code"] == "IDEMPOTENCY_CONFLICT"
         assert cross_conversation_approval["code"] == "APPROVAL_SIGNAL_CONFLICT"
-        assert "未执行退款操作" in refund_declined["response"]
+        assert "未执行任何业务写入" in refund_declined["response"]
         assert refund_unknown["outcome"] == "reconciling"
         assert "refund-reconciled-1" in refund_reconciled["response"]
         assert cancel_precheck["outcome"] == "needs_input"

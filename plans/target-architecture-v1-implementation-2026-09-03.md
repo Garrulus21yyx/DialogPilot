@@ -420,3 +420,5 @@ continuation.
   executes exactly one `order_cancel` call as the General tool principal, Receipt
   publication completes, and no second Agent is dispatched. Structured routing uses
   the same Flow contract; 136 relevant tests passed.
+- Approval decline and expiry publication is action-neutral, so cancelling or timing
+  out a non-refund Action cannot produce refund-specific user-visible text.
