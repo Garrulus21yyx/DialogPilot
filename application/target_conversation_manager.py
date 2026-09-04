@@ -119,6 +119,7 @@ class TargetConversationManager:
         if state_before.owner.value != "AUTOMATION":
             raise ConversationStateConflict("human-owned conversation rejects automation")
         deterministic = self._resolver.resolve(observations, state_before)
+        resume_thread_id = self._resume_thread_id(state_before, deterministic)
         state = self._apply_deterministic(state_before, deterministic)
         if state is not state_before:
             self._persist(state_before, state)
@@ -146,8 +147,12 @@ class TargetConversationManager:
             self._persist(state, planned_state)
             state = planned_state
 
-        thread_id = str(invocation.invocation_key)
+        thread_id = resume_thread_id or str(invocation.invocation_key)
         if plan.work is None:
+            if resume_thread_id is not None:
+                await self._orchestration.cancel_interrupt(
+                    thread_id=resume_thread_id,
+                )
             return ManagedTurnResult(
                 state_before,
                 state,
@@ -156,20 +161,18 @@ class TargetConversationManager:
                 None,
                 thread_id,
             )
-        board = await self._orchestration.execute(
-            plan.work,
-            current_message=observations.raw_text,
-            recent_relevant_turns=tuple(dict.fromkeys((
+        execution_context = {
+            "current_message": observations.raw_text,
+            "recent_relevant_turns": tuple(dict.fromkeys((
                 *recent_relevant_turns,
                 *turn_context.recent_relevant_turns,
             ))),
-            evidence_refs=tuple(dict.fromkeys((
+            "evidence_refs": tuple(dict.fromkeys((
                 *evidence_refs,
                 *turn_context.evidence_refs,
             ))),
-            token_budget=token_budget,
-            thread_id=thread_id,
-            trusted_context={
+            "token_budget": token_budget,
+            "trusted_context": {
                 **invocation.metadata(),
                 "conv_id": str(invocation.conversation_id),
                 **(
@@ -186,11 +189,40 @@ class TargetConversationManager:
                     else {}
                 ),
             },
+        }
+        board = (
+            await self._orchestration.resume(
+                plan.work,
+                thread_id=thread_id,
+                **execution_context,
+            )
+            if resume_thread_id is not None else
+            await self._orchestration.execute(
+                plan.work,
+                thread_id=thread_id,
+                interrupt_after_completion=self._awaits_workflow_approval(plan),
+                **execution_context,
+            )
         )
         state = self._apply_successful_workflows(
             state, plan, board, invocation, deterministic,
+            checkpoint_thread_id=(
+                thread_id if self._orchestration.supports_resume else None
+            ),
         )
-        state = self._apply_missing_inputs(state, plan, board)
+        state = self._apply_missing_inputs(
+            state, plan, board,
+            checkpoint_thread_id=(
+                thread_id if self._orchestration.supports_resume else None
+            ),
+        )
+        if (
+            resume_thread_id is None
+            and self._orchestration.supports_resume
+            and self._awaits_workflow_approval(plan)
+            and state.pending_approval is None
+        ):
+            await self._orchestration.cancel_interrupt(thread_id=thread_id)
         return ManagedTurnResult(
             state_before,
             state,
@@ -205,6 +237,8 @@ class TargetConversationManager:
         state: ConversationState,
         plan: TurnPlan,
         board: ResultBoardSnapshot,
+        *,
+        checkpoint_thread_id: str | None,
     ) -> ConversationState:
         missing_results = tuple(
             result for result in board.results
@@ -266,6 +300,7 @@ class TargetConversationManager:
             tuple(fields),
             (),
             tuple(suspended),
+            checkpoint_thread_id,
         ))
         self._persist(state, next_state)
         return next_state
@@ -277,6 +312,8 @@ class TargetConversationManager:
         board: ResultBoardSnapshot,
         invocation: InvocationIdentity,
         deterministic: DeterministicResolution,
+        *,
+        checkpoint_thread_id: str | None,
     ) -> ConversationState:
         if plan.work is None:
             return state
@@ -386,6 +423,7 @@ class TargetConversationManager:
                     target_version,
                     (datetime.now(timezone.utc) + timedelta(minutes=15)).isoformat(),
                     arguments,
+                    checkpoint_thread_id,
                 ))
                 self._persist(state, next_state)
                 state = next_state
@@ -406,6 +444,36 @@ class TargetConversationManager:
                 self._persist(state, next_state)
                 state = next_state
         return state
+
+    @staticmethod
+    def _resume_thread_id(
+        state: ConversationState,
+        resolution: DeterministicResolution,
+    ) -> str | None:
+        if resolution.kind is ResolutionKind.FILL_PENDING_INPUT:
+            return (
+                state.pending_interaction.checkpoint_thread_id
+                if state.pending_interaction is not None else None
+            )
+        if resolution.kind in {
+            ResolutionKind.APPROVAL_DECISION,
+            ResolutionKind.APPROVAL_EXPIRED,
+        }:
+            return (
+                state.pending_approval.checkpoint_thread_id
+                if state.pending_approval is not None else None
+            )
+        return None
+
+    @staticmethod
+    def _awaits_workflow_approval(plan: TurnPlan) -> bool:
+        return bool(
+            plan.transitions is not None
+            and any(
+                mutation.preparation_requirement_id is not None
+                for mutation in plan.transitions.mutations
+            )
+        )
 
     def _apply_deterministic(
         self,

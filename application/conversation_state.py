@@ -100,6 +100,7 @@ class PendingInteractionState:
     requested_fields: tuple[RequestedField, ...]
     workstream_versions: tuple[tuple[str, int], ...]
     suspended_work_items: tuple[WorkItem, ...] = ()
+    checkpoint_thread_id: str | None = None
 
     def __post_init__(self) -> None:
         _required(self.interaction_id)
@@ -122,6 +123,8 @@ class PendingInteractionState:
             )
         if any(item.effect.value != "READ" for item in self.suspended_work_items):
             raise ConversationStateError("user-input suspension supports read work only")
+        if self.checkpoint_thread_id is not None and not self.checkpoint_thread_id.strip():
+            raise ConversationStateError("checkpoint thread ID must be absent or nonblank")
 
 
 @dataclass(frozen=True)
@@ -136,6 +139,7 @@ class PendingApprovalState:
     target_entity_version: str
     expires_at: str
     arguments: tuple[ArgumentValue, ...] = ()
+    checkpoint_thread_id: str | None = None
 
     def __post_init__(self) -> None:
         _required(
@@ -151,6 +155,8 @@ class PendingApprovalState:
         if self.version < 1:
             raise ConversationStateError("approval version must be positive")
         _unique((item.name for item in self.arguments), "approval arguments")
+        if self.checkpoint_thread_id is not None and not self.checkpoint_thread_id.strip():
+            raise ConversationStateError("checkpoint thread ID must be absent or nonblank")
         try:
             expires = datetime.fromisoformat(self.expires_at)
         except ValueError as exc:
@@ -298,10 +304,12 @@ class ConversationState:
                     item.fingerprint
                     for item in self.pending_interaction.suspended_work_items
                 ),
+                self.pending_interaction.checkpoint_thread_id,
             ) if self.pending_interaction else None,
             "pending_approval": (
                 self.pending_approval.approval_id,
                 self.pending_approval.version,
+                self.pending_approval.checkpoint_thread_id,
             ) if self.pending_approval else None,
             "resume": [
                 (item.token, item.workstream_id, item.workstream_version)
@@ -369,6 +377,7 @@ class ConversationState:
                 for item in updated if item.workstream_id in legacy_workstream_ids
             ),
             pending.suspended_work_items,
+            pending.checkpoint_thread_id,
         )
         return replace(
             self,

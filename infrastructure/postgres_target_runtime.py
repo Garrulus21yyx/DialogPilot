@@ -203,6 +203,7 @@ def conversation_state_to_payload(state: ConversationState) -> dict[str, object]
                     _work_item_to_payload(item)
                     for item in state.pending_interaction.suspended_work_items
                 ],
+                "checkpoint_thread_id": state.pending_interaction.checkpoint_thread_id,
             }
             if state.pending_interaction else None
         ),
@@ -285,6 +286,10 @@ def conversation_state_from_payload(raw: Mapping[str, object]) -> ConversationSt
                     _work_item_from_payload(item)
                     for item in pending_raw.get("suspended_work_items", ())
                 ),
+                (
+                    str(pending_raw["checkpoint_thread_id"])
+                    if pending_raw.get("checkpoint_thread_id") is not None else None
+                ),
             )
             if isinstance(pending_raw, Mapping) else None
         ),
@@ -302,6 +307,10 @@ def conversation_state_from_payload(raw: Mapping[str, object]) -> ConversationSt
                 tuple(
                     ArgumentValue(str(item["name"]), str(item["value_json"]))
                     for item in approval_raw.get("arguments", ())
+                ),
+                (
+                    str(approval_raw["checkpoint_thread_id"])
+                    if approval_raw.get("checkpoint_thread_id") is not None else None
                 ),
             )
             if isinstance(approval_raw, Mapping) else None

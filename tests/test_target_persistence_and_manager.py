@@ -554,6 +554,7 @@ def test_order_cancellation_approval_resumes_its_registered_owner_and_action():
     store = InMemoryConversationStateStore()
     registry = build_default_capability_registry("tenant-target")
     workflow = _OrderCancellationWorkflowExecutor()
+    checkpointer = InMemorySaver(serde=target_checkpoint_serializer())
     manager = TargetConversationManager(
         state_store=store,
         registry=registry,
@@ -562,6 +563,7 @@ def test_order_cancellation_approval_resumes_its_registered_owner_and_action():
             direct_executor=_OrderCancellationPreparationExecutor(),
             domain_workers={},
             workflow_executor=workflow,
+            checkpointer=checkpointer,
         ),
     )
 
@@ -573,6 +575,7 @@ def test_order_cancellation_approval_resumes_its_registered_owner_and_action():
     assert pending is not None
     assert pending.action_ref == "order.cancel:v1"
     assert pending.target_entity_version == "4"
+    assert pending.checkpoint_thread_id == prepared.checkpoint_thread_id
 
     completed = asyncio.run(manager.handle(
         _identity("request-cancel-confirm"),
@@ -584,6 +587,7 @@ def test_order_cancellation_approval_resumes_its_registered_owner_and_action():
     ))
 
     assert completed.state_after.workstreams[0].status is WorkstreamStatus.COMPLETED
+    assert completed.checkpoint_thread_id == prepared.checkpoint_thread_id
     executed = workflow.items[0]
     assert executed.owner_agent == "order_logistics"
     assert executed.action_ref == "order.cancel:v1"

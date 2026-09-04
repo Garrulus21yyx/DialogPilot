@@ -8,7 +8,7 @@ from dataclasses import dataclass, field, replace
 from typing import Annotated, Awaitable, Callable, Mapping, Protocol, TypedDict
 
 from langgraph.graph import END, START, StateGraph
-from langgraph.types import Send
+from langgraph.types import Command, Overwrite, Send, interrupt
 
 from application.agent_result import (
     AgentResult,
@@ -59,6 +59,7 @@ class ParentGraphState(TypedDict, total=False):
     facts: tuple[FactRecord, ...]
     board: ResultBoardSnapshot
     trusted_context: Mapping[str, str]
+    interrupt_after_completion: bool
 
 
 class WorkerState(TypedDict):
@@ -104,7 +105,12 @@ class OrchestrationRuntime:
         )
         builder.add_edge("execute_work_item", "merge_results")
         builder.add_conditional_edges(
-            "merge_results", self._dispatch, ["execute_work_item", "finish"],
+            "merge_results", self._next_step,
+            ["execute_work_item", "await_resume", "finish"],
+        )
+        builder.add_node("await_resume", self._await_resume)
+        builder.add_conditional_edges(
+            "await_resume", self._dispatch, ["execute_work_item", "finish"],
         )
         builder.add_edge("finish", END)
         return builder.compile(checkpointer=self._checkpointer)
@@ -135,6 +141,65 @@ class OrchestrationRuntime:
             })
             for item in ready
         ]
+
+    def _next_step(self, state: ParentGraphState):
+        if state.get("ready_items", ()):
+            return self._dispatch(state)
+        if self._checkpointer is not None and (
+            any(
+                item.status is AgentResultStatus.NEEDS_USER_INPUT
+                for item in state.get("agent_results", ())
+            )
+            or bool(state.get("interrupt_after_completion"))
+        ):
+            return "await_resume"
+        return "finish"
+
+    async def _await_resume(self, state: ParentGraphState):
+        missing = tuple(
+            field
+            for result in state.get("agent_results", ())
+            if result.status is AgentResultStatus.NEEDS_USER_INPUT
+            for field in result.missing_inputs
+            if field.required
+        )
+        resumed = interrupt({
+            "kind": "FIELDS" if missing else "APPROVAL",
+            "requested_fields": [
+                {
+                    "target_work_item_id": item.target_work_item_id,
+                    "field_name": item.field_name,
+                    "value_schema": item.value_schema,
+                }
+                for item in missing
+            ],
+            "work_plan_fingerprint": state["work_plan_fingerprint"],
+        })
+        if not isinstance(resumed, Mapping):
+            raise OrchestrationRuntimeError("resume payload must be an object")
+        if resumed.get("cancel") is True:
+            return {
+                "interrupt_after_completion": False,
+                "ready_items": (),
+            }
+        plan = resumed.get("work_plan")
+        if not isinstance(plan, WorkPlan):
+            raise OrchestrationRuntimeError("resume payload requires a validated WorkPlan")
+        board = self._result_board.evaluate(plan, ())
+        return {
+            "work_plan": plan,
+            "work_plan_fingerprint": _work_plan_fingerprint(plan),
+            "current_message": str(resumed.get("current_message") or ""),
+            "recent_relevant_turns": tuple(resumed.get("recent_relevant_turns") or ()),
+            "evidence_refs": tuple(resumed.get("evidence_refs") or ()),
+            "token_budget": int(resumed.get("token_budget") or 6000),
+            "trusted_context": dict(resumed.get("trusted_context") or {}),
+            "interrupt_after_completion": False,
+            "agent_results": Overwrite(value=[]),
+            "facts": (),
+            "ready_items": board.ready_items,
+            "board": board,
+        }
 
     async def _execute_work_item(self, state: WorkerState):
         item = state["work_item"]
@@ -263,6 +328,7 @@ class OrchestrationRuntime:
         token_budget: int = 6000,
         thread_id: str | None = None,
         trusted_context: Mapping[str, str] | None = None,
+        interrupt_after_completion: bool = False,
     ) -> ResultBoardSnapshot:
         if self._checkpointer is not None and not str(thread_id or "").strip():
             raise OrchestrationRuntimeError("checkpointed execution requires thread_id")
@@ -280,6 +346,7 @@ class OrchestrationRuntime:
             "agent_results": [],
             "facts": (),
             "trusted_context": dict(trusted_context or {}),
+            "interrupt_after_completion": bool(interrupt_after_completion),
         }
         if self._checkpointer is not None:
             snapshot = await self.graph.aget_state(config)
@@ -296,6 +363,47 @@ class OrchestrationRuntime:
                 graph_input = None
         result = await self.graph.ainvoke(graph_input, config=config)
         return result["board"]
+
+    @property
+    def supports_resume(self) -> bool:
+        return self._checkpointer is not None
+
+    async def resume(
+        self,
+        work_plan: WorkPlan,
+        *,
+        current_message: str,
+        thread_id: str,
+        recent_relevant_turns: tuple[str, ...] = (),
+        evidence_refs: tuple[str, ...] = (),
+        token_budget: int = 6000,
+        trusted_context: Mapping[str, str] | None = None,
+    ) -> ResultBoardSnapshot:
+        if self._checkpointer is None:
+            raise OrchestrationRuntimeError("resume requires a checkpointer")
+        config = {"configurable": {"thread_id": thread_id}}
+        snapshot = await self.graph.aget_state(config)
+        if not snapshot.tasks or not any(task.interrupts for task in snapshot.tasks):
+            raise OrchestrationRuntimeError("checkpoint thread is not interrupted")
+        result = await self.graph.ainvoke(Command(resume={
+            "work_plan": work_plan,
+            "current_message": current_message,
+            "recent_relevant_turns": recent_relevant_turns,
+            "evidence_refs": evidence_refs,
+            "token_budget": token_budget,
+            "trusted_context": dict(trusted_context or {}),
+        }), config=config)
+        return result["board"]
+
+    async def cancel_interrupt(self, *, thread_id: str) -> None:
+        if self._checkpointer is None:
+            return
+        config = {"configurable": {"thread_id": thread_id}}
+        snapshot = await self.graph.aget_state(config)
+        if snapshot.tasks and any(task.interrupts for task in snapshot.tasks):
+            await self.graph.ainvoke(
+                Command(resume={"cancel": True}), config=config,
+            )
 
 
 def _work_plan_fingerprint(plan: WorkPlan) -> str:
