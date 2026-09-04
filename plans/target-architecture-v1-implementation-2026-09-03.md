@@ -73,6 +73,7 @@
 | 19 | done | Registry-owned reconciliation contracts plus operation-bound Handoff lookup; no Flow-name branches in workflow execution | 113 Target/tool/authority tests with real PostgreSQL/HTTP boundaries | this stage commit |
 | 20 | done | Order cancellation as a second governed write Flow using the generic preparation, approval, Receipt and reconciliation contracts | 136 Target/owner/tool/authority tests with real PostgreSQL/HTTP boundaries | this stage commit |
 | 21 | done | Generic typed missing-input aggregation, durable suspended read work, exact signal resume, and one Interaction publication across domains | 125 focused Target/owner/tool tests with real PostgreSQL enabled | this stage commit |
+| 22 | done | Registry-governed `NEEDS_EVIDENCE` resolution and bounded same-WorkItem resume without user clarification | 130 focused Target/owner/tool tests with real PostgreSQL enabled | this stage commit |
 
 ## Stage record
 
@@ -450,3 +451,24 @@ continuation.
   Skill hint is present. The focused Target suite passed 125 tests with PostgreSQL
   enabled, covering state codec, exact resume, multi-domain aggregation, public
   publication, partial execution, writes and existing real HTTP boundaries.
+
+## Stage 22 verification notes
+
+- `NEEDS_EVIDENCE` is resolved inside the deterministic orchestration runtime, not by
+  ConversationManager and not by asking the user. Existing shared facts are reused
+  first; otherwise a configured Evidence Resolver receives the typed requirement,
+  preferred providers and explicit arguments.
+- Evidence recovery is bounded by the WorkItem step budget and by a request signature,
+  so a Worker cannot create an unbounded Agent → Evidence → Agent loop. No evidence
+  preserves the typed `NEEDS_EVIDENCE` outcome and dependency blocking semantics.
+- `TargetEvidenceResolver` accepts only a registered read Tool that is simultaneously
+  inside the WorkItem allowlist, the requirement authority allowlist and the preferred
+  provider list. Its returned facts must match the requested requirement; substitution
+  fails closed.
+- Resolved facts retain source and producer versions and are merged into the final
+  Result Board. A domain Worker is then resumed with the same WorkItem and enriched
+  `AgentContextView`; no extra global routing or multi-Agent dispatch occurs.
+- The public composition root now supplies this Registry-backed resolver to the static
+  LangGraph parent runtime. The focused Target suite passed 130 tests with PostgreSQL
+  enabled, including positive resolution, no-evidence termination, forbidden provider,
+  wrong-requirement, partial failure and existing HTTP/write boundaries.

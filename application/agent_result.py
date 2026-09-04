@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 
+from application.work_item import ArgumentValue
+
 
 class AgentResultContractError(ValueError):
     pass
@@ -69,12 +71,16 @@ class EvidenceRequest:
     requirement_id: str
     target_work_item_id: str
     preferred_providers: tuple[str, ...]
+    arguments: tuple[ArgumentValue, ...] = ()
 
     def __post_init__(self) -> None:
         _required(self.requirement_id, self.target_work_item_id)
         _unique_nonblank(self.preferred_providers, "evidence providers")
         if not self.preferred_providers:
             raise AgentResultContractError("evidence request requires providers")
+        names = tuple(item.name for item in self.arguments)
+        if len(names) != len(set(names)):
+            raise AgentResultContractError("evidence arguments must be unique")
 
 
 @dataclass(frozen=True)

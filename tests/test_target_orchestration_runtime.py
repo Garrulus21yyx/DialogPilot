@@ -6,11 +6,16 @@ import pytest
 from application.agent_result import (
     AgentResult,
     AgentResultStatus,
+    EvidenceRequest,
     FactRecord,
     FactSourceKind,
 )
 from application.capability_registry import CapabilityEffect, CapabilityRisk
-from application.orchestration_runtime import AgentContextView, OrchestrationRuntime
+from application.orchestration_runtime import (
+    AgentContextView,
+    OrchestrationRuntime,
+    OrchestrationRuntimeError,
+)
 from application.result_board import ResultBoard, ResultBoardError
 from application.work_item import ControlMode, WorkItem, WorkPlan
 
@@ -84,6 +89,59 @@ class Executor:
         )
 
 
+class EvidenceSeekingWorker:
+    def __init__(self):
+        self.calls = []
+
+    async def __call__(self, context: AgentContextView):
+        self.calls.append(tuple(
+            fact.requirement_id for fact in context.verified_facts
+        ))
+        model = next((
+            fact for fact in context.verified_facts
+            if fact.requirement_id == "product.canonical_model"
+        ), None)
+        if model is None:
+            return AgentResult(
+                context.work_item.work_item_id,
+                context.work_item.owner_agent,
+                AgentResultStatus.NEEDS_EVIDENCE,
+                "PRODUCT_MODEL_REQUIRED",
+                "evidence-worker-v1",
+                requested_evidence=(EvidenceRequest(
+                    "product.canonical_model",
+                    context.work_item.work_item_id,
+                    ("product_catalog", "media_perception"),
+                ),),
+            )
+        return AgentResult(
+            context.work_item.work_item_id,
+            context.work_item.owner_agent,
+            AgentResultStatus.SUCCEEDED,
+            "PRODUCT_ANSWER_READY",
+            "evidence-worker-v1",
+            facts=(_fact(context.work_item, "answer"),),
+        )
+
+
+class CatalogEvidenceResolver:
+    def __init__(self):
+        self.calls = []
+
+    async def __call__(self, request, context):
+        self.calls.append((request.requirement_id, request.preferred_providers))
+        return (FactRecord(
+            "product:SKU-9",
+            request.requirement_id,
+            '{"model":"PX-200"}',
+            FactSourceKind.VERIFIED_STATE,
+            "catalog-receipt:SKU-9",
+            "catalog_search",
+            "catalog-v1",
+            datetime.now(timezone.utc),
+        ),)
+
+
 def test_direct_path_executes_without_starting_a_domain_agent():
     item = _item(
         "order-1", "order_logistics", ControlMode.DIRECT, "order.current_state",
@@ -118,6 +176,90 @@ def test_single_delegated_task_invokes_only_its_domain_worker():
     assert board.complete is True
     assert direct_calls == []
     assert product_calls[0][0] == "product-1"
+
+
+def test_delegated_worker_resumes_from_system_evidence_without_user_interaction():
+    item = _item(
+        "product-answer-1",
+        "product_technical",
+        ControlMode.DELEGATED,
+        "knowledge.active_source",
+    )
+    worker = EvidenceSeekingWorker()
+    resolver = CatalogEvidenceResolver()
+    runtime = OrchestrationRuntime(
+        direct_executor=Executor([]),
+        domain_workers={"product_technical": worker},
+        evidence_resolver=resolver,
+    )
+
+    board = asyncio.run(runtime.execute(
+        WorkPlan((item,), item.work_item_id),
+        current_message="回答该商品问题",
+    ))
+
+    assert board.results[0].status is AgentResultStatus.SUCCEEDED
+    assert worker.calls == [(), ("product.canonical_model",)]
+    assert resolver.calls == [(
+        "product.canonical_model",
+        ("product_catalog", "media_perception"),
+    )]
+    assert {
+        fact.requirement_id for fact in board.facts
+    } == {"product.canonical_model", "knowledge.active_source"}
+
+
+def test_unresolved_evidence_remains_typed_and_does_not_loop():
+    item = _item(
+        "product-answer-1",
+        "product_technical",
+        ControlMode.DELEGATED,
+        "knowledge.active_source",
+    )
+    worker = EvidenceSeekingWorker()
+
+    async def no_evidence(_request, _context):
+        return ()
+
+    runtime = OrchestrationRuntime(
+        direct_executor=Executor([]),
+        domain_workers={"product_technical": worker},
+        evidence_resolver=no_evidence,
+    )
+    board = asyncio.run(runtime.execute(
+        WorkPlan((item,), item.work_item_id),
+        current_message="回答该商品问题",
+    ))
+
+    assert board.results[0].status is AgentResultStatus.NEEDS_EVIDENCE
+    assert worker.calls == [()]
+
+
+def test_evidence_resolver_cannot_substitute_an_unrequested_requirement():
+    item = _item(
+        "product-answer-1",
+        "product_technical",
+        ControlMode.DELEGATED,
+        "knowledge.active_source",
+    )
+
+    async def wrong_evidence(_request, context):
+        return (_fact(context.work_item, "wrong-requirement"),)
+
+    runtime = OrchestrationRuntime(
+        direct_executor=Executor([]),
+        domain_workers={"product_technical": EvidenceSeekingWorker()},
+        evidence_resolver=wrong_evidence,
+    )
+
+    with pytest.raises(
+        OrchestrationRuntimeError,
+        match="another requirement",
+    ):
+        asyncio.run(runtime.execute(
+            WorkPlan((item,), item.work_item_id),
+            current_message="回答该商品问题",
+        ))
 
 
 def test_independent_multi_domain_workers_run_in_the_same_parallel_wave():

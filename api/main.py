@@ -620,6 +620,7 @@ async def lifespan(app: FastAPI):
         PostgresTargetAdmission,
         PostgresTargetPublication,
     )
+    from infrastructure.target_evidence_resolution import TargetEvidenceResolver
     from infrastructure.target_tool_execution import TargetToolExecutor
     from infrastructure.target_product_execution import TargetProductExecutor
     from infrastructure.target_semantic_provider import AnthropicTargetSemanticProvider
@@ -633,6 +634,10 @@ async def lifespan(app: FastAPI):
     target_tool_executor = TargetToolExecutor(_tool_manager)
     target_product_executor = TargetProductExecutor(_tool_manager)
     target_workflow_executor = TargetWorkflowExecutor(_postgres_pool, _tool_manager)
+    target_evidence_resolver = TargetEvidenceResolver(
+        target_registry,
+        target_tool_executor,
+    )
     target_orchestration = OrchestrationRuntime(
         direct_executor=target_tool_executor,
         domain_workers={
@@ -644,6 +649,7 @@ async def lifespan(app: FastAPI):
             "human_service": target_tool_executor,
         },
         workflow_executor=target_workflow_executor,
+        evidence_resolver=target_evidence_resolver,
         checkpointer=target_checkpointer,
     )
     target_encoder_enabled = os.getenv(

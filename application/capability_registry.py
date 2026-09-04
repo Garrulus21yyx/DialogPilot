@@ -445,6 +445,14 @@ class CapabilityRegistryBundle:
     def tool(self, tool_id: str) -> ToolDefinition:
         return _lookup(self.tools, "tool_id", tool_id, "tool")
 
+    def requirement(self, requirement_id: str) -> FactRequirement:
+        return _lookup(
+            self.requirements,
+            "requirement_id",
+            requirement_id,
+            "requirement",
+        )
+
 
 def _required(*values: object) -> None:
     if any(not str(value or "").strip() for value in values):

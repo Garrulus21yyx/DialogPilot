@@ -10,7 +10,12 @@ from typing import Annotated, Awaitable, Callable, Mapping, Protocol, TypedDict
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Send
 
-from application.agent_result import AgentResult, FactRecord
+from application.agent_result import (
+    AgentResult,
+    AgentResultStatus,
+    EvidenceRequest,
+    FactRecord,
+)
 from application.result_board import ResultBoard, ResultBoardSnapshot
 from application.work_item import ControlMode, WorkItem, WorkPlan
 
@@ -32,6 +37,14 @@ class AgentContextView:
 
 class WorkExecutor(Protocol):
     async def __call__(self, context: AgentContextView) -> AgentResult: ...
+
+
+class EvidenceResolver(Protocol):
+    async def __call__(
+        self,
+        request: EvidenceRequest,
+        context: AgentContextView,
+    ) -> tuple[FactRecord, ...]: ...
 
 
 class ParentGraphState(TypedDict, total=False):
@@ -68,12 +81,14 @@ class OrchestrationRuntime:
         domain_workers: Mapping[str, WorkExecutor],
         workflow_executor: WorkExecutor | None = None,
         result_board: ResultBoard | None = None,
+        evidence_resolver: EvidenceResolver | None = None,
         checkpointer=None,
     ) -> None:
         self._direct_executor = direct_executor
         self._domain_workers = dict(domain_workers)
         self._workflow_executor = workflow_executor
         self._result_board = result_board or ResultBoard()
+        self._evidence_resolver = evidence_resolver
         self._checkpointer = checkpointer
         self.graph = self._build_graph()
 
@@ -146,8 +161,78 @@ class OrchestrationRuntime:
                 raise OrchestrationRuntimeError(
                     f"no domain worker registered for {item.owner_agent}"
                 ) from exc
-        result = await executor(context)
+        result = await self._execute_with_evidence(executor, context)
         return {"agent_results": [result]}
+
+    async def _execute_with_evidence(
+        self,
+        executor: WorkExecutor,
+        context: AgentContextView,
+    ) -> AgentResult:
+        resolved_facts: tuple[FactRecord, ...] = ()
+        seen_requests: set[tuple[str, tuple[str, ...]]] = set()
+        for _attempt in range(context.work_item.max_steps):
+            current = replace(
+                context,
+                verified_facts=_merge_facts(
+                    context.verified_facts,
+                    resolved_facts,
+                ),
+            )
+            result = await executor(current)
+            if result.status is not AgentResultStatus.NEEDS_EVIDENCE:
+                return replace(
+                    result,
+                    facts=_merge_facts(resolved_facts, result.facts),
+                )
+            if context.work_item.control_mode is not ControlMode.DELEGATED:
+                return result
+            requested = tuple(
+                request for request in result.requested_evidence
+                if (request.requirement_id, request.preferred_providers)
+                not in seen_requests
+            )
+            if not requested:
+                return replace(
+                    result,
+                    facts=_merge_facts(resolved_facts, result.facts),
+                )
+            found = []
+            available = _merge_facts(current.verified_facts, result.facts)
+            for request in requested:
+                seen_requests.add((
+                    request.requirement_id,
+                    request.preferred_providers,
+                ))
+                existing = tuple(
+                    fact for fact in available
+                    if fact.requirement_id == request.requirement_id
+                )
+                if existing:
+                    found.extend(existing)
+                    continue
+                if self._evidence_resolver is None:
+                    continue
+                produced = tuple(await self._evidence_resolver(request, current))
+                if any(
+                    fact.requirement_id != request.requirement_id
+                    for fact in produced
+                ):
+                    raise OrchestrationRuntimeError(
+                        "evidence resolver returned another requirement"
+                    )
+                found.extend(produced)
+            next_facts = _merge_facts(resolved_facts, tuple(found))
+            if next_facts == resolved_facts:
+                return replace(
+                    result,
+                    facts=_merge_facts(resolved_facts, result.facts),
+                )
+            resolved_facts = next_facts
+        return replace(
+            result,
+            facts=_merge_facts(resolved_facts, result.facts),
+        )
 
     async def _merge_results(self, state: ParentGraphState):
         board = self._result_board.evaluate(
@@ -223,6 +308,27 @@ def _work_plan_fingerprint(plan: WorkPlan) -> str:
         separators=(",", ":"),
     ).encode("utf-8")
     return "work-plan:v1:" + hashlib.sha256(raw).hexdigest()
+
+
+def _merge_facts(*groups: tuple[FactRecord, ...]) -> tuple[FactRecord, ...]:
+    merged: dict[
+        tuple[str, str, str, str, str],
+        FactRecord,
+    ] = {}
+    for fact in (item for group in groups for item in group):
+        key = (
+            fact.subject_ref,
+            fact.requirement_id,
+            fact.source_ref,
+            fact.producer_id,
+            fact.producer_version,
+        )
+        prior = merged.setdefault(key, fact)
+        if prior.value_json != fact.value_json:
+            raise OrchestrationRuntimeError(
+                "one evidence identity produced conflicting values"
+            )
+    return tuple(merged.values())
 
 
 def _normalize_board(board: ResultBoardSnapshot) -> ResultBoardSnapshot:
