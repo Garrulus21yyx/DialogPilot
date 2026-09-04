@@ -108,6 +108,30 @@ class _ScenarioTools:
                 authority="product.canonical_model",
                 text="已确认商品型号为 PX-200。",
             )
+        if name == "account_security_event_list":
+            return _result(
+                name,
+                data=[{
+                    "event_id": "security-event-1",
+                    "event_type": "suspicious_login",
+                    "severity": "critical",
+                    "summary": "检测到未知设备登录",
+                    "occurred_at": "2026-09-03T00:00:00+00:00",
+                }],
+                authority="account.security_events",
+                text="检测到一条未知设备登录记录。",
+            )
+        if name == "account_security_state":
+            return _result(
+                name,
+                data={
+                    "status": "active",
+                    "version": 8,
+                    "updated_at": "2026-09-03T00:00:00+00:00",
+                },
+                authority="account.current_state",
+                text="当前账户处于可冻结状态。",
+            )
         if name == "support_ticket_create":
             assert approved is True
             return _result(
@@ -170,6 +194,20 @@ class _ScenarioTools:
                 text="收货地址已修改。",
                 effect_status="committed",
                 receipt_id="address-target-1",
+            )
+        if name == "account_freeze":
+            assert approved is True
+            return _result(
+                name,
+                data={
+                    "freeze_id": "freeze-target-1",
+                    "status": "frozen",
+                    "account_version": 9,
+                },
+                authority="account.freeze_action",
+                text="账户已冻结。",
+                effect_status="committed",
+                receipt_id="freeze-target-1",
             )
         return _result(name, success=False, status="denied")
 
@@ -347,6 +385,21 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                     approval_id=address_signal,
                     approved=True,
                 )
+                security_review = await chat(
+                    "security-review",
+                    "这次异常登录不是我操作的，帮我查一下",
+                )
+                freeze_precheck = await chat(
+                    "account-freeze", "立即冻结账户",
+                )
+                freeze_signal = freeze_precheck.json()["signal_id"]
+                freeze_committed = await chat(
+                    "account-freeze",
+                    "确认冻结账户",
+                    request_suffix="approval",
+                    approval_id=freeze_signal,
+                    approved=True,
+                )
                 refund_commit_replay = await chat(
                     "refund",
                     "确认提交退款",
@@ -429,6 +482,7 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                     refund_unknown_prepare, refund_unknown, refund_reconciled,
                     cancel_precheck, cancel_committed,
                     address_precheck, address_committed,
+                    security_review, freeze_precheck, freeze_committed,
                 )
 
     try:
@@ -444,6 +498,7 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                 "refund-unknown-prepare", "refund-unknown", "refund-reconciled",
                 "cancel-precheck", "cancel-committed",
                 "address-precheck", "address-committed",
+                "security-review", "freeze-precheck", "freeze-committed",
             ),
             responses,
         ):
@@ -454,6 +509,7 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                     "refund-unknown-prepare", "refund-unknown",
                     "cancel-precheck",
                     "address-precheck",
+                    "freeze-precheck",
                 }
                 else 409 if name in {
                     "stale-approval", "changed-approval-replay",
@@ -471,6 +527,7 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
             refund_unknown_prepare, refund_unknown, refund_reconciled,
             cancel_precheck, cancel_committed,
             address_precheck, address_committed,
+            security_review, freeze_precheck, freeze_committed,
         ) = (
             item.json() for item in responses
         )
@@ -521,6 +578,14 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
         assert len(address_calls) == 1
         assert address_calls[0][1]["new_address"] == "Berlin Example Street 9"
         assert address_calls[0][2] == "general"
+        assert security_review["routing_disposition"] == "direct"
+        assert "未知设备登录" in security_review["response"]
+        assert freeze_precheck["outcome"] == "needs_input"
+        assert "freeze-target-1" in freeze_committed["response"]
+        freeze_calls = [item for item in tools.calls if item[0] == "account_freeze"]
+        assert len(freeze_calls) == 1
+        assert freeze_calls[0][1] == {"expected_account_version": 8}
+        assert freeze_calls[0][2] == "account_security"
         refund_write_calls = [
             item for item in tools.calls if item[0] == "refund_request_create"
         ]

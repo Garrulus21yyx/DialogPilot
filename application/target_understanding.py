@@ -165,8 +165,43 @@ class BoundedTargetUnderstanding:
         handoff_signal = any(
             token in lowered for token in ("人工", "客服", "human agent", "representative")
         )
+        security_signal = any(
+            token in lowered for token in (
+                "不是我操作", "账号被盗", "账户被盗", "异常登录",
+                "可疑登录", "security event", "suspicious login",
+                "account stolen",
+            )
+        )
+        freeze_account_signal = any(
+            token in lowered for token in (
+                "冻结账号", "冻结账户", "锁定账号", "锁定账户",
+                "freeze account", "lock account",
+            )
+        )
 
         commands = []
+        if freeze_account_signal:
+            commands.append(CommandProposal(
+                "prepare-account-freeze",
+                CommandKind.PREPARE_WORKFLOW,
+                "account_security",
+                "Check current account state before freezing the account",
+                (),
+                ("account.current_state",),
+                flow_ref="freeze_account:v1",
+                action_ref="account.freeze:v1",
+                target_entity_ref=f"account:{state.user_id}",
+            ))
+        elif security_signal:
+            commands.append(CommandProposal(
+                "security-review",
+                CommandKind.DIRECT_TOOL,
+                "account_security",
+                "Review recent account security events",
+                (ArgumentValue.create("limit", 10),),
+                ("account.security_events",),
+                tool_id="account_security_event_list",
+            ))
         if handoff_signal:
             commands.append(CommandProposal(
                 "human-handoff",

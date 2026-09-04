@@ -59,6 +59,22 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
             "support_ticket_by_operation", "support.ticket_state",
             CapabilityRisk.LOW, profile.ref,
         ),
+        _tool(
+            "account_security_event_list", "account.security_events",
+            CapabilityRisk.MEDIUM, profile.ref,
+        ),
+        _tool(
+            "account_security_state", "account.current_state",
+            CapabilityRisk.HIGH, profile.ref,
+        ),
+        _tool(
+            "account_freeze_status", "account.freeze_state",
+            CapabilityRisk.HIGH, profile.ref,
+        ),
+        _tool(
+            "account_freeze", "account.freeze_action",
+            CapabilityRisk.CRITICAL, profile.ref, write=True,
+        ),
     )
     skills = (
         _skill(
@@ -120,7 +136,15 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
             ("refund_status_summary", "refund_policy_qa", "invoice_qa"),
             profile.ref,
         ),
-        _agent("account_security", (), (), profile.ref),
+        _agent(
+            "account_security",
+            (
+                "account_security_event_list", "account_security_state",
+                "account_freeze_status", "account_freeze",
+            ),
+            (),
+            profile.ref,
+        ),
         _agent(
             "human_service",
             ("support_ticket_create", "support_ticket_by_operation"),
@@ -164,6 +188,15 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
             ("PREPARE", "CHECK_POLICY", "CREATE_TICKET", "COMPLETE", "CANCELLED"),
             "PREPARE", ("COMPLETE", "CANCELLED"),
             ("support_ticket_create", "support_ticket_by_operation"),
+        ),
+        FlowDefinition(
+            "freeze_account", "v1", "account_security",
+            (
+                "CHECK_ACCOUNT", "CHECK_APPROVAL", "EXECUTE", "RECONCILE",
+                "COMPLETE", "CANCELLED",
+            ),
+            "CHECK_ACCOUNT", ("COMPLETE", "CANCELLED"),
+            ("account_security_state", "account_freeze_status", "account_freeze"),
         ),
     )
     actions = (
@@ -252,6 +285,31 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
                 readiness_value="paid",
                 target_version_field="version",
                 target_version_argument="expected_order_version",
+            ),
+        ),
+        ActionDefinition(
+            "account.freeze", "v1", "account_security", "freeze_account:v1",
+            CapabilityEffect.WRITE, CapabilityRisk.CRITICAL,
+            ("account.freeze_action",),
+            ("account_freeze",),
+            ApprovalPolicy.EXPLICIT_CONFIRMATION_REQUIRED,
+            "action-receipt-v1",
+            ActionReconciliationDefinition(
+                "account_freeze_status",
+                "account.freeze_state",
+                "operation_key",
+                "operation_key",
+                (),
+                "freeze_id",
+            ),
+            profile.ref,
+            ActionPreparationDefinition.create(
+                tool_id="account_security_state",
+                requirement_id="account.current_state",
+                readiness_field="status",
+                readiness_value="active",
+                target_version_field="version",
+                target_version_argument="expected_account_version",
             ),
         ),
     )

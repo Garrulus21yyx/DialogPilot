@@ -50,7 +50,12 @@ def test_tool_discovery_is_agent_scoped_and_never_exposes_user_identity(tmp_path
         "order_lookup", "refund_status", "refund_eligibility_check",
         "refund_request_create",
     }
-    assert set(security) == {"account_security_event_list"}
+    assert set(security) == {
+        "account_security_event_list",
+        "account_security_state",
+        "account_freeze_status",
+        "account_freeze",
+    }
     for definition in [*billing.values(), *security.values()]:
         assert "user_id" not in definition["input_schema"].get("properties", {})
 
@@ -201,6 +206,38 @@ def test_shipping_address_write_and_reconciliation_share_exact_operation_key(tmp
     assert reconciled.success is True
     assert reconciled.data["change_id"] == committed.receipt_id
     assert reconciled.data["new_address"] == params["new_address"]
+
+
+def test_account_freeze_write_and_reconciliation_use_trusted_current_user(tmp_path):
+    _owner, manager = setup_runtime(tmp_path)
+    state = asyncio.run(manager.execute_for_agent(
+        "account_security_state", {}, agent_type="account_security",
+        context=context(),
+    ))
+    params = {"expected_account_version": state.data["version"]}
+    pending = asyncio.run(manager.execute_for_agent(
+        "account_freeze", params, agent_type="account_security",
+        context=context(), call_id="freeze-call-1",
+    ))
+    committed = asyncio.run(manager.execute_for_agent(
+        "account_freeze", params, agent_type="account_security",
+        context=context(), approved=True, call_id="freeze-call-1",
+    ))
+    reconciled = asyncio.run(manager.execute_for_agent(
+        "account_freeze_status", {"operation_key": "freeze-call-1"},
+        agent_type="account_security", context=context(),
+    ))
+    other_user = asyncio.run(manager.execute_for_agent(
+        "account_freeze_status", {"operation_key": "freeze-call-1"},
+        agent_type="account_security", context=context("user-2"),
+    ))
+
+    assert pending.status == ToolCallStatus.AWAITING_APPROVAL.value
+    assert committed.effect_status == ToolEffectStatus.COMMITTED.value
+    assert reconciled.success is True
+    assert reconciled.data["freeze_id"] == committed.receipt_id
+    assert reconciled.data["operation_key"] == "freeze-call-1"
+    assert other_user.success is False
 
 
 def test_refund_write_rejects_wrong_agent_before_side_effect(tmp_path):

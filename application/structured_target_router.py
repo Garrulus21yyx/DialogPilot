@@ -29,6 +29,8 @@ _GOALS = {
     "product_identification",
     "product_qa",
     "human_handoff",
+    "security_review",
+    "freeze_account",
 }
 _MISSING_FIELDS = {
     "order_id", "asset_id", "new_address", "customer_service_goal",
@@ -146,6 +148,30 @@ class StructuredTargetCommandRouter:
                 goal_id, CommandKind.RUN_SKILL, "general", "Answer a supported FAQ",
                 (ArgumentValue.create("question", text),),
                 ("knowledge.active_source",), skill_id="general_qa",
+            )
+        if kind == "security_review":
+            registry.tool("account_security_event_list")
+            return CommandProposal(
+                goal_id,
+                CommandKind.DIRECT_TOOL,
+                "account_security",
+                "Review recent account security events",
+                (ArgumentValue.create("limit", 10),),
+                ("account.security_events",),
+                tool_id="account_security_event_list",
+            )
+        if kind == "freeze_account":
+            registry.action("account.freeze:v1")
+            return CommandProposal(
+                goal_id,
+                CommandKind.PREPARE_WORKFLOW,
+                "account_security",
+                "Check current account state before freezing the account",
+                (),
+                ("account.current_state",),
+                flow_ref="freeze_account:v1",
+                action_ref="account.freeze:v1",
+                target_entity_ref=f"account:{state.user_id}",
             )
         if kind in {"order_status", "logistics_status"}:
             if not order_id:

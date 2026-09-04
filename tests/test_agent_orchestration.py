@@ -1218,7 +1218,7 @@ def test_request_shape_to_route_decision_preserves_mixed_authorities():
     assert decision.owner_ids == ("billing",)
 
 
-def test_canonical_route_fails_closed_when_account_state_has_no_authority_owner():
+def test_canonical_account_state_route_is_no_longer_forced_to_handoff():
     orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
     orchestrator._pool = {
         AgentType.GENERAL: [object()], AgentType.ACCOUNT_SECURITY: [object()],
@@ -1233,8 +1233,7 @@ def test_canonical_route_fails_closed_when_account_state_has_no_authority_owner(
     decision = asyncio.run(orchestrator.decide_route(request, shape))
 
     assert shape.shape is RequestShape.BUSINESS_STATE
-    assert decision.mode is RouteMode.HANDOFF
-    assert decision.required_authorities == (RequiredAuthority.HUMAN,)
-    assert decision.owner_ids == ()
-    assert "AUTHORITY_UNSUPPORTED" in decision.reason_codes
-    assert "UNSUPPORTED_REQUIREMENT:account.current_state" in decision.reason_codes
+    assert decision.mode is RouteMode.AGENT_TASK
+    assert decision.required_authorities == (RequiredAuthority.DOMAIN_TOOL,)
+    assert decision.owner_ids == ("general",)
+    assert "AUTHORITY_UNSUPPORTED" not in decision.reason_codes

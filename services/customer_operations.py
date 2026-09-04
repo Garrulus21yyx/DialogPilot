@@ -37,12 +37,20 @@ class StaleOrderVersionError(CustomerOperationError):
     """资格检查后订单版本已经变化。"""
 
 
+class StaleAccountVersionError(CustomerOperationError):
+    """The account changed after the security-state check."""
+
+
 class OrderNotCancellableError(CustomerOperationError):
     """The current authoritative order state cannot be cancelled."""
 
 
 class ShippingAddressNotChangeableError(CustomerOperationError):
     """The current authoritative order state cannot accept an address change."""
+
+
+class AccountNotFreezableError(CustomerOperationError):
+    """The current authoritative account state cannot be frozen."""
 
 
 class OperationIdempotencyConflictError(CustomerOperationError):
@@ -68,6 +76,11 @@ class SecuritySeverity(str, Enum):
     INFO = "info"
     WARNING = "warning"
     CRITICAL = "critical"
+
+
+class AccountStatus(str, Enum):
+    ACTIVE = "active"
+    FROZEN = "frozen"
 
 
 @dataclass(frozen=True)
@@ -143,6 +156,31 @@ class ShippingAddressChange:
     new_address: str
     status: str
     order_version: int
+    created_at: str
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class AccountSecurityState:
+    user_id: str
+    status: AccountStatus
+    version: int
+    updated_at: str
+
+    def to_dict(self) -> Dict[str, Any]:
+        data = asdict(self)
+        data["status"] = self.status.value
+        return data
+
+
+@dataclass(frozen=True)
+class AccountFreeze:
+    freeze_id: str
+    user_id: str
+    status: str
+    account_version: int
     created_at: str
 
     def to_dict(self) -> Dict[str, Any]:
@@ -560,6 +598,16 @@ class CustomerOperationsService:
         self._parse_time(occurred_at)
         with self._lock, self._connect() as conn:
             conn.execute(
+                "INSERT OR IGNORE INTO accounts (user_id,status,version,updated_at) "
+                "VALUES (?,?,?,?)",
+                (
+                    self._required(user_id, "user_id"),
+                    AccountStatus.ACTIVE.value,
+                    1,
+                    occurred_at,
+                ),
+            )
+            conn.execute(
                 """
                 INSERT INTO security_events (
                     event_id, user_id, event_type, severity, summary, occurred_at
@@ -573,6 +621,103 @@ class CustomerOperationsService:
                 ),
             )
         return event_id
+
+    def get_account_security_state(self, *, user_id: str) -> AccountSecurityState:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM accounts WHERE user_id=?",
+                (self._required(user_id, "user_id"),),
+            ).fetchone()
+        if row is None:
+            raise BusinessObjectNotFoundError("account not found")
+        return self._row_to_account(row)
+
+    def freeze_account(
+        self,
+        *,
+        idempotency_key: str,
+        user_id: str,
+        expected_account_version: int,
+    ) -> Tuple[AccountFreeze, bool]:
+        """Atomically recheck and freeze the authenticated account once."""
+        idempotency_key = self._required(idempotency_key, "idempotency_key")
+        user_id = self._required(user_id, "user_id")
+        expected_account_version = int(expected_account_version)
+        fingerprint = self._fingerprint({
+            "idempotency_key": idempotency_key,
+            "user_id": user_id,
+            "expected_account_version": expected_account_version,
+        })
+        with self._lock, self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            existing = conn.execute(
+                "SELECT * FROM account_freezes WHERE idempotency_key=?",
+                (idempotency_key,),
+            ).fetchone()
+            if existing is not None:
+                if existing["request_fingerprint"] != fingerprint:
+                    raise OperationIdempotencyConflictError(
+                        "idempotency key was reused with different freeze content"
+                    )
+                return self._row_to_account_freeze(existing), False
+            row = conn.execute(
+                "SELECT * FROM accounts WHERE user_id=?",
+                (user_id,),
+            ).fetchone()
+            if row is None:
+                raise BusinessObjectNotFoundError("account not found")
+            account = self._row_to_account(row)
+            if account.version != expected_account_version:
+                raise StaleAccountVersionError("account changed after security check")
+            if account.status is not AccountStatus.ACTIVE:
+                raise AccountNotFreezableError(
+                    f"account status {account.status.value} cannot be frozen"
+                )
+            freeze_id = uuid.uuid4().hex
+            now = self._now()
+            next_version = account.version + 1
+            conn.execute(
+                "UPDATE accounts SET status=?,version=?,updated_at=? WHERE user_id=?",
+                (AccountStatus.FROZEN.value, next_version, now, user_id),
+            )
+            conn.execute(
+                """
+                INSERT INTO account_freezes (
+                    freeze_id,idempotency_key,request_fingerprint,user_id,
+                    status,account_version,created_at
+                ) VALUES (?,?,?,?,?,?,?)
+                """,
+                (
+                    freeze_id, idempotency_key, fingerprint, user_id,
+                    AccountStatus.FROZEN.value, next_version, now,
+                ),
+            )
+            created = conn.execute(
+                "SELECT * FROM account_freezes WHERE freeze_id=?",
+                (freeze_id,),
+            ).fetchone()
+        return self._row_to_account_freeze(created), True
+
+    def get_account_freeze_for_operation(
+        self,
+        *,
+        user_id: str,
+        idempotency_key: str,
+    ) -> AccountFreeze:
+        with self._connect() as conn:
+            row = conn.execute(
+                """
+                SELECT * FROM account_freezes
+                WHERE user_id=? AND idempotency_key=?
+                """,
+                (
+                    self._required(user_id, "user_id"),
+                    self._required(idempotency_key, "idempotency_key"),
+                ),
+            ).fetchone()
+        if row is None:
+            raise BusinessObjectNotFoundError("account freeze operation not found")
+        return self._row_to_account_freeze(row)
 
     def list_security_events(
         self,
@@ -695,6 +840,26 @@ class CustomerOperationsService:
                 );
                 CREATE INDEX IF NOT EXISTS idx_security_user_occurred
                     ON security_events(user_id, occurred_at DESC);
+
+                CREATE TABLE IF NOT EXISTS accounts (
+                    user_id TEXT PRIMARY KEY,
+                    status TEXT NOT NULL,
+                    version INTEGER NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS account_freezes (
+                    freeze_id TEXT PRIMARY KEY,
+                    idempotency_key TEXT NOT NULL UNIQUE,
+                    request_fingerprint TEXT NOT NULL,
+                    user_id TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    account_version INTEGER NOT NULL,
+                    created_at TEXT NOT NULL,
+                    FOREIGN KEY(user_id) REFERENCES accounts(user_id)
+                );
+                CREATE INDEX IF NOT EXISTS idx_account_freezes_user_created
+                    ON account_freezes(user_id, created_at DESC);
                 """
             )
             columns = {
@@ -753,6 +918,25 @@ class CustomerOperationsService:
             new_address=row["new_address"],
             status=row["status"],
             order_version=int(row["order_version"]),
+            created_at=row["created_at"],
+        )
+
+    @staticmethod
+    def _row_to_account(row: sqlite3.Row) -> AccountSecurityState:
+        return AccountSecurityState(
+            user_id=row["user_id"],
+            status=AccountStatus(row["status"]),
+            version=int(row["version"]),
+            updated_at=row["updated_at"],
+        )
+
+    @staticmethod
+    def _row_to_account_freeze(row: sqlite3.Row) -> AccountFreeze:
+        return AccountFreeze(
+            freeze_id=row["freeze_id"],
+            user_id=row["user_id"],
+            status=row["status"],
+            account_version=int(row["account_version"]),
             created_at=row["created_at"],
         )
 

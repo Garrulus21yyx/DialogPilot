@@ -498,3 +498,24 @@ continuation.
   committed write Receipt through the same ConversationManager and Publication path.
   The focused Target, business-owner, tool and authority suite passed 146 tests with
   PostgreSQL enabled.
+
+## Stage 24 verification notes
+
+- Account security remains task-oriented rather than incident-specific: recent-event
+  review is one atomic read Tool, while account freeze is a registered high-risk
+  Flow/Action. No security Skill or unconditional multi-Agent dispatch was introduced.
+- `CustomerOperationsService` owns the authoritative versioned account status, atomic
+  active-to-frozen transition and idempotent freeze Receipt. Both the write and exact
+  operation lookup are scoped to the trusted authenticated user; stale versions,
+  already-frozen state and cross-user lookups fail closed with typed outcomes.
+- Registry defines `freeze_account:v1` and `account.freeze:v1`. Generic preparation
+  reads `account.current_state`, checks `status == active`, binds the observed version
+  to `expected_account_version`, requires explicit confirmation, and reconciles by the
+  exact operation key through `account_freeze_status`.
+- Bounded and structured understanding only propose `security_review` or
+  `freeze_account`. Tool identity, approval policy, version binding and retry behavior
+  remain Registry-owned. `TargetWorkflowExecutor` maps the accepted
+  `account_security` owner to its governed Tool principal.
+- Real ASGI/PostgreSQL E2E proves security review is a direct read and freeze follows
+  prepare → InteractionRequest → approval → one committed write Receipt. The expanded
+  Target and affected-consumer suite passed 180 tests with PostgreSQL enabled.

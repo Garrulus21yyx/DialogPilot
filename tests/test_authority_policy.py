@@ -6,7 +6,6 @@ import pytest
 from application.authority_policy import (
     AuthorityContractError,
     AuthorityPolicyRegistry,
-    UnsupportedAuthority,
 )
 from application.route_decision import (
     ComponentInvocation,
@@ -145,35 +144,37 @@ def test_missing_fields_and_stale_observations_fail_closed():
     assert stale.reason_code == "OBSERVATION_STALE"
 
 
-def test_unsupported_authority_cannot_be_replaced_by_knowledge():
+def test_account_authority_is_required_and_cannot_be_replaced_by_knowledge():
     registry = AuthorityPolicyRegistry.v1()
     route = _route((RequiredAuthority.ACCOUNT_STATE,), intent="account_status")
 
-    with pytest.raises(UnsupportedAuthority):
-        registry.resolve_requirements(route, ("knowledge.active_source",))
-    with pytest.raises(UnsupportedAuthority):
-        registry.resolve_requirements(
-            _route((RequiredAuthority.ORDER_STATE,)),
-            ("account.current_state", "knowledge.active_source"),
-        )
+    resolved = registry.resolve_requirements(route, ("knowledge.active_source",))
+    assert tuple(item.requirement_id for item in resolved) == (
+        "account.current_state",
+        "knowledge.active_source",
+    )
+
+    order_resolved = registry.resolve_requirements(
+        _route((RequiredAuthority.ORDER_STATE,)),
+        ("account.current_state", "knowledge.active_source"),
+    )
+    assert tuple(item.requirement_id for item in order_resolved) == (
+        "account.current_state",
+        "knowledge.active_source",
+        "order.current_state",
+    )
 
 
-def test_unsupported_authority_resolves_to_canonical_handoff():
+def test_supported_account_authority_preserves_the_original_route():
     registry = AuthorityPolicyRegistry.v1()
     original = _route((RequiredAuthority.ACCOUNT_STATE,), intent="account_status")
 
     resolved = registry.resolve_route_authority(original)
 
-    assert resolved.mode is RouteMode.HANDOFF
-    assert resolved.required_authorities == (RequiredAuthority.HUMAN,)
-    assert resolved.owner_ids == ()
-    assert resolved.risk is RouteRisk.HIGH
-    assert resolved.reason_codes[-2:] == (
-        "AUTHORITY_UNSUPPORTED",
-        "UNSUPPORTED_REQUIREMENT:account.current_state",
-    )
-    assert resolved.auxiliary_signals == ("authority_fail_closed",)
-    assert registry.minimum_requirements(resolved) == ()
+    assert resolved == original
+    assert tuple(
+        item.requirement_id for item in registry.minimum_requirements(resolved)
+    ) == ("account.current_state",)
 
 
 def test_handoff_draft_has_no_write_fact_requirement():

@@ -18,6 +18,7 @@ from infrastructure.postgres_target_runtime import PostgresOperationLedger
 _AGENT_TYPE = {
     "billing_refund": "billing",
     "order_logistics": "general",
+    "account_security": "account_security",
     "human_service": "escalation",
 }
 

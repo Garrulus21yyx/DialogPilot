@@ -151,6 +151,62 @@ def test_bounded_address_change_uses_task_flow_not_a_product_or_address_skill():
     assert missing.disposition is ProposalDisposition.CLARIFY
     assert missing.reason_code == "NEW_ADDRESS_REQUIRED"
 
+
+def test_security_review_is_direct_but_account_freeze_is_a_governed_flow():
+    review, _, registry = _invoke(
+        BoundedTargetUnderstanding(),
+        "这次异常登录不是我操作的，帮我查一下",
+    )
+    freeze, state, _ = _invoke(
+        BoundedTargetUnderstanding(),
+        "立即冻结账户",
+    )
+
+    review_command = review.commands[0]
+    freeze_command = freeze.commands[0]
+    assert review_command.kind is CommandKind.DIRECT_TOOL
+    assert review_command.tool_id == "account_security_event_list"
+    assert review_command.skill_id is None
+    assert freeze_command.kind is CommandKind.PREPARE_WORKFLOW
+    assert freeze_command.action_ref == "account.freeze:v1"
+    assert freeze_command.flow_ref == "freeze_account:v1"
+    assert freeze_command.skill_id is None
+    assert all("security" not in skill.skill_id for skill in registry.skills)
+
+    plan = TurnPlanCompiler().compile(
+        RoutePolicy().accept(freeze, state, registry),
+        state,
+        registry,
+        IdentityFactory().create_invocation(
+            tenant_id="tenant-a",
+            user_id="user-a",
+            conversation_id="conversation-a",
+            request_id="freeze-request",
+        ),
+    )
+    assert plan.transitions.mutations[0].flow_ref == "freeze_account:v1"
+    assert plan.work.items[0].allowed_tools == ("account_security_state",)
+
+
+def test_semantic_security_goals_cannot_select_unregistered_capabilities():
+    review, _, _ = _invoke(
+        StructuredTargetCommandRouter(Provider({
+            "status": "resolved",
+            "goals": [{"kind": "security_review"}],
+        })),
+        "检查最近的安全事件",
+    )
+    freeze, _, _ = _invoke(
+        StructuredTargetCommandRouter(Provider({
+            "status": "resolved",
+            "goals": [{"kind": "freeze_account"}],
+        })),
+        "冻结我的账户",
+    )
+
+    assert review.commands[0].tool_id == "account_security_event_list"
+    assert freeze.commands[0].action_ref == "account.freeze:v1"
+
 def test_semantic_router_preserves_typed_rejection_and_provider_failure():
     insufficient = Provider({
         "status": "insufficient_context", "missing_fields": ["customer_service_goal"],

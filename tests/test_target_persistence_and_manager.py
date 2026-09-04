@@ -302,6 +302,51 @@ class _AddressChangeWorkflowExecutor:
         )
 
 
+class _AccountFreezePreparationExecutor:
+    async def __call__(self, context: AgentContextView):
+        item = context.work_item
+        return AgentResult(
+            item.work_item_id,
+            item.owner_agent,
+            AgentResultStatus.SUCCEEDED,
+            "ACCOUNT_STATE_READ",
+            "account-state-test-v1",
+            facts=(FactRecord(
+                "account:user-target",
+                "account.current_state",
+                '{"status":"active","updated_at":"2026-09-03T00:00:00+00:00","version":5}',
+                FactSourceKind.VERIFIED_STATE,
+                "account-state-receipt",
+                "account_security_state",
+                "account-security-state-v1",
+                datetime.now(timezone.utc),
+            ),),
+        )
+
+
+class _AccountFreezeWorkflowExecutor:
+    def __init__(self):
+        self.items = []
+
+    async def __call__(self, context: AgentContextView):
+        item = context.work_item
+        self.items.append(item)
+        return AgentResult(
+            item.work_item_id,
+            item.owner_agent,
+            AgentResultStatus.SUCCEEDED,
+            "TOOL_COMMITTED",
+            "account-freeze-test-v1",
+            action_receipts=(ReceiptRef(
+                "freeze-1",
+                "action-receipt-v1",
+                str(item.operation_key),
+                "COMMITTED",
+                "account.freeze_action",
+            ),),
+        )
+
+
 def _order_proposal():
     return TurnProposal(
         ProposalDisposition.RESOLVED,
@@ -597,6 +642,53 @@ def test_shipping_address_approval_resumes_registered_action_with_exact_address(
         "order_id": "DP1234",
         "new_address": "Berlin Example Street 9",
         "expected_order_version": 4,
+    }
+
+
+def test_account_freeze_approval_resumes_registered_action_for_current_principal():
+    store = InMemoryConversationStateStore()
+    registry = build_default_capability_registry("tenant-target")
+    workflow = _AccountFreezeWorkflowExecutor()
+    manager = TargetConversationManager(
+        state_store=store,
+        registry=registry,
+        understanding=BoundedTargetUnderstanding(),
+        orchestration=OrchestrationRuntime(
+            direct_executor=_AccountFreezePreparationExecutor(),
+            domain_workers={},
+            workflow_executor=workflow,
+        ),
+    )
+
+    prepared = asyncio.run(manager.handle(
+        _identity("request-freeze-prepare"),
+        TurnObservations("立即冻结账户"),
+    ))
+    pending = prepared.state_after.pending_approval
+    assert pending is not None
+    assert pending.action_ref == "account.freeze:v1"
+    assert pending.target_entity_ref == "account:user-target"
+    assert pending.target_entity_version == "5"
+
+    completed = asyncio.run(manager.handle(
+        _identity("request-freeze-confirm"),
+        TurnObservations(
+            "确认冻结",
+            approval_decision=True,
+            approval_id=pending.approval_id,
+        ),
+    ))
+
+    assert completed.state_after.workstreams[0].status is WorkstreamStatus.COMPLETED
+    executed = workflow.items[0]
+    assert executed.owner_agent == "account_security"
+    assert executed.action_ref == "account.freeze:v1"
+    assert executed.flow_ref == "freeze_account:v1"
+    assert set(executed.allowed_tools) == {
+        "account_freeze", "account_freeze_status",
+    }
+    assert dict((item.name, item.value) for item in executed.arguments) == {
+        "expected_account_version": 5,
     }
 
 

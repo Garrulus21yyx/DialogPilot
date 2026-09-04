@@ -147,7 +147,6 @@ class AuthorityPolicyRegistry:
         read = RequirementEffect.READ
         write = RequirementEffect.WRITE
         supported = AuthoritySupport.SUPPORTED
-        unsupported = AuthoritySupport.UNSUPPORTED
         requirements = (
             FactRequirement(
                 "knowledge.active_source", "knowledge.active_source",
@@ -234,8 +233,24 @@ class AuthorityPolicyRegistry:
             ),
             FactRequirement(
                 "account.current_state", "account.current_state",
-                (), 60, read, (), ("knowledge_search",), "", unsupported,
-                "Account:unsupported-v1",
+                ("status", "version", "updated_at"), 60, read,
+                ("account_security_state",), ("knowledge_search",), "", supported,
+                "CustomerOperations:account-security-state-v1",
+            ),
+            FactRequirement(
+                "account.freeze_state", "account.freeze_state",
+                (
+                    "freeze_id", "operation_key", "status",
+                    "account_version", "created_at",
+                ),
+                60, read, ("account_freeze_status",), ("knowledge_search",), "",
+                supported, "CustomerOperations:account-freeze-v1",
+            ),
+            FactRequirement(
+                "account.freeze_action", "account.freeze_action",
+                ("freeze_id", "status", "account_version"),
+                None, write, ("account_freeze",), (), "action-receipt-v1",
+                supported, "CustomerOperations:account-freeze-action-v1",
             ),
             FactRequirement(
                 "support.ticket_state", "support.ticket_state",
@@ -284,6 +299,7 @@ class AuthorityPolicyRegistry:
                     "order.shipping_address_state",
                     "refund.current_state",
                     "refund.eligibility", "account.security_events",
+                    "account.current_state", "account.freeze_state",
                     "support.ticket_state", "commitment.current_state",
                     "product.canonical_model",
                 ), (
@@ -296,6 +312,8 @@ class AuthorityPolicyRegistry:
                     ("refund_status", "refund-view-v1"),
                     ("refund_eligibility_check", "refund-eligibility-v1"),
                     ("account_security_event_list", "security-events-v1"),
+                    ("account_security_state", "account-security-state-v1"),
+                    ("account_freeze_status", "account-freeze-view-v1"),
                     ("support_ticket_list", "ticket-list-v1"),
                     ("support_ticket_get", "ticket-view-v1"),
                     ("support_ticket_by_operation", "ticket-operation-view-v1"),
@@ -313,6 +331,7 @@ class AuthorityPolicyRegistry:
                 "ACTION_RECEIPT", (
                     "refund.request_action", "order.cancel_action",
                     "order.shipping_address_action",
+                    "account.freeze_action",
                     "support.handoff_action",
                 ), (
                     ("refund_request_create", "refund-request-result-v1"),
@@ -321,6 +340,7 @@ class AuthorityPolicyRegistry:
                         "shipping_address_change",
                         "shipping-address-change-result-v1",
                     ),
+                    ("account_freeze", "account-freeze-result-v1"),
                     ("support_ticket_create", "ticket-create-result-v1"),
                 ),
             ),

@@ -6,6 +6,7 @@ import threading
 import pytest
 
 from services.customer_operations import (
+    AccountStatus,
     BusinessObjectNotFoundError,
     CustomerOperationsService,
     OperationIdempotencyConflictError,
@@ -15,6 +16,7 @@ from services.customer_operations import (
     SecuritySeverity,
     ShippingAddressNotChangeableError,
     StaleOrderVersionError,
+    StaleAccountVersionError,
 )
 
 
@@ -185,6 +187,53 @@ def test_security_events_are_append_only_and_user_scoped(tmp_path):
     events = owner.list_security_events(user_id="user-1", limit=20)
     assert [event["event_type"] for event in events] == ["new_device_login"]
     assert "user_id" not in events[0]
+    assert owner.get_account_security_state(
+        user_id="user-1",
+    ).status is AccountStatus.ACTIVE
+
+
+def test_account_freeze_is_versioned_idempotent_and_operation_queryable(tmp_path):
+    owner = service(tmp_path)
+    owner.record_security_event(
+        user_id="user-1",
+        event_type="suspicious_login",
+        severity=SecuritySeverity.CRITICAL,
+        summary="未知设备登录",
+    )
+    account = owner.get_account_security_state(user_id="user-1")
+
+    freeze, created = owner.freeze_account(
+        idempotency_key="freeze-op-1",
+        user_id="user-1",
+        expected_account_version=account.version,
+    )
+    replay, replay_created = owner.freeze_account(
+        idempotency_key="freeze-op-1",
+        user_id="user-1",
+        expected_account_version=account.version,
+    )
+
+    assert created is True and replay_created is False
+    assert replay == freeze
+    assert freeze.account_version == account.version + 1
+    assert owner.get_account_security_state(
+        user_id="user-1",
+    ).status is AccountStatus.FROZEN
+    assert owner.get_account_freeze_for_operation(
+        user_id="user-1",
+        idempotency_key="freeze-op-1",
+    ) == freeze
+    with pytest.raises(BusinessObjectNotFoundError):
+        owner.get_account_freeze_for_operation(
+            user_id="user-2",
+            idempotency_key="freeze-op-1",
+        )
+    with pytest.raises(StaleAccountVersionError):
+        owner.freeze_account(
+            idempotency_key="freeze-op-2",
+            user_id="user-1",
+            expected_account_version=account.version,
+        )
 
 
 def test_order_cancellation_is_versioned_idempotent_and_operation_queryable(tmp_path):

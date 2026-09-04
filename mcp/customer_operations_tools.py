@@ -193,6 +193,61 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
             limit=limit,
         )
 
+    async def account_security_state(
+        _params: Dict[str, Any], context: Optional[Dict[str, Any]],
+    ):
+        state = await asyncio.to_thread(
+            service.get_account_security_state,
+            user_id=_trusted(context, "user_id"),
+        )
+        data = state.to_dict()
+        data.pop("user_id", None)
+        return data
+
+    async def account_freeze(
+        params: Dict[str, Any], context: Optional[Dict[str, Any]],
+    ):
+        user_id = _trusted(context, "user_id")
+        conv_id = _trusted(context, "conv_id")
+        tool_call_id = _trusted(context, "tool_call_id")
+        freeze, created = await asyncio.to_thread(
+            service.freeze_account,
+            idempotency_key=f"account-freeze-tool:{user_id}:{conv_id}:{tool_call_id}",
+            user_id=user_id,
+            expected_account_version=int(params.get("expected_account_version")),
+        )
+        return ToolEffectReceipt(
+            data={
+                "created": created,
+                "freeze_id": freeze.freeze_id,
+                "status": freeze.status,
+                "account_version": freeze.account_version,
+                "message": "账户已冻结" if created else "该账户冻结操作已完成",
+            },
+            effect_status=ToolEffectStatus.COMMITTED,
+            receipt_id=freeze.freeze_id,
+        )
+
+    async def account_freeze_status(
+        params: Dict[str, Any], context: Optional[Dict[str, Any]],
+    ):
+        user_id = _trusted(context, "user_id")
+        conv_id = _trusted(context, "conv_id")
+        operation_key = _bounded(
+            params.get("operation_key"), "operation_key", 512,
+        )
+        freeze = await asyncio.to_thread(
+            service.get_account_freeze_for_operation,
+            user_id=user_id,
+            idempotency_key=(
+                f"account-freeze-tool:{user_id}:{conv_id}:{operation_key}"
+            ),
+        )
+        data = freeze.to_dict()
+        data.pop("user_id", None)
+        data["operation_key"] = operation_key
+        return data
+
     order_schema = {
         "type": "object",
         "properties": {
@@ -457,6 +512,73 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
             retry_policy="safe_read_retry",
             typed_outcomes=("OK", "UNAVAILABLE", "UNAUTHORIZED"),
             output_fields=("event_id", "event_type", "severity", "summary", "occurred_at"),
+        ),
+        Tool(
+            name="account_security_state",
+            description="读取当前认证账户的安全状态与版本",
+            handler=account_security_state,
+            schema={"type": "object", "properties": {}},
+            allowed_agents=("account_security",),
+            read_only=True,
+            authority="account.current_state",
+            manifest_version="tool-manifest-v1",
+            output_schema_version="account-security-state-v1",
+            preconditions=("authenticated_user",),
+            idempotency="read_only",
+            retry_policy="safe_read_retry",
+            typed_outcomes=("OK", "NOT_FOUND", "UNAVAILABLE", "UNAUTHORIZED"),
+            output_fields=("status", "version", "updated_at"),
+        ),
+        Tool(
+            name="account_freeze_status",
+            description="按原 operation key 查询当前账户冻结结果",
+            handler=account_freeze_status,
+            schema={
+                "type": "object",
+                "properties": {"operation_key": {"type": "string"}},
+                "required": ["operation_key"],
+            },
+            allowed_agents=("account_security",),
+            read_only=True,
+            authority="account.freeze_state",
+            manifest_version="tool-manifest-v1",
+            output_schema_version="account-freeze-view-v1",
+            preconditions=("authenticated_user", "operation_key"),
+            idempotency="read_only",
+            retry_policy="safe_read_retry",
+            typed_outcomes=("OK", "NOT_FOUND", "UNAVAILABLE", "UNAUTHORIZED"),
+            output_fields=(
+                "freeze_id", "operation_key", "status", "account_version",
+                "created_at",
+            ),
+        ),
+        Tool(
+            name="account_freeze",
+            description=(
+                "冻结当前认证账户；必须绑定最新账户版本并获得宿主确认"
+            ),
+            handler=account_freeze,
+            schema={
+                "type": "object",
+                "properties": {
+                    "expected_account_version": {"type": "integer"},
+                },
+                "required": ["expected_account_version"],
+            },
+            allowed_agents=("account_security",),
+            risk=ToolRisk.HIGH,
+            read_only=False,
+            requires_approval=True,
+            timeout_s=5.0,
+            authority="account.freeze_action",
+            manifest_version="tool-manifest-v1",
+            output_schema_version="account-freeze-result-v1",
+            receipt_schema_version="action-receipt-v1",
+            preconditions=("authenticated_user", "approved", "fresh_account_state"),
+            idempotency="tool_call_operation_key",
+            retry_policy="receipt_reconcile_before_retry",
+            typed_outcomes=("COMMITTED", "NOT_COMMITTED", "OUTCOME_UNKNOWN"),
+            output_fields=("created", "freeze_id", "status", "account_version"),
         ),
     )
 
