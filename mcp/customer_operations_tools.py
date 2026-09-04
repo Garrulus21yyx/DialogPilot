@@ -1,4 +1,4 @@
-"""把客户业务 Owner 投影为四个受控 Agent 工具。"""
+"""把客户业务 Owner 投影为受控的订单、退款与账户工具。"""
 from __future__ import annotations
 
 import asyncio
@@ -126,6 +126,58 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
             ),
         )
         data = cancellation.to_dict()
+        data.pop("user_id", None)
+        data["operation_key"] = operation_key
+        return data
+
+    async def shipping_address_change(
+        params: Dict[str, Any], context: Optional[Dict[str, Any]],
+    ):
+        user_id = _trusted(context, "user_id")
+        conv_id = _trusted(context, "conv_id")
+        tool_call_id = _trusted(context, "tool_call_id")
+        change, created = await asyncio.to_thread(
+            service.change_shipping_address,
+            idempotency_key=(
+                f"address-change-tool:{user_id}:{conv_id}:{tool_call_id}"
+            ),
+            user_id=user_id,
+            order_id=_bounded(params.get("order_id"), "order_id", 128),
+            expected_order_version=int(params.get("expected_order_version")),
+            new_address=_bounded(params.get("new_address"), "new_address", 500),
+        )
+        return ToolEffectReceipt(
+            data={
+                "created": created,
+                "change_id": change.change_id,
+                "order_id": change.order_id,
+                "new_address": change.new_address,
+                "status": change.status,
+                "order_version": change.order_version,
+                "message": "收货地址已修改" if created else "该地址修改已完成",
+            },
+            effect_status=ToolEffectStatus.COMMITTED,
+            receipt_id=change.change_id,
+        )
+
+    async def shipping_address_change_status(
+        params: Dict[str, Any], context: Optional[Dict[str, Any]],
+    ):
+        user_id = _trusted(context, "user_id")
+        conv_id = _trusted(context, "conv_id")
+        order_id = _bounded(params.get("order_id"), "order_id", 128)
+        operation_key = _bounded(
+            params.get("operation_key"), "operation_key", 512,
+        )
+        change = await asyncio.to_thread(
+            service.get_shipping_address_change_for_operation,
+            user_id=user_id,
+            order_id=order_id,
+            idempotency_key=(
+                f"address-change-tool:{user_id}:{conv_id}:{operation_key}"
+            ),
+        )
+        data = change.to_dict()
         data.pop("user_id", None)
         data["operation_key"] = operation_key
         return data
@@ -312,6 +364,69 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
             typed_outcomes=("COMMITTED", "NOT_COMMITTED", "OUTCOME_UNKNOWN"),
             output_fields=(
                 "created", "cancellation_id", "order_id", "status", "order_version",
+            ),
+        ),
+        Tool(
+            name="shipping_address_change_status",
+            description="按原 operation key 查询当前用户的地址修改结果",
+            handler=shipping_address_change_status,
+            schema={
+                "type": "object",
+                "properties": {
+                    "order_id": {"type": "string"},
+                    "new_address": {"type": "string"},
+                    "operation_key": {"type": "string"},
+                },
+                "required": ["order_id", "new_address", "operation_key"],
+            },
+            allowed_agents=("general",),
+            read_only=True,
+            authority="order.shipping_address_state",
+            manifest_version="tool-manifest-v1",
+            output_schema_version="shipping-address-change-view-v1",
+            preconditions=("authenticated_user", "order_id", "operation_key"),
+            idempotency="read_only",
+            retry_policy="safe_read_retry",
+            typed_outcomes=("OK", "NOT_FOUND", "UNAVAILABLE", "UNAUTHORIZED"),
+            output_fields=(
+                "change_id", "order_id", "new_address", "operation_key",
+                "status", "order_version", "created_at",
+            ),
+        ),
+        Tool(
+            name="shipping_address_change",
+            description=(
+                "修改仍处于已支付状态的订单收货地址；"
+                "必须绑定最新订单版本并获得宿主确认"
+            ),
+            handler=shipping_address_change,
+            schema={
+                "type": "object",
+                "properties": {
+                    "order_id": {"type": "string"},
+                    "new_address": {"type": "string", "maxLength": 500},
+                    "expected_order_version": {"type": "integer"},
+                },
+                "required": [
+                    "order_id", "new_address", "expected_order_version",
+                ],
+            },
+            allowed_agents=("general",),
+            risk=ToolRisk.HIGH,
+            read_only=False,
+            requires_approval=True,
+            timeout_s=5.0,
+            authority="order.shipping_address_action",
+            manifest_version="tool-manifest-v1",
+            output_schema_version="shipping-address-change-result-v1",
+            receipt_schema_version="action-receipt-v1",
+            preconditions=("authenticated_user", "approved", "fresh_order_state"),
+            idempotency="tool_call_operation_key",
+            retry_policy="receipt_reconcile_before_retry",
+            typed_outcomes=("COMMITTED", "NOT_COMMITTED", "OUTCOME_UNKNOWN"),
+            output_fields=(
+                "created", "change_id", "order_id", "new_address", "status",
+                "order_version",
             ),
         ),
         Tool(

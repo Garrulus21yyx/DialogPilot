@@ -37,6 +37,14 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
             "order_cancel", "order.cancel_action", CapabilityRisk.HIGH,
             profile.ref, write=True,
         ),
+        _tool(
+            "shipping_address_change_status", "order.shipping_address_state",
+            CapabilityRisk.MEDIUM, profile.ref,
+        ),
+        _tool(
+            "shipping_address_change", "order.shipping_address_action",
+            CapabilityRisk.HIGH, profile.ref, write=True,
+        ),
         _tool("refund_status", "refund.current_state", CapabilityRisk.MEDIUM, profile.ref),
         _tool("refund_eligibility_check", "refund.eligibility", CapabilityRisk.MEDIUM, profile.ref),
         _tool(
@@ -96,7 +104,10 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
         ),
         _agent(
             "order_logistics",
-            ("order_lookup", "order_cancel_status", "order_cancel"),
+            (
+                "order_lookup", "order_cancel_status", "order_cancel",
+                "shipping_address_change_status", "shipping_address_change",
+            ),
             (),
             profile.ref,
         ),
@@ -135,6 +146,18 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
             ),
             "CHECK_ORDER", ("COMPLETE", "CANCELLED"),
             ("order_lookup", "order_cancel_status", "order_cancel"),
+        ),
+        FlowDefinition(
+            "change_shipping_address", "v1", "order_logistics",
+            (
+                "CHECK_ORDER", "CHECK_APPROVAL", "EXECUTE", "RECONCILE",
+                "COMPLETE", "CANCELLED",
+            ),
+            "CHECK_ORDER", ("COMPLETE", "CANCELLED"),
+            (
+                "order_lookup", "shipping_address_change_status",
+                "shipping_address_change",
+            ),
         ),
         FlowDefinition(
             "human_handoff", "v1", "human_service",
@@ -194,6 +217,32 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
                 "operation_key",
                 ("order_id",),
                 "cancellation_id",
+            ),
+            profile.ref,
+            ActionPreparationDefinition.create(
+                tool_id="order_lookup",
+                requirement_id="order.current_state",
+                readiness_field="status",
+                readiness_value="paid",
+                target_version_field="version",
+                target_version_argument="expected_order_version",
+            ),
+        ),
+        ActionDefinition(
+            "order.shipping_address.change", "v1", "order_logistics",
+            "change_shipping_address:v1",
+            CapabilityEffect.WRITE, CapabilityRisk.HIGH,
+            ("order.shipping_address_action",),
+            ("shipping_address_change",),
+            ApprovalPolicy.EXPLICIT_CONFIRMATION_REQUIRED,
+            "action-receipt-v1",
+            ActionReconciliationDefinition(
+                "shipping_address_change_status",
+                "order.shipping_address_state",
+                "operation_key",
+                "operation_key",
+                ("order_id", "new_address"),
+                "change_id",
             ),
             profile.ref,
             ActionPreparationDefinition.create(

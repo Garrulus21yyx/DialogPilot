@@ -279,6 +279,29 @@ class _OrderCancellationWorkflowExecutor:
         )
 
 
+class _AddressChangeWorkflowExecutor:
+    def __init__(self):
+        self.items = []
+
+    async def __call__(self, context: AgentContextView):
+        item = context.work_item
+        self.items.append(item)
+        return AgentResult(
+            item.work_item_id,
+            item.owner_agent,
+            AgentResultStatus.SUCCEEDED,
+            "TOOL_COMMITTED",
+            "address-change-test-v1",
+            action_receipts=(ReceiptRef(
+                "address-change-1",
+                "action-receipt-v1",
+                str(item.operation_key),
+                "COMMITTED",
+                "order.shipping_address_action",
+            ),),
+        )
+
+
 def _order_proposal():
     return TurnProposal(
         ProposalDisposition.RESOLVED,
@@ -523,6 +546,56 @@ def test_order_cancellation_approval_resumes_its_registered_owner_and_action():
     assert set(executed.allowed_tools) == {"order_cancel", "order_cancel_status"}
     assert dict((item.name, item.value) for item in executed.arguments) == {
         "order_id": "DP1234",
+        "expected_order_version": 4,
+    }
+
+
+def test_shipping_address_approval_resumes_registered_action_with_exact_address():
+    store = InMemoryConversationStateStore()
+    registry = build_default_capability_registry("tenant-target")
+    workflow = _AddressChangeWorkflowExecutor()
+    manager = TargetConversationManager(
+        state_store=store,
+        registry=registry,
+        understanding=BoundedTargetUnderstanding(),
+        orchestration=OrchestrationRuntime(
+            direct_executor=_OrderCancellationPreparationExecutor(),
+            domain_workers={},
+            workflow_executor=workflow,
+        ),
+    )
+
+    prepared = asyncio.run(manager.handle(
+        _identity("request-address-prepare"),
+        TurnObservations(
+            "把订单 DP1234 的地址改成 Berlin Example Street 9",
+        ),
+    ))
+    pending = prepared.state_after.pending_approval
+    assert pending is not None
+    assert pending.action_ref == "order.shipping_address.change:v1"
+    assert pending.target_entity_version == "4"
+
+    completed = asyncio.run(manager.handle(
+        _identity("request-address-confirm"),
+        TurnObservations(
+            "确认修改",
+            approval_decision=True,
+            approval_id=pending.approval_id,
+        ),
+    ))
+
+    assert completed.state_after.workstreams[0].status is WorkstreamStatus.COMPLETED
+    executed = workflow.items[0]
+    assert executed.owner_agent == "order_logistics"
+    assert executed.action_ref == "order.shipping_address.change:v1"
+    assert executed.flow_ref == "change_shipping_address:v1"
+    assert set(executed.allowed_tools) == {
+        "shipping_address_change", "shipping_address_change_status",
+    }
+    assert dict((item.name, item.value) for item in executed.arguments) == {
+        "order_id": "DP1234",
+        "new_address": "Berlin Example Street 9",
         "expected_order_version": 4,
     }
 

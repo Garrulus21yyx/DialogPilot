@@ -20,6 +20,7 @@ _GOALS = {
     "order_status",
     "logistics_status",
     "cancel_order",
+    "change_address",
     "refund_policy",
     "refund_eligibility",
     "refund_status",
@@ -29,7 +30,9 @@ _GOALS = {
     "product_qa",
     "human_handoff",
 }
-_MISSING_FIELDS = {"order_id", "asset_id", "customer_service_goal"}
+_MISSING_FIELDS = {
+    "order_id", "asset_id", "new_address", "customer_service_goal",
+}
 
 
 class TargetSemanticProvider(Protocol):
@@ -121,16 +124,22 @@ class StructuredTargetCommandRouter:
             asset_id = str(value.get("asset_id") or "")
             if asset_id and asset_id != observed_asset:
                 raise ValueError("provider invented an asset ID")
+            new_address = str(value.get("new_address") or "").strip()
+            if new_address and new_address not in observations.raw_text:
+                raise ValueError("provider invented a shipping address")
             commands.append(self._command(
                 goal_id, kind, observations.raw_text, state,
-                order_id or observed_order, asset_id or observed_asset, registry,
+                order_id or observed_order, asset_id or observed_asset,
+                new_address, registry,
             ))
         return TurnProposal(
             ProposalDisposition.RESOLVED, tuple(commands), "STRUCTURED_SEMANTIC_ROUTER",
         )
 
     @staticmethod
-    def _command(goal_id, kind, text, state, order_id, asset_id, registry):
+    def _command(
+        goal_id, kind, text, state, order_id, asset_id, new_address, registry,
+    ):
         if kind == "general_qa":
             registry.skill("general_qa")
             return CommandProposal(
@@ -158,6 +167,22 @@ class StructuredTargetCommandRouter:
                 (ArgumentValue.create("order_id", order_id),),
                 ("order.current_state",),
                 flow_ref="cancel_order:v1", action_ref="order.cancel:v1",
+                target_entity_ref=f"order:{order_id}",
+            )
+        if kind == "change_address":
+            if not order_id or not new_address:
+                raise ValueError("address change lacks observed order ID or address")
+            registry.action("order.shipping_address.change:v1")
+            return CommandProposal(
+                goal_id, CommandKind.PREPARE_WORKFLOW, "order_logistics",
+                "Check current order state before changing its shipping address",
+                (
+                    ArgumentValue.create("order_id", order_id),
+                    ArgumentValue.create("new_address", new_address),
+                ),
+                ("order.current_state",),
+                flow_ref="change_shipping_address:v1",
+                action_ref="order.shipping_address.change:v1",
                 target_entity_ref=f"order:{order_id}",
             )
         if kind == "refund_policy":

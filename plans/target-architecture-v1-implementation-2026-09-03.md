@@ -74,6 +74,7 @@
 | 20 | done | Order cancellation as a second governed write Flow using the generic preparation, approval, Receipt and reconciliation contracts | 136 Target/owner/tool/authority tests with real PostgreSQL/HTTP boundaries | this stage commit |
 | 21 | done | Generic typed missing-input aggregation, durable suspended read work, exact signal resume, and one Interaction publication across domains | 125 focused Target/owner/tool tests with real PostgreSQL enabled | this stage commit |
 | 22 | done | Registry-governed `NEEDS_EVIDENCE` resolution and bounded same-WorkItem resume without user clarification | 130 focused Target/owner/tool tests with real PostgreSQL enabled | this stage commit |
+| 23 | done | Governed shipping-address change Flow with authoritative order version, explicit confirmation, idempotent Receipt and reconciliation | 146 focused Target/owner/tool/authority tests with real PostgreSQL enabled | this stage commit |
 
 ## Stage record
 
@@ -472,3 +473,28 @@ continuation.
   LangGraph parent runtime. The focused Target suite passed 130 tests with PostgreSQL
   enabled, including positive resolution, no-evidence termination, forbidden provider,
   wrong-requirement, partial failure and existing HTTP/write boundaries.
+
+## Stage 23 verification notes
+
+- `CustomerOperationsService` owns the shipping address and its monotonic order
+  version. Address change rechecks trusted user scope, exact order version and the
+  currently supported `paid` state in one transaction, then records an idempotent
+  operation Receipt. Reusing an operation key with different address content fails
+  with the existing typed idempotency conflict.
+- Atomic `shipping_address_change` and read-only
+  `shipping_address_change_status` tools are registered with explicit schemas,
+  authorities and output versions. Reconciliation queries the exact scoped operation
+  key and verifies both order id and address; write transport uncertainty therefore
+  cannot cause blind replay.
+- Registry adds `change_shipping_address:v1` and
+  `order.shipping_address.change:v1`. The existing generic preparation contract reads
+  `order.current_state`, binds its version, applies explicit-confirmation policy and
+  compiles only the two address tools into the write WorkItem.
+- Bounded and structured understanding propose an address-change goal only when the
+  order id and address originate in the user input. An invented semantic-provider
+  address is rejected. This is a Flow/Action, not an address Skill and not a product
+  category capability.
+- Real ASGI/PostgreSQL E2E covers prepare → InteractionRequest → exact approval → one
+  committed write Receipt through the same ConversationManager and Publication path.
+  The focused Target, business-owner, tool and authority suite passed 146 tests with
+  PostgreSQL enabled.

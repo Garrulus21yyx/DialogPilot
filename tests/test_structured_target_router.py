@@ -88,6 +88,69 @@ def test_semantic_router_rejects_hallucinated_entity_and_unknown_goal():
     assert proposal.disposition is ProposalDisposition.INVALID_PROVIDER_OUTPUT
 
 
+def test_address_change_compiles_one_governed_flow_and_rejects_invented_address():
+    text = "把订单 DP1234 的地址改成 Berlin Example Street 9"
+    provider = Provider({
+        "status": "resolved",
+        "goals": [{
+            "kind": "change_address",
+            "order_id": "DP1234",
+            "new_address": "Berlin Example Street 9",
+        }],
+    })
+    proposal, state, registry = _invoke(
+        StructuredTargetCommandRouter(provider), text,
+    )
+
+    assert proposal.disposition is ProposalDisposition.RESOLVED
+    command = proposal.commands[0]
+    assert command.kind is CommandKind.PREPARE_WORKFLOW
+    assert command.action_ref == "order.shipping_address.change:v1"
+    plan = TurnPlanCompiler().compile(
+        RoutePolicy().accept(proposal, state, registry),
+        state,
+        registry,
+        IdentityFactory().create_invocation(
+            tenant_id="tenant-a",
+            user_id="user-a",
+            conversation_id="conversation-a",
+            request_id="address-request",
+        ),
+    )
+    assert plan.transitions.mutations[0].flow_ref == "change_shipping_address:v1"
+    assert plan.work.items[0].allowed_tools == ("order_lookup",)
+
+    invented = Provider({
+        "status": "resolved",
+        "goals": [{
+            "kind": "change_address",
+            "order_id": "DP1234",
+            "new_address": "Invented Address 1",
+        }],
+    })
+    rejected, _, _ = _invoke(StructuredTargetCommandRouter(invented), text)
+    assert rejected.disposition is ProposalDisposition.INVALID_PROVIDER_OUTPUT
+
+
+def test_bounded_address_change_uses_task_flow_not_a_product_or_address_skill():
+    proposal, _, registry = _invoke(
+        BoundedTargetUnderstanding(),
+        "把订单 DP1234 的地址改成 Berlin Example Street 9",
+    )
+
+    assert proposal.disposition is ProposalDisposition.RESOLVED
+    assert proposal.commands[0].kind is CommandKind.PREPARE_WORKFLOW
+    assert proposal.commands[0].skill_id is None
+    assert proposal.commands[0].action_ref == "order.shipping_address.change:v1"
+    assert all("address" not in skill.skill_id for skill in registry.skills)
+
+    missing, _, _ = _invoke(
+        BoundedTargetUnderstanding(),
+        "订单 DP1234 修改地址",
+    )
+    assert missing.disposition is ProposalDisposition.CLARIFY
+    assert missing.reason_code == "NEW_ADDRESS_REQUIRED"
+
 def test_semantic_router_preserves_typed_rejection_and_provider_failure():
     insufficient = Provider({
         "status": "insufficient_context", "missing_fields": ["customer_service_goal"],

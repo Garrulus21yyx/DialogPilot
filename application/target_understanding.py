@@ -18,6 +18,11 @@ from application.work_item import ArgumentValue, ControlMode
 
 
 _IDENTIFIER = re.compile(r"\b[A-Za-z]{1,12}[-_]?\d{2,64}\b")
+_ADDRESS_CHANGE = re.compile(
+    r"(?:地址(?:改成|改为)|修改(?:成|为)|改成|改为|change\s+address\s+to)"
+    r"\s*[:：]?\s*(?P<address>.+)$",
+    re.IGNORECASE,
+)
 
 
 class BoundedTargetUnderstanding:
@@ -147,6 +152,16 @@ class BoundedTargetUnderstanding:
         cancel_order_signal = bool(order_id) and any(
             token in lowered for token in ("取消订单", "取消这个订单", "cancel order")
         )
+        address_change_signal = bool(order_id) and any(
+            token in lowered for token in (
+                "修改地址", "改地址", "地址改", "change address",
+            )
+        )
+        address_match = _ADDRESS_CHANGE.search(text) if address_change_signal else None
+        new_address = (
+            str(fields.get("new_address") or "").strip()
+            or (address_match.group("address").strip() if address_match else "")
+        )
         handoff_signal = any(
             token in lowered for token in ("人工", "客服", "human agent", "representative")
         )
@@ -236,7 +251,22 @@ class BoundedTargetUnderstanding:
                 action_ref="refund.request.create:v1",
                 target_entity_ref=f"order:{order_id}",
             ))
-        if cancel_order_signal:
+        if address_change_signal and new_address:
+            commands.append(CommandProposal(
+                "prepare-address-change",
+                CommandKind.PREPARE_WORKFLOW,
+                "order_logistics",
+                "Check current order state before changing its shipping address",
+                (
+                    ArgumentValue.create("order_id", order_id),
+                    ArgumentValue.create("new_address", new_address),
+                ),
+                ("order.current_state",),
+                flow_ref="change_shipping_address:v1",
+                action_ref="order.shipping_address.change:v1",
+                target_entity_ref=f"order:{order_id}",
+            ))
+        elif cancel_order_signal:
             commands.append(CommandProposal(
                 "prepare-order-cancellation",
                 CommandKind.PREPARE_WORKFLOW,
@@ -248,7 +278,10 @@ class BoundedTargetUnderstanding:
                 action_ref="order.cancel:v1",
                 target_entity_ref=f"order:{order_id}",
             ))
-        elif order_signal and order_id and not refund_signal:
+        elif (
+            order_signal and order_id and not refund_signal
+            and not address_change_signal
+        ):
             commands.append(CommandProposal(
                 "order-status",
                 CommandKind.DIRECT_TOOL,
@@ -288,6 +321,13 @@ class BoundedTargetUnderstanding:
                 (),
                 "ORDER_ID_REQUIRED",
                 ("order_id",),
+            )
+        if address_change_signal and not new_address:
+            return TurnProposal(
+                ProposalDisposition.CLARIFY,
+                (),
+                "NEW_ADDRESS_REQUIRED",
+                ("new_address",),
             )
         if product_identification_signal and not asset_id:
             return TurnProposal(

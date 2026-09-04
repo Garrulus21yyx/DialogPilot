@@ -192,6 +192,23 @@ class AuthorityPolicyRegistry:
                 supported, "CustomerOperations:order-cancel-action-v1",
             ),
             FactRequirement(
+                "order.shipping_address_state", "order.shipping_address_state",
+                (
+                    "change_id", "order_id", "new_address", "operation_key",
+                    "status", "order_version", "created_at",
+                ),
+                60, read, ("shipping_address_change_status",),
+                ("knowledge_search",), "", supported,
+                "CustomerOperations:shipping-address-change-v1",
+            ),
+            FactRequirement(
+                "order.shipping_address_action", "order.shipping_address_action",
+                ("change_id", "order_id", "new_address", "status", "order_version"),
+                None, write, ("shipping_address_change",), (),
+                "action-receipt-v1", supported,
+                "CustomerOperations:shipping-address-action-v1",
+            ),
+            FactRequirement(
                 "refund.current_state", "refund.current_state",
                 ("refund_id", "order_id", "status", "updated_at"), 60,
                 read, ("refund_status",), ("knowledge_search",), "", supported,
@@ -264,6 +281,7 @@ class AuthorityPolicyRegistry:
                 "business-tool-evidence-adapter", "business-tool-evidence-adapter-v1",
                 "BUSINESS_TOOL", (
                     "order.current_state", "order.cancellation_state",
+                    "order.shipping_address_state",
                     "refund.current_state",
                     "refund.eligibility", "account.security_events",
                     "support.ticket_state", "commitment.current_state",
@@ -271,6 +289,10 @@ class AuthorityPolicyRegistry:
                 ), (
                     ("order_lookup", "order-view-v1"),
                     ("order_cancel_status", "order-cancellation-view-v1"),
+                    (
+                        "shipping_address_change_status",
+                        "shipping-address-change-view-v1",
+                    ),
                     ("refund_status", "refund-view-v1"),
                     ("refund_eligibility_check", "refund-eligibility-v1"),
                     ("account_security_event_list", "security-events-v1"),
@@ -290,10 +312,15 @@ class AuthorityPolicyRegistry:
                 "action-receipt-evidence-adapter", "action-receipt-evidence-adapter-v1",
                 "ACTION_RECEIPT", (
                     "refund.request_action", "order.cancel_action",
+                    "order.shipping_address_action",
                     "support.handoff_action",
                 ), (
                     ("refund_request_create", "refund-request-result-v1"),
                     ("order_cancel", "order-cancel-result-v1"),
+                    (
+                        "shipping_address_change",
+                        "shipping-address-change-result-v1",
+                    ),
                     ("support_ticket_create", "ticket-create-result-v1"),
                 ),
             ),

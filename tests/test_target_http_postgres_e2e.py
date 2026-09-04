@@ -45,7 +45,10 @@ class _ScenarioTools:
         if name == "order_lookup":
             status = (
                 "paid"
-                if "order-cancel" in context["conversation_id"]
+                if any(
+                    marker in context["conversation_id"]
+                    for marker in ("order-cancel", "address-change")
+                )
                 else "SHIPPED"
             )
             return _result(
@@ -151,6 +154,22 @@ class _ScenarioTools:
                 text="订单已取消。",
                 effect_status="committed",
                 receipt_id="cancel-target-1",
+            )
+        if name == "shipping_address_change":
+            assert approved is True
+            return _result(
+                name,
+                data={
+                    "change_id": "address-target-1",
+                    "order_id": params["order_id"],
+                    "new_address": params["new_address"],
+                    "status": "updated",
+                    "order_version": 4,
+                },
+                authority="order.shipping_address_action",
+                text="收货地址已修改。",
+                effect_status="committed",
+                receipt_id="address-target-1",
             )
         return _result(name, success=False, status="denied")
 
@@ -316,6 +335,18 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                     approval_id=cancel_signal,
                     approved=True,
                 )
+                address_precheck = await chat(
+                    "address-change",
+                    "把订单 DP7654 的地址改成 Berlin Example Street 9",
+                )
+                address_signal = address_precheck.json()["signal_id"]
+                address_committed = await chat(
+                    "address-change",
+                    "确认修改地址",
+                    request_suffix="approval",
+                    approval_id=address_signal,
+                    approved=True,
+                )
                 refund_commit_replay = await chat(
                     "refund",
                     "确认提交退款",
@@ -397,6 +428,7 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                     refund_decline, refund_declined, multi, partial, handoff,
                     refund_unknown_prepare, refund_unknown, refund_reconciled,
                     cancel_precheck, cancel_committed,
+                    address_precheck, address_committed,
                 )
 
     try:
@@ -411,6 +443,7 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                 "refund-decline", "refund-declined", "multi", "partial", "handoff",
                 "refund-unknown-prepare", "refund-unknown", "refund-reconciled",
                 "cancel-precheck", "cancel-committed",
+                "address-precheck", "address-committed",
             ),
             responses,
         ):
@@ -420,6 +453,7 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                     "refund-precheck", "refund-replay", "refund-decline",
                     "refund-unknown-prepare", "refund-unknown",
                     "cancel-precheck",
+                    "address-precheck",
                 }
                 else 409 if name in {
                     "stale-approval", "changed-approval-replay",
@@ -436,6 +470,7 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
             refund_decline, refund_declined, multi, partial, handoff,
             refund_unknown_prepare, refund_unknown, refund_reconciled,
             cancel_precheck, cancel_committed,
+            address_precheck, address_committed,
         ) = (
             item.json() for item in responses
         )
@@ -477,6 +512,15 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
         cancel_calls = [item for item in tools.calls if item[0] == "order_cancel"]
         assert len(cancel_calls) == 1
         assert cancel_calls[0][2] == "general"
+        assert address_precheck["outcome"] == "needs_input"
+        assert "address-target-1" in address_committed["response"]
+        address_calls = [
+            item for item in tools.calls
+            if item[0] == "shipping_address_change"
+        ]
+        assert len(address_calls) == 1
+        assert address_calls[0][1]["new_address"] == "Berlin Example Street 9"
+        assert address_calls[0][2] == "general"
         refund_write_calls = [
             item for item in tools.calls if item[0] == "refund_request_create"
         ]

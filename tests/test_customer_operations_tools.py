@@ -165,6 +165,44 @@ def test_order_cancel_write_and_reconciliation_share_exact_operation_key(tmp_pat
     assert other_user.success is False
 
 
+def test_shipping_address_write_and_reconciliation_share_exact_operation_key(tmp_path):
+    owner, manager = setup_runtime(tmp_path)
+    order = owner.upsert_order(
+        order_id="address-order", user_id="user-1", item_name="咖啡机",
+        amount_minor=69900, currency="CNY", status=OrderStatus.PAID,
+        shipping_address="Berlin, Old Street 1",
+    )
+    params = {
+        "order_id": order.order_id,
+        "new_address": "Berlin, New Street 9",
+        "expected_order_version": order.version,
+    }
+    pending = asyncio.run(manager.execute_for_agent(
+        "shipping_address_change", params,
+        agent_type="general", context=context(), call_id="address-call-1",
+    ))
+    committed = asyncio.run(manager.execute_for_agent(
+        "shipping_address_change", params,
+        agent_type="general", context=context(), approved=True,
+        call_id="address-call-1",
+    ))
+    reconciled = asyncio.run(manager.execute_for_agent(
+        "shipping_address_change_status",
+        {
+            "order_id": order.order_id,
+            "new_address": params["new_address"],
+            "operation_key": "address-call-1",
+        },
+        agent_type="general", context=context(),
+    ))
+
+    assert pending.status == ToolCallStatus.AWAITING_APPROVAL.value
+    assert committed.effect_status == ToolEffectStatus.COMMITTED.value
+    assert reconciled.success is True
+    assert reconciled.data["change_id"] == committed.receipt_id
+    assert reconciled.data["new_address"] == params["new_address"]
+
+
 def test_refund_write_rejects_wrong_agent_before_side_effect(tmp_path):
     _owner, manager = setup_runtime(tmp_path)
     denied = asyncio.run(manager.execute_for_agent(

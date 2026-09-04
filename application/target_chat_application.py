@@ -459,6 +459,7 @@ def _terminal_response(reason_code: str) -> str:
     return {
         "ORDER_ID_REQUIRED": "请提供需要查询的订单号。",
         "PRODUCT_MEDIA_REQUIRED": "请上传包含商品型号或铭牌的清晰图片。",
+        "NEW_ADDRESS_REQUIRED": "请提供要修改成的完整收货地址。",
         "SUPPORTED_GOAL_UNCLEAR": "请说明您要处理订单、退款、商品识别还是人工服务。",
     }.get(reason_code, "请补充完成该任务所需的信息。")
 

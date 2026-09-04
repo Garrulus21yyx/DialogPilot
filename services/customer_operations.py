@@ -41,6 +41,10 @@ class OrderNotCancellableError(CustomerOperationError):
     """The current authoritative order state cannot be cancelled."""
 
 
+class ShippingAddressNotChangeableError(CustomerOperationError):
+    """The current authoritative order state cannot accept an address change."""
+
+
 class OperationIdempotencyConflictError(CustomerOperationError):
     """同一幂等键被复用于另一项业务请求。"""
 
@@ -78,6 +82,7 @@ class Order:
     version: int
     created_at: str
     updated_at: str
+    shipping_address: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         data = asdict(self)
@@ -130,6 +135,20 @@ class OrderCancellation:
         return asdict(self)
 
 
+@dataclass(frozen=True)
+class ShippingAddressChange:
+    change_id: str
+    order_id: str
+    user_id: str
+    new_address: str
+    status: str
+    order_version: int
+    created_at: str
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
 class CustomerOperationsService:
     """订单、退款资格、退款申请和安全事件的唯一事实 Owner。"""
 
@@ -155,6 +174,7 @@ class CustomerOperationsService:
         currency: str,
         status: OrderStatus,
         refundable_until: Optional[str] = None,
+        shipping_address: Optional[str] = None,
     ) -> Order:
         """由可信业务适配器写入订单快照；更新时单调递增版本。"""
         order_id = self._required(order_id, "order_id")
@@ -173,25 +193,32 @@ class CustomerOperationsService:
         with self._lock, self._connect() as conn:
             conn.execute("BEGIN IMMEDIATE")
             existing = conn.execute(
-                "SELECT version, created_at FROM orders WHERE order_id = ?", (order_id,)
+                "SELECT version, created_at, shipping_address FROM orders WHERE order_id = ?",
+                (order_id,),
             ).fetchone()
             version = int(existing["version"]) + 1 if existing else 1
             created_at = existing["created_at"] if existing else now
+            resolved_address = (
+                str(shipping_address).strip()
+                if shipping_address is not None
+                else str(existing["shipping_address"] or "") if existing else ""
+            )
             conn.execute(
                 """
                 INSERT INTO orders (
                     order_id, user_id, item_name, amount_minor, currency, status,
-                    refundable_until, version, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    refundable_until, version, created_at, updated_at, shipping_address
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(order_id) DO UPDATE SET
                     user_id=excluded.user_id, item_name=excluded.item_name,
                     amount_minor=excluded.amount_minor, currency=excluded.currency,
                     status=excluded.status, refundable_until=excluded.refundable_until,
-                    version=excluded.version, updated_at=excluded.updated_at
+                    version=excluded.version, updated_at=excluded.updated_at,
+                    shipping_address=excluded.shipping_address
                 """,
                 (
                     order_id, user_id, item_name, amount_minor, currency, status.value,
-                    refundable_until, version, created_at, now,
+                    refundable_until, version, created_at, now, resolved_address,
                 ),
             )
             row = conn.execute("SELECT * FROM orders WHERE order_id = ?", (order_id,)).fetchone()
@@ -422,6 +449,102 @@ class CustomerOperationsService:
             raise BusinessObjectNotFoundError("order cancellation operation not found")
         return self._row_to_cancellation(row)
 
+    def change_shipping_address(
+        self,
+        *,
+        idempotency_key: str,
+        user_id: str,
+        order_id: str,
+        expected_order_version: int,
+        new_address: str,
+    ) -> Tuple[ShippingAddressChange, bool]:
+        """Atomically recheck a paid order and apply one idempotent address change."""
+        idempotency_key = self._required(idempotency_key, "idempotency_key")
+        user_id = self._required(user_id, "user_id")
+        order_id = self._required(order_id, "order_id")
+        new_address = self._required(new_address, "new_address")[:500]
+        expected_order_version = int(expected_order_version)
+        fingerprint = self._fingerprint({
+            "idempotency_key": idempotency_key,
+            "user_id": user_id,
+            "order_id": order_id,
+            "expected_order_version": expected_order_version,
+            "new_address": new_address,
+        })
+        with self._lock, self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            existing = conn.execute(
+                "SELECT * FROM shipping_address_changes WHERE idempotency_key=?",
+                (idempotency_key,),
+            ).fetchone()
+            if existing is not None:
+                if existing["request_fingerprint"] != fingerprint:
+                    raise OperationIdempotencyConflictError(
+                        "idempotency key was reused with different address content"
+                    )
+                return self._row_to_address_change(existing), False
+            row = conn.execute(
+                "SELECT * FROM orders WHERE order_id=? AND user_id=?",
+                (order_id, user_id),
+            ).fetchone()
+            if row is None:
+                raise BusinessObjectNotFoundError("order not found")
+            order = self._row_to_order(row)
+            if order.version != expected_order_version:
+                raise StaleOrderVersionError("order changed after address check")
+            if order.status is not OrderStatus.PAID:
+                raise ShippingAddressNotChangeableError(
+                    f"order status {order.status.value} cannot change address"
+                )
+            change_id = uuid.uuid4().hex
+            now = self._now()
+            next_version = order.version + 1
+            conn.execute(
+                "UPDATE orders SET shipping_address=?,version=?,updated_at=? "
+                "WHERE order_id=?",
+                (new_address, next_version, now, order_id),
+            )
+            conn.execute(
+                """
+                INSERT INTO shipping_address_changes (
+                    change_id,idempotency_key,request_fingerprint,order_id,user_id,
+                    new_address,status,order_version,created_at
+                ) VALUES (?,?,?,?,?,?,?,?,?)
+                """,
+                (
+                    change_id, idempotency_key, fingerprint, order_id, user_id,
+                    new_address, "updated", next_version, now,
+                ),
+            )
+            created = conn.execute(
+                "SELECT * FROM shipping_address_changes WHERE change_id=?",
+                (change_id,),
+            ).fetchone()
+        return self._row_to_address_change(created), True
+
+    def get_shipping_address_change_for_operation(
+        self,
+        *,
+        user_id: str,
+        order_id: str,
+        idempotency_key: str,
+    ) -> ShippingAddressChange:
+        with self._connect() as conn:
+            row = conn.execute(
+                """
+                SELECT * FROM shipping_address_changes
+                WHERE user_id=? AND order_id=? AND idempotency_key=?
+                """,
+                (
+                    self._required(user_id, "user_id"),
+                    self._required(order_id, "order_id"),
+                    self._required(idempotency_key, "idempotency_key"),
+                ),
+            ).fetchone()
+        if row is None:
+            raise BusinessObjectNotFoundError("shipping address operation not found")
+        return self._row_to_address_change(row)
+
     def record_security_event(
         self,
         *,
@@ -510,7 +633,8 @@ class CustomerOperationsService:
                     refundable_until TEXT,
                     version INTEGER NOT NULL,
                     created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL
+                    updated_at TEXT NOT NULL,
+                    shipping_address TEXT NOT NULL DEFAULT ''
                 );
                 CREATE INDEX IF NOT EXISTS idx_orders_user_updated
                     ON orders(user_id, updated_at DESC);
@@ -546,6 +670,21 @@ class CustomerOperationsService:
                 CREATE INDEX IF NOT EXISTS idx_order_cancellations_user_created
                     ON order_cancellations(user_id, created_at DESC);
 
+                CREATE TABLE IF NOT EXISTS shipping_address_changes (
+                    change_id TEXT PRIMARY KEY,
+                    idempotency_key TEXT NOT NULL UNIQUE,
+                    request_fingerprint TEXT NOT NULL,
+                    order_id TEXT NOT NULL,
+                    user_id TEXT NOT NULL,
+                    new_address TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    order_version INTEGER NOT NULL,
+                    created_at TEXT NOT NULL,
+                    FOREIGN KEY(order_id) REFERENCES orders(order_id)
+                );
+                CREATE INDEX IF NOT EXISTS idx_address_changes_user_created
+                    ON shipping_address_changes(user_id, created_at DESC);
+
                 CREATE TABLE IF NOT EXISTS security_events (
                     event_id TEXT PRIMARY KEY,
                     user_id TEXT NOT NULL,
@@ -558,6 +697,14 @@ class CustomerOperationsService:
                     ON security_events(user_id, occurred_at DESC);
                 """
             )
+            columns = {
+                str(row[1]) for row in conn.execute("PRAGMA table_info(orders)")
+            }
+            if "shipping_address" not in columns:
+                conn.execute(
+                    "ALTER TABLE orders ADD COLUMN shipping_address "
+                    "TEXT NOT NULL DEFAULT ''"
+                )
 
     def _connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self._path, timeout=5.0)
@@ -574,6 +721,7 @@ class CustomerOperationsService:
             amount_minor=int(row["amount_minor"]), currency=row["currency"],
             status=OrderStatus(row["status"]), refundable_until=row["refundable_until"],
             version=int(row["version"]), created_at=row["created_at"], updated_at=row["updated_at"],
+            shipping_address=str(row["shipping_address"] or ""),
         )
 
     @staticmethod
@@ -591,6 +739,18 @@ class CustomerOperationsService:
             cancellation_id=row["cancellation_id"],
             order_id=row["order_id"],
             user_id=row["user_id"],
+            status=row["status"],
+            order_version=int(row["order_version"]),
+            created_at=row["created_at"],
+        )
+
+    @staticmethod
+    def _row_to_address_change(row: sqlite3.Row) -> ShippingAddressChange:
+        return ShippingAddressChange(
+            change_id=row["change_id"],
+            order_id=row["order_id"],
+            user_id=row["user_id"],
+            new_address=row["new_address"],
             status=row["status"],
             order_version=int(row["order_version"]),
             created_at=row["created_at"],

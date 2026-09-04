@@ -13,6 +13,7 @@ from services.customer_operations import (
     OrderStatus,
     RefundNotEligibleError,
     SecuritySeverity,
+    ShippingAddressNotChangeableError,
     StaleOrderVersionError,
 )
 
@@ -239,4 +240,65 @@ def test_order_cancellation_rechecks_state_version_and_user_scope(tmp_path):
         owner.get_order_cancellation_for_operation(
             user_id="user-2", order_id=shipped.order_id,
             idempotency_key="cancel-shipped",
+        )
+
+
+def test_shipping_address_change_is_versioned_idempotent_and_operation_queryable(tmp_path):
+    owner = service(tmp_path)
+    order = seed_order(owner, status=OrderStatus.PAID)
+
+    change, created = owner.change_shipping_address(
+        idempotency_key="address-op-1",
+        user_id="user-1",
+        order_id=order.order_id,
+        expected_order_version=order.version,
+        new_address="Berlin, Example Street 9",
+    )
+    replay, replay_created = owner.change_shipping_address(
+        idempotency_key="address-op-1",
+        user_id="user-1",
+        order_id=order.order_id,
+        expected_order_version=order.version,
+        new_address="Berlin, Example Street 9",
+    )
+
+    assert created is True and replay_created is False
+    assert replay == change
+    assert change.order_version == order.version + 1
+    assert owner.get_order_for_user(
+        user_id="user-1", order_id=order.order_id,
+    ).shipping_address == "Berlin, Example Street 9"
+    assert owner.get_shipping_address_change_for_operation(
+        user_id="user-1",
+        order_id=order.order_id,
+        idempotency_key="address-op-1",
+    ) == change
+
+
+def test_shipping_address_change_rechecks_state_version_and_user_scope(tmp_path):
+    owner = service(tmp_path)
+    paid = seed_order(owner, status=OrderStatus.PAID)
+    shipped = seed_order(owner, status=OrderStatus.SHIPPED)
+
+    with pytest.raises(StaleOrderVersionError):
+        owner.change_shipping_address(
+            idempotency_key="address-stale",
+            user_id="user-1",
+            order_id=paid.order_id,
+            expected_order_version=paid.version,
+            new_address="Berlin, New Street 1",
+        )
+    with pytest.raises(ShippingAddressNotChangeableError):
+        owner.change_shipping_address(
+            idempotency_key="address-shipped",
+            user_id="user-1",
+            order_id=shipped.order_id,
+            expected_order_version=shipped.version,
+            new_address="Berlin, New Street 1",
+        )
+    with pytest.raises(BusinessObjectNotFoundError):
+        owner.get_shipping_address_change_for_operation(
+            user_id="user-2",
+            order_id=shipped.order_id,
+            idempotency_key="address-shipped",
         )
