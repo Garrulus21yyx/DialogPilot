@@ -178,6 +178,20 @@ class AuthorityPolicyRegistry:
                 "CustomerOperations:order-v1",
             ),
             FactRequirement(
+                "order.cancellation_state", "order.cancellation_state",
+                (
+                    "cancellation_id", "order_id", "operation_key", "status",
+                    "order_version", "created_at",
+                ), 60, read, ("order_cancel_status",), ("knowledge_search",), "",
+                supported, "CustomerOperations:order-cancellation-v1",
+            ),
+            FactRequirement(
+                "order.cancel_action", "order.cancel_action",
+                ("cancellation_id", "order_id", "status", "order_version"),
+                None, write, ("order_cancel",), (), "action-receipt-v1",
+                supported, "CustomerOperations:order-cancel-action-v1",
+            ),
+            FactRequirement(
                 "refund.current_state", "refund.current_state",
                 ("refund_id", "order_id", "status", "updated_at"), 60,
                 read, ("refund_status",), ("knowledge_search",), "", supported,
@@ -249,12 +263,14 @@ class AuthorityPolicyRegistry:
             EvidenceAdapterRegistration(
                 "business-tool-evidence-adapter", "business-tool-evidence-adapter-v1",
                 "BUSINESS_TOOL", (
-                    "order.current_state", "refund.current_state",
+                    "order.current_state", "order.cancellation_state",
+                    "refund.current_state",
                     "refund.eligibility", "account.security_events",
                     "support.ticket_state", "commitment.current_state",
                     "product.canonical_model",
                 ), (
                     ("order_lookup", "order-view-v1"),
+                    ("order_cancel_status", "order-cancellation-view-v1"),
                     ("refund_status", "refund-view-v1"),
                     ("refund_eligibility_check", "refund-eligibility-v1"),
                     ("account_security_event_list", "security-events-v1"),
@@ -273,9 +289,11 @@ class AuthorityPolicyRegistry:
             EvidenceAdapterRegistration(
                 "action-receipt-evidence-adapter", "action-receipt-evidence-adapter-v1",
                 "ACTION_RECEIPT", (
-                    "refund.request_action", "support.handoff_action",
+                    "refund.request_action", "order.cancel_action",
+                    "support.handoff_action",
                 ), (
                     ("refund_request_create", "refund-request-result-v1"),
+                    ("order_cancel", "order-cancel-result-v1"),
                     ("support_ticket_create", "ticket-create-result-v1"),
                 ),
             ),

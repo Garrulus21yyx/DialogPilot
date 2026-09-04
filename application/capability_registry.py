@@ -439,6 +439,9 @@ class CapabilityRegistryBundle:
     def flow(self, flow_ref: str) -> FlowDefinition:
         return _lookup(self.flows, "ref", flow_ref, "flow")
 
+    def action(self, action_ref: str) -> ActionDefinition:
+        return _lookup(self.actions, "ref", action_ref, "action")
+
     def tool(self, tool_id: str) -> ToolDefinition:
         return _lookup(self.tools, "tool_id", tool_id, "tool")
 

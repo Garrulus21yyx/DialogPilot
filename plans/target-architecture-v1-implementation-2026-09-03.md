@@ -71,6 +71,7 @@
 | 17 | done | Registry-owned generic write-preparation binding with no refund fields in ConversationManager | 95 Target tests including real PostgreSQL/HTTP boundaries | this stage commit |
 | 18 | done | WorkItem-bound Action identity and Registry approval policy; workflow executor no longer branches on Flow names | 96 Target tests including real PostgreSQL/HTTP boundaries | this stage commit |
 | 19 | done | Registry-owned reconciliation contracts plus operation-bound Handoff lookup; no Flow-name branches in workflow execution | 113 Target/tool/authority tests with real PostgreSQL/HTTP boundaries | this stage commit |
+| 20 | done | Order cancellation as a second governed write Flow using the generic preparation, approval, Receipt and reconciliation contracts | 136 Target/owner/tool/authority tests with real PostgreSQL/HTTP boundaries | this stage commit |
 
 ## Stage record
 
@@ -147,6 +148,9 @@
 - Stage 19: each Action owns a typed reconciliation read contract; refund and Handoff
   unknown outcomes use the same executor algorithm, and Handoff can query the ticket
   owner by its exact operation key without replaying ticket creation.
+- Stage 20: `cancel_order:v1` proves the generic write lifecycle with a second domain
+  Action, while approval resume now derives owner, requirements and Flow from the
+  bound pending Action/Workstream instead of assuming every approval is a refund.
 
 ## Scope correction after executable-core review
 
@@ -395,3 +399,24 @@ continuation.
   Action contract. 113 Target, tool, authority and real PostgreSQL/HTTP tests passed.
   The isolated lifespan test remains blocked before tool assertions by the unrelated
   dirty RAG/legacy `AgentBundle` key mismatch already recorded in Stage 16B.
+
+## Stage 20 verification notes
+
+- CustomerOperations is the single order-cancellation owner. It rechecks trusted user,
+  current order version and cancellable `paid` state in one transaction, advances the
+  order version, records one idempotent cancellation Receipt and supports exact
+  operation-key lookup for reconciliation.
+- Registry defines `cancel_order:v1` and `order.cancel:v1`. Its preparation reads
+  `order.current_state`, compares the registered `status == paid` predicate, binds
+  `version` to `expected_order_version`, requires explicit confirmation, executes
+  `order_cancel`, and reconciles through `order_cancel_status`.
+- The bounded and structured routers only propose the cancellation goal and observed
+  order ID. They do not select tools, approval semantics, version fields or retry
+  behavior. Ordinary order-status queries retain the zero-Agent direct path.
+- Approval resume is now domain-neutral: it resolves Action owner, requirements and
+  the active Workstream Flow from persisted state. A two-turn state test proves an
+  order cancellation resumes `order_logistics`, not Billing.
+- Real ASGI/PostgreSQL E2E verifies precheck returns an interaction, confirmation
+  executes exactly one `order_cancel` call as the General tool principal, Receipt
+  publication completes, and no second Agent is dispatched. Structured routing uses
+  the same Flow contract; 136 relevant tests passed.

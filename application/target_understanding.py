@@ -31,7 +31,6 @@ class BoundedTargetUnderstanding:
     version = "bounded-target-understanding-v1"
 
     async def __call__(self, observations, state, deterministic, registry):
-        del registry
         if deterministic.kind in {
             ResolutionKind.APPROVAL_DECISION,
             ResolutionKind.APPROVAL_EXPIRED,
@@ -51,16 +50,21 @@ class BoundedTargetUnderstanding:
                 ArgumentValue.create(name, value)
                 for name, value in deterministic.arguments
             )
+            action = registry.action(str(deterministic.action_ref))
+            stream = next(
+                item for item in state.workstreams
+                if item.workstream_id == deterministic.workstream_id
+            )
             return TurnProposal(
                 ProposalDisposition.RESOLVED,
                 (CommandProposal(
                     "continue-approved-workflow",
                     CommandKind.CONTINUE_WORKFLOW,
-                    "billing_refund",
-                    "Execute the explicitly approved refund operation",
+                    action.owner_agent,
+                    f"Execute explicitly approved action {action.action_id}",
                     arguments,
-                    ("refund.request_action",),
-                    flow_ref="execute_refund:v1",
+                    action.requirement_ids,
+                    flow_ref=stream.flow_ref,
                     action_ref=deterministic.action_ref,
                     target_entity_ref=deterministic.target_entity_ref,
                     target_entity_version=deterministic.target_entity_version,
@@ -93,6 +97,9 @@ class BoundedTargetUnderstanding:
         invoice_signal = any(token in lowered for token in ("发票", "invoice"))
         order_signal = any(
             token in lowered for token in ("订单", "物流", "发货", "order", "shipping")
+        )
+        cancel_order_signal = bool(order_id) and any(
+            token in lowered for token in ("取消订单", "取消这个订单", "cancel order")
         )
         handoff_signal = any(
             token in lowered for token in ("人工", "客服", "human agent", "representative")
@@ -183,7 +190,19 @@ class BoundedTargetUnderstanding:
                 action_ref="refund.request.create:v1",
                 target_entity_ref=f"order:{order_id}",
             ))
-        if order_signal and order_id and not refund_signal:
+        if cancel_order_signal:
+            commands.append(CommandProposal(
+                "prepare-order-cancellation",
+                CommandKind.PREPARE_WORKFLOW,
+                "order_logistics",
+                "Check current order state before cancellation",
+                (ArgumentValue.create("order_id", order_id),),
+                ("order.current_state",),
+                flow_ref="cancel_order:v1",
+                action_ref="order.cancel:v1",
+                target_entity_ref=f"order:{order_id}",
+            ))
+        elif order_signal and order_id and not refund_signal:
             commands.append(CommandProposal(
                 "order-status",
                 CommandKind.DIRECT_TOOL,

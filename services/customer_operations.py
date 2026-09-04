@@ -37,6 +37,10 @@ class StaleOrderVersionError(CustomerOperationError):
     """资格检查后订单版本已经变化。"""
 
 
+class OrderNotCancellableError(CustomerOperationError):
+    """The current authoritative order state cannot be cancelled."""
+
+
 class OperationIdempotencyConflictError(CustomerOperationError):
     """同一幂等键被复用于另一项业务请求。"""
 
@@ -111,6 +115,19 @@ class RefundRequest:
         data = asdict(self)
         data["status"] = self.status.value
         return data
+
+
+@dataclass(frozen=True)
+class OrderCancellation:
+    cancellation_id: str
+    order_id: str
+    user_id: str
+    status: str
+    order_version: int
+    created_at: str
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
 
 
 class CustomerOperationsService:
@@ -313,6 +330,98 @@ class CustomerOperationsService:
             ).fetchone()
         return self._row_to_refund(row), True
 
+    def cancel_order(
+        self,
+        *,
+        idempotency_key: str,
+        user_id: str,
+        order_id: str,
+        expected_order_version: int,
+    ) -> Tuple[OrderCancellation, bool]:
+        """Recheck a paid order and atomically record one idempotent cancellation."""
+        idempotency_key = self._required(idempotency_key, "idempotency_key")
+        user_id = self._required(user_id, "user_id")
+        order_id = self._required(order_id, "order_id")
+        expected_order_version = int(expected_order_version)
+        fingerprint = self._fingerprint({
+            "idempotency_key": idempotency_key,
+            "user_id": user_id,
+            "order_id": order_id,
+            "expected_order_version": expected_order_version,
+        })
+        with self._lock, self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            existing = conn.execute(
+                "SELECT * FROM order_cancellations WHERE idempotency_key=?",
+                (idempotency_key,),
+            ).fetchone()
+            if existing is not None:
+                if existing["request_fingerprint"] != fingerprint:
+                    raise OperationIdempotencyConflictError(
+                        "idempotency key was reused with different cancellation content"
+                    )
+                return self._row_to_cancellation(existing), False
+            row = conn.execute(
+                "SELECT * FROM orders WHERE order_id=? AND user_id=?",
+                (order_id, user_id),
+            ).fetchone()
+            if row is None:
+                raise BusinessObjectNotFoundError("order not found")
+            order = self._row_to_order(row)
+            if order.version != expected_order_version:
+                raise StaleOrderVersionError("order changed after cancellation check")
+            if order.status is not OrderStatus.PAID:
+                raise OrderNotCancellableError(
+                    f"order status {order.status.value} cannot be cancelled"
+                )
+            cancellation_id = uuid.uuid4().hex
+            now = self._now()
+            next_version = order.version + 1
+            conn.execute(
+                "UPDATE orders SET status=?,version=?,updated_at=? WHERE order_id=?",
+                (OrderStatus.CANCELLED.value, next_version, now, order_id),
+            )
+            conn.execute(
+                """
+                INSERT INTO order_cancellations (
+                    cancellation_id,idempotency_key,request_fingerprint,order_id,
+                    user_id,status,order_version,created_at
+                ) VALUES (?,?,?,?,?,?,?,?)
+                """,
+                (
+                    cancellation_id, idempotency_key, fingerprint, order_id,
+                    user_id, OrderStatus.CANCELLED.value, next_version, now,
+                ),
+            )
+            created = conn.execute(
+                "SELECT * FROM order_cancellations WHERE cancellation_id=?",
+                (cancellation_id,),
+            ).fetchone()
+        return self._row_to_cancellation(created), True
+
+    def get_order_cancellation_for_operation(
+        self,
+        *,
+        user_id: str,
+        order_id: str,
+        idempotency_key: str,
+    ) -> OrderCancellation:
+        with self._connect() as conn:
+            row = conn.execute(
+                """
+                SELECT * FROM order_cancellations
+                WHERE user_id=? AND order_id=? AND idempotency_key=?
+                """,
+                (
+                    self._required(user_id, "user_id"),
+                    self._required(order_id, "order_id"),
+                    self._required(idempotency_key, "idempotency_key"),
+                ),
+            ).fetchone()
+        if row is None:
+            raise BusinessObjectNotFoundError("order cancellation operation not found")
+        return self._row_to_cancellation(row)
+
     def record_security_event(
         self,
         *,
@@ -423,6 +532,20 @@ class CustomerOperationsService:
                 CREATE INDEX IF NOT EXISTS idx_refunds_user_created
                     ON refund_requests(user_id, created_at DESC);
 
+                CREATE TABLE IF NOT EXISTS order_cancellations (
+                    cancellation_id TEXT PRIMARY KEY,
+                    idempotency_key TEXT NOT NULL UNIQUE,
+                    request_fingerprint TEXT NOT NULL,
+                    order_id TEXT NOT NULL UNIQUE,
+                    user_id TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    order_version INTEGER NOT NULL,
+                    created_at TEXT NOT NULL,
+                    FOREIGN KEY(order_id) REFERENCES orders(order_id)
+                );
+                CREATE INDEX IF NOT EXISTS idx_order_cancellations_user_created
+                    ON order_cancellations(user_id, created_at DESC);
+
                 CREATE TABLE IF NOT EXISTS security_events (
                     event_id TEXT PRIMARY KEY,
                     user_id TEXT NOT NULL,
@@ -460,6 +583,17 @@ class CustomerOperationsService:
             reason=row["reason"], amount_minor=int(row["amount_minor"]), currency=row["currency"],
             status=RefundStatus(row["status"]), created_at=row["created_at"],
             updated_at=row["updated_at"],
+        )
+
+    @staticmethod
+    def _row_to_cancellation(row: sqlite3.Row) -> OrderCancellation:
+        return OrderCancellation(
+            cancellation_id=row["cancellation_id"],
+            order_id=row["order_id"],
+            user_id=row["user_id"],
+            status=row["status"],
+            order_version=int(row["order_version"]),
+            created_at=row["created_at"],
         )
 
     def _now(self) -> str:

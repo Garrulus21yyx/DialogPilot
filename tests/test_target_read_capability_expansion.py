@@ -69,6 +69,24 @@ def test_explicit_refund_execution_still_uses_governed_flow_preparation():
     assert plan.transitions.mutations[0].flow_ref == "execute_refund:v1"
 
 
+def test_order_cancellation_uses_registry_preparation_and_not_status_read_path():
+    proposal, state, registry = _proposal(
+        BoundedTargetUnderstanding(), "取消订单 DP1234",
+    )
+    plan = _plan(proposal, state, registry, "cancel-order-request")
+
+    command = proposal.commands[0]
+    item = plan.work.items[0]
+    mutation = plan.transitions.mutations[0]
+    assert command.kind is CommandKind.PREPARE_WORKFLOW
+    assert command.action_ref == "order.cancel:v1"
+    assert item.allowed_tools == ("order_lookup",)
+    assert mutation.flow_ref == "cancel_order:v1"
+    assert mutation.readiness_field == "status"
+    assert mutation.readiness_value_json == '"paid"'
+    assert mutation.target_version_argument == "expected_order_version"
+
+
 def test_refund_policy_and_invoice_are_separate_registered_knowledge_skills():
     refund, state, registry = _proposal(
         BoundedTargetUnderstanding(), "退款政策和一般时效是什么？",
@@ -108,6 +126,22 @@ def test_structured_logistics_goal_reuses_direct_order_authority():
     assert proposal.disposition is ProposalDisposition.RESOLVED
     assert proposal.commands[0].tool_id == "order_lookup"
     assert plan.route.mode is RouteMode.DIRECT
+
+
+def test_structured_order_cancellation_uses_the_same_governed_flow_contract():
+    router = StructuredTargetCommandRouter(_Provider({
+        "status": "resolved",
+        "goals": [{
+            "kind": "cancel_order",
+            "order_id": "DP1234",
+        }],
+    }))
+    proposal, state, registry = _proposal(router, "取消 DP1234 这个订单")
+    plan = _plan(proposal, state, registry, "semantic-order-cancel")
+
+    assert proposal.commands[0].action_ref == "order.cancel:v1"
+    assert plan.work.items[0].allowed_tools == ("order_lookup",)
+    assert plan.transitions.mutations[0].flow_ref == "cancel_order:v1"
 
 
 def test_structured_refund_eligibility_cannot_invent_missing_order_id():

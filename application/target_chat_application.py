@@ -165,7 +165,7 @@ class TargetChatApplication:
                 identity,
                 signal_id=pending.approval_id,
                 signal_version=pending.version,
-                challenge="退款资格已确认。是否提交退款申请？",
+                challenge="操作前置条件已确认。是否继续执行？",
                 resume_schema={
                     "type": "object",
                     "required": ["approval_id", "approved"],

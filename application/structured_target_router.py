@@ -19,6 +19,7 @@ _GOALS = {
     "general_qa",
     "order_status",
     "logistics_status",
+    "cancel_order",
     "refund_policy",
     "refund_eligibility",
     "refund_status",
@@ -146,6 +147,18 @@ class StructuredTargetCommandRouter:
                 "Query current order status",
                 (ArgumentValue.create("order_id", order_id),),
                 ("order.current_state",), tool_id="order_lookup",
+            )
+        if kind == "cancel_order":
+            if not order_id:
+                raise ValueError("order cancellation lacks observed order ID")
+            registry.action("order.cancel:v1")
+            return CommandProposal(
+                goal_id, CommandKind.PREPARE_WORKFLOW, "order_logistics",
+                "Check current order state before cancellation",
+                (ArgumentValue.create("order_id", order_id),),
+                ("order.current_state",),
+                flow_ref="cancel_order:v1", action_ref="order.cancel:v1",
+                target_entity_ref=f"order:{order_id}",
             )
         if kind == "refund_policy":
             registry.skill("refund_policy_qa")

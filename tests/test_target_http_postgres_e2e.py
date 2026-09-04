@@ -43,9 +43,14 @@ class _ScenarioTools:
         if name == "catalog_search" and context["conversation_id"] in self.fail_catalog_for:
             return _result(name, success=False, status="timeout")
         if name == "order_lookup":
+            status = (
+                "paid"
+                if "order-cancel" in context["conversation_id"]
+                else "SHIPPED"
+            )
             return _result(
                 name,
-                data={"order_id": params["order_id"], "status": "SHIPPED", "version": 3},
+                data={"order_id": params["order_id"], "status": status, "version": 3},
                 authority="order.current_state",
                 text=f"订单 {params['order_id']} 已发货。",
             )
@@ -131,6 +136,21 @@ class _ScenarioTools:
                 text="退款申请已提交。",
                 effect_status="committed",
                 receipt_id="refund-target-1",
+            )
+        if name == "order_cancel":
+            assert approved is True
+            return _result(
+                name,
+                data={
+                    "cancellation_id": "cancel-target-1",
+                    "order_id": params["order_id"],
+                    "status": "cancelled",
+                    "order_version": 4,
+                },
+                authority="order.cancel_action",
+                text="订单已取消。",
+                effect_status="committed",
+                receipt_id="cancel-target-1",
             )
         return _result(name, success=False, status="denied")
 
@@ -285,6 +305,17 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                     approval_id=approval,
                     approved=True,
                 )
+                cancel_precheck = await chat(
+                    "order-cancel", "取消订单 DP4321",
+                )
+                cancel_signal = cancel_precheck.json()["signal_id"]
+                cancel_committed = await chat(
+                    "order-cancel",
+                    "确认取消订单",
+                    request_suffix="approval",
+                    approval_id=cancel_signal,
+                    approved=True,
+                )
                 refund_commit_replay = await chat(
                     "refund",
                     "确认提交退款",
@@ -365,6 +396,7 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                     changed_approval_replay, cross_conversation_approval,
                     refund_decline, refund_declined, multi, partial, handoff,
                     refund_unknown_prepare, refund_unknown, refund_reconciled,
+                    cancel_precheck, cancel_committed,
                 )
 
     try:
@@ -378,6 +410,7 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                 "changed-approval-replay", "cross-conversation-approval",
                 "refund-decline", "refund-declined", "multi", "partial", "handoff",
                 "refund-unknown-prepare", "refund-unknown", "refund-reconciled",
+                "cancel-precheck", "cancel-committed",
             ),
             responses,
         ):
@@ -386,6 +419,7 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                 if name in {
                     "refund-precheck", "refund-replay", "refund-decline",
                     "refund-unknown-prepare", "refund-unknown",
+                    "cancel-precheck",
                 }
                 else 409 if name in {
                     "stale-approval", "changed-approval-replay",
@@ -401,6 +435,7 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
             changed_approval_replay, cross_conversation_approval,
             refund_decline, refund_declined, multi, partial, handoff,
             refund_unknown_prepare, refund_unknown, refund_reconciled,
+            cancel_precheck, cancel_committed,
         ) = (
             item.json() for item in responses
         )
@@ -437,6 +472,11 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
         assert "未执行退款操作" in refund_declined["response"]
         assert refund_unknown["outcome"] == "reconciling"
         assert "refund-reconciled-1" in refund_reconciled["response"]
+        assert cancel_precheck["outcome"] == "needs_input"
+        assert "cancel-target-1" in cancel_committed["response"]
+        cancel_calls = [item for item in tools.calls if item[0] == "order_cancel"]
+        assert len(cancel_calls) == 1
+        assert cancel_calls[0][2] == "general"
         refund_write_calls = [
             item for item in tools.calls if item[0] == "refund_request_create"
         ]

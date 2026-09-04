@@ -221,6 +221,8 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
                 "support_ticket_create",
                 "commitment_list",
                 "order_lookup",
+                "order_cancel_status",
+                "order_cancel",
                 "refund_status",
                 "refund_eligibility_check",
                 "refund_request_create",

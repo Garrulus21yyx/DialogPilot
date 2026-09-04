@@ -29,6 +29,14 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
         _tool("media_read", "media.visible_text", CapabilityRisk.LOW, profile.ref),
         _tool("catalog_search", "product.canonical_model", CapabilityRisk.LOW, profile.ref),
         _tool("order_lookup", "order.current_state", CapabilityRisk.MEDIUM, profile.ref),
+        _tool(
+            "order_cancel_status", "order.cancellation_state",
+            CapabilityRisk.MEDIUM, profile.ref,
+        ),
+        _tool(
+            "order_cancel", "order.cancel_action", CapabilityRisk.HIGH,
+            profile.ref, write=True,
+        ),
         _tool("refund_status", "refund.current_state", CapabilityRisk.MEDIUM, profile.ref),
         _tool("refund_eligibility_check", "refund.eligibility", CapabilityRisk.MEDIUM, profile.ref),
         _tool(
@@ -86,7 +94,12 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
             ("product_identification", "product_qa"),
             profile.ref,
         ),
-        _agent("order_logistics", ("order_lookup",), (), profile.ref),
+        _agent(
+            "order_logistics",
+            ("order_lookup", "order_cancel_status", "order_cancel"),
+            (),
+            profile.ref,
+        ),
         _agent(
             "billing_refund",
             (
@@ -113,6 +126,15 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
             ),
             "CHECK_ELIGIBILITY", ("COMPLETE", "CANCELLED"),
             ("order_lookup", "refund_eligibility_check", "refund_request_create", "refund_status"),
+        ),
+        FlowDefinition(
+            "cancel_order", "v1", "order_logistics",
+            (
+                "CHECK_ORDER", "CHECK_APPROVAL", "EXECUTE", "RECONCILE",
+                "COMPLETE", "CANCELLED",
+            ),
+            "CHECK_ORDER", ("COMPLETE", "CANCELLED"),
+            ("order_lookup", "order_cancel_status", "order_cancel"),
         ),
         FlowDefinition(
             "human_handoff", "v1", "human_service",
@@ -159,6 +181,29 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
                 "ticket_id",
             ),
             profile.ref,
+        ),
+        ActionDefinition(
+            "order.cancel", "v1", "order_logistics", "cancel_order:v1",
+            CapabilityEffect.WRITE, CapabilityRisk.HIGH, ("order.cancel_action",),
+            ("order_cancel",), ApprovalPolicy.EXPLICIT_CONFIRMATION_REQUIRED,
+            "action-receipt-v1",
+            ActionReconciliationDefinition(
+                "order_cancel_status",
+                "order.cancellation_state",
+                "operation_key",
+                "operation_key",
+                ("order_id",),
+                "cancellation_id",
+            ),
+            profile.ref,
+            ActionPreparationDefinition.create(
+                tool_id="order_lookup",
+                requirement_id="order.current_state",
+                readiness_field="status",
+                readiness_value="paid",
+                target_version_field="version",
+                target_version_argument="expected_order_version",
+            ),
         ),
     )
     requirements = tuple(

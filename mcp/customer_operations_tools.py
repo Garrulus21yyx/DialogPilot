@@ -82,6 +82,54 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
             receipt_id=refund.refund_id,
         )
 
+    async def order_cancel(params: Dict[str, Any], context: Optional[Dict[str, Any]]):
+        user_id = _trusted(context, "user_id")
+        conv_id = _trusted(context, "conv_id")
+        tool_call_id = _trusted(context, "tool_call_id")
+        cancellation, created = await asyncio.to_thread(
+            service.cancel_order,
+            idempotency_key=(
+                f"order-cancel-tool:{user_id}:{conv_id}:{tool_call_id}"
+            ),
+            user_id=user_id,
+            order_id=_bounded(params.get("order_id"), "order_id", 128),
+            expected_order_version=int(params.get("expected_order_version")),
+        )
+        return ToolEffectReceipt(
+            data={
+                "created": created,
+                "cancellation_id": cancellation.cancellation_id,
+                "order_id": cancellation.order_id,
+                "status": cancellation.status,
+                "order_version": cancellation.order_version,
+                "message": "订单已取消" if created else "该取消操作已完成",
+            },
+            effect_status=ToolEffectStatus.COMMITTED,
+            receipt_id=cancellation.cancellation_id,
+        )
+
+    async def order_cancel_status(
+        params: Dict[str, Any], context: Optional[Dict[str, Any]],
+    ):
+        user_id = _trusted(context, "user_id")
+        conv_id = _trusted(context, "conv_id")
+        order_id = _bounded(params.get("order_id"), "order_id", 128)
+        operation_key = _bounded(
+            params.get("operation_key"), "operation_key", 512,
+        )
+        cancellation = await asyncio.to_thread(
+            service.get_order_cancellation_for_operation,
+            user_id=user_id,
+            order_id=order_id,
+            idempotency_key=(
+                f"order-cancel-tool:{user_id}:{conv_id}:{operation_key}"
+            ),
+        )
+        data = cancellation.to_dict()
+        data.pop("user_id", None)
+        data["operation_key"] = operation_key
+        return data
+
     async def security_events(params: Dict[str, Any], context: Optional[Dict[str, Any]]):
         raw_severity = str(params.get("severity") or "").strip()
         severity = SecuritySeverity(raw_severity) if raw_severity else None
@@ -205,6 +253,66 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
             retry_policy="receipt_reconcile_before_retry",
             typed_outcomes=("COMMITTED", "NOT_COMMITTED", "OUTCOME_UNKNOWN"),
             output_fields=("created", "refund_id", "order_id", "status", "amount_minor", "currency"),
+        ),
+        Tool(
+            name="order_cancel_status",
+            description=(
+                "按原 operation key 查询当前用户订单取消结果；"
+                "仅用于未知写结果对账"
+            ),
+            handler=order_cancel_status,
+            schema={
+                "type": "object",
+                "properties": {
+                    "order_id": {"type": "string"},
+                    "operation_key": {"type": "string"},
+                },
+                "required": ["order_id", "operation_key"],
+            },
+            allowed_agents=("general",),
+            read_only=True,
+            authority="order.cancellation_state",
+            manifest_version="tool-manifest-v1",
+            output_schema_version="order-cancellation-view-v1",
+            preconditions=("authenticated_user", "order_id", "operation_key"),
+            idempotency="read_only",
+            retry_policy="safe_read_retry",
+            typed_outcomes=("OK", "NOT_FOUND", "UNAVAILABLE", "UNAUTHORIZED"),
+            output_fields=(
+                "cancellation_id", "order_id", "operation_key", "status",
+                "order_version", "created_at",
+            ),
+        ),
+        Tool(
+            name="order_cancel",
+            description=(
+                "取消仍处于已支付状态的订单；必须绑定最新订单版本并获得宿主确认"
+            ),
+            handler=order_cancel,
+            schema={
+                "type": "object",
+                "properties": {
+                    "order_id": {"type": "string"},
+                    "expected_order_version": {"type": "integer"},
+                },
+                "required": ["order_id", "expected_order_version"],
+            },
+            allowed_agents=("general",),
+            risk=ToolRisk.HIGH,
+            read_only=False,
+            requires_approval=True,
+            timeout_s=5.0,
+            authority="order.cancel_action",
+            manifest_version="tool-manifest-v1",
+            output_schema_version="order-cancel-result-v1",
+            receipt_schema_version="action-receipt-v1",
+            preconditions=("authenticated_user", "approved", "fresh_order_state"),
+            idempotency="tool_call_operation_key",
+            retry_policy="receipt_reconcile_before_retry",
+            typed_outcomes=("COMMITTED", "NOT_COMMITTED", "OUTCOME_UNKNOWN"),
+            output_fields=(
+                "created", "cancellation_id", "order_id", "status", "order_version",
+            ),
         ),
         Tool(
             name="account_security_event_list",

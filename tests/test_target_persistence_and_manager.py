@@ -11,6 +11,7 @@ from application.agent_result import (
     AgentResultStatus,
     FactRecord,
     FactSourceKind,
+    ReceiptRef,
     RequestedField,
 )
 from application.capability_registry import ActionPreparationDefinition
@@ -155,6 +156,51 @@ class _RegistryDrivenPreparationExecutor:
                 "refund_eligibility_check",
                 "generic-preparation-v1",
                 datetime.now(timezone.utc),
+            ),),
+        )
+
+
+class _OrderCancellationPreparationExecutor:
+    async def __call__(self, context: AgentContextView):
+        item = context.work_item
+        return AgentResult(
+            item.work_item_id,
+            item.owner_agent,
+            AgentResultStatus.SUCCEEDED,
+            "ORDER_STATE_READ",
+            "order-preparation-test-v1",
+            facts=(FactRecord(
+                "order:DP1234",
+                "order.current_state",
+                '{"order_id":"DP1234","status":"paid","version":4}',
+                FactSourceKind.VERIFIED_STATE,
+                "order-state-receipt",
+                "order_lookup",
+                "order-view-v1",
+                datetime.now(timezone.utc),
+            ),),
+        )
+
+
+class _OrderCancellationWorkflowExecutor:
+    def __init__(self):
+        self.items = []
+
+    async def __call__(self, context: AgentContextView):
+        item = context.work_item
+        self.items.append(item)
+        return AgentResult(
+            item.work_item_id,
+            item.owner_agent,
+            AgentResultStatus.SUCCEEDED,
+            "TOOL_COMMITTED",
+            "order-cancel-test-v1",
+            action_receipts=(ReceiptRef(
+                "cancellation-1",
+                "action-receipt-v1",
+                str(item.operation_key),
+                "COMMITTED",
+                "order.cancel_action",
             ),),
         )
 
@@ -359,6 +405,51 @@ def test_manager_interprets_workflow_preparation_only_from_registry_bindings():
         "order_id": "DP1234",
         "reason": "把订单 DP1234 退款",
         "expected_revision": "revision-7",
+    }
+
+
+def test_order_cancellation_approval_resumes_its_registered_owner_and_action():
+    store = InMemoryConversationStateStore()
+    registry = build_default_capability_registry("tenant-target")
+    workflow = _OrderCancellationWorkflowExecutor()
+    manager = TargetConversationManager(
+        state_store=store,
+        registry=registry,
+        understanding=BoundedTargetUnderstanding(),
+        orchestration=OrchestrationRuntime(
+            direct_executor=_OrderCancellationPreparationExecutor(),
+            domain_workers={},
+            workflow_executor=workflow,
+        ),
+    )
+
+    prepared = asyncio.run(manager.handle(
+        _identity("request-cancel-prepare"),
+        TurnObservations("取消订单 DP1234"),
+    ))
+    pending = prepared.state_after.pending_approval
+    assert pending is not None
+    assert pending.action_ref == "order.cancel:v1"
+    assert pending.target_entity_version == "4"
+
+    completed = asyncio.run(manager.handle(
+        _identity("request-cancel-confirm"),
+        TurnObservations(
+            "确认取消",
+            approval_decision=True,
+            approval_id=pending.approval_id,
+        ),
+    ))
+
+    assert completed.state_after.workstreams[0].status is WorkstreamStatus.COMPLETED
+    executed = workflow.items[0]
+    assert executed.owner_agent == "order_logistics"
+    assert executed.action_ref == "order.cancel:v1"
+    assert executed.flow_ref == "cancel_order:v1"
+    assert set(executed.allowed_tools) == {"order_cancel", "order_cancel_status"}
+    assert dict((item.name, item.value) for item in executed.arguments) == {
+        "order_id": "DP1234",
+        "expected_order_version": 4,
     }
 
 

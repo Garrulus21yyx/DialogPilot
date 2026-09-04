@@ -128,6 +128,43 @@ def test_refund_write_requires_host_approval_and_returns_committed_receipt(tmp_p
     assert unrelated.success is False
 
 
+def test_order_cancel_write_and_reconciliation_share_exact_operation_key(tmp_path):
+    owner, manager = setup_runtime(tmp_path)
+    order = owner.upsert_order(
+        order_id="paid-order", user_id="user-1", item_name="摄像机",
+        amount_minor=129900, currency="CNY", status=OrderStatus.PAID,
+    )
+    params = {
+        "order_id": order.order_id,
+        "expected_order_version": order.version,
+    }
+    pending = asyncio.run(manager.execute_for_agent(
+        "order_cancel", params, agent_type="general", context=context(),
+        call_id="cancel-call-1",
+    ))
+    committed = asyncio.run(manager.execute_for_agent(
+        "order_cancel", params, agent_type="general", context=context(),
+        approved=True, call_id="cancel-call-1",
+    ))
+    reconciled = asyncio.run(manager.execute_for_agent(
+        "order_cancel_status",
+        {"order_id": order.order_id, "operation_key": "cancel-call-1"},
+        agent_type="general", context=context(),
+    ))
+    other_user = asyncio.run(manager.execute_for_agent(
+        "order_cancel_status",
+        {"order_id": order.order_id, "operation_key": "cancel-call-1"},
+        agent_type="general", context=context("user-2"),
+    ))
+
+    assert pending.status == ToolCallStatus.AWAITING_APPROVAL.value
+    assert committed.effect_status == ToolEffectStatus.COMMITTED.value
+    assert reconciled.success is True
+    assert reconciled.data["cancellation_id"] == committed.receipt_id
+    assert reconciled.data["operation_key"] == "cancel-call-1"
+    assert other_user.success is False
+
+
 def test_refund_write_rejects_wrong_agent_before_side_effect(tmp_path):
     _owner, manager = setup_runtime(tmp_path)
     denied = asyncio.run(manager.execute_for_agent(

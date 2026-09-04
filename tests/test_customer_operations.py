@@ -9,6 +9,7 @@ from services.customer_operations import (
     BusinessObjectNotFoundError,
     CustomerOperationsService,
     OperationIdempotencyConflictError,
+    OrderNotCancellableError,
     OrderStatus,
     RefundNotEligibleError,
     SecuritySeverity,
@@ -183,3 +184,59 @@ def test_security_events_are_append_only_and_user_scoped(tmp_path):
     events = owner.list_security_events(user_id="user-1", limit=20)
     assert [event["event_type"] for event in events] == ["new_device_login"]
     assert "user_id" not in events[0]
+
+
+def test_order_cancellation_is_versioned_idempotent_and_operation_queryable(tmp_path):
+    owner = service(tmp_path)
+    order = seed_order(owner, status=OrderStatus.PAID)
+
+    cancellation, created = owner.cancel_order(
+        idempotency_key="cancel-op-1",
+        user_id="user-1",
+        order_id=order.order_id,
+        expected_order_version=order.version,
+    )
+    replay, replay_created = owner.cancel_order(
+        idempotency_key="cancel-op-1",
+        user_id="user-1",
+        order_id=order.order_id,
+        expected_order_version=order.version,
+    )
+
+    assert created is True and replay_created is False
+    assert replay == cancellation
+    assert cancellation.status == OrderStatus.CANCELLED.value
+    assert cancellation.order_version == order.version + 1
+    assert owner.get_order_for_user(
+        user_id="user-1", order_id=order.order_id,
+    ).status is OrderStatus.CANCELLED
+    assert owner.get_order_cancellation_for_operation(
+        user_id="user-1", order_id=order.order_id,
+        idempotency_key="cancel-op-1",
+    ) == cancellation
+
+
+def test_order_cancellation_rechecks_state_version_and_user_scope(tmp_path):
+    owner = service(tmp_path)
+    paid = seed_order(owner, status=OrderStatus.PAID)
+    shipped = seed_order(owner, status=OrderStatus.SHIPPED)
+
+    with pytest.raises(StaleOrderVersionError):
+        owner.cancel_order(
+            idempotency_key="cancel-stale",
+            user_id="user-1",
+            order_id=paid.order_id,
+            expected_order_version=paid.version,
+        )
+    with pytest.raises(OrderNotCancellableError):
+        owner.cancel_order(
+            idempotency_key="cancel-shipped",
+            user_id="user-1",
+            order_id=shipped.order_id,
+            expected_order_version=shipped.version,
+        )
+    with pytest.raises(BusinessObjectNotFoundError):
+        owner.get_order_cancellation_for_operation(
+            user_id="user-2", order_id=shipped.order_id,
+            idempotency_key="cancel-shipped",
+        )
