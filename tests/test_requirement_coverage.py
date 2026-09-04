@@ -117,14 +117,15 @@ def test_plain_worker_text_or_task_success_cannot_satisfy_dynamic_requirement():
     assert report.ids_for(RequirementStatus.MISSING) == ("order.current_state",)
 
 
-def test_unsupported_authority_is_distinct_from_missing_evidence():
+def test_supported_account_authority_without_receipt_is_missing_evidence():
     policies = AuthorityPolicyRegistry.v1()
     report = RequirementCoverageGate(policies).evaluate(
         (policies.get("account.current_state"),), (), resolvers={}, now=NOW
     )
-    assert report.ids_for(RequirementStatus.UNSUPPORTED) == (
+    assert report.ids_for(RequirementStatus.MISSING) == (
         "account.current_state",
     )
+    assert report.ids_for(RequirementStatus.UNSUPPORTED) == ()
 
 
 def test_valid_authoritative_tool_receipt_satisfies_required_fields():

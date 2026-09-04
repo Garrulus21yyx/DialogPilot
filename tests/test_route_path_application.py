@@ -262,7 +262,7 @@ def test_eight_route_modes_execute_expected_path_and_forbid_all_others(
     assert set(contracts[0].required_components).issubset(results[0].invocation_trace)
 
 
-def test_unsupported_account_authority_reaches_application_as_handoff_draft():
+def test_supported_account_authority_routes_to_a_domain_owner():
     orchestrator = _orchestrator()
     request = OrchestrationRequest(
         message="我的账户资料现在是什么", user_id="u", conv_id="c",
@@ -273,56 +273,14 @@ def test_unsupported_account_authority_reaches_application_as_handoff_draft():
     shape = asyncio.run(orchestrator.classify_request_shape(request))
     route = asyncio.run(orchestrator.decide_route(request, shape))
 
-    assert route.mode is RouteMode.HANDOFF
-    assert route.owner_ids == ()
-    assert "AUTHORITY_UNSUPPORTED" in route.reason_codes
+    assert route.mode is RouteMode.AGENT_TASK
+    assert route.owner_ids == ("general",)
+    assert "PERSONAL_STATE_REQUIRES_TOOL" in route.reason_codes
 
     from application.authority_policy import AuthorityPolicyRegistry
-    from application.coverage_gate import VerificationProfileRegistry
-    from application.route_execution import RouteExecutionPolicy
 
     requirements = AuthorityPolicyRegistry.v1().minimum_requirements(route)
-    verification = VerificationProfileRegistry().contract_for(
-        route.mode, requirements,
+    assert tuple(item.requirement_id for item in requirements) == (
+        "account.current_state",
     )
-    contract = RouteExecutionPolicy().plan(route, verification)
-
-    async def handoff(_contract):
-        return RouteCandidate(
-            "draft", CandidateOwner.HANDOFF_DRAFT,
-            outcome_payload=HandoffContractDraft(
-                handoff_id="draft-handoff:r",
-                reason_codes=_contract.reason_codes,
-                target_queue_or_owner="support:triage",
-                problem_summary=request.message,
-                user_goal="人工核验账户状态",
-                verified_facts=(), user_assertions=(request.message,),
-                actions_attempted=(), action_receipts=(), missing_materials=(),
-                media_evidence=(), emotion_and_user_request=request.message,
-                commitments_and_sla=(), risk=_contract.risk,
-                recommended_next_action="由人工在授权系统中核验账户状态",
-            ),
-        )
-
-    async def gate(*_args):
-        return DeterministicGateResult(True, False, "HANDOFF_DRAFT_COMPLETE")
-
-    async def record(*_args):
-        return None
-
-    async def forbidden(*_args):
-        raise AssertionError("unsupported authority invoked a non-handoff path")
-
-    result = asyncio.run(RoutePathExecutor().execute(
-        contract,
-        RoutePathOperations(
-            forbidden, forbidden, forbidden, forbidden, handoff,
-            gate, forbidden, record,
-        ),
-    ))
-
-    assert requirements == ()
-    assert result.expected_outcome is RouteExpectedOutcome.HANDOFF_DRAFT
-    assert result.invocation_trace == (
-        RouteComponent.HANDOFF_DRAFT, RouteComponent.TURN_RECORD,
-    )
+    assert all(item.support.value == "SUPPORTED" for item in requirements)

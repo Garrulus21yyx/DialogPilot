@@ -11,10 +11,12 @@ from application.structured_target_router import (
 from application.target_understanding import BoundedTargetUnderstanding
 from application.turn_planning import (
     CommandKind,
+    CommandProposal,
     ProposalDisposition,
     RouteMode,
     RoutePolicy,
     TurnPlanCompiler,
+    TurnProposal,
 )
 from core.identity import IdentityFactory
 from infrastructure.target_semantic_provider import AnthropicTargetSemanticProvider
@@ -246,6 +248,66 @@ def test_security_signal_keeps_human_handoff_as_an_essential_coordination_action
         "security-review", "human-handoff",
     }
     assert validated.reason_code == "BOUNDED_FAST_PATH"
+
+
+def test_every_registry_marked_action_is_preempted_before_work_plan_compilation():
+    state = _state()
+    registry = build_default_capability_registry("tenant-a")
+    interruptible = tuple(
+        action for action in registry.actions
+        if action.interruptible_by_security
+    )
+
+    assert {item.action_id for item in interruptible} == {
+        "refund.request.create",
+        "order.cancel",
+        "order.shipping_address.change",
+    }
+    for action in interruptible:
+        preparation = action.preparation
+        assert preparation is not None
+        proposal = TurnProposal(
+            ProposalDisposition.RESOLVED,
+            (
+                CommandProposal(
+                    "security-review",
+                    CommandKind.DIRECT_TOOL,
+                    "account_security",
+                    "Review recent account security events",
+                    requirement_ids=("account.security_events",),
+                    tool_id="account_security_event_list",
+                ),
+                CommandProposal(
+                    f"prepare:{action.action_id}",
+                    CommandKind.PREPARE_WORKFLOW,
+                    action.owner_agent,
+                    "Prepare an interruptible write",
+                    requirement_ids=(preparation.requirement_id,),
+                    flow_ref=action.flow_ref,
+                    action_ref=action.ref,
+                    target_entity_ref="entity:test",
+                ),
+            ),
+            "ADVERSARIAL_SECURITY_COMPOUND",
+        )
+
+        validated = RoutePolicy().accept(proposal, state, registry)
+        plan = TurnPlanCompiler().compile(
+            validated,
+            state,
+            registry,
+            IdentityFactory().create_invocation(
+                tenant_id="tenant-a", user_id="user-a",
+                conversation_id="conversation-a",
+                request_id=f"preempt-{action.action_id}",
+            ),
+        )
+
+        assert [item.proposal.command_id for item in validated.commands] == [
+            "security-review",
+        ]
+        assert plan.transitions is None
+        assert len(plan.work.items) == 1
 
 
 def test_compound_product_goal_delegates_one_domain_agent_with_capability_envelope():

@@ -60,23 +60,28 @@
 | 10 | done | `/chat` read-path cutover to Target v1, synchronous target admission, trusted tool context, and removal of legacy fallback authority | 4 local HTTP/cutover tests; 65 cumulative; 2 real-PostgreSQL tests skipped without database URL | `b57e02f` |
 | 11 | done | Real PostgreSQL/HTTP six-scenario E2E, async checkpoint ownership, committed handoff workflow completion, and documentation convergence | 68 Target tests pass against PostgreSQL; repository suite 1120 passed / 6 unrelated dirty-RAG contract failures | `9a19ce8` |
 | 12A | done | Refund preparation, persisted approval, deterministic resume, governed commit, rejection/expiry/stale handling | 75 Target tests; repository 1127 passed / 6 unrelated dirty-RAG failures | `57658ce` |
-| 12B | done | Public retry/poll entry for `OUTCOME_UNKNOWN`, stable operation binding, authoritative reconciliation, and terminal Receipt publication | 76 Target tests; repository 1128 passed / 6 unrelated dirty-RAG failures | this stage commit |
-| 13A | done | Real `media_read` and `catalog_search` tools plus a Product skill executor that passes verified media observations into catalog lookup | Product owner/tool contract tests | this stage commit |
-| 13B | done | Real upload-to-chat Product E2E, typed unavailable/no-match/ambiguous paths, documentation, commit and push | 80 Target tests including real PostgreSQL Asset/HTTP E2E | this stage commit |
-| 14A | done | Target-native structured semantic router and typed provider boundary behind deterministic resolution | 66 focused Target tests; real HTTP/PostgreSQL semantic fallback; provider failure remains typed | this stage commit |
-| 14B | done | Target Skill/Command Encoder dataset, class-scoped calibration, heldout gate and public fast-path binding | 91 Target tests; reproducible training; real HTTP/PostgreSQL Encoder bypass | this stage commit |
-| 15 | done | Target-native evaluation funnel, capability-scoped gates, observability and architecture/runbook convergence | 96 Target tests; repository 1148 passed / 6 unrelated dirty-RAG failures | this stage commit |
-| 16A | done | Separate logistics, refund policy, refund eligibility and invoice read commands from refund execution | unit contracts plus real HTTP/PostgreSQL read-path E2E | this stage commit |
-| 16B | done | Generic Product QA task contract; category and attributes remain evidence data rather than Skill identities | 93 Target tests including real PostgreSQL/HTTP boundaries | this stage commit |
-| 17 | done | Registry-owned generic write-preparation binding with no refund fields in ConversationManager | 95 Target tests including real PostgreSQL/HTTP boundaries | this stage commit |
-| 18 | done | WorkItem-bound Action identity and Registry approval policy; workflow executor no longer branches on Flow names | 96 Target tests including real PostgreSQL/HTTP boundaries | this stage commit |
-| 19 | done | Registry-owned reconciliation contracts plus operation-bound Handoff lookup; no Flow-name branches in workflow execution | 113 Target/tool/authority tests with real PostgreSQL/HTTP boundaries | this stage commit |
-| 20 | done | Order cancellation as a second governed write Flow using the generic preparation, approval, Receipt and reconciliation contracts | 136 Target/owner/tool/authority tests with real PostgreSQL/HTTP boundaries | this stage commit |
-| 21 | done | Generic typed missing-input aggregation, durable suspended read work, exact signal resume, and one Interaction publication across domains | 125 focused Target/owner/tool tests with real PostgreSQL enabled | this stage commit |
-| 22 | done | Registry-governed `NEEDS_EVIDENCE` resolution and bounded same-WorkItem resume without user clarification | 130 focused Target/owner/tool tests with real PostgreSQL enabled | this stage commit |
-| 23 | done | Governed shipping-address change Flow with authoritative order version, explicit confirmation, idempotent Receipt and reconciliation | 146 focused Target/owner/tool/authority tests with real PostgreSQL enabled | this stage commit |
+| 12B | done | Public retry/poll entry for `OUTCOME_UNKNOWN`, stable operation binding, authoritative reconciliation, and terminal Receipt publication | 76 Target tests; repository 1128 passed / 6 unrelated dirty-RAG failures | `c81e633` |
+| 13 | done | Real upload-to-chat Product E2E, `media_read`/`catalog_search`, one reusable Product skill, and typed failure paths | 80 Target tests including real PostgreSQL Asset/HTTP E2E | `abe2975` |
+| 14A | done | Target-native structured semantic router and typed provider boundary behind deterministic resolution | 66 focused Target tests; real HTTP/PostgreSQL semantic fallback; provider failure remains typed | `c748c7a` |
+| 14B | done | Target Skill/Command Encoder dataset, class-scoped calibration, heldout gate and public fast-path binding | 91 Target tests; reproducible training; real HTTP/PostgreSQL Encoder bypass | `81ec8bc` |
+| 15 | done | Target-native evaluation funnel, capability-scoped gates, observability and architecture/runbook convergence | 96 Target tests; repository 1148 passed / 6 unrelated dirty-RAG failures | `d1b9387` |
+| 16A | done | Separate logistics, refund policy, refund eligibility and invoice read commands from refund execution | unit contracts plus real HTTP/PostgreSQL read-path E2E | `09e0001` |
+| 16B | done | Generic Product QA task contract; category and attributes remain evidence data rather than Skill identities | 93 Target tests including real PostgreSQL/HTTP boundaries | `888a9e4` |
+| 17 | done | Registry-owned generic write-preparation binding with no refund fields in ConversationManager | 95 Target tests including real PostgreSQL/HTTP boundaries | `5407303` |
+| 18 | done | WorkItem-bound Action identity and Registry approval policy; workflow executor no longer branches on Flow names | 96 Target tests including real PostgreSQL/HTTP boundaries | `2b9b28d` |
+| 19 | done | Registry-owned reconciliation contracts plus operation-bound Handoff lookup; no Flow-name branches in workflow execution | 113 Target/tool/authority tests with real PostgreSQL/HTTP boundaries | `c15d463` |
+| 20 | done | Order cancellation as a second governed write Flow using the generic preparation, approval, Receipt and reconciliation contracts | 136 Target/owner/tool/authority tests with real PostgreSQL/HTTP boundaries | `78808ef` |
+| 21 | done | Generic typed missing-input aggregation, durable suspended read work, exact signal resume, and one Interaction publication across domains | 125 focused Target/owner/tool tests with real PostgreSQL enabled | `ad6392b` |
+| 22 | done | Registry-governed `NEEDS_EVIDENCE` resolution and bounded same-WorkItem resume without user clarification | 130 focused Target/owner/tool tests with real PostgreSQL enabled | `f31814d` |
+| 23 | done | Governed shipping-address change Flow with authoritative order version, explicit confirmation, idempotent Receipt and reconciliation | 146 focused Target/owner/tool/authority tests with real PostgreSQL enabled | `5c1732d` |
 | 24 | done | Account-security reads and governed freeze Flow with trusted principal, version binding, Receipt and reconciliation | 180 Target and affected-consumer tests with real PostgreSQL enabled | `d991360` |
-| 25 | done | Remove one-Tool pseudo-Skills and let the calibrated Encoder fast path select registered Tool or composite Skill capabilities | 186 Target and affected-consumer tests with real PostgreSQL enabled | this stage commit |
+| 25 | done | Remove one-Tool pseudo-Skills and let the calibrated Encoder fast path select registered Tool or composite Skill capabilities | 186 Target and affected-consumer tests with real PostgreSQL enabled | `22d5997` |
+| 26 | done | Existing ReAct Agent execution behind delegated WorkItems with Tool-envelope enforcement | 71 focused tests | `fdf02e9` |
+| 27 | done | Dynamic optional composite-Skill selection inside the existing ReAct loop | 90 focused tests | `4e766c9` |
+| 28 | done | Bounded current-turn context and one-shot demand-driven ServiceEpisode retrieval | 69 focused tests | `24acc54` |
+| 29 | done | Shared generic L1 OCR/L2 VLM evidence Tools with no product-category rules | 97 focused tests | `0fa28b8` |
+| 30 | done | Registry-scoped security preemption of interruptible business writes | 64 focused tests | `85eab23` |
+| 31 | done | LangGraph native interrupt/resume for typed user input and workflow approval signals | 26 Manager/HTTP/PostgreSQL tests plus native graph state assertions | `c541693` |
 
 ## Stage record
 
@@ -643,3 +648,43 @@ continuation.
 - The policy is capability-scoped rather than a global shutdown and does not add
   routing rules to any domain Agent. Planning, Registry, structured routing and real
   ASGI/PostgreSQL Target tests pass 36 focused tests.
+
+## Stage 31 verification notes
+
+- A checkpointed parent graph now stops at a native LangGraph `interrupt()` after a
+  typed `NEEDS_USER_INPUT` outcome or successful governed write preparation. The
+  interrupt payload contains only interaction shape and the bound WorkPlan
+  fingerprint; it does not become the approval or business-state authority.
+- ConversationState persists the exact checkpoint thread beside PendingInteraction or
+  PendingApproval. On the next turn, DeterministicResolver first consumes the typed
+  business signal with CAS; only then does ConversationManager pass the newly
+  Registry-validated WorkPlan through `Command(resume=...)` to that same graph thread.
+- Resume replaces the old terminal/needs-input board before dispatch, so successful
+  work is not duplicated and the previously blocked WorkItem runs once with its new
+  arguments. Approval rejection or expiry resumes the graph with an explicit cancel
+  signal and executes no write WorkItem.
+- LangGraph still owns execution position only. Conversation state, consumed signal,
+  accepted approval, operation key, Receipt and reconciliation remain in their
+  existing business owners. Native graph, Manager, HTTP and PostgreSQL suites pass 26
+  tests, including same-thread approval continuation.
+
+## Completion audit
+
+- The repeated architecture reopenings had one shared cause: execution-shape meaning
+  was being encoded at the wrong layer. Asset presence was treated as a Product task,
+  atomic Tools were treated as mandatory Skills, and domain ownership was treated as
+  mandatory Agent dispatch. The converged owners are now explicit: Understanding
+  proposes goals, Registry owns capability/risk, RoutePolicy accepts and preempts,
+  WorkItem owns execution shape, and LangGraph only schedules and resumes it.
+- Fresh adversarial coverage iterates every Registry Action marked
+  `interruptible_by_security`; all are removed before WorkPlan/Flow creation when an
+  account-security task is present. The test does not special-case refund.
+- The final PostgreSQL-enabled repository run passed 1211 tests after native resume.
+  Six exact tests were deselected because a separate uncommitted RAG change emits
+  three new retrieval-policy keys while `services.evolution.bundle.AgentBundle`
+  still rejects them. Those six share that external owner mismatch; no Target test or
+  affected Target consumer was excluded.
+- Two stale legacy assertions were migrated: `account.current_state` is now supported
+  but requires evidence, and account-state requests route to a domain owner rather
+  than mandatory handoff. This aligns tests with the authoritative Registry instead
+  of weakening the implemented account-security capability.

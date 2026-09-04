@@ -19,6 +19,18 @@
 才创建 `execute_refund:v1` Workstream。物流状态复用 `order_lookup`，发票政策复用
 Knowledge Provider。单 Tool 任务不包装成 Skill，也不启动领域 Agent。
 
+Registry 当前包含 6 个领域 Agent、19 个原子 Tool、1 个复合 Skill
+（`product_identification`）和 5 个受控 Flow。Agent 在 DELEGATED WorkItem 的
+能力包络内可动态组合 Tool/Skill；商品类别和属性只作为 Catalog/RAG 数据。
+
+显式图片文字/OCR 请求直接调用共享 `media_read`；外观、区域、控件或空间关系判断
+委派一个 Agent，并只开放共享 `media_observe`。附件存在本身不会触发 Product Agent。
+`media_observe` 的输出是媒体观察，不得满足订单、退款或账户实时状态 requirement。
+
+同轮出现账户安全任务和 Registry 标记为 interruptible 的业务写请求时，RoutePolicy
+只阻断后者；安全查询、其他只读任务和人工转接继续执行。被阻断的写流程不会运行
+预检 Tool、不会创建 Flow，用户解决安全问题后可重新发起。
+
 ## 启动配置
 
 默认加载仓库内的 `artifacts/target-encoder-zh-v1`。可配置：
@@ -49,6 +61,11 @@ typed failure；无效 JSON、未知 goal 或凭空生成 entity 返回 non-retr
 
 写工具超时后保持 `RECONCILING`。客户端用新的 `request_id` 和原 `approval_id`
 查询结果；Runtime 先按 operation key 查询权威状态，禁止重复提交写操作。
+
+缺用户输入或写流程预检完成后，LangGraph 在当前 thread 上产生 native interrupt；
+ConversationState 同时保存 PendingInteraction/PendingApproval 与 checkpoint thread ID。
+恢复时必须先通过 DeterministicResolver 的 signal/version/CAS 校验，再以新验证的
+WorkPlan 调用 `Command(resume=...)`。LangGraph checkpoint 不能自行授权审批或业务写入。
 
 ## 验证命令
 
@@ -117,5 +134,5 @@ Trace 只发布结构化标识和状态，不包含 Prompt、工具原始输出�
 ## 当前能力边界
 
 Encoder 数据是 synthetic prototype contract，不是生产流量。当前只有退款状态类别通过
-门禁，总 heldout coverage 为 13%；General/Product 继续 DEFER。纯视觉商品识别需要
-单独启用 VLM provider；本地默认能力是图片文字/OCR 型号与 Catalog 唯一匹配。
+门禁，总 heldout coverage 为 13%；General/Product 继续 DEFER。通用视觉观察需要
+启用 VLM provider；Product Skill 当前闭合的是图片文字/OCR 型号与 Catalog 唯一匹配。
