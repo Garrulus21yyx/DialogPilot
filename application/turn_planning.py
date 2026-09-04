@@ -158,10 +158,25 @@ class RoutePolicy:
         validated = tuple(
             self._accept_command(item, registry, state) for item in proposal.commands
         )
+        security_preempted = (
+            any(item.proposal.target_agent == "account_security" for item in validated)
+            and any(
+                item.action is not None and item.action.interruptible_by_security
+                for item in validated
+            )
+        )
+        if security_preempted:
+            validated = tuple(
+                item for item in validated
+                if item.action is None or not item.action.interruptible_by_security
+            )
         return ValidatedCommandPlan(
             ProposalDisposition.RESOLVED,
             validated,
-            proposal.reason_code,
+            (
+                "SECURITY_PREEMPTED_NONESSENTIAL_WRITES"
+                if security_preempted else proposal.reason_code
+            ),
             (),
             state.fingerprint,
             registry.fingerprint,

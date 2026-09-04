@@ -217,6 +217,7 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
                 target_version_field="order_version",
                 target_version_argument="expected_order_version",
             ),
+            True,
         ),
         ActionDefinition(
             "support.handoff.create", "v1", "human_service", "human_handoff:v1",
@@ -255,6 +256,7 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
                 target_version_field="version",
                 target_version_argument="expected_order_version",
             ),
+            True,
         ),
         ActionDefinition(
             "order.shipping_address.change", "v1", "order_logistics",
@@ -281,6 +283,7 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
                 target_version_field="version",
                 target_version_argument="expected_order_version",
             ),
+            True,
         ),
         ActionDefinition(
             "account.freeze", "v1", "account_security", "freeze_account:v1",

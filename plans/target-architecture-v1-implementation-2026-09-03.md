@@ -626,3 +626,20 @@ continuation.
   order, refund, account or other business-state requirements.
 - Media contracts, routing, Product runtime, Tool governance and real
   ASGI/PostgreSQL Target scenarios pass 97 focused tests.
+
+## Stage 30 verification notes
+
+- `ActionDefinition` now owns whether a business write can be interrupted by an
+  account-security task. Refund creation, order cancellation and shipping-address
+  change are marked interruptible; account freeze and human handoff are not.
+- `RoutePolicy` applies this Registry fact before WorkPlan compilation. When the same
+  turn contains an account-security task, interruptible business writes are omitted
+  before any preparation Tool runs or Flow is started. Read-only tasks and essential
+  human coordination remain available.
+- The resulting plan contains no hidden cancelled Worker and performs no speculative
+  write preparation. Publication states that the safety task was prioritized and that
+  the other high-risk operation was not started, so the user can request it again
+  after resolving the security concern.
+- The policy is capability-scoped rather than a global shutdown and does not add
+  routing rules to any domain Agent. Planning, Registry, structured routing and real
+  ASGI/PostgreSQL Target tests pass 36 focused tests.

@@ -208,6 +208,46 @@ def test_semantic_security_goals_cannot_select_unregistered_capabilities():
     assert freeze.commands[0].action_ref == "account.freeze:v1"
 
 
+def test_security_signal_preempts_only_registry_marked_business_writes():
+    proposal, state, registry = _invoke(
+        BoundedTargetUnderstanding(),
+        "账号被盗，帮我查异常登录，同时把订单 DP1234 退款",
+    )
+
+    validated = RoutePolicy().accept(proposal, state, registry)
+    plan = TurnPlanCompiler().compile(
+        validated,
+        state,
+        registry,
+        IdentityFactory().create_invocation(
+            tenant_id="tenant-a", user_id="user-a",
+            conversation_id="conversation-a", request_id="security-preemption",
+        ),
+    )
+
+    assert validated.reason_code == "SECURITY_PREEMPTED_NONESSENTIAL_WRITES"
+    assert [item.proposal.command_id for item in validated.commands] == [
+        "security-review",
+    ]
+    assert plan.route.mode is RouteMode.DIRECT
+    assert plan.transitions is None
+    assert plan.work.items[0].allowed_tools == ("account_security_event_list",)
+
+
+def test_security_signal_keeps_human_handoff_as_an_essential_coordination_action():
+    proposal, state, registry = _invoke(
+        BoundedTargetUnderstanding(),
+        "账号被盗，我要人工客服处理",
+    )
+
+    validated = RoutePolicy().accept(proposal, state, registry)
+
+    assert {item.proposal.command_id for item in validated.commands} == {
+        "security-review", "human-handoff",
+    }
+    assert validated.reason_code == "BOUNDED_FAST_PATH"
+
+
 def test_compound_product_goal_delegates_one_domain_agent_with_capability_envelope():
     provider = Provider({
         "status": "resolved",

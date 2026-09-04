@@ -389,6 +389,21 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                     "security-review",
                     "这次异常登录不是我操作的，帮我查一下",
                 )
+                security_preemption = await chat(
+                    "security-preemption",
+                    "账号被盗，帮我查异常登录，同时把订单 DP8080 退款",
+                )
+                assert security_preemption.status_code == 200
+                security_payload = security_preemption.json()
+                assert security_payload["routing_reason"] == (
+                    "SECURITY_PREEMPTED_NONESSENTIAL_WRITES"
+                )
+                assert "本轮未启动其他高风险业务操作" in security_payload["response"]
+                assert not any(
+                    name == "refund_eligibility_check"
+                    and params.get("order_id") == "DP8080"
+                    for name, params, *_ in tools.calls
+                )
                 freeze_precheck = await chat(
                     "account-freeze", "立即冻结账户",
                 )

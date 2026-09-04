@@ -301,6 +301,13 @@ class TargetChatApplication:
                     1.0,
                 )
             response_text = _board_response(board)
+            if managed.plan.route.reason_code == (
+                "SECURITY_PREEMPTED_NONESSENTIAL_WRITES"
+            ):
+                response_text = (
+                    "检测到账户安全风险，已优先处理安全任务；"
+                    "本轮未启动其他高风险业务操作。\n" + response_text
+                )
             verifier_status = (
                 "PASS"
                 if not board.missing_requirement_ids and not board.conflict_keys

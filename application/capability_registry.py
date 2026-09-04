@@ -249,6 +249,7 @@ class ActionDefinition:
     reconciliation: ActionReconciliationDefinition
     verification_profile: str
     preparation: ActionPreparationDefinition | None = None
+    interruptible_by_security: bool = False
 
     @property
     def ref(self) -> str:
