@@ -609,7 +609,6 @@ async def lifespan(app: FastAPI):
         database_url=database_url,
         postgres_pool=_postgres_pool,
         tool_manager=_tool_manager,
-        legacy_orchestrator=_orchestrator,
         memory=_memory,
         response_delivery=_response_delivery,
         model_policy=_model_policy,

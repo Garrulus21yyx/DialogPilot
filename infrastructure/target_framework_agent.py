@@ -13,6 +13,9 @@ from dataclasses import replace
 from typing import Any, Mapping
 
 from langchain.agents import create_agent
+from langchain.agents.middleware import ModelCallLimitMiddleware, ToolCallLimitMiddleware
+from langchain.agents.middleware.model_call_limit import ModelCallLimitExceededError
+from langchain.agents.middleware.tool_call_limit import ToolCallLimitExceededError
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.tools import StructuredTool
 from langgraph.errors import GraphRecursionError
@@ -32,7 +35,10 @@ from application.work_control import WorkControlGuard, WorkSuperseded
 from infrastructure.target_agent_result_adapter import (
     fact_from_tool_result,
     merge_facts,
+    framework_artifact,
+    restore_framework_artifact,
 )
+from infrastructure.target_agent_middleware import AgentContextMiddleware, WorkControlMiddleware
 from mcp.tool_manager import MCPToolManager, ToolCallStatus, ToolResult
 
 
@@ -60,7 +66,6 @@ class TargetFrameworkAgent:
         system_prompt: str,
         skill_executors: Mapping[str, WorkExecutor] | None = None,
         context_budget: ContextBudgetManager | None = None,
-        checkpointer=None,
         control_guard: WorkControlGuard | None = None,
     ) -> None:
         self._model = model
@@ -69,7 +74,6 @@ class TargetFrameworkAgent:
         self._system_prompt = str(system_prompt).strip()
         self._skill_executors = dict(skill_executors or {})
         self._context_budget = context_budget or ContextBudgetManager()
-        self._checkpointer = checkpointer
         self._control_guard = control_guard
 
     async def __call__(self, context: AgentContextView) -> AgentResult:
@@ -102,23 +106,31 @@ class TargetFrameworkAgent:
             self._model,
             tools,
             system_prompt=self._system(context),
-            checkpointer=self._checkpointer,
             name=f"{item.owner_agent}_agent",
+            context_schema=AgentContextView,
+            middleware=[
+                WorkControlMiddleware(self._control_guard),
+                AgentContextMiddleware(self._context_budget),
+                ModelCallLimitMiddleware(thread_limit=item.max_steps, exit_behavior="error"),
+                ToolCallLimitMiddleware(thread_limit=item.max_steps, exit_behavior="error"),
+            ],
         )
         config = {
-            "configurable": {"thread_id": _thread_id(context)},
-            "recursion_limit": item.max_steps * 2 + 3,
+            "recursion_limit": item.max_steps * 8 + 10,
         }
         try:
             async with asyncio.timeout(item.timeout_seconds):
                 output = await graph.ainvoke(
                     {"messages": [HumanMessage(content=prompt)]},
                     config=config,
+                    context=context,
                 )
         except WorkSuperseded:
             return self._control_guard.superseded_result(item)
-        except GraphRecursionError:
+        except (GraphRecursionError, ModelCallLimitExceededError, ToolCallLimitExceededError):
             return self._failure(context, "AGENT_STEP_BUDGET_EXCEEDED")
+        except ModelContextBudgetExceeded:
+            return self._failure(context, "CONTEXT_BUDGET_EXCEEDED")
         except TimeoutError:
             return self._failure(
                 context, "AGENT_EXECUTION_TIMEOUT", retryable=True,
@@ -136,10 +148,10 @@ class TargetFrameworkAgent:
         return _adapt_framework_result(
             context,
             tuple(
-                message.artifact
+                restore_framework_artifact(message.artifact)
                 for message in output.get("messages") or ()
                 if isinstance(message, ToolMessage)
-                and isinstance(message.artifact, (ToolResult, AgentResult))
+                and message.artifact is not None
             ),
             tuple(output.get("messages") or ()),
             self.version,
@@ -179,7 +191,7 @@ class TargetFrameworkAgent:
                 self._control_guard.ensure_current(
                     context.work_item, context.trusted_context,
                 )
-            return _tool_output(result), result
+            return _tool_output(result), framework_artifact(result)
 
         return StructuredTool.from_function(
             coroutine=execute,
@@ -240,7 +252,7 @@ class TargetFrameworkAgent:
                 },
                 "response": result.candidate_response,
             }, ensure_ascii=False, sort_keys=True)
-            return content, result
+            return content, framework_artifact(result)
 
         return StructuredTool.from_function(
             coroutine=execute,
@@ -408,14 +420,3 @@ def _last_text(messages: tuple[Any, ...]) -> str | None:
                 if text:
                     return text
     return None
-
-
-def _thread_id(context: AgentContextView) -> str:
-    trusted = context.trusted_context
-    workstream_id = str(trusted.get("workstream_id") or "").strip()
-    if workstream_id:
-        return f"target-domain-workstream:{workstream_id}"
-    invocation = str(
-        trusted.get("invocation_key") or trusted.get("request_id") or "invocation"
-    )
-    return f"target-domain-invocation:{invocation}:{context.work_item.work_item_id}"

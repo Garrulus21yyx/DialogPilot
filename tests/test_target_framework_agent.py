@@ -3,6 +3,9 @@ import json
 from dataclasses import replace
 from datetime import datetime, timezone
 from typing import Any, Sequence
+from types import SimpleNamespace
+
+import pytest
 
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage
@@ -17,10 +20,13 @@ from application.agent_result import (
 )
 from application.capability_registry import CapabilityEffect, CapabilityRisk
 from application.context_budget import ContextBudgetManager
+from application.conversation_state import ConversationState, WorkControlStatus
+from application.work_control import WorkControlGuard
+from application.work_item import WorkControlBinding
 from application.default_capability_registry import build_default_capability_registry
 from application.orchestration_runtime import AgentContextView
 from application.work_item import ArgumentValue, ControlMode, WorkItem
-from infrastructure.target_framework_agent import TargetFrameworkAgent, _thread_id
+from infrastructure.target_framework_agent import TargetFrameworkAgent
 from mcp.tool_manager import MCPToolManager, Tool
 
 
@@ -49,7 +55,7 @@ class ScriptedToolModel(BaseChatModel):
         return ChatResult(generations=[ChatGeneration(message=response)])
 
 
-def _manager(calls):
+def _manager(calls, *, allowed_agents=("technical",)):
     manager = MCPToolManager("test-key", model="test-model")
 
     async def catalog(params, context):
@@ -66,7 +72,7 @@ def _manager(calls):
             "required": ["query"],
             "additionalProperties": False,
         },
-        allowed_agents=("technical",),
+        allowed_agents=allowed_agents,
         authority="product.canonical_model",
         output_schema_version="catalog-result-v1",
     ))
@@ -270,11 +276,165 @@ def test_open_goal_can_choose_optional_composite_skill():
     }
 
 
-def test_framework_checkpoint_scope_is_workstream_or_invocation():
-    first = _context(workstream_id="product-ws-1")
-    second = _context(workstream_id="product-ws-2")
-    one_off = _context()
+@pytest.mark.parametrize("owner,runtime_agent", [
+    ("general", "general"), ("product_technical", "technical"),
+    ("order_logistics", "general"), ("billing_refund", "billing"),
+    ("account_security", "account_security"), ("human_service", "escalation"),
+])
+def test_all_domains_use_the_same_governed_loop(owner, runtime_agent):
+    calls = []
+    manager = _manager(calls, allowed_agents=(runtime_agent,))
+    model = ScriptedToolModel(responses=[
+        AIMessage(content="", tool_calls=[{
+            "name": "catalog_search", "args": {"query": "current"}, "id": "call-1",
+        }]),
+        AIMessage(content="PX-200"),
+    ])
+    agent = TargetFrameworkAgent(model, manager,
+        registry=build_default_capability_registry("tenant-a"), system_prompt=owner)
+    result = asyncio.run(agent(_context(replace(_item(), owner_agent=owner))))
+    assert result.status is AgentResultStatus.SUCCEEDED
+    assert result.owner_agent == owner
+    assert calls[0][1]["agent_type"] == runtime_agent
 
-    assert _thread_id(first) == "target-domain-workstream:product-ws-1"
-    assert _thread_id(first) != _thread_id(second)
-    assert _thread_id(one_off).endswith(":product-work-1")
+
+def test_revision_during_model_call_blocks_its_tool_calls(monkeypatch):
+    item = replace(_item(), control=WorkControlBinding("product", 1))
+    state = ConversationState.empty(
+        tenant_id="tenant-a", user_id="user-a", conversation_id="conversation-a",
+    ).accept_work_items((item,), invocation_key="invocation-a")
+    store = SimpleNamespace(load=lambda *args: state)
+    original = ScriptedToolModel._generate
+
+    def revise(self, *args, **kwargs):
+        nonlocal state
+        response = original(self, *args, **kwargs)
+        state = state.close_work_control(item.control, status=WorkControlStatus.CANCELLED)
+        return response
+
+    monkeypatch.setattr(ScriptedToolModel, "_generate", revise)
+    calls = []
+    model = ScriptedToolModel(responses=[AIMessage(content="", tool_calls=[{
+        "name": "catalog_search", "args": {"query": "old"}, "id": "old-call",
+    }])])
+    agent = TargetFrameworkAgent(model, _manager(calls),
+        registry=build_default_capability_registry("tenant-a"), system_prompt="product",
+        control_guard=WorkControlGuard(store))
+    result = asyncio.run(agent(_context(item)))
+    assert result.status is AgentResultStatus.SUPERSEDED
+    assert model.calls == 1
+    assert calls == []
+
+
+def test_model_loop_budget_counts_calls_not_graph_nodes():
+    calls = []
+    model = ScriptedToolModel(responses=[AIMessage(content="", tool_calls=[{
+        "name": "catalog_search", "args": {"query": "current"}, "id": "call-1",
+    }])])
+    agent = TargetFrameworkAgent(model, _manager(calls),
+        registry=build_default_capability_registry("tenant-a"), system_prompt="product")
+    result = asyncio.run(agent(_context(replace(_item(), max_steps=1))))
+    assert result.reason_code == "AGENT_STEP_BUDGET_EXCEEDED"
+    assert model.calls == 1
+    assert len(calls) == 1
+
+
+def test_agent_text_does_not_satisfy_business_fact_requirements():
+    model = ScriptedToolModel(responses=[AIMessage(content="我猜型号是 PX-200")])
+    agent = TargetFrameworkAgent(model, _manager([]),
+        registry=build_default_capability_registry("tenant-a"), system_prompt="product")
+    result = asyncio.run(agent(_context()))
+    assert result.status is not AgentResultStatus.SUCCEEDED
+    assert result.facts == ()
+
+
+@pytest.mark.parametrize("kind", ["tool", "skill"])
+def test_framework_artifact_roundtrip_preserves_typed_results(kind):
+    from langchain_core.messages import ToolMessage
+    from infrastructure.langgraph_checkpoint import target_checkpoint_serializer
+    from infrastructure.target_agent_result_adapter import framework_artifact, restore_framework_artifact
+    from mcp.tool_manager import ToolResult
+
+    fact = FactRecord("product:p1", "product.canonical_model", '"PX-200"',
+        FactSourceKind.VERIFIED_STATE, "receipt-1", "catalog", "v1",
+        datetime.now(timezone.utc))
+    result = (ToolResult(True, {"canonical_model": "PX-200"}, "catalog_search",
+        call_id="call-1", authority="product.canonical_model") if kind == "tool" else
+        AgentResult("work-1", "product_technical", AgentResultStatus.SUCCEEDED,
+            "FOUND", "v1", facts=(fact,), evidence_refs=("receipt-1",)))
+    message = ToolMessage(content="model view", tool_call_id="call-1",
+        artifact=framework_artifact(result))
+    serializer = target_checkpoint_serializer()
+    restored = serializer.loads_typed(serializer.dumps_typed(message))
+    assert restore_framework_artifact(restored.artifact) == result
+
+
+def test_postgres_subgraph_survives_process_exit_after_tool(postgres_database_url):
+    """Recreate the process, model, parent graph and saver; reuse the tool checkpoint."""
+    import multiprocessing
+    import os
+    import psycopg
+    from langchain_core.messages import ToolMessage
+    from langgraph.graph import StateGraph, START, END
+    from infrastructure.langgraph_checkpoint import AsyncPostgresCheckpointOwner
+
+    with psycopg.connect(postgres_database_url, autocommit=True) as connection:
+        connection.execute("CREATE TABLE framework_recovery_calls (id serial PRIMARY KEY)")
+
+    class RecoveryModel(ScriptedToolModel):
+        crash: bool = False
+
+        def _generate(self, messages, stop=None, run_manager=None, **kwargs):
+            if any(isinstance(message, ToolMessage) for message in messages):
+                if self.crash:
+                    os._exit(73)
+                response = AIMessage(content="PX-200")
+            else:
+                response = AIMessage(content="", tool_calls=[{
+                    "name": "catalog_search", "args": {"query": "current"}, "id": "read-1",
+                }])
+            return ChatResult(generations=[ChatGeneration(message=response)])
+
+    async def run(crash):
+        manager = MCPToolManager("test-key", model="test")
+
+        async def catalog(params, context):
+            with psycopg.connect(postgres_database_url, autocommit=True) as connection:
+                connection.execute("INSERT INTO framework_recovery_calls DEFAULT VALUES")
+            return {"canonical_model": "PX-200"}
+
+        manager.register(Tool("catalog_search", "Search catalog", catalog,
+            {"type": "object", "properties": {"query": {"type": "string"}},
+             "required": ["query"]}, allowed_agents=("technical",),
+            authority="product.canonical_model", output_schema_version="catalog-v1"))
+        agent = TargetFrameworkAgent(RecoveryModel(responses=[], crash=crash), manager,
+            registry=build_default_capability_registry("tenant-a"), system_prompt="product")
+
+        async def worker(state):
+            return {"result": await agent(_context())}
+
+        async with AsyncPostgresCheckpointOwner(postgres_database_url, setup=True) as saver:
+            builder = StateGraph(dict)
+            builder.add_node("worker", worker)
+            builder.add_edge(START, "worker")
+            builder.add_edge("worker", END)
+            graph = builder.compile(checkpointer=saver)
+            return await graph.ainvoke({} if crash else None,
+                config={"configurable": {"thread_id": "framework-recovery"}},
+                durability="sync")
+
+    process = multiprocessing.get_context("fork").Process(
+        target=lambda: asyncio.run(run(True)),
+    )
+    process.start()
+    process.join(30)
+    if process.is_alive():
+        process.terminate()
+        process.join()
+        pytest.fail("Agent did not reach the injected process-exit boundary")
+    assert process.exitcode == 73
+    output = asyncio.run(run(False))
+    assert output["result"].status is AgentResultStatus.SUCCEEDED
+    assert output["result"].facts[0].requirement_id == "product.canonical_model"
+    with psycopg.connect(postgres_database_url) as connection:
+        assert connection.execute("SELECT count(*) FROM framework_recovery_calls").fetchone()[0] == 1

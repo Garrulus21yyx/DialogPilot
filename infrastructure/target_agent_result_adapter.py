@@ -3,9 +3,26 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, timezone
+from pydantic import TypeAdapter
 
-from application.agent_result import FactRecord, FactSourceKind
+from application.agent_result import AgentResult, FactRecord, FactSourceKind
 from mcp.tool_manager import ToolResult
+
+
+_ARTIFACT_SCHEMAS = {
+    "tool-result-v1": TypeAdapter(ToolResult),
+    "agent-result-v1": TypeAdapter(AgentResult),
+}
+
+
+def framework_artifact(result: ToolResult | AgentResult) -> dict:
+    """Use a stable wire contract inside ToolMessage, which dumps nested dataclasses."""
+    schema = "tool-result-v1" if isinstance(result, ToolResult) else "agent-result-v1"
+    return {"schema": schema, "result": _ARTIFACT_SCHEMAS[schema].dump_python(result, mode="json")}
+
+
+def restore_framework_artifact(artifact: dict) -> ToolResult | AgentResult:
+    return _ARTIFACT_SCHEMAS[artifact["schema"]].validate_python(artifact["result"])
 
 
 def fact_from_tool_result(item, result: ToolResult) -> FactRecord:

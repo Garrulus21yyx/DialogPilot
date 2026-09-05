@@ -12,7 +12,6 @@ from typing import Any, Mapping
 
 from langchain_anthropic import ChatAnthropic
 
-from agents.orchestration_contracts import AgentType
 from application.context_budget import ContextBudgetManager
 from application.conversation_agent import ConversationAgent
 from application.default_capability_registry import build_default_capability_registry
@@ -38,7 +37,6 @@ from infrastructure.postgres_target_run import (
     PostgresTargetRunStore,
 )
 from infrastructure.postgres_target_runtime import PostgresConversationStateStore
-from infrastructure.target_agent_execution import TargetAgentExecutor
 from infrastructure.target_chat_adapters import (
     PostgresTargetAdmission,
     PostgresTargetPublication,
@@ -54,6 +52,19 @@ from infrastructure.target_turn_context import TargetTurnContextLoader
 from infrastructure.target_workflow_execution import TargetWorkflowExecutor
 
 
+_DOMAIN_PROMPTS = {
+    "general": "Resolve the supplied general ecommerce service objective using available evidence.",
+    "product_technical": (
+        "Resolve the supplied product objective using catalog, media and knowledge evidence. "
+        "Do not assume a product category."
+    ),
+    "order_logistics": "Resolve order and logistics questions using current business records.",
+    "billing_refund": "Resolve billing and refund questions using current records and policy evidence.",
+    "account_security": "Assess the supplied account security concern; distinguish reports from verified facts.",
+    "human_service": "Resolve the supplied support case objective using verified case records.",
+}
+
+
 @dataclass(frozen=True)
 class TargetRuntimeComponents:
     application: TargetChatApplication
@@ -67,7 +78,6 @@ async def build_target_runtime(
     database_url: str,
     postgres_pool: Any,
     tool_manager: Any,
-    legacy_orchestrator: Any,
     memory: Any,
     response_delivery: Any,
     model_policy: Any,
@@ -100,50 +110,28 @@ async def build_target_runtime(
         product_executor = TargetProductExecutor(
             tool_manager, control_guard=control_guard,
         )
-        domain_executor = TargetAgentExecutor(
-            {
-                agent_type: legacy_orchestrator.worker_for(agent_type)
-                for agent_type in (
-                    AgentType.GENERAL,
-                    AgentType.BILLING,
-                    AgentType.ACCOUNT_SECURITY,
-                    AgentType.ESCALATION,
-                )
-            },
-            registry=registry,
-            context_budget=context_budget,
-            control_guard=control_guard,
+        model = ChatAnthropic(
+            model_name=model_policy.profile(ModelRole.WORKER).model,
+            api_key=provider_config["api_key"],
+            base_url=provider_config.get("base_url"),
+            max_tokens=1024,
+            temperature=0,
         )
-        product_agent = TargetFrameworkAgent(
-            ChatAnthropic(
-                model_name=model_policy.profile(ModelRole.WORKER).model,
-                api_key=provider_config["api_key"],
-                base_url=provider_config.get("base_url"),
-                max_tokens=1024,
-                temperature=0,
-            ),
-            tool_manager,
-            registry=registry,
-            system_prompt=(
-                "You are the product specialist for a general ecommerce service. "
-                "Use catalog, media and knowledge evidence to resolve the supplied "
-                "product objective; do not assume a product category."
-            ),
-            skill_executors={"product_identification": product_executor},
-            context_budget=context_budget,
-            checkpointer=checkpointer,
-            control_guard=control_guard,
-        )
+        domain_workers = {
+            owner: TargetFrameworkAgent(
+                model,
+                tool_manager,
+                registry=registry,
+                system_prompt=prompt,
+                skill_executors={"product_identification": product_executor},
+                context_budget=context_budget,
+                control_guard=control_guard,
+            )
+            for owner, prompt in _DOMAIN_PROMPTS.items()
+        }
         orchestration = OrchestrationRuntime(
             direct_executor=tool_executor,
-            domain_workers={
-                "general": domain_executor,
-                "product_technical": product_agent,
-                "order_logistics": domain_executor,
-                "billing_refund": domain_executor,
-                "account_security": domain_executor,
-                "human_service": domain_executor,
-            },
+            domain_workers=domain_workers,
             workflow_executor=TargetWorkflowExecutor(
                 postgres_pool, tool_manager, control_guard=control_guard,
             ),
