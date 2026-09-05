@@ -82,28 +82,6 @@ class RunCheckpoint:
     created_at: str
     updated_at: str
 
-    def to_public_dict(self) -> Dict[str, Any]:
-        """用户状态查询不暴露 Prompt、参数、工具输出或内部上下文。"""
-        pending_calls = self.pending.get("calls") if isinstance(self.pending, dict) else []
-        return {
-            "run_id": self.run_id,
-            "request_id": self.request_id,
-            "status": self.status.value,
-            "agent_type": self.agent_type,
-            "task_id": self.task_id,
-            "bundle_version": self.bundle_version,
-            "step": self.step,
-            "max_steps": self.max_steps,
-            "tool_call_ids": list(self.tool_call_ids),
-            "pending_approval_call_ids": [
-                str(call.get("call_id") or "")
-                for call in (pending_calls or [])
-                if str(call.get("call_id") or "")
-            ],
-            "expires_at": self.expires_at,
-            "updated_at": self.updated_at,
-        }
-
 
 class RunStore:
     """Legacy Run checkpoint and approval CAS storage."""

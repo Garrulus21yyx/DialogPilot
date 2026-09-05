@@ -38,7 +38,6 @@ from application.route_decision import (
 
 from agents.react_engine import ReActCapability, ReActExecutionEngine, ReActResult
 from agents.request_shape_policy import RequestShapeDecision, RequestShapePolicy
-from agents.run_store import RunCheckpoint, RunStore
 from agents.orchestration_contracts import (
     AgentType,
     ExecutionBudget,
@@ -334,7 +333,6 @@ class BaseAgent:
         react_max_steps: int = 4,
         model_profile: Optional[ModelProfile] = None,
         react_model_profile: Optional[ModelProfile] = None,
-        run_store: Optional[RunStore] = None,
     ):
         """保存 Agent 身份、模型客户端、Skill 入口和运行统计。"""
         self._client = client
@@ -344,7 +342,6 @@ class BaseAgent:
         self._skill_manager = skill_manager
         self._tool_manager = tool_manager
         self._react_max_steps = max(1, int(react_max_steps))
-        self._run_store = run_store
         self._react_engine = self._new_react_engine()
         self.instance_id = instance_id or f"{self.agent_type.value}_0"
         self.stats   = AgentStats()
@@ -503,7 +500,6 @@ class BaseAgent:
             tool_manager=self._tool_manager,
             model_profile=self._react_model_profile,
             max_steps=self._react_max_steps,
-            run_store=self._run_store,
         )
 
     def _build_system_prompt(self, req: Request) -> str:
@@ -629,7 +625,6 @@ class AgentOrchestrator:
         react_max_steps: int = 4,
         intent_similarity_mode: str = "ngram",
         model_policy: Optional[ModelPolicy] = None,
-        run_store: Optional[RunStore] = None,
         intent_recognizer: Optional[IntentRecognizer] = None,
         routing_policy_registry: Optional[AgentRoutingPolicyRegistry] = None,
     ):
@@ -665,7 +660,6 @@ class AgentOrchestrator:
             ),
         )
         self._skill_manager = skill_manager
-        self._run_store = run_store
         self._agent_timeout_s = max(0.1, float(agent_timeout_s))
         self._execution_budget = ExecutionBudget(
             request_timeout_s=float(request_timeout_s),
@@ -697,33 +691,28 @@ class AgentOrchestrator:
                 client, model, skill_manager, "general_0",
                 tool_manager=tool_manager, react_max_steps=react_max_steps,
                 model_profile=worker_profile, react_model_profile=react_profile,
-                run_store=run_store,
             )],
             AgentType.TECHNICAL: [TechnicalAgent(
                 client, model, skill_manager, "technical_0",
                 tool_manager=tool_manager, react_max_steps=react_max_steps,
                 model_profile=worker_profile, react_model_profile=react_profile,
-                run_store=run_store,
             )],
             AgentType.BILLING: [BillingAgent(
                 client, model, skill_manager, "billing_0",
                 tool_manager=tool_manager, react_max_steps=react_max_steps,
                 model_profile=worker_profile, react_model_profile=react_profile,
-                run_store=run_store,
             )],
             AgentType.ACCOUNT_SECURITY: [
                 AccountSecurityAgent(
                     client, model, skill_manager, "account_security_0",
                     tool_manager=tool_manager, react_max_steps=react_max_steps,
                     model_profile=worker_profile, react_model_profile=react_profile,
-                    run_store=run_store,
                 )
             ],
             AgentType.ESCALATION: [EscalationAgent(
                 client, model, skill_manager, "escalation_0",
                 tool_manager=tool_manager, react_max_steps=react_max_steps,
                 model_profile=worker_profile, react_model_profile=react_profile,
-                run_store=run_store,
             )],
         }
 
@@ -1722,35 +1711,6 @@ class AgentOrchestrator:
             if agent.instance_id == decision.selected_instance_id
         )
 
-    def get_react_run(self, run_id: str, *, user_id: str) -> RunCheckpoint:
-        """读取脱敏 Run 状态前先在持久 Owner 验证用户归属。"""
-        if self._run_store is None:
-            raise RuntimeError("react run storage is not configured")
-        return self._run_store.get_for_user(run_id, user_id)
-
-    async def resume_react(
-        self,
-        run_id: str,
-        *,
-        user_id: str,
-        approved: bool,
-        actor: str,
-    ) -> ReActResult:
-        """按库中 agent_type 恢复原 Run，不接受客户端伪造 Owner。"""
-        checkpoint = self.get_react_run(run_id, user_id=user_id)
-        try:
-            agent_type = AgentType(checkpoint.agent_type)
-        except ValueError as exc:
-            raise RuntimeError("run references an unsupported agent type") from exc
-        agent = self._best_agent(agent_type)
-        if agent is None or agent._react_engine is None:
-            raise RuntimeError("the original react agent is unavailable")
-        return await agent._react_engine.resume(
-            run_id,
-            user_id=user_id,
-            approved=approved,
-            actor=actor,
-        )
 
     async def _execute(self, req: Request, agent_type: AgentType) -> AgentResponse:
         """执行 Agent，失败时降级到 GeneralAgent。"""

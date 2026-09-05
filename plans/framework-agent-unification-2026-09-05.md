@@ -107,6 +107,13 @@ Existing Target planning tests own immutable registered plan/authority assertion
 23 focused tests pass, one PostgreSQL admission test skips without its database URL.
 The locked L0 legacy evaluation runtime and other support harnesses are still consumers
 of old ChatApplication and must be migrated before deleting that implementation.
+Removed the orphan AgentOrchestrator.get_react_run/resume_react entrypoints and all
+RunStore constructor forwarding through the legacy Agent pool/BaseAgent. The old
+checkpoint's unused public-state serializer is also removed. Only the isolated
+ReAct resume tests still construct SQLite RunStore; the old engine's optional
+checkpoint implementation remains until those final gates are migrated. No automatic
+fallback or replacement persistence layer was added. 81 focused tests pass; four
+PostgreSQL-dependent bundle tests skip when TEST_DATABASE_URL is not set.
 Retired the obsolete HTTP handoff fixture's AgentOrchestrator/ReAct imports and
 private-global assembly. Its retry expectation created a second response, contrary
 to Target's invocation/publication idempotency. Target cutover now checks OOS replay
