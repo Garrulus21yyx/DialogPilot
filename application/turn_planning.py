@@ -16,7 +16,13 @@ from application.capability_registry import (
 )
 from application.conversation_state import ConversationState
 from application.entity_binding import BindingStatus, EntityBinding
-from application.work_item import ArgumentValue, ControlMode, WorkItem, WorkPlan
+from application.work_item import (
+    ArgumentValue,
+    ControlMode,
+    WorkControlBinding,
+    WorkItem,
+    WorkPlan,
+)
 from core.identity import InvocationIdentity
 
 
@@ -672,6 +678,10 @@ class TurnPlanCompiler:
             aggregate_ref=proposal.target_entity_ref if write else None,
             action_ref=action.ref if action and write else None,
             approval_policy=action.approval_policy if action and write else None,
+            control=WorkControlBinding(
+                f"control:{invocation.invocation_key}:{proposal.command_id}",
+                1,
+            ),
         )
 
 

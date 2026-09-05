@@ -259,7 +259,7 @@ class TargetConversationManager:
         )
         validated = self._route_policy.accept(proposal, state, self._registry)
         plan = self._compiler.compile(validated, state, self._registry, invocation)
-        planned_state = self._apply_plan_accepted(state, plan)
+        planned_state = self._apply_plan_accepted(state, plan, invocation)
         if planned_state is not state:
             self._persist(state, planned_state)
             state = planned_state
@@ -653,16 +653,18 @@ class TargetConversationManager:
         self,
         state: ConversationState,
         plan: TurnPlan,
+        invocation: InvocationIdentity,
     ) -> ConversationState:
-        if plan.transitions is None:
-            return state
-        if plan.transitions.expected_conversation_version != state.version:
-            raise ConversationStateConflict("flow plan is bound to stale conversation state")
         if plan.work is None:
-            raise ConversationStateConflict("flow transition has no work plan")
+            return state
+        if (
+            plan.transitions is not None
+            and plan.transitions.expected_conversation_version != state.version
+        ):
+            raise ConversationStateConflict("flow plan is bound to stale conversation state")
         items = {item.work_item_id: item for item in plan.work.items}
         starts = []
-        for mutation in plan.transitions.mutations:
+        for mutation in (plan.transitions.mutations if plan.transitions else ()):
             if mutation.apply_stage is not MutationApplyStage.PLAN_ACCEPTED:
                 continue
             if mutation.kind != "START":
@@ -680,7 +682,11 @@ class TargetConversationManager:
                 mutation.flow_ref,
                 item.argument_bindings,
             ))
-        return state.start_workstreams(tuple(starts)) if starts else state
+        return state.accept_work_items(
+            plan.work.items,
+            invocation_key=str(invocation.invocation_key),
+            started_workstreams=tuple(starts),
+        )
 
     def _persist(
         self,

@@ -24,6 +24,7 @@ class AgentResultStatus(str, Enum):
     RETRYABLE_FAILURE = "RETRYABLE_FAILURE"
     TERMINAL_FAILURE = "TERMINAL_FAILURE"
     CANCELLED = "CANCELLED"
+    SUPERSEDED = "SUPERSEDED"
 
 
 class FactSourceKind(str, Enum):

@@ -11,7 +11,7 @@ from typing import Protocol
 
 from application.agent_result import ReceiptRef, RequestedField
 from application.entity_binding import BindingSource, EntityBinding
-from application.work_item import ArgumentValue, WorkItem
+from application.work_item import ArgumentValue, WorkControlBinding, WorkItem
 from core.identity import ConversationId, TenantId, UserId
 
 
@@ -31,6 +31,45 @@ class WorkstreamStatus(str, Enum):
     RECONCILING = "RECONCILING"
     COMPLETED = "COMPLETED"
     CANCELLED = "CANCELLED"
+
+
+class WorkControlStatus(str, Enum):
+    ACTIVE = "ACTIVE"
+    COMPLETED = "COMPLETED"
+    SUPERSEDED = "SUPERSEDED"
+    CANCELLED = "CANCELLED"
+
+
+@dataclass(frozen=True)
+class WorkControlState:
+    """Current accepted revision of an independently steerable objective."""
+
+    control_id: str
+    revision: int
+    work_item_id: str
+    invocation_key: str
+    owner_agent: str
+    objective: str
+    status: WorkControlStatus = WorkControlStatus.ACTIVE
+
+    def __post_init__(self) -> None:
+        _required(
+            self.control_id,
+            self.work_item_id,
+            self.invocation_key,
+            self.owner_agent,
+            self.objective,
+        )
+        if self.revision < 1:
+            raise ConversationStateError("work control revision must be positive")
+
+    @property
+    def binding(self) -> WorkControlBinding:
+        return WorkControlBinding(self.control_id, self.revision)
+
+    @property
+    def terminal(self) -> bool:
+        return self.status is not WorkControlStatus.ACTIVE
 
 
 class ConversationOwner(str, Enum):
@@ -245,10 +284,11 @@ class ConversationState:
     pending_approval: PendingApprovalState | None = None
     resume_bindings: tuple[ResumeBinding, ...] = ()
     consumed_signal_ids: tuple[str, ...] = ()
-    schema_version: str = "conversation-state-v2"
+    schema_version: str = "conversation-state-v3"
     owner: ConversationOwner = ConversationOwner.AUTOMATION
     human_ticket_ref: str | None = None
     accepted_approvals: tuple[AcceptedApprovalState, ...] = ()
+    work_controls: tuple[WorkControlState, ...] = ()
 
     def __post_init__(self) -> None:
         if self.version < 0:
@@ -261,6 +301,7 @@ class ConversationState:
         if self.owner is ConversationOwner.AUTOMATION and self.human_ticket_ref is not None:
             raise ConversationStateError("automation cannot claim a human ticket")
         _unique((item.workstream_id for item in self.workstreams), "workstreams")
+        _unique((item.control_id for item in self.work_controls), "work controls")
         _unique((item.token for item in self.resume_bindings), "resume tokens")
         _unique(self.consumed_signal_ids, "consumed signals")
         _unique(
@@ -302,6 +343,18 @@ class ConversationState:
     @property
     def active_workstreams(self) -> tuple[WorkstreamState, ...]:
         return tuple(item for item in self.workstreams if not item.terminal)
+
+    @property
+    def active_work_controls(self) -> tuple[WorkControlState, ...]:
+        return tuple(item for item in self.work_controls if not item.terminal)
+
+    def accepts(self, binding: WorkControlBinding) -> bool:
+        return any(
+            item.control_id == binding.control_id
+            and item.revision == binding.revision
+            and item.status is WorkControlStatus.ACTIVE
+            for item in self.work_controls
+        )
 
     @property
     def fingerprint(self) -> str:
@@ -372,9 +425,83 @@ class ConversationState:
                 )
                 for item in self.accepted_approvals
             ],
+            "work_controls": [
+                (
+                    item.control_id,
+                    item.revision,
+                    item.work_item_id,
+                    item.invocation_key,
+                    item.owner_agent,
+                    item.objective,
+                    item.status.value,
+                )
+                for item in self.work_controls
+            ],
         }
         raw = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
-        return "conversation-state:v2:" + hashlib.sha256(raw).hexdigest()
+        return "conversation-state:v3:" + hashlib.sha256(raw).hexdigest()
+
+    def accept_work_items(
+        self,
+        items: tuple[WorkItem, ...],
+        *,
+        invocation_key: str,
+        started_workstreams: tuple[WorkstreamState, ...] = (),
+    ) -> "ConversationState":
+        """Atomically install the accepted revision for every planned objective."""
+        if not items or any(item.control is None for item in items):
+            raise ConversationStateError("accepted target work requires control bindings")
+        controls = {item.control_id: item for item in self.work_controls}
+        current_workstream_ids = {item.workstream_id for item in self.workstreams}
+        started_ids = tuple(item.workstream_id for item in started_workstreams)
+        if (
+            len(started_ids) != len(set(started_ids))
+            or current_workstream_ids.intersection(started_ids)
+        ):
+            raise ConversationStateConflict("workstream already exists")
+        for work_item in items:
+            binding = work_item.control
+            assert binding is not None
+            current = controls.get(binding.control_id)
+            if current is None:
+                if binding.revision != 1:
+                    raise ConversationStateConflict("new work control must start at revision 1")
+            elif binding.revision != current.revision + 1:
+                raise ConversationStateConflict("work control revision is not the next revision")
+            controls[binding.control_id] = WorkControlState(
+                binding.control_id,
+                binding.revision,
+                work_item.work_item_id,
+                invocation_key,
+                work_item.owner_agent,
+                work_item.objective,
+            )
+        return replace(
+            self,
+            version=self.version + 1,
+            work_controls=tuple(controls[key] for key in sorted(controls)),
+            workstreams=(*self.workstreams, *started_workstreams),
+        )
+
+    def close_work_control(
+        self,
+        binding: WorkControlBinding,
+        *,
+        status: WorkControlStatus,
+    ) -> "ConversationState":
+        if status is WorkControlStatus.ACTIVE:
+            raise ConversationStateError("closing status must be terminal")
+        if not self.accepts(binding):
+            raise ConversationStateConflict("work control binding is stale")
+        return replace(
+            self,
+            version=self.version + 1,
+            work_controls=tuple(
+                replace(item, status=status)
+                if item.control_id == binding.control_id else item
+                for item in self.work_controls
+            ),
+        )
 
     def start_workstream(self, workstream: WorkstreamState) -> "ConversationState":
         return self.start_workstreams((workstream,))

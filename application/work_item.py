@@ -27,6 +27,18 @@ class ControlMode(str, Enum):
 
 
 @dataclass(frozen=True)
+class WorkControlBinding:
+    """Versioned authority binding for one independently steerable objective."""
+
+    control_id: str
+    revision: int
+
+    def __post_init__(self) -> None:
+        if not self.control_id.strip() or self.revision < 1:
+            raise WorkItemContractError("work control binding is invalid")
+
+
+@dataclass(frozen=True)
 class ArgumentValue:
     name: str
     value_json: str
@@ -79,6 +91,7 @@ class WorkItem:
     action_ref: str | None = None
     approval_policy: ApprovalPolicy | None = None
     argument_bindings: tuple[EntityBinding, ...] = ()
+    control: WorkControlBinding | None = None
 
     def __post_init__(self) -> None:
         required = (
@@ -208,6 +221,10 @@ class WorkItem:
             "action_ref": self.action_ref,
             "approval_policy": (
                 self.approval_policy.value if self.approval_policy else None
+            ),
+            "control": (
+                {"control_id": self.control.control_id, "revision": self.control.revision}
+                if self.control else None
             ),
         }
         raw = json.dumps(

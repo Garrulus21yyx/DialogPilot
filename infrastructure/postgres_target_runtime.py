@@ -30,10 +30,17 @@ from application.conversation_state import (
     ResumeBinding,
     WorkstreamState,
     WorkstreamStatus,
+    WorkControlState,
+    WorkControlStatus,
 )
 from application.conversation_store import ConversationScope
 from application.entity_binding import BindingSource, EntityBinding
-from application.work_item import ArgumentValue, ControlMode, WorkItem
+from application.work_item import (
+    ArgumentValue,
+    ControlMode,
+    WorkControlBinding,
+    WorkItem,
+)
 from application.write_workflow import (
     OperationConflict,
     OperationRecord,
@@ -247,12 +254,26 @@ def conversation_state_to_payload(state: ConversationState) -> dict[str, object]
             }
             for item in state.accepted_approvals
         ],
+        "work_controls": [
+            {
+                "control_id": item.control_id,
+                "revision": item.revision,
+                "work_item_id": item.work_item_id,
+                "invocation_key": item.invocation_key,
+                "owner_agent": item.owner_agent,
+                "objective": item.objective,
+                "status": item.status.value,
+            }
+            for item in state.work_controls
+        ],
     }
 
 
 def conversation_state_from_payload(raw: Mapping[str, object]) -> ConversationState:
     payload = dict(raw)
-    if payload.get("schema_version") != "conversation-state-v2":
+    if payload.get("schema_version") not in {
+        "conversation-state-v2", "conversation-state-v3",
+    }:
         raise ConversationStateError("unsupported conversation state schema")
     pending_raw = payload.get("pending_interaction")
     approval_raw = payload.get("pending_approval")
@@ -343,7 +364,7 @@ def conversation_state_from_payload(raw: Mapping[str, object]) -> ConversationSt
             for item in payload.get("resume_bindings", ())
         ),
         tuple(str(item) for item in payload.get("consumed_signal_ids", ())),
-        str(payload["schema_version"]),
+        "conversation-state-v3",
         ConversationOwner(str(payload.get("owner", ConversationOwner.AUTOMATION.value))),
         (
             str(payload["human_ticket_ref"])
@@ -368,6 +389,18 @@ def conversation_state_from_payload(raw: Mapping[str, object]) -> ConversationSt
                 ),
             )
             for item in payload.get("accepted_approvals", ())
+        ),
+        tuple(
+            WorkControlState(
+                str(item["control_id"]),
+                int(item["revision"]),
+                str(item["work_item_id"]),
+                str(item["invocation_key"]),
+                str(item["owner_agent"]),
+                str(item["objective"]),
+                WorkControlStatus(str(item["status"])),
+            )
+            for item in payload.get("work_controls", ())
         ),
     )
 
@@ -418,6 +451,13 @@ def _work_item_to_payload(item: WorkItem) -> dict[str, object]:
             }
             if item.reconciliation else None
         ),
+        "control": (
+            {
+                "control_id": item.control.control_id,
+                "revision": item.control.revision,
+            }
+            if item.control else None
+        ),
     }
 
 
@@ -437,6 +477,7 @@ def _work_item_from_payload(raw: Mapping[str, object]) -> WorkItem:
         if isinstance(reconciliation_raw, Mapping) else None
     )
     approval_policy = raw.get("approval_policy")
+    control_raw = raw.get("control")
     return WorkItem(
         str(raw["work_item_id"]),
         str(raw["owner_agent"]),
@@ -473,6 +514,12 @@ def _work_item_from_payload(raw: Mapping[str, object]) -> WorkItem:
         tuple(
             _binding_from_payload(value)
             for value in raw.get("argument_bindings", ())
+        ),
+        (
+            WorkControlBinding(
+                str(control_raw["control_id"]), int(control_raw["revision"]),
+            )
+            if isinstance(control_raw, Mapping) else None
         ),
     )
 
