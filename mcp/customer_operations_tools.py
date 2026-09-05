@@ -14,10 +14,15 @@ from services.customer_operations import (
 def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, ...]:
     """构造订单、退款和安全事件工具；身份与审批只来自执行上下文。"""
 
+    def _user(context):
+        if _trusted(context, "tenant_id") != service.tenant_id:
+            raise PermissionError("tool tenant does not match the business owner")
+        return _trusted(context, "user_id")
+
     async def order_lookup(params: Dict[str, Any], context: Optional[Dict[str, Any]]):
         order = await asyncio.to_thread(
             service.get_order_for_user,
-            user_id=_trusted(context, "user_id"),
+            user_id=_user(context),
             order_id=_bounded(params.get("order_id"), "order_id", 128),
         )
         data = order.to_dict()
@@ -27,13 +32,13 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
     async def refund_eligibility(params: Dict[str, Any], context: Optional[Dict[str, Any]]):
         result = await asyncio.to_thread(
             service.check_refund_eligibility,
-            user_id=_trusted(context, "user_id"),
+            user_id=_user(context),
             order_id=_bounded(params.get("order_id"), "order_id", 128),
         )
         return result.to_dict()
 
     async def refund_status(params: Dict[str, Any], context: Optional[Dict[str, Any]]):
-        user_id = _trusted(context, "user_id")
+        user_id = _user(context)
         order_id = _bounded(params.get("order_id"), "order_id", 128)
         operation_key = str(params.get("operation_key") or "").strip()
         if operation_key:
@@ -57,7 +62,7 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
         return data
 
     async def refund_create(params: Dict[str, Any], context: Optional[Dict[str, Any]]):
-        user_id = _trusted(context, "user_id")
+        user_id = _user(context)
         conv_id = _trusted(context, "conv_id")
         tool_call_id = _trusted(context, "tool_call_id")
         refund, created = await asyncio.to_thread(
@@ -83,7 +88,7 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
         )
 
     async def order_cancel(params: Dict[str, Any], context: Optional[Dict[str, Any]]):
-        user_id = _trusted(context, "user_id")
+        user_id = _user(context)
         conv_id = _trusted(context, "conv_id")
         tool_call_id = _trusted(context, "tool_call_id")
         cancellation, created = await asyncio.to_thread(
@@ -111,7 +116,7 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
     async def order_cancel_status(
         params: Dict[str, Any], context: Optional[Dict[str, Any]],
     ):
-        user_id = _trusted(context, "user_id")
+        user_id = _user(context)
         conv_id = _trusted(context, "conv_id")
         order_id = _bounded(params.get("order_id"), "order_id", 128)
         operation_key = _bounded(
@@ -133,7 +138,7 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
     async def shipping_address_change(
         params: Dict[str, Any], context: Optional[Dict[str, Any]],
     ):
-        user_id = _trusted(context, "user_id")
+        user_id = _user(context)
         conv_id = _trusted(context, "conv_id")
         tool_call_id = _trusted(context, "tool_call_id")
         change, created = await asyncio.to_thread(
@@ -163,7 +168,7 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
     async def shipping_address_change_status(
         params: Dict[str, Any], context: Optional[Dict[str, Any]],
     ):
-        user_id = _trusted(context, "user_id")
+        user_id = _user(context)
         conv_id = _trusted(context, "conv_id")
         order_id = _bounded(params.get("order_id"), "order_id", 128)
         operation_key = _bounded(
@@ -188,7 +193,7 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
         limit = min(max(int(params.get("limit", 10)), 1), 20)
         return await asyncio.to_thread(
             service.list_security_events,
-            user_id=_trusted(context, "user_id"),
+            user_id=_user(context),
             severity=severity,
             limit=limit,
         )
@@ -198,7 +203,7 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
     ):
         state = await asyncio.to_thread(
             service.get_account_security_state,
-            user_id=_trusted(context, "user_id"),
+            user_id=_user(context),
         )
         data = state.to_dict()
         data.pop("user_id", None)
@@ -207,7 +212,7 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
     async def account_freeze(
         params: Dict[str, Any], context: Optional[Dict[str, Any]],
     ):
-        user_id = _trusted(context, "user_id")
+        user_id = _user(context)
         conv_id = _trusted(context, "conv_id")
         tool_call_id = _trusted(context, "tool_call_id")
         freeze, created = await asyncio.to_thread(
@@ -231,7 +236,7 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
     async def account_freeze_status(
         params: Dict[str, Any], context: Optional[Dict[str, Any]],
     ):
-        user_id = _trusted(context, "user_id")
+        user_id = _user(context)
         conv_id = _trusted(context, "conv_id")
         operation_key = _bounded(
             params.get("operation_key"), "operation_key", 512,

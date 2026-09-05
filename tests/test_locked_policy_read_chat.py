@@ -38,7 +38,6 @@ def test_locked_refund_eligibility_uses_two_authoritative_reads(
     case = _case(case_id)
     harness = build_locked_policy_read_harness(
         case["initial_state"],
-        sqlite_path=str(tmp_path / f"{case_id}.db"),
         postgres_url=fresh_postgres_database_url,
     )
     try:

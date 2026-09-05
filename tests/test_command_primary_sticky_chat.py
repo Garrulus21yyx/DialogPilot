@@ -10,8 +10,8 @@ from tests.support.sticky_read_only_harness import (
 )
 
 
-def test_sticky_refund_status_uses_state_then_one_read_only_tool(tmp_path):
-    harness = build_sticky_read_only_harness(tmp_path)
+def test_sticky_refund_status_uses_state_then_one_read_only_tool(customer_operations):
+    harness = build_sticky_read_only_harness(customer_operations)
 
     outcome = asyncio.run(harness.application.handle(STICKY_COMMAND))
 

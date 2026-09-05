@@ -18,8 +18,13 @@ messages and step recovery; ToolManager retains execution evidence and permissio
    Stateful loop-budget fixture now uses TargetFrameworkAgent; tool calls receive their
    framework call ID and trusted context through ToolRuntime, not user-bound closures.
    Removed application package's eager legacy-runtime export.
-5. in_progress: migrate SQLite customer_operations and badcase_registry to PostgreSQL,
-   update their consumers/tests and remove SQLite configuration.
+5. in_progress: migrate remaining SQLite badcase_registry to PostgreSQL,
+   update its consumers/tests and remove SQLite configuration.
+   CustomerOperations migration 0033 implemented and verified with 43 PostgreSQL tests:
+   tenant-scoped keys/queries, exact-operation replay, independent-owner version ordering,
+   competing cancellation/address actions, tool identity and existing read-only E2E.
+   Removed SQLite business implementation, constructor consumers and path configuration.
+   Native transaction locks replace process-local locks at order/account and operation keys.
    Evolution registry migration 0032 verified: only PostgreSQL implementation remains.
    Clean committed worktree: 36 passing tests including API startup, concurrent immutable
    registration, framework execution and PostgreSQL process-exit recovery.

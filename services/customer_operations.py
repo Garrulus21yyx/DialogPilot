@@ -1,20 +1,24 @@
 """订单、退款与账户安全事实的本地业务 Owner。
 
-该模块是可替换外部 CRM/订单平台的 SQLite 沙箱：工具层只能读取或请求这里
+该模块是可替换外部 CRM/订单平台的 PostgreSQL 业务沙箱：工具层只能读取或请求这里
 定义的业务操作，不能自行判断退款资格、制造订单状态或宣称副作用已提交。
 """
+
 from __future__ import annotations
 
 import hashlib
 import json
-import sqlite3
-import threading
+from contextlib import contextmanager
 import uuid
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from enum import Enum
-from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Mapping, TYPE_CHECKING
+
+from psycopg.rows import dict_row
+
+if TYPE_CHECKING:
+    from infrastructure.postgres import PostgresPool
 
 
 class CustomerOperationError(Exception):
@@ -192,15 +196,14 @@ class CustomerOperationsService:
 
     def __init__(
         self,
-        database_path: str,
+        pool: PostgresPool,
         *,
+        tenant_id: str,
         clock: Optional[Callable[[], datetime]] = None,
     ):
-        self._path = Path(database_path).expanduser().resolve()
-        self._path.parent.mkdir(parents=True, exist_ok=True)
+        self.pool = pool
+        self.tenant_id = self._required(tenant_id, "tenant_id")
         self._clock = clock or (lambda: datetime.now(timezone.utc))
-        self._lock = threading.RLock()
-        self._initialize()
 
     def upsert_order(
         self,
@@ -228,62 +231,99 @@ class CustomerOperationsService:
         if refundable_until:
             self._parse_time(refundable_until)
         now = self._now()
-        with self._lock, self._connect() as conn:
-            conn.execute("BEGIN IMMEDIATE")
+        with self._connect(locks=(f"order:{order_id}",)) as conn:
             existing = conn.execute(
-                "SELECT version, created_at, shipping_address FROM orders WHERE order_id = ?",
-                (order_id,),
+                """
+                SELECT version, created_at, shipping_address FROM dialogpilot_app.customer_orders WHERE
+                order_id = %s AND tenant_id=%s
+                """,
+                (order_id, self.tenant_id),
             ).fetchone()
             version = int(existing["version"]) + 1 if existing else 1
             created_at = existing["created_at"] if existing else now
             resolved_address = (
                 str(shipping_address).strip()
                 if shipping_address is not None
-                else str(existing["shipping_address"] or "") if existing else ""
+                else str(existing["shipping_address"] or "")
+                if existing
+                else ""
             )
             conn.execute(
                 """
-                INSERT INTO orders (
-                    order_id, user_id, item_name, amount_minor, currency, status,
-                    refundable_until, version, created_at, updated_at, shipping_address
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(order_id) DO UPDATE SET
-                    user_id=excluded.user_id, item_name=excluded.item_name,
-                    amount_minor=excluded.amount_minor, currency=excluded.currency,
-                    status=excluded.status, refundable_until=excluded.refundable_until,
-                    version=excluded.version, updated_at=excluded.updated_at,
-                    shipping_address=excluded.shipping_address
+                INSERT INTO dialogpilot_app.customer_orders ( order_id, user_id, item_name,
+                amount_minor, currency, status, refundable_until, version, created_at, updated_at,
+                shipping_address, tenant_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) ON
+                CONFLICT(tenant_id, order_id) DO UPDATE SET user_id=excluded.user_id,
+                item_name=excluded.item_name, amount_minor=excluded.amount_minor,
+                currency=excluded.currency, status=excluded.status,
+                refundable_until=excluded.refundable_until, version=excluded.version,
+                updated_at=excluded.updated_at, shipping_address=excluded.shipping_address
                 """,
                 (
-                    order_id, user_id, item_name, amount_minor, currency, status.value,
-                    refundable_until, version, created_at, now, resolved_address,
+                    order_id,
+                    user_id,
+                    item_name,
+                    amount_minor,
+                    currency,
+                    status.value,
+                    refundable_until,
+                    version,
+                    created_at,
+                    now,
+                    resolved_address,
+                    self.tenant_id,
                 ),
             )
-            row = conn.execute("SELECT * FROM orders WHERE order_id = ?", (order_id,)).fetchone()
+            row = conn.execute(
+                """
+                               SELECT * FROM dialogpilot_app.customer_orders WHERE order_id = %s AND tenant_id=%s
+                               """,
+                (order_id, self.tenant_id),
+            ).fetchone()
         return self._row_to_order(row)
 
     def get_order_for_user(self, *, user_id: str, order_id: str) -> Order:
         """按可信用户读取订单；不存在与越权读取使用同一种失败。"""
         with self._connect() as conn:
             row = conn.execute(
-                "SELECT * FROM orders WHERE order_id = ? AND user_id = ?",
-                (self._required(order_id, "order_id"), self._required(user_id, "user_id")),
+                """
+                SELECT * FROM dialogpilot_app.customer_orders WHERE order_id = %s AND user_id = %s AND
+                tenant_id=%s
+                """,
+                (
+                    self._required(order_id, "order_id"),
+                    self._required(user_id, "user_id"),
+                    self.tenant_id,
+                ),
             ).fetchone()
         if row is None:
             raise BusinessObjectNotFoundError("order not found")
         return self._row_to_order(row)
 
-    def check_refund_eligibility(self, *, user_id: str, order_id: str) -> RefundEligibility:
+    def check_refund_eligibility(
+        self, *, user_id: str, order_id: str
+    ) -> RefundEligibility:
         """由订单状态、窗口与已有退款共同计算确定性的资格快照。"""
         with self._connect() as conn:
             row = conn.execute(
-                "SELECT * FROM orders WHERE order_id = ? AND user_id = ?",
-                (self._required(order_id, "order_id"), self._required(user_id, "user_id")),
+                """
+                SELECT * FROM dialogpilot_app.customer_orders WHERE order_id = %s AND user_id = %s AND
+                tenant_id=%s
+                """,
+                (
+                    self._required(order_id, "order_id"),
+                    self._required(user_id, "user_id"),
+                    self.tenant_id,
+                ),
             ).fetchone()
             if row is None:
                 raise BusinessObjectNotFoundError("order not found")
             existing = conn.execute(
-                "SELECT refund_id FROM refund_requests WHERE order_id = ?", (order_id,)
+                """
+                SELECT refund_id FROM dialogpilot_app.customer_refund_requests WHERE order_id = %s AND
+                tenant_id=%s
+                """,
+                (order_id, self.tenant_id),
             ).fetchone()
         order = self._row_to_order(row)
         return self._eligibility(order, has_refund=existing is not None)
@@ -292,9 +332,15 @@ class CustomerOperationsService:
         """Read the current refund request for an authenticated user's order."""
         with self._connect() as conn:
             row = conn.execute(
-                "SELECT * FROM refund_requests WHERE order_id=? AND user_id=?",
-                (self._required(order_id, "order_id"),
-                 self._required(user_id, "user_id")),
+                """
+                SELECT * FROM dialogpilot_app.customer_refund_requests WHERE order_id=%s AND user_id=%s
+                AND tenant_id=%s
+                """,
+                (
+                    self._required(order_id, "order_id"),
+                    self._required(user_id, "user_id"),
+                    self.tenant_id,
+                ),
             ).fetchone()
         if row is None:
             raise BusinessObjectNotFoundError("refund request not found")
@@ -311,13 +357,14 @@ class CustomerOperationsService:
         with self._connect() as conn:
             row = conn.execute(
                 """
-                SELECT * FROM refund_requests
-                WHERE order_id=? AND user_id=? AND idempotency_key=?
+                SELECT * FROM dialogpilot_app.customer_refund_requests WHERE order_id=%s AND user_id=%s
+                AND idempotency_key=%s AND tenant_id=%s
                 """,
                 (
                     self._required(order_id, "order_id"),
                     self._required(user_id, "user_id"),
                     self._required(idempotency_key, "idempotency_key"),
+                    self.tenant_id,
                 ),
             ).fetchone()
         if row is None:
@@ -339,18 +386,24 @@ class CustomerOperationsService:
         order_id = self._required(order_id, "order_id")
         reason = self._required(reason, "reason")[:1000]
         expected_order_version = int(expected_order_version)
-        fingerprint = self._fingerprint({
-            "idempotency_key": idempotency_key,
-            "user_id": user_id,
-            "order_id": order_id,
-            "expected_order_version": expected_order_version,
-            "reason": reason,
-        })
-        with self._lock, self._connect() as conn:
-            conn.execute("BEGIN IMMEDIATE")
+        fingerprint = self._fingerprint(
+            {
+                "idempotency_key": idempotency_key,
+                "user_id": user_id,
+                "order_id": order_id,
+                "expected_order_version": expected_order_version,
+                "reason": reason,
+            }
+        )
+        with self._connect(
+            locks=(f"order:{order_id}", f"refund-operation:{idempotency_key}")
+        ) as conn:
             existing = conn.execute(
-                "SELECT * FROM refund_requests WHERE idempotency_key = ?",
-                (idempotency_key,),
+                """
+                SELECT * FROM dialogpilot_app.customer_refund_requests WHERE idempotency_key = %s AND
+                tenant_id=%s
+                """,
+                (idempotency_key, self.tenant_id),
             ).fetchone()
             if existing is not None:
                 if existing["request_fingerprint"] != fingerprint:
@@ -360,8 +413,11 @@ class CustomerOperationsService:
                 return self._row_to_refund(existing), False
 
             order_row = conn.execute(
-                "SELECT * FROM orders WHERE order_id = ? AND user_id = ?",
-                (order_id, user_id),
+                """
+                SELECT * FROM dialogpilot_app.customer_orders WHERE order_id = %s AND user_id = %s AND
+                tenant_id=%s
+                """,
+                (order_id, user_id, self.tenant_id),
             ).fetchone()
             if order_row is None:
                 raise BusinessObjectNotFoundError("order not found")
@@ -369,7 +425,11 @@ class CustomerOperationsService:
             if order.version != expected_order_version:
                 raise StaleOrderVersionError("order changed after eligibility check")
             prior = conn.execute(
-                "SELECT refund_id FROM refund_requests WHERE order_id = ?", (order_id,)
+                """
+                SELECT refund_id FROM dialogpilot_app.customer_refund_requests WHERE order_id = %s AND
+                tenant_id=%s
+                """,
+                (order_id, self.tenant_id),
             ).fetchone()
             eligibility = self._eligibility(order, has_refund=prior is not None)
             if not eligibility.eligible:
@@ -379,19 +439,32 @@ class CustomerOperationsService:
             now = self._now()
             conn.execute(
                 """
-                INSERT INTO refund_requests (
-                    refund_id, idempotency_key, request_fingerprint, order_id,
-                    user_id, reason, amount_minor, currency, status, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO dialogpilot_app.customer_refund_requests ( refund_id, idempotency_key,
+                request_fingerprint, order_id, user_id, reason, amount_minor, currency, status,
+                created_at, updated_at, tenant_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                %s)
                 """,
                 (
-                    refund_id, idempotency_key, fingerprint, order_id, user_id,
-                    reason, order.amount_minor, order.currency,
-                    RefundStatus.REQUESTED.value, now, now,
+                    refund_id,
+                    idempotency_key,
+                    fingerprint,
+                    order_id,
+                    user_id,
+                    reason,
+                    order.amount_minor,
+                    order.currency,
+                    RefundStatus.REQUESTED.value,
+                    now,
+                    now,
+                    self.tenant_id,
                 ),
             )
             row = conn.execute(
-                "SELECT * FROM refund_requests WHERE refund_id = ?", (refund_id,)
+                """
+                SELECT * FROM dialogpilot_app.customer_refund_requests WHERE refund_id = %s AND
+                tenant_id=%s
+                """,
+                (refund_id, self.tenant_id),
             ).fetchone()
         return self._row_to_refund(row), True
 
@@ -408,17 +481,23 @@ class CustomerOperationsService:
         user_id = self._required(user_id, "user_id")
         order_id = self._required(order_id, "order_id")
         expected_order_version = int(expected_order_version)
-        fingerprint = self._fingerprint({
-            "idempotency_key": idempotency_key,
-            "user_id": user_id,
-            "order_id": order_id,
-            "expected_order_version": expected_order_version,
-        })
-        with self._lock, self._connect() as conn:
-            conn.execute("BEGIN IMMEDIATE")
+        fingerprint = self._fingerprint(
+            {
+                "idempotency_key": idempotency_key,
+                "user_id": user_id,
+                "order_id": order_id,
+                "expected_order_version": expected_order_version,
+            }
+        )
+        with self._connect(
+            locks=(f"order:{order_id}", f"cancel-operation:{idempotency_key}")
+        ) as conn:
             existing = conn.execute(
-                "SELECT * FROM order_cancellations WHERE idempotency_key=?",
-                (idempotency_key,),
+                """
+                SELECT * FROM dialogpilot_app.customer_order_cancellations WHERE idempotency_key=%s AND
+                tenant_id=%s
+                """,
+                (idempotency_key, self.tenant_id),
             ).fetchone()
             if existing is not None:
                 if existing["request_fingerprint"] != fingerprint:
@@ -427,8 +506,11 @@ class CustomerOperationsService:
                     )
                 return self._row_to_cancellation(existing), False
             row = conn.execute(
-                "SELECT * FROM orders WHERE order_id=? AND user_id=?",
-                (order_id, user_id),
+                """
+                SELECT * FROM dialogpilot_app.customer_orders WHERE order_id=%s AND user_id=%s AND
+                tenant_id=%s
+                """,
+                (order_id, user_id, self.tenant_id),
             ).fetchone()
             if row is None:
                 raise BusinessObjectNotFoundError("order not found")
@@ -443,24 +525,42 @@ class CustomerOperationsService:
             now = self._now()
             next_version = order.version + 1
             conn.execute(
-                "UPDATE orders SET status=?,version=?,updated_at=? WHERE order_id=?",
-                (OrderStatus.CANCELLED.value, next_version, now, order_id),
+                """
+                UPDATE dialogpilot_app.customer_orders SET status=%s,version=%s,updated_at=%s WHERE
+                order_id=%s AND tenant_id=%s
+                """,
+                (
+                    OrderStatus.CANCELLED.value,
+                    next_version,
+                    now,
+                    order_id,
+                    self.tenant_id,
+                ),
             )
             conn.execute(
                 """
-                INSERT INTO order_cancellations (
-                    cancellation_id,idempotency_key,request_fingerprint,order_id,
-                    user_id,status,order_version,created_at
-                ) VALUES (?,?,?,?,?,?,?,?)
+                INSERT INTO dialogpilot_app.customer_order_cancellations (
+                cancellation_id,idempotency_key,request_fingerprint,order_id,
+                user_id,status,order_version,created_at, tenant_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s, %s)
                 """,
                 (
-                    cancellation_id, idempotency_key, fingerprint, order_id,
-                    user_id, OrderStatus.CANCELLED.value, next_version, now,
+                    cancellation_id,
+                    idempotency_key,
+                    fingerprint,
+                    order_id,
+                    user_id,
+                    OrderStatus.CANCELLED.value,
+                    next_version,
+                    now,
+                    self.tenant_id,
                 ),
             )
             created = conn.execute(
-                "SELECT * FROM order_cancellations WHERE cancellation_id=?",
-                (cancellation_id,),
+                """
+                SELECT * FROM dialogpilot_app.customer_order_cancellations WHERE cancellation_id=%s AND
+                tenant_id=%s
+                """,
+                (cancellation_id, self.tenant_id),
             ).fetchone()
         return self._row_to_cancellation(created), True
 
@@ -474,13 +574,14 @@ class CustomerOperationsService:
         with self._connect() as conn:
             row = conn.execute(
                 """
-                SELECT * FROM order_cancellations
-                WHERE user_id=? AND order_id=? AND idempotency_key=?
+                SELECT * FROM dialogpilot_app.customer_order_cancellations WHERE user_id=%s AND
+                order_id=%s AND idempotency_key=%s AND tenant_id=%s
                 """,
                 (
                     self._required(user_id, "user_id"),
                     self._required(order_id, "order_id"),
                     self._required(idempotency_key, "idempotency_key"),
+                    self.tenant_id,
                 ),
             ).fetchone()
         if row is None:
@@ -502,18 +603,24 @@ class CustomerOperationsService:
         order_id = self._required(order_id, "order_id")
         new_address = self._required(new_address, "new_address")[:500]
         expected_order_version = int(expected_order_version)
-        fingerprint = self._fingerprint({
-            "idempotency_key": idempotency_key,
-            "user_id": user_id,
-            "order_id": order_id,
-            "expected_order_version": expected_order_version,
-            "new_address": new_address,
-        })
-        with self._lock, self._connect() as conn:
-            conn.execute("BEGIN IMMEDIATE")
+        fingerprint = self._fingerprint(
+            {
+                "idempotency_key": idempotency_key,
+                "user_id": user_id,
+                "order_id": order_id,
+                "expected_order_version": expected_order_version,
+                "new_address": new_address,
+            }
+        )
+        with self._connect(
+            locks=(f"order:{order_id}", f"address-operation:{idempotency_key}")
+        ) as conn:
             existing = conn.execute(
-                "SELECT * FROM shipping_address_changes WHERE idempotency_key=?",
-                (idempotency_key,),
+                """
+                SELECT * FROM dialogpilot_app.customer_shipping_address_changes WHERE idempotency_key=%s
+                AND tenant_id=%s
+                """,
+                (idempotency_key, self.tenant_id),
             ).fetchone()
             if existing is not None:
                 if existing["request_fingerprint"] != fingerprint:
@@ -522,8 +629,11 @@ class CustomerOperationsService:
                     )
                 return self._row_to_address_change(existing), False
             row = conn.execute(
-                "SELECT * FROM orders WHERE order_id=? AND user_id=?",
-                (order_id, user_id),
+                """
+                SELECT * FROM dialogpilot_app.customer_orders WHERE order_id=%s AND user_id=%s AND
+                tenant_id=%s
+                """,
+                (order_id, user_id, self.tenant_id),
             ).fetchone()
             if row is None:
                 raise BusinessObjectNotFoundError("order not found")
@@ -538,25 +648,38 @@ class CustomerOperationsService:
             now = self._now()
             next_version = order.version + 1
             conn.execute(
-                "UPDATE orders SET shipping_address=?,version=?,updated_at=? "
-                "WHERE order_id=?",
-                (new_address, next_version, now, order_id),
+                """
+                UPDATE dialogpilot_app.customer_orders SET shipping_address=%s,version=%s,updated_at=%s
+                WHERE order_id=%s AND tenant_id=%s
+                """,
+                (new_address, next_version, now, order_id, self.tenant_id),
             )
             conn.execute(
                 """
-                INSERT INTO shipping_address_changes (
-                    change_id,idempotency_key,request_fingerprint,order_id,user_id,
-                    new_address,status,order_version,created_at
-                ) VALUES (?,?,?,?,?,?,?,?,?)
+                INSERT INTO dialogpilot_app.customer_shipping_address_changes (
+                change_id,idempotency_key,request_fingerprint,order_id,user_id,
+                new_address,status,order_version,created_at, tenant_id) VALUES
+                (%s,%s,%s,%s,%s,%s,%s,%s,%s, %s)
                 """,
                 (
-                    change_id, idempotency_key, fingerprint, order_id, user_id,
-                    new_address, "updated", next_version, now,
+                    change_id,
+                    idempotency_key,
+                    fingerprint,
+                    order_id,
+                    user_id,
+                    new_address,
+                    "updated",
+                    next_version,
+                    now,
+                    self.tenant_id,
                 ),
             )
             created = conn.execute(
-                "SELECT * FROM shipping_address_changes WHERE change_id=?",
-                (change_id,),
+                """
+                SELECT * FROM dialogpilot_app.customer_shipping_address_changes WHERE change_id=%s AND
+                tenant_id=%s
+                """,
+                (change_id, self.tenant_id),
             ).fetchone()
         return self._row_to_address_change(created), True
 
@@ -570,13 +693,14 @@ class CustomerOperationsService:
         with self._connect() as conn:
             row = conn.execute(
                 """
-                SELECT * FROM shipping_address_changes
-                WHERE user_id=? AND order_id=? AND idempotency_key=?
+                SELECT * FROM dialogpilot_app.customer_shipping_address_changes WHERE user_id=%s AND
+                order_id=%s AND idempotency_key=%s AND tenant_id=%s
                 """,
                 (
                     self._required(user_id, "user_id"),
                     self._required(order_id, "order_id"),
                     self._required(idempotency_key, "idempotency_key"),
+                    self.tenant_id,
                 ),
             ).fetchone()
         if row is None:
@@ -596,28 +720,33 @@ class CustomerOperationsService:
         event_id = uuid.uuid4().hex
         occurred_at = occurred_at or self._now()
         self._parse_time(occurred_at)
-        with self._lock, self._connect() as conn:
+        with self._connect(locks=(f"account:{user_id}",)) as conn:
             conn.execute(
-                "INSERT OR IGNORE INTO accounts (user_id,status,version,updated_at) "
-                "VALUES (?,?,?,?)",
+                """
+                INSERT INTO dialogpilot_app.customer_accounts (user_id,status,version,updated_at,
+                tenant_id) VALUES (%s,%s,%s,%s, %s) ON CONFLICT (tenant_id, user_id) DO NOTHING
+                """,
                 (
                     self._required(user_id, "user_id"),
                     AccountStatus.ACTIVE.value,
                     1,
                     occurred_at,
+                    self.tenant_id,
                 ),
             )
             conn.execute(
                 """
-                INSERT INTO security_events (
-                    event_id, user_id, event_type, severity, summary, occurred_at
-                ) VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO dialogpilot_app.customer_security_events ( event_id, user_id, event_type,
+                severity, summary, occurred_at, tenant_id) VALUES (%s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
-                    event_id, self._required(user_id, "user_id"),
+                    event_id,
+                    self._required(user_id, "user_id"),
                     self._required(event_type, "event_type"),
                     SecuritySeverity(severity).value,
-                    self._required(summary, "summary")[:1000], occurred_at,
+                    self._required(summary, "summary")[:1000],
+                    occurred_at,
+                    self.tenant_id,
                 ),
             )
         return event_id
@@ -625,8 +754,10 @@ class CustomerOperationsService:
     def get_account_security_state(self, *, user_id: str) -> AccountSecurityState:
         with self._connect() as conn:
             row = conn.execute(
-                "SELECT * FROM accounts WHERE user_id=?",
-                (self._required(user_id, "user_id"),),
+                """
+                SELECT * FROM dialogpilot_app.customer_accounts WHERE user_id=%s AND tenant_id=%s
+                """,
+                (self._required(user_id, "user_id"), self.tenant_id),
             ).fetchone()
         if row is None:
             raise BusinessObjectNotFoundError("account not found")
@@ -643,16 +774,22 @@ class CustomerOperationsService:
         idempotency_key = self._required(idempotency_key, "idempotency_key")
         user_id = self._required(user_id, "user_id")
         expected_account_version = int(expected_account_version)
-        fingerprint = self._fingerprint({
-            "idempotency_key": idempotency_key,
-            "user_id": user_id,
-            "expected_account_version": expected_account_version,
-        })
-        with self._lock, self._connect() as conn:
-            conn.execute("BEGIN IMMEDIATE")
+        fingerprint = self._fingerprint(
+            {
+                "idempotency_key": idempotency_key,
+                "user_id": user_id,
+                "expected_account_version": expected_account_version,
+            }
+        )
+        with self._connect(
+            locks=(f"account:{user_id}", f"freeze-operation:{idempotency_key}")
+        ) as conn:
             existing = conn.execute(
-                "SELECT * FROM account_freezes WHERE idempotency_key=?",
-                (idempotency_key,),
+                """
+                SELECT * FROM dialogpilot_app.customer_account_freezes WHERE idempotency_key=%s AND
+                tenant_id=%s
+                """,
+                (idempotency_key, self.tenant_id),
             ).fetchone()
             if existing is not None:
                 if existing["request_fingerprint"] != fingerprint:
@@ -661,8 +798,10 @@ class CustomerOperationsService:
                     )
                 return self._row_to_account_freeze(existing), False
             row = conn.execute(
-                "SELECT * FROM accounts WHERE user_id=?",
-                (user_id,),
+                """
+                SELECT * FROM dialogpilot_app.customer_accounts WHERE user_id=%s AND tenant_id=%s
+                """,
+                (user_id, self.tenant_id),
             ).fetchone()
             if row is None:
                 raise BusinessObjectNotFoundError("account not found")
@@ -677,24 +816,41 @@ class CustomerOperationsService:
             now = self._now()
             next_version = account.version + 1
             conn.execute(
-                "UPDATE accounts SET status=?,version=?,updated_at=? WHERE user_id=?",
-                (AccountStatus.FROZEN.value, next_version, now, user_id),
+                """
+                UPDATE dialogpilot_app.customer_accounts SET status=%s,version=%s,updated_at=%s WHERE
+                user_id=%s AND tenant_id=%s
+                """,
+                (
+                    AccountStatus.FROZEN.value,
+                    next_version,
+                    now,
+                    user_id,
+                    self.tenant_id,
+                ),
             )
             conn.execute(
                 """
-                INSERT INTO account_freezes (
-                    freeze_id,idempotency_key,request_fingerprint,user_id,
-                    status,account_version,created_at
-                ) VALUES (?,?,?,?,?,?,?)
+                INSERT INTO dialogpilot_app.customer_account_freezes (
+                freeze_id,idempotency_key,request_fingerprint,user_id,
+                status,account_version,created_at, tenant_id) VALUES (%s,%s,%s,%s,%s,%s,%s, %s)
                 """,
                 (
-                    freeze_id, idempotency_key, fingerprint, user_id,
-                    AccountStatus.FROZEN.value, next_version, now,
+                    freeze_id,
+                    idempotency_key,
+                    fingerprint,
+                    user_id,
+                    AccountStatus.FROZEN.value,
+                    next_version,
+                    now,
+                    self.tenant_id,
                 ),
             )
             created = conn.execute(
-                "SELECT * FROM account_freezes WHERE freeze_id=?",
-                (freeze_id,),
+                """
+                SELECT * FROM dialogpilot_app.customer_account_freezes WHERE freeze_id=%s AND
+                tenant_id=%s
+                """,
+                (freeze_id, self.tenant_id),
             ).fetchone()
         return self._row_to_account_freeze(created), True
 
@@ -707,12 +863,13 @@ class CustomerOperationsService:
         with self._connect() as conn:
             row = conn.execute(
                 """
-                SELECT * FROM account_freezes
-                WHERE user_id=? AND idempotency_key=?
+                SELECT * FROM dialogpilot_app.customer_account_freezes WHERE user_id=%s AND
+                idempotency_key=%s AND tenant_id=%s
                 """,
                 (
                     self._required(user_id, "user_id"),
                     self._required(idempotency_key, "idempotency_key"),
+                    self.tenant_id,
                 ),
             ).fetchone()
         if row is None:
@@ -728,17 +885,17 @@ class CustomerOperationsService:
     ) -> List[Dict[str, Any]]:
         """只返回指定可信用户的最近安全事件。"""
         limit = min(max(int(limit), 1), 20)
-        clauses = ["user_id = ?"]
-        params: List[Any] = [self._required(user_id, "user_id")]
+        clauses = ["tenant_id = %s", "user_id = %s"]
+        params: List[Any] = [self.tenant_id, self._required(user_id, "user_id")]
         if severity is not None:
-            clauses.append("severity = ?")
+            clauses.append("severity = %s")
             params.append(SecuritySeverity(severity).value)
         params.append(limit)
         with self._connect() as conn:
             rows = conn.execute(
-                f"SELECT event_id, event_type, severity, summary, occurred_at "
-                f"FROM security_events WHERE {' AND '.join(clauses)} "
-                "ORDER BY occurred_at DESC, event_id DESC LIMIT ?",
+                "SELECT event_id, event_type, severity, summary, occurred_at "
+                f"FROM dialogpilot_app.customer_security_events WHERE {' AND '.join(clauses)} "
+                "ORDER BY occurred_at DESC, event_id DESC LIMIT %s",
                 tuple(params),
             ).fetchall()
         return [dict(row) for row in rows]
@@ -752,7 +909,9 @@ class CustomerOperationsService:
             eligible, reason_code = False, f"order_status_{order.status.value}"
         elif not order.refundable_until:
             eligible, reason_code = False, "refund_window_missing"
-        elif self._clock().astimezone(timezone.utc) > self._parse_time(order.refundable_until):
+        elif self._clock().astimezone(timezone.utc) > self._parse_time(
+            order.refundable_until
+        ):
             eligible, reason_code = False, "refund_window_expired"
         return RefundEligibility(
             order_id=order.order_id,
@@ -764,142 +923,51 @@ class CustomerOperationsService:
             refundable_until=order.refundable_until,
         )
 
-    def _initialize(self) -> None:
-        with self._lock, self._connect() as conn:
-            conn.executescript(
-                """
-                CREATE TABLE IF NOT EXISTS orders (
-                    order_id TEXT PRIMARY KEY,
-                    user_id TEXT NOT NULL,
-                    item_name TEXT NOT NULL,
-                    amount_minor INTEGER NOT NULL,
-                    currency TEXT NOT NULL,
-                    status TEXT NOT NULL,
-                    refundable_until TEXT,
-                    version INTEGER NOT NULL,
-                    created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL,
-                    shipping_address TEXT NOT NULL DEFAULT ''
-                );
-                CREATE INDEX IF NOT EXISTS idx_orders_user_updated
-                    ON orders(user_id, updated_at DESC);
-
-                CREATE TABLE IF NOT EXISTS refund_requests (
-                    refund_id TEXT PRIMARY KEY,
-                    idempotency_key TEXT NOT NULL UNIQUE,
-                    request_fingerprint TEXT NOT NULL,
-                    order_id TEXT NOT NULL UNIQUE,
-                    user_id TEXT NOT NULL,
-                    reason TEXT NOT NULL,
-                    amount_minor INTEGER NOT NULL,
-                    currency TEXT NOT NULL,
-                    status TEXT NOT NULL,
-                    created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL,
-                    FOREIGN KEY(order_id) REFERENCES orders(order_id)
-                );
-                CREATE INDEX IF NOT EXISTS idx_refunds_user_created
-                    ON refund_requests(user_id, created_at DESC);
-
-                CREATE TABLE IF NOT EXISTS order_cancellations (
-                    cancellation_id TEXT PRIMARY KEY,
-                    idempotency_key TEXT NOT NULL UNIQUE,
-                    request_fingerprint TEXT NOT NULL,
-                    order_id TEXT NOT NULL UNIQUE,
-                    user_id TEXT NOT NULL,
-                    status TEXT NOT NULL,
-                    order_version INTEGER NOT NULL,
-                    created_at TEXT NOT NULL,
-                    FOREIGN KEY(order_id) REFERENCES orders(order_id)
-                );
-                CREATE INDEX IF NOT EXISTS idx_order_cancellations_user_created
-                    ON order_cancellations(user_id, created_at DESC);
-
-                CREATE TABLE IF NOT EXISTS shipping_address_changes (
-                    change_id TEXT PRIMARY KEY,
-                    idempotency_key TEXT NOT NULL UNIQUE,
-                    request_fingerprint TEXT NOT NULL,
-                    order_id TEXT NOT NULL,
-                    user_id TEXT NOT NULL,
-                    new_address TEXT NOT NULL,
-                    status TEXT NOT NULL,
-                    order_version INTEGER NOT NULL,
-                    created_at TEXT NOT NULL,
-                    FOREIGN KEY(order_id) REFERENCES orders(order_id)
-                );
-                CREATE INDEX IF NOT EXISTS idx_address_changes_user_created
-                    ON shipping_address_changes(user_id, created_at DESC);
-
-                CREATE TABLE IF NOT EXISTS security_events (
-                    event_id TEXT PRIMARY KEY,
-                    user_id TEXT NOT NULL,
-                    event_type TEXT NOT NULL,
-                    severity TEXT NOT NULL,
-                    summary TEXT NOT NULL,
-                    occurred_at TEXT NOT NULL
-                );
-                CREATE INDEX IF NOT EXISTS idx_security_user_occurred
-                    ON security_events(user_id, occurred_at DESC);
-
-                CREATE TABLE IF NOT EXISTS accounts (
-                    user_id TEXT PRIMARY KEY,
-                    status TEXT NOT NULL,
-                    version INTEGER NOT NULL,
-                    updated_at TEXT NOT NULL
-                );
-
-                CREATE TABLE IF NOT EXISTS account_freezes (
-                    freeze_id TEXT PRIMARY KEY,
-                    idempotency_key TEXT NOT NULL UNIQUE,
-                    request_fingerprint TEXT NOT NULL,
-                    user_id TEXT NOT NULL,
-                    status TEXT NOT NULL,
-                    account_version INTEGER NOT NULL,
-                    created_at TEXT NOT NULL,
-                    FOREIGN KEY(user_id) REFERENCES accounts(user_id)
-                );
-                CREATE INDEX IF NOT EXISTS idx_account_freezes_user_created
-                    ON account_freezes(user_id, created_at DESC);
-                """
-            )
-            columns = {
-                str(row[1]) for row in conn.execute("PRAGMA table_info(orders)")
-            }
-            if "shipping_address" not in columns:
-                conn.execute(
-                    "ALTER TABLE orders ADD COLUMN shipping_address "
-                    "TEXT NOT NULL DEFAULT ''"
+    @contextmanager
+    def _connect(self, *, locks: tuple[str, ...] = ()):
+        with (
+            self.pool.transaction() as connection,
+            connection.cursor(row_factory=dict_row) as cursor,
+        ):
+            for key in sorted(set(locks)):
+                cursor.execute(
+                    "SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))",
+                    (json.dumps((self.tenant_id, key)),),
                 )
-
-    def _connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self._path, timeout=5.0)
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA foreign_keys = ON")
-        conn.execute("PRAGMA journal_mode = WAL")
-        conn.execute("PRAGMA busy_timeout = 5000")
-        return conn
+            yield cursor
 
     @staticmethod
-    def _row_to_order(row: sqlite3.Row) -> Order:
+    def _row_to_order(row: Mapping[str, Any]) -> Order:
         return Order(
-            order_id=row["order_id"], user_id=row["user_id"], item_name=row["item_name"],
-            amount_minor=int(row["amount_minor"]), currency=row["currency"],
-            status=OrderStatus(row["status"]), refundable_until=row["refundable_until"],
-            version=int(row["version"]), created_at=row["created_at"], updated_at=row["updated_at"],
+            order_id=row["order_id"],
+            user_id=row["user_id"],
+            item_name=row["item_name"],
+            amount_minor=int(row["amount_minor"]),
+            currency=row["currency"],
+            status=OrderStatus(row["status"]),
+            refundable_until=row["refundable_until"],
+            version=int(row["version"]),
+            created_at=row["created_at"],
+            updated_at=row["updated_at"],
             shipping_address=str(row["shipping_address"] or ""),
         )
 
     @staticmethod
-    def _row_to_refund(row: sqlite3.Row) -> RefundRequest:
+    def _row_to_refund(row: Mapping[str, Any]) -> RefundRequest:
         return RefundRequest(
-            refund_id=row["refund_id"], order_id=row["order_id"], user_id=row["user_id"],
-            reason=row["reason"], amount_minor=int(row["amount_minor"]), currency=row["currency"],
-            status=RefundStatus(row["status"]), created_at=row["created_at"],
+            refund_id=row["refund_id"],
+            order_id=row["order_id"],
+            user_id=row["user_id"],
+            reason=row["reason"],
+            amount_minor=int(row["amount_minor"]),
+            currency=row["currency"],
+            status=RefundStatus(row["status"]),
+            created_at=row["created_at"],
             updated_at=row["updated_at"],
         )
 
     @staticmethod
-    def _row_to_cancellation(row: sqlite3.Row) -> OrderCancellation:
+    def _row_to_cancellation(row: Mapping[str, Any]) -> OrderCancellation:
         return OrderCancellation(
             cancellation_id=row["cancellation_id"],
             order_id=row["order_id"],
@@ -910,7 +978,7 @@ class CustomerOperationsService:
         )
 
     @staticmethod
-    def _row_to_address_change(row: sqlite3.Row) -> ShippingAddressChange:
+    def _row_to_address_change(row: Mapping[str, Any]) -> ShippingAddressChange:
         return ShippingAddressChange(
             change_id=row["change_id"],
             order_id=row["order_id"],
@@ -922,7 +990,7 @@ class CustomerOperationsService:
         )
 
     @staticmethod
-    def _row_to_account(row: sqlite3.Row) -> AccountSecurityState:
+    def _row_to_account(row: Mapping[str, Any]) -> AccountSecurityState:
         return AccountSecurityState(
             user_id=row["user_id"],
             status=AccountStatus(row["status"]),
@@ -931,7 +999,7 @@ class CustomerOperationsService:
         )
 
     @staticmethod
-    def _row_to_account_freeze(row: sqlite3.Row) -> AccountFreeze:
+    def _row_to_account_freeze(row: Mapping[str, Any]) -> AccountFreeze:
         return AccountFreeze(
             freeze_id=row["freeze_id"],
             user_id=row["user_id"],
@@ -959,5 +1027,7 @@ class CustomerOperationsService:
 
     @staticmethod
     def _fingerprint(values: Dict[str, Any]) -> str:
-        raw = json.dumps(values, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        raw = json.dumps(
+            values, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        )
         return hashlib.sha256(raw.encode("utf-8")).hexdigest()

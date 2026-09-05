@@ -11,8 +11,8 @@ from evaluation.command_primary_eval.e2e_runner import ChatApplicationE2ERunner
 from tests.support.sticky_read_only_harness import build_sticky_read_only_harness
 
 
-def test_sticky_read_only_e2e_writes_four_outcome_dimensions(tmp_path) -> None:
-    harness = build_sticky_read_only_harness(tmp_path)
+def test_sticky_read_only_e2e_writes_four_outcome_dimensions(tmp_path, customer_operations) -> None:
+    harness = build_sticky_read_only_harness(customer_operations)
     chat_runner = ChatApplicationRunner(
         harness.application_factory,
         state_probes={

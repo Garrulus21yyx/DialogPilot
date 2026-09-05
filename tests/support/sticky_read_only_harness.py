@@ -140,11 +140,11 @@ class StickyReadOnlyHarness:
         }
 
 
-def build_sticky_read_only_harness(tmp_path: Any) -> StickyReadOnlyHarness:
+def build_sticky_read_only_harness(customer_operations: CustomerOperationsService) -> StickyReadOnlyHarness:
     events: list[str] = []
     flow_state = InMemoryFlowState()
     semantic = StickySemantic()
-    tools = _tool_manager(tmp_path)
+    tools = _tool_manager(customer_operations)
 
     class Orchestrator:
         async def recognize_intent(self, *_args, **_kwargs):
@@ -256,9 +256,9 @@ def build_sticky_read_only_harness(tmp_path: Any) -> StickyReadOnlyHarness:
     )
 
 
-def _tool_manager(tmp_path: Any) -> MCPToolManager:
+def _tool_manager(customer_operations: CustomerOperationsService) -> MCPToolManager:
     owner = CustomerOperationsService(
-        str(tmp_path / "customer-operations.db"),
+        customer_operations.pool, tenant_id=STICKY_COMMAND.tenant_id,
         clock=lambda: NOW,
     )
     order = owner.upsert_order(

@@ -419,10 +419,7 @@ async def lifespan(app: FastAPI):
         identity_salt=os.getenv("BADCASE_IDENTITY_SALT") or os.getenv("AUTH_JWT_SECRET", ""),
     )
     _customer_operations = CustomerOperationsService(
-        os.getenv(
-            "CUSTOMER_OPERATIONS_DB_PATH",
-            str(pathlib.Path(_ROOT) / "data" / "customer-operations" / "operations.db"),
-        )
+        _postgres_pool, tenant_id=os.getenv("DEFAULT_TENANT_ID", "default"),
     )
     _context_assembler = ContextAssembler(
         max_input_tokens=int(os.getenv("CONTEXT_INPUT_BUDGET", "12000")),

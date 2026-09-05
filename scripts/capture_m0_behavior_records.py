@@ -96,7 +96,6 @@ async def capture(args) -> None:
             "REDIS_URL": redis_url,
             "DATABASE_URL": args.database_url,
             "BADCASE_DB_PATH": str(root / "badcases.db"),
-            "CUSTOMER_OPERATIONS_DB_PATH": str(root / "operations.db"),
             "REACT_RUN_DB_PATH": str(root / "react-runs.db"),
             "PROMETHEUS_PORT": "0",
             # Baseline characterizes the current code contract against an isolated,

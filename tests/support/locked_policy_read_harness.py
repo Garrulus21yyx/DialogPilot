@@ -88,7 +88,6 @@ class LockedPolicyReadHarness:
 def build_locked_policy_read_harness(
     initial_state: Mapping[str, Any],
     *,
-    sqlite_path: str,
     postgres_url: str,
 ) -> LockedPolicyReadHarness:
     """Seed owners from locked initial_state without consulting expected output."""
@@ -113,7 +112,7 @@ def build_locked_policy_read_harness(
 
     business = dict(initial_state["business_state"])
     operations_owner = CustomerOperationsService(
-        sqlite_path,
+        pool, tenant_id=principal.tenant_id,
         clock=lambda: NOW,
     )
     operations_owner.upsert_order(

@@ -270,7 +270,7 @@ def test_knowledge_evidence_pack_is_the_only_supported_nested_knowledge_output()
 
 
 def test_all_builtin_tool_manifests_pass_the_same_startup_gate(
-    ticket_service, commitment_service, tmp_path,
+    ticket_service, commitment_service, customer_operations,
 ):
     knowledge = _tool(
         "knowledge_search", authority="knowledge.active_source",
@@ -291,7 +291,7 @@ def test_all_builtin_tool_manifests_pass_the_same_startup_gate(
         *ticket_tools(ticket_service),
         *commitment_tools(commitment_service),
         *customer_operation_tools(
-            CustomerOperationsService(str(tmp_path / "operations.db"))
+            customer_operations
         ),
     )
 
