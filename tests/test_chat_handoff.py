@@ -160,6 +160,7 @@ class FakeVerifier:
 
 def test_chat_out_of_scope_is_a_policy_terminal_without_worker_verifier_or_memory_write(
     tmp_path, monkeypatch, ticket_service,
+    bundle_registry,
 ):
     """无恶意越域请求只做范围重定向，不污染客服执行、工单和长期记忆链路。"""
     class ScopeRecognizer:
@@ -197,7 +198,7 @@ def test_chat_out_of_scope_is_a_policy_terminal_without_worker_verifier_or_memor
     orchestrator._execute = must_not_execute
     memory = FakeMemory()
     tickets = ticket_service
-    bundles = AgentBundleRegistry(str(tmp_path / "scope-agent-bundles.db"))
+    bundles = bundle_registry
     bundles.bootstrap(build_default_bundle({}))
 
     monkeypatch.setattr(main, "_orchestrator", orchestrator)
@@ -258,6 +259,7 @@ def test_chat_out_of_scope_is_a_policy_terminal_without_worker_verifier_or_memor
 
 def test_chat_escalation_creates_one_persistent_idempotent_ticket(
     tmp_path, monkeypatch, ticket_service,
+    bundle_registry,
 ):
     """证明同一请求重试只创建一张持久工单，并返回相同 ticket_id。"""
     memory = FakeMemory()
@@ -283,7 +285,7 @@ def test_chat_escalation_creates_one_persistent_idempotent_ticket(
         ContextAssembler(max_input_tokens=2048, reserved_output_tokens=256),
     )
     monkeypatch.setattr(main, "_tool_manager", None)
-    bundles = AgentBundleRegistry(str(tmp_path / "agent-bundles.db"))
+    bundles = bundle_registry
     bundles.bootstrap(build_default_bundle({}))
     monkeypatch.setattr(main, "_bundle_registry", bundles)
     monkeypatch.setattr(
@@ -356,6 +358,7 @@ def test_handoff_priority_preserves_typed_critical_urgency():
 
 def test_chat_waiting_approval_does_not_create_handoff_or_badcase(
     tmp_path, monkeypatch, ticket_service,
+    bundle_registry,
 ):
     """预期审批等待不是 Agent 故障，不应偷偷创建人工工单。"""
     class PendingOrchestrator(FakeOrchestrator):
@@ -394,7 +397,7 @@ def test_chat_waiting_approval_does_not_create_handoff_or_badcase(
     )
     monkeypatch.setattr(main, "_badcase_registry", None)
     monkeypatch.setattr(main, "_tool_manager", None)
-    bundles = AgentBundleRegistry(str(tmp_path / "pending-agent-bundles.db"))
+    bundles = bundle_registry
     bundles.bootstrap(build_default_bundle({}))
     monkeypatch.setattr(main, "_bundle_registry", bundles)
     monkeypatch.setattr(

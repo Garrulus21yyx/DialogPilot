@@ -1,132 +1,98 @@
-"""SQLite 持久化的不可变 AgentBundle 注册表。"""
-
+"""PostgreSQL-backed immutable AgentBundle registry."""
 from __future__ import annotations
 
-import json
-import pathlib
-import sqlite3
-import threading
 from datetime import datetime, timezone
-from typing import List
+from typing import List, TYPE_CHECKING
+
+from psycopg.rows import dict_row
+from psycopg.types.json import Jsonb
 
 from .bundle import AgentBundle
 
+if TYPE_CHECKING:
+    from infrastructure.postgres import PostgresPool
+
 
 class BundleConflictError(RuntimeError):
-    """相同版本名被用于不同内容。"""
+    """The same version names different content."""
 
 
 class BundleNotFoundError(KeyError):
-    """请求了不存在的 Bundle。"""
+    """The requested bundle does not exist."""
 
 
 class AgentBundleRegistry:
-    """Bundle 内容只追加；当前指针单独原子迁移。"""
+    """Immutable versions and an atomic bootstrap pointer, owned by PostgreSQL."""
 
-    def __init__(self, db_path: str):
-        self._path = str(pathlib.Path(db_path))
-        pathlib.Path(self._path).parent.mkdir(parents=True, exist_ok=True)
-        self._lock = threading.RLock()
-        self._initialize()
+    def __init__(self, pool: PostgresPool):
+        self.pool = pool
 
     def register(self, bundle: AgentBundle, *, actor: str = "system") -> AgentBundle:
-        payload = json.dumps(bundle.to_dict(), ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-        now = datetime.now(timezone.utc).isoformat()
-        with self._lock, self._connect() as conn:
-            conn.execute("BEGIN IMMEDIATE")
-            row = conn.execute(
-                "SELECT content_hash, payload_json FROM agent_bundles WHERE version=?",
-                (bundle.version,),
-            ).fetchone()
-            if row is not None:
-                if row["content_hash"] != bundle.content_hash:
-                    raise BundleConflictError(f"bundle version already has different content: {bundle.version}")
-                return self._decode(row["payload_json"])
+        with self.pool.transaction() as connection, connection.cursor(row_factory=dict_row) as cursor:
             if bundle.base_version:
-                base = conn.execute(
-                    "SELECT 1 FROM agent_bundles WHERE version=?", (bundle.base_version,)
+                base = cursor.execute(
+                    "SELECT 1 FROM dialogpilot_platform.agent_bundles WHERE version=%s",
+                    (bundle.base_version,),
                 ).fetchone()
                 if base is None:
                     raise BundleNotFoundError(bundle.base_version)
-            conn.execute(
-                "INSERT INTO agent_bundles(version, base_version, content_hash, payload_json, created_at, created_by) "
-                "VALUES (?, ?, ?, ?, ?, ?)",
-                (bundle.version, bundle.base_version, bundle.content_hash, payload, now, str(actor)[:200]),
+            cursor.execute(
+                "INSERT INTO dialogpilot_platform.agent_bundles "
+                "(version, base_version, content_hash, payload_json, created_at, created_by) "
+                "VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT (version) DO NOTHING",
+                (bundle.version, bundle.base_version, bundle.content_hash,
+                 Jsonb(bundle.to_dict()), datetime.now(timezone.utc), str(actor)[:200]),
             )
-        return bundle
+            row = cursor.execute(
+                "SELECT content_hash, payload_json FROM dialogpilot_platform.agent_bundles "
+                "WHERE version=%s", (bundle.version,),
+            ).fetchone()
+            if row["content_hash"] != bundle.content_hash:
+                raise BundleConflictError(
+                    f"bundle version already has different content: {bundle.version}"
+                )
+            return AgentBundle(**row["payload_json"])
 
     def bootstrap(self, bundle: AgentBundle) -> AgentBundle:
-        """幂等注册首个 Bundle，并只在没有指针时设为 active。"""
         registered = self.register(bundle, actor="bootstrap")
-        with self._lock, self._connect() as conn:
-            conn.execute("BEGIN IMMEDIATE")
-            conn.execute(
-                "INSERT OR IGNORE INTO bundle_pointers(name, version, updated_at, updated_by) "
-                "VALUES ('active', ?, ?, 'bootstrap')",
-                (registered.version, datetime.now(timezone.utc).isoformat()),
+        with self.pool.transaction() as connection:
+            connection.execute(
+                "INSERT INTO dialogpilot_platform.bundle_pointers "
+                "(name, version, updated_at, updated_by) VALUES ('active', %s, %s, 'bootstrap') "
+                "ON CONFLICT (name) DO NOTHING",
+                (registered.version, datetime.now(timezone.utc)),
             )
         return registered
 
     def get(self, version: str) -> AgentBundle:
-        with self._connect() as conn:
-            row = conn.execute(
-                "SELECT payload_json FROM agent_bundles WHERE version=?", (str(version),)
+        with self.pool.transaction() as connection:
+            row = connection.execute(
+                "SELECT payload_json FROM dialogpilot_platform.agent_bundles WHERE version=%s",
+                (str(version),),
             ).fetchone()
         if row is None:
             raise BundleNotFoundError(str(version))
-        return self._decode(row["payload_json"])
+        return AgentBundle(**row[0])
 
     def active(self) -> AgentBundle:
-        with self._connect() as conn:
-            row = conn.execute(
-                "SELECT b.payload_json FROM bundle_pointers p JOIN agent_bundles b ON b.version=p.version "
+        with self.pool.transaction() as connection:
+            row = connection.execute(
+                "SELECT b.payload_json FROM dialogpilot_platform.bundle_pointers p "
+                "JOIN dialogpilot_platform.agent_bundles b ON b.version=p.version "
                 "WHERE p.name='active'"
             ).fetchone()
         if row is None:
             raise BundleNotFoundError("active")
-        return self._decode(row["payload_json"])
+        return AgentBundle(**row[0])
 
     def list(self, limit: int = 100) -> List[dict]:
-        with self._connect() as conn:
-            rows = conn.execute(
-                "SELECT version, base_version, content_hash, created_at, created_by "
-                "FROM agent_bundles ORDER BY created_at DESC, version DESC LIMIT ?",
+        with self.pool.transaction() as connection, connection.cursor(row_factory=dict_row) as cursor:
+            rows = cursor.execute(
+                "SELECT b.version, b.base_version, b.content_hash, b.created_at, b.created_by, "
+                "EXISTS (SELECT 1 FROM dialogpilot_platform.bundle_pointers p "
+                "WHERE p.name='active' AND p.version=b.version) AS active "
+                "FROM dialogpilot_platform.agent_bundles b "
+                "ORDER BY b.created_at DESC, b.version DESC LIMIT %s",
                 (max(1, min(int(limit), 500)),),
             ).fetchall()
-            active = conn.execute(
-                "SELECT version FROM bundle_pointers WHERE name='active'"
-            ).fetchone()
-        active_version = active["version"] if active else ""
-        return [{**dict(row), "active": row["version"] == active_version} for row in rows]
-
-    def _initialize(self) -> None:
-        with self._connect() as conn:
-            conn.executescript(
-                """
-                CREATE TABLE IF NOT EXISTS agent_bundles (
-                    version TEXT PRIMARY KEY,
-                    base_version TEXT NOT NULL,
-                    content_hash TEXT NOT NULL,
-                    payload_json TEXT NOT NULL,
-                    created_at TEXT NOT NULL,
-                    created_by TEXT NOT NULL
-                );
-                CREATE TABLE IF NOT EXISTS bundle_pointers (
-                    name TEXT PRIMARY KEY,
-                    version TEXT NOT NULL REFERENCES agent_bundles(version),
-                    updated_at TEXT NOT NULL,
-                    updated_by TEXT NOT NULL
-                );
-                """
-            )
-
-    def _connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self._path, timeout=30)
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA journal_mode=WAL")
-        conn.execute("PRAGMA foreign_keys=ON")
-        return conn
-
-    @staticmethod
-    def _decode(payload: str) -> AgentBundle:
-        return AgentBundle(**json.loads(payload))
+        return [{**row, "created_at": row["created_at"].isoformat()} for row in rows]

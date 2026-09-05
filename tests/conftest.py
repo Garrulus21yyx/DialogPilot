@@ -120,6 +120,24 @@ def ticket_service(postgres_database_url):
 
 
 @pytest.fixture
+def bundle_registry(postgres_database_url):
+    from services.evolution.registry import AgentBundleRegistry
+
+    PostgresMigrationRunner(postgres_database_url).upgrade()
+    pool = PostgresPool(PostgresPoolConfig(postgres_database_url))
+    pool.open()
+    with pool.transaction() as connection:
+        connection.execute(
+            "TRUNCATE dialogpilot_platform.bundle_pointers, "
+            "dialogpilot_platform.agent_bundles"
+        )
+    try:
+        yield AgentBundleRegistry(pool)
+    finally:
+        pool.close()
+
+
+@pytest.fixture
 def commitment_service(postgres_database_url):
     PostgresMigrationRunner(postgres_database_url).upgrade()
     pool = PostgresPool(PostgresPoolConfig(postgres_database_url))

@@ -257,15 +257,8 @@ async def lifespan(app: FastAPI):
         )
     similarity_mode = os.getenv("INTENT_SIMILARITY_MODE", "ngram")
     _authenticator = JWTAuthenticator.from_env()
-    _bundle_registry = AgentBundleRegistry(
-        os.getenv(
-            "AGENT_BUNDLE_DB_PATH",
-            str(pathlib.Path(_ROOT) / "data" / "evolution" / "agent-bundles.db"),
-        )
-    )
     bootstrap_rag_policy = rag_retrieval_policy_from_env(os.environ)
     default_bundle = build_default_bundle(_model_policy.to_dict(), bootstrap_rag_policy)
-    _bundle_registry.bootstrap(default_bundle)
     _proposal_generator = build_llm_proposal_generator(
         api_key=cfg["api_key"],
         base_url=cfg.get("base_url"),
@@ -416,6 +409,8 @@ async def lifespan(app: FastAPI):
         )
     if _postgres_pool is None or _response_delivery is None:
         raise RuntimeError("DATABASE_URL is required for the PostgreSQL runtime")
+    _bundle_registry = AgentBundleRegistry(_postgres_pool)
+    _bundle_registry.bootstrap(default_bundle)
     _badcase_registry = BadCaseRegistry(
         os.getenv(
             "BADCASE_DB_PATH",

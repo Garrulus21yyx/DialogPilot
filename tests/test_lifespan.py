@@ -167,7 +167,6 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
     monkeypatch.delenv("TICKET_DISPATCH_WEBHOOK_URL", raising=False)
     monkeypatch.setenv("CUSTOMER_OPERATIONS_DB_PATH", str(tmp_path / "operations.db"))
     monkeypatch.setenv("REACT_RUN_DB_PATH", str(tmp_path / "react-runs.db"))
-    monkeypatch.setenv("AGENT_BUNDLE_DB_PATH", str(tmp_path / "agent-bundles.db"))
     monkeypatch.setenv("REACT_RECOVERY_GRACE_SECONDS", "0")
     monkeypatch.setenv("MEMORY_TOKEN_BUDGET", "4321")
     monkeypatch.setenv("MEMORY_COMPRESSION_THRESHOLD", "0.81")

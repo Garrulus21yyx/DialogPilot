@@ -6,7 +6,6 @@ import argparse
 import asyncio
 import json
 import os
-import shutil
 import tempfile
 import time
 import uuid
@@ -93,11 +92,9 @@ async def capture(args) -> None:
 
     with tempfile.TemporaryDirectory(prefix="dialogpilot-m0-") as temporary:
         root = Path(temporary)
-        bundle_copy = root / "agent-bundles.db"
-        shutil.copy2(args.bundle_db, bundle_copy)
         os.environ.update({
             "REDIS_URL": redis_url,
-            "AGENT_BUNDLE_DB_PATH": str(bundle_copy),
+            "DATABASE_URL": args.database_url,
             "BADCASE_DB_PATH": str(root / "badcases.db"),
             "CUSTOMER_OPERATIONS_DB_PATH": str(root / "operations.db"),
             "REACT_RUN_DB_PATH": str(root / "react-runs.db"),
@@ -166,7 +163,7 @@ def main() -> int:
     parser.add_argument("--cases", required=True)
     parser.add_argument("--output", required=True)
     parser.add_argument("--rag-index-manifest", required=True)
-    parser.add_argument("--bundle-db", default="data/evolution/agent-bundles.db")
+    parser.add_argument("--database-url", required=True, help="Isolated evaluation PostgreSQL database")
     parser.add_argument("--redis-url", default="")
     parser.add_argument("--redis-host", default="")
     parser.add_argument("--redis-db", type=int, default=15)

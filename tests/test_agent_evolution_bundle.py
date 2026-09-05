@@ -46,8 +46,8 @@ def test_bundle_rejects_security_owned_surface():
         AgentBundle(version="unsafe-v1", routing_policy={"approval_mode": "auto"})
 
 
-def test_registry_is_append_only_and_runtime_keeps_bootstrapped_active_bundle(tmp_path):
-    registry = AgentBundleRegistry(str(tmp_path / "bundles.db"))
+def test_registry_is_append_only_and_runtime_keeps_bootstrapped_active_bundle(tmp_path, bundle_registry):
+    registry = bundle_registry
     v1 = registry.bootstrap(_bundle())
     pinned = registry.active()
     v2 = registry.register(_bundle("agent-v2", "agent-v1"), actor="evolution")
@@ -60,8 +60,8 @@ def test_registry_is_append_only_and_runtime_keeps_bootstrapped_active_bundle(tm
         registry.register(AgentBundle(version="agent-v2", base_version="agent-v1"))
 
 
-def test_active_bundle_resolver_has_one_deterministic_runtime_assignment(tmp_path):
-    registry = AgentBundleRegistry(str(tmp_path / "bundles.db"))
+def test_active_bundle_resolver_has_one_deterministic_runtime_assignment(tmp_path, bundle_registry):
+    registry = bundle_registry
     active = registry.bootstrap(_bundle())
     registry.register(_bundle("agent-v2", "agent-v1"))
     resolver = ActiveBundleResolver(registry)
@@ -71,6 +71,32 @@ def test_active_bundle_resolver_has_one_deterministic_runtime_assignment(tmp_pat
 
     assert first.primary == second.primary == active
     assert first.pinned_refs == second.pinned_refs
+
+
+def test_concurrent_bundle_registration_has_one_immutable_winner(bundle_registry):
+    from concurrent.futures import ThreadPoolExecutor
+
+    def register(index):
+        bundle = AgentBundle(version="concurrent", prompts={"general": f"prompt-{index}"})
+        try:
+            return bundle_registry.register(bundle)
+        except BundleConflictError:
+            return None
+
+    with ThreadPoolExecutor(max_workers=8) as workers:
+        results = list(workers.map(register, range(8)))
+    winners = [result for result in results if result is not None]
+    assert len(winners) == 1
+    assert bundle_registry.get("concurrent") == winners[0]
+    assert bundle_registry.register(winners[0]) == winners[0]
+    assert len(bundle_registry.list()) == 1
+
+
+def test_bundle_registry_reopens_without_local_files(bundle_registry):
+    bundle = bundle_registry.bootstrap(_bundle())
+    reopened = AgentBundleRegistry(bundle_registry.pool)
+    assert reopened.active() == bundle
+    assert reopened.get(bundle.version) == bundle
 
 
 def test_envelope_contains_hashes_not_raw_prompt_or_output():

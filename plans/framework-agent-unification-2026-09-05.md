@@ -15,8 +15,12 @@ messages and step recovery; ToolManager retains execution evidence and permissio
    composition; API no longer constructs SQLite RunStore. Public ChatCommand/outcomes
    moved to chat_contracts, with all import consumers migrated. Old orchestrator/ReAct
    and compatibility evaluation consumers still need removal before deleting RunStore.
+   Stateful loop-budget fixture now uses TargetFrameworkAgent; tool calls receive their
+   framework call ID and trusted context through ToolRuntime, not user-bound closures.
+   Removed application package's eager legacy-runtime export.
 5. pending: migrate SQLite customer_operations, badcase_registry and evolution registry
    to PostgreSQL, update their consumers/tests and remove SQLite configuration.
+   Evolution registry migration 0032 implemented; PostgreSQL tests in progress.
 
 Target path has no old-engine fallback. Repository-wide SQLite deletion is not complete.
 Existing unrelated RAG working-tree changes are excluded from this migration's commits.

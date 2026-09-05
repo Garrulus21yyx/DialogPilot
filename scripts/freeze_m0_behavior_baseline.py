@@ -18,6 +18,7 @@ from evaluation.behavior_baseline import (
     write_behavior_baseline,
 )
 from services.evolution import AgentBundleRegistry
+from infrastructure.postgres import PostgresPool, PostgresPoolConfig
 
 
 def _sha256(path: Path) -> str:
@@ -68,14 +69,19 @@ def main() -> int:
     parser.add_argument("--records", required=True)
     parser.add_argument("--rag-index-manifest", required=True)
     parser.add_argument("--environment-observations", required=True)
-    parser.add_argument("--bundle-db", required=True)
+    parser.add_argument("--database-url", required=True)
     parser.add_argument("--model-env", default=".env")
     parser.add_argument("--dataset-manifest", action="append", default=[])
     parser.add_argument("--baseline-id", default="m0-v1")
     parser.add_argument("--created-at", required=True)
     args = parser.parse_args()
 
-    bundle = AgentBundleRegistry(args.bundle_db).active()
+    pool = PostgresPool(PostgresPoolConfig(args.database_url))
+    pool.open()
+    try:
+        bundle = AgentBundleRegistry(pool).active()
+    finally:
+        pool.close()
     runtime_model_policy = ModelPolicy.from_env({
         key: str(value)
         for key, value in dotenv_values(args.model_env).items()
