@@ -63,7 +63,14 @@ Clean committed snapshot: 44 tests pass, covering API lifespan, actual Target pu
 result scoring, planner-only isolation, all legacy intent labels' routing non-authority,
 durable completion waits/timeouts, PostgreSQL terminal reads, API datasets and CLI.
 Then migrate legacy evaluation harnesses and behavioral gates before removing old
-ChatApplication, compatibility execution, ReActExecutionEngine and its RunStore.
+ChatApplication, ReActExecutionEngine and its RunStore.
+Compatibility background execution is removed: application/compatibility_chat.py,
+application/compatibility_execution.py and infrastructure/postgres_compatibility_execution.py.
+Its dedicated tests were retired after moving repeated binding, concurrent claims,
+same-worker stale epoch fencing, deletion fencing and terminal replay checks to the
+PostgreSQL Target Run suite. 19 Target Run/planning tests pass on real PostgreSQL.
+The existing execution table's historical name remains in immutable migration history
+and the sole Target store; no business data or database files were deleted.
 ToolManager's optional execution_store claim branch remains another old RunStore
 consumer; Target writes already use the PostgreSQL operation owner instead.
 Existing unrelated RAG working-tree changes are excluded from this migration's commits.
