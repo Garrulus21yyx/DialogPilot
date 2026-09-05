@@ -139,6 +139,14 @@ or business artifacts; that distinction remains explicit in the privacy audit.
 Removed obsolete badcase/customer-operations/evolution Compose volume declarations
 after confirming their services use PostgreSQL and no code consumes those paths.
 No actual Docker volumes or database files are removed.
+Input-security tests no longer import GeneralAgent/Request or inject the deleted
+API _orchestrator. Blocked input is now checked against the Target application entry
+itself, before admission or execution. Framework integration tests inspect actual
+model messages for English/Chinese role-spoofing text: user content remains in a
+HumanMessage, never in SystemMessage, and the exposed tool set remains read-only.
+These are message/authority boundary tests with a scripted model, not a claim of
+universal prompt-injection resistance. 44 tests pass; PostgreSQL restart test skips
+without a configured database URL.
 Retired the obsolete HTTP handoff fixture's AgentOrchestrator/ReAct imports and
 private-global assembly. Its retry expectation created a second response, contrary
 to Target's invocation/publication idempotency. Target cutover now checks OOS replay
