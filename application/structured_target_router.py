@@ -54,12 +54,18 @@ class StructuredTargetCommandRouter:
     def __init__(self, provider: TargetSemanticProvider) -> None:
         self._provider = provider
 
-    async def __call__(self, observations, state, deterministic, registry):
+    async def __call__(
+        self, observations, state, deterministic, registry, turn_context=None,
+    ):
         if deterministic.kind is not ResolutionKind.UNRESOLVED:
             return TurnProposal(
                 ProposalDisposition.INVALID_PROVIDER_OUTPUT, (),
                 "SEMANTIC_ROUTER_RECEIVED_RESOLVED_STATE",
             )
+        context_evidence = (
+            turn_context.understanding_evidence
+            if turn_context is not None else ()
+        )
         payload = {
             "schema_version": "target-semantic-route-request-v1",
             "message": observations.raw_text,
@@ -75,8 +81,12 @@ class StructuredTargetCommandRouter:
             ],
             "understanding_evidence": [
                 {"kind": kind, "value": value}
-                for kind, value in observations.understanding_evidence
+                for kind, value in (
+                    *observations.understanding_evidence,
+                    *context_evidence,
+                )
             ],
+            "conversation_context": _conversation_context_payload(turn_context),
             "supported_goals": sorted(_GOALS),
             "registry_fingerprint": registry.fingerprint,
         }
@@ -366,8 +376,12 @@ class CascadedTargetUnderstanding:
         self._semantic = semantic
         self._encoder = encoder
 
-    async def __call__(self, observations, state, deterministic, registry):
-        primary = await self._bounded(observations, state, deterministic, registry)
+    async def __call__(
+        self, observations, state, deterministic, registry, turn_context=None,
+    ):
+        primary = await self._bounded(
+            observations, state, deterministic, registry, turn_context,
+        )
         if primary.disposition is not ProposalDisposition.CLARIFY:
             return primary
         if primary.reason_code in {
@@ -376,7 +390,49 @@ class CascadedTargetUnderstanding:
         }:
             return primary
         if self._encoder is not None:
-            decision = await self._encoder(observations, state, registry)
+            decision = await self._encoder(
+                observations, state, registry, turn_context,
+            )
             if decision.accepted:
                 return decision.proposal
-        return await self._semantic(observations, state, deterministic, registry)
+        return await self._semantic(
+            observations, state, deterministic, registry, turn_context,
+        )
+
+
+def _conversation_context_payload(turn_context):
+    if turn_context is None:
+        return {
+            "projection_status": "UNAVAILABLE",
+            "source_watermark": 0,
+            "reason_codes": ["CONTEXT_NOT_PROVIDED"],
+            "summary": None,
+            "recent_messages": [],
+            "evidence_refs": [],
+        }
+    summary = turn_context.summary
+    return {
+        "projection_status": turn_context.projection_status.value,
+        "source_watermark": turn_context.source_watermark,
+        "reason_codes": list(turn_context.projection_reason_codes),
+        "summary": (
+            {
+                "content": summary.content,
+                "source_ref": summary.source_ref,
+                "covered_until_seq": summary.covered_until_seq,
+                "producer_version": summary.producer_version,
+            }
+            if summary is not None else None
+        ),
+        "recent_messages": [
+            {
+                "role": item.role,
+                "content": item.content,
+                "source_ref": item.source_ref,
+                "seq": item.seq,
+                "observed_at": item.observed_at,
+            }
+            for item in turn_context.recent_messages
+        ],
+        "evidence_refs": list(turn_context.evidence_refs),
+    }

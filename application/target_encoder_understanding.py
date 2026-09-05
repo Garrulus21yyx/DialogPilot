@@ -26,7 +26,7 @@ class TargetEncoderUnderstanding:
             minimum_margin=0.08,
         )
 
-    async def __call__(self, observations, state, registry):
+    async def __call__(self, observations, state, registry, turn_context=None):
         self._artifact.validate_registry(registry)
         candidates, defer_score = self._artifact.predict(observations.raw_text)
         top = candidates[0]

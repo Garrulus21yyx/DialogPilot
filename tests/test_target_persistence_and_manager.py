@@ -93,7 +93,9 @@ class _Understanding:
         self.proposal = proposal
         self.calls = []
 
-    async def __call__(self, observations, state, deterministic, registry):
+    async def __call__(
+        self, observations, state, deterministic, registry, turn_context=None,
+    ):
         self.calls.append((state, deterministic))
         return self.proposal
 
@@ -103,9 +105,13 @@ class _ResumeAwareUnderstanding:
         self.initial = initial
         self.bounded = BoundedTargetUnderstanding()
 
-    async def __call__(self, observations, state, deterministic, registry):
+    async def __call__(
+        self, observations, state, deterministic, registry, turn_context=None,
+    ):
         if deterministic.kind is ResolutionKind.FILL_PENDING_INPUT:
-            return await self.bounded(observations, state, deterministic, registry)
+            return await self.bounded(
+                observations, state, deterministic, registry, turn_context,
+            )
         return self.initial
 
 

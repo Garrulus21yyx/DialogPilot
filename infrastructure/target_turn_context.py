@@ -3,9 +3,15 @@ from __future__ import annotations
 
 import hashlib
 import json
+from dataclasses import replace
 
 from application.deterministic_resolution import ResolutionKind
-from application.target_conversation_manager import TargetTurnContext
+from application.target_conversation_manager import (
+    TargetContextMessage,
+    TargetContextProjectionStatus,
+    TargetContextSummary,
+    TargetTurnContext,
+)
 
 
 _HISTORICAL_REFERENCES = (
@@ -26,21 +32,62 @@ class TargetTurnContextLoader:
 
     async def load(self, invocation, observations, state, deterministic):
         recent = []
+        summary = None
+        status = TargetContextProjectionStatus.UNAVAILABLE
+        reason_codes = ("CURRENT_CONTEXT_PROVIDER_MISSING",)
         if self._memory is not None:
             try:
                 current = await self._memory.get_current_context(
                     str(invocation.user_id), str(invocation.conversation_id),
                 )
                 if str(current.summary or "").strip():
-                    recent.append(f"summary: {current.summary}")
-                recent.extend(
-                    f"{message.role.value}: {message.content}"
-                    for message in current.recent_messages[-self._recent_limit:]
-                    if str(message.content or "").strip()
-                )
+                    content = str(current.summary).strip()
+                    digest = hashlib.sha256(content.encode("utf-8")).hexdigest()
+                    summary = TargetContextSummary(
+                        content,
+                        f"conversation-summary:{invocation.conversation_id}:{digest}",
+                        # The legacy MemoryContext does not expose the summary's
+                        # covered range.  Zero means unknown; do not infer it from
+                        # the separate recent-message window.
+                        0,
+                    )
+                for position, message in enumerate(
+                    current.recent_messages[-self._recent_limit:]
+                ):
+                    content = str(getattr(message, "content", "") or "").strip()
+                    if not content:
+                        continue
+                    role_value = getattr(getattr(message, "role", None), "value", None)
+                    role = str(role_value or getattr(message, "role", ""))
+                    seq = int(getattr(message, "seq", 0) or 0)
+                    message_id = str(getattr(message, "message_id", "") or "")
+                    identity = message_id or hashlib.sha256(
+                        f"{position}:{role}:{seq}:{content}".encode("utf-8")
+                    ).hexdigest()
+                    observed = getattr(message, "timestamp", None)
+                    recent.append(TargetContextMessage(
+                        role,
+                        content,
+                        f"conversation-message:{invocation.conversation_id}:{identity}",
+                        seq,
+                        observed.isoformat() if hasattr(observed, "isoformat") else None,
+                    ))
+                status = TargetContextProjectionStatus.READY
+                reason_codes = ()
             except Exception:
                 # Current-thread projections are rebuildable and non-authoritative.
                 recent = []
+                summary = None
+                status = TargetContextProjectionStatus.DEGRADED
+                reason_codes = ("CURRENT_CONTEXT_READ_FAILED",)
+
+        context = TargetTurnContext(
+            tuple(recent),
+            summary,
+            projection_status=status,
+            source_watermark=max((item.seq for item in recent), default=0),
+            projection_reason_codes=reason_codes,
+        )
 
         needs_history = (
             deterministic.kind is ResolutionKind.UNRESOLVED
@@ -50,7 +97,7 @@ class TargetTurnContextLoader:
             )
         )
         if not needs_history:
-            return TargetTurnContext(tuple(recent))
+            return context
 
         call_hash = hashlib.sha256(
             f"{invocation.invocation_key}:memory-understanding".encode("utf-8")
@@ -71,8 +118,9 @@ class TargetTurnContextLoader:
         data = result.data if isinstance(result.data, dict) else {}
         retrieval_status = str(data.get("status") or "")
         if not result.success or retrieval_status not in {"OK", "AMBIGUOUS"}:
-            return TargetTurnContext(
-                tuple(recent), memory_attempted=True,
+            return replace(
+                context,
+                memory_attempted=True,
                 memory_status=(
                     retrieval_status
                     or str(result.status or "FAILED").upper()
@@ -88,7 +136,12 @@ class TargetTurnContextLoader:
         evidence = (("memory.service_episode", json.loads(json.dumps(
             data, ensure_ascii=False, sort_keys=True,
         ))),)
-        return TargetTurnContext(
-            tuple(recent), refs, evidence, True,
-            str(data.get("purpose_outcome") or data.get("status") or "OK"),
+        return replace(
+            context,
+            evidence_refs=refs,
+            understanding_evidence=evidence,
+            memory_attempted=True,
+            memory_status=str(
+                data.get("purpose_outcome") or data.get("status") or "OK"
+            ),
         )

@@ -5,6 +5,7 @@ from dataclasses import dataclass, replace
 import hashlib
 import json
 from datetime import datetime, timedelta, timezone
+from enum import Enum
 from typing import Protocol
 
 from application.capability_registry import CapabilityRegistryBundle
@@ -44,16 +45,83 @@ class TurnUnderstanding(Protocol):
         state: ConversationState,
         deterministic: DeterministicResolution,
         registry: CapabilityRegistryBundle,
+        turn_context: "TargetTurnContext",
     ) -> TurnProposal: ...
+
+
+class TargetContextProjectionStatus(str, Enum):
+    READY = "READY"
+    DEGRADED = "DEGRADED"
+    UNAVAILABLE = "UNAVAILABLE"
+
+
+@dataclass(frozen=True)
+class TargetContextMessage:
+    role: str
+    content: str
+    source_ref: str
+    seq: int = 0
+    observed_at: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.role not in {"user", "assistant", "system"}:
+            raise ValueError("context message role is invalid")
+        if not self.content.strip() or not self.source_ref.strip():
+            raise ValueError("context message content and source are required")
+        if self.seq < 0:
+            raise ValueError("context message sequence cannot be negative")
+
+
+@dataclass(frozen=True)
+class TargetContextSummary:
+    content: str
+    source_ref: str
+    covered_until_seq: int = 0
+    producer_version: str = "conversation-memory-v1"
+
+    def __post_init__(self) -> None:
+        if not self.content.strip() or not self.source_ref.strip():
+            raise ValueError("context summary content and source are required")
+        if self.covered_until_seq < 0 or not self.producer_version.strip():
+            raise ValueError("context summary metadata is invalid")
 
 
 @dataclass(frozen=True)
 class TargetTurnContext:
-    recent_relevant_turns: tuple[str, ...] = ()
+    recent_messages: tuple[TargetContextMessage, ...] = ()
+    summary: TargetContextSummary | None = None
     evidence_refs: tuple[str, ...] = ()
     understanding_evidence: tuple[tuple[str, object], ...] = ()
+    projection_status: TargetContextProjectionStatus = (
+        TargetContextProjectionStatus.UNAVAILABLE
+    )
+    source_watermark: int = 0
+    projection_reason_codes: tuple[str, ...] = ("CONTEXT_PROVIDER_NOT_CONFIGURED",)
     memory_attempted: bool = False
     memory_status: str = "NOT_REQUIRED"
+
+    def __post_init__(self) -> None:
+        if self.source_watermark < 0:
+            raise ValueError("context source watermark cannot be negative")
+        refs = tuple(item.source_ref for item in self.recent_messages)
+        if len(refs) != len(set(refs)):
+            raise ValueError("context message sources must be unique")
+        if self.projection_status is TargetContextProjectionStatus.READY and (
+            self.projection_reason_codes
+        ):
+            raise ValueError("ready context cannot carry projection failures")
+        if self.projection_status is not TargetContextProjectionStatus.READY and (
+            not self.projection_reason_codes
+        ):
+            raise ValueError("non-ready context requires a reason code")
+
+    @property
+    def recent_relevant_turns(self) -> tuple[str, ...]:
+        """Compatibility rendering for the existing task-scoped Agent context."""
+        return (
+            *((f"summary: {self.summary.content}",) if self.summary else ()),
+            *(f"{item.role}: {item.content}" for item in self.recent_messages),
+        )
 
 
 class TargetTurnContextProvider(Protocol):
@@ -131,14 +199,8 @@ class TargetConversationManager:
             if self._context_provider is not None
             else TargetTurnContext()
         )
-        if turn_context.understanding_evidence:
-            observations = replace(
-                observations,
-                understanding_evidence=turn_context.understanding_evidence,
-            )
-
         proposal = await self._understanding(
-            observations, state, deterministic, self._registry,
+            observations, state, deterministic, self._registry, turn_context,
         )
         validated = self._route_policy.accept(proposal, state, self._registry)
         plan = self._compiler.compile(validated, state, self._registry, invocation)

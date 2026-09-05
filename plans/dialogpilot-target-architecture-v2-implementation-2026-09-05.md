@@ -86,7 +86,7 @@ God File 以多个权威/变化原因判定；过度拆分以无语义的一对�
 | M9 | 按领域迁移框架 Agent/Subgraph | M5/M8 |
 | M10 | 属性、故障注入、heldout 与真实 E2E | 全部 |
 
-当前进度：M0 `done`；M1 `in_progress`；M2-M10 `pending`。
+当前进度：M0-M1 `done`；M2 `in_progress`；M3-M10 `pending`。
 
 ## 5. M0：冻结基线
 
@@ -138,6 +138,19 @@ application/target_understanding.py
 invocation 越界；全仓无旧 Understanding 调用签名。
 
 提交：`feat(target): connect typed conversation context to understanding`
+
+实施记录（2026-09-05）：
+
+- 在现有 `TargetTurnContext` 上增加 typed message、summary、projection status、source ref 与
+  watermark；Loader 继续是唯一当前线程 Context 读取入口；
+- Understanding 协议和 Cascaded/Bounded/Encoder/Semantic 消费者已整体迁移；当前 Semantic
+  Router 仅作为 M2 前的迁移消费者，能读取 typed conversation context；
+- 摘要未暴露 covered range 时保持 unknown（0），不从 recent window 伪造；重复内容消息仍
+  产生不同 source ref；conversation/memory/media 均以不可信数据进入 provider；
+- Target 专项：`117 passed, 2 skipped in 5.97s`；
+- 仓库级：`1055 passed, 161 skipped, 3 failed in 15.92s`。失败中一项来自未提交 RAG policy
+  与旧 AgentBundle 白名单不一致，两项来自缺少 PostgreSQL URL 的 stateful ticket fixture；
+  均不经过本次 Target Context 改动，未跨 Owner 修补。
 
 ## 7. M2：Conversation Planner
 

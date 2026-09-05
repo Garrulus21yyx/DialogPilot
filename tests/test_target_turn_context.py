@@ -9,6 +9,9 @@ from application.default_capability_registry import build_default_capability_reg
 from application.deterministic_resolution import DeterministicResolver, TurnObservations
 from application.orchestration_runtime import OrchestrationRuntime
 from application.target_conversation_manager import (
+    TargetContextMessage,
+    TargetContextProjectionStatus,
+    TargetContextSummary,
     TargetConversationManager,
     TargetTurnContext,
 )
@@ -90,6 +93,16 @@ def test_current_thread_context_is_loaded_without_prefetching_cross_session_memo
     ))
 
     assert memory.calls == [("user-a", "conversation-a")]
+    assert context.projection_status is TargetContextProjectionStatus.READY
+    assert context.summary.content == "用户正在处理售后问题"
+    assert context.summary.source_ref.startswith(
+        "conversation-summary:conversation-a:"
+    )
+    assert context.recent_messages[0].role == "user"
+    assert context.recent_messages[0].content == "上轮消息"
+    assert context.recent_messages[0].source_ref.startswith(
+        "conversation-message:conversation-a:"
+    )
     assert context.recent_relevant_turns == (
         "summary: 用户正在处理售后问题", "user: 上轮消息",
     )
@@ -123,6 +136,29 @@ def test_historical_reference_triggers_exactly_one_scoped_memory_lookup():
     assert context.understanding_evidence[0][0] == "memory.service_episode"
 
 
+def test_repeated_projected_messages_keep_distinct_source_references():
+    class RepeatedMemory:
+        async def get_current_context(self, user_id, conversation_id):
+            repeated = SimpleNamespace(
+                role=SimpleNamespace(value="user"), content="继续", seq=0,
+            )
+            return SimpleNamespace(summary="", recent_messages=[repeated, repeated])
+
+    context = asyncio.run(TargetTurnContextLoader(
+        RepeatedMemory(), Tools(),
+    ).load(
+        _identity(),
+        TurnObservations("查询订单 DP1234"),
+        _state(),
+        DeterministicResolver().resolve(
+            TurnObservations("查询订单 DP1234"), _state(),
+        ),
+    ))
+
+    assert [item.content for item in context.recent_messages] == ["继续", "继续"]
+    assert len({item.source_ref for item in context.recent_messages}) == 2
+
+
 def test_conversation_manager_loads_context_before_understanding_once():
     calls = []
 
@@ -130,16 +166,32 @@ def test_conversation_manager_loads_context_before_understanding_once():
         async def load(self, invocation, observations, state, deterministic):
             calls.append(("context", deterministic.kind.value))
             return TargetTurnContext(
-                ("user: earlier turn",),
-                ("episode:e1",),
-                (("memory.service_episode", {"episode_id": "e1"}),),
-                True,
-                "UNIQUE_BINDING",
+                recent_messages=(TargetContextMessage(
+                    "user", "earlier turn", "event:1", 1,
+                ),),
+                summary=TargetContextSummary(
+                    "earlier summary", "summary:1", 0,
+                ),
+                evidence_refs=("episode:e1",),
+                understanding_evidence=((
+                    "memory.service_episode", {"episode_id": "e1"},
+                ),),
+                projection_status=TargetContextProjectionStatus.READY,
+                source_watermark=1,
+                projection_reason_codes=(),
+                memory_attempted=True,
+                memory_status="UNIQUE_BINDING",
             )
 
     class Understanding:
-        async def __call__(self, observations, *_args):
-            calls.append(("understanding", observations.understanding_evidence))
+        async def __call__(
+            self, observations, state, deterministic, registry, turn_context,
+        ):
+            calls.append((
+                "understanding",
+                turn_context.understanding_evidence,
+                turn_context.recent_messages[0].source_ref,
+            ))
             return TurnProposal(
                 ProposalDisposition.CLARIFY, (), "NEEDS_GOAL", ("customer_service_goal",),
             )
@@ -161,7 +213,11 @@ def test_conversation_manager_loads_context_before_understanding_once():
 
     assert calls == [
         ("context", "UNRESOLVED"),
-        ("understanding", (("memory.service_episode", {"episode_id": "e1"}),)),
+        (
+            "understanding",
+            (("memory.service_episode", {"episode_id": "e1"}),),
+            "event:1",
+        ),
     ]
 
 

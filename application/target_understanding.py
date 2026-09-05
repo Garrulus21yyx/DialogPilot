@@ -35,7 +35,9 @@ class BoundedTargetUnderstanding:
 
     version = "bounded-target-understanding-v1"
 
-    async def __call__(self, observations, state, deterministic, registry):
+    async def __call__(
+        self, observations, state, deterministic, registry, turn_context=None,
+    ):
         if (
             deterministic.kind is ResolutionKind.FILL_PENDING_INPUT
             and deterministic.resumed_work_items

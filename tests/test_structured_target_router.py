@@ -9,6 +9,12 @@ from application.structured_target_router import (
     StructuredTargetCommandRouter,
 )
 from application.target_understanding import BoundedTargetUnderstanding
+from application.target_conversation_manager import (
+    TargetContextMessage,
+    TargetContextProjectionStatus,
+    TargetContextSummary,
+    TargetTurnContext,
+)
 from application.turn_planning import (
     CommandKind,
     CommandProposal,
@@ -465,6 +471,55 @@ def test_semantic_router_receives_bounded_memory_evidence_as_data():
             "hits": [{"episode_id": "e1"}],
         },
     }]
+
+
+def test_semantic_router_receives_typed_current_conversation_context():
+    provider = Provider({
+        "status": "insufficient_context",
+        "missing_fields": ["customer_service_goal"],
+    })
+    state = _state()
+    observations = TurnObservations("继续处理")
+    deterministic = DeterministicResolver().resolve(observations, state)
+    context = TargetTurnContext(
+        recent_messages=(TargetContextMessage(
+            "assistant", "请提供订单号", "event:9", 9,
+        ),),
+        summary=TargetContextSummary(
+            "用户正在处理订单问题", "summary:1-8", 8,
+        ),
+        projection_status=TargetContextProjectionStatus.READY,
+        source_watermark=9,
+        projection_reason_codes=(),
+    )
+
+    asyncio.run(StructuredTargetCommandRouter(provider)(
+        observations,
+        state,
+        deterministic,
+        build_default_capability_registry("tenant-a"),
+        context,
+    ))
+
+    assert provider.calls[0]["conversation_context"] == {
+        "projection_status": "READY",
+        "source_watermark": 9,
+        "reason_codes": [],
+        "summary": {
+            "content": "用户正在处理订单问题",
+            "source_ref": "summary:1-8",
+            "covered_until_seq": 8,
+            "producer_version": "conversation-memory-v1",
+        },
+        "recent_messages": [{
+            "role": "assistant",
+            "content": "请提供订单号",
+            "source_ref": "event:9",
+            "seq": 9,
+            "observed_at": None,
+        }],
+        "evidence_refs": [],
+    }
 
 
 def test_cascade_uses_zero_provider_calls_for_clear_fast_path_and_calls_on_defer():
