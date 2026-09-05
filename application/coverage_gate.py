@@ -1,9 +1,8 @@
-"""Requirement-level coverage and deterministic verification-profile policy."""
+"""Requirement-level evidence receipt and claim coverage."""
 from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from enum import Enum
 from typing import Any, Callable, Mapping, Sequence
 
 from application.authority_policy import (
@@ -20,7 +19,6 @@ from application.evidence_receipt import (
     EvidenceResolver,
     RequirementStatus,
 )
-from application.route_decision import RouteDecision, RouteMode
 
 
 class CoverageContractError(ValueError):
@@ -271,127 +269,4 @@ class RequirementCoverageGate:
         return RequirementCoverage(
             requirement.requirement_id, RequirementStatus.MISSING,
             receipt_ids, "NO_SATISFYING_EVIDENCE",
-        )
-
-
-class VerificationProfile(str, Enum):
-    RULE_ONLY = "RULE_ONLY"
-    GROUNDED_KNOWLEDGE = "GROUNDED_KNOWLEDGE"
-    AUTHORITATIVE_RECEIPT = "AUTHORITATIVE_RECEIPT"
-    MIXED_AUTHORITY = "MIXED_AUTHORITY"
-    MULTI_TASK = "MULTI_TASK"
-    HANDOFF_CONTRACT = "HANDOFF_CONTRACT"
-
-
-class SemanticVerifierPolicy(str, Enum):
-    FORBIDDEN = "FORBIDDEN"
-    CONDITIONAL = "CONDITIONAL"
-
-
-class SemanticVerifierStatus(str, Enum):
-    INVOKED = "INVOKED"
-    AVOIDED = "AVOIDED"
-    NOT_APPLICABLE = "NOT_APPLICABLE"
-    UNAVAILABLE = "UNAVAILABLE"
-
-
-@dataclass(frozen=True)
-class VerificationProfileContract:
-    profile: VerificationProfile
-    deterministic_gates: tuple[str, ...]
-    semantic_policy: SemanticVerifierPolicy
-    policy_version: str = "verification-profile-v1"
-
-
-@dataclass(frozen=True)
-class VerificationInvocationDecision:
-    contract: VerificationProfileContract
-    semantic_status: SemanticVerifierStatus
-    reason_code: str
-
-
-class VerificationProfileRegistry:
-    version = "verification-profile-registry-v1"
-
-    def decide(
-        self,
-        route: RouteDecision,
-        requirements: Sequence[FactRequirement],
-        *,
-        semantic_ambiguity: bool,
-        semantic_verifier_available: bool,
-    ) -> VerificationInvocationDecision:
-        contract = self._contract(route.mode, requirements)
-        if contract.semantic_policy is SemanticVerifierPolicy.FORBIDDEN:
-            return VerificationInvocationDecision(
-                contract, SemanticVerifierStatus.NOT_APPLICABLE,
-                "SEMANTIC_VERIFIER_FORBIDDEN",
-            )
-        if not semantic_ambiguity:
-            return VerificationInvocationDecision(
-                contract, SemanticVerifierStatus.AVOIDED,
-                "DETERMINISTIC_GATES_SUFFICIENT",
-            )
-        if not semantic_verifier_available:
-            return VerificationInvocationDecision(
-                contract, SemanticVerifierStatus.UNAVAILABLE,
-                "REQUIRED_SEMANTIC_VERIFIER_UNAVAILABLE",
-            )
-        return VerificationInvocationDecision(
-            contract, SemanticVerifierStatus.INVOKED,
-            "SEMANTIC_AMBIGUITY_REQUIRES_VERIFIER",
-        )
-
-    def contract_for(
-        self,
-        mode: RouteMode,
-        requirements: Sequence[FactRequirement],
-    ) -> VerificationProfileContract:
-        """Return the authoritative deterministic gate/profile contract for a route."""
-        return self._contract(mode, requirements)
-
-    @staticmethod
-    def _contract(
-        mode: RouteMode,
-        requirements: Sequence[FactRequirement],
-    ) -> VerificationProfileContract:
-        receipt_gate = "REQUIREMENT_RECEIPT_GATE"
-        citation_gate = "CLAIM_CITATION_GATE"
-        if mode in {RouteMode.DIRECT, RouteMode.OUT_OF_SCOPE, RouteMode.CLARIFY}:
-            return VerificationProfileContract(
-                VerificationProfile.RULE_ONLY, ("ROUTE_POLICY_GATE",),
-                SemanticVerifierPolicy.FORBIDDEN,
-            )
-        if mode is RouteMode.HANDOFF:
-            return VerificationProfileContract(
-                VerificationProfile.HANDOFF_CONTRACT,
-                ("HANDOFF_BINDING_GATE",), SemanticVerifierPolicy.FORBIDDEN,
-            )
-        if mode is RouteMode.KNOWLEDGE_QA:
-            return VerificationProfileContract(
-                VerificationProfile.GROUNDED_KNOWLEDGE,
-                (receipt_gate, "ACTIVE_SOURCE_REVISION_GATE", citation_gate),
-                SemanticVerifierPolicy.CONDITIONAL,
-            )
-        if mode is RouteMode.MIXED:
-            return VerificationProfileContract(
-                VerificationProfile.MIXED_AUTHORITY,
-                (receipt_gate, "ACTIVE_SOURCE_REVISION_GATE", citation_gate),
-                SemanticVerifierPolicy.CONDITIONAL,
-            )
-        if mode is RouteMode.MULTI_DOMAIN:
-            return VerificationProfileContract(
-                VerificationProfile.MULTI_TASK,
-                (receipt_gate, "DEPENDENCY_INPUT_GATE", citation_gate),
-                SemanticVerifierPolicy.CONDITIONAL,
-            )
-        if any(item.effect is RequirementEffect.WRITE for item in requirements):
-            return VerificationProfileContract(
-                VerificationProfile.AUTHORITATIVE_RECEIPT,
-                (receipt_gate, "COMMITTED_EFFECT_GATE"),
-                SemanticVerifierPolicy.FORBIDDEN,
-            )
-        return VerificationProfileContract(
-            VerificationProfile.AUTHORITATIVE_RECEIPT,
-            (receipt_gate, citation_gate), SemanticVerifierPolicy.CONDITIONAL,
         )

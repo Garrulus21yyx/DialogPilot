@@ -2,6 +2,20 @@
 
 Status: in_progress
 
+Done: removed legacy RouteDecision-based authority inference and verification
+profile selection. Only dedicated old tests consume these methods; no current API,
+Target runtime or frozen fixture calls them. Preserve AuthorityPolicyRegistry tool
+manifest/output validation and RequirementCoverageGate receipt/claim checks. Current
+CapabilityRegistry/RoutePolicy and response verification own supported execution.
+Remove obsolete route data after migrating all remaining imports; do not translate
+legacy intent-to-requirement rules into another runtime adapter.
+Verification: 36 current planning/response/capability and retained authority/receipt
+tests pass, with one PostgreSQL fixture skipped without a configured URL. A configured
+PostgreSQL run passes 16 authority, architecture E2E and policy-read tests (real tool
+manifests, refund idempotency and ticket-backed handoff). Full collection passes with
+1169 tests. This retires the old route-derived policy surface, not the remaining
+command evaluation contracts or the final whole-runtime verification/documentation.
+
 Done: retired unactivated legacy online RouteBudgetTracker/RouteCostBudget
 policy and its ContextVar hooks in ToolManager/LLM metrics. Only old tests installed
 the tracker; current framework middleware and provider context validation remain

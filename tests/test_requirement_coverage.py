@@ -1,4 +1,4 @@
-"""M2-T04 requirement coverage and VerificationProfile matrix."""
+"""Requirement coverage, evidence authority and claim binding."""
 from datetime import datetime, timezone
 
 import pytest
@@ -7,9 +7,6 @@ from application.authority_policy import AuthorityPolicyRegistry
 from application.coverage_gate import (
     ClaimBinding,
     RequirementCoverageGate,
-    SemanticVerifierStatus,
-    VerificationProfile,
-    VerificationProfileRegistry,
 )
 from application.evidence_receipt import (
     ActionReceiptLocator,
@@ -19,14 +16,6 @@ from application.evidence_receipt import (
     RequirementStatus,
 )
 from application.hybrid_retrieval import RetrievalStatus
-from application.route_decision import (
-    ComponentInvocation,
-    ComponentStatus,
-    RequiredAuthority,
-    RouteDecision,
-    RouteMode,
-    RouteRisk,
-)
 from mcp.tool_manager import ToolCallStatus, ToolEffectStatus
 
 
@@ -234,78 +223,3 @@ def test_knowledge_requires_active_revision_validator_from_t04a():
         "knowledge.active_source",
     )
     assert with_active_revision.complete is True
-
-
-def _route(mode):
-    components = tuple(
-        ComponentInvocation(name, ComponentStatus.SKIPPED, "TEST", SHA, "test-v1")
-        for name in ("intent_fusion", "domain_routing", "instance_selection")
-    )
-    authorities = () if mode in {
-        RouteMode.DIRECT, RouteMode.OUT_OF_SCOPE, RouteMode.CLARIFY,
-    } else (RequiredAuthority.HUMAN,) if mode is RouteMode.HANDOFF else (
-        RequiredAuthority.KNOWLEDGE,
-    )
-    return RouteDecision(
-        mode, "test", 1.0, authorities, RouteRisk.LOW, ("TEST",), (), (),
-        components, "test-v1", SHA,
-    )
-
-
-@pytest.mark.parametrize(
-    ("mode", "profile", "forbidden"),
-    [
-        (RouteMode.DIRECT, VerificationProfile.RULE_ONLY, True),
-        (RouteMode.OUT_OF_SCOPE, VerificationProfile.RULE_ONLY, True),
-        (RouteMode.CLARIFY, VerificationProfile.RULE_ONLY, True),
-        (RouteMode.HANDOFF, VerificationProfile.HANDOFF_CONTRACT, True),
-        (RouteMode.KNOWLEDGE_QA, VerificationProfile.GROUNDED_KNOWLEDGE, False),
-        (RouteMode.AGENT_TASK, VerificationProfile.AUTHORITATIVE_RECEIPT, False),
-        (RouteMode.MIXED, VerificationProfile.MIXED_AUTHORITY, False),
-        (RouteMode.MULTI_DOMAIN, VerificationProfile.MULTI_TASK, False),
-    ],
-)
-def test_route_profile_matrix_never_invokes_forbidden_verifier(
-    mode, profile, forbidden,
-):
-    decision = VerificationProfileRegistry().decide(
-        _route(mode), (), semantic_ambiguity=True,
-        semantic_verifier_available=True,
-    )
-    assert decision.contract.profile is profile
-    assert bool(decision.semantic_status is SemanticVerifierStatus.NOT_APPLICABLE) is forbidden
-    assert decision.contract.deterministic_gates
-
-
-def test_semantic_verifier_is_avoided_unless_ambiguous_and_fails_closed_if_unavailable():
-    policies = AuthorityPolicyRegistry.v1()
-    route = _route(RouteMode.KNOWLEDGE_QA)
-    registry = VerificationProfileRegistry()
-    avoided = registry.decide(
-        route, (policies.get("knowledge.active_source"),),
-        semantic_ambiguity=False, semantic_verifier_available=True,
-    )
-    unavailable = registry.decide(
-        route, (policies.get("knowledge.active_source"),),
-        semantic_ambiguity=True, semantic_verifier_available=False,
-    )
-    invoked = registry.decide(
-        route, (policies.get("knowledge.active_source"),),
-        semantic_ambiguity=True, semantic_verifier_available=True,
-    )
-    assert avoided.semantic_status is SemanticVerifierStatus.AVOIDED
-    assert unavailable.semantic_status is SemanticVerifierStatus.UNAVAILABLE
-    assert invoked.semantic_status is SemanticVerifierStatus.INVOKED
-
-
-def test_deterministic_action_receipt_profile_forbids_general_llm_verifier():
-    policies = AuthorityPolicyRegistry.v1()
-    decision = VerificationProfileRegistry().decide(
-        _route(RouteMode.AGENT_TASK),
-        (policies.get("refund.request_action"),),
-        semantic_ambiguity=True,
-        semantic_verifier_available=True,
-    )
-    assert decision.contract.profile is VerificationProfile.AUTHORITATIVE_RECEIPT
-    assert decision.semantic_status is SemanticVerifierStatus.NOT_APPLICABLE
-    assert "COMMITTED_EFFECT_GATE" in decision.contract.deterministic_gates

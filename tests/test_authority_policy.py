@@ -1,4 +1,4 @@
-"""M2-T02 minimum fact requirements and governed tool manifests."""
+"""Governed tool manifests and authoritative output validation."""
 from datetime import datetime, timedelta, timezone
 
 import pytest
@@ -6,14 +6,6 @@ import pytest
 from application.authority_policy import (
     AuthorityContractError,
     AuthorityPolicyRegistry,
-)
-from application.route_decision import (
-    ComponentInvocation,
-    ComponentStatus,
-    RequiredAuthority,
-    RouteDecision,
-    RouteMode,
-    RouteRisk,
 )
 from mcp.tool_manager import Tool
 from mcp.customer_operations_tools import customer_operation_tools
@@ -51,41 +43,6 @@ def _tool(
         typed_outcomes=("OK", "NOT_FOUND"),
         output_fields=output_fields,
     )
-
-
-def _route(authorities, *, intent="order_status", mode=RouteMode.AGENT_TASK):
-    components = tuple(
-        ComponentInvocation(
-            component, ComponentStatus.SKIPPED, "TEST", "f" * 64, "test-v1"
-        )
-        for component in ("intent_fusion", "domain_routing", "instance_selection")
-    )
-    return RouteDecision(
-        mode=mode,
-        intent=intent,
-        confidence=1.0,
-        required_authorities=tuple(authorities),
-        risk=RouteRisk.MEDIUM,
-        reason_codes=("TEST",),
-        missing_inputs=(),
-        owner_ids=("billing",),
-        component_invocations=components,
-        policy_version="test-v1",
-        input_fingerprint="f" * 64,
-    )
-
-
-def test_planner_can_add_requirements_but_cannot_omit_route_minimum():
-    registry = AuthorityPolicyRegistry.v1()
-    route = _route((RequiredAuthority.ORDER_STATE,))
-
-    resolved = registry.resolve_requirements(
-        route, ("knowledge.active_source",)
-    )
-
-    assert [item.requirement_id for item in resolved] == [
-        "knowledge.active_source", "order.current_state",
-    ]
 
 
 def test_generated_text_or_knowledge_cannot_satisfy_dynamic_order_state():
@@ -142,48 +99,6 @@ def test_missing_fields_and_stale_observations_fail_closed():
     assert missing.reason_code == "REQUIRED_FIELDS_MISSING"
     assert missing.missing_fields == ("version", "updated_at")
     assert stale.reason_code == "OBSERVATION_STALE"
-
-
-def test_account_authority_is_required_and_cannot_be_replaced_by_knowledge():
-    registry = AuthorityPolicyRegistry.v1()
-    route = _route((RequiredAuthority.ACCOUNT_STATE,), intent="account_status")
-
-    resolved = registry.resolve_requirements(route, ("knowledge.active_source",))
-    assert tuple(item.requirement_id for item in resolved) == (
-        "account.current_state",
-        "knowledge.active_source",
-    )
-
-    order_resolved = registry.resolve_requirements(
-        _route((RequiredAuthority.ORDER_STATE,)),
-        ("account.current_state", "knowledge.active_source"),
-    )
-    assert tuple(item.requirement_id for item in order_resolved) == (
-        "account.current_state",
-        "knowledge.active_source",
-        "order.current_state",
-    )
-
-
-def test_supported_account_authority_preserves_the_original_route():
-    registry = AuthorityPolicyRegistry.v1()
-    original = _route((RequiredAuthority.ACCOUNT_STATE,), intent="account_status")
-
-    resolved = registry.resolve_route_authority(original)
-
-    assert resolved == original
-    assert tuple(
-        item.requirement_id for item in registry.minimum_requirements(resolved)
-    ) == ("account.current_state",)
-
-
-def test_handoff_draft_has_no_write_fact_requirement():
-    registry = AuthorityPolicyRegistry.v1()
-    route = _route(
-        (RequiredAuthority.HUMAN,), intent="human_handoff", mode=RouteMode.HANDOFF,
-    )
-
-    assert registry.minimum_requirements(route) == ()
 
 
 def test_unknown_requirement_and_invalid_manifest_versions_cannot_mint_evidence():

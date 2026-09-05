@@ -3,17 +3,10 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Iterable, Mapping, Sequence
-
-from application.route_decision import (
-    RequiredAuthority,
-    RouteDecision,
-    RouteMode,
-    RouteRisk,
-)
 
 
 class AuthorityContractError(ValueError):
@@ -123,7 +116,6 @@ class EvidenceAdapterRegistration:
 
 class AuthorityPolicyRegistry:
     version = "authority-policy-registry-v1"
-    route_resolution_version = "authority-route-resolution-v1"
 
     def __init__(
         self,
@@ -451,84 +443,6 @@ class AuthorityPolicyRegistry:
             raise AuthorityContractError("evidence adapter version mismatch")
         return adapter
 
-    def minimum_requirements(self, route: RouteDecision) -> tuple[FactRequirement, ...]:
-        ids: list[str] = []
-        for authority in route.required_authorities:
-            if authority is RequiredAuthority.KNOWLEDGE:
-                ids.append("knowledge.active_source")
-            elif authority is RequiredAuthority.ORDER_STATE:
-                ids.append("order.current_state")
-            elif authority is RequiredAuthority.REFUND_STATE:
-                ids.append("refund.current_state")
-            elif authority is RequiredAuthority.ACCOUNT_STATE:
-                ids.append("account.current_state")
-            elif authority is RequiredAuthority.SECURITY:
-                ids.append("account.security_events")
-            elif authority is RequiredAuthority.HUMAN:
-                if route.mode is not RouteMode.HANDOFF:
-                    ids.append("support.handoff_action")
-            elif authority is RequiredAuthority.ACTION_APPROVAL:
-                ids.append(self._action_requirement(route.intent))
-            elif authority is RequiredAuthority.DOMAIN_TOOL:
-                ids.append(self._domain_requirement(route.intent))
-        requirements = tuple(self.get(item) for item in dict.fromkeys(ids))
-        if route.mode not in {
-            RouteMode.DIRECT, RouteMode.OUT_OF_SCOPE,
-            RouteMode.CLARIFY, RouteMode.HANDOFF,
-        } and not requirements:
-            raise AuthorityContractError("non-terminal route has no minimum requirements")
-        unsupported_items = [
-            item.requirement_id for item in requirements
-            if item.support is AuthoritySupport.UNSUPPORTED
-        ]
-        if unsupported_items:
-            raise UnsupportedAuthority(
-                "unsupported authority: " + ",".join(unsupported_items),
-                requirement_ids=tuple(unsupported_items),
-            )
-        return requirements
-
-    def resolve_route_authority(self, route: RouteDecision) -> RouteDecision:
-        """Fail closed to canonical Handoff when the required authority has no owner."""
-        try:
-            self.minimum_requirements(route)
-        except UnsupportedAuthority as exc:
-            unsupported = exc.requirement_ids or ("unmapped.authority",)
-            reason_codes = tuple(dict.fromkeys((
-                *route.reason_codes,
-                "AUTHORITY_UNSUPPORTED",
-                *(f"UNSUPPORTED_REQUIREMENT:{item}" for item in unsupported),
-            )))
-            auxiliary = tuple(dict.fromkeys((
-                *route.auxiliary_signals, "authority_fail_closed",
-            )))
-            return replace(
-                route,
-                mode=RouteMode.HANDOFF,
-                required_authorities=(RequiredAuthority.HUMAN,),
-                risk=RouteRisk.HIGH if route.risk is not RouteRisk.CRITICAL else route.risk,
-                reason_codes=reason_codes,
-                owner_ids=(),
-                policy_version=(
-                    f"{route.policy_version}|{self.route_resolution_version}"
-                ),
-                auxiliary_signals=auxiliary,
-            )
-        return route
-
-    def resolve_requirements(
-        self,
-        route: RouteDecision,
-        proposed_requirement_ids: Iterable[str],
-    ) -> tuple[FactRequirement, ...]:
-        minimum = self.minimum_requirements(route)
-        result = {item.requirement_id: item for item in minimum}
-        for requirement_id in proposed_requirement_ids:
-            item = self.get(str(requirement_id))
-            if item.support is AuthoritySupport.UNSUPPORTED:
-                raise UnsupportedAuthority(item.requirement_id)
-            result.setdefault(item.requirement_id, item)
-        return tuple(result[key] for key in sorted(result))
 
     def validate_tool_manifest(self, tool: Any) -> None:
         fields = (
@@ -667,24 +581,3 @@ class AuthorityPolicyRegistry:
                 return None
             normalized.append(row)
         return normalized[0]
-
-    @staticmethod
-    def _domain_requirement(intent: str) -> str:
-        normalized = intent.lower()
-        if "refund" in normalized:
-            return "refund.current_state"
-        if "security" in normalized:
-            return "account.security_events"
-        if "account" in normalized:
-            return "account.current_state"
-        return "order.current_state"
-
-    @staticmethod
-    def _action_requirement(intent: str) -> str:
-        if "refund" in intent.lower():
-            return "refund.request_action"
-        requirement_id = f"action:{intent.strip().lower() or 'unknown'}"
-        raise UnsupportedAuthority(
-            "no supported action authority for intent",
-            requirement_ids=(requirement_id,),
-        )
