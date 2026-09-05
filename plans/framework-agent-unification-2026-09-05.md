@@ -147,6 +147,15 @@ HumanMessage, never in SystemMessage, and the exposed tool set remains read-only
 These are message/authority boundary tests with a scripted model, not a claim of
 universal prompt-injection resistance. 44 tests pass; PostgreSQL restart test skips
 without a configured database URL.
+Retired legacy publication-feedback routing: removed ChatApplication's verification
+callback, AgentStats EWMA/feedback counters and scores, and Orchestrator feedback/
+monitor-penalty mutation methods. Retained execution availability/latency statistics.
+The still-pending legacy instance-selection contract receives zero quality samples,
+its registered prior and no monitor penalty; it is not another Target authority or
+fallback. Its immutable policy types remain until legacy Orchestrator removal.
+Monitoring regression now only checks observation of Target outcomes without routing
+mutation; current runtime tests distinguish waiting from success-rate samples.
+77 focused tests pass across legacy consumers, Target orchestration and HTTP adapters.
 Retired the obsolete HTTP handoff fixture's AgentOrchestrator/ReAct imports and
 private-global assembly. Its retry expectation created a second response, contrary
 to Target's invocation/publication idempotency. Target cutover now checks OOS replay

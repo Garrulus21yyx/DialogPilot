@@ -88,20 +88,11 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class AgentStats:
-    """Agent 运行时统计，供 Monitor 和路由决策使用。"""
+    """Legacy instance execution statistics pending runtime removal."""
     total:     int   = 0
     success:   int   = 0
     total_ms:  float = 0.0
-    monitor_penalty: float = 0.0
-    quality_samples: int = 0
-    verified_pass: int = 0
-    verified_reject: int = 0
-    verification_unknown: int = 0
-    quality_ewma: float = 0.5
 
-    QUALITY_ALPHA = 0.25
-    QUALITY_PRIOR = 0.5
-    QUALITY_FULL_CONFIDENCE_SAMPLES = 10
 
     @property
     def success_rate(self) -> float:
@@ -112,44 +103,6 @@ class AgentStats:
     def avg_ms(self) -> float:
         """计算该实例已完成请求的平均延迟。"""
         return self.total_ms / self.total if self.total else 0.0
-
-    @property
-    def quality_score(self) -> float:
-        """用带先验收缩的 EWMA 表达经校验的回答质量。"""
-        confidence = min(
-            1.0,
-            self.quality_samples / self.QUALITY_FULL_CONFIDENCE_SAMPLES,
-        )
-        return self.QUALITY_PRIOR * (1.0 - confidence) + self.quality_ewma * confidence
-
-    def record_verification(self, status: str) -> None:
-        """只把 PASS/REJECT 归因给生产该候选回答的实例。"""
-        normalized = str(getattr(status, "value", status)).lower()
-        if normalized == "unknown":
-            self.verification_unknown += 1
-            return
-        if normalized not in {"pass", "reject"}:
-            raise ValueError(f"unsupported verification status: {status}")
-        observation = 1.0 if normalized == "pass" else 0.0
-        self.quality_samples += 1
-        if normalized == "pass":
-            self.verified_pass += 1
-        else:
-            self.verified_reject += 1
-        self.quality_ewma = (
-            self.QUALITY_ALPHA * observation
-            + (1.0 - self.QUALITY_ALPHA) * self.quality_ewma
-        )
-
-    def routing_score(self) -> float:
-        """联合执行可用性、经校验质量、延迟和监控惩罚计算路由分。"""
-        latency_score = 1.0 / (1.0 + self.avg_ms / 1000)
-        base_score = (
-            self.success_rate * 0.35
-            + self.quality_score * 0.45
-            + latency_score * 0.20
-        )
-        return base_score * max(0.0, 1.0 - self.monitor_penalty)
 
 
 @dataclass
@@ -607,7 +560,7 @@ class AgentOrchestrator:
 
     路由逻辑（三层）：
       1. 意图 → Agent 类型映射
-      2. 同类多实例时按 routing_score() 选最优
+      2. 同类多实例由注册的实例选择策略选择
       3. 专属 Agent 失败时降级到 GeneralAgent
     """
 
@@ -1681,8 +1634,7 @@ class AgentOrchestrator:
         routing_trace: Optional[RoutingPolicyTrace] = None,
     ) -> Optional[BaseAgent]:
         """
-        性能路由：从同类 Agent 中选 routing_score() 最高的。
-        这是"基于在线表现动态调整路由"的核心。
+        Select a legacy instance using its registered availability policy.
         """
         agents = self._pool.get(agent_type, [])
         if not agents:
@@ -1696,9 +1648,10 @@ class AgentOrchestrator:
                 total=agent.stats.total,
                 success=agent.stats.success,
                 total_ms=agent.stats.total_ms,
-                quality_samples=agent.stats.quality_samples,
-                quality_ewma=agent.stats.quality_ewma,
-                monitor_penalty=agent.stats.monitor_penalty,
+                # No publication feedback producer remains on this legacy path.
+                quality_samples=0,
+                quality_ewma=registry.instance_selection.quality_prior,
+                monitor_penalty=0.0,
             )
             for agent in agents
         )
@@ -1958,7 +1911,7 @@ class AgentOrchestrator:
     # ── 统计（供 Monitor 读取）────────────────────────────────────────────────
 
     def get_stats(self) -> Dict[str, Any]:
-        """暴露各实例的可用性、质量、延迟与当前路由分数。"""
+        """Expose legacy instance execution counts and latency."""
         result = {}
         for agents in self._pool.values():
             for agent in agents:
@@ -1968,40 +1921,10 @@ class AgentOrchestrator:
                     "success_rate": round(agent.stats.success_rate, 3),
                     "execution_success_rate": round(agent.stats.success_rate, 3),
                     "avg_ms":       round(agent.stats.avg_ms, 1),
-                    "quality_samples": agent.stats.quality_samples,
-                    "verified_pass": agent.stats.verified_pass,
-                    "verified_reject": agent.stats.verified_reject,
-                    "verification_unknown": agent.stats.verification_unknown,
-                    "quality_ewma": round(agent.stats.quality_ewma, 3),
-                    "quality_score": round(agent.stats.quality_score, 3),
-                    "monitor_penalty": round(agent.stats.monitor_penalty, 3),
-                    "routing_score": round(agent.stats.routing_score(), 3),
                     "routing_pool_size": len(agents),
-                    "adaptive_routing_active": len(agents) >= 2,
                 }
         return result
 
-    def record_verification(self, agent_keys: List[str], status: str) -> None:
-        """Attribute a publication verdict only to the candidate's real producers."""
-        targets = set(agent_keys)
-        if not targets:
-            return
-        for agents in self._pool.values():
-            for agent in agents:
-                if agent.instance_id in targets:
-                    agent.stats.record_verification(status)
-
-    def update_routing_penalties(self, penalties: Dict[str, float]) -> None:
-        """
-        接收 Monitor 的在线表现反馈，动态调整路由惩罚项。
-
-        penalties 的 key 使用 get_stats() 中的 agent key，例如 technical_0。
-        """
-        for agents in self._pool.values():
-            for agent in agents:
-                key = agent.instance_id
-                penalty = penalties.get(key, 0.0)
-                agent.stats.monitor_penalty = min(max(penalty, 0.0), 0.9)
 
     def _ensure_routing_trace(self, req: Request) -> RoutingPolicyTrace:
         if req.routing_policy_trace is None:

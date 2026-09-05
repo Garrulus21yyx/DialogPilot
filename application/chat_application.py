@@ -668,12 +668,6 @@ class ChatApplication:
             "reason_code": verification.reason_code.value,
             "publishable": verification.publishable,
         }))
-        feedback_recorder = getattr(services.orchestrator, "record_verification", None)
-        if feedback_recorder:
-            try:
-                feedback_recorder(result.producer_agent_keys, verification.status.value)
-            except Exception:
-                logger.exception("记录 Agent 质量反馈失败 request_id=%s", request_id)
         response_text = result.response if approval_pending else ops.publish_candidate(
             publication_candidate, verification,
         )
