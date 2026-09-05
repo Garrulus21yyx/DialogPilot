@@ -133,7 +133,10 @@ def test_refund_policy_and_invoice_use_the_same_atomic_knowledge_tool():
     assert tuple(skill.skill_id for skill in registry.skills) == (
         "product_identification",
     )
-    assert _plan(refund, state, registry, "refund-policy").route.mode is RouteMode.DIRECT
+    assert (
+        _plan(refund, state, registry, "refund-policy").route.mode
+        is RouteMode.KNOWLEDGE_QA
+    )
 
 
 def test_structured_logistics_goal_reuses_direct_order_authority():
@@ -206,7 +209,7 @@ def test_product_qa_uses_one_atomic_knowledge_tool_across_product_categories():
         assert dict(
             (item.name, item.value) for item in proposal.commands[0].arguments
         ) == {"query": question}
-        assert plan.route.mode is RouteMode.DIRECT
+        assert plan.route.mode is RouteMode.KNOWLEDGE_QA
         assert plan.work.items[0].allowed_tools == ("knowledge_search",)
 
 

@@ -325,6 +325,43 @@ def test_security_signal_keeps_human_handoff_as_an_essential_coordination_action
     assert validated.reason_code == "CONVERSATION_AGENT_PLAN"
 
 
+def test_single_handoff_and_knowledge_paths_keep_their_route_semantics():
+    handoff, state, registry = _invoke(
+        ConversationAgent(Provider({
+            "status": "resolved",
+            "goals": [{"kind": "human_handoff"}],
+        })),
+        "我要人工客服处理",
+    )
+    knowledge, knowledge_state, _ = _invoke(
+        ConversationAgent(Provider({
+            "status": "resolved",
+            "goals": [{"kind": "refund_policy"}],
+        })),
+        "退款通常需要多久",
+    )
+    identity = IdentityFactory().create_invocation(
+        tenant_id="tenant-a", user_id="user-a",
+        conversation_id="conversation-a", request_id="route-semantics",
+    )
+
+    handoff_plan = TurnPlanCompiler().compile(
+        RoutePolicy().accept(handoff, state, registry),
+        state,
+        registry,
+        identity,
+    )
+    knowledge_plan = TurnPlanCompiler().compile(
+        RoutePolicy().accept(knowledge, knowledge_state, registry),
+        knowledge_state,
+        registry,
+        identity,
+    )
+
+    assert handoff_plan.route.mode is RouteMode.HANDOFF
+    assert knowledge_plan.route.mode is RouteMode.KNOWLEDGE_QA
+
+
 def test_every_registry_marked_action_is_preempted_before_work_plan_compilation():
     state = _state()
     registry = build_default_capability_registry("tenant-a")

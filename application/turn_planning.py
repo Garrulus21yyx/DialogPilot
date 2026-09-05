@@ -678,6 +678,16 @@ class TurnPlanCompiler:
 def _project_mode(items: tuple[WorkItem, ...]) -> RouteMode:
     owners = {item.owner_agent for item in items}
     modes = {item.control_mode for item in items}
+    if len(items) == 1 and items[0].requirement_ids == (
+        "support.handoff_action",
+    ):
+        return RouteMode.HANDOFF
+    if (
+        len(items) == 1
+        and items[0].control_mode is ControlMode.DIRECT
+        and items[0].allowed_tools == ("knowledge_search",)
+    ):
+        return RouteMode.KNOWLEDGE_QA
     if len(items) == 1 and modes == {ControlMode.DIRECT}:
         return RouteMode.DIRECT
     if len(owners) > 1 and modes == {ControlMode.DELEGATED}:
