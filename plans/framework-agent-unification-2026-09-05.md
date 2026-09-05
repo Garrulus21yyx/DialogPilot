@@ -2,6 +2,21 @@
 
 Status: in_progress
 
+Done: separated frozen X-T03 v1 evidence from the current Target security
+inventory. The full-suite failure reveals obsolete RunStore controls and VLM N/A,
+not just missing paths. Preserve v1 and its corpus hashes; add a v2 control map for
+ConversationState approval, governed writes, framework checkpoint/context and active
+media surfaces. Bind current controls to real test functions, validate references,
+and execute those behavioral tests. This is prototype assurance, not a penetration
+test or proof that all visual prompt injection is prevented.
+Verification: 201 tests pass with PostgreSQL enabled across the 16 referenced
+control test files plus inventory/corpus checks; one test skips. Current function
+references resolve, the original 13-case corpus and v1 model hashes remain unchanged,
+and the framework restart test checks its runtime credential sentinel against model
+messages and persisted checkpoint rows. This is scoped evidence, not general PII or
+hidden-pixel attack coverage. Update the incident runbook to current owners and
+capability-scoped containment. A clean committed full-suite rerun remains required.
+
 Done: refreshed the current architecture entrypoint against composition at
 ed6b7a5. Existing docs still describe deleted Python Orchestrator/ReAct/SQLite and
 synchronous chat. Make architecture.md the current owner map, mark older deep-dive
