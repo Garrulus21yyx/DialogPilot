@@ -85,6 +85,23 @@ class _CountingManager:
         return await self.manager.execute(prepared)
 
 
+class _FailOncePrepareManager(_CountingManager):
+    async def prepare(self, *args, **kwargs):
+        self.prepare_calls += 1
+        if self.prepare_calls == 1:
+            raise RuntimeError("injected prepare crash")
+        return await self.manager.prepare(*args, **kwargs)
+
+
+class _CrashAfterExecutionManager(_CountingManager):
+    async def execute(self, prepared):
+        self.execute_calls += 1
+        result = await self.manager.execute(prepared)
+        if self.execute_calls == 1:
+            raise RuntimeError("injected post-execution crash")
+        return result
+
+
 class _FailOnceAssembler:
     def __init__(self):
         self.calls = 0
@@ -104,16 +121,71 @@ def _identity():
     )
 
 
-def test_turn_graph_resumes_at_assembly_without_replanning_or_reexecuting_tools():
-    executor = _Executor()
-    manager = _CountingManager(TargetConversationManager(
+def _manager(executor, *, checkpointer=None):
+    return TargetConversationManager(
         state_store=InMemoryConversationStateStore(),
         registry=build_default_capability_registry("tenant-a"),
         understanding=_OrderUnderstanding(),
         orchestration=OrchestrationRuntime(
-            direct_executor=executor, domain_workers={},
+            direct_executor=executor,
+            domain_workers={},
+            checkpointer=checkpointer,
         ),
+    )
+
+
+def test_turn_graph_retries_failed_prepare_without_executing_work_early():
+    executor = _Executor()
+    manager = _FailOncePrepareManager(_manager(executor))
+    runtime = TurnRuntime(
+        manager,
+        ResponseAssembler(),
+        checkpointer=InMemorySaver(serde=target_checkpoint_serializer()),
+    )
+
+    with pytest.raises(RuntimeError, match="injected prepare crash"):
+        asyncio.run(runtime.execute(
+            _identity(), TurnObservations("查询订单 DP1234"),
+        ))
+
+    result = asyncio.run(runtime.execute(
+        _identity(), TurnObservations("查询订单 DP1234"),
     ))
+    assert result.assembled.text == "订单 DP1234 已发货。"
+    assert manager.prepare_calls == 2
+    assert manager.execute_calls == 1
+    assert executor.calls == 1
+
+
+def test_turn_graph_reuses_completed_work_plan_after_outer_execution_crash():
+    executor = _Executor()
+    checkpointer = InMemorySaver(serde=target_checkpoint_serializer())
+    manager = _CrashAfterExecutionManager(
+        _manager(executor, checkpointer=checkpointer),
+    )
+    runtime = TurnRuntime(
+        manager,
+        ResponseAssembler(),
+        checkpointer=checkpointer,
+    )
+
+    with pytest.raises(RuntimeError, match="injected post-execution crash"):
+        asyncio.run(runtime.execute(
+            _identity(), TurnObservations("查询订单 DP1234"),
+        ))
+
+    result = asyncio.run(runtime.execute(
+        _identity(), TurnObservations("查询订单 DP1234"),
+    ))
+    assert result.assembled.text == "订单 DP1234 已发货。"
+    assert manager.prepare_calls == 1
+    assert manager.execute_calls == 2
+    assert executor.calls == 1
+
+
+def test_turn_graph_resumes_at_assembly_without_replanning_or_reexecuting_tools():
+    executor = _Executor()
+    manager = _CountingManager(_manager(executor))
     assembler = _FailOnceAssembler()
     runtime = TurnRuntime(
         manager,
