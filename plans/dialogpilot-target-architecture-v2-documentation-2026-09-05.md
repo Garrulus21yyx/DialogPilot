@@ -30,15 +30,17 @@ Domain Agent、Tool/Skill/Flow、Verification 与 Publication 边界收敛为：
 - 不接受按句式、Intent、商品类别、单个 badcase 或失败测试添加特化生产分支；实施计划
   必须把修复落在权威 Owner、通用 typed contract 或状态转换，并用属性/状态机/生成式测试
   验证同一因果面。
+- 新接口最小化且单一职责；Manager、Graph builder 与 `api/main.py` 只组合端口，不承载
+  可独立变化的上下文、规划、验证、回复或持久化实现，防止形成 God File。
 
 ## 交付物
 
 | 阶段 | 状态 | 交付物 | 验证 | 提交 |
 |---|---|---|---|---|
-| 1 | in_progress | 本计划文件 | 约束与用户结论一致 | 待提交 |
-| 2 | pending | `docs/dialogpilot-target-architecture-v2.zh-CN.md` | 责任、数据流、状态与恢复合同完整 | 待提交 |
-| 3 | pending | `plans/dialogpilot-target-architecture-v2-implementation-2026-09-05.md` | 映射代码、测试、迁移与退出条件 | 待提交 |
-| 4 | pending | 全文一致性和读者问题检查 | 无重复 Owner、无冲突状态、现状/目标清晰 | 待提交 |
+| 1 | done | 本计划文件 | 约束与用户结论一致 | `5cc2372` |
+| 2 | done | `docs/dialogpilot-target-architecture-v2.zh-CN.md` | 责任、数据流、状态与恢复合同完整 | `7011b29`，后续简洁性修订待提交 |
+| 3 | done | `plans/dialogpilot-target-architecture-v2-implementation-2026-09-05.md` | 映射代码、测试、迁移与退出条件 | 待提交 |
+| 4 | in_progress | 全文一致性和读者问题检查 | 无重复 Owner、无冲突状态、现状/目标清晰 | 待提交 |
 
 ## 非目标
 
@@ -54,4 +56,5 @@ Domain Agent、Tool/Skill/Flow、Verification 与 Publication 边界收敛为：
 - 断线、进程崩溃、等待输入、审批、写结果未知、回复已提交但未送达均有唯一恢复 Owner。
 - 实施计划中的每个里程碑都有受影响文件、正向合同、迁移步骤、测试、观测和提交边界。
 - 每个里程碑明确反特化验收：没有新增 case-specific 路由表、关键词补丁或下游补偿逻辑。
+- 正式文档删去重复解释，接口与不变量优先；详细阶段动作只在实施计划出现一次。
 - 读者无需依赖本次对话即可区分 v1 当前实现和 v2 目标状态。
