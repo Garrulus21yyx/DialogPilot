@@ -4,6 +4,8 @@ from __future__ import annotations
 import hashlib
 import json
 import operator
+import time
+from collections import Counter
 from dataclasses import dataclass, field, replace
 from typing import Annotated, Awaitable, Callable, Mapping, Protocol, TypedDict
 
@@ -96,7 +98,28 @@ class OrchestrationRuntime:
         self._evidence_resolver = evidence_resolver
         self._checkpointer = checkpointer
         self._control_guard = control_guard
+        # Process-local execution observations, never routing or business authority.
+        self._outcome_counts: dict[str, Counter[str]] = {}
+        self._elapsed_ms: dict[str, float] = {}
         self.graph = self._build_graph()
+
+    def get_stats(self) -> dict[str, dict[str, object]]:
+        """Count completed worker invocations, not unique goals or answer quality."""
+        stats = {}
+        for owner, counts in self._outcome_counts.items():
+            total = sum(counts.values())
+            samples = sum(counts[status] for status in (
+                "SUCCEEDED", "PARTIAL", "RETRYABLE_FAILURE", "TERMINAL_FAILURE",
+            ))
+            stats[owner] = {
+                "total": total,
+                "outcome_counts": dict(counts),
+                "outcome_samples": samples,
+                "success_rate": counts["SUCCEEDED"] / samples if samples else None,
+                "avg_ms": self._elapsed_ms[owner] / total,
+                "scope": "process_worker_invocations",
+            }
+        return stats
 
     def _build_graph(self):
         builder = StateGraph(ParentGraphState)
@@ -215,6 +238,17 @@ class OrchestrationRuntime:
         }
 
     async def _execute_work_item(self, state: WorkerState):
+        started = time.perf_counter()
+        update = await self._run_work_item(state)
+        result = update["agent_results"][0]
+        owner = state["work_item"].owner_agent
+        self._outcome_counts.setdefault(owner, Counter())[result.status.value] += 1
+        self._elapsed_ms[owner] = (
+            self._elapsed_ms.get(owner, 0.0) + (time.perf_counter() - started) * 1000
+        )
+        return update
+
+    async def _run_work_item(self, state: WorkerState):
         item = state["work_item"]
         context = AgentContextView(
             item,

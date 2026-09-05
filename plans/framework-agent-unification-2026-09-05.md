@@ -40,11 +40,18 @@ messages and step recovery; ToolManager retains execution evidence and permissio
 
 Target path has no old-engine fallback. Repository-wide SQLite deletion is not complete.
 
-Next coherent cutover surface (inspected, not yet implemented): API startup still
-constructs AgentOrchestrator for health/monitoring and routing-only evaluation; the CLI
-still invokes its legacy run(). Evaluation's runner also imports old ChatApplication
-just for a factory return annotation. Remove these dependencies by using Target runtime
-observations, the retained intent component and the same Target application entrypoint.
+Current cutover work: health and PerformanceMonitor now read OrchestrationRuntime
+worker outcome counts and latency. These are process-local invocation observations,
+not durable goal counts or verified answer quality. Waiting/cancelled/superseded
+outcomes remain separate from completed-outcome success-rate samples. Monitoring no
+longer changes routing weights. CLI is now an authenticated client of the existing
+/chat and /invocations APIs; it submits once and polling never starts a second run.
+Transport evaluation imports ChatHandler from shared contracts, not old ChatApplication.
+39 focused runtime/monitor/CLI/evaluation tests pass; clean startup integration pending.
+
+Next cutover surface: API startup still constructs AgentOrchestrator for routing-only
+evaluation and legacy Skill/ToolManager injection. These remaining consumers must use
+the Target planning boundary rather than recreating another semantic router.
 Then migrate legacy evaluation harnesses and behavioral gates before removing old
 ChatApplication, compatibility execution, ReActExecutionEngine and its RunStore.
 ToolManager's optional execution_store claim branch remains another old RunStore

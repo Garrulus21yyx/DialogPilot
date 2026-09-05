@@ -7,8 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from application.chat_application import ChatApplication
-from application.chat_contracts import ChatCommand, ChatOutcome
+from application.chat_contracts import ChatCommand, ChatHandler, ChatOutcome
 
 
 class LockedTransportError(ValueError):
@@ -30,7 +29,7 @@ class LockedConversationTransportAdapter:
     status = "TRANSPORT_SMOKE"
     score_eligible = False
 
-    def __init__(self, application: ChatApplication, dataset_root: str | Path) -> None:
+    def __init__(self, application: ChatHandler, dataset_root: str | Path) -> None:
         self._application = application
         self._dataset_root = Path(dataset_root)
 

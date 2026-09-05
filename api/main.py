@@ -153,6 +153,8 @@ _target_run_coordinator = None
 _durable_chat_task = None
 _durable_chat_stop = None
 _target_chat_runtime = None
+_target_orchestration = None
+_intent_recognizer = None
 _target_checkpoint_owner = None
 _trace_recorder = TraceRecorder()
 _input_security_guard = PromptInjectionGuard()
@@ -205,6 +207,8 @@ def _anthropic_cfg() -> Dict[str, Any]:
 async def lifespan(app: FastAPI):
     """按依赖顺序创建所有组件，并在退出时释放后台任务和连接。"""
     global _orchestrator, _memory, _knowledge_store, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _commitment_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _bundle_registry, _proposal_generator, _bundle_resolver, _grounded_answer_generator, _postgres_pool, _conversation_query, _knowledge_retriever, _retrieval_cache_client, _target_run_coordinator, _durable_chat_task, _durable_chat_stop, _retrieval_postgres_pool, _service_episode_search, _media_asset_store, _media_asset_service, _vlm_provider, _postgres_trace_sink, _target_chat_runtime, _target_checkpoint_owner
+
+    global _target_orchestration, _intent_recognizer
 
     print(BANNER, flush=True)
 
@@ -275,6 +279,7 @@ async def lifespan(app: FastAPI):
         model_profile=_model_policy.profile(ModelRole.INTENT),
         cache_ttl_seconds=float(os.getenv("INTENT_CACHE_TTL_SECONDS", "3600")),
     )
+    _intent_recognizer = recognizer
 
     # Skills：启动时从目录加载业务能力说明，并在 Agent 调用 LLM 时动态注入。
     skills_dir = os.getenv("DIALOGPILOT_SKILLS_DIR", str(pathlib.Path(_ROOT) / "skills"))
@@ -585,6 +590,7 @@ async def lifespan(app: FastAPI):
         project_root=pathlib.Path(_ROOT),
     )
     _target_chat_runtime = target_components.application
+    _target_orchestration = target_components.orchestration
     _target_run_coordinator = target_components.coordinator
     _target_checkpoint_owner = target_components.checkpoint_owner
     _conversation_query.runtime_reader = target_components.run_store.runtime
@@ -620,7 +626,7 @@ async def lifespan(app: FastAPI):
     # 性能监控（可选启动 Prometheus）
     prom_port = int(os.getenv("PROMETHEUS_PORT", "0")) or None
     _monitor = PerformanceMonitor(
-        orchestrator=_orchestrator,
+        execution_runtime=_target_orchestration,
         tool_manager=_tool_manager,
         interval_s=float(os.getenv("MONITOR_INTERVAL", "10")),
         webhook_url=os.getenv("ALERT_WEBHOOK_URL") or None,
@@ -769,6 +775,8 @@ async def lifespan(app: FastAPI):
         _durable_chat_task = None
         _durable_chat_stop = None
         _target_chat_runtime = None
+        _target_orchestration = None
+        _intent_recognizer = None
         _target_checkpoint_owner = None
         logger.info("DialogPilot 已关闭")
 
@@ -1132,7 +1140,7 @@ class ConversationCloseRequest(BaseModel):
 @app.get("/health")
 async def health():
     """汇总依赖就绪状态和运行时统计，不承担业务健康修复。"""
-    if _orchestrator is None:
+    if _target_orchestration is None or _intent_recognizer is None:
         raise HTTPException(503, "服务未就绪")
     storage = {
         "memory": _memory.storage_backend if _memory is not None else None,
@@ -1144,12 +1152,15 @@ async def health():
     )
     return {
         "status": "ok",
-        "agents": _orchestrator.get_stats(),
+        "agents": _target_orchestration.get_stats(),
         "tools": _tool_manager.get_stats() if _tool_manager is not None else {},
         "storage": storage,
         "model_policy": _model_policy.to_dict() if _model_policy is not None else None,
         "input_security": _input_security_guard.get_stats(),
-        "intent_recognizer": _orchestrator.intent_runtime(active_bundle),
+        "intent_recognizer": {
+            **_intent_recognizer.cache_stats,
+            "classifier_fingerprint": _intent_recognizer.classifier_fingerprint(active_bundle),
+        },
         "badcases": _badcase_registry.stats() if _badcase_registry is not None else {},
         "memory_fact_jobs": _memory.fact_job_stats if _memory is not None else {},
         "response_delivery": _response_delivery.stats() if _response_delivery is not None else {},
@@ -3226,87 +3237,11 @@ async def run_eval(
     }
 
 
-# ── 交互式 CLI ────────────────────────────────────────────────────────────────
-async def _cli():
-    """提供无需启动 HTTP 服务的最小交互式调试入口。"""
-    print(BANNER)
-    print("DialogPilot CLI — 输入 quit 退出\n")
-
-    from agents.agent_orchestrator import AgentOrchestrator, Request
-    from memory.conversation_memory import MemoryManager, MsgRole
-    from core.skill_loader import SkillManager
-
-    cfg = _anthropic_cfg()
-    skill_manager = SkillManager(
-        root_dir=os.getenv("DIALOGPILOT_SKILLS_DIR", str(pathlib.Path(_ROOT) / "skills")),
-        max_prompt_chars=int(os.getenv("DIALOGPILOT_SKILLS_MAX_PROMPT_CHARS", "5000")),
-    )
-    skill_manager.load()
-    orch = AgentOrchestrator(
-        api_key=cfg["api_key"],
-        base_url=cfg.get("base_url"),
-        model=cfg["model"],
-        skill_manager=skill_manager,
-        intent_similarity_mode=os.getenv("INTENT_SIMILARITY_MODE", "ngram"),
-    )
-    mem  = MemoryManager(
-        redis_url=os.getenv("REDIS_URL", "redis://localhost:6379/0"),
-        api_key=cfg["api_key"],
-        base_url=cfg.get("base_url"),
-        model=cfg["model"],
-    )
-
-    user_id, conv_id = "cli_user", str(uuid.uuid4())
-    identity_factory = IdentityFactory()
-
-    while True:
-        try:
-            msg = input("你: ").strip()
-        except (EOFError, KeyboardInterrupt):
-            print("\n再见 ʕ•ᴥ•ʔ")
-            break
-        if not msg or msg.lower() in ("quit", "exit", "退出"):
-            print("再见 ʕ•ᴥ•ʔ")
-            break
-
-        ctx = await mem.get_context(user_id, conv_id, query=msg)
-        history = [
-            {"role": m.role.value, "content": m.content}
-            for m in ctx.recent_messages[-5:]
-        ] if ctx.recent_messages else None
-        identity = identity_factory.create_invocation(
-            tenant_id="cli",
-            user_id=user_id,
-            conversation_id=conv_id,
-            request_id=None,
-        )
-        req = Request(
-            message=msg,
-            user_id=user_id,
-            conv_id=conv_id,
-            request_id=str(identity.request_id),
-            identity_metadata=identity.metadata(),
-            context=ctx.to_prompt_text(),
-            history=history,
-        )
-        result = await orch.run(req)
-
-        disposition = getattr(result.routing_disposition, "value", result.routing_disposition)
-        if disposition != "out_of_scope":
-            await mem.add_messages(user_id, conv_id, [
-                (MsgRole.USER, msg, identity.metadata()),
-                (MsgRole.ASSISTANT, result.response, identity.metadata()),
-            ])
-
-        responder = result.agent_type.value if result.agent_type else "orchestrator"
-        print(f"\nDialogPilot [{responder}]: {result.response}\n")
-
-    await mem.close()
-
-
 if __name__ == "__main__":
     if "--cli" in sys.argv:
-        asyncio.run(_cli())
+        from api.cli import run_cli
+
+        asyncio.run(run_cli())
     else:
         uvicorn.run(
             "api.main:app",

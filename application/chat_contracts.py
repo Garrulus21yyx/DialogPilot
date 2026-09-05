@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Mapping, Optional, TypeAlias
+from typing import Any, Mapping, Optional, Protocol, TypeAlias
 
 
 class StageStatus(str, Enum):
@@ -128,3 +128,7 @@ ChatOutcome: TypeAlias = (
     | Conflict
     | Failed
 )
+
+
+class ChatHandler(Protocol):
+    async def handle(self, command: ChatCommand) -> ChatOutcome: ...

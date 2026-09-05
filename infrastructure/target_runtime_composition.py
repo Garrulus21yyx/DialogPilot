@@ -71,6 +71,7 @@ class TargetRuntimeComponents:
     coordinator: TargetRunCoordinator
     run_store: PostgresTargetRunStore
     checkpoint_owner: AsyncPostgresCheckpointOwner
+    orchestration: OrchestrationRuntime
 
 
 async def build_target_runtime(
@@ -196,6 +197,7 @@ async def build_target_runtime(
             coordinator,
             run_store,
             checkpoint_owner,
+            orchestration,
         )
     except BaseException:
         await checkpoint_owner.__aexit__(None, None, None)

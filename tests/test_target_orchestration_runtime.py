@@ -194,6 +194,46 @@ class DependencyCapturingExecutor:
         )
 
 
+@pytest.mark.parametrize("status", tuple(AgentResultStatus))
+def test_runtime_statistics_preserve_typed_outcomes_without_inventing_quality(status):
+    item = _item("metrics-1", "general", ControlMode.DIRECT, "general.answer")
+
+    async def worker(context):
+        return AgentResult(
+            item.work_item_id, item.owner_agent, status, status.value, "metrics-test-v1",
+            missing_inputs=(MissingInputSpec(
+                "reference", item.work_item_id, "REQUIRED", "string", "请提供引用",
+            ),) if status is AgentResultStatus.NEEDS_USER_INPUT else (),
+            requested_evidence=(EvidenceRequest(
+                "general.answer", item.work_item_id, ("knowledge",),
+            ),) if status is AgentResultStatus.NEEDS_EVIDENCE else (),
+            retryable=status is AgentResultStatus.RETRYABLE_FAILURE,
+        )
+
+    runtime = OrchestrationRuntime(direct_executor=worker, domain_workers={})
+    asyncio.run(runtime._execute_work_item({
+        "work_item": item, "current_message": "查询", "facts": (),
+        "recent_relevant_turns": (), "evidence_refs": (), "token_budget": 1000,
+    }))
+    snapshot = runtime.get_stats()["general"]
+    assert snapshot["total"] == 1
+    assert snapshot["outcome_counts"] == {status.value: 1}
+    assert snapshot["avg_ms"] >= 0
+    assert "quality_score" not in snapshot
+    if status is AgentResultStatus.SUCCEEDED:
+        assert snapshot["success_rate"] == 1
+    elif status in {
+        AgentResultStatus.PARTIAL, AgentResultStatus.RETRYABLE_FAILURE,
+        AgentResultStatus.TERMINAL_FAILURE,
+    }:
+        assert snapshot["success_rate"] == 0
+    else:
+        assert snapshot["outcome_samples"] == 0
+        assert snapshot["success_rate"] is None
+    snapshot["outcome_counts"].clear()
+    assert runtime.get_stats()["general"]["outcome_counts"] == {status.value: 1}
+
+
 def test_direct_path_executes_without_starting_a_domain_agent():
     item = _item(
         "order-1", "order_logistics", ControlMode.DIRECT, "order.current_state",

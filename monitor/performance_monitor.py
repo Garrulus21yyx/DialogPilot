@@ -1,16 +1,4 @@
-"""
-亮点：利用 Monitor 监控 Agent 在线表现
-
-核心问题：如何利用 Monitor 监控 Agent 的在线表现？
-
-本模块的答案：
-  1. 实时采集 —— 每隔 N 秒从 Orchestrator 和 ToolManager 拉取最新统计
-  2. 异常检测 —— Z-score 统计方法，自动发现指标突变
-  3. 路由反馈 —— 将 Agent 成功率/延迟写回 Orchestrator，
-     Orchestrator 的 _best_agent() 会结合执行可用性、校验质量和延迟调整路由
-  4. 优化建议 —— 基于规则生成可操作的优化建议（不是空话）
-  5. 告警 —— 超阈值时打日志 + 可选 Webhook
-"""
+"""Read-only process execution and tool metrics, alerts and operational advice."""
 import asyncio
 import logging
 import statistics
@@ -123,14 +111,14 @@ class PerformanceMonitor:
 
     def __init__(
         self,
-        orchestrator,
+        execution_runtime,
         tool_manager,
         interval_s:       float = 10.0,
         webhook_url:      Optional[str] = None,
         prometheus_port:  Optional[int] = None,   # None = 不启动
     ):
         """连接指标生产者，配置采集周期、Webhook 和可选 Prometheus。"""
-        self._orchestrator = orchestrator
+        self._execution_runtime = execution_runtime
         self._tool_manager = tool_manager
         self._interval     = interval_s
         self._webhook      = webhook_url
@@ -150,7 +138,6 @@ class PerformanceMonitor:
         """注册进程级指标并启动独立 Prometheus HTTP 端口。"""
         self._prom = {
             "agent_success_rate": Gauge("agent_success_rate", "Agent 成功率", ["agent"]),
-            "agent_quality_score": Gauge("agent_quality_score", "经样本置信度收缩的 Agent 回答质量", ["agent"]),
             "agent_latency_ms":   Histogram("agent_latency_ms", "Agent 延迟", ["agent"]),
             "tool_success_rate":  Gauge("tool_success_rate", "工具成功率", ["tool"]),
             "requests_total":     Counter("requests_total", "总请求数"),
@@ -193,16 +180,16 @@ class PerformanceMonitor:
         """
         采集 Agent 和工具的实时统计，检测异常，生成建议。
 
-        关键：这里读取的 stats 就是 Orchestrator/ToolManager 在处理请求时
+        关键：这里读取的 stats 就是 Target Runtime/ToolManager 在处理请求时
         实时更新的数据，Monitor 不需要额外埋点。
         """
-        agent_stats = self._orchestrator.get_stats()
+        agent_stats = self._execution_runtime.get_stats()
         tool_stats  = self._tool_manager.get_stats()
-        routing_penalties: Dict[str, float] = {}
-
         # ── Agent 指标 ────────────────────────────────────────────────────────
         for agent_key, s in agent_stats.items():
             sr  = s["success_rate"]
+            if sr is None:
+                continue
             ms  = s["avg_ms"]
 
             # 异常检测
@@ -219,14 +206,6 @@ class PerformanceMonitor:
             if "agent_success_rate" in self._prom:
                 self._prom["agent_success_rate"].labels(agent=agent_key).set(sr)
                 self._prom["agent_latency_ms"].labels(agent=agent_key).observe(ms)
-                self._prom["agent_quality_score"].labels(agent=agent_key).set(s["quality_score"])
-
-            # 只有同类型至少两个候选实例时，惩罚才可能改变选择结果。
-            routing_penalties[agent_key] = (
-                self._routing_penalty(sr, ms)
-                if s.get("adaptive_routing_active", False)
-                else 0.0
-            )
 
         # ── 工具指标 ──────────────────────────────────────────────────────────
         for tool_name, s in tool_stats.items():
@@ -249,21 +228,7 @@ class PerformanceMonitor:
                     priority=9,
                 ))
 
-        # ── 路由优化建议 ──────────────────────────────────────────────────────
-        updater = getattr(self._orchestrator, "update_routing_penalties", None)
-        if updater:
-            updater(routing_penalties)
-        self._generate_routing_suggestions(agent_stats)
-
-    @staticmethod
-    def _routing_penalty(success_rate: float, avg_ms: float) -> float:
-        """把在线表现转成 0-0.9 的路由降权系数。"""
-        penalty = 0.0
-        if success_rate < 0.90:
-            penalty += min(0.5, (0.90 - success_rate) * 2)
-        if avg_ms > 3000:
-            penalty += min(0.4, (avg_ms - 3000) / 10000)
-        return min(penalty, 0.9)
+        self._generate_execution_suggestions(agent_stats)
 
     def _check_threshold(self, metric: str, value: float, label: str) -> None:
         """按指标方向判断阈值，并异步触发非阻塞告警。"""
@@ -286,26 +251,15 @@ class PerformanceMonitor:
             if self._webhook:
                 asyncio.create_task(self._send_webhook(alert))
 
-    def _generate_routing_suggestions(self, agent_stats: Dict[str, Any]) -> None:
-        """
-        基于 Agent 在线表现生成路由优化建议。
-        这是 Monitor → Orchestrator 反馈闭环的体现。
-        """
-        for agent_key, s in agent_stats.items():
-            if s["success_rate"] < 0.85 and s["total"] > 10:
-                adaptive = s.get("adaptive_routing_active", False)
+    def _generate_execution_suggestions(self, agent_stats: Dict[str, Any]) -> None:
+        """Read-only operational advice; observations cannot change task ownership."""
+        for agent_key, stats in agent_stats.items():
+            rate = stats["success_rate"]
+            if rate is not None and rate < 0.85 and stats["outcome_samples"] > 10:
                 self._add_suggestion(Suggestion(
-                    title=f"Agent {agent_key} 成功率偏低",
-                    detail=f"成功率 {s['success_rate']:.1%}，路由评分 {s['routing_score']:.3f}",
-                    action=((
-                        "Orchestrator 已在同类型候选中降低该实例的路由权重。\n"
-                    ) if adaptive else (
-                        "当前同类型只有一个实例，降权不会改变路由，需先增加备选实例。\n"
-                    )) + (
-                        "建议：1. 检查 system_prompt 是否需要优化\n"
-                        "      2. 检查该类型问题的复杂度是否超出 Agent 能力\n"
-                        "      3. 考虑增加同类型 Agent 实例"
-                    ),
+                    title=f"Agent {agent_key} 执行成功率偏低",
+                    detail=f"已返回执行结果的成功率 {rate:.1%}",
+                    action="检查失败状态、工具依赖和领域 Prompt；监控不会自动修改路由。",
                     priority=8,
                 ))
 
@@ -329,7 +283,7 @@ class PerformanceMonitor:
     def summary(self) -> Dict[str, Any]:
         """返回当前监控摘要，供 API 层暴露。"""
         return {
-            "agent_stats":   self._orchestrator.get_stats(),
+            "agent_stats":   self._execution_runtime.get_stats(),
             "tool_stats":    self._tool_manager.get_stats(),
             "active_alerts": [asdict(a) for a in self._alerts if not a.resolved][-10:],
             "suggestions":   [
