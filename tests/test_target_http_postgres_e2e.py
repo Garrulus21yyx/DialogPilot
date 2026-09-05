@@ -9,6 +9,7 @@ from application.default_capability_registry import build_default_capability_reg
 from application.orchestration_runtime import OrchestrationRuntime
 from application.target_chat_application import TargetChatApplication
 from application.target_conversation_manager import TargetConversationManager
+from application.target_run import TargetRunCoordinator
 from application.target_encoder_artifact import load_target_text_encoder_artifact
 from application.target_encoder_understanding import TargetEncoderUnderstanding
 from application.conversation_agent import ConversationAgent
@@ -19,8 +20,14 @@ from application.target_understanding import (
 from core.auth import Principal
 from infrastructure.langgraph_checkpoint import AsyncPostgresCheckpointOwner
 from infrastructure.postgres import PostgresMigrationRunner, PostgresPool, PostgresPoolConfig
+from infrastructure.postgres_admission import PostgresStartOutbox, StartOutboxDispatcher
+from infrastructure.postgres_conversation import PostgresInvocationRepository
 from infrastructure.postgres_response_delivery import PostgresResponseDeliveryService
 from infrastructure.postgres_target_runtime import PostgresConversationStateStore
+from infrastructure.postgres_target_run import (
+    PostgresTargetRunBinder,
+    PostgresTargetRunStore,
+)
 from infrastructure.target_chat_adapters import (
     PostgresTargetAdmission,
     PostgresTargetPublication,
@@ -314,13 +321,27 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                         checkpointer=checkpointer,
                     ),
                 ),
-                admission=PostgresTargetAdmission(pool),
+                admission=PostgresTargetAdmission(pool, durable=True),
                 publication=PostgresTargetPublication(PostgresResponseDeliveryService(
                     pool, resume_binding_secret="target-e2e-secret",
                 )),
                 bundle_version=registry.bundle_version,
             )
+            run_store = PostgresTargetRunStore(pool)
+            coordinator = TargetRunCoordinator(
+                runtime,
+                dispatcher=StartOutboxDispatcher(
+                    PostgresStartOutbox(pool),
+                    PostgresInvocationRepository(pool),
+                    PostgresTargetRunBinder(pool),
+                ),
+                store=run_store,
+                worker_id=f"target-e2e-{prefix}",
+                heartbeat_seconds=1,
+                execution_lease_seconds=10,
+            )
             monkeypatch.setattr(main, "_target_chat_runtime", runtime)
+            monkeypatch.setattr(main, "_target_run_coordinator", coordinator)
             transport = httpx.ASGITransport(app=main.app)
             async with httpx.AsyncClient(
                 transport=transport, base_url="http://target.test",
@@ -328,13 +349,21 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                 async def chat(
                     case, message, *, assets=(), request_suffix="request", **extra,
                 ):
-                    return await client.post("/chat", json={
+                    payload = {
                         "message": message,
                         "conv_id": f"{prefix}-{case}",
                         "request_id": f"{prefix}-{case}-{request_suffix}",
                         "asset_ids": list(assets),
                         **extra,
-                    })
+                    }
+                    response = await client.post("/chat", json=payload)
+                    if (
+                        response.status_code == 202
+                        and response.json().get("outcome") == "accepted"
+                    ):
+                        await coordinator.pump_once()
+                        response = await client.post("/chat", json=payload)
+                    return response
 
                 order = await chat("order", "查订单 DP1234 物流")
                 eligibility = await chat(

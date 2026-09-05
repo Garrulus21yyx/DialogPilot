@@ -1,8 +1,8 @@
 # DialogPilot Target Architecture v2 实施计划
 
-状态：待实施  
-日期：2026-09-05  
-目标架构：`docs/dialogpilot-target-architecture-v2.zh-CN.md`  
+状态：已实施（Target 因果面已收敛验证）
+日期：2026-09-05
+目标架构：`docs/dialogpilot-target-architecture-v2.zh-CN.md`
 实现基线：`512d1c0`
 
 ## 1. 目标与约束
@@ -86,7 +86,7 @@ God File 以多个权威/变化原因判定；过度拆分以无语义的一对�
 | M9 | 按领域迁移框架 Agent/Subgraph | M5/M8 |
 | M10 | 属性、故障注入、heldout 与真实 E2E | 全部 |
 
-当前进度：M0-M9 `done`；M10 `in_progress`。
+当前进度：M0-M10 `done`。
 
 ## 5. M0：冻结基线
 
@@ -506,6 +506,23 @@ C. B + Encoder Fast Path
 unsupported final claim、重连产生新 Publication 或新业务执行。
 
 提交：`test(target): close v2 conversation runtime invariants`
+
+实施记录（2026-09-05）：
+
+- 将真实 PostgreSQL HTTP E2E 从旧同步 runtime 调用迁移到 durable Admission → Start Outbox
+  → Run Coordinator → TurnGraph → WorkPlan → Publication 主链，测试不再绕过 M6 的 Run Owner；
+- ResultBoard 改以 WorkPlan 为并行结果的投影顺序权威，并以全部完成顺序排列验证 Result、Fact
+  和 Snapshot 不变；
+- 评测中的 Tool consumption 改为多重集合比较：独立并行顺序不影响得分，但缺失或重复调用
+  仍然失败；
+- 对全部 SafetyInvariant 验证 capability-scoped fail-closed：失败能力被禁用，不相关能力继续；
+- 正式收敛报告见
+  `docs/dialogpilot-target-architecture-v2-validation-2026-09-05.zh-CN.md`；
+- 当前工程实践使用 LangGraph 与 OpenAI Agents SDK 官方资料进行对照，结论为成熟
+  manager-worker / governed execution 模式，不宣称 SOTA；
+- Target 专项（含真实 PostgreSQL）：`166 passed in 18.27s`；
+- 仓库级（真实 PostgreSQL）：`1251 passed, 6 failed in 251.83s`。六项失败均由另一组未提交
+  RAG Policy/Bundle 合同不一致触发，本阶段未增加跨 Owner 兼容补丁。
 
 ## 16. 提交与退出清单
 

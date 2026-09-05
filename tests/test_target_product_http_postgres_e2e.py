@@ -19,9 +19,12 @@ from application.orchestration_runtime import OrchestrationRuntime
 from application.perception import PerceptionArtifact
 from application.target_chat_application import TargetChatApplication
 from application.target_conversation_manager import TargetConversationManager
+from application.target_run import TargetRunCoordinator
 from application.target_understanding import BoundedTargetUnderstanding
 from infrastructure.langgraph_checkpoint import AsyncPostgresCheckpointOwner
 from infrastructure.postgres import PostgresMigrationRunner, PostgresPool, PostgresPoolConfig
+from infrastructure.postgres_admission import PostgresStartOutbox, StartOutboxDispatcher
+from infrastructure.postgres_conversation import PostgresInvocationRepository
 from infrastructure.postgres_media_asset_store import (
     MediaAssetService,
     PostgresMediaAssetStore,
@@ -29,6 +32,10 @@ from infrastructure.postgres_media_asset_store import (
 )
 from infrastructure.postgres_response_delivery import PostgresResponseDeliveryService
 from infrastructure.postgres_target_runtime import PostgresConversationStateStore
+from infrastructure.postgres_target_run import (
+    PostgresTargetRunBinder,
+    PostgresTargetRunStore,
+)
 from infrastructure.target_chat_adapters import PostgresTargetAdmission, PostgresTargetPublication
 from infrastructure.target_product_execution import TargetProductExecutor
 from infrastructure.target_tool_execution import TargetToolExecutor
@@ -99,13 +106,26 @@ def test_uploaded_asset_reaches_real_product_tools_and_catalog(
                         checkpointer=checkpointer,
                     ),
                 ),
-                admission=PostgresTargetAdmission(pool),
+                admission=PostgresTargetAdmission(pool, durable=True),
                 publication=PostgresTargetPublication(PostgresResponseDeliveryService(
                     pool, resume_binding_secret="product-e2e-secret",
                 )),
                 bundle_version=registry.bundle_version,
             )
+            coordinator = TargetRunCoordinator(
+                runtime,
+                dispatcher=StartOutboxDispatcher(
+                    PostgresStartOutbox(pool),
+                    PostgresInvocationRepository(pool),
+                    PostgresTargetRunBinder(pool),
+                ),
+                store=PostgresTargetRunStore(pool),
+                worker_id=f"target-product-e2e-{prefix}",
+                heartbeat_seconds=1,
+                execution_lease_seconds=10,
+            )
             monkeypatch.setattr(main, "_target_chat_runtime", runtime)
+            monkeypatch.setattr(main, "_target_run_coordinator", coordinator)
             transport = httpx.ASGITransport(app=main.app)
             async with httpx.AsyncClient(transport=transport, base_url="http://target.test") as client:
                 upload = await client.post(
@@ -115,12 +135,17 @@ def test_uploaded_asset_reaches_real_product_tools_and_catalog(
                 )
                 assert upload.status_code == 201, upload.text
                 asset_id = upload.json()["asset_id"]
-                response = await client.post("/chat", json={
+                payload = {
                     "message": "识别这张图的商品型号",
                     "conv_id": f"{prefix}-product",
                     "request_id": f"{prefix}-chat",
                     "asset_ids": [asset_id],
-                })
+                }
+                response = await client.post("/chat", json=payload)
+                assert response.status_code == 202, response.text
+                assert response.json()["outcome"] == "accepted"
+                await coordinator.pump_once()
+                response = await client.post("/chat", json=payload)
                 return response, asset_id
 
     try:

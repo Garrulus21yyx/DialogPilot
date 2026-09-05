@@ -1,15 +1,16 @@
 # DialogPilot Target Architecture v2
 
-状态：冻结目标架构（实现中）  
-日期：2026-09-05  
-当前实现基线：`512d1c0`
+状态：冻结架构（v2 主链已实施）
+日期：2026-09-05
+原始实现基线：`512d1c0`
 
 ## 1. 目标
 
 在 v1 已完成的受控执行主链上，补齐统一 Conversation Agent、上下文指代、按需回复合成、
 后台 Run、SSE 重连和模型调用前预算管理。
 
-本文描述目标合同，不把未实现能力写成现状。v1 证据见
+本文描述已实施的 v2 合同。收敛证据见
+`docs/dialogpilot-target-architecture-v2-validation-2026-09-05.zh-CN.md`，v1 证据见
 `docs/target-architecture-v1-core-report.zh-CN.md`。
 
 分阶段落地见 `plans/dialogpilot-target-architecture-v2-implementation-2026-09-05.md`。
@@ -407,7 +408,7 @@ God File 的问题是混入多个权威和变化原因，不是文件较长；�
 14. 模块拆并由职责、权限、生命周期和变化耦合决定；既不形成多权威 God File，也不形成
     一对一转发的接口碎片。
 
-## 19. 当前差距
+## 19. v1 到 v2 的已完成迁移
 
 | v1 | v2 |
 |---|---|

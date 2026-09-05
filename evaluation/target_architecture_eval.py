@@ -1,6 +1,7 @@
 """Target v1 six-layer evaluation funnel with capability-scoped hard gates."""
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass
 from enum import Enum
 from typing import Mapping
@@ -147,7 +148,10 @@ class TargetArchitectureEvaluator:
         consumption = _check(
             FunnelLayer.CONSUMPTION,
             (
-                (observed.tool_calls == expected.tool_calls, "TOOL_CONSUMPTION_MISMATCH"),
+                (
+                    Counter(observed.tool_calls) == Counter(expected.tool_calls),
+                    "TOOL_CONSUMPTION_MISMATCH",
+                ),
                 (len(set(observed.work_item_ids)) == len(observed.work_item_ids),
                  "DUPLICATE_WORK_ITEM"),
             ),

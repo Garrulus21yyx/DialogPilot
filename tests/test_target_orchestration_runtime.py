@@ -1,4 +1,5 @@
 import asyncio
+import itertools
 from dataclasses import replace
 from datetime import datetime, timezone
 
@@ -192,6 +193,44 @@ def test_direct_path_executes_without_starting_a_domain_agent():
     assert board.complete is True
     assert calls == [("order-1", "start"), ("order-1", "end")]
     assert board.results[0].owner_agent == "order_logistics"
+
+
+def test_result_board_is_invariant_to_parallel_completion_order():
+    items = tuple(
+        _item(f"work-{index}", f"owner-{index}", ControlMode.DIRECT, f"fact.{index}")
+        for index in range(3)
+    )
+    plan = WorkPlan(items, items[0].work_item_id)
+    results = tuple(
+        AgentResult(
+            item.work_item_id,
+            item.owner_agent,
+            AgentResultStatus.SUCCEEDED,
+            "DONE",
+            "test-v1",
+            facts=(_fact(item, str(index)),),
+        )
+        for index, item in enumerate(items)
+    )
+
+    snapshots = tuple(
+        ResultBoard().evaluate(plan, permutation)
+        for permutation in itertools.permutations(results)
+    )
+
+    expected_result_ids = tuple(item.work_item_id for item in items)
+    expected_fact_ids = tuple(item.requirement_ids[0] for item in items)
+    assert all(
+        tuple(result.work_item_id for result in snapshot.results)
+        == expected_result_ids
+        for snapshot in snapshots
+    )
+    assert all(
+        tuple(fact.requirement_id for fact in snapshot.facts)
+        == expected_fact_ids
+        for snapshot in snapshots
+    )
+    assert all(snapshot == snapshots[0] for snapshot in snapshots[1:])
 
 
 def test_single_delegated_task_invokes_only_its_domain_worker():

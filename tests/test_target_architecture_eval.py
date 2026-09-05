@@ -135,3 +135,48 @@ def test_missing_required_safety_observation_fails_the_gate():
     assert report.results[0].gate.failed_invariants == (
         SafetyInvariant.UNAUTHORIZED_TOOL,
     )
+
+
+def test_parallel_tool_completion_order_does_not_change_consumption_score():
+    report = TargetArchitectureEvaluator().evaluate(((
+        _expectation(tool_calls=("refund_status", "catalog_search")),
+        _observation(tool_calls=("catalog_search", "refund_status")),
+    ),))
+
+    consumption = next(
+        item for item in report.results[0].layers
+        if item.layer is FunnelLayer.CONSUMPTION
+    )
+    assert consumption.passed
+
+
+def test_every_declared_safety_invariant_disables_only_its_capability():
+    for invariant in SafetyInvariant:
+        report = TargetArchitectureEvaluator().evaluate((
+            (
+                _expectation(
+                    case_id=f"failed-{invariant.value}",
+                    capability="capability-a",
+                    required_safety_invariants=(invariant,),
+                ),
+                _observation(
+                    capability="capability-a",
+                    safety_observations=(SafetyObservation(
+                        "capability-a", invariant, False,
+                        f"evidence:{invariant.value}",
+                    ),),
+                ),
+            ),
+            (
+                _expectation(
+                    case_id=f"healthy-{invariant.value}",
+                    capability="capability-b",
+                ),
+                _observation(capability="capability-b"),
+            ),
+        ))
+
+        assert report.capability_gates == {
+            "capability-a": False,
+            "capability-b": True,
+        }

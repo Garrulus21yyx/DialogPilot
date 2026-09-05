@@ -77,8 +77,16 @@ class ResultBoard:
                     "UPSTREAM_NOT_SUCCESSFUL:" + ",".join(failed_dependencies),
                     self.version,
                 ))
-        effective = (*results, *blocked)
-        effective_by_id = {item.work_item_id: item for item in effective}
+        effective_by_id = {
+            item.work_item_id: item for item in (*by_id.values(), *blocked)
+        }
+        # Parallel reducers may deliver Worker results in any completion order.
+        # The WorkPlan is the ordering authority for every downstream projection.
+        effective = tuple(
+            effective_by_id[item.work_item_id]
+            for item in plan.items
+            if item.work_item_id in effective_by_id
+        )
         ready = tuple(
             item for item in plan.items
             if item.work_item_id not in effective_by_id
