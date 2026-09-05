@@ -38,9 +38,9 @@ Domain Agent、Tool/Skill/Flow、Verification 与 Publication 边界收敛为：
 | 阶段 | 状态 | 交付物 | 验证 | 提交 |
 |---|---|---|---|---|
 | 1 | done | 本计划文件 | 约束与用户结论一致 | `5cc2372` |
-| 2 | done | `docs/dialogpilot-target-architecture-v2.zh-CN.md` | 责任、数据流、状态与恢复合同完整 | `7011b29`，后续简洁性修订待提交 |
-| 3 | done | `plans/dialogpilot-target-architecture-v2-implementation-2026-09-05.md` | 映射代码、测试、迁移与退出条件 | 待提交 |
-| 4 | in_progress | 全文一致性和读者问题检查 | 无重复 Owner、无冲突状态、现状/目标清晰 | 待提交 |
+| 2 | done | `docs/dialogpilot-target-architecture-v2.zh-CN.md` | 责任、数据流、状态与恢复合同完整 | `7011b29`，简洁性修订 `f60c4de` |
+| 3 | done | `plans/dialogpilot-target-architecture-v2-implementation-2026-09-05.md` | 映射代码、测试、迁移与退出条件 | `f60c4de` |
+| 4 | done | 全文一致性和读者问题检查 | 无重复 Owner、无冲突状态、现状/目标清晰 | 本次最终提交 |
 
 ## 非目标
 
@@ -58,3 +58,11 @@ Domain Agent、Tool/Skill/Flow、Verification 与 Publication 边界收敛为：
 - 每个里程碑明确反特化验收：没有新增 case-specific 路由表、关键词补丁或下游补偿逻辑。
 - 正式文档删去重复解释，接口与不变量优先；详细阶段动作只在实施计划出现一次。
 - 读者无需依赖本次对话即可区分 v1 当前实现和 v2 目标状态。
+
+## 最终检查结果
+
+- 架构文档可直接回答对话、理解、Intent、调度、Context、Memory、恢复与交付 Owner；
+- 实施计划 M0-M10 均包含正向合同、验证和独立提交边界；
+- ConversationManager、Graph、API、Planner、Composer、Run 与 SSE 没有重叠 Owner；
+- 已明确禁止句式/Intent/商品类别/badcase 特化和 God File；
+- 三份文档通过 `git diff --check`、必需章节与本地链接存在性检查。

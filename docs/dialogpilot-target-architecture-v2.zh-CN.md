@@ -12,6 +12,8 @@
 本文描述目标合同，不把未实现能力写成现状。v1 证据见
 `docs/target-architecture-v1-core-report.zh-CN.md`。
 
+分阶段落地见 `plans/dialogpilot-target-architecture-v2-implementation-2026-09-05.md`。
+
 ## 2. 冻结决定
 
 1. `TargetConversationManager` 保存会话与持续状态，不是 LLM Agent。
