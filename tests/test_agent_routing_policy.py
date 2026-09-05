@@ -1,10 +1,8 @@
 """M2-T01A Agent-owned intent/domain/instance policy registries."""
 from dataclasses import FrozenInstanceError, replace
-from types import SimpleNamespace
 
 import pytest
 
-from agents.agent_orchestrator import AgentOrchestrator, AgentStats, Request
 from agents.orchestration_contracts import AgentType
 from agents.routing_policy import (
     AgentHealthSnapshot,
@@ -79,35 +77,6 @@ def test_instance_policy_singleton_is_honest_and_multi_instance_is_replayable():
     assert selected.status is InstanceSelectionStatus.SELECTED
     assert selected.selected_instance_id == "billing-a"
     assert selected == policy.select((healthy, degraded))
-
-
-def test_orchestrator_domain_and_instance_decisions_have_one_policy_owner():
-    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
-    orchestrator._routing_policy_registry = AgentRoutingPolicyRegistry.v1()
-    orchestrator._pool = {
-        AgentType.GENERAL: [object()],
-        AgentType.BILLING: [object()],
-        AgentType.TECHNICAL: [object()],
-    }
-    request = Request(
-        message="退款并登录失败", user_id="u", conv_id="c",
-        intent=IntentCategory.REFUND, urgency=UrgencyLevel.LOW,
-    )
-    scores = orchestrator._domain_scores(request)
-    assert scores[AgentType.BILLING] > scores[AgentType.TECHNICAL]
-    assert orchestrator._last_domain_decision.policy_version == "domain-routing-v1"
-    assert not hasattr(AgentOrchestrator, "_route")
-    agent = SimpleNamespace(instance_id="billing-0", stats=AgentStats())
-    orchestrator._pool[AgentType.BILLING] = [agent]
-    assert orchestrator._best_agent(
-        AgentType.BILLING, request.routing_policy_trace,
-    ) is agent
-    trace = request.routing_policy_trace.to_dict()
-    assert trace["pinned_config_ref"]["registry_version"] == (
-        "agent-routing-policy-registry-v1"
-    )
-    assert trace["domain"][0]["policy_version"] == "domain-routing-v1"
-    assert trace["instance"][0]["status"] == "NOT_APPLICABLE"
 
 
 def test_policy_surfaces_change_independently():

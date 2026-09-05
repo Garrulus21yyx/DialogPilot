@@ -12,9 +12,6 @@ from evaluation.dataset import (
     load_registered_dataset,
     write_dataset,
 )
-from agents.agent_orchestrator import AgentOrchestrator, Request
-from agents.orchestration_contracts import AgentType
-from core.intent_recognizer import IntentCategory
 from scripts.build_eval_dataset import _case, build_bitext
 from scripts.build_intent_weight_verification_dataset import _identity
 from scripts.build_project_eval_500 import EXPECTED_DISTRIBUTION
@@ -105,25 +102,6 @@ def test_500_dataset_stateful_cases_are_executable_protocols():
     assert all(case.input["scenario"]["setup"] for case in stateful)
     assert all(case.input["scenario"]["action"] for case in stateful)
     assert all(set(case.expected["assertions"].values()) == {True} for case in stateful)
-
-
-def test_all_120_routing_labels_match_current_task_plan_contract():
-    bundle = DatasetBundle.load(PROJECT_500_DATASET)
-    orchestrator = AgentOrchestrator.__new__(AgentOrchestrator)
-    orchestrator._pool = {agent_type: [object()] for agent_type in AgentType}
-
-    for eval_case in bundle.select(layer="routing"):
-        request = Request(
-            message=eval_case.input["message"],
-            user_id="eval-user",
-            conv_id=eval_case.case_id,
-            intent=IntentCategory(eval_case.input["intent"]),
-            intent_confidence=eval_case.input["intent_confidence"],
-            entities=eval_case.input.get("entities", {}),
-        )
-        plan = orchestrator._build_task_plan(request)
-        assert [owner.value for owner in plan.agent_types] == eval_case.expected["owners"]
-        assert [task.task_id for task in plan.ordered_tasks] == eval_case.expected["task_ids"]
 
 
 def test_checksum_detects_unversioned_case_mutation(tmp_path):

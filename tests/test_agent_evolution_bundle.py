@@ -2,8 +2,6 @@ import json
 
 import pytest
 
-from agents.agent_orchestrator import AgentOrchestrator, Request
-from core.intent_recognizer import IntentCategory
 from mcp.tool_manager import MCPToolManager, Tool, ToolRisk
 from services.evolution import (
     ActiveBundleResolver,
@@ -115,20 +113,6 @@ def test_envelope_contains_hashes_not_raw_prompt_or_output():
     assert envelope["agent_bundle_version"] == "agent-v1"
     assert "引用账务事实" not in serialized
     assert set(envelope) >= {"prompt_hash", "router_policy_hash", "tool_registry_hash"}
-
-
-def test_routing_threshold_comes_from_pinned_bundle():
-    req = Request(
-        message="退款并登录失败",
-        user_id="u1",
-        conv_id="c1",
-        intent=IntentCategory.BILLING,
-        agent_bundle=_bundle(),
-        bundle_version="agent-v1",
-    )
-    assert AgentOrchestrator._bundle_number(
-        req, "routing_policy", "supporting_threshold", 0.45,
-    ) == 0.6
 
 
 def test_tool_fingerprint_tracks_description_but_not_relaxes_permissions():

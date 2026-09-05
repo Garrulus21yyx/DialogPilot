@@ -2,6 +2,16 @@
 
 Status: in_progress
 
+Done: removed secondary legacy Orchestrator test consumers from Bundle,
+classifier-mode and layered-dataset suites. Retire old constructor/threshold plumbing
+and the circular claim that legacy generated routing labels define the current plan.
+Preserve immutable PostgreSQL bundle tests, standalone classifier contracts, frozen
+datasets/distributions and current Target plan/label-non-authority verification.
+Also retired the old Orchestrator domain/instance plumbing test, retaining standalone
+immutable policy tests until their owner migration. Only test_agent_orchestration now
+imports AgentOrchestrator. Verification: 46 dataset/classifier/Target-planning tests,
+eight real PostgreSQL bundle tests, and the focused policy/Target-runtime suite pass.
+
 Done: removed the orphan command-primary chat bridge, work wrapper, result
 projection and CLARIFY/OOS response adapters. Repository reference audit shows their
 only consumers are within this retired cluster after ChatApplication deletion.
