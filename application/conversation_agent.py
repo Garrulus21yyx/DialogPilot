@@ -1,6 +1,7 @@
 """Context-aware conversation planning behind deterministic fast paths."""
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import Mapping, Protocol
 
 from application.context_budget import (
@@ -181,17 +182,35 @@ class ConversationAgent:
         goals = raw.get("goals")
         if not isinstance(goals, list) or not 1 <= len(goals) <= 4:
             raise ValueError("semantic goals are invalid")
+        goal_ids = tuple(
+            str(value.get("goal_id") or f"semantic-{index}")
+            if isinstance(value, Mapping) else ""
+            for index, value in enumerate(goals, start=1)
+        )
+        if (
+            any(not goal_id for goal_id in goal_ids)
+            or len(goal_ids) != len(set(goal_ids))
+        ):
+            raise ValueError("semantic goal IDs are invalid")
+        known_goal_ids = set(goal_ids)
         binding_set = turn_context.entity_bindings if turn_context is not None else None
         commands = []
-        seen_ids = set()
         for index, value in enumerate(goals, start=1):
             if not isinstance(value, Mapping):
                 raise TypeError("goal must be an object")
-            goal_id = str(value.get("goal_id") or f"semantic-{index}")
+            goal_id = goal_ids[index - 1]
             kind = str(value["kind"])
-            if goal_id in seen_ids or kind not in _GOALS:
+            if kind not in _GOALS:
                 raise ValueError("goal identity or kind is invalid")
-            seen_ids.add(goal_id)
+            raw_dependencies = value.get("depends_on", ())
+            if (
+                not isinstance(raw_dependencies, (list, tuple))
+                or any(not isinstance(item, str) for item in raw_dependencies)
+            ):
+                raise ValueError("goal dependencies must be a list of goal IDs")
+            dependencies = tuple(raw_dependencies)
+            if set(dependencies).difference(known_goal_ids):
+                raise ValueError("goal dependency is outside this plan")
             order_id = str(value.get("order_id") or "")
             order_binding = self._select_binding(
                 binding_set, "order_id", order_id,
@@ -215,10 +234,11 @@ class ConversationAgent:
                 )
                 if new_address else None
             )
-            commands.append(self._command(
+            command = self._command(
                 goal_id, kind, observations.raw_text, state,
                 order_binding, asset_binding, address_binding, registry,
-            ))
+            )
+            commands.append(replace(command, dependencies=dependencies))
         return TurnProposal(
             ProposalDisposition.RESOLVED, tuple(commands), "CONVERSATION_AGENT_PLAN",
         )

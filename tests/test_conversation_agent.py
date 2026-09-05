@@ -492,6 +492,58 @@ def test_explicit_product_model_request_with_asset_is_identification():
     }
 
 
+def test_conversation_agent_preserves_cross_goal_dependencies_in_work_plan():
+    proposal, state, registry = _invoke(
+        ConversationAgent(Provider({
+            "status": "resolved",
+            "goals": [
+                {
+                    "goal_id": "identify",
+                    "kind": "product_identification",
+                    "asset_id": "IMG9",
+                },
+                {
+                    "goal_id": "handoff",
+                    "kind": "human_handoff",
+                    "depends_on": ["identify"],
+                },
+            ],
+        })),
+        "识别商品后把结果一并交给人工处理",
+        fields=(("asset_id", "IMG9"),),
+    )
+
+    assert proposal.commands[1].dependencies == ("identify",)
+    plan = TurnPlanCompiler().compile(
+        RoutePolicy().accept(proposal, state, registry),
+        state,
+        registry,
+        IdentityFactory().create_invocation(
+            tenant_id="tenant-a", user_id="user-a",
+            conversation_id="conversation-a", request_id="dependent-goals",
+        ),
+    )
+    assert plan.work.items[1].dependencies == (
+        plan.work.items[0].work_item_id,
+    )
+
+
+def test_conversation_agent_rejects_dependency_outside_the_proposed_goals():
+    proposal, _, _ = _invoke(
+        ConversationAgent(Provider({
+            "status": "resolved",
+            "goals": [{
+                "goal_id": "handoff",
+                "kind": "human_handoff",
+                "depends_on": ["missing-goal"],
+            }],
+        })),
+        "转人工",
+    )
+
+    assert proposal.disposition is ProposalDisposition.INVALID_PROVIDER_OUTPUT
+
+
 def test_conversation_agent_preserves_typed_rejection_and_provider_failure():
     insufficient = Provider({
         "status": "insufficient_context", "missing_fields": ["customer_service_goal"],
