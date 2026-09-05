@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import json
 from dataclasses import replace
-from datetime import datetime, timezone
 from typing import Mapping
 
 from agents.agent_orchestrator import BaseAgent, Request
@@ -13,7 +12,6 @@ from application.agent_result import (
     AgentResult,
     AgentResultStatus,
     FactRecord,
-    FactSourceKind,
 )
 from application.capability_registry import (
     CapabilityEffect,
@@ -26,6 +24,10 @@ from application.context_budget import (
 )
 from application.orchestration_runtime import AgentContextView, WorkExecutor
 from application.work_item import ArgumentValue, ControlMode
+from infrastructure.target_agent_result_adapter import (
+    fact_from_tool_result,
+    merge_facts,
+)
 from mcp.tool_manager import ToolCallStatus, ToolEffectStatus, ToolResult
 
 
@@ -224,11 +226,11 @@ def _adapt_response(
         "max_steps": AgentResultStatus.TERMINAL_FAILURE,
     }.get(response.react_status)
     tool_facts = tuple(
-        _fact_from_tool_result(item, result)
+        fact_from_tool_result(item, result)
         for result in response.tool_results
         if result.success and result.authority in item.requirement_ids
     )
-    facts = _merge_facts(tool_facts, tuple(
+    facts = merge_facts(tool_facts, tuple(
         fact for result in skill_results for fact in result.facts
         if fact.requirement_id in item.requirement_ids
     ))
@@ -267,33 +269,6 @@ def _adapt_response(
     )
 
 
-def _fact_from_tool_result(item, result) -> FactRecord:
-    authority = str(result.authority)
-    source_kind = (
-        FactSourceKind.KNOWLEDGE_ASSERTED
-        if authority.startswith("knowledge.")
-        else FactSourceKind.MEDIA_OBSERVED
-        if authority.startswith("media.")
-        else FactSourceKind.VERIFIED_STATE
-    )
-    return FactRecord(
-        item.aggregate_ref or f"work-item:{item.work_item_id}",
-        authority,
-        json.dumps(
-            result.data,
-            ensure_ascii=False,
-            sort_keys=True,
-            separators=(",", ":"),
-            allow_nan=False,
-        ),
-        source_kind,
-        str(result.receipt_id or result.call_id),
-        result.tool_name,
-        str(result.output_schema_version or "tool-output-v1"),
-        datetime.now(timezone.utc),
-    )
-
-
 def _context_payload(
     context: AgentContextView, budget: ContextBudgetManager,
 ) -> str:
@@ -320,19 +295,3 @@ def _task_risk(risk: CapabilityRisk) -> TaskRisk:
     if risk is CapabilityRisk.MEDIUM:
         return TaskRisk.MEDIUM
     return TaskRisk.LOW
-
-
-def _merge_facts(*groups: tuple[FactRecord, ...]) -> tuple[FactRecord, ...]:
-    merged = {}
-    for fact in (fact for group in groups for fact in group):
-        key = (
-            fact.subject_ref,
-            fact.requirement_id,
-            fact.source_ref,
-            fact.producer_id,
-            fact.producer_version,
-        )
-        prior = merged.setdefault(key, fact)
-        if prior.value_json != fact.value_json:
-            raise ValueError("one Skill evidence identity produced conflicting facts")
-    return tuple(merged.values())

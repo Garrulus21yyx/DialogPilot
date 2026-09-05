@@ -1,0 +1,51 @@
+"""Shared provenance conversion from governed runtime results to Target facts."""
+from __future__ import annotations
+
+import json
+from datetime import datetime, timezone
+
+from application.agent_result import FactRecord, FactSourceKind
+from mcp.tool_manager import ToolResult
+
+
+def fact_from_tool_result(item, result: ToolResult) -> FactRecord:
+    authority = str(result.authority)
+    source_kind = (
+        FactSourceKind.KNOWLEDGE_ASSERTED
+        if authority.startswith("knowledge.")
+        else FactSourceKind.MEDIA_OBSERVED
+        if authority.startswith("media.")
+        else FactSourceKind.VERIFIED_STATE
+    )
+    return FactRecord(
+        item.aggregate_ref or f"work-item:{item.work_item_id}",
+        authority,
+        json.dumps(
+            result.data,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+            allow_nan=False,
+        ),
+        source_kind,
+        str(result.receipt_id or result.call_id),
+        result.tool_name,
+        str(result.output_schema_version or "tool-output-v1"),
+        datetime.now(timezone.utc),
+    )
+
+
+def merge_facts(*groups: tuple[FactRecord, ...]) -> tuple[FactRecord, ...]:
+    merged: dict[tuple[str, ...], FactRecord] = {}
+    for fact in (fact for group in groups for fact in group):
+        key = (
+            fact.subject_ref,
+            fact.requirement_id,
+            fact.source_ref,
+            fact.producer_id,
+            fact.producer_version,
+        )
+        prior = merged.setdefault(key, fact)
+        if prior.value_json != fact.value_json:
+            raise ValueError("one evidence identity produced conflicting facts")
+    return tuple(merged.values())

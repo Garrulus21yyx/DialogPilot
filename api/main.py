@@ -607,6 +607,8 @@ async def lifespan(app: FastAPI):
         build_default_capability_registry,
     )
     from infrastructure.target_agent_execution import TargetAgentExecutor
+    from infrastructure.target_framework_agent import TargetFrameworkAgent
+    from langchain_anthropic import ChatAnthropic
     from application.orchestration_runtime import OrchestrationRuntime
     from application.target_chat_application import TargetChatApplication
     from application.target_conversation_manager import TargetConversationManager
@@ -669,15 +671,32 @@ async def lifespan(app: FastAPI):
             agent_type: _orchestrator.worker_for(agent_type)
             for agent_type in (
                 AgentType.GENERAL,
-                AgentType.TECHNICAL,
                 AgentType.BILLING,
                 AgentType.ACCOUNT_SECURITY,
                 AgentType.ESCALATION,
             )
         },
         registry=target_registry,
+        context_budget=target_context_budget,
+    )
+    product_framework_agent = TargetFrameworkAgent(
+        ChatAnthropic(
+            model_name=_model_policy.profile(ModelRole.WORKER).model,
+            api_key=cfg["api_key"],
+            base_url=cfg.get("base_url"),
+            max_tokens=1024,
+            temperature=0,
+        ),
+        _tool_manager,
+        registry=target_registry,
+        system_prompt=(
+            "You are the product specialist for a general ecommerce service. "
+            "Use catalog, media and knowledge evidence to resolve the supplied "
+            "product objective; do not assume a product category."
+        ),
         skill_executors={"product_identification": target_product_executor},
         context_budget=target_context_budget,
+        checkpointer=target_checkpointer,
     )
     target_evidence_resolver = TargetEvidenceResolver(
         target_registry,
@@ -687,7 +706,7 @@ async def lifespan(app: FastAPI):
         direct_executor=target_tool_executor,
         domain_workers={
             "general": target_agent_executor,
-            "product_technical": target_agent_executor,
+            "product_technical": product_framework_agent,
             "order_logistics": target_agent_executor,
             "billing_refund": target_agent_executor,
             "account_security": target_agent_executor,

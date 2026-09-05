@@ -273,6 +273,13 @@ Checkpoint 保存运行位置和阶段 artifact；Conversation/Flow/Operation/Re
 
 AgentResult 允许简短自然语言说明，但对象、金额、状态、来源和副作用必须结构化可追溯。
 
+首个等价迁移选择通用 `product_technical` 开放目标：父图仍只按 WorkItem
+派发，领域内部由 LangChain `create_agent` 提供标准工具循环。可见 Tool 是
+Agent Registry、WorkItem envelope 与 ToolManager allowlist 的交集；实际调用仍经
+ToolManager 注入身份并产生 Receipt。原子 Tool 和可选复合 Skill 同时可见，
+明确 `skill_hint` 则直接执行 Skill，不再让 Agent 重新规划。该迁移不引入
+商品类别规则，DIRECT 和写 Flow 也不进入模型工具循环。
+
 ## 13. 回复与交付
 
 ```text
@@ -412,7 +419,7 @@ God File 的问题是混入多个权威和变化原因，不是文件较长；�
 | HTTP 请求内执行 | Durable Background Run |
 | 无 durable rejoin 主链 | Event cursor + SSE + query/ACK |
 | 静态窗口/budget | 每次调用前预算与局部压缩 |
-| 旧 ReAct 外层包裹 | 按需框架 Subgraph 等价迁移 |
+| 旧 ReAct 外层包裹 | Product 开放目标已迁入框架 Agent；其他领域按需等价迁移 |
 
 ## 20. 最终定义
 

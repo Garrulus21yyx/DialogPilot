@@ -86,7 +86,7 @@ God File 以多个权威/变化原因判定；过度拆分以无语义的一对�
 | M9 | 按领域迁移框架 Agent/Subgraph | M5/M8 |
 | M10 | 属性、故障注入、heldout 与真实 E2E | 全部 |
 
-当前进度：M0-M5 `done`；M6 `in_progress`；M7-M10 `pending`。
+当前进度：M0-M9 `done`；M10 `in_progress`。
 
 ## 5. M0：冻结基线
 
@@ -458,6 +458,26 @@ checkpoint。
 每个领域独立提交，例如：
 
 `refactor(target): run product domain through governed agent subgraph`
+
+实施记录（2026-09-05）：
+
+- 选择通用 `product_technical` 开放目标作为只读试点，未增加商品类别、安装
+  条件或句式分支；
+- 领域工具循环改由 LangChain `create_agent`/LangGraph 子图执行，没有新写
+  ReAct 调度器；
+- governed Tool wrapper 只投影 WorkItem 允许的 Tool，实际调用继续进入
+  `MCPToolManager.execute_for_agent()`，保留 Schema、Agent allowlist、身份注入、
+  幂等 ledger 和 Receipt；
+- 开放目标可在同一 capability envelope 内选择原子 Tool 或可选 Skill；
+  已明确的 `skill_hint` 继续直接执行，不重复调用领域 LLM；
+- 子图 thread 优先绑定 `workstream_id`，一次性任务绑定 invocation + WorkItem；
+  子图只投影 AgentResult/Facts/Evidence refs，不合并内部 messages；
+- 生产 composition root 中 `product_technical` 已移除对旧 `ReActExecutionEngine`
+  的消费；其他未迁移领域继续使用原实现，不形成同领域双轨；
+- 试点与编排专项：`39 passed, 1 skipped in 1.04s`；
+- 仓库级：`1085 passed, 165 skipped, 3 failed in 15.35s`；3 个失败仍为未提交
+  RAG policy 与 Bundle whitelist 不一致，以及未配置 PostgreSQL 的 stateful ticket
+  fixture，与本阶段因果面无关。
 
 ## 15. M10：收敛验证
 
