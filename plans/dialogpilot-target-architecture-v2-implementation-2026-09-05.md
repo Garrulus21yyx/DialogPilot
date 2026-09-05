@@ -143,8 +143,8 @@ invocation 越界；全仓无旧 Understanding 调用签名。
 
 - 在现有 `TargetTurnContext` 上增加 typed message、summary、projection status、source ref 与
   watermark；Loader 继续是唯一当前线程 Context 读取入口；
-- Understanding 协议和 Cascaded/Bounded/Encoder/Semantic 消费者已整体迁移；当前 Semantic
-  Router 仅作为 M2 前的迁移消费者，能读取 typed conversation context；
+- Understanding 协议和 Cascaded/Bounded/Encoder/Conversation planning 消费者已整体迁移；
+  typed conversation context 已成为全局规划入口的正式输入；
 - 摘要未暴露 covered range 时保持 unknown（0），不从 recent window 伪造；重复内容消息仍
   产生不同 source ref；conversation/memory/media 均以不可信数据进入 provider；
 - Target 专项：`117 passed, 2 skipped in 5.97s`；
@@ -171,7 +171,7 @@ invocation 越界；全仓无旧 Understanding 调用签名。
 主要代码（演化而非并行复制）：
 
 ```text
-application/structured_target_router.py
+application/conversation_agent.py
 application/target_understanding.py
 infrastructure/target_conversation_provider.py
 api/main.py（仅调整装配；是否提取 factory 由装配内聚性决定）
@@ -181,6 +181,18 @@ api/main.py（仅调整装配；是否提取 factory 由装配内聚性决定）
 entity、非法 DAG 均 typed fail；capability 排列不改变合法性。
 
 提交：`feat(target): replace structured router with conversation planning`
+
+实施记录（2026-09-05）：
+
+- `ConversationAgent.plan()` 已成为 DEFER 后唯一全局 LLM 规划入口，复用原结构化 Goal、
+  entity grounding 和 typed provider outcome 合同；没有新增并行 Router；
+- `CascadedTargetUnderstanding` 回归理解级联 Owner：Deterministic/Bounded 与 Encoder 可以直接
+  完成请求，只有剩余 DEFER 才调用 Conversation Agent；
+- Anthropic Adapter 已迁为 `AnthropicConversationPlanningProvider`，`/chat` 不再注册旧
+  Structured Router；旧模块和旧测试文件已移除；
+- 成本 Trace 使用 `conversation_planner_invoked`，provider failure 也使用 conversation
+  planning 的 typed code，不保留双命名；
+- Target 专项：`108 passed, 4 skipped in 5.08s`。
 
 ## 8. M3：通用实体绑定与指代
 

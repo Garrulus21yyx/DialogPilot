@@ -252,13 +252,13 @@ class TargetChatApplication:
 
         if managed.plan.work is None:
             failure = {
-                "SEMANTIC_PROVIDER_FAILURE": (
-                    "semantic_provider_unavailable",
+                "CONVERSATION_PROVIDER_FAILURE": (
+                    "conversation_provider_unavailable",
                     True,
                     "语义服务暂时不可用，请稍后重试。",
                 ),
-                "SEMANTIC_PROVIDER_OUTPUT_INVALID": (
-                    "semantic_provider_output_invalid",
+                "CONVERSATION_PROVIDER_OUTPUT_INVALID": (
+                    "conversation_provider_output_invalid",
                     False,
                     "语义服务返回了无效结果，本次未执行任何操作。",
                 ),
@@ -386,8 +386,8 @@ class TargetChatApplication:
                 "missing_requirement_ids": missing,
             },
             "cost": {
-                "semantic_provider_invoked": (
-                    route.reason_code == "STRUCTURED_SEMANTIC_ROUTER"
+                "conversation_planner_invoked": (
+                    route.reason_code == "CONVERSATION_AGENT_PLAN"
                 ),
                 "work_item_count": len(work_items),
                 "latency_ms": elapsed_ms,

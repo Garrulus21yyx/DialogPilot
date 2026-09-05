@@ -27,11 +27,11 @@ from application.target_chat_application import (
     TargetChatApplication,
 )
 from application.target_conversation_manager import TargetConversationManager
-from application.structured_target_router import (
+from application.conversation_agent import ConversationAgent
+from application.target_understanding import (
+    BoundedTargetUnderstanding,
     CascadedTargetUnderstanding,
-    StructuredTargetCommandRouter,
 )
-from application.target_understanding import BoundedTargetUnderstanding
 from core.identity import IdentityFactory
 from infrastructure.target_tool_execution import TargetToolExecutor
 from infrastructure.postgres import PostgresMigrationRunner, PostgresPool, PostgresPoolConfig
@@ -205,7 +205,7 @@ def _application(understanding=None):
 class _FailingSemanticProvider:
     version = "failing-semantic-provider-test-v1"
 
-    async def route(self, payload):
+    async def plan(self, payload):
         raise TimeoutError("provider unavailable")
 
 
@@ -234,7 +234,7 @@ def test_target_chat_direct_order_path_publishes_once_and_replays():
     )
     assert trace["artifact"]["route_mode"] == "DIRECT"
     assert trace["consumption"]["work_items"][0]["control_mode"] == "DIRECT"
-    assert trace["cost"]["semantic_provider_invoked"] is False
+    assert trace["cost"]["conversation_planner_invoked"] is False
     assert len(tools.calls) == 1
     assert tools.calls[0][3]["user_id"] == "user-a"
     assert tools.calls[0][1] == {"order_id": "DP1234"}
@@ -311,10 +311,10 @@ def test_target_chat_publishes_one_typed_interaction_and_resumes_exact_work_item
     ]
 
 
-def test_target_chat_preserves_semantic_provider_failure_as_retryable_failure():
+def test_target_chat_preserves_conversation_provider_failure_as_retryable_failure():
     application, tools = _application(CascadedTargetUnderstanding(
         BoundedTargetUnderstanding(),
-        StructuredTargetCommandRouter(_FailingSemanticProvider()),
+        ConversationAgent(_FailingSemanticProvider()),
     ))
 
     outcome = asyncio.run(application.handle(ChatCommand(
@@ -323,7 +323,7 @@ def test_target_chat_preserves_semantic_provider_failure_as_retryable_failure():
     )))
 
     assert isinstance(outcome, Failed)
-    assert outcome.code == "semantic_provider_unavailable"
+    assert outcome.code == "conversation_provider_unavailable"
     assert outcome.retryable is True
     assert tools.calls == []
 

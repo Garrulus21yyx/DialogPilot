@@ -399,3 +399,37 @@ class BoundedTargetUnderstanding:
             "SUPPORTED_GOAL_UNCLEAR",
             ("customer_service_goal",),
         )
+
+
+class CascadedTargetUnderstanding:
+    """Resolve cheap paths first; invoke one conversation planner only on defer."""
+
+    version = "cascaded-target-understanding-v2"
+
+    def __init__(self, bounded, planner, *, encoder=None) -> None:
+        self._bounded = bounded
+        self._planner = planner
+        self._encoder = encoder
+
+    async def __call__(
+        self, observations, state, deterministic, registry, turn_context=None,
+    ):
+        primary = await self._bounded(
+            observations, state, deterministic, registry, turn_context,
+        )
+        if primary.disposition is not ProposalDisposition.CLARIFY:
+            return primary
+        if primary.reason_code in {
+            "ORDER_ID_REQUIRED", "PRODUCT_MEDIA_REQUIRED",
+            "APPROVAL_DECLINED", "APPROVAL_EXPIRED",
+        }:
+            return primary
+        if self._encoder is not None:
+            decision = await self._encoder(
+                observations, state, registry, turn_context,
+            )
+            if decision.accepted:
+                return decision.proposal
+        return await self._planner.plan(
+            observations, state, deterministic, registry, turn_context,
+        )

@@ -612,11 +612,11 @@ async def lifespan(app: FastAPI):
     from application.target_conversation_manager import TargetConversationManager
     from application.target_encoder_artifact import load_target_text_encoder_artifact
     from application.target_encoder_understanding import TargetEncoderUnderstanding
-    from application.structured_target_router import (
+    from application.conversation_agent import ConversationAgent
+    from application.target_understanding import (
+        BoundedTargetUnderstanding,
         CascadedTargetUnderstanding,
-        StructuredTargetCommandRouter,
     )
-    from application.target_understanding import BoundedTargetUnderstanding
     from infrastructure.langgraph_checkpoint import AsyncPostgresCheckpointOwner
     from infrastructure.postgres_target_runtime import PostgresConversationStateStore
     from infrastructure.target_chat_adapters import (
@@ -627,7 +627,9 @@ async def lifespan(app: FastAPI):
     from infrastructure.target_tool_execution import TargetToolExecutor
     from infrastructure.target_turn_context import TargetTurnContextLoader
     from infrastructure.target_product_execution import TargetProductExecutor
-    from infrastructure.target_semantic_provider import AnthropicTargetSemanticProvider
+    from infrastructure.target_conversation_provider import (
+        AnthropicConversationPlanningProvider,
+    )
     from infrastructure.target_workflow_execution import TargetWorkflowExecutor
 
     target_registry = build_default_capability_registry(
@@ -686,7 +688,7 @@ async def lifespan(app: FastAPI):
         )
     target_understanding = CascadedTargetUnderstanding(
         BoundedTargetUnderstanding(),
-        StructuredTargetCommandRouter(AnthropicTargetSemanticProvider(
+        ConversationAgent(AnthropicConversationPlanningProvider(
             _tool_manager.llm_client,
             model=_model_policy.profile(ModelRole.INTENT).model,
         )),

@@ -1,4 +1,4 @@
-"""Target-native semantic routing contract behind deterministic fast paths."""
+"""Context-aware conversation planning behind deterministic fast paths."""
 from __future__ import annotations
 
 import re
@@ -40,34 +40,34 @@ _MISSING_FIELDS = {
 }
 
 
-class TargetSemanticProvider(Protocol):
+class ConversationPlanningProvider(Protocol):
     version: str
 
-    async def route(self, payload: Mapping[str, object]) -> Mapping[str, object]: ...
+    async def plan(self, payload: Mapping[str, object]) -> Mapping[str, object]: ...
 
 
-class StructuredTargetCommandRouter:
-    """Validate semantic goals, then deterministically compile Registry commands."""
+class ConversationAgent:
+    """Plan one deferred turn, then compile only Registry-backed commands."""
 
-    version = "structured-target-command-router-v1"
+    version = "conversation-agent-plan-v1"
 
-    def __init__(self, provider: TargetSemanticProvider) -> None:
+    def __init__(self, provider: ConversationPlanningProvider) -> None:
         self._provider = provider
 
-    async def __call__(
+    async def plan(
         self, observations, state, deterministic, registry, turn_context=None,
     ):
         if deterministic.kind is not ResolutionKind.UNRESOLVED:
             return TurnProposal(
                 ProposalDisposition.INVALID_PROVIDER_OUTPUT, (),
-                "SEMANTIC_ROUTER_RECEIVED_RESOLVED_STATE",
+                "CONVERSATION_PLANNER_RECEIVED_RESOLVED_STATE",
             )
         context_evidence = (
             turn_context.understanding_evidence
             if turn_context is not None else ()
         )
         payload = {
-            "schema_version": "target-semantic-route-request-v1",
+            "schema_version": "conversation-plan-request-v1",
             "message": observations.raw_text,
             "observed_entities": dict(observations.structured_fields),
             "active_workstreams": [
@@ -91,18 +91,18 @@ class StructuredTargetCommandRouter:
             "registry_fingerprint": registry.fingerprint,
         }
         try:
-            raw = await self._provider.route(payload)
+            raw = await self._provider.plan(payload)
         except Exception:
             return TurnProposal(
                 ProposalDisposition.PROVIDER_FAILURE, (),
-                "SEMANTIC_PROVIDER_FAILURE",
+                "CONVERSATION_PROVIDER_FAILURE",
             )
         try:
             return self._validate_and_compile(raw, observations, state, registry)
         except (KeyError, TypeError, ValueError):
             return TurnProposal(
                 ProposalDisposition.INVALID_PROVIDER_OUTPUT, (),
-                "SEMANTIC_PROVIDER_OUTPUT_INVALID",
+                "CONVERSATION_PROVIDER_OUTPUT_INVALID",
             )
 
     def _validate_and_compile(self, raw, observations, state, registry):
@@ -152,7 +152,7 @@ class StructuredTargetCommandRouter:
                 new_address, registry,
             ))
         return TurnProposal(
-            ProposalDisposition.RESOLVED, tuple(commands), "STRUCTURED_SEMANTIC_ROUTER",
+            ProposalDisposition.RESOLVED, tuple(commands), "CONVERSATION_AGENT_PLAN",
         )
 
     @staticmethod
@@ -364,40 +364,6 @@ class StructuredTargetCommandRouter:
             return structured
         matches = _IDENTIFIER.findall(observations.raw_text)
         return matches[0] if matches else ""
-
-
-class CascadedTargetUnderstanding:
-    """Use deterministic bounded routing first and semantic routing only on defer."""
-
-    version = "cascaded-target-understanding-v1"
-
-    def __init__(self, bounded, semantic, *, encoder=None) -> None:
-        self._bounded = bounded
-        self._semantic = semantic
-        self._encoder = encoder
-
-    async def __call__(
-        self, observations, state, deterministic, registry, turn_context=None,
-    ):
-        primary = await self._bounded(
-            observations, state, deterministic, registry, turn_context,
-        )
-        if primary.disposition is not ProposalDisposition.CLARIFY:
-            return primary
-        if primary.reason_code in {
-            "ORDER_ID_REQUIRED", "PRODUCT_MEDIA_REQUIRED",
-            "APPROVAL_DECLINED", "APPROVAL_EXPIRED",
-        }:
-            return primary
-        if self._encoder is not None:
-            decision = await self._encoder(
-                observations, state, registry, turn_context,
-            )
-            if decision.accepted:
-                return decision.proposal
-        return await self._semantic(
-            observations, state, deterministic, registry, turn_context,
-        )
 
 
 def _conversation_context_payload(turn_context):

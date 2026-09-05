@@ -11,11 +11,11 @@ from application.target_chat_application import TargetChatApplication
 from application.target_conversation_manager import TargetConversationManager
 from application.target_encoder_artifact import load_target_text_encoder_artifact
 from application.target_encoder_understanding import TargetEncoderUnderstanding
-from application.structured_target_router import (
+from application.conversation_agent import ConversationAgent
+from application.target_understanding import (
+    BoundedTargetUnderstanding,
     CascadedTargetUnderstanding,
-    StructuredTargetCommandRouter,
 )
-from application.target_understanding import BoundedTargetUnderstanding
 from core.auth import Principal
 from infrastructure.langgraph_checkpoint import AsyncPostgresCheckpointOwner
 from infrastructure.postgres import PostgresMigrationRunner, PostgresPool, PostgresPoolConfig
@@ -212,13 +212,13 @@ class _ScenarioTools:
         return _result(name, success=False, status="denied")
 
 
-class _ScenarioSemanticProvider:
+class _ScenarioConversationProvider:
     version = "scenario-semantic-provider-v1"
 
     def __init__(self):
         self.calls = []
 
-    async def route(self, payload):
+    async def plan(self, payload):
         self.calls.append(payload)
         if "走到哪一步" in str(payload["message"]):
             return {
@@ -273,7 +273,7 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
     ))
     pool.open()
     tools = _ScenarioTools()
-    semantic_provider = _ScenarioSemanticProvider()
+    conversation_provider = _ScenarioConversationProvider()
     read_executor = TargetToolExecutor(tools)
     workflow_executor = TargetWorkflowExecutor(pool, tools)
     registry = build_default_capability_registry("tenant-target-e2e")
@@ -295,7 +295,7 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                     registry=registry,
                     understanding=CascadedTargetUnderstanding(
                         BoundedTargetUnderstanding(),
-                        StructuredTargetCommandRouter(semantic_provider),
+                        ConversationAgent(conversation_provider),
                         encoder=TargetEncoderUnderstanding(
                             load_target_text_encoder_artifact(
                                 __import__("pathlib").Path(__file__).resolve().parents[1]
@@ -347,7 +347,7 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                 encoder_refund = await chat(
                     "encoder-refund", "确认 RF3100 的退回进展",
                 )
-                semantic_order = await chat(
+                planned_order = await chat(
                     "semantic-order", "帮我看看 DP2468 走到哪一步了",
                 )
                 product = await chat("product", "识别这张图的商品型号", assets=("IMG9",))
@@ -489,7 +489,7 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                 handoff = await chat("handoff", "我要人工客服处理这个问题")
                 return (
                     order, eligibility, refund_policy, invoice,
-                    encoder_refund, semantic_order, product,
+                    encoder_refund, planned_order, product,
                     refund_precheck, refund_precheck_replay,
                     refund_committed, refund_commit_replay, stale_approval,
                     changed_approval_replay, cross_conversation_approval,
@@ -534,7 +534,7 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
             assert response.status_code == expected, f"{name}: {response.text}"
         (
             order, eligibility, refund_policy, invoice,
-            encoder_refund, semantic_order, product,
+            encoder_refund, planned_order, product,
             refund_precheck, refund_precheck_replay,
             refund_committed, refund_commit_replay, stale_approval,
             changed_approval_replay, cross_conversation_approval,
@@ -558,16 +558,16 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
         assert encoder_refund["routing_disposition"] == "direct"
         assert "RF3100" in encoder_refund["response"]
         assert encoder_refund["evaluation_trace"]["cost"] == {
-            "semantic_provider_invoked": False,
+            "conversation_planner_invoked": False,
             "work_item_count": 1,
             "latency_ms": encoder_refund["latency_ms"],
         }
-        assert semantic_order["routing_disposition"] == "direct"
-        assert "DP2468" in semantic_order["response"]
-        assert semantic_order["evaluation_trace"]["cost"][
-            "semantic_provider_invoked"
+        assert planned_order["routing_disposition"] == "direct"
+        assert "DP2468" in planned_order["response"]
+        assert planned_order["evaluation_trace"]["cost"][
+            "conversation_planner_invoked"
         ] is True
-        assert len(semantic_provider.calls) == 1
+        assert len(conversation_provider.calls) == 1
         assert "PX-200" in product["response"]
         assert refund_precheck["outcome"] == "needs_input"
         assert refund_precheck_replay == refund_precheck

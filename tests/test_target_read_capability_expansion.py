@@ -5,7 +5,7 @@ from application.agent_result import AgentResultStatus
 from application.conversation_state import ConversationState
 from application.default_capability_registry import build_default_capability_registry
 from application.deterministic_resolution import DeterministicResolver, TurnObservations
-from application.structured_target_router import StructuredTargetCommandRouter
+from application.conversation_agent import ConversationAgent
 from application.target_understanding import BoundedTargetUnderstanding
 from application.orchestration_runtime import AgentContextView
 from application.turn_planning import (
@@ -30,9 +30,12 @@ def _proposal(understanding, message):
     observations = TurnObservations(message)
     deterministic = DeterministicResolver().resolve(observations, state)
     registry = build_default_capability_registry("tenant-a")
-    proposal = asyncio.run(understanding(
-        observations, state, deterministic, registry,
-    ))
+    invocation = (
+        understanding.plan(observations, state, deterministic, registry)
+        if isinstance(understanding, ConversationAgent)
+        else understanding(observations, state, deterministic, registry)
+    )
+    proposal = asyncio.run(invocation)
     return proposal, state, registry
 
 
@@ -111,12 +114,12 @@ class _Provider:
     def __init__(self, result):
         self.result = result
 
-    async def route(self, payload):
+    async def plan(self, payload):
         return self.result
 
 
 def test_structured_logistics_goal_reuses_direct_order_authority():
-    router = StructuredTargetCommandRouter(_Provider({
+    router = ConversationAgent(_Provider({
         "status": "resolved",
         "goals": [{
             "kind": "logistics_status",
@@ -132,7 +135,7 @@ def test_structured_logistics_goal_reuses_direct_order_authority():
 
 
 def test_structured_order_cancellation_uses_the_same_governed_flow_contract():
-    router = StructuredTargetCommandRouter(_Provider({
+    router = ConversationAgent(_Provider({
         "status": "resolved",
         "goals": [{
             "kind": "cancel_order",
@@ -148,7 +151,7 @@ def test_structured_order_cancellation_uses_the_same_governed_flow_contract():
 
 
 def test_structured_refund_eligibility_cannot_invent_missing_order_id():
-    router = StructuredTargetCommandRouter(_Provider({
+    router = ConversationAgent(_Provider({
         "status": "resolved",
         "goals": [{
             "kind": "refund_eligibility",
@@ -171,7 +174,7 @@ def test_product_qa_uses_one_atomic_knowledge_tool_across_product_categories():
         "这件外套应该怎么选尺码？",
         "这台摄像机能接入家庭网络吗？",
     )):
-        router = StructuredTargetCommandRouter(_Provider({
+        router = ConversationAgent(_Provider({
             "status": "resolved",
             "goals": [{"kind": "product_qa"}],
         }))
@@ -201,7 +204,7 @@ def test_generic_product_question_is_not_recast_as_missing_media():
 
 def test_generic_product_qa_executes_the_shared_knowledge_tool_contract():
     question = "这款机械键盘支持 Mac 吗？"
-    router = StructuredTargetCommandRouter(_Provider({
+    router = ConversationAgent(_Provider({
         "status": "resolved",
         "goals": [{"kind": "product_qa"}],
     }))

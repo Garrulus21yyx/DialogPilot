@@ -4,11 +4,11 @@ from types import SimpleNamespace
 from application.conversation_state import ConversationState
 from application.default_capability_registry import build_default_capability_registry
 from application.deterministic_resolution import DeterministicResolver, TurnObservations
-from application.structured_target_router import (
+from application.conversation_agent import ConversationAgent
+from application.target_understanding import (
+    BoundedTargetUnderstanding,
     CascadedTargetUnderstanding,
-    StructuredTargetCommandRouter,
 )
-from application.target_understanding import BoundedTargetUnderstanding
 from application.target_conversation_manager import (
     TargetContextMessage,
     TargetContextProjectionStatus,
@@ -25,7 +25,9 @@ from application.turn_planning import (
     TurnProposal,
 )
 from core.identity import IdentityFactory
-from infrastructure.target_semantic_provider import AnthropicTargetSemanticProvider
+from infrastructure.target_conversation_provider import (
+    AnthropicConversationPlanningProvider,
+)
 
 
 def _state():
@@ -34,12 +36,17 @@ def _state():
     )
 
 
-def _invoke(router, text, *, fields=()):
+def _invoke(understanding, text, *, fields=()):
     state = _state()
     observations = TurnObservations(text, fields)
     deterministic = DeterministicResolver().resolve(observations, state)
     registry = build_default_capability_registry("tenant-a")
-    proposal = asyncio.run(router(observations, state, deterministic, registry))
+    invocation = (
+        understanding.plan(observations, state, deterministic, registry)
+        if isinstance(understanding, ConversationAgent)
+        else understanding(observations, state, deterministic, registry)
+    )
+    proposal = asyncio.run(invocation)
     return proposal, state, registry
 
 
@@ -51,20 +58,20 @@ class Provider:
         self.error = error
         self.calls = []
 
-    async def route(self, payload):
+    async def plan(self, payload):
         self.calls.append(payload)
         if self.error:
             raise self.error
         return self.value
 
 
-def test_semantic_router_compiles_only_observed_entities_into_registry_command():
+def test_conversation_agent_compiles_only_observed_entities_into_registry_command():
     provider = Provider({
         "status": "resolved",
         "goals": [{"goal_id": "where", "kind": "order_status", "order_id": "DP1234"}],
     })
     proposal, state, registry = _invoke(
-        StructuredTargetCommandRouter(provider), "帮我看看 DP1234 走到哪一步了",
+        ConversationAgent(provider), "帮我看看 DP1234 走到哪一步了",
     )
 
     assert proposal.disposition is ProposalDisposition.RESOLVED
@@ -79,20 +86,20 @@ def test_semantic_router_compiles_only_observed_entities_into_registry_command()
     assert plan.route.mode is RouteMode.DIRECT
 
 
-def test_semantic_router_rejects_hallucinated_entity_and_unknown_goal():
+def test_conversation_agent_rejects_hallucinated_entity_and_unknown_goal():
     invented = Provider({
         "status": "resolved",
         "goals": [{"kind": "refund_status", "order_id": "DP9999"}],
     })
     proposal, _, _ = _invoke(
-        StructuredTargetCommandRouter(invented), "查询 DP1234",
+        ConversationAgent(invented), "查询 DP1234",
     )
     assert proposal.disposition is ProposalDisposition.INVALID_PROVIDER_OUTPUT
 
     unknown = Provider({
         "status": "resolved", "goals": [{"kind": "delete_account"}],
     })
-    proposal, _, _ = _invoke(StructuredTargetCommandRouter(unknown), "删除账户")
+    proposal, _, _ = _invoke(ConversationAgent(unknown), "删除账户")
     assert proposal.disposition is ProposalDisposition.INVALID_PROVIDER_OUTPUT
 
 
@@ -107,7 +114,7 @@ def test_address_change_compiles_one_governed_flow_and_rejects_invented_address(
         }],
     })
     proposal, state, registry = _invoke(
-        StructuredTargetCommandRouter(provider), text,
+        ConversationAgent(provider), text,
     )
 
     assert proposal.disposition is ProposalDisposition.RESOLVED
@@ -136,7 +143,7 @@ def test_address_change_compiles_one_governed_flow_and_rejects_invented_address(
             "new_address": "Invented Address 1",
         }],
     })
-    rejected, _, _ = _invoke(StructuredTargetCommandRouter(invented), text)
+    rejected, _, _ = _invoke(ConversationAgent(invented), text)
     assert rejected.disposition is ProposalDisposition.INVALID_PROVIDER_OUTPUT
 
 
@@ -196,16 +203,16 @@ def test_security_review_is_direct_but_account_freeze_is_a_governed_flow():
     assert plan.work.items[0].allowed_tools == ("account_security_state",)
 
 
-def test_semantic_security_goals_cannot_select_unregistered_capabilities():
+def test_conversation_agent_security_goals_cannot_select_unregistered_capabilities():
     review, _, _ = _invoke(
-        StructuredTargetCommandRouter(Provider({
+        ConversationAgent(Provider({
             "status": "resolved",
             "goals": [{"kind": "security_review"}],
         })),
         "检查最近的安全事件",
     )
     freeze, _, _ = _invoke(
-        StructuredTargetCommandRouter(Provider({
+        ConversationAgent(Provider({
             "status": "resolved",
             "goals": [{"kind": "freeze_account"}],
         })),
@@ -322,7 +329,7 @@ def test_compound_product_goal_delegates_one_domain_agent_with_capability_envelo
         "goals": [{"kind": "product_assistance", "asset_id": "IMG9"}],
     })
     proposal, state, registry = _invoke(
-        StructuredTargetCommandRouter(provider),
+        ConversationAgent(provider),
         "识别图片 IMG9 中的商品，并根据说明告诉我是否支持 Mac",
         fields=(("asset_id", "IMG9"),),
     )
@@ -352,7 +359,7 @@ def test_compound_product_goal_delegates_one_domain_agent_with_capability_envelo
 
 def test_media_text_is_direct_but_visual_reasoning_delegates_one_agent():
     text_proposal, text_state, registry = _invoke(
-        StructuredTargetCommandRouter(Provider({
+        ConversationAgent(Provider({
             "status": "resolved",
             "goals": [{"kind": "media_text_read", "asset_id": "IMG9"}],
         })),
@@ -360,7 +367,7 @@ def test_media_text_is_direct_but_visual_reasoning_delegates_one_agent():
         fields=(("asset_id", "IMG9"),),
     )
     visual_proposal, visual_state, _ = _invoke(
-        StructuredTargetCommandRouter(Provider({
+        ConversationAgent(Provider({
             "status": "resolved",
             "goals": [{"kind": "media_visual_analysis", "asset_id": "IMG9"}],
         })),
@@ -428,22 +435,22 @@ def test_explicit_product_model_request_with_asset_is_identification():
     }
 
 
-def test_semantic_router_preserves_typed_rejection_and_provider_failure():
+def test_conversation_agent_preserves_typed_rejection_and_provider_failure():
     insufficient = Provider({
         "status": "insufficient_context", "missing_fields": ["customer_service_goal"],
     })
     proposal, _, _ = _invoke(
-        StructuredTargetCommandRouter(insufficient), "还是那个问题",
+        ConversationAgent(insufficient), "还是那个问题",
     )
     assert proposal.disposition is ProposalDisposition.CLARIFY
     assert proposal.missing_inputs == ("customer_service_goal",)
 
     failed = Provider(error=TimeoutError("provider timeout"))
-    proposal, _, _ = _invoke(StructuredTargetCommandRouter(failed), "帮我处理一下")
+    proposal, _, _ = _invoke(ConversationAgent(failed), "帮我处理一下")
     assert proposal.disposition is ProposalDisposition.PROVIDER_FAILURE
 
 
-def test_semantic_router_receives_bounded_memory_evidence_as_data():
+def test_conversation_agent_receives_bounded_memory_evidence_as_data():
     provider = Provider({
         "status": "insufficient_context",
         "missing_fields": ["customer_service_goal"],
@@ -457,7 +464,7 @@ def test_semantic_router_receives_bounded_memory_evidence_as_data():
         ),),
     )
     deterministic = DeterministicResolver().resolve(observations, state)
-    asyncio.run(StructuredTargetCommandRouter(provider)(
+    asyncio.run(ConversationAgent(provider).plan(
         observations,
         state,
         deterministic,
@@ -473,7 +480,7 @@ def test_semantic_router_receives_bounded_memory_evidence_as_data():
     }]
 
 
-def test_semantic_router_receives_typed_current_conversation_context():
+def test_conversation_agent_receives_typed_current_conversation_context():
     provider = Provider({
         "status": "insufficient_context",
         "missing_fields": ["customer_service_goal"],
@@ -493,7 +500,7 @@ def test_semantic_router_receives_typed_current_conversation_context():
         projection_reason_codes=(),
     )
 
-    asyncio.run(StructuredTargetCommandRouter(provider)(
+    asyncio.run(ConversationAgent(provider).plan(
         observations,
         state,
         deterministic,
@@ -528,13 +535,13 @@ def test_cascade_uses_zero_provider_calls_for_clear_fast_path_and_calls_on_defer
         "goals": [{"kind": "order_status", "order_id": "DP1234"}],
     })
     cascade = CascadedTargetUnderstanding(
-        BoundedTargetUnderstanding(), StructuredTargetCommandRouter(provider),
+        BoundedTargetUnderstanding(), ConversationAgent(provider),
     )
     clear, _, _ = _invoke(cascade, "查订单 DP1234 物流")
     semantic, _, _ = _invoke(cascade, "帮我看看 DP1234 走到哪一步了")
 
     assert clear.reason_code == "BOUNDED_FAST_PATH"
-    assert semantic.reason_code == "STRUCTURED_SEMANTIC_ROUTER"
+    assert semantic.reason_code == "CONVERSATION_AGENT_PLAN"
     assert len(provider.calls) == 1
 
 
@@ -547,8 +554,8 @@ def test_anthropic_provider_normalizes_json_text_block():
                 text='```json\n{"status":"out_of_scope"}\n```',
             ),))
 
-    provider = AnthropicTargetSemanticProvider(
+    provider = AnthropicConversationPlanningProvider(
         SimpleNamespace(messages=Messages()), model="model-test",
     )
-    result = asyncio.run(provider.route({"message": "hello"}))
+    result = asyncio.run(provider.plan({"message": "hello"}))
     assert result == {"status": "out_of_scope"}
