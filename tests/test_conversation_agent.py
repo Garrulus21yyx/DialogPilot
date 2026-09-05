@@ -75,6 +75,28 @@ class Provider:
         return self.value
 
 
+def test_anthropic_provider_uses_the_installed_messages_contract():
+    class Messages:
+        async def create(self, *, model, max_tokens, system, messages):
+            assert model == "model-a"
+            assert max_tokens == 800
+            assert system
+            assert messages[0]["role"] == "user"
+            return SimpleNamespace(content=(SimpleNamespace(
+                type="text",
+                text='{"status":"out_of_scope"}',
+            ),))
+
+    provider = AnthropicConversationPlanningProvider(
+        SimpleNamespace(messages=Messages()),
+        model="model-a",
+    )
+
+    assert asyncio.run(provider.plan({"message": "unsupported"})) == {
+        "status": "out_of_scope",
+    }
+
+
 def test_conversation_agent_compiles_only_observed_entities_into_registry_command():
     provider = Provider({
         "status": "resolved",
@@ -675,7 +697,7 @@ def test_cascade_uses_planner_when_no_state_or_encoder_path_resolves():
 def test_anthropic_provider_normalizes_json_text_block():
     class Messages:
         async def create(self, **kwargs):
-            assert kwargs["temperature"] == 0
+            assert "temperature" not in kwargs
             return SimpleNamespace(content=(SimpleNamespace(
                 type="text",
                 text='```json\n{"status":"out_of_scope"}\n```',

@@ -56,7 +56,6 @@ class AnthropicConversationPlanningProvider:
         response = await self._client.messages.create(
             model=self._model,
             max_tokens=self._max_tokens,
-            temperature=0,
             system=system,
             messages=[{
                 "role": "user",
