@@ -2,6 +2,16 @@
 
 Status: in_progress
 
+Done: retired the legacy CLARIFY transport harness. Its publication/memory lists
+were in-memory observations, not durable proof. Preserve frozen transport input,
+non-scoring status, zero execution and same-publication replay using current Target
+and ConversationAgent. Pre-task ambiguity has no bound WorkItem input signal; do not
+carry the old draft pending-signal projection into the new contract.
+The fixture now emits the supported asset_id missing field (the old composite label
+is not a Target provider value); frozen inputs and score eligibility are unchanged.
+18 focused tests pass, one PostgreSQL cutover test skips without its configured URL.
+No durable-storage claim is made for this in-memory transport smoke.
+
 Implemented: moved locked refund-eligibility counterfactuals to Target chat, framework
 delegation and PostgreSQL publication/business owners. Seed initial business state,
 preserve both tool facts, verify publication replay without new reads. Scripted
