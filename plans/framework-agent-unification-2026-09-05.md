@@ -2,6 +2,20 @@
 
 Status: in_progress
 
+Done: removed remaining Structured/Selective command producers, their
+exclusive provider/prompt and evaluation adapter, and exclusive tests. Repository
+consumer audit finds no current runtime or frozen fixture caller. ConversationAgent
+owns semantic planning; Target encoder owns accepted/deferred routing. Preserve the
+generic UnderstandingDirectRunner and shared component-evaluation contracts, whose
+independent contract tests remain. Validate current provider failures, grounded
+arguments, controlled writes, encoder routing and evaluator persistence together.
+Verification: 49 current conversation/encoder/entity-binding/CLI and generic
+Understanding runner tests pass; 11 retained memory/media/knowledge/scorecard/LoCoMo
+evaluation tests pass. Full collection succeeds with 1155 tests. Current planning
+tests cover malformed vs unavailable provider output, hallucinated arguments,
+capability bounds and write-flow compilation; no old semantic runtime fallback is
+introduced. Legacy data/state contracts and whole-runtime closure remain open.
+
 Done: retired the public SGD legacy execution cluster (runner, runtime,
 retrieval shadow and exclusive identifier binder). Its registry constructs benchmark
 restaurant/flight flows for StructuredLLMCommandProducer, not current Target goals.
