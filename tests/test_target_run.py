@@ -1,9 +1,13 @@
 import asyncio
 from dataclasses import replace
+from typing import get_args
 
 import pytest
 
-from application.chat_contracts import Completed, Failed
+from application.chat_contracts import (
+    Accepted, Cancelled, ChatOutcome, Completed, Conflict, Expired, Failed,
+    HandedOff, NeedsInput, Reconciling, Rejected,
+)
 from application.target_run import (
     TargetRunClaimLost,
     TargetRunItem,
@@ -197,3 +201,35 @@ def test_stale_attempt_cannot_commit_after_another_worker_takes_ownership():
 def test_persisted_terminal_algebra_is_reconstructable(status, payload):
     outcome = outcome_from_terminal(TargetRunTerminal(status, payload, "ref-1"))
     assert terminal_from_outcome(outcome).status == status
+
+
+TERMINAL_OUTCOMES = (
+    Completed("response-1", {"response": "完成", "facts": ["receipt:1"]}),
+    NeedsInput("run-1", "signal-1", "INPUT", "2030-01-01", "question-1"),
+    NeedsInput("run-1", "signal-2", "APPROVAL", "2030-01-01", "question-2"),
+    HandedOff("ticket-1", "handoff-1"),
+    Cancelled("run-1", "USER_CANCELLED"),
+    Expired("run-1", "RUNTIME", False),
+    Reconciling("run-1", {"operation_key": "operation-1"}, 2.5),
+    Rejected("UNSUPPORTED", "暂不支持"),
+    Conflict("INPUT_CONFLICT", {"invocation_key": "original"}),
+    Failed("TOOL_ERROR", False, "trace-1", "查询失败"),
+)
+
+
+@pytest.mark.parametrize("outcome", TERMINAL_OUTCOMES)
+def test_target_terminal_roundtrip_preserves_public_outcome(outcome):
+    terminal = terminal_from_outcome(outcome)
+    assert outcome_from_terminal(terminal) == outcome
+    assert terminal_from_outcome(outcome_from_terminal(terminal)) == terminal
+
+
+def test_target_outcome_union_is_covered_without_legacy_runtime_states():
+    assert {type(outcome) for outcome in TERMINAL_OUTCOMES} | {Accepted} == set(
+        get_args(ChatOutcome)
+    )
+    for outcome in (Accepted("run-1", {}), Failed("RETRY", True, "trace-1")):
+        with pytest.raises(ValueError, match="non-terminal target outcome"):
+            terminal_from_outcome(outcome)
+    with pytest.raises(ValueError, match="unknown target run terminal status"):
+        outcome_from_terminal(TargetRunTerminal("UNKNOWN", {}, "unknown"))

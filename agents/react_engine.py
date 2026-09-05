@@ -855,20 +855,11 @@ class ReActExecutionEngine:
         self, result: ToolResult, *, run_id: str,
     ) -> Dict[str, Any]:
         """构造与 tool_use_id 配对的 Anthropic tool_result block。"""
-        locator = ""
-        if self._run_store is not None:
-            candidate = self._run_store.tool_result_locator(run_id, result.call_id)
-            try:
-                self._run_store.resolve_tool_result(candidate)
-            except Exception:
-                pass
-            else:
-                locator = candidate
         return {
             "type": "tool_result",
             "tool_use_id": result.call_id,
             "content": render_tool_result_context(
-                result, result_locator=locator,
+                result,
             ),
             "is_error": not result.success,
         }

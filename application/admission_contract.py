@@ -369,18 +369,6 @@ class ExecutionViewProjector:
         }))
 
 
-RUN_STATUS_PROJECTION_CONTRACT = {
-    "RUNNING": "ExecutionView.RUNNING",
-    "WAITING_APPROVAL": "ExecutionView.WAITING:PendingSignal.PRINCIPAL",
-    "COMPLETED": "ExecutionView.COMPLETED:requires_atomic_final_publication",
-    "BLOCKED": "ExecutionView.FAILED:reason=BLOCKED",
-    "TOOL_ERROR": "ExecutionView.FAILED:reason=TOOL_ERROR",
-    "MAX_STEPS": "ExecutionView.FAILED:reason=BUDGET_EXCEEDED",
-    "CANCELLED": "ExecutionView.CANCELLED",
-    "EXPIRED": "Expired(stage=RUNTIME,new_request_required=true)",
-}
-
-
 def request_fingerprint(payload: Mapping[str, Any]) -> str:
     encoded = json.dumps(
         dict(payload), ensure_ascii=False, sort_keys=True,

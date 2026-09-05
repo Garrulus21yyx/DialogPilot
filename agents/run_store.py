@@ -1,7 +1,7 @@
-"""ReAct Run checkpoint、审批状态与工具调用幂等账本的持久 Owner。"""
+"""Legacy ReAct checkpoint storage pending consumer removal."""
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 import json
@@ -11,8 +11,6 @@ import re
 import sqlite3
 import threading
 from typing import Any, Dict, Optional, Tuple
-from urllib.parse import quote, unquote
-import uuid
 
 from core.schema_version_registry import SchemaCompatibilityError, SchemaVersionRegistry
 
@@ -57,10 +55,6 @@ class RunTransitionError(RunStoreError):
 
 
 class RunVersionConflictError(RunStoreError):
-    pass
-
-
-class ToolCallBindingError(RunStoreError):
     pass
 
 
@@ -111,27 +105,8 @@ class RunCheckpoint:
         }
 
 
-@dataclass(frozen=True)
-class ToolExecutionClaim:
-    """工具执行位点的原子声明结果。"""
-
-    state: str
-    result: Dict[str, Any] = field(default_factory=dict)
-    claim_token: str = ""
-
-
-@dataclass(frozen=True)
-class ToolResultRecord:
-    locator: str
-    run_id: str
-    call_id: str
-    status: str
-    result: Dict[str, Any]
-    receipt_ref: str = ""
-
-
 class RunStore:
-    """SQLite 权威库：Run 用 CAS 更新，tool call 用唯一键防重。"""
+    """Legacy Run checkpoint and approval CAS storage."""
 
     def __init__(
         self,
@@ -139,13 +114,11 @@ class RunStore:
         *,
         approval_ttl_s: float = 900.0,
         recovery_grace_s: float = 30.0,
-        tool_claim_lease_s: float = 30.0,
     ):
         self._path = Path(database_path).expanduser().resolve()
         self._path.parent.mkdir(parents=True, exist_ok=True)
         self._approval_ttl_s = max(1.0, float(approval_ttl_s))
         self._recovery_grace_s = max(0.0, float(recovery_grace_s))
-        self._tool_claim_lease_s = max(1.0, float(tool_claim_lease_s))
         self._lock = threading.RLock()
         self._initialize()
         self._restrict_storage_permissions()
@@ -316,232 +289,6 @@ class RunStore:
                 "SELECT * FROM react_runs WHERE run_id=?", (run_id,)
             ).fetchone())
 
-    def claim_tool_call(
-        self,
-        *,
-        run_id: str,
-        call_id: str,
-        binding_hash: str,
-        read_only: bool,
-    ) -> ToolExecutionClaim:
-        """Claim a call intent; expired write invocations require reconciliation."""
-        now = self._now()
-        lease_until = self._future(self._tool_claim_lease_s)
-        claim_token = uuid.uuid4().hex
-        with self._lock, self._connect() as conn:
-            conn.execute("BEGIN IMMEDIATE")
-            row = conn.execute(
-                "SELECT * FROM react_tool_executions WHERE run_id=? AND call_id=?",
-                (run_id, call_id),
-            ).fetchone()
-            if row is None:
-                conn.execute(
-                    """
-                    INSERT INTO react_tool_executions (
-                        run_id, call_id, binding_hash, read_only, status,
-                        result_json, claim_token, lease_until, attempt,
-                        reconciliation_reason, receipt_ref, created_at, updated_at
-                    ) VALUES (?, ?, ?, ?, 'claimed', '{}', ?, ?, 1, '', '', ?, ?)
-                    """,
-                    (
-                        run_id, call_id, binding_hash, int(bool(read_only)),
-                        claim_token, lease_until, now, now,
-                    ),
-                )
-                return ToolExecutionClaim("claimed", claim_token=claim_token)
-            if row["binding_hash"] != binding_hash:
-                raise ToolCallBindingError("call_id is already bound to different tool inputs")
-            active_statuses = {
-                "claimed", "invoking", "executing", "reconciling",
-                "retry_scheduled",
-            }
-            if row["status"] not in active_statuses:
-                return ToolExecutionClaim("terminal", self._loads(row["result_json"], {}))
-            if row["status"] == "reconciling":
-                return ToolExecutionClaim("reconciling")
-            lease_expired = (
-                row["status"] == "retry_scheduled"
-                or not row["lease_until"]
-                or row["lease_until"] <= now
-            )
-            if not lease_expired:
-                return ToolExecutionClaim("in_progress")
-            if row["status"] in {"invoking", "executing"} and not bool(row["read_only"]):
-                conn.execute("""
-                    UPDATE react_tool_executions
-                    SET status='reconciling', claim_token='', lease_until='',
-                        reconciliation_reason='lease_expired_after_invoke',
-                        updated_at=?
-                    WHERE run_id=? AND call_id=? AND status IN ('invoking', 'executing')
-                      AND attempt=?
-                """, (now, run_id, call_id, int(row["attempt"])))
-                return ToolExecutionClaim("reconciling")
-            updated = conn.execute("""
-                UPDATE react_tool_executions
-                SET status='claimed', claim_token=?, lease_until=?,
-                    attempt=attempt+1, reconciliation_reason='', updated_at=?
-                WHERE run_id=? AND call_id=? AND attempt=?
-                  AND status IN ('claimed', 'invoking', 'executing', 'retry_scheduled')
-            """, (
-                claim_token, lease_until, now, run_id, call_id, int(row["attempt"]),
-            ))
-            if updated.rowcount != 1:
-                return ToolExecutionClaim("in_progress")
-            return ToolExecutionClaim("claimed", claim_token=claim_token)
-
-    def begin_tool_call(
-        self, *, run_id: str, call_id: str, binding_hash: str, claim_token: str,
-    ) -> None:
-        """Durably cross the call boundary; expiry after this point is ambiguous."""
-        now = self._now()
-        with self._lock, self._connect() as conn:
-            updated = conn.execute("""
-                UPDATE react_tool_executions
-                SET status='invoking', updated_at=?
-                WHERE run_id=? AND call_id=? AND binding_hash=?
-                  AND status='claimed' AND claim_token=? AND lease_until > ?
-            """, (now, run_id, call_id, binding_hash, claim_token, now))
-            if updated.rowcount != 1:
-                raise RunTransitionError("tool claim is no longer owned")
-
-    def complete_tool_call(
-        self,
-        *,
-        run_id: str,
-        call_id: str,
-        binding_hash: str,
-        claim_token: str,
-        result: Dict[str, Any],
-    ) -> None:
-        """将调用终态与可重放 ToolResult 原子固化。"""
-        status = str(result.get("status") or "error")
-        with self._lock, self._connect() as conn:
-            conn.execute("BEGIN IMMEDIATE")
-            row = conn.execute(
-                "SELECT * FROM react_tool_executions WHERE run_id=? AND call_id=?",
-                (run_id, call_id),
-            ).fetchone()
-            if row is None:
-                raise RunTransitionError("tool call was not claimed")
-            if row["binding_hash"] != binding_hash:
-                raise ToolCallBindingError("tool call binding changed")
-            if row["status"] in {"succeeded", "failed_terminal", "terminal"}:
-                return
-            if row["status"] != "invoking" or row["claim_token"] != claim_token:
-                raise RunTransitionError("tool claim is no longer owned")
-            effect_unknown = (
-                not bool(row["read_only"])
-                and str(result.get("effect_status") or "") == "outcome_unknown"
-            )
-            target_status = (
-                "reconciling" if effect_unknown
-                else "succeeded" if status == "success"
-                else "failed_terminal"
-            )
-            conn.execute(
-                """
-                UPDATE react_tool_executions
-                SET status=?, result_json=?, claim_token='', lease_until='',
-                    reconciliation_reason=?, updated_at=?
-                WHERE run_id=? AND call_id=? AND status='invoking' AND claim_token=?
-                """,
-                (
-                    target_status,
-                    self._json(self._sanitize_checkpoint_value(result)),
-                    "outcome_unknown_after_invoke" if effect_unknown else "",
-                    self._now(), run_id, call_id, claim_token,
-                ),
-            )
-
-    @staticmethod
-    def tool_result_locator(run_id: str, call_id: str) -> str:
-        if not str(run_id).strip() or not str(call_id).strip():
-            raise ValueError("tool result locator requires run_id and call_id")
-        return (
-            "react-tool-result:v1/"
-            f"{quote(str(run_id), safe='')}/{quote(str(call_id), safe='')}"
-        )
-
-    def resolve_tool_result(
-        self,
-        locator: str,
-        *,
-        user_id: str | None = None,
-        conv_id: str | None = None,
-    ) -> ToolResultRecord:
-        prefix = "react-tool-result:v1/"
-        if not str(locator).startswith(prefix):
-            raise RunStoreError("unsupported tool result locator")
-        parts = str(locator)[len(prefix):].split("/")
-        if len(parts) != 2 or not all(parts):
-            raise RunStoreError("invalid tool result locator")
-        run_id, call_id = map(unquote, parts)
-        with self._lock, self._connect() as conn:
-            row = conn.execute("""
-                SELECT execution.status, execution.result_json,
-                       execution.receipt_ref, run.user_id, run.conv_id
-                FROM react_tool_executions execution
-                JOIN react_runs run ON run.run_id=execution.run_id
-                WHERE execution.run_id=? AND execution.call_id=?
-            """, (run_id, call_id)).fetchone()
-        if row is None:
-            raise RunNotFoundError("tool result locator is unavailable")
-        if user_id is not None and row[3] != str(user_id):
-            raise RunAccessDeniedError("tool result belongs to another user")
-        if conv_id is not None and row[4] != str(conv_id):
-            raise RunAccessDeniedError("tool result belongs to another conversation")
-        if row[0] not in {"succeeded", "failed_terminal", "reconciling"}:
-            raise RunTransitionError("tool result is not terminal or reconciling")
-        result = self._loads(row[1], {})
-        if not isinstance(result, dict) or not result:
-            raise RunStoreError("tool result locator has no replayable result")
-        return ToolResultRecord(
-            locator, run_id, call_id, row[0], result, str(row[2] or ""),
-        )
-
-    def reconcile_tool_call(
-        self,
-        *,
-        run_id: str,
-        call_id: str,
-        binding_hash: str,
-        receipt_status: str,
-        receipt_ref: str,
-        result: Optional[Dict[str, Any]] = None,
-    ) -> None:
-        """Apply only an authoritative business receipt to an ambiguous write."""
-        if receipt_status not in {"COMMITTED", "NOT_COMMITTED"}:
-            raise RunTransitionError("unsupported authoritative receipt status")
-        if not receipt_ref.strip():
-            raise RunTransitionError("authoritative receipt reference is required")
-        if receipt_status == "COMMITTED" and not result:
-            raise RunTransitionError("committed receipt requires replayable result")
-        if receipt_status == "COMMITTED" and (
-            result.get("success") is not True
-            or result.get("status") != "success"
-            or result.get("effect_status") != "committed"
-        ):
-            raise RunTransitionError("committed receipt result is not replayable success")
-        now = self._now()
-        with self._lock, self._connect() as conn:
-            row = conn.execute(
-                "SELECT * FROM react_tool_executions WHERE run_id=? AND call_id=?",
-                (run_id, call_id),
-            ).fetchone()
-            if row is None or row["binding_hash"] != binding_hash:
-                raise ToolCallBindingError("tool reconciliation binding changed")
-            if row["status"] != "reconciling":
-                raise RunTransitionError("tool call is not awaiting reconciliation")
-            target = "succeeded" if receipt_status == "COMMITTED" else "retry_scheduled"
-            conn.execute("""
-                UPDATE react_tool_executions
-                SET status=?, result_json=?, receipt_ref=?,
-                    reconciliation_reason='', updated_at=?
-                WHERE run_id=? AND call_id=? AND status='reconciling'
-            """, (
-                target, self._json(self._sanitize_checkpoint_value(result or {})),
-                receipt_ref, now, run_id, call_id,
-            ))
 
     def _expire_if_due(
         self,
@@ -605,39 +352,9 @@ class RunStore:
                 );
                 CREATE INDEX IF NOT EXISTS idx_react_runs_user_updated
                     ON react_runs(user_id, updated_at DESC);
-                CREATE TABLE IF NOT EXISTS react_tool_executions (
-                    run_id TEXT NOT NULL,
-                    call_id TEXT NOT NULL,
-                    binding_hash TEXT NOT NULL,
-                    read_only INTEGER NOT NULL,
-                    status TEXT NOT NULL,
-                    result_json TEXT NOT NULL,
-                    claim_token TEXT NOT NULL DEFAULT '',
-                    lease_until TEXT NOT NULL DEFAULT '',
-                    attempt INTEGER NOT NULL DEFAULT 0,
-                    reconciliation_reason TEXT NOT NULL DEFAULT '',
-                    receipt_ref TEXT NOT NULL DEFAULT '',
-                    created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL,
-                    PRIMARY KEY (run_id, call_id),
-                    FOREIGN KEY (run_id) REFERENCES react_runs(run_id) ON DELETE CASCADE
-                );
                 """
             )
-            columns = {
-                row[1] for row in conn.execute("PRAGMA table_info(react_tool_executions)")
-            }
-            for name, declaration in (
-                ("claim_token", "TEXT NOT NULL DEFAULT ''"),
-                ("lease_until", "TEXT NOT NULL DEFAULT ''"),
-                ("attempt", "INTEGER NOT NULL DEFAULT 0"),
-                ("reconciliation_reason", "TEXT NOT NULL DEFAULT ''"),
-                ("receipt_ref", "TEXT NOT NULL DEFAULT ''"),
-            ):
-                if name not in columns:
-                    conn.execute(
-                        f"ALTER TABLE react_tool_executions ADD COLUMN {name} {declaration}"
-                    )
+
     def _connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(str(self._path), timeout=10.0)
         conn.row_factory = sqlite3.Row

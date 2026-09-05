@@ -89,6 +89,14 @@ Verification: 77 tests passed with PostgreSQL enabled; one in-memory scope test 
 not applicable and skipped. After the final audit-only simplification, 16 tool/
 legacy-checkpoint tests pass again. Full repository collection: 1334 tests, no import
 errors. This does not yet attest the whole suite or completion of legacy removal.
+Next cleanup removes the now-unreferenced SQLite tool execution table initialization,
+claim/begin/complete/reconcile methods and locator reader. The legacy engine no longer
+probes a result store with no producer. No SQLite files or stored rows are erased.
+The unused RUN_STATUS_PROJECTION_CONTRACT string table and its self-referential test
+are removed from admission. TargetRun's real outcome conversion is tested across the
+public ChatOutcome union, including both waiting kinds, rejection of nonterminal
+inputs and unknown persisted statuses. 48 focused tests pass. RunStore checkpoint
+and legacy approval consumers are still pending, not covered by this removal claim.
 Retired the obsolete HTTP handoff fixture's AgentOrchestrator/ReAct imports and
 private-global assembly. Its retry expectation created a second response, contrary
 to Target's invocation/publication idempotency. Target cutover now checks OOS replay

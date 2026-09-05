@@ -5,7 +5,6 @@ import pytest
 
 from application.admission_contract import (
     LEGAL_ADMISSION_TRANSITIONS,
-    RUN_STATUS_PROJECTION_CONTRACT,
     AdmissionContractError,
     AdmissionRecord,
     AdmissionStatus,
@@ -24,7 +23,6 @@ from application.admission_contract import (
     validate_admission_transition,
 )
 from application.chat_contracts import Accepted, Cancelled, Completed, Expired, Failed, HandedOff, NeedsInput, Reconciling
-from agents.run_store import RunStatus
 from core.identity import InvocationKey, WorkflowRunId
 
 
@@ -181,20 +179,6 @@ def test_expired_before_start_never_revives_old_run():
     ))
     assert isinstance(view.outcome, Expired)
     assert view.outcome.new_request_required is True
-
-
-def test_each_runtime_state_has_one_explicit_projection_mapping():
-    assert RUN_STATUS_PROJECTION_CONTRACT == {
-        "RUNNING": "ExecutionView.RUNNING",
-        "WAITING_APPROVAL": "ExecutionView.WAITING:PendingSignal.PRINCIPAL",
-        "COMPLETED": "ExecutionView.COMPLETED:requires_atomic_final_publication",
-        "BLOCKED": "ExecutionView.FAILED:reason=BLOCKED",
-        "TOOL_ERROR": "ExecutionView.FAILED:reason=TOOL_ERROR",
-        "MAX_STEPS": "ExecutionView.FAILED:reason=BUDGET_EXCEEDED",
-        "CANCELLED": "ExecutionView.CANCELLED",
-        "EXPIRED": "Expired(stage=RUNTIME,new_request_required=true)",
-    }
-    assert set(RUN_STATUS_PROJECTION_CONTRACT) == {status.name for status in RunStatus}
 
 
 @pytest.mark.parametrize("terminal", [
