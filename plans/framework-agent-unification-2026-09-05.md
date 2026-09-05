@@ -59,7 +59,9 @@ Full-execution evaluation awaits the original durable invocation's terminal outc
 it does not score Accepted as a completed answer or submit a second message. Execution
 scoring consumes Target work_item_ids and typed outcomes; empty expected tasks cannot
 override failed coverage. The evaluator uses the configured runtime tenant.
-24 focused tests pass; final clean startup regression remains pending for this stage.
+Clean committed snapshot: 44 tests pass, covering API lifespan, actual Target published
+result scoring, planner-only isolation, all legacy intent labels' routing non-authority,
+durable completion waits/timeouts, PostgreSQL terminal reads, API datasets and CLI.
 Then migrate legacy evaluation harnesses and behavioral gates before removing old
 ChatApplication, compatibility execution, ReActExecutionEngine and its RunStore.
 ToolManager's optional execution_store claim branch remains another old RunStore
