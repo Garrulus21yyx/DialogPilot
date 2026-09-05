@@ -1,0 +1,129 @@
+"""Checkpointed turn phases over the existing conversation and WorkPlan owners."""
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import TypedDict
+
+from langgraph.graph import END, START, StateGraph
+
+from application.agent_result import AgentResultStatus
+from application.deterministic_resolution import TurnObservations
+from application.response_assembly import AssembledResponse, ResponseAssembler
+from application.target_conversation_manager import (
+    ManagedTurnResult,
+    PreparedTurn,
+    TargetConversationManager,
+)
+from core.identity import InvocationIdentity
+
+
+class TurnRuntimeError(ValueError):
+    pass
+
+
+class TurnGraphState(TypedDict, total=False):
+    invocation: InvocationIdentity
+    invocation_key: str
+    observations: TurnObservations
+    prepared: PreparedTurn
+    managed: ManagedTurnResult
+    assembled: AssembledResponse | None
+
+
+@dataclass(frozen=True)
+class TurnRuntimeResult:
+    managed: ManagedTurnResult
+    assembled: AssembledResponse | None
+
+
+class TurnRuntime:
+    """Coordinate durable turn phases without owning their domain semantics."""
+
+    version = "turn-runtime-v1"
+
+    def __init__(
+        self,
+        manager: TargetConversationManager,
+        response_assembler: ResponseAssembler,
+        *,
+        checkpointer=None,
+    ) -> None:
+        self._manager = manager
+        self._assembler = response_assembler
+        self._checkpointer = checkpointer
+        self.graph = self._build_graph()
+
+    def _build_graph(self):
+        builder = StateGraph(TurnGraphState)
+        builder.add_node("prepare_turn", self._prepare_turn)
+        builder.add_node("execute_work_plan", self._execute_work_plan)
+        builder.add_node("assemble_response", self._assemble_response)
+        builder.add_edge(START, "prepare_turn")
+        builder.add_edge("prepare_turn", "execute_work_plan")
+        builder.add_edge("execute_work_plan", "assemble_response")
+        builder.add_edge("assemble_response", END)
+        return builder.compile(checkpointer=self._checkpointer)
+
+    async def _prepare_turn(self, state: TurnGraphState):
+        prepared = await self._manager.prepare(
+            state["invocation"], state["observations"],
+        )
+        return {"prepared": prepared}
+
+    async def _execute_work_plan(self, state: TurnGraphState):
+        return {"managed": await self._manager.execute(state["prepared"])}
+
+    async def _assemble_response(self, state: TurnGraphState):
+        managed = state["managed"]
+        board = managed.board
+        if board is None or any(
+            result.status in {
+                AgentResultStatus.NEEDS_USER_INPUT,
+                AgentResultStatus.WAITING_APPROVAL,
+                AgentResultStatus.RECONCILING,
+            }
+            for result in board.results
+        ):
+            return {"assembled": None}
+        notice = (
+            "检测到账户安全风险，已优先处理安全任务；"
+            "本轮未启动其他高风险业务操作。\n"
+            if managed.plan.route.reason_code
+            == "SECURITY_PREEMPTED_NONESSENTIAL_WRITES"
+            else ""
+        )
+        assembled = await self._assembler.assemble(
+            board,
+            current_message=state["observations"].raw_text,
+            system_notice=notice,
+        )
+        return {"assembled": assembled}
+
+    async def execute(
+        self,
+        invocation: InvocationIdentity,
+        observations: TurnObservations,
+    ) -> TurnRuntimeResult:
+        key = str(invocation.invocation_key)
+        config = (
+            {"configurable": {"thread_id": f"turn:{key}"}}
+            if self._checkpointer is not None else None
+        )
+        graph_input = {
+            "invocation": invocation,
+            "invocation_key": key,
+            "observations": observations,
+        }
+        if self._checkpointer is not None:
+            snapshot = await self.graph.aget_state(config)
+            if snapshot.values:
+                if snapshot.values.get("invocation_key") != key:
+                    raise TurnRuntimeError("turn checkpoint belongs to another invocation")
+                if snapshot.values.get("managed") is not None and not snapshot.next:
+                    return TurnRuntimeResult(
+                        snapshot.values["managed"],
+                        snapshot.values.get("assembled"),
+                    )
+                graph_input = None
+        result = await self.graph.ainvoke(graph_input, config=config)
+        return TurnRuntimeResult(result["managed"], result.get("assembled"))

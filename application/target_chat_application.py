@@ -26,6 +26,7 @@ from application.deterministic_resolution import (
 )
 from application.target_conversation_manager import TargetConversationManager
 from application.response_assembly import ResponseAssembler
+from application.turn_runtime import TurnRuntime
 from application.turn_planning import ProposalDisposition
 from core.identity import IdentityContractError, IdentityFactory, InvocationIdentity
 
@@ -102,13 +103,14 @@ class TargetChatApplication:
         bundle_version: str,
         identity_factory: IdentityFactory | None = None,
         response_assembler: ResponseAssembler | None = None,
+        turn_runtime: TurnRuntime | None = None,
     ) -> None:
-        self._manager = manager
         self._admission = admission
         self._publication = publication
         self._bundle_version = bundle_version
         self._identity_factory = identity_factory or IdentityFactory()
-        self._response_assembler = response_assembler or ResponseAssembler()
+        assembler = response_assembler or ResponseAssembler()
+        self._turn_runtime = turn_runtime or TurnRuntime(manager, assembler)
 
     async def handle(self, command: ChatCommand) -> ChatOutcome:
         started = time.monotonic()
@@ -148,7 +150,8 @@ class TargetChatApplication:
                 interaction_version=command.interaction_version,
                 interaction_values=command.interaction_values,
             )
-            managed = await self._manager.handle(identity, observations)
+            turn_result = await self._turn_runtime.execute(identity, observations)
+            managed = turn_result.managed
         except DeterministicResolutionError as exc:
             return Conflict(
                 (
@@ -304,17 +307,14 @@ class TargetChatApplication:
                     },
                     1.0,
                 )
-            assembly = await self._response_assembler.assemble(
-                board, current_message=command.message,
-            )
-            response_text = assembly.text
-            if managed.plan.route.reason_code == (
-                "SECURITY_PREEMPTED_NONESSENTIAL_WRITES"
-            ):
-                response_text = (
-                    "检测到账户安全风险，已优先处理安全任务；"
-                    "本轮未启动其他高风险业务操作。\n" + response_text
+            assembly = turn_result.assembled
+            if assembly is None:
+                return Failed(
+                    "target_response_missing", False,
+                    str(identity.invocation_key),
+                    "Target turn completed without an assembled response",
                 )
+            response_text = assembly.text
             verifier_status = (
                 "PASS"
                 if not board.missing_requirement_ids and not board.conflict_keys

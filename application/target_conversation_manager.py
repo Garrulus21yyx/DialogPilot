@@ -146,6 +146,33 @@ class ManagedTurnResult:
     checkpoint_thread_id: str
 
 
+@dataclass(frozen=True)
+class PreparedTurn:
+    invocation: InvocationIdentity
+    observations: TurnObservations
+    state_before: ConversationState
+    state: ConversationState
+    deterministic: DeterministicResolution
+    plan: TurnPlan
+    context: TargetTurnContext
+    resume_thread_id: str | None
+    recent_relevant_turns: tuple[str, ...]
+    evidence_refs: tuple[str, ...]
+    token_budget: int
+    artifact_version: str = "prepared-turn-v1"
+
+    @property
+    def fingerprint(self) -> str:
+        raw = json.dumps({
+            "artifact_version": self.artifact_version,
+            "invocation": str(self.invocation.invocation_key),
+            "plan": self.plan.plan_id,
+            "state": self.state.fingerprint,
+            "context_watermark": self.context.source_watermark,
+        }, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        return "prepared-turn:v1:" + hashlib.sha256(raw).hexdigest()
+
+
 class TargetConversationManager:
     """Load, resolve, validate, persist plan state, and execute exactly once."""
 
@@ -183,6 +210,24 @@ class TargetConversationManager:
         evidence_refs: tuple[str, ...] = (),
         token_budget: int = 6000,
     ) -> ManagedTurnResult:
+        prepared = await self.prepare(
+            invocation,
+            observations,
+            recent_relevant_turns=recent_relevant_turns,
+            evidence_refs=evidence_refs,
+            token_budget=token_budget,
+        )
+        return await self.execute(prepared)
+
+    async def prepare(
+        self,
+        invocation: InvocationIdentity,
+        observations: TurnObservations,
+        *,
+        recent_relevant_turns: tuple[str, ...] = (),
+        evidence_refs: tuple[str, ...] = (),
+        token_budget: int = 6000,
+    ) -> PreparedTurn:
         state_before = self._state_store.load(
             invocation.tenant_id,
             invocation.user_id,
@@ -219,6 +264,29 @@ class TargetConversationManager:
             self._persist(state, planned_state)
             state = planned_state
 
+        return PreparedTurn(
+            invocation,
+            observations,
+            state_before,
+            state,
+            deterministic,
+            plan,
+            turn_context,
+            resume_thread_id,
+            recent_relevant_turns,
+            evidence_refs,
+            token_budget,
+        )
+
+    async def execute(self, prepared: PreparedTurn) -> ManagedTurnResult:
+        invocation = prepared.invocation
+        observations = prepared.observations
+        state_before = prepared.state_before
+        state = prepared.state
+        deterministic = prepared.deterministic
+        plan = prepared.plan
+        turn_context = prepared.context
+        resume_thread_id = prepared.resume_thread_id
         thread_id = resume_thread_id or str(invocation.invocation_key)
         if plan.work is None:
             if resume_thread_id is not None:
@@ -236,14 +304,14 @@ class TargetConversationManager:
         execution_context = {
             "current_message": observations.raw_text,
             "recent_relevant_turns": tuple(dict.fromkeys((
-                *recent_relevant_turns,
+                *prepared.recent_relevant_turns,
                 *turn_context.recent_relevant_turns,
             ))),
             "evidence_refs": tuple(dict.fromkeys((
-                *evidence_refs,
+                *prepared.evidence_refs,
                 *turn_context.evidence_refs,
             ))),
-            "token_budget": token_budget,
+            "token_budget": prepared.token_budget,
             "trusted_context": {
                 **invocation.metadata(),
                 "conv_id": str(invocation.conversation_id),

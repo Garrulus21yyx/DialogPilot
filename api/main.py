@@ -611,6 +611,7 @@ async def lifespan(app: FastAPI):
     from application.target_chat_application import TargetChatApplication
     from application.target_conversation_manager import TargetConversationManager
     from application.response_assembly import ResponseAssembler
+    from application.turn_runtime import TurnRuntime
     from application.target_encoder_artifact import load_target_text_encoder_artifact
     from application.target_encoder_understanding import TargetEncoderUnderstanding
     from application.conversation_agent import ConversationAgent
@@ -696,18 +697,25 @@ async def lifespan(app: FastAPI):
         conversation_agent,
         encoder=target_encoder,
     )
+    target_manager = TargetConversationManager(
+        state_store=PostgresConversationStateStore(_postgres_pool),
+        registry=target_registry,
+        understanding=target_understanding,
+        orchestration=target_orchestration,
+        context_provider=TargetTurnContextLoader(_memory, _tool_manager),
+    )
+    response_assembler = ResponseAssembler(conversation_agent)
     _target_chat_runtime = TargetChatApplication(
-        manager=TargetConversationManager(
-            state_store=PostgresConversationStateStore(_postgres_pool),
-            registry=target_registry,
-            understanding=target_understanding,
-            orchestration=target_orchestration,
-            context_provider=TargetTurnContextLoader(_memory, _tool_manager),
-        ),
+        manager=target_manager,
         admission=PostgresTargetAdmission(_postgres_pool),
         publication=PostgresTargetPublication(_response_delivery),
         bundle_version=target_registry.bundle_version,
-        response_assembler=ResponseAssembler(conversation_agent),
+        response_assembler=response_assembler,
+        turn_runtime=TurnRuntime(
+            target_manager,
+            response_assembler,
+            checkpointer=target_checkpointer,
+        ),
     )
 
     def route_execution_refs(bundle: AgentBundle) -> Dict[str, str]:

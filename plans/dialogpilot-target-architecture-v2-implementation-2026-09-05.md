@@ -86,7 +86,7 @@ God File 以多个权威/变化原因判定；过度拆分以无语义的一对�
 | M9 | 按领域迁移框架 Agent/Subgraph | M5/M8 |
 | M10 | 属性、故障注入、heldout 与真实 E2E | 全部 |
 
-当前进度：M0-M1 `done`；M2 `in_progress`；M3-M10 `pending`。
+当前进度：M0-M5 `done`；M6 `in_progress`；M7-M10 `pending`。
 
 ## 5. M0：冻结基线
 
@@ -309,6 +309,20 @@ prepare_context
 stale/cross-scope resume fail closed；图内外无双 Owner。
 
 提交：`feat(target): checkpoint the complete turn lifecycle`
+
+实施记录（2026-09-05）：
+
+- `TargetConversationManager` 原有逻辑按真实阶段收敛为 `prepare()` 与 `execute()`；保留的
+  `handle()` 只组合这两个同源方法，不再存在另一套规划或执行实现；
+- 新增薄 `TurnRuntime` LangGraph，仅协调 prepare_turn、execute_work_plan、assemble_response；
+  WorkPlan DAG 仍由原 `OrchestrationRuntime` 独占，Publication 仍在应用边界；
+- Turn checkpoint 使用 `turn:{invocation_key}`，与内部 WorkPlan invocation thread 分离；
+  PreparedTurn 带 artifact version/fingerprint，完成 checkpoint 直接重放 assembled result；
+- production checkpoint serializer 显式登记 Identity、Observation、Binding、ConversationState、
+  TurnPlan、Prepared/ManagedTurn 与 AssembledResponse 类型；
+- 故障注入证明 assemble 节点失败后从该节点恢复，prepare、WorkPlan Tool 与完成候选不重跑；
+- Target + TurnGraph 专项：`125 passed, 4 skipped in 5.22s`；
+- 仓库级：`1066 passed, 161 skipped, 3 failed in 15.46s`，失败集合与 M2-M4 相同。
 
 ## 11. M6：后台 Run Owner
 

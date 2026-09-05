@@ -37,6 +37,9 @@ class AssembledResponse:
     verification_status: str
     verification_reason: str
 
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "used_claim_ids", tuple(self.used_claim_ids))
+
 
 class ConversationComposer(Protocol):
     async def compose(self, payload: Mapping[str, object]) -> Mapping[str, object]: ...
@@ -50,20 +53,22 @@ class ResponseAssembler:
     def __init__(self, composer: ConversationComposer | None = None) -> None:
         self._composer = composer
 
-    async def assemble(self, board, *, current_message: str) -> AssembledResponse:
+    async def assemble(
+        self, board, *, current_message: str, system_notice: str = "",
+    ) -> AssembledResponse:
         claims = _allowed_claims(board)
         mode = self._select_mode(board)
         if mode is ResponseAssemblyMode.PASS_THROUGH:
             result = board.results[0]
             return AssembledResponse(
-                str(result.candidate_response).strip(), mode,
+                system_notice + str(result.candidate_response).strip(), mode,
                 tuple(claim.claim_id for claim in claims), False,
                 "PASS", "SINGLE_VERIFIED_RESULT",
             )
         fallback = _render_board(board)
         if mode is ResponseAssemblyMode.TEMPLATE or self._composer is None:
             return AssembledResponse(
-                fallback, ResponseAssemblyMode.TEMPLATE,
+                system_notice + fallback, ResponseAssemblyMode.TEMPLATE,
                 tuple(claim.claim_id for claim in claims), False,
                 "PASS", "DETERMINISTIC_ASSEMBLY",
             )
@@ -98,12 +103,13 @@ class ResponseAssembler:
             self._verify_composed(text, used, claims, current_message)
         except Exception:
             return AssembledResponse(
-                fallback, ResponseAssemblyMode.TEMPLATE,
+                system_notice + fallback, ResponseAssemblyMode.TEMPLATE,
                 tuple(claim.claim_id for claim in claims), False,
                 "PASS", "COMPOSER_FALLBACK",
             )
         return AssembledResponse(
-            text, mode, used, True, "PASS", "COMPOSED_FROM_ALLOWED_CLAIMS",
+            system_notice + text, mode, used, True,
+            "PASS", "COMPOSED_FROM_ALLOWED_CLAIMS",
         )
 
     @staticmethod
