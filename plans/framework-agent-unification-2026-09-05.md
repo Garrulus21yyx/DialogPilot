@@ -2,6 +2,15 @@
 
 Status: in_progress
 
+Done: removed the orphan command-primary chat bridge, work wrapper, result
+projection and CLARIFY/OOS response adapters. Repository reference audit shows their
+only consumers are within this retired cluster after ChatApplication deletion.
+Target planning/ResultBoard/publication own these responsibilities; shared standalone
+planning/evaluation modules are not removed until their remaining consumers migrate.
+73 focused Target contract/runtime tests pass; one PostgreSQL test skips without
+TEST_DATABASE_URL. Full collection passes (1316 tests). No old result or intent
+projection adapter remains in this deleted cluster; legacy Agent consumers remain open.
+
 Done: retired the final two legacy media chat harnesses and ChatApplication
 itself after consumer audit. Shared ChatCommand/outcome contracts remain independent.
 Current media authority lives at registered ToolManager calls, not pre-router media
