@@ -21,7 +21,7 @@ from application.orchestration_runtime import (
     OrchestrationRuntimeError,
 )
 from application.result_board import ResultBoard, ResultBoardError
-from application.work_item import ArgumentValue, ControlMode, WorkItem, WorkPlan
+from application.work_item import ArgumentValue, ControlMode, WorkItem, WorkItemContractError, WorkPlan
 
 
 def _item(
@@ -321,6 +321,19 @@ def test_result_board_rejects_invalid_extensions_without_changing_valid_prefix(e
                 ResultBoard().evaluate(plan, (*prefix, extra))
             assert ResultBoard().evaluate(plan, prefix) == snapshot
             assert snapshot.complete is (length == 3)
+
+
+@pytest.mark.parametrize("length", range(2, 9))
+def test_work_plan_accepts_dependency_chains_and_rejects_dangling_edges_and_cycles(length):
+    items = tuple(_item(str(i), "general", ControlMode.DIRECT, f"fact.{i}",
+                        dependencies=(str(i - 1),) if i else ()) for i in range(length))
+    for ordered in (items, tuple(reversed(items))):
+        plan = WorkPlan(ordered, "0")
+        assert tuple(item.work_item_id for item in ResultBoard().evaluate(plan, ()).ready_items) == ("0",)
+    for target in ("missing", str(length - 1)):
+        invalid = (replace(items[0], dependencies=(target,)), *items[1:])
+        with pytest.raises(WorkItemContractError):
+            WorkPlan(invalid, "0")
 
 
 def test_single_delegated_task_invokes_only_its_domain_worker():

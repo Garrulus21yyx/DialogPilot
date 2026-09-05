@@ -2,6 +2,26 @@
 
 Status: in_progress
 
+Done: retired orphan command-primary business/media execution helpers and
+their private captured-read evidence adapter. Current ToolManager/Target executors
+and AgentResult conversion own execution and result provenance. Remove unreferenced
+legacy PendingSignal/PriorOutcomeBinding/TaskArtifact and ExecutionBudget/Window
+contracts; retain TaskSpec/TaskGraph dependencies still used by planning evaluation.
+Follow-up consumer audit: those TaskGraph consumers are only the orphan
+CommandPrimaryPlanner/turn_plan vertical-slice test and the retained legacy graph
+test. Retire that compiler/bridge/test cluster and TaskSpec/TaskGraph together.
+Retain only legacy enum values still used by command/encoder evaluation; exercise
+current WorkPlan dependency validation with generated chains/cycles instead.
+Repository Python and frozen dataset reference audits found no external consumers
+for this retired surface. Validate current tool/media authority, continuation,
+framework limits and checkpoint resume rather than old one-work-item restrictions.
+Verification: 50 initial Target media/runtime/planning tests pass; 23 PostgreSQL-enabled
+framework/restart/refund-continuation/policy-read tests pass. After removing the
+compiler/TaskGraph cluster, 62 current runtime/planning and retained command/encoder/SGD
+tests pass, including generated chains/cycles of lengths 2–8. The encoder emits 12
+upstream NumPy/joblib deprecation warnings, not runtime failures. No frozen samples
+were changed, and no old planner fallback remains in this retired cluster.
+
 Done: removed the unused HTTP ActiveBundleResolver assembly and retired
 RouteExecution/RoutePathExecutor/Draft cluster. API only assigned/reset that resolver;
 no request called it. The resolver's remaining test exercised invented local fallback
