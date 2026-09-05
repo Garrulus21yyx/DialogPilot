@@ -65,7 +65,7 @@ def test_empty_install_upgrade_pool_and_ledger_are_replayable(postgres_database_
     first = runner.upgrade()
     second = runner.upgrade()
     assert first == second
-    assert first["head"] == "20260903_0029"
+    assert first["head"] == "20260903_0031"
 
     pool = PostgresPool(PostgresPoolConfig(
         postgres_database_url, min_size=1, max_size=2,
@@ -84,7 +84,7 @@ def test_empty_install_upgrade_pool_and_ledger_are_replayable(postgres_database_
             ).fetchone()[0]
         assert isolation == "read committed"
         assert schemas[:2] == ["dialogpilot_app", "dialogpilot_platform"]
-        assert ledger_count == 29
+        assert ledger_count == 31
     finally:
         pool.close()
 
@@ -118,7 +118,7 @@ def test_progressive_and_skipped_forward_upgrades_share_one_linear_registry(
     runner = PostgresMigrationRunner(fresh_postgres_database_url)
     manifest = runner.revision_manifest()
 
-    assert len(manifest) == 29
+    assert len(manifest) == 31
     assert manifest[0]["down_revision"] is None
     assert all(
         row["down_revision"] == manifest[index - 1]["revision"]
@@ -127,7 +127,7 @@ def test_progressive_and_skipped_forward_upgrades_share_one_linear_registry(
     for row in manifest:
         revision = str(row["revision"])
         assert runner.upgrade_to(revision)["head"] == revision
-    assert runner.upgrade()["head"] == "20260903_0029"
+    assert runner.upgrade()["head"] == "20260903_0031"
 
 
 def test_migration_runner_rejects_downgrade_and_requires_forward_fix(
@@ -139,7 +139,7 @@ def test_migration_runner_rejects_downgrade_and_requires_forward_fix(
     with pytest.raises(ForwardOnlyMigrationError, match="downgrade is forbidden"):
         runner.upgrade_to("20260902_0014")
 
-    assert runner.verify()["head"] == "20260903_0029"
+    assert runner.verify()["head"] == "20260903_0031"
 
 
 def test_concurrent_empty_database_migration_owners_serialize(
@@ -153,5 +153,5 @@ def test_concurrent_empty_database_migration_owners_serialize(
     with ThreadPoolExecutor(max_workers=2) as workers:
         results = list(workers.map(migrate, ("runner-a", "runner-b")))
 
-    assert {row["head"] for row in results} == {"20260903_0029"}
+    assert {row["head"] for row in results} == {"20260903_0031"}
     assert len({row["ledger_sha256"] for row in results}) == 1
