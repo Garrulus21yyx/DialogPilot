@@ -4,9 +4,9 @@ from __future__ import annotations
 import inspect
 import time
 from dataclasses import dataclass, field, replace
-from typing import Any, Callable, Mapping, Protocol
+from typing import Any, Awaitable, Callable, Mapping, Protocol
 
-from application.chat_contracts import ChatCommand, ChatHandler, ChatOutcome, Completed, StageObservation
+from application.chat_contracts import Accepted, ChatCommand, ChatHandler, ChatOutcome, Completed, StageObservation
 
 
 @dataclass(frozen=True)
@@ -46,22 +46,29 @@ class ChatApplicationRunner:
         *,
         overrides: ChatRuntimeOverrides | None = None,
         state_probes: Mapping[str, Callable[[ChatCommand, ChatOutcome], Any]] | None = None,
+        completion_reader: Callable[[Accepted], Awaitable[ChatOutcome]] | None = None,
     ):
         self._application_factory = application_factory
         self._overrides = overrides or ChatRuntimeOverrides()
         self._state_probes = dict(state_probes or {})
+        self._completion_reader = completion_reader
 
     def with_overrides(self, **changes: Any) -> "ChatApplicationRunner":
         return ChatApplicationRunner(
             self._application_factory,
             overrides=replace(self._overrides, **changes),
             state_probes=self._state_probes,
+            completion_reader=self._completion_reader,
         )
 
     async def run(self, command: ChatCommand) -> ChatRunResult:
         application = self._application_factory(self._overrides)
         started = self._overrides.clock()
         outcome = await application.handle(command)
+        if isinstance(outcome, Accepted):
+            if self._completion_reader is None:
+                raise RuntimeError("durable evaluation requires a completion reader")
+            outcome = await self._completion_reader(outcome)
         elapsed = max(0.0, self._overrides.clock() - started) * 1000
         owner_state: dict[str, Any] = {}
         for name, probe in self._state_probes.items():

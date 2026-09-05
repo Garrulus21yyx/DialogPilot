@@ -256,6 +256,13 @@ def test_target_chat_direct_order_path_publishes_once_and_replays():
     assert len(tools.calls) == 1
     assert tools.calls[0][3]["user_id"] == "user-a"
     assert tools.calls[0][1] == {"order_id": "DP1234"}
+    from evaluation.evaluator import EndToEndEvaluator
+    scores = EndToEndEvaluator._orchestration_scores(
+        SimpleNamespace(**first.response), {"expected_agents": ["order_logistics"]},
+    )
+    assert scores["coverage_complete"] == 1
+    assert scores["task_coverage"] == 1
+    assert scores["route_exact_match"] == 1
 
 
 def test_target_chat_unclear_request_uses_zero_tool_clarification():

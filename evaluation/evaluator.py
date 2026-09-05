@@ -20,7 +20,7 @@ import statistics
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 from types import SimpleNamespace
 
 from anthropic import AsyncAnthropic
@@ -34,6 +34,8 @@ from evaluation.rubric import CaseRubric
 from services.evolution.bundle import AgentBundle
 from application.chat_contracts import ChatCommand, Completed
 from evaluation.chat_application_runner import ChatApplicationRunner
+from evaluation.target_planning_runner import TargetPlanningRunner
+from application.turn_planning import TurnPlan
 
 logger = logging.getLogger(__name__)
 
@@ -264,13 +266,14 @@ class EndToEndEvaluator:
 
     def __init__(
         self,
-        orchestrator,
         recognizer: IntentRecognizer,
         api_key:  str,
+        tenant_id: str,
         base_url: Optional[str] = None,
         model:    str = "claude-3-5-sonnet-20241022",
         judge_model_profile: Optional[ModelProfile] = None,
         chat_runner: Optional[ChatApplicationRunner] = None,
+        planning_runner_factory: Callable[[], TargetPlanningRunner] | None = None,
     ):
         """组装意图评测、LLM Judge、编排器和可选持久基线。"""
         kwargs: Dict[str, Any] = {"api_key": api_key}
@@ -278,7 +281,8 @@ class EndToEndEvaluator:
             kwargs["base_url"] = base_url
         client = AsyncAnthropic(**kwargs)
 
-        self._orchestrator     = orchestrator
+        self._planning_runner_factory = planning_runner_factory
+        self._tenant_id = tenant_id
         self._chat_runner      = chat_runner
         self._judge            = LLMJudge(client, model, model_profile=judge_model_profile)
         self._intent_evaluator = IntentEvaluator(recognizer)
@@ -336,7 +340,7 @@ class EndToEndEvaluator:
                 },
             ))
 
-        # 2. 对话质量评测（调用 orchestrator 产出回复，再用 LLM Judge 评分）
+        # 2. Target 规划产物或公开回复评测；两者不混算执行成功。
         if dialog_cases:
             for i, case in enumerate(dialog_cases):
                 case_results = await self._evaluate_dialog_case(
@@ -396,8 +400,6 @@ class EndToEndEvaluator:
         agent_bundle: Optional[AgentBundle] = None,
     ) -> List[EvalResult]:
         """评测单轮或多轮对话用例。"""
-        from agents.agent_orchestrator import Request as OrcReq
-
         questions = self._dialog_turns(case)
         if not questions:
             return []
@@ -406,37 +408,23 @@ class EndToEndEvaluator:
         user_id = str(case.get("user_id") or "eval_user")
         history: List[Dict[str, str]] = []
         results: List[EvalResult] = []
+        routing_only = case.get("evaluation_layer") == "routing"
+        if routing_only and self._planning_runner_factory is None:
+            raise RuntimeError("routing evaluation requires TargetPlanningRunner")
+        planner = self._planning_runner_factory() if routing_only else None
 
         for turn_idx, question in enumerate(questions):
             turn_started = time.perf_counter()
             context = self._history_context(history)
-            supplied_intent = case.get("intent")
-            try:
-                routed_intent = IntentCategory(str(supplied_intent)) if supplied_intent else None
-            except ValueError:
-                routed_intent = None
-            supplied_confidence = case.get("intent_confidence")
             request_id = "eval_" + hashlib.sha256(
                 f"{case.get('id', case_idx)}:{turn_idx}:{user_id}:{conv_id}".encode("utf-8")
             ).hexdigest()[:32]
-            orch_req = OrcReq(
-                message=question,
-                user_id=user_id,
-                conv_id=conv_id,
-                context=context,
-                history=history[-6:] if history else None,
-                intent=routed_intent,
-                intent_confidence=(
-                    float(supplied_confidence) if supplied_confidence is not None else 1.0
-                ),
-                entities=dict(case.get("entities") or {}),
-                bundle_version=agent_bundle.version if agent_bundle else "unversioned",
-                agent_bundle=agent_bundle,
-                request_id=request_id,
-            )
-            routing_only = case.get("evaluation_layer") == "routing"
             if routing_only:
-                decision = await self._orchestrator.plan(orch_req)
+                decision = await planner.plan(
+                    ChatCommand(message=question, user_id=user_id, conv_id=conv_id,
+                                request_id=request_id),
+                    history=history, entities=dict(case.get("entities") or {}),
+                )
                 orchestration_scores = self._planning_scores(decision, case)
                 required_checks = [orchestration_scores["planning_complete"] >= 1.0]
                 if "route_exact_match" in orchestration_scores:
@@ -455,7 +443,7 @@ class EndToEndEvaluator:
                     )
                 chat_run = await self._chat_runner.run(ChatCommand(
                     message=question,
-                    tenant_id="evaluation",
+                    tenant_id=self._tenant_id,
                     user_id=user_id,
                     conv_id=conv_id,
                     authorization_fingerprint=hashlib.sha256(
@@ -480,6 +468,10 @@ class EndToEndEvaluator:
                 required_checks = [
                     isinstance(chat_run.outcome, Completed),
                     orchestration_scores["coverage_complete"] >= 1.0,
+                    orchestration_scores["task_coverage"] >= 1.0,
+                    *(orchestration_scores[key] >= 1.0 for key in (
+                        "route_exact_match", "task_exact_match",
+                    ) if key in orchestration_scores),
                 ]
             scores = None
             rubric = None
@@ -543,12 +535,12 @@ class EndToEndEvaluator:
                         getattr(orch_result.agent_type, "value", orch_result.agent_type)
                         if orch_result is not None and orch_result.agent_type is not None
                         else "orchestrator" if orch_result is not None
-                        else next(iter(decision.agent_types), None).value if decision.agent_types else None
+                        else next(iter(decision.route.owner_ids), None)
                     ),
                     "intent": (
                         getattr(orch_result.intent, "value", orch_result.intent)
                         if orch_result is not None and orch_result.intent
-                        else decision.intent.value if routing_only and decision.intent else None
+                        else None
                     ),
                     "turn": turn_idx,
                     "conv_id": conv_id,
@@ -559,7 +551,9 @@ class EndToEndEvaluator:
                     "rubric": rubric_result.to_dict() if rubric_result is not None else None,
                     "task_plan": (
                         orch_result.task_plan if orch_result is not None
-                        else decision.task_plan.to_dict() if decision.task_plan else {}
+                        else {"plan_id": decision.plan_id, "work_item_ids": [
+                            item.work_item_id for item in decision.work.items
+                        ] if decision.work else []}
                     ),
                     "coverage": orch_result.coverage if orch_result is not None else {},
                     "agent_outcomes": orch_result.agent_outcomes if orch_result is not None else [],
@@ -572,9 +566,9 @@ class EndToEndEvaluator:
                     "chat_outcome": (
                         type(chat_run.outcome).__name__ if not routing_only else None
                     ),
-                    "clarification_required": decision.clarification_required if routing_only else False,
+                    "clarification_required": decision.route.mode.value == "CLARIFY" if routing_only else False,
                     "routing_disposition": (
-                        decision.disposition.value if routing_only else
+                        decision.route.mode.value.lower() if routing_only else
                         getattr(
                             getattr(orch_result, "routing_disposition", None),
                             "value",
@@ -587,17 +581,12 @@ class EndToEndEvaluator:
         return results
 
     @staticmethod
-    def _planning_scores(decision: Any, case: Dict[str, Any]) -> Dict[str, float]:
-        """只比较 Planner 产物；不得把尚未执行的任务记为已完成。"""
-        task_plan = getattr(decision, "task_plan", None)
-        planned_tasks = list(task_plan.to_dict().get("tasks") or []) if task_plan else []
-        actual_agents = {
-            str(getattr(agent, "value", agent))
-            for agent in (getattr(decision, "agent_types", []) or [])
-        }
+    def _planning_scores(decision: TurnPlan, case: Dict[str, Any]) -> Dict[str, float]:
+        """Score the actual Target plan; planned work is not completed work."""
+        actual_agents = set(decision.route.owner_ids)
         actual_tasks = {
-            str(task.get("task_id")) for task in planned_tasks if task.get("task_id")
-        }
+            item.work_item_id for item in decision.work.items
+        } if decision.work else set()
         expected_agents = {
             str(agent) for agent in (case.get("expected_agents") or []) if str(agent)
         }
@@ -617,9 +606,7 @@ class EndToEndEvaluator:
         }
         expected_disposition = str(case.get("expected_disposition") or "").strip()
         if expected_disposition:
-            actual_disposition = str(
-                getattr(getattr(decision, "disposition", "execute"), "value", "execute")
-            )
+            actual_disposition = decision.route.mode.value.lower()
             scores["disposition_exact_match"] = (
                 1.0 if actual_disposition == expected_disposition else 0.0
             )
@@ -629,40 +616,34 @@ class EndToEndEvaluator:
     def _orchestration_scores(orch_result: Any, case: Dict[str, Any]) -> Dict[str, float]:
         """从计划、覆盖和终态计算可回归的 Multi-Agent 指标。"""
         coverage = dict(getattr(orch_result, "coverage", {}) or {})
-        required = set(coverage.get("required_task_ids") or [])
-        completed = set(coverage.get("completed_task_ids") or [])
+        plan = dict(getattr(orch_result, "task_plan", {}) or {})
+        required = set(plan.get("work_item_ids") or [])
+        outcomes = list(getattr(orch_result, "agent_outcomes", []) or [])
+        completed = {
+            item["work_item_id"] for item in outcomes
+            if item.get("status") == "SUCCEEDED"
+        }
         expected_tasks = {
             str(task_id) for task_id in (case.get("expected_task_ids") or []) if str(task_id)
         }
-        no_task_contract = (
-            "expected_task_ids" in case and not expected_tasks and not required
-        )
         task_coverage = (
             len(required & completed) / len(required) if required
-            else (1.0 if no_task_contract else 0.0)
+            else (1.0 if coverage.get("complete") is True else 0.0)
         )
 
-        outcomes = list(getattr(orch_result, "agent_outcomes", []) or [])
         budget_failures = sum(
-            1 for outcome in outcomes if outcome.get("status") == "budget_exceeded"
+            1 for outcome in outcomes if outcome.get("reason_code") in {
+                "AGENT_STEP_BUDGET_EXCEEDED", "CONTEXT_BUDGET_EXCEEDED",
+            }
         )
         budget_success_rate = (
             1.0 - budget_failures / len(outcomes) if outcomes else 1.0
         )
 
-        task_plan = dict(getattr(orch_result, "task_plan", {}) or {})
-        planned_tasks = list(task_plan.get("tasks") or [])
-        actual_agents = {
-            str(task.get("owner")) for task in planned_tasks if task.get("owner")
-        }
-        if not actual_agents:
-            actual_agents = {
-                str(getattr(agent, "value", agent))
-                for agent in (getattr(orch_result, "agent_types", []) or [])
-            }
+        actual_agents = set(getattr(orch_result, "agent_types", ()) or ())
 
         scores: Dict[str, float] = {
-            "coverage_complete": 1.0 if coverage.get("complete") is True or no_task_contract else 0.0,
+            "coverage_complete": 1.0 if coverage.get("complete") is True else 0.0,
             "task_coverage": task_coverage,
             "budget_success_rate": budget_success_rate,
             "fanout_efficiency": 1.0,
@@ -671,7 +652,7 @@ class EndToEndEvaluator:
         expected_agents = {
             str(agent) for agent in (case.get("expected_agents") or []) if str(agent)
         }
-        if expected_agents:
+        if "expected_agents" in case:
             union = actual_agents | expected_agents
             scores["route_exact_match"] = 1.0 if actual_agents == expected_agents else 0.0
             scores["route_jaccard"] = (
@@ -679,13 +660,12 @@ class EndToEndEvaluator:
             )
             unnecessary = len(actual_agents - expected_agents)
             scores["fanout_efficiency"] = (
-                1.0 - unnecessary / len(actual_agents) if actual_agents else 0.0
+                1.0 - unnecessary / len(actual_agents)
+                if actual_agents else (1.0 if not expected_agents else 0.0)
             )
 
-        if expected_tasks:
-            actual_tasks = {
-                str(task.get("task_id")) for task in planned_tasks if task.get("task_id")
-            }
+        if "expected_task_ids" in case:
+            actual_tasks = required
             scores["task_exact_match"] = 1.0 if actual_tasks == expected_tasks else 0.0
 
         return scores

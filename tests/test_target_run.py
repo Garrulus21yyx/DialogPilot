@@ -66,6 +66,48 @@ class _RunStore:
         self.owner = "replacement-worker"
 
 
+def test_completion_wait_reads_terminal_without_claiming_or_executing_work():
+    from application.chat_contracts import Accepted, Completed
+    from application.target_run import TargetRunCoordinator, terminal_from_outcome
+
+    store = _RunStore(_item())
+    coordinator = TargetRunCoordinator(None, dispatcher=None, store=store)
+    result = Completed("p1", {"response": "查询完成"})
+
+    async def run():
+        async def publish():
+            await asyncio.sleep(0.01)
+            store.terminal_value = terminal_from_outcome(result)
+
+        task = asyncio.create_task(publish())
+        outcome = await coordinator.await_outcome(
+            Accepted("run", {"invocation_key": str(store.item.invocation_key)}),
+            timeout_seconds=1, poll_seconds=0.001,
+        )
+        await task
+        return outcome
+
+    assert asyncio.run(run()) == result
+    assert store.available
+    assert not store.releases
+
+
+def test_completion_wait_timeout_leaves_original_work_untouched():
+    from application.chat_contracts import Accepted
+    from application.target_run import TargetRunCoordinator
+
+    store = _RunStore(_item())
+    coordinator = TargetRunCoordinator(None, dispatcher=None, store=store)
+    with pytest.raises(TimeoutError):
+        asyncio.run(coordinator.await_outcome(
+            Accepted("run", {"invocation_key": str(store.item.invocation_key)}),
+            timeout_seconds=0.01, poll_seconds=0.001,
+        ))
+    assert store.available
+    assert not store.releases
+    assert store.terminal_value is None
+
+
 def _item():
     identity = IdentityFactory(lambda: "unused").create_invocation(
         tenant_id="tenant-a",

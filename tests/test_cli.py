@@ -71,6 +71,8 @@ import sys
 import api.cli
 import evaluation.chat_application_runner
 import evaluation.command_primary_eval.locked_conversation
+import evaluation.evaluator
+import api.main
 assert not ({'agents.agent_orchestrator', 'agents.react_engine', 'agents.run_store',
              'application.chat_application'} & sys.modules.keys())
 """], check=True)

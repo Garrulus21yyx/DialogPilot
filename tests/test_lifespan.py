@@ -10,7 +10,6 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
 ):
     """证明 Memory 配置只传给 MemoryManager，不会误传给意图识别器。"""
     """The API boundary must send memory policy to MemoryManager, not intent."""
-    import agents.agent_orchestrator as agent_module
     import core.intent_recognizer as intent_module
     import core.skill_loader as skill_module
     import evaluation.evaluator as evaluation_module
@@ -47,22 +46,6 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
 
         def load(self):
             return []
-
-    class FakeOrchestrator:
-        def __init__(self, **kwargs):
-            captured["orchestrator"] = kwargs
-
-        def set_tool_manager(self, _tool_manager):
-            captured["tool_manager_wired"] = True
-
-        def worker_for(self, agent_type):
-            return SimpleNamespace(agent_type=agent_type)
-
-        def get_stats(self):
-            return {}
-
-        def update_routing_penalties(self, _penalties):
-            pass
 
     class FakeAnswerVerifier:
         def __init__(self, **_kwargs):
@@ -145,7 +128,6 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
 
     monkeypatch.setattr(intent_module, "IntentRecognizer", FakeIntentRecognizer)
     monkeypatch.setattr(skill_module, "SkillManager", FakeSkillManager)
-    monkeypatch.setattr(agent_module, "AgentOrchestrator", FakeOrchestrator)
     monkeypatch.setattr(verifier_module, "AnswerVerifier", FakeAnswerVerifier)
     monkeypatch.setattr(memory_module, "MemoryManager", FakeMemoryManager)
     monkeypatch.setattr(tool_module, "MCPToolManager", FakeToolManager)
@@ -207,17 +189,12 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
                 "location": "dialogpilot_app.memory_facts",
             }
             assert captured["knowledge"]["tenant_id"] == "default"
-            assert captured["orchestrator"]["intent_similarity_mode"] == "ngram"
-            assert captured["orchestrator"]["react_max_steps"] == 6
-            assert captured["orchestrator"]["intent_recognizer"] is not None
-            assert "run_store" not in captured["orchestrator"]
             assert "execution_store" not in captured["tool_manager"]
             assert main._bundle_registry.pool is main._postgres_pool
             assert main._target_run_coordinator is not None
             assert captured["monitor"]["execution_runtime"] is main._target_orchestration
             assert captured["tool_manager"]["approval_mode"].value == "require_all"
             assert captured["tool_manager"]["max_output_chars"] == 2345
-            assert captured["tool_manager_wired"] is True
             assert set(captured["registered_tool_names"]) == {
                 "knowledge_search",
                 "service_episode_search",

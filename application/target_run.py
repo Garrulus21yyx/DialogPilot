@@ -223,6 +223,19 @@ class TargetRunCoordinator:
             "durable_execution": "QUEUED",
         })
 
+    async def await_outcome(
+        self, accepted: Accepted, *, timeout_seconds: float = 120,
+        poll_seconds: float = 0.1,
+    ) -> ChatOutcome:
+        """Read the original run's terminal fact; waiting never starts execution."""
+        invocation_key = InvocationKey(str(accepted.public_status["invocation_key"]))
+        async with asyncio.timeout(timeout_seconds):
+            while True:
+                terminal = await asyncio.to_thread(self.store.terminal, invocation_key)
+                if terminal is not None:
+                    return outcome_from_terminal(terminal)
+                await asyncio.sleep(poll_seconds)
+
     async def pump_once(self) -> int:
         now = self.clock()
         dispatched = await asyncio.to_thread(

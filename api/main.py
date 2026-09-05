@@ -118,7 +118,6 @@ BANNER = r"""
 """
 
 # ── 全局组件（lifespan 中初始化）─────────────────────────────────────────────
-_orchestrator = None
 _memory       = None
 _knowledge_store = None
 _tool_manager = None
@@ -206,14 +205,12 @@ def _anthropic_cfg() -> Dict[str, Any]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """按依赖顺序创建所有组件，并在退出时释放后台任务和连接。"""
-    global _orchestrator, _memory, _knowledge_store, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _commitment_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _bundle_registry, _proposal_generator, _bundle_resolver, _grounded_answer_generator, _postgres_pool, _conversation_query, _knowledge_retriever, _retrieval_cache_client, _target_run_coordinator, _durable_chat_task, _durable_chat_stop, _retrieval_postgres_pool, _service_episode_search, _media_asset_store, _media_asset_service, _vlm_provider, _postgres_trace_sink, _target_chat_runtime, _target_checkpoint_owner
+    global _memory, _knowledge_store, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _commitment_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _bundle_registry, _proposal_generator, _bundle_resolver, _grounded_answer_generator, _postgres_pool, _conversation_query, _knowledge_retriever, _retrieval_cache_client, _target_run_coordinator, _durable_chat_task, _durable_chat_stop, _retrieval_postgres_pool, _service_episode_search, _media_asset_store, _media_asset_service, _vlm_provider, _postgres_trace_sink, _target_chat_runtime, _target_checkpoint_owner
 
     global _target_orchestration, _intent_recognizer
 
     print(BANNER, flush=True)
 
-    from agents.agent_orchestrator import AgentOrchestrator
-    from agents.orchestration_contracts import AgentType
     from core.intent_recognizer import IntentRecognizer
     from evaluation.evaluator import EndToEndEvaluator
     from evaluation.chat_application_runner import ChatApplicationRunner
@@ -270,7 +267,7 @@ async def lifespan(app: FastAPI):
     )
     logger.info("模型分层策略: %s", _model_policy.to_dict())
 
-    # 单一意图识别器同时注入 Orchestrator 与 Evaluator，避免 cache/学习状态分叉。
+    # 旧标签仅用于意图评测和诊断；在线路由由 Target understanding 负责。
     recognizer = IntentRecognizer(
         api_key=cfg["api_key"],
         base_url=cfg.get("base_url"),
@@ -289,20 +286,6 @@ async def lifespan(app: FastAPI):
     )
     _skill_manager.load()
 
-    # Agent 编排器
-    _orchestrator = AgentOrchestrator(
-        api_key=cfg["api_key"],
-        base_url=cfg.get("base_url"),
-        model=cfg["model"],
-        skill_manager=_skill_manager,
-        agent_timeout_s=float(os.getenv("AGENT_TIMEOUT_SECONDS", "15")),
-        request_timeout_s=float(os.getenv("AGENT_REQUEST_TIMEOUT_SECONDS", "20")),
-        max_agents_per_request=int(os.getenv("AGENT_MAX_PER_REQUEST", "3")),
-        react_max_steps=int(os.getenv("REACT_MAX_STEPS", "4")),
-        intent_similarity_mode=similarity_mode,
-        model_policy=_model_policy,
-        intent_recognizer=recognizer,
-    )
     _answer_verifier = AnswerVerifier(
         api_key=cfg["api_key"],
         base_url=cfg.get("base_url"),
@@ -573,7 +556,6 @@ async def lifespan(app: FastAPI):
         ):
             _tool_manager.register(product_tool)
     AuthorityPolicyRegistry.v1().validate_tools(_tool_manager.registered_tools)
-    _orchestrator.set_tool_manager(_tool_manager)
 
     # Keep the HTTP lifespan as an adapter; Target wiring has its own cohesive
     # composition root and still reuses all existing runtime owners.
@@ -635,14 +617,24 @@ async def lifespan(app: FastAPI):
     await _monitor.start()
 
     # 评测器
+    from evaluation.target_planning_runner import TargetPlanningRunner
+
     _evaluator = EndToEndEvaluator(
-        orchestrator=_orchestrator,
         recognizer=recognizer,
         api_key=cfg["api_key"],
+        tenant_id=target_components.registry.tenant_id,
         base_url=cfg.get("base_url"),
         model=cfg["model"],
         judge_model_profile=_model_policy.profile(ModelRole.JUDGE),
-        chat_runner=ChatApplicationRunner(lambda _overrides: _chat_application()),
+        chat_runner=ChatApplicationRunner(
+            lambda _overrides: _chat_application(),
+            completion_reader=_target_run_coordinator.await_outcome,
+        ),
+        planning_runner_factory=lambda: TargetPlanningRunner(
+            registry=target_components.registry,
+            understanding=target_components.understanding,
+            orchestration=target_components.orchestration,
+        ),
     )
 
     await _memory.start()
@@ -742,7 +734,6 @@ async def lifespan(app: FastAPI):
         if _postgres_pool is not None:
             _postgres_pool.close()
         # lifespan 结束后不留下指向已关闭资源的进程全局引用。
-        _orchestrator = None
         _memory = None
         _knowledge_store = None
         _tool_manager = None
@@ -1188,8 +1179,6 @@ async def reload_skills(_principal: Principal = Depends(_admin_principal)):
     if _skill_manager is None:
         raise HTTPException(503, "Skills 未初始化")
     _skill_manager.reload()
-    if _orchestrator is not None:
-        _orchestrator.set_skill_manager(_skill_manager)
     return _skill_manager.summary()
 
 

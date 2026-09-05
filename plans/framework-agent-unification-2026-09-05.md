@@ -50,9 +50,16 @@ Transport evaluation imports ChatHandler from shared contracts, not old ChatAppl
 39 focused runtime/monitor/CLI/evaluation tests pass. Clean committed snapshot startup
 and the same focused suite: 40 passed, including PostgreSQL-backed API lifespan.
 
-Next cutover surface: API startup still constructs AgentOrchestrator for routing-only
-evaluation and legacy Skill/ToolManager injection. These remaining consumers must use
-the Target planning boundary rather than recreating another semantic router.
+In progress: routing evaluation now uses TargetPlanningRunner, the same registered
+understanding instance and TargetConversationManager.prepare with isolated in-memory
+case state. It consumes real TurnPlan owner/work IDs, not old PlanningDecision.
+Old intent labels are annotations, not another routing authority. API startup no longer
+constructs AgentOrchestrator or injects Skill/ToolManager into an unused worker pool.
+Full-execution evaluation awaits the original durable invocation's terminal outcome;
+it does not score Accepted as a completed answer or submit a second message. Execution
+scoring consumes Target work_item_ids and typed outcomes; empty expected tasks cannot
+override failed coverage. The evaluator uses the configured runtime tenant.
+24 focused tests pass; final clean startup regression remains pending for this stage.
 Then migrate legacy evaluation harnesses and behavioral gates before removing old
 ChatApplication, compatibility execution, ReActExecutionEngine and its RunStore.
 ToolManager's optional execution_store claim branch remains another old RunStore

@@ -2,7 +2,7 @@
 import asyncio
 import pytest
 
-from application.chat_contracts import ChatCommand, Completed, StageObservation, StageStatus
+from application.chat_contracts import Accepted, ChatCommand, Completed, StageObservation, StageStatus
 from evaluation.chat_application_runner import ChatApplicationRunner
 from evaluation.evaluator import EndToEndEvaluator, QualityScores
 
@@ -17,14 +17,14 @@ def _completed(stages=()):
             "agent_types": ["general"],
             "routing_disposition": "execute",
             "task_plan": {
-                "tasks": [{"task_id": "general_task", "owner": "general"}],
+                "work_item_ids": ["general_task"],
             },
             "coverage": {
                 "complete": True,
                 "required_task_ids": ["general_task"],
                 "completed_task_ids": ["general_task"],
             },
-            "agent_outcomes": [{"task_id": "general_task", "status": "success"}],
+            "agent_outcomes": [{"work_item_id": "general_task", "owner_agent": "general", "status": "SUCCEEDED"}],
             "tool_audit": [{"tool_name": "order_lookup", "status": "success"}],
         },
         stages=tuple(stages),
@@ -89,6 +89,7 @@ def test_full_execution_uses_chat_runner_and_records_typed_stages():
     evaluator = EndToEndEvaluator.__new__(EndToEndEvaluator)
     evaluator._orchestrator = MustNotRunOrchestrator()
     evaluator._chat_runner = ChatApplicationRunner(lambda _overrides: Application())
+    evaluator._tenant_id = "default"
     evaluator._judge = Judge()
 
     results = asyncio.run(evaluator._evaluate_dialog_case({
@@ -116,3 +117,33 @@ def test_full_execution_without_application_runner_fails_closed():
         assert "ChatApplicationRunner" in str(exc)
     else:
         raise AssertionError("full execution must not fall back to orchestrator.run")
+
+
+def test_durable_runner_waits_for_the_same_invocation_without_resubmitting():
+    submitted = []
+    accepted = Accepted("run-1", {"invocation_key": "inv-1"})
+
+    class Application:
+        async def handle(self, command):
+            submitted.append(command)
+            return accepted
+
+    async def complete(value):
+        assert value is accepted
+        return _completed()
+
+    runner = ChatApplicationRunner(
+        lambda _overrides: Application(), completion_reader=complete,
+    ).with_overrides()
+    result = asyncio.run(runner.run(ChatCommand("查订单", "user")))
+    assert len(submitted) == 1
+    assert isinstance(result.outcome, Completed)
+
+
+def test_accepted_without_completion_reader_cannot_be_scored_as_a_finished_turn():
+    class Application:
+        async def handle(self, command):
+            return Accepted("run-1", {"invocation_key": "inv-1"})
+
+    with pytest.raises(RuntimeError, match="completion reader"):
+        asyncio.run(ChatApplicationRunner(lambda _: Application()).run(ChatCommand("查订单", "user")))

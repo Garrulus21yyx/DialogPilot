@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime, timedelta, timezone
 
 import pytest
@@ -110,6 +111,15 @@ def test_target_run_claim_is_exclusive_and_stale_attempt_is_fenced(
         store.complete(stale, worker_id="worker-a", terminal=terminal)
     store.complete(current, worker_id="worker-b", terminal=terminal)
     assert store.terminal(identity.invocation_key) == terminal
+    from application.chat_contracts import Accepted, Completed
+    from application.target_run import TargetRunCoordinator
+    reader = TargetRunCoordinator(
+        None, dispatcher=None, store=PostgresTargetRunStore(pool),
+    )
+    observed = asyncio.run(reader.await_outcome(Accepted(
+        str(identity.workflow_run_id), {"invocation_key": str(identity.invocation_key)},
+    )))
+    assert observed == Completed("response-1", {"response": "完成"})
 
 
 def test_released_target_run_is_reclaimed_without_changing_identity(

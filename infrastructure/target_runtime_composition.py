@@ -13,12 +13,13 @@ from typing import Any, Mapping
 from langchain_anthropic import ChatAnthropic
 
 from application.context_budget import ContextBudgetManager
+from application.capability_registry import CapabilityRegistryBundle
 from application.conversation_agent import ConversationAgent
 from application.default_capability_registry import build_default_capability_registry
 from application.orchestration_runtime import OrchestrationRuntime
 from application.response_assembly import ResponseAssembler
 from application.target_chat_application import TargetChatApplication
-from application.target_conversation_manager import TargetConversationManager
+from application.target_conversation_manager import TargetConversationManager, TurnUnderstanding
 from application.target_encoder_artifact import load_target_text_encoder_artifact
 from application.target_encoder_understanding import TargetEncoderUnderstanding
 from application.target_run import TargetRunCoordinator
@@ -72,6 +73,8 @@ class TargetRuntimeComponents:
     run_store: PostgresTargetRunStore
     checkpoint_owner: AsyncPostgresCheckpointOwner
     orchestration: OrchestrationRuntime
+    registry: CapabilityRegistryBundle
+    understanding: TurnUnderstanding
 
 
 async def build_target_runtime(
@@ -148,14 +151,13 @@ async def build_target_runtime(
             ),
             context_budget=context_budget,
         )
+        understanding = CascadedTargetUnderstanding(
+            StateBoundTargetUnderstanding(), conversation_agent, encoder=encoder,
+        )
         manager = TargetConversationManager(
             state_store=state_store,
             registry=registry,
-            understanding=CascadedTargetUnderstanding(
-                StateBoundTargetUnderstanding(),
-                conversation_agent,
-                encoder=encoder,
-            ),
+            understanding=understanding,
             orchestration=orchestration,
             context_provider=TargetTurnContextLoader(memory, tool_manager),
         )
@@ -198,6 +200,8 @@ async def build_target_runtime(
             run_store,
             checkpoint_owner,
             orchestration,
+            registry,
+            understanding,
         )
     except BaseException:
         await checkpoint_owner.__aexit__(None, None, None)

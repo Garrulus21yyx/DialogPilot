@@ -5,10 +5,9 @@ from types import SimpleNamespace
 
 import pytest
 
-from agents.agent_orchestrator import PlanningDecision, PlanningDisposition
-from agents.orchestration_contracts import AgentType, TaskPlan, TaskRisk, TaskSpec
-from core.intent_recognizer import IntentCategory
 from evaluation.evaluator import EndToEndEvaluator, QualityScores
+from application.capability_registry import CapabilityRisk
+from application.turn_planning import RouteDecision, RouteMode, TurnPlan
 
 
 def result(*, owners, coverage_complete=True, budget_failure=False):
@@ -20,20 +19,21 @@ def result(*, owners, coverage_complete=True, budget_failure=False):
     completed = [task["task_id"] for task in tasks] if coverage_complete else [tasks[0]["task_id"]]
     outcomes = [
         {
-            "task_id": task["task_id"],
-            "status": "budget_exceeded" if budget_failure and index == len(tasks) - 1 else "success",
+            "work_item_id": task["task_id"],
+            "status": "SUCCEEDED" if task["task_id"] in completed else "TERMINAL_FAILURE",
+            "reason_code": "AGENT_STEP_BUDGET_EXCEEDED" if budget_failure and index == len(tasks) - 1 else "DONE",
         }
         for index, task in enumerate(tasks)
     ]
     return SimpleNamespace(
-        task_plan={"tasks": tasks},
+        task_plan={"work_item_ids": [task["task_id"] for task in tasks]},
         coverage={
             "complete": coverage_complete,
             "required_task_ids": [task["task_id"] for task in tasks],
             "completed_task_ids": completed,
         },
         agent_outcomes=outcomes,
-        agent_types=[],
+        agent_types=owners,
     )
 
 
@@ -75,124 +75,49 @@ def test_orchestration_scores_expose_extra_agent_missing_coverage_and_budget_fai
     assert scores["budget_success_rate"] == pytest.approx(2 / 3)
 
 
-def test_routing_evaluation_consumes_supplied_intent_instead_of_reclassifying():
-    """Routing layer 的 gold intent/entities 必须直接进入 Planner 边界。"""
-    captured = {}
+@pytest.mark.parametrize("mode", [RouteMode.CLARIFY, RouteMode.OUT_OF_SCOPE])
+def test_target_terminal_plans_need_no_workers_or_answer_judge(mode):
+    plan = TurnPlan(
+        RouteDecision(mode, (), (), CapabilityRisk.LOW, (), "TEST"),
+        None, None, "state", "registry", "compiler",
+    )
 
-    class Orchestrator:
-        async def plan(self, request):
-            captured["request"] = request
-            task = TaskSpec(
-                "technical_task", AgentType.TECHNICAL, "排查 401", risk=TaskRisk.MEDIUM,
-            )
-            return PlanningDecision(
-                intent=request.intent,
-                task_plan=TaskPlan((task,), task.task_id),
-            )
-
-        async def run(self, _request):
-            raise AssertionError("routing-only evaluation must not execute workers")
+    class Planner:
+        async def plan(self, command, *, history, entities):
+            return plan
 
     class Judge:
         async def judge(self, *_args, **_kwargs):
-            return QualityScores(1.0, 1.0, 1.0, 1.0)
+            raise AssertionError("planner-only evaluation must not judge a nonexistent answer")
 
     evaluator = EndToEndEvaluator.__new__(EndToEndEvaluator)
-    evaluator._orchestrator = Orchestrator()
+    evaluator._planning_runner_factory = Planner
     evaluator._judge = Judge()
-
-    asyncio.run(evaluator._evaluate_dialog_case({
-        "id": "routing-owner-contract",
-        "question": "订单登录报 401 后重复扣款",
-        "intent": "technical_login",
-        "intent_confidence": 0.95,
-        "entities": {"error_code": ["401"]},
-        "expected_agents": ["technical"],
-        "expected_task_ids": ["technical_task"],
-        "evaluation_layer": "routing",
-    }, 0))
-
-    request = captured["request"]
-    assert request.intent is IntentCategory.TECHNICAL_LOGIN
-    assert request.intent_confidence == 0.95
-    assert request.entities == {"error_code": ["401"]}
-
-
-def test_routing_layer_skips_answer_judge_and_accepts_empty_clarification_plan():
-    """Routing 层只验证 owner/task 合同，澄清路径的空任务集是完整结果。"""
-    class Orchestrator:
-        async def plan(self, request):
-            return PlanningDecision(
-                intent=request.intent,
-                task_plan=None,
-                disposition=PlanningDisposition.CLARIFY,
-                reason="需要澄清",
-            )
-
-        async def run(self, _request):
-            raise AssertionError("routing-only evaluation must not execute workers")
-
-    class Judge:
-        async def judge(self, *_args, **_kwargs):
-            raise AssertionError("routing-only evaluation must not call the answer judge")
-
-    evaluator = EndToEndEvaluator.__new__(EndToEndEvaluator)
-    evaluator._orchestrator = Orchestrator()
-    evaluator._judge = Judge()
-
     results = asyncio.run(evaluator._evaluate_dialog_case({
-        "id": "routing-clarification-contract",
-        "question": "帮我看看这个问题",
-        "intent": "other",
-        "intent_confidence": 0.2,
-        "entities": {},
-        "expected_agents": [],
-        "expected_task_ids": [],
-        "expected_disposition": "clarify",
-        "evaluation_layer": "routing",
+        "question": "帮我看看", "evaluation_layer": "routing",
+        "expected_agents": [], "expected_task_ids": [],
+        "expected_disposition": mode.value.lower(),
     }, 0))
-
-    assert results[0].passed is True
-    assert results[0].scores["route_exact_match"] == 1.0
-    assert results[0].scores["planning_complete"] == 1.0
-    assert results[0].scores["task_exact_match"] == 1.0
-    assert results[0].scores["disposition_exact_match"] == 1.0
-    assert "overall" not in results[0].scores
-    assert results[0].metadata["execution_mode"] == "planner_only"
+    assert results[0].passed
+    assert results[0].metadata["routing_disposition"] == mode.value.lower()
     assert results[0].metadata["agent_outcomes"] == []
+    assert "overall" not in results[0].scores
 
 
-def test_routing_layer_accepts_out_of_scope_as_a_no_worker_terminal():
-    """高置信度 OTHER 的正确 gold 是策略重定向，不是 General Worker。"""
-    class Orchestrator:
-        async def plan(self, request):
-            return PlanningDecision(
-                intent=request.intent,
-                task_plan=None,
-                disposition=PlanningDisposition.OUT_OF_SCOPE,
-                reason="业务范围外",
-            )
+def test_target_missing_coverage_cannot_be_overridden_by_empty_gold_tasks():
+    scores = EndToEndEvaluator._orchestration_scores(
+        SimpleNamespace(task_plan={"work_item_ids": []}, coverage={"complete": False},
+                        agent_outcomes=[], agent_types=[]),
+        {"expected_agents": [], "expected_task_ids": []},
+    )
+    assert scores["coverage_complete"] == 0
+    assert scores["task_coverage"] == 0
 
-        async def run(self, _request):
-            raise AssertionError("routing-only evaluation must not execute workers")
 
-    evaluator = EndToEndEvaluator.__new__(EndToEndEvaluator)
-    evaluator._orchestrator = Orchestrator()
-    evaluator._judge = SimpleNamespace()
-
-    results = asyncio.run(evaluator._evaluate_dialog_case({
-        "id": "routing-out-of-scope-contract",
-        "question": "六边形有几条边？",
-        "intent": "other",
-        "intent_confidence": 0.95,
-        "entities": {},
-        "expected_agents": [],
-        "expected_task_ids": [],
-        "expected_disposition": "out_of_scope",
-        "evaluation_layer": "routing",
-    }, 0))
-
-    assert results[0].passed is True
-    assert results[0].scores["route_exact_match"] == 1.0
-    assert results[0].scores["disposition_exact_match"] == 1.0
-    assert results[0].metadata["routing_disposition"] == "out_of_scope"
+def test_verified_no_work_terminal_has_full_coverage_and_no_unnecessary_fanout():
+    scores = EndToEndEvaluator._orchestration_scores(
+        SimpleNamespace(task_plan={"work_item_ids": []}, coverage={"complete": True},
+                        agent_outcomes=[], agent_types=[]),
+        {"expected_agents": [], "expected_task_ids": []},
+    )
+    assert all(value == 1 for value in scores.values())
