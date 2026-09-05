@@ -2,6 +2,20 @@
 
 Status: in_progress
 
+Implemented: moved locked refund-eligibility counterfactuals to Target chat, framework
+delegation and PostgreSQL publication/business owners. Seed initial business state,
+preserve both tool facts, verify publication replay without new reads. Scripted
+planning/model calls are contract fixtures, not quality scores. Remove old read-only
+Flow side effects and the old harness.
+Both frozen cases pass with real PostgreSQL state, business tools and Publication.
+Replay uses the same committed response with one planning call and exactly two reads.
+Removed the last legacy composition factory and its sole remaining old-mode test;
+current Target OOS/provider-output and analytics-label non-authority gates remain.
+Other directly assembled legacy test harnesses still require migration.
+Verification: 50 focused semantic/planning/chat/data tests pass; one unrelated PG
+cutover test skips in that command without its URL. The two migrated locked cases
+pass separately with PostgreSQL enabled. Repository test collection also passes.
+
 Done: removed test_command_primary_chat and its now-unconsumed structured
 knowledge mode. Target knowledge/clarification behavior is verified through current
 ConversationAgent, TargetChatApplication and HTTP PostgreSQL fixtures. Historical
