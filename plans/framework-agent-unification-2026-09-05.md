@@ -38,7 +38,18 @@ messages and step recovery; ToolManager retains execution evidence and permissio
    Clean committed worktree: 36 passing tests including API startup, concurrent immutable
    registration, framework execution and PostgreSQL process-exit recovery.
 
-Target path has no old-engine fallback. Repository-wide SQLite deletion is not complete.
+Target path has no old-engine fallback. SQLite implementations and their runtime
+configuration have been removed; historical local database files are untouched.
+Legacy in-process ChatApplication/Orchestrator/ReAct test consumers still remain,
+so the single-chain migration is not complete.
+
+Current step (done): retired the orphan LegacyIntentKnowledgeAdapter. The
+removed legacy composition was its last producer; repository searches find no
+remaining import or dynamic reference. Target-native encoder/cascade and planning
+remain the supported route owners. All 22 focused tests pass across Target encoder,
+fast-path policy, planning and semantic convergence, including the existing property
+that every legacy analytics label leaves Target planning inputs unchanged. This is
+not full-suite verification or closure of the remaining legacy runtime migration.
 
 Current cutover work: health and PerformanceMonitor now read OrchestrationRuntime
 worker outcome counts and latency. These are process-local invocation observations,
