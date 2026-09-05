@@ -7,15 +7,15 @@
 ## 已实现能力
 
 - FastAPI + JWT 身份边界；请求体不能冒充其他用户。
-- `EXECUTE / CLARIFY / OUT_OF_SCOPE` 闭合路由，以及依赖感知的 TaskGraph。
-- General、Technical、Billing、Account Security 等领域 Worker；任务内执行有界 ReAct。
+- 状态优先续接、Encoder 快速路径与 ConversationAgent 规划；LangGraph 按 WorkPlan 处理依赖、并行和恢复。
+- 六个领域共用 LangChain `create_agent`；明确任务可直接调用原子工具，Skill 是可选复合能力，写任务进入受控 Flow。
 - 工具白名单、写操作审批、持久 checkpoint、幂等调用和 typed receipt。
 - PostgreSQL 准入、Conversation/Invocation、回答发布、Knowledge、ServiceEpisode 与用户事实。
 - Redis 当前会话窗口及可重建投影；PostgreSQL 事件保持权威。
 - PostgreSQL pgvector + 中文 FTS + weighted RRF，Evidence Pack 保留来源、版本与 chunk 坐标。
 - 认证附件上传、安全扫描与本轮绑定；Agent 默认 L0，按需选择 Tesseract L1 或 DeepSeek Vision L2。
 - ParseResult/EvidenceNode 保留 asset checksum、page/bbox、producer/model/version；媒体观察只作为非权威数据进入 TaskGraph。
-- Coverage + AnswerVerifier 发布门禁；只有可发布结果直接返回，其余安全升级到 Handoff。
+- ResultBoard 与最终候选校验；简单结果直接组织，复杂结果按需 compose，经 Publication 统一提交。
 - `response_id + response_seq + selected/delivered/read` 送达状态。
 - TraceId、脱敏 PostgreSQL span、可选 Langfuse v4 exporter、Prometheus、本地评测、恢复演练和机器报告。
 
@@ -241,7 +241,7 @@ docs/             已完成的目标架构、实施计划和展示文档
 
 - DeepSeek Vision 是显式启用的实验模型；关闭或不可用时 L2 fail-closed，不影响 L0/L1。
 - TraceRecorder 同时保留进程内投影和 7 天脱敏 PostgreSQL Trace；Langfuse v4 需显式凭据，生产 Collector/tail sampling 不在本项目范围。
-- Ticket/Event/Outbox 已由 PostgreSQL 单路径持久化；Bad Case、ReAct checkpoint 和 Bundle metadata 仍是本地 SQLite store。
+- Ticket、业务状态、BadCase、Bundle 和框架 checkpoint 已使用 PostgreSQL；自写 ReAct、SQLite 与旧 Command 执行链已删除，无旧引擎 fallback。当前 schema 为 `0035`，该迁移删除旧 Flow 状态表，非测试环境执行前须备份。
 - 评测集包含 provisional/公开数据映射，不能宣称生产准确率或 human-reviewed Gold。
 - 没有生产流量，因此不模拟 Shadow、Canary、promotion、回滚指针、双盲签署或生产 RPO/RTO。
 - `MCPToolManager` 是项目内部工具运行时，不是远程 MCP Server。

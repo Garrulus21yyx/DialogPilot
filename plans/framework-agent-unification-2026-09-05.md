@@ -2,6 +2,19 @@
 
 Status: in_progress
 
+Done: refreshed the current architecture entrypoint against composition at
+ed6b7a5. Existing docs still describe deleted Python Orchestrator/ReAct/SQLite and
+synchronous chat. Make architecture.md the current owner map, mark older deep-dive
+material historical, preserve unrelated RAG edits, and keep pending verification
+distinct from implementation. Independent document readback identified and corrected
+Accepted/publication timing, waiting-state coverage and Receipt ownership ambiguity.
+Baseline full-suite session 97728 completed on clean 83c0036: 1138 passed, 1 skipped,
+1 failed in 391.74s. Failure is the threat-model path-existence gate: frozen v1
+security model references deleted ReAct test/RunStore files. Its corpus pins the
+model hash, so do not silently mutate frozen evidence or weaken the existence gate.
+Next: separate historical security evidence from a current Target threat/control
+map with real behavioral references; rerun the changed scope and final full suite.
+
 Done: unified DIRECT ToolResult-to-Fact conversion with the existing framework
 result adapter. DIRECT duplicated construction and classified knowledge/media as
 VERIFIED_STATE, unlike delegated execution. Both modes must preserve the same value,

@@ -1,3 +1,5 @@
+> 历史材料：本文保留重构前的架构解读，不再代表当前运行时。现行 Owner、LangGraph/create_agent、PostgreSQL 与恢复边界见[当前架构]({{ '/architecture.html' | relative_url }})。下文的旧类名、SQLite 与“尚未使用 LangGraph”等表述仅供演进回溯。
+
 ## 0. 先建立正确的阅读坐标
 
 这不是“请求进来，调用大模型，返回字符串”的项目。当前主链把一次客服请求拆成四类事实：
