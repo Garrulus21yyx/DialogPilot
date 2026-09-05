@@ -27,6 +27,9 @@ Domain Agent、Tool/Skill/Flow、Verification 与 Publication 边界收敛为：
 - `ConversationAgent.compose()` 只消费已验证结果且按需调用；Publication 是唯一提交和
   交付出口。
 - 不新建第二套调度器、恢复引擎、Memory 系统或通用消息总线。
+- 不接受按句式、Intent、商品类别、单个 badcase 或失败测试添加特化生产分支；实施计划
+  必须把修复落在权威 Owner、通用 typed contract 或状态转换，并用属性/状态机/生成式测试
+  验证同一因果面。
 
 ## 交付物
 
@@ -50,4 +53,5 @@ Domain Agent、Tool/Skill/Flow、Verification 与 Publication 边界收敛为：
 - Context 的来源、过滤、预算、压缩和注入边界具有可实现合同。
 - 断线、进程崩溃、等待输入、审批、写结果未知、回复已提交但未送达均有唯一恢复 Owner。
 - 实施计划中的每个里程碑都有受影响文件、正向合同、迁移步骤、测试、观测和提交边界。
+- 每个里程碑明确反特化验收：没有新增 case-specific 路由表、关键词补丁或下游补偿逻辑。
 - 读者无需依赖本次对话即可区分 v1 当前实现和 v2 目标状态。
