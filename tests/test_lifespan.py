@@ -232,7 +232,13 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
                 "refund_eligibility_check",
                 "refund_request_create",
                 "account_security_event_list",
+                "account_security_state",
+                "account_freeze",
+                "account_freeze_status",
+                "shipping_address_change",
+                "shipping_address_change_status",
                 "media_read",
+                "media_observe",
                 "catalog_search",
             }
             knowledge_tool = next(
