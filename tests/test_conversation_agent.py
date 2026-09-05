@@ -745,3 +745,20 @@ def test_anthropic_provider_normalizes_json_text_block():
     )
     result = asyncio.run(provider.plan({"message": "hello"}))
     assert result == {"status": "out_of_scope"}
+
+
+def test_malformed_provider_transport_is_not_reported_as_an_outage():
+    class Messages:
+        async def create(self, **_kwargs):
+            return SimpleNamespace(content=(SimpleNamespace(
+                type="text",
+                text="not-json",
+            ),))
+
+    provider = AnthropicConversationPlanningProvider(
+        SimpleNamespace(messages=Messages()), model="model-test",
+    )
+    proposal, _, _ = _invoke(ConversationAgent(provider), "帮我处理")
+
+    assert proposal.disposition is ProposalDisposition.INVALID_PROVIDER_OUTPUT
+    assert proposal.reason_code == "CONVERSATION_PROVIDER_OUTPUT_INVALID"

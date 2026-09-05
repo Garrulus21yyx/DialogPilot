@@ -4,6 +4,8 @@ from __future__ import annotations
 import json
 from typing import Mapping
 
+from application.conversation_agent import ConversationProviderOutputError
+
 
 class AnthropicConversationPlanningProvider:
     version = "anthropic-conversation-planning-provider-v1"
@@ -69,7 +71,14 @@ class AnthropicConversationPlanningProvider:
         ).strip()
         if text.startswith("```"):
             text = text.split("\n", 1)[1].rsplit("```", 1)[0].strip()
-        value = json.loads(text)
+        try:
+            value = json.loads(text)
+        except json.JSONDecodeError as exc:
+            raise ConversationProviderOutputError(
+                "conversation provider returned invalid JSON"
+            ) from exc
         if not isinstance(value, dict):
-            raise ValueError("conversation provider returned non-object JSON")
+            raise ConversationProviderOutputError(
+                "conversation provider returned non-object JSON"
+            )
         return value

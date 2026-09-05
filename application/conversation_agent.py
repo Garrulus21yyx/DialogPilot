@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+import logging
 from typing import Mapping, Protocol
 
 from application.context_budget import (
@@ -46,6 +47,13 @@ _GOALS = {
 _MISSING_FIELDS = {
     "order_id", "asset_id", "new_address", "customer_service_goal",
 }
+
+
+logger = logging.getLogger(__name__)
+
+
+class ConversationProviderOutputError(ValueError):
+    """The provider responded, but its transport payload is not usable JSON."""
 
 
 class ConversationPlanningProvider(Protocol):
@@ -145,7 +153,16 @@ class ConversationAgent:
                 ProposalDisposition.PROVIDER_FAILURE, (),
                 "CONTEXT_BUDGET_EXCEEDED",
             )
+        except ConversationProviderOutputError:
+            return TurnProposal(
+                ProposalDisposition.INVALID_PROVIDER_OUTPUT, (),
+                "CONVERSATION_PROVIDER_OUTPUT_INVALID",
+            )
         except Exception:
+            logger.exception(
+                "Conversation planning provider failed provider_version=%s",
+                getattr(self._provider, "version", "unknown"),
+            )
             return TurnProposal(
                 ProposalDisposition.PROVIDER_FAILURE, (),
                 "CONVERSATION_PROVIDER_FAILURE",
