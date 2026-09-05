@@ -11,7 +11,6 @@ import json
 from types import SimpleNamespace
 from typing import Any, Mapping
 
-from agents.orchestration_contracts import AgentType, TaskPlan, TaskRisk, TaskSpec
 from application.service_episode_memory_search import ServiceEpisodeMemorySearch
 from core.auth import Principal
 from core.model_policy import ModelProfile
@@ -28,7 +27,7 @@ from mcp.tool_manager import (
 from memory.context import ContextAssembler, ContextBudgetExceededError, ContextSection, TokenEstimator
 from memory.conversation_memory import MemoryManager, Message, MsgRole
 from services.answer_verifier import AnswerVerifier, VerificationStatus
-from services.result_synthesizer import AgentOutcome, AgentOutcomeStatus, CoverageGate
+from evaluation.result_board_fixture import observe_result_submissions
 
 
 def register_fresh_fixtures(
@@ -406,21 +405,25 @@ def register_fresh_fixtures(
         candidate = str(inputs(request)["candidate"]); result = await _verify_for_publication(Broken(), request.message, candidate, ""); published = _publish_candidate(candidate, result)
         return FixtureEvidence({"candidate_not_published": candidate not in published, "public_failure_typed": result.status is VerificationStatus.UNKNOWN, "request_has_closed_handoff_or_retry_state": result.need_escalation}, {"published": published, "verification": result.status.value})
 
-    def plan_for(ids):
-        tasks = tuple(TaskSpec(task_id=task_id, owner=AgentType.GENERAL, objective="fresh", required=True, risk=TaskRisk.LOW) for task_id in ids)
-        return TaskPlan(tasks=tasks, primary_task_id=tasks[0].task_id, reason="fresh", confidence=1.0)
-
-    def outcome(task_id): return AgentOutcome(task_id=task_id, required=True, agent_type="general", status=AgentOutcomeStatus.SUCCESS, is_primary=True)
-
     @register("reviewer_b_coverage_duplicate_and_missing")
     async def coverage_duplicate(request):
-        data = inputs(request); report = CoverageGate.evaluate(plan_for(data["plan_required_task_ids"]), [outcome(item) for item in data["outcome_task_ids"]])
-        return FixtureEvidence({"duplicate_reported": bool(report.duplicate_task_ids), "missing_required_reported": bool(report.missing_task_ids), "overall_incomplete": not report.complete}, {"coverage": report.to_dict()})
+        data = inputs(request)
+        report = observe_result_submissions(data["plan_required_task_ids"], data["outcome_task_ids"])
+        return FixtureEvidence({
+            "duplicate_reported": report["duplicate_rejected"],
+            "missing_required_reported": bool(report["pending_work_item_ids"]),
+            "overall_incomplete": report["submission_rejected"] or not report["accepted_prefix_complete"],
+        }, report)
 
     @register("reviewer_b_coverage_unexpected_outcome")
     async def coverage_unexpected(request):
-        data = inputs(request); report = CoverageGate.evaluate(plan_for(data["plan_required_task_ids"]), [outcome(item) for item in data["outcome_task_ids"]])
-        return FixtureEvidence({"all_required_success_preserved": set(report.completed_task_ids) == set(data["plan_required_task_ids"]), "overall_incomplete": not report.complete, "unexpected_outcome_reported": bool(report.unexpected_task_ids)}, {"coverage": report.to_dict()})
+        data = inputs(request)
+        report = observe_result_submissions(data["plan_required_task_ids"], data["outcome_task_ids"])
+        return FixtureEvidence({
+            "all_required_success_preserved": set(report["successful_result_ids"]) == set(data["plan_required_task_ids"]),
+            "overall_incomplete": report["submission_rejected"] or not report["accepted_prefix_complete"],
+            "unexpected_outcome_reported": report["unplanned_rejected"],
+        }, report)
 
     @register("reviewer_b_fixture_expected_copy_attack")
     async def expected_copy_attack(request):

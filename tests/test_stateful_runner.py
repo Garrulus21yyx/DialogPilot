@@ -22,6 +22,29 @@ DATASET = Path(__file__).resolve().parents[1] / "data" / "eval" / "dialogpilot-5
 FRESH_DATASET = Path(__file__).resolve().parents[1] / "data" / "eval" / "dialogpilot-stateful-fresh-v2"
 
 
+@pytest.mark.parametrize("outcomes,pending,rejected,complete", [
+    ([], ["a", "b"], None, False),
+    (["b"], ["a"], None, False),
+    (["b", "a"], [], None, True),
+    (["a", "a"], ["b"], "a", False),
+    (["a", "b", "outside"], [], "outside", True),
+])
+def test_coverage_probe_exposes_current_owner_and_distinguishes_rejection_from_completion(
+    outcomes, pending, rejected, complete,
+):
+    from evaluation.result_board_fixture import observe_result_submissions
+
+    observed = observe_result_submissions(["a", "b"], outcomes)
+    assert observed["owner"] == "application.result_board.ResultBoard.evaluate"
+    assert observed["pending_work_item_ids"] == pending
+    assert observed["accepted_prefix_complete"] is complete
+    assert observed["submission_rejected"] is (rejected is not None)
+    if rejected is not None:
+        assert observed["rejection"]["work_item_id"] == rejected
+        assert observed["rejection"]["error"]
+    assert observed["successful_result_ids"] == observed["accepted_result_ids"]
+
+
 def test_loop_budget_fixture_runs_target_framework_with_paired_call_ids():
     from evaluation.stateful_runner import _react_max_steps
 

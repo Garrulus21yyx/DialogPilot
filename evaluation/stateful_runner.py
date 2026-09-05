@@ -16,7 +16,6 @@ from pathlib import Path
 from types import MappingProxyType, SimpleNamespace
 from typing import Any, Awaitable, Callable, Dict, Iterable, Mapping
 
-from agents.orchestration_contracts import AgentType, TaskPlan, TaskRisk, TaskSpec
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import AIMessage, ToolMessage
 from langchain_core.outputs import ChatGeneration, ChatResult
@@ -44,7 +43,7 @@ from memory.context import (
 from memory.conversation_memory import MemoryManager, Message, MsgRole
 from memory.hybrid_retrieval import HybridMemoryRetriever, MemoryDocument
 from services.answer_verifier import AnswerVerifier, VerificationStatus
-from services.result_synthesizer import AgentOutcome, AgentOutcomeStatus, CoverageGate
+from evaluation.result_board_fixture import observe_result_submissions
 from infrastructure.postgres import PostgresMigrationRunner, PostgresPool, PostgresPoolConfig
 from infrastructure.postgres_ticket_service import PostgresTicketService
 from services.ticket_service import TicketPriority, TicketStatus
@@ -736,21 +735,15 @@ async def _react_max_steps(case: FixtureRequest) -> FixtureEvidence:
 
 @fixture("coverage_gate")
 async def _coverage_gate(case: FixtureRequest) -> FixtureEvidence:
-    tasks = (
-        TaskSpec("technical_task", AgentType.TECHNICAL, "diagnose", risk=TaskRisk.MEDIUM),
-        TaskSpec("billing_task", AgentType.BILLING, "billing", risk=TaskRisk.HIGH),
-    )
-    plan = TaskPlan(tasks, "technical_task")
-    first = AgentOutcome("technical_task", True, "technical", AgentOutcomeStatus.SUCCESS, True)
-    outcomes = [first]
+    outcomes = ["technical_task"]
     if "duplicate" in case.case_id:
-        outcomes.append(first)
-    report = CoverageGate.evaluate(plan, outcomes)
+        outcomes.append("technical_task")
+    report = observe_result_submissions(("technical_task", "billing_task"), outcomes)
     return FixtureEvidence({
-        "coverage_incomplete": report.complete is False,
-        "missing_task_reported": "billing_task" in report.missing_task_ids,
-        "duplicate_task_reported": "technical_task" in report.duplicate_task_ids,
-    }, report.to_dict())
+        "coverage_incomplete": report["submission_rejected"] or not report["accepted_prefix_complete"],
+        "missing_task_reported": "billing_task" in report["pending_work_item_ids"],
+        "duplicate_task_reported": report["duplicate_rejected"],
+    }, report)
 
 
 class _FailingMessages:

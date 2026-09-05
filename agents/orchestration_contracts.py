@@ -1,8 +1,7 @@
-"""多 Agent 任务计划、执行预算和覆盖结果的权威合同。
+"""Legacy TaskGraph contracts still consumed by planning/evaluation modules.
 
-本模块只定义编排事实，不执行模型调用。路由器生产 ``TaskPlan``，执行器为每个
-``TaskSpec`` 生产一个闭合 outcome，CoverageGate 再把这些事实投影为
-``CoverageReport``。这样“选了哪些 Agent”不再冒充“用户的哪些问题已解决”。
+Current Target execution owns WorkPlan, AgentResult and ResultBoard in application.
+This module does not own Target result coverage.
 """
 
 from __future__ import annotations
@@ -378,39 +377,6 @@ class TaskGraph:
 TaskPlan = TaskGraph
 
 
-@dataclass(frozen=True)
-class CoverageReport:
-    """TaskPlan 与实际 outcomes 之间的完整性投影。"""
-
-    complete: bool
-    required_task_ids: Tuple[str, ...]
-    completed_task_ids: Tuple[str, ...]
-    failed_task_ids: Tuple[str, ...]
-    missing_task_ids: Tuple[str, ...]
-    unresolved_required_task_ids: Tuple[str, ...]
-    duplicate_task_ids: Tuple[str, ...] = field(default_factory=tuple)
-    unexpected_task_ids: Tuple[str, ...] = field(default_factory=tuple)
-    awaiting_signal_task_ids: Tuple[str, ...] = field(default_factory=tuple)
-    awaiting_signal_kinds: Tuple[str, ...] = field(default_factory=tuple)
-
-    def to_dict(self) -> Dict[str, Any]:
-        """把不可变内部元组投影为 JSON 数组。"""
-        return {
-            "complete": self.complete,
-            "required_task_ids": list(self.required_task_ids),
-            "completed_task_ids": list(self.completed_task_ids),
-            "failed_task_ids": list(self.failed_task_ids),
-            "missing_task_ids": list(self.missing_task_ids),
-            "unresolved_required_task_ids": list(self.unresolved_required_task_ids),
-            "duplicate_task_ids": list(self.duplicate_task_ids),
-            "unexpected_task_ids": list(self.unexpected_task_ids),
-            "awaiting_signal_task_ids": list(self.awaiting_signal_task_ids),
-            "awaiting_signal_kinds": list(self.awaiting_signal_kinds),
-            "projection": (
-                "AWAITING_SIGNAL(" + ",".join(self.awaiting_signal_kinds) + ")"
-                if self.awaiting_signal_task_ids else "TERMINAL"
-            ),
-        }
 
 
 @dataclass(frozen=True)

@@ -2,6 +2,20 @@
 
 Status: in_progress
 
+Done: migrated remaining stateful coverage probes from legacy AgentOutcome /
+CoverageGate to actual ResultBoard evaluations. Preserve frozen source datasets;
+diagnostics explicitly identify the current owner and original legacy scenario.
+Observe accepted prefixes and typed rejection of invalid result submissions, without
+adding a production compatibility merger. Terminal completeness is separate from
+successful outcomes. Removed services/result_synthesizer.py and orphan CoverageReport.
+Retained TaskGraph dependency tests in test_legacy_task_contracts.py until the remaining
+planning consumers migrate. Current ResultBoard tests cover every outcome status and
+all permutations/prefixes of three independent results with invalid extensions.
+Verification: 36 current runtime/retained TaskGraph tests, 17 PostgreSQL-enabled
+stateful tests (100 original and 27 fresh cases), and five observation-probe tests pass.
+No frozen sample changes; these runs prove current owner behavior, not reproduction
+of the historical CoverageGate report schema or original runtime benchmark quality.
+
 Done: retired orphan agents/task_policies.py and its exclusive tests after
 removing the legacy Orchestrator and ResultSynthesizer consumers. Current WorkPlan,
 LangGraph runtime, framework budgets and ResponseAssemblyPolicy own the supported

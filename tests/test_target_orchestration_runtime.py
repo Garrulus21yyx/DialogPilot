@@ -289,6 +289,40 @@ def test_result_board_is_invariant_to_parallel_completion_order():
     assert all(snapshot == snapshots[0] for snapshot in snapshots[1:])
 
 
+@pytest.mark.parametrize("status", list(AgentResultStatus))
+def test_result_completion_is_not_a_success_claim(status):
+    item = _item("work", "general", ControlMode.DIRECT, "fact.required")
+    result = AgentResult(
+        "work", "general", status, "OBSERVED", "test-v1",
+        missing_inputs=(MissingInputSpec("reference", "work", "REQUIRED", "string", "Reference?"),)
+        if status is AgentResultStatus.NEEDS_USER_INPUT else (),
+        requested_evidence=(EvidenceRequest("fact.required", "work", ("fixture",)),)
+        if status is AgentResultStatus.NEEDS_EVIDENCE else (),
+        retryable=status is AgentResultStatus.RETRYABLE_FAILURE,
+    )
+    board = ResultBoard().evaluate(WorkPlan((item,), "work"), (result,))
+    assert board.complete
+    assert board.results[0].status is status
+    assert board.missing_requirement_ids == ("fact.required",)
+
+
+@pytest.mark.parametrize("extra_kind", ["duplicate", "outside"])
+def test_result_board_rejects_invalid_extensions_without_changing_valid_prefix(extra_kind):
+    items = tuple(_item(str(i), "general", ControlMode.DIRECT, f"fact.{i}") for i in range(3))
+    plan = WorkPlan(items, "0")
+    results = tuple(AgentResult(item.work_item_id, "general", AgentResultStatus.SUCCEEDED,
+                               "DONE", "test-v1", facts=(_fact(item, "ok"),)) for item in items)
+    for permutation in itertools.permutations(results):
+        for length in range(1, 4):
+            prefix = permutation[:length]
+            snapshot = ResultBoard().evaluate(plan, prefix)
+            extra = prefix[0] if extra_kind == "duplicate" else replace(prefix[0], work_item_id="outside")
+            with pytest.raises(ResultBoardError):
+                ResultBoard().evaluate(plan, (*prefix, extra))
+            assert ResultBoard().evaluate(plan, prefix) == snapshot
+            assert snapshot.complete is (length == 3)
+
+
 def test_single_delegated_task_invokes_only_its_domain_worker():
     item = _item(
         "product-1", "product_technical", ControlMode.DELEGATED,
