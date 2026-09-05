@@ -2,6 +2,25 @@
 
 Status: in_progress
 
+Implemented: removed AgentOrchestrator (including its embedded BaseAgent/domain
+classes) after confirming only its own test module imports it. Retire its old lexical
+routing, fallback, scheduler and resume wrappers. Preserve independent shared
+TaskPlan/Coverage/synthesizer tests separately; these shared consumers are not silently
+deleted. Current Target tests own dispatch/dependencies, partial success, budgets,
+control revision, approval/receipt and recovery acceptance. No frozen fixture refers
+to the removed Orchestrator test functions. Historical review artifacts remain history.
+The ReAct engine then had only its nine own tests as consumers, with no frozen fixture
+references. Removed that engine and its provider-specific loop tests as well. Framework
+Agent tests cover tool pairing/artifacts, optional skills, limits, revision checks and
+context budgets; real PostgreSQL restart tests verify the selected execution owner.
+Verification: 21 framework/restart/HTTP tests pass with PostgreSQL. Expanded suite
+initially exposed missing database configuration for two stateful fixture tests;
+rerunning with the configured test database passes all 82 tests, including the 100
+stateful cases and held-out split. Full collection passes (1266 tests). The original
+custom Orchestrator/BaseAgent/ReAct execution source is now gone. Remaining shared
+legacy contracts/helpers and documentation still require dependency cleanup and a
+final full-scope audit; this is not whole-goal closure.
+
 Done: removed secondary legacy Orchestrator test consumers from Bundle,
 classifier-mode and layered-dataset suites. Retire old constructor/threshold plumbing
 and the circular claim that legacy generated routing labels define the current plan.
