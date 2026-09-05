@@ -51,6 +51,20 @@ fast-path policy, planning and semantic convergence, including the existing prop
 that every legacy analytics label leaves Target planning inputs unchanged. This is
 not full-suite verification or closure of the remaining legacy runtime migration.
 
+Done: retired test_chat_media_context's old private ChatApplication/TaskGraph
+composition. Current media reads are explicit governed tools, scoped by tenant/user,
+and can reuse an authorized prior upload; the old current-turn-only assertion is not
+the supported contract. Verify OCR provenance and message authority through the real
+framework/tool path, plus identity rejection before OCR. Keep tiered perception owner
+tests for no-media/ OCR-only / missing-VLM outcomes; do not recreate old pre-router
+media injection just to preserve the retired test shape. Target framework integration
+now reads OCR through registered product tools, verifies ToolMessage placement and
+MEDIA_OBSERVED facts with both tool-contract and OCR-producer versions. Separate tests
+assert ToolManager quarantines instruction-bearing OCR and cross-tenant/user scope
+errors occur before OCR. 25 focused tests pass, including frozen fixture references.
+This proves boundaries with scripted providers, not general injection resistance or
+a new live-model media quality claim.
+
 Current cutover work: health and PerformanceMonitor now read OrchestrationRuntime
 worker outcome counts and latency. These are process-local invocation observations,
 not durable goal counts or verified answer quality. Waiting/cancelled/superseded
