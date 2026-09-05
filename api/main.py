@@ -97,7 +97,6 @@ from services.evolution import (
     EvolutionEnvelope,
     BadCaseMiner,
     CreditAttributor,
-    ActiveBundleResolver,
     build_default_bundle,
     build_llm_proposal_generator,
 )
@@ -139,7 +138,6 @@ _authenticator = None
 _model_policy = None
 _bundle_registry = None
 _proposal_generator = None
-_bundle_resolver = None
 _postgres_pool = None
 _retrieval_postgres_pool = None
 _service_episode_search = None
@@ -205,7 +203,7 @@ def _anthropic_cfg() -> Dict[str, Any]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """按依赖顺序创建所有组件，并在退出时释放后台任务和连接。"""
-    global _memory, _knowledge_store, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _commitment_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _bundle_registry, _proposal_generator, _bundle_resolver, _grounded_answer_generator, _postgres_pool, _conversation_query, _knowledge_retriever, _retrieval_cache_client, _target_run_coordinator, _durable_chat_task, _durable_chat_stop, _retrieval_postgres_pool, _service_episode_search, _media_asset_store, _media_asset_service, _vlm_provider, _postgres_trace_sink, _target_chat_runtime, _target_checkpoint_owner
+    global _memory, _knowledge_store, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _commitment_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _bundle_registry, _proposal_generator, _grounded_answer_generator, _postgres_pool, _conversation_query, _knowledge_retriever, _retrieval_cache_client, _target_run_coordinator, _durable_chat_task, _durable_chat_stop, _retrieval_postgres_pool, _service_episode_search, _media_asset_store, _media_asset_service, _vlm_provider, _postgres_trace_sink, _target_chat_runtime, _target_checkpoint_owner
 
     global _target_orchestration, _intent_recognizer
 
@@ -577,34 +575,6 @@ async def lifespan(app: FastAPI):
     _target_checkpoint_owner = target_components.checkpoint_owner
     _conversation_query.runtime_reader = target_components.run_store.runtime
 
-    def route_execution_refs(bundle: AgentBundle) -> Dict[str, str]:
-        """Pin every route and Knowledge dependency for one request execution."""
-        from agents.request_shape_policy import RequestShapePolicy
-        from application.route_decision import RouterInvocationPolicy
-        from application.route_execution import RouteExecutionPolicy
-        from application.route_path_executor import RoutePathExecutor
-
-        generation = _knowledge_store.active_generation()
-        manifest = generation.manifest_hash
-        route_ref = "|".join((
-            RequestShapePolicy.version,
-            RouterInvocationPolicy.version,
-            RouteExecutionPolicy.version,
-            RoutePathExecutor.version,
-        ))
-        return {
-            "route_policy_ref": route_ref,
-            "knowledge_backend_ref": generation.backend_fingerprint,
-            "knowledge_generation_ref": generation.generation_id,
-            "corpus_manifest_ref": manifest,
-            "retrieval_policy_ref": bundle.component_hash("retrieval_policy"),
-        }
-
-    _bundle_resolver = ActiveBundleResolver(
-        _bundle_registry,
-        execution_ref_resolver=route_execution_refs,
-    )
-
     # 性能监控（可选启动 Prometheus）
     prom_port = int(os.getenv("PROMETHEUS_PORT", "0")) or None
     _monitor = PerformanceMonitor(
@@ -751,7 +721,6 @@ async def lifespan(app: FastAPI):
         _model_policy = None
         _bundle_registry = None
         _proposal_generator = None
-        _bundle_resolver = None
         _retrieval_postgres_pool = None
         _service_episode_search = None
         _postgres_pool = None

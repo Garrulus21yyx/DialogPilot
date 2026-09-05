@@ -4,7 +4,6 @@ import pytest
 
 from mcp.tool_manager import MCPToolManager, Tool, ToolRisk
 from services.evolution import (
-    ActiveBundleResolver,
     AgentBundle,
     AgentBundleRegistry,
     BundleConflictError,
@@ -58,17 +57,6 @@ def test_registry_is_append_only_and_runtime_keeps_bootstrapped_active_bundle(tm
         registry.register(AgentBundle(version="agent-v2", base_version="agent-v1"))
 
 
-def test_active_bundle_resolver_has_one_deterministic_runtime_assignment(tmp_path, bundle_registry):
-    registry = bundle_registry
-    active = registry.bootstrap(_bundle())
-    registry.register(_bundle("agent-v2", "agent-v1"))
-    resolver = ActiveBundleResolver(registry)
-
-    first = resolver.resolve("user-a")
-    second = resolver.resolve("user-b")
-
-    assert first.primary == second.primary == active
-    assert first.pinned_refs == second.pinned_refs
 
 
 def test_concurrent_bundle_registration_has_one_immutable_winner(bundle_registry):

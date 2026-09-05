@@ -2,6 +2,21 @@
 
 Status: in_progress
 
+Done: removed the unused HTTP ActiveBundleResolver assembly and retired
+RouteExecution/RoutePathExecutor/Draft cluster. API only assigned/reset that resolver;
+no request called it. The resolver's remaining test exercised invented local fallback
+refs, not Target execution. Retain PinnedExecutionRefs used by knowledge tests/tools,
+and actual AgentBundleRegistry storage. Target WorkPlan/runtime, PendingInteraction,
+governed handoff receipts and Publication remain the active behavioral owners.
+No frozen dataset refers to test_route_execution.py. Preserve unrelated RAG edits
+in api/main.py by staging only this retirement patch.
+Verification: 72 Target planning/runtime/response/public HTTP tests pass (one
+PostgreSQL test skipped without configured URL in that invocation). With PostgreSQL
+configured, 42 bundle/knowledge-context/write-workflow tests pass and one test skips.
+Full repository collection passes with 1230 tests. No full-lifespan/startup or whole
+repository execution claim is made by these focused gates. Remaining legacy planning
+consumers, runtime documentation and final end-to-end audit remain open.
+
 Done: migrated remaining stateful coverage probes from legacy AgentOutcome /
 CoverageGate to actual ResultBoard evaluations. Preserve frozen source datasets;
 diagnostics explicitly identify the current owner and original legacy scenario.

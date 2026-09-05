@@ -11,8 +11,6 @@ from .attribution import AttributionDecision, CreditAttributor, EvolutionSurface
 from .miner import BadCaseCluster, BadCaseMiner
 from .proposal_generator import GEPALiteProposalGenerator, build_llm_proposal_generator
 from .active_bundle import (
-    ActiveBundleAssignment,
-    ActiveBundleResolver,
     PinnedExecutionRefs,
 )
 
@@ -29,8 +27,6 @@ __all__ = [
     "CreditAttributor",
     "EvolutionSurface",
     "GEPALiteProposalGenerator",
-    "ActiveBundleAssignment",
-    "ActiveBundleResolver",
     "PinnedExecutionRefs",
     "build_default_bundle",
     "build_llm_proposal_generator",
