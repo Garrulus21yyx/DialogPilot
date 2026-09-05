@@ -138,6 +138,24 @@ def bundle_registry(postgres_database_url):
 
 
 @pytest.fixture
+def badcase_registry(postgres_database_url):
+    from services.badcase_registry import BadCaseRegistry
+
+    PostgresMigrationRunner(postgres_database_url).upgrade()
+    pool = PostgresPool(PostgresPoolConfig(postgres_database_url))
+    pool.open()
+    with pool.transaction() as connection:
+        connection.execute(
+            "TRUNCATE dialogpilot_platform.bad_cases, "
+            "dialogpilot_platform.intent_learning_records CASCADE"
+        )
+    try:
+        yield BadCaseRegistry(pool, identity_salt="test-badcase-identity-salt-at-least-32-bytes")
+    finally:
+        pool.close()
+
+
+@pytest.fixture
 def customer_operations(postgres_database_url):
     from services.customer_operations import CustomerOperationsService
 

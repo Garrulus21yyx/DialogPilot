@@ -2,6 +2,7 @@
 import asyncio
 import hashlib
 import hmac
+from concurrent.futures import ThreadPoolExecutor
 from types import SimpleNamespace
 
 import pytest
@@ -28,9 +29,6 @@ from services.badcase_registry import (
 
 IDENTITY_SALT = "test-badcase-identity-salt-at-least-32-bytes"
 
-
-def registry_at(path):
-    return BadCaseRegistry(str(path), identity_salt=IDENTITY_SALT)
 
 
 def observe(registry: BadCaseRegistry, **overrides):
@@ -101,8 +99,8 @@ def move_to_regression_pass(registry: BadCaseRegistry, badcase_id: str):
     )
 
 
-def test_observation_is_redacted_hashed_and_deduplicated(tmp_path):
-    registry = registry_at(tmp_path / "badcases.db")
+def test_observation_is_redacted_hashed_and_deduplicated(badcase_registry, tmp_path):
+    registry = badcase_registry
     first, created = observe(registry)
     second, created_again = observe(
         registry, trace_id="trace-new", severity=BadCaseSeverity.P0,
@@ -121,14 +119,94 @@ def test_observation_is_redacted_hashed_and_deduplicated(tmp_path):
     assert len(registry.get_view(first.badcase_id)["occurrences"]) == 2
 
 
-def test_observation_without_server_identity_salt_fails_closed(tmp_path):
-    registry = BadCaseRegistry(str(tmp_path / "badcases.db"))
+def test_observation_without_server_identity_salt_fails_closed(badcase_registry, tmp_path):
+    registry = BadCaseRegistry(badcase_registry.pool)
     with pytest.raises(BadCaseContractError, match="identity_salt"):
         observe(registry)
 
 
-def test_state_machine_requires_root_cause_expected_and_real_reproduction_evidence(tmp_path):
-    registry = registry_at(tmp_path / "badcases.db")
+def test_independent_owners_preserve_all_concurrent_observations(badcase_registry):
+    def capture(index):
+        registry = BadCaseRegistry(badcase_registry.pool, identity_salt=IDENTITY_SALT)
+        return observe(
+            registry,
+            request_id=f"parallel-{index}",
+            severity=list(BadCaseSeverity)[index % len(BadCaseSeverity)],
+        )
+
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        outcomes = list(executor.map(capture, range(16)))
+    ids = {case.badcase_id for case, _ in outcomes}
+    assert len(ids) == 1
+    assert sum(created for _, created in outcomes) == 1
+    view = badcase_registry.get_view(ids.pop())
+    assert view["occurrence_count"] == 16
+    assert view["severity"] == BadCaseSeverity.P0.value
+    assert len(view["events"]) == 16
+    assert {item["request_id"] for item in view["occurrences"]} == {
+        f"parallel-{index}" for index in range(16)
+    }
+
+
+def test_concurrent_terminal_transitions_have_one_legal_winner(badcase_registry):
+    case, _ = observe(badcase_registry)
+
+    def transition(target):
+        registry = BadCaseRegistry(badcase_registry.pool, identity_salt=IDENTITY_SALT)
+        try:
+            return registry.transition(case.badcase_id, target, actor="reviewer")
+        except BadCaseTransitionError as error:
+            return error
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        outcomes = list(executor.map(
+            transition, (BadCaseStatus.DUPLICATE, BadCaseStatus.NOT_A_BUG),
+        ))
+    winners = [item for item in outcomes if not isinstance(item, Exception)]
+    assert len(winners) == 1
+    view = badcase_registry.get_view(case.badcase_id)
+    assert view["status"] == winners[0].status.value
+    assert len(view["events"]) == 2
+
+
+def test_concurrent_feedback_reviews_commit_one_immutable_decision(badcase_registry):
+    prediction = record_prediction(badcase_registry)
+    badcase_registry.submit_intent_feedback(
+        prediction_id=prediction.prediction_id,
+        user_id="signed-user",
+        suggested_intent="refund_status",
+    )
+
+    def review(decision):
+        registry = BadCaseRegistry(badcase_registry.pool, identity_salt=IDENTITY_SALT)
+        try:
+            return registry.review_intent_feedback(
+                prediction.prediction_id,
+                decision=decision,
+                actor="reviewer",
+                approved_intent="refund_status",
+                dataset_version="review-v1",
+            )
+        except BadCaseContractError as error:
+            return error
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        outcomes = list(executor.map(
+            review, (IntentFeedbackStatus.APPROVED, IntentFeedbackStatus.REJECTED),
+        ))
+    winners = [item for item in outcomes if not isinstance(item, Exception)]
+    assert len(winners) == 1
+    stored = badcase_registry.get_intent_prediction(prediction.prediction_id)
+    assert stored == winners[0][0]
+    case = badcase_registry.get(stored.badcase_id)
+    assert case.annotation_id == stored.annotation_id
+    assert bool(stored.annotation_id) == (stored.feedback_status is IntentFeedbackStatus.APPROVED)
+    events = badcase_registry.get_view(case.badcase_id)["intent_learning_events"]
+    assert len(events) == 3
+
+
+def test_state_machine_requires_root_cause_expected_and_real_reproduction_evidence(badcase_registry, tmp_path):
+    registry = badcase_registry
     case, _ = observe(registry)
 
     with pytest.raises(BadCaseTransitionError):
@@ -148,8 +226,8 @@ def test_state_machine_requires_root_cause_expected_and_real_reproduction_eviden
         )
 
 
-def test_closed_case_recurrence_is_reopened_and_audited(tmp_path):
-    registry = registry_at(tmp_path / "badcases.db")
+def test_closed_case_recurrence_is_reopened_and_audited(badcase_registry, tmp_path):
+    registry = badcase_registry
     case, _ = observe(registry)
     move_to_regression_pass(registry, case.badcase_id)
     registry.link_regression(case.badcase_id, "bc-regression-1", actor="exporter")
@@ -166,8 +244,8 @@ def test_closed_case_recurrence_is_reopened_and_audited(tmp_path):
     assert len(view["occurrences"]) == 2
 
 
-def test_export_is_dev_provisional_and_links_only_after_valid_bundle(tmp_path):
-    registry = registry_at(tmp_path / "badcases.db")
+def test_export_is_dev_provisional_and_links_only_after_valid_bundle(badcase_registry, tmp_path):
+    registry = badcase_registry
     case, _ = observe(registry)
     move_to_regression_pass(registry, case.badcase_id)
 
@@ -188,8 +266,8 @@ def test_export_is_dev_provisional_and_links_only_after_valid_bundle(tmp_path):
     assert registry.get(case.badcase_id).linked_case_id == exported.case_id
 
 
-def test_user_feedback_identity_is_server_owned_and_remains_candidate(tmp_path, monkeypatch):
-    registry = registry_at(tmp_path / "badcases.db")
+def test_user_feedback_identity_is_server_owned_and_remains_candidate(badcase_registry, tmp_path, monkeypatch):
+    registry = badcase_registry
     monkeypatch.setattr(main, "_badcase_registry", registry)
     principal = Principal(subject="signed-user", scopes=frozenset({"chat"}))
     body = main.BadCaseFeedbackRequest(
@@ -210,8 +288,8 @@ def test_user_feedback_identity_is_server_owned_and_remains_candidate(tmp_path, 
     ).hexdigest()[:20]
 
 
-def test_intent_prediction_feedback_and_annotation_are_separate_versioned_facts(tmp_path):
-    registry = registry_at(tmp_path / "intent-learning.db")
+def test_intent_prediction_feedback_and_annotation_are_separate_versioned_facts(badcase_registry, tmp_path):
+    registry = badcase_registry
     prediction = record_prediction(registry)
 
     assert prediction.feedback_status is IntentFeedbackStatus.PREDICTED
@@ -254,8 +332,8 @@ def test_intent_prediction_feedback_and_annotation_are_separate_versioned_facts(
     ]
 
 
-def test_intent_feedback_enforces_prediction_owner_and_immutable_review(tmp_path):
-    registry = registry_at(tmp_path / "intent-learning.db")
+def test_intent_feedback_enforces_prediction_owner_and_immutable_review(badcase_registry, tmp_path):
+    registry = badcase_registry
     prediction = record_prediction(registry)
 
     with pytest.raises(BadCaseNotFoundError, match="prediction not found"):
@@ -316,8 +394,8 @@ def test_intent_feedback_enforces_prediction_owner_and_immutable_review(tmp_path
     assert rejected_case.status is BadCaseStatus.CANDIDATE
 
 
-def test_wrong_route_api_requires_real_prediction_and_admin_review_does_not_publish(tmp_path, monkeypatch):
-    registry = registry_at(tmp_path / "intent-api.db")
+def test_wrong_route_api_requires_real_prediction_and_admin_review_does_not_publish(badcase_registry, tmp_path, monkeypatch):
+    registry = badcase_registry
     prediction = record_prediction(registry)
     monkeypatch.setattr(main, "_badcase_registry", registry)
 
@@ -346,8 +424,8 @@ def test_wrong_route_api_requires_real_prediction_and_admin_review_does_not_publ
     assert reviewed["active_bundle_changed"] is False
 
 
-def test_admin_api_uses_signed_actor_and_exposes_audited_queue(tmp_path, monkeypatch):
-    registry = registry_at(tmp_path / "badcases.db")
+def test_admin_api_uses_signed_actor_and_exposes_audited_queue(badcase_registry, tmp_path, monkeypatch):
+    registry = badcase_registry
     case, _ = observe(registry)
     monkeypatch.setattr(main, "_badcase_registry", registry)
     principal = Principal(subject="signed-admin", scopes=frozenset({"admin"}))
@@ -371,8 +449,8 @@ def test_admin_api_uses_signed_actor_and_exposes_audited_queue(tmp_path, monkeyp
     assert view["events"][-1]["actor"] == "signed-admin"
 
 
-def test_chat_failures_capture_verifier_coverage_and_unknown_tool_effect(tmp_path, monkeypatch):
-    registry = registry_at(tmp_path / "badcases.db")
+def test_chat_failures_capture_verifier_coverage_and_unknown_tool_effect(badcase_registry, tmp_path, monkeypatch):
+    registry = badcase_registry
     monkeypatch.setattr(main, "_badcase_registry", registry)
     monkeypatch.setattr(main, "_model_policy", None)
     monkeypatch.setattr(main, "current_trace_id", lambda: "trace-capture-1")

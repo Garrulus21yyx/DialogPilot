@@ -19,6 +19,7 @@ if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
 from evaluation.dataset import DatasetBundle, write_dataset
+from infrastructure.postgres import PostgresPool, PostgresPoolConfig
 from services.badcase_registry import BadCase, BadCaseRegistry, BadCaseStatus
 
 
@@ -127,7 +128,6 @@ def export_badcases(
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--database", type=Path, required=True)
     parser.add_argument("--badcase-id", action="append", required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--actor", required=True)
@@ -137,13 +137,18 @@ def main() -> int:
         help="retrieval case 所引用 corpus 的已验证数据集目录",
     )
     args = parser.parse_args()
-    bundle = export_badcases(
-        BadCaseRegistry(str(args.database)),
-        args.badcase_id,
-        args.output,
-        actor=args.actor,
-        corpus_from=args.corpus_from,
-    )
+    pool = PostgresPool(PostgresPoolConfig.from_env())
+    pool.open()
+    try:
+        bundle = export_badcases(
+            BadCaseRegistry(pool),
+            args.badcase_id,
+            args.output,
+            actor=args.actor,
+            corpus_from=args.corpus_from,
+        )
+    finally:
+        pool.close()
     print(json.dumps(bundle.summary(), ensure_ascii=False, indent=2, sort_keys=True))
     return 0
 

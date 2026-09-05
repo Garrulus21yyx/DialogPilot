@@ -54,7 +54,7 @@ flowchart LR
 | 关注点 | Owner | 当前边界 |
 |---|---|---|
 | 用户反馈 | Feedback service | 绑定 response/prediction identity |
-| Bad Case 生命周期 | BadCaseRegistry | 本地持久元数据，不是生产事件平台 |
+| Bad Case 生命周期 | BadCaseRegistry | PostgreSQL 事务维护去重、审核状态与审计，不是独立事件平台 |
 | 失败归因 | `services/evolution/attribution.py` | 输出受支持 surface；未知归因显式保留 |
 | Bundle 内容 | AgentBundle / registry | 不可变、带 fingerprint；metadata 当前为本地 store |
 | 执行版本引用 | Admission / active bundle selector | Invocation 固定引用；处理中不漂移 |

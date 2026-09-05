@@ -412,10 +412,7 @@ async def lifespan(app: FastAPI):
     _bundle_registry = AgentBundleRegistry(_postgres_pool)
     _bundle_registry.bootstrap(default_bundle)
     _badcase_registry = BadCaseRegistry(
-        os.getenv(
-            "BADCASE_DB_PATH",
-            str(pathlib.Path(_ROOT) / "data" / "badcases" / "badcases.db"),
-        ),
+        _postgres_pool,
         identity_salt=os.getenv("BADCASE_IDENTITY_SALT") or os.getenv("AUTH_JWT_SECRET", ""),
     )
     _customer_operations = CustomerOperationsService(

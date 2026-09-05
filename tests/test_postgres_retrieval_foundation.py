@@ -76,7 +76,7 @@ def test_retrieval_pool_has_independent_role_budget_timeout_and_metrics(
     retrieval_foundation,
 ):
     result, _, retrieval = retrieval_foundation
-    assert result["head"] == "20260905_0033"
+    assert result["head"] == "20260905_0034"
     assert retrieval.config.max_size == 2
     with retrieval.transaction() as connection:
         row = connection.execute("""

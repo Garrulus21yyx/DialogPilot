@@ -18,8 +18,12 @@ messages and step recovery; ToolManager retains execution evidence and permissio
    Stateful loop-budget fixture now uses TargetFrameworkAgent; tool calls receive their
    framework call ID and trusted context through ToolRuntime, not user-bound closures.
    Removed application package's eager legacy-runtime export.
-5. in_progress: migrate remaining SQLite badcase_registry to PostgreSQL,
-   update its consumers/tests and remove SQLite configuration.
+5. in_progress: remaining legacy runtime deletion and integration verification.
+   BadCaseRegistry migration 0034 now uses the shared PostgreSQL pool; API and export
+   CLI consume the same owner. Schema creation moved out of service startup.
+   Per-fingerprint transaction locks and row locks preserve observation deduplication,
+   lifecycle transitions and immutable review decisions across independent instances.
+   13 owner/concurrency/API tests pass; full clean-worktree integration pending.
    CustomerOperations migration 0033 implemented and verified with 43 PostgreSQL tests:
    tenant-scoped keys/queries, exact-operation replay, independent-owner version ordering,
    competing cancellation/address actions, tool identity and existing read-only E2E.
@@ -34,7 +38,7 @@ Existing unrelated RAG working-tree changes are excluded from this migration's c
 Exception explicitly authorized by user: RAG migrations 0030/0031 and their schema-version
 tests committed separately as the linear migration prerequisite (ff22710).
 
-Verification workspace: /tmp/dialogpilot-clean-runtime-qSXCb1 (detached b5dc0fa).
+Verification workspace: /tmp/dialogpilot-clean-runtime-qSXCb1 (detached committed snapshot).
 The shared working tree's existing RAG policy/Bundle schema mismatch remains separate;
 it is not hidden by an application fallback or by altering the startup test's policy.
 

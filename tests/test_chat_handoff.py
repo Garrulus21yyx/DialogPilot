@@ -160,7 +160,7 @@ class FakeVerifier:
 
 def test_chat_out_of_scope_is_a_policy_terminal_without_worker_verifier_or_memory_write(
     tmp_path, monkeypatch, ticket_service,
-    bundle_registry,
+    bundle_registry, badcase_registry,
 ):
     """无恶意越域请求只做范围重定向，不污染客服执行、工单和长期记忆链路。"""
     class ScopeRecognizer:
@@ -210,7 +210,7 @@ def test_chat_out_of_scope_is_a_policy_terminal_without_worker_verifier_or_memor
         FakeResponseDeliveryService(),
     )
     prediction_registry = BadCaseRegistry(
-        str(tmp_path / "scope-badcases.db"),
+        badcase_registry.pool,
         identity_salt="scope-test-identity-salt-at-least-32-bytes",
     )
     monkeypatch.setattr(main, "_badcase_registry", prediction_registry)

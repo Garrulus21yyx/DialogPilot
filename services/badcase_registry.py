@@ -10,15 +10,19 @@ import hmac
 import json
 import math
 import re
-import sqlite3
-import threading
 import unicodedata
 import uuid
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List, Mapping, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, Iterator, List, Mapping, Optional, Tuple
+
+from psycopg import Cursor
+from psycopg.rows import dict_row
+
+if TYPE_CHECKING:
+    from infrastructure.postgres import PostgresPool
 
 
 class BadCaseStatus(str, Enum):
@@ -191,7 +195,7 @@ class BadCase:
 
 
 class BadCaseRegistry:
-    """以 SQLite 原子拥有 Bad Case 身份、状态与审计历史。"""
+    """以 PostgreSQL 原子拥有 Bad Case 身份、状态与审计历史。"""
 
     _SECRET_PATTERNS = (
         (re.compile(r"(?i)\bBearer\s+[A-Za-z0-9._~+/=-]+"), "Bearer [REDACTED]"),
@@ -217,12 +221,17 @@ class BadCaseRegistry:
         BadCaseSeverity.P3: 3,
     }
 
-    def __init__(self, database_path: str, *, identity_salt: str = ""):
-        self._path = Path(database_path).expanduser().resolve()
-        self._path.parent.mkdir(parents=True, exist_ok=True)
+    def __init__(self, pool: PostgresPool, *, identity_salt: str = ""):
+        self.pool = pool
         self._identity_salt = str(identity_salt or "").encode("utf-8")
-        self._lock = threading.RLock()
-        self._initialize()
+
+    @contextmanager
+    def _connect(self) -> Iterator[Cursor]:
+        with (
+            self.pool.transaction() as connection,
+            connection.cursor(row_factory=dict_row) as cursor,
+        ):
+            yield cursor
 
     def observe(
         self,
@@ -241,8 +250,7 @@ class BadCaseRegistry:
         semantic_group_id: str = "",
     ) -> Tuple[BadCase, bool]:
         """幂等捕获一个脱敏 observation；已关闭问题复发时原子重开。"""
-        with self._lock, self._connect() as conn:
-            conn.execute("BEGIN IMMEDIATE")
+        with self._connect() as conn:
             return self._observe_with_connection(
                 conn,
                 source=source,
@@ -299,18 +307,17 @@ class BadCaseRegistry:
                 safe_scores[self._slug(key, 80)] = min(1.0, max(0.0, score))
         now = self._now()
         prediction_id = uuid.uuid4().hex
-        with self._lock, self._connect() as conn:
-            conn.execute("BEGIN IMMEDIATE")
+        with self._connect() as conn:
             conn.execute(
                 """
-                INSERT INTO intent_learning_records (
+                INSERT INTO dialogpilot_platform.intent_learning_records (
                     prediction_id, request_id, trace_id, conv_id, user_ref,
                     input_fingerprint, sanitized_input, predicted_intent,
                     confidence, source_scores_json, classifier_fingerprint,
                     bundle_version, feedback_status, suggested_intent,
                     feedback_reason, badcase_id, approved_intent, annotation_id,
                     reviewer, dataset_version, review_note, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', '', '', '', '', '', '', '', ?, ?)
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, '', '', '', '', '', '', '', '', %s, %s)
                 """,
                 (
                     prediction_id, request_id, str(trace_id)[:128], str(conv_id)[:200],
@@ -334,7 +341,7 @@ class BadCaseRegistry:
                 now,
             )
             row = conn.execute(
-                "SELECT * FROM intent_learning_records WHERE prediction_id=?",
+                "SELECT * FROM dialogpilot_platform.intent_learning_records WHERE prediction_id=%s",
                 (prediction_id,),
             ).fetchone()
         return self._row_to_intent_learning(row)
@@ -352,10 +359,9 @@ class BadCaseRegistry:
         """把认证用户纠正保存为 pending observation，并原子链接一个 Intent Bad Case。"""
         prediction_id = self._required(prediction_id, "prediction_id")[:64]
         suggested = self._intent_name(suggested_intent, "suggested_intent")
-        with self._lock, self._connect() as conn:
-            conn.execute("BEGIN IMMEDIATE")
+        with self._connect() as conn:
             prediction = conn.execute(
-                "SELECT * FROM intent_learning_records WHERE prediction_id=?",
+                "SELECT * FROM dialogpilot_platform.intent_learning_records WHERE prediction_id=%s FOR UPDATE",
                 (prediction_id,),
             ).fetchone()
             if prediction is None or prediction["user_ref"] != self._user_ref(user_id):
@@ -401,10 +407,10 @@ class BadCaseRegistry:
             now = self._now()
             conn.execute(
                 """
-                UPDATE intent_learning_records
-                SET feedback_status=?, suggested_intent=?, feedback_reason=?,
-                    badcase_id=?, updated_at=?
-                WHERE prediction_id=?
+                UPDATE dialogpilot_platform.intent_learning_records
+                SET feedback_status=%s, suggested_intent=%s, feedback_reason=%s,
+                    badcase_id=%s, updated_at=%s
+                WHERE prediction_id=%s
                 """,
                 (
                     IntentFeedbackStatus.PENDING.value, suggested, safe_reason,
@@ -413,10 +419,10 @@ class BadCaseRegistry:
             )
             conn.execute(
                 """
-                UPDATE bad_cases
-                SET prediction_id=?, predicted_intent=?, suggested_intent=?,
-                    classifier_fingerprint=?, updated_at=?
-                WHERE badcase_id=?
+                UPDATE dialogpilot_platform.bad_cases
+                SET prediction_id=%s, predicted_intent=%s, suggested_intent=%s,
+                    classifier_fingerprint=%s, updated_at=%s
+                WHERE badcase_id=%s
                 """,
                 (
                     prediction_id, prediction["predicted_intent"], suggested,
@@ -428,11 +434,11 @@ class BadCaseRegistry:
                 {"suggested_intent": suggested, "badcase_id": case.badcase_id}, now,
             )
             learning_row = conn.execute(
-                "SELECT * FROM intent_learning_records WHERE prediction_id=?",
+                "SELECT * FROM dialogpilot_platform.intent_learning_records WHERE prediction_id=%s",
                 (prediction_id,),
             ).fetchone()
             case_row = conn.execute(
-                "SELECT * FROM bad_cases WHERE badcase_id=?", (case.badcase_id,),
+                "SELECT * FROM dialogpilot_platform.bad_cases WHERE badcase_id=%s", (case.badcase_id,),
             ).fetchone()
         return (
             self._row_to_intent_learning(learning_row),
@@ -463,10 +469,9 @@ class BadCaseRegistry:
             dataset = self._slug(self._required(dataset_version, "dataset_version"), 128)
         safe_note = self.sanitize_text(note, 1000)
 
-        with self._lock, self._connect() as conn:
-            conn.execute("BEGIN IMMEDIATE")
+        with self._connect() as conn:
             prediction = conn.execute(
-                "SELECT * FROM intent_learning_records WHERE prediction_id=?",
+                "SELECT * FROM dialogpilot_platform.intent_learning_records WHERE prediction_id=%s FOR UPDATE",
                 (prediction_id,),
             ).fetchone()
             if prediction is None:
@@ -479,7 +484,7 @@ class BadCaseRegistry:
                 ):
                     raise BadCaseContractError("approved annotation is immutable")
                 case_row = conn.execute(
-                    "SELECT * FROM bad_cases WHERE badcase_id=?",
+                    "SELECT * FROM dialogpilot_platform.bad_cases WHERE badcase_id=%s FOR UPDATE",
                     (prediction["badcase_id"],),
                 ).fetchone()
                 return self._row_to_intent_learning(prediction), self._row_to_badcase(case_row)
@@ -494,7 +499,7 @@ class BadCaseRegistry:
                     "reject the feedback when the prediction was correct"
                 )
             case_row = conn.execute(
-                "SELECT * FROM bad_cases WHERE badcase_id=?",
+                "SELECT * FROM dialogpilot_platform.bad_cases WHERE badcase_id=%s FOR UPDATE",
                 (prediction["badcase_id"],),
             ).fetchone()
             if case_row is None or BadCaseStage(case_row["stage"]) is not BadCaseStage.INTENT:
@@ -509,10 +514,10 @@ class BadCaseRegistry:
             )
             conn.execute(
                 """
-                UPDATE intent_learning_records
-                SET feedback_status=?, approved_intent=?, annotation_id=?, reviewer=?,
-                    dataset_version=?, review_note=?, updated_at=?
-                WHERE prediction_id=?
+                UPDATE dialogpilot_platform.intent_learning_records
+                SET feedback_status=%s, approved_intent=%s, annotation_id=%s, reviewer=%s,
+                    dataset_version=%s, review_note=%s, updated_at=%s
+                WHERE prediction_id=%s
                 """,
                 (
                     decision.value, approved, annotation_id, actor, dataset,
@@ -533,9 +538,9 @@ class BadCaseRegistry:
             )
             conn.execute(
                 """
-                UPDATE bad_cases
-                SET status=?, approved_intent=?, annotation_id=?, expected_json=?, updated_at=?
-                WHERE badcase_id=?
+                UPDATE dialogpilot_platform.bad_cases
+                SET status=%s, approved_intent=%s, annotation_id=%s, expected_json=%s, updated_at=%s
+                WHERE badcase_id=%s
                 """,
                 (
                     next_status.value, approved, annotation_id,
@@ -560,11 +565,11 @@ class BadCaseRegistry:
                 now,
             )
             learning_row = conn.execute(
-                "SELECT * FROM intent_learning_records WHERE prediction_id=?",
+                "SELECT * FROM dialogpilot_platform.intent_learning_records WHERE prediction_id=%s",
                 (prediction_id,),
             ).fetchone()
             updated_case = conn.execute(
-                "SELECT * FROM bad_cases WHERE badcase_id=?",
+                "SELECT * FROM dialogpilot_platform.bad_cases WHERE badcase_id=%s FOR UPDATE",
                 (case_row["badcase_id"],),
             ).fetchone()
         return self._row_to_intent_learning(learning_row), self._row_to_badcase(updated_case)
@@ -578,7 +583,7 @@ class BadCaseRegistry:
         """读取预测；传入 user_id 时执行不泄露存在性的所有权检查。"""
         with self._connect() as conn:
             row = conn.execute(
-                "SELECT * FROM intent_learning_records WHERE prediction_id=?",
+                "SELECT * FROM dialogpilot_platform.intent_learning_records WHERE prediction_id=%s",
                 (str(prediction_id)[:64],),
             ).fetchone()
         if row is None or (user_id and row["user_ref"] != self._user_ref(user_id)):
@@ -595,12 +600,12 @@ class BadCaseRegistry:
         params: List[Any] = []
         where = ""
         if status is not None:
-            where = " WHERE feedback_status=?"
+            where = " WHERE feedback_status=%s"
             params.append(IntentFeedbackStatus(status).value)
         params.append(max(1, min(int(limit), 200)))
         with self._connect() as conn:
             rows = conn.execute(
-                f"SELECT * FROM intent_learning_records{where} ORDER BY updated_at DESC LIMIT ?",
+                f"SELECT * FROM dialogpilot_platform.intent_learning_records{where} ORDER BY updated_at DESC LIMIT %s",
                 tuple(params),
             ).fetchall()
         return [self._row_to_intent_learning(row) for row in rows]
@@ -622,10 +627,9 @@ class BadCaseRegistry:
         """原子执行人工生命周期迁移，并校验目标状态所需的正向证据。"""
         target = BadCaseStatus(target)
         actor = self._required(actor, "actor")[:200]
-        with self._lock, self._connect() as conn:
-            conn.execute("BEGIN IMMEDIATE")
+        with self._connect() as conn:
             row = conn.execute(
-                "SELECT * FROM bad_cases WHERE badcase_id=?", (badcase_id,)
+                "SELECT * FROM dialogpilot_platform.bad_cases WHERE badcase_id=%s FOR UPDATE", (badcase_id,)
             ).fetchone()
             if row is None:
                 raise BadCaseNotFoundError(f"badcase not found: {badcase_id}")
@@ -654,9 +658,9 @@ class BadCaseRegistry:
             now = self._now()
             conn.execute(
                 """
-                UPDATE bad_cases SET status=?, root_cause=?, owner_module=?, eval_layer=?,
-                    expected_json=?, reproduction_json=?, fixed_by_commit=?, updated_at=?
-                WHERE badcase_id=?
+                UPDATE dialogpilot_platform.bad_cases SET status=%s, root_cause=%s, owner_module=%s, eval_layer=%s,
+                    expected_json=%s, reproduction_json=%s, fixed_by_commit=%s, updated_at=%s
+                WHERE badcase_id=%s
                 """,
                 (
                     target.value, values["root_cause"], values["owner_module"],
@@ -670,7 +674,7 @@ class BadCaseRegistry:
                 self.sanitize_text(note, 1000), now,
             )
             updated = conn.execute(
-                "SELECT * FROM bad_cases WHERE badcase_id=?", (badcase_id,)
+                "SELECT * FROM dialogpilot_platform.bad_cases WHERE badcase_id=%s", (badcase_id,)
             ).fetchone()
             return self._row_to_badcase(updated)
 
@@ -678,10 +682,9 @@ class BadCaseRegistry:
         """把导出的 regression ID 回写为非权威引用；不改变生命周期状态。"""
         case_id = self._slug(self._required(case_id, "case_id"), 200)
         actor = self._required(actor, "actor")[:200]
-        with self._lock, self._connect() as conn:
-            conn.execute("BEGIN IMMEDIATE")
+        with self._connect() as conn:
             row = conn.execute(
-                "SELECT * FROM bad_cases WHERE badcase_id=?", (badcase_id,)
+                "SELECT * FROM dialogpilot_platform.bad_cases WHERE badcase_id=%s FOR UPDATE", (badcase_id,)
             ).fetchone()
             if row is None:
                 raise BadCaseNotFoundError(f"badcase not found: {badcase_id}")
@@ -694,7 +697,7 @@ class BadCaseRegistry:
                 raise BadCaseContractError("badcase already linked to another regression case")
             now = self._now()
             conn.execute(
-                "UPDATE bad_cases SET linked_case_id=?, updated_at=? WHERE badcase_id=?",
+                "UPDATE dialogpilot_platform.bad_cases SET linked_case_id=%s, updated_at=%s WHERE badcase_id=%s",
                 (case_id, now, badcase_id),
             )
             self._insert_event(
@@ -702,14 +705,14 @@ class BadCaseRegistry:
                 actor, f"linked regression case {case_id}", now,
             )
             updated = conn.execute(
-                "SELECT * FROM bad_cases WHERE badcase_id=?", (badcase_id,)
+                "SELECT * FROM dialogpilot_platform.bad_cases WHERE badcase_id=%s", (badcase_id,)
             ).fetchone()
             return self._row_to_badcase(updated)
 
     def get(self, badcase_id: str) -> BadCase:
         with self._connect() as conn:
             row = conn.execute(
-                "SELECT * FROM bad_cases WHERE badcase_id=?", (badcase_id,)
+                "SELECT * FROM dialogpilot_platform.bad_cases WHERE badcase_id=%s", (badcase_id,)
             ).fetchone()
         if row is None:
             raise BadCaseNotFoundError(f"badcase not found: {badcase_id}")
@@ -719,22 +722,22 @@ class BadCaseRegistry:
         case = self.get(badcase_id)
         with self._connect() as conn:
             events = conn.execute(
-                "SELECT * FROM bad_case_events WHERE badcase_id=? ORDER BY event_id",
+                "SELECT * FROM dialogpilot_platform.bad_case_events WHERE badcase_id=%s ORDER BY event_id",
                 (badcase_id,),
             ).fetchall()
             occurrences = conn.execute(
-                "SELECT * FROM bad_case_occurrences WHERE badcase_id=? ORDER BY occurrence_id",
+                "SELECT * FROM dialogpilot_platform.bad_case_occurrences WHERE badcase_id=%s ORDER BY occurrence_id",
                 (badcase_id,),
             ).fetchall()
             intent_record = None
             intent_events = []
             if case.prediction_id:
                 intent_record = conn.execute(
-                    "SELECT * FROM intent_learning_records WHERE prediction_id=?",
+                    "SELECT * FROM dialogpilot_platform.intent_learning_records WHERE prediction_id=%s",
                     (case.prediction_id,),
                 ).fetchone()
                 intent_events = conn.execute(
-                    "SELECT * FROM intent_learning_events WHERE prediction_id=? ORDER BY event_id",
+                    "SELECT * FROM dialogpilot_platform.intent_learning_events WHERE prediction_id=%s ORDER BY event_id",
                     (case.prediction_id,),
                 ).fetchall()
         view = case.to_dict()
@@ -782,34 +785,34 @@ class BadCaseRegistry:
             ("severity", severity, BadCaseSeverity),
         ):
             if value is not None:
-                clauses.append(f"{column}=?")
+                clauses.append(f"{column}=%s")
                 params.append(enum_type(value).value)
         if semantic_group_id is not None:
-            clauses.append("semantic_group_id=?")
+            clauses.append("semantic_group_id=%s")
             params.append(self._slug(semantic_group_id, 160))
         where = f" WHERE {' AND '.join(clauses)}" if clauses else ""
         params.append(max(1, min(int(limit), 200)))
         with self._connect() as conn:
             rows = conn.execute(
-                f"SELECT * FROM bad_cases{where} ORDER BY last_seen_at DESC LIMIT ?",
+                f"SELECT * FROM dialogpilot_platform.bad_cases{where} ORDER BY last_seen_at DESC LIMIT %s",
                 tuple(params),
             ).fetchall()
         return [self._row_to_badcase(row) for row in rows]
 
     def stats(self) -> Dict[str, Any]:
         with self._connect() as conn:
-            total = int(conn.execute("SELECT COUNT(*) FROM bad_cases").fetchone()[0])
-            by_status = {row[0]: int(row[1]) for row in conn.execute(
-                "SELECT status, COUNT(*) FROM bad_cases GROUP BY status"
+            total = int(conn.execute("SELECT COUNT(*) AS count FROM dialogpilot_platform.bad_cases").fetchone()["count"])
+            by_status = {row["status"]: int(row["count"]) for row in conn.execute(
+                "SELECT status, COUNT(*) AS count FROM dialogpilot_platform.bad_cases GROUP BY status"
             ).fetchall()}
             recurrences = int(conn.execute(
-                "SELECT COALESCE(SUM(occurrence_count - 1), 0) FROM bad_cases"
-            ).fetchone()[0])
+                "SELECT COALESCE(SUM(occurrence_count - 1), 0) AS count FROM dialogpilot_platform.bad_cases"
+            ).fetchone()["count"])
             intent_predictions = int(conn.execute(
-                "SELECT COUNT(*) FROM intent_learning_records"
-            ).fetchone()[0])
-            intent_feedback = {row[0]: int(row[1]) for row in conn.execute(
-                "SELECT feedback_status, COUNT(*) FROM intent_learning_records GROUP BY feedback_status"
+                "SELECT COUNT(*) AS count FROM dialogpilot_platform.intent_learning_records"
+            ).fetchone()["count"])
+            intent_feedback = {row["feedback_status"]: int(row["count"]) for row in conn.execute(
+                "SELECT feedback_status, COUNT(*) AS count FROM dialogpilot_platform.intent_learning_records GROUP BY feedback_status"
             ).fetchall()}
         return {
             "total": total,
@@ -828,7 +831,7 @@ class BadCaseRegistry:
 
     def _observe_with_connection(
         self,
-        conn: sqlite3.Connection,
+        conn: Cursor,
         *,
         source: str,
         stage: BadCaseStage,
@@ -864,8 +867,14 @@ class BadCaseRegistry:
             if semantic_group_id else f"badcase-{fingerprint[:16]}"
         )
 
+        # Serialize first insertion as well as recurrences; row locks alone cannot
+        # protect a fingerprint that has not been inserted yet.
+        conn.execute(
+            "SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))",
+            ("badcase:" + fingerprint,),
+        )
         row = conn.execute(
-            "SELECT * FROM bad_cases WHERE fingerprint = ?", (fingerprint,)
+            "SELECT * FROM dialogpilot_platform.bad_cases WHERE fingerprint = %s FOR UPDATE", (fingerprint,)
         ).fetchone()
         if row is not None:
             current = BadCaseStatus(row["status"])
@@ -876,10 +885,10 @@ class BadCaseRegistry:
             )
             conn.execute(
                 """
-                UPDATE bad_cases SET occurrence_count=occurrence_count+1,
-                    status=?, severity=?, trace_id=?, request_id=?, published_response=?,
-                    evidence_json=?, versions_json=?, last_seen_at=?, updated_at=?
-                WHERE badcase_id=?
+                UPDATE dialogpilot_platform.bad_cases SET occurrence_count=occurrence_count+1,
+                    status=%s, severity=%s, trace_id=%s, request_id=%s, published_response=%s,
+                    evidence_json=%s, versions_json=%s, last_seen_at=%s, updated_at=%s
+                WHERE badcase_id=%s
                 """,
                 (
                     next_status.value, next_severity.value, str(trace_id)[:128],
@@ -899,21 +908,21 @@ class BadCaseRegistry:
                 now,
             )
             updated = conn.execute(
-                "SELECT * FROM bad_cases WHERE badcase_id=?", (row["badcase_id"],)
+                "SELECT * FROM dialogpilot_platform.bad_cases WHERE badcase_id=%s", (row["badcase_id"],)
             ).fetchone()
             return self._row_to_badcase(updated), False
 
         conn.execute(
             """
-            INSERT INTO bad_cases (
+            INSERT INTO dialogpilot_platform.bad_cases (
                 badcase_id, fingerprint, semantic_group_id, source, stage, severity,
                 status, symptom_code, trace_id, request_id, user_ref,
                 sanitized_input, published_response, evidence_json, versions_json,
                 eval_layer, expected_json, reproduction_json, root_cause,
                 owner_module, linked_case_id, fixed_by_commit, occurrence_count,
                 created_at, first_seen_at, last_seen_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', '{}', '{}',
-                      '', '', '', '', 1, ?, ?, ?, ?)
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, '', '{}', '{}',
+                      '', '', '', '', 1, %s, %s, %s, %s)
             """,
             (
                 badcase_id, fingerprint, group_id, source, stage.value, severity.value,
@@ -933,7 +942,7 @@ class BadCaseRegistry:
             safe_evidence, safe_versions, now,
         )
         row = conn.execute(
-            "SELECT * FROM bad_cases WHERE badcase_id=?", (badcase_id,)
+            "SELECT * FROM dialogpilot_platform.bad_cases WHERE badcase_id=%s", (badcase_id,)
         ).fetchone()
         return self._row_to_badcase(row), True
 
@@ -990,152 +999,10 @@ class BadCaseRegistry:
             return value
         return self.sanitize_text(value, 2000)
 
-    def _initialize(self) -> None:
-        with self._connect() as conn:
-            conn.executescript(
-                """
-                CREATE TABLE IF NOT EXISTS bad_cases (
-                    badcase_id TEXT PRIMARY KEY,
-                    fingerprint TEXT NOT NULL UNIQUE,
-                    semantic_group_id TEXT NOT NULL,
-                    source TEXT NOT NULL,
-                    stage TEXT NOT NULL,
-                    severity TEXT NOT NULL,
-                    status TEXT NOT NULL,
-                    symptom_code TEXT NOT NULL,
-                    trace_id TEXT NOT NULL,
-                    request_id TEXT NOT NULL,
-                    user_ref TEXT NOT NULL,
-                    sanitized_input TEXT NOT NULL,
-                    published_response TEXT NOT NULL,
-                    evidence_json TEXT NOT NULL,
-                    versions_json TEXT NOT NULL,
-                    eval_layer TEXT NOT NULL,
-                    expected_json TEXT NOT NULL,
-                    reproduction_json TEXT NOT NULL,
-                    root_cause TEXT NOT NULL,
-                    owner_module TEXT NOT NULL,
-                    linked_case_id TEXT NOT NULL,
-                    fixed_by_commit TEXT NOT NULL,
-                    occurrence_count INTEGER NOT NULL,
-                    created_at TEXT NOT NULL,
-                    first_seen_at TEXT NOT NULL,
-                    last_seen_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL,
-                    prediction_id TEXT NOT NULL DEFAULT '',
-                    predicted_intent TEXT NOT NULL DEFAULT '',
-                    suggested_intent TEXT NOT NULL DEFAULT '',
-                    approved_intent TEXT NOT NULL DEFAULT '',
-                    annotation_id TEXT NOT NULL DEFAULT '',
-                    classifier_fingerprint TEXT NOT NULL DEFAULT ''
-                );
-                CREATE INDEX IF NOT EXISTS idx_bad_cases_queue
-                    ON bad_cases(status, severity, last_seen_at);
-                CREATE TABLE IF NOT EXISTS bad_case_events (
-                    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    badcase_id TEXT NOT NULL,
-                    from_status TEXT,
-                    to_status TEXT NOT NULL,
-                    actor TEXT NOT NULL,
-                    note TEXT NOT NULL,
-                    created_at TEXT NOT NULL,
-                    FOREIGN KEY(badcase_id) REFERENCES bad_cases(badcase_id)
-                );
-                CREATE TABLE IF NOT EXISTS bad_case_occurrences (
-                    occurrence_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    badcase_id TEXT NOT NULL,
-                    source TEXT NOT NULL,
-                    severity TEXT NOT NULL,
-                    trace_id TEXT NOT NULL,
-                    request_id TEXT NOT NULL,
-                    sanitized_input TEXT NOT NULL,
-                    published_response TEXT NOT NULL,
-                    evidence_json TEXT NOT NULL,
-                    versions_json TEXT NOT NULL,
-                    observed_at TEXT NOT NULL,
-                    FOREIGN KEY(badcase_id) REFERENCES bad_cases(badcase_id)
-                );
-                CREATE INDEX IF NOT EXISTS idx_bad_case_occurrences
-                    ON bad_case_occurrences(badcase_id, occurrence_id);
-                CREATE TABLE IF NOT EXISTS intent_learning_records (
-                    prediction_id TEXT PRIMARY KEY,
-                    request_id TEXT NOT NULL,
-                    trace_id TEXT NOT NULL,
-                    conv_id TEXT NOT NULL,
-                    user_ref TEXT NOT NULL,
-                    input_fingerprint TEXT NOT NULL,
-                    sanitized_input TEXT NOT NULL,
-                    predicted_intent TEXT NOT NULL,
-                    confidence REAL NOT NULL,
-                    source_scores_json TEXT NOT NULL,
-                    classifier_fingerprint TEXT NOT NULL,
-                    bundle_version TEXT NOT NULL,
-                    feedback_status TEXT NOT NULL,
-                    suggested_intent TEXT NOT NULL,
-                    feedback_reason TEXT NOT NULL,
-                    badcase_id TEXT NOT NULL,
-                    approved_intent TEXT NOT NULL,
-                    annotation_id TEXT NOT NULL,
-                    reviewer TEXT NOT NULL,
-                    dataset_version TEXT NOT NULL,
-                    review_note TEXT NOT NULL,
-                    created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL
-                );
-                CREATE INDEX IF NOT EXISTS idx_intent_learning_queue
-                    ON intent_learning_records(feedback_status, updated_at);
-                CREATE INDEX IF NOT EXISTS idx_intent_learning_request
-                    ON intent_learning_records(request_id, created_at);
-                CREATE TABLE IF NOT EXISTS intent_learning_events (
-                    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    prediction_id TEXT NOT NULL,
-                    event_type TEXT NOT NULL,
-                    actor TEXT NOT NULL,
-                    payload_json TEXT NOT NULL,
-                    created_at TEXT NOT NULL,
-                    FOREIGN KEY(prediction_id) REFERENCES intent_learning_records(prediction_id)
-                );
-                CREATE INDEX IF NOT EXISTS idx_intent_learning_events
-                    ON intent_learning_events(prediction_id, event_id);
-                """
-            )
-            self._ensure_columns(conn, "bad_cases", {
-                "prediction_id": "TEXT NOT NULL DEFAULT ''",
-                "predicted_intent": "TEXT NOT NULL DEFAULT ''",
-                "suggested_intent": "TEXT NOT NULL DEFAULT ''",
-                "approved_intent": "TEXT NOT NULL DEFAULT ''",
-                "annotation_id": "TEXT NOT NULL DEFAULT ''",
-                "classifier_fingerprint": "TEXT NOT NULL DEFAULT ''",
-            })
-
-    def _connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(str(self._path), timeout=5.0)
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA foreign_keys=ON")
-        conn.execute("PRAGMA journal_mode=WAL")
-        conn.execute("PRAGMA busy_timeout=5000")
-        return conn
-
-    @staticmethod
-    def _ensure_columns(
-        conn: sqlite3.Connection,
-        table: str,
-        columns: Mapping[str, str],
-    ) -> None:
-        """只用于启动期、固定标识符的向前兼容迁移。"""
-        if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", table):
-            raise BadCaseContractError("invalid migration table")
-        existing = {row["name"] for row in conn.execute(f"PRAGMA table_info({table})")}
-        for name, declaration in columns.items():
-            if name in existing:
-                continue
-            if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", name):
-                raise BadCaseContractError("invalid migration column")
-            conn.execute(f"ALTER TABLE {table} ADD COLUMN {name} {declaration}")
 
     @staticmethod
     def _insert_event(
-        conn: sqlite3.Connection,
+        conn: Cursor,
         badcase_id: str,
         current: Optional[BadCaseStatus],
         target: BadCaseStatus,
@@ -1145,9 +1012,9 @@ class BadCaseRegistry:
     ) -> None:
         conn.execute(
             """
-            INSERT INTO bad_case_events (
+            INSERT INTO dialogpilot_platform.bad_case_events (
                 badcase_id, from_status, to_status, actor, note, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?)
+            ) VALUES (%s, %s, %s, %s, %s, %s)
             """,
             (
                 badcase_id, current.value if current else None, target.value,
@@ -1158,7 +1025,7 @@ class BadCaseRegistry:
     @classmethod
     def _insert_intent_learning_event(
         cls,
-        conn: sqlite3.Connection,
+        conn: Cursor,
         prediction_id: str,
         event_type: str,
         actor: str,
@@ -1167,9 +1034,9 @@ class BadCaseRegistry:
     ) -> None:
         conn.execute(
             """
-            INSERT INTO intent_learning_events (
+            INSERT INTO dialogpilot_platform.intent_learning_events (
                 prediction_id, event_type, actor, payload_json, created_at
-            ) VALUES (?, ?, ?, ?, ?)
+            ) VALUES (%s, %s, %s, %s, %s)
             """,
             (
                 prediction_id, str(event_type)[:80], str(actor)[:200],
@@ -1180,7 +1047,7 @@ class BadCaseRegistry:
     @classmethod
     def _insert_occurrence(
         cls,
-        conn: sqlite3.Connection,
+        conn: Cursor,
         badcase_id: str,
         source: str,
         severity: BadCaseSeverity,
@@ -1194,11 +1061,11 @@ class BadCaseRegistry:
     ) -> None:
         conn.execute(
             """
-            INSERT INTO bad_case_occurrences (
+            INSERT INTO dialogpilot_platform.bad_case_occurrences (
                 badcase_id, source, severity, trace_id, request_id,
                 sanitized_input, published_response, evidence_json,
                 versions_json, observed_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 badcase_id, source, severity.value, trace_id, request_id,
@@ -1208,7 +1075,7 @@ class BadCaseRegistry:
         )
 
     @classmethod
-    def _row_to_badcase(cls, row: sqlite3.Row) -> BadCase:
+    def _row_to_badcase(cls, row: Mapping[str, Any]) -> BadCase:
         return BadCase(
             badcase_id=row["badcase_id"], fingerprint=row["fingerprint"],
             semantic_group_id=row["semantic_group_id"], source=row["source"],
@@ -1232,7 +1099,7 @@ class BadCaseRegistry:
         )
 
     @classmethod
-    def _row_to_intent_learning(cls, row: sqlite3.Row) -> IntentLearningRecord:
+    def _row_to_intent_learning(cls, row: Mapping[str, Any]) -> IntentLearningRecord:
         if row is None:
             raise BadCaseNotFoundError("intent prediction not found")
         scores = cls._load_json(row["source_scores_json"])
