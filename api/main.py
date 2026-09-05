@@ -26,7 +26,7 @@ import uvicorn
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Header, HTTPException, Response, UploadFile, File, Query, Request as FastAPIRequest
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -2266,6 +2266,76 @@ async def list_conversation_turns(
         "turns": [turn.__dict__ for turn in turns],
         "last_seq": turns[-1].seq if turns else after_seq,
     }
+
+
+@app.get("/conversations/{conv_id}/events", tags=["会话"])
+async def stream_conversation_events(
+    conv_id: str,
+    request: FastAPIRequest,
+    after_event_id: str | None = Query(default=None),
+    last_event_id: str = Header(default="", alias="Last-Event-ID"),
+    principal: Principal = Depends(_chat_principal),
+):
+    """Replay committed public events, then follow the same durable cursor."""
+    if _conversation_query is None:
+        raise HTTPException(503, "会话查询服务未就绪")
+    from application.conversation_events import reset_event
+    from infrastructure.postgres_conversation_query import (
+        ConversationQueryAccessDenied,
+        ConversationQueryNotFound,
+    )
+
+    cursor = after_event_id or last_event_id or None
+    scope = {
+        "tenant_id": os.getenv("DEFAULT_TENANT_ID", "default"),
+        "user_id": principal.subject,
+        "conversation_id": conv_id,
+    }
+    try:
+        first_page = await asyncio.to_thread(
+            _conversation_query.list_public_events,
+            **scope,
+            after_event_id=cursor,
+            limit=100,
+        )
+    except (ConversationQueryNotFound, ConversationQueryAccessDenied) as exc:
+        raise HTTPException(404, {"error": "conversation_not_found"}) from exc
+
+    async def event_stream():
+        nonlocal cursor, first_page
+        page = first_page
+        poll_seconds = max(0.1, float(os.getenv("SSE_POLL_SECONDS", "1")))
+        while True:
+            if page.reset_required:
+                yield reset_event(conv_id)
+                return
+            for event in page.events:
+                cursor = event.event_id
+                yield event.to_sse()
+            if await request.is_disconnected():
+                return
+            if page.events:
+                page = await asyncio.to_thread(
+                    _conversation_query.list_public_events,
+                    **scope,
+                    after_event_id=cursor,
+                    limit=100,
+                )
+                continue
+            yield ": keep-alive\n\n"
+            await asyncio.sleep(poll_seconds)
+            page = await asyncio.to_thread(
+                _conversation_query.list_public_events,
+                **scope,
+                after_event_id=cursor,
+                limit=100,
+            )
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 @app.get("/invocations/{invocation_key}", tags=["会话"])

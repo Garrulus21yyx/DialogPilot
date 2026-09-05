@@ -15,6 +15,10 @@ from application.conversation_query import (
     ProjectionProgressView,
     TranscriptTurnView,
 )
+from application.conversation_events import (
+    PublicConversationEvent,
+    PublicEventPage,
+)
 from application.conversation_store import content_hash
 from application.delivery_contract import DeliveryStatusV1
 from infrastructure.postgres import PostgresPool
@@ -84,6 +88,106 @@ class PostgresConversationQueryService:
             seq=int(row[0]), role=row[1], content=self.redactor.redact(row[2]),
             created_at=row[3].isoformat(), request_id=row[4],
         ) for row in rows)
+
+    def list_public_events(
+        self,
+        *,
+        tenant_id: str,
+        user_id: str,
+        conversation_id: str,
+        after_event_id: str | None = None,
+        limit: int = 100,
+    ) -> PublicEventPage:
+        """Read the safe public projection after one opaque event cursor."""
+        limit = max(1, min(200, int(limit)))
+        scope = (tenant_id, user_id, conversation_id)
+        with self.pool.transaction() as connection:
+            self._require_scope(connection, *scope)
+            after_seq = 0
+            if after_event_id:
+                cursor = connection.execute("""
+                    SELECT seq FROM dialogpilot_app.conversation_events
+                    WHERE event_id=%s AND tenant_id=%s AND user_id=%s
+                      AND conversation_id=%s
+                """, (after_event_id, *scope)).fetchone()
+                if cursor is None:
+                    return PublicEventPage((), None, reset_required=True)
+                after_seq = int(cursor[0])
+            with connection.cursor(row_factory=dict_row) as cursor:
+                rows = cursor.execute("""
+                    SELECT event.event_id, event.seq, event.event_type,
+                           event.invocation_key, event.created_at, event.payload,
+                           delivery.publication_id,
+                           delivery.publication_kind,
+                           delivery.payload AS publication_payload
+                    FROM dialogpilot_app.conversation_events event
+                    LEFT JOIN dialogpilot_app.response_deliveries delivery
+                      ON delivery.outbound_event_id=event.event_id
+                    WHERE event.tenant_id=%s AND event.user_id=%s
+                      AND event.conversation_id=%s AND event.seq>%s
+                      AND event.event_type IN (
+                          'REQUEST_ACCEPTED', 'TARGET_REQUEST_ACCEPTED',
+                          'FINAL_RESPONSE_SELECTED',
+                          'INTERACTION_REQUEST_PUBLISHED',
+                          'HUMAN_REPLY_PUBLISHED', 'CONVERSATION_CLOSED'
+                      )
+                    ORDER BY event.seq LIMIT %s
+                """, (*scope, after_seq, limit)).fetchall()
+        events = tuple(self._public_event(row, conversation_id) for row in rows)
+        return PublicEventPage(
+            events,
+            events[-1].event_id if events else after_event_id,
+        )
+
+    @staticmethod
+    def _public_event(row, conversation_id: str) -> PublicConversationEvent:
+        event_type = row["event_type"]
+        source = dict(row["payload"] or {})
+        publication = dict(row["publication_payload"] or {})
+        if event_type in {"REQUEST_ACCEPTED", "TARGET_REQUEST_ACCEPTED"}:
+            public_type = "run.accepted"
+            payload = {
+                "workflow_run_id": source.get("workflow_run_id"),
+                "status": "queued",
+            }
+        elif event_type == "FINAL_RESPONSE_SELECTED":
+            public_type = "response.committed"
+            payload = {
+                "response_id": row["publication_id"],
+                "response": publication.get("response"),
+                "public_response": publication.get("public_response", {}),
+            }
+        elif event_type == "INTERACTION_REQUEST_PUBLISHED":
+            public_type = "interaction.requested"
+            payload = {
+                "publication_id": row["publication_id"],
+                "challenge": publication.get("challenge"),
+                "signal_id": publication.get("signal_id"),
+                "signal_version": publication.get("signal_version"),
+                "resume_schema": publication.get("resume_schema", {}),
+            }
+        elif event_type == "HUMAN_REPLY_PUBLISHED":
+            public_type = "human.reply"
+            payload = {
+                "publication_id": row["publication_id"],
+                "text": publication.get("text"),
+                "ticket_id": publication.get("ticket_id"),
+            }
+        else:
+            public_type = "conversation.closed"
+            payload = {
+                "close_id": source.get("close_id"),
+                "reason_code": source.get("reason_code"),
+            }
+        return PublicConversationEvent(
+            event_id=row["event_id"],
+            seq=int(row["seq"]),
+            event_type=public_type,
+            conversation_id=conversation_id,
+            invocation_key=row["invocation_key"],
+            created_at=row["created_at"].isoformat(),
+            payload=payload,
+        )
 
     def projection_progress(
         self,

@@ -150,6 +150,52 @@ def test_transcript_is_scoped_paginated_and_only_exposes_redacted_public_fields(
         )
 
 
+def test_public_event_cursor_replays_only_committed_client_events(
+    query_components,
+):
+    _, identity, query, publication = query_components
+    accepted = query.list_public_events(
+        tenant_id=str(identity.tenant_id),
+        user_id=str(identity.user_id),
+        conversation_id=str(identity.conversation_id),
+    )
+    assert [event.event_type for event in accepted.events] == ["run.accepted"]
+    assert "user@example.com" not in accepted.events[0].to_sse()
+
+    final = publication.select_final_response(_final(identity))
+    resumed = query.list_public_events(
+        tenant_id=str(identity.tenant_id),
+        user_id=str(identity.user_id),
+        conversation_id=str(identity.conversation_id),
+        after_event_id=accepted.last_event_id,
+    )
+    assert [event.event_type for event in resumed.events] == [
+        "response.committed",
+    ]
+    assert resumed.events[0].payload["response_id"] == final.record.publication_id
+    assert query.list_public_events(
+        tenant_id=str(identity.tenant_id),
+        user_id=str(identity.user_id),
+        conversation_id=str(identity.conversation_id),
+        after_event_id=accepted.last_event_id,
+    ) == resumed
+
+
+def test_unknown_or_cross_scope_public_cursor_requires_state_reload(
+    query_components,
+):
+    _, identity, query, _ = query_components
+    page = query.list_public_events(
+        tenant_id=str(identity.tenant_id),
+        user_id=str(identity.user_id),
+        conversation_id=str(identity.conversation_id),
+        after_event_id="event-from-another-scope",
+    )
+    assert page.events == ()
+    assert page.last_event_id is None
+    assert page.reset_required is True
+
+
 def test_invocation_projection_keeps_admission_waiting_completion_and_delivery_separate(
     query_components,
 ):

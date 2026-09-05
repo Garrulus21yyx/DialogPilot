@@ -387,6 +387,19 @@ scope；重连不重新生成 Publication、不重新提交业务任务。
 
 提交：`feat(target): add resumable conversation event streaming`
 
+实施记录（2026-09-05）：
+
+- 新增 `PublicConversationEvent/PublicEventPage`，以持久 `conversation_events.event_id`
+  作为 opaque cursor，SSE frame 同时携带 event_id 与 response/publication id；
+- `PostgresConversationQueryService.list_public_events()` 在 tenant/user/conversation scope 内
+  读取，只投影 run accepted、正式 Publication 与 conversation closed，不暴露原始消息、Tool
+  参数或内部 Agent 过程；
+- `/conversations/{conv_id}/events` 支持 `after_event_id` 与 `Last-Event-ID`，先重放再 follow；
+  handler 只轮询持久事件，连接断开不触碰 Run Coordinator；
+- cursor 已不可用或不属于当前 scope 时发送 typed `stream.reset`，客户端回到既有 Transcript
+  接口校准后重新订阅；游标不替代 response ACK；
+- Event/Query 专项：`8 passed, 8 skipped in 0.69s`。
+
 ## 13. M8：Context Budget 与局部压缩
 
 根因：持久 Thread Summary 不能处理一次模型调用中的巨大 Tool 输出或工作消息。
