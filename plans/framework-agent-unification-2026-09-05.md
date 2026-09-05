@@ -2,6 +2,18 @@
 
 Status: in_progress
 
+Done: retired the final two legacy media chat harnesses and ChatApplication
+itself after consumer audit. Shared ChatCommand/outcome contracts remain independent.
+Current media authority lives at registered ToolManager calls, not pre-router media
+injection; reads do not create a Flow. Add Target direct-media publication/replay
+coverage and retain framework provenance and real upload/PostgreSQL tests.
+35 focused tests pass with PostgreSQL configured, including actual asset upload,
+catalog matching, Target publication and replay. Full collection passes (1316 tests).
+Direct media currently publishes the tool-result JSON envelope; the new test proves
+content/provenance preservation, not polished natural-language composition. Shared
+legacy helper modules and AgentOrchestrator/ReAct consumers remain to be removed;
+historical documentation references will need a final current-runtime link audit.
+
 Done: retired the sticky legacy chat harness and its sole-consumer four-field
 E2E scorer. Its legacy stage/intent/Flow projection is not the Target contract.
 Preserve contextual refund reference binding, real business reads, same-request

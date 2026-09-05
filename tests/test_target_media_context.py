@@ -22,6 +22,68 @@ def _manager(ocr):
     return manager
 
 
+def test_direct_media_chat_publishes_once_without_domain_dispatch_or_flow():
+    from application.chat_contracts import ChatCommand, Completed
+    from application.conversation_agent import ConversationAgent
+    from application.conversation_state import InMemoryConversationStateStore
+    from application.orchestration_runtime import OrchestrationRuntime
+    from application.target_chat_application import TargetChatApplication
+    from application.target_conversation_manager import TargetConversationManager
+    from application.target_understanding import CascadedTargetUnderstanding, StateBoundTargetUnderstanding
+    from infrastructure.target_tool_execution import TargetToolExecutor
+    from tests.test_target_chat_cutover import _Admission, _Publication
+
+    class CountingOCR(OCR):
+        calls = 0
+
+        def extract(self, *args, **kwargs):
+            self.calls += 1
+            return super().extract(*args, **kwargs)
+
+    class Provider:
+        version = "media-transport-fixture-v1"
+
+        async def plan(self, payload):
+            return {"status": "resolved", "goals": [{
+                "kind": "media_text_read", "asset_id": "IMG9",
+            }]}
+
+    ocr = CountingOCR("E401")
+    tools = _manager(ocr)
+    states = InMemoryConversationStateStore()
+    registry = build_default_capability_registry("tenant-a")
+    application = TargetChatApplication(
+        manager=TargetConversationManager(
+            state_store=states, registry=registry,
+            understanding=CascadedTargetUnderstanding(
+                StateBoundTargetUnderstanding(), ConversationAgent(Provider()),
+            ),
+            orchestration=OrchestrationRuntime(
+                direct_executor=TargetToolExecutor(tools), domain_workers={},
+            ),
+        ),
+        admission=_Admission(), publication=_Publication(),
+        bundle_version=registry.bundle_version,
+    )
+    command = ChatCommand(
+        "读取附件中的文字", "user-a", "tenant-a", "conversation-a", "media-read",
+        asset_ids=("IMG9",),
+    )
+    first = asyncio.run(application.handle(command))
+    replay = asyncio.run(application.handle(command))
+    assert isinstance(first, Completed), first
+    assert isinstance(replay, Completed)
+    assert replay.response_id == first.response_id
+    assert ocr.calls == 1
+    assert [record.tool_name for record in tools.audit_records()] == ["media_read"]
+    assert first.response["routing_disposition"] == "direct"
+    assert first.response["coverage"]["complete"] is True
+    published = json.loads(first.response["response"])
+    assert published["data"]["text"] == "E401"
+    assert published["data"]["evidence_ref"] == "parse-1"
+    assert states.load("tenant-a", "user-a", "conversation-a").workstreams == ()
+
+
 def test_ocr_evidence_reaches_framework_as_tool_data_with_provenance():
     observed = []
     text = "SCREENSHOT_OBSERVATION: ERROR E42"
