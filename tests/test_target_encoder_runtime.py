@@ -15,6 +15,7 @@ from application.target_encoder_artifact import (
     load_target_text_encoder_artifact,
 )
 from application.target_encoder_understanding import TargetEncoderUnderstanding
+from infrastructure.target_runtime_composition import _target_encoder
 from application.target_understanding import (
     CascadedTargetUnderstanding,
     StateBoundTargetUnderstanding,
@@ -155,3 +156,20 @@ def test_training_reproduces_the_gated_artifact_contract(tmp_path):
     assert artifact.manifest.threshold_by_capability == {
         "tool:refund_status": pytest.approx(0.4536190330982208),
     }
+
+
+def test_target_runtime_encoder_switch_is_explicit_and_uses_checked_in_artifact(
+    monkeypatch,
+):
+    project_root = Path(__file__).resolve().parents[1]
+    monkeypatch.setenv("TARGET_ENCODER_ENABLED", "false")
+    assert _target_encoder(project_root) is None
+
+    monkeypatch.setenv("TARGET_ENCODER_ENABLED", "true")
+    assert isinstance(_target_encoder(project_root), TargetEncoderUnderstanding)
+
+
+def test_target_runtime_rejects_unknown_encoder_switch(monkeypatch):
+    monkeypatch.setenv("TARGET_ENCODER_ENABLED", "sometimes")
+    with pytest.raises(RuntimeError, match="must be true or false"):
+        _target_encoder(Path(__file__).resolve().parents[1])

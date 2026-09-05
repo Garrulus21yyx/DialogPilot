@@ -601,186 +601,25 @@ async def lifespan(app: FastAPI):
     AuthorityPolicyRegistry.v1().validate_tools(_tool_manager.registered_tools)
     _orchestrator.set_tool_manager(_tool_manager)
 
-    # Target v1 is the sole /chat execution authority.  It selects direct,
-    # single-domain, multi-domain, or workflow shapes from one ConversationManager.
-    from application.default_capability_registry import (
-        build_default_capability_registry,
-    )
-    from infrastructure.target_agent_execution import TargetAgentExecutor
-    from infrastructure.target_framework_agent import TargetFrameworkAgent
-    from langchain_anthropic import ChatAnthropic
-    from application.orchestration_runtime import OrchestrationRuntime
-    from application.target_chat_application import TargetChatApplication
-    from application.target_conversation_manager import TargetConversationManager
-    from application.response_assembly import ResponseAssembler
-    from application.turn_runtime import TurnRuntime
-    from application.target_encoder_artifact import load_target_text_encoder_artifact
-    from application.target_encoder_understanding import TargetEncoderUnderstanding
-    from application.conversation_agent import ConversationAgent
-    from application.context_budget import ContextBudgetManager
-    from application.target_understanding import (
-        CascadedTargetUnderstanding,
-        StateBoundTargetUnderstanding,
-    )
-    from infrastructure.langgraph_checkpoint import AsyncPostgresCheckpointOwner
-    from infrastructure.postgres_target_runtime import PostgresConversationStateStore
-    from infrastructure.target_chat_adapters import (
-        PostgresTargetAdmission,
-        PostgresTargetPublication,
-    )
-    from application.target_run import TargetRunCoordinator
-    from infrastructure.postgres_admission import (
-        PostgresStartOutbox,
-        StartOutboxDispatcher,
-    )
-    from infrastructure.postgres_conversation import PostgresInvocationRepository
-    from infrastructure.postgres_target_run import (
-        PostgresTargetRunBinder,
-        PostgresTargetRunStore,
-    )
-    from infrastructure.target_evidence_resolution import TargetEvidenceResolver
-    from infrastructure.target_tool_execution import TargetToolExecutor
-    from infrastructure.target_turn_context import TargetTurnContextLoader
-    from infrastructure.target_product_execution import TargetProductExecutor
-    from infrastructure.target_conversation_provider import (
-        AnthropicConversationPlanningProvider,
-    )
-    from infrastructure.target_workflow_execution import TargetWorkflowExecutor
+    # Keep the HTTP lifespan as an adapter; Target wiring has its own cohesive
+    # composition root and still reuses all existing runtime owners.
+    from infrastructure.target_runtime_composition import build_target_runtime
 
-    target_registry = build_default_capability_registry(
-        os.getenv("DEFAULT_TENANT_ID", "default")
+    target_components = await build_target_runtime(
+        database_url=database_url,
+        postgres_pool=_postgres_pool,
+        tool_manager=_tool_manager,
+        legacy_orchestrator=_orchestrator,
+        memory=_memory,
+        response_delivery=_response_delivery,
+        model_policy=_model_policy,
+        provider_config=cfg,
+        project_root=pathlib.Path(_ROOT),
     )
-    _target_checkpoint_owner = AsyncPostgresCheckpointOwner(database_url, setup=True)
-    target_checkpointer = await _target_checkpoint_owner.__aenter__()
-    target_tool_executor = TargetToolExecutor(_tool_manager)
-    target_product_executor = TargetProductExecutor(_tool_manager)
-    target_workflow_executor = TargetWorkflowExecutor(_postgres_pool, _tool_manager)
-    target_context_budget = ContextBudgetManager(
-        context_window_tokens=int(os.getenv(
-            "MODEL_CONTEXT_WINDOW_TOKENS", "16000",
-        )),
-        reserved_output_tokens=int(os.getenv(
-            "CONVERSATION_OUTPUT_RESERVE_TOKENS", "1200",
-        )),
-        protocol_reserve_tokens=int(os.getenv(
-            "CONTEXT_PROTOCOL_RESERVE_TOKENS", "600",
-        )),
-    )
-    target_agent_executor = TargetAgentExecutor(
-        {
-            agent_type: _orchestrator.worker_for(agent_type)
-            for agent_type in (
-                AgentType.GENERAL,
-                AgentType.BILLING,
-                AgentType.ACCOUNT_SECURITY,
-                AgentType.ESCALATION,
-            )
-        },
-        registry=target_registry,
-        context_budget=target_context_budget,
-    )
-    product_framework_agent = TargetFrameworkAgent(
-        ChatAnthropic(
-            model_name=_model_policy.profile(ModelRole.WORKER).model,
-            api_key=cfg["api_key"],
-            base_url=cfg.get("base_url"),
-            max_tokens=1024,
-            temperature=0,
-        ),
-        _tool_manager,
-        registry=target_registry,
-        system_prompt=(
-            "You are the product specialist for a general ecommerce service. "
-            "Use catalog, media and knowledge evidence to resolve the supplied "
-            "product objective; do not assume a product category."
-        ),
-        skill_executors={"product_identification": target_product_executor},
-        context_budget=target_context_budget,
-        checkpointer=target_checkpointer,
-    )
-    target_evidence_resolver = TargetEvidenceResolver(
-        target_registry,
-        target_tool_executor,
-    )
-    target_orchestration = OrchestrationRuntime(
-        direct_executor=target_tool_executor,
-        domain_workers={
-            "general": target_agent_executor,
-            "product_technical": product_framework_agent,
-            "order_logistics": target_agent_executor,
-            "billing_refund": target_agent_executor,
-            "account_security": target_agent_executor,
-            "human_service": target_agent_executor,
-        },
-        workflow_executor=target_workflow_executor,
-        evidence_resolver=target_evidence_resolver,
-        checkpointer=target_checkpointer,
-    )
-    target_encoder_enabled = os.getenv(
-        "TARGET_ENCODER_ENABLED", "true",
-    ).strip().lower()
-    if target_encoder_enabled not in {"true", "false"}:
-        raise RuntimeError("TARGET_ENCODER_ENABLED must be true or false")
-    target_encoder = None
-    if target_encoder_enabled == "true":
-        target_encoder_dir = pathlib.Path(os.getenv(
-            "TARGET_ENCODER_ARTIFACT_DIR",
-            str(pathlib.Path(_ROOT) / "artifacts" / "target-encoder-zh-v2"),
-        ))
-        target_encoder = TargetEncoderUnderstanding(
-            load_target_text_encoder_artifact(target_encoder_dir)
-        )
-    conversation_agent = ConversationAgent(
-        AnthropicConversationPlanningProvider(
-            _tool_manager.llm_client,
-            model=_model_policy.profile(ModelRole.INTENT).model,
-        ),
-        context_budget=target_context_budget,
-    )
-    target_understanding = CascadedTargetUnderstanding(
-        StateBoundTargetUnderstanding(),
-        conversation_agent,
-        encoder=target_encoder,
-    )
-    target_manager = TargetConversationManager(
-        state_store=PostgresConversationStateStore(_postgres_pool),
-        registry=target_registry,
-        understanding=target_understanding,
-        orchestration=target_orchestration,
-        context_provider=TargetTurnContextLoader(_memory, _tool_manager),
-    )
-    response_assembler = ResponseAssembler(conversation_agent)
-    _target_chat_runtime = TargetChatApplication(
-        manager=target_manager,
-        admission=PostgresTargetAdmission(_postgres_pool, durable=True),
-        publication=PostgresTargetPublication(_response_delivery),
-        bundle_version=target_registry.bundle_version,
-        response_assembler=response_assembler,
-        turn_runtime=TurnRuntime(
-            target_manager,
-            response_assembler,
-            checkpointer=target_checkpointer,
-        ),
-    )
-    target_run_store = PostgresTargetRunStore(_postgres_pool)
-    _target_run_coordinator = TargetRunCoordinator(
-        _target_chat_runtime,
-        dispatcher=StartOutboxDispatcher(
-            PostgresStartOutbox(_postgres_pool),
-            PostgresInvocationRepository(_postgres_pool),
-            PostgresTargetRunBinder(_postgres_pool),
-        ),
-        store=target_run_store,
-        worker_id=os.getenv("DIALOGPILOT_TARGET_RUN_WORKER_ID", "api-target"),
-        start_lease_seconds=int(os.getenv("DIALOGPILOT_START_LEASE_SECONDS", "30")),
-        execution_lease_seconds=int(
-            os.getenv("DIALOGPILOT_EXECUTION_LEASE_SECONDS", "300")
-        ),
-        heartbeat_seconds=float(
-            os.getenv("DIALOGPILOT_EXECUTION_HEARTBEAT_SECONDS", "30")
-        ),
-    )
-    _conversation_query.runtime_reader = target_run_store.runtime
+    _target_chat_runtime = target_components.application
+    _target_run_coordinator = target_components.coordinator
+    _target_checkpoint_owner = target_components.checkpoint_owner
+    _conversation_query.runtime_reader = target_components.run_store.runtime
 
     def route_execution_refs(bundle: AgentBundle) -> Dict[str, str]:
         """Pin every route and Knowledge dependency for one request execution."""
