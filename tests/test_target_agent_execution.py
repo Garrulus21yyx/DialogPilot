@@ -12,6 +12,7 @@ from application.agent_result import (
     FactSourceKind,
 )
 from application.capability_registry import CapabilityEffect, CapabilityRisk
+from application.context_budget import ContextBudgetManager
 from application.default_capability_registry import build_default_capability_registry
 from application.orchestration_runtime import AgentContextView
 from application.work_item import ArgumentValue, ControlMode, WorkItem
@@ -119,6 +120,39 @@ def test_delegated_agent_text_cannot_replace_missing_authoritative_fact():
 
     assert result.status is AgentResultStatus.TERMINAL_FAILURE
     assert result.facts == ()
+
+
+def test_domain_context_budget_fails_before_invoking_agent():
+    agent = RecordingAgent(AgentResponse(
+        AgentType.GENERAL, "不应执行", True, react_status="completed",
+    ))
+    executor = TargetAgentExecutor(
+        {AgentType.GENERAL: agent},
+        registry=build_default_capability_registry("tenant-a"),
+        context_budget=ContextBudgetManager(
+            context_window_tokens=300,
+            reserved_output_tokens=100,
+            protocol_reserve_tokens=100,
+        ),
+    )
+    context = _context(_item())
+    context = AgentContextView(
+        context.work_item,
+        context.current_message,
+        (FactRecord(
+            "order:DP1234", "order.current_state",
+            json.dumps({"state": "x" * 1000}, separators=(",", ":")),
+            FactSourceKind.VERIFIED_STATE,
+            "receipt:1", "order_lookup", "v1", datetime.now(timezone.utc),
+        ),),
+        (), (), context.token_budget, context.trusted_context,
+    )
+
+    result = asyncio.run(executor(context))
+
+    assert result.status is AgentResultStatus.TERMINAL_FAILURE
+    assert result.reason_code == "CONTEXT_BUDGET_EXCEEDED"
+    assert agent.requests == []
 
 
 def test_pinned_composite_skill_bypasses_agent_replanning():

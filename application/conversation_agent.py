@@ -3,6 +3,10 @@ from __future__ import annotations
 
 from typing import Mapping, Protocol
 
+from application.context_budget import (
+    ContextBudgetManager,
+    ModelContextBudgetExceeded,
+)
 from application.deterministic_resolution import ResolutionKind
 from application.entity_binding import (
     BindingStatus,
@@ -56,14 +60,21 @@ class ConversationAgent:
 
     version = "conversation-agent-plan-v1"
 
-    def __init__(self, provider: ConversationPlanningProvider) -> None:
+    def __init__(
+        self,
+        provider: ConversationPlanningProvider,
+        *,
+        context_budget: ContextBudgetManager | None = None,
+    ) -> None:
         self._provider = provider
+        self._context_budget = context_budget or ContextBudgetManager()
 
     async def compose(
         self, payload: Mapping[str, object],
     ) -> Mapping[str, object]:
         """Organize verified claims without reopening planning or execution."""
-        return await self._provider.compose(payload)
+        budgeted = self._context_budget.fit_payload(payload)
+        return await self._provider.compose(budgeted.payload)
 
     async def plan(
         self, observations, state, deterministic, registry, turn_context=None,
@@ -106,7 +117,16 @@ class ConversationAgent:
             "registry_fingerprint": registry.fingerprint,
         }
         try:
-            raw = await self._provider.plan(payload)
+            budgeted = self._context_budget.fit_payload(
+                payload,
+                trim_oldest_paths=("conversation_context.recent_messages",),
+            )
+            raw = await self._provider.plan(budgeted.payload)
+        except ModelContextBudgetExceeded:
+            return TurnProposal(
+                ProposalDisposition.PROVIDER_FAILURE, (),
+                "CONTEXT_BUDGET_EXCEEDED",
+            )
         except Exception:
             return TurnProposal(
                 ProposalDisposition.PROVIDER_FAILURE, (),

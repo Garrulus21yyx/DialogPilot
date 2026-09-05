@@ -423,6 +423,21 @@ approval/operation/receipt。框架 middleware 只压缩局部工具循环，不
 
 提交：`feat(target): enforce model-call context budgets`
 
+实施记录（2026-09-05）：
+
+- 新增 `ContextBudgetManager` 作为单次 provider 调用预算 Owner；输入、输出预留和协议预留
+  共同决定可用预算，返回确定性的 `ContextBuildReport`；
+- Conversation planning 只淘汰声明为 chronological 的旧 recent messages；当前消息、结构化
+  Workstream、Binding、Registry 与 Summary 不被改写，必要内容本身超限时返回 typed
+  `CONTEXT_BUDGET_EXCEEDED`；
+- compose 的 Allowed Claims 不做事实裁剪；超限时走既有确定性模板，避免压缩后创造业务事实；
+- Domain Agent 的 `AgentContextView` 在进入旧 ReAct 边界前执行同一预算合同，只裁剪旧相关
+  turn，verified facts 与 evidence refs 保留；
+- 框架消息预算支持带 `artifact_ref` 的大 Tool payload 外置，并把 assistant tool_calls 与全部
+  tool results 当作原子 round；缺失或孤立 Tool 消息 typed 拒绝；
+- 持久 Transcript/Thread Summary 未被修改，局部预算报告不回写全局摘要；
+- Planning/Domain/Compose 专项：`40 passed, 1 skipped in 0.85s`。
+
 ## 14. M9：领域 Agent 框架适配
 
 目标不是“全部换框架”，而是消除长期双 ReAct 运行时，并为确实需要的工具循环提供细粒度

@@ -282,6 +282,11 @@ class TargetChatApplication:
 
         if managed.plan.work is None:
             failure = {
+                "CONTEXT_BUDGET_EXCEEDED": (
+                    "context_budget_exceeded",
+                    False,
+                    "当前请求包含的必要上下文过长，请缩小本次处理范围。",
+                ),
                 "CONVERSATION_PROVIDER_FAILURE": (
                     "conversation_provider_unavailable",
                     True,

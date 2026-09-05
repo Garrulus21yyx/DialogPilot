@@ -20,6 +20,10 @@ from application.capability_registry import (
     CapabilityRegistryBundle,
     CapabilityRisk,
 )
+from application.context_budget import (
+    ContextBudgetManager,
+    ModelContextBudgetExceeded,
+)
 from application.orchestration_runtime import AgentContextView, WorkExecutor
 from application.work_item import ArgumentValue, ControlMode
 from mcp.tool_manager import ToolCallStatus, ToolEffectStatus, ToolResult
@@ -46,10 +50,12 @@ class TargetAgentExecutor:
         *,
         registry: CapabilityRegistryBundle,
         skill_executors: Mapping[str, WorkExecutor] | None = None,
+        context_budget: ContextBudgetManager | None = None,
     ) -> None:
         self._agents = dict(agents)
         self._registry = registry
         self._skill_executors = dict(skill_executors or {})
+        self._context_budget = context_budget or ContextBudgetManager()
 
     async def __call__(self, context: AgentContextView) -> AgentResult:
         item = context.work_item
@@ -74,11 +80,15 @@ class TargetAgentExecutor:
         if agent is None:
             return self._failure(item, "DOMAIN_AGENT_NOT_REGISTERED")
         skill_results: list[AgentResult] = []
+        try:
+            context_payload = _context_payload(context, self._context_budget)
+        except ModelContextBudgetExceeded:
+            return self._failure(item, "CONTEXT_BUDGET_EXCEEDED")
         request = Request(
             message=context.current_message,
             user_id=str(context.trusted_context.get("user_id") or ""),
             conv_id=str(context.trusted_context.get("conversation_id") or context.trusted_context.get("conv_id") or ""),
-            context=_context_payload(context),
+            context=context_payload,
             entities={
                 argument.name: [str(argument.value)]
                 for argument in item.arguments
@@ -284,8 +294,10 @@ def _fact_from_tool_result(item, result) -> FactRecord:
     )
 
 
-def _context_payload(context: AgentContextView) -> str:
-    return json.dumps({
+def _context_payload(
+    context: AgentContextView, budget: ContextBudgetManager,
+) -> str:
+    payload = {
         "verified_facts": [{
             "requirement_id": fact.requirement_id,
             "value": json.loads(fact.value_json),
@@ -294,7 +306,12 @@ def _context_payload(context: AgentContextView) -> str:
         } for fact in context.verified_facts],
         "recent_relevant_turns": list(context.recent_relevant_turns),
         "evidence_refs": list(context.evidence_refs),
-    }, ensure_ascii=False, sort_keys=True)
+    }
+    fitted = budget.fit_payload(
+        payload,
+        trim_oldest_paths=("recent_relevant_turns",),
+    )
+    return json.dumps(fitted.payload, ensure_ascii=False, sort_keys=True)
 
 
 def _task_risk(risk: CapabilityRisk) -> TaskRisk:

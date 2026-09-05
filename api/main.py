@@ -615,6 +615,7 @@ async def lifespan(app: FastAPI):
     from application.target_encoder_artifact import load_target_text_encoder_artifact
     from application.target_encoder_understanding import TargetEncoderUnderstanding
     from application.conversation_agent import ConversationAgent
+    from application.context_budget import ContextBudgetManager
     from application.target_understanding import (
         BoundedTargetUnderstanding,
         CascadedTargetUnderstanding,
@@ -652,6 +653,17 @@ async def lifespan(app: FastAPI):
     target_tool_executor = TargetToolExecutor(_tool_manager)
     target_product_executor = TargetProductExecutor(_tool_manager)
     target_workflow_executor = TargetWorkflowExecutor(_postgres_pool, _tool_manager)
+    target_context_budget = ContextBudgetManager(
+        context_window_tokens=int(os.getenv(
+            "MODEL_CONTEXT_WINDOW_TOKENS", "16000",
+        )),
+        reserved_output_tokens=int(os.getenv(
+            "CONVERSATION_OUTPUT_RESERVE_TOKENS", "1200",
+        )),
+        protocol_reserve_tokens=int(os.getenv(
+            "CONTEXT_PROTOCOL_RESERVE_TOKENS", "600",
+        )),
+    )
     target_agent_executor = TargetAgentExecutor(
         {
             agent_type: _orchestrator.worker_for(agent_type)
@@ -665,6 +677,7 @@ async def lifespan(app: FastAPI):
         },
         registry=target_registry,
         skill_executors={"product_identification": target_product_executor},
+        context_budget=target_context_budget,
     )
     target_evidence_resolver = TargetEvidenceResolver(
         target_registry,
@@ -698,10 +711,13 @@ async def lifespan(app: FastAPI):
         target_encoder = TargetEncoderUnderstanding(
             load_target_text_encoder_artifact(target_encoder_dir)
         )
-    conversation_agent = ConversationAgent(AnthropicConversationPlanningProvider(
-        _tool_manager.llm_client,
-        model=_model_policy.profile(ModelRole.INTENT).model,
-    ))
+    conversation_agent = ConversationAgent(
+        AnthropicConversationPlanningProvider(
+            _tool_manager.llm_client,
+            model=_model_policy.profile(ModelRole.INTENT).model,
+        ),
+        context_budget=target_context_budget,
+    )
     target_understanding = CascadedTargetUnderstanding(
         BoundedTargetUnderstanding(),
         conversation_agent,

@@ -7,6 +7,7 @@ from application.default_capability_registry import build_default_capability_reg
 from application.deterministic_resolution import DeterministicResolver, TurnObservations
 from application.entity_binding import EntityBindingResolver
 from application.conversation_agent import ConversationAgent
+from application.context_budget import ContextBudgetManager
 from application.target_understanding import (
     BoundedTargetUnderstanding,
     CascadedTargetUnderstanding,
@@ -457,6 +458,24 @@ def test_conversation_agent_preserves_typed_rejection_and_provider_failure():
     failed = Provider(error=TimeoutError("provider timeout"))
     proposal, _, _ = _invoke(ConversationAgent(failed), "帮我处理一下")
     assert proposal.disposition is ProposalDisposition.PROVIDER_FAILURE
+
+
+def test_conversation_agent_reports_context_budget_without_calling_provider():
+    provider = Provider({"status": "out_of_scope"})
+    proposal, _, _ = _invoke(
+        ConversationAgent(
+            provider,
+            context_budget=ContextBudgetManager(
+                context_window_tokens=300,
+                reserved_output_tokens=100,
+                protocol_reserve_tokens=100,
+            ),
+        ),
+        "当前请求必须保留" * 500,
+    )
+    assert proposal.disposition is ProposalDisposition.PROVIDER_FAILURE
+    assert proposal.reason_code == "CONTEXT_BUDGET_EXCEEDED"
+    assert provider.calls == []
 
 
 def test_conversation_agent_receives_bounded_memory_evidence_as_data():
