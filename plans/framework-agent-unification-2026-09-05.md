@@ -2,6 +2,18 @@
 
 Status: in_progress
 
+Current closure checklist (implementation is distinct from final verification):
+
+| Required behavior | Current owner / evidence | Status |
+|---|---|---|
+| One Target entry and one autonomous loop, optional Tool/Skill/Flow | target_runtime_composition; TargetFrameworkAgent; six-domain, DIRECT and dependency tests | Implemented; full regression running on 25000c8 |
+| PostgreSQL persistence without SQLite/ReAct fallback | migrations 0032–0035; registry v8; startup and retirement tests | Implemented; isolated clean-install/upgrade tests passed |
+| Step recovery, target-scoped correction and no duplicate writes | PostgreSQL child process-exit test; WorkControl; governed-write reconciliation tests | Passed on 480be42; regression running |
+| Preserve provenance, partial success and task-local context | ResultBoard; shared fact adapter; context budget and conversion tests | Passed on 480be42; regression running |
+| Same committed public result after Accepted/reconnect | Publication → Invocation projection; shared HTTP client | Implemented; 51 focused tests passed on current code |
+| Current documentation does not prescribe retired runtime | architecture.md; historical proposal notices; independent bounded reader check | Updated; reader understood current owners and verification limits |
+| Whole committed-tree verification, distinct from model quality | clean worktree; PostgreSQL pytest + JUnit artifact | Running on 25000c8, session 73632 |
+
 Current acceptance evidence: clean committed 480be42 completes the PostgreSQL
 full suite with 1145 passed, 1 skipped and one multiprocessing fork warning in
 387.73s. This includes framework process-exit recovery, current startup wiring,

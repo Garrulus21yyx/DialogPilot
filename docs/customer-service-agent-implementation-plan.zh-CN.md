@@ -6,7 +6,14 @@ permalink: /customer-service-agent-implementation-plan.html
 
 # DialogPilot 客服 Agent 颗粒度实施计划
 
-> 状态：实施提案（本地直接替换版）
+> 状态：历史实施提案（运行时迁移步骤已替代）
+>
+> 运行时更新（2026-09-05）：本文的阶段状态和“保留 AgentOrchestrator/ReAct”等
+> 步骤属于当时的迁移方案，不是当前待办。当前主链、职责和验证边界见
+> [架构边界与职责归属]({{ '/architecture.html' | relative_url }})；当前迁移验收记录在
+> 仓库 `plans/framework-agent-unification-2026-09-05.md`。开放式领域循环已统一为
+> `create_agent`，持久化使用 PostgreSQL，旧执行链没有 fallback。
+> 下文“当前”“现有”及状态标签均按历史提案语境阅读；冲突时以当前架构页和源码为准。
 >
 > 版本：v1.1
 >
@@ -28,7 +35,7 @@ permalink: /customer-service-agent-implementation-plan.html
 
 本计划不假设固定团队人数或发布日期。任务规模只表示相对复杂度：
 
-M0–M6 是**交付依赖 DAG**，不是在线请求运行时的阶段状态机。在线编排始终由现有 Agent/TaskGraph/ReAct 完成；里程碑只用于安排实现与验证。
+M0–M6 是**交付依赖 DAG**，不是在线请求运行时的阶段状态机。本提案当时以 Agent/TaskGraph/ReAct 为执行基线；里程碑只用于安排实现与验证，不要求恢复已删除的引擎。
 
 | 规模 | 含义 |
 |---|---|
@@ -92,7 +99,7 @@ M0–M6 是**交付依赖 DAG**，不是在线请求运行时的阶段状态机�
 | `PLANNED` | 尚未实现 |
 | `SUPERSEDED_TO_REMOVE` | 已实现但只服务于旧数据迁移、双路径比较、流量试运行或旧链回退；不再继续建设，直接替换时删除 |
 
-当前基线摘要：
+历史提案基线摘要：
 
 - `CURRENT_ACTIVE`：`/chat` 已是调用 `ChatApplication.handle()` 的薄 HTTP adapter；其内部调用现有 AgentOrchestrator/TaskGraph/ReAct、已接入的 TaskFormation/KnowledgeRetriever 接口，以及仍由 Chroma/Redis 提供候选或记忆的兼容实现。
 - `IMPLEMENTED_NOT_BOUND`：PostgreSQL/Alembic、Conversation/Admission/Publication/Delivery contracts、
