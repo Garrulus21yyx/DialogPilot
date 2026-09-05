@@ -1,18 +1,37 @@
 # Target framework Agent unification
 
-Status: in_progress
+Status: complete
+
+Scope: the requested single-runtime migration and obsolete SQLite/ReAct removal,
+not the separate RAG/model-quality work or production-capacity roadmap.
+
+Final verification: clean committed code 25000c8 passes 1164 tests, with 1 skip,
+0 failures and 0 errors in 395.90s on PostgreSQL. Subsequent changes are documentation
+only. The full run covers all tests listed below, including real child process exit,
+checkpoint recovery without duplicate tool execution, startup composition, public
+query projection, scoped state/operation concurrency, and current HTTP workflows.
+The sole skip is the database-scope test's in-memory variant; the PostgreSQL variant
+runs. Python emits a fork-in-multithreaded-process warning in the restart fixture;
+this is not cross-platform restart certification. The fixture completed successfully.
+Command: `PYTHONPATH=. <venv>/bin/python -m pytest -q -ra --tb=short --junitxml=<report>`
+with TEST_DATABASE_URL provided privately and fixtures creating isolated databases.
+JUnit: `/tmp/dialogpilot-runtime-acceptance-uFTdQ2/pytest.xml`, SHA-256
+`a7fe98985c0d4877e8f8498610eafae36d2b996bb96151e2bed36703f973074b`.
+Unrelated uncommitted RAG changes were preserved and are excluded from this committed
+snapshot result. Historical datasets/migrations and local old database files were not
+erased; no obsolete runtime writer/reader or automatic old-engine fallback remains.
 
 Current closure checklist (implementation is distinct from final verification):
 
 | Required behavior | Current owner / evidence | Status |
 |---|---|---|
-| One Target entry and one autonomous loop, optional Tool/Skill/Flow | target_runtime_composition; TargetFrameworkAgent; six-domain, DIRECT and dependency tests | Implemented; full regression running on 25000c8 |
-| PostgreSQL persistence without SQLite/ReAct fallback | migrations 0032–0035; registry v8; startup and retirement tests | Implemented; isolated clean-install/upgrade tests passed |
-| Step recovery, target-scoped correction and no duplicate writes | PostgreSQL child process-exit test; WorkControl; governed-write reconciliation tests | Passed on 480be42; regression running |
-| Preserve provenance, partial success and task-local context | ResultBoard; shared fact adapter; context budget and conversion tests | Passed on 480be42; regression running |
-| Same committed public result after Accepted/reconnect | Publication → Invocation projection; shared HTTP client | Implemented; 51 focused tests passed on current code |
+| One Target entry and one autonomous loop, optional Tool/Skill/Flow | target_runtime_composition; TargetFrameworkAgent; six-domain, DIRECT and dependency tests | Verified on 25000c8 |
+| PostgreSQL persistence without SQLite/ReAct fallback | migrations 0032–0035; registry v8; startup and retirement tests | Verified; isolated clean-install/upgrade |
+| Step recovery, target-scoped correction and no duplicate writes | PostgreSQL child process-exit test; WorkControl; governed-write reconciliation tests | Verified on 25000c8 |
+| Preserve provenance, partial success and task-local context | ResultBoard; shared fact adapter; context budget and conversion tests | Verified on 25000c8 |
+| Same committed public result after Accepted/reconnect | Publication → Invocation projection; shared HTTP client | Verified; focused and full regression |
 | Current documentation does not prescribe retired runtime | architecture.md; historical proposal notices; independent bounded reader check | Updated; reader understood current owners and verification limits |
-| Whole committed-tree verification, distinct from model quality | clean worktree; PostgreSQL pytest + JUnit artifact | Running on 25000c8, session 73632 |
+| Whole committed-tree verification, distinct from model quality | clean worktree; PostgreSQL pytest + JUnit artifact | Passed on 25000c8, session 73632 completed |
 
 Current acceptance evidence: clean committed 480be42 completes the PostgreSQL
 full suite with 1145 passed, 1 skipped and one multiprocessing fork warning in

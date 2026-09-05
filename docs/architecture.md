@@ -173,7 +173,7 @@ LangGraph PostgreSQL checkpoint 保存执行状态及 Agent 工作消息；Conve
 - 待独立验收：冻结公开 test 和 80 条合成合同真实 E2E；不能由运行时迁移测试推导其质量结论。
 - LangGraph/create_agent 主链已实现；复杂文档摄取和生产级容量治理不能由这一事实推导为完成。
 
-实现、集成测试、模型质量和生产容量是不同证据层次。当前整体验证仍在进行；历史 SGD、旧 Command Gold 与合成评分不直接证明当前 Agent 的业务完成率。
+实现、集成测试、模型质量和生产容量是不同证据层次。运行时统一与旧链退役已在干净代码提交 `25000c8` 上通过 PostgreSQL 全量回归：1164 通过、1 个不适用的内存变体跳过。真实模型质量仍需单独验收；历史 SGD、旧 Command Gold 与合成评分不直接证明当前 Agent 的业务完成率。详细适用范围见仓库 `plans/framework-agent-unification-2026-09-05.md`。
 
 ---
 
