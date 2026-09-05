@@ -210,7 +210,10 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
             assert captured["orchestrator"]["intent_similarity_mode"] == "ngram"
             assert captured["orchestrator"]["react_max_steps"] == 6
             assert captured["orchestrator"]["intent_recognizer"] is not None
-            assert captured["orchestrator"]["run_store"] is captured["tool_manager"]["execution_store"]
+            assert "run_store" not in captured["orchestrator"]
+            assert "execution_store" not in captured["tool_manager"]
+            assert main._bundle_registry.pool is main._postgres_pool
+            assert main._target_run_coordinator is not None
             assert captured["tool_manager"]["approval_mode"].value == "require_all"
             assert captured["tool_manager"]["max_output_chars"] == 2345
             assert captured["tool_manager_wired"] is True
