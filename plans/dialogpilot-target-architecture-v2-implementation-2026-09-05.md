@@ -1,6 +1,6 @@
 # DialogPilot Target Architecture v2 实施计划
 
-状态：已实施（Target 因果面已收敛验证）
+状态：Target v2 运行合同已收敛；比较实验独立跟踪
 日期：2026-09-05
 目标架构：`docs/dialogpilot-target-architecture-v2.zh-CN.md`
 实现基线：`512d1c0`
@@ -88,6 +88,11 @@ God File 以多个权威/变化原因判定；过度拆分以无语义的一对�
 
 当前进度：M0-M10 `done`。
 
+收口说明（2026-09-05）：重新打开后补齐了 TurnGraph 节点故障注入、真实 PostgreSQL 事件游标
+重放、Provider 真实调用合同、Goal 依赖传播、Handoff Ticket Receipt 闭环与 fresh-context
+源码复核。Encoder 使用已封存的 100 条 heldout 验证 Fast Path gate。固定预算 A/B/C 属于架构
+选型效果实验，不作为运行正确性结论；没有实验结果前不宣称优于单 Agent 或 SOTA。
+
 ## 5. M0：冻结基线
 
 工作：
@@ -143,7 +148,7 @@ invocation 越界；全仓无旧 Understanding 调用签名。
 
 - 在现有 `TargetTurnContext` 上增加 typed message、summary、projection status、source ref 与
   watermark；Loader 继续是唯一当前线程 Context 读取入口；
-- Understanding 协议和 Cascaded/Bounded/Encoder/Conversation planning 消费者已整体迁移；
+- Understanding 协议和 Cascaded/StateBound/Encoder/Conversation planning 消费者已整体迁移；
   typed conversation context 已成为全局规划入口的正式输入；
 - 摘要未暴露 covered range 时保持 unknown（0），不从 recent window 伪造；重复内容消息仍
   产生不同 source ref；conversation/memory/media 均以不可信数据进入 provider；
@@ -186,8 +191,10 @@ entity、非法 DAG 均 typed fail；capability 排列不改变合法性。
 
 - `ConversationAgent.plan()` 已成为 DEFER 后唯一全局 LLM 规划入口，复用原结构化 Goal、
   entity grounding 和 typed provider outcome 合同；没有新增并行 Router；
-- `CascadedTargetUnderstanding` 回归理解级联 Owner：Deterministic/Bounded 与 Encoder 可以直接
+- `CascadedTargetUnderstanding` 回归理解级联 Owner：Deterministic/StateBound 与 Encoder 可以直接
   完成请求，只有剩余 DEFER 才调用 Conversation Agent；
+- StateBound 只处理 pending signal、审批与显式状态绑定，不用词表判断自然语言；只有一个
+  active Workstream 也不会自动吞掉换题请求；Encoder artifact 同样不再携带运行时关键词门；
 - Anthropic Adapter 已迁为 `AnthropicConversationPlanningProvider`，`/chat` 不再注册旧
   Structured Router；旧模块和旧测试文件已移除；
 - 成本 Trace 使用 `conversation_planner_invoked`，provider failure 也使用 conversation
@@ -228,7 +235,7 @@ summary、episode 产生候选；只自动消费唯一、有效、同 scope 的�
   Workstream 版本表达候选，结果闭合为 UNIQUE/AMBIGUOUS/MISSING/STALE/UNAUTHORIZED；
 - 当前输入、结构化字段、Workstream slot、最近消息和摘要统一投影为候选；同优先级冲突
   不做猜测，当前输入可稳定覆盖无关旧历史；
-- Bounded/Encoder/Conversation planning 三条生产路径都从同一个 BindingSet 消费实体，
+- StateBound/Encoder/Conversation planning 三条生产路径都从同一个 BindingSet 消费实体，
   Conversation provider 只能选择 payload 中的 value/source ref；
 - RoutePolicy 在接受 Command 时重验 scope、expiry 和 Workstream version；provenance 随
   Command → WorkItem → Workstream/PendingApproval/AcceptedApproval 传递，并进入 fingerprint；
@@ -305,8 +312,9 @@ prepare_context
 - 阶段迁入图后删除 Manager 中的重复执行分支；
 - Publication 数据库提交仍走幂等应用边界。
 
-验证：在每个节点边界故障注入；Receipt 后崩溃不重复 Tool；compose 后崩溃复用候选；
-stale/cross-scope resume fail closed；图内外无双 Owner。
+验证：在关键节点边界故障注入；Receipt 后崩溃不重复 Tool；无副作用的 compose 失败可从该
+阶段重试，已 checkpoint 的候选直接复用；stale/cross-scope resume fail closed；图内外无双
+Owner。
 
 提交：`feat(target): checkpoint the complete turn lifecycle`
 
@@ -346,8 +354,9 @@ WAITING_* → QUEUED（合法 signal）
 修改：Admission 原子保存 Run/Outbox；HTTP 返回稳定 run_id；Worker 使用 lease attempt fencing；
 进程重启领取未完成 Run；HTTP/SSE 协程取消不改变 Run。
 
-验证：双 Worker 竞争、lease 接管、旧 attempt ACK 拒绝、幂等 Admission、cancel/complete 竞争、
-进程崩溃恢复和写副作用至多一次。
+验证：双 Worker 竞争、lease 接管、旧 attempt ACK 拒绝、幂等 Admission、进程崩溃恢复和写
+副作用至多一次。用户取消是新的会话 turn，按 pending signal/Workstream version 处理；不把
+未知写结果通过进程级抢占伪装成 `CANCELLED`。
 
 提交：`feat(target): execute admitted turns as durable background runs`
 
@@ -398,7 +407,8 @@ scope；重连不重新生成 Publication、不重新提交业务任务。
   handler 只轮询持久事件，连接断开不触碰 Run Coordinator；
 - cursor 已不可用或不属于当前 scope 时发送 typed `stream.reset`，客户端回到既有 Transcript
   接口校准后重新订阅；游标不替代 response ACK；
-- Event/Query 专项：`8 passed, 8 skipped in 0.69s`。
+- Event/Query 单元与真实 PostgreSQL 集成：`10 passed in 8.48s`；分页重放与连续读取事件集合
+  一致，从末尾 cursor 重连为空读取，不创建新的 Run、Publication 或业务调用。
 
 ## 13. M8：Context Budget 与局部压缩
 
@@ -491,7 +501,7 @@ checkpoint。
 - heldout：不得为新失败增加生产 case 分支；
 - fresh-context review：代码、合同、Trace、文档一致。
 
-固定相同模型、工具、数据、Registry 和预算比较：
+以下比较作为独立研究实验，必须固定相同模型、工具、数据、Registry 和预算：
 
 ```text
 A. 单 Agent
@@ -500,7 +510,7 @@ C. B + Encoder Fast Path
 ```
 
 指标：完成率、最终业务状态、工具/参数、指代、多轮 pass^k、未授权、重复副作用、P95、Token、
-不必要主 Agent 调用率。
+不必要主 Agent 调用率。未运行时状态必须是 `NOT_RUN`，不得从合同测试推导架构优越性。
 
 能力级 hard gate：跨租户、未授权 Tool、重复写、stale resume、重复 signal、错误权威覆盖、
 unsupported final claim、重连产生新 Publication 或新业务执行。
@@ -520,7 +530,15 @@ unsupported final claim、重连产生新 Publication 或新业务执行。
   `docs/dialogpilot-target-architecture-v2-validation-2026-09-05.zh-CN.md`；
 - 当前工程实践使用 LangGraph 与 OpenAI Agents SDK 官方资料进行对照，结论为成熟
   manager-worker / governed execution 模式，不宣称 SOTA；
-- Target 专项（含真实 PostgreSQL）：`166 passed in 18.27s`；
+- 重新打开后还修复了：`ConversationAgent.plan()` 的真实 Provider message contract 与 typed
+  provider output failure；Provider `depends_on` 到 WorkPlan DAG 的传播；Knowledge/Handoff
+  RouteMode 投影；Handoff Policy → Ticket Tool → Receipt 的生产闭环；依赖结果进入 Handoff
+  draft，但不会泄露子 Agent 完整消息；
+- fresh-context 源码复核确认生产树不存在旧 Structured Router、关键词式 Bounded fast path 或
+  encoder signal-term gate；Target 装配从 `api/main.py` 提取为内聚 composition root；
+- 当前 Target 选择集（含真实 PostgreSQL）：`159 passed in 31.65s`；
+- Encoder 封存 heldout：100 cases，13 accepted，13 correct，Accepted Precision `1.0`，Coverage
+  `0.13`；该结果只支持 Fast Path gate，不冒充完整 Conversation Agent 或 A/B/C 质量结论；
 - 仓库级（真实 PostgreSQL）：`1251 passed, 6 failed in 251.83s`。六项失败均由另一组未提交
   RAG Policy/Bundle 合同不一致触发，本阶段未增加跨 Owner 兼容补丁。
 
@@ -528,16 +546,16 @@ unsupported final claim、重连产生新 Publication 或新业务执行。
 
 每个阶段提交前必须满足：
 
-- [ ] 正向合同和 Owner 已落到代码；
-- [ ] 所有生产者、消费者和异常路径已迁移；
-- [ ] 没有句式/Intent/类别/test-id 特化分支；
-- [ ] 拆并符合职责、权限、生命周期和变化耦合；无 God File 或一对一转发碎片；
-- [ ] 属性或状态机测试通过；
-- [ ] 代表性集成/E2E 通过；
-- [ ] Trace 能区分 provider、projection、contract、business 与 environment failure；
-- [ ] 文档状态与实现一致；
-- [ ] 仅 stage 本阶段文件；
-- [ ] commit 后 push 当前分支。
+- [x] 正向合同和 Owner 已落到代码；
+- [x] 所有生产者、消费者和异常路径已迁移；
+- [x] 没有句式/Intent/类别/test-id 特化分支；
+- [x] 拆并符合职责、权限、生命周期和变化耦合；无新增多权威 God File 或一对一转发碎片；
+- [x] 属性或状态机测试通过；
+- [x] 代表性集成/E2E 通过；
+- [x] Trace 能区分 provider、projection、contract、business 与 environment failure；
+- [x] 文档状态与实现一致；
+- [x] 仅 stage 本阶段文件；
+- [x] commit 后 push 当前分支。
 
 ## 17. 总体完成标准
 
@@ -551,7 +569,8 @@ unsupported final claim、重连产生新 Publication 或新业务执行。
 8. 持久 Summary 与局部压缩没有双写；
 9. 子 Agent 上下文隔离，跨轮状态绑定 Workstream；
 10. 没有过度防御、特化补丁、God File 或接口碎片化；
-11. 属性、状态机、生成式、heldout 与真实 PostgreSQL E2E 共同通过。
+11. 属性、状态机、故障注入、封存 Encoder heldout 与真实 PostgreSQL E2E 共同通过；完整
+    Conversation Agent heldout 与 A/B/C 比较只在有独立数据和可比运行器后报告，不伪造结论。
 
 ## 18. 首个代码切片
 

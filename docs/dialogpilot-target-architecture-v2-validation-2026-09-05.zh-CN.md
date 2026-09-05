@@ -1,12 +1,12 @@
 # DialogPilot Target Architecture v2 收敛验证报告
 
-状态：实现完成，Target 因果面验证通过
+状态：Target v2 运行合同已通过；比较实验未运行
 日期：2026-09-05
 实现分支：`feat/customer-service-target-architecture`
 
 ## 1. 结论
 
-v2 已从设计迁移到正式运行主链。系统现在以 ConversationManager 为会话协调者，以
+v2 主体已从设计迁移到正式运行主链。系统现在以 ConversationManager 为会话协调者，以
 Conversation Agent 为 DEFER 后唯一全局语义 Planner，以 LangGraph 为可恢复执行 Runtime，
 以业务 Store、Receipt 和 Publication 为权威持久化边界。
 
@@ -37,8 +37,8 @@ Conversation Agent 为 DEFER 后唯一全局语义 Planner，以 LangGraph 为�
 | 多 Agent 结果可能不稳定 | reducer 按完成顺序追加 | 执行顺序泄漏到业务投影 | ResultBoard，以 WorkPlan 为序 |
 
 统一因果模型是：语义、执行、持久状态和交付的 Owner 曾只存在于说明中，没有通过输入合同、
-typed outcome、持久化边界和跨层测试共同闭合。v2 在 Owner 处修复这些边界，没有为安装、退款
-句式或测试 ID 增加生产分支。
+typed outcome、持久化边界和跨层测试共同闭合。v2 在 Owner 处修复这些边界，没有为商品类别、
+用户句式、旧 Intent 或测试 ID 增加生产分支。
 
 ## 3. 已支持的正向合同
 
@@ -54,7 +54,10 @@ ConversationState + ContextSnapshot
 ```
 
 - 每个 unresolved turn 最多一次全局 LLM planning；
+- pending/approval 等已绑定状态可由 StateBound 直接处理；其他自然语言不会因关键词或唯一
+  active Workstream 被机械续接，Encoder Fast Path 也不使用 signal-term 白名单；
 - Planner 可拆分多目标、澄清、委派或启动 Flow，但不授权副作用；
+- Provider 输出的 `depends_on` 经校验后成为 WorkPlan DAG 依赖，Orchestrator 不重新理解用户；
 - 实体必须来自带 scope、时效和版本的 Binding；歧义、缺失、过期和越权均为 typed outcome；
 - RoutePolicy 接受或拒绝 Command，Registry 持有能力、风险、权限和工具定义。
 
@@ -98,6 +101,8 @@ Domain Agent 只收到与 WorkItem 相关的视图，返回短说明、结构化
 - compose 只消费 AllowedClaims，生成后的文本再次验证；
 - Publication 是唯一提交出口，Delivery 负责幂等发送与不确定状态；
 - Handoff 只有获得 Ticket Receipt 后才能声明创建成功。
+- Handoff draft 经 commit policy 校验后才调用 Ticket Tool；只投影声明依赖的结果、Fact、
+  Evidence、MissingInput 与 Receipt，不复制子 Agent 完整工作消息。
 
 ## 4. 模块边界复核
 
@@ -112,9 +117,11 @@ Domain Agent 只收到与 WorkItem 相关的视图，返回短说明、结构化
 | Tool/Agent adapters | 框架与既有 governed runtime 的边界转换 | 第二套权限或 Receipt 语义 |
 | Run Coordinator | 后台 Run 的领取、租约和终态 | SSE 连接与业务 Flow |
 | Conversation Query | Transcript、Invocation、公开事件读取 | 执行任务 |
+| Target Runtime Composition | 生产依赖装配与生命周期 | 规划、执行、权限或持久化语义 |
 
 只在 Provider、Store、外部执行边界和测试替身需要替换时使用 Protocol；内部一对一转发没有被
-抽成接口。`api/main.py` 仍是 composition root，业务语义没有继续堆入其中。
+抽成接口。Target 生产装配已从 `api/main.py` 提取到一个内聚 composition root；它只连接既有
+Owner，没有演化成服务定位器或第二套运行框架。
 
 ## 5. 验证矩阵
 
@@ -125,7 +132,9 @@ Domain Agent 只收到与 WorkItem 相关的视图，返回短说明、结构化
 | 并行完成顺序不影响投影 | 全排列属性测试 | `test_target_orchestration_runtime.py` |
 | Tool 顺序不影响消费评分，重复仍失败 | 多重集合属性 | `test_target_architecture_eval.py` |
 | hard gate 只禁用失败 capability | 全 SafetyInvariant 枚举 | `test_target_architecture_eval.py` |
-| 断线不取消 Run，cursor 可重放 | 事件/查询集成测试 | `test_conversation_events.py` |
+| 断线不取消 Run，cursor 分页无遗漏 | 单元 + PostgreSQL 重放测试 | `test_conversation_events.py`、`test_postgres_conversation_query.py` |
+| Turn 阶段崩溃不重复执行已完成 Tool | 节点故障注入 | `test_turn_runtime.py` |
+| lease 接管后旧 attempt 不能提交 | PostgreSQL fencing | `test_postgres_target_run.py` |
 | durable HTTP 穿过真实 Run Owner | ASGI + PostgreSQL E2E | `test_target_http_postgres_e2e.py` |
 | 上传资产进入真实商品工具链 | ASGI + PostgreSQL E2E | `test_target_product_http_postgres_e2e.py` |
 | 长上下文不破坏关键事实 | 预算与工具消息属性 | `test_context_budget.py` |
@@ -136,7 +145,10 @@ LangGraph WorkPlan → Publication 链路。旧测试不再通过直接调用同
 
 最终测试记录：
 
-- Target 专项（含真实 PostgreSQL）：`166 passed in 18.27s`；
+- Target 选择集（含真实 PostgreSQL）：`159 passed in 31.65s`；
+- Event/SSE 查询集（含真实 PostgreSQL）：`10 passed in 8.48s`；
+- Encoder 封存 heldout：100 cases，13 accepted，13 correct，Accepted Precision `1.0`，Coverage
+  `0.13`。它只证明 Encoder Fast Path gate，不代表完整 Planner 或端到端任务质量；
 - 仓库级（含真实 PostgreSQL）：`1251 passed, 6 failed in 251.83s`；
 - 六项失败全部在 `AgentBundle` 构造时拒绝另一组未提交 RAG Policy 新增的
   `expansion_query_weight`、`query_expansion_count`、`metadata_hint_weight`，没有 Target
@@ -172,11 +184,15 @@ LangGraph WorkPlan → Publication 链路。旧测试不再通过直接调用同
 
 剩余工程风险包括真实模型/provider 的长期延迟分布、生产 SSE 多副本通知机制、业务工具自身的
 operation status 查询质量，以及尚未执行的固定预算 A/B/C benchmark。它们是后续运营与实验
-工作，不改变当前已闭合的 Target 运行合同。
+工作，不改变当前已闭合的 Target 运行合同，也不能被当前合同测试包装成性能或质量优势。
 
 ## 8. 状态声明
 
-v2 的代码实施已完成，Target 因果面通过属性、集成和真实 PostgreSQL E2E 验证。仓库级全量
-测试存在由另一组未提交 RAG Policy/Bundle 改动造成的失败，因此只能声明“Target v2 收敛”，
-不能声明“整个脏工作区全绿”。当 RAG Owner 同步其 Bundle 合同后，应重新运行全仓测试形成
-独立的仓库级验证记录。
+Target v2 的运行合同已通过属性、状态、关键节点故障注入、封存 Encoder heldout 和真实
+PostgreSQL E2E。fresh-context 源码复核确认：全局语义只有一个 Conversation Planner，旧
+Structured Router、关键词式 Bounded fast path 与 encoder signal-term gate 均不在生产路径；
+Knowledge/Handoff RouteMode、Goal 依赖、Ticket Receipt 和 Provider typed failure 已贯通。
+
+固定预算 A/B/C 尚未运行，因此状态明确为 `NOT_RUN`，本报告不宣称 v2 优于单 Agent 或达到
+SOTA。仓库级全量测试仍有另一组未提交 RAG Policy/Bundle 改动导致的六项失败；该问题由 RAG
+Owner 收口，本次没有在 Target 边界加入兼容补丁。

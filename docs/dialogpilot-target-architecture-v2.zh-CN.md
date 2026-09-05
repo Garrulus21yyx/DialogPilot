@@ -1,6 +1,6 @@
 # DialogPilot Target Architecture v2
 
-状态：冻结架构（v2 主链已实施）
+状态：已实施并冻结
 日期：2026-09-05
 原始实现基线：`512d1c0`
 
@@ -139,6 +139,10 @@ RoutePolicy = 权限与状态合法性
 ```
 
 三者不共享最终决定权。
+
+生产 Fast Path 不使用意图关键词白名单二次裁决。Encoder 的类别阈值来自版本化 artifact；
+只有 pending signal、审批决定和明确的结构化恢复绑定由确定性解析器直接处理。其余自然语言，
+包括只有一个 active workstream 时的潜在续接或换题，均由 Conversation Agent 结合上下文判断。
 
 ## 7. 最短执行路径
 
@@ -310,8 +314,8 @@ POST message → Admission → run_id → Background Worker
 SSE subscribe(run_id, cursor) → durable events → reconnect/replay
 ```
 
-后台 Run 可选择现有 PostgreSQL Outbox Worker 或 LangGraph Agent Server，但必须先用 ADR 选定
-唯一 Owner，不能双轨。
+ADR-0002 已选择现有 PostgreSQL Admission/Outbox/lease 作为唯一 Background Run Owner，
+没有同时启用 LangGraph Agent Server Run；LangGraph 继续负责图内 checkpoint 与恢复。
 
 重连规则：
 
@@ -321,6 +325,10 @@ SSE subscribe(run_id, cursor) → durable events → reconnect/replay
 - 客户端按 event_id/response_id 幂等展示；
 - cursor 过期后用 Transcript/Invocation 查询校准；
 - cursor 不代替正式回复 ACK。
+
+用户说“取消”属于一个新的会话 turn：确定性绑定到 pending approval 或唯一可取消 Workstream，
+否则进入 Conversation Agent 消歧。它不会粗暴终止一个可能已经提交写请求的协程；已进入
+`OUTCOME_UNKNOWN` 的写操作仍按原 operation key 对账。
 
 ## 15. 恢复
 
@@ -332,7 +340,7 @@ SSE subscribe(run_id, cursor) → durable events → reconnect/replay
 | Agent 崩溃 | subgraph checkpoint/RunStore | 恢复未完成步骤 |
 | 等待输入/审批 | Pending signal + checkpoint | 验证 scope/version 后恢复 |
 | 写结果未知 | Operation key + ledger | 对账，不重复提交 |
-| Receipt 后、compose 前崩溃 | Receipt + checkpoint | 只恢复回复 |
+| Receipt 后、compose 前崩溃 | Receipt + checkpoint | 不重跑工具；恢复无副作用的回复阶段 |
 | Publication 后送达未知 | response/delivery key | 重放同一回复 |
 | Summary 失败 | 原始 Transcript | 降级并重建 |
 
@@ -381,7 +389,8 @@ v2 是模块化单体，不把内部职责模拟成微服务。模块边界按�
   薄上层图；
 - Response Assembly 初期可以与 Target Chat 应用层共同演化，出现独立策略、多消费者或显著
   测试边界后再提取；
-- 仅当 `api/main.py` 的 Target 装配已成为独立可测生命周期时，才提取 runtime factory。
+- Target 装配已经具有独立生命周期，因此已从 `api/main.py` 提取到
+  `infrastructure/target_runtime_composition.py`；它只负责连接现有 Owner，不承载业务语义。
 
 God File 的问题是混入多个权威和变化原因，不是文件较长；接口碎片化的问题是大量一对一
 转发和无意义抽象，不是文件较短。评审同时检查内聚性与耦合度。
@@ -421,6 +430,8 @@ God File 的问题是混入多个权威和变化原因，不是文件较长；�
 | 无 durable rejoin 主链 | Event cursor + SSE + query/ACK |
 | 静态窗口/budget | 每次调用前预算与局部压缩 |
 | 旧 ReAct 外层包裹 | Product 开放目标已迁入框架 Agent；其他领域按需等价迁移 |
+| 仅平铺多目标 | Provider `depends_on` → WorkPlan DAG 依赖 |
+| Handoff draft-only | Policy 校验 → Ticket Tool → Receipt → Publication |
 
 ## 20. 最终定义
 

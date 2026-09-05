@@ -51,6 +51,17 @@ lease 过期后的旧执行者不能提交结果。相同 request_id 重试返�
 5. 已存在 Publication 时恢复只读取，不重新执行 Tool 或重新生成回复。
 6. compatibility 与 target start 请求由 runtime kind 分开领取。
 
+## 取消边界
+
+用户取消 pending approval 或 active Workstream 是一个新的会话 turn，由 Conversation Manager
+按 signal/workstream 的 scope 与 version 提交状态变化。Background Run 不提供“立即杀死任意
+执行协程”的业务语义：写工具可能已经接受请求，强杀不能证明副作用没有发生。此时仍以
+operation key、Receipt 和 reconciliation 判定最终状态。
+
+因此，HTTP/SSE 断开不会触发取消；用户取消也不会把未知写结果直接改写成 `CANCELLED`。
+若未来增加管理员级 cooperative run cancellation，必须在独立 ADR 中定义可取消阶段、fencing
+和与业务 Receipt 的优先级，不能只增加一个进程内 cancel flag。
+
 ## 非目标
 
 - 不在本阶段实现 SSE replay；由 M7 基于 conversation event cursor 完成。
