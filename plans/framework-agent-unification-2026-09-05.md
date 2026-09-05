@@ -2,6 +2,18 @@
 
 Status: in_progress
 
+Done: retired orphan agents/task_policies.py and its exclusive tests after
+removing the legacy Orchestrator and ResultSynthesizer consumers. Current WorkPlan,
+LangGraph runtime, framework budgets and ResponseAssemblyPolicy own the supported
+execution path. No old coalescing thresholds or task caps are copied into Target.
+Verification: 40 current planning/runtime/context/response tests pass, covering
+dependency waves, independent partial success and completion-order invariance.
+All 20 framework Agent tests pass with PostgreSQL configured, including real restart
+and model/tool budgets. This retires orphan policy code, not the remaining contracts.
+The remaining CoverageGate fixtures require an explicit semantic migration:
+ResultBoard.complete means all tasks have outcomes, not all outcomes succeeded.
+Do not silently equate the two contracts or change frozen expected labels.
+
 Done: removed orphan ReAct tool-context projection/compactor and the old
 model-driven ResultSynthesizer. Keep only coverage/outcome contracts still consumed
 by stateful fixtures until those consumers migrate to ResultBoard. Target response
