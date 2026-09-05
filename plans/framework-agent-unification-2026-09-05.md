@@ -23,7 +23,12 @@ messages and step recovery; ToolManager retains execution evidence and permissio
    CLI consume the same owner. Schema creation moved out of service startup.
    Per-fingerprint transaction locks and row locks preserve observation deduplication,
    lifecycle transitions and immutable review decisions across independent instances.
-   13 owner/concurrency/API tests pass; full clean-worktree integration pending.
+   13 owner/concurrency/API tests pass in the shared tree. Clean committed snapshot:
+   26 pass across badcase closure, handoff helpers, startup and PostgreSQL migration.
+   Three old test_chat_handoff cases still inject only AgentOrchestrator, then call
+   the Target-only /chat endpoint: Target runtime is not ready. These are remaining
+   cutover test consumers, not a reason to restore the removed compatibility facade.
+   Full repository acceptance remains open until these consumers move to Target.
    CustomerOperations migration 0033 implemented and verified with 43 PostgreSQL tests:
    tenant-scoped keys/queries, exact-operation replay, independent-owner version ordering,
    competing cancellation/address actions, tool identity and existing read-only E2E.
@@ -34,6 +39,16 @@ messages and step recovery; ToolManager retains execution evidence and permissio
    registration, framework execution and PostgreSQL process-exit recovery.
 
 Target path has no old-engine fallback. Repository-wide SQLite deletion is not complete.
+
+Next coherent cutover surface (inspected, not yet implemented): API startup still
+constructs AgentOrchestrator for health/monitoring and routing-only evaluation; the CLI
+still invokes its legacy run(). Evaluation's runner also imports old ChatApplication
+just for a factory return annotation. Remove these dependencies by using Target runtime
+observations, the retained intent component and the same Target application entrypoint.
+Then migrate legacy evaluation harnesses and behavioral gates before removing old
+ChatApplication, compatibility execution, ReActExecutionEngine and its RunStore.
+ToolManager's optional execution_store claim branch remains another old RunStore
+consumer; Target writes already use the PostgreSQL operation owner instead.
 Existing unrelated RAG working-tree changes are excluded from this migration's commits.
 Exception explicitly authorized by user: RAG migrations 0030/0031 and their schema-version
 tests committed separately as the linear migration prerequisite (ff22710).
