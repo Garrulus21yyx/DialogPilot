@@ -2,6 +2,17 @@
 
 Status: in_progress
 
+Done: retired the sticky legacy chat harness and its sole-consumer four-field
+E2E scorer. Its legacy stage/intent/Flow projection is not the Target contract.
+Preserve contextual refund reference binding, real business reads, same-request
+publication replay, fresh-turn refresh and unchanged business state via the current
+ChatApplicationRunner. No historical scorer or benchmark result is relabeled.
+13 focused tests pass with PostgreSQL configured, including unchanged refund owner
+state and the migrated locked counterfactuals. Full collection passes (1317 tests).
+Conversation history and publication in the new contextual fixture are in-memory
+test ports; the business state is real PostgreSQL. This does not claim a new durable
+history/restart test. Remaining media harnesses still keep old ChatApplication alive.
+
 Done: retired the legacy CLARIFY transport harness. Its publication/memory lists
 were in-memory observations, not durable proof. Preserve frozen transport input,
 non-scoring status, zero execution and same-publication replay using current Target
