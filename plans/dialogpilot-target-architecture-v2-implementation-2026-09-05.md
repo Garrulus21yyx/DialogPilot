@@ -351,6 +351,23 @@ WAITING_* → QUEUED（合法 signal）
 
 提交：`feat(target): execute admitted turns as durable background runs`
 
+实施记录（2026-09-05）：
+
+- ADR-0002 选择复用 PostgreSQL Admission/start outbox/lease ledger；未引入 Agent Server，
+  compatibility coordinator 已退出 Target 生产启动路径；
+- `TargetChatApplication` 拆出同源的 identity、admit、execute_admitted 入口，同步 `handle()`
+  仅用于协议无关调用与测试，不复制规划或执行实现；
+- Target Admission 使用原子 `admit_new()`，HTTP `/chat` 返回稳定 workflow_run_id 与
+  invocation_key，不在请求协程内运行 TurnGraph；
+- `TargetRunCoordinator` 与 `TargetRunWorker` 在后台领取任务；claim/renew/release/complete
+  均以 attempt fencing，已发布结果恢复时不重跑；
+- start outbox 增加 runtime kind 领取条件，Target 与未迁移的兼容任务不会竞争同一行；
+- 复用已提交 invocation ledger 的物理表，避免依赖工作区中未提交的 RAG migration；应用读取
+  以 `execution_runtime_kind='target'` 隔离，后续仅需物理 rename；
+- unit/Target 专项：`12 passed, 17 skipped in 0.77s`；
+- 仓库级：`1071 passed, 163 skipped, 3 failed in 15.76s`；3 个失败仍为未提交 RAG
+  policy 与 Bundle whitelist 不一致，以及缺少 PostgreSQL 环境的 stateful ticket fixture。
+
 ## 12. M7：Durable Event 与 SSE rejoin
 
 正向合同：Event Store 提供稳定单调 cursor；SSE 只订阅与重放；Transcript、Invocation、ACK

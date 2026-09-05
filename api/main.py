@@ -156,7 +156,7 @@ _media_asset_store = None
 _media_asset_service = None
 _vlm_provider = None
 _postgres_trace_sink = None
-_durable_chat_coordinator = None
+_target_run_coordinator = None
 _durable_chat_task = None
 _durable_chat_stop = None
 _target_chat_runtime = None
@@ -211,7 +211,7 @@ def _anthropic_cfg() -> Dict[str, Any]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """按依赖顺序创建所有组件，并在退出时释放后台任务和连接。"""
-    global _orchestrator, _memory, _knowledge_store, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _commitment_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator, _bundle_resolver, _grounded_answer_generator, _postgres_pool, _conversation_query, _knowledge_retriever, _retrieval_cache_client, _durable_chat_coordinator, _durable_chat_task, _durable_chat_stop, _retrieval_postgres_pool, _service_episode_search, _media_asset_store, _media_asset_service, _vlm_provider, _postgres_trace_sink, _target_chat_runtime, _target_checkpoint_owner
+    global _orchestrator, _memory, _knowledge_store, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _commitment_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator, _bundle_resolver, _grounded_answer_generator, _postgres_pool, _conversation_query, _knowledge_retriever, _retrieval_cache_client, _target_run_coordinator, _durable_chat_task, _durable_chat_stop, _retrieval_postgres_pool, _service_episode_search, _media_asset_store, _media_asset_service, _vlm_provider, _postgres_trace_sink, _target_chat_runtime, _target_checkpoint_owner
 
     print(BANNER, flush=True)
 
@@ -625,6 +625,16 @@ async def lifespan(app: FastAPI):
         PostgresTargetAdmission,
         PostgresTargetPublication,
     )
+    from application.target_run import TargetRunCoordinator
+    from infrastructure.postgres_admission import (
+        PostgresStartOutbox,
+        StartOutboxDispatcher,
+    )
+    from infrastructure.postgres_conversation import PostgresInvocationRepository
+    from infrastructure.postgres_target_run import (
+        PostgresTargetRunBinder,
+        PostgresTargetRunStore,
+    )
     from infrastructure.target_evidence_resolution import TargetEvidenceResolver
     from infrastructure.target_tool_execution import TargetToolExecutor
     from infrastructure.target_turn_context import TargetTurnContextLoader
@@ -707,7 +717,7 @@ async def lifespan(app: FastAPI):
     response_assembler = ResponseAssembler(conversation_agent)
     _target_chat_runtime = TargetChatApplication(
         manager=target_manager,
-        admission=PostgresTargetAdmission(_postgres_pool),
+        admission=PostgresTargetAdmission(_postgres_pool, durable=True),
         publication=PostgresTargetPublication(_response_delivery),
         bundle_version=target_registry.bundle_version,
         response_assembler=response_assembler,
@@ -717,6 +727,25 @@ async def lifespan(app: FastAPI):
             checkpointer=target_checkpointer,
         ),
     )
+    target_run_store = PostgresTargetRunStore(_postgres_pool)
+    _target_run_coordinator = TargetRunCoordinator(
+        _target_chat_runtime,
+        dispatcher=StartOutboxDispatcher(
+            PostgresStartOutbox(_postgres_pool),
+            PostgresInvocationRepository(_postgres_pool),
+            PostgresTargetRunBinder(_postgres_pool),
+        ),
+        store=target_run_store,
+        worker_id=os.getenv("DIALOGPILOT_TARGET_RUN_WORKER_ID", "api-target"),
+        start_lease_seconds=int(os.getenv("DIALOGPILOT_START_LEASE_SECONDS", "30")),
+        execution_lease_seconds=int(
+            os.getenv("DIALOGPILOT_EXECUTION_LEASE_SECONDS", "300")
+        ),
+        heartbeat_seconds=float(
+            os.getenv("DIALOGPILOT_EXECUTION_HEARTBEAT_SECONDS", "30")
+        ),
+    )
+    _conversation_query.runtime_reader = target_run_store.runtime
 
     def route_execution_refs(bundle: AgentBundle) -> Dict[str, str]:
         """Pin every route and Knowledge dependency for one request execution."""
@@ -772,17 +801,6 @@ async def lifespan(app: FastAPI):
     await _ticket_service.start()
     await _commitment_service.start()
     if _postgres_pool is not None:
-        from application.compatibility_chat import CompatibilityChatCoordinator
-        from infrastructure.postgres_admission import (
-            PostgresAdmissionUnitOfWork,
-            PostgresStartOutbox,
-            StartOutboxDispatcher,
-        )
-        from infrastructure.postgres_compatibility_execution import (
-            PostgresCompatibilityExecutionOutbox,
-            PostgresCompatibilityRunBinder,
-        )
-        from infrastructure.postgres_conversation import PostgresInvocationRepository
         from infrastructure.memory_projection_adapter import (
             PostgresLegacyMemoryProjectionAdapter,
         )
@@ -795,9 +813,6 @@ async def lifespan(app: FastAPI):
         from application.thread_summary import (
             ThreadSummaryPolicy,
             ThreadSummaryProjector,
-        )
-        from infrastructure.postgres_memory_projection import (
-            PostgresMemoryProjectionReader,
         )
         from infrastructure.postgres_projection import (
             ConversationProjectionDispatcher,
@@ -815,34 +830,6 @@ async def lifespan(app: FastAPI):
             raise RuntimeError(
                 "durable chat requires PostgreSQL response publication"
             )
-        execution_outbox = PostgresCompatibilityExecutionOutbox(_postgres_pool)
-        dispatcher = StartOutboxDispatcher(
-            PostgresStartOutbox(_postgres_pool),
-            PostgresInvocationRepository(_postgres_pool),
-            PostgresCompatibilityRunBinder(_postgres_pool),
-        )
-        _durable_chat_coordinator = CompatibilityChatCoordinator(
-            _core_chat_application(
-                memory_projection_mode="durable_event_outbox",
-                memory_service=PostgresMemoryProjectionReader(
-                    _postgres_pool, _memory,
-                ),
-            ),
-            admission=PostgresAdmissionUnitOfWork(_postgres_pool),
-            dispatcher=dispatcher,
-            execution_outbox=execution_outbox,
-            bundle_resolver=_bundle_resolver,
-            bundle_registry=_bundle_registry,
-            completed_reader=_response_delivery,
-            worker_id=os.getenv("DIALOGPILOT_DURABLE_CHAT_WORKER_ID", "api-compat"),
-            start_lease_seconds=int(os.getenv("DIALOGPILOT_START_LEASE_SECONDS", "30")),
-            execution_lease_seconds=int(
-                os.getenv("DIALOGPILOT_EXECUTION_LEASE_SECONDS", "300")
-            ),
-            heartbeat_seconds=float(
-                os.getenv("DIALOGPILOT_EXECUTION_HEARTBEAT_SECONDS", "30")
-            ),
-        )
         _durable_chat_stop = asyncio.Event()
         projection_adapters = {
             name: PostgresLegacyMemoryProjectionAdapter(
@@ -875,7 +862,7 @@ async def lifespan(app: FastAPI):
         )
         _durable_chat_task = asyncio.create_task(
             _run_durable_chat_worker(
-                _durable_chat_coordinator,
+                _target_run_coordinator,
                 projection_dispatcher,
                 retrieval_projector,
                 _durable_chat_stop,
@@ -937,7 +924,7 @@ async def lifespan(app: FastAPI):
         _postgres_trace_sink = None
         _knowledge_retriever = None
         _retrieval_cache_client = None
-        _durable_chat_coordinator = None
+        _target_run_coordinator = None
         _durable_chat_task = None
         _durable_chat_stop = None
         _target_chat_runtime = None
@@ -1833,7 +1820,7 @@ async def _run_durable_chat_worker(
             )
             work_count += int(retrieval_result is not None)
         except Exception:
-            logger.exception("durable compatibility worker iteration failed")
+            logger.exception("durable run worker iteration failed")
             work_count = 0
         if work_count:
             continue
@@ -1927,10 +1914,10 @@ def _core_chat_application(
 
 
 def _chat_application():
-    """Return the sole Target v1 /chat lifecycle owner."""
-    if _target_chat_runtime is None:
+    """Return the durable Target /chat submission owner."""
+    if _target_run_coordinator is None:
         raise RuntimeError("Target chat runtime is not ready")
-    return _target_chat_runtime
+    return _target_run_coordinator
 
 
 def _compat_runtime_reader(invocation: Mapping[str, Any]) -> Mapping[str, Any] | None:

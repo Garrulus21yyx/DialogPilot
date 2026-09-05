@@ -332,7 +332,7 @@ def test_chat_composition_accessor_has_no_legacy_fallback_authority():
     from api import main
 
     source = inspect.getsource(main._chat_application)
-    assert "_target_chat_runtime" in source
+    assert "_target_run_coordinator" in source
     assert "_durable_chat_coordinator" not in source
     assert "_core_chat_application" not in source
 
@@ -342,7 +342,7 @@ def test_http_chat_function_projects_target_completed_response(monkeypatch):
     from core.auth import Principal
 
     application, _tools = _application()
-    monkeypatch.setattr(main, "_target_chat_runtime", application)
+    monkeypatch.setattr(main, "_target_run_coordinator", application)
     monkeypatch.setenv("DEFAULT_TENANT_ID", "tenant-a")
     request = main.ChatRequest(
         message="查订单 DP1234 物流",

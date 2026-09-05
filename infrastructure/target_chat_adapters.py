@@ -33,42 +33,49 @@ _NO_INDEX_MANIFEST_SHA256 = hashlib.sha256(
 
 
 class PostgresTargetAdmission:
-    def __init__(self, pool) -> None:
+    def __init__(self, pool, *, durable: bool = False) -> None:
         self._admission = PostgresAdmissionUnitOfWork(pool)
+        self._durable = durable
 
     def admit(self, command, identity, *, bundle_version):
         created_at = datetime.now(timezone.utc).isoformat()
-        result = self._admission.admit_synchronous(
-            NewInvocationInbound(
-                identity,
-                command.message,
-                {
-                    "bundle_version": bundle_version,
-                    "target_runtime_version": "target-chat-application-v1",
-                    "authorization_fingerprint": command.authorization_fingerprint,
-                    "approval_id": command.approval_id or "",
-                    "approval_decision": (
-                        "approved" if command.approval_decision is True
-                        else "declined" if command.approval_decision is False
-                        else "none"
-                    ),
-                    "interaction_id": command.interaction_id or "",
-                    "interaction_version": str(command.interaction_version or ""),
-                    "interaction_values": json.dumps(
-                        command.interaction_values,
-                        ensure_ascii=False,
-                        sort_keys=True,
-                        separators=(",", ":"),
-                    ),
-                },
-                created_at,
-                asset_ids=command.asset_ids,
-            ),
-            ExecutionPointer(
-                "target-langgraph",
-                "target-conversation-manager-v1",
-                str(identity.invocation_key),
-            ),
+        inbound = NewInvocationInbound(
+            identity,
+            command.message,
+            {
+                "bundle_version": bundle_version,
+                "target_runtime_version": "target-chat-application-v1",
+                "authorization_fingerprint": command.authorization_fingerprint,
+                "approval_id": command.approval_id or "",
+                "approval_decision": (
+                    "approved" if command.approval_decision is True
+                    else "declined" if command.approval_decision is False
+                    else "none"
+                ),
+                "interaction_id": command.interaction_id or "",
+                "interaction_version": str(command.interaction_version or ""),
+                "interaction_values": json.dumps(
+                    command.interaction_values,
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ),
+            },
+            created_at,
+            asset_ids=command.asset_ids,
+            runtime_kind="target",
+        )
+        result = (
+            self._admission.admit_new(inbound)
+            if self._durable
+            else self._admission.admit_synchronous(
+                inbound,
+                ExecutionPointer(
+                    "target-langgraph",
+                    "target-conversation-manager-v1",
+                    str(identity.invocation_key),
+                ),
+            )
         )
         if isinstance(result, AdmissionConflict):
             return TargetAdmission(

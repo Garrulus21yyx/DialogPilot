@@ -64,7 +64,7 @@ class TargetPublicationPort(Protocol):
     def completed(
         self,
         identity: InvocationIdentity,
-    ) -> Completed | None: ...
+    ) -> Completed | NeedsInput | None: ...
 
     def publish(
         self,
@@ -115,27 +115,51 @@ class TargetChatApplication:
     async def handle(self, command: ChatCommand) -> ChatOutcome:
         started = time.monotonic()
         try:
-            identity = self._identity_factory.create_invocation(
-                tenant_id=command.tenant_id,
-                user_id=command.user_id,
-                conversation_id=command.conv_id,
-                request_id=command.request_id,
-                continuation_id=command.continuation_id,
-            )
+            identity = self.identity_for(command)
         except IdentityContractError:
             return Rejected("invalid_invocation_identity", "请求身份字段无效")
 
-        admission = self._admission.admit(
+        admission = self.admit(command, identity)
+        if admission.status is TargetAdmissionStatus.CONFLICT:
+            return Conflict("IDEMPOTENCY_CONFLICT", admission.existing or {})
+        if admission.status is TargetAdmissionStatus.EXISTING:
+            completed = self.completed(identity)
+            if completed is not None:
+                return completed
+        return await self.execute_admitted(command, identity, started_at=started)
+
+    def identity_for(self, command: ChatCommand) -> InvocationIdentity:
+        return self._identity_factory.create_invocation(
+            tenant_id=command.tenant_id,
+            user_id=command.user_id,
+            conversation_id=command.conv_id,
+            request_id=command.request_id,
+            continuation_id=command.continuation_id,
+        )
+
+    def admit(
+        self, command: ChatCommand, identity: InvocationIdentity,
+    ) -> TargetAdmission:
+        return self._admission.admit(
             command,
             identity,
             bundle_version=self._bundle_version,
         )
-        if admission.status is TargetAdmissionStatus.CONFLICT:
-            return Conflict("IDEMPOTENCY_CONFLICT", admission.existing or {})
-        if admission.status is TargetAdmissionStatus.EXISTING:
-            completed = self._publication.completed(identity)
-            if completed is not None:
-                return completed
+
+    def completed(
+        self, identity: InvocationIdentity,
+    ) -> Completed | NeedsInput | None:
+        return self._publication.completed(identity)
+
+    async def execute_admitted(
+        self,
+        command: ChatCommand,
+        identity: InvocationIdentity,
+        *,
+        started_at: float | None = None,
+    ) -> ChatOutcome:
+        """Execute one already-durable invocation without admitting it again."""
+        started = started_at if started_at is not None else time.monotonic()
 
         try:
             observations = TurnObservations(

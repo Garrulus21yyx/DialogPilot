@@ -50,11 +50,20 @@ LEGAL_ADMISSION_TRANSITIONS = {
 
 
 class ExecutionStatus(str, Enum):
+    QUEUED = "QUEUED"
     RUNNING = "RUNNING"
     WAITING = "WAITING"
+    WAITING_INPUT = "WAITING_INPUT"
+    WAITING_APPROVAL = "WAITING_APPROVAL"
+    RECONCILING = "RECONCILING"
     COMPLETED = "COMPLETED"
     HANDED_OFF = "HANDED_OFF"
     CANCELLED = "CANCELLED"
+    EXPIRED = "EXPIRED"
+    REJECTED = "REJECTED"
+    CONFLICT = "CONFLICT"
+    RETRYABLE_FAILURE = "RETRYABLE_FAILURE"
+    TERMINAL_FAILURE = "TERMINAL_FAILURE"
     FAILED = "FAILED"
 
 
@@ -162,11 +171,13 @@ class ClaimStart:
     now: str
     lease_until: str
     limit: int
+    runtime_kind: str = "compat"
 
     def __post_init__(self) -> None:
         _required(self.worker_id, "worker_id")
         _required(self.now, "now")
         _required(self.lease_until, "lease_until")
+        _required(self.runtime_kind, "runtime_kind")
         if self.limit < 1:
             raise AdmissionContractError("claim limit must be positive")
 

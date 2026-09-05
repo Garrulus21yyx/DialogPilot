@@ -26,6 +26,7 @@ class NewInvocationInbound:
     created_at: str
     retention_until: str | None = None
     asset_ids: tuple[str, ...] = ()
+    runtime_kind: str = "compat"
 
 
 @dataclass(frozen=True)

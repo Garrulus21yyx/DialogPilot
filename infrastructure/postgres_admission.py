@@ -188,6 +188,7 @@ class PostgresAdmissionUnitOfWork:
             "authorization_fingerprint": str(
                 command.pinned_versions.get("authorization_fingerprint") or ""
             ),
+            "pinned_versions": dict(command.pinned_versions),
         })
         record = AdmissionRecord(
             invocation_key=identity.invocation_key,
@@ -284,6 +285,7 @@ class PostgresAdmissionUnitOfWork:
                     "pinned_versions": dict(command.pinned_versions),
                     "tenant_id": str(identity.tenant_id),
                     "user_id": str(identity.user_id),
+                    "runtime_kind": command.runtime_kind,
                 }), command.created_at, command.created_at,
             ))
             self.fault_hook("after_start_outbox")
@@ -509,6 +511,7 @@ class PostgresStartOutbox:
                         SELECT outbox_id FROM dialogpilot_app.workflow_start_outbox
                         WHERE acknowledged_at IS NULL AND available_at <= %s
                           AND (claimed_by IS NULL OR lease_until <= %s)
+                          AND COALESCE(payload->>'runtime_kind', 'compat')=%s
                         ORDER BY created_at, outbox_id
                         FOR UPDATE SKIP LOCKED LIMIT %s
                     )
@@ -517,7 +520,7 @@ class PostgresStartOutbox:
                     FROM candidates WHERE item.outbox_id=candidates.outbox_id
                     RETURNING item.*
                 """, (
-                    command.now, command.now, command.limit,
+                    command.now, command.now, command.runtime_kind, command.limit,
                     command.worker_id, command.lease_until,
                 )).fetchall()
                 result = []
