@@ -2,6 +2,16 @@
 
 Status: in_progress
 
+Done: removed orphan ReAct tool-context projection/compactor and the old
+model-driven ResultSynthesizer. Keep only coverage/outcome contracts still consumed
+by stateful fixtures until those consumers migrate to ResultBoard. Target response
+assembly and framework context middleware remain the runtime owners; no new fallback
+or summary engine is introduced.
+49 tests pass with PostgreSQL configured across retained coverage contracts, framework
+Agent/artifacts/restart, context budget, response assembly and stateful fixtures.
+The retained legacy coverage module no longer contains a model client or synthesis
+fallback; its fixture consumers are the next migration boundary.
+
 Implemented: removed AgentOrchestrator (including its embedded BaseAgent/domain
 classes) after confirming only its own test module imports it. Retire its old lexical
 routing, fallback, scheduler and resume wrappers. Preserve independent shared
