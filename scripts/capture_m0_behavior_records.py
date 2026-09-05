@@ -95,7 +95,6 @@ async def capture(args) -> None:
         os.environ.update({
             "REDIS_URL": redis_url,
             "DATABASE_URL": args.database_url,
-            "REACT_RUN_DB_PATH": str(root / "react-runs.db"),
             "PROMETHEUS_PORT": "0",
             # Baseline characterizes the current code contract against an isolated,
             # freshly built index. It must never repair or reinterpret a deployed

@@ -66,7 +66,7 @@ DialogPilot 下一阶段的目标不是把现有系统改造成一个更复杂�
 | 当前事实 | 当前代码 Owner | 主要验证 |
 |---|---|---|
 | TaskGraph、依赖/并发与 Worker 编排 | [agent_orchestrator.py](https://github.com/garrulus21yyx/DialogPilot/blob/main/agents/agent_orchestrator.py)、[orchestration_contracts.py](https://github.com/garrulus21yyx/DialogPilot/blob/main/agents/orchestration_contracts.py) | [test_agent_orchestration.py](https://github.com/garrulus21yyx/DialogPilot/blob/main/tests/test_agent_orchestration.py) |
-| ReAct 审批恢复与工具执行账本 | [react_engine.py](https://github.com/garrulus21yyx/DialogPilot/blob/main/agents/react_engine.py)、[run_store.py](https://github.com/garrulus21yyx/DialogPilot/blob/main/agents/run_store.py) | [test_react_resume.py](https://github.com/garrulus21yyx/DialogPilot/blob/main/tests/test_react_resume.py) |
+| Target 审批恢复与工具执行账本 | [write_workflow.py](https://github.com/garrulus21yyx/DialogPilot/blob/main/application/write_workflow.py)、[langgraph_checkpoint.py](https://github.com/garrulus21yyx/DialogPilot/blob/main/infrastructure/langgraph_checkpoint.py) | [test_write_workflow.py](https://github.com/garrulus21yyx/DialogPilot/blob/main/tests/test_write_workflow.py)、[test_target_framework_agent.py](https://github.com/garrulus21yyx/DialogPilot/blob/main/tests/test_target_framework_agent.py) |
 | Response 选择与 ACK | [response_delivery.py](https://github.com/garrulus21yyx/DialogPilot/blob/main/services/response_delivery.py) | [test_response_delivery.py](https://github.com/garrulus21yyx/DialogPilot/blob/main/tests/test_response_delivery.py) |
 | Ticket 状态与 outbox | [postgres_ticket_service.py](https://github.com/garrulus21yyx/DialogPilot/blob/main/infrastructure/postgres_ticket_service.py) | [test_postgres_ticket_service.py](https://github.com/garrulus21yyx/DialogPilot/blob/main/tests/test_postgres_ticket_service.py) |
 | Memory/summary/context | [conversation_memory.py](https://github.com/garrulus21yyx/DialogPilot/blob/main/memory/conversation_memory.py)、[context.py](https://github.com/garrulus21yyx/DialogPilot/blob/main/memory/context.py) | [test_context_memory.py](https://github.com/garrulus21yyx/DialogPilot/blob/main/tests/test_context_memory.py) |
@@ -113,7 +113,7 @@ PostgreSQL admission / inbound turn
 其中：
 
 - [API 主链](https://github.com/garrulus21yyx/DialogPilot/blob/main/api/main.py) 已把协议映射收敛到 `ChatApplication.handle()`；当前 durable gap 是完整 Agent run 仍由直接 Python/本地 ReAct checkpoint 执行，尚未接入 LangGraph checkpoint，而不是 HTTP、Admission 或 Publication 尚未绑定；
-- [RunStore](https://github.com/garrulus21yyx/DialogPilot/blob/main/agents/run_store.py) 的作用域只覆盖单个 ReAct run，并暂时兼任审批与工具执行账本；
+- Agent 工作消息与执行步骤由 LangGraph PostgreSQL checkpoint 保存；审批绑定归属 ConversationState，业务写入凭证归属 OperationLedger。旧 SQLite RunStore 已删除；
 - [ResponseDeliveryService](https://github.com/garrulus21yyx/DialogPilot/blob/main/services/response_delivery.py) 只拥有被选择的 assistant 回复及 ACK；
 - [MemoryManager](https://github.com/garrulus21yyx/DialogPilot/blob/main/memory/conversation_memory.py) 只保存部分 in-scope 对话投影；
 - [TicketService](https://github.com/garrulus21yyx/DialogPilot/blob/main/services/ticket_service.py) 定义人工工单领域端口，[PostgresTicketService](https://github.com/garrulus21yyx/DialogPilot/blob/main/infrastructure/postgres_ticket_service.py) 是唯一持久 Owner；

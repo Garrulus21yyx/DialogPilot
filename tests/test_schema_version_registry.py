@@ -23,18 +23,8 @@ def test_runtime_schema_manifest_is_reproducible_and_linear():
     )
 
 
-def test_agent_resume_compatibility_is_separate_from_postgres_schema():
-    SchemaVersionRegistry.validate_agent_resume(
-        checkpoint_version="legacy-react-checkpoint-v0",
-        code_version="legacy-react-engine-v0",
-    )
-    SchemaVersionRegistry.validate_agent_resume(
-        checkpoint_version="react-checkpoint-v1",
-        code_version="legacy-react-engine-v1",
-    )
-
+@pytest.mark.parametrize("version", ("legacy-react-checkpoint-v0", "react-checkpoint-v1", "unknown"))
+def test_domain_schema_does_not_accept_retired_agent_checkpoint_versions(version):
+    SchemaVersionRegistry.postgres.validate_read(SchemaVersionRegistry.postgres.current_version)
     with pytest.raises(SchemaCompatibilityError):
-        SchemaVersionRegistry.validate_agent_resume(
-            checkpoint_version=SchemaVersionRegistry.postgres.current_version,
-            code_version="legacy-react-engine-v1",
-        )
+        SchemaVersionRegistry.postgres.validate_read(version)

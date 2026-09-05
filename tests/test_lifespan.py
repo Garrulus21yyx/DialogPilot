@@ -148,8 +148,6 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
     monkeypatch.setenv("AUTH_JWT_SECRET", "test-secret-that-is-at-least-32-bytes-long")
     monkeypatch.setenv("DATABASE_URL", postgres_database_url)
     monkeypatch.delenv("TICKET_DISPATCH_WEBHOOK_URL", raising=False)
-    monkeypatch.setenv("REACT_RUN_DB_PATH", str(tmp_path / "react-runs.db"))
-    monkeypatch.setenv("REACT_RECOVERY_GRACE_SECONDS", "0")
     monkeypatch.setenv("MEMORY_TOKEN_BUDGET", "4321")
     monkeypatch.setenv("MEMORY_COMPRESSION_THRESHOLD", "0.81")
     monkeypatch.setenv("MEMORY_SUMMARY_MAX_TOKENS", "777")

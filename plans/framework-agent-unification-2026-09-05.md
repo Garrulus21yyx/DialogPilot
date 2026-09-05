@@ -114,6 +114,22 @@ ReAct resume tests still construct SQLite RunStore; the old engine's optional
 checkpoint implementation remains until those final gates are migrated. No automatic
 fallback or replacement persistence layer was added. 81 focused tests pass; four
 PostgreSQL-dependent bundle tests skip when TEST_DATABASE_URL is not set.
+SQLite checkpoint implementation removal: deleted agents/run_store.py and the
+dedicated legacy resume suite; removed optional RunStore/resume/checkpoint branches
+from the remaining legacy loop. Its in-process consumers still need migration before
+react_engine.py itself can be deleted. Retired the unused ReAct schema/code registry
+and environment/Docker persistence settings. Old DB files and Docker volumes are not
+deleted. Current recovery owners are Target Run, ConversationState/PendingInteraction,
+OperationLedger and LangGraph PostgreSQL checkpoints, not a legacy fallback.
+Verification gap retained explicitly: the removed RunStore credential-redaction test
+only proved that retired SQLite serializer. It did not prove the framework checkpoint
+privacy boundary. Audit and verify the current checkpoint input/serialization boundary
+before declaring the full migration closed; do not count the old test as transferred.
+Legacy file permission/schema tests concern the deleted storage format. Target approval,
+operation recovery, stale controls and framework process-restart gates are retained.
+After removal: 90 focused unit/contract tests pass; PostgreSQL recovery suite 74 passed,
+one in-memory-only scope case skipped. Repository collection: 1340 tests, no import
+errors. No sqlite3 imports or retired ReAct storage environment keys remain in code.
 Retired the obsolete HTTP handoff fixture's AgentOrchestrator/ReAct imports and
 private-global assembly. Its retry expectation created a second response, contrary
 to Target's invocation/publication idempotency. Target cutover now checks OOS replay

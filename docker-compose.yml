@@ -124,9 +124,6 @@ services:
       - AGENT_REQUEST_TIMEOUT_SECONDS=${AGENT_REQUEST_TIMEOUT_SECONDS:-20}
       - AGENT_MAX_PER_REQUEST=${AGENT_MAX_PER_REQUEST:-3}
       - REACT_MAX_STEPS=${REACT_MAX_STEPS:-4}
-      - REACT_RUN_DB_PATH=/app/data/react-runs/react-runs.db
-      - REACT_APPROVAL_TTL_SECONDS=${REACT_APPROVAL_TTL_SECONDS:-900}
-      - REACT_RECOVERY_GRACE_SECONDS=${REACT_RECOVERY_GRACE_SECONDS:-30}
       - TOOL_APPROVAL_MODE=${TOOL_APPROVAL_MODE:-default}
       - TOOL_OUTPUT_MAX_CHARS=${TOOL_OUTPUT_MAX_CHARS:-4000}
       - MODEL_PROVIDER=${MODEL_PROVIDER:-deepseek}
@@ -170,7 +167,6 @@ services:
       - ./data/eval:/app/data/eval:ro
       - dialogpilot-badcases:/app/data/badcases
       - dialogpilot-customer-operations:/app/data/customer-operations
-      - dialogpilot-react-runs:/app/data/react-runs
       - dialogpilot-evolution:/app/data/evolution
       - ./skills:/app/skills:ro
       - dialogpilot-logs:/app/logs
@@ -228,6 +224,5 @@ volumes:
   nginx-logs:
   dialogpilot-badcases:
   dialogpilot-customer-operations:
-  dialogpilot-react-runs:
   dialogpilot-evolution:
   dialogpilot-logs:

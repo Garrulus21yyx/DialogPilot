@@ -11,7 +11,6 @@ class SchemaCompatibilityError(RuntimeError):
 
 class MigrationStrategy(str, Enum):
     FORWARD_ONLY = "forward_only"
-    READ_MIGRATE = "read_migrate"
 
 
 @dataclass(frozen=True)
@@ -34,16 +33,6 @@ class SchemaVersionRegistry:
         "postgres-domain", "20260905_0034", ("20260905_0034",),
         MigrationStrategy.FORWARD_ONLY,
     )
-    agent_checkpoint = SchemaContract(
-        "agent-checkpoint", "react-checkpoint-v1",
-        ("legacy-react-checkpoint-v0", "react-checkpoint-v1"),
-        MigrationStrategy.READ_MIGRATE,
-    )
-    agent_code = SchemaContract(
-        "agent-runtime-code", "legacy-react-engine-v1",
-        ("legacy-react-engine-v0", "legacy-react-engine-v1"),
-        MigrationStrategy.READ_MIGRATE,
-    )
     data_location_transitions = (
         ("20260902_0007", "v1", "92760d381381231733d03ac8f11b6cd4d8aa75931c68988aa01719545c40fd28"),
         ("20260902_0009", "v2", "51e227f466f05185b20c8175b03dbfc852450b1644c371a23ccf5dcedbd5d745"),
@@ -53,8 +42,3 @@ class SchemaVersionRegistry:
         ("20260902_0020", "v6", "cbf99367f299650413996974cf981a58c8485d984d8df9cea7d0d0790babedf3"),
         ("20260903_0029", "v7", "159e473579c9f157560410142302023de2b39a15e8869b8679cc8e40d16e479f"),
     )
-
-    @classmethod
-    def validate_agent_resume(cls, *, checkpoint_version: str, code_version: str) -> None:
-        cls.agent_checkpoint.validate_read(checkpoint_version)
-        cls.agent_code.validate_read(code_version)
