@@ -79,7 +79,11 @@ class ConversationAgent:
     async def plan(
         self, observations, state, deterministic, registry, turn_context=None,
     ):
-        if deterministic.kind is not ResolutionKind.UNRESOLVED:
+        if deterministic.kind not in {
+            ResolutionKind.UNRESOLVED,
+            ResolutionKind.RESUME_WORKSTREAM,
+            ResolutionKind.CONTINUE_WORKSTREAM,
+        }:
             return TurnProposal(
                 ProposalDisposition.INVALID_PROVIDER_OUTPUT, (),
                 "CONVERSATION_PLANNER_RECEIVED_RESOLVED_STATE",
@@ -91,13 +95,26 @@ class ConversationAgent:
         payload = {
             "schema_version": "conversation-plan-request-v1",
             "message": observations.raw_text,
+            "deterministic_resolution": {
+                "kind": deterministic.kind.value,
+                "reason_code": deterministic.reason_code,
+                "workstream_id": deterministic.workstream_id,
+                "expected_workstream_version": (
+                    deterministic.expected_workstream_version
+                ),
+            },
             "observed_entities": dict(observations.structured_fields),
             "active_workstreams": [
                 {
                     "workstream_id": item.workstream_id,
                     "owner_agent": item.owner_agent,
                     "capability_ref": item.capability_ref,
+                    "phase": item.phase,
                     "status": item.status.value,
+                    "state_version": item.state_version,
+                    "slots": {
+                        value.name: value.value for value in item.slots
+                    },
                 }
                 for item in state.active_workstreams
             ],

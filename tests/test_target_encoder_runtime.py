@@ -16,15 +16,15 @@ from application.target_encoder_artifact import (
 )
 from application.target_encoder_understanding import TargetEncoderUnderstanding
 from application.target_understanding import (
-    BoundedTargetUnderstanding,
     CascadedTargetUnderstanding,
+    StateBoundTargetUnderstanding,
 )
 from application.target_conversation_manager import TargetTurnContext
 from application.turn_planning import ProposalDisposition
 from evaluation.target_encoder_training import train_target_encoder
 
 
-ARTIFACT_DIR = Path(__file__).resolve().parents[1] / "artifacts" / "target-encoder-zh-v1"
+ARTIFACT_DIR = Path(__file__).resolve().parents[1] / "artifacts" / "target-encoder-zh-v2"
 
 
 class _Provider:
@@ -35,10 +35,15 @@ class _Provider:
 
     async def plan(self, payload):
         self.calls.append(payload)
+        kind = (
+            "execute_refund"
+            if "退掉" in str(payload["message"])
+            else "order_status"
+        )
         return {
             "status": "resolved",
             "goals": [{
-                "kind": "order_status",
+                "kind": kind,
                 "order_id": "DP2468",
             }],
         }
@@ -83,12 +88,14 @@ def test_encoder_accepts_grounded_refund_status_and_skips_conversation_planner()
     artifact = load_target_text_encoder_artifact(ARTIFACT_DIR)
     provider = _Provider()
     cascade = CascadedTargetUnderstanding(
-        BoundedTargetUnderstanding(),
+        StateBoundTargetUnderstanding(),
         ConversationAgent(provider),
         encoder=TargetEncoderUnderstanding(artifact),
     )
 
-    proposal = _invoke(cascade, "确认 RF3100 的退回进展")
+    # "回款" is intentionally absent from the artifact's legacy signal-term list;
+    # acceptance must come from the calibrated encoder, not a keyword gate.
+    proposal = _invoke(cascade, "确认 RF3100 的回款进展")
 
     assert proposal.disposition is ProposalDisposition.RESOLVED
     assert proposal.reason_code == "ENCODER_FAST_PATH_ACCEPTED"
@@ -104,7 +111,7 @@ def test_encoder_defers_generic_progress_to_conversation_planner():
     artifact = load_target_text_encoder_artifact(ARTIFACT_DIR)
     provider = _Provider()
     cascade = CascadedTargetUnderstanding(
-        BoundedTargetUnderstanding(),
+        StateBoundTargetUnderstanding(),
         ConversationAgent(provider),
         encoder=TargetEncoderUnderstanding(artifact),
     )
@@ -114,9 +121,9 @@ def test_encoder_defers_generic_progress_to_conversation_planner():
     assert len(provider.calls) == 1
 
     write = _invoke(cascade, "把 DP2468 直接退掉")
-    assert write.reason_code == "BOUNDED_FAST_PATH"
+    assert write.reason_code == "CONVERSATION_AGENT_PLAN"
     assert write.commands[0].kind.value == "PREPARE_WORKFLOW"
-    assert len(provider.calls) == 1
+    assert len(provider.calls) == 2
 
 
 def test_artifact_digest_tampering_fails_closed(tmp_path):

@@ -1,5 +1,5 @@
 {
-  "artifact_version": "target-encoder-zh-v1",
+  "artifact_version": "target-encoder-zh-v2",
   "bundle_version": "customer-service-v1",
   "classes": [
     {
@@ -15,18 +15,6 @@
       "capability_kind": "tool",
       "capability_id": "knowledge_search",
       "required_arguments": ["query"],
-      "required_signal_terms": [
-        "政策",
-        "规则",
-        "保修",
-        "质保",
-        "发票",
-        "安装",
-        "售后",
-        "配送",
-        "运费",
-        "说明书"
-      ],
       "threshold": 0.3402385115623474
     },
     {
@@ -42,15 +30,6 @@
       "capability_kind": "skill",
       "capability_id": "product_identification",
       "required_arguments": ["asset_id"],
-      "required_signal_terms": [
-        "图",
-        "照片",
-        "附件",
-        "设备",
-        "机器",
-        "实物",
-        "产品"
-      ],
       "threshold": 0.3627763092517853
     },
     {
@@ -66,14 +45,6 @@
       "capability_kind": "tool",
       "capability_id": "refund_status",
       "required_arguments": ["order_id"],
-      "required_signal_terms": [
-        "退款",
-        "返款",
-        "退回",
-        "退回来",
-        "款项",
-        "原路返回"
-      ],
       "threshold": 0.4536190330982208
     }
   ],
@@ -102,7 +73,7 @@
   "heldout_target_precision": 0.98,
   "model_filename": "model.json",
   "model_sha256": "8a73dc5914e1213f33cd4965997d5bb176d29efa1b1f11289a977cc959f63429",
-  "schema_version": "dialogpilot-target-encoder-v1",
+  "schema_version": "dialogpilot-target-encoder-v2",
   "status": "ACTIVE",
   "target_precision": 0.88
 }

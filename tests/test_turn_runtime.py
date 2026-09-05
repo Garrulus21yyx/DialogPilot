@@ -17,8 +17,14 @@ from application.deterministic_resolution import TurnObservations
 from application.orchestration_runtime import OrchestrationRuntime
 from application.response_assembly import ResponseAssembler
 from application.target_conversation_manager import TargetConversationManager
-from application.target_understanding import BoundedTargetUnderstanding
 from application.turn_runtime import TurnRuntime
+from application.turn_planning import (
+    CommandKind,
+    CommandProposal,
+    ProposalDisposition,
+    TurnProposal,
+)
+from application.work_item import ArgumentValue
 from core.identity import IdentityFactory
 from infrastructure.langgraph_checkpoint import target_checkpoint_serializer
 
@@ -49,6 +55,21 @@ class _Executor:
         )
 
 
+class _OrderUnderstanding:
+    async def __call__(self, *_args, **_kwargs):
+        return TurnProposal(
+            ProposalDisposition.RESOLVED,
+            (CommandProposal(
+                "order-status",
+                CommandKind.DIRECT_TOOL,
+                "order_logistics",
+                "Query order status",
+                (ArgumentValue.create("order_id", "DP1234"),),
+                ("order.current_state",),
+                tool_id="order_lookup",
+            ),),
+            "TEST_ORDER_PLAN",
+        )
 class _CountingManager:
     def __init__(self, manager):
         self.manager = manager
@@ -88,7 +109,7 @@ def test_turn_graph_resumes_at_assembly_without_replanning_or_reexecuting_tools(
     manager = _CountingManager(TargetConversationManager(
         state_store=InMemoryConversationStateStore(),
         registry=build_default_capability_registry("tenant-a"),
-        understanding=BoundedTargetUnderstanding(),
+        understanding=_OrderUnderstanding(),
         orchestration=OrchestrationRuntime(
             direct_executor=executor, domain_workers={},
         ),

@@ -9,8 +9,8 @@ from application.entity_binding import EntityBindingResolver
 from application.conversation_agent import ConversationAgent
 from application.context_budget import ContextBudgetManager
 from application.target_understanding import (
-    BoundedTargetUnderstanding,
     CascadedTargetUnderstanding,
+    StateBoundTargetUnderstanding,
 )
 from application.target_conversation_manager import (
     TargetContextMessage,
@@ -157,9 +157,16 @@ def test_address_change_compiles_one_governed_flow_and_rejects_invented_address(
     assert rejected.disposition is ProposalDisposition.INVALID_PROVIDER_OUTPUT
 
 
-def test_bounded_address_change_uses_task_flow_not_a_product_or_address_skill():
+def test_address_change_stays_a_flow_and_missing_address_stays_typed():
     proposal, _, registry = _invoke(
-        BoundedTargetUnderstanding(),
+        ConversationAgent(Provider({
+            "status": "resolved",
+            "goals": [{
+                "kind": "change_address",
+                "order_id": "DP1234",
+                "new_address": "Berlin Example Street 9",
+            }],
+        })),
         "把订单 DP1234 的地址改成 Berlin Example Street 9",
     )
 
@@ -170,20 +177,27 @@ def test_bounded_address_change_uses_task_flow_not_a_product_or_address_skill():
     assert all("address" not in skill.skill_id for skill in registry.skills)
 
     missing, _, _ = _invoke(
-        BoundedTargetUnderstanding(),
+        ConversationAgent(Provider({
+            "status": "insufficient_context",
+            "missing_fields": ["new_address"],
+        })),
         "订单 DP1234 修改地址",
     )
     assert missing.disposition is ProposalDisposition.CLARIFY
-    assert missing.reason_code == "NEW_ADDRESS_REQUIRED"
+    assert missing.reason_code == "SEMANTIC_INSUFFICIENT_CONTEXT"
 
 
 def test_security_review_is_direct_but_account_freeze_is_a_governed_flow():
     review, _, registry = _invoke(
-        BoundedTargetUnderstanding(),
+        ConversationAgent(Provider({
+            "status": "resolved", "goals": [{"kind": "security_review"}],
+        })),
         "这次异常登录不是我操作的，帮我查一下",
     )
     freeze, state, _ = _invoke(
-        BoundedTargetUnderstanding(),
+        ConversationAgent(Provider({
+            "status": "resolved", "goals": [{"kind": "freeze_account"}],
+        })),
         "立即冻结账户",
     )
 
@@ -235,7 +249,17 @@ def test_conversation_agent_security_goals_cannot_select_unregistered_capabiliti
 
 def test_security_signal_preempts_only_registry_marked_business_writes():
     proposal, state, registry = _invoke(
-        BoundedTargetUnderstanding(),
+        ConversationAgent(Provider({
+            "status": "resolved",
+            "goals": [
+                {"goal_id": "security", "kind": "security_review"},
+                {
+                    "goal_id": "refund",
+                    "kind": "execute_refund",
+                    "order_id": "DP1234",
+                },
+            ],
+        })),
         "账号被盗，帮我查异常登录，同时把订单 DP1234 退款",
     )
 
@@ -252,7 +276,7 @@ def test_security_signal_preempts_only_registry_marked_business_writes():
 
     assert validated.reason_code == "SECURITY_PREEMPTED_NONESSENTIAL_WRITES"
     assert [item.proposal.command_id for item in validated.commands] == [
-        "security-review",
+        "security",
     ]
     assert plan.route.mode is RouteMode.DIRECT
     assert plan.transitions is None
@@ -261,16 +285,22 @@ def test_security_signal_preempts_only_registry_marked_business_writes():
 
 def test_security_signal_keeps_human_handoff_as_an_essential_coordination_action():
     proposal, state, registry = _invoke(
-        BoundedTargetUnderstanding(),
+        ConversationAgent(Provider({
+            "status": "resolved",
+            "goals": [
+                {"goal_id": "security", "kind": "security_review"},
+                {"goal_id": "handoff", "kind": "human_handoff"},
+            ],
+        })),
         "账号被盗，我要人工客服处理",
     )
 
     validated = RoutePolicy().accept(proposal, state, registry)
 
     assert {item.proposal.command_id for item in validated.commands} == {
-        "security-review", "human-handoff",
+        "security", "handoff",
     }
-    assert validated.reason_code == "BOUNDED_FAST_PATH"
+    assert validated.reason_code == "CONVERSATION_AGENT_PLAN"
 
 
 def test_every_registry_marked_action_is_preempted_before_work_plan_compilation():
@@ -413,7 +443,10 @@ def test_media_text_is_direct_but_visual_reasoning_delegates_one_agent():
 
 def test_asset_presence_alone_does_not_imply_product_identification():
     proposal, _, _ = _invoke(
-        BoundedTargetUnderstanding(),
+        ConversationAgent(Provider({
+            "status": "insufficient_context",
+            "missing_fields": ["customer_service_goal"],
+        })),
         "请看看附件 IMG9",
         fields=(("asset_id", "IMG9"),),
     )
@@ -424,7 +457,21 @@ def test_asset_presence_alone_does_not_imply_product_identification():
 
 def test_explicit_product_model_request_with_asset_is_identification():
     proposal, state, registry = _invoke(
-        BoundedTargetUnderstanding(),
+        ConversationAgent(Provider({
+            "status": "resolved",
+            "goals": [
+                {
+                    "goal_id": "refund",
+                    "kind": "refund_status",
+                    "order_id": "DP1234",
+                },
+                {
+                    "goal_id": "product",
+                    "kind": "product_identification",
+                    "asset_id": "IMG9",
+                },
+            ],
+        })),
         "退款 DP1234 状态，还有这个商品型号",
         fields=(("asset_id", "IMG9"),),
     )
@@ -557,20 +604,20 @@ def test_conversation_agent_receives_typed_current_conversation_context():
     }
 
 
-def test_cascade_uses_zero_provider_calls_for_clear_fast_path_and_calls_on_defer():
+def test_cascade_uses_planner_when_no_state_or_encoder_path_resolves():
     provider = Provider({
         "status": "resolved",
         "goals": [{"kind": "order_status", "order_id": "DP1234"}],
     })
     cascade = CascadedTargetUnderstanding(
-        BoundedTargetUnderstanding(), ConversationAgent(provider),
+        StateBoundTargetUnderstanding(), ConversationAgent(provider),
     )
     clear, _, _ = _invoke(cascade, "查订单 DP1234 物流")
     semantic, _, _ = _invoke(cascade, "帮我看看 DP1234 走到哪一步了")
 
-    assert clear.reason_code == "BOUNDED_FAST_PATH"
+    assert clear.reason_code == "CONVERSATION_AGENT_PLAN"
     assert semantic.reason_code == "CONVERSATION_AGENT_PLAN"
-    assert len(provider.calls) == 1
+    assert len(provider.calls) == 2
 
 
 def test_anthropic_provider_normalizes_json_text_block():

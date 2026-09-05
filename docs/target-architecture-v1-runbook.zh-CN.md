@@ -33,11 +33,11 @@ Registry 当前包含 6 个领域 Agent、19 个原子 Tool、1 个复合 Skill
 
 ## 启动配置
 
-默认加载仓库内的 `artifacts/target-encoder-zh-v1`。可配置：
+默认加载仓库内的 `artifacts/target-encoder-zh-v2`。可配置：
 
 ```bash
 TARGET_ENCODER_ENABLED=true
-TARGET_ENCODER_ARTIFACT_DIR=/absolute/path/to/target-encoder-zh-v1
+TARGET_ENCODER_ARTIFACT_DIR=/absolute/path/to/target-encoder-zh-v2
 ```
 
 `TARGET_ENCODER_ENABLED=false` 是能力级 kill switch：它只关闭 Encoder ACCEPT，

@@ -252,15 +252,6 @@ class DeterministicResolver:
                     stream.state_version,
                 )
 
-        if len(state.active_workstreams) == 1 and observations.raw_text.strip():
-            stream = state.active_workstreams[0]
-            return DeterministicResolution(
-                ResolutionKind.CONTINUE_WORKSTREAM,
-                "UNIQUE_ACTIVE_WORKSTREAM",
-                state.fingerprint,
-                stream.workstream_id,
-                stream.state_version,
-            )
         return DeterministicResolution(
             ResolutionKind.UNRESOLVED,
             "NO_DETERMINISTIC_BINDING",

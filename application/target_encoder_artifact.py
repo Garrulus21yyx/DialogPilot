@@ -13,7 +13,7 @@ from application.capability_registry import CapabilityEffect, CapabilityRegistry
 from application.encoder_fast_path import RankedCandidate
 
 
-TARGET_ENCODER_SCHEMA = "dialogpilot-target-encoder-v1"
+TARGET_ENCODER_SCHEMA = "dialogpilot-target-encoder-v2"
 DEFER_LABEL = "__DEFER__"
 
 
@@ -28,7 +28,6 @@ class TargetEncoderClass:
     capability_kind: str
     capability_id: str
     required_arguments: tuple[str, ...]
-    required_signal_terms: tuple[str, ...]
     threshold: float
     enabled: bool
     calibration_accepted: int
@@ -54,10 +53,6 @@ class TargetEncoderClass:
             not item.strip() for item in self.required_arguments
         ):
             raise TargetEncoderArtifactError("encoder class arguments are invalid")
-        if not self.required_signal_terms or any(
-            not item.strip() for item in self.required_signal_terms
-        ):
-            raise TargetEncoderArtifactError("encoder class signal contract is required")
         if not 0.0 <= self.threshold <= 1.0:
             raise TargetEncoderArtifactError("encoder threshold must be in [0,1]")
         for accepted, correct in (
@@ -149,7 +144,6 @@ class TargetEncoderManifest:
                 classes=tuple(TargetEncoderClass(
                     **{
                         **item,
-                        "required_signal_terms": tuple(item["required_signal_terms"]),
                         "required_arguments": tuple(item["required_arguments"]),
                     }
                 ) for item in value["classes"]),

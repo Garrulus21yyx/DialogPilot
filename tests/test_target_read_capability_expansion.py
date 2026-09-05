@@ -9,7 +9,6 @@ from application.deterministic_resolution import DeterministicResolver, TurnObse
 from application.entity_binding import EntityBindingResolver
 from application.conversation_agent import ConversationAgent
 from application.target_conversation_manager import TargetTurnContext
-from application.target_understanding import BoundedTargetUnderstanding
 from application.orchestration_runtime import AgentContextView
 from application.turn_planning import (
     CommandKind,
@@ -58,9 +57,27 @@ def _plan(proposal, state, registry, request_id):
     return TurnPlanCompiler().compile(validated, state, registry, identity)
 
 
+class _Provider:
+    version = "read-expansion-provider-v1"
+
+    def __init__(self, result):
+        self.result = result
+
+    async def plan(self, payload):
+        return self.result
+
+
+def _agent(kind, **goal):
+    return ConversationAgent(_Provider({
+        "status": "resolved",
+        "goals": [{"kind": kind, **goal}],
+    }))
+
+
 def test_refund_eligibility_query_is_direct_read_and_does_not_start_flow():
     proposal, state, registry = _proposal(
-        BoundedTargetUnderstanding(), "订单 DP1234 能退款吗？",
+        _agent("refund_eligibility", order_id="DP1234"),
+        "订单 DP1234 能退款吗？",
     )
     plan = _plan(proposal, state, registry, "eligibility-request")
 
@@ -73,7 +90,8 @@ def test_refund_eligibility_query_is_direct_read_and_does_not_start_flow():
 
 def test_explicit_refund_execution_still_uses_governed_flow_preparation():
     proposal, state, registry = _proposal(
-        BoundedTargetUnderstanding(), "把订单 DP1234 退掉",
+        _agent("execute_refund", order_id="DP1234"),
+        "把订单 DP1234 退掉",
     )
     plan = _plan(proposal, state, registry, "refund-write-request")
 
@@ -84,7 +102,7 @@ def test_explicit_refund_execution_still_uses_governed_flow_preparation():
 
 def test_order_cancellation_uses_registry_preparation_and_not_status_read_path():
     proposal, state, registry = _proposal(
-        BoundedTargetUnderstanding(), "取消订单 DP1234",
+        _agent("cancel_order", order_id="DP1234"), "取消订单 DP1234",
     )
     plan = _plan(proposal, state, registry, "cancel-order-request")
 
@@ -102,10 +120,10 @@ def test_order_cancellation_uses_registry_preparation_and_not_status_read_path()
 
 def test_refund_policy_and_invoice_use_the_same_atomic_knowledge_tool():
     refund, state, registry = _proposal(
-        BoundedTargetUnderstanding(), "退款政策和一般时效是什么？",
+        _agent("refund_policy"), "退款政策和一般时效是什么？",
     )
     invoice, _, _ = _proposal(
-        BoundedTargetUnderstanding(), "电子发票怎么开？",
+        _agent("invoice_qa"), "电子发票怎么开？",
     )
 
     assert refund.commands[0].tool_id == "knowledge_search"
@@ -116,16 +134,6 @@ def test_refund_policy_and_invoice_use_the_same_atomic_knowledge_tool():
         "product_identification",
     )
     assert _plan(refund, state, registry, "refund-policy").route.mode is RouteMode.DIRECT
-
-
-class _Provider:
-    version = "read-expansion-provider-v1"
-
-    def __init__(self, result):
-        self.result = result
-
-    async def plan(self, payload):
-        return self.result
 
 
 def test_structured_logistics_goal_reuses_direct_order_authority():
@@ -204,12 +212,11 @@ def test_product_qa_uses_one_atomic_knowledge_tool_across_product_categories():
 
 def test_generic_product_question_is_not_recast_as_missing_media():
     proposal, _, _ = _proposal(
-        BoundedTargetUnderstanding(), "这个商品支持 Mac 吗？",
+        _agent("product_qa"), "这个商品支持 Mac 吗？",
     )
 
-    assert proposal.disposition is ProposalDisposition.CLARIFY
-    assert proposal.reason_code == "SUPPORTED_GOAL_UNCLEAR"
-    assert proposal.missing_inputs == ("customer_service_goal",)
+    assert proposal.disposition is ProposalDisposition.RESOLVED
+    assert proposal.commands[0].tool_id == "knowledge_search"
 
 
 def test_generic_product_qa_executes_the_shared_knowledge_tool_contract():

@@ -29,7 +29,7 @@ from application.default_capability_registry import build_default_capability_reg
 from application.deterministic_resolution import ResolutionKind, TurnObservations
 from application.orchestration_runtime import AgentContextView, OrchestrationRuntime
 from application.target_conversation_manager import TargetConversationManager
-from application.target_understanding import BoundedTargetUnderstanding
+from application.target_understanding import StateBoundTargetUnderstanding
 from application.turn_planning import (
     CommandKind,
     CommandProposal,
@@ -103,15 +103,17 @@ class _Understanding:
 class _ResumeAwareUnderstanding:
     def __init__(self, initial):
         self.initial = initial
-        self.bounded = BoundedTargetUnderstanding()
+        self.state_bound = StateBoundTargetUnderstanding()
 
     async def __call__(
         self, observations, state, deterministic, registry, turn_context=None,
     ):
-        if deterministic.kind is ResolutionKind.FILL_PENDING_INPUT:
-            return await self.bounded(
+        if deterministic.kind is not ResolutionKind.UNRESOLVED:
+            resolved = await self.state_bound(
                 observations, state, deterministic, registry, turn_context,
             )
+            if resolved is not None:
+                return resolved
         return self.initial
 
 
@@ -369,6 +371,40 @@ def _order_proposal():
     )
 
 
+def _prepare_workflow_proposal(
+    *, command_id, owner, objective, arguments, requirement_id,
+    flow_ref, action_ref, target_entity_ref,
+):
+    return TurnProposal(
+        ProposalDisposition.RESOLVED,
+        (CommandProposal(
+            command_id,
+            CommandKind.PREPARE_WORKFLOW,
+            owner,
+            objective,
+            tuple(ArgumentValue.create(name, value) for name, value in arguments),
+            (requirement_id,),
+            flow_ref=flow_ref,
+            action_ref=action_ref,
+            target_entity_ref=target_entity_ref,
+        ),),
+        "TEST_WORKFLOW_PREPARATION",
+    )
+
+
+def _refund_preparation(reason="把订单 DP1234 退款"):
+    return _prepare_workflow_proposal(
+        command_id="prepare-refund",
+        owner="billing_refund",
+        objective="Check refund eligibility before a governed write",
+        arguments=(("order_id", "DP1234"), ("reason", reason)),
+        requirement_id="refund.eligibility",
+        flow_ref="execute_refund:v1",
+        action_ref="refund.request.create:v1",
+        target_entity_ref="order:DP1234",
+    )
+
+
 def test_conversation_state_event_codec_round_trips_bound_pending_state():
     state = ConversationState.empty(
         tenant_id="tenant-a", user_id="user-a", conversation_id="conversation-a",
@@ -494,7 +530,7 @@ def test_refund_preparation_derives_control_state_from_authoritative_eligibility
     manager = TargetConversationManager(
         state_store=store,
         registry=build_default_capability_registry("tenant-target"),
-        understanding=BoundedTargetUnderstanding(),
+        understanding=_ResumeAwareUnderstanding(_refund_preparation()),
         orchestration=OrchestrationRuntime(
             direct_executor=_EligibilityExecutor(eligible), domain_workers={},
         ),
@@ -535,7 +571,7 @@ def test_manager_interprets_workflow_preparation_only_from_registry_bindings():
     manager = TargetConversationManager(
         state_store=store,
         registry=registry,
-        understanding=BoundedTargetUnderstanding(),
+        understanding=_ResumeAwareUnderstanding(_refund_preparation()),
         orchestration=OrchestrationRuntime(
             direct_executor=_RegistryDrivenPreparationExecutor(),
             domain_workers={},
@@ -564,7 +600,16 @@ def test_order_cancellation_approval_resumes_its_registered_owner_and_action():
     manager = TargetConversationManager(
         state_store=store,
         registry=registry,
-        understanding=BoundedTargetUnderstanding(),
+        understanding=_ResumeAwareUnderstanding(_prepare_workflow_proposal(
+            command_id="prepare-order-cancellation",
+            owner="order_logistics",
+            objective="Check current order state before cancellation",
+            arguments=(("order_id", "DP1234"),),
+            requirement_id="order.current_state",
+            flow_ref="cancel_order:v1",
+            action_ref="order.cancel:v1",
+            target_entity_ref="order:DP1234",
+        )),
         orchestration=OrchestrationRuntime(
             direct_executor=_OrderCancellationPreparationExecutor(),
             domain_workers={},
@@ -612,7 +657,19 @@ def test_shipping_address_approval_resumes_registered_action_with_exact_address(
     manager = TargetConversationManager(
         state_store=store,
         registry=registry,
-        understanding=BoundedTargetUnderstanding(),
+        understanding=_ResumeAwareUnderstanding(_prepare_workflow_proposal(
+            command_id="prepare-address-change",
+            owner="order_logistics",
+            objective="Check current order state before changing address",
+            arguments=(
+                ("order_id", "DP1234"),
+                ("new_address", "Berlin Example Street 9"),
+            ),
+            requirement_id="order.current_state",
+            flow_ref="change_shipping_address:v1",
+            action_ref="order.shipping_address.change:v1",
+            target_entity_ref="order:DP1234",
+        )),
         orchestration=OrchestrationRuntime(
             direct_executor=_OrderCancellationPreparationExecutor(),
             domain_workers={},
@@ -662,7 +719,16 @@ def test_account_freeze_approval_resumes_registered_action_for_current_principal
     manager = TargetConversationManager(
         state_store=store,
         registry=registry,
-        understanding=BoundedTargetUnderstanding(),
+        understanding=_ResumeAwareUnderstanding(_prepare_workflow_proposal(
+            command_id="prepare-account-freeze",
+            owner="account_security",
+            objective="Check current account state before freezing",
+            arguments=(),
+            requirement_id="account.current_state",
+            flow_ref="freeze_account:v1",
+            action_ref="account.freeze:v1",
+            target_entity_ref="account:user-target",
+        )),
         orchestration=OrchestrationRuntime(
             direct_executor=_AccountFreezePreparationExecutor(),
             domain_workers={},

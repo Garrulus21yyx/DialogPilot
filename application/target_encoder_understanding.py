@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from application.encoder_fast_path import (
     EncoderFastPathPolicy,
-    FastPathDecision,
     IntentEncoderOutput,
 )
 from application.target_encoder_artifact import DEFER_LABEL, TargetTextEncoderArtifact
@@ -29,9 +28,6 @@ class TargetEncoderUnderstanding:
             item.label: item for item in self._artifact.manifest.classes
         }
         target = class_by_label[top.candidate_id]
-        normalized_text = observations.raw_text.lower()
-        if not any(term in normalized_text for term in target.required_signal_terms):
-            return FastPathDecision(False, "ENCODER_REQUIRED_SIGNAL_MISSING")
         fields = dict(observations.structured_fields)
         bindings = turn_context.entity_bindings
         for name in target.required_arguments:

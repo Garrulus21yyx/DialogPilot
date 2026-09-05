@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -29,6 +30,9 @@ from application.response_assembly import ResponseAssembler
 from application.turn_runtime import TurnRuntime
 from application.turn_planning import ProposalDisposition
 from core.identity import IdentityContractError, IdentityFactory, InvocationIdentity
+
+
+logger = logging.getLogger(__name__)
 
 
 class TargetAdmissionStatus(str, Enum):
@@ -187,6 +191,10 @@ class TargetChatApplication:
                 {"reason": str(exc)},
             )
         except Exception as exc:
+            logger.exception(
+                "Target turn execution failed invocation_key=%s",
+                identity.invocation_key,
+            )
             return Failed(
                 "target_runtime_failed",
                 False,
@@ -500,6 +508,8 @@ class TargetChatApplication:
 
 
 def _terminal_response(reason_code: str) -> str:
+    if reason_code == "WORKSTREAM_CANCELLED":
+        return "已取消当前事项。"
     if reason_code == "APPROVAL_DECLINED":
         return "已取消该操作，本次未执行任何业务写入。"
     if reason_code == "APPROVAL_EXPIRED":

@@ -29,8 +29,8 @@ from application.target_chat_application import (
 from application.target_conversation_manager import TargetConversationManager
 from application.conversation_agent import ConversationAgent
 from application.target_understanding import (
-    BoundedTargetUnderstanding,
     CascadedTargetUnderstanding,
+    StateBoundTargetUnderstanding,
 )
 from core.identity import IdentityFactory
 from infrastructure.target_tool_execution import TargetToolExecutor
@@ -184,7 +184,7 @@ def _application(understanding=None):
     manager = TargetConversationManager(
         state_store=InMemoryConversationStateStore(),
         registry=registry,
-        understanding=understanding or BoundedTargetUnderstanding(),
+        understanding=understanding or _default_understanding(),
         orchestration=OrchestrationRuntime(
             direct_executor=executor,
             domain_workers={
@@ -207,6 +207,29 @@ class _FailingSemanticProvider:
 
     async def plan(self, payload):
         raise TimeoutError("provider unavailable")
+
+
+class _ChatPlanningProvider:
+    version = "chat-planning-provider-test-v1"
+
+    async def plan(self, payload):
+        message = str(payload["message"])
+        if "DP1234" in message:
+            return {
+                "status": "resolved",
+                "goals": [{"kind": "order_status", "order_id": "DP1234"}],
+            }
+        return {
+            "status": "insufficient_context",
+            "missing_fields": ["customer_service_goal"],
+        }
+
+
+def _default_understanding():
+    return CascadedTargetUnderstanding(
+        StateBoundTargetUnderstanding(),
+        ConversationAgent(_ChatPlanningProvider()),
+    )
 
 
 def test_target_chat_direct_order_path_publishes_once_and_replays():
@@ -234,7 +257,7 @@ def test_target_chat_direct_order_path_publishes_once_and_replays():
     )
     assert trace["artifact"]["route_mode"] == "DIRECT"
     assert trace["consumption"]["work_items"][0]["control_mode"] == "DIRECT"
-    assert trace["cost"]["conversation_planner_invoked"] is False
+    assert trace["cost"]["conversation_planner_invoked"] is True
     assert len(tools.calls) == 1
     assert tools.calls[0][3]["user_id"] == "user-a"
     assert tools.calls[0][1] == {"order_id": "DP1234"}
@@ -259,7 +282,7 @@ def test_target_chat_publishes_one_typed_interaction_and_resumes_exact_work_item
         manager=TargetConversationManager(
             state_store=state_store,
             registry=registry,
-            understanding=BoundedTargetUnderstanding(),
+            understanding=_default_understanding(),
             orchestration=OrchestrationRuntime(
                 direct_executor=executor,
                 domain_workers={},
@@ -313,7 +336,7 @@ def test_target_chat_publishes_one_typed_interaction_and_resumes_exact_work_item
 
 def test_target_chat_preserves_conversation_provider_failure_as_retryable_failure():
     application, tools = _application(CascadedTargetUnderstanding(
-        BoundedTargetUnderstanding(),
+        StateBoundTargetUnderstanding(),
         ConversationAgent(_FailingSemanticProvider()),
     ))
 

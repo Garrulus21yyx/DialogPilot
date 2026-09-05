@@ -311,6 +311,17 @@ def test_ambiguous_control_signal_requests_target_instead_of_guessing():
     assert resolution.kind is ResolutionKind.CLARIFY_WORKSTREAM
 
 
+def test_active_workstream_does_not_force_an_unrelated_message_to_continue():
+    state = _state(_workstream())
+
+    resolution = DeterministicResolver().resolve(
+        TurnObservations("另外查一下商品保修政策"), state,
+    )
+
+    assert resolution.kind is ResolutionKind.UNRESOLVED
+    assert resolution.reason_code == "NO_DETERMINISTIC_BINDING"
+
+
 def test_store_compare_and_set_rejects_stale_writer():
     store = InMemoryConversationStateStore()
     identity = (TenantId("tenant-a"), UserId("user-a"), ConversationId("conversation-a"))

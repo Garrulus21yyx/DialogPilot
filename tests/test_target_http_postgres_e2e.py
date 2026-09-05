@@ -14,8 +14,8 @@ from application.target_encoder_artifact import load_target_text_encoder_artifac
 from application.target_encoder_understanding import TargetEncoderUnderstanding
 from application.conversation_agent import ConversationAgent
 from application.target_understanding import (
-    BoundedTargetUnderstanding,
     CascadedTargetUnderstanding,
+    StateBoundTargetUnderstanding,
 )
 from core.auth import Principal
 from infrastructure.langgraph_checkpoint import AsyncPostgresCheckpointOwner
@@ -227,7 +227,68 @@ class _ScenarioConversationProvider:
 
     async def plan(self, payload):
         self.calls.append(payload)
-        if "走到哪一步" in str(payload["message"]):
+        message = str(payload["message"])
+        if "异常登录" in message or "账号被盗" in message:
+            goals = [{"goal_id": "security", "kind": "security_review"}]
+            if "退款" in message:
+                goals.append({
+                    "goal_id": "refund",
+                    "kind": "execute_refund",
+                    "order_id": "DP8080",
+                })
+            return {"status": "resolved", "goals": goals}
+        if "冻结账户" in message:
+            return {"status": "resolved", "goals": [{"kind": "freeze_account"}]}
+        if "人工客服" in message:
+            return {"status": "resolved", "goals": [{"kind": "human_handoff"}]}
+        if "地址改成" in message:
+            return {
+                "status": "resolved",
+                "goals": [{
+                    "kind": "change_address",
+                    "order_id": "DP7654",
+                    "new_address": "Berlin Example Street 9",
+                }],
+            }
+        if "取消订单" in message:
+            return {
+                "status": "resolved",
+                "goals": [{"kind": "cancel_order", "order_id": "DP4321"}],
+            }
+        if "商品型号" in message and "退款" in message:
+            return {
+                "status": "resolved",
+                "goals": [
+                    {"goal_id": "refund", "kind": "refund_status", "order_id": "DP1234"},
+                    {"goal_id": "product", "kind": "product_identification"},
+                ],
+            }
+        if "商品型号" in message:
+            return {
+                "status": "resolved",
+                "goals": [{"kind": "product_identification"}],
+            }
+        if "电子发票" in message:
+            return {"status": "resolved", "goals": [{"kind": "invoice_qa"}]}
+        if "退款政策" in message:
+            return {"status": "resolved", "goals": [{"kind": "refund_policy"}]}
+        if "能退款" in message:
+            return {
+                "status": "resolved",
+                "goals": [{"kind": "refund_eligibility", "order_id": "DP7777"}],
+            }
+        if "退款" in message and "状态" not in message:
+            order_id = "DP9012" if "DP9012" in message else "DP5678" if "DP5678" in message else "DP1234"
+            return {
+                "status": "resolved",
+                "goals": [{"kind": "execute_refund", "order_id": order_id}],
+            }
+        if "物流" in message:
+            return {
+                "status": "resolved",
+                "goals": [{"kind": "order_status", "order_id": "DP1234"}],
+            }
+        if "走到哪一步" in message:
             return {
                 "status": "resolved",
                 "goals": [{
@@ -301,12 +362,12 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                     state_store=state_store,
                     registry=registry,
                     understanding=CascadedTargetUnderstanding(
-                        BoundedTargetUnderstanding(),
+                        StateBoundTargetUnderstanding(),
                         ConversationAgent(conversation_provider),
                         encoder=TargetEncoderUnderstanding(
                             load_target_text_encoder_artifact(
                                 __import__("pathlib").Path(__file__).resolve().parents[1]
-                                / "artifacts" / "target-encoder-zh-v1"
+                                / "artifacts" / "target-encoder-zh-v2"
                             )
                         ),
                     ),
@@ -596,7 +657,11 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
         assert planned_order["evaluation_trace"]["cost"][
             "conversation_planner_invoked"
         ] is True
-        assert len(conversation_provider.calls) == 1
+        planned_messages = {
+            str(item["message"]) for item in conversation_provider.calls
+        }
+        assert "帮我看看 DP2468 走到哪一步了" in planned_messages
+        assert "确认 RF3100 的退回进展" not in planned_messages
         assert "PX-200" in product["response"]
         assert refund_precheck["outcome"] == "needs_input"
         assert refund_precheck_replay == refund_precheck

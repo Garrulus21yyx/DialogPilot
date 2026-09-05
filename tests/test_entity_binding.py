@@ -9,6 +9,7 @@ from application.conversation_state import (
     WorkstreamState,
     WorkstreamStatus,
 )
+from application.conversation_agent import ConversationAgent
 from application.default_capability_registry import build_default_capability_registry
 from application.deterministic_resolution import DeterministicResolver, TurnObservations
 from application.entity_binding import (
@@ -23,7 +24,6 @@ from application.target_conversation_manager import (
     TargetContextProjectionStatus,
     TargetTurnContext,
 )
-from application.target_understanding import BoundedTargetUnderstanding
 from application.turn_planning import (
     CommandKind,
     CommandProposal,
@@ -153,7 +153,16 @@ def test_unique_historical_binding_removes_the_early_missing_id_branch():
     deterministic = DeterministicResolver().resolve(observations, state)
     registry = build_default_capability_registry("tenant-a")
 
-    proposal = asyncio.run(BoundedTargetUnderstanding()(
+    class Provider:
+        version = "historical-binding-provider-v1"
+
+        async def plan(self, payload):
+            return {
+                "status": "resolved",
+                "goals": [{"kind": "order_status", "order_id": "DP1111"}],
+            }
+
+    proposal = asyncio.run(ConversationAgent(Provider()).plan(
         observations, state, deterministic, registry, context,
     ))
     validated = RoutePolicy().accept(proposal, state, registry)

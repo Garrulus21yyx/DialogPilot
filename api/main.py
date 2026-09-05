@@ -619,8 +619,8 @@ async def lifespan(app: FastAPI):
     from application.conversation_agent import ConversationAgent
     from application.context_budget import ContextBudgetManager
     from application.target_understanding import (
-        BoundedTargetUnderstanding,
         CascadedTargetUnderstanding,
+        StateBoundTargetUnderstanding,
     )
     from infrastructure.langgraph_checkpoint import AsyncPostgresCheckpointOwner
     from infrastructure.postgres_target_runtime import PostgresConversationStateStore
@@ -725,7 +725,7 @@ async def lifespan(app: FastAPI):
     if target_encoder_enabled == "true":
         target_encoder_dir = pathlib.Path(os.getenv(
             "TARGET_ENCODER_ARTIFACT_DIR",
-            str(pathlib.Path(_ROOT) / "artifacts" / "target-encoder-zh-v1"),
+            str(pathlib.Path(_ROOT) / "artifacts" / "target-encoder-zh-v2"),
         ))
         target_encoder = TargetEncoderUnderstanding(
             load_target_text_encoder_artifact(target_encoder_dir)
@@ -738,7 +738,7 @@ async def lifespan(app: FastAPI):
         context_budget=target_context_budget,
     )
     target_understanding = CascadedTargetUnderstanding(
-        BoundedTargetUnderstanding(),
+        StateBoundTargetUnderstanding(),
         conversation_agent,
         encoder=target_encoder,
     )

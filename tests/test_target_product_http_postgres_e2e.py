@@ -17,10 +17,14 @@ from application.media_evidence import (
 from application.media_requirement import MediaStage
 from application.orchestration_runtime import OrchestrationRuntime
 from application.perception import PerceptionArtifact
+from application.conversation_agent import ConversationAgent
 from application.target_chat_application import TargetChatApplication
 from application.target_conversation_manager import TargetConversationManager
 from application.target_run import TargetRunCoordinator
-from application.target_understanding import BoundedTargetUnderstanding
+from application.target_understanding import (
+    CascadedTargetUnderstanding,
+    StateBoundTargetUnderstanding,
+)
 from infrastructure.langgraph_checkpoint import AsyncPostgresCheckpointOwner
 from infrastructure.postgres import PostgresMigrationRunner, PostgresPool, PostgresPoolConfig
 from infrastructure.postgres_admission import PostgresStartOutbox, StartOutboxDispatcher
@@ -42,6 +46,19 @@ from infrastructure.target_tool_execution import TargetToolExecutor
 from mcp.product_tools import product_tools
 from mcp.tool_manager import MCPToolManager
 from services.product_catalog import ProductCatalogService
+
+
+class _ProductPlanningProvider:
+    version = "product-http-planning-provider-v1"
+
+    async def plan(self, payload):
+        return {
+            "status": "resolved",
+            "goals": [{
+                "kind": "product_identification",
+                "asset_id": payload["observed_entities"]["asset_id"],
+            }],
+        }
 
 
 class LabelOCR:
@@ -99,7 +116,10 @@ def test_uploaded_asset_reaches_real_product_tools_and_catalog(
                 manager=TargetConversationManager(
                     state_store=PostgresConversationStateStore(pool),
                     registry=registry,
-                    understanding=BoundedTargetUnderstanding(),
+                    understanding=CascadedTargetUnderstanding(
+                        StateBoundTargetUnderstanding(),
+                        ConversationAgent(_ProductPlanningProvider()),
+                    ),
                     orchestration=OrchestrationRuntime(
                         direct_executor=generic,
                         domain_workers={"product_technical": product},

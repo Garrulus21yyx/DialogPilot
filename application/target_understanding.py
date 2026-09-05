@@ -1,14 +1,7 @@
-"""Efficient bounded understanding for the first Target v1 API cutover."""
+"""State-bound resolution and the Intent-to-Conversation planning cascade."""
 from __future__ import annotations
 
-import re
-
-from application.deterministic_resolution import (
-    DeterministicResolution,
-    ResolutionKind,
-    TurnObservations,
-)
-from application.entity_binding import BindingSource, EntityBinding
+from application.deterministic_resolution import ResolutionKind
 from application.turn_planning import (
     CommandKind,
     CommandProposal,
@@ -18,75 +11,36 @@ from application.turn_planning import (
 from application.work_item import ArgumentValue, ControlMode
 
 
-_ADDRESS_CHANGE = re.compile(
-    r"(?:地址(?:改成|改为)|修改(?:成|为)|改成|改为|change\s+address\s+to)"
-    r"\s*[:：]?\s*(?P<address>.+)$",
-    re.IGNORECASE,
-)
+class StateBoundTargetUnderstanding:
+    """Compile only facts already bound by authoritative conversation state.
 
-
-class BoundedTargetUnderstanding:
-    """Route unambiguous supported shapes; abstain instead of guessing.
-
-    This is the deterministic/fast-path provider for the vertical prototype.
-    A structured LLM provider can be composed behind it for deferred cases
-    without changing RoutePolicy or execution contracts.
+    This stage performs no lexical or domain inference.  It exists to turn a
+    consumed pending interaction or approval into the exact command that was
+    previously suspended.  Every other turn proceeds to the encoder or the
+    Conversation Agent.
     """
 
-    version = "bounded-target-understanding-v1"
+    version = "state-bound-target-understanding-v1"
 
     async def __call__(
         self, observations, state, deterministic, registry, turn_context=None,
-    ):
+    ) -> TurnProposal | None:
+        del observations, turn_context
         if (
             deterministic.kind is ResolutionKind.FILL_PENDING_INPUT
             and deterministic.resumed_work_items
         ):
-            commands = []
-            for index, item in enumerate(deterministic.resumed_work_items, start=1):
-                if item.control_mode is ControlMode.WORKFLOW:
-                    raise ValueError("business workflows use their approval/resume contract")
-                if item.control_mode is ControlMode.DIRECT:
-                    if len(item.allowed_tools) != 1:
-                        raise ValueError("resumed direct work must bind one tool")
-                    commands.append(CommandProposal(
-                        f"resume-input-{index}",
-                        CommandKind.DIRECT_TOOL,
-                        item.owner_agent,
-                        item.objective,
-                        item.arguments,
-                        item.requirement_ids,
-                        tool_id=item.allowed_tools[0],
-                        argument_bindings=item.argument_bindings,
-                    ))
-                    continue
-                if item.skill_hint is not None:
-                    commands.append(CommandProposal(
-                        f"resume-input-{index}",
-                        CommandKind.RUN_SKILL,
-                        item.owner_agent,
-                        item.objective,
-                        item.arguments,
-                        item.requirement_ids,
-                        skill_id=item.skill_hint,
-                        argument_bindings=item.argument_bindings,
-                    ))
-                else:
-                    commands.append(CommandProposal(
-                        f"resume-input-{index}",
-                        CommandKind.DELEGATE_TASK,
-                        item.owner_agent,
-                        item.objective,
-                        item.arguments,
-                        item.requirement_ids,
-                        candidate_skill_ids=item.allowed_skills,
-                        argument_bindings=item.argument_bindings,
-                    ))
             return TurnProposal(
                 ProposalDisposition.RESOLVED,
-                tuple(commands),
+                tuple(
+                    self._resume_command(index, item)
+                    for index, item in enumerate(
+                        deterministic.resumed_work_items, start=1,
+                    )
+                ),
                 "PENDING_INPUT_RESUMED",
             )
+
         if deterministic.kind in {
             ResolutionKind.APPROVAL_DECISION,
             ResolutionKind.APPROVAL_EXPIRED,
@@ -102,10 +56,6 @@ class BoundedTargetUnderstanding:
                         else "APPROVAL_DECLINED"
                     ),
                 )
-            arguments = tuple(
-                ArgumentValue.create(name, value)
-                for name, value in deterministic.arguments
-            )
             action = registry.action(str(deterministic.action_ref))
             stream = next(
                 item for item in state.workstreams
@@ -118,7 +68,10 @@ class BoundedTargetUnderstanding:
                     CommandKind.CONTINUE_WORKFLOW,
                     action.owner_agent,
                     f"Execute explicitly approved action {action.action_id}",
-                    arguments,
+                    tuple(
+                        ArgumentValue.create(name, value)
+                        for name, value in deterministic.arguments
+                    ),
                     action.requirement_ids,
                     flow_ref=stream.flow_ref,
                     action_ref=deterministic.action_ref,
@@ -135,319 +88,73 @@ class BoundedTargetUnderstanding:
                     else "APPROVED_WORKFLOW_RESUME"
                 ),
             )
-        text = observations.raw_text.strip()
-        lowered = text.lower()
-        fields = dict(observations.structured_fields)
-        bindings = turn_context.entity_bindings
-        order_binding = bindings.resolve("order_id", state).selected
-        asset_binding = bindings.resolve("asset_id", state).selected
-        order_id = str(order_binding.value) if order_binding is not None else ""
-        asset_id = str(asset_binding.value) if asset_binding is not None else ""
 
-        product_identification_signal = any(
-            token in lowered for token in (
-                "识别这张", "识别图片", "图里是什么", "图片型号",
-                "商品型号", "产品型号", "product model",
-                "identify this", "identify the product",
+        if deterministic.kind is ResolutionKind.CANCEL_WORKSTREAM:
+            return TurnProposal(
+                ProposalDisposition.CLARIFY, (), "WORKSTREAM_CANCELLED",
             )
-        )
-        media_text_signal = bool(asset_id) and any(
-            token in lowered for token in (
-                "截图文字", "图片文字", "读取截图", "识别文字", "错误码",
-                "订单号", "运单号", "read the text", "error code", "ocr",
+        if deterministic.kind is ResolutionKind.CLARIFY_WORKSTREAM:
+            return TurnProposal(
+                ProposalDisposition.CLARIFY,
+                (),
+                "WORKSTREAM_TARGET_AMBIGUOUS",
+                ("workstream_id",),
             )
-        )
-        compound_product_signal = product_identification_signal and any(
-            token in lowered for token in ("并且", "并根据", "同时", "然后", "以及")
-        )
-        refund_signal = any(
-            token in lowered for token in ("退款", "退掉", "退货", "refund")
-        )
-        invoice_signal = any(token in lowered for token in ("发票", "invoice"))
-        order_signal = any(
-            token in lowered for token in ("订单", "物流", "发货", "order", "shipping")
-        )
-        cancel_order_signal = bool(order_id) and any(
-            token in lowered for token in ("取消订单", "取消这个订单", "cancel order")
-        )
-        address_change_signal = bool(order_id) and any(
-            token in lowered for token in (
-                "修改地址", "改地址", "地址改", "change address",
-            )
-        )
-        address_match = _ADDRESS_CHANGE.search(text) if address_change_signal else None
-        new_address = (
-            str(fields.get("new_address") or "").strip()
-            or (address_match.group("address").strip() if address_match else "")
-        )
-        address_binding = (
-            EntityBinding.create(
-                "new_address", new_address,
-                source=BindingSource.CURRENT_MESSAGE,
-                source_ref="turn-message:current:new_address",
-                tenant_id=str(state.tenant_id), user_id=str(state.user_id),
-                conversation_id=str(state.conversation_id), priority=400,
-            )
-            if new_address else None
-        )
-        handoff_signal = any(
-            token in lowered for token in ("人工", "客服", "human agent", "representative")
-        )
-        security_signal = any(
-            token in lowered for token in (
-                "不是我操作", "账号被盗", "账户被盗", "异常登录",
-                "可疑登录", "security event", "suspicious login",
-                "account stolen",
-            )
-        )
-        freeze_account_signal = any(
-            token in lowered for token in (
-                "冻结账号", "冻结账户", "锁定账号", "锁定账户",
-                "freeze account", "lock account",
-            )
-        )
+        return None
 
-        commands = []
-        if freeze_account_signal:
-            commands.append(CommandProposal(
-                "prepare-account-freeze",
-                CommandKind.PREPARE_WORKFLOW,
-                "account_security",
-                "Check current account state before freezing the account",
-                (),
-                ("account.current_state",),
-                flow_ref="freeze_account:v1",
-                action_ref="account.freeze:v1",
-                target_entity_ref=f"account:{state.user_id}",
-            ))
-        elif security_signal:
-            commands.append(CommandProposal(
-                "security-review",
-                CommandKind.DIRECT_TOOL,
-                "account_security",
-                "Review recent account security events",
-                (ArgumentValue.create("limit", 10),),
-                ("account.security_events",),
-                tool_id="account_security_event_list",
-            ))
-        if handoff_signal:
-            commands.append(CommandProposal(
-                "human-handoff",
-                CommandKind.START_WORKFLOW,
-                "human_service",
-                "Create a human-service handoff ticket",
-                (
-                    ArgumentValue.create("summary", text),
-                    ArgumentValue.create("reason", "EXPLICIT_USER_HANDOFF"),
-                    ArgumentValue.create("priority", "normal"),
-                ),
-                requirement_ids=("support.handoff_action",),
-                flow_ref="human_handoff:v1",
-                action_ref="support.handoff.create:v1",
-                target_entity_ref=f"conversation:{state.conversation_id}",
-                target_entity_version=f"conversation:{state.conversation_id}:v{state.version}",
-            ))
-        refund_policy_signal = refund_signal and any(
-            token in lowered for token in (
-                "政策", "规则", "一般多久", "通常多久", "多久到账", "时效",
+    @staticmethod
+    def _resume_command(index, item) -> CommandProposal:
+        if item.control_mode is ControlMode.WORKFLOW:
+            raise ValueError(
+                "business workflows use their approval/resume contract"
             )
-        )
-        refund_eligibility_signal = refund_signal and order_id and any(
-            token in lowered for token in (
-                "能退", "可以退", "可退款", "资格", "符合退款", "eligible",
+        common = {
+            "command_id": f"resume-input-{index}",
+            "target_agent": item.owner_agent,
+            "objective": item.objective,
+            "arguments": item.arguments,
+            "requirement_ids": item.requirement_ids,
+            "argument_bindings": item.argument_bindings,
+        }
+        if item.control_mode is ControlMode.DIRECT:
+            if len(item.allowed_tools) != 1:
+                raise ValueError("resumed direct work must bind one tool")
+            return CommandProposal(
+                kind=CommandKind.DIRECT_TOOL,
+                tool_id=item.allowed_tools[0],
+                **common,
             )
-        )
-        if invoice_signal:
-            commands.append(CommandProposal(
-                "invoice-policy",
-                CommandKind.DIRECT_TOOL,
-                "billing_refund",
-                "Answer an invoice policy question",
-                (ArgumentValue.create("query", text),),
-                ("knowledge.active_source",),
-                tool_id="knowledge_search",
-            ))
-        if refund_policy_signal:
-            commands.append(CommandProposal(
-                "refund-policy",
-                CommandKind.DIRECT_TOOL,
-                "billing_refund",
-                "Answer a refund policy question",
-                (ArgumentValue.create("query", text),),
-                ("knowledge.active_source",),
-                tool_id="knowledge_search",
-            ))
-        elif refund_eligibility_signal:
-            commands.append(CommandProposal(
-                "refund-eligibility",
-                CommandKind.DIRECT_TOOL,
-                "billing_refund",
-                "Check current refund eligibility without starting a refund",
-                (ArgumentValue.create("order_id", order_id),),
-                ("refund.eligibility",),
-                tool_id="refund_eligibility_check",
-                argument_bindings=(order_binding,),
-            ))
-        elif refund_signal and order_id and any(
-            token in lowered for token in ("状态", "进度", "到账", "status")
-        ):
-            commands.append(CommandProposal(
-                "refund-status",
-                CommandKind.DIRECT_TOOL,
-                "billing_refund",
-                "Query current refund status",
-                (ArgumentValue.create("order_id", order_id),),
-                ("refund.current_state",),
-                tool_id="refund_status",
-                argument_bindings=(order_binding,),
-            ))
-        elif refund_signal and order_id:
-            commands.append(CommandProposal(
-                "prepare-refund",
-                CommandKind.PREPARE_WORKFLOW,
-                "billing_refund",
-                "Check refund eligibility before a governed write",
-                (
-                    ArgumentValue.create("order_id", order_id),
-                    ArgumentValue.create("reason", text),
-                ),
-                ("refund.eligibility",),
-                flow_ref="execute_refund:v1",
-                action_ref="refund.request.create:v1",
-                target_entity_ref=f"order:{order_id}",
-                argument_bindings=(order_binding,),
-            ))
-        if address_change_signal and new_address:
-            commands.append(CommandProposal(
-                "prepare-address-change",
-                CommandKind.PREPARE_WORKFLOW,
-                "order_logistics",
-                "Check current order state before changing its shipping address",
-                (
-                    ArgumentValue.create("order_id", order_id),
-                    ArgumentValue.create("new_address", new_address),
-                ),
-                ("order.current_state",),
-                flow_ref="change_shipping_address:v1",
-                action_ref="order.shipping_address.change:v1",
-                target_entity_ref=f"order:{order_id}",
-                argument_bindings=(order_binding, address_binding),
-            ))
-        elif cancel_order_signal:
-            commands.append(CommandProposal(
-                "prepare-order-cancellation",
-                CommandKind.PREPARE_WORKFLOW,
-                "order_logistics",
-                "Check current order state before cancellation",
-                (ArgumentValue.create("order_id", order_id),),
-                ("order.current_state",),
-                flow_ref="cancel_order:v1",
-                action_ref="order.cancel:v1",
-                target_entity_ref=f"order:{order_id}",
-                argument_bindings=(order_binding,),
-            ))
-        elif (
-            order_signal and order_id and not refund_signal
-            and not address_change_signal
-        ):
-            commands.append(CommandProposal(
-                "order-status",
-                CommandKind.DIRECT_TOOL,
-                "order_logistics",
-                "Query current order status",
-                (ArgumentValue.create("order_id", order_id),),
-                ("order.current_state",),
-                tool_id="order_lookup",
-                argument_bindings=(order_binding,),
-            ))
-        if media_text_signal:
-            commands.append(CommandProposal(
-                "media-text-read",
-                CommandKind.DIRECT_TOOL,
-                "general",
-                "Read visible text from the supplied media",
-                (ArgumentValue.create("asset_id", asset_id),),
-                ("media.visible_text",),
-                tool_id="media_read",
-                argument_bindings=(asset_binding,),
-            ))
-        elif product_identification_signal and asset_id and not compound_product_signal:
-            commands.append(CommandProposal(
-                "product-identification",
-                CommandKind.RUN_SKILL,
-                "product_technical",
-                "Identify the product from the supplied media",
-                (ArgumentValue.create("asset_id", asset_id),),
-                ("product.canonical_model",),
-                skill_id="product_identification",
-                argument_bindings=(asset_binding,),
-            ))
-
-        if commands:
-            return TurnProposal(
-                ProposalDisposition.RESOLVED,
-                tuple(commands),
-                "BOUNDED_FAST_PATH",
+        if item.skill_hint is not None:
+            return CommandProposal(
+                kind=CommandKind.RUN_SKILL,
+                skill_id=item.skill_hint,
+                **common,
             )
-        if refund_signal and not order_id and not refund_policy_signal:
-            return TurnProposal(
-                ProposalDisposition.CLARIFY,
-                (),
-                "ORDER_ID_REQUIRED",
-                ("order_id",),
-            )
-        if order_signal and not order_id:
-            return TurnProposal(
-                ProposalDisposition.CLARIFY,
-                (),
-                "ORDER_ID_REQUIRED",
-                ("order_id",),
-            )
-        if address_change_signal and not new_address:
-            return TurnProposal(
-                ProposalDisposition.CLARIFY,
-                (),
-                "NEW_ADDRESS_REQUIRED",
-                ("new_address",),
-            )
-        if product_identification_signal and not asset_id:
-            return TurnProposal(
-                ProposalDisposition.CLARIFY,
-                (),
-                "PRODUCT_MEDIA_REQUIRED",
-                ("asset_id",),
-            )
-        return TurnProposal(
-            ProposalDisposition.CLARIFY,
-            (),
-            "SUPPORTED_GOAL_UNCLEAR",
-            ("customer_service_goal",),
+        return CommandProposal(
+            kind=CommandKind.DELEGATE_TASK,
+            candidate_skill_ids=item.allowed_skills,
+            **common,
         )
 
 
 class CascadedTargetUnderstanding:
-    """Resolve cheap paths first; invoke one conversation planner only on defer."""
+    """Resolve state, then try the encoder, then invoke one global planner."""
 
-    version = "cascaded-target-understanding-v2"
+    version = "cascaded-target-understanding-v3"
 
-    def __init__(self, bounded, planner, *, encoder=None) -> None:
-        self._bounded = bounded
+    def __init__(self, state_bound, planner, *, encoder=None) -> None:
+        self._state_bound = state_bound
         self._planner = planner
         self._encoder = encoder
 
     async def __call__(
         self, observations, state, deterministic, registry, turn_context=None,
     ):
-        primary = await self._bounded(
+        resolved = await self._state_bound(
             observations, state, deterministic, registry, turn_context,
         )
-        if primary.disposition is not ProposalDisposition.CLARIFY:
-            return primary
-        if primary.reason_code in {
-            "ORDER_ID_REQUIRED", "PRODUCT_MEDIA_REQUIRED",
-            "APPROVAL_DECLINED", "APPROVAL_EXPIRED",
-        }:
-            return primary
+        if resolved is not None:
+            return resolved
         if self._encoder is not None:
             decision = await self._encoder(
                 observations, state, registry, turn_context,
