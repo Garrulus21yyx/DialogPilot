@@ -1,4 +1,9 @@
-"""Validation boundary for the project-authored customer-service Command Gold."""
+"""Offline validation of the archived, project-authored Command Gold v1.
+
+Its frozen vocabulary is not the current Target capability registry. The constants
+below preserve command_primary_flow_registry's data scope from commit 020c57f;
+no routing, permission or execution behavior is retained here.
+"""
 from __future__ import annotations
 
 import hashlib
@@ -6,17 +11,18 @@ import json
 from pathlib import Path
 from typing import Any, Mapping
 
-from application.route_policy_v2 import FlowActionRegistry
+_ARCHIVED_GENERATION = "command-primary-read-only-v3"
+_ARCHIVED_FLOW_IDS = frozenset({
+    "refund_status", "refund_eligibility", "media_text_read",
+})
 
 
 def validate_command_gold(
     root: Path,
-    registry: FlowActionRegistry,
 ) -> Mapping[str, Any]:
     manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
-    if manifest["registry_generation"] != registry.generation:
+    if manifest["registry_generation"] != _ARCHIVED_GENERATION:
         raise ValueError("Gold and Registry generations differ")
-    known_flows = {item.ref.flow_id for item in registry.flows}
     split_ids: dict[str, set[str]] = {}
     counts = {}
     for filename in ("dev.jsonl", "heldout.jsonl"):
@@ -46,7 +52,7 @@ def validate_command_gold(
                 for command in commands if command.get("flow")
             }
             refs.update((clarification or {}).get("candidate_flow_ids") or ())
-            if not refs.issubset(known_flows):
+            if not refs.issubset(_ARCHIVED_FLOW_IDS):
                 raise ValueError("Gold references a Flow outside the Registry")
         split_ids[filename] = ids
         counts[filename] = len(rows)

@@ -2,6 +2,21 @@
 
 Status: in_progress
 
+Done: retired the last legacy Command/RoutePolicy/TurnState types and
+orchestration enums. The only external consumer is historical Gold validation,
+which needs a generation and three Flow IDs, not executable policy. Archive those
+exact constants in the offline validator, retaining frozen samples/checksums and
+clarification scoring. Current Target planning/state tests remain behavioral gates;
+archived Gold validation is not a current runtime or model-quality claim.
+Verification: 49 current conversation/state/encoder and archived scoring tests
+pass; 28 archived vocabulary/checksum, Target planning/runner and CLI tests pass.
+Vocabulary tests cover all three archived flows, current-but-nonarchived capabilities,
+unknown flow, altered bytes and mismatched generation. No frozen data was changed.
+Full repository collection succeeds with 1160 tests. Runtime source scan finds no
+SQLite/BaseAgent/ReActExecutionEngine references, but final completion still requires
+full committed-tree tests, composition/restart audit, result-conversion consistency
+and current documentation. Historical evidence is not promoted to current quality.
+
 Done: retired the orphan FlowStateAggregate/PostgresFlowStateStore and
 their exclusive tests. Target ConversationState events are the sole current control
 state authority. Add a forward migration removing the obsolete table and its
