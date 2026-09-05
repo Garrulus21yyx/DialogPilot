@@ -6,7 +6,7 @@ permalink: /sgd-command-benchmark.html
 
 # SGD 到 DialogPilot Command IR 的公开数据适配
 
-> 状态：v2 数据、评分器与生产同源 runner 已冻结；完整 Dev 已真实运行，Test 尚未消费
+> 状态：历史 Command IR 基准。保留冻结数据与离线数据工具；旧执行 runner 已退役。
 >
 > 数据集：`dstc8-schema-guided-dialogue-command-v1-stratified`
 >
@@ -23,7 +23,9 @@ permalink: /sgd-command-benchmark.html
 - 请求不属于冻结 Registry 时，能否输出 `NO_SUPPORTED_FLOW`；
 - Command、Flow、参数与预期状态转换能否同时精确匹配。
 
-它不代表真实生产流量，也不是官方 SGD leaderboard 分数。
+它不代表真实生产流量，也不是官方 SGD leaderboard 分数。下文的模型成绩来自
+2026-09-03 的旧 Structured Command 链路，不是当前 Target / Conversation Agent 的
+评测结果；保留评分能力不等于保留旧执行实现。
 
 ## 2. 标签所有权
 
@@ -139,47 +141,23 @@ PYTHONPATH=. python scripts/score_sgd_command_predictions.py \
 Match、四类映射的 Exact Match 和 Macro Mapping-rule Exact。Command/Flow/Arguments
 的分母只包含 `RESOLVED` case，终止 case 不会虚高这些指标。
 
-## 5. 运行生产同源 Structured LLM
+## 5. 执行链退役与保留范围
 
-当前 Structured provider Command 协议已经显式携带 `arguments`。Registry 拥有
-required/optional 参数集合，RoutePolicy 拒绝缺失或未知参数；生产 `order_id` binder
-还会将模型参数和用户明确写出的 ID 交叉校验，避免模型生成标识符被直接信任。
+旧 SGD runner 使用 benchmark 专用 Registry，将餐厅、航班等服务转换成旧 Flow，
+再调用 `StructuredLLMCommandProducer` 和旧 RoutePolicy。该链路已退役，连同专用
+检索 shadow、报告 CLI 和无其他消费者的旧 ID binder 一并移除；源码可在 Git 历史中
+查阅。不提供旧引擎 fallback，也不为复现这些场景增加电商 Agent 的特化能力。
 
-运行 Dev 小样本：
+当前仍支持第 4 节的转换、分层冻结、校验和评分命令，以及
+`evaluation.public_sgd.failure_attribution.attribute_failures` 离线失败归因。
+它们处理数据及预测文件，不启动 Agent，不需要模型凭据。
 
-```bash
-ANTHROPIC_API_KEY=... \
-PYTHONPATH=. python scripts/run_sgd_structured_command_eval.py \
-  --dataset data/eval/sgd-command-balanced-v2 \
-  --split dev \
-  --limit 40 \
-  --concurrency 4 \
-  --output-dir artifacts/eval/sgd-command-dev-smoke
-```
-
-Runner 会执行：
-
-```text
-case + referenced history + current state
-→ StructuredLLMCommandProducer
-→ CommandArgument canonicalization
-→ RoutePolicy
-→ predicted state transition
-→ deterministic scorer
-```
-
-它不会读取 case 的 `expected` 字段来生成预测。中断后只有显式传入 `--resume` 且
-dataset/model/limit 配置完全一致才允许续跑。Test split 还必须显式传入
-`--allow-heldout`，防止开发期反复消费冻结集。
-
-v2 保留了官方 slot description、categorical possible values，并把官方说明中的
-`today = 2019-03-01` 和日期/时间格式写入参数 schema。它也把 `CONTINUE_FLOW` 明确定义
-为对 source-flow bindings 的增量：RoutePolicy 用“旧 bindings + 本轮 arguments”校验
-必填参数，本轮值覆盖旧值，评测投影后再与完整 service-call 参数比较。
+冻结样本、Registry JSON、checksum 和历史预测不随运行时清理修改。未来若评测当前
+Target，需另行定义适配范围和评测身份，不能将旧 Command IR 分数直接沿用为新主链成绩。
 
 ## 6. 完整 Dev 实测（2026-09-03）
 
-模型为 `deepseek-v4-flash`，通过生产同源 Structured producer 和 RoutePolicy 运行全部
+当时模型为 `deepseek-v4-flash`，通过当时的 Structured producer 和 RoutePolicy 运行全部
 1,200 条 Dev；无缺失预测，无 provider transport error。严格结果如下：
 
 | 指标 | 正确/总数 | 比例 |
@@ -195,7 +173,7 @@ v2 保留了官方 slot description、categorical possible values，并把官方
 `CONTINUE_FLOW 189/300 (63%)`、`NO_SUPPORTED_FLOW 165/300 (55%)`。
 运行身份、token 用量、prediction checksum 与逐条失败见
 `artifacts/eval/sgd-command-dev-v2/`。这些是公开适配 Dev 成绩，不是生产流量准确率；
-Test 仍保持未运行，待模型和 prompt 冻结后再做一次最终验证。
+该历史报告记录 Test 未运行；本次退役不生成预测，也不消费 Test 作模型调优。
 
 ## 7. 许可
 

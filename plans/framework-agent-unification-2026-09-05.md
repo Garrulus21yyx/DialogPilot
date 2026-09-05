@@ -2,6 +2,22 @@
 
 Status: in_progress
 
+Done: retired the public SGD legacy execution cluster (runner, runtime,
+retrieval shadow and exclusive identifier binder). Its registry constructs benchmark
+restaurant/flight flows for StructuredLLMCommandProducer, not current Target goals.
+Preserve deterministic conversion, freezing, validation, scoring, attribution and
+frozen data. Do not invent benchmark-specific Target capabilities or a compatibility
+runtime. Verify retained data tooling and current context-aware Target planning;
+mark prior SGD model results as historical, not current Target quality evidence.
+Verification: 45 retained SGD/convergence and current conversation/encoder tests
+pass. The frozen dataset validator passes for all 2400 cases without modifying data
+or generating model predictions. Independent document readback confirms current
+commands, retired execution and historical score scope are distinguishable; corrected
+its minor observation that conversion tools also write data. Remaining semantic
+Command evaluation consumers and final whole-runtime verification remain open.
+Current entity-binding and CLI tests also pass (13 tests); full repository
+collection succeeds with 1165 tests. No whole-suite execution claim is made here.
+
 Done: removed legacy RouteDecision-based authority inference and verification
 profile selection. Only dedicated old tests consume these methods; no current API,
 Target runtime or frozen fixture calls them. Preserve AuthorityPolicyRegistry tool

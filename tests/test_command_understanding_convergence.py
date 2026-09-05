@@ -6,7 +6,6 @@ from pathlib import Path
 import pytest
 
 from application.default_flow_registry import command_primary_flow_registry
-from application.flow_retrieval import LexicalFlowRetriever
 from application.turn_understanding import (
     ClarificationDecision,
     ClarificationReason,
@@ -50,15 +49,6 @@ def test_failure_attribution_selects_only_earliest_owner() -> None:
         "next_state": {"changed": True},
     }
     assert _first_failure(expected, actual) is FailureOwner.FLOW_SELECTION
-
-
-def test_flow_retrieval_is_deterministic_and_non_authoritative() -> None:
-    registry = command_primary_flow_registry("tenant-1")
-    retriever = LexicalFlowRetriever()
-    first = retriever.retrieve("check refund eligibility for order", registry)
-    second = retriever.retrieve("check refund eligibility for order", registry)
-    assert first == second
-    assert first[0].flow.flow_id == "refund_eligibility"
 
 
 def test_clarification_dev_contract_scores_multi_turn_resolution() -> None:
