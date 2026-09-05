@@ -22,6 +22,15 @@ DATASET = Path(__file__).resolve().parents[1] / "data" / "eval" / "dialogpilot-5
 FRESH_DATASET = Path(__file__).resolve().parents[1] / "data" / "eval" / "dialogpilot-stateful-fresh-v2"
 
 
+def test_loop_budget_fixture_runs_target_framework_with_paired_call_ids():
+    from evaluation.stateful_runner import _react_max_steps
+
+    evidence = asyncio.run(_react_max_steps(FixtureRequest("loop", {}, "lookup")))
+    assert all(evidence.assertions.values())
+    assert evidence.details["steps"] == 2
+    assert evidence.details["call_ids"] == ["loop-1", "loop-2"]
+
+
 def test_all_100_stateful_cases_have_registered_real_fixtures_and_observations():
     bundle = DatasetBundle.load(DATASET)
     cases = bundle.select(layer="stateful", gold_only=False)

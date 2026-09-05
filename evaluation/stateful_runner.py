@@ -17,7 +17,14 @@ from types import MappingProxyType, SimpleNamespace
 from typing import Any, Awaitable, Callable, Dict, Iterable, Mapping
 
 from agents.orchestration_contracts import AgentType, TaskPlan, TaskRisk, TaskSpec
-from agents.react_engine import ReActExecutionEngine, ReActStatus
+from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_core.messages import AIMessage, ToolMessage
+from langchain_core.outputs import ChatGeneration, ChatResult
+from application.capability_registry import CapabilityEffect, CapabilityRisk
+from application.default_capability_registry import build_default_capability_registry
+from application.orchestration_runtime import AgentContextView
+from application.work_item import ControlMode, WorkItem
+from infrastructure.target_framework_agent import TargetFrameworkAgent
 from core.model_policy import ModelProfile
 from core.tracing import TraceRecorder, trace_scope
 from evaluation.benchmark import score_bundle
@@ -667,23 +674,34 @@ async def _tool_trace(case: FixtureRequest) -> FixtureEvidence:
     }, {"audit_count": len(audits), "span_count": len(spans)})
 
 
-class _LoopClient:
-    def __init__(self):
-        self.messages = self
-        self.calls = 0
-        self.paired = True
 
-    async def create(self, **kwargs):
+
+
+
+class _LoopModel(BaseChatModel):
+    calls: int = 0
+    paired: bool = True
+
+    @property
+    def _llm_type(self):
+        return "stateful-loop-fixture"
+
+    def bind_tools(self, tools, **kwargs):
+        return self
+
+    def _generate(self, messages, stop=None, run_manager=None, **kwargs):
         self.calls += 1
         if self.calls > 1:
-            prior = kwargs["messages"][-1]["content"]
             self.paired = self.paired and any(
-                block.get("type") == "tool_result" and block.get("tool_use_id") == f"loop-{self.calls - 1}"
-                for block in prior
+                isinstance(message, ToolMessage)
+                and message.tool_call_id == f"loop-{self.calls - 1}"
+                for message in messages
             )
-        return SimpleNamespace(content=[{
-            "type": "tool_use", "id": f"loop-{self.calls}", "name": "lookup", "input": {},
-        }])
+        return ChatResult(generations=[ChatGeneration(message=AIMessage(
+            content="", tool_calls=[{
+                "name": "lookup", "args": {}, "id": f"loop-{self.calls}",
+            }],
+        ))])
 
 
 @fixture("react_max_steps")
@@ -693,18 +711,27 @@ async def _react_max_steps(case: FixtureRequest) -> FixtureEvidence:
         name="lookup", description="lookup", handler=lambda _p, _c: {"ok": True},
         schema={"type": "object", "properties": {}}, allowed_agents=("general",), read_only=True,
     ))
-    client = _LoopClient()
-    engine = ReActExecutionEngine(
-        client=client, model="fixture-model", model_profile=ModelProfile("fixture-model"),
-        tool_manager=manager, max_steps=2,
+    model = _LoopModel()
+    agent = TargetFrameworkAgent(model, manager,
+        registry=build_default_capability_registry("fixture"), system_prompt="fixture")
+    item = WorkItem(
+        work_item_id="bounded-loop", owner_agent="general", objective="lookup",
+        control_mode=ControlMode.DELEGATED, allowed_tools=("lookup",), allowed_skills=(),
+        arguments=(), requirement_ids=(), dependencies=(), effect=CapabilityEffect.READ,
+        risk=CapabilityRisk.LOW, expected_output_schema="agent-result-v1",
+        verification_profile="fixture-v1", state_snapshot_version=0,
+        registry_fingerprint="fixture-v1", timeout_seconds=8, max_steps=2,
     )
-    result = await engine.run(system="fixture", messages=[{"role": "user", "content": "loop"}], agent_type="general")
+    result = await agent(AgentContextView(item, case.message, (), (), (), 2000, {
+        "tenant_id": "fixture", "user_id": "fixture", "conversation_id": case.case_id,
+    }))
+    call_ids = tuple(record.call_id for record in manager.audit_records())
     return FixtureEvidence({
-        "max_steps_typed": result.status is ReActStatus.MAX_STEPS,
-        "loop_stopped": result.steps == 2 and client.calls == 2,
-        "tool_results_paired": client.paired,
-        "call_ids_recorded": result.tool_call_ids == ("loop-1", "loop-2"),
-    }, {"status": result.status.value, "steps": result.steps, "call_ids": list(result.tool_call_ids)})
+        "max_steps_typed": result.reason_code == "AGENT_STEP_BUDGET_EXCEEDED",
+        "loop_stopped": model.calls == 2,
+        "tool_results_paired": model.paired,
+        "call_ids_recorded": call_ids == ("loop-1", "loop-2"),
+    }, {"status": result.status.value, "steps": model.calls, "call_ids": list(call_ids)})
 
 
 @fixture("coverage_gate")

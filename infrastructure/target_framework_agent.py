@@ -18,6 +18,7 @@ from langchain.agents.middleware.model_call_limit import ModelCallLimitExceededE
 from langchain.agents.middleware.tool_call_limit import ToolCallLimitExceededError
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.tools import StructuredTool
+from langchain.tools import ToolRuntime
 from langgraph.errors import GraphRecursionError
 
 from application.agent_result import (
@@ -165,17 +166,19 @@ class TargetFrameworkAgent:
             allowed_tool_ids=item.allowed_tools,
         )
         tools = [
-            self._atomic_tool(context, runtime_agent, definition)
+            self._atomic_tool(definition)
             for definition in definitions
         ]
         for skill_id in item.allowed_skills:
-            tools.append(self._skill_tool(context, skill_id))
+            tools.append(self._skill_tool(skill_id))
         if not tools:
             raise ValueError("delegated Agent has no executable capability")
         return tools
 
-    def _atomic_tool(self, context, runtime_agent, definition):
-        async def execute(**arguments):
+    def _atomic_tool(self, definition):
+        async def execute(runtime: ToolRuntime, **arguments):
+            context = runtime.context
+            runtime_agent = _RUNTIME_AGENT_ID[context.work_item.owner_agent]
             if self._control_guard is not None:
                 self._control_guard.ensure_current(
                     context.work_item, context.trusted_context,
@@ -184,6 +187,7 @@ class TargetFrameworkAgent:
                 definition.name,
                 dict(arguments),
                 agent_type=runtime_agent,
+                call_id=runtime.tool_call_id,
                 context=dict(context.trusted_context),
                 allowed_tool_ids=context.work_item.allowed_tools,
             )
@@ -202,7 +206,7 @@ class TargetFrameworkAgent:
             response_format="content_and_artifact",
         )
 
-    def _skill_tool(self, context, skill_id):
+    def _skill_tool(self, skill_id):
         definition = self._registry.skill(skill_id)
         executor = self._skill_executors.get(skill_id)
         if executor is None:
@@ -212,7 +216,8 @@ class TargetFrameworkAgent:
             for name in (*definition.required_arguments, *definition.optional_arguments)
         }
 
-        async def execute(**arguments):
+        async def execute(runtime: ToolRuntime, **arguments):
+            context = runtime.context
             if self._control_guard is not None:
                 self._control_guard.ensure_current(
                     context.work_item, context.trusted_context,

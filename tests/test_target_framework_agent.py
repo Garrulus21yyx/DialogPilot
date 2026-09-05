@@ -150,8 +150,9 @@ def test_framework_agent_uses_only_governed_tools_and_returns_provenance():
     assert result.status is AgentResultStatus.SUCCEEDED
     assert result.candidate_response == "目录确认型号为 PX-200。"
     assert result.facts[0].requirement_id == "product.canonical_model"
-    assert result.facts[0].source_ref
+    assert result.facts[0].source_ref == "tool-call-1"
     assert model.bound_tool_names == ["catalog_search"]
+    assert "runtime" not in manager.tools_for_agent("technical")[0].schema["properties"]
     assert calls[0][0] == {"query": "当前商品"}
     assert calls[0][1]["agent_type"] == "technical"
 

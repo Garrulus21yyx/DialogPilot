@@ -367,6 +367,18 @@ def test_only_target_run_controls_are_exposed_by_http():
     assert not hasattr(main, "_run_store")
 
 
+def test_target_composition_import_does_not_load_old_runtime():
+    import subprocess
+    import sys
+
+    subprocess.run([sys.executable, "-c", """
+import sys
+import infrastructure.target_runtime_composition
+assert not {'application.chat_application', 'agents.agent_orchestrator',
+            'agents.react_engine', 'agents.run_store'} & sys.modules.keys()
+"""], check=True)
+
+
 def test_http_chat_function_projects_target_completed_response(monkeypatch):
     from api import main
     from core.auth import Principal
