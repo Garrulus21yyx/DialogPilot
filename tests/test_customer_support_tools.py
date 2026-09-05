@@ -62,6 +62,27 @@ def test_ticket_write_waits_for_host_approval_then_returns_committed_receipt(tic
     assert manager.audit_records()[-1].receipt_id == approved.receipt_id
 
 
+def test_ticket_persists_host_validated_handoff_contract(ticket_service):
+    manager = runtime(ticket_service)
+    handoff_contract = '{"schema_version":"handoff-draft-v1"}'
+
+    result = asyncio.run(manager.execute_for_agent(
+        "support_ticket_create",
+        create_params(),
+        agent_type="escalation",
+        context={
+            **context(),
+            "handoff_contract_json": handoff_contract,
+        },
+        approved=True,
+    ))
+
+    ticket = ticket_service.get_ticket(result.receipt_id)
+    assert ticket.identity_metadata == {
+        "handoff_contract": handoff_contract,
+    }
+
+
 def test_ticket_create_is_idempotent_for_same_request(ticket_service):
     service = ticket_service
     manager = runtime(service)

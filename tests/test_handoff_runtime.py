@@ -33,6 +33,7 @@ from application.write_workflow import (
 from core.identity import IdentityFactory
 from infrastructure.target_workflow_execution import (
     TargetWorkflowExecutor,
+    _ToolPort,
     _ToolReconciler,
 )
 
@@ -169,6 +170,65 @@ def test_unknown_handoff_outcome_uses_registry_reconciliation_not_flow_name():
     assert outcome.status is WriteOutcomeStatus.COMMITTED
     assert outcome.receipt_id == "ticket-1"
     assert tools.calls[0][0] == "support_ticket_by_operation"
+
+
+def test_target_handoff_write_requires_policy_accepted_draft_and_forwards_it():
+    item = _item()
+    context = AgentContextView(
+        item,
+        "Please transfer this case to a person",
+        (),
+        (),
+        ("evidence:conversation",),
+        1000,
+        {
+            "tenant_id": "tenant-a",
+            "user_id": "user-a",
+            "conversation_id": "conversation-a",
+            "request_id": "request-a",
+        },
+    )
+    accepted = TargetWorkflowExecutor._accepted_handoff(context)
+
+    class Tools:
+        def __init__(self):
+            self.context = None
+
+        async def execute_for_agent(self, _name, _params, **kwargs):
+            self.context = kwargs["context"]
+            return SimpleNamespace(
+                success=True,
+                effect_status="committed",
+                receipt_schema_version="ticket-receipt-v1",
+                receipt_id="ticket-1",
+            )
+
+    tools = Tools()
+    outcome = asyncio.run(_ToolPort(
+        tools,
+        context,
+        accepted_handoff=accepted,
+    ).execute(
+        item,
+        tool_id="support_ticket_create",
+        arguments={},
+        operation_key=item.operation_key,
+    ))
+
+    assert accepted is not None
+    assert accepted.reason_code == "EXPLICIT_USER_HANDOFF"
+    assert outcome.status is WriteOutcomeStatus.COMMITTED
+    assert '"handoff_id":"handoff-operation-1"' in (
+        tools.context["handoff_contract_json"]
+    )
+
+    with pytest.raises(ValueError, match="accepted draft"):
+        asyncio.run(_ToolPort(tools, context).execute(
+            item,
+            tool_id="support_ticket_create",
+            arguments={},
+            operation_key=item.operation_key,
+        ))
 
 
 def test_handoff_commit_receipt_transfers_owner_and_allows_success_claim():

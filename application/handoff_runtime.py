@@ -60,6 +60,47 @@ class HandoffDraft:
         if self.risk not in {"LOW", "MEDIUM", "HIGH", "CRITICAL"}:
             raise HandoffContractError("handoff risk is unsupported")
 
+    def to_payload(self) -> dict[str, object]:
+        """Serialize the reviewed handoff contract without losing provenance."""
+        return {
+            "schema_version": self.schema_version,
+            "handoff_id": self.handoff_id,
+            "target_queue": self.target_queue,
+            "user_goal": self.user_goal,
+            "problem_summary": self.problem_summary,
+            "reason_codes": list(self.reason_codes),
+            "verified_facts": [
+                {
+                    "subject_ref": fact.subject_ref,
+                    "requirement_id": fact.requirement_id,
+                    "value_json": fact.value_json,
+                    "source_kind": fact.source_kind.value,
+                    "source_ref": fact.source_ref,
+                    "producer_id": fact.producer_id,
+                    "producer_version": fact.producer_version,
+                    "observed_at": fact.observed_at.isoformat(),
+                }
+                for fact in self.verified_facts
+            ],
+            "user_assertions": list(self.user_assertions),
+            "action_receipts": [
+                {
+                    "receipt_id": receipt.receipt_id,
+                    "schema_version": receipt.schema_version,
+                    "operation_key": receipt.operation_key,
+                    "effect_status": receipt.effect_status,
+                    "requirement_id": receipt.requirement_id,
+                }
+                for receipt in self.action_receipts
+            ],
+            "missing_materials": list(self.missing_materials),
+            "media_evidence_refs": list(self.media_evidence_refs),
+            "risk": self.risk,
+            "commitments_and_sla": list(self.commitments_and_sla),
+            "recommended_next_action": self.recommended_next_action,
+            "explicit_user_request": self.explicit_user_request,
+        }
+
 
 @dataclass(frozen=True)
 class AcceptedHandoff:

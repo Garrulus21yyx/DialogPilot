@@ -63,6 +63,9 @@ def ticket_tools(service: TicketService) -> Tuple[Tool, ...]:
         priority = TicketPriority(str(params.get("priority") or TicketPriority.NORMAL.value))
         agent_type = str((context or {}).get("agent_type") or "general")
         intent = str((context or {}).get("intent") or "other")
+        handoff_contract = str(
+            (context or {}).get("handoff_contract_json") or ""
+        ).strip()
         ticket, created = await asyncio.to_thread(
             service.create_ticket,
             idempotency_key=f"agent-tool:{user_id}:{conv_id}:{operation_key}",
@@ -76,6 +79,10 @@ def ticket_tools(service: TicketService) -> Tuple[Tool, ...]:
             agent_type=agent_type,
             intent=intent,
             verification_status="tool_approved",
+            identity_metadata=(
+                {"handoff_contract": handoff_contract}
+                if handoff_contract else {}
+            ),
         )
         return ToolEffectReceipt(
             data={

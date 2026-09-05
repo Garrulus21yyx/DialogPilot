@@ -1,9 +1,16 @@
 """Target v1 workflow executor for governed ToolManager business writes."""
 from __future__ import annotations
 
+import json
+
 from application.agent_result import AgentResult, AgentResultStatus
 from application.capability_registry import ApprovalPolicy
 from application.conversation_store import ConversationScope
+from application.handoff_runtime import (
+    AcceptedHandoff,
+    HandoffCommitPolicy,
+    HandoffDraft,
+)
 from application.orchestration_runtime import AgentContextView
 from application.write_workflow import (
     ApprovalGrant,
@@ -41,13 +48,53 @@ class TargetWorkflowExecutor:
             ConversationId(trusted["conversation_id"]),
         )
         grants = self._approval_grants(item, trusted)
+        accepted_handoff = self._accepted_handoff(context)
         runtime = GovernedWriteRuntime(
             ledger=PostgresOperationLedger(self._pool, scope),
-            tool_port=_ToolPort(self._tools, context),
+            tool_port=_ToolPort(
+                self._tools,
+                context,
+                accepted_handoff=accepted_handoff,
+            ),
             reconciliation_port=_ToolReconciler(self._tools, context),
             approval_grants=grants,
         )
         return await runtime(context)
+
+    @staticmethod
+    def _accepted_handoff(
+        context: AgentContextView,
+    ) -> AcceptedHandoff | None:
+        item = context.work_item
+        if "support.handoff_action" not in item.requirement_ids:
+            return None
+        arguments = {
+            argument.name: argument.value for argument in item.arguments
+        }
+        reason = str(arguments.get("reason") or "USER_REQUEST").strip()
+        summary = str(arguments.get("summary") or item.objective).strip()
+        draft = HandoffDraft(
+            handoff_id=str(item.operation_key),
+            target_queue="customer_support",
+            user_goal=context.current_message or item.objective,
+            problem_summary=summary,
+            reason_codes=(reason,),
+            verified_facts=context.verified_facts,
+            user_assertions=(context.current_message,)
+            if context.current_message else (),
+            action_receipts=(),
+            missing_materials=(),
+            media_evidence_refs=context.evidence_refs,
+            risk=item.risk.value,
+            commitments_and_sla=(),
+            recommended_next_action=(
+                "Review the verified context and continue the customer case."
+            ),
+            explicit_user_request=(
+                item.approval_policy is ApprovalPolicy.USER_COMMAND_SUFFICIENT
+            ),
+        )
+        return HandoffCommitPolicy().accept(draft)
 
     @staticmethod
     def _approval_grants(item, trusted):
@@ -78,15 +125,35 @@ class TargetWorkflowExecutor:
 
 
 class _ToolPort:
-    def __init__(self, tool_manager, context: AgentContextView) -> None:
+    def __init__(
+        self,
+        tool_manager,
+        context: AgentContextView,
+        *,
+        accepted_handoff: AcceptedHandoff | None = None,
+    ) -> None:
         self._tools = tool_manager
         self._context = context
+        self._accepted_handoff = accepted_handoff
 
     async def execute(self, item, *, tool_id, arguments, operation_key):
         context = {
             **dict(self._context.trusted_context),
             "business_operation_key": operation_key,
         }
+        if tool_id == "support_ticket_create":
+            if self._accepted_handoff is None:
+                raise ValueError("handoff write requires an accepted draft")
+            context["handoff_contract_json"] = json.dumps(
+                {
+                    "policy_version": self._accepted_handoff.policy_version,
+                    "policy_reason_code": self._accepted_handoff.reason_code,
+                    "draft": self._accepted_handoff.draft.to_payload(),
+                },
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            )
         result = await self._tools.execute_for_agent(
             tool_id,
             dict(arguments),
