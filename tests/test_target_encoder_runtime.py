@@ -1,5 +1,6 @@
 import asyncio
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -7,6 +8,7 @@ import pytest
 from application.conversation_state import ConversationState
 from application.default_capability_registry import build_default_capability_registry
 from application.deterministic_resolution import DeterministicResolver, TurnObservations
+from application.entity_binding import EntityBindingResolver
 from application.conversation_agent import ConversationAgent
 from application.target_encoder_artifact import (
     TargetEncoderArtifactError,
@@ -17,6 +19,7 @@ from application.target_understanding import (
     BoundedTargetUnderstanding,
     CascadedTargetUnderstanding,
 )
+from application.target_conversation_manager import TargetTurnContext
 from application.turn_planning import ProposalDisposition
 from evaluation.target_encoder_training import train_target_encoder
 
@@ -52,7 +55,16 @@ def _invoke(cascade, message):
     observations = TurnObservations(message)
     deterministic = DeterministicResolver().resolve(observations, state)
     registry = build_default_capability_registry("tenant-a")
-    return asyncio.run(cascade(observations, state, deterministic, registry))
+    context = TargetTurnContext()
+    context = replace(
+        context,
+        entity_bindings=EntityBindingResolver().resolve(
+            observations, state, context,
+        ),
+    )
+    return asyncio.run(cascade(
+        observations, state, deterministic, registry, context,
+    ))
 
 
 def test_active_artifact_enables_only_class_that_passed_both_gates():

@@ -13,6 +13,7 @@ from application.capability_registry import (
     CapabilityEffect,
     CapabilityRisk,
 )
+from application.entity_binding import EntityBinding
 
 
 class WorkItemContractError(ValueError):
@@ -77,6 +78,7 @@ class WorkItem:
     aggregate_ref: str | None = None
     action_ref: str | None = None
     approval_policy: ApprovalPolicy | None = None
+    argument_bindings: tuple[EntityBinding, ...] = ()
 
     def __post_init__(self) -> None:
         required = (
@@ -92,6 +94,14 @@ class WorkItem:
         _unique(self.allowed_tools, "allowed tools")
         _unique(self.allowed_skills, "allowed skills")
         _unique((item.name for item in self.arguments), "arguments")
+        _unique((item.field_name for item in self.argument_bindings), "argument bindings")
+        arguments = {item.name: item.value_json for item in self.arguments}
+        if any(
+            item.field_name not in arguments
+            or arguments[item.field_name] != item.value_json
+            for item in self.argument_bindings
+        ):
+            raise WorkItemContractError("argument binding does not match its argument")
         _unique(self.requirement_ids, "requirements")
         _unique(self.dependencies, "dependencies")
         if self.work_item_id in self.dependencies:
@@ -152,6 +162,22 @@ class WorkItem:
             "allowed_tools": self.allowed_tools,
             "allowed_skills": self.allowed_skills,
             "arguments": [(item.name, item.value_json) for item in self.arguments],
+            "argument_bindings": [
+                {
+                    "field_name": item.field_name,
+                    "value_json": item.value_json,
+                    "source": item.source.value,
+                    "source_ref": item.source_ref,
+                    "scope": (
+                        item.tenant_id, item.user_id, item.conversation_id,
+                    ),
+                    "priority": item.priority,
+                    "source_version": item.source_version,
+                    "workstream_id": item.workstream_id,
+                    "valid_until": item.valid_until,
+                }
+                for item in self.argument_bindings
+            ],
             "requirements": self.requirement_ids,
             "dependencies": self.dependencies,
             "effect": self.effect.value,
@@ -210,6 +236,10 @@ class WorkItem:
             "allowed_tools": self.allowed_tools,
             "allowed_skills": self.allowed_skills,
             "arguments": [(item.name, item.value_json) for item in self.arguments],
+            "argument_bindings": [
+                (item.field_name, item.value_json, item.source_ref)
+                for item in self.argument_bindings
+            ],
             "requirements": self.requirement_ids,
             "effect": self.effect.value,
             "risk": self.risk.value,

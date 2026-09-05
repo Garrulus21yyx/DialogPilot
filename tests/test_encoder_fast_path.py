@@ -21,6 +21,7 @@ from application.encoder_fast_path import (
     RankedCandidate,
     UnderstandingEvidencePolicy,
 )
+from application.entity_binding import BindingSource, EntityBinding
 from application.turn_planning import CommandKind
 
 
@@ -108,8 +109,19 @@ def _policy():
     )
 
 
+def _order_binding():
+    return EntityBinding.create(
+        "order_id", "DP1234", source=BindingSource.CURRENT_MESSAGE,
+        source_ref="turn-message:current:reference:1",
+        tenant_id="tenant-a", user_id="user-a",
+        conversation_id="conversation-a", priority=400,
+    )
+
+
 def test_calibrated_atomic_read_fast_path_produces_direct_registry_command():
-    decision = _policy().decide(_output(), _state(), _registry())
+    decision = _policy().decide(
+        _output(), _state(), _registry(), entity_bindings=(_order_binding(),),
+    )
 
     assert decision.accepted is True
     command = decision.proposal.commands[0]
@@ -117,6 +129,7 @@ def test_calibrated_atomic_read_fast_path_produces_direct_registry_command():
     assert command.tool_id == "refund_status"
     assert command.target_agent == "billing_refund"
     assert command.arguments[0].value == "DP1234"
+    assert command.argument_bindings == (_order_binding(),)
 
 
 def test_fast_path_defers_low_margin_boundary_and_multi_intent_cases():

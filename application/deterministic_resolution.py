@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from enum import Enum
 
 from application.conversation_state import ConversationState
+from application.entity_binding import BindingSource, EntityBinding
 from application.work_item import ArgumentValue, WorkItem
 
 
@@ -94,6 +95,7 @@ class DeterministicResolution:
     target_entity_version: str | None = None
     arguments: tuple[tuple[str, object], ...] = ()
     resumed_work_items: tuple[WorkItem, ...] = ()
+    argument_bindings: tuple[EntityBinding, ...] = ()
 
     @property
     def resolved(self) -> bool:
@@ -134,7 +136,7 @@ class DeterministicResolver:
                     signal_version=pending.version,
                     fields=fields,
                     resumed_work_items=self._resume_work_items(
-                        pending.suspended_work_items, fields,
+                        pending.suspended_work_items, fields, state,
                     ),
                 )
 
@@ -174,6 +176,7 @@ class DeterministicResolver:
                 target_entity_ref=approval.target_entity_ref,
                 target_entity_version=approval.target_entity_version,
                 arguments=tuple((item.name, item.value) for item in approval.arguments),
+                argument_bindings=approval.argument_bindings,
             )
         if observations.approval_decision is not None:
             accepted = next((
@@ -201,6 +204,7 @@ class DeterministicResolver:
                     arguments=tuple(
                         (item.name, item.value) for item in accepted.arguments
                     ),
+                    argument_bindings=accepted.argument_bindings,
                 )
             raise DeterministicResolutionError("approval signal is stale or unknown")
 
@@ -304,6 +308,7 @@ class DeterministicResolver:
     def _resume_work_items(
         suspended: tuple[WorkItem, ...],
         fields: tuple[ResolvedField, ...],
+        state: ConversationState,
     ) -> tuple[WorkItem, ...]:
         values: dict[str, list[ArgumentValue]] = {}
         for field in fields:
@@ -316,8 +321,26 @@ class DeterministicResolver:
             merged.update({argument.name: argument for argument in values.get(
                 item.work_item_id, (),
             )})
+            new_bindings = tuple(EntityBinding.create(
+                field.field_name, field.value,
+                source=BindingSource.PENDING_INTERACTION,
+                source_ref=(
+                    f"interaction:{state.pending_interaction.interaction_id}:"
+                    f"v{state.pending_interaction.version}:"
+                    f"{field.workstream_id}:{field.field_name}"
+                ),
+                tenant_id=str(state.tenant_id), user_id=str(state.user_id),
+                conversation_id=str(state.conversation_id), priority=500,
+            ) for field in fields if field.workstream_id == item.work_item_id)
+            rebound = {
+                binding.field_name: binding for binding in item.argument_bindings
+            }
+            rebound.update({binding.field_name: binding for binding in new_bindings})
             resumed.append(WorkItem(**{
                 **item.__dict__,
                 "arguments": tuple(merged[name] for name in sorted(merged)),
+                "argument_bindings": tuple(
+                    rebound[name] for name in sorted(rebound)
+                ),
             }))
         return tuple(resumed)

@@ -7,6 +7,7 @@ from typing import Mapping
 
 from application.capability_registry import CapabilityEffect, CapabilityRegistryBundle
 from application.conversation_state import ConversationState
+from application.entity_binding import BindingStatus, EntityBinding
 from application.turn_planning import (
     CommandKind,
     CommandProposal,
@@ -76,6 +77,7 @@ class EncoderFastPathPolicy:
         output: IntentEncoderOutput,
         state: ConversationState,
         registry: CapabilityRegistryBundle,
+        entity_bindings: tuple[EntityBinding, ...] = (),
     ) -> FastPathDecision:
         if output.out_of_distribution:
             return FastPathDecision(False, "ENCODER_OOD")
@@ -131,6 +133,27 @@ class EncoderFastPathPolicy:
             for name, value in output.entities
             if name in allowed_arguments
         )
+        matched_bindings = []
+        for argument in arguments:
+            if argument.name in {"query", "question"}:
+                continue
+            matches = tuple(
+                binding for binding in entity_bindings
+                if binding.field_name == argument.name
+                and binding.value_json == argument.value_json
+                and binding.valid_for(state) is BindingStatus.UNIQUE
+            )
+            if matches:
+                matched_bindings.append(max(matches, key=lambda item: item.priority))
+        argument_bindings = tuple(matched_bindings)
+        provenance_required = {
+            argument.name for argument in arguments
+            if argument.name not in {"query", "question"}
+        }
+        if provenance_required.difference(
+            item.field_name for item in argument_bindings
+        ):
+            return FastPathDecision(False, "ENCODER_ENTITY_PROVENANCE_MISSING")
         command = (
             CommandProposal(
                 command_id=f"encoder:skill:{skill.skill_id}",
@@ -140,6 +163,7 @@ class EncoderFastPathPolicy:
                 arguments=arguments,
                 requirement_ids=skill.requirement_ids,
                 skill_id=skill.skill_id,
+                argument_bindings=argument_bindings,
             )
             if kind == "skill" else CommandProposal(
                 command_id=f"encoder:tool:{tool.tool_id}",
@@ -149,6 +173,7 @@ class EncoderFastPathPolicy:
                 arguments=arguments,
                 requirement_ids=(tool.authority,),
                 tool_id=tool.tool_id,
+                argument_bindings=argument_bindings,
             )
         )
         return FastPathDecision(

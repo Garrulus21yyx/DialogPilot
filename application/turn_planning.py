@@ -15,6 +15,7 @@ from application.capability_registry import (
     CapabilityRisk,
 )
 from application.conversation_state import ConversationState
+from application.entity_binding import BindingStatus, EntityBinding
 from application.work_item import ArgumentValue, ControlMode, WorkItem, WorkPlan
 from core.identity import InvocationIdentity
 
@@ -77,6 +78,7 @@ class CommandProposal:
     approval_binding: str | None = None
     operation_key: str | None = None
     approval_signal_version: int | None = None
+    argument_bindings: tuple[EntityBinding, ...] = ()
 
     def __post_init__(self) -> None:
         if any(not str(value or "").strip() for value in (
@@ -84,6 +86,17 @@ class CommandProposal:
         )):
             raise TurnPlanningError("command identity, owner, and objective are required")
         _unique((item.name for item in self.arguments), "command arguments")
+        _unique(
+            (item.field_name for item in self.argument_bindings),
+            "command argument bindings",
+        )
+        arguments = {item.name: item.value_json for item in self.arguments}
+        if any(
+            item.field_name not in arguments
+            or arguments[item.field_name] != item.value_json
+            for item in self.argument_bindings
+        ):
+            raise TurnPlanningError("command binding does not match its argument")
         _unique(self.requirement_ids, "command requirements")
         _unique(self.candidate_skill_ids, "candidate skills")
         _unique(self.dependencies, "command dependencies")
@@ -190,6 +203,11 @@ class RoutePolicy:
         state: ConversationState,
     ) -> ValidatedCommand:
         agent = registry.agent(command.target_agent)
+        if any(
+            item.valid_for(state) is not BindingStatus.UNIQUE
+            for item in command.argument_bindings
+        ):
+            raise TurnPlanningError("command carries a stale or unauthorized binding")
         requirement_index = {
             item.requirement_id: item for item in registry.requirements
         }
@@ -617,6 +635,7 @@ class TurnPlanCompiler:
             allowed_tools=command.allowed_tools,
             allowed_skills=command.allowed_skills,
             arguments=proposal.arguments,
+            argument_bindings=proposal.argument_bindings,
             requirement_ids=proposal.requirement_ids,
             dependencies=(),
             effect=command.effect,

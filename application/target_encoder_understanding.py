@@ -1,17 +1,12 @@
 """Adapt a Target-native encoder artifact into the turn-understanding cascade."""
 from __future__ import annotations
 
-import re
-
 from application.encoder_fast_path import (
     EncoderFastPathPolicy,
     FastPathDecision,
     IntentEncoderOutput,
 )
 from application.target_encoder_artifact import DEFER_LABEL, TargetTextEncoderArtifact
-
-
-_IDENTIFIER = re.compile(r"\b[A-Za-z]{1,12}[-_]?\d{2,64}\b")
 
 
 class TargetEncoderUnderstanding:
@@ -38,9 +33,11 @@ class TargetEncoderUnderstanding:
         if not any(term in normalized_text for term in target.required_signal_terms):
             return FastPathDecision(False, "ENCODER_REQUIRED_SIGNAL_MISSING")
         fields = dict(observations.structured_fields)
-        identifiers = _IDENTIFIER.findall(observations.raw_text)
-        if "order_id" in target.required_arguments and identifiers:
-            fields.setdefault("order_id", identifiers[0])
+        bindings = turn_context.entity_bindings
+        for name in target.required_arguments:
+            selected = bindings.resolve(name, state).selected
+            if selected is not None:
+                fields.setdefault(name, selected.value)
         if "query" in target.required_arguments:
             fields["query"] = observations.raw_text
         if "question" in target.required_arguments:
@@ -66,4 +63,6 @@ class TargetEncoderUnderstanding:
             ),
             missing_inputs=missing,
         )
-        return self._policy.decide(output, state, registry)
+        return self._policy.decide(
+            output, state, registry, entity_bindings=bindings.bindings,
+        )

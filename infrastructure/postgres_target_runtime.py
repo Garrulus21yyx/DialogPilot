@@ -32,6 +32,7 @@ from application.conversation_state import (
     WorkstreamStatus,
 )
 from application.conversation_store import ConversationScope
+from application.entity_binding import BindingSource, EntityBinding
 from application.work_item import ArgumentValue, ControlMode, WorkItem
 from application.write_workflow import (
     OperationConflict,
@@ -182,6 +183,9 @@ def conversation_state_to_payload(state: ConversationState) -> dict[str, object]
                     {"name": slot.name, "value_json": slot.value_json}
                     for slot in item.slots
                 ],
+                "slot_bindings": [
+                    _binding_to_payload(binding) for binding in item.slot_bindings
+                ],
                 "flow_ref": item.flow_ref,
             }
             for item in state.workstreams
@@ -212,11 +216,15 @@ def conversation_state_to_payload(state: ConversationState) -> dict[str, object]
                 **{
                     key: value
                     for key, value in state.pending_approval.__dict__.items()
-                    if key != "arguments"
+                    if key not in {"arguments", "argument_bindings"}
                 },
                 "arguments": [
                     {"name": item.name, "value_json": item.value_json}
                     for item in state.pending_approval.arguments
+                ],
+                "argument_bindings": [
+                    _binding_to_payload(binding)
+                    for binding in state.pending_approval.argument_bindings
                 ],
             }
             if state.pending_approval else None
@@ -227,11 +235,14 @@ def conversation_state_to_payload(state: ConversationState) -> dict[str, object]
             {
                 **{
                     key: value for key, value in item.__dict__.items()
-                    if key != "arguments"
+                    if key not in {"arguments", "argument_bindings"}
                 },
                 "arguments": [
                     {"name": arg.name, "value_json": arg.value_json}
                     for arg in item.arguments
+                ],
+                "argument_bindings": [
+                    _binding_to_payload(binding) for binding in item.argument_bindings
                 ],
             }
             for item in state.accepted_approvals
@@ -263,6 +274,10 @@ def conversation_state_from_payload(raw: Mapping[str, object]) -> ConversationSt
                     for slot in item.get("slots", ())
                 ),
                 str(item["flow_ref"]) if item.get("flow_ref") is not None else None,
+                tuple(
+                    _binding_from_payload(binding)
+                    for binding in item.get("slot_bindings", ())
+                ),
             )
             for item in payload.get("workstreams", ())
         ),
@@ -312,6 +327,10 @@ def conversation_state_from_payload(raw: Mapping[str, object]) -> ConversationSt
                     str(approval_raw["checkpoint_thread_id"])
                     if approval_raw.get("checkpoint_thread_id") is not None else None
                 ),
+                tuple(
+                    _binding_from_payload(binding)
+                    for binding in approval_raw.get("argument_bindings", ())
+                ),
             )
             if isinstance(approval_raw, Mapping) else None
         ),
@@ -343,6 +362,10 @@ def conversation_state_from_payload(raw: Mapping[str, object]) -> ConversationSt
                     ArgumentValue(str(arg["name"]), str(arg["value_json"]))
                     for arg in item.get("arguments", ())
                 ),
+                tuple(
+                    _binding_from_payload(binding)
+                    for binding in item.get("argument_bindings", ())
+                ),
             )
             for item in payload.get("accepted_approvals", ())
         ),
@@ -360,6 +383,9 @@ def _work_item_to_payload(item: WorkItem) -> dict[str, object]:
         "arguments": [
             {"name": value.name, "value_json": value.value_json}
             for value in item.arguments
+        ],
+        "argument_bindings": [
+            _binding_to_payload(value) for value in item.argument_bindings
         ],
         "requirement_ids": list(item.requirement_ids),
         "dependencies": list(item.dependencies),
@@ -444,6 +470,51 @@ def _work_item_from_payload(raw: Mapping[str, object]) -> WorkItem:
         str(raw["aggregate_ref"]) if raw.get("aggregate_ref") is not None else None,
         str(raw["action_ref"]) if raw.get("action_ref") is not None else None,
         ApprovalPolicy(str(approval_policy)) if approval_policy is not None else None,
+        tuple(
+            _binding_from_payload(value)
+            for value in raw.get("argument_bindings", ())
+        ),
+    )
+
+
+def _binding_to_payload(value: EntityBinding) -> dict[str, object]:
+    return {
+        "field_name": value.field_name,
+        "value_json": value.value_json,
+        "source": value.source.value,
+        "source_ref": value.source_ref,
+        "tenant_id": value.tenant_id,
+        "user_id": value.user_id,
+        "conversation_id": value.conversation_id,
+        "priority": value.priority,
+        "source_version": value.source_version,
+        "workstream_id": value.workstream_id,
+        "valid_until": value.valid_until,
+    }
+
+
+def _binding_from_payload(value: Mapping[str, object]) -> EntityBinding:
+    return EntityBinding(
+        field_name=str(value["field_name"]),
+        value_json=str(value["value_json"]),
+        source=BindingSource(str(value["source"])),
+        source_ref=str(value["source_ref"]),
+        tenant_id=str(value["tenant_id"]),
+        user_id=str(value["user_id"]),
+        conversation_id=str(value["conversation_id"]),
+        priority=int(value["priority"]),
+        source_version=(
+            int(value["source_version"])
+            if value.get("source_version") is not None else None
+        ),
+        workstream_id=(
+            str(value["workstream_id"])
+            if value.get("workstream_id") is not None else None
+        ),
+        valid_until=(
+            str(value["valid_until"])
+            if value.get("valid_until") is not None else None
+        ),
     )
 
 

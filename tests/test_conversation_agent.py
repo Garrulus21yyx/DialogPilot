@@ -1,9 +1,11 @@
 import asyncio
+from dataclasses import replace
 from types import SimpleNamespace
 
 from application.conversation_state import ConversationState
 from application.default_capability_registry import build_default_capability_registry
 from application.deterministic_resolution import DeterministicResolver, TurnObservations
+from application.entity_binding import EntityBindingResolver
 from application.conversation_agent import ConversationAgent
 from application.target_understanding import (
     BoundedTargetUnderstanding,
@@ -41,10 +43,17 @@ def _invoke(understanding, text, *, fields=()):
     observations = TurnObservations(text, fields)
     deterministic = DeterministicResolver().resolve(observations, state)
     registry = build_default_capability_registry("tenant-a")
+    context = TargetTurnContext()
+    context = replace(
+        context,
+        entity_bindings=EntityBindingResolver().resolve(
+            observations, state, context,
+        ),
+    )
     invocation = (
-        understanding.plan(observations, state, deterministic, registry)
+        understanding.plan(observations, state, deterministic, registry, context)
         if isinstance(understanding, ConversationAgent)
-        else understanding(observations, state, deterministic, registry)
+        else understanding(observations, state, deterministic, registry, context)
     )
     proposal = asyncio.run(invocation)
     return proposal, state, registry

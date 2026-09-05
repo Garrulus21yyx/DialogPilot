@@ -24,6 +24,7 @@ from application.deterministic_resolution import (
     ResolutionKind,
     TurnObservations,
 )
+from application.entity_binding import EntityBindingResolver, EntityBindingSet
 from application.orchestration_runtime import OrchestrationRuntime
 from application.result_board import ResultBoardSnapshot
 from application.agent_result import AgentResultStatus, RequestedField
@@ -99,6 +100,7 @@ class TargetTurnContext:
     projection_reason_codes: tuple[str, ...] = ("CONTEXT_PROVIDER_NOT_CONFIGURED",)
     memory_attempted: bool = False
     memory_status: str = "NOT_REQUIRED"
+    entity_bindings: EntityBindingSet = EntityBindingSet()
 
     def __post_init__(self) -> None:
         if self.source_watermark < 0:
@@ -160,6 +162,7 @@ class TargetConversationManager:
         route_policy: RoutePolicy | None = None,
         compiler: TurnPlanCompiler | None = None,
         context_provider: TargetTurnContextProvider | None = None,
+        binding_resolver: EntityBindingResolver | None = None,
     ) -> None:
         self._state_store = state_store
         self._registry = registry
@@ -169,6 +172,7 @@ class TargetConversationManager:
         self._route_policy = route_policy or RoutePolicy()
         self._compiler = compiler or TurnPlanCompiler()
         self._context_provider = context_provider
+        self._binding_resolver = binding_resolver or EntityBindingResolver()
 
     async def handle(
         self,
@@ -198,6 +202,12 @@ class TargetConversationManager:
             )
             if self._context_provider is not None
             else TargetTurnContext()
+        )
+        turn_context = replace(
+            turn_context,
+            entity_bindings=self._binding_resolver.resolve(
+                observations, state, turn_context,
+            ),
         )
         proposal = await self._understanding(
             observations, state, deterministic, self._registry, turn_context,
@@ -379,6 +389,7 @@ class TargetConversationManager:
     ) -> ConversationState:
         if plan.work is None:
             return state
+        plan_items = {item.work_item_id: item for item in plan.work.items}
         if (
             deterministic.kind is ResolutionKind.APPROVAL_DECISION
             or deterministic.kind is ResolutionKind.RECONCILE_WORKFLOW
@@ -486,6 +497,7 @@ class TargetConversationManager:
                     (datetime.now(timezone.utc) + timedelta(minutes=15)).isoformat(),
                     arguments,
                     checkpoint_thread_id,
+                    plan_items[mutation.bound_work_item_id].argument_bindings,
                 ))
                 self._persist(state, next_state)
                 state = next_state
@@ -598,6 +610,7 @@ class TargetConversationManager:
                 1,
                 item.arguments,
                 mutation.flow_ref,
+                item.argument_bindings,
             ))
         return state.start_workstreams(tuple(starts)) if starts else state
 

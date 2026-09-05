@@ -1,10 +1,14 @@
 """Context-aware conversation planning behind deterministic fast paths."""
 from __future__ import annotations
 
-import re
 from typing import Mapping, Protocol
 
 from application.deterministic_resolution import ResolutionKind
+from application.entity_binding import (
+    BindingStatus,
+    EntityBinding,
+    BindingSource,
+)
 from application.turn_planning import (
     CommandKind,
     CommandProposal,
@@ -14,7 +18,6 @@ from application.turn_planning import (
 from application.work_item import ArgumentValue
 
 
-_IDENTIFIER = re.compile(r"\b[A-Za-z]{1,12}[-_]?\d{2,64}\b")
 _GOALS = {
     "general_qa",
     "order_status",
@@ -87,6 +90,10 @@ class ConversationAgent:
                 )
             ],
             "conversation_context": _conversation_context_payload(turn_context),
+            "entity_bindings": (
+                turn_context.entity_bindings.as_payload(state)
+                if turn_context is not None else []
+            ),
             "supported_goals": sorted(_GOALS),
             "registry_fingerprint": registry.fingerprint,
         }
@@ -98,14 +105,18 @@ class ConversationAgent:
                 "CONVERSATION_PROVIDER_FAILURE",
             )
         try:
-            return self._validate_and_compile(raw, observations, state, registry)
+            return self._validate_and_compile(
+                raw, observations, state, registry, turn_context,
+            )
         except (KeyError, TypeError, ValueError):
             return TurnProposal(
                 ProposalDisposition.INVALID_PROVIDER_OUTPUT, (),
                 "CONVERSATION_PROVIDER_OUTPUT_INVALID",
             )
 
-    def _validate_and_compile(self, raw, observations, state, registry):
+    def _validate_and_compile(
+        self, raw, observations, state, registry, turn_context,
+    ):
         if not isinstance(raw, Mapping):
             raise TypeError("semantic result must be an object")
         status = str(raw["status"])
@@ -125,8 +136,7 @@ class ConversationAgent:
         goals = raw.get("goals")
         if not isinstance(goals, list) or not 1 <= len(goals) <= 4:
             raise ValueError("semantic goals are invalid")
-        observed_order = self._observed_order_id(observations)
-        observed_asset = str(dict(observations.structured_fields).get("asset_id") or "")
+        binding_set = turn_context.entity_bindings if turn_context is not None else None
         commands = []
         seen_ids = set()
         for index, value in enumerate(goals, start=1):
@@ -138,18 +148,31 @@ class ConversationAgent:
                 raise ValueError("goal identity or kind is invalid")
             seen_ids.add(goal_id)
             order_id = str(value.get("order_id") or "")
-            if order_id and order_id != observed_order:
-                raise ValueError("provider invented an order ID")
+            order_binding = self._select_binding(
+                binding_set, "order_id", order_id,
+                str(value.get("order_id_source_ref") or ""), state,
+            )
             asset_id = str(value.get("asset_id") or "")
-            if asset_id and asset_id != observed_asset:
-                raise ValueError("provider invented an asset ID")
+            asset_binding = self._select_binding(
+                binding_set, "asset_id", asset_id,
+                str(value.get("asset_id_source_ref") or ""), state,
+            )
             new_address = str(value.get("new_address") or "").strip()
             if new_address and new_address not in observations.raw_text:
                 raise ValueError("provider invented a shipping address")
+            address_binding = (
+                EntityBinding.create(
+                    "new_address", new_address,
+                    source=BindingSource.CURRENT_MESSAGE,
+                    source_ref="turn-message:current:new_address",
+                    tenant_id=str(state.tenant_id), user_id=str(state.user_id),
+                    conversation_id=str(state.conversation_id), priority=400,
+                )
+                if new_address else None
+            )
             commands.append(self._command(
                 goal_id, kind, observations.raw_text, state,
-                order_id or observed_order, asset_id or observed_asset,
-                new_address, registry,
+                order_binding, asset_binding, address_binding, registry,
             ))
         return TurnProposal(
             ProposalDisposition.RESOLVED, tuple(commands), "CONVERSATION_AGENT_PLAN",
@@ -157,8 +180,16 @@ class ConversationAgent:
 
     @staticmethod
     def _command(
-        goal_id, kind, text, state, order_id, asset_id, new_address, registry,
+        goal_id, kind, text, state, order_binding, asset_binding,
+        address_binding, registry,
     ):
+        order_id = str(order_binding.value) if order_binding is not None else ""
+        asset_id = str(asset_binding.value) if asset_binding is not None else ""
+        new_address = str(address_binding.value) if address_binding is not None else ""
+        bindings = tuple(
+            item for item in (order_binding, asset_binding, address_binding)
+            if item is not None
+        )
         if kind == "general_qa":
             registry.tool("knowledge_search")
             return CommandProposal(
@@ -199,6 +230,7 @@ class ConversationAgent:
                 "Query current order status",
                 (ArgumentValue.create("order_id", order_id),),
                 ("order.current_state",), tool_id="order_lookup",
+                argument_bindings=(order_binding,),
             )
         if kind == "cancel_order":
             if not order_id:
@@ -211,6 +243,7 @@ class ConversationAgent:
                 ("order.current_state",),
                 flow_ref="cancel_order:v1", action_ref="order.cancel:v1",
                 target_entity_ref=f"order:{order_id}",
+                argument_bindings=(order_binding,),
             )
         if kind == "change_address":
             if not order_id or not new_address:
@@ -227,6 +260,7 @@ class ConversationAgent:
                 flow_ref="change_shipping_address:v1",
                 action_ref="order.shipping_address.change:v1",
                 target_entity_ref=f"order:{order_id}",
+                argument_bindings=bindings,
             )
         if kind == "refund_policy":
             registry.tool("knowledge_search")
@@ -245,6 +279,7 @@ class ConversationAgent:
                 "Check current refund eligibility without starting a refund",
                 (ArgumentValue.create("order_id", order_id),),
                 ("refund.eligibility",), tool_id="refund_eligibility_check",
+                argument_bindings=(order_binding,),
             )
         if kind == "refund_status":
             if not order_id:
@@ -255,6 +290,7 @@ class ConversationAgent:
                 "Query current refund status",
                 (ArgumentValue.create("order_id", order_id),),
                 ("refund.current_state",), tool_id="refund_status",
+                argument_bindings=(order_binding,),
             )
         if kind == "execute_refund":
             if not order_id:
@@ -270,6 +306,7 @@ class ConversationAgent:
                 ("refund.eligibility",),
                 flow_ref="execute_refund:v1", action_ref="refund.request.create:v1",
                 target_entity_ref=f"order:{order_id}",
+                argument_bindings=(order_binding,),
             )
         if kind == "product_identification":
             if not asset_id:
@@ -280,6 +317,7 @@ class ConversationAgent:
                 "Identify the product from supplied media",
                 (ArgumentValue.create("asset_id", asset_id),),
                 ("product.canonical_model",), skill_id="product_identification",
+                argument_bindings=(asset_binding,),
             )
         if kind == "product_assistance":
             if not asset_id:
@@ -297,6 +335,7 @@ class ConversationAgent:
                 ),
                 ("product.canonical_model", "knowledge.active_source"),
                 candidate_skill_ids=("product_identification",),
+                argument_bindings=(asset_binding,),
             )
         if kind == "media_text_read":
             if not asset_id:
@@ -310,6 +349,7 @@ class ConversationAgent:
                 (ArgumentValue.create("asset_id", asset_id),),
                 ("media.visible_text",),
                 tool_id="media_read",
+                argument_bindings=(asset_binding,),
             )
         if kind == "media_visual_analysis":
             if not asset_id:
@@ -325,6 +365,7 @@ class ConversationAgent:
                     ArgumentValue.create("question", text),
                 ),
                 ("media.visual_observation",),
+                argument_bindings=(asset_binding,),
             )
         if kind == "product_qa":
             registry.tool("knowledge_search")
@@ -358,12 +399,24 @@ class ConversationAgent:
         )
 
     @staticmethod
-    def _observed_order_id(observations) -> str:
-        structured = str(dict(observations.structured_fields).get("order_id") or "")
-        if structured:
-            return structured
-        matches = _IDENTIFIER.findall(observations.raw_text)
-        return matches[0] if matches else ""
+    def _select_binding(binding_set, field_name, value, source_ref, state):
+        if binding_set is None:
+            if value:
+                raise ValueError("provider selected an entity without provenance")
+            return None
+        candidates = tuple(
+            item for item in binding_set.bindings
+            if item.field_name == field_name
+            and (not value or item.value == value)
+            and (not source_ref or item.source_ref == source_ref)
+            and item.valid_for(state) is BindingStatus.UNIQUE
+        )
+        if value or source_ref:
+            values = {item.value_json for item in candidates}
+            if len(values) != 1:
+                raise ValueError("provider selected an unknown or ambiguous entity")
+            return max(candidates, key=lambda item: item.priority)
+        return binding_set.resolve(field_name, state).selected
 
 
 def _conversation_context_payload(turn_context):

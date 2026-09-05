@@ -21,8 +21,10 @@ class AnthropicConversationPlanningProvider:
             system=(
                 "You plan customer-service turns. Return one JSON object only. "
                 "status is resolved, insufficient_context, or out_of_scope. "
-                "For resolved, goals is a list of {goal_id,kind,order_id?,asset_id?}; "
+                "For resolved, goals is a list of {goal_id,kind,order_id?,"
+                "order_id_source_ref?,asset_id?,asset_id_source_ref?}; "
                 "kind must come from supported_goals. Never invent entity values. "
+                "Select entity values and source refs only from entity_bindings; "
                 "Product categories and attributes are evidence filters, not goal kinds. "
                 "Use media_text_read for OCR/text and media_visual_analysis only for "
                 "appearance, regions, controls, layout or other visual relationships. "
@@ -44,5 +46,5 @@ class AnthropicConversationPlanningProvider:
             text = text.split("\n", 1)[1].rsplit("```", 1)[0].strip()
         value = json.loads(text)
         if not isinstance(value, dict):
-            raise ValueError("semantic provider returned non-object JSON")
+            raise ValueError("conversation provider returned non-object JSON")
         return value

@@ -10,6 +10,7 @@ from threading import RLock
 from typing import Protocol
 
 from application.agent_result import ReceiptRef, RequestedField
+from application.entity_binding import BindingSource, EntityBinding
 from application.work_item import ArgumentValue, WorkItem
 from core.identity import ConversationId, TenantId, UserId
 
@@ -47,6 +48,7 @@ class WorkstreamState:
     state_version: int
     slots: tuple[ArgumentValue, ...] = ()
     flow_ref: str | None = None
+    slot_bindings: tuple[EntityBinding, ...] = ()
 
     def __post_init__(self) -> None:
         _required(
@@ -58,6 +60,13 @@ class WorkstreamState:
         if self.state_version < 1:
             raise ConversationStateError("workstream version must be positive")
         _unique((item.name for item in self.slots), "workstream slots")
+        _unique((item.field_name for item in self.slot_bindings), "workstream bindings")
+        slots = {item.name: item.value_json for item in self.slots}
+        if any(
+            item.field_name not in slots or slots[item.field_name] != item.value_json
+            for item in self.slot_bindings
+        ):
+            raise ConversationStateError("workstream binding does not match its slot")
         if self.flow_ref is not None and not self.flow_ref.strip():
             raise ConversationStateError("flow_ref must be absent or nonblank")
 
@@ -69,13 +78,20 @@ class WorkstreamState:
         self,
         values: tuple[ArgumentValue, ...],
         *,
+        bindings: tuple[EntityBinding, ...] = (),
         status: WorkstreamStatus = WorkstreamStatus.ACTIVE,
     ) -> "WorkstreamState":
         slots = {item.name: item for item in self.slots}
         slots.update({item.name: item for item in values})
+        slot_bindings = {item.field_name: item for item in self.slot_bindings}
+        slot_bindings.update({item.field_name: item for item in bindings})
         return replace(
             self,
             slots=tuple(slots[name] for name in sorted(slots)),
+            slot_bindings=tuple(
+                slot_bindings[name] for name in sorted(slot_bindings)
+                if name in slots
+            ),
             status=status,
             state_version=self.state_version + 1,
         )
@@ -140,6 +156,7 @@ class PendingApprovalState:
     expires_at: str
     arguments: tuple[ArgumentValue, ...] = ()
     checkpoint_thread_id: str | None = None
+    argument_bindings: tuple[EntityBinding, ...] = ()
 
     def __post_init__(self) -> None:
         _required(
@@ -155,6 +172,13 @@ class PendingApprovalState:
         if self.version < 1:
             raise ConversationStateError("approval version must be positive")
         _unique((item.name for item in self.arguments), "approval arguments")
+        _unique((item.field_name for item in self.argument_bindings), "approval bindings")
+        arguments = {item.name: item.value_json for item in self.arguments}
+        if any(
+            item.field_name not in arguments or arguments[item.field_name] != item.value_json
+            for item in self.argument_bindings
+        ):
+            raise ConversationStateError("approval binding does not match its argument")
         if self.checkpoint_thread_id is not None and not self.checkpoint_thread_id.strip():
             raise ConversationStateError("checkpoint thread ID must be absent or nonblank")
         try:
@@ -175,6 +199,7 @@ class AcceptedApprovalState:
     target_entity_ref: str
     target_entity_version: str
     arguments: tuple[ArgumentValue, ...]
+    argument_bindings: tuple[EntityBinding, ...] = ()
 
     def __post_init__(self) -> None:
         _required(
@@ -188,6 +213,13 @@ class AcceptedApprovalState:
         if self.version < 1:
             raise ConversationStateError("accepted approval version must be positive")
         _unique((item.name for item in self.arguments), "accepted approval arguments")
+        _unique((item.field_name for item in self.argument_bindings), "accepted bindings")
+        arguments = {item.name: item.value_json for item in self.arguments}
+        if any(
+            item.field_name not in arguments or arguments[item.field_name] != item.value_json
+            for item in self.argument_bindings
+        ):
+            raise ConversationStateError("accepted binding does not match its argument")
 
 
 @dataclass(frozen=True)
@@ -286,6 +318,10 @@ class ConversationState:
                     "status": item.status.value,
                     "version": item.state_version,
                     "slots": [(slot.name, slot.value_json) for slot in item.slots],
+                    "slot_bindings": [
+                        (binding.field_name, binding.value_json, binding.source_ref)
+                        for binding in item.slot_bindings
+                    ],
                 }
                 for item in self.workstreams
             ],
@@ -310,6 +346,10 @@ class ConversationState:
                 self.pending_approval.approval_id,
                 self.pending_approval.version,
                 self.pending_approval.checkpoint_thread_id,
+                tuple(
+                    (item.field_name, item.value_json, item.source_ref)
+                    for item in self.pending_approval.argument_bindings
+                ),
             ) if self.pending_approval else None,
             "resume": [
                 (item.token, item.workstream_id, item.workstream_version)
@@ -325,6 +365,10 @@ class ConversationState:
                     item.action_ref, item.operation_key, item.target_entity_ref,
                     item.target_entity_version,
                     tuple((arg.name, arg.value_json) for arg in item.arguments),
+                    tuple(
+                        (binding.field_name, binding.value_json, binding.source_ref)
+                        for binding in item.argument_bindings
+                    ),
                 )
                 for item in self.accepted_approvals
             ],
@@ -429,7 +473,18 @@ class ConversationState:
                 continue
             if item.state_version != expected_versions[item.workstream_id]:
                 raise ConversationStateConflict("pending interaction target changed")
-            updated.append(item.with_slots(tuple(grouped[item.workstream_id])))
+            values_for_stream = tuple(grouped[item.workstream_id])
+            bindings = tuple(EntityBinding.create(
+                value.name, value.value,
+                source=BindingSource.PENDING_INTERACTION,
+                source_ref=(
+                    f"interaction:{interaction_id}:v{interaction_version}:"
+                    f"{item.workstream_id}:{value.name}"
+                ),
+                tenant_id=str(self.tenant_id), user_id=str(self.user_id),
+                conversation_id=str(self.conversation_id), priority=500,
+            ) for value in values_for_stream)
+            updated.append(item.with_slots(values_for_stream, bindings=bindings))
         return replace(
             self,
             version=self.version + 1,
@@ -475,6 +530,7 @@ class ConversationState:
                     pending.target_entity_ref,
                     pending.target_entity_version,
                     pending.arguments,
+                    pending.argument_bindings,
                 ))
                 if approved else updated.accepted_approvals
             ),

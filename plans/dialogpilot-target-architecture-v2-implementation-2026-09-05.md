@@ -222,6 +222,23 @@ summary、episode 产生候选；只自动消费唯一、有效、同 scope 的�
 
 提交：`feat(target): add provenance-backed entity binding`
 
+实施记录（2026-09-05）：
+
+- 新增通用 `EntityBindingSet` 与 `EntityBindingResolver`，以来源、scope、优先级、有效期和
+  Workstream 版本表达候选，结果闭合为 UNIQUE/AMBIGUOUS/MISSING/STALE/UNAUTHORIZED；
+- 当前输入、结构化字段、Workstream slot、最近消息和摘要统一投影为候选；同优先级冲突
+  不做猜测，当前输入可稳定覆盖无关旧历史；
+- Bounded/Encoder/Conversation planning 三条生产路径都从同一个 BindingSet 消费实体，
+  Conversation provider 只能选择 payload 中的 value/source ref；
+- RoutePolicy 在接受 Command 时重验 scope、expiry 和 Workstream version；provenance 随
+  Command → WorkItem → Workstream/PendingApproval/AcceptedApproval 传递，并进入 fingerprint；
+- PostgreSQL ConversationState/悬挂 WorkItem 往返保存完整 binding；pending interaction
+  补值生成独立、可追溯的 binding；
+- Target + binding/encoder 专项：`120 passed, 4 skipped in 5.09s`；
+- 仓库级：`1061 passed, 161 skipped, 3 failed in 15.52s`。三项既有失败仍分别来自
+  未提交 RAG policy 与旧 AgentBundle 白名单不一致，以及缺少 PostgreSQL URL 的两项
+  stateful ticket fixture；本阶段没有在无关 Owner 中增加兼容分支。
+
 ## 9. M4：回复组织与最终验证
 
 根因：当前多结果按 Owner 拼接；无条件 LLM 重写又增加成本和事实漂移。

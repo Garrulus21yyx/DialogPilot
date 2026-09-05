@@ -8,6 +8,7 @@ from application.deterministic_resolution import (
     ResolutionKind,
     TurnObservations,
 )
+from application.entity_binding import BindingSource, EntityBinding
 from application.turn_planning import (
     CommandKind,
     CommandProposal,
@@ -17,7 +18,6 @@ from application.turn_planning import (
 from application.work_item import ArgumentValue, ControlMode
 
 
-_IDENTIFIER = re.compile(r"\b[A-Za-z]{1,12}[-_]?\d{2,64}\b")
 _ADDRESS_CHANGE = re.compile(
     r"(?:地址(?:改成|改为)|修改(?:成|为)|改成|改为|change\s+address\s+to)"
     r"\s*[:：]?\s*(?P<address>.+)$",
@@ -57,6 +57,7 @@ class BoundedTargetUnderstanding:
                         item.arguments,
                         item.requirement_ids,
                         tool_id=item.allowed_tools[0],
+                        argument_bindings=item.argument_bindings,
                     ))
                     continue
                 if item.skill_hint is not None:
@@ -68,6 +69,7 @@ class BoundedTargetUnderstanding:
                         item.arguments,
                         item.requirement_ids,
                         skill_id=item.skill_hint,
+                        argument_bindings=item.argument_bindings,
                     ))
                 else:
                     commands.append(CommandProposal(
@@ -78,6 +80,7 @@ class BoundedTargetUnderstanding:
                         item.arguments,
                         item.requirement_ids,
                         candidate_skill_ids=item.allowed_skills,
+                        argument_bindings=item.argument_bindings,
                     ))
             return TurnProposal(
                 ProposalDisposition.RESOLVED,
@@ -124,6 +127,7 @@ class BoundedTargetUnderstanding:
                     approval_binding=deterministic.signal_id,
                     approval_signal_version=deterministic.signal_version,
                     operation_key=deterministic.operation_key,
+                    argument_bindings=deterministic.argument_bindings,
                 ),),
                 (
                     "RECONCILIATION_RESUME"
@@ -134,9 +138,11 @@ class BoundedTargetUnderstanding:
         text = observations.raw_text.strip()
         lowered = text.lower()
         fields = dict(observations.structured_fields)
-        identifiers = _IDENTIFIER.findall(text)
-        order_id = str(fields.get("order_id") or (identifiers[0] if identifiers else ""))
-        asset_id = str(fields.get("asset_id") or "")
+        bindings = turn_context.entity_bindings
+        order_binding = bindings.resolve("order_id", state).selected
+        asset_binding = bindings.resolve("asset_id", state).selected
+        order_id = str(order_binding.value) if order_binding is not None else ""
+        asset_id = str(asset_binding.value) if asset_binding is not None else ""
 
         product_identification_signal = any(
             token in lowered for token in (
@@ -173,6 +179,16 @@ class BoundedTargetUnderstanding:
         new_address = (
             str(fields.get("new_address") or "").strip()
             or (address_match.group("address").strip() if address_match else "")
+        )
+        address_binding = (
+            EntityBinding.create(
+                "new_address", new_address,
+                source=BindingSource.CURRENT_MESSAGE,
+                source_ref="turn-message:current:new_address",
+                tenant_id=str(state.tenant_id), user_id=str(state.user_id),
+                conversation_id=str(state.conversation_id), priority=400,
+            )
+            if new_address else None
         )
         handoff_signal = any(
             token in lowered for token in ("人工", "客服", "human agent", "representative")
@@ -270,6 +286,7 @@ class BoundedTargetUnderstanding:
                 (ArgumentValue.create("order_id", order_id),),
                 ("refund.eligibility",),
                 tool_id="refund_eligibility_check",
+                argument_bindings=(order_binding,),
             ))
         elif refund_signal and order_id and any(
             token in lowered for token in ("状态", "进度", "到账", "status")
@@ -282,6 +299,7 @@ class BoundedTargetUnderstanding:
                 (ArgumentValue.create("order_id", order_id),),
                 ("refund.current_state",),
                 tool_id="refund_status",
+                argument_bindings=(order_binding,),
             ))
         elif refund_signal and order_id:
             commands.append(CommandProposal(
@@ -297,6 +315,7 @@ class BoundedTargetUnderstanding:
                 flow_ref="execute_refund:v1",
                 action_ref="refund.request.create:v1",
                 target_entity_ref=f"order:{order_id}",
+                argument_bindings=(order_binding,),
             ))
         if address_change_signal and new_address:
             commands.append(CommandProposal(
@@ -312,6 +331,7 @@ class BoundedTargetUnderstanding:
                 flow_ref="change_shipping_address:v1",
                 action_ref="order.shipping_address.change:v1",
                 target_entity_ref=f"order:{order_id}",
+                argument_bindings=(order_binding, address_binding),
             ))
         elif cancel_order_signal:
             commands.append(CommandProposal(
@@ -324,6 +344,7 @@ class BoundedTargetUnderstanding:
                 flow_ref="cancel_order:v1",
                 action_ref="order.cancel:v1",
                 target_entity_ref=f"order:{order_id}",
+                argument_bindings=(order_binding,),
             ))
         elif (
             order_signal and order_id and not refund_signal
@@ -337,6 +358,7 @@ class BoundedTargetUnderstanding:
                 (ArgumentValue.create("order_id", order_id),),
                 ("order.current_state",),
                 tool_id="order_lookup",
+                argument_bindings=(order_binding,),
             ))
         if media_text_signal:
             commands.append(CommandProposal(
@@ -347,6 +369,7 @@ class BoundedTargetUnderstanding:
                 (ArgumentValue.create("asset_id", asset_id),),
                 ("media.visible_text",),
                 tool_id="media_read",
+                argument_bindings=(asset_binding,),
             ))
         elif product_identification_signal and asset_id and not compound_product_signal:
             commands.append(CommandProposal(
@@ -357,6 +380,7 @@ class BoundedTargetUnderstanding:
                 (ArgumentValue.create("asset_id", asset_id),),
                 ("product.canonical_model",),
                 skill_id="product_identification",
+                argument_bindings=(asset_binding,),
             ))
 
         if commands:
