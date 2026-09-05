@@ -47,7 +47,8 @@ outcomes remain separate from completed-outcome success-rate samples. Monitoring
 longer changes routing weights. CLI is now an authenticated client of the existing
 /chat and /invocations APIs; it submits once and polling never starts a second run.
 Transport evaluation imports ChatHandler from shared contracts, not old ChatApplication.
-39 focused runtime/monitor/CLI/evaluation tests pass; clean startup integration pending.
+39 focused runtime/monitor/CLI/evaluation tests pass. Clean committed snapshot startup
+and the same focused suite: 40 passed, including PostgreSQL-backed API lifespan.
 
 Next cutover surface: API startup still constructs AgentOrchestrator for routing-only
 evaluation and legacy Skill/ToolManager injection. These remaining consumers must use
