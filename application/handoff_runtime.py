@@ -41,6 +41,7 @@ class HandoffDraft:
     commitments_and_sla: tuple[str, ...]
     recommended_next_action: str
     explicit_user_request: bool = False
+    actions_attempted: tuple[str, ...] = ()
     schema_version: str = "handoff-draft-v1"
 
     def __post_init__(self) -> None:
@@ -93,6 +94,7 @@ class HandoffDraft:
                 }
                 for receipt in self.action_receipts
             ],
+            "actions_attempted": list(self.actions_attempted),
             "missing_materials": list(self.missing_materials),
             "media_evidence_refs": list(self.media_evidence_refs),
             "risk": self.risk,

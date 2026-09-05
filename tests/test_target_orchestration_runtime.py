@@ -178,6 +178,22 @@ class MissingThenCompleteExecutor:
         )
 
 
+class DependencyCapturingExecutor:
+    def __init__(self):
+        self.dependencies = ()
+
+    async def __call__(self, context):
+        self.dependencies = context.dependency_results
+        return AgentResult(
+            context.work_item.work_item_id,
+            context.work_item.owner_agent,
+            AgentResultStatus.SUCCEEDED,
+            "DEPENDENCY_CONTEXT_RECEIVED",
+            "dependency-capture-v1",
+            facts=(_fact(context.work_item, "done"),),
+        )
+
+
 def test_direct_path_executes_without_starting_a_domain_agent():
     item = _item(
         "order-1", "order_logistics", ControlMode.DIRECT, "order.current_state",
@@ -250,6 +266,32 @@ def test_single_delegated_task_invokes_only_its_domain_worker():
     assert board.complete is True
     assert direct_calls == []
     assert product_calls[0][0] == "product-1"
+
+
+def test_worker_receives_only_its_declared_dependency_results():
+    first = _item(
+        "order-1", "order_logistics", ControlMode.DIRECT,
+        "order.current_state",
+    )
+    second = _item(
+        "handoff-1", "human_service", ControlMode.DELEGATED,
+        "support.handoff_action", dependencies=(first.work_item_id,),
+    )
+    capture = DependencyCapturingExecutor()
+    runtime = OrchestrationRuntime(
+        direct_executor=Executor([]),
+        domain_workers={"human_service": capture},
+    )
+
+    board = asyncio.run(runtime.execute(
+        WorkPlan((first, second), first.work_item_id),
+        current_message="check then hand off",
+    ))
+
+    assert board.complete is True
+    assert tuple(
+        result.work_item_id for result in capture.dependencies
+    ) == (first.work_item_id,)
 
 
 def test_delegated_worker_resumes_from_system_evidence_without_user_interaction():

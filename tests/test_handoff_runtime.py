@@ -1,4 +1,5 @@
 import asyncio
+import json
 from dataclasses import replace
 from types import SimpleNamespace
 
@@ -174,6 +175,20 @@ def test_unknown_handoff_outcome_uses_registry_reconciliation_not_flow_name():
 
 def test_target_handoff_write_requires_policy_accepted_draft_and_forwards_it():
     item = _item()
+    upstream = AgentResult(
+        "refund-read",
+        "billing_refund",
+        AgentResultStatus.SUCCEEDED,
+        "REFUND_STATUS_FOUND",
+        "refund-agent-v1",
+        action_receipts=(ReceiptRef(
+            "refund-receipt-1",
+            "action-receipt-v1",
+            "refund-operation-1",
+            "COMMITTED",
+            "refund.request_action",
+        ),),
+    )
     context = AgentContextView(
         item,
         "Please transfer this case to a person",
@@ -187,6 +202,7 @@ def test_target_handoff_write_requires_policy_accepted_draft_and_forwards_it():
             "conversation_id": "conversation-a",
             "request_id": "request-a",
         },
+        (upstream,),
     )
     accepted = TargetWorkflowExecutor._accepted_handoff(context)
 
@@ -218,8 +234,13 @@ def test_target_handoff_write_requires_policy_accepted_draft_and_forwards_it():
     assert accepted is not None
     assert accepted.reason_code == "EXPLICIT_USER_HANDOFF"
     assert outcome.status is WriteOutcomeStatus.COMMITTED
-    assert '"handoff_id":"handoff-operation-1"' in (
-        tools.context["handoff_contract_json"]
+    contract = json.loads(tools.context["handoff_contract_json"])
+    assert contract["draft"]["handoff_id"] == "handoff-operation-1"
+    assert contract["draft"]["actions_attempted"] == [
+        "billing_refund:REFUND_STATUS_FOUND",
+    ]
+    assert contract["draft"]["action_receipts"][0]["receipt_id"] == (
+        "refund-receipt-1"
     )
 
     with pytest.raises(ValueError, match="accepted draft"):

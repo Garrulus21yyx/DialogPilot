@@ -33,6 +33,7 @@ class AgentContextView:
     evidence_refs: tuple[str, ...]
     token_budget: int
     trusted_context: Mapping[str, str] = field(default_factory=dict)
+    dependency_results: tuple[AgentResult, ...] = ()
 
 
 class WorkExecutor(Protocol):
@@ -70,6 +71,7 @@ class WorkerState(TypedDict):
     token_budget: int
     facts: tuple[FactRecord, ...]
     trusted_context: Mapping[str, str]
+    dependency_results: tuple[AgentResult, ...]
 
 
 class OrchestrationRuntime:
@@ -129,6 +131,10 @@ class OrchestrationRuntime:
         ready = state.get("ready_items", ())
         if not ready:
             return "finish"
+        results = {
+            result.work_item_id: result
+            for result in state.get("agent_results", ())
+        }
         return [
             Send("execute_work_item", {
                 "work_item": item,
@@ -138,6 +144,10 @@ class OrchestrationRuntime:
                 "token_budget": state.get("token_budget", 6000),
                 "facts": state.get("facts", ()),
                 "trusted_context": state.get("trusted_context", {}),
+                "dependency_results": tuple(
+                    results[dependency]
+                    for dependency in item.dependencies
+                ),
             })
             for item in ready
         ]
@@ -211,6 +221,7 @@ class OrchestrationRuntime:
             state["evidence_refs"],
             state["token_budget"],
             state.get("trusted_context", {}),
+            state.get("dependency_results", ()),
         )
         if item.control_mode is ControlMode.DIRECT:
             executor = self._direct_executor

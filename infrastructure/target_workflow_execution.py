@@ -82,8 +82,16 @@ class TargetWorkflowExecutor:
             verified_facts=context.verified_facts,
             user_assertions=(context.current_message,)
             if context.current_message else (),
-            action_receipts=(),
-            missing_materials=(),
+            action_receipts=tuple(
+                receipt
+                for result in context.dependency_results
+                for receipt in result.action_receipts
+            ),
+            missing_materials=tuple(
+                field.field_name
+                for result in context.dependency_results
+                for field in result.missing_inputs
+            ),
             media_evidence_refs=context.evidence_refs,
             risk=item.risk.value,
             commitments_and_sla=(),
@@ -92,6 +100,10 @@ class TargetWorkflowExecutor:
             ),
             explicit_user_request=(
                 item.approval_policy is ApprovalPolicy.USER_COMMAND_SUFFICIENT
+            ),
+            actions_attempted=tuple(
+                f"{result.owner_agent}:{result.reason_code}"
+                for result in context.dependency_results
             ),
         )
         return HandoffCommitPolicy().accept(draft)
