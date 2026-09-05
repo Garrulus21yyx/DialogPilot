@@ -30,8 +30,8 @@ Domain Agent、Tool/Skill/Flow、Verification 与 Publication 边界收敛为：
 - 不接受按句式、Intent、商品类别、单个 badcase 或失败测试添加特化生产分支；实施计划
   必须把修复落在权威 Owner、通用 typed contract 或状态转换，并用属性/状态机/生成式测试
   验证同一因果面。
-- 新接口最小化且单一职责；Manager、Graph builder 与 `api/main.py` 只组合端口，不承载
-  可独立变化的上下文、规划、验证、回复或持久化实现，防止形成 God File。
+- 采用成熟模块化单体规范：基于职责、权限、生命周期和变化耦合决定现有模块应扩展、合并
+  或拆分；不预设一接口一文件，同时防止 God File 和无语义接口碎片。
 
 ## 交付物
 
@@ -64,5 +64,5 @@ Domain Agent、Tool/Skill/Flow、Verification 与 Publication 边界收敛为：
 - 架构文档可直接回答对话、理解、Intent、调度、Context、Memory、恢复与交付 Owner；
 - 实施计划 M0-M10 均包含正向合同、验证和独立提交边界；
 - ConversationManager、Graph、API、Planner、Composer、Run 与 SSE 没有重叠 Owner；
-- 已明确禁止句式/Intent/商品类别/badcase 特化和 God File；
+- 已明确禁止句式/Intent/商品类别/badcase 特化、God File 和接口碎片化；
 - 三份文档通过 `git diff --check`、必需章节与本地链接存在性检查。

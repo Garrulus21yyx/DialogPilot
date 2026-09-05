@@ -31,6 +31,8 @@
 9. Transcript 无损保存；Summary 是可重建投影；历史 Memory 按需检索；局部压缩不回写
    全局摘要。
 10. 不为商品类别、旧 Intent、用户句式、badcase 或失败测试创建特化 Agent/Skill/Flow/分支。
+11. 采用成熟的模块化单体：现有模块能清晰承载职责时直接扩展或合并；只有权威、生命周期、
+    变化原因或依赖方向确实独立时才拆分，不预设“一接口一文件”。
 
 ## 3. 主链
 
@@ -340,26 +342,45 @@ Requirement 权威来源由 Registry 定义；用户、RAG、Memory、OCR、图�
 最终验证覆盖：Fact/Requirement、Authority、Citation、Receipt、部分失败、Final Claims、
 Publication identity 与 Delivery 状态。
 
-## 17. 简洁性与反特化
+## 17. 模块化、复用与反特化
 
-推荐模块：
+v2 是模块化单体，不把内部职责模拟成微服务。模块边界按四个问题决定：
 
-```text
-application/conversation/
-  contracts.py | planner.py | composer.py
-  entity_binding.py | response_assembly.py | context_budget.py
-application/turn_runtime/
-  state.py | graph.py | stages.py
-infrastructure/target_runtime_factory.py
-```
+1. 谁拥有该语义或状态；
+2. 是否有独立生命周期或持久化边界；
+3. 是否有不同的权限与依赖方向；
+4. 是否能独立变化和测试。
 
-Manager、Graph、API 只协调端口。以下职责不得合并进一个实现类：Context 读取与 Prompt、
-Plan 与授权、Graph 与业务提交、compose 与 Publication、SSE 与 Run 执行。
+处理现有代码时采用：
+
+| 情况 | 做法 |
+|---|---|
+| 同一 Owner、同一生命周期、总是一起变化 | 合并或保留在同一内聚模块 |
+| 已有模块职责清晰，只缺输入或合同 | 扩展现有模块 |
+| 两段逻辑有独立权威、生命周期或依赖方向 | 拆分 |
+| 只有一个实现且无需替换 | 普通类/函数即可，不强建 Protocol |
+| 跨层端口、多实现、外部 Provider 或关键测试替身 | 使用明确 Protocol/ABC |
+| 仅转发参数、没有独立语义 | 不新增文件或抽象层 |
+
+当前迁移优先复用：
+
+- 扩展 `target_turn_context.py`，而不是并行建立第二套 Context 系统；
+- 将 `structured_target_router.py` 中可复用的结构化校验迁入/演化为 Conversation Agent，
+  不复制一套 Planner；
+- 保留 `target_conversation_manager.py` 的会话协调职责，但不把 Provider、实体解析、回复生成
+  或数据库实现继续堆入其中；
+- 保留 `orchestration_runtime.py` 的 WorkPlan 图；只有 TurnGraph 出现独立恢复需求时才增加
+  薄上层图；
+- Response Assembly 初期可以与 Target Chat 应用层共同演化，出现独立策略、多消费者或显著
+  测试边界后再提取；
+- 仅当 `api/main.py` 的 Target 装配已成为独立可测生命周期时，才提取 runtime factory。
+
+God File 的问题是混入多个权威和变化原因，不是文件较长；接口碎片化的问题是大量一对一
+转发和无意义抽象，不是文件较短。评审同时检查内聚性与耦合度。
 
 禁止句式关键词补丁、类别 Skill、下游补偿、为测试放宽权限、未知写结果盲重试和预建第二套
-通用平台。新能力通过 Registry、typed contract 和现有执行代数扩展。
-
-验收以属性、状态机、生成式和 E2E 为主；回归样例只作为见证。
+通用平台。新能力通过 Registry、typed contract 和现有执行代数扩展。验收以属性、状态机、
+生成式和 E2E 为主；回归样例只作为见证。
 
 ## 18. 核心不变量
 
@@ -376,7 +397,8 @@ Plan 与授权、Graph 与业务提交、compose 与 Publication、SSE 与 Run �
 11. 无 Ticket Receipt 不宣称转人工；无 Publication commit 不宣称已发送。
 12. 所有恢复绑定 tenant/user/conversation/signal/version/run。
 13. 生产语义不以句式、旧 Intent、商品类别或测试 ID 为权威。
-14. Manager、Graph builder 和 API composition root 不成为 God File。
+14. 模块拆并由职责、权限、生命周期和变化耦合决定；既不形成多权威 God File，也不形成
+    一对一转发的接口碎片。
 
 ## 19. 当前差距
 

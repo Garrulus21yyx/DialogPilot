@@ -14,7 +14,7 @@
 
 - 修复权威 Owner 和通用合同，不按句式、Intent、商品类别或 badcase 写补丁；
 - 简单请求走最短路径，不默认调用主 Agent 或 Multi-Agent；
-- Manager、Graph builder、API composition root 只协调端口，不实现领域算法；
+- 采用模块化单体：按职责、权限、生命周期和变化耦合决定拆分或合并，不预设小接口；
 - 一个状态、事实、转换和 Run 生命周期只有一个 Owner；
 - 每阶段独立测试、commit、push；未满足退出条件不得标记完成。
 
@@ -39,54 +39,36 @@
 非目标：不重建 Memory，不增加第二套调度器，不把原子 Tool 包成 Skill，不把写 Flow 改成
 自由 ReAct，不为商品类别创建专属能力，不一次性替换全部领域 Agent。
 
-## 3. 模块与接口边界
+## 3. 模块演化规则
 
-```text
-application/conversation/
-  contracts.py          # Context/Plan/Composition 的纯合同
-  planner.py            # plan() 端口与结果校验
-  composer.py           # compose() 端口
-  entity_binding.py     # 来源、候选与歧义
-  response_assembly.py  # TEMPLATE/PASS_THROUGH/COMPOSE
-  context_budget.py     # 调用前预算
+不预先创建一套 `conversation/` 微型接口目录。每个阶段先检查现有 Owner，再决定扩展、合并
+或拆分：
 
-application/turn_runtime/
-  state.py              # TurnGraph State
-  graph.py              # 只装配 Node/Edge/Subgraph
-  stages.py             # 薄适配，不承载复杂语义
+| 判断 | 处理 |
+|---|---|
+| 现有模块已拥有语义，只缺合同或输入 | 原地扩展 |
+| 两段逻辑共享状态、不变量且总是一起变化 | 合并/保持内聚 |
+| 权威、生命周期、权限或依赖方向不同 | 拆分 |
+| 只有一个实现且无替换需求 | 普通类或函数 |
+| 跨层、多实现、Provider/Store 或关键测试边界 | Protocol/ABC |
+| 新层只做一对一转发 | 不创建 |
 
-infrastructure/
-  target_conversation_provider.py
-  target_runtime_factory.py
-  postgres_target_run.py
-  target_event_stream.py
-```
+当前代码的预期演化：
 
-核心端口：
+| 现有模块 | 优先处理 |
+|---|---|
+| `target_turn_context.py` | 扩展为 typed ContextSnapshot Owner；复杂 Binding 独立后再拆 |
+| `structured_target_router.py` | 复用输出校验和编译知识，演化/迁移为 Conversation planning，不并存复制 |
+| `target_conversation_manager.py` | 保持会话协调；不吸收 Provider、Binding、Composition 或 DB 细节 |
+| `target_chat_application.py` | 保持协议与 Publication facade；Assembly 先就近演化，独立变化后再提取 |
+| `orchestration_runtime.py` | 保留 WorkPlan Graph；TurnGraph 仅在阶段恢复需求成立后增加 |
+| `api/main.py` | 先复用当前 composition root；装配形成独立生命周期后再提取 factory |
 
-```python
-class ConversationPlanner(Protocol):
-    async def plan(self, context: PlanningContext) -> ConversationPlan: ...
+God File 以多个权威/变化原因判定；过度拆分以无语义的一对一转发、循环依赖和同时修改大量
+碎片文件判定。目标是高内聚、低耦合，不是文件数量最少或最多。
 
-class ConversationComposer(Protocol):
-    async def compose(self, context: CompositionContext) -> ResponseCandidate: ...
-
-class ContextSnapshotLoader(Protocol):
-    async def load(self, identity, observations, state) -> ContextSnapshot: ...
-
-class BackgroundRunService(Protocol):
-    async def submit(self, admitted: AdmittedTurn) -> RunRef: ...
-    async def resume(self, command: ResumeCommand) -> RunRef: ...
-    async def cancel(self, command: CancelRun) -> RunView: ...
-```
-
-God File 判定依据是“多个独立变更原因”，不是机械行数。以下职责不得落在同一个实现类：
-
-- Context 读取与 Prompt 渲染；
-- Conversation plan 与 Route 授权；
-- Graph 调度与业务状态提交；
-- compose 与 Publication；
-- SSE 订阅与 Run 执行。
+逻辑合同 `ConversationPlanner`、`ConversationComposer`、`ContextSnapshotLoader` 和
+`BackgroundRunService` 仍需清楚，但不要求它们各占一个文件或都使用 Protocol。
 
 ## 4. 阶段总览
 
@@ -133,10 +115,9 @@ Domain Agent 从同一 Snapshot 做任务投影，不另读一套历史。
 - Encoder 只读取有界确定性特征；
 - 迁移期让现有 Router 消费新 Context，但不增加新语义分支。
 
-主要代码：
+主要代码（优先复用，是否新增合同文件由实现时耦合审查决定）：
 
 ```text
-application/conversation/contracts.py
 application/target_conversation_manager.py
 infrastructure/target_turn_context.py
 application/target_understanding.py
@@ -163,13 +144,13 @@ invocation 越界；全仓无旧 Understanding 调用签名。
 - Encoder ACCEPT 时跳过 Planner；
 - 移除 `/chat` 对 StructuredTargetCommandRouter 的运行时注册。
 
-主要代码：
+主要代码（演化而非并行复制）：
 
 ```text
-application/conversation/contracts.py
-application/conversation/planner.py
+application/structured_target_router.py
+application/target_understanding.py
 infrastructure/target_conversation_provider.py
-api/main.py（只改 factory 接线，随后下沉 composition root）
+api/main.py（仅调整装配；是否提取 factory 由装配内聚性决定）
 ```
 
 验证：每个 unresolved turn 至多一次 global planning；ACCEPT 时为零；未知 capability、无来源
@@ -250,8 +231,8 @@ prepare_context
 
 实现规则：
 
-- `graph.py` 只注册 State、Node、Edge；
-- Node 是到应用服务的薄适配；
+- Graph 模块保持执行编排内聚，不吸收 Context、业务状态或 Publication 权威；
+- 简单 Node 可就近实现；只有可独立复用/变化的阶段才提取服务；
 - 阶段 artifact 带 version/fingerprint；
 - 已有 Receipt/Result 时恢复不得重跑 Tool；
 - 阶段迁入图后删除 Manager 中的重复执行分支；
@@ -387,7 +368,7 @@ unsupported final claim、重连产生新 Publication 或新业务执行。
 - [ ] 正向合同和 Owner 已落到代码；
 - [ ] 所有生产者、消费者和异常路径已迁移；
 - [ ] 没有句式/Intent/类别/test-id 特化分支；
-- [ ] Manager、Graph、API 文件未吸收下层语义；
+- [ ] 拆并符合职责、权限、生命周期和变化耦合；无 God File 或一对一转发碎片；
 - [ ] 属性或状态机测试通过；
 - [ ] 代表性集成/E2E 通过；
 - [ ] Trace 能区分 provider、projection、contract、business 与 environment failure；
@@ -406,7 +387,7 @@ unsupported final claim、重连产生新 Publication 或新业务执行。
 7. HTTP/SSE 断开不取消 Run，重连不重复回复或业务动作；
 8. 持久 Summary 与局部压缩没有双写；
 9. 子 Agent 上下文隔离，跨轮状态绑定 Workstream；
-10. 没有过度防御、特化补丁或 God File；
+10. 没有过度防御、特化补丁、God File 或接口碎片化；
 11. 属性、状态机、生成式、heldout 与真实 PostgreSQL E2E 共同通过。
 
 ## 18. 首个代码切片
