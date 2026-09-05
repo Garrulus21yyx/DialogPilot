@@ -181,6 +181,54 @@ def test_public_event_cursor_replays_only_committed_client_events(
     ) == resumed
 
 
+def test_public_event_cursor_pagination_matches_continuous_read_without_gaps(
+    query_components,
+):
+    _, identity, query, publication = query_components
+    interaction = publication.publish_interaction_request(_interaction(identity))
+    final = publication.select_final_response(_final(identity))
+
+    continuous = query.list_public_events(
+        tenant_id=str(identity.tenant_id),
+        user_id=str(identity.user_id),
+        conversation_id=str(identity.conversation_id),
+    )
+    cursor = None
+    replayed = []
+    while True:
+        page = query.list_public_events(
+            tenant_id=str(identity.tenant_id),
+            user_id=str(identity.user_id),
+            conversation_id=str(identity.conversation_id),
+            after_event_id=cursor,
+            limit=1,
+        )
+        if not page.events:
+            break
+        replayed.extend(page.events)
+        cursor = page.last_event_id
+
+    expected_types = [
+        "run.accepted", "interaction.requested", "response.committed",
+    ]
+    assert [event.event_type for event in continuous.events] == expected_types
+    assert replayed == list(continuous.events)
+    assert len({event.event_id for event in replayed}) == len(replayed)
+    assert replayed[1].payload["publication_id"] == (
+        interaction.record.publication_id
+    )
+    assert replayed[2].payload["response_id"] == final.record.publication_id
+
+    # Rejoining from the last committed cursor is a read-only empty replay.
+    assert query.list_public_events(
+        tenant_id=str(identity.tenant_id),
+        user_id=str(identity.user_id),
+        conversation_id=str(identity.conversation_id),
+        after_event_id=cursor,
+        limit=1,
+    ).events == ()
+
+
 def test_unknown_or_cross_scope_public_cursor_requires_state_reload(
     query_components,
 ):
