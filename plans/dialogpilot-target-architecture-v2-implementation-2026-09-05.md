@@ -86,6 +86,8 @@ God File 以多个权威/变化原因判定；过度拆分以无语义的一对�
 | M9 | 按领域迁移框架 Agent/Subgraph | M5/M8 |
 | M10 | 属性、故障注入、heldout 与真实 E2E | 全部 |
 
+当前进度：M0 `done`；M1 `in_progress`；M2-M10 `pending`。
+
 ## 5. M0：冻结基线
 
 工作：
@@ -98,6 +100,15 @@ God File 以多个权威/变化原因判定；过度拆分以无语义的一对�
 退出条件：基线可重放，环境失败与产品失败分离，生产语义未修改。
 
 提交：`test(target): freeze v2 migration baseline`
+
+基线记录（2026-09-05）：
+
+- commit 基线：`0aa52ac`；
+- Target contract/planning/orchestration/workflow/handoff/encoder/context/cutover：
+  `99 passed, 1 skipped in 5.28s`；
+- skipped 原因：当前环境未设置 `TEST_DATABASE_URL`/`DATABASE_URL`，真实 PostgreSQL 测试
+  未在本次重跑；v1 报告中的 PostgreSQL 证据不冒充本次结果；
+- 本阶段只修改计划状态，没有修改生产语义或无关 RAG 工作树。
 
 ## 6. M1：统一 ContextSnapshot
 
