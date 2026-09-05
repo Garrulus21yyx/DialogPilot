@@ -18,12 +18,20 @@ messages and step recovery; ToolManager retains execution evidence and permissio
    Stateful loop-budget fixture now uses TargetFrameworkAgent; tool calls receive their
    framework call ID and trusted context through ToolRuntime, not user-bound closures.
    Removed application package's eager legacy-runtime export.
-5. pending: migrate SQLite customer_operations, badcase_registry and evolution registry
-   to PostgreSQL, update their consumers/tests and remove SQLite configuration.
-   Evolution registry migration 0032 implemented; PostgreSQL tests in progress.
+5. in_progress: migrate SQLite customer_operations and badcase_registry to PostgreSQL,
+   update their consumers/tests and remove SQLite configuration.
+   Evolution registry migration 0032 verified: only PostgreSQL implementation remains.
+   Clean committed worktree: 36 passing tests including API startup, concurrent immutable
+   registration, framework execution and PostgreSQL process-exit recovery.
 
 Target path has no old-engine fallback. Repository-wide SQLite deletion is not complete.
 Existing unrelated RAG working-tree changes are excluded from this migration's commits.
+Exception explicitly authorized by user: RAG migrations 0030/0031 and their schema-version
+tests committed separately as the linear migration prerequisite (ff22710).
+
+Verification workspace: /tmp/dialogpilot-clean-runtime-qSXCb1 (detached b5dc0fa).
+The shared working tree's existing RAG policy/Bundle schema mismatch remains separate;
+it is not hidden by an application fallback or by altering the startup test's policy.
 
 Acceptance: correction during model execution cannot start stale tools; completed tool
 steps survive recovery; concurrent users remain isolated; actual model/tool call counts
