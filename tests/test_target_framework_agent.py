@@ -379,6 +379,8 @@ def test_postgres_subgraph_survives_process_exit_after_tool(postgres_database_ur
     from langgraph.graph import StateGraph, START, END
     from infrastructure.langgraph_checkpoint import AsyncPostgresCheckpointOwner
 
+    runtime_credential = "runtime-only-credential-should-not-be-persisted"
+
     with psycopg.connect(postgres_database_url, autocommit=True) as connection:
         connection.execute("CREATE TABLE framework_recovery_calls (id serial PRIMARY KEY)")
 
@@ -386,6 +388,7 @@ def test_postgres_subgraph_survives_process_exit_after_tool(postgres_database_ur
         crash: bool = False
 
         def _generate(self, messages, stop=None, run_manager=None, **kwargs):
+            assert runtime_credential not in repr(messages)
             if any(isinstance(message, ToolMessage) for message in messages):
                 if self.crash:
                     os._exit(73)
@@ -400,6 +403,7 @@ def test_postgres_subgraph_survives_process_exit_after_tool(postgres_database_ur
         manager = MCPToolManager("test-key", model="test")
 
         async def catalog(params, context):
+            assert context["service_credential"] == runtime_credential
             with psycopg.connect(postgres_database_url, autocommit=True) as connection:
                 connection.execute("INSERT INTO framework_recovery_calls DEFAULT VALUES")
             return {"canonical_model": "PX-200"}
@@ -412,7 +416,7 @@ def test_postgres_subgraph_survives_process_exit_after_tool(postgres_database_ur
             registry=build_default_capability_registry("tenant-a"), system_prompt="product")
 
         async def worker(state):
-            return {"result": await agent(_context())}
+            return {"result": await agent(_context(service_credential=runtime_credential))}
 
         async with AsyncPostgresCheckpointOwner(postgres_database_url, setup=True) as saver:
             builder = StateGraph(dict)
@@ -439,3 +443,15 @@ def test_postgres_subgraph_survives_process_exit_after_tool(postgres_database_ur
     assert output["result"].facts[0].requirement_id == "product.canonical_model"
     with psycopg.connect(postgres_database_url) as connection:
         assert connection.execute("SELECT count(*) FROM framework_recovery_calls").fetchone()[0] == 1
+        persisted = connection.execute("""
+            SELECT convert_to(checkpoint::text || metadata::text, 'UTF8')
+            FROM checkpoints WHERE thread_id='framework-recovery'
+            UNION ALL
+            SELECT blob FROM checkpoint_blobs WHERE thread_id='framework-recovery'
+            UNION ALL
+            SELECT blob FROM checkpoint_writes WHERE thread_id='framework-recovery'
+        """).fetchall()
+    assert persisted
+    assert any(b"read-1" in bytes(row[0]) for row in persisted if row[0] is not None)
+    assert all(runtime_credential.encode() not in bytes(row[0])
+               for row in persisted if row[0] is not None)

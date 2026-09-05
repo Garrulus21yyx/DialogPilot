@@ -165,9 +165,6 @@ services:
       - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-}
     volumes:
       - ./data/eval:/app/data/eval:ro
-      - dialogpilot-badcases:/app/data/badcases
-      - dialogpilot-customer-operations:/app/data/customer-operations
-      - dialogpilot-evolution:/app/data/evolution
       - ./skills:/app/skills:ro
       - dialogpilot-logs:/app/logs
     depends_on:
@@ -222,7 +219,4 @@ volumes:
   redis-data:
   prometheus-data:
   nginx-logs:
-  dialogpilot-badcases:
-  dialogpilot-customer-operations:
-  dialogpilot-evolution:
   dialogpilot-logs:

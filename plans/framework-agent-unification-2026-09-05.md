@@ -130,6 +130,15 @@ operation recovery, stale controls and framework process-restart gates are retai
 After removal: 90 focused unit/contract tests pass; PostgreSQL recovery suite 74 passed,
 one in-memory-only scope case skipped. Repository collection: 1340 tests, no import
 errors. No sqlite3 imports or retired ReAct storage environment keys remain in code.
+Checkpoint credential-boundary evidence: the existing PostgreSQL subprocess crash/
+resume test now injects a runtime-only service credential, checks the tool receives
+it, checks model messages exclude it, and inspects checkpoint JSON, blobs and writes
+after restart. Tool-call content is present but the runtime credential is absent.
+This proves runtime-context separation, not blanket redaction of user-supplied text
+or business artifacts; that distinction remains explicit in the privacy audit.
+Removed obsolete badcase/customer-operations/evolution Compose volume declarations
+after confirming their services use PostgreSQL and no code consumes those paths.
+No actual Docker volumes or database files are removed.
 Retired the obsolete HTTP handoff fixture's AgentOrchestrator/ReAct imports and
 private-global assembly. Its retry expectation created a second response, contrary
 to Target's invocation/publication idempotency. Target cutover now checks OOS replay
