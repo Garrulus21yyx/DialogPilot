@@ -51,6 +51,7 @@ class WorkControlState:
     owner_agent: str
     objective: str
     status: WorkControlStatus = WorkControlStatus.ACTIVE
+    state_snapshot_version: int = 0
 
     def __post_init__(self) -> None:
         _required(
@@ -62,6 +63,8 @@ class WorkControlState:
         )
         if self.revision < 1:
             raise ConversationStateError("work control revision must be positive")
+        if self.state_snapshot_version < 0:
+            raise ConversationStateError("work control snapshot version cannot be negative")
 
     @property
     def binding(self) -> WorkControlBinding:
@@ -434,6 +437,7 @@ class ConversationState:
                     item.owner_agent,
                     item.objective,
                     item.status.value,
+                    item.state_snapshot_version,
                 )
                 for item in self.work_controls
             ],
@@ -447,11 +451,28 @@ class ConversationState:
         *,
         invocation_key: str,
         started_workstreams: tuple[WorkstreamState, ...] = (),
+        cancelled_controls: tuple[WorkControlBinding, ...] = (),
     ) -> "ConversationState":
         """Atomically install the accepted revision for every planned objective."""
-        if not items or any(item.control is None for item in items):
+        if (not items and not cancelled_controls) or any(
+            item.control is None for item in items
+        ):
             raise ConversationStateError("accepted target work requires control bindings")
         controls = {item.control_id: item for item in self.work_controls}
+        changed = bool(cancelled_controls or started_workstreams)
+        if len({item.control_id for item in cancelled_controls}) != len(cancelled_controls):
+            raise ConversationStateError("cancelled work controls must be unique")
+        for binding in cancelled_controls:
+            current = controls.get(binding.control_id)
+            if (
+                current is None
+                or current.revision != binding.revision
+                or current.status is not WorkControlStatus.ACTIVE
+            ):
+                raise ConversationStateConflict("cancelled work control binding is stale")
+            controls[binding.control_id] = replace(
+                current, status=WorkControlStatus.CANCELLED,
+            )
         current_workstream_ids = {item.workstream_id for item in self.workstreams}
         started_ids = tuple(item.workstream_id for item in started_workstreams)
         if (
@@ -463,10 +484,25 @@ class ConversationState:
             binding = work_item.control
             assert binding is not None
             current = controls.get(binding.control_id)
+            if binding.control_id in {item.control_id for item in cancelled_controls}:
+                raise ConversationStateConflict("one plan cannot cancel and revise a control")
             if current is None:
                 if binding.revision != 1:
                     raise ConversationStateConflict("new work control must start at revision 1")
-            elif binding.revision != current.revision + 1:
+                changed = True
+            elif binding.revision == current.revision:
+                if (
+                    current.work_item_id != work_item.work_item_id
+                    or current.invocation_key != invocation_key
+                    or current.owner_agent != work_item.owner_agent
+                    or current.objective != work_item.objective
+                    or current.status is not WorkControlStatus.ACTIVE
+                ):
+                    raise ConversationStateConflict("work control replay differs")
+                continue
+            elif binding.revision == current.revision + 1:
+                changed = True
+            else:
                 raise ConversationStateConflict("work control revision is not the next revision")
             controls[binding.control_id] = WorkControlState(
                 binding.control_id,
@@ -475,7 +511,11 @@ class ConversationState:
                 invocation_key,
                 work_item.owner_agent,
                 work_item.objective,
+                WorkControlStatus.ACTIVE,
+                work_item.state_snapshot_version,
             )
+        if not changed:
+            return self
         return replace(
             self,
             version=self.version + 1,

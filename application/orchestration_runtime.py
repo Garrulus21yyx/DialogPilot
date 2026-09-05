@@ -18,6 +18,7 @@ from application.agent_result import (
 )
 from application.result_board import ResultBoard, ResultBoardSnapshot
 from application.work_item import ControlMode, WorkItem, WorkPlan
+from application.work_control import WorkControlGuard, WorkSuperseded
 
 
 class OrchestrationRuntimeError(ValueError):
@@ -86,6 +87,7 @@ class OrchestrationRuntime:
         result_board: ResultBoard | None = None,
         evidence_resolver: EvidenceResolver | None = None,
         checkpointer=None,
+        control_guard: WorkControlGuard | None = None,
     ) -> None:
         self._direct_executor = direct_executor
         self._domain_workers = dict(domain_workers)
@@ -93,6 +95,7 @@ class OrchestrationRuntime:
         self._result_board = result_board or ResultBoard()
         self._evidence_resolver = evidence_resolver
         self._checkpointer = checkpointer
+        self._control_guard = control_guard
         self.graph = self._build_graph()
 
     def _build_graph(self):
@@ -223,6 +226,10 @@ class OrchestrationRuntime:
             state.get("trusted_context", {}),
             state.get("dependency_results", ()),
         )
+        if self._control_guard is not None and not self._control_guard.is_current(
+            item, context.trusted_context,
+        ):
+            return {"agent_results": [self._control_guard.superseded_result(item)]}
         if item.control_mode is ControlMode.DIRECT:
             executor = self._direct_executor
         elif (
@@ -237,7 +244,14 @@ class OrchestrationRuntime:
                 raise OrchestrationRuntimeError(
                     f"no domain worker registered for {item.owner_agent}"
                 ) from exc
-        result = await self._execute_with_evidence(executor, context)
+        try:
+            result = await self._execute_with_evidence(executor, context)
+        except WorkSuperseded:
+            result = self._control_guard.superseded_result(item)
+        if self._control_guard is not None and not self._control_guard.is_current(
+            item, context.trusted_context,
+        ):
+            result = self._control_guard.superseded_result(item)
         return {"agent_results": [result]}
 
     async def _execute_with_evidence(
@@ -248,6 +262,10 @@ class OrchestrationRuntime:
         resolved_facts: tuple[FactRecord, ...] = ()
         seen_requests: set[tuple[str, tuple[str, ...]]] = set()
         for _attempt in range(context.work_item.max_steps):
+            if self._control_guard is not None:
+                self._control_guard.ensure_current(
+                    context.work_item, context.trusted_context,
+                )
             current = replace(
                 context,
                 verified_facts=_merge_facts(

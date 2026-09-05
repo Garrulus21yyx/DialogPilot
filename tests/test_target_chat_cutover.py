@@ -80,6 +80,7 @@ class _Publication:
         bundle_version,
         evidence_sha256,
         verifier_status,
+        expected_work_controls=(),
     ):
         key = str(identity.invocation_key)
         published = PublishedTargetResponse(f"response:{key}", 1, "selected")

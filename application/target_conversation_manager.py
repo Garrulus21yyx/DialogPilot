@@ -35,7 +35,7 @@ from application.turn_planning import (
     TurnPlanCompiler,
     TurnProposal,
 )
-from application.work_item import ArgumentValue
+from application.work_item import ArgumentValue, WorkControlBinding
 from core.identity import InvocationIdentity
 
 
@@ -455,7 +455,7 @@ class TargetConversationManager:
         *,
         checkpoint_thread_id: str | None,
     ) -> ConversationState:
-        if plan.work is None:
+        if plan.work is None and not plan.control_mutations:
             return state
         plan_items = {item.work_item_id: item for item in plan.work.items}
         if (
@@ -662,7 +662,9 @@ class TargetConversationManager:
             and plan.transitions.expected_conversation_version != state.version
         ):
             raise ConversationStateConflict("flow plan is bound to stale conversation state")
-        items = {item.work_item_id: item for item in plan.work.items}
+        items = {
+            item.work_item_id: item for item in (plan.work.items if plan.work else ())
+        }
         starts = []
         for mutation in (plan.transitions.mutations if plan.transitions else ()):
             if mutation.apply_stage is not MutationApplyStage.PLAN_ACCEPTED:
@@ -683,9 +685,13 @@ class TargetConversationManager:
                 item.argument_bindings,
             ))
         return state.accept_work_items(
-            plan.work.items,
+            plan.work.items if plan.work else (),
             invocation_key=str(invocation.invocation_key),
             started_workstreams=tuple(starts),
+            cancelled_controls=tuple(
+                WorkControlBinding(item.control_id, item.expected_revision)
+                for item in plan.control_mutations
+            ),
         )
 
     def _persist(

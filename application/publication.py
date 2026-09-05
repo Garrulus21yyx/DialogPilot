@@ -8,6 +8,7 @@ from enum import Enum
 from typing import Any, Mapping, TypeAlias
 
 from application.delivery_contract import ConnectorCapability, DeliveryStatusV1
+from application.work_item import WorkControlBinding
 from core.identity import InvocationKey
 
 
@@ -64,6 +65,7 @@ class FinalResponseCommand:
     projection_disposition: ProjectionDisposition = ProjectionDisposition.NORMAL
     public_response: Mapping[str, Any] = field(default_factory=dict)
     execution_stages: tuple[Mapping[str, Any], ...] = ()
+    expected_work_controls: tuple[WorkControlBinding, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -145,6 +147,9 @@ def command_fingerprint(command: PublicationCommand) -> str:
     raw.pop("created_at", None)
     raw["policy"] = dict(command.policy.__dict__)
     raw["invocation_key"] = str(raw.get("invocation_key") or "")
+    raw["expected_work_controls"] = [
+        dict(item.__dict__) for item in raw.get("expected_work_controls", ())
+    ]
     encoded = json.dumps(
         raw, ensure_ascii=False, sort_keys=True,
         separators=(",", ":"), allow_nan=False,

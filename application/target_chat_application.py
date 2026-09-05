@@ -30,6 +30,7 @@ from application.response_assembly import ResponseAssembler
 from application.turn_runtime import TurnRuntime
 from application.turn_planning import ProposalDisposition
 from core.identity import IdentityContractError, IdentityFactory, InvocationIdentity
+from application.work_item import WorkControlBinding
 
 
 logger = logging.getLogger(__name__)
@@ -79,6 +80,7 @@ class TargetPublicationPort(Protocol):
         bundle_version: str,
         evidence_sha256: str,
         verifier_status: str,
+        expected_work_controls: tuple[WorkControlBinding, ...] = (),
     ) -> PublishedTargetResponse: ...
 
     def publish_interaction(
@@ -498,6 +500,9 @@ class TargetChatApplication:
             bundle_version=self._bundle_version,
             evidence_sha256=evidence_sha,
             verifier_status=verifier_status,
+            expected_work_controls=tuple(
+                item.control for item in work_items if item.control is not None
+            ),
         )
         public_response.update({
             "response_id": published.response_id,
@@ -508,6 +513,8 @@ class TargetChatApplication:
 
 
 def _terminal_response(reason_code: str) -> str:
+    if reason_code == "WORK_CANCELLED":
+        return "已停止当前事项。"
     if reason_code == "WORKSTREAM_CANCELLED":
         return "已取消当前事项。"
     if reason_code == "APPROVAL_DECLINED":

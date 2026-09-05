@@ -175,6 +175,7 @@ class PostgresTargetPublication:
         bundle_version,
         evidence_sha256,
         verifier_status,
+        expected_work_controls=(),
     ):
         selected = self._delivery.select_response(
             user_id=str(identity.user_id),
@@ -194,6 +195,9 @@ class PostgresTargetPublication:
                 "bundle_version": bundle_version,
                 "index_manifest_sha256": _NO_INDEX_MANIFEST_SHA256,
                 "public_response": dict(public_response),
+                "expected_work_controls": [
+                    dict(item.__dict__) for item in expected_work_controls
+                ],
             },
         )
         return PublishedTargetResponse(

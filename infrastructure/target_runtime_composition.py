@@ -28,6 +28,7 @@ from application.target_understanding import (
     StateBoundTargetUnderstanding,
 )
 from application.turn_runtime import TurnRuntime
+from application.work_control import WorkControlGuard
 from core.model_policy import ModelRole
 from infrastructure.langgraph_checkpoint import AsyncPostgresCheckpointOwner
 from infrastructure.postgres_admission import PostgresStartOutbox, StartOutboxDispatcher
@@ -91,7 +92,11 @@ async def build_target_runtime(
                 "CONTEXT_PROTOCOL_RESERVE_TOKENS", "600",
             )),
         )
-        tool_executor = TargetToolExecutor(tool_manager)
+        state_store = PostgresConversationStateStore(postgres_pool)
+        control_guard = WorkControlGuard(state_store)
+        tool_executor = TargetToolExecutor(
+            tool_manager, control_guard=control_guard,
+        )
         product_executor = TargetProductExecutor(tool_manager)
         domain_executor = TargetAgentExecutor(
             {
@@ -105,6 +110,7 @@ async def build_target_runtime(
             },
             registry=registry,
             context_budget=context_budget,
+            control_guard=control_guard,
         )
         product_agent = TargetFrameworkAgent(
             ChatAnthropic(
@@ -124,6 +130,7 @@ async def build_target_runtime(
             skill_executors={"product_identification": product_executor},
             context_budget=context_budget,
             checkpointer=checkpointer,
+            control_guard=control_guard,
         )
         orchestration = OrchestrationRuntime(
             direct_executor=tool_executor,
@@ -135,9 +142,12 @@ async def build_target_runtime(
                 "account_security": domain_executor,
                 "human_service": domain_executor,
             },
-            workflow_executor=TargetWorkflowExecutor(postgres_pool, tool_manager),
+            workflow_executor=TargetWorkflowExecutor(
+                postgres_pool, tool_manager, control_guard=control_guard,
+            ),
             evidence_resolver=TargetEvidenceResolver(registry, tool_executor),
             checkpointer=checkpointer,
+            control_guard=control_guard,
         )
         encoder = _target_encoder(project_root)
         conversation_agent = ConversationAgent(
@@ -148,7 +158,7 @@ async def build_target_runtime(
             context_budget=context_budget,
         )
         manager = TargetConversationManager(
-            state_store=PostgresConversationStateStore(postgres_pool),
+            state_store=state_store,
             registry=registry,
             understanding=CascadedTargetUnderstanding(
                 StateBoundTargetUnderstanding(),

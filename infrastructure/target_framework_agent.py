@@ -28,6 +28,7 @@ from application.capability_registry import (
 from application.context_budget import ContextBudgetManager, ModelContextBudgetExceeded
 from application.orchestration_runtime import AgentContextView, WorkExecutor
 from application.work_item import ArgumentValue, ControlMode
+from application.work_control import WorkControlGuard, WorkSuperseded
 from infrastructure.target_agent_result_adapter import (
     fact_from_tool_result,
     merge_facts,
@@ -60,6 +61,7 @@ class TargetFrameworkAgent:
         skill_executors: Mapping[str, WorkExecutor] | None = None,
         context_budget: ContextBudgetManager | None = None,
         checkpointer=None,
+        control_guard: WorkControlGuard | None = None,
     ) -> None:
         self._model = model
         self._tool_manager = tool_manager
@@ -68,9 +70,14 @@ class TargetFrameworkAgent:
         self._skill_executors = dict(skill_executors or {})
         self._context_budget = context_budget or ContextBudgetManager()
         self._checkpointer = checkpointer
+        self._control_guard = control_guard
 
     async def __call__(self, context: AgentContextView) -> AgentResult:
         item = context.work_item
+        if self._control_guard is not None and not self._control_guard.is_current(
+            item, context.trusted_context,
+        ):
+            return self._control_guard.superseded_result(item)
         if item.control_mode is not ControlMode.DELEGATED:
             return self._failure(context, "AGENT_REQUIRES_DELEGATED_WORK")
         if item.effect is not CapabilityEffect.READ:
@@ -108,6 +115,8 @@ class TargetFrameworkAgent:
                     {"messages": [HumanMessage(content=prompt)]},
                     config=config,
                 )
+        except WorkSuperseded:
+            return self._control_guard.superseded_result(item)
         except GraphRecursionError:
             return self._failure(context, "AGENT_STEP_BUDGET_EXCEEDED")
         except TimeoutError:
@@ -120,6 +129,10 @@ class TargetFrameworkAgent:
                 f"AGENT_PROVIDER_FAILURE:{type(exc).__name__}",
                 retryable=True,
             )
+        if self._control_guard is not None and not self._control_guard.is_current(
+            item, context.trusted_context,
+        ):
+            return self._control_guard.superseded_result(item)
         return _adapt_framework_result(
             context,
             tuple(
@@ -151,6 +164,10 @@ class TargetFrameworkAgent:
 
     def _atomic_tool(self, context, runtime_agent, definition):
         async def execute(**arguments):
+            if self._control_guard is not None:
+                self._control_guard.ensure_current(
+                    context.work_item, context.trusted_context,
+                )
             result = await self._tool_manager.execute_for_agent(
                 definition.name,
                 dict(arguments),
@@ -158,6 +175,10 @@ class TargetFrameworkAgent:
                 context=dict(context.trusted_context),
                 allowed_tool_ids=context.work_item.allowed_tools,
             )
+            if self._control_guard is not None:
+                self._control_guard.ensure_current(
+                    context.work_item, context.trusted_context,
+                )
             return _tool_output(result), result
 
         return StructuredTool.from_function(
@@ -180,6 +201,10 @@ class TargetFrameworkAgent:
         }
 
         async def execute(**arguments):
+            if self._control_guard is not None:
+                self._control_guard.ensure_current(
+                    context.work_item, context.trusted_context,
+                )
             allowed = set((*definition.required_arguments, *definition.optional_arguments))
             if set(arguments) - allowed:
                 raise ValueError("skill arguments exceed Registry schema")
@@ -203,6 +228,10 @@ class TargetFrameworkAgent:
                 skill_hint=skill_id,
             )
             result = await executor(replace(context, work_item=derived))
+            if self._control_guard is not None:
+                self._control_guard.ensure_current(
+                    context.work_item, context.trusted_context,
+                )
             content = json.dumps({
                 "status": result.status.value,
                 "facts": {

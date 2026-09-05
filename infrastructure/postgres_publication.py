@@ -109,6 +109,8 @@ class PostgresPublicationService:
                 """, (str(command.invocation_key), *scope)).fetchone()
                 if invocation is None:
                     raise PublicationNotFoundError("invocation scope does not exist")
+            if isinstance(command, FinalResponseCommand):
+                self._assert_work_controls(connection, command)
 
             turn_key = _stable_id("publication-turn", publication_id)
             turn_id = _stable_id("publication-turn-id", publication_id)
@@ -216,6 +218,35 @@ class PostgresPublicationService:
             self.fault_hook("after_delivery_outbox")
             row = self._by_id(connection, publication_id)
             return PublicationResult(PublicationApplyStatus.APPLIED, self._record(row))
+
+    @staticmethod
+    def _assert_work_controls(connection, command: FinalResponseCommand) -> None:
+        """Validate the target revision while holding the conversation row lock."""
+        if not command.expected_work_controls:
+            return
+        row = connection.execute("""
+            SELECT payload
+            FROM dialogpilot_app.conversation_events
+            WHERE tenant_id=%s AND user_id=%s AND conversation_id=%s
+              AND event_type='target.conversation_state.changed.v1'
+            ORDER BY seq DESC LIMIT 1
+        """, (
+            command.tenant_id, command.user_id, command.conversation_id,
+        )).fetchone()
+        if row is None:
+            raise PublicationConflictError("publication lacks work control state")
+        current = {
+            str(item.get("control_id")): (
+                int(item.get("revision") or 0), str(item.get("status") or "")
+            )
+            for item in dict(row[0] or {}).get("work_controls", ())
+        }
+        if any(
+            current.get(binding.control_id)
+            != (binding.revision, "ACTIVE")
+            for binding in command.expected_work_controls
+        ):
+            raise PublicationConflictError("publication work control is stale")
 
     @staticmethod
     def _parts(command: PublicationCommand):

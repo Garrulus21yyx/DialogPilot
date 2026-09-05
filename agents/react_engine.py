@@ -39,6 +39,7 @@ class ReActStatus(str, Enum):
     BLOCKED = "blocked"
     TOOL_ERROR = "tool_error"
     MAX_STEPS = "max_steps"
+    SUPERSEDED = "superseded"
 
 
 @dataclass(frozen=True)
@@ -150,6 +151,7 @@ class ReActExecutionEngine:
         execution_context: Optional[Dict[str, Any]] = None,
         allowed_tool_ids: Optional[Sequence[str]] = None,
         additional_capabilities: Sequence[ReActCapability] = (),
+        control_check: Callable[[str], Awaitable[bool]] | None = None,
     ) -> ReActResult:
         """创建稳定 Run 并循环调用模型/工具，每个可恢复边界均落盘。"""
         execution_context = dict(execution_context or {})
@@ -211,6 +213,7 @@ class ReActExecutionEngine:
             additional_capabilities=capability_by_name,
             run_id=run_id,
             checkpoint_version=checkpoint_version,
+            control_check=control_check,
         )
 
     async def resume(
@@ -389,12 +392,26 @@ class ReActExecutionEngine:
         additional_capabilities: Dict[str, ReActCapability],
         run_id: str,
         checkpoint_version: Optional[int],
+        control_check: Callable[[str], Awaitable[bool]] | None = None,
     ) -> ReActResult:
         """从一个已落盘步骤继续；新 Run 和 resume 共用同一执行代数。"""
         current_version = checkpoint_version
 
         try:
             for step in range(start_step, self._max_steps + 1):
+                if control_check is not None and not await control_check("before_model"):
+                    result = ReActResult(
+                        content="",
+                        status=ReActStatus.SUPERSEDED,
+                        steps=max(0, step - 1),
+                        tool_call_ids=tuple(tool_call_ids),
+                        reason="work control was superseded before model execution",
+                        run_id=run_id,
+                        tool_receipts=tuple(tool_receipts),
+                        tool_results=tuple(tool_results),
+                    )
+                    self._persist_terminal(result, tuple(working_messages), current_version)
+                    return result
                 with self._trace_recorder.span(
                 "agent.react.step",
                 kind="agent",
@@ -429,6 +446,19 @@ class ReActExecutionEngine:
                             messages=provider_messages, tools=tools,
                         )
                 blocks, text, tool_calls = self._parse_content(response.content)
+                if control_check is not None and not await control_check("after_model"):
+                    result = ReActResult(
+                        content="",
+                        status=ReActStatus.SUPERSEDED,
+                        steps=step,
+                        tool_call_ids=tuple(tool_call_ids),
+                        reason="work control was superseded after model execution",
+                        run_id=run_id,
+                        tool_receipts=tuple(tool_receipts),
+                        tool_results=tuple(tool_results),
+                    )
+                    self._persist_terminal(result, tuple(working_messages), current_version)
+                    return result
                 if text:
                     last_text = text
                 if not tool_calls:
@@ -489,6 +519,7 @@ class ReActExecutionEngine:
                     agent_type=agent_type,
                     execution_context=execution_context,
                     additional_capabilities=additional_capabilities,
+                    control_check=control_check,
                 )
                 tool_receipts.extend(
                     ToolExecutionReceipt.from_result(result) for result in results
@@ -628,9 +659,20 @@ class ReActExecutionEngine:
         execution_context: Dict[str, Any],
         approved: bool = False,
         additional_capabilities: Optional[Dict[str, ReActCapability]] = None,
+        control_check: Callable[[str], Awaitable[bool]] | None = None,
     ) -> List[ToolResult]:
         """只读批次可并行；任何潜在写操作都保持稳定串行顺序。"""
         async def execute(call: ParsedToolCall) -> ToolResult:
+            if control_check is not None and not await control_check("before_tool"):
+                return ToolResult(
+                    False,
+                    None,
+                    call.name,
+                    error="work control was superseded before tool execution",
+                    call_id=call.call_id,
+                    status=ToolCallStatus.CANCELLED.value,
+                    effect_status=ToolEffectStatus.NONE.value,
+                )
             capability = (additional_capabilities or {}).get(call.name)
             if capability is not None:
                 result = await capability.execute(
@@ -638,8 +680,16 @@ class ReActExecutionEngine:
                 )
                 if result.effect_status != ToolEffectStatus.NONE.value:
                     raise ValueError("ReAct composite capabilities must be read-only")
+                if control_check is not None and not await control_check("after_tool"):
+                    return ToolResult(
+                        False, result.data, call.name,
+                        error="work control was superseded after tool execution",
+                        call_id=call.call_id,
+                        status=ToolCallStatus.CANCELLED.value,
+                        effect_status=result.effect_status,
+                    )
                 return result
-            return await self._tool_manager.execute_for_agent(
+            result = await self._tool_manager.execute_for_agent(
                 call.name,
                 call.arguments,
                 agent_type=agent_type,
@@ -648,6 +698,15 @@ class ReActExecutionEngine:
                 approved=approved,
                 allowed_tool_ids=execution_context.get("allowed_tool_ids"),
             )
+            if control_check is not None and not await control_check("after_tool"):
+                return ToolResult(
+                    False, result.data, call.name,
+                    error="work control was superseded after tool execution",
+                    call_id=call.call_id,
+                    status=ToolCallStatus.CANCELLED.value,
+                    effect_status=result.effect_status,
+                )
+            return result
 
         if not any(
             call.name in (additional_capabilities or {}) for call in calls
@@ -714,6 +773,7 @@ class ReActExecutionEngine:
             ReActStatus.TOOL_ERROR: RunStatus.TOOL_ERROR,
             ReActStatus.MAX_STEPS: RunStatus.MAX_STEPS,
             ReActStatus.WAITING_APPROVAL: RunStatus.WAITING_APPROVAL,
+            ReActStatus.SUPERSEDED: RunStatus.CANCELLED,
         }[result.status]
         self._run_store.checkpoint(
             run_id=result.run_id,

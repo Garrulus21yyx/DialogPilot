@@ -37,6 +37,7 @@ class CommandKind(str, Enum):
     START_WORKFLOW = "START_WORKFLOW"
     PREPARE_WORKFLOW = "PREPARE_WORKFLOW"
     CONTINUE_WORKFLOW = "CONTINUE_WORKFLOW"
+    CANCEL_WORK = "CANCEL_WORK"
 
 
 class ProposalDisposition(str, Enum):
@@ -66,6 +67,19 @@ class MutationApplyStage(str, Enum):
 
 
 @dataclass(frozen=True)
+class WorkControlMutation:
+    control_id: str
+    expected_revision: int
+    kind: str = "CANCEL"
+
+    def __post_init__(self) -> None:
+        if not self.control_id.strip() or self.expected_revision < 1:
+            raise TurnPlanningError("work control mutation binding is invalid")
+        if self.kind != "CANCEL":
+            raise TurnPlanningError("unsupported work control mutation")
+
+
+@dataclass(frozen=True)
 class CommandProposal:
     command_id: str
     kind: CommandKind
@@ -85,6 +99,7 @@ class CommandProposal:
     operation_key: str | None = None
     approval_signal_version: int | None = None
     argument_bindings: tuple[EntityBinding, ...] = ()
+    revises_control_id: str | None = None
 
     def __post_init__(self) -> None:
         if any(not str(value or "").strip() for value in (
@@ -108,6 +123,8 @@ class CommandProposal:
         _unique(self.dependencies, "command dependencies")
         if self.command_id in self.dependencies:
             raise TurnPlanningError("command cannot depend on itself")
+        if self.revises_control_id is not None and not self.revises_control_id.strip():
+            raise TurnPlanningError("revised control ID must be absent or nonblank")
 
 
 @dataclass(frozen=True)
@@ -209,6 +226,20 @@ class RoutePolicy:
         state: ConversationState,
     ) -> ValidatedCommand:
         agent = registry.agent(command.target_agent)
+        if command.revises_control_id is not None:
+            control = next((
+                item for item in state.active_work_controls
+                if item.control_id == command.revises_control_id
+            ), None)
+            if control is None:
+                raise TurnPlanningError("command revises an inactive work control")
+        if command.kind is CommandKind.CANCEL_WORK:
+            if command.revises_control_id is None:
+                raise TurnPlanningError("cancel command requires an active work control")
+            return ValidatedCommand(
+                command, (), (), CapabilityEffect.READ, CapabilityRisk.LOW,
+                "work-control-v1",
+            )
         if any(
             item.valid_for(state) is not BindingStatus.UNIQUE
             for item in command.argument_bindings
@@ -491,6 +522,7 @@ class TurnPlan:
     state_fingerprint: str
     registry_fingerprint: str
     compiler_version: str
+    control_mutations: tuple[WorkControlMutation, ...] = ()
 
     @property
     def plan_id(self) -> str:
@@ -504,6 +536,10 @@ class TurnPlan:
             "state": self.state_fingerprint,
             "registry": self.registry_fingerprint,
             "compiler": self.compiler_version,
+            "control_mutations": [
+                (item.kind, item.control_id, item.expected_revision)
+                for item in self.control_mutations
+            ],
         }, sort_keys=True, separators=(",", ":")).encode("utf-8")
         return "turn-plan:v1:" + hashlib.sha256(raw).hexdigest()
 
@@ -536,24 +572,32 @@ class TurnPlanCompiler:
             return TurnPlan(
                 route, None, None, state.fingerprint, registry.fingerprint, self.version,
             )
+        executable = tuple(
+            item for item in validated.commands
+            if item.proposal.kind is not CommandKind.CANCEL_WORK
+        )
+        cancellations = tuple(
+            item for item in validated.commands
+            if item.proposal.kind is CommandKind.CANCEL_WORK
+        )
         items = tuple(
             self._compile_item(
                 index, item, state, invocation, registry.fingerprint,
             )
-            for index, item in enumerate(validated.commands, start=1)
+            for index, item in enumerate(executable, start=1)
         )
         id_by_command = {
             command.proposal.command_id: item.work_item_id
-            for command, item in zip(validated.commands, items)
+            for command, item in zip(executable, items)
         }
         items = tuple(
             WorkItem(**{
                 **item.__dict__,
                 "dependencies": tuple(id_by_command[value] for value in command.proposal.dependencies),
             })
-            for command, item in zip(validated.commands, items)
+            for command, item in zip(executable, items)
         )
-        work = WorkPlan(items, items[0].work_item_id)
+        work = WorkPlan(items, items[0].work_item_id) if items else None
         transitions = tuple(
             FlowMutation(
                 f"mutation:{item.proposal.command_id}",
@@ -586,23 +630,26 @@ class TurnPlanCompiler:
                     if item.action and item.action.preparation else None
                 ),
             )
-            for item, work_item in zip(validated.commands, items)
+            for item, work_item in zip(executable, items)
             if item.proposal.kind in {
                 CommandKind.START_WORKFLOW,
                 CommandKind.PREPARE_WORKFLOW,
             }
         )
-        owners = tuple(dict.fromkeys(item.owner_agent for item in items))
+        owners = tuple(dict.fromkeys(
+            item.proposal.target_agent for item in validated.commands
+        ))
         requirements = tuple(dict.fromkeys(
             requirement for item in items for requirement in item.requirement_ids
         ))
         route = RouteDecision(
-            _project_mode(items),
+            _project_mode(items) if items else RouteMode.DIRECT,
             owners,
             requirements,
-            max((item.risk for item in items), key=_risk_rank),
+            max((item.risk for item in items), key=_risk_rank)
+            if items else CapabilityRisk.LOW,
             (),
-            validated.reason_code,
+            "WORK_CANCELLED" if cancellations and not items else validated.reason_code,
         )
         return TurnPlan(
             route,
@@ -611,6 +658,16 @@ class TurnPlanCompiler:
             state.fingerprint,
             registry.fingerprint,
             self.version,
+            tuple(
+                WorkControlMutation(
+                    str(item.proposal.revises_control_id),
+                    next(
+                        control.revision for control in state.active_work_controls
+                        if control.control_id == item.proposal.revises_control_id
+                    ),
+                )
+                for item in cancellations
+            ),
         )
 
     def _compile_item(
@@ -633,6 +690,13 @@ class TurnPlanCompiler:
         }[proposal.kind]
         action = command.action
         write = command.effect is CapabilityEffect.WRITE
+        control = self._control_binding(proposal, state, invocation)
+        replay = next((
+            item for item in state.work_controls
+            if item.control_id == control.control_id
+            and item.revision == control.revision
+            and item.invocation_key == str(invocation.invocation_key)
+        ), None)
         return WorkItem(
             work_item_id=work_item_id,
             owner_agent=proposal.target_agent,
@@ -651,7 +715,9 @@ class TurnPlanCompiler:
                 else "agent-result-v1"
             ),
             verification_profile=command.verification_profile,
-            state_snapshot_version=state.version,
+            state_snapshot_version=(
+                replay.state_snapshot_version if replay is not None else state.version
+            ),
             registry_fingerprint=registry_fingerprint,
             timeout_seconds=15 if write else 8,
             max_steps=8 if write else (1 if control_mode is ControlMode.DIRECT else 4),
@@ -678,11 +744,20 @@ class TurnPlanCompiler:
             aggregate_ref=proposal.target_entity_ref if write else None,
             action_ref=action.ref if action and write else None,
             approval_policy=action.approval_policy if action and write else None,
-            control=WorkControlBinding(
-                f"control:{invocation.invocation_key}:{proposal.command_id}",
-                1,
-            ),
+            control=control,
         )
+
+    @staticmethod
+    def _control_binding(proposal, state, invocation) -> WorkControlBinding:
+        if proposal.revises_control_id is None:
+            return WorkControlBinding(
+                f"control:{invocation.invocation_key}:{proposal.command_id}", 1,
+            )
+        current = next(
+            item for item in state.active_work_controls
+            if item.control_id == proposal.revises_control_id
+        )
+        return WorkControlBinding(current.control_id, current.revision + 1)
 
 
 def _project_mode(items: tuple[WorkItem, ...]) -> RouteMode:

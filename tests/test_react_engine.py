@@ -125,6 +125,48 @@ def test_react_executes_read_tool_and_pairs_result_before_final_answer():
     assert [span.kind for span in spans].count("tool") == 1
 
 
+def test_react_stops_at_next_safe_boundary_when_target_is_revised():
+    tools = runtime()
+    tool_calls = []
+
+    async def lookup(params, _context):
+        tool_calls.append(params["product_id"])
+        return {"product_id": params["product_id"]}
+
+    tools.register(Tool(
+        name="catalog_search",
+        description="catalog",
+        handler=lookup,
+        schema={
+            "type": "object",
+            "properties": {"product_id": {"type": "string"}},
+            "required": ["product_id"],
+        },
+        allowed_agents=("technical",),
+    ))
+    client = ScriptedClient([[
+        tool_use("catalog-1", "catalog_search", {"product_id": "OLD"}),
+    ]])
+    current = True
+
+    async def control_check(boundary):
+        nonlocal current
+        if boundary == "after_tool":
+            current = False
+        return current
+
+    result = asyncio.run(engine(client, tools).run(
+        system="product worker",
+        messages=[{"role": "user", "content": "identify product"}],
+        agent_type="technical",
+        control_check=control_check,
+    ))
+
+    assert result.status is ReActStatus.SUPERSEDED
+    assert tool_calls == ["OLD"]
+    assert len(client.calls) == 1
+
+
 def test_react_discovers_only_tools_in_current_work_item_envelope():
     tools = runtime()
     for name in ("order_lookup", "order_cancel"):

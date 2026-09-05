@@ -128,6 +128,91 @@ def test_conversation_agent_rejects_hallucinated_entity_and_unknown_goal():
     )
     assert proposal.disposition is ProposalDisposition.INVALID_PROVIDER_OUTPUT
 
+
+def test_conversation_agent_revises_or_cancels_only_named_active_work():
+    registry = build_default_capability_registry("tenant-a")
+    state = _state()
+    identity_factory = IdentityFactory()
+    first_identity = identity_factory.create_invocation(
+        tenant_id="tenant-a", user_id="user-a",
+        conversation_id="conversation-a", request_id="first",
+    )
+    initial = CommandProposal(
+        "faq", CommandKind.DIRECT_TOOL, "general", "answer first question",
+        requirement_ids=("knowledge.active_source",),
+        tool_id="knowledge_search",
+    )
+    first_plan = TurnPlanCompiler().compile(
+        RoutePolicy().accept(
+            TurnProposal(ProposalDisposition.RESOLVED, (initial,), "TEST"),
+            state,
+            registry,
+        ),
+        state,
+        registry,
+        first_identity,
+    )
+    state = state.accept_work_items(
+        first_plan.work.items, invocation_key=str(first_identity.invocation_key),
+    )
+    control = state.active_work_controls[0]
+
+    correction_provider = Provider({
+        "status": "resolved",
+        "goals": [{
+            "goal_id": "corrected",
+            "kind": "general_qa",
+            "revises_control_id": control.control_id,
+        }],
+    })
+    observations = TurnObservations("更正一下，我问的是另一项政策")
+    deterministic = DeterministicResolver().resolve(observations, state)
+    correction = asyncio.run(ConversationAgent(correction_provider).plan(
+        observations, state, deterministic, registry, TargetTurnContext(),
+    ))
+    corrected_plan = TurnPlanCompiler().compile(
+        RoutePolicy().accept(correction, state, registry),
+        state,
+        registry,
+        identity_factory.create_invocation(
+            tenant_id="tenant-a", user_id="user-a",
+            conversation_id="conversation-a", request_id="second",
+        ),
+    )
+
+    assert correction_provider.calls[0]["active_work_controls"][0][
+        "control_id"
+    ] == control.control_id
+    assert corrected_plan.work.items[0].control.control_id == control.control_id
+    assert corrected_plan.work.items[0].control.revision == 2
+
+    cancel_provider = Provider({
+        "status": "resolved",
+        "goals": [{
+            "goal_id": "cancel",
+            "kind": "cancel_active_work",
+            "revises_control_id": control.control_id,
+        }],
+    })
+    cancellation = asyncio.run(ConversationAgent(cancel_provider).plan(
+        TurnObservations("先停一下"), state,
+        DeterministicResolver().resolve(TurnObservations("先停一下"), state),
+        registry,
+        TargetTurnContext(),
+    ))
+    cancel_plan = TurnPlanCompiler().compile(
+        RoutePolicy().accept(cancellation, state, registry),
+        state,
+        registry,
+        identity_factory.create_invocation(
+            tenant_id="tenant-a", user_id="user-a",
+            conversation_id="conversation-a", request_id="cancel",
+        ),
+    )
+
+    assert cancel_plan.work is None
+    assert cancel_plan.control_mutations[0].control_id == control.control_id
+
     unknown = Provider({
         "status": "resolved", "goals": [{"kind": "delete_account"}],
     })

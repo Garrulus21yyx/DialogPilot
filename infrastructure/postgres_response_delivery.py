@@ -14,6 +14,7 @@ from application.publication import (
     ProjectionDisposition,
     PublicationPolicy,
 )
+from application.work_item import WorkControlBinding
 from core.identity import InvocationKey
 from infrastructure.postgres import PostgresPool
 from infrastructure.postgres_publication import (
@@ -95,6 +96,12 @@ class PostgresResponseDeliveryService:
             public_response=dict(metadata.get("public_response") or {}),
             execution_stages=tuple(
                 dict(item) for item in metadata.get("execution_stages") or ()
+            ),
+            expected_work_controls=tuple(
+                WorkControlBinding(
+                    str(item["control_id"]), int(item["revision"]),
+                )
+                for item in metadata.get("expected_work_controls") or ()
             ),
         ))
         return self._get(result.record.publication_id, user_id=user_id)

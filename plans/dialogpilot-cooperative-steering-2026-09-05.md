@@ -22,9 +22,9 @@
 
 1. `completed`：审计现有 ConversationState、Run 并发、Agent hooks、Tool 和 Publication 边界；
 2. `completed`：定义最小的目标 revision/control outcome 合同并接入持久状态；
-3. `in_progress`：将共享控制检查接入旧 ReAct 与 framework Agent 的步骤边界；
-4. `pending`：在 Tool 与 Publication 提交边界增加原子/权威校验；
-5. `pending`：实现修正、取消、无关并行不受影响、写结果未知的状态/E2E 测试；
+3. `completed`：将共享控制检查接入旧 ReAct 与 framework Agent 的步骤边界；
+4. `completed`：在 Tool 与 Publication 提交边界增加原子/权威校验；
+5. `in_progress`：实现修正、取消、无关并行不受影响、写结果未知的状态/E2E 测试；
 6. `pending`：更新正式架构文档，分阶段 commit、push。
 
 ## 非目标

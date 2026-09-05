@@ -25,6 +25,7 @@ from application.work_item import ArgumentValue
 
 
 _GOALS = {
+    "cancel_active_work",
     "general_qa",
     "order_status",
     "logistics_status",
@@ -126,6 +127,16 @@ class ConversationAgent:
                     },
                 }
                 for item in state.active_workstreams
+            ],
+            "active_work_controls": [
+                {
+                    "control_id": item.control_id,
+                    "revision": item.revision,
+                    "owner_agent": item.owner_agent,
+                    "objective": item.objective,
+                    "status": item.status.value,
+                }
+                for item in state.active_work_controls
             ],
             "understanding_evidence": [
                 {"kind": kind, "value": value}
@@ -251,10 +262,34 @@ class ConversationAgent:
                 )
                 if new_address else None
             )
-            command = self._command(
-                goal_id, kind, observations.raw_text, state,
-                order_binding, asset_binding, address_binding, registry,
-            )
+            revises_control_id = str(value.get("revises_control_id") or "").strip()
+            if revises_control_id and revises_control_id not in {
+                item.control_id for item in state.active_work_controls
+            }:
+                raise ValueError("goal revises an inactive work control")
+            if kind == "cancel_active_work":
+                if not revises_control_id:
+                    raise ValueError("cancel goal requires an active work control")
+                active = next(
+                    item for item in state.active_work_controls
+                    if item.control_id == revises_control_id
+                )
+                command = CommandProposal(
+                    goal_id,
+                    CommandKind.CANCEL_WORK,
+                    active.owner_agent,
+                    f"Cancel active objective: {active.objective}",
+                    revises_control_id=revises_control_id,
+                )
+            else:
+                command = self._command(
+                    goal_id, kind, observations.raw_text, state,
+                    order_binding, asset_binding, address_binding, registry,
+                )
+            if revises_control_id and kind != "cancel_active_work":
+                command = replace(
+                    command, revises_control_id=revises_control_id,
+                )
             commands.append(replace(command, dependencies=dependencies))
         return TurnProposal(
             ProposalDisposition.RESOLVED, tuple(commands), "CONVERSATION_AGENT_PLAN",

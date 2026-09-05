@@ -803,7 +803,8 @@ def test_manager_consumes_pending_input_before_understanding_and_persists_it():
     assert dict((item.name, item.value) for item in observed_state.workstreams[0].slots) == {
         "order_id": "DP1234",
     }
-    assert result.state_after == observed_state
+    assert result.state_after.version == observed_state.version + 1
+    assert len(result.state_after.active_work_controls) == 1
 
 
 def test_manager_persists_and_resumes_generic_read_work_from_typed_missing_input():
@@ -922,7 +923,7 @@ def test_manager_aggregates_multi_domain_missing_inputs_into_one_interaction():
     assert {
         field.field_name for field in pending.requested_fields
     } == {"verification_reference", "product_reference"}
-    assert result.state_after.version == 1
+    assert result.state_after.version == 2
 
 
 def test_manager_commits_workflow_start_before_dispatch():

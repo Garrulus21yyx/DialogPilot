@@ -23,7 +23,7 @@ import re
 import time
 from dataclasses import dataclass, field, replace
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 from anthropic import AsyncAnthropic
 
@@ -227,6 +227,8 @@ class Request:
     # 由 TurnPlanCompiler 生成的可信 WorkItem 能力包络；不进入模型参数。
     allowed_tool_ids: tuple[str, ...] | None = None
     react_capabilities: tuple[ReActCapability, ...] = ()
+    # Host-owned cooperative control; never serialized or exposed to the model.
+    react_control_check: Callable[[str], Awaitable[bool]] | None = None
 
 
 class PlanningDisposition(str, Enum):
@@ -476,6 +478,7 @@ class BaseAgent:
                 },
                 allowed_tool_ids=req.allowed_tool_ids,
                 additional_capabilities=req.react_capabilities,
+                control_check=req.react_control_check,
             )
 
         resp = await create_message(self._client, self._model_profile, ModelRole.WORKER,

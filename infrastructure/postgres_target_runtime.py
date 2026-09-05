@@ -263,6 +263,7 @@ def conversation_state_to_payload(state: ConversationState) -> dict[str, object]
                 "owner_agent": item.owner_agent,
                 "objective": item.objective,
                 "status": item.status.value,
+                "state_snapshot_version": item.state_snapshot_version,
             }
             for item in state.work_controls
         ],
@@ -399,6 +400,7 @@ def conversation_state_from_payload(raw: Mapping[str, object]) -> ConversationSt
                 str(item["owner_agent"]),
                 str(item["objective"]),
                 WorkControlStatus(str(item["status"])),
+                int(item.get("state_snapshot_version") or 0),
             )
             for item in payload.get("work_controls", ())
         ),

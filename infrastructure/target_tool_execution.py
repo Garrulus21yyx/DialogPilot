@@ -12,6 +12,7 @@ from application.agent_result import (
 )
 from application.orchestration_runtime import AgentContextView
 from application.work_item import ControlMode
+from application.work_control import WorkControlGuard
 
 
 _TOOL_AGENT = {
@@ -29,8 +30,9 @@ class TargetToolExecutor:
 
     version = "target-tool-executor-v1"
 
-    def __init__(self, tool_manager) -> None:
+    def __init__(self, tool_manager, *, control_guard: WorkControlGuard | None = None) -> None:
         self._tools = tool_manager
+        self._control_guard = control_guard
 
     async def __call__(self, context: AgentContextView) -> AgentResult:
         item = context.work_item
@@ -47,6 +49,8 @@ class TargetToolExecutor:
         evidence_refs = []
         rendered = []
         for index, tool_id in enumerate(tool_ids, start=1):
+            if self._control_guard is not None:
+                self._control_guard.ensure_current(item, context.trusted_context)
             params = {argument.name: argument.value for argument in item.arguments}
             if tool_id == "knowledge_search":
                 params.setdefault("query", context.current_message)
@@ -57,6 +61,8 @@ class TargetToolExecutor:
                 context=dict(context.trusted_context),
                 call_id=f"{item.work_item_id}:{index}:{tool_id}",
             )
+            if self._control_guard is not None:
+                self._control_guard.ensure_current(item, context.trusted_context)
             if not result.success:
                 retryable = result.status in {"error", "timeout"}
                 return AgentResult(

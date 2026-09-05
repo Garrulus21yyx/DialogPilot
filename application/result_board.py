@@ -23,6 +23,7 @@ _TERMINAL = {
     AgentResultStatus.RETRYABLE_FAILURE,
     AgentResultStatus.TERMINAL_FAILURE,
     AgentResultStatus.CANCELLED,
+    AgentResultStatus.SUPERSEDED,
 }
 
 

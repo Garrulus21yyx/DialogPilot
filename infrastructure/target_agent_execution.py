@@ -24,6 +24,7 @@ from application.context_budget import (
 )
 from application.orchestration_runtime import AgentContextView, WorkExecutor
 from application.work_item import ArgumentValue, ControlMode
+from application.work_control import WorkControlGuard
 from infrastructure.target_agent_result_adapter import (
     fact_from_tool_result,
     merge_facts,
@@ -53,14 +54,20 @@ class TargetAgentExecutor:
         registry: CapabilityRegistryBundle,
         skill_executors: Mapping[str, WorkExecutor] | None = None,
         context_budget: ContextBudgetManager | None = None,
+        control_guard: WorkControlGuard | None = None,
     ) -> None:
         self._agents = dict(agents)
         self._registry = registry
         self._skill_executors = dict(skill_executors or {})
         self._context_budget = context_budget or ContextBudgetManager()
+        self._control_guard = control_guard
 
     async def __call__(self, context: AgentContextView) -> AgentResult:
         item = context.work_item
+        if self._control_guard is not None and not self._control_guard.is_current(
+            item, context.trusted_context,
+        ):
+            return self._control_guard.superseded_result(item)
         if item.control_mode is not ControlMode.DELEGATED:
             return self._failure(item, "AGENT_REQUIRES_DELEGATED_WORK")
         if item.effect is not CapabilityEffect.READ:
@@ -114,9 +121,24 @@ class TargetAgentExecutor:
             bundle_version=str(context.trusted_context.get("bundle_version") or "unversioned"),
             allowed_tool_ids=item.allowed_tools,
             react_capabilities=self._react_capabilities(context, skill_results),
+            react_control_check=(
+                self._control_check(context)
+                if self._control_guard is not None else None
+            ),
         )
         response = await agent.handle(request)
+        if self._control_guard is not None and not self._control_guard.is_current(
+            item, context.trusted_context,
+        ):
+            return self._control_guard.superseded_result(item)
         return _adapt_response(item, response, self.version, tuple(skill_results))
+
+    def _control_check(self, context: AgentContextView):
+        async def check(_boundary: str) -> bool:
+            return self._control_guard.is_current(
+                context.work_item, context.trusted_context,
+            )
+        return check
 
     def _react_capabilities(
         self,
@@ -224,6 +246,7 @@ def _adapt_response(
         "blocked": AgentResultStatus.BLOCKED,
         "tool_error": AgentResultStatus.RETRYABLE_FAILURE,
         "max_steps": AgentResultStatus.TERMINAL_FAILURE,
+        "superseded": AgentResultStatus.SUPERSEDED,
     }.get(response.react_status)
     tool_facts = tuple(
         fact_from_tool_result(item, result)

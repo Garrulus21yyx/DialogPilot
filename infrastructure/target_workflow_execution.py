@@ -18,6 +18,7 @@ from application.write_workflow import (
     WriteOutcomeStatus,
     WriteToolOutcome,
 )
+from application.work_control import WorkControlGuard
 from core.identity import ConversationId, TenantId, UserId
 from infrastructure.postgres_target_runtime import PostgresOperationLedger
 
@@ -35,9 +36,12 @@ class TargetWorkflowExecutor:
 
     version = "target-workflow-executor-v1"
 
-    def __init__(self, pool, tool_manager) -> None:
+    def __init__(
+        self, pool, tool_manager, *, control_guard: WorkControlGuard | None = None,
+    ) -> None:
         self._pool = pool
         self._tools = tool_manager
+        self._control_guard = control_guard
 
     async def __call__(self, context: AgentContextView) -> AgentResult:
         item = context.work_item
@@ -55,6 +59,7 @@ class TargetWorkflowExecutor:
                 self._tools,
                 context,
                 accepted_handoff=accepted_handoff,
+                control_guard=self._control_guard,
             ),
             reconciliation_port=_ToolReconciler(self._tools, context),
             approval_grants=grants,
@@ -143,12 +148,18 @@ class _ToolPort:
         context: AgentContextView,
         *,
         accepted_handoff: AcceptedHandoff | None = None,
+        control_guard: WorkControlGuard | None = None,
     ) -> None:
         self._tools = tool_manager
         self._context = context
         self._accepted_handoff = accepted_handoff
+        self._control_guard = control_guard
 
     async def execute(self, item, *, tool_id, arguments, operation_key):
+        if self._control_guard is not None:
+            self._control_guard.ensure_current(
+                self._context.work_item, self._context.trusted_context,
+            )
         context = {
             **dict(self._context.trusted_context),
             "business_operation_key": operation_key,
