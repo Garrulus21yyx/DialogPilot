@@ -451,7 +451,9 @@ state-aware conversation heldout，绝不把这些 intent labels 映射成 comma
 
 ## 15. 产物与通过条件
 
-当前组件入口是 `evaluation/command_primary_eval/understanding.py` 和 `selective_adapter.py`，复用同一 `DirectRunner`。真实 L0 入口是 `scripts/run_locked_l0_clarification_eval.py`；它只保存模型输入/输出摘要、版本和聚合 Token/延迟，不把密钥、prompt 或模型原文写入产物。每次固定输出 `manifest.json`、`predictions.jsonl` 和 `report.json`，并分开记录 Trigger、Artifact、Consumption、Outcome 与 Cost。在生产运行时尚未有统一 trace owner 之前，不为了报表再造一个无消费者的 trace 模块。
+历史组件入口是 `evaluation/command_primary_eval/understanding.py` 和 `selective_adapter.py`，复用同一 `DirectRunner`。原 locked L0 脚本及其旧 ChatApplication 装配、专用评分与产物代码已在 Target 单链路清理中退役；冻结数据和已有报告保留，不代表当前 Target 的测试成绩。
+
+当前运行时评测使用 `POST /eval/run`：规划评测通过 `TargetPlanningRunner` 调用实际 Target 规划合同，完整执行评测通过 `ChatApplicationRunner` 等待原 Target invocation 的结果。原 L0 的旧 CommandPrimary 字段和分数不能直接映射或宣称与新链路可比。Target 的澄清、越域与 Provider 失败行为由对应集成测试验证；实时模型成绩必须另外实际运行，不能由静态 fixture 推定。
 
 发布选择采用字典序：
 

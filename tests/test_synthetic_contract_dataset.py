@@ -43,6 +43,17 @@ def test_every_contract_reference_resolves():
     assert unresolved == set()
 
 
+def test_retired_l0_runner_does_not_remove_its_locked_clarification_cases():
+    cases = load_jsonl(DATA / "cases.jsonl")
+    selected = [case for case in cases if len(case["turns"]) == 1
+                and not case["turns"][0]["attachment_refs"]
+                and case["turns"][0]["expected"]["media"]["media_need"] == "L0"
+                and case["turns"][0]["expected"]["route_mode"] == "CLARIFY"
+                and case["expected_outcome"]["terminal_kind"] == "CLARIFY"]
+    assert len(selected) == 20
+    assert all(case["status"] == CASE_STATUS for case in selected)
+
+
 def test_manifest_locks_every_declared_contract_file_by_sha256():
     manifest = load_json(DATA / "manifest.json")
     locked = manifest["locked_file_sha256"]

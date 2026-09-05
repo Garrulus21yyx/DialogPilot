@@ -156,6 +156,21 @@ fallback. Its immutable policy types remain until legacy Orchestrator removal.
 Monitoring regression now only checks observation of Target outcomes without routing
 mutation; current runtime tests distinguish waiting from success-rate samples.
 77 focused tests pass across legacy consumers, Target orchestration and HTTP adapters.
+Retired the locked L0 legacy-only execution island: script, ChatApplication composition,
+old-output scorer, report writer and dedicated legacy runtime tests are removed. This
+is retirement, not a claimed port of its historical scores. Frozen 80-case data and
+existing reports remain; the dataset suite preserves its 20-case L0 clarification
+slice. The research entry now identifies retirement and the current Target evaluation
+entrypoints. Existing Target CLARIFY/OOS/provider-failure tests and planning/evaluator
+contracts remain the current behavior gates. No replacement compatibility runner added.
+The dataset reference audit exposed an earlier migration omission: a frozen case
+referenced the removed persistent-handoff test. The test identifier now contains a
+real Target GovernedWriteRuntime + PostgreSQL OperationLedger/TicketService test,
+including runtime reconstruction and receipt replay without another ticket call.
+This restores the referenced behavioral witness without changing locked gold data
+or adding an alias to the old runtime.
+Verification: 35 focused tests pass with PostgreSQL configured; full repository
+collection passes with 1332 tests. No new live-model benchmark score is claimed.
 Retired the obsolete HTTP handoff fixture's AgentOrchestrator/ReAct imports and
 private-global assembly. Its retry expectation created a second response, contrary
 to Target's invocation/publication idempotency. Target cutover now checks OOS replay
