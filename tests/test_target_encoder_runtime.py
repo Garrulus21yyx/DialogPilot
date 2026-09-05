@@ -22,7 +22,7 @@ from application.target_understanding import (
 )
 from application.target_conversation_manager import TargetTurnContext
 from application.turn_planning import ProposalDisposition
-from evaluation.target_encoder_training import train_target_encoder
+from evaluation.target_encoder_training import TargetEncoderTrainingError, train_target_encoder
 
 
 ARTIFACT_DIR = Path(__file__).resolve().parents[1] / "artifacts" / "target-encoder-zh-v2"
@@ -156,6 +156,32 @@ def test_training_reproduces_the_gated_artifact_contract(tmp_path):
     assert artifact.manifest.threshold_by_capability == {
         "tool:refund_status": pytest.approx(0.4536190330982208),
     }
+
+
+def test_architecture_gold_is_not_target_encoder_training_supervision(tmp_path):
+    root = Path(__file__).resolve().parents[1]
+    data = root / "data/eval/target-encoder-zh-v1"
+    with pytest.raises(TargetEncoderTrainingError, match="invalid dataset row"):
+        train_target_encoder(
+            train_path=root / "data/eval/dialogpilot-synthetic-contract-v1/cases.jsonl",
+            calibration_path=data / "calibration.jsonl",
+            heldout_path=data / "heldout.jsonl",
+            output_dir=tmp_path,
+        )
+    assert list(tmp_path.iterdir()) == []
+
+
+@pytest.mark.parametrize("reused_split", ["train", "calibration"])
+def test_target_training_rejects_heldout_overlap_before_export(tmp_path, reused_split):
+    data = Path(__file__).resolve().parents[1] / "data/eval/target-encoder-zh-v1"
+    with pytest.raises(TargetEncoderTrainingError, match="leaks across splits"):
+        train_target_encoder(
+            train_path=data / "train.jsonl",
+            calibration_path=data / "calibration.jsonl",
+            heldout_path=data / f"{reused_split}.jsonl",
+            output_dir=tmp_path,
+        )
+    assert list(tmp_path.iterdir()) == []
 
 
 def test_target_runtime_encoder_switch_is_explicit_and_uses_checked_in_artifact(

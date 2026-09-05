@@ -2,6 +2,23 @@
 
 Status: in_progress
 
+Done: removed the unconsumed legacy Command Encoder artifact/export/renderer
+cluster and AlwaysDeferCommandEncoder placeholder. Its only external caller is its
+own round-trip test; no dataset references those test names. Target encoder training,
+checked-in JSON artifact, calibration and loader are the runtime owners. Preserve
+data/artifacts/reports, and move the supervision-boundary witness to Target training.
+Verify explicit labels, split separation, digest checks and real fast-path routing;
+do not replace the retained semantic Command/SGD evaluation with a fake Target alias.
+Verification: 48 Target encoder/training/fast-path/conversation and retained
+selective-command/SGD tests pass. Added rejection tests for architecture Gold as
+training supervision and for train/calibration reused as held-out, with no artifact
+export on failure. Existing Target test reproduces the checked-in gated manifest;
+this is not a new accepted-precision claim on fresh external data. All original
+datasets/artifact files remain unchanged. Semantic Command/SGD producer migration,
+remaining authority contracts and final documentation/full-suite audit remain open.
+CLI/import, current Target planning runner and evaluator contract tests also pass
+(11 tests). Full repository collection passes with 1189 tests.
+
 Done: retired unused RequestShape / DomainRouting / InstanceSelection /
 RouterInvocationPolicy execution cluster and its exclusive tests. After old
 Orchestrator/startup retirement, the cluster has no production or benchmark caller;
