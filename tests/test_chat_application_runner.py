@@ -2,12 +2,7 @@
 import asyncio
 import pytest
 
-from application.chat_application import (
-    ChatCommand,
-    Completed,
-    StageObservation,
-    StageStatus,
-)
+from application.chat_contracts import ChatCommand, Completed, StageObservation, StageStatus
 from evaluation.chat_application_runner import ChatApplicationRunner
 from evaluation.evaluator import EndToEndEvaluator, QualityScores
 

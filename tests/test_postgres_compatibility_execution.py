@@ -11,7 +11,7 @@ from application.compatibility_execution import (
     CompatibilityExecutionWorker,
     outcome_from_terminal,
 )
-from application.chat_application import ChatCommand, Completed, Conflict, Failed
+from application.chat_contracts import ChatCommand, Completed, Conflict, Failed
 from application.compatibility_chat import CompatibilityChatCoordinator
 from infrastructure.postgres import (
     PostgresMigrationRunner,

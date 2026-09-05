@@ -10,7 +10,7 @@ from application.admission_contract import (
     AdmissionCreated,
     ExecutionPointer,
 )
-from application.chat_application import ChatCommand
+from application.chat_contracts import ChatCommand
 from application.inbound_admission import NewInvocationInbound
 from application.delivery_contract import ConnectorCapability
 from application.publication import (
@@ -115,7 +115,7 @@ class PostgresTargetPublication:
             """, (str(identity.invocation_key), str(identity.user_id))).fetchone()
         if row is None:
             return None
-        from application.chat_application import NeedsInput
+        from application.chat_contracts import NeedsInput
         payload = dict(row[4] or {})
         kind = str(dict(payload.get("resume_schema") or {}).get(
             "interaction_kind", "APPROVAL",

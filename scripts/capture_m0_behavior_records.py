@@ -13,7 +13,7 @@ import uuid
 from pathlib import Path
 from urllib.parse import quote, urlsplit, urlunsplit
 
-from application.chat_application import ChatCommand, Completed
+from application.chat_contracts import ChatCommand, Completed
 from core.llm_metrics import capture_llm_usage
 from core.tracing import trace_scope
 from dotenv import load_dotenv

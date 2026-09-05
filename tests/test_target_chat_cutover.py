@@ -10,13 +10,7 @@ from application.agent_result import (
     FactSourceKind,
     MissingInputSpec,
 )
-from application.chat_application import (
-    ChatCommand,
-    Completed,
-    Conflict,
-    Failed,
-    NeedsInput,
-)
+from application.chat_contracts import ChatCommand, Completed, Conflict, Failed, NeedsInput
 from application.conversation_state import InMemoryConversationStateStore
 from application.default_capability_registry import build_default_capability_registry
 from application.orchestration_runtime import OrchestrationRuntime
@@ -359,6 +353,18 @@ def test_chat_composition_accessor_has_no_legacy_fallback_authority():
     assert "_target_run_coordinator" in source
     assert "_durable_chat_coordinator" not in source
     assert "_core_chat_application" not in source
+
+
+def test_only_target_run_controls_are_exposed_by_http():
+    from api import main
+
+    routes = {route.path for route in main.app.routes}
+    assert "/invocations/{invocation_key}" in routes
+    assert "/chat" in routes
+    assert "/agent-runs/{run_id}" not in routes
+    assert "/agent-runs/{run_id}/resume" not in routes
+    assert not hasattr(main, "_core_chat_application")
+    assert not hasattr(main, "_run_store")
 
 
 def test_http_chat_function_projects_target_completed_response(monkeypatch):

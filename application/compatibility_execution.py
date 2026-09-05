@@ -10,18 +10,7 @@ from dataclasses import dataclass
 import asyncio
 from typing import Any, Awaitable, Callable, Mapping, Protocol
 
-from application.chat_application import (
-    Cancelled,
-    ChatOutcome,
-    Completed,
-    Conflict,
-    Expired,
-    Failed,
-    HandedOff,
-    Rejected,
-    StageObservation,
-    StageStatus,
-)
+from application.chat_contracts import Cancelled, ChatOutcome, Completed, Conflict, Expired, Failed, HandedOff, Rejected, StageObservation, StageStatus
 from core.identity import InvocationKey, WorkflowRunId
 
 

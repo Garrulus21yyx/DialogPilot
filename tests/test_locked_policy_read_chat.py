@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from application.chat_application import Completed
+from application.chat_contracts import Completed
 from evaluation.command_primary_eval.locked_conversation import (
     LockedConversationTransportAdapter,
 )

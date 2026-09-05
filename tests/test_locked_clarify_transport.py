@@ -5,7 +5,7 @@ import asyncio
 import json
 from pathlib import Path
 
-from application.chat_application import Completed, StageStatus
+from application.chat_contracts import Completed, StageStatus
 from evaluation.command_primary_eval.locked_conversation import (
     LockedConversationTransportAdapter,
 )

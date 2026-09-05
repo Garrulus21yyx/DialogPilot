@@ -3,7 +3,7 @@ from dataclasses import replace
 
 import pytest
 
-from application.chat_application import Completed, Failed
+from application.chat_contracts import Completed, Failed
 from application.target_run import (
     TargetRunClaimLost,
     TargetRunItem,

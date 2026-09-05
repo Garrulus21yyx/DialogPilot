@@ -11,17 +11,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Mapping, Protocol, TypeAlias
 
-from application.chat_application import (
-    Accepted,
-    Cancelled,
-    ChatOutcome,
-    Completed,
-    Expired,
-    Failed,
-    HandedOff,
-    NeedsInput,
-    Reconciling,
-)
+from application.chat_contracts import Accepted, Cancelled, ChatOutcome, Completed, Expired, Failed, HandedOff, NeedsInput, Reconciling
 from core.identity import InvocationKey, OperationKey, WorkflowRunId
 
 

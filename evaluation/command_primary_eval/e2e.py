@@ -4,7 +4,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from application.chat_application import ChatCommand
+from application.chat_contracts import ChatCommand
 from evaluation.chat_application_runner import ChatApplicationRunner, ChatRunResult
 from evaluation.command_primary_eval.contracts import (
     CheckResult,

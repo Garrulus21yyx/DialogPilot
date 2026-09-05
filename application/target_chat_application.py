@@ -11,16 +11,7 @@ from enum import Enum
 from typing import Mapping, Protocol
 
 from application.agent_result import AgentResultStatus
-from application.chat_application import (
-    ChatCommand,
-    ChatOutcome,
-    Completed,
-    Conflict,
-    Failed,
-    NeedsInput,
-    Reconciling,
-    Rejected,
-)
+from application.chat_contracts import ChatCommand, ChatOutcome, Completed, Conflict, Failed, NeedsInput, Reconciling, Rejected
 from application.deterministic_resolution import (
     DeterministicResolutionError,
     TurnObservations,

@@ -18,13 +18,8 @@ from application.active_case import (
     ActiveCaseSelection,
     ActiveCaseState,
 )
-from application.chat_application import (
-    ChatApplication,
-    ChatCommand,
-    ChatOperations,
-    ChatServices,
-    Completed,
-)
+from application.chat_application import ChatApplication, ChatOperations, ChatServices
+from application.chat_contracts import ChatCommand, Completed
 from application.flow_state import FlowStateAggregate
 from application.route_decision import (
     ComponentInvocation,

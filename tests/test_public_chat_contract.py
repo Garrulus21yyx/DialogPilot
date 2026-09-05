@@ -1,18 +1,7 @@
 import pytest
 
 from api.main import app
-from application.chat_application import (
-    Accepted,
-    Cancelled,
-    Completed,
-    Conflict,
-    Expired,
-    Failed,
-    HandedOff,
-    NeedsInput,
-    Reconciling,
-    Rejected,
-)
+from application.chat_contracts import Accepted, Cancelled, Completed, Conflict, Expired, Failed, HandedOff, NeedsInput, Reconciling, Rejected
 from application.public_chat_contract import project_chat_outcome
 
 

@@ -32,7 +32,7 @@ from core.model_policy import ModelProfile, ModelRole
 from core.intent_recognizer import IntentCategory, IntentRecognizer
 from evaluation.rubric import CaseRubric
 from services.evolution.bundle import AgentBundle
-from application.chat_application import ChatCommand, Completed
+from application.chat_contracts import ChatCommand, Completed
 from evaluation.chat_application_runner import ChatApplicationRunner
 
 logger = logging.getLogger(__name__)

@@ -7,11 +7,8 @@ import pytest
 from agents.agent_orchestrator import AgentOrchestrator
 from agents.agent_orchestrator import Request as OrchestrationRequest
 from agents.orchestration_contracts import AgentType
-from application.chat_application import (
-    ChatApplication,
-    ChatCommand,
-    ChatServices,
-)
+from application.chat_application import ChatApplication, ChatServices
+from application.chat_contracts import ChatCommand
 from application.service_episode_tool import build_service_episode_tool
 from application.route_decision import RouteMode
 from application.route_execution import (

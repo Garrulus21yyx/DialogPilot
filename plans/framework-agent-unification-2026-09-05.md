@@ -11,7 +11,10 @@ messages and step recovery; ToolManager retains execution evidence and permissio
 3. verified: PostgreSQL child checkpoint recovery after real process exit; completed tool
    called once, typed evidence survives recovery. ToolMessage requires a versioned artifact
    envelope because its serialization turns nested dataclasses into dictionaries.
-4. pending: remove old API/orchestrator/ReAct consumers and SQLite RunStore together.
+4. in_progress: removed old /agent-runs read/resume and unused compatibility chat
+   composition; API no longer constructs SQLite RunStore. Public ChatCommand/outcomes
+   moved to chat_contracts, with all import consumers migrated. Old orchestrator/ReAct
+   and compatibility evaluation consumers still need removal before deleting RunStore.
 5. pending: migrate SQLite customer_operations, badcase_registry and evolution registry
    to PostgreSQL, update their consumers/tests and remove SQLite configuration.
 

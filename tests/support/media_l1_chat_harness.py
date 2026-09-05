@@ -10,12 +10,8 @@ from typing import Any
 
 from agents.agent_orchestrator import OrchestratorResult, PlanningDisposition
 from agents.orchestration_contracts import AgentType
-from application.chat_application import (
-    ChatApplication,
-    ChatCommand,
-    ChatOperations,
-    ChatServices,
-)
+from application.chat_application import ChatApplication, ChatOperations, ChatServices
+from application.chat_contracts import ChatCommand
 from application.media_asset import AssetAdmissionPolicy, AssetStatus
 from application.media_evidence import (
     CoordinateSpace,

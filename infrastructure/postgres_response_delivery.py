@@ -110,7 +110,7 @@ class PostgresResponseDeliveryService:
         self, invocation_key: InvocationKey, *, user_id: str,
     ):
         """Recover the immutable public response before any regeneration."""
-        from application.chat_application import Completed, StageObservation, StageStatus
+        from application.chat_contracts import Completed, StageObservation, StageStatus
 
         with self.pool.transaction() as connection:
             row = connection.execute("""

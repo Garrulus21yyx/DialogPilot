@@ -6,7 +6,7 @@ import asyncio
 import json
 from pathlib import Path
 
-from application.chat_application import Completed, Failed
+from application.chat_contracts import Completed, Failed
 from application.default_flow_registry import command_primary_flow_registry
 from application.structured_command_producer import CommandCompletionFailure
 from core.llm_metrics import capture_llm_usage

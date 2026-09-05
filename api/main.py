@@ -69,13 +69,7 @@ from core.model_policy import ModelPolicy, ModelRole
 from core.rag_policy import DEFAULT_RAG_RETRIEVAL_POLICY, rag_retrieval_policy_from_env
 from core.intent_recognizer import IntentCategory
 from core.identity import IdentityFactory
-from application.chat_application import (
-    ChatApplication,
-    ChatCommand,
-    ChatOperations,
-    ChatServices,
-    Completed,
-)
+from application.chat_contracts import ChatCommand, Completed
 from api.ticket_resolution import (
     TicketResolutionAcceptRequest,
     accept_ticket_resolution_request,
@@ -144,7 +138,6 @@ _knowledge_retriever = None
 _retrieval_cache_client = None
 _authenticator = None
 _model_policy = None
-_run_store = None
 _bundle_registry = None
 _proposal_generator = None
 _bundle_resolver = None
@@ -211,13 +204,12 @@ def _anthropic_cfg() -> Dict[str, Any]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """按依赖顺序创建所有组件，并在退出时释放后台任务和连接。"""
-    global _orchestrator, _memory, _knowledge_store, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _commitment_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _run_store, _bundle_registry, _proposal_generator, _bundle_resolver, _grounded_answer_generator, _postgres_pool, _conversation_query, _knowledge_retriever, _retrieval_cache_client, _target_run_coordinator, _durable_chat_task, _durable_chat_stop, _retrieval_postgres_pool, _service_episode_search, _media_asset_store, _media_asset_service, _vlm_provider, _postgres_trace_sink, _target_chat_runtime, _target_checkpoint_owner
+    global _orchestrator, _memory, _knowledge_store, _tool_manager, _monitor, _evaluator, _skill_manager, _answer_verifier, _ticket_service, _commitment_service, _response_delivery, _badcase_registry, _customer_operations, _context_assembler, _authenticator, _model_policy, _bundle_registry, _proposal_generator, _bundle_resolver, _grounded_answer_generator, _postgres_pool, _conversation_query, _knowledge_retriever, _retrieval_cache_client, _target_run_coordinator, _durable_chat_task, _durable_chat_stop, _retrieval_postgres_pool, _service_episode_search, _media_asset_store, _media_asset_service, _vlm_provider, _postgres_trace_sink, _target_chat_runtime, _target_checkpoint_owner
 
     print(BANNER, flush=True)
 
     from agents.agent_orchestrator import AgentOrchestrator
     from agents.orchestration_contracts import AgentType
-    from agents.run_store import RunStore
     from core.intent_recognizer import IntentRecognizer
     from evaluation.evaluator import EndToEndEvaluator
     from evaluation.chat_application_runner import ChatApplicationRunner
@@ -265,15 +257,6 @@ async def lifespan(app: FastAPI):
         )
     similarity_mode = os.getenv("INTENT_SIMILARITY_MODE", "ngram")
     _authenticator = JWTAuthenticator.from_env()
-    _run_store = RunStore(
-        os.getenv(
-            "REACT_RUN_DB_PATH",
-            str(pathlib.Path(_ROOT) / "data" / "react-runs" / "react-runs.db"),
-        ),
-        approval_ttl_s=float(os.getenv("REACT_APPROVAL_TTL_SECONDS", "900")),
-        recovery_grace_s=float(os.getenv("REACT_RECOVERY_GRACE_SECONDS", "30")),
-        tool_claim_lease_s=float(os.getenv("REACT_TOOL_CLAIM_LEASE_SECONDS", "30")),
-    )
     _bundle_registry = AgentBundleRegistry(
         os.getenv(
             "AGENT_BUNDLE_DB_PATH",
@@ -320,7 +303,6 @@ async def lifespan(app: FastAPI):
         react_max_steps=int(os.getenv("REACT_MAX_STEPS", "4")),
         intent_similarity_mode=similarity_mode,
         model_policy=_model_policy,
-        run_store=_run_store,
         intent_recognizer=recognizer,
     )
     _answer_verifier = AnswerVerifier(
@@ -409,7 +391,6 @@ async def lifespan(app: FastAPI):
         retrieval_projector = retrieval_runtime.projector
         _conversation_query = PostgresConversationQueryService(
             _postgres_pool,
-            runtime_reader=_compat_runtime_reader,
             ticket_reader=_active_ticket_status_reader,
         )
         from infrastructure.postgres_response_delivery import (
@@ -482,7 +463,6 @@ async def lifespan(app: FastAPI):
         max_output_chars=int(os.getenv("TOOL_OUTPUT_MAX_CHARS", "4000")),
         rewrite_model_profile=_model_policy.profile(ModelRole.REWRITE),
         rerank_model_profile=_model_policy.profile(ModelRole.RERANK),
-        execution_store=_run_store,
     )
     _grounded_answer_generator = GroundedAnswerGenerator(
         _tool_manager.llm_client, _model_policy.profile(ModelRole.SYNTHESIS),
@@ -783,7 +763,6 @@ async def lifespan(app: FastAPI):
         _context_assembler = None
         _authenticator = None
         _model_policy = None
-        _run_store = None
         _bundle_registry = None
         _proposal_generator = None
         _bundle_resolver = None
@@ -1034,10 +1013,6 @@ ChatAsyncResponse = (
 )
 
 
-class ReactResumeInput(BaseModel):
-    """宿主对持久待审批调用做显式决策；不接受模型传入 token。"""
-
-    approved: bool
 
 
 class AgentBundleInput(BaseModel):
@@ -1703,87 +1678,6 @@ async def _run_durable_chat_worker(
             pass
 
 
-def _core_chat_application(
-    *, memory_projection_mode: str = "direct",
-    memory_service=None,
-) -> ChatApplication:
-    """Compose the application boundary from the current lifespan-owned services."""
-    from infrastructure.command_primary_runtime import (
-        build_command_primary_chat_planner,
-    )
-
-    structured_command_mode = (
-        os.environ.get("COMMAND_PRIMARY_MODE", "off").strip().lower()
-        in {
-            "shadow",
-            "structured_knowledge_primary",
-            "structured_read_only_primary",
-        }
-    )
-    command_primary_chat_planner = build_command_primary_chat_planner(
-        _orchestrator,
-        os.environ,
-        postgres_pool=_postgres_pool,
-        command_completion_client=(
-            _tool_manager.llm_client
-            if structured_command_mode and _tool_manager is not None
-            else None
-        ),
-        command_model_profile=(
-            _model_policy.profile(ModelRole.INTENT)
-            if structured_command_mode and _model_policy is not None
-            else None
-        ),
-    )
-    media_agent = None
-    media_validator = None
-    perception_service = None
-    if _media_asset_store is not None:
-        from agents.media_requirement import LocalMediaRequirementAgent
-        from application.media_requirement import MediaRequirementValidator
-        from application.perception import TieredPerceptionService
-        from infrastructure.tesseract_ocr_provider import TesseractOCRProvider
-
-        media_agent = LocalMediaRequirementAgent()
-        media_validator = MediaRequirementValidator()
-        perception_service = TieredPerceptionService(
-            _media_asset_store, ocr=TesseractOCRProvider(), vlm=_vlm_provider,
-        )
-    return ChatApplication(
-        ChatServices(
-            orchestrator=_orchestrator,
-            memory=memory_service or _memory,
-            answer_verifier=_answer_verifier,
-            ticket_service=_ticket_service,
-            response_delivery=_response_delivery,
-            context_assembler=_context_assembler,
-            bundle_registry=_bundle_registry,
-            bundle_resolver=_bundle_resolver,
-            tool_manager=_tool_manager,
-            trace_recorder=_trace_recorder,
-            knowledge_base=_knowledge_store,
-            memory_projection_mode=memory_projection_mode,
-            media_requirement_agent=media_agent,
-            media_requirement_validator=media_validator,
-            media_asset_store=_media_asset_store,
-            perception_service=perception_service,
-            commitment_service=_commitment_service,
-            command_primary_chat_planner=command_primary_chat_planner,
-        ),
-        ChatOperations(
-            active_ticket_context=_active_ticket_context,
-            build_knowledge_context=_build_knowledge_context,
-            capture_badcases=_capture_chat_badcases,
-            handoff_priority=_handoff_priority,
-            policy_terminal_verification=_policy_terminal_verification,
-            publish_candidate=_publish_candidate,
-            public_agent_outcomes=_public_agent_outcomes,
-            record_intent_prediction=_record_intent_prediction,
-            select_publication_candidate=_select_publication_candidate,
-            trace_id=current_trace_id,
-            verify_for_publication=_verify_for_publication,
-        ),
-    )
 
 
 def _chat_application():
@@ -1793,29 +1687,6 @@ def _chat_application():
     return _target_run_coordinator
 
 
-def _compat_runtime_reader(invocation: Mapping[str, Any]) -> Mapping[str, Any] | None:
-    """Read legacy RunStore without letting it own public terminal completion."""
-    run_id = str(invocation.get("execution_run_id") or "")
-    if not run_id or _run_store is None:
-        return None
-    try:
-        checkpoint = _run_store.get_for_user(run_id, invocation["user_id"])
-    except Exception as exc:
-        return {
-            "runtime_kind": "compat",
-            "runtime_status": "UNAVAILABLE",
-            "reason_code": type(exc).__name__,
-        }
-    status = checkpoint.status.value
-    result = {
-        "runtime_kind": "compat",
-        "runtime_status": status,
-        "run_id": checkpoint.run_id,
-        "version": checkpoint.version,
-    }
-    if status == "COMPLETED":
-        result["reason_code"] = "FINAL_PUBLICATION_REQUIRED"
-    return result
 
 
 def _active_ticket_status_reader(
@@ -1938,110 +1809,8 @@ async def upload_asset(
     }
 
 
-@app.get("/agent-runs/{run_id}", tags=["Agent Run"])
-async def get_agent_run(
-    run_id: str,
-    principal: Principal = Depends(_chat_principal),
-):
-    """只向 Run 所属的认证用户返回脱敏状态。"""
-    if _orchestrator is None:
-        raise HTTPException(503, "Agent 服务未就绪")
-    from agents.run_store import RunAccessDeniedError, RunNotFoundError
-
-    try:
-        checkpoint = await asyncio.to_thread(
-            _orchestrator.get_react_run,
-            run_id,
-            user_id=principal.subject,
-        )
-    except RunNotFoundError as exc:
-        raise HTTPException(404, {"code": "run_not_found"}) from exc
-    except RunAccessDeniedError as exc:
-        raise HTTPException(403, {"code": "run_access_denied"}) from exc
-    return checkpoint.to_public_dict()
 
 
-@app.post("/agent-runs/{run_id}/resume", tags=["Agent Run"])
-async def resume_agent_run(
-    run_id: str,
-    body: ReactResumeInput,
-    principal: Principal = Depends(_tool_approval_principal),
-):
-    """审批决策绑定 JWT Principal 和原 Run，恢复后仍经过发布校验。"""
-    if _orchestrator is None or _answer_verifier is None:
-        raise HTTPException(503, "Agent 服务未就绪")
-    from agents.run_store import (
-        RunAccessDeniedError,
-        RunNotFoundError,
-        RunTransitionError,
-        RunVersionConflictError,
-    )
-
-    try:
-        before = await asyncio.to_thread(
-            _orchestrator.get_react_run,
-            run_id,
-            user_id=principal.subject,
-        )
-        result = await _orchestrator.resume_react(
-            run_id,
-            user_id=principal.subject,
-            approved=body.approved,
-            actor=principal.subject,
-        )
-        after = await asyncio.to_thread(
-            _orchestrator.get_react_run,
-            run_id,
-            user_id=principal.subject,
-        )
-    except RunNotFoundError as exc:
-        raise HTTPException(404, {"code": "run_not_found"}) from exc
-    except RunAccessDeniedError as exc:
-        raise HTTPException(403, {"code": "run_access_denied"}) from exc
-    except (RunTransitionError, RunVersionConflictError, ValueError) as exc:
-        raise HTTPException(409, {"code": "run_not_resumable", "message": str(exc)}) from exc
-
-    if result.success:
-        task_id = before.task_id
-        verification = await _verify_for_publication(
-            _answer_verifier,
-            str(before.execution_context.get("task_input") or ""),
-            result.content,
-            before.system,
-            task_plan={"primary_task_id": task_id, "tasks": [{"task_id": task_id}]},
-            coverage={
-                "complete": True,
-                "required_task_ids": [task_id],
-                "completed_task_ids": [task_id],
-                "unresolved_required_task_ids": [],
-            },
-            agent_outcomes=[{"task_id": task_id, "status": "success"}],
-        )
-        published = _publish_candidate(result.content, verification)
-    else:
-        verification = VerificationResult(
-            status=VerificationStatus.UNKNOWN,
-            grounded=False,
-            need_escalation=False,
-            reason=result.reason or "run did not produce a publishable completion",
-            reason_code=(
-                VerificationReasonCode.APPROVAL_REQUIRED
-                if result.status.value == "waiting_approval"
-                else VerificationReasonCode.INCOMPLETE
-            ),
-        )
-        published = (
-            "操作已暂停，仍在等待审批。"
-            if result.status.value == "waiting_approval"
-            else "操作未完成，未发布 Agent 候选内容，请根据 Run 状态重试或联系人工。"
-        )
-    return {
-        **after.to_public_dict(),
-        "response": published,
-        "verification_status": verification.status.value,
-        "verified": verification.publishable,
-        "verification_reason_code": verification.reason_code.value,
-    }
 
 
 def _handoff_priority(urgency: Any, verification_status: str) -> TicketPriority:

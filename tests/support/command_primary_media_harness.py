@@ -13,12 +13,8 @@ from application.active_case import (
     ActiveCaseSelection,
     ActiveCaseState,
 )
-from application.chat_application import (
-    ChatApplication,
-    ChatCommand,
-    ChatOperations,
-    ChatServices,
-)
+from application.chat_application import ChatApplication, ChatOperations, ChatServices
+from application.chat_contracts import ChatCommand
 from application.command_primary_chat import CommandPrimaryChatPlanner
 from application.command_primary_planner import CommandPrimaryPlanner
 from application.default_flow_registry import (

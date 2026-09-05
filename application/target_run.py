@@ -8,20 +8,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Awaitable, Callable, Mapping, Protocol
 
 from application.admission_contract import AdmissionConflict, ClaimStart
-from application.chat_application import (
-    Accepted,
-    Cancelled,
-    ChatCommand,
-    ChatOutcome,
-    Completed,
-    Conflict,
-    Expired,
-    Failed,
-    HandedOff,
-    NeedsInput,
-    Reconciling,
-    Rejected,
-)
+from application.chat_contracts import Accepted, Cancelled, ChatCommand, ChatOutcome, Completed, Conflict, Expired, Failed, HandedOff, NeedsInput, Reconciling, Rejected
 from application.target_chat_application import (
     TargetAdmissionStatus,
     TargetChatApplication,

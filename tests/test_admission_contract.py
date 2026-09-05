@@ -23,16 +23,7 @@ from application.admission_contract import (
     request_fingerprint,
     validate_admission_transition,
 )
-from application.chat_application import (
-    Accepted,
-    Cancelled,
-    Completed,
-    Expired,
-    Failed,
-    HandedOff,
-    NeedsInput,
-    Reconciling,
-)
+from application.chat_contracts import Accepted, Cancelled, Completed, Expired, Failed, HandedOff, NeedsInput, Reconciling
 from agents.run_store import RunStatus
 from core.identity import InvocationKey, WorkflowRunId
 

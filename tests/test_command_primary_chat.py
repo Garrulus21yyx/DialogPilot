@@ -10,13 +10,8 @@ from application.active_case import (
     ActiveCaseSelection,
     ActiveCaseState,
 )
-from application.chat_application import (
-    ChatApplication,
-    ChatCommand,
-    ChatOperations,
-    ChatServices,
-    Completed,
-)
+from application.chat_application import ChatApplication, ChatOperations, ChatServices
+from application.chat_contracts import ChatCommand, Completed
 from application.route_decision import RouteMode
 from core.model_policy import ModelProfile
 from infrastructure.command_primary_runtime import build_command_primary_chat_planner

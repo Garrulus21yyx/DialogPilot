@@ -7,7 +7,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from application.chat_application import ChatApplication, ChatCommand, ChatOutcome
+from application.chat_application import ChatApplication
+from application.chat_contracts import ChatCommand, ChatOutcome
 
 
 class LockedTransportError(ValueError):

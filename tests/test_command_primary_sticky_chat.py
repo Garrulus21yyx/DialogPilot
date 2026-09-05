@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import asyncio
 
-from application.chat_application import Completed
+from application.chat_contracts import Completed
 from tests.support.sticky_read_only_harness import (
     STICKY_COMMAND,
     build_sticky_read_only_harness,

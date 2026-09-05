@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
-from application.chat_application import Completed
+from application.chat_contracts import Completed
 
 
 @dataclass(frozen=True)

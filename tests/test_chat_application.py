@@ -5,15 +5,8 @@ from contextlib import contextmanager
 from types import SimpleNamespace
 
 from api import main
-from application.chat_application import (
-    ChatApplication,
-    ChatCommand,
-    ChatServices,
-    Completed,
-    Failed,
-    StageStatus,
-    _publication_disposition,
-)
+from application.chat_application import ChatApplication, ChatServices, _publication_disposition
+from application.chat_contracts import ChatCommand, Completed, Failed, StageStatus
 from application.memory_projection import (
     MemoryProjectionResult,
     MemoryProjectionState,

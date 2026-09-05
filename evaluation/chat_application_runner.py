@@ -6,13 +6,8 @@ import time
 from dataclasses import dataclass, field, replace
 from typing import Any, Callable, Mapping, Protocol
 
-from application.chat_application import (
-    ChatApplication,
-    ChatCommand,
-    ChatOutcome,
-    Completed,
-    StageObservation,
-)
+from application.chat_application import ChatApplication
+from application.chat_contracts import ChatCommand, ChatOutcome, Completed, StageObservation
 
 
 @dataclass(frozen=True)

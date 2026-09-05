@@ -8,7 +8,7 @@ from agents.agent_orchestrator import (
 )
 from agents.react_engine import ReActResult, ReActStatus
 from api import main
-from application.chat_application import ChatCommand, Completed
+from application.chat_contracts import ChatCommand, Completed
 from application.route_decision import (
     ComponentInvocation,
     ComponentStatus,
@@ -418,42 +418,6 @@ def test_chat_waiting_approval_does_not_create_handoff_or_badcase(
     assert tickets.list_tickets() == []
 
 
-def test_resume_endpoint_reverifies_completed_candidate(monkeypatch):
-    captured = {}
-
-    class Checkpoint:
-        task_id = "billing_task"
-        system = "trusted context"
-        execution_context = {"task_input": "申请退款"}
-
-        @staticmethod
-        def to_public_dict():
-            return {"run_id": "react-1", "status": "completed"}
-
-    class ResumeOrchestrator:
-        def get_react_run(self, run_id, *, user_id):
-            captured["identity"] = (run_id, user_id)
-            return Checkpoint()
-
-        async def resume_react(self, *_args, **_kwargs):
-            return ReActResult(
-                content="退款申请已提交。",
-                status=ReActStatus.COMPLETED,
-                steps=2,
-                run_id="react-1",
-            )
-
-    monkeypatch.setattr(main, "_orchestrator", ResumeOrchestrator())
-    monkeypatch.setattr(main, "_answer_verifier", FakeVerifier())
-    response = asyncio.run(main.resume_agent_run(
-        "react-1",
-        main.ReactResumeInput(approved=True),
-        Principal(subject="user-1", scopes=frozenset({"tool:approve"})),
-    ))
-
-    assert captured["identity"] == ("react-1", "user-1")
-    assert response["verified"] is True
-    assert response["response"] == "退款申请已提交。"
 
 
 def test_active_ticket_context_is_bounded_authoritative_projection(

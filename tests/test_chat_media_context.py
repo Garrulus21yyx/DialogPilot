@@ -6,7 +6,8 @@ from types import SimpleNamespace
 from agents.media_requirement import LocalMediaRequirementAgent
 from agents.agent_orchestrator import AgentOrchestrator, Request
 from agents.orchestration_contracts import AgentType
-from application.chat_application import ChatApplication, ChatCommand
+from application.chat_application import ChatApplication
+from application.chat_contracts import ChatCommand
 from application.media_asset import AssetAdmissionPolicy, AssetStatus
 from application.media_evidence import (
     CoordinateSpace,

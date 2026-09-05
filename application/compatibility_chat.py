@@ -9,14 +9,8 @@ from application.admission_contract import (
     AdmissionConflict,
     ClaimStart,
 )
-from application.chat_application import (
-    Accepted,
-    ChatApplication,
-    ChatCommand,
-    ChatOutcome,
-    Conflict,
-    Failed,
-)
+from application.chat_application import ChatApplication
+from application.chat_contracts import Accepted, ChatCommand, ChatOutcome, Conflict, Failed
 from application.compatibility_execution import (
     CompatibilityExecutionItem,
     CompatibilityExecutionWorker,

@@ -4,19 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping
 
-from application.chat_application import (
-    Accepted,
-    Cancelled,
-    ChatOutcome,
-    Completed,
-    Conflict,
-    Expired,
-    Failed,
-    HandedOff,
-    NeedsInput,
-    Reconciling,
-    Rejected,
-)
+from application.chat_contracts import Accepted, Cancelled, ChatOutcome, Completed, Conflict, Expired, Failed, HandedOff, NeedsInput, Reconciling, Rejected
 
 
 @dataclass(frozen=True)

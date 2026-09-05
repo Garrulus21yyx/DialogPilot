@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import asyncio
 
-from application.chat_application import Completed, StageStatus
+from application.chat_contracts import Completed, StageStatus
 from application.default_flow_registry import MEDIA_TEXT_READ
 from tests.support.command_primary_media_harness import (
     build_command_primary_media_harness,
