@@ -2,6 +2,21 @@
 
 Status: in_progress
 
+Done: retired unused RequestShape / DomainRouting / InstanceSelection /
+RouterInvocationPolicy execution cluster and its exclusive tests. After old
+Orchestrator/startup retirement, the cluster has no production or benchmark caller;
+frozen datasets reference none of its test functions. Keep the RouteDecision data
+contract still consumed by Authority/Requirement/cost tests until that boundary is
+migrated. Current state-first Target understanding, calibrated Encoder and
+ConversationAgent/RoutePolicy own the routing behavior; do not copy legacy lexical
+rules, weighted domain thresholds or fallback instance selection into Target.
+Verification: 74 current conversation/encoder/planning/authority/coverage/cost tests
+pass, with one PostgreSQL fixture skipped in that invocation. A PostgreSQL-enabled
+run of architecture E2E, persistence/manager and authority tests passes all 35 tests.
+Full collection passes with 1189 tests. This verifies the current selected path, not
+historical routing-label parity. Remaining legacy route-data/requirement consumers,
+command evaluation runtime and final documentation/full-suite audit remain open.
+
 Done: retired orphan command-primary business/media execution helpers and
 their private captured-read evidence adapter. Current ToolManager/Target executors
 and AgentResult conversion own execution and result provenance. Remove unreferenced
