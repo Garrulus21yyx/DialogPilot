@@ -2,6 +2,20 @@
 
 Status: in_progress
 
+Done: retired unactivated legacy online RouteBudgetTracker/RouteCostBudget
+policy and its ContextVar hooks in ToolManager/LLM metrics. Only old tests installed
+the tracker; current framework middleware and provider context validation remain
+the execution budget owners. Preserve offline ingest limits and exact usage capture.
+Retire the historical online-budget manifest generator, retaining its archived JSON
+report. Verify live framework limits, tool authorization/receipts, metrics and offline
+pre-persistence rejection without introducing a replacement budget framework.
+Verification: 17 metrics/model-policy/offline-budget tests pass. With PostgreSQL
+configured, 57 framework/restart/write-workflow/authority tests pass and one skips.
+Full repository collection passes with 1183 tests. This does not claim a replacement
+request-wide monetary cap: current limits are the framework WorkItem call budgets,
+provider context validation and offline ingestion limits actually wired to execution.
+Historical local-cost-budget-v1.json remains archived evidence, not current policy.
+
 Done: removed the unconsumed legacy Command Encoder artifact/export/renderer
 cluster and AlwaysDeferCommandEncoder placeholder. Its only external caller is its
 own round-trip test; no dataset references those test names. Target encoder training,

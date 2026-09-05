@@ -14,7 +14,6 @@ from dataclasses import asdict, dataclass
 from typing import Any, Dict, Iterator, List, Optional
 
 from core.model_policy import ModelProfile, ModelRole
-from core.cost_budget import RouteBudgetExceeded, active_route_budget
 from core.provider_context_budget import DEFAULT_PROVIDER_CONTEXT_BUDGET
 from core.provider_cache_policy import (
     DEFAULT_PROVIDER_CACHE_GATE,
@@ -178,16 +177,6 @@ def record_external_llm_run(
     if requests == 0:
         return
 
-    budget_tracker = active_route_budget()
-    if budget_tracker is not None:
-        for _ in range(requests):
-            try:
-                budget_tracker.before_model_call()
-            except RouteBudgetExceeded:
-                # The external run has already happened. Preserve exact provider
-                # usage and let the Application boundary return the typed outcome.
-                break
-
     def split(value: int) -> list[int]:
         quotient, remainder = divmod(max(0, int(value)), requests)
         return [quotient + int(index < remainder) for index in range(requests)]
@@ -198,10 +187,6 @@ def record_external_llm_run(
     cache_read = split(getattr(usage, "cache_read_tokens", 0) or 0)
     per_request_latency = max(0.0, float(latency_ms)) / requests
     for index in range(requests):
-        if budget_tracker is not None:
-            budget_tracker.record_provider_tokens(
-                input_tokens=input_tokens[index], output_tokens=output_tokens[index],
-            )
         collector.add(LLMCallUsage(
             role=role.value,
             model=profile.model,
@@ -234,9 +219,6 @@ async def create_message(
     )
     request = profile.request(**cache_payload)
     context_usage = DEFAULT_PROVIDER_CONTEXT_BUDGET.validate(profile, role, request)
-    budget_tracker = active_route_budget()
-    if budget_tracker is not None:
-        budget_tracker.before_model_call()
     started = time.perf_counter()
     try:
         response = await _observed_provider_call(client, request, profile, role)
@@ -268,10 +250,6 @@ async def create_message(
     usage = getattr(response, "usage", None)
     input_tokens = int(getattr(usage, "input_tokens", 0) or 0)
     output_tokens = int(getattr(usage, "output_tokens", 0) or 0)
-    if budget_tracker is not None:
-        budget_tracker.record_provider_tokens(
-            input_tokens=input_tokens, output_tokens=output_tokens,
-        )
     if collector is not None:
         content = list(getattr(response, "content", None) or [])
         collector.add(LLMCallUsage(
