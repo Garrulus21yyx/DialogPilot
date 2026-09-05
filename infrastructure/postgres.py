@@ -223,12 +223,26 @@ class PostgresMigrationRunner:
         return {"head": target_revision, "ledger_sha256": _mapping_hash(actual)}
 
     def _validate_data_location_metadata(self) -> None:
-        registry = DataLocationRegistry.load(default_registry_path())
+        transitions = {
+            revision: (version, fingerprint)
+            for revision, version, fingerprint in SchemaVersionRegistry.data_location_transitions
+        }
+        registry = None
         ordered = list(reversed(list(
             self._script().walk_revisions(base="base", head="heads")
         )))
         enforce = False
         for revision in ordered:
+            binding = transitions.get(revision.revision)
+            if binding is not None:
+                version, fingerprint = binding
+                registry = DataLocationRegistry.load(
+                    default_registry_path().with_name(f"{version}.json")
+                )
+                if registry.fingerprint != fingerprint:
+                    raise MigrationDriftError(
+                        f"historical data-location artifact differs: {version}"
+                    )
             if revision.revision == "20260902_0006":
                 enforce = True
                 continue
@@ -246,6 +260,8 @@ class PostgresMigrationRunner:
                     f"subject-linked migration has no locations: {revision.revision}"
                 )
             for location_id in module.data_location_ids:
+                if registry is None:
+                    raise MigrationDriftError("migration has no data-location registry")
                 location = registry.get(str(location_id))
                 if location.readiness is not LocationReadiness.WRITE_APPROVED:
                     raise MigrationDriftError(

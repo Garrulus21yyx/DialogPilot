@@ -1,0 +1,14 @@
+{
+  "schema": "dialogpilot.data-location-registry-overlay.v1",
+  "version": "v8",
+  "approved_by": "target-runtime-flow-state-retirement",
+  "base_artifact": "v7.json",
+  "contract_catalog_additions": {},
+  "location_additions": [],
+  "location_updates": [
+    {
+      "location_id": "location:conversation-flow-state:v1",
+      "set": {"readiness": "REGISTERED"}
+    }
+  ]
+}

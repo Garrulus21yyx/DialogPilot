@@ -2,6 +2,26 @@
 
 Status: in_progress
 
+Done: retired the orphan FlowStateAggregate/PostgresFlowStateStore and
+their exclusive tests. Target ConversationState events are the sole current control
+state authority. Add a forward migration removing the obsolete table and its
+triggers/functions; retain historical migrations and revoke the old location's
+write approval in registry v8. No migration of old test flows into Target is defined.
+Verify current concurrent CAS, tombstone blocking, registry authorization, clean
+installation and upgrade; apply destructive schema tests only to isolated test DBs.
+Migration validation exposed a temporal ownership bug: historical writes were
+checked against the latest registry. The migration owner now validates each revision
+against its bound artifact and fingerprint. Historical approval does not authorize
+new post-retirement writes; live writes still use v8. Added both temporal cases.
+Verification: 40 PostgreSQL-enabled migration/registry/current-state/manager and
+retrieval-foundation tests pass, including sequential upgrades through all 35
+revisions, concurrent installs, preserved Target state, exactly one CAS winner and
+post-tombstone load/write rejection. Three registry/temporal unit tests also pass.
+Full collection succeeds with 1157 tests. Only disposable isolated test databases
+were migrated; old flow rows outside tests require backup before applying destructive
+0035. Historical schema/registry files remain immutable; legacy Command data contracts
+and final full-runtime documentation/verification are still open.
+
 Done: removed remaining Structured/Selective command producers, their
 exclusive provider/prompt and evaluation adapter, and exclusive tests. Repository
 consumer audit finds no current runtime or frozen fixture caller. ConversationAgent
