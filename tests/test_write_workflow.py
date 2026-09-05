@@ -119,6 +119,7 @@ def test_missing_approval_waits_without_calling_write_tool():
     result = asyncio.run(runtime(_context()))
 
     assert result.status is AgentResultStatus.WAITING_APPROVAL
+    assert result.action_receipts == ()
     assert tool.calls == []
     assert ledger.acquire(_item()).status is OperationStatus.WAITING_APPROVAL
 

@@ -272,6 +272,9 @@ def test_handoff_commit_receipt_transfers_owner_and_allows_success_claim():
     result = asyncio.run(runtime(AgentContextView(_item(), "human please", (), (), (), 1000)))
 
     assert result.status is AgentResultStatus.SUCCEEDED
+    replay = asyncio.run(runtime(AgentContextView(_item(), "human please", (), (), (), 1000)))
+    assert replay.status is AgentResultStatus.SUCCEEDED
+    assert replay.action_receipts == result.action_receipts
     assert len(tickets.calls) == 1
     assert tickets.calls[0]["idempotency_key"] == "handoff-operation-1"
     receipt = result.action_receipts[0]

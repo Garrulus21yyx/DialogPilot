@@ -227,6 +227,32 @@ def _default_understanding():
     )
 
 
+def test_target_chat_out_of_scope_publishes_once_without_worker_execution():
+    class ScopeProvider:
+        version = "scope-test-v1"
+
+        async def plan(self, payload):
+            return {"status": "out_of_scope"}
+
+    application, tools = _application(CascadedTargetUnderstanding(
+        StateBoundTargetUnderstanding(), ConversationAgent(ScopeProvider()),
+    ))
+    command = ChatCommand(
+        "六边形有几条边？", "user-a", "tenant-a", "conversation-a", "scope-a",
+    )
+    first = asyncio.run(application.handle(command))
+    replay = asyncio.run(application.handle(command))
+
+    assert isinstance(first, Completed)
+    assert isinstance(replay, Completed)
+    assert replay.response_id == first.response_id
+    assert replay.response == first.response
+    assert tools.calls == []
+    assert first.response["agent_outcomes"] == []
+    assert first.response["escalated"] is False
+    assert not first.response.get("ticket_id")
+
+
 def test_target_chat_direct_order_path_publishes_once_and_replays():
     application, tools = _application()
     command = ChatCommand(

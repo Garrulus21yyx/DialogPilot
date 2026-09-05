@@ -73,6 +73,14 @@ The existing execution table's historical name remains in immutable migration hi
 and the sole Target store; no business data or database files were deleted.
 ToolManager's optional execution_store claim branch remains another old RunStore
 consumer; Target writes already use the PostgreSQL operation owner instead.
+Retired the obsolete HTTP handoff fixture's AgentOrchestrator/ReAct imports and
+private-global assembly. Its retry expectation created a second response, contrary
+to Target's invocation/publication idempotency. Target cutover now checks OOS replay
+with the same response and no worker/tool execution; the governed handoff test checks
+receipt replay with exactly one ticket-port invocation; approval waiting has no action
+receipt. Ticket priority and bounded active-case projection tests remain in place.
+All 30 focused tests pass with real PostgreSQL enabled. This is a test-consumer
+migration, not closure of the remaining ChatApplication/ReAct/SQLite removal.
 Existing unrelated RAG working-tree changes are excluded from this migration's commits.
 Exception explicitly authorized by user: RAG migrations 0030/0031 and their schema-version
 tests committed separately as the linear migration prerequisite (ff22710).
