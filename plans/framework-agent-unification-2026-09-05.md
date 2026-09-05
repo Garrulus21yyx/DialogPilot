@@ -2,6 +2,22 @@
 
 Status: in_progress
 
+Done: unified DIRECT ToolResult-to-Fact conversion with the existing framework
+result adapter. DIRECT duplicated construction and classified knowledge/media as
+VERIFIED_STATE, unlike delegated execution. Both modes must preserve the same value,
+authority, source kind, receipt/call reference and producer version; dispatch mode
+does not confer business authority. Keep requirement filtering at each executor,
+reuse the conversion owner, and verify paired boundary outputs plus real tool tests.
+Full PostgreSQL suite for clean commit 83c0036 is still running in exec session 97728;
+do not restart it or claim it covers these subsequent uncommitted changes.
+Verification: six paired conversion cases preserve knowledge/media/business source
+kinds through ToolMessage artifact serialization, with and without receipt IDs.
+The real media/read/framework group has 34 passing tests and one unconfigured PG
+skip; chat/conversion rerun passes 18 tests with one unconfigured PG skip. A configured
+PostgreSQL run passes all 26 conversion/HTTP/product/refund/policy-read/media tests.
+Three test doubles now provide the required ToolResult.tool_name; no production
+missing-field fallback was added. Clean baseline full-suite session remains live.
+
 Done: retired the last legacy Command/RoutePolicy/TurnState types and
 orchestration enums. The only external consumer is historical Gold validation,
 which needs a generation and three Flow IDs, not executable policy. Archive those

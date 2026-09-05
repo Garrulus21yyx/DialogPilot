@@ -243,6 +243,7 @@ def test_generic_product_qa_executes_the_shared_knowledge_tool_contract():
                 success=True,
                 status="success",
                 authority="knowledge.active_source",
+                tool_name=name,
                 data={"status": "OK", "answer": "支持 macOS。"},
                 receipt_id="evidence:product-qa-1",
                 call_id=call_id,

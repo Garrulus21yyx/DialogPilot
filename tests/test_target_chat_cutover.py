@@ -164,6 +164,7 @@ class _ToolManager:
         self.calls.append((name, dict(params), agent_type, dict(context)))
         return SimpleNamespace(
             success=True,
+            tool_name=name,
             data={"order_id": params["order_id"], "status": "SHIPPED"},
             authority="order.current_state",
             receipt_id="",

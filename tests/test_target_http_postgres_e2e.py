@@ -317,6 +317,7 @@ def _result(
 ):
     return SimpleNamespace(
         success=success,
+        tool_name=name,
         data=data,
         authority=authority,
         receipt_id=receipt_id,

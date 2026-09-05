@@ -2,17 +2,15 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
 
 from application.agent_result import (
     AgentResult,
     AgentResultStatus,
-    FactRecord,
-    FactSourceKind,
 )
 from application.orchestration_runtime import AgentContextView
 from application.work_item import ControlMode
 from application.work_control import WorkControlGuard
+from infrastructure.target_agent_result_adapter import fact_from_tool_result
 
 
 _TOOL_AGENT = {
@@ -78,23 +76,7 @@ class TargetToolExecutor:
                 )
             authority = str(result.authority or "")
             if authority in item.requirement_ids:
-                value_json = json.dumps(
-                    result.data,
-                    ensure_ascii=False,
-                    sort_keys=True,
-                    separators=(",", ":"),
-                    allow_nan=False,
-                )
-                facts.append(FactRecord(
-                    item.aggregate_ref or f"work-item:{item.work_item_id}",
-                    authority,
-                    value_json,
-                    FactSourceKind.VERIFIED_STATE,
-                    result.receipt_id or result.call_id,
-                    tool_id,
-                    str(result.output_schema_version or "tool-output-v1"),
-                    datetime.now(timezone.utc),
-                ))
+                facts.append(fact_from_tool_result(item, result))
             if result.receipt_id:
                 evidence_refs.append(result.receipt_id)
             rendered.append(result.output_for_model or _render(result.data))
