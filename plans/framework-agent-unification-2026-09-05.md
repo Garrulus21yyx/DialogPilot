@@ -2,6 +2,16 @@
 
 Status: in_progress
 
+Completed deletion step: migrated legacy route-path application tests. Their label-driven
+route dispatch and hand-written executor are retired semantics, not Target's WorkPlan
+owner. Preserve the service-episode identity witness through create_agent and the real
+registered tool. Existing Target compiler/runtime tests remain the positive gates for
+direct, delegated, workflow, mixed/multi-domain and terminal no-work behavior.
+61 focused tests pass, including completion-order invariance, dependency-scoped
+context, independent partial success and real framework service-episode provenance.
+One PostgreSQL restart test skips without TEST_DATABASE_URL; it is not counted as
+fresh persistence proof in this stage. Remaining old application consumers stay open.
+
 Target delegated objectives use one create_agent runtime. Conversation planning, direct
 tools and governed workflows retain their respective owners. LangGraph owns working
 messages and step recovery; ToolManager retains execution evidence and permissions.

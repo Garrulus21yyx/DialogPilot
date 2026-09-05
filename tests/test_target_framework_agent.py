@@ -55,6 +55,58 @@ class ScriptedToolModel(BaseChatModel):
         return ChatResult(generations=[ChatGeneration(message=response)])
 
 
+def test_memory_tool_receives_runtime_identity_and_returns_episode_provenance():
+    from application.service_episode_tool import build_service_episode_tool
+
+    calls = []
+
+    class Search:
+        def search(self, **kwargs):
+            calls.append(kwargs)
+            return SimpleNamespace(to_dict=lambda: {
+                "status": "OK", "hits": [{
+                    "episode_id": "case-e401", "episode_revision": "1",
+                    "provenance_sha256": "a" * 64,
+                }], "detail_code": None,
+            })
+
+    manager = MCPToolManager("test-key", model="test-model")
+    manager.register(build_service_episode_tool(lambda: Search()))
+    model = ScriptedToolModel(responses=[
+        AIMessage(content="", tool_calls=[{
+            "name": "service_episode_search",
+            "args": {"query": "E401 登录失败", "entity_ids": ["device-1"]},
+            "id": "episode-read-1",
+        }]),
+        AIMessage(content="找到了之前的服务记录。"),
+    ])
+    item = replace(
+        _item(allowed_tools=("service_episode_search",)),
+        owner_agent="general", requirement_ids=("memory.service_episode",),
+        objective="查找此前的登录故障处理记录",
+    )
+    agent = TargetFrameworkAgent(
+        model, manager, registry=build_default_capability_registry("tenant-a"),
+        system_prompt="Use historical service evidence for this objective.",
+    )
+    result = asyncio.run(agent(_context(item)))
+
+    assert result.status is AgentResultStatus.SUCCEEDED
+    assert calls == [{
+        "tenant_id": "tenant-a", "user_id": "user-a", "query": "E401 登录失败",
+        "entity_ids": ("device-1",), "purpose": "HISTORICAL_EVIDENCE",
+        "explicit_time_reference": False, "top_k": 5,
+    }]
+    fact, = result.facts
+    assert fact.requirement_id == "memory.service_episode"
+    assert fact.source_ref == "episode-read-1"
+    assert json.loads(fact.value_json)["hits"][0] == {
+        "episode_id": "case-e401", "episode_revision": "1",
+        "provenance_sha256": "a" * 64,
+    }
+    assert model.bound_tool_names == ["service_episode_search"]
+
+
 def _manager(calls, *, allowed_agents=("technical",)):
     manager = MCPToolManager("test-key", model="test-model")
 
