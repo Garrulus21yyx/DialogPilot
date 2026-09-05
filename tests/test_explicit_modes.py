@@ -180,4 +180,3 @@ def test_unknown_modes_fail_with_typed_configuration_errors(monkeypatch):
     monkeypatch.setattr(intent_module, "AsyncAnthropic", lambda **_kwargs: SimpleNamespace())
     with pytest.raises(ValueError, match="INTENT_SIMILARITY_MODE"):
         intent_module.IntentRecognizer(api_key="test", similarity_mode="magic")
-
