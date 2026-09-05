@@ -97,6 +97,16 @@ are removed from admission. TargetRun's real outcome conversion is tested across
 public ChatOutcome union, including both waiting kinds, rejection of nonterminal
 inputs and unknown persisted statuses. 48 focused tests pass. RunStore checkpoint
 and legacy approval consumers are still pending, not covered by this removal claim.
+Application boundary tests no longer instantiate old ChatApplication/ChatServices or
+an old route-shape orchestrator. HTTP authentication/outcome mapping tests are retained;
+Target cutover tests now cover unexpected runtime failure redaction and unavailable
+history with both a complete current request and an unresolved historical reference.
+The obsolete blanket memory-unavailable blocker is not copied into Target: unrelated
+current-input work can run, unresolved references clarify without tool execution.
+Existing Target planning tests own immutable registered plan/authority assertions.
+23 focused tests pass, one PostgreSQL admission test skips without its database URL.
+The locked L0 legacy evaluation runtime and other support harnesses are still consumers
+of old ChatApplication and must be migrated before deleting that implementation.
 Retired the obsolete HTTP handoff fixture's AgentOrchestrator/ReAct imports and
 private-global assembly. Its retry expectation created a second response, contrary
 to Target's invocation/publication idempotency. Target cutover now checks OOS replay

@@ -3,6 +3,8 @@ import inspect
 from datetime import datetime, timezone
 from types import SimpleNamespace
 
+import pytest
+
 from application.agent_result import (
     AgentResult,
     AgentResultStatus,
@@ -299,6 +301,49 @@ def test_target_chat_unclear_request_uses_zero_tool_clarification():
 
     assert isinstance(outcome, Completed)
     assert outcome.response["routing_disposition"] == "clarify"
+    assert tools.calls == []
+
+
+@pytest.mark.parametrize(("message", "route", "tool_calls"), (
+    ("查一下订单 DP1234", "direct", 1),
+    ("它现在到哪了", "clarify", 0),
+))
+def test_unavailable_history_preserves_current_input_without_inventing_a_reference(
+    message, route, tool_calls,
+):
+    class ObservedProvider(_ChatPlanningProvider):
+        async def plan(self, payload):
+            context = payload["conversation_context"]
+            assert context["projection_status"] == "UNAVAILABLE"
+            assert context["recent_messages"] == []
+            return await super().plan(payload)
+
+    application, tools = _application(CascadedTargetUnderstanding(
+        StateBoundTargetUnderstanding(), ConversationAgent(ObservedProvider()),
+    ))
+    outcome = asyncio.run(application.handle(ChatCommand(
+        message, "user-a", "tenant-a", "conversation-a", "no-history",
+    )))
+    assert isinstance(outcome, Completed)
+    assert outcome.response["routing_disposition"] == route
+    assert len(tools.calls) == tool_calls
+
+
+def test_target_runtime_failure_is_typed_without_exposing_exception_text(monkeypatch):
+    application, tools = _application()
+
+    async def fail(*_args, **_kwargs):
+        raise RuntimeError("private-provider-credential")
+
+    monkeypatch.setattr(application._turn_runtime, "execute", fail)
+    outcome = asyncio.run(application.handle(ChatCommand(
+        "查询订单", "user-a", "tenant-a", "conversation-a", "failed-turn",
+    )))
+    assert isinstance(outcome, Failed)
+    assert outcome.code == "target_runtime_failed"
+    assert outcome.retryable is False
+    assert outcome.correlation_id.startswith("invocation:v1:")
+    assert "private-provider-credential" not in repr(outcome)
     assert tools.calls == []
 
 
