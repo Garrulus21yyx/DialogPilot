@@ -71,8 +71,24 @@ same-worker stale epoch fencing, deletion fencing and terminal replay checks to 
 PostgreSQL Target Run suite. 19 Target Run/planning tests pass on real PostgreSQL.
 The existing execution table's historical name remains in immutable migration history
 and the sole Target store; no business data or database files were deleted.
-ToolManager's optional execution_store claim branch remains another old RunStore
-consumer; Target writes already use the PostgreSQL operation owner instead.
+ToolManager's optional execution_store claim/replay branch and its private codec are
+removed. Target writes use GovernedWriteRuntime and PostgresOperationLedger; the
+manager still owns tool validation, execution, typed effects and cancellation audit.
+The old SQLite resume tests for tool replay, crashed execution and expired claims
+are replaced by the write-workflow contract suite on both ledger implementations.
+Read-tool recovery belongs to the existing framework PostgreSQL subprocess restart
+test, not a second tool-call lease. Legacy approval/checkpoint tests remain pending
+the old ReAct/RunStore contract removal.
+This migration exposed an owner-level persistence bug: operation reads were scoped,
+but Target event IDs only hashed a logical operation key. The event writer now binds
+tenant/user/conversation/event type as well. Existing events remain readable by scope
+and payload; no consumer parses or reconstructs their IDs, so no data rewrite is
+needed. Tests cover concurrent equal keys across all three identity dimensions,
+binding rejection within each scope and recovery from all uncertain write states.
+Verification: 77 tests passed with PostgreSQL enabled; one in-memory scope test is
+not applicable and skipped. After the final audit-only simplification, 16 tool/
+legacy-checkpoint tests pass again. Full repository collection: 1334 tests, no import
+errors. This does not yet attest the whole suite or completion of legacy removal.
 Retired the obsolete HTTP handoff fixture's AgentOrchestrator/ReAct imports and
 private-global assembly. Its retry expectation created a second response, contrary
 to Target's invocation/publication idempotency. Target cutover now checks OOS replay

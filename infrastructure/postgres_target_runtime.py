@@ -677,7 +677,12 @@ def _append_event(connection, scope, *, event_type, logical_key, payload) -> Non
     subject = _subject(connection, scope, create=False, lock=False)
     _assert_active(subject)
     seq = int(subject[0])
-    digest = hashlib.sha256(logical_key.encode("utf-8")).hexdigest()
+    identity = json.dumps(
+        [str(scope.tenant_id), str(scope.user_id), str(scope.conversation_id),
+         event_type, logical_key],
+        ensure_ascii=False, separators=(",", ":"),
+    )
+    digest = hashlib.sha256(identity.encode("utf-8")).hexdigest()
     event_id = f"event:target:v1:{digest}"
     operation_key = f"operation:target:v1:{digest}"
     created_at = datetime.now(timezone.utc).isoformat()
