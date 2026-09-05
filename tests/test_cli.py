@@ -5,7 +5,8 @@ import sys
 import httpx
 import pytest
 
-from api.cli import display_response, run_cli, submit_turn
+from api.cli import display_response, run_cli
+from api.chat_client import submit_turn
 
 
 @pytest.mark.parametrize("terminal", [

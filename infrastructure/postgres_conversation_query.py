@@ -280,6 +280,7 @@ class PostgresConversationQueryService:
             ),
             final_response=(
                 {
+                    **final["payload"].get("public_response", {}),
                     "response_id": final["publication_id"],
                     "response": final["payload"].get("response"),
                     "outbound_event_id": final["outbound_event_id"],

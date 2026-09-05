@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
 from datetime import datetime, timedelta, timezone
 import json
 import os
@@ -14,6 +15,7 @@ import httpx
 import jwt
 from dotenv import load_dotenv
 from PIL import Image, ImageDraw, ImageFont
+from api.chat_client import submit_turn
 
 
 def _demo_png() -> bytes:
@@ -51,21 +53,23 @@ def _token() -> str:
     )
 
 
-def run(base_url: str, message: str) -> dict[str, object]:
+async def run(base_url: str, message: str) -> dict[str, object]:
     started = time.monotonic()
     headers = {"Authorization": f"Bearer {_token()}"}
     request_id = f"local-e2e-{uuid.uuid4().hex}"
     conv_id = f"local-e2e-conversation-{uuid.uuid4().hex}"
-    with httpx.Client(base_url=base_url.rstrip("/"), timeout=120.0) as client:
-        health_response = client.get("/health")
+    async with httpx.AsyncClient(
+        base_url=base_url.rstrip("/"), timeout=120.0, headers=headers,
+    ) as client:
+        health_response = await client.get("/health")
         health_response.raise_for_status()
         health = health_response.json()
 
-        knowledge_response = client.get("/knowledge/stats", headers=headers)
+        knowledge_response = await client.get("/knowledge/stats")
         knowledge_response.raise_for_status()
         knowledge = knowledge_response.json()
 
-        asset_response = client.post(
+        asset_response = await client.post(
             "/assets/upload",
             headers=headers,
             params={"conv_id": conv_id, "request_id": request_id},
@@ -74,19 +78,14 @@ def run(base_url: str, message: str) -> dict[str, object]:
         asset_response.raise_for_status()
         asset = asset_response.json()
 
-        chat_response = client.post(
-            "/chat",
-            headers=headers,
-            json={
-                "message": message, "conv_id": conv_id,
-                "request_id": request_id,
-                "asset_ids": [asset["asset_id"]],
-            },
+        result = await submit_turn(
+            client, message, conversation_id=conv_id, request_id=request_id,
+            asset_ids=(asset["asset_id"],), wait_seconds=120,
         )
-        chat_response.raise_for_status()
-        chat = chat_response.json()
+        chat = result.get("final_response") or result
 
     storage = knowledge.get("storage_backend") or {}
+    facts = (chat.get("evaluation_trace") or {}).get("consumption", {}).get("facts", [])
     passed = (
         health.get("status") == "ok"
         and storage.get("engine") == "postgresql+pgvector+pg_fts"
@@ -98,11 +97,15 @@ def run(base_url: str, message: str) -> dict[str, object]:
         and chat.get("request_id") == request_id
         and chat.get("verified") is True
         and "E42" in str(chat.get("response") or "")
-        and chat.get("media", {}).get("ocr_invoked") is True
-        and chat.get("media", {}).get("vlm_invoked") is False
+        and any(
+            fact.get("requirement_id") == "media.visible_text"
+            and fact.get("source_kind") == "MEDIA_OBSERVED"
+            and fact.get("producer_id") == "media_read"
+            for fact in facts
+        )
     )
     return {
-        "schema_version": "dialogpilot-local-e2e-v1",
+        "schema_version": "dialogpilot-local-e2e-v2",
         "environment": "docker-compose-local",
         "verification": "PASS" if passed else "FAIL",
         "executed_at": datetime.now(timezone.utc).isoformat(),
@@ -126,7 +129,7 @@ def run(base_url: str, message: str) -> dict[str, object]:
             "vlm_invoked": asset.get("vlm_invoked"),
         },
         "chat": {
-            "http_status": chat_response.status_code,
+            "result_source": "invocation_query" if "final_response" in result else "chat_response",
             "intent": chat.get("intent"),
             "primary_agent": chat.get("primary_agent"),
             "verification_status": chat.get("verification_status"),
@@ -137,7 +140,7 @@ def run(base_url: str, message: str) -> dict[str, object]:
             "latency_ms": chat.get("latency_ms"),
             "response_present": bool(chat.get("response")),
             "response_mentions_error_code": "E42" in str(chat.get("response") or ""),
-            "media": chat.get("media"),
+            "consumed_evidence": facts,
         },
         "scope_limit": "Synthetic local request; no production traffic or legacy-data claim.",
     }
@@ -153,7 +156,7 @@ def main() -> int:
     )
     args = parser.parse_args()
     load_dotenv(args.env_file)
-    report = run(args.base_url, args.message)
+    report = asyncio.run(run(args.base_url, args.message))
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(
         json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n",

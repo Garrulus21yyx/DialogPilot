@@ -1,4 +1,6 @@
 """M1-T05 scoped transcript, status, watermark and close-command tests."""
+from dataclasses import replace
+
 import psycopg
 import pytest
 
@@ -276,6 +278,36 @@ def test_invocation_projection_keeps_admission_waiting_completion_and_delivery_s
     assert completed.pending_signal is None
     assert completed.final_response["response_id"] == final.record.publication_id
     assert completed.delivery_status is DeliveryStatusV1.SELECTED
+
+
+@pytest.mark.parametrize("public_response", [
+    {},
+    {"request_id": "request-one", "verified": True,
+     "evaluation_trace": {"consumption": {"facts": [{"source_ref": "read-1"}]}}},
+    {"verified": False, "response_id": "not-authoritative",
+     "response": "not-authoritative", "outbound_event_id": "not-authoritative"},
+])
+def test_invocation_preserves_committed_public_payload_not_internal_metadata(
+    query_components, public_response,
+):
+    _, identity, query, publication = query_components
+    selected = publication.select_final_response(replace(
+        _final(identity), response_text="Published answer", public_response=public_response,
+        verification={"internal_check": "not-a-public-field"},
+    ))
+    reader = PostgresConversationQueryService(query.pool)
+    result = reader.invocation_status(
+        str(identity.invocation_key), tenant_id=str(identity.tenant_id),
+        user_id=str(identity.user_id),
+    ).final_response
+    for key, value in public_response.items():
+        if key not in {"response_id", "response", "outbound_event_id"}:
+            assert result[key] == value
+    assert result["response_id"] == selected.record.publication_id
+    assert result["response"] == "Published answer"
+    assert result["outbound_event_id"] != "not-authoritative"
+    assert "verification" not in result
+    assert "not-a-public-field" not in repr(result)
 
 
 def test_compat_runtime_is_read_only_and_terminal_publication_has_priority(

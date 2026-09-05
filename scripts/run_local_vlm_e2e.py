@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
 from datetime import datetime, timedelta, timezone
 from io import BytesIO
 import json
@@ -14,6 +15,7 @@ from dotenv import load_dotenv
 import httpx
 import jwt
 from PIL import Image, ImageDraw, ImageFont
+from api.chat_client import submit_turn
 
 
 def _token() -> str:
@@ -49,35 +51,29 @@ def _demo_image() -> bytes:
     return output.getvalue()
 
 
-def run(base_url: str) -> dict[str, object]:
+async def run(base_url: str) -> dict[str, object]:
     started = time.monotonic()
     headers = {"Authorization": f"Bearer {_token()}"}
     request_id = f"local-vlm-{uuid.uuid4().hex}"
     conv_id = f"local-vlm-conversation-{uuid.uuid4().hex}"
-    with httpx.Client(base_url=base_url.rstrip("/"), timeout=180) as client:
-        upload_response = client.post(
+    async with httpx.AsyncClient(
+        base_url=base_url.rstrip("/"), timeout=180, headers=headers,
+    ) as client:
+        upload_response = await client.post(
             "/assets/upload", headers=headers,
             params={"conv_id": conv_id, "request_id": request_id},
             files={"file": ("ui.png", _demo_image(), "image/png")},
         )
         upload_response.raise_for_status()
         asset = upload_response.json()
-        chat_response = client.post(
-            "/chat", headers=headers,
-            json={
-                "message": (
-                    "我无法登录，界面提示错误。"
-                    "红框里的按钮位置和状态是什么？"
-                ),
-                "conv_id": conv_id, "request_id": request_id,
-                "asset_ids": [asset["asset_id"]],
-            },
+        result = await submit_turn(
+            client, "我无法登录，界面提示错误。红框里的按钮位置和状态是什么？",
+            conversation_id=conv_id, request_id=request_id,
+            asset_ids=(asset["asset_id"],), wait_seconds=180,
         )
-        chat_response.raise_for_status()
-        chat = chat_response.json()
-    media = chat.get("media") or {}
-    outcomes = media.get("outcomes") or []
-    producers = media.get("producers") or []
+        chat = result.get("final_response") or result
+    facts = (chat.get("evaluation_trace") or {}).get("consumption", {}).get("facts", [])
+    outcomes = chat.get("agent_outcomes") or []
     response = str(chat.get("response") or "")
     used_visual_observation = any(
         term in response.casefold()
@@ -85,16 +81,18 @@ def run(base_url: str) -> dict[str, object]:
     )
     passed = all((
         upload_response.status_code == 201,
-        chat_response.status_code == 200,
         chat.get("verified") is True,
-        media.get("ocr_invoked") is True,
-        media.get("vlm_invoked") is True,
         bool(outcomes) and all(item.get("status") == "SUCCEEDED" for item in outcomes),
-        any(item.get("model") == "deepseek-v4-flash-vision-exp" for item in producers),
+        any(
+            fact.get("requirement_id") == "media.visual_observation"
+            and fact.get("source_kind") == "MEDIA_OBSERVED"
+            and fact.get("producer_id") == "media_observe"
+            for fact in facts
+        ),
         used_visual_observation,
     ))
     return {
-        "schema_version": "dialogpilot-local-vlm-e2e-v1",
+        "schema_version": "dialogpilot-local-vlm-e2e-v2",
         "environment": "docker-compose-local-vlm-enabled",
         "verification": "PASS" if passed else "FAIL",
         "executed_at": datetime.now(timezone.utc).isoformat(),
@@ -105,17 +103,17 @@ def run(base_url: str) -> dict[str, object]:
             "media_type": asset.get("media_type"),
         },
         "chat": {
-            "http_status": chat_response.status_code,
+            "result_source": "invocation_query" if "final_response" in result else "chat_response",
             "intent": chat.get("intent"),
             "primary_agent": chat.get("primary_agent"),
             "verified": chat.get("verified"),
             "verification_status": chat.get("verification_status"),
-            "media": media,
+            "consumed_evidence": facts,
             "response_uses_visual_observation": used_visual_observation,
         },
         "scope_limit": (
-            "Synthetic local image and request; DeepSeek experimental vision "
-            "model enabled explicitly; no production-traffic claim."
+            "Synthetic local image and request; checks consumption of the configured "
+            "visual tool, not a specific provider model version or production traffic."
         ),
     }
 
@@ -127,7 +125,7 @@ def main() -> int:
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     load_dotenv(args.env_file)
-    report = run(args.base_url)
+    report = asyncio.run(run(args.base_url))
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(
         json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n",

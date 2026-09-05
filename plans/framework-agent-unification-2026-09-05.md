@@ -2,6 +2,36 @@
 
 Status: in_progress
 
+Current acceptance evidence: clean committed 480be42 completes the PostgreSQL
+full suite with 1145 passed, 1 skipped and one multiprocessing fork warning in
+387.73s. This includes framework process-exit recovery, current startup wiring,
+Target HTTP, CAS/approval/write reconciliation and the current security inventory.
+It does not establish live-provider answer quality or cover unrelated RAG edits.
+
+Implemented client repair: local OCR/VLM demo scripts consumed /chat as an immediately
+completed response. Admission owns acceptance; Invocation status owns later public
+results. Reuse the existing CLI submit-once/poll-original-invocation behavior in a
+shared HTTP client, including attachment IDs, and migrate both demos. Preserve
+Accepted on observation timeout and terminal failure/waiting states; never resubmit
+or cancel on client timeout. Verify immediate and delayed results, failure, waiting,
+timeout and media metadata with mocked transport before a new committed regression.
+The full causal path also exposes a projection gap: Publication already persists
+the explicitly public response, but Invocation query drops its verification and
+evaluation metadata. Project that persisted public payload (never internal runtime
+context) while preserving authoritative publication identity/text. Demo consumption
+checks must use Target's actual fact provenance, not retired media-summary fields;
+add generic consumed-fact references to the existing evaluation trace owner.
+Verification: 51 PostgreSQL-enabled query/API/Target HTTP/client tests pass in
+24.24s. Transport cases cover immediate/delayed publication, waiting/failure and
+untrusted evidence; CLI timeout does not cancel/resubmit. Query projection preserves
+the committed public payload after owner recreation, excludes internal verification,
+and keeps publication ID/text authoritative. Current Target traces preserve fact
+provenance without exporting raw fact values. Both documented CLI help commands work.
+Reports use v2 schema and no longer claim to certify a specific vision model version.
+Fresh full-suite evidence is required for this commit; no live-model quality claim.
+
+The entries below are chronological migration evidence, not current open-task status.
+
 Done: separated frozen X-T03 v1 evidence from the current Target security
 inventory. The full-suite failure reveals obsolete RunStore controls and VLM N/A,
 not just missing paths. Preserve v1 and its corpus hashes; add a v2 control map for

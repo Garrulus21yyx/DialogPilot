@@ -281,6 +281,14 @@ def test_target_chat_direct_order_path_publishes_once_and_replays():
     )
     assert trace["artifact"]["route_mode"] == "DIRECT"
     assert trace["consumption"]["work_items"][0]["control_mode"] == "DIRECT"
+    fact, = trace["consumption"]["facts"]
+    assert fact == {
+        "requirement_id": "order.current_state",
+        "source_kind": "VERIFIED_STATE",
+        "source_ref": f"{trace['consumption']['work_items'][0]['work_item_id']}:1:order_lookup",
+        "producer_id": "order_lookup",
+        "producer_version": "order-view-v1",
+    }
     assert trace["cost"]["conversation_planner_invoked"] is True
     assert len(tools.calls) == 1
     assert tools.calls[0][3]["user_id"] == "user-a"

@@ -408,6 +408,13 @@ class TargetChatApplication:
                     "allowed_skills": list(item.allowed_skills),
                 } for item in work_items],
                 "result_statuses": [item["status"] for item in outcomes],
+                "facts": [{
+                    "requirement_id": fact.requirement_id,
+                    "source_kind": fact.source_kind.value,
+                    "source_ref": fact.source_ref,
+                    "producer_id": fact.producer_id,
+                    "producer_version": fact.producer_version,
+                } for fact in facts],
             },
             "state_side_effect": {
                 "state_version_before": managed.state_before.version,
