@@ -25,6 +25,7 @@ from application.deterministic_resolution import (
     TurnObservations,
 )
 from application.target_conversation_manager import TargetConversationManager
+from application.response_assembly import ResponseAssembler
 from application.turn_planning import ProposalDisposition
 from core.identity import IdentityContractError, IdentityFactory, InvocationIdentity
 
@@ -100,12 +101,14 @@ class TargetChatApplication:
         publication: TargetPublicationPort,
         bundle_version: str,
         identity_factory: IdentityFactory | None = None,
+        response_assembler: ResponseAssembler | None = None,
     ) -> None:
         self._manager = manager
         self._admission = admission
         self._publication = publication
         self._bundle_version = bundle_version
         self._identity_factory = identity_factory or IdentityFactory()
+        self._response_assembler = response_assembler or ResponseAssembler()
 
     async def handle(self, command: ChatCommand) -> ChatOutcome:
         started = time.monotonic()
@@ -280,6 +283,7 @@ class TargetChatApplication:
             outcomes = []
             facts = ()
             missing = list(managed.plan.route.missing_inputs)
+            assembly = None
         else:
             board = managed.board
             if board is None:
@@ -300,7 +304,10 @@ class TargetChatApplication:
                     },
                     1.0,
                 )
-            response_text = _board_response(board)
+            assembly = await self._response_assembler.assemble(
+                board, current_message=command.message,
+            )
+            response_text = assembly.text
             if managed.plan.route.reason_code == (
                 "SECURITY_PREEMPTED_NONESSENTIAL_WRITES"
             ):
@@ -405,8 +412,13 @@ class TargetChatApplication:
             "supporting_agents": list(route.owner_ids[1:]),
             "routing_reason": route.reason_code,
             "routing_disposition": route.mode.value.lower(),
-            "synthesis_status": "deterministic",
-            "synthesis_reason": "verified Target v1 result board",
+            "synthesis_status": (
+                assembly.mode.value.lower() if assembly is not None else "terminal"
+            ),
+            "synthesis_reason": (
+                assembly.verification_reason
+                if assembly is not None else "terminal route response"
+            ),
             "synthesis_conflicts": list(getattr(managed.board, "conflict_keys", ()) or ()),
             "agent_outcomes": outcomes,
             "task_plan": {
@@ -469,41 +481,3 @@ def _terminal_response(reason_code: str) -> str:
         "NEW_ADDRESS_REQUIRED": "请提供要修改成的完整收货地址。",
         "SUPPORTED_GOAL_UNCLEAR": "请说明您要处理订单、退款、商品识别还是人工服务。",
     }.get(reason_code, "请补充完成该任务所需的信息。")
-
-
-def _board_response(board) -> str:
-    sections = []
-    for result in board.results:
-        if result.status in {AgentResultStatus.SUCCEEDED, AgentResultStatus.PARTIAL}:
-            handoff = next((
-                receipt for receipt in result.action_receipts
-                if receipt.requirement_id == "support.handoff_action"
-                and receipt.effect_status == "COMMITTED"
-            ), None)
-            if handoff is not None:
-                sections.append(
-                    f"人工工单已创建，工单号：{handoff.receipt_id}。"
-                )
-                continue
-            committed_receipt = next((
-                receipt for receipt in result.action_receipts
-                if receipt.effect_status == "COMMITTED"
-            ), None)
-            if committed_receipt is not None:
-                sections.append(
-                    f"操作已完成，凭证号：{committed_receipt.receipt_id}。"
-                )
-                continue
-            text = str(result.candidate_response or "").strip()
-            if not text:
-                owned = [
-                    json.loads(fact.value_json)
-                    for fact in result.facts
-                ]
-                text = json.dumps(owned, ensure_ascii=False, sort_keys=True)
-            sections.append(f"{result.owner_agent}：{text}")
-        else:
-            sections.append(
-                f"{result.owner_agent}：未完成（{result.reason_code}）"
-            )
-    return "\n".join(sections) or "暂时没有可发布的结果。"

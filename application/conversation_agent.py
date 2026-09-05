@@ -48,6 +48,8 @@ class ConversationPlanningProvider(Protocol):
 
     async def plan(self, payload: Mapping[str, object]) -> Mapping[str, object]: ...
 
+    async def compose(self, payload: Mapping[str, object]) -> Mapping[str, object]: ...
+
 
 class ConversationAgent:
     """Plan one deferred turn, then compile only Registry-backed commands."""
@@ -56,6 +58,12 @@ class ConversationAgent:
 
     def __init__(self, provider: ConversationPlanningProvider) -> None:
         self._provider = provider
+
+    async def compose(
+        self, payload: Mapping[str, object],
+    ) -> Mapping[str, object]:
+        """Organize verified claims without reopening planning or execution."""
+        return await self._provider.compose(payload)
 
     async def plan(
         self, observations, state, deterministic, registry, turn_context=None,

@@ -265,6 +265,20 @@ claim；Publication 重放不重新 compose。
 
 提交：`feat(target): add governed conversation response assembly`
 
+实施记录（2026-09-05）：
+
+- 新增单个内聚 `ResponseAssembler`，在同一职责内完成 TEMPLATE/PASS_THROUGH/
+  CONVERSATION_COMPOSE 选择、Allowed Claims 投影、按需 compose、最终引用校验与 deterministic
+  fallback，没有把每个步骤拆成服务；
+- 单一完整结果直接透传，Receipt/简单结果使用确定性模板；只有多结果才调用
+  `ConversationAgent.compose()`，规划与回复复用同一逻辑 Agent 和 provider；
+- Composer 只收到 WorkItem outcome、已验证 Fact/Receipt claim、missing requirement 和当前问题，
+  必须返回 used claim IDs；未知 claim 或新业务引用触发模板回退，成功结果不会丢失；
+- `TargetChatApplication` 不再自行拼接各 Agent 文本，只消费 assembled candidate 后进入原
+  Publication；成本与实际模式写入 synthesis trace；
+- Target + response/binding/encoder 专项：`124 passed, 4 skipped in 5.41s`；
+- 仓库级：`1065 passed, 161 skipped, 3 failed in 15.84s`，失败集合与 M2/M3 相同。
+
 ## 10. M5：薄 TurnGraph
 
 根因：WorkPlan 执行可恢复，但 planning/compose 仍在图外，无法精确恢复阶段。

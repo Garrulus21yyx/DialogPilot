@@ -610,6 +610,7 @@ async def lifespan(app: FastAPI):
     from application.orchestration_runtime import OrchestrationRuntime
     from application.target_chat_application import TargetChatApplication
     from application.target_conversation_manager import TargetConversationManager
+    from application.response_assembly import ResponseAssembler
     from application.target_encoder_artifact import load_target_text_encoder_artifact
     from application.target_encoder_understanding import TargetEncoderUnderstanding
     from application.conversation_agent import ConversationAgent
@@ -686,12 +687,13 @@ async def lifespan(app: FastAPI):
         target_encoder = TargetEncoderUnderstanding(
             load_target_text_encoder_artifact(target_encoder_dir)
         )
+    conversation_agent = ConversationAgent(AnthropicConversationPlanningProvider(
+        _tool_manager.llm_client,
+        model=_model_policy.profile(ModelRole.INTENT).model,
+    ))
     target_understanding = CascadedTargetUnderstanding(
         BoundedTargetUnderstanding(),
-        ConversationAgent(AnthropicConversationPlanningProvider(
-            _tool_manager.llm_client,
-            model=_model_policy.profile(ModelRole.INTENT).model,
-        )),
+        conversation_agent,
         encoder=target_encoder,
     )
     _target_chat_runtime = TargetChatApplication(
@@ -705,6 +707,7 @@ async def lifespan(app: FastAPI):
         admission=PostgresTargetAdmission(_postgres_pool),
         publication=PostgresTargetPublication(_response_delivery),
         bundle_version=target_registry.bundle_version,
+        response_assembler=ResponseAssembler(conversation_agent),
     )
 
     def route_execution_refs(bundle: AgentBundle) -> Dict[str, str]:
