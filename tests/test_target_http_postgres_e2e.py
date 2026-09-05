@@ -640,9 +640,9 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
         assert eligibility["routing_disposition"] == "direct"
         assert eligibility["agent_types"] == ["billing_refund"]
         assert "符合退款条件" in eligibility["response"]
-        assert refund_policy["routing_disposition"] == "direct"
+        assert refund_policy["routing_disposition"] == "knowledge_qa"
         assert "当前政策" in refund_policy["response"]
-        assert invoice["routing_disposition"] == "direct"
+        assert invoice["routing_disposition"] == "knowledge_qa"
         assert "电子发票" in invoice["response"]
         assert encoder_refund["routing_reason"] == "ENCODER_FAST_PATH_ACCEPTED"
         assert encoder_refund["routing_disposition"] == "direct"
@@ -708,6 +708,7 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
         assert partial["verification_status"] == "partial"
         assert "refund" in partial["response"]
         assert handoff["handoff_created"] is True
+        assert handoff["routing_disposition"] == "handoff"
         assert handoff["ticket_id"] == "ticket-target-1"
         handoff_state = state_store.load(
             registry.tenant_id,
