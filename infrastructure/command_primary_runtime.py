@@ -29,7 +29,7 @@ def build_command_primary_chat_planner(
     command_model_profile: ModelProfile | None = None,
 ) -> CommandPrimaryChatPlanner:
     mode = config.get("COMMAND_PRIMARY_MODE", "").strip().lower()
-    if mode not in {"structured_knowledge_primary", "structured_read_only_primary"}:
+    if mode != "structured_read_only_primary":
         raise RuntimeError("legacy test composition requires an explicit structured mode")
     if command_completion_client is None or command_model_profile is None:
         raise RuntimeError("structured planning requires a completion client and model profile")
@@ -46,18 +46,12 @@ def build_command_primary_chat_planner(
         TurnPlanCompiler(),
         ExplicitIdentifierArgumentBinder(),
     )
-    primary_route_modes = {
-        "structured_knowledge_primary": (
-            RouteMode.KNOWLEDGE_QA,
-            RouteMode.CLARIFY,
-        ),
-        "structured_read_only_primary": (
-            RouteMode.KNOWLEDGE_QA,
-            RouteMode.CLARIFY,
-            RouteMode.AGENT_TASK,
-            RouteMode.OUT_OF_SCOPE,
-        ),
-    }[mode]
+    primary_route_modes = (
+        RouteMode.KNOWLEDGE_QA,
+        RouteMode.CLARIFY,
+        RouteMode.AGENT_TASK,
+        RouteMode.OUT_OF_SCOPE,
+    )
     return CommandPrimaryChatPlanner(
         planner,
         command_primary_flow_registry,
@@ -65,7 +59,5 @@ def build_command_primary_chat_planner(
         flow_state_store=(
             PostgresFlowStateStore(postgres_pool) if postgres_pool is not None else None
         ),
-        authoritative=mode in {
-            "structured_read_only_primary",
-        },
+        authoritative=True,
     )

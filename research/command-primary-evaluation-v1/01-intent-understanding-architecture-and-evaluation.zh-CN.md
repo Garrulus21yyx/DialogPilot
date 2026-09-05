@@ -179,7 +179,11 @@ ActionDefinition、能编译成 Work 的 command；输出还必须通过
 `registry.action_for()` 才会成为 proposal。当前尚未将它设为默认生产
 producer，因为新 Encoder artifact 和 conversation-heldout 门禁还未完成。
 
-为了先验证正确性而不让未校准 Encoder 获得决策权，生产组装已提供
+> 历史迁移切片说明（2026-09-05）：以下 mode、旧 ChatApplication 装配及分数
+> 仅记录当时实验。当前 Target 不使用这些模式；off/shadow/knowledge 模式及其
+> 专属测试已删除。当前知识回答与澄清由 Target 主链验证，旧分数不转算为新链路成绩。
+
+为了先验证正确性而不让未校准 Encoder 获得决策权，当时的组装提供了
 显式 `COMMAND_PRIMARY_MODE=structured_knowledge_primary` 切片：
 
 ```text

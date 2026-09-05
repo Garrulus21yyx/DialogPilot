@@ -2,6 +2,17 @@
 
 Status: in_progress
 
+Done: removed test_command_primary_chat and its now-unconsumed structured
+knowledge mode. Target knowledge/clarification behavior is verified through current
+ConversationAgent, TargetChatApplication and HTTP PostgreSQL fixtures. Historical
+reports retain old measurements with a retirement notice; they are not current
+runtime documentation. The remaining structured read-only test composition is still
+pending deletion, never a Target fallback.
+Verification: 48 current semantic/chat/dataset tests pass (one database test initially
+skipped); with PostgreSQL enabled, all seven HTTP Target and remaining structured
+read-only convergence tests pass. Knowledge publication and typed clarification are
+covered on the current chain; no legacy-vs-current score equivalence is claimed.
+
 Completed deletion step: migrated legacy route-path application tests. Their label-driven
 route dispatch and hand-written executor are retired semantics, not Target's WorkPlan
 owner. Preserve the service-episode identity witness through create_agent and the real

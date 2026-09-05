@@ -1,5 +1,10 @@
 # Command-primary P0–P4 收敛报告
 
+> 历史实验报告（2026-09-05 更新）：下文描述迁移期实现及当时测量，不代表当前入口。
+> `off`、`shadow`、`knowledge_primary`、`structured_knowledge_primary` 已退役。
+> 当前聊天使用 TargetConversationManager / ConversationAgent 与 LangGraph 执行链，
+> 不回退旧 Intent / ChatApplication；剩余旧只读测试装配仍在清理。
+
 ## 边界
 
 本轮只覆盖当前生产 Registry 声明的只读客服能力：知识回答、退款资格查询、
