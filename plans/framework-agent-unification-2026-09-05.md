@@ -171,6 +171,15 @@ This restores the referenced behavioral witness without changing locked gold dat
 or adding an alias to the old runtime.
 Verification: 35 focused tests pass with PostgreSQL configured; full repository
 collection passes with 1332 tests. No new live-model benchmark score is claimed.
+Removed the legacy off/shadow paired-chat harness and its no-change comparison test.
+The legacy composition helper no longer supports off/shadow/legacy-intent modes or
+accepts an unused Orchestrator dependency. Its explicit structured modes remain only
+for the remaining old test consumers; Target has no mode switch to this helper.
+Removed the obsolete production .env migration switch. Current Target planning and
+semantic terminal tests remain the authority gates, not old-vs-shadow equivalence.
+Verification: 11 focused tests pass, two PostgreSQL fixture tests skip without their
+database URL. Repository collection passes with 1331 tests; this is not full-suite
+runtime verification or closure of the remaining legacy test compositions.
 Retired the obsolete HTTP handoff fixture's AgentOrchestrator/ReAct imports and
 private-global assembly. Its retry expectation created a second response, contrary
 to Target's invocation/publication idempotency. Target cutover now checks OOS replay

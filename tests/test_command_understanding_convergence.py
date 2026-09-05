@@ -112,7 +112,6 @@ def test_authoritative_structured_mode_claims_oos_and_failure() -> None:
 
     async def prepare(output: str):
         planner = build_command_primary_chat_planner(
-            SimpleNamespace(recognize_intent=None),
             {"COMMAND_PRIMARY_MODE": "structured_read_only_primary"},
             command_completion_client=SimpleNamespace(messages=Messages(output)),
             command_model_profile=ModelProfile("command-router-test"),

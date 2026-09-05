@@ -1,4 +1,4 @@
-"""Compose the selective command-primary migration seam."""
+"""Legacy structured test composition pending consumer migration."""
 
 from __future__ import annotations
 
@@ -10,7 +10,6 @@ from application.command_primary_chat import CommandPrimaryChatPlanner
 from application.command_argument_binding import ExplicitIdentifierArgumentBinder
 from application.command_primary_planner import CommandPrimaryPlanner
 from application.default_flow_registry import command_primary_flow_registry
-from application.legacy_intent_command_adapter import LegacyIntentKnowledgeAdapter
 from application.route_decision import RouteMode
 from application.route_policy_v2 import RoutePolicy
 from application.selective_command_producer import SelectiveCommandProducer
@@ -23,47 +22,23 @@ from infrastructure.postgres_flow_state import PostgresFlowStateStore
 
 
 def build_command_primary_chat_planner(
-    orchestrator: Any,
     config: Mapping[str, str],
     *,
     postgres_pool: Any = None,
     command_completion_client: Any = None,
     command_model_profile: ModelProfile | None = None,
-) -> CommandPrimaryChatPlanner | None:
-    mode = config.get("COMMAND_PRIMARY_MODE", "off").strip().lower()
-    if mode == "off":
-        return None
-    if mode not in {
-        "shadow",
-        "knowledge_primary",
-        "structured_knowledge_primary",
-        "structured_read_only_primary",
-    }:
-        raise RuntimeError(
-            "COMMAND_PRIMARY_MODE must be off, shadow, knowledge_primary, "
-            "structured_knowledge_primary, or structured_read_only_primary"
-        )
-    if mode in {
-        "shadow",
-        "structured_knowledge_primary",
-        "structured_read_only_primary",
-    }:
-        if command_completion_client is None or command_model_profile is None:
-            raise RuntimeError(
-                "structured command-primary modes require an explicit command "
-                "completion client and model profile"
-            )
-        semantic = SelectiveCommandProducer(
-            AlwaysDeferCommandEncoder(),
-            StructuredLLMCommandProducer(
-                AnthropicCommandCompletion(
-                    command_completion_client,
-                    command_model_profile,
-                )
-            ),
-        )
-    else:
-        semantic = LegacyIntentKnowledgeAdapter(orchestrator.recognize_intent)
+) -> CommandPrimaryChatPlanner:
+    mode = config.get("COMMAND_PRIMARY_MODE", "").strip().lower()
+    if mode not in {"structured_knowledge_primary", "structured_read_only_primary"}:
+        raise RuntimeError("legacy test composition requires an explicit structured mode")
+    if command_completion_client is None or command_model_profile is None:
+        raise RuntimeError("structured planning requires a completion client and model profile")
+    semantic = SelectiveCommandProducer(
+        AlwaysDeferCommandEncoder(),
+        StructuredLLMCommandProducer(
+            AnthropicCommandCompletion(command_completion_client, command_model_profile),
+        ),
+    )
     planner = CommandPrimaryPlanner(
         PendingSlotResolver(lambda _signal, _message: None),
         semantic,
@@ -72,8 +47,6 @@ def build_command_primary_chat_planner(
         ExplicitIdentifierArgumentBinder(),
     )
     primary_route_modes = {
-        "shadow": (),
-        "knowledge_primary": (RouteMode.KNOWLEDGE_QA,),
         "structured_knowledge_primary": (
             RouteMode.KNOWLEDGE_QA,
             RouteMode.CLARIFY,

@@ -178,7 +178,6 @@ def build_locked_policy_read_harness(
     messages = RefundEligibilityMessages()
     orchestrator = Orchestrator()
     planner = build_command_primary_chat_planner(
-        orchestrator,
         {"COMMAND_PRIMARY_MODE": "structured_read_only_primary"},
         postgres_pool=pool,
         command_completion_client=SimpleNamespace(messages=messages),
