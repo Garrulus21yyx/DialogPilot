@@ -20,6 +20,7 @@ from application.write_workflow import (
     WriteOutcomeStatus,
     WriteToolOutcome,
 )
+from application.work_control import WorkSuperseded
 
 
 def _item(operation_key="operation-1"):
@@ -156,6 +157,23 @@ def test_unknown_write_outcome_reconciles_before_any_possible_retry():
 
     assert unknown.status is AgentResultStatus.RECONCILING
     assert reconciled.status is AgentResultStatus.SUCCEEDED
+    assert len(tool.calls) == 1
+    assert reconciler.calls == ["operation-1"]
+
+
+def test_correction_after_write_submission_enters_reconciliation() -> None:
+    tool = ToolPort([WorkSuperseded("target changed after submission grant")])
+    reconciler = Reconciler([WriteToolOutcome(
+        WriteOutcomeStatus.NOT_COMMITTED,
+        reason_code="RECONCILED_NOT_COMMITTED",
+    )])
+    runtime = _runtime(tool, reconciler, {"approval-1:v1": _grant()})
+
+    interrupted = asyncio.run(runtime(_context()))
+    reconciled = asyncio.run(runtime(_context()))
+
+    assert interrupted.status is AgentResultStatus.RECONCILING
+    assert reconciled.status is AgentResultStatus.RETRYABLE_FAILURE
     assert len(tool.calls) == 1
     assert reconciler.calls == ["operation-1"]
 

@@ -12,6 +12,7 @@ from application.agent_result import (
 )
 from application.orchestration_runtime import AgentContextView
 from application.work_item import ControlMode
+from application.work_control import WorkControlGuard
 
 
 class TargetProductExecutor:
@@ -19,8 +20,11 @@ class TargetProductExecutor:
 
     version = "target-product-executor-v1"
 
-    def __init__(self, tool_manager) -> None:
+    def __init__(
+        self, tool_manager, *, control_guard: WorkControlGuard | None = None,
+    ) -> None:
         self._tools = tool_manager
+        self._control_guard = control_guard
 
     async def __call__(self, context: AgentContextView) -> AgentResult:
         item = context.work_item
@@ -36,11 +40,13 @@ class TargetProductExecutor:
         if not asset_id:
             return self._failure(item, "PRODUCT_ASSET_REQUIRED")
 
+        self._ensure_current(context)
         media = await self._tools.execute_for_agent(
             "media_read", {"asset_id": asset_id}, agent_type="technical",
             context=dict(context.trusted_context),
             call_id=f"{item.work_item_id}:media_read",
         )
+        self._ensure_current(context)
         if not media.success:
             return self._tool_failure(item, media.status, "MEDIA_READ")
         media_data = media.data if isinstance(media.data, dict) else {}
@@ -54,6 +60,7 @@ class TargetProductExecutor:
             context=dict(context.trusted_context),
             call_id=f"{item.work_item_id}:catalog_search",
         )
+        self._ensure_current(context)
         if not catalog.success:
             return self._tool_failure(item, catalog.status, "CATALOG_SEARCH")
         match = catalog.data if isinstance(catalog.data, dict) else {}
@@ -84,6 +91,12 @@ class TargetProductExecutor:
             evidence_refs=(evidence_ref, source_ref),
             candidate_response=f"识别到商品型号 {model}（{name}）。",
         )
+
+    def _ensure_current(self, context: AgentContextView) -> None:
+        if self._control_guard is not None:
+            self._control_guard.ensure_current(
+                context.work_item, context.trusted_context,
+            )
 
     def _tool_failure(self, item, status: str, prefix: str) -> AgentResult:
         retryable = status in {"error", "timeout"}

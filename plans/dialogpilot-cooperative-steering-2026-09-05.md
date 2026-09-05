@@ -1,6 +1,6 @@
 # DialogPilot Cooperative Steering 实施计划
 
-状态：in_progress
+状态：completed
 日期：2026-09-05
 
 ## 目标合同
@@ -24,8 +24,14 @@
 2. `completed`：定义最小的目标 revision/control outcome 合同并接入持久状态；
 3. `completed`：将共享控制检查接入旧 ReAct 与 framework Agent 的步骤边界；
 4. `completed`：在 Tool 与 Publication 提交边界增加原子/权威校验；
-5. `in_progress`：实现修正、取消、无关并行不受影响、写结果未知的状态/E2E 测试；
-6. `pending`：更新正式架构文档，分阶段 commit、push。
+5. `completed`：实现修正、取消、无关并行不受影响、写结果未知的状态/E2E 测试；
+6. `completed`：更新正式架构文档，分阶段 commit、push。
+
+## 验证
+
+- Target、ReAct、Conversation、Publication、Work Control 相关套件：184 passed，22 skipped；
+- 全仓：1110 passed，167 skipped，3 failed；失败来自工作区内另一组未提交 RAG policy
+  字段与缺少 `TEST_DATABASE_URL/DATABASE_URL` 的 stateful fixture，不在本改动因果面内。
 
 ## 非目标
 

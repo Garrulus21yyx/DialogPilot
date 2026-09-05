@@ -1,4 +1,5 @@
 import asyncio
+from dataclasses import replace
 from datetime import datetime, timezone
 
 from application.capability_registry import CapabilityEffect, CapabilityRisk
@@ -16,10 +17,21 @@ from application.media_evidence import (
 from application.orchestration_runtime import AgentContextView
 from application.perception import PerceptionArtifact
 from application.media_requirement import MediaStage
-from application.work_item import ArgumentValue, ControlMode, WorkItem
+from application.conversation_state import (
+    ConversationState,
+    InMemoryConversationStateStore,
+)
+from application.work_control import WorkControlGuard, WorkSuperseded
+from application.work_item import (
+    ArgumentValue,
+    ControlMode,
+    WorkControlBinding,
+    WorkItem,
+)
 from infrastructure.target_product_execution import TargetProductExecutor
 from mcp.product_tools import product_tools
 from mcp.tool_manager import MCPToolManager
+from mcp.tool_manager import ToolResult
 from services.product_catalog import ProductCatalogService
 
 
@@ -175,6 +187,71 @@ def test_product_skill_does_not_choose_between_ambiguous_catalog_models(tmp_path
     assert result.status.value == "TERMINAL_FAILURE"
     assert result.reason_code == "PRODUCT_MODEL_AMBIGUOUS"
     assert result.facts == ()
+
+
+def test_product_skill_does_not_start_second_tool_after_user_correction():
+    store = InMemoryConversationStateStore()
+    empty = ConversationState.empty(
+        tenant_id="tenant-a", user_id="user-a", conversation_id="conversation-a",
+    )
+    item = replace(
+        _item(),
+        control=WorkControlBinding("control:product", 1),
+        state_snapshot_version=0,
+    )
+    assert store.compare_and_set(
+        empty,
+        empty.accept_work_items((item,), invocation_key="invocation-1"),
+    )
+
+    class SteeringTools:
+        def __init__(self):
+            self.calls = []
+
+        async def execute_for_agent(self, tool_id, *_args, **_kwargs):
+            self.calls.append(tool_id)
+            if tool_id != "media_read":
+                raise AssertionError("stale second tool must not start")
+            current = store.load("tenant-a", "user-a", "conversation-a")
+            corrected = replace(
+                item,
+                work_item_id="product-2",
+                objective="Identify corrected product",
+                control=WorkControlBinding("control:product", 2),
+            )
+            assert store.compare_and_set(
+                current,
+                current.accept_work_items(
+                    (corrected,), invocation_key="invocation-2",
+                ),
+            )
+            return ToolResult(
+                True,
+                {"evidence_ref": "media:1", "text": "OLD"},
+                tool_id,
+                status="success",
+            )
+
+    tools = SteeringTools()
+    executor = TargetProductExecutor(
+        tools, control_guard=WorkControlGuard(store),
+    )
+    context = replace(
+        _context(item),
+        trusted_context={
+            "tenant_id": "tenant-a",
+            "user_id": "user-a",
+            "conversation_id": "conversation-a",
+        },
+    )
+
+    try:
+        asyncio.run(executor(context))
+    except WorkSuperseded:
+        pass
+    else:
+        raise AssertionError("corrected product work did not stop")
+    assert tools.calls == ["media_read"]
 
 
 def test_shared_media_tool_runs_ocr_then_vlm_and_returns_grounded_observation(tmp_path):
