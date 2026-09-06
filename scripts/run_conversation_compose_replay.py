@@ -38,6 +38,13 @@ async def run(args):
             if not str(request.get('system', '')).startswith('Compose one concise'):
                 continue
             payload = json.loads(request['messages'][0]['content'])
+            if args.planner_context:
+                planner_calls = [c for c in row['api_calls']
+                                 if str(c['request'].get('system', '')).startswith('You plan customer-service turns.')]
+                if len(planner_calls) != 1:
+                    raise ValueError('one captured planner context required for context replay')
+                planner_input = json.loads(planner_calls[0]['request']['messages'][0]['content'])
+                payload['conversation_context'] = copy.deepcopy(planner_input['conversation_context'])
             # Explicit migration of frozen v1 evaluation inputs to the new owner
             # contract. Runtime producers already supply KNOWLEDGE_FACT.
             if payload['schema_version'] == 'conversation-compose-request-v1':
@@ -78,6 +85,7 @@ async def run(args):
                 'case_ids':[key for key,_ in inputs],
                 'business_view_v2':args.business_view_v2,
                 'separate_field_guidance':args.separate_field_guidance,
+                'planner_context':args.planner_context,
                 'synthesis_profile':policy.profile(ModelRole.SYNTHESIS).to_dict(),
                 'verify':args.verify,'max_api_calls':len(inputs)*(2 if args.verify else 1),
                 'input_migration':'v1 FACT evidence views become KNOWLEDGE_FACT; request schema v2',
@@ -101,7 +109,8 @@ async def run(args):
                     packs=[c.value for c in claims if c.kind=='KNOWLEDGE_FACT']
                     verdict=await verifier.verify(payload['current_message'],text,
                         context=json.dumps({'facts':[c.value for c in claims if c.kind=='FACT'],
-                                            'receipts':[c.value for c in claims if c.kind=='RECEIPT']},ensure_ascii=False),
+                                            'receipts':[c.value for c in claims if c.kind=='RECEIPT'],
+                                            **({'user_context': payload['conversation_context']} if args.planner_context else {})},ensure_ascii=False),
                         knowledge_evidence={'packs':packs,'allowed_evidence_ids':sorted({e['evidence_id'] for p in packs for e in p['evidence']})},
                         agent_outcomes=[{'status':o['status'],'reason':o['reason_code']} for o in payload['work_item_outcomes']])
                     result['verdict']={**asdict(verdict),'status':verdict.status.value,'reason_code':verdict.reason_code.value,'publishable':verdict.publishable}
@@ -122,6 +131,8 @@ def main():
     parser.add_argument('--business-view-v2',action='store_true',help='Explicitly project captured v1 order/eligibility values through current business read owners.')
     parser.add_argument('--separate-field-guidance',action='store_true',
                         help='Evaluation-only metadata layout; verifier still receives original facts.')
+    parser.add_argument('--planner-context',action='store_true',
+                        help='Evaluation-only: copy captured planner context into composition and verifier user context.')
     asyncio.run(run(parser.parse_args()))
 
 
