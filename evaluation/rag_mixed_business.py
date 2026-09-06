@@ -55,7 +55,7 @@ async def run_mixed(*, platform, store, client, policy, generator, output, handl
     tools.register(Tool(name='knowledge_search',description='查询当前有效政策原文证据',handler=handler,
                         schema={'type':'object','properties':{'query':{'type':'string'}},'required':['query']},
                         authority='knowledge.active_source',read_only=True))
-    agent=ConversationAgent(AnthropicConversationPlanningProvider(client,model_profile=policy.profile(ModelRole.INTENT)))
+    agent=ConversationAgent(AnthropicConversationPlanningProvider(client,model_profile=policy.profile(ModelRole.INTENT), synthesis_profile=policy.profile(ModelRole.SYNTHESIS)))
     verifier=AnswerVerifier(client=client,model_profile=policy.profile(ModelRole.VERIFIER))
     cases=[
         ('shipping','请查订单DP9301现在是否发货，再说明已发货后提交改址是否就代表修改成功；不要执行改址。',()),

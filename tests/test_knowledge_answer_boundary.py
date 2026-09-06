@@ -96,3 +96,48 @@ def test_withdrawal_during_semantic_verification_prevents_publication():
         knowledge_source_validator=lambda packs: live[0]).assemble(board(text),current_message='能退吗'))
     assert result.verification_reason=='KNOWLEDGE_SAFE_ABSTENTION'
     assert text not in result.text
+
+
+def test_factless_business_outcomes_never_disappear_into_pure_knowledge_generation():
+    from tests.test_response_assembly import _result, _board, _Composer
+    citation = '[' + evidence_id('child-1') + ']'
+    class Generator:
+        async def generate(self, *args):
+            raise AssertionError('mixed outcomes require composition')
+    knowledge = replace(board('draft').results[0], producer_version='target-tool-executor-v1')
+    for status in AgentResultStatus:
+        from application.agent_result import AgentResult, MissingInputSpec, EvidenceRequest
+        missing = (MissingInputSpec('order_id', 'business', 'MISSING', 'string', '订单号？'),) if status is AgentResultStatus.NEEDS_USER_INPUT else ()
+        requested = (EvidenceRequest('order.current_state', 'business', ('orders',)),) if status is AgentResultStatus.NEEDS_EVIDENCE else ()
+        business = AgentResult('business', 'orders', status, 'TEST_OUTCOME', 'target-tool-executor-v1',
+            missing_inputs=missing, requested_evidence=requested,
+            retryable=status is AgentResultStatus.RETRYABLE_FAILURE)
+        composer = _Composer(lambda payload: {
+            'response': '订单查询结果需单独处理。仅未拆封商品可退。 ' + citation,
+            'used_claim_ids': [c['claim_id'] for c in payload['allowed_claims']],
+        })
+        verifier = Verifier(True)
+        result = asyncio.run(ResponseAssembler(composer, knowledge_generator=Generator(),
+            knowledge_verifier=verifier, knowledge_source_validator=lambda packs: True).assemble(
+                _board(knowledge, business), current_message='查订单并说明退货政策'))
+        assert result.verification_reason == 'KNOWLEDGE_SUPPORT_CHECKED'
+        assert len(composer.calls) == 1
+        assert composer.calls[0]['work_item_outcomes'][1]['status'] == status.value
+        assert verifier.calls[0][1]['agent_outcomes'][1]['status'] == status.value
+
+
+def test_successful_direct_knowledge_retains_grounded_generation_path():
+    from tests.test_response_assembly import _board, _Composer
+    calls = []
+    class Generator:
+        async def generate(self, query, contexts):
+            calls.append((query, contexts))
+            return SimpleNamespace(abstained=False, claims=(
+                SimpleNamespace(text='仅未拆封商品可退。', citations=('child-1',)),))
+    composer = _Composer(AssertionError('pure knowledge should use grounded generator'))
+    knowledge = replace(board('draft').results[0], producer_version='target-tool-executor-v1')
+    result = asyncio.run(ResponseAssembler(composer, knowledge_generator=Generator(),
+        knowledge_verifier=Verifier(True), knowledge_source_validator=lambda packs: True).assemble(
+            _board(knowledge), current_message='退货政策是什么'))
+    assert len(calls) == 1 and not composer.calls
+    assert result.verification_reason == 'KNOWLEDGE_SUPPORT_CHECKED'

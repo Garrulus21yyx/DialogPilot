@@ -1,0 +1,115 @@
+{
+  "scope": "five synthetic development cases; stage-profile and mixed-outcome correction; not heldout",
+  "cases": 5,
+  "raw_capture_sha256": "f216adb777dc811c28429431b59166ce49f81478d2acd76dd75216168402ef07",
+  "results": [
+    {
+      "case_id": "shipping",
+      "outcome_type": "Completed",
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "api_calls": 4,
+      "models": [
+        "deepseek-v4-flash",
+        "deepseek-v4-flash",
+        "deepseek-v4-pro",
+        "deepseek-v4-pro"
+      ],
+      "stop_reasons": [
+        "end_turn",
+        "tool_use",
+        "end_turn",
+        "end_turn"
+      ]
+    },
+    {
+      "case_id": "paid",
+      "outcome_type": "Completed",
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "synthesis_reason": "KNOWLEDGE_SAFE_ABSTENTION",
+      "api_calls": 3,
+      "models": [
+        "deepseek-v4-flash",
+        "deepseek-v4-flash",
+        "deepseek-v4-pro"
+      ],
+      "stop_reasons": [
+        "end_turn",
+        "tool_use",
+        "end_turn"
+      ]
+    },
+    {
+      "case_id": "delivered",
+      "outcome_type": "Completed",
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "api_calls": 4,
+      "models": [
+        "deepseek-v4-flash",
+        "deepseek-v4-flash",
+        "deepseek-v4-pro",
+        "deepseek-v4-pro"
+      ],
+      "stop_reasons": [
+        "end_turn",
+        "tool_use",
+        "end_turn",
+        "end_turn"
+      ]
+    },
+    {
+      "case_id": "reference",
+      "outcome_type": "Completed",
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "api_calls": 4,
+      "models": [
+        "deepseek-v4-flash",
+        "deepseek-v4-flash",
+        "deepseek-v4-pro",
+        "deepseek-v4-pro"
+      ],
+      "stop_reasons": [
+        "end_turn",
+        "tool_use",
+        "end_turn",
+        "end_turn"
+      ]
+    },
+    {
+      "case_id": "missing",
+      "outcome_type": "Completed",
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "api_calls": 4,
+      "models": [
+        "deepseek-v4-flash",
+        "deepseek-v4-flash",
+        "deepseek-v4-pro",
+        "deepseek-v4-pro"
+      ],
+      "stop_reasons": [
+        "end_turn",
+        "tool_use",
+        "end_turn",
+        "end_turn"
+      ]
+    }
+  ]
+}

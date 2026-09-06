@@ -77,15 +77,17 @@ class ConversationAgent:
         provider: ConversationPlanningProvider,
         *,
         context_budget: ContextBudgetManager | None = None,
+        synthesis_context_budget: ContextBudgetManager | None = None,
     ) -> None:
         self._provider = provider
         self._context_budget = context_budget or ContextBudgetManager()
+        self._synthesis_context_budget = synthesis_context_budget or self._context_budget
 
     async def compose(
         self, payload: Mapping[str, object],
     ) -> Mapping[str, object]:
         """Organize verified claims without reopening planning or execution."""
-        budgeted = self._context_budget.fit_payload(payload)
+        budgeted = self._synthesis_context_budget.fit_payload(payload)
         return await self._provider.compose(budgeted.payload)
 
     async def plan(

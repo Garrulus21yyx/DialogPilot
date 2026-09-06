@@ -80,8 +80,19 @@ class ResponseAssembler:
             # Direct retrieval has no Agent-authored answer. Reuse the existing
             # grounded generator only for this path, never inside knowledge_search.
             direct = all(result.producer_version == "target-tool-executor-v1" for result in board.results)
-            only_knowledge = all(fact.requirement_id == "knowledge.active_source"
-                                 for result in board.results for fact in result.facts)
+            # Pure knowledge generation can represent only successful evidence
+            # results. A business failure has no facts but still needs an outcome
+            # in the answer; receipts and unresolved requirements do too.
+            only_knowledge = (
+                not board.missing_requirement_ids and not board.conflict_keys
+                and all(
+                    result.status is AgentResultStatus.SUCCEEDED
+                    and bool(result.facts) and not result.action_receipts
+                    and all(fact.requirement_id == "knowledge.active_source"
+                            for fact in result.facts)
+                    for result in board.results
+                )
+            )
             if direct and only_knowledge:
                 if self._knowledge_generator is None:
                     return self._knowledge_fallback(board, system_notice, unavailable=True)

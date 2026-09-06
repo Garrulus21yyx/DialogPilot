@@ -37,7 +37,7 @@ def test_conversation_transport_preserves_role_reasoning_and_budget(method, effo
             return SimpleNamespace(content=[SimpleNamespace(type="text", text='{}')])
 
     provider = AnthropicConversationPlanningProvider(
-        SimpleNamespace(messages=Messages()), model_profile=profile, max_tokens=800,
+        SimpleNamespace(messages=Messages()), model_profile=profile, synthesis_profile=profile, max_tokens=800,
     )
     asyncio.run(getattr(provider, method)({"message": "policy question"}))
     request = calls[0]
@@ -61,7 +61,7 @@ def test_full_conversation_request_rejects_overflow_before_transport(method):
             pytest.fail("over-budget input must never reach transport")
 
     provider = AnthropicConversationPlanningProvider(
-        SimpleNamespace(messages=Messages()), model_profile=profile,
+        SimpleNamespace(messages=Messages()), model_profile=profile, synthesis_profile=profile,
     )
     with pytest.raises(ProviderContextBudgetExceeded):
         asyncio.run(getattr(provider, method)({"message": "政策" * 12000}))
@@ -75,7 +75,39 @@ def test_agent_maps_final_provider_budget_failure_to_context_outcome():
             pytest.fail("full prompt cannot fit and must not call API")
 
     provider = AnthropicConversationPlanningProvider(
-        SimpleNamespace(messages=Messages()), model_profile=profile,
+        SimpleNamespace(messages=Messages()), model_profile=profile, synthesis_profile=profile,
     )
     proposal, _, _ = _invoke(ConversationAgent(provider), "想咨询售后政策")
     assert proposal.reason_code == "CONTEXT_BUDGET_EXCEEDED"
+
+
+def test_planning_and_composition_use_their_own_model_and_budget():
+    calls = []
+    class Messages:
+        async def create(self, **kwargs):
+            calls.append(kwargs)
+            return SimpleNamespace(content=[SimpleNamespace(type='text', text='{}')])
+    intent = ModelProfile('deepseek-v4-flash', ReasoningEffort.LOW, 'deepseek', min_completion_tokens=2048)
+    synthesis = ModelProfile('deepseek-v4-pro', ReasoningEffort.NONE, 'deepseek')
+    provider = AnthropicConversationPlanningProvider(SimpleNamespace(messages=Messages()),
+        model_profile=intent, synthesis_profile=synthesis)
+    asyncio.run(provider.plan({'message':'查订单及政策'}))
+    asyncio.run(provider.compose({'allowed_claims':[]}))
+    assert [c['model'] for c in calls] == [intent.model, synthesis.model]
+    assert [c['max_tokens'] for c in calls] == [2048, 800]
+    assert calls[0]['extra_body']['thinking']['type'] == 'enabled'
+    assert calls[1]['extra_body']['thinking']['type'] == 'disabled'
+
+
+def test_composition_fits_its_own_input_budget():
+    from application.context_budget import ContextBudgetManager, ModelContextBudgetExceeded
+    class Provider:
+        version = 'test'
+        async def compose(self, payload):
+            return payload
+    agent = ConversationAgent(Provider(),
+        context_budget=ContextBudgetManager(context_window_tokens=16000),
+        synthesis_context_budget=ContextBudgetManager(context_window_tokens=2000,
+            reserved_output_tokens=800, protocol_reserve_tokens=600))
+    with pytest.raises(ModelContextBudgetExceeded):
+        asyncio.run(agent.compose({'allowed_claims': [{'text':'政策条件' * 2000}]}))

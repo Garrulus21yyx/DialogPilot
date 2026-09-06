@@ -11,16 +11,17 @@ from application.conversation_agent import ConversationProviderOutputError
 
 
 class AnthropicConversationPlanningProvider:
-    version = "anthropic-conversation-planning-provider-v2-model-profile"
+    version = "anthropic-conversation-planning-provider-v3-stage-profiles"
 
-    def __init__(self, client, *, model_profile: ModelProfile, max_tokens: int = 800) -> None:
+    def __init__(self, client, *, model_profile: ModelProfile, synthesis_profile: ModelProfile, max_tokens: int = 800) -> None:
         self._client = client
         self._model_profile = model_profile
+        self._synthesis_profile = synthesis_profile
         self._max_tokens = max_tokens
 
     async def plan(self, payload: Mapping[str, object]) -> Mapping[str, object]:
         return await self._complete(
-            payload,
+            payload, ModelRole.INTENT,
             (
                 "You plan customer-service turns. Return one JSON object only. "
                 "status is resolved, insufficient_context, or out_of_scope. "
@@ -49,7 +50,7 @@ class AnthropicConversationPlanningProvider:
 
     async def compose(self, payload: Mapping[str, object]) -> Mapping[str, object]:
         return await self._complete(
-            payload,
+            payload, ModelRole.SYNTHESIS,
             (
                 "Compose one concise customer-service response from allowed_claims only. "
                 "Preserve completed results, partial failures, uncertainty and requested "
@@ -63,9 +64,10 @@ class AnthropicConversationPlanningProvider:
         )
 
     async def _complete(
-        self, payload: Mapping[str, object], system: str,
+        self, payload: Mapping[str, object], role: ModelRole, system: str,
     ) -> Mapping[str, object]:
-        request = self._model_profile.request(
+        profile = self._model_profile if role is ModelRole.INTENT else self._synthesis_profile
+        request = profile.request(
             max_tokens=self._max_tokens,
             system=system,
             messages=[{
@@ -74,7 +76,7 @@ class AnthropicConversationPlanningProvider:
             }],
         )
         DEFAULT_PROVIDER_CONTEXT_BUDGET.validate(
-            self._model_profile, ModelRole.INTENT, request,
+            profile, role, request,
         )
         response = await self._client.messages.create(**request)
         text = "".join(

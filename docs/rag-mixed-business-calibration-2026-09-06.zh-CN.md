@@ -37,3 +37,13 @@ MODEL_INTENT_REASONING=low MODEL_INTENT_MIN_COMPLETION_TOKENS=2048 \
 脚本新建独立数据库和临时 Redis，最终清理；不修改生产订单，仅注册只读业务工具。知识语料为 19 篇模拟政策，没有加入公共干扰文档。历史指代通过真实 Memory 接口预置对话，未验证跨会话长期记忆。
 
 原始请求、输出与工具记录在 `artifacts/eval/rag-mixed-business-2026-09-06{,-v2}/mixed-cases.jsonl.gz`。`mixed-manifest.json` 是实际五例的定义；早期 `manifest.json` 保留的是语料准备阶段的二十例定义，已在 summary 中注明，不作为运行数量依据。未来脚本已修正这一歧义。API 调用、停止原因、原文校验值见各自 summary.json。
+
+## 第二轮：阶段配置与部分结果修复
+
+保留同一 ConversationAgent，provider 显式接收 INTENT 与 SYNTHESIS 两个配置，最终请求校验使用相应角色。生产组装为两阶段分别预留实际输出预算；所有 provider 构造入口同步迁移。没有更改规划提示词，也没有提高规划预算。合成阶段使用已有 SYNTHESIS 配置（本轮 Pro、关闭 thinking），请求上限 800，而不是沿用 INTENT 的 Flash/low/2048。
+
+ResponseAssembler 的纯知识路径现在要求每个结果成功、有知识 facts、无其他 facts 或动作凭证，并且没有缺失要求与冲突。业务失败没有 facts 仍须进入混合结果合成。全部合法 AgentResultStatus 的无 facts 结果均验证进入组合路径，同时保留纯知识成功生成的正例。
+
+v3 实际运行五条全部执行两种工具，四条通过知识支持检查。相对 v2 救回 shipping、missing，paid 由成功转为弃答，净增 1/5。这是两项修复共同作用下的小样本开发结果，不能分别归因或声称统计稳定。paid 的合成内容包含政策与订单事实，但返回普通文本而非 JSON，解析失败；未调用语义 verifier。missing 现在如实说明无法获取订单状态，同时给出有证据的政策，支持检查通过。已确认：阶段配置正确也不保证结构化输出契约可靠。
+
+59 项相关测试通过，独立审查未发现上述两项修复的提交阻断问题。下一步仍需修复生成输出契约、内部编号/模块名呈现、fallback 的原始工具 JSON。v3 捕获与摘要位于 `artifacts/eval/rag-mixed-business-2026-09-06-v3/`。其中部分回答展示了内部 claim ID；支持检查通过不代表展示质量通过。

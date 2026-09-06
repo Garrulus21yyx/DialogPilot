@@ -90,7 +90,7 @@ def test_anthropic_provider_uses_the_installed_messages_contract():
 
     provider = AnthropicConversationPlanningProvider(
         SimpleNamespace(messages=Messages()),
-        model_profile=ModelProfile("model-a"),
+        model_profile=ModelProfile("model-a"), synthesis_profile=ModelProfile("model-a"),
     )
 
     assert asyncio.run(provider.plan({"message": "unsupported"})) == {
@@ -827,7 +827,7 @@ def test_anthropic_provider_normalizes_json_text_block():
             ),))
 
     provider = AnthropicConversationPlanningProvider(
-        SimpleNamespace(messages=Messages()), model_profile=ModelProfile("model-test"),
+        SimpleNamespace(messages=Messages()), model_profile=ModelProfile("model-test"), synthesis_profile=ModelProfile("model-test"),
     )
     result = asyncio.run(provider.plan({"message": "hello"}))
     assert result == {"status": "out_of_scope"}
@@ -842,7 +842,7 @@ def test_malformed_provider_transport_is_not_reported_as_an_outage():
             ),))
 
     provider = AnthropicConversationPlanningProvider(
-        SimpleNamespace(messages=Messages()), model_profile=ModelProfile("model-test"),
+        SimpleNamespace(messages=Messages()), model_profile=ModelProfile("model-test"), synthesis_profile=ModelProfile("model-test"),
     )
     proposal, _, _ = _invoke(ConversationAgent(provider), "帮我处理")
 

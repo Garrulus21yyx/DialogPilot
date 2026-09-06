@@ -74,7 +74,7 @@ async def run(args):
     transport = AsyncAnthropic(**options)
     client = CapturingClient(transport, limit=20, system_override=args.system_prompt.read_text() if args.system_prompt else None)
     provider = AnthropicConversationPlanningProvider(
-        client, model_profile=profile, max_tokens=800
+        client, model_profile=profile, synthesis_profile=policy.profile(ModelRole.SYNTHESIS), max_tokens=800
     )
     agent = ConversationAgent(provider)
     _, cases = synthetic_development()

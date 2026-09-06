@@ -45,7 +45,7 @@ async def run(args):
         system_override=args.system_prompt.read_text() if args.system_prompt else None,
     )
     provider = AnthropicConversationPlanningProvider(
-        client, model_profile=ModelProfile(str(args.model.resolve())), max_tokens=512
+        client, model_profile=ModelProfile(str(args.model.resolve())), synthesis_profile=ModelProfile(str(args.model.resolve())), max_tokens=512
     )
     agent = ConversationAgent(provider)
     _, cases = synthetic_development()

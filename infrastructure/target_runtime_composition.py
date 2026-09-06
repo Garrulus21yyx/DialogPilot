@@ -118,6 +118,19 @@ async def build_target_runtime(
                 "CONTEXT_PROTOCOL_RESERVE_TOKENS", "600",
             )),
         )
+        synthesis_profile = model_policy.profile(ModelRole.SYNTHESIS)
+        synthesis_context_budget = ContextBudgetManager(
+            context_window_tokens=min(synthesis_profile.max_context_tokens, int(os.getenv(
+                "MODEL_CONTEXT_WINDOW_TOKENS", "16000",
+            ))),
+            reserved_output_tokens=max(
+                synthesis_profile.request(max_tokens=conversation_output_tokens)["max_tokens"],
+                int(os.getenv("CONVERSATION_OUTPUT_RESERVE_TOKENS", "1200")),
+            ),
+            protocol_reserve_tokens=int(os.getenv(
+                "CONTEXT_PROTOCOL_RESERVE_TOKENS", "600",
+            )),
+        )
         state_store = PostgresConversationStateStore(postgres_pool)
         control_guard = WorkControlGuard(state_store)
         tool_executor = TargetToolExecutor(
@@ -160,9 +173,11 @@ async def build_target_runtime(
             AnthropicConversationPlanningProvider(
                 tool_manager.llm_client,
                 model_profile=conversation_profile,
+                synthesis_profile=model_policy.profile(ModelRole.SYNTHESIS),
                 max_tokens=conversation_output_tokens,
             ),
             context_budget=conversation_context_budget,
+            synthesis_context_budget=synthesis_context_budget,
         )
         understanding = CascadedTargetUnderstanding(
             StateBoundTargetUnderstanding(), conversation_agent, encoder=encoder,
