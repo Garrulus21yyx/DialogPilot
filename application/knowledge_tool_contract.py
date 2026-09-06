@@ -56,7 +56,9 @@ def evidence_items(data):
             raise ValueError("evidence source interval mismatch")
         if ref["start_char"] < 0 or ref["scope"] != "public":
             raise ValueError("unsupported evidence scope")
-        if not ref["source_id"] or not ref["source_revision"] or len(ref["checksum"]) != 64:
+        if any(not isinstance(ref.get(k), str) or not ref[k] for k in ("source_id", "source_revision", "checksum")):
+            raise ValueError("source provenance must be text")
+        if len(ref["checksum"]) != 64 or any(c not in "0123456789abcdef" for c in ref["checksum"]):
             raise ValueError("source provenance required")
     return tuple(items)
 
@@ -65,3 +67,26 @@ def tool_domain_outcome(result):
     if result.authority == "knowledge.active_source" and result.success:
         return knowledge_outcome(result.data)
     return None
+
+
+def evidence_id(chunk_id: str) -> str:
+    import hashlib
+    return 'E' + hashlib.sha256(chunk_id.encode()).hexdigest()[:12]
+
+
+def model_evidence(data) -> dict:
+    """A complete evidence view; diagnostics stay in the runtime artifact."""
+    outcome, reason = knowledge_outcome(data)
+    if outcome is not AgentResultStatus.SUCCEEDED:
+        return {'status': data.get('status') if isinstance(data, Mapping) else 'INVALID_CONTRACT',
+                'evidence': [], 'detail_code': reason}
+    return {'status': 'OK', 'query_used': data['evidence_pack']['query'],
+            'evidence': [{'evidence_id': evidence_id(item['chunk_id']),
+                          'title': item.get('title', ''), 'text': item['text'],
+                          'source': dict(item['source_ref'])} for item in evidence_items(data)]}
+
+
+def knowledge_artifact(artifact) -> bool:
+    return (isinstance(artifact, Mapping) and artifact.get('schema') == 'tool-result-v1'
+            and isinstance(artifact.get('result'), Mapping)
+            and artifact['result'].get('authority') == 'knowledge.active_source')

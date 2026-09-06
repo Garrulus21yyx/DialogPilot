@@ -50,10 +50,88 @@ class ResponseAssembler:
 
     version = "response-assembler-v1"
 
-    def __init__(self, composer: ConversationComposer | None = None) -> None:
+    def __init__(self, composer: ConversationComposer | None = None, *,
+                 knowledge_generator=None, knowledge_verifier=None) -> None:
         self._composer = composer
+        self._knowledge_generator = knowledge_generator
+        self._knowledge_verifier = knowledge_verifier
 
-    async def assemble(
+    async def assemble(self, board, *, current_message: str, system_notice: str = "") -> AssembledResponse:
+        from application.knowledge_tool_contract import evidence_items, evidence_id
+        knowledge_facts = tuple(fact for result in board.results for fact in result.facts
+                                if fact.requirement_id == "knowledge.active_source")
+        knowledge_failure = any(result.reason_code.startswith("KNOWLEDGE_")
+                                and result.status not in _SUCCESS for result in board.results)
+        if not knowledge_facts and not knowledge_failure:
+            return await self._assemble_candidate(board, current_message=current_message, system_notice=system_notice)
+        if not knowledge_facts:
+            unavailable = any(result.reason_code == "KNOWLEDGE_UNAVAILABLE" for result in board.results)
+            return self._knowledge_fallback(system_notice, unavailable=unavailable)
+        try:
+            packs = [json.loads(fact.value_json) for fact in knowledge_facts]
+            items = {}
+            for pack in packs:
+                for item in evidence_items(pack):
+                    prior = items.setdefault(item['chunk_id'], item)
+                    if prior != item:
+                        raise ValueError("conflicting evidence identity")
+            # Direct retrieval has no Agent-authored answer. Reuse the existing
+            # grounded generator only for this path, never inside knowledge_search.
+            direct = all(result.producer_version == "target-tool-executor-v1" for result in board.results)
+            only_knowledge = all(fact.requirement_id == "knowledge.active_source"
+                                 for result in board.results for fact in result.facts)
+            if direct and only_knowledge:
+                if self._knowledge_generator is None:
+                    return self._knowledge_fallback(system_notice, unavailable=True)
+                from mcp.context_packer import ContextCandidate
+                contexts = tuple(ContextCandidate(
+                    item['chunk_id'], item['source_ref']['source_id'], item['text'],
+                    item['source_ref']['start_char'], item['source_ref']['end_char'],
+                    source_revision=item['source_ref']['source_revision'],
+                    source_checksum=item['source_ref']['checksum'], title=item.get('title', ''),
+                ) for item in items.values())
+                query = packs[0]['evidence_pack']['query'] if len(packs) == 1 else current_message
+                generated = await self._knowledge_generator.generate(query, contexts)
+                if generated.abstained:
+                    return self._knowledge_fallback(system_notice)
+                if not generated.claims or any(not claim.citations or set(claim.citations) - set(items)
+                                               for claim in generated.claims):
+                    raise ValueError("generated claims lack supplied evidence")
+                text = '\n'.join(claim.text + ' ' + ' '.join(
+                    '[' + evidence_id(cid) + ']' for cid in claim.citations
+                ) for claim in generated.claims)
+                candidate = AssembledResponse(text, ResponseAssemblyMode.PASS_THROUGH, (), True, "PENDING", "KNOWLEDGE_DRAFT")
+            else:
+                candidate = await self._assemble_candidate(board, current_message=current_message)
+            allowed = {evidence_id(cid) for cid in items}
+            cited = set(re.findall(r"\[(E[a-zA-Z0-9]+)\]", candidate.text))
+            if not cited or cited - allowed or self._knowledge_verifier is None:
+                return self._knowledge_fallback(system_notice, unavailable=self._knowledge_verifier is None)
+            # Check original evidence/facts, never use candidate summaries as evidence.
+            facts = [json.loads(fact.value_json) for result in board.results for fact in result.facts]
+            verdict = await self._knowledge_verifier.verify(
+                current_message, candidate.text,
+                context=json.dumps(facts, ensure_ascii=False),
+                knowledge_evidence={"packs": packs, "allowed_evidence_ids": sorted(allowed)},
+                agent_outcomes=[{"status": result.status.value, "reason": result.reason_code}
+                                for result in board.results],
+            )
+            if not verdict.publishable or not verdict.grounded:
+                return self._knowledge_fallback(system_notice)
+            return AssembledResponse(system_notice + candidate.text, candidate.mode,
+                                     tuple(sorted(cited)), candidate.composer_used,
+                                     "PASS", "KNOWLEDGE_SUPPORT_CHECKED")
+        except Exception:
+            return self._knowledge_fallback(system_notice, unavailable=True)
+
+    @staticmethod
+    def _knowledge_fallback(notice: str, *, unavailable: bool = False) -> AssembledResponse:
+        text = ("知识查询或核验服务暂时不可用，请稍后重试或联系人工客服。" if unavailable else
+                "现有资料不足以支持可靠结论，请补充适用条件或联系人工客服核实。")
+        return AssembledResponse(notice + text, ResponseAssemblyMode.TEMPLATE, (), False,
+                                 "PASS", "KNOWLEDGE_SAFE_ABSTENTION")
+
+    async def _assemble_candidate(
         self, board, *, current_message: str, system_notice: str = "",
     ) -> AssembledResponse:
         claims = _allowed_claims(board)

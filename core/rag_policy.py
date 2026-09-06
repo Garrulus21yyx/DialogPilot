@@ -14,8 +14,8 @@ DEFAULT_RAG_RETRIEVAL_POLICY: Mapping[str, Any] = {
     "lexical_weight": 0.75,
     "raw_query_weight": 0.20,
     "standalone_query_weight": 0.60,
-    "expansion_query_weight": 0.20,
-    "query_expansion_count": 2,
+    "expansion_query_weight": 0.0,
+    "query_expansion_count": 0,
     "metadata_hint_weight": 0.50,
 }
 

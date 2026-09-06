@@ -942,6 +942,9 @@ class MCPToolManager:
 
     def _render_for_model(self, result: ToolResult) -> str:
         """把工具终态格式化并限制回写模型的字符数。"""
+        if result.authority == "knowledge.active_source":
+            from application.knowledge_tool_contract import model_evidence
+            return json.dumps(model_evidence(result.data), ensure_ascii=False, separators=(",", ":"))
         payload = json.dumps(
             {
                 "status": result.status,

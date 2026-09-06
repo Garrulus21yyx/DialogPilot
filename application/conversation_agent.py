@@ -228,6 +228,9 @@ class ConversationAgent:
                 raise TypeError("goal must be an object")
             goal_id = goal_ids[index - 1]
             kind = str(value["kind"])
+            if "resolved_query" in value and (not isinstance(value["resolved_query"], str)
+                    or not value["resolved_query"].strip() or len(value["resolved_query"]) > 4000):
+                raise ValueError("resolved query must be bounded non-empty text")
             if kind not in _GOALS:
                 raise ValueError("goal identity or kind is invalid")
             raw_dependencies = value.get("depends_on", ())
@@ -283,9 +286,11 @@ class ConversationAgent:
                 )
             else:
                 command = self._command(
-                    goal_id, kind, observations.raw_text, state,
+                    goal_id, kind, str(value.get("resolved_query") or observations.raw_text), state,
                     order_binding, asset_binding, address_binding, registry,
                 )
+            if command.tool_id == "knowledge_search" and turn_context is not None and turn_context.recent_relevant_turns and not value.get("resolved_query"):
+                raise ValueError("contextual knowledge goal requires an explicit resolved query")
             if revises_control_id and kind != "cancel_active_work":
                 command = replace(
                     command, revises_control_id=revises_control_id,

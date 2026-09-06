@@ -88,6 +88,8 @@ async def build_target_runtime(
     provider_config: Mapping[str, Any],
     project_root: Path,
     knowledge_context_factory=None,
+    knowledge_generator=None,
+    knowledge_verifier=None,
 ) -> TargetRuntimeComponents:
     """Wire the one production Target runtime and enter its checkpoint owner."""
     registry = build_default_capability_registry(
@@ -162,7 +164,8 @@ async def build_target_runtime(
             orchestration=orchestration,
             context_provider=TargetTurnContextLoader(memory, tool_manager),
         )
-        assembler = ResponseAssembler(conversation_agent)
+        assembler = ResponseAssembler(conversation_agent, knowledge_generator=knowledge_generator,
+                                      knowledge_verifier=knowledge_verifier)
         application = TargetChatApplication(
             manager=manager,
             admission=PostgresTargetAdmission(postgres_pool, durable=True),

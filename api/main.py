@@ -502,7 +502,7 @@ async def lifespan(app: FastAPI):
     _tool_manager.register(Tool(
         name="knowledge_search",
         description=(
-            "搜索公共业务知识库（Raw/Standalone/受约束扩写 + "
+            "检索公共知识证据。query必须是已结合上下文消解的完整问题，保留否定、编号与已知条件，不猜测未知条件。返回证据而非答案。（"
             "BM25/Dense + metadata 路由的加权 RRF）"
         ),
         handler=_knowledge_tool_handler,
@@ -580,6 +580,8 @@ async def lifespan(app: FastAPI):
         provider_config=cfg,
         project_root=pathlib.Path(_ROOT),
         knowledge_context_factory=_knowledge_execution_context,
+        knowledge_generator=_grounded_answer_generator,
+        knowledge_verifier=_answer_verifier,
     )
     _target_chat_runtime = target_components.application
     _target_orchestration = target_components.orchestration
@@ -2569,6 +2571,7 @@ async def _retrieve_knowledge(
     bundle_version: str = "",
     source_type_hints: tuple[str, ...] = (),
     region_hints: tuple[str, ...] = (),
+    query_mode: str = "HISTORY",
 ) -> EvidencePackResult:
     if _knowledge_retriever is None or _knowledge_store is None:
         return EvidencePackResult(
@@ -2621,7 +2624,7 @@ async def _retrieve_knowledge(
         authorization_fingerprint=authorization_fingerprint,
         acl_policy_fingerprint="knowledge-public-acl-v1",
         deletion_epoch=epoch, requirement_signature=requirement_signature,
-        query=query, history=history,
+        query=query, history=history, query_mode=query_mode,
         conversation_range_hash=_fingerprint({"history": list(history)}),
         locale="zh-CN", product=None, manifest_fingerprint=manifest,
         generation_id=generation_id,
@@ -2639,7 +2642,7 @@ async def _knowledge_tool_handler(
     context = dict(context or {})
     result = await _retrieve_knowledge(
         str(params.get("query") or ""),
-        history=tuple(map(str, context.get("query_history") or ())),
+        history=(), query_mode="RESOLVED",
         policy_values=dict(context.get("retrieval_policy") or {}),
         policy_version=str(context.get("cache_scope") or "agent-bundle-unversioned"),
         tenant_id=str(context.get("tenant_id") or ""),

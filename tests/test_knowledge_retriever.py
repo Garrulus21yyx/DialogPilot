@@ -506,3 +506,16 @@ def test_candidate_cache_identity_includes_metadata_fusion_weight():
     variants = [('raw', request.query, 1.0)]
     changed = replace(request, policy=replace(request.policy, metadata_hint_weight=.8))
     assert RetrievalCacheKeyBuilder.candidates(request, variants) != RetrievalCacheKeyBuilder.candidates(changed, variants)
+
+
+def test_resolved_query_never_calls_conversation_transformer_and_is_used_for_rerank():
+    class Transformer:
+        async def standalone(self, *args): raise AssertionError('resolved query must not be reinterpreted')
+    class Reranker:
+        async def rerank(self, query, candidates):
+            assert query == '已拆封耳机，非质量原因退货的条件'
+            return tuple(item['chunk_id'] for item in candidates), False
+    retriever = KnowledgeRetriever(candidate_source=_Source([_candidate()]), transformer=Transformer(), reranker=Reranker())
+    result = asyncio.run(retriever.retrieve(_request(query='已拆封耳机，非质量原因退货的条件', history=(), query_mode='RESOLVED')))
+    assert result.status is RetrievalStatus.OK
+    assert not result.trace.rewrite_fallback

@@ -9,6 +9,7 @@ from langchain_core.messages import AIMessage, ToolMessage
 from application.context_budget import ContextBudgetManager, ModelContextBudgetExceeded
 from application.work_control import WorkControlGuard
 from core.token_estimator import TokenEstimator
+from application.knowledge_tool_contract import knowledge_artifact
 
 
 class WorkControlMiddleware(AgentMiddleware):
@@ -60,6 +61,8 @@ class AgentContextMiddleware(AgentMiddleware):
 
         for index, message in enumerate(messages):
             if isinstance(message, ToolMessage) and message.artifact is not None:
+                if knowledge_artifact(message.artifact):
+                    continue
                 content = str(message.content)
                 if self.estimator.estimate(content) > 800:
                     messages[index] = message.model_copy(update={"content": (

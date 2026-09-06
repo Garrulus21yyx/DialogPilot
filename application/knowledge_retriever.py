@@ -143,8 +143,13 @@ class KnowledgeRetrievalRequest:
     source_type_hints: tuple[str, ...] = ()
     region_hints: tuple[str, ...] = ()
     force_recompute: bool = False
+    query_mode: str = "HISTORY"
 
     def __post_init__(self) -> None:
+        if self.query_mode not in {"RESOLVED", "HISTORY"}:
+            raise KnowledgeRetrievalContractError("unsupported query mode")
+        if self.query_mode == "RESOLVED" and self.history:
+            raise KnowledgeRetrievalContractError("resolved query must not reinterpret conversation history")
         required = (
             self.tenant_id, self.user_scope, self.authorization_fingerprint,
             self.acl_policy_fingerprint, self.requirement_signature,
@@ -276,7 +281,7 @@ def normalize_retrieval_text(value: str) -> str:
 class RetrievalCacheKeyBuilder:
     """Exact layered keys; no layer incorporates a future stage output."""
 
-    schema = "knowledge-retrieval-cache-v1"
+    schema = "knowledge-retrieval-cache-v2-resolved"
 
     @classmethod
     def transform(cls, request: KnowledgeRetrievalRequest) -> str:
@@ -285,6 +290,7 @@ class RetrievalCacheKeyBuilder:
             "query": normalize_retrieval_text(request.query),
             "requirement": request.requirement_signature,
             "conversation_range": request.conversation_range_hash,
+            "query_mode": request.query_mode,
             "transformer": request.policy.transformer_version,
             "query_expansion_count": request.policy.query_expansion_count,
         })
@@ -333,6 +339,7 @@ class RetrievalCacheKeyBuilder:
     def rerank(
         cls, request: KnowledgeRetrievalRequest,
         candidates: Sequence[ContextCandidate],
+        *, resolved_query: str | None = None,
     ) -> str:
         return cls._key("rerank", {
             "candidate_set": _hash(sorted([
@@ -340,7 +347,7 @@ class RetrievalCacheKeyBuilder:
                  item.source_checksum]
                 for item in candidates
             ])),
-            "query": normalize_retrieval_text(request.query),
+            "query": normalize_retrieval_text(resolved_query if resolved_query is not None else request.query),
             "reranker": request.policy.reranker_version,
             "policy": request.policy.fingerprint,
         })
@@ -446,9 +453,12 @@ class KnowledgeRetriever:
             expansion_error = str(transformed["expansion_error"]) or None
             cache_hits.append("transform")
         else:
-            standalone, rewrite_error = await self._transformer.standalone(
-                request.query, request.history,
-            )
+            if request.query_mode == "RESOLVED":
+                standalone, rewrite_error = request.query, None
+            else:
+                standalone, rewrite_error = await self._transformer.standalone(
+                    request.query, request.history,
+                )
             expansion_base = (
                 standalone if not rewrite_error and standalone.strip()
                 else request.query
@@ -491,7 +501,8 @@ class KnowledgeRetriever:
             for kind, query, weight in weighted_variants
             if weight > 0
         )
-        rewrite_fallback = not standalone_usable
+        resolved_query = standalone if not rewrite_error and standalone.strip() else request.query
+        rewrite_fallback = request.query_mode == "HISTORY" and not standalone_usable
         expansion_fallback = bool(
             policy.query_expansion_count
             and (expansion_error or not clean_expansions)
@@ -573,7 +584,7 @@ class KnowledgeRetriever:
                 RetrievalStatus.CONFLICT, None, None,
                 "ACTIVE_SOURCE_REVISION_CONFLICT",
             )
-        rerank_key = RetrievalCacheKeyBuilder.rerank(request, candidates)
+        rerank_key = RetrievalCacheKeyBuilder.rerank(request, candidates, resolved_query=resolved_query)
         cached_rerank = self._cache_get(rerank_key, request)
         if isinstance(cached_rerank, dict) and isinstance(
             cached_rerank.get("ordered_ids"), list,
@@ -583,7 +594,7 @@ class KnowledgeRetriever:
             cache_hits.append("rerank")
         else:
             ordered_ids, rerank_fallback = await self._reranker.rerank(
-                request.query, raw,
+                resolved_query, raw,
             )
         if len(ordered_ids) != len(ids) or set(ordered_ids) != set(ids):
             ordered_ids, rerank_fallback = ids, True
@@ -634,7 +645,7 @@ class KnowledgeRetriever:
             tuple(cache_hits),
         )
         pack = EvidencePack.from_packed(
-            request.query, packed,
+            resolved_query, packed,
             retrieval_policy=policy.legacy_mapping(),
             retrieval_trace={
                 "variants": [

@@ -244,7 +244,7 @@ def test_generic_product_qa_executes_the_shared_knowledge_tool_contract():
                 status="success",
                 authority="knowledge.active_source",
                 tool_name=name,
-                data={"status": "OK", "answer": "支持 macOS。"},
+                data=__import__("tests.test_knowledge_tool_contract", fromlist=["evidence_result"]).evidence_result("支持 macOS。"),
                 receipt_id="evidence:product-qa-1",
                 call_id=call_id,
                 output_schema_version="knowledge-evidence-pack-result-v1",
