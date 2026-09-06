@@ -47,6 +47,12 @@ def test_source_update_time_facets_withdrawal_and_cache_reread(store, postgres_d
         assert {row['source_revision'] for row in search(replace(request, as_of=instant(2025))).candidates} == {second.revisions[0].revision_id}
         current = search(current_request)
         assert {row['source_revision'] for row in current.candidates} == {second.revisions[0].revision_id}
+        # Observed facets are not a closed universe of valid user conditions:
+        # CN has no dedicated source here, but correctly selects global policy.
+        catalog = knowledge.applicability_catalog(as_of=instant(2026))
+        assert 'CN' not in catalog['facet_ids']['region']
+        assert current_request.applicable_region == 'CN'
+        assert {row['applicability']['region'] for row in current.candidates} == {'global'}
         assert current.candidates[0]['applicability']['effective_from'] == instant(2025).isoformat()
         assert source.validate_candidates(current.candidates,current_request)
         for region, channel, product, expected in [('EU','web','headphones',2),('EU','store','headphones',1),('EU','web','other',1),('CN','web','headphones',1)]:

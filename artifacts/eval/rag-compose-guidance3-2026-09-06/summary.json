@@ -1,0 +1,42 @@
+{
+  "scope": "Consumed synthetic development cases; composition-only layout replay, no live retrieval/publication or isolated end-to-end gain. Length is diagnostic, not quality.",
+  "capture_sha256": "f68a41c87fe4a55359cb228841e14c53cae6a2e3254846902491d4019218b525",
+  "cases": 3,
+  "api_calls": 6,
+  "decision": "Do not promote: no consistent relevance/verbosity benefit; model support PASS does not measure relevance or completeness.",
+  "results": [
+    {
+      "case_id": "expanded-gift-return",
+      "baseline_chars": 165,
+      "experiment_chars": 172,
+      "baseline_mentions_snapshot": true,
+      "experiment_mentions_snapshot": true,
+      "experiment_mentions_window": true,
+      "support_verdict": "pass",
+      "error": null,
+      "input_projection_reversible": true
+    },
+    {
+      "case_id": "expanded-battery-install",
+      "baseline_chars": 159,
+      "experiment_chars": 94,
+      "baseline_mentions_snapshot": true,
+      "experiment_mentions_snapshot": false,
+      "experiment_mentions_window": false,
+      "support_verdict": "pass",
+      "error": null,
+      "input_projection_reversible": true
+    },
+    {
+      "case_id": "expanded-elliptic",
+      "baseline_chars": 242,
+      "experiment_chars": 361,
+      "baseline_mentions_snapshot": true,
+      "experiment_mentions_snapshot": true,
+      "experiment_mentions_window": true,
+      "support_verdict": "pass",
+      "error": null,
+      "input_projection_reversible": true
+    }
+  ]
+}

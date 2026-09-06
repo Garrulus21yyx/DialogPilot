@@ -1,6 +1,7 @@
 """Replay captured composition inputs only; no planning, retrieval, or business execution."""
 import argparse
 import asyncio
+import copy
 import gzip
 import hashlib
 import json
@@ -16,6 +17,15 @@ from scripts.run_rag_tool_calibration import CaptureClient
 from application.composition_output import render_composition
 from application.response_assembly import AllowedClaim, ResponseAssembler
 from services.answer_verifier import AnswerVerifier
+
+
+def separate_field_guidance(payload):
+    """Evaluation-only layout change; caller retains original evidence to verify."""
+    model_input = copy.deepcopy(payload)
+    for claim in model_input['allowed_claims']:
+        if claim['kind'] == 'FACT' and isinstance(claim['value'], dict) and 'field_semantics' in claim['value']:
+            claim['interpretation_guidance'] = claim['value'].pop('field_semantics')
+    return model_input
 
 
 async def run(args):
@@ -67,6 +77,7 @@ async def run(args):
     manifest = {'scope':__doc__, 'cases':len(inputs),'source_sha256':hashlib.sha256(raw).hexdigest(),
                 'case_ids':[key for key,_ in inputs],
                 'business_view_v2':args.business_view_v2,
+                'separate_field_guidance':args.separate_field_guidance,
                 'synthesis_profile':policy.profile(ModelRole.SYNTHESIS).to_dict(),
                 'verify':args.verify,'max_api_calls':len(inputs)*(2 if args.verify else 1),
                 'input_migration':'v1 FACT evidence views become KNOWLEDGE_FACT; request schema v2',
@@ -80,7 +91,8 @@ async def run(args):
         for key,payload in inputs:
             before = len(client.calls)
             try:
-                value = await provider.compose(payload)
+                model_input = separate_field_guidance(payload) if args.separate_field_guidance else payload
+                value = await provider.compose(model_input)
                 claims=tuple(AllowedClaim(c['claim_id'],c['kind'],c['value'],tuple(c['source_refs'])) for c in payload['allowed_claims'])
                 text,used=render_composition(value,claims)
                 text,used=ResponseAssembler.prepare_composed_response(text,used,claims,payload['current_message'],payload['work_item_outcomes'])
@@ -108,6 +120,8 @@ def main():
     parser.add_argument('--verify',action='store_true',help='Check rendered answers against captured evidence; no live source validation.')
     parser.add_argument('--case-ids',nargs='+',help='Select captured composition cases before spending API calls.')
     parser.add_argument('--business-view-v2',action='store_true',help='Explicitly project captured v1 order/eligibility values through current business read owners.')
+    parser.add_argument('--separate-field-guidance',action='store_true',
+                        help='Evaluation-only metadata layout; verifier still receives original facts.')
     asyncio.run(run(parser.parse_args()))
 
 
