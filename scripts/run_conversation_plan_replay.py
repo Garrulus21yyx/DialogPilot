@@ -1,7 +1,8 @@
 """Frozen empty-state planner payload comparison; real compiler, no tools executed.
 
 Structured transport is evaluation-only. Reconstructed bindings preserve captured
-values/source refs; active workstream and control scenarios are explicitly excluded.
+values/source refs and unique or ambiguous resolutions; active workstream and
+control scenarios are explicitly excluded.
 """
 import argparse
 import asyncio
@@ -49,11 +50,15 @@ def compile_captured(key,payload,output):
     state=ConversationState.empty(tenant_id='plan-replay',user_id='eval',conversation_id=key)
     bindings=[]
     for group in payload['entity_bindings']:
-        if group['status']!='UNIQUE':raise ValueError('only unique captured bindings supported')
+        if group['status'] not in ('UNIQUE', 'AMBIGUOUS'):
+            raise ValueError('only unique or ambiguous captured bindings supported')
         for c in group['candidates']:
             bindings.append(EntityBinding.create(group['field_name'],c['value'],source=BindingSource(c['source']),
                 source_ref=c['source_ref'],tenant_id='plan-replay',user_id='eval',conversation_id=key,priority=400))
-    context=SimpleNamespace(entity_bindings=EntityBindingSet(tuple(bindings)),
+    reconstructed=EntityBindingSet(tuple(bindings))
+    if reconstructed.as_payload(state) != payload['entity_bindings']:
+        raise ValueError('captured binding resolutions cannot be reconstructed faithfully')
+    context=SimpleNamespace(entity_bindings=reconstructed,
                             recent_relevant_turns=tuple(payload['conversation_context'].get('recent_messages',()))
                                 + ((payload['conversation_context']['summary'],)
                                    if payload['conversation_context'].get('summary') else ()))
@@ -65,17 +70,28 @@ def compile_captured(key,payload,output):
 async def run(args):
     raw=gzip.decompress(args.capture.read_bytes())
     rows=[json.loads(line) for line in raw.splitlines()]
+    if args.case_ids:
+        wanted=set(args.case_ids)
+        available={r['case_id'] for r in rows}
+        if wanted-available:
+            raise ValueError(f'unknown case IDs: {sorted(wanted-available)}')
+        rows=[r for r in rows if r['case_id'] in wanted]
     inputs=[(r['case_id'],json.loads(r['api_calls'][0]['request']['messages'][0]['content'])) for r in rows]
     if args.current_goal_descriptions:
         for _, payload in inputs:
             payload['goal_descriptions']=planning_goal_descriptions()
     if any(p['active_workstreams'] or p['active_work_controls'] for _,p in inputs):
         raise ValueError('only captured empty-state cases supported')
+    for key,payload in inputs:
+        # Validate reconstruction before spending inference calls, regardless of
+        # the eventual model decision. This does not supply a model answer.
+        compile_captured(key,payload,{'status':'out_of_scope'})
     values={k:str(v) for k,v in dotenv_values('.env').items() if v is not None};values.update(os.environ)
     policy=ModelPolicy.from_env(values);profile=policy.profile(ModelRole.INTENT)
     args.output.mkdir(parents=True,exist_ok=False)
     (args.output/'manifest.json').write_text(json.dumps({'scope':__doc__,'cases':len(inputs),
-        'source_sha256':hashlib.sha256(raw).hexdigest(),'current_goal_descriptions':args.current_goal_descriptions,'profile':profile.to_dict(),'max_tokens':2048,
+        'source_sha256':hashlib.sha256(raw).hexdigest(),'case_ids':[key for key,_ in inputs],
+        'current_goal_descriptions':args.current_goal_descriptions,'profile':profile.to_dict(),'max_tokens':args.max_tokens,
         'variants':args.modes,'max_api_calls':len(args.modes)*len(inputs),'structured_schema':output_schema(inputs[0][1])},indent=2)+'\n')
     options=dict(api_key=values['ANTHROPIC_API_KEY'],max_retries=0,timeout=60)
     if policy.base_url:options['base_url']=policy.base_url
@@ -98,7 +114,7 @@ async def run(args):
                             return SimpleNamespace(content=[SimpleNamespace(type='text',text=json.dumps(blocks[0].input))])
                         return response
                 provider=AnthropicConversationPlanningProvider(SimpleNamespace(messages=Messages()),
-                    model_profile=profile,synthesis_profile=policy.profile(ModelRole.SYNTHESIS),max_tokens=2048)
+                    model_profile=profile,synthesis_profile=policy.profile(ModelRole.SYNTHESIS),max_tokens=args.max_tokens)
                 before=len(client.calls);output=None;result={'case_id':key,'mode':mode,'error':None}
                 try:
                     output=await provider.plan(payload)
@@ -116,6 +132,8 @@ def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--capture',required=True,type=Path);p.add_argument('--output',required=True,type=Path)
     p.add_argument('--current-goal-descriptions',action='store_true')
+    p.add_argument('--case-ids',nargs='+',help='Replay only named captured cases; unknown IDs fail before API calls.')
+    p.add_argument('--max-tokens',type=int,choices=range(256,8193),metavar='256..8192',default=2048)
     p.add_argument('--modes',nargs='+',choices=('text','structured'),default=['text','structured'])
     asyncio.run(run(p.parse_args()))
 

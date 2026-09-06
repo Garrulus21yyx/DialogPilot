@@ -1,0 +1,96 @@
+{
+  "scope": "Selected previously truncated development planner cases; no retrieval or final-answer rerun; stochastic single replay, not heldout gain.",
+  "source_sha256": "687e103d23ed53088ec8cf8a0dfbc76b07a8528f9d210334ff7f016daec64904",
+  "capture_sha256": "3b9a833fcc3977021cf764dff8805f3340d1f570d2c168f669a4f2566fb4ce3d",
+  "api_calls": 5,
+  "max_tokens": 4096,
+  "profile_and_input_change": "Same captured input, Flash low; requested output cap 2048 to 4096. No current goal catalog injection.",
+  "recompilation_amendment": "battery-install original error was replay-only UNIQUE restriction. Preserve raw capture; reconstruct UNIQUE/AMBIGUOUS top candidates and require exact payload roundtrip before compilation. No new inference.",
+  "results": [
+    {
+      "case_id": "expanded-gift-return",
+      "original_capture_error": null,
+      "recompiled_tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "output_tokens": 2384,
+      "baseline_output_tokens": 2048,
+      "baseline_stop": "max_tokens",
+      "stop": "end_turn",
+      "latency_ms": 17648.39277602732,
+      "baseline_latency_ms": 15154.02183495462,
+      "queries": [
+        "如果赠品已经使用，整单退货是否仍能获得全额退款？"
+      ]
+    },
+    {
+      "case_id": "expanded-warranty",
+      "original_capture_error": null,
+      "recompiled_tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "output_tokens": 935,
+      "baseline_output_tokens": 2048,
+      "baseline_stop": "max_tokens",
+      "stop": "end_turn",
+      "latency_ms": 8203.274223953485,
+      "baseline_latency_ms": 14083.440270274878,
+      "queries": [
+        "购买八个月后因人为摔坏，是否可以免费更换主机？"
+      ]
+    },
+    {
+      "case_id": "expanded-battery-install",
+      "original_capture_error": "ValueError",
+      "recompiled_tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "output_tokens": 2026,
+      "baseline_output_tokens": 2049,
+      "baseline_stop": "max_tokens",
+      "stop": "end_turn",
+      "latency_ms": 18004.571629688144,
+      "baseline_latency_ms": 15185.366064310074,
+      "queries": [
+        "Can I trial-install product model B20 when my machine's model is unclear?"
+      ]
+    },
+    {
+      "case_id": "expanded-membership",
+      "original_capture_error": null,
+      "recompiled_tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "output_tokens": 756,
+      "baseline_output_tokens": 2049,
+      "baseline_stop": "max_tokens",
+      "stop": "end_turn",
+      "latency_ms": 6585.447691380978,
+      "baseline_latency_ms": 17372.377578169107,
+      "queries": [
+        "订单中通过积分抵扣的部分能否直接折成现金退还？"
+      ]
+    },
+    {
+      "case_id": "expanded-elliptic",
+      "original_capture_error": null,
+      "recompiled_tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "output_tokens": 2028,
+      "baseline_output_tokens": 2048,
+      "baseline_stop": "max_tokens",
+      "stop": "end_turn",
+      "latency_ms": 16898.847127333283,
+      "baseline_latency_ms": 17425.360452383757,
+      "queries": [
+        "耳机已拆封且非质量原因的退货适用规则是什么？"
+      ]
+    }
+  ]
+}
