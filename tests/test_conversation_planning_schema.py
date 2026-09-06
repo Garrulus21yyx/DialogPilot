@@ -39,7 +39,7 @@ def test_conversation_transport_preserves_role_reasoning_and_budget(method, effo
     provider = AnthropicConversationPlanningProvider(
         SimpleNamespace(messages=Messages()), model_profile=profile, synthesis_profile=profile, max_tokens=800,
     )
-    asyncio.run(getattr(provider, method)({"message": "policy question"}))
+    asyncio.run(getattr(provider, method)({"message": "policy question", "allowed_claims":[{"claim_id":"outcome:1","kind":"WORK_ITEM_OUTCOME"}]}))
     request = calls[0]
     assert request["model"] == profile.model
     if method == "compose":
@@ -66,7 +66,7 @@ def test_full_conversation_request_rejects_overflow_before_transport(method):
         SimpleNamespace(messages=Messages()), model_profile=profile, synthesis_profile=profile,
     )
     with pytest.raises(ProviderContextBudgetExceeded):
-        asyncio.run(getattr(provider, method)({"message": "政策" * 12000}))
+        asyncio.run(getattr(provider, method)({"message": "政策" * 12000, "allowed_claims":[{"claim_id":"outcome:1","kind":"WORK_ITEM_OUTCOME"}]}))
 
 
 def test_agent_maps_final_provider_budget_failure_to_context_outcome():
@@ -94,7 +94,7 @@ def test_planning_and_composition_use_their_own_model_and_budget():
     provider = AnthropicConversationPlanningProvider(SimpleNamespace(messages=Messages()),
         model_profile=intent, synthesis_profile=synthesis)
     asyncio.run(provider.plan({'message':'查订单及政策'}))
-    asyncio.run(provider.compose({'allowed_claims':[]}))
+    asyncio.run(provider.compose({'allowed_claims':[{'claim_id':'outcome:1','kind':'WORK_ITEM_OUTCOME'}]}))
     assert [c['model'] for c in calls] == [intent.model, synthesis.model]
     assert [c['max_tokens'] for c in calls] == [2048, 800]
     assert calls[0]['extra_body']['thinking']['type'] == 'enabled'
@@ -137,7 +137,7 @@ def test_composition_rejects_invalid_structured_values(value):
     provider=AnthropicConversationPlanningProvider(SimpleNamespace(messages=Messages()),
         model_profile=profile,synthesis_profile=profile)
     with pytest.raises(ConversationProviderOutputError):
-        asyncio.run(provider.compose({}))
+        asyncio.run(provider.compose({'allowed_claims':[{'claim_id':'id','kind':'FACT'}]}))
 
 
 @pytest.mark.parametrize('stop,name,count', [('max_tokens','submit_composed_response',1),
@@ -153,7 +153,7 @@ def test_composition_requires_single_complete_expected_tool(stop,name,count):
     provider=AnthropicConversationPlanningProvider(SimpleNamespace(messages=Messages()),
         model_profile=profile,synthesis_profile=profile)
     with pytest.raises(ConversationProviderOutputError):
-        asyncio.run(provider.compose({}))
+        asyncio.run(provider.compose({'allowed_claims':[{'claim_id':'id','kind':'FACT'}]}))
 
 
 def test_goal_meanings_are_supplied_by_the_compiler_owner():

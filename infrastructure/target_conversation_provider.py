@@ -81,10 +81,14 @@ class AnthropicConversationPlanningProvider:
             }],
         )
         if role is ModelRole.SYNTHESIS:
+            try:
+                schema = composition_schema(payload.get('allowed_claims', ()))
+            except (ValueError, KeyError, TypeError) as exc:
+                raise ConversationProviderOutputError('invalid composition attribution input') from exc
             request["tools"] = [{
                 "name": "submit_composed_response",
                 "description": "Submit answer segments with their supporting claims and evidence.",
-                "input_schema": composition_schema(),
+                "input_schema": schema,
             }]
             # Thinking transports reject forced tool choice. The output gate
             # below still requires the one named output tool and complete values.

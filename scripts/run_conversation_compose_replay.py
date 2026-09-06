@@ -40,6 +40,11 @@ async def run(args):
             inputs.append((row['case_id'], payload))
     if not inputs:
         raise ValueError('no captured composition inputs')
+    if args.case_ids:
+        requested=set(args.case_ids)
+        if requested-{key for key,_ in inputs}:
+            raise ValueError('selected case has no captured composition input')
+        inputs=[(key,payload) for key,payload in inputs if key in requested]
     args.output.mkdir(parents=True, exist_ok=False)
     values = {k:str(v) for k,v in dotenv_values('.env').items() if v is not None}
     values.update(os.environ)
@@ -48,6 +53,7 @@ async def run(args):
     if policy.base_url:
         options['base_url'] = policy.base_url
     manifest = {'scope':__doc__, 'cases':len(inputs),'source_sha256':hashlib.sha256(raw).hexdigest(),
+                'case_ids':[key for key,_ in inputs],
                 'synthesis_profile':policy.profile(ModelRole.SYNTHESIS).to_dict(),
                 'verify':args.verify,'max_api_calls':len(inputs)*(2 if args.verify else 1),
                 'input_migration':'v1 FACT evidence views become KNOWLEDGE_FACT; request schema v2',
@@ -87,6 +93,7 @@ def main():
     parser.add_argument('--capture',type=Path,required=True)
     parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--verify',action='store_true',help='Check rendered answers against captured evidence; no live source validation.')
+    parser.add_argument('--case-ids',nargs='+',help='Select captured composition cases before spending API calls.')
     asyncio.run(run(parser.parse_args()))
 
 

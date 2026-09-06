@@ -1,0 +1,32 @@
+{
+  "scope": "Selected consumed development cases; component replay, no retrieval or publication; model labels are not answer accuracy.",
+  "capture_sha256": "0136b9cbe8ae3c77cdd5241e98f3da36275c93119c41ec2fc3cadddaf857c593",
+  "cases": 4,
+  "api_calls": 4,
+  "results": [
+    {
+      "case_id": "expanded-opened-audio",
+      "error": null,
+      "status": "pass",
+      "reason": "订单状态由业务事实支持；已拆封耳机非质量原因不适用无理由退货及质量问题需提交检测材料后另行审核均由政策原文支持。"
+    },
+    {
+      "case_id": "expanded-audio-defect",
+      "error": null,
+      "status": "reject",
+      "reason": "回答承诺“我们会继续为您跟进”，但执行证据中没有已接受的跟进任务或履约依据；且退款到账部分仅说明无法确认，未提供依据支持后续跟进承诺。"
+    },
+    {
+      "case_id": "expanded-gift-return",
+      "error": null,
+      "status": "reject",
+      "reason": "回答只处理了订单状态和退款窗口，未回答用户关于赠品已使用后整单退货能否全额退的问题；且退款窗口缺失仅能说明无法确认，不能直接断言不符合退款条件。"
+    },
+    {
+      "case_id": "expanded-elliptic",
+      "error": null,
+      "status": "pass",
+      "reason": "订单状态由上下文事实支持；退货规则、签收记录含义及运费规则均有对应证据支持，且回答说明了适用条件。"
+    }
+  ]
+}

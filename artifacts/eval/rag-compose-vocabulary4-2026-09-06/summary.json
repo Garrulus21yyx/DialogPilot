@@ -1,0 +1,32 @@
+{
+  "scope": "Selected consumed development cases; component replay, no retrieval or publication; model labels are not answer accuracy.",
+  "capture_sha256": "9d1695b335b1285680597a8a2f75992c822a970cc1cc51f9b447faba16675ebe",
+  "cases": 4,
+  "api_calls": 8,
+  "results": [
+    {
+      "case_id": "expanded-opened-audio",
+      "error": null,
+      "status": "pass",
+      "reason": "订单状态与退货政策均基于上下文事实和知识证据准确回答。"
+    },
+    {
+      "case_id": "expanded-audio-defect",
+      "error": null,
+      "status": "pass",
+      "reason": "订单状态与上下文一致，退款部分如实说明无法确认，未编造事实。"
+    },
+    {
+      "case_id": "expanded-gift-return",
+      "error": null,
+      "status": "pass",
+      "reason": "回答准确反映了订单已妥投且不在退款窗口内，与上下文一致。"
+    },
+    {
+      "case_id": "expanded-elliptic",
+      "error": null,
+      "status": "pass",
+      "reason": "回答正确查询了订单状态，并基于退货原因准确说明了适用规则。"
+    }
+  ]
+}

@@ -4,15 +4,28 @@ from __future__ import annotations
 import re
 
 
-def composition_schema():
-    ids = {"type": "array", "uniqueItems": True,
-           "items": {"type": "string", "minLength": 1}}
+def composition_schema(claims):
+    """Expose the request's finite attribution vocabulary; renderer checks linkage."""
+    claim_ids = [claim['claim_id'] for claim in claims]
+    if (not claim_ids or any(not isinstance(cid, str) or not cid.strip() for cid in claim_ids)
+            or len(claim_ids) != len(set(claim_ids))):
+        raise ValueError('composition requires unique claim identities')
+    evidence_ids = sorted({item['evidence_id'] for claim in claims
+                           if claim['kind'] == 'KNOWLEDGE_FACT'
+                           for item in claim['value']['evidence']})
+    if any(not isinstance(eid, str) or not eid.strip() for eid in evidence_ids):
+        raise ValueError('invalid evidence identities')
+    claim_choices = {"type": "array", "uniqueItems": True, "minItems": 1,
+                     "items": {"type": "string", "enum": claim_ids}}
+    evidence_choices = ({"type": "array", "uniqueItems": True,
+                         "items": {"type": "string", "enum": evidence_ids}} if evidence_ids else
+                        {"type": "array", "maxItems": 0, "items": {"type": "string"}})
     return {"type": "object", "additionalProperties": False, "required": ["segments"],
             "properties": {"segments": {"type": "array", "minItems": 1, "maxItems": 20,
                 "items": {"type": "object", "additionalProperties": False,
                     "required": ["text", "claim_ids", "evidence_ids"], "properties": {
                         "text": {"type": "string", "minLength": 1},
-                        "claim_ids": {**ids, "minItems": 1}, "evidence_ids": ids}}}}}
+                        "claim_ids": claim_choices, "evidence_ids": evidence_choices}}}}}
 
 
 def validate_composition(value):

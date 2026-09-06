@@ -3,7 +3,7 @@ from itertools import combinations
 
 import pytest
 
-from application.composition_output import render_composition, validate_composition
+from application.composition_output import composition_schema, render_composition, validate_composition
 from application.response_assembly import AllowedClaim, ResponseAssembler
 from tests.test_response_assembly import _Composer, _board, _result, _verified_order_result
 from tests.test_knowledge_answer_boundary import Verifier
@@ -71,3 +71,31 @@ def test_verifier_exception_retains_authoritative_business_result():
         current_message='查订单'))
     assert result.verification_reason=='ANSWER_SAFE_FALLBACK'
     assert '这是合成文字' not in result.text and '主动跟进' not in result.text and '已发货' in result.text
+
+
+def test_request_schema_excludes_business_source_refs_from_policy_citations():
+    from jsonschema import validate, ValidationError, Draft202012Validator
+    claims=[{'claim_id':'b','kind':'FACT','value':{},'source_refs':['business-read:1']}]
+    schema=composition_schema(claims)
+    Draft202012Validator.check_schema(schema)
+    validate(segment(claims=('b',),evidence=()),schema)
+    for value in (segment(claims=('b',),evidence=('business-read:1',)),
+                  segment(claims=('unknown',),evidence=())):
+        with pytest.raises(ValidationError): validate(value,schema)
+    claims.append({'claim_id':'k1','kind':'KNOWLEDGE_FACT','value':{'evidence':[{'evidence_id':'E1'}]}})
+    schema=composition_schema(claims)
+    Draft202012Validator.check_schema(schema)
+    validate(segment(),schema)
+    with pytest.raises(ValidationError): validate(segment(evidence=('Eunknown',)),schema)
+    # Union enum cannot prove per-segment linkage; the application gate still does.
+    value=segment(claims=('b',),evidence=('E1',))
+    validate(value,schema)
+    with pytest.raises(ValueError):
+        render_composition(value,[AllowedClaim('b','FACT',{},()),
+            AllowedClaim('k1','KNOWLEDGE_FACT',{'evidence':[{'evidence_id':'E1'}]},())])
+
+
+@pytest.mark.parametrize('claims',[[],[{'claim_id':'','kind':'FACT'}],
+    [{'claim_id':'a','kind':'FACT'},{'claim_id':'a','kind':'FACT'}]])
+def test_request_schema_rejects_missing_or_duplicate_claim_authority(claims):
+    with pytest.raises(ValueError): composition_schema(claims)
