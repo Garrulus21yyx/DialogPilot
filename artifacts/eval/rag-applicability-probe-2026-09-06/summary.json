@@ -1,0 +1,177 @@
+{
+  "scope": "request-applicability ablation, same production candidate source, not a deployed before/after comparison",
+  "cases": 12,
+  "api_calls": 0,
+  "variants": {
+    "scoped": {
+      "complete_evidence_top5": 12,
+      "requests_with_specified_inapplicable_candidates": 0,
+      "cases": [
+        {
+          "case_id": "scope:cn",
+          "status": "OK",
+          "complete_evidence_top5": true,
+          "specified_inapplicable_sources": []
+        },
+        {
+          "case_id": "scope:eu",
+          "status": "OK",
+          "complete_evidence_top5": true,
+          "specified_inapplicable_sources": []
+        },
+        {
+          "case_id": "scope:global",
+          "status": "OK",
+          "complete_evidence_top5": true,
+          "specified_inapplicable_sources": []
+        },
+        {
+          "case_id": "scope:web",
+          "status": "OK",
+          "complete_evidence_top5": true,
+          "specified_inapplicable_sources": []
+        },
+        {
+          "case_id": "scope:store",
+          "status": "OK",
+          "complete_evidence_top5": true,
+          "specified_inapplicable_sources": []
+        },
+        {
+          "case_id": "scope:m10",
+          "status": "OK",
+          "complete_evidence_top5": true,
+          "specified_inapplicable_sources": []
+        },
+        {
+          "case_id": "scope:m20",
+          "status": "OK",
+          "complete_evidence_top5": true,
+          "specified_inapplicable_sources": []
+        },
+        {
+          "case_id": "scope:old",
+          "status": "OK",
+          "complete_evidence_top5": true,
+          "specified_inapplicable_sources": []
+        },
+        {
+          "case_id": "scope:new",
+          "status": "OK",
+          "complete_evidence_top5": true,
+          "specified_inapplicable_sources": []
+        },
+        {
+          "case_id": "scope:withdrawn",
+          "status": "OK",
+          "complete_evidence_top5": true,
+          "specified_inapplicable_sources": []
+        },
+        {
+          "case_id": "scope:long-exception",
+          "status": "OK",
+          "complete_evidence_top5": true,
+          "specified_inapplicable_sources": []
+        },
+        {
+          "case_id": "scope:long-address",
+          "status": "OK",
+          "complete_evidence_top5": true,
+          "specified_inapplicable_sources": []
+        }
+      ]
+    },
+    "omitted_applicability": {
+      "complete_evidence_top5": 11,
+      "requests_with_specified_inapplicable_candidates": 7,
+      "cases": [
+        {
+          "case_id": "scope:cn",
+          "status": "OK",
+          "complete_evidence_top5": true,
+          "specified_inapplicable_sources": [
+            "returns-eu"
+          ]
+        },
+        {
+          "case_id": "scope:eu",
+          "status": "OK",
+          "complete_evidence_top5": true,
+          "specified_inapplicable_sources": [
+            "returns-cn"
+          ]
+        },
+        {
+          "case_id": "scope:global",
+          "status": "OK",
+          "complete_evidence_top5": true,
+          "specified_inapplicable_sources": [
+            "returns-eu"
+          ]
+        },
+        {
+          "case_id": "scope:web",
+          "status": "OK",
+          "complete_evidence_top5": true,
+          "specified_inapplicable_sources": [
+            "coupon-store"
+          ]
+        },
+        {
+          "case_id": "scope:store",
+          "status": "OK",
+          "complete_evidence_top5": true,
+          "specified_inapplicable_sources": [
+            "coupon-web"
+          ]
+        },
+        {
+          "case_id": "scope:m10",
+          "status": "OK",
+          "complete_evidence_top5": true,
+          "specified_inapplicable_sources": [
+            "battery-m20"
+          ]
+        },
+        {
+          "case_id": "scope:m20",
+          "status": "OK",
+          "complete_evidence_top5": true,
+          "specified_inapplicable_sources": [
+            "battery-m10"
+          ]
+        },
+        {
+          "case_id": "scope:old",
+          "status": "OK",
+          "complete_evidence_top5": false,
+          "specified_inapplicable_sources": []
+        },
+        {
+          "case_id": "scope:new",
+          "status": "OK",
+          "complete_evidence_top5": true,
+          "specified_inapplicable_sources": []
+        },
+        {
+          "case_id": "scope:withdrawn",
+          "status": "OK",
+          "complete_evidence_top5": true,
+          "specified_inapplicable_sources": []
+        },
+        {
+          "case_id": "scope:long-exception",
+          "status": "OK",
+          "complete_evidence_top5": true,
+          "specified_inapplicable_sources": []
+        },
+        {
+          "case_id": "scope:long-address",
+          "status": "OK",
+          "complete_evidence_top5": true,
+          "specified_inapplicable_sources": []
+        }
+      ]
+    }
+  }
+}

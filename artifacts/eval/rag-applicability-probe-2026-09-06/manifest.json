@@ -1,0 +1,135 @@
+{
+  "scope": "candidate-only: handler request construction + actual PG retrieval; no handler completion or generation",
+  "scenario": "applicability",
+  "documents": 12,
+  "cases": 12,
+  "query_options": {
+    "scope:cn": {
+      "as_of": "2026-06-01T00:00:00+00:00",
+      "applicable_region": "CN"
+    },
+    "scope:eu": {
+      "as_of": "2026-06-01T00:00:00+00:00",
+      "applicable_region": "EU"
+    },
+    "scope:global": {
+      "as_of": "2026-06-01T00:00:00+00:00",
+      "applicable_region": "CN"
+    },
+    "scope:web": {
+      "as_of": "2026-06-01T00:00:00+00:00",
+      "applicable_channel": "web"
+    },
+    "scope:store": {
+      "as_of": "2026-06-01T00:00:00+00:00",
+      "applicable_channel": "store"
+    },
+    "scope:m10": {
+      "as_of": "2026-06-01T00:00:00+00:00",
+      "applicable_product": "M10"
+    },
+    "scope:m20": {
+      "as_of": "2026-06-01T00:00:00+00:00",
+      "applicable_product": "M20"
+    },
+    "scope:old": {
+      "as_of": "2026-03-01T00:00:00+00:00"
+    },
+    "scope:new": {
+      "as_of": "2026-05-01T00:00:00+00:00"
+    },
+    "scope:withdrawn": {
+      "as_of": "2026-06-01T00:00:00+00:00"
+    },
+    "scope:long-exception": {
+      "as_of": "2026-06-01T00:00:00+00:00"
+    },
+    "scope:long-address": {
+      "as_of": "2026-06-01T00:00:00+00:00"
+    }
+  },
+  "forbidden_sources": {
+    "scope:cn": [
+      "returns-eu"
+    ],
+    "scope:eu": [
+      "returns-cn"
+    ],
+    "scope:global": [
+      "returns-eu"
+    ],
+    "scope:web": [
+      "coupon-store"
+    ],
+    "scope:store": [
+      "coupon-web"
+    ],
+    "scope:m10": [
+      "battery-m20"
+    ],
+    "scope:m20": [
+      "battery-m10"
+    ],
+    "scope:old": [],
+    "scope:new": [],
+    "scope:withdrawn": [
+      "cashback-withdrawn"
+    ],
+    "scope:long-exception": [],
+    "scope:long-address": []
+  },
+  "withdrawn_sources": [
+    "cashback-withdrawn"
+  ],
+  "generation": {
+    "generation_id": "knowledge-generation-df1a4edec144bd1bfdfa2d0f9f28aaa2",
+    "corpus": "KNOWLEDGE",
+    "backend_id": "POSTGRES_PG_BM25_ZH_V1",
+    "backend_fingerprint": "POSTGRES_PGVECTOR_PG_BM25_ZH_V1",
+    "schema_version": "retrieval-v1",
+    "source_watermark": "ef660256175fd2161529aa2750c3fc3df3c09d2a0b2535aa552b33a752cb6eb6",
+    "embedding_model": "BAAI/bge-m3",
+    "embedding_dimension": 1024,
+    "embedding_model_digest": "b5e0ce3470abf5ef3831aa1bd5553b486803e83251590ab7ff35a117cf6aad38",
+    "distance_metric": "COSINE",
+    "vector_extension_version": "0.8.6",
+    "index_method": "HNSW",
+    "index_params_json": "{\"ef_construction\":64,\"m\":16}",
+    "chinese_tokenizer": "ascii-cjk-unigram-bigram-v1",
+    "lexical_ranker": "PG_BM25_ZH_V1",
+    "manifest_hash": "acb0a93eb8bd1acb2810c735599b7677afc6719316d111ad64445357e66d502b",
+    "state": "ACTIVE",
+    "embedding_provider": "dialogpilot-sentence-transformers-5.7.0-local-bge-m3-v1",
+    "embedding_provider_kind": "MODEL",
+    "embedding_model_version": "5617a9f61b028005a4858fdac845db406aefb181",
+    "embedding_document_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1",
+    "embedding_query_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1"
+  },
+  "embedding_profile": {
+    "provider": "dialogpilot-sentence-transformers-5.7.0-local-bge-m3-v1",
+    "provider_kind": "MODEL",
+    "model": "BAAI/bge-m3",
+    "model_version": "5617a9f61b028005a4858fdac845db406aefb181",
+    "dimension": 1024,
+    "model_digest": "b5e0ce3470abf5ef3831aa1bd5553b486803e83251590ab7ff35a117cf6aad38",
+    "document_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1",
+    "query_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1"
+  },
+  "reranker_profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "generation_profile": {
+    "model": "deepseek-v4-pro",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "max_api_calls": 80,
+  "sdk_retries": 0,
+  "fixed_query_override": {
+    "synthetic:elliptic": "耳机已拆封，非质量原因可以退货吗？"
+  }
+}

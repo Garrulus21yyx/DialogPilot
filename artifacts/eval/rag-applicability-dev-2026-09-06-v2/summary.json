@@ -1,0 +1,30 @@
+{
+  "scope": "fixed-query knowledge handler + model-visible evidence + grounded generator; not agent/business E2E",
+  "cases": 12,
+  "complete_visible_evidence": 12,
+  "known_fused_top5_complete_evidence_lower_bound": 12,
+  "answer_claim_citation_membership": 12,
+  "retrieval_status": {
+    "OK": 12
+  },
+  "answer_errors": 0,
+  "abstentions": 0,
+  "rerank_fallbacks": 0,
+  "forbidden_source_returns": 0,
+  "api_calls": 24,
+  "api_models": {
+    "deepseek-v4-flash": 12,
+    "deepseek-v4-pro": 12
+  },
+  "usage": {
+    "input_tokens": 14797,
+    "output_tokens": 2734,
+    "cache_read_input_tokens": 21504,
+    "cache_creation_input_tokens": 0
+  },
+  "latency_ms": {
+    "median": 3850.3868766129017,
+    "p95_nearest_rank": 4431.929362937808
+  },
+  "semantic_accuracy": "requires source-based review; citation membership alone does not establish support"
+}

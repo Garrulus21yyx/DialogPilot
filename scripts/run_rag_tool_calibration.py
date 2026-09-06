@@ -8,7 +8,8 @@ exercise HTTP authentication, conversation planning or business-tool execution.
 from __future__ import annotations
 import argparse
 import asyncio
-from dataclasses import asdict
+from dataclasses import asdict, replace
+from datetime import datetime, timezone
 import hashlib
 import json
 import os
@@ -45,8 +46,9 @@ from mcp.tool_manager import MCPToolManager, ToolResult
 
 
 class CaptureClient:
-    def __init__(self, transport):
+    def __init__(self, transport, *, limit=80):
         self.transport = transport
+        self.limit = limit
         self.calls = []
         self.messages = self.Proxy(self, transport.messages)
         self.beta = SimpleNamespace(messages=self.Proxy(self, transport.beta.messages))
@@ -62,7 +64,7 @@ class CaptureClient:
             return getattr(self.messages, name)
 
         async def create(self, **request):
-            if len(self.owner.calls) >= 80:
+            if len(self.owner.calls) >= self.owner.limit:
                 raise RuntimeError('calibration call budget exhausted')
             row = {'request': request}
             self.owner.calls.append(row)
@@ -78,12 +80,31 @@ class CaptureClient:
                 row['latency_ms'] = (time.perf_counter() - start) * 1000
 
 
+class CandidateProbeComplete(Exception):
+    def __init__(self, result):
+        self.result = result
+
+
+class CandidateScopeProbe:
+    """Intercept a real handler-built request and measure candidate retrieval only."""
+    def __init__(self, source):
+        self.source = source
+
+    async def retrieve(self, request):
+        variants = [('raw',request.query,1.0)]
+        scoped = await self.source.search_variants_async(request, variants, top_k=request.policy.candidate_k)
+        omitted = replace(request, applicable_region=None, applicable_channel=None,
+                          applicable_product=None, as_of=datetime(2026,6,1,tzinfo=timezone.utc))
+        unscoped = await self.source.search_variants_async(omitted, variants, top_k=request.policy.candidate_k)
+        raise CandidateProbeComplete({'scoped':asdict(scoped), 'omitted_applicability':asdict(unscoped)})
+
+
 async def evaluate(args, database_url):
     import api.main as api
     values = {k: str(v) for k, v in dotenv_values('.env').items() if v is not None}
     values.update(os.environ)
     policy = ModelPolicy.from_env(values)
-    options = dict(api_key=values['ANTHROPIC_API_KEY'], max_retries=0, timeout=60)
+    options = dict(api_key='unused-local-probe' if args.candidate_scope_probe else values['ANTHROPIC_API_KEY'], max_retries=0, timeout=60)
     if policy.base_url:
         options['base_url'] = policy.base_url
     model = args.model.resolve()
@@ -99,13 +120,26 @@ async def evaluate(args, database_url):
     source = None
     try:
         docs, cases = synthetic_development()
+        query_options, forbidden_sources, withdrawn_sources = {}, {}, ()
+        if args.scenario == 'applicability':
+            from evaluation.rag_applicability_dev import applicability_development
+            docs, cases, query_options, forbidden_sources, withdrawn_sources = applicability_development()
         if args.distractors:
             docs = RagDataset.load(args.distractors).documents + docs
         store = PostgresKnowledgeStore(platform, tenant_id='rag-tool-dev', embedding_provider=embedding)
-        documents = tuple(SourceDocument.create(source_id=d.document_id, title=d.title, content=d.content, source_type='text') for d in docs)
+        documents = tuple(SourceDocument.create(
+            source_id=d.document_id, title=d.title, content=d.content,
+            source_type=d.metadata.get('source_type','text'),
+            **{key: d.metadata[key] for key in ('region','channel','product') if key in d.metadata},
+            **{key: datetime.fromisoformat(d.metadata[key]) for key in ('effective_from','effective_to') if d.metadata.get(key)},
+        ) for d in docs)
         batch = OFFLINE_KNOWLEDGE_INGEST_BUDGET.max_sources_per_batch
+        revisions = []
         for start in range(0, len(documents), batch):
-            store.add_documents(documents[start:start+batch])
+            revisions.extend(store.import_documents(documents[start:start+batch]).revisions)
+        for revision in revisions:
+            if revision.source_id in withdrawn_sources:
+                store.withdraw_revision(revision.source_id, revision.revision_id, reason='synthetic evaluation withdrawal')
         with platform.transaction() as conn:
             conn.execute('INSERT INTO dialogpilot_app.conversations (tenant_id,user_id,conversation_id) VALUES (%s,%s,%s)', ('rag-tool-dev','eval-user','eval-conversation'))
         source = PostgresKnowledgeCandidateSource(
@@ -113,30 +147,44 @@ async def evaluate(args, database_url):
             pool=retrieval, embed_query=store.embed_query,
         )
         async with AsyncAnthropic(**options) as transport:
-            client = CaptureClient(transport)
+            client = CaptureClient(transport, limit=0 if args.candidate_scope_probe else 80)
             reranker = ToolManagerRerankerAdapter(SimpleNamespace(_result_reranker=ResultReranker(client, policy.profile(ModelRole.RERANK))))
             api._knowledge_store, api._postgres_pool = store, platform
             api._knowledge_retriever = KnowledgeRetriever(
                 candidate_source=source, transformer=QueryTransformer(client, policy.profile(ModelRole.REWRITE)),
                 reranker=reranker, evidence_validator=PostgresKnowledgeEvidenceValidator(source),
             )
+            if args.candidate_scope_probe:
+                api._knowledge_retriever = CandidateScopeProbe(source)
             generator = GroundedAnswerGenerator(client, policy.profile(ModelRole.SYNTHESIS))
-            manifest = {'scope': __doc__, 'documents': len(docs), 'cases': len(cases),
+            manifest = {'scope': 'candidate-only: handler request construction + actual PG retrieval; no handler completion or generation' if args.candidate_scope_probe else __doc__, 'scenario':args.scenario, 'documents': len(docs), 'cases': len(cases),
+                        'query_options':query_options, 'forbidden_sources':forbidden_sources, 'withdrawn_sources':withdrawn_sources,
+                        'source_documents':[asdict(d) for d in docs], 'case_definitions':[asdict(c) for c in cases],
                         'generation': asdict(store.active_generation()), 'embedding_profile': asdict(embedding.profile),
                         'reranker_profile': policy.profile(ModelRole.RERANK).to_dict(),
                         'generation_profile': policy.profile(ModelRole.SYNTHESIS).to_dict(),
-                        'max_api_calls': 80, 'sdk_retries': 0,
+                        'max_api_calls': client.limit, 'sdk_retries': 0,
                         'fixed_query_override': {'synthetic:elliptic': '耳机已拆封，非质量原因可以退货吗？'}}
             (args.output/'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2, default=str)+'\n')
             for case in cases:
                 query = manifest['fixed_query_override'].get(case.case_id, case.query)
                 before = len(client.calls)
                 start = time.perf_counter()
-                result = await api._knowledge_tool_handler({'query': query}, {
-                    'tenant_id':'rag-tool-dev', 'user_id':'eval-user', 'conv_id':'eval-conversation',
-                    'authorization_fingerprint':'isolated-eval-authorized', 'cache_scope':'fixed-query-dev-v1',
-                    'retrieval_policy': {'query_expansion_count':0, 'expansion_query_weight':0.0},
-                })
+                try:
+                    result = await api._knowledge_tool_handler({'query': query, **query_options.get(case.case_id,{})}, {
+                        'tenant_id':'rag-tool-dev', 'user_id':'eval-user', 'conv_id':'eval-conversation',
+                        'authorization_fingerprint':'isolated-eval-authorized', 'cache_scope':'fixed-query-dev-v1',
+                        'retrieval_policy': {'query_expansion_count':0, 'expansion_query_weight':0.0},
+                    })
+                except CandidateProbeComplete as probe:
+                    row = {'case_id':case.case_id, 'query':query, 'query_options':query_options.get(case.case_id,{}),
+                           'gold_evidence':[asdict(g) for g in case.evidence],
+                           'forbidden_sources':forbidden_sources.get(case.case_id,[]),
+                           'candidate_probe':probe.result, 'api_calls':[]}
+                    with (args.output/'cases.jsonl').open('a') as stream:
+                        stream.write(json.dumps(row,ensure_ascii=False,default=str)+'\n')
+                    print(case.case_id, 'candidate probe captured', flush=True)
+                    continue
                 wire = MCPToolManager._render_for_model(None, ToolResult(True, result, 'knowledge_search', authority='knowledge.active_source'))
                 visible = json.loads(wire)
                 contexts = tuple(ContextCandidate(
@@ -148,6 +196,8 @@ async def evaluate(args, database_url):
                 covered = [any(c.document_id==gold.document_id and c.start_char<=gold.start_char and c.end_char>=gold.end_char and gold.quote in c.text for c in contexts) for gold in case.evidence]
                 row = {'case_id':case.case_id, 'query':query, 'tool_result':result, 'tool_message':visible,
                        'gold_evidence':[asdict(g) for g in case.evidence], 'complete_visible_evidence':all(covered),
+                       'forbidden_sources':forbidden_sources.get(case.case_id,[]),
+                       'returned_forbidden_sources':sorted({c.document_id for c in contexts} & set(forbidden_sources.get(case.case_id,[]))),
                        'answer':asdict(answer), 'api_calls':client.calls[before:],
                        'latency_ms':(time.perf_counter()-start)*1000}
                 with (args.output/'cases.jsonl').open('a') as stream:
@@ -166,6 +216,8 @@ def main():
     p.add_argument('--model', required=True, type=Path)
     p.add_argument('--output', required=True, type=Path)
     p.add_argument('--distractors', type=Path)
+    p.add_argument('--candidate-scope-probe', action='store_true', help='No inference: paired candidate retrieval with/without request applicability')
+    p.add_argument('--scenario', choices=('basic','applicability'), default='basic')
     args = p.parse_args()
     if args.output.exists():
         raise ValueError('output must be new')
