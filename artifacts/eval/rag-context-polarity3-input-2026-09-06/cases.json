@@ -1,0 +1,50 @@
+[
+  {
+    "case_id": "polarity-quality-yes",
+    "message": "是的。还请查一下订单DP9303的状态，并根据刚才的退货原因说明适用规则。",
+    "history": [
+      "耳机拆封了，我想退。",
+      "是因为质量问题要退吗？"
+    ],
+    "expected_tools": [
+      "order_lookup",
+      "knowledge_search"
+    ],
+    "expected_order_id": "DP9303",
+    "expected_source_id": "synthetic-shop:audio-defect",
+    "source_text": "耳机出现单侧无声时，请先检查连接和音量。仍有故障的，提交购买凭证及故障视频申请质量审核；审核通过不代表退款已经到账。",
+    "data_label": "New synthetic contextual development contrast, not heldout; policy corpus already consumed"
+  },
+  {
+    "case_id": "polarity-nonquality-yes",
+    "message": "是的。还请查一下订单DP9303的状态，并根据刚才的退货原因说明适用规则。",
+    "history": [
+      "耳机拆封了，我想退。",
+      "是因为不喜欢，而不是质量问题要退吗？"
+    ],
+    "expected_tools": [
+      "order_lookup",
+      "knowledge_search"
+    ],
+    "expected_order_id": "DP9303",
+    "expected_source_id": "synthetic-shop:opened-audio",
+    "source_text": "已拆封耳机非质量原因不适用无理由退货。质量问题需提交材料审核。",
+    "data_label": "New synthetic contextual development contrast, not heldout; policy corpus already consumed"
+  },
+  {
+    "case_id": "polarity-correction",
+    "message": "更正一下，是质量问题，左边没有声音。还请查一下订单DP9303的状态，并按更正后的原因说明退货规则。",
+    "history": [
+      "耳机拆封了，不喜欢，想退。",
+      "您之前说不是质量问题，对吗？"
+    ],
+    "expected_tools": [
+      "order_lookup",
+      "knowledge_search"
+    ],
+    "expected_order_id": "DP9303",
+    "expected_source_id": "synthetic-shop:audio-defect",
+    "source_text": "耳机出现单侧无声时，请先检查连接和音量。仍有故障的，提交购买凭证及故障视频申请质量审核；审核通过不代表退款已经到账。",
+    "data_label": "New synthetic contextual development contrast, not heldout; policy corpus already consumed"
+  }
+]

@@ -1,0 +1,29 @@
+[
+  {
+    "case_id": "polarity-quality-yes",
+    "known_conditions": {
+      "opened": true,
+      "return_reason": "quality"
+    },
+    "required_answer": "Apply quality-review path without promising entitlement/payment",
+    "scope": "Expected conditions are for manual assessment only; never injected as planner or retrieval answers."
+  },
+  {
+    "case_id": "polarity-nonquality-yes",
+    "known_conditions": {
+      "opened": true,
+      "return_reason": "non_quality"
+    },
+    "required_answer": "Apply opened non-quality no-reason return exclusion",
+    "scope": "Expected conditions are for manual assessment only; never injected as planner or retrieval answers."
+  },
+  {
+    "case_id": "polarity-correction",
+    "known_conditions": {
+      "opened": true,
+      "return_reason": "quality"
+    },
+    "required_answer": "Apply quality-review path without promising entitlement/payment",
+    "scope": "Expected conditions are for manual assessment only; never injected as planner or retrieval answers."
+  }
+]

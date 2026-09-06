@@ -1,0 +1,25 @@
+{
+  "case_id": "polarity-nonquality-yes",
+  "mode": "structured_native",
+  "error": null,
+  "wire_schema_valid": true,
+  "output": {
+    "status": "resolved",
+    "goals": [
+      {
+        "goal_id": "g1",
+        "kind": "order_status",
+        "order_id": "DP9303",
+        "order_id_source_ref": "turn-message:current:reference:1"
+      },
+      {
+        "goal_id": "g2",
+        "kind": "refund_policy",
+        "resolved_query": "耳机已经拆封，因不喜欢而非质量问题申请退货，适用的退换货/退款规则和条件是什么？"
+      }
+    ]
+  },
+  "scope": "One captured failed planner input replay using native output; no tool execution or promotion.",
+  "api_calls": 1,
+  "capture_sha256": "d98faa07d631d9f8a97aec2fc06206db2839b54f2bb32447dbae0fa1b893511c"
+}
