@@ -1,0 +1,51 @@
+{
+  "scope": "five consumed planner development inputs, not answer accuracy",
+  "raw_sha256": "a4d16daafdd5b0bd5c175ac3a79f94014ba9013d79e29a0aebf420f18b20e353",
+  "results": [
+    {
+      "case_id": "shipping",
+      "error": null,
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "two_required_tools": true
+    },
+    {
+      "case_id": "paid",
+      "error": null,
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "two_required_tools": true
+    },
+    {
+      "case_id": "delivered",
+      "error": null,
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "two_required_tools": true
+    },
+    {
+      "case_id": "reference",
+      "error": null,
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "two_required_tools": true
+    },
+    {
+      "case_id": "missing",
+      "error": null,
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "two_required_tools": true
+    }
+  ]
+}

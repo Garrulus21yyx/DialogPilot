@@ -15,7 +15,7 @@ from types import SimpleNamespace
 
 from anthropic import AsyncAnthropic
 from dotenv import dotenv_values
-from application.conversation_agent import ConversationAgent, ConversationProviderOutputError
+from application.conversation_agent import ConversationAgent, ConversationProviderOutputError, planning_goal_descriptions
 from application.conversation_state import ConversationState
 from application.default_capability_registry import build_default_capability_registry
 from application.deterministic_resolution import TurnObservations
@@ -66,20 +66,23 @@ async def run(args):
     raw=gzip.decompress(args.capture.read_bytes())
     rows=[json.loads(line) for line in raw.splitlines()]
     inputs=[(r['case_id'],json.loads(r['api_calls'][0]['request']['messages'][0]['content'])) for r in rows]
+    if args.current_goal_descriptions:
+        for _, payload in inputs:
+            payload['goal_descriptions']=planning_goal_descriptions()
     if any(p['active_workstreams'] or p['active_work_controls'] for _,p in inputs):
         raise ValueError('only captured empty-state cases supported')
     values={k:str(v) for k,v in dotenv_values('.env').items() if v is not None};values.update(os.environ)
     policy=ModelPolicy.from_env(values);profile=policy.profile(ModelRole.INTENT)
     args.output.mkdir(parents=True,exist_ok=False)
     (args.output/'manifest.json').write_text(json.dumps({'scope':__doc__,'cases':len(inputs),
-        'source_sha256':hashlib.sha256(raw).hexdigest(),'profile':profile.to_dict(),'max_tokens':2048,
-        'variants':['text','structured'],'max_api_calls':2*len(inputs),'structured_schema':output_schema(inputs[0][1])},indent=2)+'\n')
+        'source_sha256':hashlib.sha256(raw).hexdigest(),'current_goal_descriptions':args.current_goal_descriptions,'profile':profile.to_dict(),'max_tokens':2048,
+        'variants':args.modes,'max_api_calls':len(args.modes)*len(inputs),'structured_schema':output_schema(inputs[0][1])},indent=2)+'\n')
     options=dict(api_key=values['ANTHROPIC_API_KEY'],max_retries=0,timeout=60)
     if policy.base_url:options['base_url']=policy.base_url
     async with AsyncAnthropic(**options) as transport:
-        client=CaptureClient(transport,limit=2*len(inputs))
+        client=CaptureClient(transport,limit=len(args.modes)*len(inputs))
         for key,payload in inputs:
-            for mode in ('text','structured'):
+            for mode in args.modes:
                 class Messages:
                     async def create(self,**request):
                         if mode=='structured':
@@ -112,6 +115,8 @@ async def run(args):
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--capture',required=True,type=Path);p.add_argument('--output',required=True,type=Path)
+    p.add_argument('--current-goal-descriptions',action='store_true')
+    p.add_argument('--modes',nargs='+',choices=('text','structured'),default=['text','structured'])
     asyncio.run(run(p.parse_args()))
 
 

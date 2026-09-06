@@ -147,7 +147,7 @@ async def evaluate(args, database_url):
             pool=retrieval, embed_query=store.embed_query,
         )
         async with AsyncAnthropic(**options) as transport:
-            client = CaptureClient(transport, limit=0 if args.candidate_scope_probe else 80)
+            client = CaptureClient(transport, limit=0 if args.candidate_scope_probe else args.max_api_calls)
             reranker = ToolManagerRerankerAdapter(SimpleNamespace(_result_reranker=ResultReranker(client, policy.profile(ModelRole.RERANK))))
             api._knowledge_store, api._postgres_pool = store, platform
             api._knowledge_retriever = KnowledgeRetriever(
@@ -167,13 +167,13 @@ async def evaluate(args, database_url):
                         'fixed_query_override': {'synthetic:elliptic': '耳机已拆封，非质量原因可以退货吗？'}}
             if args.mixed_business:
                 manifest.update(scope='Mixed application evaluation; see mixed-manifest.json for executed cases and scope',
-                                cases=5, case_definitions=[], fixed_query_override={})
+                                cases=len(args.mixed_definitions) if args.mixed_definitions else 5, case_definitions=args.mixed_definitions or [], fixed_query_override={})
             (args.output/'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2, default=str)+'\n')
             if args.mixed_business:
                 from evaluation.rag_mixed_business import run_mixed
                 await run_mixed(platform=platform,store=store,client=client,policy=policy,generator=generator,
-                                output=args.output,handler=api._knowledge_tool_handler)
-                (args.output/'completion.json').write_text(json.dumps({'scope':'mixed application development','cases':5,'api_calls':len(client.calls)})+'\n')
+                                output=args.output,handler=api._knowledge_tool_handler,case_definitions=args.mixed_definitions)
+                (args.output/'completion.json').write_text(json.dumps({'scope':'mixed application development','cases':manifest['cases'],'api_calls':len(client.calls)})+'\n')
                 return
             for case in cases:
                 query = manifest['fixed_query_override'].get(case.case_id, case.query)
@@ -228,8 +228,25 @@ def main():
     mode = p.add_mutually_exclusive_group()
     mode.add_argument('--mixed-business', action='store_true')
     mode.add_argument('--candidate-scope-probe', action='store_true', help='No inference: paired candidate retrieval with/without request applicability')
+    p.add_argument('--mixed-case-file',type=Path)
+    p.add_argument('--max-api-calls',type=int,default=80)
     p.add_argument('--scenario', choices=('basic','applicability'), default='basic')
     args = p.parse_args()
+    if not 0 < args.max_api_calls <= 400:
+        raise ValueError('max API calls must be between 1 and 400')
+    args.mixed_definitions = None
+    if args.mixed_case_file:
+        if not args.mixed_business:
+            raise ValueError('mixed case file requires mixed business mode')
+        args.mixed_definitions = json.loads(args.mixed_case_file.read_text())
+        rows = args.mixed_definitions
+        if (not isinstance(rows,list) or not 1 <= len(rows) <= 40
+                or any(not isinstance(c,dict) or not isinstance(c.get('case_id'),str)
+                       or not c['case_id'] or not isinstance(c.get('message'),str) or not c['message']
+                       or not isinstance(c.get('history'),list) or len(c['history']) % 2
+                       or any(not isinstance(t,str) for t in c['history']) for c in rows)
+                or len({c['case_id'] for c in rows}) != len(rows)):
+            raise ValueError('invalid mixed case definitions')
     if args.output.exists():
         raise ValueError('output must be new')
     base = os.environ['TEST_DATABASE_URL']  # No production .env database fallback.

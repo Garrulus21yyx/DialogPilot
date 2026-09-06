@@ -26,27 +26,35 @@ from application.turn_planning import (
 from application.work_item import ArgumentValue
 
 
-_GOALS = {
-    "cancel_active_work",
-    "general_qa",
-    "order_status",
-    "logistics_status",
-    "cancel_order",
-    "change_address",
-    "refund_policy",
-    "refund_eligibility",
-    "refund_status",
-    "execute_refund",
-    "invoice_qa",
-    "product_identification",
-    "product_qa",
-    "product_assistance",
-    "media_text_read",
-    "media_visual_analysis",
-    "human_handoff",
-    "security_review",
-    "freeze_account",
+# The compiler owns both the supported vocabulary and its planning meaning.
+_GOAL_DESCRIPTIONS = {
+    "cancel_active_work": "Cancel one active conversation objective using its revises_control_id; this does not cancel an order.",
+    "general_qa": "Retrieve policy or FAQ evidence, including shipping, address-change rules, coupons and general procedures; performs no business action.",
+    "order_status": "Read a specific order's current record; requires a bound order_id.",
+    "logistics_status": "Read shipping status from a specific order record; requires a bound order_id and does not fetch carrier tracking events.",
+    "cancel_order": "Prepare cancellation of a specific order when the user requests that action; requires a bound order_id. Policy questions use general_qa.",
+    "change_address": "Prepare an actual shipping-address change requested by the user; requires a bound order_id and explicitly supplied new_address. Questions about whether or how changes work use general_qa.",
+    "refund_policy": "Retrieve general return/refund rules or after-sales conditions; no order ID is required and no refund is started.",
+    "refund_eligibility": "Read the current eligibility of a specific order without starting a refund; requires a bound order_id.",
+    "refund_status": "Read current refund progress for a specific order; requires a bound order_id.",
+    "execute_refund": "Prepare a refund action explicitly requested for a specific order; requires a bound order_id. General refund rules use refund_policy.",
+    "invoice_qa": "Retrieve invoice rules and procedures; does not issue or modify an invoice.",
+    "product_identification": "Identify a product from a supplied media asset using registered identification capabilities; requires a bound asset_id. Text-only documentation questions use product_qa.",
+    "product_qa": "Retrieve product documentation or knowledge evidence for a product question.",
+    "product_assistance": "Identify a product from a supplied media asset and retrieve related knowledge using domain tools and skills; requires a bound asset_id. Text-only documentation questions use product_qa.",
+    "media_text_read": "Read text/OCR from a supplied media asset; requires a bound asset_id.",
+    "media_visual_analysis": "Analyze visual appearance, regions, layout or controls of a supplied asset; requires a bound asset_id.",
+    "human_handoff": "Request transfer to human support.",
+    "security_review": "Read recent account security events; does not freeze the account.",
+    "freeze_account": "Prepare an account freeze explicitly requested by the user; does not merely explain account security rules.",
 }
+_GOALS = frozenset(_GOAL_DESCRIPTIONS)
+
+
+def planning_goal_descriptions() -> dict[str, str]:
+    return dict(_GOAL_DESCRIPTIONS)
+
+
 _MISSING_FIELDS = {
     "order_id", "asset_id", "new_address", "customer_service_goal",
 }
@@ -70,7 +78,7 @@ class ConversationPlanningProvider(Protocol):
 class ConversationAgent:
     """Plan one deferred turn, then compile only Registry-backed commands."""
 
-    version = "conversation-agent-plan-v1"
+    version = "conversation-agent-plan-v2-goal-descriptions"
 
     def __init__(
         self,
@@ -155,6 +163,7 @@ class ConversationAgent:
                 if turn_context is not None else []
             ),
             "supported_goals": sorted(_GOALS),
+            "goal_descriptions": planning_goal_descriptions(),
             "missing_fields_schema": sorted(_MISSING_FIELDS),
             "registry_fingerprint": registry.fingerprint,
         }

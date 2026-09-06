@@ -154,3 +154,15 @@ def test_composition_requires_single_complete_expected_tool(stop,name,count):
         model_profile=profile,synthesis_profile=profile)
     with pytest.raises(ConversationProviderOutputError):
         asyncio.run(provider.compose({}))
+
+
+def test_goal_meanings_are_supplied_by_the_compiler_owner():
+    from application.conversation_agent import planning_goal_descriptions
+    provider=Provider({'status':'out_of_scope'})
+    _invoke(ConversationAgent(provider),'先查订单，再解释改址规则')
+    payload=provider.calls[0]
+    assert set(payload['goal_descriptions'])==set(payload['supported_goals'])
+    assert all(description.strip() for description in payload['goal_descriptions'].values())
+    # A consumer's rendering changes cannot mutate the supported planner vocabulary.
+    copy=planning_goal_descriptions();copy['invented_action']='Perform a new action'
+    assert 'invented_action' not in planning_goal_descriptions()

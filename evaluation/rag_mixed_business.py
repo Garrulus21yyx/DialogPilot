@@ -38,7 +38,7 @@ class RecordedTools(MCPToolManager):
         return result
 
 
-async def run_mixed(*, platform, store, client, policy, generator, output, handler):
+async def run_mixed(*, platform, store, client, policy, generator, output, handler, case_definitions=None):
     tenant,user='rag-tool-dev','eval-user'
     registry=build_default_capability_registry(tenant)
     business=CustomerOperationsService(platform,tenant_id=tenant)
@@ -64,6 +64,8 @@ async def run_mixed(*, platform, store, client, policy, generator, output, handl
         ('reference','请先查它现在的状态，再解释签收是否就代表不能申请售后。',('我说的是订单DP9303。','好的，你还想了解什么？')),
         ('missing','请查订单DP9999当前状态，再说明已发货后的改址规则。',()),
     ]
+    if case_definitions is not None:
+        cases=[(c["case_id"],c["message"],tuple(c["history"])) for c in case_definitions]
     generation=store.active_generation()
     def context():
         return {'cache_scope':registry.bundle_version,'bundle_version':registry.bundle_version,
@@ -71,7 +73,7 @@ async def run_mixed(*, platform, store, client, policy, generator, output, handl
                                          'corpus_manifest_ref':generation.manifest_hash,'retrieval_policy_ref':registry.bundle_version,
                                          'knowledge_generation_ref':generation.generation_id}}
     (output/'mixed-manifest.json').write_text(json.dumps({'scope':'TargetChatApplication + unified ConversationAgent + real read-only ToolManager/business/knowledge + Redis current context + response assembly/publication; excludes HTTP middleware/durable dispatcher/domain worker planning/cross-session memory',
-        'orders':snapshots,'cases':cases,'planner_profile':policy.profile(ModelRole.INTENT).to_dict()},ensure_ascii=False,indent=2)+'\n')
+        'orders':snapshots,'cases':cases,'case_definitions':case_definitions,'planner_profile':policy.profile(ModelRole.INTENT).to_dict()},ensure_ascii=False,indent=2)+'\n')
     with tempfile.TemporaryDirectory(prefix='rag-redis-') as temp:
         socket=Path(temp)/'redis.sock'
         process=subprocess.Popen(['redis-server','--port','0','--unixsocket',str(socket),'--save','','--appendonly','no'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)

@@ -1,0 +1,265 @@
+[
+  {
+    "case_id": "expanded-opened-audio",
+    "message": "查一下订单DP9301的当前状态。另外，耳机拆封了，不是质量问题，还能无理由退吗？",
+    "history": [],
+    "expected_tools": [
+      "order_lookup",
+      "knowledge_search"
+    ],
+    "expected_order_id": "DP9301",
+    "expected_source_id": "synthetic-shop:opened-audio",
+    "source_text": "未拆封耳机在签收后七日内可申请无理由退货。已拆封耳机非质量原因不适用无理由退货。质量问题需提交检测材料后另行审核。",
+    "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+  },
+  {
+    "case_id": "expanded-audio-defect",
+    "message": "查一下订单DP9302的当前状态。另外，质量审核通过了，是不是退款到账了？",
+    "history": [],
+    "expected_tools": [
+      "order_lookup",
+      "knowledge_search"
+    ],
+    "expected_order_id": "DP9302",
+    "expected_source_id": "synthetic-shop:audio-defect",
+    "source_text": "耳机出现单侧无声时，请先检查连接和音量。仍有故障的，提交购买凭证及故障视频申请质量审核；审核通过不代表退款已经到账。",
+    "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+  },
+  {
+    "case_id": "expanded-return-shipping",
+    "message": "查一下订单DP9303的当前状态。另外，质量问题退货，加急寄回的费用也报销吗？",
+    "history": [],
+    "expected_tools": [
+      "order_lookup",
+      "knowledge_search"
+    ],
+    "expected_order_id": "DP9303",
+    "expected_source_id": "synthetic-shop:return-shipping",
+    "source_text": "非质量原因退货的寄回运费由买家承担。确认属于商品质量问题的，按平台指定方式寄回可报销标准运费；加急运费不在报销范围内。",
+    "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+  },
+  {
+    "case_id": "expanded-remote-delivery",
+    "message": "查一下订单DP9301的当前状态。另外，地址属于偏远地区，能保证五天内送到吗？",
+    "history": [],
+    "expected_tools": [
+      "order_lookup",
+      "knowledge_search"
+    ],
+    "expected_order_id": "DP9301",
+    "expected_source_id": "synthetic-shop:remote-delivery",
+    "source_text": "普通地区预计三至五个工作日送达。偏远地区预计额外增加二至三天。预计时效不构成指定日期送达承诺。",
+    "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+  },
+  {
+    "case_id": "expanded-coupon-refund",
+    "message": "查一下订单DP9302的当前状态。另外，用了优惠券，部分退货之后券会恢复吗？",
+    "history": [],
+    "expected_tools": [
+      "order_lookup",
+      "knowledge_search"
+    ],
+    "expected_order_id": "DP9302",
+    "expected_source_id": "synthetic-shop:coupon-refund",
+    "source_text": "整单退货时按实际支付金额退款，不退还优惠券面额。部分退货按商品分摊后的实付金额计算，已使用优惠券不会自动恢复。",
+    "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+  },
+  {
+    "case_id": "expanded-gift-return",
+    "message": "查一下订单DP9303的当前状态。另外，赠品已经用了，整单退货还能直接全额退吗？",
+    "history": [],
+    "expected_tools": [
+      "order_lookup",
+      "knowledge_search"
+    ],
+    "expected_order_id": "DP9303",
+    "expected_source_id": "synthetic-shop:gift-return",
+    "source_text": "参加赠品活动的订单整单退货时，应同时退回赠品。赠品已使用或遗失的，需核实活动规则，不得直接承诺全额退款。",
+    "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+  },
+  {
+    "case_id": "expanded-custom-goods",
+    "message": "查一下订单DP9301的当前状态。另外，定制的尺寸不喜欢了，不是质量问题，可以退吗？",
+    "history": [],
+    "expected_tools": [
+      "order_lookup",
+      "knowledge_search"
+    ],
+    "expected_order_id": "DP9301",
+    "expected_source_id": "synthetic-shop:custom-goods",
+    "source_text": "按消费者指定尺寸制作的定制商品不适用无理由退货。商品存在质量问题仍可申请售后，需提交问题照片及订单信息。",
+    "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+  },
+  {
+    "case_id": "expanded-invoice",
+    "message": "查一下订单DP9302的当前状态。另外，退了一部分，原金额的发票还能重新开一张吗？",
+    "history": [],
+    "expected_tools": [
+      "order_lookup",
+      "knowledge_search"
+    ],
+    "expected_order_id": "DP9302",
+    "expected_source_id": "synthetic-shop:invoice",
+    "source_text": "电子发票可在订单完成后申请。抬头错误可以提交更正申请。已经开票的订单退款后需按实退金额处理红冲，不应重复开具原金额发票。",
+    "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+  },
+  {
+    "case_id": "expanded-warranty",
+    "message": "查一下订单DP9303的当前状态。另外，买了八个月，人为摔坏能免费换主机吗？",
+    "history": [],
+    "expected_tools": [
+      "order_lookup",
+      "knowledge_search"
+    ],
+    "expected_order_id": "DP9303",
+    "expected_source_id": "synthetic-shop:warranty",
+    "source_text": "主机在购买后十二个月内享受质量保修。耗材和人为损坏不在免费保修范围内。保修审核需要购买凭证，无法凭聊天描述直接确认免费更换。",
+    "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+  },
+  {
+    "case_id": "expanded-battery-install",
+    "message": "查一下订单DP9301的当前状态。另外，我的机器型号没看清，能先试装 B20 吗？",
+    "history": [],
+    "expected_tools": [
+      "order_lookup",
+      "knowledge_search"
+    ],
+    "expected_order_id": "DP9301",
+    "expected_source_id": "synthetic-shop:battery-install",
+    "source_text": "安装替换电池前应断开电源。型号 B20 仅适配设备 M20，不适配 M10。无法确认设备型号时应先核对铭牌，不得建议试装。",
+    "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+  },
+  {
+    "case_id": "expanded-pickup",
+    "message": "查一下订单DP9302的当前状态。另外，超过预约自提时间了，东西一定还在吗？",
+    "history": [],
+    "expected_tools": [
+      "order_lookup",
+      "knowledge_search"
+    ],
+    "expected_order_id": "DP9302",
+    "expected_source_id": "synthetic-shop:pickup",
+    "source_text": "自提订单凭提货码和收货人身份信息领取。提货码仅用于领取核验，不应公开发送。超过预约时间需先联系门店确认保留情况。",
+    "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+  },
+  {
+    "case_id": "expanded-address",
+    "message": "查一下订单DP9303的当前状态。另外，已经发货，提交改址就代表改好了吧？",
+    "history": [],
+    "expected_tools": [
+      "order_lookup",
+      "knowledge_search"
+    ],
+    "expected_order_id": "DP9303",
+    "expected_source_id": "synthetic-shop:address",
+    "source_text": "未发货订单可提交改址申请，以订单系统确认结果为准。已发货订单需查询承运方是否支持拦截改址；提交申请不等于改址成功。",
+    "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+  },
+  {
+    "case_id": "expanded-exchange",
+    "message": "查一下订单DP9301的当前状态。另外，换货审核通过了，目标型号没货也能马上发吗？",
+    "history": [],
+    "expected_tools": [
+      "order_lookup",
+      "knowledge_search"
+    ],
+    "expected_order_id": "DP9301",
+    "expected_source_id": "synthetic-shop:exchange",
+    "source_text": "换货需先审核商品条件，再确认目标型号库存。审核通过但目标型号缺货时，应与用户协商等待或其他处理，不能承诺立即发出。",
+    "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+  },
+  {
+    "case_id": "expanded-membership",
+    "message": "查一下订单DP9302的当前状态。另外，用积分抵扣的那部分能直接折成现金退吗？",
+    "history": [],
+    "expected_tools": [
+      "order_lookup",
+      "knowledge_search"
+    ],
+    "expected_order_id": "DP9302",
+    "expected_source_id": "synthetic-shop:membership",
+    "source_text": "积分自获得之日起十二个月有效。退货后对应消费积分会扣回。积分抵扣部分按活动规则处理，不直接等额兑换现金。",
+    "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+  },
+  {
+    "case_id": "expanded-privacy",
+    "message": "查一下订单DP9303的当前状态。另外，客服说退款前要转账解冻，这符合规则吗？",
+    "history": [],
+    "expected_tools": [
+      "order_lookup",
+      "knowledge_search"
+    ],
+    "expected_order_id": "DP9303",
+    "expected_source_id": "synthetic-shop:privacy",
+    "source_text": "客服不会索取账户密码、短信验证码或银行卡支付密码。退款由支付渠道处理，不需要用户向私人账户转账解冻。",
+    "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+  },
+  {
+    "case_id": "expanded-damaged-box",
+    "message": "查一下订单DP9301的当前状态。另外，只有外箱破了，能直接认定商品质量有问题吗？",
+    "history": [],
+    "expected_tools": [
+      "order_lookup",
+      "knowledge_search"
+    ],
+    "expected_order_id": "DP9301",
+    "expected_source_id": "synthetic-shop:damaged-box",
+    "source_text": "收到外箱破损商品时，应保留包装并拍摄外箱及商品照片。仅外箱轻微破损不自动等同商品质量问题；具体处理需查看商品状况。",
+    "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+  },
+  {
+    "case_id": "expanded-preorder",
+    "message": "查一下订单DP9302的当前状态。另外，尾款付完就是发货了吗？",
+    "history": [],
+    "expected_tools": [
+      "order_lookup",
+      "knowledge_search"
+    ],
+    "expected_order_id": "DP9302",
+    "expected_source_id": "synthetic-shop:preorder",
+    "source_text": "预售商品按商品页面约定的发货窗口处理。支付尾款不代表商品已经发货，实际状态需查询订单和物流记录。",
+    "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+  },
+  {
+    "case_id": "expanded-receipt",
+    "message": "查一下订单DP9303的当前状态。另外，物流显示签收，就不能申请售后了吗？",
+    "history": [],
+    "expected_tools": [
+      "order_lookup",
+      "knowledge_search"
+    ],
+    "expected_order_id": "DP9303",
+    "expected_source_id": "synthetic-shop:receipt",
+    "source_text": "签收记录只表示物流签收状态，不代表售后申请被拒绝。是否符合退货条件应结合商品类别、签收时间和商品状态判断。",
+    "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+  },
+  {
+    "case_id": "expanded-elliptic",
+    "message": "不是。还请查一下订单DP9303的状态，并根据刚才的退货原因说明适用规则。",
+    "history": [
+      "耳机拆封了，我想退。",
+      "是因为质量问题要退吗？"
+    ],
+    "expected_tools": [
+      "order_lookup",
+      "knowledge_search"
+    ],
+    "expected_order_id": "DP9303",
+    "expected_source_id": "synthetic-shop:opened-audio",
+    "source_text": "已拆封耳机非质量原因不适用无理由退货。质量问题需提交材料审核。",
+    "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+  },
+  {
+    "case_id": "expanded-multi-evidence",
+    "message": "查一下订单DP9302的当前状态。另外，申请退货要交哪些材料，可以直接寄到包装上的厂家地址吗？",
+    "history": [],
+    "expected_tools": [
+      "order_lookup",
+      "knowledge_search"
+    ],
+    "expected_order_id": "DP9302",
+    "expected_source_id": "synthetic-shop:multi-evidence",
+    "source_text": "申请退货需要订单号、商品现状照片及退货原因。寄回前应等待退货地址确认，不能寄往商品包装上的生产商地址。",
+    "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+  }
+]
