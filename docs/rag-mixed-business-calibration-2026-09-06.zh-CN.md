@@ -47,3 +47,21 @@ ResponseAssembler 的纯知识路径现在要求每个结果成功、有知识 f
 v3 实际运行五条全部执行两种工具，四条通过知识支持检查。相对 v2 救回 shipping、missing，paid 由成功转为弃答，净增 1/5。这是两项修复共同作用下的小样本开发结果，不能分别归因或声称统计稳定。paid 的合成内容包含政策与订单事实，但返回普通文本而非 JSON，解析失败；未调用语义 verifier。missing 现在如实说明无法获取订单状态，同时给出有证据的政策，支持检查通过。已确认：阶段配置正确也不保证结构化输出契约可靠。
 
 59 项相关测试通过，独立审查未发现上述两项修复的提交阻断问题。下一步仍需修复生成输出契约、内部编号/模块名呈现、fallback 的原始工具 JSON。v3 捕获与摘要位于 `artifacts/eval/rag-mixed-business-2026-09-06-v3/`。其中部分回答展示了内部 claim ID；支持检查通过不代表展示质量通过。
+
+## 第三轮：结构化合成与固定输入重放
+
+SYNTHESIS 请求改为指定 `submit_composed_response` 工具，schema 声明非空 response、非空且唯一的 used_claim_ids。适配器只接受一次完整、正确工具调用，拒绝截断、错误工具、重复输出及非法值；schema 计入完整请求预算。原规划路径不变。65 项相关测试与独立复核通过。真实 provider 校准仅覆盖当前 Pro 非思考模式；其他推理配置兼容性未由真实调用验证。
+
+完整 v4 重跑五条：三条在规划阶段失败，paid 的结构正确但缺政策引用，被发布门禁拦截，missing 通过支持检查。最终 1/5，通过数低于 v3，不能宣称端到端提升。该结果说明五例重复规划的波动会遮蔽合成组件的变化；保留全部失败捕获，不挑成功案例。
+
+为节约并隔离变量，新增 `scripts/run_conversation_compose_replay.py`，从 v3 原始捕获提取五条实际合成 payload，仅执行五次合成 API，无数据库、订单操作、规划、召回或重排。冻结 payload 包括完整问题、allowed_claims、工作结果状态。可复现命令：
+
+```bash
+PYTHONPATH=. .venv/bin/python scripts/run_conversation_compose_replay.py \
+  --capture artifacts/eval/rag-mixed-business-2026-09-06-v3/mixed-cases.jsonl.gz \
+  --output /path/to/new-compose-replay
+```
+
+重放输出 5/5 结构合法、声明的 claim ID 均来自输入、5/5 至少有政策引用；这只是语法与成员关系指标，没有运行语义 verifier。人工检查：delivered/reference 仍各展示内部 claim ID；missing 的 used_claim_ids 虽包含失败 outcome，正文却没有表达订单查询失败。paid 的“尚未显示发货或物流信息”也需要结合实际工具覆盖核查，不能从订单状态查询推断已查询物流。故结构正确不能替代必要事实覆盖和来源支持。
+
+证据：`artifacts/eval/rag-mixed-business-2026-09-06-v4/` 与 `artifacts/eval/rag-compose-replay-2026-09-06-v1/`。下一步在回答契约和发布所有者处处理逐项结果覆盖与面向用户的引用呈现，同时修复失败模板泄漏工具 JSON。完整 RAG 目标仍未完成。

@@ -1,0 +1,42 @@
+{
+  "scope": "same captured composition payloads; structure and citation syntax only, no semantic verifier run",
+  "cases": 5,
+  "raw_sha256": "46973df07fe185f502bf2c8eaf1aa248828d383f2d19828dda7040f1750e5300",
+  "results": [
+    {
+      "case_id": "shipping",
+      "structured": true,
+      "claim_membership": true,
+      "has_evidence_citation": true,
+      "internal_claim_id_visible": false
+    },
+    {
+      "case_id": "paid",
+      "structured": true,
+      "claim_membership": true,
+      "has_evidence_citation": true,
+      "internal_claim_id_visible": false
+    },
+    {
+      "case_id": "delivered",
+      "structured": true,
+      "claim_membership": true,
+      "has_evidence_citation": true,
+      "internal_claim_id_visible": true
+    },
+    {
+      "case_id": "reference",
+      "structured": true,
+      "claim_membership": true,
+      "has_evidence_citation": true,
+      "internal_claim_id_visible": true
+    },
+    {
+      "case_id": "missing",
+      "structured": true,
+      "claim_membership": true,
+      "has_evidence_citation": true,
+      "internal_claim_id_visible": false
+    }
+  ]
+}

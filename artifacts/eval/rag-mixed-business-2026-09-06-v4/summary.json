@@ -1,0 +1,68 @@
+{
+  "scope": "five synthetic development cases; full rerun includes planner variability",
+  "cases": 5,
+  "raw_capture_sha256": "8bbd758e23e7c6dd0fc969771c4639a04216fd09bff38f6a366e0e53f11aa49e",
+  "results": [
+    {
+      "case_id": "shipping",
+      "outcome_type": "Failed",
+      "tools": [],
+      "synthesis_reason": null,
+      "api_calls": 1,
+      "stop_reasons": [
+        "max_tokens"
+      ]
+    },
+    {
+      "case_id": "paid",
+      "outcome_type": "Completed",
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "synthesis_reason": "KNOWLEDGE_SAFE_ABSTENTION",
+      "api_calls": 3,
+      "stop_reasons": [
+        "end_turn",
+        "tool_use",
+        "tool_use"
+      ]
+    },
+    {
+      "case_id": "delivered",
+      "outcome_type": "Failed",
+      "tools": [],
+      "synthesis_reason": null,
+      "api_calls": 1,
+      "stop_reasons": [
+        "end_turn"
+      ]
+    },
+    {
+      "case_id": "reference",
+      "outcome_type": "Failed",
+      "tools": [],
+      "synthesis_reason": null,
+      "api_calls": 1,
+      "stop_reasons": [
+        "max_tokens"
+      ]
+    },
+    {
+      "case_id": "missing",
+      "outcome_type": "Completed",
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "api_calls": 4,
+      "stop_reasons": [
+        "end_turn",
+        "tool_use",
+        "tool_use",
+        "end_turn"
+      ]
+    }
+  ]
+}

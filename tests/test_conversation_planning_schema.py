@@ -34,7 +34,7 @@ def test_conversation_transport_preserves_role_reasoning_and_budget(method, effo
     class Messages:
         async def create(self, **kwargs):
             calls.append(kwargs)
-            return SimpleNamespace(content=[SimpleNamespace(type="text", text='{}')])
+            return _transport_response(kwargs)
 
     provider = AnthropicConversationPlanningProvider(
         SimpleNamespace(messages=Messages()), model_profile=profile, synthesis_profile=profile, max_tokens=800,
@@ -86,7 +86,7 @@ def test_planning_and_composition_use_their_own_model_and_budget():
     class Messages:
         async def create(self, **kwargs):
             calls.append(kwargs)
-            return SimpleNamespace(content=[SimpleNamespace(type='text', text='{}')])
+            return _transport_response(kwargs)
     intent = ModelProfile('deepseek-v4-flash', ReasoningEffort.LOW, 'deepseek', min_completion_tokens=2048)
     synthesis = ModelProfile('deepseek-v4-pro', ReasoningEffort.NONE, 'deepseek')
     provider = AnthropicConversationPlanningProvider(SimpleNamespace(messages=Messages()),
@@ -111,3 +111,44 @@ def test_composition_fits_its_own_input_budget():
             reserved_output_tokens=800, protocol_reserve_tokens=600))
     with pytest.raises(ModelContextBudgetExceeded):
         asyncio.run(agent.compose({'allowed_claims': [{'text':'政策条件' * 2000}]}))
+
+
+def _transport_response(request):
+    if 'tools' in request:
+        return SimpleNamespace(stop_reason='tool_use', content=[SimpleNamespace(
+            type='tool_use', name='submit_composed_response',
+            input={'response':'已查询。', 'used_claim_ids':['outcome:1']})])
+    return SimpleNamespace(stop_reason='end_turn', content=[SimpleNamespace(type='text', text='{}')])
+
+
+@pytest.mark.parametrize('value', [None, {}, {'response':'ok','used_claim_ids':'id'},
+    {'response':'','used_claim_ids':['id']}, {'response':'ok','used_claim_ids':[]},
+    {'response':'ok','used_claim_ids':['id','id']}, {'response':'ok','used_claim_ids':[{}]},
+    {'response':'ok','used_claim_ids':['id'],'extra':1}])
+def test_composition_rejects_invalid_structured_values(value):
+    from application.conversation_agent import ConversationProviderOutputError
+    class Messages:
+        async def create(self, **request):
+            return SimpleNamespace(stop_reason='tool_use',content=[SimpleNamespace(
+                type='tool_use',name='submit_composed_response',input=value)])
+    profile=ModelProfile('test')
+    provider=AnthropicConversationPlanningProvider(SimpleNamespace(messages=Messages()),
+        model_profile=profile,synthesis_profile=profile)
+    with pytest.raises(ConversationProviderOutputError):
+        asyncio.run(provider.compose({}))
+
+
+@pytest.mark.parametrize('stop,name,count', [('max_tokens','submit_composed_response',1),
+    ('end_turn','submit_composed_response',1), ('tool_use','other_tool',1),
+    ('tool_use','submit_composed_response',0), ('tool_use','submit_composed_response',2)])
+def test_composition_requires_single_complete_expected_tool(stop,name,count):
+    from application.conversation_agent import ConversationProviderOutputError
+    class Messages:
+        async def create(self, **request):
+            block=SimpleNamespace(type='tool_use',name=name,input={'response':'ok','used_claim_ids':['id']})
+            return SimpleNamespace(stop_reason=stop,content=[block]*count)
+    profile=ModelProfile('test')
+    provider=AnthropicConversationPlanningProvider(SimpleNamespace(messages=Messages()),
+        model_profile=profile,synthesis_profile=profile)
+    with pytest.raises(ConversationProviderOutputError):
+        asyncio.run(provider.compose({}))
