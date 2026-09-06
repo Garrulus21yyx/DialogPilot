@@ -1,0 +1,66 @@
+{
+  "scope": "six consumed development probes; protocol failures separated; no production publication",
+  "results": [
+    {
+      "case_id": "bounded",
+      "expected": true,
+      "all_supported": true,
+      "protocol_error": null,
+      "labels": [
+        "SUPPORTED",
+        "SUPPORTED"
+      ]
+    },
+    {
+      "case_id": "unknown_right",
+      "expected": true,
+      "all_supported": false,
+      "protocol_error": "ValueError",
+      "labels": []
+    },
+    {
+      "case_id": "not_disproved",
+      "expected": true,
+      "all_supported": true,
+      "protocol_error": null,
+      "labels": [
+        "SUPPORTED",
+        "SUPPORTED"
+      ]
+    },
+    {
+      "case_id": "unaffected_right",
+      "expected": false,
+      "all_supported": false,
+      "protocol_error": null,
+      "labels": [
+        "SUPPORTED",
+        "INSUFFICIENT"
+      ]
+    },
+    {
+      "case_id": "entitled",
+      "expected": false,
+      "all_supported": false,
+      "protocol_error": null,
+      "labels": [
+        "SUPPORTED",
+        "INSUFFICIENT"
+      ]
+    },
+    {
+      "case_id": "not_entitled",
+      "expected": false,
+      "all_supported": false,
+      "protocol_error": null,
+      "labels": [
+        "SUPPORTED",
+        "INSUFFICIENT"
+      ]
+    }
+  ],
+  "false_accepts": 0,
+  "supported_not_accepted": 1,
+  "protocol_failures": 1,
+  "api_calls": 6
+}
