@@ -1,20 +1,21 @@
 #!/usr/bin/env python3
-"""Exercise the real ConversationAgent planner using local model inference."""
+"""Calibrate the production ConversationAgent planner using configured API inference."""
 
 import os
-
-for key in ("HF_HUB_OFFLINE", "TRANSFORMERS_OFFLINE", "HF_HUB_DISABLE_TELEMETRY"):
-    os.environ[key] = "1"
 import argparse
 import asyncio
 from dataclasses import asdict, replace
 import json
+import hashlib
+from datetime import datetime, timezone
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from evaluation.local_planning_client import LocalPlanningClient
-from core.model_policy import ModelProfile
+from anthropic import AsyncAnthropic
+from dotenv import dotenv_values
+from core.model_policy import ModelPolicy, ModelRole
+from time import perf_counter
 from evaluation.rag_ecommerce_dev import synthetic_development
 from application.conversation_agent import ConversationAgent
 from application.conversation_state import ConversationState
@@ -31,26 +32,66 @@ from infrastructure.target_conversation_provider import (
 )
 
 
+class CapturingClient:
+    """Capture text requests only; credentials and transport errors are never serialized."""
+    def __init__(self, transport, *, limit):
+        self.transport = transport
+        self.limit = limit
+        self.messages = self
+        self.captures = []
+
+    async def create(self, **request):
+        if len(self.captures) >= self.limit:
+            raise RuntimeError("calibration API call limit reached")
+        capture = {"request": request}
+        self.captures.append(capture)
+        start = perf_counter()
+        try:
+            response = await self.transport.messages.create(**request)
+            capture.update(raw_output=response.model_dump(mode="json"), usage=response.usage.model_dump(mode="json"))
+            return response
+        except Exception as exc:
+            capture["error_type"] = type(exc).__name__
+            raise RuntimeError("calibration transport failed: " + type(exc).__name__) from None
+        finally:
+            capture["latency_ms"] = (perf_counter() - start) * 1000
+
+
 async def run(args):
     if args.output.exists():
         raise ValueError("output must be new")
-    import socket
-
-    def denied(*_args, **_kwargs):
-        raise RuntimeError("network disabled during local planning evaluation")
-
-    socket.socket.connect = denied
-    client = LocalPlanningClient(
-        args.model,
-        system_override=args.system_prompt.read_text() if args.system_prompt else None,
-    )
+    values = {k: str(v) for k, v in dotenv_values('.env').items() if v is not None}
+    values.update(os.environ)
+    policy = ModelPolicy.from_env(values)
+    profile = policy.profile(ModelRole.INTENT)
+    options = dict(api_key=values['ANTHROPIC_API_KEY'], max_retries=0, timeout=60.0)
+    if policy.base_url:
+        options['base_url'] = policy.base_url
+    transport = AsyncAnthropic(**options)
+    client = CapturingClient(transport, limit=20)
     provider = AnthropicConversationPlanningProvider(
-        client, model_profile=ModelProfile(str(args.model.resolve())), max_tokens=512
+        client, model_profile=profile, max_tokens=800
     )
     agent = ConversationAgent(provider)
     _, cases = synthetic_development()
     rows = []
     args.output.mkdir(parents=True)
+    (args.output / "manifest.json").write_text(json.dumps({
+        "started_at": datetime.now(timezone.utc).isoformat(),
+        "model_profile": profile.to_dict(),
+        "provider_version": provider.version,
+        "max_calls": 20,
+        "sdk_max_retries": 0,
+        "request_timeout_seconds": 60,
+        "synthetic_development_only": True,
+        "source_sha256": {
+            name: hashlib.sha256(Path(name).read_bytes()).hexdigest()
+            for name in ("scripts/run_api_conversation_planner.py",
+                         "infrastructure/target_conversation_provider.py",
+                         "application/conversation_agent.py",
+                         "evaluation/rag_ecommerce_dev.py")
+        },
+    }, ensure_ascii=False, indent=2) + "\n")
     for case in cases:
         state = ConversationState.empty(
             tenant_id="local-eval", user_id="local-user", conversation_id=case.case_id
@@ -101,18 +142,16 @@ async def run(args):
             )
         print(case.case_id, proposal.disposition.value, flush=True)
     report = {
-        "scope": "real ConversationAgent planning with local model; no retrieval, execution, generation quality or production-provider equivalence claimed",
+        "scope": "production ConversationAgent and provider prompt via configured API; planning only, no retrieval or answer-quality claim",
         "synthetic_cases": len(rows),
-        "model_identity": client.identity,
-        "model_path": str(args.model.resolve()),
+        "model_profile": profile.to_dict(),
         "model_calls": len(client.captures),
-        "external_inference_api_calls": 0,
-        "network_disabled": True,
+        "external_inference_api_calls": len(client.captures),
+        "usage": {key: sum(c.get("usage", {}).get(key, 0) or 0 for c in client.captures) for key in ("input_tokens", "output_tokens", "cache_read_input_tokens", "cache_creation_input_tokens")},
         "semantic_scores": "unreviewed",
-        "system_prompt_override": str(args.system_prompt)
-        if args.system_prompt
-        else None,
+        "system_prompt_override": None,
     }
+    await transport.close()
     (args.output / "report.json").write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n"
     )
@@ -120,7 +159,5 @@ async def run(args):
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--system-prompt", type=Path)
-    p.add_argument("--model", type=Path, required=True)
     p.add_argument("--output", type=Path, required=True)
     asyncio.run(run(p.parse_args()))

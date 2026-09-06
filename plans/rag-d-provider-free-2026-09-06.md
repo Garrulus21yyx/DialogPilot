@@ -1,6 +1,6 @@
 # RAG D: provider-free first, measurable full-chain optimization
 
-Baseline: 5b60455. User authorized implementation, local experiments, incremental commit/push. No external inference API calls in this phase. Preserve preexisting workspace changes.
+Baseline: 5b60455. User authorized implementation, local experiments, incremental commit/push. Initial local phase used no external inference. User subsequently explicitly authorized API inference, prioritizing RAG quality over local-only execution. Preserve preexisting workspace changes.
 
 ## Positive contract
 Each experiment freezes source corpus, source-level evidence labels, case split/consumption, model/index identities, route depth and output budgets. Source parsing, chunking, embedding, query, retrieval, fusion, reranking, packing and actual model-visible serialization have separate measured boundaries. Cached artifacts are reused only when their inputs and versions match. Public regression and explicitly synthetic Chinese ecommerce development cases are present from the beginning. Heldout is never used to select weights. Offline replay is not represented as a live Conversation Agent or final-answer accuracy measurement.
@@ -11,7 +11,7 @@ Each experiment freezes source corpus, source-level evidence labels, case split/
 3. implemented and verified opt-in (production load benchmark pending): implement bounded parallel lexical versus query-embedding+dense retrieval with consistent identity, deadlines, concurrency and typed failures; measure equivalence and latency.
 4. in_progress: compare fixed, corpus-type and lightweight query-adaptive fusion on development data only; add hierarchy/chunk/model variants only where failures justify them.
 5. pending: provider-free regression/heldout acceptance and independent review, report wins/regressions/costs; commit/push each verified coherent batch.
-6. pending external phase: production-provider query/generation validation only after an explicit measured budget is established. No final-answer gains claimed from local retrieval metrics.
+6. in_progress: production-provider query/generation validation, starting with bounded 20-case API calibration, recording calls and tokens. No final-answer gains claimed from local retrieval metrics.
 
 ## Exit criteria
 Reproducible commands and checksums, per-case stage evidence, paired improvements and harms, resource/latency measurements, valid split provenance, and limitations must agree. Do not sum overlapping test selections or conflate pipeline replay with live Agent execution.
@@ -30,3 +30,8 @@ Completed first fixed public acceptance run:200cases, candidates183/200, ToolMes
 
 ## Real planner local model calibration
 Downloaded pinned Qwen2.5-3B-Instruct revisionaa8e72537993ba99e69dfaafa59ed015b17504d1 to local HF cache; no external inference. Real ConversationAgent/AnthropicConversationPlanningProvider logic executes through evaluation-only local text transport, preserving context/entity bindings/registry/validation. Three20case synthetic development runs completed. Original18outscope2invalid; schema+policy clarity17outscope3clarify; experimentalfewshot12clarify4resolved2outscope2invalid. Local3B not sufficient for reliable planning; no end-to-end success claim. Missing-field schema payload repair retained, fewshot prompt removed from production and saved as explicit evaluation override. Need broader-capacity local/provider evaluation and actual retrieval/answer continuation; goal remainsactive.
+
+## API authorization and calibration
+User explicitly permits API models where local capability is insufficient. Execute configured production planner on20 synthetic development cases with no SDK retries and bounded output; preserve actual request, output and usage. This is planning calibration, not full RAG acceptance. Reuse retrieval artifacts where inputs match; continue actual retrieval/answer evaluation after inspecting planner failures.
+
+API boundary repair: original20 Flash calls produced8 resolved/12 output-budget failures (all12 max_tokens with thinking-only content). Explicit configured no-thinking produced4 resolved/7 clarify/4 out-of-scope/5 schema-or-contract invalid; no semantic improvement claimed. Pro/high/4096 calibration in progress. Root owner fix passes full ModelProfile into Conversation Provider and applies ModelProfile.request for plan+compose; effective output budget bounds conversation input separately from worker budgets; full serialized request validated by existing provider-budget owner; agent maps both budget failure types to CONTEXT_BUDGET_EXCEEDED.68 focused tests pass; independent owner-to-outcome review passes. Full RAG goal remains open.

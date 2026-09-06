@@ -100,12 +100,20 @@ async def build_target_runtime(
     checkpointer = await checkpoint_owner.__aenter__()
     try:
         context_budget = ContextBudgetManager(
-            context_window_tokens=int(os.getenv(
+            context_window_tokens=int(os.getenv("MODEL_CONTEXT_WINDOW_TOKENS", "16000")),
+            reserved_output_tokens=int(os.getenv("CONVERSATION_OUTPUT_RESERVE_TOKENS", "1200")),
+            protocol_reserve_tokens=int(os.getenv("CONTEXT_PROTOCOL_RESERVE_TOKENS", "600")),
+        )
+        conversation_profile = model_policy.profile(ModelRole.INTENT)
+        conversation_output_tokens = 800
+        conversation_context_budget = ContextBudgetManager(
+            context_window_tokens=min(conversation_profile.max_context_tokens, int(os.getenv(
                 "MODEL_CONTEXT_WINDOW_TOKENS", "16000",
-            )),
-            reserved_output_tokens=int(os.getenv(
-                "CONVERSATION_OUTPUT_RESERVE_TOKENS", "1200",
-            )),
+            ))),
+            reserved_output_tokens=max(
+                conversation_profile.request(max_tokens=conversation_output_tokens)["max_tokens"],
+                int(os.getenv("CONVERSATION_OUTPUT_RESERVE_TOKENS", "1200")),
+            ),
             protocol_reserve_tokens=int(os.getenv(
                 "CONTEXT_PROTOCOL_RESERVE_TOKENS", "600",
             )),
@@ -151,9 +159,10 @@ async def build_target_runtime(
         conversation_agent = ConversationAgent(
             AnthropicConversationPlanningProvider(
                 tool_manager.llm_client,
-                model=model_policy.profile(ModelRole.INTENT).model,
+                model_profile=conversation_profile,
+                max_tokens=conversation_output_tokens,
             ),
-            context_budget=context_budget,
+            context_budget=conversation_context_budget,
         )
         understanding = CascadedTargetUnderstanding(
             StateBoundTargetUnderstanding(), conversation_agent, encoder=encoder,

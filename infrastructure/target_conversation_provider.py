@@ -4,15 +4,18 @@ from __future__ import annotations
 import json
 from typing import Mapping
 
+from core.model_policy import ModelProfile, ModelRole
+from core.provider_context_budget import DEFAULT_PROVIDER_CONTEXT_BUDGET
+
 from application.conversation_agent import ConversationProviderOutputError
 
 
 class AnthropicConversationPlanningProvider:
-    version = "anthropic-conversation-planning-provider-v1"
+    version = "anthropic-conversation-planning-provider-v2-model-profile"
 
-    def __init__(self, client, *, model: str, max_tokens: int = 800) -> None:
+    def __init__(self, client, *, model_profile: ModelProfile, max_tokens: int = 800) -> None:
         self._client = client
-        self._model = model
+        self._model_profile = model_profile
         self._max_tokens = max_tokens
 
     async def plan(self, payload: Mapping[str, object]) -> Mapping[str, object]:
@@ -62,8 +65,7 @@ class AnthropicConversationPlanningProvider:
     async def _complete(
         self, payload: Mapping[str, object], system: str,
     ) -> Mapping[str, object]:
-        response = await self._client.messages.create(
-            model=self._model,
+        request = self._model_profile.request(
             max_tokens=self._max_tokens,
             system=system,
             messages=[{
@@ -71,6 +73,10 @@ class AnthropicConversationPlanningProvider:
                 "content": json.dumps(payload, ensure_ascii=False, sort_keys=True),
             }],
         )
+        DEFAULT_PROVIDER_CONTEXT_BUDGET.validate(
+            self._model_profile, ModelRole.INTENT, request,
+        )
+        response = await self._client.messages.create(**request)
         text = "".join(
             str(getattr(block, "text", ""))
             for block in getattr(response, "content", ())

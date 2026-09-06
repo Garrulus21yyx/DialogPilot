@@ -5,6 +5,8 @@ from dataclasses import replace
 import logging
 from typing import Mapping, Protocol
 
+from core.provider_context_budget import ProviderContextBudgetExceeded
+
 from application.context_budget import (
     ContextBudgetManager,
     ModelContextBudgetExceeded,
@@ -160,7 +162,7 @@ class ConversationAgent:
                 trim_oldest_paths=("conversation_context.recent_messages",),
             )
             raw = await self._provider.plan(budgeted.payload)
-        except ModelContextBudgetExceeded:
+        except (ModelContextBudgetExceeded, ProviderContextBudgetExceeded):
             return TurnProposal(
                 ProposalDisposition.PROVIDER_FAILURE, (),
                 "CONTEXT_BUDGET_EXCEEDED",
