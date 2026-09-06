@@ -18,3 +18,5 @@ Reproducible commands and checksums, per-case stage evidence, paired improvement
 
 ## 2026-09-06 development checkpoint
 20 calibration cases, then actual 56 development cases (36 public groups +20 synthetic;55 total groups). Local CrossEncoder +2/56 at current weights, no final-answer measurement. Smaller chunks +3/56 with one harm; adaptive fusion grouped CV ties fixed at44/56. PG microbenchmark parallel slower, so opt-in only. Root diagnostic: 5/6 candidate failures already have gold parent in first5. See docs/rag-d-provider-free-2026-09-06.zh-CN.md. Full D not closed.
+
+Parent-child bounded development replay completed: current-weight candidate50→52/56; tool-message44→44/56 after local CE. No production promotion. Independent review passed pool/source/group invariants; corpus-based CV is diagnostic, not production routing. First checkpoint626a22d pushed and verified. Additional artifacts/reproducible failure attribution follow in second checkpoint.

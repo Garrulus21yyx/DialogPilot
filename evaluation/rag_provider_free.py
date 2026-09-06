@@ -90,6 +90,42 @@ def ranked(scores, ids, depth):
     )
 
 
+def parent_child_candidates(
+    fused, routes, by_id, dense_scores, lexical_scores, ids, weight, budget
+):
+    """Reserve half the global pool and refill from at most three parents.
+
+    Parent ranks use first child occurrence; this is not parent embedding.
+    The extra local pass has a compute cost despite the unchanged final pool.
+    """
+    weights = {"dense": weight, "bm25": 1 - weight}
+    parent_routes = {
+        name: list(dict.fromkeys(by_id[cid].document_id for cid in ranking))
+        for name, ranking in routes.items()
+    }
+    parents = fuse_rankings(parent_routes, weights=weights, rrf_k=10, top_k=3)
+    positions = {cid: i for i, cid in enumerate(ids)}
+    allowed = [cid for cid in ids if by_id[cid].document_id in parents]
+    local_routes = {
+        "dense": sorted(
+            allowed, key=lambda cid: (-float(dense_scores[positions[cid]]), cid)
+        )[:budget],
+        "bm25": sorted(
+            (cid for cid in allowed if lexical_scores[positions[cid]] > 0),
+            key=lambda cid: (-float(lexical_scores[positions[cid]]), cid),
+        )[:budget],
+    }
+    local = fuse_rankings(local_routes, weights=weights, rrf_k=10, top_k=budget)
+    selected = list(dict.fromkeys([*fused[: max(1, budget // 2)], *local, *fused]))[
+        :budget
+    ]
+    return selected, {
+        "parents": parents,
+        "local_routes": local_routes,
+        "global_reserved": max(1, budget // 2),
+    }
+
+
 def replay(
     documents,
     cases,
@@ -103,7 +139,10 @@ def replay(
     final_k=5,
     context_tokens=2600,
     rerank_scores=None,
+    candidate_policy="flat",
 ):
+    if candidate_policy not in {"flat", "parent_child"}:
+        raise ValueError("unsupported candidate policy")
     by_id = {c.chunk_id: c for c in chunks}
     docs = {d.document_id: d for d in documents}
     ids = tuple(by_id)
@@ -126,6 +165,11 @@ def replay(
                 rrf_k=10,
                 top_k=source_k,
             )
+            hierarchy = None
+            if candidate_policy == "parent_child":
+                fused, hierarchy = parent_child_candidates(
+                    fused, routes, by_id, dense[i], lexical[i], ids, weight, source_k
+                )
             selected = (
                 fused
                 if rerank_scores is None
@@ -209,6 +253,7 @@ def replay(
                     "metrics": metrics,
                     "routes": routes,
                     "fused": fused,
+                    "hierarchy": hierarchy,
                     "selected": selected[:final_k],
                     "packed": packed.chunk_ids,
                     "tool_message": wire,

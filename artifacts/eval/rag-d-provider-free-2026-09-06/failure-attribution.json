@@ -1,0 +1,2188 @@
+{
+  "scope": "development failure attribution; no final-answer scoring",
+  "baseline": "dev56 no reranker weight0.25",
+  "variants": [
+    {
+      "variant": "chunk384-dev56",
+      "reranked": false,
+      "dense_weight": 0.25,
+      "case_count": 56,
+      "report_sha256": "f4868702a887f0d4c855fe068ba635b4d643b5de5fb7fecf2933d6ac7a7650ec",
+      "rescued": [
+        "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11"
+      ],
+      "harmed": [
+        "doc2dial-dev-b09922c61586b9398efe4bd77271deef-11",
+        "doc2dial-dev-a7fe7aa38830465e8a73320e9320b305-9",
+        "doc2dial-dev-1ce198bc767426637a333a1adc62e37a-12"
+      ],
+      "delta_pp": -3.5714285714285716,
+      "failures": [
+        {
+          "case_id": "doc2dial-dev-e557d33d054041f0aac44defb1a207ef-12",
+          "group_id": "doc2dial-e557d33d054041f0aac44defb1a207ef",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nWhat happens in the situation that I filed an application for borrower defense outside of the applicable limitation period, or indeed, if my loan payments re less than the amount owed after my discharge is applied?\nIn this case, you will not be eligible for a refund of payments, as you loan servicer will not apply any previous payments made on the discharged loan or return any made payments to you\nWhat does it mean to be granted a partial discharge on my federal student loan?\nAny amount of your loan that is not discharged will need to be repaid by you, including any interest that has accrued. Any forbearance or stopped collections that you may have had on other borrowings will finish once you have been granted a partial discharge\n[CURRENT]\nAre there any additional documents that I can submit as part of my application for borrower defense?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-fcc47e7aa1e49bd0de037d783936592b-13",
+          "group_id": "doc2dial-fcc47e7aa1e49bd0de037d783936592b",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nHow many work credits do I need and what does it depend on?\nThe number of work credits you need to qualify for disability benefits depends on your age when you become disabled.  Most of the time, you need 40 credits, 20 of which were earned in the last 10 years ending with the year you become disabled.\nHow is it determined if an adult \"child\" is disabled for SSDI benefits?\nIs the child age 18 or older?\n[CURRENT]\nYes, my child is 18 years or older.",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2b9a9e5d3fb7afbd0daabf0fb8b00a54-11",
+          "group_id": "doc2dial-2b9a9e5d3fb7afbd0daabf0fb8b00a54",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nYes, lucky me. I still have my parents around.\nGreat then. That's good to know. Then you have the family members that also can benefit of your application ten.\nGreat. And how they benefit with this?\nThe can receive credits in money. Until four credits each year.\n[CURRENT]\nBut what happens if I die and you still send the payments?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-a9e6b11deba64bccfa874f154eef44b4-10",
+          "group_id": "doc2dial-a9e6b11deba64bccfa874f154eef44b4",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nYes.\nIn that case you can visit our webpage Medicare Resources.\nSo can you tell me what will change, now that I earn more?\nYou'll pay a larger percentage of the total cost of Part B based on the income you normally report to the Internal Revenue Service IRS. You'll pay monthly Part B premiums equal to 35, 50, 65, 80, or 85 percent of the total cost, depending on what you report to the IRS.\n[CURRENT]\nWhat if I filed a federal income tax return for the year?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-247f23e580bce66d852b143a622f29d7-12",
+          "group_id": "doc2dial-247f23e580bce66d852b143a622f29d7",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nHelp apply online\nou may help someone else fill out their application ,\nI need more information\nyour spouse or family member may be able to receive benefits on your record if they qualify\n[CURRENT]\nGet Your Social Security Benefit Verification Letter Online",
+          "gold_parents_in_fused_top5": [
+            "Apply for Retirement Benefits | SSA#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-0f04d497049c31faebfa20487a25c0f1-12",
+          "group_id": "doc2dial-0f04d497049c31faebfa20487a25c0f1",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nYes, I am.\nIn that case you may be able to have all or part of your outstanding federal student loan debt forgiven, and you also may be reimbursed for amounts you have already paid on those loans.\nWhat are you doing to provide help to student loan borrowers during the Covid-19 crisis?\nFederal student loan borrowers are automatically being placed in an administrative forbearance, which allows you to temporarily stop making your monthly loan payments. In addition, interest is being temporarily set at 0% on federal student loans.\n[CURRENT]\nHow will I know how much I have left after the interest is calculated?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-b30d73c202844505549d00218083577d-11",
+          "group_id": "doc2dial-b30d73c202844505549d00218083577d",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nWhen will I receive a notification about the Sweet v. DeVos Lawsuit?\nIf you are a potential member of the group of borrowers to which the lawsuit applies, you should receive an email and mail notification between June and early July 2020.\nDo you have any other questions about the Sweet V DeVos lawsuit?\nNo.\n[CURRENT]\nAre FFEL Program Loans eligible?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-b09922c61586b9398efe4bd77271deef-11",
+          "group_id": "doc2dial-b09922c61586b9398efe4bd77271deef",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nIf you cannot do other types of work then we will probably decide you are disabled.\nHow can you determine if an adult child is disabled for SSDI?\nIs your child older than 18 years old?\nNo my child is not over 18 years old yet.\n[CURRENT]\nIs there other related information I would need to know?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-00a4a05f229e5cee83e7b10f2e20873d-12",
+          "group_id": "doc2dial-00a4a05f229e5cee83e7b10f2e20873d",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nThe U.S. Department of Education will notify borrower defense applicants through e-mail of their determination about borrower defense discharge eligibility.\nWould you like a number you can call if you have more questions about this notification?\nyes let me have it\nYou can call our borrower defense hotline: 1-855-279-6207. Representatives are available Monday through Friday from 8 a.m. to 8 p.m. Eastern time\n[CURRENT]\nI looked at your page, what are Corinthian colleges?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11",
+          "group_id": "doc2dial-56ecb9ca49fe6db3568b935cff6c0510",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nCan you explain what is the adverse credit is incorrect?\nIt can make credit approval difficult.\nWhat is the lender's deed?\nIts purpose is the credit release.\n[CURRENT]\nDo I need information related to mitigating circumstances?",
+          "gold_parents_in_fused_top5": [
+            "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-a7fe7aa38830465e8a73320e9320b305-9",
+          "group_id": "doc2dial-a7fe7aa38830465e8a73320e9320b305",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nDoes the ED do anything in particular for those who have successful borrower defense claims based on ED's CCI findings?\nYes, the ED have set up a process for the review of such cases for job placement rates asserted by borrowers enrolled in the covered programs at CCI schools during the eligibility period\nIf I receive a notification regarding the Sweet v. DeVos Lawsuit, and if I agree with the proposed settlement, what happens next?\nIn this case, you don't have to do anything. You of course have the right to attend the fairness hearing, but you are not obliged to do so, it is entirely a personal decision\n[CURRENT]\nIs there a section on the website dedicated to common questions and answers regarding borrower defense decision notifications?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-50b28aeda7cf80e1959ac907127bb5d9-12",
+          "group_id": "doc2dial-50b28aeda7cf80e1959ac907127bb5d9",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nIf I amended your tax return\nwe counts and it changes the income to determine the income - related monthly adjustment amounts your MAGI , let us know .\nI need more information\nFor more information about the income - related monthly adjustment amounts or to apply for Medicare Part A or B\n[CURRENT]\nhow I requested?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-4a335b1ca0ddb7d0465b81f2d318afd3-11",
+          "group_id": "doc2dial-4a335b1ca0ddb7d0465b81f2d318afd3",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\ncan someone get retirement and survivors benefits at the same time?\nThey can apply for retirement or survivors benefits now and switch to the other higher benefit at a later date\nwhen can a widow get her own benefits that she earned through work?\nThey can switch to their own retirement benefit as early as age 62. This assumes you are eligible for retirement benefits and your retirement rate is higher than your rate as a widow\n[CURRENT]\ncan the widow get monthly benefits if she is caring for the dead guy's daughter?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-e96c4558ac2013c8f787498f67652362-11",
+          "group_id": "doc2dial-e96c4558ac2013c8f787498f67652362",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nIs there a way for me to apply for a Direct Consolidation Loan if I want to have my borrower defense discharge apply to my FFEL?\nYou can apply by logging on to StudentAid.gov/app/launchConsolidation.action. Once your Direct Consolidation Loan is approved, you can then contact the borrower defense hotline on 1-855-279-6207 from 8am to 8pm\nWhere can I go for reconsideration of a decison regarding a borrower defense?\nWe have a dedicated borrower defense hotline at 1-855-279-6207 from 8am to 8pm\n[CURRENT]\nI have applied for borrower defense by way of email but now have found further information that I want to send, can I do this?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2278013a80847dedecfc48d80391fb36-13",
+          "group_id": "doc2dial-2278013a80847dedecfc48d80391fb36",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nyes\ndo you more information?\nyes\nok great!\n[CURRENT]\nwhen do benefits come?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-1ce198bc767426637a333a1adc62e37a-12",
+          "group_id": "doc2dial-1ce198bc767426637a333a1adc62e37a",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nWhat if it is a driving without insurance violation?\nYou could not plead guilty via mail\nWhat if I did not take any action in the alotted time frame?\nIt is possible that your license will be suspended\n[CURRENT]\nHow would I go about appealing a decision?",
+          "gold_parents_in_fused_top5": [
+            "Traffic Violations Bureau#3_0"
+          ]
+        }
+      ],
+      "candidate_complete": 49,
+      "tool_message_complete": 40
+    },
+    {
+      "variant": "chunk384-dev56",
+      "reranked": false,
+      "dense_weight": 0.5,
+      "case_count": 56,
+      "report_sha256": "f4868702a887f0d4c855fe068ba635b4d643b5de5fb7fecf2933d6ac7a7650ec",
+      "rescued": [
+        "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11",
+        "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11"
+      ],
+      "harmed": [
+        "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-10",
+        "doc2dial-dev-d4cfd673f6cfcced5363949506e31e8c-11",
+        "doc2dial-dev-b09922c61586b9398efe4bd77271deef-11",
+        "doc2dial-dev-a7fe7aa38830465e8a73320e9320b305-9",
+        "doc2dial-dev-b3f2ae2fd2ddac2fb7a1a898690a6a8c-11",
+        "doc2dial-dev-4d5350dc20418f7f89900dfa1a61b0cd-9"
+      ],
+      "delta_pp": -7.142857142857143,
+      "failures": [
+        {
+          "case_id": "doc2dial-dev-e557d33d054041f0aac44defb1a207ef-12",
+          "group_id": "doc2dial-e557d33d054041f0aac44defb1a207ef",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nWhat happens in the situation that I filed an application for borrower defense outside of the applicable limitation period, or indeed, if my loan payments re less than the amount owed after my discharge is applied?\nIn this case, you will not be eligible for a refund of payments, as you loan servicer will not apply any previous payments made on the discharged loan or return any made payments to you\nWhat does it mean to be granted a partial discharge on my federal student loan?\nAny amount of your loan that is not discharged will need to be repaid by you, including any interest that has accrued. Any forbearance or stopped collections that you may have had on other borrowings will finish once you have been granted a partial discharge\n[CURRENT]\nAre there any additional documents that I can submit as part of my application for borrower defense?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-fcc47e7aa1e49bd0de037d783936592b-13",
+          "group_id": "doc2dial-fcc47e7aa1e49bd0de037d783936592b",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nHow many work credits do I need and what does it depend on?\nThe number of work credits you need to qualify for disability benefits depends on your age when you become disabled.  Most of the time, you need 40 credits, 20 of which were earned in the last 10 years ending with the year you become disabled.\nHow is it determined if an adult \"child\" is disabled for SSDI benefits?\nIs the child age 18 or older?\n[CURRENT]\nYes, my child is 18 years or older.",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-10",
+          "group_id": "doc2dial-5c539f53cdb29706da2eac1fd093fb8a",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nWhat if I have comments or disagree with a proposed settlement?\nYou would have to mail it the Clerk of the Court of the United States District Court Northern District of California, 450 Golden Gate Avenue, San Francisco, CA 94102.\nWhere would I look for more info about forgiveness of federal student loan used to attend Corinthian Colleges?\nJust go to the section that states \"Information about Debt Relief for Corinthian Colleges Students\" page.\n[CURRENT]\nWhat should I do if I have defaulted on my federal student loan and have entered a rehabilitation plan?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-d4cfd673f6cfcced5363949506e31e8c-11",
+          "group_id": "doc2dial-d4cfd673f6cfcced5363949506e31e8c",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nnot\nin this case you cannot choose other relatives\nIf I mentioned continuing to receive benefits after death. For example, if the person died in July, when should they return the benefits?\nmust return benefits paid in August\n[CURRENT]\nand can benefits be paid to the worker's children and the surviving spouse who cares for the children, even if the worker does not have the required amount of credits?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2b9a9e5d3fb7afbd0daabf0fb8b00a54-11",
+          "group_id": "doc2dial-2b9a9e5d3fb7afbd0daabf0fb8b00a54",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nYes, lucky me. I still have my parents around.\nGreat then. That's good to know. Then you have the family members that also can benefit of your application ten.\nGreat. And how they benefit with this?\nThe can receive credits in money. Until four credits each year.\n[CURRENT]\nBut what happens if I die and you still send the payments?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-a9e6b11deba64bccfa874f154eef44b4-10",
+          "group_id": "doc2dial-a9e6b11deba64bccfa874f154eef44b4",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nYes.\nIn that case you can visit our webpage Medicare Resources.\nSo can you tell me what will change, now that I earn more?\nYou'll pay a larger percentage of the total cost of Part B based on the income you normally report to the Internal Revenue Service IRS. You'll pay monthly Part B premiums equal to 35, 50, 65, 80, or 85 percent of the total cost, depending on what you report to the IRS.\n[CURRENT]\nWhat if I filed a federal income tax return for the year?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-247f23e580bce66d852b143a622f29d7-12",
+          "group_id": "doc2dial-247f23e580bce66d852b143a622f29d7",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nHelp apply online\nou may help someone else fill out their application ,\nI need more information\nyour spouse or family member may be able to receive benefits on your record if they qualify\n[CURRENT]\nGet Your Social Security Benefit Verification Letter Online",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-0f04d497049c31faebfa20487a25c0f1-12",
+          "group_id": "doc2dial-0f04d497049c31faebfa20487a25c0f1",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nYes, I am.\nIn that case you may be able to have all or part of your outstanding federal student loan debt forgiven, and you also may be reimbursed for amounts you have already paid on those loans.\nWhat are you doing to provide help to student loan borrowers during the Covid-19 crisis?\nFederal student loan borrowers are automatically being placed in an administrative forbearance, which allows you to temporarily stop making your monthly loan payments. In addition, interest is being temporarily set at 0% on federal student loans.\n[CURRENT]\nHow will I know how much I have left after the interest is calculated?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-b30d73c202844505549d00218083577d-11",
+          "group_id": "doc2dial-b30d73c202844505549d00218083577d",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nWhen will I receive a notification about the Sweet v. DeVos Lawsuit?\nIf you are a potential member of the group of borrowers to which the lawsuit applies, you should receive an email and mail notification between June and early July 2020.\nDo you have any other questions about the Sweet V DeVos lawsuit?\nNo.\n[CURRENT]\nAre FFEL Program Loans eligible?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-b09922c61586b9398efe4bd77271deef-11",
+          "group_id": "doc2dial-b09922c61586b9398efe4bd77271deef",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nIf you cannot do other types of work then we will probably decide you are disabled.\nHow can you determine if an adult child is disabled for SSDI?\nIs your child older than 18 years old?\nNo my child is not over 18 years old yet.\n[CURRENT]\nIs there other related information I would need to know?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-00a4a05f229e5cee83e7b10f2e20873d-12",
+          "group_id": "doc2dial-00a4a05f229e5cee83e7b10f2e20873d",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nThe U.S. Department of Education will notify borrower defense applicants through e-mail of their determination about borrower defense discharge eligibility.\nWould you like a number you can call if you have more questions about this notification?\nyes let me have it\nYou can call our borrower defense hotline: 1-855-279-6207. Representatives are available Monday through Friday from 8 a.m. to 8 p.m. Eastern time\n[CURRENT]\nI looked at your page, what are Corinthian colleges?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-a7fe7aa38830465e8a73320e9320b305-9",
+          "group_id": "doc2dial-a7fe7aa38830465e8a73320e9320b305",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nDoes the ED do anything in particular for those who have successful borrower defense claims based on ED's CCI findings?\nYes, the ED have set up a process for the review of such cases for job placement rates asserted by borrowers enrolled in the covered programs at CCI schools during the eligibility period\nIf I receive a notification regarding the Sweet v. DeVos Lawsuit, and if I agree with the proposed settlement, what happens next?\nIn this case, you don't have to do anything. You of course have the right to attend the fairness hearing, but you are not obliged to do so, it is entirely a personal decision\n[CURRENT]\nIs there a section on the website dedicated to common questions and answers regarding borrower defense decision notifications?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-50b28aeda7cf80e1959ac907127bb5d9-12",
+          "group_id": "doc2dial-50b28aeda7cf80e1959ac907127bb5d9",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nIf I amended your tax return\nwe counts and it changes the income to determine the income - related monthly adjustment amounts your MAGI , let us know .\nI need more information\nFor more information about the income - related monthly adjustment amounts or to apply for Medicare Part A or B\n[CURRENT]\nhow I requested?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-4a335b1ca0ddb7d0465b81f2d318afd3-11",
+          "group_id": "doc2dial-4a335b1ca0ddb7d0465b81f2d318afd3",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\ncan someone get retirement and survivors benefits at the same time?\nThey can apply for retirement or survivors benefits now and switch to the other higher benefit at a later date\nwhen can a widow get her own benefits that she earned through work?\nThey can switch to their own retirement benefit as early as age 62. This assumes you are eligible for retirement benefits and your retirement rate is higher than your rate as a widow\n[CURRENT]\ncan the widow get monthly benefits if she is caring for the dead guy's daughter?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-e96c4558ac2013c8f787498f67652362-11",
+          "group_id": "doc2dial-e96c4558ac2013c8f787498f67652362",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nIs there a way for me to apply for a Direct Consolidation Loan if I want to have my borrower defense discharge apply to my FFEL?\nYou can apply by logging on to StudentAid.gov/app/launchConsolidation.action. Once your Direct Consolidation Loan is approved, you can then contact the borrower defense hotline on 1-855-279-6207 from 8am to 8pm\nWhere can I go for reconsideration of a decison regarding a borrower defense?\nWe have a dedicated borrower defense hotline at 1-855-279-6207 from 8am to 8pm\n[CURRENT]\nI have applied for borrower defense by way of email but now have found further information that I want to send, can I do this?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-b3f2ae2fd2ddac2fb7a1a898690a6a8c-11",
+          "group_id": "doc2dial-b3f2ae2fd2ddac2fb7a1a898690a6a8c",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nHas your application for borrower defense been denied?\nNo, my application has not been denied.\nWhere would I find more info about forgiveness of federal student loan I used to attend Corinthian Colleges?\nYou can go to info about Debt Relief for Corinthian Colleges Student page.\n[CURRENT]\nCan I have my borrower defense discharge applied to my FFEL or Federal Perkins loans?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2278013a80847dedecfc48d80391fb36-13",
+          "group_id": "doc2dial-2278013a80847dedecfc48d80391fb36",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nyes\ndo you more information?\nyes\nok great!\n[CURRENT]\nwhen do benefits come?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-4d5350dc20418f7f89900dfa1a61b0cd-9",
+          "group_id": "doc2dial-4d5350dc20418f7f89900dfa1a61b0cd",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nI see. Well, what if I filed a federal income tax return for the year?\nIn that case you need to show us your signed copy of the return. Use Form Medicare Income-Related Monthly Adjustment Amount Life-Changing Event to report a major life-changing event.\nDoes Medicare help me to pay for my prescribed drugs?\nYes. Medicare prescription drug coverage helps pay for your prescription drugs. The government pays a major portion of the total costs for this coverage, and the beneficiary pays the rest.\n[CURRENT]\nMakes sense. What can you tell me about monthly Medicare premiums?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0"
+          ]
+        }
+      ],
+      "candidate_complete": 51,
+      "tool_message_complete": 38
+    },
+    {
+      "variant": "chunk384-dev56",
+      "reranked": true,
+      "dense_weight": 0.25,
+      "case_count": 56,
+      "report_sha256": "f4868702a887f0d4c855fe068ba635b4d643b5de5fb7fecf2933d6ac7a7650ec",
+      "rescued": [
+        "doc2dial-dev-fcc47e7aa1e49bd0de037d783936592b-13",
+        "doc2dial-dev-a9e6b11deba64bccfa874f154eef44b4-10",
+        "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11",
+        "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11"
+      ],
+      "harmed": [
+        "doc2dial-dev-b09922c61586b9398efe4bd77271deef-11"
+      ],
+      "delta_pp": 5.357142857142857,
+      "failures": [
+        {
+          "case_id": "doc2dial-dev-e557d33d054041f0aac44defb1a207ef-12",
+          "group_id": "doc2dial-e557d33d054041f0aac44defb1a207ef",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nWhat happens in the situation that I filed an application for borrower defense outside of the applicable limitation period, or indeed, if my loan payments re less than the amount owed after my discharge is applied?\nIn this case, you will not be eligible for a refund of payments, as you loan servicer will not apply any previous payments made on the discharged loan or return any made payments to you\nWhat does it mean to be granted a partial discharge on my federal student loan?\nAny amount of your loan that is not discharged will need to be repaid by you, including any interest that has accrued. Any forbearance or stopped collections that you may have had on other borrowings will finish once you have been granted a partial discharge\n[CURRENT]\nAre there any additional documents that I can submit as part of my application for borrower defense?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2b9a9e5d3fb7afbd0daabf0fb8b00a54-11",
+          "group_id": "doc2dial-2b9a9e5d3fb7afbd0daabf0fb8b00a54",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nYes, lucky me. I still have my parents around.\nGreat then. That's good to know. Then you have the family members that also can benefit of your application ten.\nGreat. And how they benefit with this?\nThe can receive credits in money. Until four credits each year.\n[CURRENT]\nBut what happens if I die and you still send the payments?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-247f23e580bce66d852b143a622f29d7-12",
+          "group_id": "doc2dial-247f23e580bce66d852b143a622f29d7",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nHelp apply online\nou may help someone else fill out their application ,\nI need more information\nyour spouse or family member may be able to receive benefits on your record if they qualify\n[CURRENT]\nGet Your Social Security Benefit Verification Letter Online",
+          "gold_parents_in_fused_top5": [
+            "Apply for Retirement Benefits | SSA#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-0f04d497049c31faebfa20487a25c0f1-12",
+          "group_id": "doc2dial-0f04d497049c31faebfa20487a25c0f1",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nYes, I am.\nIn that case you may be able to have all or part of your outstanding federal student loan debt forgiven, and you also may be reimbursed for amounts you have already paid on those loans.\nWhat are you doing to provide help to student loan borrowers during the Covid-19 crisis?\nFederal student loan borrowers are automatically being placed in an administrative forbearance, which allows you to temporarily stop making your monthly loan payments. In addition, interest is being temporarily set at 0% on federal student loans.\n[CURRENT]\nHow will I know how much I have left after the interest is calculated?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-b30d73c202844505549d00218083577d-11",
+          "group_id": "doc2dial-b30d73c202844505549d00218083577d",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nWhen will I receive a notification about the Sweet v. DeVos Lawsuit?\nIf you are a potential member of the group of borrowers to which the lawsuit applies, you should receive an email and mail notification between June and early July 2020.\nDo you have any other questions about the Sweet V DeVos lawsuit?\nNo.\n[CURRENT]\nAre FFEL Program Loans eligible?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-b09922c61586b9398efe4bd77271deef-11",
+          "group_id": "doc2dial-b09922c61586b9398efe4bd77271deef",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nIf you cannot do other types of work then we will probably decide you are disabled.\nHow can you determine if an adult child is disabled for SSDI?\nIs your child older than 18 years old?\nNo my child is not over 18 years old yet.\n[CURRENT]\nIs there other related information I would need to know?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-00a4a05f229e5cee83e7b10f2e20873d-12",
+          "group_id": "doc2dial-00a4a05f229e5cee83e7b10f2e20873d",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nThe U.S. Department of Education will notify borrower defense applicants through e-mail of their determination about borrower defense discharge eligibility.\nWould you like a number you can call if you have more questions about this notification?\nyes let me have it\nYou can call our borrower defense hotline: 1-855-279-6207. Representatives are available Monday through Friday from 8 a.m. to 8 p.m. Eastern time\n[CURRENT]\nI looked at your page, what are Corinthian colleges?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-50b28aeda7cf80e1959ac907127bb5d9-12",
+          "group_id": "doc2dial-50b28aeda7cf80e1959ac907127bb5d9",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nIf I amended your tax return\nwe counts and it changes the income to determine the income - related monthly adjustment amounts your MAGI , let us know .\nI need more information\nFor more information about the income - related monthly adjustment amounts or to apply for Medicare Part A or B\n[CURRENT]\nhow I requested?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-4a335b1ca0ddb7d0465b81f2d318afd3-11",
+          "group_id": "doc2dial-4a335b1ca0ddb7d0465b81f2d318afd3",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\ncan someone get retirement and survivors benefits at the same time?\nThey can apply for retirement or survivors benefits now and switch to the other higher benefit at a later date\nwhen can a widow get her own benefits that she earned through work?\nThey can switch to their own retirement benefit as early as age 62. This assumes you are eligible for retirement benefits and your retirement rate is higher than your rate as a widow\n[CURRENT]\ncan the widow get monthly benefits if she is caring for the dead guy's daughter?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-e96c4558ac2013c8f787498f67652362-11",
+          "group_id": "doc2dial-e96c4558ac2013c8f787498f67652362",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nIs there a way for me to apply for a Direct Consolidation Loan if I want to have my borrower defense discharge apply to my FFEL?\nYou can apply by logging on to StudentAid.gov/app/launchConsolidation.action. Once your Direct Consolidation Loan is approved, you can then contact the borrower defense hotline on 1-855-279-6207 from 8am to 8pm\nWhere can I go for reconsideration of a decison regarding a borrower defense?\nWe have a dedicated borrower defense hotline at 1-855-279-6207 from 8am to 8pm\n[CURRENT]\nI have applied for borrower defense by way of email but now have found further information that I want to send, can I do this?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2278013a80847dedecfc48d80391fb36-13",
+          "group_id": "doc2dial-2278013a80847dedecfc48d80391fb36",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nyes\ndo you more information?\nyes\nok great!\n[CURRENT]\nwhen do benefits come?",
+          "gold_parents_in_fused_top5": []
+        }
+      ],
+      "candidate_complete": 49,
+      "tool_message_complete": 45
+    },
+    {
+      "variant": "chunk384-dev56",
+      "reranked": true,
+      "dense_weight": 0.5,
+      "case_count": 56,
+      "report_sha256": "f4868702a887f0d4c855fe068ba635b4d643b5de5fb7fecf2933d6ac7a7650ec",
+      "rescued": [
+        "doc2dial-dev-fcc47e7aa1e49bd0de037d783936592b-13",
+        "doc2dial-dev-a9e6b11deba64bccfa874f154eef44b4-10",
+        "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11",
+        "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11"
+      ],
+      "harmed": [
+        "doc2dial-dev-b09922c61586b9398efe4bd77271deef-11"
+      ],
+      "delta_pp": 5.357142857142857,
+      "failures": [
+        {
+          "case_id": "doc2dial-dev-e557d33d054041f0aac44defb1a207ef-12",
+          "group_id": "doc2dial-e557d33d054041f0aac44defb1a207ef",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nWhat happens in the situation that I filed an application for borrower defense outside of the applicable limitation period, or indeed, if my loan payments re less than the amount owed after my discharge is applied?\nIn this case, you will not be eligible for a refund of payments, as you loan servicer will not apply any previous payments made on the discharged loan or return any made payments to you\nWhat does it mean to be granted a partial discharge on my federal student loan?\nAny amount of your loan that is not discharged will need to be repaid by you, including any interest that has accrued. Any forbearance or stopped collections that you may have had on other borrowings will finish once you have been granted a partial discharge\n[CURRENT]\nAre there any additional documents that I can submit as part of my application for borrower defense?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2b9a9e5d3fb7afbd0daabf0fb8b00a54-11",
+          "group_id": "doc2dial-2b9a9e5d3fb7afbd0daabf0fb8b00a54",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nYes, lucky me. I still have my parents around.\nGreat then. That's good to know. Then you have the family members that also can benefit of your application ten.\nGreat. And how they benefit with this?\nThe can receive credits in money. Until four credits each year.\n[CURRENT]\nBut what happens if I die and you still send the payments?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-247f23e580bce66d852b143a622f29d7-12",
+          "group_id": "doc2dial-247f23e580bce66d852b143a622f29d7",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nHelp apply online\nou may help someone else fill out their application ,\nI need more information\nyour spouse or family member may be able to receive benefits on your record if they qualify\n[CURRENT]\nGet Your Social Security Benefit Verification Letter Online",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-0f04d497049c31faebfa20487a25c0f1-12",
+          "group_id": "doc2dial-0f04d497049c31faebfa20487a25c0f1",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nYes, I am.\nIn that case you may be able to have all or part of your outstanding federal student loan debt forgiven, and you also may be reimbursed for amounts you have already paid on those loans.\nWhat are you doing to provide help to student loan borrowers during the Covid-19 crisis?\nFederal student loan borrowers are automatically being placed in an administrative forbearance, which allows you to temporarily stop making your monthly loan payments. In addition, interest is being temporarily set at 0% on federal student loans.\n[CURRENT]\nHow will I know how much I have left after the interest is calculated?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-b30d73c202844505549d00218083577d-11",
+          "group_id": "doc2dial-b30d73c202844505549d00218083577d",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nWhen will I receive a notification about the Sweet v. DeVos Lawsuit?\nIf you are a potential member of the group of borrowers to which the lawsuit applies, you should receive an email and mail notification between June and early July 2020.\nDo you have any other questions about the Sweet V DeVos lawsuit?\nNo.\n[CURRENT]\nAre FFEL Program Loans eligible?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-b09922c61586b9398efe4bd77271deef-11",
+          "group_id": "doc2dial-b09922c61586b9398efe4bd77271deef",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nIf you cannot do other types of work then we will probably decide you are disabled.\nHow can you determine if an adult child is disabled for SSDI?\nIs your child older than 18 years old?\nNo my child is not over 18 years old yet.\n[CURRENT]\nIs there other related information I would need to know?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-00a4a05f229e5cee83e7b10f2e20873d-12",
+          "group_id": "doc2dial-00a4a05f229e5cee83e7b10f2e20873d",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nThe U.S. Department of Education will notify borrower defense applicants through e-mail of their determination about borrower defense discharge eligibility.\nWould you like a number you can call if you have more questions about this notification?\nyes let me have it\nYou can call our borrower defense hotline: 1-855-279-6207. Representatives are available Monday through Friday from 8 a.m. to 8 p.m. Eastern time\n[CURRENT]\nI looked at your page, what are Corinthian colleges?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-50b28aeda7cf80e1959ac907127bb5d9-12",
+          "group_id": "doc2dial-50b28aeda7cf80e1959ac907127bb5d9",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nIf I amended your tax return\nwe counts and it changes the income to determine the income - related monthly adjustment amounts your MAGI , let us know .\nI need more information\nFor more information about the income - related monthly adjustment amounts or to apply for Medicare Part A or B\n[CURRENT]\nhow I requested?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-4a335b1ca0ddb7d0465b81f2d318afd3-11",
+          "group_id": "doc2dial-4a335b1ca0ddb7d0465b81f2d318afd3",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\ncan someone get retirement and survivors benefits at the same time?\nThey can apply for retirement or survivors benefits now and switch to the other higher benefit at a later date\nwhen can a widow get her own benefits that she earned through work?\nThey can switch to their own retirement benefit as early as age 62. This assumes you are eligible for retirement benefits and your retirement rate is higher than your rate as a widow\n[CURRENT]\ncan the widow get monthly benefits if she is caring for the dead guy's daughter?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-e96c4558ac2013c8f787498f67652362-11",
+          "group_id": "doc2dial-e96c4558ac2013c8f787498f67652362",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nIs there a way for me to apply for a Direct Consolidation Loan if I want to have my borrower defense discharge apply to my FFEL?\nYou can apply by logging on to StudentAid.gov/app/launchConsolidation.action. Once your Direct Consolidation Loan is approved, you can then contact the borrower defense hotline on 1-855-279-6207 from 8am to 8pm\nWhere can I go for reconsideration of a decison regarding a borrower defense?\nWe have a dedicated borrower defense hotline at 1-855-279-6207 from 8am to 8pm\n[CURRENT]\nI have applied for borrower defense by way of email but now have found further information that I want to send, can I do this?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2278013a80847dedecfc48d80391fb36-13",
+          "group_id": "doc2dial-2278013a80847dedecfc48d80391fb36",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nyes\ndo you more information?\nyes\nok great!\n[CURRENT]\nwhen do benefits come?",
+          "gold_parents_in_fused_top5": []
+        }
+      ],
+      "candidate_complete": 51,
+      "tool_message_complete": 45
+    },
+    {
+      "variant": "dev56",
+      "reranked": false,
+      "dense_weight": 0.25,
+      "case_count": 56,
+      "report_sha256": "cb40ae09be897c3727fa0031b0c044608ae63761cd4e9de738fcee15cb5f2ac3",
+      "rescued": [],
+      "harmed": [],
+      "delta_pp": 0.0,
+      "failures": [
+        {
+          "case_id": "doc2dial-dev-e557d33d054041f0aac44defb1a207ef-12",
+          "group_id": "doc2dial-e557d33d054041f0aac44defb1a207ef",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nWhat happens in the situation that I filed an application for borrower defense outside of the applicable limitation period, or indeed, if my loan payments re less than the amount owed after my discharge is applied?\nIn this case, you will not be eligible for a refund of payments, as you loan servicer will not apply any previous payments made on the discharged loan or return any made payments to you\nWhat does it mean to be granted a partial discharge on my federal student loan?\nAny amount of your loan that is not discharged will need to be repaid by you, including any interest that has accrued. Any forbearance or stopped collections that you may have had on other borrowings will finish once you have been granted a partial discharge\n[CURRENT]\nAre there any additional documents that I can submit as part of my application for borrower defense?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-fcc47e7aa1e49bd0de037d783936592b-13",
+          "group_id": "doc2dial-fcc47e7aa1e49bd0de037d783936592b",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nHow many work credits do I need and what does it depend on?\nThe number of work credits you need to qualify for disability benefits depends on your age when you become disabled.  Most of the time, you need 40 credits, 20 of which were earned in the last 10 years ending with the year you become disabled.\nHow is it determined if an adult \"child\" is disabled for SSDI benefits?\nIs the child age 18 or older?\n[CURRENT]\nYes, my child is 18 years or older.",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2b9a9e5d3fb7afbd0daabf0fb8b00a54-11",
+          "group_id": "doc2dial-2b9a9e5d3fb7afbd0daabf0fb8b00a54",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nYes, lucky me. I still have my parents around.\nGreat then. That's good to know. Then you have the family members that also can benefit of your application ten.\nGreat. And how they benefit with this?\nThe can receive credits in money. Until four credits each year.\n[CURRENT]\nBut what happens if I die and you still send the payments?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-a9e6b11deba64bccfa874f154eef44b4-10",
+          "group_id": "doc2dial-a9e6b11deba64bccfa874f154eef44b4",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nYes.\nIn that case you can visit our webpage Medicare Resources.\nSo can you tell me what will change, now that I earn more?\nYou'll pay a larger percentage of the total cost of Part B based on the income you normally report to the Internal Revenue Service IRS. You'll pay monthly Part B premiums equal to 35, 50, 65, 80, or 85 percent of the total cost, depending on what you report to the IRS.\n[CURRENT]\nWhat if I filed a federal income tax return for the year?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-247f23e580bce66d852b143a622f29d7-12",
+          "group_id": "doc2dial-247f23e580bce66d852b143a622f29d7",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nHelp apply online\nou may help someone else fill out their application ,\nI need more information\nyour spouse or family member may be able to receive benefits on your record if they qualify\n[CURRENT]\nGet Your Social Security Benefit Verification Letter Online",
+          "gold_parents_in_fused_top5": [
+            "Apply for Retirement Benefits | SSA#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-0f04d497049c31faebfa20487a25c0f1-12",
+          "group_id": "doc2dial-0f04d497049c31faebfa20487a25c0f1",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nYes, I am.\nIn that case you may be able to have all or part of your outstanding federal student loan debt forgiven, and you also may be reimbursed for amounts you have already paid on those loans.\nWhat are you doing to provide help to student loan borrowers during the Covid-19 crisis?\nFederal student loan borrowers are automatically being placed in an administrative forbearance, which allows you to temporarily stop making your monthly loan payments. In addition, interest is being temporarily set at 0% on federal student loans.\n[CURRENT]\nHow will I know how much I have left after the interest is calculated?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-b30d73c202844505549d00218083577d-11",
+          "group_id": "doc2dial-b30d73c202844505549d00218083577d",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nWhen will I receive a notification about the Sweet v. DeVos Lawsuit?\nIf you are a potential member of the group of borrowers to which the lawsuit applies, you should receive an email and mail notification between June and early July 2020.\nDo you have any other questions about the Sweet V DeVos lawsuit?\nNo.\n[CURRENT]\nAre FFEL Program Loans eligible?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-00a4a05f229e5cee83e7b10f2e20873d-12",
+          "group_id": "doc2dial-00a4a05f229e5cee83e7b10f2e20873d",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nThe U.S. Department of Education will notify borrower defense applicants through e-mail of their determination about borrower defense discharge eligibility.\nWould you like a number you can call if you have more questions about this notification?\nyes let me have it\nYou can call our borrower defense hotline: 1-855-279-6207. Representatives are available Monday through Friday from 8 a.m. to 8 p.m. Eastern time\n[CURRENT]\nI looked at your page, what are Corinthian colleges?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11",
+          "group_id": "doc2dial-56ecb9ca49fe6db3568b935cff6c0510",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nCan you explain what is the adverse credit is incorrect?\nIt can make credit approval difficult.\nWhat is the lender's deed?\nIts purpose is the credit release.\n[CURRENT]\nDo I need information related to mitigating circumstances?",
+          "gold_parents_in_fused_top5": [
+            "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-50b28aeda7cf80e1959ac907127bb5d9-12",
+          "group_id": "doc2dial-50b28aeda7cf80e1959ac907127bb5d9",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nIf I amended your tax return\nwe counts and it changes the income to determine the income - related monthly adjustment amounts your MAGI , let us know .\nI need more information\nFor more information about the income - related monthly adjustment amounts or to apply for Medicare Part A or B\n[CURRENT]\nhow I requested?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-4a335b1ca0ddb7d0465b81f2d318afd3-11",
+          "group_id": "doc2dial-4a335b1ca0ddb7d0465b81f2d318afd3",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\ncan someone get retirement and survivors benefits at the same time?\nThey can apply for retirement or survivors benefits now and switch to the other higher benefit at a later date\nwhen can a widow get her own benefits that she earned through work?\nThey can switch to their own retirement benefit as early as age 62. This assumes you are eligible for retirement benefits and your retirement rate is higher than your rate as a widow\n[CURRENT]\ncan the widow get monthly benefits if she is caring for the dead guy's daughter?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-e96c4558ac2013c8f787498f67652362-11",
+          "group_id": "doc2dial-e96c4558ac2013c8f787498f67652362",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nIs there a way for me to apply for a Direct Consolidation Loan if I want to have my borrower defense discharge apply to my FFEL?\nYou can apply by logging on to StudentAid.gov/app/launchConsolidation.action. Once your Direct Consolidation Loan is approved, you can then contact the borrower defense hotline on 1-855-279-6207 from 8am to 8pm\nWhere can I go for reconsideration of a decison regarding a borrower defense?\nWe have a dedicated borrower defense hotline at 1-855-279-6207 from 8am to 8pm\n[CURRENT]\nI have applied for borrower defense by way of email but now have found further information that I want to send, can I do this?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2278013a80847dedecfc48d80391fb36-13",
+          "group_id": "doc2dial-2278013a80847dedecfc48d80391fb36",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nyes\ndo you more information?\nyes\nok great!\n[CURRENT]\nwhen do benefits come?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11",
+          "group_id": "doc2dial-abba59c477b0cf795c20d5b0b83e4634",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nyes I am\nDo you have a combined disability rating of at least 30% ?\nno I don't\nYou are not eligible for additional compensation for your daughter\n[CURRENT]\nok, can I file by mail when I am ready to add my daughter?",
+          "gold_parents_in_fused_top5": [
+            "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0"
+          ]
+        }
+      ],
+      "candidate_complete": 50,
+      "tool_message_complete": 42
+    },
+    {
+      "variant": "dev56",
+      "reranked": false,
+      "dense_weight": 0.5,
+      "case_count": 56,
+      "report_sha256": "cb40ae09be897c3727fa0031b0c044608ae63761cd4e9de738fcee15cb5f2ac3",
+      "rescued": [
+        "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11"
+      ],
+      "harmed": [
+        "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-10"
+      ],
+      "delta_pp": 0.0,
+      "failures": [
+        {
+          "case_id": "doc2dial-dev-e557d33d054041f0aac44defb1a207ef-12",
+          "group_id": "doc2dial-e557d33d054041f0aac44defb1a207ef",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nWhat happens in the situation that I filed an application for borrower defense outside of the applicable limitation period, or indeed, if my loan payments re less than the amount owed after my discharge is applied?\nIn this case, you will not be eligible for a refund of payments, as you loan servicer will not apply any previous payments made on the discharged loan or return any made payments to you\nWhat does it mean to be granted a partial discharge on my federal student loan?\nAny amount of your loan that is not discharged will need to be repaid by you, including any interest that has accrued. Any forbearance or stopped collections that you may have had on other borrowings will finish once you have been granted a partial discharge\n[CURRENT]\nAre there any additional documents that I can submit as part of my application for borrower defense?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-fcc47e7aa1e49bd0de037d783936592b-13",
+          "group_id": "doc2dial-fcc47e7aa1e49bd0de037d783936592b",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nHow many work credits do I need and what does it depend on?\nThe number of work credits you need to qualify for disability benefits depends on your age when you become disabled.  Most of the time, you need 40 credits, 20 of which were earned in the last 10 years ending with the year you become disabled.\nHow is it determined if an adult \"child\" is disabled for SSDI benefits?\nIs the child age 18 or older?\n[CURRENT]\nYes, my child is 18 years or older.",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-10",
+          "group_id": "doc2dial-5c539f53cdb29706da2eac1fd093fb8a",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nWhat if I have comments or disagree with a proposed settlement?\nYou would have to mail it the Clerk of the Court of the United States District Court Northern District of California, 450 Golden Gate Avenue, San Francisco, CA 94102.\nWhere would I look for more info about forgiveness of federal student loan used to attend Corinthian Colleges?\nJust go to the section that states \"Information about Debt Relief for Corinthian Colleges Students\" page.\n[CURRENT]\nWhat should I do if I have defaulted on my federal student loan and have entered a rehabilitation plan?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2b9a9e5d3fb7afbd0daabf0fb8b00a54-11",
+          "group_id": "doc2dial-2b9a9e5d3fb7afbd0daabf0fb8b00a54",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nYes, lucky me. I still have my parents around.\nGreat then. That's good to know. Then you have the family members that also can benefit of your application ten.\nGreat. And how they benefit with this?\nThe can receive credits in money. Until four credits each year.\n[CURRENT]\nBut what happens if I die and you still send the payments?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-a9e6b11deba64bccfa874f154eef44b4-10",
+          "group_id": "doc2dial-a9e6b11deba64bccfa874f154eef44b4",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nYes.\nIn that case you can visit our webpage Medicare Resources.\nSo can you tell me what will change, now that I earn more?\nYou'll pay a larger percentage of the total cost of Part B based on the income you normally report to the Internal Revenue Service IRS. You'll pay monthly Part B premiums equal to 35, 50, 65, 80, or 85 percent of the total cost, depending on what you report to the IRS.\n[CURRENT]\nWhat if I filed a federal income tax return for the year?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-247f23e580bce66d852b143a622f29d7-12",
+          "group_id": "doc2dial-247f23e580bce66d852b143a622f29d7",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nHelp apply online\nou may help someone else fill out their application ,\nI need more information\nyour spouse or family member may be able to receive benefits on your record if they qualify\n[CURRENT]\nGet Your Social Security Benefit Verification Letter Online",
+          "gold_parents_in_fused_top5": [
+            "Apply for Retirement Benefits | SSA#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-0f04d497049c31faebfa20487a25c0f1-12",
+          "group_id": "doc2dial-0f04d497049c31faebfa20487a25c0f1",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nYes, I am.\nIn that case you may be able to have all or part of your outstanding federal student loan debt forgiven, and you also may be reimbursed for amounts you have already paid on those loans.\nWhat are you doing to provide help to student loan borrowers during the Covid-19 crisis?\nFederal student loan borrowers are automatically being placed in an administrative forbearance, which allows you to temporarily stop making your monthly loan payments. In addition, interest is being temporarily set at 0% on federal student loans.\n[CURRENT]\nHow will I know how much I have left after the interest is calculated?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-b30d73c202844505549d00218083577d-11",
+          "group_id": "doc2dial-b30d73c202844505549d00218083577d",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nWhen will I receive a notification about the Sweet v. DeVos Lawsuit?\nIf you are a potential member of the group of borrowers to which the lawsuit applies, you should receive an email and mail notification between June and early July 2020.\nDo you have any other questions about the Sweet V DeVos lawsuit?\nNo.\n[CURRENT]\nAre FFEL Program Loans eligible?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-00a4a05f229e5cee83e7b10f2e20873d-12",
+          "group_id": "doc2dial-00a4a05f229e5cee83e7b10f2e20873d",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nThe U.S. Department of Education will notify borrower defense applicants through e-mail of their determination about borrower defense discharge eligibility.\nWould you like a number you can call if you have more questions about this notification?\nyes let me have it\nYou can call our borrower defense hotline: 1-855-279-6207. Representatives are available Monday through Friday from 8 a.m. to 8 p.m. Eastern time\n[CURRENT]\nI looked at your page, what are Corinthian colleges?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-50b28aeda7cf80e1959ac907127bb5d9-12",
+          "group_id": "doc2dial-50b28aeda7cf80e1959ac907127bb5d9",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nIf I amended your tax return\nwe counts and it changes the income to determine the income - related monthly adjustment amounts your MAGI , let us know .\nI need more information\nFor more information about the income - related monthly adjustment amounts or to apply for Medicare Part A or B\n[CURRENT]\nhow I requested?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-4a335b1ca0ddb7d0465b81f2d318afd3-11",
+          "group_id": "doc2dial-4a335b1ca0ddb7d0465b81f2d318afd3",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\ncan someone get retirement and survivors benefits at the same time?\nThey can apply for retirement or survivors benefits now and switch to the other higher benefit at a later date\nwhen can a widow get her own benefits that she earned through work?\nThey can switch to their own retirement benefit as early as age 62. This assumes you are eligible for retirement benefits and your retirement rate is higher than your rate as a widow\n[CURRENT]\ncan the widow get monthly benefits if she is caring for the dead guy's daughter?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-e96c4558ac2013c8f787498f67652362-11",
+          "group_id": "doc2dial-e96c4558ac2013c8f787498f67652362",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nIs there a way for me to apply for a Direct Consolidation Loan if I want to have my borrower defense discharge apply to my FFEL?\nYou can apply by logging on to StudentAid.gov/app/launchConsolidation.action. Once your Direct Consolidation Loan is approved, you can then contact the borrower defense hotline on 1-855-279-6207 from 8am to 8pm\nWhere can I go for reconsideration of a decison regarding a borrower defense?\nWe have a dedicated borrower defense hotline at 1-855-279-6207 from 8am to 8pm\n[CURRENT]\nI have applied for borrower defense by way of email but now have found further information that I want to send, can I do this?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2278013a80847dedecfc48d80391fb36-13",
+          "group_id": "doc2dial-2278013a80847dedecfc48d80391fb36",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nyes\ndo you more information?\nyes\nok great!\n[CURRENT]\nwhen do benefits come?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11",
+          "group_id": "doc2dial-abba59c477b0cf795c20d5b0b83e4634",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nyes I am\nDo you have a combined disability rating of at least 30% ?\nno I don't\nYou are not eligible for additional compensation for your daughter\n[CURRENT]\nok, can I file by mail when I am ready to add my daughter?",
+          "gold_parents_in_fused_top5": [
+            "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0"
+          ]
+        }
+      ],
+      "candidate_complete": 54,
+      "tool_message_complete": 42
+    },
+    {
+      "variant": "dev56",
+      "reranked": true,
+      "dense_weight": 0.25,
+      "case_count": 56,
+      "report_sha256": "cb40ae09be897c3727fa0031b0c044608ae63761cd4e9de738fcee15cb5f2ac3",
+      "rescued": [
+        "doc2dial-dev-a9e6b11deba64bccfa874f154eef44b4-10",
+        "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11"
+      ],
+      "harmed": [],
+      "delta_pp": 3.5714285714285716,
+      "failures": [
+        {
+          "case_id": "doc2dial-dev-e557d33d054041f0aac44defb1a207ef-12",
+          "group_id": "doc2dial-e557d33d054041f0aac44defb1a207ef",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nWhat happens in the situation that I filed an application for borrower defense outside of the applicable limitation period, or indeed, if my loan payments re less than the amount owed after my discharge is applied?\nIn this case, you will not be eligible for a refund of payments, as you loan servicer will not apply any previous payments made on the discharged loan or return any made payments to you\nWhat does it mean to be granted a partial discharge on my federal student loan?\nAny amount of your loan that is not discharged will need to be repaid by you, including any interest that has accrued. Any forbearance or stopped collections that you may have had on other borrowings will finish once you have been granted a partial discharge\n[CURRENT]\nAre there any additional documents that I can submit as part of my application for borrower defense?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-fcc47e7aa1e49bd0de037d783936592b-13",
+          "group_id": "doc2dial-fcc47e7aa1e49bd0de037d783936592b",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nHow many work credits do I need and what does it depend on?\nThe number of work credits you need to qualify for disability benefits depends on your age when you become disabled.  Most of the time, you need 40 credits, 20 of which were earned in the last 10 years ending with the year you become disabled.\nHow is it determined if an adult \"child\" is disabled for SSDI benefits?\nIs the child age 18 or older?\n[CURRENT]\nYes, my child is 18 years or older.",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2b9a9e5d3fb7afbd0daabf0fb8b00a54-11",
+          "group_id": "doc2dial-2b9a9e5d3fb7afbd0daabf0fb8b00a54",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nYes, lucky me. I still have my parents around.\nGreat then. That's good to know. Then you have the family members that also can benefit of your application ten.\nGreat. And how they benefit with this?\nThe can receive credits in money. Until four credits each year.\n[CURRENT]\nBut what happens if I die and you still send the payments?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-247f23e580bce66d852b143a622f29d7-12",
+          "group_id": "doc2dial-247f23e580bce66d852b143a622f29d7",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nHelp apply online\nou may help someone else fill out their application ,\nI need more information\nyour spouse or family member may be able to receive benefits on your record if they qualify\n[CURRENT]\nGet Your Social Security Benefit Verification Letter Online",
+          "gold_parents_in_fused_top5": [
+            "Apply for Retirement Benefits | SSA#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-0f04d497049c31faebfa20487a25c0f1-12",
+          "group_id": "doc2dial-0f04d497049c31faebfa20487a25c0f1",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nYes, I am.\nIn that case you may be able to have all or part of your outstanding federal student loan debt forgiven, and you also may be reimbursed for amounts you have already paid on those loans.\nWhat are you doing to provide help to student loan borrowers during the Covid-19 crisis?\nFederal student loan borrowers are automatically being placed in an administrative forbearance, which allows you to temporarily stop making your monthly loan payments. In addition, interest is being temporarily set at 0% on federal student loans.\n[CURRENT]\nHow will I know how much I have left after the interest is calculated?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-b30d73c202844505549d00218083577d-11",
+          "group_id": "doc2dial-b30d73c202844505549d00218083577d",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nWhen will I receive a notification about the Sweet v. DeVos Lawsuit?\nIf you are a potential member of the group of borrowers to which the lawsuit applies, you should receive an email and mail notification between June and early July 2020.\nDo you have any other questions about the Sweet V DeVos lawsuit?\nNo.\n[CURRENT]\nAre FFEL Program Loans eligible?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-00a4a05f229e5cee83e7b10f2e20873d-12",
+          "group_id": "doc2dial-00a4a05f229e5cee83e7b10f2e20873d",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nThe U.S. Department of Education will notify borrower defense applicants through e-mail of their determination about borrower defense discharge eligibility.\nWould you like a number you can call if you have more questions about this notification?\nyes let me have it\nYou can call our borrower defense hotline: 1-855-279-6207. Representatives are available Monday through Friday from 8 a.m. to 8 p.m. Eastern time\n[CURRENT]\nI looked at your page, what are Corinthian colleges?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11",
+          "group_id": "doc2dial-56ecb9ca49fe6db3568b935cff6c0510",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nCan you explain what is the adverse credit is incorrect?\nIt can make credit approval difficult.\nWhat is the lender's deed?\nIts purpose is the credit release.\n[CURRENT]\nDo I need information related to mitigating circumstances?",
+          "gold_parents_in_fused_top5": [
+            "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-50b28aeda7cf80e1959ac907127bb5d9-12",
+          "group_id": "doc2dial-50b28aeda7cf80e1959ac907127bb5d9",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nIf I amended your tax return\nwe counts and it changes the income to determine the income - related monthly adjustment amounts your MAGI , let us know .\nI need more information\nFor more information about the income - related monthly adjustment amounts or to apply for Medicare Part A or B\n[CURRENT]\nhow I requested?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-4a335b1ca0ddb7d0465b81f2d318afd3-11",
+          "group_id": "doc2dial-4a335b1ca0ddb7d0465b81f2d318afd3",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\ncan someone get retirement and survivors benefits at the same time?\nThey can apply for retirement or survivors benefits now and switch to the other higher benefit at a later date\nwhen can a widow get her own benefits that she earned through work?\nThey can switch to their own retirement benefit as early as age 62. This assumes you are eligible for retirement benefits and your retirement rate is higher than your rate as a widow\n[CURRENT]\ncan the widow get monthly benefits if she is caring for the dead guy's daughter?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-e96c4558ac2013c8f787498f67652362-11",
+          "group_id": "doc2dial-e96c4558ac2013c8f787498f67652362",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nIs there a way for me to apply for a Direct Consolidation Loan if I want to have my borrower defense discharge apply to my FFEL?\nYou can apply by logging on to StudentAid.gov/app/launchConsolidation.action. Once your Direct Consolidation Loan is approved, you can then contact the borrower defense hotline on 1-855-279-6207 from 8am to 8pm\nWhere can I go for reconsideration of a decison regarding a borrower defense?\nWe have a dedicated borrower defense hotline at 1-855-279-6207 from 8am to 8pm\n[CURRENT]\nI have applied for borrower defense by way of email but now have found further information that I want to send, can I do this?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2278013a80847dedecfc48d80391fb36-13",
+          "group_id": "doc2dial-2278013a80847dedecfc48d80391fb36",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nyes\ndo you more information?\nyes\nok great!\n[CURRENT]\nwhen do benefits come?",
+          "gold_parents_in_fused_top5": []
+        }
+      ],
+      "candidate_complete": 50,
+      "tool_message_complete": 44
+    },
+    {
+      "variant": "dev56",
+      "reranked": true,
+      "dense_weight": 0.5,
+      "case_count": 56,
+      "report_sha256": "cb40ae09be897c3727fa0031b0c044608ae63761cd4e9de738fcee15cb5f2ac3",
+      "rescued": [
+        "doc2dial-dev-e557d33d054041f0aac44defb1a207ef-12",
+        "doc2dial-dev-a9e6b11deba64bccfa874f154eef44b4-10",
+        "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11"
+      ],
+      "harmed": [],
+      "delta_pp": 5.357142857142857,
+      "failures": [
+        {
+          "case_id": "doc2dial-dev-fcc47e7aa1e49bd0de037d783936592b-13",
+          "group_id": "doc2dial-fcc47e7aa1e49bd0de037d783936592b",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nHow many work credits do I need and what does it depend on?\nThe number of work credits you need to qualify for disability benefits depends on your age when you become disabled.  Most of the time, you need 40 credits, 20 of which were earned in the last 10 years ending with the year you become disabled.\nHow is it determined if an adult \"child\" is disabled for SSDI benefits?\nIs the child age 18 or older?\n[CURRENT]\nYes, my child is 18 years or older.",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2b9a9e5d3fb7afbd0daabf0fb8b00a54-11",
+          "group_id": "doc2dial-2b9a9e5d3fb7afbd0daabf0fb8b00a54",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nYes, lucky me. I still have my parents around.\nGreat then. That's good to know. Then you have the family members that also can benefit of your application ten.\nGreat. And how they benefit with this?\nThe can receive credits in money. Until four credits each year.\n[CURRENT]\nBut what happens if I die and you still send the payments?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-247f23e580bce66d852b143a622f29d7-12",
+          "group_id": "doc2dial-247f23e580bce66d852b143a622f29d7",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nHelp apply online\nou may help someone else fill out their application ,\nI need more information\nyour spouse or family member may be able to receive benefits on your record if they qualify\n[CURRENT]\nGet Your Social Security Benefit Verification Letter Online",
+          "gold_parents_in_fused_top5": [
+            "Apply for Retirement Benefits | SSA#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-0f04d497049c31faebfa20487a25c0f1-12",
+          "group_id": "doc2dial-0f04d497049c31faebfa20487a25c0f1",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nYes, I am.\nIn that case you may be able to have all or part of your outstanding federal student loan debt forgiven, and you also may be reimbursed for amounts you have already paid on those loans.\nWhat are you doing to provide help to student loan borrowers during the Covid-19 crisis?\nFederal student loan borrowers are automatically being placed in an administrative forbearance, which allows you to temporarily stop making your monthly loan payments. In addition, interest is being temporarily set at 0% on federal student loans.\n[CURRENT]\nHow will I know how much I have left after the interest is calculated?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-b30d73c202844505549d00218083577d-11",
+          "group_id": "doc2dial-b30d73c202844505549d00218083577d",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nWhen will I receive a notification about the Sweet v. DeVos Lawsuit?\nIf you are a potential member of the group of borrowers to which the lawsuit applies, you should receive an email and mail notification between June and early July 2020.\nDo you have any other questions about the Sweet V DeVos lawsuit?\nNo.\n[CURRENT]\nAre FFEL Program Loans eligible?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-00a4a05f229e5cee83e7b10f2e20873d-12",
+          "group_id": "doc2dial-00a4a05f229e5cee83e7b10f2e20873d",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nThe U.S. Department of Education will notify borrower defense applicants through e-mail of their determination about borrower defense discharge eligibility.\nWould you like a number you can call if you have more questions about this notification?\nyes let me have it\nYou can call our borrower defense hotline: 1-855-279-6207. Representatives are available Monday through Friday from 8 a.m. to 8 p.m. Eastern time\n[CURRENT]\nI looked at your page, what are Corinthian colleges?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11",
+          "group_id": "doc2dial-56ecb9ca49fe6db3568b935cff6c0510",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nCan you explain what is the adverse credit is incorrect?\nIt can make credit approval difficult.\nWhat is the lender's deed?\nIts purpose is the credit release.\n[CURRENT]\nDo I need information related to mitigating circumstances?",
+          "gold_parents_in_fused_top5": [
+            "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-50b28aeda7cf80e1959ac907127bb5d9-12",
+          "group_id": "doc2dial-50b28aeda7cf80e1959ac907127bb5d9",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nIf I amended your tax return\nwe counts and it changes the income to determine the income - related monthly adjustment amounts your MAGI , let us know .\nI need more information\nFor more information about the income - related monthly adjustment amounts or to apply for Medicare Part A or B\n[CURRENT]\nhow I requested?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-4a335b1ca0ddb7d0465b81f2d318afd3-11",
+          "group_id": "doc2dial-4a335b1ca0ddb7d0465b81f2d318afd3",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\ncan someone get retirement and survivors benefits at the same time?\nThey can apply for retirement or survivors benefits now and switch to the other higher benefit at a later date\nwhen can a widow get her own benefits that she earned through work?\nThey can switch to their own retirement benefit as early as age 62. This assumes you are eligible for retirement benefits and your retirement rate is higher than your rate as a widow\n[CURRENT]\ncan the widow get monthly benefits if she is caring for the dead guy's daughter?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-e96c4558ac2013c8f787498f67652362-11",
+          "group_id": "doc2dial-e96c4558ac2013c8f787498f67652362",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nIs there a way for me to apply for a Direct Consolidation Loan if I want to have my borrower defense discharge apply to my FFEL?\nYou can apply by logging on to StudentAid.gov/app/launchConsolidation.action. Once your Direct Consolidation Loan is approved, you can then contact the borrower defense hotline on 1-855-279-6207 from 8am to 8pm\nWhere can I go for reconsideration of a decison regarding a borrower defense?\nWe have a dedicated borrower defense hotline at 1-855-279-6207 from 8am to 8pm\n[CURRENT]\nI have applied for borrower defense by way of email but now have found further information that I want to send, can I do this?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2278013a80847dedecfc48d80391fb36-13",
+          "group_id": "doc2dial-2278013a80847dedecfc48d80391fb36",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nyes\ndo you more information?\nyes\nok great!\n[CURRENT]\nwhen do benefits come?",
+          "gold_parents_in_fused_top5": []
+        }
+      ],
+      "candidate_complete": 54,
+      "tool_message_complete": 45
+    },
+    {
+      "variant": "parent-child-dev56",
+      "reranked": false,
+      "dense_weight": 0.25,
+      "case_count": 56,
+      "report_sha256": "b917faf2fc5463fde438ee7c954bc73c428d9748422fd2fde993c141cc55ad9d",
+      "rescued": [],
+      "harmed": [],
+      "delta_pp": 0.0,
+      "failures": [
+        {
+          "case_id": "doc2dial-dev-e557d33d054041f0aac44defb1a207ef-12",
+          "group_id": "doc2dial-e557d33d054041f0aac44defb1a207ef",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nWhat happens in the situation that I filed an application for borrower defense outside of the applicable limitation period, or indeed, if my loan payments re less than the amount owed after my discharge is applied?\nIn this case, you will not be eligible for a refund of payments, as you loan servicer will not apply any previous payments made on the discharged loan or return any made payments to you\nWhat does it mean to be granted a partial discharge on my federal student loan?\nAny amount of your loan that is not discharged will need to be repaid by you, including any interest that has accrued. Any forbearance or stopped collections that you may have had on other borrowings will finish once you have been granted a partial discharge\n[CURRENT]\nAre there any additional documents that I can submit as part of my application for borrower defense?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-fcc47e7aa1e49bd0de037d783936592b-13",
+          "group_id": "doc2dial-fcc47e7aa1e49bd0de037d783936592b",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nHow many work credits do I need and what does it depend on?\nThe number of work credits you need to qualify for disability benefits depends on your age when you become disabled.  Most of the time, you need 40 credits, 20 of which were earned in the last 10 years ending with the year you become disabled.\nHow is it determined if an adult \"child\" is disabled for SSDI benefits?\nIs the child age 18 or older?\n[CURRENT]\nYes, my child is 18 years or older.",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2b9a9e5d3fb7afbd0daabf0fb8b00a54-11",
+          "group_id": "doc2dial-2b9a9e5d3fb7afbd0daabf0fb8b00a54",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nYes, lucky me. I still have my parents around.\nGreat then. That's good to know. Then you have the family members that also can benefit of your application ten.\nGreat. And how they benefit with this?\nThe can receive credits in money. Until four credits each year.\n[CURRENT]\nBut what happens if I die and you still send the payments?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-a9e6b11deba64bccfa874f154eef44b4-10",
+          "group_id": "doc2dial-a9e6b11deba64bccfa874f154eef44b4",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nYes.\nIn that case you can visit our webpage Medicare Resources.\nSo can you tell me what will change, now that I earn more?\nYou'll pay a larger percentage of the total cost of Part B based on the income you normally report to the Internal Revenue Service IRS. You'll pay monthly Part B premiums equal to 35, 50, 65, 80, or 85 percent of the total cost, depending on what you report to the IRS.\n[CURRENT]\nWhat if I filed a federal income tax return for the year?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-247f23e580bce66d852b143a622f29d7-12",
+          "group_id": "doc2dial-247f23e580bce66d852b143a622f29d7",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nHelp apply online\nou may help someone else fill out their application ,\nI need more information\nyour spouse or family member may be able to receive benefits on your record if they qualify\n[CURRENT]\nGet Your Social Security Benefit Verification Letter Online",
+          "gold_parents_in_fused_top5": [
+            "Apply for Retirement Benefits | SSA#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-0f04d497049c31faebfa20487a25c0f1-12",
+          "group_id": "doc2dial-0f04d497049c31faebfa20487a25c0f1",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nYes, I am.\nIn that case you may be able to have all or part of your outstanding federal student loan debt forgiven, and you also may be reimbursed for amounts you have already paid on those loans.\nWhat are you doing to provide help to student loan borrowers during the Covid-19 crisis?\nFederal student loan borrowers are automatically being placed in an administrative forbearance, which allows you to temporarily stop making your monthly loan payments. In addition, interest is being temporarily set at 0% on federal student loans.\n[CURRENT]\nHow will I know how much I have left after the interest is calculated?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-b30d73c202844505549d00218083577d-11",
+          "group_id": "doc2dial-b30d73c202844505549d00218083577d",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nWhen will I receive a notification about the Sweet v. DeVos Lawsuit?\nIf you are a potential member of the group of borrowers to which the lawsuit applies, you should receive an email and mail notification between June and early July 2020.\nDo you have any other questions about the Sweet V DeVos lawsuit?\nNo.\n[CURRENT]\nAre FFEL Program Loans eligible?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-00a4a05f229e5cee83e7b10f2e20873d-12",
+          "group_id": "doc2dial-00a4a05f229e5cee83e7b10f2e20873d",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nThe U.S. Department of Education will notify borrower defense applicants through e-mail of their determination about borrower defense discharge eligibility.\nWould you like a number you can call if you have more questions about this notification?\nyes let me have it\nYou can call our borrower defense hotline: 1-855-279-6207. Representatives are available Monday through Friday from 8 a.m. to 8 p.m. Eastern time\n[CURRENT]\nI looked at your page, what are Corinthian colleges?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11",
+          "group_id": "doc2dial-56ecb9ca49fe6db3568b935cff6c0510",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nCan you explain what is the adverse credit is incorrect?\nIt can make credit approval difficult.\nWhat is the lender's deed?\nIts purpose is the credit release.\n[CURRENT]\nDo I need information related to mitigating circumstances?",
+          "gold_parents_in_fused_top5": [
+            "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-50b28aeda7cf80e1959ac907127bb5d9-12",
+          "group_id": "doc2dial-50b28aeda7cf80e1959ac907127bb5d9",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nIf I amended your tax return\nwe counts and it changes the income to determine the income - related monthly adjustment amounts your MAGI , let us know .\nI need more information\nFor more information about the income - related monthly adjustment amounts or to apply for Medicare Part A or B\n[CURRENT]\nhow I requested?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-4a335b1ca0ddb7d0465b81f2d318afd3-11",
+          "group_id": "doc2dial-4a335b1ca0ddb7d0465b81f2d318afd3",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\ncan someone get retirement and survivors benefits at the same time?\nThey can apply for retirement or survivors benefits now and switch to the other higher benefit at a later date\nwhen can a widow get her own benefits that she earned through work?\nThey can switch to their own retirement benefit as early as age 62. This assumes you are eligible for retirement benefits and your retirement rate is higher than your rate as a widow\n[CURRENT]\ncan the widow get monthly benefits if she is caring for the dead guy's daughter?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-e96c4558ac2013c8f787498f67652362-11",
+          "group_id": "doc2dial-e96c4558ac2013c8f787498f67652362",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nIs there a way for me to apply for a Direct Consolidation Loan if I want to have my borrower defense discharge apply to my FFEL?\nYou can apply by logging on to StudentAid.gov/app/launchConsolidation.action. Once your Direct Consolidation Loan is approved, you can then contact the borrower defense hotline on 1-855-279-6207 from 8am to 8pm\nWhere can I go for reconsideration of a decison regarding a borrower defense?\nWe have a dedicated borrower defense hotline at 1-855-279-6207 from 8am to 8pm\n[CURRENT]\nI have applied for borrower defense by way of email but now have found further information that I want to send, can I do this?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2278013a80847dedecfc48d80391fb36-13",
+          "group_id": "doc2dial-2278013a80847dedecfc48d80391fb36",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nyes\ndo you more information?\nyes\nok great!\n[CURRENT]\nwhen do benefits come?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11",
+          "group_id": "doc2dial-abba59c477b0cf795c20d5b0b83e4634",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nyes I am\nDo you have a combined disability rating of at least 30% ?\nno I don't\nYou are not eligible for additional compensation for your daughter\n[CURRENT]\nok, can I file by mail when I am ready to add my daughter?",
+          "gold_parents_in_fused_top5": [
+            "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0"
+          ]
+        }
+      ],
+      "candidate_complete": 52,
+      "tool_message_complete": 42
+    },
+    {
+      "variant": "parent-child-dev56",
+      "reranked": false,
+      "dense_weight": 0.5,
+      "case_count": 56,
+      "report_sha256": "b917faf2fc5463fde438ee7c954bc73c428d9748422fd2fde993c141cc55ad9d",
+      "rescued": [
+        "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11"
+      ],
+      "harmed": [
+        "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-10"
+      ],
+      "delta_pp": 0.0,
+      "failures": [
+        {
+          "case_id": "doc2dial-dev-e557d33d054041f0aac44defb1a207ef-12",
+          "group_id": "doc2dial-e557d33d054041f0aac44defb1a207ef",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nWhat happens in the situation that I filed an application for borrower defense outside of the applicable limitation period, or indeed, if my loan payments re less than the amount owed after my discharge is applied?\nIn this case, you will not be eligible for a refund of payments, as you loan servicer will not apply any previous payments made on the discharged loan or return any made payments to you\nWhat does it mean to be granted a partial discharge on my federal student loan?\nAny amount of your loan that is not discharged will need to be repaid by you, including any interest that has accrued. Any forbearance or stopped collections that you may have had on other borrowings will finish once you have been granted a partial discharge\n[CURRENT]\nAre there any additional documents that I can submit as part of my application for borrower defense?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-fcc47e7aa1e49bd0de037d783936592b-13",
+          "group_id": "doc2dial-fcc47e7aa1e49bd0de037d783936592b",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nHow many work credits do I need and what does it depend on?\nThe number of work credits you need to qualify for disability benefits depends on your age when you become disabled.  Most of the time, you need 40 credits, 20 of which were earned in the last 10 years ending with the year you become disabled.\nHow is it determined if an adult \"child\" is disabled for SSDI benefits?\nIs the child age 18 or older?\n[CURRENT]\nYes, my child is 18 years or older.",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-10",
+          "group_id": "doc2dial-5c539f53cdb29706da2eac1fd093fb8a",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nWhat if I have comments or disagree with a proposed settlement?\nYou would have to mail it the Clerk of the Court of the United States District Court Northern District of California, 450 Golden Gate Avenue, San Francisco, CA 94102.\nWhere would I look for more info about forgiveness of federal student loan used to attend Corinthian Colleges?\nJust go to the section that states \"Information about Debt Relief for Corinthian Colleges Students\" page.\n[CURRENT]\nWhat should I do if I have defaulted on my federal student loan and have entered a rehabilitation plan?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2b9a9e5d3fb7afbd0daabf0fb8b00a54-11",
+          "group_id": "doc2dial-2b9a9e5d3fb7afbd0daabf0fb8b00a54",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nYes, lucky me. I still have my parents around.\nGreat then. That's good to know. Then you have the family members that also can benefit of your application ten.\nGreat. And how they benefit with this?\nThe can receive credits in money. Until four credits each year.\n[CURRENT]\nBut what happens if I die and you still send the payments?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-a9e6b11deba64bccfa874f154eef44b4-10",
+          "group_id": "doc2dial-a9e6b11deba64bccfa874f154eef44b4",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nYes.\nIn that case you can visit our webpage Medicare Resources.\nSo can you tell me what will change, now that I earn more?\nYou'll pay a larger percentage of the total cost of Part B based on the income you normally report to the Internal Revenue Service IRS. You'll pay monthly Part B premiums equal to 35, 50, 65, 80, or 85 percent of the total cost, depending on what you report to the IRS.\n[CURRENT]\nWhat if I filed a federal income tax return for the year?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-247f23e580bce66d852b143a622f29d7-12",
+          "group_id": "doc2dial-247f23e580bce66d852b143a622f29d7",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nHelp apply online\nou may help someone else fill out their application ,\nI need more information\nyour spouse or family member may be able to receive benefits on your record if they qualify\n[CURRENT]\nGet Your Social Security Benefit Verification Letter Online",
+          "gold_parents_in_fused_top5": [
+            "Apply for Retirement Benefits | SSA#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-0f04d497049c31faebfa20487a25c0f1-12",
+          "group_id": "doc2dial-0f04d497049c31faebfa20487a25c0f1",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nYes, I am.\nIn that case you may be able to have all or part of your outstanding federal student loan debt forgiven, and you also may be reimbursed for amounts you have already paid on those loans.\nWhat are you doing to provide help to student loan borrowers during the Covid-19 crisis?\nFederal student loan borrowers are automatically being placed in an administrative forbearance, which allows you to temporarily stop making your monthly loan payments. In addition, interest is being temporarily set at 0% on federal student loans.\n[CURRENT]\nHow will I know how much I have left after the interest is calculated?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-b30d73c202844505549d00218083577d-11",
+          "group_id": "doc2dial-b30d73c202844505549d00218083577d",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nWhen will I receive a notification about the Sweet v. DeVos Lawsuit?\nIf you are a potential member of the group of borrowers to which the lawsuit applies, you should receive an email and mail notification between June and early July 2020.\nDo you have any other questions about the Sweet V DeVos lawsuit?\nNo.\n[CURRENT]\nAre FFEL Program Loans eligible?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-00a4a05f229e5cee83e7b10f2e20873d-12",
+          "group_id": "doc2dial-00a4a05f229e5cee83e7b10f2e20873d",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nThe U.S. Department of Education will notify borrower defense applicants through e-mail of their determination about borrower defense discharge eligibility.\nWould you like a number you can call if you have more questions about this notification?\nyes let me have it\nYou can call our borrower defense hotline: 1-855-279-6207. Representatives are available Monday through Friday from 8 a.m. to 8 p.m. Eastern time\n[CURRENT]\nI looked at your page, what are Corinthian colleges?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-50b28aeda7cf80e1959ac907127bb5d9-12",
+          "group_id": "doc2dial-50b28aeda7cf80e1959ac907127bb5d9",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nIf I amended your tax return\nwe counts and it changes the income to determine the income - related monthly adjustment amounts your MAGI , let us know .\nI need more information\nFor more information about the income - related monthly adjustment amounts or to apply for Medicare Part A or B\n[CURRENT]\nhow I requested?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-4a335b1ca0ddb7d0465b81f2d318afd3-11",
+          "group_id": "doc2dial-4a335b1ca0ddb7d0465b81f2d318afd3",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\ncan someone get retirement and survivors benefits at the same time?\nThey can apply for retirement or survivors benefits now and switch to the other higher benefit at a later date\nwhen can a widow get her own benefits that she earned through work?\nThey can switch to their own retirement benefit as early as age 62. This assumes you are eligible for retirement benefits and your retirement rate is higher than your rate as a widow\n[CURRENT]\ncan the widow get monthly benefits if she is caring for the dead guy's daughter?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-e96c4558ac2013c8f787498f67652362-11",
+          "group_id": "doc2dial-e96c4558ac2013c8f787498f67652362",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nIs there a way for me to apply for a Direct Consolidation Loan if I want to have my borrower defense discharge apply to my FFEL?\nYou can apply by logging on to StudentAid.gov/app/launchConsolidation.action. Once your Direct Consolidation Loan is approved, you can then contact the borrower defense hotline on 1-855-279-6207 from 8am to 8pm\nWhere can I go for reconsideration of a decison regarding a borrower defense?\nWe have a dedicated borrower defense hotline at 1-855-279-6207 from 8am to 8pm\n[CURRENT]\nI have applied for borrower defense by way of email but now have found further information that I want to send, can I do this?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2278013a80847dedecfc48d80391fb36-13",
+          "group_id": "doc2dial-2278013a80847dedecfc48d80391fb36",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nyes\ndo you more information?\nyes\nok great!\n[CURRENT]\nwhen do benefits come?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11",
+          "group_id": "doc2dial-abba59c477b0cf795c20d5b0b83e4634",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nyes I am\nDo you have a combined disability rating of at least 30% ?\nno I don't\nYou are not eligible for additional compensation for your daughter\n[CURRENT]\nok, can I file by mail when I am ready to add my daughter?",
+          "gold_parents_in_fused_top5": [
+            "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0"
+          ]
+        }
+      ],
+      "candidate_complete": 54,
+      "tool_message_complete": 42
+    },
+    {
+      "variant": "parent-child-dev56",
+      "reranked": true,
+      "dense_weight": 0.25,
+      "case_count": 56,
+      "report_sha256": "b917faf2fc5463fde438ee7c954bc73c428d9748422fd2fde993c141cc55ad9d",
+      "rescued": [
+        "doc2dial-dev-a9e6b11deba64bccfa874f154eef44b4-10",
+        "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11"
+      ],
+      "harmed": [],
+      "delta_pp": 3.5714285714285716,
+      "failures": [
+        {
+          "case_id": "doc2dial-dev-e557d33d054041f0aac44defb1a207ef-12",
+          "group_id": "doc2dial-e557d33d054041f0aac44defb1a207ef",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nWhat happens in the situation that I filed an application for borrower defense outside of the applicable limitation period, or indeed, if my loan payments re less than the amount owed after my discharge is applied?\nIn this case, you will not be eligible for a refund of payments, as you loan servicer will not apply any previous payments made on the discharged loan or return any made payments to you\nWhat does it mean to be granted a partial discharge on my federal student loan?\nAny amount of your loan that is not discharged will need to be repaid by you, including any interest that has accrued. Any forbearance or stopped collections that you may have had on other borrowings will finish once you have been granted a partial discharge\n[CURRENT]\nAre there any additional documents that I can submit as part of my application for borrower defense?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-fcc47e7aa1e49bd0de037d783936592b-13",
+          "group_id": "doc2dial-fcc47e7aa1e49bd0de037d783936592b",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nHow many work credits do I need and what does it depend on?\nThe number of work credits you need to qualify for disability benefits depends on your age when you become disabled.  Most of the time, you need 40 credits, 20 of which were earned in the last 10 years ending with the year you become disabled.\nHow is it determined if an adult \"child\" is disabled for SSDI benefits?\nIs the child age 18 or older?\n[CURRENT]\nYes, my child is 18 years or older.",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2b9a9e5d3fb7afbd0daabf0fb8b00a54-11",
+          "group_id": "doc2dial-2b9a9e5d3fb7afbd0daabf0fb8b00a54",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nYes, lucky me. I still have my parents around.\nGreat then. That's good to know. Then you have the family members that also can benefit of your application ten.\nGreat. And how they benefit with this?\nThe can receive credits in money. Until four credits each year.\n[CURRENT]\nBut what happens if I die and you still send the payments?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-247f23e580bce66d852b143a622f29d7-12",
+          "group_id": "doc2dial-247f23e580bce66d852b143a622f29d7",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nHelp apply online\nou may help someone else fill out their application ,\nI need more information\nyour spouse or family member may be able to receive benefits on your record if they qualify\n[CURRENT]\nGet Your Social Security Benefit Verification Letter Online",
+          "gold_parents_in_fused_top5": [
+            "Apply for Retirement Benefits | SSA#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-0f04d497049c31faebfa20487a25c0f1-12",
+          "group_id": "doc2dial-0f04d497049c31faebfa20487a25c0f1",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nYes, I am.\nIn that case you may be able to have all or part of your outstanding federal student loan debt forgiven, and you also may be reimbursed for amounts you have already paid on those loans.\nWhat are you doing to provide help to student loan borrowers during the Covid-19 crisis?\nFederal student loan borrowers are automatically being placed in an administrative forbearance, which allows you to temporarily stop making your monthly loan payments. In addition, interest is being temporarily set at 0% on federal student loans.\n[CURRENT]\nHow will I know how much I have left after the interest is calculated?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-b30d73c202844505549d00218083577d-11",
+          "group_id": "doc2dial-b30d73c202844505549d00218083577d",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nWhen will I receive a notification about the Sweet v. DeVos Lawsuit?\nIf you are a potential member of the group of borrowers to which the lawsuit applies, you should receive an email and mail notification between June and early July 2020.\nDo you have any other questions about the Sweet V DeVos lawsuit?\nNo.\n[CURRENT]\nAre FFEL Program Loans eligible?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-00a4a05f229e5cee83e7b10f2e20873d-12",
+          "group_id": "doc2dial-00a4a05f229e5cee83e7b10f2e20873d",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nThe U.S. Department of Education will notify borrower defense applicants through e-mail of their determination about borrower defense discharge eligibility.\nWould you like a number you can call if you have more questions about this notification?\nyes let me have it\nYou can call our borrower defense hotline: 1-855-279-6207. Representatives are available Monday through Friday from 8 a.m. to 8 p.m. Eastern time\n[CURRENT]\nI looked at your page, what are Corinthian colleges?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11",
+          "group_id": "doc2dial-56ecb9ca49fe6db3568b935cff6c0510",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nCan you explain what is the adverse credit is incorrect?\nIt can make credit approval difficult.\nWhat is the lender's deed?\nIts purpose is the credit release.\n[CURRENT]\nDo I need information related to mitigating circumstances?",
+          "gold_parents_in_fused_top5": [
+            "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-50b28aeda7cf80e1959ac907127bb5d9-12",
+          "group_id": "doc2dial-50b28aeda7cf80e1959ac907127bb5d9",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nIf I amended your tax return\nwe counts and it changes the income to determine the income - related monthly adjustment amounts your MAGI , let us know .\nI need more information\nFor more information about the income - related monthly adjustment amounts or to apply for Medicare Part A or B\n[CURRENT]\nhow I requested?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-4a335b1ca0ddb7d0465b81f2d318afd3-11",
+          "group_id": "doc2dial-4a335b1ca0ddb7d0465b81f2d318afd3",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\ncan someone get retirement and survivors benefits at the same time?\nThey can apply for retirement or survivors benefits now and switch to the other higher benefit at a later date\nwhen can a widow get her own benefits that she earned through work?\nThey can switch to their own retirement benefit as early as age 62. This assumes you are eligible for retirement benefits and your retirement rate is higher than your rate as a widow\n[CURRENT]\ncan the widow get monthly benefits if she is caring for the dead guy's daughter?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-e96c4558ac2013c8f787498f67652362-11",
+          "group_id": "doc2dial-e96c4558ac2013c8f787498f67652362",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nIs there a way for me to apply for a Direct Consolidation Loan if I want to have my borrower defense discharge apply to my FFEL?\nYou can apply by logging on to StudentAid.gov/app/launchConsolidation.action. Once your Direct Consolidation Loan is approved, you can then contact the borrower defense hotline on 1-855-279-6207 from 8am to 8pm\nWhere can I go for reconsideration of a decison regarding a borrower defense?\nWe have a dedicated borrower defense hotline at 1-855-279-6207 from 8am to 8pm\n[CURRENT]\nI have applied for borrower defense by way of email but now have found further information that I want to send, can I do this?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2278013a80847dedecfc48d80391fb36-13",
+          "group_id": "doc2dial-2278013a80847dedecfc48d80391fb36",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nyes\ndo you more information?\nyes\nok great!\n[CURRENT]\nwhen do benefits come?",
+          "gold_parents_in_fused_top5": []
+        }
+      ],
+      "candidate_complete": 52,
+      "tool_message_complete": 44
+    },
+    {
+      "variant": "parent-child-dev56",
+      "reranked": true,
+      "dense_weight": 0.5,
+      "case_count": 56,
+      "report_sha256": "b917faf2fc5463fde438ee7c954bc73c428d9748422fd2fde993c141cc55ad9d",
+      "rescued": [
+        "doc2dial-dev-e557d33d054041f0aac44defb1a207ef-12",
+        "doc2dial-dev-a9e6b11deba64bccfa874f154eef44b4-10",
+        "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11"
+      ],
+      "harmed": [],
+      "delta_pp": 5.357142857142857,
+      "failures": [
+        {
+          "case_id": "doc2dial-dev-fcc47e7aa1e49bd0de037d783936592b-13",
+          "group_id": "doc2dial-fcc47e7aa1e49bd0de037d783936592b",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nHow many work credits do I need and what does it depend on?\nThe number of work credits you need to qualify for disability benefits depends on your age when you become disabled.  Most of the time, you need 40 credits, 20 of which were earned in the last 10 years ending with the year you become disabled.\nHow is it determined if an adult \"child\" is disabled for SSDI benefits?\nIs the child age 18 or older?\n[CURRENT]\nYes, my child is 18 years or older.",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2b9a9e5d3fb7afbd0daabf0fb8b00a54-11",
+          "group_id": "doc2dial-2b9a9e5d3fb7afbd0daabf0fb8b00a54",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nYes, lucky me. I still have my parents around.\nGreat then. That's good to know. Then you have the family members that also can benefit of your application ten.\nGreat. And how they benefit with this?\nThe can receive credits in money. Until four credits each year.\n[CURRENT]\nBut what happens if I die and you still send the payments?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-247f23e580bce66d852b143a622f29d7-12",
+          "group_id": "doc2dial-247f23e580bce66d852b143a622f29d7",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nHelp apply online\nou may help someone else fill out their application ,\nI need more information\nyour spouse or family member may be able to receive benefits on your record if they qualify\n[CURRENT]\nGet Your Social Security Benefit Verification Letter Online",
+          "gold_parents_in_fused_top5": [
+            "Apply for Retirement Benefits | SSA#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-0f04d497049c31faebfa20487a25c0f1-12",
+          "group_id": "doc2dial-0f04d497049c31faebfa20487a25c0f1",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nYes, I am.\nIn that case you may be able to have all or part of your outstanding federal student loan debt forgiven, and you also may be reimbursed for amounts you have already paid on those loans.\nWhat are you doing to provide help to student loan borrowers during the Covid-19 crisis?\nFederal student loan borrowers are automatically being placed in an administrative forbearance, which allows you to temporarily stop making your monthly loan payments. In addition, interest is being temporarily set at 0% on federal student loans.\n[CURRENT]\nHow will I know how much I have left after the interest is calculated?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-b30d73c202844505549d00218083577d-11",
+          "group_id": "doc2dial-b30d73c202844505549d00218083577d",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nWhen will I receive a notification about the Sweet v. DeVos Lawsuit?\nIf you are a potential member of the group of borrowers to which the lawsuit applies, you should receive an email and mail notification between June and early July 2020.\nDo you have any other questions about the Sweet V DeVos lawsuit?\nNo.\n[CURRENT]\nAre FFEL Program Loans eligible?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-00a4a05f229e5cee83e7b10f2e20873d-12",
+          "group_id": "doc2dial-00a4a05f229e5cee83e7b10f2e20873d",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nThe U.S. Department of Education will notify borrower defense applicants through e-mail of their determination about borrower defense discharge eligibility.\nWould you like a number you can call if you have more questions about this notification?\nyes let me have it\nYou can call our borrower defense hotline: 1-855-279-6207. Representatives are available Monday through Friday from 8 a.m. to 8 p.m. Eastern time\n[CURRENT]\nI looked at your page, what are Corinthian colleges?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11",
+          "group_id": "doc2dial-56ecb9ca49fe6db3568b935cff6c0510",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nCan you explain what is the adverse credit is incorrect?\nIt can make credit approval difficult.\nWhat is the lender's deed?\nIts purpose is the credit release.\n[CURRENT]\nDo I need information related to mitigating circumstances?",
+          "gold_parents_in_fused_top5": [
+            "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-50b28aeda7cf80e1959ac907127bb5d9-12",
+          "group_id": "doc2dial-50b28aeda7cf80e1959ac907127bb5d9",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nIf I amended your tax return\nwe counts and it changes the income to determine the income - related monthly adjustment amounts your MAGI , let us know .\nI need more information\nFor more information about the income - related monthly adjustment amounts or to apply for Medicare Part A or B\n[CURRENT]\nhow I requested?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-4a335b1ca0ddb7d0465b81f2d318afd3-11",
+          "group_id": "doc2dial-4a335b1ca0ddb7d0465b81f2d318afd3",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\ncan someone get retirement and survivors benefits at the same time?\nThey can apply for retirement or survivors benefits now and switch to the other higher benefit at a later date\nwhen can a widow get her own benefits that she earned through work?\nThey can switch to their own retirement benefit as early as age 62. This assumes you are eligible for retirement benefits and your retirement rate is higher than your rate as a widow\n[CURRENT]\ncan the widow get monthly benefits if she is caring for the dead guy's daughter?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-e96c4558ac2013c8f787498f67652362-11",
+          "group_id": "doc2dial-e96c4558ac2013c8f787498f67652362",
+          "first_loss": "selected_complete",
+          "query_used": "[CONVERSATION]\nIs there a way for me to apply for a Direct Consolidation Loan if I want to have my borrower defense discharge apply to my FFEL?\nYou can apply by logging on to StudentAid.gov/app/launchConsolidation.action. Once your Direct Consolidation Loan is approved, you can then contact the borrower defense hotline on 1-855-279-6207 from 8am to 8pm\nWhere can I go for reconsideration of a decison regarding a borrower defense?\nWe have a dedicated borrower defense hotline at 1-855-279-6207 from 8am to 8pm\n[CURRENT]\nI have applied for borrower defense by way of email but now have found further information that I want to send, can I do this?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2278013a80847dedecfc48d80391fb36-13",
+          "group_id": "doc2dial-2278013a80847dedecfc48d80391fb36",
+          "first_loss": "candidate_complete",
+          "query_used": "[CONVERSATION]\nyes\ndo you more information?\nyes\nok great!\n[CURRENT]\nwhen do benefits come?",
+          "gold_parents_in_fused_top5": []
+        }
+      ],
+      "candidate_complete": 54,
+      "tool_message_complete": 45
+    },
+    {
+      "variant": "raw56",
+      "reranked": false,
+      "dense_weight": 0.25,
+      "case_count": 56,
+      "report_sha256": "7becdfa02c55ca25cb4cb74a14a53f5f5d7cf7db19eff5f2ec2be8ef5a2ebf6a",
+      "rescued": [
+        "doc2dial-dev-e557d33d054041f0aac44defb1a207ef-12",
+        "doc2dial-dev-a9e6b11deba64bccfa874f154eef44b4-10",
+        "doc2dial-dev-247f23e580bce66d852b143a622f29d7-12",
+        "doc2dial-dev-0f04d497049c31faebfa20487a25c0f1-12",
+        "doc2dial-dev-b30d73c202844505549d00218083577d-11",
+        "doc2dial-dev-00a4a05f229e5cee83e7b10f2e20873d-12",
+        "doc2dial-dev-4a335b1ca0ddb7d0465b81f2d318afd3-11",
+        "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11"
+      ],
+      "harmed": [
+        "doc2dial-dev-5899911400e0d2472aff3e4e11142a7c-13",
+        "doc2dial-dev-2be506ef6926fe365c87941f7ef14862-12",
+        "doc2dial-dev-9c7626c8c2aa2b927759e64a2323d8a9-12",
+        "doc2dial-dev-b09922c61586b9398efe4bd77271deef-11",
+        "doc2dial-dev-971be81a501acb52e143a12890772498-10",
+        "doc2dial-dev-4d5350dc20418f7f89900dfa1a61b0cd-9",
+        "doc2dial-dev-739518d13fc2a96c4ad09409fa8d3982-10",
+        "doc2dial-dev-0f20051cca23859b571386e82fff9ac8-12",
+        "doc2dial-dev-1ce198bc767426637a333a1adc62e37a-12",
+        "synthetic:elliptic"
+      ],
+      "delta_pp": -3.5714285714285716,
+      "failures": [
+        {
+          "case_id": "doc2dial-dev-5899911400e0d2472aff3e4e11142a7c-13",
+          "group_id": "doc2dial-5899911400e0d2472aff3e4e11142a7c",
+          "first_loss": "candidate_complete",
+          "query_used": "Can I qualify for 5 years of free assistance?",
+          "gold_parents_in_fused_top5": [
+            "Your Health Care Costs | Veterans Affairs#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-fcc47e7aa1e49bd0de037d783936592b-13",
+          "group_id": "doc2dial-fcc47e7aa1e49bd0de037d783936592b",
+          "first_loss": "selected_complete",
+          "query_used": "Yes, my child is 18 years or older.",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2be506ef6926fe365c87941f7ef14862-12",
+          "group_id": "doc2dial-2be506ef6926fe365c87941f7ef14862",
+          "first_loss": "candidate_complete",
+          "query_used": "Yes, I recently received a response in this regard from the ED",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2b9a9e5d3fb7afbd0daabf0fb8b00a54-11",
+          "group_id": "doc2dial-2b9a9e5d3fb7afbd0daabf0fb8b00a54",
+          "first_loss": "candidate_complete",
+          "query_used": "But what happens if I die and you still send the payments?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-9c7626c8c2aa2b927759e64a2323d8a9-12",
+          "group_id": "doc2dial-9c7626c8c2aa2b927759e64a2323d8a9",
+          "first_loss": "candidate_complete",
+          "query_used": "yes",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-b09922c61586b9398efe4bd77271deef-11",
+          "group_id": "doc2dial-b09922c61586b9398efe4bd77271deef",
+          "first_loss": "candidate_complete",
+          "query_used": "Is there other related information I would need to know?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11",
+          "group_id": "doc2dial-56ecb9ca49fe6db3568b935cff6c0510",
+          "first_loss": "candidate_complete",
+          "query_used": "Do I need information related to mitigating circumstances?",
+          "gold_parents_in_fused_top5": [
+            "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-50b28aeda7cf80e1959ac907127bb5d9-12",
+          "group_id": "doc2dial-50b28aeda7cf80e1959ac907127bb5d9",
+          "first_loss": "candidate_complete",
+          "query_used": "how I requested?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-971be81a501acb52e143a12890772498-10",
+          "group_id": "doc2dial-971be81a501acb52e143a12890772498",
+          "first_loss": "candidate_complete",
+          "query_used": "If that is my case, what else?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-e96c4558ac2013c8f787498f67652362-11",
+          "group_id": "doc2dial-e96c4558ac2013c8f787498f67652362",
+          "first_loss": "selected_complete",
+          "query_used": "I have applied for borrower defense by way of email but now have found further information that I want to send, can I do this?",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2278013a80847dedecfc48d80391fb36-13",
+          "group_id": "doc2dial-2278013a80847dedecfc48d80391fb36",
+          "first_loss": "selected_complete",
+          "query_used": "when do benefits come?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-4d5350dc20418f7f89900dfa1a61b0cd-9",
+          "group_id": "doc2dial-4d5350dc20418f7f89900dfa1a61b0cd",
+          "first_loss": "selected_complete",
+          "query_used": "Makes sense. What can you tell me about monthly Medicare premiums?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-739518d13fc2a96c4ad09409fa8d3982-10",
+          "group_id": "doc2dial-739518d13fc2a96c4ad09409fa8d3982",
+          "first_loss": "selected_complete",
+          "query_used": "That's what I thought. And how high are the monthly medicare premiums?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-0f20051cca23859b571386e82fff9ac8-12",
+          "group_id": "doc2dial-0f20051cca23859b571386e82fff9ac8",
+          "first_loss": "candidate_complete",
+          "query_used": "Sure. Why not?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-1ce198bc767426637a333a1adc62e37a-12",
+          "group_id": "doc2dial-1ce198bc767426637a333a1adc62e37a",
+          "first_loss": "candidate_complete",
+          "query_used": "How would I go about appealing a decision?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "synthetic:elliptic",
+          "group_id": "synthetic:opened-audio",
+          "first_loss": "selected_complete",
+          "query_used": "不是。",
+          "gold_parents_in_fused_top5": []
+        }
+      ],
+      "candidate_complete": 46,
+      "tool_message_complete": 40
+    },
+    {
+      "variant": "raw56",
+      "reranked": false,
+      "dense_weight": 0.5,
+      "case_count": 56,
+      "report_sha256": "7becdfa02c55ca25cb4cb74a14a53f5f5d7cf7db19eff5f2ec2be8ef5a2ebf6a",
+      "rescued": [
+        "doc2dial-dev-e557d33d054041f0aac44defb1a207ef-12",
+        "doc2dial-dev-2b9a9e5d3fb7afbd0daabf0fb8b00a54-11",
+        "doc2dial-dev-247f23e580bce66d852b143a622f29d7-12",
+        "doc2dial-dev-0f04d497049c31faebfa20487a25c0f1-12",
+        "doc2dial-dev-b30d73c202844505549d00218083577d-11",
+        "doc2dial-dev-00a4a05f229e5cee83e7b10f2e20873d-12",
+        "doc2dial-dev-4a335b1ca0ddb7d0465b81f2d318afd3-11",
+        "doc2dial-dev-e96c4558ac2013c8f787498f67652362-11",
+        "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11"
+      ],
+      "harmed": [
+        "doc2dial-dev-5899911400e0d2472aff3e4e11142a7c-13",
+        "doc2dial-dev-2be506ef6926fe365c87941f7ef14862-12",
+        "doc2dial-dev-9c7626c8c2aa2b927759e64a2323d8a9-12",
+        "doc2dial-dev-b09922c61586b9398efe4bd77271deef-11",
+        "doc2dial-dev-971be81a501acb52e143a12890772498-10",
+        "doc2dial-dev-4d5350dc20418f7f89900dfa1a61b0cd-9",
+        "doc2dial-dev-739518d13fc2a96c4ad09409fa8d3982-10",
+        "doc2dial-dev-0f20051cca23859b571386e82fff9ac8-12",
+        "doc2dial-dev-1ce198bc767426637a333a1adc62e37a-12",
+        "synthetic:elliptic"
+      ],
+      "delta_pp": -1.7857142857142858,
+      "failures": [
+        {
+          "case_id": "doc2dial-dev-5899911400e0d2472aff3e4e11142a7c-13",
+          "group_id": "doc2dial-5899911400e0d2472aff3e4e11142a7c",
+          "first_loss": "candidate_complete",
+          "query_used": "Can I qualify for 5 years of free assistance?",
+          "gold_parents_in_fused_top5": [
+            "Your Health Care Costs | Veterans Affairs#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-fcc47e7aa1e49bd0de037d783936592b-13",
+          "group_id": "doc2dial-fcc47e7aa1e49bd0de037d783936592b",
+          "first_loss": "selected_complete",
+          "query_used": "Yes, my child is 18 years or older.",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2be506ef6926fe365c87941f7ef14862-12",
+          "group_id": "doc2dial-2be506ef6926fe365c87941f7ef14862",
+          "first_loss": "candidate_complete",
+          "query_used": "Yes, I recently received a response in this regard from the ED",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-a9e6b11deba64bccfa874f154eef44b4-10",
+          "group_id": "doc2dial-a9e6b11deba64bccfa874f154eef44b4",
+          "first_loss": "selected_complete",
+          "query_used": "What if I filed a federal income tax return for the year?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-9c7626c8c2aa2b927759e64a2323d8a9-12",
+          "group_id": "doc2dial-9c7626c8c2aa2b927759e64a2323d8a9",
+          "first_loss": "candidate_complete",
+          "query_used": "yes",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-b09922c61586b9398efe4bd77271deef-11",
+          "group_id": "doc2dial-b09922c61586b9398efe4bd77271deef",
+          "first_loss": "candidate_complete",
+          "query_used": "Is there other related information I would need to know?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11",
+          "group_id": "doc2dial-56ecb9ca49fe6db3568b935cff6c0510",
+          "first_loss": "candidate_complete",
+          "query_used": "Do I need information related to mitigating circumstances?",
+          "gold_parents_in_fused_top5": [
+            "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-50b28aeda7cf80e1959ac907127bb5d9-12",
+          "group_id": "doc2dial-50b28aeda7cf80e1959ac907127bb5d9",
+          "first_loss": "candidate_complete",
+          "query_used": "how I requested?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-971be81a501acb52e143a12890772498-10",
+          "group_id": "doc2dial-971be81a501acb52e143a12890772498",
+          "first_loss": "candidate_complete",
+          "query_used": "If that is my case, what else?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-2278013a80847dedecfc48d80391fb36-13",
+          "group_id": "doc2dial-2278013a80847dedecfc48d80391fb36",
+          "first_loss": "selected_complete",
+          "query_used": "when do benefits come?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-4d5350dc20418f7f89900dfa1a61b0cd-9",
+          "group_id": "doc2dial-4d5350dc20418f7f89900dfa1a61b0cd",
+          "first_loss": "selected_complete",
+          "query_used": "Makes sense. What can you tell me about monthly Medicare premiums?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-739518d13fc2a96c4ad09409fa8d3982-10",
+          "group_id": "doc2dial-739518d13fc2a96c4ad09409fa8d3982",
+          "first_loss": "selected_complete",
+          "query_used": "That's what I thought. And how high are the monthly medicare premiums?",
+          "gold_parents_in_fused_top5": [
+            "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-0f20051cca23859b571386e82fff9ac8-12",
+          "group_id": "doc2dial-0f20051cca23859b571386e82fff9ac8",
+          "first_loss": "selected_complete",
+          "query_used": "Sure. Why not?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-1ce198bc767426637a333a1adc62e37a-12",
+          "group_id": "doc2dial-1ce198bc767426637a333a1adc62e37a",
+          "first_loss": "candidate_complete",
+          "query_used": "How would I go about appealing a decision?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "synthetic:elliptic",
+          "group_id": "synthetic:opened-audio",
+          "first_loss": "candidate_complete",
+          "query_used": "不是。",
+          "gold_parents_in_fused_top5": []
+        }
+      ],
+      "candidate_complete": 47,
+      "tool_message_complete": 41
+    },
+    {
+      "variant": "raw56",
+      "reranked": true,
+      "dense_weight": 0.25,
+      "case_count": 56,
+      "report_sha256": "7becdfa02c55ca25cb4cb74a14a53f5f5d7cf7db19eff5f2ec2be8ef5a2ebf6a",
+      "rescued": [
+        "doc2dial-dev-e557d33d054041f0aac44defb1a207ef-12",
+        "doc2dial-dev-fcc47e7aa1e49bd0de037d783936592b-13",
+        "doc2dial-dev-a9e6b11deba64bccfa874f154eef44b4-10",
+        "doc2dial-dev-247f23e580bce66d852b143a622f29d7-12",
+        "doc2dial-dev-0f04d497049c31faebfa20487a25c0f1-12",
+        "doc2dial-dev-b30d73c202844505549d00218083577d-11",
+        "doc2dial-dev-00a4a05f229e5cee83e7b10f2e20873d-12",
+        "doc2dial-dev-4a335b1ca0ddb7d0465b81f2d318afd3-11",
+        "doc2dial-dev-e96c4558ac2013c8f787498f67652362-11",
+        "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11"
+      ],
+      "harmed": [
+        "doc2dial-dev-5899911400e0d2472aff3e4e11142a7c-13",
+        "doc2dial-dev-2be506ef6926fe365c87941f7ef14862-12",
+        "doc2dial-dev-9c7626c8c2aa2b927759e64a2323d8a9-12",
+        "doc2dial-dev-b09922c61586b9398efe4bd77271deef-11",
+        "doc2dial-dev-971be81a501acb52e143a12890772498-10",
+        "doc2dial-dev-3f3aa224b819953746fd223c1e30eb73-16",
+        "doc2dial-dev-0f20051cca23859b571386e82fff9ac8-12",
+        "doc2dial-dev-1ce198bc767426637a333a1adc62e37a-12"
+      ],
+      "delta_pp": 3.5714285714285716,
+      "failures": [
+        {
+          "case_id": "doc2dial-dev-5899911400e0d2472aff3e4e11142a7c-13",
+          "group_id": "doc2dial-5899911400e0d2472aff3e4e11142a7c",
+          "first_loss": "candidate_complete",
+          "query_used": "Can I qualify for 5 years of free assistance?",
+          "gold_parents_in_fused_top5": [
+            "Your Health Care Costs | Veterans Affairs#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2be506ef6926fe365c87941f7ef14862-12",
+          "group_id": "doc2dial-2be506ef6926fe365c87941f7ef14862",
+          "first_loss": "candidate_complete",
+          "query_used": "Yes, I recently received a response in this regard from the ED",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2b9a9e5d3fb7afbd0daabf0fb8b00a54-11",
+          "group_id": "doc2dial-2b9a9e5d3fb7afbd0daabf0fb8b00a54",
+          "first_loss": "candidate_complete",
+          "query_used": "But what happens if I die and you still send the payments?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-9c7626c8c2aa2b927759e64a2323d8a9-12",
+          "group_id": "doc2dial-9c7626c8c2aa2b927759e64a2323d8a9",
+          "first_loss": "candidate_complete",
+          "query_used": "yes",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-b09922c61586b9398efe4bd77271deef-11",
+          "group_id": "doc2dial-b09922c61586b9398efe4bd77271deef",
+          "first_loss": "candidate_complete",
+          "query_used": "Is there other related information I would need to know?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11",
+          "group_id": "doc2dial-56ecb9ca49fe6db3568b935cff6c0510",
+          "first_loss": "candidate_complete",
+          "query_used": "Do I need information related to mitigating circumstances?",
+          "gold_parents_in_fused_top5": [
+            "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-50b28aeda7cf80e1959ac907127bb5d9-12",
+          "group_id": "doc2dial-50b28aeda7cf80e1959ac907127bb5d9",
+          "first_loss": "candidate_complete",
+          "query_used": "how I requested?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-971be81a501acb52e143a12890772498-10",
+          "group_id": "doc2dial-971be81a501acb52e143a12890772498",
+          "first_loss": "candidate_complete",
+          "query_used": "If that is my case, what else?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-2278013a80847dedecfc48d80391fb36-13",
+          "group_id": "doc2dial-2278013a80847dedecfc48d80391fb36",
+          "first_loss": "selected_complete",
+          "query_used": "when do benefits come?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-3f3aa224b819953746fd223c1e30eb73-16",
+          "group_id": "doc2dial-3f3aa224b819953746fd223c1e30eb73",
+          "first_loss": "selected_complete",
+          "query_used": "what if im issued a ticket?",
+          "gold_parents_in_fused_top5": [
+            "Traffic Violations Bureau#3_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-0f20051cca23859b571386e82fff9ac8-12",
+          "group_id": "doc2dial-0f20051cca23859b571386e82fff9ac8",
+          "first_loss": "candidate_complete",
+          "query_used": "Sure. Why not?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-1ce198bc767426637a333a1adc62e37a-12",
+          "group_id": "doc2dial-1ce198bc767426637a333a1adc62e37a",
+          "first_loss": "candidate_complete",
+          "query_used": "How would I go about appealing a decision?",
+          "gold_parents_in_fused_top5": []
+        }
+      ],
+      "candidate_complete": 46,
+      "tool_message_complete": 44
+    },
+    {
+      "variant": "raw56",
+      "reranked": true,
+      "dense_weight": 0.5,
+      "case_count": 56,
+      "report_sha256": "7becdfa02c55ca25cb4cb74a14a53f5f5d7cf7db19eff5f2ec2be8ef5a2ebf6a",
+      "rescued": [
+        "doc2dial-dev-e557d33d054041f0aac44defb1a207ef-12",
+        "doc2dial-dev-fcc47e7aa1e49bd0de037d783936592b-13",
+        "doc2dial-dev-2b9a9e5d3fb7afbd0daabf0fb8b00a54-11",
+        "doc2dial-dev-a9e6b11deba64bccfa874f154eef44b4-10",
+        "doc2dial-dev-247f23e580bce66d852b143a622f29d7-12",
+        "doc2dial-dev-0f04d497049c31faebfa20487a25c0f1-12",
+        "doc2dial-dev-b30d73c202844505549d00218083577d-11",
+        "doc2dial-dev-00a4a05f229e5cee83e7b10f2e20873d-12",
+        "doc2dial-dev-4a335b1ca0ddb7d0465b81f2d318afd3-11",
+        "doc2dial-dev-e96c4558ac2013c8f787498f67652362-11",
+        "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11"
+      ],
+      "harmed": [
+        "doc2dial-dev-5899911400e0d2472aff3e4e11142a7c-13",
+        "doc2dial-dev-2be506ef6926fe365c87941f7ef14862-12",
+        "doc2dial-dev-9c7626c8c2aa2b927759e64a2323d8a9-12",
+        "doc2dial-dev-b09922c61586b9398efe4bd77271deef-11",
+        "doc2dial-dev-971be81a501acb52e143a12890772498-10",
+        "doc2dial-dev-3f3aa224b819953746fd223c1e30eb73-16",
+        "doc2dial-dev-0f20051cca23859b571386e82fff9ac8-12",
+        "doc2dial-dev-1ce198bc767426637a333a1adc62e37a-12",
+        "synthetic:elliptic"
+      ],
+      "delta_pp": 3.5714285714285716,
+      "failures": [
+        {
+          "case_id": "doc2dial-dev-5899911400e0d2472aff3e4e11142a7c-13",
+          "group_id": "doc2dial-5899911400e0d2472aff3e4e11142a7c",
+          "first_loss": "candidate_complete",
+          "query_used": "Can I qualify for 5 years of free assistance?",
+          "gold_parents_in_fused_top5": [
+            "Your Health Care Costs | Veterans Affairs#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-2be506ef6926fe365c87941f7ef14862-12",
+          "group_id": "doc2dial-2be506ef6926fe365c87941f7ef14862",
+          "first_loss": "candidate_complete",
+          "query_used": "Yes, I recently received a response in this regard from the ED",
+          "gold_parents_in_fused_top5": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-9c7626c8c2aa2b927759e64a2323d8a9-12",
+          "group_id": "doc2dial-9c7626c8c2aa2b927759e64a2323d8a9",
+          "first_loss": "candidate_complete",
+          "query_used": "yes",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-b09922c61586b9398efe4bd77271deef-11",
+          "group_id": "doc2dial-b09922c61586b9398efe4bd77271deef",
+          "first_loss": "candidate_complete",
+          "query_used": "Is there other related information I would need to know?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11",
+          "group_id": "doc2dial-56ecb9ca49fe6db3568b935cff6c0510",
+          "first_loss": "candidate_complete",
+          "query_used": "Do I need information related to mitigating circumstances?",
+          "gold_parents_in_fused_top5": [
+            "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-50b28aeda7cf80e1959ac907127bb5d9-12",
+          "group_id": "doc2dial-50b28aeda7cf80e1959ac907127bb5d9",
+          "first_loss": "candidate_complete",
+          "query_used": "how I requested?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-971be81a501acb52e143a12890772498-10",
+          "group_id": "doc2dial-971be81a501acb52e143a12890772498",
+          "first_loss": "candidate_complete",
+          "query_used": "If that is my case, what else?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-2278013a80847dedecfc48d80391fb36-13",
+          "group_id": "doc2dial-2278013a80847dedecfc48d80391fb36",
+          "first_loss": "selected_complete",
+          "query_used": "when do benefits come?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-3f3aa224b819953746fd223c1e30eb73-16",
+          "group_id": "doc2dial-3f3aa224b819953746fd223c1e30eb73",
+          "first_loss": "selected_complete",
+          "query_used": "what if im issued a ticket?",
+          "gold_parents_in_fused_top5": [
+            "Traffic Violations Bureau#3_0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-0f20051cca23859b571386e82fff9ac8-12",
+          "group_id": "doc2dial-0f20051cca23859b571386e82fff9ac8",
+          "first_loss": "selected_complete",
+          "query_used": "Sure. Why not?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "doc2dial-dev-1ce198bc767426637a333a1adc62e37a-12",
+          "group_id": "doc2dial-1ce198bc767426637a333a1adc62e37a",
+          "first_loss": "candidate_complete",
+          "query_used": "How would I go about appealing a decision?",
+          "gold_parents_in_fused_top5": []
+        },
+        {
+          "case_id": "synthetic:elliptic",
+          "group_id": "synthetic:opened-audio",
+          "first_loss": "candidate_complete",
+          "query_used": "不是。",
+          "gold_parents_in_fused_top5": []
+        }
+      ],
+      "candidate_complete": 47,
+      "tool_message_complete": 44
+    }
+  ]
+}

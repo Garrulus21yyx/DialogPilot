@@ -35,6 +35,9 @@ def main():
     parser.add_argument("--model", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--reranker", type=Path)
+    parser.add_argument(
+        "--candidate-policy", choices=("flat", "parent_child"), default="flat"
+    )
     parser.add_argument("--cache", type=Path, required=True)
     parser.add_argument("--public-cases", type=int, default=10)
     parser.add_argument("--synthetic-cases", type=int, default=10)
@@ -125,7 +128,16 @@ def main():
     dense = encodings["queries"] @ encodings["documents"].T
     lexical = bm25_matrix(queries, texts)
     timings["exact_dense_and_python_bm25_ms"] = (time.perf_counter() - started) * 1000
-    rows = replay(documents, cases, chunks, texts, queries, dense, lexical)
+    rows = replay(
+        documents,
+        cases,
+        chunks,
+        texts,
+        queries,
+        dense,
+        lexical,
+        candidate_policy=args.candidate_policy,
+    )
     rerank_identity = None
     rerank_ms = 0
     reranked_rows = []
@@ -196,6 +208,7 @@ def main():
             dense,
             lexical,
             rerank_scores=rerank_scores,
+            candidate_policy=args.candidate_policy,
         )
     report = {
         "schema_version": "rag-provider-free-v1",
@@ -216,6 +229,8 @@ def main():
         "chunk_tokens": args.chunk_tokens,
         "overlap": args.overlap,
         "source_k": 20,
+        "candidate_policy": args.candidate_policy,
+        "parent_limit": 3 if args.candidate_policy == "parent_child" else 0,
         "final_k": 5,
         "context_tokens": 2600,
         "context_budget_scope": "evidence text; complete ToolMessage tokens measured separately",

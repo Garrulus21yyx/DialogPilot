@@ -68,3 +68,30 @@ def test_adaptive_selection_never_uses_test_fold_labels():
     before = {r["case_id"]: r["weights"] for r in result["cases"] if r["fold"] == 0}
     after = {r["case_id"]: r["weights"] for r in again["cases"] if r["fold"] == 0}
     assert before == after
+
+
+@pytest.mark.parametrize("seed", range(8))
+def test_parent_refill_is_bounded_deduplicated_and_keeps_global_prefix(seed):
+    from evaluation.rag_provider_free import parent_child_candidates, ranked
+    from mcp.rank_fusion import fuse_rankings
+
+    rng = np.random.default_rng(seed)
+    ids = tuple(str(i) for i in range(60))
+    by_id = {cid: SimpleNamespace(document_id=str(int(cid) % 8)) for cid in ids}
+    dense, lexical = rng.random((2, len(ids)))
+    for weight in (0, 0.25, 0.5, 1):
+        routes = {"dense": ranked(dense, ids, 20), "bm25": ranked(lexical, ids, 20)}
+        global_ids = fuse_rankings(
+            routes, weights={"dense": weight, "bm25": 1 - weight}, rrf_k=10, top_k=20
+        )
+        chosen, trace = parent_child_candidates(
+            global_ids, routes, by_id, dense, lexical, ids, weight, 20
+        )
+        assert chosen[:10] == global_ids[:10]
+        assert len(chosen) == len(set(chosen)) == 20
+        assert len(trace["parents"]) <= 3
+        assert all(
+            by_id[cid].document_id in trace["parents"]
+            for route in trace["local_routes"].values()
+            for cid in route
+        )
