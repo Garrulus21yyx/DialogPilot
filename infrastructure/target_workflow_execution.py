@@ -23,25 +23,18 @@ from core.identity import ConversationId, TenantId, UserId
 from infrastructure.postgres_target_runtime import PostgresOperationLedger
 
 
-_AGENT_TYPE = {
-    "billing_refund": "billing",
-    "order_logistics": "general",
-    "account_security": "account_security",
-    "human_service": "escalation",
-}
-
-
 class TargetWorkflowExecutor:
     """Bind each write to its conversation ledger and registry approval mode."""
 
     version = "target-workflow-executor-v1"
 
     def __init__(
-        self, pool, tool_manager, *, control_guard: WorkControlGuard | None = None,
+        self, pool, tool_manager, *, registry, control_guard: WorkControlGuard | None = None,
     ) -> None:
         self._pool = pool
         self._tools = tool_manager
         self._control_guard = control_guard
+        self._registry = registry
 
     async def __call__(self, context: AgentContextView) -> AgentResult:
         item = context.work_item
@@ -60,8 +53,10 @@ class TargetWorkflowExecutor:
                 context,
                 accepted_handoff=accepted_handoff,
                 control_guard=self._control_guard,
+                principal=self._registry.agent(item.owner_agent).execution_principal,
             ),
-            reconciliation_port=_ToolReconciler(self._tools, context),
+            reconciliation_port=_ToolReconciler(self._tools, context,
+                principal=self._registry.agent(item.owner_agent).execution_principal),
             approval_grants=grants,
         )
         return await runtime(context)
@@ -147,12 +142,14 @@ class _ToolPort:
         tool_manager,
         context: AgentContextView,
         *,
+        principal: str,
         accepted_handoff: AcceptedHandoff | None = None,
         control_guard: WorkControlGuard | None = None,
     ) -> None:
         self._tools = tool_manager
         self._context = context
         self._accepted_handoff = accepted_handoff
+        self._principal = principal
         self._control_guard = control_guard
 
     async def execute(self, item, *, tool_id, arguments, operation_key):
@@ -180,7 +177,7 @@ class _ToolPort:
         result = await self._tools.execute_for_agent(
             tool_id,
             dict(arguments),
-            agent_type=_AGENT_TYPE[item.owner_agent],
+            agent_type=self._principal,
             context=context,
             approved=True,
             call_id=operation_key,
@@ -209,9 +206,10 @@ class _ToolPort:
 
 
 class _ToolReconciler:
-    def __init__(self, tool_manager, context: AgentContextView) -> None:
+    def __init__(self, tool_manager, context: AgentContextView, *, principal: str) -> None:
         self._tools = tool_manager
         self._context = context
+        self._principal = principal
 
     async def reconcile(self, item, *, operation_key):
         reconciliation = item.reconciliation
@@ -237,7 +235,7 @@ class _ToolReconciler:
         result = await self._tools.execute_for_agent(
             reconciliation.tool_id,
             params,
-            agent_type=_AGENT_TYPE[item.owner_agent],
+            agent_type=self._principal,
             context=dict(self._context.trusted_context),
             approved=False,
             call_id=f"reconcile:{operation_key}",

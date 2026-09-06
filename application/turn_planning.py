@@ -152,6 +152,7 @@ class ValidatedCommand:
     risk: CapabilityRisk
     verification_profile: str
     action: ActionDefinition | None = None
+    allowed_actions: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -348,6 +349,10 @@ class RoutePolicy:
                 effect,
                 risk,
                 skills[0].verification_profile if len(skills) == 1 else agent.verification_profile,
+                allowed_actions=tuple(
+                    action.ref for action in registry.actions
+                    if action.owner_agent == agent.agent_id
+                ) if open_delegation else (),
             )
         if command.kind is CommandKind.EXECUTE_ACTION:
             if not command.action_ref:
@@ -437,6 +442,13 @@ class RoutePolicy:
             ), None)
             if grant is None:
                 raise TurnPlanningError("workflow continuation has no accepted approval")
+            if any(work.registry_fingerprint != registry.fingerprint for work in grant.suspended_work_items):
+                raise TurnPlanningError("action continuation uses another registry version")
+            if grant.suspended_work_items and grant.suspended_work_items[0].control is not None:
+                binding = grant.suspended_work_items[0].control
+                if not any(control.control_id == binding.control_id and control.revision == binding.revision
+                           for control in state.active_work_controls):
+                    raise TurnPlanningError("approved action objective was superseded")
             if (
                 grant.action_ref,
                 grant.operation_key,
@@ -756,6 +768,7 @@ class TurnPlanCompiler:
             action_ref=action.ref if action and write else None,
             approval_policy=action.approval_policy if action and write else None,
             control=control,
+            allowed_actions=command.allowed_actions,
         )
 
     @staticmethod

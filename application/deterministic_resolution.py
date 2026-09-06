@@ -157,6 +157,7 @@ class DeterministicResolver:
                     approval.approval_id,
                     approval.version,
                     False,
+                    resumed_work_items=approval.suspended_work_items,
                 )
             stream = next(
                 item for item in state.workstreams
@@ -177,6 +178,7 @@ class DeterministicResolver:
                 target_entity_version=approval.target_entity_version,
                 arguments=tuple((item.name, item.value) for item in approval.arguments),
                 argument_bindings=approval.argument_bindings,
+                resumed_work_items=approval.suspended_work_items,
             )
         if observations.approval_decision is not None:
             accepted = next((

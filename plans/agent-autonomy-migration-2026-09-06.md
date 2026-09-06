@@ -12,7 +12,7 @@
 
 1. implemented：Registry 领域能力卡、通用目标委派、Schema/编译/RoutePolicy/领域执行接线与回归。新增领域无需业务目标枚举；当前仅开放只读委派。合同回归通过，尚无真实模型收益结论。
 2. implemented：Action 可不关联 Flow；统一 PREPARE_ACTION / EXECUTE_ACTION / CONTINUE_ACTION，独立写入使用 ACTION 执行模式。已有待审批 Workstream、信号消费、恢复及操作账本复用。PostgreSQL 回归 136 passed、2 skipped（两项内存账本不适用的数据库隔离测试）。
-3. in_progress：领域模型提出写动作，经共享执行入口暂停、恢复和继续；覆盖目标修正与审批失效。
+3. implemented / verification_open：领域模型提出写动作，经共享准备服务、已有审批状态和写运行时暂停、恢复、继续；增加通用 request_user_input，不按商品类别枚举字段。基础回归 154 passed / 2 skipped；补充拒绝和依赖恢复后 26 passed。多种待决交互竞争的整体收敛仍需验证，不据此声明全部闭环。
 4. pending：环境可注入，τ³ 工具及政策桥接，完整两条开发任务与官方评分。
 
 ## 验证与完成标准

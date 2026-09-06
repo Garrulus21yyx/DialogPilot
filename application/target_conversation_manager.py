@@ -360,6 +360,14 @@ class TargetConversationManager:
                 thread_id if self._orchestration.supports_resume else None
             ),
         )
+        from application.action_approval import bind_action_approval
+        next_state = bind_action_approval(
+            state, plan, board, self._registry,
+            thread_id if self._orchestration.supports_resume else None,
+        )
+        if next_state is not state:
+            self._persist(state, next_state)
+            state = next_state
         if (
             resume_thread_id is None
             and self._orchestration.supports_resume
@@ -388,6 +396,10 @@ class TargetConversationManager:
             result for result in board.results
             if result.status is AgentResultStatus.NEEDS_USER_INPUT
         )
+        # Bind one action decision first; its suspension retains other unfinished
+        # work so field collection can continue after that decision.
+        if any(result.pending_action is not None for result in board.results):
+            return state
         if not missing_results:
             return state
         if state.pending_approval is not None or state.pending_interaction is not None:

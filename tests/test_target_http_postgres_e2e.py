@@ -226,6 +226,18 @@ class _ScenarioConversationProvider:
         self.calls = []
 
     async def plan(self, payload):
+        response = self._response(payload)
+        for goal in response.get("goals", ()):
+            for field in ("order_id", "asset_id"):
+                if field not in goal:
+                    continue
+                matches = [candidate for group in payload["entity_bindings"]
+                           for candidate in group["candidates"] if candidate["value"] == goal[field]]
+                if len(matches) == 1:
+                    goal[field + "_source_ref"] = matches[0]["source_ref"]
+        return response
+
+    def _response(self, payload):
         self.calls.append(payload)
         message = str(payload["message"])
         if "异常登录" in message or "账号被盗" in message:
@@ -344,8 +356,8 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
     tools = _ScenarioTools()
     conversation_provider = _ScenarioConversationProvider()
     read_executor = TargetToolExecutor(tools)
-    workflow_executor = TargetWorkflowExecutor(pool, tools)
     registry = build_default_capability_registry("tenant-target-e2e")
+    workflow_executor = TargetWorkflowExecutor(pool, tools, registry=registry)
     state_store = PostgresConversationStateStore(pool)
     monkeypatch.setenv("DEFAULT_TENANT_ID", "tenant-target-e2e")
     main.app.dependency_overrides[main.get_principal] = lambda: Principal(

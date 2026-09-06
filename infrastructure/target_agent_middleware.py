@@ -3,13 +3,29 @@ from __future__ import annotations
 
 import json
 
-from langchain.agents.middleware import AgentMiddleware
+from langchain.agents.middleware import AgentMiddleware, hook_config
 from langchain_core.messages import AIMessage, ToolMessage
 
 from application.context_budget import ContextBudgetManager, ModelContextBudgetExceeded
 from application.work_control import WorkControlGuard
 from core.token_estimator import TokenEstimator
 from application.knowledge_tool_contract import knowledge_artifact
+
+
+class InteractionBoundaryMiddleware(AgentMiddleware):
+    """A bound interaction ends this segment before another model call."""
+
+    @hook_config(can_jump_to=["end"])
+    async def abefore_model(self, state, runtime):
+        for message in reversed(state["messages"]):
+            if not isinstance(message, ToolMessage):
+                break
+            artifact = message.artifact
+            if (isinstance(artifact, dict) and artifact.get("schema") == "agent-result-v1"
+                    and (artifact.get("result", {}).get("status") in {"NEEDS_USER_INPUT", "WAITING_APPROVAL"}
+                         or artifact.get("result", {}).get("producer_version") == "action-preparation-v1")):
+                return {"jump_to": "end"}
+        return None
 
 
 class WorkControlMiddleware(AgentMiddleware):
@@ -46,8 +62,8 @@ class AgentContextMiddleware(AgentMiddleware):
         overhead = self.estimator.estimate(str(request.system_message)) + sum(
             self.estimator.estimate(json.dumps({
                 "name": tool.name, "description": tool.description,
-                "schema": tool.args_schema if isinstance(tool.args_schema, dict)
-                else tool.get_input_schema().model_json_schema(),
+                "schema": tool.tool_call_schema if isinstance(tool.tool_call_schema, dict)
+                else tool.tool_call_schema.model_json_schema(),
             }, ensure_ascii=False, default=str))
             for tool in request.tools
         )

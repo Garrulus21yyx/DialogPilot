@@ -93,6 +93,7 @@ class WorkItem:
     approval_policy: ApprovalPolicy | None = None
     argument_bindings: tuple[EntityBinding, ...] = ()
     control: WorkControlBinding | None = None
+    allowed_actions: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         required = (
@@ -107,6 +108,9 @@ class WorkItem:
             raise WorkItemContractError("work item identity and contract are required")
         _unique(self.allowed_tools, "allowed tools")
         _unique(self.allowed_skills, "allowed skills")
+        _unique(self.allowed_actions, "allowed actions")
+        if self.allowed_actions and self.control_mode is not ControlMode.DELEGATED:
+            raise WorkItemContractError("action proposals belong to delegated work")
         _unique((item.name for item in self.arguments), "arguments")
         _unique((item.field_name for item in self.argument_bindings), "argument bindings")
         arguments = {item.name: item.value_json for item in self.arguments}
@@ -180,6 +184,7 @@ class WorkItem:
             "control_mode": self.control_mode.value,
             "allowed_tools": self.allowed_tools,
             "allowed_skills": self.allowed_skills,
+            "allowed_actions": self.allowed_actions,
             "arguments": [(item.name, item.value_json) for item in self.arguments],
             "argument_bindings": [
                 {

@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 
-from application.work_item import ArgumentValue
+from application.work_item import ArgumentValue, WorkItem
 
 
 class AgentResultContractError(ValueError):
@@ -156,6 +156,7 @@ class AgentResult:
     state_mutation_proposals: tuple[StateMutationProposal, ...] = ()
     candidate_response: str | None = None
     retryable: bool = False
+    pending_action: WorkItem | None = None
 
     def __post_init__(self) -> None:
         _required(
@@ -165,6 +166,11 @@ class AgentResult:
             self.producer_version,
         )
         _unique_nonblank(self.evidence_refs, "evidence refs")
+        if self.pending_action is not None:
+            if self.status is not AgentResultStatus.WAITING_APPROVAL:
+                raise AgentResultContractError("pending action requires WAITING_APPROVAL")
+            if self.pending_action.effect.value != "WRITE" or self.pending_action.owner_agent != self.owner_agent:
+                raise AgentResultContractError("pending action must be an owned business write")
         if any(item.target_work_item_id != self.work_item_id for item in self.missing_inputs):
             raise AgentResultContractError("missing input targets another work item")
         if any(item.target_work_item_id != self.work_item_id for item in self.requested_evidence):

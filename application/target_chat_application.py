@@ -213,7 +213,10 @@ class TargetChatApplication:
                 identity,
                 signal_id=pending.approval_id,
                 signal_version=pending.version,
-                challenge="操作前置条件已确认。是否继续执行？",
+                challenge=("请确认操作 " + pending.action_ref + "，参数："
+                           + json.dumps({item.name: item.value for item in pending.arguments},
+                                        ensure_ascii=False, sort_keys=True)
+                           + "。是否继续执行？"),
                 resume_schema={
                     "type": "object",
                     "required": ["approval_id", "approved"],

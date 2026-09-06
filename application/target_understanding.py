@@ -1,6 +1,8 @@
 """State-bound resolution and the Intent-to-Conversation planning cascade."""
 from __future__ import annotations
 
+from dataclasses import replace
+
 from application.deterministic_resolution import ResolutionKind
 from application.turn_planning import (
     CommandKind,
@@ -47,9 +49,22 @@ class StateBoundTargetUnderstanding:
             ResolutionKind.RECONCILE_WORKFLOW,
         }:
             if not deterministic.approved:
+                suspended = deterministic.resumed_work_items
+                # Declining one action closes its originating objective and its
+                # dependants, not unrelated work suspended by the same turn.
+                excluded = {suspended[0].work_item_id} if suspended else set()
+                while True:
+                    expanded = excluded | {work.work_item_id for work in suspended
+                                           if excluded.intersection(work.dependencies)}
+                    if expanded == excluded:
+                        break
+                    excluded = expanded
+                independent = tuple(work for work in suspended
+                                    if work.work_item_id not in excluded)
+                commands = self._continuations(independent, state)
                 return TurnProposal(
-                    ProposalDisposition.CLARIFY,
-                    (),
+                    ProposalDisposition.RESOLVED if commands else ProposalDisposition.CLARIFY,
+                    commands,
                     (
                         "APPROVAL_EXPIRED"
                         if deterministic.kind is ResolutionKind.APPROVAL_EXPIRED
@@ -61,6 +76,15 @@ class StateBoundTargetUnderstanding:
                 item for item in state.workstreams
                 if item.workstream_id == deterministic.workstream_id
             )
+            grant = next(item for item in state.accepted_approvals
+                         if item.approval_id == deterministic.signal_id
+                         and item.version == deterministic.signal_version)
+            continuation = ()
+            if grant.suspended_work_items:
+                continuation = self._continuations(
+                    grant.suspended_work_items, state,
+                    after="continue-approved-workflow",
+                )
             return TurnProposal(
                 ProposalDisposition.RESOLVED,
                 (CommandProposal(
@@ -81,7 +105,7 @@ class StateBoundTargetUnderstanding:
                     approval_signal_version=deterministic.signal_version,
                     operation_key=deterministic.operation_key,
                     argument_bindings=deterministic.argument_bindings,
-                ),),
+                ), *continuation),
                 (
                     "RECONCILIATION_RESUME"
                     if deterministic.kind is ResolutionKind.RECONCILE_WORKFLOW
@@ -101,6 +125,20 @@ class StateBoundTargetUnderstanding:
                 ("workstream_id",),
             )
         return None
+
+    @classmethod
+    def _continuations(cls, items, state, *, after=None):
+        active = tuple(work for work in items if work.control is None or any(
+            control.control_id == work.control.control_id
+            and control.revision == work.control.revision
+            for control in state.active_work_controls))
+        ids = {work.work_item_id: f"continue-domain-objective-{index}"
+               for index, work in enumerate(active, start=1)}
+        return tuple(replace(
+            cls._resume_command(index, work), command_id=ids[work.work_item_id],
+            dependencies=tuple(ids[dependency] for dependency in work.dependencies
+                               if dependency in ids) + ((after,) if after else ()),
+        ) for index, work in enumerate(active, start=1))
 
     @staticmethod
     def _resume_command(index, item) -> CommandProposal:
@@ -132,7 +170,7 @@ class StateBoundTargetUnderstanding:
             )
         return CommandProposal(
             kind=CommandKind.DELEGATE_TASK,
-            candidate_skill_ids=item.allowed_skills,
+            candidate_skill_ids=() if item.allowed_actions else item.allowed_skills,
             **common,
         )
 

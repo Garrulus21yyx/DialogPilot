@@ -183,7 +183,7 @@ class OrchestrationRuntime:
             return self._dispatch(state)
         if self._checkpointer is not None and (
             any(
-                item.status is AgentResultStatus.NEEDS_USER_INPUT
+                item.status in {AgentResultStatus.NEEDS_USER_INPUT, AgentResultStatus.WAITING_APPROVAL}
                 for item in state.get("agent_results", ())
             )
             or bool(state.get("interrupt_after_completion"))

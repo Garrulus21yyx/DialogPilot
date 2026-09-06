@@ -164,7 +164,7 @@ def test_unknown_handoff_outcome_uses_registry_reconciliation_not_flow_name():
         {"tenant_id": "tenant-a", "user_id": "user-a", "conversation_id": "conversation-a"},
     )
 
-    outcome = asyncio.run(_ToolReconciler(tools, context).reconcile(
+    outcome = asyncio.run(_ToolReconciler(tools, context, principal="escalation").reconcile(
         item, operation_key=item.operation_key,
     ))
 
@@ -223,6 +223,7 @@ def test_target_handoff_write_requires_policy_accepted_draft_and_forwards_it():
     outcome = asyncio.run(_ToolPort(
         tools,
         context,
+        principal="escalation",
         accepted_handoff=accepted,
     ).execute(
         item,
@@ -244,7 +245,7 @@ def test_target_handoff_write_requires_policy_accepted_draft_and_forwards_it():
     )
 
     with pytest.raises(ValueError, match="accepted draft"):
-        asyncio.run(_ToolPort(tools, context).execute(
+        asyncio.run(_ToolPort(tools, context, principal="escalation").execute(
             item,
             tool_id="support_ticket_create",
             arguments={},

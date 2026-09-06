@@ -150,7 +150,7 @@ async def build_target_runtime(
             direct_executor=tool_executor,
             domain_workers=domain_workers,
             workflow_executor=TargetWorkflowExecutor(
-                postgres_pool, tool_manager, control_guard=control_guard,
+                postgres_pool, tool_manager, registry=registry, control_guard=control_guard,
             ),
             evidence_resolver=TargetEvidenceResolver(registry, tool_executor),
             checkpointer=checkpointer,

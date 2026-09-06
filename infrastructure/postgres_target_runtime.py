@@ -223,12 +223,13 @@ def conversation_state_to_payload(state: ConversationState) -> dict[str, object]
                 **{
                     key: value
                     for key, value in state.pending_approval.__dict__.items()
-                    if key not in {"arguments", "argument_bindings"}
+                    if key not in {"arguments", "argument_bindings", "suspended_work_items"}
                 },
                 "arguments": [
                     {"name": item.name, "value_json": item.value_json}
                     for item in state.pending_approval.arguments
                 ],
+                "suspended_work_items": [_work_item_to_payload(work) for work in state.pending_approval.suspended_work_items],
                 "argument_bindings": [
                     _binding_to_payload(binding)
                     for binding in state.pending_approval.argument_bindings
@@ -242,12 +243,13 @@ def conversation_state_to_payload(state: ConversationState) -> dict[str, object]
             {
                 **{
                     key: value for key, value in item.__dict__.items()
-                    if key not in {"arguments", "argument_bindings"}
+                    if key not in {"arguments", "argument_bindings", "suspended_work_items"}
                 },
                 "arguments": [
                     {"name": arg.name, "value_json": arg.value_json}
                     for arg in item.arguments
                 ],
+                "suspended_work_items": [_work_item_to_payload(work) for work in item.suspended_work_items],
                 "argument_bindings": [
                     _binding_to_payload(binding) for binding in item.argument_bindings
                 ],
@@ -353,6 +355,7 @@ def conversation_state_from_payload(raw: Mapping[str, object]) -> ConversationSt
                     _binding_from_payload(binding)
                     for binding in approval_raw.get("argument_bindings", ())
                 ),
+                tuple(_work_item_from_payload(work) for work in approval_raw.get("suspended_work_items", ())),
             )
             if isinstance(approval_raw, Mapping) else None
         ),
@@ -388,6 +391,7 @@ def conversation_state_from_payload(raw: Mapping[str, object]) -> ConversationSt
                     _binding_from_payload(binding)
                     for binding in item.get("argument_bindings", ())
                 ),
+                tuple(_work_item_from_payload(work) for work in item.get("suspended_work_items", ())),
             )
             for item in payload.get("accepted_approvals", ())
         ),
@@ -424,6 +428,7 @@ def _work_item_to_payload(item: WorkItem) -> dict[str, object]:
         ],
         "requirement_ids": list(item.requirement_ids),
         "dependencies": list(item.dependencies),
+        "allowed_actions": list(item.allowed_actions),
         "effect": item.effect.value,
         "risk": item.risk.value,
         "expected_output_schema": item.expected_output_schema,
@@ -523,6 +528,7 @@ def _work_item_from_payload(raw: Mapping[str, object]) -> WorkItem:
             )
             if isinstance(control_raw, Mapping) else None
         ),
+        tuple(str(value) for value in raw.get("allowed_actions", ())),
     )
 
 

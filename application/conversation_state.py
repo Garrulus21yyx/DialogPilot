@@ -199,6 +199,7 @@ class PendingApprovalState:
     arguments: tuple[ArgumentValue, ...] = ()
     checkpoint_thread_id: str | None = None
     argument_bindings: tuple[EntityBinding, ...] = ()
+    suspended_work_items: tuple[WorkItem, ...] = ()
 
     def __post_init__(self) -> None:
         _required(
@@ -242,6 +243,7 @@ class AcceptedApprovalState:
     target_entity_version: str
     arguments: tuple[ArgumentValue, ...]
     argument_bindings: tuple[EntityBinding, ...] = ()
+    suspended_work_items: tuple[WorkItem, ...] = ()
 
     def __post_init__(self) -> None:
         _required(
@@ -402,6 +404,7 @@ class ConversationState:
                 self.pending_approval.approval_id,
                 self.pending_approval.version,
                 self.pending_approval.checkpoint_thread_id,
+                tuple(item.fingerprint for item in self.pending_approval.suspended_work_items),
                 tuple(
                     (item.field_name, item.value_json, item.source_ref, item.type_selection)
                     for item in self.pending_approval.argument_bindings
@@ -420,6 +423,7 @@ class ConversationState:
                     item.approval_id, item.version, item.workstream_id,
                     item.action_ref, item.operation_key, item.target_entity_ref,
                     item.target_entity_version,
+                    tuple(work.fingerprint for work in item.suspended_work_items),
                     tuple((arg.name, arg.value_json) for arg in item.arguments),
                     tuple(
                         (binding.field_name, binding.value_json, binding.source_ref, binding.type_selection)
@@ -597,9 +601,13 @@ class ConversationState:
             pending_interaction=rebound,
         )
 
-    def wait_for_approval(self, pending: PendingApprovalState) -> "ConversationState":
+    def wait_for_approval(self, pending: PendingApprovalState, *, new_workstream: WorkstreamState | None = None) -> "ConversationState":
         if self.pending_interaction is not None or self.pending_approval is not None:
             raise ConversationStateConflict("conversation already has a pending interaction")
+        if new_workstream is not None:
+            if new_workstream.workstream_id != pending.workstream_id or new_workstream.status is not WorkstreamStatus.WAITING_APPROVAL:
+                raise ConversationStateConflict("new action workstream must bind the pending approval")
+            return replace(self.start_workstream(new_workstream), pending_approval=pending)
         updated = self._transition_workstream(
             pending.workstream_id,
             expected_version=self._workstream(pending.workstream_id).state_version,
@@ -698,6 +706,7 @@ class ConversationState:
                     pending.target_entity_version,
                     pending.arguments,
                     pending.argument_bindings,
+                    pending.suspended_work_items,
                 ))
                 if approved else updated.accepted_approvals
             ),
