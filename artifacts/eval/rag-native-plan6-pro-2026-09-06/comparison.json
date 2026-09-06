@@ -1,0 +1,109 @@
+{
+  "scope": "six consumed development planner-only pairs; no downstream gain measured",
+  "source_sha256": "0fd9cee7548b6d27e3f9aa90a560d9d4c6e1f8fdefaefa0bdf1015dbf627c766",
+  "capture_sha256": "7f82304886c4a2333b4ee72970c670ae19983bc0c6b8dedcf04fc24b1bd91195",
+  "api_calls": 6,
+  "results": [
+    {
+      "case_id": "expanded-opened-audio",
+      "same_prompt_tools_messages_budget": true,
+      "flash_goals": [
+        "order_status",
+        "refund_policy"
+      ],
+      "pro_goals": [
+        "order_status",
+        "refund_policy"
+      ],
+      "wire_schema_valid": true,
+      "disposition": "RESOLVED",
+      "pro_query": [
+        "耳机已经拆封，非质量问题，是否还能享受无理由退货？"
+      ]
+    },
+    {
+      "case_id": "expanded-audio-defect",
+      "same_prompt_tools_messages_budget": true,
+      "flash_goals": [
+        "order_status",
+        "refund_status"
+      ],
+      "pro_goals": [
+        "order_status",
+        "refund_status"
+      ],
+      "wire_schema_valid": true,
+      "disposition": "RESOLVED",
+      "pro_query": []
+    },
+    {
+      "case_id": "expanded-gift-return",
+      "same_prompt_tools_messages_budget": true,
+      "flash_goals": [
+        "order_status",
+        "refund_policy",
+        "refund_eligibility"
+      ],
+      "pro_goals": [
+        "order_status",
+        "refund_policy"
+      ],
+      "wire_schema_valid": true,
+      "disposition": "RESOLVED",
+      "pro_query": [
+        "如果订单中的赠品已经被使用，整单退货是否还能直接获得全额退款？"
+      ]
+    },
+    {
+      "case_id": "expanded-battery-install",
+      "same_prompt_tools_messages_budget": true,
+      "flash_goals": [
+        "order_status",
+        "product_qa"
+      ],
+      "pro_goals": [
+        "order_status",
+        "product_qa"
+      ],
+      "wire_schema_valid": true,
+      "disposition": "RESOLVED",
+      "pro_query": [
+        "用户未看清机器型号，询问是否可以先试装 B20 这一部件，请说明 B20 的安装兼容性要求与安全注意事项。"
+      ]
+    },
+    {
+      "case_id": "expanded-preorder",
+      "same_prompt_tools_messages_budget": true,
+      "flash_goals": [
+        "order_status",
+        "general_qa"
+      ],
+      "pro_goals": [
+        "order_status",
+        "general_qa"
+      ],
+      "wire_schema_valid": true,
+      "disposition": "RESOLVED",
+      "pro_query": [
+        "预购订单尾款付清后是否就会发货？"
+      ]
+    },
+    {
+      "case_id": "expanded-elliptic",
+      "same_prompt_tools_messages_budget": true,
+      "flash_goals": [
+        "order_status",
+        "refund_policy"
+      ],
+      "pro_goals": [
+        "order_status",
+        "refund_policy"
+      ],
+      "wire_schema_valid": true,
+      "disposition": "RESOLVED",
+      "pro_query": [
+        "What return/refund rules apply to returning opened (unsealed) headphones when the return reason is not a quality issue?"
+      ]
+    }
+  ]
+}
