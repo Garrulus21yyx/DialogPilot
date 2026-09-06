@@ -676,12 +676,12 @@ class TargetConversationManager:
             if mutation.kind != "START":
                 raise ConversationStateConflict("unsupported plan-accepted mutation")
             item = items[mutation.bound_work_item_id]
-            flow = self._registry.flow(mutation.flow_ref)
+            flow = self._registry.flow(mutation.flow_ref) if mutation.flow_ref else None
             starts.append(WorkstreamState(
                 mutation.workstream_id,
                 item.owner_agent,
-                mutation.flow_ref,
-                flow.initial_stage,
+                mutation.flow_ref or str(mutation.action_ref),
+                flow.initial_stage if flow is not None else "PREPARE_ACTION",
                 WorkstreamStatus.ACTIVE,
                 1,
                 item.arguments,

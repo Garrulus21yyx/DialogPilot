@@ -335,8 +335,8 @@ class GovernedWriteRuntime:
 
     @staticmethod
     def _validate_item(item: WorkItem) -> None:
-        if item.control_mode is not ControlMode.WORKFLOW:
-            raise WriteWorkflowError("write runtime accepts only WORKFLOW work")
+        if item.control_mode not in {ControlMode.WORKFLOW, ControlMode.ACTION}:
+            raise WriteWorkflowError("write runtime accepts only governed action work")
         if item.effect is not CapabilityEffect.WRITE:
             raise WriteWorkflowError("write runtime accepts only WRITE effects")
         if not item.operation_key or not item.approval_binding:

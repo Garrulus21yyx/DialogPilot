@@ -65,7 +65,7 @@ class StateBoundTargetUnderstanding:
                 ProposalDisposition.RESOLVED,
                 (CommandProposal(
                     "continue-approved-workflow",
-                    CommandKind.CONTINUE_WORKFLOW,
+                    CommandKind.CONTINUE_ACTION,
                     action.owner_agent,
                     f"Execute explicitly approved action {action.action_id}",
                     tuple(
@@ -104,7 +104,7 @@ class StateBoundTargetUnderstanding:
 
     @staticmethod
     def _resume_command(index, item) -> CommandProposal:
-        if item.control_mode is ControlMode.WORKFLOW:
+        if item.control_mode in {ControlMode.WORKFLOW, ControlMode.ACTION}:
             raise ValueError(
                 "business workflows use their approval/resume contract"
             )

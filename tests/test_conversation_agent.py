@@ -239,7 +239,7 @@ def test_address_change_compiles_one_governed_flow_and_rejects_invented_address(
 
     assert proposal.disposition is ProposalDisposition.RESOLVED
     command = proposal.commands[0]
-    assert command.kind is CommandKind.PREPARE_WORKFLOW
+    assert command.kind is CommandKind.PREPARE_ACTION
     assert command.action_ref == "order.shipping_address.change:v1"
     plan = TurnPlanCompiler().compile(
         RoutePolicy().accept(proposal, state, registry),
@@ -281,7 +281,7 @@ def test_address_change_stays_a_flow_and_missing_address_stays_typed():
     )
 
     assert proposal.disposition is ProposalDisposition.RESOLVED
-    assert proposal.commands[0].kind is CommandKind.PREPARE_WORKFLOW
+    assert proposal.commands[0].kind is CommandKind.PREPARE_ACTION
     assert proposal.commands[0].skill_id is None
     assert proposal.commands[0].action_ref == "order.shipping_address.change:v1"
     assert all("address" not in skill.skill_id for skill in registry.skills)
@@ -316,7 +316,7 @@ def test_security_review_is_direct_but_account_freeze_is_a_governed_flow():
     assert review_command.kind is CommandKind.DIRECT_TOOL
     assert review_command.tool_id == "account_security_event_list"
     assert review_command.skill_id is None
-    assert freeze_command.kind is CommandKind.PREPARE_WORKFLOW
+    assert freeze_command.kind is CommandKind.PREPARE_ACTION
     assert freeze_command.action_ref == "account.freeze:v1"
     assert freeze_command.flow_ref == "freeze_account:v1"
     assert freeze_command.skill_id is None
@@ -479,7 +479,7 @@ def test_every_registry_marked_action_is_preempted_before_work_plan_compilation(
                 ),
                 CommandProposal(
                     f"prepare:{action.action_id}",
-                    CommandKind.PREPARE_WORKFLOW,
+                    CommandKind.PREPARE_ACTION,
                     action.owner_agent,
                     "Prepare an interruptible write",
                     requirement_ids=(preparation.requirement_id,),

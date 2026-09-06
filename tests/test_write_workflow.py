@@ -29,6 +29,18 @@ from infrastructure.postgres import PostgresMigrationRunner, PostgresPool, Postg
 from infrastructure.postgres_target_runtime import PostgresOperationLedger
 
 
+@pytest.fixture(autouse=True, params=(ControlMode.WORKFLOW, ControlMode.ACTION))
+def action_execution_mode(request, monkeypatch):
+    factory = _item
+
+    def item(*args, **kwargs):
+        work = factory(*args, **kwargs)
+        return replace(work, control_mode=request.param,
+                       flow_ref=work.flow_ref if request.param is ControlMode.WORKFLOW else None)
+
+    monkeypatch.setitem(globals(), "_item", item)
+
+
 @pytest.fixture(params=("memory", "postgres"))
 def ledger_factory(request):
     if request.param == "memory":
@@ -185,7 +197,7 @@ def test_operation_identity_is_scoped_and_each_scope_keeps_its_binding(ledger_fa
         ledger.scope,
         replace(ledger.scope, tenant_id=TenantId("another-tenant")),
         replace(ledger.scope, user_id=UserId("another-user")),
-        replace(ledger.scope, conversation_id=ConversationId("another-conversation")),
+        replace(ledger.scope, conversation_id=ConversationId("another-" + str(ledger.scope.conversation_id))),
     )
     ledgers = [PostgresOperationLedger(ledger.pool, scope) for scope in scopes]
     items = [replace(_item(), arguments=(ArgumentValue.create("order_id", f"DP{i}"),))

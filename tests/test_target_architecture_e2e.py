@@ -163,7 +163,7 @@ def test_e2e_product_identification_uses_one_domain_agent_skill():
 
 def test_e2e_refund_application_is_receipt_backed_and_idempotent():
     plan = _compile(CommandProposal(
-        "refund-write", CommandKind.START_WORKFLOW, "billing_refund", "Create refund",
+        "refund-write", CommandKind.EXECUTE_ACTION, "billing_refund", "Create refund",
         (ArgumentValue.create("order_id", "DP1234"),),
         ("refund.request_action",),
         flow_ref="execute_refund:v1",
@@ -242,7 +242,7 @@ def test_e2e_product_failure_preserves_refund_success_as_partial_result():
 
 def test_e2e_handoff_requires_ticket_receipt_before_human_ownership_and_claim():
     plan = _compile(CommandProposal(
-        "handoff", CommandKind.START_WORKFLOW, "human_service", "Create ticket",
+        "handoff", CommandKind.EXECUTE_ACTION, "human_service", "Create ticket",
         requirement_ids=("support.handoff_action",),
         flow_ref="human_handoff:v1",
         action_ref="support.handoff.create:v1",

@@ -267,7 +267,7 @@ class OrchestrationRuntime:
         if item.control_mode is ControlMode.DIRECT:
             executor = self._direct_executor
         elif (
-            item.control_mode is ControlMode.WORKFLOW
+            item.control_mode in {ControlMode.WORKFLOW, ControlMode.ACTION}
             and self._workflow_executor is not None
         ):
             executor = self._workflow_executor

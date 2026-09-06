@@ -64,6 +64,16 @@ class _Provider:
         self.result = result
 
     async def plan(self, payload):
+        # Script the provider's explicit selection from the supplied bindings.
+        for goal in self.result.get("goals", ()):
+            for field in ("order_id", "asset_id"):
+                if field not in goal:
+                    continue
+                matches = [binding for group in payload["entity_bindings"]
+                           for binding in group["candidates"]
+                           if binding["value"] == goal[field]]
+                if len(matches) == 1:
+                    goal[field + "_source_ref"] = matches[0]["source_ref"]
         return self.result
 
 
@@ -95,7 +105,7 @@ def test_explicit_refund_execution_still_uses_governed_flow_preparation():
     )
     plan = _plan(proposal, state, registry, "refund-write-request")
 
-    assert proposal.commands[0].kind is CommandKind.PREPARE_WORKFLOW
+    assert proposal.commands[0].kind is CommandKind.PREPARE_ACTION
     assert plan.transitions is not None
     assert plan.transitions.mutations[0].flow_ref == "execute_refund:v1"
 
@@ -109,7 +119,7 @@ def test_order_cancellation_uses_registry_preparation_and_not_status_read_path()
     command = proposal.commands[0]
     item = plan.work.items[0]
     mutation = plan.transitions.mutations[0]
-    assert command.kind is CommandKind.PREPARE_WORKFLOW
+    assert command.kind is CommandKind.PREPARE_ACTION
     assert command.action_ref == "order.cancel:v1"
     assert item.allowed_tools == ("order_lookup",)
     assert mutation.flow_ref == "cancel_order:v1"

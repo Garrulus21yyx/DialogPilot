@@ -20,6 +20,8 @@ RoutePolicy 校验领域、实体来源和权限，形成只读执行包络。�
 
 ## 尚未完成
 
+第二阶段已完成动作合同解耦：`ActionDefinition.flow_ref` 可为空；准备、执行、续接使用统一 Action 命令。独立动作使用 `ControlMode.ACTION`，明确业务流程继续使用 WORKFLOW。两者复用同一个 GovernedWriteRuntime、审批和 PostgreSQL 操作账本。写执行测试同时覆盖两种模式；无 Flow 的准备—确认—原线程恢复已经通过测试。当前领域 Agent 提出动作的接线仍在进行。
+
 本阶段没有开放领域 Agent 的写工具调用。下一阶段将复用 GovernedWriteRuntime，使 Action 可以独立于业务 Flow，审批绑定实际参数，工具结果未知时对账。待动作提出、等待、恢复及最终发布贯通后，才移除现有开放式写入限制。
 
 τ³ 工具和政策桥接、完整对话及官方评分仍待完成。当前没有新增换货专用 Agent、Skill 或题目分支。

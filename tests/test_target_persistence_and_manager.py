@@ -379,7 +379,7 @@ def _prepare_workflow_proposal(
         ProposalDisposition.RESOLVED,
         (CommandProposal(
             command_id,
-            CommandKind.PREPARE_WORKFLOW,
+            CommandKind.PREPARE_ACTION,
             owner,
             objective,
             tuple(ArgumentValue.create(name, value) for name, value in arguments),
@@ -592,9 +592,14 @@ def test_manager_interprets_workflow_preparation_only_from_registry_bindings():
     }
 
 
-def test_order_cancellation_approval_resumes_its_registered_owner_and_action():
+@pytest.mark.parametrize("flow_ref", ["cancel_order:v1", None])
+def test_order_cancellation_approval_resumes_its_registered_owner_and_action(flow_ref):
     store = InMemoryConversationStateStore()
     registry = build_default_capability_registry("tenant-target")
+    registry = replace(registry, actions=tuple(
+        replace(action, flow_ref=flow_ref) if action.action_id == "order.cancel" else action
+        for action in registry.actions
+    ))
     workflow = _OrderCancellationWorkflowExecutor()
     checkpointer = InMemorySaver(serde=target_checkpoint_serializer())
     manager = TargetConversationManager(
@@ -606,7 +611,7 @@ def test_order_cancellation_approval_resumes_its_registered_owner_and_action():
             objective="Check current order state before cancellation",
             arguments=(("order_id", "DP1234"),),
             requirement_id="order.current_state",
-            flow_ref="cancel_order:v1",
+            flow_ref=flow_ref,
             action_ref="order.cancel:v1",
             target_entity_ref="order:DP1234",
         )),
@@ -642,7 +647,8 @@ def test_order_cancellation_approval_resumes_its_registered_owner_and_action():
     executed = workflow.items[0]
     assert executed.owner_agent == "order_logistics"
     assert executed.action_ref == "order.cancel:v1"
-    assert executed.flow_ref == "cancel_order:v1"
+    assert executed.flow_ref == flow_ref
+    assert executed.control_mode.value == ("WORKFLOW" if flow_ref else "ACTION")
     assert set(executed.allowed_tools) == {"order_cancel", "order_cancel_status"}
     assert dict((item.name, item.value) for item in executed.arguments) == {
         "order_id": "DP1234",
@@ -933,7 +939,7 @@ def test_manager_commits_workflow_start_before_dispatch():
         ProposalDisposition.RESOLVED,
         (CommandProposal(
             "refund",
-            CommandKind.START_WORKFLOW,
+            CommandKind.EXECUTE_ACTION,
             "billing_refund",
             "Create refund",
             (ArgumentValue.create("order_id", "DP1234"),),
@@ -1011,7 +1017,7 @@ def test_postgres_target_state_and_operation_ledgers_are_replayable(
                 ProposalDisposition.RESOLVED,
                 (CommandProposal(
                     "refund",
-                    CommandKind.START_WORKFLOW,
+                    CommandKind.EXECUTE_ACTION,
                     "billing_refund",
                     "Create refund",
                     (ArgumentValue.create("order_id", "DP1234"),),

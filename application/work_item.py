@@ -24,6 +24,7 @@ class ControlMode(str, Enum):
     DIRECT = "DIRECT"
     DELEGATED = "DELEGATED"
     WORKFLOW = "WORKFLOW"
+    ACTION = "ACTION"
 
 
 @dataclass(frozen=True)
@@ -136,6 +137,11 @@ class WorkItem:
                 raise WorkItemContractError("DELEGATED cannot execute a workflow")
             if self.skill_hint is not None and self.skill_hint not in self.allowed_skills:
                 raise WorkItemContractError("skill hint is outside the allowed skills")
+        elif self.control_mode is ControlMode.ACTION:
+            if self.flow_ref is not None or self.skill_hint is not None:
+                raise WorkItemContractError("ACTION has no flow or skill hint")
+            if self.effect is not CapabilityEffect.WRITE:
+                raise WorkItemContractError("ACTION requires a business write")
         elif self.control_mode is ControlMode.WORKFLOW:
             if not self.flow_ref:
                 raise WorkItemContractError("WORKFLOW requires a pinned flow version")
@@ -154,7 +160,7 @@ class WorkItem:
             self.approval_policy,
         )
         if self.effect is CapabilityEffect.WRITE:
-            if self.control_mode is not ControlMode.WORKFLOW:
+            if self.control_mode not in {ControlMode.WORKFLOW, ControlMode.ACTION}:
                 raise WorkItemContractError("business writes require WORKFLOW control")
             if any(not str(value or "").strip() for value in write_fields):
                 raise WorkItemContractError("write work lacks execution safety bindings")

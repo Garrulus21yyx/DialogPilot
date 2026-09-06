@@ -247,7 +247,7 @@ class ActionDefinition:
     action_id: str
     version: str
     owner_agent: str
-    flow_ref: str
+    flow_ref: str | None
     effect: CapabilityEffect
     risk: CapabilityRisk
     requirement_ids: tuple[str, ...]
@@ -268,10 +268,11 @@ class ActionDefinition:
             self.action_id,
             self.version,
             self.owner_agent,
-            self.flow_ref,
             self.receipt_schema_version,
             self.verification_profile,
         )
+        if self.flow_ref is not None:
+            _required(self.flow_ref)
         _unique_nonblank(self.requirement_ids, "action requirements")
         _unique_nonblank(self.allowed_tool_ids, "action tools")
         if self.effect is not CapabilityEffect.WRITE:
@@ -348,13 +349,13 @@ class CapabilityRegistryBundle:
                 raise CapabilityRegistryError("flow tools exceed owner agent allowlist")
         for action in self.actions:
             owner = _get(agents, action.owner_agent, "action owner")
-            flow = _get(flows, action.flow_ref, "action flow")
+            flow = _get(flows, action.flow_ref, "action flow") if action.flow_ref else None
             _known(action.allowed_tool_ids, tools, f"action {action.ref} tools")
             _known(action.requirement_ids, requirements, f"action {action.ref} requirements")
             _get(profiles, action.verification_profile, "action verification profile")
-            if flow.owner_agent != action.owner_agent:
+            if flow is not None and flow.owner_agent != action.owner_agent:
                 raise CapabilityRegistryError("action and flow owners differ")
-            if not set(action.allowed_tool_ids).issubset(flow.allowed_tool_ids):
+            if flow is not None and not set(action.allowed_tool_ids).issubset(flow.allowed_tool_ids):
                 raise CapabilityRegistryError("action tools exceed flow allowlist")
             if not set(action.allowed_tool_ids).issubset(owner.allowed_tool_ids):
                 raise CapabilityRegistryError("action tools exceed owner agent allowlist")
@@ -370,7 +371,7 @@ class CapabilityRegistryBundle:
                 reconciliation.requirement_id,
                 "action reconciliation requirement",
             )
-            if reconciliation.tool_id not in flow.allowed_tool_ids:
+            if flow is not None and reconciliation.tool_id not in flow.allowed_tool_ids:
                 raise CapabilityRegistryError(
                     "action reconciliation tool exceeds flow allowlist"
                 )
@@ -398,7 +399,7 @@ class CapabilityRegistryBundle:
                     preparation.requirement_id,
                     "action preparation requirement",
                 )
-                if preparation.tool_id not in flow.allowed_tool_ids:
+                if flow is not None and preparation.tool_id not in flow.allowed_tool_ids:
                     raise CapabilityRegistryError(
                         "action preparation tool exceeds flow allowlist"
                     )

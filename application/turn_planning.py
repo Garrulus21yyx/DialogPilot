@@ -34,9 +34,9 @@ class CommandKind(str, Enum):
     DIRECT_TOOL = "DIRECT_TOOL"
     DELEGATE_TASK = "DELEGATE_TASK"
     RUN_SKILL = "RUN_SKILL"
-    START_WORKFLOW = "START_WORKFLOW"
-    PREPARE_WORKFLOW = "PREPARE_WORKFLOW"
-    CONTINUE_WORKFLOW = "CONTINUE_WORKFLOW"
+    EXECUTE_ACTION = "EXECUTE_ACTION"
+    PREPARE_ACTION = "PREPARE_ACTION"
+    CONTINUE_ACTION = "CONTINUE_ACTION"
     CANCEL_WORK = "CANCEL_WORK"
 
 
@@ -340,7 +340,7 @@ class RoutePolicy:
                 else CapabilityEffect.READ
             )
             if effect is CapabilityEffect.WRITE:
-                raise TurnPlanningError("business writes must use START_WORKFLOW")
+                raise TurnPlanningError("business writes must use EXECUTE_ACTION")
             return ValidatedCommand(
                 command,
                 tools,
@@ -349,17 +349,17 @@ class RoutePolicy:
                 risk,
                 skills[0].verification_profile if len(skills) == 1 else agent.verification_profile,
             )
-        if command.kind is CommandKind.START_WORKFLOW:
-            if not command.flow_ref or not command.action_ref:
-                raise TurnPlanningError("START_WORKFLOW requires flow and action")
-            flow = registry.flow(command.flow_ref)
+        if command.kind is CommandKind.EXECUTE_ACTION:
+            if not command.action_ref:
+                raise TurnPlanningError("EXECUTE_ACTION requires an action")
+            flow = registry.flow(command.flow_ref) if command.flow_ref else None
             try:
                 action = next(item for item in registry.actions if item.ref == command.action_ref)
             except StopIteration as exc:
                 raise TurnPlanningError("unknown action") from exc
-            if flow.owner_agent != command.target_agent or action.owner_agent != command.target_agent:
+            if (flow is not None and flow.owner_agent != command.target_agent) or action.owner_agent != command.target_agent:
                 raise TurnPlanningError("workflow owner differs from target agent")
-            if action.flow_ref != flow.ref:
+            if action.flow_ref != command.flow_ref:
                 raise TurnPlanningError("action is not owned by the selected flow")
             if set(command.requirement_ids) != set(action.requirement_ids):
                 raise TurnPlanningError("workflow requirements must match registered action")
@@ -382,24 +382,24 @@ class RoutePolicy:
                 action.verification_profile,
                 action,
             )
-        if command.kind is CommandKind.PREPARE_WORKFLOW:
-            if not all((command.flow_ref, command.action_ref)):
-                raise TurnPlanningError("PREPARE_WORKFLOW requires flow and action")
+        if command.kind is CommandKind.PREPARE_ACTION:
+            if not command.action_ref:
+                raise TurnPlanningError("PREPARE_ACTION requires an action")
             if command.tool_id or command.skill_id:
                 raise TurnPlanningError(
                     "workflow preparation capability must come from the action registry"
                 )
-            flow = registry.flow(str(command.flow_ref))
+            flow = registry.flow(command.flow_ref) if command.flow_ref else None
             action = next(
                 (item for item in registry.actions if item.ref == command.action_ref), None,
             )
-            if action is None or action.flow_ref != flow.ref:
+            if action is None or action.flow_ref != command.flow_ref:
                 raise TurnPlanningError("preparation action is not owned by flow")
             preparation = action.preparation
             if preparation is None:
                 raise TurnPlanningError("action has no registered preparation contract")
             tool = registry.tool(preparation.tool_id)
-            if flow.owner_agent != command.target_agent or action.owner_agent != command.target_agent:
+            if (flow is not None and flow.owner_agent != command.target_agent) or action.owner_agent != command.target_agent:
                 raise TurnPlanningError("preparation owner differs from workflow")
             if tool.effect is not CapabilityEffect.READ:
                 raise TurnPlanningError("workflow preparation must be read-only")
@@ -417,9 +417,9 @@ class RoutePolicy:
                 max((tool.risk, action.risk), key=_risk_rank),
                 tool.verification_profile, action,
             )
-        if command.kind is CommandKind.CONTINUE_WORKFLOW:
+        if command.kind is CommandKind.CONTINUE_ACTION:
             if not all((
-                command.flow_ref, command.action_ref, command.operation_key,
+                command.action_ref, command.operation_key,
                 command.approval_binding, command.approval_signal_version,
                 command.target_entity_ref, command.target_entity_version,
             )):
@@ -460,13 +460,13 @@ class RoutePolicy:
                 for item in state.active_workstreams
             ):
                 raise TurnPlanningError("approved workstream is not active")
-            flow = registry.flow(str(command.flow_ref))
+            flow = registry.flow(command.flow_ref) if command.flow_ref else None
             action = next(
                 (item for item in registry.actions if item.ref == command.action_ref), None,
             )
-            if action is None or action.flow_ref != flow.ref:
+            if action is None or action.flow_ref != command.flow_ref:
                 raise TurnPlanningError("continuation action is not owned by flow")
-            if flow.owner_agent != command.target_agent or action.owner_agent != command.target_agent:
+            if (flow is not None and flow.owner_agent != command.target_agent) or action.owner_agent != command.target_agent:
                 raise TurnPlanningError("continuation owner differs from workflow")
             if set(command.requirement_ids) != set(action.requirement_ids):
                 raise TurnPlanningError("continuation requirements differ from action")
@@ -493,7 +493,7 @@ class RoutePolicy:
 class FlowMutation:
     mutation_id: str
     kind: str
-    flow_ref: str
+    flow_ref: str | None
     workstream_id: str
     expected_state_version: int
     apply_stage: MutationApplyStage
@@ -641,8 +641,8 @@ class TurnPlanCompiler:
             )
             for item, work_item in zip(executable, items)
             if item.proposal.kind in {
-                CommandKind.START_WORKFLOW,
-                CommandKind.PREPARE_WORKFLOW,
+                CommandKind.EXECUTE_ACTION,
+                CommandKind.PREPARE_ACTION,
             }
         )
         owners = tuple(dict.fromkeys(
@@ -693,12 +693,14 @@ class TurnPlanCompiler:
             CommandKind.DIRECT_TOOL: ControlMode.DIRECT,
             CommandKind.DELEGATE_TASK: ControlMode.DELEGATED,
             CommandKind.RUN_SKILL: ControlMode.DELEGATED,
-            CommandKind.START_WORKFLOW: ControlMode.WORKFLOW,
-            CommandKind.PREPARE_WORKFLOW: ControlMode.DIRECT,
-            CommandKind.CONTINUE_WORKFLOW: ControlMode.WORKFLOW,
+            CommandKind.EXECUTE_ACTION: ControlMode.WORKFLOW,
+            CommandKind.PREPARE_ACTION: ControlMode.DIRECT,
+            CommandKind.CONTINUE_ACTION: ControlMode.WORKFLOW,
         }[proposal.kind]
         action = command.action
         write = command.effect is CapabilityEffect.WRITE
+        if write and proposal.flow_ref is None:
+            control_mode = ControlMode.ACTION
         control = self._control_binding(proposal, state, invocation)
         replay = next((
             item for item in state.work_controls
@@ -733,7 +735,7 @@ class TurnPlanCompiler:
             skill_hint=proposal.skill_id if proposal.kind is CommandKind.RUN_SKILL else None,
             flow_ref=(
                 proposal.flow_ref
-                if proposal.kind in {CommandKind.START_WORKFLOW, CommandKind.CONTINUE_WORKFLOW}
+                if proposal.kind in {CommandKind.EXECUTE_ACTION, CommandKind.CONTINUE_ACTION}
                 else None
             ),
             operation_key=(

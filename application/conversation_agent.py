@@ -444,12 +444,12 @@ class ConversationAgent:
             registry.action("account.freeze:v1")
             return CommandProposal(
                 goal_id,
-                CommandKind.PREPARE_WORKFLOW,
+                CommandKind.PREPARE_ACTION,
                 "account_security",
                 "Check current account state before freezing the account",
                 (),
                 ("account.current_state",),
-                flow_ref="freeze_account:v1",
+                flow_ref=registry.action("account.freeze:v1").flow_ref,
                 action_ref="account.freeze:v1",
                 target_entity_ref=f"account:{state.user_id}",
             )
@@ -469,11 +469,11 @@ class ConversationAgent:
                 raise ValueError("order cancellation lacks observed order ID")
             registry.action("order.cancel:v1")
             return CommandProposal(
-                goal_id, CommandKind.PREPARE_WORKFLOW, "order_logistics",
+                goal_id, CommandKind.PREPARE_ACTION, "order_logistics",
                 "Check current order state before cancellation",
                 (ArgumentValue.create("order_id", order_id),),
                 ("order.current_state",),
-                flow_ref="cancel_order:v1", action_ref="order.cancel:v1",
+                flow_ref=registry.action("order.cancel:v1").flow_ref, action_ref="order.cancel:v1",
                 target_entity_ref=f"order:{order_id}",
                 argument_bindings=(order_binding,),
             )
@@ -482,14 +482,14 @@ class ConversationAgent:
                 raise ValueError("address change lacks observed order ID or address")
             registry.action("order.shipping_address.change:v1")
             return CommandProposal(
-                goal_id, CommandKind.PREPARE_WORKFLOW, "order_logistics",
+                goal_id, CommandKind.PREPARE_ACTION, "order_logistics",
                 "Check current order state before changing its shipping address",
                 (
                     ArgumentValue.create("order_id", order_id),
                     ArgumentValue.create("new_address", new_address),
                 ),
                 ("order.current_state",),
-                flow_ref="change_shipping_address:v1",
+                flow_ref=registry.action("order.shipping_address.change:v1").flow_ref,
                 action_ref="order.shipping_address.change:v1",
                 target_entity_ref=f"order:{order_id}",
                 argument_bindings=bindings,
@@ -527,16 +527,16 @@ class ConversationAgent:
         if kind == "execute_refund":
             if not order_id:
                 raise ValueError("refund execution lacks observed order ID")
-            registry.flow("execute_refund:v1")
+            registry.action("refund.request.create:v1")
             return CommandProposal(
-                goal_id, CommandKind.PREPARE_WORKFLOW, "billing_refund",
+                goal_id, CommandKind.PREPARE_ACTION, "billing_refund",
                 "Check refund eligibility before a governed write",
                 (
                     ArgumentValue.create("order_id", order_id),
                     ArgumentValue.create("reason", text),
                 ),
                 ("refund.eligibility",),
-                flow_ref="execute_refund:v1", action_ref="refund.request.create:v1",
+                flow_ref=registry.action("refund.request.create:v1").flow_ref, action_ref="refund.request.create:v1",
                 target_entity_ref=f"order:{order_id}",
                 argument_bindings=(order_binding,),
             )
@@ -615,16 +615,16 @@ class ConversationAgent:
                 (ArgumentValue.create("query", text),),
                 ("knowledge.active_source",), tool_id="knowledge_search",
             )
-        registry.flow("human_handoff:v1")
+        registry.action("support.handoff.create:v1")
         return CommandProposal(
-            goal_id, CommandKind.START_WORKFLOW, "human_service",
+            goal_id, CommandKind.EXECUTE_ACTION, "human_service",
             "Create a human-service handoff ticket",
             (
                 ArgumentValue.create("summary", text),
                 ArgumentValue.create("reason", "SEMANTIC_HANDOFF"),
                 ArgumentValue.create("priority", "normal"),
             ),
-            ("support.handoff_action",), flow_ref="human_handoff:v1",
+            ("support.handoff_action",), flow_ref=registry.action("support.handoff.create:v1").flow_ref,
             action_ref="support.handoff.create:v1",
             target_entity_ref=f"conversation:{state.conversation_id}",
             target_entity_version=f"conversation:{state.conversation_id}:v{state.version}",

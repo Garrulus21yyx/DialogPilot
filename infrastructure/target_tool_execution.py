@@ -33,7 +33,7 @@ class TargetToolExecutor:
 
     async def __call__(self, context: AgentContextView) -> AgentResult:
         item = context.work_item
-        if item.control_mode is ControlMode.WORKFLOW:
+        if item.control_mode in {ControlMode.WORKFLOW, ControlMode.ACTION}:
             return AgentResult(
                 item.work_item_id,
                 item.owner_agent,

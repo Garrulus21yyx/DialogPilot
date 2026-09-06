@@ -134,7 +134,7 @@ def test_encoder_defers_generic_progress_to_conversation_planner():
 
     write = _invoke(cascade, "把 DP2468 直接退掉")
     assert write.reason_code == "CONVERSATION_AGENT_PLAN"
-    assert write.commands[0].kind.value == "PREPARE_WORKFLOW"
+    assert write.commands[0].kind.value == "PREPARE_ACTION"
     assert len(provider.calls) == 2
 
 

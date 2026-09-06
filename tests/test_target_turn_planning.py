@@ -217,7 +217,7 @@ def test_mixed_direct_and_delegated_work_is_not_mislabeled_multi_agent():
 def test_write_plan_derives_operation_identity_and_plan_accepted_flow_mutation():
     plan = _compile(CommandProposal(
         "refund-1",
-        CommandKind.START_WORKFLOW,
+        CommandKind.EXECUTE_ACTION,
         "billing_refund",
         "Create refund",
         (ArgumentValue.create("order_id", "DP1234"),),
@@ -241,7 +241,7 @@ def test_write_plan_derives_operation_identity_and_plan_accepted_flow_mutation()
 def test_workflow_preparation_is_read_only_but_starts_versioned_workstream():
     plan = _compile(CommandProposal(
         "prepare-refund",
-        CommandKind.PREPARE_WORKFLOW,
+        CommandKind.PREPARE_ACTION,
         "billing_refund",
         "Check eligibility",
         (ArgumentValue.create("order_id", "DP1234"),),
@@ -281,7 +281,7 @@ def test_workflow_continuation_requires_consumed_bound_approval():
         ),
     ))
     command = CommandProposal(
-        "continue-refund", CommandKind.CONTINUE_WORKFLOW, "billing_refund",
+        "continue-refund", CommandKind.CONTINUE_ACTION, "billing_refund",
         "Execute approved refund",
         state.pending_approval.arguments,
         ("refund.request_action",),
