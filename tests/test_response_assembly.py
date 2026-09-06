@@ -45,7 +45,11 @@ class _Composer:
 
     async def compose(self, payload):
         self.calls.append(payload)
-        return self.response(payload) if callable(self.response) else self.response
+        value = self.response(payload) if callable(self.response) else self.response
+        from application.response_assembly import AllowedClaim
+        from evaluation.legacy_composition_output import convert_valid_legacy_composition
+        claims = [AllowedClaim(c['claim_id'], c['kind'], c['value'], tuple(c['source_refs'])) for c in payload['allowed_claims']]
+        return convert_valid_legacy_composition(value, claims)
 
 
 def test_single_complete_candidate_passes_through_without_composer_call():
@@ -82,7 +86,7 @@ def test_multi_result_composition_receives_only_claims_and_outcomes():
     assert assembled.mode is ResponseAssemblyMode.CONVERSATION_COMPOSE
     assert assembled.composer_used is True
     assert set(composer.calls[0]) == {
-        "schema_version", "current_message", "conversation_context", "allowed_claims",
+        "schema_version", "current_message", "conversation_context", "allowed_claims", "support_catalog",
         "work_item_outcomes", "missing_requirement_ids",
         "partial_delivery_allowed",
     }

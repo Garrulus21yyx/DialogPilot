@@ -1,0 +1,22 @@
+{
+  "scope": "Replay captured composition inputs only; no planning, retrieval, or business execution.",
+  "cases": 2,
+  "source_sha256": "15ceee0a507cdd777399b5cacd62c2cc07448d7411adab79a63ee9d33b3e8fcb",
+  "case_ids": [
+    "polarity-quality-yes",
+    "polarity-correction"
+  ],
+  "business_view_v2": false,
+  "separate_field_guidance": false,
+  "planner_context": false,
+  "synthesis_profile": {
+    "model": "deepseek-v4-pro",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "verify": true,
+  "max_api_calls": 4,
+  "input_migration": "v1 FACT evidence views become KNOWLEDGE_FACT; request schema v2",
+  "limitation": "component replay; no live source revalidation, business execution or publication"
+}

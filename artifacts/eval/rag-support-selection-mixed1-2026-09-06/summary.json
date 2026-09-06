@@ -1,0 +1,36 @@
+{
+  "scope": "synthetic development stage signals; tool expectations and model verification are not answer accuracy",
+  "capture_sha256": "16afcea2536510b348f6c39e219b0ca59b5c6afeb0460be1268dd0f343455df1",
+  "definitions_sha256": "558b21aa4c3279cefb70c2b013edb751fb7d18bd9ed40b16cf5540c20bc1c19e",
+  "expected_cases": 1,
+  "captured_cases": 1,
+  "complete_capture": true,
+  "counts": {
+    "expected_tool_coverage": 1,
+    "expected_source_visible": 1,
+    "expected_source_cited": 1,
+    "knowledge_support_checked": 1
+  },
+  "api_calls": 4,
+  "results": [
+    {
+      "case_id": "polarity-quality-yes",
+      "outcome": "Completed",
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_tool_coverage": true,
+      "expected_source_visible": true,
+      "expected_source_cited": true,
+      "knowledge_support_checked": true,
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "planner_stop": "end_turn",
+      "api_calls": 4,
+      "response": "订单 DP9303 的当前状态为“已送达”，商品为模拟耳机，金额为 199.00 元。需要说明的是，“已送达”是订单快照状态，不代表收件人已签名或承运方已签收。\n由于您已拆封耳机，非质量原因一般无法适用无理由退货；但您提到是因质量问题退货，这种情况不按无理由退货规则处理。 [Eaaeae4f24884]\n针对质量问题，请您先检查连接和音量设置；若仍有故障，请提交购买凭证和故障视频申请质量审核。 [Efb204dfd686e]\n申请退货需要提供订单号、商品现状照片及退货原因；寄回前请等待退货地址确认，不要寄往商品包装上的生产商地址。 [E853a2c86623d]\n确认属于商品质量问题并需寄回时，按平台指定方式寄回可报销标准运费，加急运费不在报销范围内；非质量原因退货的寄回运费由买家承担。 [E910a89b4fc3d]\n此外，签收记录仅表示物流签收状态，不代表售后申请被拒绝；是否符合退货条件需结合商品类别、签收时间和商品状态综合判断。 [E69ad8e7a8ef9]",
+      "latency_ms": 19275.902539491653,
+      "visible_evidence_count": 5,
+      "failure_stage": null
+    }
+  ]
+}

@@ -117,9 +117,11 @@ def test_composition_fits_its_own_input_budget():
 
 def _transport_response(request):
     if 'tools' in request:
+        import json
+        sid = json.loads(request['messages'][0]['content'])['support_catalog'][0]['support_id']
         return SimpleNamespace(stop_reason='tool_use', content=[SimpleNamespace(
             type='tool_use', name='submit_composed_response',
-            input={'segments':[{'text':'已查询。', 'claim_ids':['outcome:1'], 'evidence_ids':[]}]})])
+            input={'segments':[{'text':'已查询。', 'support_ids':[sid]}]})])
     return SimpleNamespace(stop_reason='end_turn', content=[SimpleNamespace(type='text', text='{}')])
 
 

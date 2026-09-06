@@ -14,7 +14,7 @@ from dotenv import dotenv_values
 from core.model_policy import ModelPolicy, ModelRole
 from infrastructure.target_conversation_provider import AnthropicConversationPlanningProvider
 from scripts.run_rag_tool_calibration import CaptureClient
-from application.composition_output import render_composition
+from application.composition_output import render_composition, prepare_composition_payload
 from application.response_assembly import AllowedClaim, ResponseAssembler
 from services.answer_verifier import AnswerVerifier
 
@@ -29,6 +29,8 @@ def separate_field_guidance(payload):
 
 
 async def run(args):
+    if args.separate_field_guidance:
+        raise ValueError('legacy field-guidance experiment: reproduce at commit 4a032e3; current supports bind the original claim content')
     raw = gzip.decompress(args.capture.read_bytes()) if args.capture.suffix == '.gz' else args.capture.read_bytes()
     inputs = []
     for line in raw.splitlines():
@@ -66,7 +68,7 @@ async def run(args):
                         claim['value']=order_read_view(claim['value'])
                     elif refs[0].endswith(':refund_eligibility_check'):
                         claim['value']=refund_eligibility_read_view(claim['value'])
-            inputs.append((row['case_id'], payload))
+            inputs.append((row['case_id'], prepare_composition_payload(payload)))
     if not inputs:
         raise ValueError('no captured composition inputs')
     if args.case_ids:
@@ -88,7 +90,7 @@ async def run(args):
                 'planner_context':args.planner_context,
                 'synthesis_profile':policy.profile(ModelRole.SYNTHESIS).to_dict(),
                 'verify':args.verify,'max_api_calls':len(inputs)*(2 if args.verify else 1),
-                'input_migration':'v1 FACT evidence views become KNOWLEDGE_FACT; request schema v2',
+                'input_migration':'v1 FACT evidence views become KNOWLEDGE_FACT; request schema v3 with captured content-bound support catalog',
                 'limitation':'component replay; no live source revalidation, business execution or publication'}
     (args.output/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
     async with AsyncAnthropic(**options) as transport:
@@ -99,8 +101,7 @@ async def run(args):
         for key,payload in inputs:
             before = len(client.calls)
             try:
-                model_input = separate_field_guidance(payload) if args.separate_field_guidance else payload
-                value = await provider.compose(model_input)
+                value = await provider.compose(payload)
                 claims=tuple(AllowedClaim(c['claim_id'],c['kind'],c['value'],tuple(c['source_refs'])) for c in payload['allowed_claims'])
                 text,used=render_composition(value,claims)
                 text,used=ResponseAssembler.prepare_composed_response(text,used,claims,payload['current_message'],payload['work_item_outcomes'],

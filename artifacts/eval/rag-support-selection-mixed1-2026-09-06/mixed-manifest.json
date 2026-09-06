@@ -1,0 +1,78 @@
+{
+  "scope": "TargetChatApplication + unified ConversationAgent + real read-only ToolManager/business/knowledge + Redis current context + response assembly/publication; excludes HTTP middleware/durable dispatcher/domain worker planning/cross-session memory",
+  "orders": [
+    {
+      "order_id": "DP9301",
+      "user_id": "eval-user",
+      "item_name": "模拟耳机",
+      "amount_minor": 19900,
+      "currency": "CNY",
+      "status": "shipped",
+      "refundable_until": null,
+      "version": 1,
+      "created_at": "2026-09-06T08:48:04.618214+00:00",
+      "updated_at": "2026-09-06T08:48:04.618214+00:00",
+      "shipping_address": ""
+    },
+    {
+      "order_id": "DP9302",
+      "user_id": "eval-user",
+      "item_name": "模拟耳机",
+      "amount_minor": 19900,
+      "currency": "CNY",
+      "status": "paid",
+      "refundable_until": null,
+      "version": 1,
+      "created_at": "2026-09-06T08:48:04.620864+00:00",
+      "updated_at": "2026-09-06T08:48:04.620864+00:00",
+      "shipping_address": ""
+    },
+    {
+      "order_id": "DP9303",
+      "user_id": "eval-user",
+      "item_name": "模拟耳机",
+      "amount_minor": 19900,
+      "currency": "CNY",
+      "status": "delivered",
+      "refundable_until": null,
+      "version": 1,
+      "created_at": "2026-09-06T08:48:04.622439+00:00",
+      "updated_at": "2026-09-06T08:48:04.622439+00:00",
+      "shipping_address": ""
+    }
+  ],
+  "cases": [
+    [
+      "polarity-quality-yes",
+      "是的。还请查一下订单DP9303的状态，并根据刚才的退货原因说明适用规则。",
+      [
+        "耳机拆封了，我想退。",
+        "是因为质量问题要退吗？"
+      ]
+    ]
+  ],
+  "case_definitions": [
+    {
+      "case_id": "polarity-quality-yes",
+      "message": "是的。还请查一下订单DP9303的状态，并根据刚才的退货原因说明适用规则。",
+      "history": [
+        "耳机拆封了，我想退。",
+        "是因为质量问题要退吗？"
+      ],
+      "expected_tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_order_id": "DP9303",
+      "expected_source_id": "synthetic-shop:audio-defect",
+      "source_text": "耳机出现单侧无声时，请先检查连接和音量。仍有故障的，提交购买凭证及故障视频申请质量审核；审核通过不代表退款已经到账。",
+      "data_label": "New synthetic contextual development contrast, not heldout; policy corpus already consumed"
+    }
+  ],
+  "planner_profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "low",
+    "min_completion_tokens": 4096,
+    "max_context_tokens": 32768
+  }
+}

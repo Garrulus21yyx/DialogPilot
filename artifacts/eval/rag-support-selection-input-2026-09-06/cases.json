@@ -1,0 +1,18 @@
+[
+  {
+    "case_id": "polarity-quality-yes",
+    "message": "是的。还请查一下订单DP9303的状态，并根据刚才的退货原因说明适用规则。",
+    "history": [
+      "耳机拆封了，我想退。",
+      "是因为质量问题要退吗？"
+    ],
+    "expected_tools": [
+      "order_lookup",
+      "knowledge_search"
+    ],
+    "expected_order_id": "DP9303",
+    "expected_source_id": "synthetic-shop:audio-defect",
+    "source_text": "耳机出现单侧无声时，请先检查连接和音量。仍有故障的，提交购买凭证及故障视频申请质量审核；审核通过不代表退款已经到账。",
+    "data_label": "New synthetic contextual development contrast, not heldout; policy corpus already consumed"
+  }
+]

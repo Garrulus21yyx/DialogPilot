@@ -8,7 +8,7 @@ from enum import Enum
 from typing import Mapping, Protocol
 
 from application.agent_result import AgentResultStatus
-from application.composition_output import render_composition
+from application.composition_output import render_composition, prepare_composition_payload
 
 
 # CJK prose may touch an ID; ASCII identifier characters must not be sliced.
@@ -50,7 +50,7 @@ class ConversationComposer(Protocol):
 class ResponseAssembler:
     """Choose the cheapest valid response path and verify the final candidate."""
 
-    version = "response-assembler-v3-conversation-context"
+    version = "response-assembler-v4-support-selection"
 
     def __init__(self, composer: ConversationComposer | None = None, *,
                  knowledge_generator=None, knowledge_verifier=None, knowledge_source_validator=None) -> None:
@@ -213,7 +213,7 @@ class ResponseAssembler:
                 "PASS", "DETERMINISTIC_ASSEMBLY",
             )
         payload = {
-            "schema_version": "conversation-compose-request-v2-segments",
+            "schema_version": "conversation-compose-request-v3-supports",
             "current_message": current_message,
             "conversation_context": conversation_context,
             "allowed_claims": [
@@ -238,6 +238,7 @@ class ResponseAssembler:
             "partial_delivery_allowed": board.partial_delivery_allowed,
         }
         try:
+            payload = prepare_composition_payload(payload)
             raw = await self._composer.compose(payload)
             text, used = render_composition(raw, claims)
             text, used = self.prepare_composed_response(

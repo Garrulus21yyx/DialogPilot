@@ -3,7 +3,7 @@ from itertools import combinations
 
 import pytest
 
-from application.composition_output import composition_schema, render_composition, validate_composition
+from evaluation.legacy_composition_output import composition_schema, render_composition, validate_composition
 from application.response_assembly import AllowedClaim, ResponseAssembler
 from tests.test_response_assembly import _Composer, _board, _result, _verified_order_result
 from tests.test_knowledge_answer_boundary import Verifier
