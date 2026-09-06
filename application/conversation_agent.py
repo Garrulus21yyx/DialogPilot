@@ -151,6 +151,7 @@ class ConversationAgent:
                 if turn_context is not None else []
             ),
             "supported_goals": sorted(_GOALS),
+            "missing_fields_schema": sorted(_MISSING_FIELDS),
             "registry_fingerprint": registry.fingerprint,
         }
         try:
