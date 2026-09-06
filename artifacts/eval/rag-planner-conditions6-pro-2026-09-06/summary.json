@@ -1,0 +1,20 @@
+{
+  "scope": "Consumed six mixed questions, paired output modes; prompt experiment, not E2E",
+  "variants": {
+    "text": {
+      "compiled": 5,
+      "wire_schema_valid": 5,
+      "both_tools": 4,
+      "api_calls": 6,
+      "output_tokens": 861
+    },
+    "structured_native": {
+      "compiled": 6,
+      "wire_schema_valid": 6,
+      "both_tools": 6,
+      "api_calls": 6,
+      "output_tokens": 874
+    }
+  },
+  "raw_sha256": "11bcda9fec494b169e440f5cf817551ed663e6697b100279b2e6adfe6650725c"
+}

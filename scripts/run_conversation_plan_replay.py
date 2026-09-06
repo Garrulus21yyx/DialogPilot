@@ -87,6 +87,7 @@ async def run(args):
         # the eventual model decision. This does not supply a model answer.
         compile_captured(key,payload,{'status':'out_of_scope'})
     schema_for = (lambda payload: planning_output_schema()) if args.current_output_schema else output_schema
+    system_override = args.system_prompt.read_text() if args.system_prompt else None
     if args.current_output_schema:
         from jsonschema import Draft202012Validator
         wire_validator = Draft202012Validator(planning_output_schema())
@@ -97,7 +98,10 @@ async def run(args):
         'source_sha256':hashlib.sha256(raw).hexdigest(),'case_ids':[key for key,_ in inputs],
         'current_goal_descriptions':args.current_goal_descriptions,'profile':profile.to_dict(),'max_tokens':args.max_tokens,
         'variants':args.modes,'max_api_calls':len(args.modes)*len(inputs),
-        'current_output_schema':args.current_output_schema,'structured_schema':schema_for(inputs[0][1])},indent=2)+'\n')
+        'current_output_schema':args.current_output_schema,'structured_schema':schema_for(inputs[0][1]),
+        'system_override_sha256':hashlib.sha256(system_override.encode()).hexdigest() if system_override is not None else None},indent=2)+'\n')
+    if system_override is not None:
+        (args.output/'system-prompt.txt').write_text(system_override)
     options=dict(api_key=values['ANTHROPIC_API_KEY'],max_retries=0,timeout=60)
     if policy.base_url:options['base_url']=policy.base_url
     async with AsyncAnthropic(**options) as transport:
@@ -106,6 +110,8 @@ async def run(args):
             for mode in args.modes:
                 class Messages:
                     async def create(self,**request):
+                        if system_override is not None:
+                            request['system'] = system_override
                         if mode in ('structured','structured_native'):
                             request['tools']=[{'name':'submit_turn_plan','description':'Submit the customer-service turn plan.',
                                                'input_schema':schema_for(payload)}]
@@ -116,7 +122,7 @@ async def run(args):
                                 request['system']=request['system'].replace(
                                     'Return one JSON object only.',
                                     'Submit one complete plan through submit_turn_plan. Use the output tool rather than a text answer.')
-                            DEFAULT_PROVIDER_CONTEXT_BUDGET.validate(profile,ModelRole.INTENT,request)
+                        DEFAULT_PROVIDER_CONTEXT_BUDGET.validate(profile,ModelRole.INTENT,request)
                         response=await client.messages.create(**request)
                         if mode in ('structured','structured_native'):
                             blocks=[b for b in response.content if b.type=='tool_use']
@@ -147,6 +153,7 @@ def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--capture',required=True,type=Path);p.add_argument('--output',required=True,type=Path)
     p.add_argument('--current-goal-descriptions',action='store_true')
+    p.add_argument('--system-prompt',type=Path,help='Explicit evaluation-only instruction override, copied into output artifacts.')
     p.add_argument('--current-output-schema',action='store_true',
                    help='Use the application-owned output shape; historical evaluation schema remains the default.')
     p.add_argument('--case-ids',nargs='+',help='Replay only named captured cases; unknown IDs fail before API calls.')
