@@ -58,12 +58,16 @@ def planning_goal_descriptions() -> dict[str, str]:
     return dict(_GOAL_DESCRIPTIONS)
 
 
+def _available_goals(registry):
+    return frozenset({"delegate_task", "cancel_active_work", *registry.planning_shortcuts}) & _GOALS
+
+
 _MISSING_FIELDS = {
     "order_id", "asset_id", "new_address", "customer_service_goal",
 }
 
 
-def planning_output_schema() -> dict:
+def planning_output_schema(supported_goals=None) -> dict:
     """Wire shape for the current whole-turn planning algebra.
 
     The compiler still owns binding authorization, goal dependencies, capability
@@ -76,7 +80,7 @@ def planning_output_schema() -> dict:
     goal = {
         "type": "object", "additionalProperties": False, "required": ["kind"],
         "properties": {
-            "kind": {"type": "string", "enum": sorted(_GOALS)},
+            "kind": {"type": "string", "enum": sorted(_GOALS if supported_goals is None else supported_goals)},
             **{key: dict(text) for key in (
                 "goal_id", "order_id", "order_id_source_ref", "asset_id",
                 "asset_id_source_ref", "new_address", "revises_control_id",
@@ -221,8 +225,8 @@ class ConversationAgent:
                 turn_context.entity_bindings.as_payload(state)
                 if turn_context is not None else []
             ),
-            "supported_goals": sorted(_GOALS),
-            "goal_descriptions": planning_goal_descriptions(),
+            "supported_goals": sorted(_available_goals(registry)),
+            "goal_descriptions": {key: _GOAL_DESCRIPTIONS[key] for key in _available_goals(registry)},
             "domain_capabilities": [
                 {
                     "agent_id": agent.agent_id,
@@ -316,7 +320,7 @@ class ConversationAgent:
             if "resolved_query" in value and (not isinstance(value["resolved_query"], str)
                     or not value["resolved_query"].strip() or len(value["resolved_query"]) > 4000):
                 raise ValueError("resolved query must be bounded non-empty text")
-            if kind not in _GOALS:
+            if kind not in _available_goals(registry):
                 raise ValueError("goal identity or kind is invalid")
             raw_dependencies = value.get("depends_on", ())
             if (

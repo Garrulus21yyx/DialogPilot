@@ -9,7 +9,6 @@ from langchain_core.messages import AIMessage, ToolMessage
 from application.context_budget import ContextBudgetManager, ModelContextBudgetExceeded
 from application.work_control import WorkControlGuard
 from core.token_estimator import TokenEstimator
-from application.knowledge_tool_contract import knowledge_artifact
 
 
 class InteractionBoundaryMiddleware(AgentMiddleware):
@@ -50,7 +49,11 @@ class WorkControlMiddleware(AgentMiddleware):
 
 
 class AgentContextMiddleware(AgentMiddleware):
-    """Shrink only the provider view; checkpoints retain complete tool artifacts."""
+    """Validate the complete provider view against the configured model budget.
+
+    A byte prefix is not a semantic projection of a structured tool result. Keep
+    in-budget payloads intact; genuine overflow has an explicit typed outcome.
+    """
 
     def __init__(self, budget: ContextBudgetManager) -> None:
         self.budget = budget
@@ -75,16 +78,6 @@ class AgentContextMiddleware(AgentMiddleware):
                 "tool_calls": message.tool_calls if isinstance(message, AIMessage) else (),
             }, ensure_ascii=False, default=str)) for message in messages)
 
-        for index, message in enumerate(messages):
-            if isinstance(message, ToolMessage) and message.artifact is not None:
-                if knowledge_artifact(message.artifact):
-                    continue
-                content = str(message.content)
-                if self.estimator.estimate(content) > 800:
-                    messages[index] = message.model_copy(update={"content": (
-                        content[:1600] + "\n[truncated; complete result retained in tool artifact "
-                        + message.tool_call_id + "]"
-                    )})
         required = size()
         if required > available:
             raise ModelContextBudgetExceeded(required + overhead, self.budget.available_tokens)

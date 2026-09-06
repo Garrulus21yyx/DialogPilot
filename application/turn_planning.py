@@ -444,8 +444,10 @@ class RoutePolicy:
                 raise TurnPlanningError("workflow continuation has no accepted approval")
             if any(work.registry_fingerprint != registry.fingerprint for work in grant.suspended_work_items):
                 raise TurnPlanningError("action continuation uses another registry version")
-            if grant.suspended_work_items and grant.suspended_work_items[0].control is not None:
-                binding = grant.suspended_work_items[0].control
+            origin = next((work for work in grant.suspended_work_items
+                           if work.work_item_id == grant.origin_work_item_id), None)
+            if origin is not None and origin.control is not None:
+                binding = origin.control
                 if not any(control.control_id == binding.control_id and control.revision == binding.revision
                            for control in state.active_work_controls):
                     raise TurnPlanningError("approved action objective was superseded")
@@ -603,7 +605,7 @@ class TurnPlanCompiler:
         )
         items = tuple(
             self._compile_item(
-                index, item, state, invocation, registry.fingerprint,
+                index, item, state, invocation, registry,
             )
             for index, item in enumerate(executable, start=1)
         )
@@ -697,9 +699,10 @@ class TurnPlanCompiler:
         command,
         state,
         invocation,
-        registry_fingerprint,
+        registry,
     ) -> WorkItem:
         proposal = command.proposal
+        agent = registry.agent(proposal.target_agent)
         work_item_id = f"work:{index}:{proposal.command_id}"
         control_mode = {
             CommandKind.DIRECT_TOOL: ControlMode.DIRECT,
@@ -741,9 +744,9 @@ class TurnPlanCompiler:
             state_snapshot_version=(
                 replay.state_snapshot_version if replay is not None else state.version
             ),
-            registry_fingerprint=registry_fingerprint,
-            timeout_seconds=15 if write else 8,
-            max_steps=8 if write else (1 if control_mode is ControlMode.DIRECT else 4),
+            registry_fingerprint=registry.fingerprint,
+            timeout_seconds=15 if write else agent.timeout_seconds,
+            max_steps=8 if write else (1 if control_mode is ControlMode.DIRECT else agent.max_model_calls),
             skill_hint=proposal.skill_id if proposal.kind is CommandKind.RUN_SKILL else None,
             flow_ref=(
                 proposal.flow_ref

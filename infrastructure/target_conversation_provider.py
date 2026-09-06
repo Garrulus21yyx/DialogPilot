@@ -115,7 +115,7 @@ class AnthropicConversationPlanningProvider:
             except (ValueError, KeyError, TypeError) as exc:
                 raise ConversationProviderOutputError('invalid composition attribution input') from exc
         else:
-            schema = planning_output_schema()
+            schema = planning_output_schema(payload.get("supported_goals"))
         request["tools"] = [{
             "name": output_name,
             "description": "Submit the complete structured response for this stage.",
@@ -140,7 +140,7 @@ class AnthropicConversationPlanningProvider:
                 return validate_composition(value)
             from jsonschema import Draft202012Validator, ValidationError
             try:
-                Draft202012Validator(planning_output_schema()).validate(value)
+                Draft202012Validator(schema).validate(value)
             except ValidationError as exc:
                 raise ValueError("planning output violates the owner wire schema") from exc
             return value

@@ -356,6 +356,7 @@ def conversation_state_from_payload(raw: Mapping[str, object]) -> ConversationSt
                     for binding in approval_raw.get("argument_bindings", ())
                 ),
                 tuple(_work_item_from_payload(work) for work in approval_raw.get("suspended_work_items", ())),
+                approval_raw.get("origin_work_item_id"),
             )
             if isinstance(approval_raw, Mapping) else None
         ),
@@ -392,6 +393,7 @@ def conversation_state_from_payload(raw: Mapping[str, object]) -> ConversationSt
                     for binding in item.get("argument_bindings", ())
                 ),
                 tuple(_work_item_from_payload(work) for work in item.get("suspended_work_items", ())),
+                item.get("origin_work_item_id"),
             )
             for item in payload.get("accepted_approvals", ())
         ),

@@ -315,6 +315,7 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
         _requirement(tool.authority, tool)
         for tool in tools
     )
+    from application.conversation_agent import planning_goal_descriptions
     return CapabilityRegistryBundle(
         tenant_id,
         "customer-service-v1",
@@ -325,6 +326,7 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
         requirements,
         tools,
         (profile,),
+        planning_shortcuts=tuple(planning_goal_descriptions()),
     )
 
 

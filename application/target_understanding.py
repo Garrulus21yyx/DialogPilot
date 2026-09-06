@@ -52,7 +52,7 @@ class StateBoundTargetUnderstanding:
                 suspended = deterministic.resumed_work_items
                 # Declining one action closes its originating objective and its
                 # dependants, not unrelated work suspended by the same turn.
-                excluded = {suspended[0].work_item_id} if suspended else set()
+                excluded = {deterministic.action_origin_work_item_id} if deterministic.action_origin_work_item_id else set()
                 while True:
                     expanded = excluded | {work.work_item_id for work in suspended
                                            if excluded.intersection(work.dependencies)}

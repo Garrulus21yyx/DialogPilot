@@ -200,6 +200,7 @@ class PendingApprovalState:
     checkpoint_thread_id: str | None = None
     argument_bindings: tuple[EntityBinding, ...] = ()
     suspended_work_items: tuple[WorkItem, ...] = ()
+    origin_work_item_id: str | None = None
 
     def __post_init__(self) -> None:
         _required(
@@ -216,6 +217,11 @@ class PendingApprovalState:
             raise ConversationStateError("approval version must be positive")
         _unique((item.name for item in self.arguments), "approval arguments")
         _unique((item.field_name for item in self.argument_bindings), "approval bindings")
+        _unique((item.work_item_id for item in self.suspended_work_items), "approval continuations")
+        if self.origin_work_item_id is not None and self.origin_work_item_id not in {
+            item.work_item_id for item in self.suspended_work_items
+        }:
+            raise ConversationStateError("approval origin is not a suspended objective")
         arguments = {item.name: item.value_json for item in self.arguments}
         if any(
             item.field_name not in arguments or arguments[item.field_name] != item.value_json
@@ -244,6 +250,7 @@ class AcceptedApprovalState:
     arguments: tuple[ArgumentValue, ...]
     argument_bindings: tuple[EntityBinding, ...] = ()
     suspended_work_items: tuple[WorkItem, ...] = ()
+    origin_work_item_id: str | None = None
 
     def __post_init__(self) -> None:
         _required(
@@ -258,6 +265,11 @@ class AcceptedApprovalState:
             raise ConversationStateError("accepted approval version must be positive")
         _unique((item.name for item in self.arguments), "accepted approval arguments")
         _unique((item.field_name for item in self.argument_bindings), "accepted bindings")
+        _unique((item.work_item_id for item in self.suspended_work_items), "accepted continuations")
+        if self.origin_work_item_id is not None and self.origin_work_item_id not in {
+            item.work_item_id for item in self.suspended_work_items
+        }:
+            raise ConversationStateError("accepted approval origin is not a suspended objective")
         arguments = {item.name: item.value_json for item in self.arguments}
         if any(
             item.field_name not in arguments or arguments[item.field_name] != item.value_json
@@ -403,8 +415,17 @@ class ConversationState:
             "pending_approval": (
                 self.pending_approval.approval_id,
                 self.pending_approval.version,
+                self.pending_approval.workstream_id,
+                self.pending_approval.work_item_id,
+                self.pending_approval.action_ref,
+                self.pending_approval.operation_key,
+                self.pending_approval.target_entity_ref,
+                self.pending_approval.target_entity_version,
+                self.pending_approval.expires_at,
+                tuple((argument.name, argument.value_json) for argument in self.pending_approval.arguments),
                 self.pending_approval.checkpoint_thread_id,
                 tuple(item.fingerprint for item in self.pending_approval.suspended_work_items),
+                self.pending_approval.origin_work_item_id,
                 tuple(
                     (item.field_name, item.value_json, item.source_ref, item.type_selection)
                     for item in self.pending_approval.argument_bindings
@@ -424,6 +445,7 @@ class ConversationState:
                     item.action_ref, item.operation_key, item.target_entity_ref,
                     item.target_entity_version,
                     tuple(work.fingerprint for work in item.suspended_work_items),
+                    item.origin_work_item_id,
                     tuple((arg.name, arg.value_json) for arg in item.arguments),
                     tuple(
                         (binding.field_name, binding.value_json, binding.source_ref, binding.type_selection)
@@ -707,6 +729,7 @@ class ConversationState:
                     pending.arguments,
                     pending.argument_bindings,
                     pending.suspended_work_items,
+                    pending.origin_work_item_id,
                 ))
                 if approved else updated.accepted_approvals
             ),

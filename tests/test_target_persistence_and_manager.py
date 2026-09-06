@@ -446,6 +446,12 @@ def test_conversation_state_codec_preserves_approval_execution_bindings():
     assert restored == state
     assert restored.pending_approval.operation_key == "operation-1"
     assert restored.pending_approval.target_entity_version == "7"
+    for changes in ({"operation_key": "another-operation"},
+                    {"target_entity_version": "8"},
+                    {"action_ref": "another-action:v1"},
+                    {"arguments": (ArgumentValue.create("order_id", "DP9999"),)}):
+        changed = replace(restored, pending_approval=replace(restored.pending_approval, **changes))
+        assert changed.fingerprint != restored.fingerprint
 
     accepted = restored.consume_approval(
         approval_id="approval-1", approval_version=1, approved=True,

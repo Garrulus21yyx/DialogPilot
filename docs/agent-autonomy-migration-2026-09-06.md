@@ -29,3 +29,13 @@ RoutePolicy 校验领域、实体来源和权限，形成只读执行包络。�
 第三阶段回归：真实 PostgreSQL 154 passed、2 skipped；新增拒绝与依赖顺序检查后定向 26 passed。已有大 HTTP 场景的旧 fixture 仍存在退款资格候选被最终回复验证拒绝的问题，不能将该用例记为通过。多类待决交互竞争与完整外部环境评测仍在进行。
 
 τ³ 工具和政策桥接、完整对话及官方评分仍待完成。当前没有新增换货专用 Agent、Skill 或题目分支。
+
+## 环境装配与收敛
+
+Registry 的 planning_shortcuts 决定主 Agent 可用的既有快捷目标；新环境可只启用通用委派。AgentDefinition 的 timeout_seconds/max_model_calls 决定领域预算，不再用固定四轮限制所有开放任务。Encoder 可在实验装配中明确关闭，不能把旧业务分类器自动当作新环境分类器。
+
+审批包含显式动作来源目标，等待队列与来源不混用；拒绝来源目标不取消无关任务。完整参数、对象版本和动作身份进入审批状态 fingerprint。组合回归 186 passed、2 skipped。
+
+评测桥接位于 evaluation/tau3_full_adapter.py 和 evaluation/tau3_tool_binding.py：前者只做协议往返，后者注册官方工具元数据及政策。真实调用经官方 Orchestrator 执行；Target 保留原审批、操作账本、回复验证和 Publication。基准没有远端 operation-key 查询或原子 CAS，适配器只能记录已观察到的结果，未知结果不会伪装为可重试失败。
+
+当前完整评测仍未通过，不能以“工具已接通”宣称退换货业务闭环已验证。

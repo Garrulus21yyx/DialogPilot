@@ -96,6 +96,7 @@ class DeterministicResolution:
     arguments: tuple[tuple[str, object], ...] = ()
     resumed_work_items: tuple[WorkItem, ...] = ()
     argument_bindings: tuple[EntityBinding, ...] = ()
+    action_origin_work_item_id: str | None = None
 
     @property
     def resolved(self) -> bool:
@@ -158,6 +159,7 @@ class DeterministicResolver:
                     approval.version,
                     False,
                     resumed_work_items=approval.suspended_work_items,
+                    action_origin_work_item_id=approval.origin_work_item_id,
                 )
             stream = next(
                 item for item in state.workstreams
@@ -179,6 +181,7 @@ class DeterministicResolver:
                 arguments=tuple((item.name, item.value) for item in approval.arguments),
                 argument_bindings=approval.argument_bindings,
                 resumed_work_items=approval.suspended_work_items,
+                action_origin_work_item_id=approval.origin_work_item_id,
             )
         if observations.approval_decision is not None:
             accepted = next((

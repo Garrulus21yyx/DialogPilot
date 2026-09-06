@@ -82,6 +82,30 @@ def test_open_delegation_uses_read_envelope_without_inventing_write_authority():
     assert all(registry.tool(tool).effect is CapabilityEffect.READ for tool in command.allowed_tools)
 
 
+def test_injected_registry_owns_shortcuts_and_execution_budget():
+    registry = build_default_capability_registry("tenant-a")
+    owner = replace(registry.agent("general"), timeout_seconds=90, max_model_calls=12)
+    registry = replace(registry, planning_shortcuts=(),
+                       agents=tuple(owner if agent.agent_id == owner.agent_id else agent
+                                    for agent in registry.agents))
+    state = _state()
+    observations = TurnObservations("Help with the available environment.")
+    provider = Provider(_proposal("general"))
+    proposal = asyncio.run(ConversationAgent(provider).plan(
+        observations, state, DeterministicResolver().resolve(observations, state), registry))
+    assert provider.calls[0]["supported_goals"] == ["cancel_active_work", "delegate_task"]
+    identity = IdentityFactory().create_invocation(
+        tenant_id="tenant-a", user_id="user-a", conversation_id="conversation-a", request_id="budget")
+    plan = TurnPlanCompiler().compile(RoutePolicy().accept(proposal, state, registry),
+                                      state, registry, identity)
+    assert plan.work.items[0].timeout_seconds == 90
+    assert plan.work.items[0].max_steps == 12
+    unsupported = Provider({"status": "resolved", "goals": [{"kind": "general_qa", "resolved_query": "Help"}]})
+    rejected = asyncio.run(ConversationAgent(unsupported).plan(
+        observations, state, DeterministicResolver().resolve(observations, state), registry))
+    assert rejected.disposition is ProposalDisposition.INVALID_PROVIDER_OUTPUT
+
+
 def test_unregistered_domain_is_invalid_provider_output():
     registry = build_default_capability_registry("tenant-a")
     state = _state()

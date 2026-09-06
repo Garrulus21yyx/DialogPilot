@@ -80,6 +80,8 @@ class AgentDefinition:
     max_parallelism: int = 1
     description: str = ""
     tool_principal: str | None = None
+    timeout_seconds: int = 8
+    max_model_calls: int = 4
 
     @property
     def execution_principal(self) -> str:
@@ -99,6 +101,8 @@ class AgentDefinition:
             _required(self.tool_principal)
         if self.max_parallelism < 1:
             raise CapabilityRegistryError("agent max_parallelism must be positive")
+        if self.timeout_seconds < 1 or self.max_model_calls < 1:
+            raise CapabilityRegistryError("agent execution budgets must be positive")
 
 
 @dataclass(frozen=True)
@@ -311,9 +315,11 @@ class CapabilityRegistryBundle:
     requirements: tuple[FactRequirement, ...]
     tools: tuple[ToolDefinition, ...]
     verification_profiles: tuple[VerificationProfile, ...]
+    planning_shortcuts: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         _required(self.tenant_id, self.bundle_version)
+        _unique_nonblank(self.planning_shortcuts, "planning shortcuts")
         agents = _index(self.agents, "agent_id", "agents")
         skills = _index(self.skills, "skill_id", "skills")
         flows = _index(self.flows, "ref", "flows")

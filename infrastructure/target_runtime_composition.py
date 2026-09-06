@@ -51,6 +51,7 @@ from infrastructure.target_product_execution import TargetProductExecutor
 from infrastructure.target_tool_execution import TargetToolExecutor
 from infrastructure.target_turn_context import TargetTurnContextLoader
 from infrastructure.target_workflow_execution import TargetWorkflowExecutor
+from services.answer_verifier import AnswerVerifier
 
 
 @dataclass(frozen=True)
@@ -79,6 +80,7 @@ async def build_target_runtime(
     knowledge_verifier=None,
     knowledge_source_validator=None,
     registry: CapabilityRegistryBundle | None = None,
+    enable_encoder: bool = True,
 ) -> TargetRuntimeComponents:
     """Wire the one production Target runtime and enter its checkpoint owner."""
     registry = registry if registry is not None else build_default_capability_registry(
@@ -156,7 +158,7 @@ async def build_target_runtime(
             checkpointer=checkpointer,
             control_guard=control_guard,
         )
-        encoder = _target_encoder(project_root)
+        encoder = _target_encoder(project_root) if enable_encoder else None
         conversation_agent = ConversationAgent(
             AnthropicConversationPlanningProvider(
                 tool_manager.llm_client,
@@ -177,6 +179,13 @@ async def build_target_runtime(
             orchestration=orchestration,
             context_provider=TargetTurnContextLoader(memory, tool_manager),
         )
+        # Answer support is part of the assembled Target runtime, including
+        # tool-only environments. Callers may inject a verifier, not omit it.
+        if knowledge_verifier is None:
+            knowledge_verifier = AnswerVerifier(
+                client=tool_manager.llm_client,
+                model_profile=model_policy.profile(ModelRole.VERIFIER),
+            )
         assembler = ResponseAssembler(conversation_agent, knowledge_generator=knowledge_generator,
                                       knowledge_verifier=knowledge_verifier,
                                       knowledge_source_validator=knowledge_source_validator)

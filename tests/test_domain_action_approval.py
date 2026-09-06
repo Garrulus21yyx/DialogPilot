@@ -37,6 +37,7 @@ def test_decline_resumes_only_independent_objectives(independent_count):
     resolution = DeterministicResolution(
         ResolutionKind.APPROVAL_DECISION, "DECLINED", state.fingerprint,
         approved=False, resumed_work_items=(origin, downstream, *independent),
+        action_origin_work_item_id="origin",
     )
     proposal = asyncio.run(StateBoundTargetUnderstanding()(
         TurnObservations("No"), state, resolution,
@@ -58,6 +59,33 @@ def test_resumed_objectives_preserve_dependency_order():
         (first, second), _state(), after="approved-action")
     assert commands[0].dependencies == ("approved-action",)
     assert commands[1].dependencies == (commands[0].command_id, "approved-action")
+
+
+@pytest.mark.parametrize("waiting_status", ["NEEDS_USER_INPUT", "WAITING_APPROVAL", "BLOCKED"])
+def test_existing_explicit_approval_retains_unfinished_domain_work(waiting_status):
+    from types import SimpleNamespace
+    from application.action_approval import bind_action_approval
+    from application.agent_result import AgentResultStatus
+    from application.conversation_state import ConversationState, PendingApprovalState, WorkstreamState, WorkstreamStatus
+    from tests.test_target_framework_agent import _item
+
+    state = ConversationState.empty(tenant_id="tenant-a", user_id="user-a", conversation_id="conversation-a")
+    state = state.start_workstream(WorkstreamState(
+        "action-stream", "order_logistics", "order.cancel:v1", "READY", WorkstreamStatus.ACTIVE, 1))
+    state = state.wait_for_approval(PendingApprovalState(
+        "approval", 1, "action-stream", "prepared-action", "order.cancel:v1", "operation",
+        "order:R1", "1", "2099-01-01T00:00:00+00:00"))
+    item = _item()
+    board = SimpleNamespace(results=(SimpleNamespace(work_item_id=item.work_item_id,
+        pending_action=None, status=AgentResultStatus(waiting_status)),))
+    next_state = bind_action_approval(state, SimpleNamespace(work=SimpleNamespace(items=(item,))),
+                                      board, None, "thread")
+    assert next_state.pending_approval.suspended_work_items == (item,)
+    assert next_state.pending_approval.origin_work_item_id is None
+    assert next_state.pending_approval.operation_key == "operation"
+    assert next_state.version == state.version + 1
+    assert bind_action_approval(next_state, SimpleNamespace(work=SimpleNamespace(items=(item,))),
+                                board, None, "thread") is next_state
 
 
 @pytest.mark.parametrize("decision", ["approve", "deny", "supersede", "ask_first"])

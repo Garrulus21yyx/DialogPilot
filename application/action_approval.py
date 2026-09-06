@@ -1,5 +1,6 @@
 """Bind a prepared domain action to the conversation's existing approval state."""
 from datetime import datetime, timedelta, timezone
+from dataclasses import replace
 
 from application.conversation_state import (
     ConversationStateConflict, PendingApprovalState, WorkstreamState, WorkstreamStatus,
@@ -8,9 +9,22 @@ from application.conversation_state import (
 
 def bind_action_approval(state, plan, board, registry, checkpoint_thread_id):
     proposed = tuple(result for result in board.results if result.pending_action is not None)
+    if state.pending_approval:
+        # A prepared explicit action already owns this turn's decision. Queue
+        # unfinished domain objectives behind it, without replacing its grant.
+        pending = state.pending_approval
+        existing = {work.work_item_id for work in pending.suspended_work_items}
+        waiting = {result.work_item_id for result in board.results
+                   if result.status.value in {"WAITING_APPROVAL", "NEEDS_USER_INPUT", "BLOCKED"}}
+        additions = tuple(work for work in plan.work.items
+                          if work.work_item_id in waiting and work.work_item_id not in existing)
+        if not additions:
+            return state
+        return replace(state, version=state.version + 1, pending_approval=replace(
+            pending, suspended_work_items=(*pending.suspended_work_items, *additions)))
     if not proposed:
         return state
-    if state.pending_approval or state.pending_interaction:
+    if state.pending_interaction:
         raise ConversationStateConflict("one pending action decision is supported per conversation")
     result = proposed[0]
     parent = next(item for item in plan.work.items if item.work_item_id == result.work_item_id)
@@ -45,4 +59,5 @@ def bind_action_approval(state, plan, board, registry, checkpoint_thread_id):
                     and outcome.status.value not in {"SUCCEEDED", "CANCELLED", "SUPERSEDED"}
                     for outcome in board.results)
         )),
+        origin_work_item_id=parent.work_item_id,
     ), new_workstream=stream)

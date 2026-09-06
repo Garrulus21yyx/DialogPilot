@@ -13,13 +13,22 @@
 1. implemented：Registry 领域能力卡、通用目标委派、Schema/编译/RoutePolicy/领域执行接线与回归。新增领域无需业务目标枚举；当前仅开放只读委派。合同回归通过，尚无真实模型收益结论。
 2. implemented：Action 可不关联 Flow；统一 PREPARE_ACTION / EXECUTE_ACTION / CONTINUE_ACTION，独立写入使用 ACTION 执行模式。已有待审批 Workstream、信号消费、恢复及操作账本复用。PostgreSQL 回归 136 passed、2 skipped（两项内存账本不适用的数据库隔离测试）。
 3. implemented / verification_open：领域模型提出写动作，经共享准备服务、已有审批状态和写运行时暂停、恢复、继续；增加通用 request_user_input，不按商品类别枚举字段。基础回归 154 passed / 2 skipped；补充拒绝和依赖恢复后 26 passed。多种待决交互竞争的整体收敛仍需验证，不据此声明全部闭环。
-4. pending：环境可注入，τ³ 工具及政策桥接，完整两条开发任务与官方评分。
+4. in_progress：环境注入、官方 Orchestrator 工具往返、Target 后台运行/Publication 读取已接通。两条开发任务已产生 ENV/ACTION 失败评分；补齐与 API 一致的 verifier 装配并删除预算内工具截断后，继续以冻结代码跑 ALL 官方评分，不把调试轮次作为效果提升证明。
 
 ## 验证与完成标准
 
 新增领域/只读工具仅通过注册可被语义层委派并由框架执行；非法领域、越权工具、伪造参数不获执行权。受控写验证同一审批参数绑定、重复操作、结果未知、取消和恢复。实际模型测评与合同测试分开报告。整体迁移未完成前，不以单阶段回归通过声明所有能力闭环。
 
 不修改用户已有未提交文档/评测工作；不新增退货/换货专用 Agent、试题规则或自写 ReAct 循环。阶段完成分别 commit/push。
+
+## 收敛验证记录
+
+- Registry 显式拥有可选 planning_shortcuts，未配置快捷目标的环境仅暴露开放委派和目标取消；领域执行预算由 AgentDefinition 提供。
+- 审批保存显式 origin_work_item_id，确认/拒绝不依赖队列顺序。已有明确 Action 与等待中的领域任务共享一个待决入口；恢复保留任务依赖。
+- PendingApproval 的 CAS fingerprint 覆盖动作、对象、参数、期限、续接目标。持久化与消费合同同步迁移。
+- Framework Agent 不再把预算内结构化工具结果剪成 1600 字符前缀；真实溢出返回 CONTEXT_BUDGET_EXCEEDED。未新增通用压缩运行时。
+- Target composition 默认装配现有 AnswerVerifier，避免非 API 消费者遗漏校验器后持续只输出模板。
+- 当前组合 PostgreSQL/合同回归：186 passed、2 skipped。不是完整仓库全部测试通过的声明。
 
 ## 第一阶段记录
 
