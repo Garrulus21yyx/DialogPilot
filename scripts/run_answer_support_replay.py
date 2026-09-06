@@ -37,7 +37,8 @@ async def run(args):
             before=len(client.calls)
             verdict=await verifier.verify(p['current_message'],row['rendered'],
                 context=json.dumps({'facts':[c['value'] for c in claims if c['kind']=='FACT'],
-                                    'receipts':[c['value'] for c in claims if c['kind']=='RECEIPT']},ensure_ascii=False),
+                                    'receipts':[c['value'] for c in claims if c['kind']=='RECEIPT'],
+                                    **({'user_context':p['conversation_context']} if p.get('conversation_context') is not None else {})},ensure_ascii=False),
                 knowledge_evidence={'packs':packs,'allowed_evidence_ids':sorted({e['evidence_id'] for p in packs for e in p['evidence']})},
                 agent_outcomes=[{'status':o['status'],'reason':o['reason_code']} for o in p['work_item_outcomes']])
             result={'case_id':row['case_id'],'answer':row['rendered'],'previous_verdict':row.get('verdict'),

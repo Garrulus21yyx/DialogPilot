@@ -1,0 +1,46 @@
+{
+  "scope": "six synthetic fixed-fact statement mutations; not population estimate",
+  "api_calls": 6,
+  "false_accepts": 2,
+  "unsupported_cases": 3,
+  "supported_cases": 3,
+  "false_rejects": 0,
+  "results": [
+    {
+      "case_id": "bounded",
+      "expected_grounded": true,
+      "publishable": true,
+      "reason": "回答基于事实中的 lookup_status=NO_APPLICATION，并正确按字段语义将其限定为系统未记录退款申请、无法确认到账，未推导外部退款不存在或未到账。"
+    },
+    {
+      "case_id": "unknown_right",
+      "expected_grounded": true,
+      "publishable": true,
+      "reason": "回答准确反映了系统查询结果：订单 DP9302 未记录到退款申请，因此无法确认到账，并正确说明这不代表用户无权申请退款。"
+    },
+    {
+      "case_id": "not_disproved",
+      "expected_grounded": true,
+      "publishable": true,
+      "reason": "回答准确反映了系统查询结果：订单 DP9302 未记录到归属于用户的退款申请，因此无法确认到账，并正确说明这不证明用户无权申请退款。"
+    },
+    {
+      "case_id": "unaffected_right",
+      "expected_grounded": false,
+      "publishable": true,
+      "reason": "回答基于事实中 lookup_status 为 NO_APPLICATION 的记录，正确说明系统未记录到退款申请，因此无法确认到账，且未添加未获支持的事实或承诺。"
+    },
+    {
+      "case_id": "entitled",
+      "expected_grounded": false,
+      "publishable": true,
+      "reason": "回答准确反映了系统查询结果：订单 DP9302 未记录到退款申请，因此无法确认到账，并正确说明用户仍有权申请退款，未添加未获支持的事实或承诺。"
+    },
+    {
+      "case_id": "not_entitled",
+      "expected_grounded": false,
+      "publishable": false,
+      "reason": "回答中“您已经无权申请退款”未获任何证据支持，且与上下文中 lookup_status=NO_APPLICATION 的字段语义相矛盾，该状态仅表示系统当前未记录退款申请，不能推导用户无权申请退款。"
+    }
+  ]
+}
