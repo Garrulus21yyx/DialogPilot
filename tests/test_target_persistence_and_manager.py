@@ -214,7 +214,7 @@ class _EligibilityExecutor:
                 FactSourceKind.VERIFIED_STATE,
                 "eligibility-receipt",
                 "refund_eligibility_check",
-                "refund-eligibility-v1",
+                "refund-eligibility-v2",
                 datetime.now(timezone.utc),
             ),),
         )
@@ -258,7 +258,7 @@ class _OrderCancellationPreparationExecutor:
                 FactSourceKind.VERIFIED_STATE,
                 "order-state-receipt",
                 "order_lookup",
-                "order-view-v1",
+                "order-view-v2",
                 datetime.now(timezone.utc),
             ),),
         )

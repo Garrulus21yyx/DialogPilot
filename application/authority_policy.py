@@ -175,7 +175,7 @@ class AuthorityPolicyRegistry:
                 "order.current_state", "order.current_state",
                 ("order_id", "status", "version", "updated_at"), 60,
                 read, ("order_lookup",), ("knowledge_search",), "", supported,
-                "CustomerOperations:order-v1",
+                "CustomerOperations:order-v2",
             ),
             FactRequirement(
                 "order.cancellation_state", "order.cancellation_state",
@@ -218,7 +218,7 @@ class AuthorityPolicyRegistry:
                 "refund.eligibility", "refund.eligibility",
                 ("order_id", "eligible", "reason_code", "order_version"), 60,
                 read, ("refund_eligibility_check",), ("knowledge_search",), "",
-                supported, "CustomerOperations:refund-eligibility-v1",
+                supported, "CustomerOperations:refund-eligibility-v2",
             ),
             FactRequirement(
                 "refund.request_action", "refund.request_action",
@@ -304,14 +304,14 @@ class AuthorityPolicyRegistry:
                     "support.ticket_state", "commitment.current_state",
                     "product.canonical_model",
                 ), (
-                    ("order_lookup", "order-view-v1"),
+                    ("order_lookup", "order-view-v2"),
                     ("order_cancel_status", "order-cancellation-view-v1"),
                     (
                         "shipping_address_change_status",
                         "shipping-address-change-view-v1",
                     ),
                     ("refund_status", "refund-view-v1"),
-                    ("refund_eligibility_check", "refund-eligibility-v1"),
+                    ("refund_eligibility_check", "refund-eligibility-v2"),
                     ("account_security_event_list", "security-events-v1"),
                     ("account_security_state", "account-security-state-v1"),
                     ("account_freeze_status", "account-freeze-view-v1"),

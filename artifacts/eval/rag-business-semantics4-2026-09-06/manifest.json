@@ -1,0 +1,22 @@
+{
+  "scope": "Replay captured composition inputs only; no planning, retrieval, or business execution.",
+  "cases": 4,
+  "source_sha256": "0429ee87e98ef4bb506bc0b2a31806b623246818debefc56ac3446bb2c227595",
+  "case_ids": [
+    "expanded-opened-audio",
+    "expanded-gift-return",
+    "expanded-preorder",
+    "expanded-elliptic"
+  ],
+  "business_view_v2": true,
+  "synthesis_profile": {
+    "model": "deepseek-v4-pro",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "verify": true,
+  "max_api_calls": 8,
+  "input_migration": "v1 FACT evidence views become KNOWLEDGE_FACT; request schema v2",
+  "limitation": "component replay; no live source revalidation, business execution or publication"
+}

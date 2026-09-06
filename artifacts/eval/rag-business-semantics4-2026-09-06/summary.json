@@ -1,0 +1,37 @@
+{
+  "scope": "Explicit business v1-to-v2 view projection of consumed composition inputs; no new retrieval, source validation or publication. Model PASS is not answer quality.",
+  "cases": 4,
+  "api_calls": 8,
+  "capture_sha256": "71b7a324992c1b174a7209ebbc66df2629d3876866fc614fed06cd9193f68bee",
+  "results": [
+    {
+      "case_id": "expanded-opened-audio",
+      "error": null,
+      "status": "pass",
+      "reason": "订单状态由事实数据支持，退货政策由证据 E54da4773aec5 支持，签收与退款限制由 E13e64fb2f488 支持，质量问题处理由 E9e173c7b8833 支持，且对字段语义限制进行了说明。"
+    },
+    {
+      "case_id": "expanded-gift-return",
+      "error": null,
+      "status": "pass",
+      "reason": "回答准确反映了订单状态为已送达，并正确说明了该状态不证明签收；退款部分正确指出退款窗口数据缺失导致当前不能提交，且未将其推断为过期或无权退款；赠品影响全额退款的问题明确说明需结合退款政策判断，未作无依据的承诺或结论。"
+    },
+    {
+      "case_id": "expanded-preorder",
+      "error": null,
+      "status": "pass",
+      "reason": "订单状态由事实记录支持为已支付，并明确说明不代表发货；尾款与发货关系由预售政策证据支持，回答完整且无未获支持的事实或承诺。"
+    },
+    {
+      "case_id": "expanded-elliptic",
+      "error": null,
+      "status": "pass",
+      "reason": "回答准确引用了订单状态、退款窗口未知的语义说明，以及已拆封耳机非质量原因不适用无理由退货的政策，并补充了质量问题和退货申请材料要求，所有结论均有证据支持且覆盖了用户问题。"
+    }
+  ],
+  "limitations": [
+    "gift-return still lacks policy retrieval",
+    "outputs still overexplain snapshot/record metadata; concise prompt does not eliminate this",
+    "selected development cases, not stable end-to-end improvement"
+  ]
+}

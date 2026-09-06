@@ -34,7 +34,7 @@ def _verified_order_result(work_item_id='o', order_id='DP1234', response=None):
     from application.agent_result import FactRecord, FactSourceKind
     fact=FactRecord('order:'+order_id,'order.current_state',
         json.dumps({'order_id':order_id,'status':'shipped'},sort_keys=True,separators=(',',':')),
-        FactSourceKind.VERIFIED_STATE,'read:1','order_lookup','order-view-v1',datetime.now(timezone.utc))
+        FactSourceKind.VERIFIED_STATE,'read:1','order_lookup','order-view-v2',datetime.now(timezone.utc))
     return replace(_result(work_item_id,'order_logistics',response=response),facts=(fact,))
 
 
@@ -210,7 +210,7 @@ def test_later_failure_and_multiple_receipts_do_not_hide_verified_state():
     import json
     from application.agent_result import FactRecord, FactSourceKind
     fact=FactRecord('order:DP9301','order.current_state',json.dumps({'order_id':'DP9301','status':'shipped'},sort_keys=True,separators=(',',':')),
-        FactSourceKind.VERIFIED_STATE,'read:1','order_lookup','order-view-v1',datetime.now(timezone.utc))
+        FactSourceKind.VERIFIED_STATE,'read:1','order_lookup','order-view-v2',datetime.now(timezone.utc))
     receipts=tuple(ReceiptRef('receipt-'+str(i),'v1','op-'+str(i),'COMMITTED','refund.action') for i in (1,2))
     for status in (AgentResultStatus.SUCCEEDED,AgentResultStatus.PARTIAL,AgentResultStatus.RETRYABLE_FAILURE,AgentResultStatus.RECONCILING):
         result=replace(_result('w','order_logistics',status,receipts=receipts),facts=(fact,))

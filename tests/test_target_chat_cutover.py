@@ -147,7 +147,7 @@ class _MissingThenReadExecutor:
                 FactSourceKind.VERIFIED_STATE,
                 "receipt:order-read",
                 "order_lookup",
-                "order-view-v1",
+                "order-view-v2",
                 datetime.now(timezone.utc),
             ),),
             candidate_response="订单已发货。",
@@ -169,7 +169,7 @@ class _ToolManager:
             authority="order.current_state",
             receipt_id="",
             call_id=call_id,
-            output_schema_version="order-view-v1",
+            output_schema_version="order-view-v2",
             output_for_model="订单 DP1234 已发货。",
             status="success",
         )
@@ -287,7 +287,7 @@ def test_target_chat_direct_order_path_publishes_once_and_replays():
         "source_kind": "VERIFIED_STATE",
         "source_ref": f"{trace['consumption']['work_items'][0]['work_item_id']}:1:order_lookup",
         "producer_id": "order_lookup",
-        "producer_version": "order-view-v1",
+        "producer_version": "order-view-v2",
     }
     assert trace["cost"]["conversation_planner_invoked"] is True
     assert len(tools.calls) == 1

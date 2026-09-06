@@ -126,7 +126,7 @@ def _issue_order(payload=None):
     ).issue(
         requirement_id="order.current_state",
         producer_id="order_lookup",
-        producer_version="order-view-v1",
+        producer_version="order-view-v2",
         locator=BusinessToolLocator(
             "call-1", "order_lookup", "order-1", "3"
         ),
@@ -305,7 +305,7 @@ def test_only_registry_authorized_adapter_version_and_producer_can_issue():
     values = dict(
         requirement_id="order.current_state",
         producer_id="order_lookup",
-        producer_version="order-view-v1",
+        producer_version="order-view-v2",
         locator=BusinessToolLocator(
             "call-1", "order_lookup", "order-1", "3"
         ),
@@ -336,7 +336,7 @@ def test_diagnostic_text_missing_provenance_and_unknown_wire_values_fail_closed(
     values = dict(
         requirement_id="order.current_state",
         producer_id="order_lookup",
-        producer_version="order-view-v1",
+        producer_version="order-view-v2",
         locator=BusinessToolLocator(
             "call-1", "order_lookup", "order-1", "3"
         ),

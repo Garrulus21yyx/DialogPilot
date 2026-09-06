@@ -42,7 +42,7 @@ def _order_receipt():
     ).issue(
         requirement_id="order.current_state",
         producer_id="order_lookup",
-        producer_version="order-view-v1",
+        producer_version="order-view-v2",
         locator=BusinessToolLocator(
             "call-order", "order_lookup", "order-1", "3"
         ),

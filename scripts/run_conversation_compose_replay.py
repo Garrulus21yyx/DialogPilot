@@ -37,6 +37,18 @@ async def run(args):
                             and value.get('status')=='OK' and isinstance(value.get('evidence'),list)):
                         claim['kind']='KNOWLEDGE_FACT'
                 payload['schema_version']='conversation-compose-request-v2-segments'
+            if args.business_view_v2:
+                from services.customer_operation_views import order_read_view, refund_eligibility_read_view
+                for claim in payload['allowed_claims']:
+                    if claim['kind'] != 'FACT':
+                        continue
+                    refs=claim['source_refs']
+                    if len(refs)!=1:
+                        raise ValueError('business view replay requires one captured tool source')
+                    if refs[0].endswith(':order_lookup'):
+                        claim['value']=order_read_view(claim['value'])
+                    elif refs[0].endswith(':refund_eligibility_check'):
+                        claim['value']=refund_eligibility_read_view(claim['value'])
             inputs.append((row['case_id'], payload))
     if not inputs:
         raise ValueError('no captured composition inputs')
@@ -54,6 +66,7 @@ async def run(args):
         options['base_url'] = policy.base_url
     manifest = {'scope':__doc__, 'cases':len(inputs),'source_sha256':hashlib.sha256(raw).hexdigest(),
                 'case_ids':[key for key,_ in inputs],
+                'business_view_v2':args.business_view_v2,
                 'synthesis_profile':policy.profile(ModelRole.SYNTHESIS).to_dict(),
                 'verify':args.verify,'max_api_calls':len(inputs)*(2 if args.verify else 1),
                 'input_migration':'v1 FACT evidence views become KNOWLEDGE_FACT; request schema v2',
@@ -94,6 +107,7 @@ def main():
     parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--verify',action='store_true',help='Check rendered answers against captured evidence; no live source validation.')
     parser.add_argument('--case-ids',nargs='+',help='Select captured composition cases before spending API calls.')
+    parser.add_argument('--business-view-v2',action='store_true',help='Explicitly project captured v1 order/eligibility values through current business read owners.')
     asyncio.run(run(parser.parse_args()))
 
 

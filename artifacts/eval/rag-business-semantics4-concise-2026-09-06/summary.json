@@ -1,0 +1,37 @@
+{
+  "scope": "Explicit business v1-to-v2 view projection of consumed composition inputs; no new retrieval, source validation or publication. Model PASS is not answer quality.",
+  "cases": 4,
+  "api_calls": 8,
+  "capture_sha256": "592bbd77be7ad9ef7bc68c239df7897c0a49e123ae7cc7175fa80ce7087ead00",
+  "results": [
+    {
+      "case_id": "expanded-opened-audio",
+      "error": null,
+      "status": "pass",
+      "reason": "订单状态由事实数据支持为已发货；耳机无理由退货条件及质量问题另行审核的说明均有政策证据支持，且已拆封非质量原因不适用无理由退货的结论与政策一致。"
+    },
+    {
+      "case_id": "expanded-gift-return",
+      "error": null,
+      "status": "pass",
+      "reason": "回答准确反映了订单状态为已送达并说明了快照状态限制；对退款问题基于退款窗口数据缺失明确表示无法提交和判断，并指出赠品影响需进一步政策依据，未添加无依据事实或承诺。"
+    },
+    {
+      "case_id": "expanded-preorder",
+      "error": null,
+      "status": "pass",
+      "reason": "订单状态由上下文事实支持，尾款不等于发货的结论由政策证据 E6c50156da1af 支持，且对时间字段语义的限制说明与 field_semantics 一致。"
+    },
+    {
+      "case_id": "expanded-elliptic",
+      "error": null,
+      "status": "pass",
+      "reason": "回答准确引用了订单状态快照，并正确说明了已送达状态不证明签收事件；退货规则部分与政策原文一致，区分了已拆封非质量、未拆封七日无理由及质量问题审核，且未作出无依据的承诺。"
+    }
+  ],
+  "limitations": [
+    "gift-return still lacks policy retrieval",
+    "outputs still overexplain snapshot/record metadata; concise prompt does not eliminate this",
+    "selected development cases, not stable end-to-end improvement"
+  ]
+}

@@ -25,9 +25,8 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
             user_id=_user(context),
             order_id=_bounded(params.get("order_id"), "order_id", 128),
         )
-        data = order.to_dict()
-        data.pop("user_id", None)
-        return data
+        from services.customer_operation_views import order_read_view
+        return order_read_view(order.to_dict())
 
     async def refund_eligibility(params: Dict[str, Any], context: Optional[Dict[str, Any]]):
         result = await asyncio.to_thread(
@@ -35,7 +34,8 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
             user_id=_user(context),
             order_id=_bounded(params.get("order_id"), "order_id", 128),
         )
-        return result.to_dict()
+        from services.customer_operation_views import refund_eligibility_read_view
+        return refund_eligibility_read_view(result.to_dict())
 
     async def refund_status(params: Dict[str, Any], context: Optional[Dict[str, Any]]):
         user_id = _user(context)
@@ -284,12 +284,12 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
             read_only=True,
             authority="order.current_state",
             manifest_version="tool-manifest-v1",
-            output_schema_version="order-view-v1",
+            output_schema_version="order-view-v2",
             preconditions=("authenticated_user", "order_id"),
             idempotency="read_only",
             retry_policy="safe_read_retry",
             typed_outcomes=("OK", "NOT_FOUND", "UNAVAILABLE", "UNAUTHORIZED"),
-            output_fields=("order_id", "status", "amount_minor", "currency", "version", "updated_at"),
+            output_fields=("order_id", "status", "status_label", "amount_minor", "currency", "version", "updated_at", "record_created_at", "field_semantics"),
         ),
         Tool(
             name="refund_status",
@@ -325,12 +325,12 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
             read_only=True,
             authority="refund.eligibility",
             manifest_version="tool-manifest-v1",
-            output_schema_version="refund-eligibility-v1",
+            output_schema_version="refund-eligibility-v2",
             preconditions=("authenticated_user", "order_id"),
             idempotency="read_only",
             retry_policy="safe_read_retry",
             typed_outcomes=("OK", "NOT_FOUND", "UNAVAILABLE", "UNAUTHORIZED"),
-            output_fields=("order_id", "eligible", "reason_code", "amount_minor", "currency", "order_version", "refundable_until"),
+            output_fields=("order_id", "eligible", "reason_code", "amount_minor", "currency", "order_version", "refundable_until", "assessment_status", "assessment_scope", "reason_description", "field_semantics"),
         ),
         Tool(
             name="refund_request_create",

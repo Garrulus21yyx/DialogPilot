@@ -413,7 +413,7 @@ def _candidate_text(result) -> str:
 
 def _render_verified_facts(result) -> str:
     from application.agent_result import FactSourceKind
-    statuses = {"paid": "已支付", "shipped": "已发货", "delivered": "已送达", "cancelled": "已取消"}
+    from services.customer_operation_views import ORDER_STATUS_LABELS as statuses
     texts = []
     for fact in result.facts:
         if fact.source_kind is not FactSourceKind.VERIFIED_STATE:
