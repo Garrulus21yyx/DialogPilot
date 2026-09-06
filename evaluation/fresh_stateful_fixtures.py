@@ -266,6 +266,7 @@ def register_fresh_fixtures(
                 for chunk in chunker.split(
                     str(document["content"]), max_tokens=max_tokens,
                     overlap_tokens=overlap, strategy=ChunkStrategy.STRUCTURE_AWARE,
+                    source_type=str(document.get("source_type", "text")),
                 ):
                     chunk_id = "fixture-chunk-" + hashlib.sha256(
                         f"{source_id}:{chunk.start_char}:{chunk.end_char}".encode()

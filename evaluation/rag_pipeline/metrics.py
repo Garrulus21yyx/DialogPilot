@@ -34,6 +34,7 @@ def project_chunks(
             max_tokens=max_tokens,
             overlap_tokens=overlap_tokens,
             strategy=strategy,
+            source_type=str(document.metadata.get("source_type", "text")),
         ):
             result.append(IndexedChunk(
                 chunk_id=f"{document.document_id}::chunk-{chunk.chunk_index}",

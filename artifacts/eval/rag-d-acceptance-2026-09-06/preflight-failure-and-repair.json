@@ -1,0 +1,28 @@
+{
+  "attempt": 1,
+  "commit": "9b71289",
+  "stage": "chunk_projection",
+  "model_inference_started": false,
+  "external_inference_api_calls": 0,
+  "status": "FAILED_PREPROCESSING",
+  "exception": "ChunkStructureError",
+  "source_id": "Registration suspensions for failure to pay tolls#3_0",
+  "span": [
+    2521,
+    4601
+  ],
+  "mechanism": "plain text list-like punctuation interpreted as Markdown atomic block; source_type was dropped before chunk owner",
+  "repair": "propagate authoritative source_type to chunk and heading owner, preserve Markdown atomic bounds; bump index chunk schema",
+  "after_repair_projection": {
+    "grounding_count": 340.0,
+    "evidence_count": 340.0,
+    "document_grounding_count": 0.0,
+    "evidence_containment_rate": 1.0,
+    "boundary_fragmentation_rate": 0.0,
+    "index_amplification": 1.1091787686046628,
+    "duplicate_char_ratio": 0.10917876860466272,
+    "chunks_per_document": 3.0102459016393444
+  },
+  "after_repair_chunks": 1469,
+  "contract_before_amendment_sha256": "39708c31857dc7a579c9b523d1b49d94f7f71ca3416289921c8722fff0b9b878"
+}

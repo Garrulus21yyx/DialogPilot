@@ -156,7 +156,7 @@ def _restore_candidates(row, ranked_ids, route, documents, manifest_fingerprint)
             source_id=document.document_id,
             title=document.title or document.document_id,
             content=document.content,
-            source_type="text",
+            source_type=str(document.metadata.get("source_type", "text")),
         )
         if source.checksum != str(item["source_checksum"]) or source.revision_id != str(
             item["source_revision"]
@@ -175,7 +175,7 @@ def _restore_candidates(row, ranked_ids, route, documents, manifest_fingerprint)
                 title=document.title,
                 score=1.0 / (query_replay.RRF_K + rank),
                 ranks=((route, rank),),
-                source_type="text",
+                source_type=str(document.metadata.get("source_type", "text")),
                 source_checksum=source.checksum,
                 source_revision=source.revision_id,
                 index_manifest_fingerprint=manifest_fingerprint,

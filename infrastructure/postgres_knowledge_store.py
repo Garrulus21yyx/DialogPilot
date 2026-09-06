@@ -96,7 +96,7 @@ class PostgresKnowledgeStore:
 
     backend_id = "POSTGRES_PG_BM25_ZH_V1"
     backend_fingerprint = "POSTGRES_PGVECTOR_PG_BM25_ZH_V1"
-    chunk_schema_version = "knowledge-direct-ingest-v3-temporal"
+    chunk_schema_version = "knowledge-direct-ingest-v4-source-format"
 
     def __init__(
         self,
@@ -458,6 +458,7 @@ class PostgresKnowledgeStore:
                 source.content, max_tokens=self._chunk_max_tokens,
                 overlap_tokens=self._chunk_overlap_tokens,
                 strategy=self._chunk_strategy,
+                source_type=source.source_type,
             ):
                 retrieval_text = build_child_retrieval_text(
                     title=source.title,

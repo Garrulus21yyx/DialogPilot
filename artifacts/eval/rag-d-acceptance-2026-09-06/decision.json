@@ -1,0 +1,1233 @@
+{
+  "decision": "EVIDENCE_QUALITY_NOT_DEMONSTRATED",
+  "scope": "local reranker evidence-quality validation only; excludes live agent, ecommerce and answer generation",
+  "n": 200,
+  "baseline_complete": 169,
+  "reranked_complete": 171,
+  "rescued": [
+    "doc2dial-heldout-1ccec5c3cc692c477b6ff89a416d4875-11",
+    "doc2dial-heldout-1eea1c68a95b57da7fb96912015537d3-11",
+    "doc2dial-heldout-3ae539e894031803ac101e876c4489ba-15",
+    "doc2dial-heldout-506fe39824e2f4c51cfa0e9b241fec5d-10",
+    "doc2dial-heldout-540a6a3be0724e310c1b9168a28756ba-15",
+    "doc2dial-heldout-5c4fa8369c0cb1bae8329971c7a93f01-12",
+    "doc2dial-heldout-b20bdaf57fa27abbee22278598512dca-13",
+    "doc2dial-heldout-e9b86714e170e8e7be203392bc57b928-11"
+  ],
+  "harmed": [
+    "doc2dial-heldout-00b3df8ed106bc3194bc3055803e2a15-14",
+    "doc2dial-heldout-1c17378544d0adfe586625d25d0552c6-13",
+    "doc2dial-heldout-617787216d04589888d3afdd75937f47-11",
+    "doc2dial-heldout-b20e3b986c6d23adbfea0bbfc2e36ba6-13",
+    "doc2dial-heldout-c79356431e86f099b98b58b1d8e02d12-11",
+    "doc2dial-heldout-dfda2452be4d19930a19fe80adfd2e95-11"
+  ],
+  "net_pp": 1.0,
+  "exact_paired_two_sided_p": 0.79052734375,
+  "candidate_sets_verified_equal": true,
+  "source_provenance_verified": true,
+  "cases": [
+    {
+      "case_id": "doc2dial-heldout-00b3df8ed106bc3194bc3055803e2a15-14",
+      "group_id": "doc2dial-00b3df8ed106bc3194bc3055803e2a15",
+      "before": true,
+      "after": false
+    },
+    {
+      "case_id": "doc2dial-heldout-01274b3eeacd5972f85eaffc67bb968a-11",
+      "group_id": "doc2dial-01274b3eeacd5972f85eaffc67bb968a",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-016cf0849b0c801d2515d0de704772a0-11",
+      "group_id": "doc2dial-016cf0849b0c801d2515d0de704772a0",
+      "before": false,
+      "after": false
+    },
+    {
+      "case_id": "doc2dial-heldout-03300d42ccabd3623ba9db49fb330f37-10",
+      "group_id": "doc2dial-03300d42ccabd3623ba9db49fb330f37",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-03457b66c158693c3fd548eb614cb278-12",
+      "group_id": "doc2dial-03457b66c158693c3fd548eb614cb278",
+      "before": false,
+      "after": false
+    },
+    {
+      "case_id": "doc2dial-heldout-0352224b7427c08db6a131f03a521a60-10",
+      "group_id": "doc2dial-0352224b7427c08db6a131f03a521a60",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-03da3066901d06a5210fce66be841cac-11",
+      "group_id": "doc2dial-03da3066901d06a5210fce66be841cac",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-0559ca16e3613e45493fe7d2fae395c0-12",
+      "group_id": "doc2dial-0559ca16e3613e45493fe7d2fae395c0",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-06402d6df3060ce058d6997148696a5f-11",
+      "group_id": "doc2dial-06402d6df3060ce058d6997148696a5f",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-06504f71ad5e0582b7543654e53ebe64-9",
+      "group_id": "doc2dial-06504f71ad5e0582b7543654e53ebe64",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-067a4198b35cc78ffa0ae0a30f9349dc-13",
+      "group_id": "doc2dial-067a4198b35cc78ffa0ae0a30f9349dc",
+      "before": false,
+      "after": false
+    },
+    {
+      "case_id": "doc2dial-heldout-06a38df551fda663c41431671e59a70e-11",
+      "group_id": "doc2dial-06a38df551fda663c41431671e59a70e",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-0794fa57ee8a5767b3db81fbb4edf1cc-14",
+      "group_id": "doc2dial-0794fa57ee8a5767b3db81fbb4edf1cc",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-081c95f7afd0a493d496cfb1506b2b85-12",
+      "group_id": "doc2dial-081c95f7afd0a493d496cfb1506b2b85",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-089d8fe337262614ca510992523012d6-10",
+      "group_id": "doc2dial-089d8fe337262614ca510992523012d6",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-093b1569796ff3d5508228fb1a477753-10",
+      "group_id": "doc2dial-093b1569796ff3d5508228fb1a477753",
+      "before": false,
+      "after": false
+    },
+    {
+      "case_id": "doc2dial-heldout-0a76c490780c8d6b80e5f0a0461d3f53-14",
+      "group_id": "doc2dial-0a76c490780c8d6b80e5f0a0461d3f53",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-0b2463a734bb5bf15e8bf52ffc9956a6-10",
+      "group_id": "doc2dial-0b2463a734bb5bf15e8bf52ffc9956a6",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-0d0f694015575f5840b6471eae2efb49-12",
+      "group_id": "doc2dial-0d0f694015575f5840b6471eae2efb49",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-0e069cd51db0d0d0647484efc561eb54-11",
+      "group_id": "doc2dial-0e069cd51db0d0d0647484efc561eb54",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-114ab86ffa3e7c7830126dfb1ec8d6ab-11",
+      "group_id": "doc2dial-114ab86ffa3e7c7830126dfb1ec8d6ab",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-1280944e244ef83e9c34a76b0cf7a63a-11",
+      "group_id": "doc2dial-1280944e244ef83e9c34a76b0cf7a63a",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-141518a6a588f2b4c7ad104814b23d6e-11",
+      "group_id": "doc2dial-141518a6a588f2b4c7ad104814b23d6e",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-180d0ff16939bfe84916b116fb49720f-11",
+      "group_id": "doc2dial-180d0ff16939bfe84916b116fb49720f",
+      "before": false,
+      "after": false
+    },
+    {
+      "case_id": "doc2dial-heldout-18959774f3d172c1b067ce5642eacb1b-11",
+      "group_id": "doc2dial-18959774f3d172c1b067ce5642eacb1b",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-18e2b0e66b17bd3e1ce7fa893b9b7597-11",
+      "group_id": "doc2dial-18e2b0e66b17bd3e1ce7fa893b9b7597",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-1901d688dbfbf7f424d4c1d447e594a7-12",
+      "group_id": "doc2dial-1901d688dbfbf7f424d4c1d447e594a7",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-1917f3317948ee740997a11245b8587e-11",
+      "group_id": "doc2dial-1917f3317948ee740997a11245b8587e",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-1b51b93f9de19a5140ef92aea857490b-10",
+      "group_id": "doc2dial-1b51b93f9de19a5140ef92aea857490b",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-1c17378544d0adfe586625d25d0552c6-13",
+      "group_id": "doc2dial-1c17378544d0adfe586625d25d0552c6",
+      "before": true,
+      "after": false
+    },
+    {
+      "case_id": "doc2dial-heldout-1ccec5c3cc692c477b6ff89a416d4875-11",
+      "group_id": "doc2dial-1ccec5c3cc692c477b6ff89a416d4875",
+      "before": false,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-1eea1c68a95b57da7fb96912015537d3-11",
+      "group_id": "doc2dial-1eea1c68a95b57da7fb96912015537d3",
+      "before": false,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-1f1e503382a591cf7c14adc1cf079ba1-13",
+      "group_id": "doc2dial-1f1e503382a591cf7c14adc1cf079ba1",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-209e6eff513ff1b3b4b18f7ea127b07c-11",
+      "group_id": "doc2dial-209e6eff513ff1b3b4b18f7ea127b07c",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-25b46c3bfdb8bed790af357c5f70208d-11",
+      "group_id": "doc2dial-25b46c3bfdb8bed790af357c5f70208d",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-26666248a64974c6398c0b5c5a08f17a-11",
+      "group_id": "doc2dial-26666248a64974c6398c0b5c5a08f17a",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-26e019e8e07b45430194245ea01bdf07-10",
+      "group_id": "doc2dial-26e019e8e07b45430194245ea01bdf07",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-290624e2e6486d54353937cf082fa491-12",
+      "group_id": "doc2dial-290624e2e6486d54353937cf082fa491",
+      "before": false,
+      "after": false
+    },
+    {
+      "case_id": "doc2dial-heldout-2aea0dd7042c3b367702e0f7f41b0744-11",
+      "group_id": "doc2dial-2aea0dd7042c3b367702e0f7f41b0744",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-2bef122cb2dbc0ff058570dd699699ba-11",
+      "group_id": "doc2dial-2bef122cb2dbc0ff058570dd699699ba",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-2c627bbfd89e2825523b7ff9be8094b0-11",
+      "group_id": "doc2dial-2c627bbfd89e2825523b7ff9be8094b0",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-2c63c3a7931c2b4e120455ead4a80a5c-10",
+      "group_id": "doc2dial-2c63c3a7931c2b4e120455ead4a80a5c",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-2f60bdeed982f7c1c20f39e666510b31-13",
+      "group_id": "doc2dial-2f60bdeed982f7c1c20f39e666510b31",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-2ffa29861556f9a6966ba90062950257-11",
+      "group_id": "doc2dial-2ffa29861556f9a6966ba90062950257",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-3127e8954ec559b7a71c2a7fccde250d-13",
+      "group_id": "doc2dial-3127e8954ec559b7a71c2a7fccde250d",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-318116360a4ac12a4f4037f99471cdd6-11",
+      "group_id": "doc2dial-318116360a4ac12a4f4037f99471cdd6",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-333fa5cae9d24912d20c5a18119678bf-10",
+      "group_id": "doc2dial-333fa5cae9d24912d20c5a18119678bf",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-334b1f266ee2b9d4798be390e1720bec-11",
+      "group_id": "doc2dial-334b1f266ee2b9d4798be390e1720bec",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-33c4e3b5cc259f86d82b3e84896c140d-13",
+      "group_id": "doc2dial-33c4e3b5cc259f86d82b3e84896c140d",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-345fb3a63a090ada2121a4cd9cadd0f1-12",
+      "group_id": "doc2dial-345fb3a63a090ada2121a4cd9cadd0f1",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-368abe8171c4fa05484a46f52df0959c-11",
+      "group_id": "doc2dial-368abe8171c4fa05484a46f52df0959c",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-3783dc851f2674464418d5304e573575-11",
+      "group_id": "doc2dial-3783dc851f2674464418d5304e573575",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-37973d2e5955b695cc7bee6cbc2f63bd-13",
+      "group_id": "doc2dial-37973d2e5955b695cc7bee6cbc2f63bd",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-39d728922de66cf0ebf8dd68f186811c-11",
+      "group_id": "doc2dial-39d728922de66cf0ebf8dd68f186811c",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-3ae539e894031803ac101e876c4489ba-15",
+      "group_id": "doc2dial-3ae539e894031803ac101e876c4489ba",
+      "before": false,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-3c0ee03a702551ae47cbb485f93ee357-12",
+      "group_id": "doc2dial-3c0ee03a702551ae47cbb485f93ee357",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-3c391495e4933f792042eb48efd26825-10",
+      "group_id": "doc2dial-3c391495e4933f792042eb48efd26825",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-3ce266436e42378366edaa3d86d6685a-11",
+      "group_id": "doc2dial-3ce266436e42378366edaa3d86d6685a",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-3e5b45d3ad0528724e3ff00788fa4ef0-10",
+      "group_id": "doc2dial-3e5b45d3ad0528724e3ff00788fa4ef0",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-41680c19730b59b04eda71643a76ff5f-11",
+      "group_id": "doc2dial-41680c19730b59b04eda71643a76ff5f",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-420ba0f6c7e453df5fb2dc1bd79ca802-12",
+      "group_id": "doc2dial-420ba0f6c7e453df5fb2dc1bd79ca802",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-436a4cba9d0853a925a6e2b742c03948-12",
+      "group_id": "doc2dial-436a4cba9d0853a925a6e2b742c03948",
+      "before": false,
+      "after": false
+    },
+    {
+      "case_id": "doc2dial-heldout-442d348541345791b53a6fa54c982be0-11",
+      "group_id": "doc2dial-442d348541345791b53a6fa54c982be0",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-470aaa7c1dc1103f08ad135fade7ae99-10",
+      "group_id": "doc2dial-470aaa7c1dc1103f08ad135fade7ae99",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-47ee708713bb7166bb675a59df719d10-10",
+      "group_id": "doc2dial-47ee708713bb7166bb675a59df719d10",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-49b56eba3a8c39f56ad4cc4cc1906429-10",
+      "group_id": "doc2dial-49b56eba3a8c39f56ad4cc4cc1906429",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-4b1ac68cee77bc31543af1aa17093ea7-12",
+      "group_id": "doc2dial-4b1ac68cee77bc31543af1aa17093ea7",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-4e148c69d395b53ab23bccf32d16cffc-11",
+      "group_id": "doc2dial-4e148c69d395b53ab23bccf32d16cffc",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-4e1b9b94d743804d50faab05e1faad76-11",
+      "group_id": "doc2dial-4e1b9b94d743804d50faab05e1faad76",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-506fe39824e2f4c51cfa0e9b241fec5d-10",
+      "group_id": "doc2dial-506fe39824e2f4c51cfa0e9b241fec5d",
+      "before": false,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-50ff7d4f3febcd857f444040219604ab-11",
+      "group_id": "doc2dial-50ff7d4f3febcd857f444040219604ab",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-53ae80a9aa64385a24037e8309a7ead2-11",
+      "group_id": "doc2dial-53ae80a9aa64385a24037e8309a7ead2",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-53bfca6194d27da13f5d7108981b95e8-11",
+      "group_id": "doc2dial-53bfca6194d27da13f5d7108981b95e8",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-540a6a3be0724e310c1b9168a28756ba-15",
+      "group_id": "doc2dial-540a6a3be0724e310c1b9168a28756ba",
+      "before": false,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-55f812933a041545b238be020c83c71d-11",
+      "group_id": "doc2dial-55f812933a041545b238be020c83c71d",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-56e95f9cdaf62d472ee1c25801004b37-10",
+      "group_id": "doc2dial-56e95f9cdaf62d472ee1c25801004b37",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-572c107f6030aa64232e54e61b7a5b72-13",
+      "group_id": "doc2dial-572c107f6030aa64232e54e61b7a5b72",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-5737a338a2687dfbf81dd0149e883a21-11",
+      "group_id": "doc2dial-5737a338a2687dfbf81dd0149e883a21",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-58da0a65b9f31db3ea35e6fe16ba4f6b-12",
+      "group_id": "doc2dial-58da0a65b9f31db3ea35e6fe16ba4f6b",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-59cfefe2130b73bf17a5a136f4425f70-11",
+      "group_id": "doc2dial-59cfefe2130b73bf17a5a136f4425f70",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-5c4fa8369c0cb1bae8329971c7a93f01-12",
+      "group_id": "doc2dial-5c4fa8369c0cb1bae8329971c7a93f01",
+      "before": false,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-5d68fec39530256adc77c212879042ae-14",
+      "group_id": "doc2dial-5d68fec39530256adc77c212879042ae",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-5de05450bb6cf2568c2d06039e0482fc-14",
+      "group_id": "doc2dial-5de05450bb6cf2568c2d06039e0482fc",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-617787216d04589888d3afdd75937f47-11",
+      "group_id": "doc2dial-617787216d04589888d3afdd75937f47",
+      "before": true,
+      "after": false
+    },
+    {
+      "case_id": "doc2dial-heldout-62bc7a8d9b68f3eccd5bdcfc7bc92c6a-12",
+      "group_id": "doc2dial-62bc7a8d9b68f3eccd5bdcfc7bc92c6a",
+      "before": false,
+      "after": false
+    },
+    {
+      "case_id": "doc2dial-heldout-637d10fc807e5677f097e1e5c4356f2f-11",
+      "group_id": "doc2dial-637d10fc807e5677f097e1e5c4356f2f",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-64b50c15fc9fd10021b5e63c32e9ae2e-10",
+      "group_id": "doc2dial-64b50c15fc9fd10021b5e63c32e9ae2e",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-65906c9b9ab0dab44bc246c3ab54ff83-11",
+      "group_id": "doc2dial-65906c9b9ab0dab44bc246c3ab54ff83",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-660589fbfefaac122d8932875ff3a291-11",
+      "group_id": "doc2dial-660589fbfefaac122d8932875ff3a291",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-6c0dbac61f3319b618b9ccaca5bbdc09-11",
+      "group_id": "doc2dial-6c0dbac61f3319b618b9ccaca5bbdc09",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-6cc8637d3f86127df82922e94fc8d56f-11",
+      "group_id": "doc2dial-6cc8637d3f86127df82922e94fc8d56f",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-6da3c6179bfae2ef96484770c9bc3f62-11",
+      "group_id": "doc2dial-6da3c6179bfae2ef96484770c9bc3f62",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-6dc95d6948e2ade445cac0a7cca977b0-10",
+      "group_id": "doc2dial-6dc95d6948e2ade445cac0a7cca977b0",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-6fe62ad4b3cfaa26d1bd5821eb5a94fe-10",
+      "group_id": "doc2dial-6fe62ad4b3cfaa26d1bd5821eb5a94fe",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-7378de7b7d38bdb822cb6cf90a39d9d8-13",
+      "group_id": "doc2dial-7378de7b7d38bdb822cb6cf90a39d9d8",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-75e5ead7d1a69e0dee7d2a832003fc03-11",
+      "group_id": "doc2dial-75e5ead7d1a69e0dee7d2a832003fc03",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-788f86878afa9b2f71572e65f11686fc-12",
+      "group_id": "doc2dial-788f86878afa9b2f71572e65f11686fc",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-796a8e8b4adf562d36e0d650f6713758-11",
+      "group_id": "doc2dial-796a8e8b4adf562d36e0d650f6713758",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-7d34a9c862dfbf4d5a89396f484ca83e-10",
+      "group_id": "doc2dial-7d34a9c862dfbf4d5a89396f484ca83e",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-7d797b6b8c15c6d9694b1e952523b239-11",
+      "group_id": "doc2dial-7d797b6b8c15c6d9694b1e952523b239",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-7f68b6969ad38c8fa2e30fe77ab68e4c-14",
+      "group_id": "doc2dial-7f68b6969ad38c8fa2e30fe77ab68e4c",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-7f6d8053a8e60d6daf989a27e5d32ded-13",
+      "group_id": "doc2dial-7f6d8053a8e60d6daf989a27e5d32ded",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-8072ac153bd300f11880ec1dc22f02e5-12",
+      "group_id": "doc2dial-8072ac153bd300f11880ec1dc22f02e5",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-80be4b895fd193b2e3867ef01e9cd0cd-11",
+      "group_id": "doc2dial-80be4b895fd193b2e3867ef01e9cd0cd",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-810618b39585e3ad40229665a1202cdf-11",
+      "group_id": "doc2dial-810618b39585e3ad40229665a1202cdf",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-81bfd1b117b769896efef664cd29b9b1-12",
+      "group_id": "doc2dial-81bfd1b117b769896efef664cd29b9b1",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-827590801a017e06a119229fdf44782f-11",
+      "group_id": "doc2dial-827590801a017e06a119229fdf44782f",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-82e1751eb70cda5f845243ce9c8f79a2-13",
+      "group_id": "doc2dial-82e1751eb70cda5f845243ce9c8f79a2",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-831e0030e98ffa5f4755d7bbcd3fad22-11",
+      "group_id": "doc2dial-831e0030e98ffa5f4755d7bbcd3fad22",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-860db6445eec2633d4a5a09bdb101635-10",
+      "group_id": "doc2dial-860db6445eec2633d4a5a09bdb101635",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-8ad42030f3129742bd0e3a0e1525f96c-11",
+      "group_id": "doc2dial-8ad42030f3129742bd0e3a0e1525f96c",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-8cc649c3912c8edaabe255321c8076d4-12",
+      "group_id": "doc2dial-8cc649c3912c8edaabe255321c8076d4",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-8dca2a4e78a12a768c658d1645f1b750-13",
+      "group_id": "doc2dial-8dca2a4e78a12a768c658d1645f1b750",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-8f925a2c6bc41f8497c571d27d5bb470-12",
+      "group_id": "doc2dial-8f925a2c6bc41f8497c571d27d5bb470",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-95e36b4df0e510e4af8de86ac7e38633-12",
+      "group_id": "doc2dial-95e36b4df0e510e4af8de86ac7e38633",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-988887ffb0da2c60ad2e5f77c9a5fa1a-11",
+      "group_id": "doc2dial-988887ffb0da2c60ad2e5f77c9a5fa1a",
+      "before": false,
+      "after": false
+    },
+    {
+      "case_id": "doc2dial-heldout-992c03b23279092c1e8eea63c3cba4e7-11",
+      "group_id": "doc2dial-992c03b23279092c1e8eea63c3cba4e7",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-995ac6591a097f5f1f8d96c04165f367-10",
+      "group_id": "doc2dial-995ac6591a097f5f1f8d96c04165f367",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-9a1702284047fab39b63adf51be38528-13",
+      "group_id": "doc2dial-9a1702284047fab39b63adf51be38528",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-9f82120737d8575935295aed5424dfe4-11",
+      "group_id": "doc2dial-9f82120737d8575935295aed5424dfe4",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-a097a9f12a738bed82da721431953780-15",
+      "group_id": "doc2dial-a097a9f12a738bed82da721431953780",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-a1d786086731287299dcd8fa7a364c96-11",
+      "group_id": "doc2dial-a1d786086731287299dcd8fa7a364c96",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-a344b757fc838b39c4ac66cce1f526cb-11",
+      "group_id": "doc2dial-a344b757fc838b39c4ac66cce1f526cb",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-a3cb40c4925eae18388a4a7e3b6bec8c-11",
+      "group_id": "doc2dial-a3cb40c4925eae18388a4a7e3b6bec8c",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-a3e94e5eafaffb5fdce095174df6b75d-13",
+      "group_id": "doc2dial-a3e94e5eafaffb5fdce095174df6b75d",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-a437ac749076ed5d19a43490627be3c6-11",
+      "group_id": "doc2dial-a437ac749076ed5d19a43490627be3c6",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-a508b35d83b70e7ddfa5d2355542b18a-11",
+      "group_id": "doc2dial-a508b35d83b70e7ddfa5d2355542b18a",
+      "before": false,
+      "after": false
+    },
+    {
+      "case_id": "doc2dial-heldout-a511aee588926b7ecf9441c9a2721dbc-14",
+      "group_id": "doc2dial-a511aee588926b7ecf9441c9a2721dbc",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-a6c9df3640799b236557c09cd9351407-10",
+      "group_id": "doc2dial-a6c9df3640799b236557c09cd9351407",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-a8ef23704910c01c78827f38cbdbd277-13",
+      "group_id": "doc2dial-a8ef23704910c01c78827f38cbdbd277",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-aaa08e65fcd665f72d149577e894b4fa-12",
+      "group_id": "doc2dial-aaa08e65fcd665f72d149577e894b4fa",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-ae7ce52e1c9265ad93700788511d777e-12",
+      "group_id": "doc2dial-ae7ce52e1c9265ad93700788511d777e",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-aef95d3490b2ba529113aff97b0360e0-10",
+      "group_id": "doc2dial-aef95d3490b2ba529113aff97b0360e0",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-af1d26a435579950c7d1d46197589183-11",
+      "group_id": "doc2dial-af1d26a435579950c7d1d46197589183",
+      "before": false,
+      "after": false
+    },
+    {
+      "case_id": "doc2dial-heldout-b10670c45754d0ff95de6405e3d6105e-11",
+      "group_id": "doc2dial-b10670c45754d0ff95de6405e3d6105e",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-b20bdaf57fa27abbee22278598512dca-13",
+      "group_id": "doc2dial-b20bdaf57fa27abbee22278598512dca",
+      "before": false,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-b20e3b986c6d23adbfea0bbfc2e36ba6-13",
+      "group_id": "doc2dial-b20e3b986c6d23adbfea0bbfc2e36ba6",
+      "before": true,
+      "after": false
+    },
+    {
+      "case_id": "doc2dial-heldout-b53f4c0d357f0bf1015b999151c620e7-12",
+      "group_id": "doc2dial-b53f4c0d357f0bf1015b999151c620e7",
+      "before": false,
+      "after": false
+    },
+    {
+      "case_id": "doc2dial-heldout-b5e61c3593901c5aed1c117e4de1e157-14",
+      "group_id": "doc2dial-b5e61c3593901c5aed1c117e4de1e157",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-b6165c585991579344e5ac47a3e304ae-11",
+      "group_id": "doc2dial-b6165c585991579344e5ac47a3e304ae",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-b8d025aa47b57fd4f1b20522942befd1-15",
+      "group_id": "doc2dial-b8d025aa47b57fd4f1b20522942befd1",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-bce5ca713484e0500c1824c454c44425-12",
+      "group_id": "doc2dial-bce5ca713484e0500c1824c454c44425",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-be7f10166bda5138504f6aef8603abdc-10",
+      "group_id": "doc2dial-be7f10166bda5138504f6aef8603abdc",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-bf6ba88274b2beae7ec48c65b05c5881-11",
+      "group_id": "doc2dial-bf6ba88274b2beae7ec48c65b05c5881",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-c391621ab8602fffe50f624fa157aabe-15",
+      "group_id": "doc2dial-c391621ab8602fffe50f624fa157aabe",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-c3d94984e86b88c834ca8aa26cec89b8-13",
+      "group_id": "doc2dial-c3d94984e86b88c834ca8aa26cec89b8",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-c3fb592c073ff2de66b5ed78fad62d69-10",
+      "group_id": "doc2dial-c3fb592c073ff2de66b5ed78fad62d69",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-c4fb3f24fc02df0656836583df0f1fc4-12",
+      "group_id": "doc2dial-c4fb3f24fc02df0656836583df0f1fc4",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-c60ff17fabe160b102ec165b7f7b902b-10",
+      "group_id": "doc2dial-c60ff17fabe160b102ec165b7f7b902b",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-c79356431e86f099b98b58b1d8e02d12-11",
+      "group_id": "doc2dial-c79356431e86f099b98b58b1d8e02d12",
+      "before": true,
+      "after": false
+    },
+    {
+      "case_id": "doc2dial-heldout-c84295067c0e2442c2dfca7967441cbe-11",
+      "group_id": "doc2dial-c84295067c0e2442c2dfca7967441cbe",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-cb8ab2c06f4cca75af15ad8bd4d16c3d-11",
+      "group_id": "doc2dial-cb8ab2c06f4cca75af15ad8bd4d16c3d",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-cb9fe9549014af6ff319d5a08bb5eb68-12",
+      "group_id": "doc2dial-cb9fe9549014af6ff319d5a08bb5eb68",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-cbe56bd9bc7b619b44d0098ef6884673-9",
+      "group_id": "doc2dial-cbe56bd9bc7b619b44d0098ef6884673",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-cc54e331cb0ec188466ad904b7d3f329-13",
+      "group_id": "doc2dial-cc54e331cb0ec188466ad904b7d3f329",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-ccec24ab671340d613c65be198a2d80b-11",
+      "group_id": "doc2dial-ccec24ab671340d613c65be198a2d80b",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-cd73876cfe02c72423a9c2b360536a3c-11",
+      "group_id": "doc2dial-cd73876cfe02c72423a9c2b360536a3c",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-cdc55f3785c08fbbe96084c4ad84c871-11",
+      "group_id": "doc2dial-cdc55f3785c08fbbe96084c4ad84c871",
+      "before": false,
+      "after": false
+    },
+    {
+      "case_id": "doc2dial-heldout-cec8af4fda876aedb4457c327f564018-14",
+      "group_id": "doc2dial-cec8af4fda876aedb4457c327f564018",
+      "before": false,
+      "after": false
+    },
+    {
+      "case_id": "doc2dial-heldout-cf1addbb02034a5728182b5c1c0ad7cf-11",
+      "group_id": "doc2dial-cf1addbb02034a5728182b5c1c0ad7cf",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-d0d4739afffcce306dd93e06010a7148-12",
+      "group_id": "doc2dial-d0d4739afffcce306dd93e06010a7148",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-d1276c0765c36bedfaa3b46b3d273e0e-12",
+      "group_id": "doc2dial-d1276c0765c36bedfaa3b46b3d273e0e",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-d3b332d88c98b51a0fd92e3423c1d68b-12",
+      "group_id": "doc2dial-d3b332d88c98b51a0fd92e3423c1d68b",
+      "before": false,
+      "after": false
+    },
+    {
+      "case_id": "doc2dial-heldout-d4e74d2b9880fd37e7632fa6769a630b-13",
+      "group_id": "doc2dial-d4e74d2b9880fd37e7632fa6769a630b",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-d5ef78e676ce0ef12c796f5e9b187801-12",
+      "group_id": "doc2dial-d5ef78e676ce0ef12c796f5e9b187801",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-d6799692c924c063a0642d712485bccd-11",
+      "group_id": "doc2dial-d6799692c924c063a0642d712485bccd",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-d6d121a66e767377f96aa7e5f4571441-10",
+      "group_id": "doc2dial-d6d121a66e767377f96aa7e5f4571441",
+      "before": false,
+      "after": false
+    },
+    {
+      "case_id": "doc2dial-heldout-d7fa694ecfc9ac94b3287734e3e099eb-13",
+      "group_id": "doc2dial-d7fa694ecfc9ac94b3287734e3e099eb",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-da721d167aa0ccf0f46ac86e166fc743-13",
+      "group_id": "doc2dial-da721d167aa0ccf0f46ac86e166fc743",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-dae6f91f737f9ba55b5905e69332d71c-12",
+      "group_id": "doc2dial-dae6f91f737f9ba55b5905e69332d71c",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-db09e08db5baede0056c00468c045aac-10",
+      "group_id": "doc2dial-db09e08db5baede0056c00468c045aac",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-dd161dd7880513e8e79e0abc5f57b638-12",
+      "group_id": "doc2dial-dd161dd7880513e8e79e0abc5f57b638",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-def411c6e7fcfee10d543da56fb4204d-10",
+      "group_id": "doc2dial-def411c6e7fcfee10d543da56fb4204d",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-dfda2452be4d19930a19fe80adfd2e95-11",
+      "group_id": "doc2dial-dfda2452be4d19930a19fe80adfd2e95",
+      "before": true,
+      "after": false
+    },
+    {
+      "case_id": "doc2dial-heldout-e10f962a370d0a7169a72159b4c1229f-11",
+      "group_id": "doc2dial-e10f962a370d0a7169a72159b4c1229f",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-e24d188ccf26d22f1a691e31ab717c44-15",
+      "group_id": "doc2dial-e24d188ccf26d22f1a691e31ab717c44",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-e3d40b482317469f22d027e3ab89e4ad-10",
+      "group_id": "doc2dial-e3d40b482317469f22d027e3ab89e4ad",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-e536e892bab3d631e4c95de9d9321bfd-8",
+      "group_id": "doc2dial-e536e892bab3d631e4c95de9d9321bfd",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-e5b2e04bf3523e7a9ac0a39af439613c-12",
+      "group_id": "doc2dial-e5b2e04bf3523e7a9ac0a39af439613c",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-e7d6ad60dd7d6149a2a54461f7f51812-15",
+      "group_id": "doc2dial-e7d6ad60dd7d6149a2a54461f7f51812",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-e9b86714e170e8e7be203392bc57b928-11",
+      "group_id": "doc2dial-e9b86714e170e8e7be203392bc57b928",
+      "before": false,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-e9e5f2031b6c02e180e192d5b457c596-12",
+      "group_id": "doc2dial-e9e5f2031b6c02e180e192d5b457c596",
+      "before": false,
+      "after": false
+    },
+    {
+      "case_id": "doc2dial-heldout-eafca4b06b74d430cbe26edca103454a-13",
+      "group_id": "doc2dial-eafca4b06b74d430cbe26edca103454a",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-eb8fc1d36ffb00aedf12193364a95753-11",
+      "group_id": "doc2dial-eb8fc1d36ffb00aedf12193364a95753",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-ebe6829f36d3a5d159e8a4b4de9ce302-12",
+      "group_id": "doc2dial-ebe6829f36d3a5d159e8a4b4de9ce302",
+      "before": false,
+      "after": false
+    },
+    {
+      "case_id": "doc2dial-heldout-ee3183f59b6c07856fb19dfbf9684665-10",
+      "group_id": "doc2dial-ee3183f59b6c07856fb19dfbf9684665",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-ef585d2570d40fd0e13bff525e18e8b0-13",
+      "group_id": "doc2dial-ef585d2570d40fd0e13bff525e18e8b0",
+      "before": false,
+      "after": false
+    },
+    {
+      "case_id": "doc2dial-heldout-f00f9812fddf9c81ce52d49f22009f30-11",
+      "group_id": "doc2dial-f00f9812fddf9c81ce52d49f22009f30",
+      "before": false,
+      "after": false
+    },
+    {
+      "case_id": "doc2dial-heldout-f2c7263a9e752525322adf6d8df0d5d8-11",
+      "group_id": "doc2dial-f2c7263a9e752525322adf6d8df0d5d8",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-f3ee8d8670d22f4b0880292db77636a3-11",
+      "group_id": "doc2dial-f3ee8d8670d22f4b0880292db77636a3",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-f43a603defc3df6f95936b7ad87b7328-10",
+      "group_id": "doc2dial-f43a603defc3df6f95936b7ad87b7328",
+      "before": false,
+      "after": false
+    },
+    {
+      "case_id": "doc2dial-heldout-f6da8d69a6c004ff0a7e21b5d1bbf66f-11",
+      "group_id": "doc2dial-f6da8d69a6c004ff0a7e21b5d1bbf66f",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-f72ccc9b3097e53bd51bf58cd066856c-10",
+      "group_id": "doc2dial-f72ccc9b3097e53bd51bf58cd066856c",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-f7e6a09c3cbd1ba164a9cf73808f3cb4-10",
+      "group_id": "doc2dial-f7e6a09c3cbd1ba164a9cf73808f3cb4",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-f7efd15f2e03a94fa6e8b36cf469c472-12",
+      "group_id": "doc2dial-f7efd15f2e03a94fa6e8b36cf469c472",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-f7f4fa7b56fc0bf8e2181a30c955d474-12",
+      "group_id": "doc2dial-f7f4fa7b56fc0bf8e2181a30c955d474",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-f845911180dcb7d14f1add4078bdbe43-13",
+      "group_id": "doc2dial-f845911180dcb7d14f1add4078bdbe43",
+      "before": false,
+      "after": false
+    },
+    {
+      "case_id": "doc2dial-heldout-fd1e93460b85bb44b11f927a93aaba4c-11",
+      "group_id": "doc2dial-fd1e93460b85bb44b11f927a93aaba4c",
+      "before": true,
+      "after": true
+    },
+    {
+      "case_id": "doc2dial-heldout-fecd4239308daa73e1696dc2cc51c6d3-11",
+      "group_id": "doc2dial-fecd4239308daa73e1696dc2cc51c6d3",
+      "before": false,
+      "after": false
+    },
+    {
+      "case_id": "doc2dial-heldout-ff74198adf40c60adef45d77011b8a4f-10",
+      "group_id": "doc2dial-ff74198adf40c60adef45d77011b8a4f",
+      "before": true,
+      "after": true
+    }
+  ],
+  "report_sha256": "0a900420dde421317a16751f7aec5021bb54db28aaad0772f0cde8c3631eff23",
+  "contract_sha256": "79cfe03b97a0e0351d5a3d6f6642b36ed51d2064185d4b3e9e8391b4cfe9e25b"
+}

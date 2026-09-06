@@ -40,5 +40,17 @@
     "special_tokens_map.json": "8c785abebea9ae3257b61681b4e6fd8365ceafde980c21970d001e834cf10835",
     "tokenizer.json": "69564b696052886ed0ac63fa393e928384e0f8caada38c1f4864a9bfbf379c15",
     "tokenizer_config.json": "7e4c1cc848840aeccdd763458c18dd525eb0f795c992e00ebe9c28554e7db2d4"
-  }
+  },
+  "source_format_contract": "SourceDocument source_type controls Markdown parsing; text/json use literal content",
+  "preflight_repair_sha256": "c6d35823052c836a695045d7c53874d7e956e9dee482fce0d8e958fc29c4e920",
+  "primary_metric": "paired ToolMessage all-evidence-complete rate",
+  "success_criteria": {
+    "positive_net_gain_required": true,
+    "paired_exact_mcnemar_two_sided_p_less_than": 0.05,
+    "candidate_sets_identical": true,
+    "source_provenance_exact": true,
+    "gold_span_containment_required": 1.0,
+    "external_inference_api_calls": 0
+  },
+  "decision_scope": "local reranker evidence-quality validation only; excludes live agent, ecommerce and answer generation"
 }

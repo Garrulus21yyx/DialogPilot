@@ -37,3 +37,26 @@ def test_source_import_preserves_metadata_and_rejects_naive_dates():
     assert (source.region,source.product,source.channel)==('CN','headphones','web')
     with pytest.raises(SourceDocumentContractError):
         SourceDocument.from_mapping({**value,'effective_from':'2026-01-01'})
+
+
+@pytest.mark.parametrize('prefix',['* * * ', '- ', '| ', '# '])
+@pytest.mark.parametrize('source_type',['text','json'])
+def test_plain_sources_do_not_acquire_markdown_structure(prefix,source_type):
+    from memory.context import TokenEstimator
+    text=prefix+'literal words '*400
+    chunks=DocumentChunker().split(text,max_tokens=64,overlap_tokens=8,source_type=source_type)
+    assert len(chunks)>1
+    assert all(not c.section_path and TokenEstimator.estimate(c.content)<=64 for c in chunks)
+    covered=set()
+    for c in chunks:
+        assert c.content==text[c.start_char:c.end_char]
+        covered.update(range(c.start_char,c.end_char))
+    assert covered==set(range(len(text)))
+
+
+def test_same_bytes_preserve_explicit_markdown_atomic_failure():
+    text='- '+'literal words '*400
+    with pytest.raises(ChunkStructureError):
+        DocumentChunker().split(text,max_tokens=64,overlap_tokens=8,source_type='markdown')
+    with pytest.raises(ValueError,match='unsupported source type'):
+        DocumentChunker().split(text,max_tokens=64,overlap_tokens=8,source_type='unknown')

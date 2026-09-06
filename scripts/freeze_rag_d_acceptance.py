@@ -32,14 +32,25 @@ def main():
     if args.per_domain < 1:
         raise ValueError("positive domain quota required")
     paths = []
+    scan_warnings = []
     for root in args.scan_root:
         found = subprocess.run(
-            ["rg", "--files", "--hidden", str(root), "-g", "cases.jsonl"],
+            [
+                "rg",
+                "--files",
+                "--hidden",
+                "--no-ignore",
+                str(root),
+                "-g",
+                "cases.jsonl",
+            ],
             capture_output=True,
             text=True,
         )
         # rg can report unreadable unrelated system directories; never silently
         # omit relevant datasets: record stderr and the exact audited files.
+        if found.stderr:
+            scan_warnings.append({"root": str(root), "diagnostics": found.stderr})
         paths.extend(Path(x).resolve() for x in found.stdout.splitlines())
     seen = set()
     sources = []
@@ -67,6 +78,7 @@ def main():
         "scope": "Doc2Dial groups in discoverable local cases.jsonl files; not proof of unseen remote history",
         "scan_roots": [str(r.resolve()) for r in args.scan_root],
         "sources": sources,
+        "scan_warnings": scan_warnings,
         "excluded_group_ids": sorted(seen),
     }
     docs = _load_member(args.archive, "doc2dial_doc.json")["doc_data"]
@@ -142,6 +154,21 @@ def main():
         "external_inference_api_calls_allowed": 0,
         "limitation": "Fresh relative to enumerated local datasets; this is public retrieval acceptance, not ecommerce or final-answer acceptance.",
     }
+    contract.update(
+        {
+            "primary_metric": "paired ToolMessage all-evidence-complete rate",
+            "success_criteria": {
+                "positive_net_gain_required": True,
+                "paired_exact_mcnemar_two_sided_p_less_than": 0.05,
+                "candidate_sets_identical": True,
+                "source_provenance_exact": True,
+                "gold_span_containment_required": 1.0,
+                "external_inference_api_calls": 0,
+            },
+            "decision_scope": "local reranker evidence-quality validation only; excludes live agent, ecommerce and answer generation",
+            "source_format_contract": "SourceDocument source_type controls Markdown parsing; text/json use literal content",
+        }
+    )
     (args.output / "acceptance-contract.json").write_text(
         json.dumps(contract, indent=2) + "\n"
     )

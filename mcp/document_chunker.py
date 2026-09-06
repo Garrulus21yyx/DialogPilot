@@ -44,13 +44,21 @@ class DocumentChunker:
         max_tokens: int,
         overlap_tokens: int,
         strategy: ChunkStrategy | str = ChunkStrategy.STRUCTURE_AWARE,
+        source_type: str = "markdown",
     ) -> List[DocumentChunk]:
-        """Return bounded chunks with half-open source offsets ``[start, end)``."""
+        """Return bounded chunks with exact half-open source offsets.
+
+        Ingestion must pass its authoritative source_type. The low-level default
+        retains Markdown helper compatibility; literal text/decoded JSON content
+        uses paragraph boundaries without acquiring Markdown atomic structures.
+        """
         # Preserve the exact source string: evidence spans and audit provenance are
         # expressed in original-document coordinates. Trimming here would shift
         # every later offset for documents with leading whitespace or markup.
         text = str(text or "")
         strategy = ChunkStrategy(strategy)
+        if source_type not in {"text", "markdown", "json"}:
+            raise ValueError("unsupported source type for chunking")
         max_tokens = int(max_tokens)
         overlap_tokens = int(overlap_tokens)
         if not text.strip():
@@ -60,10 +68,10 @@ class DocumentChunker:
         if self._token_estimator.estimate(text) <= max_tokens:
             return [DocumentChunk(
                 text, 0, len(text), 0,
-                self.section_path_at(text, 0, strategy=strategy),
+                self.section_path_at(text, 0, strategy=strategy, source_type=source_type),
             )]
 
-        protected = self.atomic_blocks(text) if strategy is ChunkStrategy.STRUCTURE_AWARE else ()
+        protected = self.atomic_blocks(text) if strategy is ChunkStrategy.STRUCTURE_AWARE and source_type == "markdown" else ()
         if any(self._token_estimator.estimate(text[a:b]) > max_tokens for a, b in protected):
             raise ChunkStructureError("table, list block or fenced code exceeds chunk token budget")
         chunks: List[DocumentChunk] = []
@@ -83,7 +91,7 @@ class DocumentChunker:
                     break
             chunks.append(DocumentChunk(
                 text[start:end], start, end, len(chunks),
-                self.section_path_at(text, start, strategy=strategy),
+                self.section_path_at(text, start, strategy=strategy, source_type=source_type),
             ))
             if end >= len(text):
                 break
@@ -177,6 +185,7 @@ class DocumentChunker:
         start: int,
         *,
         strategy: ChunkStrategy | str,
+        source_type: str = "markdown",
     ) -> tuple[str, ...]:
         """Return the Markdown heading path governing ``start``.
 
@@ -184,6 +193,10 @@ class DocumentChunker:
         no invented path.  ATX headings are deterministic and remain useful even
         when the chunk strategy itself is fixed-token.
         """
+        if source_type not in {"text", "markdown", "json"}:
+            raise ValueError("unsupported source type for heading extraction")
+        if source_type != "markdown":
+            return ()
         del strategy  # Heading ownership is independent from boundary strategy.
         levels: dict[int, str] = {}
         cursor = 0

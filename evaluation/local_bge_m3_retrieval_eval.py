@@ -36,6 +36,7 @@ def build_local_chunks(dataset, *, max_tokens: int = 512, overlap_tokens: int = 
             max_tokens=max_tokens,
             overlap_tokens=overlap_tokens,
             strategy=ChunkStrategy.STRUCTURE_AWARE,
+            source_type=str(document.metadata.get("source_type", "text")),
         ):
             chunks.append(LocalChunk(
                 chunk_id=f"{document.document_id}::chunk-{chunk.chunk_index}",

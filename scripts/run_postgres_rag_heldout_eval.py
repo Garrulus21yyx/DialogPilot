@@ -135,7 +135,7 @@ def run(args: argparse.Namespace, values: Mapping[str, str]) -> dict[str, Any]:
                 source_id=item.document_id,
                 title=item.title or item.document_id,
                 content=item.content,
-                source_type="text",
+                source_type=str(item.metadata.get("source_type", "text")),
             )
             for item in dataset.documents
         )

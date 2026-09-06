@@ -95,3 +95,13 @@ def test_parent_refill_is_bounded_deduplicated_and_keeps_global_prefix(seed):
             for route in trace["local_routes"].values()
             for cid in route
         )
+
+
+def test_explicit_markdown_format_survives_projection_and_tool_message():
+    from dataclasses import replace
+    docs,cases=synthetic_development()
+    docs=tuple(replace(d,metadata={**d.metadata,'source_type':'markdown'}) for d in docs)
+    _,chunks,texts=projection(docs,cases,512,64,'structure_aware')
+    scores=np.ones((len(cases),len(chunks)))
+    rows=replay(docs,cases,chunks,texts,[c.query for c in cases],scores,scores)
+    assert all(item['source']['source_type']=='markdown' for row in rows for item in row['tool_message']['evidence'])

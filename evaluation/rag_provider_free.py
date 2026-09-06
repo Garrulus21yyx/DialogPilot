@@ -63,7 +63,8 @@ def projection(documents, cases, size, overlap, strategy):
         build_child_retrieval_text(
             title=docs[c.document_id].title,
             section_path=DocumentChunker.section_path_at(
-                docs[c.document_id].content, c.start_char, strategy=strategy
+                docs[c.document_id].content, c.start_char, strategy=strategy,
+                source_type=str(docs[c.document_id].metadata.get("source_type", "text"))
             ),
             content=c.content,
         )
@@ -192,7 +193,7 @@ def replay(
                         c.end_char,
                         title=doc.title,
                         score=1 / rank,
-                        source_type="text",
+                        source_type=str(doc.metadata.get("source_type", "text")),
                         source_checksum=hashlib.sha256(
                             doc.content.encode()
                         ).hexdigest(),
