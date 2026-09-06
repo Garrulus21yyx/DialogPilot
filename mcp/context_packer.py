@@ -23,6 +23,7 @@ class ContextCandidate:
     scope: str = "public"
     scope_decision: str = "allowed_public"
     index_manifest_fingerprint: str = ""
+    applicability: tuple[tuple[str, str], ...] = ()
 
 
 @dataclass(frozen=True)

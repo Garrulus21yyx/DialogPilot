@@ -66,7 +66,8 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
         def __init__(self, **kwargs):
             captured["tool_manager"] = kwargs
             self.tools = []
-            self.llm_client = object()
+            from types import SimpleNamespace
+            self.llm_client = SimpleNamespace(messages=SimpleNamespace(), beta=SimpleNamespace(messages=SimpleNamespace()))
             self._query_transformer = SimpleNamespace(standalone=None)
             self._result_reranker = SimpleNamespace(rerank=None)
 
@@ -103,6 +104,9 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
             return {"manifest_fingerprint": "a" * 64}
 
         def validate_cached_candidates(self, _candidates):
+            return True
+
+        def validate_publication_evidence(self, packs):
             return True
 
         def embed_query(self, _query, _generation):

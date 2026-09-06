@@ -90,3 +90,26 @@ def knowledge_artifact(artifact) -> bool:
     return (isinstance(artifact, Mapping) and artifact.get('schema') == 'tool-result-v1'
             and isinstance(artifact.get('result'), Mapping)
             and artifact['result'].get('authority') == 'knowledge.active_source')
+
+
+def knowledge_query_options(values):
+    """Business applicability, distinct from runtime identity and authorization."""
+    from datetime import datetime
+    from collections.abc import Mapping
+    if not isinstance(values, Mapping):
+        raise ValueError("knowledge options must be an object")
+    supported = {'as_of', 'applicable_region', 'applicable_channel', 'applicable_product'}
+    if set(values) - supported:
+        raise ValueError("unsupported knowledge option")
+    result = {}
+    for key, value in values.items():
+        if not isinstance(value, str) or not value.strip() or len(value) > 128:
+            raise ValueError("knowledge options require bounded strings")
+        if key == 'as_of':
+            instant = datetime.fromisoformat(value)
+            if instant.utcoffset() is None:
+                raise ValueError("knowledge as_of requires timezone")
+            result[key] = instant.isoformat()
+        else:
+            result[key] = value.strip()
+    return result

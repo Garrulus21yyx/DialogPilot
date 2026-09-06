@@ -38,3 +38,29 @@ def test_arbitrary_tool_schema_and_result_sizes_are_admitted_or_typed_rejected(
     else:
         assert usage.total_reserved_tokens <= 2048
         assert usage.tool_schema_tokens >= tool_count * 4
+
+
+@pytest.mark.parametrize('consumer', ['generator', 'reranker'])
+def test_structured_pydantic_requests_enforce_actual_sdk_budget_before_network(consumer):
+    import asyncio
+    import httpx2 as httpx
+    from anthropic import AsyncAnthropic
+    from mcp.grounded_answer_generator import GroundedAnswerGenerator
+    from mcp.result_reranker import ResultReranker, RerankCandidate
+    from mcp.context_packer import ContextCandidate
+    calls = []
+    def transport(request):
+        calls.append(request)
+        raise AssertionError('over-budget request reached HTTP')
+    async def run():
+        client = AsyncAnthropic(api_key='fake-test-key', http_client=httpx.AsyncClient(transport=httpx.MockTransport(transport)))
+        profile = ModelProfile('claude-sonnet-4-20250514', max_context_tokens=1024)
+        try:
+            if consumer == 'generator':
+                return await GroundedAnswerGenerator(client, profile).generate('policy?', (ContextCandidate('c','s','x'*12000,0,12000),))
+            return await ResultReranker(client, profile).rerank('policy?', (RerankCandidate('c','x'*12000),))
+        finally:
+            await client.close()
+    result = asyncio.run(run())
+    assert result.error and 'ProviderContextBudgetExceeded' in result.error
+    assert not calls

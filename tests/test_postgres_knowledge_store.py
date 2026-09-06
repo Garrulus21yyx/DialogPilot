@@ -131,7 +131,7 @@ def test_title_change_revisions_contextual_retrieval_text(store):
     second = knowledge.active_generation()
 
     assert second.generation_id != first.generation_id
-    assert provider.document_inputs[-1][0].startswith("[TITLE] 退款到账时间\n")
+    assert any(text.startswith("[TITLE] 退款到账时间\n") for text in provider.document_inputs[-1])
     with pool.transaction() as connection:
         revisions = connection.execute("""
             SELECT title, revision_id
@@ -150,7 +150,7 @@ def test_ingest_embeds_contextual_chunk_while_source_span_stays_authoritative(st
     generation = knowledge.active_generation()
 
     expected_retrieval_text = (
-        "[TITLE] mixed\n[METADATA] region=local\n[CONTENT] " + content
+        "[TITLE] mixed\n[CONTENT] " + content
     )
     assert provider.document_inputs == [(expected_retrieval_text,)]
     assert generation.embedding_profile == provider.profile
@@ -226,3 +226,19 @@ def test_default_provider_is_explicitly_a_hash_baseline():
         EmbeddingProviderKind.HASH_BASELINE
     )
     assert knowledge.embedding_profile.is_baseline is True
+
+
+def test_incremental_import_embeds_only_changed_source_spans(store):
+    knowledge, _, provider = store
+    first = knowledge.import_documents((_document('refund','退款七天。'),))
+    second = knowledge.import_documents((_document('delivery','配送三天。'),))
+    assert len(provider.document_inputs) == 2
+    assert len(provider.document_inputs[1]) == 1
+    assert '[TITLE] delivery' in provider.document_inputs[1][0]
+    assert first.revisions[0].source_id == 'refund'
+    assert second.revisions[0].source_id == 'delivery'
+    third = knowledge.import_documents((_document('refund','退款三天。'),))
+    assert len(provider.document_inputs[2]) == 1
+    assert third.revisions[0].revision_id != first.revisions[0].revision_id
+    # Each committed receipt remains the actual stored identity after later writes.
+    assert any(item.revision_id == first.revisions[0].revision_id for item in knowledge._active_sources())

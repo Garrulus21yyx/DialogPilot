@@ -18,6 +18,11 @@ class FakeKnowledgeStore:
         self.sources.extend(sources)
         return len(sources)
 
+    async def import_documents_async(self, sources):
+        from types import SimpleNamespace
+        count = await self.add_documents_async(sources)
+        return SimpleNamespace(chunk_count=count, revisions=sources)
+
     async def doc_count_async(self):
         return len(self.sources)
 

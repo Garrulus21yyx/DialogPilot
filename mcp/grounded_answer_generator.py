@@ -104,7 +104,9 @@ class GroundedAnswerGenerator:
         self._client = client
         self._model_profile = model_profile
         if structured_agent is None:
-            provider = AnthropicProvider(anthropic_client=client)
+            from core.provider_context_budget import BudgetedAnthropicClient
+            provider = AnthropicProvider(anthropic_client=BudgetedAnthropicClient(
+                client, model_profile, ModelRole.SYNTHESIS))
             model = AnthropicModel(model_profile.model, provider=provider)
             structured_agent = Agent(
                 model,
@@ -139,7 +141,7 @@ class GroundedAnswerGenerator:
             f"E{index}": item.chunk_id for index, item in enumerate(contexts, 1)
         }
         rows = [
-            {"evidence_id": evidence_id, "text": item.text}
+            {"evidence_id": evidence_id, "text": item.text, "applicability": dict(item.applicability)}
             for evidence_id, item in zip(evidence_to_chunk, contexts)
         ]
         if _is_cjk(query):

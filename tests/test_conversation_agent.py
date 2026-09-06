@@ -847,3 +847,14 @@ def test_malformed_provider_transport_is_not_reported_as_an_outage():
 
     assert proposal.disposition is ProposalDisposition.INVALID_PROVIDER_OUTPUT
     assert proposal.reason_code == "CONVERSATION_PROVIDER_OUTPUT_INVALID"
+
+
+def test_knowledge_direct_goal_preserves_explicit_applicability_options():
+    provider = Provider({'status':'resolved','goals':[{
+        'kind':'refund_policy', 'resolved_query':'2023年购买商品适用什么退款政策',
+        'knowledge_options':{'as_of':'2023-06-01T00:00:00+00:00','applicable_region':'CN'},
+    }]})
+    proposal, _, _ = _invoke(ConversationAgent(provider), '2023年在中国购买商品适用什么退款政策')
+    arguments = {item.name:item.value for item in proposal.commands[0].arguments}
+    assert arguments['as_of']=='2023-06-01T00:00:00+00:00'
+    assert arguments['applicable_region']=='CN'

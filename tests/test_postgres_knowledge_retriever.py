@@ -248,6 +248,7 @@ def test_source_fuses_pg_routes_and_resolves_canonical_source(knowledge_source):
             "ranks": {"raw:vector": 1, "raw:lexical": 1},
             "score": pytest.approx(1 / 11),
             "scope_decision": "allowed_public",
+            "applicability": {},
         },
     )
     assert knowledge_source.validate_candidates(result.candidates, request)

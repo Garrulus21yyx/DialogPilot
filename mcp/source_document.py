@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+from datetime import datetime
 from dataclasses import dataclass
 from typing import Any, Mapping, Optional
 
@@ -27,6 +28,11 @@ class SourceDocument:
     content: str
     source_type: str
     checksum: str
+    region: str = "global"
+    product: str = ""
+    channel: str = "global"
+    effective_from: datetime | None = None
+    effective_to: datetime | None = None
 
     def __post_init__(self) -> None:
         source_id = str(self.source_id).strip()
@@ -43,6 +49,19 @@ class SourceDocument:
         if source_type not in self.SUPPORTED_SOURCE_TYPES:
             supported = ", ".join(sorted(self.SUPPORTED_SOURCE_TYPES))
             raise SourceDocumentContractError(f"unsupported source_type; expected one of: {supported}")
+        for key in ("region", "product", "channel"):
+            value = getattr(self, key)
+            if not isinstance(value, str) or len(value) > 128 or any(ord(c) < 32 for c in value):
+                raise SourceDocumentContractError(f"invalid {key}")
+            object.__setattr__(self, key, value.strip())
+        if not self.region or not self.channel:
+            raise SourceDocumentContractError("region/channel must be explicit or global")
+        for key in ("effective_from", "effective_to"):
+            value = getattr(self, key)
+            if value is not None and (not isinstance(value, datetime) or value.utcoffset() is None):
+                raise SourceDocumentContractError(f"{key} requires timezone-aware datetime")
+        if self.effective_to is not None and (self.effective_from is None or self.effective_to <= self.effective_from):
+            raise SourceDocumentContractError("effective_to requires an earlier effective_from")
         expected = self.content_checksum(content)
         if checksum != expected:
             raise SourceDocumentContractError(
@@ -77,6 +96,8 @@ class SourceDocument:
         source_type: str = "text",
         source_id: str = "",
         checksum: Optional[str] = None,
+        region: str = "global", product: str = "", channel: str = "global",
+        effective_from: datetime | None = None, effective_to: datetime | None = None,
     ) -> "SourceDocument":
         normalized_type = str(source_type or "text").strip().lower()
         aliases = {"txt": "text", "md": "markdown"}
@@ -91,7 +112,8 @@ class SourceDocument:
             title=title,
             content=content,
             source_type=normalized_type,
-            checksum=checksum or calculated,
+            checksum=checksum or calculated, region=region, product=product, channel=channel,
+            effective_from=effective_from, effective_to=effective_to,
         )
 
     @classmethod
@@ -105,6 +127,7 @@ class SourceDocument:
             raise SourceDocumentContractError("source document must be an object")
         supported_fields = {
             "id", "source_id", "title", "content", "source_type", "checksum", "scope",
+            "region", "product", "channel", "effective_from", "effective_to",
         }
         unsupported = sorted(str(field) for field in value if field not in supported_fields)
         if unsupported:
@@ -124,4 +147,17 @@ class SourceDocument:
             content=str(value.get("content") or ""),
             source_type=str(value.get("source_type") or default_source_type),
             checksum=(str(value["checksum"]) if value.get("checksum") else None),
+            region=value.get("region", "global"), product=value.get("product", ""),
+            channel=value.get("channel", "global"),
+            effective_from=_datetime(value.get("effective_from")),
+            effective_to=_datetime(value.get("effective_to")),
         )
+
+
+def _datetime(value):
+    if value is None or isinstance(value, datetime):
+        return value
+    try:
+        return datetime.fromisoformat(value)
+    except (TypeError, ValueError) as exc:
+        raise SourceDocumentContractError("effective time must be ISO-8601 with timezone") from exc

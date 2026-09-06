@@ -227,6 +227,9 @@ class PostgresKnowledgeCandidateSource:
                         product=request.product,
                         source_types=source_types,
                         regions=regions,
+                        as_of=request.as_of, applicable_region=request.applicable_region,
+                        applicable_channel=request.applicable_channel,
+                        applicable_product=request.applicable_product,
                     ),
                     dense_limit=dense_k,
                     lexical_limit=lexical_k,
@@ -329,9 +332,15 @@ class PostgresKnowledgeCandidateSource:
         if request.product is not None:
             params.append(request.product)
         params.extend((request.manifest_fingerprint, list(candidate_ids)))
+        from psycopg import sql
+        from infrastructure.knowledge_applicability import source_applicability
+        applicability, values = source_applicability(
+            "chunk", as_of=request.as_of, region=request.applicable_region,
+            channel=request.applicable_channel, product=request.applicable_product)
+        params.extend(values)
         with self._pool.transaction() as connection:
             rows = connection.execute(
-                f"""
+                sql.SQL(f"""
                 SELECT chunk.candidate_id, chunk.source_id,
                        chunk.source_revision, chunk.source_checksum,
                        (chunk.source_span->>'start_char')::integer,
@@ -342,7 +351,9 @@ class PostgresKnowledgeCandidateSource:
                            FOR (chunk.source_span->>'end_char')::integer
                                - (chunk.source_span->>'start_char')::integer
                        ), revision.title,
-                       revision.source_type, chunk.scope
+                       revision.source_type, chunk.scope,
+                       revision.region, revision.product, revision.channel,
+                       revision.effective_from, revision.effective_to, revision.schema_version
                 FROM retrieval.knowledge_chunk_search chunk
                 JOIN retrieval.knowledge_source_revisions revision
                   ON revision.tenant_id=chunk.tenant_id
@@ -360,8 +371,9 @@ class PostgresKnowledgeCandidateSource:
                   AND chunk.locale=%s {product_clause}
                   AND manifest.manifest_hash=%s
                   AND chunk.candidate_id=ANY(%s)
+                  AND {{applicability}}
                 ORDER BY chunk.candidate_id
-            """,
+            """).format(applicability=applicability),
                 params,
             ).fetchall()
         return {
@@ -376,6 +388,11 @@ class PostgresKnowledgeCandidateSource:
                 "title": str(row[7]),
                 "source_type": str(row[8]),
                 "scope": str(row[9]),
+                "applicability": ({
+                    "region": row[10], "product": row[11], "channel": row[12],
+                    "effective_from": row[13].isoformat(),
+                    "effective_to": row[14].isoformat() if row[14] else "",
+                } if row[15] == "knowledge-source-v2" else {}),
             }
             for row in rows
         }
@@ -417,6 +434,7 @@ class PostgresKnowledgeCandidateSource:
                 item.get(field) == stored[str(item["chunk_id"])][field]
                 for field in fields
             )
+            and item.get("applicability", {}) == stored[str(item["chunk_id"])]["applicability"]
             for item in candidates
         )
 
@@ -451,6 +469,7 @@ class PostgresKnowledgeEvidenceValidator:
                 "content": item.text,
                 "title": item.title,
                 "source_type": item.source_ref.source_type,
+                "applicability": dict(item.source_ref.applicability),
             }
             for item in pack.items
         ]

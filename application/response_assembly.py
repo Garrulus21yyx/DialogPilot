@@ -51,13 +51,14 @@ class ResponseAssembler:
     version = "response-assembler-v1"
 
     def __init__(self, composer: ConversationComposer | None = None, *,
-                 knowledge_generator=None, knowledge_verifier=None) -> None:
+                 knowledge_generator=None, knowledge_verifier=None, knowledge_source_validator=None) -> None:
         self._composer = composer
         self._knowledge_generator = knowledge_generator
         self._knowledge_verifier = knowledge_verifier
+        self._knowledge_source_validator = knowledge_source_validator
 
     async def assemble(self, board, *, current_message: str, system_notice: str = "") -> AssembledResponse:
-        from application.knowledge_tool_contract import evidence_items, evidence_id
+        from application.knowledge_tool_contract import evidence_items, evidence_id, model_evidence
         knowledge_facts = tuple(fact for result in board.results for fact in result.facts
                                 if fact.requirement_id == "knowledge.active_source")
         knowledge_failure = any(result.reason_code.startswith("KNOWLEDGE_")
@@ -89,6 +90,7 @@ class ResponseAssembler:
                     item['source_ref']['start_char'], item['source_ref']['end_char'],
                     source_revision=item['source_ref']['source_revision'],
                     source_checksum=item['source_ref']['checksum'], title=item.get('title', ''),
+                    applicability=tuple(sorted(item['source_ref'].get('applicability', {}).items())),
                 ) for item in items.values())
                 query = packs[0]['evidence_pack']['query'] if len(packs) == 1 else current_message
                 generated = await self._knowledge_generator.generate(query, contexts)
@@ -113,12 +115,14 @@ class ResponseAssembler:
             verdict = await self._knowledge_verifier.verify(
                 current_message, candidate.text,
                 context=json.dumps(facts, ensure_ascii=False),
-                knowledge_evidence={"packs": packs, "allowed_evidence_ids": sorted(allowed)},
+                knowledge_evidence={"packs": [model_evidence(pack) for pack in packs], "allowed_evidence_ids": sorted(allowed)},
                 agent_outcomes=[{"status": result.status.value, "reason": result.reason_code}
                                 for result in board.results],
             )
             if not verdict.publishable or not verdict.grounded:
                 return self._knowledge_fallback(board, system_notice)
+            if self._knowledge_source_validator is None or not self._knowledge_source_validator(packs):
+                return self._knowledge_fallback(board, system_notice, unavailable=True)
             return AssembledResponse(system_notice + candidate.text, candidate.mode,
                                      tuple(sorted(cited)), candidate.composer_used,
                                      "PASS", "KNOWLEDGE_SUPPORT_CHECKED")

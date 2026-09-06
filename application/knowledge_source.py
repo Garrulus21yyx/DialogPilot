@@ -41,14 +41,19 @@ class SourceRevision:
     supersedes_revision_id: str | None = None
     operations_audit_ref: str = "m2-source-revision-v0"
     schema_version: str = "knowledge-source-v0"
+    channel: str = "global"
 
     def __post_init__(self) -> None:
         _required(
             self.tenant_id, self.source_id, self.revision_id, self.title,
             self.source_type, self.content, self.owner_id, self.scope,
             self.locale, self.region, self.operations_audit_ref,
-            self.schema_version,
+            self.schema_version, self.channel,
         )
+        if self.schema_version not in {"knowledge-source-v0", "knowledge-source-v1", "knowledge-source-v2"}:
+            raise KnowledgeSourceContractError("unsupported source schema")
+        if self.schema_version != "knowledge-source-v2" and self.channel != "global":
+            raise KnowledgeSourceContractError("channel requires source v2")
         if self.source_id.startswith("legacy-") or self.revision_id.startswith("legacy-"):
             raise KnowledgeSourceContractError("legacy source identities are unsupported")
         _checksum(self.checksum)
@@ -80,10 +85,11 @@ class SourceRevision:
         supersedes_revision_id: str | None = None,
         operations_audit_ref: str = "m2-source-revision-v0",
         schema_version: str = "knowledge-source-v0",
+        channel: str = "global",
     ) -> "SourceRevision":
         checksum = hashlib.sha256(str(content).encode("utf-8")).hexdigest()
-        if str(schema_version) == "knowledge-source-v1":
-            revision_prefix = "revision-v1"
+        if str(schema_version) in {"knowledge-source-v1", "knowledge-source-v2"}:
+            revision_prefix = "revision-v2" if schema_version == "knowledge-source-v2" else "revision-v1"
             revision_digest = _canonical_hash({
                 "checksum": checksum,
                 "title": str(title),
@@ -97,6 +103,7 @@ class SourceRevision:
                 "locale": str(locale),
                 "product": str(product),
                 "region": str(region),
+                **({"channel": str(channel)} if schema_version == "knowledge-source-v2" else {}),
                 "supersedes_revision_id": supersedes_revision_id,
                 "operations_audit_ref": str(operations_audit_ref),
             })
@@ -114,7 +121,7 @@ class SourceRevision:
                 str(supersedes_revision_id) if supersedes_revision_id else None
             ),
             operations_audit_ref=str(operations_audit_ref),
-            schema_version=str(schema_version),
+            schema_version=str(schema_version), channel=channel,
         )
 
     @classmethod
@@ -150,7 +157,8 @@ class SourceRevision:
     @property
     def immutable_fingerprint(self) -> str:
         return _canonical_hash({
-            **self.__dict__,
+            **{key: value for key, value in self.__dict__.items()
+               if key != "channel" or self.schema_version == "knowledge-source-v2"},
             "effective_from": self.effective_from.isoformat(),
             "effective_to": (
                 self.effective_to.isoformat() if self.effective_to else None
@@ -189,6 +197,8 @@ class KnowledgeSourceManifest:
             self.tenant_id, self.backend_id, self.generation_id, self.scope,
             self.locale, self.reviewer_manifest_ref, self.schema_version,
         )
+        if self.schema_version not in {"knowledge-source-v0", "knowledge-source-temporal-v2"}:
+            raise KnowledgeSourceContractError("unsupported manifest schema")
         if not self.entries:
             raise KnowledgeSourceContractError("source manifest must not be empty")
         identities = [(item.source_id, item.revision_id) for item in self.entries]
@@ -196,7 +206,7 @@ class KnowledgeSourceManifest:
             raise KnowledgeSourceContractError(
                 "manifest entries must be sorted and unique"
             )
-        if len({item.source_id for item in self.entries}) != len(self.entries):
+        if self.schema_version != "knowledge-source-temporal-v2" and len({item.source_id for item in self.entries}) != len(self.entries):
             raise KnowledgeSourceContractError(
                 "manifest cannot contain conflicting revisions for one source"
             )
@@ -209,7 +219,7 @@ class KnowledgeSourceManifest:
             locale=self.locale,
             product=self.product,
             entries=self.entries,
-            reviewer_manifest_ref=self.reviewer_manifest_ref,
+            reviewer_manifest_ref=self.reviewer_manifest_ref, schema_version=self.schema_version,
         ):
             raise KnowledgeSourceContractError("source manifest hash mismatch")
 
@@ -225,6 +235,7 @@ class KnowledgeSourceManifest:
         product: str,
         sources: Sequence[SourceRevision],
         reviewer_manifest_ref: str,
+        schema_version: str = "knowledge-source-v0",
     ) -> "KnowledgeSourceManifest":
         entries = tuple(sorted((
             SourceManifestEntry(item.source_id, item.revision_id, item.checksum)
@@ -238,7 +249,8 @@ class KnowledgeSourceManifest:
         )
         return cls(
             **values,
-            manifest_hash=cls.calculate_hash(**values),
+            manifest_hash=cls.calculate_hash(**values, schema_version=schema_version),
+            schema_version=schema_version,
         )
 
     @staticmethod
@@ -246,7 +258,7 @@ class KnowledgeSourceManifest:
         return _canonical_hash({
             **values,
             "entries": [item.__dict__ for item in values["entries"]],
-            "schema_version": "knowledge-source-v0",
+            "schema_version": values.get("schema_version", "knowledge-source-v0"),
         })
 
 

@@ -5,7 +5,7 @@ import asyncio
 import hashlib
 import json
 import threading
-from dataclasses import replace
+from dataclasses import replace, dataclass
 from datetime import datetime, timezone
 from typing import Sequence
 
@@ -29,7 +29,7 @@ from application.knowledge_source import (
     SourceRevision,
 )
 from core.cost_budget import OfflineIngestBudgetExceeded
-from mcp.document_chunker import ChunkStrategy, DocumentChunker
+from mcp.document_chunker import ChunkStrategy, DocumentChunker, ChunkStructureError
 from mcp.source_document import SourceDocument
 
 from .hybrid_retrieval_backend import create_generation_hnsw_index
@@ -84,12 +84,19 @@ DEFAULT_KNOWLEDGE_DOCUMENTS = (
 )
 
 
+@dataclass(frozen=True)
+class KnowledgeImportResult:
+    chunk_count: int
+    revisions: tuple[SourceRevision, ...]
+    generation_id: str
+
+
 class PostgresKnowledgeStore:
     """Replace the active local corpus by building one immutable PG generation."""
 
     backend_id = "POSTGRES_PG_BM25_ZH_V1"
     backend_fingerprint = "POSTGRES_PGVECTOR_PG_BM25_ZH_V1"
-    chunk_schema_version = "knowledge-direct-ingest-v2-contextual-retrieval"
+    chunk_schema_version = "knowledge-direct-ingest-v3-temporal"
 
     def __init__(
         self,
@@ -134,7 +141,7 @@ class PostgresKnowledgeStore:
             return generation
         # A pre-profile or differently configured active generation remains
         # immutable; build and activate a new identity rather than relabel it.
-        await self.add_documents_async(DEFAULT_KNOWLEDGE_DOCUMENTS)
+        await self.add_documents_async(())
         return await asyncio.to_thread(self.active_generation)
 
     async def add_documents_async(
@@ -143,20 +150,40 @@ class PostgresKnowledgeStore:
         return await asyncio.to_thread(self.add_documents, documents)
 
     def add_documents(self, documents: Sequence[SourceDocument]) -> int:
+        return self.import_documents(documents).chunk_count
+
+    async def import_documents_async(self, documents: Sequence[SourceDocument]) -> KnowledgeImportResult:
+        return await asyncio.to_thread(self.import_documents, documents)
+
+    def import_documents(self, documents: Sequence[SourceDocument]) -> KnowledgeImportResult:
         incoming = tuple(documents)
         self._validate_budget(incoming)
-        with self._write_lock:
-            current = {item.source_id: item for item in self._active_sources()}
+        with self._write_lock, self._pool.transaction() as lock_connection:
+            lock_connection.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s,0))", (self.backend_id,))
+            current = {(item.source_id, item.revision_id): item for item in self._active_sources()}
+            imported = []
             for document in incoming:
-                current[document.source_id] = self._source_revision(document)
-            sources = tuple(sorted(current.values(), key=lambda item: item.source_id))
-            chunks = self._chunks(sources)
+                revision = self._source_revision(document)
+                for prior in current.values():
+                    if (prior.source_id == revision.source_id
+                        and prior.effective_from == revision.effective_from
+                        and prior.revision_id != revision.revision_id):
+                        from application.knowledge_source import KnowledgeSourceContractError
+                        raise KnowledgeSourceContractError("source versions cannot share an effective_from")
+                current[(revision.source_id, revision.revision_id)] = revision
+                imported.append(revision)
+            sources = tuple(sorted(current.values(), key=lambda item: (item.source_id, item.effective_from, item.revision_id)))
+            try:
+                chunks = self._chunks(sources)
+            except ChunkStructureError as exc:
+                from application.knowledge_source import KnowledgeSourceContractError
+                raise KnowledgeSourceContractError(str(exc)) from exc
             self._validate_chunk_budget(chunks)
             generation_id = self._generation_id(sources)
             try:
                 active = self.active_generation()
                 if active.generation_id == generation_id:
-                    return len(chunks)
+                    return KnowledgeImportResult(len(chunks), tuple(imported), generation_id)
             except GenerationConflict:
                 pass
             manifest = KnowledgeSourceManifest.build(
@@ -164,9 +191,9 @@ class PostgresKnowledgeStore:
                 generation_id=generation_id, scope="public", locale=self._locale,
                 product=self._product, sources=sources,
                 reviewer_manifest_ref="local-direct-ingest",
+                schema_version="knowledge-source-temporal-v2",
             )
-            retrieval_texts = tuple(chunk.retrieval_text for chunk in chunks)
-            vectors = self._document_embedder(retrieval_texts)
+            vectors = self._embed_changed_chunks(chunks)
             chunks = tuple(
                 replace(chunk, embedding=vector)
                 for chunk, vector in zip(chunks, vectors, strict=True)
@@ -210,7 +237,33 @@ class PostgresKnowledgeStore:
             if current_generation.state is GenerationState.BUILDING:
                 self._generations.transition(generation_id, GenerationState.READY)
             self._generations.activate_direct(generation_id)
-            return len(chunks)
+            return KnowledgeImportResult(len(chunks), tuple(imported), generation_id)
+
+    def _embed_changed_chunks(self, chunks):
+        """Reuse immutable vectors only for identical source spans and model profile."""
+        cached = {}
+        try:
+            active = self.active_generation()
+        except GenerationConflict:
+            active = None
+        if active is not None and self.embedding_profile.matches_generation(active):
+            with self._pool.transaction() as connection:
+                rows = connection.execute("""
+                    SELECT source_id, revision_id, source_checksum, start_char, end_char,
+                           retrieval_text, embedding::text
+                    FROM retrieval.knowledge_source_chunk_specs
+                    WHERE tenant_id=%s AND backend_id=%s AND generation_id=%s
+                      AND embedding IS NOT NULL
+                """, (self._tenant_id, self.backend_id, active.generation_id)).fetchall()
+            cached = {tuple(row[:6]): tuple(json.loads(row[6])) for row in rows}
+        def identity(chunk):
+            return (chunk.source_id, chunk.revision_id, chunk.source_checksum,
+                    chunk.start_char, chunk.end_char, chunk.retrieval_text)
+        missing = [chunk for chunk in chunks if identity(chunk) not in cached]
+        if missing:
+            vectors = self._document_embedder(tuple(chunk.retrieval_text for chunk in missing))
+            cached.update((identity(chunk), vector) for chunk, vector in zip(missing, vectors, strict=True))
+        return tuple(cached[identity(chunk)] for chunk in chunks)
 
     def active_generation(self) -> RetrievalGeneration:
         return self._generations.active(
@@ -288,7 +341,7 @@ class PostgresKnowledgeStore:
                        revision.owner_id, revision.scope, revision.locale,
                        revision.product, revision.region,
                        revision.supersedes_revision_id,
-                       revision.operations_audit_ref, revision.schema_version
+                       revision.operations_audit_ref, revision.schema_version, revision.channel
                 FROM retrieval.knowledge_source_manifest_entries entry
                 JOIN retrieval.knowledge_source_revisions revision
                   ON revision.tenant_id=entry.tenant_id
@@ -297,7 +350,7 @@ class PostgresKnowledgeStore:
                 WHERE entry.tenant_id=%s AND entry.backend_id=%s
                   AND entry.generation_id=%s AND entry.scope='public'
                   AND entry.locale=%s AND entry.product=%s
-                ORDER BY revision.source_id
+                ORDER BY revision.source_id, revision.effective_from, revision.revision_id
             """, (
                 self._tenant_id, self.backend_id, generation.generation_id,
                 self._locale, self._product,
@@ -305,34 +358,95 @@ class PostgresKnowledgeStore:
         return tuple(SourceRevision(*row) for row in rows)
 
     def _source_revision(self, document: SourceDocument) -> SourceRevision:
+        # Reuse only the latest identical import; an old matching body must not
+        # implicitly roll back a newer policy. Explicit dates identify history.
         with self._pool.transaction() as connection:
-            row = connection.execute("""
+            rows = connection.execute("""
                 SELECT tenant_id, source_id, revision_id, checksum, title,
                        source_type, content, effective_from, effective_to,
                        owner_id, scope, locale, product, region,
-                       supersedes_revision_id, operations_audit_ref, schema_version
+                       supersedes_revision_id, operations_audit_ref, schema_version, channel,
+                       withdrawn_at
                 FROM retrieval.knowledge_source_revisions
-                WHERE tenant_id=%s AND source_id=%s AND checksum=%s
-                  AND title=%s AND source_type=%s AND scope='public'
-                  AND locale=%s AND product=%s AND region='local'
-                ORDER BY effective_from DESC
-                LIMIT 1
-            """, (
-                self._tenant_id, document.source_id, document.checksum,
-                document.title, document.source_type,
-                self._locale, self._product,
-            )).fetchone()
-        if row is not None:
-            return SourceRevision(*row)
+                WHERE tenant_id=%s AND source_id=%s
+                ORDER BY effective_from DESC, revision_id
+            """, (self._tenant_id, document.source_id)).fetchall()
+        prior = SourceRevision(*rows[0][:-1]) if rows else None
+        possible = rows if document.effective_from is not None else rows[:1]
+        for row in possible:
+            item = SourceRevision(*row[:-1])
+            if (item.checksum == document.checksum and item.title == document.title
+                and item.source_type == document.source_type and item.scope == document.scope
+                and item.locale == self._locale and item.product == document.product
+                and item.region == document.region and item.channel == document.channel
+                and item.effective_to == document.effective_to
+                and (document.effective_from is None or item.effective_from == document.effective_from)):
+                if row[-1] is not None:
+                    from application.knowledge_source import KnowledgeSourceContractError
+                    raise KnowledgeSourceContractError("withdrawn revision requires a new explicit effective_from")
+                return item
         return SourceRevision.create(
             tenant_id=self._tenant_id, source_id=document.source_id,
             title=document.title, source_type=document.source_type,
-            content=document.content, effective_from=datetime.now(timezone.utc),
-            owner_id="local-admin", scope="public", locale=self._locale,
-            product=self._product, region="local",
-            operations_audit_ref="local-direct-ingest",
-            schema_version="knowledge-source-v1",
+            content=document.content, effective_from=document.effective_from or datetime.now(timezone.utc),
+            effective_to=document.effective_to,
+            owner_id="local-admin", scope=document.scope, locale=self._locale,
+            product=document.product, region=document.region, channel=document.channel,
+            supersedes_revision_id=prior.revision_id if prior else None,
+            operations_audit_ref="local-direct-ingest", schema_version="knowledge-source-v2",
         )
+
+    def validate_publication_evidence(self, packs) -> bool:
+        """Linearize source authorization after model verification, before assembly.
+
+        Share locks make the decision coherent with concurrent withdrawal and
+        generation activation. Already published answers are historical records.
+        """
+        from application.knowledge_tool_contract import evidence_items
+        try:
+            with self._pool.transaction() as connection:
+                active = connection.execute("""
+                    SELECT manifest_hash FROM retrieval.retrieval_generation_registry
+                    WHERE corpus='KNOWLEDGE' AND backend_id=%s AND state='ACTIVE' FOR SHARE
+                """, (self.backend_id,)).fetchone()
+                if active is None or not packs:
+                    return False
+                for pack in packs:
+                    if pack['evidence_pack']['index_manifest_fingerprint'] != active[0]:
+                        return False
+                    for item in evidence_items(pack):
+                        ref = item['source_ref']
+                        row = connection.execute("""
+                            SELECT content, checksum, withdrawn_at FROM retrieval.knowledge_source_revisions
+                            WHERE tenant_id=%s AND source_id=%s AND revision_id=%s FOR SHARE
+                        """, (self._tenant_id, ref['source_id'], ref['source_revision'])).fetchone()
+                        if (row is None or row[2] is not None or row[1] != ref['checksum']
+                            or row[0][ref['start_char']:ref['end_char']] != item['text']):
+                            return False
+            return True
+        except Exception:
+            return False
+
+    def withdraw_revision(self, source_id: str, revision_id: str, *, reason: str) -> None:
+        from application.knowledge_source import KnowledgeSourceContractError
+        if not reason.strip() or len(reason) > 1000:
+            raise KnowledgeSourceContractError("withdrawal requires a bounded reason")
+        # Withdrawal is authoritative immediately, including for retired generations
+        # and cache revalidation. It does not depend on successful re-embedding.
+        with self._write_lock, self._pool.transaction() as connection:
+            connection.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s,0))", (self.backend_id,))
+            row = connection.execute("""
+                SELECT withdrawn_at FROM retrieval.knowledge_source_revisions
+                WHERE tenant_id=%s AND source_id=%s AND revision_id=%s FOR UPDATE
+            """, (self._tenant_id, source_id, revision_id)).fetchone()
+            if row is None:
+                raise KnowledgeSourceContractError("unknown source revision")
+            if row[0] is None:
+                connection.execute("""
+                    UPDATE retrieval.knowledge_source_revisions
+                    SET withdrawn_at=transaction_timestamp(), withdrawal_reason=%s
+                    WHERE tenant_id=%s AND source_id=%s AND revision_id=%s
+                """, (reason, self._tenant_id, source_id, revision_id))
 
     def _chunks(
         self, sources: Sequence[SourceRevision],
@@ -379,7 +493,7 @@ class PostgresKnowledgeStore:
             "tenant_id": self._tenant_id,
             "locale": self._locale,
             "product": self._product,
-            "sources": [(item.source_id, item.revision_id) for item in sources],
+            "sources": sorted((item.source_id, item.revision_id) for item in sources),
             "chunk_schema": self.chunk_schema_version,
             "chunk_strategy": self._chunk_strategy.value,
             "chunk_max_tokens": self._chunk_max_tokens,

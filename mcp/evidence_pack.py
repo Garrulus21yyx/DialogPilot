@@ -17,6 +17,7 @@ class SourceReference:
     source_type: str
     checksum: str
     scope: str = "public"
+    applicability: tuple[tuple[str, str], ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -27,6 +28,7 @@ class SourceReference:
             "source_type": self.source_type,
             "checksum": self.checksum,
             "scope": self.scope,
+            "applicability": dict(self.applicability),
         }
 
 
@@ -90,7 +92,7 @@ class EvidencePack:
                     end_char=item.end_char,
                     source_type=item.source_type,
                     checksum=item.source_checksum,
-                    scope=item.scope,
+                    scope=item.scope, applicability=item.applicability,
                 ),
                 score=item.score,
                 rank=index,

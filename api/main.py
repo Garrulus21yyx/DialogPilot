@@ -60,6 +60,7 @@ from memory.context import ContextAssembler
 from mcp.context_packer import ContextCandidate, ContextPacker
 from mcp.grounded_answer_generator import GroundedAnswerGenerator
 from mcp.evidence_pack import EvidencePack
+from application.knowledge_source import KnowledgeSourceContractError
 from mcp.source_document import SourceDocument, SourceDocumentContractError
 from core.tracing import TraceRecorder, current_trace_id, trace_scope
 from core.input_security import PromptInjectionGuard
@@ -510,6 +511,10 @@ async def lifespan(app: FastAPI):
             "type": "object",
             "properties": {
                 "query": {"type": "string"},
+                "as_of": {"type": "string", "description": "用户明确要求的政策适用时点，带时区ISO-8601；省略查当前"},
+                "applicable_region": {"type": "string", "description": "仅填写已确认的地区；未知则省略"},
+                "applicable_channel": {"type": "string", "description": "仅填写已确认的销售渠道；未知则省略"},
+                "applicable_product": {"type": "string", "description": "仅填写与来源标注一致的商品范围ID；未知则省略"},
                 "top_k": {"type": "integer"},
                 "source_types": {
                     "type": "array", "items": {"type": "string"},
@@ -582,6 +587,7 @@ async def lifespan(app: FastAPI):
         knowledge_context_factory=_knowledge_execution_context,
         knowledge_generator=_grounded_answer_generator,
         knowledge_verifier=_answer_verifier,
+        knowledge_source_validator=_knowledge_store.validate_publication_evidence,
     )
     _target_chat_runtime = target_components.application
     _target_orchestration = target_components.orchestration
@@ -2491,6 +2497,7 @@ def _knowledge_execution_context() -> dict:
     bundle = _bundle_registry.active()
     generation = _knowledge_store.active_generation()
     return {
+        "knowledge_as_of": datetime.now(timezone.utc).isoformat(),
         "retrieval_policy": validate_rag_policy(bundle.retrieval_policy),
         "cache_scope": bundle.version,
         "bundle_version": bundle.version,
@@ -2572,6 +2579,10 @@ async def _retrieve_knowledge(
     source_type_hints: tuple[str, ...] = (),
     region_hints: tuple[str, ...] = (),
     query_mode: str = "HISTORY",
+    as_of: datetime | None = None,
+    applicable_region: str | None = None,
+    applicable_channel: str | None = None,
+    applicable_product: str | None = None,
 ) -> EvidencePackResult:
     if _knowledge_retriever is None or _knowledge_store is None:
         return EvidencePackResult(
@@ -2630,7 +2641,9 @@ async def _retrieve_knowledge(
         generation_id=generation_id,
         policy=_knowledge_policy(policy_values, policy_version=policy_version),
         source_type_hints=source_type_hints,
-        region_hints=region_hints,
+        region_hints=region_hints, as_of=as_of or datetime.now(timezone.utc),
+        applicable_region=applicable_region, applicable_channel=applicable_channel,
+        applicable_product=applicable_product,
     )
     return await _knowledge_retriever.retrieve(request)
 
@@ -2640,9 +2653,20 @@ async def _knowledge_tool_handler(
 ) -> Dict[str, Any]:
     """Project an authenticated Agent tool invocation onto KnowledgeRetriever."""
     context = dict(context or {})
+    try:
+        from application.knowledge_tool_contract import knowledge_query_options
+        options = knowledge_query_options({key: params[key] for key in (
+            "as_of", "applicable_region", "applicable_channel", "applicable_product") if key in params})
+        as_of_value = options.get("as_of") or context.get("knowledge_as_of")
+        as_of = datetime.fromisoformat(as_of_value) if as_of_value else None
+    except (ValueError, TypeError):
+        return EvidencePackResult(RetrievalStatus.INVALID_CONTRACT, None, None, "INVALID_KNOWLEDGE_OPTIONS").to_dict(include_text=True)
     result = await _retrieve_knowledge(
         str(params.get("query") or ""),
-        history=(), query_mode="RESOLVED",
+        history=(), query_mode="RESOLVED", as_of=as_of,
+        applicable_region=options.get("applicable_region"),
+        applicable_channel=options.get("applicable_channel"),
+        applicable_product=options.get("applicable_product"),
         policy_values=dict(context.get("retrieval_policy") or {}),
         policy_version=str(context.get("cache_scope") or "agent-bundle-unversioned"),
         tenant_id=str(context.get("tenant_id") or ""),
@@ -2862,6 +2886,11 @@ class DocInput(BaseModel):
     source_type: Literal["text", "markdown", "json"] = "text"
     checksum: Optional[str] = Field(default=None, min_length=64, max_length=64)
     scope: Literal["public"] = "public"
+    region: str = Field(default="global", max_length=128)
+    product: str = Field(default="", max_length=128)
+    channel: str = Field(default="global", max_length=128)
+    effective_from: datetime | None = None
+    effective_to: datetime | None = None
 
 
 class BatchDocInput(BaseModel):
@@ -3025,13 +3054,17 @@ async def add_knowledge(body: BatchDocInput, _principal: Principal = Depends(_ad
             title=d.title,
             content=d.content,
             source_type=d.source_type,
-            checksum=d.checksum,
+            checksum=d.checksum, region=d.region, product=d.product, channel=d.channel,
+            effective_from=d.effective_from, effective_to=d.effective_to,
         ) for d in body.documents]
     except SourceDocumentContractError as exc:
         raise HTTPException(422, {"code": "source_document_invalid", "message": str(exc)}) from exc
     from core.cost_budget import OfflineIngestBudgetExceeded
     try:
-        count = await kb.add_documents_async(sources)
+        receipt = await kb.import_documents_async(sources)
+        count = receipt.chunk_count
+    except (SourceDocumentContractError, KnowledgeSourceContractError) as exc:
+        raise HTTPException(422, {"code": "source_document_invalid", "message": str(exc)}) from exc
     except OfflineIngestBudgetExceeded as exc:
         raise HTTPException(429, {
             "code": exc.code, "dimension": exc.dimension,
@@ -3049,7 +3082,7 @@ async def add_knowledge(body: BatchDocInput, _principal: Principal = Depends(_ad
             "source_type": source.source_type,
             "checksum": source.checksum,
             "scope": source.scope,
-        } for source in sources],
+        } for source in receipt.revisions],
     }
 
 
@@ -3118,7 +3151,10 @@ async def upload_knowledge(
         raise HTTPException(422, {"code": "source_document_invalid", "message": str(exc)}) from exc
     from core.cost_budget import OfflineIngestBudgetExceeded
     try:
-        count = await kb.add_documents_async(sources)
+        receipt = await kb.import_documents_async(sources)
+        count = receipt.chunk_count
+    except (SourceDocumentContractError, KnowledgeSourceContractError) as exc:
+        raise HTTPException(422, {"code": "source_document_invalid", "message": str(exc)}) from exc
     except OfflineIngestBudgetExceeded as exc:
         raise HTTPException(429, {
             "code": exc.code, "dimension": exc.dimension,
@@ -3136,8 +3172,26 @@ async def upload_knowledge(
             "source_type": source.source_type,
             "checksum": source.checksum,
             "scope": source.scope,
-        } for source in sources],
+        } for source in receipt.revisions],
     }
+
+
+class KnowledgeWithdrawalInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    source_id: str = Field(min_length=1, max_length=256)
+    revision_id: str = Field(min_length=1, max_length=256)
+    reason: str = Field(min_length=1, max_length=1000)
+
+
+@app.post("/knowledge/withdraw", tags=["知识库"])
+async def withdraw_knowledge(body: KnowledgeWithdrawalInput, _principal: Principal = Depends(_admin_principal)):
+    if _knowledge_store is None:
+        raise HTTPException(503, "知识库未初始化")
+    try:
+        await asyncio.to_thread(_knowledge_store.withdraw_revision, body.source_id, body.revision_id, reason=body.reason)
+    except KnowledgeSourceContractError as exc:
+        raise HTTPException(422, {"code": "source_withdrawal_invalid", "message": str(exc)}) from exc
+    return {"status": "WITHDRAWN", "source_id": body.source_id, "revision_id": body.revision_id}
 
 
 @app.get("/knowledge/stats", tags=["知识库"])

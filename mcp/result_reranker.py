@@ -15,7 +15,6 @@ from pydantic_ai.providers.anthropic import AnthropicProvider
 from pydantic_ai.usage import RunUsage
 
 from core.llm_metrics import record_external_llm_run
-from core.token_estimator import TokenEstimator
 from core.model_policy import ModelProfile, ModelRole, ReasoningEffort
 
 logger = logging.getLogger(__name__)
@@ -62,7 +61,9 @@ class ResultReranker:
         self._client = client
         self._model_profile = model_profile
         if structured_agent is None:
-            provider = AnthropicProvider(anthropic_client=client)
+            from core.provider_context_budget import BudgetedAnthropicClient
+            provider = AnthropicProvider(anthropic_client=BudgetedAnthropicClient(
+                client, model_profile, ModelRole.RERANK))
             model = AnthropicModel(model_profile.model, provider=provider)
             structured_agent = Agent(
                 model,
@@ -107,8 +108,6 @@ class ResultReranker:
         started = time.perf_counter()
         error: Exception | None = None
         try:
-            if TokenEstimator.estimate(prompt) > 14000:
-                raise ValueError("RERANK_INPUT_BUDGET_EXCEEDED")
             result = await self._structured_agent.run(
                 prompt,
                 deps=_RerankDeps(aliases),

@@ -4,6 +4,7 @@ The platform backend owns candidate generation only.  Corpus policies own fusion
 recency, reranking, packing, evidence sufficiency, and answer publication.
 """
 from __future__ import annotations
+from datetime import datetime
 
 import hashlib
 import json
@@ -136,6 +137,10 @@ class KnowledgeSearchScope:
     product: str | None = None
     source_types: tuple[str, ...] = ()
     regions: tuple[str, ...] = ()
+    as_of: datetime | None = None
+    applicable_region: str | None = None
+    applicable_channel: str | None = None
+    applicable_product: str | None = None
 
     def __post_init__(self) -> None:
         if not self.scope.strip() or not self.locale.strip():

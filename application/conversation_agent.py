@@ -289,6 +289,13 @@ class ConversationAgent:
                     goal_id, kind, str(value.get("resolved_query") or observations.raw_text), state,
                     order_binding, asset_binding, address_binding, registry,
                 )
+            if command.tool_id == "knowledge_search":
+                from application.knowledge_tool_contract import knowledge_query_options
+                options = knowledge_query_options(value.get("knowledge_options", {}))
+                command = replace(command, arguments=command.arguments + tuple(
+                    ArgumentValue.create(key, option) for key, option in sorted(options.items())))
+            elif value.get("knowledge_options"):
+                raise ValueError("knowledge options belong to knowledge goals")
             if command.tool_id == "knowledge_search" and turn_context is not None and turn_context.recent_relevant_turns and not value.get("resolved_query"):
                 raise ValueError("contextual knowledge goal requires an explicit resolved query")
             if revises_control_id and kind != "cancel_active_work":

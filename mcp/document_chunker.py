@@ -9,6 +9,10 @@ from typing import List, Optional
 from memory.context import TokenEstimator
 
 
+class ChunkStructureError(ValueError):
+    """A supported atomic structure cannot fit the configured chunk budget."""
+
+
 class ChunkStrategy(str, Enum):
     """Bounded chunk strategies supported by the production knowledge owner."""
 
@@ -59,6 +63,9 @@ class DocumentChunker:
                 self.section_path_at(text, 0, strategy=strategy),
             )]
 
+        protected = self.atomic_blocks(text) if strategy is ChunkStrategy.STRUCTURE_AWARE else ()
+        if any(self._token_estimator.estimate(text[a:b]) > max_tokens for a, b in protected):
+            raise ChunkStructureError("table, list block or fenced code exceeds chunk token budget")
         chunks: List[DocumentChunk] = []
         start = 0
         while start < len(text):
@@ -70,6 +77,10 @@ class DocumentChunker:
                 if strategy is ChunkStrategy.STRUCTURE_AWARE
                 else max_end
             )
+            for a, b in protected:
+                if a < end < b:
+                    end = a if a > start else b
+                    break
             chunks.append(DocumentChunk(
                 text[start:end], start, end, len(chunks),
                 self.section_path_at(text, start, strategy=strategy),
@@ -77,6 +88,10 @@ class DocumentChunker:
             if end >= len(text):
                 break
             next_start = self.overlap_start(text, start, end, overlap_tokens)
+            for a, b in protected:
+                if a < next_start < b:
+                    next_start = a if self._token_estimator.estimate(text[a:end]) <= overlap_tokens else b
+                    break
             if next_start <= start:
                 next_start = end
             start = next_start
@@ -84,6 +99,41 @@ class DocumentChunker:
         if any(self._token_estimator.estimate(chunk.content) > max_tokens for chunk in chunks):
             raise RuntimeError("chunker produced an over-budget chunk")
         return chunks
+
+    @staticmethod
+    def atomic_blocks(text: str) -> tuple[tuple[int, int], ...]:
+        """Recognize bounded Markdown tables, contiguous lists and fenced code.
+
+        Text remains untouched. Oversized structures require explicit source
+        preparation or a larger import budget, not a broken header/condition pair.
+        """
+        blocks = []
+        lines = text.splitlines(keepends=True)
+        offset = 0
+        begin = None
+        kind = None
+        fence = None
+        for line in lines:
+            stripped = line.lstrip()
+            marker = re.match(r"(`{3,}|~{3,})", stripped)
+            if kind == "fence":
+                offset += len(line)
+                if marker and marker.group(0)[0] == fence[0] and len(marker.group(0)) >= len(fence):
+                    blocks.append((begin, offset)); begin = kind = fence = None
+                continue
+            current = ("fence" if marker else "table" if "|" in line and line.strip() else
+                       "list" if re.match(r"(?:[-+*]|\d+[.)])\s+", stripped) else None)
+            if kind == "list" and line.strip() and line[:1].isspace():
+                current = "list"
+            if kind and current != kind:
+                blocks.append((begin, offset)); begin = kind = None
+            if current and begin is None:
+                begin, kind = offset, current
+                fence = marker.group(0) if marker else None
+            offset += len(line)
+        if begin is not None:
+            blocks.append((begin, offset))
+        return tuple(blocks)
 
     def max_fitting_end(self, text: str, start: int, max_tokens: int) -> int:
         """Find the longest suffix end whose estimated token count stays bounded."""

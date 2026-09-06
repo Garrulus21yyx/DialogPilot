@@ -70,3 +70,43 @@ class ProviderContextBudget:
 
 
 DEFAULT_PROVIDER_CONTEXT_BUDGET = ProviderContextBudget()
+
+
+class BudgetedAnthropicClient:
+    """Validate structured SDK requests after tools/retry messages are serialized.
+
+    The wrapper is per consumer/profile; it does not mutate a shared SDK client.
+    """
+    def __init__(self, client, profile: ModelProfile, role: ModelRole):
+        self._client = client
+        self.messages = _BudgetedMessages(client.messages, profile, role)
+        self.beta = _BudgetedBeta(client.beta, profile, role)
+
+    def __getattr__(self, name):
+        return getattr(self._client, name)
+
+
+class _BudgetedBeta:
+    def __init__(self, beta, profile, role):
+        self._beta = beta
+        self.messages = _BudgetedMessages(beta.messages, profile, role)
+
+    def __getattr__(self, name):
+        return getattr(self._beta, name)
+
+
+class _BudgetedMessages:
+    def __init__(self, messages, profile, role):
+        self._messages, self._profile, self._role = messages, profile, role
+
+    async def create(self, **request):
+        # SDK OMIT/NOT_GIVEN sentinels carry no prompt content.
+        budget_request = dict(request)
+        for key in ('system', 'tools'):
+            if not isinstance(budget_request.get(key), (str, list, tuple, dict)):
+                budget_request[key] = None
+        DEFAULT_PROVIDER_CONTEXT_BUDGET.validate(self._profile, self._role, budget_request)
+        return await self._messages.create(**request)
+
+    def __getattr__(self, name):
+        return getattr(self._messages, name)

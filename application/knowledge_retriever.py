@@ -1,13 +1,15 @@
 """Knowledge-owned retrieval orchestration and cache boundary."""
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 import asyncio
 import hashlib
 import json
 import math
 import secrets
 import unicodedata
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Mapping, Protocol, Sequence
 
 from application.hybrid_retrieval import (
@@ -144,8 +146,17 @@ class KnowledgeRetrievalRequest:
     region_hints: tuple[str, ...] = ()
     force_recompute: bool = False
     query_mode: str = "HISTORY"
+    as_of: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    applicable_region: str | None = None
+    applicable_channel: str | None = None
+    applicable_product: str | None = None
 
     def __post_init__(self) -> None:
+        if not isinstance(self.as_of, datetime) or self.as_of.utcoffset() is None:
+            raise KnowledgeRetrievalContractError("as_of must be timezone-aware")
+        for value in (self.applicable_region, self.applicable_channel, self.applicable_product):
+            if value is not None and (not isinstance(value, str) or not value.strip() or len(value) > 128):
+                raise KnowledgeRetrievalContractError("invalid source applicability")
         if self.query_mode not in {"RESOLVED", "HISTORY"}:
             raise KnowledgeRetrievalContractError("unsupported query mode")
         if self.query_mode == "RESOLVED" and self.history:
@@ -320,6 +331,10 @@ class RetrievalCacheKeyBuilder:
             "locale": request.locale, "product": request.product,
             "source_type_hints": request.source_type_hints,
             "region_hints": request.region_hints,
+            "as_of": request.as_of.isoformat(),
+            "applicable_region": request.applicable_region,
+            "applicable_channel": request.applicable_channel,
+            "applicable_product": request.applicable_product,
             "variants": [
                 [kind, normalize_retrieval_text(query), weight]
                 for kind, query, weight in variants
@@ -659,6 +674,8 @@ class KnowledgeRetriever:
                 "rerank_error": "fallback" if rerank_fallback else "",
             },
         )
+        if self._evidence_validator is not None and not self._evidence_validator.validate(pack, request):
+            return EvidencePackResult(RetrievalStatus.CONFLICT, None, trace, "EVIDENCE_CHANGED_DURING_RETRIEVAL")
         self._cache_set(pack_key, pack.to_dict(include_text=True))
         return EvidencePackResult(RetrievalStatus.OK, pack, trace)
 
@@ -713,6 +730,7 @@ class KnowledgeRetriever:
                     end_char=int(source["end_char"]),
                     source_type=str(source["source_type"]),
                     checksum=str(source["checksum"]), scope=str(source["scope"]),
+                    applicability=tuple(sorted(source.get("applicability", {}).items())),
                 ),
                 score=float(item["score"]), rank=int(item["rank"]),
                 source_ranks=tuple(sorted(
@@ -743,7 +761,7 @@ class KnowledgeRetriever:
     def _candidate(
         item: Mapping[str, Any], request: KnowledgeRetrievalRequest,
     ) -> ContextCandidate:
-        content = str(item.get("content") or "").strip()
+        content = str(item.get("content") or "")
         chunk_id = str(item.get("chunk_id") or "").strip()
         source_id = str(item.get("source_id") or "").strip()
         revision = str(item.get("source_revision") or "").strip()
@@ -770,4 +788,5 @@ class KnowledgeRetriever:
             source_checksum=checksum, source_revision=revision, scope=scope,
             scope_decision=str(item.get("scope_decision") or ""),
             index_manifest_fingerprint=manifest,
+            applicability=tuple(sorted(item.get("applicability", {}).items())),
         )

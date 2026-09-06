@@ -40,10 +40,10 @@ class PostgresKnowledgeSourceRepository:
         if any(item.tenant_id != manifest.tenant_id for item in sources):
             raise KnowledgeSourceContractError("source tenant differs from manifest")
         if any(
-            item.schema_version == "knowledge-source-v1" and (
+            item.schema_version in {"knowledge-source-v1", "knowledge-source-v2"} and (
                 item.scope != manifest.scope
                 or item.locale != manifest.locale
-                or item.product != manifest.product
+                or (item.schema_version == "knowledge-source-v1" and item.product != manifest.product)
             )
             for item in sources
         ):
@@ -105,8 +105,8 @@ class PostgresKnowledgeSourceRepository:
                         source_type, content, effective_from, effective_to,
                         immutable_fingerprint, owner_id, scope, locale, product,
                         region, supersedes_revision_id, operations_audit_ref,
-                        schema_version
-                    ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                        schema_version, channel
+                    ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                     ON CONFLICT (tenant_id, source_id, revision_id) DO NOTHING
                 """, (
                     source.tenant_id, source.source_id, source.revision_id,
@@ -115,7 +115,7 @@ class PostgresKnowledgeSourceRepository:
                     source.immutable_fingerprint,
                     source.owner_id, source.scope, source.locale, source.product,
                     source.region, source.supersedes_revision_id,
-                    source.operations_audit_ref, source.schema_version,
+                    source.operations_audit_ref, source.schema_version, source.channel,
                 ))
                 row = connection.execute("""
                     SELECT immutable_fingerprint
@@ -276,7 +276,7 @@ class PostgresKnowledgeSourceRepository:
                   AND entry.generation_id=%s AND entry.scope=%s
                   AND entry.locale=%s AND entry.product=%s
                   AND entry.source_id=%s AND entry.revision_id=%s
-                  AND entry.checksum=%s
+                  AND entry.checksum=%s AND revision.withdrawn_at IS NULL
             """, (
                 locator.tenant_id, locator.backend_id, locator.generation_id,
                 locator.scope, locator.locale, locator.product or "",

@@ -38,8 +38,11 @@ def _policy(**changes):
     return KnowledgeRetrievalPolicy(**values)
 
 
+from datetime import datetime, timezone
+
 def _request(policy=None, **changes):
     value = KnowledgeRetrievalRequest(
+        as_of=datetime(2026, 1, 1, tzinfo=timezone.utc),
         tenant_id="tenant-one", user_scope="user-one",
         authorization_fingerprint="auth-v1",
         acl_policy_fingerprint="acl-v1", deletion_epoch=0,
@@ -342,7 +345,7 @@ def test_exact_layer_cache_hit_and_forced_recompute_are_evidence_equivalent():
     assert transformer.calls == 2
     assert len(source.calls) == 2
     assert reranker.calls == 2
-    assert validator.calls == 1
+    assert validator.calls == 3
 
 
 def test_concurrent_candidate_miss_uses_single_flight_without_semantic_change():
@@ -384,9 +387,10 @@ def test_stale_pack_cache_is_not_reused_when_owner_validation_fails():
     asyncio.run(retriever.retrieve(_request()))
     validator.valid = False
     result = asyncio.run(retriever.retrieve(_request()))
-    assert result.status is RetrievalStatus.OK
+    assert result.status is RetrievalStatus.CONFLICT
+    assert result.evidence_pack is None
     assert "evidence-pack" not in result.trace.cache_hits
-    assert validator.calls == 1
+    assert validator.calls == 3
 
 
 def test_stale_candidate_cache_cannot_hide_backend_unavailable():
@@ -519,3 +523,19 @@ def test_resolved_query_never_calls_conversation_transformer_and_is_used_for_rer
     result = asyncio.run(retriever.retrieve(_request(query='已拆封耳机，非质量原因退货的条件', history=(), query_mode='RESOLVED')))
     assert result.status is RetrievalStatus.OK
     assert not result.trace.rewrite_fallback
+
+
+def test_withdrawal_during_rerank_invalidates_new_evidence_pack():
+    class LiveValidator(_Validator):
+        live = True
+        def validate(self, pack, request):
+            return self.live
+    validator = LiveValidator()
+    class WithdrawingReranker(_Reranker):
+        async def rerank(self, query, candidates):
+            validator.live = False
+            return await super().rerank(query, candidates)
+    result = asyncio.run(KnowledgeRetriever(candidate_source=_Source(),transformer=_Transformer(),
+        reranker=WithdrawingReranker(),evidence_validator=validator).retrieve(_request()))
+    assert result.status is RetrievalStatus.CONFLICT
+    assert result.evidence_pack is None

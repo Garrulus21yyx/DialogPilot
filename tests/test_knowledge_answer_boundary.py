@@ -42,12 +42,12 @@ def test_citations_and_semantic_support_are_both_required_for_single_result():
     citation='['+evidence_id('child-1')+']'
     for text,passed in [('所有订单均可退。 '+citation,False),('仅未拆封可退。 [Eunknown]',True)]:
         verifier=Verifier(passed)
-        result=asyncio.run(ResponseAssembler(knowledge_verifier=verifier).assemble(board(text),current_message='能退吗'))
+        result=asyncio.run(ResponseAssembler(knowledge_verifier=verifier, knowledge_source_validator=lambda packs: True).assemble(board(text),current_message='能退吗'))
         assert result.verification_reason=='KNOWLEDGE_SAFE_ABSTENTION'
         assert text not in result.text
     verifier=Verifier(True)
     text='仅未拆封商品可退。 '+citation
-    result=asyncio.run(ResponseAssembler(knowledge_verifier=verifier).assemble(board(text),current_message='能退吗'))
+    result=asyncio.run(ResponseAssembler(knowledge_verifier=verifier, knowledge_source_validator=lambda packs: True).assemble(board(text),current_message='能退吗'))
     assert result.text==text
     assert result.verification_reason=='KNOWLEDGE_SUPPORT_CHECKED'
     assert 'summary' not in verifier.calls[0][1]['context']
@@ -79,6 +79,20 @@ def test_mixed_composer_receives_same_evidence_ids_as_publication_gate():
         'used_claim_ids': [c['claim_id'] for c in payload['allowed_claims']],
     })
     mixed = _board(board('draft').results[0], _result('o','orders',response='订单已发货。'))
-    result = asyncio.run(ResponseAssembler(composer, knowledge_verifier=Verifier(True)).assemble(mixed,current_message='能退吗'))
+    result = asyncio.run(ResponseAssembler(composer, knowledge_verifier=Verifier(True), knowledge_source_validator=lambda packs: True).assemble(mixed,current_message='能退吗'))
     assert result.verification_reason == 'KNOWLEDGE_SUPPORT_CHECKED'
     assert evidence_id('child-1') in json.dumps(composer.calls[0])
+
+
+def test_withdrawal_during_semantic_verification_prevents_publication():
+    live = [True]
+    class WithdrawDuringVerify(Verifier):
+        async def verify(self,*args,**kwargs):
+            live[0] = False
+            return await super().verify(*args,**kwargs)
+    citation='['+evidence_id('child-1')+']'
+    text='仅未拆封商品可退。 '+citation
+    result=asyncio.run(ResponseAssembler(knowledge_verifier=WithdrawDuringVerify(True),
+        knowledge_source_validator=lambda packs: live[0]).assemble(board(text),current_message='能退吗'))
+    assert result.verification_reason=='KNOWLEDGE_SAFE_ABSTENTION'
+    assert text not in result.text
