@@ -153,6 +153,8 @@ class StateBoundTargetUnderstanding:
             "arguments": item.arguments,
             "requirement_ids": item.requirement_ids,
             "argument_bindings": item.argument_bindings,
+            "revises_control_id": item.control.control_id if item.control else None,
+            "continuation_of": item.work_item_id if item.control else None,
         }
         if item.control_mode is ControlMode.DIRECT:
             if len(item.allowed_tools) != 1:

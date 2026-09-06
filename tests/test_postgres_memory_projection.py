@@ -66,6 +66,26 @@ class Memory:
         return MemoryContext([], [], {}, "", [])
 
 
+def test_target_context_reads_prior_committed_turns_without_redis_projection(memory_projection_scope):
+    from dataclasses import replace
+    from application.conversation_state import ConversationState
+    from application.deterministic_resolution import DeterministicResolver, TurnObservations
+    from infrastructure.target_turn_context import TargetTurnContextLoader
+    from application.target_conversation_manager import TargetContextProjectionStatus
+    pool, original = memory_projection_scope
+    invocation = replace(original, request_id="next-request")
+    state = ConversationState.empty(tenant_id=invocation.tenant_id,
+        user_id=invocation.user_id, conversation_id=invocation.conversation_id)
+    observations = TurnObservations("continue")
+    context = asyncio.run(TargetTurnContextLoader(
+        PostgresMemoryProjectionReader(pool, Memory()), None).load(
+            invocation, observations, state, DeterministicResolver().resolve(observations, state)))
+    assert [message.content for message in context.recent_messages] == ["canonical prior turn"]
+    assert context.source_watermark == 1
+    assert context.projection_status is TargetContextProjectionStatus.DEGRADED
+    assert context.recent_messages[0].source_ref
+
+
 class CurrentThreadOnlyMemory:
     def __init__(self):
         self.current_calls = []

@@ -43,7 +43,8 @@ async def run(args):
     from tau2.orchestrator.orchestrator import Orchestrator
     from tau2.user.user_simulator import UserSimulator
     from tau2.evaluator.evaluator import evaluate_simulation, EvaluationType
-    from evaluation.tau3_full_adapter import Tau3TargetAgent, ObservedVerifier
+    from evaluation.tau3_full_adapter import Tau3TargetAgent, ObservedVerifier, ModelDiagnostics, UserModelDiagnostics
+    import litellm
     from evaluation.tau3_tool_binding import bind_environment
 
     values = {**dotenv_values(ROOT / ".env"), **os.environ}
@@ -107,11 +108,13 @@ async def run(args):
                             memory=memory, response_delivery=PostgresResponseDeliveryService(
                                 pool, resume_binding_secret=uuid.uuid4().hex),
                             model_policy=policy, provider_config={"api_key": values["ANTHROPIC_API_KEY"],
+                                                                 "callbacks": [ModelDiagnostics(agent.trace)],
                                                                  "base_url": policy.base_url},
                             project_root=ROOT, registry=registry, enable_encoder=False,
                             knowledge_verifier=ObservedVerifier(AnswerVerifier(client=tools.llm_client,
                                 model_profile=policy.profile(ModelRole.VERIFIER)), agent.trace))
                         agent.configure(components, pool, tools.llm_client, profile)
+                        litellm.callbacks = [UserModelDiagnostics(agent.trace)]
                         user = UserSimulator(llm=args.user_model, instructions=str(task.user_scenario),
                             llm_args={"api_key": values["ANTHROPIC_API_KEY"], "api_base": policy.base_url,
                                       "temperature": 0, "thinking": {"type": "disabled"},

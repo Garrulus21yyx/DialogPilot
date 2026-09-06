@@ -47,14 +47,14 @@ class Memory:
     def __init__(self):
         self.calls = []
 
-    async def get_current_context(self, user_id, conversation_id):
-        self.calls.append((user_id, conversation_id))
-        return SimpleNamespace(
+    async def get_projection_result(self, tenant_id, user_id, conversation_id, *, current_request_id):
+        self.calls.append((tenant_id, user_id, conversation_id, current_request_id))
+        return SimpleNamespace(state=SimpleNamespace(value="READY"), source_watermark=1, reason_codes=(), context=SimpleNamespace(
             summary="用户正在处理售后问题",
             recent_messages=[SimpleNamespace(
                 role=SimpleNamespace(value="user"), content="上轮消息",
             )],
-        )
+        ))
 
 
 class Tools:
@@ -92,7 +92,7 @@ def test_current_thread_context_is_loaded_without_prefetching_cross_session_memo
         _identity(), observations, state, deterministic,
     ))
 
-    assert memory.calls == [("user-a", "conversation-a")]
+    assert memory.calls == [("tenant-a", "user-a", "conversation-a", "request-a")]
     assert context.projection_status is TargetContextProjectionStatus.READY
     assert context.summary.content == "用户正在处理售后问题"
     assert context.summary.source_ref.startswith(
@@ -138,11 +138,12 @@ def test_historical_reference_triggers_exactly_one_scoped_memory_lookup():
 
 def test_repeated_projected_messages_keep_distinct_source_references():
     class RepeatedMemory:
-        async def get_current_context(self, user_id, conversation_id):
+        async def get_projection_result(self, tenant_id, user_id, conversation_id, *, current_request_id):
             repeated = SimpleNamespace(
                 role=SimpleNamespace(value="user"), content="继续", seq=0,
             )
-            return SimpleNamespace(summary="", recent_messages=[repeated, repeated])
+            return SimpleNamespace(state=SimpleNamespace(value="READY"), source_watermark=0, reason_codes=(),
+                context=SimpleNamespace(summary="", recent_messages=[repeated, repeated]))
 
     context = asyncio.run(TargetTurnContextLoader(
         RepeatedMemory(), Tools(),

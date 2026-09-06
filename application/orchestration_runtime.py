@@ -7,6 +7,7 @@ import operator
 import time
 from collections import Counter
 from dataclasses import dataclass, field, replace
+from datetime import datetime, timezone
 from typing import Annotated, Awaitable, Callable, Mapping, Protocol, TypedDict
 
 from langgraph.graph import END, START, StateGraph
@@ -64,6 +65,7 @@ class ParentGraphState(TypedDict, total=False):
     board: ResultBoardSnapshot
     trusted_context: Mapping[str, str]
     interrupt_after_completion: bool
+    continuation_facts: dict[str, tuple[FactRecord, ...]]
 
 
 class WorkerState(TypedDict):
@@ -168,7 +170,8 @@ class OrchestrationRuntime:
                 "recent_relevant_turns": state.get("recent_relevant_turns", ()),
                 "evidence_refs": state.get("evidence_refs", ()),
                 "token_budget": state.get("token_budget", 6000),
-                "facts": state.get("facts", ()),
+                "facts": _merge_facts(state.get("facts", ()),
+                    state.get("continuation_facts", {}).get(item.work_item_id, ())),
                 "trusted_context": state.get("trusted_context", {}),
                 "dependency_results": tuple(
                     results[dependency]
@@ -222,8 +225,27 @@ class OrchestrationRuntime:
         if not isinstance(plan, WorkPlan):
             raise OrchestrationRuntimeError("resume payload requires a validated WorkPlan")
         board = self._result_board.evaluate(plan, ())
+        previous_items = {item.work_item_id: item for item in state["work_plan"].items}
+        previous_results = {result.work_item_id: result for result in state.get("agent_results", ())}
+        progress = {}
+        now = datetime.now(timezone.utc)
+        for item in plan.items:
+            if item.continuation_of is None:
+                continue
+            previous = previous_items.get(item.continuation_of)
+            result = previous_results.get(item.continuation_of)
+            if (previous is None or result is None
+                    or previous.owner_agent != item.owner_agent
+                    or previous.registry_fingerprint != item.registry_fingerprint
+                    or previous.control is None or item.control is None
+                    or previous.control.control_id != item.control.control_id
+                    or previous.control.revision + 1 != item.control.revision):
+                raise OrchestrationRuntimeError("continuation does not match checkpoint progress")
+            progress[item.work_item_id] = tuple(fact for fact in result.facts
+                if fact.valid_until is None or fact.valid_until > now)
         return {
             "work_plan": plan,
+            "continuation_facts": progress,
             "work_plan_fingerprint": _work_plan_fingerprint(plan),
             "current_message": str(resumed.get("current_message") or ""),
             "recent_relevant_turns": tuple(resumed.get("recent_relevant_turns") or ()),

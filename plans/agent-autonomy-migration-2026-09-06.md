@@ -23,6 +23,10 @@
 
 ## 收敛验证记录
 
+- 当前窗口接入既有源水位校验读取器，缓存未覆盖已提交记录时读取 Transcript；不是按存储产品判断正确性。
+- continuation_of 将暂停目标绑定原 checkpoint 的结果，复用未过期事实，保留对象及观察时间；新增目标无继承。139 项相关回归通过。子 Agent 完整工作消息跨轮续接尚未作为完成证据。
+- τ³ v11：task 0 官方 ALL=0，未执行必需换货写入；task 1 用户模拟器空消息异常。增加框架/用户模型协议诊断，继续查明失败边界，整体 verification_open。
+
 - 领域模型必须提交 DomainOutcome；空 requirement 或模型停止不能推导业务成功。字段定义由领域上下文决定，Schema 错误反馈复用框架循环及调用预算。
 - 绑定到暂停领域任务的纯文本回答消费 REPLY_PENDING_INPUT；只有明确结构化值走 FILL_PENDING_INPUT。两者共用原 checkpoint 续接，文本不冒充字段事实。
 - Framework 模型请求继承 ModelPolicy 的推理配置及输出预算，而非只使用模型名。逐角色请求参数有回归测试。

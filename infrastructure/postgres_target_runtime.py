@@ -431,6 +431,7 @@ def _work_item_to_payload(item: WorkItem) -> dict[str, object]:
         "requirement_ids": list(item.requirement_ids),
         "dependencies": list(item.dependencies),
         "allowed_actions": list(item.allowed_actions),
+        "continuation_of": item.continuation_of,
         "effect": item.effect.value,
         "risk": item.risk.value,
         "expected_output_schema": item.expected_output_schema,
@@ -531,6 +532,7 @@ def _work_item_from_payload(raw: Mapping[str, object]) -> WorkItem:
             if isinstance(control_raw, Mapping) else None
         ),
         tuple(str(value) for value in raw.get("allowed_actions", ())),
+        raw.get("continuation_of"),
     )
 
 

@@ -77,7 +77,7 @@ class TargetActionPreparation:
             item, work_item_id=f"{item.work_item_id}:action:{call_id}",
             control_mode=ControlMode.WORKFLOW if action.flow_ref else ControlMode.ACTION,
             allowed_tools=(*action.allowed_tool_ids, action.reconciliation.tool_id),
-            allowed_skills=(), allowed_actions=(), skill_hint=None,
+            allowed_skills=(), allowed_actions=(), skill_hint=None, continuation_of=None,
             arguments=tuple(ArgumentValue.create(key, value) for key, value in sorted(values.items())),
             argument_bindings=(), dependencies=(), requirement_ids=action.requirement_ids,
             effect=CapabilityEffect.WRITE, risk=action.risk,

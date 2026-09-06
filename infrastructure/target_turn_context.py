@@ -25,8 +25,8 @@ class TargetTurnContextLoader:
 
     version = "target-turn-context-loader-v1"
 
-    def __init__(self, memory, tool_manager, *, recent_limit: int = 8) -> None:
-        self._memory = memory
+    def __init__(self, projection_reader, tool_manager, *, recent_limit: int = 8) -> None:
+        self._projection_reader = projection_reader
         self._tools = tool_manager
         self._recent_limit = max(1, int(recent_limit))
 
@@ -35,11 +35,15 @@ class TargetTurnContextLoader:
         summary = None
         status = TargetContextProjectionStatus.UNAVAILABLE
         reason_codes = ("CURRENT_CONTEXT_PROVIDER_MISSING",)
-        if self._memory is not None:
+        watermark = 0
+        if self._projection_reader is not None:
             try:
-                current = await self._memory.get_current_context(
-                    str(invocation.user_id), str(invocation.conversation_id),
+                projection = await self._projection_reader.get_projection_result(
+                    str(invocation.tenant_id), str(invocation.user_id), str(invocation.conversation_id),
+                    current_request_id=str(invocation.request_id),
                 )
+                current = projection.context
+                watermark = projection.source_watermark
                 if str(current.summary or "").strip():
                     content = str(current.summary).strip()
                     digest = hashlib.sha256(content.encode("utf-8")).hexdigest()
@@ -72,8 +76,12 @@ class TargetTurnContextLoader:
                         seq,
                         observed.isoformat() if hasattr(observed, "isoformat") else None,
                     ))
-                status = TargetContextProjectionStatus.READY
-                reason_codes = ()
+                status = (TargetContextProjectionStatus.READY if projection.state.value == "READY"
+                          else TargetContextProjectionStatus.UNAVAILABLE if projection.state.value == "UNAVAILABLE"
+                          else TargetContextProjectionStatus.DEGRADED)
+                reason_codes = projection.reason_codes + (
+                    ("CURRENT_CONTEXT_PROJECTION_" + projection.state.value,)
+                    if status is not TargetContextProjectionStatus.READY else ())
             except Exception:
                 # Current-thread projections are rebuildable and non-authoritative.
                 recent = []
@@ -85,7 +93,7 @@ class TargetTurnContextLoader:
             tuple(recent),
             summary,
             projection_status=status,
-            source_watermark=max((item.seq for item in recent), default=0),
+            source_watermark=watermark,
             projection_reason_codes=reason_codes,
         )
 

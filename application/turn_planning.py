@@ -100,6 +100,7 @@ class CommandProposal:
     approval_signal_version: int | None = None
     argument_bindings: tuple[EntityBinding, ...] = ()
     revises_control_id: str | None = None
+    continuation_of: str | None = None
 
     def __post_init__(self) -> None:
         if any(not str(value or "").strip() for value in (
@@ -234,6 +235,13 @@ class RoutePolicy:
             ), None)
             if control is None:
                 raise TurnPlanningError("command revises an inactive work control")
+        if command.continuation_of is not None:
+            if (command.revises_control_id is None
+                    or command.kind not in {CommandKind.DELEGATE_TASK, CommandKind.DIRECT_TOOL, CommandKind.RUN_SKILL}
+                    or control.work_item_id != command.continuation_of
+                    or control.owner_agent != command.target_agent
+                    or control.objective != command.objective):
+                raise TurnPlanningError("continuation must bind the active originating objective")
         if command.kind is CommandKind.CANCEL_WORK:
             if command.revises_control_id is None:
                 raise TurnPlanningError("cancel command requires an active work control")
@@ -772,6 +780,7 @@ class TurnPlanCompiler:
             approval_policy=action.approval_policy if action and write else None,
             control=control,
             allowed_actions=command.allowed_actions,
+            continuation_of=proposal.continuation_of,
         )
 
     @staticmethod

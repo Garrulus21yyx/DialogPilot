@@ -10,12 +10,46 @@ from dataclasses import asdict
 import json
 from queue import Queue
 import uuid
+from langchain_core.callbacks import BaseCallbackHandler
+from litellm.integrations.custom_logger import CustomLogger
 
 from tau2.agent.base_agent import HalfDuplexAgent
 from tau2.data_model.message import AssistantMessage, MultiToolMessage, ToolCall, ToolMessage
 
 from application.chat_contracts import ChatCommand, Completed, Accepted, NeedsInput
 from infrastructure.postgres_target_runtime import PostgresConversationStateStore
+
+
+class ModelDiagnostics(BaseCallbackHandler):
+    """Record protocol outcomes, not prompts, credentials or hidden reasoning."""
+    def __init__(self, trace):
+        self.trace = trace
+
+    def on_llm_end(self, response, **kwargs):
+        for group in response.generations:
+            for generation in group:
+                message = generation.message
+                self.trace.append({"model_response": {
+                    "stop_reason": message.response_metadata.get("stop_reason"),
+                    "usage": message.usage_metadata,
+                    "tool_names": [call["name"] for call in message.tool_calls],
+                    "invalid_tool_count": len(message.invalid_tool_calls),
+                    "has_content": bool(message.content),
+                }})
+
+
+class UserModelDiagnostics(CustomLogger):
+    def __init__(self, trace):
+        self.trace = trace
+
+    def log_success_event(self, kwargs, response_obj, start_time, end_time):
+        choice = response_obj.choices[0]
+        self.trace.append({"user_model_response": {
+            "finish_reason": choice.finish_reason,
+            "has_content": bool(choice.message.content),
+            "tool_count": len(choice.message.tool_calls or []),
+            "usage": response_obj.usage.model_dump() if response_obj.usage else None,
+        }})
 
 
 class ObservedVerifier:

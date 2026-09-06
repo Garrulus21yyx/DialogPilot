@@ -50,6 +50,7 @@ from infrastructure.target_framework_agent import TargetFrameworkAgent
 from infrastructure.target_product_execution import TargetProductExecutor
 from infrastructure.target_tool_execution import TargetToolExecutor
 from infrastructure.target_turn_context import TargetTurnContextLoader
+from infrastructure.postgres_memory_projection import PostgresMemoryProjectionReader
 from infrastructure.target_workflow_execution import TargetWorkflowExecutor
 from services.answer_verifier import AnswerVerifier
 
@@ -70,6 +71,7 @@ def _framework_model(profile, provider_config):
     return ChatAnthropic(
         model_name=request["model"], api_key=provider_config["api_key"],
         base_url=provider_config.get("base_url"), max_tokens=request["max_tokens"],
+        callbacks=provider_config.get("callbacks"),
         model_kwargs={key: value for key, value in request.items()
                       if key not in {"model", "max_tokens"}},
     )
@@ -183,7 +185,8 @@ async def build_target_runtime(
             registry=registry,
             understanding=understanding,
             orchestration=orchestration,
-            context_provider=TargetTurnContextLoader(memory, tool_manager),
+            context_provider=TargetTurnContextLoader(
+                PostgresMemoryProjectionReader(postgres_pool, memory), tool_manager),
         )
         # Answer support is part of the assembled Target runtime, including
         # tool-only environments. Callers may inject a verifier, not omit it.

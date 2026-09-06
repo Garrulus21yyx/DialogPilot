@@ -93,6 +93,46 @@ class Executor:
         )
 
 
+@pytest.mark.parametrize("expired", [False, True])
+def test_bound_continuation_restores_only_valid_progress_from_checkpoint(expired):
+    from dataclasses import replace
+    from datetime import timedelta
+    from application.work_item import WorkControlBinding
+    from application.agent_result import MissingInputSpec
+    from langgraph.checkpoint.memory import InMemorySaver
+    item = replace(_item("progress", "product", ControlMode.DELEGATED, "product.details"), control=WorkControlBinding("goal", 1))
+    fact = _fact(item, "already read")
+    if expired:
+        fact = replace(fact, observed_at=fact.observed_at - timedelta(days=2),
+                       valid_until=fact.observed_at - timedelta(days=1))
+    reads = []
+    async def worker(context):
+        work = context.work_item
+        if work.continuation_of is None:
+            reads.append("lookup")
+            return AgentResult(work.work_item_id, work.owner_agent,
+                AgentResultStatus.NEEDS_USER_INPUT, "INPUT", "test", facts=(fact,),
+                missing_inputs=(MissingInputSpec("choice", work.work_item_id, "CHOICE", "string", "Which choice?"),))
+        assert context.verified_facts == (() if expired else (fact,))
+        return AgentResult(work.work_item_id, work.owner_agent,
+            AgentResultStatus.SUCCEEDED, "DONE", "test",
+            facts=(_fact(work, "refreshed"),) if expired else context.verified_facts)
+    async def run():
+        from infrastructure.langgraph_checkpoint import target_checkpoint_serializer
+        saver = InMemorySaver(serde=target_checkpoint_serializer())
+        runtime = OrchestrationRuntime(direct_executor=worker, domain_workers={"product": worker}, checkpointer=saver)
+        await runtime.execute(WorkPlan((item,), item.work_item_id), current_message="Check then ask", thread_id="progress-thread")
+        # A new runtime instance uses only the checkpoint, not closure-owned task results.
+        runtime = OrchestrationRuntime(direct_executor=worker, domain_workers={"product": worker}, checkpointer=saver)
+        resumed = replace(item, work_item_id="continued", continuation_of=item.work_item_id,
+                          control=WorkControlBinding("goal", 2))
+        return await runtime.resume(WorkPlan((resumed,), resumed.work_item_id),
+                                    current_message="blue", thread_id="progress-thread")
+    board = asyncio.run(run())
+    assert reads == ["lookup"]
+    assert board.results[0].status is AgentResultStatus.SUCCEEDED
+
+
 class EvidenceSeekingWorker:
     def __init__(self):
         self.calls = []

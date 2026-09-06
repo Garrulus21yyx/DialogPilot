@@ -47,3 +47,11 @@ Registry 的 planning_shortcuts 决定主 Agent 可用的既有快捷目标；�
 PendingInteraction 接受两类不同输入：结构化字段经精确绑定消费；明确引用原 interaction 的纯文本回复恢复暂停的领域目标，由 Agent 理解回答、修正或缺失信息。纯文本不会直接填入某个字段，旧信号只消费一次，后续仍缺信息时产生新追问。
 
 框架模型装配使用既有 ModelPolicy.request 的完整参数，包括推理模式和实际输出预算。未新增供应商适配、执行循环或业务特化流程。
+
+## 当前对话与任务进度的不同续接
+
+Target 当前窗口改用已有 PostgresMemoryProjectionReader：检查 PostgreSQL 源水位与缓存投影，投影未覆盖时读取正式 Transcript；不把 Redis 本身视为错误，也不建立第二套会话事实。当前请求从历史窗口排除，状态与原因码一并传入上下文。
+
+暂停领域任务恢复时，编译后的 WorkItem.continuation_of 绑定原任务及同一 control 的下一 revision。LangGraph 从原 checkpoint 读取对应 AgentResult 的未过期事实，并按续接目标传入；新目标不继承这些结果。已完成检查保留原 subject、来源和观察时间，不冒充本轮实时查询。这里验证的是结果级任务进度复用，不声称所有子 Agent 内部消息已经跨轮保留。
+
+回归：相关 PostgreSQL、控制、框架、上下文测试 139 passed；官方评测适配诊断 2 passed。τ³ v11 的 task 0 完成官方评分但 reward=0（必需写动作未完成）；task 1 用户模拟器返回无内容消息导致运行中止。完整业务验证保持开放。

@@ -94,6 +94,7 @@ class WorkItem:
     argument_bindings: tuple[EntityBinding, ...] = ()
     control: WorkControlBinding | None = None
     allowed_actions: tuple[str, ...] = ()
+    continuation_of: str | None = None
 
     def __post_init__(self) -> None:
         required = (
@@ -106,6 +107,10 @@ class WorkItem:
         )
         if any(not str(value or "").strip() for value in required):
             raise WorkItemContractError("work item identity and contract are required")
+        if self.continuation_of is not None and (
+                not self.continuation_of.strip() or self.control is None
+                or self.control.revision < 2 or self.effect is not CapabilityEffect.READ):
+            raise WorkItemContractError("continuation requires a versioned read objective")
         _unique(self.allowed_tools, "allowed tools")
         _unique(self.allowed_skills, "allowed skills")
         _unique(self.allowed_actions, "allowed actions")
@@ -185,6 +190,7 @@ class WorkItem:
             "allowed_tools": self.allowed_tools,
             "allowed_skills": self.allowed_skills,
             "allowed_actions": self.allowed_actions,
+            "continuation_of": self.continuation_of,
             "arguments": [(item.name, item.value_json) for item in self.arguments],
             "argument_bindings": [
                 {

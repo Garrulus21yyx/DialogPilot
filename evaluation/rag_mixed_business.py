@@ -20,11 +20,14 @@ from core.model_policy import ModelRole
 from infrastructure.target_conversation_provider import AnthropicConversationPlanningProvider
 from infrastructure.target_tool_execution import TargetToolExecutor
 from infrastructure.target_turn_context import TargetTurnContextLoader
+from infrastructure.postgres_memory_projection import PostgresMemoryProjectionReader
+from infrastructure.postgres_conversation import PostgresConversationTurnStore
+from application.conversation_store import ConversationScope, TurnRole, TurnToAppend
 from infrastructure.target_chat_adapters import PostgresTargetAdmission, PostgresTargetPublication
 from infrastructure.postgres_response_delivery import PostgresResponseDeliveryService
 from infrastructure.postgres_target_runtime import PostgresConversationStateStore
 from infrastructure.postgres_memory_fact_store import PostgresMemoryFactStore
-from memory.conversation_memory import MemoryManager, MsgRole
+from memory.conversation_memory import MemoryManager
 from mcp.tool_manager import MCPToolManager, Tool
 from mcp.customer_operations_tools import customer_operation_tools
 from services.customer_operations import CustomerOperationsService, OrderStatus
@@ -91,7 +94,7 @@ async def run_mixed(*, platform, store, client, policy, generator, output, handl
             manager=TargetConversationManager(state_store=PostgresConversationStateStore(platform),registry=registry,
                 understanding=CascadedTargetUnderstanding(StateBoundTargetUnderstanding(),agent),
                 orchestration=OrchestrationRuntime(direct_executor=TargetToolExecutor(tools),domain_workers={}),
-                context_provider=TargetTurnContextLoader(memory,tools))
+                context_provider=TargetTurnContextLoader(PostgresMemoryProjectionReader(platform,memory),tools))
             assembler=ResponseAssembler(agent,knowledge_generator=generator,knowledge_verifier=verifier,
                                         knowledge_source_validator=store.validate_publication_evidence)
             application=TargetChatApplication(manager=manager,admission=PostgresTargetAdmission(platform),
@@ -100,7 +103,12 @@ async def run_mixed(*, platform, store, client, policy, generator, output, handl
             for key,message,history in cases:
                 conv='mixed-'+key
                 if history:
-                    await memory.add_messages(user,conv,[(MsgRole.USER if i%2==0 else MsgRole.ASSISTANT,text,{}) for i,text in enumerate(history)])
+                    for i, text in enumerate(history):
+                        turn_id = 'eval-history-' + uuid.uuid4().hex
+                        PostgresConversationTurnStore(platform).append_turn(
+                            ConversationScope(tenant, user, conv), TurnToAppend(
+                                turn_id, turn_id, TurnRole.INBOUND if i % 2 == 0 else TurnRole.ASSISTANT,
+                                text, datetime.now(timezone.utc).isoformat()))
                 before_api,before_tools=len(client.calls),len(tools.captures)
                 outcome=await application.handle(ChatCommand(message=message,user_id=user,tenant_id=tenant,conv_id=conv,
                     request_id='request-'+key,authorization_fingerprint='isolated-mixed-authorized'))
