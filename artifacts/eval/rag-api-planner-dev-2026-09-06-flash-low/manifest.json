@@ -1,0 +1,20 @@
+{
+  "started_at": "2026-09-06T04:39:09.547421+00:00",
+  "model_profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "low",
+    "min_completion_tokens": 2048,
+    "max_context_tokens": 32768
+  },
+  "provider_version": "anthropic-conversation-planning-provider-v2-model-profile",
+  "max_calls": 20,
+  "sdk_max_retries": 0,
+  "request_timeout_seconds": 60,
+  "synthetic_development_only": true,
+  "source_sha256": {
+    "scripts/run_api_conversation_planner.py": "3519e3a2eda51372e22e904b68ebef6d81c6bb937e4248234ec275aa18146acf",
+    "infrastructure/target_conversation_provider.py": "f18b0946c975742ba4b7f9f5a4e6a169699be1f73df70635f27bcef44a078b5b",
+    "application/conversation_agent.py": "628c609599ec0685fbe3d4e661e3da70470f56a897caf6381ca83a87278ef83f",
+    "evaluation/rag_ecommerce_dev.py": "a7a0674f657d9967e66f1e89cfedec5e36f38cb5c438aa4372816cd6577f7ea6"
+  }
+}

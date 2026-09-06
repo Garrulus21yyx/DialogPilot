@@ -1,4 +1,4 @@
-# RAG API 查询入口校准（开发集，进行中）
+# RAG API 查询入口校准（开发集）
 
 用户明确允许使用 API，尤其当本地模型能力不足时。成本优化采用复用检索缓存、限制开发批次和记录实际 tokens，不再把 provider-free 作为能力限制。
 
@@ -17,7 +17,9 @@ Conversation Provider 先前仅接收角色模型名，未通过 ModelProfile.re
 
 两轮各20次调用，使用同一20条开发案例，不是40条独立验收题。第二轮不再截断，但仍误判政策问题、生成不合法结构。RESOLVED仅表示计划通过合同校验，不等于问题理解正确或答案正确。不能把关闭thinking宣传为效果提升。
 
-第三轮Pro/high/4096输出正在运行，将记录延迟、输出预算失败、完整查询及逐例语义检查。暂不修改生产模型默认值。
+后续开发实验已完成：旧提示词Pro/high/4096为17 RESOLVED、1 CLARIFY、2输出截断；实验提示词Flash/none为9 RESOLVED、2 CLARIFY、4 OUT_OF_SCOPE、5 INVALID；实验提示词Flash/low/2048为18 RESOLVED、1 CLARIFY、1 OUT_OF_SCOPE。4条业务对照保留业务查询/操作路径。结果不是语义正确率，混合业务问题允许同时查订单与知识，不应把没有knowledge_search一律计错。
+
+同模型Flash/none的4条query-only诊断均保留原意，包括“不是”的否定关系。它说明查询能力不能由整个规划器的失败率代替，但任务与提示词同时变化，不构成完整因果隔离。实验提示词保存在artifacts/eval/rag-api-planner-dev-2026-09-06-semantics/system-prompt.txt，可通过--system-prompt显式重放；生产提示词与默认模型配置未推广这些实验变更。
 
 ## 复现
 

@@ -10,6 +10,7 @@ import hashlib
 from datetime import datetime, timezone
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from anthropic import AsyncAnthropic
@@ -34,15 +35,18 @@ from infrastructure.target_conversation_provider import (
 
 class CapturingClient:
     """Capture text requests only; credentials and transport errors are never serialized."""
-    def __init__(self, transport, *, limit):
+    def __init__(self, transport, *, limit, system_override=None):
         self.transport = transport
         self.limit = limit
+        self.system_override = system_override
         self.messages = self
         self.captures = []
 
     async def create(self, **request):
         if len(self.captures) >= self.limit:
             raise RuntimeError("calibration API call limit reached")
+        if self.system_override is not None:
+            request = {**request, "system": self.system_override}
         capture = {"request": request}
         self.captures.append(capture)
         start = perf_counter()
@@ -68,12 +72,19 @@ async def run(args):
     if policy.base_url:
         options['base_url'] = policy.base_url
     transport = AsyncAnthropic(**options)
-    client = CapturingClient(transport, limit=20)
+    client = CapturingClient(transport, limit=20, system_override=args.system_prompt.read_text() if args.system_prompt else None)
     provider = AnthropicConversationPlanningProvider(
         client, model_profile=profile, max_tokens=800
     )
     agent = ConversationAgent(provider)
     _, cases = synthetic_development()
+    if args.business_controls:
+        cases = tuple(SimpleNamespace(case_id="control:" + name, query=query, history=()) for name, query in (
+            ("refund-status", "帮我看看订单 DP1234 的退款现在到哪一步了"),
+            ("logistics", "帮我看看订单 DP1234 的包裹现在走到哪儿了"),
+            ("cancel", "请帮我取消订单 DP1234"),
+            ("refund-action", "请帮我为订单 DP1234 发起退款申请"),
+        ))
     rows = []
     args.output.mkdir(parents=True)
     (args.output / "manifest.json").write_text(json.dumps({
@@ -84,6 +95,7 @@ async def run(args):
         "sdk_max_retries": 0,
         "request_timeout_seconds": 60,
         "synthetic_development_only": True,
+        "business_controls": args.business_controls,
         "source_sha256": {
             name: hashlib.sha256(Path(name).read_bytes()).hexdigest()
             for name in ("scripts/run_api_conversation_planner.py",
@@ -149,7 +161,7 @@ async def run(args):
         "external_inference_api_calls": len(client.captures),
         "usage": {key: sum(c.get("usage", {}).get(key, 0) or 0 for c in client.captures) for key in ("input_tokens", "output_tokens", "cache_read_input_tokens", "cache_creation_input_tokens")},
         "semantic_scores": "unreviewed",
-        "system_prompt_override": None,
+        "system_prompt_override": str(args.system_prompt) if args.system_prompt else None,
     }
     await transport.close()
     (args.output / "report.json").write_text(
@@ -159,5 +171,7 @@ async def run(args):
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--system-prompt", type=Path, help="Explicit evaluation-only prompt override")
+    p.add_argument("--business-controls", action="store_true")
     p.add_argument("--output", type=Path, required=True)
     asyncio.run(run(p.parse_args()))

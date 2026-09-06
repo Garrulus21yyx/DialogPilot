@@ -1,0 +1,12 @@
+{
+  "scope": "diagnostic query-only task; not production or RAG acceptance",
+  "source_capture": "artifacts/eval/rag-api-planner-dev-2026-09-06-profile/cases.jsonl",
+  "cases": 4,
+  "profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "calls": 4
+}

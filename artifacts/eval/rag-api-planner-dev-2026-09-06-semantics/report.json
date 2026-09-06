@@ -1,0 +1,20 @@
+{
+  "scope": "production ConversationAgent and provider prompt via configured API; planning only, no retrieval or answer-quality claim",
+  "synthetic_cases": 20,
+  "model_profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "model_calls": 20,
+  "external_inference_api_calls": 20,
+  "usage": {
+    "input_tokens": 8006,
+    "output_tokens": 991,
+    "cache_read_input_tokens": 11520,
+    "cache_creation_input_tokens": 0
+  },
+  "semantic_scores": "unreviewed",
+  "system_prompt_override": null
+}
