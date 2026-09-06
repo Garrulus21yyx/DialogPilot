@@ -121,11 +121,12 @@ def _identity():
     )
 
 
-def _manager(executor, *, checkpointer=None):
+def _manager(executor, *, checkpointer=None, context_provider=None):
     return TargetConversationManager(
         state_store=InMemoryConversationStateStore(),
         registry=build_default_capability_registry("tenant-a"),
         understanding=_OrderUnderstanding(),
+        context_provider=context_provider,
         orchestration=OrchestrationRuntime(
             direct_executor=executor,
             domain_workers={},
@@ -236,3 +237,32 @@ def test_authenticated_context_is_pinned_across_recovery_and_cannot_replace_iden
     with pytest.raises(ValueError, match='authorization changed'):
         asyncio.run(runtime.execute(_identity(), TurnObservations('查询订单 DP1234'),
                                     execution_context={**context, 'authorization_fingerprint': 'auth-b'}))
+
+
+def test_loaded_context_survives_assembly_retry_without_reloading():
+    from application.target_conversation_manager import TargetTurnContext, TargetContextMessage, TargetContextProjectionStatus
+    from application.conversation_context import conversation_context_payload
+    context = TargetTurnContext(recent_messages=(
+        TargetContextMessage('user', '耳机拆封了', 'turn:1', 1),
+        TargetContextMessage('assistant', '是质量问题吗？', 'turn:2', 2),
+    ), projection_status=TargetContextProjectionStatus.READY, source_watermark=2, projection_reason_codes=())
+    class Context:
+        calls = 0
+        async def load(self, *args):
+            self.calls += 1
+            return context
+    class Assembler(_FailOnceAssembler):
+        def __init__(self):
+            super().__init__()
+            self.contexts = []
+        async def assemble(self, *args, **kwargs):
+            self.contexts.append(kwargs['conversation_context'])
+            return await super().assemble(*args, **kwargs)
+    provider, assembler = Context(), Assembler()
+    runtime = TurnRuntime(_manager(_Executor(), context_provider=provider), assembler,
+                          checkpointer=InMemorySaver(serde=target_checkpoint_serializer()))
+    with pytest.raises(RuntimeError, match='injected assembly crash'):
+        asyncio.run(runtime.execute(_identity(), TurnObservations('不是，查订单 DP1234')))
+    asyncio.run(runtime.execute(_identity(), TurnObservations('不是，查订单 DP1234')))
+    assert provider.calls == 1
+    assert assembler.contexts == [conversation_context_payload(context)] * 2

@@ -82,7 +82,7 @@ def test_multi_result_composition_receives_only_claims_and_outcomes():
     assert assembled.mode is ResponseAssemblyMode.CONVERSATION_COMPOSE
     assert assembled.composer_used is True
     assert set(composer.calls[0]) == {
-        "schema_version", "current_message", "allowed_claims",
+        "schema_version", "current_message", "conversation_context", "allowed_claims",
         "work_item_outcomes", "missing_requirement_ids",
         "partial_delivery_allowed",
     }

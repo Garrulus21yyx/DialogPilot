@@ -101,3 +101,22 @@ def test_invalid_tool_message_pair_is_rejected(messages):
     manager = ContextBudgetManager()
     with pytest.raises(InvalidToolMessageSequence):
         manager.fit_messages(messages)
+
+
+def test_composition_context_is_not_silently_trimmed_or_mutated():
+    import asyncio
+    from application.conversation_agent import ConversationAgent
+    class Provider:
+        called = False
+        async def compose(self, payload):
+            self.called = True
+            return payload
+    provider = Provider()
+    budget = ContextBudgetManager(context_window_tokens=650, reserved_output_tokens=100, protocol_reserve_tokens=100)
+    agent = ConversationAgent(provider, synthesis_context_budget=budget)
+    payload = {'current_message': '不是。', 'conversation_context': {
+        'recent_messages': [{'role': 'assistant', 'content': '是质量问题吗？' * 1000, 'source_ref': 'turn:2'}]}}
+    original = copy.deepcopy(payload)
+    with pytest.raises(ModelContextBudgetExceeded):
+        asyncio.run(agent.compose(payload))
+    assert not provider.called and payload == original

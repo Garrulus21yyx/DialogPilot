@@ -1,0 +1,36 @@
+{
+  "scope": "synthetic development stage signals; tool expectations and model verification are not answer accuracy",
+  "capture_sha256": "0d858b8b5dff8337b3102166ea1b583fa687bf78ab490f6fa661122ba054ea2d",
+  "definitions_sha256": "e82b2ed5ae09b6121402ed7143c33a20e88669b8fca539f71183b7b52057b439",
+  "expected_cases": 1,
+  "captured_cases": 1,
+  "complete_capture": true,
+  "counts": {
+    "expected_tool_coverage": 1,
+    "expected_source_visible": 1,
+    "expected_source_cited": 1,
+    "knowledge_support_checked": 1
+  },
+  "api_calls": 4,
+  "results": [
+    {
+      "case_id": "expanded-elliptic",
+      "outcome": "Completed",
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_tool_coverage": true,
+      "expected_source_visible": true,
+      "expected_source_cited": true,
+      "knowledge_support_checked": true,
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "planner_stop": "end_turn",
+      "api_calls": 4,
+      "response": "订单 DP9303 的当前状态为：已送达。该状态是订单快照状态，已送达并不证明收件人签名或承运方签收事件。\n您购买的商品是模拟耳机，金额为 199.00 元（CNY）。\n您已拆封且明确表示并非质量问题，因此不适用无理由退货规则。 [E96425004e536]\n未拆封耳机在签收后七日内可申请无理由退货；已拆封耳机非质量原因不适用无理由退货。 [E96425004e536]\n若商品存在质量问题，需先提交购买凭证及故障视频等检测材料，经审核通过后方可另议；审核通过不代表退款已经到账。 [E1fd569931a42]\n签收记录只表示物流签收状态，不代表售后申请被拒绝；是否符合退货条件需结合商品类别、签收时间和商品状态判断。 [Eb1ef3b5a96eb]",
+      "latency_ms": 20287.71230392158,
+      "visible_evidence_count": 5,
+      "failure_stage": null
+    }
+  ]
+}

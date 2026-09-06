@@ -160,3 +160,36 @@ def test_support_verifier_sees_final_rendered_text_including_failed_business_out
     assert checked==response.text
     assert '本次查询或处理失败' in checked
     assert citation in checked and '[fact:' not in checked
+
+
+def test_context_reaches_mixed_composition_and_verifier_separate_from_facts():
+    from tests.test_response_assembly import _board, _verified_order_result, _Composer
+    context = {'recent_messages': [{'role': 'assistant', 'content': '是质量问题吗？', 'source_ref': 'turn:2'}]}
+    composer = _Composer(lambda payload: {'segments': [{'text': '订单已发货。',
+        'claim_ids': [next(c['claim_id'] for c in payload['allowed_claims'] if c['kind'] == 'FACT')], 'evidence_ids': []}]})
+    verifier = Verifier(True)
+    asyncio.run(ResponseAssembler(composer, knowledge_verifier=verifier).assemble(
+        _board(_verified_order_result()), current_message='不是。查订单', conversation_context=context))
+    assert composer.calls[0]['conversation_context'] == context
+    assert all('是质量问题吗' not in str(c) for c in composer.calls[0]['allowed_claims'])
+    support = json.loads(verifier.calls[0][1]['context'])
+    assert support['user_context'] == context
+    assert all('是质量问题吗' not in str(c) for c in support['facts'])
+
+
+def test_direct_knowledge_generation_and_support_receive_same_context():
+    from tests.test_response_assembly import _board
+    context = {'recent_messages': [{'role': 'assistant', 'content': '是质量问题吗？', 'source_ref': 'turn:2'}]}
+    calls = []
+    class Generator:
+        async def generate(self, query, contexts, *, history):
+            calls.append(json.loads(history[0]))
+            return SimpleNamespace(abstained=False, claims=(SimpleNamespace(text='仅未拆封可退。', citations=('child-1',)),))
+    knowledge = replace(board('draft').results[0], producer_version='target-tool-executor-v1')
+    verifier = Verifier(True)
+    answer = asyncio.run(ResponseAssembler(knowledge_generator=Generator(), knowledge_verifier=verifier,
+        knowledge_source_validator=lambda packs: True).assemble(_board(knowledge),
+        current_message='不是。', conversation_context=context))
+    assert answer.verification_reason == 'KNOWLEDGE_SUPPORT_CHECKED'
+    assert calls == [{'current_message': '不是。', 'conversation_context': context}]
+    assert json.loads(verifier.calls[0][1]['context'])['user_context'] == context

@@ -1,0 +1,18 @@
+[
+  {
+    "case_id": "expanded-elliptic",
+    "message": "不是。还请查一下订单DP9303的状态，并根据刚才的退货原因说明适用规则。",
+    "history": [
+      "耳机拆封了，我想退。",
+      "是因为质量问题要退吗？"
+    ],
+    "expected_tools": [
+      "order_lookup",
+      "knowledge_search"
+    ],
+    "expected_order_id": "DP9303",
+    "expected_source_id": "synthetic-shop:opened-audio",
+    "source_text": "已拆封耳机非质量原因不适用无理由退货。质量问题需提交材料审核。",
+    "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+  }
+]

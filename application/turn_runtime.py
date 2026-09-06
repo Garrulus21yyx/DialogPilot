@@ -6,6 +6,7 @@ from typing import TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
+from application.conversation_context import conversation_context_payload
 from application.agent_result import AgentResultStatus
 from application.deterministic_resolution import TurnObservations
 from application.response_assembly import AssembledResponse, ResponseAssembler
@@ -98,6 +99,7 @@ class TurnRuntime:
             board,
             current_message=state["observations"].raw_text,
             system_notice=notice,
+            conversation_context=conversation_context_payload(state["prepared"].context),
         )
         return {"assembled": assembled}
 

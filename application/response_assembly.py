@@ -50,7 +50,7 @@ class ConversationComposer(Protocol):
 class ResponseAssembler:
     """Choose the cheapest valid response path and verify the final candidate."""
 
-    version = "response-assembler-v2-attributed-composition"
+    version = "response-assembler-v3-conversation-context"
 
     def __init__(self, composer: ConversationComposer | None = None, *,
                  knowledge_generator=None, knowledge_verifier=None, knowledge_source_validator=None) -> None:
@@ -59,19 +59,19 @@ class ResponseAssembler:
         self._knowledge_verifier = knowledge_verifier
         self._knowledge_source_validator = knowledge_source_validator
 
-    async def assemble(self, board, *, current_message: str, system_notice: str = "") -> AssembledResponse:
+    async def assemble(self, board, *, current_message: str, system_notice: str = "", conversation_context=None) -> AssembledResponse:
         from application.knowledge_tool_contract import evidence_items, evidence_id, model_evidence
         knowledge_facts = tuple(fact for result in board.results for fact in result.facts
                                 if fact.requirement_id == "knowledge.active_source")
         knowledge_failure = any(result.reason_code.startswith("KNOWLEDGE_")
                                 and result.status not in _SUCCESS for result in board.results)
         if not knowledge_facts and not knowledge_failure:
-            candidate = await self._assemble_candidate(board, current_message=current_message)
+            candidate = await self._assemble_candidate(board, current_message=current_message, conversation_context=conversation_context)
             if candidate.composer_used:
                 try:
                     if self._knowledge_verifier is None:
                         raise ValueError("answer support verifier unavailable")
-                    verdict = await self._verify_support(board, current_message, candidate.text)
+                    verdict = await self._verify_support(board, current_message, candidate.text, conversation_context=conversation_context)
                     if not verdict.publishable or not verdict.grounded:
                         raise ValueError("composed business answer lacks support")
                     return AssembledResponse(system_notice + candidate.text, candidate.mode,
@@ -120,7 +120,10 @@ class ResponseAssembler:
                     applicability=tuple(sorted(item['source_ref'].get('applicability', {}).items())),
                 ) for item in items.values())
                 query = packs[0]['evidence_pack']['query'] if len(packs) == 1 else current_message
-                generated = await self._knowledge_generator.generate(query, contexts)
+                history_options = ({"history": [json.dumps({"current_message": current_message,
+                    "conversation_context": conversation_context}, ensure_ascii=False)]}
+                    if conversation_context is not None else {})
+                generated = await self._knowledge_generator.generate(query, contexts, **history_options)
                 if generated.abstained:
                     return self._knowledge_fallback(board, system_notice)
                 if not generated.claims or any(not claim.citations or set(claim.citations) - set(items)
@@ -131,14 +134,14 @@ class ResponseAssembler:
                 ) for claim in generated.claims)
                 candidate = AssembledResponse(text, ResponseAssemblyMode.PASS_THROUGH, (), True, "PENDING", "KNOWLEDGE_DRAFT")
             else:
-                candidate = await self._assemble_candidate(board, current_message=current_message)
+                candidate = await self._assemble_candidate(board, current_message=current_message, conversation_context=conversation_context)
             allowed = {evidence_id(cid) for cid in items}
             cited = set(re.findall(r"\[(E[a-zA-Z0-9]+)\]", candidate.text))
             if not cited or cited - allowed or self._knowledge_verifier is None:
                 return self._knowledge_fallback(board, system_notice, unavailable=self._knowledge_verifier is None)
             # Check original evidence/facts, never use candidate summaries as evidence.
             verdict = await self._verify_support(
-                board, current_message, candidate.text,
+                board, current_message, candidate.text, conversation_context=conversation_context,
                 knowledge_evidence={"packs": [model_evidence(pack) for pack in packs], "allowed_evidence_ids": sorted(allowed)},
             )
             if not verdict.publishable or not verdict.grounded:
@@ -151,7 +154,7 @@ class ResponseAssembler:
         except Exception:
             return self._knowledge_fallback(board, system_notice, unavailable=True)
 
-    async def _verify_support(self, board, message, text, *, knowledge_evidence=None):
+    async def _verify_support(self, board, message, text, *, knowledge_evidence=None, conversation_context=None):
         # The injected verifier is shared by business and knowledge composition.
         # Original facts, receipts and outcomes are evidence; generated summaries
         # are not promoted into independent proof of their own wording.
@@ -159,7 +162,7 @@ class ResponseAssembler:
                  if fact.requirement_id != "knowledge.active_source"]
         receipts = [claim.value for claim in _allowed_claims(board) if claim.kind == 'RECEIPT']
         return await self._knowledge_verifier.verify(
-            message, text, context=json.dumps({'facts': facts, 'receipts': receipts}, ensure_ascii=False),
+            message, text, context=json.dumps({'facts': facts, 'receipts': receipts, 'user_context': conversation_context}, ensure_ascii=False),
             knowledge_evidence=knowledge_evidence,
             agent_outcomes=[{"status": result.status.value, "reason": result.reason_code}
                             for result in board.results],
@@ -191,7 +194,7 @@ class ResponseAssembler:
                                  "PASS", "KNOWLEDGE_SAFE_ABSTENTION")
 
     async def _assemble_candidate(
-        self, board, *, current_message: str, system_notice: str = "",
+        self, board, *, current_message: str, system_notice: str = "", conversation_context=None,
     ) -> AssembledResponse:
         claims = _allowed_claims(board)
         mode = self._select_mode(board)
@@ -212,6 +215,7 @@ class ResponseAssembler:
         payload = {
             "schema_version": "conversation-compose-request-v2-segments",
             "current_message": current_message,
+            "conversation_context": conversation_context,
             "allowed_claims": [
                 {
                     "claim_id": claim.claim_id,
@@ -238,6 +242,7 @@ class ResponseAssembler:
             text, used = render_composition(raw, claims)
             text, used = self.prepare_composed_response(
                 text, used, claims, current_message, payload["work_item_outcomes"],
+                conversation_context=conversation_context,
             )
         except Exception:
             return AssembledResponse(
@@ -251,7 +256,7 @@ class ResponseAssembler:
         )
 
     @staticmethod
-    def prepare_composed_response(text, used, claims, current_message, outcomes):
+    def prepare_composed_response(text, used, claims, current_message, outcomes, *, conversation_context=None):
         """Render internal attribution and authoritative outcomes before support checking."""
         by_id = {claim.claim_id: claim for claim in claims}
         known = set(by_id)
@@ -266,7 +271,7 @@ class ResponseAssembler:
         if any(claim_id in text for claim_id in known):
             raise ValueError("composer exposed an internal claim identifier")
         text = text.strip()
-        ResponseAssembler._verify_composed(text, used, claims, current_message)
+        ResponseAssembler._verify_composed(text, used, claims, current_message, conversation_context=conversation_context)
         notices, attributed = [], list(used)
         for outcome in outcomes:
             status = AgentResultStatus(outcome["status"])
@@ -306,13 +311,17 @@ class ResponseAssembler:
         return ResponseAssemblyMode.CONVERSATION_COMPOSE
 
     @staticmethod
-    def _verify_composed(text, used, claims, current_message) -> None:
+    def _verify_composed(text, used, claims, current_message, *, conversation_context=None) -> None:
         if not text or not used or len(used) != len(set(used)):
             raise ValueError("composed response contract is incomplete")
         claims_by_id = {item.claim_id: item for item in claims}
         if set(used).difference(claims_by_id):
             raise ValueError("composer referenced an unknown claim")
         allowed_references = set(_REFERENCE.findall(current_message))
+        if conversation_context is not None:
+            # Reference occurrence is not authority; the support gate still
+            # distinguishes user mentions from verified business state.
+            allowed_references.update(_REFERENCE.findall(json.dumps(conversation_context, ensure_ascii=False)))
         for claim_id in used:
             claim = claims_by_id[claim_id]
             allowed_references.update(_REFERENCE.findall(json.dumps(

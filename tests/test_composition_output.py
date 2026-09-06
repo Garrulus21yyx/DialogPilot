@@ -124,3 +124,11 @@ def test_schema_and_renderer_agree_on_generated_attribution_relations():
     [{'claim_id':'a','kind':'FACT'},{'claim_id':'a','kind':'FACT'}]])
 def test_request_schema_rejects_missing_or_duplicate_claim_authority(claims):
     with pytest.raises(ValueError): composition_schema(claims)
+
+
+def test_reference_occurrence_accepts_history_but_not_new_identifiers():
+    claims = (AllowedClaim('b', 'FACT', {'status': 'paid'}, ()),)
+    context = {'recent_messages': [{'role': 'user', 'content': '我说的是 B20', 'source_ref': 'turn:1'}]}
+    ResponseAssembler._verify_composed('您之前提到 B20。', ('b',), claims, '那个型号', conversation_context=context)
+    with pytest.raises(ValueError):
+        ResponseAssembler._verify_composed('您之前提到 B99。', ('b',), claims, '那个型号', conversation_context=context)

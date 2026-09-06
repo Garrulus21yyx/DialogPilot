@@ -103,14 +103,15 @@ async def run(args):
                 value = await provider.compose(model_input)
                 claims=tuple(AllowedClaim(c['claim_id'],c['kind'],c['value'],tuple(c['source_refs'])) for c in payload['allowed_claims'])
                 text,used=render_composition(value,claims)
-                text,used=ResponseAssembler.prepare_composed_response(text,used,claims,payload['current_message'],payload['work_item_outcomes'])
+                text,used=ResponseAssembler.prepare_composed_response(text,used,claims,payload['current_message'],payload['work_item_outcomes'],
+                    conversation_context=payload.get('conversation_context'))
                 result = {'output':value,'rendered':text,'used_claim_ids':used,'error':None}
                 if verifier:
                     packs=[c.value for c in claims if c.kind=='KNOWLEDGE_FACT']
                     verdict=await verifier.verify(payload['current_message'],text,
                         context=json.dumps({'facts':[c.value for c in claims if c.kind=='FACT'],
                                             'receipts':[c.value for c in claims if c.kind=='RECEIPT'],
-                                            **({'user_context': payload['conversation_context']} if args.planner_context else {})},ensure_ascii=False),
+                                            **({'user_context': payload['conversation_context']} if payload.get('conversation_context') is not None else {})},ensure_ascii=False),
                         knowledge_evidence={'packs':packs,'allowed_evidence_ids':sorted({e['evidence_id'] for p in packs for e in p['evidence']})},
                         agent_outcomes=[{'status':o['status'],'reason':o['reason_code']} for o in payload['work_item_outcomes']])
                     result['verdict']={**asdict(verdict),'status':verdict.status.value,'reason_code':verdict.reason_code.value,'publishable':verdict.publishable}
