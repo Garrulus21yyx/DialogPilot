@@ -213,7 +213,9 @@ class ResponseAssembler:
             raw = await self._composer.compose(payload)
             text = str(raw["response"]).strip()
             used = tuple(str(item) for item in raw["used_claim_ids"])
-            self._verify_composed(text, used, claims, current_message)
+            text, used = self.prepare_composed_response(
+                text, used, claims, current_message, payload["work_item_outcomes"],
+            )
         except Exception:
             return AssembledResponse(
                 system_notice + fallback, ResponseAssemblyMode.TEMPLATE,
@@ -224,6 +226,43 @@ class ResponseAssembler:
             system_notice + text, mode, used, True,
             "PASS", "COMPOSED_FROM_ALLOWED_CLAIMS",
         )
+
+    @staticmethod
+    def prepare_composed_response(text, used, claims, current_message, outcomes):
+        """Render internal attribution and authoritative outcomes before support checking."""
+        by_id = {claim.claim_id: claim for claim in claims}
+        known = set(by_id)
+        if set(used) - known:
+            raise ValueError("composer referenced an unknown claim")
+        # Internal provenance stays in used_claim_ids; only evidence IDs are
+        # customer citations. Remove exact, known bracketed attribution markers.
+        for marker in re.findall(r"\[(?:fact|outcome|receipt):[^\]\n]+\]", text):
+            if marker[1:-1] not in known or marker[1:-1] not in used:
+                raise ValueError("composer exposed an unknown internal citation")
+            text = text.replace(marker, "")
+        if any(claim_id in text for claim_id in known):
+            raise ValueError("composer exposed an internal claim identifier")
+        text = text.strip()
+        ResponseAssembler._verify_composed(text, used, claims, current_message)
+        notices, attributed = [], list(used)
+        for outcome in outcomes:
+            status = AgentResultStatus(outcome["status"])
+            if status is AgentResultStatus.SUCCEEDED:
+                continue
+            claim_id = "outcome:" + outcome["work_item_id"]
+            if claim_id not in known:
+                raise ValueError("outcome notice lacks an authoritative claim")
+            claim = by_id[claim_id]
+            if (claim.kind != "WORK_ITEM_OUTCOME" or not isinstance(claim.value, dict)
+                    or claim.value.get("status") != outcome["status"]
+                    or claim.value.get("owner_agent") != outcome["owner_agent"]):
+                raise ValueError("outcome notice conflicts with its authoritative claim")
+            label = _OWNER_LABELS.get(outcome["owner_agent"], "此项请求")
+            notice = "部分请求尚未完成。" if status is AgentResultStatus.PARTIAL else _OUTCOME_TEXT[status]
+            notices.append(label + "：" + notice)
+            if claim_id not in attributed:
+                attributed.append(claim_id)
+        return "\n".join([*notices, text]), tuple(attributed)
 
     @staticmethod
     def _select_mode(board) -> ResponseAssemblyMode:

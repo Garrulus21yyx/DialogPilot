@@ -141,3 +141,21 @@ def test_successful_direct_knowledge_retains_grounded_generation_path():
             _board(knowledge), current_message='退货政策是什么'))
     assert len(calls) == 1 and not composer.calls
     assert result.verification_reason == 'KNOWLEDGE_SUPPORT_CHECKED'
+
+
+def test_support_verifier_sees_final_rendered_text_including_failed_business_outcome():
+    from tests.test_response_assembly import _result, _board, _Composer
+    citation='['+evidence_id('child-1')+']'
+    failed=_result('missing-order','order_logistics',AgentResultStatus.RETRYABLE_FAILURE,reason='TOOL_ERROR')
+    knowledge=board('draft').results[0]
+    mixed=_board(knowledge,failed)
+    def answer(payload):
+        claim=next(c['claim_id'] for c in payload['allowed_claims'] if c['kind']=='FACT')
+        return {'response':'仅未拆封商品可退。 '+citation+' ['+claim+']','used_claim_ids':[claim]}
+    verifier=Verifier(True)
+    response=asyncio.run(ResponseAssembler(_Composer(answer),knowledge_verifier=verifier,
+        knowledge_source_validator=lambda packs:True).assemble(mixed,current_message='查询订单并说明退货政策'))
+    checked=verifier.calls[0][0][1]
+    assert checked==response.text
+    assert '本次查询或处理失败' in checked
+    assert citation in checked and '[fact:' not in checked

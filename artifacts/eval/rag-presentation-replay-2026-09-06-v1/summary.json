@@ -1,0 +1,123 @@
+{
+  "scope": "fixed captured answers, paired semantic verifier; not live source or end-to-end validation",
+  "cases": 5,
+  "raw_sha256": "2b7ce137c34eb09abe8213a63416d1106d7150c8a22ce7b5e2fa2d07f906f7e0",
+  "api_calls": 10,
+  "results": [
+    {
+      "case_id": "shipping",
+      "error": null,
+      "verdicts": [
+        {
+          "status": "pass",
+          "grounded": true,
+          "need_escalation": false,
+          "reason": "回答准确查询订单状态并正确说明已发货后提交改址不等于修改成功，且未执行改址操作。",
+          "reason_code": "passed",
+          "publishable": true
+        },
+        {
+          "status": "pass",
+          "grounded": true,
+          "need_escalation": false,
+          "reason": "回答准确查询了订单状态，并基于知识库正确说明已发货后提交改址不等于修改成功。",
+          "reason_code": "passed",
+          "publishable": true
+        }
+      ],
+      "internal_marker_visible": false
+    },
+    {
+      "case_id": "paid",
+      "error": null,
+      "verdicts": [
+        {
+          "status": "pass",
+          "grounded": true,
+          "need_escalation": false,
+          "reason": "回答准确反映订单状态，并正确说明支付尾款不代表发货，且有证据支持。",
+          "reason_code": "passed",
+          "publishable": true
+        },
+        {
+          "status": "pass",
+          "grounded": true,
+          "need_escalation": false,
+          "reason": "回答准确反映订单状态为已支付且未发货，并正确说明支付尾款不代表已发货，有证据支持。",
+          "reason_code": "passed",
+          "publishable": true
+        }
+      ],
+      "internal_marker_visible": false
+    },
+    {
+      "case_id": "delivered",
+      "error": null,
+      "verdicts": [
+        {
+          "status": "pass",
+          "grounded": true,
+          "need_escalation": false,
+          "reason": "回答准确查询了订单状态并基于知识证据正确解释了签收与售后申请的关系。",
+          "reason_code": "passed",
+          "publishable": true
+        },
+        {
+          "status": "pass",
+          "grounded": true,
+          "need_escalation": false,
+          "reason": "回答准确反映订单已送达状态，并正确说明签收不等于不能申请售后，且补充了耳机退货规则，与上下文证据一致。",
+          "reason_code": "passed",
+          "publishable": true
+        }
+      ],
+      "internal_marker_visible": false
+    },
+    {
+      "case_id": "reference",
+      "error": null,
+      "verdicts": [
+        {
+          "status": "pass",
+          "grounded": true,
+          "need_escalation": false,
+          "reason": "回答准确查询了订单状态，并基于知识库正确解释了签收与售后申请的关系，未编造事实。",
+          "reason_code": "passed",
+          "publishable": true
+        },
+        {
+          "status": "pass",
+          "grounded": true,
+          "need_escalation": false,
+          "reason": "回答准确查询了订单状态，并基于知识库证据正确解释了签收不代表不能申请售后，且退货条件说明与证据一致。",
+          "reason_code": "passed",
+          "publishable": true
+        }
+      ],
+      "internal_marker_visible": false
+    },
+    {
+      "case_id": "missing",
+      "error": null,
+      "verdicts": [
+        {
+          "status": "unknown",
+          "grounded": true,
+          "need_escalation": true,
+          "reason": "候选回答仅说明了已发货后的改址规则，未查询或提供订单DP9999的当前状态，未完整回答用户问题。",
+          "reason_code": "verifier_unavailable",
+          "publishable": false
+        },
+        {
+          "status": "pass",
+          "grounded": true,
+          "need_escalation": false,
+          "reason": "订单查询失败已如实说明，改址规则与知识库证据一致。",
+          "reason_code": "passed",
+          "publishable": true
+        }
+      ],
+      "internal_marker_visible": false
+    }
+  ]
+}

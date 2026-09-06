@@ -1,0 +1,12 @@
+{
+  "scope": "Paired semantic verification of captured answers before/after publication rendering.\n\nNo new planning, synthesis, retrieval, business execution, or live source validation.\n",
+  "cases": 5,
+  "source_sha256": "46973df07fe185f502bf2c8eaf1aa248828d383f2d19828dda7040f1750e5300",
+  "max_api_calls": 10,
+  "verifier_profile": {
+    "model": "deepseek-v4-pro",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  }
+}

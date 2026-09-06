@@ -77,3 +77,21 @@ PYTHONPATH=. .venv/bin/python scripts/run_conversation_compose_replay.py \
 验证为 63 项通过、1 项依赖外部 PostgreSQL 的测试未运行，包括直接执行器→事实→合成/降级、旧直接结果、各非成功状态、后续 error/timeout/rejected、多凭证与部分失败。另以 v3 保存的五条真实工具返回进行无 API 重放：四条已知订单均保留编号和正确状态；不存在订单呈现失败；强制知识弃答时没有原始工具 JSON、内部 owner 或 TOOL_ERROR 泄漏。旧 cutover 测试中的 SHIPPED 已改为真实 OrderStatus 的小写 shipped；知识工具测试由断言直接答复改为断言事实保留而 candidate 为空。
 
 独立复核未发现本轮新增阻断。尚未解决正常合成中的内部 claim ID 引用、必要结果的语义覆盖以及规划不稳定；不将本轮降级表达修复计为答案准确率提升。
+
+## 第五轮：内部归因呈现与确定性结果提示
+
+ResponseAssembler 在最终语义核验前处理合成文本：仅移除同时存在于允许 claim 集合和 used_claim_ids 的精确内部方括号引用，保留原 used_claim_ids 供审计，保留政策 evidence 引用；未知内部引用或裸露内部 claim ID 拒绝发布。非成功工作结果由实际运行结果生成中文提示，补入最终文字，同时将相应 outcome 记入最终归因。提示的状态、owner 必须与对应权威 outcome claim 一致，不允许投影自相矛盾。模型正文仍须通过原来的语义检查；确定性提示不能替正文的矛盾结论提供豁免。
+
+验证 114 项通过、1 项依赖 PostgreSQL 的测试未运行，包括未知引用拒绝、结果投影不一致拒绝、语义 verifier 确实收到清理和补充提示后的最终文本。对新保护条件加入后的当前实现做零 API 重放，五条呈现文本与评测捕获完全一致。
+
+新增 `scripts/verify_conversation_presentation_replay.py`，冻结上轮五份模型输出，不重新规划、召回或生成，只分别核验原始和呈现后文本，共 10 次 API。原文四条 PASS、一条 UNKNOWN（missing 漏掉订单查询失败）；呈现后五条 PASS。该单次小样本模型核验只支持“展示修复后的核验结果”，不是端到端准确率或五例语义正确率 100%。脚本未重新检查实时来源，生产入口的来源复验保持原有调用。
+
+独立审查未发现新增代码阻断，同时指出 paid 的“尚未显示发货或物流信息”只能解释为本次返回未包含这些信息，不能证明后台没有物流记录；核验器理由把它进一步解释成“未发货”，不应当成来源证据。本轮不改变这段业务正文，也不把核验器 PASS 当作无条件正确。下一步仍需验证正常完整入口、规划稳定性和更大规模领域验收。
+
+```bash
+PYTHONPATH=. .venv/bin/python scripts/verify_conversation_presentation_replay.py \
+  --capture artifacts/eval/rag-compose-replay-2026-09-06-v1/cases.jsonl.gz \
+  --output /path/to/new-presentation-replay
+```
+
+证据保存在 `artifacts/eval/rag-presentation-replay-2026-09-06-v1/`，包含原文、最终文本、两次核验理由、调用与 checksum。完整 RAG 优化仍在进行。

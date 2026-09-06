@@ -210,3 +210,33 @@ def test_later_failure_and_multiple_receipts_do_not_hide_verified_state():
             assert '失败' in response.text
         if status is AgentResultStatus.RECONCILING:
             assert '正在核实' in response.text
+
+
+def test_internal_attribution_is_not_a_customer_citation_and_failure_is_always_rendered():
+    from application.response_assembly import _allowed_claims
+    knowledge=_result('k','general',response='政策证据')
+    failed=_result('o','order_logistics',AgentResultStatus.RETRYABLE_FAILURE)
+    claims=_allowed_claims(_board(knowledge,failed))
+    text,used=ResponseAssembler.prepare_composed_response(
+        '政策说明 [outcome:k] [E123abc]',('outcome:k',),claims,'查询订单与政策',
+        [{'work_item_id':'o','owner_agent':'order_logistics','status':'RETRYABLE_FAILURE'}])
+    assert '[E123abc]' in text and '[outcome:k]' not in text
+    assert '本次查询或处理失败' in text
+    assert 'outcome:o' in used
+
+
+def test_unknown_internal_attribution_is_rejected_instead_of_hidden():
+    import pytest
+    from application.response_assembly import _allowed_claims
+    claims=_allowed_claims(_board(_result('o','orders',response='查询结果')))
+    with pytest.raises(ValueError,match='unknown internal citation'):
+        ResponseAssembler.prepare_composed_response('结果 [fact:invented]',('outcome:o',),claims,'查询',[])
+
+
+def test_outcome_notice_cannot_disagree_with_authoritative_result():
+    import pytest
+    from application.response_assembly import _allowed_claims
+    claims=_allowed_claims(_board(_result('o','orders',AgentResultStatus.TERMINAL_FAILURE)))
+    with pytest.raises(ValueError,match='conflicts with its authoritative claim'):
+        ResponseAssembler.prepare_composed_response('政策说明',('outcome:o',),claims,'查询',
+            [{'work_item_id':'o','owner_agent':'orders','status':'RETRYABLE_FAILURE'}])
