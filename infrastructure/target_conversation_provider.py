@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 from typing import Mapping
 
-from core.model_policy import ModelProfile, ModelRole
+from core.model_policy import ModelProfile, ModelRole, ReasoningEffort
 from core.provider_context_budget import DEFAULT_PROVIDER_CONTEXT_BUDGET
 
 from application.conversation_agent import ConversationProviderOutputError
@@ -89,7 +89,12 @@ class AnthropicConversationPlanningProvider:
                     },
                 },
             }]
-            request["tool_choice"] = {"type": "tool", "name": "submit_composed_response"}
+            # Thinking transports reject forced tool choice. The output gate
+            # below still requires the one named output tool and complete values.
+            request["tool_choice"] = (
+                {"type": "auto"} if profile.reasoning is not ReasoningEffort.NONE
+                else {"type": "tool", "name": "submit_composed_response"}
+            )
         DEFAULT_PROVIDER_CONTEXT_BUDGET.validate(
             profile, role, request,
         )

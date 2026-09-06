@@ -1,0 +1,118 @@
+"""Frozen empty-state planner payload comparison; real compiler, no tools executed.
+
+Structured transport is evaluation-only. Reconstructed bindings preserve captured
+values/source refs; active workstream and control scenarios are explicitly excluded.
+"""
+import argparse
+import asyncio
+from dataclasses import asdict
+import gzip
+import hashlib
+import json
+import os
+from pathlib import Path
+from types import SimpleNamespace
+
+from anthropic import AsyncAnthropic
+from dotenv import dotenv_values
+from application.conversation_agent import ConversationAgent, ConversationProviderOutputError
+from application.conversation_state import ConversationState
+from application.default_capability_registry import build_default_capability_registry
+from application.deterministic_resolution import TurnObservations
+from application.entity_binding import BindingSource, EntityBinding, EntityBindingSet
+from core.model_policy import ModelPolicy, ModelRole
+from core.provider_context_budget import DEFAULT_PROVIDER_CONTEXT_BUDGET
+from infrastructure.target_conversation_provider import AnthropicConversationPlanningProvider
+from scripts.run_rag_tool_calibration import CaptureClient
+
+
+def output_schema(payload):
+    text={'type':'string','minLength':1}
+    goal={'type':'object','additionalProperties':False,'required':['goal_id','kind'],'properties':{
+        'goal_id':text,'kind':{'type':'string','enum':payload['supported_goals']},
+        **{key:text for key in ('order_id','order_id_source_ref','asset_id','asset_id_source_ref','new_address','revises_control_id')},
+        'resolved_query':{**text,'maxLength':4000},
+        'depends_on':{'type':'array','items':text},
+        'knowledge_options':{'type':'object','additionalProperties':False,'properties':{
+            key:text for key in ('as_of','applicable_region','applicable_channel','applicable_product')}},
+    }}
+    return {'type':'object','additionalProperties':False,'required':['status'],'properties':{
+        'status':{'type':'string','enum':['resolved','insufficient_context','out_of_scope']},
+        'goals':{'type':'array','minItems':1,'maxItems':4,'items':goal},
+        'missing_fields':{'type':'array','minItems':1,'items':{'type':'string','enum':payload['missing_fields_schema']}},
+    }}
+
+
+def compile_captured(key,payload,output):
+    if payload['active_workstreams'] or payload['active_work_controls']:
+        raise ValueError('only empty-state compilation supported')
+    state=ConversationState.empty(tenant_id='plan-replay',user_id='eval',conversation_id=key)
+    bindings=[]
+    for group in payload['entity_bindings']:
+        if group['status']!='UNIQUE':raise ValueError('only unique captured bindings supported')
+        for c in group['candidates']:
+            bindings.append(EntityBinding.create(group['field_name'],c['value'],source=BindingSource(c['source']),
+                source_ref=c['source_ref'],tenant_id='plan-replay',user_id='eval',conversation_id=key,priority=400))
+    context=SimpleNamespace(entity_bindings=EntityBindingSet(tuple(bindings)),
+                            recent_relevant_turns=tuple(payload['conversation_context'].get('recent_messages',()))
+                                + ((payload['conversation_context']['summary'],)
+                                   if payload['conversation_context'].get('summary') else ()))
+    return ConversationAgent(SimpleNamespace())._validate_and_compile(
+        output,TurnObservations(payload['message'],()),state,
+        build_default_capability_registry('plan-replay'),context)
+
+
+async def run(args):
+    raw=gzip.decompress(args.capture.read_bytes())
+    rows=[json.loads(line) for line in raw.splitlines()]
+    inputs=[(r['case_id'],json.loads(r['api_calls'][0]['request']['messages'][0]['content'])) for r in rows]
+    if any(p['active_workstreams'] or p['active_work_controls'] for _,p in inputs):
+        raise ValueError('only captured empty-state cases supported')
+    values={k:str(v) for k,v in dotenv_values('.env').items() if v is not None};values.update(os.environ)
+    policy=ModelPolicy.from_env(values);profile=policy.profile(ModelRole.INTENT)
+    args.output.mkdir(parents=True,exist_ok=False)
+    (args.output/'manifest.json').write_text(json.dumps({'scope':__doc__,'cases':len(inputs),
+        'source_sha256':hashlib.sha256(raw).hexdigest(),'profile':profile.to_dict(),'max_tokens':2048,
+        'variants':['text','structured'],'max_api_calls':2*len(inputs),'structured_schema':output_schema(inputs[0][1])},indent=2)+'\n')
+    options=dict(api_key=values['ANTHROPIC_API_KEY'],max_retries=0,timeout=60)
+    if policy.base_url:options['base_url']=policy.base_url
+    async with AsyncAnthropic(**options) as transport:
+        client=CaptureClient(transport,limit=2*len(inputs))
+        for key,payload in inputs:
+            for mode in ('text','structured'):
+                class Messages:
+                    async def create(self,**request):
+                        if mode=='structured':
+                            request['tools']=[{'name':'submit_turn_plan','description':'Submit the customer-service turn plan.',
+                                               'input_schema':output_schema(payload)}]
+                            request['tool_choice']={'type':'tool','name':'submit_turn_plan'}
+                            DEFAULT_PROVIDER_CONTEXT_BUDGET.validate(profile,ModelRole.INTENT,request)
+                        response=await client.messages.create(**request)
+                        if mode=='structured':
+                            blocks=[b for b in response.content if b.type=='tool_use']
+                            if response.stop_reason!='tool_use' or len(blocks)!=1 or blocks[0].name!='submit_turn_plan':
+                                raise ConversationProviderOutputError('incomplete structured plan')
+                            return SimpleNamespace(content=[SimpleNamespace(type='text',text=json.dumps(blocks[0].input))])
+                        return response
+                provider=AnthropicConversationPlanningProvider(SimpleNamespace(messages=Messages()),
+                    model_profile=profile,synthesis_profile=policy.profile(ModelRole.SYNTHESIS),max_tokens=2048)
+                before=len(client.calls);output=None;result={'case_id':key,'mode':mode,'error':None}
+                try:
+                    output=await provider.plan(payload)
+                    proposal=compile_captured(key,payload,output)
+                    result.update(output=output,proposal=asdict(proposal))
+                except Exception as error:
+                    result.update(error=type(error).__name__,output=output)
+                result['api_calls']=client.calls[before:]
+                with (args.output/'cases.jsonl').open('a') as stream:stream.write(json.dumps(result,ensure_ascii=False,default=str)+'\n')
+                print(key,mode,result['error'] or result['proposal']['disposition'],flush=True)
+                output=None
+
+
+def main():
+    p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--capture',required=True,type=Path);p.add_argument('--output',required=True,type=Path)
+    asyncio.run(run(p.parse_args()))
+
+
+if __name__=='__main__':main()

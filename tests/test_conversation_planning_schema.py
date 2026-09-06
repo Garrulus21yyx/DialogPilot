@@ -42,6 +42,8 @@ def test_conversation_transport_preserves_role_reasoning_and_budget(method, effo
     asyncio.run(getattr(provider, method)({"message": "policy question"}))
     request = calls[0]
     assert request["model"] == profile.model
+    if method == "compose":
+        assert request["tool_choice"]["type"] == ("tool" if effort is ReasoningEffort.NONE else "auto")
     assert request["max_tokens"] == max(800, profile.min_completion_tokens)
     if effort is ReasoningEffort.NONE:
         assert request["extra_body"] == {"thinking": {"type": "disabled"}}

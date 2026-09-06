@@ -1,0 +1,11 @@
+{
+  "scope": "Replay captured composition inputs only; no planning, retrieval, or business execution.",
+  "cases": 1,
+  "source_sha256": "84bbaa7002bfb679d8ae63588244c11ccb14e0278e5efca85c15e5edde1f0e2d",
+  "synthesis_profile": {
+    "model": "deepseek-v4-pro",
+    "reasoning": "low",
+    "min_completion_tokens": 2048,
+    "max_context_tokens": 32768
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "scope": "offline recompile with summary+recent context; required-tool coverage is not query semantic accuracy",
+  "cases": 5,
+  "calls": 10,
+  "raw_sha256": "0e733dee65c8ebdefc78e11c54f894069e04ede1d5fa16851c7e6c4960825429",
+  "results": [
+    {
+      "case_id": "shipping",
+      "mode": "text",
+      "original_error": "ValueError",
+      "compiled": false,
+      "two_required_tools": false,
+      "validation_error": "goal dependencies must be a list of goal IDs"
+    },
+    {
+      "case_id": "shipping",
+      "mode": "structured",
+      "original_error": null,
+      "compiled": true,
+      "two_required_tools": false,
+      "validation_error": null,
+      "tools": [
+        "order_lookup"
+      ]
+    },
+    {
+      "case_id": "paid",
+      "mode": "text",
+      "original_error": null,
+      "compiled": true,
+      "two_required_tools": true,
+      "validation_error": null,
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ]
+    },
+    {
+      "case_id": "paid",
+      "mode": "structured",
+      "original_error": null,
+      "compiled": true,
+      "two_required_tools": false,
+      "validation_error": null,
+      "tools": [
+        "order_lookup"
+      ]
+    },
+    {
+      "case_id": "delivered",
+      "mode": "text",
+      "original_error": null,
+      "compiled": true,
+      "two_required_tools": true,
+      "validation_error": null,
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ]
+    },
+    {
+      "case_id": "delivered",
+      "mode": "structured",
+      "original_error": null,
+      "compiled": true,
+      "two_required_tools": true,
+      "validation_error": null,
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ]
+    },
+    {
+      "case_id": "reference",
+      "mode": "text",
+      "original_error": "ValueError",
+      "compiled": false,
+      "two_required_tools": false,
+      "validation_error": "goal dependency is outside this plan"
+    },
+    {
+      "case_id": "reference",
+      "mode": "structured",
+      "original_error": "ValueError",
+      "compiled": false,
+      "two_required_tools": false,
+      "validation_error": "contextual knowledge goal requires an explicit resolved query"
+    },
+    {
+      "case_id": "missing",
+      "mode": "text",
+      "original_error": "ValueError",
+      "compiled": false,
+      "two_required_tools": false,
+      "validation_error": "goal dependencies must be a list of goal IDs"
+    },
+    {
+      "case_id": "missing",
+      "mode": "structured",
+      "original_error": "ValueError",
+      "compiled": false,
+      "two_required_tools": false,
+      "validation_error": "address change lacks observed order ID or address"
+    }
+  ]
+}

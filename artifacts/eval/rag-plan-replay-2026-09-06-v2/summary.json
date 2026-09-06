@@ -1,0 +1,104 @@
+{
+  "scope": "offline recompile with summary+recent context; required-tool coverage is not query semantic accuracy",
+  "cases": 5,
+  "calls": 10,
+  "raw_sha256": "e489bd0331b3ee8bd381c43a8177c266974021a29791cc98f91745909d046ce4",
+  "results": [
+    {
+      "case_id": "shipping",
+      "mode": "text",
+      "original_error": "ConversationProviderOutputError",
+      "compiled": false,
+      "two_required_tools": false,
+      "validation_error": null
+    },
+    {
+      "case_id": "shipping",
+      "mode": "structured",
+      "original_error": "RuntimeError",
+      "compiled": false,
+      "two_required_tools": false,
+      "validation_error": null
+    },
+    {
+      "case_id": "paid",
+      "mode": "text",
+      "original_error": null,
+      "compiled": true,
+      "two_required_tools": true,
+      "validation_error": null,
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ]
+    },
+    {
+      "case_id": "paid",
+      "mode": "structured",
+      "original_error": "RuntimeError",
+      "compiled": false,
+      "two_required_tools": false,
+      "validation_error": null
+    },
+    {
+      "case_id": "delivered",
+      "mode": "text",
+      "original_error": null,
+      "compiled": true,
+      "two_required_tools": true,
+      "validation_error": null,
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ]
+    },
+    {
+      "case_id": "delivered",
+      "mode": "structured",
+      "original_error": "RuntimeError",
+      "compiled": false,
+      "two_required_tools": false,
+      "validation_error": null
+    },
+    {
+      "case_id": "reference",
+      "mode": "text",
+      "original_error": null,
+      "compiled": true,
+      "two_required_tools": true,
+      "validation_error": null,
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ]
+    },
+    {
+      "case_id": "reference",
+      "mode": "structured",
+      "original_error": "RuntimeError",
+      "compiled": false,
+      "two_required_tools": false,
+      "validation_error": null
+    },
+    {
+      "case_id": "missing",
+      "mode": "text",
+      "original_error": null,
+      "compiled": true,
+      "two_required_tools": true,
+      "validation_error": null,
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ]
+    },
+    {
+      "case_id": "missing",
+      "mode": "structured",
+      "original_error": "RuntimeError",
+      "compiled": false,
+      "two_required_tools": false,
+      "validation_error": null
+    }
+  ]
+}
