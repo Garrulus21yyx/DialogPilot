@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+import time
 from typing import Any
 
 from application.hybrid_retrieval import (
@@ -34,11 +35,16 @@ class _CollectedSources:
 class PostgresKnowledgeCandidateSource:
     """Own request-scoped PG retrieval, weighted RRF, and source projection reads."""
 
-    def __init__(self, *, backend, generations, pool, embed_query: Callable):
+    def __init__(self, *, backend, generations, pool, embed_query: Callable, parallel: bool = False, deadline_seconds: float = 3.0):
         self._backend = backend
         self._generations = generations
         self._pool = pool
         self._embed_query = embed_query
+        if not 0 < deadline_seconds <= 30:
+            raise ValueError("retrieval deadline must be within 30 seconds")
+        self._deadline_seconds = deadline_seconds
+        from infrastructure.bounded_retrieval_executor import BoundedRetrievalExecutor
+        self._executor = BoundedRetrievalExecutor() if parallel else None
 
     async def search_variants_async(
         self,
@@ -191,14 +197,14 @@ class PostgresKnowledgeCandidateSource:
         authority: dict[str, tuple[str, str, str]] = {}
         ranks: dict[str, dict[str, int]] = {}
         route_weights: dict[str, float] = {}
+        deadline = time.monotonic() + self._deadline_seconds
         for variant_kind, query, variant_weight in variants:
-            try:
-                embedding = self._embed_query(query, generation)
-            except Exception:
-                return KnowledgeCandidateResult(
-                    RetrievalStatus.UNAVAILABLE,
-                    detail_code="QUERY_EMBEDDING_UNAVAILABLE",
-                )
+            embedding = None
+            if self._executor is None:
+                try:
+                    embedding = self._embed_query(query, generation)
+                except Exception:
+                    return KnowledgeCandidateResult(RetrievalStatus.UNAVAILABLE, detail_code="QUERY_EMBEDDING_UNAVAILABLE")
             has_metadata_hints = bool(
                 request.source_type_hints or request.region_hints
             )
@@ -212,8 +218,9 @@ class PostgresKnowledgeCandidateSource:
                     1.0 - request.policy.metadata_hint_weight,
                 ),
             ) if has_metadata_hints else (("", (), (), 1.0),)
+            requests = []
             for scope_kind, source_types, regions, scope_weight in scope_routes:
-                generated = self._backend.retrieve(HybridRetrievalRequest(
+                requests.append(HybridRetrievalRequest(
                     tenant_id=request.tenant_id,
                     corpus=RetrievalCorpus.KNOWLEDGE,
                     backend_fingerprint=generation.backend_fingerprint,
@@ -234,6 +241,16 @@ class PostgresKnowledgeCandidateSource:
                     dense_limit=dense_k,
                     lexical_limit=lexical_k,
                 ))
+            try:
+                if self._executor is not None:
+                    outputs = self._parallel_routes(requests, query, generation, deadline)
+                else:
+                    outputs = [self._backend.retrieve(item) for item in requests]
+            except Exception as exc:
+                from infrastructure.bounded_retrieval_executor import RetrievalExecutionUnavailable
+                return KnowledgeCandidateResult(RetrievalStatus.UNAVAILABLE,
+                    detail_code=str(exc) if isinstance(exc, RetrievalExecutionUnavailable) else "RETRIEVAL_BRANCH_UNAVAILABLE")
+            for (scope_kind, source_types, regions, scope_weight), generated in zip(scope_routes, outputs, strict=True):
                 if generated.status is RetrievalStatus.NO_EVIDENCE:
                     continue
                 if generated.status is not RetrievalStatus.OK:
@@ -315,6 +332,34 @@ class PostgresKnowledgeCandidateSource:
                 detail_code="EMBEDDING_PROFILE_FINGERPRINT_DRIFT",
             )
         return None
+
+    def close(self):
+        if self._executor is not None:
+            self._executor.close()
+
+    def _parallel_routes(self, requests, query, generation, deadline):
+        if not (requests[0].dense_limit and requests[0].lexical_limit):
+            def single():
+                embedding = self._embed_query(query, generation) if requests[0].dense_limit else None
+                return [self._backend.retrieve(replace(item, query_embedding=embedding), deadline=deadline) for item in requests]
+            return self._executor.run(single, lambda: None, deadline=deadline)[0]
+        def dense():
+            embedding = self._embed_query(query, generation)
+            return [self._backend.retrieve(replace(item,query_embedding=embedding,lexical_limit=0),deadline=deadline) for item in requests]
+        def lexical():
+            return [self._backend.retrieve(replace(item,query_embedding=None,dense_limit=0),deadline=deadline) for item in requests]
+        dense_results, lexical_results = self._executor.run(dense, lexical, deadline=deadline)
+        outputs=[]
+        for dense_result, lexical_result in zip(dense_results,lexical_results,strict=True):
+            failures=[result for result in (dense_result,lexical_result) if result.status not in {RetrievalStatus.OK,RetrievalStatus.NO_EVIDENCE}]
+            if failures:
+                outputs.append(failures[0]); continue
+            if dense_result.index_watermark != lexical_result.index_watermark:
+                from application.hybrid_retrieval import HybridRetrievalResult
+                outputs.append(HybridRetrievalResult(RetrievalStatus.CONFLICT,generation.backend_fingerprint,generation.generation_id,detail_code="RETRIEVAL_BRANCH_WATERMARK_DRIFT")); continue
+            outputs.append(replace(dense_result,lexical_candidates=lexical_result.lexical_candidates,
+                status=RetrievalStatus.OK if dense_result.dense_candidates or lexical_result.lexical_candidates else RetrievalStatus.NO_EVIDENCE))
+        return outputs
 
     def _load_rows(
         self,

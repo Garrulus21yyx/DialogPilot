@@ -1,5 +1,6 @@
 """PostgreSQL implementation of the hybrid candidate port."""
 from __future__ import annotations
+import time
 
 import hashlib
 import json
@@ -36,9 +37,15 @@ class PostgresHybridBackend:
     def __init__(self, pool: RetrievalPostgresPool):
         self.pool = pool
 
-    def retrieve(self, request: HybridRetrievalRequest) -> HybridRetrievalResult:
+    def retrieve(self, request: HybridRetrievalRequest, *, deadline: float | None = None) -> HybridRetrievalResult:
         try:
             with self.pool.transaction() as connection:
+                if deadline is not None:
+                    remaining_ms = int((deadline-time.monotonic())*1000)
+                    if remaining_ms <= 0:
+                        return _empty(request, RetrievalStatus.UNAVAILABLE, "RETRIEVAL_DEADLINE_EXCEEDED")
+                    connection.execute("SELECT set_config('statement_timeout', %s, true)",
+                                       (str(min(remaining_ms, self.pool.config.statement_timeout_ms)),))
                 row = connection.execute("""
                     SELECT backend_fingerprint, embedding_dimension, state,
                            distance_metric, chinese_tokenizer, lexical_ranker,
@@ -81,6 +88,12 @@ class PostgresHybridBackend:
                         request, RetrievalStatus.INVALID_CONTRACT,
                         "QUERY_EMBEDDING_DIMENSION_MISMATCH",
                     )
+                if deadline is not None:
+                    remaining_ms = int((deadline-time.monotonic())*1000)
+                    if remaining_ms <= 0:
+                        return _empty(request, RetrievalStatus.UNAVAILABLE, "RETRIEVAL_DEADLINE_EXCEEDED")
+                    connection.execute("SELECT set_config('statement_timeout', %s, true)",
+                                       (str(min(remaining_ms, self.pool.config.statement_timeout_ms)),))
                 dense = self._dense(connection, request, dimension)
                 lexical = self._lexical(connection, request, str(row[5]))
         except PostgresUnavailableError:

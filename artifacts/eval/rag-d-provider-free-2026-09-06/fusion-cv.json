@@ -1,0 +1,1044 @@
+{
+  "scope": "development grouped cross-validation, not heldout acceptance",
+  "folds": 5,
+  "groups": 55,
+  "metrics": [
+    {
+      "corpus_type": "all",
+      "strategy": "fixed_oof",
+      "n": 56,
+      "complete": 44,
+      "rescued": [],
+      "harmed": [],
+      "delta_pp": 0.0
+    },
+    {
+      "corpus_type": "all",
+      "strategy": "corpus_oof",
+      "n": 56,
+      "complete": 44,
+      "rescued": [],
+      "harmed": [],
+      "delta_pp": 0.0
+    },
+    {
+      "corpus_type": "all",
+      "strategy": "query_oof",
+      "n": 56,
+      "complete": 44,
+      "rescued": [],
+      "harmed": [],
+      "delta_pp": 0.0
+    },
+    {
+      "corpus_type": "public_doc2dial",
+      "strategy": "fixed_oof",
+      "n": 36,
+      "complete": 24,
+      "rescued": [],
+      "harmed": [],
+      "delta_pp": 0.0
+    },
+    {
+      "corpus_type": "public_doc2dial",
+      "strategy": "corpus_oof",
+      "n": 36,
+      "complete": 24,
+      "rescued": [],
+      "harmed": [],
+      "delta_pp": 0.0
+    },
+    {
+      "corpus_type": "public_doc2dial",
+      "strategy": "query_oof",
+      "n": 36,
+      "complete": 24,
+      "rescued": [],
+      "harmed": [],
+      "delta_pp": 0.0
+    },
+    {
+      "corpus_type": "synthetic_ecommerce",
+      "strategy": "fixed_oof",
+      "n": 20,
+      "complete": 20,
+      "rescued": [],
+      "harmed": [],
+      "delta_pp": 0.0
+    },
+    {
+      "corpus_type": "synthetic_ecommerce",
+      "strategy": "corpus_oof",
+      "n": 20,
+      "complete": 20,
+      "rescued": [],
+      "harmed": [],
+      "delta_pp": 0.0
+    },
+    {
+      "corpus_type": "synthetic_ecommerce",
+      "strategy": "query_oof",
+      "n": 20,
+      "complete": 20,
+      "rescued": [],
+      "harmed": [],
+      "delta_pp": 0.0
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "doc2dial-dev-e557d33d054041f0aac44defb1a207ef-12",
+      "group_id": "doc2dial-e557d33d054041f0aac44defb1a207ef",
+      "fold": 0,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.25,
+        "corpus_oof": 0.25,
+        "query_oof": 0.25
+      },
+      "success": {
+        "fixed_oof": false,
+        "corpus_oof": false,
+        "query_oof": false
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-5899911400e0d2472aff3e4e11142a7c-13",
+      "group_id": "doc2dial-5899911400e0d2472aff3e4e11142a7c",
+      "fold": 1,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.5,
+        "query_oof": 0.5
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-f9aa69339de7652e855b2c941a24d7c9-10",
+      "group_id": "doc2dial-f9aa69339de7652e855b2c941a24d7c9",
+      "fold": 3,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.5,
+        "query_oof": 0.5
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-fcc47e7aa1e49bd0de037d783936592b-13",
+      "group_id": "doc2dial-fcc47e7aa1e49bd0de037d783936592b",
+      "fold": 4,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.5,
+        "query_oof": 0.5
+      },
+      "success": {
+        "fixed_oof": false,
+        "corpus_oof": false,
+        "query_oof": false
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-2be506ef6926fe365c87941f7ef14862-12",
+      "group_id": "doc2dial-2be506ef6926fe365c87941f7ef14862",
+      "fold": 0,
+      "corpus_type": "public_doc2dial",
+      "query_class": "identifier",
+      "weights": {
+        "fixed_oof": 0.25,
+        "corpus_oof": 0.25,
+        "query_oof": 0.25
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-10",
+      "group_id": "doc2dial-5c539f53cdb29706da2eac1fd093fb8a",
+      "fold": 3,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.5,
+        "query_oof": 0.5
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-d4cfd673f6cfcced5363949506e31e8c-11",
+      "group_id": "doc2dial-d4cfd673f6cfcced5363949506e31e8c",
+      "fold": 4,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.5,
+        "query_oof": 0.5
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-13f5099fe2dc8875b44e6b15ad7c2dd1-15",
+      "group_id": "doc2dial-13f5099fe2dc8875b44e6b15ad7c2dd1",
+      "fold": 0,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.25,
+        "corpus_oof": 0.25,
+        "query_oof": 0.25
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-2b9a9e5d3fb7afbd0daabf0fb8b00a54-11",
+      "group_id": "doc2dial-2b9a9e5d3fb7afbd0daabf0fb8b00a54",
+      "fold": 1,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.5,
+        "query_oof": 0.5
+      },
+      "success": {
+        "fixed_oof": false,
+        "corpus_oof": false,
+        "query_oof": false
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-a9e6b11deba64bccfa874f154eef44b4-10",
+      "group_id": "doc2dial-a9e6b11deba64bccfa874f154eef44b4",
+      "fold": 3,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.5,
+        "query_oof": 0.5
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-6c00f80fa975923b3af5df055f965f2b-12",
+      "group_id": "doc2dial-6c00f80fa975923b3af5df055f965f2b",
+      "fold": 4,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.5,
+        "query_oof": 0.5
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-247f23e580bce66d852b143a622f29d7-12",
+      "group_id": "doc2dial-247f23e580bce66d852b143a622f29d7",
+      "fold": 0,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.25,
+        "corpus_oof": 0.25,
+        "query_oof": 0.25
+      },
+      "success": {
+        "fixed_oof": false,
+        "corpus_oof": false,
+        "query_oof": false
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-3031352d8fd5954f88459c455d57a1b2-11",
+      "group_id": "doc2dial-3031352d8fd5954f88459c455d57a1b2",
+      "fold": 2,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.5,
+        "query_oof": 0.5
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-0f04d497049c31faebfa20487a25c0f1-12",
+      "group_id": "doc2dial-0f04d497049c31faebfa20487a25c0f1",
+      "fold": 0,
+      "corpus_type": "public_doc2dial",
+      "query_class": "identifier",
+      "weights": {
+        "fixed_oof": 0.25,
+        "corpus_oof": 0.25,
+        "query_oof": 0.25
+      },
+      "success": {
+        "fixed_oof": false,
+        "corpus_oof": false,
+        "query_oof": false
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-b30d73c202844505549d00218083577d-11",
+      "group_id": "doc2dial-b30d73c202844505549d00218083577d",
+      "fold": 1,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.5,
+        "query_oof": 0.5
+      },
+      "success": {
+        "fixed_oof": false,
+        "corpus_oof": false,
+        "query_oof": false
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-9c7626c8c2aa2b927759e64a2323d8a9-12",
+      "group_id": "doc2dial-9c7626c8c2aa2b927759e64a2323d8a9",
+      "fold": 4,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.5,
+        "query_oof": 0.5
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-b09922c61586b9398efe4bd77271deef-11",
+      "group_id": "doc2dial-b09922c61586b9398efe4bd77271deef",
+      "fold": 0,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.25,
+        "corpus_oof": 0.25,
+        "query_oof": 0.25
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-00a4a05f229e5cee83e7b10f2e20873d-12",
+      "group_id": "doc2dial-00a4a05f229e5cee83e7b10f2e20873d",
+      "fold": 1,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.5,
+        "query_oof": 0.5
+      },
+      "success": {
+        "fixed_oof": false,
+        "corpus_oof": false,
+        "query_oof": false
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-e8b67b06f57ae86344dcf9f6ff9cac43-11",
+      "group_id": "doc2dial-e8b67b06f57ae86344dcf9f6ff9cac43",
+      "fold": 2,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.5,
+        "query_oof": 0.5
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11",
+      "group_id": "doc2dial-56ecb9ca49fe6db3568b935cff6c0510",
+      "fold": 3,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.5,
+        "query_oof": 0.5
+      },
+      "success": {
+        "fixed_oof": false,
+        "corpus_oof": false,
+        "query_oof": false
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-a7fe7aa38830465e8a73320e9320b305-9",
+      "group_id": "doc2dial-a7fe7aa38830465e8a73320e9320b305",
+      "fold": 4,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.5,
+        "query_oof": 0.5
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-50b28aeda7cf80e1959ac907127bb5d9-12",
+      "group_id": "doc2dial-50b28aeda7cf80e1959ac907127bb5d9",
+      "fold": 0,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.25,
+        "corpus_oof": 0.25,
+        "query_oof": 0.25
+      },
+      "success": {
+        "fixed_oof": false,
+        "corpus_oof": false,
+        "query_oof": false
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-4a335b1ca0ddb7d0465b81f2d318afd3-11",
+      "group_id": "doc2dial-4a335b1ca0ddb7d0465b81f2d318afd3",
+      "fold": 1,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.5,
+        "query_oof": 0.5
+      },
+      "success": {
+        "fixed_oof": false,
+        "corpus_oof": false,
+        "query_oof": false
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-971be81a501acb52e143a12890772498-10",
+      "group_id": "doc2dial-971be81a501acb52e143a12890772498",
+      "fold": 3,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.5,
+        "query_oof": 0.5
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-e96c4558ac2013c8f787498f67652362-11",
+      "group_id": "doc2dial-e96c4558ac2013c8f787498f67652362",
+      "fold": 4,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.5,
+        "query_oof": 0.5
+      },
+      "success": {
+        "fixed_oof": false,
+        "corpus_oof": false,
+        "query_oof": false
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-b3f2ae2fd2ddac2fb7a1a898690a6a8c-11",
+      "group_id": "doc2dial-b3f2ae2fd2ddac2fb7a1a898690a6a8c",
+      "fold": 2,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.5,
+        "query_oof": 0.5
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-2278013a80847dedecfc48d80391fb36-13",
+      "group_id": "doc2dial-2278013a80847dedecfc48d80391fb36",
+      "fold": 3,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.5,
+        "query_oof": 0.5
+      },
+      "success": {
+        "fixed_oof": false,
+        "corpus_oof": false,
+        "query_oof": false
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-58d176e50ed5e9d07e84c19f97406e03-11",
+      "group_id": "doc2dial-58d176e50ed5e9d07e84c19f97406e03",
+      "fold": 1,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.5,
+        "query_oof": 0.5
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-4d5350dc20418f7f89900dfa1a61b0cd-9",
+      "group_id": "doc2dial-4d5350dc20418f7f89900dfa1a61b0cd",
+      "fold": 2,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.5,
+        "query_oof": 0.5
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11",
+      "group_id": "doc2dial-abba59c477b0cf795c20d5b0b83e4634",
+      "fold": 4,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.5,
+        "query_oof": 0.5
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-07d2d3b557c6d5d18ee0e7d37e986f08-9",
+      "group_id": "doc2dial-07d2d3b557c6d5d18ee0e7d37e986f08",
+      "fold": 1,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.5,
+        "query_oof": 0.5
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-3f3aa224b819953746fd223c1e30eb73-16",
+      "group_id": "doc2dial-3f3aa224b819953746fd223c1e30eb73",
+      "fold": 2,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.5,
+        "query_oof": 0.5
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-739518d13fc2a96c4ad09409fa8d3982-10",
+      "group_id": "doc2dial-739518d13fc2a96c4ad09409fa8d3982",
+      "fold": 3,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.5,
+        "query_oof": 0.5
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-e7545e6f53bbe7d12b6846061f8dd6ed-13",
+      "group_id": "doc2dial-e7545e6f53bbe7d12b6846061f8dd6ed",
+      "fold": 4,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.5,
+        "query_oof": 0.5
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-0f20051cca23859b571386e82fff9ac8-12",
+      "group_id": "doc2dial-0f20051cca23859b571386e82fff9ac8",
+      "fold": 2,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.5,
+        "query_oof": 0.5
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-1ce198bc767426637a333a1adc62e37a-12",
+      "group_id": "doc2dial-1ce198bc767426637a333a1adc62e37a",
+      "fold": 3,
+      "corpus_type": "public_doc2dial",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.5,
+        "query_oof": 0.5
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "synthetic:opened-audio",
+      "group_id": "synthetic:opened-audio",
+      "fold": 3,
+      "corpus_type": "synthetic_ecommerce",
+      "query_class": "standalone",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.25,
+        "query_oof": 0.25
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "synthetic:audio-defect",
+      "group_id": "synthetic:audio-defect",
+      "fold": 1,
+      "corpus_type": "synthetic_ecommerce",
+      "query_class": "standalone",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.25,
+        "query_oof": 0.25
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "synthetic:return-shipping",
+      "group_id": "synthetic:return-shipping",
+      "fold": 1,
+      "corpus_type": "synthetic_ecommerce",
+      "query_class": "standalone",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.25,
+        "query_oof": 0.25
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "synthetic:remote-delivery",
+      "group_id": "synthetic:remote-delivery",
+      "fold": 4,
+      "corpus_type": "synthetic_ecommerce",
+      "query_class": "standalone",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.25,
+        "query_oof": 0.25
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "synthetic:coupon-refund",
+      "group_id": "synthetic:coupon-refund",
+      "fold": 0,
+      "corpus_type": "synthetic_ecommerce",
+      "query_class": "standalone",
+      "weights": {
+        "fixed_oof": 0.25,
+        "corpus_oof": 0.25,
+        "query_oof": 0.25
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "synthetic:gift-return",
+      "group_id": "synthetic:gift-return",
+      "fold": 2,
+      "corpus_type": "synthetic_ecommerce",
+      "query_class": "standalone",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.25,
+        "query_oof": 0.25
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "synthetic:custom-goods",
+      "group_id": "synthetic:custom-goods",
+      "fold": 2,
+      "corpus_type": "synthetic_ecommerce",
+      "query_class": "standalone",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.25,
+        "query_oof": 0.25
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "synthetic:invoice",
+      "group_id": "synthetic:invoice",
+      "fold": 1,
+      "corpus_type": "synthetic_ecommerce",
+      "query_class": "standalone",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.25,
+        "query_oof": 0.25
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "synthetic:warranty",
+      "group_id": "synthetic:warranty",
+      "fold": 3,
+      "corpus_type": "synthetic_ecommerce",
+      "query_class": "standalone",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.25,
+        "query_oof": 0.25
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "synthetic:battery-install",
+      "group_id": "synthetic:battery-install",
+      "fold": 3,
+      "corpus_type": "synthetic_ecommerce",
+      "query_class": "identifier",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.25,
+        "query_oof": 0.25
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "synthetic:pickup",
+      "group_id": "synthetic:pickup",
+      "fold": 4,
+      "corpus_type": "synthetic_ecommerce",
+      "query_class": "standalone",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.25,
+        "query_oof": 0.25
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "synthetic:address",
+      "group_id": "synthetic:address",
+      "fold": 0,
+      "corpus_type": "synthetic_ecommerce",
+      "query_class": "standalone",
+      "weights": {
+        "fixed_oof": 0.25,
+        "corpus_oof": 0.25,
+        "query_oof": 0.25
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "synthetic:exchange",
+      "group_id": "synthetic:exchange",
+      "fold": 2,
+      "corpus_type": "synthetic_ecommerce",
+      "query_class": "standalone",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.25,
+        "query_oof": 0.25
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "synthetic:membership",
+      "group_id": "synthetic:membership",
+      "fold": 0,
+      "corpus_type": "synthetic_ecommerce",
+      "query_class": "standalone",
+      "weights": {
+        "fixed_oof": 0.25,
+        "corpus_oof": 0.25,
+        "query_oof": 0.25
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "synthetic:privacy",
+      "group_id": "synthetic:privacy",
+      "fold": 0,
+      "corpus_type": "synthetic_ecommerce",
+      "query_class": "standalone",
+      "weights": {
+        "fixed_oof": 0.25,
+        "corpus_oof": 0.25,
+        "query_oof": 0.25
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "synthetic:damaged-box",
+      "group_id": "synthetic:damaged-box",
+      "fold": 1,
+      "corpus_type": "synthetic_ecommerce",
+      "query_class": "standalone",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.25,
+        "query_oof": 0.25
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "synthetic:preorder",
+      "group_id": "synthetic:preorder",
+      "fold": 2,
+      "corpus_type": "synthetic_ecommerce",
+      "query_class": "standalone",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.25,
+        "query_oof": 0.25
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "synthetic:receipt",
+      "group_id": "synthetic:receipt",
+      "fold": 4,
+      "corpus_type": "synthetic_ecommerce",
+      "query_class": "standalone",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.25,
+        "query_oof": 0.25
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "synthetic:elliptic",
+      "group_id": "synthetic:opened-audio",
+      "fold": 3,
+      "corpus_type": "synthetic_ecommerce",
+      "query_class": "conversation",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.25,
+        "query_oof": 0.25
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    },
+    {
+      "case_id": "synthetic:multi-evidence",
+      "group_id": "synthetic:multi-evidence",
+      "fold": 2,
+      "corpus_type": "synthetic_ecommerce",
+      "query_class": "standalone",
+      "weights": {
+        "fixed_oof": 0.5,
+        "corpus_oof": 0.25,
+        "query_oof": 0.25
+      },
+      "success": {
+        "fixed_oof": true,
+        "corpus_oof": true,
+        "query_oof": true
+      }
+    }
+  ],
+  "input_sha256": "77a93329dc77f6a3d72848a52d8257b79ef64abeaa27e34a9377d0c679ae1b3c",
+  "report_sha256": "cb40ae09be897c3727fa0031b0c044608ae63761cd4e9de738fcee15cb5f2ac3"
+}

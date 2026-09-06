@@ -1,0 +1,305 @@
+{
+  "baseline_commit": "5b60455",
+  "cache_hits": [],
+  "chunk_count": 378,
+  "chunk_strategy": "structure_aware",
+  "chunk_tokens": 512,
+  "configuration_selection_allowed": true,
+  "context_tokens": 2600,
+  "document_count": 119,
+  "embedding_max_observed_tokens": 561,
+  "external_inference_api_calls": 0,
+  "final_k": 5,
+  "input_dataset_manifest": {
+    "case_count": 209,
+    "cases_sha256": "eb290a46c73de9cd0627fe6457d9e22e17065bf2e0b578864b487a4599f82416",
+    "corpus_sha256": "ce4db3f15c1efd3aed1d42f09fe3d22fb10920f913aaf8673058919df061109e",
+    "dataset_id": "doc2dial-rag-long8000-dev-v1",
+    "document_count": 100,
+    "schema_version": 1,
+    "source": {
+      "dataset": "Doc2Dial v1.0.1",
+      "grounding_granularity": "character-span",
+      "license": "CC-BY-3.0",
+      "min_relevant_document_chars": 8000,
+      "selection": "deterministic domain-balanced prefix plus distractors",
+      "url": "https://doc2dial.github.io/file/doc2dial_v1.0.1.zip"
+    }
+  },
+  "metrics": [
+    {
+      "candidate_complete": 0.9,
+      "case_count": 20,
+      "chunk_complete": 1.0,
+      "corpus_type": "all",
+      "delta_pp": 0.0,
+      "dense_weight": 0.0,
+      "harmed": [],
+      "packed_complete": 0.8,
+      "rescued": [],
+      "selected_complete": 0.8,
+      "tool_message_complete": 0.8
+    },
+    {
+      "candidate_complete": 0.9,
+      "case_count": 20,
+      "chunk_complete": 1.0,
+      "corpus_type": "all",
+      "delta_pp": 0.0,
+      "dense_weight": 0.25,
+      "harmed": [],
+      "packed_complete": 0.8,
+      "rescued": [],
+      "selected_complete": 0.8,
+      "tool_message_complete": 0.8
+    },
+    {
+      "candidate_complete": 1.0,
+      "case_count": 20,
+      "chunk_complete": 1.0,
+      "corpus_type": "all",
+      "delta_pp": -5.0,
+      "dense_weight": 0.5,
+      "harmed": [
+        "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-10"
+      ],
+      "packed_complete": 0.75,
+      "rescued": [],
+      "selected_complete": 0.75,
+      "tool_message_complete": 0.75
+    },
+    {
+      "candidate_complete": 0.95,
+      "case_count": 20,
+      "chunk_complete": 1.0,
+      "corpus_type": "all",
+      "delta_pp": -15.0,
+      "dense_weight": 0.75,
+      "harmed": [
+        "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-10",
+        "doc2dial-dev-d4cfd673f6cfcced5363949506e31e8c-11",
+        "synthetic:audio-defect"
+      ],
+      "packed_complete": 0.65,
+      "rescued": [],
+      "selected_complete": 0.65,
+      "tool_message_complete": 0.65
+    },
+    {
+      "candidate_complete": 0.95,
+      "case_count": 20,
+      "chunk_complete": 1.0,
+      "corpus_type": "all",
+      "delta_pp": -10.0,
+      "dense_weight": 1.0,
+      "harmed": [
+        "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-10",
+        "doc2dial-dev-d4cfd673f6cfcced5363949506e31e8c-11",
+        "synthetic:audio-defect"
+      ],
+      "packed_complete": 0.7,
+      "rescued": [
+        "doc2dial-dev-2b9a9e5d3fb7afbd0daabf0fb8b00a54-11"
+      ],
+      "selected_complete": 0.7,
+      "tool_message_complete": 0.7
+    },
+    {
+      "candidate_complete": 0.8,
+      "case_count": 10,
+      "chunk_complete": 1.0,
+      "corpus_type": "public_doc2dial",
+      "delta_pp": 0.0,
+      "dense_weight": 0.0,
+      "harmed": [],
+      "packed_complete": 0.6,
+      "rescued": [],
+      "selected_complete": 0.6,
+      "tool_message_complete": 0.6
+    },
+    {
+      "candidate_complete": 0.8,
+      "case_count": 10,
+      "chunk_complete": 1.0,
+      "corpus_type": "public_doc2dial",
+      "delta_pp": 0.0,
+      "dense_weight": 0.25,
+      "harmed": [],
+      "packed_complete": 0.6,
+      "rescued": [],
+      "selected_complete": 0.6,
+      "tool_message_complete": 0.6
+    },
+    {
+      "candidate_complete": 1.0,
+      "case_count": 10,
+      "chunk_complete": 1.0,
+      "corpus_type": "public_doc2dial",
+      "delta_pp": -10.0,
+      "dense_weight": 0.5,
+      "harmed": [
+        "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-10"
+      ],
+      "packed_complete": 0.5,
+      "rescued": [],
+      "selected_complete": 0.5,
+      "tool_message_complete": 0.5
+    },
+    {
+      "candidate_complete": 0.9,
+      "case_count": 10,
+      "chunk_complete": 1.0,
+      "corpus_type": "public_doc2dial",
+      "delta_pp": -20.0,
+      "dense_weight": 0.75,
+      "harmed": [
+        "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-10",
+        "doc2dial-dev-d4cfd673f6cfcced5363949506e31e8c-11"
+      ],
+      "packed_complete": 0.4,
+      "rescued": [],
+      "selected_complete": 0.4,
+      "tool_message_complete": 0.4
+    },
+    {
+      "candidate_complete": 0.9,
+      "case_count": 10,
+      "chunk_complete": 1.0,
+      "corpus_type": "public_doc2dial",
+      "delta_pp": -10.0,
+      "dense_weight": 1.0,
+      "harmed": [
+        "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-10",
+        "doc2dial-dev-d4cfd673f6cfcced5363949506e31e8c-11"
+      ],
+      "packed_complete": 0.5,
+      "rescued": [
+        "doc2dial-dev-2b9a9e5d3fb7afbd0daabf0fb8b00a54-11"
+      ],
+      "selected_complete": 0.5,
+      "tool_message_complete": 0.5
+    },
+    {
+      "candidate_complete": 1.0,
+      "case_count": 10,
+      "chunk_complete": 1.0,
+      "corpus_type": "synthetic_ecommerce",
+      "delta_pp": 0.0,
+      "dense_weight": 0.0,
+      "harmed": [],
+      "packed_complete": 1.0,
+      "rescued": [],
+      "selected_complete": 1.0,
+      "tool_message_complete": 1.0
+    },
+    {
+      "candidate_complete": 1.0,
+      "case_count": 10,
+      "chunk_complete": 1.0,
+      "corpus_type": "synthetic_ecommerce",
+      "delta_pp": 0.0,
+      "dense_weight": 0.25,
+      "harmed": [],
+      "packed_complete": 1.0,
+      "rescued": [],
+      "selected_complete": 1.0,
+      "tool_message_complete": 1.0
+    },
+    {
+      "candidate_complete": 1.0,
+      "case_count": 10,
+      "chunk_complete": 1.0,
+      "corpus_type": "synthetic_ecommerce",
+      "delta_pp": 0.0,
+      "dense_weight": 0.5,
+      "harmed": [],
+      "packed_complete": 1.0,
+      "rescued": [],
+      "selected_complete": 1.0,
+      "tool_message_complete": 1.0
+    },
+    {
+      "candidate_complete": 1.0,
+      "case_count": 10,
+      "chunk_complete": 1.0,
+      "corpus_type": "synthetic_ecommerce",
+      "delta_pp": -10.0,
+      "dense_weight": 0.75,
+      "harmed": [
+        "synthetic:audio-defect"
+      ],
+      "packed_complete": 0.9,
+      "rescued": [],
+      "selected_complete": 0.9,
+      "tool_message_complete": 0.9
+    },
+    {
+      "candidate_complete": 1.0,
+      "case_count": 10,
+      "chunk_complete": 1.0,
+      "corpus_type": "synthetic_ecommerce",
+      "delta_pp": -10.0,
+      "dense_weight": 1.0,
+      "harmed": [
+        "synthetic:audio-defect"
+      ],
+      "packed_complete": 0.9,
+      "rescued": [],
+      "selected_complete": 0.9,
+      "tool_message_complete": 0.9
+    }
+  ],
+  "model_identity": {
+    "encoding": "bge-m3-dense-full-v1",
+    "fp16": true,
+    "max_length": 8192,
+    "model_files": {
+      "colbert_linear.pt": "19bfbae397c2b7524158c919d0e9b19393c5639d098f0a66932c91ed8f5f9abb",
+      "config.json": "26159e7ad065073448460117eb24b7a4572f6f4e78eadff65dc0a11c052449fa",
+      "config_sentence_transformers.json": "1eef72430e7194a1e59680e635aed81ffa083f05668dbc5bb1c56c04c0999c38",
+      "modules.json": "84e40c8e006c9b1d6c122e02cba9b02458120b5fb0c87b746c41e0207cf642cf",
+      "pytorch_model.bin": "b5e0ce3470abf5ef3831aa1bd5553b486803e83251590ab7ff35a117cf6aad38",
+      "sentence_bert_config.json": "eb9b44b13c0f52a3b3685c3b1cbdea1ba8b04bea123b98f61610048940776eb1",
+      "sentencepiece.bpe.model": "cfc8146abe2a0488e9e2a0c56de7952f7c11ab059eca145a0a727afce0db2865",
+      "sparse_linear.pt": "45c93804d2142b8f6d7ec6914ae23a1eee9c6a1d27d83d908a20d2afb3595ad9",
+      "special_tokens_map.json": "8c785abebea9ae3257b61681b4e6fd8365ceafde980c21970d001e834cf10835",
+      "tokenizer.json": "21106b6d7dab2952c1d496fb21d5dc9db75c28ed361a05f5020bbba27810dd08",
+      "tokenizer_config.json": "a62b2b6784f990259fddef5f16388693a8043be4f69179e6a5257eeb3f9abac4"
+    },
+    "model_path": "/home/yang/.cache/huggingface/hub/models--BAAI--bge-m3/snapshots/5617a9f61b028005a4858fdac845db406aefb181"
+  },
+  "network_disabled": true,
+  "overlap": 64,
+  "projection": {
+    "boundary_fragmentation_rate": 0.0,
+    "chunks_per_document": 3.176470588235294,
+    "document_grounding_count": 0.0,
+    "duplicate_char_ratio": 0.11493742144182242,
+    "evidence_containment_rate": 1.0,
+    "evidence_count": 26.0,
+    "grounding_count": 26.0,
+    "index_amplification": 1.1149374214418224
+  },
+  "public_cases": 10,
+  "query_max_observed_tokens": 200,
+  "query_mode": "history",
+  "schema_version": "rag-provider-free-v1",
+  "scope": "LOCAL_PIPELINE_REPLAY_NOT_LIVE_AGENT",
+  "source_k": 20,
+  "status": "DEVELOPMENT_DIAGNOSTIC",
+  "synthetic_cases": 10,
+  "synthetic_fixture_sha256": "048ffb58d608b21caf9573f4e19edbcabb443b6dd7908114144ddc6ec9454264",
+  "timings": {
+    "documents_encoding_or_cache_ms": 4662.879131734371,
+    "exact_dense_and_python_bm25_ms": 122.80372157692909,
+    "queries_encoding_or_cache_ms": 110.1842112839222
+  },
+  "unmeasured": [
+    "live_agent_query_rewrite",
+    "production_embedding",
+    "postgres_ann_latency",
+    "reranker",
+    "final_answer",
+    "business_tool_routing"
+  ]
+}

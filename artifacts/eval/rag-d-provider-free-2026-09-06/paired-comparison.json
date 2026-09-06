@@ -1,0 +1,72 @@
+[
+  {
+    "variant": "dev56",
+    "weight": 0.25,
+    "baseline": "dev56 no reranker weight0.25",
+    "n": 56,
+    "rescued": [
+      "doc2dial-dev-a9e6b11deba64bccfa874f154eef44b4-10",
+      "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11"
+    ],
+    "harmed": [],
+    "net_pp": 3.5714285714285716
+  },
+  {
+    "variant": "dev56",
+    "weight": 0.5,
+    "baseline": "dev56 no reranker weight0.25",
+    "n": 56,
+    "rescued": [
+      "doc2dial-dev-e557d33d054041f0aac44defb1a207ef-12",
+      "doc2dial-dev-a9e6b11deba64bccfa874f154eef44b4-10",
+      "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11"
+    ],
+    "harmed": [],
+    "net_pp": 5.357142857142857
+  },
+  {
+    "variant": "raw56",
+    "weight": 0.25,
+    "baseline": "dev56 no reranker weight0.25",
+    "n": 56,
+    "rescued": [
+      "doc2dial-dev-e557d33d054041f0aac44defb1a207ef-12",
+      "doc2dial-dev-fcc47e7aa1e49bd0de037d783936592b-13",
+      "doc2dial-dev-a9e6b11deba64bccfa874f154eef44b4-10",
+      "doc2dial-dev-247f23e580bce66d852b143a622f29d7-12",
+      "doc2dial-dev-0f04d497049c31faebfa20487a25c0f1-12",
+      "doc2dial-dev-b30d73c202844505549d00218083577d-11",
+      "doc2dial-dev-00a4a05f229e5cee83e7b10f2e20873d-12",
+      "doc2dial-dev-4a335b1ca0ddb7d0465b81f2d318afd3-11",
+      "doc2dial-dev-e96c4558ac2013c8f787498f67652362-11",
+      "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11"
+    ],
+    "harmed": [
+      "doc2dial-dev-5899911400e0d2472aff3e4e11142a7c-13",
+      "doc2dial-dev-2be506ef6926fe365c87941f7ef14862-12",
+      "doc2dial-dev-9c7626c8c2aa2b927759e64a2323d8a9-12",
+      "doc2dial-dev-b09922c61586b9398efe4bd77271deef-11",
+      "doc2dial-dev-971be81a501acb52e143a12890772498-10",
+      "doc2dial-dev-3f3aa224b819953746fd223c1e30eb73-16",
+      "doc2dial-dev-0f20051cca23859b571386e82fff9ac8-12",
+      "doc2dial-dev-1ce198bc767426637a333a1adc62e37a-12"
+    ],
+    "net_pp": 3.5714285714285716
+  },
+  {
+    "variant": "chunk384-dev56",
+    "weight": 0.25,
+    "baseline": "dev56 no reranker weight0.25",
+    "n": 56,
+    "rescued": [
+      "doc2dial-dev-fcc47e7aa1e49bd0de037d783936592b-13",
+      "doc2dial-dev-a9e6b11deba64bccfa874f154eef44b4-10",
+      "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11",
+      "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11"
+    ],
+    "harmed": [
+      "doc2dial-dev-b09922c61586b9398efe4bd77271deef-11"
+    ],
+    "net_pp": 5.357142857142857
+  }
+]

@@ -1,0 +1,570 @@
+{
+  "baseline_commit": "5b60455",
+  "cache_hits": [
+    "queries"
+  ],
+  "chunk_count": 482,
+  "chunk_strategy": "structure_aware",
+  "chunk_tokens": 384,
+  "configuration_selection_allowed": true,
+  "context_budget_scope": "evidence text; complete ToolMessage tokens measured separately",
+  "context_tokens": 2600,
+  "document_count": 119,
+  "embedding_max_observed_tokens": 424,
+  "external_inference_api_calls": 0,
+  "final_k": 5,
+  "implementation_sha256": {
+    "evaluation/rag_provider_free.py": "f9c12f35b135c58e274316ae18e6e2b1c1fbf9473e62f79115d2e7c28a47b46f",
+    "mcp/context_packer.py": "cb563e9bdf53490894934a02c233cb271d908b6129cafa2bc80b0ea7c0067506",
+    "mcp/document_chunker.py": "d168cbd71bcfc37877d25acf01db720913b27936de785a5ebf4ec657e825b15a",
+    "mcp/rank_fusion.py": "f91e729cd322bea35aeefb8d3f7715670d43a706984e128b4300f1fa8198c0c7",
+    "mcp/tool_manager.py": "567e683ecba92e88da232eb290b36f9b497f085cabf4ca5d7273b56557c09cbd",
+    "scripts/run_rag_provider_free.py": "8841465c108458f11d60d6dd2df514c0ab68a7e97a8cb58559ce9acad7d227a9"
+  },
+  "input_dataset_manifest": {
+    "case_count": 209,
+    "cases_sha256": "eb290a46c73de9cd0627fe6457d9e22e17065bf2e0b578864b487a4599f82416",
+    "corpus_sha256": "ce4db3f15c1efd3aed1d42f09fe3d22fb10920f913aaf8673058919df061109e",
+    "dataset_id": "doc2dial-rag-long8000-dev-v1",
+    "document_count": 100,
+    "schema_version": 1,
+    "source": {
+      "dataset": "Doc2Dial v1.0.1",
+      "grounding_granularity": "character-span",
+      "license": "CC-BY-3.0",
+      "min_relevant_document_chars": 8000,
+      "selection": "deterministic domain-balanced prefix plus distractors",
+      "url": "https://doc2dial.github.io/file/doc2dial_v1.0.1.zip"
+    }
+  },
+  "local_reranker_identity": {
+    ".gitattributes": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+    "README.md": "c887aa6dd2598f908bf0582ca7068cc816585c7a1b6a07df305b631ede0cb174",
+    "config.json": "13dcd6c31d9fec9d1d8e158702072f62d7fa7d312a64b9fe057bec9a08cfe41a",
+    "model.safetensors": "d9e3e081faff1eefb84019509b2f5558fd74c1a05a2c7db22f74174fcedb5286",
+    "sentencepiece.bpe.model": "cfc8146abe2a0488e9e2a0c56de7952f7c11ab059eca145a0a727afce0db2865",
+    "special_tokens_map.json": "8c785abebea9ae3257b61681b4e6fd8365ceafde980c21970d001e834cf10835",
+    "tokenizer.json": "69564b696052886ed0ac63fa393e928384e0f8caada38c1f4864a9bfbf379c15",
+    "tokenizer_config.json": "7e4c1cc848840aeccdd763458c18dd525eb0f795c992e00ebe9c28554e7db2d4"
+  },
+  "metrics": [
+    {
+      "candidate_complete": 0.875,
+      "case_count": 56,
+      "chunk_complete": 1.0,
+      "corpus_type": "all",
+      "delta_pp": -1.7857142857142858,
+      "dense_weight": 0.0,
+      "harmed": [
+        "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11"
+      ],
+      "packed_complete": 0.6964285714285714,
+      "rescued": [],
+      "selected_complete": 0.6964285714285714,
+      "tool_message_complete": 0.6964285714285714
+    },
+    {
+      "candidate_complete": 0.875,
+      "case_count": 56,
+      "chunk_complete": 1.0,
+      "corpus_type": "all",
+      "delta_pp": 0.0,
+      "dense_weight": 0.25,
+      "harmed": [],
+      "packed_complete": 0.7142857142857143,
+      "rescued": [],
+      "selected_complete": 0.7142857142857143,
+      "tool_message_complete": 0.7142857142857143
+    },
+    {
+      "candidate_complete": 0.9107142857142857,
+      "case_count": 56,
+      "chunk_complete": 1.0,
+      "corpus_type": "all",
+      "delta_pp": -3.5714285714285716,
+      "dense_weight": 0.5,
+      "harmed": [
+        "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-10",
+        "doc2dial-dev-d4cfd673f6cfcced5363949506e31e8c-11",
+        "doc2dial-dev-b3f2ae2fd2ddac2fb7a1a898690a6a8c-11",
+        "doc2dial-dev-4d5350dc20418f7f89900dfa1a61b0cd-9"
+      ],
+      "packed_complete": 0.6785714285714286,
+      "rescued": [
+        "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11",
+        "doc2dial-dev-1ce198bc767426637a333a1adc62e37a-12"
+      ],
+      "selected_complete": 0.6785714285714286,
+      "tool_message_complete": 0.6785714285714286
+    },
+    {
+      "candidate_complete": 0.875,
+      "case_count": 56,
+      "chunk_complete": 1.0,
+      "corpus_type": "all",
+      "delta_pp": -5.357142857142857,
+      "dense_weight": 0.75,
+      "harmed": [
+        "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-10",
+        "doc2dial-dev-d4cfd673f6cfcced5363949506e31e8c-11",
+        "doc2dial-dev-b3f2ae2fd2ddac2fb7a1a898690a6a8c-11",
+        "doc2dial-dev-4d5350dc20418f7f89900dfa1a61b0cd-9",
+        "synthetic:audio-defect"
+      ],
+      "packed_complete": 0.6607142857142857,
+      "rescued": [
+        "doc2dial-dev-2b9a9e5d3fb7afbd0daabf0fb8b00a54-11",
+        "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11"
+      ],
+      "selected_complete": 0.6607142857142857,
+      "tool_message_complete": 0.6607142857142857
+    },
+    {
+      "candidate_complete": 0.875,
+      "case_count": 56,
+      "chunk_complete": 1.0,
+      "corpus_type": "all",
+      "delta_pp": -10.714285714285714,
+      "dense_weight": 1.0,
+      "harmed": [
+        "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-10",
+        "doc2dial-dev-d4cfd673f6cfcced5363949506e31e8c-11",
+        "doc2dial-dev-e8b67b06f57ae86344dcf9f6ff9cac43-11",
+        "doc2dial-dev-b3f2ae2fd2ddac2fb7a1a898690a6a8c-11",
+        "doc2dial-dev-4d5350dc20418f7f89900dfa1a61b0cd-9",
+        "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11",
+        "doc2dial-dev-3f3aa224b819953746fd223c1e30eb73-16",
+        "synthetic:audio-defect"
+      ],
+      "packed_complete": 0.6071428571428571,
+      "rescued": [
+        "doc2dial-dev-2b9a9e5d3fb7afbd0daabf0fb8b00a54-11",
+        "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11"
+      ],
+      "selected_complete": 0.6071428571428571,
+      "tool_message_complete": 0.6071428571428571
+    },
+    {
+      "candidate_complete": 0.8055555555555556,
+      "case_count": 36,
+      "chunk_complete": 1.0,
+      "corpus_type": "public_doc2dial",
+      "delta_pp": -2.7777777777777777,
+      "dense_weight": 0.0,
+      "harmed": [
+        "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11"
+      ],
+      "packed_complete": 0.5277777777777778,
+      "rescued": [],
+      "selected_complete": 0.5277777777777778,
+      "tool_message_complete": 0.5277777777777778
+    },
+    {
+      "candidate_complete": 0.8055555555555556,
+      "case_count": 36,
+      "chunk_complete": 1.0,
+      "corpus_type": "public_doc2dial",
+      "delta_pp": 0.0,
+      "dense_weight": 0.25,
+      "harmed": [],
+      "packed_complete": 0.5555555555555556,
+      "rescued": [],
+      "selected_complete": 0.5555555555555556,
+      "tool_message_complete": 0.5555555555555556
+    },
+    {
+      "candidate_complete": 0.8611111111111112,
+      "case_count": 36,
+      "chunk_complete": 1.0,
+      "corpus_type": "public_doc2dial",
+      "delta_pp": -5.555555555555555,
+      "dense_weight": 0.5,
+      "harmed": [
+        "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-10",
+        "doc2dial-dev-d4cfd673f6cfcced5363949506e31e8c-11",
+        "doc2dial-dev-b3f2ae2fd2ddac2fb7a1a898690a6a8c-11",
+        "doc2dial-dev-4d5350dc20418f7f89900dfa1a61b0cd-9"
+      ],
+      "packed_complete": 0.5,
+      "rescued": [
+        "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11",
+        "doc2dial-dev-1ce198bc767426637a333a1adc62e37a-12"
+      ],
+      "selected_complete": 0.5,
+      "tool_message_complete": 0.5
+    },
+    {
+      "candidate_complete": 0.8055555555555556,
+      "case_count": 36,
+      "chunk_complete": 1.0,
+      "corpus_type": "public_doc2dial",
+      "delta_pp": -5.555555555555555,
+      "dense_weight": 0.75,
+      "harmed": [
+        "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-10",
+        "doc2dial-dev-d4cfd673f6cfcced5363949506e31e8c-11",
+        "doc2dial-dev-b3f2ae2fd2ddac2fb7a1a898690a6a8c-11",
+        "doc2dial-dev-4d5350dc20418f7f89900dfa1a61b0cd-9"
+      ],
+      "packed_complete": 0.5,
+      "rescued": [
+        "doc2dial-dev-2b9a9e5d3fb7afbd0daabf0fb8b00a54-11",
+        "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11"
+      ],
+      "selected_complete": 0.5,
+      "tool_message_complete": 0.5
+    },
+    {
+      "candidate_complete": 0.8055555555555556,
+      "case_count": 36,
+      "chunk_complete": 1.0,
+      "corpus_type": "public_doc2dial",
+      "delta_pp": -13.88888888888889,
+      "dense_weight": 1.0,
+      "harmed": [
+        "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-10",
+        "doc2dial-dev-d4cfd673f6cfcced5363949506e31e8c-11",
+        "doc2dial-dev-e8b67b06f57ae86344dcf9f6ff9cac43-11",
+        "doc2dial-dev-b3f2ae2fd2ddac2fb7a1a898690a6a8c-11",
+        "doc2dial-dev-4d5350dc20418f7f89900dfa1a61b0cd-9",
+        "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11",
+        "doc2dial-dev-3f3aa224b819953746fd223c1e30eb73-16"
+      ],
+      "packed_complete": 0.4166666666666667,
+      "rescued": [
+        "doc2dial-dev-2b9a9e5d3fb7afbd0daabf0fb8b00a54-11",
+        "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11"
+      ],
+      "selected_complete": 0.4166666666666667,
+      "tool_message_complete": 0.4166666666666667
+    },
+    {
+      "candidate_complete": 1.0,
+      "case_count": 20,
+      "chunk_complete": 1.0,
+      "corpus_type": "synthetic_ecommerce",
+      "delta_pp": 0.0,
+      "dense_weight": 0.0,
+      "harmed": [],
+      "packed_complete": 1.0,
+      "rescued": [],
+      "selected_complete": 1.0,
+      "tool_message_complete": 1.0
+    },
+    {
+      "candidate_complete": 1.0,
+      "case_count": 20,
+      "chunk_complete": 1.0,
+      "corpus_type": "synthetic_ecommerce",
+      "delta_pp": 0.0,
+      "dense_weight": 0.25,
+      "harmed": [],
+      "packed_complete": 1.0,
+      "rescued": [],
+      "selected_complete": 1.0,
+      "tool_message_complete": 1.0
+    },
+    {
+      "candidate_complete": 1.0,
+      "case_count": 20,
+      "chunk_complete": 1.0,
+      "corpus_type": "synthetic_ecommerce",
+      "delta_pp": 0.0,
+      "dense_weight": 0.5,
+      "harmed": [],
+      "packed_complete": 1.0,
+      "rescued": [],
+      "selected_complete": 1.0,
+      "tool_message_complete": 1.0
+    },
+    {
+      "candidate_complete": 1.0,
+      "case_count": 20,
+      "chunk_complete": 1.0,
+      "corpus_type": "synthetic_ecommerce",
+      "delta_pp": -5.0,
+      "dense_weight": 0.75,
+      "harmed": [
+        "synthetic:audio-defect"
+      ],
+      "packed_complete": 0.95,
+      "rescued": [],
+      "selected_complete": 0.95,
+      "tool_message_complete": 0.95
+    },
+    {
+      "candidate_complete": 1.0,
+      "case_count": 20,
+      "chunk_complete": 1.0,
+      "corpus_type": "synthetic_ecommerce",
+      "delta_pp": -5.0,
+      "dense_weight": 1.0,
+      "harmed": [
+        "synthetic:audio-defect"
+      ],
+      "packed_complete": 0.95,
+      "rescued": [],
+      "selected_complete": 0.95,
+      "tool_message_complete": 0.95
+    }
+  ],
+  "model_identity": {
+    "encoding": "bge-m3-dense-full-v1",
+    "fp16": true,
+    "max_length": 8192,
+    "model_files": {
+      "colbert_linear.pt": "19bfbae397c2b7524158c919d0e9b19393c5639d098f0a66932c91ed8f5f9abb",
+      "config.json": "26159e7ad065073448460117eb24b7a4572f6f4e78eadff65dc0a11c052449fa",
+      "config_sentence_transformers.json": "1eef72430e7194a1e59680e635aed81ffa083f05668dbc5bb1c56c04c0999c38",
+      "modules.json": "84e40c8e006c9b1d6c122e02cba9b02458120b5fb0c87b746c41e0207cf642cf",
+      "pytorch_model.bin": "b5e0ce3470abf5ef3831aa1bd5553b486803e83251590ab7ff35a117cf6aad38",
+      "sentence_bert_config.json": "eb9b44b13c0f52a3b3685c3b1cbdea1ba8b04bea123b98f61610048940776eb1",
+      "sentencepiece.bpe.model": "cfc8146abe2a0488e9e2a0c56de7952f7c11ab059eca145a0a727afce0db2865",
+      "sparse_linear.pt": "45c93804d2142b8f6d7ec6914ae23a1eee9c6a1d27d83d908a20d2afb3595ad9",
+      "special_tokens_map.json": "8c785abebea9ae3257b61681b4e6fd8365ceafde980c21970d001e834cf10835",
+      "tokenizer.json": "21106b6d7dab2952c1d496fb21d5dc9db75c28ed361a05f5020bbba27810dd08",
+      "tokenizer_config.json": "a62b2b6784f990259fddef5f16388693a8043be4f69179e6a5257eeb3f9abac4"
+    },
+    "model_path": "/home/yang/.cache/huggingface/hub/models--BAAI--bge-m3/snapshots/5617a9f61b028005a4858fdac845db406aefb181"
+  },
+  "network_disabled": true,
+  "overlap": 48,
+  "projection": {
+    "boundary_fragmentation_rate": 0.0,
+    "chunks_per_document": 4.050420168067227,
+    "document_grounding_count": 0.0,
+    "duplicate_char_ratio": 0.12003257300831788,
+    "evidence_containment_rate": 1.0,
+    "evidence_count": 77.0,
+    "grounding_count": 77.0,
+    "index_amplification": 1.1200325730083178
+  },
+  "public_cases": 36,
+  "query_max_observed_tokens": 200,
+  "query_mode": "history",
+  "rerank_ms": 13839.031025767326,
+  "reranked_metrics": [
+    {
+      "candidate_complete": 0.875,
+      "case_count": 56,
+      "chunk_complete": 1.0,
+      "corpus_type": "all",
+      "delta_pp": 0.0,
+      "dense_weight": 0.0,
+      "harmed": [],
+      "packed_complete": 0.8035714285714286,
+      "rescued": [],
+      "selected_complete": 0.8035714285714286,
+      "tool_message_complete": 0.8035714285714286
+    },
+    {
+      "candidate_complete": 0.875,
+      "case_count": 56,
+      "chunk_complete": 1.0,
+      "corpus_type": "all",
+      "delta_pp": 0.0,
+      "dense_weight": 0.25,
+      "harmed": [],
+      "packed_complete": 0.8035714285714286,
+      "rescued": [],
+      "selected_complete": 0.8035714285714286,
+      "tool_message_complete": 0.8035714285714286
+    },
+    {
+      "candidate_complete": 0.9107142857142857,
+      "case_count": 56,
+      "chunk_complete": 1.0,
+      "corpus_type": "all",
+      "delta_pp": 0.0,
+      "dense_weight": 0.5,
+      "harmed": [],
+      "packed_complete": 0.8035714285714286,
+      "rescued": [],
+      "selected_complete": 0.8035714285714286,
+      "tool_message_complete": 0.8035714285714286
+    },
+    {
+      "candidate_complete": 0.875,
+      "case_count": 56,
+      "chunk_complete": 1.0,
+      "corpus_type": "all",
+      "delta_pp": -1.7857142857142858,
+      "dense_weight": 0.75,
+      "harmed": [
+        "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-10"
+      ],
+      "packed_complete": 0.7857142857142857,
+      "rescued": [],
+      "selected_complete": 0.7857142857142857,
+      "tool_message_complete": 0.7857142857142857
+    },
+    {
+      "candidate_complete": 0.875,
+      "case_count": 56,
+      "chunk_complete": 1.0,
+      "corpus_type": "all",
+      "delta_pp": -1.7857142857142858,
+      "dense_weight": 1.0,
+      "harmed": [
+        "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-10"
+      ],
+      "packed_complete": 0.7857142857142857,
+      "rescued": [],
+      "selected_complete": 0.7857142857142857,
+      "tool_message_complete": 0.7857142857142857
+    },
+    {
+      "candidate_complete": 0.8055555555555556,
+      "case_count": 36,
+      "chunk_complete": 1.0,
+      "corpus_type": "public_doc2dial",
+      "delta_pp": 0.0,
+      "dense_weight": 0.0,
+      "harmed": [],
+      "packed_complete": 0.6944444444444444,
+      "rescued": [],
+      "selected_complete": 0.6944444444444444,
+      "tool_message_complete": 0.6944444444444444
+    },
+    {
+      "candidate_complete": 0.8055555555555556,
+      "case_count": 36,
+      "chunk_complete": 1.0,
+      "corpus_type": "public_doc2dial",
+      "delta_pp": 0.0,
+      "dense_weight": 0.25,
+      "harmed": [],
+      "packed_complete": 0.6944444444444444,
+      "rescued": [],
+      "selected_complete": 0.6944444444444444,
+      "tool_message_complete": 0.6944444444444444
+    },
+    {
+      "candidate_complete": 0.8611111111111112,
+      "case_count": 36,
+      "chunk_complete": 1.0,
+      "corpus_type": "public_doc2dial",
+      "delta_pp": 0.0,
+      "dense_weight": 0.5,
+      "harmed": [],
+      "packed_complete": 0.6944444444444444,
+      "rescued": [],
+      "selected_complete": 0.6944444444444444,
+      "tool_message_complete": 0.6944444444444444
+    },
+    {
+      "candidate_complete": 0.8055555555555556,
+      "case_count": 36,
+      "chunk_complete": 1.0,
+      "corpus_type": "public_doc2dial",
+      "delta_pp": -2.7777777777777777,
+      "dense_weight": 0.75,
+      "harmed": [
+        "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-10"
+      ],
+      "packed_complete": 0.6666666666666666,
+      "rescued": [],
+      "selected_complete": 0.6666666666666666,
+      "tool_message_complete": 0.6666666666666666
+    },
+    {
+      "candidate_complete": 0.8055555555555556,
+      "case_count": 36,
+      "chunk_complete": 1.0,
+      "corpus_type": "public_doc2dial",
+      "delta_pp": -2.7777777777777777,
+      "dense_weight": 1.0,
+      "harmed": [
+        "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-10"
+      ],
+      "packed_complete": 0.6666666666666666,
+      "rescued": [],
+      "selected_complete": 0.6666666666666666,
+      "tool_message_complete": 0.6666666666666666
+    },
+    {
+      "candidate_complete": 1.0,
+      "case_count": 20,
+      "chunk_complete": 1.0,
+      "corpus_type": "synthetic_ecommerce",
+      "delta_pp": 0.0,
+      "dense_weight": 0.0,
+      "harmed": [],
+      "packed_complete": 1.0,
+      "rescued": [],
+      "selected_complete": 1.0,
+      "tool_message_complete": 1.0
+    },
+    {
+      "candidate_complete": 1.0,
+      "case_count": 20,
+      "chunk_complete": 1.0,
+      "corpus_type": "synthetic_ecommerce",
+      "delta_pp": 0.0,
+      "dense_weight": 0.25,
+      "harmed": [],
+      "packed_complete": 1.0,
+      "rescued": [],
+      "selected_complete": 1.0,
+      "tool_message_complete": 1.0
+    },
+    {
+      "candidate_complete": 1.0,
+      "case_count": 20,
+      "chunk_complete": 1.0,
+      "corpus_type": "synthetic_ecommerce",
+      "delta_pp": 0.0,
+      "dense_weight": 0.5,
+      "harmed": [],
+      "packed_complete": 1.0,
+      "rescued": [],
+      "selected_complete": 1.0,
+      "tool_message_complete": 1.0
+    },
+    {
+      "candidate_complete": 1.0,
+      "case_count": 20,
+      "chunk_complete": 1.0,
+      "corpus_type": "synthetic_ecommerce",
+      "delta_pp": 0.0,
+      "dense_weight": 0.75,
+      "harmed": [],
+      "packed_complete": 1.0,
+      "rescued": [],
+      "selected_complete": 1.0,
+      "tool_message_complete": 1.0
+    },
+    {
+      "candidate_complete": 1.0,
+      "case_count": 20,
+      "chunk_complete": 1.0,
+      "corpus_type": "synthetic_ecommerce",
+      "delta_pp": 0.0,
+      "dense_weight": 1.0,
+      "harmed": [],
+      "packed_complete": 1.0,
+      "rescued": [],
+      "selected_complete": 1.0,
+      "tool_message_complete": 1.0
+    }
+  ],
+  "schema_version": "rag-provider-free-v1",
+  "scope": "LOCAL_PIPELINE_REPLAY_NOT_LIVE_AGENT",
+  "source_k": 20,
+  "status": "DEVELOPMENT_DIAGNOSTIC",
+  "synthetic_cases": 20,
+  "synthetic_fixture_sha256": "a7a0674f657d9967e66f1e89cfedec5e36f38cb5c438aa4372816cd6577f7ea6",
+  "timings": {
+    "documents_encoding_or_cache_ms": 5011.121209710836,
+    "exact_dense_and_python_bm25_ms": 358.45858231186867,
+    "queries_encoding_or_cache_ms": 0.1924913376569748
+  },
+  "unmeasured": [
+    "live_agent_query_rewrite",
+    "production_embedding",
+    "postgres_ann_latency",
+    "reranker",
+    "final_answer",
+    "business_tool_routing"
+  ]
+}

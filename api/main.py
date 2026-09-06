@@ -483,11 +483,16 @@ async def lifespan(app: FastAPI):
     _retrieval_cache_client = redis.Redis.from_url(
         os.getenv("REDIS_URL", "redis://redis:6379/0"), decode_responses=False,
     )
+    rag_parallel = os.getenv("RAG_RETRIEVAL_PARALLEL", "false").strip().lower()
+    if rag_parallel not in {"true", "false"}:
+        raise ValueError("RAG_RETRIEVAL_PARALLEL must be true or false")
     knowledge_candidate_source = PostgresKnowledgeCandidateSource(
         backend=PostgresHybridBackend(_retrieval_postgres_pool),
         generations=PostgresRetrievalGenerationRegistry(_postgres_pool),
         pool=_retrieval_postgres_pool,
         embed_query=_knowledge_store.embed_query,
+        parallel=rag_parallel == "true",
+        deadline_seconds=float(os.getenv("RAG_RETRIEVAL_DEADLINE_SECONDS", "3")),
     )
     _knowledge_retriever = KnowledgeRetriever(
         candidate_source=knowledge_candidate_source,
@@ -716,6 +721,7 @@ async def lifespan(app: FastAPI):
             await _memory.close()
         if _retrieval_cache_client is not None:
             await asyncio.to_thread(_retrieval_cache_client.close)
+        await asyncio.to_thread(knowledge_candidate_source.close)
         if _retrieval_postgres_pool is not None:
             _retrieval_postgres_pool.close()
         _trace_recorder.close()
