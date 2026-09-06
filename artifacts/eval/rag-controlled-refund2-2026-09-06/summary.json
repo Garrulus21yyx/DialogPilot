@@ -1,0 +1,31 @@
+{
+  "scope": "two consumed development mixed-entry cases; controlled refund subset only",
+  "capture_sha256": "22f03c4311a263b45d432ed04fd6692c447256c2e78d66bbc2b2cb513c1a7556",
+  "api_calls": 7,
+  "results": [
+    {
+      "case_id": "refund-state",
+      "api_calls": 3,
+      "all_models_flash": true,
+      "selected_fact_refs": [
+        "T2cbdbefea04dc041612a",
+        "T5b60aa682ca2933c4878"
+      ],
+      "server_text_preserved": true,
+      "answer": "订单 DP9302 在本系统当前未记录到归属于您的退款申请。\n无法从当前系统记录确认退款是否已经到账。",
+      "synthesis_reason": "ANSWER_SUPPORT_CHECKED"
+    },
+    {
+      "case_id": "refund-both",
+      "api_calls": 4,
+      "all_models_flash": true,
+      "selected_fact_refs": [
+        "T039a19114b8513f91d26",
+        "T357fbacd21d782ad0c14"
+      ],
+      "server_text_preserved": true,
+      "answer": "订单 DP9302 在本系统当前未记录到归属于您的退款申请。\n无法从当前系统记录确认退款是否已经到账。\n关于一般规则：对于质量问题，需先检查连接和音量，仍有故障的需提交购买凭证及故障视频申请质量审核。质量审核通过不代表退款已经到账，退款到账以实际款项到账为准。 [Eebeb41c965f4] [E635772b1376a]",
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED"
+    }
+  ]
+}

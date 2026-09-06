@@ -110,7 +110,7 @@ async def run(args):
                 if verifier:
                     packs=[c.value for c in claims if c.kind=='KNOWLEDGE_FACT']
                     verdict=await verifier.verify(payload['current_message'],text,
-                        context=json.dumps({'facts':[c.value for c in claims if c.kind=='FACT'],
+                        context=json.dumps({'facts':[c.value for c in claims if c.kind in ('FACT', 'CONTROLLED_REFUND_FACT')],
                                             'receipts':[c.value for c in claims if c.kind=='RECEIPT'],
                                             **({'user_context': payload['conversation_context']} if payload.get('conversation_context') is not None else {})},ensure_ascii=False),
                         knowledge_evidence={'packs':packs,'allowed_evidence_ids':sorted({e['evidence_id'] for p in packs for e in p['evidence']})},

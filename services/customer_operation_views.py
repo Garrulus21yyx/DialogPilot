@@ -57,3 +57,39 @@ def refund_lookup_read_view(observation):
         'lookup_status': 'FOUND 表示找到归属于当前用户的退款申请。NO_APPLICATION 仅用于普通订单查询，表示有权访问的订单在本系统当前未记录退款申请，不证明外部退款不存在、退款未到账或用户无权申请退款。',
     }
     return data
+
+
+class UnsupportedRefundObservation(ValueError):
+    """The captured refund observation does not satisfy the display contract."""
+
+
+def refund_lookup_statements(data):
+    """Render the supported refund observation; no eligibility or payment inference.
+
+    Called only for an authoritative refund.current_state fact. Caller-side
+    projections must not infer this fact type from similarly named fields.
+    """
+    if not isinstance(data, dict):
+        raise UnsupportedRefundObservation('refund observation must be an object')
+    order_id = data.get('order_id')
+    if not isinstance(order_id, str) or not order_id.strip():
+        raise UnsupportedRefundObservation('refund observation requires order identity')
+    if data.get('lookup_status') == 'NO_APPLICATION':
+        if type(data.get('order_version')) is not int or data['order_version'] < 1:
+            raise UnsupportedRefundObservation('absence requires observed order version')
+        if any(k in data for k in ('refund_id', 'status')):
+            raise UnsupportedRefundObservation('absence cannot contain an application state')
+        return (
+            ('lookup', f'订单 {order_id} 在本系统当前未记录到归属于您的退款申请。'),
+            ('arrival', '无法从当前系统记录确认退款是否已经到账。'),
+        )
+    if data.get('lookup_status') == 'FOUND':
+        labels = {'requested': '已申请', 'reviewing': '审核中', 'approved': '已批准',
+                  'rejected': '已拒绝', 'refunded': '已退款'}
+        refund_id, status = data.get('refund_id'), data.get('status')
+        if not isinstance(refund_id, str) or not refund_id.strip() or status not in labels:
+            raise UnsupportedRefundObservation('found refund requires known application identity and state')
+        return (
+            ('lookup', f'订单 {order_id} 的退款申请 {refund_id} 在本系统的记录状态为“{labels[status]}”。'),
+        )
+    raise UnsupportedRefundObservation('unsupported refund observation state')

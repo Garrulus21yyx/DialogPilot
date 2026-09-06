@@ -16,12 +16,15 @@ def support_catalog(claims):
         raise ValueError('composition requires unique claim identities')
     catalog = []
     for claim in sorted(rows, key=lambda c: c['claim_id']):
+        if (claim['kind'] == 'WORK_ITEM_OUTCOME' and isinstance(claim.get('value'), dict)
+                and claim['value'].get('render_mode') == 'server_notice'):
+            continue
         if claim['kind'] == 'KNOWLEDGE_FACT':
             evidence = [e['evidence_id'] for e in claim['value']['evidence']]
             if any(not isinstance(e, str) or not e.strip() for e in evidence) or len(evidence) != len(set(evidence)):
                 raise ValueError('knowledge claim requires unique evidence identities')
             evidence = sorted(evidence)
-        elif claim['kind'] in {'FACT', 'RECEIPT', 'WORK_ITEM_OUTCOME'}:
+        elif claim['kind'] in {'FACT', 'CONTROLLED_REFUND_FACT', 'RECEIPT', 'WORK_ITEM_OUTCOME'}:
             evidence = [None]
         else:
             raise ValueError('unsupported composition claim kind')
@@ -35,6 +38,23 @@ def support_catalog(claims):
     return catalog
 
 
+
+def statement_catalog(claims):
+    from services.customer_operation_views import refund_lookup_statements
+    rows = [asdict(c) if not isinstance(c, dict) else c for c in claims]
+    supports = {s['claim_id']: s['support_id'] for s in support_catalog(rows)}
+    catalog = []
+    for claim in sorted(rows, key=lambda c: c['claim_id']):
+        if claim['kind'] != 'CONTROLLED_REFUND_FACT':
+            continue
+        for key, text in refund_lookup_statements(claim['value']):
+            identity = json.dumps([supports[claim['claim_id']], key, text], ensure_ascii=False)
+            catalog.append({'statement_id': 'T' + hashlib.sha256(identity.encode()).hexdigest()[:20],
+                            'text': text, 'claim_id': claim['claim_id'],
+                            'support_ids': [supports[claim['claim_id']]]})
+    return catalog
+
+
 def prepare_composition_payload(payload):
     """Capture the exact map next to the immutable facts before model budgeting."""
     value = copy.deepcopy(dict(payload))
@@ -43,18 +63,35 @@ def prepare_composition_payload(payload):
         raise ValueError('captured support catalog disagrees with claims')
     value['schema_version'] = 'conversation-compose-request-v3-supports'
     value['support_catalog'] = catalog
+    statements = statement_catalog(value['allowed_claims'])
+    if 'statement_catalog' in value and value['statement_catalog'] != statements:
+        raise ValueError('captured statements disagree with authoritative facts')
+    if statements:
+        value['schema_version'] = 'conversation-compose-request-v4-fact-refs'
+        value['statement_catalog'] = statements
     return value
 
 
 def composition_schema(claims):
-    ids = [row['support_id'] for row in support_catalog(claims)]
+    rows = [asdict(c) if not isinstance(c, dict) else c for c in claims]
+    controlled = {c['claim_id'] for c in rows if c['kind'] == 'CONTROLLED_REFUND_FACT'}
+    ids = [row['support_id'] for row in support_catalog(rows) if row['claim_id'] not in controlled]
+    variants = []
+    if ids:
+        variants.append({'type': 'object', 'additionalProperties': False,
+            'required': ['text', 'support_ids'], 'properties': {
+                'text': {'type': 'string', 'minLength': 1},
+                'support_ids': {'type': 'array', 'minItems': 1, 'uniqueItems': True,
+                               'items': {'type': 'string', 'enum': ids}}}})
+    statements = statement_catalog(rows)
+    if statements:
+        variants.append({'type': 'object', 'additionalProperties': False,
+            'required': ['type', 'statement_id'], 'properties': {
+                'type': {'const': 'fact_ref'},
+                'statement_id': {'type': 'string', 'enum': [s['statement_id'] for s in statements]}}})
     return {'type': 'object', 'additionalProperties': False, 'required': ['segments'],
             'properties': {'segments': {'type': 'array', 'minItems': 1, 'maxItems': 20,
-                'items': {'type': 'object', 'additionalProperties': False,
-                    'required': ['text', 'support_ids'], 'properties': {
-                        'text': {'type': 'string', 'minLength': 1},
-                        'support_ids': {'type': 'array', 'minItems': 1, 'uniqueItems': True,
-                                        'items': {'type': 'string', 'enum': ids}}}}}}}
+                            'items': {'oneOf': variants}}}}
 
 
 def validate_composition(value):
@@ -63,6 +100,10 @@ def validate_composition(value):
     if not isinstance(value['segments'], list) or not 1 <= len(value['segments']) <= 20:
         raise ValueError('composition requires bounded segments')
     for segment in value['segments']:
+        if isinstance(segment, dict) and segment.get('type') == 'fact_ref':
+            if set(segment) != {'type', 'statement_id'} or not isinstance(segment['statement_id'], str) or not segment['statement_id']:
+                raise ValueError('fact_ref requires only statement identity')
+            continue
         if not isinstance(segment, dict) or set(segment) != {'text', 'support_ids'}:
             raise ValueError('composition requires text and support_ids')
         if not isinstance(segment['text'], str) or not segment['text'].strip():
@@ -80,9 +121,21 @@ def render_composition(value, claims):
     value = validate_composition(value)
     catalog = support_catalog(claims)
     supports = {row['support_id']: row for row in catalog}
-    internal_ids = set(supports) | {row['claim_id'] for row in catalog}
+    statements = {s['statement_id']: s for s in statement_catalog(claims)}
+    controlled = {s['support_ids'][0] for s in statements.values()}
+    internal_ids = set(statements) | set(supports) | {row['claim_id'] for row in catalog}
     texts, used = [], []
     for segment in value['segments']:
+        if segment.get('type') == 'fact_ref':
+            statement = statements.get(segment['statement_id'])
+            if statement is None:
+                raise ValueError('unknown or stale statement identity')
+            texts.append(statement['text'])
+            if statement['claim_id'] not in used:
+                used.append(statement['claim_id'])
+            continue
+        if set(segment['support_ids']) & controlled:
+            raise ValueError('controlled facts require server-rendered references')
         if set(segment['support_ids']) - supports.keys():
             raise ValueError('unknown support identity')
         if any(identifier in segment['text'] for identifier in internal_ids):

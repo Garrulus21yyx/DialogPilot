@@ -50,7 +50,7 @@ class ConversationComposer(Protocol):
 class ResponseAssembler:
     """Choose the cheapest valid response path and verify the final candidate."""
 
-    version = "response-assembler-v4-support-selection"
+    version = "response-assembler-v5-controlled-refund"
 
     def __init__(self, composer: ConversationComposer | None = None, *,
                  knowledge_generator=None, knowledge_verifier=None, knowledge_source_validator=None) -> None:
@@ -299,6 +299,10 @@ class ResponseAssembler:
             result = board.results[0]
             if result.action_receipts:
                 return ResponseAssemblyMode.TEMPLATE
+            from application.agent_result import FactSourceKind
+            if any(f.requirement_id == "refund.current_state"
+                   and f.source_kind is FactSourceKind.VERIFIED_STATE for f in result.facts):
+                return ResponseAssemblyMode.CONVERSATION_COMPOSE
             if (
                 result.status in _SUCCESS
                 and _candidate_text(result)
@@ -335,22 +339,29 @@ class ResponseAssembler:
 def _allowed_claims(board) -> tuple[AllowedClaim, ...]:
     claims = []
     for result in board.results:
+        from application.agent_result import FactSourceKind
+        controlled_refund = any(f.requirement_id == "refund.current_state"
+            and f.source_kind is FactSourceKind.VERIFIED_STATE for f in result.facts)
         outcome_id = f"outcome:{result.work_item_id}"
-        claims.append(AllowedClaim(
-            outcome_id,
-            "WORK_ITEM_OUTCOME",
-            {
-                "owner_agent": result.owner_agent,
-                "status": result.status.value,
-                "reason_code": result.reason_code,
-                "summary": _candidate_text(result) or None,
-            },
-            result.evidence_refs,
-        ))
+        if not (controlled_refund and result.status is AgentResultStatus.SUCCEEDED):
+            claims.append(AllowedClaim(
+                outcome_id,
+                "WORK_ITEM_OUTCOME",
+                {
+                    "owner_agent": result.owner_agent,
+                    "status": result.status.value,
+                    "reason_code": result.reason_code,
+                    "summary": None if controlled_refund else (_candidate_text(result) or None),
+                    **({"render_mode": "server_notice"} if controlled_refund else {}),
+                },
+                result.evidence_refs,
+            ))
         for index, fact in enumerate(result.facts, start=1):
             claims.append(AllowedClaim(
                 f"fact:{result.work_item_id}:{index}",
-                "KNOWLEDGE_FACT" if fact.requirement_id == "knowledge.active_source" else "FACT",
+                "KNOWLEDGE_FACT" if fact.requirement_id == "knowledge.active_source" else
+                "CONTROLLED_REFUND_FACT" if fact.requirement_id == "refund.current_state"
+                and fact.source_kind is FactSourceKind.VERIFIED_STATE else "FACT",
                 _fact_view(fact),
                 (fact.source_ref,),
             ))
@@ -429,6 +440,12 @@ def _render_verified_facts(result) -> str:
         if fact.source_kind is not FactSourceKind.VERIFIED_STATE:
             continue
         value = json.loads(fact.value_json)
+        if fact.requirement_id == "refund.current_state":
+            from services.customer_operation_views import refund_lookup_statements, UnsupportedRefundObservation
+            try:
+                texts.extend(text for _, text in refund_lookup_statements(value))
+            except UnsupportedRefundObservation:
+                texts.append("当前退款查询结果格式无法确认，请重新查询。")
         if fact.requirement_id == "order.current_state" and isinstance(value, dict):
             order_id, status = value.get("order_id"), value.get("status")
             if isinstance(order_id, str) and _REFERENCE.fullmatch(order_id) and isinstance(status, str) and status in statuses:

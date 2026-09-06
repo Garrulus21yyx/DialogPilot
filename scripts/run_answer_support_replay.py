@@ -36,7 +36,7 @@ async def run(args):
             p=row['input'];claims=p['allowed_claims'];packs=[c['value'] for c in claims if c['kind']=='KNOWLEDGE_FACT']
             before=len(client.calls)
             verdict=await verifier.verify(p['current_message'],row['rendered'],
-                context=json.dumps({'facts':[c['value'] for c in claims if c['kind']=='FACT'],
+                context=json.dumps({'facts':[c['value'] for c in claims if c['kind'] in ('FACT', 'CONTROLLED_REFUND_FACT')],
                                     'receipts':[c['value'] for c in claims if c['kind']=='RECEIPT'],
                                     **({'user_context':p['conversation_context']} if p.get('conversation_context') is not None else {})},ensure_ascii=False),
                 knowledge_evidence={'packs':packs,'allowed_evidence_ids':sorted({e['evidence_id'] for p in packs for e in p['evidence']})},

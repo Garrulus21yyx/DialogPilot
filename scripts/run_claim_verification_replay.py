@@ -36,7 +36,7 @@ async def run(args):
             p=row['input'];claims=p['allowed_claims']
             # Match the evidence content of the baseline replay, including context.
             packs=[c['value'] for c in claims if c['kind']=='KNOWLEDGE_FACT']
-            evidence={'context':{'facts':[c['value'] for c in claims if c['kind']=='FACT'],
+            evidence={'context':{'facts':[c['value'] for c in claims if c['kind'] in ('FACT', 'CONTROLLED_REFUND_FACT')],
                         'receipts':[c['value'] for c in claims if c['kind']=='RECEIPT'],
                         **({'user_context':p['conversation_context']} if p.get('conversation_context') is not None else {})},
                       'knowledge_evidence':{'packs':packs,'allowed_evidence_ids':sorted({
