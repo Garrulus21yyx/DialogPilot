@@ -1,0 +1,30 @@
+{
+  "scope": "manual development review by coding agent; not independent answer accuracy labels",
+  "results": [
+    {
+      "case_id": "expanded-opened-audio",
+      "assessment": "核心非质量拆封条件回答正确，附加未拆封、签收和质量问题说明，相关性不足"
+    },
+    {
+      "case_id": "expanded-audio-defect",
+      "assessment": "退款状态工具合理；正确限制为本系统未查到申请、无法确认到账，但未明确解释质量审核通过不等于到账，政策关系子问题覆盖不足"
+    },
+    {
+      "case_id": "expanded-gift-return",
+      "assessment": "正确指出赠品已使用需核实规则、不能承诺全额退款；额外eligibility读取和无法提交退款表述超出本轮政策咨询必要范围，未执行写操作"
+    },
+    {
+      "case_id": "expanded-battery-install",
+      "assessment": "正确保留型号未知、不能试装、B20只适配M20不适配M10"
+    },
+    {
+      "case_id": "expanded-preorder",
+      "assessment": "明确已支付不代表发货，未把订单状态与政策混为一谈"
+    },
+    {
+      "case_id": "expanded-elliptic",
+      "assessment": "明确消解不是为非质量原因，正确应用拆封例外；附加质量审核、运费和寄回流程较长"
+    }
+  ],
+  "next_diagnosis": "检查统一计划是否覆盖用户每个信息需求，以及生成层如何从已有证据中选择与当前问题有关的结论；保持业务状态与政策依据各自来源，不按工具名强制答案判定。"
+}

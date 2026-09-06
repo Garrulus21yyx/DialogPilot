@@ -1,0 +1,49 @@
+{
+  "scope": "descriptive paired stage signals; not answer accuracy or isolated causal attribution",
+  "definitions_sha256": "3a9af2bf2c72590618392e768f7fb169ca5044097cf157e2b272abdf85157ea4",
+  "before_capture_sha256": "d16a5a48a16e7c01e6eca3caee8798a4ad399f75d71427cb5e997ee8e7debc97",
+  "after_capture_sha256": "0fd9cee7548b6d27e3f9aa90a560d9d4c6e1f8fdefaefa0bdf1015dbf627c766",
+  "cases": 6,
+  "metrics": {
+    "expected_tool_coverage": {
+      "before": 5,
+      "after": 5,
+      "rescued": [],
+      "harmed": [],
+      "delta_pp": 0.0
+    },
+    "expected_source_visible": {
+      "before": 5,
+      "after": 5,
+      "rescued": [],
+      "harmed": [],
+      "delta_pp": 0.0
+    },
+    "expected_source_cited": {
+      "before": 4,
+      "after": 5,
+      "rescued": [
+        "expanded-elliptic"
+      ],
+      "harmed": [],
+      "delta_pp": 16.666666666666668
+    },
+    "knowledge_support_checked": {
+      "before": 4,
+      "after": 5,
+      "rescued": [
+        "expanded-elliptic"
+      ],
+      "harmed": [],
+      "delta_pp": 16.666666666666668
+    }
+  },
+  "api_calls": {
+    "before": 22,
+    "after": 23
+  },
+  "summary_sha256": [
+    "e7820ba72894c8888c739e96a2a88813538a85d55131c66efe8ba57ea76c7f41",
+    "3caa47e52191a9a43a219e0606ca530c5c31f4bd1cb9c68b71bc8f1ed0c81ca7"
+  ]
+}
