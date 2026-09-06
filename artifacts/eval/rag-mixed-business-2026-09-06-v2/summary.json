@@ -1,0 +1,87 @@
+{
+  "scope": "five synthetic development cases; not heldout or HTTP E2E",
+  "cases": 5,
+  "raw_capture_sha256": "942c035b36234ceff17905450dc56f8ca4bd7fd1300e633a2ad8e2b45f2f5989",
+  "setup_manifest_note": "manifest.json case_definitions describe the 20-case source fixture; actual executed five cases are in mixed-manifest.json. Original capture preserved.",
+  "results": [
+    {
+      "case_id": "shipping",
+      "outcome_type": "Completed",
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "synthesis_reason": "KNOWLEDGE_SAFE_ABSTENTION",
+      "api_calls": 3,
+      "stop_reasons": [
+        "end_turn",
+        "tool_use",
+        "max_tokens"
+      ]
+    },
+    {
+      "case_id": "paid",
+      "outcome_type": "Completed",
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "api_calls": 4,
+      "stop_reasons": [
+        "end_turn",
+        "tool_use",
+        "end_turn",
+        "end_turn"
+      ]
+    },
+    {
+      "case_id": "delivered",
+      "outcome_type": "Completed",
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "api_calls": 4,
+      "stop_reasons": [
+        "end_turn",
+        "tool_use",
+        "end_turn",
+        "end_turn"
+      ]
+    },
+    {
+      "case_id": "reference",
+      "outcome_type": "Completed",
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "api_calls": 4,
+      "stop_reasons": [
+        "end_turn",
+        "tool_use",
+        "end_turn",
+        "end_turn"
+      ]
+    },
+    {
+      "case_id": "missing",
+      "outcome_type": "Completed",
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "synthesis_reason": "KNOWLEDGE_SAFE_ABSTENTION",
+      "api_calls": 4,
+      "stop_reasons": [
+        "end_turn",
+        "tool_use",
+        "tool_use",
+        "end_turn"
+      ]
+    }
+  ]
+}

@@ -10,7 +10,8 @@ from typing import Mapping, Protocol
 from application.agent_result import AgentResultStatus
 
 
-_REFERENCE = re.compile(r"\b[A-Za-z]{1,20}[-_:]?\d{2,128}\b")
+# CJK prose may touch an ID; ASCII identifier characters must not be sliced.
+_REFERENCE = re.compile(r"(?<![A-Za-z_\d])[A-Za-z]{1,20}[-_:]?\d{2,128}(?![A-Za-z_\d])")
 _SUCCESS = {AgentResultStatus.SUCCEEDED, AgentResultStatus.PARTIAL}
 
 

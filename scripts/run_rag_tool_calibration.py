@@ -165,7 +165,16 @@ async def evaluate(args, database_url):
                         'generation_profile': policy.profile(ModelRole.SYNTHESIS).to_dict(),
                         'max_api_calls': client.limit, 'sdk_retries': 0,
                         'fixed_query_override': {'synthetic:elliptic': '耳机已拆封，非质量原因可以退货吗？'}}
+            if args.mixed_business:
+                manifest.update(scope='Mixed application evaluation; see mixed-manifest.json for executed cases and scope',
+                                cases=5, case_definitions=[], fixed_query_override={})
             (args.output/'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2, default=str)+'\n')
+            if args.mixed_business:
+                from evaluation.rag_mixed_business import run_mixed
+                await run_mixed(platform=platform,store=store,client=client,policy=policy,generator=generator,
+                                output=args.output,handler=api._knowledge_tool_handler)
+                (args.output/'completion.json').write_text(json.dumps({'scope':'mixed application development','cases':5,'api_calls':len(client.calls)})+'\n')
+                return
             for case in cases:
                 query = manifest['fixed_query_override'].get(case.case_id, case.query)
                 before = len(client.calls)
@@ -216,7 +225,9 @@ def main():
     p.add_argument('--model', required=True, type=Path)
     p.add_argument('--output', required=True, type=Path)
     p.add_argument('--distractors', type=Path)
-    p.add_argument('--candidate-scope-probe', action='store_true', help='No inference: paired candidate retrieval with/without request applicability')
+    mode = p.add_mutually_exclusive_group()
+    mode.add_argument('--mixed-business', action='store_true')
+    mode.add_argument('--candidate-scope-probe', action='store_true', help='No inference: paired candidate retrieval with/without request applicability')
     p.add_argument('--scenario', choices=('basic','applicability'), default='basic')
     args = p.parse_args()
     if args.output.exists():

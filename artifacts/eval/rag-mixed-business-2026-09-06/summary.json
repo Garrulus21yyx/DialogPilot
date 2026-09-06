@@ -1,0 +1,58 @@
+{
+  "scope": "five synthetic development cases; not heldout or HTTP E2E",
+  "cases": 5,
+  "raw_capture_sha256": "0ee9c13516c547a5dc4749a7c384029fd6bfb805c0d2dc9b981e29488f97370e",
+  "setup_manifest_note": "manifest.json case_definitions describe the 20-case source fixture; actual executed five cases are in mixed-manifest.json. Original capture preserved.",
+  "results": [
+    {
+      "case_id": "shipping",
+      "outcome_type": "Failed",
+      "tools": [],
+      "synthesis_reason": null,
+      "api_calls": 1,
+      "stop_reasons": [
+        "max_tokens"
+      ]
+    },
+    {
+      "case_id": "paid",
+      "outcome_type": "Failed",
+      "tools": [],
+      "synthesis_reason": null,
+      "api_calls": 1,
+      "stop_reasons": [
+        "max_tokens"
+      ]
+    },
+    {
+      "case_id": "delivered",
+      "outcome_type": "Failed",
+      "tools": [],
+      "synthesis_reason": null,
+      "api_calls": 1,
+      "stop_reasons": [
+        "max_tokens"
+      ]
+    },
+    {
+      "case_id": "reference",
+      "outcome_type": "Failed",
+      "tools": [],
+      "synthesis_reason": null,
+      "api_calls": 1,
+      "stop_reasons": [
+        "max_tokens"
+      ]
+    },
+    {
+      "case_id": "missing",
+      "outcome_type": "Failed",
+      "tools": [],
+      "synthesis_reason": null,
+      "api_calls": 1,
+      "stop_reasons": [
+        "max_tokens"
+      ]
+    }
+  ]
+}

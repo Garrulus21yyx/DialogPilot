@@ -8,7 +8,8 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 
 
-_REFERENCE = re.compile(r"\b[A-Za-z]{1,12}[-_]?\d{2,64}\b")
+# CJK prose may touch an ID; ASCII identifier characters must not be sliced.
+_REFERENCE = re.compile(r"(?<![A-Za-z_\d])[A-Za-z]{1,12}[-_]?\d{2,64}(?![A-Za-z_\d])")
 
 
 class EntityBindingError(ValueError):
