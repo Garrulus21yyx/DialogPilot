@@ -6,6 +6,7 @@ control scenarios are explicitly excluded.
 """
 import argparse
 import asyncio
+import copy
 from dataclasses import asdict
 import gzip
 import hashlib
@@ -44,6 +45,24 @@ def output_schema(payload):
     }}
 
 
+def unclassify_legacy_references(payload):
+    """Explicit counterfactual input migration, never relabel historical results."""
+    payload = copy.deepcopy(payload)
+    for group in payload['entity_bindings']:
+        if group['field_name'] in ('order_id', 'asset_id'):
+            sources = {c['source'] for c in group['candidates']}
+            textual = {'CURRENT_MESSAGE', 'RECENT_MESSAGE', 'SUMMARY'}
+            if sources & textual:
+                if not sources <= textual or any(c.get('type_selection') for c in group['candidates']):
+                    raise ValueError('mixed or already classified legacy bindings require a fresh capture')
+                group['field_name'] = 'reference'
+    fields = [g['field_name'] for g in payload['entity_bindings']]
+    if len(fields) != len(set(fields)):
+        raise ValueError('merged reference groups require a fresh capture')
+    payload['schema_version'] = 'conversation-plan-request-v2-references'
+    return payload
+
+
 def compile_captured(key,payload,output):
     if payload['active_workstreams'] or payload['active_work_controls']:
         raise ValueError('only empty-state compilation supported')
@@ -54,7 +73,8 @@ def compile_captured(key,payload,output):
             raise ValueError('only unique or ambiguous captured bindings supported')
         for c in group['candidates']:
             bindings.append(EntityBinding.create(group['field_name'],c['value'],source=BindingSource(c['source']),
-                source_ref=c['source_ref'],tenant_id='plan-replay',user_id='eval',conversation_id=key,priority=400))
+                source_ref=c['source_ref'],tenant_id='plan-replay',user_id='eval',conversation_id=key,priority=400,
+                type_selection=c.get('type_selection')))
     reconstructed=EntityBindingSet(tuple(bindings))
     if reconstructed.as_payload(state) != payload['entity_bindings']:
         raise ValueError('captured binding resolutions cannot be reconstructed faithfully')
@@ -77,6 +97,8 @@ async def run(args):
             raise ValueError(f'unknown case IDs: {sorted(wanted-available)}')
         rows=[r for r in rows if r['case_id'] in wanted]
     inputs=[(r['case_id'],json.loads(r['api_calls'][0]['request']['messages'][0]['content'])) for r in rows]
+    if args.unclassify_legacy_references:
+        inputs = [(key, unclassify_legacy_references(payload)) for key, payload in inputs]
     if args.current_goal_descriptions:
         for _, payload in inputs:
             payload['goal_descriptions']=planning_goal_descriptions()
@@ -96,6 +118,7 @@ async def run(args):
     args.output.mkdir(parents=True,exist_ok=False)
     (args.output/'manifest.json').write_text(json.dumps({'scope':__doc__,'cases':len(inputs),
         'source_sha256':hashlib.sha256(raw).hexdigest(),'case_ids':[key for key,_ in inputs],
+        'unclassify_legacy_references':args.unclassify_legacy_references,
         'current_goal_descriptions':args.current_goal_descriptions,'profile':profile.to_dict(),'max_tokens':args.max_tokens,
         'variants':args.modes,'max_api_calls':len(args.modes)*len(inputs),
         'current_output_schema':args.current_output_schema,'structured_schema':schema_for(inputs[0][1]),
@@ -153,6 +176,8 @@ def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--capture',required=True,type=Path);p.add_argument('--output',required=True,type=Path)
     p.add_argument('--current-goal-descriptions',action='store_true')
+    p.add_argument('--unclassify-legacy-references',action='store_true',
+                   help='Explicitly migrate old free-text entity candidates to untyped references for current-contract replay.')
     p.add_argument('--system-prompt',type=Path,help='Explicit evaluation-only instruction override, copied into output artifacts.')
     p.add_argument('--current-output-schema',action='store_true',
                    help='Use the application-owned output shape; historical evaluation schema remains the default.')

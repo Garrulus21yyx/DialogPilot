@@ -65,7 +65,7 @@ def test_current_input_has_priority_over_unrelated_history():
         TurnObservations("查询订单 DP2222"), state, context,
     )
 
-    selected = bindings.resolve("order_id", state)
+    selected = bindings.resolve("reference", state)
 
     assert selected.status is BindingStatus.UNIQUE
     assert selected.selected.value == "DP2222"
@@ -82,7 +82,7 @@ def test_equal_priority_conflicting_candidates_are_ambiguous():
         TurnObservations("查询订单状态"), state, context,
     )
 
-    resolution = bindings.resolve("order_id", state)
+    resolution = bindings.resolve("reference", state)
 
     assert resolution.status is BindingStatus.AMBIGUOUS
     assert {item.value for item in resolution.candidates} == {"DP1111", "DP2222"}
@@ -91,7 +91,7 @@ def test_equal_priority_conflicting_candidates_are_ambiguous():
 def test_expired_and_cross_scope_bindings_have_typed_outcomes():
     state = _state()
     expired = EntityBinding.create(
-        "order_id", "DP1111", source=BindingSource.RECENT_MESSAGE,
+        "order_id", "DP1111", source=BindingSource.RECENT_MESSAGE, type_selection="conversation-agent-reference-selection-v1",
         source_ref="event:1", tenant_id="tenant-a", user_id="user-a",
         conversation_id="conversation-a", priority=200,
         valid_until=(datetime.now(timezone.utc) - timedelta(seconds=1)).isoformat(),
@@ -159,7 +159,7 @@ def test_unique_historical_binding_removes_the_early_missing_id_branch():
         async def plan(self, payload):
             return {
                 "status": "resolved",
-                "goals": [{"kind": "order_status", "order_id": "DP1111"}],
+                "goals": [{"kind": "order_status", "order_id": "DP1111", "order_id_source_ref": "event:1:reference:1"}],
             }
 
     proposal = asyncio.run(ConversationAgent(Provider()).plan(
@@ -186,7 +186,7 @@ def test_binding_provenance_survives_conversation_state_round_trip():
     observations = TurnObservations("查询订单 DP1111")
     binding = EntityBindingResolver().resolve(
         observations, state, _context(),
-    ).resolve("order_id", state).selected
+    ).resolve("reference", state).selected.select_type("order_id")
     workstream = WorkstreamState(
         "ws-1", "order_logistics", "order_status", "READY",
         WorkstreamStatus.ACTIVE, 1,

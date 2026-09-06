@@ -539,6 +539,7 @@ def _binding_to_payload(value: EntityBinding) -> dict[str, object]:
         "source_version": value.source_version,
         "workstream_id": value.workstream_id,
         "valid_until": value.valid_until,
+        "type_selection": value.type_selection,
     }
 
 
@@ -552,6 +553,7 @@ def _binding_from_payload(value: Mapping[str, object]) -> EntityBinding:
         user_id=str(value["user_id"]),
         conversation_id=str(value["conversation_id"]),
         priority=int(value["priority"]),
+        type_selection=value.get("type_selection"),
         source_version=(
             int(value["source_version"])
             if value.get("source_version") is not None else None

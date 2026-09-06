@@ -2,13 +2,13 @@ import gzip
 import json
 from pathlib import Path
 import pytest
-from scripts.run_conversation_plan_replay import compile_captured
+from scripts.run_conversation_plan_replay import compile_captured, unclassify_legacy_references
 
 
 def payload():
     source=Path(__file__).resolve().parents[1]/'artifacts/eval/rag-mixed-business-2026-09-06-v4/mixed-cases.jsonl.gz'
     row=json.loads(gzip.decompress(source.read_bytes()).splitlines()[0])
-    return json.loads(row['api_calls'][0]['request']['messages'][0]['content'])
+    return unclassify_legacy_references(json.loads(row['api_calls'][0]['request']['messages'][0]['content']))
 
 
 def test_replay_summary_preserves_contextual_query_requirement():
@@ -29,7 +29,7 @@ def test_replay_does_not_invent_active_state():
 
 def test_replay_preserves_ambiguous_binding_resolution_and_explicit_selection():
     captured=payload()
-    captured['entity_bindings']=[{'field_name':'order_id','status':'AMBIGUOUS','candidates':[
+    captured['entity_bindings']=[{'field_name':'reference','status':'AMBIGUOUS','candidates':[
         {'value':value,'source':'CURRENT_MESSAGE','source_ref':f'turn-message:current:reference:{i}'}
         for i,value in enumerate(('DP9301','B20'),1)
     ]}]

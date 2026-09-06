@@ -111,7 +111,7 @@ def _policy():
 
 def _order_binding():
     return EntityBinding.create(
-        "order_id", "DP1234", source=BindingSource.CURRENT_MESSAGE,
+        "order_id", "DP1234", source=BindingSource.CURRENT_MESSAGE, type_selection="conversation-agent-reference-selection-v1",
         source_ref="turn-message:current:reference:1",
         tenant_id="tenant-a", user_id="user-a",
         conversation_id="conversation-a", priority=400,

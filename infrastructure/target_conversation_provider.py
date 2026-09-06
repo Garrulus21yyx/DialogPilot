@@ -12,7 +12,7 @@ from application.composition_output import composition_schema, validate_composit
 
 
 class AnthropicConversationPlanningProvider:
-    version = "anthropic-conversation-planning-provider-v5-attributed-segments"
+    version = "anthropic-conversation-planning-provider-v6-reference-selection"
 
     def __init__(self, client, *, model_profile: ModelProfile, synthesis_profile: ModelProfile, max_tokens: int = 800) -> None:
         self._client = client
@@ -32,6 +32,9 @@ class AnthropicConversationPlanningProvider:
                 "requires another goal's result; "
                 "kind must come from supported_goals and have the meaning given in goal_descriptions. A request to explain rules is a knowledge goal; select a business action only when the user asks to perform that action. Preserve every requested objective in mixed questions. General policy, FAQ and product-documentation questions do not require an order_id or asset_id. Empty entity_bindings alone is not out_of_scope. Use refund_policy for general return/refund rules; refund_eligibility checks a specific order. Reserve out_of_scope for requests outside supported_goals. Use insufficient_context only when the selected goal actually requires missing information, and choose missing_fields from missing_fields_schema. For knowledge goals include resolved_query: a self-contained retrieval question resolving references from explicit context, preserving negation and known conditions. knowledge_options may contain as_of (timezone-aware ISO-8601 when the user asks for a historical policy), applicable_region, applicable_channel, applicable_product (exact source scope ID). Copy only known conditions from user/context; omit unknown values. Do not guess unknown conditions. Never invent entity values. "
                 "Select entity values and source refs only from entity_bindings; "
+                "Bindings with field_name reference are unclassified textual identifiers, not confirmed orders or products. "
+                "To use one as order_id or asset_id, select its exact value and source_ref together based on the user's context. "
+                "A unique reference alone does not establish its type. "
                 "use deterministic_resolution and active_workstreams to interpret "
                 "an explicit resume or continuation without forcing unrelated new "
                 "messages into the active workstream. "

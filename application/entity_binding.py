@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 
@@ -46,6 +46,14 @@ class EntityBinding:
     source_version: int | None = None
     workstream_id: str | None = None
     valid_until: str | None = None
+    type_selection: str | None = None
+
+    def select_type(self, field_name: str) -> "EntityBinding":
+        """Record a planner's parameter choice, not business ownership proof."""
+        if self.field_name != "reference" or field_name not in {"order_id", "asset_id"}:
+            raise EntityBindingError("unsupported reference type selection")
+        return replace(self, field_name=field_name,
+                       type_selection="conversation-agent-reference-selection-v1")
 
     @classmethod
     def create(cls, field_name: str, value: object, **kwargs) -> "EntityBinding":
@@ -66,6 +74,15 @@ class EntityBinding:
             raise EntityBindingError("binding identity, source, and scope are required")
         if self.priority < 0:
             raise EntityBindingError("binding priority cannot be negative")
+        if self.type_selection is not None and (
+            self.type_selection != "conversation-agent-reference-selection-v1"
+            or self.field_name not in {"order_id", "asset_id"}
+        ):
+            raise EntityBindingError("unsupported binding type selection")
+        if (self.field_name in {"order_id", "asset_id"}
+                and self.source in {BindingSource.CURRENT_MESSAGE, BindingSource.RECENT_MESSAGE, BindingSource.SUMMARY}
+                and self.type_selection is None):
+            raise EntityBindingError("free-text entity binding requires explicit type selection")
         try:
             value = json.loads(self.value_json)
         except (TypeError, json.JSONDecodeError) as exc:
@@ -165,6 +182,7 @@ class EntityBindingSet:
                         "value": item.value,
                         "source_ref": item.source_ref,
                         "source": item.source.value,
+                        **({"type_selection": item.type_selection} if item.type_selection else {}),
                     }
                     for item in resolution.candidates
                 ],
@@ -177,7 +195,7 @@ class EntityBindingSet:
 class EntityBindingResolver:
     """Project scoped candidates without interpreting the user's goal."""
 
-    version = "entity-binding-resolver-v1"
+    version = "entity-binding-resolver-v2-unclassified-references"
 
     def __init__(self, *, history_ttl: timedelta = timedelta(days=30)) -> None:
         self._history_ttl = history_ttl
@@ -197,7 +215,7 @@ class EntityBindingResolver:
             ))
         bindings.extend(self._references(
             observations.raw_text,
-            field_name="order_id",
+            field_name="reference",
             source=BindingSource.CURRENT_MESSAGE,
             source_ref="turn-message:current",
             priority=400,
@@ -205,18 +223,21 @@ class EntityBindingResolver:
         ))
         for stream in state.active_workstreams:
             for slot in stream.slots:
+                inherited = next((binding for binding in stream.slot_bindings
+                                  if binding.field_name == slot.name), None)
                 bindings.append(EntityBinding.create(
                     slot.name, slot.value,
                     source=BindingSource.WORKSTREAM_SLOT,
                     source_ref=f"workstream:{stream.workstream_id}:slot:{slot.name}",
                     priority=300, source_version=stream.state_version,
+                    type_selection=inherited.type_selection if inherited else None,
                     workstream_id=stream.workstream_id, **scope,
                 ))
         for message in turn_context.recent_messages:
             expiry = self._expiry(message.observed_at)
             bindings.extend(self._references(
                 message.content,
-                field_name="order_id",
+                field_name="reference",
                 source=BindingSource.RECENT_MESSAGE,
                 source_ref=message.source_ref,
                 priority=200,
@@ -226,7 +247,7 @@ class EntityBindingResolver:
         if turn_context.summary is not None:
             bindings.extend(self._references(
                 turn_context.summary.content,
-                field_name="order_id",
+                field_name="reference",
                 source=BindingSource.SUMMARY,
                 source_ref=turn_context.summary.source_ref,
                 priority=100,

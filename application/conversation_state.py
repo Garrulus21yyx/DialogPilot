@@ -375,7 +375,7 @@ class ConversationState:
                     "version": item.state_version,
                     "slots": [(slot.name, slot.value_json) for slot in item.slots],
                     "slot_bindings": [
-                        (binding.field_name, binding.value_json, binding.source_ref)
+                        (binding.field_name, binding.value_json, binding.source_ref, binding.type_selection)
                         for binding in item.slot_bindings
                     ],
                 }
@@ -403,7 +403,7 @@ class ConversationState:
                 self.pending_approval.version,
                 self.pending_approval.checkpoint_thread_id,
                 tuple(
-                    (item.field_name, item.value_json, item.source_ref)
+                    (item.field_name, item.value_json, item.source_ref, item.type_selection)
                     for item in self.pending_approval.argument_bindings
                 ),
             ) if self.pending_approval else None,
@@ -422,7 +422,7 @@ class ConversationState:
                     item.target_entity_version,
                     tuple((arg.name, arg.value_json) for arg in item.arguments),
                     tuple(
-                        (binding.field_name, binding.value_json, binding.source_ref)
+                        (binding.field_name, binding.value_json, binding.source_ref, binding.type_selection)
                         for binding in item.argument_bindings
                     ),
                 )

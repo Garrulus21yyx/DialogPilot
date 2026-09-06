@@ -46,6 +46,7 @@ class _Provider:
             "goals": [{
                 "kind": kind,
                 "order_id": "DP2468",
+                "order_id_source_ref": "turn-message:current:reference:1",
             }],
         }
 
@@ -56,9 +57,9 @@ def _state():
     )
 
 
-def _invoke(cascade, message):
+def _invoke(cascade, message, *, fields=()):
     state = _state()
-    observations = TurnObservations(message)
+    observations = TurnObservations(message, fields)
     deterministic = DeterministicResolver().resolve(observations, state)
     registry = build_default_capability_registry("tenant-a")
     context = TargetTurnContext()
@@ -96,7 +97,7 @@ def test_encoder_accepts_grounded_refund_status_and_skips_conversation_planner()
 
     # "回款" is intentionally absent from the artifact's legacy signal-term list;
     # acceptance must come from the calibrated encoder, not a keyword gate.
-    proposal = _invoke(cascade, "确认 RF3100 的回款进展")
+    proposal = _invoke(cascade, "确认 RF3100 的回款进展", fields=(("order_id", "RF3100"),))
 
     assert proposal.disposition is ProposalDisposition.RESOLVED
     assert proposal.reason_code == "ENCODER_FAST_PATH_ACCEPTED"
@@ -106,6 +107,16 @@ def test_encoder_accepts_grounded_refund_status_and_skips_conversation_planner()
         (item.name, item.value) for item in proposal.commands[0].arguments
     ) == {"order_id": "RF3100"}
     assert provider.calls == []
+
+
+def test_encoder_defers_untyped_identifier_even_when_refund_intent_is_confident():
+    artifact = load_target_text_encoder_artifact(ARTIFACT_DIR)
+    provider = _Provider()
+    cascade = CascadedTargetUnderstanding(StateBoundTargetUnderstanding(),
+        ConversationAgent(provider), encoder=TargetEncoderUnderstanding(artifact))
+    _invoke(cascade, "确认 RF3100 的回款进展")
+    assert len(provider.calls) == 1
+    assert provider.calls[0]['entity_bindings'][0]['field_name'] == 'reference'
 
 
 def test_encoder_defers_generic_progress_to_conversation_planner():

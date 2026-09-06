@@ -101,7 +101,7 @@ def test_anthropic_provider_uses_the_installed_messages_contract():
 def test_conversation_agent_compiles_only_observed_entities_into_registry_command():
     provider = Provider({
         "status": "resolved",
-        "goals": [{"goal_id": "where", "kind": "order_status", "order_id": "DP1234"}],
+        "goals": [{"goal_id": "where", "kind": "order_status", "order_id": "DP1234", "order_id_source_ref": "turn-message:current:reference:1"}],
     })
     proposal, state, registry = _invoke(
         ConversationAgent(provider), "帮我看看 DP1234 走到哪一步了",
@@ -227,7 +227,7 @@ def test_address_change_compiles_one_governed_flow_and_rejects_invented_address(
         "status": "resolved",
         "goals": [{
             "kind": "change_address",
-            "order_id": "DP1234",
+            "order_id": "DP1234", "order_id_source_ref": "turn-message:current:reference:1",
             "new_address": "Berlin Example Street 9",
         }],
     })
@@ -257,7 +257,7 @@ def test_address_change_compiles_one_governed_flow_and_rejects_invented_address(
         "status": "resolved",
         "goals": [{
             "kind": "change_address",
-            "order_id": "DP1234",
+            "order_id": "DP1234", "order_id_source_ref": "turn-message:current:reference:1",
             "new_address": "Invented Address 1",
         }],
     })
@@ -271,7 +271,7 @@ def test_address_change_stays_a_flow_and_missing_address_stays_typed():
             "status": "resolved",
             "goals": [{
                 "kind": "change_address",
-                "order_id": "DP1234",
+                "order_id": "DP1234", "order_id_source_ref": "turn-message:current:reference:1",
                 "new_address": "Berlin Example Street 9",
             }],
         })),
@@ -364,7 +364,7 @@ def test_security_signal_preempts_only_registry_marked_business_writes():
                 {
                     "goal_id": "refund",
                     "kind": "execute_refund",
-                    "order_id": "DP1234",
+                    "order_id": "DP1234", "order_id_source_ref": "turn-message:current:reference:1",
                 },
             ],
         })),
@@ -608,7 +608,7 @@ def test_explicit_product_model_request_with_asset_is_identification():
                 {
                     "goal_id": "refund",
                     "kind": "refund_status",
-                    "order_id": "DP1234",
+                    "order_id": "DP1234", "order_id_source_ref": "turn-message:current:reference:1",
                 },
                 {
                     "goal_id": "product",
@@ -804,7 +804,7 @@ def test_conversation_agent_receives_typed_current_conversation_context():
 def test_cascade_uses_planner_when_no_state_or_encoder_path_resolves():
     provider = Provider({
         "status": "resolved",
-        "goals": [{"kind": "order_status", "order_id": "DP1234"}],
+        "goals": [{"kind": "order_status", "order_id": "DP1234", "order_id_source_ref": "turn-message:current:reference:1"}],
     })
     cascade = CascadedTargetUnderstanding(
         StateBoundTargetUnderstanding(), ConversationAgent(provider),

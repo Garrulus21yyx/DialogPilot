@@ -188,6 +188,7 @@ class WorkItem:
                     "source_version": item.source_version,
                     "workstream_id": item.workstream_id,
                     "valid_until": item.valid_until,
+                    "type_selection": item.type_selection,
                 }
                 for item in self.argument_bindings
             ],
@@ -254,7 +255,7 @@ class WorkItem:
             "allowed_skills": self.allowed_skills,
             "arguments": [(item.name, item.value_json) for item in self.arguments],
             "argument_bindings": [
-                (item.field_name, item.value_json, item.source_ref)
+                (item.field_name, item.value_json, item.source_ref, item.type_selection)
                 for item in self.argument_bindings
             ],
             "requirements": self.requirement_ids,

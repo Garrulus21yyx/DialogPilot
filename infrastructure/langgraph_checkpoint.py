@@ -8,6 +8,64 @@ from psycopg.rows import dict_row
 from langgraph.checkpoint.postgres import PostgresSaver
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
+import ormsgpack
+import json
+
+
+class TargetCheckpointContractError(ValueError):
+    """A persisted target binding cannot be reconstructed under its contract."""
+
+
+class TargetCheckpointSerializer(JsonPlusSerializer):
+    def loads_typed(self, data):
+        if data[0] == "json":
+            def inspect_json(value):
+                if isinstance(value, dict):
+                    identity = value.get('id')
+                    if (value.get('lc') == 2 and isinstance(identity, list)
+                            and len(identity) >= 2 and all(isinstance(part, str) for part in identity)
+                            and ('.'.join(identity[:-1]), identity[-1]) in _TARGET_CHECKPOINT_TYPES):
+                        raise TargetCheckpointContractError("legacy target constructor JSON requires explicit migration")
+                    for child in value.values():
+                        inspect_json(child)
+                elif isinstance(value, list):
+                    for child in value:
+                        inspect_json(child)
+            inspect_json(json.loads(data[1]))
+        if data[0] == "msgpack":
+            # JsonPlus may swallow constructor errors and return None, including
+            # inside optional parent fields. Inspect nested extension records
+            # before ordinary decoding so binding migration failures stay typed.
+            def inspect_extension(code, encoded):
+                decoded = ormsgpack.unpackb(encoded, ext_hook=inspect_extension,
+                                            option=ormsgpack.OPT_NON_STR_KEYS)
+                if (isinstance(decoded, (list, tuple)) and len(decoded) >= 2
+                        and decoded[:2] in (("application.entity_binding", "EntityBinding"),
+                                            ["application.entity_binding", "EntityBinding"])):
+                    from application.entity_binding import EntityBinding, BindingSource
+                    try:
+                        if len(decoded) != 3 or not isinstance(decoded[2], dict):
+                            raise ValueError('unsupported binding encoding')
+                        fields = dict(decoded[2])
+                        source = fields['source']
+                        if isinstance(source, (list, tuple)) and len(source) == 3 and tuple(source[:2]) == (
+                                'application.entity_binding', 'BindingSource'):
+                            source = source[2]
+                        fields['source'] = BindingSource(source)
+                        EntityBinding(**fields)
+                    except (ValueError, TypeError, KeyError) as exc:
+                        raise TargetCheckpointContractError("checkpoint entity binding requires fresh type selection") from exc
+                # Only return structural data to the preflight scanner. Normal
+                # decoding below constructs the rest of the checkpoint once.
+                return decoded
+            try:
+                ormsgpack.unpackb(data[1], ext_hook=inspect_extension,
+                                 option=ormsgpack.OPT_NON_STR_KEYS)
+            except TargetCheckpointContractError:
+                raise
+            except Exception as exc:
+                raise TargetCheckpointContractError("checkpoint binding inspection failed") from exc
+        return super().loads_typed(data)
 
 
 _TARGET_CHECKPOINT_TYPES = (
@@ -74,7 +132,7 @@ _TARGET_CHECKPOINT_TYPES = (
 
 
 def target_checkpoint_serializer() -> JsonPlusSerializer:
-    return JsonPlusSerializer(allowed_msgpack_modules=_TARGET_CHECKPOINT_TYPES)
+    return TargetCheckpointSerializer(allowed_msgpack_modules=_TARGET_CHECKPOINT_TYPES)
 
 
 class PostgresCheckpointOwner(AbstractContextManager):

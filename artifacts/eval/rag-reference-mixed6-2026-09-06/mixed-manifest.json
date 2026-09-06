@@ -1,0 +1,168 @@
+{
+  "scope": "TargetChatApplication + unified ConversationAgent + real read-only ToolManager/business/knowledge + Redis current context + response assembly/publication; excludes HTTP middleware/durable dispatcher/domain worker planning/cross-session memory",
+  "orders": [
+    {
+      "order_id": "DP9301",
+      "user_id": "eval-user",
+      "item_name": "模拟耳机",
+      "amount_minor": 19900,
+      "currency": "CNY",
+      "status": "shipped",
+      "refundable_until": null,
+      "version": 1,
+      "created_at": "2026-09-06T07:31:47.879363+00:00",
+      "updated_at": "2026-09-06T07:31:47.879363+00:00",
+      "shipping_address": ""
+    },
+    {
+      "order_id": "DP9302",
+      "user_id": "eval-user",
+      "item_name": "模拟耳机",
+      "amount_minor": 19900,
+      "currency": "CNY",
+      "status": "paid",
+      "refundable_until": null,
+      "version": 1,
+      "created_at": "2026-09-06T07:31:47.881944+00:00",
+      "updated_at": "2026-09-06T07:31:47.881944+00:00",
+      "shipping_address": ""
+    },
+    {
+      "order_id": "DP9303",
+      "user_id": "eval-user",
+      "item_name": "模拟耳机",
+      "amount_minor": 19900,
+      "currency": "CNY",
+      "status": "delivered",
+      "refundable_until": null,
+      "version": 1,
+      "created_at": "2026-09-06T07:31:47.884401+00:00",
+      "updated_at": "2026-09-06T07:31:47.884401+00:00",
+      "shipping_address": ""
+    }
+  ],
+  "cases": [
+    [
+      "expanded-opened-audio",
+      "查一下订单DP9301的当前状态。另外，耳机拆封了，不是质量问题，还能无理由退吗？",
+      []
+    ],
+    [
+      "expanded-audio-defect",
+      "查一下订单DP9302的当前状态。另外，质量审核通过了，是不是退款到账了？",
+      []
+    ],
+    [
+      "expanded-gift-return",
+      "查一下订单DP9303的当前状态。另外，赠品已经用了，整单退货还能直接全额退吗？",
+      []
+    ],
+    [
+      "expanded-battery-install",
+      "查一下订单DP9301的当前状态。另外，我的机器型号没看清，能先试装 B20 吗？",
+      []
+    ],
+    [
+      "expanded-preorder",
+      "查一下订单DP9302的当前状态。另外，尾款付完就是发货了吗？",
+      []
+    ],
+    [
+      "expanded-elliptic",
+      "不是。还请查一下订单DP9303的状态，并根据刚才的退货原因说明适用规则。",
+      [
+        "耳机拆封了，我想退。",
+        "是因为质量问题要退吗？"
+      ]
+    ]
+  ],
+  "case_definitions": [
+    {
+      "case_id": "expanded-opened-audio",
+      "message": "查一下订单DP9301的当前状态。另外，耳机拆封了，不是质量问题，还能无理由退吗？",
+      "history": [],
+      "expected_tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_order_id": "DP9301",
+      "expected_source_id": "synthetic-shop:opened-audio",
+      "source_text": "未拆封耳机在签收后七日内可申请无理由退货。已拆封耳机非质量原因不适用无理由退货。质量问题需提交检测材料后另行审核。",
+      "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+    },
+    {
+      "case_id": "expanded-audio-defect",
+      "message": "查一下订单DP9302的当前状态。另外，质量审核通过了，是不是退款到账了？",
+      "history": [],
+      "expected_tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_order_id": "DP9302",
+      "expected_source_id": "synthetic-shop:audio-defect",
+      "source_text": "耳机出现单侧无声时，请先检查连接和音量。仍有故障的，提交购买凭证及故障视频申请质量审核；审核通过不代表退款已经到账。",
+      "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+    },
+    {
+      "case_id": "expanded-gift-return",
+      "message": "查一下订单DP9303的当前状态。另外，赠品已经用了，整单退货还能直接全额退吗？",
+      "history": [],
+      "expected_tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_order_id": "DP9303",
+      "expected_source_id": "synthetic-shop:gift-return",
+      "source_text": "参加赠品活动的订单整单退货时，应同时退回赠品。赠品已使用或遗失的，需核实活动规则，不得直接承诺全额退款。",
+      "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+    },
+    {
+      "case_id": "expanded-battery-install",
+      "message": "查一下订单DP9301的当前状态。另外，我的机器型号没看清，能先试装 B20 吗？",
+      "history": [],
+      "expected_tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_order_id": "DP9301",
+      "expected_source_id": "synthetic-shop:battery-install",
+      "source_text": "安装替换电池前应断开电源。型号 B20 仅适配设备 M20，不适配 M10。无法确认设备型号时应先核对铭牌，不得建议试装。",
+      "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+    },
+    {
+      "case_id": "expanded-preorder",
+      "message": "查一下订单DP9302的当前状态。另外，尾款付完就是发货了吗？",
+      "history": [],
+      "expected_tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_order_id": "DP9302",
+      "expected_source_id": "synthetic-shop:preorder",
+      "source_text": "预售商品按商品页面约定的发货窗口处理。支付尾款不代表商品已经发货，实际状态需查询订单和物流记录。",
+      "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+    },
+    {
+      "case_id": "expanded-elliptic",
+      "message": "不是。还请查一下订单DP9303的状态，并根据刚才的退货原因说明适用规则。",
+      "history": [
+        "耳机拆封了，我想退。",
+        "是因为质量问题要退吗？"
+      ],
+      "expected_tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_order_id": "DP9303",
+      "expected_source_id": "synthetic-shop:opened-audio",
+      "source_text": "已拆封耳机非质量原因不适用无理由退货。质量问题需提交材料审核。",
+      "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+    }
+  ],
+  "planner_profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "low",
+    "min_completion_tokens": 4096,
+    "max_context_tokens": 32768
+  }
+}

@@ -126,7 +126,7 @@ class ConversationPlanningProvider(Protocol):
 class ConversationAgent:
     """Plan one deferred turn, then compile only Registry-backed commands."""
 
-    version = "conversation-agent-plan-v3-business-goal-scope"
+    version = "conversation-agent-plan-v4-reference-selection"
 
     def __init__(
         self,
@@ -163,7 +163,7 @@ class ConversationAgent:
             if turn_context is not None else ()
         )
         payload = {
-            "schema_version": "conversation-plan-request-v1",
+            "schema_version": "conversation-plan-request-v2-references",
             "message": observations.raw_text,
             "deterministic_resolution": {
                 "kind": deterministic.kind.value,
@@ -597,7 +597,10 @@ class ConversationAgent:
             return None
         candidates = tuple(
             item for item in binding_set.bindings
-            if item.field_name == field_name
+            if (item.field_name == field_name or (
+                item.field_name == "reference" and field_name in {"order_id", "asset_id"}
+                and value and source_ref
+            ))
             and (not value or item.value == value)
             and (not source_ref or item.source_ref == source_ref)
             and item.valid_for(state) is BindingStatus.UNIQUE
@@ -606,7 +609,8 @@ class ConversationAgent:
             values = {item.value_json for item in candidates}
             if len(values) != 1:
                 raise ValueError("provider selected an unknown or ambiguous entity")
-            return max(candidates, key=lambda item: item.priority)
+            selected = max(candidates, key=lambda item: item.priority)
+            return selected.select_type(field_name) if selected.field_name == "reference" else selected
         return binding_set.resolve(field_name, state).selected
 
 
