@@ -165,7 +165,7 @@ class _ToolManager:
         return SimpleNamespace(
             success=True,
             tool_name=name,
-            data={"order_id": params["order_id"], "status": "SHIPPED"},
+            data={"order_id": params["order_id"], "status": "shipped"},
             authority="order.current_state",
             receipt_id="",
             call_id=call_id,

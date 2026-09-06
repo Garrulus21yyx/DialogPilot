@@ -174,7 +174,7 @@ class ResponseAssembler:
         if mode is ResponseAssemblyMode.PASS_THROUGH:
             result = board.results[0]
             return AssembledResponse(
-                system_notice + str(result.candidate_response).strip(), mode,
+                system_notice + _candidate_text(result), mode,
                 tuple(claim.claim_id for claim in claims), False,
                 "PASS", "SINGLE_VERIFIED_RESULT",
             )
@@ -233,11 +233,13 @@ class ResponseAssembler:
                 return ResponseAssemblyMode.TEMPLATE
             if (
                 result.status in _SUCCESS
-                and str(result.candidate_response or "").strip()
+                and _candidate_text(result)
                 and not board.conflict_keys
                 and not board.missing_requirement_ids
             ):
                 return ResponseAssemblyMode.PASS_THROUGH
+            if result.facts:
+                return ResponseAssemblyMode.CONVERSATION_COMPOSE
             return ResponseAssemblyMode.TEMPLATE
         return ResponseAssemblyMode.CONVERSATION_COMPOSE
 
@@ -269,7 +271,7 @@ def _allowed_claims(board) -> tuple[AllowedClaim, ...]:
                 "owner_agent": result.owner_agent,
                 "status": result.status.value,
                 "reason_code": result.reason_code,
-                "summary": str(result.candidate_response or "").strip() or None,
+                "summary": _candidate_text(result) or None,
             },
             result.evidence_refs,
         ))
@@ -297,32 +299,70 @@ def _allowed_claims(board) -> tuple[AllowedClaim, ...]:
 def _render_board(board) -> str:
     sections = []
     for result in board.results:
-        if result.status in _SUCCESS:
-            handoff = next((
-                receipt for receipt in result.action_receipts
-                if receipt.requirement_id == "support.handoff_action"
-                and receipt.effect_status == "COMMITTED"
-            ), None)
-            if handoff is not None:
-                sections.append(f"人工工单已创建，工单号：{handoff.receipt_id}。")
+        rendered = []
+        for receipt in result.action_receipts:
+            if receipt.effect_status != "COMMITTED":
                 continue
-            committed = next((
-                receipt for receipt in result.action_receipts
-                if receipt.effect_status == "COMMITTED"
-            ), None)
-            if committed is not None:
-                sections.append(f"操作已完成，凭证号：{committed.receipt_id}。")
-                continue
-            text = str(result.candidate_response or "").strip()
-            if not text:
-                text = json.dumps(
-                    [json.loads(fact.value_json) for fact in result.facts],
-                    ensure_ascii=False, sort_keys=True,
-                )
-            sections.append(f"{result.owner_agent}：{text}")
-        else:
-            sections.append(f"{result.owner_agent}：未完成（{result.reason_code}）")
+            if receipt.requirement_id == "support.handoff_action":
+                rendered.append(f"人工工单已创建，工单号：{receipt.receipt_id}。")
+            else:
+                rendered.append(f"操作已完成，凭证号：{receipt.receipt_id}。")
+        # Facts and committed effects survive subsequent failures. An authored
+        # candidate is suitable only for a successful result with no receipts.
+        text = (_candidate_text(result) if result.status in _SUCCESS and not result.action_receipts else "")
+        text = text or _render_verified_facts(result)
+        if text:
+            rendered.append(text)
+        if result.status not in _SUCCESS:
+            label = _OWNER_LABELS.get(result.owner_agent, "此项请求")
+            rendered.append(label + "：" + _OUTCOME_TEXT[result.status])
+        elif result.status is AgentResultStatus.PARTIAL:
+            rendered.append("部分请求尚未完成。")
+        if not rendered:
+            rendered.append("已取得部分信息，但暂时无法整理为可靠答复。")
+        sections.extend(rendered)
     return "\n".join(sections) or "暂时没有可发布的结果。"
+
+
+_OWNER_LABELS = {
+    "order_logistics": "订单与物流查询", "billing_refund": "退款与账单请求",
+    "product_technical": "商品咨询", "general": "知识查询",
+    "account_security": "账户请求", "human_support": "人工服务请求",
+}
+_OUTCOME_TEXT = {
+    AgentResultStatus.NEEDS_USER_INPUT: "需要补充信息才能继续。",
+    AgentResultStatus.NEEDS_EVIDENCE: "仍需取得必要依据，暂时无法确认结果。",
+    AgentResultStatus.WAITING_APPROVAL: "正在等待审批，尚未完成。",
+    AgentResultStatus.BLOCKED: "目前无法继续处理。",
+    AgentResultStatus.RECONCILING: "正在核实处理结果，暂时无法确认是否完成。",
+    AgentResultStatus.RETRYABLE_FAILURE: "本次查询或处理失败，请稍后重试。",
+    AgentResultStatus.TERMINAL_FAILURE: "本次未能完成，请核实相关信息或联系人工客服。",
+    AgentResultStatus.CANCELLED: "本次处理已取消。",
+    AgentResultStatus.SUPERSEDED: "已由更新后的请求替代。",
+}
+
+
+def _candidate_text(result) -> str:
+    # Existing persisted direct results may contain model-facing serialized tools.
+    # This producer never authors a user reply; its facts retain the full payload.
+    if result.producer_version == "target-tool-executor-v1":
+        return ""
+    return str(result.candidate_response or "").strip()
+
+
+def _render_verified_facts(result) -> str:
+    from application.agent_result import FactSourceKind
+    statuses = {"paid": "已支付", "shipped": "已发货", "delivered": "已送达", "cancelled": "已取消"}
+    texts = []
+    for fact in result.facts:
+        if fact.source_kind is not FactSourceKind.VERIFIED_STATE:
+            continue
+        value = json.loads(fact.value_json)
+        if fact.requirement_id == "order.current_state" and isinstance(value, dict):
+            order_id, status = value.get("order_id"), value.get("status")
+            if isinstance(order_id, str) and _REFERENCE.fullmatch(order_id) and isinstance(status, str) and status in statuses:
+                texts.append(f"订单 {order_id} 当前状态为{statuses[status]}。")
+    return "\n".join(dict.fromkeys(texts))
 
 
 def _fact_view(fact):

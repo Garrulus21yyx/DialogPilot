@@ -114,3 +114,99 @@ def test_committed_receipt_uses_deterministic_template():
     assert assembled.mode is ResponseAssemblyMode.TEMPLATE
     assert assembled.text == "操作已完成，凭证号：receipt-123。"
     assert composer.calls == []
+
+
+def test_direct_tool_facts_compose_without_promoting_model_payload_to_reply():
+    from dataclasses import replace
+    from mcp.tool_manager import ToolResult
+    from infrastructure.target_tool_execution import TargetToolExecutor
+    from tests.test_target_framework_agent import _context, _item
+    item = replace(_item(allowed_tools=('order_lookup',)), requirement_ids=('order.current_state',))
+    class Tools:
+        async def execute_for_agent(self, *args, **kwargs):
+            return ToolResult(True, {'order_id':'DP9301','status':'shipped','internal_debug':'do not display'},
+                'order_lookup', authority='order.current_state',call_id='call:1',
+                output_for_model='RAW_MODEL_ONLY_JSON')
+    result = asyncio.run(TargetToolExecutor(Tools())(_context(item)))
+    assert result.candidate_response is None
+    composer = _Composer(lambda payload: {'response':'订单 DP9301 已发货。',
+        'used_claim_ids':[c['claim_id'] for c in payload['allowed_claims']]})
+    response = asyncio.run(ResponseAssembler(composer).assemble(_board(result),current_message='查订单'))
+    assert response.composer_used
+    assert 'RAW_MODEL_ONLY_JSON' not in str(composer.calls)
+    assert 'internal_debug' in str(composer.calls)  # Original fact is retained, not a lossy projection.
+    # Legacy persisted direct results must take the same rendering boundary.
+    for direct in (result, replace(result,candidate_response='RAW_MODEL_ONLY_JSON')):
+        fallback = asyncio.run(ResponseAssembler().assemble(_board(direct),current_message='查订单'))
+        assert fallback.text == '订单 DP9301 当前状态为已发货。'
+        assert 'internal_debug' not in fallback.text
+
+
+def test_fallback_outcome_messages_cover_all_non_success_states_without_internal_codes():
+    from application.agent_result import MissingInputSpec, EvidenceRequest
+    for status in AgentResultStatus:
+        if status in (AgentResultStatus.SUCCEEDED, AgentResultStatus.PARTIAL):
+            continue
+        result = AgentResult('w1','order_logistics',status,'INTERNAL_TOOL_ERROR','target-tool-executor-v1',
+            missing_inputs=(MissingInputSpec('order_id','w1','MISSING','string','订单号？'),)
+                if status is AgentResultStatus.NEEDS_USER_INPUT else (),
+            requested_evidence=(EvidenceRequest('order.current_state','w1',('orders',)),)
+                if status is AgentResultStatus.NEEDS_EVIDENCE else (),
+            retryable=status is AgentResultStatus.RETRYABLE_FAILURE)
+        response=asyncio.run(ResponseAssembler().assemble(_board(result),current_message='查订单'))
+        assert response.text.startswith('订单与物流查询：')
+        assert 'INTERNAL_TOOL_ERROR' not in response.text and 'order_logistics' not in response.text
+        assert status.value not in response.text
+
+
+def test_captured_mixed_tools_preserve_business_state_during_knowledge_abstention():
+    import gzip
+    import json
+    from pathlib import Path
+    from dataclasses import replace
+    from infrastructure.target_agent_result_adapter import restore_framework_artifact
+    from infrastructure.target_tool_execution import TargetToolExecutor
+    from tests.test_target_framework_agent import _context, _item
+    capture=Path(__file__).resolve().parents[1]/'artifacts/eval/rag-mixed-business-2026-09-06-v3/mixed-cases.jsonl.gz'
+    rows=[json.loads(line) for line in gzip.decompress(capture.read_bytes()).splitlines()]
+    for row in rows:
+        results=[]
+        for recorded in row['tools']:
+            restored=restore_framework_artifact({'schema':'tool-result-v1','result':recorded['result']})
+            class Tools:
+                async def execute_for_agent(self,*args,**kwargs):
+                    return restored
+            item=replace(_item(allowed_tools=(recorded['name'],)),
+                requirement_ids=(restored.authority,),
+                owner_agent='order_logistics' if recorded['name']=='order_lookup' else 'general')
+            results.append(asyncio.run(TargetToolExecutor(Tools())(_context(item))))
+        response=asyncio.run(ResponseAssembler().assemble(_board(*results),current_message=row['message']))
+        assert response.verification_reason=='KNOWLEDGE_SAFE_ABSTENTION'
+        assert '"data"' not in response.text and 'output_schema_version' not in response.text
+        assert 'order_logistics' not in response.text and 'TOOL_ERROR' not in response.text
+        if row['case_id']=='missing':
+            assert '本次查询或处理失败' in response.text
+        else:
+            order=row['tools'][0]['result']['data']
+            assert order['order_id'] in response.text
+            label={'shipped':'已发货','paid':'已支付','delivered':'已送达'}[order['status']]
+            assert label in response.text
+
+
+def test_later_failure_and_multiple_receipts_do_not_hide_verified_state():
+    from dataclasses import replace
+    from datetime import datetime, timezone
+    import json
+    from application.agent_result import FactRecord, FactSourceKind
+    fact=FactRecord('order:DP9301','order.current_state',json.dumps({'order_id':'DP9301','status':'shipped'},sort_keys=True,separators=(',',':')),
+        FactSourceKind.VERIFIED_STATE,'read:1','order_lookup','order-view-v1',datetime.now(timezone.utc))
+    receipts=tuple(ReceiptRef('receipt-'+str(i),'v1','op-'+str(i),'COMMITTED','refund.action') for i in (1,2))
+    for status in (AgentResultStatus.SUCCEEDED,AgentResultStatus.PARTIAL,AgentResultStatus.RETRYABLE_FAILURE,AgentResultStatus.RECONCILING):
+        result=replace(_result('w','order_logistics',status,receipts=receipts),facts=(fact,))
+        response=asyncio.run(ResponseAssembler().assemble(_board(result),current_message='处理请求'))
+        assert '已发货' in response.text
+        assert all(receipt.receipt_id in response.text for receipt in receipts)
+        if status is AgentResultStatus.RETRYABLE_FAILURE:
+            assert '失败' in response.text
+        if status is AgentResultStatus.RECONCILING:
+            assert '正在核实' in response.text

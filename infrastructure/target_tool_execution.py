@@ -1,8 +1,6 @@
 """Target v1 adapter from governed WorkItems to the existing ToolManager."""
 from __future__ import annotations
 
-import json
-
 from application.agent_result import (
     AgentResult,
     AgentResultStatus,
@@ -46,7 +44,6 @@ class TargetToolExecutor:
         tool_ids = self._tool_sequence(context)
         facts = []
         evidence_refs = []
-        rendered = []
         for index, tool_id in enumerate(tool_ids, start=1):
             if self._control_guard is not None:
                 self._control_guard.ensure_current(item, context.trusted_context)
@@ -73,13 +70,14 @@ class TargetToolExecutor:
                     ),
                     f"TOOL_{str(result.status or 'FAILED').upper()}",
                     self.version,
+                    facts=tuple(facts), evidence_refs=tuple(dict.fromkeys(evidence_refs)),
                     retryable=retryable,
                 )
             outcome = tool_domain_outcome(result)
             if outcome is not None and outcome[0] is not AgentResultStatus.SUCCEEDED:
                 return AgentResult(
                     item.work_item_id, item.owner_agent, outcome[0], outcome[1], self.version,
-                    facts=tuple(facts),
+                    facts=tuple(facts), evidence_refs=tuple(dict.fromkeys(evidence_refs)),
                     retryable=outcome[0] is AgentResultStatus.RETRYABLE_FAILURE,
                 )
             authority = str(result.authority or "")
@@ -87,7 +85,6 @@ class TargetToolExecutor:
                 facts.append(fact_from_tool_result(item, result))
             if result.receipt_id:
                 evidence_refs.append(result.receipt_id)
-            rendered.append(result.output_for_model or _render(result.data))
         satisfied = {fact.requirement_id for fact in facts}
         missing = set(item.requirement_ids).difference(satisfied)
         return AgentResult(
@@ -101,7 +98,8 @@ class TargetToolExecutor:
             self.version,
             facts=tuple(facts),
             evidence_refs=tuple(dict.fromkeys(evidence_refs)),
-            candidate_response="\n".join(item for item in rendered if item).strip() or None,
+            # Tool payloads are facts for composition, not authored user replies.
+            candidate_response=None,
         )
 
     @staticmethod
@@ -117,11 +115,3 @@ class TargetToolExecutor:
         if len(item.allowed_tools) == 1:
             return item.allowed_tools
         raise ValueError("delegated work requires an agent planner or a skill hint")
-
-
-def _render(value: object) -> str:
-    if isinstance(value, dict):
-        for key in ("message", "answer", "status"):
-            if str(value.get(key) or "").strip():
-                return str(value[key])
-    return json.dumps(value, ensure_ascii=False, sort_keys=True)

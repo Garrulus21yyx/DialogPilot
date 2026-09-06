@@ -65,3 +65,15 @@ PYTHONPATH=. .venv/bin/python scripts/run_conversation_compose_replay.py \
 重放输出 5/5 结构合法、声明的 claim ID 均来自输入、5/5 至少有政策引用；这只是语法与成员关系指标，没有运行语义 verifier。人工检查：delivered/reference 仍各展示内部 claim ID；missing 的 used_claim_ids 虽包含失败 outcome，正文却没有表达订单查询失败。paid 的“尚未显示发货或物流信息”也需要结合实际工具覆盖核查，不能从订单状态查询推断已查询物流。故结构正确不能替代必要事实覆盖和来源支持。
 
 证据：`artifacts/eval/rag-mixed-business-2026-09-06-v4/` 与 `artifacts/eval/rag-compose-replay-2026-09-06-v1/`。下一步在回答契约和发布所有者处处理逐项结果覆盖与面向用户的引用呈现，同时修复失败模板泄漏工具 JSON。完整 RAG 目标仍未完成。
+
+## 第四轮：工具事实与用户答复的转换边界
+
+本轮没有调用推理 API。根因位于 TargetToolExecutor：把 `output_for_model` 作为 `candidate_response` 交给发布层，后者遂将工具 JSON 当成已经撰写的用户回复。修复后直接工具执行只产出完整 FactRecord 与依据引用，不产出用户答复；ResponseAssembler 对历史持久化的同类直接结果也不再直出其 candidate。单一直接事实结果有 composer 时走合成，纯知识仍走已有 grounded generator。
+
+失败模板不再 JSON 序列化事实，也不展示内部 owner 名和 reason code。受支持的 `order.current_state` 四种状态（paid/shipped/delivered/cancelled）由已验证事实生成简短中文状态；全部已提交动作凭证保留，其他非成功状态逐项表达。未支持模板的退款、账户等复杂事实在模型不可用时明确提示无法整理可靠答复。这是有意的降级行为变化；正常合成仍收到完整原始事实，不能据此宣称这些领域的降级答案功能已齐全。
+
+独立审查发现并修复同一因果链上的两个既有缺口：后续工具失败时丢弃前面累积 facts/evidence_refs；模板只展示首张凭证或在结果失败时完全忽略已提交凭证/已验证状态。现在失败不能抹掉此前已取得的事实和引用，模板同时保留受支持的状态、所有已提交凭证与未完成状态。
+
+验证为 63 项通过、1 项依赖外部 PostgreSQL 的测试未运行，包括直接执行器→事实→合成/降级、旧直接结果、各非成功状态、后续 error/timeout/rejected、多凭证与部分失败。另以 v3 保存的五条真实工具返回进行无 API 重放：四条已知订单均保留编号和正确状态；不存在订单呈现失败；强制知识弃答时没有原始工具 JSON、内部 owner 或 TOOL_ERROR 泄漏。旧 cutover 测试中的 SHIPPED 已改为真实 OrderStatus 的小写 shipped；知识工具测试由断言直接答复改为断言事实保留而 candidate 为空。
+
+独立复核未发现本轮新增阻断。尚未解决正常合成中的内部 claim ID 引用、必要结果的语义覆盖以及规划不稳定；不将本轮降级表达修复计为答案准确率提升。

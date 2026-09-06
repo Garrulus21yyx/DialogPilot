@@ -259,7 +259,8 @@ def test_generic_product_qa_executes_the_shared_knowledge_tool_contract():
 
     assert result.status is AgentResultStatus.SUCCEEDED
     assert result.facts[0].requirement_id == "knowledge.active_source"
-    assert result.candidate_response == "支持 macOS。"
+    assert result.candidate_response is None
+    assert "支持 macOS。" in result.facts[0].value_json
     assert tools.calls[0][0:3] == (
         "knowledge_search",
         {"query": question},
