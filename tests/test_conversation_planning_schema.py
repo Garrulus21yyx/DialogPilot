@@ -116,6 +116,9 @@ def test_composition_fits_its_own_input_budget():
 
 
 def _transport_response(request):
+    if request.get('tools', [{}])[0].get('name') == 'submit_turn_plan':
+        return SimpleNamespace(stop_reason='tool_use', content=[SimpleNamespace(
+            type='tool_use', name='submit_turn_plan', input={'status': 'out_of_scope'})])
     if 'tools' in request:
         import json
         sid = json.loads(request['messages'][0]['content'])['support_catalog'][0]['support_id']
@@ -168,3 +171,62 @@ def test_goal_meanings_are_supplied_by_the_compiler_owner():
     # A consumer's rendering changes cannot mutate the supported planner vocabulary.
     copy=planning_goal_descriptions();copy['invented_action']='Perform a new action'
     assert 'invented_action' not in planning_goal_descriptions()
+
+
+@pytest.mark.parametrize('value', [
+    {'status': 'out_of_scope'},
+    {'status': 'insufficient_context', 'missing_fields': ['order_id']},
+    {'status': 'resolved', 'goals': [{'kind': 'order_status', 'order_id': 'DP9303',
+                                    'order_id_source_ref': 'turn-message:current:reference:1'}]},
+])
+def test_native_planner_preserves_all_supported_wire_states(value):
+    from application.conversation_agent import planning_output_schema
+    class Messages:
+        async def create(self, **request):
+            assert request['tools'][0]['input_schema'] == planning_output_schema()
+            return SimpleNamespace(stop_reason='tool_use', content=[SimpleNamespace(
+                type='tool_use', name='submit_turn_plan', input=value)])
+    profile = ModelProfile('test')
+    provider = AnthropicConversationPlanningProvider(SimpleNamespace(messages=Messages()),
+        model_profile=profile, synthesis_profile=profile)
+    assert asyncio.run(provider.plan({'message': 'test'})) == value
+
+
+@pytest.mark.parametrize('value', [
+    None, {}, {'status': 'unknown'}, {'status': 'resolved', 'goals': []},
+    {'status': 'out_of_scope', 'goals': [{'kind': 'order_status'}]},
+    {'status': 'insufficient_context', 'missing_fields': []},
+    {'status': 'resolved', 'goals': [{'kind': 'order_status', 'goal_id': 1}]},
+    {'status': 'resolved', 'goals': [{'kind': 'order_status',
+                                    'order_id': {'value': 'DP9303', 'source_ref': 'ref'}}]},
+    {'status': 'resolved', 'goals': [{'kind': 'order_status', 'depends_on': ['a', 'a']}]},
+])
+def test_native_planner_rejects_invalid_wire_states(value):
+    from application.conversation_agent import ConversationProviderOutputError
+    class Messages:
+        async def create(self, **request):
+            return SimpleNamespace(stop_reason='tool_use', content=[SimpleNamespace(
+                type='tool_use', name='submit_turn_plan', input=value)])
+    profile = ModelProfile('test')
+    provider = AnthropicConversationPlanningProvider(SimpleNamespace(messages=Messages()),
+        model_profile=profile, synthesis_profile=profile)
+    with pytest.raises(ConversationProviderOutputError):
+        asyncio.run(provider.plan({'message': 'test'}))
+
+
+@pytest.mark.parametrize('stop,name,count', [
+    ('max_tokens', 'submit_turn_plan', 1), ('end_turn', 'submit_turn_plan', 1),
+    ('tool_use', 'other_tool', 1), ('tool_use', 'submit_turn_plan', 0),
+    ('tool_use', 'submit_turn_plan', 2),
+])
+def test_native_planner_requires_complete_single_output(stop, name, count):
+    from application.conversation_agent import ConversationProviderOutputError
+    class Messages:
+        async def create(self, **request):
+            return SimpleNamespace(stop_reason=stop, content=[SimpleNamespace(
+                type='tool_use', name=name, input={'status': 'out_of_scope'})] * count)
+    profile = ModelProfile('test')
+    provider = AnthropicConversationPlanningProvider(SimpleNamespace(messages=Messages()),
+        model_profile=profile, synthesis_profile=profile)
+    with pytest.raises(ConversationProviderOutputError):
+        asyncio.run(provider.plan({'message': 'test'}))

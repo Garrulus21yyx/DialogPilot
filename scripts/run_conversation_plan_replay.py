@@ -1,6 +1,7 @@
 """Frozen empty-state planner payload comparison; real compiler, no tools executed.
 
-Structured transport is evaluation-only. Reconstructed bindings preserve captured
+Native mode uses the production provider; text/structured are legacy evaluation modes.
+Reconstructed bindings preserve captured
 values/source refs and unique or ambiguous resolutions; active workstream and
 control scenarios are explicitly excluded.
 """
@@ -25,6 +26,7 @@ from application.entity_binding import BindingSource, EntityBinding, EntityBindi
 from core.model_policy import ModelPolicy, ModelRole, ReasoningEffort
 from core.provider_context_budget import DEFAULT_PROVIDER_CONTEXT_BUDGET
 from infrastructure.target_conversation_provider import AnthropicConversationPlanningProvider
+from evaluation.legacy_conversation_planning import LegacyTextPlanningProvider
 from scripts.run_rag_tool_calibration import CaptureClient
 
 
@@ -108,6 +110,8 @@ async def run(args):
         # Validate reconstruction before spending inference calls, regardless of
         # the eventual model decision. This does not supply a model answer.
         compile_captured(key,payload,{'status':'out_of_scope'})
+    if 'structured_native' in args.modes and not args.current_output_schema:
+        raise ValueError('production native planning requires --current-output-schema')
     schema_for = (lambda payload: planning_output_schema()) if args.current_output_schema else output_schema
     system_override = args.system_prompt.read_text() if args.system_prompt else None
     if args.current_output_schema:
@@ -135,27 +139,22 @@ async def run(args):
                     async def create(self,**request):
                         if system_override is not None:
                             request['system'] = system_override
-                        if mode in ('structured','structured_native'):
+                        if mode == 'structured':
                             request['tools']=[{'name':'submit_turn_plan','description':'Submit the customer-service turn plan.',
                                                'input_schema':schema_for(payload)}]
-                            request['tool_choice']=({'type':'auto'}
-                                if mode=='structured_native' and profile.reasoning is not ReasoningEffort.NONE
-                                else {'type':'tool','name':'submit_turn_plan'})
-                            if mode=='structured_native':
-                                request['system']=request['system'].replace(
-                                    'Return one JSON object only.',
-                                    'Submit one complete plan through submit_turn_plan. Use the output tool rather than a text answer.')
+                            request['tool_choice']={'type':'tool','name':'submit_turn_plan'}
                         DEFAULT_PROVIDER_CONTEXT_BUDGET.validate(profile,ModelRole.INTENT,request)
                         response=await client.messages.create(**request)
-                        if mode in ('structured','structured_native'):
+                        if mode == 'structured':
                             blocks=[b for b in response.content if b.type=='tool_use']
                             if response.stop_reason!='tool_use' or len(blocks)!=1 or blocks[0].name!='submit_turn_plan':
                                 raise ConversationProviderOutputError('incomplete structured plan')
                             return SimpleNamespace(content=[SimpleNamespace(type='text',text=json.dumps(blocks[0].input))])
                         return response
-                provider=AnthropicConversationPlanningProvider(SimpleNamespace(messages=Messages()),
+                provider_type = AnthropicConversationPlanningProvider if mode == 'structured_native' else LegacyTextPlanningProvider
+                provider=provider_type(SimpleNamespace(messages=Messages()),
                     model_profile=profile,synthesis_profile=policy.profile(ModelRole.SYNTHESIS),max_tokens=args.max_tokens)
-                before=len(client.calls);output=None;result={'case_id':key,'mode':mode,'error':None}
+                before=len(client.calls);output=None;result={'case_id':key,'mode':mode,'provider_version':provider.version,'error':None}
                 try:
                     output=await provider.plan(payload)
                     if args.current_output_schema:
@@ -167,6 +166,19 @@ async def run(args):
                 except Exception as error:
                     result.update(error=type(error).__name__,output=output)
                 result['api_calls']=client.calls[before:]
+                if args.current_output_schema:
+                    result['wire_schema_valid'] = None
+                    result['wire_validation_status'] = 'no_complete_output'
+                    if output is not None:
+                        result['wire_schema_valid'] = wire_validator.is_valid(output)
+                    elif result['api_calls']:
+                        response = result['api_calls'][-1].get('response', {})
+                        blocks = [b for b in response.get('content', []) if b.get('type') == 'tool_use']
+                        if (response.get('stop_reason') == 'tool_use' and len(blocks) == 1
+                                and blocks[0].get('name') == 'submit_turn_plan'):
+                            result['wire_schema_valid'] = wire_validator.is_valid(blocks[0].get('input'))
+                    if result['wire_schema_valid'] is not None:
+                        result['wire_validation_status'] = 'valid' if result['wire_schema_valid'] else 'invalid_shape'
                 with (args.output/'cases.jsonl').open('a') as stream:stream.write(json.dumps(result,ensure_ascii=False,default=str)+'\n')
                 print(key,mode,result['error'] or result['proposal']['disposition'],flush=True)
                 output=None

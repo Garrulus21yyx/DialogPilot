@@ -78,14 +78,16 @@ class Provider:
 
 def test_anthropic_provider_uses_the_installed_messages_contract():
     class Messages:
-        async def create(self, *, model, max_tokens, system, messages):
+        async def create(self, *, model, max_tokens, system, messages, tools, tool_choice):
             assert model == "model-a"
             assert max_tokens == 800
             assert system
             assert messages[0]["role"] == "user"
-            return SimpleNamespace(content=(SimpleNamespace(
-                type="text",
-                text='{"status":"out_of_scope"}',
+            assert tools[0]["name"] == "submit_turn_plan"
+            assert tool_choice == {"type": "tool", "name": "submit_turn_plan"}
+            return SimpleNamespace(stop_reason="tool_use", content=(SimpleNamespace(
+                type="tool_use", name="submit_turn_plan",
+                input={"status": "out_of_scope"},
             ),))
 
     provider = AnthropicConversationPlanningProvider(
@@ -817,7 +819,8 @@ def test_cascade_uses_planner_when_no_state_or_encoder_path_resolves():
     assert len(provider.calls) == 2
 
 
-def test_anthropic_provider_normalizes_json_text_block():
+def test_production_planner_rejects_legacy_fenced_text():
+    import pytest
     class Messages:
         async def create(self, **kwargs):
             assert "temperature" not in kwargs
@@ -829,8 +832,9 @@ def test_anthropic_provider_normalizes_json_text_block():
     provider = AnthropicConversationPlanningProvider(
         SimpleNamespace(messages=Messages()), model_profile=ModelProfile("model-test"), synthesis_profile=ModelProfile("model-test"),
     )
-    result = asyncio.run(provider.plan({"message": "hello"}))
-    assert result == {"status": "out_of_scope"}
+    from application.conversation_agent import ConversationProviderOutputError
+    with pytest.raises(ConversationProviderOutputError):
+        asyncio.run(provider.plan({"message": "hello"}))
 
 
 def test_malformed_provider_transport_is_not_reported_as_an_outage():

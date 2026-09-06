@@ -7,12 +7,12 @@ from typing import Mapping
 from core.model_policy import ModelProfile, ModelRole, ReasoningEffort
 from core.provider_context_budget import DEFAULT_PROVIDER_CONTEXT_BUDGET
 
-from application.conversation_agent import ConversationProviderOutputError
+from application.conversation_agent import ConversationProviderOutputError, planning_output_schema
 from application.composition_output import composition_schema, validate_composition, prepare_composition_payload
 
 
 class AnthropicConversationPlanningProvider:
-    version = "anthropic-conversation-planning-provider-v8-support-selection"
+    version = "anthropic-conversation-planning-provider-v9-native-planning"
 
     def __init__(self, client, *, model_profile: ModelProfile, synthesis_profile: ModelProfile, max_tokens: int = 800) -> None:
         self._client = client
@@ -24,7 +24,7 @@ class AnthropicConversationPlanningProvider:
         return await self._complete(
             payload, ModelRole.INTENT,
             (
-                "You plan customer-service turns. Return one JSON object only. "
+                "You plan customer-service turns. Submit one complete plan through submit_turn_plan. Use the output tool rather than a text answer. "
                 "status is resolved, insufficient_context, or out_of_scope. "
                 "For resolved, goals is a list of {goal_id,kind,order_id?,"
                 "order_id_source_ref?,asset_id?,asset_id_source_ref?,new_address?,"
@@ -94,52 +94,41 @@ class AnthropicConversationPlanningProvider:
                 "content": json.dumps(payload, ensure_ascii=False, sort_keys=True),
             }],
         )
+        output_name = "submit_composed_response" if role is ModelRole.SYNTHESIS else "submit_turn_plan"
         if role is ModelRole.SYNTHESIS:
             try:
                 schema = composition_schema(payload.get('allowed_claims', ()))
             except (ValueError, KeyError, TypeError) as exc:
                 raise ConversationProviderOutputError('invalid composition attribution input') from exc
-            request["tools"] = [{
-                "name": "submit_composed_response",
-                "description": "Submit answer segments with their supporting claims and evidence.",
-                "input_schema": schema,
-            }]
-            # Thinking transports reject forced tool choice. The output gate
-            # below still requires the one named output tool and complete values.
-            request["tool_choice"] = (
-                {"type": "auto"} if profile.reasoning is not ReasoningEffort.NONE
-                else {"type": "tool", "name": "submit_composed_response"}
-            )
+        else:
+            schema = planning_output_schema()
+        request["tools"] = [{
+            "name": output_name,
+            "description": "Submit the complete structured response for this stage.",
+            "input_schema": schema,
+        }]
+        request["tool_choice"] = (
+            {"type": "auto"} if profile.reasoning is not ReasoningEffort.NONE
+            else {"type": "tool", "name": output_name}
+        )
         DEFAULT_PROVIDER_CONTEXT_BUDGET.validate(
             profile, role, request,
         )
         response = await self._client.messages.create(**request)
-        if role is ModelRole.SYNTHESIS:
-            blocks = [block for block in getattr(response, "content", ())
-                      if getattr(block, "type", "") == "tool_use"]
-            if (getattr(response, "stop_reason", "") != "tool_use" or len(blocks) != 1
-                    or getattr(blocks[0], "name", "") != "submit_composed_response"):
-                raise ConversationProviderOutputError("composition requires one complete output tool")
-            value = getattr(blocks[0], "input", None)
-            try:
-                return validate_composition(value)
-            except ValueError as exc:
-                raise ConversationProviderOutputError(str(exc)) from exc
-        text = "".join(
-            str(getattr(block, "text", ""))
-            for block in getattr(response, "content", ())
-            if getattr(block, "type", "") == "text"
-        ).strip()
-        if text.startswith("```"):
-            text = text.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+        blocks = [block for block in getattr(response, "content", ())
+                  if getattr(block, "type", "") == "tool_use"]
+        if (getattr(response, "stop_reason", "") != "tool_use" or len(blocks) != 1
+                or getattr(blocks[0], "name", "") != output_name):
+            raise ConversationProviderOutputError("stage requires one complete expected output tool")
+        value = getattr(blocks[0], "input", None)
         try:
-            value = json.loads(text)
-        except json.JSONDecodeError as exc:
-            raise ConversationProviderOutputError(
-                "conversation provider returned invalid JSON"
-            ) from exc
-        if not isinstance(value, dict):
-            raise ConversationProviderOutputError(
-                "conversation provider returned non-object JSON"
-            )
-        return value
+            if role is ModelRole.SYNTHESIS:
+                return validate_composition(value)
+            from jsonschema import Draft202012Validator, ValidationError
+            try:
+                Draft202012Validator(planning_output_schema()).validate(value)
+            except ValidationError as exc:
+                raise ValueError("planning output violates the owner wire schema") from exc
+            return value
+        except ValueError as exc:
+            raise ConversationProviderOutputError(str(exc)) from exc
