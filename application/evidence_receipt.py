@@ -348,6 +348,8 @@ class EvidenceReceiptIssuer:
                 "evidence payload omits required fields: "
                 + ",".join(sorted(missing))
             )
+        if not requirement.accepts_payload(payload):
+            raise EvidenceContractError("evidence payload violates authority contract")
         if not _locator_binds_payload(locator, producer_id, payload):
             raise EvidenceContractError("locator does not bind evidence payload")
         if observed_at.tzinfo is None:

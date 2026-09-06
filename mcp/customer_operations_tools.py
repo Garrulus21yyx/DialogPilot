@@ -7,6 +7,7 @@ from typing import Any, Dict, Optional, Tuple
 from mcp.tool_manager import Tool, ToolEffectReceipt, ToolEffectStatus, ToolRisk
 from services.customer_operations import (
     CustomerOperationsService,
+    RefundLookup,
     SecuritySeverity,
 )
 
@@ -50,13 +51,13 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
                 idempotency_key=f"refund-tool:{user_id}:{conv_id}:{operation_key}",
             )
         else:
-            result = await asyncio.to_thread(
-                service.get_refund_status,
+            observation = await asyncio.to_thread(
+                service.lookup_refund_status,
                 user_id=user_id,
                 order_id=order_id,
             )
-        data = result.to_dict()
-        data.pop("user_id", None)
+        from services.customer_operation_views import refund_lookup_read_view
+        data = refund_lookup_read_view(RefundLookup(order_id, result) if operation_key else observation)
         if operation_key:
             data["operation_key"] = operation_key
         return data
@@ -295,6 +296,7 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
             name="refund_status",
             description=(
                 "按当前认证用户和订单 ID 读取退款申请的当前权威状态；"
+                "有权访问的订单无申请时返回 NO_APPLICATION，仅表示本系统本次未记录申请；"
                 "operation_key 仅供宿主对账时绑定原操作"
             ),
             handler=refund_status,
@@ -303,13 +305,13 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
             read_only=True,
             authority="refund.current_state",
             manifest_version="tool-manifest-v1",
-            output_schema_version="refund-view-v1",
+            output_schema_version="refund-view-v2",
             preconditions=("authenticated_user", "order_id"),
             idempotency="read_only",
             retry_policy="safe_read_retry",
-            typed_outcomes=("OK", "NOT_FOUND", "UNAVAILABLE", "UNAUTHORIZED"),
+            typed_outcomes=("OK", "NO_APPLICATION", "NOT_FOUND", "UNAVAILABLE", "UNAUTHORIZED"),
             output_fields=(
-                "refund_id", "order_id", "status", "amount_minor", "currency",
+                "lookup_status", "order_version", "field_semantics", "refund_id", "order_id", "status", "amount_minor", "currency",
                 "updated_at", "operation_key",
             ),
         ),

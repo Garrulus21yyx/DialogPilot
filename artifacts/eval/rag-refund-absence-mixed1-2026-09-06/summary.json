@@ -1,0 +1,37 @@
+{
+  "scope": "synthetic development stage signals; tool expectations and model verification are not answer accuracy",
+  "capture_sha256": "a471ebfa243f120321a9c1f80781972ff3d1356fc687f928c358990b03700e3c",
+  "definitions_sha256": "0002e65494aa5179a274559d23cf41476c26a7a99a6f17912b6a97e20eb3b37a",
+  "expected_cases": 1,
+  "captured_cases": 1,
+  "complete_capture": true,
+  "counts": {
+    "expected_tool_coverage": 1,
+    "expected_source_visible": 1,
+    "expected_source_cited": 1,
+    "knowledge_support_checked": 1
+  },
+  "api_calls": 4,
+  "results": [
+    {
+      "case_id": "explicit-policy-state-order",
+      "outcome": "Completed",
+      "tool_names": [
+        "order_lookup",
+        "refund_status",
+        "knowledge_search"
+      ],
+      "expected_tool_coverage": true,
+      "expected_source_visible": true,
+      "expected_source_cited": true,
+      "knowledge_support_checked": true,
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "planner_stop": "end_turn",
+      "api_calls": 4,
+      "response": "订单DP9302当前状态为已支付。\n该订单金额为199.00元（CNY）。\n本系统当前未记录到归属于您的退款申请（NO_APPLICATION）。这仅表示本系统未登记退款申请，不证明外部退款不存在、退款未到账或您无权申请退款。\n质量审核通过并不必然表示退款已经到账。就耳机出现单侧无声的情况，请先检查连接和音量；仍有故障的，可提交购买凭证及故障视频申请质量审核，但审核通过不代表退款已经到账。 [E4386a0881d37]",
+      "latency_ms": 18300.59819482267,
+      "visible_evidence_count": 5,
+      "failure_stage": null
+    }
+  ]
+}

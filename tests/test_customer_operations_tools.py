@@ -397,3 +397,21 @@ def test_refund_write_rejects_wrong_agent_before_side_effect(customer_operations
     )
     assert denied.status == ToolCallStatus.DENIED.value
     assert denied.effect_status == ToolEffectStatus.NONE.value
+
+
+def test_refund_absence_is_scoped_read_evidence_not_tool_failure(customer_operations):
+    _owner, manager = setup_runtime(customer_operations)
+    def read(params, ctx=None):
+        return asyncio.run(manager.execute_for_agent('refund_status', params,
+            agent_type='billing', context=ctx or context()))
+    result = read({'order_id': 'order-1'})
+    assert result.success and result.status == 'success'
+    assert result.output_schema_version == 'refund-view-v2'
+    assert result.authority == 'refund.current_state'
+    assert result.data['lookup_status'] == 'NO_APPLICATION'
+    assert result.data['order_id'] == 'order-1'
+    assert not {'status', 'refund_id', 'amount_minor', 'user_id'} & result.data.keys()
+    assert '不证明' in result.data['field_semantics']['lookup_status']
+    assert not read({'order_id': 'order-1'}, context('user-2')).success
+    assert not read({'order_id': 'missing-order'}).success
+    assert not read({'order_id': 'order-1', 'operation_key': 'missing-operation'}).success

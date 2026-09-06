@@ -42,3 +42,18 @@ def refund_eligibility_read_view(record):
         'refundable_until': '提交窗口截止时间，null 表示未知而非过期。',
     }
     return data
+
+
+def refund_lookup_read_view(observation):
+    """Project a scoped lookup without interpreting absence as payment outcome."""
+    if observation.request is not None:
+        data = observation.request.to_dict()
+        data.pop('user_id', None)
+        data['lookup_status'] = 'FOUND'
+    else:
+        data = {'order_id': observation.order_id, 'lookup_status': 'NO_APPLICATION',
+                'order_version': observation.order_version}
+    data['field_semantics'] = {
+        'lookup_status': 'FOUND 表示找到归属于当前用户的退款申请。NO_APPLICATION 仅用于普通订单查询，表示有权访问的订单在本系统当前未记录退款申请，不证明外部退款不存在、退款未到账或用户无权申请退款。',
+    }
+    return data

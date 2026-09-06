@@ -1,5 +1,6 @@
 """Contextual read continuation uses Target, not a persistent read-only Flow."""
 import asyncio
+import pytest
 from dataclasses import replace
 from datetime import datetime, timezone
 
@@ -22,7 +23,8 @@ from services.customer_operations import CustomerOperationsService, OrderStatus
 from tests.test_target_chat_cutover import _Admission, _Publication
 
 
-def test_contextual_refund_read_replays_once_but_new_turn_refreshes(customer_operations):
+@pytest.mark.parametrize('has_application', [False, True])
+def test_contextual_refund_read_replays_once_but_new_turn_refreshes(customer_operations, has_application):
     owner = CustomerOperationsService(
         customer_operations.pool, tenant_id="tenant-a",
         clock=lambda: datetime(2026, 9, 3, 12, tzinfo=timezone.utc),
@@ -32,11 +34,13 @@ def test_contextual_refund_read_replays_once_but_new_turn_refreshes(customer_ope
         amount_minor=39900, currency="CNY", status=OrderStatus.DELIVERED,
         refundable_until="2026-09-15T00:00:00+00:00",
     )
-    original, created = owner.create_refund_request(
-        idempotency_key="fixture-refund", user_id="user-a", order_id=order.order_id,
-        expected_order_version=order.version, reason="fixture",
-    )
-    assert created is True
+    original = None
+    if has_application:
+        original, created = owner.create_refund_request(
+            idempotency_key="fixture-refund", user_id="user-a", order_id=order.order_id,
+            expected_order_version=order.version, reason="fixture",
+        )
+        assert created is True
     tools = MCPToolManager("test", model="test")
     for tool in customer_operation_tools(owner):
         tools.register(tool)
@@ -58,8 +62,12 @@ def test_contextual_refund_read_replays_once_but_new_turn_refreshes(customer_ope
         async def plan(self, payload):
             calls.append(payload)
             assert "DP1234" in str(payload["conversation_context"])
+            reference = next(candidate for group in payload['entity_bindings']
+                             if group['field_name'] == 'reference' for candidate in group['candidates']
+                             if candidate['value'] == 'DP1234')
             return {"status": "resolved", "goals": [{
                 "kind": "refund_status", "order_id": "DP1234",
+                "order_id_source_ref": reference['source_ref'],
             }]}
 
     registry = build_default_capability_registry("tenant-a")
@@ -80,7 +88,7 @@ def test_contextual_refund_read_replays_once_but_new_turn_refreshes(customer_ope
     runner = ChatApplicationRunner(
         lambda _overrides: application,
         state_probes={"refund": lambda _command, _outcome: {
-            "value": owner.get_refund_status(user_id="user-a", order_id="DP1234"),
+            "value": owner.lookup_refund_status(user_id="user-a", order_id="DP1234").request,
         }},
     )
     command = ChatCommand("还是没到账", "user-a", "tenant-a", "conversation-a", "read-1")

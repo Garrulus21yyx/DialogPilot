@@ -47,6 +47,7 @@ class FactRequirement:
     support: AuthoritySupport
     owner_approval: str
     version: str = "fact-requirement-v1"
+    payload_schema_json: str = ""
 
     def __post_init__(self) -> None:
         if not self.requirement_id or not self.authority or not self.owner_approval:
@@ -57,6 +58,15 @@ class FactRequirement:
             raise AuthorityContractError("write requirement requires receipt schema")
         if set(self.allowed_tools).intersection(self.forbidden_tools):
             raise AuthorityContractError("tool cannot be both allowed and forbidden")
+        if self.payload_schema_json:
+            from jsonschema import Draft202012Validator
+            Draft202012Validator.check_schema(json.loads(self.payload_schema_json))
+
+    def accepts_payload(self, payload: Mapping[str, Any]) -> bool:
+        if not self.payload_schema_json:
+            return True
+        from jsonschema import Draft202012Validator
+        return Draft202012Validator(json.loads(self.payload_schema_json)).is_valid(dict(payload))
 
     @property
     def claim_type(self) -> str:
@@ -210,9 +220,25 @@ class AuthorityPolicyRegistry:
             ),
             FactRequirement(
                 "refund.current_state", "refund.current_state",
-                ("refund_id", "order_id", "status", "updated_at"), 60,
+                ("lookup_status", "order_id"), 60,
                 read, ("refund_status",), ("knowledge_search",), "", supported,
-                "CustomerOperations:refund-v1",
+                "CustomerOperations:refund-v2",
+                payload_schema_json=json.dumps({
+                    "type": "object", "required": ["lookup_status", "order_id"],
+                    "properties": {"order_id": {"type": "string", "minLength": 1}},
+                    "oneOf": [
+                        {"properties": {"lookup_status": {"const": "FOUND"},
+                                        **{key: {"type": "string", "minLength": 1}
+                                           for key in ("refund_id", "status", "updated_at")}},
+                         "required": ["refund_id", "status", "updated_at"]},
+                        {"properties": {"lookup_status": {"const": "NO_APPLICATION"},
+                                        "order_id": {"type": "string", "minLength": 1},
+                                        "order_version": {"type": "integer", "minimum": 1},
+                                        "field_semantics": {"type": "object"}},
+                         "required": ["order_version"],
+                         "additionalProperties": False},
+                    ],
+                }, sort_keys=True),
             ),
             FactRequirement(
                 "refund.eligibility", "refund.eligibility",
@@ -310,7 +336,7 @@ class AuthorityPolicyRegistry:
                         "shipping_address_change_status",
                         "shipping-address-change-view-v1",
                     ),
-                    ("refund_status", "refund-view-v1"),
+                    ("refund_status", "refund-view-v2"),
                     ("refund_eligibility_check", "refund-eligibility-v2"),
                     ("account_security_event_list", "security-events-v1"),
                     ("account_security_state", "account-security-state-v1"),
@@ -535,6 +561,8 @@ class AuthorityPolicyRegistry:
             return RequirementOutputCheck(
                 requirement_id, False, missing, "REQUIRED_FIELDS_MISSING",
             )
+        if not requirement.accepts_payload(normalized_output):
+            return RequirementOutputCheck(requirement_id, False, (), "EVIDENCE_PAYLOAD_INVALID")
         if requirement.freshness_seconds is not None:
             if observed_at is None:
                 return RequirementOutputCheck(

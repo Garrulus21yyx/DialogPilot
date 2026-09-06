@@ -510,3 +510,31 @@ def test_shipping_address_change_rechecks_state_version_and_user_scope(
             order_id=shipped.order_id,
             idempotency_key="address-shipped",
         )
+
+
+def test_refund_lookup_authority_and_absence_to_found_transition(customer_operations):
+    from services.customer_operations import RefundLookup
+    owner = service(customer_operations)
+    order = seed_order(owner)
+    absent = owner.lookup_refund_status(user_id='user-1', order_id=order.order_id)
+    assert absent == RefundLookup(order.order_id, None, order.version)
+    for tenant, user, order_id in (
+        (owner.tenant_id, 'user-2', order.order_id),
+        (owner.tenant_id, 'user-1', 'missing-order'),
+        ('other-tenant', 'user-1', order.order_id),
+    ):
+        scoped = CustomerOperationsService(customer_operations.pool, tenant_id=tenant)
+        with pytest.raises(BusinessObjectNotFoundError):
+            scoped.lookup_refund_status(user_id=user, order_id=order_id)
+    refund, _ = owner.create_refund_request(
+        idempotency_key='lookup-transition', user_id='user-1', order_id=order.order_id,
+        expected_order_version=order.version, reason='查询状态转换',
+    )
+    found = owner.lookup_refund_status(user_id='user-1', order_id=order.order_id)
+    assert found == RefundLookup(order.order_id, refund, order.version)
+    assert owner.get_refund_status(user_id='user-1', order_id=order.order_id) == refund
+    with pytest.raises(BusinessObjectNotFoundError):
+        owner.get_refund_status_for_operation(user_id='user-1', order_id=order.order_id,
+                                            idempotency_key='another-operation')
+    with pytest.raises(ValueError):
+        RefundLookup('other-order', refund)

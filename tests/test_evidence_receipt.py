@@ -366,3 +366,41 @@ def test_wire_checksum_and_policy_provenance_are_revalidated():
         forged = {**serialized, key: value}
         with pytest.raises(EvidenceContractError):
             issuer.restore(forged)
+
+
+def test_refund_lookup_union_is_enforced_at_issuance_and_output_validation():
+    from itertools import combinations
+    from mcp.customer_operations_tools import customer_operation_tools
+    policies = AuthorityPolicyRegistry.v1()
+    tool = next(t for t in customer_operation_tools(None) if t.name == 'refund_status')
+    adapter = EvidenceReceiptIssuer(policies).adapter('business-tool-evidence-adapter', 'business-tool-evidence-adapter-v1')
+    valid = [
+        {'order_id': 'order-1', 'lookup_status': 'NO_APPLICATION', 'order_version': 3},
+        {'order_id': 'order-1', 'lookup_status': 'FOUND', 'refund_id': 'refund-1',
+         'status': 'submitted', 'updated_at': NOW.isoformat()},
+    ]
+    for value in valid:
+        variants = [(value, True)]
+        for size in range(1, len(value) + 1):
+            for removed in combinations(value, size):
+                variants.append(({k: v for k, v in value.items() if k not in removed}, False))
+        variants += [({**value, 'lookup_status': 'UNKNOWN'}, False),
+                     ({**value, 'order_id': ''}, False)]
+        if value['lookup_status'] == 'NO_APPLICATION':
+            variants += [({**value, 'status': 'refunded'}, False),
+                         ({**value, 'operation_key': 'missing-operation'}, False),
+                         ({**value, 'order_version': True}, False)]
+        for payload, accepted in variants:
+            result = policies.validate_output('refund.current_state', tool=tool, output=payload,
+                                              observed_at=NOW, now=NOW)
+            assert result.satisfied == accepted, payload
+            args = dict(requirement_id='refund.current_state', producer_id='refund_status',
+                        producer_version='refund-view-v2',
+                        locator=BusinessToolLocator('call-refund', 'refund_status', 'order-1',
+                            '3' if value['lookup_status'] == 'NO_APPLICATION' else NOW.isoformat()),
+                        status=ToolCallStatus.SUCCESS, observed_at=NOW, payload=payload)
+            if accepted:
+                receipt = adapter.issue(**args)
+                assert EvidenceReceiptVerifier().verify(receipt, Resolver(payload), now=NOW) is RequirementStatus.SATISFIED
+            else:
+                with pytest.raises(EvidenceContractError): adapter.issue(**args)

@@ -140,6 +140,21 @@ class RefundRequest:
 
 
 @dataclass(frozen=True)
+class RefundLookup:
+    """An authorized order's refund observation at one database snapshot."""
+
+    order_id: str
+    request: Optional[RefundRequest]
+    order_version: Optional[int] = None
+
+    def __post_init__(self):
+        if not self.order_id or (self.request is not None and self.request.order_id != self.order_id):
+            raise ValueError("refund lookup requires matching order identity")
+        if self.request is None and (type(self.order_version) is not int or self.order_version < 1):
+            raise ValueError("absence requires the observed order version")
+
+
+@dataclass(frozen=True)
 class OrderCancellation:
     cancellation_id: str
     order_id: str
@@ -329,12 +344,23 @@ class CustomerOperationsService:
         return self._eligibility(order, has_refund=existing is not None)
 
     def get_refund_status(self, *, user_id: str, order_id: str) -> RefundRequest:
-        """Read the current refund request for an authenticated user's order."""
+        """Require an existing request; ordinary search uses lookup_refund_status."""
+        observation = self.lookup_refund_status(user_id=user_id, order_id=order_id)
+        if observation.request is None:
+            raise BusinessObjectNotFoundError("refund request not found")
+        return observation.request
+
+    def lookup_refund_status(self, *, user_id: str, order_id: str) -> RefundLookup:
+        """Distinguish no application from an inaccessible order in one snapshot."""
         with self._connect() as conn:
             row = conn.execute(
                 """
-                SELECT * FROM dialogpilot_app.customer_refund_requests WHERE order_id=%s AND user_id=%s
-                AND tenant_id=%s
+                SELECT orders.order_id, orders.version AS order_version, to_jsonb(refund) AS refund
+                FROM dialogpilot_app.customer_orders AS orders
+                LEFT JOIN dialogpilot_app.customer_refund_requests AS refund
+                  ON refund.order_id=orders.order_id AND refund.tenant_id=orders.tenant_id
+                  AND refund.user_id=orders.user_id
+                WHERE orders.order_id=%s AND orders.user_id=%s AND orders.tenant_id=%s
                 """,
                 (
                     self._required(order_id, "order_id"),
@@ -343,8 +369,9 @@ class CustomerOperationsService:
                 ),
             ).fetchone()
         if row is None:
-            raise BusinessObjectNotFoundError("refund request not found")
-        return self._row_to_refund(row)
+            raise BusinessObjectNotFoundError("order not found")
+        return RefundLookup(row['order_id'], self._row_to_refund(row['refund']) if row['refund'] else None,
+                            row['order_version'])
 
     def get_refund_status_for_operation(
         self,
