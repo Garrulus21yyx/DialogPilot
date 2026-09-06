@@ -1,0 +1,16 @@
+{
+  "scope": "Same captured failed composition input replay; no live source revalidation or publication. One sample, not stable end-to-end gain.",
+  "capture_sha256": "d690b0ac6b576cd5ce644c412f8514a412f241a073a366ef5a8acdbdc83b79b2",
+  "api_calls": 2,
+  "rendered": "退款与账单请求：本次查询或处理失败，请稍后重试。\n订单DP9302的当前状态为“已支付”（模拟耳机，金额199.00元）。\n关于实际退款进度，目前未能查询到该订单的退款当前状态，因此无法确认退款是否已完成。\n质量审核通过并不必然表示退款已经到账。 [E839bf3c8e4df]\n提交购买凭证及故障视频申请质量审核；审核通过不代表退款已经到账。 [E839bf3c8e4df]",
+  "error": null,
+  "verdict": {
+    "status": "pass",
+    "grounded": true,
+    "need_escalation": false,
+    "reason": "订单状态由事实记录支持为已支付；退款进度明确说明无法确认，符合证据缺失时的处理要求；质量审核通过不必然表示退款到账有政策原文支持。",
+    "reason_code": "passed",
+    "publishable": true
+  },
+  "remaining": "Duplicate policy statement and business failure/absence semantics unresolved."
+}

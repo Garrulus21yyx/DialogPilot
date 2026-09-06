@@ -87,12 +87,37 @@ def test_request_schema_excludes_business_source_refs_from_policy_citations():
     Draft202012Validator.check_schema(schema)
     validate(segment(),schema)
     with pytest.raises(ValidationError): validate(segment(evidence=('Eunknown',)),schema)
-    # Union enum cannot prove per-segment linkage; the application gate still does.
+    # The output schema and renderer both reject evidence attributed to a
+    # business/outcome claim, even when all IDs separately exist.
     value=segment(claims=('b',),evidence=('E1',))
-    validate(value,schema)
+    with pytest.raises(ValidationError): validate(value,schema)
     with pytest.raises(ValueError):
         render_composition(value,[AllowedClaim('b','FACT',{},()),
             AllowedClaim('k1','KNOWLEDGE_FACT',{'evidence':[{'evidence_id':'E1'}]},())])
+
+
+def test_schema_and_renderer_agree_on_generated_attribution_relations():
+    from jsonschema import Draft202012Validator
+    from dataclasses import asdict
+    claims = (
+        AllowedClaim('k1', 'KNOWLEDGE_FACT', {'evidence': [{'evidence_id': 'E1'}, {'evidence_id': 'Eshared'}]}, ()),
+        AllowedClaim('k2', 'KNOWLEDGE_FACT', {'evidence': [{'evidence_id': 'E2'}, {'evidence_id': 'Eshared'}]}, ()),
+        AllowedClaim('empty', 'KNOWLEDGE_FACT', {'evidence': []}, ()),
+        AllowedClaim('outcome', 'WORK_ITEM_OUTCOME', {'status': 'SUCCEEDED'}, ()),
+    )
+    validator = Draft202012Validator(composition_schema([asdict(c) for c in claims]))
+    validator.check_schema(validator.schema)
+    for count in range(1, 5):
+        for chosen in combinations(tuple(c.claim_id for c in claims), count):
+            for size in range(5):
+                for cited in combinations(('E1', 'E2', 'Eshared', 'Eunknown'), size):
+                    value = segment(claims=chosen, evidence=cited)
+                    try:
+                        render_composition(value, claims)
+                        accepted = True
+                    except ValueError:
+                        accepted = False
+                    assert validator.is_valid(value) == accepted, (chosen, cited)
 
 
 @pytest.mark.parametrize('claims',[[],[{'claim_id':'','kind':'FACT'}],

@@ -1,0 +1,62 @@
+{
+  "scope": "Explicitly worded synthetic development contrasts; no tools executed; no causal improvement or heldout claim.",
+  "capture_sha256": "05685c12518f55d123603233c6d3eb5c689c05f46cb401d6294f24b4111fa2d6",
+  "api_calls": 4,
+  "results": [
+    {
+      "case_id": "policy_only",
+      "goals": [
+        "refund_policy"
+      ],
+      "required_present": true,
+      "excluded_absent": true,
+      "wire_schema_valid": true,
+      "compiled": true,
+      "resolved_queries": [
+        "质量审核通过是否必然表示退款已经到账？"
+      ]
+    },
+    {
+      "case_id": "state_only",
+      "goals": [
+        "refund_status"
+      ],
+      "required_present": true,
+      "excluded_absent": true,
+      "wire_schema_valid": true,
+      "compiled": true,
+      "resolved_queries": [
+        "查询订单DP9302当前的实际退款进度，只读取系统记录。"
+      ]
+    },
+    {
+      "case_id": "explicit_mixed",
+      "goals": [
+        "order_status",
+        "refund_status",
+        "refund_policy"
+      ],
+      "required_present": true,
+      "excluded_absent": true,
+      "wire_schema_valid": true,
+      "compiled": true,
+      "resolved_queries": [
+        "质量审核通过是否必然表示退款已经到账？"
+      ]
+    },
+    {
+      "case_id": "policy_and_order",
+      "goals": [
+        "order_status",
+        "refund_policy"
+      ],
+      "required_present": true,
+      "excluded_absent": true,
+      "wire_schema_valid": true,
+      "compiled": true,
+      "resolved_queries": [
+        "质量审核通过是否必然表示退款已经到账？"
+      ]
+    }
+  ]
+}

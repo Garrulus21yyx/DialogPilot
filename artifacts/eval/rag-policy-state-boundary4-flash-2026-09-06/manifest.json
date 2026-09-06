@@ -1,0 +1,228 @@
+{
+  "scope": "Frozen empty-state planner payload comparison; real compiler, no tools executed.\n\nStructured transport is evaluation-only. Reconstructed bindings preserve captured\nvalues/source refs and unique or ambiguous resolutions; active workstream and\ncontrol scenarios are explicitly excluded.\n",
+  "cases": 4,
+  "source_sha256": "c69a902d1a9652b042e85603485a638a2c9ade5453858b316d976c3c0ecd5969",
+  "case_ids": [
+    "policy_only",
+    "state_only",
+    "explicit_mixed",
+    "policy_and_order"
+  ],
+  "unclassify_legacy_references": false,
+  "current_goal_descriptions": true,
+  "profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "low",
+    "min_completion_tokens": 4096,
+    "max_context_tokens": 32768
+  },
+  "max_tokens": 4096,
+  "variants": [
+    "text"
+  ],
+  "max_api_calls": 4,
+  "current_output_schema": true,
+  "structured_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "status"
+    ],
+    "properties": {
+      "status": {
+        "type": "string",
+        "enum": [
+          "resolved",
+          "insufficient_context",
+          "out_of_scope"
+        ]
+      },
+      "goals": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 4,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": [
+                "cancel_active_work",
+                "cancel_order",
+                "change_address",
+                "execute_refund",
+                "freeze_account",
+                "general_qa",
+                "human_handoff",
+                "invoice_qa",
+                "logistics_status",
+                "media_text_read",
+                "media_visual_analysis",
+                "order_status",
+                "product_assistance",
+                "product_identification",
+                "product_qa",
+                "refund_eligibility",
+                "refund_policy",
+                "refund_status",
+                "security_review"
+              ]
+            },
+            "goal_id": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "order_id": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "order_id_source_ref": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "asset_id": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "asset_id_source_ref": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "new_address": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "revises_control_id": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "resolved_query": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S",
+              "maxLength": 4000
+            },
+            "depends_on": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              }
+            },
+            "knowledge_options": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "applicable_channel": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "\\S",
+                  "maxLength": 128
+                },
+                "applicable_product": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "\\S",
+                  "maxLength": 128
+                },
+                "applicable_region": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "\\S",
+                  "maxLength": 128
+                },
+                "as_of": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "\\S",
+                  "maxLength": 128
+                }
+              }
+            }
+          }
+        }
+      },
+      "missing_fields": {
+        "type": "array",
+        "minItems": 1,
+        "uniqueItems": true,
+        "items": {
+          "type": "string",
+          "enum": [
+            "asset_id",
+            "customer_service_goal",
+            "new_address",
+            "order_id"
+          ]
+        }
+      }
+    },
+    "oneOf": [
+      {
+        "properties": {
+          "status": {
+            "const": "resolved"
+          }
+        },
+        "required": [
+          "goals"
+        ],
+        "not": {
+          "required": [
+            "missing_fields"
+          ]
+        }
+      },
+      {
+        "properties": {
+          "status": {
+            "const": "insufficient_context"
+          }
+        },
+        "required": [
+          "missing_fields"
+        ],
+        "not": {
+          "required": [
+            "goals"
+          ]
+        }
+      },
+      {
+        "properties": {
+          "status": {
+            "const": "out_of_scope"
+          }
+        },
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "goals"
+              ]
+            },
+            {
+              "required": [
+                "missing_fields"
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "system_override_sha256": null
+}

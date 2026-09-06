@@ -1,0 +1,48 @@
+{
+  "scope": "Authored synthetic development contrasts based on current empty-state owner payload; no full-entry execution. Expected goals are not sent to model.",
+  "source_sha256": "b52cbb4d22e3c6cff6ce228bb611bb93fccd23d85cf627734a588b9df83c4830",
+  "input_sha256": "c69a902d1a9652b042e85603485a638a2c9ade5453858b316d976c3c0ecd5969",
+  "cases": [
+    {
+      "case_id": "policy_only",
+      "message": "订单DP9302是我举的例子。我只问一般规则：质量审核通过是否必然表示退款已经到账？不需要查这笔订单的实际退款进度。",
+      "required_goals": [
+        "refund_policy"
+      ],
+      "excluded_goals": [
+        "refund_status"
+      ]
+    },
+    {
+      "case_id": "state_only",
+      "message": "请查询订单DP9302当前的实际退款进度。我只想知道系统记录，不需要解释一般审核政策。",
+      "required_goals": [
+        "refund_status"
+      ],
+      "excluded_goals": [
+        "refund_policy"
+      ]
+    },
+    {
+      "case_id": "explicit_mixed",
+      "message": "查一下订单DP9302的当前状态和实际退款进度。另外请解释一般规则：质量审核通过是否必然表示退款已经到账？",
+      "required_goals": [
+        "order_status",
+        "refund_status",
+        "refund_policy"
+      ],
+      "excluded_goals": []
+    },
+    {
+      "case_id": "policy_and_order",
+      "message": "查一下订单DP9302的当前订单状态。另外我只问一般规则：质量审核通过是否必然表示退款已经到账？第二个问题不需要查实际退款进度。",
+      "required_goals": [
+        "order_status",
+        "refund_policy"
+      ],
+      "excluded_goals": [
+        "refund_status"
+      ]
+    }
+  ]
+}

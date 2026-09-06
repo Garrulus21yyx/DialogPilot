@@ -1,0 +1,37 @@
+{
+  "scope": "synthetic development stage signals; tool expectations and model verification are not answer accuracy",
+  "capture_sha256": "0d754a05512ed499c0da5994fc0a97e184819b0ba52f804c90369122083b9200",
+  "definitions_sha256": "0002e65494aa5179a274559d23cf41476c26a7a99a6f17912b6a97e20eb3b37a",
+  "expected_cases": 1,
+  "captured_cases": 1,
+  "complete_capture": true,
+  "counts": {
+    "expected_tool_coverage": 1,
+    "expected_source_visible": 1,
+    "expected_source_cited": 0,
+    "knowledge_support_checked": 0
+  },
+  "api_calls": 3,
+  "results": [
+    {
+      "case_id": "explicit-policy-state-order",
+      "outcome": "Completed",
+      "tool_names": [
+        "refund_status",
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_tool_coverage": true,
+      "expected_source_visible": true,
+      "expected_source_cited": false,
+      "knowledge_support_checked": false,
+      "synthesis_reason": "KNOWLEDGE_SAFE_ABSTENTION",
+      "planner_stop": "end_turn",
+      "api_calls": 3,
+      "response": "订单 DP9302 当前状态为已支付。\n退款与账单请求：本次查询或处理失败，请稍后重试。\n现有资料不足以支持可靠结论，请补充适用条件或联系人工客服核实。",
+      "latency_ms": 12422.11196385324,
+      "visible_evidence_count": 5,
+      "failure_stage": "answer_or_publication_gate"
+    }
+  ]
+}

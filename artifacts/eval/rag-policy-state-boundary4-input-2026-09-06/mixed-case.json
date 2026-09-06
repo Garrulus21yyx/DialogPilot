@@ -1,0 +1,16 @@
+[
+  {
+    "case_id": "explicit-policy-state-order",
+    "message": "查一下订单DP9302的当前状态和实际退款进度。另外请解释一般规则：质量审核通过是否必然表示退款已经到账？",
+    "history": [],
+    "expected_tools": [
+      "order_lookup",
+      "refund_status",
+      "knowledge_search"
+    ],
+    "expected_order_id": "DP9302",
+    "expected_source_id": "synthetic-shop:audio-defect",
+    "source_text": "耳机出现单侧无声时，请先检查连接和音量。仍有故障的，提交购买凭证及故障视频申请质量审核；审核通过不代表退款已经到账。",
+    "data_label": "Authored explicit mixed-goal development case; same consumed policy, not heldout"
+  }
+]
