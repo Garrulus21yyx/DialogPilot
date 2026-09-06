@@ -329,6 +329,19 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
 
 
 def _agent(agent_id, tools, skills, verification_profile):
+    descriptions = {
+        "general": "Resolve general ecommerce service objectives using available evidence.",
+        "product_technical": "Resolve product questions using catalog, media and knowledge evidence; do not assume a product category.",
+        "order_logistics": "Resolve order and logistics questions using current business records.",
+        "billing_refund": "Resolve billing and after-sales requests using current records and policy evidence; distinguish returns, exchanges and refunds and only perform available actions.",
+        "account_security": "Assess account security concerns; distinguish user reports from verified facts.",
+        "human_service": "Resolve support case objectives using verified case records.",
+    }
+    principals = {
+        "general": "general", "product_technical": "technical",
+        "order_logistics": "general", "billing_refund": "billing",
+        "account_security": "account_security", "human_service": "escalation",
+    }
     return AgentDefinition(
         agent_id,
         "v1",
@@ -338,6 +351,8 @@ def _agent(agent_id, tools, skills, verification_profile):
         f"{agent_id}-context-v1",
         verification_profile,
         max_parallelism=2,
+        description=descriptions[agent_id],
+        tool_principal=principals[agent_id],
     )
 
 

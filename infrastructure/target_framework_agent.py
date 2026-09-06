@@ -44,20 +44,10 @@ from infrastructure.target_agent_middleware import AgentContextMiddleware, WorkC
 from mcp.tool_manager import MCPToolManager, ToolCallStatus, ToolResult
 
 
-_RUNTIME_AGENT_ID = {
-    "general": "general",
-    "product_technical": "technical",
-    "order_logistics": "general",
-    "billing_refund": "billing",
-    "account_security": "account_security",
-    "human_service": "escalation",
-}
-
-
 class TargetFrameworkAgent:
     """Execute one delegated read goal through a governed framework Agent."""
 
-    version = "target-framework-agent-v1"
+    version = "target-framework-agent-v2-registry-delegation"
 
     def __init__(
         self,
@@ -88,7 +78,7 @@ class TargetFrameworkAgent:
             return self._failure(context, "AGENT_REQUIRES_DELEGATED_WORK")
         if item.effect is not CapabilityEffect.READ:
             return self._failure(context, "AGENT_WRITE_REQUIRES_WORKFLOW")
-        if item.owner_agent not in _RUNTIME_AGENT_ID:
+        if item.owner_agent not in {agent.agent_id for agent in self._registry.agents}:
             return self._failure(context, "DOMAIN_AGENT_NOT_REGISTERED")
         if item.skill_hint is not None:
             executor = self._skill_executors.get(item.skill_hint)
@@ -157,11 +147,15 @@ class TargetFrameworkAgent:
             ),
             tuple(output.get("messages") or ()),
             self.version,
+            allowed_authorities={
+                tool_id: self._registry.tool(tool_id).authority
+                for tool_id in item.allowed_tools
+            },
         )
 
     def _tools(self, context: AgentContextView) -> list[StructuredTool]:
         item = context.work_item
-        runtime_agent = _RUNTIME_AGENT_ID[item.owner_agent]
+        runtime_agent = self._registry.agent(item.owner_agent).execution_principal
         definitions = self._tool_manager.tools_for_agent(
             runtime_agent,
             allowed_tool_ids=item.allowed_tools,
@@ -179,7 +173,7 @@ class TargetFrameworkAgent:
     def _atomic_tool(self, definition):
         async def execute(runtime: ToolRuntime, **arguments):
             context = runtime.context
-            runtime_agent = _RUNTIME_AGENT_ID[context.work_item.owner_agent]
+            runtime_agent = self._registry.agent(context.work_item.owner_agent).execution_principal
             if self._control_guard is not None:
                 self._control_guard.ensure_current(
                     context.work_item, context.trusted_context,
@@ -333,6 +327,8 @@ def _adapt_framework_result(
     observed: tuple[ToolResult | AgentResult, ...],
     messages: tuple[Any, ...],
     producer_version: str,
+    *,
+    allowed_authorities: Mapping[str, str],
 ) -> AgentResult:
     item = context.work_item
     tool_results = tuple(result for result in observed if isinstance(result, ToolResult))
@@ -341,12 +337,15 @@ def _adapt_framework_result(
         tuple(
             fact_from_tool_result(item, result)
             for result in tool_results
-            if result.success and result.authority in item.requirement_ids
+            if result.success
+            and result.authority == allowed_authorities.get(result.tool_name)
+            and (not item.requirement_ids or result.authority in item.requirement_ids)
             and (tool_domain_outcome(result) is None or tool_domain_outcome(result)[0] is AgentResultStatus.SUCCEEDED)
         ),
         tuple(
             fact for result in skill_results for fact in result.facts
-            if fact.requirement_id in item.requirement_ids
+            if (not item.requirement_ids or fact.requirement_id in item.requirement_ids)
+            and fact.requirement_id in allowed_authorities.values()
         ),
     )
     missing = set(item.requirement_ids).difference(
@@ -356,12 +355,20 @@ def _adapt_framework_result(
         field for result in skill_results for field in result.missing_inputs
     )
     failed_tools = tuple(result for result in tool_results if not result.success)
+    invalid_authority = any(
+        result.success and result.authority != allowed_authorities.get(result.tool_name)
+        for result in tool_results
+    )
     domain_failures = tuple(
         outcome for result in tool_results
         if (outcome := tool_domain_outcome(result)) is not None
         and outcome[0] is not AgentResultStatus.SUCCEEDED
     )
-    if missing and domain_failures:
+    if invalid_authority:
+        status = AgentResultStatus.TERMINAL_FAILURE
+        reason = "FRAMEWORK_AGENT_INVALID_TOOL_AUTHORITY"
+        retryable = False
+    elif (missing or not item.requirement_ids) and domain_failures:
         status, reason = next((outcome for outcome in domain_failures
                                if outcome[0] is AgentResultStatus.TERMINAL_FAILURE),
                               next((outcome for outcome in domain_failures
@@ -371,6 +378,11 @@ def _adapt_framework_result(
         status = AgentResultStatus.NEEDS_USER_INPUT
         reason = "FRAMEWORK_AGENT_NEEDS_USER_INPUT"
         retryable = False
+    elif not item.requirement_ids and failed_tools:
+        retryable = any(_retryable_tool_result(result) for result in failed_tools)
+        status = (AgentResultStatus.RETRYABLE_FAILURE if retryable
+                  else AgentResultStatus.TERMINAL_FAILURE)
+        reason = "FRAMEWORK_AGENT_TOOL_FAILURE"
     elif not missing:
         status = AgentResultStatus.SUCCEEDED
         reason = "FRAMEWORK_AGENT_REQUIREMENTS_SATISFIED"

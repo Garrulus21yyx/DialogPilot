@@ -30,6 +30,7 @@ from application.work_item import ArgumentValue
 
 # The compiler owns both the supported vocabulary and its planning meaning.
 _GOAL_DESCRIPTIONS = {
+    "delegate_task": "Delegate an open objective to a registered domain using target_agent and objective. The domain chooses its available tools; this does not authorize an unavailable action.",
     "cancel_active_work": "Cancel one active conversation objective using its revises_control_id; this does not cancel an order.",
     "general_qa": "Retrieve policy or FAQ evidence, including shipping, address-change rules, coupons and general procedures; performs no business action.",
     "order_status": "Read a specific order's current record; requires a bound order_id.",
@@ -79,11 +80,19 @@ def planning_output_schema() -> dict:
             **{key: dict(text) for key in (
                 "goal_id", "order_id", "order_id_source_ref", "asset_id",
                 "asset_id_source_ref", "new_address", "revises_control_id",
+                "target_agent", "objective",
             )},
             "resolved_query": {**text, "maxLength": 4000},
             "depends_on": {"type": "array", "uniqueItems": True, "items": dict(text)},
             "knowledge_options": knowledge_query_options_schema(),
         },
+        "allOf": [{
+            "if": {"properties": {"kind": {"const": "delegate_task"}}},
+            "then": {"required": ["target_agent", "objective"]},
+            "else": {"not": {"anyOf": [
+                {"required": ["target_agent"]}, {"required": ["objective"]},
+            ]}},
+        }],
     }
     # Root object plus branch constraints works with object-tool transports.
     # Each status has one unambiguous shape; inactive fields are omitted.
@@ -128,7 +137,7 @@ class ConversationPlanningProvider(Protocol):
 class ConversationAgent:
     """Plan one deferred turn, then compile only Registry-backed commands."""
 
-    version = "conversation-agent-plan-v4-reference-selection"
+    version = "conversation-agent-plan-v5-open-delegation"
 
     def __init__(
         self,
@@ -214,6 +223,18 @@ class ConversationAgent:
             ),
             "supported_goals": sorted(_GOALS),
             "goal_descriptions": planning_goal_descriptions(),
+            "domain_capabilities": [
+                {
+                    "agent_id": agent.agent_id,
+                    "description": agent.description,
+                    "tools": [
+                        {"tool_id": tool_id, "effect": registry.tool(tool_id).effect.value}
+                        for tool_id in agent.allowed_tool_ids
+                    ],
+                    "skills": list(agent.allowed_skill_ids),
+                }
+                for agent in registry.agents
+            ],
             "missing_fields_schema": sorted(_MISSING_FIELDS),
             "registry_fingerprint": registry.fingerprint,
         }
@@ -334,7 +355,25 @@ class ConversationAgent:
                 item.control_id for item in state.active_work_controls
             }:
                 raise ValueError("goal revises an inactive work control")
-            if kind == "cancel_active_work":
+            if kind == "delegate_task":
+                target_agent = value.get("target_agent")
+                objective = value.get("objective")
+                if not isinstance(target_agent, str) or target_agent not in {
+                    agent.agent_id for agent in registry.agents
+                }:
+                    raise ValueError("delegation requires a registered domain")
+                if not isinstance(objective, str) or not objective.strip():
+                    raise ValueError("delegation requires an objective")
+                bindings = tuple(binding for binding in (
+                    order_binding, asset_binding, address_binding,
+                ) if binding is not None)
+                command = CommandProposal(
+                    goal_id, CommandKind.DELEGATE_TASK, target_agent, objective,
+                    arguments=tuple(ArgumentValue.create(binding.field_name, binding.value)
+                                    for binding in bindings),
+                    argument_bindings=bindings,
+                )
+            elif kind == "cancel_active_work":
                 if not revises_control_id:
                     raise ValueError("cancel goal requires an active work control")
                 active = next(

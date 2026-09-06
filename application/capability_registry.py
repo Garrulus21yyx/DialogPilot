@@ -78,6 +78,12 @@ class AgentDefinition:
     context_policy: str
     verification_profile: str
     max_parallelism: int = 1
+    description: str = ""
+    tool_principal: str | None = None
+
+    @property
+    def execution_principal(self) -> str:
+        return self.tool_principal or self.agent_id
 
     def __post_init__(self) -> None:
         _required(
@@ -89,6 +95,8 @@ class AgentDefinition:
         )
         _unique_nonblank(self.allowed_tool_ids, "agent tools")
         _unique_nonblank(self.allowed_skill_ids, "agent skills")
+        if self.tool_principal is not None:
+            _required(self.tool_principal)
         if self.max_parallelism < 1:
             raise CapabilityRegistryError("agent max_parallelism must be positive")
 

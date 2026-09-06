@@ -17,7 +17,8 @@ from langchain_core.messages import AIMessage
 def board(answer):
     item=replace(_item(),requirement_ids=('knowledge.active_source',))
     tool=ToolResult(True,evidence_result(),'knowledge_search',authority='knowledge.active_source',call_id='read')
-    result=_adapt_framework_result(_context(item),(tool,),(AIMessage(content=answer),),'framework-v1')
+    result=_adapt_framework_result(_context(item),(tool,),(AIMessage(content=answer),),'framework-v1',
+        allowed_authorities={'knowledge_search': 'knowledge.active_source'})
     return SimpleNamespace(results=(result,), conflict_keys=(), missing_requirement_ids=(), partial_delivery_allowed=False)
 
 

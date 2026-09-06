@@ -46,6 +46,7 @@ def test_direct_and_framework_preserve_identical_tool_provenance(
     delegated = _adapt_framework_result(
         _context(replace(item, control_mode=ControlMode.DELEGATED)),
         (restore_framework_artifact(framework_artifact(result)),), (), "fixture-v1",
+        allowed_authorities={"catalog_search": authority},
     )
     assert direct.candidate_response is None
     direct_fact, = direct.facts

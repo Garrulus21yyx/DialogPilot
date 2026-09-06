@@ -273,6 +273,11 @@ class RoutePolicy:
         if command.kind in {CommandKind.DELEGATE_TASK, CommandKind.RUN_SKILL}:
             if any((command.tool_id, command.flow_ref, command.action_ref)):
                 raise TurnPlanningError("delegated command cannot carry tool, flow, or action")
+            open_delegation = (
+                command.kind is CommandKind.DELEGATE_TASK
+                and not command.requirement_ids
+                and not command.candidate_skill_ids
+            )
             skill_ids = (
                 (command.skill_id,)
                 if command.kind is CommandKind.RUN_SKILL and command.skill_id
@@ -287,12 +292,16 @@ class RoutePolicy:
             if not set(skill_ids).issubset(agent.allowed_skill_ids):
                 raise TurnPlanningError("delegated skill is outside agent allowlist")
             skills = tuple(registry.skill(item) for item in skill_ids)
+            if open_delegation:
+                skills = tuple(skill for skill in skills if skill.effect is CapabilityEffect.READ)
+                skill_ids = tuple(skill.skill_id for skill in skills)
             if any(
                 requirement.effect is RequirementEffect.WRITE
                 for requirement in requirements
             ):
                 raise TurnPlanningError("business writes must use a workflow command")
             candidate_tools = tuple(dict.fromkeys((
+                *(agent.allowed_tool_ids if open_delegation else ()),
                 *(
                     tool_id
                     for requirement in requirements

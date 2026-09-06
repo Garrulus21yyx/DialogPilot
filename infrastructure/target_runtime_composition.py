@@ -53,19 +53,6 @@ from infrastructure.target_turn_context import TargetTurnContextLoader
 from infrastructure.target_workflow_execution import TargetWorkflowExecutor
 
 
-_DOMAIN_PROMPTS = {
-    "general": "Resolve the supplied general ecommerce service objective using available evidence.",
-    "product_technical": (
-        "Resolve the supplied product objective using catalog, media and knowledge evidence. "
-        "Do not assume a product category."
-    ),
-    "order_logistics": "Resolve order and logistics questions using current business records.",
-    "billing_refund": "Resolve billing and refund questions using current records and policy evidence.",
-    "account_security": "Assess the supplied account security concern; distinguish reports from verified facts.",
-    "human_service": "Resolve the supplied support case objective using verified case records.",
-}
-
-
 @dataclass(frozen=True)
 class TargetRuntimeComponents:
     application: TargetChatApplication
@@ -91,9 +78,10 @@ async def build_target_runtime(
     knowledge_generator=None,
     knowledge_verifier=None,
     knowledge_source_validator=None,
+    registry: CapabilityRegistryBundle | None = None,
 ) -> TargetRuntimeComponents:
     """Wire the one production Target runtime and enter its checkpoint owner."""
-    registry = build_default_capability_registry(
+    registry = registry if registry is not None else build_default_capability_registry(
         os.getenv("DEFAULT_TENANT_ID", "default")
     )
     checkpoint_owner = AsyncPostgresCheckpointOwner(database_url, setup=True)
@@ -147,16 +135,16 @@ async def build_target_runtime(
             temperature=0,
         )
         domain_workers = {
-            owner: TargetFrameworkAgent(
+            agent.agent_id: TargetFrameworkAgent(
                 model,
                 tool_manager,
                 registry=registry,
-                system_prompt=prompt,
+                system_prompt=agent.description,
                 skill_executors={"product_identification": product_executor},
                 context_budget=context_budget,
                 control_guard=control_guard,
             )
-            for owner, prompt in _DOMAIN_PROMPTS.items()
+            for agent in registry.agents
         }
         orchestration = OrchestrationRuntime(
             direct_executor=tool_executor,
