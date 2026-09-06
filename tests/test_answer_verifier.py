@@ -125,3 +125,13 @@ def test_grounded_final_must_equal_validated_answer_and_have_claims():
     assert abstention.status is VerificationStatus.PASS
     assert abstention.publishable is True
 """回答发布校验边界的 PASS/REJECT/UNKNOWN 合同测试。"""
+
+
+def test_pass_contract_rejects_wrong_boolean_and_contradictory_reason():
+    import json
+    for grounded in ('false', 'true', 0, 1, None, [], {}):
+        result = verify(json.dumps({'status': 'pass', 'grounded': grounded, 'reason_code': 'passed'}))
+        assert result.status is VerificationStatus.UNKNOWN and not result.publishable
+    for grounded, code in ((False, 'passed'), (True, 'ungrounded'), (True, 'unknown')):
+        result = verify(json.dumps({'status': 'pass', 'grounded': grounded, 'reason_code': code}))
+        assert result.status is VerificationStatus.UNKNOWN and not result.publishable

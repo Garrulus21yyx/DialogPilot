@@ -66,7 +66,7 @@ class ResponseAssembler:
             return await self._assemble_candidate(board, current_message=current_message, system_notice=system_notice)
         if not knowledge_facts:
             unavailable = any(result.reason_code == "KNOWLEDGE_UNAVAILABLE" for result in board.results)
-            return self._knowledge_fallback(system_notice, unavailable=unavailable)
+            return self._knowledge_fallback(board, system_notice, unavailable=unavailable)
         try:
             packs = [json.loads(fact.value_json) for fact in knowledge_facts]
             items = {}
@@ -82,7 +82,7 @@ class ResponseAssembler:
                                  for result in board.results for fact in result.facts)
             if direct and only_knowledge:
                 if self._knowledge_generator is None:
-                    return self._knowledge_fallback(system_notice, unavailable=True)
+                    return self._knowledge_fallback(board, system_notice, unavailable=True)
                 from mcp.context_packer import ContextCandidate
                 contexts = tuple(ContextCandidate(
                     item['chunk_id'], item['source_ref']['source_id'], item['text'],
@@ -93,7 +93,7 @@ class ResponseAssembler:
                 query = packs[0]['evidence_pack']['query'] if len(packs) == 1 else current_message
                 generated = await self._knowledge_generator.generate(query, contexts)
                 if generated.abstained:
-                    return self._knowledge_fallback(system_notice)
+                    return self._knowledge_fallback(board, system_notice)
                 if not generated.claims or any(not claim.citations or set(claim.citations) - set(items)
                                                for claim in generated.claims):
                     raise ValueError("generated claims lack supplied evidence")
@@ -106,9 +106,10 @@ class ResponseAssembler:
             allowed = {evidence_id(cid) for cid in items}
             cited = set(re.findall(r"\[(E[a-zA-Z0-9]+)\]", candidate.text))
             if not cited or cited - allowed or self._knowledge_verifier is None:
-                return self._knowledge_fallback(system_notice, unavailable=self._knowledge_verifier is None)
+                return self._knowledge_fallback(board, system_notice, unavailable=self._knowledge_verifier is None)
             # Check original evidence/facts, never use candidate summaries as evidence.
-            facts = [json.loads(fact.value_json) for result in board.results for fact in result.facts]
+            facts = [json.loads(fact.value_json) for result in board.results for fact in result.facts
+                     if fact.requirement_id != "knowledge.active_source"]
             verdict = await self._knowledge_verifier.verify(
                 current_message, candidate.text,
                 context=json.dumps(facts, ensure_ascii=False),
@@ -117,18 +118,36 @@ class ResponseAssembler:
                                 for result in board.results],
             )
             if not verdict.publishable or not verdict.grounded:
-                return self._knowledge_fallback(system_notice)
+                return self._knowledge_fallback(board, system_notice)
             return AssembledResponse(system_notice + candidate.text, candidate.mode,
                                      tuple(sorted(cited)), candidate.composer_used,
                                      "PASS", "KNOWLEDGE_SUPPORT_CHECKED")
         except Exception:
-            return self._knowledge_fallback(system_notice, unavailable=True)
+            return self._knowledge_fallback(board, system_notice, unavailable=True)
 
     @staticmethod
-    def _knowledge_fallback(notice: str, *, unavailable: bool = False) -> AssembledResponse:
+    def _knowledge_fallback(board, notice: str, *, unavailable: bool = False) -> AssembledResponse:
         text = ("知识查询或核验服务暂时不可用，请稍后重试或联系人工客服。" if unavailable else
                 "现有资料不足以支持可靠结论，请补充适用条件或联系人工客服核实。")
-        return AssembledResponse(notice + text, ResponseAssemblyMode.TEMPLATE, (), False,
+        # A knowledge publication failure only removes knowledge-dependent claims.
+        # Committed effects and independently verified state retain their authority.
+        from dataclasses import replace
+        from types import SimpleNamespace
+        from application.agent_result import FactSourceKind
+        independent = []
+        for result in board.results:
+            dependent = result.reason_code.startswith("KNOWLEDGE_") or any(
+                fact.requirement_id == "knowledge.active_source" for fact in result.facts)
+            if not dependent:
+                independent.append(result)
+                continue
+            facts = tuple(fact for fact in result.facts
+                          if fact.source_kind is FactSourceKind.VERIFIED_STATE)
+            if facts or result.action_receipts:
+                independent.append(replace(result, facts=facts, candidate_response=None,
+                                           status=AgentResultStatus.PARTIAL, retryable=False))
+        prefix = _render_board(SimpleNamespace(results=independent)) + "\n" if independent else ""
+        return AssembledResponse(notice + prefix + text, ResponseAssemblyMode.TEMPLATE, (), False,
                                  "PASS", "KNOWLEDGE_SAFE_ABSTENTION")
 
     async def _assemble_candidate(
@@ -242,7 +261,7 @@ def _allowed_claims(board) -> tuple[AllowedClaim, ...]:
             claims.append(AllowedClaim(
                 f"fact:{result.work_item_id}:{index}",
                 "FACT",
-                json.loads(fact.value_json),
+                _fact_view(fact),
                 (fact.source_ref,),
             ))
         for receipt in result.action_receipts:
@@ -288,3 +307,11 @@ def _render_board(board) -> str:
         else:
             sections.append(f"{result.owner_agent}：未完成（{result.reason_code}）")
     return "\n".join(sections) or "暂时没有可发布的结果。"
+
+
+def _fact_view(fact):
+    value = json.loads(fact.value_json)
+    if fact.requirement_id == "knowledge.active_source":
+        from application.knowledge_tool_contract import model_evidence
+        return model_evidence(value)
+    return value

@@ -54,7 +54,7 @@ class VerificationResult:
     @property
     def publishable(self) -> bool:
         """只有明确的 PASS 才能越过用户可见的发布边界。"""
-        return self.status is VerificationStatus.PASS
+        return self.status is VerificationStatus.PASS and self.grounded is True and self.reason_code is VerificationReasonCode.PASSED
 
 
 class AnswerVerifier:
@@ -204,7 +204,13 @@ class AnswerVerifier:
             raw = extract_text_content(response.content)
             payload = self._parse_payload(raw)
             status = VerificationStatus(str(payload["status"]).lower())
-            grounded = bool(payload.get("grounded", False))
+            grounded = payload.get("grounded")
+            if type(grounded) is not bool:
+                raise ValueError("verifier grounded must be a boolean")
+            if status is VerificationStatus.PASS and (
+                not grounded or payload.get("reason_code", "passed") != "passed"
+            ):
+                raise ValueError("verifier pass contradicts grounding or reason")
             reason = str(payload.get("reason", "verification completed")).strip()[:300]
             reason_code = self._reason_code(payload.get("reason_code"), status, grounded)
             return VerificationResult(
