@@ -63,7 +63,7 @@ def fact_from_tool_result(item, result: ToolResult) -> FactRecord:
         else FactSourceKind.VERIFIED_STATE
     )
     return FactRecord(
-        item.aggregate_ref or f"work-item:{item.work_item_id}",
+        item.aggregate_ref or result.query_ref or f"tool-observation:{result.tool_name}:{result.call_id}",
         authority,
         json.dumps(
             result.data,

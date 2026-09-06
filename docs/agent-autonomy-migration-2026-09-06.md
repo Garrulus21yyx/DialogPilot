@@ -55,3 +55,11 @@ Target 当前窗口改用已有 PostgresMemoryProjectionReader：检查 PostgreS
 暂停领域任务恢复时，编译后的 WorkItem.continuation_of 绑定原任务及同一 control 的下一 revision。LangGraph 从原 checkpoint 读取对应 AgentResult 的未过期事实，并按续接目标传入；新目标不继承这些结果。已完成检查保留原 subject、来源和观察时间，不冒充本轮实时查询。这里验证的是结果级任务进度复用，不声称所有子 Agent 内部消息已经跨轮保留。
 
 回归：相关 PostgreSQL、控制、框架、上下文测试 139 passed；官方评测适配诊断 2 passed。τ³ v11 的 task 0 完成官方评分但 reward=0（必需写动作未完成）；task 1 用户模拟器返回无内容消息导致运行中止。完整业务验证保持开放。
+
+## 评测后续证据（非同预算成绩比较）
+
+v12 的协议日志确认：领域输出在 1024 tokens 截断；用户模拟器在 512 tokens 截断且正文为空。ModelPolicy 的 completion floor 现对全部推理模式生效，默认配置不改变；评测脚本通过显式参数记录预算对照。
+
+v13 使用 4096 输出预算，task 0 官方 ALL reward=1，但最终表达受事实误归并影响，不能算完整质量闭环。task 1 在带追问的审批文本处中止。适配器现在将无法绑定为明确决定的文本原样交给主链，既不授予审批也不当作传输异常。
+
+工具查询结果带 query_ref（工具、参数和授权主体的稳定标识）；未提供业务聚合主体时，不再把整个 WorkItem 当作所有查询的共同事实主体。它标识查询而非推断出的业务实体，重复同一查询的矛盾值仍进入冲突检查。

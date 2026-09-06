@@ -23,6 +23,10 @@
 
 ## 收敛验证记录
 
+- v12 诊断证明领域/用户输出分别在 1024/512 tokens 截断；v13 显式 4096-token 对照 task 0 reward=1，task 1 未完成。不能报告为两条成功或同预算提升。
+- ToolManager 查询标识修正多个不同查询共用 WorkItem 主体造成的假冲突；ModelPolicy 输出预算下限覆盖 NONE 模式。定向 PostgreSQL/框架/工具/模型回归 83 passed，适配器 3 passed。
+- PostgreSQL checkpoint 关闭/重开后，框架 Agent 补信息保留查询证据，实际工具仅调用一次。完整子 Agent 工作消息跨轮持久化不在此项证明之内。
+
 - 当前窗口接入既有源水位校验读取器，缓存未覆盖已提交记录时读取 Transcript；不是按存储产品判断正确性。
 - continuation_of 将暂停目标绑定原 checkpoint 的结果，复用未过期事实，保留对象及观察时间；新增目标无继承。139 项相关回归通过。子 Agent 完整工作消息跨轮续接尚未作为完成证据。
 - τ³ v11：task 0 官方 ALL=0，未执行必需换货写入；task 1 用户模拟器空消息异常。增加框架/用户模型协议诊断，继续查明失败边界，整体 verification_open。

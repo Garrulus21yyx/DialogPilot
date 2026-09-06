@@ -112,6 +112,48 @@ def test_memory_tool_receives_runtime_identity_and_returns_episode_provenance():
     assert model.bound_tool_names == ["service_episode_search", "DomainOutcome"]
 
 
+def test_domain_input_resume_reuses_progress_after_postgres_checkpoint_reopen(postgres_database_url):
+    from application.orchestration_runtime import OrchestrationRuntime
+    from application.work_item import WorkPlan
+    from infrastructure.langgraph_checkpoint import AsyncPostgresCheckpointOwner
+    calls, prompts = [], []
+    class Model(ScriptedToolModel):
+        def _generate(self, messages, stop=None, run_manager=None, **kwargs):
+            prompts.extend(message.content for message in messages if message.type == "human")
+            return super()._generate(messages, stop, run_manager, **kwargs)
+    model = Model(responses=[
+        AIMessage(content="", tool_calls=[{"name": "catalog_search", "id": "lookup-once",
+            "args": {"query": "product"}}]),
+        AIMessage(content="", tool_calls=[{"name": "DomainOutcome", "id": "ask-choice", "args": {
+            "status": "NEEDS_USER_INPUT", "response": "Which option?",
+            "missing_inputs": [{"field_name": "option", "question": "Which option?"}]}}]),
+        AIMessage(content="The selected option is recorded."),
+    ])
+    agent = TargetFrameworkAgent(model, _manager(calls),
+        registry=build_default_capability_registry("tenant-a"), system_prompt="Assist with this objective.")
+    original = replace(_item(), control=WorkControlBinding("persistent-objective", 1))
+    async def run():
+        async with AsyncPostgresCheckpointOwner(postgres_database_url, setup=True) as saver:
+            runtime = OrchestrationRuntime(direct_executor=agent,
+                domain_workers={original.owner_agent: agent}, checkpointer=saver)
+            board = await runtime.execute(WorkPlan((original,), original.work_item_id),
+                current_message="Look up the product and ask for my option", thread_id="persistent-progress")
+            assert board.results[0].status is AgentResultStatus.NEEDS_USER_INPUT
+        async with AsyncPostgresCheckpointOwner(postgres_database_url, setup=True) as saver:
+            runtime = OrchestrationRuntime(direct_executor=agent,
+                domain_workers={original.owner_agent: agent}, checkpointer=saver)
+            resumed = replace(original, work_item_id="next-work", continuation_of=original.work_item_id,
+                              control=WorkControlBinding("persistent-objective", 2))
+            return await runtime.resume(WorkPlan((resumed,), resumed.work_item_id),
+                current_message="blue", thread_id="persistent-progress")
+    board = asyncio.run(run())
+    assert board.results[0].status is AgentResultStatus.SUCCEEDED
+    assert len(calls) == 1
+    final_prompt = json.loads(prompts[-1])
+    assert final_prompt["verified_facts"][0]["source_ref"] == "lookup-once"
+    assert final_prompt["verified_facts"][0]["observed_at"]
+
+
 def _manager(calls, *, allowed_agents=("technical",)):
     manager = MCPToolManager("test-key", model="test-model")
 

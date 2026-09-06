@@ -5,6 +5,30 @@ from dataclasses import replace
 
 import pytest
 
+
+@pytest.mark.parametrize("tool_name", ["lookup_record", "search_catalog", "read_case"])
+def test_tool_queries_own_distinct_fact_subjects_not_the_work_item(tool_name):
+    from mcp.tool_manager import MCPToolManager, Tool
+    from infrastructure.target_agent_result_adapter import fact_from_tool_result
+    from application.result_board import ResultBoard
+    async def handler(params, context):
+        return {"record": params["key"]}
+    manager = MCPToolManager("test-key", model="test-model")
+    manager.register(Tool(tool_name, "Read a record", handler,
+        {"type": "object", "properties": {"key": {"type": "string"}}, "required": ["key"]},
+        allowed_agents=("general",), authority="record.details"))
+    async def run():
+        return [await manager.execute_for_agent(tool_name, {"key": key}, agent_type="general",
+            context={"tenant_id": tenant, "user_id": "user"}, call_id=f"call-{index}")
+            for index, (tenant, key) in enumerate([("a", "one"), ("a", "two"), ("a", "one"), ("b", "one")])]
+    results = asyncio.run(run())
+    assert results[0].query_ref == results[2].query_ref
+    assert len({result.query_ref for result in results}) == 3
+    facts = tuple(fact_from_tool_result(_item(), result) for result in results[:3])
+    assert ResultBoard._conflicts(facts) == ()
+    changed = replace(facts[2], value_json='{"record":"changed"}')
+    assert ResultBoard._conflicts((facts[0], changed))
+
 from application.agent_result import FactSourceKind
 from application.work_item import ControlMode
 from infrastructure.target_agent_result_adapter import (
@@ -56,7 +80,7 @@ def test_direct_and_framework_preserve_identical_tool_provenance(
     assert direct_fact.source_ref == (receipt_id or result.call_id)
     assert direct_fact.producer_id == result.tool_name
     assert direct_fact.producer_version == result.output_schema_version
-    assert direct_fact.subject_ref == f"work-item:{item.work_item_id}"
+    assert direct_fact.subject_ref == f"tool-observation:{result.tool_name}:{result.call_id}"
     assert json.loads(direct_fact.value_json) == result.data
 
 

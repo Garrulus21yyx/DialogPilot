@@ -48,6 +48,9 @@ async def run(args):
     from evaluation.tau3_tool_binding import bind_environment
 
     values = {**dotenv_values(ROOT / ".env"), **os.environ}
+    if args.completion_budget is not None:
+        for role in (ModelRole.WORKER, ModelRole.INTENT, ModelRole.SYNTHESIS, ModelRole.VERIFIER):
+            values[f"MODEL_{role.value.upper()}_MIN_COMPLETION_TOKENS"] = str(args.completion_budget)
     policy = ModelPolicy.from_env(values)
     profile = policy.profile(ModelRole.WORKER)
     args.output.mkdir(parents=True, exist_ok=False)
@@ -64,6 +67,8 @@ async def run(args):
                 "model_context_budget": 64000, "worker_profile": profile.to_dict(),
                 "user_model": args.user_model, "seed": 300,
                 "user_thinking": "disabled",
+                "completion_budget_override": args.completion_budget,
+                "user_max_tokens": args.user_max_tokens,
                 "evaluation": "official ALL plus ENV/ACTION diagnostics, strict replay",
                 "source_sha256": {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
                                   for folder in ("application", "infrastructure", "evaluation")
@@ -118,7 +123,7 @@ async def run(args):
                         user = UserSimulator(llm=args.user_model, instructions=str(task.user_scenario),
                             llm_args={"api_key": values["ANTHROPIC_API_KEY"], "api_base": policy.base_url,
                                       "temperature": 0, "thinking": {"type": "disabled"},
-                                      "max_tokens": 512, "timeout": 60, "num_retries": 0})
+                                      "max_tokens": args.user_max_tokens, "timeout": 60, "num_retries": 0})
                         orchestrator = Orchestrator(
                             domain="retail", agent=agent, user=user, environment=environment,
                             task=task, max_steps=args.max_steps, seed=300)
@@ -168,4 +173,6 @@ if __name__ == "__main__":
     parser.add_argument("--database-url", default="postgresql://dialogpilot:dialogpilot-local@localhost:15432/dialogpilot")
     parser.add_argument("--user-model", default="anthropic/deepseek-v4-flash")
     parser.add_argument("--max-steps", type=int, default=80)
+    parser.add_argument("--completion-budget", type=int, default=None)
+    parser.add_argument("--user-max-tokens", type=int, default=512)
     asyncio.run(run(parser.parse_args()))

@@ -78,6 +78,8 @@ class ModelProfile:
         统一将采样参数投影到 ``extra_body``，避免各业务调用方分别兼容。
         """
         request = {"model": self.model, **payload}
+        if "max_tokens" in request or self.min_completion_tokens:
+            request["max_tokens"] = max(int(request.get("max_tokens", 0)), self.min_completion_tokens)
         if self.provider != "deepseek":
             return self._sdk_v1_request(request)
         if self.reasoning is ReasoningEffort.NONE:
@@ -85,10 +87,6 @@ class ModelProfile:
             return self._sdk_v1_request(request)
         # Thinking 模式下 temperature 不生效，移除可避免配置看似有效却被忽略。
         request.pop("temperature", None)
-        request["max_tokens"] = max(
-            int(request.get("max_tokens", 0)),
-            self.min_completion_tokens,
-        )
         request["extra_body"] = {
             "thinking": {"type": "enabled"},
             "output_config": {"effort": self.reasoning.value},

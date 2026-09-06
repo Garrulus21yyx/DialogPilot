@@ -113,6 +113,7 @@ class ToolResult:
     authority:       str = ""
     output_schema_version: str = ""
     receipt_schema_version: str = ""
+    query_ref: str = ""
 
 
 @dataclass(frozen=True)
@@ -894,6 +895,11 @@ class MCPToolManager:
         result.call_id = call_id
         result.trace_id = trace_id
         result.status = status.value
+        query_identity = json.dumps({
+            "tool": result.tool_name, "params": params,
+            "tenant_id": context.get("tenant_id"), "user_id": context.get("user_id"),
+        }, ensure_ascii=False, sort_keys=True, separators=(",", ":"), default=str)
+        result.query_ref = "tool-query:v1:" + hashlib.sha256(query_identity.encode("utf-8")).hexdigest()
         if tool is not None:
             result.authority = tool.authority
             result.output_schema_version = tool.output_schema_version

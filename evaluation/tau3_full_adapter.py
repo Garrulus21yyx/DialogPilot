@@ -145,9 +145,11 @@ class Tau3TargetAgent(HalfDuplexAgent):
             extra = {}
             if state.pending_approval is not None:
                 decision = await self._approval_decision(state.pending_approval, text)
-                if decision is None:
-                    raise ValueError("text-only approval adapter could not bind an unchanged decision")
-                extra.update(approval_id=state.pending_approval.approval_id, approval_decision=decision)
+                # Questions and corrections are ordinary new user messages, not
+                # approval grants and not a transport failure. The application
+                # retains the pending decision while interpreting the new text.
+                if decision is not None:
+                    extra.update(approval_id=state.pending_approval.approval_id, approval_decision=decision)
             elif state.pending_interaction is not None:
                 extra.update(interaction_id=state.pending_interaction.interaction_id,
                              interaction_version=state.pending_interaction.version)
