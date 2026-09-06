@@ -1,0 +1,137 @@
+{
+  "scope": "Frozen composition inputs; structural attribution and model support checks, not answer completeness or production publication. Source live state not checked.",
+  "cases": 15,
+  "api_calls": 30,
+  "capture_sha256": "fa0eba8dcea300535b332ba161f0ef88d9c2fe8a76565c3398d5f0a7e04f9648",
+  "structured_and_rendered": 15,
+  "model_pass": 15,
+  "knowledge_cases": 14,
+  "expected_source_cited": 14,
+  "limitations": [
+    "audio-defect still lacks policy evidence due upstream planning; model support PASS does not establish completeness",
+    "Existing synthetic development cases, no heldout or business execution",
+    "v1 captured input migrated to explicit KNOWLEDGE_FACT kind and v2 schema; not an unchanged-input model-only ablation"
+  ],
+  "results": [
+    {
+      "case_id": "expanded-opened-audio",
+      "error": null,
+      "knowledge_input": true,
+      "expected_source_cited": true,
+      "verifier_status": "pass",
+      "api_calls": 2
+    },
+    {
+      "case_id": "expanded-audio-defect",
+      "error": null,
+      "knowledge_input": false,
+      "expected_source_cited": false,
+      "verifier_status": "pass",
+      "api_calls": 2
+    },
+    {
+      "case_id": "expanded-return-shipping",
+      "error": null,
+      "knowledge_input": true,
+      "expected_source_cited": true,
+      "verifier_status": "pass",
+      "api_calls": 2
+    },
+    {
+      "case_id": "expanded-remote-delivery",
+      "error": null,
+      "knowledge_input": true,
+      "expected_source_cited": true,
+      "verifier_status": "pass",
+      "api_calls": 2
+    },
+    {
+      "case_id": "expanded-coupon-refund",
+      "error": null,
+      "knowledge_input": true,
+      "expected_source_cited": true,
+      "verifier_status": "pass",
+      "api_calls": 2
+    },
+    {
+      "case_id": "expanded-custom-goods",
+      "error": null,
+      "knowledge_input": true,
+      "expected_source_cited": true,
+      "verifier_status": "pass",
+      "api_calls": 2
+    },
+    {
+      "case_id": "expanded-invoice",
+      "error": null,
+      "knowledge_input": true,
+      "expected_source_cited": true,
+      "verifier_status": "pass",
+      "api_calls": 2
+    },
+    {
+      "case_id": "expanded-pickup",
+      "error": null,
+      "knowledge_input": true,
+      "expected_source_cited": true,
+      "verifier_status": "pass",
+      "api_calls": 2
+    },
+    {
+      "case_id": "expanded-address",
+      "error": null,
+      "knowledge_input": true,
+      "expected_source_cited": true,
+      "verifier_status": "pass",
+      "api_calls": 2
+    },
+    {
+      "case_id": "expanded-exchange",
+      "error": null,
+      "knowledge_input": true,
+      "expected_source_cited": true,
+      "verifier_status": "pass",
+      "api_calls": 2
+    },
+    {
+      "case_id": "expanded-privacy",
+      "error": null,
+      "knowledge_input": true,
+      "expected_source_cited": true,
+      "verifier_status": "pass",
+      "api_calls": 2
+    },
+    {
+      "case_id": "expanded-damaged-box",
+      "error": null,
+      "knowledge_input": true,
+      "expected_source_cited": true,
+      "verifier_status": "pass",
+      "api_calls": 2
+    },
+    {
+      "case_id": "expanded-preorder",
+      "error": null,
+      "knowledge_input": true,
+      "expected_source_cited": true,
+      "verifier_status": "pass",
+      "api_calls": 2
+    },
+    {
+      "case_id": "expanded-receipt",
+      "error": null,
+      "knowledge_input": true,
+      "expected_source_cited": true,
+      "verifier_status": "pass",
+      "api_calls": 2
+    },
+    {
+      "case_id": "expanded-multi-evidence",
+      "error": null,
+      "knowledge_input": true,
+      "expected_source_cited": true,
+      "verifier_status": "pass",
+      "api_calls": 2
+    }
+  ]
+}

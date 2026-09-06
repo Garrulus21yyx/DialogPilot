@@ -119,7 +119,7 @@ def _transport_response(request):
     if 'tools' in request:
         return SimpleNamespace(stop_reason='tool_use', content=[SimpleNamespace(
             type='tool_use', name='submit_composed_response',
-            input={'response':'已查询。', 'used_claim_ids':['outcome:1']})])
+            input={'segments':[{'text':'已查询。', 'claim_ids':['outcome:1'], 'evidence_ids':[]}]})])
     return SimpleNamespace(stop_reason='end_turn', content=[SimpleNamespace(type='text', text='{}')])
 
 

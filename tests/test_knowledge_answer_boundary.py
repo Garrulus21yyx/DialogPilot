@@ -59,15 +59,16 @@ def test_verifier_absence_does_not_pass_unverified_policy_answer():
 
 
 def test_knowledge_failure_preserves_independent_result_and_committed_receipt():
-    from tests.test_response_assembly import _result, _board
+    from tests.test_response_assembly import _result, _board, _verified_order_result
     from application.agent_result import ReceiptRef
     failed = _result('k', 'knowledge', AgentResultStatus.BLOCKED, reason='KNOWLEDGE_NO_EVIDENCE')
-    order = _result('o', 'orders', response='订单已发货。')
+    order = _verified_order_result(response='我们会主动跟进。')
     for knowledge in (failed, board('无依据的政策结论').results[0]):
         receipt = ReceiptRef('receipt-123', 'v1', 'op-123', 'COMMITTED', 'refund.action')
         knowledge = replace(knowledge, action_receipts=(receipt,))
         result = asyncio.run(ResponseAssembler().assemble(_board(order, knowledge), current_message='订单和退款'))
-        assert '订单已发货' in result.text and 'receipt-123' in result.text
+        assert '已发货' in result.text and 'receipt-123' in result.text
+        assert '主动跟进' not in result.text
         assert '无依据的政策结论' not in result.text
 
 
@@ -75,8 +76,8 @@ def test_mixed_composer_receives_same_evidence_ids_as_publication_gate():
     from tests.test_response_assembly import _result, _board, _Composer
     citation = '[' + evidence_id('child-1') + ']'
     composer = _Composer(lambda payload: {
-        'response': '仅未拆封商品可退。 ' + citation,
-        'used_claim_ids': [c['claim_id'] for c in payload['allowed_claims']],
+        'segments': [{'text': '仅未拆封商品可退。',
+        'claim_ids': [c['claim_id'] for c in payload['allowed_claims']], 'evidence_ids':[evidence_id('child-1')]}],
     })
     mixed = _board(board('draft').results[0], _result('o','orders',response='订单已发货。'))
     result = asyncio.run(ResponseAssembler(composer, knowledge_verifier=Verifier(True), knowledge_source_validator=lambda packs: True).assemble(mixed,current_message='能退吗'))
@@ -113,8 +114,8 @@ def test_factless_business_outcomes_never_disappear_into_pure_knowledge_generati
             missing_inputs=missing, requested_evidence=requested,
             retryable=status is AgentResultStatus.RETRYABLE_FAILURE)
         composer = _Composer(lambda payload: {
-            'response': '订单查询结果需单独处理。仅未拆封商品可退。 ' + citation,
-            'used_claim_ids': [c['claim_id'] for c in payload['allowed_claims']],
+            'segments':[{'text': '订单查询结果需单独处理。仅未拆封商品可退。',
+            'claim_ids': [c['claim_id'] for c in payload['allowed_claims']], 'evidence_ids':[evidence_id('child-1')]}],
         })
         verifier = Verifier(True)
         result = asyncio.run(ResponseAssembler(composer, knowledge_generator=Generator(),
@@ -150,8 +151,8 @@ def test_support_verifier_sees_final_rendered_text_including_failed_business_out
     knowledge=board('draft').results[0]
     mixed=_board(knowledge,failed)
     def answer(payload):
-        claim=next(c['claim_id'] for c in payload['allowed_claims'] if c['kind']=='FACT')
-        return {'response':'仅未拆封商品可退。 '+citation+' ['+claim+']','used_claim_ids':[claim]}
+        claim=next(c['claim_id'] for c in payload['allowed_claims'] if c['kind']=='KNOWLEDGE_FACT')
+        return {'segments':[{'text':'仅未拆封商品可退。','claim_ids':[claim],'evidence_ids':[evidence_id('child-1')]}]}
     verifier=Verifier(True)
     response=asyncio.run(ResponseAssembler(_Composer(answer),knowledge_verifier=verifier,
         knowledge_source_validator=lambda packs:True).assemble(mixed,current_message='查询订单并说明退货政策'))

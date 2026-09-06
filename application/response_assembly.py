@@ -8,6 +8,7 @@ from enum import Enum
 from typing import Mapping, Protocol
 
 from application.agent_result import AgentResultStatus
+from application.composition_output import render_composition
 
 
 # CJK prose may touch an ID; ASCII identifier characters must not be sliced.
@@ -49,7 +50,7 @@ class ConversationComposer(Protocol):
 class ResponseAssembler:
     """Choose the cheapest valid response path and verify the final candidate."""
 
-    version = "response-assembler-v1"
+    version = "response-assembler-v2-attributed-composition"
 
     def __init__(self, composer: ConversationComposer | None = None, *,
                  knowledge_generator=None, knowledge_verifier=None, knowledge_source_validator=None) -> None:
@@ -65,7 +66,21 @@ class ResponseAssembler:
         knowledge_failure = any(result.reason_code.startswith("KNOWLEDGE_")
                                 and result.status not in _SUCCESS for result in board.results)
         if not knowledge_facts and not knowledge_failure:
-            return await self._assemble_candidate(board, current_message=current_message, system_notice=system_notice)
+            candidate = await self._assemble_candidate(board, current_message=current_message)
+            if candidate.composer_used:
+                try:
+                    if self._knowledge_verifier is None:
+                        raise ValueError("answer support verifier unavailable")
+                    verdict = await self._verify_support(board, current_message, candidate.text)
+                    if not verdict.publishable or not verdict.grounded:
+                        raise ValueError("composed business answer lacks support")
+                    return AssembledResponse(system_notice + candidate.text, candidate.mode,
+                        candidate.used_claim_ids, True, "PASS", "ANSWER_SUPPORT_CHECKED")
+                except Exception:
+                    return AssembledResponse(system_notice + _render_board(board), ResponseAssemblyMode.TEMPLATE,
+                        (), False, "PASS", "ANSWER_SAFE_FALLBACK")
+            from dataclasses import replace
+            return replace(candidate, text=system_notice + candidate.text)
         if not knowledge_facts:
             unavailable = any(result.reason_code == "KNOWLEDGE_UNAVAILABLE" for result in board.results)
             return self._knowledge_fallback(board, system_notice, unavailable=unavailable)
@@ -122,14 +137,9 @@ class ResponseAssembler:
             if not cited or cited - allowed or self._knowledge_verifier is None:
                 return self._knowledge_fallback(board, system_notice, unavailable=self._knowledge_verifier is None)
             # Check original evidence/facts, never use candidate summaries as evidence.
-            facts = [json.loads(fact.value_json) for result in board.results for fact in result.facts
-                     if fact.requirement_id != "knowledge.active_source"]
-            verdict = await self._knowledge_verifier.verify(
-                current_message, candidate.text,
-                context=json.dumps(facts, ensure_ascii=False),
+            verdict = await self._verify_support(
+                board, current_message, candidate.text,
                 knowledge_evidence={"packs": [model_evidence(pack) for pack in packs], "allowed_evidence_ids": sorted(allowed)},
-                agent_outcomes=[{"status": result.status.value, "reason": result.reason_code}
-                                for result in board.results],
             )
             if not verdict.publishable or not verdict.grounded:
                 return self._knowledge_fallback(board, system_notice)
@@ -140,6 +150,20 @@ class ResponseAssembler:
                                      "PASS", "KNOWLEDGE_SUPPORT_CHECKED")
         except Exception:
             return self._knowledge_fallback(board, system_notice, unavailable=True)
+
+    async def _verify_support(self, board, message, text, *, knowledge_evidence=None):
+        # The injected verifier is shared by business and knowledge composition.
+        # Original facts, receipts and outcomes are evidence; generated summaries
+        # are not promoted into independent proof of their own wording.
+        facts = [json.loads(fact.value_json) for result in board.results for fact in result.facts
+                 if fact.requirement_id != "knowledge.active_source"]
+        receipts = [claim.value for claim in _allowed_claims(board) if claim.kind == 'RECEIPT']
+        return await self._knowledge_verifier.verify(
+            message, text, context=json.dumps({'facts': facts, 'receipts': receipts}, ensure_ascii=False),
+            knowledge_evidence=knowledge_evidence,
+            agent_outcomes=[{"status": result.status.value, "reason": result.reason_code}
+                            for result in board.results],
+        )
 
     @staticmethod
     def _knowledge_fallback(board, notice: str, *, unavailable: bool = False) -> AssembledResponse:
@@ -186,7 +210,7 @@ class ResponseAssembler:
                 "PASS", "DETERMINISTIC_ASSEMBLY",
             )
         payload = {
-            "schema_version": "conversation-compose-request-v1",
+            "schema_version": "conversation-compose-request-v2-segments",
             "current_message": current_message,
             "allowed_claims": [
                 {
@@ -211,8 +235,7 @@ class ResponseAssembler:
         }
         try:
             raw = await self._composer.compose(payload)
-            text = str(raw["response"]).strip()
-            used = tuple(str(item) for item in raw["used_claim_ids"])
+            text, used = render_composition(raw, claims)
             text, used = self.prepare_composed_response(
                 text, used, claims, current_message, payload["work_item_outcomes"],
             )
@@ -317,7 +340,7 @@ def _allowed_claims(board) -> tuple[AllowedClaim, ...]:
         for index, fact in enumerate(result.facts, start=1):
             claims.append(AllowedClaim(
                 f"fact:{result.work_item_id}:{index}",
-                "FACT",
+                "KNOWLEDGE_FACT" if fact.requirement_id == "knowledge.active_source" else "FACT",
                 _fact_view(fact),
                 (fact.source_ref,),
             ))
@@ -346,10 +369,9 @@ def _render_board(board) -> str:
                 rendered.append(f"人工工单已创建，工单号：{receipt.receipt_id}。")
             else:
                 rendered.append(f"操作已完成，凭证号：{receipt.receipt_id}。")
-        # Facts and committed effects survive subsequent failures. An authored
-        # candidate is suitable only for a successful result with no receipts.
-        text = (_candidate_text(result) if result.status in _SUCCESS and not result.action_receipts else "")
-        text = text or _render_verified_facts(result)
+        # A fallback cannot re-publish model-authored candidates after a failed
+        # support check. Facts, committed effects and typed outcomes survive.
+        text = _render_verified_facts(result)
         if text:
             rendered.append(text)
         if result.status not in _SUCCESS:

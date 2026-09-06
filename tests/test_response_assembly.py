@@ -7,6 +7,7 @@ from application.agent_result import (
 )
 from application.response_assembly import ResponseAssembler, ResponseAssemblyMode
 from application.result_board import ResultBoardSnapshot
+from tests.test_knowledge_answer_boundary import Verifier
 
 
 def _result(
@@ -24,6 +25,17 @@ def _board(*results, missing=(), conflicts=(), partial=False):
     return ResultBoardSnapshot(
         results, (), (), (), missing, conflicts, True, partial,
     )
+
+
+def _verified_order_result(work_item_id='o', order_id='DP1234', response=None):
+    import json
+    from dataclasses import replace
+    from datetime import datetime, timezone
+    from application.agent_result import FactRecord, FactSourceKind
+    fact=FactRecord('order:'+order_id,'order.current_state',
+        json.dumps({'order_id':order_id,'status':'shipped'},sort_keys=True,separators=(',',':')),
+        FactSourceKind.VERIFIED_STATE,'read:1','order_lookup','order-view-v1',datetime.now(timezone.utc))
+    return replace(_result(work_item_id,'order_logistics',response=response),facts=(fact,))
 
 
 class _Composer:
@@ -50,10 +62,9 @@ def test_single_complete_candidate_passes_through_without_composer_call():
 
 def test_multi_result_composition_receives_only_claims_and_outcomes():
     composer = _Composer(lambda payload: {
-        "response": "订单已发货；商品查询暂时失败。",
-        "used_claim_ids": [
+        "segments": [{"text": "订单已发货；商品查询暂时失败。", "claim_ids": [
             item["claim_id"] for item in payload["allowed_claims"]
-        ],
+        ], "evidence_ids": []}],
     })
     board = _board(
         _result("w1", "order_logistics", response="订单已发货。"),
@@ -64,7 +75,7 @@ def test_multi_result_composition_receives_only_claims_and_outcomes():
         partial=True,
     )
 
-    assembled = asyncio.run(ResponseAssembler(composer).assemble(
+    assembled = asyncio.run(ResponseAssembler(composer, knowledge_verifier=Verifier(True)).assemble(
         board, current_message="查订单和商品",
     ))
 
@@ -79,11 +90,11 @@ def test_multi_result_composition_receives_only_claims_and_outcomes():
 
 def test_unsupported_reference_from_composer_falls_back_without_losing_results():
     composer = _Composer({
-        "response": "订单 DP9999 已发货。",
-        "used_claim_ids": ["outcome:w1", "outcome:w2"],
+        "segments": [{"text": "订单 DP9999 已发货。",
+        "claim_ids": ["outcome:w1", "outcome:w2"], "evidence_ids": []}],
     })
     board = _board(
-        _result("w1", "order_logistics", response="订单 DP1234 已发货。"),
+        _verified_order_result('w1'),
         _result("w2", "product_technical", response="商品信息已找到。"),
     )
 
@@ -94,7 +105,7 @@ def test_unsupported_reference_from_composer_falls_back_without_losing_results()
     assert assembled.mode is ResponseAssemblyMode.TEMPLATE
     assert assembled.composer_used is False
     assert "DP1234" in assembled.text
-    assert "商品信息已找到" in assembled.text
+    assert "商品信息已找到" not in assembled.text  # Unverified candidate is not a fallback fact.
     assert "DP9999" not in assembled.text
     assert assembled.verification_reason == "COMPOSER_FALLBACK"
 
@@ -129,9 +140,9 @@ def test_direct_tool_facts_compose_without_promoting_model_payload_to_reply():
                 output_for_model='RAW_MODEL_ONLY_JSON')
     result = asyncio.run(TargetToolExecutor(Tools())(_context(item)))
     assert result.candidate_response is None
-    composer = _Composer(lambda payload: {'response':'订单 DP9301 已发货。',
-        'used_claim_ids':[c['claim_id'] for c in payload['allowed_claims']]})
-    response = asyncio.run(ResponseAssembler(composer).assemble(_board(result),current_message='查订单'))
+    composer = _Composer(lambda payload: {'segments':[{'text':'订单 DP9301 已发货。',
+        'claim_ids':[c['claim_id'] for c in payload['allowed_claims']], 'evidence_ids':[]}]})
+    response = asyncio.run(ResponseAssembler(composer, knowledge_verifier=Verifier(True)).assemble(_board(result),current_message='查订单'))
     assert response.composer_used
     assert 'RAW_MODEL_ONLY_JSON' not in str(composer.calls)
     assert 'internal_debug' in str(composer.calls)  # Original fact is retained, not a lossy projection.
