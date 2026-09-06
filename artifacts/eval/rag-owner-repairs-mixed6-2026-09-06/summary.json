@@ -1,0 +1,131 @@
+{
+  "scope": "synthetic development stage signals; tool expectations and model verification are not answer accuracy",
+  "capture_sha256": "d16a5a48a16e7c01e6eca3caee8798a4ad399f75d71427cb5e997ee8e7debc97",
+  "definitions_sha256": "3a9af2bf2c72590618392e768f7fb169ca5044097cf157e2b272abdf85157ea4",
+  "expected_cases": 6,
+  "captured_cases": 6,
+  "complete_capture": true,
+  "counts": {
+    "expected_tool_coverage": 5,
+    "expected_source_visible": 5,
+    "expected_source_cited": 4,
+    "knowledge_support_checked": 4
+  },
+  "api_calls": 22,
+  "results": [
+    {
+      "case_id": "expanded-opened-audio",
+      "outcome": "Completed",
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_tool_coverage": true,
+      "expected_source_visible": true,
+      "expected_source_cited": true,
+      "knowledge_support_checked": true,
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "planner_stop": "end_turn",
+      "api_calls": 4,
+      "response": "订单 DP9301 的当前状态是已发货。\n未拆封耳机在签收后七日内可申请无理由退货；已拆封耳机非质量原因不适用无理由退货。 [Ef9878ca0a247]",
+      "latency_ms": 11967.320878058672,
+      "visible_evidence_count": 5,
+      "failure_stage": null
+    },
+    {
+      "case_id": "expanded-audio-defect",
+      "outcome": "Completed",
+      "tool_names": [
+        "order_lookup",
+        "refund_status"
+      ],
+      "expected_tool_coverage": false,
+      "expected_source_visible": false,
+      "expected_source_cited": false,
+      "knowledge_support_checked": false,
+      "synthesis_reason": "ANSWER_SUPPORT_CHECKED",
+      "planner_stop": "end_turn",
+      "api_calls": 3,
+      "response": "订单DP9302的当前状态为“已支付”。\n当前在本系统未查到归属于您的退款申请，因此无法确认退款是否到账。\n本系统未记录退款申请，不代表外部退款不存在、退款未到账或您无权申请退款。",
+      "latency_ms": 10151.285042986274,
+      "visible_evidence_count": 0,
+      "failure_stage": "route_differs_from_fixture_expectation"
+    },
+    {
+      "case_id": "expanded-gift-return",
+      "outcome": "Completed",
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_tool_coverage": true,
+      "expected_source_visible": true,
+      "expected_source_cited": true,
+      "knowledge_support_checked": true,
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "planner_stop": "end_turn",
+      "api_calls": 4,
+      "response": "订单DP9303（模拟耳机）的当前状态为已送达。\n关于赠品已使用的情况：参加赠品活动的订单整单退货时，应同时退回赠品；赠品已使用或遗失的，需核实活动规则，不能直接承诺全额退款。 [Ec4cb3fc5f87d]",
+      "latency_ms": 19603.368043899536,
+      "visible_evidence_count": 5,
+      "failure_stage": null
+    },
+    {
+      "case_id": "expanded-battery-install",
+      "outcome": "Completed",
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_tool_coverage": true,
+      "expected_source_visible": true,
+      "expected_source_cited": true,
+      "knowledge_support_checked": true,
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "planner_stop": "end_turn",
+      "api_calls": 4,
+      "response": "订单 DP9301 的当前状态为已发货。\n型号未核清时不能试装 B20；B20 仅适配设备 M20，不适配 M10，无法确认设备型号时应先核对铭牌。 [E14459400cd24]",
+      "latency_ms": 20504.500772804022,
+      "visible_evidence_count": 5,
+      "failure_stage": null
+    },
+    {
+      "case_id": "expanded-preorder",
+      "outcome": "Completed",
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_tool_coverage": true,
+      "expected_source_visible": true,
+      "expected_source_cited": true,
+      "knowledge_support_checked": true,
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "planner_stop": "end_turn",
+      "api_calls": 4,
+      "response": "订单 DP9302 的当前状态是已支付。\n预售商品会按商品页面约定的发货窗口处理；支付尾款不代表商品已经发货，实际发货状态需查询订单和物流记录确认。 [Ed2a5f7aa4c85]",
+      "latency_ms": 14760.274831205606,
+      "visible_evidence_count": 5,
+      "failure_stage": null
+    },
+    {
+      "case_id": "expanded-elliptic",
+      "outcome": "Completed",
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_tool_coverage": true,
+      "expected_source_visible": true,
+      "expected_source_cited": false,
+      "knowledge_support_checked": false,
+      "synthesis_reason": "KNOWLEDGE_SAFE_ABSTENTION",
+      "planner_stop": "end_turn",
+      "api_calls": 3,
+      "response": "订单 DP9303 当前状态为已送达。\n现有资料不足以支持可靠结论，请补充适用条件或联系人工客服核实。",
+      "latency_ms": 13467.824814841151,
+      "visible_evidence_count": 5,
+      "failure_stage": "answer_or_publication_gate"
+    }
+  ]
+}

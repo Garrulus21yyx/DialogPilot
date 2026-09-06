@@ -1,0 +1,15 @@
+{
+  "rendered": "订单DP9303（模拟耳机，¥199.00）的状态是已送达。\n该订单记录中退款提交窗口截止时间缺失，因此退款窗口是否已过期目前未知，这并不代表窗口已经过期。\n未拆封耳机在签收后七日内可申请无理由退货；已拆封耳机非质量原因不适用无理由退货。 [Ef9878ca0a247]\n若属于质量问题，需提交购买凭证及故障视频申请质量审核。 [Ebec67411c91b]\n签收记录只表示物流签收状态，不代表售后申请被拒绝；是否符合退货条件应结合商品类别、签收时间和商品状态判断。 [Ecc69487bf758]",
+  "error": null,
+  "verdict": {
+    "status": "pass",
+    "grounded": true,
+    "need_escalation": false,
+    "reason": "回答准确引用了订单状态和退款窗口缺失的事实，并基于政策原文说明了未拆封/已拆封耳机的退货规则、质量问题审核要求及签收状态的含义，所有结论均有证据支持且未添加未获支持的事实或承诺。",
+    "reason_code": "passed",
+    "publishable": true
+  },
+  "capture_sha256": "402a9ad4a1482018f3f9545986370f3b303e3728d05e95a843fc1aaed2744aaa",
+  "api_calls": 2,
+  "scope": "Composition replay following captured APIConnectionError; not a replacement whole-entry score."
+}

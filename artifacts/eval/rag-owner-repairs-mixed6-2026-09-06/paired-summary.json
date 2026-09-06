@@ -1,0 +1,75 @@
+{
+  "scope": "Same consumed synthetic6, same entry/model budget; current versus prior capture, no repeated sampling or isolated per-fix causal gain. Stage metrics are not semantic accuracy.",
+  "baseline_summary_sha256": "dd64d7d26607fa6b89d73ffb4ef0b6f4c7194eea22861747f54f6d800c29c2df",
+  "current_summary_sha256": "e7820ba72894c8888c739e96a2a88813538a85d55131c66efe8ba57ea76c7f41",
+  "metrics": {
+    "expected_tool_coverage": {
+      "before": 5,
+      "after": 5,
+      "rescued": [],
+      "harmed": [],
+      "delta_percentage_points": 0.0
+    },
+    "expected_source_visible": {
+      "before": 5,
+      "after": 5,
+      "rescued": [],
+      "harmed": [],
+      "delta_percentage_points": 0.0
+    },
+    "expected_source_cited": {
+      "before": 5,
+      "after": 4,
+      "rescued": [],
+      "harmed": [
+        "expanded-elliptic"
+      ],
+      "delta_percentage_points": -16.666666666666668
+    },
+    "knowledge_support_checked": {
+      "before": 5,
+      "after": 4,
+      "rescued": [],
+      "harmed": [
+        "expanded-elliptic"
+      ],
+      "delta_percentage_points": -16.666666666666668
+    }
+  },
+  "api_calls": {
+    "before": 22,
+    "after": 22
+  },
+  "answer_chars": [
+    {
+      "case_id": "expanded-opened-audio",
+      "before": 56,
+      "after": 77
+    },
+    {
+      "case_id": "expanded-audio-defect",
+      "before": 44,
+      "after": 90
+    },
+    {
+      "case_id": "expanded-gift-return",
+      "before": 165,
+      "after": 104
+    },
+    {
+      "case_id": "expanded-battery-install",
+      "before": 159,
+      "after": 90
+    },
+    {
+      "case_id": "expanded-preorder",
+      "before": 89,
+      "after": 90
+    },
+    {
+      "case_id": "expanded-elliptic",
+      "before": 242,
+      "after": 51
+    }
+  ]
+}

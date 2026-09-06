@@ -1,0 +1,314 @@
+{
+  "scope": "Mixed application evaluation; see mixed-manifest.json for executed cases and scope",
+  "scenario": "basic",
+  "documents": 19,
+  "cases": 6,
+  "query_options": {},
+  "forbidden_sources": {},
+  "withdrawn_sources": [],
+  "source_documents": [
+    {
+      "document_id": "synthetic-shop:opened-audio",
+      "title": "耳机无理由退货",
+      "content": "未拆封耳机在签收后七日内可申请无理由退货。已拆封耳机非质量原因不适用无理由退货。质量问题需提交检测材料后另行审核。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:audio-defect",
+      "title": "耳机质量问题",
+      "content": "耳机出现单侧无声时，请先检查连接和音量。仍有故障的，提交购买凭证及故障视频申请质量审核；审核通过不代表退款已经到账。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:return-shipping",
+      "title": "退货运费",
+      "content": "非质量原因退货的寄回运费由买家承担。确认属于商品质量问题的，按平台指定方式寄回可报销标准运费；加急运费不在报销范围内。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:remote-delivery",
+      "title": "偏远地区配送",
+      "content": "普通地区预计三至五个工作日送达。偏远地区预计额外增加二至三天。预计时效不构成指定日期送达承诺。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:coupon-refund",
+      "title": "优惠券退款规则",
+      "content": "整单退货时按实际支付金额退款，不退还优惠券面额。部分退货按商品分摊后的实付金额计算，已使用优惠券不会自动恢复。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:gift-return",
+      "title": "赠品随单退回",
+      "content": "参加赠品活动的订单整单退货时，应同时退回赠品。赠品已使用或遗失的，需核实活动规则，不得直接承诺全额退款。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:custom-goods",
+      "title": "定制商品售后",
+      "content": "按消费者指定尺寸制作的定制商品不适用无理由退货。商品存在质量问题仍可申请售后，需提交问题照片及订单信息。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:invoice",
+      "title": "电子发票",
+      "content": "电子发票可在订单完成后申请。抬头错误可以提交更正申请。已经开票的订单退款后需按实退金额处理红冲，不应重复开具原金额发票。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:warranty",
+      "title": "保修范围",
+      "content": "主机在购买后十二个月内享受质量保修。耗材和人为损坏不在免费保修范围内。保修审核需要购买凭证，无法凭聊天描述直接确认免费更换。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:battery-install",
+      "title": "电池安装限制",
+      "content": "安装替换电池前应断开电源。型号 B20 仅适配设备 M20，不适配 M10。无法确认设备型号时应先核对铭牌，不得建议试装。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:pickup",
+      "title": "自提须知",
+      "content": "自提订单凭提货码和收货人身份信息领取。提货码仅用于领取核验，不应公开发送。超过预约时间需先联系门店确认保留情况。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:address",
+      "title": "发货前改址",
+      "content": "未发货订单可提交改址申请，以订单系统确认结果为准。已发货订单需查询承运方是否支持拦截改址；提交申请不等于改址成功。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:exchange",
+      "title": "换货流程",
+      "content": "换货需先审核商品条件，再确认目标型号库存。审核通过但目标型号缺货时，应与用户协商等待或其他处理，不能承诺立即发出。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:membership",
+      "title": "积分有效期",
+      "content": "积分自获得之日起十二个月有效。退货后对应消费积分会扣回。积分抵扣部分按活动规则处理，不直接等额兑换现金。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:privacy",
+      "title": "账户安全",
+      "content": "客服不会索取账户密码、短信验证码或银行卡支付密码。退款由支付渠道处理，不需要用户向私人账户转账解冻。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:damaged-box",
+      "title": "外箱破损",
+      "content": "收到外箱破损商品时，应保留包装并拍摄外箱及商品照片。仅外箱轻微破损不自动等同商品质量问题；具体处理需查看商品状况。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:preorder",
+      "title": "预售发货",
+      "content": "预售商品按商品页面约定的发货窗口处理。支付尾款不代表商品已经发货，实际状态需查询订单和物流记录。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:receipt",
+      "title": "签收与退款",
+      "content": "签收记录只表示物流签收状态，不代表售后申请被拒绝。是否符合退货条件应结合商品类别、签收时间和商品状态判断。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:multi-evidence",
+      "title": "退货申请材料",
+      "content": "申请退货需要订单号、商品现状照片及退货原因。寄回前应等待退货地址确认，不能寄往商品包装上的生产商地址。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    }
+  ],
+  "case_definitions": [
+    {
+      "case_id": "expanded-opened-audio",
+      "message": "查一下订单DP9301的当前状态。另外，耳机拆封了，不是质量问题，还能无理由退吗？",
+      "history": [],
+      "expected_tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_order_id": "DP9301",
+      "expected_source_id": "synthetic-shop:opened-audio",
+      "source_text": "未拆封耳机在签收后七日内可申请无理由退货。已拆封耳机非质量原因不适用无理由退货。质量问题需提交检测材料后另行审核。",
+      "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+    },
+    {
+      "case_id": "expanded-audio-defect",
+      "message": "查一下订单DP9302的当前状态。另外，质量审核通过了，是不是退款到账了？",
+      "history": [],
+      "expected_tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_order_id": "DP9302",
+      "expected_source_id": "synthetic-shop:audio-defect",
+      "source_text": "耳机出现单侧无声时，请先检查连接和音量。仍有故障的，提交购买凭证及故障视频申请质量审核；审核通过不代表退款已经到账。",
+      "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+    },
+    {
+      "case_id": "expanded-gift-return",
+      "message": "查一下订单DP9303的当前状态。另外，赠品已经用了，整单退货还能直接全额退吗？",
+      "history": [],
+      "expected_tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_order_id": "DP9303",
+      "expected_source_id": "synthetic-shop:gift-return",
+      "source_text": "参加赠品活动的订单整单退货时，应同时退回赠品。赠品已使用或遗失的，需核实活动规则，不得直接承诺全额退款。",
+      "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+    },
+    {
+      "case_id": "expanded-battery-install",
+      "message": "查一下订单DP9301的当前状态。另外，我的机器型号没看清，能先试装 B20 吗？",
+      "history": [],
+      "expected_tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_order_id": "DP9301",
+      "expected_source_id": "synthetic-shop:battery-install",
+      "source_text": "安装替换电池前应断开电源。型号 B20 仅适配设备 M20，不适配 M10。无法确认设备型号时应先核对铭牌，不得建议试装。",
+      "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+    },
+    {
+      "case_id": "expanded-preorder",
+      "message": "查一下订单DP9302的当前状态。另外，尾款付完就是发货了吗？",
+      "history": [],
+      "expected_tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_order_id": "DP9302",
+      "expected_source_id": "synthetic-shop:preorder",
+      "source_text": "预售商品按商品页面约定的发货窗口处理。支付尾款不代表商品已经发货，实际状态需查询订单和物流记录。",
+      "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+    },
+    {
+      "case_id": "expanded-elliptic",
+      "message": "不是。还请查一下订单DP9303的状态，并根据刚才的退货原因说明适用规则。",
+      "history": [
+        "耳机拆封了，我想退。",
+        "是因为质量问题要退吗？"
+      ],
+      "expected_tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_order_id": "DP9303",
+      "expected_source_id": "synthetic-shop:opened-audio",
+      "source_text": "已拆封耳机非质量原因不适用无理由退货。质量问题需提交材料审核。",
+      "data_label": "synthetic development; reuses previously consumed policy questions, not heldout"
+    }
+  ],
+  "generation": {
+    "generation_id": "knowledge-generation-20faaff8c0d525974ab289caf3174d3f",
+    "corpus": "KNOWLEDGE",
+    "backend_id": "POSTGRES_PG_BM25_ZH_V1",
+    "backend_fingerprint": "POSTGRES_PGVECTOR_PG_BM25_ZH_V1",
+    "schema_version": "retrieval-v1",
+    "source_watermark": "1e3bcd3bd608d624d09b9b058e864875729332f5aba28c3d1cfae76b8859e2b1",
+    "embedding_model": "BAAI/bge-m3",
+    "embedding_dimension": 1024,
+    "embedding_model_digest": "b5e0ce3470abf5ef3831aa1bd5553b486803e83251590ab7ff35a117cf6aad38",
+    "distance_metric": "COSINE",
+    "vector_extension_version": "0.8.6",
+    "index_method": "HNSW",
+    "index_params_json": "{\"ef_construction\":64,\"m\":16}",
+    "chinese_tokenizer": "ascii-cjk-unigram-bigram-v1",
+    "lexical_ranker": "PG_BM25_ZH_V1",
+    "manifest_hash": "9a8002d3b22a73d5f7eaaf16389a848542fea44cc6e0d76563303d03b3a7c9c8",
+    "state": "ACTIVE",
+    "embedding_provider": "dialogpilot-sentence-transformers-5.7.0-local-bge-m3-v1",
+    "embedding_provider_kind": "MODEL",
+    "embedding_model_version": "5617a9f61b028005a4858fdac845db406aefb181",
+    "embedding_document_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1",
+    "embedding_query_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1"
+  },
+  "embedding_profile": {
+    "provider": "dialogpilot-sentence-transformers-5.7.0-local-bge-m3-v1",
+    "provider_kind": "MODEL",
+    "model": "BAAI/bge-m3",
+    "model_version": "5617a9f61b028005a4858fdac845db406aefb181",
+    "dimension": 1024,
+    "model_digest": "b5e0ce3470abf5ef3831aa1bd5553b486803e83251590ab7ff35a117cf6aad38",
+    "document_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1",
+    "query_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1"
+  },
+  "reranker_profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "generation_profile": {
+    "model": "deepseek-v4-pro",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "max_api_calls": 40,
+  "sdk_retries": 0,
+  "fixed_query_override": {}
+}
