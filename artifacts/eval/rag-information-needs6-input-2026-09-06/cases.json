@@ -1,0 +1,90 @@
+[
+  {
+    "case_id": "refund-state",
+    "message": "只查订单DP9302退款申请目前是什么进度，能否从系统记录确认已经到账。本次不需要解释一般规则。",
+    "history": [],
+    "needs": [
+      {
+        "kind": "current_state",
+        "order_id": "DP9302",
+        "criterion": "报告隔离系统实际可见状态；记录不足时明确无法确认，不推导相反状态"
+      }
+    ],
+    "data_label": "new synthetic development contrast; existing policy corpus; not heldout"
+  },
+  {
+    "case_id": "refund-policy",
+    "message": "只解释一般规则：质量审核通过是否就代表退款已经到账？本次不查询我的订单，也不执行操作。",
+    "history": [],
+    "needs": [
+      {
+        "kind": "policy_relation",
+        "source_id": "synthetic-shop:audio-defect",
+        "criterion": "质量审核通过是否就代表退款已经到账：明确二者不等价，并引用支持该关系的政策"
+      }
+    ],
+    "data_label": "new synthetic development contrast; existing policy corpus; not heldout"
+  },
+  {
+    "case_id": "refund-both",
+    "message": "请分别回答两件事：一、查询订单DP9302退款申请目前是什么进度，能否从系统记录确认已经到账；二、解释一般规则：质量审核通过是否就代表退款已经到账？不执行任何修改。",
+    "history": [],
+    "needs": [
+      {
+        "kind": "current_state",
+        "order_id": "DP9302",
+        "criterion": "报告隔离系统实际可见状态；记录不足时明确无法确认，不推导相反状态"
+      },
+      {
+        "kind": "policy_relation",
+        "source_id": "synthetic-shop:audio-defect",
+        "criterion": "质量审核通过是否就代表退款已经到账：明确二者不等价，并引用支持该关系的政策"
+      }
+    ],
+    "data_label": "new synthetic development contrast; existing policy corpus; not heldout"
+  },
+  {
+    "case_id": "shipping-state",
+    "message": "只查订单DP9301目前是否已经发货。本次不需要解释一般规则。",
+    "history": [],
+    "needs": [
+      {
+        "kind": "current_state",
+        "order_id": "DP9301",
+        "criterion": "报告隔离系统实际可见状态；记录不足时明确无法确认，不推导相反状态"
+      }
+    ],
+    "data_label": "new synthetic development contrast; existing policy corpus; not heldout"
+  },
+  {
+    "case_id": "shipping-policy",
+    "message": "只解释一般规则：支付尾款是否就代表商品已经发货？本次不查询我的订单，也不执行操作。",
+    "history": [],
+    "needs": [
+      {
+        "kind": "policy_relation",
+        "source_id": "synthetic-shop:preorder",
+        "criterion": "支付尾款是否就代表商品已经发货：明确二者不等价，并引用支持该关系的政策"
+      }
+    ],
+    "data_label": "new synthetic development contrast; existing policy corpus; not heldout"
+  },
+  {
+    "case_id": "shipping-both",
+    "message": "请分别回答两件事：一、查询订单DP9301目前是否已经发货；二、解释一般规则：支付尾款是否就代表商品已经发货？不执行任何修改。",
+    "history": [],
+    "needs": [
+      {
+        "kind": "current_state",
+        "order_id": "DP9301",
+        "criterion": "报告隔离系统实际可见状态；记录不足时明确无法确认，不推导相反状态"
+      },
+      {
+        "kind": "policy_relation",
+        "source_id": "synthetic-shop:preorder",
+        "criterion": "支付尾款是否就代表商品已经发货：明确二者不等价，并引用支持该关系的政策"
+      }
+    ],
+    "data_label": "new synthetic development contrast; existing policy corpus; not heldout"
+  }
+]

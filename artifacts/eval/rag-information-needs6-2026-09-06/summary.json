@@ -1,0 +1,132 @@
+{
+  "scope": "new synthetic development contrasts; descriptive stage signals, semantic review separate",
+  "capture_sha256": "39b17829348d27df94b0eb1dc93141272fb66103ac3d837b73555a629d6a7533",
+  "definitions_sha256": "b2ab943c74c8b94547c6a44dfeab832794a4565f6d7f0255dada0dbc072170c0",
+  "cases": 6,
+  "api_calls": 23,
+  "policy_cases": 4,
+  "policy_source_visible": 4,
+  "policy_source_cited": 4,
+  "results": [
+    {
+      "case_id": "refund-state",
+      "needs": [
+        {
+          "kind": "current_state",
+          "order_id": "DP9302",
+          "criterion": "报告隔离系统实际可见状态；记录不足时明确无法确认，不推导相反状态"
+        }
+      ],
+      "tools": [
+        "refund_status"
+      ],
+      "api_calls": 3,
+      "policy_source_visible": null,
+      "policy_source_cited": null,
+      "answer": "订单 DP9302 在本系统当前未记录到归属于您的退款申请。\n因此，系统记录无法确认退款已经到账。这并不排除外部退款存在或退款已在其他渠道到账，也不影响您进一步申请退款的权利。",
+      "synthesis_reason": "ANSWER_SUPPORT_CHECKED"
+    },
+    {
+      "case_id": "refund-policy",
+      "needs": [
+        {
+          "kind": "policy_relation",
+          "source_id": "synthetic-shop:audio-defect",
+          "criterion": "质量审核通过是否就代表退款已经到账：明确二者不等价，并引用支持该关系的政策"
+        }
+      ],
+      "tools": [
+        "knowledge_search"
+      ],
+      "api_calls": 5,
+      "policy_source_visible": true,
+      "policy_source_cited": true,
+      "answer": "质量审核通过不代表退款已经到账。 [E547cd60149ef]\n资料中未说明质量审核通过后到退款到账之间的具体流程或时间，因此无法确认审核通过后何时、以何种方式完成退款到账。 [E547cd60149ef]",
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED"
+    },
+    {
+      "case_id": "refund-both",
+      "needs": [
+        {
+          "kind": "current_state",
+          "order_id": "DP9302",
+          "criterion": "报告隔离系统实际可见状态；记录不足时明确无法确认，不推导相反状态"
+        },
+        {
+          "kind": "policy_relation",
+          "source_id": "synthetic-shop:audio-defect",
+          "criterion": "质量审核通过是否就代表退款已经到账：明确二者不等价，并引用支持该关系的政策"
+        }
+      ],
+      "tools": [
+        "refund_status",
+        "knowledge_search"
+      ],
+      "api_calls": 4,
+      "policy_source_visible": true,
+      "policy_source_cited": true,
+      "answer": "关于订单DP9302的退款申请进度：在当前系统记录中，未查到归属于您的退款申请记录，因此无法从系统记录确认退款已经到账。\n需要说明的是，这一查询结果仅表示有权访问的订单在本系统当前未记录退款申请，并不证明外部退款不存在、退款未到账或您无权申请退款。\n关于一般规则：质量审核通过并不代表退款已经到账。 [E547cd60149ef]",
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED"
+    },
+    {
+      "case_id": "shipping-state",
+      "needs": [
+        {
+          "kind": "current_state",
+          "order_id": "DP9301",
+          "criterion": "报告隔离系统实际可见状态；记录不足时明确无法确认，不推导相反状态"
+        }
+      ],
+      "tools": [
+        "order_lookup"
+      ],
+      "api_calls": 3,
+      "policy_source_visible": null,
+      "policy_source_cited": null,
+      "answer": "订单DP9301（模拟耳机）目前的状态是已发货。",
+      "synthesis_reason": "ANSWER_SUPPORT_CHECKED"
+    },
+    {
+      "case_id": "shipping-policy",
+      "needs": [
+        {
+          "kind": "policy_relation",
+          "source_id": "synthetic-shop:preorder",
+          "criterion": "支付尾款是否就代表商品已经发货：明确二者不等价，并引用支持该关系的政策"
+        }
+      ],
+      "tools": [
+        "knowledge_search"
+      ],
+      "api_calls": 4,
+      "policy_source_visible": true,
+      "policy_source_cited": true,
+      "answer": "支付尾款不代表商品已经发货。 [Edfec5e35d0e0]\n预售商品按商品页面约定的发货窗口处理，实际发货状态需查询订单和物流记录。 [Edfec5e35d0e0]",
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED"
+    },
+    {
+      "case_id": "shipping-both",
+      "needs": [
+        {
+          "kind": "current_state",
+          "order_id": "DP9301",
+          "criterion": "报告隔离系统实际可见状态；记录不足时明确无法确认，不推导相反状态"
+        },
+        {
+          "kind": "policy_relation",
+          "source_id": "synthetic-shop:preorder",
+          "criterion": "支付尾款是否就代表商品已经发货：明确二者不等价，并引用支持该关系的政策"
+        }
+      ],
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "api_calls": 4,
+      "policy_source_visible": true,
+      "policy_source_cited": true,
+      "answer": "订单 DP9301（模拟耳机）目前的订单快照状态为“已发货”。\n需要说明的是，该“已发货”是订单快照状态，不直接证明收件人的签收或承运方的签收事件。\n关于一般规则：支付尾款不代表商品已经发货，实际状态需查询订单和物流记录。 [Edfec5e35d0e0]",
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED"
+    }
+  ]
+}
