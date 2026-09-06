@@ -35,6 +35,7 @@ def main():
     parser.add_argument("--model", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--reranker", type=Path)
+    parser.add_argument("--acceptance-contract", type=Path)
     parser.add_argument(
         "--candidate-policy", choices=("flat", "parent_child"), default="flat"
     )
@@ -56,11 +57,49 @@ def main():
         raise ValueError("output must be new")
     dataset = RagDataset.load(args.dataset)
     synthetic_docs, synthetic_cases = synthetic_development()
-    public = select_dev(dataset, args.public_cases)
-    cases = public + synthetic_cases[: args.synthetic_cases]
-    if any(not c.answerable or c.split != "dev" for c in cases):
-        raise ValueError("this diagnostic requires answerable development cases")
-    documents = dataset.documents + synthetic_docs
+    contract = None
+    weights = (0.0, 0.25, 0.5, 0.75, 1.0)
+    if args.acceptance_contract:
+        contract = json.loads(args.acceptance_contract.read_text())
+        if (
+            contract["status"] != "FROZEN_BEFORE_INFERENCE"
+            or contract["configuration_selection_allowed"]
+        ):
+            raise ValueError("invalid acceptance contract")
+        if (
+            file_sha(args.dataset / "manifest.json")
+            != contract["dataset_manifest_sha256"]
+        ):
+            raise ValueError("acceptance dataset drift")
+        for field in (
+            "query_mode",
+            "chunk_tokens",
+            "overlap",
+            "strategy",
+            "candidate_policy",
+        ):
+            if getattr(args, field) != contract[field]:
+                raise ValueError("acceptance configuration drift: " + field)
+        if args.synthetic_cases != 0 or not args.reranker:
+            raise ValueError(
+                "acceptance requires local reranker and no synthetic injection"
+            )
+        public = dataset.select_cases("heldout")
+        if len(public) != contract["case_count"] or len(public) != len(dataset.cases):
+            raise ValueError("acceptance requires every frozen heldout case")
+        weights = tuple(contract["dense_weights"])
+        if weights != (0.25,):
+            raise ValueError("acceptance does not permit weight search")
+        cases = public
+        documents = dataset.documents
+    else:
+        public = select_dev(dataset, args.public_cases)
+        cases = public + synthetic_cases[: args.synthetic_cases]
+        if any(c.split != "dev" for c in cases):
+            raise ValueError("development split required")
+        documents = dataset.documents + synthetic_docs
+    if any(not c.answerable for c in cases):
+        raise ValueError("answerable cases required")
     metrics, chunks, texts = projection(
         documents, cases, args.chunk_tokens, args.overlap, args.strategy
     )
@@ -72,6 +111,8 @@ def main():
         and p.suffix in {".bin", ".safetensors", ".json", ".model", ".pt"}
     )
     model_identity = {p.name: file_sha(p) for p in files}
+    if contract and model_identity != contract["embedding_model_files"]:
+        raise ValueError("acceptance embedding identity drift")
     identity = {
         "model_files": model_identity,
         "model_path": str(args.model.resolve()),
@@ -137,6 +178,7 @@ def main():
         dense,
         lexical,
         candidate_policy=args.candidate_policy,
+        weights=weights,
     )
     rerank_identity = None
     rerank_ms = 0
@@ -147,6 +189,8 @@ def main():
         rerank_identity = {
             p.name: file_sha(p) for p in sorted(args.reranker.iterdir()) if p.is_file()
         }
+        if contract and rerank_identity != contract["reranker_model_files"]:
+            raise ValueError("acceptance reranker identity drift")
         locations = sorted(
             {
                 (i, cid)
@@ -209,12 +253,16 @@ def main():
             lexical,
             rerank_scores=rerank_scores,
             candidate_policy=args.candidate_policy,
+            weights=weights,
         )
     report = {
         "schema_version": "rag-provider-free-v1",
         "baseline_commit": "5b60455",
         "scope": "LOCAL_PIPELINE_REPLAY_NOT_LIVE_AGENT",
-        "configuration_selection_allowed": True,
+        "configuration_selection_allowed": contract is None,
+        "acceptance_contract_sha256": file_sha(args.acceptance_contract)
+        if contract
+        else None,
         "external_inference_api_calls": 0,
         "network_disabled": True,
         "public_cases": len(public),
@@ -262,7 +310,9 @@ def main():
             "final_answer",
             "business_tool_routing",
         ],
-        "status": "DEVELOPMENT_DIAGNOSTIC",
+        "status": "FROZEN_LOCAL_RETRIEVAL_ACCEPTANCE"
+        if contract
+        else "DEVELOPMENT_DIAGNOSTIC",
     }
     args.output.mkdir(parents=True)
     (args.output / "cases.jsonl").write_text(

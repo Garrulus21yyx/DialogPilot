@@ -140,6 +140,7 @@ def replay(
     context_tokens=2600,
     rerank_scores=None,
     candidate_policy="flat",
+    weights=WEIGHTS,
 ):
     if candidate_policy not in {"flat", "parent_child"}:
         raise ValueError("unsupported candidate policy")
@@ -158,7 +159,7 @@ def replay(
                 if lexical[i, positions[cid]] > 0
             )[:source_k],
         }
-        for weight in WEIGHTS:
+        for weight in weights:
             fused = fuse_rankings(
                 routes,
                 weights={"dense": weight, "bm25": 1 - weight},

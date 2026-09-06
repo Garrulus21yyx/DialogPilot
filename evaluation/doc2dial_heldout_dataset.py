@@ -46,6 +46,8 @@ def freeze_doc2dial_heldout(
     dataset_id: str = DATASET_ID,
     selection_seed: str = SELECTION_SEED,
     stratum_quotas: Mapping[tuple[str, str], int] | None = None,
+    excluded_group_ids: Sequence[str] = (),
+    exclusion_audit_sha256: str | None = None,
 ) -> RagDataset:
     """Select one maximum-history turn per conversation in 12 fixed strata."""
     if per_stratum < 1:
@@ -76,13 +78,22 @@ def freeze_doc2dial_heldout(
         if isinstance(excluded_dataset, RagDataset)
         else tuple(excluded_dataset)
     )
-    if not excluded_datasets:
+    if excluded_group_ids and (
+        not exclusion_audit_sha256
+        or len(exclusion_audit_sha256) != 64
+        or any(c not in "0123456789abcdef" for c in exclusion_audit_sha256)
+    ):
+        raise ValueError("additional group exclusions require an audit SHA-256")
+    if any(not group.startswith("doc2dial-") for group in excluded_group_ids):
+        raise ValueError("additional exclusions must be Doc2Dial group IDs")
+    if not excluded_datasets and not excluded_group_ids:
         raise ValueError("at least one excluded dataset is required")
     excluded_groups = {
         case.group_id
         for dataset in excluded_datasets
         for case in dataset.cases
     }
+    excluded_groups.update(excluded_group_ids)
     by_stratum: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
     for domain in DOMAINS:
         for document_id in sorted(dials_by_domain[domain]):
@@ -176,6 +187,7 @@ def freeze_doc2dial_heldout(
                 "group_count": len({case.group_id for case in dataset.cases}),
             } for dataset in excluded_datasets],
             "excluded_group_count": len(excluded_groups),
+            "exclusion_audit_sha256": exclusion_audit_sha256,
             "excluded_group_ids_sha256": _text_sha256(
                 "\n".join(sorted(excluded_groups))
             ),

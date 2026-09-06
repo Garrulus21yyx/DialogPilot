@@ -161,3 +161,35 @@ def _dialogue(dialogue_id, evidence):
             },
         ],
     }
+
+
+def test_audited_group_ids_exclude_captures_without_fake_dataset_rows(tmp_path):
+    import pytest
+
+    archive = tmp_path / "archive.zip"
+    _write_archive(archive)
+    excluded = ("doc2dial-old-dialogue", "doc2dial-dmv-short-dialogue")
+    with pytest.raises(ValueError, match="audit SHA-256"):
+        freeze_doc2dial_heldout(
+            archive,
+            tmp_path / "invalid",
+            excluded_dataset=(),
+            excluded_group_ids=excluded,
+            per_stratum=1,
+            expected_archive_sha256=None,
+        )
+    dataset = freeze_doc2dial_heldout(
+        archive,
+        tmp_path / "valid",
+        excluded_dataset=(),
+        excluded_group_ids=excluded,
+        exclusion_audit_sha256="a" * 64,
+        per_stratum=1,
+        expected_archive_sha256=None,
+    )
+    assert set(excluded).isdisjoint(c.group_id for c in dataset.cases)
+    assert "doc2dial-dmv-short-dialogue-alternate" in {
+        c.group_id for c in dataset.cases
+    }
+    assert dataset.manifest["source"]["excluded_group_count"] == 2
+    assert dataset.manifest["source"]["exclusion_audit_sha256"] == "a" * 64
