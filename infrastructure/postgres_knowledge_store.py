@@ -270,6 +270,67 @@ class PostgresKnowledgeStore:
             RetrievalCorpus.KNOWLEDGE, backend_id=self.backend_id,
         )
 
+    def applicability_catalog(self, *, as_of: datetime,
+                              expected_generation: RetrievalGeneration | None = None) -> dict[str, object]:
+        """Source-owned facet vocabulary and evidence, not subject applicability.
+
+        Query only source metadata from the pinned generation. The same temporal
+        predicate as retrieval excludes superseded, expired and withdrawn
+        sources. A returned facet's existence does not establish that it applies
+        to a user's mentioned product or authorize a business operation.
+        """
+        from infrastructure.knowledge_applicability import source_applicability
+        from psycopg import sql
+        if not isinstance(as_of, datetime) or as_of.utcoffset() is None:
+            raise ValueError("applicability catalog requires an aware instant")
+        generation = self.active_generation()
+        if expected_generation is not None and (
+            expected_generation.backend_id, expected_generation.generation_id, expected_generation.manifest_hash
+        ) != (generation.backend_id, generation.generation_id, generation.manifest_hash):
+            raise GenerationConflict("scope catalog does not match pinned knowledge generation")
+        predicate, params = source_applicability("chunk", as_of=as_of)
+        with self._pool.transaction() as connection:
+            rows = connection.execute(sql.SQL("""
+                SELECT DISTINCT source.source_id, source.revision_id, source.title,
+                       source.product, source.region, source.channel,
+                       source.effective_from, source.effective_to
+                FROM retrieval.knowledge_chunk_search chunk
+                JOIN retrieval.knowledge_source_revisions source
+                  ON source.tenant_id=chunk.tenant_id
+                 AND source.source_id=chunk.source_id
+                 AND source.revision_id=chunk.source_revision
+                WHERE chunk.tenant_id=%s AND chunk.backend_id=%s
+                  AND chunk.generation_id=%s AND chunk.scope='public'
+                  AND chunk.locale=%s AND COALESCE(chunk.product,'')=%s
+                  AND {}
+                ORDER BY source.source_id, source.revision_id
+            """).format(predicate), (
+                self._tenant_id, self.backend_id, generation.generation_id,
+                self._locale, self._product, *params,
+            )).fetchall()
+        current = self.active_generation()
+        if (current.generation_id, current.manifest_hash) != (generation.generation_id, generation.manifest_hash):
+            raise GenerationConflict("knowledge generation changed during scope catalog read")
+        entries = [{
+            "source_id": row[0], "source_revision": row[1], "title": row[2],
+            "product": row[3], "region": row[4], "channel": row[5],
+            "effective_from": row[6].isoformat(),
+            "effective_to": row[7].isoformat() if row[7] else None,
+        } for row in rows]
+        payload = {
+            "schema_version": "knowledge-applicability-catalog-v1",
+            "tenant_id": self._tenant_id, "backend_id": self.backend_id,
+            "generation_id": generation.generation_id,
+            "manifest_fingerprint": generation.manifest_hash,
+            "as_of": as_of.isoformat(), "entries": entries,
+            "facet_ids": {dimension: sorted({entry[dimension] for entry in entries
+                                             if entry[dimension] != general})
+                          for dimension, general in (("product", ""), ("region", "global"), ("channel", "global"))},
+        }
+        return {**payload, "catalog_fingerprint": hashlib.sha256(json.dumps(
+            payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"),
+        ).encode("utf-8")).hexdigest()}
+
     @property
     def embedding_profile(self) -> EmbeddingProfile:
         return self._embedding_provider.profile

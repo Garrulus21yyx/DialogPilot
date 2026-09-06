@@ -127,3 +127,47 @@ def test_display_product_label_is_not_a_canonical_source_scope(store, postgres_d
         assert not source.validate_candidates(captured['catalog:part:B20'],replace(request,applicable_product='B20'))
     finally:
         retrieval.close()
+
+
+def test_source_scope_catalog_preserves_temporal_provenance_and_opaque_ids(store):
+    knowledge, _, embedding = store
+    source = SourceDocument.create(source_id='part',title='B20 配件说明',content='B20 安装条件。',
+        product='catalog:part:B20',region='CN',channel='web',effective_from=instant(2023))
+    old = knowledge.import_documents((source,)).revisions[0]
+    newer = replace(source,product='catalog:part:B20-v2',effective_from=instant(2025),effective_to=instant(2027))
+    current = knowledge.import_documents((newer,)).revisions[0]
+    query_calls = len(embedding.query_inputs)
+    history = knowledge.applicability_catalog(as_of=instant(2024))
+    now = knowledge.applicability_catalog(as_of=instant(2026))
+    assert history['facet_ids']['product'] == ['catalog:part:B20']
+    assert history['entries'][0]['source_revision'] == old.revision_id
+    assert now['facet_ids'] == {'product':['catalog:part:B20-v2'],'region':['CN'],'channel':['web']}
+    assert now['entries'][0]['source_revision'] == current.revision_id
+    assert now['entries'][0]['title'] == 'B20 配件说明'
+    assert 'B20' not in now['facet_ids']['product']
+    assert now == knowledge.applicability_catalog(as_of=instant(2026))
+    assert now['catalog_fingerprint'] != history['catalog_fingerprint']
+    assert knowledge.applicability_catalog(as_of=instant(2027))['entries'] == []
+    knowledge.withdraw_revision('part',current.revision_id,reason='invalid source')
+    withdrawn = knowledge.applicability_catalog(as_of=instant(2026))
+    assert withdrawn['entries'] == []
+    assert withdrawn['catalog_fingerprint'] != now['catalog_fingerprint']
+    assert knowledge.applicability_catalog(as_of=instant(2024))['entries'] == history['entries']
+    assert len(embedding.query_inputs) == query_calls
+    with pytest.raises(ValueError,match='aware'):
+        knowledge.applicability_catalog(as_of=datetime(2026,1,1))
+
+
+def test_source_scope_catalog_rejects_generation_switch(store, monkeypatch):
+    from application.hybrid_retrieval import GenerationConflict
+    knowledge, _, _ = store
+    knowledge.import_documents((SourceDocument.create(source_id='s',title='规则',content='适用规则。'),))
+    generation = knowledge.active_generation()
+    switched = replace(generation,generation_id='another-generation')
+    with pytest.raises(GenerationConflict,match='pinned'):
+        knowledge.applicability_catalog(as_of=datetime.now(timezone.utc),expected_generation=switched)
+    assert knowledge.applicability_catalog(as_of=datetime.now(timezone.utc),expected_generation=generation)['generation_id'] == generation.generation_id
+    sequence = iter((generation,switched))
+    monkeypatch.setattr(knowledge,'active_generation',lambda:next(sequence))
+    with pytest.raises(GenerationConflict,match='changed'):
+        knowledge.applicability_catalog(as_of=datetime.now(timezone.utc))
