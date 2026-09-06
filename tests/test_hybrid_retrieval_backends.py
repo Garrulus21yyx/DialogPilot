@@ -205,6 +205,63 @@ def test_postgres_backend_fail_closed_status_algebra(backend_foundation):
     assert no_match.status is RetrievalStatus.NO_EVIDENCE
 
 
+def test_postgres_bm25_ranks_term_frequency_and_applies_metadata_scope(
+    backend_foundation,
+):
+    platform, retrieval = backend_foundation
+    registry = PostgresRetrievalGenerationRegistry(platform)
+    generation = registry.register(replace(
+        _generation("bm25"),
+        backend_id="POSTGRES_PG_BM25_ZH_V1",
+        lexical_ranker="PG_BM25_ZH_V1",
+    ))
+    registry.transition(generation.generation_id, GenerationState.BUILDING)
+    rows = (
+        ("frequent-local", "退款 退款 退款", "text", "local"),
+        ("single-local", "退款 流程 材料 时间 条件", "text", "local"),
+        ("frequent-global", "退款 退款 退款 退款", "faq", "global"),
+    )
+    with platform.transaction() as connection:
+        for candidate_id, content, source_type, region in rows:
+            connection.execute("""
+                INSERT INTO retrieval.knowledge_chunk_search (
+                    candidate_id, tenant_id, backend_id, generation_id,
+                    source_id, source_revision, source_checksum, source_span,
+                    provenance_sha256, scope, locale, product, deletion_epoch,
+                    source_type, region, embedding, lexical_document,
+                    projected_at
+                ) VALUES (
+                    %s, 'tenant-a', %s, %s, %s, 'revision-1', %s,
+                    '{"start":0,"end":2}'::jsonb, %s,
+                    'public', 'zh-CN', 'payments', 0, %s, %s,
+                    %s::vector, %s, now()
+                )
+            """, (
+                candidate_id, generation.backend_id,
+                generation.generation_id, candidate_id, SHA, SHA,
+                source_type, region, _vector(1),
+                postgres_lexical_document(content),
+            ))
+    registry.transition(generation.generation_id, GenerationState.READY)
+    registry.activate_direct(generation.generation_id)
+    request = replace(
+        _knowledge_request(generation),
+        query_embedding=tuple(
+            float(item) for item in _vector(0)[1:-1].split(",")
+        ),
+        scope=KnowledgeSearchScope(
+            "public", "zh-CN", "payments", ("text",), ("local",),
+        ),
+    )
+
+    result = PostgresHybridBackend(retrieval).retrieve(request)
+
+    assert result.status is RetrievalStatus.OK
+    assert [item.candidate_id for item in result.lexical_candidates] == [
+        "frequent-local", "single-local",
+    ]
+
+
 def test_episode_search_is_cross_user_isolated_and_never_cross_ranks_knowledge(
     backend_foundation,
 ):

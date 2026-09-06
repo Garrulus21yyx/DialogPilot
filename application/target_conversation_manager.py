@@ -1,7 +1,7 @@
 """Single lifecycle owner for Target Architecture v1 chat turns."""
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, replace, field
 import hashlib
 import json
 from datetime import datetime, timedelta, timezone
@@ -160,6 +160,7 @@ class PreparedTurn:
     evidence_refs: tuple[str, ...]
     token_budget: int
     artifact_version: str = "prepared-turn-v1"
+    execution_context: dict = field(default_factory=dict)
 
     @property
     def fingerprint(self) -> str:
@@ -227,6 +228,7 @@ class TargetConversationManager:
         recent_relevant_turns: tuple[str, ...] = (),
         evidence_refs: tuple[str, ...] = (),
         token_budget: int = 6000,
+        execution_context: dict | None = None,
     ) -> PreparedTurn:
         state_before = self._state_store.load(
             invocation.tenant_id,
@@ -276,6 +278,7 @@ class TargetConversationManager:
             recent_relevant_turns,
             evidence_refs,
             token_budget,
+            execution_context=dict(execution_context or {}),
         )
 
     async def execute(self, prepared: PreparedTurn) -> ManagedTurnResult:
@@ -313,6 +316,7 @@ class TargetConversationManager:
             ))),
             "token_budget": prepared.token_budget,
             "trusted_context": {
+                **prepared.execution_context,
                 **invocation.metadata(),
                 "conv_id": str(invocation.conversation_id),
                 **(

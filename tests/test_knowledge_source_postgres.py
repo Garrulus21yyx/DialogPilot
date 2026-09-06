@@ -18,6 +18,7 @@ from application.knowledge_source import (
     KnowledgeSourceManifest,
     SourceRevision,
 )
+from application.knowledge_retrieval_text import build_child_retrieval_text
 from application.chinese_lexical import postgres_lexical_document
 from infrastructure.postgres import PostgresMigrationRunner, PostgresPool, PostgresPoolConfig
 from infrastructure.postgres_knowledge_source import PostgresKnowledgeSourceRepository
@@ -106,6 +107,13 @@ def _chunk(source, generation_id):
         f"{generation_id}\0{source.source_id}\0{source.revision_id}\0"
         f"0\0{len(source.content)}".encode("utf-8")
     ).hexdigest()
+    retrieval_text = build_child_retrieval_text(
+        title=source.title,
+        section_path=(),
+        content=source.content,
+        product=source.product,
+        region=source.region,
+    )
     return KnowledgeChunkProjection(
         candidate_id=f"{generation_id}:{source.source_id}:0",
         source_id=source.source_id,
@@ -113,7 +121,11 @@ def _chunk(source, generation_id):
         source_checksum=source.checksum,
         start_char=0,
         end_char=len(source.content),
-        lexical_document=postgres_lexical_document(source.content),
+        retrieval_text=retrieval_text,
+        section_path=(),
+        source_type=source.source_type,
+        region=source.region,
+        lexical_document=postgres_lexical_document(retrieval_text),
         provenance_sha256=provenance,
         embedding=(0.1, 0.2, 0.3),
     )

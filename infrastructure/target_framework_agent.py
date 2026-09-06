@@ -21,6 +21,7 @@ from langchain_core.tools import StructuredTool
 from langchain.tools import ToolRuntime
 from langgraph.errors import GraphRecursionError
 
+from application.knowledge_tool_contract import tool_domain_outcome
 from application.agent_result import (
     AgentResult,
     AgentResultStatus,
@@ -341,6 +342,7 @@ def _adapt_framework_result(
             fact_from_tool_result(item, result)
             for result in tool_results
             if result.success and result.authority in item.requirement_ids
+            and (tool_domain_outcome(result) is None or tool_domain_outcome(result)[0] is AgentResultStatus.SUCCEEDED)
         ),
         tuple(
             fact for result in skill_results for fact in result.facts
@@ -354,7 +356,18 @@ def _adapt_framework_result(
         field for result in skill_results for field in result.missing_inputs
     )
     failed_tools = tuple(result for result in tool_results if not result.success)
-    if missing_inputs:
+    domain_failures = tuple(
+        outcome for result in tool_results
+        if (outcome := tool_domain_outcome(result)) is not None
+        and outcome[0] is not AgentResultStatus.SUCCEEDED
+    )
+    if missing and domain_failures:
+        status, reason = next((outcome for outcome in domain_failures
+                               if outcome[0] is AgentResultStatus.TERMINAL_FAILURE),
+                              next((outcome for outcome in domain_failures
+                                    if outcome[0] is AgentResultStatus.RETRYABLE_FAILURE), domain_failures[-1]))
+        retryable = status is AgentResultStatus.RETRYABLE_FAILURE
+    elif missing_inputs:
         status = AgentResultStatus.NEEDS_USER_INPUT
         reason = "FRAMEWORK_AGENT_NEEDS_USER_INPUT"
         retryable = False

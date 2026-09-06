@@ -120,6 +120,7 @@ class PostgresCanonicalRetrievalProjector:
             SELECT candidate_id, source_id, revision_id, source_checksum,
                    start_char, end_char, provenance_sha256, scope, locale,
                    NULLIF(product,''), embedding::text, lexical_document,
+                   retrieval_text, section_path, source_type, region,
                    immutable_fingerprint
             FROM retrieval.knowledge_source_chunk_specs
             WHERE tenant_id=%s AND backend_id=%s AND generation_id=%s
@@ -139,7 +140,7 @@ class PostgresCanonicalRetrievalProjector:
             "backend_id": event.backend_id,
             "generation_id": event.generation_id,
             "manifest_hash": event.source_ref,
-            "chunk_fingerprints": sorted(str(row[12]) for row in rows),
+            "chunk_fingerprints": sorted(str(row[16]) for row in rows),
         }, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
         if actual_fingerprint != event.source_fingerprint:
             return self._reject(
@@ -152,15 +153,17 @@ class PostgresCanonicalRetrievalProjector:
                     source_id, source_revision, source_checksum, source_span,
                     provenance_sha256, scope, locale, product,
                     subject_user_id, subject_conversation_id, deletion_epoch,
-                    embedding, lexical_document, projected_at
+                    embedding, lexical_document, retrieval_text, section_path,
+                    source_type, region, projected_at
                 ) VALUES (%s,%s,%s,%s,%s,%s,%s,jsonb_build_object(
                     'start_char',%s,'end_char',%s),%s,%s,%s,%s,NULL,NULL,0,
-                    %s::vector,%s,transaction_timestamp())
+                    %s::vector,%s,%s,%s::text[],%s,%s,transaction_timestamp())
                 ON CONFLICT (candidate_id) DO NOTHING
             """, (
                 row[0], event.tenant_id, event.backend_id, event.generation_id,
                 row[1], row[2], row[3], row[4], row[5], row[6], row[7],
-                row[8], row[9], row[10], row[11],
+                row[8], row[9], row[10], row[11], row[12], list(row[13]),
+                row[14], row[15],
             ))
         projected = connection.execute("""
             SELECT candidate_id, provenance_sha256

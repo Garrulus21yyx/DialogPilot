@@ -67,14 +67,19 @@ def _candidate(chunk_id="chunk-one", *, manifest=SHA):
 
 
 class _Transformer:
-    def __init__(self, *, fail=False):
+    def __init__(self, *, fail=False, expansions=()):
         self.fail = fail
+        self.expansions = tuple(expansions)
         self.calls = 0
 
     async def standalone(self, query, history):
         self.calls += 1
         assert history == ("我的订单已审核",)
         return (query, "rewrite-unavailable") if self.fail else ("退款审核后到账时间", None)
+
+    async def expand(self, query, *, n):
+        assert query in {"退款多久到账", "退款审核后到账时间"}
+        return self.expansions[:n], None
 
 
 class _Source:
@@ -140,6 +145,30 @@ def test_rewrite_failure_preserves_all_mass_and_rerank_contract_falls_back():
     assert tuple(item.chunk_id for item in result.evidence_pack.items) == ("one", "two")
 
 
+def test_retriever_adds_two_bounded_expansions_and_normalizes_variant_mass():
+    source = _Source()
+    policy = _policy(
+        raw_query_weight=0.2,
+        standalone_query_weight=0.6,
+        expansion_query_weight=0.2,
+        query_expansion_count=2,
+    )
+    transformer = _Transformer(expansions=("退款处理周期", "退款原路到账"))
+
+    result = asyncio.run(KnowledgeRetriever(
+        candidate_source=source, transformer=transformer,
+        reranker=_Reranker(),
+    ).retrieve(_request(policy)))
+
+    assert result.trace is not None
+    assert result.trace.variants == (
+        ("raw", "退款多久到账", 0.2),
+        ("standalone", "退款审核后到账时间", 0.6),
+        ("expansion-1", "退款处理周期", 0.1),
+        ("expansion-2", "退款原路到账", 0.1),
+    )
+
+
 @pytest.mark.parametrize(
     ("source", "status", "detail"),
     [
@@ -172,6 +201,7 @@ def test_policy_fingerprint_changes_for_every_owned_parameter():
     changes = {
         "raw_query_weight": 0.3, "standalone_query_weight": 0.7,
         "dense_weight": 0.3, "lexical_weight": 0.7, "rrf_k": 11,
+        "metadata_hint_weight": 0.6,
         "candidate_k": 21, "final_k": 4, "context_max_tokens": 2500,
         "backend_fingerprint": "PG_FTS_ZH_V1",
         "transformer_version": "standalone-v2",
@@ -182,6 +212,8 @@ def test_policy_fingerprint_changes_for_every_owned_parameter():
     for field, value in changes.items():
         candidate = _policy(**{field: value})
         assert candidate.fingerprint != baseline.fingerprint, field
+    expansion = _policy(expansion_query_weight=0.2, query_expansion_count=2)
+    assert expansion.fingerprint != baseline.fingerprint
 
 
 class _Embeddings:
@@ -467,3 +499,10 @@ def test_embedding_namespaces_isolate_subject_epoch_and_require_shared_approval(
             deletion_epoch=4, embedding_fingerprint="minilm-v1",
             source_corpus_scope="knowledge-public",
         )
+
+
+def test_candidate_cache_identity_includes_metadata_fusion_weight():
+    request = _request()
+    variants = [('raw', request.query, 1.0)]
+    changed = replace(request, policy=replace(request.policy, metadata_hint_weight=.8))
+    assert RetrievalCacheKeyBuilder.candidates(request, variants) != RetrievalCacheKeyBuilder.candidates(changed, variants)

@@ -10,7 +10,11 @@ import unicodedata
 from dataclasses import dataclass
 from typing import Any, Mapping, Protocol, Sequence
 
-from application.hybrid_retrieval import RetrievalStatus
+from application.hybrid_retrieval import (
+    RetrievalContractError,
+    RetrievalStatus,
+    normalize_metadata_facets,
+)
 from mcp.context_packer import ContextCandidate, ContextPacker
 from mcp.evidence_pack import EvidencePack
 
@@ -37,6 +41,9 @@ class KnowledgeRetrievalPolicy:
     packer_version: str
     raw_query_weight: float = 0.25
     standalone_query_weight: float = 0.75
+    expansion_query_weight: float = 0.0
+    query_expansion_count: int = 0
+    metadata_hint_weight: float = 0.5
     dense_weight: float = 0.25
     lexical_weight: float = 0.75
     rrf_k: int = 10
@@ -45,6 +52,12 @@ class KnowledgeRetrievalPolicy:
     context_max_tokens: int = 2600
 
     def __post_init__(self) -> None:
+        from core.rag_policy import DEFAULT_RAG_RETRIEVAL_POLICY, validate_rag_policy
+        try:
+            validate_rag_policy({key: value for key, value in self.legacy_mapping().items()
+                                 if key in DEFAULT_RAG_RETRIEVAL_POLICY})
+        except ValueError as exc:
+            raise KnowledgeRetrievalContractError(str(exc)) from exc
         versions = (
             self.policy_version, self.backend_fingerprint,
             self.lexical_provider, self.transformer_version,
@@ -55,12 +68,30 @@ class KnowledgeRetrievalPolicy:
             raise KnowledgeRetrievalContractError("retrieval versions are required")
         weights = (
             self.raw_query_weight, self.standalone_query_weight,
+            self.expansion_query_weight,
             self.dense_weight, self.lexical_weight,
         )
         if any(not math.isfinite(value) or value < 0 for value in weights):
             raise KnowledgeRetrievalContractError("retrieval weights are invalid")
-        if self.raw_query_weight + self.standalone_query_weight <= 0:
+        if (
+            self.raw_query_weight + self.standalone_query_weight
+            + self.expansion_query_weight <= 0
+        ):
             raise KnowledgeRetrievalContractError("query variant mass is required")
+        if self.query_expansion_count < 0 or self.query_expansion_count > 2:
+            raise KnowledgeRetrievalContractError(
+                "query expansion count must be between zero and two"
+            )
+        if self.query_expansion_count == 0 and self.expansion_query_weight != 0:
+            raise KnowledgeRetrievalContractError(
+                "query expansion weight requires enabled expansions"
+            )
+        if not math.isfinite(self.metadata_hint_weight) or not (
+            0 < self.metadata_hint_weight < 1
+        ):
+            raise KnowledgeRetrievalContractError(
+                "metadata hint weight must be strictly between zero and one"
+            )
         if self.dense_weight + self.lexical_weight <= 0:
             raise KnowledgeRetrievalContractError("candidate route mass is required")
         if min(
@@ -83,6 +114,9 @@ class KnowledgeRetrievalPolicy:
             "lexical_weight": self.lexical_weight,
             "raw_query_weight": self.raw_query_weight,
             "standalone_query_weight": self.standalone_query_weight,
+            "expansion_query_weight": self.expansion_query_weight,
+            "query_expansion_count": self.query_expansion_count,
+            "metadata_hint_weight": self.metadata_hint_weight,
             "policy_version": self.policy_version,
             "policy_fingerprint": self.fingerprint,
             "backend_fingerprint": self.backend_fingerprint,
@@ -106,6 +140,8 @@ class KnowledgeRetrievalRequest:
     manifest_fingerprint: str
     generation_id: str
     policy: KnowledgeRetrievalPolicy
+    source_type_hints: tuple[str, ...] = ()
+    region_hints: tuple[str, ...] = ()
     force_recompute: bool = False
 
     def __post_init__(self) -> None:
@@ -123,6 +159,21 @@ class KnowledgeRetrievalRequest:
             self.product.strip() if self.product is not None else None
         )
         object.__setattr__(self, "product", normalized_product or None)
+        object.__setattr__(
+            self, "source_type_hints", self._normalize_hints(self.source_type_hints),
+        )
+        object.__setattr__(
+            self, "region_hints", self._normalize_hints(self.region_hints),
+        )
+
+    @staticmethod
+    def _normalize_hints(values: tuple[str, ...]) -> tuple[str, ...]:
+        try:
+            return normalize_metadata_facets(values)
+        except RetrievalContractError as exc:
+            raise KnowledgeRetrievalContractError(
+                "retrieval metadata hints are invalid"
+            ) from exc
 
 
 @dataclass(frozen=True)
@@ -134,6 +185,7 @@ class KnowledgeRetrievalTrace:
     generation_id: str
     manifest_fingerprint: str
     rewrite_fallback: bool
+    expansion_fallback: bool
     rerank_fallback: bool
     cache_hits: tuple[str, ...] = ()
 
@@ -173,6 +225,7 @@ class EvidencePackResult:
                     "generation_id": self.trace.generation_id,
                     "manifest_fingerprint": self.trace.manifest_fingerprint,
                     "rewrite_fallback": self.trace.rewrite_fallback,
+                    "expansion_fallback": self.trace.expansion_fallback,
                     "rerank_fallback": self.trace.rerank_fallback,
                     "cache_hits": list(self.trace.cache_hits),
                 }
@@ -233,6 +286,7 @@ class RetrievalCacheKeyBuilder:
             "requirement": request.requirement_signature,
             "conversation_range": request.conversation_range_hash,
             "transformer": request.policy.transformer_version,
+            "query_expansion_count": request.policy.query_expansion_count,
         })
 
     @classmethod
@@ -258,6 +312,8 @@ class RetrievalCacheKeyBuilder:
             "acl_policy": request.acl_policy_fingerprint,
             "deletion_epoch": request.deletion_epoch,
             "locale": request.locale, "product": request.product,
+            "source_type_hints": request.source_type_hints,
+            "region_hints": request.region_hints,
             "variants": [
                 [kind, normalize_retrieval_text(query), weight]
                 for kind, query, weight in variants
@@ -268,6 +324,7 @@ class RetrievalCacheKeyBuilder:
             "lexical_provider": request.policy.lexical_provider,
             "dense_policy": request.policy.dense_weight,
             "lexical_policy": request.policy.lexical_weight,
+            "metadata_hint_weight": request.policy.metadata_hint_weight,
             "rrf_k": request.policy.rrf_k,
             "candidate_k": request.policy.candidate_k,
         })
@@ -336,6 +393,10 @@ class KnowledgeQueryTransformer(Protocol):
         self, query: str, history: Sequence[str],
     ) -> tuple[str, str | None]: ...
 
+    async def expand(
+        self, query: str, *, n: int,
+    ) -> tuple[tuple[str, ...], str | None]: ...
+
 
 class KnowledgeReranker(Protocol):
     async def rerank(
@@ -368,27 +429,73 @@ class KnowledgeRetriever:
         cache_hits: list[str] = []
         transform_key = RetrievalCacheKeyBuilder.transform(request)
         transformed = self._cache_get(transform_key, request)
-        if isinstance(transformed, dict) and set(transformed) == {"query", "error"}:
+        if (
+            isinstance(transformed, dict)
+            and set(transformed) == {
+                "query", "error", "expansions", "expansion_error",
+            }
+            and isinstance(transformed["query"], str)
+            and isinstance(transformed["error"], str)
+            and isinstance(transformed["expansion_error"], str)
+            and isinstance(transformed["expansions"], list)
+            and all(isinstance(item, str) for item in transformed["expansions"])
+        ):
             standalone = str(transformed["query"])
             rewrite_error = str(transformed["error"]) or None
+            expansions = tuple(map(str, transformed["expansions"]))
+            expansion_error = str(transformed["expansion_error"]) or None
             cache_hits.append("transform")
         else:
             standalone, rewrite_error = await self._transformer.standalone(
                 request.query, request.history,
             )
+            expansion_base = (
+                standalone if not rewrite_error and standalone.strip()
+                else request.query
+            )
+            if policy.query_expansion_count:
+                expansions, expansion_error = await self._transformer.expand(
+                    expansion_base, n=policy.query_expansion_count,
+                )
+            else:
+                expansions, expansion_error = (), None
             self._cache_set(transform_key, {
                 "query": standalone, "error": rewrite_error or "",
+                "expansions": list(expansions),
+                "expansion_error": expansion_error or "",
             })
-        if rewrite_error or not standalone.strip() or standalone == request.query:
-            variants = (("raw", request.query, 1.0),)
-            rewrite_fallback = True
-        else:
-            total = policy.raw_query_weight + policy.standalone_query_weight
-            variants = (
-                ("raw", request.query, policy.raw_query_weight / total),
-                ("standalone", standalone, policy.standalone_query_weight / total),
+        standalone_usable = bool(
+            not rewrite_error and standalone.strip() and standalone != request.query
+        )
+        clean_expansions = tuple(dict.fromkeys(
+            value.strip() for value in expansions
+            if value.strip() not in {request.query, standalone}
+        ))[:policy.query_expansion_count]
+        weighted_variants = [("raw", request.query, policy.raw_query_weight)]
+        if standalone_usable:
+            weighted_variants.append((
+                "standalone", standalone, policy.standalone_query_weight,
+            ))
+        if not expansion_error and clean_expansions:
+            per_expansion = policy.expansion_query_weight / len(clean_expansions)
+            weighted_variants.extend(
+                (f"expansion-{index}", value, per_expansion)
+                for index, value in enumerate(clean_expansions, start=1)
             )
-            rewrite_fallback = False
+        total = sum(weight for _kind, _query, weight in weighted_variants)
+        if total <= 0:
+            weighted_variants = [("raw", request.query, 1.0)]
+            total = 1.0
+        variants = tuple(
+            (kind, query, weight / total)
+            for kind, query, weight in weighted_variants
+            if weight > 0
+        )
+        rewrite_fallback = not standalone_usable
+        expansion_fallback = bool(
+            policy.query_expansion_count
+            and (expansion_error or not clean_expansions)
+        )
         candidate_key = RetrievalCacheKeyBuilder.candidates(request, variants)
         cached_candidates = self._cache_get(candidate_key, request)
         if (
@@ -504,7 +611,8 @@ class KnowledgeRetriever:
                     variants, tuple((item.chunk_id, item.ranks) for item in candidates),
                     policy.fingerprint, policy.backend_fingerprint,
                     request.generation_id, request.manifest_fingerprint,
-                    rewrite_fallback, rerank_fallback, tuple(cache_hits),
+                    rewrite_fallback, expansion_fallback, rerank_fallback,
+                    tuple(cache_hits),
                 )
                 return EvidencePackResult(RetrievalStatus.OK, pack, trace)
         packed = self._packer.pack(
@@ -521,7 +629,8 @@ class KnowledgeRetriever:
         trace = KnowledgeRetrievalTrace(
             variants, source_ranks, policy.fingerprint,
             policy.backend_fingerprint, request.generation_id,
-            request.manifest_fingerprint, rewrite_fallback, rerank_fallback,
+            request.manifest_fingerprint, rewrite_fallback,
+            expansion_fallback, rerank_fallback,
             tuple(cache_hits),
         )
         pack = EvidencePack.from_packed(
@@ -534,6 +643,7 @@ class KnowledgeRetriever:
                 ],
                 "rewrite_prompt_version": policy.transformer_version,
                 "rewrite_error": "fallback" if rewrite_fallback else "",
+                "expansion_error": "fallback" if expansion_fallback else "",
                 "rerank_prompt_version": policy.reranker_version,
                 "rerank_error": "fallback" if rerank_fallback else "",
             },

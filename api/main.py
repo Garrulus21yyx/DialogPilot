@@ -66,7 +66,7 @@ from core.input_security import PromptInjectionGuard
 from core.auth import AuthenticationError, AuthorizationError, JWTAuthenticator, Principal
 from core.llm_metrics import capture_llm_usage
 from core.model_policy import ModelPolicy, ModelRole
-from core.rag_policy import DEFAULT_RAG_RETRIEVAL_POLICY, rag_retrieval_policy_from_env
+from core.rag_policy import DEFAULT_RAG_RETRIEVAL_POLICY, rag_retrieval_policy_from_env, validate_rag_policy
 from core.intent_recognizer import IntentCategory
 from core.identity import IdentityFactory
 from application.chat_contracts import ChatCommand, Completed
@@ -501,13 +501,24 @@ async def lifespan(app: FastAPI):
 
     _tool_manager.register(Tool(
         name="knowledge_search",
-        description="搜索公共业务知识库（Raw/Standalone + BM25/Dense 加权 RRF）",
+        description=(
+            "搜索公共业务知识库（Raw/Standalone/受约束扩写 + "
+            "BM25/Dense + metadata 路由的加权 RRF）"
+        ),
         handler=_knowledge_tool_handler,
         schema={
             "type": "object",
             "properties": {
                 "query": {"type": "string"},
                 "top_k": {"type": "integer"},
+                "source_types": {
+                    "type": "array", "items": {"type": "string"},
+                    "maxItems": 4,
+                },
+                "regions": {
+                    "type": "array", "items": {"type": "string"},
+                    "maxItems": 4,
+                },
             },
             "required": ["query"],
         },
@@ -568,6 +579,7 @@ async def lifespan(app: FastAPI):
         model_policy=_model_policy,
         provider_config=cfg,
         project_root=pathlib.Path(_ROOT),
+        knowledge_context_factory=_knowledge_execution_context,
     )
     _target_chat_runtime = target_components.application
     _target_orchestration = target_components.orchestration
@@ -2472,6 +2484,24 @@ def _fingerprint(value: Mapping[str, Any]) -> str:
     ).encode("utf-8")).hexdigest()
 
 
+def _knowledge_execution_context() -> dict:
+    """Snapshot host-owned policy and source identity once per durable turn."""
+    bundle = _bundle_registry.active()
+    generation = _knowledge_store.active_generation()
+    return {
+        "retrieval_policy": validate_rag_policy(bundle.retrieval_policy),
+        "cache_scope": bundle.version,
+        "bundle_version": bundle.version,
+        "pinned_execution_refs": {
+            "bundle_version": bundle.version,
+            "knowledge_backend_ref": generation.backend_fingerprint,
+            "corpus_manifest_ref": generation.manifest_hash,
+            "retrieval_policy_ref": bundle.version,
+            "knowledge_generation_ref": generation.generation_id,
+        },
+    }
+
+
 def _knowledge_policy(
     values: Mapping[str, Any], *, policy_version: str,
 ) -> KnowledgeRetrievalPolicy:
@@ -2492,6 +2522,9 @@ def _knowledge_policy(
         packer_version="context-packer-v1",
         raw_query_weight=float(policy["raw_query_weight"]),
         standalone_query_weight=float(policy["standalone_query_weight"]),
+        expansion_query_weight=float(policy["expansion_query_weight"]),
+        query_expansion_count=int(policy["query_expansion_count"]),
+        metadata_hint_weight=float(policy["metadata_hint_weight"]),
         dense_weight=float(policy["vector_weight"]),
         lexical_weight=float(policy["lexical_weight"]),
         rrf_k=int(policy["rrf_k"]), candidate_k=int(policy["candidate_k"]),
@@ -2534,6 +2567,8 @@ async def _retrieve_knowledge(
     requirement_signature: str,
     pinned_execution_refs: Any = None,
     bundle_version: str = "",
+    source_type_hints: tuple[str, ...] = (),
+    region_hints: tuple[str, ...] = (),
 ) -> EvidencePackResult:
     if _knowledge_retriever is None or _knowledge_store is None:
         return EvidencePackResult(
@@ -2591,6 +2626,8 @@ async def _retrieve_knowledge(
         locale="zh-CN", product=None, manifest_fingerprint=manifest,
         generation_id=generation_id,
         policy=_knowledge_policy(policy_values, policy_version=policy_version),
+        source_type_hints=source_type_hints,
+        region_hints=region_hints,
     )
     return await _knowledge_retriever.retrieve(request)
 
@@ -2614,6 +2651,14 @@ async def _knowledge_tool_handler(
         requirement_signature="knowledge.active_source",
         pinned_execution_refs=context.get("pinned_execution_refs"),
         bundle_version=str(context.get("bundle_version") or ""),
+        source_type_hints=tuple(map(str, (
+            params.get("source_types")
+            or context.get("knowledge_source_types")
+            or ()
+        ))),
+        region_hints=tuple(map(str, (
+            params.get("regions") or context.get("knowledge_regions") or ()
+        ))),
     )
     return result.to_dict(include_text=True)
 

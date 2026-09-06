@@ -7,6 +7,7 @@ from typing import Sequence
 
 from application.chinese_lexical import postgres_lexical_document
 from application.evidence_receipt import KnowledgeLocator
+from application.knowledge_retrieval_text import build_child_retrieval_text
 from application.knowledge_source import (
     KnowledgeChunkProjection,
     KnowledgeSourceContractError,
@@ -63,9 +64,22 @@ class PostgresKnowledgeSourceRepository:
             if source is None or source.checksum != chunk.source_checksum:
                 raise KnowledgeSourceContractError("chunk source revision is unknown")
             source_text = source.content[chunk.start_char:chunk.end_char]
-            if postgres_lexical_document(source_text) != chunk.lexical_document:
+            expected_retrieval_text = build_child_retrieval_text(
+                title=source.title,
+                section_path=chunk.section_path,
+                content=source_text,
+                product=source.product,
+                region=source.region,
+            )
+            if (
+                chunk.retrieval_text != expected_retrieval_text
+                or postgres_lexical_document(expected_retrieval_text)
+                != chunk.lexical_document
+                or chunk.source_type != source.source_type
+                or chunk.region != source.region
+            ):
                 raise KnowledgeSourceContractError(
-                    "chunk lexical text is not a source revision projection"
+                    "chunk retrieval text is not a source revision projection"
                 )
 
         with self.pool.transaction() as connection:
@@ -169,18 +183,21 @@ class PostgresKnowledgeSourceRepository:
                         candidate_id, tenant_id, backend_id, generation_id,
                         scope, locale, product, source_id, revision_id,
                         source_checksum, start_char, end_char,
+                        retrieval_text, section_path, source_type, region,
                         provenance_sha256, embedding, lexical_document,
                         immutable_fingerprint
                     ) VALUES (
-                        %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
-                        %s::vector,%s,%s
+                        %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
+                        %s,%s::text[],%s,%s,%s,%s::vector,%s,%s
                     ) ON CONFLICT (candidate_id) DO NOTHING
                 """, (
                     chunk.candidate_id, manifest.tenant_id, manifest.backend_id,
                     manifest.generation_id, manifest.scope, manifest.locale,
                     manifest.product, chunk.source_id, chunk.revision_id,
                     chunk.source_checksum, chunk.start_char, chunk.end_char,
-                    chunk.provenance_sha256, embedding, chunk.lexical_document,
+                    chunk.retrieval_text, list(chunk.section_path),
+                    chunk.source_type, chunk.region, chunk.provenance_sha256,
+                    embedding, chunk.lexical_document,
                     chunk.immutable_fingerprint,
                 ))
                 stored = connection.execute("""

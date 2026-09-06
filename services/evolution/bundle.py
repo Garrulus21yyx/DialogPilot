@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import Any, Dict, Mapping, Sequence, Tuple
 
-from core.rag_policy import DEFAULT_RAG_RETRIEVAL_POLICY
+from core.rag_policy import DEFAULT_RAG_RETRIEVAL_POLICY, validate_rag_policy
 
 
 class BundleContractError(ValueError):
@@ -21,10 +21,6 @@ _AGENTS = {
     "*", "intent", "general", "technical", "billing", "account_security", "escalation",
 }
 _ROUTING_KEYS = {"supporting_threshold", "clarification_threshold"}
-_RETRIEVAL_KEYS = {
-    "top_k", "candidate_k", "context_max_tokens", "rrf_k",
-    "vector_weight", "lexical_weight", "raw_query_weight", "standalone_query_weight",
-}
 _PROHIBITED = re.compile(
     r"permission|allowlist|approval|jwt|auth|secret|pii|redact|verifier|fail.?closed|gold",
     re.IGNORECASE,
@@ -105,35 +101,10 @@ class AgentBundle:
                 raise BundleContractError(f"{key} must be between 0 and 1")
 
         retrieval = dict(self.retrieval_policy)
-        unknown_retrieval = set(retrieval) - _RETRIEVAL_KEYS
-        if unknown_retrieval:
-            raise BundleContractError(f"unsupported retrieval policy keys: {sorted(unknown_retrieval)}")
-        if "top_k" in retrieval and not 1 <= int(retrieval["top_k"]) <= 20:
-            raise BundleContractError("retrieval top_k must be between 1 and 20")
-        if "candidate_k" in retrieval and not 1 <= int(retrieval["candidate_k"]) <= 100:
-            raise BundleContractError("retrieval candidate_k must be between 1 and 100")
-        if (
-            "candidate_k" in retrieval and "top_k" in retrieval
-            and int(retrieval["candidate_k"]) < int(retrieval["top_k"])
-        ):
-            raise BundleContractError("retrieval candidate_k must be at least top_k")
-        if "context_max_tokens" in retrieval and not 128 <= int(retrieval["context_max_tokens"]) <= 12000:
-            raise BundleContractError("retrieval context_max_tokens must be between 128 and 12000")
-        if "rrf_k" in retrieval and not 1 <= int(retrieval["rrf_k"]) <= 1000:
-            raise BundleContractError("retrieval rrf_k must be between 1 and 1000")
-        weights = [float(retrieval.get(key, 0.0)) for key in ("vector_weight", "lexical_weight")]
-        if any(weight < 0 for weight in weights):
-            raise BundleContractError("retrieval weights must be non-negative")
-        if any(key in retrieval for key in ("vector_weight", "lexical_weight")) and sum(weights) <= 0:
-            raise BundleContractError("retrieval weights must not both be zero")
-        query_weights = [
-            float(retrieval.get(key, 0.0))
-            for key in ("raw_query_weight", "standalone_query_weight")
-        ]
-        if any(weight < 0 for weight in query_weights):
-            raise BundleContractError("query weights must be non-negative")
-        if any(key in retrieval for key in ("raw_query_weight", "standalone_query_weight")) and sum(query_weights) <= 0:
-            raise BundleContractError("query weights must not both be zero")
+        try:
+            validate_rag_policy(retrieval)
+        except ValueError as exc:
+            raise BundleContractError(str(exc)) from exc
 
         descriptions = {str(key).strip(): str(value).strip() for key, value in self.tool_descriptions.items()}
         if any(not key or not value for key, value in descriptions.items()):

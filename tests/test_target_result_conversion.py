@@ -25,8 +25,10 @@ from tests.test_target_framework_agent import _context, _item
 def test_direct_and_framework_preserve_identical_tool_provenance(
     authority, source_kind, receipt_id,
 ):
+    from tests.test_knowledge_tool_contract import evidence_result
+    data = evidence_result() if authority == "knowledge.active_source" else {"state": "observed", "amount_minor": 123}
     result = ToolResult(
-        True, {"state": "observed", "amount_minor": 123}, "catalog_search",
+        True, data, "catalog_search",
         call_id="call:123", receipt_id=receipt_id, authority=authority,
         output_schema_version="fixture-output-v2", status="success",
     )

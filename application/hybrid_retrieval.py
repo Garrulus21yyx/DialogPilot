@@ -134,6 +134,8 @@ class KnowledgeSearchScope:
     scope: str
     locale: str
     product: str | None = None
+    source_types: tuple[str, ...] = ()
+    regions: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if not self.scope.strip() or not self.locale.strip():
@@ -142,6 +144,24 @@ class KnowledgeSearchScope:
             self.product.strip() if self.product is not None else None
         )
         object.__setattr__(self, "product", normalized_product or None)
+        object.__setattr__(
+            self, "source_types", normalize_metadata_facets(self.source_types),
+        )
+        object.__setattr__(
+            self, "regions", normalize_metadata_facets(self.regions),
+        )
+
+
+def normalize_metadata_facets(values: tuple[str, ...]) -> tuple[str, ...]:
+    """Normalize the bounded semantic-filter algebra shared by request layers."""
+    if isinstance(values, (str, bytes)):
+        raise RetrievalContractError("knowledge metadata facets must be a sequence")
+    normalized = tuple(sorted({str(item).strip().lower() for item in values}))
+    if any(not item for item in normalized):
+        raise RetrievalContractError("knowledge metadata facets must not be blank")
+    if len(normalized) > 4 or any(len(item) > 64 for item in normalized):
+        raise RetrievalContractError("knowledge metadata facets exceed bounds")
+    return normalized
 
 
 @dataclass(frozen=True)

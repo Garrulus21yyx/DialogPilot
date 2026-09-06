@@ -5,7 +5,8 @@ import json
 from datetime import datetime, timezone
 from pydantic import TypeAdapter
 
-from application.agent_result import AgentResult, FactRecord, FactSourceKind
+from application.agent_result import AgentResult, AgentResultStatus, FactRecord, FactSourceKind
+from application.knowledge_tool_contract import tool_domain_outcome
 from mcp.tool_manager import ToolResult
 
 
@@ -26,6 +27,9 @@ def restore_framework_artifact(artifact: dict) -> ToolResult | AgentResult:
 
 
 def fact_from_tool_result(item, result: ToolResult) -> FactRecord:
+    outcome = tool_domain_outcome(result)
+    if outcome is not None and outcome[0] is not AgentResultStatus.SUCCEEDED:
+        raise ValueError("knowledge outcome does not provide evidence")
     authority = str(result.authority)
     source_kind = (
         FactSourceKind.KNOWLEDGE_ASSERTED

@@ -72,9 +72,11 @@ def store(postgres_database_url):
         pool.close()
 
 
-def _document(source_id: str, content: str) -> SourceDocument:
+def _document(
+    source_id: str, content: str, *, title: str | None = None,
+) -> SourceDocument:
     return SourceDocument.create(
-        source_id=source_id, title=source_id, content=content,
+        source_id=source_id, title=title or source_id, content=content,
     )
 
 
@@ -115,13 +117,42 @@ def test_identical_ingest_is_idempotent(store):
         """).fetchone()[0] == 1
 
 
-def test_ingest_embeds_raw_chunk_while_fts_keeps_lexical_projection(store):
+def test_title_change_revisions_contextual_retrieval_text(store):
+    knowledge, pool, provider = store
+    content = "退款三个工作日到账。"
+    knowledge.add_documents((
+        _document("refund", content, title="退款说明"),
+    ))
+    first = knowledge.active_generation()
+
+    knowledge.add_documents((
+        _document("refund", content, title="退款到账时间"),
+    ))
+    second = knowledge.active_generation()
+
+    assert second.generation_id != first.generation_id
+    assert provider.document_inputs[-1][0].startswith("[TITLE] 退款到账时间\n")
+    with pool.transaction() as connection:
+        revisions = connection.execute("""
+            SELECT title, revision_id
+            FROM retrieval.knowledge_source_revisions
+            WHERE tenant_id='tenant-a' AND source_id='refund'
+            ORDER BY title
+        """).fetchall()
+    assert [row[0] for row in revisions] == ["退款到账时间", "退款说明"]
+    assert len({row[1] for row in revisions}) == 2
+
+
+def test_ingest_embeds_contextual_chunk_while_source_span_stays_authoritative(store):
     knowledge, pool, provider = store
     content = "退款ABC 将在三个工作日内到账。"
     knowledge.add_documents((_document("mixed", content),))
     generation = knowledge.active_generation()
 
-    assert provider.document_inputs == [(content,)]
+    expected_retrieval_text = (
+        "[TITLE] mixed\n[METADATA] region=local\n[CONTENT] " + content
+    )
+    assert provider.document_inputs == [(expected_retrieval_text,)]
     assert generation.embedding_profile == provider.profile
     assert generation.embedding_metadata_complete is True
     query = "退款ABC 到账了吗？"
@@ -134,8 +165,8 @@ def test_ingest_embeds_raw_chunk_while_fts_keeps_lexical_projection(store):
             FROM retrieval.knowledge_source_chunk_specs
             WHERE generation_id=%s
         """, (generation.generation_id,)).fetchone()[0]
-    assert lexical_document == postgres_lexical_document(content)
-    assert lexical_document != content
+    assert lexical_document == postgres_lexical_document(expected_retrieval_text)
+    assert lexical_document != expected_retrieval_text
 
 
 def test_preprocessing_change_builds_new_immutable_generation(store):

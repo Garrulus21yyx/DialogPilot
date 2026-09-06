@@ -87,6 +87,7 @@ async def build_target_runtime(
     model_policy: Any,
     provider_config: Mapping[str, Any],
     project_root: Path,
+    knowledge_context_factory=None,
 ) -> TargetRuntimeComponents:
     """Wire the one production Target runtime and enter its checkpoint owner."""
     registry = build_default_capability_registry(
@@ -167,6 +168,7 @@ async def build_target_runtime(
             admission=PostgresTargetAdmission(postgres_pool, durable=True),
             publication=PostgresTargetPublication(response_delivery),
             bundle_version=registry.bundle_version,
+            knowledge_context_factory=knowledge_context_factory,
             response_assembler=assembler,
             turn_runtime=TurnRuntime(
                 manager,

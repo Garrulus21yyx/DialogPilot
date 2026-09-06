@@ -101,7 +101,9 @@ class TargetChatApplication:
         identity_factory: IdentityFactory | None = None,
         response_assembler: ResponseAssembler | None = None,
         turn_runtime: TurnRuntime | None = None,
+        knowledge_context_factory=None,
     ) -> None:
+        self._knowledge_context_factory = knowledge_context_factory
         self._admission = admission
         self._publication = publication
         self._bundle_version = bundle_version
@@ -171,7 +173,13 @@ class TargetChatApplication:
                 interaction_version=command.interaction_version,
                 interaction_values=command.interaction_values,
             )
-            turn_result = await self._turn_runtime.execute(identity, observations)
+            execution_context = {
+                "authorization_fingerprint": command.authorization_fingerprint,
+                **(self._knowledge_context_factory() if self._knowledge_context_factory else {}),
+            }
+            turn_result = await self._turn_runtime.execute(
+                identity, observations, execution_context=execution_context,
+            )
             managed = turn_result.managed
         except DeterministicResolutionError as exc:
             return Conflict(

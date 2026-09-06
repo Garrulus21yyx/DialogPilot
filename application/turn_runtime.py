@@ -25,6 +25,7 @@ class TurnGraphState(TypedDict, total=False):
     invocation: InvocationIdentity
     invocation_key: str
     observations: TurnObservations
+    execution_context: dict
     prepared: PreparedTurn
     managed: ManagedTurnResult
     assembled: AssembledResponse | None
@@ -67,6 +68,7 @@ class TurnRuntime:
     async def _prepare_turn(self, state: TurnGraphState):
         prepared = await self._manager.prepare(
             state["invocation"], state["observations"],
+            execution_context=state.get("execution_context", {}),
         )
         return {"prepared": prepared}
 
@@ -103,6 +105,7 @@ class TurnRuntime:
         self,
         invocation: InvocationIdentity,
         observations: TurnObservations,
+        *, execution_context: dict | None = None,
     ) -> TurnRuntimeResult:
         key = str(invocation.invocation_key)
         config = (
@@ -113,10 +116,14 @@ class TurnRuntime:
             "invocation": invocation,
             "invocation_key": key,
             "observations": observations,
+            "execution_context": dict(execution_context or {}),
         }
         if self._checkpointer is not None:
             snapshot = await self.graph.aget_state(config)
             if snapshot.values:
+                saved_context = snapshot.values.get("execution_context", {})
+                if saved_context.get("authorization_fingerprint", "") != (execution_context or {}).get("authorization_fingerprint", ""):
+                    raise TurnRuntimeError("turn authorization changed")
                 if snapshot.values.get("invocation_key") != key:
                     raise TurnRuntimeError("turn checkpoint belongs to another invocation")
                 if snapshot.values.get("managed") is not None and not snapshot.next:

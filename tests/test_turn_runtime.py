@@ -214,3 +214,25 @@ def test_turn_graph_resumes_at_assembly_without_replanning_or_reexecuting_tools(
     assert replay == result
     assert executor.calls == 1
     assert assembler.calls == 2
+
+
+def test_authenticated_context_is_pinned_across_recovery_and_cannot_replace_identity():
+    seen = []
+    class Executor(_Executor):
+        async def __call__(self, context):
+            seen.append(dict(context.trusted_context))
+            return await super().__call__(context)
+    runtime = TurnRuntime(_manager(Executor()), ResponseAssembler(),
+                          checkpointer=InMemorySaver(serde=target_checkpoint_serializer()))
+    context = {'authorization_fingerprint': 'auth-a', 'cache_scope': 'policy-a',
+               'tenant_id': 'cannot-override-identity', 'retrieval_policy': {'top_k': 5}}
+    asyncio.run(runtime.execute(_identity(), TurnObservations('查询订单 DP1234'), execution_context=context))
+    asyncio.run(runtime.execute(_identity(), TurnObservations('查询订单 DP1234'),
+                                execution_context={**context, 'cache_scope': 'policy-b'}))
+    assert len(seen) == 1
+    assert seen[0]['tenant_id'] == 'tenant-a'
+    assert seen[0]['cache_scope'] == 'policy-a'
+    assert seen[0]['authorization_fingerprint'] == 'auth-a'
+    with pytest.raises(ValueError, match='authorization changed'):
+        asyncio.run(runtime.execute(_identity(), TurnObservations('查询订单 DP1234'),
+                                    execution_context={**context, 'authorization_fingerprint': 'auth-b'}))

@@ -199,8 +199,21 @@ class PostgresKnowledgeCandidateSource:
                     RetrievalStatus.UNAVAILABLE,
                     detail_code="QUERY_EMBEDDING_UNAVAILABLE",
                 )
-            generated = self._backend.retrieve(
-                HybridRetrievalRequest(
+            has_metadata_hints = bool(
+                request.source_type_hints or request.region_hints
+            )
+            scope_routes = (
+                (
+                    "metadata", request.source_type_hints,
+                    request.region_hints, request.policy.metadata_hint_weight,
+                ),
+                (
+                    "global", (), (),
+                    1.0 - request.policy.metadata_hint_weight,
+                ),
+            ) if has_metadata_hints else (("", (), (), 1.0),)
+            for scope_kind, source_types, regions, scope_weight in scope_routes:
+                generated = self._backend.retrieve(HybridRetrievalRequest(
                     tenant_id=request.tenant_id,
                     corpus=RetrievalCorpus.KNOWLEDGE,
                     backend_fingerprint=generation.backend_fingerprint,
@@ -212,42 +225,50 @@ class PostgresKnowledgeCandidateSource:
                         scope="public",
                         locale=request.locale,
                         product=request.product,
+                        source_types=source_types,
+                        regions=regions,
                     ),
                     dense_limit=dense_k,
                     lexical_limit=lexical_k,
-                )
-            )
-            if generated.status is RetrievalStatus.NO_EVIDENCE:
-                continue
-            if generated.status is not RetrievalStatus.OK:
-                return KnowledgeCandidateResult(
-                    generated.status,
-                    detail_code=generated.detail_code,
-                )
-            for route, weight, candidates in (
-                ("vector", request.policy.dense_weight, generated.dense_candidates),
-                (
-                    "lexical",
-                    request.policy.lexical_weight,
-                    generated.lexical_candidates,
-                ),
-            ):
-                route_name = f"{variant_kind}:{route}"
-                route_weights[route_name] = variant_weight * weight
-                route_ranks = ranks.setdefault(route_name, {})
-                for candidate in candidates:
-                    identity = (
-                        candidate.source_id,
-                        candidate.source_revision,
-                        candidate.provenance_sha256,
+                ))
+                if generated.status is RetrievalStatus.NO_EVIDENCE:
+                    continue
+                if generated.status is not RetrievalStatus.OK:
+                    return KnowledgeCandidateResult(
+                        generated.status,
+                        detail_code=generated.detail_code,
                     )
-                    previous = authority.setdefault(candidate.candidate_id, identity)
-                    if previous != identity:
-                        return KnowledgeCandidateResult(
-                            RetrievalStatus.CONFLICT,
-                            detail_code="CANDIDATE_AUTHORITY_CONFLICT",
+                for route, weight, candidates in (
+                    ("vector", request.policy.dense_weight, generated.dense_candidates),
+                    (
+                        "bm25" if generation.lexical_ranker == "PG_BM25_ZH_V1"
+                        else "lexical",
+                        request.policy.lexical_weight,
+                        generated.lexical_candidates,
+                    ),
+                ):
+                    route_name = ":".join(filter(None, (
+                        variant_kind, scope_kind, route,
+                    )))
+                    route_weights[route_name] = (
+                        variant_weight * scope_weight * weight
+                    )
+                    route_ranks = ranks.setdefault(route_name, {})
+                    for candidate in candidates:
+                        identity = (
+                            candidate.source_id,
+                            candidate.source_revision,
+                            candidate.provenance_sha256,
                         )
-                    route_ranks[candidate.candidate_id] = candidate.rank
+                        previous = authority.setdefault(
+                            candidate.candidate_id, identity,
+                        )
+                        if previous != identity:
+                            return KnowledgeCandidateResult(
+                                RetrievalStatus.CONFLICT,
+                                detail_code="CANDIDATE_AUTHORITY_CONFLICT",
+                            )
+                        route_ranks[candidate.candidate_id] = candidate.rank
 
         if not authority:
             return KnowledgeCandidateResult(

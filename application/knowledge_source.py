@@ -82,13 +82,30 @@ class SourceRevision:
         schema_version: str = "knowledge-source-v0",
     ) -> "SourceRevision":
         checksum = hashlib.sha256(str(content).encode("utf-8")).hexdigest()
-        revision_prefix = (
-            "revision-v1" if str(schema_version) == "knowledge-source-v1"
-            else "revision-v0"
-        )
+        if str(schema_version) == "knowledge-source-v1":
+            revision_prefix = "revision-v1"
+            revision_digest = _canonical_hash({
+                "checksum": checksum,
+                "title": str(title),
+                "source_type": str(source_type),
+                "effective_from": effective_from.isoformat(),
+                "effective_to": (
+                    effective_to.isoformat() if effective_to else None
+                ),
+                "owner_id": str(owner_id),
+                "scope": str(scope),
+                "locale": str(locale),
+                "product": str(product),
+                "region": str(region),
+                "supersedes_revision_id": supersedes_revision_id,
+                "operations_audit_ref": str(operations_audit_ref),
+            })
+        else:
+            revision_prefix = "revision-v0"
+            revision_digest = checksum
         return cls(
             tenant_id=str(tenant_id), source_id=str(source_id),
-            revision_id=f"{revision_prefix}-{checksum[:32]}", checksum=checksum,
+            revision_id=f"{revision_prefix}-{revision_digest[:32]}", checksum=checksum,
             title=str(title), source_type=str(source_type), content=str(content),
             effective_from=effective_from, effective_to=effective_to,
             owner_id=str(owner_id), scope=str(scope), locale=str(locale),
@@ -241,6 +258,10 @@ class KnowledgeChunkProjection:
     source_checksum: str
     start_char: int
     end_char: int
+    retrieval_text: str
+    section_path: tuple[str, ...]
+    source_type: str
+    region: str
     lexical_document: str
     provenance_sha256: str
     embedding: tuple[float, ...] | None = None
@@ -248,8 +269,11 @@ class KnowledgeChunkProjection:
     def __post_init__(self) -> None:
         _required(
             self.candidate_id, self.source_id, self.revision_id,
+            self.retrieval_text, self.source_type, self.region,
             self.lexical_document,
         )
+        if any(not str(item).strip() for item in self.section_path):
+            raise KnowledgeSourceContractError("chunk section path is invalid")
         _checksum(self.source_checksum)
         _checksum(self.provenance_sha256)
         if self.start_char < 0 or self.end_char <= self.start_char:

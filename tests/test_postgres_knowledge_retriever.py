@@ -181,12 +181,13 @@ def knowledge_source(postgres_database_url):
                 candidate_id, tenant_id, backend_id, generation_id,
                 source_id, source_revision, source_checksum, source_span,
                 provenance_sha256, scope, locale, product, deletion_epoch,
-                embedding, lexical_document, projected_at
+                source_type, region, embedding, lexical_document, projected_at
             ) VALUES (
                 'chunk-refund', 'tenant-a', %s, %s,
                 'refund-policy', 'revision-one', %s,
                 jsonb_build_object('start_char', 0, 'end_char', %s),
-                %s, 'public', 'zh-CN', NULL, 0, %s::vector, %s, now()
+                %s, 'public', 'zh-CN', NULL, 0, 'text', 'local',
+                %s::vector, %s, now()
             )
         """,
             (
@@ -303,6 +304,37 @@ def test_source_capture_can_disable_the_unselected_lexical_route(
     backend_request = retrieve.call_args.args[0]
     assert backend_request.dense_limit == 40
     assert backend_request.lexical_limit == 0
+
+
+def test_metadata_route_is_soft_scoped_and_keeps_global_fallback(
+    knowledge_source,
+    monkeypatch,
+):
+    retrieve = Mock(wraps=knowledge_source._backend.retrieve)
+    monkeypatch.setattr(knowledge_source._backend, "retrieve", retrieve)
+    request = KnowledgeRetrievalRequest(**{
+        **_request().__dict__,
+        "source_type_hints": (" TEXT ",),
+        "region_hints": ("LOCAL",),
+    })
+
+    result = asyncio.run(knowledge_source.search_variants_async(
+        request, [("raw", request.query, 1.0)], top_k=20,
+    ))
+
+    assert result.status is RetrievalStatus.OK
+    assert retrieve.call_count == 2
+    scoped, fallback = (call.args[0] for call in retrieve.call_args_list)
+    assert scoped.scope.source_types == ("text",)
+    assert scoped.scope.regions == ("local",)
+    assert fallback.scope.source_types == ()
+    assert fallback.scope.regions == ()
+    assert result.candidates[0]["ranks"] == {
+        "raw:metadata:vector": 1,
+        "raw:metadata:lexical": 1,
+        "raw:global:vector": 1,
+        "raw:global:lexical": 1,
+    }
 
 
 def test_source_rejects_manifest_drift_without_partial_candidates(knowledge_source):

@@ -13,6 +13,9 @@ class ToolManagerQueryTransformerAdapter:
     async def standalone(self, query: str, history: Sequence[str]):
         return await self.transformer.standalone(query, tuple(history))
 
+    async def expand(self, query: str, *, n: int):
+        return await self.transformer.expand(query, n=n)
+
 
 class ToolManagerRerankerAdapter:
     def __init__(self, tool_manager):

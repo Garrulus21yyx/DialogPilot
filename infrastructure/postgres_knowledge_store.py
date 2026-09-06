@@ -10,6 +10,10 @@ from datetime import datetime, timezone
 from typing import Sequence
 
 from application.chinese_lexical import TOKENIZER_VERSION, postgres_lexical_document
+from application.knowledge_retrieval_text import (
+    RETRIEVAL_TEXT_VERSION,
+    build_child_retrieval_text,
+)
 from application.cost_budget_policy import OFFLINE_KNOWLEDGE_INGEST_BUDGET
 from application.hybrid_retrieval import (
     DistanceMetric,
@@ -83,9 +87,9 @@ DEFAULT_KNOWLEDGE_DOCUMENTS = (
 class PostgresKnowledgeStore:
     """Replace the active local corpus by building one immutable PG generation."""
 
-    backend_id = "POSTGRES_PG_FTS_ZH_V1"
-    backend_fingerprint = "POSTGRES_PGVECTOR_PG_FTS_ZH_V1"
-    chunk_schema_version = "knowledge-direct-ingest-v1"
+    backend_id = "POSTGRES_PG_BM25_ZH_V1"
+    backend_fingerprint = "POSTGRES_PGVECTOR_PG_BM25_ZH_V1"
+    chunk_schema_version = "knowledge-direct-ingest-v2-contextual-retrieval"
 
     def __init__(
         self,
@@ -161,8 +165,8 @@ class PostgresKnowledgeStore:
                 product=self._product, sources=sources,
                 reviewer_manifest_ref="local-direct-ingest",
             )
-            raw_chunk_texts = self._raw_chunk_texts(sources, chunks)
-            vectors = self._document_embedder(raw_chunk_texts)
+            retrieval_texts = tuple(chunk.retrieval_text for chunk in chunks)
+            vectors = self._document_embedder(retrieval_texts)
             chunks = tuple(
                 replace(chunk, embedding=vector)
                 for chunk, vector in zip(chunks, vectors, strict=True)
@@ -182,7 +186,7 @@ class PostgresKnowledgeStore:
                 vector_extension_version="0.8.6", index_method="HNSW",
                 index_params_json='{"ef_construction":64,"m":16}',
                 chinese_tokenizer=TOKENIZER_VERSION,
-                lexical_ranker="PG_FTS_ZH_V1", manifest_hash=manifest.manifest_hash,
+                lexical_ranker="PG_BM25_ZH_V1", manifest_hash=manifest.manifest_hash,
                 embedding_provider=self.embedding_profile.provider,
                 embedding_provider_kind=self.embedding_profile.provider_kind,
                 embedding_model_version=self.embedding_profile.model_version,
@@ -257,13 +261,14 @@ class PostgresKnowledgeStore:
             "chunk_strategy": self._chunk_strategy.value,
             "chunk_max_tokens": self._chunk_max_tokens,
             "chunk_overlap_tokens": self._chunk_overlap_tokens,
+            "retrieval_text_version": RETRIEVAL_TEXT_VERSION,
         }
 
     @property
     def storage_backend(self) -> dict[str, str]:
         generation = self.active_generation()
         return {
-            "engine": "postgresql+pgvector+pg_fts",
+            "engine": "postgresql+pgvector+bm25",
             "backend_id": generation.backend_id,
             "generation_id": generation.generation_id,
             "manifest_fingerprint": generation.manifest_hash,
@@ -308,8 +313,14 @@ class PostgresKnowledgeStore:
                        supersedes_revision_id, operations_audit_ref, schema_version
                 FROM retrieval.knowledge_source_revisions
                 WHERE tenant_id=%s AND source_id=%s AND checksum=%s
+                  AND title=%s AND source_type=%s AND scope='public'
+                  AND locale=%s AND product=%s AND region='local'
+                ORDER BY effective_from DESC
+                LIMIT 1
             """, (
                 self._tenant_id, document.source_id, document.checksum,
+                document.title, document.source_type,
+                self._locale, self._product,
             )).fetchone()
         if row is not None:
             return SourceRevision(*row)
@@ -320,6 +331,7 @@ class PostgresKnowledgeStore:
             owner_id="local-admin", scope="public", locale=self._locale,
             product=self._product, region="local",
             operations_audit_ref="local-direct-ingest",
+            schema_version="knowledge-source-v1",
         )
 
     def _chunks(
@@ -333,6 +345,13 @@ class PostgresKnowledgeStore:
                 overlap_tokens=self._chunk_overlap_tokens,
                 strategy=self._chunk_strategy,
             ):
+                retrieval_text = build_child_retrieval_text(
+                    title=source.title,
+                    section_path=chunk.section_path,
+                    content=chunk.content,
+                    product=source.product,
+                    region=source.region,
+                )
                 identity = (
                     f"{generation_id}\0{source.source_id}\0{source.revision_id}\0"
                     f"{chunk.start_char}\0{chunk.end_char}"
@@ -344,7 +363,11 @@ class PostgresKnowledgeStore:
                     source_id=source.source_id, revision_id=source.revision_id,
                     source_checksum=source.checksum,
                     start_char=chunk.start_char, end_char=chunk.end_char,
-                    lexical_document=postgres_lexical_document(chunk.content),
+                    retrieval_text=retrieval_text,
+                    section_path=chunk.section_path,
+                    source_type=source.source_type,
+                    region=source.region,
+                    lexical_document=postgres_lexical_document(retrieval_text),
                     provenance_sha256=hashlib.sha256(
                         f"{identity}\0{source.checksum}".encode()
                     ).hexdigest(),
@@ -361,25 +384,12 @@ class PostgresKnowledgeStore:
             "chunk_strategy": self._chunk_strategy.value,
             "chunk_max_tokens": self._chunk_max_tokens,
             "chunk_overlap_tokens": self._chunk_overlap_tokens,
+            "retrieval_text_version": RETRIEVAL_TEXT_VERSION,
             "embedding_profile": self.embedding_profile.fingerprint,
             "lexical_tokenizer": TOKENIZER_VERSION,
-            "lexical_ranker": "PG_FTS_ZH_V1",
+            "lexical_ranker": "PG_BM25_ZH_V1",
         }, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
         return f"knowledge-generation-{digest[:32]}"
-
-    @staticmethod
-    def _raw_chunk_texts(
-        sources: Sequence[SourceRevision],
-        chunks: Sequence[KnowledgeChunkProjection],
-    ) -> tuple[str, ...]:
-        source_by_identity = {
-            (source.source_id, source.revision_id): source for source in sources
-        }
-        values = []
-        for chunk in chunks:
-            source = source_by_identity[(chunk.source_id, chunk.revision_id)]
-            values.append(source.content[chunk.start_char:chunk.end_char])
-        return tuple(values)
 
     def _event_id(self, generation_id: str) -> str:
         with self._pool.transaction() as connection:

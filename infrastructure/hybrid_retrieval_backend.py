@@ -6,7 +6,10 @@ import json
 import psycopg
 from psycopg import sql
 
-from application.chinese_lexical import postgres_websearch_or_query
+from application.chinese_lexical import (
+    postgres_lexical_document,
+    postgres_websearch_or_query,
+)
 from application.hybrid_retrieval import (
     EpisodeSearchScope,
     GenerationState,
@@ -22,7 +25,7 @@ from infrastructure.postgres import PostgresUnavailableError
 from infrastructure.retrieval_postgres import RetrievalPostgresPool
 
 class PostgresHybridBackend:
-    """pgvector cosine and PG_FTS_ZH_V1 candidate generation."""
+    """pgvector cosine plus versioned PostgreSQL lexical candidate generation."""
 
     readable_states = {
         GenerationState.READY.value,
@@ -63,7 +66,9 @@ class PostgresHybridBackend:
                         request, RetrievalStatus.INVALID_CONTRACT,
                         "DISTANCE_METRIC_UNSUPPORTED",
                     )
-                if row[4] != "ascii-cjk-unigram-bigram-v1" or row[5] != "PG_FTS_ZH_V1":
+                if row[4] != "ascii-cjk-unigram-bigram-v1" or row[5] not in {
+                    "PG_FTS_ZH_V1", "PG_BM25_ZH_V1",
+                }:
                     return _empty(
                         request, RetrievalStatus.INVALID_CONTRACT,
                         "LEXICAL_CONTRACT_UNSUPPORTED",
@@ -77,7 +82,7 @@ class PostgresHybridBackend:
                         "QUERY_EMBEDDING_DIMENSION_MISMATCH",
                     )
                 dense = self._dense(connection, request, dimension)
-                lexical = self._lexical(connection, request)
+                lexical = self._lexical(connection, request, str(row[5]))
         except PostgresUnavailableError:
             return _empty(request, RetrievalStatus.UNAVAILABLE, "POSTGRES_UNAVAILABLE")
         except (
@@ -140,10 +145,12 @@ class PostgresHybridBackend:
         return _rows_to_candidates(rows, request)
 
     def _lexical(
-        self, connection, request: HybridRetrievalRequest,
+        self, connection, request: HybridRetrievalRequest, lexical_ranker: str,
     ) -> tuple[RetrievalCandidate, ...]:
         if not request.query_text.strip() or request.lexical_limit == 0:
             return ()
+        if lexical_ranker == "PG_BM25_ZH_V1":
+            return self._bm25(connection, request)
         lexical_query = postgres_websearch_or_query(request.query_text)
         if not lexical_query:
             return ()
@@ -171,6 +178,82 @@ class PostgresHybridBackend:
         )
         rows = connection.execute(query, (
             lexical_query, request.tenant_id, request.generation_id,
+            *params, request.lexical_limit,
+        )).fetchall()
+        return _rows_to_candidates(rows, request)
+
+    def _bm25(
+        self, connection, request: HybridRetrievalRequest,
+    ) -> tuple[RetrievalCandidate, ...]:
+        """Rank the scoped Knowledge corpus with Robertson BM25 (k1=1.2,b=.75)."""
+        if request.corpus is not RetrievalCorpus.KNOWLEDGE:
+            return ()
+        query_terms = tuple(dict.fromkeys(
+            postgres_lexical_document(request.query_text).split()
+        ))
+        if not query_terms:
+            return ()
+        (
+            table, source_column, revision_column, freshness_column,
+            filters, params,
+        ) = _scope_sql(request)
+        query = sql.SQL("""
+            WITH query_terms AS (
+                SELECT token FROM unnest(%s::text[]) AS token
+            ),
+            scoped AS MATERIALIZED (
+                SELECT candidate_id, {source_column}, {revision_column},
+                       provenance_sha256, {freshness_column}, lexical_terms,
+                       cardinality(lexical_terms)::double precision AS dl
+                FROM retrieval.{table}
+                WHERE tenant_id=%s AND generation_id=%s AND {filters}
+            ),
+            stats AS (
+                SELECT count(*)::double precision AS n,
+                       GREATEST(avg(dl), 1.0) AS avgdl
+                FROM scoped
+            ),
+            term_stats AS (
+                SELECT q.token, count(*)::double precision AS df
+                FROM query_terms q
+                JOIN scoped d ON q.token = ANY(d.lexical_terms)
+                GROUP BY q.token
+            ),
+            term_frequency AS (
+                SELECT d.candidate_id, d.{source_column}, d.{revision_column},
+                       d.provenance_sha256, d.{freshness_column}, d.dl,
+                       q.token, count(*)::double precision AS tf
+                FROM scoped d
+                JOIN query_terms q ON q.token = ANY(d.lexical_terms)
+                CROSS JOIN LATERAL unnest(d.lexical_terms) AS terms(value)
+                WHERE terms.value = q.token
+                GROUP BY d.candidate_id, d.{source_column}, d.{revision_column},
+                         d.provenance_sha256, d.{freshness_column}, d.dl, q.token
+            )
+            SELECT tf.candidate_id, tf.{source_column}, tf.{revision_column},
+                   tf.provenance_sha256,
+                   sum(
+                       ln(1.0 + (stats.n - ts.df + 0.5) / (ts.df + 0.5))
+                       * (tf.tf * 2.2)
+                       / (tf.tf + 1.2 * (0.25 + 0.75 * tf.dl / stats.avgdl))
+                   ) AS score,
+                   tf.{freshness_column}
+            FROM term_frequency tf
+            JOIN term_stats ts USING (token)
+            CROSS JOIN stats
+            GROUP BY tf.candidate_id, tf.{source_column}, tf.{revision_column},
+                     tf.provenance_sha256, tf.{freshness_column}
+            ORDER BY score DESC, tf.candidate_id
+            LIMIT %s
+        """).format(
+            table=sql.Identifier(table),
+            source_column=sql.Identifier(source_column),
+            revision_column=sql.Identifier(revision_column),
+            freshness_column=sql.Identifier(freshness_column),
+            filters=filters,
+        )
+        rows = connection.execute(query, (
+            list(query_terms), request.tenant_id, request.generation_id,
             *params, request.lexical_limit,
         )).fetchall()
         return _rows_to_candidates(rows, request)
@@ -248,6 +331,12 @@ def _scope_sql(request: HybridRetrievalRequest):
         if scope.product is not None:
             filters += sql.SQL(" AND product=%s")
             params.append(scope.product)
+        if scope.source_types:
+            filters += sql.SQL(" AND source_type=ANY(%s::text[])")
+            params.append(list(scope.source_types))
+        if scope.regions:
+            filters += sql.SQL(" AND region=ANY(%s::text[])")
+            params.append(list(scope.regions))
         return (
             "knowledge_chunk_search", "source_id", "source_revision",
             "projected_at",

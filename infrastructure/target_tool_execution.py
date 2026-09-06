@@ -10,6 +10,7 @@ from application.agent_result import (
 from application.orchestration_runtime import AgentContextView
 from application.work_item import ControlMode
 from application.work_control import WorkControlGuard
+from application.knowledge_tool_contract import tool_domain_outcome
 from infrastructure.target_agent_result_adapter import fact_from_tool_result
 
 
@@ -73,6 +74,13 @@ class TargetToolExecutor:
                     f"TOOL_{str(result.status or 'FAILED').upper()}",
                     self.version,
                     retryable=retryable,
+                )
+            outcome = tool_domain_outcome(result)
+            if outcome is not None and outcome[0] is not AgentResultStatus.SUCCEEDED:
+                return AgentResult(
+                    item.work_item_id, item.owner_agent, outcome[0], outcome[1], self.version,
+                    facts=tuple(facts),
+                    retryable=outcome[0] is AgentResultStatus.RETRYABLE_FAILURE,
                 )
             authority = str(result.authority or "")
             if authority in item.requirement_ids:
