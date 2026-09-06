@@ -87,3 +87,43 @@ def test_manifest_versions_are_closed_and_identity_bearing(store):
     assert old.manifest_hash != new.manifest_hash
     with pytest.raises(KnowledgeSourceContractError):
         KnowledgeSourceManifest.build(**kwargs,schema_version='UNKNOWN')
+
+
+def test_display_product_label_is_not_a_canonical_source_scope(store, postgres_database_url):
+    """Exact applicability is correct; caller-side label inference can lose evidence.
+
+    This is a constructed contract diagnostic with constant test embeddings, not
+    a ranking benchmark or evidence that omitting every filter is a valid repair.
+    """
+    knowledge, _, _ = store
+    knowledge.import_documents((
+        SourceDocument.create(source_id='b20-specific', title='B20 安装规则',
+            content='B20 安装前应核对设备铭牌，仅适配 M20。', product='catalog:part:B20'),
+        SourceDocument.create(source_id='other-specific', title='其他配件安装规则',
+            content='其他配件安装条件不适用于 B20。', product='catalog:part:OTHER'),
+        SourceDocument.create(source_id='general', title='通用安装规则',
+            content='安装前应阅读说明书。'),
+    ))
+    generation = knowledge.active_generation()
+    retrieval = RetrievalPostgresPool(RetrievalPoolConfig(postgres_database_url,min_size=1,max_size=3))
+    retrieval.open()
+    source = PostgresKnowledgeCandidateSource(backend=PostgresHybridBackend(retrieval),
+        generations=knowledge._generations,pool=retrieval,embed_query=knowledge.embed_query)
+    request = replace(_request(),generation_id=generation.generation_id,manifest_fingerprint=generation.manifest_hash,
+        policy=replace(_request().policy,backend_fingerprint=generation.backend_fingerprint,
+            lexical_provider=generation.lexical_ranker,embedding_version=generation.embedding_profile.fingerprint))
+    captured = {}
+    def search(product):
+        result = asyncio.run(source.search_variants_async(replace(request,applicable_product=product),
+            [('raw','B20 安装规则',1.0)],top_k=20))
+        assert result.status is RetrievalStatus.OK
+        captured[product] = result.candidates
+        return {row['source_id'] for row in result.candidates}
+    try:
+        assert search('catalog:part:B20') == {'b20-specific','general'}
+        assert search('B20') == {'general'}
+        assert search(None) == {'b20-specific','other-specific','general'}
+        assert source.validate_candidates(captured['catalog:part:B20'],replace(request,applicable_product='catalog:part:B20'))
+        assert not source.validate_candidates(captured['catalog:part:B20'],replace(request,applicable_product='B20'))
+    finally:
+        retrieval.close()
