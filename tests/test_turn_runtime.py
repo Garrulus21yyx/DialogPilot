@@ -16,6 +16,7 @@ from application.default_capability_registry import build_default_capability_reg
 from application.deterministic_resolution import TurnObservations
 from application.orchestration_runtime import OrchestrationRuntime
 from application.response_assembly import ResponseAssembler
+from tests.test_knowledge_answer_boundary import Verifier
 from application.target_conversation_manager import TargetConversationManager
 from application.turn_runtime import TurnRuntime
 from application.turn_planning import (
@@ -105,7 +106,7 @@ class _CrashAfterExecutionManager(_CountingManager):
 class _FailOnceAssembler:
     def __init__(self):
         self.calls = 0
-        self.delegate = ResponseAssembler()
+        self.delegate = ResponseAssembler(knowledge_verifier=Verifier(True))
 
     async def assemble(self, *args, **kwargs):
         self.calls += 1
@@ -140,7 +141,7 @@ def test_turn_graph_retries_failed_prepare_without_executing_work_early():
     manager = _FailOncePrepareManager(_manager(executor))
     runtime = TurnRuntime(
         manager,
-        ResponseAssembler(),
+        ResponseAssembler(knowledge_verifier=Verifier(True)),
         checkpointer=InMemorySaver(serde=target_checkpoint_serializer()),
     )
 
@@ -166,7 +167,7 @@ def test_turn_graph_reuses_completed_work_plan_after_outer_execution_crash():
     )
     runtime = TurnRuntime(
         manager,
-        ResponseAssembler(),
+        ResponseAssembler(knowledge_verifier=Verifier(True)),
         checkpointer=checkpointer,
     )
 
@@ -223,7 +224,7 @@ def test_authenticated_context_is_pinned_across_recovery_and_cannot_replace_iden
         async def __call__(self, context):
             seen.append(dict(context.trusted_context))
             return await super().__call__(context)
-    runtime = TurnRuntime(_manager(Executor()), ResponseAssembler(),
+    runtime = TurnRuntime(_manager(Executor()), ResponseAssembler(knowledge_verifier=Verifier(True)),
                           checkpointer=InMemorySaver(serde=target_checkpoint_serializer()))
     context = {'authorization_fingerprint': 'auth-a', 'cache_scope': 'policy-a',
                'tenant_id': 'cannot-override-identity', 'retrieval_policy': {'top_k': 5}}

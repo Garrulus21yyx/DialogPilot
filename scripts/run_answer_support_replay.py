@@ -1,4 +1,4 @@
-"""Rejudge frozen rendered composition answers; no regeneration or publication."""
+"""Legacy whole-answer baseline: rejudge frozen answers; no regeneration or publication."""
 import argparse
 import asyncio
 from dataclasses import asdict
@@ -11,7 +11,7 @@ from pathlib import Path
 from anthropic import AsyncAnthropic
 from dotenv import dotenv_values
 from core.model_policy import ModelPolicy, ModelRole
-from services.answer_verifier import AnswerVerifier
+from evaluation.legacy_answer_verifier import AnswerVerifier
 from scripts.run_rag_tool_calibration import CaptureClient
 
 

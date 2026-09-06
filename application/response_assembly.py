@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import re
 from dataclasses import dataclass
 from enum import Enum
@@ -38,9 +39,12 @@ class AssembledResponse:
     composer_used: bool
     verification_status: str
     verification_reason: str
+    verified_text_sha256: str = ""
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "used_claim_ids", tuple(self.used_claim_ids))
+        if self.verified_text_sha256 and self.verified_text_sha256 != hashlib.sha256(self.text.encode()).hexdigest():
+            raise ValueError("answer text changed after verification")
 
 
 class ConversationComposer(Protocol):
@@ -50,7 +54,7 @@ class ConversationComposer(Protocol):
 class ResponseAssembler:
     """Choose the cheapest valid response path and verify the final candidate."""
 
-    version = "response-assembler-v5-controlled-refund"
+    version = "response-assembler-v6-atomic-repair"
 
     def __init__(self, composer: ConversationComposer | None = None, *,
                  knowledge_generator=None, knowledge_verifier=None, knowledge_source_validator=None) -> None:
@@ -67,15 +71,20 @@ class ResponseAssembler:
                                 and result.status not in _SUCCESS for result in board.results)
         if not knowledge_facts and not knowledge_failure:
             candidate = await self._assemble_candidate(board, current_message=current_message, conversation_context=conversation_context)
-            if candidate.composer_used:
+            if candidate.composer_used or candidate.mode is ResponseAssemblyMode.PASS_THROUGH:
                 try:
                     if self._knowledge_verifier is None:
                         raise ValueError("answer support verifier unavailable")
-                    verdict = await self._verify_support(board, current_message, candidate.text, conversation_context=conversation_context)
+                    from dataclasses import replace
+                    candidate = replace(candidate, text=system_notice + candidate.text)
+                    candidate, verdict = await self._verify_with_revision(
+                        board, current_message, candidate, conversation_context=conversation_context,
+                        system_notice=system_notice)
                     if not verdict.publishable or not verdict.grounded:
                         raise ValueError("composed business answer lacks support")
-                    return AssembledResponse(system_notice + candidate.text, candidate.mode,
-                        candidate.used_claim_ids, True, "PASS", "ANSWER_SUPPORT_CHECKED")
+                    return AssembledResponse(candidate.text, candidate.mode,
+                        candidate.used_claim_ids, candidate.composer_used, "PASS", "ANSWER_SUPPORT_CHECKED",
+                        hashlib.sha256(candidate.text.encode()).hexdigest())
                 except Exception:
                     return AssembledResponse(system_notice + _render_board(board), ResponseAssemblyMode.TEMPLATE,
                         (), False, "PASS", "ANSWER_SAFE_FALLBACK")
@@ -135,24 +144,53 @@ class ResponseAssembler:
                 candidate = AssembledResponse(text, ResponseAssemblyMode.PASS_THROUGH, (), True, "PENDING", "KNOWLEDGE_DRAFT")
             else:
                 candidate = await self._assemble_candidate(board, current_message=current_message, conversation_context=conversation_context)
+            from dataclasses import replace
+            candidate = replace(candidate, text=system_notice + candidate.text)
             allowed = {evidence_id(cid) for cid in items}
             cited = set(re.findall(r"\[(E[a-zA-Z0-9]+)\]", candidate.text))
             if not cited or cited - allowed or self._knowledge_verifier is None:
                 return self._knowledge_fallback(board, system_notice, unavailable=self._knowledge_verifier is None)
             # Check original evidence/facts, never use candidate summaries as evidence.
-            verdict = await self._verify_support(
-                board, current_message, candidate.text, conversation_context=conversation_context,
+            candidate, verdict = await self._verify_with_revision(
+                board, current_message, candidate, conversation_context=conversation_context,
+                system_notice=system_notice,
                 knowledge_evidence={"packs": [model_evidence(pack) for pack in packs], "allowed_evidence_ids": sorted(allowed)},
             )
+            cited = set(re.findall(r"\[(E[a-zA-Z0-9]+)\]", candidate.text))
+            if not cited or cited - allowed:
+                return self._knowledge_fallback(board, system_notice)
             if not verdict.publishable or not verdict.grounded:
                 return self._knowledge_fallback(board, system_notice)
             if self._knowledge_source_validator is None or not self._knowledge_source_validator(packs):
                 return self._knowledge_fallback(board, system_notice, unavailable=True)
-            return AssembledResponse(system_notice + candidate.text, candidate.mode,
+            return AssembledResponse(candidate.text, candidate.mode,
                                      tuple(sorted(cited)), candidate.composer_used,
-                                     "PASS", "KNOWLEDGE_SUPPORT_CHECKED")
+                                     "PASS", "KNOWLEDGE_SUPPORT_CHECKED",
+                                     hashlib.sha256(candidate.text.encode()).hexdigest())
         except Exception:
             return self._knowledge_fallback(board, system_notice, unavailable=True)
+
+    async def _verify_with_revision(self, board, message, candidate, *,
+                                    knowledge_evidence=None, conversation_context=None,
+                                    system_notice=""):
+        verdict = await self._verify_support(board, message, candidate.text,
+            knowledge_evidence=knowledge_evidence, conversation_context=conversation_context)
+        if verdict.publishable or verdict.assessment is None or self._composer is None:
+            return candidate, verdict
+        from dataclasses import asdict, replace
+        feedback = {
+            "previous_answer": candidate.text,
+            "claim_checks": [asdict(c) for c in verdict.assessment.checks],
+            "question_checks": [asdict(n) for n in verdict.assessment.needs],
+        }
+        # Recompose from the same original board only. This performs no business
+        # tool execution and has exactly one repair attempt, never recursion.
+        revised = await self._assemble_candidate(board, current_message=message,
+            conversation_context=conversation_context, repair_feedback=feedback)
+        revised = replace(revised, text=system_notice + revised.text)
+        revised_verdict = await self._verify_support(board, message, revised.text,
+            knowledge_evidence=knowledge_evidence, conversation_context=conversation_context)
+        return revised, revised_verdict
 
     async def _verify_support(self, board, message, text, *, knowledge_evidence=None, conversation_context=None):
         # The injected verifier is shared by business and knowledge composition.
@@ -161,12 +199,17 @@ class ResponseAssembler:
         facts = [json.loads(fact.value_json) for result in board.results for fact in result.facts
                  if fact.requirement_id != "knowledge.active_source"]
         receipts = [claim.value for claim in _allowed_claims(board) if claim.kind == 'RECEIPT']
-        return await self._knowledge_verifier.verify(
-            message, text, context=json.dumps({'facts': facts, 'receipts': receipts, 'user_context': conversation_context}, ensure_ascii=False),
+        inputs = dict(question=message, answer=text,
+            context=json.dumps({'facts': facts, 'receipts': receipts, 'user_context': conversation_context}, ensure_ascii=False),
             knowledge_evidence=knowledge_evidence,
             agent_outcomes=[{"status": result.status.value, "reason": result.reason_code}
-                            for result in board.results],
-        )
+                            for result in board.results])
+        verdict = await self._knowledge_verifier.verify(
+            message, text, context=inputs['context'],
+            knowledge_evidence=inputs['knowledge_evidence'], agent_outcomes=inputs['agent_outcomes'])
+        if not verdict.matches_request(**inputs):
+            raise ValueError("verification does not match final answer and evidence")
+        return verdict
 
     @staticmethod
     def _knowledge_fallback(board, notice: str, *, unavailable: bool = False) -> AssembledResponse:
@@ -194,10 +237,10 @@ class ResponseAssembler:
                                  "PASS", "KNOWLEDGE_SAFE_ABSTENTION")
 
     async def _assemble_candidate(
-        self, board, *, current_message: str, system_notice: str = "", conversation_context=None,
+        self, board, *, current_message: str, system_notice: str = "", conversation_context=None, repair_feedback=None,
     ) -> AssembledResponse:
         claims = _allowed_claims(board)
-        mode = self._select_mode(board)
+        mode = ResponseAssemblyMode.CONVERSATION_COMPOSE if repair_feedback is not None else self._select_mode(board)
         if mode is ResponseAssemblyMode.PASS_THROUGH:
             result = board.results[0]
             return AssembledResponse(
@@ -237,6 +280,8 @@ class ResponseAssembler:
             "missing_requirement_ids": list(board.missing_requirement_ids),
             "partial_delivery_allowed": board.partial_delivery_allowed,
         }
+        if repair_feedback is not None:
+            payload["repair_feedback"] = repair_feedback
         try:
             payload = prepare_composition_payload(payload)
             raw = await self._composer.compose(payload)

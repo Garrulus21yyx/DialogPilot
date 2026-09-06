@@ -1,0 +1,28 @@
+{
+  "scope": "consumed synthetic development cases; provider PASS is not gold correctness",
+  "raw_capture_sha256": "3eb4c7884d2495862b0114067d426f316c32e18e3b69e9fbd187ef75b4bbcbdc",
+  "sanitization": "thinking/redacted_thinking blocks and signatures omitted; raw capture retained locally",
+  "cases": [
+    {
+      "case_id": "refund-both",
+      "api_calls": 4,
+      "models": [
+        "deepseek-v4-flash"
+      ],
+      "answer": "订单 DP9302 在本系统当前未记录到归属于您的退款申请。\n无法从当前系统记录确认退款是否已经到账。\n关于一般规则的解释：质量审核通过不代表退款已经到账，二者是两个独立的环节。按照耳机售后规则，耳机出现单侧无声时，需先检查连接和音量，仍有故障的需提交购买凭证及故障视频申请质量审核；即使审核通过，也并不代表退款已经到账。 [E759df00eb610]",
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "latency_ms": 12156.493291258812,
+      "input_tokens": 6649,
+      "cache_read_input_tokens": 4096,
+      "output_tokens": 1861
+    }
+  ],
+  "api_calls": 4,
+  "independent_review": {
+    "result": "unsupported_relationship_claim",
+    "quote": "二者是两个独立的环节",
+    "expected": "INSUFFICIENT",
+    "model_verdict": "SUPPORTED",
+    "note": "Source establishes non-implication, not independent process stages; compound span hides added relation."
+  }
+}

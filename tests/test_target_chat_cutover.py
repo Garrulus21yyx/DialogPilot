@@ -215,7 +215,10 @@ class _ChatPlanningProvider:
         if "DP1234" in message:
             return {
                 "status": "resolved",
-                "goals": [{"kind": "order_status", "order_id": "DP1234"}],
+                "goals": [{"kind": "order_status", "order_id": "DP1234",
+                    "order_id_source_ref": next(c["source_ref"]
+                        for field in payload["entity_bindings"] for c in field["candidates"]
+                        if c["value"] == "DP1234")}],
             }
         return {
             "status": "insufficient_context",
@@ -357,6 +360,8 @@ def test_target_runtime_failure_is_typed_without_exposing_exception_text(monkeyp
 
 
 def test_target_chat_publishes_one_typed_interaction_and_resumes_exact_work_item():
+    from application.response_assembly import ResponseAssembler
+    from tests.test_knowledge_answer_boundary import Verifier
     registry = build_default_capability_registry("tenant-a")
     executor = _MissingThenReadExecutor()
     state_store = InMemoryConversationStateStore()
@@ -373,6 +378,7 @@ def test_target_chat_publishes_one_typed_interaction_and_resumes_exact_work_item
         admission=_Admission(),
         publication=_Publication(),
         bundle_version=registry.bundle_version,
+        response_assembler=ResponseAssembler(knowledge_verifier=Verifier(True)),
         identity_factory=IdentityFactory(lambda: "generated"),
     )
 
@@ -532,3 +538,28 @@ def test_postgres_target_admission_binds_without_legacy_start_outbox(
         assert outbox_count == 0
     finally:
         pool.close()
+
+
+@pytest.mark.parametrize('reason,mode,composed', [
+    ('ANSWER_SUPPORT_CHECKED', 'TEMPLATE', False),
+    ('KNOWLEDGE_SUPPORT_CHECKED', 'TEMPLATE', False),
+    ('SINGLE_VERIFIED_RESULT', 'PASS_THROUGH', False),
+    ('COMPOSED', 'CONVERSATION_COMPOSE', True),
+])
+def test_old_checked_checkpoint_without_answer_binding_cannot_publish(reason, mode, composed):
+    from dataclasses import replace
+    from application.response_assembly import ResponseAssemblyMode
+    application,_tools=_application()
+    delegate=application._turn_runtime
+    class OldCheckpoint:
+        async def execute(self,*args,**kwargs):
+            result=await delegate.execute(*args,**kwargs)
+            return replace(result,assembled=replace(result.assembled,
+                text='保证退款。', mode=ResponseAssemblyMode(mode), composer_used=composed,
+                verification_reason=reason,verified_text_sha256=''))
+    application._turn_runtime=OldCheckpoint()
+    result=asyncio.run(application.handle(ChatCommand(
+        '查订单 DP1234','user-a','tenant-a','old-checkpoint','old-checkpoint-request')))
+    assert isinstance(result, Failed)
+    assert result.code=='target_verified_answer_changed'
+    assert not application._publication.responses

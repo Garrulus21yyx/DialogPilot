@@ -1,0 +1,82 @@
+{
+  "scope": "consumed six-case development replay, not heldout or full publication",
+  "protocol": "claim-check-request-v3-need-ownership",
+  "raw_sha256": "11b26c585fdeeca81d83a6242800060560a74334318a6031faa8882bb74b049b",
+  "cases": [
+    {
+      "case_id": "bounded",
+      "error": null,
+      "all_supported": true,
+      "needs_addressed": true,
+      "checks_passed": true,
+      "verdicts": [
+        "SUPPORTED",
+        "SUPPORTED"
+      ]
+    },
+    {
+      "case_id": "unknown_right",
+      "error": null,
+      "all_supported": true,
+      "needs_addressed": true,
+      "checks_passed": true,
+      "verdicts": [
+        "SUPPORTED",
+        "SUPPORTED",
+        "SUPPORTED"
+      ]
+    },
+    {
+      "case_id": "not_disproved",
+      "error": null,
+      "all_supported": true,
+      "needs_addressed": true,
+      "checks_passed": true,
+      "verdicts": [
+        "SUPPORTED",
+        "SUPPORTED"
+      ]
+    },
+    {
+      "case_id": "unaffected_right",
+      "error": null,
+      "all_supported": false,
+      "needs_addressed": true,
+      "checks_passed": false,
+      "verdicts": [
+        "SUPPORTED",
+        "INSUFFICIENT"
+      ]
+    },
+    {
+      "case_id": "entitled",
+      "error": null,
+      "all_supported": false,
+      "needs_addressed": true,
+      "checks_passed": false,
+      "verdicts": [
+        "SUPPORTED",
+        "SUPPORTED",
+        "INSUFFICIENT"
+      ]
+    },
+    {
+      "case_id": "not_entitled",
+      "error": null,
+      "all_supported": false,
+      "needs_addressed": true,
+      "checks_passed": false,
+      "verdicts": [
+        "SUPPORTED",
+        "SUPPORTED",
+        "INSUFFICIENT"
+      ]
+    }
+  ],
+  "api_calls": 6,
+  "unsupported_false_accept": 0,
+  "unsupported_count": 3,
+  "supported_not_passed": 0,
+  "supported_count": 3,
+  "protocol_errors": 0
+}

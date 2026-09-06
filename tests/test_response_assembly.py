@@ -54,7 +54,7 @@ class _Composer:
 
 def test_single_complete_candidate_passes_through_without_composer_call():
     composer = _Composer(AssertionError("composer must not run"))
-    assembled = asyncio.run(ResponseAssembler(composer).assemble(
+    assembled = asyncio.run(ResponseAssembler(composer, knowledge_verifier=Verifier(True)).assemble(
         _board(_result("w1", "order_logistics", response="订单已发货。")),
         current_message="查订单",
     ))

@@ -17,7 +17,7 @@ from application.deterministic_resolution import (
     TurnObservations,
 )
 from application.target_conversation_manager import TargetConversationManager
-from application.response_assembly import ResponseAssembler
+from application.response_assembly import ResponseAssembler, ResponseAssemblyMode
 from application.turn_runtime import TurnRuntime
 from application.turn_planning import ProposalDisposition
 from core.identity import IdentityContractError, IdentityFactory, InvocationIdentity
@@ -499,6 +499,16 @@ class TargetChatApplication:
                 handoff_receipt is not None
             ),
         }
+        if assembly is not None and (
+            assembly.composer_used
+            or assembly.mode is ResponseAssemblyMode.PASS_THROUGH
+            or assembly.verified_text_sha256 or assembly.verification_reason in
+            ("ANSWER_SUPPORT_CHECKED", "KNOWLEDGE_SUPPORT_CHECKED")
+        ):
+            if not assembly.verified_text_sha256 or hashlib.sha256(response_text.encode()).hexdigest() != assembly.verified_text_sha256:
+                return Failed("target_verified_answer_changed", False,
+                              str(identity.invocation_key),
+                              "Final answer changed after evidence verification")
         published = self._publication.publish(
             identity,
             response_text=response_text,

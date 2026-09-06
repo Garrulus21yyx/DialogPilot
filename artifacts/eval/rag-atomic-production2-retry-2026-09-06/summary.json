@@ -1,0 +1,34 @@
+{
+  "scope": "consumed synthetic development cases; provider PASS is not gold correctness",
+  "raw_capture_sha256": "3678e78882a8de47c154715d3eb7b4bdff2b97f07fe1835a404af857fcd9c29c",
+  "sanitization": "thinking/redacted_thinking blocks and signatures omitted; raw capture retained locally",
+  "cases": [
+    {
+      "case_id": "refund-state",
+      "api_calls": 3,
+      "models": [
+        "deepseek-v4-flash"
+      ],
+      "answer": "订单 DP9302 在本系统当前未记录到归属于您的退款申请。\n无法从当前系统记录确认退款是否已经到账。",
+      "synthesis_reason": "ANSWER_SUPPORT_CHECKED",
+      "latency_ms": 7333.229469135404,
+      "input_tokens": 1579,
+      "cache_read_input_tokens": 4224,
+      "output_tokens": 1038
+    },
+    {
+      "case_id": "refund-both",
+      "api_calls": 4,
+      "models": [
+        "deepseek-v4-flash"
+      ],
+      "answer": "订单 DP9302 在本系统当前未记录到归属于您的退款申请。\n无法从当前系统记录确认退款是否已经到账。\n现有资料不足以支持可靠结论，请补充适用条件或联系人工客服核实。",
+      "synthesis_reason": "KNOWLEDGE_SAFE_ABSTENTION",
+      "latency_ms": 11344.374004751444,
+      "input_tokens": 6527,
+      "cache_read_input_tokens": 3968,
+      "output_tokens": 1519
+    }
+  ],
+  "api_calls": 7
+}

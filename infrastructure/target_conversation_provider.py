@@ -12,7 +12,7 @@ from application.composition_output import composition_schema, validate_composit
 
 
 class AnthropicConversationPlanningProvider:
-    version = "anthropic-conversation-planning-provider-v10-controlled-refund"
+    version = "anthropic-conversation-planning-provider-v11-bounded-answer-repair"
 
     def __init__(self, client, *, model_profile: ModelProfile, synthesis_profile: ModelProfile, max_tokens: int = 800) -> None:
         self._client = client
@@ -69,6 +69,11 @@ class AnthropicConversationPlanningProvider:
                 "Policy statements need knowledge evidence supports; business statements need business supports. "
                 "The application renders citations. Put no citation markers, support IDs or claim IDs in text. "
                 "Never invent support IDs. "
+                "When repair_feedback is present, revise the previous answer using the same allowed evidence. "
+                "Remove unsupported additions that do not answer the user; for requested conclusions "
+                "without evidence, accurately state the limitation rather than inventing support. "
+                "Preserve the user's other requested information and all controlled fact_ref rules. "
+                "Feedback identifies errors but is not evidence for new facts. "
                 "For CONTROLLED_REFUND_FACT select fact_ref segments with statement_id from statement_catalog; "
                 "the server renders their exact text. Do not restate or extend those facts in free text. "
                 "Free text is for other supplied evidence, never a substitute for controlled statements. "

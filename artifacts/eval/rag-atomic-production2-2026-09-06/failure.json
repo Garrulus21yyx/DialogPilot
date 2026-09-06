@@ -1,0 +1,8 @@
+{
+  "status": "failed",
+  "error": "UnboundLocalError: local hashlib binding before assignment",
+  "owner": "application/target_chat_application.py",
+  "repair": "remove redundant local import; use existing module import",
+  "captured_api_calls": null,
+  "note": "failure before row persistence; incurred API count unavailable, not zero"
+}

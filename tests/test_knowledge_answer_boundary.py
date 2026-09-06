@@ -25,7 +25,19 @@ class Verifier:
     def __init__(self, passed): self.passed=passed; self.calls=[]
     async def verify(self,*args,**kwargs):
         self.calls.append((args,kwargs))
-        return SimpleNamespace(publishable=self.passed, grounded=self.passed)
+        from services.answer_verifier import VerificationResult, VerificationStatus, VerificationReasonCode
+        from services.claim_verification import ClaimAssessment, ClaimCheck, NeedCheck
+        question, answer = args[:2]
+        assessment = ClaimAssessment('fixture', (
+            ClaimCheck('s1', answer, 0, len(answer), 'SUPPORTED' if self.passed else 'INSUFFICIENT',
+                       ('/fixture',), 'test', () if self.passed else ('evidence',)),
+        ), (NeedCheck(question, 'ANSWERED', (answer,), 'test'),))
+        return VerificationResult(
+            VerificationStatus.PASS if self.passed else VerificationStatus.REJECT,
+            self.passed, not self.passed, 'test',
+            VerificationReasonCode.PASSED if self.passed else VerificationReasonCode.UNGROUNDED,
+            assessment=assessment,
+        ).bind_to(*args, **kwargs)
 
 
 def test_knowledge_model_view_keeps_middle_evidence_without_trace_or_char_truncation():

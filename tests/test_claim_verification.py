@@ -8,7 +8,7 @@ def fixture():
     rows = [{'segment_id': sid, 'answer_quote': quote, 'verdict': 'SUPPORTED',
              'evidence_paths': ['/facts/status'], 'reason': '证据支持', 'missing_evidence': []}
             for sid, quote in [('s1','甲。'),('s2','乙。')]]
-    return request, {'claim_checks': rows}
+    return request, {'claim_checks': rows, 'question_checks':[{'question_quote':'问','status':'ANSWERED','answer_quotes':['甲。'],'reason':'test'}]}
 
 def test_all_label_combinations_aggregate_without_model_pass():
     for labels in itertools.product(('SUPPORTED','CONTRADICTED','INSUFFICIENT'), repeat=2):
@@ -81,7 +81,7 @@ def test_separator_omission_does_not_hide_content_omission():
     assert assess(req,out).all_supported
     # Units, signs and other potentially semantic symbols are not ignored.
     req=make_request('问','甲10%。',{'facts':{'status':'unknown'}})
-    out={'claim_checks':[{'segment_id':'s1','answer_quote':'甲10','verdict':'SUPPORTED',
+    out={'question_checks':[{'question_quote':'问','status':'ANSWERED','answer_quotes':['甲10%。'],'reason':'test'}], 'claim_checks':[{'segment_id':'s1','answer_quote':'甲10','verdict':'SUPPORTED',
         'evidence_paths':['/facts/status'],'reason':'test','missing_evidence':[]}]}
     with pytest.raises(ValueError):assess(req,out)
 
@@ -95,4 +95,19 @@ def test_numeric_symbols_remain_part_of_coverage(text):
             continue
         rows.append({'segment_id':'s1','answer_quote':c,'verdict':'SUPPORTED',
             'evidence_paths':['/value'],'reason':'test','missing_evidence':[]})
-    with pytest.raises(ValueError):assess(request,{'claim_checks':rows})
+    with pytest.raises(ValueError):assess(request,{'claim_checks':rows,'question_checks':[{'question_quote':'问','status':'ANSWERED','answer_quotes':[text],'reason':'test'}]})
+
+
+@pytest.mark.parametrize('answer_status,expected', [('ANSWERED', True), ('LIMITATION', True), ('MISSING', False)])
+def test_execution_constraints_do_not_substitute_for_answer_obligations(answer_status, expected):
+    req, out = fixture()
+    req = make_request('问\n不执行修改', req['answer'], req['evidence'])
+    out['question_checks'][0]['status'] = answer_status
+    out['question_checks'].append({'question_quote': '不执行修改', 'status': 'EXECUTION_OWNED',
+                                  'answer_quotes': [], 'reason': 'Execution owner checks actions.'})
+    assert assess(req, out).needs_addressed is expected
+    out['question_checks'][0].update(status='EXECUTION_OWNED', answer_quotes=[])
+    assert not assess(req, out).needs_addressed
+    out['question_checks'][0]['answer_quotes'] = ['甲。']
+    with pytest.raises(ValueError):
+        assess(req, out)
