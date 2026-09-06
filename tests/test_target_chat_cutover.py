@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from types import SimpleNamespace
 
 import pytest
+from mcp.tool_manager import ToolResult
 
 from application.agent_result import (
     AgentResult,
@@ -162,7 +163,7 @@ class _ToolManager:
         self, name, params, *, agent_type, context, approved=False, call_id=None,
     ):
         self.calls.append((name, dict(params), agent_type, dict(context)))
-        return SimpleNamespace(
+        return ToolResult(
             success=True,
             tool_name=name,
             data={"order_id": params["order_id"], "status": "shipped"},

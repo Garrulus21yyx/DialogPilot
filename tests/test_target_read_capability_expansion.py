@@ -1,6 +1,7 @@
 import asyncio
 from dataclasses import replace
 from types import SimpleNamespace
+from mcp.tool_manager import ToolResult
 
 from application.agent_result import AgentResultStatus
 from application.conversation_state import ConversationState
@@ -249,7 +250,7 @@ def test_generic_product_qa_executes_the_shared_knowledge_tool_contract():
             self, name, params, *, agent_type, context, call_id,
         ):
             self.calls.append((name, params, agent_type, context, call_id))
-            return SimpleNamespace(
+            return ToolResult(
                 success=True,
                 status="success",
                 authority="knowledge.active_source",

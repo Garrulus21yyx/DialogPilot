@@ -23,6 +23,11 @@
 
 ## 收敛验证记录
 
+- v14（3320f91，显式 4096 输出预算）：两条重复使用的开发任务均完成官方 ALL/ENV/ACTION 评分，reward 均为 0，必需换货写入均未匹配。不能选取 v13 单次成功作为当前完成率；没有 fresh held-out 成绩。
+- v14 出现正常 end_turn、未提供 DomainOutcome 的模型响应，不再能归因于输出截断。框架 ToolStrategy 已使用 tool_choice=any；还需核对实际供应商请求/响应合同，不能以追加业务分支或盲目重试收尾。
+- 工具测试替身迁移为真实 ToolResult，避免新增字段时继续制造不完整结果合同。整组 tests/test_target*.py 在真实 PostgreSQL 下为 217 passed、3 failed；剩余失败涉及回复装配 fixture 与最终公开文本断言，未修改生产验证器绕过失败。
+- 下一项验收仍分开：正式消息 read-after-commit；结果级有效进度复用；完整子 Agent 工作消息续接。前两项有定向证据，第三项未声明完成。整体状态保持 verification_open。
+
 - v12 诊断证明领域/用户输出分别在 1024/512 tokens 截断；v13 显式 4096-token 对照 task 0 reward=1，task 1 未完成。不能报告为两条成功或同预算提升。
 - ToolManager 查询标识修正多个不同查询共用 WorkItem 主体造成的假冲突；ModelPolicy 输出预算下限覆盖 NONE 模式。定向 PostgreSQL/框架/工具/模型回归 83 passed，适配器 3 passed。
 - PostgreSQL checkpoint 关闭/重开后，框架 Agent 补信息保留查询证据，实际工具仅调用一次。完整子 Agent 工作消息跨轮持久化不在此项证明之内。

@@ -3,6 +3,7 @@ from types import SimpleNamespace
 from uuid import uuid4
 
 import httpx
+from mcp.tool_manager import ToolResult
 
 from application.conversation_state import ConversationOwner
 from application.default_capability_registry import build_default_capability_registry
@@ -327,7 +328,7 @@ def _result(
     receipt_id="",
     receipt_schema_version="action-receipt-v1",
 ):
-    return SimpleNamespace(
+    return ToolResult(
         success=success,
         tool_name=name,
         data=data,
