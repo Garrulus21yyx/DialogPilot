@@ -18,6 +18,18 @@ from application.chat_contracts import ChatCommand, Completed, Accepted, NeedsIn
 from infrastructure.postgres_target_runtime import PostgresConversationStateStore
 
 
+class ObservedVerifier:
+    """Keep evaluation diagnostics without changing the production verdict."""
+    def __init__(self, verifier, trace):
+        self.verifier, self.trace = verifier, trace
+
+    async def verify(self, *args, **request):
+        result = await self.verifier.verify(*args, **request)
+        self.trace.append({"verification": asdict(result),
+                           "candidate": args[1] if len(args) > 1 else request["answer"]})
+        return result
+
+
 class Tau3TargetAgent(HalfDuplexAgent):
     def __init__(self, environment, *, loop, timeout_seconds=180):
         super().__init__(environment.get_tools(), environment.get_policy())
@@ -35,7 +47,7 @@ class Tau3TargetAgent(HalfDuplexAgent):
         self.states = PostgresConversationStateStore(pool)
         self.pool = pool
         self.client = client
-        self.model = model
+        self.model_profile = model
         self.conversation_id = "tau3-" + uuid.uuid4().hex
 
     async def call_tool(self, name, arguments):
@@ -76,14 +88,14 @@ class Tau3TargetAgent(HalfDuplexAgent):
         # The benchmark is text-only; production UI supplies explicit typed
         # decisions. Classify assent against the exact displayed proposal, not
         # against task answers. Ambiguous/corrective input never grants approval.
-        response = await self.client.messages.create(
-            model=self.model, max_tokens=200, temperature=0,
+        response = await self.client.messages.create(**self.model_profile.request(
+            max_tokens=200, temperature=0,
             system="Classify this reply to the exact pending action. Return one JSON object with decision: approve, deny, or unclear. Approve only explicit assent to unchanged parameters. Any correction, extra condition, or ambiguity is unclear.",
             messages=[{"role": "user", "content": json.dumps({
                 "action": pending.action_ref,
                 "arguments": {arg.name: arg.value for arg in pending.arguments},
                 "reply": text}, ensure_ascii=False)}],
-        )
+        ))
         content = "".join(getattr(block, "text", "") for block in response.content)
         try:
             value = json.loads(content)["decision"]

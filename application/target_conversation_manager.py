@@ -608,7 +608,7 @@ class TargetConversationManager:
         state: ConversationState,
         resolution: DeterministicResolution,
     ) -> str | None:
-        if resolution.kind is ResolutionKind.FILL_PENDING_INPUT:
+        if resolution.kind in {ResolutionKind.FILL_PENDING_INPUT, ResolutionKind.REPLY_PENDING_INPUT}:
             return (
                 state.pending_interaction.checkpoint_thread_id
                 if state.pending_interaction is not None else None
@@ -640,6 +640,11 @@ class TargetConversationManager:
     ) -> ConversationState:
         if resolution.state_fingerprint != state.fingerprint:
             raise ConversationStateConflict("resolution is bound to stale state")
+        if resolution.kind is ResolutionKind.REPLY_PENDING_INPUT:
+            return state.consume_interaction_reply(
+                interaction_id=str(resolution.signal_id),
+                interaction_version=int(resolution.signal_version),
+            )
         if resolution.kind is ResolutionKind.FILL_PENDING_INPUT:
             return state.consume_interaction(
                 interaction_id=str(resolution.signal_id),

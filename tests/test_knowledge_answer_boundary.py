@@ -5,20 +5,22 @@ from types import SimpleNamespace
 from application.agent_result import AgentResultStatus
 from application.response_assembly import ResponseAssembler
 from application.knowledge_tool_contract import evidence_id
-from infrastructure.target_agent_result_adapter import fact_from_tool_result
+from infrastructure.target_agent_result_adapter import fact_from_tool_result, DomainOutcome
 from mcp.tool_manager import MCPToolManager, ToolResult
 from tests.test_knowledge_tool_contract import evidence_result
 from tests.test_target_framework_agent import _item
 from infrastructure.target_framework_agent import _adapt_framework_result
 from tests.test_target_framework_agent import _context
-from langchain_core.messages import AIMessage
 
 
 def board(answer):
     item=replace(_item(),requirement_ids=('knowledge.active_source',))
     tool=ToolResult(True,evidence_result(),'knowledge_search',authority='knowledge.active_source',call_id='read')
-    result=_adapt_framework_result(_context(item),(tool,),(AIMessage(content=answer),),'framework-v1',
-        allowed_authorities={'knowledge_search': 'knowledge.active_source'})
+    result=_adapt_framework_result(_context(item),(tool,),'framework-v1',
+        allowed_authorities={'knowledge_search': 'knowledge.active_source'},
+        domain_outcome=DomainOutcome(status="SUCCEEDED", response=answer or "Evidence retrieved.", missing_inputs=[]))
+    if not answer:
+        result = replace(result, candidate_response=None)
     return SimpleNamespace(results=(result,), conflict_keys=(), missing_requirement_ids=(), partial_delivery_allowed=False)
 
 

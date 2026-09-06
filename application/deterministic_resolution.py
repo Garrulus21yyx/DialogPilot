@@ -7,7 +7,7 @@ from enum import Enum
 
 from application.conversation_state import ConversationState
 from application.entity_binding import BindingSource, EntityBinding
-from application.work_item import ArgumentValue, WorkItem
+from application.work_item import ArgumentValue, ControlMode, WorkItem
 
 
 class DeterministicResolutionError(ValueError):
@@ -22,6 +22,7 @@ class ExplicitControlSignal(str, Enum):
 class ResolutionKind(str, Enum):
     UNRESOLVED = "UNRESOLVED"
     FILL_PENDING_INPUT = "FILL_PENDING_INPUT"
+    REPLY_PENDING_INPUT = "REPLY_PENDING_INPUT"
     APPROVAL_DECISION = "APPROVAL_DECISION"
     APPROVAL_EXPIRED = "APPROVAL_EXPIRED"
     RECONCILE_WORKFLOW = "RECONCILE_WORKFLOW"
@@ -122,6 +123,21 @@ class DeterministicResolver:
             ):
                 raise DeterministicResolutionError(
                     "interaction reply targets another interaction"
+                )
+            # A bound free-text reply resumes domain reasoning; it is not a
+            # verified value for every requested field (or even a single field).
+            if (observations.interaction_id is not None
+                    and observations.raw_text.strip()
+                    and not observations.interaction_values
+                    and not observations.structured_fields
+                    and pending.suspended_work_items
+                    and all(item.control_mode is ControlMode.DELEGATED
+                            for item in pending.suspended_work_items)):
+                return DeterministicResolution(
+                    ResolutionKind.REPLY_PENDING_INPUT, "PENDING_REPLY_BOUND",
+                    state.fingerprint, signal_id=pending.interaction_id,
+                    signal_version=pending.version,
+                    resumed_work_items=pending.suspended_work_items,
                 )
             fields = self._bind_pending_fields(observations, pending.requested_fields)
             if fields is not None:

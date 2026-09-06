@@ -29,7 +29,7 @@ class StateBoundTargetUnderstanding:
     ) -> TurnProposal | None:
         del observations, turn_context
         if (
-            deterministic.kind is ResolutionKind.FILL_PENDING_INPUT
+            deterministic.kind in {ResolutionKind.FILL_PENDING_INPUT, ResolutionKind.REPLY_PENDING_INPUT}
             and deterministic.resumed_work_items
         ):
             return TurnProposal(

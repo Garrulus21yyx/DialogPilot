@@ -27,6 +27,7 @@ from infrastructure.postgres_response_delivery import PostgresResponseDeliverySe
 from infrastructure.target_runtime_composition import build_target_runtime
 from memory.conversation_memory import MemoryManager
 from mcp.tool_manager import MCPToolManager
+from services.answer_verifier import AnswerVerifier
 
 
 def write(path, data):
@@ -42,7 +43,7 @@ async def run(args):
     from tau2.orchestrator.orchestrator import Orchestrator
     from tau2.user.user_simulator import UserSimulator
     from tau2.evaluator.evaluator import evaluate_simulation, EvaluationType
-    from evaluation.tau3_full_adapter import Tau3TargetAgent
+    from evaluation.tau3_full_adapter import Tau3TargetAgent, ObservedVerifier
     from evaluation.tau3_tool_binding import bind_environment
 
     values = {**dotenv_values(ROOT / ".env"), **os.environ}
@@ -61,6 +62,7 @@ async def run(args):
                 "max_steps": args.max_steps, "max_model_calls_per_work_item": 20,
                 "model_context_budget": 64000, "worker_profile": profile.to_dict(),
                 "user_model": args.user_model, "seed": 300,
+                "user_thinking": "disabled",
                 "evaluation": "official ALL plus ENV/ACTION diagnostics, strict replay",
                 "source_sha256": {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
                                   for folder in ("application", "infrastructure", "evaluation")
@@ -96,6 +98,7 @@ async def run(args):
                     memory = MemoryManager(redis_url="unix://" + str(socket),
                         fact_store=PostgresMemoryFactStore(pool), api_key=values["ANTHROPIC_API_KEY"])
                     components = None
+                    orchestrator = None
                     row = {"task_id": task.id, "official_reward": None}
                     try:
                         registry = bind_environment(environment, tools, agent.call_tool)
@@ -105,14 +108,18 @@ async def run(args):
                                 pool, resume_binding_secret=uuid.uuid4().hex),
                             model_policy=policy, provider_config={"api_key": values["ANTHROPIC_API_KEY"],
                                                                  "base_url": policy.base_url},
-                            project_root=ROOT, registry=registry, enable_encoder=False)
-                        agent.configure(components, pool, tools.llm_client, profile.model)
+                            project_root=ROOT, registry=registry, enable_encoder=False,
+                            knowledge_verifier=ObservedVerifier(AnswerVerifier(client=tools.llm_client,
+                                model_profile=policy.profile(ModelRole.VERIFIER)), agent.trace))
+                        agent.configure(components, pool, tools.llm_client, profile)
                         user = UserSimulator(llm=args.user_model, instructions=str(task.user_scenario),
                             llm_args={"api_key": values["ANTHROPIC_API_KEY"], "api_base": policy.base_url,
-                                      "temperature": 0, "max_tokens": 512, "timeout": 60, "num_retries": 0})
-                        simulation = await asyncio.to_thread(Orchestrator(
+                                      "temperature": 0, "thinking": {"type": "disabled"},
+                                      "max_tokens": 512, "timeout": 60, "num_retries": 0})
+                        orchestrator = Orchestrator(
                             domain="retail", agent=agent, user=user, environment=environment,
-                            task=task, max_steps=args.max_steps, seed=300).run)
+                            task=task, max_steps=args.max_steps, seed=300)
+                        simulation = await asyncio.to_thread(orchestrator.run)
                         write(args.output / f"task-{task.id}-trajectory.json", simulation.model_dump())
                         for evaluation in (EvaluationType.ALL, EvaluationType.ENV, EvaluationType.ACTION):
                             reward = await asyncio.to_thread(evaluate_simulation, simulation, task,
@@ -123,6 +130,9 @@ async def run(args):
                         row["termination"] = simulation.termination_reason.value
                         row["status"] = "EVALUATED"
                     except Exception as exc:
+                        if orchestrator is not None:
+                            write(args.output / f"task-{task.id}-partial-trajectory.json",
+                                  [message.model_dump() for message in orchestrator.trajectory])
                         row.update(status="ERROR", error_type=type(exc).__name__,
                                    error=str(exc).replace(values["ANTHROPIC_API_KEY"], "[REDACTED]")[:240])
                     finally:

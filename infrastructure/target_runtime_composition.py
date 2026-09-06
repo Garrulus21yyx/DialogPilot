@@ -65,6 +65,16 @@ class TargetRuntimeComponents:
     understanding: TurnUnderstanding
 
 
+def _framework_model(profile, provider_config):
+    request = profile.request(max_tokens=1024, temperature=0)
+    return ChatAnthropic(
+        model_name=request["model"], api_key=provider_config["api_key"],
+        base_url=provider_config.get("base_url"), max_tokens=request["max_tokens"],
+        model_kwargs={key: value for key, value in request.items()
+                      if key not in {"model", "max_tokens"}},
+    )
+
+
 async def build_target_runtime(
     *,
     database_url: str,
@@ -89,9 +99,11 @@ async def build_target_runtime(
     checkpoint_owner = AsyncPostgresCheckpointOwner(database_url, setup=True)
     checkpointer = await checkpoint_owner.__aenter__()
     try:
+        worker_profile = model_policy.profile(ModelRole.WORKER)
+        worker_request = worker_profile.request(max_tokens=1024, temperature=0)
         context_budget = ContextBudgetManager(
-            context_window_tokens=int(os.getenv("MODEL_CONTEXT_WINDOW_TOKENS", "16000")),
-            reserved_output_tokens=int(os.getenv("CONVERSATION_OUTPUT_RESERVE_TOKENS", "1200")),
+            context_window_tokens=min(worker_profile.max_context_tokens, int(os.getenv("MODEL_CONTEXT_WINDOW_TOKENS", "16000"))),
+            reserved_output_tokens=max(worker_request["max_tokens"], int(os.getenv("CONVERSATION_OUTPUT_RESERVE_TOKENS", "1200"))),
             protocol_reserve_tokens=int(os.getenv("CONTEXT_PROTOCOL_RESERVE_TOKENS", "600")),
         )
         conversation_profile = model_policy.profile(ModelRole.INTENT)
@@ -129,13 +141,7 @@ async def build_target_runtime(
         product_executor = TargetProductExecutor(
             tool_manager, control_guard=control_guard,
         )
-        model = ChatAnthropic(
-            model_name=model_policy.profile(ModelRole.WORKER).model,
-            api_key=provider_config["api_key"],
-            base_url=provider_config.get("base_url"),
-            max_tokens=1024,
-            temperature=0,
-        )
+        model = _framework_model(worker_profile, provider_config)
         domain_workers = {
             agent.agent_id: TargetFrameworkAgent(
                 model,

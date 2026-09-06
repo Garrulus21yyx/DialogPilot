@@ -130,7 +130,7 @@ def test_open_goal_preserves_tool_failure_without_predeclared_requirements(statu
     result = _adapt_framework_result(
         _context(item),
         (ToolResult(False, None, "catalog_search", status=status),),
-        (), "test", allowed_authorities={"catalog_search": "product.canonical_model"},
+        "test", allowed_authorities={"catalog_search": "product.canonical_model"},
     )
     assert result.status.value == "RETRYABLE_FAILURE"
     assert not result.facts
@@ -142,7 +142,7 @@ def test_open_goal_does_not_promote_a_tool_to_another_fact_authority():
         _context(item),
         (ToolResult(True, {"status": "paid"}, "catalog_search",
                     authority="refund.current_state", call_id="read-1"),),
-        (), "test", allowed_authorities={"catalog_search": "product.canonical_model"},
+        "test", allowed_authorities={"catalog_search": "product.canonical_model"},
     )
     assert not result.facts
     assert result.status.value == "TERMINAL_FAILURE"

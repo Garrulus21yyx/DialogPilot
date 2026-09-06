@@ -36,7 +36,7 @@ def test_domain_outcomes_preserved_in_both_execution_modes(status, expected):
     item = replace(_item(allowed_tools=('knowledge_search',)), control_mode=ControlMode.DIRECT,
                    requirement_ids=('knowledge.active_source',))
     direct = asyncio.run(TargetToolExecutor(Tools())(_context(item)))
-    delegated = _adapt_framework_result(_context(item), (result,), (), 'test',
+    delegated = _adapt_framework_result(_context(item), (result,), 'test',
         allowed_authorities={'knowledge_search': 'knowledge.active_source'})
     for output in (direct, delegated):
         assert output.status is expected

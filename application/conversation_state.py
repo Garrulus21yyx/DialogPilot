@@ -11,7 +11,7 @@ from typing import Protocol
 
 from application.agent_result import ReceiptRef, RequestedField
 from application.entity_binding import BindingSource, EntityBinding
-from application.work_item import ArgumentValue, WorkControlBinding, WorkItem
+from application.work_item import ArgumentValue, ControlMode, WorkControlBinding, WorkItem
 from core.identity import ConversationId, TenantId, UserId
 
 
@@ -636,6 +636,21 @@ class ConversationState:
             status=WorkstreamStatus.WAITING_APPROVAL,
         )
         return replace(updated, pending_approval=pending)
+
+    def consume_interaction_reply(self, *, interaction_id: str, interaction_version: int) -> "ConversationState":
+        """Consume a reply, leaving semantic field extraction to suspended agents."""
+        signal_id = f"interaction:{interaction_id}:v{interaction_version}"
+        self._assert_unconsumed(signal_id)
+        pending = self.pending_interaction
+        if pending is None or (pending.interaction_id, pending.version) != (interaction_id, interaction_version):
+            raise ConversationStateConflict("pending interaction changed")
+        if (not pending.suspended_work_items
+                or any(item.control_mode is not ControlMode.DELEGATED for item in pending.suspended_work_items)
+                or {field.target_work_item_id for field in pending.requested_fields}.difference(
+                    item.work_item_id for item in pending.suspended_work_items)):
+            raise ConversationStateError("free-text reply requires suspended domain work")
+        return replace(self, version=self.version + 1, pending_interaction=None,
+                       consumed_signal_ids=(*self.consumed_signal_ids, signal_id), resume_bindings=())
 
     def consume_interaction(
         self,

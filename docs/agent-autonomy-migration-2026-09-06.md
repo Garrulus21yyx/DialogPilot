@@ -24,7 +24,7 @@ RoutePolicy 校验领域、实体来源和权限，形成只读执行包络。�
 
 领域 Agent 现在可以选择注册 Action。框架工具只提交动作建议，由 TargetActionPreparation 获取前置状态和版本；ConversationState 保存具体参数与被暂停的目标。确认后仍由 GovernedWriteRuntime 执行，Receipt 作为依赖结果交回领域 Agent。模型不直接执行写入。
 
-通用 request_user_input 返回 typed MissingInput，框架 middleware 在交互边界停止模型循环。确认被拒绝时，原目标及其依赖不继续，无关暂停目标可以恢复；确认时再次验证原目标 revision。生产装配和写工具执行主体统一来自 Registry。
+框架原生 DomainOutcome 返回明确终态和 typed MissingInput；缺信息终止本次模型循环。确认被拒绝时，原目标及其依赖不继续，无关暂停目标可以恢复；确认时再次验证原目标 revision。生产装配和写工具执行主体统一来自 Registry。
 
 第三阶段回归：真实 PostgreSQL 154 passed、2 skipped；新增拒绝与依赖顺序检查后定向 26 passed。已有大 HTTP 场景的旧 fixture 仍存在退款资格候选被最终回复验证拒绝的问题，不能将该用例记为通过。多类待决交互竞争与完整外部环境评测仍在进行。
 
@@ -39,3 +39,11 @@ Registry 的 planning_shortcuts 决定主 Agent 可用的既有快捷目标；�
 评测桥接位于 evaluation/tau3_full_adapter.py 和 evaluation/tau3_tool_binding.py：前者只做协议往返，后者注册官方工具元数据及政策。真实调用经官方 Orchestrator 执行；Target 保留原审批、操作账本、回复验证和 Publication。基准没有远端 operation-key 查询或原子 CAS，适配器只能记录已观察到的结果，未知结果不会伪装为可重试失败。
 
 当前完整评测仍未通过，不能以“工具已接通”宣称退换货业务闭环已验证。
+
+## 领域终态与文本续接
+
+开放任务通过 create_agent 原生结构化输出 DomainOutcome 表达 SUCCEEDED、NEEDS_USER_INPUT 或 BLOCKED；字段、问题和结果由领域模型生成，工具事实仍从实际 artifact/Receipt 适配。没有终态时返回 DOMAIN_OUTCOME_MISSING，不能因 requirement 为空标记成功。
+
+PendingInteraction 接受两类不同输入：结构化字段经精确绑定消费；明确引用原 interaction 的纯文本回复恢复暂停的领域目标，由 Agent 理解回答、修正或缺失信息。纯文本不会直接填入某个字段，旧信号只消费一次，后续仍缺信息时产生新追问。
+
+框架模型装配使用既有 ModelPolicy.request 的完整参数，包括推理模式和实际输出预算。未新增供应商适配、执行循环或业务特化流程。

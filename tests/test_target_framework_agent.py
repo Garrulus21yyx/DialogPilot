@@ -40,7 +40,7 @@ class ScriptedToolModel(BaseChatModel):
         return "scripted-tool-model"
 
     def bind_tools(self, tools: Sequence[Any], **kwargs):
-        self.bound_tool_names = [tool.name for tool in tools]
+        self.bound_tool_names = [tool.name if hasattr(tool, "name") else tool["function"]["name"] for tool in tools]
         return self
 
     def _generate(
@@ -52,6 +52,11 @@ class ScriptedToolModel(BaseChatModel):
     ) -> ChatResult:
         response = self.responses[self.calls]
         self.calls += 1
+        if not response.tool_calls and "DomainOutcome" in self.bound_tool_names:
+            response = AIMessage(content="", tool_calls=[{
+                "name": "DomainOutcome", "id": f"outcome-{self.calls}",
+                "args": {"status": "SUCCEEDED", "response": response.content, "missing_inputs": []},
+            }])
         return ChatResult(generations=[ChatGeneration(message=response)])
 
 
@@ -104,7 +109,7 @@ def test_memory_tool_receives_runtime_identity_and_returns_episode_provenance():
         "episode_id": "case-e401", "episode_revision": "1",
         "provenance_sha256": "a" * 64,
     }
-    assert model.bound_tool_names == ["service_episode_search", "request_user_input"]
+    assert model.bound_tool_names == ["service_episode_search", "DomainOutcome"]
 
 
 def _manager(calls, *, allowed_agents=("technical",)):
@@ -206,7 +211,7 @@ def test_framework_keeps_user_input_out_of_system_policy(attack):
     assert systems and humans
     assert all(attack not in content for content in systems)
     assert any(json.loads(content)["current_message"] == attack for content in humans)
-    assert model.bound_tool_names == ["catalog_search", "request_user_input"]
+    assert model.bound_tool_names == ["catalog_search", "DomainOutcome"]
     assert calls == []
 
 
@@ -235,7 +240,7 @@ def test_framework_agent_uses_only_governed_tools_and_returns_provenance():
     assert result.candidate_response == "目录确认型号为 PX-200。"
     assert result.facts[0].requirement_id == "product.canonical_model"
     assert result.facts[0].source_ref == "tool-call-1"
-    assert model.bound_tool_names == ["catalog_search", "request_user_input"]
+    assert model.bound_tool_names == ["catalog_search", "DomainOutcome"]
     assert "runtime" not in manager.tools_for_agent("technical")[0].schema["properties"]
     assert calls[0][0] == {"query": "当前商品"}
     assert calls[0][1]["agent_type"] == "technical"
@@ -357,7 +362,7 @@ def test_open_goal_can_choose_optional_composite_skill():
     assert result.status is AgentResultStatus.SUCCEEDED
     assert result.evidence_refs == ("catalog-receipt-1",)
     assert set(model.bound_tool_names) == {
-        "catalog_search", "product_identification", "request_user_input",
+        "catalog_search", "product_identification", "DomainOutcome",
     }
 
 
@@ -476,7 +481,10 @@ def test_postgres_subgraph_survives_process_exit_after_tool(postgres_database_ur
             if any(isinstance(message, ToolMessage) for message in messages):
                 if self.crash:
                     os._exit(73)
-                response = AIMessage(content="PX-200")
+                response = AIMessage(content="", tool_calls=[{
+                    "name": "DomainOutcome", "id": "outcome-final",
+                    "args": {"status": "SUCCEEDED", "response": "PX-200", "missing_inputs": []},
+                }])
             else:
                 response = AIMessage(content="", tool_calls=[{
                     "name": "catalog_search", "args": {"query": "current"}, "id": "read-1",
