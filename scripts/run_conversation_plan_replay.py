@@ -16,7 +16,7 @@ from types import SimpleNamespace
 
 from anthropic import AsyncAnthropic
 from dotenv import dotenv_values
-from application.conversation_agent import ConversationAgent, ConversationProviderOutputError, planning_goal_descriptions
+from application.conversation_agent import ConversationAgent, ConversationProviderOutputError, planning_goal_descriptions, planning_output_schema
 from application.conversation_state import ConversationState
 from application.default_capability_registry import build_default_capability_registry
 from application.deterministic_resolution import TurnObservations
@@ -86,13 +86,18 @@ async def run(args):
         # Validate reconstruction before spending inference calls, regardless of
         # the eventual model decision. This does not supply a model answer.
         compile_captured(key,payload,{'status':'out_of_scope'})
+    schema_for = (lambda payload: planning_output_schema()) if args.current_output_schema else output_schema
+    if args.current_output_schema:
+        from jsonschema import Draft202012Validator
+        wire_validator = Draft202012Validator(planning_output_schema())
     values={k:str(v) for k,v in dotenv_values('.env').items() if v is not None};values.update(os.environ)
     policy=ModelPolicy.from_env(values);profile=policy.profile(ModelRole.INTENT)
     args.output.mkdir(parents=True,exist_ok=False)
     (args.output/'manifest.json').write_text(json.dumps({'scope':__doc__,'cases':len(inputs),
         'source_sha256':hashlib.sha256(raw).hexdigest(),'case_ids':[key for key,_ in inputs],
         'current_goal_descriptions':args.current_goal_descriptions,'profile':profile.to_dict(),'max_tokens':args.max_tokens,
-        'variants':args.modes,'max_api_calls':len(args.modes)*len(inputs),'structured_schema':output_schema(inputs[0][1])},indent=2)+'\n')
+        'variants':args.modes,'max_api_calls':len(args.modes)*len(inputs),
+        'current_output_schema':args.current_output_schema,'structured_schema':schema_for(inputs[0][1])},indent=2)+'\n')
     options=dict(api_key=values['ANTHROPIC_API_KEY'],max_retries=0,timeout=60)
     if policy.base_url:options['base_url']=policy.base_url
     async with AsyncAnthropic(**options) as transport:
@@ -103,7 +108,7 @@ async def run(args):
                     async def create(self,**request):
                         if mode in ('structured','structured_native'):
                             request['tools']=[{'name':'submit_turn_plan','description':'Submit the customer-service turn plan.',
-                                               'input_schema':output_schema(payload)}]
+                                               'input_schema':schema_for(payload)}]
                             request['tool_choice']=({'type':'auto'}
                                 if mode=='structured_native' and profile.reasoning is not ReasoningEffort.NONE
                                 else {'type':'tool','name':'submit_turn_plan'})
@@ -124,6 +129,10 @@ async def run(args):
                 before=len(client.calls);output=None;result={'case_id':key,'mode':mode,'error':None}
                 try:
                     output=await provider.plan(payload)
+                    if args.current_output_schema:
+                        # Separate wire compliance from the existing compiler's
+                        # semantic result; a compiled plan is not schema proof.
+                        result['wire_schema_valid'] = wire_validator.is_valid(output)
                     proposal=compile_captured(key,payload,output)
                     result.update(output=output,proposal=asdict(proposal))
                 except Exception as error:
@@ -138,6 +147,8 @@ def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--capture',required=True,type=Path);p.add_argument('--output',required=True,type=Path)
     p.add_argument('--current-goal-descriptions',action='store_true')
+    p.add_argument('--current-output-schema',action='store_true',
+                   help='Use the application-owned output shape; historical evaluation schema remains the default.')
     p.add_argument('--case-ids',nargs='+',help='Replay only named captured cases; unknown IDs fail before API calls.')
     p.add_argument('--max-tokens',type=int,choices=range(256,8193),metavar='256..8192',default=2048)
     p.add_argument('--modes',nargs='+',choices=('text','structured','structured_native'),default=['text','structured'])

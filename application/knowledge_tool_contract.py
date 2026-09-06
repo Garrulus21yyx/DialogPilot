@@ -92,18 +92,30 @@ def knowledge_artifact(artifact) -> bool:
             and artifact['result'].get('authority') == 'knowledge.active_source')
 
 
+_KNOWLEDGE_OPTION_KEYS = frozenset({'as_of', 'applicable_region', 'applicable_channel', 'applicable_product'})
+_KNOWLEDGE_OPTION_MAX_LENGTH = 128
+
+
+def knowledge_query_options_schema():
+    """Wire shape; temporal interpretation remains in knowledge_query_options."""
+    return {'type': 'object', 'additionalProperties': False, 'properties': {
+        key: {'type': 'string', 'minLength': 1, 'pattern': r'\S',
+              'maxLength': _KNOWLEDGE_OPTION_MAX_LENGTH}
+        for key in sorted(_KNOWLEDGE_OPTION_KEYS)
+    }}
+
+
 def knowledge_query_options(values):
     """Business applicability, distinct from runtime identity and authorization."""
     from datetime import datetime
     from collections.abc import Mapping
     if not isinstance(values, Mapping):
         raise ValueError("knowledge options must be an object")
-    supported = {'as_of', 'applicable_region', 'applicable_channel', 'applicable_product'}
-    if set(values) - supported:
+    if set(values) - _KNOWLEDGE_OPTION_KEYS:
         raise ValueError("unsupported knowledge option")
     result = {}
     for key, value in values.items():
-        if not isinstance(value, str) or not value.strip() or len(value) > 128:
+        if not isinstance(value, str) or not value.strip() or len(value) > _KNOWLEDGE_OPTION_MAX_LENGTH:
             raise ValueError("knowledge options require bounded strings")
         if key == 'as_of':
             instant = datetime.fromisoformat(value)

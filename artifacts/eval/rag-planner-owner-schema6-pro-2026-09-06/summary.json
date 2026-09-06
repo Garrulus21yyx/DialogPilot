@@ -1,0 +1,24 @@
+{
+  "scope": "Application-owned wire schema on consumed six-case empty-state Pro/none replay; no execution or generation.",
+  "cases": 6,
+  "api_calls": 6,
+  "usage": {
+    "input_tokens": 9372,
+    "output_tokens": 878,
+    "cache_read_input_tokens": 6912
+  },
+  "compiled": 6,
+  "both_tools": 6,
+  "raw_sha256": "bd70e3fe1f8db91ecaeb69a5669aaf9ad98fe30606cbadc2a58d4645c3d953a1",
+  "wire_schema_validation": {
+    "method": "postcapture validation against application schema; original capture unchanged",
+    "cases": {
+      "expanded-opened-audio": true,
+      "expanded-audio-defect": true,
+      "expanded-gift-return": true,
+      "expanded-battery-install": true,
+      "expanded-preorder": true,
+      "expanded-elliptic": true
+    }
+  }
+}

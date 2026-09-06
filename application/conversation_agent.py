@@ -60,6 +60,54 @@ _MISSING_FIELDS = {
 }
 
 
+def planning_output_schema() -> dict:
+    """Wire shape for the current whole-turn planning algebra.
+
+    The compiler still owns binding authorization, goal dependencies, capability
+    lookup and contextual query requirements. This schema does not authorize a
+    command or introduce partial execution for an insufficient-context turn.
+    Optional goal IDs retain the compiler's deterministic generated-ID behavior.
+    """
+    from application.knowledge_tool_contract import knowledge_query_options_schema
+    text = {"type": "string", "minLength": 1, "pattern": r"\S"}
+    goal = {
+        "type": "object", "additionalProperties": False, "required": ["kind"],
+        "properties": {
+            "kind": {"type": "string", "enum": sorted(_GOALS)},
+            **{key: dict(text) for key in (
+                "goal_id", "order_id", "order_id_source_ref", "asset_id",
+                "asset_id_source_ref", "new_address", "revises_control_id",
+            )},
+            "resolved_query": {**text, "maxLength": 4000},
+            "depends_on": {"type": "array", "uniqueItems": True, "items": dict(text)},
+            "knowledge_options": knowledge_query_options_schema(),
+        },
+    }
+    # Root object plus branch constraints works with object-tool transports.
+    # Each status has one unambiguous shape; inactive fields are omitted.
+    return {
+        "type": "object", "additionalProperties": False, "required": ["status"],
+        "properties": {
+            "status": {"type": "string", "enum": [
+                "resolved", "insufficient_context", "out_of_scope",
+            ]},
+            "goals": {"type": "array", "minItems": 1, "maxItems": 4, "items": goal},
+            "missing_fields": {
+                "type": "array", "minItems": 1, "uniqueItems": True,
+                "items": {"type": "string", "enum": sorted(_MISSING_FIELDS)},
+            },
+        },
+        "oneOf": [
+            {"properties": {"status": {"const": "resolved"}},
+             "required": ["goals"], "not": {"required": ["missing_fields"]}},
+            {"properties": {"status": {"const": "insufficient_context"}},
+             "required": ["missing_fields"], "not": {"required": ["goals"]}},
+            {"properties": {"status": {"const": "out_of_scope"}},
+             "not": {"anyOf": [{"required": ["goals"]}, {"required": ["missing_fields"]}]}},
+        ],
+    }
+
+
 logger = logging.getLogger(__name__)
 
 
