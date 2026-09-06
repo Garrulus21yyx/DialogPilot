@@ -1,0 +1,82 @@
+{
+  "status": "PROBED",
+  "scope": "ENTRY_PROBE_NOT_OFFICIAL_TASK_EVALUATION",
+  "created_at": "2026-09-06T14:59:29.996357+00:00",
+  "project_commit": "6f0af98e1a7765ae58a89c6d24579ca775a24b68",
+  "tau_commit": "a2c024725189473d2d7cea3a5cfdbcc67478e41f",
+  "domain": "retail",
+  "split": "train",
+  "task_ids": [
+    "0",
+    "1"
+  ],
+  "turns_per_task": 1,
+  "trials": 1,
+  "official_reward": null,
+  "planner_profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "user_model": "anthropic/deepseek-v4-flash",
+  "user_seed": 300,
+  "policy_injected": false,
+  "business_tools_bound": false,
+  "excluded": [
+    "official task completion scoring",
+    "business tool compatibility",
+    "policy compliance",
+    "HTTP/SSE",
+    "background worker dispatch"
+  ],
+  "source_sha256": {
+    "scripts/run_tau3_entry_smoke.py": "2068a6233f0e7af6b402b07f75c2981f1eddcb3a77cc1b7417ec52e5b0603adf",
+    "evaluation/tau3_adapter.py": "b43b83694d7a84fd6a46dcff0b82bc5a06af63bb933fa673c1d801f18cf3134c"
+  },
+  "capability_preflight": {
+    "project_tools": [
+      "account_freeze",
+      "account_freeze_status",
+      "account_security_event_list",
+      "account_security_state",
+      "catalog_search",
+      "knowledge_search",
+      "media_observe",
+      "media_read",
+      "order_cancel",
+      "order_cancel_status",
+      "order_lookup",
+      "refund_eligibility_check",
+      "refund_request_create",
+      "refund_status",
+      "service_episode_search",
+      "shipping_address_change",
+      "shipping_address_change_status",
+      "support_ticket_by_operation",
+      "support_ticket_create"
+    ],
+    "official_tools": [
+      "calculate",
+      "cancel_pending_order",
+      "exchange_delivered_order_items",
+      "find_user_id_by_email",
+      "find_user_id_by_name_zip",
+      "get_item_details",
+      "get_order_details",
+      "get_product_details",
+      "get_user_details",
+      "list_all_product_types",
+      "modify_pending_order_address",
+      "modify_pending_order_items",
+      "modify_pending_order_payment",
+      "modify_user_address",
+      "return_delivered_order_items",
+      "transfer_to_human_agents"
+    ],
+    "exact_name_overlap": [],
+    "semantic_bindings_verified": false,
+    "official_reward_eligible": false
+  },
+  "completed_at": "2026-09-06T14:59:39.601703+00:00"
+}
