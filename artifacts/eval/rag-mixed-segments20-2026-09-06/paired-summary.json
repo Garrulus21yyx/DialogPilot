@@ -1,0 +1,84 @@
+{
+  "scope": "Same consumed synthetic development cases; combined planner budget/goal catalog and composition repair. Stage metrics, not answer accuracy or isolated causal effect.",
+  "baseline_capture_sha256": "687e103d23ed53088ec8cf8a0dfbc76b07a8528f9d210334ff7f016daec64904",
+  "candidate_capture_sha256": "0429ee87e98ef4bb506bc0b2a31806b623246818debefc56ac3446bb2c227595",
+  "cases": 20,
+  "baseline_api_calls": 54,
+  "candidate_api_calls": 73,
+  "metrics": {
+    "expected_tool_coverage": {
+      "baseline": 14,
+      "candidate": 17,
+      "rescue": [
+        "expanded-warranty",
+        "expanded-membership",
+        "expanded-elliptic"
+      ],
+      "harm": [],
+      "delta_percentage_points": 15
+    },
+    "expected_source_visible": {
+      "baseline": 14,
+      "candidate": 17,
+      "rescue": [
+        "expanded-warranty",
+        "expanded-membership",
+        "expanded-elliptic"
+      ],
+      "harm": [],
+      "delta_percentage_points": 15
+    },
+    "expected_source_cited": {
+      "baseline": 5,
+      "candidate": 17,
+      "rescue": [
+        "expanded-return-shipping",
+        "expanded-remote-delivery",
+        "expanded-coupon-refund",
+        "expanded-warranty",
+        "expanded-address",
+        "expanded-exchange",
+        "expanded-membership",
+        "expanded-privacy",
+        "expanded-damaged-box",
+        "expanded-receipt",
+        "expanded-elliptic",
+        "expanded-multi-evidence"
+      ],
+      "harm": [],
+      "delta_percentage_points": 60
+    },
+    "knowledge_support_checked": {
+      "baseline": 5,
+      "candidate": 17,
+      "rescue": [
+        "expanded-return-shipping",
+        "expanded-remote-delivery",
+        "expanded-coupon-refund",
+        "expanded-warranty",
+        "expanded-address",
+        "expanded-exchange",
+        "expanded-membership",
+        "expanded-privacy",
+        "expanded-damaged-box",
+        "expanded-receipt",
+        "expanded-elliptic",
+        "expanded-multi-evidence"
+      ],
+      "harm": [],
+      "delta_percentage_points": 60
+    }
+  },
+  "baseline_usage": {
+    "input_tokens": 67184,
+    "cache_read_input_tokens": 22528,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 27827
+  },
+  "candidate_usage": {
+    "input_tokens": 95354,
+    "cache_read_input_tokens": 29056,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 30458
+  }
+}

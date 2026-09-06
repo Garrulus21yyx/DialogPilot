@@ -1,0 +1,394 @@
+{
+  "scope": "synthetic development stage signals; tool expectations and model verification are not answer accuracy",
+  "capture_sha256": "0429ee87e98ef4bb506bc0b2a31806b623246818debefc56ac3446bb2c227595",
+  "definitions_sha256": "af6be05f078ca94153d88e95b68ecfefdc4cf77d49fa2d089932b4f543f08b8d",
+  "expected_cases": 20,
+  "captured_cases": 20,
+  "complete_capture": true,
+  "counts": {
+    "expected_tool_coverage": 17,
+    "expected_source_visible": 17,
+    "expected_source_cited": 17,
+    "knowledge_support_checked": 17
+  },
+  "api_calls": 73,
+  "results": [
+    {
+      "case_id": "expanded-opened-audio",
+      "outcome": "Completed",
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_tool_coverage": true,
+      "expected_source_visible": true,
+      "expected_source_cited": true,
+      "knowledge_support_checked": true,
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "planner_stop": "end_turn",
+      "api_calls": 4,
+      "response": "订单 DP9301 的当前状态是已发货。\n已拆封耳机非质量原因不适用无理由退货。 [E54da4773aec5]",
+      "latency_ms": 14871.535532176495,
+      "visible_evidence_count": 5,
+      "failure_stage": null
+    },
+    {
+      "case_id": "expanded-audio-defect",
+      "outcome": "Completed",
+      "tool_names": [
+        "order_lookup",
+        "refund_status"
+      ],
+      "expected_tool_coverage": false,
+      "expected_source_visible": false,
+      "expected_source_cited": false,
+      "knowledge_support_checked": false,
+      "synthesis_reason": "COMPOSER_FALLBACK",
+      "planner_stop": "end_turn",
+      "api_calls": 2,
+      "response": "订单 DP9302 当前状态为已支付。\n退款与账单请求：本次查询或处理失败，请稍后重试。",
+      "latency_ms": 7516.599962487817,
+      "visible_evidence_count": 0,
+      "failure_stage": "route_differs_from_fixture_expectation"
+    },
+    {
+      "case_id": "expanded-return-shipping",
+      "outcome": "Completed",
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_tool_coverage": true,
+      "expected_source_visible": true,
+      "expected_source_cited": true,
+      "knowledge_support_checked": true,
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "planner_stop": "end_turn",
+      "api_calls": 4,
+      "response": "订单DP9303（模拟耳机，金额199.00元）的当前状态为已送达。\n确认属于商品质量问题的，按平台指定方式寄回可报销标准运费；加急运费不在报销范围内。 [E63bcf1c3e02c]",
+      "latency_ms": 14990.90232141316,
+      "visible_evidence_count": 5,
+      "failure_stage": null
+    },
+    {
+      "case_id": "expanded-remote-delivery",
+      "outcome": "Completed",
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_tool_coverage": true,
+      "expected_source_visible": true,
+      "expected_source_cited": true,
+      "knowledge_support_checked": true,
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "planner_stop": "end_turn",
+      "api_calls": 4,
+      "response": "您的订单 DP9301 当前状态为已发货。\n普通地区预计三至五个工作日送达，偏远地区预计额外增加二至三天。预计时效不构成指定日期送达承诺，因此无法保证五天内送达。 [E6bcc3695f4d6]",
+      "latency_ms": 12272.519620135427,
+      "visible_evidence_count": 5,
+      "failure_stage": null
+    },
+    {
+      "case_id": "expanded-coupon-refund",
+      "outcome": "Completed",
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_tool_coverage": true,
+      "expected_source_visible": true,
+      "expected_source_cited": true,
+      "knowledge_support_checked": true,
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "planner_stop": "end_turn",
+      "api_calls": 4,
+      "response": "订单 DP9302 当前状态为已支付（paid），商品为模拟耳机，金额为 199.00 元人民币（CNY）。\n部分退货时，已使用的优惠券不会自动恢复。 [E72d20a6d7cc1]\n整单退货时按实际支付金额退款，不退还优惠券面额；部分退货则按商品分摊后的实付金额计算。 [E72d20a6d7cc1]",
+      "latency_ms": 10304.281320422888,
+      "visible_evidence_count": 5,
+      "failure_stage": null
+    },
+    {
+      "case_id": "expanded-gift-return",
+      "outcome": "Completed",
+      "tool_names": [
+        "order_lookup",
+        "refund_eligibility_check"
+      ],
+      "expected_tool_coverage": false,
+      "expected_source_visible": false,
+      "expected_source_cited": false,
+      "knowledge_support_checked": false,
+      "synthesis_reason": "COMPOSER_FALLBACK",
+      "planner_stop": "end_turn",
+      "api_calls": 2,
+      "response": "订单 DP9303 当前状态为已送达。\n已取得部分信息，但暂时无法整理为可靠答复。",
+      "latency_ms": 18469.20926682651,
+      "visible_evidence_count": 0,
+      "failure_stage": "route_differs_from_fixture_expectation"
+    },
+    {
+      "case_id": "expanded-custom-goods",
+      "outcome": "Completed",
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_tool_coverage": true,
+      "expected_source_visible": true,
+      "expected_source_cited": true,
+      "knowledge_support_checked": true,
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "planner_stop": "end_turn",
+      "api_calls": 4,
+      "response": "订单 DP9301（模拟耳机）当前状态为已发货。\n按消费者指定尺寸制作的定制商品不适用无理由退货。 [E6c38f7ec167d]\n由于您属于不喜欢尺寸、非质量问题，该定制商品不支持无理由退货。如商品存在质量问题仍可申请售后，需提交问题照片及订单信息。 [E6c38f7ec167d]",
+      "latency_ms": 14687.305957078934,
+      "visible_evidence_count": 5,
+      "failure_stage": null
+    },
+    {
+      "case_id": "expanded-invoice",
+      "outcome": "Completed",
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_tool_coverage": true,
+      "expected_source_visible": true,
+      "expected_source_cited": true,
+      "knowledge_support_checked": true,
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "planner_stop": "end_turn",
+      "api_calls": 4,
+      "response": "订单DP9302的当前状态是已支付。\n已经开票的订单退款后，需按实退金额处理红冲，不应重新开具原金额发票。 [Eb4dd8edddc6c]",
+      "latency_ms": 10531.145742163062,
+      "visible_evidence_count": 5,
+      "failure_stage": null
+    },
+    {
+      "case_id": "expanded-warranty",
+      "outcome": "Completed",
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_tool_coverage": true,
+      "expected_source_visible": true,
+      "expected_source_cited": true,
+      "knowledge_support_checked": true,
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "planner_stop": "end_turn",
+      "api_calls": 4,
+      "response": "订单DP9303的当前状态为已送达。\n主机在购买后十二个月内享受质量保修，但耗材和人为损坏不在免费保修范围内。 [Ec3e479805f51]\n保修审核需要购买凭证，无法凭聊天描述直接确认免费更换。 [Ec3e479805f51]",
+      "latency_ms": 12482.679875567555,
+      "visible_evidence_count": 5,
+      "failure_stage": null
+    },
+    {
+      "case_id": "expanded-battery-install",
+      "outcome": "Completed",
+      "tool_names": [],
+      "expected_tool_coverage": false,
+      "expected_source_visible": false,
+      "expected_source_cited": false,
+      "knowledge_support_checked": false,
+      "synthesis_reason": "terminal route response",
+      "planner_stop": "end_turn",
+      "api_calls": 1,
+      "response": "请补充完成该任务所需的信息。",
+      "latency_ms": 32551.18451267481,
+      "visible_evidence_count": 0,
+      "failure_stage": "route_differs_from_fixture_expectation"
+    },
+    {
+      "case_id": "expanded-pickup",
+      "outcome": "Completed",
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_tool_coverage": true,
+      "expected_source_visible": true,
+      "expected_source_cited": true,
+      "knowledge_support_checked": true,
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "planner_stop": "end_turn",
+      "api_calls": 4,
+      "response": "订单DP9302的当前状态是已支付。\n自提订单超过预约时间后，需先联系门店确认商品的保留情况。 [E9e2514f0ae8d]",
+      "latency_ms": 11353.185227140784,
+      "visible_evidence_count": 5,
+      "failure_stage": null
+    },
+    {
+      "case_id": "expanded-address",
+      "outcome": "Completed",
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_tool_coverage": true,
+      "expected_source_visible": true,
+      "expected_source_cited": true,
+      "knowledge_support_checked": true,
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "planner_stop": "end_turn",
+      "api_calls": 4,
+      "response": "订单 DP9303 的当前状态是已送达。\n已发货的订单，需要查询承运方是否支持拦截改址；提交申请不等于改址成功。 [E5eb166390210]",
+      "latency_ms": 12131.790708750486,
+      "visible_evidence_count": 5,
+      "failure_stage": null
+    },
+    {
+      "case_id": "expanded-exchange",
+      "outcome": "Completed",
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_tool_coverage": true,
+      "expected_source_visible": true,
+      "expected_source_cited": true,
+      "knowledge_support_checked": true,
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "planner_stop": "end_turn",
+      "api_calls": 4,
+      "response": "订单 DP9301 当前状态为已发货。\n换货需要先审核商品条件，再确认目标型号的库存。审核通过但目标型号缺货时，应与用户协商等待或其他处理，不能承诺立即发出。 [Ea58eb97b3aa2]",
+      "latency_ms": 11553.893452510238,
+      "visible_evidence_count": 5,
+      "failure_stage": null
+    },
+    {
+      "case_id": "expanded-membership",
+      "outcome": "Completed",
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_tool_coverage": true,
+      "expected_source_visible": true,
+      "expected_source_cited": true,
+      "knowledge_support_checked": true,
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "planner_stop": "end_turn",
+      "api_calls": 4,
+      "response": "订单 DP9302 的当前状态为已支付。\n积分抵扣部分按活动规则处理，不直接等额兑换现金。 [E4b55c981ca4a]",
+      "latency_ms": 10644.607830792665,
+      "visible_evidence_count": 5,
+      "failure_stage": null
+    },
+    {
+      "case_id": "expanded-privacy",
+      "outcome": "Completed",
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_tool_coverage": true,
+      "expected_source_visible": true,
+      "expected_source_cited": true,
+      "knowledge_support_checked": true,
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "planner_stop": "end_turn",
+      "api_calls": 4,
+      "response": "订单DP9303的当前状态是已送达（delivered）。\n客服不会索取账户密码、短信验证码或银行卡支付密码；退款由支付渠道处理，不需要用户向私人账户转账解冻。 [E7816612b16ff]",
+      "latency_ms": 13679.004622623324,
+      "visible_evidence_count": 5,
+      "failure_stage": null
+    },
+    {
+      "case_id": "expanded-damaged-box",
+      "outcome": "Completed",
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_tool_coverage": true,
+      "expected_source_visible": true,
+      "expected_source_cited": true,
+      "knowledge_support_checked": true,
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "planner_stop": "end_turn",
+      "api_calls": 4,
+      "response": "订单DP9301当前状态为已发货，商品为模拟耳机，金额为199.00元。\n收到外箱破损商品时，应保留包装并拍摄外箱及商品照片。仅外箱轻微破损不自动等同商品质量问题；具体处理需查看商品状况。 [Ecc3c126ac774]",
+      "latency_ms": 15636.240875348449,
+      "visible_evidence_count": 5,
+      "failure_stage": null
+    },
+    {
+      "case_id": "expanded-preorder",
+      "outcome": "Completed",
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_tool_coverage": true,
+      "expected_source_visible": true,
+      "expected_source_cited": true,
+      "knowledge_support_checked": true,
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "planner_stop": "end_turn",
+      "api_calls": 4,
+      "response": "订单 DP9302（模拟耳机）当前状态为已支付，金额为 199.00 元人民币。\n支付尾款不代表商品已经发货，实际状态需查询订单和物流记录。 [E6c50156da1af]",
+      "latency_ms": 10225.859129801393,
+      "visible_evidence_count": 5,
+      "failure_stage": null
+    },
+    {
+      "case_id": "expanded-receipt",
+      "outcome": "Completed",
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_tool_coverage": true,
+      "expected_source_visible": true,
+      "expected_source_cited": true,
+      "knowledge_support_checked": true,
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "planner_stop": "end_turn",
+      "api_calls": 4,
+      "response": "订单DP9303的商品为“模拟耳机”，金额为199.00元，当前状态为已送达。\n签收记录只表示物流签收状态，不代表售后申请被拒绝。是否符合退货条件应结合商品类别、签收时间和商品状态判断。 [E13e64fb2f488]\n未拆封耳机在签收后七日内可申请无理由退货；已拆封耳机非质量原因不适用无理由退货；质量问题需提交检测材料后另行审核。 [E54da4773aec5]\n申请退货需要订单号、商品现状照片及退货原因，寄回前应等待退货地址确认，不能寄往商品包装上的生产商地址。 [Ec50e771d4401]",
+      "latency_ms": 13962.590420618653,
+      "visible_evidence_count": 5,
+      "failure_stage": null
+    },
+    {
+      "case_id": "expanded-elliptic",
+      "outcome": "Completed",
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_tool_coverage": true,
+      "expected_source_visible": true,
+      "expected_source_cited": true,
+      "knowledge_support_checked": true,
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "planner_stop": "end_turn",
+      "api_calls": 4,
+      "response": "订单 DP9303 的状态为已签收（delivered）。\n未拆封耳机在签收后七日内可申请无理由退货；已拆封耳机非质量原因不适用无理由退货。 [E54da4773aec5]\n签收记录只表示物流签收状态，不代表售后申请被拒绝，是否符合退货条件应结合商品类别、签收时间和商品状态判断。 [E13e64fb2f488]\n质量问题需提交购买凭证及故障视频申请质量审核。 [E9e173c7b8833]",
+      "latency_ms": 16814.952548593283,
+      "visible_evidence_count": 5,
+      "failure_stage": null
+    },
+    {
+      "case_id": "expanded-multi-evidence",
+      "outcome": "Completed",
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "expected_tool_coverage": true,
+      "expected_source_visible": true,
+      "expected_source_cited": true,
+      "knowledge_support_checked": true,
+      "synthesis_reason": "KNOWLEDGE_SUPPORT_CHECKED",
+      "planner_stop": "end_turn",
+      "api_calls": 4,
+      "response": "订单DP9302目前的状态是已支付。\n申请退货需要提供订单号、商品现状照片及退货原因。 [Ec50e771d4401]\n寄回前应等待退货地址确认，不能直接寄往商品包装上的生产商地址。 [Ec50e771d4401]",
+      "latency_ms": 14980.922911316156,
+      "visible_evidence_count": 5,
+      "failure_stage": null
+    }
+  ]
+}
