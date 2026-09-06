@@ -1,0 +1,56 @@
+{
+  "cases": 20,
+  "arms": {
+    "A": {
+      "false_accept": 1,
+      "unsupported": 10,
+      "supported_not_passed": 1,
+      "supported": 10,
+      "protocol_or_api_errors": 1,
+      "calls": 20,
+      "semantic_reject": 9,
+      "latency_ms_median": 1830.9547938406467,
+      "latency_ms_p95": 2601.658860221505,
+      "input_tokens": 4108,
+      "cache_read_input_tokens": 25728,
+      "output_tokens": 4859
+    },
+    "B": {
+      "false_accept": 0,
+      "unsupported": 10,
+      "supported_not_passed": 1,
+      "supported": 10,
+      "protocol_or_api_errors": 4,
+      "calls": 39,
+      "semantic_reject": 7,
+      "latency_ms_median": 3028.5805398598313,
+      "latency_ms_p95": 3493.613636121154,
+      "input_tokens": 9388,
+      "cache_read_input_tokens": 30976,
+      "output_tokens": 6706
+    }
+  },
+  "paired_decisions_including_protocol_failures": {
+    "B_rescues": 2,
+    "B_harms": 1
+  },
+  "scope": "Exploratory synthetic paired test. Protocol/API failures are not semantic detections; one consumed ambiguous witness included.",
+  "inspection": {
+    "extraction_omission": {
+      "case": "position-parenthesis",
+      "missing": "您肯定能获得退款",
+      "downstream": "B rejected using original full answer"
+    },
+    "known_witness": {
+      "case": "known-ambiguous-relation",
+      "A": "unsupported accepted",
+      "B": "extraction separated relationship, judgment returned invalid schema; not detection"
+    },
+    "new_cases_excluding_known_group": {
+      "A_false_accept": 0,
+      "B_false_accept": 0,
+      "unsupported_cases": 9
+    },
+    "limitation": "Small synthetic examples; not a heldout ecommerce full-chain accuracy estimate."
+  }
+}

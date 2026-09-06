@@ -1,0 +1,16 @@
+{
+  "scope": "Frozen paired Flash experiment; extraction hints never replace final answer/evidence.",
+  "cases_sha256": "8724589754e3d5ee0ad3a6f6e084e742a9d72ef9399c4b2bbd18260aacf0ca8a",
+  "cases": 20,
+  "max_calls": 60,
+  "profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "max_tokens_per_call": 4096,
+  "concurrency": 2,
+  "sdk_retries": 0,
+  "production_changed": false
+}

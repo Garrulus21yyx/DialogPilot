@@ -1,0 +1,202 @@
+[
+  {
+    "id": "relation-good",
+    "group": "relation",
+    "question": "审核通过能确认到账吗？",
+    "answer": "审核通过不能据此确认退款已经到账。",
+    "evidence": {
+      "policy": "审核通过不代表退款已经到账。"
+    },
+    "supported": true
+  },
+  {
+    "id": "relation-bad",
+    "group": "relation",
+    "question": "审核通过能确认到账吗？",
+    "answer": "审核通过不能据此确认退款已经到账，审核和到账在流程上互不依赖。",
+    "evidence": {
+      "policy": "审核通过不代表退款已经到账。"
+    },
+    "supported": false
+  },
+  {
+    "id": "condition-good",
+    "group": "condition",
+    "question": "无理由退货需要什么条件？",
+    "answer": "申请无理由退货必须同时满足签收后七日内和商品完好。",
+    "evidence": {
+      "policy": "只有签收后七日内且商品完好，才可申请无理由退货。"
+    },
+    "supported": true
+  },
+  {
+    "id": "condition-bad",
+    "group": "condition",
+    "question": "无理由退货需要什么条件？",
+    "answer": "只要签收后七日内，就可以申请无理由退货。",
+    "evidence": {
+      "policy": "只有签收后七日内且商品完好，才可申请无理由退货。"
+    },
+    "supported": false
+  },
+  {
+    "id": "negation-good",
+    "group": "negation",
+    "question": "从记录能确定到账吗？",
+    "answer": "当前记录无法确定退款是否已经到账。",
+    "evidence": {
+      "lookup": "当前记录不能确定退款是否到账。"
+    },
+    "supported": true
+  },
+  {
+    "id": "negation-bad",
+    "group": "negation",
+    "question": "从记录能确定到账吗？",
+    "answer": "当前记录确定退款尚未到账。",
+    "evidence": {
+      "lookup": "当前记录不能确定退款是否到账。"
+    },
+    "supported": false
+  },
+  {
+    "id": "hypothesis-good",
+    "group": "hypothesis",
+    "question": "假设商品已拆封，还适用无理由退货吗？",
+    "answer": "如果商品已经拆封，按这项政策就不适用无理由退货。",
+    "evidence": {
+      "policy": "已拆封商品不适用无理由退货。"
+    },
+    "supported": true
+  },
+  {
+    "id": "hypothesis-bad",
+    "group": "hypothesis",
+    "question": "假设商品已拆封，还适用无理由退货吗？",
+    "answer": "系统已经确认您的商品已拆封，因此不适用无理由退货。",
+    "evidence": {
+      "policy": "已拆封商品不适用无理由退货。"
+    },
+    "supported": false
+  },
+  {
+    "id": "position-prefix",
+    "group": "position",
+    "question": "申请现在什么进度？",
+    "answer": "您肯定能获得退款。申请已经提交，目前待审核。",
+    "evidence": {
+      "status": "退款申请已经提交，当前待审核。"
+    },
+    "supported": false
+  },
+  {
+    "id": "position-suffix",
+    "group": "position",
+    "question": "申请现在什么进度？",
+    "answer": "申请已经提交，目前待审核。您肯定能获得退款。",
+    "evidence": {
+      "status": "退款申请已经提交，当前待审核。"
+    },
+    "supported": false
+  },
+  {
+    "id": "position-parenthesis",
+    "group": "position",
+    "question": "申请现在什么进度？",
+    "answer": "申请已经提交（您肯定能获得退款），目前待审核。",
+    "evidence": {
+      "status": "退款申请已经提交，当前待审核。"
+    },
+    "supported": false
+  },
+  {
+    "id": "position-newline",
+    "group": "position",
+    "question": "申请现在什么进度？",
+    "answer": "申请已经提交，目前待审核。\n您肯定能获得退款。",
+    "evidence": {
+      "status": "退款申请已经提交，当前待审核。"
+    },
+    "supported": false
+  },
+  {
+    "id": "position-good-0",
+    "group": "position",
+    "question": "申请现在什么进度？",
+    "answer": "申请已经提交，目前待审核。",
+    "evidence": {
+      "status": "退款申请已经提交，当前待审核。"
+    },
+    "supported": true
+  },
+  {
+    "id": "position-good-1",
+    "group": "position",
+    "question": "申请现在什么进度？",
+    "answer": "目前待审核，申请已提交。",
+    "evidence": {
+      "status": "退款申请已经提交，当前待审核。"
+    },
+    "supported": true
+  },
+  {
+    "id": "position-good-2",
+    "group": "position",
+    "question": "申请现在什么进度？",
+    "answer": "申请已提交（当前待审核）。",
+    "evidence": {
+      "status": "退款申请已经提交，当前待审核。"
+    },
+    "supported": true
+  },
+  {
+    "id": "position-good-3",
+    "group": "position",
+    "question": "申请现在什么进度？",
+    "answer": "申请已经提交。\n目前待审核。",
+    "evidence": {
+      "status": "退款申请已经提交，当前待审核。"
+    },
+    "supported": true
+  },
+  {
+    "id": "known-ambiguous-relation",
+    "group": "known-regression",
+    "question": "审核和到账的关系是什么？",
+    "answer": "审核通过不代表退款已经到账，二者是两个独立的环节。",
+    "evidence": {
+      "policy": "审核通过不代表退款已经到账。"
+    },
+    "supported": false
+  },
+  {
+    "id": "relation-qualified",
+    "group": "known-regression",
+    "question": "审核和到账的关系是什么？",
+    "answer": "审核通过不代表退款已经到账，仅凭审核结果无法确认到账。",
+    "evidence": {
+      "policy": "审核通过不代表退款已经到账。"
+    },
+    "supported": true
+  },
+  {
+    "id": "shared-condition-good",
+    "group": "shared-condition",
+    "question": "如果是质量问题，寄回运费怎么报销？",
+    "answer": "假设属于质量问题，还需采用指定寄回方式才能报销标准运费；加急费不报销。",
+    "evidence": {
+      "policy": "只有质量问题且采用指定寄回方式，才可报销标准运费；加急费不报销。"
+    },
+    "supported": true
+  },
+  {
+    "id": "shared-condition-bad",
+    "group": "shared-condition",
+    "question": "如果是质量问题，寄回运费怎么报销？",
+    "answer": "如果是质量问题，所有寄回运费都可以报销，包括加急费。",
+    "evidence": {
+      "policy": "只有质量问题且采用指定寄回方式，才可报销标准运费；加急费不报销。"
+    },
+    "supported": false
+  }
+]
