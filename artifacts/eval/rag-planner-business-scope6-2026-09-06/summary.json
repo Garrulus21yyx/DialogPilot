@@ -1,0 +1,86 @@
+{
+  "scope": "Same six consumed development planner inputs; goal description override, actual compiler, no business/retrieval/answer execution. Tool coverage is not query correctness.",
+  "capture_sha256": "485e400fa6a9911afd6a217bafef8b756b10e21704833c405e40721664bc3e39",
+  "api_calls": 6,
+  "both_tools": 4,
+  "results": [
+    {
+      "case_id": "expanded-opened-audio",
+      "error": null,
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "both_tools": true,
+      "stop": "end_turn",
+      "output_tokens": 610,
+      "queries": [
+        "查询订单DP9301的当前状态",
+        "耳机拆封后，非质量问题，是否支持无理由退货？"
+      ]
+    },
+    {
+      "case_id": "expanded-audio-defect",
+      "error": null,
+      "tool_names": [
+        "order_lookup",
+        "refund_status"
+      ],
+      "both_tools": false,
+      "stop": "end_turn",
+      "output_tokens": 411,
+      "queries": []
+    },
+    {
+      "case_id": "expanded-gift-return",
+      "error": null,
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "both_tools": true,
+      "stop": "end_turn",
+      "output_tokens": 879,
+      "queries": [
+        "对于订单DP9303，如果赠品已经使用，整单退货是否还能直接全额退款？"
+      ]
+    },
+    {
+      "case_id": "expanded-battery-install",
+      "error": "ConversationProviderOutputError",
+      "tool_names": [],
+      "both_tools": false,
+      "stop": "max_tokens",
+      "output_tokens": 4096,
+      "queries": []
+    },
+    {
+      "case_id": "expanded-preorder",
+      "error": null,
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "both_tools": true,
+      "stop": "end_turn",
+      "output_tokens": 2021,
+      "queries": [
+        "尾款支付完成后，订单会自动发货吗？"
+      ]
+    },
+    {
+      "case_id": "expanded-elliptic",
+      "error": null,
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "both_tools": true,
+      "stop": "end_turn",
+      "output_tokens": 1266,
+      "queries": [
+        "非质量原因退货的适用规则是什么？"
+      ]
+    }
+  ]
+}

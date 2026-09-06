@@ -34,13 +34,13 @@ _GOAL_DESCRIPTIONS = {
     "logistics_status": "Read shipping status from a specific order record; requires a bound order_id and does not fetch carrier tracking events.",
     "cancel_order": "Prepare cancellation of a specific order when the user requests that action; requires a bound order_id. Policy questions use general_qa.",
     "change_address": "Prepare an actual shipping-address change requested by the user; requires a bound order_id and explicitly supplied new_address. Questions about whether or how changes work use general_qa.",
-    "refund_policy": "Retrieve general return/refund rules or after-sales conditions; no order ID is required and no refund is started.",
-    "refund_eligibility": "Read the current eligibility of a specific order without starting a refund; requires a bound order_id.",
-    "refund_status": "Read current refund progress for a specific order; requires a bound order_id.",
+    "refund_policy": "Retrieve return/refund rules, after-sales conditions and the meaning of policy stages, including questions applied to a known order. An order reference does not turn a policy question into a business-state lookup. No order ID is required and no refund is started.",
+    "refund_eligibility": "Read a specific order's operational refund-submission precheck (order status, configured submission window, existing application); requires a bound order_id. Does not assess gift, product-exception or refund-amount policies. Pair with refund_policy when those rules are also requested.",
+    "refund_status": "Read an existing order's current refund progress; requires a bound order_id. Explaining whether one approval stage implies another outcome requires refund_policy evidence; a progress read alone does not establish that rule.",
     "execute_refund": "Prepare a refund action explicitly requested for a specific order; requires a bound order_id. General refund rules use refund_policy.",
     "invoice_qa": "Retrieve invoice rules and procedures; does not issue or modify an invoice.",
     "product_identification": "Identify a product from a supplied media asset using registered identification capabilities; requires a bound asset_id. Text-only documentation questions use product_qa.",
-    "product_qa": "Retrieve product documentation or knowledge evidence for a product question.",
+    "product_qa": "Retrieve product documentation or knowledge evidence for product rules, compatibility requirements and safe-use questions. Can retrieve rules about unknown prerequisites without identifying a physical product; does not require an asset_id. Actual media identification uses product_identification.",
     "product_assistance": "Identify a product from a supplied media asset and retrieve related knowledge using domain tools and skills; requires a bound asset_id. Text-only documentation questions use product_qa.",
     "media_text_read": "Read text/OCR from a supplied media asset; requires a bound asset_id.",
     "media_visual_analysis": "Analyze visual appearance, regions, layout or controls of a supplied asset; requires a bound asset_id.",
@@ -78,7 +78,7 @@ class ConversationPlanningProvider(Protocol):
 class ConversationAgent:
     """Plan one deferred turn, then compile only Registry-backed commands."""
 
-    version = "conversation-agent-plan-v2-goal-descriptions"
+    version = "conversation-agent-plan-v3-business-goal-scope"
 
     def __init__(
         self,

@@ -1,0 +1,88 @@
+{
+  "scope": "Same six consumed development planner inputs; goal description override, actual compiler, no business/retrieval/answer execution. Tool coverage is not query correctness.",
+  "capture_sha256": "a050c58e977873db053114463373a2f1aac26470d6c131bc166ae4d4cf591ee2",
+  "api_calls": 6,
+  "both_tools": 4,
+  "results": [
+    {
+      "case_id": "expanded-opened-audio",
+      "error": "ValueError",
+      "tool_names": [],
+      "both_tools": false,
+      "stop": "end_turn",
+      "output_tokens": 157,
+      "queries": [
+        "订单DP9301的当前状态",
+        "耳机已拆封且非质量问题，是否还能无理由退货"
+      ]
+    },
+    {
+      "case_id": "expanded-audio-defect",
+      "error": null,
+      "tool_names": [
+        "order_lookup",
+        "refund_status"
+      ],
+      "both_tools": false,
+      "stop": "end_turn",
+      "output_tokens": 117,
+      "queries": []
+    },
+    {
+      "case_id": "expanded-gift-return",
+      "error": null,
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "both_tools": true,
+      "stop": "end_turn",
+      "output_tokens": 117,
+      "queries": [
+        "赠品已经使用的情况下，整单退货是否可以全额退款？"
+      ]
+    },
+    {
+      "case_id": "expanded-battery-install",
+      "error": null,
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "both_tools": true,
+      "stop": "end_turn",
+      "output_tokens": 119,
+      "queries": [
+        "Can the B20 be installed in place of or as a trial when the user's exact machine model is unknown?"
+      ]
+    },
+    {
+      "case_id": "expanded-preorder",
+      "error": null,
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "both_tools": true,
+      "stop": "end_turn",
+      "output_tokens": 107,
+      "queries": [
+        "尾款付完就是发货了吗？"
+      ]
+    },
+    {
+      "case_id": "expanded-elliptic",
+      "error": null,
+      "tool_names": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "both_tools": true,
+      "stop": "end_turn",
+      "output_tokens": 120,
+      "queries": [
+        "耳机拆封后非质量问题退货的适用规则是什么？"
+      ]
+    }
+  ]
+}
