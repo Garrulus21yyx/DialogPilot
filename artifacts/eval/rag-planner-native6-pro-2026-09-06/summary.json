@@ -1,0 +1,20 @@
+{
+  "scope": "Consumed six-case empty-state planner replay; no retrieval, tool execution or answer generation.",
+  "cases": 6,
+  "api_calls": 6,
+  "usage": {
+    "input_tokens": 10614,
+    "output_tokens": 901,
+    "cache_read_input_tokens": 4224
+  },
+  "compiled": 6,
+  "both_tools_before": 4,
+  "both_tools_after": 6,
+  "rescued": [
+    "expanded-opened-audio",
+    "expanded-audio-defect"
+  ],
+  "harmed": [],
+  "raw_sha256": "f0209c7909a0ffab15b64b2120910eb9f42ae89f335fd8e37f89beba1ca98c08",
+  "baseline": "artifacts/eval/rag-planner-business-scope6-pro-2026-09-06/cases.jsonl.gz"
+}

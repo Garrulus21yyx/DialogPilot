@@ -21,7 +21,7 @@ from application.conversation_state import ConversationState
 from application.default_capability_registry import build_default_capability_registry
 from application.deterministic_resolution import TurnObservations
 from application.entity_binding import BindingSource, EntityBinding, EntityBindingSet
-from core.model_policy import ModelPolicy, ModelRole
+from core.model_policy import ModelPolicy, ModelRole, ReasoningEffort
 from core.provider_context_budget import DEFAULT_PROVIDER_CONTEXT_BUDGET
 from infrastructure.target_conversation_provider import AnthropicConversationPlanningProvider
 from scripts.run_rag_tool_calibration import CaptureClient
@@ -101,13 +101,19 @@ async def run(args):
             for mode in args.modes:
                 class Messages:
                     async def create(self,**request):
-                        if mode=='structured':
+                        if mode in ('structured','structured_native'):
                             request['tools']=[{'name':'submit_turn_plan','description':'Submit the customer-service turn plan.',
                                                'input_schema':output_schema(payload)}]
-                            request['tool_choice']={'type':'tool','name':'submit_turn_plan'}
+                            request['tool_choice']=({'type':'auto'}
+                                if mode=='structured_native' and profile.reasoning is not ReasoningEffort.NONE
+                                else {'type':'tool','name':'submit_turn_plan'})
+                            if mode=='structured_native':
+                                request['system']=request['system'].replace(
+                                    'Return one JSON object only.',
+                                    'Submit one complete plan through submit_turn_plan. Use the output tool rather than a text answer.')
                             DEFAULT_PROVIDER_CONTEXT_BUDGET.validate(profile,ModelRole.INTENT,request)
                         response=await client.messages.create(**request)
-                        if mode=='structured':
+                        if mode in ('structured','structured_native'):
                             blocks=[b for b in response.content if b.type=='tool_use']
                             if response.stop_reason!='tool_use' or len(blocks)!=1 or blocks[0].name!='submit_turn_plan':
                                 raise ConversationProviderOutputError('incomplete structured plan')
@@ -134,7 +140,7 @@ def main():
     p.add_argument('--current-goal-descriptions',action='store_true')
     p.add_argument('--case-ids',nargs='+',help='Replay only named captured cases; unknown IDs fail before API calls.')
     p.add_argument('--max-tokens',type=int,choices=range(256,8193),metavar='256..8192',default=2048)
-    p.add_argument('--modes',nargs='+',choices=('text','structured'),default=['text','structured'])
+    p.add_argument('--modes',nargs='+',choices=('text','structured','structured_native'),default=['text','structured'])
     asyncio.run(run(p.parse_args()))
 
 

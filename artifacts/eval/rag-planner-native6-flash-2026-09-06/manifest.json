@@ -1,0 +1,156 @@
+{
+  "scope": "Frozen empty-state planner payload comparison; real compiler, no tools executed.\n\nStructured transport is evaluation-only. Reconstructed bindings preserve captured\nvalues/source refs and unique or ambiguous resolutions; active workstream and\ncontrol scenarios are explicitly excluded.\n",
+  "cases": 6,
+  "source_sha256": "0429ee87e98ef4bb506bc0b2a31806b623246818debefc56ac3446bb2c227595",
+  "case_ids": [
+    "expanded-opened-audio",
+    "expanded-audio-defect",
+    "expanded-gift-return",
+    "expanded-battery-install",
+    "expanded-preorder",
+    "expanded-elliptic"
+  ],
+  "current_goal_descriptions": true,
+  "profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "low",
+    "min_completion_tokens": 4096,
+    "max_context_tokens": 32768
+  },
+  "max_tokens": 4096,
+  "variants": [
+    "structured_native"
+  ],
+  "max_api_calls": 6,
+  "structured_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "status"
+    ],
+    "properties": {
+      "status": {
+        "type": "string",
+        "enum": [
+          "resolved",
+          "insufficient_context",
+          "out_of_scope"
+        ]
+      },
+      "goals": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 4,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "goal_id",
+            "kind"
+          ],
+          "properties": {
+            "goal_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "kind": {
+              "type": "string",
+              "enum": [
+                "cancel_active_work",
+                "cancel_order",
+                "change_address",
+                "execute_refund",
+                "freeze_account",
+                "general_qa",
+                "human_handoff",
+                "invoice_qa",
+                "logistics_status",
+                "media_text_read",
+                "media_visual_analysis",
+                "order_status",
+                "product_assistance",
+                "product_identification",
+                "product_qa",
+                "refund_eligibility",
+                "refund_policy",
+                "refund_status",
+                "security_review"
+              ]
+            },
+            "order_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "order_id_source_ref": {
+              "type": "string",
+              "minLength": 1
+            },
+            "asset_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "asset_id_source_ref": {
+              "type": "string",
+              "minLength": 1
+            },
+            "new_address": {
+              "type": "string",
+              "minLength": 1
+            },
+            "revises_control_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "resolved_query": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000
+            },
+            "depends_on": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "knowledge_options": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "as_of": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "applicable_region": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "applicable_channel": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "applicable_product": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        }
+      },
+      "missing_fields": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "string",
+          "enum": [
+            "asset_id",
+            "customer_service_goal",
+            "new_address",
+            "order_id"
+          ]
+        }
+      }
+    }
+  }
+}
