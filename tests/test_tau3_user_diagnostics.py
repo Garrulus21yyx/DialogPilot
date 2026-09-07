@@ -78,6 +78,22 @@ def test_replay_calls_only_injected_completion_once(tmp_path):
     completion.assert_called_once()
 
 
+@pytest.mark.parametrize('content', ['email a@example.com', 'password = private-value',
+                                  '{"phone": "7706410293"}'])
+def test_actual_masked_requests_are_not_exact_replays(tmp_path, content):
+    capture = SimulatorDiagnostics(tmp_path / 'capture')
+    completion = Mock()
+    try:
+        record = {'schema': 'tau3-simulator-call-v1', 'task_id': 't', 'session_id': 's',
+                  'request': capture.sanitize({'model': 'anthropic/m',
+                      'messages': [{'role': 'user', 'content': content}]})}
+        with pytest.raises(ValueError, match='exact replay'):
+            replay_user_call(record, api_key='x', api_base='x', diagnostics=capture, completion=completion)
+        completion.assert_not_called()
+    finally:
+        capture.close()
+
+
 def test_real_sdk_callback_lifecycle(tmp_path):
     import litellm
     c = SimulatorDiagnostics(tmp_path / 'capture')

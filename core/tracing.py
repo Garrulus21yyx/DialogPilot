@@ -9,7 +9,6 @@ from dataclasses import asdict, dataclass, field
 import threading
 import time
 import uuid
-import re
 from typing import Any, Deque, Dict, Iterator, List, Optional, Protocol
 
 
@@ -188,6 +187,8 @@ class TraceRecorder:
     @classmethod
     def _sanitize_attributes(cls, attributes: Dict[str, Any]) -> Dict[str, Any]:
         """限制 Trace 属性形状和长度，不记录完整 Prompt、密码或工具结果。"""
+        from core.telemetry_privacy import mask_telemetry
+        attributes = mask_telemetry(attributes)
         clean: Dict[str, Any] = {}
         for key, value in list(attributes.items())[:32]:
             safe_key = str(key)[:80]
@@ -198,35 +199,25 @@ class TraceRecorder:
                 clean[safe_key] = value
             elif isinstance(value, (list, tuple, set)):
                 clean[safe_key] = [
-                    cls._redact_text(str(item))[:120] for item in list(value)[:16]
+                    str(item)[:120] for item in list(value)[:16]
                 ]
             else:
-                clean[safe_key] = cls._redact_text(str(value))[:240]
+                clean[safe_key] = str(value)[:240]
         return clean
 
     @staticmethod
     def _sensitive_key(key: str) -> bool:
-        normalized = re.sub(r"[^a-z0-9]", "", key.casefold())
-        return any(token in normalized for token in (
-            "authorization", "password", "passwd", "secret", "apikey",
-            "accesstoken", "refreshtoken", "cookie", "setcookie",
-            "prompt", "messagecontent", "tooloutput", "rawinput",
-        ))
+        from core.telemetry_privacy import sensitive_field
+        # Internal bounded span attributes do not carry full model IO; Langfuse
+        # observations have their own SDK input/output fields.
+        return sensitive_field(key) or key.casefold().replace("_", "") in {
+            "prompt", "systemprompt", "messagecontent", "tooloutput", "rawinput",
+        }
 
     @staticmethod
     def _redact_text(value: str) -> str:
-        text = str(value)
-        patterns = (
-            r'''(?i)["'](?:api[_-]?key|password|passwd|secret|token|thinking|reasoning|reasoning_content)["']\s*:\s*(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')''',
-            r"(?i)\bBearer\s+[A-Za-z0-9._~+/=-]+",
-            r"\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b",
-            r"(?i)\b(api[_-]?key|password|passwd|secret|token)\s*[:=]\s*[^\s,;]+",
-            r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b",
-            r"(?<!\d)(?:\+?\d[\d -]{8,}\d)(?!\d)",
-        )
-        for pattern in patterns:
-            text = re.sub(pattern, "[REDACTED]", text, flags=re.IGNORECASE)
-        return text
+        from core.telemetry_privacy import mask_telemetry
+        return mask_telemetry(str(value))
 
 
 def exception_chain(error: Exception) -> list[dict[str, object]]:

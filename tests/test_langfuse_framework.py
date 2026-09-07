@@ -13,7 +13,7 @@ from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanE
 
 from application.agent_result import AgentResultStatus
 from application.default_capability_registry import build_default_capability_registry
-from infrastructure.langfuse_trace_sink import LangfuseTraceSink, mask_observation
+from infrastructure.langfuse_trace_sink import LangfuseTraceSink, mask_observation, mask_otel_spans
 from infrastructure.target_framework_agent import TargetFrameworkAgent
 from tests.test_target_framework_agent import ScriptedToolModel, _context, _manager
 
@@ -24,7 +24,7 @@ def test_official_handler_exports_model_tool_hierarchy_and_masked_content(struct
     provider = TracerProvider()
     key = "pk-lf-test-" + uuid4().hex
     client = Langfuse(public_key=key, secret_key="test-only", base_url="http://127.0.0.1:1",
-                      tracer_provider=provider, span_exporter=exporter, mask=mask_observation)
+                      tracer_provider=provider, span_exporter=exporter, mask_otel_spans=mask_otel_spans)
 
     class PlainModel(ScriptedToolModel):
         def bind_tools(self, tools, **kwargs):
@@ -77,17 +77,17 @@ def test_conversation_failure_keeps_generation_and_diagnostic_in_same_trace():
     from core.model_policy import ModelProfile
     from infrastructure.target_conversation_provider import AnthropicConversationPlanningProvider
     from tests.framework_structured_stub import models
-    from tests.test_bound_question_contract import fixture
+    from tests.test_response_assembly import _board, _verified_order_result
     from application.response_assembly import ResponseAssembler
     exporter = InMemorySpanExporter()
     key = 'pk-lf-test-' + uuid4().hex
     client = Langfuse(public_key=key, secret_key='test-only', base_url='http://127.0.0.1:1',
-        tracer_provider=TracerProvider(), span_exporter=exporter, mask=mask_observation)
+        tracer_provider=TracerProvider(), span_exporter=exporter, mask_otel_spans=mask_otel_spans)
     sink = object.__new__(LangfuseTraceSink)
     sink.client, sink.public_key = client, key
     provider = AnthropicConversationPlanningProvider(models({'wrong': 'candidate'}, name='submit_composed_response'),
         model_profile=ModelProfile('test'), synthesis_profile=ModelProfile('test'), callbacks=(sink.callback(),))
-    board, specs = fixture()
+    board, specs = _board(_verified_order_result()), ()
     try:
         with client.start_as_current_observation(name='turn'):
             result = asyncio.run(ResponseAssembler(provider, trace_sink=sink)._assemble_candidate(
@@ -100,7 +100,7 @@ def test_conversation_failure_keeps_generation_and_diagnostic_in_same_trace():
         assert len({s.context.trace_id for s in spans}) == 1
         assert 'candidate' in str(generations[0].attributes)
         assert failures[0].attributes['langfuse.observation.level'] == 'ERROR'
-        assert result.diagnostics[0].detail['exception_chain'][-1]['type'] == 'ValidationError'
+        assert result.diagnostics[0].detail['exception_chain'][-1]['type'] == 'ConversationProviderOutputError'
     finally:
         client.shutdown()
 
@@ -114,3 +114,21 @@ def test_mask_preserves_visible_values_and_removes_nested_sensitive_fields():
     assert "Refund $13.46" in str(masked)
     assert "a@example.com" not in str(masked) and "hidden" not in str(masked)
     assert source["arguments"]["password"] == "secret"
+
+
+def test_sdk_mask_failure_drops_export_without_changing_business_input():
+    def broken_policy(*, params):
+        raise ValueError("policy failure")
+    exporter = InMemorySpanExporter()
+    client = Langfuse(public_key="pk-lf-test-" + uuid4().hex, secret_key="test-only",
+        base_url="http://127.0.0.1:1", tracer_provider=TracerProvider(),
+        span_exporter=exporter, mask_otel_spans=broken_policy)
+    source = {"item_id": "7706410293", "password": "private value"}
+    try:
+        with client.start_as_current_observation(name="mask-failure", input=source):
+            pass
+        client.flush()
+        assert not exporter.get_finished_spans()
+        assert source == {"item_id": "7706410293", "password": "private value"}
+    finally:
+        client.shutdown()

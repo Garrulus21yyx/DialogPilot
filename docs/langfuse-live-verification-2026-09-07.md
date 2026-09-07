@@ -35,3 +35,17 @@
 - 尚待处理的 DomainOutcome、追问恢复、失败反馈及无进展问题仍按原计划推进；可观测性通过不等于业务正确率提高。
 
 参考：[Langfuse 官方最佳实践](https://langfuse.com/docs/observability/best-practices)、[官方技能](https://github.com/langfuse/skills/tree/fc574260e5530b217d94e06465a4da0c7d846888/skills/langfuse)。
+
+## 导出脱敏范围修正
+
+后续核查发现：原规则对整个 JSON 字符串扫描长数字，会误改商品键；按字段子串匹配又会误遮盖 `prompt_tokens`。因此前面的合成敏感值检查不能证明业务证据完整。
+
+现在只有一份共享策略：Langfuse 使用官方 `mask_otel_spans` 导出钩子；内部 Trace 与模拟器记录调用相同策略。boltons 负责结构映射，scrubadub 负责检测匹配区间与替换；应用保留字段范围、声明式凭据模式、Schema/实例区别和推理内容策略。没有独立脱敏引擎，也不把处理后的日志重新送入业务执行。
+
+[本次合成导出读回](https://cloud.langfuse.com/project/cmtqihxgw0yo1ad0ckfdxwslm/traces/00f13dfa7db00dba71112f5187df0e6a)使用实际 SDK 与官方 CLI：40 个数字商品键及变体完整；价格、时间、Token 统计、工具 Schema 和截断描述保留；合成密码、邮箱、推理内容未出现。未调用模型或业务工具。
+
+范围限制：字段明确的联系方式/凭据会遮盖；自由文本使用受限的联系方式、凭据规则及已知秘密值，不声称识别所有姓名/地址。SDK 钩子处理 span attributes，不覆盖 span names、events、resources、links 或此前的媒体上传；这些位置不能承载私人正文。脱敏失败由 SDK 丢弃导出批次，不退回原文。旧的损坏记录不能恢复成精确回放输入，也不能据此宣称 τ³ 客服任务已闭环。
+
+机制参考：[Langfuse masking](https://langfuse.com/docs/observability/features/masking)、[scrubadub detectors](https://scrubadub.readthedocs.io/en/stable/api_scrubadub_detectors.html)、[boltons remap](https://boltons.readthedocs.io/en/latest/iterutils.html#boltons.iterutils.remap)。
+
+最终验证：相关六组测试 **85 passed，无跳过**，包含隔离 PostgreSQL 持久化测试；独立复核额外检查生成式结构与 Schema/实例边界，当前约定范围内未发现阻塞项。

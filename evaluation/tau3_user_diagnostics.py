@@ -14,7 +14,6 @@ from datetime import datetime
 import uuid
 
 from litellm.integrations.custom_logger import CustomLogger
-from infrastructure.langfuse_trace_sink import mask_observation
 
 
 REQUEST_PARAMETERS = (
@@ -86,40 +85,13 @@ class SimulatorDiagnostics(CustomLogger):
         return str(kwargs['litellm_call_id']), metadata
 
     def _safe(self, value):
-        if hasattr(value, 'model_dump'):
-            value = value.model_dump(mode='json')
+        from core.telemetry_privacy import mask_telemetry
         if isinstance(value, str):
             try:
                 value = json.loads(value)
             except (ValueError, TypeError):
                 pass
-        def mask(item):
-            # The shared prompt mask matches 'prompt_tokens' as a secret.
-            # Preserve numeric usage, never exempt arbitrary prompt text.
-            if isinstance(item, dict):
-                if item.get('type') in {'thinking', 'reasoning', 'redacted_thinking'}:
-                    return {'type': item['type'], 'content': '[REDACTED]'}
-                return {k: v if (k.endswith('_tokens') and isinstance(v, (int, float)))
-                        or (k == 'thinking' and v == {'type': 'disabled'})
-                        else '[REDACTED]' if mask_observation(data={k: None})[k] == '[REDACTED]'
-                        else mask(v) for k, v in item.items()}
-            if isinstance(item, list):
-                return [mask(v) for v in item]
-            if isinstance(item, str):
-                try:
-                    decoded = json.loads(item)
-                except (ValueError, TypeError):
-                    decoded = None
-                if isinstance(decoded, (dict, list)):
-                    cleaned = mask(decoded)
-                    if cleaned != decoded:
-                        return json.dumps(cleaned, ensure_ascii=False)
-            return mask_observation(data=item)
-        value = mask(value)
-        serialized = json.dumps(value, ensure_ascii=False, default=str)
-        for secret in self.secrets:
-            serialized = serialized.replace(secret, '[REDACTED]')
-        return json.loads(serialized)
+        return mask_telemetry(value, secrets=self.secrets)
 
     def sanitize(self, value):
         return self._safe(value)
@@ -246,7 +218,7 @@ def replay_user_call(record, *, api_key, api_base, diagnostics, completion):
     if record.get('schema') != 'tau3-simulator-call-v1':
         raise ValueError('Replay requires a captured simulator request')
     request = record['request']
-    if '[REDACTED]' in json.dumps(request):
+    if any(marker in json.dumps(request) for marker in ('[REDACTED', '{{EMAIL', '{{UNKNOWN')):
         raise ValueError('Captured input was redacted; exact replay is unavailable')
     return completion(model=request['model'], messages=request['messages'],
         **{k: request[k] for k in REQUEST_PARAMETERS if k in request and k != 'num_retries'},
