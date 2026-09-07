@@ -1,0 +1,21 @@
+{
+  "audited_at": "2026-09-07T15:45:56.148050+00:00",
+  "first_shard_metadata": {
+    "input_sha256": "224184b386d1f08812d1883c8999c2e106560b401faea6eb0a86ff0a141413e6",
+    "vectors_sha256": "b75d0cbdf2350747d52ea635daf22cf52ca2461387a88a73bd765f64772f0fa7",
+    "rows": 4096,
+    "max_tokens": 622,
+    "encoding_seconds": 15.508562250062823
+  },
+  "shape": [
+    4096,
+    1024
+  ],
+  "finite": true,
+  "norm_min": 0.9996581673622131,
+  "norm_max": 1.0003385543823242,
+  "source_files": {
+    "scripts/run_mtrag_dense_shards.py": "1b8a6a5d5e2daeb5c4d4f547c958a1406d18cbb8309322d93137e7aef47f2f94",
+    "scripts/probe_mtrag_dense_budget.py": "83a14d6602c151bd947be08cb534525567f015874c84c960893f053d6f66d5c8"
+  }
+}

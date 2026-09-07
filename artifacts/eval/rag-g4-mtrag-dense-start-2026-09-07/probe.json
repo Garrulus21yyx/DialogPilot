@@ -1,0 +1,1322 @@
+{
+  "purpose": "cost/truncation probe only, no retrieval evaluation",
+  "api_calls": 0,
+  "sample_seed": "mtrag-dense-budget-v1",
+  "corpus_counts": {
+    "clapnq": 183408,
+    "cloud": 72439,
+    "fiqa": 60984,
+    "govt": 49607
+  },
+  "samples": [
+    {
+      "domain": "clapnq",
+      "id": "800799058_22942-23529-0-587",
+      "tokens": 139
+    },
+    {
+      "domain": "clapnq",
+      "id": "852029979_24959-25620-0-661",
+      "tokens": 173
+    },
+    {
+      "domain": "clapnq",
+      "id": "856277968_20124-20217-0-93",
+      "tokens": 27
+    },
+    {
+      "domain": "clapnq",
+      "id": "806976576_18625-18784-0-159",
+      "tokens": 51
+    },
+    {
+      "domain": "clapnq",
+      "id": "826342519_52815-53596-0-781",
+      "tokens": 191
+    },
+    {
+      "domain": "clapnq",
+      "id": "841862389_8586-8703-0-117",
+      "tokens": 42
+    },
+    {
+      "domain": "clapnq",
+      "id": "848256410_10713-11040-0-316",
+      "tokens": 97
+    },
+    {
+      "domain": "clapnq",
+      "id": "836192773_50935-52056-0-1121",
+      "tokens": 282
+    },
+    {
+      "domain": "clapnq",
+      "id": "843392241_405-944-0-539",
+      "tokens": 124
+    },
+    {
+      "domain": "clapnq",
+      "id": "846590504_25034-25601-0-566",
+      "tokens": 152
+    },
+    {
+      "domain": "clapnq",
+      "id": "850161491_16769-17618-0-849",
+      "tokens": 180
+    },
+    {
+      "domain": "clapnq",
+      "id": "854564981_55444-58620-1665-3159",
+      "tokens": 390
+    },
+    {
+      "domain": "clapnq",
+      "id": "799057734_1357-2089-0-732",
+      "tokens": 175
+    },
+    {
+      "domain": "clapnq",
+      "id": "836352237_41557-42204-0-647",
+      "tokens": 166
+    },
+    {
+      "domain": "clapnq",
+      "id": "855235711_13336-13669-0-333",
+      "tokens": 84
+    },
+    {
+      "domain": "clapnq",
+      "id": "820062789_12551-12984-0-433",
+      "tokens": 113
+    },
+    {
+      "domain": "clapnq",
+      "id": "816026660_1871-2214-0-343",
+      "tokens": 84
+    },
+    {
+      "domain": "clapnq",
+      "id": "866347979_16977-17194-0-214",
+      "tokens": 51
+    },
+    {
+      "domain": "clapnq",
+      "id": "797775315_1582-2160-0-578",
+      "tokens": 173
+    },
+    {
+      "domain": "clapnq",
+      "id": "804012964_30703-31586-0-883",
+      "tokens": 248
+    },
+    {
+      "domain": "clapnq",
+      "id": "866449443_24735-24824-0-89",
+      "tokens": 28
+    },
+    {
+      "domain": "clapnq",
+      "id": "815918708_43272-43574-0-297",
+      "tokens": 90
+    },
+    {
+      "domain": "clapnq",
+      "id": "841546653_8779-9258-0-458",
+      "tokens": 242
+    },
+    {
+      "domain": "clapnq",
+      "id": "853885501_18365-18728-0-363",
+      "tokens": 93
+    },
+    {
+      "domain": "clapnq",
+      "id": "816084403_26952-27259-0-307",
+      "tokens": 94
+    },
+    {
+      "domain": "clapnq",
+      "id": "807294979_26346-26636-0-290",
+      "tokens": 74
+    },
+    {
+      "domain": "clapnq",
+      "id": "806031579_1918-2715-0-797",
+      "tokens": 231
+    },
+    {
+      "domain": "clapnq",
+      "id": "806612451_36603-37377-0-774",
+      "tokens": 186
+    },
+    {
+      "domain": "clapnq",
+      "id": "857013093_36760-37265-0-505",
+      "tokens": 131
+    },
+    {
+      "domain": "clapnq",
+      "id": "846313201_20816-21275-0-459",
+      "tokens": 105
+    },
+    {
+      "domain": "clapnq",
+      "id": "804655464_72047-72286-0-239",
+      "tokens": 57
+    },
+    {
+      "domain": "clapnq",
+      "id": "830904736_1345-2002-0-657",
+      "tokens": 166
+    },
+    {
+      "domain": "clapnq",
+      "id": "833868365_25536-26315-0-779",
+      "tokens": 190
+    },
+    {
+      "domain": "clapnq",
+      "id": "846074941_40028-40769-0-741",
+      "tokens": 188
+    },
+    {
+      "domain": "clapnq",
+      "id": "812590740_4515-4778-0-242",
+      "tokens": 90
+    },
+    {
+      "domain": "clapnq",
+      "id": "854513915_43870-44577-0-698",
+      "tokens": 177
+    },
+    {
+      "domain": "clapnq",
+      "id": "834252717_79670-80030-0-360",
+      "tokens": 92
+    },
+    {
+      "domain": "clapnq",
+      "id": "857081732_39620-40533-0-913",
+      "tokens": 222
+    },
+    {
+      "domain": "clapnq",
+      "id": "814708408_9570-10054-0-484",
+      "tokens": 144
+    },
+    {
+      "domain": "clapnq",
+      "id": "815710723_4854-5451-0-597",
+      "tokens": 147
+    },
+    {
+      "domain": "clapnq",
+      "id": "821240418_4077-4688-0-611",
+      "tokens": 190
+    },
+    {
+      "domain": "clapnq",
+      "id": "857138972_162520-163216-0-696",
+      "tokens": 162
+    },
+    {
+      "domain": "clapnq",
+      "id": "801799733_52293-52393-0-100",
+      "tokens": 30
+    },
+    {
+      "domain": "clapnq",
+      "id": "795331768_81267-82069-0-802",
+      "tokens": 198
+    },
+    {
+      "domain": "clapnq",
+      "id": "817497057_13397-13910-0-513",
+      "tokens": 137
+    },
+    {
+      "domain": "clapnq",
+      "id": "819790813_7975-8133-0-158",
+      "tokens": 35
+    },
+    {
+      "domain": "clapnq",
+      "id": "847676829_19255-19455-0-200",
+      "tokens": 59
+    },
+    {
+      "domain": "clapnq",
+      "id": "802867019_8593-9148-0-555",
+      "tokens": 160
+    },
+    {
+      "domain": "clapnq",
+      "id": "827740753_19485-19734-0-249",
+      "tokens": 63
+    },
+    {
+      "domain": "clapnq",
+      "id": "845917519_15292-15690-0-398",
+      "tokens": 108
+    },
+    {
+      "domain": "clapnq",
+      "id": "799556364_5314-6718-0-1404",
+      "tokens": 330
+    },
+    {
+      "domain": "clapnq",
+      "id": "812280393_19898-20683-0-783",
+      "tokens": 200
+    },
+    {
+      "domain": "clapnq",
+      "id": "797400944_8377-8909-0-532",
+      "tokens": 126
+    },
+    {
+      "domain": "clapnq",
+      "id": "809874754_31864-32667-0-803",
+      "tokens": 205
+    },
+    {
+      "domain": "clapnq",
+      "id": "828648140_9497-10281-0-782",
+      "tokens": 191
+    },
+    {
+      "domain": "clapnq",
+      "id": "818518987_8900-9628-0-728",
+      "tokens": 169
+    },
+    {
+      "domain": "clapnq",
+      "id": "848829840_4117-4397-0-279",
+      "tokens": 72
+    },
+    {
+      "domain": "clapnq",
+      "id": "807269094_4942-5455-0-513",
+      "tokens": 149
+    },
+    {
+      "domain": "clapnq",
+      "id": "814500964_28465-30007-0-1542",
+      "tokens": 378
+    },
+    {
+      "domain": "clapnq",
+      "id": "828026747_27938-28253-0-315",
+      "tokens": 76
+    },
+    {
+      "domain": "clapnq",
+      "id": "864952571_66454-66832-0-378",
+      "tokens": 100
+    },
+    {
+      "domain": "clapnq",
+      "id": "856136637_45739-46647-0-907",
+      "tokens": 244
+    },
+    {
+      "domain": "clapnq",
+      "id": "837149071_9406-10532-0-1126",
+      "tokens": 305
+    },
+    {
+      "domain": "clapnq",
+      "id": "838386257_20432-21242-0-810",
+      "tokens": 223
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_11906-11150-12567",
+      "tokens": 565
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_00306-4414-5516",
+      "tokens": 457
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_00861-34619-35770",
+      "tokens": 370
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_09055-55132-56861",
+      "tokens": 478
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_11211-43063-44614",
+      "tokens": 433
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_16727-337380-339494",
+      "tokens": 504
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_12583-23504-25166",
+      "tokens": 455
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_10820-12470-14065",
+      "tokens": 434
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_11893-138850-140270",
+      "tokens": 512
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_04167-10096-10898",
+      "tokens": 216
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_00551-7-2225",
+      "tokens": 499
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_10717-5104-6431",
+      "tokens": 440
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_04516-120738-121902",
+      "tokens": 427
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_15727-3117-3760",
+      "tokens": 142
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_12258-57245-58910",
+      "tokens": 497
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_01286-12756-14366",
+      "tokens": 455
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_15391-4-1904",
+      "tokens": 479
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_04253-0-1799",
+      "tokens": 477
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_15545-271799-272606",
+      "tokens": 353
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_11143-4880-6552",
+      "tokens": 482
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_05713-74961-76400",
+      "tokens": 480
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_15248-39431-41098",
+      "tokens": 480
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_06098-7-1885",
+      "tokens": 466
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_07578-334330-336053",
+      "tokens": 494
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_05653-195531-196887",
+      "tokens": 483
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_11693-0-615",
+      "tokens": 153
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_08987-134138-135356",
+      "tokens": 423
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_16082-179960-181686",
+      "tokens": 458
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_11898-14766-16153",
+      "tokens": 429
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_10273-6041-7782",
+      "tokens": 500
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_08331-69810-71700",
+      "tokens": 502
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_05278-197386-199225",
+      "tokens": 504
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_09274-2660-3640",
+      "tokens": 281
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_11780-5743-7486",
+      "tokens": 461
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_08425-8962-10114",
+      "tokens": 320
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_13446-9130-11039",
+      "tokens": 491
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_12960-1359-3186",
+      "tokens": 442
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_12732-3169-4846",
+      "tokens": 391
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_16416-14138-14634",
+      "tokens": 183
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_10697-12006-12792",
+      "tokens": 237
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_15823-4581-5639",
+      "tokens": 416
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_03669-0-2122",
+      "tokens": 493
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_15350-23443-24445",
+      "tokens": 450
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_08177-0-1588",
+      "tokens": 479
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_01529-2453-3896",
+      "tokens": 517
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_12369-2367-3904",
+      "tokens": 467
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_09546-25098-26579",
+      "tokens": 467
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_13139-8295-10020",
+      "tokens": 491
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_05278-50539-52218",
+      "tokens": 452
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_04331-9512-11094",
+      "tokens": 522
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_16310-7-2016",
+      "tokens": 511
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_15163-23230-24154",
+      "tokens": 419
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_10008-3-1589",
+      "tokens": 493
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_08331-49414-51045",
+      "tokens": 498
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_05503-10441-12214",
+      "tokens": 427
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_05838-19070-20732",
+      "tokens": 520
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_06716-1360-3337",
+      "tokens": 522
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_09539-15986-16936",
+      "tokens": 396
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_04513-688261-688812",
+      "tokens": 283
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_16045-1106-2823",
+      "tokens": 533
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_16082-178347-179225",
+      "tokens": 345
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_04513-634090-634589",
+      "tokens": 303
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_07018-7974-8883",
+      "tokens": 235
+    },
+    {
+      "domain": "cloud",
+      "id": "ibmcld_02882-32106-34249",
+      "tokens": 484
+    },
+    {
+      "domain": "fiqa",
+      "id": "466071-0-277",
+      "tokens": 64
+    },
+    {
+      "domain": "fiqa",
+      "id": "33883-0-626",
+      "tokens": 173
+    },
+    {
+      "domain": "fiqa",
+      "id": "427452-0-890",
+      "tokens": 227
+    },
+    {
+      "domain": "fiqa",
+      "id": "194590-0-369",
+      "tokens": 88
+    },
+    {
+      "domain": "fiqa",
+      "id": "192365-0-283",
+      "tokens": 72
+    },
+    {
+      "domain": "fiqa",
+      "id": "176102-0-332",
+      "tokens": 69
+    },
+    {
+      "domain": "fiqa",
+      "id": "362808-0-543",
+      "tokens": 137
+    },
+    {
+      "domain": "fiqa",
+      "id": "95658-0-369",
+      "tokens": 81
+    },
+    {
+      "domain": "fiqa",
+      "id": "457637-0-231",
+      "tokens": 59
+    },
+    {
+      "domain": "fiqa",
+      "id": "91713-0-235",
+      "tokens": 57
+    },
+    {
+      "domain": "fiqa",
+      "id": "267901-0-1811",
+      "tokens": 442
+    },
+    {
+      "domain": "fiqa",
+      "id": "302239-0-412",
+      "tokens": 91
+    },
+    {
+      "domain": "fiqa",
+      "id": "59638-0-1932",
+      "tokens": 489
+    },
+    {
+      "domain": "fiqa",
+      "id": "47946-0-2039",
+      "tokens": 477
+    },
+    {
+      "domain": "fiqa",
+      "id": "297428-0-244",
+      "tokens": 61
+    },
+    {
+      "domain": "fiqa",
+      "id": "95108-0-367",
+      "tokens": 88
+    },
+    {
+      "domain": "fiqa",
+      "id": "97083-0-1944",
+      "tokens": 490
+    },
+    {
+      "domain": "fiqa",
+      "id": "587898-0-278",
+      "tokens": 61
+    },
+    {
+      "domain": "fiqa",
+      "id": "304766-0-495",
+      "tokens": 113
+    },
+    {
+      "domain": "fiqa",
+      "id": "425563-0-889",
+      "tokens": 208
+    },
+    {
+      "domain": "fiqa",
+      "id": "549654-0-1027",
+      "tokens": 248
+    },
+    {
+      "domain": "fiqa",
+      "id": "140278-0-358",
+      "tokens": 95
+    },
+    {
+      "domain": "fiqa",
+      "id": "82344-0-529",
+      "tokens": 128
+    },
+    {
+      "domain": "fiqa",
+      "id": "50641-0-742",
+      "tokens": 167
+    },
+    {
+      "domain": "fiqa",
+      "id": "370021-0-363",
+      "tokens": 100
+    },
+    {
+      "domain": "fiqa",
+      "id": "253300-0-504",
+      "tokens": 113
+    },
+    {
+      "domain": "fiqa",
+      "id": "168402-1510-2421",
+      "tokens": 221
+    },
+    {
+      "domain": "fiqa",
+      "id": "319910-0-457",
+      "tokens": 111
+    },
+    {
+      "domain": "fiqa",
+      "id": "324491-0-564",
+      "tokens": 149
+    },
+    {
+      "domain": "fiqa",
+      "id": "500534-0-763",
+      "tokens": 200
+    },
+    {
+      "domain": "fiqa",
+      "id": "397855-0-264",
+      "tokens": 67
+    },
+    {
+      "domain": "fiqa",
+      "id": "300373-0-256",
+      "tokens": 61
+    },
+    {
+      "domain": "fiqa",
+      "id": "65846-0-411",
+      "tokens": 97
+    },
+    {
+      "domain": "fiqa",
+      "id": "329005-0-1037",
+      "tokens": 243
+    },
+    {
+      "domain": "fiqa",
+      "id": "155752-0-258",
+      "tokens": 53
+    },
+    {
+      "domain": "fiqa",
+      "id": "253374-3458-4864",
+      "tokens": 318
+    },
+    {
+      "domain": "fiqa",
+      "id": "358445-1476-2926",
+      "tokens": 328
+    },
+    {
+      "domain": "fiqa",
+      "id": "73594-0-276",
+      "tokens": 63
+    },
+    {
+      "domain": "fiqa",
+      "id": "588060-0-543",
+      "tokens": 147
+    },
+    {
+      "domain": "fiqa",
+      "id": "489191-0-494",
+      "tokens": 144
+    },
+    {
+      "domain": "fiqa",
+      "id": "24667-0-183",
+      "tokens": 45
+    },
+    {
+      "domain": "fiqa",
+      "id": "490082-0-723",
+      "tokens": 167
+    },
+    {
+      "domain": "fiqa",
+      "id": "268620-0-417",
+      "tokens": 90
+    },
+    {
+      "domain": "fiqa",
+      "id": "20987-0-804",
+      "tokens": 202
+    },
+    {
+      "domain": "fiqa",
+      "id": "2823-0-946",
+      "tokens": 232
+    },
+    {
+      "domain": "fiqa",
+      "id": "470032-1529-2140",
+      "tokens": 143
+    },
+    {
+      "domain": "fiqa",
+      "id": "176523-0-227",
+      "tokens": 54
+    },
+    {
+      "domain": "fiqa",
+      "id": "424489-0-527",
+      "tokens": 128
+    },
+    {
+      "domain": "fiqa",
+      "id": "486458-0-358",
+      "tokens": 92
+    },
+    {
+      "domain": "fiqa",
+      "id": "497464-0-230",
+      "tokens": 52
+    },
+    {
+      "domain": "fiqa",
+      "id": "464078-0-1687",
+      "tokens": 425
+    },
+    {
+      "domain": "fiqa",
+      "id": "561456-0-248",
+      "tokens": 54
+    },
+    {
+      "domain": "fiqa",
+      "id": "289083-0-310",
+      "tokens": 90
+    },
+    {
+      "domain": "fiqa",
+      "id": "127563-0-249",
+      "tokens": 61
+    },
+    {
+      "domain": "fiqa",
+      "id": "127015-0-1880",
+      "tokens": 420
+    },
+    {
+      "domain": "fiqa",
+      "id": "378548-0-433",
+      "tokens": 107
+    },
+    {
+      "domain": "fiqa",
+      "id": "313172-0-359",
+      "tokens": 87
+    },
+    {
+      "domain": "fiqa",
+      "id": "269727-0-511",
+      "tokens": 122
+    },
+    {
+      "domain": "fiqa",
+      "id": "260580-0-466",
+      "tokens": 119
+    },
+    {
+      "domain": "fiqa",
+      "id": "558240-0-482",
+      "tokens": 128
+    },
+    {
+      "domain": "fiqa",
+      "id": "254405-0-792",
+      "tokens": 193
+    },
+    {
+      "domain": "fiqa",
+      "id": "543638-0-1060",
+      "tokens": 267
+    },
+    {
+      "domain": "fiqa",
+      "id": "115134-0-1321",
+      "tokens": 301
+    },
+    {
+      "domain": "fiqa",
+      "id": "524968-0-309",
+      "tokens": 69
+    },
+    {
+      "domain": "govt",
+      "id": "300c82ef907e2240-4767393-4768708",
+      "tokens": 454
+    },
+    {
+      "domain": "govt",
+      "id": "300c82ef907e2240-3752962-3754321",
+      "tokens": 433
+    },
+    {
+      "domain": "govt",
+      "id": "6278e445bbe76174-3187-5392",
+      "tokens": 470
+    },
+    {
+      "domain": "govt",
+      "id": "300c82ef907e2240-2786512-2787602",
+      "tokens": 426
+    },
+    {
+      "domain": "govt",
+      "id": "300c82ef907e2240-2973416-2974560",
+      "tokens": 446
+    },
+    {
+      "domain": "govt",
+      "id": "300c82ef907e2240-8839675-8841025",
+      "tokens": 424
+    },
+    {
+      "domain": "govt",
+      "id": "300c82ef907e2240-8349996-8351347",
+      "tokens": 433
+    },
+    {
+      "domain": "govt",
+      "id": "f946475abf9f0f38-4909-6880",
+      "tokens": 463
+    },
+    {
+      "domain": "govt",
+      "id": "8d1e23e557232da0-70768-71745",
+      "tokens": 406
+    },
+    {
+      "domain": "govt",
+      "id": "1e934444dc73e839-1701-3802",
+      "tokens": 516
+    },
+    {
+      "domain": "govt",
+      "id": "300c82ef907e2240-2782862-2783952",
+      "tokens": 431
+    },
+    {
+      "domain": "govt",
+      "id": "d638147174534a11-2935-4904",
+      "tokens": 508
+    },
+    {
+      "domain": "govt",
+      "id": "300c82ef907e2240-7719742-7721102",
+      "tokens": 421
+    },
+    {
+      "domain": "govt",
+      "id": "0c89eb6ce158b539-7953-9275",
+      "tokens": 328
+    },
+    {
+      "domain": "govt",
+      "id": "300c82ef907e2240-5464491-5465826",
+      "tokens": 445
+    },
+    {
+      "domain": "govt",
+      "id": "300c82ef907e2240-1780581-1781994",
+      "tokens": 476
+    },
+    {
+      "domain": "govt",
+      "id": "573dd356bad11c3f-7192-8642",
+      "tokens": 364
+    },
+    {
+      "domain": "govt",
+      "id": "1b507180c78425e2-9832-10358",
+      "tokens": 128
+    },
+    {
+      "domain": "govt",
+      "id": "579010a5c29a5f11-11754-13824",
+      "tokens": 528
+    },
+    {
+      "domain": "govt",
+      "id": "ac53804b2e3fcda8-4632-6804",
+      "tokens": 518
+    },
+    {
+      "domain": "govt",
+      "id": "34f72eaf079e26bb-2684-4764",
+      "tokens": 550
+    },
+    {
+      "domain": "govt",
+      "id": "fa372778b7bac886-0-2048",
+      "tokens": 474
+    },
+    {
+      "domain": "govt",
+      "id": "88e0a0f6a6fa9609-651-1315",
+      "tokens": 238
+    },
+    {
+      "domain": "govt",
+      "id": "0d944fba929b4502-22952-25328",
+      "tokens": 532
+    },
+    {
+      "domain": "govt",
+      "id": "438a7c7ff1a491d1-0-380",
+      "tokens": 106
+    },
+    {
+      "domain": "govt",
+      "id": "aac1a122dcfbd2b9-2-2012",
+      "tokens": 427
+    },
+    {
+      "domain": "govt",
+      "id": "300c82ef907e2240-2856894-2857946",
+      "tokens": 402
+    },
+    {
+      "domain": "govt",
+      "id": "300c82ef907e2240-2214919-2216007",
+      "tokens": 428
+    },
+    {
+      "domain": "govt",
+      "id": "cb4e899ae018d145-2-1984",
+      "tokens": 443
+    },
+    {
+      "domain": "govt",
+      "id": "abebc7ae329f6e6a-30167-31578",
+      "tokens": 390
+    },
+    {
+      "domain": "govt",
+      "id": "48763e468ce90672-0-1674",
+      "tokens": 313
+    },
+    {
+      "domain": "govt",
+      "id": "04954f0ae6e2d2ed-2666-3934",
+      "tokens": 316
+    },
+    {
+      "domain": "govt",
+      "id": "0bf74c3aefe4c3c4-5256-7503",
+      "tokens": 489
+    },
+    {
+      "domain": "govt",
+      "id": "d23e6b1eb3f93afb-2-2385",
+      "tokens": 380
+    },
+    {
+      "domain": "govt",
+      "id": "16159b9da391b57c-1536-3173",
+      "tokens": 327
+    },
+    {
+      "domain": "govt",
+      "id": "8e867b869449325c-6194-7808",
+      "tokens": 468
+    },
+    {
+      "domain": "govt",
+      "id": "c550156dbbfe212c-21059-23409",
+      "tokens": 573
+    },
+    {
+      "domain": "govt",
+      "id": "5e98554bc1ed3726-1518-3483",
+      "tokens": 486
+    },
+    {
+      "domain": "govt",
+      "id": "b55d84d197b89df3-3711-5333",
+      "tokens": 403
+    },
+    {
+      "domain": "govt",
+      "id": "59d18cde306c23fe-4775-6909",
+      "tokens": 527
+    },
+    {
+      "domain": "govt",
+      "id": "300c82ef907e2240-1156737-1158054",
+      "tokens": 467
+    },
+    {
+      "domain": "govt",
+      "id": "d826587d75d147c0-3014-4929",
+      "tokens": 464
+    },
+    {
+      "domain": "govt",
+      "id": "40d3c91c2b1be685-0-2051",
+      "tokens": 464
+    },
+    {
+      "domain": "govt",
+      "id": "300c82ef907e2240-7264182-7265545",
+      "tokens": 422
+    },
+    {
+      "domain": "govt",
+      "id": "4c5aa13052b32146-8084-10482",
+      "tokens": 548
+    },
+    {
+      "domain": "govt",
+      "id": "c225494fb67307fa-2-838",
+      "tokens": 214
+    },
+    {
+      "domain": "govt",
+      "id": "300c82ef907e2240-9387035-9388360",
+      "tokens": 485
+    },
+    {
+      "domain": "govt",
+      "id": "a4bdf10b8b454cc0-6064-8514",
+      "tokens": 540
+    },
+    {
+      "domain": "govt",
+      "id": "2ef491e5480951c3-105579-107563",
+      "tokens": 516
+    },
+    {
+      "domain": "govt",
+      "id": "300c82ef907e2240-2714125-2715258",
+      "tokens": 439
+    },
+    {
+      "domain": "govt",
+      "id": "300c82ef907e2240-741831-742921",
+      "tokens": 401
+    },
+    {
+      "domain": "govt",
+      "id": "2a321fab8f1bb6d0-1799-3692",
+      "tokens": 530
+    },
+    {
+      "domain": "govt",
+      "id": "c07aea8f144725e4-8769-11160",
+      "tokens": 528
+    },
+    {
+      "domain": "govt",
+      "id": "5211816c329fde0b-6348-8428",
+      "tokens": 519
+    },
+    {
+      "domain": "govt",
+      "id": "42746fa29134c368-3221-5440",
+      "tokens": 510
+    },
+    {
+      "domain": "govt",
+      "id": "8d1e23e557232da0-50340-51314",
+      "tokens": 391
+    },
+    {
+      "domain": "govt",
+      "id": "300c82ef907e2240-5554303-5555639",
+      "tokens": 435
+    },
+    {
+      "domain": "govt",
+      "id": "80c62aa0ae49cbbf-1591-3293",
+      "tokens": 406
+    },
+    {
+      "domain": "govt",
+      "id": "dd1713414456247a-15957-18264",
+      "tokens": 496
+    },
+    {
+      "domain": "govt",
+      "id": "3c0f445fcb6709f5-84267-86505",
+      "tokens": 526
+    },
+    {
+      "domain": "govt",
+      "id": "d400532a07569bbb-14890-16326",
+      "tokens": 374
+    },
+    {
+      "domain": "govt",
+      "id": "afd2ef475ac8f857-2855-4870",
+      "tokens": 486
+    },
+    {
+      "domain": "govt",
+      "id": "9387ef80a3179e0d-1868-3306",
+      "tokens": 349
+    },
+    {
+      "domain": "govt",
+      "id": "300c82ef907e2240-3614705-3616028",
+      "tokens": 451
+    }
+  ],
+  "token_limits": {
+    "512": {
+      "truncated_samples": 20,
+      "samples": 256
+    },
+    "1024": {
+      "truncated_samples": 0,
+      "samples": 256
+    },
+    "8192": {
+      "truncated_samples": 0,
+      "samples": 256
+    }
+  },
+  "token_percentiles": {
+    "p50": 302.0,
+    "p95": 522.0,
+    "max": 573.0
+  },
+  "batch_size": 4,
+  "max_length": 8192,
+  "fp16": true,
+  "encoding_seconds": 1.4504705350846052,
+  "passages_per_second": 176.49445046125507,
+  "peak_allocated_bytes": 1200757760,
+  "model_path": "/home/yang/.cache/huggingface/hub/models--BAAI--bge-m3/snapshots/5617a9f61b028005a4858fdac845db406aefb181",
+  "naive_full_corpus_seconds": 2076.201257559893,
+  "extrapolation_warning": "sample estimate, batching/length distribution/I/O may change full-run cost",
+  "sample_vectors_sha256": "39266d38cb9acc2dba8f68408ca9446892cb5c205d6630329c235dccb462568d"
+}
