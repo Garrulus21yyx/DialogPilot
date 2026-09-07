@@ -11,6 +11,7 @@ from langchain_core.messages.utils import count_tokens_approximately
 from application.context_budget import ContextBudgetManager, ModelContextBudgetExceeded
 from application.work_control import WorkControlGuard
 from core.framework_models import invoke_model
+from infrastructure.target_domain_outcome import DomainOutcomeRejected
 
 
 class ModelInvocationMiddleware(AgentMiddleware):
@@ -74,11 +75,21 @@ class AgentProgressMiddleware(AgentMiddleware):
         return update
 
 
-class InteractionBoundaryMiddleware(AgentMiddleware):
-    """User-input handback stops; a prepared action still permits an answer."""
+class OutcomeState(AgentState):
+    outcome_review_calls: int
+    accepted_outcome: dict
+    outcome_feedback: list[dict]
 
-    def __init__(self, action_tools=()):
+
+class InteractionBoundaryMiddleware(AgentMiddleware):
+    """Accept a goal-bound handback before ending or executing an interaction."""
+
+    state_schema = OutcomeState
+    max_review_calls = 2
+
+    def __init__(self, action_tools=(), *, review):
         self.action_tools = frozenset(action_tools)
+        self.review = review
 
     @hook_config(can_jump_to=["model"])
     async def aafter_model(self, state, runtime):
@@ -101,7 +112,35 @@ class InteractionBoundaryMiddleware(AgentMiddleware):
                 content="No tools in this batch were executed. Make one interaction call, or perform evidence calls first and ask afterwards.",
                 tool_call_id=call["id"], name=call["name"], status="error") for call in calls],
                 "jump_to": "model"}
-        return None
+        if calls and not (len(calls) == 1 and calls[0]["name"] in {"request_user_input", "report_blocked"}):
+            return None
+        if prepared and not calls:
+            # Preparation and approval are deterministic business authorities.
+            # The conversation's existing answer check owns approval wording;
+            # a second semantic gate here would duplicate that decision.
+            return None
+        kind = ({"request_user_input": "NEEDS_USER_INPUT", "report_blocked": "BLOCKED"}[calls[0]["name"]]
+                if calls else "COMPLETE")
+        candidate = calls[0]["args"] if calls else message.text
+        review_calls = state.get("outcome_review_calls", 0)
+        if review_calls >= self.max_review_calls:
+            raise DomainOutcomeRejected("domain_outcome_correction_budget_exhausted")
+        assessment = await self.review.assess(context=runtime.context,
+            messages=state["messages"], kind=kind, candidate=candidate)
+        feedback = [*state.get("outcome_feedback", ()), {"kind": kind, **assessment}]
+        update = {"outcome_review_calls": review_calls + 1, "outcome_feedback": feedback,
+                  "accepted_outcome": {}}
+        if assessment["accepted"]:
+            return {**update, "accepted_outcome": {"kind": kind, "message_id": message.id,
+                "tool_call_id": calls[0]["id"] if calls else None}}
+        if review_calls:
+            # A typed failure is retained by the adapter; nothing is relabelled
+            # complete and no rejected input tool gets a durable observation.
+            raise DomainOutcomeRejected(assessment["feedback"])
+        correction = "Internal task review (not a user reply or approval): " + assessment["feedback"]
+        return {**update, "jump_to": "model", "messages": ([ToolMessage(
+            content=correction, tool_call_id=calls[0]["id"], name=calls[0]["name"], status="error")]
+            if calls else [HumanMessage(content=correction)])}
 
     @hook_config(can_jump_to=["end"])
     async def abefore_model(self, state, runtime):
@@ -110,8 +149,9 @@ class InteractionBoundaryMiddleware(AgentMiddleware):
                 break
             artifact = message.artifact
             if (isinstance(artifact, dict) and artifact.get("schema") == "agent-result-v1"
-                    and (artifact.get("result", {}).get("status") == "NEEDS_USER_INPUT"
-                         or artifact.get("result", {}).get("producer_version") == "domain-interaction-v1")):
+                    and artifact.get("result", {}).get("producer_version") == "domain-interaction-v1"):
+                if state.get("accepted_outcome", {}).get("tool_call_id") != message.tool_call_id:
+                    raise DomainOutcomeRejected("domain_interaction_has_no_accepted_outcome")
                 return {"jump_to": "end"}
         return None
 

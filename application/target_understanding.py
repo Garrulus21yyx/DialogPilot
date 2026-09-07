@@ -34,12 +34,7 @@ class StateBoundTargetUnderstanding:
         ):
             return TurnProposal(
                 ProposalDisposition.RESOLVED,
-                tuple(
-                    self._resume_command(index, item)
-                    for index, item in enumerate(
-                        deterministic.resumed_work_items, start=1,
-                    )
-                ),
+                self._continuations(deterministic.resumed_work_items, state),
                 "PENDING_INPUT_RESUMED",
             )
 
@@ -52,13 +47,7 @@ class StateBoundTargetUnderstanding:
                 suspended = deterministic.resumed_work_items
                 # Declining one action closes its originating objective and its
                 # dependants, not unrelated work suspended by the same turn.
-                excluded = {deterministic.action_origin_work_item_id} if deterministic.action_origin_work_item_id else set()
-                while True:
-                    expanded = excluded | {work.work_item_id for work in suspended
-                                           if excluded.intersection(work.dependencies)}
-                    if expanded == excluded:
-                        break
-                    excluded = expanded
+                excluded = {work.work_item_id for work in deterministic.closed_work_items}
                 independent = tuple(work for work in suspended
                                     if work.work_item_id not in excluded)
                 commands = self._continuations(independent, state)

@@ -72,6 +72,7 @@ class ParentGraphState(TypedDict, total=False):
     continuation_facts: dict[str, tuple[FactRecord, ...]]
     continuation_messages: dict[str, tuple[dict, ...]]
     pending_approval: PendingApprovalState | None
+    retained_outcomes: tuple[tuple[WorkItem, AgentResult | None], ...]
 
 
 class WorkerState(TypedDict):
@@ -196,6 +197,8 @@ class OrchestrationRuntime:
                 "evidence_refs": state.get("evidence_refs", ()),
                 "token_budget": state.get("token_budget", 6000),
                 "facts": current_facts(_merge_facts(state.get("facts", ()),
+                    tuple(fact for _, result in state.get("retained_outcomes", ()) if result
+                          for fact in result.facts),
                     state.get("continuation_facts", {}).get(item.work_item_id, ()))),
                 "trusted_context": state.get("trusted_context", {}),
                 "pending_approval": state.get("pending_approval"),
@@ -243,16 +246,22 @@ class OrchestrationRuntime:
         })
         if not isinstance(resumed, Mapping):
             raise OrchestrationRuntimeError("resume payload must be an object")
+        closed = tuple(resumed.get("closed_work_items", ()))
+        checkpoint_items = (*state["work_plan"].items,
+                            *(item for item, _ in state.get("retained_outcomes", ())))
+        if any(item not in checkpoint_items for item in closed):
+            raise OrchestrationRuntimeError("closed objective does not match checkpoint")
         if resumed.get("cancel") is True:
             # Closing an execution wait does not undo completed work or cancel
             # a remote action. Give only unstarted work a terminal outcome so
             # queued items cannot leave the graph in an unfinished state.
-            returned = {result.work_item_id for result in state.get("agent_results", ())}
+            returned = {result.work_item_id: result for result in state.get("agent_results", ())}
             return {
-                "agent_results": [AgentResult(
-                    item.work_item_id, item.owner_agent, AgentResultStatus.CANCELLED,
-                    "EXECUTION_WAIT_CLOSED", "orchestration-runtime-v1",
-                ) for item in state["work_plan"].items if item.work_item_id not in returned],
+                "agent_results": Overwrite([_closed_outcome(item, returned.get(item.work_item_id))
+                    if item in closed or item.work_item_id not in returned else returned[item.work_item_id]
+                    for item in state["work_plan"].items]),
+                "retained_outcomes": tuple((item, _closed_outcome(item, result) if item in closed else result)
+                                           for item, result in state.get("retained_outcomes", ())),
                 "interrupt_after_completion": False,
                 "ready_items": (),
             }
@@ -261,6 +270,14 @@ class OrchestrationRuntime:
             raise OrchestrationRuntimeError("resume payload requires a validated WorkPlan")
         previous_items = {item.work_item_id: item for item in state["work_plan"].items}
         previous_results = {result.work_item_id: result for result in state.get("agent_results", ())}
+        # A resume executes a subset, but cannot erase other outcomes from the
+        # original request. These are checkpoint projections, never runnable work.
+        retained = tuple((item, _closed_outcome(item, result) if item in closed else result)
+            for item, result in (*state.get("retained_outcomes", ()),
+            *((item, previous_results.get(item.work_item_id)) for item in previous_items.values()))
+            if not any(item == new or (
+                item.control and new.control and item.control.control_id == new.control.control_id
+                and item.control.revision < new.control.revision) for new in plan.items))
         preserved = tuple(previous_results[item.work_item_id] for item in plan.items
                           if previous_items.get(item.work_item_id) == item
                           and item.work_item_id in previous_results)
@@ -304,6 +321,7 @@ class OrchestrationRuntime:
             "facts": board.facts,
             "ready_items": board.ready_items,
             "board": board,
+            "retained_outcomes": retained,
         }
 
     async def _execute_work_item(self, state: WorkerState):
@@ -434,9 +452,7 @@ class OrchestrationRuntime:
         )
 
     async def _merge_results(self, state: ParentGraphState):
-        board = self._result_board.evaluate(
-            state["work_plan"], tuple(state.get("agent_results", ())),
-        )
+        board = self._evaluate(state)
         return {
             "agent_results": list(board.blocked_results),
             "facts": board.facts,
@@ -445,12 +461,15 @@ class OrchestrationRuntime:
         }
 
     async def _finish(self, state: ParentGraphState):
-        board = self._result_board.evaluate(
-            state["work_plan"], tuple(state.get("agent_results", ())),
-        )
+        board = self._evaluate(state)
         if not board.complete:
             raise OrchestrationRuntimeError("work graph stopped before reaching terminal outcomes")
         return {"board": board, "facts": board.facts, "ready_items": ()}
+
+    def _evaluate(self, state):
+        return replace(self._result_board.evaluate(
+            state["work_plan"], tuple(state.get("agent_results", ()))),
+            retained_outcomes=tuple(state.get("retained_outcomes", ())))
 
     async def execute(
         self,
@@ -495,7 +514,7 @@ class OrchestrationRuntime:
                     )
                 board = snapshot.values.get("board")
                 if board is not None and board.complete:
-                    return _normalize_board(board)
+                    return board
                 graph_input = None
         result = await self.graph.ainvoke(graph_input, config=config)
         return result["board"]
@@ -516,6 +535,7 @@ class OrchestrationRuntime:
         token_budget: int = 6000,
         trusted_context: Mapping[str, str] | None = None,
         pending_approval: PendingApprovalState | None = None,
+        closed_work_items: tuple[WorkItem, ...] = (),
     ) -> ResultBoardSnapshot:
         if self._checkpointer is None:
             raise OrchestrationRuntimeError("resume requires a checkpointer")
@@ -541,17 +561,18 @@ class OrchestrationRuntime:
             "token_budget": token_budget,
             "trusted_context": dict(trusted_context or {}),
             "pending_approval": pending_approval,
+            "closed_work_items": closed_work_items,
         }), config=config)
         return result["board"]
 
-    async def cancel_interrupt(self, *, thread_id: str) -> None:
+    async def cancel_interrupt(self, *, thread_id: str, closed_work_items: tuple[WorkItem, ...] = ()) -> None:
         if self._checkpointer is None:
             return
         config = {"configurable": {"thread_id": thread_id}}
         snapshot = await self.graph.aget_state(config)
         if snapshot.tasks and any(task.interrupts for task in snapshot.tasks):
             await self.graph.ainvoke(
-                Command(resume={"cancel": True}), config=config,
+                Command(resume={"cancel": True, "closed_work_items": closed_work_items}), config=config,
             )
 
 
@@ -567,15 +588,11 @@ def _work_plan_fingerprint(plan: WorkPlan) -> str:
     return "work-plan:v1:" + hashlib.sha256(raw).hexdigest()
 
 
-def _normalize_board(board: ResultBoardSnapshot) -> ResultBoardSnapshot:
-    """Restore tuple-based public contracts at the checkpoint boundary."""
-    return ResultBoardSnapshot(
-        tuple(board.results),
-        tuple(board.facts),
-        tuple(board.ready_items),
-        tuple(board.blocked_results),
-        tuple(board.missing_requirement_ids),
-        tuple(board.conflict_keys),
-        bool(board.complete),
-        bool(board.partial_delivery_allowed),
-    )
+def _closed_outcome(item: WorkItem, result: AgentResult | None) -> AgentResult:
+    """Apply an explicit control closure; retain facts and committed receipts."""
+    if result is None:
+        return AgentResult(item.work_item_id, item.owner_agent, AgentResultStatus.CANCELLED,
+                           "EXECUTION_WAIT_CLOSED", "orchestration-runtime-v1")
+    return replace(result, status=AgentResultStatus.CANCELLED, reason_code="APPROVAL_NOT_GRANTED",
+                   pending_action=None, missing_inputs=(), requested_evidence=(),
+                   candidate_response=None, retryable=False)

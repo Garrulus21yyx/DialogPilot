@@ -35,14 +35,28 @@ class ScriptedToolModel(BaseChatModel):
     responses: list[AIMessage]
     calls: int = 0
     bound_tool_names: list[str] = Field(default_factory=list)
+    outcome_reviews: list[dict] = Field(default_factory=list)
+    review_calls: int = 0
 
     @property
     def _llm_type(self) -> str:
         return "scripted-tool-model"
 
     def bind_tools(self, tools: Sequence[Any], **kwargs):
-        self.bound_tool_names = [tool.name if hasattr(tool, "name") else tool["function"]["name"] for tool in tools]
+        self.bound_tool_names = [tool.name if hasattr(tool, "name") else tool.get("name", tool.get("function", {}).get("name")) for tool in tools]
         return self
+
+    def with_structured_output(self, schema, **kwargs):
+        if isinstance(schema, dict) and schema.get("name") == "assess_domain_outcome":
+            # A scripted semantic oracle, not a claim of model accuracy. Keep
+            # SDK parsing real and count acceptance separately from domain calls.
+            review = (self.outcome_reviews[self.review_calls] if self.outcome_reviews
+                      else {"accepted": True, "feedback": ""})
+            self.review_calls += 1
+            clone = ScriptedToolModel(responses=[AIMessage(content="", tool_calls=[{
+                "name": "assess_domain_outcome", "args": {"result": review}, "id": "assessment"}])])
+            return BaseChatModel.with_structured_output(clone, schema, **kwargs)
+        return super().with_structured_output(schema, **kwargs)
 
     def _generate(
         self,
@@ -176,7 +190,7 @@ def test_domain_input_resume_reuses_progress_after_postgres_checkpoint_reopen(po
                for message in resumed_messages)
     assert any(isinstance(message, ToolMessage) and message.tool_call_id == "ask-choice"
                and message.content == "Which option?" for message in resumed_messages)
-    assert final_prompt["current_message"] == "blue"
+    assert final_prompt["source_conversation"]["current_message"] == "blue"
     assert board.results[0].missing_inputs == ()
 
 
@@ -277,7 +291,7 @@ def test_framework_keeps_user_input_out_of_system_policy(attack):
     humans = [message.content for message in observed if isinstance(message, HumanMessage)]
     assert systems and humans
     assert all(attack not in content for content in systems)
-    assert any(json.loads(content)["current_message"] == attack for content in humans)
+    assert any(json.loads(content).get("source_conversation", {}).get("current_message") == attack for content in humans)
     assert model.bound_tool_names == ["catalog_search", "request_user_input", "report_blocked", "read_tool_result"]
     assert calls == []
 

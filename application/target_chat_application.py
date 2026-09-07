@@ -391,7 +391,7 @@ class TargetChatApplication:
                     "status": item.status.value,
                     "reason_code": item.reason_code,
                 }
-                for item in board.results
+                for item in board.all_results
             ]
             facts = board.facts
             missing = list(board.missing_requirement_ids)

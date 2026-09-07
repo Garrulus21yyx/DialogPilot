@@ -130,7 +130,7 @@ class ResponseAssembler:
         from dataclasses import replace
         from application.knowledge_tool_contract import evidence_items, evidence_id, model_evidence
 
-        knowledge_facts = tuple(fact for result in board.results for fact in result.facts
+        knowledge_facts = tuple(fact for result in getattr(board, "all_results", board.results) for fact in result.facts
                                 if fact.requirement_id == "knowledge.active_source")
         knowledge_failure = any(result.reason_code.startswith("KNOWLEDGE_")
                                 and result.status not in _SUCCESS for result in board.results)
@@ -395,8 +395,8 @@ def _allowed_claims(board, pending_approval=None, *, requested_inputs=()) -> tup
             {"action_ref": pending_approval.action_ref,
              "arguments": {arg.name: arg.value for arg in pending_approval.arguments},
              "effect_status": "NOT_EXECUTED"}, ()))
-    for result in board.results:
-        if result.pending_action and pending_approval is None:
+    for result in getattr(board, "all_results", board.results):
+        if result.pending_action and pending_approval is None and result in board.results:
             action = result.pending_action
             claims.append(AllowedClaim(
                 f"proposal:{result.work_item_id}", "PENDING_ACTION",
@@ -435,6 +435,10 @@ def _response_context(board, pending_approval=None, requested_inputs=(), convers
     """One authoritative snapshot for authoring, verification and publication."""
     from dataclasses import asdict
     claims = _allowed_claims(board, pending_approval, requested_inputs=requested_inputs)
+    # Retained work IDs may recur in a later turn: keep each result paired with
+    # its original contract instead of joining historical goals on the local ID.
+    pairs = getattr(board, "outcome_items", ()) or tuple((None, result) for result in board.results)
+    outcomes = getattr(board, "all_results", board.results)
     return {
         "facts": [{"subject_ref": fact.subject_ref, "requirement_id": fact.requirement_id,
                    "source_kind": fact.source_kind.value, "source_ref": fact.source_ref,
@@ -443,17 +447,22 @@ def _response_context(board, pending_approval=None, requested_inputs=(), convers
                    "observation_started_at": fact.observation_started_at.isoformat() if fact.observation_started_at else None,
                    "valid_until": fact.valid_until.isoformat() if fact.valid_until else None,
                    "value": _fact_view(fact)} for fact in _current_board_facts(board)],
-        "receipts": [asdict(receipt) for result in board.results for receipt in result.action_receipts],
+        "receipts": [asdict(receipt) for result in outcomes for receipt in result.action_receipts],
         "pending_actions": [c.value for c in claims if c.kind == "PENDING_ACTION"],
         "requested_inputs": _input_context(requested_inputs),
-        "outcomes": [{"work_item_id": r.work_item_id, "owner_agent": r.owner_agent,
-                      "status": r.status.value, "reason_code": r.reason_code,
-                      "retryable": r.retryable,
-                      "execution_feedback": _failure_feedback(r)} for r in board.results],
+        "outcomes": [{"work_item_id": item.work_item_id if item else r.work_item_id,
+                      "owner_agent": item.owner_agent if item else r.owner_agent,
+                      "objective": item.objective if item else None,
+                      "control": asdict(item.control) if item and item.control else None,
+                      "status": r.status.value if r else "NOT_EXECUTED",
+                      "reason_code": r.reason_code if r else "UNRESOLVED_PRIOR_WORK",
+                      "retryable": r.retryable if r else False,
+                      "execution_feedback": _failure_feedback(r) if r else []} for item, r in pairs],
         "coverage": {"missing_requirement_ids": list(board.missing_requirement_ids),
                      "conflict_keys": list(board.conflict_keys),
                      "coverage_complete": board.coverage_complete,
                      "complete": board.complete,
+                     "task_completed": board.task_completed,
                      "partial_delivery_allowed": board.partial_delivery_allowed},
         "user_context": conversation_context,
     }
@@ -463,7 +472,7 @@ def _evidence_refs(board):
     """Runtime provenance, independent of the author's citation selection."""
     return tuple(dict.fromkeys([
         *(fact.source_ref for fact in _current_board_facts(board)),
-        *(receipt.receipt_id for result in board.results for receipt in result.action_receipts),
+        *(receipt.receipt_id for result in getattr(board, "all_results", board.results) for receipt in result.action_receipts),
     ]))
 
 
@@ -481,7 +490,7 @@ def _render_board(board, *, locale="zh-CN") -> str:
     from dataclasses import replace
     sections = []
     current = _current_board_facts(board)
-    for result in board.results:
+    for result in getattr(board, "all_results", board.results):
         rendered = []
         for receipt in result.action_receipts:
             if receipt.effect_status != "COMMITTED":
@@ -511,7 +520,7 @@ def _render_board(board, *, locale="zh-CN") -> str:
 
 
 def _current_board_facts(board):
-    return current_facts(tuple(fact for result in board.results for fact in result.facts))
+    return current_facts(tuple(fact for result in getattr(board, "all_results", board.results) for fact in result.facts))
 
 
 _OWNER_LABELS = {

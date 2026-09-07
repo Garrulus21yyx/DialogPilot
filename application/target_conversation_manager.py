@@ -361,6 +361,7 @@ class TargetConversationManager:
             await self._orchestration.resume(
                 plan.work,
                 thread_id=thread_id,
+                closed_work_items=deterministic.closed_work_items,
                 interrupt_after_completion=await_decision,
                 **execution_context,
             )
@@ -456,7 +457,8 @@ class TargetConversationManager:
         self._commit_states(result.state_before, result.state_transitions)
         if result.close_checkpoint:
             await self._orchestration.cancel_interrupt(
-                thread_id=result.checkpoint_thread_id)
+                thread_id=result.checkpoint_thread_id,
+                closed_work_items=result.deterministic.closed_work_items)
 
     def _apply_missing_inputs(
         self,
@@ -499,7 +501,7 @@ class TargetConversationManager:
                     "workflow input must be resolved before its state transition"
                 )
             item = item_by_id[work_item_id]
-            suspended.append(replace(item, dependencies=()))
+            suspended.append(item)
             fields.extend(
                 RequestedField(
                     spec.field_name,
@@ -513,6 +515,18 @@ class TargetConversationManager:
             raise ConversationStateConflict(
                 "NEEDS_USER_INPUT produced no required fields"
             )
+        # A wait pauses its dependency chain, not just the question-producing
+        # node. Resume compiles this same DAG after the bound answer arrives.
+        waiting = set(target_ids)
+        results = {result.work_item_id: result for result in board.results}
+        while True:
+            downstream = waiting | {item.work_item_id for item in plan.work.items
+                if waiting.intersection(item.dependencies) and (
+                    item.work_item_id not in results or results[item.work_item_id].status is AgentResultStatus.BLOCKED)}
+            if downstream == waiting:
+                break
+            waiting = downstream
+        suspended = [item for item in plan.work.items if item.work_item_id in waiting]
         identity_payload = json.dumps(
             {
                 "plan": plan.plan_id,

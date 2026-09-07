@@ -18,6 +18,7 @@ def board(answer):
     tool=ToolResult(True,evidence_result(),'knowledge_search',authority='knowledge.active_source',call_id='read')
     result=_adapt_framework_result(_context(item),(tool,),'framework-v1',
         allowed_authorities={'knowledge_search': 'knowledge.active_source'},
+        accepted_outcome={"kind": "COMPLETE"},
         candidate_response=answer or "Evidence retrieved.")
     if not answer:
         result = replace(result, candidate_response=None)

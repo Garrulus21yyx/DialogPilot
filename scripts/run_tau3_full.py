@@ -94,6 +94,7 @@ async def run(args):
     tasks = get_tasks("train")[args.task_offset:args.task_offset + args.task_count]
     if len(tasks) != args.task_count:
         raise ValueError("requested task range exceeds the development split")
+    from infrastructure.target_agent_middleware import InteractionBoundaryMiddleware
     manifest = {"status": "RUNNING", "split": "train", "task_ids": [t.id for t in tasks],
                 "started_at": datetime.now(timezone.utc).isoformat(),
                 "project_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
@@ -102,6 +103,7 @@ async def run(args):
                 "tau_commit": subprocess.check_output(["git", "-C", str(args.tau_source), "rev-parse", "HEAD"], text=True).strip(),
                 "configuration": "Target production application, one registered retail domain, encoder disabled",
                 "max_steps": args.max_steps, "max_model_calls_per_work_item": 20,
+                "max_domain_outcome_reviews_per_segment": InteractionBoundaryMiddleware.max_review_calls,
                 "model_context_budget": 64000, "worker_profile": profile.to_dict(),
                 "user_model": args.user_model, "seed": 300,
                 "user_thinking": "disabled",

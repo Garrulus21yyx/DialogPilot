@@ -37,18 +37,41 @@ class ResultBoardSnapshot:
     conflict_keys: tuple[str, ...]
     complete: bool
     partial_delivery_allowed: bool
+    work_items: tuple[WorkItem, ...] = ()
+    retained_outcomes: tuple[tuple[WorkItem, AgentResult | None], ...] = ()
+
+    def __post_init__(self):
+        for name in ("results", "facts", "ready_items", "blocked_results", "missing_requirement_ids",
+                     "conflict_keys", "work_items"):
+            object.__setattr__(self, name, tuple(getattr(self, name)))
+        object.__setattr__(self, "retained_outcomes", tuple(tuple(pair) for pair in self.retained_outcomes))
+
+    @property
+    def outcome_items(self) -> tuple[tuple[WorkItem, AgentResult | None], ...]:
+        results = {result.work_item_id: result for result in self.results}
+        return (*self.retained_outcomes, *((item, results.get(item.work_item_id)) for item in self.work_items))
+
+    @property
+    def all_results(self) -> tuple[AgentResult, ...]:
+        """Current execution plus unreplaced outcomes of this checkpoint's request."""
+        return (*(result for _, result in self.retained_outcomes if result is not None), *self.results)
 
     @property
     def coverage_complete(self) -> bool:
         """Evidence coverage is independent of worker or answer success."""
-        return not self.missing_requirement_ids and not self.conflict_keys
+        return not self.missing_requirement_ids and not self.conflict_keys and all(
+            result is not None and set(item.requirement_ids) <= {
+                *(fact.requirement_id for fact in result.facts),
+                *(receipt.requirement_id for receipt in result.action_receipts),
+            } for item, result in self.retained_outcomes)
 
     @property
     def task_completed(self) -> bool:
         """All planned work succeeded, not merely returned a terminal outcome."""
-        return self.complete and self.coverage_complete and all(
-            result.status is AgentResultStatus.SUCCEEDED for result in self.results
-        )
+        return (self.complete and self.coverage_complete
+                and all(result is not None for _, result in self.retained_outcomes) and all(
+            result.status is AgentResultStatus.SUCCEEDED for result in self.all_results
+        ))
 
 
 class ResultBoard:
@@ -135,6 +158,7 @@ class ResultBoard:
             conflicts,
             complete,
             bool(successes and failures and not conflicts),
+            work_items=plan.items,
         )
 
     @staticmethod

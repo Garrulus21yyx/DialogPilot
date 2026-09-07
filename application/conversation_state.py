@@ -181,6 +181,8 @@ class PendingInteractionState:
             )
         if any(item.effect.value != "READ" for item in self.suspended_work_items):
             raise ConversationStateError("user-input suspension supports read work only")
+        if any(item.control_mode.value not in {"DIRECT", "DELEGATED"} for item in self.suspended_work_items):
+            raise ConversationStateError("controlled workflows use their flow or approval continuation")
         if self.checkpoint_thread_id is not None and not self.checkpoint_thread_id.strip():
             raise ConversationStateError("checkpoint thread ID must be absent or nonblank")
 

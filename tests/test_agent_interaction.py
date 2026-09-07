@@ -53,7 +53,8 @@ def test_native_input_tool_schema_repair_uses_existing_model_loop():
 def test_normal_text_is_a_candidate_not_a_model_owned_business_outcome(reply):
     result = _adapt_framework_result(_context(replace(_item(), requirement_ids=())), (), "test",
                                      allowed_authorities={}, candidate_response=reply)
-    assert result.status.value == "SUCCEEDED"
+    assert result.status.value == "TERMINAL_FAILURE"
+    assert result.reason_code == "DOMAIN_OUTCOME_NOT_ACCEPTED"
     assert result.candidate_response == reply
     assert result.action_receipts == ()
 

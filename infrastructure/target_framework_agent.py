@@ -54,6 +54,9 @@ from infrastructure.target_agent_result_adapter import (
 from infrastructure.target_agent_middleware import AgentContextMiddleware, WorkControlMiddleware, InteractionBoundaryMiddleware, AgentProgressMiddleware, ModelInvocationMiddleware, model_overhead_tokens
 from core.framework_models import ModelInvocationError
 from infrastructure.target_action_preparation import TargetActionPreparation
+from infrastructure.target_domain_outcome import (
+    DomainOutcomeReview, DomainOutcomeRejected, DomainOutcomeReviewUnavailable,
+)
 from mcp.tool_manager import MCPToolManager, ToolCallStatus, ToolResult
 
 logger = logging.getLogger(__name__)
@@ -141,8 +144,11 @@ class TargetFrameworkAgent:
             middleware=[
                 WorkControlMiddleware(self._control_guard),
                 ToolResultPersistence(self._archive, max(256, self._context_budget.available_tokens // 5)),
-                InteractionBoundaryMiddleware("prepare_" + tool_id for ref in item.allowed_actions
+                InteractionBoundaryMiddleware(("prepare_" + tool_id for ref in item.allowed_actions
                     for tool_id in self._registry.action(ref).allowed_tool_ids),
+                    review=DomainOutcomeReview(self._model, callbacks=self._callbacks,
+                        available_tokens=self._context_budget.available_tokens,
+                        business_policy=self._system_prompt, tools=tools)),
                 AgentProgressMiddleware(),
                 ContextCompaction(self._model, self._archive,
                     available_tokens=self._context_budget.available_tokens,
@@ -195,6 +201,13 @@ class TargetFrameworkAgent:
         except ModelInvocationError as exc:
             failure = self._failure(context, f"MODEL_INVOCATION_FAILED:{exc.stage}:{exc.error_type}",
                                     retryable=exc.retryable, error=exc)
+        except DomainOutcomeRejected as exc:
+            failure = self._failure(context, "DOMAIN_OUTCOME_REJECTED", error=exc, stage="domain_outcome")
+        except DomainOutcomeReviewUnavailable as exc:
+            from core.framework_models import retryable_model_error
+            failure = self._failure(context, "DOMAIN_OUTCOME_REVIEW_UNAVAILABLE",
+                retryable=(exc.__cause__.retryable if isinstance(exc.__cause__, ModelInvocationError)
+                           else retryable_model_error(exc.__cause__)), error=exc, stage="domain_outcome")
         except Exception as exc:
             failure = self._failure(
                 context,
@@ -240,6 +253,7 @@ class TargetFrameworkAgent:
             context,
             tuple(observed),
             self.version,
+            accepted_outcome=output.get("accepted_outcome"),
             candidate_response=next((message.text for message in reversed(current_messages)
                 if isinstance(message, AIMessage) and not message.tool_calls), None),
             allowed_authorities={
@@ -261,6 +275,8 @@ class TargetFrameworkAgent:
             result = replace(result, status=failure.status, reason_code=failure.reason_code,
                 retryable=failure.retryable, candidate_response=None, pending_action=None,
                 missing_inputs=())
+        elif failure is not None:
+            result = replace(result, candidate_response=None)
         working = list(output.get("messages", []))
         if failure is not None:
             pending_calls = []
@@ -273,6 +289,7 @@ class TargetFrameworkAgent:
             }
             feedback.append(diagnostic)
             working.append(HumanMessage(content=json.dumps({"execution_feedback": diagnostic}, ensure_ascii=False)))
+        feedback.extend({"stage": "domain_outcome", **review} for review in output.get("outcome_feedback", ()))
         return replace(result, working_messages=tuple(messages_to_dict(working)), execution_feedback=tuple(feedback))
 
     def _tools(self, context: AgentContextView) -> list[StructuredTool]:
@@ -464,7 +481,7 @@ class TargetFrameworkAgent:
         payload = {
             "objective": item.objective,
             "action_proposals_allowed": bool(item.allowed_actions),
-            "current_message": context.current_message,
+            "source_conversation": {"current_message": context.current_message},
             "arguments": {
                 argument.name: argument.value for argument in item.arguments
             },
@@ -563,6 +580,7 @@ def _adapt_framework_result(
     *,
     allowed_authorities: Mapping[str, str],
     candidate_response: str | None = None,
+    accepted_outcome: Mapping | None = None,
 ) -> AgentResult:
     item = context.work_item
     tool_results = tuple(result for result in observed if isinstance(result, ToolResult))
@@ -591,6 +609,7 @@ def _adapt_framework_result(
     )
     missing_inputs = tuple(
         field for result in skill_results for field in result.missing_inputs
+        if result.producer_version == "domain-interaction-v1"
     )
     failed_tools = tuple(result for result in tool_results if not result.success)
     invalid_authority = any(
@@ -620,7 +639,7 @@ def _adapt_framework_result(
                               next((outcome for outcome in domain_failures
                                     if outcome[0] is AgentResultStatus.RETRYABLE_FAILURE), domain_failures[-1]))
         retryable = status is AgentResultStatus.RETRYABLE_FAILURE
-    elif missing_inputs:
+    elif missing_inputs and (accepted_outcome or {}).get("kind") == "NEEDS_USER_INPUT":
         status = AgentResultStatus.NEEDS_USER_INPUT
         reason = "FRAMEWORK_AGENT_NEEDS_USER_INPUT"
         retryable = False
@@ -629,11 +648,11 @@ def _adapt_framework_result(
         status = (AgentResultStatus.RETRYABLE_FAILURE if retryable
                   else AgentResultStatus.TERMINAL_FAILURE)
         reason = "FRAMEWORK_AGENT_TOOL_FAILURE"
-    elif any(result.status is AgentResultStatus.BLOCKED for result in skill_results):
+    elif any(result.status is AgentResultStatus.BLOCKED for result in skill_results) and (accepted_outcome or {}).get("kind") == "BLOCKED":
         status = AgentResultStatus.BLOCKED
         reason = next(result.reason_code for result in skill_results if result.status is AgentResultStatus.BLOCKED)
         retryable = False
-    elif not missing and candidate_response and candidate_response.strip():
+    elif not missing and candidate_response and candidate_response.strip() and (accepted_outcome or {}).get("kind") == "COMPLETE":
         status = AgentResultStatus.PARTIAL if failed_tools and not item.requirement_ids else AgentResultStatus.SUCCEEDED
         reason = "FRAMEWORK_AGENT_PARTIAL_RESULTS" if status is AgentResultStatus.PARTIAL else "FRAMEWORK_AGENT_REQUIREMENTS_SATISFIED"
         retryable = False
@@ -643,7 +662,8 @@ def _adapt_framework_result(
         retryable = True
     else:
         status = AgentResultStatus.TERMINAL_FAILURE
-        reason = "FRAMEWORK_AGENT_REQUIREMENTS_MISSING" if missing else "AGENT_RESPONSE_MISSING"
+        reason = ("FRAMEWORK_AGENT_REQUIREMENTS_MISSING" if missing else
+                  "DOMAIN_OUTCOME_NOT_ACCEPTED" if candidate_response or missing_inputs else "AGENT_RESPONSE_MISSING")
         retryable = False
     evidence_refs = tuple(dict.fromkeys((
         *(ref for result in skill_results for ref in result.evidence_refs),
@@ -661,7 +681,7 @@ def _adapt_framework_result(
         producer_version,
         facts=facts,
         evidence_refs=evidence_refs,
-        missing_inputs=missing_inputs,
+        missing_inputs=missing_inputs if status is AgentResultStatus.NEEDS_USER_INPUT else (),
         candidate_response=(None if missing_inputs else candidate_response or next(
             (result.candidate_response for result in skill_results if result.candidate_response), None)),
         retryable=retryable,
