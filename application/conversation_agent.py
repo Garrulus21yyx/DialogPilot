@@ -292,6 +292,7 @@ class ConversationAgent:
                 "CONTEXT_BUDGET_EXCEEDED",
             )
         except ConversationProviderOutputError:
+            logger.exception("Conversation planning output protocol rejected")
             return TurnProposal(
                 ProposalDisposition.INVALID_PROVIDER_OUTPUT, (),
                 "CONVERSATION_PROVIDER_OUTPUT_INVALID",
@@ -310,6 +311,7 @@ class ConversationAgent:
                 raw, observations, state, registry, turn_context,
             )
         except (KeyError, TypeError, ValueError):
+            logger.exception("Conversation planning semantic contract rejected")
             return TurnProposal(
                 ProposalDisposition.INVALID_PROVIDER_OUTPUT, (),
                 "CONVERSATION_PROVIDER_OUTPUT_INVALID",

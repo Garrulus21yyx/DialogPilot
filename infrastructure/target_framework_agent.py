@@ -119,7 +119,10 @@ class TargetFrameworkAgent:
         except ValueError:
             return self._failure(context, "INVALID_AGENT_CAPABILITY_ENVELOPE")
 
-        pinned = HumanMessage(content=prompt, id=f"task-context:{item.work_item_id}")
+        # Work IDs are turn-local. SDK add_messages replaces equal IDs in place;
+        # bind the prompt to the execution contract so a resumed revision appends
+        # a new user input while replaying the same execution remains idempotent.
+        pinned = HumanMessage(content=prompt, id=f"task-context:{item.fingerprint}")
         system = self._system(context)
         overhead = model_overhead_tokens(system, tools)
         graph = create_agent(

@@ -7,6 +7,7 @@ import asyncio
 import hashlib
 from datetime import datetime, timezone
 import json
+import logging
 import os
 from pathlib import Path
 import subprocess
@@ -58,6 +59,12 @@ async def run(args):
     policy = ModelPolicy.from_env(values)
     profile = policy.profile(ModelRole.WORKER)
     args.output.mkdir(parents=True, exist_ok=False)
+    # Preserve existing owner-level error traces for failed end-to-end runs.
+    # No local variable dumps: provider credentials must not enter artifacts.
+    error_sink = logger.add(args.output / "errors.log", level="ERROR", diagnose=False, backtrace=False)
+    standard_errors = logging.FileHandler(args.output / "application-errors.log")
+    standard_errors.setLevel(logging.ERROR)
+    logging.getLogger("application").addHandler(standard_errors)
     db_name = "dialogpilot_tau3_full_" + uuid.uuid4().hex[:12]
     parts = urlsplit(args.database_url)
     db_url = urlunsplit((parts.scheme, parts.netloc, "/" + db_name, parts.query, ""))
@@ -177,6 +184,9 @@ async def run(args):
             connection.execute(sql.SQL("DROP DATABASE {} WITH (FORCE)").format(sql.Identifier(db_name)))
         manifest["status"] = "EVALUATED" if len(rows) == len(tasks) and all(r["status"] == "EVALUATED" for r in rows) else "INCOMPLETE"
         write(args.output / "manifest.json", manifest)
+        logger.remove(error_sink)
+        logging.getLogger("application").removeHandler(standard_errors)
+        standard_errors.close()
 
 
 if __name__ == "__main__":

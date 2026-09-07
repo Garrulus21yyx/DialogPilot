@@ -108,7 +108,8 @@ def test_memory_tool_receives_runtime_identity_and_returns_episode_provenance():
     assert model.bound_tool_names == ["service_episode_search", "request_user_input", "report_blocked", "read_tool_result"]
 
 
-def test_domain_input_resume_reuses_progress_after_postgres_checkpoint_reopen(postgres_database_url):
+@pytest.mark.parametrize("input_rounds", [1, 2, 3])
+def test_domain_input_resume_reuses_progress_after_postgres_checkpoint_reopen(postgres_database_url, input_rounds):
     from application.orchestration_runtime import OrchestrationRuntime
     from application.work_item import WorkPlan
     from infrastructure.langgraph_checkpoint import AsyncPostgresCheckpointOwner
@@ -123,9 +124,12 @@ def test_domain_input_resume_reuses_progress_after_postgres_checkpoint_reopen(po
             "args": {"query": "product"}}]),
         AIMessage(content="", tool_calls=[{"name": "request_user_input", "id": "ask-choice",
             "args": {"question": "Which option?"}}]),
+        *(AIMessage(content="", tool_calls=[{"name": "request_user_input", "id": f"ask-more-{i}",
+            "args": {"question": "Which additional option?"}}]) for i in range(input_rounds - 1)),
         AIMessage(content="The selected option is recorded."),
     ])
     original = replace(_item(), control=WorkControlBinding("persistent-objective", 1))
+    thread_id = f"persistent-progress-{input_rounds}"
     async def run():
         owner = AsyncPostgresCheckpointOwner(postgres_database_url, setup=True)
         async with owner as saver:
@@ -134,7 +138,7 @@ def test_domain_input_resume_reuses_progress_after_postgres_checkpoint_reopen(po
             runtime = OrchestrationRuntime(direct_executor=agent,
                 domain_workers={original.owner_agent: agent}, checkpointer=saver)
             board = await runtime.execute(WorkPlan((original,), original.work_item_id),
-                current_message="Look up the product and ask for my option", thread_id="persistent-progress",
+                current_message="Look up the product and ask for my option", thread_id=thread_id,
                 trusted_context=_context().trusted_context)
             assert board.results[0].status is AgentResultStatus.NEEDS_USER_INPUT
         owner = AsyncPostgresCheckpointOwner(postgres_database_url, setup=True)
@@ -143,13 +147,26 @@ def test_domain_input_resume_reuses_progress_after_postgres_checkpoint_reopen(po
                 registry=build_default_capability_registry("tenant-a"), system_prompt="Assist with this objective.")
             runtime = OrchestrationRuntime(direct_executor=agent,
                 domain_workers={original.owner_agent: agent}, checkpointer=saver)
-            resumed = replace(original, work_item_id="next-work", continuation_of=original.work_item_id,
-                              control=WorkControlBinding("persistent-objective", 2))
-            return await runtime.resume(WorkPlan((resumed,), resumed.work_item_id),
-                current_message="blue", thread_id="persistent-progress", trusted_context=_context().trusted_context)
+            previous = original
+            for index in range(input_rounds):
+                # Compiler-local IDs can recur across turns. The new message must
+                # append, not replace the previous segment's prompt in SDK state.
+                resumed = replace(original, work_item_id="next-work", continuation_of=previous.work_item_id,
+                                  control=WorkControlBinding("persistent-objective", index + 2))
+                board = await runtime.resume(WorkPlan((resumed,), resumed.work_item_id),
+                    current_message="blue", thread_id=thread_id, trusted_context=_context().trusted_context)
+                expected = AgentResultStatus.SUCCEEDED if index == input_rounds - 1 else AgentResultStatus.NEEDS_USER_INPUT
+                assert board.results[0].status is expected
+                previous = resumed
+            return board
     board = asyncio.run(run())
     assert board.results[0].status is AgentResultStatus.SUCCEEDED
     assert len(calls) == 1
+    assert len(seen_messages) == input_rounds + 2
+    task_messages = [message for message in seen_messages[-1]
+                     if message.type == "human" and (message.id or "").startswith("task-context:")]
+    assert len(task_messages) == input_rounds + 1
+    assert len({message.id for message in task_messages}) == len(task_messages)
     final_prompt = json.loads(prompts[-1])
     assert final_prompt["verified_facts"][0]["source_ref"] == "lookup-once"
     assert final_prompt["verified_facts"][0]["observed_at"]

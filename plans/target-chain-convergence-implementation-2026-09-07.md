@@ -1,5 +1,28 @@
 # Target 主链单路径收敛实施
 
+## 当前主线：恢复原始 τ³ 两任务闭环
+
+- in_progress：以 train 任务 0、1 和原 max_steps=80 / completion_budget=4096 重跑当前主链。
+- 上次 native-replies-v1 两条均为 ERROR（未成功发布），official_reward=null，不冒称官方评分零。
+- 验收：官方 ALL/ENV/ACTION 结果、实际调用与最终业务状态、跨轮追问续接、Publication。
+- 只修实际阻断闭环的 owner-level 根因；压缩语义疑点归观察项，不另开专项。
+- 不改变模型/任务/预算来掩盖失败；运行在独立测试数据库，不访问生产业务数据。
+- pending：两条原任务验收后再测未用于修复的新任务；开发通过不等于整体准确率。
+
+### τ³ 续接修复证据（业务验收仍 in_progress）
+
+- v1 两任务分别在规划合同拒绝和审批恢复异常退出，reward=null；diagnostic-v2
+  任务 0 官方 ALL/ENV/ACTION 均为 0（未提交换货），任务 1 为用户模拟器无有效输出，reward=null。
+- 连续追问的共享根因已由 PostgreSQL 测试复现：Turn-local work_item_id 被用作 SDK 消息 ID；
+  第二次恢复复用 ID，add_messages 原位替换旧提示，新输入没有进入消息尾部，旧交互再次结束执行。
+- 修复 Owner 为 TargetFrameworkAgent 的消息输入边界：采用已有 WorkItem.fingerprint 标识执行合同；
+  新 revision 追加消息，相同合同重放保持稳定身份，不修改 SDK reducer、不新增恢复运行时。
+- 正向验收覆盖 1/2/3 次输入恢复、重新打开 PostgreSQL checkpoint、每轮实际进入模型、
+  提示身份唯一、旧工具证据保留、已完成读取只执行一次。修改前 1 passed / 2 failed，修改后领域测试 23 passed。
+- 相关回归 102 passed；τ³ 适配测试需额外加载官方评测环境，单独运行，不把缺包 skip 当通过。
+- 原任务同预算重跑目录：artifacts/eval/tau3-main-dev2-2026-09-07-resume-v3/。
+  当前仅证明恢复组件修复，不宣称换货闭环或整体质量已通过。
+
 当前续作：implementation_verified / quality_review_pending。
 真实压缩开发评测已运行：8 个新样本 × 2 种最新工具批次，沿用生产实现及默认 .70/.85 阈值。
 结构检查 16/16，自动 judge 16/16，但主执行助手复查提出 2 项语义异议，不能标为质量闭环。
