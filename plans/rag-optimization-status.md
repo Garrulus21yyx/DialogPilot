@@ -139,4 +139,4 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - G2全链首次导入在API前失败：模拟web/store来源与未配置catalog不一致。修复位于模拟资料owner：显式提供模拟渠道目录，校准入口注入同一store快照供导入和runtime使用；生产默认不变。首次失败不计质量样本。保留失败说明后在新隔离输出目录重跑，API预算仍16。
 - G2全链v2：5次Flash，拆封例完成且引用支持；假设到账例在规划schema校验失败，未进入检索。根因是provider prompt要求所有规则查询填allow_action_proposals=false，但schema只允许delegate_task携带。owner级修复prompt和字段description明确delegate-only，schema/编译器授权边界不放宽。v3重跑2例，剩余API上限11，使本阶段总预算不超过16；保留v2失败证据，不把协议失败当幻觉。
 
-- G2全链结果：catalog fixture修复后v2为1完成/1规划协议失败（5次Flash）；修复planner提示的delegate-only字段合同后v3两条完成并verified（8次Flash）。总13次，未超16。实际来源/引用审计2/2，Codex逐项语义核对2/2支持，非总体准确率。78项测试通过。见[报告](../docs/rag-g2-full2-2026-09-07.zh-CN.md)。下一步扩回冻结回归并建立验收矩阵，保留失败轮；G2/G4整体量化仍开放。交付待提交推送。
+- G2全链结果：catalog fixture修复后v2为1完成/1规划协议失败（5次Flash）；修复planner提示的delegate-only字段合同后v3两条完成并verified（8次Flash）。总13次，未超16。实际来源/引用审计2/2，Codex逐项语义核对2/2支持，非总体准确率。78项测试通过。见[报告](../docs/rag-g2-full2-2026-09-07.zh-CN.md)。下一步扩回冻结回归并建立验收矩阵，保留失败轮；G2/G4整体量化仍开放。交付：`2e5becc` 已提交并推送。
