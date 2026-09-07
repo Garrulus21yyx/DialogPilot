@@ -326,7 +326,7 @@ class TargetFrameworkAgent:
             description=description, response_format="content_and_artifact")
             for handler, name, description in (
                 (request_user_input, "request_user_input",
-                 "Identify information or a choice only the user can provide. Supply a concise question hint. Ends this segment; the conversation layer owns the final wording and runtime binds the answer."),
+                 "Ask only for unresolved information or choices the user must supply. Do not ask the user to repeat a stated request or combine a missing choice with permission to execute. Approval of prepared parameters belongs to the runtime, not this tool. Supply a concise question hint. Ends this segment; the conversation layer owns the final wording and runtime binds the answer."),
                 (report_blocked, "report_blocked",
                  "Explain why the objective cannot proceed with available capabilities or evidence. Ends this segment without claiming completion."))]
 
