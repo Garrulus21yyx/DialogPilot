@@ -150,4 +150,4 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 
 - G4数据审计预注册（405f0ed）：仅核对本地历史case/query/prediction文件、原始数据checksum和现有分组锁；API0，不读取gold选择易例。Doc2Dial按conversation排除已出现分组；WixQA按问题及相关article交叉检查；MTRAG按task/conversation及query核查。存在文件只证明暴露/准备，不自动证明执行；本地未发现也不证明全局未使用。交付可复算清单、重叠计数与未确定项，本轮不改检索策略、不宣称新鲜验收完成。
 
-- G4审计结果：278份文件/0解析失败，21份原始source checksum一致。继承旧消耗清单后Doc2Dial排除516/661对话；WixQA问题匹配15/16、相关文章匹配37/17（各200题）。MTRAG原始110对话与75/35分组已存在，纠正矩阵此前缺失记录；扫描未匹配不签发新鲜证明。2项测试通过，API0。详见[审计报告](../docs/rag-g4-data-exposure-2026-09-07.zh-CN.md)。下一步补MTRAG生产检索数据适配及完整语料/qrel核对；G4/G2保持开放，当前不调策略。交付待本轮commit/push。
+- G4审计结果：278份文件/0解析失败，21份原始source checksum一致。继承旧消耗清单后Doc2Dial排除516/661对话；WixQA问题匹配15/16、相关文章匹配37/17（各200题）。MTRAG原始110对话与75/35分组已存在，纠正矩阵此前缺失记录；扫描未匹配不签发新鲜证明。2项测试通过，API0。详见[审计报告](../docs/rag-g4-data-exposure-2026-09-07.zh-CN.md)。下一步补MTRAG生产检索数据适配及完整语料/qrel核对；G4/G2保持开放，当前不调策略。交付：`f45cb41` 已提交并推送到 origin/feat/customer-service-target-architecture。
