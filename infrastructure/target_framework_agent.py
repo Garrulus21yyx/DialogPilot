@@ -134,7 +134,7 @@ class TargetFrameworkAgent:
             middleware=[
                 WorkControlMiddleware(self._control_guard),
                 ToolResultPersistence(self._archive, max(256, self._context_budget.available_tokens // 5)),
-                InteractionBoundaryMiddleware(tool_id for ref in item.allowed_actions
+                InteractionBoundaryMiddleware("prepare_" + tool_id for ref in item.allowed_actions
                     for tool_id in self._registry.action(ref).allowed_tool_ids),
                 AgentProgressMiddleware(),
                 ContextCompaction(self._model, self._archive,
@@ -289,7 +289,11 @@ class TargetFrameworkAgent:
         reader = StructuredTool.from_function(coroutine=read_tool_result,
             name="read_tool_result",
             description="Read a bounded page of an archived result or working history in this task. This reads the original snapshot, never reruns a business tool. Continue with next_offset when needed.")
-        return [*tools, *self._interaction_tools(), reader]
+        exposed = [*tools, *self._interaction_tools(), reader]
+        names = [tool.name for tool in exposed]
+        if len(names) != len(set(names)):
+            raise ValueError("agent tool names must be unique after action preparation binding")
+        return exposed
 
     def _interaction_tools(self) -> list[StructuredTool]:
         async def request_user_input(question: Annotated[str, Field(min_length=1)], runtime: ToolRuntime[AgentContextView, dict]):
@@ -337,8 +341,12 @@ class TargetFrameworkAgent:
             return feedback, framework_artifact(result)
 
         return StructuredTool.from_function(
-            coroutine=propose, name=definition.name,
-            description=definition.description + " Propose this action for preparation and user approval; no write occurs before approval.",
+            coroutine=propose, name="prepare_" + definition.name,
+            description=("Prepare a proposal only; this tool does not execute the business action. "
+                "Call once all required choices are known, before requesting approval. "
+                "The conversation layer presents this exact proposal and collects approval; the runtime then executes it. "
+                "Underlying execution operation (its confirmation precondition is enforced later by runtime): "
+                + definition.description),
             args_schema=schema, infer_schema=False, response_format="content_and_artifact",
         )
 
@@ -481,7 +489,8 @@ class TargetFrameworkAgent:
             f"{self._system_prompt}\n\n"
             "Complete only the supplied ecommerce objective. Select from the "
             "provided read-only tools, reusable skills and registered action proposals as needed. "
-            "A write-tool selection proposes an action for approval, not a completed write. "
+            "Tools named prepare_* prepare proposals; the actual write APIs described in business policy are not exposed here. "
+            "Business policy requiring confirmation before execution still applies: runtime enforces it after preparation. "
             "Resolve missing choices before preparing an action. Once its arguments are known, use the action proposal directly rather than asking for a preliminary confirmation. Preparation does not end your turn: answer remaining questions using read-only evidence, explain limitations, and describe what approval would execute. Never claim that a proposal has already executed. "
             "When pending_approval is supplied, the conversation already owns that exact decision. Answer the current question without preparing it again. A reminder that approval is still needed belongs in your normal answer, not request_user_input. Use request_user_input only for genuinely missing information or choices needed to answer the current question, never as a substitute for the existing approval. "
             "Return a concise task result to the conversation layer: findings, evidence limitations and what remains unresolved. The conversation layer writes the customer reply; you do not draft it or ask for action approval. Use existing evidence to resolve terminology where justified; ask the user only for information or choices they can actually supply, not to certify a technical fact. When such input is necessary, call request_user_input(question). When capabilities or evidence cannot complete the objective, call report_blocked(reason). These calls end this segment; do not also emit a final response or another action in the same batch. "

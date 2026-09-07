@@ -5,7 +5,7 @@ import json
 from datetime import datetime, timezone
 from pydantic import TypeAdapter
 
-from application.agent_result import AgentResult, AgentResultStatus, FactRecord, FactSourceKind
+from application.agent_result import AgentResult, AgentResultStatus, FactRecord, FactSourceKind, merge_facts
 from application.knowledge_tool_contract import tool_domain_outcome
 from mcp.tool_manager import ToolResult
 
@@ -39,7 +39,7 @@ def fact_from_tool_result(item, result: ToolResult) -> FactRecord:
         else FactSourceKind.VERIFIED_STATE
     )
     return FactRecord(
-        item.aggregate_ref or result.query_ref or f"tool-observation:{result.tool_name}:{result.call_id}",
+        result.query_ref or item.aggregate_ref or f"tool-observation:{result.tool_name}:{result.call_id}",
         authority,
         json.dumps(
             result.data,
@@ -52,21 +52,6 @@ def fact_from_tool_result(item, result: ToolResult) -> FactRecord:
         str(result.receipt_id or result.call_id),
         result.tool_name,
         str(result.output_schema_version or "tool-output-v1"),
-        datetime.now(timezone.utc),
+        result.observed_at or datetime.now(timezone.utc),
+        observation_started_at=result.observation_started_at,
     )
-
-
-def merge_facts(*groups: tuple[FactRecord, ...]) -> tuple[FactRecord, ...]:
-    merged: dict[tuple[str, ...], FactRecord] = {}
-    for fact in (fact for group in groups for fact in group):
-        key = (
-            fact.subject_ref,
-            fact.requirement_id,
-            fact.source_ref,
-            fact.producer_id,
-            fact.producer_version,
-        )
-        prior = merged.setdefault(key, fact)
-        if prior.value_json != fact.value_json:
-            raise ValueError("one evidence identity produced conflicting facts")
-    return tuple(merged.values())

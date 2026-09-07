@@ -14,12 +14,13 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command, Overwrite, Send, interrupt
 
 from application.agent_result import (
+    merge_facts as _merge_facts,
     AgentResult,
     AgentResultStatus,
     EvidenceRequest,
     FactRecord,
 )
-from application.result_board import ResultBoard, ResultBoardSnapshot
+from application.result_board import ResultBoard, ResultBoardSnapshot, current_facts
 from application.work_item import ControlMode, WorkItem, WorkPlan
 from application.work_control import WorkControlGuard, WorkSuperseded
 from application.conversation_state import PendingApprovalState
@@ -194,8 +195,8 @@ class OrchestrationRuntime:
                 "recent_relevant_turns": state.get("recent_relevant_turns", ()),
                 "evidence_refs": state.get("evidence_refs", ()),
                 "token_budget": state.get("token_budget", 6000),
-                "facts": _merge_facts(state.get("facts", ()),
-                    state.get("continuation_facts", {}).get(item.work_item_id, ())),
+                "facts": current_facts(_merge_facts(state.get("facts", ()),
+                    state.get("continuation_facts", {}).get(item.work_item_id, ()))),
                 "trusted_context": state.get("trusted_context", {}),
                 "pending_approval": state.get("pending_approval"),
                 "dependency_results": tuple(
@@ -367,10 +368,10 @@ class OrchestrationRuntime:
                 )
             current = replace(
                 context,
-                verified_facts=_merge_facts(
+                verified_facts=current_facts(_merge_facts(
                     context.verified_facts,
                     resolved_facts,
-                ),
+                )),
             )
             result = await executor(current)
             if result.status is not AgentResultStatus.NEEDS_EVIDENCE:
@@ -391,7 +392,7 @@ class OrchestrationRuntime:
                     facts=_merge_facts(resolved_facts, result.facts),
                 )
             found = []
-            available = _merge_facts(current.verified_facts, result.facts)
+            available = current_facts(_merge_facts(current.verified_facts, result.facts))
             for request in requested:
                 seen_requests.add((
                     request.requirement_id,
@@ -559,27 +560,6 @@ def _work_plan_fingerprint(plan: WorkPlan) -> str:
         separators=(",", ":"),
     ).encode("utf-8")
     return "work-plan:v1:" + hashlib.sha256(raw).hexdigest()
-
-
-def _merge_facts(*groups: tuple[FactRecord, ...]) -> tuple[FactRecord, ...]:
-    merged: dict[
-        tuple[str, str, str, str, str],
-        FactRecord,
-    ] = {}
-    for fact in (item for group in groups for item in group):
-        key = (
-            fact.subject_ref,
-            fact.requirement_id,
-            fact.source_ref,
-            fact.producer_id,
-            fact.producer_version,
-        )
-        prior = merged.setdefault(key, fact)
-        if prior.value_json != fact.value_json:
-            raise OrchestrationRuntimeError(
-                "one evidence identity produced conflicting values"
-            )
-    return tuple(merged.values())
 
 
 def _normalize_board(board: ResultBoardSnapshot) -> ResultBoardSnapshot:

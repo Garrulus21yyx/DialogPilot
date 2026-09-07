@@ -127,6 +127,8 @@ class ToolResult:
     output_schema_version: str = ""
     receipt_schema_version: str = ""
     query_ref: str = ""
+    observation_started_at: datetime | None = None
+    observed_at: datetime | None = None
 
 
 @dataclass(frozen=True)
@@ -667,7 +669,7 @@ class MCPToolManager:
         if use_cache and tool.cache_ttl > 0:
             cached = self._get_cache(name, params, cache_rerank_top_k, cache_scope)
             if cached is not None:
-                cached_data, cached_reranked = cached
+                cached_data, cached_reranked, cached_start, cached_end = cached
                 tool.stats.total += 1
                 tool.stats.success += 1
                 return ToolResult(
@@ -676,6 +678,8 @@ class MCPToolManager:
                     tool_name=name,
                     cached=True,
                     reranked=cached_reranked,
+                    observation_started_at=cached_start,
+                    observed_at=cached_end,
                 )
 
         # 熔断检查
@@ -684,6 +688,7 @@ class MCPToolManager:
             return await self._fallback_result(tool, params, context, error)
 
         t0 = time.monotonic()
+        observation_started_at = datetime.now(timezone.utc)
         tool.stats.total += 1
         try:
             # 参数校验（根据 JSON Schema 的 required 和 properties.type）
@@ -693,6 +698,7 @@ class MCPToolManager:
                 raise ToolRejected(str(exc)) from exc
 
             data = await asyncio.wait_for(self._run_handler(tool, params, context), timeout=tool.timeout_s)
+            observed_at = datetime.now(timezone.utc)
             latency = (time.monotonic() - t0) * 1000
 
             effect_status = ToolEffectStatus.NONE if tool.read_only else ToolEffectStatus.OUTCOME_UNKNOWN
@@ -718,6 +724,7 @@ class MCPToolManager:
                 self._set_cache(
                     name, params, data, tool.cache_ttl,
                     cache_rerank_top_k, reranked, cache_scope,
+                    observation_started_at, observed_at,
                 )
 
             return ToolResult(
@@ -728,6 +735,8 @@ class MCPToolManager:
                 reranked=reranked,
                 effect_status=effect_status.value,
                 receipt_id=receipt_id,
+                observation_started_at=observation_started_at,
+                observed_at=observed_at,
             )
 
         except ToolRejected as exc:
@@ -857,13 +866,13 @@ class MCPToolManager:
 
     def _get_cache(
         self, name: str, params: Dict, rerank_top_k: int = 0, cache_scope: str = "",
-    ) -> Optional[Tuple[Any, bool]]:
+    ) -> Optional[Tuple[Any, bool, datetime | None, datetime | None]]:
         """读取未过期缓存；过期项会在读取时删除。"""
         key = self._cache_key(name, params, rerank_top_k, cache_scope)
         if key in self._cache:
-            data, expire_at, reranked = self._cache[key]
+            data, expire_at, reranked, started_at, observed_at = self._cache[key]
             if time.monotonic() < expire_at:
-                return data, reranked
+                return data, reranked, started_at, observed_at
             del self._cache[key]
         return None
 
@@ -876,6 +885,8 @@ class MCPToolManager:
         rerank_top_k: int = 0,
         reranked: bool = False,
         cache_scope: str = "",
+        observation_started_at: datetime | None = None,
+        observed_at: datetime | None = None,
     ) -> None:
         """写入带单调时钟过期点的进程内缓存。"""
         if len(self._cache) >= 5000:
@@ -883,7 +894,7 @@ class MCPToolManager:
             for k in list(self._cache)[:1250]:
                 del self._cache[k]
         self._cache[self._cache_key(name, params, rerank_top_k, cache_scope)] = (
-            data, time.monotonic() + ttl, reranked,
+            data, time.monotonic() + ttl, reranked, observation_started_at, observed_at,
         )
 
     # ── Agent 授权、审批与审计 ─────────────────────────────────────────────────

@@ -12,6 +12,7 @@ from typing import Mapping, Protocol
 from application.agent_result import AgentResultStatus
 from application.chat_contracts import StageObservation, StageStatus
 from application.composition_output import render_composition, prepare_composition_payload
+from application.result_board import current_facts
 
 
 # CJK prose may touch an ID; ASCII identifier characters must not be sliced.
@@ -233,7 +234,7 @@ class ResponseAssembler:
         # The injected verifier is shared by business and knowledge composition.
         # Original facts, receipts and outcomes are evidence; generated summaries
         # are not promoted into independent proof of their own wording.
-        facts = [json.loads(fact.value_json) for result in board.results for fact in result.facts
+        facts = [json.loads(fact.value_json) for fact in _current_board_facts(board)
                  if fact.requirement_id != "knowledge.active_source"]
         receipts = [claim.value for claim in _allowed_claims(board) if claim.kind == 'RECEIPT']
         proposals = [claim.value for claim in _allowed_claims(board, pending_approval, requested_inputs=requested_inputs)
@@ -465,6 +466,7 @@ def _input_context(requested_inputs):
 
 def _allowed_claims(board, pending_approval=None, *, requested_inputs=()) -> tuple[AllowedClaim, ...]:
     claims = []
+    current = _current_board_facts(board)
     if pending_approval and not requested_inputs:
         claims.append(AllowedClaim("proposal:" + pending_approval.work_item_id, "PENDING_ACTION",
             {"action_ref": pending_approval.action_ref,
@@ -496,6 +498,8 @@ def _allowed_claims(board, pending_approval=None, *, requested_inputs=()) -> tup
                 result.evidence_refs,
             ))
         for index, fact in enumerate(result.facts, start=1):
+            if fact not in current:
+                continue
             claims.append(AllowedClaim(
                 f"fact:{result.work_item_id}:{index}",
                 "KNOWLEDGE_FACT" if fact.requirement_id == "knowledge.active_source" else
@@ -529,7 +533,9 @@ def _message(locale, chinese, english):
 
 
 def _render_board(board, *, locale="zh-CN") -> str:
+    from dataclasses import replace
     sections = []
+    current = _current_board_facts(board)
     for result in board.results:
         rendered = []
         for receipt in result.action_receipts:
@@ -542,7 +548,7 @@ def _render_board(board, *, locale="zh-CN") -> str:
                 rendered.append(_message(locale, "请求已提交。", "The request has been submitted."))
         # A fallback cannot re-publish model-authored candidates after a failed
         # support check. Facts, committed effects and typed outcomes survive.
-        text = _render_verified_facts(result, locale=locale)
+        text = _render_verified_facts(replace(result, facts=tuple(f for f in result.facts if f in current)), locale=locale)
         if text:
             rendered.append(text)
         if result.status not in _SUCCESS:
@@ -553,10 +559,14 @@ def _render_board(board, *, locale="zh-CN") -> str:
         elif result.status is AgentResultStatus.PARTIAL:
             rendered.append(_message(locale, "部分请求尚未完成。", "Part of the request remains incomplete."))
         if not rendered:
-            rendered.append(_message(locale, "暂时无法提供可靠答复，请稍后重试或联系人工客服。",
-                "I cannot provide a reliable answer right now. Please try again later or contact support."))
+            rendered.append(_message(locale, "详细答复暂时未能完成核验。",
+                "The detailed reply could not be verified."))
         sections.extend(rendered)
     return "\n".join(sections) or _message(locale, "暂时没有可发布的结果。", "No result is available yet.")
+
+
+def _current_board_facts(board):
+    return current_facts(tuple(fact for result in board.results for fact in result.facts))
 
 
 _OWNER_LABELS = {

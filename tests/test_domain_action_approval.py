@@ -127,7 +127,7 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
             *([AIMessage(content="", tool_calls=[{"name": "request_user_input",
                 "args": {"question": "Which order should I cancel?"},
                 "id": "need-order"}])] if decision == "ask_first" else []),
-            AIMessage(content="", tool_calls=[{"name": "order_cancel",
+            AIMessage(content="", tool_calls=[{"name": "prepare_order_cancel",
                 "args": {"order_id": "DP1234"}, "id": "cancel-proposal"}]),
             AIMessage(content="Order DP1234 has not been cancelled. Shall I cancel it?"),
             *([AIMessage(content="", tool_calls=[{"name": "request_user_input",
@@ -186,6 +186,7 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                 assert question.state_after.pending_approval == pending
                 assert clarification.checkpoint_thread_id != pending.checkpoint_thread_id
                 assert domain.contexts[-1].pending_approval == pending
+                assert "prepare_order_cancel" not in model.bound_tool_names
                 assert "order_cancel" not in model.bound_tool_names
                 prompt = json.loads(domain._build_prompt(domain.contexts[-1]))
                 assert prompt["pending_approval"] == {
@@ -199,6 +200,7 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                 assert answered.state_after.pending_interaction is None
                 assert answered.state_after.pending_approval == pending
                 assert domain.contexts[-1].pending_approval == pending
+                assert "prepare_order_cancel" not in model.bound_tool_names
                 assert "order_cancel" not in model.bound_tool_names
                 assert calls == ["read"]
             if decision == "supersede":
@@ -222,7 +224,8 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                 (result.status.value, result.reason_code) for result in second.board.results]
             assert second.board.results[0].action_receipts[0].receipt_id == "cancel-receipt"
             assert domain.contexts[-1].pending_approval is None
-            assert "order_cancel" in model.bound_tool_names
+            assert "prepare_order_cancel" in model.bound_tool_names
+            assert "order_cancel" not in model.bound_tool_names
             assert model.calls == (5 if decision == "clarify_during_approval" else
                                    4 if decision == "ask_first" else 3)
         finally:

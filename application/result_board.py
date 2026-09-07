@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from application.agent_result import AgentResult, AgentResultStatus, FactRecord
+from application.agent_result import AgentResult, AgentResultStatus, FactRecord, FactSourceKind, merge_facts
 from application.work_item import WorkItem, WorkPlan
 
 
@@ -110,7 +110,7 @@ class ResultBoard:
             )
         )
 
-        facts = tuple(fact for result in effective for fact in result.facts)
+        facts = current_facts(merge_facts(*(result.facts for result in effective)))
         conflicts = self._conflicts(facts)
         satisfied = {
             fact.requirement_id for fact in facts
@@ -147,3 +147,28 @@ class ResultBoard:
             if prior != fact.value_json:
                 conflicts.add(f"{key[0]}:{key[1]}")
         return tuple(sorted(conflicts))
+
+
+def current_facts(facts: tuple[FactRecord, ...]) -> tuple[FactRecord, ...]:
+    """Project sequential authoritative reads; retain unordered conflicts and history upstream.
+
+    Only an actual read begun after a previous read completed supersedes it.
+    Cache/legacy observations without a trusted interval cannot establish ordering.
+    """
+    def identity(fact):
+        return (fact.subject_ref, fact.requirement_id, fact.producer_id, fact.producer_version, fact.source_ref)
+    values = {}
+    contradictory = set()
+    for fact in facts:
+        key = identity(fact)
+        if values.setdefault(key, fact.observation_signature) != fact.observation_signature:
+            contradictory.add(key)
+    def supersedes(new, old):
+        return (new.source_kind is old.source_kind is FactSourceKind.VERIFIED_STATE
+            and identity(old) not in contradictory and identity(new) not in contradictory
+            and (new.subject_ref, new.requirement_id, new.producer_id, new.producer_version)
+                == (old.subject_ref, old.requirement_id, old.producer_id, old.producer_version)
+            and new.source_ref != old.source_ref
+            and new.observation_started_at is not None and old.observation_started_at is not None
+            and new.observation_started_at > old.observed_at)
+    return tuple(fact for fact in facts if not any(supersedes(other, fact) for other in facts))

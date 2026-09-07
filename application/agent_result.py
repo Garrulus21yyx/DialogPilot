@@ -46,6 +46,12 @@ class FactRecord:
     producer_version: str
     observed_at: datetime
     valid_until: datetime | None = None
+    observation_started_at: datetime | None = None
+
+    @property
+    def observation_signature(self):
+        return (self.value_json, self.source_kind, self.valid_until, self.observation_started_at,
+                self.observed_at if self.observation_started_at is not None else None)
 
     def __post_init__(self) -> None:
         if any(not str(value or "").strip() for value in (
@@ -60,11 +66,25 @@ class FactRecord:
         _canonical_json(self.value_json, "fact value")
         if self.observed_at.utcoffset() is None:
             raise AgentResultContractError("fact observation time must be timezone-aware")
+        if self.observation_started_at is not None and (
+            self.observation_started_at.utcoffset() is None or self.observation_started_at > self.observed_at
+        ):
+            raise AgentResultContractError("fact observation interval must be aware and ordered")
         if self.valid_until is not None:
             if self.valid_until.utcoffset() is None:
                 raise AgentResultContractError("fact validity time must be timezone-aware")
             if self.valid_until < self.observed_at:
                 raise AgentResultContractError("fact cannot expire before observation")
+
+
+def merge_facts(*groups: tuple[FactRecord, ...]) -> tuple[FactRecord, ...]:
+    merged = {}
+    for fact in (fact for group in groups for fact in group):
+        key = (fact.subject_ref, fact.requirement_id, fact.source_ref, fact.producer_id, fact.producer_version)
+        prior = merged.setdefault(key, fact)
+        if prior.observation_signature != fact.observation_signature:
+            raise AgentResultContractError("one evidence identity produced conflicting values or observation metadata")
+    return tuple(merged.values())
 
 
 @dataclass(frozen=True)
