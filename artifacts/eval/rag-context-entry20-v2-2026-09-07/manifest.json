@@ -1,0 +1,16 @@
+{
+  "scope": "build_target_runtime + PostgreSQL history + production memory projection/context loader + manager.prepare; excludes HTTP admission, execution, answer and publication",
+  "database": "rag_context_8dff6ea33e",
+  "case_count": 20,
+  "api_calls": 20,
+  "profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "history_not_handbuilt": true,
+  "cold_projection": true,
+  "query_extraction": "validated WorkPlan knowledge_search arguments; raw SDK tool wrapper is not authoritative",
+  "offline_extraction_correction": true
+}
