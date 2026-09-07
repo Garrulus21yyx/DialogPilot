@@ -221,41 +221,42 @@ class PostgresHybridBackend:
                 FROM retrieval.{table}
                 WHERE tenant_id=%s AND generation_id=%s AND {filters}
             ),
-            stats AS (
+            -- Reuse scope statistics once, independently of join-plan selection.
+            stats AS MATERIALIZED (
                 SELECT count(*)::double precision AS n,
                        GREATEST(avg(dl), 1.0) AS avgdl
                 FROM scoped
             ),
-            term_stats AS (
-                SELECT q.token, count(*)::double precision AS df
-                FROM query_terms q
-                JOIN scoped d ON q.token = ANY(d.lexical_terms)
-                GROUP BY q.token
-            ),
-            term_frequency AS (
-                SELECT d.candidate_id, d.{source_column}, d.{revision_column},
-                       d.provenance_sha256, d.{freshness_column}, d.dl,
-                       q.token, count(*)::double precision AS tf
+            term_frequency AS MATERIALIZED (
+                SELECT d.candidate_id, d.dl, terms.value AS token,
+                       count(*)::double precision AS tf
                 FROM scoped d
-                JOIN query_terms q ON q.token = ANY(d.lexical_terms)
                 CROSS JOIN LATERAL unnest(d.lexical_terms) AS terms(value)
-                WHERE terms.value = q.token
-                GROUP BY d.candidate_id, d.{source_column}, d.{revision_column},
-                         d.provenance_sha256, d.{freshness_column}, d.dl, q.token
+                JOIN query_terms q ON q.token = terms.value
+                GROUP BY d.candidate_id, d.dl, terms.value
+            ),
+            term_stats AS MATERIALIZED (
+                SELECT token, count(*)::double precision AS df
+                FROM term_frequency
+                GROUP BY token
+            ),
+            scores AS (
+                SELECT tf.candidate_id,
+                       sum(
+                           ln(1.0 + (stats.n - ts.df + 0.5) / (ts.df + 0.5))
+                           * (tf.tf * 2.2)
+                           / (tf.tf + 1.2 * (0.25 + 0.75 * tf.dl / stats.avgdl))
+                           ORDER BY tf.token
+                       ) AS score
+                FROM term_frequency tf
+                JOIN term_stats ts USING (token)
+                CROSS JOIN stats
+                GROUP BY tf.candidate_id
             )
-            SELECT tf.candidate_id, tf.{source_column}, tf.{revision_column},
-                   tf.provenance_sha256,
-                   sum(
-                       ln(1.0 + (stats.n - ts.df + 0.5) / (ts.df + 0.5))
-                       * (tf.tf * 2.2)
-                       / (tf.tf + 1.2 * (0.25 + 0.75 * tf.dl / stats.avgdl))
-                   ) AS score,
-                   tf.{freshness_column}
-            FROM term_frequency tf
-            JOIN term_stats ts USING (token)
-            CROSS JOIN stats
-            GROUP BY tf.candidate_id, tf.{source_column}, tf.{revision_column},
-                     tf.provenance_sha256, tf.{freshness_column}
+            SELECT tf.candidate_id, d.{source_column}, d.{revision_column},
+                   d.provenance_sha256, tf.score, d.{freshness_column}
+            FROM scores tf
+            JOIN scoped d USING (candidate_id)
             ORDER BY score DESC, tf.candidate_id
             LIMIT %s
         """).format(

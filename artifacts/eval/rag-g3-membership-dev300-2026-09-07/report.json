@@ -1,0 +1,40 @@
+{
+  "scope": "EXPOSED_DEV_LOCAL_CANDIDATES_ONLY_NOT_POSTGRES_OR_ANSWERS",
+  "api_calls": 0,
+  "cases": 300,
+  "source_k": 20,
+  "candidate_k": 20,
+  "dense_weight": 0.25,
+  "rrf_k": 10,
+  "scores_sha256": "0a7959bac482f0cfae5357192720ee8d6ebfedb5d2447530c9f26fb9d4676827",
+  "dataset_checksums": {
+    "case_count": 300,
+    "cases_sha256": "f0e282d4e6b0594dfc98267322bd865e846b4cc00dbbe8d534d2e6ebc6ec6363",
+    "corpus_sha256": "89a8828b798c97946e6d150851fe046692f1c8c58e1795648223345a5d526281",
+    "dataset_id": "doc2dial-rag-mini-dev-v1",
+    "document_count": 100,
+    "schema_version": 1,
+    "source": {
+      "dataset": "Doc2Dial v1.0.1",
+      "license": "CC-BY-3.0",
+      "selection": "deterministic domain-balanced prefix plus distractors",
+      "url": "https://doc2dial.github.io/file/doc2dial_v1.0.1.zip"
+    }
+  },
+  "adopted": false,
+  "adoption_reason": "Final visible evidence and production route-family integration untested",
+  "arms": {
+    "baseline": {
+      "complete": 207,
+      "mrr20": 0.48314239429874106,
+      "ndcg20": 0.5322248820474319
+    },
+    "balanced": {
+      "complete": 218,
+      "mrr20": 0.4854043095277616,
+      "ndcg20": 0.5417166387469947
+    }
+  },
+  "rescues": 21,
+  "harms": 10
+}
