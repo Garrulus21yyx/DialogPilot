@@ -1,0 +1,21 @@
+{
+  "task_id": "1",
+  "official_reward": null,
+  "langfuse_session_id": "tau3-0dd165913bad4dbc8ed8f60f6ade7575",
+  "status": "ERROR",
+  "error_type": "ValueError",
+  "error": "UserMessage must have either content or tool_calls. Got UserMessage\nis_final_chunk: True",
+  "target_trace": [
+    {
+      "turn": 1,
+      "input": "Hi! I just received my order and I have a couple of exchanges I’d like to make—if it’s possible to do them together, that would be perfect. I got a mechanical keyboard and a smart thermostat, and I need to swap them out for different versions.",
+      "outcome": {
+        "workflow_run_id": "workflow-run:v1:4e7598ee719e0f37bf9dffce0c55404eba353086750cd3dba2812f690c155b52",
+        "signal_id": "interaction:v1:ac776fe6d805df3deffb4658fa0e9d96e0dc054ed87c2bb88b126cd61ca72ce1",
+        "kind": "FIELDS",
+        "expires_at": "2026-09-14T06:15:44.364808+00:00",
+        "interaction_publication_id": "publication:v1:adbdd0e8d0d7f6064788b936f83942e661326c5eb673fd021a3ec9a30ffd2d48"
+      }
+    }
+  ]
+}
