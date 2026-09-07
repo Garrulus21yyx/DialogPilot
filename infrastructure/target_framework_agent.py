@@ -55,6 +55,7 @@ from infrastructure.target_agent_middleware import AgentContextMiddleware, WorkC
 from core.framework_models import ModelInvocationError
 from infrastructure.target_action_preparation import TargetActionPreparation
 from infrastructure.target_domain_outcome import (
+    ACTION_INTERACTION_CONTRACT,
     DomainOutcomeReview, DomainOutcomeRejected, DomainOutcomeReviewUnavailable,
 )
 from mcp.tool_manager import MCPToolManager, ToolCallStatus, ToolResult
@@ -516,6 +517,7 @@ class TargetFrameworkAgent:
     def _system(self, context: AgentContextView) -> str:
         return (
             f"{self._system_prompt}\n\n"
+            f"{ACTION_INTERACTION_CONTRACT}\n"
             "Complete only the supplied ecommerce objective. "
             "The current message and other conversation topics are context, not additional objectives. Do not take over another task in that message. "
             "Select from the provided read-only tools, reusable skills and registered action proposals as needed. "

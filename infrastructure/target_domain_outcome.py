@@ -19,6 +19,20 @@ class DomainOutcomeReviewUnavailable(RuntimeError):
     """No semantic outcome was accepted; the original cause remains attached."""
 
 
+ACTION_INTERACTION_CONTRACT = """Action interaction has three stages with distinct owners:
+1. Resolve the requested targets from the user's constraints and business evidence.
+   Ask only for an unresolved value or an actual choice the policy requires the user
+   to supply. A stored option is not a user selection when policy requires one.
+   A uniquely resolved target set does not need a separate completeness confirmation.
+2. With those values available, prepare the proposal without executing it.
+3. Runtime presents the complete proposal and obtains one execution approval,
+   including policy-required confirmation of targets, full item list, consequences
+   and payment terms. Such pre-execution confirmations belong here, not stage 1.
+A missing-input question must ask only for its missing value/choice; do not add
+confirmation of already resolved targets or permission to proceed. This preserves
+required user choices without collecting the same execution approval twice.
+"""
+
 SYSTEM = """Assess a domain agent's proposed handback against its assigned objective.
 This is task acceptance, not customer prose grading or global replanning.
 The assigned objective is the only task. The original conversation is source context;
@@ -38,7 +52,8 @@ receipt can establish its matching action, not unrelated tasks or later physical
 Do not invent a missing prerequisite, require exact wording, demand source-ID annotation
 in ordinary prose, or require a duplicate read when current evidence already suffices.
 For rejection, give one concrete correction based on this evidence and capabilities.
-For acceptance feedback must be empty. Return only the structured assessment."""
+For acceptance feedback must be empty. Return only the structured assessment.
+""" + ACTION_INTERACTION_CONTRACT
 
 SCHEMA = {"type": "object", "additionalProperties": False,
           "properties": {"accepted": {"type": "boolean"}, "feedback": {"type": "string"}},
