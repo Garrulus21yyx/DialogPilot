@@ -57,8 +57,10 @@ async def run_mixed(*, platform, store, client, policy, provider_config, output,
     for tool in customer_operation_tools(business):
         if tool.read_only:
             tools.register(tool)
+    from application.knowledge_tool_contract import knowledge_query_schema, knowledge_tool_schema_for_context
     tools.register(Tool(name='knowledge_search',description='查询当前有效政策原文证据',handler=handler,
-                        schema={'type':'object','properties':{'query':{'type':'string'}},'required':['query']},
+                        schema=knowledge_query_schema(),schema_factory=knowledge_tool_schema_for_context,
+                        schema_factory_version="knowledge-filter-contract-v1",
                         authority='knowledge.active_source',read_only=True))
     capture=FrameworkCapture(limit=client.limit, calls=client.calls)
     agent=ConversationAgent(AnthropicConversationPlanningProvider(conversation_models(policy, provider_config),model_profile=policy.profile(ModelRole.INTENT), synthesis_profile=policy.profile(ModelRole.SYNTHESIS), callbacks=(capture,)))
@@ -74,7 +76,7 @@ async def run_mixed(*, platform, store, client, policy, provider_config, output,
         cases=[(c["case_id"],c["message"],tuple(c["history"])) for c in case_definitions]
     generation=store.active_generation()
     def context():
-        return {'cache_scope':registry.bundle_version,'bundle_version':registry.bundle_version,
+        return {'knowledge_filter_contract':store.filter_contract_snapshot(),'cache_scope':registry.bundle_version,'bundle_version':registry.bundle_version,
                 'pinned_execution_refs':{'bundle_version':registry.bundle_version,'knowledge_backend_ref':generation.backend_fingerprint,
                                          'corpus_manifest_ref':generation.manifest_hash,'retrieval_policy_ref':registry.bundle_version,
                                          'knowledge_generation_ref':generation.generation_id}}

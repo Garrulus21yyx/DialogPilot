@@ -1,5 +1,7 @@
 # RAG 销售渠道过滤合同
 
+本文记录上一轮静态目录修复，已由[运行时注入合同](rag-dynamic-filter-contract-2026-09-07.zh-CN.md)替代。当前实现从宿主配置读取目录，不再内置 web/store。以下保留为历史验证记录。
+
 本轮修复：任意字符串不再能够直接成为销售渠道硬过滤。业务目录位于 application/sales_channels.py，当前支持 web（商家官网购买）、store（实体门店购买）。新增购买渠道先扩展该目录，随后导入来源；不以当前语料出现过的值推导完整业务目录。
 
 链路：Conversation Agent 的 knowledge_options.sales_channel → knowledge_search.sales_channel → API 转换为内部 applicable_channel → PostgreSQL channel IN (所选值, global)。来源的 channel 字段、SourceRevision、检索请求及搜索范围均复用目录验证。global 仅表示通用来源；省略查询渠道表示不施加渠道过滤，返回证据中的适用条件仍需用于回答。

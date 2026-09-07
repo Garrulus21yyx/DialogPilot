@@ -109,7 +109,10 @@ class PostgresKnowledgeStore:
         chunk_max_tokens: int = 512,
         chunk_overlap_tokens: int = 64,
         embedding_provider: KnowledgeEmbeddingProvider | None = None,
+        filter_contract_factory=None,
     ):
+        from infrastructure.knowledge_filter_config import load_knowledge_filter_contract
+        self._filter_contract_factory = filter_contract_factory or load_knowledge_filter_contract
         provider = embedding_provider or LocalHashKnowledgeEmbeddingBaseline()
         self._pool = pool
         self._tenant_id = tenant_id
@@ -126,6 +129,15 @@ class PostgresKnowledgeStore:
         self._sources = PostgresKnowledgeSourceRepository(pool)
         self._projector = PostgresCanonicalRetrievalProjector(pool)
         self._write_lock = threading.Lock()
+
+    def filter_contract_snapshot(self):
+        """One host-owned directory snapshot for importing or planning a turn."""
+        from application.sales_channels import filter_contract
+        from application.knowledge_source import KnowledgeSourceContractError
+        try:
+            return filter_contract(self._filter_contract_factory())
+        except (ValueError, OSError) as exc:
+            raise KnowledgeSourceContractError("knowledge filter configuration unavailable") from exc
 
     async def ensure_defaults_async(self) -> RetrievalGeneration:
         try:
@@ -157,6 +169,14 @@ class PostgresKnowledgeStore:
 
     def import_documents(self, documents: Sequence[SourceDocument]) -> KnowledgeImportResult:
         incoming = tuple(documents)
+        from application.sales_channels import require_catalog_channel
+        from application.knowledge_source import KnowledgeSourceContractError
+        contract = self.filter_contract_snapshot()
+        for document in incoming:
+            try:
+                require_catalog_channel(document.channel, contract, source=True)
+            except ValueError as exc:
+                raise KnowledgeSourceContractError(str(exc)) from exc
         self._validate_budget(incoming)
         with self._write_lock, self._pool.transaction() as lock_connection:
             lock_connection.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s,0))", (self.backend_id,))

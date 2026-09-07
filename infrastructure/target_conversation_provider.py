@@ -121,7 +121,7 @@ class AnthropicConversationPlanningProvider:
         if output_schema is not None:
             schema = output_schema
         else:
-            schema = planning_output_schema(payload.get("supported_goals"))
+            schema = planning_output_schema(payload.get("supported_goals"), payload.get("knowledge_filter_contract"))
         request["tools"] = [structured_tool(output_name, schema)]
         DEFAULT_PROVIDER_CONTEXT_BUDGET.validate(
             profile, role, request,

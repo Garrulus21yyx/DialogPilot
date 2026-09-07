@@ -69,7 +69,7 @@ _MISSING_FIELDS = {
 }
 
 
-def planning_output_schema(supported_goals=None) -> dict:
+def planning_output_schema(supported_goals=None, knowledge_filter_contract=None) -> dict:
     """Wire shape for the current whole-turn planning algebra.
 
     The compiler still owns binding authorization, goal dependencies, capability
@@ -90,7 +90,7 @@ def planning_output_schema(supported_goals=None) -> dict:
             )},
             "resolved_query": {**text, "maxLength": 4000},
             "depends_on": {"type": "array", "uniqueItems": True, "items": dict(text)},
-            "knowledge_options": knowledge_query_options_schema(),
+            "knowledge_options": knowledge_query_options_schema(knowledge_filter_contract),
         },
         "allOf": [{
             "if": {"properties": {"kind": {"const": "delegate_task"}}},
@@ -101,6 +101,8 @@ def planning_output_schema(supported_goals=None) -> dict:
         }, {"if": {"properties": {"kind": {"enum": sorted(_KNOWLEDGE_GOALS)}}},
              "then": {"required": ["resolved_query"]}}],
     }
+    if supported_goals is not None and not set(supported_goals).intersection(_KNOWLEDGE_GOALS):
+        del goal["properties"]["knowledge_options"]
     # Root object plus branch constraints works with object-tool transports.
     # Each status has one unambiguous shape; inactive fields are omitted.
     return {
@@ -220,6 +222,7 @@ class ConversationAgent:
         )
         payload = {
             "schema_version": "conversation-plan-request-v2-references",
+            "knowledge_filter_contract": (turn_context.knowledge_filter_contract or None) if turn_context else None,
             "message": observations.raw_text,
             "deterministic_resolution": {
                 "kind": deterministic.kind.value,
@@ -450,7 +453,8 @@ class ConversationAgent:
                 )
             if command.tool_id == "knowledge_search":
                 from application.knowledge_tool_contract import knowledge_query_options
-                options = knowledge_query_options(value.get("knowledge_options", {}))
+                options = knowledge_query_options(value.get("knowledge_options", {}),
+                    (turn_context.knowledge_filter_contract or None) if turn_context else None)
                 command = replace(command, arguments=command.arguments + tuple(
                     ArgumentValue.create(key, option) for key, option in sorted(options.items())))
             elif value.get("knowledge_options"):

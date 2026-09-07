@@ -310,6 +310,12 @@ class Tool:
     typed_outcomes: Tuple[str, ...] = ()
     output_fields: Tuple[str, ...] = ()
 
+    schema_factory: Optional[Callable] = None
+    schema_factory_version: str = ""
+
+    def input_schema(self, context=None):
+        return self.schema_factory(dict(context or {})) if self.schema_factory else self.schema
+
     # 运行时状态（不参与构造）
     stats:   ToolStats    = field(default_factory=ToolStats, init=False)
     breaker: CircuitBreaker = field(default_factory=CircuitBreaker, init=False)
@@ -361,6 +367,8 @@ class MCPToolManager:
             raise ValueError("tool name must not be empty")
         if not tool.allowed_agents:
             raise ValueError("tool allowed_agents must not be empty")
+        if tool.schema_factory and (not tool.schema_factory_version or tool.cache_ttl > 0):
+            raise ValueError("runtime schema requires a version and uncached execution")
         self._tools[tool.name] = tool
         logger.info(f"注册工具: {tool.name}")
 
@@ -402,13 +410,14 @@ class MCPToolManager:
         *,
         description_overrides: Optional[Dict[str, str]] = None,
         allowed_tool_ids: Optional[Collection[str]] = None,
+        context: Optional[Dict[str, Any]] = None,
     ) -> List[Dict[str, Any]]:
         """投影允许工具；Bundle 只能覆盖描述，不能改变 schema 或权限。"""
         overrides = dict(description_overrides or {})
         return [{
             "name": tool.name,
             "description": str(overrides.get(tool.name) or tool.description),
-            "input_schema": tool.schema,
+            "input_schema": tool.input_schema(context),
         } for tool in self.tools_for_agent(
             agent_type, allowed_tool_ids=allowed_tool_ids,
         )]
@@ -420,6 +429,7 @@ class MCPToolManager:
             "name": tool.name,
             "description": str(overrides.get(tool.name) or tool.description),
             "schema": tool.schema,
+            **({"schema_factory_version": tool.schema_factory_version} if tool.schema_factory else {}),
             "allowed_agents": sorted(tool.allowed_agents),
             "risk": tool.risk.value,
             "read_only": tool.read_only,
@@ -693,7 +703,7 @@ class MCPToolManager:
         try:
             # 参数校验（根据 JSON Schema 的 required 和 properties.type）
             try:
-                self._validate_params(tool, params)
+                self._validate_params(tool, params, context)
             except ValueError as exc:
                 raise ToolRejected(str(exc)) from exc
 
@@ -1028,9 +1038,15 @@ class MCPToolManager:
 
     _TYPE_MAP = {"string": str, "number": (int, float), "integer": int, "boolean": bool, "array": list, "object": dict}
 
-    def _validate_params(self, tool: Tool, params: Dict[str, Any]) -> None:
+    def _validate_params(self, tool: Tool, params: Dict[str, Any], context=None) -> None:
         """根据工具的 JSON Schema 校验参数，不合法时抛出 ValueError。"""
-        schema = tool.schema
+        schema = tool.input_schema(context)
+        if tool.schema_factory:
+            import jsonschema
+            try:
+                jsonschema.validate(params, schema)
+            except jsonschema.ValidationError as exc:
+                raise ValueError("parameters do not match runtime tool schema") from exc
         required = schema.get("required", [])
         properties = schema.get("properties", {})
 

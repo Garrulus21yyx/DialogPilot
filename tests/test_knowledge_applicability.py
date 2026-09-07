@@ -240,3 +240,9 @@ def test_pure_lexical_route_needs_no_embedding_provider(store, postgres_database
         assert all('vector' not in route for item in result.candidates for route in item['ranks'])
     finally:
         source.close();retrieval.close()
+
+
+@pytest.fixture(autouse=True)
+def configured_sales_channels(monkeypatch):
+    from pathlib import Path
+    monkeypatch.setenv('KNOWLEDGE_FILTER_CATALOG_FILE', str(Path('config/knowledge-filter-catalog.example.json').resolve()))

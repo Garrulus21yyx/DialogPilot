@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from application.agent_result import AgentResultStatus
-from application.sales_channels import sales_channel_schema, validate_sales_channel
+from application.sales_channels import sales_channel_schema, require_catalog_channel
 
 
 def knowledge_outcome(data):
@@ -97,7 +97,7 @@ _KNOWLEDGE_OPTION_KEYS = frozenset({'policy_date', 'as_of', 'applicable_region',
 _KNOWLEDGE_OPTION_MAX_LENGTH = 128
 
 
-def knowledge_query_options_schema():
+def knowledge_query_options_schema(contract=None):
     """Wire shape; temporal interpretation remains in knowledge_query_options."""
     schema = {'type': 'object', 'additionalProperties': False, 'properties': {
         key: {'type': 'string', 'minLength': 1, 'pattern': r'\S',
@@ -106,14 +106,18 @@ def knowledge_query_options_schema():
     }}
     schema['properties']['policy_date'].update(pattern=r'^\d{4}-\d{2}-\d{2}$', description='用户明确指定的政策日历日期 YYYY-MM-DD；系统按知识库业务时区解释，不补时间点。')
     schema['properties']['as_of'].update(pattern=r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$', description='明确的带时区时间点；仅有日期用 policy_date。')
-    schema['properties']['sales_channel'] = sales_channel_schema()
+    channel_schema = sales_channel_schema(contract)
+    if channel_schema is not None:
+        schema['properties']['sales_channel'] = channel_schema
+    else:
+        del schema['properties']['sales_channel']
     schema['properties']['applicable_region']['description'] = '仅填写用户明确提供或可信业务上下文确认的适用地区ID；未知省略。'
     schema['properties']['applicable_product']['description'] = '仅填写已确认且与知识来源标注一致的商品范围ID；商品显示名称不等于范围ID，未知省略。'
     schema['not'] = {'required': ['as_of', 'policy_date']}
     return schema
 
 
-def knowledge_query_options(values):
+def knowledge_query_options(values, contract=None):
     """Business applicability, distinct from runtime identity and authorization."""
     from datetime import date, datetime
     import re
@@ -131,7 +135,7 @@ def knowledge_query_options(values):
         if key in {'as_of', 'policy_date'} and not re.fullmatch(knowledge_query_options_schema()['properties'][key]['pattern'], value):
             raise ValueError('invalid temporal format')
         if key == 'sales_channel':
-            result[key] = validate_sales_channel(value)
+            result[key] = require_catalog_channel(value, contract)
         elif key == 'policy_date':
             result[key] = date.fromisoformat(value).isoformat()
         elif key == 'as_of':
@@ -144,9 +148,9 @@ def knowledge_query_options(values):
     return result
 
 
-def knowledge_query_schema():
+def knowledge_query_schema(contract=None):
     """The shared Agent/direct tool input contract; runtime owns budgets and ACL."""
-    options = knowledge_query_options_schema()
+    options = knowledge_query_options_schema(contract)
     return {**options, 'required': ['query'], 'properties': {
         'query': {'type': 'string', 'minLength': 1, 'maxLength': 4000, 'pattern': r'\S'},
         **options['properties'],
@@ -155,11 +159,11 @@ def knowledge_query_schema():
     }}
 
 
-def knowledge_time_window(options, *, current, business_timezone):
+def knowledge_time_window(options, *, current, business_timezone, contract=None):
     """Resolve explicit dates using host-owned zone; preserve DST day length."""
     from datetime import date, datetime, time, timedelta, timezone
     from zoneinfo import ZoneInfo
-    options = knowledge_query_options(options)
+    options = knowledge_query_options(options, contract)
     if 'policy_date' in options:
         if not business_timezone:
             raise ValueError('knowledge business timezone required for calendar dates')
@@ -177,3 +181,7 @@ def knowledge_time_window(options, *, current, business_timezone):
     if not isinstance(instant, datetime) or instant.utcoffset() is None:
         raise ValueError('trusted current instant required')
     return instant, None
+
+
+def knowledge_tool_schema_for_context(context):
+    return knowledge_query_schema(context.get("knowledge_filter_contract"))

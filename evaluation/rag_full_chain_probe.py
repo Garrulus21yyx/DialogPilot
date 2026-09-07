@@ -41,13 +41,13 @@ async def run_full_chain(*,database_url,platform,store,client,policy,provider_co
         raise ValueError('full-chain evaluation requires a fresh output directory')
     registry=build_default_capability_registry('rag-tool-dev')
     tools=RecordedTools(api_key=provider_config['api_key'],base_url=policy.base_url,model=policy.profile(ModelRole.INTENT).model)
-    from application.knowledge_tool_contract import knowledge_query_schema
-    tools.captures=[];tools.register(Tool(name='knowledge_search',description='检索有效知识原文；query须为完整问题，保留否定、日期及已知条件。',handler=handler,schema=knowledge_query_schema(),authority='knowledge.active_source',read_only=True))
+    from application.knowledge_tool_contract import knowledge_query_schema, knowledge_tool_schema_for_context
+    tools.captures=[];tools.register(Tool(name='knowledge_search',description='检索有效知识原文；query须为完整问题，保留否定、日期及已知条件。',handler=handler,schema=knowledge_query_schema(),schema_factory=knowledge_tool_schema_for_context,schema_factory_version="knowledge-filter-contract-v1",authority='knowledge.active_source',read_only=True))
     capture=FrameworkCapture(limit=client.limit,calls=client.calls)
     verifier=AnswerVerifier(framework_model(policy.profile(ModelRole.VERIFIER),provider_config,max_tokens=4096),model_profile=policy.profile(ModelRole.VERIFIER),callbacks=(capture,))
     generation=store.active_generation()
     def knowledge_context():
-        return {'knowledge_as_of':datetime.now(timezone.utc).isoformat(),'knowledge_timezone':'UTC','cache_scope':registry.bundle_version,'bundle_version':registry.bundle_version,'pinned_execution_refs':{'bundle_version':registry.bundle_version,'knowledge_backend_ref':generation.backend_fingerprint,'corpus_manifest_ref':generation.manifest_hash,'retrieval_policy_ref':registry.bundle_version,'knowledge_generation_ref':generation.generation_id}}
+        return {'knowledge_filter_contract':store.filter_contract_snapshot(),'knowledge_as_of':datetime.now(timezone.utc).isoformat(),'knowledge_timezone':'UTC','cache_scope':registry.bundle_version,'bundle_version':registry.bundle_version,'pinned_execution_refs':{'bundle_version':registry.bundle_version,'knowledge_backend_ref':generation.backend_fingerprint,'corpus_manifest_ref':generation.manifest_hash,'retrieval_policy_ref':registry.bundle_version,'knowledge_generation_ref':generation.generation_id}}
     manifest={'scope':'synthetic ecommerce; production runtime/admission/coordinator/context/knowledge handler/PostgreSQL retrieval/LLM rerank/compose/verifier/publication; excludes HTTP authentication, external delivery, business writes','cases':CASES,'source_sha256':{f:hashlib.sha256(Path(f).read_bytes()).hexdigest() for f in ('application/conversation_agent.py','application/knowledge_tool_contract.py','application/knowledge_retriever.py','application/response_assembly.py','infrastructure/target_conversation_provider.py','api/main.py','infrastructure/postgres_knowledge_retriever.py','infrastructure/knowledge_applicability.py','services/answer_verifier.py','services/claim_verification.py','evaluation/rag_full_chain_probe.py')},'max_api_calls':client.limit}
     (output/'full-manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
     rows=[]

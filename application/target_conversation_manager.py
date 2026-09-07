@@ -101,6 +101,7 @@ class TargetTurnContext:
     memory_attempted: bool = False
     memory_status: str = "NOT_REQUIRED"
     entity_bindings: EntityBindingSet = EntityBindingSet()
+    knowledge_filter_contract: dict = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if self.source_watermark < 0:
@@ -257,8 +258,10 @@ class TargetConversationManager:
             if self._context_provider is not None
             else TargetTurnContext()
         )
+        from application.sales_channels import filter_contract
         turn_context = replace(
             turn_context,
+            knowledge_filter_contract=filter_contract((execution_context or {}).get("knowledge_filter_contract")),
             entity_bindings=self._binding_resolver.resolve(
                 observations, state, turn_context,
             ),
@@ -285,7 +288,7 @@ class TargetConversationManager:
             recent_relevant_turns,
             evidence_refs,
             token_budget,
-            execution_context=dict(execution_context or {}),
+            execution_context={**dict(execution_context or {}), "knowledge_filter_contract": turn_context.knowledge_filter_contract},
             state_transitions=tuple(transitions),
         )
 

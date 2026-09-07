@@ -30,7 +30,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-from application.sales_channels import SALES_CHANNELS, validate_sales_channel
+from application.sales_channels import validate_sales_channel, filter_contract_fingerprint
 
 from services.ticket_service import (
     IdempotencyConflictError,
@@ -495,7 +495,7 @@ async def lifespan(app: FastAPI):
         ),
     )
 
-    from application.knowledge_tool_contract import knowledge_query_schema
+    from application.knowledge_tool_contract import knowledge_query_schema, knowledge_tool_schema_for_context
     _tool_manager.register(Tool(
         name="knowledge_search",
         description=(
@@ -504,6 +504,8 @@ async def lifespan(app: FastAPI):
         ),
         handler=_knowledge_tool_handler,
         schema=knowledge_query_schema(),
+        schema_factory=knowledge_tool_schema_for_context,
+        schema_factory_version="knowledge-filter-contract-v1",
         cache_ttl=0.0,
         supports_rerank=False,
         fallback=None,
@@ -2477,9 +2479,12 @@ def _knowledge_execution_context() -> dict:
     """Snapshot host-owned policy and source identity once per durable turn."""
     bundle = _bundle_registry.active()
     generation = _knowledge_store.active_generation()
+    contract = _knowledge_store.filter_contract_snapshot()
     return {
         "knowledge_as_of": datetime.now(timezone.utc).isoformat(),
         "knowledge_timezone": os.getenv("KNOWLEDGE_BUSINESS_TIMEZONE", "UTC"),
+        "knowledge_filter_contract": contract,
+        "knowledge_filter_contract_fingerprint": filter_contract_fingerprint(contract),
         "retrieval_policy": validate_rag_policy(bundle.retrieval_policy),
         "cache_scope": bundle.version,
         "bundle_version": bundle.version,
@@ -2639,13 +2644,14 @@ async def _knowledge_tool_handler(
     try:
         from application.knowledge_tool_contract import knowledge_query_options, knowledge_time_window, knowledge_query_schema
         import jsonschema
-        jsonschema.validate(params, knowledge_query_schema())
+        contract = context.get("knowledge_filter_contract")
+        jsonschema.validate(params, knowledge_query_schema(contract))
         options = knowledge_query_options({key: params[key] for key in (
-            "policy_date", "as_of", "applicable_region", "sales_channel", "applicable_product") if key in params})
+            "policy_date", "as_of", "applicable_region", "sales_channel", "applicable_product") if key in params}, contract)
         current = context.get("knowledge_as_of")
         as_of, as_of_end = knowledge_time_window(options,
             current=datetime.fromisoformat(current) if current else datetime.now(timezone.utc),
-            business_timezone=context.get("knowledge_timezone") or os.getenv("KNOWLEDGE_BUSINESS_TIMEZONE", "UTC"))
+            business_timezone=context.get("knowledge_timezone") or os.getenv("KNOWLEDGE_BUSINESS_TIMEZONE", "UTC"), contract=contract)
     except (ValueError, TypeError, KeyError, jsonschema.ValidationError):
         return EvidencePackResult(RetrievalStatus.INVALID_CONTRACT, None, None, "INVALID_KNOWLEDGE_OPTIONS").to_dict(include_text=True)
     result = await _retrieve_knowledge(
@@ -2876,8 +2882,7 @@ class DocInput(BaseModel):
     region: str = Field(default="global", max_length=128)
     product: str = Field(default="", max_length=128)
     channel: str = Field(default="global", max_length=128,
-        description="政策适用购买渠道；global 表示通用政策。",
-        json_schema_extra={"enum": [*SALES_CHANNELS, "global"]})
+        description="政策适用购买渠道ID；global 表示通用政策。合法值由当前知识库目录配置校验。")
     effective_from: datetime | None = None
     effective_to: datetime | None = None
 

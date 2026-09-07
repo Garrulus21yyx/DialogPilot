@@ -272,7 +272,7 @@ class TargetFrameworkAgent:
             allowed_tool_ids=item.allowed_tools,
         )
         tools = [
-            self._atomic_tool(definition)
+            self._atomic_tool(definition, context.trusted_context)
             for definition in definitions
         ]
         for skill_id in item.allowed_skills:
@@ -350,7 +350,7 @@ class TargetFrameworkAgent:
             args_schema=schema, infer_schema=False, response_format="content_and_artifact",
         )
 
-    def _atomic_tool(self, definition):
+    def _atomic_tool(self, definition, trusted_context=None):
         async def execute(runtime: ToolRuntime, **arguments):
             context = runtime.context
             runtime_agent = self._registry.agent(context.work_item.owner_agent).execution_principal
@@ -376,7 +376,7 @@ class TargetFrameworkAgent:
             coroutine=execute,
             name=definition.name,
             description=definition.description,
-            args_schema=definition.schema,
+            args_schema=definition.input_schema(trusted_context),
             infer_schema=False,
             response_format="content_and_artifact",
         )

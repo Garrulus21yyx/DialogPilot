@@ -38,7 +38,7 @@ def output_schema(payload):
         **{key:text for key in ('order_id','order_id_source_ref','asset_id','asset_id_source_ref','new_address','revises_control_id')},
         'resolved_query':{**text,'maxLength':4000},
         'depends_on':{'type':'array','items':text},
-        'knowledge_options':knowledge_query_options_schema(),
+        'knowledge_options':knowledge_query_options_schema(payload.get("knowledge_filter_contract")),
     }}
     return {'type':'object','additionalProperties':False,'required':['status'],'properties':{
         'status':{'type':'string','enum':['resolved','insufficient_context','out_of_scope']},

@@ -130,7 +130,10 @@ async def evaluate(args, database_url):
             docs = docs + extra
         if args.distractors:
             docs = RagDataset.load(args.distractors).documents + docs
-        store = PostgresKnowledgeStore(platform, tenant_id='rag-tool-dev', embedding_provider=embedding)
+        from infrastructure.knowledge_filter_config import load_knowledge_filter_contract
+        filter_snapshot = load_knowledge_filter_contract()
+        store = PostgresKnowledgeStore(platform, tenant_id='rag-tool-dev', embedding_provider=embedding,
+            filter_contract_factory=lambda: filter_snapshot)
         documents = tuple(SourceDocument.create(
             source_id=d.document_id, title=d.title, content=d.content,
             source_type=d.metadata.get('source_type','text'),
@@ -162,7 +165,7 @@ async def evaluate(args, database_url):
                 api._knowledge_retriever = CandidateScopeProbe(source)
             generator = GroundedAnswerGenerator(client, policy.profile(ModelRole.SYNTHESIS))
             manifest = {'scope': 'candidate-only: handler request construction + actual PG retrieval; no handler completion or generation' if args.candidate_scope_probe else __doc__, 'scenario':args.scenario, 'documents': len(docs), 'cases': len(cases),
-                        'query_options':query_options, 'forbidden_sources':forbidden_sources, 'withdrawn_sources':withdrawn_sources,
+                        'knowledge_filter_contract':store.filter_contract_snapshot(), 'query_options':query_options, 'forbidden_sources':forbidden_sources, 'withdrawn_sources':withdrawn_sources,
                         'source_documents':[asdict(d) for d in docs], 'case_definitions':[asdict(c) for c in cases],
                         'generation': asdict(store.active_generation()), 'embedding_profile': asdict(embedding.profile),
                         'reranker_profile': policy.profile(ModelRole.RERANK).to_dict(),
@@ -190,6 +193,7 @@ async def evaluate(args, database_url):
                 try:
                     result = await api._knowledge_tool_handler({'query': query, **query_options.get(case.case_id,{})}, {
                         'tenant_id':'rag-tool-dev', 'user_id':'eval-user', 'conv_id':'eval-conversation',
+                        'knowledge_filter_contract':manifest['knowledge_filter_contract'],
                         'authorization_fingerprint':'isolated-eval-authorized', 'cache_scope':'fixed-query-dev-v1',
                         'retrieval_policy': {'query_expansion_count':0, 'expansion_query_weight':0.0},
                     })
