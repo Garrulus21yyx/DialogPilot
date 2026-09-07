@@ -309,6 +309,7 @@ class TargetConversationManager:
             )
         execution_context = {
             "current_message": observations.raw_text,
+            "pending_approval": state.pending_approval,
             "recent_relevant_turns": tuple(dict.fromkeys((
                 *prepared.recent_relevant_turns,
                 *turn_context.recent_relevant_turns,

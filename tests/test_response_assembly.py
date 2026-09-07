@@ -135,6 +135,10 @@ def test_multi_result_composition_receives_only_claims_and_outcomes():
         "work_item_outcomes", "missing_requirement_ids",
         "partial_delivery_allowed", "response_requirements",
     }
+    assert any("language they use or request" in requirement
+               for requirement in composer.calls[0]["response_requirements"])
+    assert any("drafting notes" in requirement
+               for requirement in composer.calls[0]["response_requirements"])
 
 
 def test_unsupported_reference_from_composer_falls_back_without_losing_results():

@@ -22,6 +22,7 @@ from application.agent_result import (
 from application.result_board import ResultBoard, ResultBoardSnapshot
 from application.work_item import ControlMode, WorkItem, WorkPlan
 from application.work_control import WorkControlGuard, WorkSuperseded
+from application.conversation_state import PendingApprovalState
 
 
 class OrchestrationRuntimeError(ValueError):
@@ -39,6 +40,7 @@ class AgentContextView:
     trusted_context: Mapping[str, str] = field(default_factory=dict)
     dependency_results: tuple[AgentResult, ...] = ()
     working_messages: tuple[dict, ...] = ()
+    pending_approval: PendingApprovalState | None = None
 
 
 class WorkExecutor(Protocol):
@@ -68,6 +70,7 @@ class ParentGraphState(TypedDict, total=False):
     interrupt_after_completion: bool
     continuation_facts: dict[str, tuple[FactRecord, ...]]
     continuation_messages: dict[str, tuple[dict, ...]]
+    pending_approval: PendingApprovalState | None
 
 
 class WorkerState(TypedDict):
@@ -80,6 +83,7 @@ class WorkerState(TypedDict):
     trusted_context: Mapping[str, str]
     dependency_results: tuple[AgentResult, ...]
     working_messages: tuple[dict, ...]
+    pending_approval: PendingApprovalState | None
 
 
 class OrchestrationRuntime:
@@ -193,6 +197,7 @@ class OrchestrationRuntime:
                 "facts": _merge_facts(state.get("facts", ()),
                     state.get("continuation_facts", {}).get(item.work_item_id, ())),
                 "trusted_context": state.get("trusted_context", {}),
+                "pending_approval": state.get("pending_approval"),
                 "dependency_results": tuple(
                     results[dependency]
                     for dependency in item.dependencies
@@ -287,6 +292,7 @@ class OrchestrationRuntime:
             "evidence_refs": tuple(resumed.get("evidence_refs") or ()),
             "token_budget": int(resumed.get("token_budget") or 6000),
             "trusted_context": dict(resumed.get("trusted_context") or {}),
+            "pending_approval": resumed.get("pending_approval"),
             "interrupt_after_completion": bool(resumed.get("interrupt_after_completion", False)),
             "agent_results": Overwrite(value=[]),
             "facts": (),
@@ -317,6 +323,7 @@ class OrchestrationRuntime:
             state.get("trusted_context", {}),
             state.get("dependency_results", ()),
             state.get("working_messages", ()),
+            state.get("pending_approval"),
         )
         if self._control_guard is not None and not self._control_guard.is_current(
             item, context.trusted_context,
@@ -450,6 +457,7 @@ class OrchestrationRuntime:
         thread_id: str | None = None,
         trusted_context: Mapping[str, str] | None = None,
         interrupt_after_completion: bool = False,
+        pending_approval: PendingApprovalState | None = None,
     ) -> ResultBoardSnapshot:
         if self._checkpointer is not None and not str(thread_id or "").strip():
             raise OrchestrationRuntimeError("checkpointed execution requires thread_id")
@@ -468,6 +476,7 @@ class OrchestrationRuntime:
             "facts": (),
             "trusted_context": dict(trusted_context or {}),
             "interrupt_after_completion": bool(interrupt_after_completion),
+            "pending_approval": pending_approval,
         }
         if self._checkpointer is not None:
             snapshot = await self.graph.aget_state(config)
@@ -500,6 +509,7 @@ class OrchestrationRuntime:
         evidence_refs: tuple[str, ...] = (),
         token_budget: int = 6000,
         trusted_context: Mapping[str, str] | None = None,
+        pending_approval: PendingApprovalState | None = None,
     ) -> ResultBoardSnapshot:
         if self._checkpointer is None:
             raise OrchestrationRuntimeError("resume requires a checkpointer")
@@ -515,6 +525,7 @@ class OrchestrationRuntime:
             "evidence_refs": evidence_refs,
             "token_budget": token_budget,
             "trusted_context": dict(trusted_context or {}),
+            "pending_approval": pending_approval,
         }), config=config)
         return result["board"]
 

@@ -1,6 +1,7 @@
 from langgraph.store.memory import InMemoryStore
 """Domain proposal -> exact approval -> governed write -> domain continuation."""
 import asyncio
+import json
 from dataclasses import replace
 import pytest
 
@@ -135,7 +136,14 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
               if decision == "clarify_during_approval" else []),
             AIMessage(content="Your cancellation has been completed."),
         ])
-        domain = TargetFrameworkAgent(model, tools, result_store=InMemoryStore(), registry=registry, system_prompt=owner.description)
+        class ObservedDomain(TargetFrameworkAgent):
+            contexts = []
+
+            async def __call__(self, context):
+                self.contexts.append(context)
+                return await super().__call__(context)
+
+        domain = ObservedDomain(model, tools, result_store=InMemoryStore(), registry=registry, system_prompt=owner.description)
         PostgresMigrationRunner(postgres_database_url).upgrade()
         pool = PostgresPool(PostgresPoolConfig(postgres_database_url, min_size=1, max_size=4))
         pool.open()
@@ -177,11 +185,21 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                 assert clarification is not None
                 assert question.state_after.pending_approval == pending
                 assert clarification.checkpoint_thread_id != pending.checkpoint_thread_id
+                assert domain.contexts[-1].pending_approval == pending
+                assert "order_cancel" not in model.bound_tool_names
+                prompt = json.loads(domain._build_prompt(domain.contexts[-1]))
+                assert prompt["pending_approval"] == {
+                    "action_ref": pending.action_ref,
+                    "arguments": {arg.name: arg.value for arg in pending.arguments},
+                    "status": "AWAITING_DECISION_NOT_EXECUTED",
+                }
                 answered = await manager.handle(_identity("clarify-approval"), TurnObservations(
                     "Whether the order has been cancelled yet", interaction_id=clarification.interaction_id,
                     interaction_version=clarification.version))
                 assert answered.state_after.pending_interaction is None
                 assert answered.state_after.pending_approval == pending
+                assert domain.contexts[-1].pending_approval == pending
+                assert "order_cancel" not in model.bound_tool_names
                 assert calls == ["read"]
             if decision == "supersede":
                 updated = first.state_after.close_work_control(
@@ -203,6 +221,8 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
             assert len([call for call in calls if isinstance(call, tuple)]) == 1, [
                 (result.status.value, result.reason_code) for result in second.board.results]
             assert second.board.results[0].action_receipts[0].receipt_id == "cancel-receipt"
+            assert domain.contexts[-1].pending_approval is None
+            assert "order_cancel" in model.bound_tool_names
             assert model.calls == (5 if decision == "clarify_during_approval" else
                                    4 if decision == "ask_first" else 3)
         finally:

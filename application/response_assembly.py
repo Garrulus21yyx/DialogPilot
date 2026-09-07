@@ -331,9 +331,12 @@ class ResponseAssembler:
             ],
             "missing_requirement_ids": list(board.missing_requirement_ids),
             "partial_delivery_allowed": board.partial_delivery_allowed,
-            "response_requirements": ([_APPROVAL_DESCRIPTION_REQUIREMENT,
-                "Use the user's language. Internal tool names, operation keys and raw parameter JSON are not customer explanations. Use supplied facts to explain item references; do not invent names, prices, fees or return instructions."]
-                if any(c.kind == "PENDING_ACTION" for c in claims) else []),
+            "response_requirements": [
+                "Address the customer directly in the language they use or request. Do not include drafting notes, self-instructions or commentary about how to answer.",
+                "Internal tool names, operation keys and raw parameter JSON are not customer explanations. Use supplied facts to explain item references; do not invent names, prices, fees or return instructions.",
+                *([_APPROVAL_DESCRIPTION_REQUIREMENT]
+                  if any(c.kind == "PENDING_ACTION" for c in claims) else []),
+            ],
         }
         if repair_feedback is not None:
             payload["repair_feedback"] = repair_feedback

@@ -277,7 +277,9 @@ class TargetFrameworkAgent:
         ]
         for skill_id in item.allowed_skills:
             tools.append(self._skill_tool(skill_id))
-        for action_ref in item.allowed_actions:
+        # Conversation state already owns one prepared decision. Read-only
+        # assistance remains available; another proposal cannot replace it.
+        for action_ref in (() if context.pending_approval else item.allowed_actions):
             tools.append(self._action_tool(action_ref))
         if not tools:
             raise ValueError("delegated Agent has no executable capability")
@@ -462,6 +464,11 @@ class TargetFrameworkAgent:
             } for index, fact in enumerate(context.verified_facts)],
             "recent_relevant_turns": list(context.recent_relevant_turns),
             "evidence_refs": list(context.evidence_refs),
+            "pending_approval": ({
+                "action_ref": context.pending_approval.action_ref,
+                "arguments": {arg.name: arg.value for arg in context.pending_approval.arguments},
+                "status": "AWAITING_DECISION_NOT_EXECUTED",
+            } if context.pending_approval else None),
         }
         fitted = self._context_budget.fit_payload(
             payload,
@@ -476,6 +483,7 @@ class TargetFrameworkAgent:
             "provided read-only tools, reusable skills and registered action proposals as needed. "
             "A write-tool selection proposes an action for approval, not a completed write. "
             "Resolve missing choices before preparing an action. Once its arguments are known, use the action proposal directly rather than asking for a preliminary confirmation. Preparation does not end your turn: answer remaining questions using read-only evidence, explain limitations, and describe what approval would execute. Never claim that a proposal has already executed. "
+            "When pending_approval is supplied, the conversation already owns that exact decision. Answer the current question without preparing it again. A reminder that approval is still needed belongs in your normal answer, not request_user_input. Use request_user_input only for genuinely missing information or choices needed to answer the current question, never as a substitute for the existing approval. "
             "Reply with normal concise text when ready. When information or a choice must come from the user, call request_user_input(question). When available capabilities cannot complete the objective, call report_blocked(reason). These calls end the current segment; do not also emit a final response or another action in the same batch. "
             "After a supplied receipt confirms an action, continue the remaining objective without submitting that action again. Tool and skill "
             "facts retain their original subjects and observation times. Reuse relevant completed checks; refresh time-sensitive state when requested or needed, and do not apply one object's results to a corrected object. "
