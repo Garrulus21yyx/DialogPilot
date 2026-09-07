@@ -1,0 +1,45 @@
+{
+  "reviewer": "Codex manual source comparison; not independent human/judge",
+  "cases": 6,
+  "supported": 4,
+  "needs_revision": 2,
+  "not_population_accuracy": true,
+  "rows": [
+    {
+      "case_id": "opened-negation",
+      "answer_sha256": "edcdd49d1fefe56c2d890046dd279eb4faebf2c8bf0a234b7060dda02afc4d43",
+      "status": "supported_for_fixture",
+      "issue": null
+    },
+    {
+      "case_id": "ellipsis-shipping",
+      "answer_sha256": "b57822ea9a0e63e92f21b7447b8aec2a6379ab6834aa5c7490e92ca14431be34",
+      "status": "needs_revision",
+      "issue": "肯定开场与加急不报销的否定正文冲突"
+    },
+    {
+      "case_id": "historical-policy",
+      "answer_sha256": "5904815e3b6bdde7f2fa31ea3df070f0882b5d7eb5ae6015208053b1b0606fb1",
+      "status": "supported_for_fixture",
+      "issue": null
+    },
+    {
+      "case_id": "eu-scope-fresh",
+      "answer_sha256": "58275b4837f4a2b1db229bbfd54777ce34f82b856a40a9b23cc64e6909a82e8d",
+      "status": "supported_for_fixture",
+      "issue": null
+    },
+    {
+      "case_id": "custom-exception-fresh",
+      "answer_sha256": "4343d90ccd5e06910cfa3b6edbf296552b7fafdd5b057332dda3e65af8d5af32",
+      "status": "needs_revision",
+      "issue": "指定尺寸/刻字概括为所有按要求制作，并重问已否定的质量原因"
+    },
+    {
+      "case_id": "effective-boundary-fresh",
+      "answer_sha256": "90c3dabf5a930b62a02f0c3618fa69d5281a2a5dce56d60319363e59c2990a46",
+      "status": "supported_for_fixture",
+      "issue": null
+    }
+  ]
+}
