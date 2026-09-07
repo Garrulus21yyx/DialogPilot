@@ -22,3 +22,5 @@
 G4本地暴露审计：278文件、21来源checksum通过；Doc2Dial应排除516/661对话；WixQA问题重复15/200、16/200，按相关文章保守排除37/200、17/200。MTRAG本次无匹配不等于证明未使用。见[范围及复现](../docs/rag-g4-data-exposure-2026-09-07.zh-CN.md)。下一项为MTRAG数据适配/来源对齐，不启动新检索策略。
 
 MTRAG适配与Unicode JSONL修复见[报告](../docs/rag-g4-mtrag-adapter-2026-09-07.zh-CN.md)。数据加载成功与真实检索已接通分开记录；官方PARTIAL标签保留。
+
+MTRAG已有首轮无API词法dev32成绩：官方完整改写R@20 33.07→50.26%，MRR .2130→.3168，仍11/32无相关片段。仅正文/单路/官方query，非真实Agent链。详见[同预算报告](../docs/rag-g4-mtrag-lexical32-2026-09-07.zh-CN.md)；下一项固定query补Dense分路。

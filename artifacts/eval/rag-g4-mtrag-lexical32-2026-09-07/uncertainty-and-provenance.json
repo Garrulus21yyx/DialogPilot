@@ -1,0 +1,55 @@
+{
+  "method": "Paired conversation-level bootstrap; one query per selected conversation, 10000 replicates, seed20260907; exploratory development uncertainty, not heldout confirmation",
+  "intervals": {
+    "questions": {
+      "recall@20": {
+        "mean_delta": 0.013020833333333329,
+        "paired_bootstrap_95_percentile": [
+          -0.125,
+          0.1484375
+        ]
+      },
+      "mrr@20": {
+        "mean_delta": -0.003534226190476192,
+        "paired_bootstrap_95_percentile": [
+          -0.10729166666666667,
+          0.09796832724567099
+        ]
+      },
+      "ndcg@20": {
+        "mean_delta": 0.012310107119815353,
+        "paired_bootstrap_95_percentile": [
+          -0.09011152702098085,
+          0.11365297432679548
+        ]
+      }
+    },
+    "rewrite": {
+      "recall@20": {
+        "mean_delta": 0.171875,
+        "paired_bootstrap_95_percentile": [
+          0.05729166666666667,
+          0.30208333333333337
+        ]
+      },
+      "mrr@20": {
+        "mean_delta": 0.10377096861471861,
+        "paired_bootstrap_95_percentile": [
+          0.010340401785714284,
+          0.2205514407467532
+        ]
+      },
+      "ndcg@20": {
+        "mean_delta": 0.11870111792820048,
+        "paired_bootstrap_95_percentile": [
+          0.03272911332911239,
+          0.2265912743437151
+        ]
+      }
+    }
+  },
+  "runtime_sources": {
+    "scripts/run_mtrag_lexical_query_pair.py": "05be4e32c53baaa2e8a2fbad88a4e64b819a9d5068e2d4cbe4dd7f3e0fc3ae12",
+    "application/chinese_lexical.py": "488f3b29da4627c956f64387eea865ee4295a83a3b4140f59edac55a238f7635"
+  }
+}

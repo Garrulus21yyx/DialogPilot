@@ -1,6 +1,6 @@
 # RAG 优化主线：持续维护的状态入口
 
-最后核对：2026-09-07；本轮起点 HEAD `9efc79c`，微调实验提交 `228a90b`。本文维护当前优先级与验收状态，历史报告维护当时的实验事实。更新时填写实际核对版本，不能把工作区实现等同于已提交／已部署。
+最后核对：2026-09-07；本轮起点 HEAD `b2794e7`，微调实验提交 `228a90b`。本文维护当前优先级与验收状态，历史报告维护当时的实验事实。更新时填写实际核对版本，不能把工作区实现等同于已提交／已部署。
 
 **整体状态：未完成全链路量化验收。G0代码／测试／报告已通过 `5018f83` 提交并推送；G1诊断已完成；G3阶段证据已交付、融合未采用；当前推进G4数据审计与封存准备，G2泛化仍待验证。微调暂停，生产默认不因小样本结果切换。**
 
@@ -157,3 +157,7 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - G4 MTRAG适配结果：四域366,438个非空passage、777查询（dev519/heldout258）、2,128条qrel精确匹配；41空片段排除ID留痕且不含正相关。现有RagDataset全量checksum/引用/分组校验通过。发现并修复JSONL owner用splitlines破坏合法Unicode分隔符的根因，保持原文不变。68个PARTIAL保留，非精确答案span；未运行检索/API。见[报告](../docs/rag-g4-mtrag-adapter-2026-09-07.zh-CN.md)。下一项为开发小样本、领域完整语料的词法基线与官方query版本配对；不动heldout、不启动微调。
 
 - 本轮检查：RagDataset/Doc2Dial/MTRAG相关33项测试通过；完整MTRAG加载约4秒，API0。交付：`6878700` 已提交并推送到 origin/feat/customer-service-target-architecture。
+
+- G4词法基线预注册（b2794e7）：每域从dev按固定seed哈希选择8个conversation，每组再哈希选择1题，共32题；不按答案/召回结果选题。完整官方非空领域语料、原passage不重切、仅正文、现有词法tokenizer和BM25 k1=1.2/b=.75固定；比较lastturn/questions/rewrite三种官方query，Top20固定。预算API0/embedding0；使用仅保留本批query词项的等价流式统计节省内存，须与现有BM25矩阵对照验证。测正相关passage Recall@1/5/20、MRR@20、binary nDCG@20及配对增减；不称完整答案span召回或生产Agent改写收益，不以此直接改线上策略。
+
+- G4词法对照结果：固定32个dev conversation/四域完整366,438非空passage，lastturn/questions/rewrite三表达。Recall@20 33.07/34.38/50.26%，MRR .2130/.2095/.3168，nDCG .2142/.2265/.3329。rewrite的Recall提高8题/降低1题；仍11/32无Top20相关片段。96排名审计等4项通过，API0，统计评分约27.5秒（非在线延迟）。见[报告](../docs/rag-g4-mtrag-lexical32-2026-09-07.zh-CN.md)。这是官方query离线BM25效果，不是当前Agent或完整链收益。下一项固定32题补Dense分路前的缓存/吞吐核对；不缩小干扰语料、不动heldout或生产权重。交付待commit/push。
