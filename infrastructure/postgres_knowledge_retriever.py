@@ -81,11 +81,30 @@ class PostgresKnowledgeCandidateSource:
         collected = self._collect_sources(
             request,
             variants,
-            dense_k=top_k,
-            lexical_k=top_k,
+            dense_k=top_k if request.policy.dense_weight > 0 else 0,
+            lexical_k=top_k if request.policy.lexical_weight > 0 else 0,
         )
         if isinstance(collected, KnowledgeCandidateResult):
             return collected
+        if request.as_of_end is not None:
+            # Inspect every recalled source before fusion can hide a revision.
+            source_ids = sorted({identity[0] for identity in collected.authority.values()})
+            with self._pool.transaction() as connection:
+                transition = connection.execute("""
+                    SELECT 1 FROM retrieval.knowledge_source_manifest_entries member
+                    JOIN retrieval.knowledge_source_revisions revision
+                      ON revision.tenant_id=member.tenant_id AND revision.source_id=member.source_id
+                     AND revision.revision_id=member.revision_id
+                    WHERE member.tenant_id=%s AND member.backend_id=%s AND member.generation_id=%s
+                      AND member.source_id=ANY(%s)
+                      AND ((revision.effective_from > %s AND revision.effective_from < %s)
+                        OR (revision.effective_to > %s AND revision.effective_to < %s))
+                    LIMIT 1
+                """, (request.tenant_id, collected.generation.backend_id, request.generation_id,
+                      source_ids, request.as_of, request.as_of_end, request.as_of, request.as_of_end)).fetchone()
+            if transition:
+                return KnowledgeCandidateResult(RetrievalStatus.AMBIGUOUS,
+                    detail_code="POLICY_DATE_REQUIRES_TIME")
         ranks = collected.ranks
         route_weights = collected.route_weights
         ranked_ids = fuse_rankings(
@@ -200,7 +219,7 @@ class PostgresKnowledgeCandidateSource:
         deadline = time.monotonic() + self._deadline_seconds
         for variant_kind, query, variant_weight in variants:
             embedding = None
-            if self._executor is None:
+            if self._executor is None and dense_k:
                 try:
                     embedding = self._embed_query(query, generation)
                 except Exception:
@@ -234,7 +253,7 @@ class PostgresKnowledgeCandidateSource:
                         product=request.product,
                         source_types=source_types,
                         regions=regions,
-                        as_of=request.as_of, applicable_region=request.applicable_region,
+                        as_of=request.as_of, as_of_end=request.as_of_end, applicable_region=request.applicable_region,
                         applicable_channel=request.applicable_channel,
                         applicable_product=request.applicable_product,
                     ),
@@ -380,7 +399,7 @@ class PostgresKnowledgeCandidateSource:
         from psycopg import sql
         from infrastructure.knowledge_applicability import source_applicability
         applicability, values = source_applicability(
-            "chunk", as_of=request.as_of, region=request.applicable_region,
+            "chunk", as_of=request.as_of, as_of_end=request.as_of_end, region=request.applicable_region,
             channel=request.applicable_channel, product=request.applicable_product)
         params.extend(values)
         with self._pool.transaction() as connection:

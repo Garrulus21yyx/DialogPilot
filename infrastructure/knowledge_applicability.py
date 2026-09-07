@@ -3,7 +3,7 @@ from __future__ import annotations
 from psycopg import sql
 
 
-def source_applicability(alias: str, *, as_of, region=None, channel=None, product=None):
+def source_applicability(alias: str, *, as_of, as_of_end=None, region=None, channel=None, product=None):
     """Select the latest effective revision before filtering withdrawal/expiry.
 
     A withdrawn or expired newest revision never resurrects a superseded policy.
@@ -17,7 +17,7 @@ def source_applicability(alias: str, *, as_of, region=None, channel=None, produc
           AND applicability.source_id={c}.source_id
           AND applicability.revision_id={c}.source_revision
           AND applicability.withdrawn_at IS NULL
-          AND applicability.effective_from <= %s
+          AND applicability.effective_from {start_op} %s
           AND (applicability.effective_to IS NULL OR applicability.effective_to > %s)
           AND NOT EXISTS (
             SELECT 1 FROM retrieval.knowledge_source_manifest_entries member
@@ -30,8 +30,8 @@ def source_applicability(alias: str, *, as_of, region=None, channel=None, produc
               AND newer.source_id=applicability.source_id
               AND newer.effective_from > applicability.effective_from
               AND newer.effective_from <= %s
-          )''').format(c=c)
-    params = [as_of, as_of, as_of]
+          )''').format(c=c, start_op=sql.SQL('<' if as_of_end else '<='))
+    params = [as_of_end or as_of, as_of, as_of]
     for name, value, general in (('region', region, 'global'), ('channel', channel, 'global'), ('product', product, '')):
         if value:
             predicate += sql.SQL(' AND applicability.{} IN (%s,%s)').format(sql.Identifier(name))

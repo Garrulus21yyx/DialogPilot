@@ -177,3 +177,66 @@ def test_source_scope_catalog_rejects_generation_switch(store, monkeypatch):
     monkeypatch.setattr(knowledge,'active_generation',lambda:next(sequence))
     with pytest.raises(GenerationConflict,match='changed'):
         knowledge.applicability_catalog(as_of=datetime.now(timezone.utc))
+
+
+def test_calendar_day_never_silently_selects_an_intraday_revision(store, postgres_database_url):
+    from datetime import timedelta
+    knowledge, _, _ = store
+    start = instant(2026)
+    old = SourceDocument.create(source_id='date-policy', title='退货运费政策',
+        content='旧政策报销十二元。',effective_from=start-timedelta(days=2))
+    knowledge.import_documents((old,))
+    new = SourceDocument.create(source_id='date-policy', title='退货运费政策',
+        content='新政策报销十八元。',effective_from=start+timedelta(hours=12))
+    knowledge.import_documents((new,))
+    generation = knowledge.active_generation()
+    retrieval = RetrievalPostgresPool(RetrievalPoolConfig(postgres_database_url,min_size=1,max_size=3))
+    retrieval.open()
+    source = PostgresKnowledgeCandidateSource(backend=PostgresHybridBackend(retrieval),generations=knowledge._generations,pool=retrieval,embed_query=knowledge.embed_query)
+    request = replace(_request(),generation_id=generation.generation_id,manifest_fingerprint=generation.manifest_hash,
+        policy=replace(_request().policy,backend_fingerprint=generation.backend_fingerprint,lexical_provider=generation.lexical_ranker,embedding_version=generation.embedding_profile.fingerprint))
+    def search(begin,end=None):
+        return asyncio.run(source.search_variants_async(replace(request,as_of=begin,as_of_end=end),[('raw','退货运费政策',1.0)],top_k=20))
+    try:
+        assert search(start,start+timedelta(days=1)).status is RetrievalStatus.AMBIGUOUS
+        assert search(start).status is RetrievalStatus.OK
+        assert search(start+timedelta(hours=12)).status is RetrievalStatus.OK
+        assert search(start-timedelta(days=1),start).status is RetrievalStatus.OK
+        assert search(start+timedelta(days=1),start+timedelta(days=2)).status is RetrievalStatus.OK
+    finally:
+        retrieval.close()
+
+
+def test_publication_requires_manifest_membership_not_just_valid_source(store):
+    from infrastructure.postgres_knowledge_store import PostgresKnowledgeStore
+    from tests.test_knowledge_tool_contract import evidence_result
+    knowledge,pool,provider = store
+    document = SourceDocument.create(source_id='active-policy',title='政策',content='当前政策原文。')
+    knowledge.import_documents((document,))
+    class OtherCollection(PostgresKnowledgeStore):
+        backend_id='ISOLATED_OTHER_KNOWLEDGE'
+    other = OtherCollection(pool,tenant_id='tenant-a',embedding_provider=provider)
+    foreign = SourceDocument.create(source_id='outside-manifest',title='另一个集合',content='这条原文不在当前集合。')
+    revision = other.import_documents((foreign,)).revisions[0]
+    wire = evidence_result(foreign.content)
+    wire['evidence_pack']['index_manifest_fingerprint'] = knowledge.active_generation().manifest_hash
+    wire['evidence_pack']['items'][0]['source_ref'].update(source_id=revision.source_id,source_revision=revision.revision_id,checksum=revision.checksum)
+    assert not knowledge.validate_publication_evidence([wire])
+
+
+@pytest.mark.parametrize('parallel',[False,True])
+def test_pure_lexical_route_needs_no_embedding_provider(store, postgres_database_url, parallel):
+    knowledge,_,_ = store
+    knowledge.import_documents((SourceDocument.create(source_id='pure-lexical',title='退货政策',content='退货条件需要原始包装。'),))
+    generation=knowledge.active_generation()
+    retrieval=RetrievalPostgresPool(RetrievalPoolConfig(postgres_database_url,min_size=1,max_size=3));retrieval.open()
+    def forbidden(*args): raise AssertionError('pure BM25 must not invoke embedding')
+    source=PostgresKnowledgeCandidateSource(backend=PostgresHybridBackend(retrieval),generations=knowledge._generations,pool=retrieval,embed_query=forbidden,parallel=parallel)
+    request=replace(_request(),generation_id=generation.generation_id,manifest_fingerprint=generation.manifest_hash,
+        policy=replace(_request().policy,backend_fingerprint=generation.backend_fingerprint,lexical_provider=generation.lexical_ranker,embedding_version=generation.embedding_profile.fingerprint,dense_weight=0,lexical_weight=1))
+    try:
+        result=asyncio.run(source.search_variants_async(request,[('raw','退货条件',1)],top_k=20))
+        assert result.status is RetrievalStatus.OK
+        assert all('vector' not in route for item in result.candidates for route in item['ranks'])
+    finally:
+        source.close();retrieval.close()

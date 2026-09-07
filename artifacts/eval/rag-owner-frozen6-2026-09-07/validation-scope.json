@@ -1,0 +1,46 @@
+{
+  "frozen_snapshot_unchanged": true,
+  "python_source_files": 587,
+  "api_runs_this_turn": [
+    {
+      "directory": "rag-owner-full3-2026-09-07",
+      "calls": 12,
+      "role": "development preflight"
+    },
+    {
+      "directory": "rag-owner-full6-2026-09-07",
+      "calls": 24,
+      "role": "workspace validation with concurrent source drift"
+    },
+    {
+      "directory": "rag-owner-frozen6-2026-09-07",
+      "calls": 24,
+      "role": "frozen source validation"
+    }
+  ],
+  "manual_core_policy_review": {
+    "pass": 6,
+    "total": 6
+  },
+  "manual_query_condition_review": {
+    "pass": 4,
+    "total": 6,
+    "misses": [
+      "opened-negation: non-quality condition absent",
+      "ellipsis-shipping: quality condition absent; shipping incorrectly used as sales channel"
+    ]
+  },
+  "semantic_review_scope": "core policy conclusions only; unnecessary follow-up and ambiguous inclusive date wording remain",
+  "verification_batches": [
+    {
+      "tests": 252,
+      "result": "passed",
+      "type": "unit/contract/generated/replay; no API"
+    },
+    {
+      "tests": 62,
+      "result": "passed",
+      "type": "source/retrieval/structure integration suite using isolated PostgreSQL; no API"
+    }
+  ]
+}

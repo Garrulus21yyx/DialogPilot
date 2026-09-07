@@ -1,4 +1,4 @@
-"""Three synthetic ecommerce cases through the production durable runtime factory."""
+"""Bounded synthetic ecommerce cases through the production durable runtime factory."""
 import asyncio
 import gzip
 import hashlib
@@ -30,19 +30,25 @@ CASES = [
     {'id':'opened-negation','history':[('user','我买的耳机已经拆封了，想退货。'),('assistant','是因为商品质量问题要退吗？')], 'message':'不是。那还能七天无理由退吗？', 'required':['已拆封','非质量原因','不适用无理由退货']},
     {'id':'ellipsis-shipping','history':[('user','我确认是商品质量问题，要寄回退货。'),('assistant','你想了解寄回运费怎么报销吗？')], 'message':'对，加急的也报销吗？', 'required':['标准运费','加急运费不在报销范围']},
     {'id':'historical-policy','history':[('user','我想查质量退货的标准寄回运费报销政策。'),('assistant','需要查哪个时间适用的政策？')], 'message':'2026年3月1日适用的，最多报销多少？请按当时规则，不要用现在的。', 'required':['十二元','2026年3月1日']},
+    {'id':'eu-scope-fresh','history':[('user','我在欧洲区买的普通商品还没拆封。'),('assistant','您想了解退货期限吗？')], 'message':'对，签收第十天还在无理由申请期限内吗？只问期限。', 'required':['十四日','第十天仍在期限内']},
+    {'id':'custom-exception-fresh','history':[('user','是刻了名字的定制商品，没拆封，刚签收三天。'),('assistant','是商品质量问题吗？')], 'message':'不是，只是不喜欢了，能按七天无理由退吗？', 'required':['定制商品例外','不适用无理由退货']},
+    {'id':'effective-boundary-fresh','history':[('user','我要查普通质量退货的标准寄回运费上限。'),('assistant','查哪天适用的？')], 'message':'2026年4月1日当天，不是前一天。', 'required':['十八元','2026年4月1日']},
 ]
 
 
 async def run_full_chain(*,database_url,platform,store,client,policy,provider_config,output,handler):
+    if (output/'full-cases.jsonl').exists() or (output/'full-cases.jsonl.gz').exists():
+        raise ValueError('full-chain evaluation requires a fresh output directory')
     registry=build_default_capability_registry('rag-tool-dev')
     tools=RecordedTools(api_key=provider_config['api_key'],base_url=policy.base_url,model=policy.profile(ModelRole.INTENT).model)
-    tools.captures=[];tools.register(Tool(name='knowledge_search',description='检索有效知识原文；query须为完整问题，保留否定、日期及已知条件。',handler=handler,schema={'type':'object','properties':{'query':{'type':'string'},'as_of':{'type':'string'}},'required':['query']},authority='knowledge.active_source',read_only=True))
+    from application.knowledge_tool_contract import knowledge_query_schema
+    tools.captures=[];tools.register(Tool(name='knowledge_search',description='检索有效知识原文；query须为完整问题，保留否定、日期及已知条件。',handler=handler,schema=knowledge_query_schema(),authority='knowledge.active_source',read_only=True))
     capture=FrameworkCapture(limit=client.limit,calls=client.calls)
     verifier=AnswerVerifier(framework_model(policy.profile(ModelRole.VERIFIER),provider_config,max_tokens=4096),model_profile=policy.profile(ModelRole.VERIFIER),callbacks=(capture,))
     generation=store.active_generation()
     def knowledge_context():
-        return {'cache_scope':registry.bundle_version,'bundle_version':registry.bundle_version,'pinned_execution_refs':{'bundle_version':registry.bundle_version,'knowledge_backend_ref':generation.backend_fingerprint,'corpus_manifest_ref':generation.manifest_hash,'retrieval_policy_ref':registry.bundle_version,'knowledge_generation_ref':generation.generation_id}}
-    manifest={'scope':'synthetic ecommerce; production runtime/admission/coordinator/context/knowledge handler/PostgreSQL retrieval/LLM rerank/compose/verifier/publication; excludes HTTP authentication, external delivery, business writes','cases':CASES,'source_sha256':{f:hashlib.sha256(Path(f).read_bytes()).hexdigest() for f in ('application/response_assembly.py','infrastructure/target_conversation_provider.py','evaluation/rag_full_chain_probe.py')},'max_api_calls':client.limit}
+        return {'knowledge_as_of':datetime.now(timezone.utc).isoformat(),'knowledge_timezone':'UTC','cache_scope':registry.bundle_version,'bundle_version':registry.bundle_version,'pinned_execution_refs':{'bundle_version':registry.bundle_version,'knowledge_backend_ref':generation.backend_fingerprint,'corpus_manifest_ref':generation.manifest_hash,'retrieval_policy_ref':registry.bundle_version,'knowledge_generation_ref':generation.generation_id}}
+    manifest={'scope':'synthetic ecommerce; production runtime/admission/coordinator/context/knowledge handler/PostgreSQL retrieval/LLM rerank/compose/verifier/publication; excludes HTTP authentication, external delivery, business writes','cases':CASES,'source_sha256':{f:hashlib.sha256(Path(f).read_bytes()).hexdigest() for f in ('application/conversation_agent.py','application/knowledge_tool_contract.py','application/knowledge_retriever.py','application/response_assembly.py','infrastructure/target_conversation_provider.py','api/main.py','infrastructure/postgres_knowledge_retriever.py','infrastructure/knowledge_applicability.py','services/answer_verifier.py','services/claim_verification.py','evaluation/rag_full_chain_probe.py')},'max_api_calls':client.limit}
     (output/'full-manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
     rows=[]
     with tempfile.TemporaryDirectory(prefix='rag-full-redis-') as temp:
@@ -72,7 +78,7 @@ async def run_full_chain(*,database_url,platform,store,client,policy,provider_co
                 rows.append(row)
                 with (output/'full-cases.jsonl').open('a') as f:f.write(json.dumps(row,ensure_ascii=False,default=str)+'\n')
                 print('FULL',case['id'],row.get('outcome_type',row.get('error_type')),[t['name'] for t in row['tools']],flush=True)
-            (output/'full-report.json').write_text(json.dumps({'cases':len(rows),'api_calls':len(client.calls),'completed':sum(r.get('outcome_type')=='Completed' for r in rows),'answer_quality':'not yet independently scored'},indent=2)+'\n')
+            (output/'full-report.json').write_text(json.dumps({'cases':len(rows),'api_calls':len(client.calls),'completed':sum(r.get('outcome_type')=='Completed' for r in rows),'verified':sum(bool(r.get('outcome',{}).get('response',{}).get('verified')) for r in rows),'answer_quality':'requires separate evidence/condition review; verified is a runtime outcome'},indent=2)+'\n')
             (output/'full-cases.jsonl.gz').write_bytes(gzip.compress((output/'full-cases.jsonl').read_bytes(),mtime=0))
         finally:
             if components:await components.checkpoint_owner.__aexit__(None,None,None)

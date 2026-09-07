@@ -92,32 +92,46 @@ def knowledge_artifact(artifact) -> bool:
             and artifact['result'].get('authority') == 'knowledge.active_source')
 
 
-_KNOWLEDGE_OPTION_KEYS = frozenset({'as_of', 'applicable_region', 'applicable_channel', 'applicable_product'})
+_KNOWLEDGE_OPTION_KEYS = frozenset({'policy_date', 'as_of', 'applicable_region', 'applicable_channel', 'applicable_product'})
 _KNOWLEDGE_OPTION_MAX_LENGTH = 128
 
 
 def knowledge_query_options_schema():
     """Wire shape; temporal interpretation remains in knowledge_query_options."""
-    return {'type': 'object', 'additionalProperties': False, 'properties': {
+    schema = {'type': 'object', 'additionalProperties': False, 'properties': {
         key: {'type': 'string', 'minLength': 1, 'pattern': r'\S',
               'maxLength': _KNOWLEDGE_OPTION_MAX_LENGTH}
         for key in sorted(_KNOWLEDGE_OPTION_KEYS)
     }}
+    schema['properties']['policy_date'].update(pattern=r'^\d{4}-\d{2}-\d{2}$', description='用户明确指定的政策日历日期 YYYY-MM-DD；系统按知识库业务时区解释，不补时间点。')
+    schema['properties']['as_of'].update(pattern=r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$', description='明确的带时区时间点；仅有日期用 policy_date。')
+    schema['properties']['applicable_channel']['description'] = '仅填写已确认且与知识来源一致的销售渠道ID，如 web/store；物流方式（加急、标准、shipping）不是销售渠道。未知省略，不从问题主题推测。'
+    schema['properties']['applicable_region']['description'] = '仅填写用户明确提供或可信业务上下文确认的适用地区ID；未知省略。'
+    schema['properties']['applicable_product']['description'] = '仅填写已确认且与知识来源标注一致的商品范围ID；商品显示名称不等于范围ID，未知省略。'
+    schema['not'] = {'required': ['as_of', 'policy_date']}
+    return schema
 
 
 def knowledge_query_options(values):
     """Business applicability, distinct from runtime identity and authorization."""
-    from datetime import datetime
+    from datetime import date, datetime
+    import re
     from collections.abc import Mapping
     if not isinstance(values, Mapping):
         raise ValueError("knowledge options must be an object")
     if set(values) - _KNOWLEDGE_OPTION_KEYS:
         raise ValueError("unsupported knowledge option")
+    if "as_of" in values and "policy_date" in values:
+        raise ValueError("choose a date or an instant")
     result = {}
     for key, value in values.items():
         if not isinstance(value, str) or not value.strip() or len(value) > _KNOWLEDGE_OPTION_MAX_LENGTH:
             raise ValueError("knowledge options require bounded strings")
-        if key == 'as_of':
+        if key in {'as_of', 'policy_date'} and not re.fullmatch(knowledge_query_options_schema()['properties'][key]['pattern'], value):
+            raise ValueError('invalid temporal format')
+        if key == 'policy_date':
+            result[key] = date.fromisoformat(value).isoformat()
+        elif key == 'as_of':
             instant = datetime.fromisoformat(value)
             if instant.utcoffset() is None:
                 raise ValueError("knowledge as_of requires timezone")
@@ -125,3 +139,38 @@ def knowledge_query_options(values):
         else:
             result[key] = value.strip()
     return result
+
+
+def knowledge_query_schema():
+    """The shared Agent/direct tool input contract; runtime owns budgets and ACL."""
+    options = knowledge_query_options_schema()
+    return {**options, 'required': ['query'], 'properties': {
+        'query': {'type': 'string', 'minLength': 1, 'maxLength': 4000, 'pattern': r'\S'},
+        **options['properties'],
+        'source_types': {'type': 'array', 'maxItems': 4, 'items': {'type': 'string'}},
+        'regions': {'type': 'array', 'maxItems': 4, 'items': {'type': 'string'}},
+    }}
+
+
+def knowledge_time_window(options, *, current, business_timezone):
+    """Resolve explicit dates using host-owned zone; preserve DST day length."""
+    from datetime import date, datetime, time, timedelta, timezone
+    from zoneinfo import ZoneInfo
+    options = knowledge_query_options(options)
+    if 'policy_date' in options:
+        if not business_timezone:
+            raise ValueError('knowledge business timezone required for calendar dates')
+        zone = ZoneInfo(business_timezone)
+        day = date.fromisoformat(options['policy_date'])
+        start = datetime.combine(day, time.min, zone).astimezone(timezone.utc)
+        try:
+            end = datetime.combine(day + timedelta(days=1), time.min, zone).astimezone(timezone.utc)
+        except OverflowError as exc:
+            raise ValueError("calendar date exceeds supported datetime range") from exc
+        if end <= start:
+            raise ValueError('unsupported calendar date')
+        return start, end
+    instant = datetime.fromisoformat(options['as_of']) if 'as_of' in options else current
+    if not isinstance(instant, datetime) or instant.utcoffset() is None:
+        raise ValueError('trusted current instant required')
+    return instant, None

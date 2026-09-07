@@ -138,11 +138,17 @@ class KnowledgeSearchScope:
     source_types: tuple[str, ...] = ()
     regions: tuple[str, ...] = ()
     as_of: datetime | None = None
+    as_of_end: datetime | None = None
     applicable_region: str | None = None
     applicable_channel: str | None = None
     applicable_product: str | None = None
 
     def __post_init__(self) -> None:
+        if self.as_of_end is not None and (
+            not isinstance(self.as_of, datetime) or self.as_of.utcoffset() is None
+            or not isinstance(self.as_of_end, datetime) or self.as_of_end.utcoffset() is None
+            or self.as_of_end <= self.as_of):
+            raise RetrievalContractError("knowledge time window requires ordered aware instants")
         if not self.scope.strip() or not self.locale.strip():
             raise RetrievalContractError("knowledge scope and locale are required")
         normalized_product = (

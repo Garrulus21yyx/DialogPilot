@@ -58,7 +58,7 @@ from services.badcase_registry import (
     IntentFeedbackStatus,
 )
 from memory.context import ContextAssembler
-from mcp.context_packer import ContextCandidate, ContextPacker
+from mcp.context_packer import CONTEXT_PACKER_VERSION, ContextCandidate, ContextPacker
 from mcp.grounded_answer_generator import GroundedAnswerGenerator
 from mcp.evidence_pack import EvidencePack
 from application.knowledge_source import KnowledgeSourceContractError
@@ -494,6 +494,7 @@ async def lifespan(app: FastAPI):
         ),
     )
 
+    from application.knowledge_tool_contract import knowledge_query_schema
     _tool_manager.register(Tool(
         name="knowledge_search",
         description=(
@@ -501,26 +502,7 @@ async def lifespan(app: FastAPI):
             "BM25/Dense + metadata 路由的加权 RRF）"
         ),
         handler=_knowledge_tool_handler,
-        schema={
-            "type": "object",
-            "properties": {
-                "query": {"type": "string"},
-                "as_of": {"type": "string", "description": "用户明确要求的政策适用时点，带时区ISO-8601；省略查当前"},
-                "applicable_region": {"type": "string", "description": "仅填写已确认的地区；未知则省略"},
-                "applicable_channel": {"type": "string", "description": "仅填写已确认的销售渠道；未知则省略"},
-                "applicable_product": {"type": "string", "description": "仅填写与来源标注一致的商品范围ID；未知则省略"},
-                "top_k": {"type": "integer"},
-                "source_types": {
-                    "type": "array", "items": {"type": "string"},
-                    "maxItems": 4,
-                },
-                "regions": {
-                    "type": "array", "items": {"type": "string"},
-                    "maxItems": 4,
-                },
-            },
-            "required": ["query"],
-        },
+        schema=knowledge_query_schema(),
         cache_ttl=0.0,
         supports_rerank=False,
         fallback=None,
@@ -2496,6 +2478,7 @@ def _knowledge_execution_context() -> dict:
     generation = _knowledge_store.active_generation()
     return {
         "knowledge_as_of": datetime.now(timezone.utc).isoformat(),
+        "knowledge_timezone": os.getenv("KNOWLEDGE_BUSINESS_TIMEZONE", "UTC"),
         "retrieval_policy": validate_rag_policy(bundle.retrieval_policy),
         "cache_scope": bundle.version,
         "bundle_version": bundle.version,
@@ -2526,7 +2509,7 @@ def _knowledge_policy(
             generation.embedding_profile.fingerprint
         ),
         reranker_version=RERANK_PROMPT_VERSION,
-        packer_version="context-packer-v1",
+        packer_version=CONTEXT_PACKER_VERSION,
         raw_query_weight=float(policy["raw_query_weight"]),
         standalone_query_weight=float(policy["standalone_query_weight"]),
         expansion_query_weight=float(policy["expansion_query_weight"]),
@@ -2578,6 +2561,7 @@ async def _retrieve_knowledge(
     region_hints: tuple[str, ...] = (),
     query_mode: str = "HISTORY",
     as_of: datetime | None = None,
+    as_of_end: datetime | None = None,
     applicable_region: str | None = None,
     applicable_channel: str | None = None,
     applicable_product: str | None = None,
@@ -2639,7 +2623,7 @@ async def _retrieve_knowledge(
         generation_id=generation_id,
         policy=_knowledge_policy(policy_values, policy_version=policy_version),
         source_type_hints=source_type_hints,
-        region_hints=region_hints, as_of=as_of or datetime.now(timezone.utc),
+        region_hints=region_hints, as_of=as_of or datetime.now(timezone.utc), as_of_end=as_of_end,
         applicable_region=applicable_region, applicable_channel=applicable_channel,
         applicable_product=applicable_product,
     )
@@ -2652,16 +2636,20 @@ async def _knowledge_tool_handler(
     """Project an authenticated Agent tool invocation onto KnowledgeRetriever."""
     context = dict(context or {})
     try:
-        from application.knowledge_tool_contract import knowledge_query_options
+        from application.knowledge_tool_contract import knowledge_query_options, knowledge_time_window, knowledge_query_schema
+        import jsonschema
+        jsonschema.validate(params, knowledge_query_schema())
         options = knowledge_query_options({key: params[key] for key in (
-            "as_of", "applicable_region", "applicable_channel", "applicable_product") if key in params})
-        as_of_value = options.get("as_of") or context.get("knowledge_as_of")
-        as_of = datetime.fromisoformat(as_of_value) if as_of_value else None
-    except (ValueError, TypeError):
+            "policy_date", "as_of", "applicable_region", "applicable_channel", "applicable_product") if key in params})
+        current = context.get("knowledge_as_of")
+        as_of, as_of_end = knowledge_time_window(options,
+            current=datetime.fromisoformat(current) if current else datetime.now(timezone.utc),
+            business_timezone=context.get("knowledge_timezone") or os.getenv("KNOWLEDGE_BUSINESS_TIMEZONE", "UTC"))
+    except (ValueError, TypeError, KeyError, jsonschema.ValidationError):
         return EvidencePackResult(RetrievalStatus.INVALID_CONTRACT, None, None, "INVALID_KNOWLEDGE_OPTIONS").to_dict(include_text=True)
     result = await _retrieve_knowledge(
         str(params.get("query") or ""),
-        history=(), query_mode="RESOLVED", as_of=as_of,
+        history=(), query_mode="RESOLVED", as_of=as_of, as_of_end=as_of_end,
         applicable_region=options.get("applicable_region"),
         applicable_channel=options.get("applicable_channel"),
         applicable_product=options.get("applicable_product"),

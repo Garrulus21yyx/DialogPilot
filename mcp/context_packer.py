@@ -6,6 +6,8 @@ from typing import Sequence
 
 from core.token_estimator import TokenEstimator
 
+CONTEXT_PACKER_VERSION = "context-packer-v2-revision-coverage"
+
 
 @dataclass(frozen=True)
 class ContextCandidate:
@@ -75,8 +77,10 @@ class ContextPacker:
 
 
 def _overlap_ratio(left: ContextCandidate, right: ContextCandidate) -> float:
-    if left.document_id != right.document_id:
+    if (left.document_id, left.source_revision, left.source_checksum) != (right.document_id, right.source_revision, right.source_checksum):
         return 0.0
     overlap = max(0, min(left.end_char, right.end_char) - max(left.start_char, right.start_char))
-    shorter = min(left.end_char - left.start_char, right.end_char - right.start_char)
-    return overlap / shorter if shorter > 0 else 0.0
+    # Only discard the candidate when its own content is already represented.
+    # A larger candidate containing an earlier short child still adds evidence.
+    candidate_length = left.end_char - left.start_char
+    return overlap / candidate_length if candidate_length > 0 else 0.0

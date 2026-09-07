@@ -17,6 +17,7 @@ from application.hybrid_retrieval import (
     RetrievalStatus,
     normalize_metadata_facets,
 )
+from core.rag_policy import DEFAULT_RAG_RETRIEVAL_POLICY as _RAG_DEFAULTS
 from mcp.context_packer import ContextCandidate, ContextPacker
 from mcp.evidence_pack import EvidencePack
 
@@ -41,17 +42,17 @@ class KnowledgeRetrievalPolicy:
     embedding_version: str
     reranker_version: str
     packer_version: str
-    raw_query_weight: float = 0.25
-    standalone_query_weight: float = 0.75
-    expansion_query_weight: float = 0.0
-    query_expansion_count: int = 0
-    metadata_hint_weight: float = 0.5
-    dense_weight: float = 0.25
-    lexical_weight: float = 0.75
-    rrf_k: int = 10
-    candidate_k: int = 20
-    final_k: int = 5
-    context_max_tokens: int = 2600
+    raw_query_weight: float = _RAG_DEFAULTS["raw_query_weight"]
+    standalone_query_weight: float = _RAG_DEFAULTS["standalone_query_weight"]
+    expansion_query_weight: float = _RAG_DEFAULTS["expansion_query_weight"]
+    query_expansion_count: int = _RAG_DEFAULTS["query_expansion_count"]
+    metadata_hint_weight: float = _RAG_DEFAULTS["metadata_hint_weight"]
+    dense_weight: float = _RAG_DEFAULTS["vector_weight"]
+    lexical_weight: float = _RAG_DEFAULTS["lexical_weight"]
+    rrf_k: int = _RAG_DEFAULTS["rrf_k"]
+    candidate_k: int = _RAG_DEFAULTS["candidate_k"]
+    final_k: int = _RAG_DEFAULTS["top_k"]
+    context_max_tokens: int = _RAG_DEFAULTS["context_max_tokens"]
 
     def __post_init__(self) -> None:
         from core.rag_policy import DEFAULT_RAG_RETRIEVAL_POLICY, validate_rag_policy
@@ -147,11 +148,17 @@ class KnowledgeRetrievalRequest:
     force_recompute: bool = False
     query_mode: str = "HISTORY"
     as_of: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    as_of_end: datetime | None = None
     applicable_region: str | None = None
     applicable_channel: str | None = None
     applicable_product: str | None = None
 
     def __post_init__(self) -> None:
+        if self.as_of_end is not None and (
+            not isinstance(self.as_of, datetime) or self.as_of.utcoffset() is None
+            or not isinstance(self.as_of_end, datetime) or self.as_of_end.utcoffset() is None
+            or self.as_of_end <= self.as_of):
+            raise KnowledgeRetrievalContractError("knowledge time window requires ordered aware instants")
         if not isinstance(self.as_of, datetime) or self.as_of.utcoffset() is None:
             raise KnowledgeRetrievalContractError("as_of must be timezone-aware")
         for value in (self.applicable_region, self.applicable_channel, self.applicable_product):
@@ -298,7 +305,7 @@ class RetrievalCacheKeyBuilder:
     def transform(cls, request: KnowledgeRetrievalRequest) -> str:
         return cls._key("transform", {
             "tenant": request.tenant_id, "user_scope": request.user_scope,
-            "query": normalize_retrieval_text(request.query),
+            "query": request.query,
             "requirement": request.requirement_signature,
             "conversation_range": request.conversation_range_hash,
             "query_mode": request.query_mode,
@@ -313,9 +320,9 @@ class RetrievalCacheKeyBuilder:
         return cls._key("embedding", {
             "tenant": request.tenant_id, "user_scope": request.user_scope,
             "deletion_epoch": request.deletion_epoch,
-            "text": normalize_retrieval_text(normalized_text),
+            "text": normalized_text,
             "embedding": request.policy.embedding_version,
-            "normalizer": "nfkc-casefold-whitespace-v1",
+            "normalizer": "exact-provider-input-v2",
         })
 
     @classmethod
@@ -332,11 +339,12 @@ class RetrievalCacheKeyBuilder:
             "source_type_hints": request.source_type_hints,
             "region_hints": request.region_hints,
             "as_of": request.as_of.isoformat(),
+            "as_of_end": request.as_of_end.isoformat() if request.as_of_end else None,
             "applicable_region": request.applicable_region,
             "applicable_channel": request.applicable_channel,
             "applicable_product": request.applicable_product,
             "variants": [
-                [kind, normalize_retrieval_text(query), weight]
+                [kind, query, weight]
                 for kind, query, weight in variants
             ],
             "manifest": request.manifest_fingerprint,
@@ -357,12 +365,12 @@ class RetrievalCacheKeyBuilder:
         *, resolved_query: str | None = None,
     ) -> str:
         return cls._key("rerank", {
-            "candidate_set": _hash(sorted([
+            "candidate_input": _hash([
                 [item.chunk_id, item.document_id, item.source_revision,
-                 item.source_checksum]
+                 item.source_checksum, item.title, item.text]
                 for item in candidates
-            ])),
-            "query": normalize_retrieval_text(resolved_query if resolved_query is not None else request.query),
+            ]),
+            "query": resolved_query if resolved_query is not None else request.query,
             "reranker": request.policy.reranker_version,
             "policy": request.policy.fingerprint,
         })
@@ -494,9 +502,10 @@ class KnowledgeRetriever:
         )
         clean_expansions = tuple(dict.fromkeys(
             value.strip() for value in expansions
-            if value.strip() not in {request.query, standalone}
+            if value.strip() and value.strip() not in {request.query, standalone}
         ))[:policy.query_expansion_count]
-        weighted_variants = [("raw", request.query, policy.raw_query_weight)]
+        weighted_variants = [("raw", request.query, policy.raw_query_weight +
+            (0.0 if standalone_usable else policy.standalone_query_weight))]
         if standalone_usable:
             weighted_variants.append((
                 "standalone", standalone, policy.standalone_query_weight,

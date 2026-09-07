@@ -153,6 +153,7 @@ def test_conversation_agent_revises_or_cancels_only_named_active_work():
         "goals": [{
             "goal_id": "corrected",
             "kind": "general_qa",
+            "resolved_query": "更正后的政策问题",
             "revises_control_id": control.control_id,
         }],
     })
@@ -412,7 +413,7 @@ def test_single_handoff_and_knowledge_paths_keep_their_route_semantics():
     knowledge, knowledge_state, _ = _invoke(
         ConversationAgent(Provider({
             "status": "resolved",
-            "goals": [{"kind": "refund_policy"}],
+            "goals": [{"kind": "refund_policy", "resolved_query": "退款通常需要多久"}],
         })),
         "退款通常需要多久",
     )

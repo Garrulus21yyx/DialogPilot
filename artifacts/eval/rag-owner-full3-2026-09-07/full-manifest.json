@@ -1,0 +1,69 @@
+{
+  "scope": "synthetic ecommerce; production runtime/admission/coordinator/context/knowledge handler/PostgreSQL retrieval/LLM rerank/compose/verifier/publication; excludes HTTP authentication, external delivery, business writes",
+  "cases": [
+    {
+      "id": "opened-negation",
+      "history": [
+        [
+          "user",
+          "我买的耳机已经拆封了，想退货。"
+        ],
+        [
+          "assistant",
+          "是因为商品质量问题要退吗？"
+        ]
+      ],
+      "message": "不是。那还能七天无理由退吗？",
+      "required": [
+        "已拆封",
+        "非质量原因",
+        "不适用无理由退货"
+      ]
+    },
+    {
+      "id": "ellipsis-shipping",
+      "history": [
+        [
+          "user",
+          "我确认是商品质量问题，要寄回退货。"
+        ],
+        [
+          "assistant",
+          "你想了解寄回运费怎么报销吗？"
+        ]
+      ],
+      "message": "对，加急的也报销吗？",
+      "required": [
+        "标准运费",
+        "加急运费不在报销范围"
+      ]
+    },
+    {
+      "id": "historical-policy",
+      "history": [
+        [
+          "user",
+          "我想查质量退货的标准寄回运费报销政策。"
+        ],
+        [
+          "assistant",
+          "需要查哪个时间适用的政策？"
+        ]
+      ],
+      "message": "2026年3月1日适用的，最多报销多少？请按当时规则，不要用现在的。",
+      "required": [
+        "十二元",
+        "2026年3月1日"
+      ]
+    }
+  ],
+  "source_sha256": {
+    "application/conversation_agent.py": "426f4fce4dbe1a4ddba8bd2013f78e58f5ed82de693908cb206c1bcbeec133ac",
+    "application/knowledge_tool_contract.py": "79ea3d2aad6b8bccefbd7982f3498ab8881df2f024de96e752fbc3e74e5f62d1",
+    "application/knowledge_retriever.py": "a6cf55b7b2c1658539cd452da184aefbff028a0171ecf8312df90c00b91ef967",
+    "application/response_assembly.py": "192850e67e8c5c7da5bf24952da37b0176cdd1796d36287f9e2f299629f7571b",
+    "infrastructure/target_conversation_provider.py": "fa8a0eba28fe85eb73eb6eafc37037ae70abc8b845ebc9b023767e8bc5e4aa85",
+    "evaluation/rag_full_chain_probe.py": "b892c31a203060dbed02b5ffd88caafb923645b58a5180c9eced8ff1e7a264bb"
+  },
+  "max_api_calls": 40
+}

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from mcp.context_packer import CONTEXT_PACKER_VERSION
+
 import hashlib
 import json
 import math
@@ -186,7 +188,7 @@ def _build_manifest(
             "reranker": "identity-no-rerank-v1",
             "final_k": FINAL_K,
             "context_max_tokens": CONTEXT_MAX_TOKENS,
-            "packer": "context-packer-v1",
+            "packer": CONTEXT_PACKER_VERSION,
         },
         "capture_policy": {**asdict(policy), "fingerprint": policy.fingerprint},
         "embedding_profile": embedding_profile_projection(generation),

@@ -20,7 +20,7 @@ from evaluation.rag_heldout_projections import (
 from evaluation.rag_heldout_rewrite import capture_rewrites
 from evaluation.rag_pipeline.dataset import RagDataset
 from evaluation.rag_pipeline.metrics import evaluate_ranked_hits
-from mcp.context_packer import ContextPacker
+from mcp.context_packer import CONTEXT_PACKER_VERSION, ContextPacker
 from mcp.evidence_pack import EvidencePack
 from mcp.query_transformer import QUERY_TRANSFORM_PROMPT_VERSION
 
@@ -57,7 +57,7 @@ def build_heldout_policy(
         transformer_version=QUERY_TRANSFORM_PROMPT_VERSION,
         embedding_version=generation.embedding_profile.fingerprint,
         reranker_version="identity-no-rerank-v1",
-        packer_version="context-packer-v1",
+        packer_version=CONTEXT_PACKER_VERSION,
         raw_query_weight=0.0,
         standalone_query_weight=1.0,
         dense_weight=1.0,

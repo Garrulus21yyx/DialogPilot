@@ -1,0 +1,128 @@
+{
+  "scope": "synthetic ecommerce; production runtime/admission/coordinator/context/knowledge handler/PostgreSQL retrieval/LLM rerank/compose/verifier/publication; excludes HTTP authentication, external delivery, business writes",
+  "cases": [
+    {
+      "id": "opened-negation",
+      "history": [
+        [
+          "user",
+          "我买的耳机已经拆封了，想退货。"
+        ],
+        [
+          "assistant",
+          "是因为商品质量问题要退吗？"
+        ]
+      ],
+      "message": "不是。那还能七天无理由退吗？",
+      "required": [
+        "已拆封",
+        "非质量原因",
+        "不适用无理由退货"
+      ]
+    },
+    {
+      "id": "ellipsis-shipping",
+      "history": [
+        [
+          "user",
+          "我确认是商品质量问题，要寄回退货。"
+        ],
+        [
+          "assistant",
+          "你想了解寄回运费怎么报销吗？"
+        ]
+      ],
+      "message": "对，加急的也报销吗？",
+      "required": [
+        "标准运费",
+        "加急运费不在报销范围"
+      ]
+    },
+    {
+      "id": "historical-policy",
+      "history": [
+        [
+          "user",
+          "我想查质量退货的标准寄回运费报销政策。"
+        ],
+        [
+          "assistant",
+          "需要查哪个时间适用的政策？"
+        ]
+      ],
+      "message": "2026年3月1日适用的，最多报销多少？请按当时规则，不要用现在的。",
+      "required": [
+        "十二元",
+        "2026年3月1日"
+      ]
+    },
+    {
+      "id": "eu-scope-fresh",
+      "history": [
+        [
+          "user",
+          "我在欧洲区买的普通商品还没拆封。"
+        ],
+        [
+          "assistant",
+          "您想了解退货期限吗？"
+        ]
+      ],
+      "message": "对，签收第十天还在无理由申请期限内吗？只问期限。",
+      "required": [
+        "十四日",
+        "第十天仍在期限内"
+      ]
+    },
+    {
+      "id": "custom-exception-fresh",
+      "history": [
+        [
+          "user",
+          "是刻了名字的定制商品，没拆封，刚签收三天。"
+        ],
+        [
+          "assistant",
+          "是商品质量问题吗？"
+        ]
+      ],
+      "message": "不是，只是不喜欢了，能按七天无理由退吗？",
+      "required": [
+        "定制商品例外",
+        "不适用无理由退货"
+      ]
+    },
+    {
+      "id": "effective-boundary-fresh",
+      "history": [
+        [
+          "user",
+          "我要查普通质量退货的标准寄回运费上限。"
+        ],
+        [
+          "assistant",
+          "查哪天适用的？"
+        ]
+      ],
+      "message": "2026年4月1日当天，不是前一天。",
+      "required": [
+        "十八元",
+        "2026年4月1日"
+      ]
+    }
+  ],
+  "source_sha256": {
+    "application/conversation_agent.py": "426f4fce4dbe1a4ddba8bd2013f78e58f5ed82de693908cb206c1bcbeec133ac",
+    "application/knowledge_tool_contract.py": "79ea3d2aad6b8bccefbd7982f3498ab8881df2f024de96e752fbc3e74e5f62d1",
+    "application/knowledge_retriever.py": "a6cf55b7b2c1658539cd452da184aefbff028a0171ecf8312df90c00b91ef967",
+    "application/response_assembly.py": "851945ede56623d43563d1976a5371676de8b3ccce8fb7ff9d57c504ae8285c1",
+    "infrastructure/target_conversation_provider.py": "0bad092ad8f86e03422235014b4f41a955d2bc4d2ea629918bfd81b460074f62",
+    "api/main.py": "795eb248ea38af36a64a5ed2994b702eae0c88b34e1332f0cc98b5e61ca6c0db",
+    "infrastructure/postgres_knowledge_retriever.py": "c264c2730d6ae8e1c161ca06f8f3f38d8cecd5cc45b156b1b22b80ce395a2a20",
+    "infrastructure/knowledge_applicability.py": "1793f9210000be135cc8b6025841cacc743dc89259f90532c51c8c8137124354",
+    "services/answer_verifier.py": "c578f1111f71fd086620806e92b7c8f90c79cba75ca02b020544432a09ff1be8",
+    "services/claim_verification.py": "6821d8f9eeb697a6bf890d5f8e7a3d1af7323b67eff4a3ac95d8cd5a56215981",
+    "evaluation/rag_full_chain_probe.py": "ef9e1ced0ad1bd773b1ba75801acc33e5f219c317904c4f3806378fba1ca094a"
+  },
+  "max_api_calls": 40
+}

@@ -350,7 +350,7 @@ def _scope_sql(request: HybridRetrievalRequest):
         if scope.as_of is not None:
             from infrastructure.knowledge_applicability import source_applicability
             applicability, values = source_applicability(
-                "knowledge_chunk_search", as_of=scope.as_of, region=scope.applicable_region,
+                "knowledge_chunk_search", as_of=scope.as_of, as_of_end=scope.as_of_end, region=scope.applicable_region,
                 channel=scope.applicable_channel, product=scope.applicable_product)
             filters += sql.SQL(" AND ") + applicability
             params.extend(values)

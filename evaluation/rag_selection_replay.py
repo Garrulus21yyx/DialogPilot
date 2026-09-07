@@ -11,7 +11,7 @@ from typing import Any, Mapping, Sequence
 from evaluation import rag_query_replay as query_replay
 from evaluation.rag_pipeline.dataset import RagDataset
 from evaluation.rag_pipeline.metrics import evaluate_ranked_hits
-from mcp.context_packer import ContextCandidate, ContextPacker
+from mcp.context_packer import CONTEXT_PACKER_VERSION, ContextCandidate, ContextPacker
 from mcp.evidence_pack import EvidencePack
 from mcp.rank_fusion import fuse_rankings
 from mcp.source_document import SourceDocument
@@ -76,7 +76,7 @@ def replay_selection_grid(
                     "top_k": config.final_k,
                     "context_max_tokens": config.context_max_tokens,
                     "reranker_version": "identity-no-rerank-v1",
-                    "packer_version": "context-packer-v1",
+                    "packer_version": CONTEXT_PACKER_VERSION,
                 },
                 retrieval_trace={"rerank_prompt_version": "identity-no-rerank-v1"},
             )

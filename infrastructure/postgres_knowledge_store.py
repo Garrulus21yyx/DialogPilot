@@ -467,7 +467,7 @@ class PostgresKnowledgeStore:
         try:
             with self._pool.transaction() as connection:
                 active = connection.execute("""
-                    SELECT manifest_hash FROM retrieval.retrieval_generation_registry
+                    SELECT manifest_hash, generation_id FROM retrieval.retrieval_generation_registry
                     WHERE corpus='KNOWLEDGE' AND backend_id=%s AND state='ACTIVE' FOR SHARE
                 """, (self.backend_id,)).fetchone()
                 if active is None or not packs:
@@ -477,6 +477,15 @@ class PostgresKnowledgeStore:
                         return False
                     for item in evidence_items(pack):
                         ref = item['source_ref']
+                        member = connection.execute("""
+                            SELECT 1 FROM retrieval.knowledge_source_manifest_entries
+                            WHERE tenant_id=%s AND backend_id=%s AND generation_id=%s
+                              AND source_id=%s AND revision_id=%s AND scope='public'
+                              AND locale=%s AND product=%s
+                        """, (self._tenant_id, self.backend_id, active[1], ref['source_id'],
+                              ref['source_revision'], self._locale, self._product)).fetchone()
+                        if member is None:
+                            return False
                         row = connection.execute("""
                             SELECT content, checksum, withdrawn_at FROM retrieval.knowledge_source_revisions
                             WHERE tenant_id=%s AND source_id=%s AND revision_id=%s FOR SHARE

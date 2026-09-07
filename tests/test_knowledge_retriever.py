@@ -125,10 +125,9 @@ def test_retriever_owns_legacy_profile_variants_trace_and_canonical_pack():
     assert result.evidence_pack.items[0].chunk_id == "chunk-one"
     assert result.evidence_pack.items[0].source_ref.source_revision == "revision-one"
     assert result.trace is not None
-    assert result.trace.variants == (
-        ("raw", "退款多久到账", 0.25),
-        ("standalone", "退款审核后到账时间", 0.75),
-    )
+    assert tuple((kind, query) for kind, query, _ in result.trace.variants) == (
+        ("raw", "退款多久到账"), ("standalone", "退款审核后到账时间"))
+    assert tuple(weight for _, _, weight in result.trace.variants) == pytest.approx((0.25, 0.75))
     assert source.calls[0][0] == _request()
     assert source.calls[0][2] == 20
 

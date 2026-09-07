@@ -53,6 +53,7 @@ _GOAL_DESCRIPTIONS = {
     "freeze_account": "Prepare an account freeze explicitly requested by the user; does not merely explain account security rules.",
 }
 _GOALS = frozenset(_GOAL_DESCRIPTIONS)
+_KNOWLEDGE_GOALS = frozenset({"general_qa", "refund_policy", "invoice_qa", "product_qa"})
 
 
 def planning_goal_descriptions() -> dict[str, str]:
@@ -97,7 +98,8 @@ def planning_output_schema(supported_goals=None) -> dict:
             "else": {"not": {"anyOf": [
                 {"required": ["target_agent"]}, {"required": ["objective"]},
             ]}},
-        }],
+        }, {"if": {"properties": {"kind": {"enum": sorted(_KNOWLEDGE_GOALS)}}},
+             "then": {"required": ["resolved_query"]}}],
     }
     # Root object plus branch constraints works with object-tool transports.
     # Each status has one unambiguous shape; inactive fields are omitted.
@@ -453,8 +455,8 @@ class ConversationAgent:
                     ArgumentValue.create(key, option) for key, option in sorted(options.items())))
             elif value.get("knowledge_options"):
                 raise ValueError("knowledge options belong to knowledge goals")
-            if command.tool_id == "knowledge_search" and turn_context is not None and turn_context.recent_relevant_turns and not value.get("resolved_query"):
-                raise ValueError("contextual knowledge goal requires an explicit resolved query")
+            if command.tool_id == "knowledge_search" and not value.get("resolved_query"):
+                raise ValueError("knowledge goal requires an explicit resolved query")
             if revises_control_id and kind != "cancel_active_work":
                 command = replace(
                     command, revises_control_id=revises_control_id,
