@@ -34,6 +34,8 @@
 
 ## 20 条 Flash 实际生成对照
 
+后续审计：历史角色曾按奇偶位置猜测，20条中10条受影响。以下输出保留作诊断，不作为正确历史输入下的生成验收；回放脚本现已改为官方角色映射。300条raw-query本地检索结果不依赖该历史适配。
+
 调用前按会话哈希选20组，每组取最大历史长度的一个问题，基线和候选各一次，共40次；模型为配置中的 deepseek-v4-flash、reasoning none。使用现行生产 compose provider 与 renderer，传入历史和打包证据；未运行 Conversation Agent 路由、业务工具或 verifier，因此准确名称是 composition replay。
 
 | 指标 | 基线 | 候选 |

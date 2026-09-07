@@ -1,5 +1,7 @@
 # 候选池损失与完整 query 实测
 
+后续审计纠正：下述v2规划回放按文本位置猜测历史角色；20条中10条/40条消息与官方角色不一致。因此条件子集结果仅描述错误角色输入，不再作为完整query验收。修正版使用官方turn ID与逐条文本校验，见source-roles-v3产物。raw召回的300条候选损失分析不使用历史角色，不受该问题影响。
+
 300条既有开发集缓存，raw query，每路40、Dense/BM25=.5/.5、RRF10。零API重算：Dense40完整230、BM2540完整218、两路并集244；融合Top20为223，Top40为237，Top60为243，全部并集244。77条Top20失败分成56条并集缺失、21条融合截断损失。扩大候选只证明潜在可见性，不证明最终排序/答案改善；增加精排池必须另计成本。
 
 完整query实验沿用预选20个会话，使用真正ConversationAgent.plan、现有prompt/schema/默认电商registry、双方TargetTurnContext。Flash明确provider=deepseek、reasoning=none，规划20次。17条产生knowledge_search.query；1条缺历史追问，2条公共政府问题判领域外。没有执行工具、业务操作或生成答案。

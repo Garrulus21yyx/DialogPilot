@@ -10,6 +10,7 @@ from infrastructure.target_conversation_provider import AnthropicConversationPla
 from application.composition_output import render_composition
 from application.response_assembly import AllowedClaim
 from evaluation.rag_pipeline.dataset import RagDataset
+from evaluation.doc2dial_history_roles import history_roles
 
 
 def clean(v):
@@ -23,6 +24,7 @@ async def run(args):
  for c in ds.select_cases('dev'):groups.setdefault(c.group_id,[]).append(c)
  groupids=sorted(groups,key=lambda g:hashlib.sha256(('rag-composition20-v1\0'+g).encode()).hexdigest())[:20]
  cases=[max(groups[g],key=lambda c:(len(c.history),c.case_id)) for g in groupids]
+ roles=history_roles('/tmp/doc2dial_v1.0.1.zip',cases)
  inputs={}
  for arm,label in [('baseline','current-fusion'),('candidate','local-crossencoder')]:
   rows=[json.loads(l) for l in gzip.decompress((args.stages/(label+'-cases.jsonl.gz')).read_bytes()).splitlines()];inputs[arm]={r['case_id']:r for r in rows}
@@ -40,7 +42,7 @@ async def run(args):
     doc=docs[s['document_id']];text=doc.content[s['start']:s['end']];eid='E'+hashlib.sha256(json.dumps([doc.document_id,s['start'],s['end'],text]).encode()).hexdigest()[:12]
     evidence.append({'evidence_id':eid,'text':text,'title':doc.title,'source':{'source_id':doc.document_id,'start_char':s['start'],'end_char':s['end']}})
    claims=[AllowedClaim('knowledge','KNOWLEDGE_FACT',{'status':'OK','evidence':evidence},())]
-   payload={'current_message':case.query,'conversation_context':{'recent_messages':[{'role':'user' if i%2==0 else 'assistant','content':t} for i,t in enumerate(case.history)]},'allowed_claims':[asdict(c) for c in claims],'work_item_outcomes':[],'missing_requirement_ids':[],'partial_delivery_allowed':False}
+   payload={'current_message':case.query,'conversation_context':{'recent_messages':[{'role':roles[case.case_id][i],'content':t} for i,t in enumerate(case.history)]},'allowed_claims':[asdict(c) for c in claims],'work_item_outcomes':[],'missing_requirement_ids':[],'partial_delivery_allowed':False}
    key=hashlib.sha256(json.dumps(payload,sort_keys=True,ensure_ascii=False).encode()).hexdigest()
    if key in cache:out={**cache[key],'reused':True,'calls':[]}
    else:

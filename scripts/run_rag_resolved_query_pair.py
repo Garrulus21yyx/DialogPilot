@@ -25,13 +25,16 @@ from evaluation.rag_provider_free import projection, ranked, complete, sha
 from evaluation.local_bge_m3_retrieval_eval import bm25_matrix
 from mcp.rank_fusion import fuse_rankings
 from scripts.run_rag_selected_composition_pair import clean
+from evaluation.doc2dial_history_roles import history_roles
 
 ROOT = Path('artifacts/eval')
-OUT = ROOT / 'rag-resolved-query20-provider-v2-2026-09-07'
+OUT = ROOT / 'rag-resolved-query20-source-roles-v3-2026-09-07'
 MODEL = '/home/yang/.cache/huggingface/hub/models--BAAI--bge-m3/snapshots/5617a9f61b028005a4858fdac845db406aefb181'
 
 
 async def plan(cases):
+    roles = history_roles('/tmp/doc2dial_v1.0.1.zip', cases)
+    (OUT / 'history-roles.json').write_text(json.dumps(roles, indent=2)+'\n')
     values = {k: str(v) for k, v in dotenv_values('.env').items() if v is not None}
     values.update(os.environ)
     policy = ModelPolicy.from_env(values)
@@ -44,7 +47,7 @@ async def plan(cases):
         provider = AnthropicConversationPlanningProvider({ModelRole.INTENT: model}, model_profile=profile, synthesis_profile=profile, max_tokens=2048, callbacks=(capture,))
         state = ConversationState.empty(tenant_id='local-eval', user_id='local-user', conversation_id=c.case_id)
         obs = TurnObservations(c.query, ())
-        history = tuple(TargetContextMessage('user' if i % 2 == 0 else 'assistant', text, f'{c.case_id}:{i}', i+1) for i, text in enumerate(c.history))
+        history = tuple(TargetContextMessage(roles[c.case_id][i], text, f'{c.case_id}:{i}', i+1) for i, text in enumerate(c.history))
         context = TargetTurnContext(recent_messages=history, projection_status=TargetContextProjectionStatus.READY, source_watermark=len(history), projection_reason_codes=())
         context = replace(context, entity_bindings=EntityBindingResolver().resolve(obs, state, context))
         proposal = await ConversationAgent(provider).plan(obs, state, DeterministicResolver().resolve(obs, state), build_default_capability_registry('local-eval'), context)

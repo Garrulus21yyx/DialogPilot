@@ -1,0 +1,68 @@
+{
+  "scope": "development local replay, not live PG/Agent answer acceptance",
+  "api_calls": 0,
+  "actual_pairs": 20203,
+  "elapsed_ms": 180785.48075444996,
+  "context_budget": 2600,
+  "max_chunks": 5,
+  "arms": {
+    "raw300": {
+      "20": {
+        "cases": 300,
+        "complete_pool": 223,
+        "packed_complete": 208,
+        "mrr5": 0.584,
+        "pairs_required": 6000,
+        "rescues_vs20": 0,
+        "harms_vs20": 0
+      },
+      "40": {
+        "cases": 300,
+        "complete_pool": 237,
+        "packed_complete": 207,
+        "mrr5": 0.5830555555555555,
+        "pairs_required": 12000,
+        "rescues_vs20": 2,
+        "harms_vs20": 3
+      },
+      "80": {
+        "cases": 300,
+        "complete_pool": 244,
+        "packed_complete": 207,
+        "mrr5": 0.5822222222222222,
+        "pairs_required": 19283,
+        "rescues_vs20": 3,
+        "harms_vs20": 4
+      }
+    },
+    "resolved17": {
+      "20": {
+        "cases": 17,
+        "complete_pool": 17,
+        "packed_complete": 16,
+        "mrr5": 0.7843137254901961,
+        "pairs_required": 340,
+        "rescues_vs20": 0,
+        "harms_vs20": 0
+      },
+      "40": {
+        "cases": 17,
+        "complete_pool": 17,
+        "packed_complete": 16,
+        "mrr5": 0.7843137254901961,
+        "pairs_required": 680,
+        "rescues_vs20": 0,
+        "harms_vs20": 0
+      },
+      "80": {
+        "cases": 17,
+        "complete_pool": 17,
+        "packed_complete": 16,
+        "mrr5": 0.7843137254901961,
+        "pairs_required": 920,
+        "rescues_vs20": 0,
+        "harms_vs20": 0
+      }
+    }
+  }
+}
