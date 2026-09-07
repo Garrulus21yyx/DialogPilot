@@ -42,6 +42,7 @@ class AssembledResponse:
     verification_reason: str
     verified_text_sha256: str = ""
     approval_operation_key: str = ""
+    retryable: bool = False
 
     @property
     def verified(self) -> bool:
@@ -100,7 +101,8 @@ class ResponseAssembler:
                 "暂时无法组织后续问题，已保留处理进度，请稍后重试。",
                 "I could not prepare the follow-up question. Your progress is saved; please try again later.")
             return AssembledResponse((prelude + "\n" if prelude else "") + notice,
-                ResponseAssemblyMode.TEMPLATE, (), False, "NOT_CHECKED", "INTERACTION_UNAVAILABLE")
+                ResponseAssemblyMode.TEMPLATE, (), False, "NOT_CHECKED", response.verification_reason,
+                retryable=response.retryable)
         pending = [r.pending_action for r in board.results if r.pending_action]
         operation_key = pending_approval.operation_key if pending_approval else pending[0].operation_key if len(pending) == 1 else ""
         if not requested_inputs and operation_key and response.verified_text_sha256:
@@ -137,6 +139,8 @@ class ResponseAssembler:
                 pending_approval=pending_approval, requested_inputs=requested_inputs)
             candidate = replace(candidate, text=system_notice + candidate.text)
             if not candidate.composer_used:
+                if requested_inputs:
+                    return candidate
                 if knowledge_facts or knowledge_failure:
                     return self._knowledge_fallback(board, system_notice, unavailable=True)
                 return candidate
@@ -146,8 +150,15 @@ class ResponseAssembler:
                 board, current_message, candidate, conversation_context=conversation_context,
                 system_notice=system_notice, pending_approval=pending_approval,
                 requested_inputs=requested_inputs, knowledge_evidence=evidence)
-            if not candidate.composer_used or not verdict.publishable or not verdict.grounded:
-                raise ValueError("composed answer lacks support")
+            if not candidate.composer_used:
+                if requested_inputs:
+                    return candidate
+                raise ValueError("revision composition unavailable")
+            if not verdict.publishable or not verdict.grounded:
+                if not requested_inputs:
+                    raise ValueError("composed answer lacks support")
+                return AssembledResponse(system_notice + _render_board(board, locale=self.fallback_locale),
+                    ResponseAssemblyMode.TEMPLATE, (), False, "REJECT", verdict.reason_code.value)
             cited = set(re.findall(r"\[(E[a-zA-Z0-9]+)\]", candidate.text))
             if cited - allowed or (knowledge_facts and not cited):
                 raise ValueError("answer citations do not match supplied evidence")
@@ -159,7 +170,9 @@ class ResponseAssembler:
                 tuple(sorted(cited)) if packs else candidate.used_claim_ids,
                 True, "PASS", "KNOWLEDGE_SUPPORT_CHECKED" if packs else "ANSWER_SUPPORT_CHECKED",
                 hashlib.sha256(candidate.text.encode()).hexdigest())
-        except Exception:
+        except Exception as exc:
+            if requested_inputs:
+                return _assembly_failure(exc, system_notice + _render_board(board, locale=self.fallback_locale))
             if knowledge_facts or knowledge_failure:
                 return self._knowledge_fallback(board, system_notice, unavailable=True)
             return AssembledResponse(
@@ -188,6 +201,8 @@ class ResponseAssembler:
             conversation_context=conversation_context, repair_feedback=feedback, pending_approval=pending_approval,
             requested_inputs=requested_inputs)
         revised = replace(revised, text=system_notice + revised.text)
+        if not revised.composer_used:
+            return revised, verdict
         revised_verdict = await self._verify_support(board, message, revised.text,
             used_claim_ids=revised.used_claim_ids,
             knowledge_evidence=knowledge_evidence, conversation_context=conversation_context, pending_approval=pending_approval,
@@ -203,19 +218,17 @@ class ResponseAssembler:
         receipts = [claim.value for claim in _allowed_claims(board) if claim.kind == 'RECEIPT']
         proposals = [claim.value for claim in _allowed_claims(board, pending_approval, requested_inputs=requested_inputs)
                      if claim.kind == 'PENDING_ACTION']
+        waiting_targets = {spec.target_work_item_id for spec in requested_inputs}
         missing_outcomes = [result.work_item_id for result in board.results
             if result.status not in {AgentResultStatus.SUCCEEDED, AgentResultStatus.WAITING_APPROVAL}
+            and not (result.status is AgentResultStatus.NEEDS_USER_INPUT and result.work_item_id in waiting_targets)
             and used_claim_ids is not None and 'outcome:' + result.work_item_id not in used_claim_ids]
         invalid_citations = sorted(name for name in self._internal_tool_names if '[' + name + ']' in text)
-        input_claims = [claim for claim in _allowed_claims(board, requested_inputs=requested_inputs)
-                        if claim.kind == "INPUT_REQUEST"]
-        missing_outcomes.extend(claim.claim_id for claim in input_claims
-                                if used_claim_ids is not None and claim.claim_id not in used_claim_ids)
         inputs = dict(question=message, answer=text,
             context=json.dumps({'facts': facts, 'receipts': receipts, 'pending_actions': proposals,
                                 'unrepresented_outcomes': missing_outcomes,
                                 'invalid_citations': invalid_citations,
-                                'requested_inputs': [claim.value for claim in input_claims],
+                                'requested_inputs': _input_context(requested_inputs),
                                 'user_context': conversation_context}, ensure_ascii=False),
             knowledge_evidence=knowledge_evidence,
             agent_outcomes=[{"status": result.status.value, "reason": result.reason_code,
@@ -272,6 +285,7 @@ class ResponseAssembler:
             "schema_version": "conversation-compose-request-v3-supports",
             "current_message": current_message,
             "conversation_context": conversation_context,
+            "requested_inputs": _input_context(requested_inputs),
             "allowed_claims": [
                 {
                     "claim_id": claim.claim_id,
@@ -311,12 +325,15 @@ class ResponseAssembler:
         try:
             payload = prepare_composition_payload(payload)
             raw = await self._composer.compose(payload)
-            text, used = render_composition(raw, claims)
+            text, used = render_composition(raw, claims, requested_inputs=requested_inputs)
             text, used = self.prepare_composed_response(
                 text, used, claims, current_message, payload["work_item_outcomes"],
                 conversation_context=conversation_context,
+                requested_inputs=requested_inputs,
             )
-        except Exception:
+        except Exception as exc:
+            if requested_inputs:
+                return _assembly_failure(exc, system_notice + fallback)
             return AssembledResponse(
                 system_notice + fallback, ResponseAssemblyMode.TEMPLATE,
                 tuple(claim.claim_id for claim in claims), False,
@@ -328,7 +345,7 @@ class ResponseAssembler:
         )
 
     @staticmethod
-    def prepare_composed_response(text, used, claims, current_message, outcomes, *, conversation_context=None):
+    def prepare_composed_response(text, used, claims, current_message, outcomes, *, conversation_context=None, requested_inputs=()):
         """Render internal attribution and authoritative outcomes before support checking."""
         by_id = {claim.claim_id: claim for claim in claims}
         known = set(by_id)
@@ -343,7 +360,8 @@ class ResponseAssembler:
         if any(claim_id in text for claim_id in known):
             raise ValueError("composer exposed an internal claim identifier")
         text = text.strip()
-        ResponseAssembler._verify_composed(text, used, claims, current_message, conversation_context=conversation_context)
+        ResponseAssembler._verify_composed(text, used, claims, current_message, conversation_context=conversation_context,
+                                          requested_inputs=requested_inputs)
         for outcome in outcomes:
             status = AgentResultStatus(outcome["status"])
             if status in {AgentResultStatus.SUCCEEDED, AgentResultStatus.WAITING_APPROVAL}:
@@ -378,8 +396,8 @@ class ResponseAssembler:
         return ResponseAssemblyMode.CONVERSATION_COMPOSE
 
     @staticmethod
-    def _verify_composed(text, used, claims, current_message, *, conversation_context=None) -> None:
-        if not text or not used or len(used) != len(set(used)):
+    def _verify_composed(text, used, claims, current_message, *, conversation_context=None, requested_inputs=()) -> None:
+        if not text or (not used and not requested_inputs) or len(used) != len(set(used)):
             raise ValueError("composed response contract is incomplete")
         claims_by_id = {item.claim_id: item for item in claims}
         if set(used).difference(claims_by_id):
@@ -403,13 +421,23 @@ def _failure_feedback(result):
     return failure_feedback(result) if result.status not in _SUCCESS else []
 
 
+def _input_context(requested_inputs):
+    """Runtime-owned bindings, not model-selected evidence for factual claims."""
+    return [{"target_work_item_id": spec.target_work_item_id, "field_name": spec.field_name,
+             "value_schema": spec.value_schema, "question_hint": spec.question_hint}
+            for spec in requested_inputs]
+
+
+def _assembly_failure(exc, text):
+    from core.framework_models import ModelInvocationError, retryable_model_error
+    retryable = exc.retryable if isinstance(exc, ModelInvocationError) else retryable_model_error(exc)
+    return AssembledResponse(text, ResponseAssemblyMode.TEMPLATE, (), False, "NOT_CHECKED",
+                            "ASSEMBLY_UNAVAILABLE" if retryable else "ASSEMBLY_INVALID",
+                            retryable=retryable)
+
+
 def _allowed_claims(board, pending_approval=None, *, requested_inputs=()) -> tuple[AllowedClaim, ...]:
     claims = []
-    for spec in requested_inputs:
-        claims.append(AllowedClaim(
-            f"input:{spec.target_work_item_id}:{spec.field_name}", "INPUT_REQUEST",
-            {"target_work_item_id": spec.target_work_item_id, "field_name": spec.field_name,
-             "value_schema": spec.value_schema, "question_hint": spec.question_hint}, ()))
     if pending_approval and not requested_inputs:
         claims.append(AllowedClaim("proposal:" + pending_approval.work_item_id, "PENDING_ACTION",
             {"action_ref": pending_approval.action_ref,

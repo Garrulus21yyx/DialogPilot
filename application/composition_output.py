@@ -21,7 +21,7 @@ def support_catalog(claims):
             if any(not isinstance(e, str) or not e.strip() for e in evidence) or len(evidence) != len(set(evidence)):
                 raise ValueError('knowledge claim requires unique evidence identities')
             evidence = sorted(evidence)
-        elif claim['kind'] in {'FACT', 'CONTROLLED_REFUND_FACT', 'RECEIPT', 'WORK_ITEM_OUTCOME', 'PENDING_ACTION', 'INPUT_REQUEST'}:
+        elif claim['kind'] in {'FACT', 'CONTROLLED_REFUND_FACT', 'RECEIPT', 'WORK_ITEM_OUTCOME', 'PENDING_ACTION'}:
             evidence = [None]
         else:
             raise ValueError('unsupported composition claim kind')
@@ -69,11 +69,14 @@ def prepare_composition_payload(payload):
     return value
 
 
-def composition_schema(claims):
+def composition_schema(claims, *, requested_inputs=()):
     rows = [asdict(c) if not isinstance(c, dict) else c for c in claims]
     controlled = {c['claim_id'] for c in rows if c['kind'] == 'CONTROLLED_REFUND_FACT'}
     ids = [row['support_id'] for row in support_catalog(rows) if row['claim_id'] not in controlled]
     variants = []
+    if requested_inputs:
+        variants.append({'type': 'object', 'additionalProperties': False,
+            'required': ['text'], 'properties': {'text': {'type': 'string', 'minLength': 1}}})
     if ids:
         variants.append({'type': 'object', 'additionalProperties': False,
             'required': ['text', 'support_ids'], 'properties': {
@@ -86,17 +89,26 @@ def composition_schema(claims):
             'required': ['type', 'statement_id'], 'properties': {
                 'type': {'const': 'fact_ref'},
                 'statement_id': {'type': 'string', 'enum': [s['statement_id'] for s in statements]}}})
+    question_limit = ({'contains': {'type': 'object', 'required': ['text'],
+                                   'not': {'required': ['support_ids']}},
+                       'minContains': 0, 'maxContains': 1} if requested_inputs else {})
     return {'type': 'object', 'additionalProperties': False, 'required': ['segments'],
             'properties': {'segments': {'type': 'array', 'minItems': 1, 'maxItems': 20,
-                            'items': {'oneOf': variants}}}}
+                            **question_limit, 'items': {'oneOf': variants}}}}
 
 
-def validate_composition(value):
+def validate_composition(value, *, requested_inputs=()):
     if not isinstance(value, dict) or set(value) != {'segments'}:
         raise ValueError('composition requires segments')
     if not isinstance(value['segments'], list) or not 1 <= len(value['segments']) <= 20:
         raise ValueError('composition requires bounded segments')
+    if sum(isinstance(s, dict) and set(s) == {'text'} for s in value['segments']) > 1:
+        raise ValueError('bound questions must use one coherent text segment')
     for segment in value['segments']:
+        if requested_inputs and isinstance(segment, dict) and set(segment) == {'text'}:
+            if not isinstance(segment['text'], str) or not segment['text'].strip():
+                raise ValueError('question requires text')
+            continue
         if isinstance(segment, dict) and segment.get('type') == 'fact_ref':
             if set(segment) != {'type', 'statement_id'} or not isinstance(segment['statement_id'], str) or not segment['statement_id']:
                 raise ValueError('fact_ref requires only statement identity')
@@ -114,8 +126,8 @@ def validate_composition(value):
     return value
 
 
-def render_composition(value, claims):
-    value = validate_composition(value)
+def render_composition(value, claims, *, requested_inputs=()):
+    value = validate_composition(value, requested_inputs=requested_inputs)
     catalog = support_catalog(claims)
     supports = {row['support_id']: row for row in catalog}
     statements = {s['statement_id']: s for s in statement_catalog(claims)}
@@ -123,6 +135,11 @@ def render_composition(value, claims):
     internal_ids = set(statements) | set(supports) | {row['claim_id'] for row in catalog}
     texts, used = [], []
     for segment in value['segments']:
+        if set(segment) == {'text'}:
+            if any(identifier in segment['text'] for identifier in internal_ids) or re.search(r'\[(?:E[a-zA-Z0-9]+|S[a-f0-9]+)\]', segment['text']):
+                raise ValueError('question text cannot manufacture citations')
+            texts.append(segment['text'].strip())
+            continue
         if segment.get('type') == 'fact_ref':
             statement = statements.get(segment['statement_id'])
             if statement is None:

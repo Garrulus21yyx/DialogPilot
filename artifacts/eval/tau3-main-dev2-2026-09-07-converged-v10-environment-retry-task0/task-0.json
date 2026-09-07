@@ -1,0 +1,46 @@
+{
+  "task_id": "0",
+  "official_reward": null,
+  "langfuse_session_id": "tau3-68dc9c8a4be5442bac144effacb6fb39",
+  "status": "ERROR",
+  "error_type": "Empty",
+  "error": "",
+  "target_trace": [
+    {
+      "verification": {
+        "status": "reject",
+        "grounded": true,
+        "need_escalation": true,
+        "reason": "Explain unresolved task outcomes: work:1:semantic-1",
+        "reason_code": "incomplete",
+        "assessment": {
+          "request_hash": "a50198dc85af506e9b2215beb3eeaa8e6b7021f3352199c239d36bc2e4b0f1d8",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": false,
+          "issues": []
+        },
+        "request_binding": "0386dee9f38cf01abb0a377a1eaf4d8c975cbd63c6476a6b7bb53fbd5e1401ab"
+      },
+      "candidate": "I'd be happy to help with your exchange. First, I need to authenticate your identity. Could you please provide the email address associated with your account? (If you don't remember your email, I can look you up by first name, last name, and zip code instead.)"
+    },
+    {
+      "verification": {
+        "status": "reject",
+        "grounded": true,
+        "need_escalation": true,
+        "reason": "Explain unresolved task outcomes: work:1:semantic-1",
+        "reason_code": "incomplete",
+        "assessment": {
+          "request_hash": "a50198dc85af506e9b2215beb3eeaa8e6b7021f3352199c239d36bc2e4b0f1d8",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": false,
+          "issues": []
+        },
+        "request_binding": "0386dee9f38cf01abb0a377a1eaf4d8c975cbd63c6476a6b7bb53fbd5e1401ab"
+      },
+      "candidate": "I'd be happy to help with your exchange. First, I need to authenticate your identity. Could you please provide the email address associated with your account? (If you don't remember your email, I can look you up by first name, last name, and zip code instead.)"
+    }
+  ]
+}

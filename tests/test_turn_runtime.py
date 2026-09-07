@@ -150,7 +150,8 @@ def test_question_author_failure_resumes_assembly_without_repeating_work_or_rebi
         async def compose(self, payload):
             self.calls += 1
             if self.calls == 1:
-                raise RuntimeError('temporary model failure')
+                from core.framework_models import ModelInvocationError
+                raise ModelInvocationError('compose', TimeoutError('temporary model failure'))
             return {'segments': [{'text': '请提供订单核验信息。',
                 'support_ids': [s['support_id'] for s in payload['support_catalog']]}]}
     composer = Composer()
@@ -169,6 +170,25 @@ def test_question_author_failure_resumes_assembly_without_repeating_work_or_rebi
     asyncio.run(run())
     assert manager.prepare_calls == manager.execute_calls == 1
     assert len(executor.calls) == 1
+    assert composer.calls == 2
+
+
+def test_checkpoint_does_not_make_exhausted_question_review_retryable():
+    from application.turn_runtime import InteractionAssemblyUnavailable
+    from tests.test_target_chat_cutover import _MissingThenReadExecutor
+    checkpoint = InMemorySaver(serde=target_checkpoint_serializer())
+    class Composer:
+        calls = 0
+        async def compose(self, payload):
+            self.calls += 1
+            return {'segments': [{'text': 'Unsupported question premise.'}]}
+    composer = Composer()
+    runtime = TurnRuntime(_manager(_MissingThenReadExecutor()),
+        ResponseAssembler(composer, knowledge_verifier=Verifier(False)), checkpointer=checkpoint)
+    with pytest.raises(InteractionAssemblyUnavailable) as error:
+        asyncio.run(runtime.execute(_identity(), TurnObservations('查询订单 DP1234')))
+    assert not error.value.retryable
+    assert error.value.reason == 'ungrounded'
     assert composer.calls == 2
 
 
@@ -192,9 +212,9 @@ def test_question_presentation_uses_exact_persisted_bindings_not_optional_hints(
     composer = Composer()
     runtime = TurnRuntime(_manager(Executor()), ResponseAssembler(composer, knowledge_verifier=Verifier(True)))
     result = asyncio.run(runtime.execute(_identity(), TurnObservations('查询订单 DP1234')))
-    claims = [c for c in composer.payload['allowed_claims'] if c['kind'] == 'INPUT_REQUEST']
+    claims = composer.payload['requested_inputs']
     fields = result.managed.state_after.pending_interaction.requested_fields
-    assert {(c['value']['target_work_item_id'], c['value']['field_name']) for c in claims} == {
+    assert {(c['target_work_item_id'], c['field_name']) for c in claims} == {
         (f.target_work_item_id, f.field_name) for f in fields}
     assert len(claims) == 1 and result.assembled.verified
 
@@ -237,7 +257,8 @@ def test_question_failure_survives_postgres_checkpoint_reopen(postgres_database_
         async def compose(self, payload):
             self.calls += 1
             if self.calls == 1:
-                raise RuntimeError('injected provider outage')
+                from core.framework_models import ModelInvocationError
+                raise ModelInvocationError('compose', TimeoutError('injected provider outage'))
             return {'segments': [{'text': '请提供订单核验信息。',
                 'support_ids': [s['support_id'] for s in payload['support_catalog']]}]}
     composer = Composer()

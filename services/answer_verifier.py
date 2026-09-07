@@ -122,7 +122,7 @@ class AnswerVerifier:
         agent_outcomes: Optional[list[Dict[str, Any]]] = None,
         knowledge_evidence: Optional[Dict[str, Any]] = None,
     ) -> VerificationResult:
-        """校验候选回答，并把任意外部异常转换成闭合的有类型结果。"""
+        """校验候选；暂时模型故障交给现有 Run 重试，其余返回有类型判断。"""
         question = (question or "").strip()
         answer = (answer or "").strip()
         context = (context or "").strip()
@@ -186,6 +186,9 @@ class AnswerVerifier:
                 reason_code=reason_code, assessment=assessment,
             )
         except Exception as exc:
+            from core.framework_models import ModelInvocationError
+            if isinstance(exc, ModelInvocationError) and exc.retryable:
+                raise
             return VerificationResult(
                 status=VerificationStatus.UNKNOWN, grounded=False, need_escalation=True,
                 reason=f"verification unavailable: {type(exc).__name__}",

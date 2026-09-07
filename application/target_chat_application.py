@@ -208,7 +208,7 @@ class TargetChatApplication:
                     str(identity.invocation_key),
                     "The planning service could not complete this request.")
             if isinstance(exc, InteractionAssemblyUnavailable):
-                return Failed("target_interaction_unavailable", exc.retryable,
+                return Failed("target_interaction_" + exc.reason.lower(), exc.retryable,
                     str(identity.invocation_key), "The follow-up question could not be prepared. Progress is saved.")
             logger.exception(
                 "Target turn execution failed invocation_key=%s",

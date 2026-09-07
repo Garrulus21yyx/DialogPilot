@@ -31,9 +31,10 @@ class TurnCheckpointVersionError(TurnRuntimeError):
 class InteractionAssemblyUnavailable(TurnRuntimeError):
     """Keep the assembly node resumable; no question has been published."""
 
-    def __init__(self, *, retryable: bool):
-        super().__init__("The follow-up question could not be verified.")
+    def __init__(self, *, retryable: bool, reason: str = "INTERACTION_UNAVAILABLE"):
+        super().__init__("The follow-up question could not be verified: " + reason)
         self.retryable = retryable
+        self.reason = reason
 
 
 class TurnGraphState(TypedDict, total=False):
@@ -146,7 +147,9 @@ class TurnRuntime:
             requested_inputs=questions,
         )
         if questions and not assembled.verified:
-            raise InteractionAssemblyUnavailable(retryable=self._checkpointer is not None)
+            raise InteractionAssemblyUnavailable(
+                retryable=assembled.retryable and self._checkpointer is not None,
+                reason=assembled.verification_reason)
         return {"assembled": assembled}
 
     async def execute(

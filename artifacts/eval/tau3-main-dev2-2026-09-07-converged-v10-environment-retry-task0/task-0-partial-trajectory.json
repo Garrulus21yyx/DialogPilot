@@ -1,0 +1,111 @@
+[
+  {
+    "role": "assistant",
+    "content": "Hi! How can I help you today?",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-07T10:43:52.685881",
+    "cost": 0.0,
+    "usage": null,
+    "raw_data": null,
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  },
+  {
+    "role": "user",
+    "content": "Hello! I’d like help with an exchange for two items from my recent order. I received my order but I need to swap a mechanical keyboard and a smart thermostat for versions that fit my setup better. Can you help me get this sorted out all at once?",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-07T10:43:54.393095",
+    "cost": 0.0,
+    "usage": {
+      "completion_tokens": 150,
+      "prompt_tokens": 498
+    },
+    "raw_data": {
+      "id": "chatcmpl-53334b55-7cd3-47e5-b54c-000c2c31a31f",
+      "created": 1788770634,
+      "model": "deepseek-v4-flash",
+      "object": "chat.completion",
+      "system_fingerprint": null,
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "content": "Hello! I’d like help with an exchange for two items from my recent order. I received my order but I need to swap a mechanical keyboard and a smart thermostat for versions that fit my setup better. Can you help me get this sorted out all at once?",
+            "role": "assistant",
+            "tool_calls": null,
+            "function_call": null,
+            "reasoning_content": "Hi, I just received my order and I need to exchange a couple of items. Let me give you the details. I have order #W2378156. I want to exchange the mechanical keyboard for the same one but with clicky switches. Also, I need to exchange the smart thermostat for one that works with Google Home instead of Apple HomeKit. I want to make sure both are handled in one go. What do you need from me to get this started?",
+            "thinking_blocks": [
+              {
+                "type": "thinking",
+                "thinking": "Hi, I just received my order and I need to exchange a couple of items. Let me give you the details. I have order #W2378156. I want to exchange the mechanical keyboard for the same one but with clicky switches. Also, I need to exchange the smart thermostat for one that works with Google Home instead of Apple HomeKit. I want to make sure both are handled in one go. What do you need from me to get this started?",
+                "signature": "2ca95efe-7f18-442f-9a5f-0ff79eeed9b7"
+              }
+            ],
+            "provider_specific_fields": {
+              "citations": null,
+              "thinking_blocks": [
+                {
+                  "type": "thinking",
+                  "thinking": "Hi, I just received my order and I need to exchange a couple of items. Let me give you the details. I have order #W2378156. I want to exchange the mechanical keyboard for the same one but with clicky switches. Also, I need to exchange the smart thermostat for one that works with Google Home instead of Apple HomeKit. I want to make sure both are handled in one go. What do you need from me to get this started?",
+                  "signature": "2ca95efe-7f18-442f-9a5f-0ff79eeed9b7"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "usage": {
+        "completion_tokens": 150,
+        "prompt_tokens": 498,
+        "total_tokens": 648,
+        "completion_tokens_details": {
+          "reasoning_tokens": 95,
+          "text_tokens": 55
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 384,
+          "image_tokens": null,
+          "text_tokens": null,
+          "video_tokens": null,
+          "cache_creation_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 384,
+        "inference_geo": null,
+        "speed": null
+      }
+    },
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  }
+]

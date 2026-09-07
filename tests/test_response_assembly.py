@@ -86,7 +86,8 @@ def test_incomplete_approval_uses_one_existing_revision_and_rechecks(repaired):
     class Assembler(ResponseAssembler):
         async def _assemble_candidate(self, *args, **kwargs):
             feedback.append(kwargs['repair_feedback'])
-            return replace(original, text='Please approve the described refund.')
+            return replace(original, text='Please approve the described refund.',
+                           mode=ResponseAssemblyMode.CONVERSATION_COMPOSE, composer_used=True)
     assembler = Assembler(object(), knowledge_verifier=AnswerVerifier(model, model_profile=ModelProfile('test')))
     candidate, verdict = asyncio.run(assembler._verify_with_revision(board, 'Refund it', original))
     assert len(feedback) == 1
@@ -133,8 +134,9 @@ def test_bound_inputs_share_composition_and_verification_without_becoming_facts(
     assert result.verified and result.composer_used
     assert len(composer.calls) == len(verifier.calls) == 1
     assert 'INTERNAL' not in result.text
-    claims = [c for c in composer.calls[0]['allowed_claims'] if c['kind'] == 'INPUT_REQUEST']
-    assert {(c['value']['target_work_item_id'], c['value']['field_name']) for c in claims} == {
+    assert not any(c['kind'] == 'INPUT_REQUEST' for c in composer.calls[0]['allowed_claims'])
+    inputs_context = composer.calls[0]['requested_inputs']
+    assert {(c['target_work_item_id'], c['field_name']) for c in inputs_context} == {
         (s.target_work_item_id, s.field_name) for s in inputs}
     import json
     evidence = json.loads(verifier.calls[0][1]['context'])
@@ -162,7 +164,8 @@ def test_interaction_failure_retains_success_and_never_publishes_question_hint(f
     composer = Composer()
     result = asyncio.run(ResponseAssembler(composer, knowledge_verifier=Verifier(False)).assemble(
         _board(_verified_order_result(), waiting), current_message='继续', requested_inputs=(spec,)))
-    assert result.verification_reason == 'INTERACTION_UNAVAILABLE'
+    assert result.verification_reason == ('ungrounded' if failure == 'rejected' else 'ASSEMBLY_INVALID')
+    assert not result.retryable
     assert '已发货' in result.text and '已保留处理进度' in result.text
     assert 'UNVERIFIED' not in result.text
     assert composer.calls == (2 if failure == 'rejected' else 1)
@@ -235,7 +238,7 @@ def test_multi_result_composition_receives_only_claims_and_outcomes():
     assert set(composer.calls[0]) == {
         "schema_version", "current_message", "conversation_context", "allowed_claims", "support_catalog",
         "work_item_outcomes", "missing_requirement_ids",
-        "partial_delivery_allowed", "response_requirements", "domain_notes",
+        "partial_delivery_allowed", "response_requirements", "domain_notes", "requested_inputs",
     }
     assert any("language they use or request" in requirement
                for requirement in composer.calls[0]["response_requirements"])
@@ -356,7 +359,8 @@ def test_registered_tool_identity_cannot_be_used_as_customer_citation(tool_name,
     class Assembler(ResponseAssembler):
         async def _assemble_candidate(self, *args, **kwargs):
             feedback.append(kwargs['repair_feedback'])
-            return replace(candidate, text='The order was found.') if repaired else candidate
+            return replace(candidate, text='The order was found.' if repaired else candidate.text,
+                           mode=ResponseAssemblyMode.CONVERSATION_COMPOSE, composer_used=True)
 
     assembler = Assembler(object(), internal_tool_names=(tool_name,),
         knowledge_verifier=AnswerVerifier(model, model_profile=ModelProfile('test')))

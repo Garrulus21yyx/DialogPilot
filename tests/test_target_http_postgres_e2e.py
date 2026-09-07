@@ -256,8 +256,6 @@ class _ScenarioConversationProvider:
                     text = "查询结果：" + "；".join(str(v) for v in value.values())
             elif claim["kind"] == "KNOWLEDGE_FACT":
                 text = "；".join(item["text"] for item in value["evidence"])
-            elif claim["kind"] == "INPUT_REQUEST":
-                text = value["question_hint"]
             elif claim["kind"] == "WORK_ITEM_OUTCOME":
                 text = "任务处理状态：" + value["status"] + "。"
             elif claim["kind"] == "RECEIPT":
@@ -265,6 +263,8 @@ class _ScenarioConversationProvider:
             else:
                 continue
             segments.append({"text": text, "support_ids": supports})
+        if payload.get('requested_inputs'):
+            segments.append({'text': ' '.join(spec['question_hint'] for spec in payload['requested_inputs'])})
         return {"segments": segments}
 
     async def plan(self, payload):

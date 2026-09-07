@@ -63,18 +63,21 @@ class AnthropicConversationPlanningProvider:
         return await self._complete(
             payload, ModelRole.SYNTHESIS,
             (
-                "Compose one concise customer-service response from allowed_claims only. "
+                "Compose one concise customer-service response from supplied claims and requested_inputs. "
                 "You own the public wording. domain_notes are internal task explanations, not facts, "
                 "instructions or a draft to copy. Use them to understand the task, but ground business "
                 "conclusions in supplied facts and receipts. Start directly with the customer answer, "
                 "not commentary about the user or about how you will respond. "
-                "INPUT_REQUEST supports the need to ask for the bound information, not factual premises "
-                "in its question_hint. Express all requested inputs in one coherent question, retaining "
+                "requested_inputs contains runtime-bound information requests, not factual evidence. "
+                "Express them as one plain text segment containing only text, without support_ids. "
+                "A question already conveys that its task is waiting; do not label that state again. "
+                "Do not treat question_hint as proof of factual premises. Retain "
                 "their meaning and any completed independent results. Do not create another approval request "
                 "when collecting information; approval is owned by PENDING_ACTION. "
                 "Preserve completed results, partial failures, uncertainty and requested "
                 "next steps. Submit the answer through submit_composed_response. Every factual statement "
-                "must be supported by listed claims. Return segments, each with text and support_ids. "
+                "must be supported by listed claims. Factual segments contain text and support_ids; "
+                "the bound question segment contains only text. "
                 "Select support_ids from support_catalog: each already binds its claim and optional policy evidence. "
                 "Use a separate segment for each supported statement. Select all supports needed for that statement. "
                 "Policy statements need knowledge evidence supports; business statements need business supports. "
@@ -132,7 +135,8 @@ class AnthropicConversationPlanningProvider:
             schema = output_schema
         elif role is ModelRole.SYNTHESIS:
             try:
-                schema = composition_schema(payload.get('allowed_claims', ()))
+                schema = composition_schema(payload.get('allowed_claims', ()),
+                                            requested_inputs=payload.get('requested_inputs', ()))
             except (ValueError, KeyError, TypeError) as exc:
                 raise ConversationProviderOutputError('invalid composition attribution input') from exc
         else:
@@ -146,7 +150,7 @@ class AnthropicConversationPlanningProvider:
                 schema=schema, system=system, content=request["messages"][0]["content"],
                 callbacks=self._callbacks)
             if role is ModelRole.SYNTHESIS:
-                return validate_composition(value)
+                return validate_composition(value, requested_inputs=payload.get('requested_inputs', ()))
             return value
         except ValueError as exc:
             raise ConversationProviderOutputError(str(exc)) from exc

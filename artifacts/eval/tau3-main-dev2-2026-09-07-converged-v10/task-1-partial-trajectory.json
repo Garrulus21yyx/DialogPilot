@@ -1,0 +1,111 @@
+[
+  {
+    "role": "assistant",
+    "content": "Hi! How can I help you today?",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-07T10:40:25.522683",
+    "cost": 0.0,
+    "usage": null,
+    "raw_data": null,
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  },
+  {
+    "role": "user",
+    "content": "Hi, I just got my order and I need to exchange a couple of items. I want to make sure I can take care of everything all at once, can you help with that?",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-07T10:40:26.635359",
+    "cost": 0.0,
+    "usage": {
+      "completion_tokens": 66,
+      "prompt_tokens": 498
+    },
+    "raw_data": {
+      "id": "chatcmpl-dd56c706-612d-4e44-bb14-4961641a6052",
+      "created": 1788770426,
+      "model": "deepseek-v4-flash",
+      "object": "chat.completion",
+      "system_fingerprint": null,
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "content": "Hi, I just got my order and I need to exchange a couple of items. I want to make sure I can take care of everything all at once, can you help with that?",
+            "role": "assistant",
+            "tool_calls": null,
+            "function_call": null,
+            "reasoning_content": "Hi! I need help with an exchange from my recent order. Let me start by explaining the situation without giving more details than necessary.",
+            "thinking_blocks": [
+              {
+                "type": "thinking",
+                "thinking": "Hi! I need help with an exchange from my recent order. Let me start by explaining the situation without giving more details than necessary.",
+                "signature": "3a0fcb33-7f09-41b6-9163-376b7084f908"
+              }
+            ],
+            "provider_specific_fields": {
+              "citations": null,
+              "thinking_blocks": [
+                {
+                  "type": "thinking",
+                  "thinking": "Hi! I need help with an exchange from my recent order. Let me start by explaining the situation without giving more details than necessary.",
+                  "signature": "3a0fcb33-7f09-41b6-9163-376b7084f908"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "usage": {
+        "completion_tokens": 66,
+        "prompt_tokens": 498,
+        "total_tokens": 564,
+        "completion_tokens_details": {
+          "reasoning_tokens": 27,
+          "text_tokens": 39
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 384,
+          "image_tokens": null,
+          "text_tokens": null,
+          "video_tokens": null,
+          "cache_creation_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 384,
+        "inference_geo": null,
+        "speed": null
+      }
+    },
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  }
+]

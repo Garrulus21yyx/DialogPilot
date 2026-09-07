@@ -4,6 +4,32 @@
 
 ### 最新状态（优先于下面按时间保留的记录）
 
+- 追问简化 implementation_verified：最终相关回归 305 passed，无跳过，包含真实 PostgreSQL HTTP、审批、追问和重启恢复。
+  输入上下文与事实支持分开，单个 text 问题无须支持标记；
+  bound NEEDS_USER_INPUT 不重复要求 outcome，其他失败/部分结果继续覆盖检查。
+  修订失败不再核验兜底文本或覆盖原失败类型；只有可分类的暂时故障允许 checkpoint 重试。
+  独立 fresh-context 审阅发现的两处控制流问题均已修正并加测试，限定实现无剩余阻断。
+  语义检测仍依赖模型，SDK stub 矩阵仅证明合同代数，不代表真实模型效果。
+  原 v10 失败保留；本轮不重新运行真实 τ³，end_to_end_quality_open。
+  下次真实评测前仍需处理评测适配器只 pump_once、真正瞬时重试后缺持续 worker 的运行入口缺口；
+  该问题不通过放宽审核、增加等待时长或对邮箱做特例解决。
+
+- 追问合同修正 in_progress：PendingInteraction 继续拥有任务/字段绑定；
+  输入请求不再作为事实支持让模型选择，表达直接携带问题文本，核验实际问题语义。
+  独立失败说明与业务证据仍保留；核验耗尽不能仅因存在 checkpoint 就自动重试。
+  先完成合同/恢复测试与独立审阅，再恢复固定真实任务验证，不按邮箱或商品增加分支。
+
+- v10 真实任务已完成尝试，但未闭环：task 0 首条模拟用户空消息 ERROR/null，
+  task 1 进入应用后追问被 incomplete 拦截并等待超时 ERROR/null；task 0 唯一同配置环境重试
+  也复现同一应用缺口。无业务工具调用、无换货写入，不将 null 当官方 0 分或成功。
+  原始轨迹及分析见 artifacts/eval/tau3-main-dev2-2026-09-07-converged-v10/analysis.md。
+- 当前 input_coverage_contract_open / end_to_end_quality_open：同一句已完整绑定的追问，
+  仅 INPUT_REQUEST 支持会拒绝，另加重复 WORK_ITEM_OUTCOME 才通过，已用生产核验器 + SDK stub 复现。
+  另有核验耗尽统一 retryable 与评测只 pump_once 后等待的错误交付缺口。
+  本轮保持代码/预算固定未修生产分支；下一轮按覆盖代数与错误生命周期共同修，不按任务打补丁。
+  之前回归测试常全选支持，不能证明该组合正确；暂停依赖成功闭环的新实验和完成声明。
+- 2026-09-07：用户确认启动收敛后的原固定两条 τ³ 开发任务，in_progress。
+  代码 444f99d；沿用原模型、seed、任务及预算，输出到独立 v10 目录；不混入历史最好结果。
 - 本轮相关架构收敛已完成实现与独立复核，状态为 implementation_verified / real_model_validation_pending。
   扩大无模型回归 1093 passed / 1 既有 multiprocessing fork 警告；
   恢复入口版本门禁补齐后，含真实 PostgreSQL 的状态/恢复组另跑 95 passed，无跳过。
