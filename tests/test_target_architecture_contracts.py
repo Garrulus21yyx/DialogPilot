@@ -311,6 +311,34 @@ def test_business_write_requires_workflow_and_all_safety_bindings():
     assert workflow.operation_key == "op-refund-1"
 
 
+@pytest.mark.parametrize("mode", [ControlMode.ACTION, ControlMode.WORKFLOW])
+@pytest.mark.parametrize("approval", list(ApprovalPolicy))
+def test_write_execution_contract_survives_sdk_checkpoint(mode, approval):
+    from application.work_item import WorkPlan
+    from infrastructure.langgraph_checkpoint import target_checkpoint_serializer
+    work = _work(
+        control_mode=mode, effect=CapabilityEffect.WRITE, risk=CapabilityRisk.HIGH,
+        allowed_tools=("refund_request_create", "refund_status"),
+        flow_ref="execute_refund:v1" if mode is ControlMode.WORKFLOW else None,
+        operation_key="op-refund-1", approval_binding="approval-1:v1",
+        target_entity_version="order:DP1234:v7", aggregate_ref="refund:DP1234",
+        action_ref="refund.request.create:v1", approval_policy=approval,
+        reconciliation=ActionReconciliationDefinition(
+            "refund_status", "refund.current_state", "operation_key", "operation_key", ("order_id",), "refund_id"),
+    )
+    serde = target_checkpoint_serializer()
+    plan = WorkPlan((work,), work.work_item_id)
+    restored = serde.loads_typed(serde.dumps_typed(plan))
+    assert isinstance(restored, WorkPlan)
+    assert restored.items[0].fingerprint == work.fingerprint
+    assert restored.items[0].approval_policy is approval
+    assert isinstance(restored.items[0].reconciliation, ActionReconciliationDefinition)
+    proposal = AgentResult(work.work_item_id, work.owner_agent, AgentResultStatus.WAITING_APPROVAL,
+                           "PREPARED", "test", pending_action=work)
+    restored_proposal = serde.loads_typed(serde.dumps_typed(proposal))
+    assert restored_proposal.pending_action.fingerprint == work.fingerprint
+
+
 def test_agent_result_separates_missing_user_input_from_external_evidence():
     missing = AgentResult(
         "product-question-1",

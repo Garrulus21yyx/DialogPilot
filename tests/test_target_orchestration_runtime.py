@@ -133,6 +133,48 @@ def test_bound_continuation_restores_only_valid_progress_from_checkpoint(expired
     assert board.results[0].status is AgentResultStatus.SUCCEEDED
 
 
+@pytest.mark.parametrize("queued_count", [0, 1, 3])
+@pytest.mark.parametrize("checkpoint_backend", ["memory", "postgres"])
+def test_closing_interrupt_retains_results_and_cancels_unstarted_work(queued_count, checkpoint_backend, request):
+    from contextlib import AsyncExitStack
+    from infrastructure.langgraph_checkpoint import AsyncPostgresCheckpointOwner
+    from infrastructure.langgraph_checkpoint import target_checkpoint_serializer
+    database_url = request.getfixturevalue("postgres_database_url") if checkpoint_backend == "postgres" else None
+    first = replace(_item("waiting", "product", ControlMode.DELEGATED, "product.details"),
+                    allowed_actions=("product.change:v1",))
+    independent = _item("read", "product", ControlMode.DIRECT, "product.details")
+    queued = tuple(replace(first, work_item_id=f"queued-{index}") for index in range(queued_count))
+    plan = WorkPlan((first, independent, *queued), first.work_item_id)
+    calls = []
+
+    async def worker(context):
+        item = context.work_item
+        calls.append(item.work_item_id)
+        return AgentResult(item.work_item_id, item.owner_agent,
+            AgentResultStatus.WAITING_APPROVAL if item.work_item_id == first.work_item_id else AgentResultStatus.SUCCEEDED,
+            "OBSERVED", "test", facts=(_fact(item, "retained"),))
+
+    async def run():
+        async with AsyncExitStack() as stack:
+            saver = (await stack.enter_async_context(AsyncPostgresCheckpointOwner(database_url, setup=True))
+                     if database_url else InMemorySaver(serde=target_checkpoint_serializer()))
+            runtime = OrchestrationRuntime(direct_executor=worker, domain_workers={"product": worker},
+                                           checkpointer=saver)
+            thread_id = f"close-queued-{queued_count}"
+            before = await runtime.execute(plan, current_message="Check", thread_id=thread_id)
+            await runtime.cancel_interrupt(thread_id=thread_id)
+            await runtime.cancel_interrupt(thread_id=thread_id)
+            snapshot = await runtime.graph.aget_state({"configurable": {"thread_id": thread_id}})
+            assert not snapshot.next
+            after = snapshot.values["board"]
+            assert after.complete
+            assert tuple(after.facts) == before.facts
+            assert tuple(after.results[:2]) == before.results
+            assert all(result.status is AgentResultStatus.CANCELLED for result in after.results[2:])
+    asyncio.run(run())
+    assert sorted(calls) == ["read", "waiting"]
+
+
 class EvidenceSeekingWorker:
     def __init__(self):
         self.calls = []

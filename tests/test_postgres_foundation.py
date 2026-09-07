@@ -1,5 +1,7 @@
 """M1-PF01 migration, pool and fail-closed integration contracts."""
 from concurrent.futures import ThreadPoolExecutor
+import logging
+from io import StringIO
 from pathlib import Path
 import subprocess
 import sys
@@ -87,6 +89,27 @@ def test_empty_install_upgrade_pool_and_ledger_are_replayable(postgres_database_
         assert ledger_count == 36
     finally:
         pool.close()
+
+
+def test_migration_keeps_application_error_logging_enabled(postgres_database_url):
+    log = logging.getLogger("application.migration_diagnostic_test")
+    output = StringIO()
+    handler = logging.StreamHandler(output)
+    was_disabled = log.disabled
+    log.disabled = False
+    log.addHandler(handler)
+    try:
+        runner = PostgresMigrationRunner(postgres_database_url)
+        for index in range(2):
+            runner.upgrade()
+            log.error("diagnostic-after-migration-%s", index)
+        assert output.getvalue().splitlines() == [
+            "diagnostic-after-migration-0", "diagnostic-after-migration-1",
+        ]
+    finally:
+        log.removeHandler(handler)
+        log.disabled = was_disabled
+        handler.close()
 
 
 def test_applied_migration_checksum_drift_fails_closed(postgres_database_url):

@@ -23,6 +23,25 @@
 - 原任务同预算重跑目录：artifacts/eval/tau3-main-dev2-2026-09-07-resume-v3/。
   当前仅证明恢复组件修复，不宣称换货闭环或整体质量已通过。
 
+### 写操作恢复边界（继续保持业务验收未闭环）
+
+- resume-v3：任务 0 已通过连续追问，在关闭带排队任务的等待点时异常；任务 1
+  官方得分 0，用户模拟器把确认和 STOP 放在同一消息，写操作没有执行。不修改官方终止规则。
+- 等待关闭的原合同只清空 ready_items，没有为未启动任务形成结果。现给未启动任务
+  CANCELLED/EXECUTION_WAIT_CLOSED，已返回结果、事实与 Receipt 保留；不撤销远端操作。
+  测试覆盖排队数 0/1/3、内存/真实 PostgreSQL、重复关闭、已成功的独立任务保留。
+- Alembic 默认 fileConfig 禁用了既有应用 logger，遮蔽真实异常。使用 SDK 参数
+  disable_existing_loggers=False；重复迁移后实际错误日志可送达，未新增日志框架。
+- wait-v4：两条任务均 ERROR/reward=null；恢复后的 WorkPlan=None。保留下来的完整日志证明
+  SDK 允许类型清单遗漏 ApprovalPolicy / ActionReconciliationDefinition，嵌套构造失败导致计划丢失。
+  在 checkpoint Owner 注册两个既有类型；不在调用者用空字典/空计划掩盖损坏。
+- 新增 ACTION/WORKFLOW × 全部五种 ApprovalPolicy 的 SDK 往返测试，同时检查计划 fingerprint
+  和 AgentResult.pending_action。修复前 10 failed，修复后 10 passed。
+- 编排及 PostgreSQL 基础回归 60 passed；架构合同 20 passed。仍需原任务的官方业务验收。
+- 已知恢复失败的共同验收缺口：只测试一次正常执行或单次恢复，没有覆盖连续输入、
+  写合同嵌套类型、排队与关闭的组合。修复分别归消息身份、执行终态、checkpoint 注册的 Owner；
+  不将它们扩大为新框架，也不以单条案例通过恢复 closed 状态。
+
 当前续作：implementation_verified / quality_review_pending。
 真实压缩开发评测已运行：8 个新样本 × 2 种最新工具批次，沿用生产实现及默认 .70/.85 阈值。
 结构检查 16/16，自动 judge 16/16，但主执行助手复查提出 2 项语义异议，不能标为质量闭环。

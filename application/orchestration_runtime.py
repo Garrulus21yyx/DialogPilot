@@ -238,7 +238,15 @@ class OrchestrationRuntime:
         if not isinstance(resumed, Mapping):
             raise OrchestrationRuntimeError("resume payload must be an object")
         if resumed.get("cancel") is True:
+            # Closing an execution wait does not undo completed work or cancel
+            # a remote action. Give only unstarted work a terminal outcome so
+            # queued items cannot leave the graph in an unfinished state.
+            returned = {result.work_item_id for result in state.get("agent_results", ())}
             return {
+                "agent_results": [AgentResult(
+                    item.work_item_id, item.owner_agent, AgentResultStatus.CANCELLED,
+                    "EXECUTION_WAIT_CLOSED", "orchestration-runtime-v1",
+                ) for item in state["work_plan"].items if item.work_item_id not in returned],
                 "interrupt_after_completion": False,
                 "ready_items": (),
             }
