@@ -1,0 +1,63 @@
+{
+  "api_calls": 4,
+  "focused": true,
+  "clear_controls": true,
+  "added_instruction": "\nCheck the proposition being answered, including short affirmative or negative openings.\nA yes/no opening must agree with the question's proposition and the answer's later conclusion;\ncorrect details do not repair a contradictory opening. Judge the whole reply in context.\nCheck the scope and quantifiers of each policy claim. Evidence about specified subtypes or\nexamples does not establish a rule for all broader categories. Preserve conditions and exceptions.\n",
+  "profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "scope": "frozen original verifier schema/evidence; not full current runtime",
+  "results": [
+    {
+      "case_id": "ellipsis-shipping",
+      "arm": "contradicted_control",
+      "answer": "加急寄回运费也在报销范围内，可以按标准运费上限报销。[E0584df3c2a04]",
+      "output": {
+        "supported": false,
+        "answered": true,
+        "approval_terms_complete": false,
+        "issues": [
+          "The answer claims expedited return shipping is reimbursable up to the standard shipping limit, but evidence E0584df3c2a04 explicitly states '加急运费不在报销范围内' (expedited shipping fees are not within the reimbursement scope). The answer directly contradicts the cited evidence."
+        ]
+      }
+    },
+    {
+      "case_id": "ellipsis-shipping",
+      "arm": "supported_control",
+      "answer": "加急运费不在报销范围内；确认属于质量问题的标准运费可按规定报销，上限十八元。[E0584df3c2a04]",
+      "output": {
+        "supported": true,
+        "answered": true,
+        "approval_terms_complete": false,
+        "issues": []
+      }
+    },
+    {
+      "case_id": "custom-exception-fresh",
+      "arm": "contradicted_control",
+      "answer": "刻字定制商品适用七天无理由退货，即使已经拆封也可以。[Efe8c8b2e5b7a]",
+      "output": {
+        "supported": false,
+        "answered": false,
+        "approval_terms_complete": false,
+        "issues": [
+          "The answer claims '刻字定制商品适用七天无理由退货，即使已经拆封也可以' (engraved custom goods qualify for 7-day no-reason returns, even if opened). This directly contradicts the evidence. Efe8c8b2e5b7a states '刻字定制商品不适用上述无理由退货，即使未拆封且签收不足七日也不适用' (engraved custom goods do NOT qualify for no-reason returns, even unopened and within 7 days). E6f880093d750 also states custom goods made to consumer specifications do not qualify for no-reason returns. The answer's factual claim is the opposite of the evidence."
+        ]
+      }
+    },
+    {
+      "case_id": "custom-exception-fresh",
+      "arm": "supported_control",
+      "answer": "刻字定制商品不适用七天无理由退货，即使未拆封且签收不足七日也不适用。[Efe8c8b2e5b7a]",
+      "output": {
+        "supported": true,
+        "answered": true,
+        "approval_terms_complete": false,
+        "issues": []
+      }
+    }
+  ]
+}

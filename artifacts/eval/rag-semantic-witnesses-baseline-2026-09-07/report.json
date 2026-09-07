@@ -1,0 +1,58 @@
+{
+  "api_calls": 4,
+  "focused": false,
+  "added_instruction": "",
+  "profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "scope": "frozen original verifier schema/evidence; not full current runtime",
+  "results": [
+    {
+      "case_id": "ellipsis-shipping",
+      "arm": "original",
+      "answer": "是的，加急运费不在报销范围内。确认属于商品质量问题的，按平台指定方式寄回可报销标准运费，上限为18元；加急运费不予报销[E0584df3c2a04][E917c0a401e95]。",
+      "output": {
+        "supported": true,
+        "answered": true,
+        "approval_terms_complete": false,
+        "issues": []
+      }
+    },
+    {
+      "case_id": "ellipsis-shipping",
+      "arm": "repaired",
+      "answer": "加急运费不在报销范围内。确认属于商品质量问题的，按平台指定方式寄回可报销标准运费，上限为18元；加急运费不予报销[E0584df3c2a04][E917c0a401e95]。",
+      "output": {
+        "supported": true,
+        "answered": true,
+        "approval_terms_complete": false,
+        "issues": []
+      }
+    },
+    {
+      "case_id": "custom-exception-fresh",
+      "arm": "original",
+      "answer": "很遗憾，刻字定制商品不适用七天无理由退货，即使未拆封且签收不足七日也不适用[Efe8c8b2e5b7a]。按消费者指定尺寸或要求制作的定制商品均不支持无理由退货[E6f880093d750]。\n\n不过，如果商品存在质量问题，仍可申请专项售后审核[Efe8c8b2e5b7a]。请问商品是否有质量问题需要处理？",
+      "output": {
+        "supported": true,
+        "answered": true,
+        "approval_terms_complete": false,
+        "issues": []
+      }
+    },
+    {
+      "case_id": "custom-exception-fresh",
+      "arm": "repaired",
+      "answer": "很遗憾，刻字定制商品不适用七天无理由退货，即使未拆封且签收不足七日也不适用[Efe8c8b2e5b7a]。刻字定制商品和按消费者指定尺寸制作的定制商品不适用无理由退货[E6f880093d750]。\n\n不过，如果商品存在质量问题，仍可申请专项售后审核[Efe8c8b2e5b7a]。请问商品是否有质量问题需要处理？",
+      "output": {
+        "supported": true,
+        "answered": true,
+        "approval_terms_complete": false,
+        "issues": []
+      }
+    }
+  ]
+}
