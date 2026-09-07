@@ -156,4 +156,4 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 
 - G4 MTRAG适配结果：四域366,438个非空passage、777查询（dev519/heldout258）、2,128条qrel精确匹配；41空片段排除ID留痕且不含正相关。现有RagDataset全量checksum/引用/分组校验通过。发现并修复JSONL owner用splitlines破坏合法Unicode分隔符的根因，保持原文不变。68个PARTIAL保留，非精确答案span；未运行检索/API。见[报告](../docs/rag-g4-mtrag-adapter-2026-09-07.zh-CN.md)。下一项为开发小样本、领域完整语料的词法基线与官方query版本配对；不动heldout、不启动微调。
 
-- 本轮检查：RagDataset/Doc2Dial/MTRAG相关33项测试通过；完整MTRAG加载约4秒，API0。交付待commit/push确认。
+- 本轮检查：RagDataset/Doc2Dial/MTRAG相关33项测试通过；完整MTRAG加载约4秒，API0。交付：`6878700` 已提交并推送到 origin/feat/customer-service-target-architecture。
