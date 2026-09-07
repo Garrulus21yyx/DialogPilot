@@ -1,0 +1,10 @@
+{
+  "source": "docker logs --since 20m dialogpilot-target-v1-test; inspected during G1 execution",
+  "observed_timeout_error_lines": 32,
+  "observed_statement_families": {
+    "WITH_query_terms_BM25": 32,
+    "dense_distance": 0
+  },
+  "limitation": "server-wide observation window, not a per-case SQL trace; no execution plan captured",
+  "production_config_changed": false
+}

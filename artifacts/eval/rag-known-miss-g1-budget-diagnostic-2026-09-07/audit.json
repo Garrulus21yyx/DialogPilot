@@ -1,0 +1,170 @@
+{
+  "api_calls": 0,
+  "all_available_pg_orders_match_reconstruction": true,
+  "all_source_offsets_match": true,
+  "cases": [
+    {
+      "case_id": "doc2dial-heldout-399568993908018be3e04501922686ee-13",
+      "mode": "historical_expression",
+      "reconstructed_fused20": {
+        "evidence_ranks": [
+          null
+        ],
+        "all_evidence_rank": null,
+        "first_gold_document_rank": null
+      },
+      "source_counts": {
+        "raw:vector": 1000,
+        "raw:bm25": 1000
+      },
+      "production_status": "UNAVAILABLE",
+      "relaxed_status": "OK"
+    },
+    {
+      "case_id": "doc2dial-heldout-399568993908018be3e04501922686ee-13",
+      "mode": "context_resolved",
+      "reconstructed_fused20": {
+        "evidence_ranks": [
+          1
+        ],
+        "all_evidence_rank": 1,
+        "first_gold_document_rank": 1
+      },
+      "source_counts": {
+        "raw:vector": 1000,
+        "raw:bm25": 1000
+      },
+      "production_status": "UNAVAILABLE",
+      "relaxed_status": "OK"
+    },
+    {
+      "case_id": "doc2dial-heldout-83c939393b970a0bcf0a9e0a71196eb5-11",
+      "mode": "historical_expression",
+      "reconstructed_fused20": {
+        "evidence_ranks": [
+          1,
+          null
+        ],
+        "all_evidence_rank": null,
+        "first_gold_document_rank": 1
+      },
+      "source_counts": {
+        "raw:vector": 1000,
+        "raw:bm25": 1000
+      },
+      "production_status": "UNAVAILABLE",
+      "relaxed_status": "UNAVAILABLE"
+    },
+    {
+      "case_id": "doc2dial-heldout-83c939393b970a0bcf0a9e0a71196eb5-11",
+      "mode": "context_resolved",
+      "reconstructed_fused20": {
+        "evidence_ranks": [
+          1,
+          null
+        ],
+        "all_evidence_rank": null,
+        "first_gold_document_rank": 1
+      },
+      "source_counts": {
+        "raw:vector": 1000,
+        "raw:bm25": 1000
+      },
+      "production_status": "UNAVAILABLE",
+      "relaxed_status": "OK"
+    },
+    {
+      "case_id": "doc2dial-heldout-aadc9fd5710361ed8a3551e540c608d8-11",
+      "mode": "historical_expression",
+      "reconstructed_fused20": {
+        "evidence_ranks": [
+          null,
+          null
+        ],
+        "all_evidence_rank": null,
+        "first_gold_document_rank": 1
+      },
+      "source_counts": {
+        "raw:vector": 1000,
+        "raw:bm25": 1000
+      },
+      "production_status": "UNAVAILABLE",
+      "relaxed_status": "OK"
+    },
+    {
+      "case_id": "doc2dial-heldout-aadc9fd5710361ed8a3551e540c608d8-11",
+      "mode": "context_resolved",
+      "reconstructed_fused20": {
+        "evidence_ranks": [
+          null,
+          null
+        ],
+        "all_evidence_rank": null,
+        "first_gold_document_rank": 1
+      },
+      "source_counts": {
+        "raw:vector": 1000,
+        "raw:bm25": 1000
+      },
+      "production_status": "OK",
+      "relaxed_status": "OK"
+    },
+    {
+      "case_id": "doc2dial-heldout-af80457aacaac2dcdee2abcfe3d12144-11",
+      "mode": "historical_expression",
+      "reconstructed_fused20": {
+        "evidence_ranks": [
+          null,
+          null,
+          null
+        ],
+        "all_evidence_rank": null,
+        "first_gold_document_rank": 1
+      },
+      "source_counts": {
+        "raw:vector": 1000,
+        "raw:bm25": 1000
+      },
+      "production_status": "OK",
+      "relaxed_status": "OK"
+    },
+    {
+      "case_id": "doc2dial-heldout-af80457aacaac2dcdee2abcfe3d12144-11",
+      "mode": "context_resolved",
+      "reconstructed_fused20": {
+        "evidence_ranks": [
+          3,
+          3,
+          3
+        ],
+        "all_evidence_rank": 3,
+        "first_gold_document_rank": 1
+      },
+      "source_counts": {
+        "raw:vector": 1000,
+        "raw:bm25": 1000
+      },
+      "production_status": "UNAVAILABLE",
+      "relaxed_status": "OK"
+    },
+    {
+      "case_id": "doc2dial-dev-3231fc98c27c1216a21ec9baf5abd0ea-11",
+      "mode": "frozen_cross_language",
+      "reconstructed_fused20": {
+        "evidence_ranks": [
+          null,
+          null,
+          null
+        ],
+        "all_evidence_rank": null,
+        "first_gold_document_rank": 18
+      },
+      "source_counts": {
+        "raw:vector": 314,
+        "raw:bm25": 3
+      },
+      "production_status": "OK",
+      "relaxed_status": "OK"
+    }
+  ]
+}

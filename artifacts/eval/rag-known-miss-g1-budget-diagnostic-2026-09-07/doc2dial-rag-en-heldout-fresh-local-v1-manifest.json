@@ -1,0 +1,153 @@
+{
+  "dataset": {
+    "case_count": 60,
+    "cases_sha256": "98061a6565ea32f3c5dc62ba436dec30956f1615a3e2a19c20d85983d5863ad8",
+    "corpus_sha256": "d1f8a7873fcfa01915d15a67e46108451bfb1dde1de3e267732d6abb04329d05",
+    "dataset_id": "doc2dial-rag-en-heldout-fresh-local-v1",
+    "document_count": 488,
+    "schema_version": 1,
+    "source": {
+      "archive_sha256": "94499fa5259f69018d2458cb948552e7a05f424711a95a562bb9e816a515dc23",
+      "corpus_policy": "all_official_documents",
+      "dataset": "Doc2Dial v1.0.1",
+      "excluded_datasets": [
+        {
+          "cases_sha256": "cf57b105dba988cb48516238f4c706da52c351e039959a5849c9e85c40fa2f91",
+          "dataset_id": "doc2dial-rag-mini-heldout-v1",
+          "group_count": 9
+        },
+        {
+          "cases_sha256": "ad1aad05e697964c0773f553358712fa3e0d45622dd1208fdb235375832c77bf",
+          "dataset_id": "doc2dial-rag-en-heldout-balanced-v2",
+          "group_count": 36
+        },
+        {
+          "cases_sha256": "6ae0c43dc6a2b3f3d3f88685e900e50477a0fd182057cbd78f098c51a0e759fd",
+          "dataset_id": "doc2dial-rag-en-heldout-supplement-v1",
+          "group_count": 120
+        }
+      ],
+      "excluded_group_count": 165,
+      "excluded_group_ids_sha256": "3f912d081c6df98a97d83a0e0dece0335be247b86cb549e971a8d5c8989ae62b",
+      "grounding_granularity": "character-span",
+      "length_bucket_chars": {
+        "long": ">=8000",
+        "medium": "4000-7999",
+        "short": "<4000"
+      },
+      "license": "CC-BY-3.0",
+      "locale": "en",
+      "official_split": "test",
+      "selection_policy": "one maximum-history answerable turn per conversation; SHA-256 order within domain/document-length stratum",
+      "selection_profile": "conversation-domain-length-balanced-v1",
+      "selection_seed": "doc2dial-en-heldout-fresh-local-v1",
+      "strata_counts": {
+        "dmv/long": 5,
+        "dmv/medium": 5,
+        "dmv/short": 5,
+        "ssa/long": 5,
+        "ssa/medium": 5,
+        "ssa/short": 5,
+        "studentaid/long": 5,
+        "studentaid/medium": 5,
+        "studentaid/short": 5,
+        "va/long": 5,
+        "va/medium": 5,
+        "va/short": 5
+      },
+      "url": "https://doc2dial.github.io/file/doc2dial_v1.0.1.zip"
+    }
+  },
+  "generation": {
+    "generation_id": "knowledge-generation-05981f70ecb0809e5bd33e2724c9bb22",
+    "corpus": "KNOWLEDGE",
+    "backend_id": "POSTGRES_PG_BM25_ZH_V1",
+    "backend_fingerprint": "POSTGRES_PGVECTOR_PG_BM25_ZH_V1",
+    "schema_version": "retrieval-v1",
+    "source_watermark": "967a93de7033f24586c3957ce00435865529a11e0651e608e7e06bf74656637a",
+    "embedding_model": "BAAI/bge-m3",
+    "embedding_dimension": 1024,
+    "embedding_model_digest": "b5e0ce3470abf5ef3831aa1bd5553b486803e83251590ab7ff35a117cf6aad38",
+    "distance_metric": "COSINE",
+    "vector_extension_version": "0.8.6",
+    "index_method": "HNSW",
+    "index_params_json": "{\"ef_construction\":64,\"m\":16}",
+    "chinese_tokenizer": "ascii-cjk-unigram-bigram-v1",
+    "lexical_ranker": "PG_BM25_ZH_V1",
+    "manifest_hash": "c74ae4f5409c691f2d2126102417274ba40836858d762acd8930b8c9a9eead17",
+    "state": "ACTIVE",
+    "embedding_provider": "dialogpilot-sentence-transformers-5.7.0-local-bge-m3-v1",
+    "embedding_provider_kind": "MODEL",
+    "embedding_model_version": "5617a9f61b028005a4858fdac845db406aefb181",
+    "embedding_document_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1",
+    "embedding_query_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1"
+  },
+  "policy": {
+    "policy_version": "knowledge-raw-source-capture-v1",
+    "backend_fingerprint": "POSTGRES_PGVECTOR_PG_BM25_ZH_V1",
+    "lexical_provider": "ascii-cjk-unigram-bigram-v1+PG_BM25_ZH_V1",
+    "transformer_version": "raw-query-only-v1",
+    "embedding_version": "9cae2189438f71b8a4b39c32b9269a1d08c0cf9e56f86160ccb97b73d186b824",
+    "reranker_version": "not-run-fusion-stage-v1",
+    "packer_version": "not-run-fusion-stage-v1",
+    "raw_query_weight": 1.0,
+    "standalone_query_weight": 0.0,
+    "expansion_query_weight": 0.0,
+    "query_expansion_count": 0,
+    "metadata_hint_weight": 0.5,
+    "dense_weight": 0.25,
+    "lexical_weight": 0.75,
+    "rrf_k": 10,
+    "candidate_k": 20,
+    "final_k": 20,
+    "context_max_tokens": 2600
+  },
+  "entries": [
+    [
+      "doc2dial-heldout-399568993908018be3e04501922686ee-13",
+      "historical_expression",
+      "[CONVERSATION]\nWhat is the information you can provide?\nso this information is for after seperation?\nWhat are the criteria?\nYes\n[CURRENT]\nNo"
+    ],
+    [
+      "doc2dial-heldout-399568993908018be3e04501922686ee-13",
+      "context_resolved",
+      "The user reports active duty service and combat service after November 11, 1998, but answers no to being discharged or released on or after January 29, 2003. What VA health care eligibility rules apply to this situation?"
+    ],
+    [
+      "doc2dial-heldout-83c939393b970a0bcf0a9e0a71196eb5-11",
+      "historical_expression",
+      "[CONVERSATION]\nThis will prove you u.s. immigration status\nIIs there a limit on how many replacement card I can get?\nIs this to confirm my curent school status?\nHow can I be authorized to work in the United States?\n[CURRENT]\nWhat if I am a foreign worker?"
+    ],
+    [
+      "doc2dial-heldout-83c939393b970a0bcf0a9e0a71196eb5-11",
+      "context_resolved",
+      "As a noncitizen adult foreign worker, what documents do I need for a replacement card and proof that I am authorized to work in the United States?"
+    ],
+    [
+      "doc2dial-heldout-aadc9fd5710361ed8a3551e540c608d8-11",
+      "historical_expression",
+      "[CONVERSATION]\nYes, I think I know what documents I need.\nNo, I did not provide my birth certificate.\nWhat if I do not live in the US or one of its territories?\nHow would I mail documents to you?\n[CURRENT]\nWhat is the Disability Benefits?"
+    ],
+    [
+      "doc2dial-heldout-aadc9fd5710361ed8a3551e540c608d8-11",
+      "context_resolved",
+      "What are Social Security Disability Benefits? I have been asking about eligibility, required documents, and applying from outside the United States."
+    ],
+    [
+      "doc2dial-heldout-af80457aacaac2dcdee2abcfe3d12144-11",
+      "historical_expression",
+      "[CONVERSATION]\nyes\nwill I be able to add new evidence?\nwhat do I choose, just one option?\nDo I list all the issues?\n[CURRENT]\nhow do I apply?"
+    ],
+    [
+      "doc2dial-heldout-af80457aacaac2dcdee2abcfe3d12144-11",
+      "context_resolved",
+      "How do I apply for a Board Appeal of a contested VA benefits claim when multiple people claim the same benefit, and list the issues and decision dates?"
+    ]
+  ],
+  "scope": "current PG candidate source; no Agent, rerank, pack or generation; deep pool diagnosis only",
+  "api_calls": 0,
+  "diagnostic_depth": 1000,
+  "production_statement_timeout_ms": 750,
+  "diagnostic_statement_timeout_ms": 10000,
+  "diagnostic_budget_is_not_production_fix": true
+}

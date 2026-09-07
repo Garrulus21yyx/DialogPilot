@@ -1,0 +1,138 @@
+[
+  {
+    "case_id": "doc2dial-heldout-399568993908018be3e04501922686ee-13",
+    "mode": "historical_expression",
+    "query": "[CONVERSATION]\nWhat is the information you can provide?\nso this information is for after seperation?\nWhat are the criteria?\nYes\n[CURRENT]\nNo",
+    "raw_query": "No",
+    "dataset": "doc2dial-rag-en-heldout-fresh-local-v1",
+    "candidate_status": "UNAVAILABLE",
+    "diagnostic_status": "UNAVAILABLE",
+    "rankings": {}
+  },
+  {
+    "case_id": "doc2dial-heldout-399568993908018be3e04501922686ee-13",
+    "mode": "context_resolved",
+    "query": "The user reports active duty service and combat service after November 11, 1998, but answers no to being discharged or released on or after January 29, 2003. What VA health care eligibility rules apply to this situation?",
+    "raw_query": "No",
+    "dataset": "doc2dial-rag-en-heldout-fresh-local-v1",
+    "candidate_status": "UNAVAILABLE",
+    "diagnostic_status": "UNAVAILABLE",
+    "rankings": {}
+  },
+  {
+    "case_id": "doc2dial-heldout-83c939393b970a0bcf0a9e0a71196eb5-11",
+    "mode": "historical_expression",
+    "query": "[CONVERSATION]\nThis will prove you u.s. immigration status\nIIs there a limit on how many replacement card I can get?\nIs this to confirm my curent school status?\nHow can I be authorized to work in the United States?\n[CURRENT]\nWhat if I am a foreign worker?",
+    "raw_query": "What if I am a foreign worker?",
+    "dataset": "doc2dial-rag-en-heldout-fresh-local-v1",
+    "candidate_status": "UNAVAILABLE",
+    "diagnostic_status": "UNAVAILABLE",
+    "rankings": {}
+  },
+  {
+    "case_id": "doc2dial-heldout-83c939393b970a0bcf0a9e0a71196eb5-11",
+    "mode": "context_resolved",
+    "query": "As a noncitizen adult foreign worker, what documents do I need for a replacement card and proof that I am authorized to work in the United States?",
+    "raw_query": "What if I am a foreign worker?",
+    "dataset": "doc2dial-rag-en-heldout-fresh-local-v1",
+    "candidate_status": "UNAVAILABLE",
+    "diagnostic_status": "UNAVAILABLE",
+    "rankings": {}
+  },
+  {
+    "case_id": "doc2dial-heldout-aadc9fd5710361ed8a3551e540c608d8-11",
+    "mode": "historical_expression",
+    "query": "[CONVERSATION]\nYes, I think I know what documents I need.\nNo, I did not provide my birth certificate.\nWhat if I do not live in the US or one of its territories?\nHow would I mail documents to you?\n[CURRENT]\nWhat is the Disability Benefits?",
+    "raw_query": "What is the Disability Benefits?",
+    "dataset": "doc2dial-rag-en-heldout-fresh-local-v1",
+    "candidate_status": "UNAVAILABLE",
+    "diagnostic_status": "UNAVAILABLE",
+    "rankings": {}
+  },
+  {
+    "case_id": "doc2dial-heldout-aadc9fd5710361ed8a3551e540c608d8-11",
+    "mode": "context_resolved",
+    "query": "What are Social Security Disability Benefits? I have been asking about eligibility, required documents, and applying from outside the United States.",
+    "raw_query": "What is the Disability Benefits?",
+    "dataset": "doc2dial-rag-en-heldout-fresh-local-v1",
+    "candidate_status": "UNAVAILABLE",
+    "diagnostic_status": "UNAVAILABLE",
+    "rankings": {}
+  },
+  {
+    "case_id": "doc2dial-heldout-af80457aacaac2dcdee2abcfe3d12144-11",
+    "mode": "historical_expression",
+    "query": "[CONVERSATION]\nyes\nwill I be able to add new evidence?\nwhat do I choose, just one option?\nDo I list all the issues?\n[CURRENT]\nhow do I apply?",
+    "raw_query": "how do I apply?",
+    "dataset": "doc2dial-rag-en-heldout-fresh-local-v1",
+    "candidate_status": "UNAVAILABLE",
+    "diagnostic_status": "UNAVAILABLE",
+    "rankings": {}
+  },
+  {
+    "case_id": "doc2dial-heldout-af80457aacaac2dcdee2abcfe3d12144-11",
+    "mode": "context_resolved",
+    "query": "How do I apply for a Board Appeal of a contested VA benefits claim when multiple people claim the same benefit, and list the issues and decision dates?",
+    "raw_query": "how do I apply?",
+    "dataset": "doc2dial-rag-en-heldout-fresh-local-v1",
+    "candidate_status": "UNAVAILABLE",
+    "diagnostic_status": "UNAVAILABLE",
+    "rankings": {}
+  },
+  {
+    "case_id": "doc2dial-dev-3231fc98c27c1216a21ec9baf5abd0ea-11",
+    "mode": "frozen_cross_language",
+    "query": "En los contratos de préstamos federales para estudiantes, ¿qué es un pagaré y qué significa firmarlo?",
+    "raw_query": "En relación con los contratos de préstamo, ¿cuál es su pagaré?",
+    "dataset": "doc2dial-rag-mini-dev-v1",
+    "candidate_status": "OK",
+    "diagnostic_status": "OK",
+    "rankings": {
+      "production_fused20": {
+        "evidence_ranks": [
+          null,
+          null,
+          null
+        ],
+        "all_evidence_rank": null,
+        "first_gold_document_rank": 18
+      },
+      "raw:bm25": {
+        "evidence_ranks": [
+          null,
+          null,
+          null
+        ],
+        "all_evidence_rank": null,
+        "first_gold_document_rank": null
+      },
+      "raw:bm25::within::Avoiding Default | Federal Student Aid#1_0": {
+        "evidence_ranks": [
+          null,
+          null,
+          null
+        ],
+        "all_evidence_rank": null,
+        "first_gold_document_rank": null
+      },
+      "raw:vector": {
+        "evidence_ranks": [
+          22,
+          22,
+          22
+        ],
+        "all_evidence_rank": 22,
+        "first_gold_document_rank": 16
+      },
+      "raw:vector::within::Avoiding Default | Federal Student Aid#1_0": {
+        "evidence_ranks": [
+          2,
+          2,
+          2
+        ],
+        "all_evidence_rank": 2,
+        "first_gold_document_rank": 1
+      }
+    }
+  }
+]

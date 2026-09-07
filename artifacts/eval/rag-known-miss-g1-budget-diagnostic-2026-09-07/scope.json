@@ -1,0 +1,19 @@
+{
+  "api_calls": 0,
+  "runs": [
+    "rag-known-miss-g1-2026-09-07",
+    "rag-known-miss-g1-diagnostic-2026-09-07",
+    "rag-known-miss-g1-budget-diagnostic-2026-09-07"
+  ],
+  "initial_runs": "production timeout prevented old-case ranking; preserved as execution failures",
+  "scope": "candidate-only diagnostics, not full RAG",
+  "not_run": [
+    "Agent",
+    "rewrite model",
+    "rerank",
+    "pack",
+    "ToolMessage",
+    "answer generation"
+  ],
+  "runtime_default_changed": false
+}

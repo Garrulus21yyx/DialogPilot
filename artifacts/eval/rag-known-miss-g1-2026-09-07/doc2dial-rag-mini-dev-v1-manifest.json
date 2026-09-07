@@ -1,0 +1,70 @@
+{
+  "dataset": {
+    "case_count": 300,
+    "cases_sha256": "f0e282d4e6b0594dfc98267322bd865e846b4cc00dbbe8d534d2e6ebc6ec6363",
+    "corpus_sha256": "89a8828b798c97946e6d150851fe046692f1c8c58e1795648223345a5d526281",
+    "dataset_id": "doc2dial-rag-mini-dev-v1",
+    "document_count": 100,
+    "schema_version": 1,
+    "source": {
+      "dataset": "Doc2Dial v1.0.1",
+      "license": "CC-BY-3.0",
+      "selection": "deterministic domain-balanced prefix plus distractors",
+      "url": "https://doc2dial.github.io/file/doc2dial_v1.0.1.zip"
+    }
+  },
+  "generation": {
+    "generation_id": "knowledge-generation-bb9fd91d6d290f9462043b98aedab190",
+    "corpus": "KNOWLEDGE",
+    "backend_id": "POSTGRES_PG_BM25_ZH_V1",
+    "backend_fingerprint": "POSTGRES_PGVECTOR_PG_BM25_ZH_V1",
+    "schema_version": "retrieval-v1",
+    "source_watermark": "6d60731d5cc53d8f579bdb0e1a02f84f017a6564db12a0ed260a7bdc9e298d63",
+    "embedding_model": "BAAI/bge-m3",
+    "embedding_dimension": 1024,
+    "embedding_model_digest": "b5e0ce3470abf5ef3831aa1bd5553b486803e83251590ab7ff35a117cf6aad38",
+    "distance_metric": "COSINE",
+    "vector_extension_version": "0.8.6",
+    "index_method": "HNSW",
+    "index_params_json": "{\"ef_construction\":64,\"m\":16}",
+    "chinese_tokenizer": "ascii-cjk-unigram-bigram-v1",
+    "lexical_ranker": "PG_BM25_ZH_V1",
+    "manifest_hash": "a439270469df589d14c30ed21cd051689cde83eec745b5a430e1175000322f01",
+    "state": "ACTIVE",
+    "embedding_provider": "dialogpilot-sentence-transformers-5.7.0-local-bge-m3-v1",
+    "embedding_provider_kind": "MODEL",
+    "embedding_model_version": "5617a9f61b028005a4858fdac845db406aefb181",
+    "embedding_document_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1",
+    "embedding_query_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1"
+  },
+  "policy": {
+    "policy_version": "knowledge-raw-source-capture-v1",
+    "backend_fingerprint": "POSTGRES_PGVECTOR_PG_BM25_ZH_V1",
+    "lexical_provider": "ascii-cjk-unigram-bigram-v1+PG_BM25_ZH_V1",
+    "transformer_version": "raw-query-only-v1",
+    "embedding_version": "9cae2189438f71b8a4b39c32b9269a1d08c0cf9e56f86160ccb97b73d186b824",
+    "reranker_version": "not-run-fusion-stage-v1",
+    "packer_version": "not-run-fusion-stage-v1",
+    "raw_query_weight": 1.0,
+    "standalone_query_weight": 0.0,
+    "expansion_query_weight": 0.0,
+    "query_expansion_count": 0,
+    "metadata_hint_weight": 0.5,
+    "dense_weight": 0.25,
+    "lexical_weight": 0.75,
+    "rrf_k": 10,
+    "candidate_k": 20,
+    "final_k": 20,
+    "context_max_tokens": 2600
+  },
+  "entries": [
+    [
+      "doc2dial-dev-3231fc98c27c1216a21ec9baf5abd0ea-11",
+      "frozen_cross_language",
+      "En los contratos de préstamos federales para estudiantes, ¿qué es un pagaré y qué significa firmarlo?"
+    ]
+  ],
+  "scope": "current PG candidate source; no Agent, rerank, pack or generation; deep pool diagnosis only",
+  "api_calls": 0,
+  "diagnostic_depth": 1000
+}
