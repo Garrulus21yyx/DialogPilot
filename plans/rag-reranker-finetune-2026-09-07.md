@@ -2,6 +2,8 @@
 
 experiment_completed_no_promotion。使用 ce-evaluation / planning-with-files。用户授权的小规模本地微调已完成，未验证收益；不切换生产默认。不是 RAG 全链路关闭声明。
 
+2026-09-07：用户要求先暂停微调。当前主线及后续次序以 [RAG优化状态](rag-optimization-status.md) 为准，本文不触发新训练。该试验已随 `228a90b` 提交并推送。
+
 目标：固定原始查询和候选，验证领域相关性训练是否提高排序。候选缺失不归因于精排。训练资料只用 Doc2Dial 官方 train，按来源正文分组隔离 train/dev/test；历史 validation/test 和已编写 20 query 不参与训练。
 
 1. done：80/20/40。首轮整篇分组遗漏 1 个跨文档重复片段，已标为无效；第二轮按共享正文片段连通分量分组，并排除首轮观察文档组参与验收。数据合同修复在构建器，未修改指标或放宽验收。
