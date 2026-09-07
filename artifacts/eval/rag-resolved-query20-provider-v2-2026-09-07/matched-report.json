@@ -1,0 +1,25 @@
+{
+  "matched_cases": 17,
+  "arms": {
+    "raw": {
+      "complete20": 14,
+      "complete5": 13,
+      "mrr5": 0.7205882352941176
+    },
+    "resolved": {
+      "complete20": 17,
+      "complete5": 16,
+      "mrr5": 0.7843137254901961
+    }
+  },
+  "paired": {
+    "complete20": {
+      "rescues": 3,
+      "harms": 0
+    },
+    "complete5": {
+      "rescues": 3,
+      "harms": 0
+    }
+  }
+}

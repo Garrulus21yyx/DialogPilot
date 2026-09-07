@@ -1,0 +1,3019 @@
+{
+  "summary": {
+    "cases": 300,
+    "complete": {
+      "dense40": 230,
+      "bm2540": 218,
+      "union": 244,
+      "rrf20": 223,
+      "rrf40": 237,
+      "rrf60": 243,
+      "rrf80": 244
+    },
+    "route_miss": 56,
+    "fusion_cut_loss": 21,
+    "api_calls": 0
+  },
+  "cases": [
+    {
+      "case_id": "doc2dial-dev-ad94c0dc42f749c2b0e2349d830b4827-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-ad94c0dc42f749c2b0e2349d830b4827-3",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-ad94c0dc42f749c2b0e2349d830b4827-5",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-ad94c0dc42f749c2b0e2349d830b4827-8",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-ad94c0dc42f749c2b0e2349d830b4827-10",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-ad94c0dc42f749c2b0e2349d830b4827-12",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-09f69dbfbbb5ab0b90ce0faf73e5166b-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-09f69dbfbbb5ab0b90ce0faf73e5166b-3",
+      "dense40": false,
+      "bm2540": true,
+      "union": true,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-09f69dbfbbb5ab0b90ce0faf73e5166b-5",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-09f69dbfbbb5ab0b90ce0faf73e5166b-7",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-09f69dbfbbb5ab0b90ce0faf73e5166b-9",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-09f69dbfbbb5ab0b90ce0faf73e5166b-11",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-09f69dbfbbb5ab0b90ce0faf73e5166b-13",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-2e9623b209161de6e9448f0c0d2b113b-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-2e9623b209161de6e9448f0c0d2b113b-3",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-2e9623b209161de6e9448f0c0d2b113b-5",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-2e9623b209161de6e9448f0c0d2b113b-7",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-2e9623b209161de6e9448f0c0d2b113b-9",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-2e9623b209161de6e9448f0c0d2b113b-11",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-46c0f3dbe110f020aaf0358ae35d4283-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-46c0f3dbe110f020aaf0358ae35d4283-3",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-46c0f3dbe110f020aaf0358ae35d4283-5",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-46c0f3dbe110f020aaf0358ae35d4283-7",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-46c0f3dbe110f020aaf0358ae35d4283-9",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-46c0f3dbe110f020aaf0358ae35d4283-11",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-46c0f3dbe110f020aaf0358ae35d4283-13",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-5d87b04944b11a9a535998c5c0e1b075-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-5d87b04944b11a9a535998c5c0e1b075-4",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-5d87b04944b11a9a535998c5c0e1b075-6",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-5d87b04944b11a9a535998c5c0e1b075-8",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-6977cbb3bed8f0e8480018cb3cac6716-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-6977cbb3bed8f0e8480018cb3cac6716-3",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-6977cbb3bed8f0e8480018cb3cac6716-5",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-6977cbb3bed8f0e8480018cb3cac6716-7",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-6977cbb3bed8f0e8480018cb3cac6716-9",
+      "dense40": false,
+      "bm2540": true,
+      "union": true,
+      "rrf20": false,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-6977cbb3bed8f0e8480018cb3cac6716-11",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-6977cbb3bed8f0e8480018cb3cac6716-13",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-6f9180a71a8195073fd4fe17e708cee9-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-6f9180a71a8195073fd4fe17e708cee9-4",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-6f9180a71a8195073fd4fe17e708cee9-6",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-6f9180a71a8195073fd4fe17e708cee9-8",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-6f9180a71a8195073fd4fe17e708cee9-10",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-6f9180a71a8195073fd4fe17e708cee9-12",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-9d4920bea87d4f4cb977483d943c1ef3-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-9d4920bea87d4f4cb977483d943c1ef3-3",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-9d4920bea87d4f4cb977483d943c1ef3-5",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-9d4920bea87d4f4cb977483d943c1ef3-8",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-9d4920bea87d4f4cb977483d943c1ef3-10",
+      "dense40": true,
+      "bm2540": false,
+      "union": true,
+      "rrf20": false,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-9d4920bea87d4f4cb977483d943c1ef3-12",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-9d4920bea87d4f4cb977483d943c1ef3-14",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-9d4920bea87d4f4cb977483d943c1ef3-16",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-b55dafba91b47f076435e58d02a0659b-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-b55dafba91b47f076435e58d02a0659b-3",
+      "dense40": false,
+      "bm2540": true,
+      "union": true,
+      "rrf20": false,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-b55dafba91b47f076435e58d02a0659b-6",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-b55dafba91b47f076435e58d02a0659b-8",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-b55dafba91b47f076435e58d02a0659b-10",
+      "dense40": false,
+      "bm2540": true,
+      "union": true,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-caa2d4ca2a98cc6f57a5628d9e128db9-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-caa2d4ca2a98cc6f57a5628d9e128db9-3",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-caa2d4ca2a98cc6f57a5628d9e128db9-5",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-caa2d4ca2a98cc6f57a5628d9e128db9-8",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-caa2d4ca2a98cc6f57a5628d9e128db9-10",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-caa2d4ca2a98cc6f57a5628d9e128db9-12",
+      "dense40": false,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-dfe69859eb7ea18e177951165518bee0-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-dfe69859eb7ea18e177951165518bee0-4",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-dfe69859eb7ea18e177951165518bee0-6",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-dfe69859eb7ea18e177951165518bee0-8",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-dfe69859eb7ea18e177951165518bee0-10",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-dfe69859eb7ea18e177951165518bee0-12",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-ddce2ae456060c8c50cb8717afeaaec5-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-ddce2ae456060c8c50cb8717afeaaec5-3",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-ddce2ae456060c8c50cb8717afeaaec5-5",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-ddce2ae456060c8c50cb8717afeaaec5-7",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-ddce2ae456060c8c50cb8717afeaaec5-9",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-ddce2ae456060c8c50cb8717afeaaec5-11",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-23178e836c47051d9cc2be93932f6757-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-69a1ae6bc0b246b8725a70ae49745fe8-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-69a1ae6bc0b246b8725a70ae49745fe8-3",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-69a1ae6bc0b246b8725a70ae49745fe8-5",
+      "dense40": false,
+      "bm2540": true,
+      "union": true,
+      "rrf20": false,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-69a1ae6bc0b246b8725a70ae49745fe8-7",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-69a1ae6bc0b246b8725a70ae49745fe8-9",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-69a1ae6bc0b246b8725a70ae49745fe8-11",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-e8e7ac1b799ac6a132bd803307d4b707-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-e8e7ac1b799ac6a132bd803307d4b707-4",
+      "dense40": true,
+      "bm2540": false,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-e8e7ac1b799ac6a132bd803307d4b707-6",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-e8e7ac1b799ac6a132bd803307d4b707-8",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-e8e7ac1b799ac6a132bd803307d4b707-10",
+      "dense40": true,
+      "bm2540": false,
+      "union": true,
+      "rrf20": false,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-e8e7ac1b799ac6a132bd803307d4b707-12",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-85a07edcac90068ee15c3769034af6f2-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-85a07edcac90068ee15c3769034af6f2-3",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-85a07edcac90068ee15c3769034af6f2-5",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-85a07edcac90068ee15c3769034af6f2-7",
+      "dense40": true,
+      "bm2540": false,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-85a07edcac90068ee15c3769034af6f2-10",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-85a07edcac90068ee15c3769034af6f2-13",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-94c86cc0695d314271835dc8d5ae3493-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-94c86cc0695d314271835dc8d5ae3493-3",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-94c86cc0695d314271835dc8d5ae3493-5",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-94c86cc0695d314271835dc8d5ae3493-7",
+      "dense40": true,
+      "bm2540": false,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-94c86cc0695d314271835dc8d5ae3493-9",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-94c86cc0695d314271835dc8d5ae3493-11",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-386b9ab9d08e5166377f9854763b16f9-1",
+      "dense40": true,
+      "bm2540": false,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-386b9ab9d08e5166377f9854763b16f9-5",
+      "dense40": true,
+      "bm2540": false,
+      "union": true,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-386b9ab9d08e5166377f9854763b16f9-7",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-386b9ab9d08e5166377f9854763b16f9-9",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-386b9ab9d08e5166377f9854763b16f9-11",
+      "dense40": true,
+      "bm2540": false,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-4a856ad6df4f53edcd00f1aaa7cffdbc-1",
+      "dense40": true,
+      "bm2540": false,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-4a856ad6df4f53edcd00f1aaa7cffdbc-5",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-4a856ad6df4f53edcd00f1aaa7cffdbc-7",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-4a856ad6df4f53edcd00f1aaa7cffdbc-9",
+      "dense40": true,
+      "bm2540": false,
+      "union": true,
+      "rrf20": false,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-4a856ad6df4f53edcd00f1aaa7cffdbc-11",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-0f20051cca23859b571386e82fff9ac8-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-0f20051cca23859b571386e82fff9ac8-3",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-0f20051cca23859b571386e82fff9ac8-5",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-0f20051cca23859b571386e82fff9ac8-7",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-0f20051cca23859b571386e82fff9ac8-9",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-0f20051cca23859b571386e82fff9ac8-12",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-247f23e580bce66d852b143a622f29d7-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-247f23e580bce66d852b143a622f29d7-4",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-247f23e580bce66d852b143a622f29d7-6",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-247f23e580bce66d852b143a622f29d7-8",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-247f23e580bce66d852b143a622f29d7-10",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-247f23e580bce66d852b143a622f29d7-12",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-e5e710f355a743db30e61032c000ec2c-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-e5e710f355a743db30e61032c000ec2c-3",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-e5e710f355a743db30e61032c000ec2c-5",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-e5e710f355a743db30e61032c000ec2c-7",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-e5e710f355a743db30e61032c000ec2c-9",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-e5e710f355a743db30e61032c000ec2c-11",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-28c759aa607520e8e07e080847e19054-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-28c759aa607520e8e07e080847e19054-3",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-28c759aa607520e8e07e080847e19054-5",
+      "dense40": false,
+      "bm2540": true,
+      "union": true,
+      "rrf20": false,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-28c759aa607520e8e07e080847e19054-7",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-28c759aa607520e8e07e080847e19054-9",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-28c759aa607520e8e07e080847e19054-11",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-2a86125210a3fd5b3a548d32717abf8e-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-2a86125210a3fd5b3a548d32717abf8e-3",
+      "dense40": true,
+      "bm2540": false,
+      "union": true,
+      "rrf20": false,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-2a86125210a3fd5b3a548d32717abf8e-5",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-2a86125210a3fd5b3a548d32717abf8e-7",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-2a86125210a3fd5b3a548d32717abf8e-9",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-2a86125210a3fd5b3a548d32717abf8e-11",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-ab1414c04aac7b762752cef10b2e59b8-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-ab1414c04aac7b762752cef10b2e59b8-3",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-ab1414c04aac7b762752cef10b2e59b8-5",
+      "dense40": true,
+      "bm2540": false,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-ab1414c04aac7b762752cef10b2e59b8-7",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-ab1414c04aac7b762752cef10b2e59b8-9",
+      "dense40": true,
+      "bm2540": false,
+      "union": true,
+      "rrf20": false,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-ab1414c04aac7b762752cef10b2e59b8-11",
+      "dense40": true,
+      "bm2540": false,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-2e4dd0f220c11f620c803bc75605946a-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-2e4dd0f220c11f620c803bc75605946a-3",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-2e4dd0f220c11f620c803bc75605946a-5",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-2e4dd0f220c11f620c803bc75605946a-7",
+      "dense40": true,
+      "bm2540": false,
+      "union": true,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-2e4dd0f220c11f620c803bc75605946a-9",
+      "dense40": true,
+      "bm2540": false,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-95eb1569c01691ed454fe5a51d485884-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-95eb1569c01691ed454fe5a51d485884-5",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-95eb1569c01691ed454fe5a51d485884-7",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-95eb1569c01691ed454fe5a51d485884-9",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-95eb1569c01691ed454fe5a51d485884-11",
+      "dense40": true,
+      "bm2540": false,
+      "union": true,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-95eb1569c01691ed454fe5a51d485884-13",
+      "dense40": true,
+      "bm2540": false,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-dd8eb49fdbf955282d36e8d39d10e452-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-dd8eb49fdbf955282d36e8d39d10e452-4",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-dd8eb49fdbf955282d36e8d39d10e452-6",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-dd8eb49fdbf955282d36e8d39d10e452-8",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-dd8eb49fdbf955282d36e8d39d10e452-10",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-ff81921e81d6e595b1b47916a1d2f59a-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-ff81921e81d6e595b1b47916a1d2f59a-3",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-ff81921e81d6e595b1b47916a1d2f59a-5",
+      "dense40": false,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-ff81921e81d6e595b1b47916a1d2f59a-7",
+      "dense40": true,
+      "bm2540": false,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-ff81921e81d6e595b1b47916a1d2f59a-9",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-ff81921e81d6e595b1b47916a1d2f59a-11",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-ff81921e81d6e595b1b47916a1d2f59a-13",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-0847d31eaab4dd943f8e9b0f6de370cb-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-0847d31eaab4dd943f8e9b0f6de370cb-4",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-0847d31eaab4dd943f8e9b0f6de370cb-6",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-0847d31eaab4dd943f8e9b0f6de370cb-10",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-3",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-5",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-7",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-9",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11",
+      "dense40": true,
+      "bm2540": false,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-f9aa69339de7652e855b2c941a24d7c9-2",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-f9aa69339de7652e855b2c941a24d7c9-4",
+      "dense40": true,
+      "bm2540": false,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-f9aa69339de7652e855b2c941a24d7c9-6",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-f9aa69339de7652e855b2c941a24d7c9-8",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-f9aa69339de7652e855b2c941a24d7c9-10",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-ee7631c809126d88bff37909a0d0fa2e-1",
+      "dense40": false,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-ee7631c809126d88bff37909a0d0fa2e-3",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-ee7631c809126d88bff37909a0d0fa2e-5",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-ee7631c809126d88bff37909a0d0fa2e-7",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-ee7631c809126d88bff37909a0d0fa2e-9",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-ee7631c809126d88bff37909a0d0fa2e-11",
+      "dense40": false,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-3231fc98c27c1216a21ec9baf5abd0ea-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-3231fc98c27c1216a21ec9baf5abd0ea-3",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-3231fc98c27c1216a21ec9baf5abd0ea-5",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-3231fc98c27c1216a21ec9baf5abd0ea-7",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-3231fc98c27c1216a21ec9baf5abd0ea-9",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-3231fc98c27c1216a21ec9baf5abd0ea-11",
+      "dense40": true,
+      "bm2540": false,
+      "union": true,
+      "rrf20": false,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-00a4a05f229e5cee83e7b10f2e20873d-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-00a4a05f229e5cee83e7b10f2e20873d-3",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-00a4a05f229e5cee83e7b10f2e20873d-5",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-00a4a05f229e5cee83e7b10f2e20873d-7",
+      "dense40": true,
+      "bm2540": false,
+      "union": true,
+      "rrf20": false,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-00a4a05f229e5cee83e7b10f2e20873d-10",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-00a4a05f229e5cee83e7b10f2e20873d-12",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-07d2d3b557c6d5d18ee0e7d37e986f08-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-07d2d3b557c6d5d18ee0e7d37e986f08-3",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-07d2d3b557c6d5d18ee0e7d37e986f08-7",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-07d2d3b557c6d5d18ee0e7d37e986f08-9",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-0f04d497049c31faebfa20487a25c0f1-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-0f04d497049c31faebfa20487a25c0f1-3",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-0f04d497049c31faebfa20487a25c0f1-5",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-0f04d497049c31faebfa20487a25c0f1-8",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-0f04d497049c31faebfa20487a25c0f1-10",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-0f04d497049c31faebfa20487a25c0f1-12",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-2be506ef6926fe365c87941f7ef14862-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-2be506ef6926fe365c87941f7ef14862-3",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-2be506ef6926fe365c87941f7ef14862-5",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-2be506ef6926fe365c87941f7ef14862-7",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-2be506ef6926fe365c87941f7ef14862-9",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-2be506ef6926fe365c87941f7ef14862-12",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-3",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-6",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-8",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-10",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-a7fe7aa38830465e8a73320e9320b305-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-a7fe7aa38830465e8a73320e9320b305-3",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-a7fe7aa38830465e8a73320e9320b305-5",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-13f5099fe2dc8875b44e6b15ad7c2dd1-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-13f5099fe2dc8875b44e6b15ad7c2dd1-3",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-13f5099fe2dc8875b44e6b15ad7c2dd1-5",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-13f5099fe2dc8875b44e6b15ad7c2dd1-7",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-13f5099fe2dc8875b44e6b15ad7c2dd1-9",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-13f5099fe2dc8875b44e6b15ad7c2dd1-11",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-13f5099fe2dc8875b44e6b15ad7c2dd1-13",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-13f5099fe2dc8875b44e6b15ad7c2dd1-15",
+      "dense40": false,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-d2eaa023dd3ba0cee48adb6d3bab5396-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-d2eaa023dd3ba0cee48adb6d3bab5396-3",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-d2eaa023dd3ba0cee48adb6d3bab5396-5",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-d2eaa023dd3ba0cee48adb6d3bab5396-8",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-d2eaa023dd3ba0cee48adb6d3bab5396-10",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-d2eaa023dd3ba0cee48adb6d3bab5396-12",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-d2eaa023dd3ba0cee48adb6d3bab5396-14",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-87921ca5728f6fdad0c8639539661493-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-87921ca5728f6fdad0c8639539661493-3",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-87921ca5728f6fdad0c8639539661493-5",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-87921ca5728f6fdad0c8639539661493-8",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-87921ca5728f6fdad0c8639539661493-10",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-87921ca5728f6fdad0c8639539661493-12",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-87921ca5728f6fdad0c8639539661493-14",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-3",
+      "dense40": true,
+      "bm2540": false,
+      "union": true,
+      "rrf20": false,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-5",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-7",
+      "dense40": false,
+      "bm2540": true,
+      "union": true,
+      "rrf20": false,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-9",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-406b5f89f61e55f3a77ff0e41f4f3e66-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-406b5f89f61e55f3a77ff0e41f4f3e66-3",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-406b5f89f61e55f3a77ff0e41f4f3e66-5",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-406b5f89f61e55f3a77ff0e41f4f3e66-7",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-406b5f89f61e55f3a77ff0e41f4f3e66-11",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-13e5b0e028d5aa4d2523b5ebbfe77977-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-13e5b0e028d5aa4d2523b5ebbfe77977-3",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-13e5b0e028d5aa4d2523b5ebbfe77977-5",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-13e5b0e028d5aa4d2523b5ebbfe77977-7",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-13e5b0e028d5aa4d2523b5ebbfe77977-9",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-13e5b0e028d5aa4d2523b5ebbfe77977-11",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-13e5b0e028d5aa4d2523b5ebbfe77977-13",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-f4fc4a6d5d6b9723f50202a5637ade64-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-f4fc4a6d5d6b9723f50202a5637ade64-3",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-f4fc4a6d5d6b9723f50202a5637ade64-5",
+      "dense40": false,
+      "bm2540": true,
+      "union": true,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-f4fc4a6d5d6b9723f50202a5637ade64-7",
+      "dense40": true,
+      "bm2540": false,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-f4fc4a6d5d6b9723f50202a5637ade64-9",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-f4fc4a6d5d6b9723f50202a5637ade64-11",
+      "dense40": true,
+      "bm2540": false,
+      "union": true,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-cb7b4dd9f52ce66b315e7709dbbfd2ff-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-cb7b4dd9f52ce66b315e7709dbbfd2ff-3",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-cb7b4dd9f52ce66b315e7709dbbfd2ff-6",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-cb7b4dd9f52ce66b315e7709dbbfd2ff-8",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-cb7b4dd9f52ce66b315e7709dbbfd2ff-10",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-cb7b4dd9f52ce66b315e7709dbbfd2ff-12",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-7ebc042e7cd8ad9be3ac94158aac5ffb-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-7ebc042e7cd8ad9be3ac94158aac5ffb-4",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-7ebc042e7cd8ad9be3ac94158aac5ffb-6",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-7ebc042e7cd8ad9be3ac94158aac5ffb-8",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-7ebc042e7cd8ad9be3ac94158aac5ffb-10",
+      "dense40": false,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-7ebc042e7cd8ad9be3ac94158aac5ffb-12",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-7ebc042e7cd8ad9be3ac94158aac5ffb-14",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-df084f0bfd2a11429ec36b331b048c6d-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-df084f0bfd2a11429ec36b331b048c6d-3",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-df084f0bfd2a11429ec36b331b048c6d-5",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-df084f0bfd2a11429ec36b331b048c6d-7",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-df084f0bfd2a11429ec36b331b048c6d-9",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-df084f0bfd2a11429ec36b331b048c6d-11",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-4630990a8988bc91fd954aa6056dbfb1-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-4630990a8988bc91fd954aa6056dbfb1-4",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-4630990a8988bc91fd954aa6056dbfb1-6",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-4630990a8988bc91fd954aa6056dbfb1-8",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-4630990a8988bc91fd954aa6056dbfb1-10",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-4630990a8988bc91fd954aa6056dbfb1-12",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": false,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-9c7626c8c2aa2b927759e64a2323d8a9-1",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-9c7626c8c2aa2b927759e64a2323d8a9-3",
+      "dense40": false,
+      "bm2540": false,
+      "union": false,
+      "rrf20": false,
+      "rrf40": false,
+      "rrf60": false,
+      "rrf80": false
+    },
+    {
+      "case_id": "doc2dial-dev-9c7626c8c2aa2b927759e64a2323d8a9-6",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    },
+    {
+      "case_id": "doc2dial-dev-9c7626c8c2aa2b927759e64a2323d8a9-8",
+      "dense40": true,
+      "bm2540": true,
+      "union": true,
+      "rrf20": true,
+      "rrf40": true,
+      "rrf60": true,
+      "rrf80": true
+    }
+  ]
+}
