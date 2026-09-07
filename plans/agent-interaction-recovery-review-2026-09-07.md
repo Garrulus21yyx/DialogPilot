@@ -2,7 +2,7 @@
 
 状态：review_in_progress；本文件记录诊断与实施合同，不代表实现或验收完成。
 
-2026-09-07 观测收敛（implemented / remote_verification_pending）：撤掉 ModelDiagnostics/UserModelDiagnostics 通用采集器，模型/工具记录交给已锁定 Langfuse 4.15.1 官方 CallbackHandler；沿用业务 TraceSink，统一配置与关闭。官方 mask 扩展点应用项目脱敏策略。本地评测保留官方成绩、业务结果与 Langfuse session 关联。当前环境未配置 Langfuse 凭据，服务端发送/读取验收不可声称完成。
+2026-09-07 观测收敛（implemented / domain_trace_remote_verified）：撤掉 ModelDiagnostics/UserModelDiagnostics 通用采集器，模型/工具记录交给已锁定 Langfuse 4.15.1 官方 CallbackHandler；沿用业务 TraceSink，统一配置与关闭。官方 mask 扩展点应用项目脱敏策略。本地评测保留官方成绩、业务结果与 Langfuse session 关联。用户配置凭据后，已执行真实领域模型—工具循环并通过官方 CLI 回读云端记录；范围与证据见 [实测报告](../docs/langfuse-live-verification-2026-09-07.md)。不代表 τ³ 业务闭环完成。
 
 ## 范围与证据
 
@@ -35,7 +35,7 @@
 
 ## 可证伪验收
 
-第一项替代验证：真实 Langfuse SDK + OpenTelemetry InMemorySpanExporter 执行框架工具循环，验证正常/缺少 DomainOutcome 两条路径均导出可见正文、generation/tool/agent 层级和任务关联，且秘密与 reasoning 被过滤；这不是自写模拟 callback。与 PostgreSQL Trace、框架、工具安全回归组合 40 passed；官方 τ³ 适配测试另测。没有 Langfuse 服务端凭据，不能提供真实服务端 trace 链接，也未重新跑 τ³ 性能实验。下一项 B 仍 pending。
+第一项本地验证：真实 Langfuse SDK + OpenTelemetry InMemorySpanExporter 执行框架工具循环，验证正常/缺少 DomainOutcome 两条路径均导出可见正文、generation/tool/agent 层级和任务关联，且秘密与 reasoning 被过滤；这不是自写模拟 callback。与 PostgreSQL Trace、框架、工具安全回归组合 40 passed；官方 τ³ 适配测试另测。随后完成两条真实领域循环的云端发送与 CLI 回读，第二条同时检查 development 环境、合成敏感标记脱敏与父子关联。未重新跑 τ³ 性能实验。下一项 B 仍 pending。
 
 - 普通文本可形成候选，假称业务写入成功仍不能发布；文本未包含终态 JSON 不直接导致任务失败。
 - ask -> 进程重启 -> answer 返回原暂停任务，仍有效查询只执行一次；与目标修正/取消分开。
