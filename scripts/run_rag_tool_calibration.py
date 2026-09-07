@@ -124,6 +124,10 @@ async def evaluate(args, database_url):
         if args.scenario == 'applicability':
             from evaluation.rag_applicability_dev import applicability_development
             docs, cases, query_options, forbidden_sources, withdrawn_sources = applicability_development()
+        if args.scenario == 'ecommerce-full':
+            from evaluation.rag_applicability_dev import applicability_development
+            extra, _, _, _, withdrawn_sources = applicability_development()
+            docs = docs + extra
         if args.distractors:
             docs = RagDataset.load(args.distractors).documents + docs
         store = PostgresKnowledgeStore(platform, tenant_id='rag-tool-dev', embedding_provider=embedding)
@@ -169,6 +173,10 @@ async def evaluate(args, database_url):
                 manifest.update(scope='Mixed application evaluation; see mixed-manifest.json for executed cases and scope',
                                 cases=len(args.mixed_definitions) if args.mixed_definitions else 5, case_definitions=args.mixed_definitions or [], fixed_query_override={})
             (args.output/'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2, default=str)+'\n')
+            if getattr(args, 'full_chain', False):
+                from evaluation.rag_full_chain_probe import run_full_chain
+                await run_full_chain(database_url=database_url,platform=platform,store=store,client=client,policy=policy,provider_config=options,output=args.output,handler=api._knowledge_tool_handler)
+                return
             if args.mixed_business:
                 from evaluation.rag_mixed_business import run_mixed
                 await run_mixed(platform=platform,store=store,client=client,policy=policy,
@@ -227,10 +235,11 @@ def main():
     p.add_argument('--distractors', type=Path)
     mode = p.add_mutually_exclusive_group()
     mode.add_argument('--mixed-business', action='store_true')
+    mode.add_argument('--full-chain', action='store_true')
     mode.add_argument('--candidate-scope-probe', action='store_true', help='No inference: paired candidate retrieval with/without request applicability')
     p.add_argument('--mixed-case-file',type=Path)
     p.add_argument('--max-api-calls',type=int,default=80)
-    p.add_argument('--scenario', choices=('basic','applicability'), default='basic')
+    p.add_argument('--scenario', choices=('basic','applicability','ecommerce-full'), default='basic')
     args = p.parse_args()
     if not 0 < args.max_api_calls <= 400:
         raise ValueError('max API calls must be between 1 and 400')

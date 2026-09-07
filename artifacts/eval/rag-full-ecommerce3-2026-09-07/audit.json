@@ -1,0 +1,28 @@
+{
+  "startup_sha256": {
+    "application/composition_output.py": "2db109a348bdaa5ea4e489a8882ae7733f2d20df8d93f8d492c4759b0d31d646",
+    "application/response_assembly.py": "cb32169b58d0bb8eb55de67510f126e66918579346175f5979614bfd4c46f123",
+    "infrastructure/target_conversation_provider.py": "41fe39dbbec6ceafa17d3324fef6260a8d4ef00d301d3bae52e5a3b2c8b76bf2",
+    "evaluation/rag_full_chain_probe.py": "9bb61353e64baa622eb74bfb8a2f2dc3329cd4a81f14fa59d97ebb6ea9561c31"
+  },
+  "after_run_sha256": {
+    "application/composition_output.py": "2db109a348bdaa5ea4e489a8882ae7733f2d20df8d93f8d492c4759b0d31d646",
+    "application/response_assembly.py": "ef05041e953713e5096c2dbe74d83a542ae5b6facab31e9c0605360a8ad964a4",
+    "infrastructure/target_conversation_provider.py": "41fe39dbbec6ceafa17d3324fef6260a8d4ef00d301d3bae52e5a3b2c8b76bf2",
+    "evaluation/rag_full_chain_probe.py": "9bb61353e64baa622eb74bfb8a2f2dc3329cd4a81f14fa59d97ebb6ea9561c31"
+  },
+  "changed_during_task": [
+    "application/response_assembly.py"
+  ],
+  "scope": "working tree snapshot not stable release benchmark",
+  "acceptance": {
+    "policy_answers_delivered": 0,
+    "attempted": 3,
+    "expanded_to20": false
+  },
+  "failures": {
+    "opened-negation": "missing contextual resolved_query rejected before retrieval",
+    "ellipsis-shipping": "knowledge_search OK; composition_render required segments while provider emitted natural text; verifier not reached",
+    "historical-policy": "date-only as_of rejected by timezone-required contract"
+  }
+}

@@ -1,0 +1,804 @@
+{
+  "scope": "Fixed-query development calibration through the real knowledge handler.\n\nUses a newly created PostgreSQL database, production BGE/PG retrieval, reranker,\nmodel-visible evidence serialization and GroundedAnswerGenerator. It does not\nexercise HTTP authentication, conversation planning or business-tool execution.\n",
+  "scenario": "ecommerce-full",
+  "documents": 31,
+  "cases": 20,
+  "query_options": {},
+  "forbidden_sources": {},
+  "withdrawn_sources": [
+    "cashback-withdrawn"
+  ],
+  "source_documents": [
+    {
+      "document_id": "synthetic-shop:opened-audio",
+      "title": "耳机无理由退货",
+      "content": "未拆封耳机在签收后七日内可申请无理由退货。已拆封耳机非质量原因不适用无理由退货。质量问题需提交检测材料后另行审核。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:audio-defect",
+      "title": "耳机质量问题",
+      "content": "耳机出现单侧无声时，请先检查连接和音量。仍有故障的，提交购买凭证及故障视频申请质量审核；审核通过不代表退款已经到账。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:return-shipping",
+      "title": "退货运费",
+      "content": "非质量原因退货的寄回运费由买家承担。确认属于商品质量问题的，按平台指定方式寄回可报销标准运费；加急运费不在报销范围内。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:remote-delivery",
+      "title": "偏远地区配送",
+      "content": "普通地区预计三至五个工作日送达。偏远地区预计额外增加二至三天。预计时效不构成指定日期送达承诺。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:coupon-refund",
+      "title": "优惠券退款规则",
+      "content": "整单退货时按实际支付金额退款，不退还优惠券面额。部分退货按商品分摊后的实付金额计算，已使用优惠券不会自动恢复。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:gift-return",
+      "title": "赠品随单退回",
+      "content": "参加赠品活动的订单整单退货时，应同时退回赠品。赠品已使用或遗失的，需核实活动规则，不得直接承诺全额退款。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:custom-goods",
+      "title": "定制商品售后",
+      "content": "按消费者指定尺寸制作的定制商品不适用无理由退货。商品存在质量问题仍可申请售后，需提交问题照片及订单信息。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:invoice",
+      "title": "电子发票",
+      "content": "电子发票可在订单完成后申请。抬头错误可以提交更正申请。已经开票的订单退款后需按实退金额处理红冲，不应重复开具原金额发票。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:warranty",
+      "title": "保修范围",
+      "content": "主机在购买后十二个月内享受质量保修。耗材和人为损坏不在免费保修范围内。保修审核需要购买凭证，无法凭聊天描述直接确认免费更换。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:battery-install",
+      "title": "电池安装限制",
+      "content": "安装替换电池前应断开电源。型号 B20 仅适配设备 M20，不适配 M10。无法确认设备型号时应先核对铭牌，不得建议试装。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:pickup",
+      "title": "自提须知",
+      "content": "自提订单凭提货码和收货人身份信息领取。提货码仅用于领取核验，不应公开发送。超过预约时间需先联系门店确认保留情况。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:address",
+      "title": "发货前改址",
+      "content": "未发货订单可提交改址申请，以订单系统确认结果为准。已发货订单需查询承运方是否支持拦截改址；提交申请不等于改址成功。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:exchange",
+      "title": "换货流程",
+      "content": "换货需先审核商品条件，再确认目标型号库存。审核通过但目标型号缺货时，应与用户协商等待或其他处理，不能承诺立即发出。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:membership",
+      "title": "积分有效期",
+      "content": "积分自获得之日起十二个月有效。退货后对应消费积分会扣回。积分抵扣部分按活动规则处理，不直接等额兑换现金。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:privacy",
+      "title": "账户安全",
+      "content": "客服不会索取账户密码、短信验证码或银行卡支付密码。退款由支付渠道处理，不需要用户向私人账户转账解冻。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:damaged-box",
+      "title": "外箱破损",
+      "content": "收到外箱破损商品时，应保留包装并拍摄外箱及商品照片。仅外箱轻微破损不自动等同商品质量问题；具体处理需查看商品状况。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:preorder",
+      "title": "预售发货",
+      "content": "预售商品按商品页面约定的发货窗口处理。支付尾款不代表商品已经发货，实际状态需查询订单和物流记录。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:receipt",
+      "title": "签收与退款",
+      "content": "签收记录只表示物流签收状态，不代表售后申请被拒绝。是否符合退货条件应结合商品类别、签收时间和商品状态判断。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "synthetic-shop:multi-evidence",
+      "title": "退货申请材料",
+      "content": "申请退货需要订单号、商品现状照片及退货原因。寄回前应等待退货地址确认，不能寄往商品包装上的生产商地址。",
+      "metadata": {
+        "synthetic": true,
+        "knowledge_type": "shop_policy"
+      }
+    },
+    {
+      "document_id": "returns-cn",
+      "title": "无理由退货期限",
+      "content": "中国区未拆封普通商品的无理由退货申请期限为签收后七日。",
+      "metadata": {
+        "effective_from": "2020-01-01T00:00:00+00:00",
+        "region": "CN"
+      }
+    },
+    {
+      "document_id": "returns-eu",
+      "title": "无理由退货期限",
+      "content": "欧洲区未拆封普通商品的无理由退货申请期限为签收后十四日。",
+      "metadata": {
+        "effective_from": "2020-01-01T00:00:00+00:00",
+        "region": "EU"
+      }
+    },
+    {
+      "document_id": "returns-general",
+      "title": "退货计时说明",
+      "content": "退货期限以签收记录为起点。是否符合条件还需核实商品类别和状态。",
+      "metadata": {
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "coupon-web",
+      "title": "优惠券恢复规则",
+      "content": "官网渠道取消未发货的整单后，未过期优惠券可以恢复一次。",
+      "metadata": {
+        "effective_from": "2020-01-01T00:00:00+00:00",
+        "channel": "web"
+      }
+    },
+    {
+      "document_id": "coupon-store",
+      "title": "优惠券恢复规则",
+      "content": "门店渠道取消未发货的整单后，已使用优惠券不恢复。",
+      "metadata": {
+        "effective_from": "2020-01-01T00:00:00+00:00",
+        "channel": "store"
+      }
+    },
+    {
+      "document_id": "battery-m10",
+      "title": "替换电池说明",
+      "content": "设备M10只能使用B10替换电池，禁止安装B20。",
+      "metadata": {
+        "effective_from": "2020-01-01T00:00:00+00:00",
+        "product": "M10"
+      }
+    },
+    {
+      "document_id": "battery-m20",
+      "title": "替换电池说明",
+      "content": "设备M20应使用B20替换电池，B10不适配。",
+      "metadata": {
+        "effective_from": "2020-01-01T00:00:00+00:00",
+        "product": "M20"
+      }
+    },
+    {
+      "document_id": "return-shipping",
+      "title": "退货运费报销",
+      "content": "普通质量退货的标准寄回运费报销上限为十二元。",
+      "metadata": {
+        "effective_from": "2020-01-01T00:00:00+00:00",
+        "effective_to": "2026-04-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "return-shipping",
+      "title": "退货运费报销",
+      "content": "普通质量退货的标准寄回运费报销上限为十八元。",
+      "metadata": {
+        "effective_from": "2026-04-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "cashback-withdrawn",
+      "title": "取消订单返现",
+      "content": "取消订单即可获得五十元返现。",
+      "metadata": {
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "cashback-current",
+      "title": "取消订单规则",
+      "content": "取消订单按原支付渠道退回实际付款，不额外发放返现。",
+      "metadata": {
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "long-after-sales",
+      "title": "综合售后手册",
+      "content": "资料提交：售后申请应提供订单号、商品现状照片和问题描述。客服核对资料完整性后告知补交事项，资料接收不代表最终审核已经通过。\n\n签收核实：运输记录只用于确定包裹交付情况，不用于推定商品没有瑕疵。出现代收记录时，应补充实际收货人与领取时间，不能跳过商品情况核实。\n\n外观检查：申请人应拍摄包装与商品的不同角度，保留配件照片。仅凭包装变形不能确定内部商品发生损坏，还需要查看具体商品并记录现状。\n\n型号核对：同一系列的不同型号可能使用不同配件，应以铭牌和订单记载核对。相似外观不能代替型号确认，不能建议用户尝试不确定兼容性的组件。\n\n仓库安排：退货地址由售后确认后提供，仓库根据商品类别安排收货。商品包装上的生产商地址不等于本次退货地址，申请人应等待明确的寄回指引。\n\n运输包装：寄回时应保护易损部位并清点配件。物流面单用于追踪包裹，不能作为退款到账证明；仓库收到包裹后仍需核对申请资料与商品情况。\n\n费用核对：实际支付金额与商品标价可能不同，优惠券分摊应以订单记录为准。退款金额不能直接按标价推算，活动赠品还需要按对应活动规则核实。\n\n检测安排：需要检测的商品应记录接收时间和检测项目。检测完成后会形成结果，排队等待检测不等于认定故障，也不等于已经批准免费更换。\n\n退款处理：审核通过后由支付渠道处理款项，提交退款请求与资金到账是不同阶段。用户询问某笔款项是否到账时，应查询相应业务记录。\n\n换货安排：换货审核与库存核对分别进行，符合换货条件不等于目标型号有货。暂时缺货时应说明情况并协商等待安排，不能直接承诺立即发出。\n\n工单沟通：客服会保留已确认事实以及尚待补充的资料。不同客服接手时应查看工单状态，避免把历史处理建议当成本次已执行结果。\n\n时间说明：预计处理时间用于说明通常流程，不构成指定日期完成的保证。节假日或额外核实时应说明影响因素，并以实际业务进展更新用户。\n\n通用退货条件：未拆封普通商品在签收后七日内可申请无理由退货，配件与赠品应保持齐全。\n\n重要例外：刻字定制商品不适用上述无理由退货，即使未拆封且签收不足七日也不适用；质量问题仍可申请专项审核。",
+      "metadata": {
+        "effective_from": "2020-01-01T00:00:00+00:00",
+        "region": "CN"
+      }
+    }
+  ],
+  "case_definitions": [
+    {
+      "case_id": "synthetic:opened-audio",
+      "group_id": "synthetic:opened-audio",
+      "split": "dev",
+      "query": "耳机拆封了，不是质量问题，还能无理由退吗？",
+      "history": [],
+      "evidence": [
+        {
+          "document_id": "synthetic-shop:opened-audio",
+          "start_char": 0,
+          "end_char": 57,
+          "quote": "未拆封耳机在签收后七日内可申请无理由退货。已拆封耳机非质量原因不适用无理由退货。质量问题需提交检测材料后另行审核。",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "synthetic_ecommerce"
+      ],
+      "required_claims": [],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "synthetic:audio-defect",
+      "group_id": "synthetic:audio-defect",
+      "split": "dev",
+      "query": "质量审核通过了，是不是退款到账了？",
+      "history": [],
+      "evidence": [
+        {
+          "document_id": "synthetic-shop:audio-defect",
+          "start_char": 0,
+          "end_char": 58,
+          "quote": "耳机出现单侧无声时，请先检查连接和音量。仍有故障的，提交购买凭证及故障视频申请质量审核；审核通过不代表退款已经到账。",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "synthetic_ecommerce"
+      ],
+      "required_claims": [],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "synthetic:return-shipping",
+      "group_id": "synthetic:return-shipping",
+      "split": "dev",
+      "query": "质量问题退货，加急寄回的费用也报销吗？",
+      "history": [],
+      "evidence": [
+        {
+          "document_id": "synthetic-shop:return-shipping",
+          "start_char": 0,
+          "end_char": 59,
+          "quote": "非质量原因退货的寄回运费由买家承担。确认属于商品质量问题的，按平台指定方式寄回可报销标准运费；加急运费不在报销范围内。",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "synthetic_ecommerce"
+      ],
+      "required_claims": [],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "synthetic:remote-delivery",
+      "group_id": "synthetic:remote-delivery",
+      "split": "dev",
+      "query": "地址属于偏远地区，能保证五天内送到吗？",
+      "history": [],
+      "evidence": [
+        {
+          "document_id": "synthetic-shop:remote-delivery",
+          "start_char": 0,
+          "end_char": 47,
+          "quote": "普通地区预计三至五个工作日送达。偏远地区预计额外增加二至三天。预计时效不构成指定日期送达承诺。",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "synthetic_ecommerce"
+      ],
+      "required_claims": [],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "synthetic:coupon-refund",
+      "group_id": "synthetic:coupon-refund",
+      "split": "dev",
+      "query": "用了优惠券，部分退货之后券会恢复吗？",
+      "history": [],
+      "evidence": [
+        {
+          "document_id": "synthetic-shop:coupon-refund",
+          "start_char": 0,
+          "end_char": 55,
+          "quote": "整单退货时按实际支付金额退款，不退还优惠券面额。部分退货按商品分摊后的实付金额计算，已使用优惠券不会自动恢复。",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "synthetic_ecommerce"
+      ],
+      "required_claims": [],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "synthetic:gift-return",
+      "group_id": "synthetic:gift-return",
+      "split": "dev",
+      "query": "赠品已经用了，整单退货还能直接全额退吗？",
+      "history": [],
+      "evidence": [
+        {
+          "document_id": "synthetic-shop:gift-return",
+          "start_char": 0,
+          "end_char": 52,
+          "quote": "参加赠品活动的订单整单退货时，应同时退回赠品。赠品已使用或遗失的，需核实活动规则，不得直接承诺全额退款。",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "synthetic_ecommerce"
+      ],
+      "required_claims": [],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "synthetic:custom-goods",
+      "group_id": "synthetic:custom-goods",
+      "split": "dev",
+      "query": "定制的尺寸不喜欢了，不是质量问题，可以退吗？",
+      "history": [],
+      "evidence": [
+        {
+          "document_id": "synthetic-shop:custom-goods",
+          "start_char": 0,
+          "end_char": 52,
+          "quote": "按消费者指定尺寸制作的定制商品不适用无理由退货。商品存在质量问题仍可申请售后，需提交问题照片及订单信息。",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "synthetic_ecommerce"
+      ],
+      "required_claims": [],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "synthetic:invoice",
+      "group_id": "synthetic:invoice",
+      "split": "dev",
+      "query": "退了一部分，原金额的发票还能重新开一张吗？",
+      "history": [],
+      "evidence": [
+        {
+          "document_id": "synthetic-shop:invoice",
+          "start_char": 0,
+          "end_char": 60,
+          "quote": "电子发票可在订单完成后申请。抬头错误可以提交更正申请。已经开票的订单退款后需按实退金额处理红冲，不应重复开具原金额发票。",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "synthetic_ecommerce"
+      ],
+      "required_claims": [],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "synthetic:warranty",
+      "group_id": "synthetic:warranty",
+      "split": "dev",
+      "query": "买了八个月，人为摔坏能免费换主机吗？",
+      "history": [],
+      "evidence": [
+        {
+          "document_id": "synthetic-shop:warranty",
+          "start_char": 0,
+          "end_char": 62,
+          "quote": "主机在购买后十二个月内享受质量保修。耗材和人为损坏不在免费保修范围内。保修审核需要购买凭证，无法凭聊天描述直接确认免费更换。",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "synthetic_ecommerce"
+      ],
+      "required_claims": [],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "synthetic:battery-install",
+      "group_id": "synthetic:battery-install",
+      "split": "dev",
+      "query": "我的机器型号没看清，能先试装 B20 吗？",
+      "history": [],
+      "evidence": [
+        {
+          "document_id": "synthetic-shop:battery-install",
+          "start_char": 0,
+          "end_char": 61,
+          "quote": "安装替换电池前应断开电源。型号 B20 仅适配设备 M20，不适配 M10。无法确认设备型号时应先核对铭牌，不得建议试装。",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "synthetic_ecommerce"
+      ],
+      "required_claims": [],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "synthetic:pickup",
+      "group_id": "synthetic:pickup",
+      "split": "dev",
+      "query": "超过预约自提时间了，东西一定还在吗？",
+      "history": [],
+      "evidence": [
+        {
+          "document_id": "synthetic-shop:pickup",
+          "start_char": 0,
+          "end_char": 56,
+          "quote": "自提订单凭提货码和收货人身份信息领取。提货码仅用于领取核验，不应公开发送。超过预约时间需先联系门店确认保留情况。",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "synthetic_ecommerce"
+      ],
+      "required_claims": [],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "synthetic:address",
+      "group_id": "synthetic:address",
+      "split": "dev",
+      "query": "已经发货，提交改址就代表改好了吧？",
+      "history": [],
+      "evidence": [
+        {
+          "document_id": "synthetic-shop:address",
+          "start_char": 0,
+          "end_char": 57,
+          "quote": "未发货订单可提交改址申请，以订单系统确认结果为准。已发货订单需查询承运方是否支持拦截改址；提交申请不等于改址成功。",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "synthetic_ecommerce"
+      ],
+      "required_claims": [],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "synthetic:exchange",
+      "group_id": "synthetic:exchange",
+      "split": "dev",
+      "query": "换货审核通过了，目标型号没货也能马上发吗？",
+      "history": [],
+      "evidence": [
+        {
+          "document_id": "synthetic-shop:exchange",
+          "start_char": 0,
+          "end_char": 57,
+          "quote": "换货需先审核商品条件，再确认目标型号库存。审核通过但目标型号缺货时，应与用户协商等待或其他处理，不能承诺立即发出。",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "synthetic_ecommerce"
+      ],
+      "required_claims": [],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "synthetic:membership",
+      "group_id": "synthetic:membership",
+      "split": "dev",
+      "query": "用积分抵扣的那部分能直接折成现金退吗？",
+      "history": [],
+      "evidence": [
+        {
+          "document_id": "synthetic-shop:membership",
+          "start_char": 0,
+          "end_char": 52,
+          "quote": "积分自获得之日起十二个月有效。退货后对应消费积分会扣回。积分抵扣部分按活动规则处理，不直接等额兑换现金。",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "synthetic_ecommerce"
+      ],
+      "required_claims": [],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "synthetic:privacy",
+      "group_id": "synthetic:privacy",
+      "split": "dev",
+      "query": "客服说退款前要转账解冻，这符合规则吗？",
+      "history": [],
+      "evidence": [
+        {
+          "document_id": "synthetic-shop:privacy",
+          "start_char": 0,
+          "end_char": 50,
+          "quote": "客服不会索取账户密码、短信验证码或银行卡支付密码。退款由支付渠道处理，不需要用户向私人账户转账解冻。",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "synthetic_ecommerce"
+      ],
+      "required_claims": [],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "synthetic:damaged-box",
+      "group_id": "synthetic:damaged-box",
+      "split": "dev",
+      "query": "只有外箱破了，能直接认定商品质量有问题吗？",
+      "history": [],
+      "evidence": [
+        {
+          "document_id": "synthetic-shop:damaged-box",
+          "start_char": 0,
+          "end_char": 57,
+          "quote": "收到外箱破损商品时，应保留包装并拍摄外箱及商品照片。仅外箱轻微破损不自动等同商品质量问题；具体处理需查看商品状况。",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "synthetic_ecommerce"
+      ],
+      "required_claims": [],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "synthetic:preorder",
+      "group_id": "synthetic:preorder",
+      "split": "dev",
+      "query": "尾款付完就是发货了吗？",
+      "history": [],
+      "evidence": [
+        {
+          "document_id": "synthetic-shop:preorder",
+          "start_char": 0,
+          "end_char": 48,
+          "quote": "预售商品按商品页面约定的发货窗口处理。支付尾款不代表商品已经发货，实际状态需查询订单和物流记录。",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "synthetic_ecommerce"
+      ],
+      "required_claims": [],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "synthetic:receipt",
+      "group_id": "synthetic:receipt",
+      "split": "dev",
+      "query": "物流显示签收，就不能申请售后了吗？",
+      "history": [],
+      "evidence": [
+        {
+          "document_id": "synthetic-shop:receipt",
+          "start_char": 0,
+          "end_char": 53,
+          "quote": "签收记录只表示物流签收状态，不代表售后申请被拒绝。是否符合退货条件应结合商品类别、签收时间和商品状态判断。",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "synthetic_ecommerce"
+      ],
+      "required_claims": [],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "synthetic:elliptic",
+      "group_id": "synthetic:opened-audio",
+      "split": "dev",
+      "query": "不是。",
+      "history": [
+        "耳机拆封了，我想退。",
+        "是因为质量问题要退吗？"
+      ],
+      "evidence": [
+        {
+          "document_id": "synthetic-shop:opened-audio",
+          "start_char": 0,
+          "end_char": 57,
+          "quote": "未拆封耳机在签收后七日内可申请无理由退货。已拆封耳机非质量原因不适用无理由退货。质量问题需提交检测材料后另行审核。",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "synthetic_ecommerce"
+      ],
+      "required_claims": [],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "synthetic:multi-evidence",
+      "group_id": "synthetic:multi-evidence",
+      "split": "dev",
+      "query": "申请退货要交哪些材料，可以直接寄到包装上的厂家地址吗？",
+      "history": [],
+      "evidence": [
+        {
+          "document_id": "synthetic-shop:multi-evidence",
+          "start_char": 0,
+          "end_char": 51,
+          "quote": "申请退货需要订单号、商品现状照片及退货原因。寄回前应等待退货地址确认，不能寄往商品包装上的生产商地址。",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "synthetic_ecommerce"
+      ],
+      "required_claims": [],
+      "forbidden_claims": [],
+      "answerable": true
+    }
+  ],
+  "generation": {
+    "generation_id": "knowledge-generation-fe3185599c18d97fbff62e8ab0bc9c47",
+    "corpus": "KNOWLEDGE",
+    "backend_id": "POSTGRES_PG_BM25_ZH_V1",
+    "backend_fingerprint": "POSTGRES_PGVECTOR_PG_BM25_ZH_V1",
+    "schema_version": "retrieval-v1",
+    "source_watermark": "2dc98ef3fb663e0bbc4ad0565f5e1b973194e578fb5294ae051f143ebd703d1e",
+    "embedding_model": "BAAI/bge-m3",
+    "embedding_dimension": 1024,
+    "embedding_model_digest": "b5e0ce3470abf5ef3831aa1bd5553b486803e83251590ab7ff35a117cf6aad38",
+    "distance_metric": "COSINE",
+    "vector_extension_version": "0.8.6",
+    "index_method": "HNSW",
+    "index_params_json": "{\"ef_construction\":64,\"m\":16}",
+    "chinese_tokenizer": "ascii-cjk-unigram-bigram-v1",
+    "lexical_ranker": "PG_BM25_ZH_V1",
+    "manifest_hash": "6717eddfd6091216b09e23c0d95ab16f2721b6b40f3d413f8d0640c74bc075ff",
+    "state": "ACTIVE",
+    "embedding_provider": "dialogpilot-sentence-transformers-5.7.0-local-bge-m3-v1",
+    "embedding_provider_kind": "MODEL",
+    "embedding_model_version": "5617a9f61b028005a4858fdac845db406aefb181",
+    "embedding_document_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1",
+    "embedding_query_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1"
+  },
+  "embedding_profile": {
+    "provider": "dialogpilot-sentence-transformers-5.7.0-local-bge-m3-v1",
+    "provider_kind": "MODEL",
+    "model": "BAAI/bge-m3",
+    "model_version": "5617a9f61b028005a4858fdac845db406aefb181",
+    "dimension": 1024,
+    "model_digest": "b5e0ce3470abf5ef3831aa1bd5553b486803e83251590ab7ff35a117cf6aad38",
+    "document_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1",
+    "query_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1"
+  },
+  "reranker_profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "generation_profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "max_api_calls": 40,
+  "sdk_retries": 0,
+  "fixed_query_override": {
+    "synthetic:elliptic": "耳机已拆封，非质量原因可以退货吗？"
+  }
+}
