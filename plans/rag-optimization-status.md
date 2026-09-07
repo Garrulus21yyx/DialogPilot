@@ -166,4 +166,4 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 
 - Dense探针：固定hash256片段，512上限截断20/256，1024/8192样本无截断；batch4完整输入编码1.45秒、约176片段/秒、峰值allocated1.2GB，粗估全量35分钟，非服务SLA。全量采用8192上限，逐分片检测实际超限并失败而非静默截断。下一执行预算本地四域366,438片段一次编码、API0，每4096片段持久化身份校验缓存；复用后续融合实验。固定32题官方rewrite，Dense exact dot-product Top20与已有BM25同预算比较，附加每路100只诊断、不改正式预算。生产策略不变。
 
-- G4 Dense全量已启动：exec session2481/PID1508735，缓存/tmp/dialogpilot-mtrag-dense-full-20260907，日志同名.log。阶段快照12,288/366,438已编码；首4096向量SHA/finite/unit-norm通过，2项性质测试通过。见[启动记录](../docs/rag-g4-mtrag-dense-start-2026-09-07.zh-CN.md)。当前没有Dense质量结果。下一轮必须先查同一live会话/PID，不能因跨轮重开重复任务；完成后同query对比BM25再融合。交付待commit/push。
+- G4 Dense全量已启动：exec session2481/PID1508735，缓存/tmp/dialogpilot-mtrag-dense-full-20260907，日志同名.log。阶段快照12,288/366,438已编码；首4096向量SHA/finite/unit-norm通过，2项性质测试通过。见[启动记录](../docs/rag-g4-mtrag-dense-start-2026-09-07.zh-CN.md)。当前没有Dense质量结果。下一轮必须先查同一live会话/PID，不能因跨轮重开重复任务；完成后同query对比BM25再融合。交付：`9036daf` 已提交并推送；推送后核查PID仍运行，已编码32,768/366,438。
