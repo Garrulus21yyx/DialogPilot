@@ -4,13 +4,14 @@ Fixture 只能调用仓库生产 Owner 并返回观测事实；执行器不会�
 制造结果。未注册 action、缺失探针或 fixture 异常都会产生有类型失败。
 """
 from __future__ import annotations
+from langgraph.store.memory import InMemoryStore
 
 import argparse
 import asyncio
 import json
 import os
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from types import MappingProxyType, SimpleNamespace
@@ -594,9 +595,9 @@ async def _tool_schema(case: FixtureRequest) -> FixtureEvidence:
     result = await manager.execute_for_agent("refund_write", params, agent_type="billing")
     audit = manager.audit_records()[0]
     return FixtureEvidence({
-        "validation_failed": not result.success and result.status == ToolCallStatus.ERROR.value,
+        "validation_failed": not result.success and result.status == ToolCallStatus.REJECTED.value,
         "side_effect_zero": side_effects == [],
-        "audit_error_closed": audit.status is ToolCallStatus.ERROR,
+        "audit_error_closed": audit.status is ToolCallStatus.REJECTED,
     }, {"error": result.error, "audit": audit.to_dict()})
 
 
@@ -629,7 +630,7 @@ async def _tool_timeout(case: FixtureRequest) -> FixtureEvidence:
 @fixture("tool_output")
 async def _tool_output(case: FixtureRequest) -> FixtureEvidence:
     secret = f"secret-token-{_variant(case)}"
-    manager = _tool_manager(max_output_chars=300, approval_mode=ApprovalMode.AUTO_APPROVE)
+    manager = _tool_manager(approval_mode=ApprovalMode.AUTO_APPROVE)
     manager.register(Tool(
         name="long_read", description="long fixture", handler=lambda _p, _c: {"log": "x" * 2000},
         schema={"type": "object", "properties": {"token": {"type": "string"}}},
@@ -638,9 +639,25 @@ async def _tool_output(case: FixtureRequest) -> FixtureEvidence:
     result = await manager.execute_for_agent("long_read", {"token": secret}, agent_type="technical")
     audit = manager.audit_records()[0]
     audit_text = json.dumps(audit.to_dict(), ensure_ascii=False)
+    from infrastructure.target_result_archive import TargetResultArchive
+    from infrastructure.target_context_compaction import ToolResultPersistence
+    from infrastructure.target_agent_result_adapter import framework_artifact
+    context = SimpleNamespace(trusted_context={"tenant_id": "fixture", "user_id": "fixture",
+        "conversation_id": case.case_id}, work_item=SimpleNamespace(
+            owner_agent="technical", control=None, work_item_id="output-budget"))
+    archive = TargetResultArchive(InMemoryStore())
+    original = ToolMessage(content=result.output_for_model, tool_call_id=result.call_id,
+                           artifact=framework_artifact(result))
+    async def handler(_request):
+        return original
+    update = await ToolResultPersistence(archive, 300).awrap_tool_call(
+        SimpleNamespace(runtime=SimpleNamespace(context=context)), handler)
+    visible = update.update["messages"][0]
+    reference = json.loads(visible.content).get("result_ref")
+    saved = await archive.load(context, reference)
     return FixtureEvidence({
-        "output_truncated": "tool output truncated" in result.output_for_model,
-        "output_within_budget": len(result.output_for_model) <= 380,
+        "output_offloaded": bool(reference),
+        "original_recoverable": saved["content"] == result.output_for_model,
         "secret_not_logged": secret not in audit_text,
         "parameter_hash_logged": len(audit.params_hash) == 64,
     }, {"output_chars": len(result.output_for_model), "audit": audit.to_dict()})
@@ -711,8 +728,11 @@ async def _react_max_steps(case: FixtureRequest) -> FixtureEvidence:
         schema={"type": "object", "properties": {}}, allowed_agents=("general",), read_only=True,
     ))
     model = _LoopModel()
-    agent = TargetFrameworkAgent(model, manager,
-        registry=build_default_capability_registry("fixture"), system_prompt="fixture")
+    registry = build_default_capability_registry("fixture")
+    registry = replace(registry, tools=(*registry.tools, replace(registry.tool("order_lookup"), tool_id="lookup")),
+        agents=tuple(replace(agent, allowed_tool_ids=(*agent.allowed_tool_ids, "lookup"))
+                     if agent.agent_id == "general" else agent for agent in registry.agents))
+    agent = TargetFrameworkAgent(model, manager, result_store=InMemoryStore(), registry=registry, system_prompt="fixture")
     item = WorkItem(
         work_item_id="bounded-loop", owner_agent="general", objective="lookup",
         control_mode=ControlMode.DELEGATED, allowed_tools=("lookup",), allowed_skills=(),

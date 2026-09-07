@@ -7,6 +7,31 @@ from evaluation.tau3_tool_binding import bind_environment
 from mcp.tool_manager import MCPToolManager
 
 
+@pytest.mark.parametrize("write", [False, True])
+def test_rejected_request_keeps_endpoint_feedback_without_transport_retry_or_circuit_failure(write):
+    from mcp.tool_manager import ToolCallStatus, ToolEffectStatus
+    definition = SimpleNamespace(name="lookup", openai_schema={"function": {
+        "name": "lookup", "description": "Read or update a record.",
+        "parameters": {"type": "object", "properties": {"record_id": {"type": "string"}}, "required": ["record_id"]}}})
+    environment = SimpleNamespace(get_tools=lambda: [definition], get_policy=lambda: "Policy",
+        tools=SimpleNamespace(tool_type=lambda _: SimpleNamespace(value="write" if write else "read")))
+    calls = []
+    async def call(tool, arguments):
+        calls.append(arguments)
+        return SimpleNamespace(content='{"error":"record_id must include its prefix"}', error=True, id="rejected")
+    manager = MCPToolManager("test-key", model="test-model")
+    bind_environment(environment, manager, call)
+    async def run():
+        return await manager.execute_for_agent("lookup", {"record_id": "1"}, agent_type="retail",
+            context={"business_operation_key": "op"}, approved=True, allowed_tool_ids=("lookup",))
+    result = asyncio.run(run())
+    assert not result.success and result.status == ToolCallStatus.REJECTED.value
+    assert "record_id must include its prefix" in result.output_for_model
+    assert result.effect_status == (ToolEffectStatus.NOT_COMMITTED.value if write else ToolEffectStatus.NONE.value)
+    assert len(calls) == 1
+    assert manager.get_stats()["lookup"]["consecutive_fails"] == 0
+
+
 @pytest.mark.parametrize("name", ["exchange_record", "update_preferences", "request_service"])
 def test_environment_write_registration_and_observed_receipt(name):
     def definition(tool_name):

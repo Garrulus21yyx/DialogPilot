@@ -48,7 +48,7 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
             return []
 
     class FakeAnswerVerifier:
-        def __init__(self, **_kwargs):
+        def __init__(self, *_args, **_kwargs):
             pass
 
     class FakeMemoryManager:
@@ -157,7 +157,6 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
     monkeypatch.setenv("MEMORY_SUMMARY_MAX_TOKENS", "777")
     monkeypatch.setenv("REACT_MAX_STEPS", "6")
     monkeypatch.setenv("TOOL_APPROVAL_MODE", "require_all")
-    monkeypatch.setenv("TOOL_OUTPUT_MAX_CHARS", "2345")
     monkeypatch.setenv("PROMETHEUS_PORT", "0")
     monkeypatch.setenv("INTENT_SIMILARITY_MODE", "ngram")
     monkeypatch.setenv("INTENT_CACHE_TTL_SECONDS", "987")
@@ -196,7 +195,7 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
             assert main._target_run_coordinator is not None
             assert captured["monitor"]["execution_runtime"] is main._target_orchestration
             assert captured["tool_manager"]["approval_mode"].value == "require_all"
-            assert captured["tool_manager"]["max_output_chars"] == 2345
+            assert "max_output_chars" not in captured["tool_manager"]
             assert set(captured["registered_tool_names"]) == {
                 "knowledge_search",
                 "service_episode_search",

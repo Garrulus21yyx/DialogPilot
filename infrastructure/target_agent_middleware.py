@@ -5,11 +5,19 @@ import json
 import hashlib
 
 from langchain.agents.middleware import AgentMiddleware, AgentState, hook_config
-from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
+from langchain_core.messages.utils import count_tokens_approximately
 
 from application.context_budget import ContextBudgetManager, ModelContextBudgetExceeded
 from application.work_control import WorkControlGuard
-from core.token_estimator import TokenEstimator
+
+
+def model_overhead_tokens(system_message, tools):
+    system = system_message if isinstance(system_message, SystemMessage) else SystemMessage(content=system_message or "")
+    schemas = [{"name": tool.name, "description": tool.description,
+                "schema": tool.tool_call_schema if isinstance(tool.tool_call_schema, dict)
+                else tool.tool_call_schema.model_json_schema()} for tool in tools]
+    return count_tokens_approximately([system, HumanMessage(content=json.dumps(schemas, ensure_ascii=False))])
 
 
 class ProgressState(AgentState):
@@ -41,7 +49,7 @@ class AgentProgressMiddleware(AgentMiddleware):
                 return None
             result = artifact.get("result", {})
             observation = {"tool": message.name, "status": result.get("status", message.status),
-                "data": result.get("data", message.content), "error": result.get("error"),
+                "data": artifact.get("observation", result.get("data", message.content)), "error": result.get("error"),
                 "effect_status": result.get("effect_status")}
             batch.append(hashlib.sha256(json.dumps(observation, sort_keys=True,
                 ensure_ascii=False, default=str).encode()).hexdigest())
@@ -71,10 +79,10 @@ class InteractionBoundaryMiddleware(AgentMiddleware):
         message = state["messages"][-1]
         calls = message.tool_calls if isinstance(message, AIMessage) else ()
         proposals = [call for call in calls if call["name"] in self.action_tools]
-        history_size = len(runtime.context.working_messages) if self.action_tools else 0
-        prepared = any(isinstance(m, ToolMessage) and isinstance(m.artifact, dict)
-                       and m.artifact.get("result", {}).get("pending_action")
-                       for m in state["messages"][history_size:])
+        historical_calls = {entry["data"].get("tool_call_id") for entry in runtime.context.working_messages
+                            if entry.get("type") == "tool"}
+        prepared = any(record.get("pending_action") and call_id not in historical_calls
+                       for call_id, record in state.get("tool_observations", {}).items())
         if len(proposals) > 1 or (prepared and any(
                 call["name"] in self.action_tools | {"request_user_input", "report_blocked"}
                 for call in calls)):
@@ -132,28 +140,14 @@ class AgentContextMiddleware(AgentMiddleware):
 
     def __init__(self, budget: ContextBudgetManager) -> None:
         self.budget = budget
-        self.estimator = TokenEstimator()
 
     async def awrap_model_call(self, request, handler):
         messages = list(request.messages)
         # Schemas and the system message consume the same input window as history.
-        overhead = self.estimator.estimate(str(request.system_message)) + sum(
-            self.estimator.estimate(json.dumps({
-                "name": tool.name, "description": tool.description,
-                "schema": tool.tool_call_schema if isinstance(tool.tool_call_schema, dict)
-                else tool.tool_call_schema.model_json_schema(),
-            }, ensure_ascii=False, default=str))
-            for tool in request.tools
-        )
+        overhead = model_overhead_tokens(request.system_message, request.tools)
         available = self.budget.available_tokens - overhead
 
-        def size():
-            return sum(self.estimator.estimate(json.dumps({
-                "role": message.type, "content": message.content,
-                "tool_calls": message.tool_calls if isinstance(message, AIMessage) else (),
-            }, ensure_ascii=False, default=str)) for message in messages)
-
-        required = size()
+        required = count_tokens_approximately(messages)
         if required > available:
             raise ModelContextBudgetExceeded(required + overhead, self.budget.available_tokens)
         return await handler(request.override(messages=messages))

@@ -1,3 +1,4 @@
+from langgraph.store.memory import InMemoryStore
 """Real SDK exports from the framework; no custom callback implementation."""
 import asyncio
 import json
@@ -36,7 +37,7 @@ def test_official_handler_exports_model_tool_hierarchy_and_masked_content(struct
     ])
     calls = []
     try:
-        agent = TargetFrameworkAgent(model, _manager(calls), registry=build_default_capability_registry("tenant-a"),
+        agent = TargetFrameworkAgent(model, _manager(calls), result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"),
             system_prompt="Use tools. password=private-password", callbacks=(CallbackHandler(public_key=key),))
         result = asyncio.run(agent(_context()))
         client.flush()
@@ -50,6 +51,7 @@ def test_official_handler_exports_model_tool_hierarchy_and_masked_content(struct
         assert len({span.context.trace_id for span in spans}) == 1
         ids = {span.context.span_id for span in spans}
         assert all(span.parent and span.parent.span_id in ids for span in generations)
+        assert all(span.attributes.get("session.id") == "conversation-a" for span in generations)
         serialized = json.dumps([dict(span.attributes) for span in spans], default=str)
         assert "Found PX-200" in serialized
         assert "product-work-1" in serialized and "invocation-a" in serialized

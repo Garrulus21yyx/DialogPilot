@@ -13,7 +13,7 @@ from application.capability_registry import (
     CapabilityEffect, CapabilityRegistryBundle, CapabilityRisk, ToolDefinition,
     VerificationProfile,
 )
-from mcp.tool_manager import Tool, ToolEffectReceipt, ToolEffectStatus, ToolRisk
+from mcp.tool_manager import Tool, ToolEffectReceipt, ToolEffectStatus, ToolRisk, ToolRejected
 
 
 def bind_environment(environment, manager, call):
@@ -68,9 +68,7 @@ def bind_environment(environment, manager, call):
                     value = message.content
                 data = value if isinstance(value, dict) else {"value": value}
                 if message.error:
-                    if is_write:
-                        return ToolEffectReceipt(data, ToolEffectStatus.NOT_COMMITTED, "")
-                    raise ValueError("official environment rejected tool input")
+                    raise ToolRejected(str(message.content or "Environment rejected the request"), data=data)
                 if not is_write:
                     return data
                 receipt_id = "official-call:" + message.id

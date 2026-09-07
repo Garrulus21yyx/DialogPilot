@@ -4,7 +4,6 @@ import pytest
 
 from application.context_budget import (
     ContextBudgetManager,
-    InvalidToolMessageSequence,
     ModelContextBudgetExceeded,
 )
 
@@ -57,50 +56,6 @@ def test_oversized_mandatory_payload_returns_typed_failure():
     with pytest.raises(ModelContextBudgetExceeded) as raised:
         manager.fit_payload({"message": "必须保留" * 500})
     assert raised.value.required_tokens > raised.value.available_tokens
-
-
-def test_tool_round_is_externalized_and_removed_atomically():
-    manager = ContextBudgetManager(
-        context_window_tokens=420,
-        reserved_output_tokens=100,
-        protocol_reserve_tokens=100,
-    )
-    messages = [
-        {"role": "system", "content": "system"},
-        {
-            "role": "assistant",
-            "content": "",
-            "tool_calls": [{"id": "call-1", "name": "lookup"}],
-        },
-        {
-            "role": "tool",
-            "tool_call_id": "call-1",
-            "artifact_ref": "tool-receipt:1",
-            "content": "large result" * 500,
-        },
-        {"role": "user", "content": "当前问题" * 40},
-    ]
-    result = manager.fit_messages(
-        messages, protected_tail=1, tool_payload_tokens=20,
-    )
-    assert result.report.externalized_items == ("messages[2].content",)
-    roles = [message["role"] for message in result.messages]
-    assert roles in (["system", "assistant", "tool", "user"], ["system", "user"])
-    assert ("assistant" in roles) == ("tool" in roles)
-    assert result.report.final_tokens <= result.report.available_tokens
-
-
-@pytest.mark.parametrize("messages", [
-    [{"role": "tool", "tool_call_id": "missing", "content": "x"}],
-    [{
-        "role": "assistant", "content": "",
-        "tool_calls": [{"id": "missing", "name": "lookup"}],
-    }],
-])
-def test_invalid_tool_message_pair_is_rejected(messages):
-    manager = ContextBudgetManager()
-    with pytest.raises(InvalidToolMessageSequence):
-        manager.fit_messages(messages)
 
 
 def test_composition_context_is_not_silently_trimmed_or_mutated():

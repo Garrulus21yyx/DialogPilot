@@ -47,7 +47,7 @@ def test_knowledge_model_view_keeps_middle_evidence_without_trace_or_char_trunca
     text='a'*3500+'TAIL_CONDITION'+'b'*3500
     data=evidence_result(text)
     data['trace']={'debug':'x'*5000}
-    manager=MCPToolManager('test-key',model='test-model',max_output_chars=256)
+    manager=MCPToolManager('test-key',model='test-model')
     rendered=manager._render_for_model(ToolResult(True,data,'knowledge_search',authority='knowledge.active_source'))
     assert json.loads(rendered)['evidence'][0]['text']==text
     assert 'debug' not in rendered and 'truncated' not in rendered

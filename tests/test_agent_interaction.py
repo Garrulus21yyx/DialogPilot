@@ -1,3 +1,4 @@
+from langgraph.store.memory import InMemoryStore
 """Normal replies and runtime-bound interaction tools on the native Agent loop."""
 from dataclasses import replace
 import pytest
@@ -41,8 +42,7 @@ def test_native_input_tool_schema_repair_uses_existing_model_loop():
         AIMessage(content="", tool_calls=[{"id": "valid", "name": "request_user_input",
             "args": {"question": "Which option?"}}]),
     ])
-    agent = TargetFrameworkAgent(model, _manager(calls),
-        registry=build_default_capability_registry("tenant-a"), system_prompt="Assist the user.")
+    agent = TargetFrameworkAgent(model, _manager(calls), result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"), system_prompt="Assist the user.")
     result = asyncio.run(agent(_context(replace(_item(), requirement_ids=(), max_steps=3))))
     assert result.status.value == "NEEDS_USER_INPUT"
     assert model.calls == 2
@@ -86,8 +86,7 @@ def test_interaction_batch_is_corrected_before_any_tool_executes(other):
             {"name": other, "id": "other", "args": {"question": "Which size?"} if other == "request_user_input" else {"query": "x"}}]),
         AIMessage(content="", tool_calls=[{"name": "request_user_input", "id": "ask2", "args": {"question": "Which option and size?"}}]),
     ])
-    result = asyncio.run(TargetFrameworkAgent(model, _manager(calls),
-        registry=build_default_capability_registry("tenant-a"), system_prompt="Assist.")(_context()))
+    result = asyncio.run(TargetFrameworkAgent(model, _manager(calls), result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"), system_prompt="Assist.")(_context()))
     assert result.status.value == "NEEDS_USER_INPUT"
     assert model.calls == 2
     assert calls == []
@@ -106,8 +105,7 @@ def test_interaction_tools_bind_runtime_identity_and_end_without_another_model_c
     from tests.test_target_framework_agent import ScriptedToolModel, _manager
     model = ScriptedToolModel(responses=[AIMessage(content="", tool_calls=[{
         "id": "interaction", "name": tool, "args": args}])])
-    result = asyncio.run(TargetFrameworkAgent(model, _manager([]),
-        registry=build_default_capability_registry("tenant-a"), system_prompt="Assist.")(_context()))
+    result = asyncio.run(TargetFrameworkAgent(model, _manager([]), result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"), system_prompt="Assist.")(_context()))
     assert result.status.value == status
     assert model.calls == 1
     if status == "NEEDS_USER_INPUT":

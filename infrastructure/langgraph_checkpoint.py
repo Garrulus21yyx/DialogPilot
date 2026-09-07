@@ -1,7 +1,8 @@
 """Lifecycle owner for LangGraph's PostgreSQL execution checkpoints."""
 from __future__ import annotations
 
-from contextlib import AbstractContextManager
+from contextlib import AbstractContextManager, AsyncExitStack
+from langgraph.store.postgres.aio import AsyncPostgresStore
 
 from psycopg import Connection
 from psycopg.rows import dict_row
@@ -181,16 +182,23 @@ class AsyncPostgresCheckpointOwner:
         self._setup = setup
         self._context = None
         self.checkpointer = None
+        self.store = None
 
     async def __aenter__(self):
-        self._context = AsyncPostgresSaver.from_conn_string(
-            self._database_url,
-            serde=target_checkpoint_serializer(),
-        )
-        self.checkpointer = await self._context.__aenter__()
-        if self._setup:
-            await self.checkpointer.setup()
-        return self.checkpointer
+        self._context = AsyncExitStack()
+        await self._context.__aenter__()
+        try:
+            self.checkpointer = await self._context.enter_async_context(
+                AsyncPostgresSaver.from_conn_string(self._database_url, serde=target_checkpoint_serializer()))
+            self.store = await self._context.enter_async_context(
+                AsyncPostgresStore.from_conn_string(self._database_url))
+            if self._setup:
+                await self.checkpointer.setup()
+                await self.store.setup()
+            return self.checkpointer
+        except BaseException:
+            await self._context.aclose()
+            raise
 
     async def __aexit__(self, exc_type, exc_value, traceback):
         try:
@@ -199,6 +207,7 @@ class AsyncPostgresCheckpointOwner:
             return None
         finally:
             self.checkpointer = None
+            self.store = None
             self._context = None
 
 

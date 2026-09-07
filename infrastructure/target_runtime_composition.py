@@ -148,6 +148,7 @@ async def build_target_runtime(
             agent.agent_id: TargetFrameworkAgent(
                 model,
                 tool_manager,
+                result_store=checkpoint_owner.store,
                 registry=registry,
                 system_prompt=agent.description,
                 callbacks=(langfuse_sink.callback(),) if langfuse_sink else (),

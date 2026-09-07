@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from contextlib import nullcontext
 from dataclasses import replace
 from typing import Annotated, Any, Mapping
 
@@ -23,6 +24,11 @@ from langchain_core.tools import StructuredTool
 from langchain.tools import ToolRuntime
 from langgraph.errors import GraphRecursionError
 import httpx
+from langfuse import propagate_attributes
+from langgraph.store.base import BaseStore
+from langchain_core.messages.utils import count_tokens_approximately
+from infrastructure.target_result_archive import TargetResultArchive, ResultArchiveError, result_pointer
+from infrastructure.target_context_compaction import ToolResultPersistence, ContextCompaction
 
 from application.knowledge_tool_contract import tool_domain_outcome
 from application.agent_result import (
@@ -44,7 +50,7 @@ from infrastructure.target_agent_result_adapter import (
     framework_artifact,
     restore_framework_artifact,
 )
-from infrastructure.target_agent_middleware import AgentContextMiddleware, WorkControlMiddleware, InteractionBoundaryMiddleware, AgentProgressMiddleware
+from infrastructure.target_agent_middleware import AgentContextMiddleware, WorkControlMiddleware, InteractionBoundaryMiddleware, AgentProgressMiddleware, model_overhead_tokens
 from infrastructure.target_action_preparation import TargetActionPreparation
 from mcp.tool_manager import MCPToolManager, ToolCallStatus, ToolResult
 
@@ -59,6 +65,7 @@ class TargetFrameworkAgent:
         model: Any,
         tool_manager: MCPToolManager,
         *,
+        result_store: BaseStore,
         registry: CapabilityRegistryBundle,
         system_prompt: str,
         skill_executors: Mapping[str, WorkExecutor] | None = None,
@@ -74,6 +81,7 @@ class TargetFrameworkAgent:
         self._context_budget = context_budget or ContextBudgetManager()
         self._control_guard = control_guard
         self._callbacks = callbacks
+        self._archive = TargetResultArchive(result_store)
 
     async def __call__(self, context: AgentContextView) -> AgentResult:
         item = context.work_item
@@ -94,24 +102,40 @@ class TargetFrameworkAgent:
             return await executor(context)
 
         try:
-            prompt = self._build_prompt(context)
+            fact_values = []
+            for fact in context.verified_facts:
+                value = json.loads(fact.value_json)
+                if count_tokens_approximately([HumanMessage(content=fact.value_json)]) > self._context_budget.available_tokens // 5:
+                    reference = await self._archive.save(context, {"content": fact.value_json})
+                    value = json.loads(result_pointer(reference, fact.value_json))
+                fact_values.append(value)
+            prompt = self._build_prompt(context, fact_values=fact_values)
             tools = self._tools(context)
         except ModelContextBudgetExceeded:
             return self._failure(context, "CONTEXT_BUDGET_EXCEEDED")
+        except ResultArchiveError:
+            return self._failure(context, "RESULT_ARCHIVE_UNAVAILABLE", retryable=True)
         except ValueError:
             return self._failure(context, "INVALID_AGENT_CAPABILITY_ENVELOPE")
 
+        pinned = HumanMessage(content=prompt, id=f"task-context:{item.work_item_id}")
+        system = self._system(context)
+        overhead = model_overhead_tokens(system, tools)
         graph = create_agent(
             self._model,
             tools,
-            system_prompt=self._system(context),
+            system_prompt=system,
             name=f"{item.owner_agent}_agent",
             context_schema=AgentContextView,
             middleware=[
                 WorkControlMiddleware(self._control_guard),
+                ToolResultPersistence(self._archive, max(256, self._context_budget.available_tokens // 5)),
                 InteractionBoundaryMiddleware(tool_id for ref in item.allowed_actions
                     for tool_id in self._registry.action(ref).allowed_tool_ids),
                 AgentProgressMiddleware(),
+                ContextCompaction(self._model, self._archive,
+                    available_tokens=self._context_budget.available_tokens,
+                    overhead_tokens=overhead, pinned_message=pinned, max_summary_calls=item.max_steps),
                 AgentContextMiddleware(self._context_budget),
                 ModelCallLimitMiddleware(thread_limit=item.max_steps, exit_behavior="error"),
                 ToolCallLimitMiddleware(thread_limit=item.max_steps, exit_behavior="error"),
@@ -130,25 +154,29 @@ class TargetFrameworkAgent:
             },
         }
         history = messages_from_dict(list(context.working_messages))
-        output = {"messages": [*history, HumanMessage(content=prompt)]}
+        output = {"messages": [*history, pinned]}
         failure = None
         try:
-            async with asyncio.timeout(item.timeout_seconds):
-                # Native graph state streaming preserves the last completed step
-                # when a later model/tool step fails. No second loop or recorder.
-                async for output in graph.astream(
-                    {"messages": [*history, HumanMessage(content=prompt)]},
-                    config=config,
-                    context=context,
-                    stream_mode="values",
-                ):
-                    pass
+            with (propagate_attributes(session_id=context.trusted_context.get("conversation_id"))
+                  if self._callbacks else nullcontext()):
+                async with asyncio.timeout(item.timeout_seconds):
+                    # Native graph state streaming preserves the last completed step
+                    # when a later model/tool step fails. No second loop or recorder.
+                    async for output in graph.astream(
+                        {"messages": [*history, pinned]},
+                        config=config,
+                        context=context,
+                        stream_mode="values",
+                    ):
+                        pass
         except WorkSuperseded:
             return self._control_guard.superseded_result(item)
         except (GraphRecursionError, ModelCallLimitExceededError, ToolCallLimitExceededError):
             failure = self._failure(context, "AGENT_STEP_BUDGET_EXCEEDED")
         except ModelContextBudgetExceeded:
             failure = self._failure(context, "CONTEXT_BUDGET_EXCEEDED")
+        except ResultArchiveError:
+            failure = self._failure(context, "RESULT_ARCHIVE_UNAVAILABLE", retryable=True)
         except TimeoutError:
             failure = self._failure(
                 context, "AGENT_EXECUTION_TIMEOUT", retryable=True,
@@ -165,15 +193,26 @@ class TargetFrameworkAgent:
             return self._control_guard.superseded_result(item)
         # Historical artifacts remain in the working conversation, but only the
         # current segment can request another interaction or propose an action.
-        current_messages = output.get("messages", [])[len(history):]
+        history_ids = {message.id for message in history}
+        history_calls = {message.tool_call_id for message in history if isinstance(message, ToolMessage)}
+        current_messages = [
+            message for message in output.get("messages", [])
+            if (message.tool_call_id not in history_calls if isinstance(message, ToolMessage)
+                else message.id not in history_ids)
+        ]
+        observed = []
+        for record in output.get("tool_observations", {}).values():
+            try:
+                if "inline_artifact" in record:
+                    artifact = record["inline_artifact"]
+                else:
+                    artifact = (await self._archive.load(context, record["reference"]))["artifact"]
+                observed.append(restore_framework_artifact(artifact))
+            except Exception:
+                failure = self._failure(context, "RESULT_ARCHIVE_UNAVAILABLE", retryable=True)
         result = _adapt_framework_result(
             context,
-            tuple(
-                restore_framework_artifact(message.artifact)
-                for message in current_messages
-                if isinstance(message, ToolMessage)
-                and message.artifact is not None
-            ),
+            tuple(observed),
             self.version,
             candidate_response=next((message.text for message in reversed(current_messages)
                 if isinstance(message, AIMessage) and not message.tool_calls), None),
@@ -182,6 +221,8 @@ class TargetFrameworkAgent:
                 for tool_id in item.allowed_tools
             },
         )
+        if output.get("archive_failed"):
+            failure = self._failure(context, "RESULT_ARCHIVE_UNAVAILABLE", retryable=True)
         if output.get("progress_blocked") and result.pending_action is None:
             result = replace(result, status=AgentResultStatus.BLOCKED,
                 reason_code="AGENT_NO_PROGRESS", retryable=False, candidate_response=None)
@@ -218,7 +259,13 @@ class TargetFrameworkAgent:
             tools.append(self._action_tool(action_ref))
         if not tools:
             raise ValueError("delegated Agent has no executable capability")
-        return [*tools, *self._interaction_tools()]
+        async def read_tool_result(reference: str, runtime: ToolRuntime[AgentContextView, dict],
+                                   offset: int = 0, limit: int = 2000):
+            return await self._archive.read(runtime.context, reference, offset, limit)
+        reader = StructuredTool.from_function(coroutine=read_tool_result,
+            name="read_tool_result",
+            description="Read a bounded page of an archived result or working history in this task. This reads the original snapshot, never reruns a business tool. Continue with next_offset when needed.")
+        return [*tools, *self._interaction_tools(), reader]
 
     def _interaction_tools(self) -> list[StructuredTool]:
         async def request_user_input(question: Annotated[str, Field(min_length=1)], runtime: ToolRuntime[AgentContextView, dict]):
@@ -369,7 +416,7 @@ class TargetFrameworkAgent:
             response_format="content_and_artifact",
         )
 
-    def _build_prompt(self, context: AgentContextView) -> str:
+    def _build_prompt(self, context: AgentContextView, *, fact_values=None) -> str:
         item = context.work_item
         payload = {
             "objective": item.objective,
@@ -385,12 +432,12 @@ class TargetFrameworkAgent:
             "verified_facts": [{
                 "subject_ref": fact.subject_ref,
                 "requirement_id": fact.requirement_id,
-                "value": json.loads(fact.value_json),
+                "value": fact_values[index] if fact_values is not None else json.loads(fact.value_json),
                 "source_ref": fact.source_ref,
                 "producer_version": fact.producer_version,
                 "observed_at": fact.observed_at.isoformat(),
                 "valid_until": fact.valid_until.isoformat() if fact.valid_until else None,
-            } for fact in context.verified_facts],
+            } for index, fact in enumerate(context.verified_facts)],
             "recent_relevant_turns": list(context.recent_relevant_turns),
             "evidence_refs": list(context.evidence_refs),
         }

@@ -1,3 +1,4 @@
+from langgraph.store.memory import InMemoryStore
 """Registration, not business-goal branches, defines open read delegation."""
 import asyncio
 from dataclasses import replace
@@ -61,7 +62,7 @@ def test_registered_domain_plans_executes_and_preserves_evidence(owner):
         AIMessage(content="The catalog identifies the product as PX-200."),
     ])
     result = asyncio.run(TargetFrameworkAgent(
-        model, manager, registry=registry, system_prompt=registered.description,
+        model, manager, result_store=InMemoryStore(), registry=registry, system_prompt=registered.description,
     )(_context(item)))
     assert result.status.value == "SUCCEEDED"
     assert result.facts[0].requirement_id == "product.canonical_model"

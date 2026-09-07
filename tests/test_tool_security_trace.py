@@ -1,6 +1,7 @@
 """Agent 工具授权、审批、输出边界和 Trace 审计的不变量。"""
 
 import asyncio
+import json
 
 import pytest
 
@@ -210,9 +211,9 @@ def test_trace_context_propagates_to_parallel_tool_calls_and_redacts_audit():
     assert all(span.kind == "tool" and span.status == "ok" for span in spans)
 
 
-def test_tool_output_is_bounded_before_react_context_writeback():
-    """证明超长工具结果在回写模型前保留头尾并受字符预算约束。"""
-    runtime = manager(max_output_chars=300, approval_mode=ApprovalMode.AUTO_APPROVE)
+def test_tool_output_is_complete_before_agent_projection():
+    """The tool owner preserves structured content; the Agent projects it."""
+    runtime = manager(approval_mode=ApprovalMode.AUTO_APPROVE)
 
     async def handler(_params, _context):
         return "HEAD-" + "x" * 1000 + "-TAIL"
@@ -226,10 +227,10 @@ def test_tool_output_is_bounded_before_react_context_writeback():
     ))
     result = asyncio.run(runtime.execute_for_agent("long_read", {}, agent_type="general"))
 
-    assert len(result.output_for_model) <= 320
+    assert json.loads(result.output_for_model)["data"] == result.data
     assert "HEAD-" in result.output_for_model
     assert "-TAIL" in result.output_for_model
-    assert "truncated" in result.output_for_model
+    assert "truncated" not in result.output_for_model
 
 
 def test_indirect_prompt_injection_in_tool_output_is_quarantined():

@@ -427,7 +427,6 @@ async def lifespan(app: FastAPI):
         model=cfg["model"],
         approval_mode=ApprovalMode(os.getenv("TOOL_APPROVAL_MODE", "default")),
         trace_recorder=_trace_recorder,
-        max_output_chars=int(os.getenv("TOOL_OUTPUT_MAX_CHARS", "4000")),
         rewrite_model_profile=_model_policy.profile(ModelRole.REWRITE),
         rerank_model_profile=_model_policy.profile(ModelRole.RERANK),
     )

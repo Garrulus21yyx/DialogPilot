@@ -1,3 +1,4 @@
+from langgraph.store.memory import InMemoryStore
 """Frozen counterfactual inputs traverse Target and PostgreSQL owners."""
 import asyncio
 import json
@@ -79,7 +80,7 @@ def test_locked_refund_eligibility_uses_two_authoritative_reads(
             "id": f"read-{index}",
         }]) for index, name in enumerate(("order_lookup", "refund_eligibility_check"))])
         registry = build_default_capability_registry(tenant)
-        worker = TargetFrameworkAgent(model, tools, registry=registry, system_prompt="核验退款资格。")
+        worker = TargetFrameworkAgent(model, tools, result_store=InMemoryStore(), registry=registry, system_prompt="核验退款资格。")
         planning_calls = []
 
         async def understanding(observations, state, deterministic, registry, turn_context):

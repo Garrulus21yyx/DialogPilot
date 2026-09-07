@@ -1,3 +1,4 @@
+from langgraph.store.memory import InMemoryStore
 """Prepared side effects and customer conversation have separate lifecycles."""
 import asyncio
 import json
@@ -43,7 +44,7 @@ def domain(responses):
                    allowed_tools=("order_lookup",), allowed_actions=(action.ref,), arguments=(),
                    requirement_ids=(), registry_fingerprint=registry.fingerprint, max_steps=8)
     model = ScriptedToolModel(responses=responses)
-    return TargetFrameworkAgent(model, tools, registry=registry, system_prompt="Assist."), _context(item), model, calls
+    return TargetFrameworkAgent(model, tools, result_store=InMemoryStore(), registry=registry, system_prompt="Assist."), _context(item), model, calls
 
 
 def call(name, ident="proposal"):

@@ -1,3 +1,4 @@
+from langgraph.store.memory import InMemoryStore
 """Domain proposal -> exact approval -> governed write -> domain continuation."""
 import asyncio
 from dataclasses import replace
@@ -134,7 +135,7 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
               if decision == "clarify_during_approval" else []),
             AIMessage(content="Your cancellation has been completed."),
         ])
-        domain = TargetFrameworkAgent(model, tools, registry=registry, system_prompt=owner.description)
+        domain = TargetFrameworkAgent(model, tools, result_store=InMemoryStore(), registry=registry, system_prompt=owner.description)
         PostgresMigrationRunner(postgres_database_url).upgrade()
         pool = PostgresPool(PostgresPoolConfig(postgres_database_url, min_size=1, max_size=4))
         pool.open()

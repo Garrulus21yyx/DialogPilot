@@ -74,6 +74,19 @@ class ToolCallStatus(str, Enum):
     CANCELLED = "cancelled"
     DENIED = "denied"
     UNTRUSTED_OUTPUT = "untrusted_output"
+    REJECTED = "rejected"
+
+
+class ToolRejected(ValueError):
+    """An authoritative endpoint rejected the request without committing it.
+
+    Adapters retain the endpoint's actionable feedback; this is not a transport
+    outage and must not open a circuit or trigger an unchanged automatic retry.
+    """
+
+    def __init__(self, message: str, *, data=None):
+        super().__init__(message)
+        self.data = data
 
 
 class ToolEffectStatus(str, Enum):
@@ -319,7 +332,6 @@ class MCPToolManager:
         approval_mode: ApprovalMode = ApprovalMode.DEFAULT,
         trace_recorder: Optional[TraceRecorder] = None,
         max_audit_records: int = 2000,
-        max_output_chars: int = 4000,
         rewrite_model_profile: Optional[ModelProfile] = None,
         rerank_model_profile: Optional[ModelProfile] = None,
     ):
@@ -338,7 +350,6 @@ class MCPToolManager:
         self._approval_mode = ApprovalMode(approval_mode)
         self._trace_recorder = trace_recorder or TraceRecorder()
         self._audit: Deque[ToolAuditRecord] = deque(maxlen=max(1, int(max_audit_records)))
-        self._max_output_chars = max(256, int(max_output_chars))
 
     # ── 注册 / 注销 ───────────────────────────────────────────────────────────
 
@@ -676,7 +687,10 @@ class MCPToolManager:
         tool.stats.total += 1
         try:
             # 参数校验（根据 JSON Schema 的 required 和 properties.type）
-            self._validate_params(tool, params)
+            try:
+                self._validate_params(tool, params)
+            except ValueError as exc:
+                raise ToolRejected(str(exc)) from exc
 
             data = await asyncio.wait_for(self._run_handler(tool, params, context), timeout=tool.timeout_s)
             latency = (time.monotonic() - t0) * 1000
@@ -715,6 +729,13 @@ class MCPToolManager:
                 effect_status=effect_status.value,
                 receipt_id=receipt_id,
             )
+
+        except ToolRejected as exc:
+            tool.stats.failed += 1
+            return ToolResult(False, exc.data, name, error=str(exc),
+                status=ToolCallStatus.REJECTED.value,
+                effect_status=(ToolEffectStatus.NONE.value if tool.read_only
+                               else ToolEffectStatus.NOT_COMMITTED.value))
 
         except asyncio.TimeoutError:
             tool.stats.failed += 1
@@ -947,7 +968,7 @@ class MCPToolManager:
         return result
 
     def _render_for_model(self, result: ToolResult) -> str:
-        """把工具终态格式化并限制回写模型的字符数。"""
+        """格式化完整工具终态；模型视图预算由 Agent 上下文边界负责。"""
         if result.authority == "knowledge.active_source":
             from application.knowledge_tool_contract import model_evidence
             return json.dumps(model_evidence(result.data), ensure_ascii=False, separators=(",", ":"))
@@ -964,14 +985,9 @@ class MCPToolManager:
             sort_keys=True,
             default=str,
         )
-        if len(payload) <= self._max_output_chars:
-            return payload
-        keep = max(64, (self._max_output_chars - 80) // 2)
-        omitted = len(payload) - keep * 2
-        return (
-            f"{payload[:keep]}\n...[tool output truncated: {omitted} chars omitted]...\n"
-            f"{payload[-keep:]}"
-        )
+        # Keep the result intact. The Agent's context boundary persists and
+        # projects oversized results with a readable reference.
+        return payload
 
     @staticmethod
     def _params_summary(params: Dict[str, Any]) -> str:
