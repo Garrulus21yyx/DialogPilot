@@ -82,9 +82,16 @@ class ApprovalVerifier(Verifier):
         self.approval_status = approval_status
 
     async def verify(self, *args, **kwargs):
-        result = await super().verify(*args, **kwargs)
-        return replace(result, assessment=replace(result.assessment,
-                       approval_terms_complete=self.approval_status == "ANSWERED"))
+        from services.answer_verifier import AnswerVerifier
+        from core.model_policy import ModelProfile, ModelRole
+        from tests.framework_structured_stub import models
+        self.calls.append((args, kwargs))
+        complete = self.approval_status == "ANSWERED"
+        model = models({"supported": True, "answered": True,
+                        "approval_terms_complete": complete,
+                        "issues": [] if complete else ["Approval terms are incomplete."]},
+                       name="submit_claim_checks")[ModelRole.INTENT]
+        return await AnswerVerifier(model, model_profile=ModelProfile("test")).verify(*args, **kwargs)
 
 
 @pytest.mark.parametrize("approval_status", ["ANSWERED", "LIMITATION", "MISSING"])

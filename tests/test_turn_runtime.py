@@ -85,6 +85,9 @@ class _CountingManager:
         self.execute_calls += 1
         return await self.manager.execute(prepared)
 
+    async def commit(self, result):
+        await self.manager.commit(result)
+
 
 class _FailOncePrepareManager(_CountingManager):
     async def prepare(self, *args, **kwargs):

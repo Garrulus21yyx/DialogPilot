@@ -78,7 +78,6 @@ async def build_target_runtime(
     provider_config: Mapping[str, Any],
     project_root: Path,
     knowledge_context_factory=None,
-    knowledge_generator=None,
     knowledge_verifier=None,
     knowledge_source_validator=None,
     registry: CapabilityRegistryBundle | None = None,
@@ -193,7 +192,7 @@ async def build_target_runtime(
                 model_client=framework_model(model_policy.profile(ModelRole.VERIFIER), provider_config, max_tokens=4096),
                 model_profile=model_policy.profile(ModelRole.VERIFIER),
             )
-        assembler = ResponseAssembler(conversation_agent, knowledge_generator=knowledge_generator,
+        assembler = ResponseAssembler(conversation_agent,
                                       fallback_locale=(response_locale if response_locale is not None
                                                        else os.getenv("TARGET_RESPONSE_LOCALE", "zh-CN")),
                                       internal_tool_names=tool_manager.registered_tool_names,

@@ -4,6 +4,38 @@
 
 ### 最新状态（优先于下面按时间保留的记录）
 
+- 本轮相关架构收敛已完成实现与独立复核，状态为 implementation_verified / real_model_validation_pending。
+  扩大无模型回归 1093 passed / 1 既有 multiprocessing fork 警告；
+  恢复入口版本门禁补齐后，含真实 PostgreSQL 的状态/恢复组另跑 95 passed，无跳过。
+  独立 fresh-context 审阅复现原根因并核对修复，最后门禁测试 3 passed，限定范围无剩余具体阻断。
+  测试夹具已修掉共用 invocation/checkpoint 和依赖其他测试先 setup 的问题，可独立运行。
+  不把这些测试计数换算为客服准确率；原 τ³ 两任务尚未重跑，业务质量仍 open。
+- 本轮交付：删除客服内第二个知识答案作者，合并核验控制流；
+  状态决定先 checkpoint 再 CAS，精确前缀可重放；
+  同计划 resume 不重复消费；SDK 暂时故障不固化为完成节点；
+  旧在途版本明确拒绝，历史已完成结果只读重放。未新增依赖、数据库表、运行时或商品规则。
+- 本轮架构收敛范围：统一 prepare→执行→表达→核验→交付，框架拥有节点恢复，业务库拥有状态。
+  独立审阅已复现两项共享生命周期缺口：PROVIDER_FAILURE 正常结束节点导致重试只读失败快照；
+  FIELDS/拒绝审批在 PreparedTurn 保存前消费，崩溃后丢原续接。
+- 正向修复：prepare 仅构造可持久化计划和状态变更；执行前按原版本提交，以当前权威状态 fingerprint 识别精确已提交前缀；
+  瞬时模型错误保持失败节点，永久/无效输出终态。无需新增通用账本或第二套恢复引擎。
+- 回复简化：Target 所有非模板回答统一 ConversationAgent.compose + 一次核验/至多一次修订，
+  删除 Target 内独立 knowledge generator 入口和知识/业务两套核验控制流；RAG 仍提供证据与来源有效性。
+  知识库独立诊断/离线生成评测不属于客服第二链路，保持其用途。状态失败作为结果，不提前中断独立追问。
+- 已实现：PreparedTurn / ManagedTurnResult 分别先 checkpoint 后提交对应决定；
+  Orchestration.resume 对已接受的同计划复用 execute 恢复，不再次消费中断。
+  旧在途 v1 显式版本错误，不静默迁移、不删除记录、不启用旧 fallback。
+  正式职责与迁移边界见 docs/target-turn-runtime-convergence-2026-09-07.zh-CN.md。
+- 扩大回归初次 1071 passed / 7 failed：发现旧测试假装 approval_terms_complete=false 但仍返回 PASS，
+  以及恢复追问测试没有装配作者/核验器。改用真实 AnswerVerifier + SDK stub，并接通相同回复入口，
+  不在生产边界增加重复政策判断。最终回归结果见本节顶部；本轮没有重启真实 E2E。
+
+- 用户纠正顺序：真实模型 E2E 必须在本轮完整相关链路审查、修改、收敛及独立复核之后。
+  conversation-owned-v9 运行已主动中止，保留已有 ERROR/null 与中止记录，不算最终验收。
+  阶段提交 ed24803 仅代表已完成的修改，不代表整体审查完成；局部审阅不能替代完整相关链路审阅。
+  尚有已被组合测试证实的缺口：独立 KNOWLEDGE_UNAVAILABLE 提前降级，阻断其他任务的绑定追问。
+  继续检查结果/交互/审批/故障/恢复/交付的状态组合，统一完成后再启动固定任务 E2E。
+
 - 2026-09-07 统一回复收敛 in_progress（用户授权将原缺口与简化一起处理）：
   根因是执行结果与公开话语的所有权混合：末条领域文本被当成成稿，且作为 outcome.summary
   进入允许事实；FIELDS 追问又在 HTTP 出口拼接，绕过同一表达和核验路径。

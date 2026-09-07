@@ -78,14 +78,13 @@ class ResponseAssembler:
         return _render_board(SimpleNamespace(results=results), locale=locale) if results else ""
 
     def __init__(self, composer: ConversationComposer | None = None, *,
-                 knowledge_generator=None, knowledge_verifier=None, knowledge_source_validator=None,
+                 knowledge_verifier=None, knowledge_source_validator=None,
                  fallback_locale="zh-CN", internal_tool_names=()) -> None:
         if fallback_locale not in {"zh-CN", "en"}:
             raise ValueError("unsupported customer fallback locale")
         self.fallback_locale = fallback_locale
         self._internal_tool_names = frozenset(internal_tool_names)
         self._composer = composer
-        self._knowledge_generator = knowledge_generator
         self._knowledge_verifier = knowledge_verifier
         self._knowledge_source_validator = knowledge_source_validator
 
@@ -110,115 +109,62 @@ class ResponseAssembler:
 
     async def _assemble(self, board, *, current_message: str, system_notice: str = "", conversation_context=None,
                         pending_approval=None, requested_inputs=()) -> AssembledResponse:
+        from dataclasses import replace
         from application.knowledge_tool_contract import evidence_items, evidence_id, model_evidence
+
         knowledge_facts = tuple(fact for result in board.results for fact in result.facts
                                 if fact.requirement_id == "knowledge.active_source")
         knowledge_failure = any(result.reason_code.startswith("KNOWLEDGE_")
                                 and result.status not in _SUCCESS for result in board.results)
-        if not knowledge_facts and not knowledge_failure:
-            candidate = await self._assemble_candidate(board, current_message=current_message, conversation_context=conversation_context,
-                                                       pending_approval=pending_approval, requested_inputs=requested_inputs)
-            if candidate.composer_used or candidate.mode is ResponseAssemblyMode.PASS_THROUGH:
-                try:
-                    if self._knowledge_verifier is None:
-                        raise ValueError("answer support verifier unavailable")
-                    from dataclasses import replace
-                    candidate = replace(candidate, text=system_notice + candidate.text)
-                    candidate, verdict = await self._verify_with_revision(
-                        board, current_message, candidate, conversation_context=conversation_context,
-                        system_notice=system_notice, pending_approval=pending_approval, requested_inputs=requested_inputs)
-                    if not verdict.publishable or not verdict.grounded:
-                        raise ValueError("composed business answer lacks support")
-                    return AssembledResponse(candidate.text, candidate.mode,
-                        candidate.used_claim_ids, candidate.composer_used, "PASS", "ANSWER_SUPPORT_CHECKED",
-                        hashlib.sha256(candidate.text.encode()).hexdigest())
-                except Exception:
-                    return AssembledResponse(system_notice + _render_board(board, locale=self.fallback_locale), ResponseAssemblyMode.TEMPLATE,
-                        (), False, "NOT_CHECKED", "ANSWER_SAFE_FALLBACK")
-            from dataclasses import replace
-            return replace(candidate, text=system_notice + candidate.text)
-        if not knowledge_facts:
-            unavailable = any(result.reason_code == "KNOWLEDGE_UNAVAILABLE" for result in board.results)
-            return self._knowledge_fallback(board, system_notice, unavailable=unavailable)
+        packs, allowed = [], set()
         try:
-            packs = [json.loads(fact.value_json) for fact in knowledge_facts]
             items = {}
-            for pack in packs:
+            for fact in knowledge_facts:
+                pack = json.loads(fact.value_json)
+                packs.append(pack)
                 for item in evidence_items(pack):
-                    prior = items.setdefault(item['chunk_id'], item)
+                    prior = items.setdefault(item["chunk_id"], item)
                     if prior != item:
                         raise ValueError("conflicting evidence identity")
-            # Direct retrieval has no Agent-authored answer. Reuse the existing
-            # grounded generator only for this path, never inside knowledge_search.
-            direct = all(result.producer_version == "target-tool-executor-v1" for result in board.results)
-            # Pure knowledge generation can represent only successful evidence
-            # results. A business failure has no facts but still needs an outcome
-            # in the answer; receipts and unresolved requirements do too.
-            only_knowledge = (
-                not requested_inputs and pending_approval is None and not board.missing_requirement_ids and not board.conflict_keys
-                and all(
-                    result.status is AgentResultStatus.SUCCEEDED
-                    and bool(result.facts) and not result.action_receipts
-                    and all(fact.requirement_id == "knowledge.active_source"
-                            for fact in result.facts)
-                    for result in board.results
-                )
-            )
-            if direct and only_knowledge:
-                if self._knowledge_generator is None:
-                    return self._knowledge_fallback(board, system_notice, unavailable=True)
-                from mcp.context_packer import ContextCandidate
-                contexts = tuple(ContextCandidate(
-                    item['chunk_id'], item['source_ref']['source_id'], item['text'],
-                    item['source_ref']['start_char'], item['source_ref']['end_char'],
-                    source_revision=item['source_ref']['source_revision'],
-                    source_checksum=item['source_ref']['checksum'], title=item.get('title', ''),
-                    applicability=tuple(sorted(item['source_ref'].get('applicability', {}).items())),
-                ) for item in items.values())
-                query = packs[0]['evidence_pack']['query'] if len(packs) == 1 else current_message
-                history_options = ({"history": [json.dumps({"current_message": current_message,
-                    "conversation_context": conversation_context}, ensure_ascii=False)]}
-                    if conversation_context is not None else {})
-                generated = await self._knowledge_generator.generate(query, contexts, **history_options)
-                if generated.abstained:
-                    return self._knowledge_fallback(board, system_notice)
-                if not generated.claims or any(not claim.citations or set(claim.citations) - set(items)
-                                               for claim in generated.claims):
-                    raise ValueError("generated claims lack supplied evidence")
-                text = '\n'.join(claim.text + ' ' + ' '.join(
-                    '[' + evidence_id(cid) + ']' for cid in claim.citations
-                ) for claim in generated.claims)
-                candidate = AssembledResponse(text, ResponseAssemblyMode.CONVERSATION_COMPOSE, (), True, "PENDING", "KNOWLEDGE_DRAFT")
-            else:
-                candidate = await self._assemble_candidate(board, current_message=current_message, conversation_context=conversation_context,
-                                                           pending_approval=pending_approval, requested_inputs=requested_inputs)
-            from dataclasses import replace
-            candidate = replace(candidate, text=system_notice + candidate.text)
             allowed = {evidence_id(cid) for cid in items}
-            cited = set(re.findall(r"\[(E[a-zA-Z0-9]+)\]", candidate.text))
-            if not cited or cited - allowed or self._knowledge_verifier is None:
-                return self._knowledge_fallback(board, system_notice, unavailable=self._knowledge_verifier is None)
-            # Check original evidence/facts, never use candidate summaries as evidence.
+            evidence = ({"packs": [model_evidence(pack) for pack in packs],
+                         "allowed_evidence_ids": sorted(allowed)} if packs else None)
+
+            # Retrieval supplies evidence, never a second public-answer author.
+            # Failed work remains an outcome alongside independent results/input.
+            candidate = await self._assemble_candidate(
+                board, current_message=current_message, conversation_context=conversation_context,
+                pending_approval=pending_approval, requested_inputs=requested_inputs)
+            candidate = replace(candidate, text=system_notice + candidate.text)
+            if not candidate.composer_used:
+                if knowledge_facts or knowledge_failure:
+                    return self._knowledge_fallback(board, system_notice, unavailable=True)
+                return candidate
+            if self._knowledge_verifier is None:
+                raise ValueError("answer support verifier unavailable")
             candidate, verdict = await self._verify_with_revision(
                 board, current_message, candidate, conversation_context=conversation_context,
-                system_notice=system_notice,
-                pending_approval=pending_approval,
-                requested_inputs=requested_inputs,
-                knowledge_evidence={"packs": [model_evidence(pack) for pack in packs], "allowed_evidence_ids": sorted(allowed)},
-            )
+                system_notice=system_notice, pending_approval=pending_approval,
+                requested_inputs=requested_inputs, knowledge_evidence=evidence)
+            if not candidate.composer_used or not verdict.publishable or not verdict.grounded:
+                raise ValueError("composed answer lacks support")
             cited = set(re.findall(r"\[(E[a-zA-Z0-9]+)\]", candidate.text))
-            if not cited or cited - allowed:
-                return self._knowledge_fallback(board, system_notice)
-            if not verdict.publishable or not verdict.grounded:
-                return self._knowledge_fallback(board, system_notice)
-            if self._knowledge_source_validator is None or not self._knowledge_source_validator(packs):
-                return self._knowledge_fallback(board, system_notice, unavailable=True)
-            return AssembledResponse(candidate.text, candidate.mode,
-                                     tuple(sorted(cited)), candidate.composer_used,
-                                     "PASS", "KNOWLEDGE_SUPPORT_CHECKED",
-                                     hashlib.sha256(candidate.text.encode()).hexdigest())
+            if cited - allowed or (knowledge_facts and not cited):
+                raise ValueError("answer citations do not match supplied evidence")
+            if packs and (self._knowledge_source_validator is None
+                          or not self._knowledge_source_validator(packs)):
+                raise ValueError("knowledge sources are no longer valid")
+            return AssembledResponse(
+                candidate.text, candidate.mode,
+                tuple(sorted(cited)) if packs else candidate.used_claim_ids,
+                True, "PASS", "KNOWLEDGE_SUPPORT_CHECKED" if packs else "ANSWER_SUPPORT_CHECKED",
+                hashlib.sha256(candidate.text.encode()).hexdigest())
         except Exception:
-            return self._knowledge_fallback(board, system_notice, unavailable=True)
+            if knowledge_facts or knowledge_failure:
+                return self._knowledge_fallback(board, system_notice, unavailable=True)
+            return AssembledResponse(
+                system_notice + _render_board(board, locale=self.fallback_locale),
+                ResponseAssemblyMode.TEMPLATE, (), False, "NOT_CHECKED", "ANSWER_SAFE_FALLBACK")
 
     async def _verify_with_revision(self, board, message, candidate, *,
                                     knowledge_evidence=None, conversation_context=None,
@@ -423,10 +369,6 @@ class ResponseAssembler:
             result = board.results[0]
             if result.action_receipts and not result.facts and not _candidate_text(result):
                 return ResponseAssemblyMode.TEMPLATE
-            from application.agent_result import FactSourceKind
-            if any(f.requirement_id == "refund.current_state"
-                   and f.source_kind is FactSourceKind.VERIFIED_STATE for f in result.facts):
-                return ResponseAssemblyMode.CONVERSATION_COMPOSE
             if _candidate_text(result) or result.facts or result.status in {
                 AgentResultStatus.BLOCKED, AgentResultStatus.RETRYABLE_FAILURE,
                 AgentResultStatus.TERMINAL_FAILURE,

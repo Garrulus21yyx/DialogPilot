@@ -196,7 +196,17 @@ class TargetChatApplication:
                 {"reason": str(exc)},
             )
         except Exception as exc:
-            from application.turn_runtime import InteractionAssemblyUnavailable
+            from core.framework_models import ModelInvocationError
+            from application.turn_runtime import InteractionAssemblyUnavailable, TurnCheckpointVersionError
+            if isinstance(exc, TurnCheckpointVersionError):
+                return Failed("turn_checkpoint_version_unsupported", False,
+                    str(identity.invocation_key),
+                    "This earlier task needs reconciliation before it can continue.")
+            if isinstance(exc, ModelInvocationError):
+                return Failed("conversation_provider_unavailable",
+                    exc.retryable and self._turn_runtime.supports_resume,
+                    str(identity.invocation_key),
+                    "The planning service could not complete this request.")
             if isinstance(exc, InteractionAssemblyUnavailable):
                 return Failed("target_interaction_unavailable", exc.retryable,
                     str(identity.invocation_key), "The follow-up question could not be prepared. Progress is saved.")
@@ -310,7 +320,7 @@ class TargetChatApplication:
                 ),
                 "CONVERSATION_PROVIDER_FAILURE": (
                     "conversation_provider_unavailable",
-                    True,
+                    False,
                     "语义服务暂时不可用，请稍后重试。",
                 ),
                 "CONVERSATION_PROVIDER_OUTPUT_INVALID": (

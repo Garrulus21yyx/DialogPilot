@@ -114,14 +114,16 @@ def test_domain_working_text_is_context_not_a_public_answer_or_fact(owner):
 
 
 @pytest.mark.parametrize('count', [1, 2, 3])
-def test_bound_inputs_share_composition_and_verification_without_becoming_facts(count):
+@pytest.mark.parametrize('independent_failure', [None, 'KNOWLEDGE_UNAVAILABLE', 'TOOL_ERROR'])
+def test_bound_inputs_share_composition_and_verification_without_becoming_facts(count, independent_failure):
     from dataclasses import replace
     from application.agent_result import MissingInputSpec
     inputs = tuple(MissingInputSpec(f'field{i}', f'w{i}', 'MISSING', 'string',
                                     f'INTERNAL question hint {i}') for i in range(count))
     waiting = tuple(AgentResult(spec.target_work_item_id, 'retail', AgentResultStatus.NEEDS_USER_INPUT,
         'MISSING', 'test', missing_inputs=(spec,)) for spec in inputs)
-    board = _board(_verified_order_result(), *waiting)
+    failures = (_result('failed', 'general', AgentResultStatus.BLOCKED, reason=independent_failure),) if independent_failure else ()
+    board = _board(_verified_order_result(), *waiting, *failures)
     composer = _Composer(lambda payload: {'segments': [{
         'text': '订单 DP1234 已发货。请补充所需信息。',
         'claim_ids': [c['claim_id'] for c in payload['allowed_claims']], 'evidence_ids': []}]})
@@ -138,7 +140,7 @@ def test_bound_inputs_share_composition_and_verification_without_becoming_facts(
     evidence = json.loads(verifier.calls[0][1]['context'])
     assert len(evidence['requested_inputs']) == count
     assert all('INTERNAL' not in json.dumps(f) for f in evidence['facts'])
-    assert board.results[1:] == waiting
+    assert board.results[1:1+count] == waiting
 
 
 @pytest.mark.parametrize('failure', ['exception', 'invalid_output', 'rejected'])

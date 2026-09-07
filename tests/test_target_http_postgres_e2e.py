@@ -40,12 +40,6 @@ from infrastructure.target_tool_execution import TargetToolExecutor
 from infrastructure.target_workflow_execution import TargetWorkflowExecutor
 
 
-class _ScenarioKnowledgeGenerator:
-    async def generate(self, query, contexts, **kwargs):
-        return SimpleNamespace(abstained=False, claims=tuple(
-            SimpleNamespace(text=c.text, citations=(c.chunk_id,)) for c in contexts))
-
-
 class _ScenarioTools:
     def __init__(self):
         self.calls = []
@@ -260,6 +254,12 @@ class _ScenarioConversationProvider:
                     text = "；".join(row["summary"] for row in value)
                 else:
                     text = "查询结果：" + "；".join(str(v) for v in value.values())
+            elif claim["kind"] == "KNOWLEDGE_FACT":
+                text = "；".join(item["text"] for item in value["evidence"])
+            elif claim["kind"] == "INPUT_REQUEST":
+                text = value["question_hint"]
+            elif claim["kind"] == "WORK_ITEM_OUTCOME":
+                text = "任务处理状态：" + value["status"] + "。"
             elif claim["kind"] == "RECEIPT":
                 text = f"操作已完成，凭证号：{value['receipt_id']}。"
             else:
@@ -446,7 +446,6 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                 bundle_version=registry.bundle_version,
                 response_assembler=ResponseAssembler(
                     ConversationAgent(conversation_provider),
-                    knowledge_generator=_ScenarioKnowledgeGenerator(),
                     knowledge_verifier=ApprovalVerifier(),
                     knowledge_source_validator=lambda packs: True,
                 ),

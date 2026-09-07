@@ -515,6 +515,15 @@ class OrchestrationRuntime:
             raise OrchestrationRuntimeError("resume requires a checkpointer")
         config = {"configurable": {"thread_id": thread_id}}
         snapshot = await self.graph.aget_state(config)
+        if snapshot.values.get("work_plan_fingerprint") == _work_plan_fingerprint(work_plan):
+            # This continuation was already accepted before its caller stopped.
+            # Reuse the normal checkpoint replay, not a second resume signal.
+            return await self.execute(
+                work_plan, current_message=current_message, thread_id=thread_id,
+                interrupt_after_completion=interrupt_after_completion,
+                recent_relevant_turns=recent_relevant_turns, evidence_refs=evidence_refs,
+                token_budget=token_budget, trusted_context=trusted_context,
+                pending_approval=pending_approval)
         if not snapshot.tasks or not any(task.interrupts for task in snapshot.tasks):
             raise OrchestrationRuntimeError("checkpoint thread is not interrupted")
         result = await self.graph.ainvoke(Command(resume={

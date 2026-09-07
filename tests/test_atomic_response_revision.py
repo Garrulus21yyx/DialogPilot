@@ -69,4 +69,5 @@ def test_worker_free_text_without_verifier_uses_only_fact_fallback():
     result=asyncio.run(ResponseAssembler().assemble(
         _board(_result('w','billing_refund',response='保证退款。')),current_message='查退款'))
     assert '保证退款' not in result.text
-    assert result.verification_reason=='ANSWER_SAFE_FALLBACK'
+    assert result.verification_reason=='DETERMINISTIC_ASSEMBLY'
+    assert not result.composer_used and not result.verified

@@ -43,7 +43,7 @@ class RecordedTools(MCPToolManager):
         return result
 
 
-async def run_mixed(*, platform, store, client, policy, provider_config, generator, output, handler, case_definitions=None):
+async def run_mixed(*, platform, store, client, policy, provider_config, output, handler, case_definitions=None):
     tenant,user='rag-tool-dev','eval-user'
     registry=build_default_capability_registry(tenant)
     business=CustomerOperationsService(platform,tenant_id=tenant)
@@ -98,7 +98,7 @@ async def run_mixed(*, platform, store, client, policy, provider_config, generat
                 understanding=CascadedTargetUnderstanding(StateBoundTargetUnderstanding(),agent),
                 orchestration=OrchestrationRuntime(direct_executor=TargetToolExecutor(tools),domain_workers={}),
                 context_provider=TargetTurnContextLoader(PostgresMemoryProjectionReader(platform,memory),tools))
-            assembler=ResponseAssembler(agent,knowledge_generator=generator,knowledge_verifier=verifier,
+            assembler=ResponseAssembler(agent,knowledge_verifier=verifier,
                                         knowledge_source_validator=store.validate_publication_evidence)
             application=TargetChatApplication(manager=manager,admission=PostgresTargetAdmission(platform),
                 publication=PostgresTargetPublication(PostgresResponseDeliveryService(platform,resume_binding_secret=uuid.uuid4().hex)),

@@ -171,7 +171,7 @@ async def evaluate(args, database_url):
             (args.output/'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2, default=str)+'\n')
             if args.mixed_business:
                 from evaluation.rag_mixed_business import run_mixed
-                await run_mixed(platform=platform,store=store,client=client,policy=policy,generator=generator,
+                await run_mixed(platform=platform,store=store,client=client,policy=policy,
                                 provider_config=options, output=args.output,handler=api._knowledge_tool_handler,case_definitions=args.mixed_definitions)
                 (args.output/'completion.json').write_text(json.dumps({'scope':'mixed application development','cases':manifest['cases'],'api_calls':len(client.calls)})+'\n')
                 return

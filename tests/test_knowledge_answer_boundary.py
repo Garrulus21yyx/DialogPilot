@@ -106,6 +106,7 @@ def test_mixed_composer_receives_same_evidence_ids_as_publication_gate():
 
 
 def test_withdrawal_during_semantic_verification_prevents_publication():
+    from tests.test_response_assembly import _Composer
     live = [True]
     class WithdrawDuringVerify(Verifier):
         async def verify(self,*args,**kwargs):
@@ -113,18 +114,20 @@ def test_withdrawal_during_semantic_verification_prevents_publication():
             return await super().verify(*args,**kwargs)
     citation='['+evidence_id('child-1')+']'
     text='仅未拆封商品可退。 '+citation
-    result=asyncio.run(ResponseAssembler(knowledge_verifier=WithdrawDuringVerify(True),
+    composer = _Composer(lambda p: {'segments': [{
+        'text': '仅未拆封商品可退。',
+        'claim_ids': [c['claim_id'] for c in p['allowed_claims']],
+        'evidence_ids': [evidence_id('child-1')]}]})
+    result=asyncio.run(ResponseAssembler(composer, knowledge_verifier=WithdrawDuringVerify(True),
         knowledge_source_validator=lambda packs: live[0]).assemble(board(text),current_message='能退吗'))
     assert result.verification_reason=='KNOWLEDGE_SAFE_ABSTENTION'
     assert text not in result.text
+    assert len(composer.calls) == 1 and not live[0]
 
 
 def test_factless_business_outcomes_never_disappear_into_pure_knowledge_generation():
     from tests.test_response_assembly import _result, _board, _Composer
     citation = '[' + evidence_id('child-1') + ']'
-    class Generator:
-        async def generate(self, *args):
-            raise AssertionError('mixed outcomes require composition')
     knowledge = replace(board('draft').results[0], producer_version='target-tool-executor-v1')
     for status in AgentResultStatus:
         from application.agent_result import AgentResult, MissingInputSpec, EvidenceRequest
@@ -138,7 +141,7 @@ def test_factless_business_outcomes_never_disappear_into_pure_knowledge_generati
             'claim_ids': [c['claim_id'] for c in payload['allowed_claims']], 'evidence_ids':[evidence_id('child-1')]}],
         })
         verifier = Verifier(True)
-        result = asyncio.run(ResponseAssembler(composer, knowledge_generator=Generator(),
+        result = asyncio.run(ResponseAssembler(composer,
             knowledge_verifier=verifier, knowledge_source_validator=lambda packs: True).assemble(
                 _board(knowledge, business), current_message='查订单并说明退货政策'))
         assert result.verification_reason == 'KNOWLEDGE_SUPPORT_CHECKED'
@@ -147,20 +150,17 @@ def test_factless_business_outcomes_never_disappear_into_pure_knowledge_generati
         assert verifier.calls[0][1]['agent_outcomes'][1]['status'] == status.value
 
 
-def test_successful_direct_knowledge_retains_grounded_generation_path():
+def test_successful_direct_knowledge_uses_the_same_conversation_author():
     from tests.test_response_assembly import _board, _Composer
-    calls = []
-    class Generator:
-        async def generate(self, query, contexts):
-            calls.append((query, contexts))
-            return SimpleNamespace(abstained=False, claims=(
-                SimpleNamespace(text='仅未拆封商品可退。', citations=('child-1',)),))
-    composer = _Composer(AssertionError('pure knowledge should use grounded generator'))
+    composer = _Composer(lambda payload: {'segments': [{
+        'text': '仅未拆封商品可退。',
+        'claim_ids': [c['claim_id'] for c in payload['allowed_claims']],
+        'evidence_ids': [evidence_id('child-1')]}]})
     knowledge = replace(board('draft').results[0], producer_version='target-tool-executor-v1')
-    result = asyncio.run(ResponseAssembler(composer, knowledge_generator=Generator(),
+    result = asyncio.run(ResponseAssembler(composer,
         knowledge_verifier=Verifier(True), knowledge_source_validator=lambda packs: True).assemble(
             _board(knowledge), current_message='退货政策是什么'))
-    assert len(calls) == 1 and not composer.calls
+    assert len(composer.calls) == 1
     assert result.verification_reason == 'KNOWLEDGE_SUPPORT_CHECKED'
 
 
@@ -198,19 +198,20 @@ def test_context_reaches_mixed_composition_and_verifier_separate_from_facts():
     assert all('是质量问题吗' not in str(c) for c in support['facts'])
 
 
-def test_direct_knowledge_generation_and_support_receive_same_context():
-    from tests.test_response_assembly import _board
+def test_direct_knowledge_composition_and_support_receive_same_context():
+    from tests.test_response_assembly import _board, _Composer
     context = {'recent_messages': [{'role': 'assistant', 'content': '是质量问题吗？', 'source_ref': 'turn:2'}]}
-    calls = []
-    class Generator:
-        async def generate(self, query, contexts, *, history):
-            calls.append(json.loads(history[0]))
-            return SimpleNamespace(abstained=False, claims=(SimpleNamespace(text='仅未拆封可退。', citations=('child-1',)),))
+    composer = _Composer(lambda payload: {'segments': [{
+        'text': '仅未拆封可退。',
+        'claim_ids': [c['claim_id'] for c in payload['allowed_claims']],
+        'evidence_ids': [evidence_id('child-1')]}]})
     knowledge = replace(board('draft').results[0], producer_version='target-tool-executor-v1')
     verifier = Verifier(True)
-    answer = asyncio.run(ResponseAssembler(knowledge_generator=Generator(), knowledge_verifier=verifier,
+    answer = asyncio.run(ResponseAssembler(composer, knowledge_verifier=verifier,
         knowledge_source_validator=lambda packs: True).assemble(_board(knowledge),
         current_message='不是。', conversation_context=context))
     assert answer.verification_reason == 'KNOWLEDGE_SUPPORT_CHECKED'
-    assert calls == [{'current_message': '不是。', 'conversation_context': context}]
+    assert composer.calls[0]['current_message'] == '不是。'
+    assert composer.calls[0]['conversation_context'] == context
+    assert evidence_id('child-1') in json.dumps(composer.calls[0]['support_catalog'])
     assert json.loads(verifier.calls[0][1]['context'])['user_context'] == context

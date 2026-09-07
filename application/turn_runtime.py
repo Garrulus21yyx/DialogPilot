@@ -24,6 +24,10 @@ class TurnRuntimeError(ValueError):
     pass
 
 
+class TurnCheckpointVersionError(TurnRuntimeError):
+    """Old in-flight decisions need explicit reconciliation, not new execution."""
+
+
 class InteractionAssemblyUnavailable(TurnRuntimeError):
     """Keep the assembly node resumable; no question has been published."""
 
@@ -33,6 +37,7 @@ class InteractionAssemblyUnavailable(TurnRuntimeError):
 
 
 class TurnGraphState(TypedDict, total=False):
+    runtime_version: str
     invocation: InvocationIdentity
     invocation_key: str
     observations: TurnObservations
@@ -51,7 +56,7 @@ class TurnRuntimeResult:
 class TurnRuntime:
     """Coordinate durable turn phases without owning their domain semantics."""
 
-    version = "turn-runtime-v1"
+    version = "turn-runtime-v2"
 
     def __init__(
         self,
@@ -71,10 +76,12 @@ class TurnRuntime:
         builder = StateGraph(TurnGraphState)
         builder.add_node("prepare_turn", self._prepare_turn)
         builder.add_node("execute_work_plan", self._execute_work_plan)
+        builder.add_node("commit_turn_state", self._commit_turn_state)
         builder.add_node("assemble_response", self._assemble_response)
         builder.add_edge(START, "prepare_turn")
         builder.add_edge("prepare_turn", "execute_work_plan")
-        builder.add_edge("execute_work_plan", "assemble_response")
+        builder.add_edge("execute_work_plan", "commit_turn_state")
+        builder.add_edge("commit_turn_state", "assemble_response")
         builder.add_edge("assemble_response", END)
         return builder.compile(checkpointer=self._checkpointer)
 
@@ -87,6 +94,14 @@ class TurnRuntime:
 
     async def _execute_work_plan(self, state: TurnGraphState):
         return {"managed": await self._manager.execute(state["prepared"])}
+
+    async def _commit_turn_state(self, state: TurnGraphState):
+        await self._manager.commit(state["managed"])
+        return {}
+
+    @property
+    def supports_resume(self) -> bool:
+        return self._checkpointer is not None
 
     async def _assemble_response(self, state: TurnGraphState):
         managed = state["managed"]
@@ -146,6 +161,7 @@ class TurnRuntime:
         if self._checkpointer is not None:
             config["configurable"] = {"thread_id": f"turn:{key}"}
         graph_input = {
+            "runtime_version": self.version,
             "invocation": invocation,
             "invocation_key": key,
             "observations": observations,
@@ -159,6 +175,12 @@ class TurnRuntime:
                     raise TurnRuntimeError("turn authorization changed")
                 if snapshot.values.get("invocation_key") != key:
                     raise TurnRuntimeError("turn checkpoint belongs to another invocation")
+                prepared = snapshot.values.get("prepared")
+                if snapshot.next and (
+                    snapshot.values.get("runtime_version") != self.version
+                    or (prepared is not None and prepared.artifact_version != "prepared-turn-v2")
+                ):
+                    raise TurnCheckpointVersionError("in-flight checkpoint predates durable state decisions")
                 if snapshot.values.get("managed") is not None and not snapshot.next:
                     return TurnRuntimeResult(
                         snapshot.values["managed"],

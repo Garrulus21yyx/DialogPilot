@@ -210,7 +210,8 @@ class _FailingSemanticProvider:
     version = "failing-semantic-provider-test-v1"
 
     async def plan(self, payload):
-        raise TimeoutError("provider unavailable")
+        from core.framework_models import ModelInvocationError
+        raise ModelInvocationError("conversation_plan", TimeoutError("provider unavailable"))
 
 
 class _ChatPlanningProvider:
@@ -439,7 +440,7 @@ def test_target_chat_publishes_one_typed_interaction_and_resumes_exact_work_item
     ]
 
 
-def test_target_chat_preserves_conversation_provider_failure_as_retryable_failure():
+def test_target_chat_without_checkpoint_does_not_advertise_provider_retry():
     application, tools = _application(CascadedTargetUnderstanding(
         StateBoundTargetUnderstanding(),
         ConversationAgent(_FailingSemanticProvider()),
@@ -452,7 +453,7 @@ def test_target_chat_preserves_conversation_provider_failure_as_retryable_failur
 
     assert isinstance(outcome, Failed)
     assert outcome.code == "conversation_provider_unavailable"
-    assert outcome.retryable is True
+    assert outcome.retryable is False
     assert tools.calls == []
 
 

@@ -145,6 +145,8 @@ class ManagedTurnResult:
     board: ResultBoardSnapshot | None
     checkpoint_thread_id: str
     interaction_questions: tuple[MissingInputSpec, ...] = ()
+    state_transitions: tuple[ConversationState, ...] = ()
+    close_checkpoint: bool = False
 
 
 @dataclass(frozen=True)
@@ -160,8 +162,9 @@ class PreparedTurn:
     recent_relevant_turns: tuple[str, ...]
     evidence_refs: tuple[str, ...]
     token_budget: int
-    artifact_version: str = "prepared-turn-v1"
+    artifact_version: str = "prepared-turn-v2"
     execution_context: dict = field(default_factory=dict)
+    state_transitions: tuple[ConversationState, ...] = ()
 
     @property
     def fingerprint(self) -> str:
@@ -221,7 +224,9 @@ class TargetConversationManager:
             evidence_refs=evidence_refs,
             token_budget=token_budget,
         )
-        return await self.execute(prepared)
+        result = await self.execute(prepared)
+        await self.commit(result)
+        return result
 
     async def prepare(
         self,
@@ -243,8 +248,7 @@ class TargetConversationManager:
         deterministic = self._resolver.resolve(observations, state_before)
         resume_thread_id = self._resume_thread_id(state_before, deterministic)
         state = self._apply_deterministic(state_before, deterministic)
-        if state is not state_before:
-            self._persist(state_before, state)
+        transitions = [state] if state is not state_before else []
 
         turn_context = (
             await self._context_provider.load(
@@ -266,7 +270,7 @@ class TargetConversationManager:
         plan = self._compiler.compile(validated, state, self._registry, invocation)
         planned_state = self._apply_plan_accepted(state, plan, invocation)
         if planned_state is not state:
-            self._persist(state, planned_state)
+            transitions.append(planned_state)
             state = planned_state
 
         return PreparedTurn(
@@ -282,9 +286,13 @@ class TargetConversationManager:
             evidence_refs,
             token_budget,
             execution_context=dict(execution_context or {}),
+            state_transitions=tuple(transitions),
         )
 
     async def execute(self, prepared: PreparedTurn) -> ManagedTurnResult:
+        # PreparedTurn is checkpointed before consuming input or accepting work.
+        # A replay recognizes only an exact committed prefix of this plan.
+        self._commit_states(prepared.state_before, prepared.state_transitions)
         invocation = prepared.invocation
         observations = prepared.observations
         state_before = prepared.state_before
@@ -295,10 +303,6 @@ class TargetConversationManager:
         resume_thread_id = prepared.resume_thread_id
         thread_id = resume_thread_id or str(invocation.invocation_key)
         if plan.work is None:
-            if resume_thread_id is not None:
-                await self._orchestration.cancel_interrupt(
-                    thread_id=resume_thread_id,
-                )
             return ManagedTurnResult(
                 state_before,
                 state,
@@ -306,6 +310,8 @@ class TargetConversationManager:
                 plan,
                 None,
                 thread_id,
+                state_transitions=prepared.state_transitions,
+                close_checkpoint=resume_thread_id is not None,
             )
         execution_context = {
             "current_message": observations.raw_text,
@@ -364,11 +370,13 @@ class TargetConversationManager:
             recovery_inputs = await self._conversation_agent.recover(
                 plan.work, board, current_message=observations.raw_text,
                 conversation_context=conversation_context_payload(turn_context))
+        transitions = list(prepared.state_transitions)
         state = self._apply_successful_workflows(
             state, plan, board, invocation, deterministic,
             checkpoint_thread_id=(
                 thread_id if self._orchestration.supports_resume else None
             ),
+            transitions=transitions,
         )
         from application.action_approval import bind_action_approval
         next_state = bind_action_approval(
@@ -376,22 +384,24 @@ class TargetConversationManager:
             thread_id if self._orchestration.supports_resume else None,
         )
         if next_state is not state:
-            self._persist(state, next_state)
+            transitions.append(next_state)
             state = next_state
-        state = self._apply_missing_inputs(
+        next_state = self._apply_missing_inputs(
             state, plan, board,
             recovery_inputs=recovery_inputs,
             checkpoint_thread_id=(
                 thread_id if self._orchestration.supports_resume else None
             ),
         )
-        if (
+        if next_state is not state:
+            transitions.append(next_state)
+            state = next_state
+        close_checkpoint = (
             self._orchestration.supports_resume
             and await_decision
             and not any(pending is not None and pending.checkpoint_thread_id == thread_id
                         for pending in (state.pending_approval, state.pending_interaction))
-        ):
-            await self._orchestration.cancel_interrupt(thread_id=thread_id)
+        )
         return ManagedTurnResult(
             state_before,
             state,
@@ -402,7 +412,16 @@ class TargetConversationManager:
             tuple(spec for result in board.results
                   if result.status is AgentResultStatus.NEEDS_USER_INPUT
                   for spec in result.missing_inputs) + recovery_inputs,
+            tuple(transitions),
+            close_checkpoint,
         )
+
+    async def commit(self, result: ManagedTurnResult) -> None:
+        """Commit the checkpointed decision, then release its execution wait."""
+        self._commit_states(result.state_before, result.state_transitions)
+        if result.close_checkpoint:
+            await self._orchestration.cancel_interrupt(
+                thread_id=result.checkpoint_thread_id)
 
     def _apply_missing_inputs(
         self,
@@ -482,7 +501,6 @@ class TargetConversationManager:
             tuple(suspended),
             checkpoint_thread_id,
         ))
-        self._persist(state, next_state)
         return next_state
 
     def _apply_successful_workflows(
@@ -494,6 +512,7 @@ class TargetConversationManager:
         deterministic: DeterministicResolution,
         *,
         checkpoint_thread_id: str | None,
+        transitions: list[ConversationState],
     ) -> ConversationState:
         if plan.work is None and not plan.control_mutations:
             return state
@@ -512,7 +531,7 @@ class TargetConversationManager:
                     stream.workstream_id,
                     expected_version=stream.state_version,
                 )
-                self._persist(state, next_state)
+                transitions.append(next_state)
                 return next_state
             if result is not None and result.status is AgentResultStatus.RECONCILING:
                 next_state = state.mark_workstream_reconciling(
@@ -520,7 +539,7 @@ class TargetConversationManager:
                     expected_version=stream.state_version,
                 )
                 if next_state is not state:
-                    self._persist(state, next_state)
+                    transitions.append(next_state)
                 return next_state
         if plan.transitions is None:
             return state
@@ -566,7 +585,7 @@ class TargetConversationManager:
                         stream.workstream_id,
                         expected_version=stream.state_version,
                     )
-                    self._persist(state, next_state)
+                    transitions.append(next_state)
                     state = next_state
                     continue
                 target_version_value = value.get(str(mutation.target_version_field))
@@ -607,14 +626,14 @@ class TargetConversationManager:
                     checkpoint_thread_id,
                     plan_items[mutation.bound_work_item_id].argument_bindings,
                 ))
-                self._persist(state, next_state)
+                transitions.append(next_state)
                 state = next_state
                 continue
             next_state = state.complete_workstream(
                 stream.workstream_id,
                 expected_version=stream.state_version,
             )
-            self._persist(state, next_state)
+            transitions.append(next_state)
             state = next_state
             handoff_receipt = next((
                 receipt for receipt in result.action_receipts
@@ -623,7 +642,7 @@ class TargetConversationManager:
             ), None)
             if handoff_receipt is not None:
                 next_state = state.transfer_to_human(handoff_receipt)
-                self._persist(state, next_state)
+                transitions.append(next_state)
                 state = next_state
         return state
 
@@ -739,10 +758,18 @@ class TargetConversationManager:
             ),
         )
 
-    def _persist(
+    def _commit_states(
         self,
         current: ConversationState,
-        next_state: ConversationState,
+        transitions: tuple[ConversationState, ...],
     ) -> None:
-        if not self._state_store.compare_and_set(current, next_state):
-            raise ConversationStateConflict("conversation state changed concurrently")
+        states = (current, *transitions)
+        stored = self._state_store.load(
+            current.tenant_id, current.user_id, current.conversation_id)
+        matched = next((index for index, state in enumerate(states)
+                        if state.fingerprint == stored.fingerprint), None)
+        if matched is None:
+            raise ConversationStateConflict("conversation state changed outside this turn")
+        for before, after in zip(states[matched:], states[matched + 1:]):
+            if not self._state_store.compare_and_set(before, after):
+                raise ConversationStateConflict("conversation state changed concurrently")

@@ -8,6 +8,7 @@ import logging
 from typing import Mapping, Protocol
 
 from core.provider_context_budget import ProviderContextBudgetExceeded
+from core.framework_models import ModelInvocationError
 
 from application.context_budget import (
     ContextBudgetManager,
@@ -296,6 +297,15 @@ class ConversationAgent:
             return TurnProposal(
                 ProposalDisposition.INVALID_PROVIDER_OUTPUT, (),
                 "CONVERSATION_PROVIDER_OUTPUT_INVALID",
+            )
+        except ModelInvocationError as exc:
+            # Preserve the SDK failure type. A failed planning node must not
+            # become a completed checkpoint containing a retryable proposal.
+            if exc.retryable:
+                raise
+            return TurnProposal(
+                ProposalDisposition.PROVIDER_FAILURE, (),
+                "CONVERSATION_PROVIDER_FAILURE",
             )
         except Exception:
             logger.exception(
