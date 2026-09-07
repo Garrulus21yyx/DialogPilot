@@ -4,6 +4,18 @@
 
 ### 最新状态（优先于下面按时间保留的记录）
 
+- 模拟用户取证与参数装配修复已实现并验证：LiteLLM drop_params 将未识别模型的
+  thinking:disabled 删除；wire 对照证明修正后该参数真正发出。同一512预算下两个
+  失败前缀探测分别177/17正文tokens、0reasoning；未执行业务工具或改写旧失败成绩。
+  集中50 passed，独立17 passed；官方 Langfuse generation 已回查。
+  详细范围、失败探测、SDK关停与脱敏证据见 tau3-user-boundary-2026-09-07/analysis.md。
+  本次有界修复不代表原τ³任务闭环，customer_dialogue_quality_open继续保留。
+
+- 模拟用户取证修复合同：在 LiteLLM 官方 callback 边界保存脱敏请求、原始响应、
+  finish_reason、usage 和类型化失败，关联 task/session/call；在官方消息校验之前保留证据。
+  提供仅重放用户模型调用的入口，不启动 Target/业务工具、不覆盖官方成绩、不自动重试空输出。
+  验收覆盖空正文、仅 reasoning、截断、工具调用、供应商异常、脱敏及回放边界。
+
 - v15 固定隔离提交 490ca53：两条均因模拟用户空消息 ERROR/null，未发生换货写入。
   task 0 完成五次官方读取并到达审批；task 1 身份追问后中断。四次应用回复为原生文本、
   核验均 pass，无旧分段格式拒绝；不以模型自评或未出现内部对账调用证明完整闭环。

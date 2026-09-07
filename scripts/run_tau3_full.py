@@ -48,6 +48,7 @@ async def run(args):
     from tau2.evaluator.evaluator import evaluate_simulation, EvaluationType
     from evaluation.tau3_full_adapter import Tau3TargetAgent, ObservedVerifier
     from evaluation.tau3_tool_binding import bind_environment
+    from evaluation.tau3_user_diagnostics import SimulatorDiagnostics, simulator_parameters
 
     values = {**dotenv_values(ROOT / ".env"), **os.environ}
     for key, value in values.items():
@@ -95,9 +96,13 @@ async def run(args):
         connection.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(db_name)))
     pool = None
     langfuse_sink = None
+    user_diagnostics = None
     rows = []
     try:
         langfuse_sink = LangfuseTraceSink.from_env()
+        user_diagnostics = SimulatorDiagnostics(args.output / 'simulator-calls',
+            langfuse=langfuse_sink is not None,
+            secrets=[v for k, v in values.items() if any(part in k for part in ('KEY', 'SECRET', 'PASSWORD'))])
         manifest["langfuse_enabled"] = langfuse_sink is not None
         PostgresMigrationRunner(db_url).upgrade()
         pool = PostgresPool(PostgresPoolConfig(db_url))
@@ -141,10 +146,11 @@ async def run(args):
                             {"api_key": values["ANTHROPIC_API_KEY"], "base_url": policy.base_url},
                             max_tokens=200))
                         row["langfuse_session_id"] = agent.conversation_id if langfuse_sink else None
+                        user_parameters = simulator_parameters(args.user_max_tokens)
                         user = UserSimulator(llm=args.user_model, instructions=str(task.user_scenario),
                             llm_args={"api_key": values["ANTHROPIC_API_KEY"], "api_base": policy.base_url,
-                                      "temperature": 0, "thinking": {"type": "disabled"},
-                                      "max_tokens": args.user_max_tokens, "timeout": 60, "num_retries": 0})
+                                      **user_parameters, **user_diagnostics.options(task.id, agent.conversation_id,
+                                          model=args.user_model, parameters=user_parameters)})
                         orchestrator = Orchestrator(
                             domain="retail", agent=agent, user=user, environment=environment,
                             task=task, max_steps=args.max_steps, seed=300)
@@ -160,11 +166,23 @@ async def run(args):
                         row["status"] = "EVALUATED"
                     except Exception as exc:
                         if orchestrator is not None:
+                            row['failure_context'] = {key: str(getattr(orchestrator, key, ''))
+                                                      for key in ('step_count', 'from_role', 'to_role')}
                             write(args.output / f"task-{task.id}-partial-trajectory.json",
                                   [message.model_dump() for message in orchestrator.trajectory])
+                            # User state is updated before Orchestrator rejects an empty reply.
+                            state = getattr(orchestrator, 'user_state', None)
+                            if state is not None:
+                                write(args.output / f'task-{task.id}-user-state.json',
+                                      user_diagnostics.sanitize(state))
+                        import traceback
+                        row['error_stack'] = [{'file': frame.filename, 'line': frame.lineno,
+                                               'function': frame.name}
+                                              for frame in traceback.extract_tb(exc.__traceback__)]
                         row.update(status="ERROR", error_type=type(exc).__name__,
                                    error=str(exc).replace(values["ANTHROPIC_API_KEY"], "[REDACTED]")[:240])
                     finally:
+                        row['simulator_diagnostics'] = await asyncio.to_thread(user_diagnostics.task_summary, task.id)
                         agent.stop()
                         row["target_trace"] = agent.trace
                         if components:
@@ -178,6 +196,8 @@ async def run(args):
                 redis.terminate()
                 await asyncio.to_thread(redis.wait)
     finally:
+        if user_diagnostics:
+            manifest['simulator_trace_flush'] = user_diagnostics.close()
         if langfuse_sink:
             langfuse_sink.close()
         if pool:

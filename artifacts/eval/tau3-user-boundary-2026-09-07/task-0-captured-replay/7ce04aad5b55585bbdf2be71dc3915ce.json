@@ -1,0 +1,15 @@
+{
+  "schema": "tau3-simulator-call-v1",
+  "call_id": "99155447-5eab-407d-9c17-a008591f4037",
+  "task_id": "0",
+  "session_id": "replay-replay-historical-user-probe-0",
+  "stage": "SDK_FAILED",
+  "terminal": true,
+  "failure": {
+    "type": "UnsupportedParamsError",
+    "message": "litellm.UnsupportedParamsError: anthropic does not support parameters: ['seed', 'thinking'], for model=deepseek-v4-flash. To drop these, set `litellm.drop_params=True` or for proxy:\n\n`litellm_settings:\n drop_params: true`\n. \n If you want to use these params dynamically send allowed_openai_params=['seed', 'thinking'] in your request."
+  },
+  "start_time": "2026-09-07 13:47:02.695425",
+  "end_time": "2026-09-07 13:47:02.706318",
+  "export_finished": true
+}
