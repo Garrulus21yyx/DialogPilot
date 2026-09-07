@@ -157,6 +157,9 @@ class AgentResult:
     candidate_response: str | None = None
     retryable: bool = False
     pending_action: WorkItem | None = None
+    # Framework message snapshot for a validated continuation. Never a public
+    # response or fact source; persisted by the existing parent checkpointer.
+    working_messages: tuple[dict, ...] = ()
 
     def __post_init__(self) -> None:
         _required(

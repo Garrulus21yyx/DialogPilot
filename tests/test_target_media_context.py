@@ -112,7 +112,7 @@ def test_ocr_evidence_reaches_framework_as_tool_data_with_provenance():
     result = asyncio.run(agent(_context(item)))
 
     assert result.status.value == "SUCCEEDED", result
-    assert model.bound_tool_names == ["media_read", "DomainOutcome"]
+    assert model.bound_tool_names == ["media_read", "request_user_input", "report_blocked"]
     assert len(observed) == 2
     tool_messages = [m for m in observed[-1] if isinstance(m, ToolMessage)]
     assert len(tool_messages) == 1

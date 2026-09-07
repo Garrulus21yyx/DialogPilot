@@ -52,11 +52,6 @@ class ScriptedToolModel(BaseChatModel):
     ) -> ChatResult:
         response = self.responses[self.calls]
         self.calls += 1
-        if not response.tool_calls and "DomainOutcome" in self.bound_tool_names:
-            response = AIMessage(content="", tool_calls=[{
-                "name": "DomainOutcome", "id": f"outcome-{self.calls}",
-                "args": {"status": "SUCCEEDED", "response": response.content, "missing_inputs": []},
-            }])
         return ChatResult(generations=[ChatGeneration(message=response)])
 
 
@@ -109,24 +104,24 @@ def test_memory_tool_receives_runtime_identity_and_returns_episode_provenance():
         "episode_id": "case-e401", "episode_revision": "1",
         "provenance_sha256": "a" * 64,
     }
-    assert model.bound_tool_names == ["service_episode_search", "DomainOutcome"]
+    assert model.bound_tool_names == ["service_episode_search", "request_user_input", "report_blocked"]
 
 
 def test_domain_input_resume_reuses_progress_after_postgres_checkpoint_reopen(postgres_database_url):
     from application.orchestration_runtime import OrchestrationRuntime
     from application.work_item import WorkPlan
     from infrastructure.langgraph_checkpoint import AsyncPostgresCheckpointOwner
-    calls, prompts = [], []
+    calls, prompts, seen_messages = [], [], []
     class Model(ScriptedToolModel):
         def _generate(self, messages, stop=None, run_manager=None, **kwargs):
+            seen_messages.append(messages)
             prompts.extend(message.content for message in messages if message.type == "human")
             return super()._generate(messages, stop, run_manager, **kwargs)
     model = Model(responses=[
         AIMessage(content="", tool_calls=[{"name": "catalog_search", "id": "lookup-once",
             "args": {"query": "product"}}]),
-        AIMessage(content="", tool_calls=[{"name": "DomainOutcome", "id": "ask-choice", "args": {
-            "status": "NEEDS_USER_INPUT", "response": "Which option?",
-            "missing_inputs": [{"field_name": "option", "question": "Which option?"}]}}]),
+        AIMessage(content="", tool_calls=[{"name": "request_user_input", "id": "ask-choice",
+            "args": {"question": "Which option?"}}]),
         AIMessage(content="The selected option is recorded."),
     ])
     agent = TargetFrameworkAgent(model, _manager(calls),
@@ -152,6 +147,14 @@ def test_domain_input_resume_reuses_progress_after_postgres_checkpoint_reopen(po
     final_prompt = json.loads(prompts[-1])
     assert final_prompt["verified_facts"][0]["source_ref"] == "lookup-once"
     assert final_prompt["verified_facts"][0]["observed_at"]
+    from langchain_core.messages import ToolMessage
+    resumed_messages = seen_messages[-1]
+    assert any(isinstance(message, ToolMessage) and message.tool_call_id == "lookup-once"
+               for message in resumed_messages)
+    assert any(isinstance(message, ToolMessage) and message.tool_call_id == "ask-choice"
+               and message.content == "Which option?" for message in resumed_messages)
+    assert final_prompt["current_message"] == "blue"
+    assert board.results[0].missing_inputs == ()
 
 
 def _manager(calls, *, allowed_agents=("technical",)):
@@ -253,7 +256,7 @@ def test_framework_keeps_user_input_out_of_system_policy(attack):
     assert systems and humans
     assert all(attack not in content for content in systems)
     assert any(json.loads(content)["current_message"] == attack for content in humans)
-    assert model.bound_tool_names == ["catalog_search", "DomainOutcome"]
+    assert model.bound_tool_names == ["catalog_search", "request_user_input", "report_blocked"]
     assert calls == []
 
 
@@ -282,7 +285,7 @@ def test_framework_agent_uses_only_governed_tools_and_returns_provenance():
     assert result.candidate_response == "目录确认型号为 PX-200。"
     assert result.facts[0].requirement_id == "product.canonical_model"
     assert result.facts[0].source_ref == "tool-call-1"
-    assert model.bound_tool_names == ["catalog_search", "DomainOutcome"]
+    assert model.bound_tool_names == ["catalog_search", "request_user_input", "report_blocked"]
     assert "runtime" not in manager.tools_for_agent("technical")[0].schema["properties"]
     assert calls[0][0] == {"query": "当前商品"}
     assert calls[0][1]["agent_type"] == "technical"
@@ -404,7 +407,7 @@ def test_open_goal_can_choose_optional_composite_skill():
     assert result.status is AgentResultStatus.SUCCEEDED
     assert result.evidence_refs == ("catalog-receipt-1",)
     assert set(model.bound_tool_names) == {
-        "catalog_search", "product_identification", "DomainOutcome",
+        "catalog_search", "product_identification", "request_user_input", "report_blocked",
     }
 
 
@@ -523,10 +526,7 @@ def test_postgres_subgraph_survives_process_exit_after_tool(postgres_database_ur
             if any(isinstance(message, ToolMessage) for message in messages):
                 if self.crash:
                     os._exit(73)
-                response = AIMessage(content="", tool_calls=[{
-                    "name": "DomainOutcome", "id": "outcome-final",
-                    "args": {"status": "SUCCEEDED", "response": "PX-200", "missing_inputs": []},
-                }])
+                response = AIMessage(content="PX-200")
             else:
                 response = AIMessage(content="", tool_calls=[{
                     "name": "catalog_search", "args": {"query": "current"}, "id": "read-1",

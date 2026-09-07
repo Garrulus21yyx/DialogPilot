@@ -3,8 +3,7 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, timezone
-from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
-from typing import Literal
+from pydantic import TypeAdapter
 
 from application.agent_result import AgentResult, AgentResultStatus, FactRecord, FactSourceKind
 from application.knowledge_tool_contract import tool_domain_outcome
@@ -15,29 +14,6 @@ _ARTIFACT_SCHEMAS = {
     "tool-result-v1": TypeAdapter(ToolResult),
     "agent-result-v1": TypeAdapter(AgentResult),
 }
-
-
-class DomainInput(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    field_name: str = Field(min_length=1)
-    question: str = Field(min_length=1)
-
-
-class DomainOutcome(BaseModel):
-    """Model-owned disposition, separate from runtime-owned facts and effects."""
-    model_config = ConfigDict(extra="forbid")
-    status: Literal["SUCCEEDED", "NEEDS_USER_INPUT", "BLOCKED"]
-    response: str = Field(min_length=1)
-    missing_inputs: list[DomainInput]
-
-    @model_validator(mode="after")
-    def interaction_shape(self):
-        if (self.status == "NEEDS_USER_INPUT") != bool(self.missing_inputs):
-            raise ValueError("only NEEDS_USER_INPUT carries required input fields")
-        names = [item.field_name for item in self.missing_inputs]
-        if len(names) != len(set(names)):
-            raise ValueError("input field names must be unique")
-        return self
 
 
 def framework_artifact(result: ToolResult | AgentResult) -> dict:

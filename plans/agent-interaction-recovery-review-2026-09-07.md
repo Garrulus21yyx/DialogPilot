@@ -28,8 +28,10 @@
 
 ## 最小实施顺序
 
+2026-09-07 继续实施：B in_progress，C/D pending。复核发现 B 的两个不同机制：正常 AIMessage 被强制结构化出口拒绝；父图续接仅恢复 Fact，未恢复领域工作消息。先迁移出口及全部消费者，再验证 checkpoint 续接。A 的云端观测已验证，不重复构建采集器。后续需真实开发任务重跑及未参与修复的案例，不能以 fixture 通过宣称业务闭环。
+
 - implemented A（SDK 集成）：API 与 τ³ 使用同一 LangfuseTraceSink 配置入口，为 create_agent 注入官方 CallbackHandler；保留 work/control/revision/invocation metadata 和 session。删除自写模型/工具回调，不在本地评测另存一套通用调用记录。mask 覆盖字典、消息模型、Command 数据类和嵌套列表；SDK 负责采集、层级、序列化与导出。未配置凭据时不自动外发，旧轨迹缺失正文无法补回。脱敏规则不是任意自然语言 PII 的完备识别器。
-- pending B：迁移 DomainOutcome 消费者为正常文本候选与显式交互工具；连同 PendingInteraction、子图恢复、父图结果合并、Publication 和测试一起迁移，删除旧强制出口。禁止只删失败分支。
+- implemented / verification_open B：删除 DomainOutcome/ToolStrategy 强制出口和测试中的自动伪造终态；普通文本形成候选，request_user_input(question)/report_blocked(reason) 通过现有 AgentResult 与 PendingInteraction 汇总。框架原生工具 Schema 反馈修正错误调用；交互与其他工具混批在执行前反馈拆分。父图 checkpoint 保存框架工作消息快照，经 owner/registry/control/revision 校验的 continuation 才继承；原子工具的历史 artifact 不重复触发旧审批或追问。真实 PostgreSQL 重开恢复、审批/拒绝/补信息继续、知识证据边界及官方观测回归 64 passed，额外交互批次验证 19 passed（包含重叠）。未进行新的 τ³ 效果验证。
 - pending C：连接类型化错误反馈和目标级失败恢复上下文，再加入有限的无进展响应。保留既有成本预算；不新增每步 LLM supervisor。
 - pending D：梳理现有金额报价/计算/执行/表达的数据归属，检查方向与币种；无业务结算工具的外部基准不伪造报价服务或按题目增加规则。
 

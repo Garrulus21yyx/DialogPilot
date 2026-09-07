@@ -24,7 +24,7 @@ RoutePolicy 校验领域、实体来源和权限，形成只读执行包络。�
 
 领域 Agent 现在可以选择注册 Action。框架工具只提交动作建议，由 TargetActionPreparation 获取前置状态和版本；ConversationState 保存具体参数与被暂停的目标。确认后仍由 GovernedWriteRuntime 执行，Receipt 作为依赖结果交回领域 Agent。模型不直接执行写入。
 
-框架原生 DomainOutcome 返回明确终态和 typed MissingInput；缺信息终止本次模型循环。确认被拒绝时，原目标及其依赖不继续，无关暂停目标可以恢复；确认时再次验证原目标 revision。生产装配和写工具执行主体统一来自 Registry。
+普通模型文本形成候选回复；`request_user_input(question)` 与 `report_blocked(reason)` 表达交互和阻塞，运行时生成内部状态。缺信息结束本段循环，由父图统一持久化追问并等待；经验证的续接恢复框架工作消息和有效事实。确认被拒绝时，原目标及其依赖不继续，无关暂停目标可以恢复；确认时再次验证原目标 revision。生产装配和写工具执行主体统一来自 Registry。
 
 第三阶段回归：真实 PostgreSQL 154 passed、2 skipped；新增拒绝与依赖顺序检查后定向 26 passed。已有大 HTTP 场景的旧 fixture 仍存在退款资格候选被最终回复验证拒绝的问题，不能将该用例记为通过。多类待决交互竞争与完整外部环境评测仍在进行。
 
@@ -42,7 +42,7 @@ Registry 的 planning_shortcuts 决定主 Agent 可用的既有快捷目标；�
 
 ## 领域终态与文本续接
 
-开放任务通过 create_agent 原生结构化输出 DomainOutcome 表达 SUCCEEDED、NEEDS_USER_INPUT 或 BLOCKED；字段、问题和结果由领域模型生成，工具事实仍从实际 artifact/Receipt 适配。没有终态时返回 DOMAIN_OUTCOME_MISSING，不能因 requirement 为空标记成功。
+开放任务使用 create_agent 默认文本出口，不再要求 DomainOutcome。工具事实仍从实际 artifact/Receipt 适配；文本不能替代缺失证据，也不产生写入 Receipt。SUCCEEDED 表示本段执行满足声明的需求，不是模型自报业务写入成功。追问问题只出现一次，身份、目标与版本由运行时绑定。
 
 PendingInteraction 接受两类不同输入：结构化字段经精确绑定消费；明确引用原 interaction 的纯文本回复恢复暂停的领域目标，由 Agent 理解回答、修正或缺失信息。纯文本不会直接填入某个字段，旧信号只消费一次，后续仍缺信息时产生新追问。
 

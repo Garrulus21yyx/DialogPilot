@@ -56,7 +56,7 @@ def test_official_handler_exports_model_tool_hierarchy_and_masked_content(struct
         for secret in ("private-token", "private-password", "hidden-thought"):
             assert secret not in serialized
         assert len(calls) == 1
-        assert result.status is (AgentResultStatus.SUCCEEDED if structured else AgentResultStatus.TERMINAL_FAILURE)
+        assert result.status is AgentResultStatus.SUCCEEDED
     finally:
         client.shutdown()
 

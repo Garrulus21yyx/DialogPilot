@@ -14,6 +14,17 @@ from core.token_estimator import TokenEstimator
 class InteractionBoundaryMiddleware(AgentMiddleware):
     """A bound interaction ends this segment before another model call."""
 
+    @hook_config(can_jump_to=["model"])
+    async def aafter_model(self, state, runtime):
+        message = state["messages"][-1]
+        calls = message.tool_calls if isinstance(message, AIMessage) else ()
+        if len(calls) > 1 and any(call["name"] in {"request_user_input", "report_blocked"} for call in calls):
+            return {"messages": [ToolMessage(
+                content="No tools in this batch were executed. Make one interaction call, or perform evidence calls first and ask afterwards.",
+                tool_call_id=call["id"], name=call["name"], status="error") for call in calls],
+                "jump_to": "model"}
+        return None
+
     @hook_config(can_jump_to=["end"])
     async def abefore_model(self, state, runtime):
         for message in reversed(state["messages"]):
@@ -22,7 +33,7 @@ class InteractionBoundaryMiddleware(AgentMiddleware):
             artifact = message.artifact
             if (isinstance(artifact, dict) and artifact.get("schema") == "agent-result-v1"
                     and (artifact.get("result", {}).get("status") in {"NEEDS_USER_INPUT", "WAITING_APPROVAL"}
-                         or artifact.get("result", {}).get("producer_version") == "action-preparation-v1")):
+                         or artifact.get("result", {}).get("producer_version") in {"action-preparation-v1", "domain-interaction-v1"})):
                 return {"jump_to": "end"}
         return None
 

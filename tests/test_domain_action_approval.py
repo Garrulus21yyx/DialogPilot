@@ -118,9 +118,8 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                             allowed_agents=("general",), authority="order.cancel_action",
                             read_only=False, requires_approval=True, receipt_schema_version="action-receipt-v1"))
         model = ScriptedToolModel(responses=[
-            *([AIMessage(content="", tool_calls=[{"name": "DomainOutcome",
-                "args": {"status": "NEEDS_USER_INPUT", "response": "Which order should I cancel?",
-                         "missing_inputs": [{"field_name": "order_id", "question": "Which order should I cancel?"}]},
+            *([AIMessage(content="", tool_calls=[{"name": "request_user_input",
+                "args": {"question": "Which order should I cancel?"},
                 "id": "need-order"}])] if decision == "ask_first" else []),
             AIMessage(content="", tool_calls=[{"name": "order_cancel",
                 "args": {"order_id": "DP1234"}, "id": "cancel-proposal"}]),

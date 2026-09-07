@@ -38,6 +38,7 @@ class AgentContextView:
     token_budget: int
     trusted_context: Mapping[str, str] = field(default_factory=dict)
     dependency_results: tuple[AgentResult, ...] = ()
+    working_messages: tuple[dict, ...] = ()
 
 
 class WorkExecutor(Protocol):
@@ -66,6 +67,7 @@ class ParentGraphState(TypedDict, total=False):
     trusted_context: Mapping[str, str]
     interrupt_after_completion: bool
     continuation_facts: dict[str, tuple[FactRecord, ...]]
+    continuation_messages: dict[str, tuple[dict, ...]]
 
 
 class WorkerState(TypedDict):
@@ -77,6 +79,7 @@ class WorkerState(TypedDict):
     facts: tuple[FactRecord, ...]
     trusted_context: Mapping[str, str]
     dependency_results: tuple[AgentResult, ...]
+    working_messages: tuple[dict, ...]
 
 
 class OrchestrationRuntime:
@@ -177,6 +180,7 @@ class OrchestrationRuntime:
                     results[dependency]
                     for dependency in item.dependencies
                 ),
+                "working_messages": state.get("continuation_messages", {}).get(item.work_item_id, ()),
             })
             for item in ready
         ]
@@ -228,6 +232,7 @@ class OrchestrationRuntime:
         previous_items = {item.work_item_id: item for item in state["work_plan"].items}
         previous_results = {result.work_item_id: result for result in state.get("agent_results", ())}
         progress = {}
+        messages = {}
         now = datetime.now(timezone.utc)
         for item in plan.items:
             if item.continuation_of is None:
@@ -243,9 +248,11 @@ class OrchestrationRuntime:
                 raise OrchestrationRuntimeError("continuation does not match checkpoint progress")
             progress[item.work_item_id] = tuple(fact for fact in result.facts
                 if fact.valid_until is None or fact.valid_until > now)
+            messages[item.work_item_id] = tuple(result.working_messages)
         return {
             "work_plan": plan,
             "continuation_facts": progress,
+            "continuation_messages": messages,
             "work_plan_fingerprint": _work_plan_fingerprint(plan),
             "current_message": str(resumed.get("current_message") or ""),
             "recent_relevant_turns": tuple(resumed.get("recent_relevant_turns") or ()),
@@ -281,6 +288,7 @@ class OrchestrationRuntime:
             state["token_budget"],
             state.get("trusted_context", {}),
             state.get("dependency_results", ()),
+            state.get("working_messages", ()),
         )
         if self._control_guard is not None and not self._control_guard.is_current(
             item, context.trusted_context,
@@ -535,6 +543,7 @@ def _normalize_board(board: ResultBoardSnapshot) -> ResultBoardSnapshot:
             missing_inputs=tuple(result.missing_inputs),
             requested_evidence=tuple(result.requested_evidence),
             state_mutation_proposals=tuple(result.state_mutation_proposals),
+            working_messages=tuple(result.working_messages),
         )
 
     return ResultBoardSnapshot(
