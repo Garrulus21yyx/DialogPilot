@@ -1,0 +1,69 @@
+{
+  "scope": "diagnosis, gold not seen in Dense100 is censored, not absence from full corpus",
+  "cases": [
+    {
+      "case_id": "c1e53df98a28f19448f4af244304b89a<::>4",
+      "domain": "clapnq",
+      "query": "|user|: Could you recommend any other famous poets for me to know?",
+      "both_top20_miss": true,
+      "balanced_harms_recall": false,
+      "gold_dense_top100_ranks": {
+        "mtrag:clapnq:803829007_104850-106386-0-1536": 55,
+        "mtrag:clapnq:818287024_15431-15519-0-88": null,
+        "mtrag:clapnq:851649357_5734-5868-0-134": null,
+        "mtrag:clapnq:851649357_437-801-0-364": null,
+        "mtrag:clapnq:806718226_31050-31385-0-335": null
+      },
+      "removed_gold_in_balanced": []
+    },
+    {
+      "case_id": "fdee20f7fd677e420742b09989623d68<::>6",
+      "domain": "cloud",
+      "query": "|user|: i am having hard time finding web chat whenever I was trying to use",
+      "both_top20_miss": true,
+      "balanced_harms_recall": false,
+      "gold_dense_top100_ranks": {
+        "mtrag:cloud:ibmcld_03166-14421-16009": null,
+        "mtrag:cloud:ibmcld_02855-8124-9934": null
+      },
+      "removed_gold_in_balanced": []
+    },
+    {
+      "case_id": "47b2471404382af6e973013ab1cf96b9<::>8",
+      "domain": "cloud",
+      "query": "|user|: Is the Lite plan available with the Enterprise account type in IBM Cloud?",
+      "both_top20_miss": true,
+      "balanced_harms_recall": false,
+      "gold_dense_top100_ranks": {
+        "mtrag:cloud:ibmcld_12623-7-2328": 79,
+        "mtrag:cloud:ibmcld_12559-1521-3753": null
+      },
+      "removed_gold_in_balanced": []
+    },
+    {
+      "case_id": "c5518952b78b171de2d5b9317103ba62<::>6",
+      "domain": "fiqa",
+      "query": "|user|: What is the experience of people who use two bank accounts?",
+      "both_top20_miss": true,
+      "balanced_harms_recall": false,
+      "gold_dense_top100_ranks": {
+        "mtrag:fiqa:173807-0-1094": 27,
+        "mtrag:fiqa:579473-0-785": null
+      },
+      "removed_gold_in_balanced": []
+    },
+    {
+      "case_id": "6495c82abb6bef2d8efd06020cde3adf<::>1",
+      "domain": "govt",
+      "query": "|user|: \"What happens to people's bodies when there isn't enough atmospheric pressure?\"",
+      "both_top20_miss": false,
+      "balanced_harms_recall": true,
+      "gold_dense_top100_ranks": {
+        "mtrag:govt:2ec3def5abce1bd5-2-2124": 38
+      },
+      "removed_gold_in_balanced": [
+        "mtrag:govt:2ec3def5abce1bd5-2-2124"
+      ]
+    }
+  ]
+}

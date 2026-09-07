@@ -1,0 +1,32 @@
+{
+  "scope": "32 frozen rewrite queries; exact dense over full separate domains; no ANN/rerank/generation",
+  "cases": 32,
+  "summary": {
+    "recall@1": 0.14583333333333334,
+    "recall@5": 0.4609375,
+    "recall@20": 0.6,
+    "mrr@20": 0.4871214996626181,
+    "ndcg@20": 0.4666511202659149
+  },
+  "domains": {
+    "clapnq": {
+      "passages": 183408,
+      "max_tokens": 743
+    },
+    "cloud": {
+      "passages": 72439,
+      "max_tokens": 5627
+    },
+    "fiqa": {
+      "passages": 60984,
+      "max_tokens": 606
+    },
+    "govt": {
+      "passages": 49607,
+      "max_tokens": 1326
+    }
+  },
+  "api_calls": 0,
+  "newly_encoded": 366438,
+  "reused": 0
+}

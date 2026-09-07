@@ -24,3 +24,5 @@ G4本地暴露审计：278文件、21来源checksum通过；Doc2Dial应排除516
 MTRAG适配与Unicode JSONL修复见[报告](../docs/rag-g4-mtrag-adapter-2026-09-07.zh-CN.md)。数据加载成功与真实检索已接通分开记录；官方PARTIAL标签保留。
 
 MTRAG已有首轮无API词法dev32成绩：官方完整改写R@20 33.07→50.26%，MRR .2130→.3168，仍11/32无相关片段。仅正文/单路/官方query，非真实Agent链。详见[同预算报告](../docs/rag-g4-mtrag-lexical32-2026-09-07.zh-CN.md)；下一项固定query补Dense分路。
+
+2026-09-08：MTRAG全量Dense完成、同预算dev32融合当前.25→.5的R@20 50.26→63.02%，提高10题/降低1题；.75排序指标更高，尚不能定最优。缓存全审计通过，生产/最终答案未测。[报告](../docs/rag-g4-mtrag-hybrid32-2026-09-08.zh-CN.md)。当前活动项为冻结三组候选后的本地精排对照。
