@@ -101,8 +101,17 @@ class CommandProposal:
     argument_bindings: tuple[EntityBinding, ...] = ()
     revises_control_id: str | None = None
     continuation_of: str | None = None
+    allow_action_proposals: bool = False
+    # Internal state-bound continuation; never supplied by the planning model.
+    resumed_work_item: WorkItem | None = None
 
     def __post_init__(self) -> None:
+        if not isinstance(self.allow_action_proposals, bool):
+            raise TurnPlanningError("action proposal scope must be boolean")
+        if self.allow_action_proposals and self.kind is not CommandKind.DELEGATE_TASK:
+            raise TurnPlanningError("action proposal scope requires open delegation")
+        if self.resumed_work_item is not None and self.continuation_of != self.resumed_work_item.work_item_id:
+            raise TurnPlanningError("resumed envelope requires its bound continuation")
         if any(not str(value or "").strip() for value in (
             self.command_id, self.target_agent, self.objective,
         )):
@@ -287,6 +296,14 @@ class RoutePolicy:
                 and not command.requirement_ids
                 and not command.candidate_skill_ids
             )
+            resumed = command.resumed_work_item
+            if resumed is not None and (
+                    resumed.owner_agent != agent.agent_id
+                    or resumed.registry_fingerprint != registry.fingerprint
+                    or resumed.control is None
+                    or resumed.control.control_id != command.revises_control_id
+                    or resumed.control.revision != control.revision):
+                raise TurnPlanningError("resumed capability envelope does not match current work")
             skill_ids = (
                 (command.skill_id,)
                 if command.kind is CommandKind.RUN_SKILL and command.skill_id
@@ -296,6 +313,11 @@ class RoutePolicy:
                     else agent.allowed_skill_ids
                 )
             )
+            if resumed is not None:
+                skill_ids = resumed.allowed_skills
+                if not set(resumed.allowed_actions).issubset(
+                        action.ref for action in registry.actions if action.owner_agent == agent.agent_id):
+                    raise TurnPlanningError("resumed actions exceed registry ownership")
             if command.kind is CommandKind.RUN_SKILL and not skill_ids:
                 raise TurnPlanningError("RUN_SKILL requires a skill")
             if not set(skill_ids).issubset(agent.allowed_skill_ids):
@@ -322,6 +344,8 @@ class RoutePolicy:
                     for tool in skill.allowed_tool_ids
                 ),
             )))
+            if resumed is not None:
+                candidate_tools = resumed.allowed_tools
             if not set(candidate_tools).issubset(agent.allowed_tool_ids):
                 raise TurnPlanningError(
                     "delegated requirement tool is outside agent allowlist"
@@ -357,10 +381,10 @@ class RoutePolicy:
                 effect,
                 risk,
                 skills[0].verification_profile if len(skills) == 1 else agent.verification_profile,
-                allowed_actions=tuple(
+                allowed_actions=(resumed.allowed_actions if resumed is not None else tuple(
                     action.ref for action in registry.actions
                     if action.owner_agent == agent.agent_id
-                ) if open_delegation else (),
+                ) if open_delegation and command.allow_action_proposals else ()),
             )
         if command.kind is CommandKind.EXECUTE_ACTION:
             if not command.action_ref:

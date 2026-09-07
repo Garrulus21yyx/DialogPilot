@@ -165,7 +165,7 @@ def test_application_publishes_verified_approval_and_can_recover_failed_descript
         manager = TargetConversationManager(state_store=store, registry=agent._registry,
             understanding=_ResumeAwareUnderstanding(TurnProposal(ProposalDisposition.RESOLVED,
                 (CommandProposal("open-order", CommandKind.DELEGATE_TASK, "order_logistics",
-                                 "Cancel DP1234 and explain its status"),), "OPEN")),
+                                 "Cancel DP1234 and explain its status", allow_action_proposals=True),), "OPEN")),
             orchestration=OrchestrationRuntime(direct_executor=agent, domain_workers={"order_logistics": agent},
                 checkpointer=InMemorySaver(serde=target_checkpoint_serializer())))
         class Publication(_Publication):

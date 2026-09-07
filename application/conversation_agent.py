@@ -90,6 +90,7 @@ def planning_output_schema(supported_goals=None, knowledge_filter_contract=None)
             )},
             "resolved_query": {**text, "maxLength": 4000},
             "depends_on": {"type": "array", "uniqueItems": True, "items": dict(text)},
+            "allow_action_proposals": {"type": "boolean", "description": "True only if this particular objective requests a business change; false for queries, counts, rules or advice. This permits preparation, never authorizes execution."},
             "knowledge_options": knowledge_query_options_schema(knowledge_filter_contract),
         },
         "allOf": [{
@@ -97,6 +98,7 @@ def planning_output_schema(supported_goals=None, knowledge_filter_contract=None)
             "then": {"required": ["target_agent", "objective"]},
             "else": {"not": {"anyOf": [
                 {"required": ["target_agent"]}, {"required": ["objective"]},
+                {"required": ["allow_action_proposals"]},
             ]}},
         }, {"if": {"properties": {"kind": {"enum": sorted(_KNOWLEDGE_GOALS)}}},
              "then": {"required": ["resolved_query"]}}],
@@ -431,6 +433,7 @@ class ConversationAgent:
                     arguments=tuple(ArgumentValue.create(binding.field_name, binding.value)
                                     for binding in bindings),
                     argument_bindings=bindings,
+                    allow_action_proposals=value.get("allow_action_proposals", False),
                 )
             elif kind == "cancel_active_work":
                 if not revises_control_id:

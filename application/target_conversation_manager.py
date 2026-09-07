@@ -332,6 +332,9 @@ class TargetConversationManager:
                 **prepared.execution_context,
                 **invocation.metadata(),
                 "conv_id": str(invocation.conversation_id),
+                "resolved_input_signal": (str(deterministic.signal_id or "")
+                    if deterministic.kind in {ResolutionKind.FILL_PENDING_INPUT, ResolutionKind.REPLY_PENDING_INPUT}
+                    else ""),
                 **(
                     {
                         "approved_operation_key": str(deterministic.operation_key),

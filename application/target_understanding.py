@@ -155,6 +155,7 @@ class StateBoundTargetUnderstanding:
             "argument_bindings": item.argument_bindings,
             "revises_control_id": item.control.control_id if item.control else None,
             "continuation_of": item.work_item_id if item.control else None,
+            "resumed_work_item": item if item.control else None,
         }
         if item.control_mode is ControlMode.DIRECT:
             if len(item.allowed_tools) != 1:
@@ -173,6 +174,7 @@ class StateBoundTargetUnderstanding:
         return CommandProposal(
             kind=CommandKind.DELEGATE_TASK,
             candidate_skill_ids=() if item.allowed_actions else item.allowed_skills,
+            allow_action_proposals=bool(item.allowed_actions),
             **common,
         )
 

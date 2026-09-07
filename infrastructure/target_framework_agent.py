@@ -20,7 +20,7 @@ from langchain.agents import create_agent
 from langchain.agents.middleware import ModelCallLimitMiddleware, ToolCallLimitMiddleware
 from langchain.agents.middleware.model_call_limit import ModelCallLimitExceededError
 from langchain.agents.middleware.tool_call_limit import ToolCallLimitExceededError
-from langchain_core.messages import AIMessage, HumanMessage, ToolMessage, messages_from_dict, messages_to_dict
+from langchain_core.messages import AIMessage, HumanMessage, ToolMessage, messages_to_dict
 from langchain_core.tools import StructuredTool
 from langchain.tools import ToolRuntime
 from langgraph.errors import GraphRecursionError
@@ -49,6 +49,7 @@ from infrastructure.target_agent_result_adapter import (
     merge_facts,
     framework_artifact,
     restore_framework_artifact,
+    resolved_working_messages,
 )
 from infrastructure.target_agent_middleware import AgentContextMiddleware, WorkControlMiddleware, InteractionBoundaryMiddleware, AgentProgressMiddleware, ModelInvocationMiddleware, model_overhead_tokens
 from core.framework_models import ModelInvocationError
@@ -108,6 +109,7 @@ class TargetFrameworkAgent:
             return await executor(context)
 
         try:
+            history = await resolved_working_messages(context, self._archive)
             fact_values = []
             for fact in context.verified_facts:
                 value = json.loads(fact.value_json)
@@ -163,7 +165,6 @@ class TargetFrameworkAgent:
                 "langfuse_session_id": context.trusted_context.get("conversation_id"),
             },
         }
-        history = messages_from_dict(list(context.working_messages))
         output = {"messages": [*history, pinned]}
         failure = None
         try:
@@ -355,8 +356,8 @@ class TargetFrameworkAgent:
             description=("Prepare a proposal only; this tool does not execute the business action. "
                 "Call once all required choices are known, before requesting approval. "
                 "The conversation layer presents this exact proposal and collects approval; the runtime then executes it. "
-                "Underlying execution operation (its confirmation precondition is enforced later by runtime): "
-                + definition.description),
+                "Operation: " + definition.name + ". Use the supplied argument schema and business evidence. "
+                "Do not ask permission to prepare. Execution confirmation belongs to the runtime after this proposal, not to missing-input collection."),
             args_schema=schema, infer_schema=False, response_format="content_and_artifact",
         )
 
@@ -462,6 +463,7 @@ class TargetFrameworkAgent:
         item = context.work_item
         payload = {
             "objective": item.objective,
+            "action_proposals_allowed": bool(item.allowed_actions),
             "current_message": context.current_message,
             "arguments": {
                 argument.name: argument.value for argument in item.arguments
@@ -497,8 +499,9 @@ class TargetFrameworkAgent:
     def _system(self, context: AgentContextView) -> str:
         return (
             f"{self._system_prompt}\n\n"
-            "Complete only the supplied ecommerce objective. Select from the "
-            "provided read-only tools, reusable skills and registered action proposals as needed. "
+            "Complete only the supplied ecommerce objective. "
+            "The current message and other conversation topics are context, not additional objectives. Do not take over another task in that message. "
+            "Select from the provided read-only tools, reusable skills and registered action proposals as needed. "
             "Tools named prepare_* prepare proposals; the actual write APIs described in business policy are not exposed here. "
             "Business policy requiring confirmation before execution still applies: runtime enforces it after preparation. "
             "Resolve missing choices before preparing an action. Once its arguments are known, use the action proposal directly rather than asking for a preliminary confirmation. Preparation does not end your turn: answer remaining questions using read-only evidence, explain limitations, and describe what approval would execute. Never claim that a proposal has already executed. "

@@ -94,7 +94,7 @@ def test_existing_explicit_approval_retains_only_same_checkpoint_work(waiting_st
                                 board, None, "thread") is next_state
 
 
-@pytest.mark.parametrize("decision", ["approve", "deny", "supersede", "ask_first", "clarify_during_approval"])
+@pytest.mark.parametrize("decision", ["approve", "deny", "supersede", "ask_first", "ask_twice", "clarify_during_approval"])
 def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url, decision):
     async def run():
         base = build_default_capability_registry("tenant-target")
@@ -125,8 +125,11 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                             read_only=False, requires_approval=True, receipt_schema_version="action-receipt-v1"))
         model = ScriptedToolModel(responses=[
             *([AIMessage(content="", tool_calls=[{"name": "request_user_input",
-                "args": {"question": "Which order should I cancel?"},
-                "id": "need-order"}])] if decision == "ask_first" else []),
+                "args": {"question": "Which account?" if decision == "ask_twice" else "Which order should I cancel?"},
+                "id": "need-order"}])] if decision in {"ask_first", "ask_twice"} else []),
+            *([AIMessage(content="", tool_calls=[{"name": "request_user_input",
+                "args": {"question": "Which order should I cancel?"}, "id": "second-question"}])]
+                if decision == "ask_twice" else []),
             AIMessage(content="", tool_calls=[{"name": "prepare_order_cancel",
                 "args": {"order_id": "DP1234"}, "id": "cancel-proposal"}]),
             AIMessage(content="Order DP1234 has not been cancelled. Shall I cancel it?"),
@@ -138,10 +141,13 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
         ])
         class ObservedDomain(TargetFrameworkAgent):
             contexts = []
+            results = []
 
             async def __call__(self, context):
                 self.contexts.append(context)
-                return await super().__call__(context)
+                result = await super().__call__(context)
+                self.results.append(result)
+                return result
 
         domain = ObservedDomain(model, tools, result_store=InMemoryStore(), registry=registry, system_prompt=owner.description)
         PostgresMigrationRunner(postgres_database_url).upgrade()
@@ -153,7 +159,8 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                 state_store=store, registry=registry,
                 understanding=_ResumeAwareUnderstanding(TurnProposal(
                     ProposalDisposition.RESOLVED, (CommandProposal("open-order", CommandKind.DELEGATE_TASK,
-                        owner.agent_id, "Cancel order DP1234 then explain the result"),), "OPEN")),
+                        owner.agent_id, "Cancel order DP1234 then explain the result",
+                        allow_action_proposals=True),), "OPEN")),
                 orchestration=OrchestrationRuntime(
                     direct_executor=domain, domain_workers={owner.agent_id: domain},
                     workflow_executor=TargetWorkflowExecutor(pool, tools, registry=registry),
@@ -161,17 +168,23 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                 ),
             )
             first = await manager.handle(_identity(f"{decision}-propose"), TurnObservations("Cancel order DP1234"))
-            if decision == "ask_first":
+            replies = ("customer-x", "DP1234") if decision == "ask_twice" else ("DP1234",) if decision == "ask_first" else ()
+            for index, reply in enumerate(replies):
                 assert first.state_after.pending_interaction is not None
                 assert calls == []
                 interaction = first.state_after.pending_interaction
-                first = await manager.handle(_identity("supply-order"), TurnObservations(
-                    "DP1234", interaction_id=interaction.interaction_id,
+                first = await manager.handle(_identity(f"supply-{index}"), TurnObservations(
+                    reply, interaction_id=interaction.interaction_id,
                     interaction_version=interaction.version))
+                resolutions = [entry["data"]["artifact"]["resolution"]
+                    for entry in domain.results[-1].working_messages
+                    if entry.get("type") == "tool" and (entry["data"].get("artifact") or {}).get("schema") == "resolved-interaction-v1"]
+                assert [value["reply"] for value in resolutions if value["status"] == "ANSWERED"] == list(replies[:index + 1])
+                assert all(not value["approval_granted"] for value in resolutions)
             pending = first.state_after.pending_approval
             assert pending is not None, first.board
             assert calls == ["read"]
-            assert model.calls == (3 if decision == "ask_first" else 2)
+            assert model.calls == 2 + len(replies)
             assert first.board.results[0].candidate_response == "Order DP1234 has not been cancelled. Shall I cancel it?"
             restored = conversation_state_from_payload(conversation_state_to_payload(first.state_after))
             assert restored == first.state_after
@@ -224,10 +237,15 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                 (result.status.value, result.reason_code) for result in second.board.results]
             assert second.board.results[0].action_receipts[0].receipt_id == "cancel-receipt"
             assert domain.contexts[-1].pending_approval is None
+            resolutions = [entry["data"]["artifact"]["resolution"]
+                for entry in domain.results[-1].working_messages
+                if entry.get("type") == "tool" and (entry["data"].get("artifact") or {}).get("schema") == "resolved-interaction-v1"]
+            committed = [value for value in resolutions if value["status"] == "COMMITTED"]
+            assert committed and committed[0]["operation_key"] == pending.operation_key
             assert "prepare_order_cancel" in model.bound_tool_names
             assert "order_cancel" not in model.bound_tool_names
             assert model.calls == (5 if decision == "clarify_during_approval" else
-                                   4 if decision == "ask_first" else 3)
+                                   3 + len(replies))
         finally:
             pool.close()
     asyncio.run(run())

@@ -32,6 +32,7 @@ class AnthropicConversationPlanningProvider:
                 "Use the provided output schema. A resolved plan contains goals; depends_on names other goal_id values only when their results are prerequisites. "
                 "For open objectives use delegate_task with target_agent from domain_capabilities "
                 "and a self-contained objective preserving the user's constraints. "
+                "Set allow_action_proposals=true only on the objective that requests a business change. Queries, counts, rules and advice use false even when another goal in the same message requests a change. Describe the desired outcome, not preliminary approval steps: the runtime presents prepared actions and collects approval. "
                 "The named business goals are direct paths, not an exhaustive business taxonomy. "
                 "Delegate when domain investigation is needed, rather than inventing a new goal kind. "
                 "Domain action tools propose registered writes for preparation and approval; "

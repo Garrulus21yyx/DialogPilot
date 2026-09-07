@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 from datetime import datetime, timezone
 from pydantic import TypeAdapter
+from langchain_core.messages import ToolMessage, messages_from_dict
 
 from application.agent_result import AgentResult, AgentResultStatus, FactRecord, FactSourceKind, merge_facts
 from application.knowledge_tool_contract import tool_domain_outcome
@@ -24,6 +25,56 @@ def framework_artifact(result: ToolResult | AgentResult) -> dict:
 
 def restore_framework_artifact(artifact: dict) -> ToolResult | AgentResult:
     return _ARTIFACT_SCHEMAS[artifact["schema"]].validate_python(artifact["result"])
+
+
+async def resolved_working_messages(context, archive):
+    """Project a consumed tool interaction into the SDK working conversation.
+
+    The persisted original and its archive stay immutable. Matching uses the
+    validated continuation and operation receipt, never words in a reply.
+    """
+    messages = messages_from_dict(list(context.working_messages))
+    origin = context.work_item.continuation_of
+    if origin is None:
+        return messages
+    for index, message in enumerate(messages):
+        if not isinstance(message, ToolMessage):
+            continue
+        artifact = message.artifact or {}
+        envelope = artifact.get("result", {})
+        if artifact.get("schema") != "agent-result-v1" or envelope.get("status") not in {
+                "NEEDS_USER_INPUT", "WAITING_APPROVAL"}:
+            continue
+        original = ((await archive.load(context, artifact["reference"]))["artifact"]
+                    if "reference" in artifact else artifact)
+        pending = restore_framework_artifact(original)
+        if pending.work_item_id != origin or pending.owner_agent != context.work_item.owner_agent:
+            continue
+        resolution = None
+        if pending.pending_action is not None:
+            action = pending.pending_action
+            for result in context.dependency_results:
+                receipts = tuple(receipt for receipt in result.action_receipts
+                    if receipt.operation_key == action.operation_key and receipt.effect_status == "COMMITTED"
+                    and receipt.requirement_id in action.requirement_ids)
+                if result.owner_agent == action.owner_agent and result.status is AgentResultStatus.SUCCEEDED and receipts:
+                    resolution = {"status": "COMMITTED", "operation_key": action.operation_key,
+                        "receipts": [receipt.__dict__ for receipt in receipts],
+                        "facts": [json.loads(fact.value_json) for fact in result.facts
+                                  if fact.requirement_id in action.requirement_ids]}
+                    break
+        elif pending.status is AgentResultStatus.NEEDS_USER_INPUT and context.trusted_context.get("resolved_input_signal"):
+            resolution = {"status": "ANSWERED", "reply": context.current_message,
+                          "source_kind": "USER_ASSERTED", "approval_granted": False,
+                          "signal_id": context.trusted_context["resolved_input_signal"]}
+        if resolution is not None:
+            messages[index] = message.model_copy(update={
+                "content": json.dumps(resolution, ensure_ascii=False),
+                "artifact": {"schema": "resolved-interaction-v1", "resolution": resolution,
+                             "original_reference": artifact.get("reference")},
+                "status": "success",
+            })
+    return messages
 
 
 def fact_from_tool_result(item, result: ToolResult) -> FactRecord:
