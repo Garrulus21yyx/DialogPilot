@@ -1,6 +1,6 @@
 # RAG 优化主线：持续维护的状态入口
 
-最后核对：2026-09-07；本轮起点 HEAD `405f0ed`，微调实验提交 `228a90b`。本文维护当前优先级与验收状态，历史报告维护当时的实验事实。更新时填写实际核对版本，不能把工作区实现等同于已提交／已部署。
+最后核对：2026-09-07；本轮起点 HEAD `9efc79c`，微调实验提交 `228a90b`。本文维护当前优先级与验收状态，历史报告维护当时的实验事实。更新时填写实际核对版本，不能把工作区实现等同于已提交／已部署。
 
 **整体状态：未完成全链路量化验收。G0代码／测试／报告已通过 `5018f83` 提交并推送；G1诊断已完成；G3阶段证据已交付、融合未采用；当前推进G4数据审计与封存准备，G2泛化仍待验证。微调暂停，生产默认不因小样本结果切换。**
 
@@ -151,3 +151,9 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - G4数据审计预注册（405f0ed）：仅核对本地历史case/query/prediction文件、原始数据checksum和现有分组锁；API0，不读取gold选择易例。Doc2Dial按conversation排除已出现分组；WixQA按问题及相关article交叉检查；MTRAG按task/conversation及query核查。存在文件只证明暴露/准备，不自动证明执行；本地未发现也不证明全局未使用。交付可复算清单、重叠计数与未确定项，本轮不改检索策略、不宣称新鲜验收完成。
 
 - G4审计结果：278份文件/0解析失败，21份原始source checksum一致。继承旧消耗清单后Doc2Dial排除516/661对话；WixQA问题匹配15/16、相关文章匹配37/17（各200题）。MTRAG原始110对话与75/35分组已存在，纠正矩阵此前缺失记录；扫描未匹配不签发新鲜证明。2项测试通过，API0。详见[审计报告](../docs/rag-g4-data-exposure-2026-09-07.zh-CN.md)。下一步补MTRAG生产检索数据适配及完整语料/qrel核对；G4/G2保持开放，当前不调策略。交付：`f45cb41` 已提交并推送到 origin/feat/customer-service-target-architecture。
+
+- G4 MTRAG适配预注册（9efc79c）：使用已锁定revision与conversation分组，下载官方推荐passage_level四域完整语料，预算API0/不向量化。先验证唯一ID、qrels覆盖、score语义、三种query身份及分组；官方现成passage不能冒称自定义chunk收益或精确答案span。验收为所有输入源checksum可复查、正相关qrels能关联、适配产物保留原始标注；尚不运行heldout检索。
+
+- G4 MTRAG适配结果：四域366,438个非空passage、777查询（dev519/heldout258）、2,128条qrel精确匹配；41空片段排除ID留痕且不含正相关。现有RagDataset全量checksum/引用/分组校验通过。发现并修复JSONL owner用splitlines破坏合法Unicode分隔符的根因，保持原文不变。68个PARTIAL保留，非精确答案span；未运行检索/API。见[报告](../docs/rag-g4-mtrag-adapter-2026-09-07.zh-CN.md)。下一项为开发小样本、领域完整语料的词法基线与官方query版本配对；不动heldout、不启动微调。
+
+- 本轮检查：RagDataset/Doc2Dial/MTRAG相关33项测试通过；完整MTRAG加载约4秒，API0。交付待commit/push确认。

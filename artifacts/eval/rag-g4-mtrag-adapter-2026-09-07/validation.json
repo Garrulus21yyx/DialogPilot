@@ -1,0 +1,17 @@
+{
+  "dataset_checksum_validation": true,
+  "documents": 366438,
+  "cases": 777,
+  "dev": 519,
+  "heldout": 258,
+  "positive_qrels": 2128,
+  "source_granularity": "official passage",
+  "generated_answers": 0,
+  "api_calls": 0,
+  "retrieval_run": false,
+  "validation_seconds": 4.0002099853008986,
+  "diagnostics": [
+    "First adapter run stopped on 41 blank source passages, none in positive qrels.",
+    "First RagDataset.load failed on legal Unicode separators because of str.splitlines; owner parser now reads physical lines."
+  ]
+}

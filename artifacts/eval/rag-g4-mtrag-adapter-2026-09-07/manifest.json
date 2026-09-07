@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "dataset_id": "mtrag-passage-retrieval-lastturn-v1",
+  "document_count": 366438,
+  "case_count": 777,
+  "corpus_sha256": "24a558846f0913c9f39bac7e6dc8dbd8ed78905839bf367316077548e9bd4d51",
+  "cases_sha256": "02258eb197c35deab2bae1423ddd9d670e1dab4f23b8c455c2d348500c9fa4e7",
+  "source": {
+    "revision": "2c618bb98db3c8526433e22d8a2f7320f10a7470",
+    "split_lock_sha256": "2934d5bb443b3a404e70d93300a3a77ef8963393750aa51b19c150d28e68a459",
+    "archives": {
+      "clapnq": {
+        "sha256": "3f4bd79341b176070a83b6281bf380d7d6958270c137913f7377121b85a0747e",
+        "bytes": 45545645,
+        "url": "https://raw.githubusercontent.com/IBM/mt-rag-benchmark/2c618bb98db3c8526433e22d8a2f7320f10a7470/corpora/passage_level/clapnq.jsonl.zip"
+      },
+      "cloud": {
+        "sha256": "a0c5427013c65556aeddfdc246dd6068f3a7fad08ce6ae7adddaa9e87aae246d",
+        "bytes": 21310415,
+        "url": "https://raw.githubusercontent.com/IBM/mt-rag-benchmark/2c618bb98db3c8526433e22d8a2f7320f10a7470/corpora/passage_level/cloud.jsonl.zip"
+      },
+      "fiqa": {
+        "sha256": "59f7cf5b043abe007fdb6521eb281bf055524de4376466e9cb4808466e761ee9",
+        "bytes": 18321934,
+        "url": "https://raw.githubusercontent.com/IBM/mt-rag-benchmark/2c618bb98db3c8526433e22d8a2f7320f10a7470/corpora/passage_level/fiqa.jsonl.zip"
+      },
+      "govt": {
+        "sha256": "09adcc5a1a8d11e362c66d7dbf0ef2ea338df4327d655102bf91ea8e258399f6",
+        "bytes": 21876990,
+        "url": "https://raw.githubusercontent.com/IBM/mt-rag-benchmark/2c618bb98db3c8526433e22d8a2f7320f10a7470/corpora/passage_level/govt.jsonl.zip"
+      }
+    },
+    "query_mode": "lastturn",
+    "stats": {
+      "clapnq": {
+        "source_rows": 183408,
+        "passages": 183408,
+        "excluded_empty_ids": [],
+        "qrels": 578,
+        "exact_qrel_matches": 578,
+        "queries": 208,
+        "split_queries": {
+          "dev": 137,
+          "heldout": 71
+        },
+        "answerability": {
+          "PARTIAL": 16,
+          "ANSWERABLE": 192
+        }
+      },
+      "cloud": {
+        "source_rows": 72442,
+        "passages": 72439,
+        "excluded_empty_ids": [
+          "ibmcld_00004-0-0",
+          "ibmcld_01049-0-2",
+          "ibmcld_16335-0-6"
+        ],
+        "qrels": 494,
+        "exact_qrel_matches": 494,
+        "queries": 188,
+        "split_queries": {
+          "heldout": 60,
+          "dev": 128
+        },
+        "answerability": {
+          "PARTIAL": 11,
+          "ANSWERABLE": 177
+        }
+      },
+      "fiqa": {
+        "source_rows": 61022,
+        "passages": 60984,
+        "excluded_empty_ids": [
+          "12229-0-0",
+          "66248-0-0",
+          "40982-0-0",
+          "54960-0-0",
+          "7915-0-0",
+          "14135-0-0",
+          "33445-0-0",
+          "115636-0-0",
+          "117276-0-0",
+          "126502-0-0",
+          "138418-0-0",
+          "215635-0-0",
+          "207473-0-0",
+          "206368-0-0",
+          "189754-0-0",
+          "167128-0-0",
+          "169220-0-0",
+          "153104-0-0",
+          "237392-0-0",
+          "248226-0-0",
+          "254541-0-0",
+          "319894-0-0",
+          "325407-0-0",
+          "356535-0-0",
+          "360125-0-0",
+          "290110-0-0",
+          "358213-0-0",
+          "399083-0-0",
+          "441462-0-0",
+          "470232-0-0",
+          "447488-0-0",
+          "486245-0-0",
+          "414219-0-0",
+          "528558-0-0",
+          "587667-0-0",
+          "552533-0-0",
+          "597929-0-0",
+          "572451-0-0"
+        ],
+        "qrels": 535,
+        "exact_qrel_matches": 535,
+        "queries": 180,
+        "split_queries": {
+          "heldout": 61,
+          "dev": 119
+        },
+        "answerability": {
+          "ANSWERABLE": 163,
+          "PARTIAL": 17
+        }
+      },
+      "govt": {
+        "source_rows": 49607,
+        "passages": 49607,
+        "excluded_empty_ids": [],
+        "qrels": 521,
+        "exact_qrel_matches": 521,
+        "queries": 201,
+        "split_queries": {
+          "heldout": 66,
+          "dev": 135
+        },
+        "answerability": {
+          "ANSWERABLE": 177,
+          "PARTIAL": 24
+        }
+      }
+    },
+    "inference_run": false,
+    "api_calls": 0,
+    "label_scope": "Official passage relevance, encoded as document granularity. Not exact answer spans or evidence of full answerability; PARTIAL retained in query_types. No source re-chunking tested.",
+    "official_queries_sha256": "3c4ded5be9a4f13303a4bf2b644e91e8de58a5f9e3111ff8649303f8d66a276a"
+  }
+}

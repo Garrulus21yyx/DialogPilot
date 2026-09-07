@@ -13,10 +13,12 @@
 | 性能 | BM25三表达同库约5.8—13.8倍加速 | 并发吞吐、池等待、p95及ANN损失 |
 | 交付 | 逐轮commit/push与原始产物 | 部署版本和验收版本一致；工作区改动明确 |
 
-数据不能混算：Doc2Dial有字符span；WixQA本地long8000集manifest为36问题/39文档、article级标签，不能称字符span gold。MTRAG已有110对话的原始文件和75/35自定义分组锁，生产检索数据适配与成绩尚缺。中文电商集明确标记模拟。
+数据不能混算：Doc2Dial有字符span；WixQA本地long8000集manifest为36问题/39文档、article级标签，不能称字符span gold。MTRAG已有110对话的原始文件和75/35自定义分组锁，现有RagDataset已适配366,438非空passage/777query/2,128qrel；生产PG检索与成绩尚缺。中文电商集明确标记模拟。
 
 文件名含fresh/heldout/unconsumed不证明尚未消费；rag-d-acceptance的200条已经有run/report。新封存集须先审计group ID消耗。
 
 完成要求：冻结配置的分层配对表、逐例失败、工具/答案支持审计、调用/token/延迟、复现脚本及未参与调参的分组验收。各数据集独立报告；6/6 Completed不能替代6/6答案正确。整体RAG当前不满足关闭条件。
 
 G4本地暴露审计：278文件、21来源checksum通过；Doc2Dial应排除516/661对话；WixQA问题重复15/200、16/200，按相关文章保守排除37/200、17/200。MTRAG本次无匹配不等于证明未使用。见[范围及复现](../docs/rag-g4-data-exposure-2026-09-07.zh-CN.md)。下一项为MTRAG数据适配/来源对齐，不启动新检索策略。
+
+MTRAG适配与Unicode JSONL修复见[报告](../docs/rag-g4-mtrag-adapter-2026-09-07.zh-CN.md)。数据加载成功与真实检索已接通分开记录；官方PARTIAL标签保留。
