@@ -1,0 +1,39 @@
+{
+  "scope": "LOCAL_EXACT_DENSE_PYTHON_BM25_CANDIDATES_NOT_POSTGRES_NOT_AGENT",
+  "cases": 300,
+  "documents": 100,
+  "chunks": 314,
+  "api_calls": 0,
+  "candidate_budget": 20,
+  "global_reserved": 10,
+  "parent_limit": 3,
+  "query": "raw",
+  "dense_weight": 0.25,
+  "rrf_k": 10,
+  "flat_complete20": 207,
+  "parent_complete20": 203,
+  "rescues": 3,
+  "harms": 7,
+  "dataset_checksums": {
+    "case_count": 300,
+    "cases_sha256": "f0e282d4e6b0594dfc98267322bd865e846b4cc00dbbe8d534d2e6ebc6ec6363",
+    "corpus_sha256": "89a8828b798c97946e6d150851fe046692f1c8c58e1795648223345a5d526281",
+    "dataset_id": "doc2dial-rag-mini-dev-v1",
+    "document_count": 100,
+    "schema_version": 1,
+    "source": {
+      "dataset": "Doc2Dial v1.0.1",
+      "license": "CC-BY-3.0",
+      "selection": "deterministic domain-balanced prefix plus distractors",
+      "url": "https://doc2dial.github.io/file/doc2dial_v1.0.1.zip"
+    }
+  },
+  "model": "/home/yang/.cache/huggingface/hub/models--BAAI--bge-m3/snapshots/5617a9f61b028005a4858fdac845db406aefb181",
+  "extra_work": "additional local ranking over selected documents; same final pool is not identical compute",
+  "excluded": [
+    "reranker",
+    "packing",
+    "generation",
+    "child-to-parent expansion"
+  ]
+}

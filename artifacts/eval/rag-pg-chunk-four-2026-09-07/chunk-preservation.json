@@ -1,0 +1,50 @@
+[
+  {
+    "profile": "structure-256-32",
+    "chunks": 589,
+    "grounding_count": 488.0,
+    "evidence_count": 488.0,
+    "document_grounding_count": 0.0,
+    "evidence_containment_rate": 0.9938524590163934,
+    "boundary_fragmentation_rate": 0.006147540983606557,
+    "index_amplification": 1.1273197191828268,
+    "duplicate_char_ratio": 0.1273197191828269,
+    "chunks_per_document": 5.89
+  },
+  {
+    "profile": "structure-384-48",
+    "chunks": 399,
+    "grounding_count": 488.0,
+    "evidence_count": 488.0,
+    "document_grounding_count": 0.0,
+    "evidence_containment_rate": 0.9979508196721312,
+    "boundary_fragmentation_rate": 0.0020491803278688526,
+    "index_amplification": 1.1168194578916026,
+    "duplicate_char_ratio": 0.11681945789160263,
+    "chunks_per_document": 3.99
+  },
+  {
+    "profile": "structure-512-64",
+    "chunks": 314,
+    "grounding_count": 488.0,
+    "evidence_count": 488.0,
+    "document_grounding_count": 0.0,
+    "evidence_containment_rate": 1.0,
+    "boundary_fragmentation_rate": 0.0,
+    "index_amplification": 1.1115045108182668,
+    "duplicate_char_ratio": 0.11150451081826689,
+    "chunks_per_document": 3.14
+  },
+  {
+    "profile": "fixed-512-64",
+    "chunks": 314,
+    "grounding_count": 488.0,
+    "evidence_count": 488.0,
+    "document_grounding_count": 0.0,
+    "evidence_containment_rate": 1.0,
+    "boundary_fragmentation_rate": 0.0,
+    "index_amplification": 1.1115045108182668,
+    "duplicate_char_ratio": 0.11150451081826689,
+    "chunks_per_document": 3.14
+  }
+]

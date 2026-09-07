@@ -1,0 +1,79 @@
+{
+  "api_calls": 0,
+  "scope": "raw query candidate only; same k not same token budget",
+  "results": [
+    {
+      "profile": "structure-256-32",
+      "case_count": 300,
+      "all_evidence_recall20": {
+        "passed": 189,
+        "rate": 0.63,
+        "total": 300
+      },
+      "metrics20": {
+        "document_recall": 0.7233333333333334,
+        "evidence_recall": 0.6338888888888888,
+        "mrr": 0.4498453583453584,
+        "ndcg": 0.494737360575373
+      },
+      "p95_ms": 322.1920672804117,
+      "rescues_vs_fixed512": 1,
+      "harms_vs_fixed512": 19
+    },
+    {
+      "profile": "structure-384-48",
+      "case_count": 300,
+      "all_evidence_recall20": {
+        "passed": 203,
+        "rate": 0.6766666666666666,
+        "total": 300
+      },
+      "metrics20": {
+        "document_recall": 0.7133333333333334,
+        "evidence_recall": 0.6766666666666666,
+        "mrr": 0.4475249393852335,
+        "ndcg": 0.5017190815469297
+      },
+      "p95_ms": 373.48589673638344,
+      "rescues_vs_fixed512": 5,
+      "harms_vs_fixed512": 9
+    },
+    {
+      "profile": "structure-512-64",
+      "case_count": 300,
+      "all_evidence_recall20": {
+        "passed": 207,
+        "rate": 0.69,
+        "total": 300
+      },
+      "metrics20": {
+        "document_recall": 0.7266666666666667,
+        "evidence_recall": 0.69,
+        "mrr": 0.48314239429874106,
+        "ndcg": 0.5322248820474319
+      },
+      "p95_ms": 284.4637520611286,
+      "rescues_vs_fixed512": 0,
+      "harms_vs_fixed512": 0
+    },
+    {
+      "profile": "fixed-512-64",
+      "case_count": 300,
+      "all_evidence_recall20": {
+        "passed": 207,
+        "rate": 0.69,
+        "total": 300
+      },
+      "metrics20": {
+        "document_recall": 0.7266666666666667,
+        "evidence_recall": 0.69,
+        "mrr": 0.4792315429668371,
+        "ndcg": 0.5292373898927376
+      },
+      "p95_ms": 300.98722130060196,
+      "rescues_vs_fixed512": 0,
+      "harms_vs_fixed512": 0
+    }
+  ],
+  "operational_failure": "4th model load in same process CUDA OOM before scoring; rerun fixed512 alone; first3 kept"
+}

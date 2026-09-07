@@ -1,0 +1,41 @@
+{
+  "all_evidence_recall": {
+    "passed": 207,
+    "rate": 0.69,
+    "total": 300
+  },
+  "candidate_k": 20,
+  "candidate_metrics": {
+    "document_recall": 0.7266666666666667,
+    "evidence_recall": 0.69,
+    "mrr": 0.4792315429668371,
+    "ndcg": 0.5292373898927376
+  },
+  "case_count": 300,
+  "evaluation_scope": "knowledge_candidate_only",
+  "excluded_stages": [
+    "standalone_query",
+    "rerank",
+    "parent_expansion",
+    "packing",
+    "generation",
+    "judge"
+  ],
+  "query_mode": "raw_only",
+  "retrieval_latency_ms": {
+    "max": 624.2060847580433,
+    "mean": 145.2058770197133,
+    "p95": 300.98722130060196,
+    "percentile_method": "nearest_rank"
+  },
+  "retrieval_status_counts": {
+    "OK": 300
+  },
+  "run_id": "0ccdd898728b4aed88637f3a54592856",
+  "run_status": "COMPLETED",
+  "runner_version": "postgres-bge-raw-candidate-eval-v1",
+  "schema_version": 1,
+  "scored_case_count": 300,
+  "split": "dev",
+  "system_failure_count": 0
+}

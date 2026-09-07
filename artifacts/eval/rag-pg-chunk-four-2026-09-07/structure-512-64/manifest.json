@@ -1,0 +1,93 @@
+{
+  "candidate_policy": {
+    "backend_fingerprint": "POSTGRES_PGVECTOR_PG_BM25_ZH_V1",
+    "candidate_k": 20,
+    "context_max_tokens": 2600,
+    "dense_weight": 0.25,
+    "embedding_version": "9cae2189438f71b8a4b39c32b9269a1d08c0cf9e56f86160ccb97b73d186b824",
+    "expansion_query_weight": 0.0,
+    "final_k": 5,
+    "fingerprint": "e9ab7687d3d7190503e8752128b5392f209075f9fc57e34a3d581eea24bd9dc0",
+    "lexical_provider": "ascii-cjk-unigram-bigram-v1+PG_BM25_ZH_V1",
+    "lexical_weight": 0.75,
+    "metadata_hint_weight": 0.5,
+    "packer_version": "not-run-candidate-stage-v1",
+    "policy_version": "knowledge-raw-candidate-eval-v1",
+    "query_expansion_count": 0,
+    "raw_query_weight": 1.0,
+    "reranker_version": "not-run-candidate-stage-v1",
+    "rrf_k": 10,
+    "standalone_query_weight": 0.0,
+    "transformer_version": "raw-query-only-v1"
+  },
+  "chunk_profile": {
+    "chunk_count": 314,
+    "max_tokens": 512,
+    "overlap_tokens": 64,
+    "profile_id": "structure-512-64",
+    "strategy": "structure_aware"
+  },
+  "created_at": "2026-09-07T08:17:33.501870+00:00",
+  "dataset": {
+    "case_count": 300,
+    "cases_sha256": "f0e282d4e6b0594dfc98267322bd865e846b4cc00dbbe8d534d2e6ebc6ec6363",
+    "corpus_sha256": "89a8828b798c97946e6d150851fe046692f1c8c58e1795648223345a5d526281",
+    "dataset_id": "doc2dial-rag-mini-dev-v1",
+    "document_count": 100,
+    "split": "dev"
+  },
+  "embedding_profile": {
+    "dimension": 1024,
+    "document_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1",
+    "fingerprint": "9cae2189438f71b8a4b39c32b9269a1d08c0cf9e56f86160ccb97b73d186b824",
+    "model": "BAAI/bge-m3",
+    "model_digest": "b5e0ce3470abf5ef3831aa1bd5553b486803e83251590ab7ff35a117cf6aad38",
+    "model_version": "5617a9f61b028005a4858fdac845db406aefb181",
+    "provider": "dialogpilot-sentence-transformers-5.7.0-local-bge-m3-v1",
+    "provider_kind": "MODEL",
+    "query_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1"
+  },
+  "evaluation_scope": "knowledge_candidate_only",
+  "generation": {
+    "backend_fingerprint": "POSTGRES_PGVECTOR_PG_BM25_ZH_V1",
+    "backend_id": "POSTGRES_PG_BM25_ZH_V1",
+    "corpus": "KNOWLEDGE",
+    "generation_id": "knowledge-generation-897c052e5ebec1ae239e0bc5a2b71c24",
+    "immutable_fingerprint": "78029054f4f2c6a383d154e04822011136d1fb5429f0b912f5e2a07af169be96",
+    "index_method": "HNSW",
+    "index_params": {
+      "ef_construction": 64,
+      "m": 16
+    },
+    "manifest_fingerprint": "38517c135d80df136ec2c612be0e354c1a74cb4835ebcb73ee3a9d76f54b4fd8",
+    "schema_version": "retrieval-v1",
+    "source_watermark": "880269976d8c0b6aca4826eed4235e13ad9d2db5e201d2ca4ed20bb8d680cc02",
+    "state": "ACTIVE"
+  },
+  "index_prepare_latency_ms": 8423.013700172305,
+  "query": {
+    "history_consumed": false,
+    "mode": "raw_only"
+  },
+  "retrieval_scope": {
+    "locale": "en",
+    "product": null,
+    "scope": "public",
+    "tenant_id": "rag-eval-4578945d146db8bd85408109"
+  },
+  "run_id": "ec73dad085ca4250ba7516f67e7eba0c",
+  "runner_version": "postgres-bge-raw-candidate-eval-v1",
+  "schema_version": 1,
+  "stages_executed": [
+    "raw_query",
+    "candidate_retrieval"
+  ],
+  "stages_not_run": [
+    "standalone_query",
+    "rerank",
+    "parent_expansion",
+    "packing",
+    "generation",
+    "judge"
+  ]
+}
