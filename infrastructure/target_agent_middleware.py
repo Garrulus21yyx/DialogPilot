@@ -2,13 +2,62 @@
 from __future__ import annotations
 
 import json
+import hashlib
 
-from langchain.agents.middleware import AgentMiddleware, hook_config
-from langchain_core.messages import AIMessage, ToolMessage
+from langchain.agents.middleware import AgentMiddleware, AgentState, hook_config
+from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
 from application.context_budget import ContextBudgetManager, ModelContextBudgetExceeded
 from application.work_control import WorkControlGuard
 from core.token_estimator import TokenEstimator
+
+
+class ProgressState(AgentState):
+    observed_results: list[str]
+    stagnant_rounds: int
+    progress_warning: bool
+    progress_blocked: bool
+
+
+class AgentProgressMiddleware(AgentMiddleware):
+    """Bound repeated observations, not legitimate new tool evidence.
+
+    Native graph state owns the counters. Two rounds without new observations
+    offer one model-directed recovery round; continued stagnation ends this
+    segment. Fresh user input starts a new segment, including explicit refresh.
+    """
+
+    state_schema = ProgressState
+
+    @hook_config(can_jump_to=["end"])
+    async def abefore_model(self, state, runtime):
+        batch = []
+        for message in reversed(state["messages"]):
+            if not isinstance(message, ToolMessage):
+                break
+            artifact = message.artifact or {}
+            if artifact.get("schema") == "agent-result-v1":
+                # Interactions/actions are governed by their own boundary.
+                return None
+            result = artifact.get("result", {})
+            observation = {"tool": message.name, "status": result.get("status", message.status),
+                "data": result.get("data", message.content), "error": result.get("error"),
+                "effect_status": result.get("effect_status")}
+            batch.append(hashlib.sha256(json.dumps(observation, sort_keys=True,
+                ensure_ascii=False, default=str).encode()).hexdigest())
+        if not batch:
+            return None
+        seen = set(state.get("observed_results", ()))
+        new = set(batch) - seen
+        stagnant = 0 if new else state.get("stagnant_rounds", 0) + 1
+        update = {"observed_results": sorted(seen | set(batch)), "stagnant_rounds": stagnant,
+                  "progress_warning": False if new else state.get("progress_warning", False)}
+        if not new and state.get("progress_warning", False):
+            return {**update, "progress_blocked": True, "jump_to": "end"}
+        if stagnant >= 2:
+            update.update(progress_warning=True, messages=[HumanMessage(
+                content="Execution feedback: the last two tool rounds produced no new evidence or changed outcome. Review the recorded calls and errors, change the approach, ask for missing input, or report the blocker. Do not repeat the unchanged calls. Completed results remain valid; no task state has been reset.")])
+        return update
 
 
 class InteractionBoundaryMiddleware(AgentMiddleware):

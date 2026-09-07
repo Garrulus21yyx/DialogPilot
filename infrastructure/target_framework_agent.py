@@ -22,6 +22,7 @@ from langchain_core.messages import AIMessage, HumanMessage, ToolMessage, messag
 from langchain_core.tools import StructuredTool
 from langchain.tools import ToolRuntime
 from langgraph.errors import GraphRecursionError
+import httpx
 
 from application.knowledge_tool_contract import tool_domain_outcome
 from application.agent_result import (
@@ -43,7 +44,7 @@ from infrastructure.target_agent_result_adapter import (
     framework_artifact,
     restore_framework_artifact,
 )
-from infrastructure.target_agent_middleware import AgentContextMiddleware, WorkControlMiddleware, InteractionBoundaryMiddleware
+from infrastructure.target_agent_middleware import AgentContextMiddleware, WorkControlMiddleware, InteractionBoundaryMiddleware, AgentProgressMiddleware
 from infrastructure.target_action_preparation import TargetActionPreparation
 from mcp.tool_manager import MCPToolManager, ToolCallStatus, ToolResult
 
@@ -109,6 +110,7 @@ class TargetFrameworkAgent:
             middleware=[
                 WorkControlMiddleware(self._control_guard),
                 InteractionBoundaryMiddleware(),
+                AgentProgressMiddleware(),
                 AgentContextMiddleware(self._context_budget),
                 ModelCallLimitMiddleware(thread_limit=item.max_steps, exit_behavior="error"),
                 ToolCallLimitMiddleware(thread_limit=item.max_steps, exit_behavior="error"),
@@ -126,29 +128,35 @@ class TargetFrameworkAgent:
                 "langfuse_session_id": context.trusted_context.get("conversation_id"),
             },
         }
+        history = messages_from_dict(list(context.working_messages))
+        output = {"messages": [*history, HumanMessage(content=prompt)]}
+        failure = None
         try:
             async with asyncio.timeout(item.timeout_seconds):
-                history = messages_from_dict(list(context.working_messages))
-                output = await graph.ainvoke(
+                # Native graph state streaming preserves the last completed step
+                # when a later model/tool step fails. No second loop or recorder.
+                async for output in graph.astream(
                     {"messages": [*history, HumanMessage(content=prompt)]},
                     config=config,
                     context=context,
-                )
+                    stream_mode="values",
+                ):
+                    pass
         except WorkSuperseded:
             return self._control_guard.superseded_result(item)
         except (GraphRecursionError, ModelCallLimitExceededError, ToolCallLimitExceededError):
-            return self._failure(context, "AGENT_STEP_BUDGET_EXCEEDED")
+            failure = self._failure(context, "AGENT_STEP_BUDGET_EXCEEDED")
         except ModelContextBudgetExceeded:
-            return self._failure(context, "CONTEXT_BUDGET_EXCEEDED")
+            failure = self._failure(context, "CONTEXT_BUDGET_EXCEEDED")
         except TimeoutError:
-            return self._failure(
+            failure = self._failure(
                 context, "AGENT_EXECUTION_TIMEOUT", retryable=True,
             )
         except Exception as exc:
-            return self._failure(
+            failure = self._failure(
                 context,
                 f"AGENT_PROVIDER_FAILURE:{type(exc).__name__}",
-                retryable=True,
+                retryable=_retryable_model_error(exc),
             )
         if self._control_guard is not None and not self._control_guard.is_current(
             item, context.trusted_context,
@@ -173,7 +181,24 @@ class TargetFrameworkAgent:
                 for tool_id in item.allowed_tools
             },
         )
-        return replace(result, working_messages=tuple(messages_to_dict(output.get("messages", []))))
+        if output.get("progress_blocked"):
+            result = replace(result, status=AgentResultStatus.BLOCKED,
+                reason_code="AGENT_NO_PROGRESS", retryable=False, candidate_response=None)
+        if failure is not None:
+            result = replace(result, status=failure.status, reason_code=failure.reason_code,
+                retryable=failure.retryable, candidate_response=None, pending_action=None,
+                missing_inputs=())
+        working = list(output.get("messages", []))
+        if failure is not None:
+            pending_calls = []
+            if working and isinstance(working[-1], AIMessage) and working[-1].tool_calls:
+                pending_calls = working.pop().tool_calls
+            working.append(HumanMessage(content=json.dumps({"execution_feedback": {
+                "reason_code": failure.reason_code, "retryable": failure.retryable,
+                "uncompleted_tool_batch": pending_calls,
+                "instruction": "Retain completed evidence. The uncompleted batch has no confirmed result; do not infer success. Reassess the remaining objective before continuing.",
+            }}, ensure_ascii=False)))
+        return replace(result, working_messages=tuple(messages_to_dict(working)))
 
     def _tools(self, context: AgentContextView) -> list[StructuredTool]:
         item = context.work_item
@@ -474,7 +499,7 @@ def _adapt_framework_result(
         status = AgentResultStatus.NEEDS_USER_INPUT
         reason = "FRAMEWORK_AGENT_NEEDS_USER_INPUT"
         retryable = False
-    elif not item.requirement_ids and failed_tools:
+    elif not item.requirement_ids and failed_tools and not facts:
         retryable = any(_retryable_tool_result(result) for result in failed_tools)
         status = (AgentResultStatus.RETRYABLE_FAILURE if retryable
                   else AgentResultStatus.TERMINAL_FAILURE)
@@ -484,8 +509,8 @@ def _adapt_framework_result(
         reason = next(result.reason_code for result in skill_results if result.status is AgentResultStatus.BLOCKED)
         retryable = False
     elif not missing and candidate_response and candidate_response.strip():
-        status = AgentResultStatus.SUCCEEDED
-        reason = "FRAMEWORK_AGENT_REQUIREMENTS_SATISFIED"
+        status = AgentResultStatus.PARTIAL if failed_tools and not item.requirement_ids else AgentResultStatus.SUCCEEDED
+        reason = "FRAMEWORK_AGENT_PARTIAL_RESULTS" if status is AgentResultStatus.PARTIAL else "FRAMEWORK_AGENT_REQUIREMENTS_SATISFIED"
         retryable = False
     elif any(_retryable_tool_result(result) for result in failed_tools):
         status = AgentResultStatus.RETRYABLE_FAILURE
@@ -534,5 +559,21 @@ def _retryable_tool_result(result: ToolResult) -> bool:
     return result.status in {
         ToolCallStatus.ERROR.value,
         ToolCallStatus.TIMEOUT.value,
-        ToolCallStatus.CANCELLED.value,
     }
+
+
+def _retryable_model_error(error: Exception) -> bool:
+    """SDK transport/status semantics; unknown programming errors are not retries.
+
+    Transport retries stay with the configured model SDK. This classification
+    describes an exhausted failure, it does not start another retry layer.
+    """
+    status = getattr(error, "status_code", None)
+    if isinstance(status, int):
+        return status in {408, 409, 429} or status >= 500
+    cause = error
+    while cause is not None:
+        if isinstance(cause, (TimeoutError, ConnectionError, httpx.TransportError)):
+            return True
+        cause = cause.__cause__
+    return False

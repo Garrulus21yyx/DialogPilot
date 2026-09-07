@@ -32,7 +32,7 @@
 
 - implemented A（SDK 集成）：API 与 τ³ 使用同一 LangfuseTraceSink 配置入口，为 create_agent 注入官方 CallbackHandler；保留 work/control/revision/invocation metadata 和 session。删除自写模型/工具回调，不在本地评测另存一套通用调用记录。mask 覆盖字典、消息模型、Command 数据类和嵌套列表；SDK 负责采集、层级、序列化与导出。未配置凭据时不自动外发，旧轨迹缺失正文无法补回。脱敏规则不是任意自然语言 PII 的完备识别器。
 - implemented / verification_open B：删除 DomainOutcome/ToolStrategy 强制出口和测试中的自动伪造终态；普通文本形成候选，request_user_input(question)/report_blocked(reason) 通过现有 AgentResult 与 PendingInteraction 汇总。框架原生工具 Schema 反馈修正错误调用；交互与其他工具混批在执行前反馈拆分。父图 checkpoint 保存框架工作消息快照，经 owner/registry/control/revision 校验的 continuation 才继承；原子工具的历史 artifact 不重复触发旧审批或追问。真实 PostgreSQL 重开恢复、审批/拒绝/补信息继续、知识证据边界及官方观测回归 64 passed，额外交互批次验证 19 passed（包含重叠）。未进行新的 τ³ 效果验证。
-- pending C：连接类型化错误反馈和目标级失败恢复上下文，再加入有限的无进展响应。保留既有成本预算；不新增每步 LLM supervisor。
+- implemented / verification_open C：使用框架原生 astream(values) 保留最后完成步骤，模型异常/预算结束后仍返回有效事实与工作消息，失败原因和未完成批次随工作上下文保留；未完成工具批次不伪装成功，协议未配对调用不作为已完成消息续接。SDK 继续负责传输重试，不叠加新重试层；未知代码异常与取消不标记可重试。连续两轮无新增工具结果时反馈，提供一次模型调整机会，仍停滞则 AGENT_NO_PROGRESS；新结果重置计数，新用户轮次重置局部进展窗口。成功的其他工具不再因历史失败直接全部丢弃，未声明完整 requirement 的混合结果保守标记 PARTIAL。125 项定向回归通过（含 PostgreSQL）。跨会话自动重试/运行服务接管的整体路径尚需实测，不以适配器测试代替。
 - pending D：梳理现有金额报价/计算/执行/表达的数据归属，检查方向与币种；无业务结算工具的外部基准不伪造报价服务或按题目增加规则。
 
 ## 可证伪验收
