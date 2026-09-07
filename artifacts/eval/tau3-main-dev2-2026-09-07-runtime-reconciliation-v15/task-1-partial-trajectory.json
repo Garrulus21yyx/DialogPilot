@@ -1,0 +1,135 @@
+[
+  {
+    "role": "assistant",
+    "content": "Hi! How can I help you today?",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-07T13:14:12.864442",
+    "cost": 0.0,
+    "usage": null,
+    "raw_data": null,
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  },
+  {
+    "role": "user",
+    "content": "I'd be happy to help you with your exchange request! I'll need to look up your order first. Can you confirm your full name and shipping zip code so I can locate the order?",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-07T13:14:14.362551",
+    "cost": 0.0,
+    "usage": {
+      "completion_tokens": 139,
+      "prompt_tokens": 498
+    },
+    "raw_data": {
+      "id": "chatcmpl-239c8984-13a6-453f-9ad0-e896231866df",
+      "created": 1788779654,
+      "model": "deepseek-v4-flash",
+      "object": "chat.completion",
+      "system_fingerprint": null,
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "content": "I'd be happy to help you with your exchange request! I'll need to look up your order first. Can you confirm your full name and shipping zip code so I can locate the order?",
+            "role": "assistant",
+            "tool_calls": null,
+            "function_call": null,
+            "reasoning_content": "Hi! I received my order #W2378156, and I’d like to swap out a couple of items. I want to exchange the mechanical keyboard I got for the same keyboard but with clicky switches, and also exchange the smart thermostat for one that works with Google Home instead of Apple HomeKit. If there is no keyboard that’s clicky, RGB backlight, and full size, then I’d rather just exchange the thermostat. Can you help me with this?",
+            "thinking_blocks": [
+              {
+                "type": "thinking",
+                "thinking": "Hi! I received my order #W2378156, and I’d like to swap out a couple of items. I want to exchange the mechanical keyboard I got for the same keyboard but with clicky switches, and also exchange the smart thermostat for one that works with Google Home instead of Apple HomeKit. If there is no keyboard that’s clicky, RGB backlight, and full size, then I’d rather just exchange the thermostat. Can you help me with this?",
+                "signature": "161cc44e-45af-4b3c-a387-a6162800ca2f"
+              }
+            ],
+            "provider_specific_fields": {
+              "citations": null,
+              "thinking_blocks": [
+                {
+                  "type": "thinking",
+                  "thinking": "Hi! I received my order #W2378156, and I’d like to swap out a couple of items. I want to exchange the mechanical keyboard I got for the same keyboard but with clicky switches, and also exchange the smart thermostat for one that works with Google Home instead of Apple HomeKit. If there is no keyboard that’s clicky, RGB backlight, and full size, then I’d rather just exchange the thermostat. Can you help me with this?",
+                  "signature": "161cc44e-45af-4b3c-a387-a6162800ca2f"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "usage": {
+        "completion_tokens": 139,
+        "prompt_tokens": 498,
+        "total_tokens": 637,
+        "completion_tokens_details": {
+          "reasoning_tokens": 95,
+          "text_tokens": 44
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 384,
+          "image_tokens": null,
+          "text_tokens": null,
+          "video_tokens": null,
+          "cache_creation_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 384,
+        "inference_geo": null,
+        "speed": null
+      }
+    },
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  },
+  {
+    "role": "assistant",
+    "content": "I'd be happy to help you with your exchange request! I'll need to look up your order first. Can you confirm your full name and shipping zip code so I can locate the order?",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-07T13:14:20.318885",
+    "cost": null,
+    "usage": null,
+    "raw_data": null,
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  }
+]
