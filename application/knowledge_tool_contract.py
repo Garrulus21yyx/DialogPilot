@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from application.agent_result import AgentResultStatus
+from application.sales_channels import sales_channel_schema, validate_sales_channel
 
 
 def knowledge_outcome(data):
@@ -92,7 +93,7 @@ def knowledge_artifact(artifact) -> bool:
             and artifact['result'].get('authority') == 'knowledge.active_source')
 
 
-_KNOWLEDGE_OPTION_KEYS = frozenset({'policy_date', 'as_of', 'applicable_region', 'applicable_channel', 'applicable_product'})
+_KNOWLEDGE_OPTION_KEYS = frozenset({'policy_date', 'as_of', 'applicable_region', 'sales_channel', 'applicable_product'})
 _KNOWLEDGE_OPTION_MAX_LENGTH = 128
 
 
@@ -105,7 +106,7 @@ def knowledge_query_options_schema():
     }}
     schema['properties']['policy_date'].update(pattern=r'^\d{4}-\d{2}-\d{2}$', description='用户明确指定的政策日历日期 YYYY-MM-DD；系统按知识库业务时区解释，不补时间点。')
     schema['properties']['as_of'].update(pattern=r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$', description='明确的带时区时间点；仅有日期用 policy_date。')
-    schema['properties']['applicable_channel']['description'] = '仅填写已确认且与知识来源一致的销售渠道ID，如 web/store；物流方式（加急、标准、shipping）不是销售渠道。未知省略，不从问题主题推测。'
+    schema['properties']['sales_channel'] = sales_channel_schema()
     schema['properties']['applicable_region']['description'] = '仅填写用户明确提供或可信业务上下文确认的适用地区ID；未知省略。'
     schema['properties']['applicable_product']['description'] = '仅填写已确认且与知识来源标注一致的商品范围ID；商品显示名称不等于范围ID，未知省略。'
     schema['not'] = {'required': ['as_of', 'policy_date']}
@@ -129,7 +130,9 @@ def knowledge_query_options(values):
             raise ValueError("knowledge options require bounded strings")
         if key in {'as_of', 'policy_date'} and not re.fullmatch(knowledge_query_options_schema()['properties'][key]['pattern'], value):
             raise ValueError('invalid temporal format')
-        if key == 'policy_date':
+        if key == 'sales_channel':
+            result[key] = validate_sales_channel(value)
+        elif key == 'policy_date':
             result[key] = date.fromisoformat(value).isoformat()
         elif key == 'as_of':
             instant = datetime.fromisoformat(value)

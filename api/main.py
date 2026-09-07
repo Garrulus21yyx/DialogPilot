@@ -29,7 +29,8 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Response, UploadFil
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+from application.sales_channels import SALES_CHANNELS, validate_sales_channel
 
 from services.ticket_service import (
     IdempotencyConflictError,
@@ -2640,7 +2641,7 @@ async def _knowledge_tool_handler(
         import jsonschema
         jsonschema.validate(params, knowledge_query_schema())
         options = knowledge_query_options({key: params[key] for key in (
-            "policy_date", "as_of", "applicable_region", "applicable_channel", "applicable_product") if key in params})
+            "policy_date", "as_of", "applicable_region", "sales_channel", "applicable_product") if key in params})
         current = context.get("knowledge_as_of")
         as_of, as_of_end = knowledge_time_window(options,
             current=datetime.fromisoformat(current) if current else datetime.now(timezone.utc),
@@ -2651,7 +2652,7 @@ async def _knowledge_tool_handler(
         str(params.get("query") or ""),
         history=(), query_mode="RESOLVED", as_of=as_of, as_of_end=as_of_end,
         applicable_region=options.get("applicable_region"),
-        applicable_channel=options.get("applicable_channel"),
+        applicable_channel=options.get("sales_channel"),
         applicable_product=options.get("applicable_product"),
         policy_values=dict(context.get("retrieval_policy") or {}),
         policy_version=str(context.get("cache_scope") or "agent-bundle-unversioned"),
@@ -2874,9 +2875,17 @@ class DocInput(BaseModel):
     scope: Literal["public"] = "public"
     region: str = Field(default="global", max_length=128)
     product: str = Field(default="", max_length=128)
-    channel: str = Field(default="global", max_length=128)
+    channel: str = Field(default="global", max_length=128,
+        description="政策适用购买渠道；global 表示通用政策。",
+        json_schema_extra={"enum": [*SALES_CHANNELS, "global"]})
     effective_from: datetime | None = None
     effective_to: datetime | None = None
+
+
+    @field_validator("channel")
+    @classmethod
+    def validate_channel(cls, value):
+        return validate_sales_channel(value.strip(), source=True)
 
 
 class BatchDocInput(BaseModel):

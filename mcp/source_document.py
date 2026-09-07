@@ -56,6 +56,11 @@ class SourceDocument:
             object.__setattr__(self, key, value.strip())
         if not self.region or not self.channel:
             raise SourceDocumentContractError("region/channel must be explicit or global")
+        from application.sales_channels import validate_sales_channel
+        try:
+            validate_sales_channel(self.channel, source=True)
+        except ValueError as exc:
+            raise SourceDocumentContractError(str(exc)) from exc
         for key in ("effective_from", "effective_to"):
             value = getattr(self, key)
             if value is not None and (not isinstance(value, datetime) or value.utcoffset() is None):

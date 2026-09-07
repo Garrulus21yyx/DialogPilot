@@ -149,6 +149,11 @@ class KnowledgeSearchScope:
             or not isinstance(self.as_of_end, datetime) or self.as_of_end.utcoffset() is None
             or self.as_of_end <= self.as_of):
             raise RetrievalContractError("knowledge time window requires ordered aware instants")
+        from application.sales_channels import validate_sales_channel
+        try:
+            validate_sales_channel(self.applicable_channel) if self.applicable_channel is not None else None
+        except ValueError as exc:
+            raise RetrievalContractError(str(exc)) from exc
         if not self.scope.strip() or not self.locale.strip():
             raise RetrievalContractError("knowledge scope and locale are required")
         normalized_product = (

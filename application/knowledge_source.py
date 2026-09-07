@@ -50,6 +50,11 @@ class SourceRevision:
             self.locale, self.region, self.operations_audit_ref,
             self.schema_version, self.channel,
         )
+        from application.sales_channels import validate_sales_channel
+        try:
+            validate_sales_channel(self.channel, source=True)
+        except ValueError as exc:
+            raise KnowledgeSourceContractError(str(exc)) from exc
         if self.schema_version not in {"knowledge-source-v0", "knowledge-source-v1", "knowledge-source-v2"}:
             raise KnowledgeSourceContractError("unsupported source schema")
         if self.schema_version != "knowledge-source-v2" and self.channel != "global":

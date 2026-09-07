@@ -164,6 +164,11 @@ class KnowledgeRetrievalRequest:
         for value in (self.applicable_region, self.applicable_channel, self.applicable_product):
             if value is not None and (not isinstance(value, str) or not value.strip() or len(value) > 128):
                 raise KnowledgeRetrievalContractError("invalid source applicability")
+        from application.sales_channels import validate_sales_channel
+        try:
+            validate_sales_channel(self.applicable_channel) if self.applicable_channel is not None else None
+        except ValueError as exc:
+            raise KnowledgeRetrievalContractError(str(exc)) from exc
         if self.query_mode not in {"RESOLVED", "HISTORY"}:
             raise KnowledgeRetrievalContractError("unsupported query mode")
         if self.query_mode == "RESOLVED" and self.history:

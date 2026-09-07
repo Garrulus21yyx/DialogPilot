@@ -29,7 +29,7 @@ def test_every_gold_span_has_an_applicable_unwithdrawn_source_revision():
                     continue
                 if meta.get('effective_to') and instant >= datetime.fromisoformat(meta['effective_to']):
                     continue
-                if any(scope.get('applicable_'+key) and meta.get(key,default) not in (default,scope['applicable_'+key]) for key,default in [('region','global'),('channel','global'),('product','')]):
+                if any(scope.get('sales_channel' if key == 'channel' else 'applicable_'+key) and meta.get(key,default) not in (default,scope['sales_channel' if key == 'channel' else 'applicable_'+key]) for key,default in [('region','global'),('channel','global'),('product','')]):
                     continue
                 matches.append(doc)
             assert matches, case.case_id
