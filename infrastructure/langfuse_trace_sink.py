@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 import logging
+import os
 from typing import Any
 
 
@@ -17,7 +18,20 @@ class LangfuseTraceSink:
     def __init__(self):
         from langfuse import Langfuse
 
-        self.client = Langfuse()
+        self.public_key = os.getenv("LANGFUSE_PUBLIC_KEY")
+        self.client = Langfuse(mask=mask_observation)
+
+    @classmethod
+    def from_env(cls):
+        if os.getenv("LANGFUSE_ENABLED", "false").strip().lower() not in {"1", "true", "yes", "on"}:
+            return None
+        if not os.getenv("LANGFUSE_PUBLIC_KEY") or not os.getenv("LANGFUSE_SECRET_KEY"):
+            raise RuntimeError("LANGFUSE_ENABLED requires LANGFUSE_PUBLIC_KEY and LANGFUSE_SECRET_KEY")
+        return cls()
+
+    def callback(self):
+        from langfuse.langchain import CallbackHandler
+        return CallbackHandler(public_key=self.public_key)
 
     @contextmanager
     def span(self, handle):
@@ -78,3 +92,23 @@ def _string_metadata(attributes: dict[str, Any]) -> dict[str, str]:
         str(key)[:80]: str(value)[:200]
         for key, value in list(attributes.items())[:32]
     }
+
+
+def mask_observation(*, data, **kwargs):
+    """Project data policy at the SDK export boundary; no custom event collector."""
+    from core.tracing import TraceRecorder
+    from dataclasses import asdict, is_dataclass
+    from pydantic import BaseModel
+    if isinstance(data, BaseModel):
+        return mask_observation(data=data.model_dump())
+    if is_dataclass(data) and not isinstance(data, type):
+        return mask_observation(data=asdict(data))
+    if isinstance(data, dict):
+        if data.get("type") in {"thinking", "reasoning", "redacted_thinking"}:
+            return {"type": data["type"], "content": "[REDACTED]"}
+        return {key: "[REDACTED]" if TraceRecorder._sensitive_key(str(key))
+                or str(key).casefold() in {"thinking", "reasoning", "reasoning_content", "signature"}
+                else mask_observation(data=value) for key, value in data.items()}
+    if isinstance(data, (list, tuple)):
+        return [mask_observation(data=value) for value in data]
+    return TraceRecorder._redact_text(data) if isinstance(data, str) else data

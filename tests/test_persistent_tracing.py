@@ -112,7 +112,7 @@ def test_langfuse_sink_maps_agent_generation_and_flushes(monkeypatch):
     monkeypatch.setitem(
         __import__("sys").modules,
         "langfuse",
-        SimpleNamespace(Langfuse=lambda: client),
+        SimpleNamespace(Langfuse=lambda **kwargs: client),
     )
     recorder = TraceRecorder()
     recorder.configure_sinks([LangfuseTraceSink()])

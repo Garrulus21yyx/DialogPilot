@@ -317,19 +317,10 @@ async def lifespan(app: FastAPI):
             retention_days=int(os.getenv("TRACE_RETENTION_DAYS", "7")),
         )
         trace_sinks = [_postgres_trace_sink]
-        if os.getenv("LANGFUSE_ENABLED", "false").strip().lower() in {
-            "1", "true", "yes", "on",
-        }:
-            if not os.getenv("LANGFUSE_PUBLIC_KEY") or not os.getenv(
-                "LANGFUSE_SECRET_KEY"
-            ):
-                raise RuntimeError(
-                    "LANGFUSE_ENABLED requires LANGFUSE_PUBLIC_KEY and "
-                    "LANGFUSE_SECRET_KEY"
-                )
-            from infrastructure.langfuse_trace_sink import LangfuseTraceSink
-
-            trace_sinks.append(LangfuseTraceSink())
+        from infrastructure.langfuse_trace_sink import LangfuseTraceSink
+        langfuse_sink = LangfuseTraceSink.from_env()
+        if langfuse_sink is not None:
+            trace_sinks.append(langfuse_sink)
         _trace_recorder.configure_sinks(trace_sinks)
         from infrastructure.postgres_ticket_service import PostgresTicketService
 
@@ -588,6 +579,7 @@ async def lifespan(app: FastAPI):
         response_delivery=_response_delivery,
         model_policy=_model_policy,
         provider_config=cfg,
+        langfuse_sink=langfuse_sink,
         project_root=pathlib.Path(_ROOT),
         knowledge_context_factory=_knowledge_execution_context,
         knowledge_generator=_grounded_answer_generator,

@@ -28,6 +28,7 @@ from infrastructure.target_runtime_composition import build_target_runtime
 from memory.conversation_memory import MemoryManager
 from mcp.tool_manager import MCPToolManager
 from services.answer_verifier import AnswerVerifier
+from infrastructure.langfuse_trace_sink import LangfuseTraceSink
 
 
 def write(path, data):
@@ -43,11 +44,13 @@ async def run(args):
     from tau2.orchestrator.orchestrator import Orchestrator
     from tau2.user.user_simulator import UserSimulator
     from tau2.evaluator.evaluator import evaluate_simulation, EvaluationType
-    from evaluation.tau3_full_adapter import Tau3TargetAgent, ObservedVerifier, ModelDiagnostics, UserModelDiagnostics
-    import litellm
+    from evaluation.tau3_full_adapter import Tau3TargetAgent, ObservedVerifier
     from evaluation.tau3_tool_binding import bind_environment
 
     values = {**dotenv_values(ROOT / ".env"), **os.environ}
+    for key, value in values.items():
+        if key.startswith("LANGFUSE_") and value is not None:
+            os.environ.setdefault(key, value)
     if args.completion_budget is not None:
         for role in (ModelRole.WORKER, ModelRole.INTENT, ModelRole.SYNTHESIS, ModelRole.VERIFIER):
             values[f"MODEL_{role.value.upper()}_MIN_COMPLETION_TOKENS"] = str(args.completion_budget)
@@ -81,8 +84,11 @@ async def run(args):
     with psycopg.connect(args.database_url, autocommit=True) as connection:
         connection.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(db_name)))
     pool = None
+    langfuse_sink = None
     rows = []
     try:
+        langfuse_sink = LangfuseTraceSink.from_env()
+        manifest["langfuse_enabled"] = langfuse_sink is not None
         PostgresMigrationRunner(db_url).upgrade()
         pool = PostgresPool(PostgresPoolConfig(db_url))
         pool.open()
@@ -113,13 +119,13 @@ async def run(args):
                             memory=memory, response_delivery=PostgresResponseDeliveryService(
                                 pool, resume_binding_secret=uuid.uuid4().hex),
                             model_policy=policy, provider_config={"api_key": values["ANTHROPIC_API_KEY"],
-                                                                 "callbacks": [ModelDiagnostics(agent.trace, capture_content=True)],
                                                                  "base_url": policy.base_url},
+                            langfuse_sink=langfuse_sink,
                             project_root=ROOT, registry=registry, enable_encoder=False,
                             knowledge_verifier=ObservedVerifier(AnswerVerifier(client=tools.llm_client,
                                 model_profile=policy.profile(ModelRole.VERIFIER)), agent.trace))
                         agent.configure(components, pool, tools.llm_client, profile)
-                        litellm.callbacks = [UserModelDiagnostics(agent.trace)]
+                        row["langfuse_session_id"] = agent.conversation_id if langfuse_sink else None
                         user = UserSimulator(llm=args.user_model, instructions=str(task.user_scenario),
                             llm_args={"api_key": values["ANTHROPIC_API_KEY"], "api_base": policy.base_url,
                                       "temperature": 0, "thinking": {"type": "disabled"},
@@ -157,6 +163,8 @@ async def run(args):
                 redis.terminate()
                 await asyncio.to_thread(redis.wait)
     finally:
+        if langfuse_sink:
+            langfuse_sink.close()
         if pool:
             pool.close()
         # Only the exact database created by this invocation is removed.

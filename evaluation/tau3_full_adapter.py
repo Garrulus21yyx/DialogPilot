@@ -10,115 +10,12 @@ from dataclasses import asdict
 import json
 from queue import Queue
 import uuid
-from langchain_core.callbacks import BaseCallbackHandler
-from litellm.integrations.custom_logger import CustomLogger
 
 from tau2.agent.base_agent import HalfDuplexAgent
 from tau2.data_model.message import AssistantMessage, MultiToolMessage, ToolCall, ToolMessage
 
 from application.chat_contracts import ChatCommand, Completed, Accepted, NeedsInput
 from infrastructure.postgres_target_runtime import PostgresConversationStateStore
-from core.tracing import TraceRecorder
-
-
-class ModelDiagnostics(BaseCallbackHandler):
-    """Opt-in visible-output diagnostics; never serialize prompts or reasoning blocks.
-
-    Content capture is for restricted development artifacts, not public telemetry.
-    Existing trace redaction is a baseline, not a guarantee of removing all PII.
-    """
-    def __init__(self, trace, *, capture_content=False):
-        self.trace = trace
-        self.capture_content = capture_content
-        self._calls = {}
-
-    def _start(self, kind, run_id, parent_run_id, metadata):
-        binding = {key: value for key, value in (metadata or {}).items()
-                   if key in {"work_item_id", "owner_agent", "control_id", "revision", "invocation_key"}}
-        identity = {"run_id": str(run_id), "parent_run_id": str(parent_run_id) if parent_run_id else None,
-                    **binding}
-        self._calls[str(run_id)] = identity
-        self.trace.append({kind: identity})
-
-    def on_chat_model_start(self, serialized, messages, *, run_id, parent_run_id=None, metadata=None, **kwargs):
-        self._start("model_start", run_id, parent_run_id, metadata)
-
-    @staticmethod
-    def _visible_text(content):
-        if isinstance(content, str):
-            return TraceRecorder._redact_text(content)
-        return "\n".join(TraceRecorder._redact_text(block["text"]) for block in content
-                         if isinstance(block, dict) and block.get("type") == "text"
-                         and isinstance(block.get("text"), str))
-
-    @classmethod
-    def _safe_value(cls, value):
-        if isinstance(value, dict):
-            return {key: "[REDACTED]" if TraceRecorder._sensitive_key(str(key)) else cls._safe_value(item)
-                    for key, item in value.items()}
-        if isinstance(value, (list, tuple)):
-            return [cls._safe_value(item) for item in value]
-        return TraceRecorder._redact_text(value) if isinstance(value, str) else value
-
-    def on_llm_end(self, response, *, run_id=None, parent_run_id=None, **kwargs):
-        identity = self._calls.pop(str(run_id), {"run_id": str(run_id), "parent_run_id": str(parent_run_id) if parent_run_id else None})
-        for group in response.generations:
-            for generation in group:
-                message = generation.message
-                self.trace.append({"model_response": {
-                    **identity,
-                    "stop_reason": message.response_metadata.get("stop_reason"),
-                    "usage": message.usage_metadata,
-                    "tool_names": [call["name"] for call in message.tool_calls],
-                    "invalid_tool_count": len(message.invalid_tool_calls),
-                    "has_content": bool(message.content),
-                    **({"visible_text": self._visible_text(message.content),
-                        "tool_calls": self._safe_value(message.tool_calls),
-                        "invalid_tool_calls": self._safe_value(message.invalid_tool_calls)}
-                       if self.capture_content else {}),
-                }})
-
-    def on_tool_start(self, serialized, input_str, *, run_id, parent_run_id=None, metadata=None, inputs=None, **kwargs):
-        self._start("tool_start", run_id, parent_run_id, metadata)
-        self.trace.append({"tool_request": {**self._calls[str(run_id)], "name": serialized.get("name"),
-                          **({"arguments": self._safe_value(inputs) if inputs is not None
-                             else TraceRecorder._redact_text(input_str)} if self.capture_content else {})}})
-
-    def on_tool_end(self, output, *, run_id, **kwargs):
-        from langchain_core.messages import ToolMessage as FrameworkToolMessage
-        identity = self._calls.pop(str(run_id), {"run_id": str(run_id)})
-        if isinstance(output, FrameworkToolMessage):
-            result = {"tool_call_id": output.tool_call_id, "status": output.status}
-            content = output.content
-        else:
-            result, content = {}, str(output)
-        self.trace.append({"tool_response": {**identity, **result,
-                          **({"visible_text": self._visible_text(content)} if self.capture_content else {})}})
-
-    def _error(self, kind, error, run_id):
-        identity = self._calls.pop(str(run_id), {"run_id": str(run_id)})
-        self.trace.append({kind: {**identity, "error_type": type(error).__name__,
-                          **({"message": TraceRecorder._redact_text(str(error))} if self.capture_content else {})}})
-
-    def on_llm_error(self, error, *, run_id, **kwargs):
-        self._error("model_error", error, run_id)
-
-    def on_tool_error(self, error, *, run_id, **kwargs):
-        self._error("tool_error", error, run_id)
-
-
-class UserModelDiagnostics(CustomLogger):
-    def __init__(self, trace):
-        self.trace = trace
-
-    def log_success_event(self, kwargs, response_obj, start_time, end_time):
-        choice = response_obj.choices[0]
-        self.trace.append({"user_model_response": {
-            "finish_reason": choice.finish_reason,
-            "has_content": bool(choice.message.content),
-            "tool_count": len(choice.message.tool_calls or []),
-            "usage": response_obj.usage.model_dump() if response_obj.usage else None,
-        }})
 
 
 class ObservedVerifier:

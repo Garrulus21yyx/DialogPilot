@@ -71,7 +71,6 @@ def _framework_model(profile, provider_config):
     return ChatAnthropic(
         model_name=request["model"], api_key=provider_config["api_key"],
         base_url=provider_config.get("base_url"), max_tokens=request["max_tokens"],
-        callbacks=provider_config.get("callbacks"),
         model_kwargs={key: value for key, value in request.items()
                       if key not in {"model", "max_tokens"}},
     )
@@ -93,6 +92,7 @@ async def build_target_runtime(
     knowledge_source_validator=None,
     registry: CapabilityRegistryBundle | None = None,
     enable_encoder: bool = True,
+    langfuse_sink=None,
 ) -> TargetRuntimeComponents:
     """Wire the one production Target runtime and enter its checkpoint owner."""
     registry = registry if registry is not None else build_default_capability_registry(
@@ -150,7 +150,7 @@ async def build_target_runtime(
                 tool_manager,
                 registry=registry,
                 system_prompt=agent.description,
-                callbacks=tuple(provider_config.get("callbacks") or ()),
+                callbacks=(langfuse_sink.callback(),) if langfuse_sink else (),
                 skill_executors={"product_identification": product_executor},
                 context_budget=context_budget,
                 control_guard=control_guard,

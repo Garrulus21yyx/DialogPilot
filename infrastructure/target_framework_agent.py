@@ -123,6 +123,7 @@ class TargetFrameworkAgent:
                 "control_id": item.control.control_id if item.control else None,
                 "revision": item.control.revision if item.control else None,
                 "invocation_key": context.trusted_context.get("invocation_key"),
+                "langfuse_session_id": context.trusted_context.get("conversation_id"),
             },
         }
         try:

@@ -2,6 +2,8 @@
 
 状态：review_in_progress；本文件记录诊断与实施合同，不代表实现或验收完成。
 
+2026-09-07 观测收敛（implemented / remote_verification_pending）：撤掉 ModelDiagnostics/UserModelDiagnostics 通用采集器，模型/工具记录交给已锁定 Langfuse 4.15.1 官方 CallbackHandler；沿用业务 TraceSink，统一配置与关闭。官方 mask 扩展点应用项目脱敏策略。本地评测保留官方成绩、业务结果与 Langfuse session 关联。当前环境未配置 Langfuse 凭据，服务端发送/读取验收不可声称完成。
+
 ## 范围与证据
 
 用户要求简化回复/追问，补齐内部记录与失败反馈，并处理无进展循环；不引入另一套 Agent 引擎、商品类别规则或全局重置。
@@ -26,14 +28,14 @@
 
 ## 最小实施顺序
 
-- implemented A（开发诊断范围）：已有 τ³ callback 增加显式 capture_content，可记录可见正文、工具调用参数/结果及模型/工具异常；框架 metadata 传递 work/control/revision/invocation 和父子 run。默认不采集正文，基准 runner 显式启用；排除 thinking 等非文本内容块，沿用现有秘密/邮箱/号码脱敏规则。此步不等于生产全量消息归档、自动识别全部个人信息或硬崩溃前落盘保证。旧轨迹缺失正文不能补回。
+- implemented A（SDK 集成）：API 与 τ³ 使用同一 LangfuseTraceSink 配置入口，为 create_agent 注入官方 CallbackHandler；保留 work/control/revision/invocation metadata 和 session。删除自写模型/工具回调，不在本地评测另存一套通用调用记录。mask 覆盖字典、消息模型、Command 数据类和嵌套列表；SDK 负责采集、层级、序列化与导出。未配置凭据时不自动外发，旧轨迹缺失正文无法补回。脱敏规则不是任意自然语言 PII 的完备识别器。
 - pending B：迁移 DomainOutcome 消费者为正常文本候选与显式交互工具；连同 PendingInteraction、子图恢复、父图结果合并、Publication 和测试一起迁移，删除旧强制出口。禁止只删失败分支。
 - pending C：连接类型化错误反馈和目标级失败恢复上下文，再加入有限的无进展响应。保留既有成本预算；不新增每步 LLM supervisor。
 - pending D：梳理现有金额报价/计算/执行/表达的数据归属，检查方向与币种；无业务结算工具的外部基准不伪造报价服务或按题目增加规则。
 
 ## 可证伪验收
 
-第一项定向证据：诊断测试覆盖正常终态、截断、工具调用、普通文本缺少 DomainOutcome、并行关联、模型/工具异常及脱敏；实际框架循环验证调用行为不变。既有框架/工具安全回归 33 passed。未为此重新消耗真实模型运行完整 τ³，不能据此声称任务 reward 改善。下一项是 B，当前仍 pending。
+第一项替代验证：真实 Langfuse SDK + OpenTelemetry InMemorySpanExporter 执行框架工具循环，验证正常/缺少 DomainOutcome 两条路径均导出可见正文、generation/tool/agent 层级和任务关联，且秘密与 reasoning 被过滤；这不是自写模拟 callback。与 PostgreSQL Trace、框架、工具安全回归组合 40 passed；官方 τ³ 适配测试另测。没有 Langfuse 服务端凭据，不能提供真实服务端 trace 链接，也未重新跑 τ³ 性能实验。下一项 B 仍 pending。
 
 - 普通文本可形成候选，假称业务写入成功仍不能发布；文本未包含终态 JSON 不直接导致任务失败。
 - ask -> 进程重启 -> answer 返回原暂停任务，仍有效查询只执行一次；与目标修正/取消分开。
