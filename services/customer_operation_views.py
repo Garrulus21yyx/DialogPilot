@@ -82,10 +82,10 @@ def refund_lookup_statements(data, *, locale="zh-CN"):
         if any(k in data for k in ('refund_id', 'status')):
             raise UnsupportedRefundObservation('absence cannot contain an application state')
         return (
-            ('lookup', f'No refund application belonging to you is currently recorded for order {order_id} in this system.'
-             if locale == 'en' else f'订单 {order_id} 在本系统当前未记录到归属于您的退款申请。'),
-            ('arrival', 'The current system record does not establish whether a refund has reached your account.'
-             if locale == 'en' else '无法从当前系统记录确认退款是否已经到账。'),
+            ('lookup', f'This lookup found no refund application belonging to you for order {order_id} in this system.'
+             if locale == 'en' else f'本次查询未发现订单 {order_id} 在本系统中归属于您的退款申请。'),
+            ('arrival', 'This observation does not establish whether a refund has reached your account.'
+             if locale == 'en' else '无法从这份查询记录确认退款是否已经到账。'),
         )
     if data.get('lookup_status') == 'FOUND':
         labels = {'requested': '已申请', 'reviewing': '审核中', 'approved': '已批准',

@@ -227,12 +227,18 @@ class _ScenarioConversationProvider:
 
     def __init__(self):
         self.calls = []
+        self.compose_calls = []
 
     async def compose(self, payload):
         # Scripted presentation for HTTP/state tests, not a model-quality score.
+        self.compose_calls.append(payload)
         texts = []
         evidence = payload["evidence"]
+        committed = {receipt["receipt_id"] for receipt in evidence["receipts"]
+                     if receipt["effect_status"] == "COMMITTED"}
         for fact in evidence["facts"]:
+            if fact["source_ref"] in committed:
+                continue  # The scripted write presentation below covers this observation.
             value = fact["value"]
             if fact["requirement_id"] == "refund.current_state":
                 from services.customer_operation_views import refund_lookup_statements
@@ -255,7 +261,8 @@ class _ScenarioConversationProvider:
                 if "new_address" in args:
                     text += f"新地址：{args['new_address']}。"
                 texts.append(text + "尚未执行。")
-        texts.extend("操作已完成，凭证号：" + r["receipt_id"] for r in evidence["receipts"])
+        if committed:
+            texts.append("请求已提交。")
         texts.extend(spec["question_hint"] for spec in payload['evidence']["requested_inputs"])
         return "\n".join(texts) or "请补充所需信息。"
 
@@ -729,9 +736,15 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
             (address_committed, "address-target-1"),
             (freeze_committed, "freeze-target-1"),
         ):
-            assert response["response"] == "请求已提交。"
+            assert response["response"].endswith("请求已提交。")
             assert receipt_id in response["evaluation_trace"]["state_side_effect"]["committed_receipt_refs"]
-            assert receipt_id not in response["response"]
+            # A business refund/ticket ID can equal its receipt ID. Forbid an
+            # internal-receipt dump, not a supported customer-facing reference.
+            assert "凭证号：" not in response["response"]
+            snapshots = [call["evidence"] for call in conversation_provider.compose_calls
+                         if any(r["receipt_id"] == receipt_id for r in call["evidence"]["receipts"])]
+            assert snapshots and all(not snapshot["pending_actions"] for snapshot in snapshots)
+            assert all(snapshot["facts"] for snapshot in snapshots)
         assert refund_commit_replay == refund_committed
         assert stale_approval["code"] == "APPROVAL_SIGNAL_CONFLICT"
         assert changed_approval_replay["code"] == "IDEMPOTENCY_CONFLICT"

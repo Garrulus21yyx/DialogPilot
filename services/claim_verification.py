@@ -56,6 +56,10 @@ SYSTEM = """Check this customer-service answer against the supplied original evi
 Return supported=true only when its factual claims, amounts, payment directions, business statuses,
 policy applicability and action promises are supported. Stored records do not prove physical events
 that the evidence does not establish. Historical user statements are not current business authority.
+COMMITTED action receipts establish that their recorded actions executed; they are not merely plans
+or approvals. Use the accompanying write-result facts for the returned business state. Earlier read
+observations and earlier assistant messages cannot establish non-execution after a committed action.
+Do not infer downstream settlement, delivery, or other physical completion beyond the returned result.
 Return answered=true when the user's information needs are addressed, or their unresolved parts
 are accurately explained. A clear limitation is an answer, not successful business execution.
 A relevant request for information or identity verification needed for the next step is a valid

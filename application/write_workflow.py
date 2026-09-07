@@ -12,7 +12,7 @@ from enum import Enum
 from threading import RLock
 from typing import Mapping, Protocol
 
-from application.agent_result import AgentResult, AgentResultStatus, ReceiptRef
+from application.agent_result import AgentResult, AgentResultStatus, FactRecord, ReceiptRef
 from application.capability_registry import CapabilityEffect
 from application.orchestration_runtime import AgentContextView
 from application.work_item import ControlMode, WorkItem
@@ -67,8 +67,12 @@ class WriteToolOutcome:
     receipt_id: str = ""
     receipt_schema_version: str = ""
     reason_code: str = ""
+    facts: tuple[FactRecord, ...] = ()
 
     def __post_init__(self) -> None:
+        object.__setattr__(self, "facts", tuple(self.facts))
+        if self.facts and self.status is not WriteOutcomeStatus.COMMITTED:
+            raise WriteWorkflowError("only a committed write outcome carries business observations")
         if not self.reason_code.strip():
             raise WriteWorkflowError("write outcome reason is required")
         if self.status is WriteOutcomeStatus.COMMITTED and any(
@@ -87,8 +91,12 @@ class OperationRecord:
     receipt_id: str = ""
     receipt_schema_version: str = ""
     reason_code: str = ""
+    facts: tuple[FactRecord, ...] = ()
 
     def __post_init__(self) -> None:
+        object.__setattr__(self, "facts", tuple(self.facts))
+        if self.facts and self.status is not OperationStatus.COMMITTED:
+            raise WriteWorkflowError("only a committed operation carries business observations")
         if not self.operation_key.strip() or not self.work_item_fingerprint.strip():
             raise WriteWorkflowError("operation identity is required")
         if self.version < 1 or self.attempts < 0:
@@ -309,6 +317,7 @@ class GovernedWriteRuntime:
             outcome.reason_code,
             receipt_id=outcome.receipt_id,
             receipt_schema_version=outcome.receipt_schema_version,
+            facts=outcome.facts,
         )
 
     def _transition(
@@ -375,6 +384,8 @@ class GovernedWriteRuntime:
             AgentResultStatus.SUCCEEDED,
             reason_code,
             self.version,
+            facts=record.facts,
+            evidence_refs=tuple(fact.source_ref for fact in record.facts),
             action_receipts=tuple(
                 ReceiptRef(
                     record.receipt_id,

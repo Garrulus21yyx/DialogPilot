@@ -149,8 +149,11 @@ def test_unknown_handoff_outcome_uses_registry_reconciliation_not_flow_name():
 
         async def execute_for_agent(self, name, params, **kwargs):
             self.calls.append((name, params, kwargs))
-            return SimpleNamespace(
+            from mcp.tool_manager import ToolResult
+            return ToolResult(
                 success=True,
+                tool_name=name,
+                call_id="status-call-1",
                 authority="support.ticket_state",
                 data={
                     "ticket_id": "ticket-1",
@@ -212,8 +215,12 @@ def test_target_handoff_write_requires_policy_accepted_draft_and_forwards_it():
 
         async def execute_for_agent(self, _name, _params, **kwargs):
             self.context = kwargs["context"]
-            return SimpleNamespace(
+            from mcp.tool_manager import ToolResult
+            return ToolResult(
                 success=True,
+                tool_name=_name,
+                data={"ticket_id": "ticket-1"},
+                authority="support.handoff_action",
                 effect_status="committed",
                 receipt_schema_version="ticket-receipt-v1",
                 receipt_id="ticket-1",

@@ -87,10 +87,12 @@ def test_environment_write_registration_and_observed_receipt(name):
     from application.write_workflow import WriteOutcomeStatus
     runtime = _ToolReconciler(manager, SimpleNamespace(trusted_context=()), principal='retail')
     item = SimpleNamespace(reconciliation=action.reconciliation, arguments=(),
-                           expected_output_schema=action.receipt_schema_version)
+                           expected_output_schema=action.receipt_schema_version, aggregate_ref="record:R1")
     observed = asyncio.run(runtime.reconcile(item, operation_key='op-1'))
     unknown = asyncio.run(runtime.reconcile(item, operation_key='invented-operation'))
     assert observed.status is WriteOutcomeStatus.COMMITTED
     assert observed.receipt_id == receipt.receipt_id
+    import json
+    assert json.loads(observed.facts[0].value_json)["result"] == {"updated": True}
     assert unknown.status is WriteOutcomeStatus.OUTCOME_UNKNOWN
     assert len(calls) == 1  # reconciliation never repeats the business write

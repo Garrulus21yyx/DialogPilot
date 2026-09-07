@@ -44,8 +44,8 @@ def test_authoritative_requirement_selects_controlled_path_and_safe_fallback():
     allowed=_allowed_claims(board)
     assert [c.kind for c in allowed]==['WORK_ITEM_OUTCOME', 'FACT']
     assert '仍有权' not in _render_board(board)
-    assert '未记录' in _render_board(board)
-    assert '无法从当前系统记录确认' in _render_board(board)
+    assert '本次查询未发现' in _render_board(board)
+    assert '无法从这份查询记录确认' in _render_board(board)
     # A lookalike payload under another requirement is not promoted.
     other=_board(replace(original,facts=(replace(fact,requirement_id='order.current_state'),)))
     assert 'CONTROLLED_REFUND_FACT' not in {c.kind for c in _allowed_claims(other)}

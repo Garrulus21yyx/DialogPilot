@@ -74,7 +74,8 @@ def bind_environment(environment, manager, call):
                 receipt_id = "official-call:" + message.id
                 operation_key = context["business_operation_key"]
                 receipts[operation_key] = {"operation_key": operation_key,
-                                          "receipt_id": receipt_id, "status": "COMMITTED"}
+                                          "receipt_id": receipt_id, "status": "COMMITTED",
+                                          "result": data}
                 return ToolEffectReceipt(data, ToolEffectStatus.COMMITTED, receipt_id)
             return handler
 

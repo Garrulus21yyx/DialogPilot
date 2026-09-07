@@ -309,6 +309,7 @@ class ResponseAssembler:
                   if any(f.requirement_id == "knowledge.active_source" for r in board.results for f in r.facts) else []),
                 "Address the customer directly in the language they use or request. Do not include drafting notes, self-instructions or commentary about how to answer.",
                 "Internal tool names, operation keys and raw parameter JSON are not customer explanations. Use supplied facts to explain item references; do not invent names, prices, fees or return instructions.",
+                "COMMITTED receipts establish execution of their recorded actions. Use accompanying write-result facts for returned business state; earlier read observations or assistant messages do not establish non-execution after that action. Do not infer downstream settlement or delivery beyond the returned result.",
                 *([_APPROVAL_DESCRIPTION_REQUIREMENT]
                   if not requested_inputs and any(c.kind == "PENDING_ACTION" for c in claims) else []),
             ],
@@ -554,18 +555,21 @@ def _render_verified_facts(result, *, locale="zh-CN") -> str:
         if fact.source_kind is not FactSourceKind.VERIFIED_STATE:
             continue
         value = json.loads(fact.value_json)
+        observed = fact.observed_at.isoformat()
         if fact.requirement_id == "refund.current_state":
             from services.customer_operation_views import refund_lookup_statements, UnsupportedRefundObservation
             try:
-                texts.extend(text for _, text in refund_lookup_statements(value, locale=locale))
+                observation = " ".join(text for _, text in refund_lookup_statements(value, locale=locale))
+                texts.append(_message(locale, f"查询记录（{observed}）：{observation}",
+                    f"Lookup observation ({observed}): {observation}"))
             except UnsupportedRefundObservation:
                 texts.append(_message(locale, "当前退款查询结果格式无法确认，请重新查询。",
                     "The refund lookup returned an unrecognized result. Please query it again."))
         if fact.requirement_id == "order.current_state" and isinstance(value, dict):
             order_id, status = value.get("order_id"), value.get("status")
             if isinstance(order_id, str) and _REFERENCE.fullmatch(order_id) and isinstance(status, str) and status in statuses:
-                texts.append(_message(locale, f"订单 {order_id} 当前状态为{statuses[status]}。",
-                    f"The current recorded status of order {order_id} is {status}."))
+                texts.append(_message(locale, f"在 {observed} 的查询记录中，订单 {order_id} 状态为{statuses[status]}。",
+                    f"The lookup at {observed} recorded order {order_id} as {status}."))
     return "\n".join(dict.fromkeys(texts))
 
 

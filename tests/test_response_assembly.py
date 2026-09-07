@@ -39,6 +39,21 @@ def _verified_order_result(work_item_id='o', order_id='DP1234', response=None):
     return replace(_result(work_item_id,'order_logistics',response=response),facts=(fact,))
 
 
+@pytest.mark.parametrize("locale", ["en", "zh-CN"])
+@pytest.mark.parametrize("order_id", ["DP1234", "DP9876"])
+def test_pre_write_lookup_is_an_observation_not_current_state_in_fallback(locale, order_id):
+    from application.response_assembly import _render_board
+    earlier = _verified_order_result(order_id=order_id)
+    committed = _result("change", "order_logistics", receipts=(ReceiptRef(
+        "receipt-change", "v1", "operation-change", "COMMITTED", "order.cancel_action",
+    ),))
+    text = _render_board(_board(earlier, committed), locale=locale)
+    assert earlier.facts[0].observed_at.isoformat() in text
+    assert order_id in text
+    assert "current recorded status" not in text and "当前状态" not in text
+    assert ("submitted" if locale == "en" else "已提交") in text
+
+
 def test_question_prelude_preserves_verified_success_without_publishing_worker_drafts():
     board = _board(_verified_order_result(response="UNVERIFIED promise"),
                    _result("blocked", "product_technical", AgentResultStatus.BLOCKED,

@@ -12,8 +12,9 @@ from typing import Mapping
 
 from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
+from pydantic import TypeAdapter
 
-from application.agent_result import RequestedField
+from application.agent_result import FactRecord, RequestedField
 from application.capability_registry import (
     ActionReconciliationDefinition,
     ApprovalPolicy,
@@ -52,6 +53,7 @@ from core.identity import ConversationId, TenantId, UserId
 
 _STATE_EVENT = "target.conversation_state.changed.v1"
 _OPERATION_EVENT = "target.write_operation.changed.v1"
+_OPERATION_FACTS = TypeAdapter(tuple[FactRecord, ...])
 
 
 class PostgresConversationStateStore:
@@ -590,6 +592,7 @@ def operation_to_payload(record: OperationRecord) -> dict[str, object]:
         "receipt_id": record.receipt_id,
         "receipt_schema_version": record.receipt_schema_version,
         "reason_code": record.reason_code,
+        "facts": _OPERATION_FACTS.dump_python(record.facts, mode="json"),
     }
 
 
@@ -606,6 +609,7 @@ def operation_from_payload(raw: Mapping[str, object]) -> OperationRecord:
         str(payload.get("receipt_id") or ""),
         str(payload.get("receipt_schema_version") or ""),
         str(payload.get("reason_code") or ""),
+        _OPERATION_FACTS.validate_python(payload.get("facts", [])),
     )
 
 

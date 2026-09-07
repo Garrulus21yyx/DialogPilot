@@ -148,6 +148,64 @@ def _runtime(tool, reconciler, grants=None, ledger=None):
     )
 
 
+@pytest.mark.parametrize("value", [
+    {"state": "accepted", "amount": -16.63, "settled": False},
+    {"preferences": {"color": "blue"}, "version": 8},
+    {"ticket_id": "T1", "attachments": ["A1", "A2"]},
+    [1, {"changed": True}], None,
+])
+@pytest.mark.parametrize("reconcile", [False, True])
+def test_write_observation_survives_ledger_recreation_checkpoint_and_response(
+    ledger_factory, value, reconcile,
+):
+    import json
+    from datetime import datetime, timezone
+    from application.agent_result import FactRecord, FactSourceKind
+    from application.result_board import ResultBoard
+    from application.response_assembly import _response_context
+    from infrastructure.langgraph_checkpoint import target_checkpoint_serializer
+
+    observed = datetime(2026, 9, 7, 12, 0, 1, tzinfo=timezone.utc)
+    fact = FactRecord(
+        "order:DP1234", "refund.request_action", json.dumps(value, sort_keys=True, separators=(",", ":")),
+        FactSourceKind.VERIFIED_STATE, "receipt-1", "write-service", "v1", observed,
+        observation_started_at=observed.replace(second=0),
+    )
+    outcome = WriteToolOutcome(WriteOutcomeStatus.COMMITTED, "receipt-1",
+                               "refund-receipt-v1", "COMMITTED", (fact,))
+    ledger = ledger_factory()
+    if reconcile:
+        planned = ledger.acquire(_item())
+        assert ledger.compare_and_set(planned, replace(
+            planned, status=OperationStatus.OUTCOME_UNKNOWN, version=2, attempts=1,
+        ))
+    tool = ToolPort([] if reconcile else [outcome])
+    reconciler = Reconciler([outcome] if reconcile else [])
+    first = asyncio.run(_runtime(tool, reconciler, {"approval-1:v1": _grant()}, ledger)(_context()))
+    replay = asyncio.run(_runtime(ToolPort([]), Reconciler([]), ledger=ledger_factory())(_context()))
+    assert first.facts == replay.facts == (fact,)
+    assert replay.evidence_refs == ("receipt-1",)
+    assert len(tool.calls) == (0 if reconcile else 1)
+    assert len(reconciler.calls) == (1 if reconcile else 0)
+    serializer = target_checkpoint_serializer()
+    restored = serializer.loads_typed(serializer.dumps_typed(replay))
+    assert restored.facts == (fact,)
+    board = ResultBoard().evaluate(WorkPlan((_item(),), _item().work_item_id), (restored,))
+    evidence = _response_context(board)
+    assert evidence["facts"][0]["value"] == value
+    assert evidence["facts"][0]["observed_at"] == observed.isoformat()
+    assert evidence["receipts"][0]["effect_status"] == "COMMITTED"
+    assert evidence["pending_actions"] == []
+
+
+@pytest.mark.parametrize("status", [WriteOutcomeStatus.NOT_COMMITTED, WriteOutcomeStatus.OUTCOME_UNKNOWN])
+def test_uncommitted_outcome_cannot_publish_business_observations(status):
+    from application.write_workflow import WriteWorkflowError
+    from tests.test_response_assembly import _verified_order_result
+    with pytest.raises(WriteWorkflowError, match="only a committed"):
+        WriteToolOutcome(status, reason_code="NOT_CONFIRMED", facts=_verified_order_result().facts)
+
+
 def test_missing_approval_waits_without_calling_write_tool(ledger_factory):
     tool = ToolPort([])
     ledger = ledger_factory()

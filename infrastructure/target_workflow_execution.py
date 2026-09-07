@@ -21,6 +21,7 @@ from application.write_workflow import (
 from application.work_control import WorkControlGuard
 from core.identity import ConversationId, TenantId, UserId
 from infrastructure.postgres_target_runtime import PostgresOperationLedger
+from infrastructure.target_agent_result_adapter import fact_from_tool_result
 
 
 class TargetWorkflowExecutor:
@@ -193,6 +194,7 @@ class _ToolPort:
                 str(result.receipt_id),
                 receipt_schema,
                 "TOOL_COMMITTED",
+                facts=(fact_from_tool_result(item, result),),
             )
         if str(result.effect_status).lower() == "not_committed":
             return WriteToolOutcome(
@@ -258,6 +260,7 @@ class _ToolReconciler:
                 receipt_id,
                 item.expected_output_schema,
                 "RECONCILED_COMMITTED",
+                facts=(fact_from_tool_result(item, result),),
             )
         return WriteToolOutcome(
             WriteOutcomeStatus.OUTCOME_UNKNOWN,
