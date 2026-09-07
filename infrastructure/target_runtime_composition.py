@@ -169,6 +169,7 @@ async def build_target_runtime(
                 model_profile=conversation_profile,
                 synthesis_profile=model_policy.profile(ModelRole.SYNTHESIS),
                 max_tokens=conversation_output_tokens,
+                callbacks=(langfuse_sink.callback(),) if langfuse_sink else (),
             ),
             context_budget=conversation_context_budget,
             synthesis_context_budget=synthesis_context_budget,
@@ -191,13 +192,15 @@ async def build_target_runtime(
             knowledge_verifier = AnswerVerifier(
                 model_client=framework_model(model_policy.profile(ModelRole.VERIFIER), provider_config, max_tokens=4096),
                 model_profile=model_policy.profile(ModelRole.VERIFIER),
+                callbacks=(langfuse_sink.callback(),) if langfuse_sink else (),
             )
         assembler = ResponseAssembler(conversation_agent,
                                       fallback_locale=(response_locale if response_locale is not None
                                                        else os.getenv("TARGET_RESPONSE_LOCALE", "zh-CN")),
                                       internal_tool_names=tool_manager.registered_tool_names,
                                       knowledge_verifier=knowledge_verifier,
-                                      knowledge_source_validator=knowledge_source_validator)
+                                      knowledge_source_validator=knowledge_source_validator,
+                                      trace_sink=langfuse_sink)
         application = TargetChatApplication(
             manager=manager,
             admission=PostgresTargetAdmission(postgres_pool, durable=True),

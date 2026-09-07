@@ -4,6 +4,16 @@
 
 ### 最新状态（优先于下面按时间保留的记录）
 
+- v11 诊断接线已补齐：主 Agent planning/compose 和核验使用现有 Langfuse SDK callback；
+  失败保留 stage、因果链、retryable，贯通追问异常、发布重放、任务终态和 checkpoint。
+  325 项集中测试通过（含真实 PostgreSQL），原任务仅回复生成的一次新采样成功但未核验，不能反推原失败原因。
+  写入前后事实冲突、通用兜底表达和审批/追问归属仍 open；无新增官方评测成绩。
+  证据：artifacts/eval/tau3-main-dev2-2026-09-07-bound-questions-v11/diagnostics-followup.md。
+
+- 用户要求定位 v11 多轮兜底根因，diagnosis_in_progress：核对原轨迹、Langfuse 和仅表达阶段重放；
+  不再把 ASSEMBLY_INVALID/COMPOSER_FALLBACK 当根因，不执行业务工具，不更改生产策略。
+  已发现 composition provider 未接 Langfuse callbacks，且 catch-all 丢具体异常；原始生成输出不可直接从现有会话追踪恢复。
+
 - v11 实测完成：任务 0 ERROR/null，前两轮追问成功，第三轮 ASSEMBLY_INVALID，未写入；
   任务 1 官方 ALL/ENV/ACTION 1.0、db_match=true，换货一次，但第 3/4/6/7/8 轮 composer fallback、
   第 9 轮安全兜底，用户对完成状态仍困惑。partial_business_success / customer_dialogue_quality_open。

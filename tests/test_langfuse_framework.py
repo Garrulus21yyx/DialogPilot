@@ -73,6 +73,38 @@ def test_langfuse_disabled_and_missing_credentials(monkeypatch):
         LangfuseTraceSink.from_env()
 
 
+def test_conversation_failure_keeps_generation_and_diagnostic_in_same_trace():
+    from core.model_policy import ModelProfile
+    from infrastructure.target_conversation_provider import AnthropicConversationPlanningProvider
+    from tests.framework_structured_stub import models
+    from tests.test_bound_question_contract import fixture
+    from application.response_assembly import ResponseAssembler
+    exporter = InMemorySpanExporter()
+    key = 'pk-lf-test-' + uuid4().hex
+    client = Langfuse(public_key=key, secret_key='test-only', base_url='http://127.0.0.1:1',
+        tracer_provider=TracerProvider(), span_exporter=exporter, mask=mask_observation)
+    sink = object.__new__(LangfuseTraceSink)
+    sink.client, sink.public_key = client, key
+    provider = AnthropicConversationPlanningProvider(models({'wrong': 'candidate'}, name='submit_composed_response'),
+        model_profile=ModelProfile('test'), synthesis_profile=ModelProfile('test'), callbacks=(sink.callback(),))
+    board, specs = fixture()
+    try:
+        with client.start_as_current_observation(name='turn'):
+            result = asyncio.run(ResponseAssembler(provider, trace_sink=sink)._assemble_candidate(
+                board, current_message='Continue', requested_inputs=specs))
+        client.flush()
+        spans = exporter.get_finished_spans()
+        generations = [s for s in spans if s.attributes.get('langfuse.observation.type') == 'generation']
+        failures = [s for s in spans if s.name == 'composition_model']
+        assert len(generations) == len(failures) == 1
+        assert len({s.context.trace_id for s in spans}) == 1
+        assert 'candidate' in str(generations[0].attributes)
+        assert failures[0].attributes['langfuse.observation.level'] == 'ERROR'
+        assert result.diagnostics[0].detail['exception_chain'][-1]['type'] == 'ValidationError'
+    finally:
+        client.shutdown()
+
+
 def test_mask_preserves_visible_values_and_removes_nested_sensitive_fields():
     source = {"content": [{"type": "thinking", "thinking": "hidden"},
                           {"type": "text", "text": "Refund $13.46; email a@example.com"}],

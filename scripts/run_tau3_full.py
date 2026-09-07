@@ -135,7 +135,8 @@ async def run(args):
                             knowledge_verifier=ObservedVerifier(AnswerVerifier(
                                 framework_model(
                                     policy.profile(ModelRole.VERIFIER), {"api_key": values["ANTHROPIC_API_KEY"], "base_url": policy.base_url}, max_tokens=4096),
-                                model_profile=policy.profile(ModelRole.VERIFIER)), agent.trace))
+                                model_profile=policy.profile(ModelRole.VERIFIER),
+                                callbacks=(langfuse_sink.callback(),) if langfuse_sink else ()), agent.trace))
                         agent.configure(components, pool, framework_model(profile,
                             {"api_key": values["ANTHROPIC_API_KEY"], "base_url": policy.base_url},
                             max_tokens=200))

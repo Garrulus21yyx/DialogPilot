@@ -8,6 +8,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Awaitable, Callable, Mapping, Protocol
 
 from application.admission_contract import AdmissionConflict, ClaimStart
+from application.chat_contracts import StageObservation, StageStatus
 from application.chat_contracts import Accepted, Cancelled, ChatCommand, ChatOutcome, Completed, Conflict, Expired, Failed, HandedOff, NeedsInput, Reconciling, Rejected
 from application.target_chat_application import (
     TargetAdmissionStatus,
@@ -308,6 +309,7 @@ def terminal_from_outcome(outcome: ChatOutcome) -> TargetRunTerminal:
             "COMPLETED", {
                 "response_id": outcome.response_id,
                 "response": dict(outcome.response),
+                "stages": [stage.to_dict() for stage in outcome.stages],
             }, outcome.response_id,
         )
     if isinstance(outcome, NeedsInput):
@@ -355,14 +357,17 @@ def terminal_from_outcome(outcome: ChatOutcome) -> TargetRunTerminal:
             "retryable": False,
             "correlation_id": outcome.correlation_id,
             "safe_message": outcome.safe_message,
+            "stages": [stage.to_dict() for stage in outcome.stages],
         }, outcome.code)
     raise ValueError(f"non-terminal target outcome: {type(outcome).__name__}")
 
 
 def outcome_from_terminal(terminal: TargetRunTerminal) -> ChatOutcome:
     value = dict(terminal.payload)
+    stages = tuple(StageObservation(item['stage'], StageStatus(item['status']), item['detail'])
+                   for item in value.get('stages', ()))
     if terminal.status == "COMPLETED":
-        return Completed(str(value["response_id"]), dict(value["response"]))
+        return Completed(str(value["response_id"]), dict(value["response"]), stages=stages)
     if terminal.status in {"WAITING_INPUT", "WAITING_APPROVAL"}:
         return NeedsInput(
             str(value["workflow_run_id"]), str(value["signal_id"]),
@@ -391,5 +396,6 @@ def outcome_from_terminal(terminal: TargetRunTerminal) -> ChatOutcome:
         return Failed(
             str(value["code"]), False, str(value["correlation_id"]),
             str(value.get("safe_message") or ""),
+            stages=stages,
         )
     raise ValueError(f"unknown target run terminal status {terminal.status!r}")

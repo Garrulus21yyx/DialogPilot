@@ -78,6 +78,7 @@ class _Publication:
         evidence_sha256,
         verifier_status,
         expected_work_controls=(),
+        execution_stages=(),
     ):
         key = str(identity.invocation_key)
         published = PublishedTargetResponse(f"response:{key}", 1, "selected")
@@ -87,7 +88,7 @@ class _Publication:
             "response_seq": published.response_seq,
             "delivery_status": published.delivery_status,
         })
-        self.responses[key] = Completed(published.response_id, body)
+        self.responses[key] = Completed(published.response_id, body, stages=execution_stages)
         return published
 
     def publish_interaction(

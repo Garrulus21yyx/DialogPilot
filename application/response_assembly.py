@@ -4,17 +4,20 @@ from __future__ import annotations
 import json
 import hashlib
 import re
+import logging
 from dataclasses import dataclass
 from enum import Enum
 from typing import Mapping, Protocol
 
 from application.agent_result import AgentResultStatus
+from application.chat_contracts import StageObservation, StageStatus
 from application.composition_output import render_composition, prepare_composition_payload
 
 
 # CJK prose may touch an ID; ASCII identifier characters must not be sliced.
 _REFERENCE = re.compile(r"(?<![A-Za-z_\d])[A-Za-z]{1,20}[-_:]?\d{2,128}(?![A-Za-z_\d])")
 _SUCCESS = {AgentResultStatus.SUCCEEDED, AgentResultStatus.PARTIAL}
+logger = logging.getLogger(__name__)
 
 
 class ResponseAssemblyMode(str, Enum):
@@ -43,6 +46,7 @@ class AssembledResponse:
     verified_text_sha256: str = ""
     approval_operation_key: str = ""
     retryable: bool = False
+    diagnostics: tuple[StageObservation, ...] = ()
 
     @property
     def verified(self) -> bool:
@@ -51,6 +55,7 @@ class AssembledResponse:
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "used_claim_ids", tuple(self.used_claim_ids))
+        object.__setattr__(self, "diagnostics", tuple(self.diagnostics))
         if self.verified_text_sha256 and self.verified_text_sha256 != hashlib.sha256(self.text.encode()).hexdigest():
             raise ValueError("answer text changed after verification")
         if self.approval_operation_key and (not self.verified_text_sha256 or self.verification_status != "PASS"):
@@ -80,7 +85,7 @@ class ResponseAssembler:
 
     def __init__(self, composer: ConversationComposer | None = None, *,
                  knowledge_verifier=None, knowledge_source_validator=None,
-                 fallback_locale="zh-CN", internal_tool_names=()) -> None:
+                 fallback_locale="zh-CN", internal_tool_names=(), trace_sink=None) -> None:
         if fallback_locale not in {"zh-CN", "en"}:
             raise ValueError("unsupported customer fallback locale")
         self.fallback_locale = fallback_locale
@@ -88,6 +93,7 @@ class ResponseAssembler:
         self._composer = composer
         self._knowledge_verifier = knowledge_verifier
         self._knowledge_source_validator = knowledge_source_validator
+        self._trace_sink = trace_sink
 
     async def assemble(self, board, *, current_message: str, system_notice: str = "", conversation_context=None,
                        pending_approval=None, requested_inputs=()) -> AssembledResponse:
@@ -102,7 +108,7 @@ class ResponseAssembler:
                 "I could not prepare the follow-up question. Your progress is saved; please try again later.")
             return AssembledResponse((prelude + "\n" if prelude else "") + notice,
                 ResponseAssemblyMode.TEMPLATE, (), False, "NOT_CHECKED", response.verification_reason,
-                retryable=response.retryable)
+                retryable=response.retryable, diagnostics=response.diagnostics)
         pending = [r.pending_action for r in board.results if r.pending_action]
         operation_key = pending_approval.operation_key if pending_approval else pending[0].operation_key if len(pending) == 1 else ""
         if not requested_inputs and operation_key and response.verified_text_sha256:
@@ -119,6 +125,7 @@ class ResponseAssembler:
         knowledge_failure = any(result.reason_code.startswith("KNOWLEDGE_")
                                 and result.status not in _SUCCESS for result in board.results)
         packs, allowed = [], set()
+        stage = "evidence_assembly"
         try:
             items = {}
             for fact in knowledge_facts:
@@ -142,8 +149,13 @@ class ResponseAssembler:
                 if requested_inputs:
                     return candidate
                 if knowledge_facts or knowledge_failure:
-                    return self._knowledge_fallback(board, system_notice, unavailable=True)
+                    if not candidate.diagnostics:
+                        return self._knowledge_fallback(board, system_notice, unavailable=True)
+                    return replace(self._knowledge_fallback(board, system_notice, unavailable=True),
+                        verification_reason=candidate.verification_reason, retryable=candidate.retryable,
+                        diagnostics=candidate.diagnostics)
                 return candidate
+            stage = "answer_verification"
             if self._knowledge_verifier is None:
                 raise ValueError("answer support verifier unavailable")
             candidate, verdict = await self._verify_with_revision(
@@ -151,17 +163,26 @@ class ResponseAssembler:
                 system_notice=system_notice, pending_approval=pending_approval,
                 requested_inputs=requested_inputs, knowledge_evidence=evidence)
             if not candidate.composer_used:
-                if requested_inputs:
-                    return candidate
-                raise ValueError("revision composition unavailable")
+                if not requested_inputs and (knowledge_facts or knowledge_failure):
+                    return replace(self._knowledge_fallback(board, system_notice, unavailable=True),
+                        verification_reason=candidate.verification_reason, retryable=candidate.retryable,
+                        diagnostics=candidate.diagnostics)
+                return candidate
             if not verdict.publishable or not verdict.grounded:
-                if not requested_inputs:
-                    raise ValueError("composed answer lacks support")
-                return AssembledResponse(system_notice + _render_board(board, locale=self.fallback_locale),
-                    ResponseAssemblyMode.TEMPLATE, (), False, "REJECT", verdict.reason_code.value)
+                failed = self._failed(ValueError(verdict.reason), candidate.text, stage,
+                                      code=verdict.reason_code.value)
+                if knowledge_facts or knowledge_failure:
+                    safe = self._knowledge_fallback(board, system_notice, unavailable=True)
+                else:
+                    safe = replace(failed, text=system_notice + _render_board(board, locale=self.fallback_locale))
+                return replace(safe, verification_reason=failed.verification_reason,
+                               verification_status=verdict.status.value.upper(),
+                               diagnostics=(*candidate.diagnostics, *failed.diagnostics))
+            stage = "citation_validation"
             cited = set(re.findall(r"\[(E[a-zA-Z0-9]+)\]", candidate.text))
             if cited - allowed or (knowledge_facts and not cited):
                 raise ValueError("answer citations do not match supplied evidence")
+            stage = "source_validation"
             if packs and (self._knowledge_source_validator is None
                           or not self._knowledge_source_validator(packs)):
                 raise ValueError("knowledge sources are no longer valid")
@@ -171,13 +192,12 @@ class ResponseAssembler:
                 True, "PASS", "KNOWLEDGE_SUPPORT_CHECKED" if packs else "ANSWER_SUPPORT_CHECKED",
                 hashlib.sha256(candidate.text.encode()).hexdigest())
         except Exception as exc:
-            if requested_inputs:
-                return _assembly_failure(exc, system_notice + _render_board(board, locale=self.fallback_locale))
+            failed = self._failed(exc, system_notice + _render_board(board, locale=self.fallback_locale), stage)
             if knowledge_facts or knowledge_failure:
-                return self._knowledge_fallback(board, system_notice, unavailable=True)
-            return AssembledResponse(
-                system_notice + _render_board(board, locale=self.fallback_locale),
-                ResponseAssemblyMode.TEMPLATE, (), False, "NOT_CHECKED", "ANSWER_SAFE_FALLBACK")
+                return replace(self._knowledge_fallback(board, system_notice, unavailable=True),
+                    verification_reason=failed.verification_reason, retryable=failed.retryable,
+                    diagnostics=failed.diagnostics)
+            return failed
 
     async def _verify_with_revision(self, board, message, candidate, *,
                                     knowledge_evidence=None, conversation_context=None,
@@ -322,27 +342,42 @@ class ResponseAssembler:
         }
         if repair_feedback is not None:
             payload["repair_feedback"] = repair_feedback
+        stage = "composition_payload"
         try:
             payload = prepare_composition_payload(payload)
+            stage = "composition_model"
             raw = await self._composer.compose(payload)
+            stage = "composition_render"
             text, used = render_composition(raw, claims, requested_inputs=requested_inputs)
+            stage = "composition_reference_check"
             text, used = self.prepare_composed_response(
                 text, used, claims, current_message, payload["work_item_outcomes"],
                 conversation_context=conversation_context,
                 requested_inputs=requested_inputs,
             )
         except Exception as exc:
-            if requested_inputs:
-                return _assembly_failure(exc, system_notice + fallback)
-            return AssembledResponse(
-                system_notice + fallback, ResponseAssemblyMode.TEMPLATE,
-                tuple(claim.claim_id for claim in claims), False,
-                "NOT_CHECKED", "COMPOSER_FALLBACK",
-            )
+            return self._failed(exc, system_notice + fallback, stage)
         return AssembledResponse(
             system_notice + text, mode, used, True,
             "PENDING", "COMPOSED_FROM_ALLOWED_CLAIMS",
         )
+
+    def _failed(self, exc, text, stage, *, code=None):
+        from core.framework_models import ModelInvocationError, retryable_model_error
+        from core.tracing import exception_chain
+        retryable = exc.retryable if isinstance(exc, ModelInvocationError) else retryable_model_error(exc)
+        detail = {'code': code or type(exc).__name__, 'retryable': retryable,
+                  'exception_chain': exception_chain(exc)}
+        diagnostic = StageObservation(stage, StageStatus.FAILED, detail)
+        logger.error("Response assembly failed: %s", json.dumps(diagnostic.to_dict(), ensure_ascii=False))
+        if self._trace_sink:
+            try:
+                self._trace_sink.record_failure(diagnostic.to_dict())
+            except Exception:
+                logger.exception("Failure trace export failed; preserving the original diagnostic")
+        return AssembledResponse(text, ResponseAssemblyMode.TEMPLATE, (), False, 'NOT_CHECKED',
+                                code or stage + ':' + type(exc).__name__, retryable=retryable,
+                                diagnostics=(diagnostic,))
 
     @staticmethod
     def prepare_composed_response(text, used, claims, current_message, outcomes, *, conversation_context=None, requested_inputs=()):
@@ -426,14 +461,6 @@ def _input_context(requested_inputs):
     return [{"target_work_item_id": spec.target_work_item_id, "field_name": spec.field_name,
              "value_schema": spec.value_schema, "question_hint": spec.question_hint}
             for spec in requested_inputs]
-
-
-def _assembly_failure(exc, text):
-    from core.framework_models import ModelInvocationError, retryable_model_error
-    retryable = exc.retryable if isinstance(exc, ModelInvocationError) else retryable_model_error(exc)
-    return AssembledResponse(text, ResponseAssemblyMode.TEMPLATE, (), False, "NOT_CHECKED",
-                            "ASSEMBLY_UNAVAILABLE" if retryable else "ASSEMBLY_INVALID",
-                            retryable=retryable)
 
 
 def _allowed_claims(board, pending_approval=None, *, requested_inputs=()) -> tuple[AllowedClaim, ...]:

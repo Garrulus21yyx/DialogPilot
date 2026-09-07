@@ -217,6 +217,7 @@ class TraceRecorder:
     def _redact_text(value: str) -> str:
         text = str(value)
         patterns = (
+            r'''(?i)["'](?:api[_-]?key|password|passwd|secret|token|thinking|reasoning|reasoning_content)["']\s*:\s*(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')''',
             r"(?i)\bBearer\s+[A-Za-z0-9._~+/=-]+",
             r"\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b",
             r"(?i)\b(api[_-]?key|password|passwd|secret|token)\s*[:=]\s*[^\s,;]+",
@@ -226,3 +227,22 @@ class TraceRecorder:
         for pattern in patterns:
             text = re.sub(pattern, "[REDACTED]", text, flags=re.IGNORECASE)
         return text
+
+
+def exception_chain(error: Exception) -> list[dict[str, object]]:
+    """Preserve causal identities without copying SDK bodies or schema instances."""
+    from jsonschema.exceptions import ValidationError
+    chain, seen = [], set()
+    while error is not None and id(error) not in seen:
+        seen.add(id(error))
+        item = {"type": type(error).__name__}
+        if isinstance(error, ValidationError):
+            item.update(validator=error.validator, path=list(error.absolute_path),
+                        schema_path=list(error.absolute_schema_path))
+        elif hasattr(error, "response") or hasattr(error, "request"):
+            item["status_code"] = getattr(error, "status_code", None)
+        else:
+            item["message"] = TraceRecorder._redact_text(str(error))
+        chain.append(item)
+        error = error.__cause__ or error.__context__
+    return chain

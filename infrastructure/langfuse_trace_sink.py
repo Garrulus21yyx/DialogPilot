@@ -75,6 +75,14 @@ class LangfuseTraceSink:
     def close(self) -> None:
         self.client.shutdown()
 
+    def record_failure(self, diagnostic) -> None:
+        """Attach failure diagnostics to the current SDK trace."""
+        with self.client.start_as_current_observation(
+            name=diagnostic['stage'], as_type='span', input=diagnostic,
+            level='ERROR', status_message=diagnostic['detail']['code'],
+        ):
+            pass
+
 
 def _observation_type(name: str, kind: str) -> str:
     normalized = str(kind or "").casefold()

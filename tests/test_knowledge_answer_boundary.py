@@ -61,7 +61,7 @@ def test_citations_and_semantic_support_are_both_required_for_single_result():
     for text,passed,invalid in [('所有订单均可退。',False,False),('仅未拆封可退。',True,True)]:
         verifier=Verifier(passed)
         result=asyncio.run(ResponseAssembler(Author(text,invalid), knowledge_verifier=verifier, knowledge_source_validator=lambda packs: True).assemble(board('internal notes'),current_message='能退吗'))
-        assert result.verification_reason=='KNOWLEDGE_SAFE_ABSTENTION'
+        assert result.verification_reason == ('composition_render:ValueError' if invalid else 'ungrounded')
         assert text not in result.text
     verifier=Verifier(True)
     text='仅未拆封商品可退。 '+citation
@@ -120,7 +120,7 @@ def test_withdrawal_during_semantic_verification_prevents_publication():
         'evidence_ids': [evidence_id('child-1')]}]})
     result=asyncio.run(ResponseAssembler(composer, knowledge_verifier=WithdrawDuringVerify(True),
         knowledge_source_validator=lambda packs: live[0]).assemble(board(text),current_message='能退吗'))
-    assert result.verification_reason=='KNOWLEDGE_SAFE_ABSTENTION'
+    assert result.verification_reason=='source_validation:ValueError'
     assert text not in result.text
     assert len(composer.calls) == 1 and not live[0]
 

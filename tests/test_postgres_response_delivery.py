@@ -153,6 +153,21 @@ def test_canonical_publication_recovers_complete_public_response(compat_componen
     assert recovered.stages[0].stage == "verification"
 
 
+def test_target_publication_preserves_failure_diagnostics_on_replay(compat_components):
+    from application.response_assembly import ResponseAssembler
+    from infrastructure.target_chat_adapters import PostgresTargetPublication
+    _, identity, service = compat_components
+    adapter = PostgresTargetPublication(service)
+    failed = ResponseAssembler()._failed(ValueError('structured_output_incomplete'), 'Safe answer', 'composition_model')
+    published = adapter.publish(identity, response_text=failed.text,
+        public_response={'verification_reason_code': failed.verification_reason, 'verified': False},
+        bundle_version='v1', evidence_sha256='a' * 64, verifier_status='unknown',
+        execution_stages=failed.diagnostics)
+    replay = adapter.completed(identity)
+    assert replay.response_id == published.response_id
+    assert replay.stages == failed.diagnostics
+
+
 def test_cross_user_response_is_not_enumerable(compat_components):
     _, identity, service = compat_components
     response = service.select_response(

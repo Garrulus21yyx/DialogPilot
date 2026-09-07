@@ -164,7 +164,10 @@ def test_interaction_failure_retains_success_and_never_publishes_question_hint(f
     composer = Composer()
     result = asyncio.run(ResponseAssembler(composer, knowledge_verifier=Verifier(False)).assemble(
         _board(_verified_order_result(), waiting), current_message='继续', requested_inputs=(spec,)))
-    assert result.verification_reason == ('ungrounded' if failure == 'rejected' else 'ASSEMBLY_INVALID')
+    assert result.verification_reason == {'rejected': 'ungrounded',
+        'exception': 'composition_model:RuntimeError',
+        'invalid_output': 'composition_render:ValueError'}[failure]
+    assert result.diagnostics
     assert not result.retryable
     assert '已发货' in result.text and '已保留处理进度' in result.text
     assert 'UNVERIFIED' not in result.text
@@ -265,7 +268,9 @@ def test_unsupported_reference_from_composer_falls_back_without_losing_results()
     assert "DP1234" in assembled.text
     assert "商品信息已找到" not in assembled.text  # Unverified candidate is not a fallback fact.
     assert "DP9999" not in assembled.text
-    assert assembled.verification_reason == "COMPOSER_FALLBACK"
+    assert assembled.verification_reason == "composition_reference_check:ValueError"
+    assert assembled.diagnostics[0].detail['exception_chain'][0]['message'] == (
+        'composer introduced an unsupported business reference')
 
 
 @pytest.mark.parametrize('locale,expected', [('zh-CN', '请求已提交。'), ('en', 'The request has been submitted.')])

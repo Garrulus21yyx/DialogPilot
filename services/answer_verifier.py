@@ -189,9 +189,10 @@ class AnswerVerifier:
             from core.framework_models import ModelInvocationError
             if isinstance(exc, ModelInvocationError) and exc.retryable:
                 raise
+            from core.tracing import exception_chain
             return VerificationResult(
                 status=VerificationStatus.UNKNOWN, grounded=False, need_escalation=True,
-                reason=f"verification unavailable: {type(exc).__name__}",
+                reason="verification unavailable: " + json.dumps(exception_chain(exc), ensure_ascii=False),
                 reason_code=(VerificationReasonCode.INVALID_CONTRACT
                              if isinstance(exc, (ValueError, TypeError))
                              else VerificationReasonCode.VERIFIER_UNAVAILABLE),

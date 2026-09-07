@@ -189,6 +189,8 @@ def test_checkpoint_does_not_make_exhausted_question_review_retryable():
         asyncio.run(runtime.execute(_identity(), TurnObservations('查询订单 DP1234')))
     assert not error.value.retryable
     assert error.value.reason == 'ungrounded'
+    assert error.value.diagnostics[0].stage == 'answer_verification'
+    assert error.value.diagnostics[0].detail['code'] == 'ungrounded'
     assert composer.calls == 2
 
 

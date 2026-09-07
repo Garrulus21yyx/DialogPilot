@@ -55,7 +55,7 @@ def test_business_composition_requires_support_gate(passed):
         assert result.verification_reason=='ANSWER_SUPPORT_CHECKED'
         assert result.text==text
     else:
-        assert result.verification_reason=='ANSWER_SAFE_FALLBACK'
+        assert result.verification_reason == ('ungrounded' if passed is False else 'answer_verification:ValueError')
         assert '主动跟进' not in result.text and '已发货' in result.text
     if verifier:
         assert verifier.calls[0][0][1]==text
@@ -69,7 +69,8 @@ def test_verifier_exception_retains_authoritative_business_result():
     result=asyncio.run(ResponseAssembler(composer,knowledge_verifier=Broken()).assemble(
         _board(_verified_order_result(response='我们会主动跟进。'),_result('p','general',response='商品资料已找到。')),
         current_message='查订单'))
-    assert result.verification_reason=='ANSWER_SAFE_FALLBACK'
+    assert result.verification_reason == 'answer_verification:TimeoutError'
+    assert result.retryable
     assert '这是合成文字' not in result.text and '主动跟进' not in result.text and '已发货' in result.text
 
 

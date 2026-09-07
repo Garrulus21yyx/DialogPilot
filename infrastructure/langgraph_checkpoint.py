@@ -70,6 +70,8 @@ class TargetCheckpointSerializer(JsonPlusSerializer):
 
 
 _TARGET_CHECKPOINT_TYPES = (
+    ("application.chat_contracts", "StageObservation"),
+    ("application.chat_contracts", "StageStatus"),
     ("core.identity", "TenantId"),
     ("core.identity", "UserId"),
     ("core.identity", "ConversationId"),

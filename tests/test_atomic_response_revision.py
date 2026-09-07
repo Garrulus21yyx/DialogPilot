@@ -51,7 +51,7 @@ def test_second_rejection_falls_back_without_third_revision():
     result=asyncio.run(ResponseAssembler(composer,knowledge_verifier=verifier).assemble(
         _board(_verified_order_result()),current_message='查订单状态'))
     assert len(composer.calls)==2 and len(verifier.calls)==2
-    assert result.verification_reason=='ANSWER_SAFE_FALLBACK'
+    assert result.verification_reason=='ungrounded'
     assert result.text=='订单 DP1234 当前状态为已发货。'
 
 
@@ -60,7 +60,7 @@ def test_mismatched_verification_cannot_authorize_candidate_or_revision():
     result=asyncio.run(ResponseAssembler(composer,knowledge_verifier=verifier).assemble(
         _board(_verified_order_result()),current_message='查订单状态'))
     assert len(composer.calls)==1 and len(verifier.calls)==1
-    assert result.verification_reason=='ANSWER_SAFE_FALLBACK'
+    assert result.verification_reason=='answer_verification:ValueError'
     assert '保证退款' not in result.text
 
 

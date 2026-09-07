@@ -74,6 +74,7 @@ class TargetPublicationPort(Protocol):
         evidence_sha256: str,
         verifier_status: str,
         expected_work_controls: tuple[WorkControlBinding, ...] = (),
+        execution_stages: tuple = (),
     ) -> PublishedTargetResponse: ...
 
     def publish_interaction(
@@ -209,7 +210,8 @@ class TargetChatApplication:
                     "The planning service could not complete this request.")
             if isinstance(exc, InteractionAssemblyUnavailable):
                 return Failed("target_interaction_" + exc.reason.lower(), exc.retryable,
-                    str(identity.invocation_key), "The follow-up question could not be prepared. Progress is saved.")
+                    str(identity.invocation_key), "The follow-up question could not be prepared. Progress is saved.",
+                    stages=exc.diagnostics)
             logger.exception(
                 "Target turn execution failed invocation_key=%s",
                 identity.invocation_key,
@@ -542,6 +544,7 @@ class TargetChatApplication:
             bundle_version=self._bundle_version,
             evidence_sha256=evidence_sha,
             verifier_status=verifier_status,
+            execution_stages=assembly.diagnostics if assembly else (),
             expected_work_controls=tuple(
                 item.control for item in work_items if item.control is not None
             ),
@@ -551,7 +554,7 @@ class TargetChatApplication:
             "response_seq": published.response_seq,
             "delivery_status": published.delivery_status,
         })
-        return Completed(published.response_id, public_response)
+        return Completed(published.response_id, public_response, stages=assembly.diagnostics if assembly else ())
 
 
 def _terminal_response(reason_code: str, *, locale="zh-CN") -> str:

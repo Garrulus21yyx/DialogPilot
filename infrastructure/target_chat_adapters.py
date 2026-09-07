@@ -188,6 +188,7 @@ class PostgresTargetPublication:
         evidence_sha256,
         verifier_status,
         expected_work_controls=(),
+        execution_stages=(),
     ):
         selected = self._delivery.select_response(
             user_id=str(identity.user_id),
@@ -209,6 +210,7 @@ class PostgresTargetPublication:
                 "bundle_version": bundle_version,
                 "index_manifest_sha256": _NO_INDEX_MANIFEST_SHA256,
                 "public_response": dict(public_response),
+                "execution_stages": [item.to_dict() for item in execution_stages],
                 "expected_work_controls": [
                     dict(item.__dict__) for item in expected_work_controls
                 ],

@@ -101,7 +101,10 @@ def test_error_classification_survives_question_assembly(stage, transient):
         board, current_message='Continue', requested_inputs=specs))
     assert not result.verified
     assert result.retryable is transient
-    assert result.verification_reason == ('ASSEMBLY_UNAVAILABLE' if transient else 'ASSEMBLY_INVALID')
+    expected_stage = 'composition_model' if stage == 'compose' else 'answer_verification'
+    assert result.verification_reason == expected_stage + ':ModelInvocationError'
+    assert result.diagnostics[0].stage == expected_stage
+    assert result.diagnostics[0].detail['retryable'] is transient
 
 
 @pytest.mark.parametrize('transient', (False, True))
@@ -126,7 +129,8 @@ def test_failed_revision_is_not_reverified_or_reclassified(transient):
         board, current_message='Continue', requested_inputs=specs))
     assert len(verifier.calls) == 1
     assert result.retryable is transient
-    assert result.verification_reason == ('ASSEMBLY_UNAVAILABLE' if transient else 'ASSEMBLY_INVALID')
+    assert result.verification_reason == 'composition_model:ModelInvocationError'
+    assert result.diagnostics[0].detail['retryable'] is transient
 
 
 def test_bound_question_passes_actual_provider_sdk_output_contract():
