@@ -147,6 +147,8 @@ async def build_target_runtime(
                 skill_executors={"product_identification": product_executor},
                 context_budget=context_budget,
                 control_guard=control_guard,
+                callbacks=(langfuse_sink.callback(),) if langfuse_sink else (),
+                trace_sink=langfuse_sink,
             )
             for agent in registry.agents
         }

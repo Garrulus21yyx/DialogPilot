@@ -66,6 +66,7 @@ async def run(args):
     standard_errors = logging.FileHandler(args.output / "application-errors.log")
     standard_errors.setLevel(logging.ERROR)
     logging.getLogger("application").addHandler(standard_errors)
+    logging.getLogger("infrastructure").addHandler(standard_errors)
     db_name = "dialogpilot_tau3_full_" + uuid.uuid4().hex[:12]
     parts = urlsplit(args.database_url)
     db_url = urlunsplit((parts.scheme, parts.netloc, "/" + db_name, parts.query, ""))
@@ -75,6 +76,8 @@ async def run(args):
     manifest = {"status": "RUNNING", "split": "train", "task_ids": [t.id for t in tasks],
                 "started_at": datetime.now(timezone.utc).isoformat(),
                 "project_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
+                "tracked_worktree_dirty": bool(subprocess.check_output(
+                    ["git", "status", "--porcelain", "--untracked-files=no"], text=True).strip()),
                 "tau_commit": subprocess.check_output(["git", "-C", str(args.tau_source), "rev-parse", "HEAD"], text=True).strip(),
                 "configuration": "Target production application, one registered retail domain, encoder disabled",
                 "max_steps": args.max_steps, "max_model_calls_per_work_item": 20,
@@ -85,7 +88,7 @@ async def run(args):
                 "user_max_tokens": args.user_max_tokens,
                 "evaluation": "official ALL plus ENV/ACTION diagnostics, strict replay",
                 "source_sha256": {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
-                                  for folder in ("application", "infrastructure", "evaluation")
+                                  for folder in ("core", "application", "infrastructure", "evaluation", "scripts")
                                   for path in sorted((ROOT / folder).glob("*.py"))},
                 "limitations": ["selected development tasks are not heldout performance",
                                 "no independent human-quality assessment", "no remote idempotency or atomic entity CAS API",
@@ -144,7 +147,7 @@ async def run(args):
                                 callbacks=(langfuse_sink.callback(),) if langfuse_sink else ()), agent.trace))
                         agent.configure(components, pool, framework_model(profile,
                             {"api_key": values["ANTHROPIC_API_KEY"], "base_url": policy.base_url},
-                            max_tokens=200))
+                            max_tokens=200), callbacks=(langfuse_sink.callback(),) if langfuse_sink else ())
                         row["langfuse_session_id"] = agent.conversation_id if langfuse_sink else None
                         user_parameters = simulator_parameters(args.user_max_tokens)
                         user = UserSimulator(llm=args.user_model, instructions=str(task.user_scenario),
@@ -180,7 +183,9 @@ async def run(args):
                                                'function': frame.name}
                                               for frame in traceback.extract_tb(exc.__traceback__)]
                         row.update(status="ERROR", error_type=type(exc).__name__,
-                                   error=str(exc).replace(values["ANTHROPIC_API_KEY"], "[REDACTED]")[:240])
+                                   error=user_diagnostics.sanitize(str(exc))[:240])
+                        from core.tracing import exception_chain
+                        row["exception_chain"] = exception_chain(exc)
                     finally:
                         row['simulator_diagnostics'] = await asyncio.to_thread(user_diagnostics.task_summary, task.id)
                         agent.stop()
@@ -209,6 +214,7 @@ async def run(args):
         write(args.output / "manifest.json", manifest)
         logger.remove(error_sink)
         logging.getLogger("application").removeHandler(standard_errors)
+        logging.getLogger("infrastructure").removeHandler(standard_errors)
         standard_errors.close()
 
 

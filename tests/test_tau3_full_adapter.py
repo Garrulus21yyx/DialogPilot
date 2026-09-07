@@ -33,7 +33,8 @@ def test_text_approval_uses_sdk_contract_and_preserves_full_reply(decision, expe
         agent.approval_model = models({"decision": decision}, name="submit_approval_decision")[ModelRole.INTENT]
         await agent._turn(text)
         assert agent.events.get_nowait().content == "Here are the next steps."
-        assert agent.trace[0] == {"approval_classification": decision}
+        assert agent.trace[0] == {"approval_classification": decision, "conversation_id": "conversation",
+                                  "turn": 1, "approval_id": "approval"}
 
     asyncio.run(run())
     assert calls[0].message == text

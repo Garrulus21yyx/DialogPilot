@@ -19,6 +19,7 @@ from langgraph.types import Command
 from application.context_budget import ModelContextBudgetExceeded
 from infrastructure.target_result_archive import ResultArchiveError, result_pointer
 from core.framework_models import invoke_model
+from core.tracing import exception_chain
 
 
 class ResultState(AgentState):
@@ -48,6 +49,7 @@ class ToolResultPersistence(AgentMiddleware):
             return Command(update={"messages": [response], "archive_failed": True,
                 "tool_observations": {response.tool_call_id: {"inline_artifact": artifact,
                     "archive_error": {"type": type(exc).__name__,
+                        "call_id": response.tool_call_id, "exception_chain": exception_chain(exc),
                         "retryable": isinstance(exc, ResultArchiveError) and exc.retryable}}}})
         result = artifact.get("result", {})
         envelope = {key: result[key] for key in

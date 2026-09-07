@@ -222,11 +222,15 @@ class TraceRecorder:
 
 def exception_chain(error: Exception) -> list[dict[str, object]]:
     """Preserve causal identities without copying SDK bodies or schema instances."""
+    import traceback
     from jsonschema.exceptions import ValidationError
     chain, seen = [], set()
     while error is not None and id(error) not in seen:
         seen.add(id(error))
         item = {"type": type(error).__name__}
+        if error.__traceback__ is not None:
+            item["frames"] = [{"file": frame.filename, "line": frame.lineno, "function": frame.name}
+                              for frame in traceback.extract_tb(error.__traceback__)]
         if isinstance(error, ValidationError):
             item.update(validator=error.validator, path=list(error.absolute_path),
                         schema_path=list(error.absolute_schema_path))

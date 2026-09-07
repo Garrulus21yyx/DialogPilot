@@ -17,6 +17,9 @@ from tau2.data_model.message import AssistantMessage, MultiToolMessage, ToolCall
 from application.chat_contracts import ChatCommand, Completed, Accepted, NeedsInput
 from infrastructure.postgres_target_runtime import PostgresConversationStateStore
 from core.structured_model import structured_call
+from core.tracing import exception_chain
+from core.framework_models import retryable_model_error
+from langfuse import propagate_attributes
 
 
 APPROVAL_SYSTEM = """Interpret the reply to the exact pending action shown in the input.
@@ -57,12 +60,14 @@ class Tau3TargetAgent(HalfDuplexAgent):
         self.future = None
         self.trace = []
         self.components = None
+        self.approval_callbacks = ()
 
-    def configure(self, components, pool, approval_model):
+    def configure(self, components, pool, approval_model, *, callbacks=()):
         self.components = components
         self.states = PostgresConversationStateStore(pool)
         self.pool = pool
         self.approval_model = approval_model
+        self.approval_callbacks = tuple(callbacks)
         self.conversation_id = "tau3-" + uuid.uuid4().hex
 
     async def call_tool(self, name, arguments):
@@ -103,14 +108,24 @@ class Tau3TargetAgent(HalfDuplexAgent):
         # The benchmark is text-only; production UI supplies explicit typed
         # decisions. Classify assent against the exact displayed proposal, not
         # against task answers. Ambiguous/corrective input never grants approval.
-        response = await structured_call(self.approval_model,
-            name="submit_approval_decision", schema=APPROVAL_SCHEMA,
-            system=APPROVAL_SYSTEM, content=json.dumps({
-                "action": pending.action_ref,
-                "arguments": {arg.name: arg.value for arg in pending.arguments},
-                "reply": text}, ensure_ascii=False))
+        identity = {"conversation_id": self.conversation_id, "turn": self.turn,
+                    "approval_id": pending.approval_id}
+        try:
+            with propagate_attributes(session_id=self.conversation_id):
+                response = await structured_call(self.approval_model,
+                    name="submit_approval_decision", schema=APPROVAL_SCHEMA,
+                    system=APPROVAL_SYSTEM, content=json.dumps({
+                        "action": pending.action_ref,
+                        "arguments": {arg.name: arg.value for arg in pending.arguments},
+                        "reply": text}, ensure_ascii=False),
+                    callbacks=self.approval_callbacks, metadata=identity)
+        except Exception as exc:
+            self.trace.append({**identity, "stage": "approval_classification", "status": "failed",
+                "detail": {"code": type(exc).__name__, "retryable": retryable_model_error(exc),
+                           "exception_chain": exception_chain(exc)}})
+            raise
         value = response["decision"]
-        self.trace.append({"approval_classification": value})
+        self.trace.append({**identity, "approval_classification": value})
         return {"approve": True, "deny": False}.get(value)
 
     async def _turn(self, text):

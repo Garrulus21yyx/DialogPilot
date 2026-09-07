@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 from contextlib import nullcontext
 from dataclasses import replace
 from typing import Annotated, Any, Mapping
@@ -54,6 +55,8 @@ from core.framework_models import ModelInvocationError
 from infrastructure.target_action_preparation import TargetActionPreparation
 from mcp.tool_manager import MCPToolManager, ToolCallStatus, ToolResult
 
+logger = logging.getLogger(__name__)
+
 
 class TargetFrameworkAgent:
     """Execute one delegated read goal through a governed framework Agent."""
@@ -73,6 +76,7 @@ class TargetFrameworkAgent:
         context_budget: ContextBudgetManager | None = None,
         control_guard: WorkControlGuard | None = None,
         callbacks: tuple = (),
+        trace_sink=None,
     ) -> None:
         self._model = model
         self._tool_manager = tool_manager
@@ -82,6 +86,7 @@ class TargetFrameworkAgent:
         self._context_budget = context_budget or ContextBudgetManager()
         self._control_guard = control_guard
         self._callbacks = callbacks
+        self._trace_sink = trace_sink
         self._archive = TargetResultArchive(result_store, subject_fence=result_subject_fence)
 
     async def __call__(self, context: AgentContextView) -> AgentResult:
@@ -112,12 +117,12 @@ class TargetFrameworkAgent:
                 fact_values.append(value)
             prompt = self._build_prompt(context, fact_values=fact_values)
             tools = self._tools(context)
-        except ModelContextBudgetExceeded:
-            return self._failure(context, "CONTEXT_BUDGET_EXCEEDED")
+        except ModelContextBudgetExceeded as exc:
+            return self._failure(context, "CONTEXT_BUDGET_EXCEEDED", error=exc, stage="agent_context")
         except ResultArchiveError as exc:
-            return self._failure(context, "RESULT_ARCHIVE_UNAVAILABLE", retryable=exc.retryable)
-        except ValueError:
-            return self._failure(context, "INVALID_AGENT_CAPABILITY_ENVELOPE")
+            return self._failure(context, "RESULT_ARCHIVE_UNAVAILABLE", retryable=exc.retryable, error=exc, stage="agent_context")
+        except ValueError as exc:
+            return self._failure(context, "INVALID_AGENT_CAPABILITY_ENVELOPE", error=exc, stage="agent_context")
 
         # Work IDs are turn-local. SDK add_messages replaces equal IDs in place;
         # bind the prompt to the execution contract so a resumed revision appends
@@ -176,24 +181,24 @@ class TargetFrameworkAgent:
                         pass
         except WorkSuperseded:
             return self._control_guard.superseded_result(item)
-        except (GraphRecursionError, ModelCallLimitExceededError, ToolCallLimitExceededError):
-            failure = self._failure(context, "AGENT_STEP_BUDGET_EXCEEDED")
-        except ModelContextBudgetExceeded:
-            failure = self._failure(context, "CONTEXT_BUDGET_EXCEEDED")
+        except (GraphRecursionError, ModelCallLimitExceededError, ToolCallLimitExceededError) as exc:
+            failure = self._failure(context, "AGENT_STEP_BUDGET_EXCEEDED", error=exc)
+        except ModelContextBudgetExceeded as exc:
+            failure = self._failure(context, "CONTEXT_BUDGET_EXCEEDED", error=exc)
         except ResultArchiveError as exc:
-            failure = self._failure(context, "RESULT_ARCHIVE_UNAVAILABLE", retryable=exc.retryable)
-        except TimeoutError:
+            failure = self._failure(context, "RESULT_ARCHIVE_UNAVAILABLE", retryable=exc.retryable, error=exc)
+        except TimeoutError as exc:
             failure = self._failure(
-                context, "AGENT_EXECUTION_TIMEOUT", retryable=True,
+                context, "AGENT_EXECUTION_TIMEOUT", retryable=True, error=exc,
             )
         except ModelInvocationError as exc:
             failure = self._failure(context, f"MODEL_INVOCATION_FAILED:{exc.stage}:{exc.error_type}",
-                                    retryable=exc.retryable)
+                                    retryable=exc.retryable, error=exc)
         except Exception as exc:
             failure = self._failure(
                 context,
                 f"AGENT_INTERNAL_FAILURE:{type(exc).__name__}",
-                retryable=False,
+                retryable=False, error=exc,
             )
         if self._control_guard is not None and not self._control_guard.is_current(
             item, context.trusted_context,
@@ -209,7 +214,7 @@ class TargetFrameworkAgent:
                 else message.id not in history_ids)
         ]
         observed = []
-        feedback = []
+        feedback = list(failure.execution_feedback) if failure else []
         for record in output.get("tool_observations", {}).values():
             try:
                 if "inline_artifact" in record:
@@ -224,9 +229,12 @@ class TargetFrameworkAgent:
                         "success": restored.success, "error": restored.error,
                         "effect_status": restored.effect_status})
             except ResultArchiveError as exc:
-                failure = self._failure(context, "RESULT_ARCHIVE_UNAVAILABLE", retryable=exc.retryable)
-            except (ValueError, KeyError, TypeError):
-                failure = self._failure(context, "RESULT_ARTIFACT_INVALID")
+                failure = self._failure(context, "RESULT_ARCHIVE_UNAVAILABLE", retryable=exc.retryable,
+                                        error=exc, stage="agent_result_restore")
+                feedback.extend(failure.execution_feedback)
+            except (ValueError, KeyError, TypeError) as exc:
+                failure = self._failure(context, "RESULT_ARTIFACT_INVALID", error=exc, stage="agent_result_restore")
+                feedback.extend(failure.execution_feedback)
         result = _adapt_framework_result(
             context,
             tuple(observed),
@@ -242,7 +250,9 @@ class TargetFrameworkAgent:
             errors = [record["archive_error"] for record in output.get("tool_observations", {}).values()
                       if "archive_error" in record]
             failure = self._failure(context, "RESULT_ARCHIVE_UNAVAILABLE",
-                retryable=bool(errors) and all(error["retryable"] for error in errors))
+                retryable=bool(errors) and all(error["retryable"] for error in errors),
+                stage="agent_result_archive", related_errors=errors)
+            feedback.extend(failure.execution_feedback)
         if output.get("progress_blocked") and result.pending_action is None:
             result = replace(result, status=AgentResultStatus.BLOCKED,
                 reason_code="AGENT_NO_PROGRESS", retryable=False, candidate_response=None)
@@ -508,7 +518,27 @@ class TargetFrameworkAgent:
         reason: str,
         *,
         retryable: bool = False,
+        error: Exception | None = None,
+        stage: str = "agent_execution",
+        related_errors=(),
     ) -> AgentResult:
+        from core.tracing import exception_chain
+        item = context.work_item
+        detail = {"code": reason, "retryable": retryable,
+                  "work_item_id": item.work_item_id, "owner_agent": item.owner_agent,
+                  "invocation_key": context.trusted_context.get("invocation_key"),
+                  "conversation_id": context.trusted_context.get("conversation_id"),
+                  "control_id": item.control.control_id if item.control else None,
+                  "revision": item.control.revision if item.control else None,
+                  "exception_chain": exception_chain(error) if error is not None else [],
+                  "related_errors": list(related_errors)}
+        diagnostic = {"stage": stage, "status": "failed", "detail": detail}
+        logger.error("Domain execution failed: %s", json.dumps(diagnostic, ensure_ascii=False))
+        if self._trace_sink:
+            try:
+                self._trace_sink.record_failure(diagnostic)
+            except Exception:
+                logger.exception("Failure trace export failed; preserving the domain diagnostic")
         return AgentResult(
             context.work_item.work_item_id,
             context.work_item.owner_agent,
@@ -519,6 +549,7 @@ class TargetFrameworkAgent:
             reason,
             self.version,
             retryable=retryable,
+            execution_feedback=(diagnostic,),
         )
 
 

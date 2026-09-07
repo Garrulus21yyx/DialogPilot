@@ -11,14 +11,14 @@ def structured_tool(name, schema):
     return {"name": name, "description": "Return the complete stage result.", "input_schema": wire_schema}
 
 
-async def structured_call(model, *, name, schema, system, content, callbacks=()):
+async def structured_call(model, *, name, schema, system, content, callbacks=(), metadata=None):
     # SDK owns tool binding, provider message normalization and JSON parsing.
     tool = structured_tool(name, schema)
     output = await invoke_model(model.with_structured_output(
         tool,
         include_raw=True,
     ).ainvoke([SystemMessage(system), HumanMessage(content)],
-              config={"callbacks": list(callbacks), "run_name": name}), stage=name)
+              config={"callbacks": list(callbacks), "run_name": name, "metadata": metadata or {}}), stage=name)
     if output["parsing_error"] is not None:
         raise ValueError("structured_output_parse_failed") from output["parsing_error"]
     raw = output["raw"]

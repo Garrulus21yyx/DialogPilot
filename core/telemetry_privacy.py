@@ -31,7 +31,7 @@ SCHEMA_VALUES = {"items", "contains", "additionalProperties", "unevaluatedProper
 class CredentialTextDetector(RegexDetector):
     name = "scoped_credentials"
     regex = re.compile(
-        r'''\b(?:api[_-]?key|password|passwd|secret|token)\s*[:=]\s*(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\s,;]+)|\bBearer\s+[A-Za-z0-9._~+/=-]+''',
+        r'''["']?\b(?:api[_-]?key|password|passwd|secret|token|thinking|reasoning|reasoning_content)["']?\s*[:=]\s*(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\s,;]+)|\bBearer\s+[A-Za-z0-9._~+/=-]+''',
         re.IGNORECASE,
     )
 
