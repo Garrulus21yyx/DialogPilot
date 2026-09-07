@@ -4,6 +4,16 @@
 
 ### 最新状态（优先于下面按时间保留的记录）
 
+- v11 实测完成：任务 0 ERROR/null，前两轮追问成功，第三轮 ASSEMBLY_INVALID，未写入；
+  任务 1 官方 ALL/ENV/ACTION 1.0、db_match=true，换货一次，但第 3/4/6/7/8 轮 composer fallback、
+  第 9 轮安全兜底，用户对完成状态仍困惑。partial_business_success / customer_dialogue_quality_open。
+  本轮无生产/评测代码修改，无额外尝试；报告见 artifacts/eval/tau3-main-dev2-2026-09-07-bound-questions-v11/analysis.md。
+  下一步共同核对转换异常保留、追问/审批边界与写入后表达，不按商品特化；后台 pump_once 限制未触发，仍保留。
+
+- 2026-09-07 用户要求立即实测：v11 bound-questions 两个原开发任务 in_progress。
+  基线 d6bfcf7（含追问修复 41fa261），沿用原任务/seed/模型/预算，不修改生产或评测执行逻辑。
+  已知适配器只 pump_once 的瞬时故障续跑限制仍存在；如触发独立记为运行错误，不归为业务得分。
+
 - 追问简化 implementation_verified：最终相关回归 305 passed，无跳过，包含真实 PostgreSQL HTTP、审批、追问和重启恢复。
   输入上下文与事实支持分开，单个 text 问题无须支持标记；
   bound NEEDS_USER_INPUT 不重复要求 outcome，其他失败/部分结果继续覆盖检查。
