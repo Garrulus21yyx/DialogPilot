@@ -50,7 +50,7 @@ def bind_environment(environment, manager, call):
         key = params["operation_key"]
         return receipts.get(key, {"operation_key": key, "status": "UNKNOWN"})
 
-    register(status_tool, "Read a previously observed adapter operation receipt; missing is UNKNOWN.",
+    register(status_tool, "Runtime reconciliation of a previously observed adapter operation receipt; missing is UNKNOWN.",
              {"type": "object", "properties": {"operation_key": {"type": "string"}},
               "required": ["operation_key"]}, observed_status)
 
@@ -90,7 +90,7 @@ def bind_environment(environment, manager, call):
             ))
 
     agent = AgentDefinition(
-        "retail", "v1", tuple(tool.tool_id for tool in definitions), (),
+        "retail", "v1", tuple(tool.name for tool in official_tools), (),
         "environment-worker-v1", "environment-context-v1", profile,
         description=environment.get_policy(), timeout_seconds=120, max_model_calls=20,
     )

@@ -381,10 +381,9 @@ class CapabilityRegistryBundle:
                 raise CapabilityRegistryError(
                     "action reconciliation tool exceeds flow allowlist"
                 )
-            if reconciliation.tool_id not in owner.allowed_tool_ids:
-                raise CapabilityRegistryError(
-                    "action reconciliation tool exceeds owner agent allowlist"
-                )
+            # The Action grants its runtime a reconciliation read. An autonomous
+            # domain planner need not receive that internal capability or supply
+            # the operation key; the workflow binds it from the accepted action.
             if reconciliation_tool.effect is not CapabilityEffect.READ:
                 raise CapabilityRegistryError(
                     "action reconciliation tool must be read-only"

@@ -1,0 +1,372 @@
+[
+  {
+    "role": "assistant",
+    "content": "Hi! How can I help you today?",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-07T13:02:16.317950",
+    "cost": 0.0,
+    "usage": null,
+    "raw_data": null,
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  },
+  {
+    "role": "user",
+    "content": "Hi, I'd be happy to help you with exchanges from your order! Can you please provide the order number and maybe your name or zip code so I can look up your account?",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-07T13:02:17.924927",
+    "cost": 0.0,
+    "usage": {
+      "completion_tokens": 82,
+      "prompt_tokens": 498
+    },
+    "raw_data": {
+      "id": "chatcmpl-407339d6-e90c-4b3e-ad9b-913fb42f15b2",
+      "created": 1788778937,
+      "model": "deepseek-v4-flash",
+      "object": "chat.completion",
+      "system_fingerprint": null,
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "content": "Hi, I'd be happy to help you with exchanges from your order! Can you please provide the order number and maybe your name or zip code so I can look up your account?",
+            "role": "assistant",
+            "tool_calls": null,
+            "function_call": null,
+            "reasoning_content": "Hi, I need help with exchanging some items from my recent order. I received order #W2378156 and there are a couple of things I’d like to swap out. Can you assist me with that?",
+            "thinking_blocks": [
+              {
+                "type": "thinking",
+                "thinking": "Hi, I need help with exchanging some items from my recent order. I received order #W2378156 and there are a couple of things I’d like to swap out. Can you assist me with that?",
+                "signature": "f605dd48-eb71-4d73-afef-2ae5b05f6374"
+              }
+            ],
+            "provider_specific_fields": {
+              "citations": null,
+              "thinking_blocks": [
+                {
+                  "type": "thinking",
+                  "thinking": "Hi, I need help with exchanging some items from my recent order. I received order #W2378156 and there are a couple of things I’d like to swap out. Can you assist me with that?",
+                  "signature": "f605dd48-eb71-4d73-afef-2ae5b05f6374"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "usage": {
+        "completion_tokens": 82,
+        "prompt_tokens": 498,
+        "total_tokens": 580,
+        "completion_tokens_details": {
+          "reasoning_tokens": 43,
+          "text_tokens": 39
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 384,
+          "image_tokens": null,
+          "text_tokens": null,
+          "video_tokens": null,
+          "cache_creation_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 384,
+        "inference_geo": null,
+        "speed": null
+      }
+    },
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  },
+  {
+    "role": "assistant",
+    "content": "I'd be happy to help with exchanges from your order! To look up your account, could you please provide your email address, or your first name, last name, and zip code? Also, please provide the order number you'd like help with.",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-07T13:02:24.001583",
+    "cost": null,
+    "usage": null,
+    "raw_data": null,
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  },
+  {
+    "role": "user",
+    "content": "I have the order number—it’s W2378156. My name is Yusuf Rossi and my zip code is 19122. I don’t remember which email I used, but that info should help. I need to set up exchanges for two items from that order, please.",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-07T13:02:25.334467",
+    "cost": 0.0,
+    "usage": {
+      "completion_tokens": 107,
+      "prompt_tokens": 590
+    },
+    "raw_data": {
+      "id": "chatcmpl-0b78f4f7-c3e7-4a97-9226-71995bff0b33",
+      "created": 1788778945,
+      "model": "deepseek-v4-flash",
+      "object": "chat.completion",
+      "system_fingerprint": null,
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "content": "I have the order number—it’s W2378156. My name is Yusuf Rossi and my zip code is 19122. I don’t remember which email I used, but that info should help. I need to set up exchanges for two items from that order, please.",
+            "role": "assistant",
+            "tool_calls": null,
+            "function_call": null,
+            "reasoning_content": "We need respond to agent. We know order number W2378156, name Yusuf Rossi, zip 19122. Don't remember email. Need describe exchange goals. We are detail-oriented. Need one message at time.",
+            "thinking_blocks": [
+              {
+                "type": "thinking",
+                "thinking": "We need respond to agent. We know order number W2378156, name Yusuf Rossi, zip 19122. Don't remember email. Need describe exchange goals. We are detail-oriented. Need one message at time.",
+                "signature": "214afaf1-6cdd-4c1c-959d-b7cefd730552"
+              }
+            ],
+            "provider_specific_fields": {
+              "citations": null,
+              "thinking_blocks": [
+                {
+                  "type": "thinking",
+                  "thinking": "We need respond to agent. We know order number W2378156, name Yusuf Rossi, zip 19122. Don't remember email. Need describe exchange goals. We are detail-oriented. Need one message at time.",
+                  "signature": "214afaf1-6cdd-4c1c-959d-b7cefd730552"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "usage": {
+        "completion_tokens": 107,
+        "prompt_tokens": 590,
+        "total_tokens": 697,
+        "completion_tokens_details": {
+          "reasoning_tokens": 46,
+          "text_tokens": 61
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 384,
+          "image_tokens": null,
+          "text_tokens": null,
+          "video_tokens": null,
+          "cache_creation_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 384,
+        "inference_geo": null,
+        "speed": null
+      }
+    },
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  },
+  {
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+      {
+        "id": "tau3-call-046aeb364ae74b4d826eed81fc28136d",
+        "name": "find_user_id_by_name_zip",
+        "arguments": {
+          "first_name": "Yusuf",
+          "last_name": "Rossi",
+          "zip": "19122"
+        },
+        "requestor": "assistant"
+      }
+    ],
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-07T13:02:27.223196",
+    "cost": null,
+    "usage": null,
+    "raw_data": null,
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  },
+  {
+    "id": "tau3-call-046aeb364ae74b4d826eed81fc28136d",
+    "role": "tool",
+    "content": "yusuf_rossi_9620",
+    "requestor": "assistant",
+    "error": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-07T13:02:27.223412"
+  },
+  {
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+      {
+        "id": "tau3-call-09eb801341d0468ca0baafe4c66b1c4d",
+        "name": "get_order_details",
+        "arguments": {
+          "order_id": "#W2378156"
+        },
+        "requestor": "assistant"
+      }
+    ],
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-07T13:02:27.223884",
+    "cost": null,
+    "usage": null,
+    "raw_data": null,
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  },
+  {
+    "id": "tau3-call-09eb801341d0468ca0baafe4c66b1c4d",
+    "role": "tool",
+    "content": "{\"order_id\": \"#W2378156\", \"user_id\": \"yusuf_rossi_9620\", \"address\": {\"address1\": \"763 Broadway\", \"address2\": \"Suite 135\", \"city\": \"Philadelphia\", \"country\": \"USA\", \"state\": \"PA\", \"zip\": \"19122\"}, \"items\": [{\"name\": \"Headphones\", \"product_id\": \"6992792935\", \"item_id\": \"4202497723\", \"price\": 342.81, \"options\": {\"type\": \"over-ear\", \"connectivity\": \"wireless\", \"color\": \"blue\"}}, {\"name\": \"Vacuum Cleaner\", \"product_id\": \"1762337868\", \"item_id\": \"4602305039\", \"price\": 561.05, \"options\": {\"type\": \"robotic\", \"bagged/bagless\": \"bagged\", \"features\": \"cordless\"}}, {\"name\": \"Mechanical Keyboard\", \"product_id\": \"1656367028\", \"item_id\": \"1151293680\", \"price\": 272.33, \"options\": {\"switch type\": \"linear\", \"backlight\": \"RGB\", \"size\": \"full size\"}}, {\"name\": \"Smart Thermostat\", \"product_id\": \"4896585277\", \"item_id\": \"4983901480\", \"price\": 262.47, \"options\": {\"compatibility\": \"Apple HomeKit\", \"color\": \"black\"}}, {\"name\": \"Smart Watch\", \"product_id\": \"6945232052\", \"item_id\": \"9408160950\", \"price\": 381.26, \"options\": {\"color\": \"gold\", \"band material\": \"leather\", \"display\": \"LCD\"}}], \"status\": \"delivered\", \"fulfillments\": [{\"tracking_id\": [\"843053632392\"], \"item_ids\": [\"4202497723\", \"4602305039\", \"1151293680\", \"4983901480\", \"9408160950\"]}], \"payment_history\": [{\"transaction_type\": \"payment\", \"amount\": 1819.92, \"payment_method_id\": \"credit_card_9513926\"}], \"cancel_reason\": null, \"exchange_items\": null, \"exchange_new_items\": null, \"exchange_payment_method_id\": null, \"exchange_price_difference\": null, \"return_items\": null, \"return_payment_method_id\": null}",
+    "requestor": "assistant",
+    "error": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-07T13:02:27.224137"
+  },
+  {
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+      {
+        "id": "tau3-call-1c6d8be103114a46bf9f2aa4d9a95849",
+        "name": "get_user_details",
+        "arguments": {
+          "user_id": "yusuf_rossi_9620"
+        },
+        "requestor": "assistant"
+      }
+    ],
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-07T13:02:28.557682",
+    "cost": null,
+    "usage": null,
+    "raw_data": null,
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  },
+  {
+    "id": "tau3-call-1c6d8be103114a46bf9f2aa4d9a95849",
+    "role": "tool",
+    "content": "{\"user_id\": \"yusuf_rossi_9620\", \"name\": {\"first_name\": \"Yusuf\", \"last_name\": \"Rossi\"}, \"address\": {\"address1\": \"763 Broadway\", \"address2\": \"Suite 135\", \"city\": \"Philadelphia\", \"country\": \"USA\", \"state\": \"PA\", \"zip\": \"19122\"}, \"email\": \"yusuf.rossi7301@example.com\", \"payment_methods\": {\"credit_card_9513926\": {\"source\": \"credit_card\", \"id\": \"credit_card_9513926\", \"brand\": \"mastercard\", \"last_four\": \"2478\"}}, \"orders\": [\"#W6247578\", \"#W9711842\", \"#W4776164\", \"#W6679257\", \"#W2378156\"]}",
+    "requestor": "assistant",
+    "error": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-07T13:02:28.557955"
+  },
+  {
+    "role": "assistant",
+    "content": "Thanks, Yusuf! I found your account and order #W2378156. It contains 5 items:\n\n- Headphones – $342.81\n- Vacuum Cleaner – $561.05\n- Mechanical Keyboard – $272.33\n- Smart Thermostat – $262.47\n- Smart Watch – $381.26\n\nWhich two items would you like to exchange, and what would you like to exchange them for? Please note that exchanges must be for a different option of the same product type.",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-07T13:02:35.434840",
+    "cost": null,
+    "usage": null,
+    "raw_data": null,
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  }
+]

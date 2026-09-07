@@ -55,6 +55,27 @@ def test_environment_write_registration_and_observed_receipt(name):
     assert action.allowed_tool_ids == (name,)
     assert registry.tool(name).effect is CapabilityEffect.WRITE
     assert registry.planning_shortcuts == ()
+    # Discovery permissions and action-runtime reconciliation have different
+    # owners. The model must never invent an internal operation key.
+    assert registry.agents[0].allowed_tool_ids == ("read_record", name)
+    assert action.reconciliation.tool_id == "observed_operation_status"
+    assert registry.tool(action.reconciliation.tool_id).effect is CapabilityEffect.READ
+    from application.turn_planning import CommandKind, CommandProposal, RoutePolicy, TurnProposal, ProposalDisposition, TurnPlanningError
+    from tests.test_entity_binding import _state
+    from dataclasses import replace
+    state = replace(_state(), tenant_id=registry.tenant_id)
+    proposal = CommandProposal('goal', CommandKind.DELEGATE_TASK, 'retail', 'Investigate record')
+    delegated = RoutePolicy().accept(TurnProposal(ProposalDisposition.RESOLVED, (proposal,), 'TEST'), state, registry)
+    assert delegated.commands[0].allowed_tools == ('read_record',)
+    forbidden = CommandProposal('probe', CommandKind.DIRECT_TOOL, 'retail', 'Probe invented operation',
+        tool_id=action.reconciliation.tool_id, requirement_ids=(action.reconciliation.requirement_id,))
+    with pytest.raises(TurnPlanningError, match='allowlist'):
+        RoutePolicy().accept(TurnProposal(ProposalDisposition.RESOLVED, (forbidden,), 'TEST'), state, registry)
+    execution = CommandProposal('execute', CommandKind.EXECUTE_ACTION, 'retail', 'Execute approved action',
+        action_ref=action.ref, requirement_ids=action.requirement_ids, approval_binding='accepted-approval',
+        operation_key='op-1', target_entity_ref='record:R1', target_entity_version='1')
+    validated = RoutePolicy().accept(TurnProposal(ProposalDisposition.RESOLVED, (execution,), 'TEST'), state, registry)
+    assert validated.commands[0].allowed_tools == (name, action.reconciliation.tool_id)
     tool = next(tool for tool in manager.registered_tools if tool.name == name)
     receipt = asyncio.run(tool.handler({"record_id": "R1"}, {"business_operation_key": "op-1"}))
     assert receipt.receipt_id == "official-call:call-1"
@@ -62,3 +83,14 @@ def test_environment_write_registration_and_observed_receipt(name):
     status = next(tool for tool in manager.registered_tools if tool.name == "observed_operation_status")
     assert asyncio.run(status.handler({"operation_key": "missing"}, {}))["status"] == "UNKNOWN"
     assert asyncio.run(status.handler({"operation_key": "op-1"}, {}))["status"] == "COMMITTED"
+    from infrastructure.target_workflow_execution import _ToolReconciler
+    from application.write_workflow import WriteOutcomeStatus
+    runtime = _ToolReconciler(manager, SimpleNamespace(trusted_context=()), principal='retail')
+    item = SimpleNamespace(reconciliation=action.reconciliation, arguments=(),
+                           expected_output_schema=action.receipt_schema_version)
+    observed = asyncio.run(runtime.reconcile(item, operation_key='op-1'))
+    unknown = asyncio.run(runtime.reconcile(item, operation_key='invented-operation'))
+    assert observed.status is WriteOutcomeStatus.COMMITTED
+    assert observed.receipt_id == receipt.receipt_id
+    assert unknown.status is WriteOutcomeStatus.OUTCOME_UNKNOWN
+    assert len(calls) == 1  # reconciliation never repeats the business write

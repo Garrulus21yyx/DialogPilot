@@ -4,6 +4,15 @@
 
 ### 最新状态（优先于下面按时间保留的记录）
 
+- v14 固定隔离提交 fc56b1e：task 0 ALL/ENV/ACTION=1.0，换货一次，但第五轮兜底、
+  第六轮错误否认执行可确认性；task 1 模拟用户空消息 ERROR/null，不择优重试或补造评分。
+  原始 trace 定位：附加的内部 observed_operation_status 暴露给自主 Agent，模型编造操作 key，
+  UNKNOWN 被误用为真实换货未知。修复 Agent 自主工具范围与 Action 运行时对账权限的混合：
+  只向模型提供官方工具，Runtime 仍按 Action.reconciliation 和真实 operation_key 对账。
+  无新字段/状态机/业务特例；READ/authority/Flow检查保持。独立复审通过，真实 PG 组127 passed、
+  3 skipped；追加实际 _ToolReconciler 调用链与规划边界测试14 passed。
+  customer_dialogue_quality_open；重复确认、渠道表达和模拟器输出问题仍分别保留。
+
 - 自然文本迁移已实现，集中回归 **483 passed**（启用真实 PostgreSQL，无跳过）。
   同一证据快照贯通作者、完整答案核验和生成回复的发布哈希；producer/观测/coverage 的变更
   在测试中可观测，来源字段不再混用模型选择标记。旧 checkpoint 拒绝原因穿透 SDK 扫描边界。
