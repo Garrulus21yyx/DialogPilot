@@ -136,7 +136,7 @@ class ConversationPlanningProvider(Protocol):
 
     async def plan(self, payload: Mapping[str, object]) -> Mapping[str, object]: ...
 
-    async def compose(self, payload: Mapping[str, object]) -> Mapping[str, object]: ...
+    async def compose(self, payload: Mapping[str, object]) -> str: ...
 
     async def recover(self, payload: Mapping[str, object]) -> Mapping[str, object]: ...
 
@@ -159,8 +159,8 @@ class ConversationAgent:
 
     async def compose(
         self, payload: Mapping[str, object],
-    ) -> Mapping[str, object]:
-        """Organize verified claims without reopening planning or execution."""
+    ) -> str:
+        """Write natural text without reopening planning or execution."""
         budgeted = self._synthesis_context_budget.fit_payload(payload)
         return await self._provider.compose(budgeted.payload)
 

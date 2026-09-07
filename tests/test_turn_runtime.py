@@ -152,8 +152,7 @@ def test_question_author_failure_resumes_assembly_without_repeating_work_or_rebi
             if self.calls == 1:
                 from core.framework_models import ModelInvocationError
                 raise ModelInvocationError('compose', TimeoutError('temporary model failure'))
-            return {'segments': [{'text': '请提供订单核验信息。',
-                'support_ids': [s['support_id'] for s in payload['support_catalog']]}]}
+            return "\n".join([('请提供订单核验信息。')])
     composer = Composer()
     runtime = TurnRuntime(manager, ResponseAssembler(composer, knowledge_verifier=Verifier(True)),
                           checkpointer=checkpoint)
@@ -181,7 +180,7 @@ def test_checkpoint_does_not_make_exhausted_question_review_retryable():
         calls = 0
         async def compose(self, payload):
             self.calls += 1
-            return {'segments': [{'text': 'Unsupported question premise.'}]}
+            return "\n".join([('Unsupported question premise.')])
     composer = Composer()
     runtime = TurnRuntime(_manager(_MissingThenReadExecutor()),
         ResponseAssembler(composer, knowledge_verifier=Verifier(False)), checkpointer=checkpoint)
@@ -209,12 +208,11 @@ def test_question_presentation_uses_exact_persisted_bindings_not_optional_hints(
         payload = None
         async def compose(self, payload):
             self.payload = payload
-            return {'segments': [{'text': '请提供订单核验信息。',
-                'support_ids': [s['support_id'] for s in payload['support_catalog']]}]}
+            return "\n".join([('请提供订单核验信息。')])
     composer = Composer()
     runtime = TurnRuntime(_manager(Executor()), ResponseAssembler(composer, knowledge_verifier=Verifier(True)))
     result = asyncio.run(runtime.execute(_identity(), TurnObservations('查询订单 DP1234')))
-    claims = composer.payload['requested_inputs']
+    claims = composer.payload['evidence']['requested_inputs']
     fields = result.managed.state_after.pending_interaction.requested_fields
     assert {(c['target_work_item_id'], c['field_name']) for c in claims} == {
         (f.target_work_item_id, f.field_name) for f in fields}
@@ -261,8 +259,7 @@ def test_question_failure_survives_postgres_checkpoint_reopen(postgres_database_
             if self.calls == 1:
                 from core.framework_models import ModelInvocationError
                 raise ModelInvocationError('compose', TimeoutError('injected provider outage'))
-            return {'segments': [{'text': '请提供订单核验信息。',
-                'support_ids': [s['support_id'] for s in payload['support_catalog']]}]}
+            return "\n".join([('请提供订单核验信息。')])
     composer = Composer()
     async def run():
         async with AsyncPostgresCheckpointOwner(postgres_database_url, setup=True) as checkpoint:

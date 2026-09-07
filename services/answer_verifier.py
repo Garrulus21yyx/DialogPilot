@@ -148,7 +148,11 @@ class AnswerVerifier:
                 context_data = json.loads(context)
             except (ValueError, TypeError):
                 context_data = context
-            approval_required = isinstance(context_data, dict) and bool(context_data.get("pending_actions"))
+            # A pending proposal remains evidence while gathering information;
+            # it does not make this turn an approval presentation.
+            approval_required = (isinstance(context_data, dict)
+                                 and bool(context_data.get("pending_actions"))
+                                 and not context_data.get("requested_inputs"))
             evidence = {
                 "approval_required": approval_required,
                 "context": context_data,
@@ -162,11 +166,7 @@ class AnswerVerifier:
                 answer=answer, evidence=evidence, callbacks=self._callbacks,
             )
             supported = assessment.supported
-            missing_outcomes = (context_data.get("unrepresented_outcomes", [])
-                                if isinstance(context_data, dict) else [])
-            invalid_citations = (context_data.get("invalid_citations", [])
-                                 if isinstance(context_data, dict) else [])
-            complete = assessment.answered and not missing_outcomes and not invalid_citations
+            complete = assessment.answered
             approval_complete = not approval_required or assessment.approval_terms_complete
             status = VerificationStatus.PASS if supported and complete and approval_complete else VerificationStatus.REJECT
             reason_code = (VerificationReasonCode.UNGROUNDED if not supported else
@@ -177,8 +177,6 @@ class AnswerVerifier:
                 status=status, grounded=supported,
                 need_escalation=status is not VerificationStatus.PASS,
                 reason="; ".join([
-                    *(["Explain unresolved task outcomes: " + ", ".join(missing_outcomes)] if missing_outcomes else []),
-                    *(["Use supplied evidence citations, not internal tools: " + ", ".join(invalid_citations)] if invalid_citations else []),
                     *assessment.issues,
                 ]) or (
                     "approval description or confirmation question is incomplete" if not approval_complete else

@@ -52,10 +52,8 @@ def test_direct_media_chat_publishes_once_without_domain_dispatch_or_flow():
 
         async def compose(self, payload):
             self.compose_calls += 1
-            fact = next(claim for claim in payload["allowed_claims"] if claim["kind"] == "FACT")
-            support = next(row for row in payload["support_catalog"] if row["claim_id"] == fact["claim_id"])
-            return {"segments": [{"text": "附件文字：" + fact["value"]["text"],
-                                  "support_ids": [support["support_id"]]}]}
+            fact = payload["evidence"]["facts"][0]
+            return "\n".join([('附件文字：' + fact['value']['text'])])
 
     ocr = CountingOCR("E401")
     tools = _manager(ocr)

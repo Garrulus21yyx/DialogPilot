@@ -37,9 +37,15 @@ class TargetCheckpointSerializer(JsonPlusSerializer):
             # JsonPlus may swallow constructor errors and return None, including
             # inside optional parent fields. Inspect nested extension records
             # before ordinary decoding so binding migration failures stay typed.
+            contract_errors = []
             def inspect_extension(code, encoded):
                 decoded = ormsgpack.unpackb(encoded, ext_hook=inspect_extension,
                                             option=ormsgpack.OPT_NON_STR_KEYS)
+                if (isinstance(decoded, (list, tuple)) and len(decoded) >= 3
+                        and tuple(decoded[:2]) == ("application.response_assembly", "AssembledResponse")
+                        and isinstance(decoded[2], dict) and "used_claim_ids" in decoded[2]):
+                    contract_errors.append(TargetCheckpointContractError(
+                        "legacy segmented response checkpoint requires reply regeneration from retained execution results"))
                 if (isinstance(decoded, (list, tuple)) and len(decoded) >= 2
                         and decoded[:2] in (("application.entity_binding", "EntityBinding"),
                                             ["application.entity_binding", "EntityBinding"])):
@@ -55,7 +61,9 @@ class TargetCheckpointSerializer(JsonPlusSerializer):
                         fields['source'] = BindingSource(source)
                         EntityBinding(**fields)
                     except (ValueError, TypeError, KeyError) as exc:
-                        raise TargetCheckpointContractError("checkpoint entity binding requires fresh type selection") from exc
+                        error = TargetCheckpointContractError("checkpoint entity binding requires fresh type selection")
+                        error.__cause__ = exc
+                        contract_errors.append(error)
                 # Only return structural data to the preflight scanner. Normal
                 # decoding below constructs the rest of the checkpoint once.
                 return decoded
@@ -66,6 +74,8 @@ class TargetCheckpointSerializer(JsonPlusSerializer):
                 raise
             except Exception as exc:
                 raise TargetCheckpointContractError("checkpoint binding inspection failed") from exc
+            if contract_errors:
+                raise contract_errors[0]
         return super().loads_typed(data)
 
 

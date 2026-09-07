@@ -54,11 +54,11 @@ def call(name, ident="proposal"):
 
 @pytest.mark.parametrize("extra", ["read", "duplicate", "failure"])
 def test_preparation_retains_binding_and_allows_read_and_reply(extra):
-    responses = [call("order_cancel")]
+    responses = [call("prepare_order_cancel")]
     if extra == "read":
         responses.append(call("order_lookup", "read-after-proposal"))
     if extra == "duplicate":
-        responses.append(call("order_cancel", "duplicate-proposal"))
+        responses.append(call("prepare_order_cancel", "duplicate-proposal"))
     if extra != "failure":
         responses.append(AIMessage(content="Order DP1234 is paid and has not been cancelled. Shall I cancel it?"))
     agent, context, model, calls = domain(responses)
@@ -97,11 +97,10 @@ class ApprovalVerifier(Verifier):
 @pytest.mark.parametrize("approval_status", ["ANSWERED", "LIMITATION", "MISSING"])
 @pytest.mark.parametrize("approval_source", ["proposal", "persisted_flow"])
 def test_approval_presentation_requires_original_action_and_verified_answer(approval_status, approval_source):
-    agent, context, _, _ = domain([call("order_cancel"), AIMessage(content="Pending cancellation.")])
+    agent, context, _, _ = domain([call("prepare_order_cancel"), AIMessage(content="Pending cancellation.")])
     result = asyncio.run(agent(context))
     text = "Order DP1234 is paid. Cancellation has not executed. Shall I cancel that order?"
-    composer = _Composer(lambda p: {"segments": [{"text": text,
-        "claim_ids": [c["claim_id"] for c in p["allowed_claims"]], "evidence_ids": []}]})
+    composer = _Composer(lambda p: "\n".join([(text)]))
     verifier = ApprovalVerifier(approval_status)
     pending = None
     operation_key = result.pending_action.operation_key
@@ -160,7 +159,7 @@ def test_application_publishes_verified_approval_and_can_recover_failed_descript
     from tests.test_target_chat_cutover import _Admission, _Publication
 
     async def run():
-        agent, _, _, calls = domain([call("order_cancel"), AIMessage(content="Pending cancellation."),
+        agent, _, _, calls = domain([call("prepare_order_cancel"), AIMessage(content="Pending cancellation."),
                                      AIMessage(content="The cancellation is still pending.")])
         store = InMemoryConversationStateStore()
         manager = TargetConversationManager(state_store=store, registry=agent._registry,
@@ -176,8 +175,7 @@ def test_application_publishes_verified_approval_and_can_recover_failed_descript
                 return super().publish_interaction(*args, **kwargs)
         publication = Publication()
         text = "DP1234 is paid and has not been cancelled. Shall I cancel that order?"
-        composer = _Composer(lambda p: {"segments": [{"text": text,
-            "claim_ids": [c["claim_id"] for c in p["allowed_claims"]], "evidence_ids": []}]})
+        composer = _Composer(lambda p: "\n".join([(text)]))
         verifier = ApprovalVerifier(first_verification)
         app = TargetChatApplication(manager=manager, admission=_Admission(), publication=publication,
             bundle_version=agent._registry.bundle_version,

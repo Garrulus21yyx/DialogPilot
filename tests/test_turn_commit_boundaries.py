@@ -21,8 +21,7 @@ from tests.test_turn_runtime import _CountingManager, _Executor, _identity, _man
 
 class Author:
     async def compose(self, payload):
-        return {"segments": [{"text": "请提供核验信息。",
-            "support_ids": [s["support_id"] for s in payload["support_catalog"]]}]}
+        return "\n".join([('请提供核验信息。')])
 
 
 class CrashBoundary(_CountingManager):

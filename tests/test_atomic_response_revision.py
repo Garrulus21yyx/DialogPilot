@@ -3,7 +3,6 @@ import hashlib
 from dataclasses import replace
 import pytest
 from application.response_assembly import ResponseAssembler, AssembledResponse, ResponseAssemblyMode
-from application.composition_output import support_catalog
 from services.answer_verifier import VerificationResult, VerificationStatus, VerificationReasonCode
 from services.claim_verification import AnswerAssessment
 from tests.test_response_assembly import _verified_order_result, _board
@@ -14,10 +13,9 @@ class Composer:
         self.calls=[]
     async def compose(self,payload):
         self.calls.append(payload)
-        support=next(s for s in support_catalog(payload['allowed_claims']) if s['claim_id'].startswith('fact:'))
         text='订单 DP1234 当前状态为已发货。'
         if 'repair_feedback' not in payload:text+='保证退款。'
-        return {'segments':[{'text':text,'support_ids':[support['support_id']]}]}
+        return "\n".join([(text)])
 
 
 class Verifier:
@@ -39,7 +37,7 @@ def test_one_revision_uses_original_facts_and_rechecks_exact_final_text():
     result=asyncio.run(ResponseAssembler(composer,knowledge_verifier=verifier).assemble(
         board,current_message='查订单状态',system_notice='查询结果：'))
     assert len(composer.calls)==2 and len(verifier.calls)==2
-    assert composer.calls[0]['allowed_claims']==composer.calls[1]['allowed_claims']
+    assert composer.calls[0]['evidence']==composer.calls[1]['evidence']
     assert 'repair_feedback' in composer.calls[1]
     assert '保证退款' not in result.text and result.text==verifier.calls[-1]
     assert result.verified_text_sha256==hashlib.sha256(result.text.encode()).hexdigest()

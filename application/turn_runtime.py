@@ -144,7 +144,7 @@ class TurnRuntime:
             conversation_context=conversation_context_payload(state["prepared"].context),
             # An information request is not a second approval presentation.
             # The existing approval stays in ConversationState unchanged.
-            pending_approval=None if questions else managed.state_after.pending_approval,
+            pending_approval=managed.state_after.pending_approval,
             requested_inputs=questions,
         )
         if questions and not assembled.verified:

@@ -230,15 +230,23 @@ class _ScenarioConversationProvider:
 
     async def compose(self, payload):
         # Scripted presentation for HTTP/state tests, not a model-quality score.
-        segments = [{"type": "fact_ref", "statement_id": s["statement_id"]}
-                    for s in payload.get("statement_catalog", ())]
-        for claim in payload["allowed_claims"]:
-            supports = [s["support_id"] for s in payload["support_catalog"]
-                        if s["claim_id"] == claim["claim_id"]]
-            if not supports or claim["kind"] == "CONTROLLED_REFUND_FACT":
-                continue
-            value = claim["value"]
-            if claim["kind"] == "PENDING_ACTION":
+        texts = []
+        evidence = payload["evidence"]
+        for fact in evidence["facts"]:
+            value = fact["value"]
+            if fact["requirement_id"] == "refund.current_state":
+                from services.customer_operation_views import refund_lookup_statements
+                texts.extend(text for _, text in refund_lookup_statements(value))
+            elif fact["requirement_id"] == "knowledge.active_source":
+                texts.extend(item["text"] + " [" + item["evidence_id"] + "]" for item in value["evidence"])
+            elif isinstance(value, dict) and value.get("eligible") is True:
+                texts.append(f"订单 {value['order_id']} 符合退款条件，尚未提交。")
+            elif isinstance(value, list):
+                texts.append("；".join(row["summary"] for row in value))
+            else:
+                texts.append("查询结果：" + "；".join(str(v) for v in value.values()))
+        if not payload['evidence']["requested_inputs"]:
+            for value in evidence["pending_actions"]:
                 labels = {"execute_refund": "申请退款", "order.cancel": "取消订单",
                           "order.change_address": "修改收货地址", "account.freeze": "冻结账户"}
                 label = labels.get(value["action_ref"].split(":")[0], "执行您请求的操作")
@@ -246,26 +254,10 @@ class _ScenarioConversationProvider:
                 text = f"是否确认{label}？对象：{args.get('order_id', '当前账户')}。"
                 if "new_address" in args:
                     text += f"新地址：{args['new_address']}。"
-                text += "尚未执行。"
-            elif claim["kind"] == "FACT":
-                if isinstance(value, dict) and value.get("eligible") is True:
-                    text = f"订单 {value['order_id']} 符合退款条件，尚未提交。"
-                elif isinstance(value, list):
-                    text = "；".join(row["summary"] for row in value)
-                else:
-                    text = "查询结果：" + "；".join(str(v) for v in value.values())
-            elif claim["kind"] == "KNOWLEDGE_FACT":
-                text = "；".join(item["text"] for item in value["evidence"])
-            elif claim["kind"] == "WORK_ITEM_OUTCOME":
-                text = "任务处理状态：" + value["status"] + "。"
-            elif claim["kind"] == "RECEIPT":
-                text = f"操作已完成，凭证号：{value['receipt_id']}。"
-            else:
-                continue
-            segments.append({"text": text, "support_ids": supports})
-        if payload.get('requested_inputs'):
-            segments.append({'text': ' '.join(spec['question_hint'] for spec in payload['requested_inputs'])})
-        return {"segments": segments}
+                texts.append(text + "尚未执行。")
+        texts.extend("操作已完成，凭证号：" + r["receipt_id"] for r in evidence["receipts"])
+        texts.extend(spec["question_hint"] for spec in payload['evidence']["requested_inputs"])
+        return "\n".join(texts) or "请补充所需信息。"
 
     async def plan(self, payload):
         response = self._response(payload)
@@ -325,9 +317,9 @@ class _ScenarioConversationProvider:
                 "goals": [{"kind": "product_identification"}],
             }
         if "电子发票" in message:
-            return {"status": "resolved", "goals": [{"kind": "invoice_qa"}]}
+            return {"status": "resolved", "goals": [{"kind": "invoice_qa", "resolved_query": message}]}
         if "退款政策" in message:
-            return {"status": "resolved", "goals": [{"kind": "refund_policy"}]}
+            return {"status": "resolved", "goals": [{"kind": "refund_policy", "resolved_query": message}]}
         if "能退款" in message:
             return {
                 "status": "resolved",

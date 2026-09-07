@@ -11,7 +11,6 @@ from typing import Mapping, Protocol
 
 from application.agent_result import AgentResultStatus
 from application.chat_contracts import StageObservation, StageStatus
-from application.composition_output import render_composition, prepare_composition_payload
 from application.result_board import current_facts
 
 
@@ -40,7 +39,7 @@ class AllowedClaim:
 class AssembledResponse:
     text: str
     mode: ResponseAssemblyMode
-    used_claim_ids: tuple[str, ...]
+    evidence_refs: tuple[str, ...]
     composer_used: bool
     verification_status: str
     verification_reason: str
@@ -48,6 +47,8 @@ class AssembledResponse:
     approval_operation_key: str = ""
     retryable: bool = False
     diagnostics: tuple[StageObservation, ...] = ()
+    evidence_sha256: str = ""
+    evidence_json: str = ""
 
     @property
     def verified(self) -> bool:
@@ -55,8 +56,10 @@ class AssembledResponse:
         return self.verification_status == "PASS" and bool(self.verified_text_sha256)
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "used_claim_ids", tuple(self.used_claim_ids))
+        object.__setattr__(self, "evidence_refs", tuple(self.evidence_refs))
         object.__setattr__(self, "diagnostics", tuple(self.diagnostics))
+        if self.evidence_json and hashlib.sha256(self.evidence_json.encode()).hexdigest() != self.evidence_sha256:
+            raise ValueError("response evidence changed after capture")
         if self.verified_text_sha256 and self.verified_text_sha256 != hashlib.sha256(self.text.encode()).hexdigest():
             raise ValueError("answer text changed after verification")
         if self.approval_operation_key and (not self.verified_text_sha256 or self.verification_status != "PASS"):
@@ -64,13 +67,13 @@ class AssembledResponse:
 
 
 class ConversationComposer(Protocol):
-    async def compose(self, payload: Mapping[str, object]) -> Mapping[str, object]: ...
+    async def compose(self, payload: Mapping[str, object]) -> str: ...
 
 
 class ResponseAssembler:
     """Choose the cheapest valid response path and verify the final candidate."""
 
-    version = "response-assembler-v7-conversation-owned"
+    version = "response-assembler-v8-natural-text"
 
     @staticmethod
     def interaction_prelude(board, *, locale="zh-CN") -> str:
@@ -181,7 +184,7 @@ class ResponseAssembler:
                                diagnostics=(*candidate.diagnostics, *failed.diagnostics))
             stage = "citation_validation"
             cited = set(re.findall(r"\[(E[a-zA-Z0-9]+)\]", candidate.text))
-            if cited - allowed or (knowledge_facts and not cited):
+            if cited - allowed:
                 raise ValueError("answer citations do not match supplied evidence")
             stage = "source_validation"
             if packs and (self._knowledge_source_validator is None
@@ -189,9 +192,10 @@ class ResponseAssembler:
                 raise ValueError("knowledge sources are no longer valid")
             return AssembledResponse(
                 candidate.text, candidate.mode,
-                tuple(sorted(cited)) if packs else candidate.used_claim_ids,
+                candidate.evidence_refs,
                 True, "PASS", "KNOWLEDGE_SUPPORT_CHECKED" if packs else "ANSWER_SUPPORT_CHECKED",
-                hashlib.sha256(candidate.text.encode()).hexdigest())
+                hashlib.sha256(candidate.text.encode()).hexdigest(),
+                evidence_sha256=candidate.evidence_sha256, evidence_json=candidate.evidence_json)
         except Exception as exc:
             failed = self._failed(exc, system_notice + _render_board(board, locale=self.fallback_locale), stage)
             if knowledge_facts or knowledge_failure:
@@ -204,7 +208,7 @@ class ResponseAssembler:
                                     knowledge_evidence=None, conversation_context=None,
                                     system_notice="", pending_approval=None, requested_inputs=()):
         verdict = await self._verify_support(board, message, candidate.text,
-            used_claim_ids=candidate.used_claim_ids,
+            evidence_context=json.loads(candidate.evidence_json),
             knowledge_evidence=knowledge_evidence, conversation_context=conversation_context, pending_approval=pending_approval,
             requested_inputs=requested_inputs)
         if verdict.publishable or verdict.assessment is None or self._composer is None:
@@ -224,33 +228,21 @@ class ResponseAssembler:
         revised = replace(revised, text=system_notice + revised.text)
         if not revised.composer_used:
             return revised, verdict
+        if revised.evidence_sha256 != candidate.evidence_sha256:
+            raise ValueError("response revision changed original evidence")
         revised_verdict = await self._verify_support(board, message, revised.text,
-            used_claim_ids=revised.used_claim_ids,
+            evidence_context=json.loads(revised.evidence_json),
             knowledge_evidence=knowledge_evidence, conversation_context=conversation_context, pending_approval=pending_approval,
             requested_inputs=requested_inputs)
         return revised, revised_verdict
 
-    async def _verify_support(self, board, message, text, *, used_claim_ids=None, knowledge_evidence=None, conversation_context=None, pending_approval=None, requested_inputs=()):
+    async def _verify_support(self, board, message, text, *, knowledge_evidence=None, conversation_context=None, pending_approval=None, requested_inputs=(), evidence_context=None):
         # The injected verifier is shared by business and knowledge composition.
         # Original facts, receipts and outcomes are evidence; generated summaries
         # are not promoted into independent proof of their own wording.
-        facts = [json.loads(fact.value_json) for fact in _current_board_facts(board)
-                 if fact.requirement_id != "knowledge.active_source"]
-        receipts = [claim.value for claim in _allowed_claims(board) if claim.kind == 'RECEIPT']
-        proposals = [claim.value for claim in _allowed_claims(board, pending_approval, requested_inputs=requested_inputs)
-                     if claim.kind == 'PENDING_ACTION']
-        waiting_targets = {spec.target_work_item_id for spec in requested_inputs}
-        missing_outcomes = [result.work_item_id for result in board.results
-            if result.status not in {AgentResultStatus.SUCCEEDED, AgentResultStatus.WAITING_APPROVAL}
-            and not (result.status is AgentResultStatus.NEEDS_USER_INPUT and result.work_item_id in waiting_targets)
-            and used_claim_ids is not None and 'outcome:' + result.work_item_id not in used_claim_ids]
-        invalid_citations = sorted(name for name in self._internal_tool_names if '[' + name + ']' in text)
         inputs = dict(question=message, answer=text,
-            context=json.dumps({'facts': facts, 'receipts': receipts, 'pending_actions': proposals,
-                                'unrepresented_outcomes': missing_outcomes,
-                                'invalid_citations': invalid_citations,
-                                'requested_inputs': _input_context(requested_inputs),
-                                'user_context': conversation_context}, ensure_ascii=False),
+            context=json.dumps(evidence_context if evidence_context is not None else
+                _response_context(board, pending_approval, requested_inputs, conversation_context), ensure_ascii=False),
             knowledge_evidence=knowledge_evidence,
             agent_outcomes=[{"status": result.status.value, "reason": result.reason_code,
                              "execution_feedback": _failure_feedback(result)}
@@ -299,69 +291,44 @@ class ResponseAssembler:
         if mode is ResponseAssemblyMode.TEMPLATE or self._composer is None:
             return AssembledResponse(
                 system_notice + fallback, ResponseAssemblyMode.TEMPLATE,
-                tuple(claim.claim_id for claim in claims), False,
+                _evidence_refs(board), False,
                 "NOT_CHECKED", "DETERMINISTIC_ASSEMBLY",
             )
         payload = {
-            "schema_version": "conversation-compose-request-v3-supports",
+            "schema_version": "conversation-compose-request-v5-text",
             "current_message": current_message,
             "conversation_context": conversation_context,
-            "requested_inputs": _input_context(requested_inputs),
-            "allowed_claims": [
-                {
-                    "claim_id": claim.claim_id,
-                    "kind": claim.kind,
-                    "value": claim.value,
-                    "source_refs": list(claim.source_refs),
-                }
-                for claim in claims
-            ],
-            "work_item_outcomes": [
-                {
-                    "work_item_id": result.work_item_id,
-                    "owner_agent": result.owner_agent,
-                    "status": result.status.value,
-                    "reason_code": result.reason_code,
-                    "retryable": result.retryable,
-                    "execution_feedback": _failure_feedback(result),
-                }
-                for result in board.results
-            ],
+            "evidence": _response_context(board, pending_approval, requested_inputs, conversation_context),
             # Working text is context, never support for business claims.
             "domain_notes": [
                 {"work_item_id": result.work_item_id, "text": _candidate_text(result)}
                 for result in board.results if _candidate_text(result)
             ],
-            "missing_requirement_ids": list(board.missing_requirement_ids),
-            "partial_delivery_allowed": board.partial_delivery_allowed,
             "response_requirements": [
+                *(["Cite policy claims with the supplied [E...] evidence IDs. Preserve conditions, exceptions and negation. Do not invent citation IDs."]
+                  if any(f.requirement_id == "knowledge.active_source" for r in board.results for f in r.facts) else []),
                 "Address the customer directly in the language they use or request. Do not include drafting notes, self-instructions or commentary about how to answer.",
                 "Internal tool names, operation keys and raw parameter JSON are not customer explanations. Use supplied facts to explain item references; do not invent names, prices, fees or return instructions.",
                 *([_APPROVAL_DESCRIPTION_REQUIREMENT]
-                  if any(c.kind == "PENDING_ACTION" for c in claims) else []),
+                  if not requested_inputs and any(c.kind == "PENDING_ACTION" for c in claims) else []),
             ],
         }
         if repair_feedback is not None:
             payload["repair_feedback"] = repair_feedback
-        stage = "composition_payload"
+        stage = "composition_model"
         try:
-            payload = prepare_composition_payload(payload)
-            stage = "composition_model"
-            raw = await self._composer.compose(payload)
-            stage = "composition_render"
-            text, used = render_composition(raw, claims, requested_inputs=requested_inputs)
-            stage = "composition_reference_check"
-            text, used = self.prepare_composed_response(
-                text, used, claims, current_message, payload["work_item_outcomes"],
-                conversation_context=conversation_context,
-                requested_inputs=requested_inputs,
-            )
+            # The captured evidence is immutable across authoring and revision.
+            evidence_json = json.dumps(payload["evidence"], ensure_ascii=False,
+                sort_keys=True, separators=(",", ":"))
+            evidence_sha = hashlib.sha256(evidence_json.encode()).hexdigest()
+            text = await self._composer.compose(payload)
+            if not isinstance(text, str) or not text.strip():
+                raise ValueError("composer must return nonempty text")
+            text = text.strip()
         except Exception as exc:
             return self._failed(exc, system_notice + fallback, stage)
-        return AssembledResponse(
-            system_notice + text, mode, used, True,
-            "PENDING", "COMPOSED_FROM_ALLOWED_CLAIMS",
-        )
+        return AssembledResponse(system_notice + text, mode, _evidence_refs(board), True,
+            "PENDING", "COMPOSED_FROM_EVIDENCE", evidence_sha256=evidence_sha, evidence_json=evidence_json)
 
     def _failed(self, exc, text, stage, *, code=None):
         from core.framework_models import ModelInvocationError, retryable_model_error
@@ -381,41 +348,6 @@ class ResponseAssembler:
                                 diagnostics=(diagnostic,))
 
     @staticmethod
-    def prepare_composed_response(text, used, claims, current_message, outcomes, *, conversation_context=None, requested_inputs=()):
-        """Render internal attribution and authoritative outcomes before support checking."""
-        by_id = {claim.claim_id: claim for claim in claims}
-        known = set(by_id)
-        if set(used) - known:
-            raise ValueError("composer referenced an unknown claim")
-        # Internal provenance stays in used_claim_ids; only evidence IDs are
-        # customer citations. Remove exact, known bracketed attribution markers.
-        for marker in re.findall(r"\[(?:fact|outcome|receipt):[^\]\n]+\]", text):
-            if marker[1:-1] not in known or marker[1:-1] not in used:
-                raise ValueError("composer exposed an unknown internal citation")
-            text = text.replace(marker, "")
-        if any(claim_id in text for claim_id in known):
-            raise ValueError("composer exposed an internal claim identifier")
-        text = text.strip()
-        ResponseAssembler._verify_composed(text, used, claims, current_message, conversation_context=conversation_context,
-                                          requested_inputs=requested_inputs)
-        for outcome in outcomes:
-            status = AgentResultStatus(outcome["status"])
-            if status in {AgentResultStatus.SUCCEEDED, AgentResultStatus.WAITING_APPROVAL}:
-                continue
-            claim_id = "outcome:" + outcome["work_item_id"]
-            if claim_id not in known:
-                raise ValueError("outcome notice lacks an authoritative claim")
-            claim = by_id[claim_id]
-            if (claim.kind != "WORK_ITEM_OUTCOME" or not isinstance(claim.value, dict)
-                    or claim.value.get("status") != outcome["status"]
-                    or claim.value.get("owner_agent") != outcome["owner_agent"]):
-                raise ValueError("outcome notice conflicts with its authoritative claim")
-        # The author expresses outcomes in the customer's language. Missing
-        # outcome support is repair feedback at verification, not server prose
-        # prepended to an otherwise complete answer or fabricated attribution.
-        return text, tuple(used)
-
-    @staticmethod
     def _select_mode(board) -> ResponseAssemblyMode:
         if any(result.pending_action for result in board.results):
             return ResponseAssemblyMode.CONVERSATION_COMPOSE
@@ -430,26 +362,6 @@ class ResponseAssembler:
                 return ResponseAssemblyMode.CONVERSATION_COMPOSE
             return ResponseAssemblyMode.TEMPLATE
         return ResponseAssemblyMode.CONVERSATION_COMPOSE
-
-    @staticmethod
-    def _verify_composed(text, used, claims, current_message, *, conversation_context=None, requested_inputs=()) -> None:
-        if not text or (not used and not requested_inputs) or len(used) != len(set(used)):
-            raise ValueError("composed response contract is incomplete")
-        claims_by_id = {item.claim_id: item for item in claims}
-        if set(used).difference(claims_by_id):
-            raise ValueError("composer referenced an unknown claim")
-        allowed_references = set(_REFERENCE.findall(current_message))
-        if conversation_context is not None:
-            # Reference occurrence is not authority; the support gate still
-            # distinguishes user mentions from verified business state.
-            allowed_references.update(_REFERENCE.findall(json.dumps(conversation_context, ensure_ascii=False)))
-        for claim_id in used:
-            claim = claims_by_id[claim_id]
-            allowed_references.update(_REFERENCE.findall(json.dumps(
-                claim.value, ensure_ascii=False, sort_keys=True,
-            )))
-        if set(_REFERENCE.findall(text)).difference(allowed_references):
-            raise ValueError("composer introduced an unsupported business reference")
 
 
 def _failure_feedback(result):
@@ -467,13 +379,13 @@ def _input_context(requested_inputs):
 def _allowed_claims(board, pending_approval=None, *, requested_inputs=()) -> tuple[AllowedClaim, ...]:
     claims = []
     current = _current_board_facts(board)
-    if pending_approval and not requested_inputs:
+    if pending_approval:
         claims.append(AllowedClaim("proposal:" + pending_approval.work_item_id, "PENDING_ACTION",
             {"action_ref": pending_approval.action_ref,
              "arguments": {arg.name: arg.value for arg in pending_approval.arguments},
              "effect_status": "NOT_EXECUTED"}, ()))
     for result in board.results:
-        if result.pending_action and pending_approval is None and not requested_inputs:
+        if result.pending_action and pending_approval is None:
             action = result.pending_action
             claims.append(AllowedClaim(
                 f"proposal:{result.work_item_id}", "PENDING_ACTION",
@@ -481,30 +393,16 @@ def _allowed_claims(board, pending_approval=None, *, requested_inputs=()) -> tup
                  "arguments": {arg.name: arg.value for arg in action.arguments},
                  "effect_status": "NOT_EXECUTED"}, (),
             ))
-        from application.agent_result import FactSourceKind
-        controlled_refund = any(f.requirement_id == "refund.current_state"
-            and f.source_kind is FactSourceKind.VERIFIED_STATE for f in result.facts)
-        outcome_id = f"outcome:{result.work_item_id}"
-        if not (controlled_refund and result.status is AgentResultStatus.SUCCEEDED):
-            claims.append(AllowedClaim(
-                outcome_id,
-                "WORK_ITEM_OUTCOME",
-                {
-                    "owner_agent": result.owner_agent,
-                    "status": result.status.value,
-                    "reason_code": result.reason_code,
-                    "summary": None,
-                },
-                result.evidence_refs,
-            ))
+        claims.append(AllowedClaim(f"outcome:{result.work_item_id}", "WORK_ITEM_OUTCOME",
+            {"owner_agent": result.owner_agent, "status": result.status.value,
+             "reason_code": result.reason_code}, result.evidence_refs))
         for index, fact in enumerate(result.facts, start=1):
             if fact not in current:
                 continue
             claims.append(AllowedClaim(
                 f"fact:{result.work_item_id}:{index}",
                 "KNOWLEDGE_FACT" if fact.requirement_id == "knowledge.active_source" else
-                "CONTROLLED_REFUND_FACT" if fact.requirement_id == "refund.current_state"
-                and fact.source_kind is FactSourceKind.VERIFIED_STATE else "FACT",
+                "FACT",
                 _fact_view(fact),
                 (fact.source_ref,),
             ))
@@ -520,6 +418,42 @@ def _allowed_claims(board, pending_approval=None, *, requested_inputs=()) -> tup
                 (receipt.receipt_id,),
             ))
     return tuple(claims)
+
+
+def _response_context(board, pending_approval=None, requested_inputs=(), conversation_context=None):
+    """One authoritative snapshot for authoring, verification and publication."""
+    from dataclasses import asdict
+    claims = _allowed_claims(board, pending_approval, requested_inputs=requested_inputs)
+    return {
+        "facts": [{"subject_ref": fact.subject_ref, "requirement_id": fact.requirement_id,
+                   "source_kind": fact.source_kind.value, "source_ref": fact.source_ref,
+                   "producer_id": fact.producer_id,
+                   "producer_version": fact.producer_version, "observed_at": fact.observed_at.isoformat(),
+                   "observation_started_at": fact.observation_started_at.isoformat() if fact.observation_started_at else None,
+                   "valid_until": fact.valid_until.isoformat() if fact.valid_until else None,
+                   "value": _fact_view(fact)} for fact in _current_board_facts(board)],
+        "receipts": [asdict(receipt) for result in board.results for receipt in result.action_receipts],
+        "pending_actions": [c.value for c in claims if c.kind == "PENDING_ACTION"],
+        "requested_inputs": _input_context(requested_inputs),
+        "outcomes": [{"work_item_id": r.work_item_id, "owner_agent": r.owner_agent,
+                      "status": r.status.value, "reason_code": r.reason_code,
+                      "retryable": r.retryable,
+                      "execution_feedback": _failure_feedback(r)} for r in board.results],
+        "coverage": {"missing_requirement_ids": list(board.missing_requirement_ids),
+                     "conflict_keys": list(board.conflict_keys),
+                     "coverage_complete": board.coverage_complete,
+                     "complete": board.complete,
+                     "partial_delivery_allowed": board.partial_delivery_allowed},
+        "user_context": conversation_context,
+    }
+
+
+def _evidence_refs(board):
+    """Runtime provenance, independent of the author's citation selection."""
+    return tuple(dict.fromkeys([
+        *(fact.source_ref for fact in _current_board_facts(board)),
+        *(receipt.receipt_id for result in board.results for receipt in result.action_receipts),
+    ]))
 
 
 _APPROVAL_DESCRIPTION_REQUIREMENT = (

@@ -63,13 +63,11 @@ class _ProductPlanningProvider:
         }
 
     async def compose(self, payload):
-        facts = [c for c in payload['allowed_claims'] if c['kind'] == 'FACT']
+        facts = payload['evidence']['facts']
         assert facts, 'product response must use catalog evidence, not the worker draft'
         import json
         assert 'PX-200' in json.dumps([c['value'] for c in facts])
-        return {'segments': [{'text': '已识别商品型号 PX-200。', 'support_ids': [
-            s['support_id'] for s in payload['support_catalog']
-            if s['claim_id'] in {c['claim_id'] for c in facts}]}]}
+        return "\n".join([('已识别商品型号 PX-200。')])
 
 
 class LabelOCR:

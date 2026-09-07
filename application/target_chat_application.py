@@ -403,14 +403,14 @@ class TargetChatApplication:
                 and receipt.effect_status == "COMMITTED"
             ), None)
 
-        evidence_sha = hashlib.sha256(json.dumps(
+        evidence_sha = (assembly.evidence_sha256 if assembly and assembly.evidence_sha256 else hashlib.sha256(json.dumps(
             [
                 (fact.requirement_id, fact.source_ref, fact.producer_version)
                 for fact in facts
             ],
             sort_keys=True,
             separators=(",", ":"),
-        ).encode("utf-8")).hexdigest()
+        ).encode("utf-8")).hexdigest())
         route = managed.plan.route
         work_items = managed.plan.work.items if managed.plan.work else ()
         receipt_refs = tuple(

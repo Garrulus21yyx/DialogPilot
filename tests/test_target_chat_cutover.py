@@ -381,11 +381,10 @@ def test_target_chat_publishes_one_typed_interaction_and_resumes_exact_work_item
     state_store = InMemoryConversationStateStore()
     class Composer:
         async def compose(self, payload):
-            question = bool(payload['requested_inputs'])
+            question = bool(payload['evidence']['requested_inputs'])
             if question:
-                return {'segments': [{'text': '请提供订单核验信息。'}]}
-            return {'segments': [{'text': '请提供订单核验信息。' if question else '订单 DP1234 当前状态为已发货。',
-                'support_ids': [s['support_id'] for s in payload['support_catalog']]}]}
+                return "\n".join([('请提供订单核验信息。')])
+            return "\n".join([('请提供订单核验信息。' if question else '订单 DP1234 当前状态为已发货。')])
     application = TargetChatApplication(
         manager=TargetConversationManager(
             state_store=state_store,

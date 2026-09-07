@@ -7,7 +7,6 @@ from core.model_policy import ModelPolicy,ModelRole
 from core.framework_models import framework_model
 from evaluation.framework_capture import FrameworkCapture
 from infrastructure.target_conversation_provider import AnthropicConversationPlanningProvider
-from application.composition_output import render_composition
 from application.response_assembly import AllowedClaim
 from evaluation.rag_pipeline.dataset import RagDataset
 from evaluation.doc2dial_history_roles import history_roles
@@ -42,13 +41,13 @@ async def run(args):
     doc=docs[s['document_id']];text=doc.content[s['start']:s['end']];eid='E'+hashlib.sha256(json.dumps([doc.document_id,s['start'],s['end'],text]).encode()).hexdigest()[:12]
     evidence.append({'evidence_id':eid,'text':text,'title':doc.title,'source':{'source_id':doc.document_id,'start_char':s['start'],'end_char':s['end']}})
    claims=[AllowedClaim('knowledge','KNOWLEDGE_FACT',{'status':'OK','evidence':evidence},())]
-   payload={'current_message':case.query,'conversation_context':{'recent_messages':[{'role':roles[case.case_id][i],'content':t} for i,t in enumerate(case.history)]},'allowed_claims':[asdict(c) for c in claims],'work_item_outcomes':[],'missing_requirement_ids':[],'partial_delivery_allowed':False}
+   payload={'schema_version':'conversation-compose-request-v5-text','current_message':case.query,'conversation_context':{'recent_messages':[{'role':roles[case.case_id][i],'content':t} for i,t in enumerate(case.history)]},'evidence':{'facts':[{'requirement_id':'knowledge.active_source','value':c.value} for c in claims], 'outcomes':[], 'pending_actions':[], 'requested_inputs':[], 'receipts':[]},'work_item_outcomes':[],'missing_requirement_ids':[],'partial_delivery_allowed':False}
    key=hashlib.sha256(json.dumps(payload,sort_keys=True,ensure_ascii=False).encode()).hexdigest()
    if key in cache:out={**cache[key],'reused':True,'calls':[]}
    else:
     capture=FrameworkCapture(limit=1);provider=AnthropicConversationPlanningProvider({ModelRole.SYNTHESIS:model},model_profile=profile,synthesis_profile=profile,max_tokens=2048,callbacks=(capture,));out={'error':None,'answer':'','reused':False}
     try:
-     raw=await provider.compose(payload);answer,used=render_composition(raw,claims);out.update(raw=raw,answer=answer,used_claim_ids=used)
+     answer=await provider.compose(payload);out.update(answer=answer)
     except Exception as exc:out.update(error=type(exc).__name__,detail=str(exc)[:200])
     out['calls']=clean(capture.calls);cache[key]=out
    record['arms'][arm]={**out,'packed_complete':packed['complete'],'evidence':evidence}

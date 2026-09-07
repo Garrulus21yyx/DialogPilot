@@ -221,8 +221,7 @@ def test_recovery_question_is_published_and_resumes_after_postgres_reopen(postgr
                     from tests.test_knowledge_answer_boundary import Verifier
                     class Author:
                         async def compose(self, payload):
-                            return {"segments": [{"text": "Can you provide another reference?",
-                                "support_ids": [s["support_id"] for s in payload["support_catalog"]]}]}
+                            return "\n".join([('Can you provide another reference?')])
                     app = TargetChatApplication(manager=manager, admission=admission, publication=publication,
                         bundle_version="test", turn_runtime=TurnRuntime(manager,
                             ResponseAssembler(Author(), knowledge_verifier=Verifier(True)), checkpointer=saver))

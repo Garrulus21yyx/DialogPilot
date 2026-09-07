@@ -42,7 +42,7 @@ async def run_full_chain(*,database_url,platform,store,client,policy,provider_co
     generation=store.active_generation()
     def knowledge_context():
         return {'cache_scope':registry.bundle_version,'bundle_version':registry.bundle_version,'pinned_execution_refs':{'bundle_version':registry.bundle_version,'knowledge_backend_ref':generation.backend_fingerprint,'corpus_manifest_ref':generation.manifest_hash,'retrieval_policy_ref':registry.bundle_version,'knowledge_generation_ref':generation.generation_id}}
-    manifest={'scope':'synthetic ecommerce; production runtime/admission/coordinator/context/knowledge handler/PostgreSQL retrieval/LLM rerank/compose/verifier/publication; excludes HTTP authentication, external delivery, business writes','cases':CASES,'source_sha256':{f:hashlib.sha256(Path(f).read_bytes()).hexdigest() for f in ('application/composition_output.py','application/response_assembly.py','infrastructure/target_conversation_provider.py','evaluation/rag_full_chain_probe.py')},'max_api_calls':client.limit}
+    manifest={'scope':'synthetic ecommerce; production runtime/admission/coordinator/context/knowledge handler/PostgreSQL retrieval/LLM rerank/compose/verifier/publication; excludes HTTP authentication, external delivery, business writes','cases':CASES,'source_sha256':{f:hashlib.sha256(Path(f).read_bytes()).hexdigest() for f in ('application/response_assembly.py','infrastructure/target_conversation_provider.py','evaluation/rag_full_chain_probe.py')},'max_api_calls':client.limit}
     (output/'full-manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
     rows=[]
     with tempfile.TemporaryDirectory(prefix='rag-full-redis-') as temp:

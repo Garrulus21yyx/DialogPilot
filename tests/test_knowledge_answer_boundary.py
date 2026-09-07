@@ -21,7 +21,8 @@ def board(answer):
         candidate_response=answer or "Evidence retrieved.")
     if not answer:
         result = replace(result, candidate_response=None)
-    return SimpleNamespace(results=(result,), conflict_keys=(), missing_requirement_ids=(), partial_delivery_allowed=False)
+    from tests.test_response_assembly import _board
+    return _board(result)
 
 
 class Verifier:
@@ -56,17 +57,16 @@ def test_citations_and_semantic_support_are_both_required_for_single_result():
     class Author:
         def __init__(self, text, invalid=False): self.text, self.invalid = text, invalid
         async def compose(self, payload):
-            return {'segments': [{'text': self.text, 'support_ids': ['Sunknown'] if self.invalid else [
-                s['support_id'] for s in payload['support_catalog'] if s['evidence_id']]}]}
+            return self.text + (' [Eunknown]' if self.invalid else citation)
     for text,passed,invalid in [('所有订单均可退。',False,False),('仅未拆封可退。',True,True)]:
         verifier=Verifier(passed)
         result=asyncio.run(ResponseAssembler(Author(text,invalid), knowledge_verifier=verifier, knowledge_source_validator=lambda packs: True).assemble(board('internal notes'),current_message='能退吗'))
-        assert result.verification_reason == ('composition_render:ValueError' if invalid else 'ungrounded')
+        assert result.verification_reason == ('citation_validation:ValueError' if invalid else 'ungrounded')
         assert text not in result.text
     verifier=Verifier(True)
     text='仅未拆封商品可退。 '+citation
     result=asyncio.run(ResponseAssembler(Author('仅未拆封商品可退。'), knowledge_verifier=verifier, knowledge_source_validator=lambda packs: True).assemble(board('internal notes'),current_message='能退吗'))
-    assert result.text==text
+    assert result.text=='仅未拆封商品可退。'+citation
     assert result.verification_reason=='KNOWLEDGE_SUPPORT_CHECKED'
     assert 'summary' not in verifier.calls[0][1]['context']
 
@@ -95,10 +95,7 @@ def test_knowledge_failure_preserves_independent_result_and_committed_receipt():
 def test_mixed_composer_receives_same_evidence_ids_as_publication_gate():
     from tests.test_response_assembly import _result, _board, _Composer
     citation = '[' + evidence_id('child-1') + ']'
-    composer = _Composer(lambda payload: {
-        'segments': [{'text': '仅未拆封商品可退。',
-        'claim_ids': [c['claim_id'] for c in payload['allowed_claims']], 'evidence_ids':[evidence_id('child-1')]}],
-    })
+    composer = _Composer(lambda payload: "\n".join([('仅未拆封商品可退。' + " " + " ".join("[" + e + "]" for e in [evidence_id('child-1')]))]))
     mixed = _board(board('draft').results[0], _result('o','orders',response='订单已发货。'))
     result = asyncio.run(ResponseAssembler(composer, knowledge_verifier=Verifier(True), knowledge_source_validator=lambda packs: True).assemble(mixed,current_message='能退吗'))
     assert result.verification_reason == 'KNOWLEDGE_SUPPORT_CHECKED'
@@ -114,10 +111,7 @@ def test_withdrawal_during_semantic_verification_prevents_publication():
             return await super().verify(*args,**kwargs)
     citation='['+evidence_id('child-1')+']'
     text='仅未拆封商品可退。 '+citation
-    composer = _Composer(lambda p: {'segments': [{
-        'text': '仅未拆封商品可退。',
-        'claim_ids': [c['claim_id'] for c in p['allowed_claims']],
-        'evidence_ids': [evidence_id('child-1')]}]})
+    composer = _Composer(lambda p: "\n".join([('仅未拆封商品可退。' + " " + " ".join("[" + e + "]" for e in [evidence_id('child-1')]))]))
     result=asyncio.run(ResponseAssembler(composer, knowledge_verifier=WithdrawDuringVerify(True),
         knowledge_source_validator=lambda packs: live[0]).assemble(board(text),current_message='能退吗'))
     assert result.verification_reason=='source_validation:ValueError'
@@ -136,26 +130,20 @@ def test_factless_business_outcomes_never_disappear_into_pure_knowledge_generati
         business = AgentResult('business', 'orders', status, 'TEST_OUTCOME', 'target-tool-executor-v1',
             missing_inputs=missing, requested_evidence=requested,
             retryable=status is AgentResultStatus.RETRYABLE_FAILURE)
-        composer = _Composer(lambda payload: {
-            'segments':[{'text': '订单查询结果需单独处理。仅未拆封商品可退。',
-            'claim_ids': [c['claim_id'] for c in payload['allowed_claims']], 'evidence_ids':[evidence_id('child-1')]}],
-        })
+        composer = _Composer(lambda payload: "\n".join([('订单查询结果需单独处理。仅未拆封商品可退。' + " " + " ".join("[" + e + "]" for e in [evidence_id('child-1')]))]))
         verifier = Verifier(True)
         result = asyncio.run(ResponseAssembler(composer,
             knowledge_verifier=verifier, knowledge_source_validator=lambda packs: True).assemble(
                 _board(knowledge, business), current_message='查订单并说明退货政策'))
         assert result.verification_reason == 'KNOWLEDGE_SUPPORT_CHECKED'
         assert len(composer.calls) == 1
-        assert composer.calls[0]['work_item_outcomes'][1]['status'] == status.value
+        assert composer.calls[0]['evidence']['outcomes'][1]['status'] == status.value
         assert verifier.calls[0][1]['agent_outcomes'][1]['status'] == status.value
 
 
 def test_successful_direct_knowledge_uses_the_same_conversation_author():
     from tests.test_response_assembly import _board, _Composer
-    composer = _Composer(lambda payload: {'segments': [{
-        'text': '仅未拆封商品可退。',
-        'claim_ids': [c['claim_id'] for c in payload['allowed_claims']],
-        'evidence_ids': [evidence_id('child-1')]}]})
+    composer = _Composer(lambda payload: "\n".join([('仅未拆封商品可退。' + " " + " ".join("[" + e + "]" for e in [evidence_id('child-1')]))]))
     knowledge = replace(board('draft').results[0], producer_version='target-tool-executor-v1')
     result = asyncio.run(ResponseAssembler(composer,
         knowledge_verifier=Verifier(True), knowledge_source_validator=lambda packs: True).assemble(
@@ -171,9 +159,7 @@ def test_support_verifier_sees_final_rendered_text_including_failed_business_out
     knowledge=board('draft').results[0]
     mixed=_board(knowledge,failed)
     def answer(payload):
-        claim=next(c['claim_id'] for c in payload['allowed_claims'] if c['kind']=='KNOWLEDGE_FACT')
-        return {'segments':[{'text':'仅未拆封商品可退。','claim_ids':[claim],'evidence_ids':[evidence_id('child-1')]},
-            {'text':'本次查询或处理失败，请稍后再试。','claim_ids':['outcome:missing-order'],'evidence_ids':[]}]}
+        return "\n".join([('仅未拆封商品可退。' + " " + " ".join("[" + e + "]" for e in [evidence_id('child-1')])), ('本次查询或处理失败，请稍后再试。')])
     verifier=Verifier(True)
     response=asyncio.run(ResponseAssembler(_Composer(answer),knowledge_verifier=verifier,
         knowledge_source_validator=lambda packs:True).assemble(mixed,current_message='查询订单并说明退货政策'))
@@ -186,13 +172,12 @@ def test_support_verifier_sees_final_rendered_text_including_failed_business_out
 def test_context_reaches_mixed_composition_and_verifier_separate_from_facts():
     from tests.test_response_assembly import _board, _verified_order_result, _Composer
     context = {'recent_messages': [{'role': 'assistant', 'content': '是质量问题吗？', 'source_ref': 'turn:2'}]}
-    composer = _Composer(lambda payload: {'segments': [{'text': '订单已发货。',
-        'claim_ids': [next(c['claim_id'] for c in payload['allowed_claims'] if c['kind'] == 'FACT')], 'evidence_ids': []}]})
+    composer = _Composer(lambda payload: "\n".join([('订单已发货。')]))
     verifier = Verifier(True)
     asyncio.run(ResponseAssembler(composer, knowledge_verifier=verifier).assemble(
         _board(_verified_order_result()), current_message='不是。查订单', conversation_context=context))
     assert composer.calls[0]['conversation_context'] == context
-    assert all('是质量问题吗' not in str(c) for c in composer.calls[0]['allowed_claims'])
+    assert all('是质量问题吗' not in str(c) for c in composer.calls[0]['evidence']['facts'])
     support = json.loads(verifier.calls[0][1]['context'])
     assert support['user_context'] == context
     assert all('是质量问题吗' not in str(c) for c in support['facts'])
@@ -201,10 +186,7 @@ def test_context_reaches_mixed_composition_and_verifier_separate_from_facts():
 def test_direct_knowledge_composition_and_support_receive_same_context():
     from tests.test_response_assembly import _board, _Composer
     context = {'recent_messages': [{'role': 'assistant', 'content': '是质量问题吗？', 'source_ref': 'turn:2'}]}
-    composer = _Composer(lambda payload: {'segments': [{
-        'text': '仅未拆封可退。',
-        'claim_ids': [c['claim_id'] for c in payload['allowed_claims']],
-        'evidence_ids': [evidence_id('child-1')]}]})
+    composer = _Composer(lambda payload: "\n".join([('仅未拆封可退。' + " " + " ".join("[" + e + "]" for e in [evidence_id('child-1')]))]))
     knowledge = replace(board('draft').results[0], producer_version='target-tool-executor-v1')
     verifier = Verifier(True)
     answer = asyncio.run(ResponseAssembler(composer, knowledge_verifier=verifier,
@@ -213,5 +195,5 @@ def test_direct_knowledge_composition_and_support_receive_same_context():
     assert answer.verification_reason == 'KNOWLEDGE_SUPPORT_CHECKED'
     assert composer.calls[0]['current_message'] == '不是。'
     assert composer.calls[0]['conversation_context'] == context
-    assert evidence_id('child-1') in json.dumps(composer.calls[0]['support_catalog'])
+    assert evidence_id('child-1') in json.dumps(composer.calls[0]['evidence']['facts'])
     assert json.loads(verifier.calls[0][1]['context'])['user_context'] == context
