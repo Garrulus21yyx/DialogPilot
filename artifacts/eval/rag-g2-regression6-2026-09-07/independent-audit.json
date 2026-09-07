@@ -1,0 +1,93 @@
+{
+  "cases": 6,
+  "api_calls": 23,
+  "latency_p50_ms": 5985.066696070135,
+  "runtime_verified": 6,
+  "evidence_source_exact": 5,
+  "packed_required_quotes_visible": 5,
+  "model_view_required_quotes_visible": 5,
+  "visible_citations_valid": 2,
+  "citation_applicable": 5,
+  "citation_format_valid": 3,
+  "limits": "Synthetic development cases; required quote checks are not benchmark Recall/nDCG or semantic accuracy. Model view uses saved output_for_model when present, otherwise replayed serialization; no claim about later provider input coverage.",
+  "rows": [
+    {
+      "case_id": "opened-negation",
+      "runtime_verified": true,
+      "evidence_source_exact": true,
+      "packed_required_quotes_visible": true,
+      "model_view_required_quotes_visible": true,
+      "citation_applicable": true,
+      "citation_format_valid": false,
+      "visible_citations_valid": false,
+      "api_calls": 4,
+      "latency_ms": 6869.6801997721195,
+      "answer": "很抱歉，根据政策，已拆封的耳机如果不是质量问题，不适用七天无理由退货[E]。只有未拆封的耳机才能在签收后七日内申请无理由退货[E]。如果您认为耳机存在质量问题，可以提交检测材料进行专项审核[E]。"
+    },
+    {
+      "case_id": "ellipsis-shipping",
+      "runtime_verified": true,
+      "evidence_source_exact": true,
+      "packed_required_quotes_visible": true,
+      "model_view_required_quotes_visible": true,
+      "citation_applicable": true,
+      "citation_format_valid": true,
+      "visible_citations_valid": true,
+      "api_calls": 4,
+      "latency_ms": 6395.724577829242,
+      "answer": "加急运费不在报销范围内。确认属于商品质量问题的，按平台指定方式寄回可报销标准运费，标准运费报销上限为十八元，加急运费不报销[E0cf9f077fce7][Edcfe237842b1]。"
+    },
+    {
+      "case_id": "historical-policy",
+      "runtime_verified": true,
+      "evidence_source_exact": true,
+      "packed_required_quotes_visible": true,
+      "model_view_required_quotes_visible": true,
+      "citation_applicable": true,
+      "citation_format_valid": false,
+      "visible_citations_valid": false,
+      "api_calls": 4,
+      "latency_ms": 5162.584016099572,
+      "answer": "按2026年3月1日适用的规则，普通质量退货的标准寄回运费报销上限为**十二元**（该规则自2020年1月1日起至2026年4月1日适用）[E]。"
+    },
+    {
+      "case_id": "eu-scope-fresh",
+      "runtime_verified": true,
+      "evidence_source_exact": false,
+      "packed_required_quotes_visible": false,
+      "model_view_required_quotes_visible": false,
+      "citation_applicable": false,
+      "citation_format_valid": true,
+      "visible_citations_valid": false,
+      "api_calls": 3,
+      "latency_ms": 4431.281980127096,
+      "answer": "很抱歉，我目前无法确认您所在欧洲区的具体无理由退货期限。由于缺少可依据的条款信息，我无法给出“签收第十天是否仍在期限内”的准确答复。建议您查看订单详情页中的退货政策，或联系对应平台的客服获取确切期限。"
+    },
+    {
+      "case_id": "custom-exception-fresh",
+      "runtime_verified": true,
+      "evidence_source_exact": true,
+      "packed_required_quotes_visible": true,
+      "model_view_required_quotes_visible": true,
+      "citation_applicable": true,
+      "citation_format_valid": true,
+      "visible_citations_valid": true,
+      "api_calls": 4,
+      "latency_ms": 6630.116352811456,
+      "answer": "很抱歉，刻了名字的定制商品不适用七天无理由退货，即使未拆封且签收不足七日也不可以[Ef810a8d17792]。按您指定要求制作的定制商品同样不适用无理由退货[E84a0a698f741]。\n\n不过，如果商品存在质量问题，仍可申请专项售后审核，需要提交问题照片及订单信息[Ef810a8d17792][E84a0a698f741]。请问商品是否有质量问题需要处理？"
+    },
+    {
+      "case_id": "effective-boundary-fresh",
+      "runtime_verified": true,
+      "evidence_source_exact": true,
+      "packed_required_quotes_visible": true,
+      "model_view_required_quotes_visible": true,
+      "citation_applicable": true,
+      "citation_format_valid": false,
+      "visible_citations_valid": false,
+      "api_calls": 4,
+      "latency_ms": 5574.4088143110275,
+      "answer": "按2026年4月1日当天的规定，普通质量退货的标准寄回运费报销上限为十八元。[E:dcfe237842b1]"
+    }
+  ]
+}

@@ -183,9 +183,8 @@ class ResponseAssembler:
                                verification_status=verdict.status.value.upper(),
                                diagnostics=(*candidate.diagnostics, *failed.diagnostics))
             stage = "citation_validation"
-            cited = set(re.findall(r"\[(E[a-zA-Z0-9]+)\]", candidate.text))
-            if cited - allowed:
-                raise ValueError("answer citations do not match supplied evidence")
+            from application.knowledge_tool_contract import validate_answer_citations
+            validate_answer_citations(candidate.text, allowed)
             stage = "source_validation"
             if packs and (self._knowledge_source_validator is None
                           or not self._knowledge_source_validator(packs)):

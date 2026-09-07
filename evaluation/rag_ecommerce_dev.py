@@ -159,7 +159,7 @@ def synthetic_development():
                     doc_id,
                     title,
                     text,
-                    {"synthetic": True, "knowledge_type": "shop_policy"},
+                    {"synthetic": True, "knowledge_type": "shop_policy", "effective_from": "2020-01-01T00:00:00+00:00"},
                 )
             )
         cases.append(

@@ -70,6 +70,21 @@ def tool_domain_outcome(result):
     return None
 
 
+def validate_answer_citations(text: str, allowed_ids) -> None:
+    """Evidence-backed answers use at least one exact supplied citation ID.
+
+    Capture malformed E-markers too: a parser that extracts only valid IDs
+    silently treats [E] or [E:...] as if no citation had been emitted.
+    """
+    import re
+    allowed = set(allowed_ids)
+    found = re.findall(r"\[([Ee][^\]\r\n]*)\]", text)
+    markers = set(found)
+    malformed = len(re.findall(r"\[[Ee]", text)) != len(found)
+    if malformed or markers - allowed or (allowed and not markers):
+        raise ValueError('answer citations do not match supplied evidence')
+
+
 def evidence_id(chunk_id: str) -> str:
     import hashlib
     return 'E' + hashlib.sha256(chunk_id.encode()).hexdigest()[:12]

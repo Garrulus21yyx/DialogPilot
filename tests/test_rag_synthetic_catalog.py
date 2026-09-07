@@ -18,3 +18,10 @@ def test_every_fixture_channel_is_declared_for_import_and_query():
     # Fresh snapshots do not share a mutable channel authority.
     catalog['sales_channels']['injected']='not a fixture channel'
     assert 'injected' not in applicability_catalog()['sales_channels']
+
+
+def test_synthetic_policy_effective_dates_are_fixed_not_import_time():
+    from datetime import datetime, timezone
+    from evaluation.rag_ecommerce_dev import synthetic_development
+    docs,_=synthetic_development()
+    assert all(datetime.fromisoformat(d.metadata['effective_from'])==datetime(2020,1,1,tzinfo=timezone.utc) for d in docs)

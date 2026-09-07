@@ -197,3 +197,15 @@ def test_direct_knowledge_composition_and_support_receive_same_context():
     assert composer.calls[0]['conversation_context'] == context
     assert evidence_id('child-1') in json.dumps(composer.calls[0]['evidence']['facts'])
     assert json.loads(verifier.calls[0][1]['context'])['user_context'] == context
+
+
+def test_malformed_or_missing_citations_cannot_pass_an_always_pass_verifier():
+    citation='['+evidence_id('child-1')+']'
+    class Author:
+        def __init__(self,text):self.text=text
+        async def compose(self,payload):return self.text
+    for marker in ('[E]','[E:abc]','[Eunknown]','',citation+'[E]',citation+'[E',citation+'[eunknown]'):
+        text='仅未拆封商品可退。'+marker
+        result=asyncio.run(ResponseAssembler(Author(text),knowledge_verifier=Verifier(True),knowledge_source_validator=lambda packs: True).assemble(board('internal'),current_message='能退吗'))
+        assert result.verification_reason=='citation_validation:ValueError'
+        assert result.text!=text
