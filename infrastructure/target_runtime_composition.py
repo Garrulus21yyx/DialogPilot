@@ -83,6 +83,7 @@ async def build_target_runtime(
     knowledge_source_validator=None,
     registry: CapabilityRegistryBundle | None = None,
     enable_encoder: bool = True,
+    response_locale: str | None = None,
     langfuse_sink=None,
 ) -> TargetRuntimeComponents:
     """Wire the one production Target runtime and enter its checkpoint owner."""
@@ -193,6 +194,9 @@ async def build_target_runtime(
                 model_profile=model_policy.profile(ModelRole.VERIFIER),
             )
         assembler = ResponseAssembler(conversation_agent, knowledge_generator=knowledge_generator,
+                                      fallback_locale=(response_locale if response_locale is not None
+                                                       else os.getenv("TARGET_RESPONSE_LOCALE", "zh-CN")),
+                                      internal_tool_names=tool_manager.registered_tool_names,
                                       knowledge_verifier=knowledge_verifier,
                                       knowledge_source_validator=knowledge_source_validator)
         application = TargetChatApplication(

@@ -195,20 +195,22 @@ def test_unsupported_reference_from_composer_falls_back_without_losing_results()
     assert assembled.verification_reason == "COMPOSER_FALLBACK"
 
 
-def test_committed_receipt_uses_deterministic_template():
+@pytest.mark.parametrize('locale,expected', [('zh-CN', '请求已提交。'), ('en', 'The request has been submitted.')])
+def test_committed_receipt_uses_deterministic_template(locale, expected):
     composer = _Composer(AssertionError("composer must not run"))
     receipt = ReceiptRef(
         "receipt-123", "receipt-v1", "operation-123", "COMMITTED",
         "refund.request_action",
     )
 
-    assembled = asyncio.run(ResponseAssembler(composer).assemble(
+    assembled = asyncio.run(ResponseAssembler(composer, fallback_locale=locale).assemble(
         _board(_result("w1", "billing_refund", receipts=(receipt,))),
         current_message="申请退款",
     ))
 
     assert assembled.mode is ResponseAssemblyMode.TEMPLATE
-    assert assembled.text == "操作已完成，凭证号：receipt-123。"
+    assert assembled.text == expected
+    assert 'receipt-123' not in assembled.text
     assert composer.calls == []
 
 
@@ -238,7 +240,8 @@ def test_direct_tool_facts_compose_without_promoting_model_payload_to_reply():
         assert 'internal_debug' not in fallback.text
 
 
-def test_fallback_outcome_messages_cover_all_non_success_states_without_internal_codes():
+@pytest.mark.parametrize('locale,prefix', [('zh-CN', '订单与物流查询：'), ('en', 'Order and shipping: ')])
+def test_fallback_outcome_messages_cover_all_non_success_states_without_internal_codes(locale, prefix):
     from application.agent_result import MissingInputSpec, EvidenceRequest
     for status in AgentResultStatus:
         if status in (AgentResultStatus.SUCCEEDED, AgentResultStatus.PARTIAL):
@@ -249,10 +252,49 @@ def test_fallback_outcome_messages_cover_all_non_success_states_without_internal
             requested_evidence=(EvidenceRequest('order.current_state','w1',('orders',)),)
                 if status is AgentResultStatus.NEEDS_EVIDENCE else (),
             retryable=status is AgentResultStatus.RETRYABLE_FAILURE)
-        response=asyncio.run(ResponseAssembler().assemble(_board(result),current_message='查订单'))
-        assert response.text.startswith('订单与物流查询：')
+        response=asyncio.run(ResponseAssembler(fallback_locale=locale).assemble(_board(result),current_message='查订单'))
+        assert response.text.startswith(prefix)
         assert 'INTERNAL_TOOL_ERROR' not in response.text and 'order_logistics' not in response.text
         assert status.value not in response.text
+
+
+def test_english_fallback_preserves_verified_state_and_knowledge_failure():
+    board = _board(_verified_order_result('order'),
+        _result('knowledge', 'general', AgentResultStatus.RETRYABLE_FAILURE, reason='KNOWLEDGE_UNAVAILABLE'), partial=True)
+    response = asyncio.run(ResponseAssembler(fallback_locale='en').assemble(board, current_message='What happened?'))
+    assert 'The current recorded status of order DP1234 is shipped.' in response.text
+    assert 'temporarily unavailable' in response.text
+    assert not any('\u4e00' <= char <= '\u9fff' for char in response.text)
+
+
+@pytest.mark.parametrize('tool_name', ['lookup_order', 'action_27', 'get_product_details'])
+@pytest.mark.parametrize('repaired', [False, True])
+def test_registered_tool_identity_cannot_be_used_as_customer_citation(tool_name, repaired):
+    from dataclasses import replace
+    from langchain_core.messages import AIMessage
+    from tests.framework_structured_stub import StructuredStub
+    from services.answer_verifier import AnswerVerifier
+    from core.model_policy import ModelProfile
+    from application.response_assembly import AssembledResponse
+    value = {'supported': True, 'answered': True, 'approval_terms_complete': False, 'issues': []}
+    model = StructuredStub(responses=[AIMessage(content='', tool_calls=[{
+        'name': 'submit_claim_checks', 'id': str(i), 'args': {'result': value}}]) for i in range(2)])
+    candidate = AssembledResponse('The order was found [' + tool_name + '].',
+        ResponseAssemblyMode.PASS_THROUGH, ('outcome:order',), False, 'PENDING', 'DRAFT')
+    feedback = []
+
+    class Assembler(ResponseAssembler):
+        async def _assemble_candidate(self, *args, **kwargs):
+            feedback.append(kwargs['repair_feedback'])
+            return replace(candidate, text='The order was found.') if repaired else candidate
+
+    assembler = Assembler(object(), internal_tool_names=(tool_name,),
+        knowledge_verifier=AnswerVerifier(model, model_profile=ModelProfile('test')))
+    result, verdict = asyncio.run(assembler._verify_with_revision(_board(_result('order', 'order_logistics')),
+        'Find my order.', candidate))
+    assert len(feedback) == 1 and tool_name in feedback[0]['reason']
+    assert verdict.publishable is repaired
+    assert result.text == ('The order was found.' if repaired else candidate.text)
 
 
 def test_captured_mixed_tools_preserve_business_state_during_knowledge_abstention():
@@ -301,7 +343,9 @@ def test_later_failure_and_multiple_receipts_do_not_hide_verified_state():
         result=replace(_result('w','order_logistics',status,receipts=receipts),facts=(fact,))
         response=asyncio.run(ResponseAssembler().assemble(_board(result),current_message='处理请求'))
         assert '已发货' in response.text
-        assert all(receipt.receipt_id in response.text for receipt in receipts)
+        assert response.text.count('请求已提交。') == len(receipts)
+        assert all(receipt.receipt_id not in response.text for receipt in receipts)
+        assert result.action_receipts == receipts
         if status is AgentResultStatus.RETRYABLE_FAILURE:
             assert '失败' in response.text
         if status is AgentResultStatus.RECONCILING:

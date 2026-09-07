@@ -97,8 +97,9 @@ class TurnRuntime:
         ):
             return {"assembled": None}
         notice = (
-            "检测到账户安全风险，已优先处理安全任务；"
-            "本轮未启动其他高风险业务操作。\n"
+            ("An account security risk was detected. Security handling took priority; other high-risk operations were not started this turn.\n"
+             if self._assembler.fallback_locale == "en" else
+             "检测到账户安全风险，已优先处理安全任务；本轮未启动其他高风险业务操作。\n")
             if managed.plan.route.reason_code
             == "SECURITY_PREEMPTED_NONESSENTIAL_WRITES"
             else ""

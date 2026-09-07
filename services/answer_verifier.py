@@ -164,7 +164,9 @@ class AnswerVerifier:
             supported = assessment.supported
             missing_outcomes = (context_data.get("unrepresented_outcomes", [])
                                 if isinstance(context_data, dict) else [])
-            complete = assessment.answered and not missing_outcomes
+            invalid_citations = (context_data.get("invalid_citations", [])
+                                 if isinstance(context_data, dict) else [])
+            complete = assessment.answered and not missing_outcomes and not invalid_citations
             approval_complete = not approval_required or assessment.approval_terms_complete
             status = VerificationStatus.PASS if supported and complete and approval_complete else VerificationStatus.REJECT
             reason_code = (VerificationReasonCode.UNGROUNDED if not supported else
@@ -174,8 +176,11 @@ class AnswerVerifier:
             return VerificationResult(
                 status=status, grounded=supported,
                 need_escalation=status is not VerificationStatus.PASS,
-                reason=("Explain unresolved task outcomes: " + ", ".join(missing_outcomes)
-                        if missing_outcomes else "; ".join(assessment.issues)) or (
+                reason="; ".join([
+                    *(["Explain unresolved task outcomes: " + ", ".join(missing_outcomes)] if missing_outcomes else []),
+                    *(["Use supplied evidence citations, not internal tools: " + ", ".join(invalid_citations)] if invalid_citations else []),
+                    *assessment.issues,
+                ]) or (
                     "approval description or confirmation question is incomplete" if not approval_complete else
                     "answer supported and request addressed"),
                 reason_code=reason_code, assessment=assessment,

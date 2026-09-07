@@ -65,6 +65,10 @@ The answer must address the customer directly in the language they use or explic
 Internal drafting notes, self-instructions about how to answer, or an untranslated system fallback
 do not satisfy answered=true, even when followed by supported facts. Concise customer-facing
 explanations of reasons and limitations are appropriate; do not confuse them with drafting notes.
+Customer citations must identify supplied evidence, not internal function/tool names or runtime
+identifiers. Exposing those as citations or dumping internal parameter JSON does not satisfy answered=true.
+Lack of a tool or missing policy detail does not establish that an alternative service channel is
+impossible, nor that an unspecified detail will be provided later. State those limits without inventing policy.
 The application sets evidence.approval_required; do not infer this flag from user prose.
 When it is true, inspect evidence.context.pending_actions. approval_terms_complete=true requires a customer-facing
 description identifying the proposed target, material changes, payment/refund terms when applicable,

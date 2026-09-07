@@ -63,12 +63,14 @@ class UnsupportedRefundObservation(ValueError):
     """The captured refund observation does not satisfy the display contract."""
 
 
-def refund_lookup_statements(data):
+def refund_lookup_statements(data, *, locale="zh-CN"):
     """Render the supported refund observation; no eligibility or payment inference.
 
     Called only for an authoritative refund.current_state fact. Caller-side
     projections must not infer this fact type from similarly named fields.
     """
+    if locale not in {"zh-CN", "en"}:
+        raise UnsupportedRefundObservation('unsupported refund display locale')
     if not isinstance(data, dict):
         raise UnsupportedRefundObservation('refund observation must be an object')
     order_id = data.get('order_id')
@@ -80,8 +82,10 @@ def refund_lookup_statements(data):
         if any(k in data for k in ('refund_id', 'status')):
             raise UnsupportedRefundObservation('absence cannot contain an application state')
         return (
-            ('lookup', f'订单 {order_id} 在本系统当前未记录到归属于您的退款申请。'),
-            ('arrival', '无法从当前系统记录确认退款是否已经到账。'),
+            ('lookup', f'No refund application belonging to you is currently recorded for order {order_id} in this system.'
+             if locale == 'en' else f'订单 {order_id} 在本系统当前未记录到归属于您的退款申请。'),
+            ('arrival', 'The current system record does not establish whether a refund has reached your account.'
+             if locale == 'en' else '无法从当前系统记录确认退款是否已经到账。'),
         )
     if data.get('lookup_status') == 'FOUND':
         labels = {'requested': '已申请', 'reviewing': '审核中', 'approved': '已批准',
@@ -90,6 +94,7 @@ def refund_lookup_statements(data):
         if not isinstance(refund_id, str) or not refund_id.strip() or status not in labels:
             raise UnsupportedRefundObservation('found refund requires known application identity and state')
         return (
-            ('lookup', f'订单 {order_id} 的退款申请 {refund_id} 在本系统的记录状态为“{labels[status]}”。'),
+            ('lookup', f'The recorded status of refund application {refund_id} for order {order_id} is "{status}".'
+             if locale == 'en' else f'订单 {order_id} 的退款申请 {refund_id} 在本系统的记录状态为“{labels[status]}”。'),
         )
     raise UnsupportedRefundObservation('unsupported refund observation state')

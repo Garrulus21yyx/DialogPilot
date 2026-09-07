@@ -1,0 +1,801 @@
+{
+  "task_id": "1",
+  "official_reward": 1.0,
+  "langfuse_session_id": "tau3-3a70c9ad41c045ddb4352a6a171da479",
+  "all": {
+    "reward": 1.0,
+    "db_check": {
+      "db_match": true,
+      "db_reward": 1.0
+    },
+    "env_assertions": [],
+    "action_checks": [
+      {
+        "action": {
+          "action_id": "1_0",
+          "requestor": "assistant",
+          "name": "find_user_id_by_name_zip",
+          "arguments": {
+            "first_name": "Yusuf",
+            "last_name": "Rossi",
+            "zip": "19122"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "1_1",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W2378156"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "1_2",
+          "requestor": "assistant",
+          "name": "get_product_details",
+          "arguments": {
+            "product_id": "1656367028"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "1_3",
+          "requestor": "assistant",
+          "name": "get_product_details",
+          "arguments": {
+            "product_id": "4896585277"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "1_4",
+          "requestor": "assistant",
+          "name": "exchange_delivered_order_items",
+          "arguments": {
+            "order_id": "#W2378156",
+            "item_ids": [
+              "4983901480"
+            ],
+            "new_item_ids": [
+              "7747408585"
+            ],
+            "payment_method_id": "credit_card_9513926"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "write"
+      }
+    ],
+    "nl_assertions": [],
+    "communicate_checks": null,
+    "reward_basis": [
+      "DB",
+      "NL_ASSERTION"
+    ],
+    "reward_breakdown": {
+      "DB": 1.0,
+      "NL_ASSERTION": 1.0
+    },
+    "info": {
+      "env": null,
+      "nl": {
+        "note": "No nl_assertions to evaluate"
+      },
+      "communicate": {
+        "note": "No communicate_info to evaluate"
+      },
+      "action": null
+    }
+  },
+  "env": {
+    "reward": 1.0,
+    "db_check": {
+      "db_match": true,
+      "db_reward": 1.0
+    },
+    "env_assertions": [],
+    "action_checks": null,
+    "nl_assertions": null,
+    "communicate_checks": null,
+    "reward_basis": [
+      "DB",
+      "NL_ASSERTION"
+    ],
+    "reward_breakdown": {
+      "DB": 1.0
+    },
+    "info": null
+  },
+  "action": {
+    "reward": 1.0,
+    "db_check": null,
+    "env_assertions": null,
+    "action_checks": [
+      {
+        "action": {
+          "action_id": "1_0",
+          "requestor": "assistant",
+          "name": "find_user_id_by_name_zip",
+          "arguments": {
+            "first_name": "Yusuf",
+            "last_name": "Rossi",
+            "zip": "19122"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "1_1",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W2378156"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "1_2",
+          "requestor": "assistant",
+          "name": "get_product_details",
+          "arguments": {
+            "product_id": "1656367028"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "1_3",
+          "requestor": "assistant",
+          "name": "get_product_details",
+          "arguments": {
+            "product_id": "4896585277"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "1_4",
+          "requestor": "assistant",
+          "name": "exchange_delivered_order_items",
+          "arguments": {
+            "order_id": "#W2378156",
+            "item_ids": [
+              "4983901480"
+            ],
+            "new_item_ids": [
+              "7747408585"
+            ],
+            "payment_method_id": "credit_card_9513926"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "write"
+      }
+    ],
+    "nl_assertions": null,
+    "communicate_checks": null,
+    "reward_basis": [
+      "DB"
+    ],
+    "reward_breakdown": {
+      "ACTION": 1.0
+    },
+    "info": null
+  },
+  "termination": "user_stop",
+  "status": "EVALUATED",
+  "target_trace": [
+    {
+      "turn": 1,
+      "input": "Hi there! I just received my order #W2378156 and I need to make some changes. I want to exchange two items in the order, but I also have a backup plan if one of the exchanges isn't possible. Can you help me with that?",
+      "outcome": {
+        "workflow_run_id": "workflow-run:v1:b8422194fb7ef55c5422664a6a33bde72cc0d58afc0eac995c3b98ae18f46406",
+        "signal_id": "interaction:v1:6f406644e01fbfaf737f17ee9621403cb2db677c35355c44aaffc2db963b5a87",
+        "kind": "FIELDS",
+        "expires_at": "2026-09-14T07:18:13.445692+00:00",
+        "interaction_publication_id": "publication:v1:04dd05cb016fe6ec252bde60285a01089c0060dec53a5c45eaae1e5f892a8516"
+      }
+    },
+    {
+      "turn": 2,
+      "input": "Sure, I don’t remember which email I used for the order. You can look me up by my name and zip code: it’s Yusuf Rossi, and my zip code is 19122.",
+      "outcome": {
+        "workflow_run_id": "workflow-run:v1:57f6698879d6ae39f3bc01c86718a0623984976d1a2e69bdf7657155054da571",
+        "signal_id": "interaction:v1:f1d9e05a9ec96418085d7d4856f1833f9f688148cef75eba13b39433b23ebc0c",
+        "kind": "FIELDS",
+        "expires_at": "2026-09-14T07:18:20.874174+00:00",
+        "interaction_publication_id": "publication:v1:f8b21d53fee133f2fb51c3b61ac0b29f689db9683654dbe4f69ca85ad8b52387"
+      }
+    },
+    {
+      "turn": 3,
+      "input": "Yes, I’d like to exchange two items:\n\n1. The mechanical keyboard—I want the same type, full size with RGB backlighting, but with clicky switches instead of linear. If that exact model with clicky switches isn’t an option, then just skip that exchange and I’ll only exchange the thermostat.\n\n2. The smart thermostat—I want the equivalent model, but one that’s compatible with Google Home rather than Apple HomeKit.\n\nFor any price difference, you can just use the payment method I used on the original order, or refund to the same method. Is that okay?",
+      "outcome": {
+        "workflow_run_id": "workflow-run:v1:cc07f41c39af3ab90f60312eb8e614dc2d3b16750943557020ee3fee245dcb27",
+        "signal_id": "interaction:v1:dd2f2ed782f525691fe07090757565096d6c3ab3a1ab80b41a5febbfd7479684",
+        "kind": "FIELDS",
+        "expires_at": "2026-09-14T07:18:35.552411+00:00",
+        "interaction_publication_id": "publication:v1:d92060992acf272e8d070ecc6ee76f5fd03a0fd5f184eafd0f0aa7962c78f4d6"
+      }
+    },
+    {
+      "verification": {
+        "status": "pass",
+        "grounded": true,
+        "need_escalation": false,
+        "reason": "answer supported and request addressed",
+        "reason_code": "passed",
+        "assessment": {
+          "request_hash": "dd8cf01b335e9bc82675eaa76049776560809ec35632f39f1db6ce1a1bfde130",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": true,
+          "issues": []
+        },
+        "request_binding": "27b004c59aba606efdd91ba3b6033f9d5ee3bc8624ed2b916a2bc7ba3d230bc5"
+      },
+      "candidate": "Yes, the $13.46 refund will go back to the same credit card used on the original order, the Mastercard ending in 2478.\nOnce the exchange is confirmed and processed, the order status will change to 'exchange requested', and you will receive an email with instructions on how and where to return the item.\nThere's no need to place a new order — the replacement will be handled through the exchange process.\nHere's the exchange I've prepared for your approval: Order #W2378156, exchanging the Smart Thermostat (black, Apple HomeKit) at $262.47 for the Smart Thermostat (black, Google Assistant) at $249.01, with a price difference of -$13.46 refunded to the credit card ending in 2478. The mechanical keyboard exchange is skipped since the desired clicky variant is not available.\nThis exchange action has not been executed yet. Please confirm if you'd like to proceed."
+    },
+    {
+      "turn": 4,
+      "input": "Thank you for checking that! Yes, that sounds correct—please proceed with only the Smart Thermostat exchange to the Google Assistant-compatible version, and skip the mechanical keyboard exchange since there is no clicky variant available.\n\nAnd just to confirm: the refund of $13.46 will go back to the same card used for the original order, correct? Also, can you let me know how the exchange process works? Do you send me a prepaid return label, or do I need to take any other steps on my end before the replacement ships?",
+      "outcome": {
+        "workflow_run_id": "workflow-run:v1:93cf896ec24d0f7d06ff15859f4e7f71ef273cee7881d0601a416624d5bbfc9b",
+        "signal_id": "approval:action:v1:70b54d7f996e78faa34b5f396f7ae8af0377aecdbb18d8d4db97b11e2f3f51da",
+        "kind": "APPROVAL",
+        "expires_at": "2026-09-07T07:33:44.995699+00:00",
+        "interaction_publication_id": "publication:v1:1058a568da6113a3e0917ee5898934b481ff790ccc396565f10be8fe7d6a34a1"
+      }
+    },
+    {
+      "approval_classification": "approve"
+    },
+    {
+      "verification": {
+        "status": "pass",
+        "grounded": true,
+        "need_escalation": false,
+        "reason": "answer supported and request addressed",
+        "reason_code": "passed",
+        "assessment": {
+          "request_hash": "2bfc27bc907c6deabcf58472450fca91e23d170bf0000345f06627ac9107226c",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": false,
+          "issues": []
+        },
+        "request_binding": "326654154f157988cf563f25f0d2503a73dd8634e811fb319970d511de39230d"
+      },
+      "candidate": "Your exchange has been processed. Order #W2378156 is now in 'exchange requested' status.\nThe Smart Thermostat (black, Apple HomeKit) is being exchanged for the Smart Thermostat (black, Google Assistant), with a price difference of -$13.46 refunded to your credit card ending in 2478.\nI'm not able to send the return instructions via text message, through your account, or provide a prepaid label directly in the chat. After an exchange is requested, you'll receive an email with instructions on how and where to return the item.\nThe email on file for your account is yusuf.rossi7301@example.com. Please keep an eye on that email for the return instructions."
+    },
+    {
+      "turn": 5,
+      "input": "Yes, please proceed with the exchange as described.\n\nI do need to point out, though, that I don’t remember which email was on the account. Is there a way you can send the return instructions another way—maybe through my account, a text message, or provide the prepaid label here in the chat? I don’t want the process to stall because I miss the email.",
+      "outcome": {
+        "response_id": "publication:v1:40e50bab99c04b735fd46dab5ca7a75d47b2dd26c8ac7504cb1ab9533c4ed870",
+        "response": {
+          "intent": "APPROVED_WORKFLOW_RESUME",
+          "conv_id": "tau3-3a70c9ad41c045ddb4352a6a171da479",
+          "coverage": {
+            "complete": false,
+            "missing_requirement_ids": []
+          },
+          "grounded": true,
+          "response": "Your exchange has been processed. Order #W2378156 is now in 'exchange requested' status.\nThe Smart Thermostat (black, Apple HomeKit) is being exchanged for the Smart Thermostat (black, Google Assistant), with a price difference of -$13.46 refunded to your credit card ending in 2478.\nI'm not able to send the return instructions via text message, through your account, or provide a prepaid label directly in the chat. After an exchange is requested, you'll receive an email with instructions on how and where to return the item.\nThe email on file for your account is yusuf.rossi7301@example.com. Please keep an eye on that email for the return instructions.",
+          "verified": true,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:ce13e9adbe4f66bd41dbde37e0c251c317bfeb6c9595a990543e7eb8ecab110c",
+            "work_item_ids": [
+              "work:1:continue-approved-workflow",
+              "work:2:continue-domain-objective-1"
+            ]
+          },
+          "ticket_id": null,
+          "agent_type": "retail",
+          "latency_ms": 13004.815127700567,
+          "request_id": "turn-5",
+          "agent_types": [
+            "retail"
+          ],
+          "response_id": "publication:v1:40e50bab99c04b735fd46dab5ca7a75d47b2dd26c8ac7504cb1ab9533c4ed870",
+          "intent_group": "retail",
+          "response_seq": 5,
+          "primary_agent": "retail",
+          "ticket_status": null,
+          "agent_outcomes": [
+            {
+              "status": "SUCCEEDED",
+              "owner_agent": "retail",
+              "reason_code": "TOOL_COMMITTED",
+              "work_item_id": "work:1:continue-approved-workflow"
+            },
+            {
+              "status": "SUCCEEDED",
+              "owner_agent": "retail",
+              "reason_code": "FRAMEWORK_AGENT_REQUIREMENTS_SATISFIED",
+              "work_item_id": "work:2:continue-domain-objective-1"
+            }
+          ],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "APPROVED_WORKFLOW_RESUME",
+          "task_completed": false,
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 13004.815127700567,
+              "work_item_count": 2,
+              "conversation_planner_invoked": false
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "task_completed": false,
+              "verifier_status": "PASS",
+              "coverage_complete": false,
+              "missing_requirement_ids": []
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "APPROVAL_DECISION"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:ce13e9adbe4f66bd41dbde37e0c251c317bfeb6c9595a990543e7eb8ecab110c",
+              "owner_ids": [
+                "retail"
+              ],
+              "route_mode": "AGENT_TASK",
+              "registry_fingerprint": "capability-bundle:v1:d97029f228f1b8b68b3f91e89c6d01a1197a34ac7f09b70b5f7b0a993a5b8984",
+              "understanding_reason": "APPROVED_WORKFLOW_RESUME"
+            },
+            "consumption": {
+              "facts": [
+                {
+                  "source_ref": "call_00_bjsUhgrvmm6bMpi54PMT7378",
+                  "producer_id": "find_user_id_by_name_zip",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.find_user_id_by_name_zip",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_ogXppXJO91aOalduI9w27075",
+                  "producer_id": "get_user_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_user_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_01_ClR1z4SqDpXLLCX2GkBX9056",
+                  "producer_id": "get_order_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_order_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_cwJAzUO9BHT5ROY3O39n7902",
+                  "producer_id": "get_product_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_product_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_01_yAa5tXU55dU1qFGFC0FC2609",
+                  "producer_id": "get_product_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_product_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_MymYAnt05bHwjIWU1DWo6051",
+                  "producer_id": "calculate",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.calculate",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_J7mhdIAruNqyLhvaBJu52735",
+                  "producer_id": "get_order_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_order_details",
+                  "producer_version": "tool-output-v1"
+                }
+              ],
+              "work_items": [
+                {
+                  "owner_agent": "retail",
+                  "control_mode": "ACTION",
+                  "work_item_id": "work:1:continue-approved-workflow",
+                  "allowed_tools": [
+                    "exchange_delivered_order_items",
+                    "observed_operation_status"
+                  ],
+                  "allowed_skills": []
+                },
+                {
+                  "owner_agent": "retail",
+                  "control_mode": "DELEGATED",
+                  "work_item_id": "work:2:continue-domain-objective-1",
+                  "allowed_tools": [
+                    "observed_operation_status",
+                    "calculate",
+                    "find_user_id_by_name_zip",
+                    "find_user_id_by_email",
+                    "get_order_details",
+                    "get_product_details",
+                    "get_item_details",
+                    "get_user_details",
+                    "list_all_product_types",
+                    "transfer_to_human_agents"
+                  ],
+                  "allowed_skills": []
+                }
+              ],
+              "result_statuses": [
+                "SUCCEEDED",
+                "SUCCEEDED"
+              ]
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 14,
+              "workstream_statuses": [
+                "COMPLETED"
+              ],
+              "state_version_before": 11,
+              "committed_receipt_refs": [
+                "official-call:tau3-call-4559e7156f8b4a74bd83287ac6409082"
+              ]
+            }
+          },
+          "synthesis_reason": "ANSWER_SUPPORT_CHECKED",
+          "synthesis_status": "conversation_compose",
+          "supporting_agents": [],
+          "routing_disposition": "agent_task",
+          "synthesis_conflicts": [
+            "tool-query:v1:51a23a5a803c24333f242c24ce91e4e48e8d4279a9aee286d1a68c08dd01d107:environment.get_order_details"
+          ],
+          "verification_status": "pass",
+          "verification_reason_code": "ANSWER_SUPPORT_CHECKED"
+        },
+        "stages": []
+      }
+    },
+    {
+      "verification": {
+        "status": "pass",
+        "grounded": true,
+        "need_escalation": false,
+        "reason": "answer supported and request addressed",
+        "reason_code": "passed",
+        "assessment": {
+          "request_hash": "48a2c979ce4c54beb3c85f366569673415c12731606dd5a3c563278866ba7478",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": false,
+          "issues": []
+        },
+        "request_binding": "dacf83b28494d02c50839677d217193490fc54718925ad6c2c90ee3ebac291a1"
+      },
+      "candidate": "I don't have specific information available about the exact timeframe for receiving the prepaid return label or the precise shipping timeline for the replacement after the return is scanned/delivered. These details are not provided in the order details or any of the tools available to me.\n\nWhat I can confirm based on the exchange process:\n\n- Once an exchange is requested, the order status changes to 'exchange requested', and you receive an email with instructions on how and where to return the item [exchange_delivered_order_items].\n- There is no need to place a new order — the replacement is handled through the exchange process itself.\n\nThe specific timing for when the return label email arrives and how quickly the replacement ships after the return is scanned are not details I can look up or confirm with the tools available to me. These would be communicated in the follow-up email you receive with the return instructions.\n\nI'd recommend keeping an eye on the email on file (yusuf.rossi7301@example.com) for the return instructions, which will contain the relevant details about the label and return process. If you have concerns about missing deadlines or steps, I can transfer you to a human agent who may be able to provide more specific timing information.\n\nWould you like me to transfer you to a human agent for more details on the return label and replacement shipping timeline?"
+    },
+    {
+      "turn": 6,
+      "input": "Thank you for confirming the email on file—that helps.\n\nI’ll keep an eye on that inbox for the return instructions. Can you also let me know if there’s a timeframe for receiving the label, and once the return is scanned/delivered, how soon the replacement ships? Just want to make sure I don’t miss any deadlines or steps.",
+      "outcome": {
+        "response_id": "publication:v1:af37dfe3e4e693b88813b011cbe0d1a5b6dafd3387ea3ec61503284772fca1bb",
+        "response": {
+          "intent": "CONVERSATION_AGENT_PLAN",
+          "conv_id": "tau3-3a70c9ad41c045ddb4352a6a171da479",
+          "coverage": {
+            "complete": true,
+            "missing_requirement_ids": []
+          },
+          "grounded": true,
+          "response": "I don't have specific information available about the exact timeframe for receiving the prepaid return label or the precise shipping timeline for the replacement after the return is scanned/delivered. These details are not provided in the order details or any of the tools available to me.\n\nWhat I can confirm based on the exchange process:\n\n- Once an exchange is requested, the order status changes to 'exchange requested', and you receive an email with instructions on how and where to return the item [exchange_delivered_order_items].\n- There is no need to place a new order — the replacement is handled through the exchange process itself.\n\nThe specific timing for when the return label email arrives and how quickly the replacement ships after the return is scanned are not details I can look up or confirm with the tools available to me. These would be communicated in the follow-up email you receive with the return instructions.\n\nI'd recommend keeping an eye on the email on file (yusuf.rossi7301@example.com) for the return instructions, which will contain the relevant details about the label and return process. If you have concerns about missing deadlines or steps, I can transfer you to a human agent who may be able to provide more specific timing information.\n\nWould you like me to transfer you to a human agent for more details on the return label and replacement shipping timeline?",
+          "verified": true,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:21cf227b5b45cac8dbbb88e64d45a41c5bb1c0b12dcebe0d597e8f96a0062bf9",
+            "work_item_ids": [
+              "work:1:semantic-1"
+            ]
+          },
+          "ticket_id": null,
+          "agent_type": "retail",
+          "latency_ms": 7624.326158314943,
+          "request_id": "turn-6",
+          "agent_types": [
+            "retail"
+          ],
+          "response_id": "publication:v1:af37dfe3e4e693b88813b011cbe0d1a5b6dafd3387ea3ec61503284772fca1bb",
+          "intent_group": "retail",
+          "response_seq": 6,
+          "primary_agent": "retail",
+          "ticket_status": null,
+          "agent_outcomes": [
+            {
+              "status": "SUCCEEDED",
+              "owner_agent": "retail",
+              "reason_code": "FRAMEWORK_AGENT_REQUIREMENTS_SATISFIED",
+              "work_item_id": "work:1:semantic-1"
+            }
+          ],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "CONVERSATION_AGENT_PLAN",
+          "task_completed": true,
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 7624.326158314943,
+              "work_item_count": 1,
+              "conversation_planner_invoked": true
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "task_completed": true,
+              "verifier_status": "PASS",
+              "coverage_complete": true,
+              "missing_requirement_ids": []
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "UNRESOLVED"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:21cf227b5b45cac8dbbb88e64d45a41c5bb1c0b12dcebe0d597e8f96a0062bf9",
+              "owner_ids": [
+                "retail"
+              ],
+              "route_mode": "AGENT_TASK",
+              "registry_fingerprint": "capability-bundle:v1:d97029f228f1b8b68b3f91e89c6d01a1197a34ac7f09b70b5f7b0a993a5b8984",
+              "understanding_reason": "CONVERSATION_AGENT_PLAN"
+            },
+            "consumption": {
+              "facts": [],
+              "work_items": [
+                {
+                  "owner_agent": "retail",
+                  "control_mode": "DELEGATED",
+                  "work_item_id": "work:1:semantic-1",
+                  "allowed_tools": [
+                    "observed_operation_status",
+                    "calculate",
+                    "find_user_id_by_name_zip",
+                    "find_user_id_by_email",
+                    "get_order_details",
+                    "get_product_details",
+                    "get_item_details",
+                    "get_user_details",
+                    "list_all_product_types",
+                    "transfer_to_human_agents"
+                  ],
+                  "allowed_skills": []
+                }
+              ],
+              "result_statuses": [
+                "SUCCEEDED"
+              ]
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 15,
+              "workstream_statuses": [
+                "COMPLETED"
+              ],
+              "state_version_before": 14,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "ANSWER_SUPPORT_CHECKED",
+          "synthesis_status": "pass_through",
+          "supporting_agents": [],
+          "routing_disposition": "agent_task",
+          "synthesis_conflicts": [],
+          "verification_status": "pass",
+          "verification_reason_code": "ANSWER_SUPPORT_CHECKED"
+        },
+        "stages": []
+      }
+    },
+    {
+      "verification": {
+        "status": "pass",
+        "grounded": true,
+        "need_escalation": false,
+        "reason": "answer supported and request addressed",
+        "reason_code": "passed",
+        "assessment": {
+          "request_hash": "2572359170c81ad644f813da0d83799734ebeb4e7b380e94e8a71e3ea4c44b88",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": false,
+          "issues": []
+        },
+        "request_binding": "93aa43c01aa6cc4de5d56d8aed43b3aba0d35707ddeceeb98400ddd9d99c7bb8"
+      },
+      "candidate": "YOU ARE BEING TRANSFERRED TO A HUMAN AGENT. PLEASE HOLD ON."
+    },
+    {
+      "turn": 7,
+      "input": "Yes, please transfer me to a human agent—I’d like to get a clearer idea of the return timeline and when the replacement should ship once it’s scanned. Thank you for helping so far!",
+      "outcome": {
+        "response_id": "publication:v1:97593d4db7035bc75eed020f29bca6a6dc622cba0d6f880f83781de962c0337c",
+        "response": {
+          "intent": "CONVERSATION_AGENT_PLAN",
+          "conv_id": "tau3-3a70c9ad41c045ddb4352a6a171da479",
+          "coverage": {
+            "complete": true,
+            "missing_requirement_ids": []
+          },
+          "grounded": true,
+          "response": "YOU ARE BEING TRANSFERRED TO A HUMAN AGENT. PLEASE HOLD ON.",
+          "verified": true,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:cc3a240913354b486946f4fef5e0170f1828a57c6b788d1a8cad02a01b8e6518",
+            "work_item_ids": [
+              "work:1:semantic-1"
+            ]
+          },
+          "ticket_id": null,
+          "agent_type": "retail",
+          "latency_ms": 6616.196535527706,
+          "request_id": "turn-7",
+          "agent_types": [
+            "retail"
+          ],
+          "response_id": "publication:v1:97593d4db7035bc75eed020f29bca6a6dc622cba0d6f880f83781de962c0337c",
+          "intent_group": "retail",
+          "response_seq": 7,
+          "primary_agent": "retail",
+          "ticket_status": null,
+          "agent_outcomes": [
+            {
+              "status": "SUCCEEDED",
+              "owner_agent": "retail",
+              "reason_code": "FRAMEWORK_AGENT_REQUIREMENTS_SATISFIED",
+              "work_item_id": "work:1:semantic-1"
+            }
+          ],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "CONVERSATION_AGENT_PLAN",
+          "task_completed": true,
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 6616.196535527706,
+              "work_item_count": 1,
+              "conversation_planner_invoked": true
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "task_completed": true,
+              "verifier_status": "PASS",
+              "coverage_complete": true,
+              "missing_requirement_ids": []
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "UNRESOLVED"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:cc3a240913354b486946f4fef5e0170f1828a57c6b788d1a8cad02a01b8e6518",
+              "owner_ids": [
+                "retail"
+              ],
+              "route_mode": "AGENT_TASK",
+              "registry_fingerprint": "capability-bundle:v1:d97029f228f1b8b68b3f91e89c6d01a1197a34ac7f09b70b5f7b0a993a5b8984",
+              "understanding_reason": "CONVERSATION_AGENT_PLAN"
+            },
+            "consumption": {
+              "facts": [
+                {
+                  "source_ref": "call_00_yVEkJXNBe70zptaijteu6248",
+                  "producer_id": "transfer_to_human_agents",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.transfer_to_human_agents",
+                  "producer_version": "tool-output-v1"
+                }
+              ],
+              "work_items": [
+                {
+                  "owner_agent": "retail",
+                  "control_mode": "DELEGATED",
+                  "work_item_id": "work:1:semantic-1",
+                  "allowed_tools": [
+                    "observed_operation_status",
+                    "calculate",
+                    "find_user_id_by_name_zip",
+                    "find_user_id_by_email",
+                    "get_order_details",
+                    "get_product_details",
+                    "get_item_details",
+                    "get_user_details",
+                    "list_all_product_types",
+                    "transfer_to_human_agents"
+                  ],
+                  "allowed_skills": []
+                }
+              ],
+              "result_statuses": [
+                "SUCCEEDED"
+              ]
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 16,
+              "workstream_statuses": [
+                "COMPLETED"
+              ],
+              "state_version_before": 15,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "ANSWER_SUPPORT_CHECKED",
+          "synthesis_status": "pass_through",
+          "supporting_agents": [],
+          "routing_disposition": "agent_task",
+          "synthesis_conflicts": [],
+          "verification_status": "pass",
+          "verification_reason_code": "ANSWER_SUPPORT_CHECKED"
+        },
+        "stages": []
+      }
+    }
+  ]
+}

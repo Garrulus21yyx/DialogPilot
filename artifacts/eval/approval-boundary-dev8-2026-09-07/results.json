@@ -1,0 +1,74 @@
+{
+  "scope": "Development semantic probes of existing text approval adapter; no business execution, not a held-out accuracy estimate.",
+  "date": "2026-09-07",
+  "commit": "e3be7b2",
+  "model": "deepseek-v4-flash",
+  "reasoning": "none",
+  "max_tokens": 200,
+  "action": {
+    "action_ref": "order.cancel:v1",
+    "arguments": {
+      "order_id": "A123"
+    }
+  },
+  "cases": [
+    {
+      "case_id": "assent",
+      "reply": "Yes, cancel order A123 now.",
+      "expected": true,
+      "actual": true,
+      "passed": true
+    },
+    {
+      "case_id": "independent_question",
+      "reply": "Yes, cancel order A123 now. Also, when will the refund arrive?",
+      "expected": true,
+      "actual": true,
+      "passed": true
+    },
+    {
+      "case_id": "conditional",
+      "reply": "Cancel order A123 only if there is no fee. Is there a fee?",
+      "expected": null,
+      "actual": null,
+      "passed": true
+    },
+    {
+      "case_id": "wait",
+      "reply": "Before you cancel order A123, tell me whether there is a fee.",
+      "expected": null,
+      "actual": null,
+      "passed": true
+    },
+    {
+      "case_id": "correction",
+      "reply": "Actually, cancel A456 instead of A123.",
+      "expected": null,
+      "actual": null,
+      "passed": true
+    },
+    {
+      "case_id": "deny",
+      "reply": "No, please keep order A123.",
+      "expected": false,
+      "actual": false,
+      "passed": true
+    },
+    {
+      "case_id": "question",
+      "reply": "Would cancelling A123 issue a refund?",
+      "expected": null,
+      "actual": null,
+      "passed": true
+    },
+    {
+      "case_id": "denial_question",
+      "reply": "Do not cancel A123. Can I change its address instead?",
+      "expected": false,
+      "actual": false,
+      "passed": true
+    }
+  ],
+  "passed": 8,
+  "total": 8
+}

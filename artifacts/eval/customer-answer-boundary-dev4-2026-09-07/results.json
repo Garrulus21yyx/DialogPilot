@@ -1,0 +1,18 @@
+{
+  "scope": "Development probes before deterministic registered-tool citation validation. These results demonstrate that prompting alone is insufficient; not a held-out score.",
+  "date": "2026-09-07",
+  "base_commit": "e3be7b2",
+  "working_change": "Customer-facing citation and policy-limit instructions in claim_verification.SYSTEM",
+  "model": "deepseek-v4-flash",
+  "max_tokens": 4096,
+  "question": "Was my exchange submitted, and when will the replacement ship?",
+  "evidence": {"exchange_status": "exchange requested", "policy": "After an exchange is requested, return instructions are emailed. No shipping timing or prepaid-label policy is provided."},
+  "cases": [
+    {"case_id": "customer_answer", "answer": "Your exchange request was submitted. Return instructions will be emailed. I cannot confirm a shipping timeline from the available information.", "expected_publishable": true, "actual_publishable": true, "passed": true},
+    {"case_id": "draft_notes", "answer": "I should answer the user honestly and avoid making up timelines. Let me respond: Your exchange request was submitted and return instructions will be emailed.", "expected_publishable": false, "actual_publishable": false, "passed": true},
+    {"case_id": "internal_citation", "answer": "Your exchange request was submitted. Return instructions will be emailed [exchange_delivered_order_items]. I cannot confirm the shipping timeline.", "expected_publishable": false, "actual_publishable": true, "passed": false},
+    {"case_id": "invented_policy", "answer": "Your exchange request was submitted. A prepaid return label will arrive by email within 24 hours and the replacement ships immediately.", "expected_publishable": false, "actual_publishable": false, "passed": true}
+  ],
+  "passed": 3,
+  "total": 4
+}

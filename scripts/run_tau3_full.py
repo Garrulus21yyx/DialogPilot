@@ -131,7 +131,7 @@ async def run(args):
                             model_policy=policy, provider_config={"api_key": values["ANTHROPIC_API_KEY"],
                                                                  "base_url": policy.base_url},
                             langfuse_sink=langfuse_sink,
-                            project_root=ROOT, registry=registry, enable_encoder=False,
+                            project_root=ROOT, registry=registry, enable_encoder=False, response_locale="en",
                             knowledge_verifier=ObservedVerifier(AnswerVerifier(
                                 framework_model(
                                     policy.profile(ModelRole.VERIFIER), {"api_key": values["ANTHROPIC_API_KEY"], "base_url": policy.base_url}, max_tokens=4096),

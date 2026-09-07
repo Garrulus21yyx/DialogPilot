@@ -112,6 +112,7 @@ class TargetChatApplication:
         self._bundle_version = bundle_version
         self._identity_factory = identity_factory or IdentityFactory()
         assembler = response_assembler or ResponseAssembler()
+        self._response_locale = assembler.fallback_locale
         self._turn_runtime = turn_runtime or TurnRuntime(manager, assembler)
 
     async def handle(self, command: ChatCommand) -> ChatOutcome:
@@ -259,8 +260,9 @@ class TargetChatApplication:
             hints = tuple(dict.fromkeys(
                 spec.question_hint for spec in specs if spec.question_hint.strip()
             ))
-            challenge = "\n".join(hints) or "请补充完成任务所需的信息。"
-            prelude = ResponseAssembler.interaction_prelude(managed.board) if managed.board else ""
+            challenge = "\n".join(hints) or ("Please provide the information needed to continue."
+                if self._response_locale == "en" else "请补充完成任务所需的信息。")
+            prelude = ResponseAssembler.interaction_prelude(managed.board, locale=self._response_locale) if managed.board else ""
             if prelude:
                 challenge = prelude + "\n" + challenge
             expires_at = (
@@ -333,7 +335,7 @@ class TargetChatApplication:
         handoff_receipt = None
         if managed.plan.work is None:
             disposition = managed.plan.route.mode.value
-            response_text = _terminal_response(managed.plan.route.reason_code)
+            response_text = _terminal_response(managed.plan.route.reason_code, locale=self._response_locale)
             verifier_status = "NOT_CHECKED"
             coverage_complete = not managed.plan.route.missing_inputs
             task_completed = False
@@ -548,7 +550,18 @@ class TargetChatApplication:
         return Completed(published.response_id, public_response)
 
 
-def _terminal_response(reason_code: str) -> str:
+def _terminal_response(reason_code: str, *, locale="zh-CN") -> str:
+    if locale == "en":
+        return {
+            "WORK_CANCELLED": "The current task has been stopped.",
+            "WORKSTREAM_CANCELLED": "The current task has been cancelled.",
+            "APPROVAL_DECLINED": "The action was cancelled. No business write was performed this turn.",
+            "APPROVAL_EXPIRED": "The confirmation expired and the action was not executed. Please request it again if still needed.",
+            "ORDER_ID_REQUIRED": "Please provide the order number.",
+            "PRODUCT_MEDIA_REQUIRED": "Please upload a clear image showing the product model or label.",
+            "NEW_ADDRESS_REQUIRED": "Please provide the complete new shipping address.",
+            "SUPPORTED_GOAL_UNCLEAR": "Please clarify what you would like help with.",
+        }.get(reason_code, "Please provide the information needed to continue.")
     if reason_code == "WORK_CANCELLED":
         return "已停止当前事项。"
     if reason_code == "WORKSTREAM_CANCELLED":

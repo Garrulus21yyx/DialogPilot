@@ -731,21 +731,27 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
         assert "PX-200" in product["response"]
         assert refund_precheck["outcome"] == "needs_input"
         assert refund_precheck_replay == refund_precheck
-        assert "refund-target-1" in refund_committed["response"]
+        for response, receipt_id in (
+            (refund_committed, "refund-target-1"),
+            (refund_reconciled, "refund-reconciled-1"),
+            (cancel_committed, "cancel-target-1"),
+            (address_committed, "address-target-1"),
+            (freeze_committed, "freeze-target-1"),
+        ):
+            assert response["response"] == "请求已提交。"
+            assert receipt_id in response["evaluation_trace"]["state_side_effect"]["committed_receipt_refs"]
+            assert receipt_id not in response["response"]
         assert refund_commit_replay == refund_committed
         assert stale_approval["code"] == "APPROVAL_SIGNAL_CONFLICT"
         assert changed_approval_replay["code"] == "IDEMPOTENCY_CONFLICT"
         assert cross_conversation_approval["code"] == "APPROVAL_SIGNAL_CONFLICT"
         assert "未执行任何业务写入" in refund_declined["response"]
         assert refund_unknown["outcome"] == "reconciling"
-        assert "refund-reconciled-1" in refund_reconciled["response"]
         assert cancel_precheck["outcome"] == "needs_input"
-        assert "cancel-target-1" in cancel_committed["response"]
         cancel_calls = [item for item in tools.calls if item[0] == "order_cancel"]
         assert len(cancel_calls) == 1
         assert cancel_calls[0][2] == "general"
         assert address_precheck["outcome"] == "needs_input"
-        assert "address-target-1" in address_committed["response"]
         address_calls = [
             item for item in tools.calls
             if item[0] == "shipping_address_change"
@@ -756,7 +762,6 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
         assert security_review["routing_disposition"] == "direct"
         assert "未知设备登录" in security_review["response"]
         assert freeze_precheck["outcome"] == "needs_input"
-        assert "freeze-target-1" in freeze_committed["response"]
         freeze_calls = [item for item in tools.calls if item[0] == "account_freeze"]
         assert len(freeze_calls) == 1
         assert freeze_calls[0][1] == {"expected_account_version": 8}

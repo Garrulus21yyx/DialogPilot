@@ -72,7 +72,7 @@ class ResponseAssembler:
             for r in board.results)
 
     @staticmethod
-    def interaction_prelude(board) -> str:
+    def interaction_prelude(board, *, locale="zh-CN") -> str:
         """Deliver independent committed results alongside a pending question.
 
         This uses the existing deterministic renderer, not unverified domain
@@ -81,10 +81,15 @@ class ResponseAssembler:
         from types import SimpleNamespace
         results = tuple(result for result in board.results if result.status in _SUCCESS
                         and (result.facts or result.action_receipts))
-        return _render_board(SimpleNamespace(results=results)) if results else ""
+        return _render_board(SimpleNamespace(results=results), locale=locale) if results else ""
 
     def __init__(self, composer: ConversationComposer | None = None, *,
-                 knowledge_generator=None, knowledge_verifier=None, knowledge_source_validator=None) -> None:
+                 knowledge_generator=None, knowledge_verifier=None, knowledge_source_validator=None,
+                 fallback_locale="zh-CN", internal_tool_names=()) -> None:
+        if fallback_locale not in {"zh-CN", "en"}:
+            raise ValueError("unsupported customer fallback locale")
+        self.fallback_locale = fallback_locale
+        self._internal_tool_names = frozenset(internal_tool_names)
         self._composer = composer
         self._knowledge_generator = knowledge_generator
         self._knowledge_verifier = knowledge_verifier
@@ -130,7 +135,7 @@ class ResponseAssembler:
                         candidate.used_claim_ids, candidate.composer_used, "PASS", "ANSWER_SUPPORT_CHECKED",
                         hashlib.sha256(candidate.text.encode()).hexdigest())
                 except Exception:
-                    return AssembledResponse(system_notice + _render_board(board), ResponseAssemblyMode.TEMPLATE,
+                    return AssembledResponse(system_notice + _render_board(board, locale=self.fallback_locale), ResponseAssemblyMode.TEMPLATE,
                         (), False, "NOT_CHECKED", "ANSWER_SAFE_FALLBACK")
             from dataclasses import replace
             return replace(candidate, text=system_notice + candidate.text)
@@ -252,9 +257,11 @@ class ResponseAssembler:
         missing_outcomes = [result.work_item_id for result in board.results
             if result.status not in {AgentResultStatus.SUCCEEDED, AgentResultStatus.WAITING_APPROVAL}
             and used_claim_ids is not None and 'outcome:' + result.work_item_id not in used_claim_ids]
+        invalid_citations = sorted(name for name in self._internal_tool_names if '[' + name + ']' in text)
         inputs = dict(question=message, answer=text,
             context=json.dumps({'facts': facts, 'receipts': receipts, 'pending_actions': proposals,
                                 'unrepresented_outcomes': missing_outcomes,
+                                'invalid_citations': invalid_citations,
                                 'user_context': conversation_context}, ensure_ascii=False),
             knowledge_evidence=knowledge_evidence,
             agent_outcomes=[{"status": result.status.value, "reason": result.reason_code,
@@ -267,10 +274,13 @@ class ResponseAssembler:
             raise ValueError("verification does not match final answer and evidence")
         return verdict
 
-    @staticmethod
-    def _knowledge_fallback(board, notice: str, *, unavailable: bool = False) -> AssembledResponse:
-        text = ("知识查询或核验服务暂时不可用，请稍后重试或联系人工客服。" if unavailable else
-                "现有资料不足以支持可靠结论，请补充适用条件或联系人工客服核实。")
+    def _knowledge_fallback(self, board, notice: str, *, unavailable: bool = False) -> AssembledResponse:
+        text = (_message(self.fallback_locale,
+            "知识查询或核验服务暂时不可用，请稍后重试或联系人工客服。",
+            "The information or verification service is temporarily unavailable. Please try again later or contact support.") if unavailable else
+            _message(self.fallback_locale,
+            "现有资料不足以支持可靠结论，请补充适用条件或联系人工客服核实。",
+            "The available information does not support a reliable conclusion. Please provide relevant details or contact support."))
         # A knowledge publication failure only removes knowledge-dependent claims.
         # Committed effects and independently verified state retain their authority.
         from dataclasses import replace
@@ -288,7 +298,7 @@ class ResponseAssembler:
             if facts or result.action_receipts:
                 independent.append(replace(result, facts=facts, candidate_response=None,
                                            status=AgentResultStatus.PARTIAL, retryable=False))
-        prefix = _render_board(SimpleNamespace(results=independent)) + "\n" if independent else ""
+        prefix = _render_board(SimpleNamespace(results=independent), locale=self.fallback_locale) + "\n" if independent else ""
         return AssembledResponse(notice + prefix + text, ResponseAssemblyMode.TEMPLATE, (), False,
                                  "NOT_CHECKED", "KNOWLEDGE_SAFE_ABSTENTION")
 
@@ -304,7 +314,7 @@ class ResponseAssembler:
                 tuple(claim.claim_id for claim in claims), False,
                 "PENDING", "SINGLE_RESULT_CANDIDATE",
             )
-        fallback = _render_board(board)
+        fallback = _render_board(board, locale=self.fallback_locale)
         if mode is ResponseAssemblyMode.TEMPLATE or self._composer is None:
             return AssembledResponse(
                 system_notice + fallback, ResponseAssemblyMode.TEMPLATE,
@@ -405,7 +415,7 @@ class ResponseAssembler:
             return ResponseAssemblyMode.CONVERSATION_COMPOSE
         if len(board.results) == 1:
             result = board.results[0]
-            if result.action_receipts:
+            if result.action_receipts and not result.facts and not _candidate_text(result):
                 return ResponseAssemblyMode.TEMPLATE
             from application.agent_result import FactSourceKind
             if any(f.requirement_id == "refund.current_state"
@@ -513,7 +523,11 @@ _APPROVAL_DESCRIPTION_REQUIREMENT = (
 )
 
 
-def _render_board(board) -> str:
+def _message(locale, chinese, english):
+    return english if locale == "en" else chinese
+
+
+def _render_board(board, *, locale="zh-CN") -> str:
     sections = []
     for result in board.results:
         rendered = []
@@ -521,23 +535,27 @@ def _render_board(board) -> str:
             if receipt.effect_status != "COMMITTED":
                 continue
             if receipt.requirement_id == "support.handoff_action":
-                rendered.append(f"人工工单已创建，工单号：{receipt.receipt_id}。")
+                rendered.append(_message(locale, f"人工工单已创建，工单号：{receipt.receipt_id}。",
+                    f"A support ticket has been created. Ticket number: {receipt.receipt_id}."))
             else:
-                rendered.append(f"操作已完成，凭证号：{receipt.receipt_id}。")
+                rendered.append(_message(locale, "请求已提交。", "The request has been submitted."))
         # A fallback cannot re-publish model-authored candidates after a failed
         # support check. Facts, committed effects and typed outcomes survive.
-        text = _render_verified_facts(result)
+        text = _render_verified_facts(result, locale=locale)
         if text:
             rendered.append(text)
         if result.status not in _SUCCESS:
-            label = _OWNER_LABELS.get(result.owner_agent, "此项请求")
-            rendered.append(label + "：" + _OUTCOME_TEXT[result.status])
+            label = (_OWNER_LABELS_EN.get(result.owner_agent, "This request") if locale == "en"
+                     else _OWNER_LABELS.get(result.owner_agent, "此项请求"))
+            rendered.append(label + (": " if locale == "en" else "：")
+                + (_OUTCOME_TEXT_EN if locale == "en" else _OUTCOME_TEXT)[result.status])
         elif result.status is AgentResultStatus.PARTIAL:
-            rendered.append("部分请求尚未完成。")
+            rendered.append(_message(locale, "部分请求尚未完成。", "Part of the request remains incomplete."))
         if not rendered:
-            rendered.append("已取得部分信息，但暂时无法整理为可靠答复。")
+            rendered.append(_message(locale, "暂时无法提供可靠答复，请稍后重试或联系人工客服。",
+                "I cannot provide a reliable answer right now. Please try again later or contact support."))
         sections.extend(rendered)
-    return "\n".join(sections) or "暂时没有可发布的结果。"
+    return "\n".join(sections) or _message(locale, "暂时没有可发布的结果。", "No result is available yet.")
 
 
 _OWNER_LABELS = {
@@ -557,6 +575,23 @@ _OUTCOME_TEXT = {
     AgentResultStatus.SUPERSEDED: "已由更新后的请求替代。",
 }
 
+_OWNER_LABELS_EN = {
+    "order_logistics": "Order and shipping", "billing_refund": "Refund and billing",
+    "product_technical": "Product enquiry", "general": "Information enquiry",
+    "account_security": "Account request", "human_support": "Support request",
+}
+_OUTCOME_TEXT_EN = {
+    AgentResultStatus.NEEDS_USER_INPUT: "More information is needed to continue.",
+    AgentResultStatus.NEEDS_EVIDENCE: "More evidence is needed; the result cannot yet be confirmed.",
+    AgentResultStatus.WAITING_APPROVAL: "Awaiting approval; the action has not been completed.",
+    AgentResultStatus.BLOCKED: "This cannot proceed at present.",
+    AgentResultStatus.RECONCILING: "The outcome is being checked; completion is not yet confirmed.",
+    AgentResultStatus.RETRYABLE_FAILURE: "The attempt failed. Please try again later.",
+    AgentResultStatus.TERMINAL_FAILURE: "This could not be completed. Please check the details or contact support.",
+    AgentResultStatus.CANCELLED: "Processing was cancelled.",
+    AgentResultStatus.SUPERSEDED: "This has been replaced by your updated request.",
+}
+
 
 def _candidate_text(result) -> str:
     # Existing persisted direct results may contain model-facing serialized tools.
@@ -566,7 +601,7 @@ def _candidate_text(result) -> str:
     return str(result.candidate_response or "").strip()
 
 
-def _render_verified_facts(result) -> str:
+def _render_verified_facts(result, *, locale="zh-CN") -> str:
     from application.agent_result import FactSourceKind
     from services.customer_operation_views import ORDER_STATUS_LABELS as statuses
     texts = []
@@ -577,13 +612,15 @@ def _render_verified_facts(result) -> str:
         if fact.requirement_id == "refund.current_state":
             from services.customer_operation_views import refund_lookup_statements, UnsupportedRefundObservation
             try:
-                texts.extend(text for _, text in refund_lookup_statements(value))
+                texts.extend(text for _, text in refund_lookup_statements(value, locale=locale))
             except UnsupportedRefundObservation:
-                texts.append("当前退款查询结果格式无法确认，请重新查询。")
+                texts.append(_message(locale, "当前退款查询结果格式无法确认，请重新查询。",
+                    "The refund lookup returned an unrecognized result. Please query it again."))
         if fact.requirement_id == "order.current_state" and isinstance(value, dict):
             order_id, status = value.get("order_id"), value.get("status")
             if isinstance(order_id, str) and _REFERENCE.fullmatch(order_id) and isinstance(status, str) and status in statuses:
-                texts.append(f"订单 {order_id} 当前状态为{statuses[status]}。")
+                texts.append(_message(locale, f"订单 {order_id} 当前状态为{statuses[status]}。",
+                    f"The current recorded status of order {order_id} is {status}."))
     return "\n".join(dict.fromkeys(texts))
 
 
