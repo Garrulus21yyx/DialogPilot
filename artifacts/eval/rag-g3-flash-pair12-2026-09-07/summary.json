@@ -1,0 +1,49 @@
+{
+  "api_calls": 24,
+  "arms": {
+    "baseline": {
+      "cases": 12,
+      "candidate_complete": 10,
+      "top5_complete": 10,
+      "packed_complete": 10,
+      "visible_complete": 10,
+      "fallback": 0,
+      "mrr5": 0.7361111111111112,
+      "ndcg5_project": 0.7609108127976215,
+      "p50_ms": 1751.6437787562609,
+      "p95_ms": 2426.320854574442
+    },
+    "balanced": {
+      "cases": 12,
+      "candidate_complete": 10,
+      "top5_complete": 10,
+      "packed_complete": 10,
+      "visible_complete": 10,
+      "fallback": 0,
+      "mrr5": 0.7361111111111112,
+      "ndcg5_project": 0.7609108127976215,
+      "p50_ms": 1594.872435554862,
+      "p95_ms": 2233.1305406987667
+    }
+  },
+  "paired": {
+    "baseline->balanced": {
+      "candidate_complete": {
+        "rescues": 0,
+        "harms": 0
+      },
+      "top5_complete": {
+        "rescues": 0,
+        "harms": 0
+      },
+      "packed_complete": {
+        "rescues": 0,
+        "harms": 0
+      },
+      "visible_complete": {
+        "rescues": 0,
+        "harms": 0
+      }
+    }
+  }
+}
