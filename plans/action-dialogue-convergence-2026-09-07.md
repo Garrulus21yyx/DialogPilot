@@ -34,7 +34,7 @@ Official reference checked 2026-09-07: https://docs.langchain.com/oss/python/lan
 
 ## Implemented boundary and acceptance evidence
 
-- Planning declares `allow_action_proposals` per open goal (default false); it is not approval. Registry ownership and runtime approval still constrain every write. No per-business tool sequence is encoded.
+- Planning declares `allow_action_proposals` per open goal; it is not approval. Model output must explicitly provide it; internal commands default to false. Registry ownership and runtime approval still constrain every write. No per-business tool sequence is encoded.
 - State-bound continuation carries its original WorkItem capability envelope. Independent review exposed that inferring this from skills/action availability lost non-skill read tools. Restore the explicit envelope after registry, owner and control-version validation instead.
 - Preparation wrappers describe preparation, not the raw write API's pre-confirmation instructions. Domain context treats other topics as context rather than additional objectives.
 - The framework message adapter projects only the originating pending ToolMessage. Trusted consumed input yields ANSWERED (not approval); a matching committed operation receipt yields COMMITTED. SDK call/message identity is preserved; archived originals are unchanged. Unknown/failed/unrelated receipts never resolve the proposal.
@@ -43,3 +43,5 @@ Official reference checked 2026-09-07: https://docs.langchain.com/oss/python/lan
 Latest scoped validation: 198 tests passed using real PostgreSQL, including repeated input/approval round trips, process restart, read-only scope preservation, inline/archived artifact identity and operation/owner/requirement mismatch cases. Nine existing warnings concern nested trusted-context serialization and multiprocessing fork; no new warning suppression. This does not prove fresh model behavior.
 
 Exit checks still pending: independent final review and a single fresh run of original development tasks 2/3, explicitly checking confirmation count, committed writes, truthful public reply and internal completion. Preserve original runs and unavailable official judge status. Do not claim closure from pytest counts or adjust ACTION reference matching.
+
+First fresh verification at 0256231 did not close the task. See `artifacts/eval/tau3-action-dialogue-dev2-2026-09-07-v1/REPORT.md`: task 2 ENV=0, task 3 eventual ENV=1 after an incorrect unavailable response. The model omitted the optional scope, and its capability cards omitted action proposals. This is an input/output contract gap, not a new business exception. Action cards now derive from Registry; model scope is mandatory and absent scope is a typed invalid plan. Added model-facing card → plan → RoutePolicy tests and schema omission tests. Follow-up targeted tests: 97 passed. Both attempts and limitations must remain in the final report.

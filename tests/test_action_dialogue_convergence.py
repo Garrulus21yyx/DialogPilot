@@ -17,6 +17,32 @@ from tests.test_target_turn_planning import _registry, _state
 
 
 @pytest.mark.parametrize("scope", [False, True])
+def test_model_plan_card_and_compiler_share_action_scope(scope):
+    from application.conversation_agent import ConversationAgent
+    from application.deterministic_resolution import DeterministicResolver, TurnObservations
+    from tests.test_conversation_agent import Provider
+    registry = _registry()
+    state = _state()
+    value = {"status": "resolved", "goals": [{"kind": "delegate_task",
+        "target_agent": "billing_refund", "objective": "Handle this objective",
+        "allow_action_proposals": scope}]}
+    provider = Provider(value)
+    observation = TurnObservations("Handle this objective")
+    proposal = asyncio.run(ConversationAgent(provider).plan(observation, state,
+        DeterministicResolver().resolve(observation, state), registry))
+    cards = provider.calls[0]["domain_capabilities"]
+    for card in cards:
+        assert {action["action_ref"] for action in card["action_proposals"]} == {
+            action.ref for action in registry.actions if action.owner_agent == card["agent_id"]}
+    accepted = RoutePolicy().accept(proposal, state, registry)
+    assert bool(accepted.commands[0].allowed_actions) is scope
+    del value["goals"][0]["allow_action_proposals"]
+    invalid = asyncio.run(ConversationAgent(Provider(value)).plan(observation, state,
+        DeterministicResolver().resolve(observation, state), registry))
+    assert invalid.disposition is ProposalDisposition.INVALID_PROVIDER_OUTPUT
+
+
+@pytest.mark.parametrize("scope", [False, True])
 def test_delegated_proposal_scope_is_explicit_and_preserved(scope):
     registry = _registry()
     command = CommandProposal("goal", CommandKind.DELEGATE_TASK, "billing_refund",

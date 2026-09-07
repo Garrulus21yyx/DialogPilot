@@ -95,7 +95,7 @@ def planning_output_schema(supported_goals=None, knowledge_filter_contract=None)
         },
         "allOf": [{
             "if": {"properties": {"kind": {"const": "delegate_task"}}},
-            "then": {"required": ["target_agent", "objective"]},
+            "then": {"required": ["target_agent", "objective", "allow_action_proposals"]},
             "else": {"not": {"anyOf": [
                 {"required": ["target_agent"]}, {"required": ["objective"]},
                 {"required": ["allow_action_proposals"]},
@@ -282,6 +282,11 @@ class ConversationAgent:
                         for tool_id in agent.allowed_tool_ids
                     ],
                     "skills": list(agent.allowed_skill_ids),
+                    "action_proposals": [
+                        {"action_ref": action.ref, "effect": action.effect.value,
+                         "approval_policy": action.approval_policy.value}
+                        for action in registry.actions if action.owner_agent == agent.agent_id
+                    ],
                 }
                 for agent in registry.agents
             ],
@@ -433,7 +438,7 @@ class ConversationAgent:
                     arguments=tuple(ArgumentValue.create(binding.field_name, binding.value)
                                     for binding in bindings),
                     argument_bindings=bindings,
-                    allow_action_proposals=value.get("allow_action_proposals", False),
+                    allow_action_proposals=value["allow_action_proposals"],
                 )
             elif kind == "cancel_active_work":
                 if not revises_control_id:

@@ -23,6 +23,7 @@ from tests.test_target_framework_agent import ScriptedToolModel, _manager, _cont
 def _proposal(owner):
     return {"status": "resolved", "goals": [{
         "kind": "delegate_task", "target_agent": owner,
+        "allow_action_proposals": False,
         "objective": "Investigate the customer's product question using available records.",
     }]}
 
@@ -117,7 +118,7 @@ def test_unregistered_domain_is_invalid_provider_output():
     assert proposal.disposition is ProposalDisposition.INVALID_PROVIDER_OUTPUT
 
 
-@pytest.mark.parametrize("missing", ["target_agent", "objective"])
+@pytest.mark.parametrize("missing", ["target_agent", "objective", "allow_action_proposals"])
 def test_delegation_wire_contract_requires_domain_and_objective(missing):
     value = _proposal("general")
     del value["goals"][0][missing]
