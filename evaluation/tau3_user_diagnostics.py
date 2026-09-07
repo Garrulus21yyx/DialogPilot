@@ -65,9 +65,13 @@ class SimulatorDiagnostics(CustomLogger):
                 os.environ.setdefault('LANGFUSE_HOST', os.environ['LANGFUSE_BASE_URL'])
             from litellm.integrations.langfuse.langfuse_otel import LangfuseOtelLogger
             self.exporter = LangfuseOtelLogger(callback_name='langfuse_otel')
+        import litellm
+        # Runtime dependency, not serializable model configuration. tau deep-copies
+        # llm_args; only correlation metadata belongs in that value object.
+        litellm.callbacks.append(self)
 
     def options(self, task_id, session_id, *, model=None, parameters=None):
-        return {'callbacks': [self], 'metadata': {
+        return {'metadata': {
             'simulator_capture_id': self.capture_id, 'task_id': str(task_id),
             'session_id': session_id, 'generation_name': 'simulate-user',
             'trace_name': 'simulate-user', 'tags': ['tau3', 'simulator'],
@@ -228,7 +232,7 @@ class SimulatorDiagnostics(CustomLogger):
                 except Exception as exc:
                     flush_errors.append(self._safe(f'{type(exc).__name__}: {exc}'))
         # Dynamic callbacks in this pinned SDK also register globally.
-        for name in ('input_callback', 'success_callback', 'failure_callback',
+        for name in ('callbacks', 'input_callback', 'success_callback', 'failure_callback',
                      '_async_success_callback', '_async_failure_callback'):
             callbacks = getattr(litellm, name)
             while self in callbacks:

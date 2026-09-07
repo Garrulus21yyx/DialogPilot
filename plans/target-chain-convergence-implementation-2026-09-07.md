@@ -4,6 +4,14 @@
 
 ### 最新状态（优先于下面按时间保留的记录）
 
+- v16 原两任务在官方 UserSimulator 初始化失败（deepcopy 模型参数包含 callback 线程锁），
+  均 ERROR/null、无模型调用/写入。诊断生命周期迁到 SDK callback registry，模型参数只保留
+  可复制 metadata；新增真实官方初始化及生成测试，集中51 passed。v16失败保留，v17待固定版本验证。
+
+- v16 原两任务 E2E 配置：固定 a21568c 独立 worktree、隔离测试 PostgreSQL，
+  保持 task 0/1、模型、512用户预算与4096主链预算；唯一行为变更为已提交的模拟用户
+  thinking 参数传递修复。分别核对用户输出、实际写入、最终回复与官方评分，保留所有失败。
+
 - 模拟用户取证与参数装配修复已实现并验证：LiteLLM drop_params 将未识别模型的
   thinking:disabled 删除；wire 对照证明修正后该参数真正发出。同一512预算下两个
   失败前缀探测分别177/17正文tokens、0reasoning；未执行业务工具或改写旧失败成绩。

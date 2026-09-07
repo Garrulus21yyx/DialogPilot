@@ -1,0 +1,96 @@
+{
+  "task_id": "0",
+  "official_reward": null,
+  "langfuse_session_id": "tau3-cff5e2904ae347a48a715fe13a7c7264",
+  "error_stack": [
+    {
+      "file": "scripts/run_tau3_full.py",
+      "line": 150,
+      "function": "run"
+    },
+    {
+      "file": "/tmp/tau3.asUlWc/src/tau2/user/user_simulator.py",
+      "line": 122,
+      "function": "__init__"
+    },
+    {
+      "file": "/tmp/tau3.asUlWc/src/tau2/agent/base/llm_config.py",
+      "line": 39,
+      "function": "__init__"
+    },
+    {
+      "file": "/home/yang/miniconda3/lib/python3.13/copy.py",
+      "line": 137,
+      "function": "deepcopy"
+    },
+    {
+      "file": "/home/yang/miniconda3/lib/python3.13/copy.py",
+      "line": 222,
+      "function": "_deepcopy_dict"
+    },
+    {
+      "file": "/home/yang/miniconda3/lib/python3.13/copy.py",
+      "line": 137,
+      "function": "deepcopy"
+    },
+    {
+      "file": "/home/yang/miniconda3/lib/python3.13/copy.py",
+      "line": 197,
+      "function": "_deepcopy_list"
+    },
+    {
+      "file": "/home/yang/miniconda3/lib/python3.13/copy.py",
+      "line": 163,
+      "function": "deepcopy"
+    },
+    {
+      "file": "/home/yang/miniconda3/lib/python3.13/copy.py",
+      "line": 260,
+      "function": "_reconstruct"
+    },
+    {
+      "file": "/home/yang/miniconda3/lib/python3.13/copy.py",
+      "line": 137,
+      "function": "deepcopy"
+    },
+    {
+      "file": "/home/yang/miniconda3/lib/python3.13/copy.py",
+      "line": 222,
+      "function": "_deepcopy_dict"
+    },
+    {
+      "file": "/home/yang/miniconda3/lib/python3.13/copy.py",
+      "line": 163,
+      "function": "deepcopy"
+    },
+    {
+      "file": "/home/yang/miniconda3/lib/python3.13/copy.py",
+      "line": 260,
+      "function": "_reconstruct"
+    },
+    {
+      "file": "/home/yang/miniconda3/lib/python3.13/copy.py",
+      "line": 137,
+      "function": "deepcopy"
+    },
+    {
+      "file": "/home/yang/miniconda3/lib/python3.13/copy.py",
+      "line": 222,
+      "function": "_deepcopy_dict"
+    },
+    {
+      "file": "/home/yang/miniconda3/lib/python3.13/copy.py",
+      "line": 152,
+      "function": "deepcopy"
+    }
+  ],
+  "status": "ERROR",
+  "error_type": "TypeError",
+  "error": "cannot pickle '_thread.RLock' object",
+  "simulator_diagnostics": {
+    "capture_complete": false,
+    "capture_errors": [],
+    "calls": []
+  },
+  "target_trace": []
+}

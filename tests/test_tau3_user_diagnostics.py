@@ -191,3 +191,27 @@ def test_official_langfuse_exporter_attributes_and_actual_provider_flush(tmp_pat
     for provider in providers:
         provider.force_flush.assert_called_once()
         provider.shutdown.assert_called_once()
+
+
+def test_official_simulator_can_copy_configuration_and_capture_next_turn(tmp_path):
+    """Exercise the previously missing consumer: tau's deepcopy(llm_args)."""
+    from copy import deepcopy
+    from evaluation.tau3_user_diagnostics import simulator_parameters
+    from tau2.user.user_simulator import UserSimulator
+    from tau2.data_model.message import AssistantMessage
+    c = SimulatorDiagnostics(tmp_path / 'capture')
+    parameters = {**simulator_parameters(512), 'mock_response': 'My name is Sam',
+                  **c.options('t', 's')}
+    try:
+        assert deepcopy(parameters) == parameters
+        user = UserSimulator(llm='openai/test', instructions='Ask about an order', llm_args=parameters)
+        user.set_seed(300)
+        result, state = user.generate_next_message(
+            AssistantMessage(role='assistant', content='What is your name?'), user.get_init_state())
+        result.validate()
+        assert state.messages[-1].content == 'My name is Sam'
+        assert c.task_summary('t')['capture_complete']
+    finally:
+        c.close()
+    import litellm
+    assert c not in litellm.callbacks
