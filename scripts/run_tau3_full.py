@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Two complete retail development tasks through Target and the official evaluator."""
+"""Selected retail development tasks through Target and the official evaluator."""
 from __future__ import annotations
 
 import argparse
@@ -60,7 +60,9 @@ async def run(args):
     db_name = "dialogpilot_tau3_full_" + uuid.uuid4().hex[:12]
     parts = urlsplit(args.database_url)
     db_url = urlunsplit((parts.scheme, parts.netloc, "/" + db_name, parts.query, ""))
-    tasks = get_tasks("train")[:2]
+    tasks = get_tasks("train")[args.task_offset:args.task_offset + args.task_count]
+    if len(tasks) != args.task_count:
+        raise ValueError("requested task range exceeds the development split")
     manifest = {"status": "RUNNING", "split": "train", "task_ids": [t.id for t in tasks],
                 "started_at": datetime.now(timezone.utc).isoformat(),
                 "project_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
@@ -76,7 +78,7 @@ async def run(args):
                 "source_sha256": {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
                                   for folder in ("application", "infrastructure", "evaluation")
                                   for path in sorted((ROOT / folder).glob("*.py"))},
-                "limitations": ["two development tasks are not heldout performance",
+                "limitations": ["selected development tasks are not heldout performance",
                                 "no independent human-quality assessment", "no remote idempotency or atomic entity CAS API",
                                 "text-only approval classifier is evaluation UI adaptation",
                                 "HTTP/SSE and multiple domain routing not exercised"]}
@@ -170,7 +172,7 @@ async def run(args):
         # Only the exact database created by this invocation is removed.
         with psycopg.connect(args.database_url, autocommit=True) as connection:
             connection.execute(sql.SQL("DROP DATABASE {} WITH (FORCE)").format(sql.Identifier(db_name)))
-        manifest["status"] = "EVALUATED" if len(rows) == 2 and all(r["status"] == "EVALUATED" for r in rows) else "INCOMPLETE"
+        manifest["status"] = "EVALUATED" if len(rows) == len(tasks) and all(r["status"] == "EVALUATED" for r in rows) else "INCOMPLETE"
         write(args.output / "manifest.json", manifest)
 
 
@@ -183,4 +185,9 @@ if __name__ == "__main__":
     parser.add_argument("--max-steps", type=int, default=80)
     parser.add_argument("--completion-budget", type=int, default=None)
     parser.add_argument("--user-max-tokens", type=int, default=512)
-    asyncio.run(run(parser.parse_args()))
+    parser.add_argument("--task-offset", type=int, default=0)
+    parser.add_argument("--task-count", type=int, default=2)
+    args = parser.parse_args()
+    if args.task_offset < 0 or args.task_count < 1:
+        parser.error("task offset must be nonnegative and task count must be positive")
+    asyncio.run(run(args))
