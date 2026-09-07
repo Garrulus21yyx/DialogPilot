@@ -48,3 +48,9 @@ PYTHONPATH=. HF_HUB_OFFLINE=1 .venv/bin/python -u scripts/run_mtrag_dense_shards
 产物：[探针](../artifacts/eval/rag-g4-mtrag-dense-start-2026-09-07/probe.json)、[缓存身份](../artifacts/eval/rag-g4-mtrag-dense-start-2026-09-07/identity.json)、[首分片检查](../artifacts/eval/rag-g4-mtrag-dense-start-2026-09-07/first-shard-audit.json)。
 
 下一步等完整编码完成，审计四域计数/实际token上限/排名，再以同32题比较Dense与BM25、统计漏召回互补性；随后才重放融合。不改变当前生产权重、精排或Agent架构。
+
+## 运行中的缓存核验
+
+后续快照已核验106,496行向量，对应26个已提交分片；源行顺序/正文hash、文件SHA、dtype/shape、有限值及单位范数均通过。只读审计脚本 `scripts/audit_mtrag_dense_shards.py` 默认要求完整运行；本次显式 `--allow-running`，产物 `complete_attested=false`，不能用于签发全量完成。6项错误注入/正确向量合同测试通过。
+
+[检查点审计](../artifacts/eval/rag-g4-mtrag-dense-checkpoint-2026-09-07/report.json)。完成后复用同一脚本、不加allow-running，核验四域完整计数后再分析排名。最新进度需查现有session2481/PID，本文快照不替代实时状态。

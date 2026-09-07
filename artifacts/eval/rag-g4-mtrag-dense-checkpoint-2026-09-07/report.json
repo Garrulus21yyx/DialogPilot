@@ -1,0 +1,266 @@
+{
+  "mode": "committed_checkpoint_snapshot",
+  "complete_attested": false,
+  "api_calls": 0,
+  "checked_rows": 106496,
+  "domains": {
+    "clapnq": {
+      "checked_rows": 106496,
+      "expected_rows": 183408,
+      "shards": [
+        {
+          "file": "clapnq-0000.json",
+          "rows": 4096,
+          "input_sha256": "224184b386d1f08812d1883c8999c2e106560b401faea6eb0a86ff0a141413e6",
+          "vectors_sha256": "b75d0cbdf2350747d52ea635daf22cf52ca2461387a88a73bd765f64772f0fa7",
+          "norm_min": 0.9996581673622131,
+          "norm_max": 1.0003385543823242,
+          "max_tokens": 622
+        },
+        {
+          "file": "clapnq-0001.json",
+          "rows": 4096,
+          "input_sha256": "ad06b213cbcaf73f05fcd56270f66bfe2cf5342dbd91badfd7140da52bc595c4",
+          "vectors_sha256": "5d94a2310945370b9d411d288fadff0a66b6fcf71d642fb35ec849f68d8d62bd",
+          "norm_min": 0.9996625185012817,
+          "norm_max": 1.0003507137298584,
+          "max_tokens": 743
+        },
+        {
+          "file": "clapnq-0002.json",
+          "rows": 4096,
+          "input_sha256": "1434497639e126a22fd2141a82bf5865bd5c3c3a1510c832ef898ec4c8a45b63",
+          "vectors_sha256": "108198801f37108564a2e2292a538b5093a4d84b2bff7053543637a4850b4c05",
+          "norm_min": 0.9996662735939026,
+          "norm_max": 1.000341773033142,
+          "max_tokens": 605
+        },
+        {
+          "file": "clapnq-0003.json",
+          "rows": 4096,
+          "input_sha256": "8f5cff09f3cd46c71b87b54bc789f56b6b471aeb2a19c77409d64dc342bcdc96",
+          "vectors_sha256": "9281960ff6669c75c12bbb932967cfa2b9c843e4b6bf8aa7c1e1248fbf43376a",
+          "norm_min": 0.9996668100357056,
+          "norm_max": 1.0003412961959839,
+          "max_tokens": 645
+        },
+        {
+          "file": "clapnq-0004.json",
+          "rows": 4096,
+          "input_sha256": "bd71cd399ba53d6e60f78425d0d91abfdb1eb0f9a65cf352e79947589b8712a5",
+          "vectors_sha256": "584d7857c523e868fe9e1b6352e7dfae121c17adf9fa3f683f6d816a3322d937",
+          "norm_min": 0.9996662735939026,
+          "norm_max": 1.0003467798233032,
+          "max_tokens": 643
+        },
+        {
+          "file": "clapnq-0005.json",
+          "rows": 4096,
+          "input_sha256": "d1759345561bc7cb9a08239deed7adf6b978a710a3f3c7420cd3acc9e15a74f1",
+          "vectors_sha256": "da8e85958c1165e8b8c5c97f008b420c003963e765a98e6b535d529925343675",
+          "norm_min": 0.9996638298034668,
+          "norm_max": 1.0003423690795898,
+          "max_tokens": 738
+        },
+        {
+          "file": "clapnq-0006.json",
+          "rows": 4096,
+          "input_sha256": "375aa2fc39ddd1a1526ec943083d06a85a21b8d7c29d56fc7b6e2836250ed9c1",
+          "vectors_sha256": "11a8209fa87061e758399b7af849628b4d6ec9db73af7e522519354645f9b7b6",
+          "norm_min": 0.9996542930603027,
+          "norm_max": 1.0003491640090942,
+          "max_tokens": 654
+        },
+        {
+          "file": "clapnq-0007.json",
+          "rows": 4096,
+          "input_sha256": "aa646dd906298c758f976f9d9f9d7e88c487d94edee45c4999d4e25616218dfa",
+          "vectors_sha256": "35d9c48992da52dc6498b82c1f16352fe7c8b657c156de5f479b52e69a10da87",
+          "norm_min": 0.9996583461761475,
+          "norm_max": 1.0003401041030884,
+          "max_tokens": 628
+        },
+        {
+          "file": "clapnq-0008.json",
+          "rows": 4096,
+          "input_sha256": "7dac664e86bd6551c5b6f47300569fbf7ef73fd25e9dc710175a3d57a5b1bcaf",
+          "vectors_sha256": "b85c6ea842b2b085cfb24e3a0f37d032692214e8e6123f7fa9fff13abf5dffaf",
+          "norm_min": 0.9996494054794312,
+          "norm_max": 1.0003323554992676,
+          "max_tokens": 655
+        },
+        {
+          "file": "clapnq-0009.json",
+          "rows": 4096,
+          "input_sha256": "a3c0bd04f7fae7f20db3a5b0da3f6a7d02a2a55e30c0d643c7ced1b0eb06ca8a",
+          "vectors_sha256": "a8dd3b0ba150f1dc5cffa65b36d72062d3a414c8b3ce1a50e35a6653cdd372df",
+          "norm_min": 0.9996583461761475,
+          "norm_max": 1.0003571510314941,
+          "max_tokens": 634
+        },
+        {
+          "file": "clapnq-0010.json",
+          "rows": 4096,
+          "input_sha256": "3845f4ce006fccd05e43f5d9176b2bc6b18094cd52d2997e908c8229c20e8de2",
+          "vectors_sha256": "e2f181d7297c38369e89c0a628cd8bab54ed90b8677a3a943cae809e826fe747",
+          "norm_min": 0.9996292591094971,
+          "norm_max": 1.0003365278244019,
+          "max_tokens": 611
+        },
+        {
+          "file": "clapnq-0011.json",
+          "rows": 4096,
+          "input_sha256": "2b84cd35a5b146bd3fb79f605c19903d6b857ff633ad1470ee7b4fb55e554ede",
+          "vectors_sha256": "9a25475db38cfe5b35f7ee4d2434f5f8ad44b58a30fd3136c3aaf8633ec75b16",
+          "norm_min": 0.9996656775474548,
+          "norm_max": 1.0003401041030884,
+          "max_tokens": 653
+        },
+        {
+          "file": "clapnq-0012.json",
+          "rows": 4096,
+          "input_sha256": "c27a3983b19ddd13814cda938637e0f96f6d3fe47677ad4626dabf742ab5394d",
+          "vectors_sha256": "a5b103abbca2da825eb4569c1cf595db67d9fcc9d5b5808b7f8a18bbc0cadce6",
+          "norm_min": 0.999657154083252,
+          "norm_max": 1.00033438205719,
+          "max_tokens": 654
+        },
+        {
+          "file": "clapnq-0013.json",
+          "rows": 4096,
+          "input_sha256": "67993b62660f8f654cc25df0bb7d4a83760778738a3a0bcd74f40874fe73f685",
+          "vectors_sha256": "570224f54c56ca7643d2a66bf7569e5892f07fbb37c5bb143916693ad2154000",
+          "norm_min": 0.9996693730354309,
+          "norm_max": 1.0003318786621094,
+          "max_tokens": 651
+        },
+        {
+          "file": "clapnq-0014.json",
+          "rows": 4096,
+          "input_sha256": "2d7caf7cc9323be32255e1fe0bd09e138e5f3665d6bc53544589a4169827e72f",
+          "vectors_sha256": "35dae840ccab2cd2f254bfd2a73a4d64bfb8c9bc830911535adbe14225f63f9e",
+          "norm_min": 0.9996625781059265,
+          "norm_max": 1.0003465414047241,
+          "max_tokens": 634
+        },
+        {
+          "file": "clapnq-0015.json",
+          "rows": 4096,
+          "input_sha256": "2118c319c3d48b0dd873581f969f3c7fd341d8a3fa032ee039dae1a6fbc8656a",
+          "vectors_sha256": "62c8b1284494870444cb98dd6feffba55cd07fb761e6057ac5bf46a35bedfdbc",
+          "norm_min": 0.9996578097343445,
+          "norm_max": 1.0003353357315063,
+          "max_tokens": 618
+        },
+        {
+          "file": "clapnq-0016.json",
+          "rows": 4096,
+          "input_sha256": "48ebd88153469c5881b300eba47099b283c3147fe45fc8c563909735fcbbe29d",
+          "vectors_sha256": "48f4fe9461b20ca766019a19dd0301445f2444eb5af660479e44d5fd5873924a",
+          "norm_min": 0.9996499419212341,
+          "norm_max": 1.0003409385681152,
+          "max_tokens": 620
+        },
+        {
+          "file": "clapnq-0017.json",
+          "rows": 4096,
+          "input_sha256": "3d1c5d8c994f763d143a6ef1cf4772ccd96441736876c41db7e18667f7898f49",
+          "vectors_sha256": "2dcc083ae3ad3ecbcc1a0d24d225ff6d1b2a5c090d6d468871e7dca25359df6d",
+          "norm_min": 0.9996687173843384,
+          "norm_max": 1.000366449356079,
+          "max_tokens": 671
+        },
+        {
+          "file": "clapnq-0018.json",
+          "rows": 4096,
+          "input_sha256": "19fafdaebbd4a0a683a11b6d7ab3e723d535a8f51705dab63796c16b5a5be3dd",
+          "vectors_sha256": "78d2592bf8ba0f22afbaca600c61c18ec864fae7a9e5a8f0671d9ab442602e42",
+          "norm_min": 0.9996643662452698,
+          "norm_max": 1.0003457069396973,
+          "max_tokens": 652
+        },
+        {
+          "file": "clapnq-0019.json",
+          "rows": 4096,
+          "input_sha256": "c79fcf4f3785dd0c7acf1477ef00b9f2f5d7f9df1e5da70406f01df703af480f",
+          "vectors_sha256": "0c5dd8108ed9efd89a07cd2073f9b2c28965ac8b3fbfc4213ff6f117a7b203d3",
+          "norm_min": 0.9996526837348938,
+          "norm_max": 1.0003339052200317,
+          "max_tokens": 632
+        },
+        {
+          "file": "clapnq-0020.json",
+          "rows": 4096,
+          "input_sha256": "4cf71f4fb23e72959284080297a4532a199a843c2dbbd4a7a26573e47ac54c07",
+          "vectors_sha256": "0e8b307f5f5e6091b3b4d862ec1c62a36d7e92fbdcbbaf32544376ce47b64e9d",
+          "norm_min": 0.9996640086174011,
+          "norm_max": 1.0003445148468018,
+          "max_tokens": 644
+        },
+        {
+          "file": "clapnq-0021.json",
+          "rows": 4096,
+          "input_sha256": "b6eeb81ef9fa43808c1cad2aa5b080f3b7a806b063ba584596df7a2a0b15622d",
+          "vectors_sha256": "fff22162d96db494adb789fd3383d10ec97bfbb6babed9f36db802f8559cfd71",
+          "norm_min": 0.9996521472930908,
+          "norm_max": 1.0003527402877808,
+          "max_tokens": 669
+        },
+        {
+          "file": "clapnq-0022.json",
+          "rows": 4096,
+          "input_sha256": "825a473eadcf6ad05f6731c523797dcdcac885d5c1c3ea0d62537532143ac9b6",
+          "vectors_sha256": "a3aaa6f40980c28162922db1f827c142541b08e834c3f1af85c7e6149852447e",
+          "norm_min": 0.999652087688446,
+          "norm_max": 1.0003275871276855,
+          "max_tokens": 625
+        },
+        {
+          "file": "clapnq-0023.json",
+          "rows": 4096,
+          "input_sha256": "9500746fa75c9dc984711b393a7596eb1ca7d50f39d97d6975b3f20dde90d579",
+          "vectors_sha256": "ca6d296ba01c8f050974fac2e0eb5bfe6224069a275a0cb80c6adeb665282535",
+          "norm_min": 0.9996560215950012,
+          "norm_max": 1.0003470182418823,
+          "max_tokens": 651
+        },
+        {
+          "file": "clapnq-0024.json",
+          "rows": 4096,
+          "input_sha256": "1ce2179fabebb47d175377edcf7f3877c5db6b394db61d5f02bd8bb5b0833807",
+          "vectors_sha256": "0943782315164c54509479b13f138a8fe79d2ee35e6626dd8b25d9d73560f20f",
+          "norm_min": 0.9996535778045654,
+          "norm_max": 1.0003440380096436,
+          "max_tokens": 710
+        },
+        {
+          "file": "clapnq-0025.json",
+          "rows": 4096,
+          "input_sha256": "d0d48edf3d22fede9a6ce689b540deab0f205d8f22a5d7dde1172d03be6642f2",
+          "vectors_sha256": "8d5ea8f73af07f0af778ac7dc9186aa8ced15c7453ba0760073c93b42e625235",
+          "norm_min": 0.9996586441993713,
+          "norm_max": 1.000335931777954,
+          "max_tokens": 687
+        }
+      ]
+    },
+    "cloud": {
+      "checked_rows": 0,
+      "expected_rows": 72439,
+      "shards": []
+    },
+    "fiqa": {
+      "checked_rows": 0,
+      "expected_rows": 60984,
+      "shards": []
+    },
+    "govt": {
+      "checked_rows": 0,
+      "expected_rows": 49607,
+      "shards": []
+    }
+  },
+  "identity_sha256": "af8161c8296f3d36e0bfb8a5b26179a94b5ddb5f2879aa6024fbf7e511287332",
+  "elapsed_seconds": 2.242676177993417,
+  "scope": "Input ordering/hash, vector bytes, shape, finite values, unit norm and recorded visibility. Does not independently prove embedding semantics or retrieval scores."
+}
