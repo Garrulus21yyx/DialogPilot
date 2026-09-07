@@ -1,0 +1,24 @@
+{
+  "cases": 20,
+  "api_calls": 0,
+  "resolved_query_count": 20,
+  "scope": "assistant-authored frozen queries vs raw; local retrieval/CE only; no online rewrite or generation claim",
+  "source_k": 40,
+  "candidate_k": 20,
+  "dense_weight": 0.5,
+  "rrf_k": 10,
+  "arms": {
+    "raw": {
+      "evaluated": 20,
+      "complete20": 17,
+      "complete5": 16,
+      "mrr5_all20_missing_zero": 0.6958333333333333
+    },
+    "resolved": {
+      "evaluated": 20,
+      "complete20": 19,
+      "complete5": 18,
+      "mrr5_all20_missing_zero": 0.6875
+    }
+  }
+}

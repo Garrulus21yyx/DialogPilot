@@ -1,0 +1,25 @@
+{
+  "scope": "assistant-authored development query diagnostic; previously exposed cases, not blind/oracle gold",
+  "api_calls": 0,
+  "frozen_queries_sha256": "25b2deb575c0a51810ed7c9ecc147eff542eb0bcb7545d47c0ba4b7b0a695b64",
+  "dataset": {
+    "case_count": 300,
+    "cases_sha256": "f0e282d4e6b0594dfc98267322bd865e846b4cc00dbbe8d534d2e6ebc6ec6363",
+    "corpus_sha256": "89a8828b798c97946e6d150851fe046692f1c8c58e1795648223345a5d526281",
+    "dataset_id": "doc2dial-rag-mini-dev-v1",
+    "document_count": 100,
+    "schema_version": 1,
+    "source": {
+      "dataset": "Doc2Dial v1.0.1",
+      "license": "CC-BY-3.0",
+      "selection": "deterministic domain-balanced prefix plus distractors",
+      "url": "https://doc2dial.github.io/file/doc2dial_v1.0.1.zip"
+    }
+  },
+  "case_count": 20,
+  "unresolvable_case_ids": [
+    "doc2dial-dev-23178e836c47051d9cc2be93932f6757-1"
+  ],
+  "selection": "same preselected conversation hashes; no outcome reselection",
+  "query_changes_after_scoring": 0
+}
