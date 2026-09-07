@@ -1,0 +1,186 @@
+{
+  "api_calls": 0,
+  "excluded": [
+    {
+      "case_id": "doc2dial-dev-85a07edcac90068ee15c3769034af6f2-3",
+      "reason": "NO_KNOWLEDGE_QUERY",
+      "route": "OUT_OF_SCOPE"
+    }
+  ],
+  "rows": [
+    {
+      "case_id": "doc2dial-dev-9d4920bea87d4f4cb977483d943c1ef3-10",
+      "mode": "raw",
+      "query": "If the tag cannot be used?",
+      "candidate_status": "OK",
+      "rankings": {
+        "production_fused20": {
+          "evidence_ranks": [
+            null,
+            null
+          ],
+          "all_evidence_rank": null,
+          "first_gold_document_rank": null
+        },
+        "relaxed_diagnostic_fused20": {
+          "evidence_ranks": [
+            null,
+            null
+          ],
+          "all_evidence_rank": null,
+          "first_gold_document_rank": null
+        },
+        "raw:bm25": {
+          "evidence_ranks": [
+            46,
+            46
+          ],
+          "all_evidence_rank": 46,
+          "first_gold_document_rank": 46
+        },
+        "raw:bm25::within::About New York State Inspections#3_0": {
+          "evidence_ranks": [
+            1,
+            1
+          ],
+          "all_evidence_rank": 1,
+          "first_gold_document_rank": 1
+        },
+        "raw:vector": {
+          "evidence_ranks": [
+            16,
+            16
+          ],
+          "all_evidence_rank": 16,
+          "first_gold_document_rank": 16
+        },
+        "raw:vector::within::About New York State Inspections#3_0": {
+          "evidence_ranks": [
+            1,
+            1
+          ],
+          "all_evidence_rank": 1,
+          "first_gold_document_rank": 1
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-9d4920bea87d4f4cb977483d943c1ef3-10",
+      "mode": "actual_agent",
+      "query": "If a vehicle inspection tag cannot be used, what are the replacement or re-inspection options and requirements?",
+      "candidate_status": "OK",
+      "rankings": {
+        "production_fused20": {
+          "evidence_ranks": [
+            1,
+            1
+          ],
+          "all_evidence_rank": 1,
+          "first_gold_document_rank": 1
+        },
+        "relaxed_diagnostic_fused20": {
+          "evidence_ranks": [
+            1,
+            1
+          ],
+          "all_evidence_rank": 1,
+          "first_gold_document_rank": 1
+        },
+        "raw:bm25": {
+          "evidence_ranks": [
+            1,
+            1
+          ],
+          "all_evidence_rank": 1,
+          "first_gold_document_rank": 1
+        },
+        "raw:bm25::within::About New York State Inspections#3_0": {
+          "evidence_ranks": [
+            1,
+            1
+          ],
+          "all_evidence_rank": 1,
+          "first_gold_document_rank": 1
+        },
+        "raw:vector": {
+          "evidence_ranks": [
+            1,
+            1
+          ],
+          "all_evidence_rank": 1,
+          "first_gold_document_rank": 1
+        },
+        "raw:vector::within::About New York State Inspections#3_0": {
+          "evidence_ranks": [
+            1,
+            1
+          ],
+          "all_evidence_rank": 1,
+          "first_gold_document_rank": 1
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-85a07edcac90068ee15c3769034af6f2-3",
+      "mode": "raw",
+      "query": "yes",
+      "candidate_status": "OK",
+      "rankings": {
+        "production_fused20": {
+          "evidence_ranks": [
+            null,
+            null,
+            null
+          ],
+          "all_evidence_rank": null,
+          "first_gold_document_rank": null
+        },
+        "relaxed_diagnostic_fused20": {
+          "evidence_ranks": [
+            null,
+            null,
+            null
+          ],
+          "all_evidence_rank": null,
+          "first_gold_document_rank": null
+        },
+        "raw:bm25": {
+          "evidence_ranks": [
+            null,
+            null,
+            null
+          ],
+          "all_evidence_rank": null,
+          "first_gold_document_rank": null
+        },
+        "raw:bm25::within::Apply For A Child (Under Age 18) | Disability Benefits | SSA#1_0": {
+          "evidence_ranks": [
+            null,
+            null,
+            null
+          ],
+          "all_evidence_rank": null,
+          "first_gold_document_rank": null
+        },
+        "raw:vector": {
+          "evidence_ranks": [
+            109,
+            109,
+            109
+          ],
+          "all_evidence_rank": 109,
+          "first_gold_document_rank": 109
+        },
+        "raw:vector::within::Apply For A Child (Under Age 18) | Disability Benefits | SSA#1_0": {
+          "evidence_ranks": [
+            1,
+            1,
+            1
+          ],
+          "all_evidence_rank": 1,
+          "first_gold_document_rank": 1
+        }
+      }
+    }
+  ]
+}

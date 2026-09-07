@@ -1,0 +1,15 @@
+{
+  "scope": "build_target_runtime + PostgreSQL history + production memory projection/context loader + manager.prepare; excludes HTTP admission, execution, answer and publication",
+  "database": "rag_context_9802a7a4c6",
+  "case_count": 2,
+  "api_calls": 2,
+  "profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "cold_projection": true,
+  "context_not_handbuilt": true,
+  "history_origin": "official_doc2dial_speaker_roles"
+}

@@ -1,0 +1,16 @@
+{
+  "scope": "build_target_runtime + PostgreSQL history + production memory projection/context loader + manager.prepare; excludes HTTP admission, execution, answer and publication",
+  "database": "rag_context_08168184fa",
+  "case_count": 2,
+  "api_calls": 2,
+  "profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "cold_projection": true,
+  "synthetic_ecommerce": true,
+  "context_not_handbuilt": true,
+  "history_origin": "authored_synthetic"
+}
