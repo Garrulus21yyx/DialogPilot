@@ -1,0 +1,55 @@
+{
+  "task_id": "0",
+  "official_reward": null,
+  "langfuse_session_id": "tau3-29caa6abe7b7450c88b784431003a4ba",
+  "status": "ERROR",
+  "error_type": "RuntimeError",
+  "error": "Target did not publish a completed reply: Failed",
+  "target_trace": [
+    {
+      "turn": 1,
+      "input": "Hi, I just received my order — number W2378156 — and I need to exchange a couple of items from it. I want to make sure both issues get handled in one go, so I’m hoping you can help me with that.",
+      "outcome": {
+        "code": "target_interaction_composition_model:conversationprovideroutputerror",
+        "retryable": false,
+        "correlation_id": "invocation:v1:5f5e6306767e50f498ce92db2c8061bab3e6607ae50a6bb005fb013c8b24af03",
+        "safe_message": "The follow-up question could not be prepared. Progress is saved.",
+        "stages": [
+          {
+            "stage": "composition_model",
+            "status": "failed",
+            "detail": {
+              "code": "ConversationProviderOutputError",
+              "retryable": false,
+              "exception_chain": [
+                {
+                  "type": "ConversationProviderOutputError",
+                  "message": "structured_output_schema_invalid"
+                },
+                {
+                  "type": "ValueError",
+                  "message": "structured_output_schema_invalid"
+                },
+                {
+                  "path": [
+                    "result",
+                    "segments"
+                  ],
+                  "type": "ValidationError",
+                  "validator": "maxContains",
+                  "schema_path": [
+                    "properties",
+                    "result",
+                    "properties",
+                    "segments",
+                    "contains"
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -62,6 +62,27 @@ def test_plain_question_schema_and_renderer_agree(bound):
             render_composition(value, claims)
 
 
+@pytest.mark.parametrize('paragraphs', (1, 2, 4, 20))
+@pytest.mark.parametrize('supported', (False, True))
+def test_interaction_paragraphs_do_not_replace_semantic_validation(paragraphs, supported):
+    from tests.test_knowledge_answer_boundary import Verifier
+    board, specs = fixture(2)
+    value = {'segments': [{'text': 'Please provide the requested information.'} for _ in range(paragraphs)]}
+    claims = _allowed_claims(board, requested_inputs=specs)
+    Draft202012Validator(composition_schema(claims, requested_inputs=specs)).validate(value)
+    assert render_composition(value, claims, requested_inputs=specs)[0].count('Please') == paragraphs
+    class Composer:
+        async def compose(self, payload):
+            return value
+    verifier = Verifier(supported)
+    result = asyncio.run(ResponseAssembler(Composer(), knowledge_verifier=verifier).assemble(
+        board, current_message='Continue', requested_inputs=specs))
+    assert result.verified is supported
+    assert verifier.calls
+    with pytest.raises(ValueError):
+        render_composition(value, claims)  # no bound input: ordinary factual contract still applies
+
+
 @pytest.mark.parametrize('text', ('Question [E123]', 'Question outcome:w', 'Question [Sabc]'))
 def test_question_does_not_bypass_citation_checks(text):
     board, specs = fixture()

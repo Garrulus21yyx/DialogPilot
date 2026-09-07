@@ -89,12 +89,9 @@ def composition_schema(claims, *, requested_inputs=()):
             'required': ['type', 'statement_id'], 'properties': {
                 'type': {'const': 'fact_ref'},
                 'statement_id': {'type': 'string', 'enum': [s['statement_id'] for s in statements]}}})
-    question_limit = ({'contains': {'type': 'object', 'required': ['text'],
-                                   'not': {'required': ['support_ids']}},
-                       'minContains': 0, 'maxContains': 1} if requested_inputs else {})
     return {'type': 'object', 'additionalProperties': False, 'required': ['segments'],
             'properties': {'segments': {'type': 'array', 'minItems': 1, 'maxItems': 20,
-                            **question_limit, 'items': {'oneOf': variants}}}}
+                            'items': {'oneOf': variants}}}}
 
 
 def validate_composition(value, *, requested_inputs=()):
@@ -102,8 +99,6 @@ def validate_composition(value, *, requested_inputs=()):
         raise ValueError('composition requires segments')
     if not isinstance(value['segments'], list) or not 1 <= len(value['segments']) <= 20:
         raise ValueError('composition requires bounded segments')
-    if sum(isinstance(s, dict) and set(s) == {'text'} for s in value['segments']) > 1:
-        raise ValueError('bound questions must use one coherent text segment')
     for segment in value['segments']:
         if requested_inputs and isinstance(segment, dict) and set(segment) == {'text'}:
             if not isinstance(segment['text'], str) or not segment['text'].strip():

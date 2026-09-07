@@ -1,0 +1,111 @@
+[
+  {
+    "role": "assistant",
+    "content": "Hi! How can I help you today?",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-07T12:12:25.838225",
+    "cost": 0.0,
+    "usage": null,
+    "raw_data": null,
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  },
+  {
+    "role": "user",
+    "content": "Hi, I just received my order — number W2378156 — and I need to exchange a couple of items from it. I want to make sure both issues get handled in one go, so I’m hoping you can help me with that.",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-07T12:12:28.212258",
+    "cost": 0.0,
+    "usage": {
+      "completion_tokens": 165,
+      "prompt_tokens": 498
+    },
+    "raw_data": {
+      "id": "chatcmpl-e13984f2-ed66-42bd-8966-91fde4ff56fb",
+      "created": 1788775948,
+      "model": "deepseek-v4-flash",
+      "object": "chat.completion",
+      "system_fingerprint": null,
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "content": "Hi, I just received my order — number W2378156 — and I need to exchange a couple of items from it. I want to make sure both issues get handled in one go, so I’m hoping you can help me with that.",
+            "role": "assistant",
+            "tool_calls": null,
+            "function_call": null,
+            "reasoning_content": "User wants to exchange two items from order W2378156:\n1. Mechanical keyboard → same one but with clicky switches. If no clicky keyboard with RGB backlight and full size, go for no backlight.\n2. Smart thermostat → one compatible with Google Home instead of Apple HomeKit.\n\nNeed to provide details progressively. But here user just asks how can they help, so I will state the purpose. I know order number, perhaps shipping zip. I don't remember email. I should avoid inventing extra details. I will describe the goal.",
+            "thinking_blocks": [
+              {
+                "type": "thinking",
+                "thinking": "User wants to exchange two items from order W2378156:\n1. Mechanical keyboard → same one but with clicky switches. If no clicky keyboard with RGB backlight and full size, go for no backlight.\n2. Smart thermostat → one compatible with Google Home instead of Apple HomeKit.\n\nNeed to provide details progressively. But here user just asks how can they help, so I will state the purpose. I know order number, perhaps shipping zip. I don't remember email. I should avoid inventing extra details. I will describe the goal.",
+                "signature": "393a88a8-7a81-407a-ba44-5a7e10ae714c"
+              }
+            ],
+            "provider_specific_fields": {
+              "citations": null,
+              "thinking_blocks": [
+                {
+                  "type": "thinking",
+                  "thinking": "User wants to exchange two items from order W2378156:\n1. Mechanical keyboard → same one but with clicky switches. If no clicky keyboard with RGB backlight and full size, go for no backlight.\n2. Smart thermostat → one compatible with Google Home instead of Apple HomeKit.\n\nNeed to provide details progressively. But here user just asks how can they help, so I will state the purpose. I know order number, perhaps shipping zip. I don't remember email. I should avoid inventing extra details. I will describe the goal.",
+                  "signature": "393a88a8-7a81-407a-ba44-5a7e10ae714c"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "usage": {
+        "completion_tokens": 165,
+        "prompt_tokens": 498,
+        "total_tokens": 663,
+        "completion_tokens_details": {
+          "reasoning_tokens": 111,
+          "text_tokens": 54
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 384,
+          "image_tokens": null,
+          "text_tokens": null,
+          "video_tokens": null,
+          "cache_creation_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 384,
+        "inference_geo": null,
+        "speed": null
+      }
+    },
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  }
+]
