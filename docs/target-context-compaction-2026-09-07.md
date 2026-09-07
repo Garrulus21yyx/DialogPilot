@@ -50,8 +50,11 @@ Store 原文按 TARGET_RESULT_TTL_MINUTES（默认 30 天未访问）保留，�
 到期未清扫的记录也不允许回读。正式 Receipt 不跟随该 TTL 删除。
 会话删除由现有删除事件驱动原文清理；生产原文读写读取同一删除标记，
 对删除期间完成的迟到写入清理后拒绝，避免删除后重新生成可见原文。
-该 TTL 适用于新写入的 Store 记录；旧的 ttl_minutes=NULL 记录不会自动补齐。
-历史数据保留期限迁移仍需单独核对，不能仅凭新配置宣称历史原文已清理。
+启动时由现有 PostgreSQL Store 适配边界为 target-originals 命名空间中的旧
+ttl_minutes=NULL 记录补齐期限，expires_at 基于原 updated_at 计算，重启不延长保留期。
+后续到期判断与清理由 SDK 负责；其他命名空间、正式 Receipt 不受影响。
+迁移将在部署后启动时应用；已超过保留期限的原文会不可读并由 sweeper 回收，
+不能据本地测试声称运行中环境已经完成历史清理。
 因此本阶段不宣称全链路 verified closure。
 
 提交快照回归共 171 项：170 通过，1 失败，没有跳过；包括真实 PostgreSQL 与进程退出测试。

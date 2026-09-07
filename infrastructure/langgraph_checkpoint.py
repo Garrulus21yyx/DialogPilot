@@ -201,6 +201,15 @@ class AsyncPostgresCheckpointOwner:
             if self._setup:
                 await self.checkpointer.setup()
                 await self.store.setup()
+            # Forward migration for pre-TTL originals in the pinned SDK schema.
+            # Preserve their original age; a restart must not extend retention.
+            # SDK remains the owner of subsequent refresh, reads and sweeping.
+            await self.store.conn.execute("""
+                UPDATE store
+                SET ttl_minutes = %s,
+                    expires_at = updated_at + %s * INTERVAL '1 minute'
+                WHERE prefix LIKE 'target-originals.%%' AND ttl_minutes IS NULL
+            """, (self._result_ttl, self._result_ttl))
             await self.store.start_ttl_sweeper()
             self._context.push_async_callback(self.store.stop_ttl_sweeper)
             return self.checkpointer

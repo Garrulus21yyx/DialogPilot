@@ -1,5 +1,9 @@
 # Target 主链单路径收敛实施
 
+当前续作：implementation_verified / quality_review_pending。
+HTTP 测试装配和旧原文 TTL 迁移已补齐，集中回归 1000 passed、0 skipped。
+真实摘要质量、独立新上下文复核和 fresh benchmark 尚未完成，不恢复 verified closure。
+
 依据：target-chain-convergence-audit-2026-09-07.zh-CN.md。用户已授权实施；迁移后不保留旧的可运行入口或自动回切。保留工作树无关修改。
 
 2026-09-07 续作顺序：先补压缩原文生命周期及评测材料，随后严格回到 1→2→3→4→5。
@@ -8,10 +12,10 @@
 压缩真实模型评测与最终验证同批执行，禁止把组件测试当成摘要质量成绩。
 
 1. done：修正答案检查、证据覆盖、执行完成的权威与 API/trace/Publication 公开投影；删除 requirement→verified 推导。新增 target-outcome-contract.zh-CN.md 与状态组合测试。540 passed，12 PostgreSQL 相关测试因缺 TEST_DATABASE_URL 跳过；不宣称数据库验证完成。
-2. in_progress：统一结构化模型调用与错误诊断到当前 SDK，删除被替代协议入口及消费者，不新增第二套 provider 路径。全量完成已获授权；评测中的旧客户端包装也在迁移范围内。
-3. pending：简化回复核验并统一交互/审批/部分成功的结果组合，保留精确操作授权。
-4. pending：核对续接、持久化窗口与过时证据规则，迁移相关消费者。
-5. pending：运行性质测试与集成测试；真实模型和进程恢复证据与实现完成分开报告。
+2. implemented：统一结构化模型调用与错误诊断到当前 SDK，删除被替代协议入口及消费者，不新增第二套 provider 路径。
+3. implemented：简化回复核验并统一交互/审批/部分成功的结果组合，保留精确操作授权。
+4. implemented：核对续接、持久化窗口与过时证据规则，迁移相关消费者。
+5. in_progress：性质测试与集成测试 1000 passed，包含真实 PostgreSQL 进程恢复；真实模型质量与独立复核仍待完成。
 
 每个完整可验证阶段单独 commit/push。不得把第一阶段完成等同全部收敛；不得以未通过验收的旧链作为自动 fallback。
 
@@ -32,6 +36,19 @@
   尚未以这组旧测试证明全部 HTTP 业务闭环；不得将它们忽略后声称全绿。
 - 剩余：统一这两项 HTTP 测试的生产装配证据、真实压缩质量/成本评测、
   旧原文保留期限迁移、独立新上下文复核与 fresh benchmark。实现与 verified closure 分开。
+
+### 本轮验收更新
+
+- 上述两项 HTTP 缺口已修复：测试显式装配现行 ResponseAssembler、核验和知识生成端口，
+  知识与退款 fixture 返回当前业务合同；审批、副作用、防重、跨会话拒绝及对账断言保留。
+- 新 HTTP 消息的无类型编号先由语义层绑定，测试不再假定它已具备 order_id 来源。
+  明确绑定后的 Encoder ACCEPT 行为继续由 Encoder 专项测试验证；生产快速路径未改动。
+- PostgreSQL Store 启动迁移旧原文 TTL，按原更新时间计算；SDK 继续负责清扫。
+  真实 PostgreSQL 测试验证重复启动不续期、过期原文不可回读、其他命名空间保留。
+- 当前工作树集中回归：1000 passed、0 skipped、4 warnings，91.51 秒。
+  警告为 SDK thinking/forced-tool 提示及测试 fork 弃用提示，不隐瞒为零警告。
+  脚本模型 HTTP 测试证明合同与接线，不作为真实语言质量成绩。
+- 当前剩余：真实压缩质量/成本评测、独立新上下文复核、fresh benchmark。
 
 最终续作验证：工作树 999 项中 997 passed、2 failed（上述既有 HTTP 缺口），无跳过。
 将待提交 index 独立导出，245 项相关回归全部通过，包含真实 PostgreSQL，未依赖未暂存文件。

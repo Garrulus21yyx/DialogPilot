@@ -16,6 +16,8 @@ from application.media_evidence import (
 )
 from application.media_requirement import MediaStage
 from application.orchestration_runtime import OrchestrationRuntime
+from application.response_assembly import ResponseAssembler
+from tests.test_knowledge_answer_boundary import Verifier
 from application.perception import PerceptionArtifact
 from application.conversation_agent import ConversationAgent
 from application.target_chat_application import TargetChatApplication
@@ -131,6 +133,7 @@ def test_uploaded_asset_reaches_real_product_tools_and_catalog(
                     pool, resume_binding_secret="product-e2e-secret",
                 )),
                 bundle_version=registry.bundle_version,
+                response_assembler=ResponseAssembler(knowledge_verifier=Verifier(True)),
             )
             coordinator = TargetRunCoordinator(
                 runtime,

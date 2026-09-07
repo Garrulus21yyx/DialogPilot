@@ -81,3 +81,29 @@ def test_sdk_expiry_rejects_unswept_original_and_reclaims_it(postgres_database_u
                 await archive.load(context, ref)
             assert await owner.store.sweep_ttl() >= 1
     asyncio.run(run())
+
+
+def test_legacy_originals_get_age_preserving_retention_without_touching_other_stores(postgres_database_url):
+    import psycopg
+    from infrastructure.langgraph_checkpoint import AsyncPostgresCheckpointOwner
+
+    async def run():
+        context = _context()
+        async with AsyncPostgresCheckpointOwner(postgres_database_url, setup=True) as _:
+            pass
+        owner = AsyncPostgresCheckpointOwner(postgres_database_url)
+        async with owner:
+            archive = TargetResultArchive(owner.store)
+            ref = await archive.save(context, {"content": "legacy original"})
+            await owner.store.aput(("unrelated",), "legacy", {"value": "keep"}, ttl=None)
+        with psycopg.connect(postgres_database_url, autocommit=True) as conn:
+            conn.execute("UPDATE store SET ttl_minutes=NULL, expires_at=NULL, updated_at=NOW()-INTERVAL '40 days' WHERE key IN (%s, %s)", (ref, "legacy"))
+        for _ in range(2):
+            owner = AsyncPostgresCheckpointOwner(postgres_database_url)
+            async with owner:
+                with pytest.raises(ResultArchiveError):
+                    await TargetResultArchive(owner.store).load(context, ref)
+                assert (await owner.store.aget(("unrelated",), "legacy")).value == {"value": "keep"}
+                with psycopg.connect(postgres_database_url) as conn:
+                    assert conn.execute("SELECT ttl_minutes FROM store WHERE prefix='unrelated'").fetchone()[0] is None
+    asyncio.run(run())

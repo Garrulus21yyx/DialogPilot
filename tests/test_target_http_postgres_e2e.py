@@ -8,6 +8,9 @@ from mcp.tool_manager import ToolResult
 from application.conversation_state import ConversationOwner
 from application.default_capability_registry import build_default_capability_registry
 from application.orchestration_runtime import OrchestrationRuntime
+from application.response_assembly import ResponseAssembler
+from tests.test_approval_conversation import ApprovalVerifier
+from tests.test_knowledge_tool_contract import evidence_result
 from application.target_chat_application import TargetChatApplication
 from application.target_conversation_manager import TargetConversationManager
 from application.target_run import TargetRunCoordinator
@@ -35,6 +38,12 @@ from infrastructure.target_chat_adapters import (
 )
 from infrastructure.target_tool_execution import TargetToolExecutor
 from infrastructure.target_workflow_execution import TargetWorkflowExecutor
+
+
+class _ScenarioKnowledgeGenerator:
+    async def generate(self, query, contexts, **kwargs):
+        return SimpleNamespace(abstained=False, claims=tuple(
+            SimpleNamespace(text=c.text, citations=(c.chunk_id,)) for c in contexts))
 
 
 class _ScenarioTools:
@@ -69,10 +78,7 @@ class _ScenarioTools:
             query = str(params["query"])
             return _result(
                 name,
-                data={
-                    "source_id": "policy:billing-v1",
-                    "content": f"已验证政策：{query}",
-                },
+                data=evidence_result(f"根据当前政策处理：{query}"),
                 authority="knowledge.active_source",
                 text=f"根据当前政策处理：{query}",
             )
@@ -84,14 +90,16 @@ class _ScenarioTools:
                         "refund_id": "refund-reconciled-1",
                         "order_id": params["order_id"],
                         "operation_key": params["operation_key"],
-                        "status": "REQUESTED",
+                        "lookup_status": "FOUND",
+                        "status": "requested",
                     },
                     authority="refund.current_state",
                     text="退款申请已提交。",
                 )
             return _result(
                 name,
-                data={"order_id": params["order_id"], "status": "PROCESSING"},
+                data={"order_id": params["order_id"], "refund_id": "refund-status-1",
+                      "lookup_status": "FOUND", "status": "reviewing"},
                 authority="refund.current_state",
                 text=f"退款 {params['order_id']} 正在处理中。",
             )
@@ -226,6 +234,39 @@ class _ScenarioConversationProvider:
     def __init__(self):
         self.calls = []
 
+    async def compose(self, payload):
+        # Scripted presentation for HTTP/state tests, not a model-quality score.
+        segments = [{"type": "fact_ref", "statement_id": s["statement_id"]}
+                    for s in payload.get("statement_catalog", ())]
+        for claim in payload["allowed_claims"]:
+            supports = [s["support_id"] for s in payload["support_catalog"]
+                        if s["claim_id"] == claim["claim_id"]]
+            if not supports or claim["kind"] == "CONTROLLED_REFUND_FACT":
+                continue
+            value = claim["value"]
+            if claim["kind"] == "PENDING_ACTION":
+                labels = {"execute_refund": "申请退款", "order.cancel": "取消订单",
+                          "order.change_address": "修改收货地址", "account.freeze": "冻结账户"}
+                label = labels.get(value["action_ref"].split(":")[0], "执行您请求的操作")
+                args = value["arguments"]
+                text = f"是否确认{label}？对象：{args.get('order_id', '当前账户')}。"
+                if "new_address" in args:
+                    text += f"新地址：{args['new_address']}。"
+                text += "尚未执行。"
+            elif claim["kind"] == "FACT":
+                if isinstance(value, dict) and value.get("eligible") is True:
+                    text = f"订单 {value['order_id']} 符合退款条件，尚未提交。"
+                elif isinstance(value, list):
+                    text = "；".join(row["summary"] for row in value)
+                else:
+                    text = "查询结果：" + "；".join(str(v) for v in value.values())
+            elif claim["kind"] == "RECEIPT":
+                text = f"操作已完成，凭证号：{value['receipt_id']}。"
+            else:
+                continue
+            segments.append({"text": text, "support_ids": supports})
+        return {"segments": segments}
+
     async def plan(self, payload):
         response = self._response(payload)
         for goal in response.get("goals", ()):
@@ -241,6 +282,8 @@ class _ScenarioConversationProvider:
     def _response(self, payload):
         self.calls.append(payload)
         message = str(payload["message"])
+        if message == "确认 RF3100 的退回进展":
+            return {"status": "resolved", "goals": [{"kind": "refund_status", "order_id": "RF3100"}]}
         if "异常登录" in message or "账号被盗" in message:
             goals = [{"goal_id": "security", "kind": "security_review"}]
             if "退款" in message:
@@ -401,6 +444,12 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                     pool, resume_binding_secret="target-e2e-secret",
                 )),
                 bundle_version=registry.bundle_version,
+                response_assembler=ResponseAssembler(
+                    ConversationAgent(conversation_provider),
+                    knowledge_generator=_ScenarioKnowledgeGenerator(),
+                    knowledge_verifier=ApprovalVerifier(),
+                    knowledge_source_validator=lambda packs: True,
+                ),
             )
             run_store = PostgresTargetRunStore(pool)
             coordinator = TargetRunCoordinator(
@@ -658,11 +707,14 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
         assert "当前政策" in refund_policy["response"]
         assert invoice["routing_disposition"] == "knowledge_qa"
         assert "电子发票" in invoice["response"]
-        assert encoder_refund["routing_reason"] == "ENCODER_FAST_PATH_ACCEPTED"
+        # A fresh HTTP message supplies an untyped reference, not order_id.
+        # The semantic provider must bind its type before execution. The actual
+        # grounded ACCEPT path is covered in test_target_encoder_runtime.
+        assert encoder_refund["routing_reason"] == "CONVERSATION_AGENT_PLAN"
         assert encoder_refund["routing_disposition"] == "direct"
         assert "RF3100" in encoder_refund["response"]
         assert encoder_refund["evaluation_trace"]["cost"] == {
-            "conversation_planner_invoked": False,
+            "conversation_planner_invoked": True,
             "work_item_count": 1,
             "latency_ms": encoder_refund["latency_ms"],
         }
@@ -675,7 +727,7 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
             str(item["message"]) for item in conversation_provider.calls
         }
         assert "帮我看看 DP2468 走到哪一步了" in planned_messages
-        assert "确认 RF3100 的退回进展" not in planned_messages
+        assert "确认 RF3100 的退回进展" in planned_messages
         assert "PX-200" in product["response"]
         assert refund_precheck["outcome"] == "needs_input"
         assert refund_precheck_replay == refund_precheck
@@ -719,8 +771,9 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
         ) == 1
         assert multi["routing_disposition"] == "mixed"
         assert len(multi["agent_outcomes"]) == 2
-        assert partial["verification_status"] == "partial"
-        assert "refund" in partial["response"]
+        assert partial["task_completed"] is False
+        assert partial["grounded"] is True
+        assert "退款" in partial["response"]
         assert handoff["handoff_created"] is True
         assert handoff["routing_disposition"] == "handoff"
         assert handoff["ticket_id"] == "ticket-target-1"
