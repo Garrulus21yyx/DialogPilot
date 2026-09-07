@@ -38,6 +38,18 @@ class ResultBoardSnapshot:
     complete: bool
     partial_delivery_allowed: bool
 
+    @property
+    def coverage_complete(self) -> bool:
+        """Evidence coverage is independent of worker or answer success."""
+        return not self.missing_requirement_ids and not self.conflict_keys
+
+    @property
+    def task_completed(self) -> bool:
+        """All planned work succeeded, not merely returned a terminal outcome."""
+        return self.complete and self.coverage_complete and all(
+            result.status is AgentResultStatus.SUCCEEDED for result in self.results
+        )
+
 
 class ResultBoard:
     version = "result-board-v1"

@@ -42,6 +42,11 @@ class AssembledResponse:
     verified_text_sha256: str = ""
     approval_operation_key: str = ""
 
+    @property
+    def verified(self) -> bool:
+        """Only a successful check bound to this exact text attests the answer."""
+        return self.verification_status == "PASS" and bool(self.verified_text_sha256)
+
     def __post_init__(self) -> None:
         object.__setattr__(self, "used_claim_ids", tuple(self.used_claim_ids))
         if self.verified_text_sha256 and self.verified_text_sha256 != hashlib.sha256(self.text.encode()).hexdigest():
@@ -115,7 +120,7 @@ class ResponseAssembler:
                         hashlib.sha256(candidate.text.encode()).hexdigest())
                 except Exception:
                     return AssembledResponse(system_notice + _render_board(board), ResponseAssemblyMode.TEMPLATE,
-                        (), False, "PASS", "ANSWER_SAFE_FALLBACK")
+                        (), False, "NOT_CHECKED", "ANSWER_SAFE_FALLBACK")
             from dataclasses import replace
             return replace(candidate, text=system_notice + candidate.text)
         if not knowledge_facts:
@@ -273,7 +278,7 @@ class ResponseAssembler:
                                            status=AgentResultStatus.PARTIAL, retryable=False))
         prefix = _render_board(SimpleNamespace(results=independent)) + "\n" if independent else ""
         return AssembledResponse(notice + prefix + text, ResponseAssemblyMode.TEMPLATE, (), False,
-                                 "PASS", "KNOWLEDGE_SAFE_ABSTENTION")
+                                 "NOT_CHECKED", "KNOWLEDGE_SAFE_ABSTENTION")
 
     async def _assemble_candidate(
         self, board, *, current_message: str, system_notice: str = "", conversation_context=None, repair_feedback=None, pending_approval=None,
@@ -285,14 +290,14 @@ class ResponseAssembler:
             return AssembledResponse(
                 system_notice + _candidate_text(result), mode,
                 tuple(claim.claim_id for claim in claims), False,
-                "PASS", "SINGLE_VERIFIED_RESULT",
+                "PENDING", "SINGLE_RESULT_CANDIDATE",
             )
         fallback = _render_board(board)
         if mode is ResponseAssemblyMode.TEMPLATE or self._composer is None:
             return AssembledResponse(
                 system_notice + fallback, ResponseAssemblyMode.TEMPLATE,
                 tuple(claim.claim_id for claim in claims), False,
-                "PASS", "DETERMINISTIC_ASSEMBLY",
+                "NOT_CHECKED", "DETERMINISTIC_ASSEMBLY",
             )
         payload = {
             "schema_version": "conversation-compose-request-v3-supports",
@@ -338,11 +343,11 @@ class ResponseAssembler:
             return AssembledResponse(
                 system_notice + fallback, ResponseAssemblyMode.TEMPLATE,
                 tuple(claim.claim_id for claim in claims), False,
-                "PASS", "COMPOSER_FALLBACK",
+                "NOT_CHECKED", "COMPOSER_FALLBACK",
             )
         return AssembledResponse(
             system_notice + text, mode, used, True,
-            "PASS", "COMPOSED_FROM_ALLOWED_CLAIMS",
+            "PENDING", "COMPOSED_FROM_ALLOWED_CLAIMS",
         )
 
     @staticmethod

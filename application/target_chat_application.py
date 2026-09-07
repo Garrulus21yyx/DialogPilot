@@ -334,7 +334,10 @@ class TargetChatApplication:
         if managed.plan.work is None:
             disposition = managed.plan.route.mode.value
             response_text = _terminal_response(managed.plan.route.reason_code)
-            verifier_status = "CLARIFY" if disposition == "CLARIFY" else "PASS"
+            verifier_status = "NOT_CHECKED"
+            coverage_complete = not managed.plan.route.missing_inputs
+            task_completed = False
+            verified = False
             outcomes = []
             facts = ()
             missing = list(managed.plan.route.missing_inputs)
@@ -367,11 +370,10 @@ class TargetChatApplication:
                     "Target turn completed without an assembled response",
                 )
             response_text = assembly.text
-            verifier_status = (
-                "PASS"
-                if not board.missing_requirement_ids and not board.conflict_keys
-                else "PARTIAL" if board.partial_delivery_allowed else "UNKNOWN"
-            )
+            verifier_status = assembly.verification_status
+            coverage_complete = board.coverage_complete
+            task_completed = board.task_completed
+            verified = assembly.verified
             outcomes = [
                 {
                     "work_item_id": item.work_item_id,
@@ -449,6 +451,8 @@ class TargetChatApplication:
             "outcome": {
                 "kind": "COMPLETED",
                 "verifier_status": verifier_status,
+                "task_completed": task_completed,
+                "coverage_complete": coverage_complete,
                 "missing_requirement_ids": missing,
             },
             "cost": {
@@ -488,18 +492,18 @@ class TargetChatApplication:
                 ),
             },
             "coverage": {
-                "complete": verifier_status == "PASS",
+                "complete": coverage_complete,
                 "missing_requirement_ids": missing,
             },
             "escalated": handoff_receipt is not None,
             "latency_ms": elapsed_ms,
             "evaluation_trace": evaluation_trace,
             "verification_status": verifier_status.lower(),
-            "verified": verifier_status == "PASS",
-            "grounded": verifier_status == "PASS",
+            "task_completed": task_completed,
+            "verified": verified,
+            "grounded": verified,
             "verification_reason_code": (
-                "TARGET_REQUIREMENTS_SATISFIED"
-                if verifier_status == "PASS" else "TARGET_RESULT_INCOMPLETE"
+                assembly.verification_reason if assembly else "TERMINAL_RESPONSE_NOT_CHECKED"
             ),
             "bundle_version": self._bundle_version,
             "ticket_id": (

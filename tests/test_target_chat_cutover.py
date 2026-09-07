@@ -261,6 +261,9 @@ def test_target_chat_out_of_scope_publishes_once_without_worker_execution():
     assert replay.response == first.response
     assert tools.calls == []
     assert first.response["agent_outcomes"] == []
+    assert first.response["verification_status"] == "not_checked"
+    assert first.response["verified"] is False
+    assert first.response["task_completed"] is False
     assert first.response["escalated"] is False
     assert not first.response.get("ticket_id")
 
@@ -281,7 +284,10 @@ def test_target_chat_direct_order_path_publishes_once_and_replays():
     assert isinstance(first, Completed)
     assert replay == first
     assert first.response["routing_disposition"] == "direct"
-    assert first.response["verified"] is True
+    assert first.response["verified"] is False
+    assert first.response["grounded"] is False
+    assert first.response["verification_status"] == "not_checked"
+    assert first.response["task_completed"] is True
     assert "已发货" in first.response["response"]
     trace = first.response["evaluation_trace"]
     assert tuple(trace) == (
@@ -496,8 +502,9 @@ def test_http_chat_function_projects_target_completed_response(monkeypatch):
 
     assert response.response_id.startswith("response:")
     assert response.routing_disposition == "direct"
-    assert response.verified is True
-    assert response.evaluation_trace["outcome"]["verifier_status"] == "PASS"
+    assert response.verified is False
+    assert response.task_completed is True
+    assert response.evaluation_trace["outcome"]["verifier_status"] == "NOT_CHECKED"
 
 
 def test_postgres_target_admission_binds_without_legacy_start_outbox(

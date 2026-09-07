@@ -857,6 +857,7 @@ class ChatResponse(BaseModel):
     agent_outcomes: List[Dict[str, Any]] = Field(default_factory=list)
     task_plan: Dict[str, Any] = Field(default_factory=dict)
     coverage: Dict[str, Any] = Field(default_factory=dict)
+    task_completed: bool = False
     execution_budget: Dict[str, Any] = Field(default_factory=dict)
     evaluation_trace: Dict[str, Any] = Field(default_factory=dict)
     tool_audit: List[Dict[str, Any]] = Field(default_factory=list)

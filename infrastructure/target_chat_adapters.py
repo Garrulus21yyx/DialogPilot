@@ -201,7 +201,9 @@ class PostgresTargetPublication:
                 "verifier_status": verifier_status,
                 "verification": {
                     "status": verifier_status,
-                    "policy": "target-result-board-v1",
+                    "policy": "target-answer-verification-v1",
+                    "reason_code": public_response["verification_reason_code"],
+                    "verified": public_response["verified"],
                 },
                 "evidence_sha256": evidence_sha256,
                 "bundle_version": bundle_version,
