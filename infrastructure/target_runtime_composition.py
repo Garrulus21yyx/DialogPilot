@@ -150,6 +150,7 @@ async def build_target_runtime(
                 tool_manager,
                 registry=registry,
                 system_prompt=agent.description,
+                callbacks=tuple(provider_config.get("callbacks") or ()),
                 skill_executors={"product_identification": product_executor},
                 context_budget=context_budget,
                 control_guard=control_guard,

@@ -113,7 +113,7 @@ async def run(args):
                             memory=memory, response_delivery=PostgresResponseDeliveryService(
                                 pool, resume_binding_secret=uuid.uuid4().hex),
                             model_policy=policy, provider_config={"api_key": values["ANTHROPIC_API_KEY"],
-                                                                 "callbacks": [ModelDiagnostics(agent.trace)],
+                                                                 "callbacks": [ModelDiagnostics(agent.trace, capture_content=True)],
                                                                  "base_url": policy.base_url},
                             project_root=ROOT, registry=registry, enable_encoder=False,
                             knowledge_verifier=ObservedVerifier(AnswerVerifier(client=tools.llm_client,

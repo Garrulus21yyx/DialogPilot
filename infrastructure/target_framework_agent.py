@@ -62,6 +62,7 @@ class TargetFrameworkAgent:
         skill_executors: Mapping[str, WorkExecutor] | None = None,
         context_budget: ContextBudgetManager | None = None,
         control_guard: WorkControlGuard | None = None,
+        callbacks: tuple = (),
     ) -> None:
         self._model = model
         self._tool_manager = tool_manager
@@ -70,6 +71,7 @@ class TargetFrameworkAgent:
         self._skill_executors = dict(skill_executors or {})
         self._context_budget = context_budget or ContextBudgetManager()
         self._control_guard = control_guard
+        self._callbacks = callbacks
 
     async def __call__(self, context: AgentContextView) -> AgentResult:
         item = context.work_item
@@ -114,6 +116,14 @@ class TargetFrameworkAgent:
         )
         config = {
             "recursion_limit": item.max_steps * 8 + 10,
+            "callbacks": list(self._callbacks),
+            "metadata": {
+                "work_item_id": item.work_item_id,
+                "owner_agent": item.owner_agent,
+                "control_id": item.control.control_id if item.control else None,
+                "revision": item.control.revision if item.control else None,
+                "invocation_key": context.trusted_context.get("invocation_key"),
+            },
         }
         try:
             async with asyncio.timeout(item.timeout_seconds):
