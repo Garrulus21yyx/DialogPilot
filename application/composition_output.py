@@ -21,7 +21,7 @@ def support_catalog(claims):
             if any(not isinstance(e, str) or not e.strip() for e in evidence) or len(evidence) != len(set(evidence)):
                 raise ValueError('knowledge claim requires unique evidence identities')
             evidence = sorted(evidence)
-        elif claim['kind'] in {'FACT', 'CONTROLLED_REFUND_FACT', 'RECEIPT', 'WORK_ITEM_OUTCOME', 'PENDING_ACTION'}:
+        elif claim['kind'] in {'FACT', 'CONTROLLED_REFUND_FACT', 'RECEIPT', 'WORK_ITEM_OUTCOME', 'PENDING_ACTION', 'INPUT_REQUEST'}:
             evidence = [None]
         else:
             raise ValueError('unsupported composition claim kind')

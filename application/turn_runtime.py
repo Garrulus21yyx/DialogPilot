@@ -24,6 +24,14 @@ class TurnRuntimeError(ValueError):
     pass
 
 
+class InteractionAssemblyUnavailable(TurnRuntimeError):
+    """Keep the assembly node resumable; no question has been published."""
+
+    def __init__(self, *, retryable: bool):
+        super().__init__("The follow-up question could not be verified.")
+        self.retryable = retryable
+
+
 class TurnGraphState(TypedDict, total=False):
     invocation: InvocationIdentity
     invocation_key: str
@@ -84,13 +92,21 @@ class TurnRuntime:
         managed = state["managed"]
         board = managed.board
         pending_input = managed.state_after.pending_interaction
+        questions = ()
         if (pending_input is not None and (
                 managed.state_before.pending_interaction is None
                 or pending_input.interaction_id != managed.state_before.pending_interaction.interaction_id)):
-            return {"assembled": None}
+            candidates = managed.interaction_questions or tuple(
+                spec for result in (board.results if board else ())
+                for spec in result.missing_inputs if spec.required)
+            bindings = {(field.target_work_item_id, field.field_name)
+                        for field in pending_input.requested_fields}
+            questions = tuple(spec for spec in candidates
+                              if (spec.target_work_item_id, spec.field_name) in bindings)
+            if {(spec.target_work_item_id, spec.field_name) for spec in questions} != bindings:
+                raise TurnRuntimeError("Pending input lacks its bound question specification")
         if board is None or any(
             result.status in {
-                AgentResultStatus.NEEDS_USER_INPUT,
                 AgentResultStatus.RECONCILING,
             }
             for result in board.results
@@ -109,8 +125,13 @@ class TurnRuntime:
             current_message=state["observations"].raw_text,
             system_notice=notice,
             conversation_context=conversation_context_payload(state["prepared"].context),
-            pending_approval=managed.state_after.pending_approval,
+            # An information request is not a second approval presentation.
+            # The existing approval stays in ConversationState unchanged.
+            pending_approval=None if questions else managed.state_after.pending_approval,
+            requested_inputs=questions,
         )
+        if questions and not assembled.verified:
+            raise InteractionAssemblyUnavailable(retryable=self._checkpointer is not None)
         return {"assembled": assembled}
 
     async def execute(

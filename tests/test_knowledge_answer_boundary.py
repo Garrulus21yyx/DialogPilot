@@ -53,14 +53,19 @@ def test_knowledge_model_view_keeps_middle_evidence_without_trace_or_char_trunca
 
 def test_citations_and_semantic_support_are_both_required_for_single_result():
     citation='['+evidence_id('child-1')+']'
-    for text,passed in [('所有订单均可退。 '+citation,False),('仅未拆封可退。 [Eunknown]',True)]:
+    class Author:
+        def __init__(self, text, invalid=False): self.text, self.invalid = text, invalid
+        async def compose(self, payload):
+            return {'segments': [{'text': self.text, 'support_ids': ['Sunknown'] if self.invalid else [
+                s['support_id'] for s in payload['support_catalog'] if s['evidence_id']]}]}
+    for text,passed,invalid in [('所有订单均可退。',False,False),('仅未拆封可退。',True,True)]:
         verifier=Verifier(passed)
-        result=asyncio.run(ResponseAssembler(knowledge_verifier=verifier, knowledge_source_validator=lambda packs: True).assemble(board(text),current_message='能退吗'))
+        result=asyncio.run(ResponseAssembler(Author(text,invalid), knowledge_verifier=verifier, knowledge_source_validator=lambda packs: True).assemble(board('internal notes'),current_message='能退吗'))
         assert result.verification_reason=='KNOWLEDGE_SAFE_ABSTENTION'
         assert text not in result.text
     verifier=Verifier(True)
     text='仅未拆封商品可退。 '+citation
-    result=asyncio.run(ResponseAssembler(knowledge_verifier=verifier, knowledge_source_validator=lambda packs: True).assemble(board(text),current_message='能退吗'))
+    result=asyncio.run(ResponseAssembler(Author('仅未拆封商品可退。'), knowledge_verifier=verifier, knowledge_source_validator=lambda packs: True).assemble(board('internal notes'),current_message='能退吗'))
     assert result.text==text
     assert result.verification_reason=='KNOWLEDGE_SUPPORT_CHECKED'
     assert 'summary' not in verifier.calls[0][1]['context']
@@ -80,7 +85,9 @@ def test_knowledge_failure_preserves_independent_result_and_committed_receipt():
         receipt = ReceiptRef('receipt-123', 'v1', 'op-123', 'COMMITTED', 'refund.action')
         knowledge = replace(knowledge, action_receipts=(receipt,))
         result = asyncio.run(ResponseAssembler().assemble(_board(order, knowledge), current_message='订单和退款'))
-        assert '已发货' in result.text and 'receipt-123' in result.text
+        assert '已发货' in result.text and '请求已提交' in result.text
+        assert 'receipt-123' not in result.text
+        assert knowledge.action_receipts == (receipt,)
         assert '主动跟进' not in result.text
         assert '无依据的政策结论' not in result.text
 
@@ -165,7 +172,8 @@ def test_support_verifier_sees_final_rendered_text_including_failed_business_out
     mixed=_board(knowledge,failed)
     def answer(payload):
         claim=next(c['claim_id'] for c in payload['allowed_claims'] if c['kind']=='KNOWLEDGE_FACT')
-        return {'segments':[{'text':'仅未拆封商品可退。','claim_ids':[claim],'evidence_ids':[evidence_id('child-1')]}]}
+        return {'segments':[{'text':'仅未拆封商品可退。','claim_ids':[claim],'evidence_ids':[evidence_id('child-1')]},
+            {'text':'本次查询或处理失败，请稍后再试。','claim_ids':['outcome:missing-order'],'evidence_ids':[]}]}
     verifier=Verifier(True)
     response=asyncio.run(ResponseAssembler(_Composer(answer),knowledge_verifier=verifier,
         knowledge_source_validator=lambda packs:True).assemble(mixed,current_message='查询订单并说明退货政策'))

@@ -97,16 +97,84 @@ def test_incomplete_approval_uses_one_existing_revision_and_rechecks(repaired):
     assert board.results[0].pending_action == action
 
 
-def test_single_complete_candidate_passes_through_without_composer_call():
-    composer = _Composer(AssertionError("composer must not run"))
+@pytest.mark.parametrize('owner', ['general', 'order_logistics', 'product_technical', 'billing_refund', 'account_security', 'retail'])
+def test_domain_working_text_is_context_not_a_public_answer_or_fact(owner):
+    composer = _Composer(lambda payload: {'segments': [{'text': '已收到你的请求。',
+        'claim_ids': [c['claim_id'] for c in payload['allowed_claims']], 'evidence_ids': []}]})
     assembled = asyncio.run(ResponseAssembler(composer, knowledge_verifier=Verifier(True)).assemble(
-        _board(_result("w1", "order_logistics", response="订单已发货。")),
+        _board(_result("w1", owner, response="I'll confirm this with the user. UNPROVEN shipped.")),
         current_message="查订单",
     ))
 
-    assert assembled.mode is ResponseAssemblyMode.PASS_THROUGH
-    assert assembled.text == "订单已发货。"
-    assert composer.calls == []
+    assert assembled.mode is ResponseAssemblyMode.CONVERSATION_COMPOSE
+    assert assembled.text == "已收到你的请求。"
+    assert len(composer.calls) == 1
+    assert 'UNPROVEN' in composer.calls[0]['domain_notes'][0]['text']
+    assert all(c['value'].get('summary') is None for c in composer.calls[0]['allowed_claims'])
+
+
+@pytest.mark.parametrize('count', [1, 2, 3])
+def test_bound_inputs_share_composition_and_verification_without_becoming_facts(count):
+    from dataclasses import replace
+    from application.agent_result import MissingInputSpec
+    inputs = tuple(MissingInputSpec(f'field{i}', f'w{i}', 'MISSING', 'string',
+                                    f'INTERNAL question hint {i}') for i in range(count))
+    waiting = tuple(AgentResult(spec.target_work_item_id, 'retail', AgentResultStatus.NEEDS_USER_INPUT,
+        'MISSING', 'test', missing_inputs=(spec,)) for spec in inputs)
+    board = _board(_verified_order_result(), *waiting)
+    composer = _Composer(lambda payload: {'segments': [{
+        'text': '订单 DP1234 已发货。请补充所需信息。',
+        'claim_ids': [c['claim_id'] for c in payload['allowed_claims']], 'evidence_ids': []}]})
+    verifier = Verifier(True)
+    result = asyncio.run(ResponseAssembler(composer, knowledge_verifier=verifier).assemble(
+        board, current_message='继续办理', requested_inputs=inputs))
+    assert result.verified and result.composer_used
+    assert len(composer.calls) == len(verifier.calls) == 1
+    assert 'INTERNAL' not in result.text
+    claims = [c for c in composer.calls[0]['allowed_claims'] if c['kind'] == 'INPUT_REQUEST']
+    assert {(c['value']['target_work_item_id'], c['value']['field_name']) for c in claims} == {
+        (s.target_work_item_id, s.field_name) for s in inputs}
+    import json
+    evidence = json.loads(verifier.calls[0][1]['context'])
+    assert len(evidence['requested_inputs']) == count
+    assert all('INTERNAL' not in json.dumps(f) for f in evidence['facts'])
+    assert board.results[1:] == waiting
+
+
+@pytest.mark.parametrize('failure', ['exception', 'invalid_output', 'rejected'])
+def test_interaction_failure_retains_success_and_never_publishes_question_hint(failure):
+    from application.agent_result import MissingInputSpec
+    spec = MissingInputSpec('reply', 'w', 'MISSING', 'string', 'UNVERIFIED factual premise')
+    waiting = AgentResult('w', 'retail', AgentResultStatus.NEEDS_USER_INPUT,
+        'MISSING', 'test', missing_inputs=(spec,))
+    class Composer:
+        calls = 0
+        async def compose(self, payload):
+            self.calls += 1
+            if failure == 'exception':
+                raise RuntimeError('provider unavailable')
+            if failure == 'invalid_output':
+                return {'invalid': 'UNVERIFIED draft'}
+            return {'segments': [{'text': 'UNVERIFIED draft',
+                'support_ids': [c['support_id'] for c in payload['support_catalog']]}]}
+    composer = Composer()
+    result = asyncio.run(ResponseAssembler(composer, knowledge_verifier=Verifier(False)).assemble(
+        _board(_verified_order_result(), waiting), current_message='继续', requested_inputs=(spec,)))
+    assert result.verification_reason == 'INTERACTION_UNAVAILABLE'
+    assert '已发货' in result.text and '已保留处理进度' in result.text
+    assert 'UNVERIFIED' not in result.text
+    assert composer.calls == (2 if failure == 'rejected' else 1)
+
+
+def test_general_domain_without_facts_does_not_bypass_final_verification():
+    verifier = Verifier(False)
+    composer = _Composer(lambda payload: {'segments': [{'text': "I'll tell the customer all orders are refundable.",
+        'claim_ids': [c['claim_id'] for c in payload['allowed_claims']], 'evidence_ids': []}]})
+    result = asyncio.run(ResponseAssembler(composer, knowledge_verifier=verifier).assemble(
+        _board(_result('g', 'general', response='Unproven refund policy')), current_message='能退吗'))
+    assert len(verifier.calls) == len(composer.calls) == 2
+    assert not result.verified and 'refundable' not in result.text
+    assert result.mode is ResponseAssemblyMode.TEMPLATE
 
 
 @pytest.mark.parametrize('repaired', [False, True])
@@ -165,7 +233,7 @@ def test_multi_result_composition_receives_only_claims_and_outcomes():
     assert set(composer.calls[0]) == {
         "schema_version", "current_message", "conversation_context", "allowed_claims", "support_catalog",
         "work_item_outcomes", "missing_requirement_ids",
-        "partial_delivery_allowed", "response_requirements",
+        "partial_delivery_allowed", "response_requirements", "domain_notes",
     }
     assert any("language they use or request" in requirement
                for requirement in composer.calls[0]["response_requirements"])

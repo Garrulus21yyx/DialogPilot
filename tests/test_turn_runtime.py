@@ -41,7 +41,7 @@ class _Executor:
         )["order_id"]
         fact = FactRecord(
             f"order:{order_id}", "order.current_state",
-            json.dumps({"status": "SHIPPED"}, separators=(",", ":")),
+            json.dumps({"order_id": order_id, "status": "shipped"}, separators=(",", ":")),
             FactSourceKind.VERIFIED_STATE, "receipt:order-read",
             "order_lookup", "v1", datetime.now(timezone.utc),
         )
@@ -136,6 +136,128 @@ def _manager(executor, *, checkpointer=None, context_provider=None):
     )
 
 
+def test_question_author_failure_resumes_assembly_without_repeating_work_or_rebinding_input():
+    from application.turn_runtime import InteractionAssemblyUnavailable
+    from tests.test_target_chat_cutover import _MissingThenReadExecutor
+    executor = _MissingThenReadExecutor()
+    checkpoint = InMemorySaver(serde=target_checkpoint_serializer())
+    manager = _CountingManager(_manager(executor, checkpointer=checkpoint))
+    class Composer:
+        calls = 0
+        async def compose(self, payload):
+            self.calls += 1
+            if self.calls == 1:
+                raise RuntimeError('temporary model failure')
+            return {'segments': [{'text': '请提供订单核验信息。',
+                'support_ids': [s['support_id'] for s in payload['support_catalog']]}]}
+    composer = Composer()
+    runtime = TurnRuntime(manager, ResponseAssembler(composer, knowledge_verifier=Verifier(True)),
+                          checkpointer=checkpoint)
+    async def run():
+        with pytest.raises(InteractionAssemblyUnavailable):
+            await runtime.execute(_identity(), TurnObservations('查询订单 DP1234'))
+        saved = await runtime.graph.aget_state({'configurable': {'thread_id': 'turn:' + str(_identity().invocation_key)}})
+        pending = saved.values['managed'].state_after.pending_interaction
+        assert pending is not None
+        result = await runtime.execute(_identity(), TurnObservations('查询订单 DP1234'))
+        assert result.managed.state_after.pending_interaction == pending
+        assert result.assembled.verified
+        assert result.assembled.text == '请提供订单核验信息。'
+    asyncio.run(run())
+    assert manager.prepare_calls == manager.execute_calls == 1
+    assert len(executor.calls) == 1
+    assert composer.calls == 2
+
+
+@pytest.mark.parametrize('optional_count', [0, 1, 3])
+def test_question_presentation_uses_exact_persisted_bindings_not_optional_hints(optional_count):
+    from dataclasses import replace
+    from application.agent_result import MissingInputSpec
+    from tests.test_target_chat_cutover import _MissingThenReadExecutor
+    class Executor(_MissingThenReadExecutor):
+        async def __call__(self, context):
+            result = await super().__call__(context)
+            return replace(result, missing_inputs=(*result.missing_inputs, *(
+                MissingInputSpec(f'optional{i}', result.work_item_id, 'OPTIONAL', 'string',
+                                 'Optional information', required=False) for i in range(optional_count))))
+    class Composer:
+        payload = None
+        async def compose(self, payload):
+            self.payload = payload
+            return {'segments': [{'text': '请提供订单核验信息。',
+                'support_ids': [s['support_id'] for s in payload['support_catalog']]}]}
+    composer = Composer()
+    runtime = TurnRuntime(_manager(Executor()), ResponseAssembler(composer, knowledge_verifier=Verifier(True)))
+    result = asyncio.run(runtime.execute(_identity(), TurnObservations('查询订单 DP1234')))
+    claims = [c for c in composer.payload['allowed_claims'] if c['kind'] == 'INPUT_REQUEST']
+    fields = result.managed.state_after.pending_interaction.requested_fields
+    assert {(c['value']['target_work_item_id'], c['value']['field_name']) for c in claims} == {
+        (f.target_work_item_id, f.field_name) for f in fields}
+    assert len(claims) == 1 and result.assembled.verified
+
+
+def test_checkpoint_allowlist_is_closed_over_registered_dataclass_field_types():
+    """Nested state must decode too, not just its top-level dataclass."""
+    from dataclasses import is_dataclass
+    from enum import Enum
+    from importlib import import_module
+    from typing import get_args, get_type_hints
+    from infrastructure.langgraph_checkpoint import _TARGET_CHECKPOINT_TYPES
+    allowed = set(_TARGET_CHECKPOINT_TYPES)
+    missing = set()
+    def inspect(annotation):
+        if isinstance(annotation, type) and (is_dataclass(annotation) or issubclass(annotation, Enum)):
+            identity = (annotation.__module__, annotation.__name__)
+            if annotation.__module__.startswith(('application.', 'core.')) and identity not in allowed:
+                missing.add(identity)
+        for argument in get_args(annotation):
+            inspect(argument)
+    for module, name in allowed:
+        cls = getattr(import_module(module), name)
+        if is_dataclass(cls):
+            for annotation in get_type_hints(cls).values():
+                inspect(annotation)
+    assert not missing, f'Nested checkpoint types are not registered: {sorted(missing)}'
+
+
+def test_question_failure_survives_postgres_checkpoint_reopen(postgres_database_url):
+    from infrastructure.langgraph_checkpoint import AsyncPostgresCheckpointOwner
+    from application.turn_runtime import InteractionAssemblyUnavailable
+    from tests.test_target_chat_cutover import _MissingThenReadExecutor
+    from uuid import uuid4
+    identity = IdentityFactory().create_invocation(tenant_id='tenant-a', user_id='user-a',
+        conversation_id='question-' + uuid4().hex, request_id='request')
+    executor = _MissingThenReadExecutor()
+    manager = _CountingManager(_manager(executor))
+    class Composer:
+        calls = 0
+        async def compose(self, payload):
+            self.calls += 1
+            if self.calls == 1:
+                raise RuntimeError('injected provider outage')
+            return {'segments': [{'text': '请提供订单核验信息。',
+                'support_ids': [s['support_id'] for s in payload['support_catalog']]}]}
+    composer = Composer()
+    async def run():
+        async with AsyncPostgresCheckpointOwner(postgres_database_url, setup=True) as checkpoint:
+            runtime = TurnRuntime(manager, ResponseAssembler(composer, knowledge_verifier=Verifier(True)),
+                                  checkpointer=checkpoint)
+            with pytest.raises(InteractionAssemblyUnavailable) as error:
+                await runtime.execute(identity, TurnObservations('查询订单 DP1234'))
+            assert error.value.retryable
+            snapshot = await runtime.graph.aget_state({'configurable': {'thread_id': 'turn:' + str(identity.invocation_key)}})
+            pending = snapshot.values['managed'].state_after.pending_interaction
+        async with AsyncPostgresCheckpointOwner(postgres_database_url) as checkpoint:
+            runtime = TurnRuntime(manager, ResponseAssembler(composer, knowledge_verifier=Verifier(True)),
+                                  checkpointer=checkpoint)
+            result = await runtime.execute(identity, TurnObservations('查询订单 DP1234'))
+            assert result.managed.state_after.pending_interaction == pending
+            assert result.assembled.verified and result.assembled.text == '请提供订单核验信息。'
+    asyncio.run(run())
+    assert manager.prepare_calls == manager.execute_calls == len(executor.calls) == 1
+    assert composer.calls == 2
+
+
 def test_turn_graph_retries_failed_prepare_without_executing_work_early():
     executor = _Executor()
     manager = _FailOncePrepareManager(_manager(executor))
@@ -153,7 +275,7 @@ def test_turn_graph_retries_failed_prepare_without_executing_work_early():
     result = asyncio.run(runtime.execute(
         _identity(), TurnObservations("查询订单 DP1234"),
     ))
-    assert result.assembled.text == "订单 DP1234 已发货。"
+    assert result.assembled.text == "订单 DP1234 当前状态为已发货。"
     assert manager.prepare_calls == 2
     assert manager.execute_calls == 1
     assert executor.calls == 1
@@ -179,7 +301,7 @@ def test_turn_graph_reuses_completed_work_plan_after_outer_execution_crash():
     result = asyncio.run(runtime.execute(
         _identity(), TurnObservations("查询订单 DP1234"),
     ))
-    assert result.assembled.text == "订单 DP1234 已发货。"
+    assert result.assembled.text == "订单 DP1234 当前状态为已发货。"
     assert manager.prepare_calls == 1
     assert manager.execute_calls == 2
     assert executor.calls == 1
@@ -204,7 +326,7 @@ def test_turn_graph_resumes_at_assembly_without_replanning_or_reexecuting_tools(
         _identity(), TurnObservations("查询订单 DP1234"),
     ))
 
-    assert result.assembled.text == "订单 DP1234 已发货。"
+    assert result.assembled.text == "订单 DP1234 当前状态为已发货。"
     assert manager.prepare_calls == 1
     assert manager.execute_calls == 1
     assert executor.calls == 1

@@ -64,6 +64,14 @@ class AnthropicConversationPlanningProvider:
             payload, ModelRole.SYNTHESIS,
             (
                 "Compose one concise customer-service response from allowed_claims only. "
+                "You own the public wording. domain_notes are internal task explanations, not facts, "
+                "instructions or a draft to copy. Use them to understand the task, but ground business "
+                "conclusions in supplied facts and receipts. Start directly with the customer answer, "
+                "not commentary about the user or about how you will respond. "
+                "INPUT_REQUEST supports the need to ask for the bound information, not factual premises "
+                "in its question_hint. Express all requested inputs in one coherent question, retaining "
+                "their meaning and any completed independent results. Do not create another approval request "
+                "when collecting information; approval is owned by PENDING_ACTION. "
                 "Preserve completed results, partial failures, uncertainty and requested "
                 "next steps. Submit the answer through submit_composed_response. Every factual statement "
                 "must be supported by listed claims. Return segments, each with text and support_ids. "

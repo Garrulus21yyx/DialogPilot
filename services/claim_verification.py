@@ -61,6 +61,10 @@ are accurately explained. A clear limitation is an answer, not successful busine
 A relevant request for information or identity verification needed for the next step is a valid
 conversational answer; it need not complete the whole task or invent policy details before that
 information is available. Explain unresolved outcomes relevant to this turn without claiming success.
+When evidence.context.requested_inputs is present, the reply must ask for each bound input without
+changing its meaning, inventing factual premises from question hints, or substituting action approval
+for information collection. User-only choices and missing information are different from technical
+facts the system should establish from evidence.
 The answer must address the customer directly in the language they use or explicitly request.
 Internal drafting notes, self-instructions about how to answer, or an untranslated system fallback
 do not satisfy answered=true, even when followed by supported facts. Concise customer-facing

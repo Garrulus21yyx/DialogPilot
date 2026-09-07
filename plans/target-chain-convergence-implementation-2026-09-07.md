@@ -4,6 +4,33 @@
 
 ### 最新状态（优先于下面按时间保留的记录）
 
+- 2026-09-07 统一回复收敛 in_progress（用户授权将原缺口与简化一起处理）：
+  根因是执行结果与公开话语的所有权混合：末条领域文本被当成成稿，且作为 outcome.summary
+  进入允许事实；FIELDS 追问又在 HTTP 出口拼接，绕过同一表达和核验路径。
+- 正向合同：领域返回事实/Receipt/状态、内部说明和缺失输入；ConversationAgent.compose
+  负责非模板的公开表达，包含追问。内部说明不是事实支持。审批仍只绑定现有 PendingApproval；
+  FIELDS 不消费或重建审批。Publication 只提交同一候选，保留既有恢复和幂等身份。
+- 修改面：领域 Prompt、ResponseAssembler 的候选/证据边界、TurnRuntime 的追问组装、
+  ChatApplication 的纯交付、同一合成/核验合同及相关回归。删除领域文本直通执行路径；
+  保留原知识专用 grounded generation（非领域循环），不新增模型、解析器或运行时。
+- 验收：所有领域/终态不发布原工作文本；说明不成为事实；一次合成/至多一次修订；
+  追问目标和审批身份跨恢复不变；合成故障不丢已提交结果、不发布草稿。
+  固定开发任务和新增对抗案例分别记录，独立 fresh-context 审核后才可讨论闭环。
+- 参考（2026-09-07）：https://docs.langchain.com/oss/python/langchain/multi-agent/subagents
+  支持子 Agent 结果交回主 Agent 组织答复；这是成熟模式参考，不构成质量保证或 SOTA 结论。
+- 非目标：意图案例检索、工具治理实验、商品别名/流程特化、压缩重做、变更模型预算。
+- 实施：开放领域文本只作为 domain_notes；WORK_ITEM_OUTCOME.summary 不再携带模型断言。
+  非模板回复统一 compose；旧 PASS_THROUGH 枚举只用于历史 checkpoint 解码与拒绝未绑定旧文本，
+  没有当前执行分支。知识专用 grounded generation 保留原证据核验。
+- 追问：INPUT_REQUEST 精确对应持久化 requested_fields（不包含 optional 字段），
+  合成与核验发生于 TurnGraph 内；HTTP 只交付该候选。追问不生成第二份审批，不改变原绑定。
+  失败使合成节点未完成，有 checkpoint 时由既有 Run 重试恢复；无 checkpoint 不宣称可重试。
+- 独立审阅发现并修复：未验证重试提示被包装为 FIELDS、general 无事实导致免检、optional 字段误纳入。
+  另修复恢复测试暴露的 RequestedField/ExplicitControlSignal 注册遗漏，增加注册 dataclass 字段类型闭合检查。
+- 验证：扩大回归 1022 passed / 1 既有 fork 警告；独立 fresh-context 审阅及 49 个定向测试通过，
+  限定范围未发现新的明确阻断项。新增真实 PostgreSQL 关闭/重开后只恢复追问合成测试通过（恢复组11 passed）。
+  当前为 implementation_verified / real_model_validation_pending，不把这些计数当客服准确率。
+
 - 技术修复已提交：646e896 / e3be7b2 / be0afa9；扩大回归 **989 passed**。
   唯一警告为进程恢复测试中 Python 对多线程进程 fork 的弃用警告；没有将跳过项算作通过。
 - 最终 publication-v8：task 0 ALL/ENV/ACTION=1/1/1，一次写入；task 1

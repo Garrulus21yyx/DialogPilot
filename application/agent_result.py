@@ -154,6 +154,8 @@ class AgentResult:
     missing_inputs: tuple[MissingInputSpec, ...] = ()
     requested_evidence: tuple[EvidenceRequest, ...] = ()
     state_mutation_proposals: tuple[StateMutationProposal, ...] = ()
+    # Internal domain explanation, not a publishable answer or a fact source.
+    # Keep the persisted field name so suspended work retains its original schema.
     candidate_response: str | None = None
     retryable: bool = False
     pending_action: WorkItem | None = None

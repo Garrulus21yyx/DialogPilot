@@ -149,7 +149,7 @@ class _MissingThenReadExecutor:
             facts=(FactRecord(
                 "order:DP1234",
                 "order.current_state",
-                '{"status":"SHIPPED"}',
+                '{"order_id":"DP1234","status":"shipped"}',
                 FactSourceKind.VERIFIED_STATE,
                 "receipt:order-read",
                 "order_lookup",
@@ -377,6 +377,11 @@ def test_target_chat_publishes_one_typed_interaction_and_resumes_exact_work_item
     registry = build_default_capability_registry("tenant-a")
     executor = _MissingThenReadExecutor()
     state_store = InMemoryConversationStateStore()
+    class Composer:
+        async def compose(self, payload):
+            question = any(c['kind'] == 'INPUT_REQUEST' for c in payload['allowed_claims'])
+            return {'segments': [{'text': '请提供订单核验信息。' if question else '订单 DP1234 当前状态为已发货。',
+                'support_ids': [s['support_id'] for s in payload['support_catalog']]}]}
     application = TargetChatApplication(
         manager=TargetConversationManager(
             state_store=state_store,
@@ -390,7 +395,7 @@ def test_target_chat_publishes_one_typed_interaction_and_resumes_exact_work_item
         admission=_Admission(),
         publication=_Publication(),
         bundle_version=registry.bundle_version,
-        response_assembler=ResponseAssembler(knowledge_verifier=Verifier(True)),
+        response_assembler=ResponseAssembler(Composer(), knowledge_verifier=Verifier(True)),
         identity_factory=IdentityFactory(lambda: "generated"),
     )
 
@@ -427,7 +432,7 @@ def test_target_chat_publishes_one_typed_interaction_and_resumes_exact_work_item
     )))
 
     assert isinstance(second, Completed)
-    assert "订单已发货" in second.response["response"]
+    assert "订单 DP1234 当前状态为已发货" in second.response["response"]
     assert executor.calls == [
         {"order_id": "DP1234"},
         {"order_id": "DP1234", "verification_reference": "REF-9"},

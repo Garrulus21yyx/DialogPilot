@@ -62,6 +62,15 @@ class _ProductPlanningProvider:
             }],
         }
 
+    async def compose(self, payload):
+        facts = [c for c in payload['allowed_claims'] if c['kind'] == 'FACT']
+        assert facts, 'product response must use catalog evidence, not the worker draft'
+        import json
+        assert 'PX-200' in json.dumps([c['value'] for c in facts])
+        return {'segments': [{'text': '已识别商品型号 PX-200。', 'support_ids': [
+            s['support_id'] for s in payload['support_catalog']
+            if s['claim_id'] in {c['claim_id'] for c in facts}]}]}
+
 
 class LabelOCR:
     def extract(self, asset, _content):
@@ -133,7 +142,7 @@ def test_uploaded_asset_reaches_real_product_tools_and_catalog(
                     pool, resume_binding_secret="product-e2e-secret",
                 )),
                 bundle_version=registry.bundle_version,
-                response_assembler=ResponseAssembler(knowledge_verifier=Verifier(True)),
+                response_assembler=ResponseAssembler(ConversationAgent(_ProductPlanningProvider()), knowledge_verifier=Verifier(True)),
             )
             coordinator = TargetRunCoordinator(
                 runtime,

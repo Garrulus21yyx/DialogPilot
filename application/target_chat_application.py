@@ -196,6 +196,10 @@ class TargetChatApplication:
                 {"reason": str(exc)},
             )
         except Exception as exc:
+            from application.turn_runtime import InteractionAssemblyUnavailable
+            if isinstance(exc, InteractionAssemblyUnavailable):
+                return Failed("target_interaction_unavailable", exc.retryable,
+                    str(identity.invocation_key), "The follow-up question could not be prepared. Progress is saved.")
             logger.exception(
                 "Target turn execution failed invocation_key=%s",
                 identity.invocation_key,
@@ -250,21 +254,13 @@ class TargetChatApplication:
             or managed.state_before.pending_interaction.interaction_id
             != pending_input.interaction_id
         ):
-            specs = managed.interaction_questions or tuple(
-                spec
-                for result in (managed.board.results if managed.board else ())
-                if result.status is AgentResultStatus.NEEDS_USER_INPUT
-                for spec in result.missing_inputs
-                if spec.required
-            )
-            hints = tuple(dict.fromkeys(
-                spec.question_hint for spec in specs if spec.question_hint.strip()
-            ))
-            challenge = "\n".join(hints) or ("Please provide the information needed to continue."
-                if self._response_locale == "en" else "请补充完成任务所需的信息。")
-            prelude = ResponseAssembler.interaction_prelude(managed.board, locale=self._response_locale) if managed.board else ""
-            if prelude:
-                challenge = prelude + "\n" + challenge
+            if assembly is None:
+                return Failed("target_interaction_not_assembled", True,
+                    str(identity.invocation_key), "The follow-up question could not be prepared.")
+            if assembly.composer_used and not assembly.verified:
+                return Failed("target_interaction_not_verified", True,
+                    str(identity.invocation_key), "The follow-up question could not be verified.")
+            challenge = assembly.text
             expires_at = (
                 datetime.now(timezone.utc) + timedelta(days=7)
             ).isoformat()
@@ -521,9 +517,7 @@ class TargetChatApplication:
         }
         if assembly is not None and (
             assembly.verification_status == "PASS"
-            or ((assembly.composer_used or assembly.mode is ResponseAssemblyMode.PASS_THROUGH)
-                and not ResponseAssembler.is_ordinary_conversation(
-                    managed.board, managed.state_after.pending_approval))
+            or assembly.composer_used or assembly.mode is ResponseAssemblyMode.PASS_THROUGH
             or assembly.verified_text_sha256 or assembly.verification_reason in
             ("ANSWER_SUPPORT_CHECKED", "KNOWLEDGE_SUPPORT_CHECKED")
         ):
