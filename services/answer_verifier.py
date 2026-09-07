@@ -148,7 +148,9 @@ class AnswerVerifier:
                 context_data = json.loads(context)
             except (ValueError, TypeError):
                 context_data = context
+            approval_required = isinstance(context_data, dict) and bool(context_data.get("pending_actions"))
             evidence = {
+                "approval_required": approval_required,
                 "context": context_data,
                 "task_plan": task_plan or {},
                 "coverage": coverage,
@@ -160,8 +162,9 @@ class AnswerVerifier:
                 answer=answer, evidence=evidence, callbacks=self._callbacks,
             )
             supported = assessment.supported
-            complete = assessment.answered
-            approval_required = isinstance(context_data, dict) and bool(context_data.get("pending_actions"))
+            missing_outcomes = (context_data.get("unrepresented_outcomes", [])
+                                if isinstance(context_data, dict) else [])
+            complete = assessment.answered and not missing_outcomes
             approval_complete = not approval_required or assessment.approval_terms_complete
             status = VerificationStatus.PASS if supported and complete and approval_complete else VerificationStatus.REJECT
             reason_code = (VerificationReasonCode.UNGROUNDED if not supported else
@@ -171,7 +174,8 @@ class AnswerVerifier:
             return VerificationResult(
                 status=status, grounded=supported,
                 need_escalation=status is not VerificationStatus.PASS,
-                reason="; ".join(assessment.issues) or (
+                reason=("Explain unresolved task outcomes: " + ", ".join(missing_outcomes)
+                        if missing_outcomes else "; ".join(assessment.issues)) or (
                     "approval description or confirmation question is incomplete" if not approval_complete else
                     "answer supported and request addressed"),
                 reason_code=reason_code, assessment=assessment,

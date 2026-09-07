@@ -220,6 +220,7 @@ class ResponseAssembler:
                                     knowledge_evidence=None, conversation_context=None,
                                     system_notice="", pending_approval=None):
         verdict = await self._verify_support(board, message, candidate.text,
+            used_claim_ids=candidate.used_claim_ids,
             knowledge_evidence=knowledge_evidence, conversation_context=conversation_context, pending_approval=pending_approval)
         if verdict.publishable or verdict.assessment is None or self._composer is None:
             return candidate, verdict
@@ -236,10 +237,11 @@ class ResponseAssembler:
             conversation_context=conversation_context, repair_feedback=feedback, pending_approval=pending_approval)
         revised = replace(revised, text=system_notice + revised.text)
         revised_verdict = await self._verify_support(board, message, revised.text,
+            used_claim_ids=revised.used_claim_ids,
             knowledge_evidence=knowledge_evidence, conversation_context=conversation_context, pending_approval=pending_approval)
         return revised, revised_verdict
 
-    async def _verify_support(self, board, message, text, *, knowledge_evidence=None, conversation_context=None, pending_approval=None):
+    async def _verify_support(self, board, message, text, *, used_claim_ids=None, knowledge_evidence=None, conversation_context=None, pending_approval=None):
         # The injected verifier is shared by business and knowledge composition.
         # Original facts, receipts and outcomes are evidence; generated summaries
         # are not promoted into independent proof of their own wording.
@@ -247,8 +249,12 @@ class ResponseAssembler:
                  if fact.requirement_id != "knowledge.active_source"]
         receipts = [claim.value for claim in _allowed_claims(board) if claim.kind == 'RECEIPT']
         proposals = [claim.value for claim in _allowed_claims(board, pending_approval) if claim.kind == 'PENDING_ACTION']
+        missing_outcomes = [result.work_item_id for result in board.results
+            if result.status not in {AgentResultStatus.SUCCEEDED, AgentResultStatus.WAITING_APPROVAL}
+            and used_claim_ids is not None and 'outcome:' + result.work_item_id not in used_claim_ids]
         inputs = dict(question=message, answer=text,
             context=json.dumps({'facts': facts, 'receipts': receipts, 'pending_actions': proposals,
+                                'unrepresented_outcomes': missing_outcomes,
                                 'user_context': conversation_context}, ensure_ascii=False),
             knowledge_evidence=knowledge_evidence,
             agent_outcomes=[{"status": result.status.value, "reason": result.reason_code,
@@ -376,7 +382,6 @@ class ResponseAssembler:
             raise ValueError("composer exposed an internal claim identifier")
         text = text.strip()
         ResponseAssembler._verify_composed(text, used, claims, current_message, conversation_context=conversation_context)
-        notices, attributed = [], list(used)
         for outcome in outcomes:
             status = AgentResultStatus(outcome["status"])
             if status in {AgentResultStatus.SUCCEEDED, AgentResultStatus.WAITING_APPROVAL}:
@@ -389,12 +394,10 @@ class ResponseAssembler:
                     or claim.value.get("status") != outcome["status"]
                     or claim.value.get("owner_agent") != outcome["owner_agent"]):
                 raise ValueError("outcome notice conflicts with its authoritative claim")
-            label = _OWNER_LABELS.get(outcome["owner_agent"], "此项请求")
-            notice = "部分请求尚未完成。" if status is AgentResultStatus.PARTIAL else _OUTCOME_TEXT[status]
-            notices.append(label + "：" + notice)
-            if claim_id not in attributed:
-                attributed.append(claim_id)
-        return "\n".join([*notices, text]), tuple(attributed)
+        # The author expresses outcomes in the customer's language. Missing
+        # outcome support is repair feedback at verification, not server prose
+        # prepended to an otherwise complete answer or fabricated attribution.
+        return text, tuple(used)
 
     @staticmethod
     def _select_mode(board) -> ResponseAssemblyMode:
@@ -478,7 +481,6 @@ def _allowed_claims(board, pending_approval=None) -> tuple[AllowedClaim, ...]:
                     "status": result.status.value,
                     "reason_code": result.reason_code,
                     "summary": None if controlled_refund else (_candidate_text(result) or None),
-                    **({"render_mode": "server_notice"} if controlled_refund else {}),
                 },
                 result.evidence_refs,
             ))

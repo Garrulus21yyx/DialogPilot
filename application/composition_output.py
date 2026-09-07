@@ -16,9 +16,6 @@ def support_catalog(claims):
         raise ValueError('composition requires unique claim identities')
     catalog = []
     for claim in sorted(rows, key=lambda c: c['claim_id']):
-        if (claim['kind'] == 'WORK_ITEM_OUTCOME' and isinstance(claim.get('value'), dict)
-                and claim['value'].get('render_mode') == 'server_notice'):
-            continue
         if claim['kind'] == 'KNOWLEDGE_FACT':
             evidence = [e['evidence_id'] for e in claim['value']['evidence']]
             if any(not isinstance(e, str) or not e.strip() for e in evidence) or len(evidence) != len(set(evidence)):

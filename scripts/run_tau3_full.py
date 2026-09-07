@@ -136,7 +136,9 @@ async def run(args):
                                 framework_model(
                                     policy.profile(ModelRole.VERIFIER), {"api_key": values["ANTHROPIC_API_KEY"], "base_url": policy.base_url}, max_tokens=4096),
                                 model_profile=policy.profile(ModelRole.VERIFIER)), agent.trace))
-                        agent.configure(components, pool, tools.llm_client, profile)
+                        agent.configure(components, pool, framework_model(profile,
+                            {"api_key": values["ANTHROPIC_API_KEY"], "base_url": policy.base_url},
+                            max_tokens=200))
                         row["langfuse_session_id"] = agent.conversation_id if langfuse_sink else None
                         user = UserSimulator(llm=args.user_model, instructions=str(task.user_scenario),
                             llm_args={"api_key": values["ANTHROPIC_API_KEY"], "api_base": policy.base_url,

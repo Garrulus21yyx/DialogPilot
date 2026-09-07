@@ -83,7 +83,7 @@ def test_authoritative_requirement_selects_controlled_path_and_safe_fallback():
     assert 'CONTROLLED_REFUND_FACT' not in {c.kind for c in _allowed_claims(other)}
 
 
-def test_partial_refund_notice_cannot_be_used_as_free_text_support():
+def test_partial_refund_outcome_is_expressible_without_promoting_candidate_facts():
     from application.agent_result import AgentResultStatus
     result=_verified_order_result(response='您仍有权退款。')
     fact=replace(result.facts[0],requirement_id='refund.current_state',
@@ -92,8 +92,8 @@ def test_partial_refund_notice_cannot_be_used_as_free_text_support():
     allowed=_allowed_claims(board)
     outcome=next(c for c in allowed if c.kind=='WORK_ITEM_OUTCOME')
     assert outcome.value['summary'] is None
-    assert outcome.value['render_mode']=='server_notice'
-    assert outcome.claim_id not in {s['claim_id'] for s in support_catalog(allowed)}
+    assert 'render_mode' not in outcome.value
+    assert outcome.claim_id in {s['claim_id'] for s in support_catalog(allowed)}
     assert '部分' in _render_board(board)
 
 

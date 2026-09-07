@@ -109,6 +109,38 @@ def test_single_complete_candidate_passes_through_without_composer_call():
     assert composer.calls == []
 
 
+@pytest.mark.parametrize('repaired', [False, True])
+@pytest.mark.parametrize('status', [AgentResultStatus.PARTIAL, AgentResultStatus.RETRYABLE_FAILURE])
+def test_unrepresented_outcome_gets_one_revision_without_injecting_server_prose(repaired, status):
+    from langchain_core.messages import AIMessage
+    from tests.framework_structured_stub import StructuredStub
+    from services.answer_verifier import AnswerVerifier
+    from core.model_policy import ModelProfile
+    from application.response_assembly import AssembledResponse
+    from dataclasses import replace
+    output = {'supported': True, 'answered': True, 'approval_terms_complete': False, 'issues': []}
+    model = StructuredStub(responses=[AIMessage(content='', tool_calls=[{
+        'name': 'submit_claim_checks', 'id': f'check-{i}', 'args': {'result': output}}]) for i in range(2)])
+    board = _board(_result('done', 'order_logistics'), _result('waiting', 'general', status), partial=True)
+    candidate = AssembledResponse('The order lookup finished.', ResponseAssemblyMode.CONVERSATION_COMPOSE,
+                                 ('outcome:done',), True, 'PENDING', 'DRAFT')
+    feedback = []
+
+    class Assembler(ResponseAssembler):
+        async def _assemble_candidate(self, *args, **kwargs):
+            feedback.append(kwargs['repair_feedback'])
+            return replace(candidate, text='The order lookup finished. The other request is not complete.',
+                used_claim_ids=('outcome:done', 'outcome:waiting') if repaired else candidate.used_claim_ids)
+
+    assembler = Assembler(object(), knowledge_verifier=AnswerVerifier(model, model_profile=ModelProfile('test')))
+    response, verdict = asyncio.run(assembler._verify_with_revision(board, 'Please handle both requests.', candidate))
+    assert len(feedback) == 1
+    assert feedback[0]['reason_code'] == 'incomplete'
+    assert 'waiting' in feedback[0]['reason']
+    assert verdict.publishable is repaired
+    assert response.text == 'The order lookup finished. The other request is not complete.'
+
+
 def test_multi_result_composition_receives_only_claims_and_outcomes():
     composer = _Composer(lambda payload: {
         "segments": [{"text": "订单已发货；商品查询暂时失败。", "claim_ids": [
@@ -285,8 +317,8 @@ def test_internal_attribution_is_not_a_customer_citation_and_failure_is_always_r
         '政策说明 [outcome:k] [E123abc]',('outcome:k',),claims,'查询订单与政策',
         [{'work_item_id':'o','owner_agent':'order_logistics','status':'RETRYABLE_FAILURE'}])
     assert '[E123abc]' in text and '[outcome:k]' not in text
-    assert '本次查询或处理失败' in text
-    assert 'outcome:o' in used
+    assert '本次查询或处理失败' not in text
+    assert 'outcome:o' not in used
 
 
 def test_unknown_internal_attribution_is_rejected_instead_of_hidden():

@@ -56,10 +56,16 @@ def test_truncated_checks_are_unknown():
 
 @pytest.mark.parametrize('pending,terms,supported,answered', itertools.product([False, True], repeat=4))
 def test_approval_readiness_is_part_of_the_single_verification_verdict(pending, terms, supported, answered):
-    result, _ = run(context={'pending_actions': [{'action': 'change'}] if pending else []},
+    result, requests = run(context={'pending_actions': [{'action': 'change'}] if pending else []},
         mutation=lambda o: o.update(supported=supported, answered=answered,
             approval_terms_complete=terms, issues=[] if supported and answered else ['Revise the answer']))
     assert result.publishable is (supported and answered and (not pending or terms))
+    # The judge receives the requirement explicitly, not an instruction to
+    # rediscover application state from prose or nested business data.
+    content = requests[0]['messages'][-1]['content']
+    if isinstance(content, list):
+        content = ''.join(block['text'] for block in content if block.get('type') == 'text')
+    assert json.loads(content)['evidence']['approval_required'] is pending
     if pending and not terms and supported and answered:
         assert result.reason_code is VerificationReasonCode.APPROVAL_REQUIRED
         assert result.assessment is not None

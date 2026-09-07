@@ -8,6 +8,39 @@ pytest.importorskip("tau2")
 from evaluation.tau3_full_adapter import ObservedVerifier, Tau3TargetAgent
 
 
+@pytest.mark.parametrize("decision,expected", [("approve", True), ("deny", False), ("unclear", None)])
+def test_text_approval_uses_sdk_contract_and_preserves_full_reply(decision, expected):
+    from application.chat_contracts import Completed
+    from application.work_item import ArgumentValue
+    from core.model_policy import ModelRole
+    from tests.framework_structured_stub import models
+    calls = []
+    text = "Yes, proceed with that action. Also, where can I find the instructions?"
+
+    async def handle(command):
+        calls.append(command)
+        return Completed("reply", {"response": "Here are the next steps."})
+
+    async def run():
+        agent = Tau3TargetAgent(SimpleNamespace(get_tools=lambda: [], get_policy=lambda: "policy"),
+                               loop=asyncio.get_running_loop())
+        agent.states = SimpleNamespace(load=lambda *args: SimpleNamespace(
+            pending_interaction=None, pending_approval=SimpleNamespace(
+                approval_id="approval", action_ref="order.cancel:v1",
+                arguments=(ArgumentValue.create("order_id", "A123"),))))
+        agent.conversation_id = "conversation"
+        agent.components = SimpleNamespace(coordinator=SimpleNamespace(handle=handle))
+        agent.approval_model = models({"decision": decision}, name="submit_approval_decision")[ModelRole.INTENT]
+        await agent._turn(text)
+        assert agent.events.get_nowait().content == "Here are the next steps."
+        assert agent.trace[0] == {"approval_classification": decision}
+
+    asyncio.run(run())
+    assert calls[0].message == text
+    assert calls[0].approval_decision is expected
+    assert calls[0].approval_id == ("approval" if expected is not None else None)
+
+
 def test_verifier_diagnostics_preserve_positional_request_and_verdict():
     @dataclass
     class Verdict:
