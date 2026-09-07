@@ -131,7 +131,11 @@ async def evaluate(args, database_url):
         if args.distractors:
             docs = RagDataset.load(args.distractors).documents + docs
         from infrastructure.knowledge_filter_config import load_knowledge_filter_contract
-        filter_snapshot = load_knowledge_filter_contract()
+        if args.scenario in ('applicability','ecommerce-full'):
+            from evaluation.rag_applicability_dev import applicability_catalog
+            filter_snapshot = applicability_catalog()
+        else:
+            filter_snapshot = load_knowledge_filter_contract()
         store = PostgresKnowledgeStore(platform, tenant_id='rag-tool-dev', embedding_provider=embedding,
             filter_contract_factory=lambda: filter_snapshot)
         documents = tuple(SourceDocument.create(
@@ -167,7 +171,7 @@ async def evaluate(args, database_url):
             manifest = {'scope': 'candidate-only: handler request construction + actual PG retrieval; no handler completion or generation' if args.candidate_scope_probe else __doc__, 'scenario':args.scenario, 'documents': len(docs), 'cases': len(cases),
                         'knowledge_filter_contract':store.filter_contract_snapshot(), 'query_options':query_options, 'forbidden_sources':forbidden_sources, 'withdrawn_sources':withdrawn_sources,
                         'source_documents':[asdict(d) for d in docs], 'case_definitions':[asdict(c) for c in cases],
-                        'generation': asdict(store.active_generation()), 'embedding_profile': asdict(embedding.profile),
+                        'filter_catalog':filter_snapshot, 'generation': asdict(store.active_generation()), 'embedding_profile': asdict(embedding.profile),
                         'reranker_profile': policy.profile(ModelRole.RERANK).to_dict(),
                         'generation_profile': policy.profile(ModelRole.SYNTHESIS).to_dict(),
                         'max_api_calls': client.limit, 'sdk_retries': 0,
@@ -179,7 +183,7 @@ async def evaluate(args, database_url):
             if getattr(args, 'full_chain', False):
                 from evaluation.rag_full_chain_probe import run_full_chain
                 from core.rag_policy import rag_retrieval_policy_from_env
-                await run_full_chain(retrieval_policy=rag_retrieval_policy_from_env(values), case_limit=getattr(args,"full_case_limit",None), reranker_version=reranker.version, database_url=database_url,platform=platform,store=store,client=client,policy=policy,provider_config=options,output=args.output,handler=api._knowledge_tool_handler)
+                await run_full_chain(case_definitions=getattr(args,'full_definitions',None), retrieval_policy=rag_retrieval_policy_from_env(values), case_limit=getattr(args,"full_case_limit",None), reranker_version=reranker.version, database_url=database_url,platform=platform,store=store,client=client,policy=policy,provider_config=options,output=args.output,handler=api._knowledge_tool_handler)
                 return
             if args.mixed_business:
                 from evaluation.rag_mixed_business import run_mixed
@@ -242,6 +246,7 @@ def main():
     mode.add_argument('--mixed-business', action='store_true')
     mode.add_argument('--full-chain', action='store_true')
     mode.add_argument('--candidate-scope-probe', action='store_true', help='No inference: paired candidate retrieval with/without request applicability')
+    p.add_argument('--full-case-file',type=Path)
     p.add_argument('--full-case-limit',type=int,choices=range(1,7))
     p.add_argument('--mixed-case-file',type=Path)
     p.add_argument('--max-api-calls',type=int,default=80)
@@ -249,6 +254,19 @@ def main():
     args = p.parse_args()
     if not 0 < args.max_api_calls <= 400:
         raise ValueError('max API calls must be between 1 and 400')
+    args.full_definitions = None
+    if args.full_case_file:
+        if not args.full_chain:
+            raise ValueError('full case file requires full chain mode')
+        args.full_definitions = json.loads(args.full_case_file.read_text())
+        rows=args.full_definitions
+        if (not isinstance(rows,list) or not 1 <= len(rows) <= 20
+            or any(not isinstance(c,dict) or not isinstance(c.get('id'),str) or not c['id']
+                   or not isinstance(c.get('message'),str) or not c['message']
+                   or not isinstance(c.get('history'),list)
+                   or any(not isinstance(t,list) or len(t)!=2 or t[0] not in ('user','assistant') or not isinstance(t[1],str) for t in c['history']) for c in rows)
+            or len({c['id'] for c in rows})!=len(rows)):
+            raise ValueError('invalid full chain case definitions')
     args.mixed_definitions = None
     if args.mixed_case_file:
         if not args.mixed_business:

@@ -5,6 +5,13 @@ These rules are invented solely for engineering evaluation, not real store polic
 from evaluation.rag_pipeline.contracts import RagDocument, RagCase, EvidenceSpan
 
 
+def applicability_catalog():
+    """The synthetic host owns the channel vocabulary used by its policies."""
+    from application.sales_channels import filter_contract
+    return filter_contract({'catalog_id':'synthetic-applicability-v1',
+                            'sales_channels':{'web':'模拟商店官网购买渠道','store':'模拟商店线下门店购买渠道'}})
+
+
 def applicability_development():
     docs, cases, options, forbidden = [], [], {}, {}
 

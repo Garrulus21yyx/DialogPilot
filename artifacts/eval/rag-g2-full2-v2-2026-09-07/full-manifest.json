@@ -1,0 +1,68 @@
+{
+  "scope": "synthetic ecommerce; production runtime/admission/coordinator/context/knowledge handler/PostgreSQL retrieval/LLM rerank/compose/verifier/publication; excludes HTTP authentication, external delivery, business writes",
+  "cases": [
+    {
+      "id": "synthetic-g2-opened-nonquality",
+      "history": [
+        [
+          "user",
+          "我买的耳机已经拆封了，想了解能不能无理由退货。"
+        ],
+        [
+          "assistant",
+          "你是因为质量问题想退货吗？"
+        ]
+      ],
+      "message": "不是。",
+      "required": [
+        "已拆封非质量不适用无理由退货"
+      ]
+    },
+    {
+      "id": "synthetic-g2-hypothetical-arrival",
+      "history": [
+        [
+          "user",
+          "我只是想了解一般退款流程，不要查询我的订单。"
+        ],
+        [
+          "assistant",
+          "好的，你想了解哪个环节？"
+        ]
+      ],
+      "message": "如果退款申请审核通过了，就代表已经到账了吗？",
+      "required": [
+        "审核通过不代表实际到账",
+        "仅解释一般规则，不声称已查到用户订单"
+      ]
+    }
+  ],
+  "retrieval_policy": {
+    "top_k": 5,
+    "candidate_k": 20,
+    "context_max_tokens": 2600,
+    "rrf_k": 10,
+    "vector_weight": 0.25,
+    "lexical_weight": 0.75,
+    "raw_query_weight": 0.2,
+    "standalone_query_weight": 0.6,
+    "expansion_query_weight": 0.0,
+    "query_expansion_count": 0,
+    "metadata_hint_weight": 0.5
+  },
+  "reranker_version": "customer-support-listwise-v4-complete-evidence:7fddc3b741d5e6c9aa91b210f319ed3ec824ebc6ba4879dea2444fb2f3e6f544",
+  "source_sha256": {
+    "application/conversation_agent.py": "009bab7d751044716545acb45629b3ff96f1c4b39259343dbdd70b0d64ee4dbd",
+    "application/knowledge_tool_contract.py": "acafbfa9041bec3b9b3bd3375014ef929914afe8332d32d04db36a24eca8826c",
+    "application/knowledge_retriever.py": "54002b73df474dc8ab138681a18ea36998d085ed8f92d5484eaf6c6ef010f887",
+    "application/response_assembly.py": "72a5196aa651158d9623903c73f89e27e1bd9ff350046216845c1f140fd00ade",
+    "infrastructure/target_conversation_provider.py": "ee3f090160fc1e325acc0c397b119e97996c7ba95044955e568307eec0ee165d",
+    "api/main.py": "28b08c0ce88d539a4eadb3133f748f42c067cba75330dc12183906715ded4912",
+    "infrastructure/postgres_knowledge_retriever.py": "4a1e200fbbd7b42a69f74fe30072bdbb4c5c268f1e7abd3caceec8303e6d4fb9",
+    "infrastructure/knowledge_applicability.py": "1793f9210000be135cc8b6025841cacc743dc89259f90532c51c8c8137124354",
+    "services/answer_verifier.py": "c578f1111f71fd086620806e92b7c8f90c79cba75ca02b020544432a09ff1be8",
+    "services/claim_verification.py": "6a8ed4ceec543d36fd683436f9eab3e97e370590c3fd53d94d536e9da89956b0",
+    "evaluation/rag_full_chain_probe.py": "02b22341ed61a1a2b179d90aa380709b5ed1fc15abfd7deab23b291a147bd8ba"
+  },
+  "max_api_calls": 16
+}

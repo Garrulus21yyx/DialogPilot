@@ -1,0 +1,37 @@
+[
+  {
+    "id": "synthetic-g2-opened-nonquality",
+    "history": [
+      [
+        "user",
+        "我买的耳机已经拆封了，想了解能不能无理由退货。"
+      ],
+      [
+        "assistant",
+        "你是因为质量问题想退货吗？"
+      ]
+    ],
+    "message": "不是。",
+    "required": [
+      "已拆封非质量不适用无理由退货"
+    ]
+  },
+  {
+    "id": "synthetic-g2-hypothetical-arrival",
+    "history": [
+      [
+        "user",
+        "我只是想了解一般退款流程，不要查询我的订单。"
+      ],
+      [
+        "assistant",
+        "好的，你想了解哪个环节？"
+      ]
+    ],
+    "message": "如果退款申请审核通过了，就代表已经到账了吗？",
+    "required": [
+      "审核通过不代表实际到账",
+      "仅解释一般规则，不声称已查到用户订单"
+    ]
+  }
+]

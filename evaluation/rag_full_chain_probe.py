@@ -36,12 +36,13 @@ CASES = [
 ]
 
 
-async def run_full_chain(*,database_url,platform,store,client,policy,provider_config,output,handler,retrieval_policy=None,case_limit=None,reranker_version=None):
-    if case_limit is not None and not 1 <= case_limit <= len(CASES):
+async def run_full_chain(*,database_url,platform,store,client,policy,provider_config,output,handler,retrieval_policy=None,case_limit=None,reranker_version=None,case_definitions=None):
+    definitions=CASES if case_definitions is None else case_definitions
+    if case_limit is not None and not 1 <= case_limit <= len(definitions):
         raise ValueError('full-chain case limit outside supported cases')
     if (output/'full-cases.jsonl').exists() or (output/'full-cases.jsonl.gz').exists():
         raise ValueError('full-chain evaluation requires a fresh output directory')
-    cases=CASES[:case_limit] if case_limit is not None else CASES
+    cases=definitions[:case_limit] if case_limit is not None else definitions
     registry=build_default_capability_registry('rag-tool-dev')
     tools=RecordedTools(api_key=provider_config['api_key'],base_url=policy.base_url,model=policy.profile(ModelRole.INTENT).model)
     from application.knowledge_tool_contract import knowledge_query_schema, knowledge_tool_schema_for_context

@@ -90,7 +90,7 @@ def planning_output_schema(supported_goals=None, knowledge_filter_contract=None)
             )},
             "resolved_query": {**text, "maxLength": 4000},
             "depends_on": {"type": "array", "uniqueItems": True, "items": dict(text)},
-            "allow_action_proposals": {"type": "boolean", "description": "True only if this particular objective requests a business change; false for queries, counts, rules or advice. This permits preparation, never authorizes execution."},
+            "allow_action_proposals": {"type": "boolean", "description": "Only for kind=delegate_task; omit for every other kind. True only if this delegated objective requests a business change; false for delegated queries, counts, rules or advice. This permits preparation, never authorizes execution."},
             "knowledge_options": knowledge_query_options_schema(knowledge_filter_contract),
         },
         "allOf": [{

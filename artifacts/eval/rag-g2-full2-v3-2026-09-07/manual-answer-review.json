@@ -1,0 +1,32 @@
+{
+  "reviewer": "Codex manual source comparison; not an independent human or model judge",
+  "scope": "two exposed synthetic development answers; no population accuracy claim",
+  "rows": [
+    {
+      "case_id": "synthetic-g2-opened-nonquality",
+      "answer_sha256": "0dbc986c54486062b90fded3add8b5c6b85cb23a9867ba382e044b4cfca65675",
+      "supported_claims": [
+        "已拆封且非质量原因不适用无理由退货；模拟耳机政策直接支持。",
+        "未拆封耳机签收七日内可申请；模拟耳机政策直接支持。",
+        "质量问题需检测材料另审；模拟耳机政策直接支持。"
+      ],
+      "unsupported_claims_found": [],
+      "requested_conditions_preserved": true,
+      "business_execution_claims_added": false,
+      "decision": "supported_in_this_fixture"
+    },
+    {
+      "case_id": "synthetic-g2-hypothetical-arrival",
+      "answer_sha256": "99c8af3e7658bed894c4f2e21d9adcb20f7c4ffc3274fe3b75db81e14950483d",
+      "supported_claims": [
+        "审核通过不等于到账；模拟政策明确区分两阶段。",
+        "审核通过后支付渠道处理款项；引用的售后原文直接支持。",
+        "具体到账需查业务记录；属于一般流程说明，未声称已经查询或执行。"
+      ],
+      "unsupported_claims_found": [],
+      "requested_conditions_preserved": true,
+      "business_execution_claims_added": false,
+      "decision": "supported_in_this_fixture"
+    }
+  ]
+}

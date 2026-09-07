@@ -1,0 +1,8 @@
+{
+  "stage": "source_import",
+  "error_type": "KnowledgeSourceContractError",
+  "message": "sales channel is not supported by this knowledge catalog",
+  "api_calls": 0,
+  "cause": "Synthetic fixture web/store documents lacked matching host catalog",
+  "resolution": "Explicit fixture catalog supplied to import/runtime snapshot; production catalog rules unchanged"
+}
