@@ -1,0 +1,20 @@
+{
+  "seed": 71,
+  "api_calls": 0,
+  "max_pair_tokens": 768,
+  "chunk_tokens": 256,
+  "overlap_tokens": 32,
+  "candidate_source": "Python BM25; top20; no gold injection",
+  "negatives": "unjudged weak negatives; exclude gold overlap",
+  "query": "first user turn verbatim; no history or rewrite",
+  "source": "Doc2Dial v1.0.1 official train only; CC-BY-3.0",
+  "source_sha256": {
+    "doc2dial_doc.json": "547ed8ee5bfd7babdadfb6246b1b3fc5fa107a4abdef972bc63c9b717000f56f",
+    "doc2dial_dial_train.json": "c5e66816b28137ae4ba82e310cdc691b7608b123eda23f1f8f7021f3df8a4dff"
+  },
+  "data_sha256": "014cd19a1cb47bd5192f08bdf06c44ade90a85be37cd52a707d197012796558c",
+  "model_sha256": "d9e3e081faff1eefb84019509b2f5558fd74c1a05a2c7db22f74174fcedb5286",
+  "trainable": "last two encoder layers plus classifier",
+  "learning_rate": 1e-05,
+  "epochs": 1
+}
