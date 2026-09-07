@@ -1,0 +1,76 @@
+{
+  "scope": "32 exposed dev, local CE top5 only; no pack/tool/answer outcome",
+  "api_calls": 0,
+  "unique_pairs": 1104,
+  "new_model_pairs": 1104,
+  "scoring_and_ranking_seconds": 10.862398585304618,
+  "max_padded_input_tokens": 631,
+  "summary": {
+    "0.25": {
+      "before": {
+        "recall@5": 0.3177083333333333,
+        "mrr@5": 0.32135416666666666,
+        "ndcg@5": 0.28217121951742696
+      },
+      "after": {
+        "recall@5": 0.4270833333333333,
+        "mrr@5": 0.4869791666666667,
+        "ndcg@5": 0.4118166302089963
+      }
+    },
+    "0.5": {
+      "before": {
+        "recall@5": 0.3828125,
+        "mrr@5": 0.38385416666666666,
+        "ndcg@5": 0.3348399938056358
+      },
+      "after": {
+        "recall@5": 0.4765625,
+        "mrr@5": 0.5255208333333333,
+        "ndcg@5": 0.4484630091964966
+      }
+    },
+    "0.75": {
+      "before": {
+        "recall@5": 0.4557291666666667,
+        "mrr@5": 0.490625,
+        "ndcg@5": 0.41875257484295264
+      },
+      "after": {
+        "recall@5": 0.5,
+        "mrr@5": 0.5255208333333333,
+        "ndcg@5": 0.458314607110328
+      }
+    }
+  },
+  "paired_after_vs_current": {
+    "0.5": {
+      "recall@5": {
+        "better": 9,
+        "worse": 2
+      },
+      "mrr@5": {
+        "better": 6,
+        "worse": 4
+      },
+      "ndcg@5": {
+        "better": 9,
+        "worse": 6
+      }
+    },
+    "0.75": {
+      "recall@5": {
+        "better": 10,
+        "worse": 3
+      },
+      "mrr@5": {
+        "better": 6,
+        "worse": 5
+      },
+      "ndcg@5": {
+        "better": 9,
+        "worse": 8
+      }
+    }
+  }
+}
