@@ -1,0 +1,30 @@
+{
+  "label": "selected-fusion",
+  "case_count": 300,
+  "budget": 2600,
+  "budget_tokenizer": "production TokenEstimator, not API tokenizer",
+  "max_chunks": 5,
+  "oversized_expansion": "fall back to original anchor",
+  "modes": {
+    "anchor": {
+      "complete": 192,
+      "mean_tokens": 2233.233333333333,
+      "rescues_vs_anchor": 0,
+      "harms_vs_anchor": 0
+    },
+    "adjacent": {
+      "complete": 177,
+      "mean_tokens": 2211.6666666666665,
+      "rescues_vs_anchor": 6,
+      "harms_vs_anchor": 21
+    },
+    "parent": {
+      "complete": 179,
+      "mean_tokens": 2198.9966666666664,
+      "rescues_vs_anchor": 7,
+      "harms_vs_anchor": 20
+    }
+  },
+  "mrr5": 0.48394444444444445,
+  "ndcg5": 0.5239222182627585
+}

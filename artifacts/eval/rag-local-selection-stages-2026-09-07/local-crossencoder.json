@@ -1,0 +1,30 @@
+{
+  "label": "local-crossencoder",
+  "case_count": 300,
+  "budget": 2600,
+  "budget_tokenizer": "production TokenEstimator, not API tokenizer",
+  "max_chunks": 5,
+  "oversized_expansion": "fall back to original anchor",
+  "modes": {
+    "anchor": {
+      "complete": 208,
+      "mean_tokens": 2351.8133333333335,
+      "rescues_vs_anchor": 0,
+      "harms_vs_anchor": 0
+    },
+    "adjacent": {
+      "complete": 202,
+      "mean_tokens": 2173.9133333333334,
+      "rescues_vs_anchor": 2,
+      "harms_vs_anchor": 8
+    },
+    "parent": {
+      "complete": 201,
+      "mean_tokens": 2161.5066666666667,
+      "rescues_vs_anchor": 3,
+      "harms_vs_anchor": 10
+    }
+  },
+  "mrr5": 0.584,
+  "ndcg5": 0.6116514489904346
+}

@@ -1,0 +1,23 @@
+[
+  {
+    "before": "current-fusion",
+    "after": "selected-fusion",
+    "rescues": 13,
+    "harms": 3,
+    "delta_pp": 3.3333333333333335
+  },
+  {
+    "before": "selected-fusion",
+    "after": "local-crossencoder",
+    "rescues": 20,
+    "harms": 4,
+    "delta_pp": 5.333333333333333
+  },
+  {
+    "before": "current-fusion",
+    "after": "local-crossencoder",
+    "rescues": 29,
+    "harms": 3,
+    "delta_pp": 8.666666666666666
+  }
+]
