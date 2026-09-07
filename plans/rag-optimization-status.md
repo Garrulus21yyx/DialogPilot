@@ -134,4 +134,4 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - G2起步预注册（1f7ac5e）：先对G3两个候选失败作定位，不当作随机总体指标。通过PostgreSQL持久化原始user/agent历史、原runtime context loader和manager.prepare运行真实Conversation Agent；不手工拼TargetTurnContext，不读gold生成query。Flash规划上限4次，先只捕获Context/实际模型消息/plan/query，不生成答案。检索复验保持G3 .25/.75、每路20、候选20；禁止沿用旧脚本.5/source40混算。无query记录为规划未产生检索，不能静默回退raw。
 - G2实际定位：Doc2Dial yes例完整历史已注入，却因儿童残障福利属于电商范围外而OUT_OF_SCOPE；不能按query生成失败记错。tag例产生单条查询，继续实际PG复验。为检验目标场景，同入口补2条明确标记的中文电商模拟（拆封/非质量否定、假设退款审核不查订单），新增Flash上限2；不改生产业务范围迁就公共数据。
 
-- G2本轮结果：实际Context/Agent公共失败2例＋电商模拟2例，共4次Flash。tag例query由真实Agent补全后PG完整gold从候选缺失→第1；yes例历史2/2已注入，但儿童福利被判OUT_OF_SCOPE，不当生成失败。电商否定/假设2例均生成READ知识查询，保留条件、未计划订单工具。2项产物审计通过。见[报告](../docs/rag-g2-context-miss2-2026-09-07.zh-CN.md)。G2继续：把模拟例实际查询接真实知识证据和答案链；公共检索任务与电商范围评测分开，未改变生产范围。交付待提交推送。
+- G2本轮结果：实际Context/Agent公共失败2例＋电商模拟2例，共4次Flash。tag例query由真实Agent补全后PG完整gold从候选缺失→第1；yes例历史2/2已注入，但儿童福利被判OUT_OF_SCOPE，不当生成失败。电商否定/假设2例均生成READ知识查询，保留条件、未计划订单工具。2项产物审计通过。见[报告](../docs/rag-g2-context-miss2-2026-09-07.zh-CN.md)。G2继续：把模拟例实际查询接真实知识证据和答案链；公共检索任务与电商范围评测分开，未改变生产范围。交付：`241989a` 已提交并推送。
