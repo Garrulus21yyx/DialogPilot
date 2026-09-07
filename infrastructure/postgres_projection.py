@@ -355,12 +355,14 @@ class ConversationProjectionDispatcher:
         adapters: Mapping[ProjectionName, ConversationProjectionAdapter],
         policy: ConversationProjectionPolicyV1 | None = None,
         fault_hook: Callable[[str], None] | None = None,
+        delete_result_originals=None,
     ):
         self.outbox = outbox
         self.deletion = deletion
         self.adapters = dict(adapters)
         self.policy = policy or ConversationProjectionPolicyV1()
         self.fault_hook = fault_hook or (lambda _stage: None)
+        self.delete_result_originals = delete_result_originals
 
     def dispatch_once(
         self,
@@ -372,6 +374,8 @@ class ConversationProjectionDispatcher:
         retry_at: str,
         limit: int = 20,
     ) -> tuple[ProjectionDispatchResult, ...]:
+        if self.delete_result_originals is not None:
+            raise ProjectionClaimError("result-original cleanup requires dispatch_once_async")
         adapter = self.adapters.get(projection_name)
         if adapter is None:
             raise ProjectionClaimError(
@@ -505,10 +509,11 @@ class ConversationProjectionDispatcher:
             else ProjectionOutboxOutcome.ALREADY_APPLIED
         )
 
-    @staticmethod
-    async def _delete_async(adapter, subject, deletion_epoch: int) -> None:
+    async def _delete_async(self, adapter, subject, deletion_epoch: int) -> None:
         import asyncio
 
+        if self.delete_result_originals is not None:
+            await self.delete_result_originals(subject)
         delete_async = getattr(adapter, "delete_subject_async", None)
         if delete_async is not None:
             await delete_async(

@@ -9,11 +9,11 @@ import os
 from dataclasses import asdict
 from pathlib import Path
 
-from anthropic import AsyncAnthropic
 from dotenv import dotenv_values
 from core.model_policy import ModelPolicy, ModelRole
+from core.framework_models import conversation_models, framework_model
+from evaluation.framework_capture import FrameworkCapture
 from infrastructure.target_conversation_provider import AnthropicConversationPlanningProvider
-from scripts.run_rag_tool_calibration import CaptureClient
 from application.composition_output import render_composition, prepare_composition_payload
 from application.response_assembly import AllowedClaim, ResponseAssembler
 from services.answer_verifier import AnswerVerifier
@@ -93,35 +93,36 @@ async def run(args):
                 'input_migration':'v1 FACT evidence views become KNOWLEDGE_FACT; request schema v3 with captured content-bound support catalog',
                 'limitation':'component replay; no live source revalidation, business execution or publication'}
     (args.output/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
-    async with AsyncAnthropic(**options) as transport:
-        client = CaptureClient(transport,limit=len(inputs)*(2 if args.verify else 1))
-        verifier = AnswerVerifier(client=client,model_profile=policy.profile(ModelRole.VERIFIER)) if args.verify else None
-        provider = AnthropicConversationPlanningProvider(client,model_profile=policy.profile(ModelRole.INTENT),
-                                                        synthesis_profile=policy.profile(ModelRole.SYNTHESIS))
-        for key,payload in inputs:
-            before = len(client.calls)
-            try:
-                value = await provider.compose(payload)
-                claims=tuple(AllowedClaim(c['claim_id'],c['kind'],c['value'],tuple(c['source_refs'])) for c in payload['allowed_claims'])
-                text,used=render_composition(value,claims)
-                text,used=ResponseAssembler.prepare_composed_response(text,used,claims,payload['current_message'],payload['work_item_outcomes'],
-                    conversation_context=payload.get('conversation_context'))
-                result = {'output':value,'rendered':text,'used_claim_ids':used,'error':None}
-                if verifier:
-                    packs=[c.value for c in claims if c.kind=='KNOWLEDGE_FACT']
-                    verdict=await verifier.verify(payload['current_message'],text,
-                        context=json.dumps({'facts':[c.value for c in claims if c.kind in ('FACT', 'CONTROLLED_REFUND_FACT')],
-                                            'receipts':[c.value for c in claims if c.kind=='RECEIPT'],
-                                            **({'user_context': payload['conversation_context']} if payload.get('conversation_context') is not None else {})},ensure_ascii=False),
-                        knowledge_evidence={'packs':packs,'allowed_evidence_ids':sorted({e['evidence_id'] for p in packs for e in p['evidence']})},
-                        agent_outcomes=[{'status':o['status'],'reason':o['reason_code']} for o in payload['work_item_outcomes']])
-                    result['verdict']={**asdict(verdict),'status':verdict.status.value,'reason_code':verdict.reason_code.value,'publishable':verdict.publishable}
-            except Exception as error:
-                result = {'output':None,'error':type(error).__name__}
-            row = {'case_id':key,'input':payload,**result,'api_calls':client.calls[before:]}
-            with (args.output/'cases.jsonl').open('a') as stream:
-                stream.write(json.dumps(row,ensure_ascii=False,default=str)+'\n')
-            print(key,result['error'] or 'structured output',flush=True)
+    client = FrameworkCapture(limit=len(inputs))
+    verifier = AnswerVerifier(framework_model(policy.profile(ModelRole.VERIFIER), options, max_tokens=4096),model_profile=policy.profile(ModelRole.VERIFIER), callbacks=(client,)) if args.verify else None
+    framework_capture = FrameworkCapture(limit=len(inputs))
+    provider = AnthropicConversationPlanningProvider(conversation_models(policy, options),model_profile=policy.profile(ModelRole.INTENT),
+                                                    synthesis_profile=policy.profile(ModelRole.SYNTHESIS), callbacks=(framework_capture,))
+    for key,payload in inputs:
+        before = len(client.calls)
+        framework_before = len(framework_capture.calls)
+        try:
+            value = await provider.compose(payload)
+            claims=tuple(AllowedClaim(c['claim_id'],c['kind'],c['value'],tuple(c['source_refs'])) for c in payload['allowed_claims'])
+            text,used=render_composition(value,claims)
+            text,used=ResponseAssembler.prepare_composed_response(text,used,claims,payload['current_message'],payload['work_item_outcomes'],
+                conversation_context=payload.get('conversation_context'))
+            result = {'output':value,'rendered':text,'used_claim_ids':used,'error':None}
+            if verifier:
+                packs=[c.value for c in claims if c.kind=='KNOWLEDGE_FACT']
+                verdict=await verifier.verify(payload['current_message'],text,
+                    context=json.dumps({'facts':[c.value for c in claims if c.kind in ('FACT', 'CONTROLLED_REFUND_FACT')],
+                                        'receipts':[c.value for c in claims if c.kind=='RECEIPT'],
+                                        **({'user_context': payload['conversation_context']} if payload.get('conversation_context') is not None else {})},ensure_ascii=False),
+                    knowledge_evidence={'packs':packs,'allowed_evidence_ids':sorted({e['evidence_id'] for p in packs for e in p['evidence']})},
+                    agent_outcomes=[{'status':o['status'],'reason':o['reason_code']} for o in payload['work_item_outcomes']])
+                result['verdict']={**asdict(verdict),'status':verdict.status.value,'reason_code':verdict.reason_code.value,'publishable':verdict.publishable}
+        except Exception as error:
+            result = {'output':None,'error':type(error).__name__}
+        row = {'case_id':key,'input':payload,**result,'api_calls':[*framework_capture.calls[framework_before:], *client.calls[before:]]}
+        with (args.output/'cases.jsonl').open('a') as stream:
+            stream.write(json.dumps(row,ensure_ascii=False,default=str)+'\n')
+        print(key,result['error'] or 'structured output',flush=True)
 
 
 def main():

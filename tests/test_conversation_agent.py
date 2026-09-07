@@ -76,22 +76,10 @@ class Provider:
         return self.value
 
 
-def test_anthropic_provider_uses_the_installed_messages_contract():
-    class Messages:
-        async def create(self, *, model, max_tokens, system, messages, tools, tool_choice):
-            assert model == "model-a"
-            assert max_tokens == 800
-            assert system
-            assert messages[0]["role"] == "user"
-            assert tools[0]["name"] == "submit_turn_plan"
-            assert tool_choice == {"type": "tool", "name": "submit_turn_plan"}
-            return SimpleNamespace(stop_reason="tool_use", content=(SimpleNamespace(
-                type="tool_use", name="submit_turn_plan",
-                input={"status": "out_of_scope"},
-            ),))
-
+def test_provider_uses_framework_structured_output():
+    from tests.framework_structured_stub import models
     provider = AnthropicConversationPlanningProvider(
-        SimpleNamespace(messages=Messages()),
+        models({"status": "out_of_scope"}),
         model_profile=ModelProfile("model-a"), synthesis_profile=ModelProfile("model-a"),
     )
 
@@ -821,16 +809,9 @@ def test_cascade_uses_planner_when_no_state_or_encoder_path_resolves():
 
 def test_production_planner_rejects_legacy_fenced_text():
     import pytest
-    class Messages:
-        async def create(self, **kwargs):
-            assert "temperature" not in kwargs
-            return SimpleNamespace(content=(SimpleNamespace(
-                type="text",
-                text='```json\n{"status":"out_of_scope"}\n```',
-            ),))
-
+    from tests.framework_structured_stub import models
     provider = AnthropicConversationPlanningProvider(
-        SimpleNamespace(messages=Messages()), model_profile=ModelProfile("model-test"), synthesis_profile=ModelProfile("model-test"),
+        models(text='```json\n{"status":"out_of_scope"}\n```'), model_profile=ModelProfile("model-test"), synthesis_profile=ModelProfile("model-test"),
     )
     from application.conversation_agent import ConversationProviderOutputError
     with pytest.raises(ConversationProviderOutputError):
@@ -838,15 +819,9 @@ def test_production_planner_rejects_legacy_fenced_text():
 
 
 def test_malformed_provider_transport_is_not_reported_as_an_outage():
-    class Messages:
-        async def create(self, **_kwargs):
-            return SimpleNamespace(content=(SimpleNamespace(
-                type="text",
-                text="not-json",
-            ),))
-
+    from tests.framework_structured_stub import models
     provider = AnthropicConversationPlanningProvider(
-        SimpleNamespace(messages=Messages()), model_profile=ModelProfile("model-test"), synthesis_profile=ModelProfile("model-test"),
+        models(text="not-json"), model_profile=ModelProfile("model-test"), synthesis_profile=ModelProfile("model-test"),
     )
     proposal, _, _ = _invoke(ConversationAgent(provider), "帮我处理")
 

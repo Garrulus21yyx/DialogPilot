@@ -4,7 +4,8 @@ from __future__ import annotations
 import json
 from typing import Mapping
 
-from core.model_policy import ModelProfile, ModelRole, ReasoningEffort
+from core.model_policy import ModelProfile, ModelRole
+from core.structured_model import structured_call, structured_tool
 from core.provider_context_budget import DEFAULT_PROVIDER_CONTEXT_BUDGET
 
 from application.conversation_agent import ConversationProviderOutputError, planning_output_schema
@@ -14,8 +15,9 @@ from application.composition_output import composition_schema, validate_composit
 class AnthropicConversationPlanningProvider:
     version = "anthropic-conversation-planning-provider-v12-open-delegation"
 
-    def __init__(self, client, *, model_profile: ModelProfile, synthesis_profile: ModelProfile, max_tokens: int = 800) -> None:
-        self._client = client
+    def __init__(self, models, *, model_profile: ModelProfile, synthesis_profile: ModelProfile, max_tokens: int = 800, callbacks=()) -> None:
+        self._models = models
+        self._callbacks = callbacks
         self._model_profile = model_profile
         self._synthesis_profile = synthesis_profile
         self._max_tokens = max_tokens
@@ -127,33 +129,16 @@ class AnthropicConversationPlanningProvider:
                 raise ConversationProviderOutputError('invalid composition attribution input') from exc
         else:
             schema = planning_output_schema(payload.get("supported_goals"))
-        request["tools"] = [{
-            "name": output_name,
-            "description": "Submit the complete structured response for this stage.",
-            "input_schema": schema,
-        }]
-        request["tool_choice"] = (
-            {"type": "auto"} if profile.reasoning is not ReasoningEffort.NONE
-            else {"type": "tool", "name": output_name}
-        )
+        request["tools"] = [structured_tool(output_name, schema)]
         DEFAULT_PROVIDER_CONTEXT_BUDGET.validate(
             profile, role, request,
         )
-        response = await self._client.messages.create(**request)
-        blocks = [block for block in getattr(response, "content", ())
-                  if getattr(block, "type", "") == "tool_use"]
-        if (getattr(response, "stop_reason", "") != "tool_use" or len(blocks) != 1
-                or getattr(blocks[0], "name", "") != output_name):
-            raise ConversationProviderOutputError("stage requires one complete expected output tool")
-        value = getattr(blocks[0], "input", None)
         try:
+            value = await structured_call(self._models[role], name=output_name,
+                schema=schema, system=system, content=request["messages"][0]["content"],
+                callbacks=self._callbacks)
             if role is ModelRole.SYNTHESIS:
                 return validate_composition(value)
-            from jsonschema import Draft202012Validator, ValidationError
-            try:
-                Draft202012Validator(schema).validate(value)
-            except ValidationError as exc:
-                raise ValueError("planning output violates the owner wire schema") from exc
             return value
         except ValueError as exc:
             raise ConversationProviderOutputError(str(exc)) from exc

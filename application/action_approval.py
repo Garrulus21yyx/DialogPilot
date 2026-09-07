@@ -9,6 +9,10 @@ from application.conversation_state import (
 
 def bind_action_approval(state, plan, board, registry, checkpoint_thread_id):
     proposed = tuple(result for result in board.results if result.pending_action is not None)
+    if len(proposed) > 1:
+        raise ConversationStateConflict("action-capable workers must be serialized before approval")
+    finished = {result.work_item_id for result in board.results
+                if result.status.value in {"SUCCEEDED", "CANCELLED", "SUPERSEDED"}}
     if state.pending_approval:
         # A prepared explicit action already owns this turn's decision. Queue
         # unfinished domain objectives behind it, without replacing its grant.
@@ -16,10 +20,8 @@ def bind_action_approval(state, plan, board, registry, checkpoint_thread_id):
         if pending.checkpoint_thread_id != checkpoint_thread_id:
             return state
         existing = {work.work_item_id for work in pending.suspended_work_items}
-        waiting = {result.work_item_id for result in board.results
-                   if result.status.value in {"WAITING_APPROVAL", "NEEDS_USER_INPUT", "BLOCKED"}}
         additions = tuple(work for work in plan.work.items
-                          if work.work_item_id in waiting and work.work_item_id not in existing)
+                          if work.work_item_id not in finished and work.work_item_id not in existing)
         if not additions:
             return state
         return replace(state, version=state.version + 1, pending_approval=replace(
@@ -57,9 +59,7 @@ def bind_action_approval(state, plan, board, registry, checkpoint_thread_id):
         action.arguments, checkpoint_thread_id, action.argument_bindings,
         suspended_work_items=(parent, *(
             work for work in plan.work.items if work.work_item_id != parent.work_item_id
-            and any(outcome.work_item_id == work.work_item_id
-                    and outcome.status.value not in {"SUCCEEDED", "CANCELLED", "SUPERSEDED"}
-                    for outcome in board.results)
+            and work.work_item_id not in finished
         )),
         origin_work_item_id=parent.work_item_id,
     ), new_workstream=stream)

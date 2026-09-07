@@ -110,7 +110,8 @@ def test_summary_failure_never_replaces_original_history():
         middleware = ContextCompaction(Unavailable(responses=[]), archive,
             available_tokens=4200, overhead_tokens=100, pinned_message=pinned,
             soft_fraction=.5, summary_fraction=.65)
-        with pytest.raises(TimeoutError):
+        from core.framework_models import ModelInvocationError
+        with pytest.raises(ModelInvocationError, match="context_summary:TimeoutError"):
             await middleware.abefore_model({"messages": messages}, SimpleNamespace(context=_context()))
         assert messages_to_dict(messages) == original
         assert len(await archive.store.asearch(archive.namespace(_context()))) == 1

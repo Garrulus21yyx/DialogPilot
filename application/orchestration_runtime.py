@@ -158,8 +158,25 @@ class OrchestrationRuntime:
             "board": board,
         }
 
+    @staticmethod
+    def _ready_wave(state: ParentGraphState):
+        # One conversation approval slot: serialize action-capable workers,
+        # while independent read-only work remains parallel.
+        action_busy = any(result.status is AgentResultStatus.WAITING_APPROVAL
+                          for result in state.get("agent_results", ()))
+        ready = []
+        for item in state.get("ready_items", ()):
+            action_capable = bool(item.allowed_actions) or item.control_mode in {
+                ControlMode.ACTION, ControlMode.WORKFLOW}
+            if action_capable:
+                if action_busy:
+                    continue
+                action_busy = True
+            ready.append(item)
+        return tuple(ready)
+
     def _dispatch(self, state: ParentGraphState):
-        ready = state.get("ready_items", ())
+        ready = self._ready_wave(state)
         if not ready:
             return "finish"
         results = {
@@ -186,7 +203,7 @@ class OrchestrationRuntime:
         ]
 
     def _next_step(self, state: ParentGraphState):
-        if state.get("ready_items", ()):
+        if self._ready_wave(state):
             return self._dispatch(state)
         if self._checkpointer is not None and (
             any(
@@ -239,13 +256,16 @@ class OrchestrationRuntime:
                 continue
             previous = previous_items.get(item.continuation_of)
             result = previous_results.get(item.continuation_of)
-            if (previous is None or result is None
+            if (previous is None
                     or previous.owner_agent != item.owner_agent
                     or previous.registry_fingerprint != item.registry_fingerprint
                     or previous.control is None or item.control is None
                     or previous.control.control_id != item.control.control_id
                     or previous.control.revision + 1 != item.control.revision):
                 raise OrchestrationRuntimeError("continuation does not match checkpoint progress")
+            if result is None:
+                # The prior checkpoint retained this queued, not-yet-run item.
+                continue
             progress[item.work_item_id] = tuple(fact for fact in result.facts
                 if fact.valid_until is None or fact.valid_until > now)
             messages[item.work_item_id] = tuple(result.working_messages)
@@ -536,23 +556,11 @@ def _merge_facts(*groups: tuple[FactRecord, ...]) -> tuple[FactRecord, ...]:
 
 def _normalize_board(board: ResultBoardSnapshot) -> ResultBoardSnapshot:
     """Restore tuple-based public contracts at the checkpoint boundary."""
-    def normalize_result(result: AgentResult) -> AgentResult:
-        return replace(
-            result,
-            facts=tuple(result.facts),
-            evidence_refs=tuple(result.evidence_refs),
-            action_receipts=tuple(result.action_receipts),
-            missing_inputs=tuple(result.missing_inputs),
-            requested_evidence=tuple(result.requested_evidence),
-            state_mutation_proposals=tuple(result.state_mutation_proposals),
-            working_messages=tuple(result.working_messages),
-        )
-
     return ResultBoardSnapshot(
-        tuple(normalize_result(item) for item in board.results),
+        tuple(board.results),
         tuple(board.facts),
         tuple(board.ready_items),
-        tuple(normalize_result(item) for item in board.blocked_results),
+        tuple(board.blocked_results),
         tuple(board.missing_requirement_ids),
         tuple(board.conflict_keys),
         bool(board.complete),

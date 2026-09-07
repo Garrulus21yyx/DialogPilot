@@ -388,12 +388,13 @@ def register_fresh_fixtures(
         return FixtureEvidence({"approved_argument_removed_before_handler": received == [{"order_id": "A-778"}], "host_flag_still_required": pending.status == ToolCallStatus.AWAITING_APPROVAL.value and approved.success, "unapproved_call_has_zero_effect": len(received) == 1}, {"received": received})
 
     class FailingMessages:
-        async def create(self, **_kwargs): raise TimeoutError("fresh verifier")
+        def with_structured_output(self, *_args, **_kwargs): raise TimeoutError("fresh verifier")
 
     @register("reviewer_b_verifier_provider_exception_public_boundary")
     async def verifier_provider(request):
         from api.main import _publish_candidate, _verify_for_publication
-        candidate = str(inputs(request)["candidate"]); verifier = AnswerVerifier(client=SimpleNamespace(messages=FailingMessages()), model="fixture")
+        from core.model_policy import ModelProfile
+        candidate = str(inputs(request)["candidate"]); verifier = AnswerVerifier(FailingMessages(), model_profile=ModelProfile("fixture"))
         result = await _verify_for_publication(verifier, request.message, candidate, "")
         published = _publish_candidate(candidate, result)
         return FixtureEvidence({"candidate_absent_from_memory": published != candidate, "candidate_absent_from_public_projection": candidate not in published, "safe_fallback_and_handoff_returned": result.need_escalation and result.status is VerificationStatus.UNKNOWN}, {"published": published, "verification": result.status.value})

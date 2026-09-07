@@ -23,6 +23,7 @@ if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
 import uvicorn
+from core.framework_models import framework_model
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Header, HTTPException, Response, UploadFile, File, Query, Request as FastAPIRequest
 from fastapi.middleware.cors import CORSMiddleware
@@ -285,12 +286,6 @@ async def lifespan(app: FastAPI):
     )
     _skill_manager.load()
 
-    _answer_verifier = AnswerVerifier(
-        api_key=cfg["api_key"],
-        base_url=cfg.get("base_url"),
-        model=cfg["model"],
-        model_profile=_model_policy.profile(ModelRole.VERIFIER),
-    )
     ticket_webhook_url = os.getenv("TICKET_DISPATCH_WEBHOOK_URL", "").strip()
     ticket_dispatcher = TicketWebhookDispatcher(
         ticket_webhook_url,
@@ -322,6 +317,10 @@ async def lifespan(app: FastAPI):
         if langfuse_sink is not None:
             trace_sinks.append(langfuse_sink)
         _trace_recorder.configure_sinks(trace_sinks)
+        _answer_verifier = AnswerVerifier(
+            framework_model(_model_policy.profile(ModelRole.VERIFIER), cfg, max_tokens=4096),
+            model_profile=_model_policy.profile(ModelRole.VERIFIER),
+        )
         from infrastructure.postgres_ticket_service import PostgresTicketService
 
         _ticket_service = PostgresTicketService(
@@ -579,10 +578,10 @@ async def lifespan(app: FastAPI):
         model_policy=_model_policy,
         provider_config=cfg,
         langfuse_sink=langfuse_sink,
+        knowledge_verifier=_answer_verifier,
         project_root=pathlib.Path(_ROOT),
         knowledge_context_factory=_knowledge_execution_context,
         knowledge_generator=_grounded_answer_generator,
-        knowledge_verifier=_answer_verifier,
         knowledge_source_validator=_knowledge_store.validate_publication_evidence,
     )
     _target_chat_runtime = target_components.application
@@ -681,10 +680,12 @@ async def lifespan(app: FastAPI):
                 )),
             ),
         )
+        from infrastructure.target_result_archive import TargetResultArchive
         projection_dispatcher = ConversationProjectionDispatcher(
             outbox=PostgresConversationProjectionOutbox(_postgres_pool),
             deletion=PostgresConversationDeletionRepository(_postgres_pool),
             adapters=projection_adapters,
+            delete_result_originals=TargetResultArchive(target_components.checkpoint_owner.store).delete_subject,
         )
         _durable_chat_task = asyncio.create_task(
             _run_durable_chat_worker(

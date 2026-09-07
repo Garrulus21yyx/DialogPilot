@@ -72,6 +72,9 @@ class TargetToolExecutor:
                     self.version,
                     facts=tuple(facts), evidence_refs=tuple(dict.fromkeys(evidence_refs)),
                     retryable=retryable,
+                    execution_feedback=({"stage": "tool", "tool": tool_id,
+                        "call_id": result.call_id, "status": result.status,
+                        "error": result.error, "effect_status": result.effect_status},),
                 )
             outcome = tool_domain_outcome(result)
             if outcome is not None and outcome[0] is not AgentResultStatus.SUCCEEDED:

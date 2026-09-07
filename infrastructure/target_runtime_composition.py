@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
 
-from langchain_anthropic import ChatAnthropic
+from core.framework_models import framework_model
 
 from application.context_budget import ContextBudgetManager
 from application.capability_registry import CapabilityRegistryBundle
@@ -38,6 +38,7 @@ from infrastructure.postgres_target_run import (
     PostgresTargetRunStore,
 )
 from infrastructure.postgres_target_runtime import PostgresConversationStateStore
+from infrastructure.postgres_projection import PostgresConversationDeletionRepository
 from infrastructure.target_chat_adapters import (
     PostgresTargetAdmission,
     PostgresTargetPublication,
@@ -66,16 +67,6 @@ class TargetRuntimeComponents:
     understanding: TurnUnderstanding
 
 
-def _framework_model(profile, provider_config):
-    request = profile.request(max_tokens=1024, temperature=0)
-    return ChatAnthropic(
-        model_name=request["model"], api_key=provider_config["api_key"],
-        base_url=provider_config.get("base_url"), max_tokens=request["max_tokens"],
-        model_kwargs={key: value for key, value in request.items()
-                      if key not in {"model", "max_tokens"}},
-    )
-
-
 async def build_target_runtime(
     *,
     database_url: str,
@@ -98,7 +89,8 @@ async def build_target_runtime(
     registry = registry if registry is not None else build_default_capability_registry(
         os.getenv("DEFAULT_TENANT_ID", "default")
     )
-    checkpoint_owner = AsyncPostgresCheckpointOwner(database_url, setup=True)
+    checkpoint_owner = AsyncPostgresCheckpointOwner(database_url, setup=True,
+        result_ttl_minutes=float(os.getenv("TARGET_RESULT_TTL_MINUTES", "43200")))
     checkpointer = await checkpoint_owner.__aenter__()
     try:
         worker_profile = model_policy.profile(ModelRole.WORKER)
@@ -143,15 +135,15 @@ async def build_target_runtime(
         product_executor = TargetProductExecutor(
             tool_manager, control_guard=control_guard,
         )
-        model = _framework_model(worker_profile, provider_config)
+        model = framework_model(worker_profile, provider_config)
         domain_workers = {
             agent.agent_id: TargetFrameworkAgent(
                 model,
                 tool_manager,
                 result_store=checkpoint_owner.store,
+                result_subject_fence=PostgresConversationDeletionRepository(postgres_pool).fence,
                 registry=registry,
                 system_prompt=agent.description,
-                callbacks=(langfuse_sink.callback(),) if langfuse_sink else (),
                 skill_executors={"product_identification": product_executor},
                 context_budget=context_budget,
                 control_guard=control_guard,
@@ -171,7 +163,9 @@ async def build_target_runtime(
         encoder = _target_encoder(project_root) if enable_encoder else None
         conversation_agent = ConversationAgent(
             AnthropicConversationPlanningProvider(
-                tool_manager.llm_client,
+                {role: framework_model(model_policy.profile(role), provider_config,
+                                        max_tokens=conversation_output_tokens)
+                 for role in (ModelRole.INTENT, ModelRole.SYNTHESIS)},
                 model_profile=conversation_profile,
                 synthesis_profile=model_policy.profile(ModelRole.SYNTHESIS),
                 max_tokens=conversation_output_tokens,
@@ -195,7 +189,7 @@ async def build_target_runtime(
         # tool-only environments. Callers may inject a verifier, not omit it.
         if knowledge_verifier is None:
             knowledge_verifier = AnswerVerifier(
-                client=tool_manager.llm_client,
+                model_client=framework_model(model_policy.profile(ModelRole.VERIFIER), provider_config, max_tokens=4096),
                 model_profile=model_policy.profile(ModelRole.VERIFIER),
             )
         assembler = ResponseAssembler(conversation_agent, knowledge_generator=knowledge_generator,
@@ -211,6 +205,7 @@ async def build_target_runtime(
             turn_runtime=TurnRuntime(
                 manager,
                 assembler,
+                callbacks=(langfuse_sink.callback(),) if langfuse_sink else (),
                 checkpointer=checkpointer,
             ),
         )

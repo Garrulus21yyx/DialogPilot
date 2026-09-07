@@ -767,13 +767,14 @@ async def _coverage_gate(case: FixtureRequest) -> FixtureEvidence:
 
 
 class _FailingMessages:
-    async def create(self, **_kwargs):
+    def with_structured_output(self, *_args, **_kwargs):
         raise TimeoutError("fixture verifier unavailable")
 
 
 @fixture("verifier_fail_closed")
 async def _verifier_fail_closed(case: FixtureRequest) -> FixtureEvidence:
-    verifier = AnswerVerifier(client=SimpleNamespace(messages=_FailingMessages()), model="fixture")
+    from core.model_policy import ModelProfile
+    verifier = AnswerVerifier(_FailingMessages(), model_profile=ModelProfile("fixture"))
     result = await verifier.verify("question", "candidate")
     return FixtureEvidence({
         "fail_closed": result.status is VerificationStatus.UNKNOWN and not result.publishable,

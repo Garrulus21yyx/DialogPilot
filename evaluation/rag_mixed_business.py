@@ -17,6 +17,8 @@ from application.target_chat_application import TargetChatApplication
 from application.target_conversation_manager import TargetConversationManager
 from application.target_understanding import CascadedTargetUnderstanding, StateBoundTargetUnderstanding
 from core.model_policy import ModelRole
+from core.framework_models import conversation_models, framework_model
+from evaluation.framework_capture import FrameworkCapture
 from infrastructure.target_conversation_provider import AnthropicConversationPlanningProvider
 from infrastructure.target_tool_execution import TargetToolExecutor
 from infrastructure.target_turn_context import TargetTurnContextLoader
@@ -41,7 +43,7 @@ class RecordedTools(MCPToolManager):
         return result
 
 
-async def run_mixed(*, platform, store, client, policy, generator, output, handler, case_definitions=None):
+async def run_mixed(*, platform, store, client, policy, provider_config, generator, output, handler, case_definitions=None):
     tenant,user='rag-tool-dev','eval-user'
     registry=build_default_capability_registry(tenant)
     business=CustomerOperationsService(platform,tenant_id=tenant)
@@ -58,8 +60,9 @@ async def run_mixed(*, platform, store, client, policy, generator, output, handl
     tools.register(Tool(name='knowledge_search',description='查询当前有效政策原文证据',handler=handler,
                         schema={'type':'object','properties':{'query':{'type':'string'}},'required':['query']},
                         authority='knowledge.active_source',read_only=True))
-    agent=ConversationAgent(AnthropicConversationPlanningProvider(client,model_profile=policy.profile(ModelRole.INTENT), synthesis_profile=policy.profile(ModelRole.SYNTHESIS)))
-    verifier=AnswerVerifier(client=client,model_profile=policy.profile(ModelRole.VERIFIER))
+    capture=FrameworkCapture(limit=client.limit, calls=client.calls)
+    agent=ConversationAgent(AnthropicConversationPlanningProvider(conversation_models(policy, provider_config),model_profile=policy.profile(ModelRole.INTENT), synthesis_profile=policy.profile(ModelRole.SYNTHESIS), callbacks=(capture,)))
+    verifier=AnswerVerifier(framework_model(policy.profile(ModelRole.VERIFIER), provider_config, max_tokens=4096),model_profile=policy.profile(ModelRole.VERIFIER), callbacks=(capture,))
     cases=[
         ('shipping','请查订单DP9301现在是否发货，再说明已发货后提交改址是否就代表修改成功；不要执行改址。',()),
         ('paid','请查订单DP9302的当前状态，并说明支付尾款是否就代表已经发货。',()),

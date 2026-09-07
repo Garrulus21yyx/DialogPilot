@@ -29,12 +29,10 @@ class Verifier:
     async def verify(self,*args,**kwargs):
         self.calls.append((args,kwargs))
         from services.answer_verifier import VerificationResult, VerificationStatus, VerificationReasonCode
-        from services.claim_verification import ClaimAssessment, ClaimCheck, NeedCheck
+        from services.claim_verification import AnswerAssessment
         question, answer = args[:2]
-        assessment = ClaimAssessment('fixture', (
-            ClaimCheck('s1', answer, 0, len(answer), 'SUPPORTED' if self.passed else 'INSUFFICIENT',
-                       ('/fixture',), 'test', () if self.passed else ('evidence',)),
-        ), (NeedCheck(question, 'ANSWERED', (answer,), 'test'),))
+        assessment = AnswerAssessment('fixture', self.passed, True, False,
+                                      () if self.passed else ('evidence',))
         return VerificationResult(
             VerificationStatus.PASS if self.passed else VerificationStatus.REJECT,
             self.passed, not self.passed, 'test',

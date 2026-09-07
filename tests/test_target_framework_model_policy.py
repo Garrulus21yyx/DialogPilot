@@ -1,7 +1,7 @@
 import pytest
 from langchain_core.messages import HumanMessage
 from core.model_policy import ModelProfile, ReasoningEffort
-from infrastructure.target_runtime_composition import _framework_model
+from core.framework_models import framework_model
 
 
 @pytest.mark.parametrize("effort", list(ReasoningEffort))
@@ -9,9 +9,10 @@ from infrastructure.target_runtime_composition import _framework_model
 def test_framework_request_preserves_role_policy(effort, floor):
     profile = ModelProfile("deepseek-v4-flash", reasoning=effort, provider="deepseek",
                            min_completion_tokens=floor)
-    model = _framework_model(profile, {"api_key": "test-key"})
+    model = framework_model(profile, {"api_key": "test-key"})
     payload = model._get_request_payload([HumanMessage(content="A customer objective.")])
     expected = profile.request(max_tokens=1024, temperature=0)
-    for key in ("model", "max_tokens", "extra_body"):
+    for key in ("model", "max_tokens"):
         assert payload[key] == expected[key]
+    assert {"thinking": payload["thinking"], **payload.get("extra_body", {})} == expected["extra_body"]
     assert payload["max_tokens"] == floor

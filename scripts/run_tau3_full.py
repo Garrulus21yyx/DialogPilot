@@ -21,6 +21,7 @@ from dotenv import dotenv_values
 import psycopg
 from psycopg import sql
 from core.model_policy import ModelPolicy, ModelRole
+from core.framework_models import framework_model
 from infrastructure.postgres import PostgresMigrationRunner, PostgresPool, PostgresPoolConfig
 from infrastructure.postgres_memory_fact_store import PostgresMemoryFactStore
 from infrastructure.postgres_response_delivery import PostgresResponseDeliveryService
@@ -124,7 +125,9 @@ async def run(args):
                                                                  "base_url": policy.base_url},
                             langfuse_sink=langfuse_sink,
                             project_root=ROOT, registry=registry, enable_encoder=False,
-                            knowledge_verifier=ObservedVerifier(AnswerVerifier(client=tools.llm_client,
+                            knowledge_verifier=ObservedVerifier(AnswerVerifier(
+                                framework_model(
+                                    policy.profile(ModelRole.VERIFIER), {"api_key": values["ANTHROPIC_API_KEY"], "base_url": policy.base_url}, max_tokens=4096),
                                 model_profile=policy.profile(ModelRole.VERIFIER)), agent.trace))
                         agent.configure(components, pool, tools.llm_client, profile)
                         row["langfuse_session_id"] = agent.conversation_id if langfuse_sink else None

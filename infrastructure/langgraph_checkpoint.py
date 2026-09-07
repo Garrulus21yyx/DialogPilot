@@ -175,11 +175,15 @@ class PostgresCheckpointOwner(AbstractContextManager):
 class AsyncPostgresCheckpointOwner:
     """Async checkpoint lifecycle for graphs invoked through ``ainvoke``."""
 
-    def __init__(self, database_url: str, *, setup: bool = False) -> None:
+    def __init__(self, database_url: str, *, setup: bool = False,
+                 result_ttl_minutes: float = 43200) -> None:
         if not str(database_url or "").strip():
             raise ValueError("database_url is required")
         self._database_url = database_url
         self._setup = setup
+        if result_ttl_minutes <= 0:
+            raise ValueError("result retention must be positive")
+        self._result_ttl = result_ttl_minutes
         self._context = None
         self.checkpointer = None
         self.store = None
@@ -191,10 +195,14 @@ class AsyncPostgresCheckpointOwner:
             self.checkpointer = await self._context.enter_async_context(
                 AsyncPostgresSaver.from_conn_string(self._database_url, serde=target_checkpoint_serializer()))
             self.store = await self._context.enter_async_context(
-                AsyncPostgresStore.from_conn_string(self._database_url))
+                AsyncPostgresStore.from_conn_string(self._database_url, ttl={
+                    "default_ttl": self._result_ttl, "refresh_on_read": True, "omit_expired": True,
+                    "sweep_interval_minutes": 5}))
             if self._setup:
                 await self.checkpointer.setup()
                 await self.store.setup()
+            await self.store.start_ttl_sweeper()
+            self._context.push_async_callback(self.store.stop_ttl_sweeper)
             return self.checkpointer
         except BaseException:
             await self._context.aclose()

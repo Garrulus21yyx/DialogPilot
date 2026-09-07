@@ -82,12 +82,9 @@ class ApprovalVerifier(Verifier):
         self.approval_status = approval_status
 
     async def verify(self, *args, **kwargs):
-        from services.claim_verification import NeedCheck
         result = await super().verify(*args, **kwargs)
-        return replace(result, assessment=replace(result.assessment, needs=(
-            NeedCheck(args[0].splitlines()[0], "ANSWERED", (args[1],), "user question answered"),
-            NeedCheck(_APPROVAL_DESCRIPTION_REQUIREMENT, self.approval_status,
-                      (args[1],), "approval description"))))
+        return replace(result, assessment=replace(result.assessment,
+                       approval_terms_complete=self.approval_status == "ANSWERED"))
 
 
 @pytest.mark.parametrize("approval_status", ["ANSWERED", "LIMITATION", "MISSING"])
@@ -125,20 +122,11 @@ def test_approval_presentation_requires_original_action_and_verified_answer(appr
 def test_pure_confirmation_question_does_not_exempt_embedded_facts():
     from services.claim_verification import make_request, assess
     req = make_request("Cancel?", "It costs $10. Approve?", {"price": 10})
-    rows = [
-        {"segment_id": "s1", "answer_quote": "It costs $10.", "verdict": "SUPPORTED",
-         "evidence_paths": ["/price"], "missing_evidence": [], "reason": "price"},
-        {"segment_id": "s1", "answer_quote": "Approve?", "verdict": "NON_FACTUAL",
-         "evidence_paths": [], "missing_evidence": [], "reason": "question only"},
-    ]
-    out = {"claim_checks": rows, "question_checks": [{"question_quote": "Cancel?",
-        "status": "ANSWERED", "answer_quotes": ["Approve?"], "reason": "asks approval"}]}
-    assert assess(req, out).all_supported
-    rows[0].update(verdict="INSUFFICIENT", missing_evidence=["price not verified"])
-    assert not assess(req, out).all_supported
-    rows[1]["evidence_paths"] = ["/price"]
-    with pytest.raises(ValueError, match="non-factual"):
-        assess(req, out)
+    out = {"supported": False, "answered": True, "approval_terms_complete": True,
+           "issues": ["Price has not been verified."]}
+    result = assess(req, out)
+    assert result.approval_terms_complete
+    assert not result.supported
 
 
 def test_approval_presentation_cannot_be_attached_to_unverified_or_changed_text():

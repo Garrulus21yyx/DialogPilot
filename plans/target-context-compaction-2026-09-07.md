@@ -21,3 +21,8 @@
 
 实现文档：docs/target-context-compaction-2026-09-07.md。
 验证补充：临时目录分别导出 Git index 和 HEAD；未改动工作区来模拟干净状态。
+
+续作：SDK TTL、会话删除标记读写校验及 outbox 清理已实现；删除中迟到写入、
+部分清理重试、到期未清扫拒读使用性质/集成测试验证。
+旧无 TTL 记录的保留期限迁移仍未证明。真实模型冒烟与阈值/长会话效果评测分开记录。
+已回到主链既定顺序，见 target-chain-convergence-implementation-2026-09-07.md。

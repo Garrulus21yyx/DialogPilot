@@ -160,8 +160,14 @@ class AgentResult:
     # Framework message snapshot for a validated continuation. Never a public
     # response or fact source; persisted by the existing parent checkpointer.
     working_messages: tuple[dict, ...] = ()
+    # Diagnostics survive message compaction; they are not business evidence.
+    execution_feedback: tuple[dict, ...] = ()
 
     def __post_init__(self) -> None:
+        for name in ("facts", "evidence_refs", "action_receipts", "missing_inputs",
+                     "requested_evidence", "state_mutation_proposals", "working_messages",
+                     "execution_feedback"):
+            object.__setattr__(self, name, tuple(getattr(self, name)))
         _required(
             self.work_item_id,
             self.owner_agent,

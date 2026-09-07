@@ -43,21 +43,33 @@ def test_direct_media_chat_publishes_once_without_domain_dispatch_or_flow():
 
     class Provider:
         version = "media-transport-fixture-v1"
+        compose_calls = 0
 
         async def plan(self, payload):
             return {"status": "resolved", "goals": [{
                 "kind": "media_text_read", "asset_id": "IMG9",
             }]}
 
+        async def compose(self, payload):
+            self.compose_calls += 1
+            fact = next(claim for claim in payload["allowed_claims"] if claim["kind"] == "FACT")
+            support = next(row for row in payload["support_catalog"] if row["claim_id"] == fact["claim_id"])
+            return {"segments": [{"text": "附件文字：" + fact["value"]["text"],
+                                  "support_ids": [support["support_id"]]}]}
+
     ocr = CountingOCR("E401")
     tools = _manager(ocr)
     states = InMemoryConversationStateStore()
     registry = build_default_capability_registry("tenant-a")
+    from application.response_assembly import ResponseAssembler
+    from tests.test_knowledge_answer_boundary import Verifier
+    provider = Provider()
+    conversation = ConversationAgent(provider)
     application = TargetChatApplication(
         manager=TargetConversationManager(
             state_store=states, registry=registry,
             understanding=CascadedTargetUnderstanding(
-                StateBoundTargetUnderstanding(), ConversationAgent(Provider()),
+                StateBoundTargetUnderstanding(), conversation,
             ),
             orchestration=OrchestrationRuntime(
                 direct_executor=TargetToolExecutor(tools), domain_workers={},
@@ -65,6 +77,7 @@ def test_direct_media_chat_publishes_once_without_domain_dispatch_or_flow():
         ),
         admission=_Admission(), publication=_Publication(),
         bundle_version=registry.bundle_version,
+        response_assembler=ResponseAssembler(conversation, knowledge_verifier=Verifier(True)),
     )
     command = ChatCommand(
         "读取附件中的文字", "user-a", "tenant-a", "conversation-a", "media-read",
@@ -79,9 +92,9 @@ def test_direct_media_chat_publishes_once_without_domain_dispatch_or_flow():
     assert [record.tool_name for record in tools.audit_records()] == ["media_read"]
     assert first.response["routing_disposition"] == "direct"
     assert first.response["coverage"]["complete"] is True
-    published = json.loads(first.response["response"])
-    assert published["data"]["text"] == "E401"
-    assert published["data"]["evidence_ref"] == "parse-1"
+    assert first.response["response"] == "附件文字：E401"
+    assert provider.compose_calls == 1
+    assert first.response["verified"] is True
     assert states.load("tenant-a", "user-a", "conversation-a").workstreams == ()
 
 

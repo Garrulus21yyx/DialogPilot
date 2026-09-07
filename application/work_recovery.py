@@ -1,8 +1,6 @@
 """Conversation-level decisions about stopped domain work, not tool retries."""
 from __future__ import annotations
 
-import json
-
 from application.agent_result import AgentResultStatus, MissingInputSpec
 from application.work_item import ControlMode
 
@@ -32,29 +30,8 @@ def recovery_schema():
 
 
 def failure_feedback(result):
-    """Read observable execution feedback, not model reasoning or whole transcripts."""
-    feedback = []
-    calls = {}
-    for message in result.working_messages:
-        data = message.get("data", {})
-        if message.get("type") == "ai":
-            calls.update({call["id"]: {"tool": call["name"], "arguments": call["args"]}
-                          for call in data.get("tool_calls", ())})
-        if message.get("type") not in {"tool", "human"}:
-            continue
-        try:
-            content = json.loads(data.get("content", ""))
-        except (ValueError, TypeError):
-            continue
-        if not isinstance(content, dict):
-            continue
-        if "execution_feedback" in content:
-            feedback.append(content["execution_feedback"])
-        elif message.get("type") == "tool":
-            feedback.append({**calls.get(data.get("tool_call_id"), {"tool": data.get("name")}),
-                **{key: content[key] for key in
-                   ("success", "status", "error", "effect_status") if key in content}})
-    return feedback
+    """Read the execution-owned diagnostic record, not a compressed chat view."""
+    return list(result.execution_feedback)
 
 
 def recovery_questions(raw, candidates):

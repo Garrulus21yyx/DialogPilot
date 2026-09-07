@@ -1,5 +1,7 @@
 """Checkpointed turn phases over the existing conversation and WorkPlan owners."""
 from __future__ import annotations
+from contextlib import nullcontext
+from langfuse import propagate_attributes
 
 from dataclasses import dataclass
 from typing import TypedDict
@@ -47,11 +49,13 @@ class TurnRuntime:
         self,
         manager: TargetConversationManager,
         response_assembler: ResponseAssembler,
+        callbacks=(),
         *,
         checkpointer=None,
     ) -> None:
         self._manager = manager
         self._assembler = response_assembler
+        self._callbacks = callbacks
         self._checkpointer = checkpointer
         self.graph = self._build_graph()
 
@@ -115,10 +119,10 @@ class TurnRuntime:
         *, execution_context: dict | None = None,
     ) -> TurnRuntimeResult:
         key = str(invocation.invocation_key)
-        config = (
-            {"configurable": {"thread_id": f"turn:{key}"}}
-            if self._checkpointer is not None else None
-        )
+        config = {"callbacks": list(self._callbacks), "run_name": "customer_service_turn",
+                  "metadata": {"invocation_key": key, "langfuse_session_id": str(invocation.conversation_id)}}
+        if self._checkpointer is not None:
+            config["configurable"] = {"thread_id": f"turn:{key}"}
         graph_input = {
             "invocation": invocation,
             "invocation_key": key,
@@ -139,5 +143,7 @@ class TurnRuntime:
                         snapshot.values.get("assembled"),
                     )
                 graph_input = None
-        result = await self.graph.ainvoke(graph_input, config=config)
+        with (propagate_attributes(session_id=str(invocation.conversation_id))
+              if self._callbacks else nullcontext()):
+            result = await self.graph.ainvoke(graph_input, config=config)
         return TurnRuntimeResult(result["managed"], result.get("assembled"))

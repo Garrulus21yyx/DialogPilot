@@ -5,28 +5,22 @@ import json
 from types import SimpleNamespace
 import pytest
 from services.answer_verifier import AnswerVerifier, VerificationStatus, VerificationReasonCode
+from core.model_policy import ModelProfile, ModelRole
+from tests.framework_structured_stub import models
+from evaluation.framework_capture import FrameworkCapture
 
 
 def run(verdict='SUPPORTED', need='ANSWERED', *, mutation=None, stop='tool_use', context=None, answer='当前状态未知。'):
-    calls=[]
-    class Messages:
-        async def create(self, **request):
-            calls.append(request)
-            payload=json.loads(request['messages'][0]['content'])
-            assert payload['answer']==answer
-            assert request['max_tokens']==4096
-            output={'claim_checks':[{'segment_id':'s1','answer_quote':answer,
-                'verdict':verdict,'evidence_paths':['/context/status'],
-                'reason':'test','missing_evidence':['状态证据'] if verdict=='INSUFFICIENT' else []}],
-                'question_checks':[{'question_quote':'查状态','status':need,
-                    'answer_quotes':[answer] if need!='MISSING' else [],'reason':'test'}]}
-            if mutation: mutation(output)
-            return SimpleNamespace(stop_reason=stop,content=[SimpleNamespace(
-                type='tool_use',name='submit_claim_checks',input=output)])
-    verifier=AnswerVerifier(client=SimpleNamespace(messages=Messages()),model='test')
+    output={'supported': verdict == 'SUPPORTED', 'answered': need != 'MISSING',
+            'approval_terms_complete': False,
+            'issues': [] if verdict == 'SUPPORTED' and need != 'MISSING' else ['缺少状态证据或尚未回答问题']}
+    if mutation: mutation(output)
+    capture = FrameworkCapture(limit=1)
+    verifier=AnswerVerifier(models(output, name='submit_claim_checks', stop=stop)[ModelRole.INTENT],
+        model_profile=ModelProfile('test'), callbacks=(capture,))
     evidence=context or {'status':'unknown','version':1}
     result=asyncio.run(verifier.verify('查状态',answer,json.dumps(evidence)))
-    return result,calls
+    return result,[c['request'] for c in capture.calls]
 
 
 @pytest.mark.parametrize('label,need',itertools.product(
@@ -44,11 +38,11 @@ def test_program_aggregates_every_supported_label_and_need_combination(label,nee
 
 @pytest.mark.parametrize('mutate',[
     lambda o:o.update(status='pass'),
-    lambda o:o.update(claim_checks=[]),
-    lambda o:o.update(question_checks=[]),
-    lambda o:o['question_checks'][0].update(answer_quotes=[]),
-    lambda o:o['question_checks'][0].update(answer_quotes=['不存在的文本']),
-    lambda o:o['claim_checks'][0].update(evidence_paths=['/context/nonexistent']),
+    lambda o:o.update(supported='true'),
+    lambda o:o.pop('answered'),
+    lambda o:o.update(approval_terms_complete=1),
+    lambda o:o.update(issues=['']),
+    lambda o:o.update(supported=False, issues=[]),
 ])
 def test_invalid_material_is_unknown_never_publishable(mutate):
     result,_=run(mutation=mutate)
@@ -62,7 +56,7 @@ def test_truncated_checks_are_unknown():
 
 @pytest.mark.parametrize('invalid', [object(), float('nan'), {'bad': object()}])
 def test_invalid_input_snapshot_is_typed_without_calling_provider(invalid):
-    verifier = AnswerVerifier(client=SimpleNamespace(), model='test')
+    verifier = AnswerVerifier(SimpleNamespace(), model_profile=ModelProfile('test'))
     result = asyncio.run(verifier.verify('查状态', '无法确认。', task_plan=invalid))
     assert result.reason_code is VerificationReasonCode.INVALID_CONTRACT
     assert not result.publishable
@@ -77,18 +71,19 @@ def test_assessment_binds_final_answer_and_original_evidence():
     assert not result.assessment.matches('查状态',request['answer'],request['evidence'])
 
 
-def test_known_incomplete_task_never_calls_model():
-    class Messages:
-        async def create(self,**request):pytest.fail('known incomplete task must not call model')
-    verifier=AnswerVerifier(client=SimpleNamespace(messages=Messages()),model='test')
-    result=asyncio.run(verifier.verify('查状态','未知',coverage={'complete':False}))
-    assert result.reason_code is VerificationReasonCode.INCOMPLETE and not result.publishable
+def test_honest_partial_answer_can_pass_without_completing_business():
+    output = {"supported": True, "answered": True, "approval_terms_complete": False, "issues": []}
+    verifier = AnswerVerifier(models(output, name="submit_claim_checks")[ModelRole.INTENT],
+                              model_profile=ModelProfile("test"))
+    result = asyncio.run(verifier.verify("查状态", "暂时无法查询状态。",
+        coverage={"complete": False, "unresolved_required_task_ids": ["query"]}))
+    assert result.publishable
 
 
 def test_legacy_preverified_abstention_cannot_authorize_free_text():
     class Messages:
         async def create(self,**request):pytest.fail('unsupported legacy mode must be rejected')
-    verifier=AnswerVerifier(client=SimpleNamespace(messages=Messages()),model='test')
+    verifier=AnswerVerifier(SimpleNamespace(),model_profile=ModelProfile('test'))
     result=asyncio.run(verifier.verify('查退款','您仍有权退款',knowledge_evidence={
         'mode':'grounded_final','grounded_answer':'您仍有权退款',
         'abstained':True,'reason':'insufficient_evidence','conflicts':[]}))

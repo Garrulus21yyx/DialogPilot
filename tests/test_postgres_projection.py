@@ -422,6 +422,48 @@ def test_deletion_during_external_write_removes_stale_effect_and_fences_late_wri
     assert adapter.effects == {}
 
 
+def test_original_cleanup_uses_deletion_outbox_and_retries_before_ack(projection_components):
+    from dataclasses import replace
+    from langgraph.store.memory import InMemoryStore
+    from infrastructure.target_result_archive import TargetResultArchive, ResultArchiveError
+    from tests.test_target_framework_agent import _context
+
+    _, identity, outbox, deletion = projection_components
+    subject = _subject(identity)
+
+    async def run():
+        store = InMemoryStore()
+        archive = TargetResultArchive(store, subject_fence=deletion.fence)
+        context = replace(_context(), trusted_context={
+            "tenant_id": subject.tenant_id, "user_id": subject.user_id,
+            "conversation_id": subject.conversation_id})
+        reference = await archive.save(context, {"content": "private original"})
+        deletion.delete(subject, reason_code="user_erasure", actor="privacy-worker", created_at=CREATED)
+        attempts = 0
+
+        async def cleanup(target):
+            nonlocal attempts
+            attempts += 1
+            if attempts == 1:
+                raise ConnectionError("injected store outage")
+            await archive.delete_subject(target)
+
+        dispatcher = ConversationProjectionDispatcher(outbox=outbox, deletion=deletion,
+            adapters={ProjectionName.WORKING_WINDOW: MemoryProjectionAdapter()},
+            delete_result_originals=cleanup)
+        options = dict(projection_name=ProjectionName.WORKING_WINDOW, worker_id="original-cleanup",
+            lease_until="2026-09-02T09:05:00+00:00", retry_at="2026-09-02T09:02:00+00:00", limit=1)
+        first = await dispatcher.dispatch_once_async(now=CREATED, **options)
+        assert first[0].status == "RETRY"
+        second = await dispatcher.dispatch_once_async(now="2026-09-02T09:03:00+00:00", **options)
+        assert second[0].status == "DELETION_FENCED"
+        assert await store.asearch(archive.namespace(context)) == []
+        with pytest.raises(ResultArchiveError, match="conversation deleted"):
+            await archive.load(context, reference)
+
+    asyncio.run(run())
+
+
 def test_rebuild_creates_new_generation_and_replays_source_events(
     projection_components,
 ):

@@ -53,3 +53,7 @@ MODEL_VERIFIER=deepseek-v4-flash MODEL_VERIFIER_REASONING=none \
   --cases artifacts/eval/rag-atomic-boundary20-input-2026-09-06/cases.json \
   --output <新的输出目录>
 ```
+# 历史实验说明
+
+2026-09-07：该原子跨度核验实验入口已退役，历史脚本可从 Git 取得。
+当前 Target 只使用 SDK 结构化语义核验；本报告数字不代表新合同效果。

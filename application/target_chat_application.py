@@ -518,8 +518,10 @@ class TargetChatApplication:
             ),
         }
         if assembly is not None and (
-            assembly.composer_used
-            or assembly.mode is ResponseAssemblyMode.PASS_THROUGH
+            assembly.verification_status == "PASS"
+            or ((assembly.composer_used or assembly.mode is ResponseAssemblyMode.PASS_THROUGH)
+                and not ResponseAssembler.is_ordinary_conversation(
+                    managed.board, managed.state_after.pending_approval))
             or assembly.verified_text_sha256 or assembly.verification_reason in
             ("ANSWER_SUPPORT_CHECKED", "KNOWLEDGE_SUPPORT_CHECKED")
         ):

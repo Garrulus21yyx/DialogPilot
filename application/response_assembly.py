@@ -65,6 +65,13 @@ class ResponseAssembler:
     version = "response-assembler-v6-atomic-repair"
 
     @staticmethod
+    def is_ordinary_conversation(board, pending_approval=None) -> bool:
+        return bool(board.results) and not pending_approval and all(
+            r.owner_agent == "general" and r.status is AgentResultStatus.SUCCEEDED
+            and not r.facts and not r.action_receipts and not r.pending_action
+            for r in board.results)
+
+    @staticmethod
     def interaction_prelude(board) -> str:
         """Deliver independent committed results alongside a pending question.
 
@@ -104,6 +111,10 @@ class ResponseAssembler:
         if not knowledge_facts and not knowledge_failure:
             candidate = await self._assemble_candidate(board, current_message=current_message, conversation_context=conversation_context,
                                                        pending_approval=pending_approval)
+            if self.is_ordinary_conversation(board, pending_approval):
+                from dataclasses import replace
+                return replace(candidate, verification_status="NOT_CHECKED",
+                               verification_reason="ORDINARY_CONVERSATION")
             if candidate.composer_used or candidate.mode is ResponseAssemblyMode.PASS_THROUGH:
                 try:
                     if self._knowledge_verifier is None:
@@ -215,8 +226,7 @@ class ResponseAssembler:
         from dataclasses import asdict, replace
         feedback = {
             "previous_answer": candidate.text,
-            "claim_checks": [asdict(c) for c in verdict.assessment.checks],
-            "question_checks": [asdict(n) for n in verdict.assessment.needs],
+            "assessment": asdict(verdict.assessment),
         }
         # Recompose from the same original board only. This performs no business
         # tool execution and has exactly one repair attempt, never recursion.
@@ -235,8 +245,6 @@ class ResponseAssembler:
                  if fact.requirement_id != "knowledge.active_source"]
         receipts = [claim.value for claim in _allowed_claims(board) if claim.kind == 'RECEIPT']
         proposals = [claim.value for claim in _allowed_claims(board, pending_approval) if claim.kind == 'PENDING_ACTION']
-        if proposals:
-            message += "\n" + _APPROVAL_DESCRIPTION_REQUIREMENT
         inputs = dict(question=message, answer=text,
             context=json.dumps({'facts': facts, 'receipts': receipts, 'pending_actions': proposals,
                                 'user_context': conversation_context}, ensure_ascii=False),
@@ -249,9 +257,7 @@ class ResponseAssembler:
             knowledge_evidence=inputs['knowledge_evidence'], agent_outcomes=inputs['agent_outcomes'])
         if not verdict.matches_request(**inputs):
             raise ValueError("verification does not match final answer and evidence")
-        if proposals and (verdict.assessment is None or not any(
-                need.question_quote == _APPROVAL_DESCRIPTION_REQUIREMENT and need.status == "ANSWERED"
-                for need in verdict.assessment.needs)):
+        if proposals and (verdict.assessment is None or not verdict.assessment.approval_terms_complete):
             raise ValueError("approval terms and question were not verified as answered")
         return verdict
 

@@ -23,7 +23,6 @@ from langchain_core.messages import AIMessage, HumanMessage, ToolMessage, messag
 from langchain_core.tools import StructuredTool
 from langchain.tools import ToolRuntime
 from langgraph.errors import GraphRecursionError
-import httpx
 from langfuse import propagate_attributes
 from langgraph.store.base import BaseStore
 from langchain_core.messages.utils import count_tokens_approximately
@@ -50,7 +49,8 @@ from infrastructure.target_agent_result_adapter import (
     framework_artifact,
     restore_framework_artifact,
 )
-from infrastructure.target_agent_middleware import AgentContextMiddleware, WorkControlMiddleware, InteractionBoundaryMiddleware, AgentProgressMiddleware, model_overhead_tokens
+from infrastructure.target_agent_middleware import AgentContextMiddleware, WorkControlMiddleware, InteractionBoundaryMiddleware, AgentProgressMiddleware, ModelInvocationMiddleware, model_overhead_tokens
+from core.framework_models import ModelInvocationError
 from infrastructure.target_action_preparation import TargetActionPreparation
 from mcp.tool_manager import MCPToolManager, ToolCallStatus, ToolResult
 
@@ -66,6 +66,7 @@ class TargetFrameworkAgent:
         tool_manager: MCPToolManager,
         *,
         result_store: BaseStore,
+        result_subject_fence=None,
         registry: CapabilityRegistryBundle,
         system_prompt: str,
         skill_executors: Mapping[str, WorkExecutor] | None = None,
@@ -81,7 +82,7 @@ class TargetFrameworkAgent:
         self._context_budget = context_budget or ContextBudgetManager()
         self._control_guard = control_guard
         self._callbacks = callbacks
-        self._archive = TargetResultArchive(result_store)
+        self._archive = TargetResultArchive(result_store, subject_fence=result_subject_fence)
 
     async def __call__(self, context: AgentContextView) -> AgentResult:
         item = context.work_item
@@ -113,8 +114,8 @@ class TargetFrameworkAgent:
             tools = self._tools(context)
         except ModelContextBudgetExceeded:
             return self._failure(context, "CONTEXT_BUDGET_EXCEEDED")
-        except ResultArchiveError:
-            return self._failure(context, "RESULT_ARCHIVE_UNAVAILABLE", retryable=True)
+        except ResultArchiveError as exc:
+            return self._failure(context, "RESULT_ARCHIVE_UNAVAILABLE", retryable=exc.retryable)
         except ValueError:
             return self._failure(context, "INVALID_AGENT_CAPABILITY_ENVELOPE")
 
@@ -139,6 +140,7 @@ class TargetFrameworkAgent:
                 AgentContextMiddleware(self._context_budget),
                 ModelCallLimitMiddleware(thread_limit=item.max_steps, exit_behavior="error"),
                 ToolCallLimitMiddleware(thread_limit=item.max_steps, exit_behavior="error"),
+                ModelInvocationMiddleware(),
             ],
         )
         config = {
@@ -175,17 +177,20 @@ class TargetFrameworkAgent:
             failure = self._failure(context, "AGENT_STEP_BUDGET_EXCEEDED")
         except ModelContextBudgetExceeded:
             failure = self._failure(context, "CONTEXT_BUDGET_EXCEEDED")
-        except ResultArchiveError:
-            failure = self._failure(context, "RESULT_ARCHIVE_UNAVAILABLE", retryable=True)
+        except ResultArchiveError as exc:
+            failure = self._failure(context, "RESULT_ARCHIVE_UNAVAILABLE", retryable=exc.retryable)
         except TimeoutError:
             failure = self._failure(
                 context, "AGENT_EXECUTION_TIMEOUT", retryable=True,
             )
+        except ModelInvocationError as exc:
+            failure = self._failure(context, f"MODEL_INVOCATION_FAILED:{exc.stage}:{exc.error_type}",
+                                    retryable=exc.retryable)
         except Exception as exc:
             failure = self._failure(
                 context,
-                f"AGENT_PROVIDER_FAILURE:{type(exc).__name__}",
-                retryable=_retryable_model_error(exc),
+                f"AGENT_INTERNAL_FAILURE:{type(exc).__name__}",
+                retryable=False,
             )
         if self._control_guard is not None and not self._control_guard.is_current(
             item, context.trusted_context,
@@ -201,15 +206,24 @@ class TargetFrameworkAgent:
                 else message.id not in history_ids)
         ]
         observed = []
+        feedback = []
         for record in output.get("tool_observations", {}).values():
             try:
                 if "inline_artifact" in record:
                     artifact = record["inline_artifact"]
                 else:
                     artifact = (await self._archive.load(context, record["reference"]))["artifact"]
-                observed.append(restore_framework_artifact(artifact))
-            except Exception:
-                failure = self._failure(context, "RESULT_ARCHIVE_UNAVAILABLE", retryable=True)
+                restored = restore_framework_artifact(artifact)
+                observed.append(restored)
+                if isinstance(restored, ToolResult):
+                    feedback.append({"stage": "tool", "tool": restored.tool_name,
+                        "call_id": restored.call_id, "status": restored.status,
+                        "success": restored.success, "error": restored.error,
+                        "effect_status": restored.effect_status})
+            except ResultArchiveError as exc:
+                failure = self._failure(context, "RESULT_ARCHIVE_UNAVAILABLE", retryable=exc.retryable)
+            except (ValueError, KeyError, TypeError):
+                failure = self._failure(context, "RESULT_ARTIFACT_INVALID")
         result = _adapt_framework_result(
             context,
             tuple(observed),
@@ -222,7 +236,10 @@ class TargetFrameworkAgent:
             },
         )
         if output.get("archive_failed"):
-            failure = self._failure(context, "RESULT_ARCHIVE_UNAVAILABLE", retryable=True)
+            errors = [record["archive_error"] for record in output.get("tool_observations", {}).values()
+                      if "archive_error" in record]
+            failure = self._failure(context, "RESULT_ARCHIVE_UNAVAILABLE",
+                retryable=bool(errors) and all(error["retryable"] for error in errors))
         if output.get("progress_blocked") and result.pending_action is None:
             result = replace(result, status=AgentResultStatus.BLOCKED,
                 reason_code="AGENT_NO_PROGRESS", retryable=False, candidate_response=None)
@@ -235,12 +252,14 @@ class TargetFrameworkAgent:
             pending_calls = []
             if working and isinstance(working[-1], AIMessage) and working[-1].tool_calls:
                 pending_calls = working.pop().tool_calls
-            working.append(HumanMessage(content=json.dumps({"execution_feedback": {
+            diagnostic = {
                 "reason_code": failure.reason_code, "retryable": failure.retryable,
                 "uncompleted_tool_batch": pending_calls,
                 "instruction": "Retain completed evidence. The uncompleted batch has no confirmed result; do not infer success. Reassess the remaining objective before continuing.",
-            }}, ensure_ascii=False)))
-        return replace(result, working_messages=tuple(messages_to_dict(working)))
+            }
+            feedback.append(diagnostic)
+            working.append(HumanMessage(content=json.dumps({"execution_feedback": diagnostic}, ensure_ascii=False)))
+        return replace(result, working_messages=tuple(messages_to_dict(working)), execution_feedback=tuple(feedback))
 
     def _tools(self, context: AgentContextView) -> list[StructuredTool]:
         item = context.work_item
@@ -611,20 +630,3 @@ def _retryable_tool_result(result: ToolResult) -> bool:
         ToolCallStatus.ERROR.value,
         ToolCallStatus.TIMEOUT.value,
     }
-
-
-def _retryable_model_error(error: Exception) -> bool:
-    """SDK transport/status semantics; unknown programming errors are not retries.
-
-    Transport retries stay with the configured model SDK. This classification
-    describes an exhausted failure, it does not start another retry layer.
-    """
-    status = getattr(error, "status_code", None)
-    if isinstance(status, int):
-        return status in {408, 409, 429} or status >= 500
-    cause = error
-    while cause is not None:
-        if isinstance(cause, (TimeoutError, ConnectionError, httpx.TransportError)):
-            return True
-        cause = cause.__cause__
-    return False

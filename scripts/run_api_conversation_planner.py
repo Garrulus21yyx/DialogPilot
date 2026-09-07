@@ -16,6 +16,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from anthropic import AsyncAnthropic
 from dotenv import dotenv_values
 from core.model_policy import ModelPolicy, ModelRole
+from core.framework_models import conversation_models
+from evaluation.framework_capture import FrameworkCapture
 from time import perf_counter
 from evaluation.rag_ecommerce_dev import synthetic_development
 from application.conversation_agent import ConversationAgent
@@ -71,10 +73,12 @@ async def run(args):
     options = dict(api_key=values['ANTHROPIC_API_KEY'], max_retries=0, timeout=60.0)
     if policy.base_url:
         options['base_url'] = policy.base_url
-    transport = AsyncAnthropic(**options)
-    client = CapturingClient(transport, limit=20, system_override=args.system_prompt.read_text() if args.system_prompt else None)
+    if args.system_prompt:
+        raise ValueError("production planner evaluation uses the production prompt")
+    client = FrameworkCapture(limit=20)
     provider = AnthropicConversationPlanningProvider(
-        client, model_profile=profile, synthesis_profile=policy.profile(ModelRole.SYNTHESIS), max_tokens=800
+        conversation_models(policy, options), model_profile=profile,
+        synthesis_profile=policy.profile(ModelRole.SYNTHESIS), max_tokens=800, callbacks=(client,)
     )
     agent = ConversationAgent(provider)
     _, cases = synthetic_development()
@@ -131,7 +135,7 @@ async def run(args):
                 observations, state, context
             ),
         )
-        before = len(client.captures)
+        before = len(client.calls)
         proposal = await agent.plan(
             observations,
             state,
@@ -145,7 +149,7 @@ async def run(args):
             "history": case.history,
             "deterministic_resolution": resolution.kind.value,
             "proposal": asdict(proposal),
-            "model_calls": client.captures[before:],
+            "model_calls": client.calls[before:],
         }
         rows.append(row)
         with (args.output / "cases.jsonl").open("a") as stream:
@@ -157,13 +161,12 @@ async def run(args):
         "scope": "production ConversationAgent and provider prompt via configured API; planning only, no retrieval or answer-quality claim",
         "synthetic_cases": len(rows),
         "model_profile": profile.to_dict(),
-        "model_calls": len(client.captures),
-        "external_inference_api_calls": len(client.captures),
-        "usage": {key: sum(c.get("usage", {}).get(key, 0) or 0 for c in client.captures) for key in ("input_tokens", "output_tokens", "cache_read_input_tokens", "cache_creation_input_tokens")},
+        "model_calls": len(client.calls),
+        "external_inference_api_calls": len(client.calls),
+        "usage": {key: sum(c.get("usage", {}).get(key, 0) or 0 for c in client.calls) for key in ("input_tokens", "output_tokens")},
         "semantic_scores": "unreviewed",
         "system_prompt_override": str(args.system_prompt) if args.system_prompt else None,
     }
-    await transport.close()
     (args.output / "report.json").write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n"
     )

@@ -10,6 +10,12 @@ from langchain_core.messages.utils import count_tokens_approximately
 
 from application.context_budget import ContextBudgetManager, ModelContextBudgetExceeded
 from application.work_control import WorkControlGuard
+from core.framework_models import invoke_model
+
+
+class ModelInvocationMiddleware(AgentMiddleware):
+    async def awrap_model_call(self, request, handler):
+        return await invoke_model(handler(request), stage="domain_model")
 
 
 def model_overhead_tokens(system_message, tools):

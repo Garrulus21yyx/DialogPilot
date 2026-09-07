@@ -11,10 +11,8 @@ from dataclasses import dataclass, replace
 from enum import Enum
 from typing import Any, Dict, Optional
 
-from anthropic import AsyncAnthropic
-
 from core.model_policy import ModelProfile
-from services.claim_verification import ClaimAssessment, verify_claims, fingerprint
+from services.claim_verification import AnswerAssessment, verify_claims, fingerprint
 
 
 class VerificationStatus(str, Enum):
@@ -50,7 +48,7 @@ class VerificationResult:
     need_escalation: bool
     reason: str
     reason_code: VerificationReasonCode
-    assessment: ClaimAssessment | None = None
+    assessment: AnswerAssessment | None = None
     request_binding: str = ""
 
     def bind_to(self, question, answer, context="", **evidence):
@@ -65,7 +63,7 @@ class VerificationResult:
         return (bool(self.request_binding) and self.status is VerificationStatus.PASS
                 and self.grounded is True and self.reason_code is VerificationReasonCode.PASSED
                 and self.assessment is not None
-                and self.assessment.all_supported and self.assessment.needs_addressed)
+                and self.assessment.supported and self.assessment.answered)
 
 
 
@@ -85,22 +83,15 @@ class AnswerVerifier:
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        base_url: Optional[str] = None,
-        model: str = "claude-3-5-sonnet-20241022",
-        client: Optional[Any] = None,
-        model_profile: Optional[ModelProfile] = None,
+        model_client: Any,
+        *,
+        model_profile: ModelProfile,
+        callbacks=(),
     ):
-        """注入兼容 Anthropic Messages API 的客户端；未注入时按配置创建。"""
-        if client is None:
-            if not api_key:
-                raise ValueError("api_key is required when client is not supplied")
-            kwargs: Dict[str, Any] = {"api_key": api_key}
-            if base_url:
-                kwargs["base_url"] = base_url
-            client = AsyncAnthropic(**kwargs)
-        self._client = client
-        self._model_profile = model_profile or ModelProfile(model)
+        """Inject the same framework model contract used by Target planning."""
+        self._client = model_client
+        self._callbacks = callbacks
+        self._model_profile = model_profile
         self._model = self._model_profile.model
 
     async def verify(self, question, answer, context="", *, task_plan=None, coverage=None,
@@ -147,17 +138,6 @@ class AnswerVerifier:
             )
 
         coverage = coverage or {}
-        unresolved = coverage.get("unresolved_required_task_ids")
-        if coverage.get("complete") is False or (isinstance(unresolved, list) and unresolved):
-            unresolved_text = ", ".join(str(item) for item in (unresolved or [])) or "unknown"
-            return VerificationResult(
-                status=VerificationStatus.REJECT,
-                grounded=False,
-                need_escalation=True,
-                reason=f"required tasks are unresolved: {unresolved_text}"[:300],
-                reason_code=VerificationReasonCode.INCOMPLETE,
-            )
-
         knowledge_evidence = knowledge_evidence or {}
         if knowledge_evidence.get("mode") is not None:
             return VerificationResult(VerificationStatus.UNKNOWN, False, True,
@@ -177,17 +157,17 @@ class AnswerVerifier:
             }
             assessment = await verify_claims(
                 self._client, self._model_profile, question=question,
-                answer=answer, evidence=evidence,
+                answer=answer, evidence=evidence, callbacks=self._callbacks,
             )
-            supported = assessment.all_supported
-            complete = assessment.needs_addressed
+            supported = assessment.supported
+            complete = assessment.answered
             status = VerificationStatus.PASS if supported and complete else VerificationStatus.REJECT
             reason_code = (VerificationReasonCode.PASSED if supported and complete else
                            VerificationReasonCode.UNGROUNDED if not supported else VerificationReasonCode.INCOMPLETE)
             return VerificationResult(
                 status=status, grounded=supported,
                 need_escalation=status is not VerificationStatus.PASS,
-                reason="claim and request checks aggregated by application",
+                reason="; ".join(assessment.issues) or "answer supported and request addressed",
                 reason_code=reason_code, assessment=assessment,
             )
         except Exception as exc:

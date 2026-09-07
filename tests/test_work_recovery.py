@@ -34,21 +34,17 @@ class RecoveryProvider:
 
 
 def test_recovery_uses_the_existing_provider_transport_with_its_own_bounded_schema():
-    from core.model_policy import ModelProfile
+    from core.model_policy import ModelProfile, ModelRole
+    from tests.framework_structured_stub import models
     from infrastructure.target_conversation_provider import AnthropicConversationPlanningProvider
-    requests = []
-    class Messages:
-        async def create(self, **request):
-            requests.append(request)
-            return SimpleNamespace(stop_reason="tool_use", content=[SimpleNamespace(
-                type="tool_use", name="submit_work_recovery",
-                input={"decisions": [{"work_item_id": "work", "action": "finish"}]})])
-    provider = AnthropicConversationPlanningProvider(SimpleNamespace(messages=Messages()),
+    scripted = models({"decisions": [{"work_item_id": "work", "action": "finish"}]},
+                      name="submit_work_recovery")
+    provider = AnthropicConversationPlanningProvider(scripted,
         model_profile=ModelProfile("test"), synthesis_profile=ModelProfile("test"))
     raw = asyncio.run(provider.recover({"stopped_tasks": [{"work_item_id": "work"}]}))
     assert raw["decisions"][0]["action"] == "finish"
-    assert requests[0]["tools"][0]["name"] == "submit_work_recovery"
-    assert len(requests) == 1
+    assert scripted[ModelRole.INTENT].bound_tool_names == ["submit_work_recovery"]
+    assert scripted[ModelRole.INTENT].calls == 1
 
 
 def _setup(worker, *, provider=None, store=None, checkpointer=None):
@@ -80,7 +76,9 @@ def test_stopped_work_handback_preserves_independent_success_and_feedback(status
             calls.append(item.owner_agent)
             if item.owner_agent == "product_technical" and not item.continuation_of:
                 return AgentResult(item.work_item_id, item.owner_agent, status, "LOOKUP_STOPPED", "test",
-                    retryable=status is AgentResultStatus.RETRYABLE_FAILURE, working_messages=history)
+                    retryable=status is AgentResultStatus.RETRYABLE_FAILURE, working_messages=history,
+                    execution_feedback=({"tool": "catalog_search", "call_id": "call1",
+                        "error": "reference is ambiguous", "status": "rejected"},))
             if item.continuation_of:
                 assert context.working_messages == history
                 assert context.current_message == "Try reference B instead"

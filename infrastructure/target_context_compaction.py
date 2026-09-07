@@ -17,7 +17,8 @@ from langchain_core.messages import RemoveMessage
 from langgraph.types import Command
 
 from application.context_budget import ModelContextBudgetExceeded
-from infrastructure.target_result_archive import result_pointer
+from infrastructure.target_result_archive import ResultArchiveError, result_pointer
+from core.framework_models import invoke_model
 
 
 class ResultState(AgentState):
@@ -41,11 +42,13 @@ class ToolResultPersistence(AgentMiddleware):
         try:
             reference = await self.archive.save(request.runtime.context, {
                 "artifact": artifact, "content": response.content})
-        except Exception:
+        except Exception as exc:
             # The checkpoint retains the only available original. Stop the segment;
             # this is not an alternate persistent store or a blind tool retry.
             return Command(update={"messages": [response], "archive_failed": True,
-                "tool_observations": {response.tool_call_id: {"inline_artifact": artifact}}})
+                "tool_observations": {response.tool_call_id: {"inline_artifact": artifact,
+                    "archive_error": {"type": type(exc).__name__,
+                        "retryable": isinstance(exc, ResultArchiveError) and exc.retryable}}}})
         result = artifact.get("result", {})
         envelope = {key: result[key] for key in
                     ("status", "success", "tool_name", "effect_status", "pending_action", "producer_version")
@@ -75,9 +78,9 @@ class StrictSummarization(SummarizationMiddleware):
         return min(cutoff, latest)
 
     async def _acreate_summary(self, messages_to_summarize):
-        response = await self.model.ainvoke(
+        response = await invoke_model(self.model.ainvoke(
             self.summary_prompt.format(messages=get_buffer_string(messages_to_summarize)),
-            config={"run_name": "context_summary", "metadata": {"lc_source": "summarization"}})
+            config={"run_name": "context_summary", "metadata": {"lc_source": "summarization"}}), stage="context_summary")
         if not response.text.strip() or response.response_metadata.get("stop_reason") in {"max_tokens", "refusal"}:
             raise ValueError("summary_incomplete")
         return response.text.strip()
