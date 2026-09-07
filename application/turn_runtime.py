@@ -79,6 +79,11 @@ class TurnRuntime:
     async def _assemble_response(self, state: TurnGraphState):
         managed = state["managed"]
         board = managed.board
+        pending_input = managed.state_after.pending_interaction
+        if (pending_input is not None and (
+                managed.state_before.pending_interaction is None
+                or pending_input.interaction_id != managed.state_before.pending_interaction.interaction_id)):
+            return {"assembled": None}
         if board is None or any(
             result.status in {
                 AgentResultStatus.NEEDS_USER_INPUT,

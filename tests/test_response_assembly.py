@@ -38,6 +38,16 @@ def _verified_order_result(work_item_id='o', order_id='DP1234', response=None):
     return replace(_result(work_item_id,'order_logistics',response=response),facts=(fact,))
 
 
+def test_question_prelude_preserves_verified_success_without_publishing_worker_drafts():
+    board = _board(_verified_order_result(response="UNVERIFIED promise"),
+                   _result("blocked", "product_technical", AgentResultStatus.BLOCKED,
+                           response="UNVERIFIED failure explanation"))
+    text = ResponseAssembler.interaction_prelude(board)
+    assert "DP1234" in text
+    assert "UNVERIFIED" not in text
+    assert len(board.results) == 2
+
+
 class _Composer:
     def __init__(self, response):
         self.response = response

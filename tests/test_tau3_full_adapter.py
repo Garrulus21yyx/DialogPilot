@@ -35,7 +35,8 @@ def test_ambiguous_approval_remains_user_input_without_grant():
     async def run():
         agent = Tau3TargetAgent(SimpleNamespace(get_tools=lambda: [], get_policy=lambda: "policy"),
                                loop=asyncio.get_running_loop())
-        agent.states = SimpleNamespace(load=lambda *args: SimpleNamespace(pending_approval=SimpleNamespace(approval_id="pending")))
+        agent.states = SimpleNamespace(load=lambda *args: SimpleNamespace(
+            pending_interaction=None, pending_approval=SimpleNamespace(approval_id="pending")))
         agent.conversation_id = "conversation"
         agent.components = SimpleNamespace(coordinator=SimpleNamespace(handle=handle))
         agent._approval_decision = AsyncMock(return_value=None)
@@ -46,3 +47,27 @@ def test_ambiguous_approval_remains_user_input_without_grant():
     assert calls[0].approval_id is None
     assert calls[0].approval_decision is None
     assert calls[0].message == "Before approving, can you explain the fee?"
+
+
+def test_clarification_reply_is_not_classified_as_approval():
+    from unittest.mock import AsyncMock
+    from application.chat_contracts import Completed
+    calls = []
+    async def handle(command):
+        calls.append(command)
+        return Completed("reply", {"response": "Explanation"})
+    async def run():
+        agent = Tau3TargetAgent(SimpleNamespace(get_tools=lambda: [], get_policy=lambda: "policy"),
+                               loop=asyncio.get_running_loop())
+        agent.states = SimpleNamespace(load=lambda *args: SimpleNamespace(
+            pending_interaction=SimpleNamespace(interaction_id="question", version=2),
+            pending_approval=SimpleNamespace(approval_id="approval")))
+        agent.conversation_id = "conversation"
+        agent.components = SimpleNamespace(coordinator=SimpleNamespace(handle=handle))
+        agent._approval_decision = AsyncMock(return_value=True)
+        await agent._turn("Yes, that is what I meant")
+        agent._approval_decision.assert_not_called()
+    asyncio.run(run())
+    assert calls[0].interaction_id == "question"
+    assert calls[0].interaction_version == 2
+    assert calls[0].approval_decision is None

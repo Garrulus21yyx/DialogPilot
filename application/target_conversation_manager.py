@@ -27,7 +27,7 @@ from application.deterministic_resolution import (
 from application.entity_binding import EntityBindingResolver, EntityBindingSet
 from application.orchestration_runtime import OrchestrationRuntime
 from application.result_board import ResultBoardSnapshot
-from application.agent_result import AgentResultStatus, RequestedField
+from application.agent_result import AgentResultStatus, RequestedField, MissingInputSpec
 from application.turn_planning import (
     MutationApplyStage,
     RoutePolicy,
@@ -144,6 +144,7 @@ class ManagedTurnResult:
     plan: TurnPlan
     board: ResultBoardSnapshot | None
     checkpoint_thread_id: str
+    interaction_questions: tuple[MissingInputSpec, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -191,6 +192,7 @@ class TargetConversationManager:
         compiler: TurnPlanCompiler | None = None,
         context_provider: TargetTurnContextProvider | None = None,
         binding_resolver: EntityBindingResolver | None = None,
+        conversation_agent=None,
     ) -> None:
         self._state_store = state_store
         self._registry = registry
@@ -201,6 +203,7 @@ class TargetConversationManager:
         self._compiler = compiler or TurnPlanCompiler()
         self._context_provider = context_provider
         self._binding_resolver = binding_resolver or EntityBindingResolver()
+        self._conversation_agent = conversation_agent
 
     async def handle(
         self,
@@ -334,20 +337,32 @@ class TargetConversationManager:
                 ),
             },
         }
+        # Retain this execution checkpoint until the conversation owner decides
+        # whether stopped domain work needs a user continuation.
+        await_decision = self._awaits_workflow_approval(plan) or (
+            self._conversation_agent is not None
+            and any(item.control_mode.value == "DELEGATED" for item in plan.work.items))
         board = (
             await self._orchestration.resume(
                 plan.work,
                 thread_id=thread_id,
+                interrupt_after_completion=await_decision,
                 **execution_context,
             )
             if resume_thread_id is not None else
             await self._orchestration.execute(
                 plan.work,
                 thread_id=thread_id,
-                interrupt_after_completion=self._awaits_workflow_approval(plan),
+                interrupt_after_completion=await_decision,
                 **execution_context,
             )
         )
+        recovery_inputs = ()
+        if self._conversation_agent is not None and self._orchestration.supports_resume:
+            from application.conversation_context import conversation_context_payload
+            recovery_inputs = await self._conversation_agent.recover(
+                plan.work, board, current_message=observations.raw_text,
+                conversation_context=conversation_context_payload(turn_context))
         state = self._apply_successful_workflows(
             state, plan, board, invocation, deterministic,
             checkpoint_thread_id=(
@@ -364,15 +379,16 @@ class TargetConversationManager:
             state = next_state
         state = self._apply_missing_inputs(
             state, plan, board,
+            recovery_inputs=recovery_inputs,
             checkpoint_thread_id=(
                 thread_id if self._orchestration.supports_resume else None
             ),
         )
         if (
-            resume_thread_id is None
-            and self._orchestration.supports_resume
-            and self._awaits_workflow_approval(plan)
-            and state.pending_approval is None
+            self._orchestration.supports_resume
+            and await_decision
+            and not any(pending is not None and pending.checkpoint_thread_id == thread_id
+                        for pending in (state.pending_approval, state.pending_interaction))
         ):
             await self._orchestration.cancel_interrupt(thread_id=thread_id)
         return ManagedTurnResult(
@@ -382,6 +398,9 @@ class TargetConversationManager:
             plan,
             board,
             thread_id,
+            tuple(spec for result in board.results
+                  if result.status is AgentResultStatus.NEEDS_USER_INPUT
+                  for spec in result.missing_inputs) + recovery_inputs,
         )
 
     def _apply_missing_inputs(
@@ -391,18 +410,20 @@ class TargetConversationManager:
         board: ResultBoardSnapshot,
         *,
         checkpoint_thread_id: str | None,
+        recovery_inputs: tuple[MissingInputSpec, ...] = (),
     ) -> ConversationState:
         missing_results = tuple(
             result for result in board.results
             if result.status is AgentResultStatus.NEEDS_USER_INPUT
         )
-        # Bind one action decision first; its suspension retains other unfinished
-        # work so field collection can continue after that decision.
-        if state.pending_approval is not None:
+        # Work already suspended in this approval checkpoint resumes after the
+        # decision. A question from another execution has its own continuation.
+        if (state.pending_approval is not None
+                and state.pending_approval.checkpoint_thread_id == checkpoint_thread_id):
             return state
-        if not missing_results:
+        if not missing_results and not recovery_inputs:
             return state
-        if state.pending_approval is not None or state.pending_interaction is not None:
+        if state.pending_interaction is not None:
             raise ConversationStateConflict(
                 "work result cannot create a second pending interaction"
             )
@@ -415,12 +436,14 @@ class TargetConversationManager:
         item_by_id = {item.work_item_id: item for item in plan.work.items}
         suspended = []
         fields = []
-        for result in missing_results:
-            if result.work_item_id in transition_items:
+        all_specs = tuple(spec for result in missing_results for spec in result.missing_inputs) + recovery_inputs
+        target_ids = tuple(dict.fromkeys(spec.target_work_item_id for spec in all_specs if spec.required))
+        for work_item_id in target_ids:
+            if work_item_id in transition_items:
                 raise ConversationStateConflict(
                     "workflow input must be resolved before its state transition"
                 )
-            item = item_by_id[result.work_item_id]
+            item = item_by_id[work_item_id]
             suspended.append(replace(item, dependencies=()))
             fields.extend(
                 RequestedField(
@@ -428,8 +451,8 @@ class TargetConversationManager:
                     spec.target_work_item_id,
                     spec.value_schema,
                 )
-                for spec in result.missing_inputs
-                if spec.required
+                for spec in all_specs
+                if spec.required and spec.target_work_item_id == work_item_id
             )
         if not fields:
             raise ConversationStateConflict(

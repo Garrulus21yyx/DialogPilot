@@ -259,7 +259,7 @@ class OrchestrationRuntime:
             "evidence_refs": tuple(resumed.get("evidence_refs") or ()),
             "token_budget": int(resumed.get("token_budget") or 6000),
             "trusted_context": dict(resumed.get("trusted_context") or {}),
-            "interrupt_after_completion": False,
+            "interrupt_after_completion": bool(resumed.get("interrupt_after_completion", False)),
             "agent_results": Overwrite(value=[]),
             "facts": (),
             "ready_items": board.ready_items,
@@ -467,6 +467,7 @@ class OrchestrationRuntime:
         *,
         current_message: str,
         thread_id: str,
+        interrupt_after_completion: bool = False,
         recent_relevant_turns: tuple[str, ...] = (),
         evidence_refs: tuple[str, ...] = (),
         token_budget: int = 6000,
@@ -480,6 +481,7 @@ class OrchestrationRuntime:
             raise OrchestrationRuntimeError("checkpoint thread is not interrupted")
         result = await self.graph.ainvoke(Command(resume={
             "work_plan": work_plan,
+            "interrupt_after_completion": interrupt_after_completion,
             "current_message": current_message,
             "recent_relevant_turns": recent_relevant_turns,
             "evidence_refs": evidence_refs,

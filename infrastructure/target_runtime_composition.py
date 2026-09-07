@@ -186,6 +186,7 @@ async def build_target_runtime(
             registry=registry,
             understanding=understanding,
             orchestration=orchestration,
+            conversation_agent=conversation_agent,
             context_provider=TargetTurnContextLoader(
                 PostgresMemoryProjectionReader(postgres_pool, memory), tool_manager),
         )

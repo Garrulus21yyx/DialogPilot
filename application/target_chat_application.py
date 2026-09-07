@@ -241,7 +241,7 @@ class TargetChatApplication:
             or managed.state_before.pending_interaction.interaction_id
             != pending_input.interaction_id
         ):
-            specs = tuple(
+            specs = managed.interaction_questions or tuple(
                 spec
                 for result in (managed.board.results if managed.board else ())
                 if result.status is AgentResultStatus.NEEDS_USER_INPUT
@@ -252,6 +252,9 @@ class TargetChatApplication:
                 spec.question_hint for spec in specs if spec.question_hint.strip()
             ))
             challenge = "\n".join(hints) or "请补充完成任务所需的信息。"
+            prelude = ResponseAssembler.interaction_prelude(managed.board) if managed.board else ""
+            if prelude:
+                challenge = prelude + "\n" + challenge
             expires_at = (
                 datetime.now(timezone.utc) + timedelta(days=7)
             ).isoformat()

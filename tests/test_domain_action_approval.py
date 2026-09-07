@@ -62,7 +62,8 @@ def test_resumed_objectives_preserve_dependency_order():
 
 
 @pytest.mark.parametrize("waiting_status", ["NEEDS_USER_INPUT", "WAITING_APPROVAL", "BLOCKED"])
-def test_existing_explicit_approval_retains_unfinished_domain_work(waiting_status):
+@pytest.mark.parametrize("same_thread", [True, False])
+def test_existing_explicit_approval_retains_only_same_checkpoint_work(waiting_status, same_thread):
     from types import SimpleNamespace
     from application.action_approval import bind_action_approval
     from application.agent_result import AgentResultStatus
@@ -74,12 +75,15 @@ def test_existing_explicit_approval_retains_unfinished_domain_work(waiting_statu
         "action-stream", "order_logistics", "order.cancel:v1", "READY", WorkstreamStatus.ACTIVE, 1))
     state = state.wait_for_approval(PendingApprovalState(
         "approval", 1, "action-stream", "prepared-action", "order.cancel:v1", "operation",
-        "order:R1", "1", "2099-01-01T00:00:00+00:00"))
+        "order:R1", "1", "2099-01-01T00:00:00+00:00", checkpoint_thread_id="thread"))
     item = _item()
     board = SimpleNamespace(results=(SimpleNamespace(work_item_id=item.work_item_id,
         pending_action=None, status=AgentResultStatus(waiting_status)),))
     next_state = bind_action_approval(state, SimpleNamespace(work=SimpleNamespace(items=(item,))),
-                                      board, None, "thread")
+                                      board, None, "thread" if same_thread else "other-thread")
+    if not same_thread:
+        assert next_state is state
+        return
     assert next_state.pending_approval.suspended_work_items == (item,)
     assert next_state.pending_approval.origin_work_item_id is None
     assert next_state.pending_approval.operation_key == "operation"
@@ -88,7 +92,7 @@ def test_existing_explicit_approval_retains_unfinished_domain_work(waiting_statu
                                 board, None, "thread") is next_state
 
 
-@pytest.mark.parametrize("decision", ["approve", "deny", "supersede", "ask_first"])
+@pytest.mark.parametrize("decision", ["approve", "deny", "supersede", "ask_first", "clarify_during_approval"])
 def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url, decision):
     async def run():
         base = build_default_capability_registry("tenant-target")
@@ -123,6 +127,10 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                 "id": "need-order"}])] if decision == "ask_first" else []),
             AIMessage(content="", tool_calls=[{"name": "order_cancel",
                 "args": {"order_id": "DP1234"}, "id": "cancel-proposal"}]),
+            *([AIMessage(content="", tool_calls=[{"name": "request_user_input",
+                "args": {"question": "Which part would you like explained?"}, "id": "clarify"}]),
+               AIMessage(content="The cancellation is still awaiting your decision.")]
+              if decision == "clarify_during_approval" else []),
             AIMessage(content="Your cancellation has been completed."),
         ])
         domain = TargetFrameworkAgent(model, tools, registry=registry, system_prompt=owner.description)
@@ -142,7 +150,7 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                     checkpointer=InMemorySaver(serde=target_checkpoint_serializer()),
                 ),
             )
-            first = await manager.handle(_identity("propose"), TurnObservations("Cancel order DP1234"))
+            first = await manager.handle(_identity(f"{decision}-propose"), TurnObservations("Cancel order DP1234"))
             if decision == "ask_first":
                 assert first.state_after.pending_interaction is not None
                 assert calls == []
@@ -159,6 +167,19 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
             assert pending.suspended_work_items[0].allowed_actions == (action.ref,)
             assert dict((arg.name, arg.value) for arg in pending.arguments) == {
                 "order_id": "DP1234", "expected_order_version": 4}
+            if decision == "clarify_during_approval":
+                question = await manager.handle(_identity("ask-about-approval"), TurnObservations(
+                    "Before confirming, can you explain?"))
+                clarification = question.state_after.pending_interaction
+                assert clarification is not None
+                assert question.state_after.pending_approval == pending
+                assert clarification.checkpoint_thread_id != pending.checkpoint_thread_id
+                answered = await manager.handle(_identity("clarify-approval"), TurnObservations(
+                    "Whether the order has been cancelled yet", interaction_id=clarification.interaction_id,
+                    interaction_version=clarification.version))
+                assert answered.state_after.pending_interaction is None
+                assert answered.state_after.pending_approval == pending
+                assert calls == ["read"]
             if decision == "supersede":
                 updated = first.state_after.close_work_control(
                     pending.suspended_work_items[0].control, status=WorkControlStatus.CANCELLED)
@@ -176,9 +197,11 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                 assert calls == ["read"]
                 assert model.calls == 1
                 return
-            assert len([call for call in calls if isinstance(call, tuple)]) == 1
+            assert len([call for call in calls if isinstance(call, tuple)]) == 1, [
+                (result.status.value, result.reason_code) for result in second.board.results]
             assert second.board.results[0].action_receipts[0].receipt_id == "cancel-receipt"
-            assert model.calls == (3 if decision == "ask_first" else 2)
+            assert model.calls == (4 if decision == "clarify_during_approval" else
+                                   3 if decision == "ask_first" else 2)
         finally:
             pool.close()
     asyncio.run(run())

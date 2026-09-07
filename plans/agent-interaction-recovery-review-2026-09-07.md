@@ -2,6 +2,17 @@
 
 状态：review_in_progress；本文件记录诊断与实施合同，不代表实现或验收完成。
 
+## 本轮补齐：受阻交接与审批中问答
+
+2026-09-07 implemented / verification_open。新鲜开发运行未进入官方评分（reward=null），不能写成通过或业务闭环。根因是执行结果与会话交互生命周期断开：失败消息留在 checkpoint 却未交给主 Agent；审批期间其他线程的追问被追加到旧审批队列，且未创建 PendingInteraction。
+
+- ConversationAgent 对实际受阻的开放任务做一次恢复判断：提出有价值的用户问题，或结束本次尝试并交由正常回复组织解释限制；不循环重启子 Agent。用户的补充/新指令通过已有 continuation 恢复有效进度。
+- 已有领域追问直接保留；不让主 Agent 重复推断业务字段。成功任务、写入对账、取消与过时目标不进入恢复判断。
+- 字段交互与审批各自绑定原 checkpoint，可并存但一次输入只消费一个显式 signal；审批不能越过尚待澄清的交互。其他线程的任务不得加入旧审批的恢复队列。
+- 验证：错误明细进入主 Agent、主 Agent 失败时保留原结果、无副作用重试、补答只恢复受阻目标、审批期间追问/补答/批准保持线程和授权隔离。真实模型与独立复核未通过前仍为 verification_open。
+- 实现与边界见 [子任务受阻后的交接](../docs/agent-blocked-recovery-2026-09-07.md)。新增 PostgreSQL 重开测试经过 TargetChatApplication、TurnRuntime、Manager 和原 WorkPlan 图，不只手动传入恢复消息。审批参数化测试修正共享数据库中复用 invocation/operation identity 的测试隔离错误；每个场景使用独立请求身份，不修改生产幂等语义。
+- 本轮验证：197 项定向回归通过（包含 PostgreSQL），provider 接线新增 1 passed，τ³ 适配/工具绑定 16 passed。完整模型任务及独立新上下文复核未完成，状态仍为 verification_open。
+
 2026-09-07 观测收敛（implemented / domain_trace_remote_verified）：撤掉 ModelDiagnostics/UserModelDiagnostics 通用采集器，模型/工具记录交给已锁定 Langfuse 4.15.1 官方 CallbackHandler；沿用业务 TraceSink，统一配置与关闭。官方 mask 扩展点应用项目脱敏策略。本地评测保留官方成绩、业务结果与 Langfuse session 关联。用户配置凭据后，已执行真实领域模型—工具循环并通过官方 CLI 回读云端记录；范围与证据见 [实测报告](../docs/langfuse-live-verification-2026-09-07.md)。不代表 τ³ 业务闭环完成。
 
 ## 范围与证据

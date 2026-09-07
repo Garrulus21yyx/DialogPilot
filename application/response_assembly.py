@@ -56,6 +56,18 @@ class ResponseAssembler:
 
     version = "response-assembler-v6-atomic-repair"
 
+    @staticmethod
+    def interaction_prelude(board) -> str:
+        """Deliver independent committed results alongside a pending question.
+
+        This uses the existing deterministic renderer, not unverified domain
+        prose or a second composition call. The underlying board is unchanged.
+        """
+        from types import SimpleNamespace
+        results = tuple(result for result in board.results if result.status in _SUCCESS
+                        and (result.facts or result.action_receipts))
+        return _render_board(SimpleNamespace(results=results)) if results else ""
+
     def __init__(self, composer: ConversationComposer | None = None, *,
                  knowledge_generator=None, knowledge_verifier=None, knowledge_source_validator=None) -> None:
         self._composer = composer
@@ -202,7 +214,8 @@ class ResponseAssembler:
         inputs = dict(question=message, answer=text,
             context=json.dumps({'facts': facts, 'receipts': receipts, 'user_context': conversation_context}, ensure_ascii=False),
             knowledge_evidence=knowledge_evidence,
-            agent_outcomes=[{"status": result.status.value, "reason": result.reason_code}
+            agent_outcomes=[{"status": result.status.value, "reason": result.reason_code,
+                             "execution_feedback": _failure_feedback(result)}
                             for result in board.results])
         verdict = await self._knowledge_verifier.verify(
             message, text, context=inputs['context'],
@@ -274,6 +287,8 @@ class ResponseAssembler:
                     "owner_agent": result.owner_agent,
                     "status": result.status.value,
                     "reason_code": result.reason_code,
+                    "retryable": result.retryable,
+                    "execution_feedback": _failure_feedback(result),
                 }
                 for result in board.results
             ],
@@ -355,7 +370,10 @@ class ResponseAssembler:
                 and not board.missing_requirement_ids
             ):
                 return ResponseAssemblyMode.PASS_THROUGH
-            if result.facts:
+            if result.facts or result.status in {
+                AgentResultStatus.BLOCKED, AgentResultStatus.RETRYABLE_FAILURE,
+                AgentResultStatus.TERMINAL_FAILURE,
+            }:
                 return ResponseAssemblyMode.CONVERSATION_COMPOSE
             return ResponseAssemblyMode.TEMPLATE
         return ResponseAssemblyMode.CONVERSATION_COMPOSE
@@ -379,6 +397,11 @@ class ResponseAssembler:
             )))
         if set(_REFERENCE.findall(text)).difference(allowed_references):
             raise ValueError("composer introduced an unsupported business reference")
+
+
+def _failure_feedback(result):
+    from application.work_recovery import failure_feedback
+    return failure_feedback(result) if result.status not in _SUCCESS else []
 
 
 def _allowed_claims(board) -> tuple[AllowedClaim, ...]:

@@ -116,6 +116,8 @@ class DeterministicResolver:
         state: ConversationState,
     ) -> DeterministicResolution:
         pending = state.pending_interaction
+        if pending is not None and observations.approval_decision is not None:
+            raise DeterministicResolutionError("resolve the pending clarification before deciding approval")
         if pending is not None:
             if observations.interaction_id is not None and (
                 observations.interaction_id != pending.interaction_id

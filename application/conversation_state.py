@@ -340,6 +340,11 @@ class ConversationState:
             stream = by_id.get(self.pending_approval.workstream_id)
             if stream is None or stream.status is not WorkstreamStatus.WAITING_APPROVAL:
                 raise ConversationStateError("approval is not bound to a waiting workstream")
+            if self.pending_interaction is not None and (
+                not self.pending_interaction.checkpoint_thread_id
+                or self.pending_interaction.checkpoint_thread_id == self.pending_approval.checkpoint_thread_id
+            ):
+                raise ConversationStateError("approval and clarification require independent execution bindings")
         if any(
             binding.workstream_id not in by_id
             or by_id[binding.workstream_id].state_version != binding.workstream_version
@@ -590,8 +595,12 @@ class ConversationState:
         )
 
     def wait_for_interaction(self, pending: PendingInteractionState) -> "ConversationState":
-        if self.pending_interaction is not None or self.pending_approval is not None:
+        if self.pending_interaction is not None:
             raise ConversationStateConflict("conversation already has a pending interaction")
+        if (self.pending_approval is not None and
+                (not pending.checkpoint_thread_id
+                 or pending.checkpoint_thread_id == self.pending_approval.checkpoint_thread_id)):
+            raise ConversationStateConflict("approval and clarification require independent execution bindings")
         by_id = {item.workstream_id: item for item in self.workstreams}
         requested_ids = {item.target_work_item_id for item in pending.requested_fields}
         suspended_ids = {item.work_item_id for item in pending.suspended_work_items}

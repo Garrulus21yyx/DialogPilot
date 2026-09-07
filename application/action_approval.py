@@ -13,6 +13,8 @@ def bind_action_approval(state, plan, board, registry, checkpoint_thread_id):
         # A prepared explicit action already owns this turn's decision. Queue
         # unfinished domain objectives behind it, without replacing its grant.
         pending = state.pending_approval
+        if pending.checkpoint_thread_id != checkpoint_thread_id:
+            return state
         existing = {work.work_item_id for work in pending.suspended_work_items}
         waiting = {result.work_item_id for result in board.results
                    if result.status.value in {"WAITING_APPROVAL", "NEEDS_USER_INPUT", "BLOCKED"}}

@@ -109,16 +109,16 @@ class Tau3TargetAgent(HalfDuplexAgent):
             self.turn += 1
             state = self.states.load("default", "benchmark-visitor", self.conversation_id)
             extra = {}
-            if state.pending_approval is not None:
+            if state.pending_interaction is not None:
+                extra.update(interaction_id=state.pending_interaction.interaction_id,
+                             interaction_version=state.pending_interaction.version)
+            elif state.pending_approval is not None:
                 decision = await self._approval_decision(state.pending_approval, text)
                 # Questions and corrections are ordinary new user messages, not
                 # approval grants and not a transport failure. The application
                 # retains the pending decision while interpreting the new text.
                 if decision is not None:
                     extra.update(approval_id=state.pending_approval.approval_id, approval_decision=decision)
-            elif state.pending_interaction is not None:
-                extra.update(interaction_id=state.pending_interaction.interaction_id,
-                             interaction_version=state.pending_interaction.version)
             command = ChatCommand(text, "benchmark-visitor", conv_id=self.conversation_id,
                                   request_id=f"turn-{self.turn}",
                                   authorization_fingerprint="isolated-tau3-environment", **extra)
