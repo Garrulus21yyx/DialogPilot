@@ -1,6 +1,10 @@
 # Target 主链单路径收敛实施
 
 当前续作：implementation_verified / quality_review_pending。
+真实压缩开发评测已运行：8 个新样本 × 2 种最新工具批次，沿用生产实现及默认 .70/.85 阈值。
+结构检查 16/16，自动 judge 16/16，但主执行助手复查提出 2 项语义异议，不能标为质量闭环。
+记录输入/输出、SDK 用量、延迟与原文回读；没有修改生产 Prompt，没有业务写入。
+详见 docs/target-context-compaction-eval-2026-09-07.md。后续仍需独立裁决、真实续接和 fresh benchmark。
 HTTP 测试装配和旧原文 TTL 迁移已补齐，集中回归 1000 passed、0 skipped。
 真实摘要质量、独立新上下文复核和 fresh benchmark 尚未完成，不恢复 verified closure。
 

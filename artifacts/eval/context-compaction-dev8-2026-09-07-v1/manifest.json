@@ -1,0 +1,29 @@
+{
+  "scope": "Small frozen development evaluation of production compaction, not business E2E.",
+  "case_sha256": "ea9588c8ae48dcd60c6d3ec89f8114f003f843aaf8dcbce0b371ba47c9599363",
+  "case_count": 8,
+  "repetitions": 2,
+  "summary_profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "judge_profile": {
+    "model": "deepseek-v4-pro",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "available_tokens": 4200,
+  "overhead_tokens": 100,
+  "soft_fraction": 0.7,
+  "summary_fraction": 0.85,
+  "summary_max_tokens": 1024,
+  "judge_max_tokens": 2048,
+  "original_store": "InMemoryStore; not persistence/restart evidence",
+  "load": "synthetic repeated read-only working notes until 90% budget",
+  "independent_review": false,
+  "business_writes": false,
+  "max_api_calls": 32
+}
