@@ -37,6 +37,27 @@ def write(path, data):
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2, default=str) + "\n")
 
 
+async def score_simulation(simulation, task, *, evaluator, evaluations):
+    """Independent official checks: a judge outage must not erase DB/action scores."""
+    from core.tracing import exception_chain
+    scores = {"official_reward": None, "evaluation_errors": {}}
+    for evaluation in evaluations:
+        try:
+            reward = await asyncio.to_thread(
+                evaluator, simulation, task, evaluation_type=evaluation,
+                solo_mode=False, domain="retail", strict_replay=True)
+        except Exception as exc:
+            scores["evaluation_errors"][evaluation.value] = {
+                "stage": "evaluation", "evaluation_type": evaluation.value,
+                "exception_chain": exception_chain(exc),
+            }
+        else:
+            scores[evaluation.value] = reward.model_dump()
+            if evaluation.value == "all":
+                scores["official_reward"] = reward.reward
+    return scores
+
+
 async def run(args):
     os.environ["TAU2_DATA_DIR"] = str(args.tau_source.resolve() / "data")
     os.environ["MODEL_CONTEXT_WINDOW_TOKENS"] = "64000"
@@ -159,14 +180,12 @@ async def run(args):
                             task=task, max_steps=args.max_steps, seed=300)
                         simulation = await asyncio.to_thread(orchestrator.run)
                         write(args.output / f"task-{task.id}-trajectory.json", simulation.model_dump())
-                        for evaluation in (EvaluationType.ALL, EvaluationType.ENV, EvaluationType.ACTION):
-                            reward = await asyncio.to_thread(evaluate_simulation, simulation, task,
-                                evaluation_type=evaluation, solo_mode=False, domain="retail", strict_replay=True)
-                            row[evaluation.value] = reward.model_dump()
-                            if evaluation is EvaluationType.ALL:
-                                row["official_reward"] = reward.reward
                         row["termination"] = simulation.termination_reason.value
-                        row["status"] = "EVALUATED"
+                        row["simulation_status"] = "COMPLETED"
+                        row.update(await score_simulation(simulation, task,
+                            evaluator=evaluate_simulation,
+                            evaluations=(EvaluationType.ALL, EvaluationType.ENV, EvaluationType.ACTION)))
+                        row["status"] = "EVALUATION_INCOMPLETE" if row["evaluation_errors"] else "EVALUATED"
                     except Exception as exc:
                         if orchestrator is not None:
                             row['failure_context'] = {key: str(getattr(orchestrator, key, ''))

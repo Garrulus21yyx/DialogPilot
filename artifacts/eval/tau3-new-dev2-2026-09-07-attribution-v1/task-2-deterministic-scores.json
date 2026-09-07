@@ -1,0 +1,352 @@
+{
+  "task_id": "2",
+  "source_trajectory_sha256": "a74f6a8031912636c255e41f5b4355409c0505aa8b87608dd7eace5fb1c210fc",
+  "method": "official deterministic strict replay against fresh benchmark environment; no application rerun",
+  "termination": "user_stop",
+  "scores": {
+    "official_reward": null,
+    "evaluation_errors": {},
+    "env": {
+      "reward": 1.0,
+      "db_check": {
+        "db_match": true,
+        "db_reward": 1.0
+      },
+      "env_assertions": [],
+      "action_checks": null,
+      "nl_assertions": null,
+      "communicate_checks": null,
+      "reward_basis": [
+        "DB",
+        "NL_ASSERTION"
+      ],
+      "reward_breakdown": {
+        "DB": 1.0
+      },
+      "info": null
+    },
+    "action": {
+      "reward": 0.0,
+      "db_check": null,
+      "env_assertions": null,
+      "action_checks": [
+        {
+          "action": {
+            "action_id": "2_0",
+            "requestor": "assistant",
+            "name": "find_user_id_by_name_zip",
+            "arguments": {
+              "first_name": "Yusuf",
+              "last_name": "Rossi",
+              "zip": "19122"
+            },
+            "info": null,
+            "compare_args": null
+          },
+          "action_match": true,
+          "action_reward": 1.0,
+          "tool_type": "read"
+        },
+        {
+          "action": {
+            "action_id": "2_1",
+            "requestor": "assistant",
+            "name": "get_product_details",
+            "arguments": {
+              "product_id": "6086499569"
+            },
+            "info": null,
+            "compare_args": null
+          },
+          "action_match": false,
+          "action_reward": 0.0,
+          "tool_type": "read"
+        },
+        {
+          "action": {
+            "action_id": "2_3",
+            "requestor": "assistant",
+            "name": "get_product_details",
+            "arguments": {
+              "product_id": "9523456873"
+            },
+            "info": null,
+            "compare_args": null
+          },
+          "action_match": true,
+          "action_reward": 1.0,
+          "tool_type": "read"
+        },
+        {
+          "action": {
+            "action_id": "2_4",
+            "requestor": "assistant",
+            "name": "get_user_details",
+            "arguments": {
+              "user_id": "yusuf_rossi_9620"
+            },
+            "info": null,
+            "compare_args": null
+          },
+          "action_match": true,
+          "action_reward": 1.0,
+          "tool_type": "read"
+        },
+        {
+          "action": {
+            "action_id": "2_5",
+            "requestor": "assistant",
+            "name": "get_order_details",
+            "arguments": {
+              "order_id": "#W6247578"
+            },
+            "info": null,
+            "compare_args": null
+          },
+          "action_match": true,
+          "action_reward": 1.0,
+          "tool_type": "read"
+        },
+        {
+          "action": {
+            "action_id": "2_6",
+            "requestor": "assistant",
+            "name": "get_order_details",
+            "arguments": {
+              "order_id": "#W9711842"
+            },
+            "info": null,
+            "compare_args": null
+          },
+          "action_match": true,
+          "action_reward": 1.0,
+          "tool_type": "read"
+        },
+        {
+          "action": {
+            "action_id": "2_7",
+            "requestor": "assistant",
+            "name": "get_order_details",
+            "arguments": {
+              "order_id": "#W4776164"
+            },
+            "info": null,
+            "compare_args": null
+          },
+          "action_match": true,
+          "action_reward": 1.0,
+          "tool_type": "read"
+        },
+        {
+          "action": {
+            "action_id": "2_8",
+            "requestor": "assistant",
+            "name": "get_order_details",
+            "arguments": {
+              "order_id": "#W6679257"
+            },
+            "info": null,
+            "compare_args": null
+          },
+          "action_match": true,
+          "action_reward": 1.0,
+          "tool_type": "read"
+        },
+        {
+          "action": {
+            "action_id": "2_9",
+            "requestor": "assistant",
+            "name": "get_order_details",
+            "arguments": {
+              "order_id": "#W2378156"
+            },
+            "info": null,
+            "compare_args": null
+          },
+          "action_match": true,
+          "action_reward": 1.0,
+          "tool_type": "read"
+        },
+        {
+          "action": {
+            "action_id": "2_10",
+            "requestor": "assistant",
+            "name": "get_product_details",
+            "arguments": {
+              "product_id": "9523456873"
+            },
+            "info": null,
+            "compare_args": null
+          },
+          "action_match": true,
+          "action_reward": 1.0,
+          "tool_type": "read"
+        },
+        {
+          "action": {
+            "action_id": "2_11",
+            "requestor": "assistant",
+            "name": "return_delivered_order_items",
+            "arguments": {
+              "order_id": "#W2378156",
+              "item_ids": [
+                "4602305039",
+                "4202497723",
+                "9408160950"
+              ],
+              "payment_method_id": "credit_card_9513926"
+            },
+            "info": null,
+            "compare_args": null
+          },
+          "action_match": true,
+          "action_reward": 1.0,
+          "tool_type": "write"
+        }
+      ],
+      "nl_assertions": null,
+      "communicate_checks": null,
+      "reward_basis": [
+        "DB"
+      ],
+      "reward_breakdown": {
+        "ACTION": 0.0
+      },
+      "info": null
+    }
+  },
+  "all_status": "UNAVAILABLE: original official natural-language judge requires missing OpenAI credentials",
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "2_0",
+        "requestor": "assistant",
+        "name": "find_user_id_by_name_zip",
+        "arguments": {
+          "first_name": "Yusuf",
+          "last_name": "Rossi",
+          "zip": "19122"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      {
+        "action_id": "2_1",
+        "requestor": "assistant",
+        "name": "get_product_details",
+        "arguments": {
+          "product_id": "6086499569"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      {
+        "action_id": "2_3",
+        "requestor": "assistant",
+        "name": "get_product_details",
+        "arguments": {
+          "product_id": "9523456873"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      {
+        "action_id": "2_4",
+        "requestor": "assistant",
+        "name": "get_user_details",
+        "arguments": {
+          "user_id": "yusuf_rossi_9620"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      {
+        "action_id": "2_5",
+        "requestor": "assistant",
+        "name": "get_order_details",
+        "arguments": {
+          "order_id": "#W6247578"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      {
+        "action_id": "2_6",
+        "requestor": "assistant",
+        "name": "get_order_details",
+        "arguments": {
+          "order_id": "#W9711842"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      {
+        "action_id": "2_7",
+        "requestor": "assistant",
+        "name": "get_order_details",
+        "arguments": {
+          "order_id": "#W4776164"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      {
+        "action_id": "2_8",
+        "requestor": "assistant",
+        "name": "get_order_details",
+        "arguments": {
+          "order_id": "#W6679257"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      {
+        "action_id": "2_9",
+        "requestor": "assistant",
+        "name": "get_order_details",
+        "arguments": {
+          "order_id": "#W2378156"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      {
+        "action_id": "2_10",
+        "requestor": "assistant",
+        "name": "get_product_details",
+        "arguments": {
+          "product_id": "9523456873"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      {
+        "action_id": "2_11",
+        "requestor": "assistant",
+        "name": "return_delivered_order_items",
+        "arguments": {
+          "order_id": "#W2378156",
+          "item_ids": [
+            "4602305039",
+            "4202497723",
+            "9408160950"
+          ],
+          "payment_method_id": "credit_card_9513926"
+        },
+        "info": null,
+        "compare_args": null
+      }
+    ],
+    "env_assertions": null,
+    "communicate_info": [
+      "10"
+    ],
+    "nl_assertions": [
+      "Agent should tell the user that there are 10 t-shirt options available."
+    ],
+    "reward_basis": [
+      "DB",
+      "NL_ASSERTION"
+    ]
+  }
+}

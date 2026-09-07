@@ -152,3 +152,34 @@ def test_parallel_archive_failures_keep_both_call_causes_and_original_facts():
     assert all(error["exception_chain"][-1]["type"] == "ConnectionError" for error in errors)
     assert len(calls) == len(result.facts) == 2
     assert model.calls == 1
+
+
+def test_nested_parallel_workers_export_each_model_and_tool_once(tracing):
+    from langchain_core.runnables import RunnableLambda
+    sink, exporter = tracing
+    assert sink.callback() is sink.callback()
+    calls = []
+    async def worker(_):
+        model = ScriptedToolModel(responses=[
+            AIMessage(content="", tool_calls=[{
+                "name": "catalog_search", "args": {"query": "model"}, "id": "lookup"}]),
+            AIMessage(content="Found PX-200."),
+        ])
+        return await TargetFrameworkAgent(model, _manager(calls),
+            result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"),
+            system_prompt="Assist.", callbacks=(sink.callback(),))(_context())
+
+    async def run():
+        return await RunnableLambda(worker).abatch([{}, {}],
+            config={"callbacks": [sink.callback()]})
+    results = asyncio.run(run())
+    sink.client.flush()
+    spans = exporter.get_finished_spans()
+    assert len(calls) == 2
+    assert all(result.status.value == "SUCCEEDED" for result in results)
+    generations = [s for s in spans if s.attributes.get("langfuse.observation.type") == "generation"]
+    tool_spans = [s for s in spans if s.name == "catalog_search"]
+    assert len(generations) == 4
+    assert len(tool_spans) == 2
+    ids = {span.context.span_id for span in spans}
+    assert all(span.parent and span.parent.span_id in ids for span in generations + tool_spans)

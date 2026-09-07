@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+from functools import cached_property
 import logging
 import os
 from typing import Any
@@ -29,9 +30,15 @@ class LangfuseTraceSink:
             raise RuntimeError("LANGFUSE_ENABLED requires LANGFUSE_PUBLIC_KEY and LANGFUSE_SECRET_KEY")
         return cls()
 
-    def callback(self):
+    @cached_property
+    def _framework_callback(self):
         from langfuse.langchain import CallbackHandler
         return CallbackHandler(public_key=self.public_key)
+
+    def callback(self):
+        # LangChain merges inherited/local callbacks by handler identity.
+        # Reuse one SDK handler so nested graphs don't export each call twice.
+        return self._framework_callback
 
     @contextmanager
     def span(self, handle):
