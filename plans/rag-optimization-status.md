@@ -172,4 +172,4 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 
 - 融合重放入口已实现，5项测试通过（同输入校验、纯路端点、预算、.25权重候选排斥见证）。全量编码仍同一PID存活，检查点73,728/366,438；未运行重放、无新质量结论。完成后命令：PYTHONPATH=. .venv/bin/python scripts/replay_mtrag_hybrid_weights.py --dense /tmp/dialogpilot-mtrag-dense-full-20260907 --lexical artifacts/eval/rag-g4-mtrag-lexical32-2026-09-07 --output artifacts/eval/rag-g4-mtrag-hybrid32-2026-09-07。先审核全部向量/域计数再报告采用决定；生产不改。交付：`bf3ed01` 已提交并推送；编码进程保持运行。
 
-- Dense缓存审计：同一session2481/PID1508735继续运行；新增只读审计入口默认要求COMPLETE，allow-running仅签发检查点快照。已核验106,496向量源行顺序/hash、文件SHA、float32×1024、finite与单位范数，6项错误注入/正确合同测试通过。实际进度110,592/366,438，尚无Dense成绩。产物artifacts/eval/rag-g4-mtrag-dense-checkpoint-2026-09-07/report.json明确complete_attested=false。下一轮仍先查现有任务，完成后不带allow-running执行全缓存审计，再运行已交付融合重放。交付待commit/push。
+- Dense缓存审计：同一session2481/PID1508735继续运行；新增只读审计入口默认要求COMPLETE，allow-running仅签发检查点快照。已核验106,496向量源行顺序/hash、文件SHA、float32×1024、finite与单位范数，6项错误注入/正确合同测试通过。实际进度110,592/366,438，尚无Dense成绩。产物artifacts/eval/rag-g4-mtrag-dense-checkpoint-2026-09-07/report.json明确complete_attested=false。下一轮仍先查现有任务，完成后不带allow-running执行全缓存审计，再运行已交付融合重放。交付：`8dd8cff` 已提交并推送；仍等待同一全量编码任务完成。
