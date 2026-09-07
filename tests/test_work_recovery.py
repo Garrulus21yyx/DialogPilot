@@ -62,6 +62,89 @@ def _setup(worker, *, provider=None, store=None, checkpointer=None):
     return manager, orchestration, store
 
 
+@pytest.mark.parametrize("reject_again", [False, True])
+@pytest.mark.parametrize("backend", ["memory", "postgres"])
+def test_unpublished_input_repair_preserves_other_results_and_has_durable_budget(reject_again, backend, request):
+    from hashlib import sha256
+    from application.response_assembly import AssembledResponse, ResponseAssemblyMode
+    from application.turn_runtime import TurnRuntime, InteractionAssemblyUnavailable
+
+    async def run(saver=None, state_store=None):
+        from datetime import datetime, timezone
+        from application.agent_result import FactRecord, FactSourceKind
+        fact = FactRecord("order:A", "order.current_state", '{"status":"shipped"}',
+            FactSourceKind.VERIFIED_STATE, "receipt:read", "order_lookup", "v1", datetime.now(timezone.utc))
+        calls = []
+        async def worker(context):
+            item = context.work_item
+            calls.append(item.owner_agent)
+            if item.continuation_of:
+                feedback = json.loads(context.trusted_context["rejected_inputs"])
+                assert item.continuation_of in feedback
+                assert not context.trusted_context.get("resolved_input_signal")
+                assert not context.trusted_context.get("approval_binding")
+                assert fact in context.verified_facts
+            if item.owner_agent == "product_technical" and (not item.continuation_of or reject_again):
+                return AgentResult(item.work_item_id, item.owner_agent, AgentResultStatus.NEEDS_USER_INPUT,
+                    "INPUT", "test", missing_inputs=(MissingInputSpec("reply", item.work_item_id,
+                        "INPUT", "string", "May I perform the already requested lookup?"),))
+            return AgentResult(item.work_item_id, item.owner_agent, AgentResultStatus.SUCCEEDED,
+                "DONE", "test", candidate_response="Found",
+                facts=(fact,) if item.owner_agent == "order_logistics" else ())
+
+        manager, _, store = _setup(worker, checkpointer=saver, store=state_store)
+        from uuid import uuid4
+        identity = _identity(f"internal-repair-{uuid4().hex}")
+        class Assembler:
+            fallback_locale = "en"
+            async def assemble(self, board, *, requested_inputs, **kwargs):
+                stored = store.load(identity.tenant_id, identity.user_id, identity.conversation_id)
+                assert stored.pending_interaction is None  # Never publish an invalid wait.
+                assert stored.pending_approval is None
+                if requested_inputs:
+                    return AssembledResponse("", ResponseAssemblyMode.TEMPLATE, (), False,
+                        "REJECT", "INVALID_INTERACTION",
+                        rejected_input_work_items=tuple(s.target_work_item_id for s in requested_inputs),
+                        interaction_feedback="The lookup is already requested; no missing choice exists.")
+                return AssembledResponse("Found", ResponseAssemblyMode.TEMPLATE, (), False,
+                    "PASS", "VALID", verified_text_sha256=sha256(b"Found").hexdigest())
+
+        checkpoints = saver or InMemorySaver(serde=target_checkpoint_serializer())
+        runtime = TurnRuntime(manager=manager, response_assembler=Assembler(), checkpointer=checkpoints)
+        observations = TurnObservations("Find the product and read my order")
+        if reject_again:
+            with pytest.raises(InteractionAssemblyUnavailable):
+                await runtime.execute(identity, observations)
+            reopened = TurnRuntime(manager=manager, response_assembler=Assembler(), checkpointer=checkpoints)
+            with pytest.raises(InteractionAssemblyUnavailable):
+                await reopened.execute(identity, observations)
+        else:
+            result = await runtime.execute(identity, observations)
+            assert all(r.status is AgentResultStatus.SUCCEEDED for r in result.managed.board.results)
+            assert result.managed.state_after.pending_interaction is None
+            await runtime.execute(identity, observations)  # Completed graph replay is side-effect free.
+        assert calls.count("product_technical") == 2
+        assert calls.count("order_logistics") == 1
+        assert store.load(identity.tenant_id, identity.user_id, identity.conversation_id).pending_interaction is None
+    if backend == "memory":
+        asyncio.run(run())
+    else:
+        from infrastructure.langgraph_checkpoint import AsyncPostgresCheckpointOwner
+        from infrastructure.postgres import PostgresPool, PostgresPoolConfig, PostgresMigrationRunner
+        from infrastructure.postgres_target_runtime import PostgresConversationStateStore
+        url = request.getfixturevalue("postgres_database_url")
+        async def persisted():
+            PostgresMigrationRunner(url).upgrade()
+            pool = PostgresPool(PostgresPoolConfig(url, min_size=1, max_size=3))
+            pool.open()
+            try:
+                async with AsyncPostgresCheckpointOwner(url, setup=True) as saver:
+                    await run(saver, PostgresConversationStateStore(pool))
+            finally:
+                pool.close()
+        asyncio.run(persisted())
+
+
 @pytest.mark.parametrize("status", [AgentResultStatus.BLOCKED, AgentResultStatus.RETRYABLE_FAILURE,
                                     AgentResultStatus.TERMINAL_FAILURE])
 @pytest.mark.parametrize("decision", ["ask_user", "finish", "error"])

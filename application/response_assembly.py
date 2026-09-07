@@ -49,6 +49,8 @@ class AssembledResponse:
     diagnostics: tuple[StageObservation, ...] = ()
     evidence_sha256: str = ""
     evidence_json: str = ""
+    rejected_input_work_items: tuple[str, ...] = ()
+    interaction_feedback: str = ""
 
     @property
     def verified(self) -> bool:
@@ -58,6 +60,7 @@ class AssembledResponse:
     def __post_init__(self) -> None:
         object.__setattr__(self, "evidence_refs", tuple(self.evidence_refs))
         object.__setattr__(self, "diagnostics", tuple(self.diagnostics))
+        object.__setattr__(self, "rejected_input_work_items", tuple(self.rejected_input_work_items))
         if self.evidence_json and hashlib.sha256(self.evidence_json.encode()).hexdigest() != self.evidence_sha256:
             raise ValueError("response evidence changed after capture")
         if self.verified_text_sha256 and self.verified_text_sha256 != hashlib.sha256(self.text.encode()).hexdigest():
@@ -112,7 +115,10 @@ class ResponseAssembler:
                 "I could not prepare the follow-up question. Your progress is saved; please try again later.")
             return AssembledResponse((prelude + "\n" if prelude else "") + notice,
                 ResponseAssemblyMode.TEMPLATE, (), False, "NOT_CHECKED", response.verification_reason,
-                retryable=response.retryable, diagnostics=response.diagnostics)
+                retryable=response.retryable, diagnostics=response.diagnostics,
+                rejected_input_work_items=response.rejected_input_work_items,
+                interaction_feedback=response.interaction_feedback,
+                evidence_sha256=response.evidence_sha256, evidence_json=response.evidence_json)
         pending = [r.pending_action for r in board.results if r.pending_action]
         operation_key = pending_approval.operation_key if pending_approval else pending[0].operation_key if len(pending) == 1 else ""
         if not requested_inputs and operation_key and response.verified_text_sha256:
@@ -181,6 +187,9 @@ class ResponseAssembler:
                     safe = replace(failed, text=system_notice + _render_board(board, locale=self.fallback_locale))
                 return replace(safe, verification_reason=failed.verification_reason,
                                verification_status=verdict.status.value.upper(),
+                               rejected_input_work_items=(verdict.assessment.rejected_input_work_items if verdict.assessment else ()),
+                               interaction_feedback=verdict.reason,
+                               evidence_sha256=candidate.evidence_sha256, evidence_json=candidate.evidence_json,
                                diagnostics=(*candidate.diagnostics, *failed.diagnostics))
             stage = "citation_validation"
             from application.knowledge_tool_contract import validate_answer_citations
@@ -211,6 +220,8 @@ class ResponseAssembler:
             knowledge_evidence=knowledge_evidence, conversation_context=conversation_context, pending_approval=pending_approval,
             requested_inputs=requested_inputs)
         if verdict.publishable or verdict.assessment is None or self._composer is None:
+            return candidate, verdict
+        if verdict.assessment.rejected_input_work_items:
             return candidate, verdict
         from dataclasses import asdict, replace
         feedback = {

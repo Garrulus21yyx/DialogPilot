@@ -5,6 +5,37 @@ from application.agent_result import AgentResultStatus, MissingInputSpec
 from application.work_item import ControlMode
 
 
+def repair_input_plan(prepared, managed, rejected_ids, *, registry, policy, compiler):
+    """Revise only rejected domain objectives; retain unchanged work in the DAG."""
+    from dataclasses import replace
+    from application.target_understanding import StateBoundTargetUnderstanding
+    from application.turn_planning import TurnProposal, ProposalDisposition
+    from application.work_item import WorkPlan
+    rejected = set(rejected_ids)
+    bound = {spec.target_work_item_id for spec in managed.interaction_questions}
+    items = managed.plan.work.items
+    results = {result.work_item_id: result for result in managed.board.results}
+    selected = tuple(item for item in items if item.work_item_id in rejected)
+    if not rejected or not rejected.issubset(bound) or len(selected) != len(rejected):
+        raise ValueError("interaction rejection does not bind current requested inputs")
+    if any(item.control_mode is not ControlMode.DELEGATED
+           or results[item.work_item_id].pending_action is not None
+           or results[item.work_item_id].action_receipts for item in selected):
+        raise ValueError("interaction repair requires non-writing delegated work")
+    commands = tuple(replace(StateBoundTargetUnderstanding._resume_command(index, item),
+        command_id=f"repair-input-{index}") for index, item in enumerate(selected, 1))
+    validated = policy.accept(TurnProposal(ProposalDisposition.RESOLVED, commands,
+        "REJECTED_INPUT_REPAIR"), prepared.state, registry)
+    compiled = compiler.compile(validated, prepared.state, registry, prepared.invocation)
+    replacements = dict(zip((item.work_item_id for item in selected), compiled.work.items))
+    remap = {old: item.work_item_id for old, item in replacements.items()}
+    repaired = tuple(replace(replacements.get(item.work_item_id, item),
+        dependencies=tuple(remap.get(dependency, dependency) for dependency in item.dependencies))
+        for item in items)
+    return replace(managed.plan, state_fingerprint=compiled.state_fingerprint, work=WorkPlan(repaired,
+        remap.get(managed.plan.work.primary_work_item_id, managed.plan.work.primary_work_item_id))), compiled.work.items
+
+
 def recovery_candidates(plan, board):
     items = {item.work_item_id: item for item in plan.items}
     return tuple(result for result in board.results

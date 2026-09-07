@@ -51,3 +51,29 @@ Second verification at aa39569: both ENV=1 and internal completion true, but bot
 Latest full scoped PostgreSQL suite: 215 passed, nine existing warnings. Reply/verifier-focused suite after wording changes: 145 passed. These scripted tests validate interfaces/revision mechanics, not semantic model accuracy. Final end-to-end run will use the frozen candidate and retain every attempt.
 
 Third frozen E2E run at d8458f8: both ENV=1, single formal approval and write, truthful final reply, SUCCEEDED/SUCCEEDED and task_completed=true. Full evidence in `artifacts/eval/tau3-action-dialogue-dev2-2026-09-07-v3/REPORT.md`. Scope remains partial rather than closed: component approval-verifier false positives and recovery from a pure-permission invalid pending input remain unresolved. No more prompt-only counterexample iterations are counted as closure. Dependent claims of complete dialogue convergence remain blocked by those explicit acceptance gaps; original two regression outcomes are reported separately.
+
+## Active continuation: repair the interaction owner, then ten fixed tasks
+
+Previous goal turn classified as progress: committed owner changes and retained three real regression runs. Full objective remains: resolve current gaps, run ten tasks, audit outcomes and repair shared causes without business-specific branches.
+
+Independent source review confirms `execute_work_plan → commit_turn_state → assemble_response`. Invalid input is therefore already persisted before semantic validation; replay only regenerates prose. Chosen positive contract:
+
+- Existing verification distinguishes invalid bound input candidates from ordinary answer revision and provider failure; identities must match the runtime's input set. No parsing feedback prose to decide control flow.
+- TurnGraph becomes execution → commit execution progress → assembly/interaction validation → commit new input. Completed actions and prepared approvals remain durable even when wording fails; only a new missing-input candidate is provisional. One checkpointed repair may return rejected inputs to their originating domain goal. Provider outages remain assembly retries, never business re-execution.
+- Manager owns a state-bound repair plan, with original capability/control constraints. Provisional invalid waits are not committed; internal rejection never consumes a user signal or approval.
+- Orchestration's existing resume preserves exactly unchanged independent WorkItems/results and recomputes changed dependencies. Only affected domain objectives rerun. Receipt-backed successful writes cannot repeat.
+- SDK ToolMessage projection marks the original input request internally REJECTED, not ANSWERED; archives remain immutable. Budget exhaustion is a typed failure with no newly committed invalid wait.
+- Old in-flight TurnGraph contracts are explicitly version-rejected, not executed through a fallback runtime. No opaque checkpoint migration.
+
+Next milestones (not closed): (1) state/contract migration and property + PostgreSQL restart tests; (2) frozen component counterexamples including genuine choice, ambiguous target, pure permission, adequate/inadequate approval; (3) fixed train task range 4–13, ten tasks, seed 300, no substitution or best-of reporting; (4) per-task execution/publication/state/score attribution, shared-root repair, fresh revalidation and independent review. Official judge unavailability must remain separate from business failure. The ten-task stage must not begin merely because the two original cases passed.
+
+### Repair implementation and review evidence
+
+- One semantic assessment now returns bound rejected input identities separately from ordinary wording feedback. Invalid input invokes domain reconsideration; ordinary wording gets the existing single composition revision. No new planner, approval model, or business-specific branch.
+- Checkpoint roundtrip changed WorkItem tuple fields to lists, defeating unchanged-work equality. WorkItem now normalizes its immutable sequence contract at construction; recovery preserves exact unchanged results and their shared facts.
+- Independent review found that delaying all state commits would also delay committed write completion, and that the no-work branch could lose the committed prefix. Progress commits now include both paths. A real governed-write regression covers COMMITTED → two invalid follow-ups → reopen: one write, completed workstream, no fabricated answer/approval or invalid pending interaction.
+- Three pre-existing TurnRuntime assertions expected undated current-state prose. Replaying HEAD's original TurnRuntime reproduced all three failures; assertions now bind to the actual receipt observation timestamp. Production rendering was not changed.
+- Component v4 uses a new bound-input fixture; historical v1–v3 inputs/results remain unchanged. Four valid cases pass; the pure-permission case is rejected with its exact task identity. This is five synthetic component cases, not a customer success rate or fresh ten-task closure.
+- Remaining acceptance: final scoped suite, independent re-review, then fixed business E2E. No closed status inferred from test count or a single semantic replay.
+
+Final scoped suite after owner fixes: **277 passed**, PostgreSQL enabled, 12 existing trusted-context serialization warnings retained. Independent final scoped source review found no new concrete blocker; its local subset was 26 passed/3 database-skipped. Implementation is ready for original task 2–3 regression, not globally closed and not yet a ten-task report.

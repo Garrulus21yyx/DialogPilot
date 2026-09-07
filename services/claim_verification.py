@@ -19,12 +19,17 @@ def make_request(question, answer, evidence):
 
 
 def output_schema(_request=None):
+    context = ((_request or {}).get("evidence", {}).get("context") or {})
+    targets = sorted({item["target_work_item_id"] for item in context.get("requested_inputs", ())}) if isinstance(context, dict) else []
     return {"type": "object", "additionalProperties": False,
-        "required": ["supported", "answered", "approval_terms_complete", "issues"],
+        "required": ["supported", "answered", "approval_terms_complete", "issues", "rejected_input_work_items"],
         "properties": {
             "supported": {"type": "boolean"},
             "answered": {"type": "boolean"},
             "approval_terms_complete": {"type": "boolean"},
+            "rejected_input_work_items": {"type": "array", "uniqueItems": True,
+                "items": {"type": "string", **({"enum": targets} if targets else {})},
+                "maxItems": len(targets)},
             "issues": {"type": "array", "items": {"type": "string", "minLength": 1}, "maxItems": 8},
         }}
 
@@ -36,6 +41,7 @@ class AnswerAssessment:
     answered: bool
     approval_terms_complete: bool
     issues: tuple[str, ...] = ()
+    rejected_input_work_items: tuple[str, ...] = ()
 
     def matches(self, question, answer, evidence):
         return self.request_hash == fingerprint(make_request(question, answer, evidence))
@@ -43,13 +49,16 @@ class AnswerAssessment:
 
 def assess(request, output):
     try:
-        Draft202012Validator(output_schema()).validate(output)
+        Draft202012Validator(output_schema(request)).validate(output)
     except ValidationError as exc:
         raise ValueError("answer_assessment_schema_invalid") from exc
     if (not output["supported"] or not output["answered"]) and not output["issues"]:
         raise ValueError("answer_assessment_requires_actionable_feedback")
+    if output["rejected_input_work_items"] and (output["answered"] or not output["issues"]):
+        raise ValueError("invalid_input_requires_rejection_and_feedback")
     return AnswerAssessment(fingerprint(request), output["supported"], output["answered"],
-                            output["approval_terms_complete"], tuple(output["issues"]))
+                            output["approval_terms_complete"], tuple(output["issues"]),
+                            tuple(output["rejected_input_work_items"]))
 
 
 SYSTEM = """Check this customer-service answer against the supplied original evidence and request.
@@ -79,6 +88,10 @@ information are different from technical facts the system should establish from 
 If a pending input hint contains only execution permission or repetition of an already resolved goal,
 there is no valid missing-input question to publish: return answered=false and explain the invalid
 pending interaction. Silently omitting its question does not resolve the runtime's waiting state.
+Set rejected_input_work_items to the supplied target_work_item_id values only when the underlying
+input request itself has no genuine missing information and must be reconsidered by its domain agent.
+For mixed hints with a real missing choice, repair the answer wording instead and leave this list empty.
+Ordinary answer mistakes, unsupported facts or incomplete approval wording do not reject an input request.
 The answer must address the customer directly in the language they use or explicitly request.
 Internal drafting notes, self-instructions about how to answer, or an untranslated system fallback
 do not satisfy answered=true, even when followed by supported facts. Concise customer-facing
@@ -119,8 +132,8 @@ async def verify_claims(model, profile, *, question, answer, evidence, max_token
                    "Do not reject terms that are present merely because they are not repeated inside the question.")
     payload = profile.request(max_tokens=max_tokens, system=system,
         messages=[{"role": "user", "content": content}],
-        tools=[structured_tool("submit_claim_checks", output_schema())])
+        tools=[structured_tool("submit_claim_checks", output_schema(request))])
     DEFAULT_PROVIDER_CONTEXT_BUDGET.validate(profile, ModelRole.VERIFIER, payload)
-    value = await structured_call(model, name="submit_claim_checks", schema=output_schema(),
+    value = await structured_call(model, name="submit_claim_checks", schema=output_schema(request),
                                   system=system, content=content, callbacks=callbacks)
     return assess(request, value)

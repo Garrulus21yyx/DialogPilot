@@ -11,7 +11,7 @@ from tests.framework_structured_stub import models
 
 def fixture():
     return make_request("问", "当前状态未知。", {"status": "unknown", "version": 1}), {
-        "supported": True, "answered": True, "approval_terms_complete": False, "issues": []}
+        "supported": True, "answered": True, "approval_terms_complete": False, "issues": [], "rejected_input_work_items": []}
 
 
 @pytest.mark.parametrize("supported,answered,approval", itertools.product([False, True], repeat=3))
@@ -49,6 +49,33 @@ def test_binding_changes_with_each_authoritative_input():
         changed = copy.deepcopy(request)
         changed[field] = value
         assert not result.matches(**changed)
+
+
+@pytest.mark.parametrize("rejected", [[], ["a"], ["b"], ["a", "b"]])
+def test_invalid_inputs_are_bound_to_current_request_and_do_not_grant_approval(rejected):
+    request, output = fixture()
+    request["evidence"]["context"] = {"requested_inputs": [
+        {"target_work_item_id": item} for item in ("a", "b")]}
+    output.update(answered=not rejected, issues=["No missing choice exists"] if rejected else [],
+                  rejected_input_work_items=rejected)
+    result = assess(request, output)
+    assert result.rejected_input_work_items == tuple(rejected)
+    assert not result.approval_terms_complete
+    changed = copy.deepcopy(request)
+    changed["evidence"]["context"]["requested_inputs"].pop()
+    assert not result.matches(**changed)
+
+
+@pytest.mark.parametrize("rejected,answered,issues", [
+    (["other"], False, ["Invalid input"]), (["a", "a"], False, ["Invalid input"]),
+    (["a"], True, ["Invalid input"]), (["a"], False, []),
+])
+def test_invalid_input_assessment_rejects_unbound_duplicate_and_contradictory_results(rejected, answered, issues):
+    request, output = fixture()
+    request["evidence"]["context"] = {"requested_inputs": [{"target_work_item_id": "a"}]}
+    output.update(rejected_input_work_items=rejected, answered=answered, issues=issues)
+    with pytest.raises(ValueError):
+        assess(request, output)
 
 
 @pytest.mark.parametrize("stop,name,count", [

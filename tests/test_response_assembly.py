@@ -73,6 +73,30 @@ class _Composer:
         return self.response(payload) if callable(self.response) else self.response
 
 
+@pytest.mark.parametrize("invalid_input", [False, True])
+def test_verifier_separates_domain_reconsideration_from_reply_revision(invalid_input):
+    from application.agent_result import MissingInputSpec
+    from services.answer_verifier import AnswerVerifier
+    from core.model_policy import ModelProfile, ModelRole
+    from tests.framework_structured_stub import models
+    output = {"supported": True, "answered": False, "approval_terms_complete": False,
+        "issues": ["There is no missing choice" if invalid_input else "Ask only for the missing choice"],
+        "rejected_input_work_items": ["work"] if invalid_input else []}
+    model = models(output, name="submit_claim_checks")[ModelRole.INTENT]
+    composer = _Composer("May I proceed?")
+    missing = (MissingInputSpec("reply", "work", "INPUT", "string", "May I proceed?"),)
+    result = asyncio.run(ResponseAssembler(composer,
+        knowledge_verifier=AnswerVerifier(model, model_profile=ModelProfile("test"))).assemble(
+            _board(AgentResult("work", "order_logistics", AgentResultStatus.NEEDS_USER_INPUT,
+                "INPUT", "test", missing_inputs=missing)),
+            current_message="Please process my request", requested_inputs=missing))
+    assert not result.verified
+    assert len(composer.calls) == (1 if invalid_input else 2)
+    assert result.rejected_input_work_items == (("work",) if invalid_input else ())
+    if invalid_input:
+        assert result.interaction_feedback and result.evidence_json
+
+
 @pytest.mark.parametrize("owner", ["general", "order_logistics", "billing_refund", "retail"])
 def test_working_notes_are_not_facts_or_a_second_public_author(owner):
     composer = _Composer("已收到你的请求。")

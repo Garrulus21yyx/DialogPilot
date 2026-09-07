@@ -89,6 +89,7 @@ class ApprovalVerifier(Verifier):
         complete = self.approval_status == "ANSWERED"
         model = models({"supported": True, "answered": True,
                         "approval_terms_complete": complete,
+                        "rejected_input_work_items": [],
                         "issues": [] if complete else ["Approval terms are incomplete."]},
                        name="submit_claim_checks")[ModelRole.INTENT]
         return await AnswerVerifier(model, model_profile=ModelProfile("test")).verify(*args, **kwargs)
@@ -129,6 +130,7 @@ def test_pure_confirmation_question_does_not_exempt_embedded_facts():
     from services.claim_verification import make_request, assess
     req = make_request("Cancel?", "It costs $10. Approve?", {"price": 10})
     out = {"supported": False, "answered": True, "approval_terms_complete": True,
+           "rejected_input_work_items": [],
            "issues": ["Price has not been verified."]}
     result = assess(req, out)
     assert result.approval_terms_complete

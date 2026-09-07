@@ -16,6 +16,20 @@ from tests.test_approval_conversation import domain, call
 from tests.test_target_turn_planning import _registry, _state
 
 
+def test_work_item_checkpoint_roundtrip_preserves_identity_and_sequence_contract():
+    from infrastructure.langgraph_checkpoint import target_checkpoint_serializer
+    from tests.test_target_framework_agent import _item
+    item = _item()
+    codec = target_checkpoint_serializer()
+    restored = codec.loads_typed(codec.dumps_typed(item))
+    assert restored == item
+    for name in ("allowed_tools", "allowed_skills", "arguments", "requirement_ids",
+                 "dependencies", "argument_bindings", "allowed_actions"):
+        assert isinstance(getattr(restored, name), tuple)
+        assert replace(item, **{name: list(getattr(item, name))}) == item
+    assert replace(restored, objective="Another objective") != item
+
+
 @pytest.mark.parametrize("scope", [False, True])
 def test_model_plan_card_and_compiler_share_action_scope(scope):
     from application.conversation_agent import ConversationAgent
@@ -134,4 +148,31 @@ def test_only_consumed_input_signal_completes_user_tool_without_approval(bound):
             assert answer["reply"] == "Medium" and answer["approval_granted"] is False
         else:
             assert result == [message]
+    asyncio.run(run())
+
+
+@pytest.mark.parametrize("old_signal", [False, True])
+def test_internal_input_rejection_is_never_projected_as_user_answer(old_signal):
+    async def run():
+        from application.work_item import WorkControlBinding
+        _, context, _, _ = domain([])
+        origin = context.work_item.work_item_id
+        pending = AgentResult(origin, context.work_item.owner_agent, AgentResultStatus.NEEDS_USER_INPUT,
+            "INPUT", "v1", missing_inputs=(MissingInputSpec("reply", origin, "INPUT", "string", "Proceed?"),))
+        message = ToolMessage(content="Proceed?", tool_call_id="question", artifact=framework_artifact(pending))
+        context = replace(context, work_item=replace(context.work_item, work_item_id="continued",
+            control=WorkControlBinding("control", 2), continuation_of=origin),
+            working_messages=tuple(messages_to_dict([message])), trusted_context={**context.trusted_context,
+                "rejected_inputs": json.dumps({origin: "No missing choice exists"}),
+                "resolved_input_signal": "prior-answer" if old_signal else ""})
+        archive = TargetResultArchive(InMemoryStore())
+        projected = await resolved_working_messages(context, archive)
+        value = json.loads(projected[0].content)
+        assert value["status"] == "REJECTED" and value["source_kind"] == "INTERNAL_REVIEW"
+        assert not value["approval_granted"] and not value["published"]
+        assert "reply" not in value and "signal_id" not in value
+        assert projected[0].tool_call_id == message.tool_call_id
+        assert message.content == "Proceed?"
+        assert await resolved_working_messages(replace(context,
+            working_messages=tuple(messages_to_dict(projected))), archive) == projected
     asyncio.run(run())

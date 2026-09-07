@@ -88,6 +88,9 @@ class _CountingManager:
     async def commit(self, result):
         await self.manager.commit(result)
 
+    async def commit_progress(self, result):
+        await self.manager.commit_progress(result)
+
 
 class _FailOncePrepareManager(_CountingManager):
     async def prepare(self, *args, **kwargs):
@@ -298,7 +301,8 @@ def test_turn_graph_retries_failed_prepare_without_executing_work_early():
     result = asyncio.run(runtime.execute(
         _identity(), TurnObservations("查询订单 DP1234"),
     ))
-    assert result.assembled.text == "订单 DP1234 当前状态为已发货。"
+    observed = result.managed.board.facts[0].observed_at.isoformat()
+    assert result.assembled.text == f"在 {observed} 的查询记录中，订单 DP1234 状态为已发货。"
     assert manager.prepare_calls == 2
     assert manager.execute_calls == 1
     assert executor.calls == 1
@@ -324,7 +328,8 @@ def test_turn_graph_reuses_completed_work_plan_after_outer_execution_crash():
     result = asyncio.run(runtime.execute(
         _identity(), TurnObservations("查询订单 DP1234"),
     ))
-    assert result.assembled.text == "订单 DP1234 当前状态为已发货。"
+    observed = result.managed.board.facts[0].observed_at.isoformat()
+    assert result.assembled.text == f"在 {observed} 的查询记录中，订单 DP1234 状态为已发货。"
     assert manager.prepare_calls == 1
     assert manager.execute_calls == 2
     assert executor.calls == 1
@@ -349,7 +354,8 @@ def test_turn_graph_resumes_at_assembly_without_replanning_or_reexecuting_tools(
         _identity(), TurnObservations("查询订单 DP1234"),
     ))
 
-    assert result.assembled.text == "订单 DP1234 当前状态为已发货。"
+    observed = result.managed.board.facts[0].observed_at.isoformat()
+    assert result.assembled.text == f"在 {observed} 的查询记录中，订单 DP1234 状态为已发货。"
     assert manager.prepare_calls == 1
     assert manager.execute_calls == 1
     assert executor.calls == 1

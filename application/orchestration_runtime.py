@@ -259,13 +259,18 @@ class OrchestrationRuntime:
         plan = resumed.get("work_plan")
         if not isinstance(plan, WorkPlan):
             raise OrchestrationRuntimeError("resume payload requires a validated WorkPlan")
-        board = self._result_board.evaluate(plan, ())
         previous_items = {item.work_item_id: item for item in state["work_plan"].items}
         previous_results = {result.work_item_id: result for result in state.get("agent_results", ())}
+        preserved = tuple(previous_results[item.work_item_id] for item in plan.items
+                          if previous_items.get(item.work_item_id) == item
+                          and item.work_item_id in previous_results)
+        board = self._result_board.evaluate(plan, preserved)
         progress = {}
         messages = {}
         now = datetime.now(timezone.utc)
         for item in plan.items:
+            if previous_items.get(item.work_item_id) == item:
+                continue
             if item.continuation_of is None:
                 continue
             previous = previous_items.get(item.continuation_of)
@@ -295,8 +300,8 @@ class OrchestrationRuntime:
             "trusted_context": dict(resumed.get("trusted_context") or {}),
             "pending_approval": resumed.get("pending_approval"),
             "interrupt_after_completion": bool(resumed.get("interrupt_after_completion", False)),
-            "agent_results": Overwrite(value=[]),
-            "facts": (),
+            "agent_results": Overwrite(value=list(preserved)),
+            "facts": board.facts,
             "ready_items": board.ready_items,
             "board": board,
         }

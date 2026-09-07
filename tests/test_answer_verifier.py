@@ -13,6 +13,7 @@ from evaluation.framework_capture import FrameworkCapture
 def run(verdict='SUPPORTED', need='ANSWERED', *, mutation=None, stop='tool_use', context=None, answer='当前状态未知。'):
     output={'supported': verdict == 'SUPPORTED', 'answered': need != 'MISSING',
             'approval_terms_complete': False,
+            'rejected_input_work_items': [],
             'issues': [] if verdict == 'SUPPORTED' and need != 'MISSING' else ['缺少状态证据或尚未回答问题']}
     if mutation: mutation(output)
     capture = FrameworkCapture(limit=1)
@@ -89,7 +90,7 @@ def test_assessment_binds_final_answer_and_original_evidence():
 
 
 def test_honest_partial_answer_can_pass_without_completing_business():
-    output = {"supported": True, "answered": True, "approval_terms_complete": False, "issues": []}
+    output = {"supported": True, "answered": True, "approval_terms_complete": False, "issues": [], "rejected_input_work_items": []}
     verifier = AnswerVerifier(models(output, name="submit_claim_checks")[ModelRole.INTENT],
                               model_profile=ModelProfile("test"))
     result = asyncio.run(verifier.verify("查状态", "暂时无法查询状态。",

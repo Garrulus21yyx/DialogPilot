@@ -35,6 +35,7 @@ class VerificationReasonCode(str, Enum):
     MODEL_REJECTED = "model_rejected"
     VERIFIER_UNAVAILABLE = "verifier_unavailable"
     INVALID_CONTRACT = "invalid_contract"
+    INVALID_INTERACTION = "invalid_interaction"
     APPROVAL_REQUIRED = "approval_required"
     POLICY_TERMINAL = "policy_terminal"
 
@@ -169,7 +170,8 @@ class AnswerVerifier:
             complete = assessment.answered
             approval_complete = not approval_required or assessment.approval_terms_complete
             status = VerificationStatus.PASS if supported and complete and approval_complete else VerificationStatus.REJECT
-            reason_code = (VerificationReasonCode.UNGROUNDED if not supported else
+            reason_code = (VerificationReasonCode.INVALID_INTERACTION if assessment.rejected_input_work_items else
+                           VerificationReasonCode.UNGROUNDED if not supported else
                            VerificationReasonCode.INCOMPLETE if not complete else
                            VerificationReasonCode.APPROVAL_REQUIRED if not approval_complete else
                            VerificationReasonCode.PASSED)

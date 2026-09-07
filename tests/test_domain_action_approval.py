@@ -94,7 +94,7 @@ def test_existing_explicit_approval_retains_only_same_checkpoint_work(waiting_st
                                 board, None, "thread") is next_state
 
 
-@pytest.mark.parametrize("decision", ["approve", "deny", "supersede", "ask_first", "ask_twice", "clarify_during_approval"])
+@pytest.mark.parametrize("decision", ["approve", "deny", "supersede", "ask_first", "ask_twice", "clarify_during_approval", "invalid_followup"])
 def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url, decision):
     async def run():
         base = build_default_capability_registry("tenant-target")
@@ -137,7 +137,10 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                 "args": {"question": "Which part would you like explained?"}, "id": "clarify"}]),
                AIMessage(content="The cancellation is still awaiting your decision.")]
               if decision == "clarify_during_approval" else []),
-            AIMessage(content="Your cancellation has been completed."),
+            *([AIMessage(content="", tool_calls=[{"name": "request_user_input",
+                "args": {"question": "Should I cancel it?"}, "id": f"invalid-{index}"}])
+               for index in range(2)] if decision == "invalid_followup" else
+              [AIMessage(content="Your cancellation has been completed.")]),
         ])
         class ObservedDomain(TargetFrameworkAgent):
             contexts = []
@@ -225,8 +228,39 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                         "Yes", approval_decision=True, approval_id=pending.approval_id))
                 assert calls == ["read"]
                 return
-            second = await manager.handle(_identity("approve"), TurnObservations(
-                "No" if decision == "deny" else "Yes", approval_decision=decision != "deny", approval_id=pending.approval_id))
+            if decision == "invalid_followup":
+                from application.turn_runtime import TurnRuntime, InteractionAssemblyUnavailable
+                from application.response_assembly import AssembledResponse, ResponseAssemblyMode
+                from application.conversation_state import WorkstreamStatus
+                class RejectInput:
+                    fallback_locale = "en"
+                    async def assemble(self, board, *, requested_inputs, **kwargs):
+                        assert requested_inputs
+                        current = store.load("tenant-target", "user-target", "conversation-target")
+                        assert current.pending_interaction is None
+                        assert current.pending_approval is None
+                        assert next(s for s in current.workstreams if s.workstream_id == pending.workstream_id).status is WorkstreamStatus.COMPLETED
+                        assert board.results[0].action_receipts[0].receipt_id == "cancel-receipt"
+                        return AssembledResponse("", ResponseAssemblyMode.TEMPLATE, (), False,
+                            "REJECT", "INVALID_INTERACTION", rejected_input_work_items=tuple(
+                                s.target_work_item_id for s in requested_inputs),
+                            interaction_feedback="The action already completed; no user choice remains.")
+                checkpoints = InMemorySaver(serde=target_checkpoint_serializer())
+                for _ in range(2):
+                    runtime = TurnRuntime(manager, RejectInput(), checkpointer=checkpoints)
+                    with pytest.raises(InteractionAssemblyUnavailable):
+                        await runtime.execute(_identity("approve"), TurnObservations(
+                            "Yes", approval_decision=True, approval_id=pending.approval_id))
+                assert len([call for call in calls if isinstance(call, tuple)]) == 1
+                assert model.calls == 4  # Two invalid questions, no endless repair on restart.
+                return
+            from application.turn_runtime import TurnRuntime
+            from application.response_assembly import ResponseAssembler
+            runtime = TurnRuntime(manager, ResponseAssembler(),
+                checkpointer=InMemorySaver(serde=target_checkpoint_serializer()))
+            second = (await runtime.execute(_identity("approve"), TurnObservations(
+                "No" if decision == "deny" else "Yes", approval_decision=decision != "deny",
+                approval_id=pending.approval_id))).managed
             assert second.state_after.pending_approval is None
             assert second.checkpoint_thread_id == first.checkpoint_thread_id
             if decision == "deny":

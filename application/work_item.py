@@ -97,6 +97,11 @@ class WorkItem:
     continuation_of: str | None = None
 
     def __post_init__(self) -> None:
+        # Checkpoint codecs accept JSON-style sequences; the immutable contract
+        # has one representation regardless of whether it was freshly compiled.
+        for name in ("allowed_tools", "allowed_skills", "arguments", "requirement_ids",
+                     "dependencies", "argument_bindings", "allowed_actions"):
+            object.__setattr__(self, name, tuple(getattr(self, name)))
         required = (
             self.work_item_id,
             self.owner_agent,
