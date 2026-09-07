@@ -87,7 +87,6 @@ class TurnRuntime:
         if board is None or any(
             result.status in {
                 AgentResultStatus.NEEDS_USER_INPUT,
-                AgentResultStatus.WAITING_APPROVAL,
                 AgentResultStatus.RECONCILING,
             }
             for result in board.results
@@ -105,6 +104,7 @@ class TurnRuntime:
             current_message=state["observations"].raw_text,
             system_notice=notice,
             conversation_context=conversation_context_payload(state["prepared"].context),
+            pending_approval=managed.state_after.pending_approval,
         )
         return {"assembled": assembled}
 

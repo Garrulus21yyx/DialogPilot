@@ -97,6 +97,16 @@ class PostgresTargetPublication:
     def __init__(self, response_delivery) -> None:
         self._delivery = response_delivery
 
+    def has_interaction(self, identity, *, signal_id, signal_version):
+        with self._delivery.pool.transaction() as connection:
+            return connection.execute("""
+                SELECT 1 FROM dialogpilot_app.response_deliveries
+                WHERE tenant_id=%s AND user_id=%s AND conversation_id=%s
+                  AND publication_kind='interaction_request'
+                  AND signal_id=%s AND signal_version=%s
+            """, (str(identity.tenant_id), str(identity.user_id), str(identity.conversation_id),
+                  signal_id, signal_version)).fetchone() is not None
+
     def completed(self, identity):
         completed = self._delivery.completed_for_invocation(
             identity.invocation_key,
@@ -134,6 +144,7 @@ class PostgresTargetPublication:
         challenge,
         resume_schema,
         expires_at,
+        expected_work_controls=(),
     ):
         now = datetime.now(timezone.utc).isoformat()
         result = self._delivery.publication.publish_interaction_request(
@@ -158,6 +169,7 @@ class PostgresTargetPublication:
                     if resume_schema.get("interaction_kind") == "FIELDS"
                     else ProjectionDisposition.APPROVAL
                 ),
+                expected_work_controls=tuple(expected_work_controls),
             )
         )
         return PublishedTargetResponse(

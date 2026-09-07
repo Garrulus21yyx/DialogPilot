@@ -99,6 +99,7 @@ class _Publication:
         challenge,
         resume_schema,
         expires_at,
+        expected_work_controls=(),
     ):
         key = str(identity.invocation_key)
         published = PublishedTargetResponse(f"interaction:{key}", 1, "selected")
@@ -110,6 +111,10 @@ class _Publication:
             published.response_id,
         )
         return published
+
+    def has_interaction(self, identity, *, signal_id, signal_version):
+        return any(isinstance(response, NeedsInput) and response.signal_id == signal_id
+                   for response in self.responses.values())
 
 
 class _MissingThenReadExecutor:

@@ -11,13 +11,14 @@ def fixture():
     return request, {'claim_checks': rows, 'question_checks':[{'question_quote':'问','status':'ANSWERED','answer_quotes':['甲。'],'reason':'test'}]}
 
 def test_all_label_combinations_aggregate_without_model_pass():
-    for labels in itertools.product(('SUPPORTED','CONTRADICTED','INSUFFICIENT'), repeat=2):
+    for labels in itertools.product(('SUPPORTED','CONTRADICTED','INSUFFICIENT','NON_FACTUAL'), repeat=2):
         req, out = fixture()
         for row, label in zip(out['claim_checks'],labels):
             row['verdict'] = label
             row['missing_evidence'] = ['缺少事实'] if label == 'INSUFFICIENT' else []
+            row['evidence_paths'] = [] if label == 'NON_FACTUAL' else ['/facts/status']
         result = assess(req,out)
-        assert result.all_supported == all(x == 'SUPPORTED' for x in labels)
+        assert result.all_supported == all(x in ('SUPPORTED', 'NON_FACTUAL') for x in labels)
 
 @pytest.mark.parametrize('mutation', [
     lambda o:o['claim_checks'].pop(),

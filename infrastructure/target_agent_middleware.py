@@ -61,12 +61,27 @@ class AgentProgressMiddleware(AgentMiddleware):
 
 
 class InteractionBoundaryMiddleware(AgentMiddleware):
-    """A bound interaction ends this segment before another model call."""
+    """User-input handback stops; a prepared action still permits an answer."""
+
+    def __init__(self, action_tools=()):
+        self.action_tools = frozenset(action_tools)
 
     @hook_config(can_jump_to=["model"])
     async def aafter_model(self, state, runtime):
         message = state["messages"][-1]
         calls = message.tool_calls if isinstance(message, AIMessage) else ()
+        proposals = [call for call in calls if call["name"] in self.action_tools]
+        history_size = len(runtime.context.working_messages) if self.action_tools else 0
+        prepared = any(isinstance(m, ToolMessage) and isinstance(m.artifact, dict)
+                       and m.artifact.get("result", {}).get("pending_action")
+                       for m in state["messages"][history_size:])
+        if len(proposals) > 1 or (prepared and any(
+                call["name"] in self.action_tools | {"request_user_input", "report_blocked"}
+                for call in calls)):
+            return {"messages": [ToolMessage(
+                content="No calls in this batch were executed. Only one prepared action is supported per segment. Continue read-only checks and answer the user's questions; describe the pending action as not executed. Do not request a separate confirmation or replace the prepared action.",
+                tool_call_id=call["id"], name=call["name"], status="error") for call in calls],
+                "jump_to": "model"}
         if len(calls) > 1 and any(call["name"] in {"request_user_input", "report_blocked"} for call in calls):
             return {"messages": [ToolMessage(
                 content="No tools in this batch were executed. Make one interaction call, or perform evidence calls first and ask afterwards.",
@@ -81,8 +96,8 @@ class InteractionBoundaryMiddleware(AgentMiddleware):
                 break
             artifact = message.artifact
             if (isinstance(artifact, dict) and artifact.get("schema") == "agent-result-v1"
-                    and (artifact.get("result", {}).get("status") in {"NEEDS_USER_INPUT", "WAITING_APPROVAL"}
-                         or artifact.get("result", {}).get("producer_version") in {"action-preparation-v1", "domain-interaction-v1"})):
+                    and (artifact.get("result", {}).get("status") == "NEEDS_USER_INPUT"
+                         or artifact.get("result", {}).get("producer_version") == "domain-interaction-v1")):
                 return {"jump_to": "end"}
         return None
 

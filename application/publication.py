@@ -81,6 +81,7 @@ class InteractionRequestCommand:
     created_at: str
     policy: PublicationPolicy
     projection_disposition: ProjectionDisposition = ProjectionDisposition.APPROVAL
+    expected_work_controls: tuple[WorkControlBinding, ...] = ()
 
 
 @dataclass(frozen=True)

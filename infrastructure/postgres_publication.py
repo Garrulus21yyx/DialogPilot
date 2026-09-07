@@ -109,7 +109,7 @@ class PostgresPublicationService:
                 """, (str(command.invocation_key), *scope)).fetchone()
                 if invocation is None:
                     raise PublicationNotFoundError("invocation scope does not exist")
-            if isinstance(command, FinalResponseCommand):
+            if isinstance(command, (FinalResponseCommand, InteractionRequestCommand)):
                 self._assert_work_controls(connection, command)
 
             turn_key = _stable_id("publication-turn", publication_id)
@@ -220,7 +220,7 @@ class PostgresPublicationService:
             return PublicationResult(PublicationApplyStatus.APPLIED, self._record(row))
 
     @staticmethod
-    def _assert_work_controls(connection, command: FinalResponseCommand) -> None:
+    def _assert_work_controls(connection, command: FinalResponseCommand | InteractionRequestCommand) -> None:
         """Validate the target revision while holding the conversation row lock."""
         if not command.expected_work_controls:
             return

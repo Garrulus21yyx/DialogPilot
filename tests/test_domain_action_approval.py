@@ -127,6 +127,7 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                 "id": "need-order"}])] if decision == "ask_first" else []),
             AIMessage(content="", tool_calls=[{"name": "order_cancel",
                 "args": {"order_id": "DP1234"}, "id": "cancel-proposal"}]),
+            AIMessage(content="Order DP1234 has not been cancelled. Shall I cancel it?"),
             *([AIMessage(content="", tool_calls=[{"name": "request_user_input",
                 "args": {"question": "Which part would you like explained?"}, "id": "clarify"}]),
                AIMessage(content="The cancellation is still awaiting your decision.")]
@@ -161,7 +162,8 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
             pending = first.state_after.pending_approval
             assert pending is not None, first.board
             assert calls == ["read"]
-            assert model.calls == (2 if decision == "ask_first" else 1)
+            assert model.calls == (3 if decision == "ask_first" else 2)
+            assert first.board.results[0].candidate_response == "Order DP1234 has not been cancelled. Shall I cancel it?"
             restored = conversation_state_from_payload(conversation_state_to_payload(first.state_after))
             assert restored == first.state_after
             assert pending.suspended_work_items[0].allowed_actions == (action.ref,)
@@ -195,13 +197,13 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
             assert second.checkpoint_thread_id == first.checkpoint_thread_id
             if decision == "deny":
                 assert calls == ["read"]
-                assert model.calls == 1
+                assert model.calls == 2
                 return
             assert len([call for call in calls if isinstance(call, tuple)]) == 1, [
                 (result.status.value, result.reason_code) for result in second.board.results]
             assert second.board.results[0].action_receipts[0].receipt_id == "cancel-receipt"
-            assert model.calls == (4 if decision == "clarify_during_approval" else
-                                   3 if decision == "ask_first" else 2)
+            assert model.calls == (5 if decision == "clarify_during_approval" else
+                                   4 if decision == "ask_first" else 3)
         finally:
             pool.close()
     asyncio.run(run())

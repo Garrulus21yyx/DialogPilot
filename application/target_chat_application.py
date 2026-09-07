@@ -57,6 +57,8 @@ class TargetAdmissionPort(Protocol):
 
 
 class TargetPublicationPort(Protocol):
+    def has_interaction(self, identity: InvocationIdentity, *, signal_id: str, signal_version: int) -> bool: ...
+
     def completed(
         self,
         identity: InvocationIdentity,
@@ -83,6 +85,7 @@ class TargetPublicationPort(Protocol):
         challenge: str,
         resume_schema: Mapping[str, object],
         expires_at: str,
+        expected_work_controls: tuple[WorkControlBinding, ...] = (),
     ) -> PublishedTargetResponse: ...
 
 
@@ -204,19 +207,22 @@ class TargetChatApplication:
             )
 
         pending = managed.state_after.pending_approval
-        if pending is not None and (
+        assembly = turn_result.assembled
+        if pending is not None and assembly is not None and (
+            assembly.approval_operation_key == pending.operation_key
+            and assembly.verified_text_sha256
+        ) and (
             managed.state_before.pending_approval is None
             or managed.state_before.pending_approval.approval_id != pending.approval_id
+            or not self._publication.has_interaction(identity,
+                signal_id=pending.approval_id, signal_version=pending.version)
         ):
             expires_at = pending.expires_at
             published = self._publication.publish_interaction(
                 identity,
                 signal_id=pending.approval_id,
                 signal_version=pending.version,
-                challenge=("请确认操作 " + pending.action_ref + "，参数："
-                           + json.dumps({item.name: item.value for item in pending.arguments},
-                                        ensure_ascii=False, sort_keys=True)
-                           + "。是否继续执行？"),
+                challenge=assembly.text,
                 resume_schema={
                     "type": "object",
                     "required": ["approval_id", "approved"],
@@ -226,6 +232,8 @@ class TargetChatApplication:
                     },
                 },
                 expires_at=expires_at,
+                expected_work_controls=tuple(
+                    item.control for item in pending.suspended_work_items if item.control),
             )
             return NeedsInput(
                 str(identity.workflow_run_id),

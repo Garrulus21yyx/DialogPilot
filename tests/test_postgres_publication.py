@@ -120,6 +120,16 @@ def _interaction(identity):
     )
 
 
+def test_interaction_uses_the_same_transactional_control_check(publication_components):
+    from application.work_item import WorkControlBinding
+    pool, identity, service, _ = publication_components
+    command = replace(_interaction(identity), expected_work_controls=(WorkControlBinding("missing", 1),))
+    with pytest.raises(PublicationConflictError, match="work control"):
+        service.publish_interaction_request(command)
+    with pool.transaction() as connection:
+        assert connection.execute("SELECT count(*) FROM dialogpilot_app.response_deliveries").fetchone()[0] == 0
+
+
 def _human(identity):
     return HumanReplyCommand(
         tenant_id=str(identity.tenant_id),

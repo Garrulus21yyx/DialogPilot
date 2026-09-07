@@ -2,6 +2,18 @@
 
 状态：review_in_progress；本文件记录诊断与实施合同，不代表实现或验收完成。
 
+## 审批与本轮回答的职责收敛
+
+2026-09-07 implemented / verification_open。开发轨迹证明两个共享机制：action-preparation artifact 被当作模型循环终点；WAITING_APPROVAL 又绕过回复组织，由应用序列化参数替代回答。框架没有要求这种耦合。
+
+正向合同：准备动作只生成未执行的、参数精确绑定的提案；领域模型继续只读工作并形成正常候选。一个执行片段支持一个待审批动作，重复/额外提案通过工具反馈处理。有效提案不会因后续表达失败消失。回复组织和核验使用原始事实、待执行动作和用户问题，审批展示只接受核验后的文本；授权仍消费持久的动作绑定，不解析自然语言重建参数。纯询问/礼貌语与包含事实的确认说明在核验合同中区分。
+
+沿链检查：框架 middleware / artifact 适配 → ResultBoard → 审批绑定 → TurnRuntime → compose/verify → Publication → 信号消费与原 checkpoint 恢复。复用 create_agent、既有业务审批和回复核验，不新增状态机、通用消息引擎或商品规则。
+
+验收包括提案后继续读取、普通问答完整性、提案后模型失败、额外提案反馈、确认/拒绝恢复、过时信号、文本与动作绑定、核验失败不发布可批准请求。已有开发案例不能替代新样本或状态转换验证；链路其他缺口单独记录，未验证部分不宣布关闭。
+
+本轮最终定向组合：192 passed（含 PostgreSQL）。真实 τ³ 开发 task 0 在审批前因核验 invalid_contract 和规划输出无效停止，official_reward=null，不能宣布业务闭环。官方 Langfuse CLI 回读 11 条领域 generation；未证明 planner/composer/verifier 全链路观测。修改、消费者迁移与其余缺口见 [审批问答链路审查](../docs/approval-conversation-review-2026-09-07.md)。
+
 ## 本轮补齐：受阻交接与审批中问答
 
 2026-09-07 implemented / verification_open。新鲜开发运行未进入官方评分（reward=null），不能写成通过或业务闭环。根因是执行结果与会话交互生命周期断开：失败消息留在 checkpoint 却未交给主 Agent；审批期间其他线程的追问被追加到旧审批队列，且未创建 PendingInteraction。

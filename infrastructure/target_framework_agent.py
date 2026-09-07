@@ -109,7 +109,8 @@ class TargetFrameworkAgent:
             context_schema=AgentContextView,
             middleware=[
                 WorkControlMiddleware(self._control_guard),
-                InteractionBoundaryMiddleware(),
+                InteractionBoundaryMiddleware(tool_id for ref in item.allowed_actions
+                    for tool_id in self._registry.action(ref).allowed_tool_ids),
                 AgentProgressMiddleware(),
                 AgentContextMiddleware(self._context_budget),
                 ModelCallLimitMiddleware(thread_limit=item.max_steps, exit_behavior="error"),
@@ -181,10 +182,10 @@ class TargetFrameworkAgent:
                 for tool_id in item.allowed_tools
             },
         )
-        if output.get("progress_blocked"):
+        if output.get("progress_blocked") and result.pending_action is None:
             result = replace(result, status=AgentResultStatus.BLOCKED,
                 reason_code="AGENT_NO_PROGRESS", retryable=False, candidate_response=None)
-        if failure is not None:
+        if failure is not None and result.pending_action is None:
             result = replace(result, status=failure.status, reason_code=failure.reason_code,
                 retryable=failure.retryable, candidate_response=None, pending_action=None,
                 missing_inputs=())
@@ -260,7 +261,9 @@ class TargetFrameworkAgent:
 
         async def propose(runtime: ToolRuntime, **arguments):
             result = await preparation.prepare(runtime.context, action.ref, arguments, runtime.tool_call_id)
-            return result.reason_code, framework_artifact(result)
+            feedback = ("Action prepared, NOT executed. Continue any read-only checks needed to answer the user's remaining questions. In your final answer explain the proposed action and ask for approval in the user's language. The application binds that approval to the prepared parameters; do not call request_user_input merely to confirm, and do not resubmit the action."
+                        if result.pending_action else result.reason_code)
+            return feedback, framework_artifact(result)
 
         return StructuredTool.from_function(
             coroutine=propose, name=definition.name,
@@ -403,6 +406,7 @@ class TargetFrameworkAgent:
             "Complete only the supplied ecommerce objective. Select from the "
             "provided read-only tools, reusable skills and registered action proposals as needed. "
             "A write-tool selection proposes an action for approval, not a completed write. "
+            "Resolve missing choices before preparing an action. Once its arguments are known, use the action proposal directly rather than asking for a preliminary confirmation. Preparation does not end your turn: answer remaining questions using read-only evidence, explain limitations, and describe what approval would execute. Never claim that a proposal has already executed. "
             "Reply with normal concise text when ready. When information or a choice must come from the user, call request_user_input(question). When available capabilities cannot complete the objective, call report_blocked(reason). These calls end the current segment; do not also emit a final response or another action in the same batch. "
             "After a supplied receipt confirms an action, continue the remaining objective without submitting that action again. Tool and skill "
             "facts retain their original subjects and observation times. Reuse relevant completed checks; refresh time-sensitive state when requested or needed, and do not apply one object's results to a corrected object. "
@@ -537,7 +541,7 @@ def _adapt_framework_result(
         facts=facts,
         evidence_refs=evidence_refs,
         missing_inputs=missing_inputs,
-        candidate_response=(None if missing_inputs or pending else candidate_response or next(
+        candidate_response=(None if missing_inputs else candidate_response or next(
             (result.candidate_response for result in skill_results if result.candidate_response), None)),
         retryable=retryable,
         pending_action=pending[0] if len(pending) == 1 else None,

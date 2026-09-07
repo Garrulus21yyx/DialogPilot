@@ -40,11 +40,14 @@ class AssembledResponse:
     verification_status: str
     verification_reason: str
     verified_text_sha256: str = ""
+    approval_operation_key: str = ""
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "used_claim_ids", tuple(self.used_claim_ids))
         if self.verified_text_sha256 and self.verified_text_sha256 != hashlib.sha256(self.text.encode()).hexdigest():
             raise ValueError("answer text changed after verification")
+        if self.approval_operation_key and (not self.verified_text_sha256 or self.verification_status != "PASS"):
+            raise ValueError("approval presentation requires a verified answer")
 
 
 class ConversationComposer(Protocol):
@@ -75,14 +78,27 @@ class ResponseAssembler:
         self._knowledge_verifier = knowledge_verifier
         self._knowledge_source_validator = knowledge_source_validator
 
-    async def assemble(self, board, *, current_message: str, system_notice: str = "", conversation_context=None) -> AssembledResponse:
+    async def assemble(self, board, *, current_message: str, system_notice: str = "", conversation_context=None,
+                       pending_approval=None) -> AssembledResponse:
+        from dataclasses import replace
+        response = await self._assemble(board, current_message=current_message,
+            system_notice=system_notice, conversation_context=conversation_context, pending_approval=pending_approval)
+        pending = [r.pending_action for r in board.results if r.pending_action]
+        operation_key = pending_approval.operation_key if pending_approval else pending[0].operation_key if len(pending) == 1 else ""
+        if operation_key and response.verified_text_sha256:
+            response = replace(response, approval_operation_key=operation_key)
+        return response
+
+    async def _assemble(self, board, *, current_message: str, system_notice: str = "", conversation_context=None,
+                        pending_approval=None) -> AssembledResponse:
         from application.knowledge_tool_contract import evidence_items, evidence_id, model_evidence
         knowledge_facts = tuple(fact for result in board.results for fact in result.facts
                                 if fact.requirement_id == "knowledge.active_source")
         knowledge_failure = any(result.reason_code.startswith("KNOWLEDGE_")
                                 and result.status not in _SUCCESS for result in board.results)
         if not knowledge_facts and not knowledge_failure:
-            candidate = await self._assemble_candidate(board, current_message=current_message, conversation_context=conversation_context)
+            candidate = await self._assemble_candidate(board, current_message=current_message, conversation_context=conversation_context,
+                                                       pending_approval=pending_approval)
             if candidate.composer_used or candidate.mode is ResponseAssemblyMode.PASS_THROUGH:
                 try:
                     if self._knowledge_verifier is None:
@@ -91,7 +107,7 @@ class ResponseAssembler:
                     candidate = replace(candidate, text=system_notice + candidate.text)
                     candidate, verdict = await self._verify_with_revision(
                         board, current_message, candidate, conversation_context=conversation_context,
-                        system_notice=system_notice)
+                        system_notice=system_notice, pending_approval=pending_approval)
                     if not verdict.publishable or not verdict.grounded:
                         raise ValueError("composed business answer lacks support")
                     return AssembledResponse(candidate.text, candidate.mode,
@@ -120,7 +136,7 @@ class ResponseAssembler:
             # results. A business failure has no facts but still needs an outcome
             # in the answer; receipts and unresolved requirements do too.
             only_knowledge = (
-                not board.missing_requirement_ids and not board.conflict_keys
+                pending_approval is None and not board.missing_requirement_ids and not board.conflict_keys
                 and all(
                     result.status is AgentResultStatus.SUCCEEDED
                     and bool(result.facts) and not result.action_receipts
@@ -155,7 +171,8 @@ class ResponseAssembler:
                 ) for claim in generated.claims)
                 candidate = AssembledResponse(text, ResponseAssemblyMode.PASS_THROUGH, (), True, "PENDING", "KNOWLEDGE_DRAFT")
             else:
-                candidate = await self._assemble_candidate(board, current_message=current_message, conversation_context=conversation_context)
+                candidate = await self._assemble_candidate(board, current_message=current_message, conversation_context=conversation_context,
+                                                           pending_approval=pending_approval)
             from dataclasses import replace
             candidate = replace(candidate, text=system_notice + candidate.text)
             allowed = {evidence_id(cid) for cid in items}
@@ -166,6 +183,7 @@ class ResponseAssembler:
             candidate, verdict = await self._verify_with_revision(
                 board, current_message, candidate, conversation_context=conversation_context,
                 system_notice=system_notice,
+                pending_approval=pending_approval,
                 knowledge_evidence={"packs": [model_evidence(pack) for pack in packs], "allowed_evidence_ids": sorted(allowed)},
             )
             cited = set(re.findall(r"\[(E[a-zA-Z0-9]+)\]", candidate.text))
@@ -184,9 +202,9 @@ class ResponseAssembler:
 
     async def _verify_with_revision(self, board, message, candidate, *,
                                     knowledge_evidence=None, conversation_context=None,
-                                    system_notice=""):
+                                    system_notice="", pending_approval=None):
         verdict = await self._verify_support(board, message, candidate.text,
-            knowledge_evidence=knowledge_evidence, conversation_context=conversation_context)
+            knowledge_evidence=knowledge_evidence, conversation_context=conversation_context, pending_approval=pending_approval)
         if verdict.publishable or verdict.assessment is None or self._composer is None:
             return candidate, verdict
         from dataclasses import asdict, replace
@@ -198,21 +216,25 @@ class ResponseAssembler:
         # Recompose from the same original board only. This performs no business
         # tool execution and has exactly one repair attempt, never recursion.
         revised = await self._assemble_candidate(board, current_message=message,
-            conversation_context=conversation_context, repair_feedback=feedback)
+            conversation_context=conversation_context, repair_feedback=feedback, pending_approval=pending_approval)
         revised = replace(revised, text=system_notice + revised.text)
         revised_verdict = await self._verify_support(board, message, revised.text,
-            knowledge_evidence=knowledge_evidence, conversation_context=conversation_context)
+            knowledge_evidence=knowledge_evidence, conversation_context=conversation_context, pending_approval=pending_approval)
         return revised, revised_verdict
 
-    async def _verify_support(self, board, message, text, *, knowledge_evidence=None, conversation_context=None):
+    async def _verify_support(self, board, message, text, *, knowledge_evidence=None, conversation_context=None, pending_approval=None):
         # The injected verifier is shared by business and knowledge composition.
         # Original facts, receipts and outcomes are evidence; generated summaries
         # are not promoted into independent proof of their own wording.
         facts = [json.loads(fact.value_json) for result in board.results for fact in result.facts
                  if fact.requirement_id != "knowledge.active_source"]
         receipts = [claim.value for claim in _allowed_claims(board) if claim.kind == 'RECEIPT']
+        proposals = [claim.value for claim in _allowed_claims(board, pending_approval) if claim.kind == 'PENDING_ACTION']
+        if proposals:
+            message += "\n" + _APPROVAL_DESCRIPTION_REQUIREMENT
         inputs = dict(question=message, answer=text,
-            context=json.dumps({'facts': facts, 'receipts': receipts, 'user_context': conversation_context}, ensure_ascii=False),
+            context=json.dumps({'facts': facts, 'receipts': receipts, 'pending_actions': proposals,
+                                'user_context': conversation_context}, ensure_ascii=False),
             knowledge_evidence=knowledge_evidence,
             agent_outcomes=[{"status": result.status.value, "reason": result.reason_code,
                              "execution_feedback": _failure_feedback(result)}
@@ -222,6 +244,10 @@ class ResponseAssembler:
             knowledge_evidence=inputs['knowledge_evidence'], agent_outcomes=inputs['agent_outcomes'])
         if not verdict.matches_request(**inputs):
             raise ValueError("verification does not match final answer and evidence")
+        if proposals and (verdict.assessment is None or not any(
+                need.question_quote == _APPROVAL_DESCRIPTION_REQUIREMENT and need.status == "ANSWERED"
+                for need in verdict.assessment.needs)):
+            raise ValueError("approval terms and question were not verified as answered")
         return verdict
 
     @staticmethod
@@ -250,10 +276,10 @@ class ResponseAssembler:
                                  "PASS", "KNOWLEDGE_SAFE_ABSTENTION")
 
     async def _assemble_candidate(
-        self, board, *, current_message: str, system_notice: str = "", conversation_context=None, repair_feedback=None,
+        self, board, *, current_message: str, system_notice: str = "", conversation_context=None, repair_feedback=None, pending_approval=None,
     ) -> AssembledResponse:
-        claims = _allowed_claims(board)
-        mode = ResponseAssemblyMode.CONVERSATION_COMPOSE if repair_feedback is not None else self._select_mode(board)
+        claims = _allowed_claims(board, pending_approval)
+        mode = ResponseAssemblyMode.CONVERSATION_COMPOSE if repair_feedback is not None or pending_approval else self._select_mode(board)
         if mode is ResponseAssemblyMode.PASS_THROUGH:
             result = board.results[0]
             return AssembledResponse(
@@ -294,6 +320,9 @@ class ResponseAssembler:
             ],
             "missing_requirement_ids": list(board.missing_requirement_ids),
             "partial_delivery_allowed": board.partial_delivery_allowed,
+            "response_requirements": ([_APPROVAL_DESCRIPTION_REQUIREMENT,
+                "Use the user's language. Internal tool names, operation keys and raw parameter JSON are not customer explanations. Use supplied facts to explain item references; do not invent names, prices, fees or return instructions."]
+                if any(c.kind == "PENDING_ACTION" for c in claims) else []),
         }
         if repair_feedback is not None:
             payload["repair_feedback"] = repair_feedback
@@ -336,7 +365,7 @@ class ResponseAssembler:
         notices, attributed = [], list(used)
         for outcome in outcomes:
             status = AgentResultStatus(outcome["status"])
-            if status is AgentResultStatus.SUCCEEDED:
+            if status in {AgentResultStatus.SUCCEEDED, AgentResultStatus.WAITING_APPROVAL}:
                 continue
             claim_id = "outcome:" + outcome["work_item_id"]
             if claim_id not in known:
@@ -355,6 +384,8 @@ class ResponseAssembler:
 
     @staticmethod
     def _select_mode(board) -> ResponseAssemblyMode:
+        if any(result.pending_action for result in board.results):
+            return ResponseAssemblyMode.CONVERSATION_COMPOSE
         if len(board.results) == 1:
             result = board.results[0]
             if result.action_receipts:
@@ -404,9 +435,22 @@ def _failure_feedback(result):
     return failure_feedback(result) if result.status not in _SUCCESS else []
 
 
-def _allowed_claims(board) -> tuple[AllowedClaim, ...]:
+def _allowed_claims(board, pending_approval=None) -> tuple[AllowedClaim, ...]:
     claims = []
+    if pending_approval:
+        claims.append(AllowedClaim("proposal:" + pending_approval.work_item_id, "PENDING_ACTION",
+            {"action_ref": pending_approval.action_ref,
+             "arguments": {arg.name: arg.value for arg in pending_approval.arguments},
+             "effect_status": "NOT_EXECUTED"}, ()))
     for result in board.results:
+        if result.pending_action and pending_approval is None:
+            action = result.pending_action
+            claims.append(AllowedClaim(
+                f"proposal:{result.work_item_id}", "PENDING_ACTION",
+                {"action_ref": action.action_ref, "objective": action.objective,
+                 "arguments": {arg.name: arg.value for arg in action.arguments},
+                 "effect_status": "NOT_EXECUTED"}, (),
+            ))
         from application.agent_result import FactSourceKind
         controlled_refund = any(f.requirement_id == "refund.current_state"
             and f.source_kind is FactSourceKind.VERIFIED_STATE for f in result.facts)
@@ -445,6 +489,12 @@ def _allowed_claims(board) -> tuple[AllowedClaim, ...]:
                 (receipt.receipt_id,),
             ))
     return tuple(claims)
+
+
+_APPROVAL_DESCRIPTION_REQUIREMENT = (
+    "Approval description: explain the pending action's target, material changes and payment terms, "
+    "state that it has not executed, and ask for approval."
+)
 
 
 def _render_board(board) -> str:

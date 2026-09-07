@@ -98,7 +98,7 @@ def test_multi_result_composition_receives_only_claims_and_outcomes():
     assert set(composer.calls[0]) == {
         "schema_version", "current_message", "conversation_context", "allowed_claims", "support_catalog",
         "work_item_outcomes", "missing_requirement_ids",
-        "partial_delivery_allowed",
+        "partial_delivery_allowed", "response_requirements",
     }
 
 
