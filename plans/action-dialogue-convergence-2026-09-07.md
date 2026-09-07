@@ -1,6 +1,6 @@
 # Prepared action dialogue and completion convergence
 
-Status: owner-level changes implemented; verification in progress, not closed. Repeated-reopen protocol active: approval/question duplication and post-write completion have repeatedly resurfaced. This is a bounded architecture-first review, not another task-specific patch.
+Status: owner-level changes implemented; original two regression tasks verified, broader interaction convergence partially verified and not closed. Repeated-reopen protocol active: approval/question duplication and post-write completion have repeatedly resurfaced. This is a bounded architecture-first review, not another task-specific patch.
 
 ## Observed witnesses
 
@@ -49,3 +49,5 @@ First fresh verification at 0256231 did not close the task. See `artifacts/eval/
 Second verification at aa39569: both ENV=1 and internal completion true, but both mixed missing-input questions still reconfirm the known target. Remaining contract gap: hint prose was treated as mandatory input meaning by the composer/verifier. Scope-preserving input hints must express only genuine gaps; public wording and verification use the actual unresolved choice rather than copying redundant permission. Existing model calls now get the current interaction purpose, with ordinary choices/real ambiguity distinguished from execution approval. No extra model, keyword classifier, output envelope or runtime is introduced. Pure permission-only input is not silently consumed by dropping its question. Candidate component results still include a false rejection of adequate approval wording, explicitly retained in the v2 report; no closure assertion.
 
 Latest full scoped PostgreSQL suite: 215 passed, nine existing warnings. Reply/verifier-focused suite after wording changes: 145 passed. These scripted tests validate interfaces/revision mechanics, not semantic model accuracy. Final end-to-end run will use the frozen candidate and retain every attempt.
+
+Third frozen E2E run at d8458f8: both ENV=1, single formal approval and write, truthful final reply, SUCCEEDED/SUCCEEDED and task_completed=true. Full evidence in `artifacts/eval/tau3-action-dialogue-dev2-2026-09-07-v3/REPORT.md`. Scope remains partial rather than closed: component approval-verifier false positives and recovery from a pure-permission invalid pending input remain unresolved. No more prompt-only counterexample iterations are counted as closure. Dependent claims of complete dialogue convergence remain blocked by those explicit acceptance gaps; original two regression outcomes are reported separately.
