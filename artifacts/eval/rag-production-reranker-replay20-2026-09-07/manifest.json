@@ -1,0 +1,76 @@
+{
+  "replay_from": "artifacts/eval/rag-production-reranker-pair20-2026-09-07",
+  "scope": "Fixed development queries through the real knowledge tool, PG and packer.\n\nNo planning or answer generation. Provider-free arms run first; optional Flash\nlistwise uses the same candidate budget and the same frozen queries.\n",
+  "dataset": {
+    "case_count": 300,
+    "cases_sha256": "f0e282d4e6b0594dfc98267322bd865e846b4cc00dbbe8d534d2e6ebc6ec6363",
+    "corpus_sha256": "89a8828b798c97946e6d150851fe046692f1c8c58e1795648223345a5d526281",
+    "dataset_id": "doc2dial-rag-mini-dev-v1",
+    "document_count": 100,
+    "schema_version": 1,
+    "source": {
+      "dataset": "Doc2Dial v1.0.1",
+      "license": "CC-BY-3.0",
+      "selection": "deterministic domain-balanced prefix plus distractors",
+      "url": "https://doc2dial.github.io/file/doc2dial_v1.0.1.zip"
+    }
+  },
+  "query_sha256": "25b2deb575c0a51810ed7c9ecc147eff542eb0bcb7545d47c0ba4b7b0a695b64",
+  "query_provenance": "previously exposed assistant-authored development diagnostic; not blind gold",
+  "generation": {
+    "generation_id": "knowledge-generation-924a272722ccedf590be999ae752d5b5",
+    "corpus": "KNOWLEDGE",
+    "backend_id": "POSTGRES_PG_BM25_ZH_V1",
+    "backend_fingerprint": "POSTGRES_PGVECTOR_PG_BM25_ZH_V1",
+    "schema_version": "retrieval-v1",
+    "source_watermark": "6d60731d5cc53d8f579bdb0e1a02f84f017a6564db12a0ed260a7bdc9e298d63",
+    "embedding_model": "BAAI/bge-m3",
+    "embedding_dimension": 1024,
+    "embedding_model_digest": "b5e0ce3470abf5ef3831aa1bd5553b486803e83251590ab7ff35a117cf6aad38",
+    "distance_metric": "COSINE",
+    "vector_extension_version": "0.8.6",
+    "index_method": "HNSW",
+    "index_params_json": "{\"ef_construction\":64,\"m\":16}",
+    "chinese_tokenizer": "ascii-cjk-unigram-bigram-v1",
+    "lexical_ranker": "PG_BM25_ZH_V1",
+    "manifest_hash": "dfef92bd0a8be48b181227b1c8160cbafd6378627655d5c32ad3d14e799625be",
+    "state": "ACTIVE",
+    "embedding_provider": "dialogpilot-sentence-transformers-5.7.0-local-bge-m3-v1",
+    "embedding_provider_kind": "MODEL",
+    "embedding_model_version": "5617a9f61b028005a4858fdac845db406aefb181",
+    "embedding_document_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1",
+    "embedding_query_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1"
+  },
+  "local_reranker": {
+    "runtime": {
+      "torch": "2.13.0",
+      "transformers": "4.46.3"
+    },
+    "batch_size": 4,
+    "implementation": "local-knowledge-ce-v1",
+    "artifacts": {
+      "config.json": "13dcd6c31d9fec9d1d8e158702072f62d7fa7d312a64b9fe057bec9a08cfe41a",
+      "model.safetensors": "d9e3e081faff1eefb84019509b2f5558fd74c1a05a2c7db22f74174fcedb5286",
+      "tokenizer.json": "69564b696052886ed0ac63fa393e928384e0f8caada38c1f4864a9bfbf379c15",
+      "tokenizer_config.json": "7e4c1cc848840aeccdd763458c18dd525eb0f795c992e00ebe9c28554e7db2d4",
+      "special_tokens_map.json": "8c785abebea9ae3257b61681b4e6fd8365ceafde980c21970d001e834cf10835",
+      "sentencepiece.bpe.model": "cfc8146abe2a0488e9e2a0c56de7952f7c11ab059eca145a0a727afce0db2865"
+    },
+    "preprocessing": "child-retrieval-title-content-v1-no-truncation",
+    "max_tokens": 8192,
+    "dtype": "float16",
+    "tie_break": "input-order"
+  },
+  "budget": {
+    "per_route": 20,
+    "candidate": 20,
+    "max_chunks": 5,
+    "context_tokens": 2600
+  },
+  "api_limit": 0,
+  "not_run": [
+    "conversation planning",
+    "generation",
+    "heldout"
+  ]
+}

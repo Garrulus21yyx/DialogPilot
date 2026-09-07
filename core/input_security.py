@@ -84,8 +84,17 @@ class PromptInjectionGuard:
             ),
         ),
         "authorization_spoofing": (
+            # "claim" is also a business noun ("your claim was approved").
+            # Require a verbal complement before treating it as an instruction
+            # to assert authority; passive application-status clauses are data.
             re.compile(
-                r"\b(?:pretend|assume|claim|mark|treat)\b.{0,40}"
+                r"\bclaim\s+(?:(?:falsely|incorrectly)\s+)?"
+                r"(?:(?:that\s+)?(?:you|I|we|they|he|she|it|the\s+(?:user|customer|administrator|admin|operator|refund|request|action|tool|transaction))\b|to\s+(?:be|have)\b)"
+                r".{0,48}\b(?:approved|authorized|administrator|admin|permission)\b",
+                re.IGNORECASE | re.DOTALL,
+            ),
+            re.compile(
+                r"\b(?:pretend|assume|mark|treat)\b.{0,40}"
                 r"\b(?:approved|authorized|administrator|admin|permission)\b",
                 re.IGNORECASE | re.DOTALL,
             ),

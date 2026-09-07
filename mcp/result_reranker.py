@@ -1,6 +1,7 @@
 """Listwise retrieval reranking through a typed PydanticAI boundary."""
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import math
@@ -80,6 +81,12 @@ class ResultReranker:
             )
             structured_agent.output_validator(self._validate_output)
         self._structured_agent = structured_agent
+
+    @property
+    def version(self) -> str:
+        """Prompt and configured model jointly own the reranking cache identity."""
+        profile = json.dumps(self._model_profile.to_dict(), sort_keys=True)
+        return RERANK_PROMPT_VERSION + ":" + hashlib.sha256(profile.encode()).hexdigest()
 
     async def rerank(
         self,

@@ -462,7 +462,7 @@ async def lifespan(app: FastAPI):
     import redis
     from infrastructure.knowledge_retriever_adapters import (
         ToolManagerQueryTransformerAdapter,
-        ToolManagerRerankerAdapter,
+        configured_knowledge_reranker,
     )
     from infrastructure.postgres_knowledge_retriever import (
         PostgresKnowledgeCandidateSource,
@@ -487,7 +487,7 @@ async def lifespan(app: FastAPI):
     _knowledge_retriever = KnowledgeRetriever(
         candidate_source=knowledge_candidate_source,
         transformer=ToolManagerQueryTransformerAdapter(_tool_manager),
-        reranker=ToolManagerRerankerAdapter(_tool_manager),
+        reranker=configured_knowledge_reranker(_tool_manager, os.environ),
         packer=_rag_context_packer,
         cache=RedisRetrievalCache(_retrieval_cache_client),
         evidence_validator=PostgresKnowledgeEvidenceValidator(
@@ -2514,7 +2514,7 @@ def _knowledge_policy(
         embedding_version=(
             generation.embedding_profile.fingerprint
         ),
-        reranker_version=RERANK_PROMPT_VERSION,
+        reranker_version=getattr(_knowledge_retriever, "reranker_version", None) or RERANK_PROMPT_VERSION,
         packer_version=CONTEXT_PACKER_VERSION,
         raw_query_weight=float(policy["raw_query_weight"]),
         standalone_query_weight=float(policy["standalone_query_weight"]),

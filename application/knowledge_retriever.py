@@ -459,8 +459,14 @@ class KnowledgeRetriever:
         self._cache = cache
         self._evidence_validator = evidence_validator
 
+    @property
+    def reranker_version(self):
+        return getattr(self._reranker, "version", None)
+
     async def retrieve(self, request: KnowledgeRetrievalRequest) -> EvidencePackResult:
         policy = request.policy
+        if self.reranker_version and policy.reranker_version != self.reranker_version:
+            return EvidencePackResult(RetrievalStatus.INVALID_CONTRACT, None, None, "RERANKER_IDENTITY_MISMATCH")
         cache_hits: list[str] = []
         transform_key = RetrievalCacheKeyBuilder.transform(request)
         transformed = self._cache_get(transform_key, request)

@@ -34,7 +34,7 @@ from infrastructure.bge_m3_embedding import BGEM3EmbeddingConfig, LocalBGEM3Embe
 from infrastructure.hybrid_retrieval_backend import PostgresHybridBackend
 from infrastructure.retrieval_postgres import RetrievalPostgresPool, RetrievalPoolConfig, PostgresRetrievalGenerationRegistry
 from infrastructure.postgres_knowledge_retriever import PostgresKnowledgeCandidateSource, PostgresKnowledgeEvidenceValidator
-from infrastructure.knowledge_retriever_adapters import ToolManagerRerankerAdapter
+from infrastructure.knowledge_retriever_adapters import configured_knowledge_reranker
 from application.knowledge_retriever import KnowledgeRetriever
 from application.cost_budget_policy import OFFLINE_KNOWLEDGE_INGEST_BUDGET
 from mcp.source_document import SourceDocument
@@ -155,7 +155,7 @@ async def evaluate(args, database_url):
         )
         async with AsyncAnthropic(**options) as transport:
             client = CaptureClient(transport, limit=0 if args.candidate_scope_probe else args.max_api_calls)
-            reranker = ToolManagerRerankerAdapter(SimpleNamespace(_result_reranker=ResultReranker(client, policy.profile(ModelRole.RERANK))))
+            reranker = configured_knowledge_reranker(SimpleNamespace(_result_reranker=ResultReranker(client, policy.profile(ModelRole.RERANK))), values)
             api._knowledge_store, api._postgres_pool = store, platform
             api._knowledge_retriever = KnowledgeRetriever(
                 candidate_source=source, transformer=QueryTransformer(client, policy.profile(ModelRole.REWRITE)),
@@ -178,7 +178,8 @@ async def evaluate(args, database_url):
             (args.output/'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2, default=str)+'\n')
             if getattr(args, 'full_chain', False):
                 from evaluation.rag_full_chain_probe import run_full_chain
-                await run_full_chain(database_url=database_url,platform=platform,store=store,client=client,policy=policy,provider_config=options,output=args.output,handler=api._knowledge_tool_handler)
+                from core.rag_policy import rag_retrieval_policy_from_env
+                await run_full_chain(retrieval_policy=rag_retrieval_policy_from_env(values), case_limit=getattr(args,"full_case_limit",None), reranker_version=reranker.version, database_url=database_url,platform=platform,store=store,client=client,policy=policy,provider_config=options,output=args.output,handler=api._knowledge_tool_handler)
                 return
             if args.mixed_business:
                 from evaluation.rag_mixed_business import run_mixed
@@ -241,6 +242,7 @@ def main():
     mode.add_argument('--mixed-business', action='store_true')
     mode.add_argument('--full-chain', action='store_true')
     mode.add_argument('--candidate-scope-probe', action='store_true', help='No inference: paired candidate retrieval with/without request applicability')
+    p.add_argument('--full-case-limit',type=int,choices=range(1,7))
     p.add_argument('--mixed-case-file',type=Path)
     p.add_argument('--max-api-calls',type=int,default=80)
     p.add_argument('--scenario', choices=('basic','applicability','ecommerce-full'), default='basic')

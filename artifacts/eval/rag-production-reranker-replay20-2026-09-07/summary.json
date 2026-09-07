@@ -1,0 +1,139 @@
+{
+  "api_calls": 0,
+  "arms": {
+    "fusion25": {
+      "cases": 20,
+      "candidate_complete": 19,
+      "top5_complete": 17,
+      "packed_complete": 17,
+      "visible_complete": 17,
+      "fallback": 0,
+      "mrr5": 0.6224999999999999,
+      "ndcg5_project": 0.6789694436225424,
+      "p50_ms": 194.5327576249838,
+      "p95_ms": 539.3359791487455
+    },
+    "fusion50": {
+      "cases": 20,
+      "candidate_complete": 19,
+      "top5_complete": 17,
+      "packed_complete": 17,
+      "visible_complete": 17,
+      "fallback": 0,
+      "mrr5": 0.61,
+      "ndcg5_project": 0.6689567838476392,
+      "p50_ms": 193.6260126531124,
+      "p95_ms": 327.6027347892523
+    },
+    "ce25": {
+      "cases": 20,
+      "candidate_complete": 19,
+      "top5_complete": 18,
+      "packed_complete": 18,
+      "visible_complete": 18,
+      "fallback": 0,
+      "mrr5": 0.6875,
+      "ndcg5_project": 0.7411732909393882,
+      "p50_ms": 203.70404422283173,
+      "p95_ms": 339.1059022396803
+    },
+    "ce50": {
+      "cases": 20,
+      "candidate_complete": 19,
+      "top5_complete": 18,
+      "packed_complete": 18,
+      "visible_complete": 18,
+      "fallback": 0,
+      "mrr5": 0.6875,
+      "ndcg5_project": 0.7411732909393882,
+      "p50_ms": 200.37143491208553,
+      "p95_ms": 322.88299314677715
+    },
+    "listwise25": {
+      "cases": 20,
+      "candidate_complete": 19,
+      "top5_complete": 19,
+      "packed_complete": 19,
+      "visible_complete": 19,
+      "fallback": 0,
+      "mrr5": 0.7474999999999999,
+      "ndcg5_project": 0.7974229559439696,
+      "p50_ms": 200.8861731737852,
+      "p95_ms": 331.16411976516247
+    }
+  },
+  "paired": {
+    "fusion25->fusion50": {
+      "candidate_complete": {
+        "rescues": 0,
+        "harms": 0
+      },
+      "top5_complete": {
+        "rescues": 0,
+        "harms": 0
+      },
+      "packed_complete": {
+        "rescues": 0,
+        "harms": 0
+      },
+      "visible_complete": {
+        "rescues": 0,
+        "harms": 0
+      }
+    },
+    "fusion50->ce50": {
+      "candidate_complete": {
+        "rescues": 0,
+        "harms": 0
+      },
+      "top5_complete": {
+        "rescues": 2,
+        "harms": 1
+      },
+      "packed_complete": {
+        "rescues": 2,
+        "harms": 1
+      },
+      "visible_complete": {
+        "rescues": 2,
+        "harms": 1
+      }
+    },
+    "ce25->ce50": {
+      "candidate_complete": {
+        "rescues": 0,
+        "harms": 0
+      },
+      "top5_complete": {
+        "rescues": 0,
+        "harms": 0
+      },
+      "packed_complete": {
+        "rescues": 0,
+        "harms": 0
+      },
+      "visible_complete": {
+        "rescues": 0,
+        "harms": 0
+      }
+    },
+    "listwise25->ce50": {
+      "candidate_complete": {
+        "rescues": 0,
+        "harms": 0
+      },
+      "top5_complete": {
+        "rescues": 0,
+        "harms": 1
+      },
+      "packed_complete": {
+        "rescues": 0,
+        "harms": 1
+      },
+      "visible_complete": {
+        "rescues": 0,
+        "harms": 1
+      }
+    }
+  }
+}
