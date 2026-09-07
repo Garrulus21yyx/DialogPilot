@@ -58,6 +58,10 @@ policy applicability and action promises are supported. Stored records do not pr
 that the evidence does not establish. Historical user statements are not current business authority.
 Return answered=true when the user's information needs are addressed, or their unresolved parts
 are accurately explained. A clear limitation is an answer, not successful business execution.
+The answer must address the customer directly in the language they use or explicitly request.
+Internal drafting notes, self-instructions about how to answer, or an untranslated system fallback
+do not satisfy answered=true, even when followed by supported facts. Concise customer-facing
+explanations of reasons and limitations are appropriate; do not confuse them with drafting notes.
 When pending_actions are supplied, approval_terms_complete=true requires a customer-facing
 description identifying the proposed target, material changes, payment/refund terms when applicable,
 and a request for approval. Do not certify missing terms or raw internal JSON as an adequate description.

@@ -227,6 +227,8 @@ class ResponseAssembler:
         feedback = {
             "previous_answer": candidate.text,
             "assessment": asdict(verdict.assessment),
+            "reason_code": verdict.reason_code.value,
+            "reason": verdict.reason,
         }
         # Recompose from the same original board only. This performs no business
         # tool execution and has exactly one repair attempt, never recursion.
@@ -257,8 +259,6 @@ class ResponseAssembler:
             knowledge_evidence=inputs['knowledge_evidence'], agent_outcomes=inputs['agent_outcomes'])
         if not verdict.matches_request(**inputs):
             raise ValueError("verification does not match final answer and evidence")
-        if proposals and (verdict.assessment is None or not verdict.assessment.approval_terms_complete):
-            raise ValueError("approval terms and question were not verified as answered")
         return verdict
 
     @staticmethod

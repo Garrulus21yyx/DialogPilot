@@ -2,6 +2,25 @@
 
 ## 当前主线：恢复原始 τ³ 两任务闭环
 
+### 本次续作：审批回复合同与参考项目对照
+
+- implemented：审批说明不足由 AnswerVerifier 输出可修订的 REJECT，不由 ResponseAssembler
+  抛异常绕过已有的一次修订；合法审批不放宽授权，核验失败仍不发布。
+- implemented / model_quality_pending：在既有回答质量判断中明确用户语言与面向用户表达，内部自述不算有效答复；
+  不增加正则删句、第二个审稿 Agent 或模型循环。
+- 意图对照：当前为上下文 LLM 规划＋轻量分类快速路径；截图为检索辅助 LLM 分类。
+  本次不接新意图层，不改成单 Agent，不把示例编号或批准状态导入当前用户事实。
+- 后续基于同数据同预算比较可选意图案例检索；工具健康治理和缓存收益另作有界实验，
+  不与当前审批/发布缺口捆绑改造。
+- 验证：核验/表达/合同 75 passed；审批交互/真实 PostgreSQL HTTP/Manager 53 passed。
+  包括所有 supported/answered/pending/terms 组合、一次修订及再次拒绝不放行。
+  本次未重新跑真实 τ³；不声称已解决模拟用户 STOP、重复确认或中文最终兜底。
+- 参考：四路线页面 https://garrulus21yyx.github.io/agent-systems-atlas/pages/intent-recognition-four-routes.html
+  与 LangChain 官方 multi-agent / human-in-the-loop 文档（2026-09-07 查阅）。
+  前者是截图整理的技术路线说明，不是优劣实验；后者支持按需组合而非每轮强制多 Agent。
+- 简化取舍：保留唯一上下文与语义入口、SDK 执行、业务审批和凭证；
+  统一审批拒绝的含义，复用已有修订路径；不增加微服务或新的语义分诊层。
+
 - in_progress：以 train 任务 0、1 和原 max_steps=80 / completion_budget=4096 重跑当前主链。
 - 上次 native-replies-v1 两条均为 ERROR（未成功发布），official_reward=null，不冒称官方评分零。
 - 验收：官方 ALL/ENV/ACTION 结果、实际调用与最终业务状态、跨轮追问续接、Publication。

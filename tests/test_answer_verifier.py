@@ -54,6 +54,17 @@ def test_truncated_checks_are_unknown():
     assert result.status is VerificationStatus.UNKNOWN and not result.publishable
 
 
+@pytest.mark.parametrize('pending,terms,supported,answered', itertools.product([False, True], repeat=4))
+def test_approval_readiness_is_part_of_the_single_verification_verdict(pending, terms, supported, answered):
+    result, _ = run(context={'pending_actions': [{'action': 'change'}] if pending else []},
+        mutation=lambda o: o.update(supported=supported, answered=answered,
+            approval_terms_complete=terms, issues=[] if supported and answered else ['Revise the answer']))
+    assert result.publishable is (supported and answered and (not pending or terms))
+    if pending and not terms and supported and answered:
+        assert result.reason_code is VerificationReasonCode.APPROVAL_REQUIRED
+        assert result.assessment is not None
+
+
 @pytest.mark.parametrize('invalid', [object(), float('nan'), {'bad': object()}])
 def test_invalid_input_snapshot_is_typed_without_calling_provider(invalid):
     verifier = AnswerVerifier(SimpleNamespace(), model_profile=ModelProfile('test'))

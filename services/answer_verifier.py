@@ -161,13 +161,19 @@ class AnswerVerifier:
             )
             supported = assessment.supported
             complete = assessment.answered
-            status = VerificationStatus.PASS if supported and complete else VerificationStatus.REJECT
-            reason_code = (VerificationReasonCode.PASSED if supported and complete else
-                           VerificationReasonCode.UNGROUNDED if not supported else VerificationReasonCode.INCOMPLETE)
+            approval_required = isinstance(context_data, dict) and bool(context_data.get("pending_actions"))
+            approval_complete = not approval_required or assessment.approval_terms_complete
+            status = VerificationStatus.PASS if supported and complete and approval_complete else VerificationStatus.REJECT
+            reason_code = (VerificationReasonCode.UNGROUNDED if not supported else
+                           VerificationReasonCode.INCOMPLETE if not complete else
+                           VerificationReasonCode.APPROVAL_REQUIRED if not approval_complete else
+                           VerificationReasonCode.PASSED)
             return VerificationResult(
                 status=status, grounded=supported,
                 need_escalation=status is not VerificationStatus.PASS,
-                reason="; ".join(assessment.issues) or "answer supported and request addressed",
+                reason="; ".join(assessment.issues) or (
+                    "approval description or confirmation question is incomplete" if not approval_complete else
+                    "answer supported and request addressed"),
                 reason_code=reason_code, assessment=assessment,
             )
         except Exception as exc:

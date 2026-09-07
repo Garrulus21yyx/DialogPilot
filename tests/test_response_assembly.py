@@ -1,4 +1,5 @@
 import asyncio
+import pytest
 
 from application.agent_result import (
     AgentResult,
@@ -60,6 +61,40 @@ class _Composer:
         from evaluation.legacy_composition_output import convert_valid_legacy_composition
         claims = [AllowedClaim(c['claim_id'], c['kind'], c['value'], tuple(c['source_refs'])) for c in payload['allowed_claims']]
         return convert_valid_legacy_composition(value, claims)
+
+
+@pytest.mark.parametrize('repaired', [False, True])
+def test_incomplete_approval_uses_one_existing_revision_and_rechecks(repaired):
+    from dataclasses import replace
+    from langchain_core.messages import AIMessage
+    from tests.framework_structured_stub import StructuredStub
+    from tests.test_write_workflow import _item
+    from services.answer_verifier import AnswerVerifier
+    from core.model_policy import ModelProfile
+    from application.response_assembly import AssembledResponse
+    outputs = [{'supported': True, 'answered': True, 'approval_terms_complete': complete,
+                'issues': [] if complete else ['Describe the action and request confirmation']}
+               for complete in [False, repaired]]
+    model = StructuredStub(responses=[AIMessage(content='', tool_calls=[{
+        'name': 'submit_claim_checks', 'id': f'check-{i}', 'args': {'result': value}}])
+        for i, value in enumerate(outputs)])
+    action = _item()
+    board = _board(replace(_result('proposal', action.owner_agent, AgentResultStatus.WAITING_APPROVAL),
+                           pending_action=action))
+    original = AssembledResponse('Ready.', ResponseAssemblyMode.PASS_THROUGH, (), False, 'PENDING', 'DRAFT')
+    feedback = []
+    class Assembler(ResponseAssembler):
+        async def _assemble_candidate(self, *args, **kwargs):
+            feedback.append(kwargs['repair_feedback'])
+            return replace(original, text='Please approve the described refund.')
+    assembler = Assembler(object(), knowledge_verifier=AnswerVerifier(model, model_profile=ModelProfile('test')))
+    candidate, verdict = asyncio.run(assembler._verify_with_revision(board, 'Refund it', original))
+    assert len(feedback) == 1
+    assert feedback[0]['reason_code'] == 'approval_required'
+    assert feedback[0]['assessment']['approval_terms_complete'] is False
+    assert candidate.text != original.text
+    assert verdict.publishable is repaired
+    assert board.results[0].pending_action == action
 
 
 def test_single_complete_candidate_passes_through_without_composer_call():
