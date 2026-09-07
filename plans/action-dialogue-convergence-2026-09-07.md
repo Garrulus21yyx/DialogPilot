@@ -77,3 +77,11 @@ Next milestones (not closed): (1) state/contract migration and property + Postgr
 - Remaining acceptance: final scoped suite, independent re-review, then fixed business E2E. No closed status inferred from test count or a single semantic replay.
 
 Final scoped suite after owner fixes: **277 passed**, PostgreSQL enabled, 12 existing trusted-context serialization warnings retained. Independent final scoped source review found no new concrete blocker; its local subset was 26 passed/3 database-skipped. Implementation is ready for original task 2–3 regression, not globally closed and not yet a ten-task report.
+
+### Original-task v4 falsifies global closure
+
+At 50c3201, task2 ENV=0/no return, task3 ENV=1/one modification but intermediate verifier error and extra confirmation. See `artifacts/eval/tau3-action-dialogue-dev2-2026-09-07-v4/REPORT.md`. Ten new tasks remain held, not started.
+
+Langfuse proves correct initial separation: count objective with proposals disabled; return objective with proposals enabled. Both same-owner workers instead acted on the full user message. Count emitted the return input tool; return emitted a plain question and was considered SUCCEEDED because requirements were empty. Only the count objective resumed. The response verifier receives result status and facts but not the assigned objective, so it cannot verify the question's goal binding or distinguish goal completion from natural model termination. Later `task_completed` covers the reduced current plan, not original unresolved work.
+
+Reopen protocol remains active: review the whole relevant goal authority surface before further production edits. Required positive contract must separate model/step termination, evidence coverage, objective fulfillment, and customer reply adequacy; preserve original unresolved objectives across resumes. No new return-specific branch, keyword-based grant, success coercion, or prompt-only closure. Existing input repair/progress commit work is retained as infrastructure, not evidence that the global defect is closed.

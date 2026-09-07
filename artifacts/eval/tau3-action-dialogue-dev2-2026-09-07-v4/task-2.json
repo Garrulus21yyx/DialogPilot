@@ -1,0 +1,844 @@
+{
+  "task_id": "2",
+  "official_reward": null,
+  "langfuse_session_id": "tau3-941e57e4dd4d471b9de3e1326fd62888",
+  "termination": "user_stop",
+  "simulation_status": "COMPLETED",
+  "evaluation_errors": {
+    "all": {
+      "stage": "evaluation",
+      "evaluation_type": "all",
+      "exception_chain": [
+        {
+          "type": "InternalServerError",
+          "frames": [
+            {
+              "file": "/home/yang/DialogPilot/scripts/run_tau3_full.py",
+              "line": 46,
+              "function": "score_simulation"
+            },
+            {
+              "file": "/home/yang/miniconda3/lib/python3.13/asyncio/threads.py",
+              "line": 25,
+              "function": "to_thread"
+            },
+            {
+              "file": "/home/yang/miniconda3/lib/python3.13/concurrent/futures/thread.py",
+              "line": 59,
+              "function": "run"
+            },
+            {
+              "file": "/tmp/tau3.asUlWc/src/tau2/evaluator/evaluator.py",
+              "line": 217,
+              "function": "evaluate_simulation"
+            },
+            {
+              "file": "/tmp/tau3.asUlWc/src/tau2/evaluator/evaluator_nl_assertions.py",
+              "line": 46,
+              "function": "calculate_reward"
+            },
+            {
+              "file": "/tmp/tau3.asUlWc/src/tau2/evaluator/evaluator_nl_assertions.py",
+              "line": 121,
+              "function": "evaluate_nl_assertions"
+            },
+            {
+              "file": "/tmp/tau3.asUlWc/src/tau2/utils/llm_utils.py",
+              "line": 418,
+              "function": "generate"
+            },
+            {
+              "file": "/tmp/tau3.asUlWc/src/tau2/utils/llm_utils.py",
+              "line": 409,
+              "function": "generate"
+            },
+            {
+              "file": "/tmp/dialogpilot-tau3-smoke-venv/lib/python3.13/site-packages/litellm/utils.py",
+              "line": 1720,
+              "function": "wrapper"
+            },
+            {
+              "file": "/tmp/dialogpilot-tau3-smoke-venv/lib/python3.13/site-packages/litellm/main.py",
+              "line": 4449,
+              "function": "completion_with_retries"
+            },
+            {
+              "file": "/tmp/dialogpilot-tau3-smoke-venv/lib/python3.13/site-packages/tenacity/__init__.py",
+              "line": 470,
+              "function": "__call__"
+            },
+            {
+              "file": "/tmp/dialogpilot-tau3-smoke-venv/lib/python3.13/site-packages/tenacity/__init__.py",
+              "line": 371,
+              "function": "iter"
+            },
+            {
+              "file": "/tmp/dialogpilot-tau3-smoke-venv/lib/python3.13/site-packages/tenacity/__init__.py",
+              "line": 413,
+              "function": "exc_check"
+            },
+            {
+              "file": "/tmp/dialogpilot-tau3-smoke-venv/lib/python3.13/site-packages/tenacity/__init__.py",
+              "line": 184,
+              "function": "reraise"
+            },
+            {
+              "file": "/home/yang/miniconda3/lib/python3.13/concurrent/futures/_base.py",
+              "line": 449,
+              "function": "result"
+            },
+            {
+              "file": "/home/yang/miniconda3/lib/python3.13/concurrent/futures/_base.py",
+              "line": 401,
+              "function": "__get_result"
+            },
+            {
+              "file": "/tmp/dialogpilot-tau3-smoke-venv/lib/python3.13/site-packages/tenacity/__init__.py",
+              "line": 473,
+              "function": "__call__"
+            },
+            {
+              "file": "/tmp/dialogpilot-tau3-smoke-venv/lib/python3.13/site-packages/litellm/utils.py",
+              "line": 1775,
+              "function": "wrapper"
+            },
+            {
+              "file": "/tmp/dialogpilot-tau3-smoke-venv/lib/python3.13/site-packages/litellm/utils.py",
+              "line": 1596,
+              "function": "wrapper"
+            },
+            {
+              "file": "/tmp/dialogpilot-tau3-smoke-venv/lib/python3.13/site-packages/litellm/main.py",
+              "line": 4411,
+              "function": "completion"
+            },
+            {
+              "file": "/tmp/dialogpilot-tau3-smoke-venv/lib/python3.13/site-packages/litellm/litellm_core_utils/exception_mapping_utils.py",
+              "line": 2456,
+              "function": "exception_type"
+            },
+            {
+              "file": "/tmp/dialogpilot-tau3-smoke-venv/lib/python3.13/site-packages/litellm/litellm_core_utils/exception_mapping_utils.py",
+              "line": 588,
+              "function": "exception_type"
+            }
+          ],
+          "status_code": 500
+        },
+        {
+          "type": "InternalServerError",
+          "frames": [
+            {
+              "file": "/tmp/dialogpilot-tau3-smoke-venv/lib/python3.13/site-packages/litellm/utils.py",
+              "line": 1596,
+              "function": "wrapper"
+            },
+            {
+              "file": "/tmp/dialogpilot-tau3-smoke-venv/lib/python3.13/site-packages/litellm/main.py",
+              "line": 4411,
+              "function": "completion"
+            },
+            {
+              "file": "/tmp/dialogpilot-tau3-smoke-venv/lib/python3.13/site-packages/litellm/litellm_core_utils/exception_mapping_utils.py",
+              "line": 2456,
+              "function": "exception_type"
+            },
+            {
+              "file": "/tmp/dialogpilot-tau3-smoke-venv/lib/python3.13/site-packages/litellm/litellm_core_utils/exception_mapping_utils.py",
+              "line": 588,
+              "function": "exception_type"
+            }
+          ],
+          "status_code": 500
+        },
+        {
+          "type": "OpenAIError",
+          "frames": [
+            {
+              "file": "/tmp/dialogpilot-tau3-smoke-venv/lib/python3.13/site-packages/litellm/main.py",
+              "line": 2698,
+              "function": "completion"
+            },
+            {
+              "file": "/tmp/dialogpilot-tau3-smoke-venv/lib/python3.13/site-packages/litellm/main.py",
+              "line": 2670,
+              "function": "completion"
+            },
+            {
+              "file": "/tmp/dialogpilot-tau3-smoke-venv/lib/python3.13/site-packages/litellm/llms/openai/openai.py",
+              "line": 862,
+              "function": "completion"
+            }
+          ],
+          "status_code": 500
+        },
+        {
+          "type": "OpenAIError",
+          "frames": [
+            {
+              "file": "/tmp/dialogpilot-tau3-smoke-venv/lib/python3.13/site-packages/litellm/llms/openai/openai.py",
+              "line": 851,
+              "function": "completion"
+            },
+            {
+              "file": "/tmp/dialogpilot-tau3-smoke-venv/lib/python3.13/site-packages/litellm/llms/openai/openai.py",
+              "line": 753,
+              "function": "completion"
+            },
+            {
+              "file": "/tmp/dialogpilot-tau3-smoke-venv/lib/python3.13/site-packages/litellm/llms/openai/openai.py",
+              "line": 396,
+              "function": "_get_openai_client"
+            },
+            {
+              "file": "/tmp/dialogpilot-tau3-smoke-venv/lib/python3.13/site-packages/openai/_client.py",
+              "line": 271,
+              "function": "__init__"
+            }
+          ],
+          "message": "Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable."
+        }
+      ]
+    }
+  },
+  "env": {
+    "reward": 0.0,
+    "db_check": {
+      "db_match": false,
+      "db_reward": 0.0
+    },
+    "env_assertions": [],
+    "action_checks": null,
+    "nl_assertions": null,
+    "communicate_checks": null,
+    "reward_basis": [
+      "DB",
+      "NL_ASSERTION"
+    ],
+    "reward_breakdown": {
+      "DB": 0.0
+    },
+    "info": null
+  },
+  "action": {
+    "reward": 0.0,
+    "db_check": null,
+    "env_assertions": null,
+    "action_checks": [
+      {
+        "action": {
+          "action_id": "2_0",
+          "requestor": "assistant",
+          "name": "find_user_id_by_name_zip",
+          "arguments": {
+            "first_name": "Yusuf",
+            "last_name": "Rossi",
+            "zip": "19122"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "2_1",
+          "requestor": "assistant",
+          "name": "get_product_details",
+          "arguments": {
+            "product_id": "6086499569"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": false,
+        "action_reward": 0.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "2_3",
+          "requestor": "assistant",
+          "name": "get_product_details",
+          "arguments": {
+            "product_id": "9523456873"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "2_4",
+          "requestor": "assistant",
+          "name": "get_user_details",
+          "arguments": {
+            "user_id": "yusuf_rossi_9620"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "2_5",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W6247578"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "2_6",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W9711842"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "2_7",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W4776164"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "2_8",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W6679257"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "2_9",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W2378156"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "2_10",
+          "requestor": "assistant",
+          "name": "get_product_details",
+          "arguments": {
+            "product_id": "9523456873"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "2_11",
+          "requestor": "assistant",
+          "name": "return_delivered_order_items",
+          "arguments": {
+            "order_id": "#W2378156",
+            "item_ids": [
+              "4602305039",
+              "4202497723",
+              "9408160950"
+            ],
+            "payment_method_id": "credit_card_9513926"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": false,
+        "action_reward": 0.0,
+        "tool_type": "write"
+      }
+    ],
+    "nl_assertions": null,
+    "communicate_checks": null,
+    "reward_basis": [
+      "DB"
+    ],
+    "reward_breakdown": {
+      "ACTION": 0.0
+    },
+    "info": null
+  },
+  "status": "EVALUATION_INCOMPLETE",
+  "simulator_diagnostics": {
+    "capture_complete": true,
+    "capture_errors": [],
+    "calls": [
+      {
+        "call_id": "ec3e4f7e-85ac-4965-a923-eb159eb2052c",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 59,
+            "prompt_tokens": 373,
+            "total_tokens": 432,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 59
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 256,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 256,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "ff6e5465-ffba-4cfa-b154-0c2a83bfabee",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 46,
+            "prompt_tokens": 491,
+            "total_tokens": 537,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 46
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 384,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 384,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "1b07f80e-ceaa-470e-b787-d4df8b700340",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 40,
+            "prompt_tokens": 625,
+            "total_tokens": 665,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 40
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 512,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 512,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "1bf6dffd-422c-4987-9e55-0ef7d19789e2",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 24,
+            "prompt_tokens": 746,
+            "total_tokens": 770,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 24
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 640,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 640,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      }
+    ]
+  },
+  "target_trace": [
+    {
+      "verification": {
+        "status": "pass",
+        "grounded": true,
+        "need_escalation": false,
+        "reason": "answer supported and request addressed",
+        "reason_code": "passed",
+        "assessment": {
+          "request_hash": "02dc2498150e8f68f9de6f0ac73beb8593731882a2f1d3fb11168817a50428d7",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": false,
+          "issues": [],
+          "rejected_input_work_items": []
+        },
+        "request_binding": "d82f5131c08b4dc459aa8596409c2c9bf44d3309aae0ccaee3a3732b81ba8301"
+      },
+      "candidate": "There are 12 t-shirt variants in total, and 10 are currently available in the online store.\n\nI can help with your return. To get started, could you please provide the email associated with your account, or your first name, last name, and zip code?"
+    },
+    {
+      "turn": 1,
+      "input": "Hi! I’m looking for a couple of things. First, I’d like to know exactly how many t-shirt options are currently available in your online store. Also, I need to return a cleaner, a headphone, and a smart watch. Can you help me with that?",
+      "outcome": {
+        "workflow_run_id": "workflow-run:v1:a7e8d783be3f6a80e74fb168b2ac9104b1bdc0e8dfb8047279ee347bead6b5cc",
+        "signal_id": "interaction:v1:94325997243b7cd1a7eccd8d64a9b631edb155f29c915920dd82fce8a9632bcb",
+        "kind": "FIELDS",
+        "expires_at": "2026-09-14T15:16:40.950062+00:00",
+        "interaction_publication_id": "publication:v1:01b0851ef13f426c5d51744f238e04ea94e784bb0c066407aaed075765b12a7a"
+      }
+    },
+    {
+      "verification": {
+        "status": "pass",
+        "grounded": true,
+        "need_escalation": false,
+        "reason": "answer supported and request addressed",
+        "reason_code": "passed",
+        "assessment": {
+          "request_hash": "05aa2d94d5326d1dd547eba6b46f521be873d0244396723a73589c09140f1416",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": false,
+          "issues": [],
+          "rejected_input_work_items": []
+        },
+        "request_binding": "de0b572c15e1e07cc2bae2c2219682724e897505ad8057ed659527c27022651d"
+      },
+      "candidate": "Yes, that's enough to get started. I found your account and located the items in order #W2378156: a Vacuum Cleaner ($561.05), Headphones ($342.81), and a Smart Watch ($381.26). The refund would go back to your original payment method (credit card ending in 2478). Can you confirm these are the correct items you'd like to return?"
+    },
+    {
+      "turn": 2,
+      "input": "Thanks for the info on the t-shirts! For the return, I don’t remember the email I used, but my name is Yusuf Rossi and my zip code is 19122. Is that enough to get started?",
+      "outcome": {
+        "workflow_run_id": "workflow-run:v1:c008dd79b96ef2bc1605e92bcc7aeef97b5cff14f0f85507ee8b186a2efb772d",
+        "signal_id": "interaction:v1:332479ac2206789553fc49e7ead278394dac1b72bd443be56f77f204ca23812d",
+        "kind": "FIELDS",
+        "expires_at": "2026-09-14T15:16:57.493746+00:00",
+        "interaction_publication_id": "publication:v1:3ba048eee88eaa2bbe3b978a03ddac2c69846dd128753d9dfe5c92dacabda29b"
+      }
+    },
+    {
+      "verification": {
+        "status": "reject",
+        "grounded": false,
+        "need_escalation": true,
+        "reason": "The answer claims it cannot execute the return or generate a label/schedule a pickup, but the evidence does not establish this limitation; no tool or policy detail in the supplied evidence supports that the return cannot be executed from this channel.; The answer directs the customer to contact support to complete the return, but the evidence does not show that an alternative support channel is required or that the return cannot be completed here; this is an unsupported factual claim about the process.; The answer does not address the user's actual question about next steps (label, pickup) with any supported information; it only asserts an unsupported limitation and defers to an unverified support channel.",
+        "reason_code": "ungrounded",
+        "assessment": {
+          "request_hash": "11c99c92deb7a961e35d0c93cfc521dbbef9fe20c75790de3ab688e9c301f530",
+          "supported": false,
+          "answered": false,
+          "approval_terms_complete": false,
+          "issues": [
+            "The answer claims it cannot execute the return or generate a label/schedule a pickup, but the evidence does not establish this limitation; no tool or policy detail in the supplied evidence supports that the return cannot be executed from this channel.",
+            "The answer directs the customer to contact support to complete the return, but the evidence does not show that an alternative support channel is required or that the return cannot be completed here; this is an unsupported factual claim about the process.",
+            "The answer does not address the user's actual question about next steps (label, pickup) with any supported information; it only asserts an unsupported limitation and defers to an unverified support channel."
+          ],
+          "rejected_input_work_items": []
+        },
+        "request_binding": "2f29989bc7eb5d68ddea191204f92929b63ea6ff833bb17d2fc56b1206c78242"
+      },
+      "candidate": "Thanks for confirming, Yusuf. I'm not able to execute the return from here, so I can't generate a label or schedule a pickup for you right now. I'd recommend contacting our support team directly to complete the return of the Vacuum Cleaner, Headphones, and Smart Watch from order #W2378156."
+    },
+    {
+      "verification": {
+        "status": "pass",
+        "grounded": true,
+        "need_escalation": false,
+        "reason": "answer supported and request addressed",
+        "reason_code": "passed",
+        "assessment": {
+          "request_hash": "43fd8ac54ad1259d7181d385da4d2f7619c80f5de9b3a90d2e82cb90fc96eb04",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": false,
+          "issues": [],
+          "rejected_input_work_items": []
+        },
+        "request_binding": "019c5f3fe4f8920486b33d2a53658cb345ad5e3a2d07aa64ab545fd85353ee2f"
+      },
+      "candidate": "Thanks for confirming, Yusuf. I don't have the return label or pickup details available in my current information, so I can't give you accurate next steps for printing a label or scheduling a pickup right now. I'd suggest checking your order #W2378156 in your account for the return instructions, or reaching out to our support team for the specific label and pickup options."
+    },
+    {
+      "turn": 3,
+      "input": "Yes, those are the correct items I want to return. Can you let me know what the next steps are? Do I need to do anything else, like print a label or schedule a pickup?",
+      "outcome": {
+        "response_id": "publication:v1:64e0644975faa5070d5fc8da82f514a2127a6c7df5a8d5b58972b0db083cc35c",
+        "response": {
+          "intent": "PENDING_INPUT_RESUMED",
+          "conv_id": "tau3-941e57e4dd4d471b9de3e1326fd62888",
+          "coverage": {
+            "complete": true,
+            "missing_requirement_ids": []
+          },
+          "grounded": true,
+          "response": "Thanks for confirming, Yusuf. I don't have the return label or pickup details available in my current information, so I can't give you accurate next steps for printing a label or scheduling a pickup right now. I'd suggest checking your order #W2378156 in your account for the return instructions, or reaching out to our support team for the specific label and pickup options.",
+          "verified": true,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:61367c8a97d6d0a8a7aa4fb02ae540b7d1f5d8e3fb548633519e94e67934e60e",
+            "work_item_ids": [
+              "work:1:resume-input-1"
+            ]
+          },
+          "ticket_id": null,
+          "agent_type": "retail",
+          "latency_ms": 19421.556212008,
+          "request_id": "turn-3",
+          "agent_types": [
+            "retail"
+          ],
+          "response_id": "publication:v1:64e0644975faa5070d5fc8da82f514a2127a6c7df5a8d5b58972b0db083cc35c",
+          "intent_group": "retail",
+          "response_seq": 3,
+          "primary_agent": "retail",
+          "ticket_status": null,
+          "agent_outcomes": [
+            {
+              "status": "SUCCEEDED",
+              "owner_agent": "retail",
+              "reason_code": "FRAMEWORK_AGENT_REQUIREMENTS_SATISFIED",
+              "work_item_id": "work:1:resume-input-1"
+            }
+          ],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "PENDING_INPUT_RESUMED",
+          "task_completed": true,
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 19421.556212008,
+              "work_item_count": 1,
+              "conversation_planner_invoked": false
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "task_completed": true,
+              "verifier_status": "PASS",
+              "coverage_complete": true,
+              "missing_requirement_ids": []
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "REPLY_PENDING_INPUT"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:61367c8a97d6d0a8a7aa4fb02ae540b7d1f5d8e3fb548633519e94e67934e60e",
+              "owner_ids": [
+                "retail"
+              ],
+              "route_mode": "AGENT_TASK",
+              "registry_fingerprint": "capability-bundle:v1:3b6d277e66dda28d864ed33af998551145d185fc79366a6bef1bfc46c0be4339",
+              "understanding_reason": "PENDING_INPUT_RESUMED"
+            },
+            "consumption": {
+              "facts": [
+                {
+                  "source_ref": "call_00_9UWkCcR2APpeZFG7kZCb8544",
+                  "producer_id": "list_all_product_types",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.list_all_product_types",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_plb8bb9QeSkZqyRNNx2M5942",
+                  "producer_id": "get_product_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_product_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_0ZkA2BV0JOwHzZB9Jfen3118",
+                  "producer_id": "find_user_id_by_name_zip",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.find_user_id_by_name_zip",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_dnAa9RDzKxxa8SXYIHxL5453",
+                  "producer_id": "get_user_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_user_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_MIfA9WSn9llOBcVgdlcQ3483",
+                  "producer_id": "get_order_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_order_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_01_hTQDnt3xYK1WXgRk5hk67284",
+                  "producer_id": "get_order_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_order_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_02_I2yzagj4xpECZPdaXVc38440",
+                  "producer_id": "get_order_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_order_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_03_tSFNHXycwpp433VtfTzZ4567",
+                  "producer_id": "get_order_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_order_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_04_FaycU8zdTOQwIdfF7vb16015",
+                  "producer_id": "get_order_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_order_details",
+                  "producer_version": "tool-output-v1"
+                }
+              ],
+              "work_items": [
+                {
+                  "owner_agent": "retail",
+                  "control_mode": "DELEGATED",
+                  "work_item_id": "work:1:resume-input-1",
+                  "allowed_tools": [
+                    "calculate",
+                    "find_user_id_by_name_zip",
+                    "find_user_id_by_email",
+                    "get_order_details",
+                    "get_product_details",
+                    "get_item_details",
+                    "get_user_details",
+                    "list_all_product_types",
+                    "transfer_to_human_agents"
+                  ],
+                  "allowed_skills": []
+                }
+              ],
+              "result_statuses": [
+                "SUCCEEDED"
+              ]
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 7,
+              "workstream_statuses": [],
+              "state_version_before": 5,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "ANSWER_SUPPORT_CHECKED",
+          "synthesis_status": "conversation_compose",
+          "supporting_agents": [],
+          "routing_disposition": "agent_task",
+          "synthesis_conflicts": [],
+          "verification_status": "pass",
+          "verification_reason_code": "ANSWER_SUPPORT_CHECKED"
+        },
+        "stages": []
+      }
+    }
+  ]
+}
