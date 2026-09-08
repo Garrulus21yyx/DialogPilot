@@ -1,0 +1,70 @@
+{
+  "scope": "synthetic ecommerce; production runtime/admission/coordinator/context/knowledge handler/PostgreSQL retrieval/LLM rerank/compose/verifier/publication; excludes HTTP authentication, external delivery, business writes",
+  "cases": [
+    {
+      "id": "ec-001-1",
+      "group_id": "ec-001",
+      "category": "policy",
+      "history": [],
+      "message": "折叠桌刚收到三天但已经组装，没质量问题，能无理由退吗？"
+    },
+    {
+      "id": "ec-016-2",
+      "group_id": "ec-016",
+      "category": "multiturn",
+      "history": [
+        [
+          "user",
+          "R28写着Wi-Fi 6，所以也能连6GHz吗？"
+        ],
+        [
+          "assistant",
+          "我会根据可查到的资料核对，暂时还没有确认结论。"
+        ]
+      ],
+      "message": "那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。"
+    },
+    {
+      "id": "ec-028-1",
+      "group_id": "ec-028",
+      "category": "product",
+      "history": [],
+      "message": "S31怎么校准，有什么需要注意？"
+    },
+    {
+      "id": "ec-041-1",
+      "group_id": "ec-041",
+      "category": "mixed",
+      "history": [],
+      "message": "查一下订单DP9540的状态，再说现在提出改址是否就算成功。不要操作。"
+    }
+  ],
+  "retrieval_policy": {
+    "top_k": 5,
+    "candidate_k": 20,
+    "context_max_tokens": 2600,
+    "rrf_k": 10,
+    "vector_weight": 0.5,
+    "lexical_weight": 0.5,
+    "raw_query_weight": 0.2,
+    "standalone_query_weight": 0.6,
+    "expansion_query_weight": 0.0,
+    "query_expansion_count": 0,
+    "metadata_hint_weight": 0.5
+  },
+  "reranker_version": "customer-support-listwise-v4-complete-evidence:7fddc3b741d5e6c9aa91b210f319ed3ec824ebc6ba4879dea2444fb2f3e6f544",
+  "source_sha256": {
+    "application/conversation_agent.py": "5ce4f9f635af957254d5bcf1e008ec3a864ec397e8c323446e87150945bccd68",
+    "application/knowledge_tool_contract.py": "de606eb6121a2f6e7a19912c53ff58484f5eb1a98c4dcf63de823b268c91df0e",
+    "application/knowledge_retriever.py": "544a6b5bdb79e5affb945dd21f961469ac610eb573fcd217a6475d5de0aa4b80",
+    "application/response_assembly.py": "97b1384b27f1bfffa44ace10e82fb542c117fed90293a2035ac6514f59cc50b9",
+    "infrastructure/target_conversation_provider.py": "8390b3b2ddf92d5852273edcebe2f80a5f45ca7c1f457fb6035c0c8cf2e13548",
+    "api/main.py": "a0edd6287f319bcb7537efc47dd92f7d2f0e03fcbe82ee673fc22189fe302ac9",
+    "infrastructure/postgres_knowledge_retriever.py": "4a1e200fbbd7b42a69f74fe30072bdbb4c5c268f1e7abd3caceec8303e6d4fb9",
+    "infrastructure/knowledge_applicability.py": "1793f9210000be135cc8b6025841cacc743dc89259f90532c51c8c8137124354",
+    "services/answer_verifier.py": "61383a234478fcfc59f05b7ea2e9bff25577df5d6e940ed6e25694f12010afee",
+    "services/claim_verification.py": "33bf5e4fbf1e0e817427be5b9304a8ae8339cfecf3b6db4627d7a81a4078de3a",
+    "evaluation/rag_full_chain_probe.py": "5194b2ce20593a02311ab982c94ad812ff93fea2ebceddb66a173f5c98bced2a"
+  },
+  "max_api_calls": 40
+}

@@ -1,0 +1,40 @@
+{
+  "version": "ecommerce-rag-v1",
+  "synthetic": true,
+  "n": 120,
+  "independent_rule_groups": 60,
+  "splits": {
+    "dev": {
+      "cases": 40,
+      "groups": 20
+    },
+    "heldout": {
+      "cases": 80,
+      "groups": 40
+    }
+  },
+  "category_families": {
+    "policy": 15,
+    "multiturn": 12,
+    "product": 13,
+    "mixed": 10,
+    "boundary": 10
+  },
+  "sealed_scope": "not used for tuning; author has seen authored cases; not external blind evaluation",
+  "limitations": [
+    "Two variants per rule; second turn is a contextual reference, not a separate independent scenario",
+    "Boundary cases here test textual policy ambiguity; no injected outage or actual metadata withdrawal yet",
+    "Gold spans mark supporting source, not minimal necessary evidence; complete-evidence metric requires finer annotation",
+    "Not human-approved gold; independent semantic review pending"
+  ],
+  "sha256": {
+    "rules.tsv": "ec971c12d138fb0257838dd804bf53e77f07d548795f1fa53ed38208bc498d48",
+    "corpus.json": "336a52d3615318614e61593fa3fdcae176f84fe566bf0286625e7d899e317e49",
+    "dev.inputs.json": "3d7818f4452bc5ff053965ea8236f99c37ba6ae0584abfe9cdc426ddfd2858e3",
+    "dev.gold.json": "613b91323aa928b3977a94616039a173b1e36f83183d8793d28701b39538ed87",
+    "dev.fixtures.json": "55b309bca95e5a98da3b8ce8c1c8a9e16f616947b3309313427cd7ba52ef23cb",
+    "heldout.inputs.json": "fba4bc2c8bb8b6e9d6d17d9cc5c8e16c9aa4c5db377d0eecd1e34642ba62043e",
+    "heldout.gold.json": "21f1bdc720dd81c004fbdae13df3d94d079da09bae46388d84536392cc338a15",
+    "heldout.fixtures.json": "327d832d3839858bcdd1739499d3526d6ddcbed734a6b5fd4844d38238e7841c"
+  }
+}

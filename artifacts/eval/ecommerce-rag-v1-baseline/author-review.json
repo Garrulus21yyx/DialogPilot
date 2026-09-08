@@ -1,0 +1,290 @@
+{
+  "n": 40,
+  "pass": 27,
+  "fail": 10,
+  "review_required": 3,
+  "confirmed_pass_rate": 0.675,
+  "not_final_business_score": true,
+  "rows": [
+    {
+      "id": "ec-001-1",
+      "answer_sha256": "adc0d587bb68790fda54cfa8baa04cd7f14ed4f987c9cd0b4880096e0d1dac2f",
+      "verdict": "PASS",
+      "reason": "所需规则/步骤/已知条件获得回答，未发现实质性无依据扩写",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-001-2",
+      "answer_sha256": "a27bd4ce86c0c916b9effc155f45247da6bd2f539b484537dbe7f68f82dc3e15",
+      "verdict": "PASS",
+      "reason": "所需规则/步骤/已知条件获得回答，未发现实质性无依据扩写",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-002-1",
+      "answer_sha256": "76b1ab24d6e0bfdf52a66c246973f2638c0039a61638622315d3912167c757d0",
+      "verdict": "PASS",
+      "reason": "所需规则/步骤/已知条件获得回答，未发现实质性无依据扩写",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-002-2",
+      "answer_sha256": "4fe3b29548ac2c3ec9fbfc4bc59a732eb4621dd29392f141200e14a0015c607d",
+      "verdict": "PASS",
+      "reason": "所需规则/步骤/已知条件获得回答，未发现实质性无依据扩写",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-003-1",
+      "answer_sha256": "d327dc82e3bf16324b6182204d3ee8a249e891660d327fe7a54150142b5902a7",
+      "verdict": "FAIL",
+      "reason": "答案降级，会员运费规则未回答",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-003-2",
+      "answer_sha256": "e234f430c0897ea79aa678c3728936ee9e966f2698ee95effd53769f72c17463",
+      "verdict": "PASS",
+      "reason": "所需规则/步骤/已知条件获得回答，未发现实质性无依据扩写",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-004-1",
+      "answer_sha256": "d38178a30eae48e4b77950dbccf4c891b92ed807fb2d771efab7b1df3abb0b99",
+      "verdict": "PASS",
+      "reason": "所需规则/步骤/已知条件获得回答，未发现实质性无依据扩写",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-004-2",
+      "answer_sha256": "73e3be27e36e2e9787d833c7de5a5654b79b546ce20fdc538137cdec730992e0",
+      "verdict": "PASS",
+      "reason": "所需规则/步骤/已知条件获得回答，未发现实质性无依据扩写",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-005-1",
+      "answer_sha256": "b2fd6dbc6dd8fd4132c8aebccda057522b931c91756773ebf4717bbbfee75c1d",
+      "verdict": "PASS",
+      "reason": "所需规则/步骤/已知条件获得回答，未发现实质性无依据扩写",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-005-2",
+      "answer_sha256": "2981be048bf7ced6fddab333cc74f61d8e291f5bc7ea1305216e726e415a85e7",
+      "verdict": "PASS",
+      "reason": "所需规则/步骤/已知条件获得回答，未发现实质性无依据扩写",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-016-1",
+      "answer_sha256": "ef25faa1033d22d0637a7d3ce280a4d7974b82b069672760b72e6b0390aea6bf",
+      "verdict": "PASS",
+      "reason": "所需规则/步骤/已知条件获得回答，未发现实质性无依据扩写",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-016-2",
+      "answer_sha256": "d327dc82e3bf16324b6182204d3ee8a249e891660d327fe7a54150142b5902a7",
+      "verdict": "FAIL",
+      "reason": "答案降级，频段问题未回答",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-017-1",
+      "answer_sha256": "89edcbb044d3632a56830c22c825819f0e88b03ae3f8cbe01de41ee7c028439f",
+      "verdict": "PASS",
+      "reason": "所需规则/步骤/已知条件获得回答，未发现实质性无依据扩写",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-017-2",
+      "answer_sha256": "1f8b7882cf94841c9aebe0a4e40a47a5392b72a5af0b7ddf8fc6a11ecfae0c15",
+      "verdict": "PASS",
+      "reason": "所需规则/步骤/已知条件获得回答，未发现实质性无依据扩写",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-018-1",
+      "answer_sha256": "9c216de02e7f8ee4c787e4a3734ed7b56ae1ed8d8b0ebec5e5d8f46af8ad65a1",
+      "verdict": "PASS",
+      "reason": "所需规则/步骤/已知条件获得回答，未发现实质性无依据扩写",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-018-2",
+      "answer_sha256": "d9fdd68696439c5168d37c7b30abf8d9ca56725eee9e8c43c48c34e2927dd8fa",
+      "verdict": "PASS",
+      "reason": "所需规则/步骤/已知条件获得回答，未发现实质性无依据扩写",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-019-1",
+      "answer_sha256": "1873327bda8f6d4205b1ac5ed88389b1de036bdbef5d4aa38629c2ce0a34faab",
+      "verdict": "PASS",
+      "reason": "所需规则/步骤/已知条件获得回答，未发现实质性无依据扩写",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-019-2",
+      "answer_sha256": "c1cb8f9b831fd1e3b338d5d5b43a3edb4f479b1c39a2b993fb2cedb00e83699b",
+      "verdict": "PASS",
+      "reason": "所需规则/步骤/已知条件获得回答，未发现实质性无依据扩写",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-028-1",
+      "answer_sha256": "f7c5d979fd39fef8d7aab9c9c469e4da334d5eff9193bb348e5d92e3177b0c8a",
+      "verdict": "PASS",
+      "reason": "所需规则/步骤/已知条件获得回答，未发现实质性无依据扩写",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-028-2",
+      "answer_sha256": "9aa002f5d8b8dde98064ae045bcbbbd51248ba16f217f2aa79e3f9212c4fe63c",
+      "verdict": "REVIEW_REQUIRED",
+      "reason": "新增中途取卡影响结果的因果解释，需按允许推理边界复核",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-029-1",
+      "answer_sha256": "d327dc82e3bf16324b6182204d3ee8a249e891660d327fe7a54150142b5902a7",
+      "verdict": "FAIL",
+      "reason": "相同chunk跨检索的排序字段差异触发证据冲突，未回答",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-029-2",
+      "answer_sha256": "64dc0bb49e0cc5c5ee3ae9a858e76fff1a5068fb71245684a201196bcab8d6c5",
+      "verdict": "PASS",
+      "reason": "所需规则/步骤/已知条件获得回答，未发现实质性无依据扩写",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-030-1",
+      "answer_sha256": "2c29b7669eeafca1bba08d9fef2493fae89b59ba87bd6bf77bf0a5ff68b87a5f",
+      "verdict": "FAIL",
+      "reason": "证据冲突后未完成排查说明",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-030-2",
+      "answer_sha256": "bada106fafd62d94e20b3326ad05cbfa0a71833b8e7b70f6e166ee1b0d8fcce6",
+      "verdict": "PASS",
+      "reason": "所需规则/步骤/已知条件获得回答，未发现实质性无依据扩写",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-031-1",
+      "answer_sha256": "c0e2ac8d9f0624f0f88465768a128eb3cd2921f30ee0a294b141d4018831e89c",
+      "verdict": "PASS",
+      "reason": "所需规则/步骤/已知条件获得回答，未发现实质性无依据扩写",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-031-2",
+      "answer_sha256": "9e7785a8be6f6082eaa133e601f974ef06e518fa749324aac212e326cf3ccd5f",
+      "verdict": "PASS",
+      "reason": "所需规则/步骤/已知条件获得回答，未发现实质性无依据扩写",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-032-1",
+      "answer_sha256": "1eee8b2f485f735f4fec0ec6974fb22d5f1279b11f6b584ed021e8bf29636044",
+      "verdict": "REVIEW_REQUIRED",
+      "reason": "新增邀请链接或邀请码的具体形式，来源未说明",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-032-2",
+      "answer_sha256": "985a82beaa1f144d17664ce5990f7d2487b42bc10d941dc9b58fd4d8dd1bb666",
+      "verdict": "PASS",
+      "reason": "所需规则/步骤/已知条件获得回答，未发现实质性无依据扩写",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-041-1",
+      "answer_sha256": "090c66062ba192330c2f6e0b46d5530c8014f523c44ecf44d2dcad3f8087601a",
+      "verdict": "FAIL",
+      "reason": "只保留订单状态，改址政策未回答",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-041-2",
+      "answer_sha256": "532c9aae5a75e6374d20ed93af4bc6ec2e04267b0ac3fe771da39f4ccddd6318",
+      "verdict": "FAIL",
+      "reason": "只依据订单字段说明未知，遗漏已存在的承运方确认规则",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-042-1",
+      "answer_sha256": "84527c80153bc6adda543ff9ef2e35b76064700674e8a497e268c02b559963ff",
+      "verdict": "PASS",
+      "reason": "所需规则/步骤/已知条件获得回答，未发现实质性无依据扩写",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-042-2",
+      "answer_sha256": "d20d64afd1545586828c2960f906f7b3bcd7b8b79212036af51a3e18b70446ac",
+      "verdict": "REVIEW_REQUIRED",
+      "reason": "未查询发票记录，却表述目前没有查到发票记录，语义范围需复核",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-043-1",
+      "answer_sha256": "6b6553fdea8ed83f0bf78ba6a9abc4a3321ac75b0d925cc68007e75c45110131",
+      "verdict": "FAIL",
+      "reason": "未取政策证据，把发货状态推成不能自提",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-043-2",
+      "answer_sha256": "5ffa6b2b386404867a9c494c8850f04f5e9bd0b18311af6ada3117b98225e9ed",
+      "verdict": "FAIL",
+      "reason": "未取政策证据，把发货状态推成不能自提",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-051-1",
+      "answer_sha256": "d327dc82e3bf16324b6182204d3ee8a249e891660d327fe7a54150142b5902a7",
+      "verdict": "FAIL",
+      "reason": "降级，税费问题未回答",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-051-2",
+      "answer_sha256": "d327dc82e3bf16324b6182204d3ee8a249e891660d327fe7a54150142b5902a7",
+      "verdict": "FAIL",
+      "reason": "降级，税费问题未回答",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-052-1",
+      "answer_sha256": "db34c9a4fb4d921d6dee6df629186ac9a12397eec833213418b5ca1c553be8a9",
+      "verdict": "PASS",
+      "reason": "所需规则/步骤/已知条件获得回答，未发现实质性无依据扩写",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-052-2",
+      "answer_sha256": "3ed725abab02c382c1c1e05abb8ed4c7b4f4dbdd555621fd03fd5e47c2ec13c7",
+      "verdict": "PASS",
+      "reason": "所需规则/步骤/已知条件获得回答，未发现实质性无依据扩写",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-053-1",
+      "answer_sha256": "7960071bdfc47f0e0e3f66ca25f26e174f07003c72b7f808afcb1bb4d94962dd",
+      "verdict": "PASS",
+      "reason": "所需规则/步骤/已知条件获得回答，未发现实质性无依据扩写",
+      "reviewer": "same author assistant; not independent human review"
+    },
+    {
+      "id": "ec-053-2",
+      "answer_sha256": "12b7f788611af858f6502444e2c604f4cc31b34407fd8bf39dec48d9c7093733",
+      "verdict": "PASS",
+      "reason": "所需规则/步骤/已知条件获得回答，未发现实质性无依据扩写",
+      "reviewer": "same author assistant; not independent human review"
+    }
+  ]
+}

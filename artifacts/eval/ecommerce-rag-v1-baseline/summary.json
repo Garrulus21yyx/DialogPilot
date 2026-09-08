@@ -1,0 +1,1198 @@
+{
+  "n": 40,
+  "source_recall_at5": 0.925,
+  "source_ndcg_at5": 0.925,
+  "api_calls": 155,
+  "input_tokens_including_cache": 620158,
+  "cache_read_tokens": 371712,
+  "reported_output_tokens": 13544,
+  "business_correctness": null,
+  "limitations": "First five unique sources across tool calls in call order; source-level retrieval only; runtime verified is not semantic gold. Semantic review pending. Usage excludes unreported provider tokens.",
+  "cases": [
+    {
+      "id": "ec-001-1",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "折叠桌收到三天内已组装，无质量问题，是否可以无理由退货？组装过的商品是否影响无理由退货资格？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-001",
+        "eval-shop:ec-057",
+        "eval-shop:ec-053",
+        "eval-shop:ec-002",
+        "eval-shop:ec-055"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "很遗憾，这款折叠桌您已经组装且没有质量问题，所以不符合无理由退货的条件——按店铺规则，签收七日内未组装才可申请无理由退货，已组装且非质量原因不适用[Ee56a5a757636]。如果您发现实际存在质量问题，可以提交照片申请审核[Ee56a5a757636]。",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "已组装且非质量原因不适用无理由退货"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-001-2",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "折叠桌收到三天已组装，无质量问题，能否无理由退货？组装后是否影响七天无理由退货资格？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-001",
+        "eval-shop:ec-057",
+        "eval-shop:ec-053",
+        "eval-shop:ec-002",
+        "eval-shop:ec-004"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "根据可查到的规则，折叠桌签收七日内**未组装**才可申请无理由退货；已组装且非质量原因不适用该规则[Ee56a5a757636]。您的情况是已组装且无质量问题，因此不符合无理由退货条件。若存在质量异常，需提供照片进行审核[Ee56a5a757636]。",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "已组装且非质量原因不适用无理由退货"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-002-1",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "咖啡豆开袋后不喜欢口味，是否可以退货？已开封食品类商品的退货政策是什么？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-002",
+        "eval-shop:ec-057",
+        "eval-shop:ec-053",
+        "eval-shop:ec-001",
+        "eval-shop:ec-055"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "很抱歉，咖啡豆拆封后因口味不喜欢，是不适用退货的。根据店铺规则，未拆封的咖啡豆可在签收七日内申请退货，但拆封后口味不喜欢不在此范围内[E45bcc8a50f52]。如果包装存在漏气等质量问题，您可以提交照片申请质量审核[E45bcc8a50f52]。",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "拆封后口味不喜欢不适用",
+        "包装漏气属于另需审核的情况，不能假定已发生"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-002-2",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "咖啡豆开袋后因不喜欢口味，是否可以退货或退款？开袋后的食品退货条件和限制是什么？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-002",
+        "eval-shop:ec-057",
+        "eval-shop:ec-055",
+        "eval-shop:ec-009",
+        "eval-shop:ec-001"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "根据可查到的规则，咖啡豆未拆封可在签收七日内申请退货；但拆封后因口味不喜欢不适用退货，包装漏气这类质量问题可提交照片申请审核 [E45bcc8a50f52]。所以您开袋后因口味不喜欢，按规则无法办理退货。",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "拆封后口味不喜欢不适用",
+        "包装漏气属于另需审核的情况，不能假定已发生"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-003-1",
+      "tools": [
+        "knowledge_search",
+        "knowledge_search"
+      ],
+      "queries": [
+        "会员退货运费是否全包，保价费是否包含在内",
+        "会员退货运费全包吗，保价费是否也算在退货运费内"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-003",
+        "eval-shop:ec-051",
+        "eval-shop:ec-014",
+        "eval-shop:ec-019",
+        "eval-shop:ec-056",
+        "eval-shop:ec-012",
+        "eval-shop:ec-004"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "知识查询或核验服务暂时不可用，请稍后重试或联系人工客服。",
+      "runtime_verified": false,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 3,
+      "requirements": [
+        "每单一次",
+        "标准寄回运费上限十元",
+        "加急费和保价费不报销"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-003-2",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "会员退货运费是否全包？保价费是否包含在退货运费报销范围内？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-003",
+        "eval-shop:ec-051",
+        "eval-shop:ec-014",
+        "eval-shop:ec-056",
+        "eval-shop:ec-019"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "根据可查到的会员退货运费规则：会员普通退货每单可报销一次标准寄回运费，上限十元；加急费和保价费不在报销范围内[Ee03f75edac0a]。所以运费并非全包，保价费也不报销。",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "每单一次",
+        "标准寄回运费上限十元",
+        "加急费和保价费不报销"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-004-1",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "洗护组合套装中只退其中一瓶时，退款金额是按单瓶单卖标价计算还是按组合套装分摊价格计算？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-004",
+        "eval-shop:ec-057",
+        "eval-shop:ec-047",
+        "eval-shop:ec-003",
+        "eval-shop:ec-011"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "洗护组合装支持部分退货，但退款不是按单卖标价算，而是按订单中该商品分摊后的实付金额计算 [E69cbf5121480]。",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "允许部分退货",
+        "按分摊实付金额，不按单卖标价"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-004-2",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "洗护组合套装中只退其中一瓶时，退款金额是按单卖标价计算还是按组合内分摊价格计算？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-004",
+        "eval-shop:ec-057",
+        "eval-shop:ec-047",
+        "eval-shop:ec-059",
+        "eval-shop:ec-003"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "查到了。洗护组合装允许部分退货，但退款不是按单卖标价算，而是按该商品在订单中分摊的实付金额计算[E69cbf5121480]。也就是说，只退一瓶时，退的是这瓶在组合里实际分摊的金额，不是单独购买时的标价。\n\n另外提醒两点：如果这瓶属于定制商品，不能只凭未拆封判断能否退，需按定制规则处理[E0b4c12e8b0c6]；退款是否到账也不能仅凭订单取消状态确认[E2d5deb5d2de6]。",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "允许部分退货",
+        "按分摊实付金额，不按单卖标价"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-005-1",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "壁柜送安装服务中，玻璃墙固定是否免费？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-005",
+        "eval-shop:ec-049",
+        "eval-shop:ec-056",
+        "eval-shop:ec-045",
+        "eval-shop:ec-012"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "壁柜赠送的安装仅含普通墙面固定；玻璃墙固定和墙体加固需另行评估，不在赠送范围内，需要另外收费。[Ecec212a16430]",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "一次基础安装仅普通墙面",
+        "玻璃墙另行评估且不在赠送范围"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-005-2",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "壁柜送安装是否包含玻璃墙固定，玻璃墙固定是否免费"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-005",
+        "eval-shop:ec-049",
+        "eval-shop:ec-012",
+        "eval-shop:ec-056",
+        "eval-shop:ec-054"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "查到了。壁柜购置赠送的是一次基础安装，仅含普通墙面固定；玻璃墙固定和墙体加固需要另行评估，不在赠送范围内[Ecec212a16430]。所以玻璃墙固定不是免费的，具体费用需评估后才能确定。",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "一次基础安装仅普通墙面",
+        "玻璃墙另行评估且不在赠送范围"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-016-1",
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "queries": [
+        "Wi-Fi 6 是否支持连接 6GHz 频段？Wi-Fi 6 与 6GHz 频段的关系是什么？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-016",
+        "eval-shop:ec-047",
+        "eval-shop:ec-048",
+        "eval-shop:ec-058",
+        "eval-shop:ec-029"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "R28虽然标注支持Wi-Fi 6，但它只支持2.4GHz和5GHz频段，并不支持6GHz——Wi-Fi 6这个名称不代表设备支持6GHz频段。[Eb9007aa3b66d]",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": true,
+      "api_calls": 4,
+      "requirements": [
+        "支持2.4和5GHz",
+        "不支持6GHz",
+        "名称不代表频段"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-016-2",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "Does a device labeled Wi-Fi 6 (802.11ax) support connecting to the 6GHz band, or is 6GHz support only available with Wi-Fi 6E? What are the conditions for 6GHz connectivity?"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-016",
+        "eval-shop:ec-052",
+        "eval-shop:ec-040",
+        "eval-shop:ec-037",
+        "eval-shop:ec-029"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "知识查询或核验服务暂时不可用，请稍后重试或联系人工客服。",
+      "runtime_verified": false,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "支持2.4和5GHz",
+        "不支持6GHz",
+        "名称不代表频段"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-017-1",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "门锁插入USB供电时是否会给内部电池充电？USB供电与电池充电的关系是什么？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-017",
+        "eval-shop:ec-052",
+        "eval-shop:ec-030",
+        "eval-shop:ec-039",
+        "eval-shop:ec-040"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "L16门锁的USB口只用于临时应急供电，不会给内部电池充电。应急开门后请及时更换电池。[E6b63f22d172d]",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "只临时应急供电",
+        "不充内部电池",
+        "开门后更换电池"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-017-2",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "L16智能门锁插入USB接口是否会给内置电池充电？USB接口的用途和充电条件是什么？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-017",
+        "eval-shop:ec-036",
+        "eval-shop:ec-039",
+        "eval-shop:ec-021",
+        "eval-shop:ec-018"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "查到了。L16门锁的外部USB口只用于临时应急供电，不会给内部电池充电；应急开门后应更换电池[E6b63f22d172d]。",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "只临时应急供电",
+        "不充内部电池",
+        "开门后更换电池"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-018-1",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "产品有电源但没有排水口，能否先使用？排水口缺失对使用的影响和风险是什么？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-018",
+        "eval-shop:ec-037",
+        "eval-shop:ec-030",
+        "eval-shop:ec-055",
+        "eval-shop:ec-017"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "D24洗碗机安装需要接地插座和独立的进排水口；缺少排水口时不能直接接入使用，需要先完成改造再使用。[E351aeb20efcf]",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "接地插座和独立进排水口",
+        "缺排水先改造，不直接使用"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-018-2",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "D24 有电源但没有排水口，能否先使用？使用条件和限制是什么？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-018",
+        "eval-shop:ec-009",
+        "eval-shop:ec-057",
+        "eval-shop:ec-055",
+        "eval-shop:ec-020"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "根据可查到的安装说明，D24洗碗机安装需要接地插座和独立的进排水口；在缺少排水口的情况下，需要先完成改造，不能直接接入使用[E351aeb20efcf]。所以目前不建议在只有电源、没有排水口的状态下直接开机使用。",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "接地插座和独立进排水口",
+        "缺排水先改造，不直接使用"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-019-1",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "阅读器登录过但未购买内容，是否可以试用退货？退货条件是什么？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-019",
+        "eval-shop:ec-057",
+        "eval-shop:ec-053",
+        "eval-shop:ec-007",
+        "eval-shop:ec-002"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "可以。阅读器只是登录过账号、没有下载付费内容的话，不影响试用退货[E823823bcf943]。不过要注意，如果购买过付费内容，这笔费用不会随硬件退货自动退款[E823823bcf943]。",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "登录不影响未下载付费内容时试用退货",
+        "不得假定已购买付费内容"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-019-2",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "阅读器登录过但没有购买内容，是否可以试用退货？退货条件是什么？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-019",
+        "eval-shop:ec-057",
+        "eval-shop:ec-053",
+        "eval-shop:ec-002",
+        "eval-shop:ec-007"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "根据可查到的资料：电子书阅读器登录账号本身不影响未下载付费内容时的试用退货；但付费内容费用不随硬件退货自动退款[E823823bcf943]。也就是说，只要没有下载付费内容，登录过账号通常不影响退货资格。\n\n需要说明的是，目前资料没有明确该阅读器的具体试用退货期限、是否要求未拆封或无明显污损等条件，这部分暂时无法确认。如果你能提供购买或签收时间、商品状态等信息，我可以进一步帮你核对。",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "登录不影响未下载付费内容时试用退货",
+        "不得假定已购买付费内容"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-028-1",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "S31 如何校准？校准过程中有什么需要注意的事项？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-028",
+        "eval-shop:ec-037",
+        "eval-shop:ec-035",
+        "eval-shop:ec-018",
+        "eval-shop:ec-039"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "S31扫描仪校准步骤：先清洁扫描玻璃，放入校准卡，然后在设置中选择校准；校准完成前不要取出卡片[E238b9552c5c6]。",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "清洁玻璃",
+        "放校准卡",
+        "设置选择校准",
+        "完成前不取卡"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-028-2",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "S31 如何校准？校准过程中有什么需要注意的事项和条件？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-028",
+        "eval-shop:ec-037",
+        "eval-shop:ec-018",
+        "eval-shop:ec-035",
+        "eval-shop:ec-024"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "S31扫描仪的校准步骤是：先清洁扫描玻璃，放入校准卡，然后在设置中选择校准；校准完成前不要取出卡片。[E238b9552c5c6]\n\n需要注意的条件是：校准过程中必须保持校准卡放在扫描仪内，直到校准完成，中途取出会影响校准结果。[E238b9552c5c6]",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "清洁玻璃",
+        "放校准卡",
+        "设置选择校准",
+        "完成前不取卡"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-029-1",
+      "tools": [
+        "knowledge_search",
+        "knowledge_search"
+      ],
+      "queries": [
+        "K26 设备如何从旧平板切换到配对新电脑？多设备配对/重新配对步骤",
+        "K26 设备配对新电脑 断开旧平板 重新配对步骤"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-029",
+        "eval-shop:ec-052",
+        "eval-shop:ec-039",
+        "eval-shop:ec-056",
+        "eval-shop:ec-040",
+        "eval-shop:ec-013",
+        "eval-shop:ec-028"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "知识查询或核验服务暂时不可用，请稍后重试或联系人工客服。",
+      "runtime_verified": false,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 3,
+      "requirements": [
+        "先断旧连接",
+        "蓝牙模式",
+        "长按三秒",
+        "设备列表选K26"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-029-2",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "K26 设备如何与新的电脑配对连接？当 K26 仍连接着旧平板时，如何重新配对到新电脑？需要哪些条件和步骤？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-029",
+        "eval-shop:ec-043",
+        "eval-shop:ec-060",
+        "eval-shop:ec-039",
+        "eval-shop:ec-056"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "K26键盘配对新电脑的步骤是：先断开它与旧平板的连接，然后把键盘拨到蓝牙模式，长按配对键三秒，最后在新电脑的设备列表里选择K26完成配对[Ef3ea0a34d770]。\n\n需要说明的是，我能确认的是K26键盘本身的配对操作；至于新电脑端的具体蓝牙设置界面，不同系统会略有差异，这部分需要你按电脑提示操作。",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "先断旧连接",
+        "蓝牙模式",
+        "长按三秒",
+        "设备列表选K26"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-030-1",
+      "tools": [
+        "catalog_search",
+        "knowledge_search",
+        "knowledge_search",
+        "catalog_search",
+        "knowledge_search"
+      ],
+      "queries": [
+        "M27 显示器连接HDMI后黑屏，如何排查故障？HDMI无信号黑屏的排查步骤",
+        "M27 插HDMI黑屏 排查方法",
+        "M27显示器 HDMI连接黑屏 排查步骤 输入源 信号线"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-030",
+        "eval-shop:ec-045",
+        "eval-shop:ec-013",
+        "eval-shop:ec-056",
+        "eval-shop:ec-029",
+        "eval-shop:ec-057",
+        "eval-shop:ec-018",
+        "eval-shop:ec-021"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "部分请求尚未完成。\n知识查询或核验服务暂时不可用，请稍后重试或联系人工客服。",
+      "runtime_verified": false,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "确认电源信号线",
+        "选对应输入源",
+        "不能保证切输入源修复坏线"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-030-2",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "M27显示器连接HDMI后黑屏，如何排查？可能的原因和排查步骤是什么？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-030",
+        "eval-shop:ec-015",
+        "eval-shop:ec-029",
+        "eval-shop:ec-028",
+        "eval-shop:ec-013"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "M27显示器接HDMI黑屏，排查步骤是：先确认电源和信号线连接正常，然后在显示器菜单里选择对应的HDMI输入源。需要说明的是，切换输入源无法修复已经损坏的线缆，如果线缆本身有问题，换线才能解决[Ef89b9222a5b7]。",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "确认电源信号线",
+        "选对应输入源",
+        "不能保证切输入源修复坏线"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-031-1",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "E11除垢的具体操作顺序是什么？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-031",
+        "eval-shop:ec-056",
+        "eval-shop:ec-036",
+        "eval-shop:ec-027",
+        "eval-shop:ec-039"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "E11咖啡机除垢的具体顺序是：先取出滤芯，再按说明稀释专用除垢剂，然后启动除垢程序，最后用清水完成两次冲洗。[Ef01924521696]",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "取滤芯",
+        "稀释专用剂",
+        "启动程序",
+        "清水两次冲洗"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-031-2",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "E11 除垢的具体操作顺序是什么？包括步骤、条件和注意事项。"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-031",
+        "eval-shop:ec-040",
+        "eval-shop:ec-028",
+        "eval-shop:ec-036",
+        "eval-shop:ec-055"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "根据可查到的资料，E11咖啡机除垢的具体顺序是：先取出滤芯，按说明稀释专用除垢剂，然后启动除垢程序，最后用清水完成两次冲洗[Ef01924521696]。目前资料中没有提到其他额外条件或注意事项。",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "取滤芯",
+        "稀释专用剂",
+        "启动程序",
+        "清水两次冲洗"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-032-1",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "订单或账号给家人共享，是否直接提供主账号密码？共享账号的正确方式是什么？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-032",
+        "eval-shop:ec-060",
+        "eval-shop:ec-041",
+        "eval-shop:ec-010",
+        "eval-shop:ec-043"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "不需要给主账号密码。N12摄像头共享是通过主账号生成邀请链接或邀请码，家人用自己的账号接受邀请即可。被邀请人只能获得你授权的查看/操作功能，不会拿到主账号密码，也不会自动成为管理员[E86026d8e2c65]。",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "主账号生成邀请",
+        "无需给密码",
+        "权限由授权决定"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-032-2",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "账号N12给家人共享使用，是否可以直接把主账号密码告知家人？共享账号的正确方式是什么？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-032",
+        "eval-shop:ec-047",
+        "eval-shop:ec-043",
+        "eval-shop:ec-010",
+        "eval-shop:ec-029"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "N12摄像头共享给家人，不需要把主账号密码给家人。正确方式是主账号生成邀请，家人通过邀请获得授权功能；被邀请人拿不到主账号密码，也不会自动成为管理员[E86026d8e2c65]。",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "主账号生成邀请",
+        "无需给密码",
+        "权限由授权决定"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-041-1",
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "queries": [
+        "提出修改收货地址后是否立即生效成功，还是需要满足一定条件或审核后才算成功？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-041",
+        "eval-shop:ec-006",
+        "eval-shop:ec-060",
+        "eval-shop:ec-044",
+        "eval-shop:ec-048"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "在 2026-09-08T16:08:44.345274+00:00 的查询记录中，订单 DP9540 状态为已发货。\n知识查询或核验服务暂时不可用，请稍后重试或联系人工客服。",
+      "runtime_verified": false,
+      "business_required": true,
+      "business_lookup_called": true,
+      "api_calls": 4,
+      "requirements": [
+        "报告订单实际状态",
+        "承运方确认",
+        "请求不等于修改成功"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-041-2",
+      "tools": [
+        "order_lookup"
+      ],
+      "queries": [],
+      "visible_source_ids": [],
+      "source_recall_at5": 0.0,
+      "source_ndcg_at5": 0.0,
+      "source_mrr_at5": 0,
+      "answer": "订单DP9540当前状态为“已发货”。需要说明的是，这只是系统内的订单快照状态，并不代表承运方已实际签收或完成投递。\n\n关于“现在提出改址是否就算成功”——目前我无法确认这一点。系统记录中没有显示该订单的收货地址信息，也没有可用的退款或改址截止时间数据。也就是说，改址申请是否会被受理、以及是否算作成功提交，现有资料无法给出结论。\n\n我没有对订单执行任何操作。",
+      "runtime_verified": true,
+      "business_required": true,
+      "business_lookup_called": true,
+      "api_calls": 3,
+      "requirements": [
+        "报告订单实际状态",
+        "承运方确认",
+        "请求不等于修改成功"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-042-1",
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "queries": [
+        "订单付款是否代表发票已开具？付款与发票开具的关系是什么？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-042",
+        "eval-shop:ec-047",
+        "eval-shop:ec-043",
+        "eval-shop:ec-046",
+        "eval-shop:ec-050"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "订单DP9541当前状态为**已支付**（金额199.00元）。\n\n关于付款与发票的关系：**付款不代表发票已开具**。付款后需另行提交开票申请，开票结果以发票记录为准 [Ee86b4b0c332c]。如需确认该订单是否已开票，需要进一步查询发票记录。",
+      "runtime_verified": true,
+      "business_required": true,
+      "business_lookup_called": true,
+      "api_calls": 4,
+      "requirements": [
+        "报告订单实际状态",
+        "付款不证明已开票"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-042-2",
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "queries": [
+        "订单付款是否代表发票已开具？付款与发票开具的关系是什么？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-042",
+        "eval-shop:ec-047",
+        "eval-shop:ec-043",
+        "eval-shop:ec-046",
+        "eval-shop:ec-050"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "订单DP9541当前状态为“已支付”，金额199.00元（CNY）。这是系统记录的快照状态，不代表实际到账事件。\n\n关于付款是否代表发票已开：**不代表**。按店铺规则，付款后可提交开票申请，开票结果以发票记录为准，付款状态不证明已经开票[Ee86b4b0c332c]。目前我这边没有查到该订单的发票记录，无法确认发票是否已开具。",
+      "runtime_verified": true,
+      "business_required": true,
+      "business_lookup_called": true,
+      "api_calls": 4,
+      "requirements": [
+        "报告订单实际状态",
+        "付款不证明已开票"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-043-1",
+      "tools": [
+        "order_lookup"
+      ],
+      "queries": [],
+      "visible_source_ids": [],
+      "source_recall_at5": 0.0,
+      "source_ndcg_at5": 0.0,
+      "source_mrr_at5": 0,
+      "answer": "订单DP9542当前状态为**已发货**，不是待自提状态。系统记录显示该订单已发出，因此**不能直接到店自提**，需要等待配送。\n\n如需进一步确认配送进度或修改收货方式，请提供更多信息，我可以帮您查询。",
+      "runtime_verified": true,
+      "business_required": true,
+      "business_lookup_called": true,
+      "api_calls": 3,
+      "requirements": [
+        "报告订单实际状态",
+        "付款不代表可取货",
+        "需通知"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-043-2",
+      "tools": [
+        "order_lookup"
+      ],
+      "queries": [],
+      "visible_source_ids": [],
+      "source_recall_at5": 0.0,
+      "source_ndcg_at5": 0.0,
+      "source_mrr_at5": 0,
+      "answer": "订单DP9542当前状态为“已发货”，不是可自提状态。也就是说，付完款后不能直接去拿，需要等待配送。\n\n需要说明的是：系统记录显示该订单金额为199.00元，但记录中没有收货地址信息，也没有可退款截止时间的数据。订单状态快照显示“已发货”，但这并不代表承运方已实际签收或您已收到货。\n\n如果您想了解具体的配送进度或预计到达时间，目前可查到的资料里没有这些信息，我无法替您确认。",
+      "runtime_verified": true,
+      "business_required": true,
+      "business_lookup_called": true,
+      "api_calls": 3,
+      "requirements": [
+        "报告订单实际状态",
+        "付款不代表可取货",
+        "需通知"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-051-1",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "海外购买商品税费规则 是否只收十元税 跨境购物关税起征点"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-051",
+        "eval-shop:ec-014",
+        "eval-shop:ec-003",
+        "eval-shop:ec-054",
+        "eval-shop:ec-057"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "知识查询或核验服务暂时不可用，请稍后重试或联系人工客服。",
+      "runtime_verified": false,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "不能确认十元税",
+        "由海关按实际申报认定"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-051-2",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "海外购买商品进口关税税率，是否只收十元税，跨境进口税收政策"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-051",
+        "eval-shop:ec-003",
+        "eval-shop:ec-004",
+        "eval-shop:ec-011",
+        "eval-shop:ec-014"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "知识查询或核验服务暂时不可用，请稍后重试或联系人工客服。",
+      "runtime_verified": false,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "不能确认十元税",
+        "由海关按实际申报认定"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-052-1",
+      "tools": [
+        "catalog_search",
+        "catalog_search",
+        "knowledge_search"
+      ],
+      "queries": [
+        "扩展坞X38与电脑C99连接兼容性要求"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-052",
+        "eval-shop:ec-023",
+        "eval-shop:ec-029",
+        "eval-shop:ec-021",
+        "eval-shop:ec-018"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "目前还不能确认扩展坞X38接电脑C99一定没问题。根据现有信息，扩展坞X38只确认支持电脑C38，其他型号尚未完成兼容验证[E18a2e4d1c014]。所以X38与C99的兼容性目前没有保证，建议先确认兼容性再使用。",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "C99尚未验证",
+        "不能确认兼容"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-052-2",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "扩展坞X38连接电脑C99是否兼容，能否正常使用？需要满足什么条件？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-052",
+        "eval-shop:ec-030",
+        "eval-shop:ec-023",
+        "eval-shop:ec-014",
+        "eval-shop:ec-018"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "查到的资料显示，扩展坞X38目前只确认支持电脑C38，其他型号（包括C99）尚未完成兼容性验证[E18a2e4d1c014]。所以现在还不能肯定地说X38接C99一定没问题，需要等兼容验证完成才能确认。",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "C99尚未验证",
+        "不能确认兼容"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-053-1",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "靠垫没有污损是否可以退货？退货是否需要签收日期？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-053",
+        "eval-shop:ec-057",
+        "eval-shop:ec-007",
+        "eval-shop:ec-001",
+        "eval-shop:ec-002"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "可以退。普通靠垫在签收后七日内、无明显污损的情况下，可以申请无理由退货[E5492c3563399]。不过需要确认是否仍在七日期限内，所以需要您提供签收日期[E5492c3563399]。",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "缺少签收日期",
+        "不能确定在七日内",
+        "可追问"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-053-2",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "靠垫没有污损，是否可以退货？退货需要满足哪些条件？签收日期对退货资格有什么影响？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-053",
+        "eval-shop:ec-057",
+        "eval-shop:ec-007",
+        "eval-shop:ec-001",
+        "eval-shop:ec-002"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "根据可查到的规则，普通靠垫在签收后七日内、无明显污损的情况下，可以申请无理由退货[E5492c3563399]。你的靠垫没有污损，这一点符合条件。\n\n目前不能确定的是你是否仍在七日期限内，因为需要确认签收日期才能判断是否在期[E5492c3563399]。另外，如果该靠垫属于定制商品，则适用定制规则，不能仅凭未拆封或无明显污损来判断能否退货[E0b4c12e8b0c6]。\n\n请提供签收日期，并确认该靠垫是否为定制商品，我再帮你进一步核对。",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "缺少签收日期",
+        "不能确定在七日内",
+        "可追问"
+      ],
+      "semantic_review": "PENDING"
+    }
+  ]
+}

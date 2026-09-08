@@ -1,0 +1,1188 @@
+[
+  {
+    "id": "ec-001-1",
+    "group_id": "ec-001",
+    "category": "policy",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-001"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-001",
+        "start": 0,
+        "end": 50,
+        "quote": "模拟店铺的折叠桌签收七日内未组装可申请无理由退货；已组装且非质量原因不适用。质量异常需提供照片审核。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "已组装且非质量原因不适用无理由退货"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-001-2",
+    "group_id": "ec-001",
+    "category": "policy",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-001"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-001",
+        "start": 0,
+        "end": 50,
+        "quote": "模拟店铺的折叠桌签收七日内未组装可申请无理由退货；已组装且非质量原因不适用。质量异常需提供照片审核。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "已组装且非质量原因不适用无理由退货"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-002-1",
+    "group_id": "ec-002",
+    "category": "policy",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-002"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-002",
+        "start": 0,
+        "end": 51,
+        "quote": "模拟店铺的咖啡豆未拆封可在签收七日内申请退货；拆封后口味不喜欢不适用，包装漏气可提交照片申请质量审核。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "拆封后口味不喜欢不适用",
+      "包装漏气属于另需审核的情况，不能假定已发生"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-002-2",
+    "group_id": "ec-002",
+    "category": "policy",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-002"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-002",
+        "start": 0,
+        "end": 51,
+        "quote": "模拟店铺的咖啡豆未拆封可在签收七日内申请退货；拆封后口味不喜欢不适用，包装漏气可提交照片申请质量审核。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "拆封后口味不喜欢不适用",
+      "包装漏气属于另需审核的情况，不能假定已发生"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-003-1",
+    "group_id": "ec-003",
+    "category": "policy",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-003"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-003",
+        "start": 0,
+        "end": 40,
+        "quote": "模拟店铺会员普通退货每单可报销一次标准寄回运费，上限十元；加急费和保价费不报销。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "每单一次",
+      "标准寄回运费上限十元",
+      "加急费和保价费不报销"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-003-2",
+    "group_id": "ec-003",
+    "category": "policy",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-003"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-003",
+        "start": 0,
+        "end": 40,
+        "quote": "模拟店铺会员普通退货每单可报销一次标准寄回运费，上限十元；加急费和保价费不报销。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "每单一次",
+      "标准寄回运费上限十元",
+      "加急费和保价费不报销"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-004-1",
+    "group_id": "ec-004",
+    "category": "policy",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-004"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-004",
+        "start": 0,
+        "end": 47,
+        "quote": "模拟店铺的洗护组合装允许部分退货，退款按订单中该商品分摊实付金额计算，不能按单独购买标价计算。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "允许部分退货",
+      "按分摊实付金额，不按单卖标价"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-004-2",
+    "group_id": "ec-004",
+    "category": "policy",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-004"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-004",
+        "start": 0,
+        "end": 47,
+        "quote": "模拟店铺的洗护组合装允许部分退货，退款按订单中该商品分摊实付金额计算，不能按单独购买标价计算。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "允许部分退货",
+      "按分摊实付金额，不按单卖标价"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-005-1",
+    "group_id": "ec-005",
+    "category": "policy",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-005"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-005",
+        "start": 0,
+        "end": 47,
+        "quote": "模拟店铺购置壁柜赠送一次基础安装，仅含普通墙面固定；玻璃墙和墙体加固需另行评估，不在赠送范围。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "一次基础安装仅普通墙面",
+      "玻璃墙另行评估且不在赠送范围"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-005-2",
+    "group_id": "ec-005",
+    "category": "policy",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-005"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-005",
+        "start": 0,
+        "end": 47,
+        "quote": "模拟店铺购置壁柜赠送一次基础安装，仅含普通墙面固定；玻璃墙和墙体加固需另行评估，不在赠送范围。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "一次基础安装仅普通墙面",
+      "玻璃墙另行评估且不在赠送范围"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-016-1",
+    "group_id": "ec-016",
+    "category": "multiturn",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-016"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-016",
+        "start": 0,
+        "end": 53,
+        "quote": "模拟店铺R28路由器支持2.4GHz和5GHz，不支持6GHz；Wi-Fi 6名称不代表支持6GHz频段。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "支持2.4和5GHz",
+      "不支持6GHz",
+      "名称不代表频段"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-016-2",
+    "group_id": "ec-016",
+    "category": "multiturn",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-016"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-016",
+        "start": 0,
+        "end": 53,
+        "quote": "模拟店铺R28路由器支持2.4GHz和5GHz，不支持6GHz；Wi-Fi 6名称不代表支持6GHz频段。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "支持2.4和5GHz",
+      "不支持6GHz",
+      "名称不代表频段"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-017-1",
+    "group_id": "ec-017",
+    "category": "multiturn",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-017"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-017",
+        "start": 0,
+        "end": 45,
+        "quote": "模拟店铺L16门锁外部USB口只用于临时应急供电，不为内部电池充电；应急开门后应更换电池。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "只临时应急供电",
+      "不充内部电池",
+      "开门后更换电池"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-017-2",
+    "group_id": "ec-017",
+    "category": "multiturn",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-017"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-017",
+        "start": 0,
+        "end": 45,
+        "quote": "模拟店铺L16门锁外部USB口只用于临时应急供电，不为内部电池充电；应急开门后应更换电池。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "只临时应急供电",
+      "不充内部电池",
+      "开门后更换电池"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-018-1",
+    "group_id": "ec-018",
+    "category": "multiturn",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-018"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-018",
+        "start": 0,
+        "end": 45,
+        "quote": "模拟店铺D24洗碗机安装需要接地插座与独立进排水口；缺少排水口时先改造，不能直接接入使用。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "接地插座和独立进排水口",
+      "缺排水先改造，不直接使用"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-018-2",
+    "group_id": "ec-018",
+    "category": "multiturn",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-018"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-018",
+        "start": 0,
+        "end": 45,
+        "quote": "模拟店铺D24洗碗机安装需要接地插座与独立进排水口；缺少排水口时先改造，不能直接接入使用。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "接地插座和独立进排水口",
+      "缺排水先改造，不直接使用"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-019-1",
+    "group_id": "ec-019",
+    "category": "multiturn",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-019"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-019",
+        "start": 0,
+        "end": 48,
+        "quote": "模拟店铺电子书阅读器登录账号不影响未下载付费内容时的试用退货；付费内容费用不随硬件退货自动退款。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "登录不影响未下载付费内容时试用退货",
+      "不得假定已购买付费内容"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-019-2",
+    "group_id": "ec-019",
+    "category": "multiturn",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-019"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-019",
+        "start": 0,
+        "end": 48,
+        "quote": "模拟店铺电子书阅读器登录账号不影响未下载付费内容时的试用退货；付费内容费用不随硬件退货自动退款。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "登录不影响未下载付费内容时试用退货",
+      "不得假定已购买付费内容"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-028-1",
+    "group_id": "ec-028",
+    "category": "product",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-028"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-028",
+        "start": 0,
+        "end": 47,
+        "quote": "模拟店铺S31扫描仪校准步骤：清洁扫描玻璃，放入校准卡，在设置中选择校准；完成前不要取出卡片。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "清洁玻璃",
+      "放校准卡",
+      "设置选择校准",
+      "完成前不取卡"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-028-2",
+    "group_id": "ec-028",
+    "category": "product",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-028"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-028",
+        "start": 0,
+        "end": 47,
+        "quote": "模拟店铺S31扫描仪校准步骤：清洁扫描玻璃，放入校准卡，在设置中选择校准；完成前不要取出卡片。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "清洁玻璃",
+      "放校准卡",
+      "设置选择校准",
+      "完成前不取卡"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-029-1",
+    "group_id": "ec-029",
+    "category": "product",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-029"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-029",
+        "start": 0,
+        "end": 54,
+        "quote": "模拟店铺K26键盘蓝牙配对：拨到蓝牙模式，长按配对键三秒，在设备列表选择K26；已连接旧设备时先断开旧连接。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "先断旧连接",
+      "蓝牙模式",
+      "长按三秒",
+      "设备列表选K26"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-029-2",
+    "group_id": "ec-029",
+    "category": "product",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-029"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-029",
+        "start": 0,
+        "end": 54,
+        "quote": "模拟店铺K26键盘蓝牙配对：拨到蓝牙模式，长按配对键三秒，在设备列表选择K26；已连接旧设备时先断开旧连接。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "先断旧连接",
+      "蓝牙模式",
+      "长按三秒",
+      "设备列表选K26"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-030-1",
+    "group_id": "ec-030",
+    "category": "product",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-030"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-030",
+        "start": 0,
+        "end": 50,
+        "quote": "模拟店铺M27显示器黑屏时先确认电源与信号线，再在菜单选择对应输入源；切换输入源不会修复损坏的线缆。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "确认电源信号线",
+      "选对应输入源",
+      "不能保证切输入源修复坏线"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-030-2",
+    "group_id": "ec-030",
+    "category": "product",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-030"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-030",
+        "start": 0,
+        "end": 50,
+        "quote": "模拟店铺M27显示器黑屏时先确认电源与信号线，再在菜单选择对应输入源；切换输入源不会修复损坏的线缆。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "确认电源信号线",
+      "选对应输入源",
+      "不能保证切输入源修复坏线"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-031-1",
+    "group_id": "ec-031",
+    "category": "product",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-031"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-031",
+        "start": 0,
+        "end": 47,
+        "quote": "模拟店铺E11咖啡机除垢前取出滤芯，按说明稀释专用除垢剂，启动除垢程序，再用清水完成两次冲洗。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "取滤芯",
+      "稀释专用剂",
+      "启动程序",
+      "清水两次冲洗"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-031-2",
+    "group_id": "ec-031",
+    "category": "product",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-031"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-031",
+        "start": 0,
+        "end": 47,
+        "quote": "模拟店铺E11咖啡机除垢前取出滤芯，按说明稀释专用除垢剂，启动除垢程序，再用清水完成两次冲洗。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "取滤芯",
+      "稀释专用剂",
+      "启动程序",
+      "清水两次冲洗"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-032-1",
+    "group_id": "ec-032",
+    "category": "product",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-032"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-032",
+        "start": 0,
+        "end": 53,
+        "quote": "模拟店铺N12摄像头共享通过主账号生成邀请；被邀请人只能获得授权功能，不能获取主账号密码或自动成为管理员。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "主账号生成邀请",
+      "无需给密码",
+      "权限由授权决定"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-032-2",
+    "group_id": "ec-032",
+    "category": "product",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-032"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-032",
+        "start": 0,
+        "end": 53,
+        "quote": "模拟店铺N12摄像头共享通过主账号生成邀请；被邀请人只能获得授权功能，不能获取主账号密码或自动成为管理员。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "主账号生成邀请",
+      "无需给密码",
+      "权限由授权决定"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-041-1",
+    "group_id": "ec-041",
+    "category": "mixed",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-041"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-041",
+        "start": 0,
+        "end": 30,
+        "quote": "模拟店铺已发货订单改址需承运方确认；提出请求不等于修改成功。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "报告订单实际状态",
+      "承运方确认",
+      "请求不等于修改成功"
+    ],
+    "business_required": true,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-041-2",
+    "group_id": "ec-041",
+    "category": "mixed",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-041"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-041",
+        "start": 0,
+        "end": 30,
+        "quote": "模拟店铺已发货订单改址需承运方确认；提出请求不等于修改成功。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "报告订单实际状态",
+      "承运方确认",
+      "请求不等于修改成功"
+    ],
+    "business_required": true,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-042-1",
+    "group_id": "ec-042",
+    "category": "mixed",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-042"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-042",
+        "start": 0,
+        "end": 39,
+        "quote": "模拟店铺付款后可提交开票申请，开票结果以发票记录为准；付款状态不证明已经开票。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "报告订单实际状态",
+      "付款不证明已开票"
+    ],
+    "business_required": true,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-042-2",
+    "group_id": "ec-042",
+    "category": "mixed",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-042"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-042",
+        "start": 0,
+        "end": 39,
+        "quote": "模拟店铺付款后可提交开票申请，开票结果以发票记录为准；付款状态不证明已经开票。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "报告订单实际状态",
+      "付款不证明已开票"
+    ],
+    "business_required": true,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-043-1",
+    "group_id": "ec-043",
+    "category": "mixed",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-043"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-043",
+        "start": 0,
+        "end": 35,
+        "quote": "模拟店铺自提准备完成后另发取货通知；订单已付款不代表现在可以到店领取。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "报告订单实际状态",
+      "付款不代表可取货",
+      "需通知"
+    ],
+    "business_required": true,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-043-2",
+    "group_id": "ec-043",
+    "category": "mixed",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-043"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-043",
+        "start": 0,
+        "end": 35,
+        "quote": "模拟店铺自提准备完成后另发取货通知；订单已付款不代表现在可以到店领取。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "报告订单实际状态",
+      "付款不代表可取货",
+      "需通知"
+    ],
+    "business_required": true,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-051-1",
+    "group_id": "ec-051",
+    "category": "boundary",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-051"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-051",
+        "start": 0,
+        "end": 47,
+        "quote": "模拟店铺海外税费说明仅列明运费不含进口税；税额由目的地海关按实际申报认定，店铺未公布固定税额。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "不能确认十元税",
+      "由海关按实际申报认定"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-051-2",
+    "group_id": "ec-051",
+    "category": "boundary",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-051"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-051",
+        "start": 0,
+        "end": 47,
+        "quote": "模拟店铺海外税费说明仅列明运费不含进口税；税额由目的地海关按实际申报认定，店铺未公布固定税额。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "不能确认十元税",
+      "由海关按实际申报认定"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-052-1",
+    "group_id": "ec-052",
+    "category": "boundary",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-052"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-052",
+        "start": 0,
+        "end": 34,
+        "quote": "模拟店铺扩展坞X38只确认支持电脑C38；其他型号尚未完成兼容验证。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "C99尚未验证",
+      "不能确认兼容"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-052-2",
+    "group_id": "ec-052",
+    "category": "boundary",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-052"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-052",
+        "start": 0,
+        "end": 34,
+        "quote": "模拟店铺扩展坞X38只确认支持电脑C38；其他型号尚未完成兼容验证。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "C99尚未验证",
+      "不能确认兼容"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-053-1",
+    "group_id": "ec-053",
+    "category": "boundary",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-053"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-053",
+        "start": 0,
+        "end": 39,
+        "quote": "模拟店铺普通靠垫签收七日内无明显污损可申请无理由退货；是否在期需确认签收日期。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "缺少签收日期",
+      "不能确定在七日内",
+      "可追问"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  },
+  {
+    "id": "ec-053-2",
+    "group_id": "ec-053",
+    "category": "boundary",
+    "provenance": "MODEL_AUTHORED_SYNTHETIC",
+    "review_status": "AUTHOR_CHECKED_REQUIRES_INDEPENDENT_REVIEW",
+    "knowledge_sources": [
+      "eval-shop:ec-053"
+    ],
+    "source_spans": [
+      {
+        "source_id": "eval-shop:ec-053",
+        "start": 0,
+        "end": 39,
+        "quote": "模拟店铺普通靠垫签收七日内无明显污损可申请无理由退货；是否在期需确认签收日期。",
+        "granularity": "supporting_source_not_minimal_required_span"
+      }
+    ],
+    "answer_requirements": [
+      "缺少签收日期",
+      "不能确定在七日内",
+      "可追问"
+    ],
+    "business_required": false,
+    "forbidden_actions": [
+      "write_operation"
+    ],
+    "hypothesis_only": false,
+    "metric_scope": "source_recall_and_semantic_rubric; no exact string answer grading"
+  }
+]

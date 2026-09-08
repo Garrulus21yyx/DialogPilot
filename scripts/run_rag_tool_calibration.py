@@ -128,6 +128,11 @@ async def evaluate(args, database_url):
             from evaluation.rag_applicability_dev import applicability_development
             extra, _, _, _, withdrawn_sources = applicability_development()
             docs = docs + extra
+        if getattr(args,'corpus_file',None):
+            from evaluation.rag_pipeline.contracts import RagDocument
+            supplied=json.loads(args.corpus_file.read_text())
+            docs=tuple(RagDocument(d['source_id'],d['title'],d['content'],d['metadata']) for d in supplied)
+            cases=();withdrawn_sources=()
         if args.distractors:
             docs = RagDataset.load(args.distractors).documents + docs
         from infrastructure.knowledge_filter_config import load_knowledge_filter_contract
@@ -191,7 +196,7 @@ async def evaluate(args, database_url):
             if getattr(args, 'full_chain', False):
                 from evaluation.rag_full_chain_probe import run_full_chain
                 from core.rag_policy import rag_retrieval_policy_from_env
-                await run_full_chain(case_definitions=getattr(args,'full_definitions',None), retrieval_policy=rag_retrieval_policy_from_env(values), case_limit=getattr(args,"full_case_limit",None), reranker_version=reranker.version, database_url=database_url,platform=platform,store=store,client=client,policy=policy,provider_config=options,output=args.output,handler=api._knowledge_tool_handler)
+                await run_full_chain(business_fixtures=getattr(args,'business_fixtures',None), case_definitions=getattr(args,'full_definitions',None), retrieval_policy=rag_retrieval_policy_from_env(values), case_limit=getattr(args,"full_case_limit",None), reranker_version=reranker.version, database_url=database_url,platform=platform,store=store,client=client,policy=policy,provider_config=options,output=args.output,handler=api._knowledge_tool_handler)
                 return
             if args.mixed_business:
                 from evaluation.rag_mixed_business import run_mixed
@@ -258,6 +263,8 @@ def main():
     mode.add_argument('--mixed-business', action='store_true')
     mode.add_argument('--full-chain', action='store_true')
     mode.add_argument('--candidate-scope-probe', action='store_true', help='No inference: paired candidate retrieval with/without request applicability')
+    p.add_argument('--corpus-file',type=Path)
+    p.add_argument('--business-fixtures',type=Path)
     p.add_argument('--full-case-file',type=Path)
     p.add_argument('--full-case-limit',type=int,choices=range(1,7))
     p.add_argument('--mixed-case-file',type=Path)
@@ -272,13 +279,18 @@ def main():
             raise ValueError('full case file requires full chain mode')
         args.full_definitions = json.loads(args.full_case_file.read_text())
         rows=args.full_definitions
-        if (not isinstance(rows,list) or not 1 <= len(rows) <= 20
+        if (not isinstance(rows,list) or not 1 <= len(rows) <= 80
             or any(not isinstance(c,dict) or not isinstance(c.get('id'),str) or not c['id']
                    or not isinstance(c.get('message'),str) or not c['message']
                    or not isinstance(c.get('history'),list)
                    or any(not isinstance(t,list) or len(t)!=2 or t[0] not in ('user','assistant') or not isinstance(t[1],str) for t in c['history']) for c in rows)
             or len({c['id'] for c in rows})!=len(rows)):
             raise ValueError('invalid full chain case definitions')
+    if args.business_fixtures:
+        if not args.full_chain or args.full_definitions is None:raise ValueError('business fixtures require explicit full cases')
+        fixtures=json.loads(args.business_fixtures.read_text())
+        args.business_fixtures={r['id']:r for r in fixtures}
+        if len(args.business_fixtures)!=len(fixtures) or set(args.business_fixtures)!={c['id'] for c in args.full_definitions}:raise ValueError('fixture case mismatch')
     args.mixed_definitions = None
     if args.mixed_case_file:
         if not args.mixed_business:

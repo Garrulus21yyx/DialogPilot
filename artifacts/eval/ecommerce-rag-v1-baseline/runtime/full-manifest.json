@@ -1,0 +1,493 @@
+{
+  "scope": "synthetic ecommerce; production runtime/admission/coordinator/context/knowledge handler/PostgreSQL retrieval/LLM rerank/compose/verifier/publication; excludes HTTP authentication, external delivery, business writes",
+  "cases": [
+    {
+      "id": "ec-001-1",
+      "group_id": "ec-001",
+      "category": "policy",
+      "history": [],
+      "message": "折叠桌刚收到三天但已经组装，没质量问题，能无理由退吗？"
+    },
+    {
+      "id": "ec-001-2",
+      "group_id": "ec-001",
+      "category": "policy",
+      "history": [
+        [
+          "user",
+          "折叠桌刚收到三天但已经组装，没质量问题，能无理由退吗？"
+        ],
+        [
+          "assistant",
+          "我会根据可查到的资料核对，暂时还没有确认结论。"
+        ]
+      ],
+      "message": "那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。"
+    },
+    {
+      "id": "ec-002-1",
+      "group_id": "ec-002",
+      "category": "policy",
+      "history": [],
+      "message": "咖啡豆开袋后不喜欢口味，有没有退货办法？"
+    },
+    {
+      "id": "ec-002-2",
+      "group_id": "ec-002",
+      "category": "policy",
+      "history": [
+        [
+          "user",
+          "咖啡豆开袋后不喜欢口味，有没有退货办法？"
+        ],
+        [
+          "assistant",
+          "我会根据可查到的资料核对，暂时还没有确认结论。"
+        ]
+      ],
+      "message": "那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。"
+    },
+    {
+      "id": "ec-003-1",
+      "group_id": "ec-003",
+      "category": "policy",
+      "history": [],
+      "message": "会员退货运费全包吗，保价费也算吗？"
+    },
+    {
+      "id": "ec-003-2",
+      "group_id": "ec-003",
+      "category": "policy",
+      "history": [
+        [
+          "user",
+          "会员退货运费全包吗，保价费也算吗？"
+        ],
+        [
+          "assistant",
+          "我会根据可查到的资料核对，暂时还没有确认结论。"
+        ]
+      ],
+      "message": "那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。"
+    },
+    {
+      "id": "ec-004-1",
+      "group_id": "ec-004",
+      "category": "policy",
+      "history": [],
+      "message": "洗护组合里只退一瓶，是按单卖标价退钱吗？"
+    },
+    {
+      "id": "ec-004-2",
+      "group_id": "ec-004",
+      "category": "policy",
+      "history": [
+        [
+          "user",
+          "洗护组合里只退一瓶，是按单卖标价退钱吗？"
+        ],
+        [
+          "assistant",
+          "我会根据可查到的资料核对，暂时还没有确认结论。"
+        ]
+      ],
+      "message": "那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。"
+    },
+    {
+      "id": "ec-005-1",
+      "group_id": "ec-005",
+      "category": "policy",
+      "history": [],
+      "message": "壁柜送安装，玻璃墙固定也免费吗？"
+    },
+    {
+      "id": "ec-005-2",
+      "group_id": "ec-005",
+      "category": "policy",
+      "history": [
+        [
+          "user",
+          "壁柜送安装，玻璃墙固定也免费吗？"
+        ],
+        [
+          "assistant",
+          "我会根据可查到的资料核对，暂时还没有确认结论。"
+        ]
+      ],
+      "message": "那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。"
+    },
+    {
+      "id": "ec-016-1",
+      "group_id": "ec-016",
+      "category": "multiturn",
+      "history": [],
+      "message": "R28写着Wi-Fi 6，所以也能连6GHz吗？"
+    },
+    {
+      "id": "ec-016-2",
+      "group_id": "ec-016",
+      "category": "multiturn",
+      "history": [
+        [
+          "user",
+          "R28写着Wi-Fi 6，所以也能连6GHz吗？"
+        ],
+        [
+          "assistant",
+          "我会根据可查到的资料核对，暂时还没有确认结论。"
+        ]
+      ],
+      "message": "那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。"
+    },
+    {
+      "id": "ec-017-1",
+      "group_id": "ec-017",
+      "category": "multiturn",
+      "history": [],
+      "message": "L16门锁插USB就会给里面的电池充电吗？"
+    },
+    {
+      "id": "ec-017-2",
+      "group_id": "ec-017",
+      "category": "multiturn",
+      "history": [
+        [
+          "user",
+          "L16门锁插USB就会给里面的电池充电吗？"
+        ],
+        [
+          "assistant",
+          "我会根据可查到的资料核对，暂时还没有确认结论。"
+        ]
+      ],
+      "message": "那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。"
+    },
+    {
+      "id": "ec-018-1",
+      "group_id": "ec-018",
+      "category": "multiturn",
+      "history": [],
+      "message": "D24有电源但是没有排水口，先用起来可以吗？"
+    },
+    {
+      "id": "ec-018-2",
+      "group_id": "ec-018",
+      "category": "multiturn",
+      "history": [
+        [
+          "user",
+          "D24有电源但是没有排水口，先用起来可以吗？"
+        ],
+        [
+          "assistant",
+          "我会根据可查到的资料核对，暂时还没有确认结论。"
+        ]
+      ],
+      "message": "那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。"
+    },
+    {
+      "id": "ec-019-1",
+      "group_id": "ec-019",
+      "category": "multiturn",
+      "history": [],
+      "message": "阅读器登录过但没买内容，可以试用退货吗？"
+    },
+    {
+      "id": "ec-019-2",
+      "group_id": "ec-019",
+      "category": "multiturn",
+      "history": [
+        [
+          "user",
+          "阅读器登录过但没买内容，可以试用退货吗？"
+        ],
+        [
+          "assistant",
+          "我会根据可查到的资料核对，暂时还没有确认结论。"
+        ]
+      ],
+      "message": "那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。"
+    },
+    {
+      "id": "ec-028-1",
+      "group_id": "ec-028",
+      "category": "product",
+      "history": [],
+      "message": "S31怎么校准，有什么需要注意？"
+    },
+    {
+      "id": "ec-028-2",
+      "group_id": "ec-028",
+      "category": "product",
+      "history": [
+        [
+          "user",
+          "S31怎么校准，有什么需要注意？"
+        ],
+        [
+          "assistant",
+          "我会根据可查到的资料核对，暂时还没有确认结论。"
+        ]
+      ],
+      "message": "那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。"
+    },
+    {
+      "id": "ec-029-1",
+      "group_id": "ec-029",
+      "category": "product",
+      "history": [],
+      "message": "K26还连着旧平板，怎么配对新电脑？"
+    },
+    {
+      "id": "ec-029-2",
+      "group_id": "ec-029",
+      "category": "product",
+      "history": [
+        [
+          "user",
+          "K26还连着旧平板，怎么配对新电脑？"
+        ],
+        [
+          "assistant",
+          "我会根据可查到的资料核对，暂时还没有确认结论。"
+        ]
+      ],
+      "message": "那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。"
+    },
+    {
+      "id": "ec-030-1",
+      "group_id": "ec-030",
+      "category": "product",
+      "history": [],
+      "message": "M27插HDMI却黑屏，要怎么排查？"
+    },
+    {
+      "id": "ec-030-2",
+      "group_id": "ec-030",
+      "category": "product",
+      "history": [
+        [
+          "user",
+          "M27插HDMI却黑屏，要怎么排查？"
+        ],
+        [
+          "assistant",
+          "我会根据可查到的资料核对，暂时还没有确认结论。"
+        ]
+      ],
+      "message": "那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。"
+    },
+    {
+      "id": "ec-031-1",
+      "group_id": "ec-031",
+      "category": "product",
+      "history": [],
+      "message": "E11除垢具体顺序是什么？"
+    },
+    {
+      "id": "ec-031-2",
+      "group_id": "ec-031",
+      "category": "product",
+      "history": [
+        [
+          "user",
+          "E11除垢具体顺序是什么？"
+        ],
+        [
+          "assistant",
+          "我会根据可查到的资料核对，暂时还没有确认结论。"
+        ]
+      ],
+      "message": "那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。"
+    },
+    {
+      "id": "ec-032-1",
+      "group_id": "ec-032",
+      "category": "product",
+      "history": [],
+      "message": "N12给家人共享，是直接给主账号密码吗？"
+    },
+    {
+      "id": "ec-032-2",
+      "group_id": "ec-032",
+      "category": "product",
+      "history": [
+        [
+          "user",
+          "N12给家人共享，是直接给主账号密码吗？"
+        ],
+        [
+          "assistant",
+          "我会根据可查到的资料核对，暂时还没有确认结论。"
+        ]
+      ],
+      "message": "那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。"
+    },
+    {
+      "id": "ec-041-1",
+      "group_id": "ec-041",
+      "category": "mixed",
+      "history": [],
+      "message": "查一下订单DP9540的状态，再说现在提出改址是否就算成功。不要操作。"
+    },
+    {
+      "id": "ec-041-2",
+      "group_id": "ec-041",
+      "category": "mixed",
+      "history": [
+        [
+          "user",
+          "查一下订单DP9540的状态，再说现在提出改址是否就算成功。不要操作。"
+        ],
+        [
+          "assistant",
+          "我会根据可查到的资料核对，暂时还没有确认结论。"
+        ]
+      ],
+      "message": "那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。"
+    },
+    {
+      "id": "ec-042-1",
+      "group_id": "ec-042",
+      "category": "mixed",
+      "history": [],
+      "message": "查订单DP9541是否付款，再说付款是不是代表发票已开。只查询。"
+    },
+    {
+      "id": "ec-042-2",
+      "group_id": "ec-042",
+      "category": "mixed",
+      "history": [
+        [
+          "user",
+          "查订单DP9541是否付款，再说付款是不是代表发票已开。只查询。"
+        ],
+        [
+          "assistant",
+          "我会根据可查到的资料核对，暂时还没有确认结论。"
+        ]
+      ],
+      "message": "那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。"
+    },
+    {
+      "id": "ec-043-1",
+      "group_id": "ec-043",
+      "category": "mixed",
+      "history": [],
+      "message": "看订单DP9542当前状态，付完钱就可以去拿吗？"
+    },
+    {
+      "id": "ec-043-2",
+      "group_id": "ec-043",
+      "category": "mixed",
+      "history": [
+        [
+          "user",
+          "看订单DP9542当前状态，付完钱就可以去拿吗？"
+        ],
+        [
+          "assistant",
+          "我会根据可查到的资料核对，暂时还没有确认结论。"
+        ]
+      ],
+      "message": "那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。"
+    },
+    {
+      "id": "ec-051-1",
+      "group_id": "ec-051",
+      "category": "boundary",
+      "history": [],
+      "message": "海外买这件肯定只收十元税吧？"
+    },
+    {
+      "id": "ec-051-2",
+      "group_id": "ec-051",
+      "category": "boundary",
+      "history": [
+        [
+          "user",
+          "海外买这件肯定只收十元税吧？"
+        ],
+        [
+          "assistant",
+          "我会根据可查到的资料核对，暂时还没有确认结论。"
+        ]
+      ],
+      "message": "那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。"
+    },
+    {
+      "id": "ec-052-1",
+      "group_id": "ec-052",
+      "category": "boundary",
+      "history": [],
+      "message": "扩展坞X38接电脑C99肯定没问题吗？"
+    },
+    {
+      "id": "ec-052-2",
+      "group_id": "ec-052",
+      "category": "boundary",
+      "history": [
+        [
+          "user",
+          "扩展坞X38接电脑C99肯定没问题吗？"
+        ],
+        [
+          "assistant",
+          "我会根据可查到的资料核对，暂时还没有确认结论。"
+        ]
+      ],
+      "message": "那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。"
+    },
+    {
+      "id": "ec-053-1",
+      "group_id": "ec-053",
+      "category": "boundary",
+      "history": [],
+      "message": "靠垫没污损，我能退吗？我没说签收日期。"
+    },
+    {
+      "id": "ec-053-2",
+      "group_id": "ec-053",
+      "category": "boundary",
+      "history": [
+        [
+          "user",
+          "靠垫没污损，我能退吗？我没说签收日期。"
+        ],
+        [
+          "assistant",
+          "我会根据可查到的资料核对，暂时还没有确认结论。"
+        ]
+      ],
+      "message": "那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。"
+    }
+  ],
+  "retrieval_policy": {
+    "top_k": 5,
+    "candidate_k": 20,
+    "context_max_tokens": 2600,
+    "rrf_k": 10,
+    "vector_weight": 0.5,
+    "lexical_weight": 0.5,
+    "raw_query_weight": 0.2,
+    "standalone_query_weight": 0.6,
+    "expansion_query_weight": 0.0,
+    "query_expansion_count": 0,
+    "metadata_hint_weight": 0.5
+  },
+  "reranker_version": "customer-support-listwise-v4-complete-evidence:7fddc3b741d5e6c9aa91b210f319ed3ec824ebc6ba4879dea2444fb2f3e6f544",
+  "source_sha256": {
+    "application/conversation_agent.py": "5ce4f9f635af957254d5bcf1e008ec3a864ec397e8c323446e87150945bccd68",
+    "application/knowledge_tool_contract.py": "de606eb6121a2f6e7a19912c53ff58484f5eb1a98c4dcf63de823b268c91df0e",
+    "application/knowledge_retriever.py": "544a6b5bdb79e5affb945dd21f961469ac610eb573fcd217a6475d5de0aa4b80",
+    "application/response_assembly.py": "97b1384b27f1bfffa44ace10e82fb542c117fed90293a2035ac6514f59cc50b9",
+    "infrastructure/target_conversation_provider.py": "8390b3b2ddf92d5852273edcebe2f80a5f45ca7c1f457fb6035c0c8cf2e13548",
+    "api/main.py": "a0edd6287f319bcb7537efc47dd92f7d2f0e03fcbe82ee673fc22189fe302ac9",
+    "infrastructure/postgres_knowledge_retriever.py": "4a1e200fbbd7b42a69f74fe30072bdbb4c5c268f1e7abd3caceec8303e6d4fb9",
+    "infrastructure/knowledge_applicability.py": "1793f9210000be135cc8b6025841cacc743dc89259f90532c51c8c8137124354",
+    "services/answer_verifier.py": "61383a234478fcfc59f05b7ea2e9bff25577df5d6e940ed6e25694f12010afee",
+    "services/claim_verification.py": "33bf5e4fbf1e0e817427be5b9304a8ae8339cfecf3b6db4627d7a81a4078de3a",
+    "evaluation/rag_full_chain_probe.py": "f5a3b32cf29907aa72ba4fb6e2de699ae5c335119f03891122de5e4aad90268e"
+  },
+  "max_api_calls": 320
+}

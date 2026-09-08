@@ -36,7 +36,7 @@ CASES = [
 ]
 
 
-async def run_full_chain(*,database_url,platform,store,client,policy,provider_config,output,handler,retrieval_policy=None,case_limit=None,reranker_version=None,case_definitions=None,tenant_id="rag-tool-dev",scope_label="synthetic ecommerce",registry=None,retrieval_backend_label="PostgreSQL retrieval"):
+async def run_full_chain(*,database_url,platform,store,client,policy,provider_config,output,handler,retrieval_policy=None,case_limit=None,reranker_version=None,case_definitions=None,tenant_id="rag-tool-dev",scope_label="synthetic ecommerce",registry=None,retrieval_backend_label="PostgreSQL retrieval",business_fixtures=None):
     definitions=CASES if case_definitions is None else case_definitions
     if case_limit is not None and not 1 <= case_limit <= len(definitions):
         raise ValueError('full-chain case limit outside supported cases')
@@ -48,6 +48,25 @@ async def run_full_chain(*,database_url,platform,store,client,policy,provider_co
     tools=RecordedTools(api_key=provider_config['api_key'],base_url=policy.base_url,model=policy.profile(ModelRole.INTENT).model)
     from application.knowledge_tool_contract import knowledge_query_schema, knowledge_tool_schema_for_context
     tools.captures=[];tools.register(Tool(name='knowledge_search',description='检索有效知识原文；query须为完整问题，保留否定、日期及已知条件。',handler=handler,schema=knowledge_query_schema(),schema_factory=knowledge_tool_schema_for_context,schema_factory_version="knowledge-filter-contract-v1",authority='knowledge.active_source',read_only=True))
+    business=None
+    if business_fixtures is not None:
+        from services.customer_operations import CustomerOperationsService, OrderStatus
+        from mcp.customer_operations_tools import customer_operation_tools
+        business=CustomerOperationsService(platform,tenant_id=tenant_id)
+        for tool in customer_operation_tools(business):
+            if tool.read_only:tools.register(tool)
+        if set(business_fixtures)!={c['id'] for c in cases}:raise ValueError('fixture cases must match run cases')
+        # Use the same read-only tool factories as API startup so domain delegation
+        # does not fail merely because the evaluation omitted declared tools.
+        from mcp.product_tools import product_tools
+        from services.product_catalog import ProductCatalogService
+        from infrastructure.postgres_media_asset_store import PostgresMediaAssetStore
+        from infrastructure.tesseract_ocr_provider import TesseractOCRProvider
+        from application.service_episode_tool import build_service_episode_tool
+        for tool in product_tools(PostgresMediaAssetStore(platform),TesseractOCRProvider(),ProductCatalogService('data/product-catalog.v1.json')):
+            tools.register(tool)
+        tools.register(build_service_episode_tool(lambda: None))
+
     capture=FrameworkCapture(limit=client.limit,calls=client.calls)
     verifier=AnswerVerifier(framework_model(policy.profile(ModelRole.VERIFIER),provider_config,max_tokens=4096),model_profile=policy.profile(ModelRole.VERIFIER),callbacks=(capture,))
     generation=store.active_generation()
@@ -68,6 +87,9 @@ async def run_full_chain(*,database_url,platform,store,client,policy,provider_co
             components.understanding._planner._provider._callbacks=(capture,)
             turns=PostgresConversationTurnStore(platform)
             for case in cases:
+                if business is not None:
+                    for order in business_fixtures[case['id']]['orders']:
+                        business.upsert_order(**{**order,'status':OrderStatus[order['status']]},user_id='eval-user')
                 conv='full-'+case['id'];scope=ConversationScope(tenant_id,'eval-user',conv)
                 for i,(role,text) in enumerate(case['history']):
                     tid=f'{conv}-{i}';turns.append_turn(scope,TurnToAppend(tid,tid,TurnRole.INBOUND if role=='user' else TurnRole.ASSISTANT,text,datetime.now(timezone.utc).isoformat()))

@@ -1,0 +1,132 @@
+{
+  "n": 4,
+  "source_recall_at5": 1.0,
+  "source_ndcg_at5": 1.0,
+  "api_calls": 16,
+  "reported_input_tokens": 64651,
+  "reported_output_tokens": 1348,
+  "business_correctness": null,
+  "limitations": "First five unique sources across tool calls in call order; source-level retrieval only; runtime verified is not semantic gold. Semantic review pending. Usage excludes unreported provider tokens.",
+  "cases": [
+    {
+      "id": "ec-001-1",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "折叠桌收到三天内已组装，无质量问题，是否可以无理由退货？组装后的商品是否影响无理由退货资格？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-001",
+        "eval-shop:ec-057",
+        "eval-shop:ec-053",
+        "eval-shop:ec-002",
+        "eval-shop:ec-055"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "很抱歉，根据店铺规则，折叠桌需在签收七日内且**未组装**才能申请无理由退货；您已组装且无质量问题，因此不适用无理由退货 [Ee56a5a757636]。如果您发现质量异常，可提供照片申请审核 [Ee56a5a757636]。",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "已组装且非质量原因不适用无理由退货"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-016-2",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "Does a device labeled as supporting Wi-Fi 6 necessarily support connecting to the 6GHz band, or is 6GHz support only available with Wi-Fi 6E? What are the conditions for 6GHz connectivity?"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-016",
+        "eval-shop:ec-052",
+        "eval-shop:ec-040",
+        "eval-shop:ec-037",
+        "eval-shop:ec-029"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "知识查询或核验服务暂时不可用，请稍后重试或联系人工客服。",
+      "runtime_verified": false,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "支持2.4和5GHz",
+        "不支持6GHz",
+        "名称不代表频段"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-028-1",
+      "tools": [
+        "knowledge_search"
+      ],
+      "queries": [
+        "S31 如何校准？校准过程中有什么需要注意的事项？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-028",
+        "eval-shop:ec-037",
+        "eval-shop:ec-035",
+        "eval-shop:ec-018",
+        "eval-shop:ec-039"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "S31扫描仪校准步骤：先清洁扫描玻璃，放入校准卡，然后在设置中选择校准；校准完成前不要取出卡片[E238b9552c5c6]。",
+      "runtime_verified": true,
+      "business_required": false,
+      "business_lookup_called": false,
+      "api_calls": 4,
+      "requirements": [
+        "清洁玻璃",
+        "放校准卡",
+        "设置选择校准",
+        "完成前不取卡"
+      ],
+      "semantic_review": "PENDING"
+    },
+    {
+      "id": "ec-041-1",
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "queries": [
+        "提出修改收货地址后是否立即生效算成功，还是需要满足一定条件或审核后才算成功？"
+      ],
+      "visible_source_ids": [
+        "eval-shop:ec-041",
+        "eval-shop:ec-006",
+        "eval-shop:ec-044",
+        "eval-shop:ec-060",
+        "eval-shop:ec-012"
+      ],
+      "source_recall_at5": 1.0,
+      "source_ndcg_at5": 1.0,
+      "source_mrr_at5": 1.0,
+      "answer": "在 2026-09-08T16:00:13.906801+00:00 的查询记录中，订单 DP9540 状态为已发货。\n知识查询或核验服务暂时不可用，请稍后重试或联系人工客服。",
+      "runtime_verified": false,
+      "business_required": true,
+      "business_lookup_called": true,
+      "api_calls": 4,
+      "requirements": [
+        "报告订单实际状态",
+        "承运方确认",
+        "请求不等于修改成功"
+      ],
+      "semantic_review": "PENDING"
+    }
+  ]
+}
