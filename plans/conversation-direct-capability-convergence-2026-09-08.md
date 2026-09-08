@@ -1314,3 +1314,32 @@ Together with the policy-only counterfactual this rejects budget escalation as a
 demonstrated solution. Next evidence must exercise the repaired original-description
 boundary, including fresh non-conflicting and conflicting goals; prior captured
 examples remain development diagnostics, not a new held-out score.
+
+Description-boundary counterfactual registered: reuse captured c27 observation locally;
+original twice versus original with preparation-tool descriptions restored twice.
+Official descriptions exported by tau2 RetailTools over an empty database; no tools
+are invoked. Keep original history, policy, candidate, SYSTEM and SCHEMA, NONE,
+4096 tokens, 90 seconds/call. Four calls maximum. Manifest preserves description
+sources and captured input identity. Adoption evidence requires correct rejection
+for shared state incompatibility, not merely any false boolean. This confirms or
+falsifies a causal effect on the known development witness; fresh-case validation
+is still required before semantic closure. Do not tune the prompt on this case.
+
+Description counterfactual completed at `artifacts/eval/action-description4-2026-09-09`:
+original accepted 2/2, restored descriptions accepted 2/2, all incorrect. No business
+tools executed. In these historical result rows `history=False` means the description
+intervention, NOT removed history; the full history was retained in both arms.
+Runner now uses explicit arm labels and checks the captured output schema as well
+as SYSTEM. Independent review confirmed all seven preparation descriptions and
+their schema-description copies were the correct conversion surface. The official
+descriptions are preserved in the manifest; package revision was not recorded, so
+this remains bounded local-source diagnostic evidence, not a reproducibility claim
+across official benchmark versions. Four transform tests passed.
+
+Interpretation: source preservation is verified, but no decision-quality gain on
+the frozen erroneous actor trajectory. This does not determine how the repaired
+actor would choose actions; do not infer end-to-end success or failure from this
+reviewer-only counterfactual. Stop this witness's repeated reviewer tuning. Next:
+separately test actor action selection and current reviewer behavior on fresh scoped
+conflict/independence/batch/information-only cases, using unchanged production
+contracts, before another business run. Whole goal remains open.

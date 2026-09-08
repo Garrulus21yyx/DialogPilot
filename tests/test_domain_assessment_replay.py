@@ -1,6 +1,22 @@
 from scripts.replay_domain_assessment import remove_actor_text
 from scripts.replay_domain_assessment import remove_runtime_advice
 from scripts.replay_domain_assessment import ASSESSMENT_BASIS_SCHEMA, SCHEMA
+from scripts.replay_domain_assessment import restore_tool_descriptions
+
+
+def test_description_restoration_changes_only_preparation_description():
+    original = {'working_context': [{'role': 'ai', 'content': 'Prepare first.'}],
+        'candidate': {'tool': 'prepare_A'}, 'capabilities': [
+            {'name': 'read', 'description': 'Read.', 'schema': {}},
+            {'name': 'prepare_A', 'description': 'Prepare only.', 'schema': {'type': 'object', 'description': 'Prepare only.'}}]}
+    restored = restore_tool_descriptions(original, {'A': 'Changes state to closed.'})
+    assert restored['working_context'] == original['working_context']
+    assert restored['candidate'] == original['candidate']
+    assert restored['capabilities'][0] == original['capabilities'][0]
+    assert restored['capabilities'][1]['schema']['type'] == 'object'
+    assert restored['capabilities'][1]['schema']['description'] == restored['capabilities'][1]['description']
+    assert restored['capabilities'][1]['description'].endswith('Changes state to closed.')
+    assert original['capabilities'][1]['description'] == 'Prepare only.'
 
 
 def test_basis_probe_keeps_original_decision_fields_and_closed_schema():

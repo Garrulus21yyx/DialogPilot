@@ -51,21 +51,53 @@ def remove_runtime_advice(payload):
     return payload
 
 
+def restore_tool_descriptions(payload, descriptions):
+    """Replay the production wrapper fix; retain every other captured field."""
+    payload = json.loads(json.dumps(payload))
+    for tool in payload['capabilities']:
+        if tool['name'].startswith('prepare_'):
+            original = descriptions[tool['name'].removeprefix('prepare_')]
+            tool['description'] += ('\nOriginal business operation description '
+                '(prerequisites and effects apply to execution after approval, '
+                'not to this preparation call):\n' + original)
+            # StructuredTool.tool_call_schema repeats the tool description.
+            if 'description' in tool['schema']:
+                tool['schema']['description'] = tool['description']
+    return payload
+
+
 async def run(args):
     values = {**dotenv_values('.env'), **os.environ}
     env = {k: str(v) for k, v in values.items() if v is not None}
     env['LANGFUSE_HOST'] = env.get('LANGFUSE_BASE_URL', '')
-    result = subprocess.run(['npx', '--yes', 'langfuse-cli', 'api', 'observations', 'list',
-        '--session-id', args.session, '--name', 'ChatAnthropic',
-        '--from-start-time', args.start, '--to-start-time', args.end,
-        '--fields', 'core,basic,io', '--limit', '100', '--json'], env=env, capture_output=True, text=True, check=True)
-    observations = json.loads(result.stdout)['body']['data']
-    source, = [r for r in observations if r['id'] == args.observation]
+    if args.source:
+        source = json.loads(args.source.read_text())
+    else:
+        result = subprocess.run(['npx', '--yes', 'langfuse-cli', 'api', 'observations', 'list',
+            '--session-id', args.session, '--name', 'ChatAnthropic',
+            '--from-start-time', args.start, '--to-start-time', args.end,
+            '--fields', 'core,basic,io', '--limit', '100', '--json'], env=env, capture_output=True, text=True, check=True)
+        observations = json.loads(result.stdout)['body']['data']
+        source, = [r for r in observations if r['id'] == args.observation]
+    descriptions = {}
+    if args.ablation == 'original_tool_descriptions':
+        # Empty environment: export official schemas, never invoke business tools.
+        export = subprocess.run([str(args.official_python), '-c',
+            'import json; from tau2.domains.retail.tools import RetailTools; '
+            'from tau2.domains.retail.data_model import RetailDB; '
+            'print(json.dumps({name: tool.openai_schema["function"]["description"] '
+            'for name, tool in RetailTools(RetailDB(users={}, products={}, orders={})).get_tools().items()}))'],
+            capture_output=True, text=True, check=True)
+        descriptions = json.loads(export.stdout)
     messages = json.loads(source['input']) if isinstance(source['input'], str) else source['input']
     system, = [m['content'] for m in messages if m['role'] == 'system']
     content, = [m['content'] for m in messages if m['role'] == 'user']
     if system != SYSTEM:
         raise ValueError('captured assessment system differs from production; migration must be explicit')
+    captured_tool, = [m['content'] for m in messages if m['role'] == 'tool']
+    captured_schema = captured_tool['function']['parameters']['properties']['result']
+    if captured_schema != SCHEMA:
+        raise ValueError('captured assessment schema differs from production; migration must be explicit')
     original = json.loads(content)
     if original['proposed_outcome'] != 'PREPARE_ACTION':
         raise ValueError('this diagnostic covers action selection only')
@@ -76,12 +108,14 @@ async def run(args):
     args.output.mkdir(parents=True, exist_ok=False)
     (args.output / 'source.json').write_text(json.dumps(source, ensure_ascii=False) + '\n')
     (args.output / 'manifest.json').write_text(json.dumps({
-        'scope': __doc__, 'source_observation': args.observation,
+        'scope': __doc__, 'source_observation': source['id'],
         'source_input_sha256': hashlib.sha256(content.encode()).hexdigest(),
         'system_sha256': hashlib.sha256(system.encode()).hexdigest(),
+        'schema_sha256': hashlib.sha256(json.dumps(SCHEMA, sort_keys=True).encode()).hexdigest(),
         'profiles': [p.to_dict() for p in profiles], 'repeats': 2,
         'max_api_calls': 4 * len(profiles), 'max_tokens': args.max_tokens, 'timeout_seconds': args.timeout, 'business_tools_enabled': False,
         'ablation': args.ablation,
+        'original_tool_descriptions': descriptions,
         'expected_accepted': False, 'interpretation': 'development diagnostic, not held-out closure',
     }, indent=2) + '\n')
     for profile in profiles:
@@ -89,13 +123,15 @@ async def run(args):
             'base_url': policy.base_url}, max_tokens=args.max_tokens)
         for history in (True, False):
             payload = original if history else (
+                restore_tool_descriptions(original, descriptions) if args.ablation == 'original_tool_descriptions' else
                 original if args.ablation == 'assessment_basis' else
                 remove_actor_text(original) if args.ablation == 'actor_text' else
                 remove_runtime_advice(original) if args.ablation == 'runtime_advice' else
                 {**original, 'working_context': []})
             for repeat in range(2):
                 capture = FrameworkCapture(limit=1)
-                row = {'history': history, 'reasoning': profile.reasoning.value, 'repeat': repeat}
+                row = {'history': history, 'arm': 'original' if history else args.ablation,
+                       'reasoning': profile.reasoning.value, 'repeat': repeat}
                 try:
                     async with asyncio.timeout(args.timeout):
                         row['assessment'] = await structured_call(model, name='assess_domain_outcome',
@@ -114,9 +150,11 @@ async def run(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('session', 'observation', 'start', 'end'):
-        parser.add_argument('--' + name, required=True)
+        parser.add_argument('--' + name)
+    parser.add_argument('--source', type=Path, help='Existing captured observation; no Langfuse request.')
+    parser.add_argument('--official-python', type=Path, help='tau2 environment interpreter for schema export only.')
     parser.add_argument('--output', type=Path, required=True)
-    parser.add_argument('--ablation', choices=('working_context', 'actor_text', 'runtime_advice', 'assessment_basis'), default='working_context')
+    parser.add_argument('--ablation', choices=('working_context', 'actor_text', 'runtime_advice', 'assessment_basis', 'original_tool_descriptions'), default='working_context')
     parser.add_argument('--reasoning', nargs='+', choices=('none', 'high'), default=['none', 'high'])
     parser.add_argument('--max-tokens', type=int, choices=(4096, 8192), default=4096)
     parser.add_argument('--timeout', type=int, choices=(90, 180), default=90)
