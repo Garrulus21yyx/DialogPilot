@@ -1,0 +1,20 @@
+{
+  "Doc2Dial": {
+    "cases": 100,
+    "new_ce_pairs": 163,
+    "pool_scores_pack_wire_reproduced": true,
+    "raw_route_scope": "matches prior raw ranks"
+  },
+  "MTRAG": {
+    "cases": 100,
+    "new_ce_pairs": 1854,
+    "pool_scores_pack_wire_reproduced": true,
+    "raw_route_scope": "new full-corpus raw ranks; replay validates downstream, not a second dense/BM25 execution"
+  },
+  "WixQA": {
+    "cases": 100,
+    "new_ce_pairs": 151,
+    "pool_scores_pack_wire_reproduced": true,
+    "raw_route_scope": "matches prior raw ranks"
+  }
+}

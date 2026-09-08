@@ -1,0 +1,28 @@
+{
+  "n": 100,
+  "new_api_calls": 0,
+  "new_ce_pairs": 163,
+  "raw_weight": 0.25,
+  "standalone_weight": 0.75,
+  "summary": {
+    "raw": {
+      "recall": 0.58,
+      "mrr": 0.43133333333333335,
+      "ndcg": 0.471108511415139
+    },
+    "standalone": {
+      "recall": 0.92,
+      "mrr": 0.7186666666666666,
+      "ndcg": 0.7698229648781841
+    },
+    "joint": {
+      "recall": 0.92,
+      "mrr": 0.7186666666666666,
+      "ndcg": 0.7698229648781841
+    }
+  },
+  "paired_vs_standalone": {
+    "better": 0,
+    "worse": 0
+  }
+}

@@ -8,7 +8,7 @@
 
 独立会话维护记录（不改变并行检索实验优先级）：本会话用户授权修复近期知识证据续接，见[证据复用计划](conversation-evidence-reuse-2026-09-08.md)。原12条重判为10通过/2待核实，不以无RAG调用判业务错误。final/追问的私有证据记录接回主Agent，复用同一来源有效性检查，不加模型或检索层；427项真实PG及相关回归通过，独立审查通过，模型API0。此为实现验证，非R01语义关闭；旧pack缺失不伪造迁移，检索/微调并行工作保持原安排。
 
-**当前活动项：三套各100的纯query→召回→精排→wire实验均已完成。Doc58→92、MTRAG官方rewrite45→Flash48.31、Wix原问题70.83→Flash66.83；语义违规保留，均不称电商Agent/答案准确率。下一项输出语义合同与按需改写验证，未实施。**
+**当前活动项R01：三套各100真实原句＋standalone联合检索诊断完成，固定联合策略未胜出、不采用。Doc最终92→92、MTRAG48.31→48.18、Wix66.83→65.83；本次MTRAG真实raw43.91与旧官方rewrite45分开。下一项仅沿原句/完整query的来源合同与语义保护做接线审查，不增加独立改写Agent；真实Agent语义与端到端验收仍开放。报告见docs/rag-raw-standalone300-2026-09-08.zh-CN.md。**
 
 预注册：冻结原query、语料、分路20、融合20、CE分数、最终5/2600；复用fresh100记录，不调参。测全库包含（Doc）、Dense20/BM2520/并集、融合20、CE Top5、实际pack/wire；逐例保存损失位置，区分指标上限与语义根因。预算：API0、新embedding0、新CE0。验收：复现原baseline与来源身份，分层集合不变量成立，报告每层净损失及局限；不以本次诊断宣称策略改善。完成后优先补Doc仅依据历史的完整query诊断，不重构Agent、不恢复微调。
 
@@ -487,3 +487,7 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - 用户授权另两套各100补齐：95f42f1起点，MTRAG reference.input历史与当前问句（不输入官方rewrite/targets/contexts），Wix原问句无伪造历史；同Flash NONE512原prompt每题一次预算200无重试。语料/向量/各20/.5/CE/5-2600冻结，最多4000新CE。复用官方rewrite/原问句baseline，不以不合法输出获得Recall冒充query准确率；所有失败保留。
 
 - 另两套各100补测完成：Flash200次（输入73686/输出5365），CE4000，向量缓存复用。MTRAG官方input历史生成文本最终45→48.31，19改善15退步，MRR略降，42组区间跨0；Wix70.83→66.83，3改善9退步，区间跨0。全部输入/评分/pack/wire审计通过。3条Wix复述system、其他答案型输出保留，不能称100个合格query。报告docs/rag-query-other200-2026-09-08.zh-CN.md，产物rag-query-other200；相干提交推送，不采用生产、不调后验权重。
+
+- 用户要求回到原联合路径：3ac5fd0核对HISTORY双路存在，RESOLVED中raw等于Agent完整query并非原用户句；子需求planner调用仅见evaluation，step-back未找到。预注册三套已消费100固定生成文本：原句/standalone/联合.25-.75（当前.2-.6归一），每文本Dense/BM2520、合并20/CE完整query/5-2600，同文本去重复票。MTRAG此前官方rewrite不等于raw，额外本地检索原最后句。API0，新CE全轮最多8000，不重新生成query，不引入独立改写器；救回误伤/语义风险单列。
+
+- 2026-09-08 raw＋standalone300完成：API0、新CE2168，固定.25/.75联合相对standalone改善/退步Doc0/0、MTRAG1/1、Wix0/1，不采用。300条融合/评分hash/pack/wire审计通过，MTRAG新增raw排名仅下游重放。现有否定词guard反例证实作用域/双否定/条件合取可漏检，非模型错误率。报告及产物rag-raw-standalone300-2026-09-08；本轮相干路径commit/push，生产未改、微调暂停、R01未关闭。

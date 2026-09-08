@@ -1,0 +1,76 @@
+{
+  "scope": "Existing requirement planner validator only; not production rewrite guarantee. Labels authored for counterexamples, no model calls.",
+  "cases": [
+    {
+      "case": "dropped_negation",
+      "raw": "哪些国家不支持发货",
+      "queries": [
+        "哪些国家支持发货"
+      ],
+      "known_semantic_property": "UNSAFE",
+      "lexical_guard_accepted": false,
+      "error": "requirements dropped negations: ['不']"
+    },
+    {
+      "case": "scope_shift",
+      "raw": "哪些国家不支持发货",
+      "queries": [
+        "哪些国家支持发货且不收运费"
+      ],
+      "known_semantic_property": "UNSAFE",
+      "lexical_guard_accepted": true,
+      "error": ""
+    },
+    {
+      "case": "double_negation",
+      "raw": "哪些国家不支持发货",
+      "queries": [
+        "哪些国家不是不支持发货"
+      ],
+      "known_semantic_property": "UNSAFE",
+      "lexical_guard_accepted": true,
+      "error": ""
+    },
+    {
+      "case": "faithful",
+      "raw": "哪些国家不支持发货",
+      "queries": [
+        "不支持配送的国家有哪些"
+      ],
+      "known_semantic_property": "SAFE",
+      "lexical_guard_accepted": true,
+      "error": ""
+    },
+    {
+      "case": "invented_condition",
+      "raw": "价格是多少",
+      "queries": [
+        "iPhone16在德国的价格是多少"
+      ],
+      "known_semantic_property": "UNSUPPORTED_ASSUMPTION",
+      "lexical_guard_accepted": true,
+      "error": ""
+    },
+    {
+      "case": "condition_detached",
+      "raw": "非质量问题的拆封耳机能退吗",
+      "queries": [
+        "拆封耳机怎么退",
+        "非质量问题怎么处理"
+      ],
+      "known_semantic_property": "LOST_CONDITION_CONJUNCTION",
+      "lexical_guard_accepted": true,
+      "error": ""
+    },
+    {
+      "case": "acronym",
+      "raw": "GPT与BERT有什么区别",
+      "queries": [
+        "Generative Pre-trained Transformer与Bidirectional Encoder Representations from Transformers有什么区别"
+      ],
+      "known_semantic_property": "EXPANSION_RECALL_RISK_NOT_LOGIC_ERROR",
+      "lexical_guard_accepted": true,
+      "error": ""
+    }
+  ]
+}
