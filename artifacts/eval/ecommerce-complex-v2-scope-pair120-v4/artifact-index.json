@@ -1,0 +1,36 @@
+{
+  "local_artifacts": {
+    "runtime/pure-cases.jsonl.gz": {
+      "sha256": "b4a40b2baf9efb4a29867fe001d235c85818535db271e0b4743f689b10f0b7c0",
+      "bytes": 9693917
+    },
+    "runtime/source-route-captures.json.gz": {
+      "sha256": "c22eeffe5475c50bddd06b0b98308338bc328cb889c59521e4963923a46acdbb",
+      "bytes": 8913787
+    },
+    "runtime/manifest.json": {
+      "sha256": "55a5eb65812028921862351da17aa71230e99e3bf5afc6063097ed95aab906d7",
+      "bytes": 17267843
+    }
+  },
+  "api_calls": 60,
+  "api_usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 640,
+    "input_tokens": 8964,
+    "output_tokens": 2609
+  },
+  "rewrite_errors": 0,
+  "rewrite_api_p50_ms": 832.4500983580947,
+  "retrieval_latency_ms": {
+    "scope_unfiltered": {
+      "p50": 2115.032769739628,
+      "p95": 2222.1977785229683
+    },
+    "scope_filtered": {
+      "p50": 2084.32215731591,
+      "p95": 2186.8726015090942
+    }
+  },
+  "note": "Retrieval latency excludes query rewriting. Full external content/captures stay local. Published per-case scoring includes synthetic queries. Prior aborted v3 API accounting incomplete; not included in final-run totals."
+}

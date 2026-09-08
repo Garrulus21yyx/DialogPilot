@@ -1,0 +1,51 @@
+{
+  "pairs": 120,
+  "checked_filtered_candidates": 2320,
+  "universal_external_candidates": 1392,
+  "eligible_universal_external_documents": 6221,
+  "failures": [
+    {
+      "id": "cx-16-4",
+      "arm": "scope_filtered",
+      "status": "UNAVAILABLE",
+      "detail_code": "POSTGRES_UNAVAILABLE"
+    },
+    {
+      "id": "cx-28-4",
+      "arm": "scope_filtered",
+      "status": "UNAVAILABLE",
+      "detail_code": "POSTGRES_UNAVAILABLE"
+    },
+    {
+      "id": "cx-03-3",
+      "arm": "scope_filtered",
+      "status": "UNAVAILABLE",
+      "detail_code": "POSTGRES_UNAVAILABLE"
+    },
+    {
+      "id": "cx-03-4",
+      "arm": "scope_unfiltered",
+      "status": "UNAVAILABLE",
+      "detail_code": "POSTGRES_UNAVAILABLE"
+    },
+    {
+      "id": "cx-20-2",
+      "arm": "scope_filtered",
+      "status": "UNAVAILABLE",
+      "detail_code": "POSTGRES_UNAVAILABLE"
+    },
+    {
+      "id": "cx-20-4",
+      "arm": "scope_unfiltered",
+      "status": "UNAVAILABLE",
+      "detail_code": "POSTGRES_UNAVAILABLE"
+    }
+  ],
+  "status_counts": {
+    "OK": 234,
+    "UNAVAILABLE": 6
+  },
+  "reranker_fallbacks": 0,
+  "trace_sha256": "b4a40b2baf9efb4a29867fe001d235c85818535db271e0b4743f689b10f0b7c0",
+  "scope": "Actual request, shared query/snapshot, candidate applicability and provenance; no gold read"
+}

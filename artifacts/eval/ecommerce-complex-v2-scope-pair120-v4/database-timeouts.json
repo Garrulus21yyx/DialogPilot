@@ -1,0 +1,32 @@
+{
+  "database": "dialogpilot_rag_dev_379db6005bda",
+  "pid_verified_via_pg_stat_activity_during_run": 84803,
+  "statement_timeout_ms": 750,
+  "events": [
+    {
+      "event": "2026-09-08 18:37:02.217 UTC [84803] ERROR:  canceling statement due to statement timeout",
+      "query_kind": "lexical_query_terms"
+    },
+    {
+      "event": "2026-09-08 18:38:01.441 UTC [84803] ERROR:  canceling statement due to statement timeout",
+      "query_kind": "lexical_query_terms"
+    },
+    {
+      "event": "2026-09-08 18:38:31.796 UTC [84803] ERROR:  canceling statement due to statement timeout",
+      "query_kind": "lexical_query_terms"
+    },
+    {
+      "event": "2026-09-08 18:38:34.135 UTC [84803] ERROR:  canceling statement due to statement timeout",
+      "query_kind": "lexical_query_terms"
+    },
+    {
+      "event": "2026-09-08 18:41:36.213 UTC [84803] ERROR:  canceling statement due to statement timeout",
+      "query_kind": "lexical_query_terms"
+    },
+    {
+      "event": "2026-09-08 18:41:43.817 UTC [84803] ERROR:  canceling statement due to statement timeout",
+      "query_kind": "lexical_query_terms"
+    }
+  ],
+  "note": "No timeout settings changed; failed cases kept in denominator."
+}

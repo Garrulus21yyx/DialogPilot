@@ -1,0 +1,2642 @@
+[
+  {
+    "id": "cx-01-1",
+    "arm": "scope_unfiltered",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。签收第六天已组装，非质量原因，怎样判断能否退货、例外和寄回费用？",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.3333333333333333,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.5,
+      "ndcg5": 0.2960819109658652
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.5,
+      "ndcg5": 0.49818925746641285
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.5,
+      "ndcg5": 0.49818925746641285
+    },
+    "wrong_scope_top5": 1,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-01-1",
+    "arm": "scope_filtered",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。签收第六天已组装，非质量原因，怎样判断能否退货、例外和寄回费用？",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.6713860725233041
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.41618115554873086
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.41618115554873086
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-01-2",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则，折叠餐桌，签收第六天已组装，非质量原因，能否退货、例外和寄回费用，条件、例外和处理步骤",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.4367467095119258
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.6508205185601091
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 1.0,
+      "ndcg5": 0.6508205185601091
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-01-2",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则，折叠餐桌，签收第六天已组装，非质量原因，能否退货、例外和寄回费用，条件、例外和处理步骤",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.7653606369886217
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.8854598815714874
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.8854598815714874
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-01-3",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则，签收第六天已组装，非质量原因，假设情况下能否退货、例外和寄回费用，适用条件及处理办法",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.3333333333333333,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.23463936301137822
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.5,
+      "ndcg5": 0.4776237035032179
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.5,
+      "ndcg5": 0.4776237035032179
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-01-3",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则，签收第六天已组装，非质量原因，假设情况下能否退货、例外和寄回费用，适用条件及处理办法",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.7653606369886217
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.5,
+      "ndcg5": 0.49818925746641285
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.5,
+      "ndcg5": 0.49818925746641285
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-01-4",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则，签收第六天已组装，非质量原因，判断能否退货、例外和寄回费用，需要核实的条件、相关例外和后续处理步骤",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.5,
+      "ndcg5": 0.5307212739772434
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.5,
+      "ndcg5": 0.4776237035032179
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.5,
+      "ndcg5": 0.4776237035032179
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-01-4",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则，签收第六天已组装，非质量原因，判断能否退货、例外和寄回费用，需要核实的条件、相关例外和后续处理步骤",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.5,
+      "ndcg5": 0.5307212739772434
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.5,
+      "ndcg5": 0.4776237035032179
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.5,
+      "ndcg5": 0.4776237035032179
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-04-1",
+    "arm": "scope_unfiltered",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。定制窗帘颜色不喜欢，又怀疑尺寸不对，哪些可以退、需要什么证明和谁付邮费？",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.3333333333333333,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.23463936301137822
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.4367467095119258
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.4367467095119258
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-04-1",
+    "arm": "scope_filtered",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。定制窗帘颜色不喜欢，又怀疑尺寸不对，哪些可以退、需要什么证明和谁付邮费？",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.7653606369886217
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9674679834891693
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9674679834891693
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-04-2",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则，定制窗帘颜色不喜欢，尺寸不对，哪些可以退、需要什么证明和谁付邮费，条件、例外和处理步骤",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.4367467095119258
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 1.0,
+      "ndcg5": 0.6508205185601091
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 1.0,
+      "ndcg5": 0.6508205185601091
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-04-2",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则，定制窗帘颜色不喜欢，尺寸不对，哪些可以退、需要什么证明和谁付邮费，条件、例外和处理步骤",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.7653606369886217
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.8854598815714874
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.8854598815714874
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-04-3",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则，定制窗帘颜色不喜欢且怀疑尺寸不对，假设情况下哪些可以退、需要什么证明和谁付邮费，适用条件、例外及处理办法",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 1.0,
+      "ndcg5": 0.6508205185601091
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 1.0,
+      "ndcg5": 0.6713860725233041
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 1.0,
+      "ndcg5": 0.6713860725233041
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-04-3",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则，定制窗帘颜色不喜欢且怀疑尺寸不对，假设情况下哪些可以退、需要什么证明和谁付邮费，适用条件、例外及处理办法",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.7653606369886217
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9469024295259745
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9469024295259745
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-04-4",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则，定制窗帘退货前提条件、需要核实的条件、相关例外、后续处理步骤、退货证明、邮费承担方",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.41618115554873086
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.7039180890341347
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 1.0,
+      "ndcg5": 0.7039180890341347
+    },
+    "wrong_scope_top5": 1,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-04-4",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则，定制窗帘退货前提条件、需要核实的条件、相关例外、后续处理步骤、退货证明、邮费承担方",
+    "candidate": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9469024295259745
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.8854598815714874
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.8854598815714874
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-07-1",
+    "arm": "scope_unfiltered",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。升降桌放玻璃墙旁要固定，赠送安装含不含这种施工、如何处理加固和收费？",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.36331756126716835
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.36331756126716835
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.36331756126716835
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-07-1",
+    "arm": "scope_filtered",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。升降桌放玻璃墙旁要固定，赠送安装含不含这种施工、如何处理加固和收费？",
+    "candidate": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9828920819566879
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9558295932317544
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9558295932317544
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-07-2",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则，升降桌安装，条件、例外和处理步骤，含玻璃墙旁固定施工、赠送安装是否包含、加固及收费",
+    "candidate": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.5143371794949736
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.36331756126716835
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.36331756126716835
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-07-2",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则，升降桌安装，条件、例外和处理步骤，含玻璃墙旁固定施工、赠送安装是否包含、加固及收费",
+    "candidate": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9828920819566879
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.787702056960637
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.787702056960637
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-07-3",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则，升降桌放玻璃墙旁要固定，赠送安装是否包含这种施工、如何处理加固和收费，适用条件、例外及处理办法",
+    "candidate": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.5,
+      "ndcg5": 0.5654495432396527
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.36331756126716835
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.36331756126716835
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-07-3",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则，升降桌放玻璃墙旁要固定，赠送安装是否包含这种施工、如何处理加固和收费，适用条件、例外及处理办法",
+    "candidate": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.8318724637288826
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.787702056960637
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.787702056960637
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-07-4",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则，升降桌放玻璃墙旁要固定，赠送安装是否包含这种施工、如何处理加固和收费；如果不能确认是否满足前提，需要核实的条件、相关例外和后续处理步骤",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.5,
+      "ndcg5": 0.4144299250118475
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.36331756126716835
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.36331756126716835
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-07-4",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则，升降桌放玻璃墙旁要固定，赠送安装是否包含这种施工、如何处理加固和收费；如果不能确认是否满足前提，需要核实的条件、相关例外和后续处理步骤",
+    "candidate": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9558295932317544
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.787702056960637
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.787702056960637
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-10-1",
+    "arm": "scope_unfiltered",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。水果到货坏了几颗，签收时没拒收还能处理吗，需要哪些材料和赔付规则？",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.3333333333333333,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.23463936301137822
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.6182885020492784
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.6182885020492784
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-10-1",
+    "arm": "scope_filtered",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。水果到货坏了几颗，签收时没拒收还能处理吗，需要哪些材料和赔付规则？",
+    "candidate": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9674679834891693
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9674679834891693
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-10-2",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则，生鲜水果到货坏了几颗，签收时没拒收还能处理吗，需要哪些材料和赔付规则，条件、例外和处理步骤",
+    "candidate": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.6182885020492784
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.4367467095119258
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.4367467095119258
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-10-2",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则，生鲜水果到货坏了几颗，签收时没拒收还能处理吗，需要哪些材料和赔付规则，条件、例外和处理步骤",
+    "candidate": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9674679834891693
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9674679834891693
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-10-3",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则，假设水果到货坏了几颗，签收时没拒收，适用条件、例外及处理办法，需要哪些材料和赔付规则",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.4367467095119258
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.7653606369886217
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 1.0,
+      "ndcg5": 0.7653606369886217
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-10-3",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则，假设水果到货坏了几颗，签收时没拒收，适用条件、例外及处理办法，需要哪些材料和赔付规则",
+    "candidate": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9674679834891693
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9674679834891693
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-10-4",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则，水果到货坏了几颗，签收时没拒收还能处理吗，需要哪些材料和赔付规则？如果不能确认是否满足处理前提，需要核实的条件、相关例外和后续处理步骤有哪些？",
+    "candidate": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.5,
+      "ndcg5": 0.7122630665145961
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.7653606369886217
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 1.0,
+      "ndcg5": 0.7653606369886217
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-10-4",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则，水果到货坏了几颗，签收时没拒收还能处理吗，需要哪些材料和赔付规则？如果不能确认是否满足处理前提，需要核实的条件、相关例外和后续处理步骤有哪些？",
+    "candidate": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9674679834891693
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9674679834891693
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9674679834891693
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-13-1",
+    "arm": "scope_unfiltered",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。D62有插座但缺排水口，是否能先用、插座要求和安装步骤是什么？",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.3333333333333333,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.23463936301137822
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.6182885020492784
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.6182885020492784
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-13-1",
+    "arm": "scope_filtered",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。D62有插座但缺排水口，是否能先用、插座要求和安装步骤是什么？",
+    "candidate": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-13-2",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则，洗碗机D62，有插座但缺排水口，是否能先用、插座要求和安装步骤，条件、例外和处理步骤",
+    "candidate": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.6182885020492784
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.8854598815714874
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.8854598815714874
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-13-2",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则，洗碗机D62，有插座但缺排水口，是否能先用、插座要求和安装步骤，条件、例外和处理步骤",
+    "candidate": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-13-3",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则，D62有插座但缺排水口，假设情况下适用条件、例外及处理办法",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.6508205185601091
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wrong_scope_top5": 1,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-13-3",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则，D62有插座但缺排水口，假设情况下适用条件、例外及处理办法",
+    "candidate": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9060254355346823
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-13-4",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则，D62有插座但缺排水口，是否能先用、插座要求和安装步骤是什么？如果还不能确认是否满足这些前提，需要核实的条件、相关例外和后续处理步骤",
+    "candidate": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9469024295259745
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9469024295259745
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9469024295259745
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-13-4",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则，D62有插座但缺排水口，是否能先用、插座要求和安装步骤是什么？如果还不能确认是否满足这些前提，需要核实的条件、相关例外和后续处理步骤",
+    "candidate": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-16-1",
+    "arm": "scope_unfiltered",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。G67插电脑一个孔只有声音，兼容接口、转接限制和正确连接方法是什么？",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.25,
+      "ndcg5": 0.38364913903790027
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.4367467095119258
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.4367467095119258
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-16-1",
+    "arm": "scope_filtered",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。G67插电脑一个孔只有声音，兼容接口、转接限制和正确连接方法是什么？",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.5,
+      "ndcg5": 0.5307212739772434
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9674679834891693
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9674679834891693
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-16-2",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则，耳麦G67，兼容接口、转接限制和正确连接方法，条件、例外和处理步骤",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.3333333333333333,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.25,
+      "ndcg5": 0.20210734650054757
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9469024295259745
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9469024295259745
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-16-2",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则，耳麦G67，兼容接口、转接限制和正确连接方法，条件、例外和处理步骤",
+    "candidate": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.5,
+      "ndcg5": 0.7122630665145961
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-16-3",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则，G67插电脑一个孔只有声音，兼容接口、转接限制和正确连接方法，假设情况下的适用条件、例外及处理办法",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.3333333333333333,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.5,
+      "ndcg5": 0.2960819109658652
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9469024295259745
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9469024295259745
+    },
+    "wrong_scope_top5": 1,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-16-3",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则，G67插电脑一个孔只有声音，兼容接口、转接限制和正确连接方法，假设情况下的适用条件、例外及处理办法",
+    "candidate": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.5,
+      "ndcg5": 0.6797310500037655
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9674679834891693
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9674679834891693
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-16-4",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则，G67插电脑一个孔只有声音，兼容接口、转接限制和正确连接方法，需要核实的条件、相关例外和后续处理步骤",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.25,
+      "ndcg5": 0.38364913903790027
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.8854598815714874
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.8854598815714874
+    },
+    "wrong_scope_top5": 1,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-16-4",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则，G67插电脑一个孔只有声音，兼容接口、转接限制和正确连接方法，需要核实的条件、相关例外和后续处理步骤",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.0,
+      "complete_r20": 0,
+      "unit_r20": 0.0,
+      "mrr5": 0,
+      "ndcg5": 0.0
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.0,
+      "complete_r20": 0,
+      "unit_r20": 0.0,
+      "mrr5": 0,
+      "ndcg5": 0.0
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.0,
+      "complete_r20": 0,
+      "unit_r20": 0.0,
+      "mrr5": 0,
+      "ndcg5": 0.0
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 0,
+    "status": "UNAVAILABLE"
+  },
+  {
+    "id": "cx-19-1",
+    "arm": "scope_unfiltered",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。W73旧滤芯复位后能继续用吗、复位和换芯区别是什么、正确顺序是什么？",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.5143371794949736
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.5143371794949736
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.5143371794949736
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-19-1",
+    "arm": "scope_filtered",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。W73旧滤芯复位后能继续用吗、复位和换芯区别是什么、正确顺序是什么？",
+    "candidate": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9828920819566879
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-19-2",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则，净水器W73旧滤芯复位后能继续用吗、复位和换芯区别是什么、正确顺序是什么？条件、例外和处理步骤",
+    "candidate": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.5143371794949736
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.5143371794949736
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.5143371794949736
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-19-2",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则，净水器W73旧滤芯复位后能继续用吗、复位和换芯区别是什么、正确顺序是什么？条件、例外和处理步骤",
+    "candidate": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-19-3",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则：W73旧滤芯复位后能继续用吗、复位和换芯区别、正确顺序——以上为假设，说明适用条件、例外及处理办法",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.34620964322385606
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.7365896932159578
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.7365896932159578
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-19-3",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则：W73旧滤芯复位后能继续用吗、复位和换芯区别、正确顺序——以上为假设，说明适用条件、例外及处理办法",
+    "candidate": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9047172294870751
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9828920819566879
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9828920819566879
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-19-4",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则，W73旧滤芯复位后能继续用吗、复位和换芯区别、正确顺序，需要核实的条件、相关例外和后续处理步骤",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.5413996682199069
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.7365896932159578
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.7365896932159578
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-19-4",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则，W73旧滤芯复位后能继续用吗、复位和换芯区别、正确顺序，需要核实的条件、相关例外和后续处理步骤",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.5585075862632192
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9828920819566879
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9828920819566879
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-22-1",
+    "arm": "scope_unfiltered",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。V64滤网能水洗是否代表能吸积水、例外模式和维护方法是什么？",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.3333333333333333,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.19519002499605084
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.7095272044910244
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 1.0,
+      "ndcg5": 0.7095272044910244
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-22-1",
+    "arm": "scope_filtered",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。V64滤网能水洗是否代表能吸积水、例外模式和维护方法是什么？",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.75369761125927
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.8318724637288826
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 1.0,
+      "ndcg5": 0.8318724637288826
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-22-2",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则，吸尘器V64，V64滤网能水洗是否代表能吸积水、例外模式和维护方法是什么？",
+    "candidate": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.5143371794949736
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.7095272044910244
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 1.0,
+      "ndcg5": 0.7095272044910244
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-22-2",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则，吸尘器V64，V64滤网能水洗是否代表能吸积水、例外模式和维护方法是什么？",
+    "candidate": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.8318724637288826
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 1.0,
+      "ndcg5": 0.8318724637288826
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-22-3",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则 V64滤网能水洗 假设 适用条件 例外 处理办法",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.5585075862632192
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.6366824387328317
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 1.0,
+      "ndcg5": 0.6366824387328317
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-22-3",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则 V64滤网能水洗 假设 适用条件 例外 处理办法",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.6366824387328317
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.787702056960637
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 1.0,
+      "ndcg5": 0.787702056960637
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-22-4",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则，V64滤网能水洗是否代表能吸积水、例外模式和维护方法，需要核实的条件、相关例外和后续处理步骤",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.6366824387328317
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.7095272044910244
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 1.0,
+      "ndcg5": 0.7095272044910244
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-22-4",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则，V64滤网能水洗是否代表能吸积水、例外模式和维护方法，需要核实的条件、相关例外和后续处理步骤",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.8318724637288826
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.8318724637288826
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 1.0,
+      "ndcg5": 0.8318724637288826
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-25-1",
+    "arm": "scope_unfiltered",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。Q79预约六小时是何时开始、牛奶粥能否隔夜以及正确设置步骤是什么？",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.3333333333333333,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.25,
+      "ndcg5": 0.20210734650054757
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.3333333333333333,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 1.0,
+      "ndcg5": 0.46927872602275644
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.3333333333333333,
+      "complete_r20": 0,
+      "unit_r20": 0.3333333333333333,
+      "mrr5": 1.0,
+      "ndcg5": 0.46927872602275644
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-25-1",
+    "arm": "scope_filtered",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。Q79预约六小时是何时开始、牛奶粥能否隔夜以及正确设置步骤是什么？",
+    "candidate": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.5,
+      "ndcg5": 0.6797310500037655
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.8529278650606567
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.8529278650606567
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-25-2",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则，电饭煲Q79，条件、例外和处理步骤",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.5,
+      "ndcg5": 0.4776237035032179
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.7653606369886217
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 1.0,
+      "ndcg5": 0.7653606369886217
+    },
+    "wrong_scope_top5": 3,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-25-2",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则，电饭煲Q79，条件、例外和处理步骤",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.7039180890341347
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-25-3",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则：假设Q79预约六小时开始时间、牛奶粥隔夜及正确设置步骤，适用条件、例外及处理办法",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.41618115554873086
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 1.0,
+      "ndcg5": 0.6713860725233041
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 1.0,
+      "ndcg5": 0.6713860725233041
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-25-3",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则：假设Q79预约六小时开始时间、牛奶粥隔夜及正确设置步骤，适用条件、例外及处理办法",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.5,
+      "ndcg5": 0.49818925746641285
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9469024295259745
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9469024295259745
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-25-4",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则 Q79预约六小时 牛奶粥隔夜 正确设置步骤 前提条件 核实条件 例外 后续处理步骤",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.3333333333333333,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.25,
+      "ndcg5": 0.20210734650054757
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.3333333333333333,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.46927872602275644
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.3333333333333333,
+      "complete_r20": 0,
+      "unit_r20": 0.3333333333333333,
+      "mrr5": 1.0,
+      "ndcg5": 0.46927872602275644
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-25-4",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则 Q79预约六小时 牛奶粥隔夜 正确设置步骤 前提条件 核实条件 例外 后续处理步骤",
+    "candidate": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.6182885020492784
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.8529278650606567
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.8529278650606567
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-28-1",
+    "arm": "scope_unfiltered",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。A89电量四成能升级吗、固件限制和升级过程要注意什么？",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.3333333333333333,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.23463936301137822
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.4367467095119258
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.4367467095119258
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-28-1",
+    "arm": "scope_filtered",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。A89电量四成能升级吗、固件限制和升级过程要注意什么？",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.3333333333333333,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.46927872602275644
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-28-2",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则，运动相机A89电量四成能升级吗、固件限制和升级过程要注意什么？条件、例外和处理步骤",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.41618115554873086
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.4367467095119258
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.4367467095119258
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-28-2",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则，运动相机A89电量四成能升级吗、固件限制和升级过程要注意什么？条件、例外和处理步骤",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.7039180890341347
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9674679834891693
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 0.9674679834891693
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-28-3",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则，A89电量四成能升级吗、固件限制和升级过程要注意什么？假设适用条件、例外及处理办法",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.3333333333333333,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.23463936301137822
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.4367467095119258
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.6666666666666666,
+      "complete_r20": 0,
+      "unit_r20": 0.6666666666666666,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.4367467095119258
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-28-3",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则，A89电量四成能升级吗、固件限制和升级过程要注意什么？假设适用条件、例外及处理办法",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.3333333333333333,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.5,
+      "ndcg5": 0.2960819109658652
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-28-4",
+    "arm": "scope_unfiltered",
+    "query": "2026年6月1日起中国大陆官网现行规则，A89电量四成能否升级、固件限制和升级过程注意事项，需要核实的条件、相关例外和后续处理步骤",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.3333333333333333,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.2,
+      "ndcg5": 0.18154179253735267
+    },
+    "rerank": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.6182885020492784
+    },
+    "wire": {
+      "complete_r5": 1,
+      "unit_r5": 1.0,
+      "complete_r20": 1,
+      "unit_r20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.6182885020492784
+    },
+    "wrong_scope_top5": 2,
+    "external_background_top5": 0,
+    "candidate_count": 20,
+    "status": "OK"
+  },
+  {
+    "id": "cx-28-4",
+    "arm": "scope_filtered",
+    "query": "2026年6月1日起中国大陆官网现行规则，A89电量四成能否升级、固件限制和升级过程注意事项，需要核实的条件、相关例外和后续处理步骤",
+    "candidate": {
+      "complete_r5": 0,
+      "unit_r5": 0.0,
+      "complete_r20": 0,
+      "unit_r20": 0.0,
+      "mrr5": 0,
+      "ndcg5": 0.0
+    },
+    "rerank": {
+      "complete_r5": 0,
+      "unit_r5": 0.0,
+      "complete_r20": 0,
+      "unit_r20": 0.0,
+      "mrr5": 0,
+      "ndcg5": 0.0
+    },
+    "wire": {
+      "complete_r5": 0,
+      "unit_r5": 0.0,
+      "complete_r20": 0,
+      "unit_r20": 0.0,
+      "mrr5": 0,
+      "ndcg5": 0.0
+    },
+    "wrong_scope_top5": 0,
+    "external_background_top5": 0,
+    "candidate_count": 0,
+    "status": "UNAVAILABLE"
+  }
+]

@@ -1,0 +1,121 @@
+{
+  "n": 80,
+  "groups": 20,
+  "split": "heldout",
+  "documents": 6287,
+  "chunks": 11590,
+  "gold_units": 60,
+  "chunk_containment": 1.0,
+  "summary": {
+    "scope_unfiltered": {
+      "candidate": {
+        "complete_r5": 0.175,
+        "unit_r5": 0.55,
+        "complete_r20": 0.825,
+        "unit_r20": 0.925,
+        "mrr5": 0.464375,
+        "ndcg5": 0.40225106288207313
+      },
+      "rerank": {
+        "complete_r5": 0.325,
+        "unit_r5": 0.7208333333333333,
+        "complete_r20": 0.825,
+        "unit_r20": 0.925,
+        "mrr5": 0.7770833333333333,
+        "ndcg5": 0.6453968581507618
+      },
+      "wire": {
+        "complete_r5": 0.325,
+        "unit_r5": 0.7208333333333333,
+        "complete_r20": 0.325,
+        "unit_r20": 0.7208333333333333,
+        "mrr5": 0.7770833333333333,
+        "ndcg5": 0.6453968581507618
+      },
+      "diagnostics": {
+        "candidate_count_min": 0,
+        "candidate_count_max": 20,
+        "cases_with_wrong_scope_in_wire": 73,
+        "wrong_scope_wire_chunks": 136,
+        "external_background_wire_chunks": 2
+      }
+    },
+    "scope_filtered": {
+      "candidate": {
+        "complete_r5": 0.525,
+        "unit_r5": 0.7875,
+        "complete_r20": 0.975,
+        "unit_r20": 0.975,
+        "mrr5": 0.9097916666666667,
+        "ndcg5": 0.7648620314667239
+      },
+      "rerank": {
+        "complete_r5": 0.775,
+        "unit_r5": 0.9041666666666666,
+        "complete_r20": 0.975,
+        "unit_r20": 0.975,
+        "mrr5": 0.93125,
+        "ndcg5": 0.8559657471853562
+      },
+      "wire": {
+        "complete_r5": 0.775,
+        "unit_r5": 0.9041666666666666,
+        "complete_r20": 0.775,
+        "unit_r20": 0.9041666666666666,
+        "mrr5": 0.93125,
+        "ndcg5": 0.8559657471853562
+      },
+      "diagnostics": {
+        "candidate_count_min": 0,
+        "candidate_count_max": 20,
+        "cases_with_wrong_scope_in_wire": 0,
+        "wrong_scope_wire_chunks": 0,
+        "external_background_wire_chunks": 1
+      }
+    }
+  },
+  "rescue": 37,
+  "hurt": 1,
+  "definition": "Complete = all 3 annotated source clauses covered; unit recall averages 3 binary coverage labels. nDCG uses binary relevance of whole chunks containing any gold unit, ideal from complete corpus chunks. Not answer correctness. Scores are split-specific; no answer generation assessed.",
+  "paired_group_bootstrap": {
+    "unit": "rule family",
+    "resamples": 5000,
+    "seed": 20260908,
+    "delta": 0.45,
+    "percentile_95": [
+      0.3125,
+      0.5875
+    ],
+    "note": "Descriptive uncertainty under resampling these synthetic families, not real-world representativeness."
+  },
+  "availability_failures": [
+    {
+      "id": "cx-03-3",
+      "arm": "scope_filtered",
+      "status": "UNAVAILABLE"
+    },
+    {
+      "id": "cx-03-4",
+      "arm": "scope_unfiltered",
+      "status": "UNAVAILABLE"
+    },
+    {
+      "id": "cx-20-2",
+      "arm": "scope_filtered",
+      "status": "UNAVAILABLE"
+    },
+    {
+      "id": "cx-20-4",
+      "arm": "scope_unfiltered",
+      "status": "UNAVAILABLE"
+    }
+  ],
+  "both_available_sensitivity": {
+    "n": 76,
+    "baseline_complete": 25,
+    "candidate_complete": 60,
+    "rescue": 35,
+    "hurt": 0,
+    "note": "Diagnostic only; primary table keeps all requests including failures."
+  }
+}
