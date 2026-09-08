@@ -1,0 +1,26 @@
+{
+  "gap": "R04/R05",
+  "n": 100,
+  "split": "consumed development",
+  "api_calls": 0,
+  "embedding_calls": 0,
+  "max_new_ce": 4000,
+  "strategies": [
+    "equal",
+    "dense75",
+    "quota10"
+  ],
+  "budget": {
+    "ce": 20,
+    "wire": 5,
+    "tokens": 2600
+  },
+  "source_hashes": {
+    "artifacts/eval/mtrag-depth40-2026-09-08/cases.json.gz": "1a3b538b07a3e5357f76cf7f6175b82b7948dc32b821def676c1a99f60e52ca7",
+    "artifacts/eval/rag-query-other200-2026-09-08/MTRAG/cases.json.gz": "618416e541af0f353070e2e037977ca6ce5aa6ac61f591a435c72a91ea355f2d",
+    "artifacts/eval/rag-query-other200-2026-09-08/MTRAG/scores.json.gz": "c77ea83975084b07769548a5c85b21574c24155d9c9c259c3441ba2272b1395a",
+    "artifacts/eval/mtrag-resolved-diagnosis100-2026-09-08/added-scores.json.gz": "4120b6689400fd3a75d631a45127006cfa19f8cdc4426bcd9e9f8ea5db18742a",
+    "artifacts/eval/mtrag-depth40-2026-09-08/added-scores.json.gz": "5e48e6bcdd19d9318b4e50051da283fbbc4f9d8456e71ca7854708e1b3109652",
+    "artifacts/eval/rag-fresh100-2026-09-08/selection.json": "a0cf6d72537d0241fc013256a74e715bfebf816cac3ec9a77828047abd3f165a"
+  }
+}
