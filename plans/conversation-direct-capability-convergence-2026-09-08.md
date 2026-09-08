@@ -985,3 +985,38 @@ termination, official ENV/ACTION and judge availability separately, plus full
 reply support and state. Passing requires actual requested business state AND
 supported customer response; missing judge credentials are not score zero. Keep
 any failure and diagnose it before another run. No new training/retrieval tuning.
+
+## Fixed history-handoff replay result (d338acf; not closed)
+
+Evidence: `artifacts/eval/tau3-task19-history-handoff-replay-2026-09-08/`.
+One registered task19 replay finished normally (`user_stop`). Official ENV=1
+(`db_match=true`) and ACTION=1 (all seven reference actions matched). ALL is null:
+the NL assertion evaluator lacks OpenAI credentials. This is not ENV/ACTION=0.
+The reference task deliberately prefers the larger saving when both operations
+cannot coexist: return $54.04 versus exchange savings $41.64. The successful
+return therefore matches its reference database; it does not validate the false
+promise that both operations can be completed.
+
+Ten actual tool calls: email lookup 1, name/ZIP lookup 1, user read 1, order read 2,
+product read 2, return 1, exchange 1, human transfer 1. Return committed; subsequent
+exchange was rejected because the return changed the order from delivered to
+return requested. Reply eventually explained this accurately and transferred,
+but earlier promised compatibility and repeated confirmation. Native lookups and
+retained prices now work; whole-goal feasibility remains unverified/failed.
+
+First-turn failure is independently localized by `target_trace[0:2]`: the author
+produced an identity question and verification passed, then publication raised
+`PublicationConflictError: publication work control is stale`. It is neither a
+missing model response nor a swallowed provider timeout. The publication consumer
+currently binds controls from every retained board outcome; the state owner accepts
+only the current active revision. Inspect observation revision ownership and
+retained-result provenance before changing either contract. A stale result must
+not regain authorization merely because its evidence is retained, and a valid
+current clarification must remain publishable. The exact revision transition is
+not established by the public trace alone; no production bypass is justified yet.
+
+Next: reproduce revision/retained-result publication across the actual observation
+loop, define evidence provenance versus publication authorization at their owners,
+and independently review that boundary. Separately inspect coupled-action policy
+consumption before any new live replay. Encoder remains disabled. No rerun or
+business-completion claim accompanies this evidence update.
