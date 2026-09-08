@@ -1,0 +1,482 @@
+[
+  {
+    "case_id": "a6eab3f851684c4ba01ae141ce590342<::>2",
+    "question": "Can I not use the 1040NR-EZ?",
+    "original": "The EZ form only allows for the standard deduction and does not permit itemizing. [Ee8bff3590c9b]",
+    "repaired": "The supplied excerpt about deductions discusses 1040EZ, so it does not establish the deduction rules for 1040NR-EZ. [Ee8bff3590c9b]",
+    "context": {
+      "coverage": {
+        "complete": true,
+        "conflict_keys": [],
+        "coverage_complete": true,
+        "missing_requirement_ids": [],
+        "partial_delivery_allowed": false,
+        "task_completed": true
+      },
+      "facts": [
+        {
+          "observation_started_at": null,
+          "observed_at": "2026-09-08T00:00:00+00:00",
+          "producer_id": "knowledge_search",
+          "producer_version": "eval-reconstructed-v1",
+          "requirement_id": "knowledge.active_source",
+          "source_kind": "KNOWLEDGE_ASSERTED",
+          "source_ref": "fixture-source",
+          "subject_ref": "knowledge-fixture",
+          "valid_until": null,
+          "value": {
+            "evidence": [
+              {
+                "evidence_id": "E0b346db78689",
+                "source": {
+                  "applicability": {},
+                  "checksum": "49a7c1df0cec53b3c12d7828a1e0a7300018b1010f272144e3e614cfd543d569",
+                  "end_char": 1747,
+                  "scope": "public",
+                  "source_id": "mtrag:fiqa:506755-0-1746",
+                  "source_revision": "2c618bb98db3c8526433e22d8a2f7320f10a7470",
+                  "source_type": "mtrag_official_passage",
+                  "start_char": 0
+                },
+                "text": "\n\"1040 or 1040NR depends on whether you are a resident alien or nonresident alien -- 1040/1040A/1040EZ for resident aliens, and 1040NR/1040NR-EZ for nonresident aliens. Determining whether you are a resident is somewhat complex, and there is not enough information in your question to determine it. Publication 519 is the guide for taxes for aliens. (It hasn't been updated for 2014 yet, so mentally shift all the years in the publication up by one year when you read it.) Since you don't have a green card, whether you are a resident is determined by the Substantial Presence Test. The test says that if (the number of days you were in the U.S. in 2014) + 1/3 of (the number of days you were in the U.S. in 2013) + 1/6 of (the number of days you were in the U.S. in 2012) >= 183 days (half a year), then you are a resident alien for 2014. However, there are exceptions to the test. Days that you are an \"\"exempt individual\"\" are not counted toward the Substantial Presence Test. And \"\"exempt individuals\"\" include international students, trainees, teachers, etc. However, there are exceptions to the exceptions. Students are not \"\"exempt individuals\"\" for a year if they have been exempt individuals for any part of 5 previous calendar years. (Different exceptions apply for teachers and trainees.) So whether you are an \"\"exempt individual\"\" for one year inductively depends on whether you have been an \"\"exempt individual\"\" in previous years. Long story short, if before you came to the U.S. as an F-1 student, you haven't been in the U.S. on F-1 or J-1 status, then you will be a nonresident alien for the first 5 calendar years (calendar year = year with a number, not 365 days) that you've been on F-1. We will assume this is the case below.",
+                "title": ""
+              },
+              {
+                "evidence_id": "E2f267343a854",
+                "source": {
+                  "applicability": {},
+                  "checksum": "4a74708b0bb08eb59e6be7919da0eba1645b523a2cd34ecc4d681acb3ef3a4ba",
+                  "end_char": 2048,
+                  "scope": "public",
+                  "source_id": "mtrag:fiqa:12987-0-2047",
+                  "source_revision": "2c618bb98db3c8526433e22d8a2f7320f10a7470",
+                  "source_type": "mtrag_official_passage",
+                  "start_char": 0
+                },
+                "text": "\nUnfortunately, if your taxes are too complicated for the 1040EZ form, then your tax situation is effectively unique and you need to try both options and see for yourself which one is better. If you do your taxes yourself, you may be more likely to do a more thorough job in digging everything up. You might even find that you can deduct some things that you hadn't thought of before. On the other hand, whenever I've gone to a tax professional, it's always been pretty much an all-or-nothing proposal. You sit down with them and hand them your records, they ask a couple simple questions, and they either give you your completed tax return on-the-spot or they have you come back in a week for a brief review of the final numbers. If they don't prepare your return on-the-spot, you can usually send additional items later on if you think of something that you forgot the first time around, but for the most part it's still a one-time shot. That said, I'm beginning to think the difference in monetary cost of completing even a mildly complex tax return is going to be insignificant, and the main factors to consider are the value of your own time and how much of the tax code you want to learn (because, in my experience, the software always refers to additional IRS forms or codes that are not automated in the software). In theory, your tax return should be the same regardless of whether you have a tax professional do your taxes or, if you do them yourself, which software you use. Given the same inputs, you should get about the same outputs. Even though that theory doesn't always hold exactly true, all the options should get you in the same ballpark--close enough that it doesn't make much difference in the grand scheme of things, unless your tax return is done incorrectly (e.g., you choose the wrong filing status or forget to take a major deduction). Suppose you're married and you or your spouse is a partner in an LLC. Maybe a tax professional wants to charge you $500 for your tax return (this will vary based on your circumstances).",
+                "title": ""
+              },
+              {
+                "evidence_id": "Efbc5f6cbe196",
+                "source": {
+                  "applicability": {},
+                  "checksum": "09c0b25eaac1ef616e582673cdcd8e389155d3ce616f862a2dc3ee1b5a123aee",
+                  "end_char": 661,
+                  "scope": "public",
+                  "source_id": "mtrag:fiqa:341960-0-660",
+                  "source_revision": "2c618bb98db3c8526433e22d8a2f7320f10a7470",
+                  "source_type": "mtrag_official_passage",
+                  "start_char": 0
+                },
+                "text": "\nTo start with, I should mention that many tax preparation companies will give you any number of free consultations on tax issues — they will only charge you if you use their services to file a tax form, such as an amended return. I know that H&R Block has international tax specialists who are familiar with the issues facing F-1 students, so they might be the right people to talk about your specific situation. According to TurboTax support, you should prepare a completely new 1040NR, then submit that with a 1040X. GWU’s tax department says you can submit late 8843, so you should probably do that if you need to claim non-resident status for tax purposes.",
+                "title": ""
+              },
+              {
+                "evidence_id": "E803c80c0d7bb",
+                "source": {
+                  "applicability": {},
+                  "checksum": "305d5ec1f2f09e21b1f23f264a227e2ca63004d8b0ea005d6015c5d35743a1f4",
+                  "end_char": 234,
+                  "scope": "public",
+                  "source_id": "mtrag:fiqa:458231-0-233",
+                  "source_revision": "2c618bb98db3c8526433e22d8a2f7320f10a7470",
+                  "source_type": "mtrag_official_passage",
+                  "start_char": 0
+                },
+                "text": "\nInstead of SSN, foreign person should get a ITIN from the IRS. Instead of W9 a foreigner should fill W8-BEN. Foreigner might also be required to file 1040NR/NR-EZ tax report, and depending on tax treaties also be liable for US taxes.",
+                "title": ""
+              },
+              {
+                "evidence_id": "Ee8bff3590c9b",
+                "source": {
+                  "applicability": {},
+                  "checksum": "d11db75ae929b4a2a051c5c48faa5e9c47dd5668949497515f55c6424b04ebcd",
+                  "end_char": 842,
+                  "scope": "public",
+                  "source_id": "mtrag:fiqa:332855-0-841",
+                  "source_revision": "2c618bb98db3c8526433e22d8a2f7320f10a7470",
+                  "source_type": "mtrag_official_passage",
+                  "start_char": 0
+                },
+                "text": "\n\"Regardless of the source of the software (though certainly good to know), there are practical limits to the IRS 1040EZ form.  This simplified tax form is not appropriate for use once you reach a certain level of income because it only allows for the \"\"standard\"\" deduction - no itemization.   The first year I passed that level, I was panicked because I thought I suddenly owed thousands.  Switching to 1040A (aka the short form) and using even the basic itemized deductions showed that the IRS owed me a refund instead. I don't know where that level is for tax year 2015 but as you approach $62k, the simplified form is less-and-less appropriate.  It would make sense, given some of the great information in the other answers, that the free offering is only for 1040EZ.  That's certainly been true for other \"\"free\"\" software in the past.\"",
+                "title": ""
+              }
+            ],
+            "query_used": "|user|: Can I use the 1040NR-EZ instead of the 1040NR for my taxes?",
+            "status": "OK"
+          }
+        }
+      ],
+      "outcomes": [
+        {
+          "control": null,
+          "execution_feedback": [],
+          "objective": null,
+          "owner_agent": "general",
+          "reason_code": "KNOWLEDGE_EVIDENCE_AVAILABLE",
+          "retryable": false,
+          "status": "SUCCEEDED",
+          "work_item_id": "knowledge-fixture"
+        }
+      ],
+      "pending_actions": [],
+      "receipts": [],
+      "requested_inputs": [],
+      "user_context": {
+        "recent_messages": [
+          {
+            "content": "F-1 student investing in foreign markets",
+            "role": "user"
+          },
+          {
+            "content": "It is legal for an F-1 student to trade stocks and have an account with both US and non-US based brokerage firms. However, if you are considered a non-resident alien for tax purposes, which is typical for F-1 students, you would need to file Form 1040NR and account for any profit made on dividends/capital gain when doing your US taxes. It's important to note that a software package provided by your university for doing taxes might not be adequate for this, so you may need to seek additional resources.",
+            "role": "assistant"
+          }
+        ]
+      }
+    },
+    "knowledge_evidence": {
+      "packs": [
+        {
+          "evidence": [
+            {
+              "evidence_id": "E0b346db78689",
+              "source": {
+                "applicability": {},
+                "checksum": "49a7c1df0cec53b3c12d7828a1e0a7300018b1010f272144e3e614cfd543d569",
+                "end_char": 1747,
+                "scope": "public",
+                "source_id": "mtrag:fiqa:506755-0-1746",
+                "source_revision": "2c618bb98db3c8526433e22d8a2f7320f10a7470",
+                "source_type": "mtrag_official_passage",
+                "start_char": 0
+              },
+              "text": "\n\"1040 or 1040NR depends on whether you are a resident alien or nonresident alien -- 1040/1040A/1040EZ for resident aliens, and 1040NR/1040NR-EZ for nonresident aliens. Determining whether you are a resident is somewhat complex, and there is not enough information in your question to determine it. Publication 519 is the guide for taxes for aliens. (It hasn't been updated for 2014 yet, so mentally shift all the years in the publication up by one year when you read it.) Since you don't have a green card, whether you are a resident is determined by the Substantial Presence Test. The test says that if (the number of days you were in the U.S. in 2014) + 1/3 of (the number of days you were in the U.S. in 2013) + 1/6 of (the number of days you were in the U.S. in 2012) >= 183 days (half a year), then you are a resident alien for 2014. However, there are exceptions to the test. Days that you are an \"\"exempt individual\"\" are not counted toward the Substantial Presence Test. And \"\"exempt individuals\"\" include international students, trainees, teachers, etc. However, there are exceptions to the exceptions. Students are not \"\"exempt individuals\"\" for a year if they have been exempt individuals for any part of 5 previous calendar years. (Different exceptions apply for teachers and trainees.) So whether you are an \"\"exempt individual\"\" for one year inductively depends on whether you have been an \"\"exempt individual\"\" in previous years. Long story short, if before you came to the U.S. as an F-1 student, you haven't been in the U.S. on F-1 or J-1 status, then you will be a nonresident alien for the first 5 calendar years (calendar year = year with a number, not 365 days) that you've been on F-1. We will assume this is the case below.",
+              "title": ""
+            },
+            {
+              "evidence_id": "E2f267343a854",
+              "source": {
+                "applicability": {},
+                "checksum": "4a74708b0bb08eb59e6be7919da0eba1645b523a2cd34ecc4d681acb3ef3a4ba",
+                "end_char": 2048,
+                "scope": "public",
+                "source_id": "mtrag:fiqa:12987-0-2047",
+                "source_revision": "2c618bb98db3c8526433e22d8a2f7320f10a7470",
+                "source_type": "mtrag_official_passage",
+                "start_char": 0
+              },
+              "text": "\nUnfortunately, if your taxes are too complicated for the 1040EZ form, then your tax situation is effectively unique and you need to try both options and see for yourself which one is better. If you do your taxes yourself, you may be more likely to do a more thorough job in digging everything up. You might even find that you can deduct some things that you hadn't thought of before. On the other hand, whenever I've gone to a tax professional, it's always been pretty much an all-or-nothing proposal. You sit down with them and hand them your records, they ask a couple simple questions, and they either give you your completed tax return on-the-spot or they have you come back in a week for a brief review of the final numbers. If they don't prepare your return on-the-spot, you can usually send additional items later on if you think of something that you forgot the first time around, but for the most part it's still a one-time shot. That said, I'm beginning to think the difference in monetary cost of completing even a mildly complex tax return is going to be insignificant, and the main factors to consider are the value of your own time and how much of the tax code you want to learn (because, in my experience, the software always refers to additional IRS forms or codes that are not automated in the software). In theory, your tax return should be the same regardless of whether you have a tax professional do your taxes or, if you do them yourself, which software you use. Given the same inputs, you should get about the same outputs. Even though that theory doesn't always hold exactly true, all the options should get you in the same ballpark--close enough that it doesn't make much difference in the grand scheme of things, unless your tax return is done incorrectly (e.g., you choose the wrong filing status or forget to take a major deduction). Suppose you're married and you or your spouse is a partner in an LLC. Maybe a tax professional wants to charge you $500 for your tax return (this will vary based on your circumstances).",
+              "title": ""
+            },
+            {
+              "evidence_id": "Efbc5f6cbe196",
+              "source": {
+                "applicability": {},
+                "checksum": "09c0b25eaac1ef616e582673cdcd8e389155d3ce616f862a2dc3ee1b5a123aee",
+                "end_char": 661,
+                "scope": "public",
+                "source_id": "mtrag:fiqa:341960-0-660",
+                "source_revision": "2c618bb98db3c8526433e22d8a2f7320f10a7470",
+                "source_type": "mtrag_official_passage",
+                "start_char": 0
+              },
+              "text": "\nTo start with, I should mention that many tax preparation companies will give you any number of free consultations on tax issues — they will only charge you if you use their services to file a tax form, such as an amended return. I know that H&R Block has international tax specialists who are familiar with the issues facing F-1 students, so they might be the right people to talk about your specific situation. According to TurboTax support, you should prepare a completely new 1040NR, then submit that with a 1040X. GWU’s tax department says you can submit late 8843, so you should probably do that if you need to claim non-resident status for tax purposes.",
+              "title": ""
+            },
+            {
+              "evidence_id": "E803c80c0d7bb",
+              "source": {
+                "applicability": {},
+                "checksum": "305d5ec1f2f09e21b1f23f264a227e2ca63004d8b0ea005d6015c5d35743a1f4",
+                "end_char": 234,
+                "scope": "public",
+                "source_id": "mtrag:fiqa:458231-0-233",
+                "source_revision": "2c618bb98db3c8526433e22d8a2f7320f10a7470",
+                "source_type": "mtrag_official_passage",
+                "start_char": 0
+              },
+              "text": "\nInstead of SSN, foreign person should get a ITIN from the IRS. Instead of W9 a foreigner should fill W8-BEN. Foreigner might also be required to file 1040NR/NR-EZ tax report, and depending on tax treaties also be liable for US taxes.",
+              "title": ""
+            },
+            {
+              "evidence_id": "Ee8bff3590c9b",
+              "source": {
+                "applicability": {},
+                "checksum": "d11db75ae929b4a2a051c5c48faa5e9c47dd5668949497515f55c6424b04ebcd",
+                "end_char": 842,
+                "scope": "public",
+                "source_id": "mtrag:fiqa:332855-0-841",
+                "source_revision": "2c618bb98db3c8526433e22d8a2f7320f10a7470",
+                "source_type": "mtrag_official_passage",
+                "start_char": 0
+              },
+              "text": "\n\"Regardless of the source of the software (though certainly good to know), there are practical limits to the IRS 1040EZ form.  This simplified tax form is not appropriate for use once you reach a certain level of income because it only allows for the \"\"standard\"\" deduction - no itemization.   The first year I passed that level, I was panicked because I thought I suddenly owed thousands.  Switching to 1040A (aka the short form) and using even the basic itemized deductions showed that the IRS owed me a refund instead. I don't know where that level is for tax year 2015 but as you approach $62k, the simplified form is less-and-less appropriate.  It would make sense, given some of the great information in the other answers, that the free offering is only for 1040EZ.  That's certainly been true for other \"\"free\"\" software in the past.\"",
+              "title": ""
+            }
+          ],
+          "query_used": "|user|: Can I use the 1040NR-EZ instead of the 1040NR for my taxes?",
+          "status": "OK"
+        }
+      ],
+      "allowed_evidence_ids": [
+        "E0b346db78689",
+        "E2f267343a854",
+        "E803c80c0d7bb",
+        "Ee8bff3590c9b",
+        "Efbc5f6cbe196"
+      ]
+    },
+    "agent_outcomes": [
+      {
+        "status": "SUCCEEDED",
+        "reason": "KNOWLEDGE_EVIDENCE_AVAILABLE",
+        "execution_feedback": []
+      }
+    ]
+  },
+  {
+    "case_id": "535ebd306304982e4e49cc989ce5b10b<::>3",
+    "question": "Then, 0% interest same as having benefits of the both?",
+    "original": "0% offers usually require excellent credit and aren't available to everyone [Ecadc700e6c68].",
+    "repaired": "Dealer promotions are not available to everyone; you must qualify for the offer [Ecadc700e6c68].",
+    "context": {
+      "coverage": {
+        "complete": true,
+        "conflict_keys": [],
+        "coverage_complete": true,
+        "missing_requirement_ids": [],
+        "partial_delivery_allowed": false,
+        "task_completed": true
+      },
+      "facts": [
+        {
+          "observation_started_at": null,
+          "observed_at": "2026-09-08T00:00:00+00:00",
+          "producer_id": "knowledge_search",
+          "producer_version": "eval-reconstructed-v1",
+          "requirement_id": "knowledge.active_source",
+          "source_kind": "KNOWLEDGE_ASSERTED",
+          "source_ref": "fixture-source",
+          "subject_ref": "knowledge-fixture",
+          "valid_until": null,
+          "value": {
+            "evidence": [
+              {
+                "evidence_id": "Ec70cb2c3de04",
+                "source": {
+                  "applicability": {},
+                  "checksum": "f13d6840385446a6672bb0b5c5dbe6b408ab2ddeea7c0c4825271b7f6c321bb4",
+                  "end_char": 2261,
+                  "scope": "public",
+                  "source_id": "mtrag:fiqa:296612-0-2260",
+                  "source_revision": "2c618bb98db3c8526433e22d8a2f7320f10a7470",
+                  "source_type": "mtrag_official_passage",
+                  "start_char": 0
+                },
+                "text": "\nIf (and only if) there is a zero interest installment plan available, technically the only uncontrollable risk is that there will likely be a hard inquiry on your credit report which may or may not also have a corresponding debt obligation attached to it. (Personally, I recently signed up for one such plan with Google and I had a hard inquiry but no debt added to my report). The other risks are that 1) your monthly payment goes up, so if you are living on a tight budget the added payment might make it harder to meet your next bill, and 2) you could miss a payment which generally triggers interest to accrue retroactively at a high rate, and in some cases could be grounds for immediate repayment. The pro / reward of these plans is that you have to spend less of your capital upfront, which you may be able to use for other purposes (presumably with a higher net present value than purchasing the item you're considering outright). A larger example would be purchasing a new car. You want to buy a $50k car and you have the cash on hand to pay in full, but you are being offered 0% interest for 36 months. You may be more inclined to take a loan at 0% with 0 down payment and invest your money in another vehicle (no pun intended) that offers you a decent rate of return and you will come out ahead in the end. Of course, this example works in a perfect world where you can get such an offer, there are no extra fees available, you aren't worrying about your debt-to-income ratio in preparation for a big purchase like a house, there isn't a higher insurance premium to consider, etc. In short, 0% financing, be it for a phone or a car, can be a nice perk for the informed consumer who is not using the financing as a way to purchase outside their financial means, but it is offered by companies as a way to make people buy things they normally would not and, hopefully, capitalize on people missing payments in order to reap the sweet 20%+ interest rates generally seen with these offers. In your specific situation with the phone, you should consider if you get a discount on your monthly plan for purchasing outright, or if you can get the phone subsidized if you sign a contract (and you know you like your provider enough to stay for its duration).",
+                "title": ""
+              },
+              {
+                "evidence_id": "Ea07ecafc5f16",
+                "source": {
+                  "applicability": {},
+                  "checksum": "89fb53093c22d5a9a2304bee6322284f6448f1176251bc29f96742c0d35971df",
+                  "end_char": 904,
+                  "scope": "public",
+                  "source_id": "mtrag:fiqa:16626-0-903",
+                  "source_revision": "2c618bb98db3c8526433e22d8a2f7320f10a7470",
+                  "source_type": "mtrag_official_passage",
+                  "start_char": 0
+                },
+                "text": "\n\"Here's a number-crunching example of how the \"\"Zero interest rate\"\" offer is misleading. Suppose the offer is that a car \"\"costs $24,000.00 with zero percent financing over 24 months\"\"  or as an alternative, \"\"$3,000.00 off for cash\"\". Ignore the hype:  the quoted prices and the quoted interest rates.  Look at what really happens to two people who take advantage of the two offers, One person hands over $21,000.00 cash, and leaves with the new car. The second promises to make 24 payments of $1000.00, one a month, starting in one month's time, and also leaves with the same make and model new car. The two people have received exactly the same benefit, so the two payment schemes must have the same value. A mortgage program will tell you that paying off a $21,000.00 loan by making 24 monthly payments of $1000.00 requires an interest rate of 1.10% a month, or an effective annual rate of 14.03%.\"",
+                "title": ""
+              },
+              {
+                "evidence_id": "E86ea52e08f2b",
+                "source": {
+                  "applicability": {},
+                  "checksum": "2ae0b4655dd1405ab57ef7d9dc4a3097e015dc308b9f058db34bf2da34061fdb",
+                  "end_char": 1524,
+                  "scope": "public",
+                  "source_id": "mtrag:fiqa:418801-0-1523",
+                  "source_revision": "2c618bb98db3c8526433e22d8a2f7320f10a7470",
+                  "source_type": "mtrag_official_passage",
+                  "start_char": 0
+                },
+                "text": "\nThere are several issues with paying for furniture and appliances with 0% credit instead of paying with cash. When you pay with 0% credit, you might be tempted to spend more on something than you would have if you paid with cash, because it feels like free money, and you've justified in your mind that the extra you earn will help pay for the more expensive item. Businesses don't offer 0% credit for free, and they don't lose money on the deal.  When you shop at a store that offers 0% credit, you are generally overpaying for the item.  By shopping at a store that does not offer 0% credit, you might be able to get a better price. Your savings account is likely earning very little interest.  You might invest the money you intend for your purchases in a place that gets better returns, but in most of these places the returns are not guaranteed, and you might not do as well as you think. 0% loans typically come with lots of conditions that have very heavy penalties and interest rate hikes for late payments.  You can mitigate this risk by setting up automatic payments, but things can still go wrong.  Your bank might change your account number, making the automated payment fail.  As you mentioned, you might also forget to put the proper amount of money in the account.  A single mistake can negate all of the tiny gains you are trying to achieve. Ultimately, the decision is yours, of course, but in my opinion, there is very, very little to gain with buying something on 0% credit when you could be paying cash.",
+                "title": ""
+              },
+              {
+                "evidence_id": "Ecadc700e6c68",
+                "source": {
+                  "applicability": {},
+                  "checksum": "7d9651d0f5191d767727642074f228c853d24bcddc60c778906c2dca98386f25",
+                  "end_char": 1080,
+                  "scope": "public",
+                  "source_id": "mtrag:fiqa:429153-0-1079",
+                  "source_revision": "2c618bb98db3c8526433e22d8a2f7320f10a7470",
+                  "source_type": "mtrag_official_passage",
+                  "start_char": 0
+                },
+                "text": "\n\"I've run into two lines of thinking on cars when the 0% option is offered.  One is that you should buy the car with cash - always.  Car debt is not usually considered \"\"good debt,\"\" as there is no doubt but that your car will depreciate.  Unless something very odd happens or you keep the car to antique status (and it's a good one), you won't make money off of it. On the other hand, with 0% interest - if you qualify, and remember that dealer promotions aren't for everyone, just those who qualify - you can invest that money in a savings account, bonds, a mutual fund, or the stock market and theoretically make a lot more over the 5 years while paying down the car.  In that case, you really only need to make sure you save enough to make the payment low enough for your comfort zone. Personally I prefer to not be making a car payment.  Your personal comfort level may vary. Also, in terms of getting your money's worth a gently used car in good condition is miles better than a new car.  Someone else took the hit on the \"\"drive it off the lot\"\" decline in price for you.\"",
+                "title": ""
+              },
+              {
+                "evidence_id": "E125d8c44e267",
+                "source": {
+                  "applicability": {},
+                  "checksum": "7e133e309af9faf9ce7094deca45d5a10402d2fd54bc963183c72912039438fb",
+                  "end_char": 475,
+                  "scope": "public",
+                  "source_id": "mtrag:fiqa:89519-0-474",
+                  "source_revision": "2c618bb98db3c8526433e22d8a2f7320f10a7470",
+                  "source_type": "mtrag_official_passage",
+                  "start_char": 0
+                },
+                "text": "\nI struggle with 0% interest things in my personal life.  A responsible me that thinks logically says continue to pay it on time and take advantage of the benefit of the interest free loan you got. It will keep your funds liquid in the case of an emergency, build your credit and teach you self control.  Paying it off now has little to no benefit. It does however tie up $3,000 worth of capital you could be using for building interest or leveraging against other purchases.",
+                "title": ""
+              }
+            ],
+            "query_used": "|user|: Is 0% interest the same as having the benefits of both cash and installment payments?",
+            "status": "OK"
+          }
+        }
+      ],
+      "outcomes": [
+        {
+          "control": null,
+          "execution_feedback": [],
+          "objective": null,
+          "owner_agent": "general",
+          "reason_code": "KNOWLEDGE_EVIDENCE_AVAILABLE",
+          "retryable": false,
+          "status": "SUCCEEDED",
+          "work_item_id": "knowledge-fixture"
+        }
+      ],
+      "pending_actions": [],
+      "receipts": [],
+      "requested_inputs": [],
+      "user_context": {
+        "recent_messages": [
+          {
+            "content": "How to pay with cash when car shopping?",
+            "role": "user"
+          },
+          {
+            "content": "When paying with cash for a car, you need to get a cashier's check made out for the amount. Note that dealers may not accept personal checks as they may bounce. You would typically pay a deposit of $500, which can be a check or bank deposit after negotiation. Then, you can return to the dealership later the same day or within a few days with a cashier's check for the remaining amount. Keep in mind that if you give the dealership $10,000 or more in actual cash, they will be required to fill out a form 8300 with the IRS.",
+            "role": "assistant"
+          },
+          {
+            "content": "Or installment easier?",
+            "role": "user"
+          },
+          {
+            "content": "I'm sorry, but I don't have an answer to your question.",
+            "role": "assistant"
+          }
+        ]
+      }
+    },
+    "knowledge_evidence": {
+      "packs": [
+        {
+          "evidence": [
+            {
+              "evidence_id": "Ec70cb2c3de04",
+              "source": {
+                "applicability": {},
+                "checksum": "f13d6840385446a6672bb0b5c5dbe6b408ab2ddeea7c0c4825271b7f6c321bb4",
+                "end_char": 2261,
+                "scope": "public",
+                "source_id": "mtrag:fiqa:296612-0-2260",
+                "source_revision": "2c618bb98db3c8526433e22d8a2f7320f10a7470",
+                "source_type": "mtrag_official_passage",
+                "start_char": 0
+              },
+              "text": "\nIf (and only if) there is a zero interest installment plan available, technically the only uncontrollable risk is that there will likely be a hard inquiry on your credit report which may or may not also have a corresponding debt obligation attached to it. (Personally, I recently signed up for one such plan with Google and I had a hard inquiry but no debt added to my report). The other risks are that 1) your monthly payment goes up, so if you are living on a tight budget the added payment might make it harder to meet your next bill, and 2) you could miss a payment which generally triggers interest to accrue retroactively at a high rate, and in some cases could be grounds for immediate repayment. The pro / reward of these plans is that you have to spend less of your capital upfront, which you may be able to use for other purposes (presumably with a higher net present value than purchasing the item you're considering outright). A larger example would be purchasing a new car. You want to buy a $50k car and you have the cash on hand to pay in full, but you are being offered 0% interest for 36 months. You may be more inclined to take a loan at 0% with 0 down payment and invest your money in another vehicle (no pun intended) that offers you a decent rate of return and you will come out ahead in the end. Of course, this example works in a perfect world where you can get such an offer, there are no extra fees available, you aren't worrying about your debt-to-income ratio in preparation for a big purchase like a house, there isn't a higher insurance premium to consider, etc. In short, 0% financing, be it for a phone or a car, can be a nice perk for the informed consumer who is not using the financing as a way to purchase outside their financial means, but it is offered by companies as a way to make people buy things they normally would not and, hopefully, capitalize on people missing payments in order to reap the sweet 20%+ interest rates generally seen with these offers. In your specific situation with the phone, you should consider if you get a discount on your monthly plan for purchasing outright, or if you can get the phone subsidized if you sign a contract (and you know you like your provider enough to stay for its duration).",
+              "title": ""
+            },
+            {
+              "evidence_id": "Ea07ecafc5f16",
+              "source": {
+                "applicability": {},
+                "checksum": "89fb53093c22d5a9a2304bee6322284f6448f1176251bc29f96742c0d35971df",
+                "end_char": 904,
+                "scope": "public",
+                "source_id": "mtrag:fiqa:16626-0-903",
+                "source_revision": "2c618bb98db3c8526433e22d8a2f7320f10a7470",
+                "source_type": "mtrag_official_passage",
+                "start_char": 0
+              },
+              "text": "\n\"Here's a number-crunching example of how the \"\"Zero interest rate\"\" offer is misleading. Suppose the offer is that a car \"\"costs $24,000.00 with zero percent financing over 24 months\"\"  or as an alternative, \"\"$3,000.00 off for cash\"\". Ignore the hype:  the quoted prices and the quoted interest rates.  Look at what really happens to two people who take advantage of the two offers, One person hands over $21,000.00 cash, and leaves with the new car. The second promises to make 24 payments of $1000.00, one a month, starting in one month's time, and also leaves with the same make and model new car. The two people have received exactly the same benefit, so the two payment schemes must have the same value. A mortgage program will tell you that paying off a $21,000.00 loan by making 24 monthly payments of $1000.00 requires an interest rate of 1.10% a month, or an effective annual rate of 14.03%.\"",
+              "title": ""
+            },
+            {
+              "evidence_id": "E86ea52e08f2b",
+              "source": {
+                "applicability": {},
+                "checksum": "2ae0b4655dd1405ab57ef7d9dc4a3097e015dc308b9f058db34bf2da34061fdb",
+                "end_char": 1524,
+                "scope": "public",
+                "source_id": "mtrag:fiqa:418801-0-1523",
+                "source_revision": "2c618bb98db3c8526433e22d8a2f7320f10a7470",
+                "source_type": "mtrag_official_passage",
+                "start_char": 0
+              },
+              "text": "\nThere are several issues with paying for furniture and appliances with 0% credit instead of paying with cash. When you pay with 0% credit, you might be tempted to spend more on something than you would have if you paid with cash, because it feels like free money, and you've justified in your mind that the extra you earn will help pay for the more expensive item. Businesses don't offer 0% credit for free, and they don't lose money on the deal.  When you shop at a store that offers 0% credit, you are generally overpaying for the item.  By shopping at a store that does not offer 0% credit, you might be able to get a better price. Your savings account is likely earning very little interest.  You might invest the money you intend for your purchases in a place that gets better returns, but in most of these places the returns are not guaranteed, and you might not do as well as you think. 0% loans typically come with lots of conditions that have very heavy penalties and interest rate hikes for late payments.  You can mitigate this risk by setting up automatic payments, but things can still go wrong.  Your bank might change your account number, making the automated payment fail.  As you mentioned, you might also forget to put the proper amount of money in the account.  A single mistake can negate all of the tiny gains you are trying to achieve. Ultimately, the decision is yours, of course, but in my opinion, there is very, very little to gain with buying something on 0% credit when you could be paying cash.",
+              "title": ""
+            },
+            {
+              "evidence_id": "Ecadc700e6c68",
+              "source": {
+                "applicability": {},
+                "checksum": "7d9651d0f5191d767727642074f228c853d24bcddc60c778906c2dca98386f25",
+                "end_char": 1080,
+                "scope": "public",
+                "source_id": "mtrag:fiqa:429153-0-1079",
+                "source_revision": "2c618bb98db3c8526433e22d8a2f7320f10a7470",
+                "source_type": "mtrag_official_passage",
+                "start_char": 0
+              },
+              "text": "\n\"I've run into two lines of thinking on cars when the 0% option is offered.  One is that you should buy the car with cash - always.  Car debt is not usually considered \"\"good debt,\"\" as there is no doubt but that your car will depreciate.  Unless something very odd happens or you keep the car to antique status (and it's a good one), you won't make money off of it. On the other hand, with 0% interest - if you qualify, and remember that dealer promotions aren't for everyone, just those who qualify - you can invest that money in a savings account, bonds, a mutual fund, or the stock market and theoretically make a lot more over the 5 years while paying down the car.  In that case, you really only need to make sure you save enough to make the payment low enough for your comfort zone. Personally I prefer to not be making a car payment.  Your personal comfort level may vary. Also, in terms of getting your money's worth a gently used car in good condition is miles better than a new car.  Someone else took the hit on the \"\"drive it off the lot\"\" decline in price for you.\"",
+              "title": ""
+            },
+            {
+              "evidence_id": "E125d8c44e267",
+              "source": {
+                "applicability": {},
+                "checksum": "7e133e309af9faf9ce7094deca45d5a10402d2fd54bc963183c72912039438fb",
+                "end_char": 475,
+                "scope": "public",
+                "source_id": "mtrag:fiqa:89519-0-474",
+                "source_revision": "2c618bb98db3c8526433e22d8a2f7320f10a7470",
+                "source_type": "mtrag_official_passage",
+                "start_char": 0
+              },
+              "text": "\nI struggle with 0% interest things in my personal life.  A responsible me that thinks logically says continue to pay it on time and take advantage of the benefit of the interest free loan you got. It will keep your funds liquid in the case of an emergency, build your credit and teach you self control.  Paying it off now has little to no benefit. It does however tie up $3,000 worth of capital you could be using for building interest or leveraging against other purchases.",
+              "title": ""
+            }
+          ],
+          "query_used": "|user|: Is 0% interest the same as having the benefits of both cash and installment payments?",
+          "status": "OK"
+        }
+      ],
+      "allowed_evidence_ids": [
+        "E125d8c44e267",
+        "E86ea52e08f2b",
+        "Ea07ecafc5f16",
+        "Ec70cb2c3de04",
+        "Ecadc700e6c68"
+      ]
+    },
+    "agent_outcomes": [
+      {
+        "status": "SUCCEEDED",
+        "reason": "KNOWLEDGE_EVIDENCE_AVAILABLE",
+        "execution_feedback": []
+      }
+    ]
+  }
+]
