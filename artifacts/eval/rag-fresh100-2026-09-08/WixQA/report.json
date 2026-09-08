@@ -1,0 +1,23 @@
+{
+  "n": 100,
+  "groups": 100,
+  "api_calls": 0,
+  "ce_pairs": 3543,
+  "wall_seconds": 42.82392572052777,
+  "summary": {
+    "baseline": {
+      "recall": 0.7083333333333333,
+      "mrr": 0.539,
+      "ndcg": 0.5614814714668115
+    },
+    "candidate": {
+      "recall": 0.6983333333333333,
+      "mrr": 0.539,
+      "ndcg": 0.5550803305491432
+    }
+  },
+  "paired": {
+    "better": 2,
+    "worse": 4
+  }
+}

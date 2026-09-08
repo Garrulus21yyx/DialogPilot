@@ -1,0 +1,35 @@
+{
+  "Doc2Dial": {
+    "n": 100,
+    "groups": 100,
+    "paired_recall_delta": 0.0,
+    "cluster_bootstrap_95_interval": [
+      -0.03,
+      0.03
+    ],
+    "all_scores_and_wire_ids_reproduced": true,
+    "pairs": 3534
+  },
+  "MTRAG": {
+    "n": 100,
+    "groups": 42,
+    "paired_recall_delta": -0.0035952380952380945,
+    "cluster_bootstrap_95_interval": [
+      -0.021188346439493227,
+      0.012459546925566342
+    ],
+    "all_scores_and_wire_ids_reproduced": true,
+    "pairs": 2000
+  },
+  "WixQA": {
+    "n": 100,
+    "groups": 100,
+    "paired_recall_delta": -0.01,
+    "cluster_bootstrap_95_interval": [
+      -0.05,
+      0.03
+    ],
+    "all_scores_and_wire_ids_reproduced": true,
+    "pairs": 3543
+  }
+}
