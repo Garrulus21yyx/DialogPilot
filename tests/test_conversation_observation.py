@@ -17,6 +17,56 @@ from infrastructure.langgraph_checkpoint import target_checkpoint_serializer
 from tests.test_turn_runtime import _Executor, _OrderUnderstanding, _identity
 
 
+@pytest.mark.parametrize("status", ["SUCCEEDED", "TERMINAL_FAILURE", "RETRYABLE_FAILURE", None])
+@pytest.mark.parametrize("delegated", [False, True])
+def test_observation_pairs_task_input_with_outcome_across_checkpoint(status, delegated):
+    from application.agent_result import AgentResult, AgentResultStatus
+    from application.work_item import ArgumentValue, ControlMode
+
+    async def scenario():
+        manager = TargetConversationManager(state_store=InMemoryConversationStateStore(),
+            registry=build_default_capability_registry("tenant-a"), understanding=_OrderUnderstanding(),
+            orchestration=OrchestrationRuntime(direct_executor=_Executor(), domain_workers={}))
+        prepared = await manager.prepare(_identity(), TurnObservations("Check my order"))
+        executed = await manager.execute(prepared)
+        item = replace(prepared.plan.work.items[0],
+            control_mode=ControlMode.DELEGATED if delegated else ControlMode.DIRECT,
+            arguments=(ArgumentValue.create("query", ""),
+                       ArgumentValue.create("filter", {"ids": ["a", "b"], "active": False})))
+        feedback = {"stage": "tool", "tool": "order_lookup", "error": "Not found"}
+        result = (AgentResult(item.work_item_id, item.owner_agent, AgentResultStatus(status),
+            "TEST_OUTCOME", "v1", retryable=status == "RETRYABLE_FAILURE",
+            execution_feedback=(feedback,)) if status else None)
+        board = replace(executed.board, work_items=(), results=(), facts=(),
+                        retained_outcomes=((item, result),))
+        context = replace(prepared.context, observed_execution=board)
+        serde = target_checkpoint_serializer()
+        restored = serde.loads_typed(serde.dumps_typed(context))
+        projection = conversation_context_payload(restored)
+        assert projection == conversation_context_payload(context)
+        from infrastructure.target_model_context import planning_context, planning_payload_from_request
+        model_input = {"message": "Check my order", "conversation_context": projection}
+        system, messages = planning_context(model_input)
+        assert planning_payload_from_request({"system": system, "messages": [
+            {"role": message.type, "content": message.content} for message in messages
+        ]}) == model_input
+        outcome, = projection["observed_execution"]["outcomes"]
+        assert outcome["task_input"]["arguments"] == {
+            "query": "", "filter": {"ids": ["a", "b"], "active": False}}
+        assert outcome["status"] == (status or "NOT_EXECUTED")
+        assert outcome["execution_feedback"] == ([feedback] if status else [])
+        assert ("tool" in outcome["task_input"]) is not delegated
+        if not delegated:
+            assert outcome["task_input"]["tool"] == "order_lookup"
+        # The model-facing projection must not expose execution authority.
+        assert "approval_binding" not in outcome["task_input"]
+        assert "allowed_tools" not in outcome["task_input"]
+        outcome["task_input"]["arguments"]["filter"]["ids"].append("changed")
+        assert item.arguments[1].value["ids"] == ["a", "b"]
+
+    asyncio.run(scenario())
+
+
 @pytest.mark.parametrize("observe", [False, True])
 def test_observation_obligation_roundtrips_and_changes_work_identity(observe):
     from infrastructure.postgres_target_runtime import _work_item_from_payload, _work_item_to_payload

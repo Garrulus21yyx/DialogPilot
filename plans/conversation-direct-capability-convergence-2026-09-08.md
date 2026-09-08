@@ -604,3 +604,29 @@ an actual input/contract defect. Next repair must account for this shared main-a
 execution boundary, not special-case empty email or accept arbitrary order values.
 Original and new failed artifacts remain separate and unchanged. Encoder remains
 disabled; the overall persistent objective remains open.
+
+Observation-contract audit in progress at 0c99883. Independent review confirms
+that TOOL_REJECTED feedback includes the error, but the conversation projection
+omits the task arguments that produced it. Native read objectives contain only
+`Read <tool>` and cannot recover those arguments. The projection owner will expose
+the persisted task input paired with its outcome, including pinned DIRECT tool,
+without projecting approval tokens or treating a delegated allowlist as an actual
+tool trace. This is task input, not a claim about post-injection external arguments.
+Verify successful, failed and unresolved outcomes and checkpoint round trips.
+The separate no-progress execution contract and entity selector simplification
+remain open; this input repair alone does not prove either semantic closure.
+
+Implemented at the shared conversation projection. Eight combinations cover
+DIRECT/DELEGATED and successful/terminal/retryable/unexecuted outcomes, nested and
+empty arguments, immutable source data, checkpoint round trip and native model
+message round trip. Independent fresh-context review found no concrete blocking
+projection issue. Targeted observation, planning-current-turn, conversation-agent,
+action-catalog and SDK-transport suites: 146 passed in 5.29s; three existing SDK
+thinking/forced-structured-output warnings. No live model or tau task run.
+
+Next execution contract must distinguish semantic request identity from random
+per-step call IDs. It must preserve independent successful work, permit changed
+arguments/new user input or relevant state changes, and not prohibit legitimate
+fresh reads or treat an arbitrary conversation CAS increment as progress. Audit
+the existing execution owner before choosing a typed no-progress transition;
+do not add a broad caller-side exception or a permanent tool-result cache.
