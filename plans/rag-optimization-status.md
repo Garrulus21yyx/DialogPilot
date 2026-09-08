@@ -6,7 +6,7 @@
 
 ## 当前执行优先级（2026-09-08 最新用户要求：完成主线，禁止偏离）
 
-当前核对基点 `94ae834`。下列顺序覆盖旧的实验日志优先级。使用同一份状态文件维护，不再另开单例核验支线。
+当前核对 HEAD `a34102c` 加未提交工作区（2026-09-08）。当前活动项 R01：主/子 Agent 上下文注入边界已迁移并验证，模型语义质量仍开放，以下四项为已交付实验记录。下列顺序覆盖旧的实验日志优先级。使用同一份状态文件维护，不再另开单例核验支线。
 
 1. **已完成本轮已有样本对照：三套检索对照补齐与统一汇总。** 固定每路20、候选20、最终5、正文2600预算；保留数据各自标注粒度，不混合文章/片段/span。复用向量、排名和精排分数。先补MTRAG .5（旧35题仅.25/.75），再核对Doc2Dial同预算.25/.5，Wix已有20+20。已消费集明确标记，不重新称封存。
 2. **已完成：方案采用决策，代码默认0.5/0.5。** 按开发选择、跨集误伤和已有测试结果决定统一固定权重或按库配置；不新增动态模型、切块策略、HyDE、微调。现有策略证据不足则明确不采用，不能无限调参。
@@ -407,3 +407,22 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 
 - MTRAG v3完成：完整Cloud72439原文/缓存，2实际Agent query、8Flash、两题都调用知识工具，source/history/citation审计通过。weak understanding错误改为前轮配置alerts，qrel与回答均失败；Discovery改进回答主要步骤有其他来源，官方qrel0，不据此全判错，Dashboard适用限制及primary用词支持边界保留。原v2适配失败6API另计，预检0；未重跑语义结果。33项source/API身份/retriever/default测试通过。
 - 三套最终臂8题29调用（Wix4题16复用、Doc2题5、MTRAG2题8），MTRAG候选为完整Collection本地精确后端而非PG，报告不混淆。统一报告docs/rag-three-dataset-final-2026-09-08.zh-CN.md及machine report已生成；本轮执行交付完成但质量失败未关闭，原解析/metadata/性能未验范围明确保留。后续真实query话题覆盖为已证实优先缺口，禁止重开微调或无限单例核验支线。本次相干commit/push进行中。
+
+- R01 当前轮预注册：原MTRAG轨迹完整包含当前message和4条历史，错误已出现在submit_turn_plan.resolved_query，工具未改变query。共享机制假设为规划输入未明确最新message与历史的目标优先关系；不是上下文缺失。owner为planning provider的模型输入投影/指令；application raw_text保持权威，schema/执行器不生成替代query。正向合同：本轮message决定请求，历史用于消解引用与否定；命名术语保持原词，无法识别可检索原词或澄清，不擅自替换为历史问题。输入投影保留全部字段/原文且确定性将message置末。
+  验证预注册：原MTRAG2开发见证+4条中文电商模拟（话题切换、否定、省略、假设），冻结payload及预期语义后旧/新provider同Flash NONE各6次共12上限、0SDK retry；只测规划，无检索/答案调用，不宣称Recall提升。采用门槛：旧失败不再转成alerts、对照无新增语义误伤，协议合法；否则不采用候选。程序性质测试覆盖序列化可逆、不变更payload/历史、最新输入保留、预算与输出协议。真实模型不能由字符匹配证明语义，逐例人工记录。微调/检索权重不变。
+
+- R01第一候选12Flash完成：旧/新均把weak understanding改成alerts，拒绝采用。零API66测试只证明投影/协议不变量不证明语义。追加诊断预注册4Flash：原失败/原system固定，分别原生current消息、原生历史+current、仅知识schema、移除历史；后三者信息布局或范围变化仅用于定界，不直接采用。累计预算16；不重跑检索，不把历史删掉上线。
+
+- R01 源码核对（2026-09-08，HEAD `a34102c`，含既有未提交工作区）：按用户要求核实上下文注入实现，未运行新模型实验。ConversationAgent.plan 持有原始 message／历史来源与预算裁剪；provider._complete 将全部字段压为单条 user，core.structured_model.structured_call 再固定构造 SystemMessage+HumanMessage，原生消息边界尚未接入。原MTRAG捕获的 submit_turn_plan.resolved_query、knowledge_search.params.query 和 evidence_pack.query 相同，错误已在规划输出形成。isolation4原始结果核对：native_current/native_history保留术语但额外解释尚未验证；knowledge_only_schema仍回到alerts；no_history返回out_of_scope。工作区v16移末尾+提示候选仍存在，但前轮实验已拒绝采用，不等同已修复或部署。领域执行器已有原生工作消息、按任务工具与压缩/归档，不能把规划器问题泛化成全系统无上下文管理。后续若迁移规划消息，需同步structured_call、实际消息预算、capture/replay单JSON读取假设及多轮合同测试；本次仅源码诊断，API0，未改生产代码，未提交/推送，R01继续开放，微调暂停。
+
+- R01 用户授权主/子 Agent 上下文注入统一收敛（2026-09-08）：实施现有消息边界迁移，无新路由/编排旁路。预注册真实核对：既有pair6全部6个开发见证+新措辞2例主规划各1调用；领域政策2例真实TargetFrameworkAgent，合成只读知识工具，每例含评审最多4调用，总预算16、Flash NONE、SDK0重试，不重跑语义失败。任务范围、否定、指代与原话题逐项判定，缓存usage单列。脚本scripts/verify_context_injection.py先写完整manifest及源码hash再调用；不作封存/生产总体准确率。实现计划plans/context-injection-convergence-2026-09-08.md。
+- R01真实核对首批13调用完成：主8例均保留当前话题，weak术语转为澄清；当前并行工作区新增respond合同，本批多例直接回复/过度补问，不能与旧6例作纯呈现因果收益。子2例共5调用因本评测夹具缺source offsets/scope/checksum，模型仅见KNOWLEDGE_INVALID_EVIDENCE后耗尽工具步数；不是子任务内容丢失的证据。生产证据合同不放宽。补全fixture并用真实model_evidence离线预检后，仅补子2例，最多8调用，累计上限从16修订为21；原失败保存，不重跑主语义结果。新输出context-injection-domain-valid-2026-09-08，原任务/原文/证据文字不变。
+- 子任务有效夹具补验的首例在结果落盘时失败：AgentResult事实时间为datetime，评测JSON保存未转换；该进程未执行第二例，首例调用数未落盘，按上限4计入预算，不能声称完整语义通过。修复仅评测序列化，并逐次模型完成立即保存原始capture，防止后续报告异常丢证据。最后补子2例最多8，累计上限29（首批13+丢失最多4+本次8，实际可计上限25；29保留原预注册上限21+8）。不改模型、prompt、任务或证据文本，目录context-injection-domain-durable-2026-09-08。保留两次夹具/记录失败，不重跑主规划。
+
+- R01本轮实现与核对完成：原生产provider/structured_call接入原生历史与分区内容块；领域pinned task区分来源/运行状态/委派目标。预算/SDK HTTP/capture/replay/审核调用者同步，无新路由旁路。主回归452通过/21跳过，隔离PostgreSQL94通过（重叠），增补分区pinned压缩后61通过/1跳过。主8例保留当前话题，weak不再转alerts；但并行respond合同带来未取证直接建议/过度补问，不能做旧版纯因果比较。有效子2例保修3调用完成、退货2调用保持范围但工具步数超限，原语义失败不重跑。18次完整明细cache_read31744/input58982，另落盘失败最多4调用，不能隐去；报告docs/context-injection-convergence-2026-09-08.zh-CN.md。改动未提交/推送/部署，结构实现完成不等于R01整体关闭；下一项冻结最终输出合同后验证对话与取证选择及代表性多轮，微调暂停。
+- R01用户追问“不查/不停”源码复核（HEAD 83a7c3c，2026-09-08，新增API0）：实际规划使用respond分支；compiler在该分支检查字段形状并产生无commands的回应，取证必要性仍由模型按prompt判断。不能把未检索建议解释成工具漏执行。有效退货子例只有2轮模型输出，各2个检索调用；第二批触及本评测max_steps=3工具上限，不能称已证明无限循环。原政策仅说明“不适用七天无理由”，第二轮查询质量例外/其他条件，扩查是否必要未被此窄夹具判定。进度检测另有确切边界：ToolResultPersistence对包含query的完整data生成observation hash，AgentProgress比较该hash；相同证据不同query可被算作新观察，不能等同新增证据或目标覆盖。但本例硬预算先触发，未证明该机制造成无限循环。前述“查得停不下来”表述过强，修正为“追加检索超出预注册小预算”；输入分层不能自动替代取证与停止语义合同。
+
+- 用户再次强调既有瓶颈：重复确认，以及单个问题找到/找不到污染其他问题的状态。已将其写入现有context-injection收敛计划的待验证验收条件；复用填槽/审批/任务图/结果板，不另建RAG状态机。知识缺口与用户字段缺口分开，授权按动作参数版本复用，各目标证据与结果独立归属，仅沿真实依赖传播阻塞，保留独立已完成项；新增问句/纠正不能重建整轮并重复执行。本次仅记录约束，未改生产逻辑、无模型调用，不声称旧瓶颈已修复。
+
+- 2026-09-08 用户继续授权修复任务/证据进展（基点HEAD a8cea45）：沿现有填槽、WorkItem DAG、审批和ResultBoard实施，未新建RAG旁路。修复全字段齐交导致的部分补答丢失、响应投影丢逐任务覆盖归属，以及query/排序/旧证据重组被误计为进展。主回归1104通过/25无DB跳过；隔离Postgres91通过（与主集重叠）。API0、微调仍暂停；工作区未提交/推送/部署。详见[同一收敛计划](context-injection-convergence-2026-09-08.md)和[运行合同](../docs/conversation-turn-contract.md)。R01/R06保持语义待验证：本次未证明模型应查必查或答案充分性判断稳定，也未用确定性通过覆盖之前有限真实模型失败。
+- 2026-09-08 用户授权继续冲突影响范围修复（HEAD a8cea45）：ResultBoard v3按事实及硬依赖推导逐项影响，部分交付由可交付独立结果聚合；ConversationAgent.compose、核验、普通模板及知识失败回退同步使用原板。新增迟到冲突和120种任务排列等测试。主套件792通过/8无DB跳过，隔离Postgres178通过（重叠），diff检查通过。API0，未提交/推送/部署；仍限已检测结构化冲突/显式依赖，未声称自然语言矛盾检测或总体语义闭合。见[同一收敛计划](context-injection-convergence-2026-09-08.md)。

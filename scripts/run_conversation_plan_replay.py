@@ -5,6 +5,7 @@ Reconstructed bindings preserve captured
 values/source refs and unique or ambiguous resolutions; active workstream and
 control scenarios are explicitly excluded.
 """
+from infrastructure.target_model_context import planning_payload_from_request
 import argparse
 import asyncio
 import copy
@@ -81,6 +82,7 @@ def compile_captured(key,payload,output):
     if reconstructed.as_payload(state) != payload['entity_bindings']:
         raise ValueError('captured binding resolutions cannot be reconstructed faithfully')
     context=SimpleNamespace(entity_bindings=reconstructed,
+                            knowledge_filter_contract=payload.get("knowledge_filter_contract"),
                             recent_relevant_turns=tuple(payload['conversation_context'].get('recent_messages',()))
                                 + ((payload['conversation_context']['summary'],)
                                    if payload['conversation_context'].get('summary') else ()))
@@ -98,7 +100,7 @@ async def run(args):
         if wanted-available:
             raise ValueError(f'unknown case IDs: {sorted(wanted-available)}')
         rows=[r for r in rows if r['case_id'] in wanted]
-    inputs=[(r['case_id'],json.loads(r['api_calls'][0]['request']['messages'][0]['content'])) for r in rows]
+    inputs=[(r['case_id'],planning_payload_from_request(r['api_calls'][0]['request'])) for r in rows]
     if args.unclassify_legacy_references:
         inputs = [(key, unclassify_legacy_references(payload)) for key, payload in inputs]
     if args.current_goal_descriptions:

@@ -186,6 +186,39 @@ class PendingInteractionState:
         if self.checkpoint_thread_id is not None and not self.checkpoint_thread_id.strip():
             raise ConversationStateError("checkpoint thread ID must be absent or nonblank")
 
+    def bind_values(self, state: "ConversationState", values: tuple[tuple[str, str, object], ...]):
+        """Project a validated partial submission onto the existing suspended DAG."""
+        requested = {(f.target_work_item_id, f.field_name) for f in self.requested_fields}
+        supplied = {(target, name) for target, name, _ in values}
+        if not supplied or len(supplied) != len(values) or not supplied <= requested:
+            raise ConversationStateError("interaction response requires unique requested fields")
+        remaining = tuple(f for f in self.requested_fields
+                          if (f.target_work_item_id, f.field_name) not in supplied)
+        waiting = {f.target_work_item_id for f in remaining}
+        while True:
+            expanded = waiting | {w.work_item_id for w in self.suspended_work_items
+                                  if waiting.intersection(w.dependencies)}
+            if expanded == waiting:
+                break
+            waiting = expanded
+        rebound = []
+        for item in self.suspended_work_items:
+            arguments = {a.name: a for a in item.arguments}
+            bindings = {b.field_name: b for b in item.argument_bindings}
+            for target, name, value in values:
+                if target != item.work_item_id:
+                    continue
+                arguments[name] = ArgumentValue.create(name, value)
+                bindings[name] = EntityBinding.create(name, value,
+                    source=BindingSource.PENDING_INTERACTION,
+                    source_ref=f"interaction:{self.interaction_id}:v{self.version}:{target}:{name}",
+                    tenant_id=str(state.tenant_id), user_id=str(state.user_id),
+                    conversation_id=str(state.conversation_id), priority=500)
+            rebound.append(replace(item, arguments=tuple(arguments[k] for k in sorted(arguments)),
+                                   argument_bindings=tuple(bindings[k] for k in sorted(bindings))))
+        return (remaining, tuple(w for w in rebound if w.work_item_id in waiting),
+                tuple(w for w in rebound if w.work_item_id not in waiting))
+
 
 @dataclass(frozen=True)
 class PendingApprovalState:
@@ -764,13 +797,8 @@ class ConversationState:
             interaction_version,
         ):
             raise ConversationStateConflict("pending interaction changed")
-        requested = {
-            (item.target_work_item_id, item.field_name)
-            for item in pending.requested_fields
-        }
-        supplied = {(workstream_id, field_name) for workstream_id, field_name, _ in values}
-        if supplied != requested:
-            raise ConversationStateError("interaction response must fill exactly the requested fields")
+        remaining, waiting, _ = pending.bind_values(self, values)
+        remaining_targets = {f.target_work_item_id for f in remaining}
         expected_versions = dict(pending.workstream_versions)
         grouped: dict[str, list[ArgumentValue]] = {}
         for workstream_id, field_name, value in values:
@@ -793,15 +821,21 @@ class ConversationState:
                 tenant_id=str(self.tenant_id), user_id=str(self.user_id),
                 conversation_id=str(self.conversation_id), priority=500,
             ) for value in values_for_stream)
-            updated.append(item.with_slots(values_for_stream, bindings=bindings))
+            updated.append(item.with_slots(values_for_stream, bindings=bindings,
+                status=WorkstreamStatus.WAITING_INPUT if item.workstream_id in remaining_targets
+                else WorkstreamStatus.ACTIVE))
+        next_pending = replace(pending, version=pending.version + 1,
+            requested_fields=remaining, suspended_work_items=waiting,
+            workstream_versions=tuple((item.workstream_id, item.state_version) for item in updated
+                                     if item.workstream_id in remaining_targets)) if remaining else None
         return replace(
             self,
             version=self.version + 1,
             workstreams=tuple(updated),
-            pending_interaction=None,
+            pending_interaction=next_pending,
             consumed_signal_ids=(*self.consumed_signal_ids, signal_id),
             resume_bindings=tuple(binding for binding in self.resume_bindings
-                                  if binding.workstream_id not in expected_versions),
+                                  if binding.workstream_id not in grouped),
         )
 
     def consume_approval(

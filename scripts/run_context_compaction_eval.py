@@ -108,8 +108,8 @@ async def run(args):
                 judge = framework_model(policy.profile(ModelRole.JUDGE), options, max_tokens=2048)
                 row["assessment"] = await asyncio.wait_for(structured_call(judge,
                     name="assess_context_summary", schema=SCHEMA, system=JUDGE_PROMPT,
-                    content=json.dumps({"source": case["history"], "required": case["required"],
-                                        "summary": row["summary"]}, ensure_ascii=False),
+                    messages=[HumanMessage(json.dumps({"source": case["history"], "required": case["required"],
+                                        "summary": row["summary"]}, ensure_ascii=False))],
                     callbacks=(judge_capture,)), timeout=90)
                 assessment = row["assessment"]
                 row["passed"] = (all(row["checks"].values()) and

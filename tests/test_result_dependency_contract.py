@@ -61,3 +61,27 @@ def test_retaining_an_outcome_does_not_change_coverage_conflicts_or_partial_deli
     assert board.conflict_keys == ("subject:a:shared.output",)
     assert not board.coverage_complete and not board.partial_delivery_allowed
     assert not board.task_completed
+
+
+@pytest.mark.parametrize('retained', [False, True])
+@pytest.mark.parametrize('covered_id', ['a', 'b'])
+def test_response_preserves_per_question_coverage_even_when_local_ids_recur(retained, covered_id):
+    from application.response_assembly import _response_context
+    a = _item('a', 'general', ControlMode.DIRECT, 'knowledge.active_source')
+    b = _item('b', 'general', ControlMode.DIRECT, 'knowledge.active_source')
+    results = tuple(AgentResult(w.work_item_id, w.owner_agent,
+        AgentResultStatus.SUCCEEDED if w.work_item_id == covered_id else AgentResultStatus.BLOCKED,
+        'OBSERVED', 'test', facts=(_fact(w, w.work_item_id),) if w.work_item_id == covered_id else ()) for w in (a, b))
+    if retained:
+        b = replace(b, work_item_id='a')
+        results = (results[0], replace(results[1], work_item_id='a'))
+    board = ResultBoard().evaluate(WorkPlan((b,) if retained else (a, b), b.work_item_id),
+        (results[1],) if retained else results, retained_outcomes=((a, results[0]),) if retained else ())
+    context = _response_context(board)
+    for row, result in zip(context['outcomes'], results):
+        covered = bool(result.facts)
+        assert row['coverage']['task_completed'] == covered
+        assert row['coverage']['missing_requirement_ids'] == ([] if covered else ['knowledge.active_source'])
+        assert row['fact_indexes'] == ([0] if covered else [])
+    assert not context['coverage']['task_completed']
+    assert context['coverage']['partial_delivery_allowed']

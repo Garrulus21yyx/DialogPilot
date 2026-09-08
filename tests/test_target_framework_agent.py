@@ -181,7 +181,8 @@ def test_domain_input_resume_reuses_progress_after_postgres_checkpoint_reopen(po
                      if message.type == "human" and (message.id or "").startswith("task-context:")]
     assert len(task_messages) == input_rounds + 1
     assert len({message.id for message in task_messages}) == len(task_messages)
-    final_prompt = json.loads(prompts[-1])
+    final_prompt = {key: value for block in prompts[-1]
+                    for section in json.loads(block["text"]).values() for key, value in section.items()}
     assert final_prompt["verified_facts"][0]["source_ref"] == "lookup-once"
     assert final_prompt["verified_facts"][0]["observed_at"]
     from langchain_core.messages import ToolMessage
@@ -291,7 +292,8 @@ def test_framework_keeps_user_input_out_of_system_policy(attack):
     humans = [message.content for message in observed if isinstance(message, HumanMessage)]
     assert systems and humans
     assert all(attack not in content for content in systems)
-    assert any(json.loads(content).get("source_conversation", {}).get("current_message") == attack for content in humans)
+    assert any(json.loads(block["text"]).get("source_context", {}).get("source_conversation", {}).get("current_message") == attack
+               for content in humans if isinstance(content, list) for block in content)
     assert model.bound_tool_names == ["catalog_search", "request_user_input", "report_blocked", "read_tool_result"]
     assert calls == []
 

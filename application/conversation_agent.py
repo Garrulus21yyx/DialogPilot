@@ -171,7 +171,7 @@ class ConversationPlanningProvider(Protocol):
 class ConversationAgent:
     """Plan one deferred turn, then compile only Registry-backed commands."""
 
-    version = "conversation-agent-v11-response-or-plan"
+    version = "conversation-agent-v12-partial-input"
 
     def __init__(
         self,
@@ -379,7 +379,8 @@ class ConversationAgent:
                     raise ValueError("invalid pending field value")
             input_values = tuple((v["target_work_item_id"], v["field_name"], v["value"]) for v in values)
             expected = {(f.target_work_item_id, f.field_name) for f in state.pending_interaction.requested_fields}
-            if len(input_values) != len(expected) or {(w, f) for w, f, _ in input_values} != expected:
+            if (len({(w, f) for w, f, _ in input_values}) != len(input_values)
+                    or not {(w, f) for w, f, _ in input_values} <= expected):
                 raise ValueError("input values do not match pending fields")
         if status == "respond":
             if set(raw) != {"status", "response"}:

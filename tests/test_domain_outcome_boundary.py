@@ -120,7 +120,7 @@ def test_current_proposal_advertisement_matches_exposed_tools(pending):
         context = replace(context, pending_approval=PendingApprovalState(
             "approval", 1, "stream", "action", "order.cancel:v1", "operation",
             "order:OTHER", "1", "2099-01-01T00:00:00+00:00"))
-    advertised = json.loads(agent._build_prompt(context))["action_proposals_allowed"]
+    advertised = json.loads(agent._build_prompt(context)[-1]["text"])["delegated_task"]["action_proposals_allowed"]
     exposed = {tool.name for tool in agent._tools(context)}
     assert advertised is (not pending)
     assert ("prepare_order_cancel" in exposed) is advertised

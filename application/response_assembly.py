@@ -260,22 +260,8 @@ class ResponseAssembler:
             "The available information does not support a reliable conclusion. Please provide relevant details or contact support."))
         # A knowledge publication failure only removes knowledge-dependent claims.
         # Committed effects and independently verified state retain their authority.
-        from dataclasses import replace
-        from types import SimpleNamespace
-        from application.agent_result import FactSourceKind
-        independent = []
-        for result in board.results:
-            dependent = result.reason_code.startswith("KNOWLEDGE_") or any(
-                fact.requirement_id == "knowledge.active_source" for fact in result.facts)
-            if not dependent:
-                independent.append(result)
-                continue
-            facts = tuple(fact for fact in result.facts
-                          if fact.source_kind is FactSourceKind.VERIFIED_STATE)
-            if facts or result.action_receipts:
-                independent.append(replace(result, facts=facts, candidate_response=None,
-                                           status=AgentResultStatus.PARTIAL, retryable=False))
-        prefix = _render_board(SimpleNamespace(results=independent), locale=self.fallback_locale) + "\n" if independent else ""
+        prefix = _render_board(board, locale=self.fallback_locale, knowledge_safe=True)
+        prefix = prefix + "\n" if prefix else ""
         return AssembledResponse(notice + prefix + text, ResponseAssemblyMode.TEMPLATE, (), False,
                                  "NOT_CHECKED", "KNOWLEDGE_SAFE_ABSTENTION")
 
@@ -384,7 +370,9 @@ def _allowed_claims(board, pending_approval=None, *, requested_inputs=()) -> tup
              "target_entity_ref": pending_approval.target_entity_ref,
              "arguments": {arg.name: arg.value for arg in pending_approval.arguments},
              "effect_status": "NOT_EXECUTED"}, ()))
-    for result in getattr(board, "all_results", board.results):
+    for item, result in _outcome_pairs(board):
+        if result is None:
+            continue
         if result.pending_action and pending_approval is None and result in board.results:
             action = result.pending_action
             claims.append(AllowedClaim(
@@ -399,7 +387,7 @@ def _allowed_claims(board, pending_approval=None, *, requested_inputs=()) -> tup
             {"owner_agent": result.owner_agent, "status": result.status.value,
              "reason_code": result.reason_code}, result.evidence_refs))
         for index, fact in enumerate(result.facts, start=1):
-            if fact not in current:
+            if fact not in current or _conflict_affected_result(board, result, item):
                 continue
             claims.append(AllowedClaim(
                 f"fact:{result.work_item_id}:{index}",
@@ -430,6 +418,7 @@ def _response_context(board, pending_approval=None, requested_inputs=(), convers
     # Retained work IDs may recur in a later turn: keep each result paired with
     # its original contract instead of joining historical goals on the local ID.
     pairs = getattr(board, "outcome_items", ()) or tuple((None, result) for result in board.results)
+    facts = _current_board_facts(board)
     return {
         "facts": [{"subject_ref": fact.subject_ref, "requirement_id": fact.requirement_id,
                    "source_kind": fact.source_kind.value, "source_ref": fact.source_ref,
@@ -437,7 +426,7 @@ def _response_context(board, pending_approval=None, requested_inputs=(), convers
                    "producer_version": fact.producer_version, "observed_at": fact.observed_at.isoformat(),
                    "observation_started_at": fact.observation_started_at.isoformat() if fact.observation_started_at else None,
                    "valid_until": fact.valid_until.isoformat() if fact.valid_until else None,
-                   "value": _fact_view(fact)} for fact in _current_board_facts(board)],
+                   "value": _fact_view(fact)} for fact in facts],
         "receipts": [{**asdict(receipt),
                       "action": {
                           "work_item_id": item.work_item_id,
@@ -456,6 +445,11 @@ def _response_context(board, pending_approval=None, requested_inputs=(), convers
                       "status": r.status.value if r else "NOT_EXECUTED",
                       "reason_code": r.reason_code if r else "UNRESOLVED_PRIOR_WORK",
                       "retryable": r.retryable if r else False,
+                      "coverage": board.coverage_for(item, r) if item else None,
+                      "fact_indexes": [index for index, fact in enumerate(facts)
+                                       if r is not None and fact in r.facts],
+                      "receipt_ids": [receipt.receipt_id for receipt in r.action_receipts] if r else [],
+                      "requested_evidence": [asdict(request) for request in r.requested_evidence] if r else [],
                       "execution_feedback": _failure_feedback(r) if r else []} for item, r in pairs],
         "coverage": {"missing_requirement_ids": list(board.missing_requirement_ids),
                      "conflict_keys": list(board.conflict_keys),
@@ -485,11 +479,21 @@ def _message(locale, chinese, english):
     return english if locale == "en" else chinese
 
 
-def _render_board(board, *, locale="zh-CN") -> str:
+def _render_board(board, *, locale="zh-CN", knowledge_safe=False) -> str:
     from dataclasses import replace
     sections = []
     current = _current_board_facts(board)
-    for result in getattr(board, "all_results", board.results):
+    for item, result in _outcome_pairs(board):
+        if result is None:
+            continue
+        affected = _conflict_affected_result(board, result, item)
+        if knowledge_safe:
+            from application.agent_result import FactSourceKind
+            facts = tuple(f for f in result.facts if f.source_kind is FactSourceKind.VERIFIED_STATE)
+            if not facts and not result.action_receipts:
+                continue
+            if facts != result.facts:
+                result = replace(result, facts=facts, candidate_response=None, status=AgentResultStatus.PARTIAL)
         rendered = []
         for receipt in result.action_receipts:
             if receipt.effect_status != "COMMITTED":
@@ -501,10 +505,14 @@ def _render_board(board, *, locale="zh-CN") -> str:
                 rendered.append(_message(locale, "请求已提交。", "The request has been submitted."))
         # A fallback cannot re-publish model-authored candidates after a failed
         # support check. Facts, committed effects and typed outcomes survive.
-        text = _render_verified_facts(replace(result, facts=tuple(f for f in result.facts if f in current)), locale=locale)
+        text = _render_verified_facts(replace(result, facts=tuple(f for f in result.facts
+            if f in current and not affected)), locale=locale)
         if text:
             rendered.append(text)
-        if result.status not in _SUCCESS:
+        if affected:
+            rendered.append(_message(locale, "此项结论依赖的资料存在冲突，暂时无法确认。",
+                "Conflicting evidence affects this result; its conclusion cannot yet be confirmed."))
+        elif result.status not in _SUCCESS:
             label = (_OWNER_LABELS_EN.get(result.owner_agent, "This request") if locale == "en"
                      else _OWNER_LABELS.get(result.owner_agent, "此项请求"))
             rendered.append(label + (": " if locale == "en" else "：")
@@ -515,7 +523,21 @@ def _render_board(board, *, locale="zh-CN") -> str:
             rendered.append(_message(locale, "详细答复暂时未能完成核验。",
                 "The detailed reply could not be verified."))
         sections.extend(rendered)
-    return "\n".join(sections) or _message(locale, "暂时没有可发布的结果。", "No result is available yet.")
+    return "\n".join(sections) or ("" if knowledge_safe else _message(locale, "暂时没有可发布的结果。", "No result is available yet."))
+
+
+def _outcome_pairs(board):
+    return getattr(board, "outcome_items", ()) or tuple((None, r) for r in board.results)
+
+
+def _conflict_affected_result(board, result, item=None):
+    if item is not None:
+        return bool(board.coverage_for(item, result)["conflict_keys"])
+    pairs = getattr(board, "outcome_items", ())
+    matching = [(item, outcome) for item, outcome in pairs if outcome == result]
+    if matching:
+        return any(board.coverage_for(item, outcome)["conflict_keys"] for item, outcome in matching)
+    return any(f"{fact.subject_ref}:{fact.requirement_id}" in board.conflict_keys for fact in result.facts)
 
 
 def _current_board_facts(board):

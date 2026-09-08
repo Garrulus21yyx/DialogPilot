@@ -1,6 +1,7 @@
 """Evaluation capture via framework callbacks, not a second model transport."""
 import time
 from langchain_core.callbacks import BaseCallbackHandler
+from langchain_core.messages import AIMessage, ToolMessage
 
 
 class FrameworkCapture(BaseCallbackHandler):
@@ -19,7 +20,9 @@ class FrameworkCapture(BaseCallbackHandler):
         row = {"request": {
             **kwargs.get("invocation_params", {}),
             "system": next((m.content for m in batch if m.type == "system"), ""),
-            "messages": [{"role": "user" if m.type == "human" else m.type, "content": m.content}
+            "messages": [{"role": {"human": "user", "ai": "assistant"}.get(m.type, m.type), "content": m.content,
+                          **({"tool_calls": m.tool_calls} if isinstance(m, AIMessage) and m.tool_calls else {}),
+                          **({"tool_call_id": m.tool_call_id, "status": m.status} if isinstance(m, ToolMessage) else {})}
                          for m in batch if m.type != "system"],
         }}
         self.calls.append(row)

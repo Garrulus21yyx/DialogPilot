@@ -203,3 +203,18 @@ def knowledge_time_window(options, *, current, business_timezone, contract=None)
 
 def knowledge_tool_schema_for_context(context):
     return knowledge_query_schema(context.get("knowledge_filter_contract"))
+
+
+def knowledge_progress_identity(data):
+    """Evidence novelty, independent of query phrasing, rank and diagnostics.
+
+    Non-evidence outcomes retain their complete identity: an empty search is
+    neither evidence nor proof that another query cannot answer the question.
+    """
+    if knowledge_outcome(data)[0] is not AgentResultStatus.SUCCEEDED:
+        return data
+    import json
+    items = [{key: item.get(key) for key in ("chunk_id", "source_ref", "text", "title")}
+             for item in evidence_items(data)]
+    return {"status": "OK", "index_manifest_fingerprint": data["evidence_pack"]["index_manifest_fingerprint"],
+            "items": sorted(items, key=lambda item: json.dumps(item, sort_keys=True))}

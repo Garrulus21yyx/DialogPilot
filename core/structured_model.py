@@ -1,6 +1,6 @@
 """Structured calls through the installed LangChain model integration."""
 from jsonschema import Draft202012Validator, ValidationError
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 from langchain_core.runnables.config import ensure_config, merge_configs
 from core.framework_models import invoke_model
 
@@ -12,7 +12,9 @@ def structured_tool(name, schema):
     return {"name": name, "description": "Return the complete stage result.", "input_schema": wire_schema}
 
 
-async def structured_call(model, *, name, schema, system, content, callbacks=(), metadata=None):
+async def structured_call(model, *, name, schema, system, messages, callbacks=(), metadata=None):
+    if not messages or any(not isinstance(message, (HumanMessage, AIMessage, ToolMessage)) for message in messages):
+        raise ValueError("structured_input_requires_conversation_messages")
     # SDK owns tool binding, provider message normalization and JSON parsing.
     tool = structured_tool(name, schema)
     # Keep the enclosing SDK callback manager and its parent run identity.
@@ -23,7 +25,7 @@ async def structured_call(model, *, name, schema, system, content, callbacks=(),
     output = await invoke_model(model.with_structured_output(
         tool,
         include_raw=True,
-    ).ainvoke([SystemMessage(system), HumanMessage(content)],
+    ).ainvoke([SystemMessage(system), *messages],
               config=config), stage=name)
     if output["parsing_error"] is not None:
         raise ValueError("structured_output_parse_failed") from output["parsing_error"]

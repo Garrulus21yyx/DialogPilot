@@ -1,7 +1,7 @@
 """Deterministic merger for work outcomes, dependencies, facts, and partial failure."""
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from application.agent_result import AgentResult, AgentResultStatus, FactRecord, FactSourceKind, merge_facts
 from application.work_item import WorkItem, WorkPlan
@@ -56,6 +56,27 @@ class ResultBoardSnapshot:
         """Current execution plus unreplaced outcomes of this checkpoint's request."""
         return (*(result for _, result in self.retained_outcomes if result is not None), *self.results)
 
+    def coverage_for(self, item: WorkItem, result: AgentResult | None) -> dict:
+        """Derived coverage of this paired contract/outcome, never a global join."""
+        missing = sorted(ResultBoard._missing(item, result))
+        pairs = self.outcome_items
+        impacts = _conflict_impacts(pairs, self.conflict_keys, len(self.retained_outcomes))
+        indexes = [index for index, pair in enumerate(pairs) if pair == (item, result)]
+        if indexes:
+            conflicts = sorted(set().union(*(impacts[index] for index in indexes)))
+        else:
+            conflicts = sorted({f"{f.subject_ref}:{f.requirement_id}" for f in result.facts
+                                if f"{f.subject_ref}:{f.requirement_id}" in self.conflict_keys}) if result else []
+        deliverable = bool(result and result.status in _DELIVERABLE and not missing and not conflicts
+                           and (result.facts or result.action_receipts))
+        return {"requirement_ids": list(item.requirement_ids), "missing_requirement_ids": missing,
+                "conflict_keys": conflicts, "coverage_complete": not missing and not conflicts,
+                "deliverable": deliverable,
+                "delivery_reason": "CONFLICT_AFFECTED" if conflicts else "MISSING_REQUIREMENTS" if missing
+                                   else "DELIVERABLE" if deliverable else "NO_DELIVERABLE_RESULT",
+                "task_completed": bool(result and result.status is AgentResultStatus.SUCCEEDED
+                                       and not missing and not conflicts)}
+
     @property
     def coverage_complete(self) -> bool:
         """Evidence coverage is independent of worker or answer success."""
@@ -71,7 +92,7 @@ class ResultBoardSnapshot:
 
 
 class ResultBoard:
-    version = "result-board-v2-outcome-coverage"
+    version = "result-board-v3-conflict-scope"
 
     def evaluate(
         self,
@@ -100,6 +121,10 @@ class ResultBoard:
             *(result.facts for _, result in retained_outcomes if result is not None),
             *(by_id[item.work_item_id].facts for item in plan.items if item.work_item_id in by_id)))
         conflicts = self._conflicts(all_facts)
+        initial_pairs = (*retained_outcomes, *((item, by_id.get(item.work_item_id)) for item in plan.items))
+        impacts = _conflict_impacts(initial_pairs, conflicts, len(retained_outcomes))
+        affected = {item.work_item_id: impacts[len(retained_outcomes) + index]
+                    for index, item in enumerate(plan.items)}
         blocked = []
         effective_by_id = dict(by_id)
         # Topological evaluation propagates a failed dependency through the whole
@@ -110,7 +135,7 @@ class ResultBoard:
             failed_dependencies = tuple(
                 dependency for dependency in item.dependencies
                 if dependency in effective_by_id and not self._dependency_satisfied(
-                    items[dependency], effective_by_id[dependency], conflicts)
+                    items[dependency], effective_by_id[dependency], affected[dependency])
             )
             if failed_dependencies and all(
                 dependency in effective_by_id and effective_by_id[dependency].status in _TERMINAL
@@ -136,7 +161,7 @@ class ResultBoard:
             if item.work_item_id not in effective_by_id
             and all(
                 dependency in effective_by_id
-                and self._dependency_satisfied(items[dependency], effective_by_id[dependency], conflicts)
+                and self._dependency_satisfied(items[dependency], effective_by_id[dependency], affected[dependency])
                 for dependency in item.dependencies
             )
         )
@@ -146,22 +171,13 @@ class ResultBoard:
         missing = tuple(sorted({requirement for item, result in outcomes
                                 for requirement in self._missing(item, result)}))
         complete = len(effective) == len(plan.items)
-        successes = any(result is not None and result.status in _DELIVERABLE
-                        for _, result in outcomes)
-        incomplete = any(result is None or result.status is not AgentResultStatus.SUCCEEDED
-                         or self._missing(item, result) for item, result in outcomes)
-        return ResultBoardSnapshot(
-            tuple(effective),
-            all_facts,
-            ready,
-            tuple(blocked),
-            missing,
-            conflicts,
-            complete,
-            bool(successes and incomplete and not conflicts),
-            work_items=plan.items,
-            retained_outcomes=retained_outcomes,
-        )
+        snapshot = ResultBoardSnapshot(
+            tuple(effective), all_facts, ready, tuple(blocked), missing, conflicts,
+            complete, False, work_items=plan.items, retained_outcomes=retained_outcomes)
+        coverage = [snapshot.coverage_for(item, result) for item, result in outcomes]
+        return replace(snapshot, partial_delivery_allowed=(
+            any(row["deliverable"] for row in coverage)
+            and any(not row["task_completed"] for row in coverage)))
 
     @staticmethod
     def _missing(item: WorkItem, result: AgentResult | None) -> set[str]:
@@ -175,8 +191,7 @@ class ResultBoard:
     def _dependency_satisfied(cls, item, result, conflicts):
         """A task-ID edge means successful completion, not partial progress."""
         return (result.status is AgentResultStatus.SUCCEEDED and not cls._missing(item, result)
-                and not any(f"{fact.subject_ref}:{fact.requirement_id}" in conflicts
-                            for fact in result.facts))
+                and not conflicts)
 
     @staticmethod
     def _conflicts(facts: tuple[FactRecord, ...]) -> tuple[str, ...]:
@@ -188,6 +203,27 @@ class ResultBoard:
             if prior != fact.value_json:
                 conflicts.add(f"{key[0]}:{key[1]}")
         return tuple(sorted(conflicts))
+
+
+def _conflict_impacts(pairs, conflicts, retained_count):
+    """Propagate known fact conflicts over hard edges without rewriting results.
+
+    Current edges resolve only within the current plan. Retained local IDs may
+    recur: all matching retained predecessors are conservatively considered.
+    """
+    impacts = [{f"{fact.subject_ref}:{fact.requirement_id}" for fact in result.facts
+                if f"{fact.subject_ref}:{fact.requirement_id}" in conflicts}
+               if result else set() for _, result in pairs]
+    edges = [[other for other, (upstream, _) in enumerate(pairs)
+              if upstream.work_item_id in item.dependencies
+              and (index < retained_count) == (other < retained_count)]
+             for index, (item, _) in enumerate(pairs)]
+    while True:
+        updated = [impact.union(*(impacts[upstream] for upstream in edges[index]))
+                   for index, impact in enumerate(impacts)]
+        if updated == impacts:
+            return updated
+        impacts = updated
 
 
 def current_facts(facts: tuple[FactRecord, ...]) -> tuple[FactRecord, ...]:

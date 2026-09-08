@@ -6,8 +6,7 @@ from datetime import datetime, timezone
 from enum import Enum
 
 from application.conversation_state import ConversationState
-from application.entity_binding import BindingSource, EntityBinding
-from application.work_item import ArgumentValue, WorkItem
+from application.work_item import WorkItem
 
 
 class DeterministicResolutionError(ValueError):
@@ -119,7 +118,7 @@ class DeterministicResolution:
 
 
 class DeterministicResolver:
-    version = "deterministic-resolver-v1"
+    version = "deterministic-resolver-v2-partial-input"
 
     def __init__(self, clock=None) -> None:
         self._clock = clock or (lambda: datetime.now(timezone.utc))
@@ -146,7 +145,7 @@ class DeterministicResolver:
                 fields = self._bind_pending_fields(observations, pending.requested_fields)
                 if fields is None:
                     raise DeterministicResolutionError("typed fields do not match pending input")
-                resumed = self._resume_work_items(pending.suspended_work_items, fields, state)
+                resumed = self._resume_work_items(fields, state)
             return DeterministicResolution(ResolutionKind.UNRESOLVED,
                 "APPROVAL_WITH_TEXT_REQUIRES_PLANNING", state.fingerprint,
                 fields=fields, resumed_work_items=resumed)
@@ -171,6 +170,8 @@ class DeterministicResolver:
                     resumed_work_items=pending.suspended_work_items,
                 )
             fields = None if free_domain_reply else self._bind_pending_fields(observations, pending.requested_fields)
+            if observations.interaction_values and fields is None:
+                raise DeterministicResolutionError("typed fields do not match pending input")
             if fields is not None:
                 if observations.interaction_id is None:
                     raise DeterministicResolutionError(
@@ -184,7 +185,7 @@ class DeterministicResolver:
                     signal_version=pending.version,
                     fields=fields,
                     resumed_work_items=self._resume_work_items(
-                        pending.suspended_work_items, fields, state,
+                        fields, state,
                     ),
                 )
 
@@ -321,7 +322,7 @@ class DeterministicResolver:
                 (item.target_work_item_id, item.field_name)
                 for item in requested_fields
             }
-            if set(provided) != requested:
+            if len(provided) != len(observations.interaction_values) or not set(provided) <= requested:
                 return None
             return tuple(
                 ResolvedField(
@@ -329,54 +330,23 @@ class DeterministicResolver:
                     item.field_name,
                     provided[(item.target_work_item_id, item.field_name)],
                 )
-                for item in requested_fields
+                for item in requested_fields if (item.target_work_item_id, item.field_name) in provided
             )
         provided = dict(observations.structured_fields)
         names = {item.field_name for item in requested_fields}
-        if names != set(provided):
+        if (not provided or not set(provided) <= names or len(provided) != len(observations.structured_fields)
+                or any(sum(f.field_name == name for f in requested_fields) != 1 for name in provided)):
             return None
         return tuple(
             ResolvedField(item.target_work_item_id, item.field_name, provided[item.field_name])
-            for item in requested_fields
+            for item in requested_fields if item.field_name in provided
         )
 
     @staticmethod
     def _resume_work_items(
-        suspended: tuple[WorkItem, ...],
         fields: tuple[ResolvedField, ...],
         state: ConversationState,
     ) -> tuple[WorkItem, ...]:
-        values: dict[str, list[ArgumentValue]] = {}
-        for field in fields:
-            values.setdefault(field.workstream_id, []).append(
-                ArgumentValue.create(field.field_name, field.value)
-            )
-        resumed = []
-        for item in suspended:
-            merged = {argument.name: argument for argument in item.arguments}
-            merged.update({argument.name: argument for argument in values.get(
-                item.work_item_id, (),
-            )})
-            new_bindings = tuple(EntityBinding.create(
-                field.field_name, field.value,
-                source=BindingSource.PENDING_INTERACTION,
-                source_ref=(
-                    f"interaction:{state.pending_interaction.interaction_id}:"
-                    f"v{state.pending_interaction.version}:"
-                    f"{field.workstream_id}:{field.field_name}"
-                ),
-                tenant_id=str(state.tenant_id), user_id=str(state.user_id),
-                conversation_id=str(state.conversation_id), priority=500,
-            ) for field in fields if field.workstream_id == item.work_item_id)
-            rebound = {
-                binding.field_name: binding for binding in item.argument_bindings
-            }
-            rebound.update({binding.field_name: binding for binding in new_bindings})
-            resumed.append(WorkItem(**{
-                **item.__dict__,
-                "arguments": tuple(merged[name] for name in sorted(merged)),
-                "argument_bindings": tuple(
-                    rebound[name] for name in sorted(rebound)
-                ),
-            }))
-        return tuple(resumed)
+        _, _, resumed = state.pending_interaction.bind_values(state, tuple(
+            (field.workstream_id, field.field_name, field.value) for field in fields))
+        return resumed

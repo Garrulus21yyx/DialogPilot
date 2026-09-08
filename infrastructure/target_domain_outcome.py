@@ -107,7 +107,7 @@ class DomainOutcomeReview:
             if required > self.available_tokens:
                 raise ModelContextBudgetExceeded(required, self.available_tokens)
             result = await structured_call(self.model, name="assess_domain_outcome", schema=SCHEMA,
-                system=SYSTEM, content=content, callbacks=self.callbacks, metadata={
+                system=SYSTEM, messages=[HumanMessage(content)], callbacks=self.callbacks, metadata={
                     "work_item_id": item.work_item_id,
                     "control_id": item.control.control_id if item.control else None,
                     "revision": item.control.revision if item.control else None,

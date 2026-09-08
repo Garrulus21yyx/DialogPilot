@@ -10,6 +10,7 @@ from pathlib import Path
 from dotenv import dotenv_values
 from core.model_policy import ModelPolicy, ModelProfile, ReasoningEffort
 from core.framework_models import framework_model
+from langchain_core.messages import HumanMessage
 from core.structured_model import structured_call
 from evaluation.framework_capture import FrameworkCapture
 from scripts.run_rag_selected_composition_pair import clean
@@ -51,7 +52,7 @@ async def main():
         schema=request['tools'][0]['input_schema']['properties']['result']
         for arm,answer in [('original',original),('repaired',repaired)]:
             submitted={**payload,'answer':answer};before=len(capture.calls)
-            output=await structured_call(model,name='submit_claim_checks',schema=schema,system=request['system']+(FOCUS if args.focused else ''),content=json.dumps(submitted,ensure_ascii=False),callbacks=(capture,))
+            output=await structured_call(model,name='submit_claim_checks',schema=schema,system=request['system']+(FOCUS if args.focused else ''),messages=[HumanMessage(json.dumps(submitted,ensure_ascii=False))],callbacks=(capture,))
             row=dict(case_id=witness['case_id'],arm=('contradicted_control' if arm=='original' else 'supported_control') if args.clear_controls else arm,answer=answer,output=output,calls=clean(capture.calls[before:]))
             rows.append(row)
             (args.output/'rows.json.gz').write_bytes(gzip.compress(json.dumps(rows,ensure_ascii=False).encode(),mtime=0))

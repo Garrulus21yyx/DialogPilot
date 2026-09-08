@@ -1,3 +1,4 @@
+from infrastructure.target_model_context import planning_payload_from_request
 import gzip
 import json
 from pathlib import Path
@@ -8,7 +9,7 @@ from scripts.run_conversation_plan_replay import compile_captured, unclassify_le
 def payload():
     source=Path(__file__).resolve().parents[1]/'artifacts/eval/rag-mixed-business-2026-09-06-v4/mixed-cases.jsonl.gz'
     row=json.loads(gzip.decompress(source.read_bytes()).splitlines()[0])
-    return unclassify_legacy_references(json.loads(row['api_calls'][0]['request']['messages'][0]['content']))
+    return unclassify_legacy_references(planning_payload_from_request(row['api_calls'][0]['request']))
 
 
 def test_replay_summary_preserves_contextual_query_requirement():

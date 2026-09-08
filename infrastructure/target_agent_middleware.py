@@ -27,6 +27,25 @@ def model_overhead_tokens(system_message, tools):
     return count_tokens_approximately([system, HumanMessage(content=json.dumps(schemas, ensure_ascii=False))])
 
 
+def tool_observation_digest(result):
+    from application.knowledge_tool_contract import knowledge_progress_identity
+    observation = {key: result.get(key) for key in ("data", "error", "status", "effect_status")}
+    if result.get("authority") == "knowledge.active_source":
+        observation["data"] = knowledge_progress_identity(result.get("data"))
+    return hashlib.sha256(json.dumps(observation, sort_keys=True, default=str).encode()).hexdigest()
+
+
+def tool_observation_digests(result):
+    from application.knowledge_tool_contract import knowledge_outcome, knowledge_progress_identity
+    from application.agent_result import AgentResultStatus
+    if (result.get("authority") == "knowledge.active_source"
+            and knowledge_outcome(result.get("data"))[0] is AgentResultStatus.SUCCEEDED):
+        identity = knowledge_progress_identity(result["data"])
+        return [tool_observation_digest({**result, "authority": None,
+            "data": {**identity, "items": [item]}}) for item in identity["items"]]
+    return [tool_observation_digest(result)]
+
+
 class ProgressState(AgentState):
     observed_results: list[str]
     stagnant_rounds: int
@@ -55,11 +74,14 @@ class AgentProgressMiddleware(AgentMiddleware):
                 # Interactions/actions are governed by their own boundary.
                 return None
             result = artifact.get("result", {})
-            observation = {"tool": message.name, "status": result.get("status", message.status),
-                "data": artifact.get("observation", result.get("data", message.content)), "error": result.get("error"),
-                "effect_status": result.get("effect_status")}
-            batch.append(hashlib.sha256(json.dumps(observation, sort_keys=True,
-                ensure_ascii=False, default=str).encode()).hexdigest())
+            digests = artifact.get("observation") or tool_observation_digests(result if result else {
+                "data": message.content, "status": message.status})
+            # Old checkpoints contain one digest; new knowledge observations
+            # carry one per evidence item, so recombining old hits is not novelty.
+            if isinstance(digests, str):
+                digests = [digests]
+            batch.extend(hashlib.sha256(json.dumps([message.name, digest]).encode()).hexdigest()
+                         for digest in digests)
         if not batch:
             return None
         seen = set(state.get("observed_results", ()))

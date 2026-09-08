@@ -44,9 +44,18 @@ def history(batch_size):
 
 @pytest.mark.parametrize("batch_size", [1, 3, 7])
 @pytest.mark.parametrize("trailing_note", [False, True])
-def test_sdk_summary_preserves_entire_latest_batch_and_pinned_goal(batch_size, trailing_note):
+@pytest.mark.parametrize("sectioned", [False, True])
+def test_sdk_summary_preserves_entire_latest_batch_and_pinned_goal(batch_size, trailing_note, sectioned):
     async def run():
         pinned, messages, latest = history(batch_size)
+        if sectioned:
+            from infrastructure.target_model_context import delegated_task_content
+            pinned = pinned.model_copy(update={"content": delegated_task_content({
+                "objective": "Only inspect. Do not submit.", "arguments": {}, "requirements": [],
+                "action_proposals_allowed": False, "source_conversation": {"current_message": "Inspect the order"},
+                "recent_relevant_turns": [], "verified_facts": [],
+            })})
+            messages[0] = pinned
         if trailing_note:
             messages[1] = messages[1].model_copy(update={"content": "Old context. " * 800})
             messages.append(HumanMessage(content="Additional user constraint: inspect only. " * 80, id="correction"))

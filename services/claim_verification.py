@@ -4,6 +4,7 @@ import hashlib
 import json
 from dataclasses import dataclass
 from jsonschema import Draft202012Validator, ValidationError
+from langchain_core.messages import HumanMessage
 from core.structured_model import structured_call, structured_tool
 from core.provider_context_budget import DEFAULT_PROVIDER_CONTEXT_BUDGET
 from core.model_policy import ModelRole
@@ -71,6 +72,10 @@ are accurately explained. A clear limitation is an answer, not successful busine
 A relevant request for information or identity verification needed for the next step is a valid
 conversational answer; it need not complete the whole task or invent policy details before that
 information is available. Explain unresolved outcomes relevant to this turn without claiming success.
+Outcome coverage.delivery_reason=CONFLICT_AFFECTED means the task's conclusions are not
+established, even if its execution status is SUCCEEDED. Reject assertions of those conclusions;
+allow an explanation of the conflicting evidence. Independently deliverable outcomes remain usable.
+Do not infer a global ban on answering from the aggregate conflict list.
 Inspect every relevant evidence.context.outcomes entry: preserve independently completed work and
 explain partial failures or blocked objectives. A relevant bound question can explain its own waiting
 task. Judge what the complete reply actually communicates, not whether it includes internal IDs.
@@ -129,5 +134,5 @@ async def verify_claims(model, profile, *, question, answer, evidence, max_token
         tools=[structured_tool("submit_claim_checks", output_schema(request))])
     DEFAULT_PROVIDER_CONTEXT_BUDGET.validate(profile, ModelRole.VERIFIER, payload)
     value = await structured_call(model, name="submit_claim_checks", schema=output_schema(request),
-                                  system=system, content=content, callbacks=callbacks)
+                                  system=system, messages=[HumanMessage(content)], callbacks=callbacks)
     return assess(request, value)

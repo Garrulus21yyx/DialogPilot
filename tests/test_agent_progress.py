@@ -101,3 +101,55 @@ def test_execution_diagnostics_roundtrip_without_working_messages(feedback):
     restored = serializer.loads_typed(serializer.dumps_typed(result))
     assert restored == result
     assert list(restored.execution_feedback) == list(feedback)
+
+
+@pytest.mark.parametrize('persisted', [False, True])
+def test_rephrased_reordered_knowledge_has_same_progress_in_archive_and_inline(persisted):
+    from copy import deepcopy
+    from types import SimpleNamespace
+    from infrastructure.target_agent_middleware import AgentProgressMiddleware
+    from infrastructure.target_context_compaction import ToolResultPersistence
+    from infrastructure.target_result_archive import TargetResultArchive
+    from tests.test_knowledge_tool_contract import evidence_result
+    async def run():
+        state = {}
+        progress = AgentProgressMiddleware()
+        archive = TargetResultArchive(InMemoryStore())
+        persistence = ToolResultPersistence(archive)
+        data = evidence_result()
+        second = deepcopy(data['evidence_pack']['items'][0])
+        second['chunk_id'] = 'second'
+        data['evidence_pack']['items'].append(second)
+        for turn in range(4):
+            current = deepcopy(data)
+            current['evidence_pack']['query'] = f'rephrase {turn}'
+            current['evidence_pack']['items'].reverse() if turn % 2 else None
+            if turn == 2:
+                current['evidence_pack']['items'] = current['evidence_pack']['items'][:1]
+            current['diagnostics'] = {'duration': turn}
+            artifact = {'schema': 'tool-result-v1', 'result': {'authority': 'knowledge.active_source', 'status': 'SUCCESS', 'data': current}}
+            message = ToolMessage(content='evidence', name='knowledge_search', tool_call_id=str(turn), artifact=artifact)
+            inline = await progress.abefore_model({**state, 'messages': [message]}, None)
+            if persisted:
+                async def handler(request): return message
+                update = await persistence.awrap_tool_call(SimpleNamespace(runtime=SimpleNamespace(context=_context())), handler)
+                message = update.update['messages'][0]
+            update = await progress.abefore_model({**state, 'messages': [message]}, None)
+            assert {k: v for k, v in update.items() if k != 'messages'} == {k: v for k, v in inline.items() if k != 'messages'}
+            state.update(update)
+        assert state['progress_blocked'] and state['jump_to'] == 'end'
+    asyncio.run(run())
+
+
+def test_knowledge_new_source_revision_and_general_business_change_remain_progress():
+    from copy import deepcopy
+    from infrastructure.target_agent_middleware import tool_observation_digest
+    from tests.test_knowledge_tool_contract import evidence_result
+    original = {'authority': 'knowledge.active_source', 'data': evidence_result()}
+    for mutate in (lambda x: x['data']['evidence_pack']['items'][0]['source_ref'].update(source_revision='v2'),
+                   lambda x: x['data']['evidence_pack'].update(index_manifest_fingerprint='c' * 64)):
+        updated = deepcopy(original)
+        mutate(updated)
+        assert tool_observation_digest(original) != tool_observation_digest(updated)
+    assert tool_observation_digest({'data': {'status': 'paid'}}) != tool_observation_digest({'data': {'status': 'refunded'}})
+    assert tool_observation_digest({'authority': 'knowledge.active_source', 'data': {'status': 'NO_EVIDENCE', 'query': 'a'}}) != tool_observation_digest({'authority': 'knowledge.active_source', 'data': {'status': 'NO_EVIDENCE', 'query': 'b'}})

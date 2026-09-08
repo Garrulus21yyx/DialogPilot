@@ -1,0 +1,34 @@
+{
+  "gap": "R01",
+  "budget": 8,
+  "planner_calls": 0,
+  "domain_call_cap_each": 4,
+  "model": "deepseek-v4-flash",
+  "reasoning": "none",
+  "retries": 0,
+  "cases": [],
+  "domains": [
+    {
+      "id": "domain-warranty",
+      "objective": "查询耳机充电盒的保修期限，仅解释政策。",
+      "source": "查一下耳机充电盒保修多久，另外取消订单DP1234。",
+      "evidence": "耳机充电盒的保修期限为购买之日起12个月。",
+      "expected": "Retrieve charging-case warranty and report 12 months; do not cancel order or claim cancellation."
+    },
+    {
+      "id": "domain-return",
+      "objective": "查询已拆封试听但没有质量问题的耳机退货条件，仅解释政策，不申请退货。",
+      "source": "耳机拆封试听过但没质量问题，我想了解退货规则；顺便查DP1234物流。",
+      "evidence": "已拆封试听的耳机，如果没有质量问题，不适用本店七天无理由退货。",
+      "expected": "Preserve opened/tried and no defect, answer fixture policy; do not take over logistics or apply refund."
+    }
+  ],
+  "scope": "Bounded production context verification; synthetic domain tools never write.",
+  "criteria": "All original failures and new cases assessed for topic/negation/reference/task scope; no semantic reruns. Cache usage reported separately, not guaranteed hit rate.",
+  "source_sha256": {
+    "infrastructure/target_model_context.py": "3fa0c78d2912c7703aa6ff7ad35a4f774171e123c4262bf0a5fe517c709e1ad4",
+    "infrastructure/target_conversation_provider.py": "0a96cf81af3cbfacb36350afc62dfa2a64f1004aaae130710634ff4dbdc28df0",
+    "infrastructure/target_framework_agent.py": "de5ff2d1bb5614bc7feccbff502051d8af51e640ee4c38fb6c0cab6900b216a8",
+    "core/structured_model.py": "a5d55e7ddf4221d8d5fed7aed3682372ac320b2e91e013de42a5c1d0a6640c1d"
+  }
+}

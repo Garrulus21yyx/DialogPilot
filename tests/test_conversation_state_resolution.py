@@ -105,7 +105,7 @@ def test_single_pending_field_binds_typed_reply_without_semantic_router():
     assert next_state.active_workstreams[0].slots[0].value == "DP1234"
 
 
-def test_multi_workstream_interaction_requires_all_bound_fields_once():
+def test_multi_workstream_interaction_requires_identity_even_for_partial_fields():
     state = _state(
         _workstream(),
         WorkstreamState(
@@ -128,11 +128,8 @@ def test_multi_workstream_interaction_requires_all_bound_fields_once():
     ))
     resolver = DeterministicResolver()
 
-    unresolved = resolver.resolve(
-        TurnObservations("DP1234", structured_fields=(("order_id", "DP1234"),)),
-        state,
-    )
-    assert unresolved.kind is ResolutionKind.UNRESOLVED
+    with pytest.raises(DeterministicResolutionError, match="interaction identity"):
+        resolver.resolve(TurnObservations("DP1234", structured_fields=(("order_id", "DP1234"),)), state)
 
     resolved = resolver.resolve(TurnObservations(
         "DP1234, SKU-9",

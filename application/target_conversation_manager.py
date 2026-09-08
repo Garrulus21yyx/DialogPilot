@@ -32,6 +32,7 @@ from application.result_board import ResultBoardSnapshot
 from application.agent_result import AgentResultStatus, RequestedField, MissingInputSpec
 from application.turn_planning import (
     MutationApplyStage,
+    ProposalDisposition,
     RoutePolicy,
     TurnPlan,
     TurnPlanCompiler,
@@ -300,11 +301,15 @@ class TargetConversationManager:
                 raise TurnPlanningError("proposed input values could not bind to current state") from exc
             updated = self._apply_deterministic(state, input_resolution)
             resumed = input_resolution.resumed_work_items
-            if any(command.revises_control_id in {item.control.control_id for item in resumed if item.control}
+            submitted_targets = {field.workstream_id for field in input_resolution.fields}
+            if any(command.revises_control_id in {item.control.control_id for item in pending.suspended_work_items
+                                                 if item.control and item.work_item_id in submitted_targets}
                    for command in proposal.commands):
                 raise TurnPlanningError("input submission already resumes its goals; do not duplicate or revise them")
             restored = StateBoundTargetUnderstanding._continuations(resumed, updated)
-            proposal = replace(proposal, input_values=(), commands=(*proposal.commands, *restored))
+            proposal = replace(proposal, input_values=(), commands=(*proposal.commands, *restored),
+                disposition=(proposal.disposition if proposal.commands or restored or proposal.approval_decision
+                             else ProposalDisposition.CLARIFY))
             if updated is not state:
                 transitions.append(updated)
             state, deterministic = updated, input_resolution
@@ -434,7 +439,8 @@ class TargetConversationManager:
                 "conv_id": str(invocation.conversation_id),
                 "resolved_input_signal": (state_before.pending_interaction.interaction_id
                     if state_before.pending_interaction is not None
-                    and state.pending_interaction is None else ""),
+                    and f"interaction:{state_before.pending_interaction.interaction_id}:v{state_before.pending_interaction.version}"
+                    in state.consumed_signal_ids else ""),
                 **(
                     {
                         "approved_operation_key": str(deterministic.operation_key),

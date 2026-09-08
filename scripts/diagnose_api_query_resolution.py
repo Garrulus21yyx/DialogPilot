@@ -4,6 +4,7 @@
 This is not a production Agent or retrieval path. Selected development inputs are
 replayed with the same model and context, but without business routing duties.
 """
+from infrastructure.target_model_context import planning_payload_from_request
 import argparse
 import asyncio
 import json
@@ -36,7 +37,7 @@ async def run(args):
     async with AsyncAnthropic(**options) as transport:
         client = CapturingClient(transport, limit=len(selected))
         for row in selected:
-            original = json.loads(row['model_calls'][0]['request']['messages'][0]['content'])
+            original = planning_payload_from_request(row['model_calls'][0]['request'])
             payload = {key: original[key] for key in ('message', 'conversation_context')}
             request = profile.request(
                 max_tokens=800,
