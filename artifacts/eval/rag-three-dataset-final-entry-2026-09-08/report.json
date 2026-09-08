@@ -1,0 +1,149 @@
+{
+  "datasets": {
+    "Doc2Dial": {
+      "case_count": 2,
+      "api_calls": 5,
+      "records": [
+        {
+          "case_id": "doc-ce9c2f84cead-0",
+          "source": "artifacts/eval/rag-final-doc2dial2-v3-2026-09-08/0.5/full-cases.jsonl.gz",
+          "source_sha256": "43e2f9395137e58b5023aceae124cd448548b2a26c27393f29b54f763d7a4ea2",
+          "runtime_outcome": "Completed",
+          "tool_calls": 0,
+          "api_calls": 1,
+          "query": [],
+          "answer": "请补充完成该任务所需的信息。",
+          "verified": false,
+          "latency_ms": 1235.8260229229927
+        },
+        {
+          "case_id": "doc-ce9c2f84cead-1",
+          "source": "artifacts/eval/rag-final-doc2dial2-v3-2026-09-08/0.5/full-cases.jsonl.gz",
+          "source_sha256": "43e2f9395137e58b5023aceae124cd448548b2a26c27393f29b54f763d7a4ea2",
+          "runtime_outcome": "Completed",
+          "tool_calls": 1,
+          "api_calls": 4,
+          "query": [
+            {
+              "query": "What are the vehicle inspection rules for a car newly registered in New York when the vehicle was previously registered in another state that issued an inspection sticker? Does New York require an inspection and are out-of-state inspection stickers honored?"
+            }
+          ],
+          "answer": "Since your vehicle was previously registered in a state that issues inspection stickers, your out-of-state inspection remains valid until it expires or for one year after your New York registration date, whichever comes first [Eac8e676217c7]. Once that out-of-state inspection expires, you must get a New York State vehicle inspection [Eac8e676217c7].",
+          "verified": true,
+          "latency_ms": 6003.9765201509
+        }
+      ]
+    },
+    "MTRAG": {
+      "case_count": 2,
+      "api_calls": 8,
+      "records": [
+        {
+          "case_id": "mtrag-62b2ad2f-0",
+          "source": "artifacts/eval/rag-final-mtrag2-v3-2026-09-08/full-cases.jsonl.gz",
+          "source_sha256": "ac7b3a0478022a8479bd359db5755bfd25ab3f5a871d3197c184340e55fff878",
+          "runtime_outcome": "Completed",
+          "tool_calls": 1,
+          "api_calls": 4,
+          "query": [
+            {
+              "query": "What are some examples of configuring alerts in IBM Cloud monitoring, including alert name, description, group, severity, metric, scope, trigger conditions, and notification channels?"
+            }
+          ],
+          "answer": "I understand you're looking for more clarity on metrics. Could you let me know what specifically you'd like help with? For example:\n\n- Understanding what a particular metric means (e.g., CPU usage, memory, network)\n- How to view or interpret metric data in the monitoring UI\n- How to set up alerts on specific metrics\n- Something else about metrics\n\nLet me know what you're trying to accomplish, and I'll help you with the details.",
+          "verified": true,
+          "latency_ms": 11547.450115904212
+        },
+        {
+          "case_id": "mtrag-62b2ad2f-1",
+          "source": "artifacts/eval/rag-final-mtrag2-v3-2026-09-08/full-cases.jsonl.gz",
+          "source_sha256": "ac7b3a0478022a8479bd359db5755bfd25ab3f5a871d3197c184340e55fff878",
+          "runtime_outcome": "Completed",
+          "tool_calls": 1,
+          "api_calls": 4,
+          "query": [
+            {
+              "query": "How can I improve a query in IBM Cloud Discovery? What are best practices and steps to improve query performance and results?"
+            }
+          ],
+          "answer": "To improve your query results and performance in IBM Cloud Discovery, here are the key steps you can take:\n\n**To improve performance:**\n- Keep queries shorter, as longer queries tend to have poorer performance [E03aea336c059].\n- Limit the fields returned to only those your application needs—for example, don't return the full document text if you only need the title and a passage [E03aea336c059].\n- Reduce the number of documents returned, and use the `offset` parameter if you need to page through results [E03aea336c059].\n- Be aware that aggregations (especially nested ones), wildcarding, and fuzzy matching can slow down queries [E03aea336c059].\n- If using passage retrieval, use the `passages.fields` parameter to limit which fields are searched [E03aea336c059].\n\n**To improve result relevance:**\n- Train your collection by adding natural language queries and rating the results—this is the primary way to improve relevance [Edcadefb22899][Ec4289ab45cc2].\n- Add a custom stopwords list to improve relevance for natural language queries [Edcadefb22899].\n- Use the Performance dashboard to review queries that returned no results and add more data, or to perform relevancy training [Ebc8dace9b503].\n\nWould you like more detail on any of these options, such as how to set up relevancy training?",
+          "verified": true,
+          "latency_ms": 11207.255568355322
+        }
+      ]
+    },
+    "WixQA": {
+      "case_count": 4,
+      "api_calls": 16,
+      "records": [
+        {
+          "case_id": "wix-scoped-v2-0.5-0",
+          "source": "artifacts/eval/wixqa-real-entry-scoped-pair2-v2-2026-09-08/0.5/full-cases.jsonl.gz",
+          "source_sha256": "63854ca9d21a94383cc941594bbad7d8301f210c5026e08c5a49c4950bba77ee",
+          "runtime_outcome": "Completed",
+          "tool_calls": 1,
+          "api_calls": 4,
+          "query": [
+            {
+              "query": "How can I edit a published website in Wix?"
+            }
+          ],
+          "answer": "You can edit your published site at any time from the Wix Editor. Just go to your site's dashboard and click **Edit Site** (if it's your first time opening the editor, you may see **Design Site** instead) [E9ee698f9b0ab]. Make sure you're signed in to the correct account [E9ee698f9b0ab].\n\nOnce in the Editor, you can make as many changes as you want [E9ee698f9b0ab]. Keep in mind that clicking **Save** won't make your changes live—you need to click **Publish** at the top right of the Editor for your updates to appear on your published site [E0275b2482bbd][Ebdf7c34e862e]. You can also click **Preview** first to see how your changes look before publishing [E0275b2482bbd].",
+          "verified": true,
+          "latency_ms": 7646.536769345403
+        },
+        {
+          "case_id": "wix-scoped-v2-0.5-1",
+          "source": "artifacts/eval/wixqa-real-entry-scoped-pair2-v2-2026-09-08/0.5/full-cases.jsonl.gz",
+          "source_sha256": "63854ca9d21a94383cc941594bbad7d8301f210c5026e08c5a49c4950bba77ee",
+          "runtime_outcome": "Completed",
+          "tool_calls": 1,
+          "api_calls": 4,
+          "query": [
+            {
+              "query": "How does billing work with Google Ads on Wix? Explain billing setup, charges, and payment for Google Ads campaigns."
+            }
+          ],
+          "answer": "Here's how billing works with Google Ads with Wix:\n\n**Monthly subscription:** You're billed a set amount monthly (before VAT) for all campaigns you run. This amount is applied directly to your ad credit each month [Ee33b886f5971].\n\n**Ad credit:** This is the total pool of money available to run ads across all your campaigns. It's only spent on ad link clicks and clicks to CTA buttons. Wix keeps 15% of your payment for running and optimizing your campaign; the remaining 85% goes toward your ad credit for clicks [Ee33b886f5971][E975060ac5af1].\n\n**Daily spend:** You set a daily amount per campaign that's drawn from your ad credit. Since Google Ads uses pay-per-click (PPC), if your daily spend isn't fully used due to a lack of clicks, the remainder rolls over into your ad credit for the following month [E48d21d94cf4d].\n\n**One-time payments:** You can also purchase extra ad credits with a one-time payment to boost a campaign or promote a sale. This doesn't affect your monthly subscription [E634df52f85c6].\n\n**Managing billing:** From the campaigns page in your dashboard, click **Manage Spend & Credits** to update your subscription, adjust daily spend, or purchase one-time credits. Invoices are available in your account's Billing History page [E634df52f85c6].\n\nIs there a specific part of the billing setup you'd like more detail on?",
+          "verified": true,
+          "latency_ms": 7857.000216841698
+        },
+        {
+          "case_id": "wix-1cfd00a60c55-2",
+          "source": "artifacts/eval/wixqa-real-entry-next2-2026-09-08/0.5/full-cases.jsonl.gz",
+          "source_sha256": "b8157e60912e71663e17919934b52bc8a1087523c6e66c94803da02d9af0dd24",
+          "runtime_outcome": "Completed",
+          "tool_calls": 1,
+          "api_calls": 4,
+          "query": [
+            {
+              "query": "How do I adjust section heights in the Wix Editor?"
+            }
+          ],
+          "answer": "To adjust a section's height in the Wix Editor, click the section, then click and drag the **Adjust section height handle** at the bottom of the section to make it taller or shorter [E42f07b592904]. The smallest size you can make a section is 40px [E42f07b592904].\n\nFor more precise sizing, you can also click the section and enter a specific number in the **H field** on the Editor toolbar to set the height [Ed82af59cbdad].\n\nNote that sections don't automatically adjust their height for different viewports or screen sizes, but you can resize them manually in the mobile Editor using the stretch handles [E5cb6ed0051b8].",
+          "verified": true,
+          "latency_ms": 7096.9714391976595
+        },
+        {
+          "case_id": "wix-1cfd00a60c55-3",
+          "source": "artifacts/eval/wixqa-real-entry-next2-2026-09-08/0.5/full-cases.jsonl.gz",
+          "source_sha256": "b8157e60912e71663e17919934b52bc8a1087523c6e66c94803da02d9af0dd24",
+          "runtime_outcome": "Completed",
+          "tool_calls": 1,
+          "api_calls": 4,
+          "query": [
+            {
+              "query": "How do I manage the categories that my booking services are assigned to on my Wix website?"
+            }
+          ],
+          "answer": "I'd be happy to help you manage the categories for your booking services on your Wix site. Here's what you can do:\n\n**Create a category:** Go to **Booking Services** in your site's dashboard → click **Manage Categories** → **+ Add New Category** → enter the name → **Add** [E0e7bbde1c220].\n\n**Assign a service to a category:** Select the service in **Booking Services** → use the **Service category** drop-down → choose the category → **Save**. Note that a service can only be in one category at a time [E0e7bbde1c220].\n\n**Rename a category:** Go to **Booking Services** → **Manage Categories** → hover over the category → **Edit Name** → enter the new name → **Save** [E6ffe202cfad0].\n\n**Reorder categories:** Click **Manage Categories**, then drag and drop categories using the drag handle [E6ffe202cfad0].\n\n**Delete a category:** Hover over the category → **Delete** → choose to either move its services to another category (**Move & Delete**) or permanently delete the category and its services. Deleting services cannot be undone [E6ffe202cfad0].\n\nWhat specifically would you like to do with your categories?",
+          "verified": true,
+          "latency_ms": 6815.846525132656
+        }
+      ]
+    }
+  },
+  "selected_final_arm_api_calls": 29,
+  "mtrag_adapter_failed_attempt_api_calls": 6,
+  "limits": "8 consumed development examples; descriptive acceptance, not a pooled accuracy estimate or independent heldout test. MTRAG uses full Cloud local reference index, others use PG. Runs have captured distinct code identities; not one frozen release certification."
+}

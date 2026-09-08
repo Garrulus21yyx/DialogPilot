@@ -36,7 +36,7 @@ CASES = [
 ]
 
 
-async def run_full_chain(*,database_url,platform,store,client,policy,provider_config,output,handler,retrieval_policy=None,case_limit=None,reranker_version=None,case_definitions=None,tenant_id="rag-tool-dev",scope_label="synthetic ecommerce",registry=None):
+async def run_full_chain(*,database_url,platform,store,client,policy,provider_config,output,handler,retrieval_policy=None,case_limit=None,reranker_version=None,case_definitions=None,tenant_id="rag-tool-dev",scope_label="synthetic ecommerce",registry=None,retrieval_backend_label="PostgreSQL retrieval"):
     definitions=CASES if case_definitions is None else case_definitions
     if case_limit is not None and not 1 <= case_limit <= len(definitions):
         raise ValueError('full-chain case limit outside supported cases')
@@ -53,7 +53,7 @@ async def run_full_chain(*,database_url,platform,store,client,policy,provider_co
     generation=store.active_generation()
     def knowledge_context():
         return {'retrieval_policy':dict(retrieval_policy or {}),'knowledge_filter_contract':store.filter_contract_snapshot(),'knowledge_as_of':datetime.now(timezone.utc).isoformat(),'knowledge_timezone':'UTC','cache_scope':registry.bundle_version,'bundle_version':registry.bundle_version,'pinned_execution_refs':{'bundle_version':registry.bundle_version,'knowledge_backend_ref':generation.backend_fingerprint,'corpus_manifest_ref':generation.manifest_hash,'retrieval_policy_ref':registry.bundle_version,'knowledge_generation_ref':generation.generation_id}}
-    manifest={'scope':scope_label+'; production runtime/admission/coordinator/context/knowledge handler/PostgreSQL retrieval/LLM rerank/compose/verifier/publication; excludes HTTP authentication, external delivery, business writes','cases':cases,'retrieval_policy':retrieval_policy,'reranker_version':reranker_version,'source_sha256':{f:hashlib.sha256(Path(f).read_bytes()).hexdigest() for f in ('application/conversation_agent.py','application/knowledge_tool_contract.py','application/knowledge_retriever.py','application/response_assembly.py','infrastructure/target_conversation_provider.py','api/main.py','infrastructure/postgres_knowledge_retriever.py','infrastructure/knowledge_applicability.py','services/answer_verifier.py','services/claim_verification.py','evaluation/rag_full_chain_probe.py')},'max_api_calls':client.limit}
+    manifest={'scope':scope_label+'; production runtime/admission/coordinator/context/knowledge handler/'+retrieval_backend_label+'/LLM rerank/compose/verifier/publication; excludes HTTP authentication, external delivery, business writes','cases':cases,'retrieval_policy':retrieval_policy,'reranker_version':reranker_version,'source_sha256':{f:hashlib.sha256(Path(f).read_bytes()).hexdigest() for f in ('application/conversation_agent.py','application/knowledge_tool_contract.py','application/knowledge_retriever.py','application/response_assembly.py','infrastructure/target_conversation_provider.py','api/main.py','infrastructure/postgres_knowledge_retriever.py','infrastructure/knowledge_applicability.py','services/answer_verifier.py','services/claim_verification.py','evaluation/rag_full_chain_probe.py')},'max_api_calls':client.limit}
     (output/'full-manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
     rows=[]
     with tempfile.TemporaryDirectory(prefix='rag-full-redis-') as temp:

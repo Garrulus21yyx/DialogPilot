@@ -1,0 +1,121 @@
+{
+  "selection": "first two Cloud dev tasks with turn>=3 from distinct groups; no outcome selection",
+  "reference_sha256": "b3dde4076f9f692a99513e424a0a39f57591dbe45600a4c1017aaa7a7edcfaac",
+  "cases": [
+    {
+      "answerable": true,
+      "evidence": [
+        {
+          "document_id": "mtrag:cloud:ibmcld_03036-2789-4951",
+          "end_char": 2163,
+          "granularity": "document",
+          "quote": "",
+          "relevance": 1,
+          "start_char": 0
+        },
+        {
+          "document_id": "mtrag:cloud:ibmcld_09685-4-1903",
+          "end_char": 1900,
+          "granularity": "document",
+          "quote": "",
+          "relevance": 1,
+          "start_char": 0
+        }
+      ],
+      "group_id": "mtrag-1be66272113492407e814eaf21a761d4",
+      "history": [],
+      "id": "1be66272113492407e814eaf21a761d4<::>3",
+      "query": "|user|: weak understanding metrics",
+      "query_types": [
+        "mtrag",
+        "cloud",
+        "lastturn",
+        "answerable"
+      ],
+      "split": "dev"
+    },
+    {
+      "answerable": true,
+      "evidence": [
+        {
+          "document_id": "mtrag:cloud:ibmcld_07045-7-2118",
+          "end_char": 2112,
+          "granularity": "document",
+          "quote": "",
+          "relevance": 1,
+          "start_char": 0
+        },
+        {
+          "document_id": "mtrag:cloud:ibmcld_07108-7-1958",
+          "end_char": 1952,
+          "granularity": "document",
+          "quote": "",
+          "relevance": 1,
+          "start_char": 0
+        },
+        {
+          "document_id": "mtrag:cloud:ibmcld_07163-1627-3707",
+          "end_char": 2081,
+          "granularity": "document",
+          "quote": "",
+          "relevance": 1,
+          "start_char": 0
+        },
+        {
+          "document_id": "mtrag:cloud:ibmcld_13075-7-2200",
+          "end_char": 2194,
+          "granularity": "document",
+          "quote": "",
+          "relevance": 1,
+          "start_char": 0
+        },
+        {
+          "document_id": "mtrag:cloud:ibmcld_13498-1605-3435",
+          "end_char": 1831,
+          "granularity": "document",
+          "quote": "",
+          "relevance": 1,
+          "start_char": 0
+        }
+      ],
+      "group_id": "mtrag-1c041ce47a81941c26899fdf08bde961",
+      "history": [],
+      "id": "1c041ce47a81941c26899fdf08bde961<::>3",
+      "query": "|user|: how can I improve query",
+      "query_types": [
+        "mtrag",
+        "cloud",
+        "lastturn",
+        "answerable"
+      ],
+      "split": "dev"
+    }
+  ],
+  "targets": [
+    [
+      {
+        "speaker": "agent",
+        "text": "A metric is a measure of something that can be quantified and tracked over time. In the context of cloud monitoring, metrics are data points that provide insights into the performance, availability, and usage of resources in your cloud environment.  In scorecards, a weak understanding is measured by counting the number of individual messages that are not classified by an intent and do not contain any known entities. Reviewing these unrecognized messages can help identify potential dialog problems and improve the system's understanding of user inputs.\n\n",
+        "metadata": {
+          "author_type": "model",
+          "author_id": "mixtral-8x7b-instruct-v01",
+          "created_at": 1723726013
+        }
+      }
+    ],
+    [
+      {
+        "speaker": "agent",
+        "text": "You can use the tools that are built into Discovery to make improvements. If you want more control over how queries are handled, you must use the query API. Cataloging improves your query performance, especially for text-based data formats where the schema inference requires a full scan of the data before the actual query execution. Adding a custom stop words list can improve the relevance of results for natural language queries. You can also improve the quality of search results by expanding the meaning of the queries that are submitted by customers.",
+        "metadata": {
+          "author_type": "model",
+          "author_id": "mixtral-8x7b-instruct-v01",
+          "created_at": 1724209784
+        }
+      }
+    ]
+  ],
+  "grading": "weak-understanding: messages lacking intent classification and known entities; query improvement: Discovery tools/query API and iterative improvement. Original history is untrusted; preserve uncertainty where product identity is ambiguous.",
+  "budget": 8,
+  "backend_scope": "full Cloud collection 72439 passages, cached exact vectors and BM25, not PG/ANN"
+}

@@ -2,7 +2,7 @@
 
 最后核对：2026-09-08；本轮起点 HEAD `6828dba`，微调实验提交 `228a90b`。本文维护当前优先级与验收状态，历史报告维护当时的实验事实。更新时填写实际核对版本，不能把工作区实现等同于已提交／已部署。
 
-**整体状态：未完成。当前按下方最新优先级完成三套检索对照、采用决策、有限真实链路验收及统一报告；暂停单例核验支线与微调。**
+**整体状态：三套检索对照、均衡默认采用、有限真实入口执行与统一报告已交付；真实质量验收未全部通过，整体RAG仍未完成。执行完成与质量达标分别记录。微调暂停。**
 
 ## 当前执行优先级（2026-09-08 最新用户要求：完成主线，禁止偏离）
 
@@ -10,8 +10,8 @@
 
 1. **已完成本轮已有样本对照：三套检索对照补齐与统一汇总。** 固定每路20、候选20、最终5、正文2600预算；保留数据各自标注粒度，不混合文章/片段/span。复用向量、排名和精排分数。先补MTRAG .5（旧35题仅.25/.75），再核对Doc2Dial同预算.25/.5，Wix已有20+20。已消费集明确标记，不重新称封存。
 2. **已完成：方案采用决策，代码默认0.5/0.5。** 按开发选择、跨集误伤和已有测试结果决定统一固定权重或按库配置；不新增动态模型、切块策略、HyDE、微调。现有策略证据不足则明确不采用，不能无限调参。
-3. **唯一进行中：少量同入口最终答案验收。** 三种外部数据各固定少量题，真实Context→Agent query→检索→精排→工具可见→答案；预先记录参考要点，分别统计支持性/需求覆盖/耗时/调用。保留原始失败，不反复重跑。业务模拟集单列。
-4. **待办：统一报告与交付。** 给出三套各自Recall/MRR/nDCG、配对救回误伤、答案质量及成本；报告支持格式、metadata与性能验证边界。代码、可复现入口、证据和commit/push一致。实现交付不冒充全范围可靠性保证。
+3. **执行完成、存在失败：少量同入口最终答案验收。** 三种外部数据各固定少量题，真实Context→Agent query→检索→精排→工具可见→答案；预先记录参考要点，分别统计支持性/需求覆盖/耗时/调用。保留原始失败，不反复重跑。业务模拟集单列。
+4. **已完成本轮统一报告，待本提交推送：统一报告与交付。** 给出三套各自Recall/MRR/nDCG、配对救回误伤、答案质量及成本；报告支持格式、metadata与性能验证边界。代码、可复现入口、证据和commit/push一致。实现交付不冒充全范围可靠性保证。
 
 **退出条件：**上述对照、采用结论、有限真实链路验收和统一报告齐全；不得用局部核验实验替代。既有语义漏检继续计入答案失败与已知风险，除非阻止评估运行，不开启新核验设计。微调继续暂停。
 
@@ -400,3 +400,10 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - a8045ac已push。最终有限验收预注册：先Doc2Dial现有100文档开发库（与300题检索范围相同，不冒充488全文库），顺序取前两个有>=2历史turn且不同group问题；原history角色交替注入统一turn store，Agent自行query，无参考答案注入。原query为含否定的模糊投诉问题/Yes省略检验问题；期望前者合理澄清，后者保留外州检验到期或注册后一年取早。真实PG隔离tenant/同runtime/.5/Flash NONE最多12调用，SDK0。复用现有PG评测库基础设施，Doc来源独立tenant导入，local embedding只对缺失文档，禁止缩gold-only库。先当前最终方案两题，不为所有题重复旧系统。随后MTRAG全库入口和Wix已有真实结果汇总，语义失败照录不另开核验实验。
 
 - Doc2Dial真实多轮2题完成，5 Flash：模糊投诉1规划后中文通用澄清失败（不把Completed算通过）；Yes题4调用自主query，gold两span实际可见，回答保留到期/注册一年取早。history在实际planner中逐条出现，source/checksum/引用ID审计通过。前两轮模型前KeyError均API0，v2栈定位旧库selected_failure迁移缺失；v3独立DB运行现有迁移成功，不下游兼容、不清旧任务。100文档开发范围显式，非488全库/非封存，原失败保留。主线下一唯一项MTRAG完整语料真实query入口与三套答案汇总，不修单例澄清或核验。报告rag-final-doc2dial2，准备相干commit/push。
+
+- MTRAG真实入口预注册：顺序选Cloud dev前两个turn>=3不同group，原reference.input历史而非适配数据空history；参考targets仅评分。完整Cloud72439片段（官方Collection边界，与离线按domain检索一致），全量缓存shard/hash/原文校验；Agent实际query本地BGE+BM25重新检索，不复用固定query排名。同API handler/KnowledgeRetriever/Flash rerank/compose/verifier/publication，候选后端为本地精确参考实现，明确不是PG/ANN验收；运行状态独立PG库。最多12 Flash NONE/0SDK retry，.5/20/5/2600，无新文档embedding。源码port做来源offset/hash验证，未知适用过滤typed拒绝。先按冻结标准输出失败，不进入单例核验修复。
+
+- MTRAG预检FP16缓存误用1e-4范数断言失败，API0；原shard/content hash有效，改为保持原FP16向量、不重新归一化。v2两题实际到工具，但generation适配器缺lexical_ranker/embedding_profile，检索前失败共6调用。补完整frozen generation身份并用真实api._knowledge_policy合同测试，9项来源/身份测试通过。保留v2失败；v3新隔离DB/conv再验一次最多8调用，本阶段累计上限14（此前12预算因接线失败明确修订），不为语义结果重跑。
+
+- MTRAG v3完成：完整Cloud72439原文/缓存，2实际Agent query、8Flash、两题都调用知识工具，source/history/citation审计通过。weak understanding错误改为前轮配置alerts，qrel与回答均失败；Discovery改进回答主要步骤有其他来源，官方qrel0，不据此全判错，Dashboard适用限制及primary用词支持边界保留。原v2适配失败6API另计，预检0；未重跑语义结果。33项source/API身份/retriever/default测试通过。
+- 三套最终臂8题29调用（Wix4题16复用、Doc2题5、MTRAG2题8），MTRAG候选为完整Collection本地精确后端而非PG，报告不混淆。统一报告docs/rag-three-dataset-final-2026-09-08.zh-CN.md及machine report已生成；本轮执行交付完成但质量失败未关闭，原解析/metadata/性能未验范围明确保留。后续真实query话题覆盖为已证实优先缺口，禁止重开微调或无限单例核验支线。本次相干commit/push进行中。

@@ -1,0 +1,79 @@
+{
+  "scope": "MTRAG two Cloud dev multi-turn questions, full collection 72439 passages; production runtime/admission/coordinator/context/knowledge handler/local exact BGE+BM25 reference backend (not PostgreSQL/ANN)/LLM rerank/compose/verifier/publication; excludes HTTP authentication, external delivery, business writes",
+  "cases": [
+    {
+      "id": "mtrag-62b2ad2f-0",
+      "history": [
+        [
+          "user",
+          "How can I compare the metrics for different periods?"
+        ],
+        [
+          "assistant",
+          "To compare the metrics for different periods, you can use the Time period control to select the desired time frames. You can choose from predefined periods such as a single day, a week, a month, or a quarter, or create custom time periods. The data points on the graph will adjust to an appropriate measurement period for the selected time frame. For example, when viewing a graph for a day, the data is presented in hourly values, but when viewing a graph for a week, the data is shown by day. Additionally, you can use the Refresh data option to ensure the data is up-to-date."
+        ],
+        [
+          "user",
+          "some example of alerts"
+        ],
+        [
+          "assistant",
+          "Sure, here's an example of detail alerts: - Name: Enter a name for the alert (e.g., 'High CPU Usage'). - Description: Add a description for more context (optional). - Group: Specify the alert group (or use the default group). - Severity: Set the level of criticality (e.g., 'High', 'Medium', 'Low', or 'Info'). - Metric: Configure the metric you want to monitor (e.g., 'CPU usage'). - Scope: Configure the scope (e.g., specific resources, resource groups, or cloud accounts). - Trigger: Define the condition and threshold value that must be evaluated. For instance, you can set an alert to trigger when CPU usage exceeds 80% for at least 5 minutes. - Notification Channel: Enable 1 or more notification channels to receive alert notifications. Remember to save your alert settings after configuring them. For more information, refer to the document on configuring alerts: [Configuring an alert](https://cloud.ibm.com/docs/monitoring?topic=monitoring-alert-config)."
+        ]
+      ],
+      "message": "weak understanding metrics",
+      "required": []
+    },
+    {
+      "id": "mtrag-62b2ad2f-1",
+      "history": [
+        [
+          "user",
+          "I cannot get select query to work, what steps should I take?"
+        ],
+        [
+          "assistant",
+          "1. Check if you have the correct access rights: You need at least 'Reader' access to the buckets that contain the input objects. 2. After the FROM keyword, specify one or more unique resource identifiers (URIs) which can be thought of as tables. Each URI can specify one or more input objects, which can also be thought of as table partitions. 3. If the format of the input objects is CSV, and no special options are required, it is not necessary to specify a STORED AS clause. However, if the format is JSON, ORC, Parquet, or AVRO, after the FROM clause, specify STORED AS JSON, STORED AS ORC, STORED AS PARQUET, or STORED AS AVRO. 4. If text formats, such as JSON and CSV, are compressed with either gzip or bzip2 and have the extensions .gz and .bz, they automatically get recognized as compressed files. However, do not use these kinds of compressed files due to performance reasons. 5. If the format of the input objects is CSV and a delimiter other than the default , (comma) is used, you must specify the delimiter by using the FIELDS TERMINATED BY option of the STORED AS clause. All single Unicode characters are allowed as delimiters. 6. Check for a header line: By default, it is assumed that CSV input objects have a header line that specifies the names of the input columns."
+        ],
+        [
+          "user",
+          "query definition"
+        ],
+        [
+          "assistant",
+          "The Query is a standard JavaScript object, which is passed to the db.find function which it POSTs to the _find endpoint on your behalf. To retrieve data from Discovery after it is ingested, indexed, and enriched, submit a query."
+        ]
+      ],
+      "message": "how can I improve query",
+      "required": []
+    }
+  ],
+  "retrieval_policy": {
+    "top_k": 5,
+    "candidate_k": 20,
+    "context_max_tokens": 2600,
+    "rrf_k": 10,
+    "vector_weight": 0.5,
+    "lexical_weight": 0.5,
+    "raw_query_weight": 0.2,
+    "standalone_query_weight": 0.6,
+    "expansion_query_weight": 0.0,
+    "query_expansion_count": 0,
+    "metadata_hint_weight": 0.5
+  },
+  "reranker_version": "customer-support-listwise-v4-complete-evidence:7fddc3b741d5e6c9aa91b210f319ed3ec824ebc6ba4879dea2444fb2f3e6f544",
+  "source_sha256": {
+    "application/conversation_agent.py": "f4db15792ebe0b6137eeb0e9346b312e48fc8f2aaf9df9e81aa899205f91773e",
+    "application/knowledge_tool_contract.py": "0a8bd479283d70f7bc5920bfaa31c42223dd5d80ed8b5c6a29de3e3f87724c81",
+    "application/knowledge_retriever.py": "54002b73df474dc8ab138681a18ea36998d085ed8f92d5484eaf6c6ef010f887",
+    "application/response_assembly.py": "32ec805e0967de00869a4a7094d6839a9a9468ed3618cba6847a81d3c42e6c01",
+    "infrastructure/target_conversation_provider.py": "28dc006d79a0b7414b33c5c92039f76d2726b1f6855aab7ca50742d674b73736",
+    "api/main.py": "194a911c74feb50089385a4f568d316fa567f59b4e9e1ba6ce172bd45e1e9afb",
+    "infrastructure/postgres_knowledge_retriever.py": "4a1e200fbbd7b42a69f74fe30072bdbb4c5c268f1e7abd3caceec8303e6d4fb9",
+    "infrastructure/knowledge_applicability.py": "1793f9210000be135cc8b6025841cacc743dc89259f90532c51c8c8137124354",
+    "services/answer_verifier.py": "61383a234478fcfc59f05b7ea2e9bff25577df5d6e940ed6e25694f12010afee",
+    "services/claim_verification.py": "20eba3edfb3a326b7285c88c66c7c833fc74d0a3e4bed6ba3fd2e8da08cb2676",
+    "evaluation/rag_full_chain_probe.py": "19d48e55c0b98b2a728b8d42d49972dc7ac70c35afd18ad66c1533ecf9dadecc"
+  },
+  "max_api_calls": 8
+}

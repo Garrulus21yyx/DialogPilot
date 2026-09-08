@@ -1,0 +1,28 @@
+{
+  "cases": [
+    {
+      "case_id": "1be66272113492407e814eaf21a761d4<::>3",
+      "query": "What are some examples of configuring alerts in IBM Cloud monitoring, including alert name, description, group, severity, metric, scope, trigger conditions, and notification channels?",
+      "history_complete_in_planner": true,
+      "candidate_recall": 0.0,
+      "visible_recall": 0.0,
+      "answer": "I understand you're looking for more clarity on metrics. Could you let me know what specifically you'd like help with? For example:\n\n- Understanding what a particular metric means (e.g., CPU usage, memory, network)\n- How to view or interpret metric data in the monitoring UI\n- How to set up alerts on specific metrics\n- Something else about metrics\n\nLet me know what you're trying to accomplish, and I'll help you with the details.",
+      "api_calls": 4,
+      "latency_ms": 11547.450115904212
+    },
+    {
+      "case_id": "1c041ce47a81941c26899fdf08bde961<::>3",
+      "query": "How can I improve a query in IBM Cloud Discovery? What are best practices and steps to improve query performance and results?",
+      "history_complete_in_planner": true,
+      "candidate_recall": 0.0,
+      "visible_recall": 0.0,
+      "answer": "To improve your query results and performance in IBM Cloud Discovery, here are the key steps you can take:\n\n**To improve performance:**\n- Keep queries shorter, as longer queries tend to have poorer performance [E03aea336c059].\n- Limit the fields returned to only those your application needs—for example, don't return the full document text if you only need the title and a passage [E03aea336c059].\n- Reduce the number of documents returned, and use the `offset` parameter if you need to page through results [E03aea336c059].\n- Be aware that aggregations (especially nested ones), wildcarding, and fuzzy matching can slow down queries [E03aea336c059].\n- If using passage retrieval, use the `passages.fields` parameter to limit which fields are searched [E03aea336c059].\n\n**To improve result relevance:**\n- Train your collection by adding natural language queries and rating the results—this is the primary way to improve relevance [Edcadefb22899][Ec4289ab45cc2].\n- Add a custom stopwords list to improve relevance for natural language queries [Edcadefb22899].\n- Use the Performance dashboard to review queries that returned no results and add more data, or to perform relevancy training [Ebc8dace9b503].\n\nWould you like more detail on any of these options, such as how to set up relevancy training?",
+      "api_calls": 4,
+      "latency_ms": 11207.255568355322
+    }
+  ],
+  "full_collection": 72439,
+  "source_checks": true,
+  "api_calls": 8,
+  "backend": "local full-collection reference backend; not PostgreSQL retrieval"
+}
