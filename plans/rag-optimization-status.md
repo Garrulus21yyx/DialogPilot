@@ -187,4 +187,4 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 
 - G2最新诉求诊断预注册（1d26f9f）：四条中文电商模拟，两条保留必要前文、两条明确切换目标；输入及期望先冻结在rag-g2-query-focus4-2026-09-08/cases.json。通过现有PG历史/context loader/manager.prepare，不手工构造Context；Flash最多6次，仅规划，不检索或生成。记录实际模型消息、查询和来源可见性，人工按意图而非词项齐全评分；公共MTRAG四例不强行通过电商范围。工作区其他任务runtime修改以源hash留痕，不混入提交。此轮不修改生产prompt，成功不代表Recall提升。
 
-- G2最新诉求四例完成：4次Flash，实际历史4/4完整、READ知识计划4/4，明确话题切换2/2未携带旧主题。保留两项不确定性：no-reason扩成unconditional、选择企业会员后仍查双会员范围；未测其召回影响，不误称失败或全部正确。冷投影DEGRADED但消息完整，长记忆未测。1项输入/计划产物审计通过。见[报告](../docs/rag-g2-query-focus4-2026-09-08.zh-CN.md)。原manifest synthetic标记错误已注明，脚本元数据owner修正；未重跑API。下一项恢复冻结MTRAG精排→打包/可见重放，不再以四例猜词改prompt。交付待本轮提交推送。
+- G2最新诉求四例完成：4次Flash，实际历史4/4完整、READ知识计划4/4，明确话题切换2/2未携带旧主题。保留两项不确定性：no-reason扩成unconditional、选择企业会员后仍查双会员范围；未测其召回影响，不误称失败或全部正确。冷投影DEGRADED但消息完整，长记忆未测。1项输入/计划产物审计通过。见[报告](../docs/rag-g2-query-focus4-2026-09-08.zh-CN.md)。原manifest synthetic标记错误已注明，脚本元数据owner修正；未重跑API。下一项恢复冻结MTRAG精排→打包/可见重放，不再以四例猜词改prompt。交付：`a8a97d6` 已提交并推送到 origin/feat/customer-service-target-architecture。
