@@ -1,0 +1,114 @@
+{
+  "language": "zh",
+  "thresholds": {},
+  "model_sha256": "595684c58f2b7342ce1a82ca791666b0803503f0f2bc201db6693b4812d99cae",
+  "schema_version": "dialogpilot-domain-encoder-v1",
+  "input_schema": "dialogpilot-encoder-context-v1",
+  "status": "REJECTED",
+  "calibration": {
+    "general": {
+      "threshold": 1.0,
+      "enabled": false,
+      "accepted": 0,
+      "correct": 0,
+      "precision_lower_bound": 0.0
+    },
+    "product_technical": {
+      "threshold": 1.0,
+      "enabled": false,
+      "accepted": 0,
+      "correct": 0,
+      "precision_lower_bound": 0.0
+    },
+    "order_logistics": {
+      "threshold": 1.0,
+      "enabled": false,
+      "accepted": 0,
+      "correct": 0,
+      "precision_lower_bound": 0.0
+    },
+    "billing_refund": {
+      "threshold": 1.0,
+      "enabled": false,
+      "accepted": 0,
+      "correct": 0,
+      "precision_lower_bound": 0.0
+    },
+    "account_security": {
+      "threshold": 1.0,
+      "enabled": false,
+      "accepted": 0,
+      "correct": 0,
+      "precision_lower_bound": 0.0
+    },
+    "human_service": {
+      "threshold": 1.0,
+      "enabled": false,
+      "accepted": 0,
+      "correct": 0,
+      "precision_lower_bound": 0.0
+    }
+  },
+  "development": {
+    "general": {
+      "threshold": 1.0,
+      "enabled": false,
+      "accepted": 0,
+      "correct": 0,
+      "precision_lower_bound": 0.0
+    },
+    "product_technical": {
+      "threshold": 1.0,
+      "enabled": false,
+      "accepted": 0,
+      "correct": 0,
+      "precision_lower_bound": 0.0
+    },
+    "order_logistics": {
+      "threshold": 1.0,
+      "enabled": false,
+      "accepted": 0,
+      "correct": 0,
+      "precision_lower_bound": 0.0
+    },
+    "billing_refund": {
+      "threshold": 1.0,
+      "enabled": false,
+      "accepted": 0,
+      "correct": 0,
+      "precision_lower_bound": 0.0
+    },
+    "account_security": {
+      "threshold": 1.0,
+      "enabled": false,
+      "accepted": 0,
+      "correct": 0,
+      "precision_lower_bound": 0.0
+    },
+    "human_service": {
+      "threshold": 1.0,
+      "enabled": false,
+      "accepted": 0,
+      "correct": 0,
+      "precision_lower_bound": 0.0
+    }
+  },
+  "max_tokens": 256,
+  "input_files_sha256": {
+    "config.json": "dbd5ea80ecd146205afe787774d66b36d65426c37c188bcbf06a9aad0fc0628a",
+    "tokenizer.json": "48cea5d44424912a6fd1ea647bf4fe50b55ab8b1e5879c3275f80e339e8fae26",
+    "tokenizer_config.json": "cfcc4a4dd9757a0ebb06c5ec8056d7dd4cb1eda36ca3609e4cfa7922c3b9f003",
+    "special_tokens_map.json": "5d5b662e421ea9fac075174bb0688ee0d9431699900b90662acd44b2a350503a",
+    "vocab.txt": "45bbac6b341c319adc98a532532882e91a9cefc0329aa57bac9ae761c27b291c"
+  },
+  "backbone": {
+    "name": "BAAI/bge-small-zh-v1.5",
+    "revision": "7999e1d3359715c523056ef9478215996d62a620"
+  },
+  "calibration_device": "cuda",
+  "datasets": {
+    "train": "7eee62f49081f6e048524db1034c63cd35139ee0e5c5fc05c88f54b128861ad7",
+    "calibration": "fc0446196bcad78ed8880f6686a915e78b1bf47612f0e74630cc6421581f69b6",
+    "heldout": "993146a4186a8387398db324eb9677c95d0af054865ce4369d83941a0f822b71"
+  }
+}
