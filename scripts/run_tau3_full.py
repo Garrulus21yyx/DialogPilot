@@ -118,7 +118,7 @@ async def run(args):
                                   for path in sorted((ROOT / folder).glob("*.py"))},
                 "limitations": ["selected development tasks are not heldout performance",
                                 "no independent human-quality assessment", "no remote idempotency or atomic entity CAS API",
-                                "text-only approval classifier is evaluation UI adaptation",
+                                "approval text is interpreted by the application ConversationAgent",
                                 "HTTP/SSE and multiple domain routing not exercised"]}
     write(args.output / "manifest.json", manifest)
     with psycopg.connect(args.database_url, autocommit=True) as connection:
