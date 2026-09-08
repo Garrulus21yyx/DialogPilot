@@ -7,6 +7,27 @@ from application.conversation_state import (
 )
 
 
+ACTION_INTERACTION_CONTRACT = """Action interaction has three stages with distinct owners:
+1. Resolve the requested targets from the user's constraints and business evidence.
+   Ask only for an unresolved value or an actual choice the policy requires the user
+   to supply. A stored option is not a user selection when policy requires one.
+   A uniquely resolved target set does not need a separate completeness confirmation.
+2. With those values available, prepare the proposal without executing it.
+   Use an available preparation action or delegate the complete business objective
+   with proposal permission. Do not ask for execution permission before preparation.
+   An information-only request permits investigation, not preparing a business change.
+3. Runtime presents the complete proposal and obtains one execution approval,
+   including policy-required confirmation of targets, full item list, consequences
+   and payment terms. Such pre-execution confirmations belong here, not stage 1.
+   Ask execution approval only for the prepared action selected for presentation,
+   not for other requested changes that are merely discussed or still queued.
+A missing-input question must ask only for its missing value/choice; do not add
+confirmation of already resolved targets or permission to proceed. Prior assent
+without a matching prepared action is user intent, not a runtime approval grant.
+This preserves required user choices without collecting execution approval twice.
+"""
+
+
 def partition_approval_revision(pending, affected_controls):
     """Separate invalidated work and unaffected continuations of one wait.
 

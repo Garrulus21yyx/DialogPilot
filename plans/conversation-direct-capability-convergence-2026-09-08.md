@@ -537,3 +537,46 @@ all repeats as stale approval consumption or accept unbound assent as authorizat
 Next: inspect planning-response and composition inputs for the missing preparation
 boundary, and verify how scope is presented from the actual prepared action. Keep
 the existing single approval authority; no regex/business-specific confirmation gate.
+
+Inspection at c8f7f22: ACTION_INTERACTION_CONTRACT is currently owned by the
+infrastructure domain-review module and reused only by the domain SDK loop/reviewer.
+Main planning lacks it; its instruction says delegate "only open investigations",
+despite delegation also being the supported preparation path for open business
+changes. Main composition has a partial parallel description, and direct planning
+text can bypass composition. The shared boundary is therefore not consistently
+described to all authors, even though runtime approval state is singular.
+
+Target repair: maintain the existing resolve/prepare/approve contract in the
+application approval owner and reuse it in main plan/compose and domain consumers.
+Describe direct lookup versus domain business preparation accurately. Preparation
+permission is not execution approval; information-only requests stay read-only;
+scope of a confirmation must match the actual prepared proposal. No new semantic
+model, regex gate, tool runtime or blanket prohibition of normal clarification.
+Tests will check actual prompt wiring and unchanged action/state contracts; this
+alone cannot prove real-model behavior. Keep semantic replay as a separate gate.
+
+Implemented shared contract and main delegation description. Captured SDK model
+inputs verify both main phases receive the same contract as domain review, with no
+extra planning/compose invocation. The remaining direct reply-node test double in
+test_native_response_contract was migrated to the same current presentation input
+shape as the prior approval suite; search found no other direct test callers.
+Independent review found no additional concrete responsibility/input gap, but
+requires semantic validation of pre-proposal confirmation and proposal scope.
+Clean staged tree bb9f6a1fc830069ea16c87b8703276c150cfc1de: 362 passed, 2 PostgreSQL
+tests skipped in the non-DB run. No production reply verifier or approval grants
+were loosened. Archive navigation edits remain unstaged.
+
+Semantic replay registration: fixed task19, original retail train offset14/count1,
+one trial, seed300, max80 steps, Flash simulator max512 tokens, existing Worker and
+Verifier profiles, Encoder disabled. Output:
+artifacts/eval/tau3-task19-shared-interaction-replay-2026-09-08/.
+Hypothesis: the main agent prepares/delegates the whole coupled goal instead of
+soliciting permission in ordinary text; approval wording covers only the actual
+prepared action, with incompatible choices resolved before a write. Inspect first
+proposal, each question/assent and corresponding durable state, actual write and
+rejection outcomes, final response and official scores separately. No task
+replacement/restart for a better score. This is a development regression, not a
+held-out success rate. A failure remains evidence and cannot establish closure.
+
+PostgreSQL rerun of the domain-outcome boundary suite completed: all 50 tests
+passed in 6.46 seconds, including the two previously skipped cases.

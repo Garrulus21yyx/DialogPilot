@@ -55,8 +55,8 @@ from infrastructure.target_agent_result_adapter import (
 from infrastructure.target_agent_middleware import AgentContextMiddleware, WorkControlMiddleware, InteractionBoundaryMiddleware, AgentProgressMiddleware, ModelInvocationMiddleware, model_overhead_tokens
 from core.framework_models import ModelInvocationError
 from infrastructure.target_action_preparation import TargetActionPreparation
+from application.action_approval import ACTION_INTERACTION_CONTRACT
 from infrastructure.target_domain_outcome import (
-    ACTION_INTERACTION_CONTRACT,
     DomainOutcomeReview, DomainOutcomeRejected, DomainOutcomeReviewUnavailable,
 )
 from mcp.tool_manager import MCPToolManager, ToolCallStatus, ToolResult

@@ -8,6 +8,7 @@ from langchain_core.messages import AIMessage, ToolMessage, HumanMessage, System
 from langchain_core.messages.utils import count_tokens_approximately
 
 from application.context_budget import ModelContextBudgetExceeded
+from application.action_approval import ACTION_INTERACTION_CONTRACT
 from core.structured_model import structured_call, structured_tool
 
 
@@ -18,20 +19,6 @@ class DomainOutcomeRejected(RuntimeError):
 class DomainOutcomeReviewUnavailable(RuntimeError):
     """No semantic outcome was accepted; the original cause remains attached."""
 
-
-ACTION_INTERACTION_CONTRACT = """Action interaction has three stages with distinct owners:
-1. Resolve the requested targets from the user's constraints and business evidence.
-   Ask only for an unresolved value or an actual choice the policy requires the user
-   to supply. A stored option is not a user selection when policy requires one.
-   A uniquely resolved target set does not need a separate completeness confirmation.
-2. With those values available, prepare the proposal without executing it.
-3. Runtime presents the complete proposal and obtains one execution approval,
-   including policy-required confirmation of targets, full item list, consequences
-   and payment terms. Such pre-execution confirmations belong here, not stage 1.
-A missing-input question must ask only for its missing value/choice; do not add
-confirmation of already resolved targets or permission to proceed. This preserves
-required user choices without collecting the same execution approval twice.
-"""
 
 SYSTEM = """Assess a domain agent's proposed handback against its assigned objective.
 This is task acceptance, not customer prose grading or global replanning.

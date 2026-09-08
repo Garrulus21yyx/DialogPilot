@@ -32,6 +32,36 @@ def provider(*items, text="", **kwargs):
     return AnthropicConversationPlanningProvider(models, model_profile=profile, synthesis_profile=profile), models
 
 
+def test_main_planning_and_composition_share_preparation_approval_contract(monkeypatch):
+    from application.action_approval import ACTION_INTERACTION_CONTRACT
+    from infrastructure.target_domain_outcome import SYSTEM
+    from tests.test_target_framework_agent import ScriptedToolModel
+
+    prompts = []
+    generate = ScriptedToolModel._generate
+
+    def capture(self, messages, *args, **kwargs):
+        prompts.append(messages[0].content)
+        return generate(self, messages, *args, **kwargs)
+
+    monkeypatch.setattr(ScriptedToolModel, "_generate", capture)
+    p, models = provider(text="Which payment method would you like to use?")
+
+    async def run():
+        await p.plan(payload())
+        assert models[ModelRole.SYNTHESIS].calls == 0
+        await p.compose({"current_message": "Help with this change.",
+                         "evidence": {"pending_actions": [], "requested_inputs": []}})
+
+    asyncio.run(run())
+    assert len(prompts) == 2
+    assert all(ACTION_INTERACTION_CONTRACT in prompt for prompt in prompts)
+    assert ACTION_INTERACTION_CONTRACT in SYSTEM
+    assert "delegate only open investigations" not in prompts[0]
+    assert "business-change preparation" in prompts[0]
+    assert models[ModelRole.INTENT].calls == models[ModelRole.SYNTHESIS].calls == 1
+
+
 @pytest.mark.parametrize("approval,pending,active,resumable", itertools.product((False, True), repeat=4))
 def test_state_product_exposes_only_available_actions(approval, pending, active, resumable):
     value = payload()

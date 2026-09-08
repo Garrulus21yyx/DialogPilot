@@ -69,11 +69,12 @@ def test_turn_runtime_does_not_drop_persisted_approval_while_asking_for_input():
     board = _board(AgentResult('w', 'retail', AgentResultStatus.NEEDS_USER_INPUT, 'MISSING', 'test', missing_inputs=(spec,)))
     composer = _Composer('Which option?')
     runtime = TurnRuntime(NS(), ResponseAssembler(composer, knowledge_verifier=Verifier(True)))
-    managed = NS(board=board, interaction_questions=(spec,), diagnostics=(),
+    managed = NS(board=board, interaction_questions=(spec,), diagnostics=(), request_completed=False,
         state_before=NS(pending_interaction=None, pending_approval=pending),
         state_after=NS(pending_interaction=NS(interaction_id='input', version=1, requested_fields=(spec,), suspended_work_items=()), pending_approval=pending),
-        plan=NS(response_text=None, route=NS(reason_code='CONTINUE')))
+        plan=NS(response_text=None, route=NS(reason_code='CONTINUE', missing_inputs=())))
     result = asyncio.run(runtime._assemble_response({'managed': managed, 'observations': NS(raw_text='Wait'),
+        'presentation_state': managed.state_before,
         'prepared': NS(context=TargetTurnContext())}))
     assert not composer.calls[0]['evidence']['pending_actions']
     assert composer.calls[0]['conversation_context']['retained_approval']

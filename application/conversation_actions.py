@@ -140,7 +140,7 @@ def planning_actions(payload):
     if "delegate_task" in supported and domains:
         properties = {
             "target_agent": _selector({item["agent_id"]: item for item in domains},
-                                      "Select the domain for an open investigation, not a second planner for an already explicit tool query."),
+                                      "Select the domain for an open investigation or business-change preparation, not a second planner for an already explicit tool query."),
             "objective": {**_TEXT, "description": "Complete desired outcome including user constraints, not a prescribed tool sequence. Keep changes sharing object state or a one-time capability together so their compatibility can be assessed before preparation."},
             "allow_action_proposals": {"type": "boolean", "description": "True when the user's delegated outcome requests a business change, including a change conditional on eligibility. False for information-only requests. This permits preparing a proposal, never grants approval or bypasses its submission policy."},
             "new_address": {**_TEXT, "description": "Optional user's verbatim new shipping address when relevant to this objective."},
