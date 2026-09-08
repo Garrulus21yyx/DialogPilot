@@ -519,3 +519,21 @@ all 79 tests in 33.10 seconds with no skips. Staged whitespace checks passed.
 
 This delivery closes neither real-model goal coupling nor repeated confirmation.
 The fixed10 and task19 failed trajectories remain unchanged, and Encoder stays off.
+
+Delivery: implementation commit `1c0afc6` pushed successfully to
+`origin/feat/customer-service-target-architecture`. The prior "uncommitted" entries
+above describe earlier inspection stages, not the current delivery state.
+
+Next causal inspection started from the unchanged task19 artifact, without a new
+model run. Messages 16 and 28 ask the user to confirm all changes; user messages 17
+and 29 assent. Yet application turns 2 and 3 are CONVERSATION_RESPONSE after native
+read successes, not pending approvals. The first durable approval appears only in
+turn4 (message34), and scopes the prepared water-bottle return, while the public
+question again asks to proceed with all three changes. Thus at least these early
+repetitions precede any approval-resume handling: the main reply solicits execution
+confirmation before a prepared action exists. Later item-by-item approvals are
+additionally coupled to the already-established split-goal problem. Do not treat
+all repeats as stale approval consumption or accept unbound assent as authorization.
+Next: inspect planning-response and composition inputs for the missing preparation
+boundary, and verify how scope is presented from the actual prepared action. Keep
+the existing single approval authority; no regex/business-specific confirmation gate.
