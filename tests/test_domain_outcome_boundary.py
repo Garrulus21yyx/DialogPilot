@@ -360,8 +360,8 @@ def test_review_uses_its_own_model_and_budget_without_actor_fallback(budget):
     result = asyncio.run(agent(context))
     assert actor.review_calls == 0 and not calls and result.pending_action is None
     if budget == 1:
-        assert reviewer.review_calls == 0 and actor.calls == 1
-        assert result.reason_code == "DOMAIN_OUTCOME_REVIEW_UNAVAILABLE"
+        assert reviewer.review_calls == 0 and actor.calls == 0
+        assert result.reason_code == "CONTEXT_BUDGET_EXCEEDED"
         assert result.retryable is False
     else:
         assert reviewer.review_calls == 2 and actor.calls == 2

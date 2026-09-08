@@ -203,11 +203,18 @@ def test_parallel_archive_failures_preserve_both_results_and_stop_segment():
     assert {fact.source_ref for fact in result.facts} == persisted
 
 
-def test_long_result_can_be_read_without_reexecuting_tool_and_fact_is_complete():
+def test_long_result_can_be_read_without_reexecuting_tool_and_fact_is_complete(monkeypatch):
     from infrastructure.target_framework_agent import TargetFrameworkAgent
     from application.default_capability_registry import build_default_capability_registry
     from mcp.tool_manager import Tool
     from application.agent_result import AgentResultStatus
+    import infrastructure.target_domain_outcome as outcome
+    captured = []
+    original_review = outcome.structured_call
+    async def capture_review(*args, **kwargs):
+        captured.append(json.loads(kwargs["messages"][0].content))
+        return await original_review(*args, **kwargs)
+    monkeypatch.setattr(outcome, "structured_call", capture_review)
     calls, visible = [], []
     manager = _manager(calls)
     original = {"canonical_model": "PX-200", "details": "large detail " * 6000, "amount_minor": -1346}
@@ -238,6 +245,13 @@ def test_long_result_can_be_read_without_reexecuting_tool_and_fact_is_complete()
     assert calls == ["lookup"]
     assert json.loads(result.facts[0].value_json) == original
     assert all(len(str(message.content)) < 10000 for message in visible)
+    review, = captured
+    page = next(m for m in review["working_context"] if m.get("tool_call_id") == "page")
+    actor_page = next(m for m in visible if isinstance(m, ToolMessage) and m.tool_call_id == "page")
+    assert page["content"] == actor_page.content
+    assert "large detail" in str(page["content"])
+    page_call = next(call for m in review["working_context"] for call in m.get("tool_calls", ()) if call["id"] == "page")
+    assert page_call["args"]["reference"]
 
 
 def test_postgres_original_survives_store_reopen(postgres_database_url):

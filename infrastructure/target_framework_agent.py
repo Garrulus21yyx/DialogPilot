@@ -68,7 +68,7 @@ logger = logging.getLogger(__name__)
 class TargetFrameworkAgent:
     """Execute one delegated read goal through a governed framework Agent."""
 
-    version = "target-framework-agent-v3-preparation-terminal"
+    version = "target-framework-agent-v4-shared-context-admission"
 
     def __init__(
         self,
@@ -135,6 +135,17 @@ class TargetFrameworkAgent:
         # bind the prompt to the execution contract so a resumed revision appends
         # a new user input while replaying the same execution remains idempotent.
         pinned = HumanMessage(content=prompt, id=f"task-context:{item.fingerprint}")
+        review = DomainOutcomeReview(self._review_model, callbacks=self._callbacks,
+            available_tokens=self._review_available_tokens,
+            business_policy=self._system_prompt, tools=tools)
+        boundary = InteractionBoundaryMiddleware(("prepare_" + tool_id for ref in item.allowed_actions
+            for tool_id in self._registry.action(ref).allowed_tool_ids), review=review)
+        compaction = ContextCompaction(self._model, self._archive,
+            available_tokens=self._context_budget.available_tokens,
+            overhead_tokens=overhead, pinned_message=pinned, max_summary_calls=item.max_steps,
+            consumer_budget=lambda history: (review.required_tokens(context=context,
+                messages=history, kind="CONTEXT_ADMISSION", candidate=None), review.available_tokens),
+            post_model_budget=boundary.review_budget)
         graph = create_agent(
             self._model,
             tools,
@@ -144,15 +155,9 @@ class TargetFrameworkAgent:
             middleware=[
                 WorkControlMiddleware(self._control_guard),
                 ToolResultPersistence(self._archive),
-                InteractionBoundaryMiddleware(("prepare_" + tool_id for ref in item.allowed_actions
-                    for tool_id in self._registry.action(ref).allowed_tool_ids),
-                    review=DomainOutcomeReview(self._review_model, callbacks=self._callbacks,
-                        available_tokens=self._review_available_tokens,
-                        business_policy=self._system_prompt, tools=tools)),
+                boundary,
                 AgentProgressMiddleware(),
-                ContextCompaction(self._model, self._archive,
-                    available_tokens=self._context_budget.available_tokens,
-                    overhead_tokens=overhead, pinned_message=pinned, max_summary_calls=item.max_steps),
+                compaction,
                 AgentContextMiddleware(self._context_budget),
                 ModelCallLimitMiddleware(thread_limit=item.max_steps, exit_behavior="error"),
                 ToolCallLimitMiddleware(thread_limit=item.max_steps, exit_behavior="error"),

@@ -69,7 +69,8 @@ class DomainOutcomeReview:
         self.business_policy = business_policy
         self.tools = tools
 
-    async def assess(self, *, context, messages, kind, candidate):
+    def request_messages(self, *, context, messages, kind, candidate):
+        """The measured request is exactly the one passed to the SDK transport."""
         item = context.work_item
         payload = {
             "work_item_id": item.work_item_id,
@@ -92,14 +93,22 @@ class DomainOutcomeReview:
                 **({"tool_call_id": message.tool_call_id, "status": message.status}
                    if isinstance(message, ToolMessage) else {})} for message in messages],
         }
-        content = json.dumps(payload, ensure_ascii=False, default=str)
+        return [HumanMessage(json.dumps(payload, ensure_ascii=False, default=str))]
+
+    def required_tokens(self, *, context, messages, kind, candidate):
+        return count_tokens_approximately([SystemMessage(SYSTEM),
+            *self.request_messages(context=context, messages=messages, kind=kind, candidate=candidate),
+            HumanMessage(json.dumps(structured_tool("assess_domain_outcome", SCHEMA)))])
+
+    async def assess(self, *, context, messages, kind, candidate):
+        item = context.work_item
         try:
-            required = count_tokens_approximately([SystemMessage(SYSTEM), HumanMessage(content),
-                HumanMessage(json.dumps(structured_tool("assess_domain_outcome", SCHEMA)))])
+            required = self.required_tokens(context=context, messages=messages, kind=kind, candidate=candidate)
             if required > self.available_tokens:
                 raise ModelContextBudgetExceeded(required, self.available_tokens)
             result = await structured_call(self.model, name="assess_domain_outcome", schema=SCHEMA,
-                system=SYSTEM, messages=[HumanMessage(content)], callbacks=self.callbacks, metadata={
+                system=SYSTEM, messages=self.request_messages(
+                    context=context, messages=messages, kind=kind, candidate=candidate), callbacks=self.callbacks, metadata={
                     "work_item_id": item.work_item_id,
                     "control_id": item.control.control_id if item.control else None,
                     "revision": item.control.revision if item.control else None,

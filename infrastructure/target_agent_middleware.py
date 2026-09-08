@@ -125,6 +125,27 @@ class InteractionBoundaryMiddleware(AgentMiddleware):
         self.action_tools = frozenset(action_tools)
         self.review = review
 
+    def proposed_outcome(self, message):
+        calls = message.tool_calls if isinstance(message, AIMessage) else ()
+        proposals = [call for call in calls if call["name"] in self.action_tools]
+        interactions = {"request_user_input": "NEEDS_USER_INPUT", "report_blocked": "BLOCKED"}
+        if len(proposals) > 1 or len(calls) > 1 and any(call["name"] in interactions for call in calls):
+            return None
+        if calls and not proposals and not (len(calls) == 1 and calls[0]["name"] in interactions):
+            return None
+        kind = "PREPARE_ACTION" if proposals else interactions[calls[0]["name"]] if calls else "COMPLETE"
+        candidate = ({"tool": proposals[0]["name"], "arguments": proposals[0]["args"]}
+                     if proposals else calls[0]["args"] if calls else message.text)
+        return kind, candidate
+
+    def review_budget(self, messages, context):
+        outcome = self.proposed_outcome(messages[-1])
+        if outcome is None:
+            return None
+        kind, candidate = outcome
+        return lambda history: (self.review.required_tokens(context=context,
+            messages=history, kind=kind, candidate=candidate), self.review.available_tokens)
+
     @staticmethod
     def _prepared(state, context):
         historical_calls = {entry["data"].get("tool_call_id") for entry in context.working_messages
@@ -147,13 +168,10 @@ class InteractionBoundaryMiddleware(AgentMiddleware):
                 content="No tools in this batch were executed. Make one interaction call, or perform evidence calls first and ask afterwards.",
                 tool_call_id=call["id"], name=call["name"], status="error") for call in calls],
                 "jump_to": "model"}
-        if calls and not proposals and not (len(calls) == 1 and calls[0]["name"] in {"request_user_input", "report_blocked"}):
+        outcome = self.proposed_outcome(message)
+        if outcome is None:
             return None
-        kind = ("PREPARE_ACTION" if proposals else
-                {"request_user_input": "NEEDS_USER_INPUT", "report_blocked": "BLOCKED"}[calls[0]["name"]]
-                if calls else "COMPLETE")
-        candidate = ({"tool": proposals[0]["name"], "arguments": proposals[0]["args"]}
-                     if proposals else calls[0]["args"] if calls else message.text)
+        kind, candidate = outcome
         review_calls = state.get("outcome_review_calls", 0)
         if review_calls >= self.max_review_calls:
             raise DomainOutcomeRejected("domain_outcome_correction_budget_exhausted")

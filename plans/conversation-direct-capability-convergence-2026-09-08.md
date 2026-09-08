@@ -1831,3 +1831,47 @@ verify shared archive/checkpoint records, no candidate acceptance or business ca
 on archive/summary/irreducible admission failure, and no repeated summarization on
 replay. Existing regression examples support but do not replace these properties.
 No new live evaluation or production budget change has been made in this review.
+
+### Shared admission implementation and verification
+
+DomainOutcomeReview now owns pure request_messages/required_tokens; assess uses
+that same envelope and retains its final exact budget check. ContextCompaction
+accepts additional consumer accounting, using normalized occupancy only for shared
+editing thresholds and actual required/available for failure diagnostics. Existing
+SDK clearing/summary and result archive remain the sole editing mechanism. Actor
+admission accounts for the review envelope before generation; a separate existing
+middleware after_model hook admits the actual generated candidate before review.
+
+The compaction after_model node commits first, then InteractionBoundary reviews.
+This ordering was checked in the installed create_agent factory and real graph
+tests. An initially inline implementation was rejected by independent review:
+review failure would lose the preceding completed summary update. It was replaced
+before delivery, not preserved as a second path. Timeout/second rejection tests now
+restore a fresh graph from checkpoint and rerun only the review, retaining one
+summary record and one actor call.
+
+Latest completed parallel tool batch plus subsequent candidate remain protected.
+The candidate selector is shared by admission and review. Actor may externalize a
+large result and read pages; post-generation review admission cannot replace its
+current supporting body with a pointer solely to fit. Tests capture that actual
+page body and source call in the final reviewer input without repeating the lookup.
+Compaction records retain actual actor token estimates and separate consumer
+required/available metrics, not normalized occupancy mislabeled as token usage.
+
+Verification:176 tests passed with real PostgreSQL enabled across shared admission,
+compaction, outcome boundaries, approvals, TurnRuntime and framework Agent (one
+existing multiprocessing fork warning). Additional page-to-review capture test
+passed after its extension. Envelope matrix varies policy/schema/candidate sizes,
+escaped history, parallel batch size and outcome kind; real graph tests cover
+ordinary COMPLETE output, provider failure and second rejection. No paid model
+or business task replay in this implementation step. New graph versions are
+TargetFrameworkAgent v4 and TurnRuntime v15; old unpublished graph checkpoints
+retain the existing explicit-migration rejection, never automatic business replay.
+Overall fixed10/task closure remains open; independent review reported no further
+confirmed blocker in this bounded owner migration.
+
+Staged-only verification in /tmp/dialogpilot-shared-admission-gqrohu78 also passed
+176 tests with PostgreSQL enabled (same existing fork warning), including the
+extended page-to-review body capture. This excludes user-owned archive pagination
+and other dirty changes. Only the framework version/assembly hunks were staged
+from the shared target_framework_agent.py file; its user pagination edits remain.
