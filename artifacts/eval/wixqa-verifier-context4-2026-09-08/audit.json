@@ -1,0 +1,38 @@
+{
+  "api_calls": 4,
+  "same_system": true,
+  "packs_unchanged": true,
+  "request_binding_valid": true,
+  "cases": [
+    {
+      "context": "full",
+      "answer": "original",
+      "supported": true,
+      "answered": true,
+      "input_tokens": 8056
+    },
+    {
+      "context": "full",
+      "answer": "core_only",
+      "supported": true,
+      "answered": true,
+      "input_tokens": 7969
+    },
+    {
+      "context": "knowledge_only",
+      "answer": "original",
+      "supported": true,
+      "answered": true,
+      "input_tokens": 4510
+    },
+    {
+      "context": "knowledge_only",
+      "answer": "core_only",
+      "supported": true,
+      "answered": true,
+      "input_tokens": 4423
+    }
+  ],
+  "adopted": false,
+  "reason": "No semantic detection improvement on selected witness; correctness remains model-judged."
+}

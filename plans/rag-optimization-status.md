@@ -384,3 +384,7 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - b771afa已push。R10下一2题预注册：冻结dev顺序3/4（section高度、booking类别管理），不是新heldout；先保存参考要点2+7及source hashes，再实际生成，两臂各12 Flash NONE/SDK0/全库/20候选5片段2600预算，同Wix bundle encoder关闭。按要点完整/部分/未覆盖、额外无依据内容和article Recall分别评分；宽泛类别管理允许合理范围答复，不把全部7项当用户硬要求。preregistered-points.json，runner仅新增offset/output，默认不变。不根据结果重跑，查询不同单列；2题不足采用新权重。
 
 - 后续2题两臂完成，各8 Flash共16/各2Completed；候选与pack article均25%→75%，预注册要点高度1/2→2/2、类别7/7→6/7，总8/9均同。作者非盲评，引用ID/原文审计通过。高度题固定每个实际query重放.25/.5：正确向量1/5或1/2但BM25缺失，.25均融合丢掉，.5保留；原权重重放Top20与生产一致，候选融合归因成立，答案收益不外推。两组高度答案均有elements/strips适用到sections的无充分引用疑点，核验全放行；下一项回到实际compose/核验语义合同对象范围，不按词打补丁。产物wixqa-real-entry-next2-2026-09-08、报告rag-wixqa-next2，默认不变微调暂停，本轮待相干提交推送。
+
+- 54e9ebe已push。R06/R10新见证合同核对：当前claim_verification为整体supported/answered/issues而非历史逐项；真实输入含完整知识pack，也重复在context facts，不能归因截断。既有通用semantic-focus已在MTRAG失败，禁止重复堆词。预注册4Flash冻结高度题均衡答案original/core-only×full/knowledge-only上下文；知识packs逐字不变，额外运行上下文移除仅实验，不适用混合业务生产。固定当前SYSTEM/schema/profile，零重试/总4调用；检查supported和answered分别，任何单例改善不直接采用。脚本run_wixqa_verifier_context4.py/同名产物。
+
+- R06/R10核验上下文4调用完成：full/knowledge-only×original/core均supported/answered true；原答案输入8056→4510 tokens但疑似无支持附加结论仍放行。有依据首段不误拒；无改善不采用，生产上下文不删。请求hash/知识pack原样/相同system/4次调用审计通过（用.venv；系统python缺依赖仅影响首次离线审计，未重跑模型）。报告rag-wixqa-verifier-context4、同名产物，下一项转生成端受依据范围约束的完整性/附加结论对照，先预注册跨例，不增加核验调用或恢复旧协议。整体未关闭，本轮相干提交推送。
