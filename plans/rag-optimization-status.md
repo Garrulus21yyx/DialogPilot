@@ -206,3 +206,7 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - G4答案生成完成：每域2题共8题、两臂16次Flash/16份非空草稿，API任务已结束；原历史/末轮问题与真实捕获请求一致。96视图零API回归及16请求审计各1项通过。见[报告](../docs/rag-g4-answer8-2026-09-08.zh-CN.md)。没有verifier/发布、没有答案正确率结论；下一动作只读冻结答案及引用原文作逐项支持/覆盖评分，勿重复调用。当前生产不改。交付：`528b23c` 已提交并推送到 origin/feat/customer-service-target-architecture。
 
 - G4答案来源核对：Codex非盲16草稿评审，.25为6支持/1无依据/1待复核，.75为5/2/1；不是答案准确率，覆盖另记。明确候选错误：1040EZ资料套入1040NR-EZ、qualify加强为excellent credit。引用ID均合法不代表支持，网页建议与频率概括保留复核；限制令覆盖改善但局部引用不足。API0，1项SHA/计数审计通过。见[报告](../docs/rag-g4-answer8-review-2026-09-08.zh-CN.md)。不采用权重，下一项冻结两条明确错误/最小修订检验现有verifier，未调用不得称漏检；领域读回及全链heldout仍开放。交付：`50332d0` 已提交并推送到 origin/feat/customer-service-target-architecture。
+
+- G4核验预注册（e92a288）：冻结候选0.75税表/零息两条完整答案及本次已接收证据；每题原答案与来源支持修订一条，共4次Flash上限，调用当前AnswerVerifier，不改prompt，不重新检索/生成。区分语义UNSUPPORTED、需求未覆盖、协议失败、实际publishable；修订前后共享证据。不根据四题结果宣布核验泛化完成。
+
+- G4核验完成：4次Flash，两个原始错误均PASS(supported/answered true,issues空)，两个支持修订均PASS；错误放行2/2、修订误拒0/2，仅已选诊断集。无API/协议失败，1项绑定/完整配对审计通过。当前claim_verification已是整体布尔+issues合同，与历史逐claim报告不同，源码身份留痕。见[报告](../docs/rag-g4-verifier4-2026-09-08.zh-CN.md)。未修复、不关单；下一项仅实验通用对象/条件强度检查对照及新控制，禁止关键词特判/直接恢复旧协议；其他RAG缺口保留。交付待确认。
