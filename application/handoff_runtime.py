@@ -199,6 +199,7 @@ class HandoffPublicationSelector:
         bundle_version: str,
         created_at: str,
         policy: PublicationPolicy,
+        state: ConversationState,
     ) -> FinalResponseCommand:
         receipt = next((
             item for item in result.action_receipts
@@ -240,6 +241,7 @@ class HandoffPublicationSelector:
             created_at,
             policy,
             disposition,
+            expected_state_fingerprint=state.fingerprint,
         )
 
     def select_human_reply(

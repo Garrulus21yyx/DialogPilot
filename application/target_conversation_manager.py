@@ -397,6 +397,10 @@ class TargetConversationManager:
             source_thread_ids=tuple(thread for thread in retired_threads if thread != resume_thread_id),
         )
 
+    def load_state(self, invocation: InvocationIdentity) -> ConversationState:
+        """Load authoritative state when constructing a run-level service notice."""
+        return self._state_store.load(invocation.tenant_id, invocation.user_id, invocation.conversation_id)
+
     async def prepare_observation(self, previous: PreparedTurn, result: ManagedTurnResult,
                                   *, progress_feedback: str = "") -> PreparedTurn:
         """Plan from completed native reads under the same original user request.

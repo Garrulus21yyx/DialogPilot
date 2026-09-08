@@ -147,7 +147,7 @@ class PostgresTargetPublication:
         challenge,
         resume_schema,
         expires_at,
-        expected_work_controls=(),
+        expected_state_fingerprint,
         related_signals=(),
         execution_stages=(),
         knowledge_evidence=(),
@@ -176,7 +176,7 @@ class PostgresTargetPublication:
                     if resume_schema.get("interaction_kind") == "FIELDS"
                     else ProjectionDisposition.APPROVAL
                 ),
-                expected_work_controls=tuple(expected_work_controls),
+                expected_state_fingerprint=expected_state_fingerprint,
                 related_signals=tuple(related_signals),
                 execution_stages=tuple(stage.to_dict() for stage in execution_stages),
                 knowledge_evidence=tuple(knowledge_evidence),
@@ -198,7 +198,7 @@ class PostgresTargetPublication:
         bundle_version,
         evidence_sha256,
         verifier_status,
-        expected_work_controls=(),
+        expected_state_fingerprint,
         execution_stages=(),
         knowledge_evidence=(),
         business_observations=(),
@@ -226,9 +226,7 @@ class PostgresTargetPublication:
                 "index_manifest_sha256": _NO_INDEX_MANIFEST_SHA256,
                 "public_response": dict(public_response),
                 "execution_stages": [item.to_dict() for item in execution_stages],
-                "expected_work_controls": [
-                    dict(item.__dict__) for item in expected_work_controls
-                ],
+                "expected_state_fingerprint": expected_state_fingerprint,
             },
         )
         return PublishedTargetResponse(

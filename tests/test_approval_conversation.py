@@ -193,7 +193,7 @@ def test_application_publishes_verified_approval_and_can_recover_failed_descript
         question = publication.questions[0]
         assert question["challenge"] == text
         assert question["resume_schema"]["properties"]["approval_id"]["const"] == outcome.signal_id
-        assert question["expected_work_controls"]
+        assert question["expected_state_fingerprint"]
         assert len(calls) == 1
         assert "order.cancel:v1" not in question["challenge"]
         assert "expected_order_version" not in question["challenge"]

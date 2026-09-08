@@ -72,8 +72,11 @@ def compat_components(postgres_database_url):
 
 
 def _metadata(identity):
+    from application.conversation_state import ConversationState
     return {
         **identity.metadata(),
+        "expected_state_fingerprint": ConversationState.empty(tenant_id=str(identity.tenant_id),
+            user_id=str(identity.user_id), conversation_id=str(identity.conversation_id)).fingerprint,
         "candidate_id": "candidate-compat",
         "producer": "chat-application-compat-v1",
         "verifier_status": "pass",
@@ -183,6 +186,7 @@ def test_target_publication_preserves_failure_diagnostics_on_replay(compat_compo
     adapter = PostgresTargetPublication(service)
     failed = ResponseAssembler()._failed(ValueError('structured_output_incomplete'), 'Safe answer', 'composition_model')
     published = adapter.publish(identity, response_text=failed.text,
+        expected_state_fingerprint=_metadata(identity)["expected_state_fingerprint"],
         public_response={'verification_reason_code': failed.verification_reason, 'verified': False},
         bundle_version='v1', evidence_sha256='a' * 64, verifier_status='unknown',
         execution_stages=failed.diagnostics)

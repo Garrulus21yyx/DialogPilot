@@ -11,6 +11,7 @@ from application.delivery_contract import (
     InvalidDeliveryTransition,
 )
 from application.inbound_admission import NewInvocationInbound
+from application.conversation_state import ConversationState
 from application.publication import (
     FinalResponseCommand,
     HumanReplyCommand,
@@ -102,6 +103,8 @@ def _final(identity, text="answer"):
         index_manifest_sha256="b" * 64,
         created_at=CREATED,
         policy=_policy(),
+        expected_state_fingerprint=ConversationState.empty(tenant_id=str(identity.tenant_id),
+            user_id=str(identity.user_id), conversation_id=str(identity.conversation_id)).fingerprint,
     )
 
 
@@ -117,14 +120,15 @@ def _interaction(identity):
         resume_schema={"type": "boolean"},
         created_at=CREATED,
         policy=_policy(ConnectorCapability.QUERY_RECEIPT),
+        expected_state_fingerprint=ConversationState.empty(tenant_id=str(identity.tenant_id),
+            user_id=str(identity.user_id), conversation_id=str(identity.conversation_id)).fingerprint,
     )
 
 
 def test_interaction_uses_the_same_transactional_control_check(publication_components):
-    from application.work_item import WorkControlBinding
     pool, identity, service, _ = publication_components
-    command = replace(_interaction(identity), expected_work_controls=(WorkControlBinding("missing", 1),))
-    with pytest.raises(PublicationConflictError, match="work control"):
+    command = replace(_interaction(identity), expected_state_fingerprint="stale")
+    with pytest.raises(PublicationConflictError, match="conversation state"):
         service.publish_interaction_request(command)
     with pool.transaction() as connection:
         assert connection.execute("SELECT count(*) FROM dialogpilot_app.response_deliveries").fetchone()[0] == 0

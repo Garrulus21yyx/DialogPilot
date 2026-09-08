@@ -79,16 +79,7 @@ class PostgresConversationStateStore:
                     conversation_id=str(conversation_id),
                 )
             _assert_active(subject)
-            row = _latest_state_event(connection, scope)
-        return (
-            conversation_state_from_payload(row["payload"])
-            if row is not None
-            else ConversationState.empty(
-                tenant_id=str(tenant_id),
-                user_id=str(user_id),
-                conversation_id=str(conversation_id),
-            )
-        )
+            return load_conversation_state(connection, scope)
 
     def compare_and_set(
         self,
@@ -102,16 +93,7 @@ class PostgresConversationStateStore:
         with self.pool.transaction() as connection:
             subject = _subject(connection, scope, create=True, lock=True)
             _assert_active(subject)
-            row = _latest_state_event(connection, scope)
-            stored = (
-                conversation_state_from_payload(row["payload"])
-                if row is not None
-                else ConversationState.empty(
-                    tenant_id=str(current.tenant_id),
-                    user_id=str(current.user_id),
-                    conversation_id=str(current.conversation_id),
-                )
-            )
+            stored = load_conversation_state(connection, scope)
             if stored.fingerprint != current.fingerprint:
                 return False
             _append_event(
@@ -674,6 +656,14 @@ def _assert_active(subject) -> None:
         raise ConversationStateError("conversation is unavailable")
     if subject[1] is not None:
         raise ConversationStateError("conversation is deleted")
+
+
+def load_conversation_state(connection, scope: ConversationScope) -> ConversationState:
+    """Read the authoritative aggregate in the caller's existing transaction."""
+    row = _latest_state_event(connection, scope)
+    return (conversation_state_from_payload(row["payload"]) if row is not None
+            else ConversationState.empty(tenant_id=str(scope.tenant_id),
+                user_id=str(scope.user_id), conversation_id=str(scope.conversation_id)))
 
 
 def _latest_state_event(connection, scope: ConversationScope):

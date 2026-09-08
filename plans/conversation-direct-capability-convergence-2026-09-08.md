@@ -1038,3 +1038,41 @@ test. Initial harness missed the normal followup step; corrected to mirror the
 runtime order, then 1 passed. Independent fresh-context boundary review requested
 before selecting a publication contract. Do not simply drop inactive bindings:
 that would remove protection against genuinely obsolete replies.
+
+Independent review agrees with an existing-aggregate snapshot contract: every
+automated Final/Interaction publication binds the exact committed ConversationState
+fingerprint used to assemble it, checked under the existing conversation row lock.
+Execution guards remain revision+ACTIVE; evidence keeps historical bindings.
+Interaction publication must additionally match its current pending signal(s).
+Already committed identity/fingerprint replay precedes freshness checks. No new
+store, second execution path or model validation call. Tradeoff: unrelated state
+changes invalidate an uncommitted candidate; finer concurrent dependency semantics
+are explicitly outside this repair. Migrate producers, adapters, command hash,
+transaction reader, tests and documentation. Test cancellation/revision and races,
+pure replies, all interaction kinds, replay and no partial outbound writes.
+
+Snapshot migration implemented (pending-signal membership remains next): required
+`expected_state_fingerprint` replaces historical `expected_work_controls` across
+Final/Interaction commands, Target final/fields/approval, failure notice, handoff
+selector and delivery metadata. Publication and StateStore CAS share the same
+transactional aggregate reader and row lock. Response state is the already
+committed `managed.state_after`, not a later reread that could launder a stale
+candidate. The static run failure notice loads state when constructing that notice.
+Execution guards and evidence provenance are unchanged.
+
+Verification: 101 passed / 1 skipped / 1 failure initially exposed the failure-
+notice caller missing the new required argument; migrated that caller. Real PG
+suite: 77 passed / 1 failure exposed a direct adapter test missing the argument;
+migrated its fixture. New PG matrix initially used the wrong CAS method name
+(4 harness failures); corrected to the existing compare_and_set API. Fresh PG
+snapshot + delivery + cutover run: 38 passed in 22.24s, covering cancellation,
+revision, unrelated state change, pure reply freshness, zero outbound residue on
+rejection and immutable replay after subsequent state changes. Observation/control
+suite: 54 passed. Fresh independent review found no further concrete snapshot
+implementation blocker; signal membership remains explicitly unimplemented.
+
+Migration: command fingerprints intentionally change. Existing committed messages
+are recovered through existing-publication lookup; rebuilding an old command with
+the new contract is not an identical replay. No old-command fallback is introduced.
+Do not declare the publication boundary closed until pending signal membership,
+all wait variants and final integrated regressions are verified. No live tau rerun.

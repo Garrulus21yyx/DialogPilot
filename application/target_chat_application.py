@@ -23,7 +23,6 @@ from application.response_assembly import ResponseAssembler, ResponseAssemblyMod
 from application.turn_runtime import TurnRuntime
 from application.turn_planning import ProposalDisposition
 from core.identity import IdentityContractError, IdentityFactory, InvocationIdentity
-from application.work_item import WorkControlBinding
 
 
 logger = logging.getLogger(__name__)
@@ -89,7 +88,7 @@ class TargetPublicationPort(Protocol):
         bundle_version: str,
         evidence_sha256: str,
         verifier_status: str,
-        expected_work_controls: tuple[WorkControlBinding, ...] = (),
+        expected_state_fingerprint: str,
         execution_stages: tuple = (),
         knowledge_evidence: tuple[dict, ...] = (),
         business_observations: tuple[dict, ...] = (),
@@ -104,7 +103,7 @@ class TargetPublicationPort(Protocol):
         challenge: str,
         resume_schema: Mapping[str, object],
         expires_at: str,
-        expected_work_controls: tuple[WorkControlBinding, ...] = (),
+        expected_state_fingerprint: str,
         related_signals: tuple[tuple[str, int], ...] = (),
         execution_stages: tuple = (),
         knowledge_evidence: tuple[dict, ...] = (),
@@ -130,6 +129,7 @@ class TargetChatApplication:
         knowledge_context_factory=None,
     ) -> None:
         self._knowledge_context_factory = knowledge_context_factory
+        self._manager = manager
         self._admission = admission
         self._publication = publication
         self._bundle_version = bundle_version
@@ -182,6 +182,7 @@ class TargetChatApplication:
         """Publish a run-level service notice, not a claim that a write failed."""
         if failure.retryable:
             raise ValueError("a retryable run has not selected its final failure response")
+        state = self._manager.load_state(identity)
         message = (
             "I could not complete this turn. Please contact support to check the saved processing records; "
             "do not resubmit the same business operation."
@@ -193,6 +194,7 @@ class TargetChatApplication:
             "task_completed": False, "verified": False,
             "verification_reason_code": "SERVICE_FAILURE_NOTICE"}
         published = self._publication.publish(identity, response_text=message,
+            expected_state_fingerprint=state.fingerprint,
             public_response=public, bundle_version=self._bundle_version,
             evidence_sha256=hashlib.sha256(b"").hexdigest(), verifier_status="NOT_CHECKED",
             execution_stages=failure.stages)
@@ -316,9 +318,7 @@ class TargetChatApplication:
                     },
                 },
                 expires_at=expires_at,
-                expected_work_controls=tuple(
-                    item.control for item in (*pending.suspended_work_items,
-                        *(pending_input.suspended_work_items if present_input else ())) if item.control),
+                expected_state_fingerprint=managed.state_after.fingerprint,
                 **({"related_signals": ((pending_input.interaction_id, pending_input.version),)} if present_input else {}),
                 execution_stages=assembly.diagnostics,
                 knowledge_evidence=assembly.knowledge_evidence,
@@ -358,8 +358,7 @@ class TargetChatApplication:
                     "properties": _input_properties(pending_input),
                 },
                 expires_at=expires_at,
-                expected_work_controls=tuple(item.control for item in pending_input.suspended_work_items
-                                             if item.control),
+                expected_state_fingerprint=managed.state_after.fingerprint,
                 execution_stages=assembly.diagnostics,
                 knowledge_evidence=assembly.knowledge_evidence,
                 business_observations=capture_business_observations(managed.board),
@@ -628,11 +627,7 @@ class TargetChatApplication:
             execution_stages=assembly.diagnostics if assembly else (),
             knowledge_evidence=assembly.knowledge_evidence if assembly and assembly.verified else (),
             business_observations=capture_business_observations(managed.board),
-            expected_work_controls=tuple(dict.fromkeys(
-                item.control for item in (*work_items,
-                    *(pending.suspended_work_items if pending else ()),
-                    *(pending_input.suspended_work_items if pending_input else ()))
-                if item.control is not None)),
+            expected_state_fingerprint=managed.state_after.fingerprint,
         )
         public_response.update({
             "response_id": published.response_id,

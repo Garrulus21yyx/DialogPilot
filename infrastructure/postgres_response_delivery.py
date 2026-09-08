@@ -14,7 +14,6 @@ from application.publication import (
     ProjectionDisposition,
     PublicationPolicy,
 )
-from application.work_item import WorkControlBinding
 from core.identity import InvocationKey
 from infrastructure.postgres import PostgresPool
 from infrastructure.postgres_publication import (
@@ -59,7 +58,7 @@ class PostgresResponseDeliveryService:
         required = (
             "tenant_id", "invocation_key", "candidate_id", "producer",
             "verifier_status", "verification", "evidence_sha256",
-            "bundle_version", "index_manifest_sha256",
+            "bundle_version", "index_manifest_sha256", "expected_state_fingerprint",
         )
         missing = [key for key in required if not metadata.get(key)]
         if missing:
@@ -97,12 +96,7 @@ class PostgresResponseDeliveryService:
             execution_stages=tuple(
                 dict(item) for item in metadata.get("execution_stages") or ()
             ),
-            expected_work_controls=tuple(
-                WorkControlBinding(
-                    str(item["control_id"]), int(item["revision"]),
-                )
-                for item in metadata.get("expected_work_controls") or ()
-            ),
+            expected_state_fingerprint=metadata["expected_state_fingerprint"],
             knowledge_evidence=tuple(metadata.get("knowledge_evidence") or ()),
             business_observations=tuple(metadata.get("business_observations") or ()),
         ))

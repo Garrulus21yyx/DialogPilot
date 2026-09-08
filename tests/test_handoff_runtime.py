@@ -294,6 +294,7 @@ def test_handoff_commit_receipt_transfers_owner_and_allows_success_claim():
 
     publication = HandoffPublicationSelector().select(
         invocation=invocation,
+        state=state,
         result=result,
         bundle_version="customer-service-v1",
         created_at="2026-09-03T12:00:00+00:00",
@@ -315,6 +316,8 @@ def test_draft_or_failed_result_cannot_claim_ticket_was_created():
 
     publication = HandoffPublicationSelector().select(
         invocation=invocation,
+        state=ConversationState.empty(tenant_id=str(invocation.tenant_id),
+            user_id=str(invocation.user_id), conversation_id=str(invocation.conversation_id)),
         result=result,
         bundle_version="customer-service-v1",
         created_at="2026-09-03T12:00:00+00:00",

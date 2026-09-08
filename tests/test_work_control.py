@@ -182,26 +182,20 @@ def test_running_revision_is_discarded_without_stopping_unrelated_work() -> None
     assert board.partial_delivery_allowed
 
 
-def test_publication_boundary_rejects_a_superseded_revision() -> None:
-    class Connection:
-        def execute(self, _sql, _params):
-            return self
-
-        def fetchone(self):
-            return ({
-                "work_controls": [{
-                    "control_id": "control:product",
-                    "revision": 2,
-                    "status": "ACTIVE",
-                }],
-            },)
+def test_publication_boundary_rejects_a_superseded_revision(monkeypatch) -> None:
+    first = ConversationState.empty(tenant_id="tenant-a", user_id="user-a", conversation_id="conv-a")
+    item = _item("control:product", 1, work_item_id="product-v1")
+    first = first.accept_work_items((item,), invocation_key="invocation-1")
+    current = first.accept_work_items((_item("control:product", 2, work_item_id="product-v2"),),
+                                      invocation_key="invocation-2")
+    monkeypatch.setattr("infrastructure.postgres_target_runtime.load_conversation_state", lambda *_: current)
 
     command = SimpleNamespace(
         tenant_id="tenant-a",
         user_id="user-a",
         conversation_id="conv-a",
-        expected_work_controls=(WorkControlBinding("control:product", 1),),
+        expected_state_fingerprint=first.fingerprint,
     )
 
     with pytest.raises(PublicationConflictError):
-        PostgresPublicationService._assert_work_controls(Connection(), command)
+        PostgresPublicationService._assert_reply_state(None, command)

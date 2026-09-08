@@ -94,6 +94,7 @@ def _policy():
 
 
 def _final(identity):
+    from application.conversation_state import ConversationState
     return FinalResponseCommand(
         invocation_key=identity.invocation_key,
         tenant_id=str(identity.tenant_id), user_id=str(identity.user_id),
@@ -108,10 +109,13 @@ def _final(identity):
         index_manifest_sha256="b" * 64,
         created_at="2026-09-02T11:00:01+00:00",
         policy=_policy(),
+        expected_state_fingerprint=ConversationState.empty(tenant_id=str(identity.tenant_id),
+            user_id=str(identity.user_id), conversation_id=str(identity.conversation_id)).fingerprint,
     )
 
 
 def _interaction(identity):
+    from application.conversation_state import ConversationState
     return InteractionRequestCommand(
         invocation_key=identity.invocation_key,
         tenant_id=str(identity.tenant_id), user_id=str(identity.user_id),
@@ -119,6 +123,8 @@ def _interaction(identity):
         signal_id="signal-query", signal_version=1,
         challenge="approve?", resume_schema={"type": "boolean"},
         created_at="2026-09-02T11:00:01+00:00", policy=_policy(),
+        expected_state_fingerprint=ConversationState.empty(tenant_id=str(identity.tenant_id),
+            user_id=str(identity.user_id), conversation_id=str(identity.conversation_id)).fingerprint,
     )
 
 

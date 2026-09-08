@@ -110,7 +110,7 @@ class PostgresPublicationService:
                 if invocation is None:
                     raise PublicationNotFoundError("invocation scope does not exist")
             if isinstance(command, (FinalResponseCommand, InteractionRequestCommand)):
-                self._assert_work_controls(connection, command)
+                self._assert_reply_state(connection, command)
 
             turn_key = _stable_id("publication-turn", publication_id)
             turn_id = _stable_id("publication-turn-id", publication_id)
@@ -220,33 +220,15 @@ class PostgresPublicationService:
             return PublicationResult(PublicationApplyStatus.APPLIED, self._record(row))
 
     @staticmethod
-    def _assert_work_controls(connection, command: FinalResponseCommand | InteractionRequestCommand) -> None:
-        """Validate the target revision while holding the conversation row lock."""
-        if not command.expected_work_controls:
-            return
-        row = connection.execute("""
-            SELECT payload
-            FROM dialogpilot_app.conversation_events
-            WHERE tenant_id=%s AND user_id=%s AND conversation_id=%s
-              AND event_type='target.conversation_state.changed.v1'
-            ORDER BY seq DESC LIMIT 1
-        """, (
-            command.tenant_id, command.user_id, command.conversation_id,
-        )).fetchone()
-        if row is None:
-            raise PublicationConflictError("publication lacks work control state")
-        current = {
-            str(item.get("control_id")): (
-                int(item.get("revision") or 0), str(item.get("status") or "")
-            )
-            for item in dict(row[0] or {}).get("work_controls", ())
-        }
-        if any(
-            current.get(binding.control_id)
-            != (binding.revision, "ACTIVE")
-            for binding in command.expected_work_controls
-        ):
-            raise PublicationConflictError("publication work control is stale")
+    def _assert_reply_state(connection, command: FinalResponseCommand | InteractionRequestCommand) -> None:
+        """Publish against the assembled state, not historical execution authority."""
+        from application.conversation_store import ConversationScope
+        from infrastructure.postgres_target_runtime import load_conversation_state
+
+        state = load_conversation_state(connection, ConversationScope(
+            command.tenant_id, command.user_id, command.conversation_id))
+        if not command.expected_state_fingerprint or state.fingerprint != command.expected_state_fingerprint:
+            raise PublicationConflictError("publication conversation state is stale")
 
     @staticmethod
     def _parts(command: PublicationCommand):

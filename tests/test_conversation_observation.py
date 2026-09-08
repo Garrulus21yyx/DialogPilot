@@ -17,8 +17,8 @@ from infrastructure.langgraph_checkpoint import target_checkpoint_serializer
 from tests.test_turn_runtime import _Executor, _OrderUnderstanding, _identity
 
 
-def test_observation_cancel_retains_evidence_without_active_execution_authority():
-    """Witness the publication conflict; retained evidence is not permission."""
+def test_observation_cancel_retains_evidence_without_active_execution_authority(monkeypatch):
+    """A current cancellation reply preserves facts without reauthorizing work."""
     from types import SimpleNamespace
     from application.turn_planning import CommandKind, CommandProposal
     from infrastructure.postgres_publication import PostgresPublicationService, PublicationConflictError
@@ -58,20 +58,15 @@ def test_observation_cancel_retains_evidence_without_active_execution_authority(
 
         # The existing publication consumer derives authorization from exactly
         # these retained outcomes. Its SQL reader is supplied the actual state.
-        class Connection:
-            def execute(self, *_args):
-                return self
-
-            def fetchone(self):
-                return ({"work_controls": [{"control_id": item.control_id,
-                    "revision": item.revision, "status": item.status.value}
-                    for item in cancelled.state_after.work_controls]},)
-
-        command = SimpleNamespace(expected_work_controls=bindings,
+        monkeypatch.setattr("infrastructure.postgres_target_runtime.load_conversation_state",
+                            lambda *_args: cancelled.state_after)
+        command = SimpleNamespace(expected_state_fingerprint=cancelled.state_after.fingerprint,
             tenant_id=identity.tenant_id, user_id=identity.user_id,
             conversation_id=identity.conversation_id)
-        with pytest.raises(PublicationConflictError, match="work control is stale"):
-            PostgresPublicationService._assert_work_controls(Connection(), command)
+        PostgresPublicationService._assert_reply_state(None, command)
+        command.expected_state_fingerprint = read.state_after.fingerprint
+        with pytest.raises(PublicationConflictError, match="conversation state is stale"):
+            PostgresPublicationService._assert_reply_state(None, command)
 
     asyncio.run(scenario())
 

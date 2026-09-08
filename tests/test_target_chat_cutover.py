@@ -78,7 +78,7 @@ class _Publication:
         bundle_version,
         evidence_sha256,
         verifier_status,
-        expected_work_controls=(),
+        expected_state_fingerprint,
         execution_stages=(),
         knowledge_evidence=(), business_observations=(),
     ):
@@ -107,7 +107,7 @@ class _Publication:
         challenge,
         resume_schema,
         expires_at,
-        expected_work_controls=(),
+        expected_state_fingerprint,
         related_signals=(),
         execution_stages=(), knowledge_evidence=(), business_observations=(),
     ):
