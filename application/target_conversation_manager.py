@@ -149,6 +149,7 @@ class ManagedTurnResult:
     state_transitions: tuple[ConversationState, ...] = ()
     close_checkpoint: bool = False
     progress_transition_count: int = 0
+    source_thread_ids: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -167,6 +168,7 @@ class PreparedTurn:
     artifact_version: str = "prepared-turn-v2"
     execution_context: dict = field(default_factory=dict)
     state_transitions: tuple[ConversationState, ...] = ()
+    source_thread_ids: tuple[str, ...] = ()
 
     @property
     def fingerprint(self) -> str:
@@ -176,6 +178,7 @@ class PreparedTurn:
             "plan": self.plan.plan_id,
             "state": self.state.fingerprint,
             "context_watermark": self.context.source_watermark,
+            "source_threads": (self.resume_thread_id, *self.source_thread_ids),
         }, sort_keys=True, separators=(",", ":")).encode("utf-8")
         return "prepared-turn:v1:" + hashlib.sha256(raw).hexdigest()
 
@@ -286,6 +289,10 @@ class TargetConversationManager:
             # Goal acceptance and wait retirement are one owner transition,
             # including semantic references from ordinary, unlabelled messages.
             resume_thread_id = pending.checkpoint_thread_id
+        retired_threads = tuple(dict.fromkeys(pending.checkpoint_thread_id for pending, current in (
+            (state_before.pending_interaction, state.pending_interaction),
+            (state_before.pending_approval, state.pending_approval),
+        ) if pending is not None and current is None and pending.checkpoint_thread_id))
 
         return PreparedTurn(
             invocation,
@@ -301,6 +308,7 @@ class TargetConversationManager:
             token_budget,
             execution_context={**dict(execution_context or {}), "knowledge_filter_contract": turn_context.knowledge_filter_contract},
             state_transitions=tuple(transitions),
+            source_thread_ids=tuple(thread for thread in retired_threads if thread != resume_thread_id),
         )
 
     async def execute(self, prepared: PreparedTurn) -> ManagedTurnResult:
@@ -328,6 +336,7 @@ class TargetConversationManager:
                 state_transitions=prepared.state_transitions,
                 close_checkpoint=resume_thread_id is not None,
                 progress_transition_count=len(prepared.state_transitions),
+                source_thread_ids=prepared.source_thread_ids,
             )
         execution_context = {
             "current_message": observations.raw_text,
@@ -373,6 +382,7 @@ class TargetConversationManager:
                 plan.work,
                 thread_id=thread_id,
                 closed_work_items=closed_work_items,
+                source_thread_ids=prepared.source_thread_ids,
                 interrupt_after_completion=await_decision,
                 **execution_context,
             )
@@ -436,6 +446,7 @@ class TargetConversationManager:
             tuple(transitions),
             close_checkpoint,
             progress_transition_count,
+            prepared.source_thread_ids,
         )
 
     @property
@@ -469,10 +480,17 @@ class TargetConversationManager:
         if result.close_checkpoint:
             await self._orchestration.cancel_interrupt(
                 thread_id=result.checkpoint_thread_id,
-                closed_work_items=self._closed_work_items(result.state_before, result.deterministic, result.plan))
+                closed_work_items=self._closed_work_items(result.state_before, result.deterministic, result.plan,
+                                                         thread_id=result.checkpoint_thread_id))
+        for source in result.source_thread_ids:
+            # The primary graph now owns any further waits. Closing the old
+            # interrupt is idempotent and does not cancel remote business work.
+            await self._orchestration.cancel_interrupt(thread_id=source,
+                closed_work_items=self._closed_work_items(result.state_before, result.deterministic,
+                                                         result.plan, thread_id=source))
 
     @staticmethod
-    def _closed_work_items(state, resolution, plan):
+    def _closed_work_items(state, resolution, plan, *, thread_id=None):
         """Project accepted goal closure into the original execution checkpoint."""
         from application.action_approval import partition_approval_revision
         cancelled = {item.control_id for item in plan.control_mutations}
@@ -482,8 +500,13 @@ class TargetConversationManager:
         input_closed = tuple(item for item in (state.pending_interaction.suspended_work_items
                             if state.pending_interaction else ())
                             if item.control and item.control.control_id in cancelled)
-        return tuple({item.work_item_id: item for item in (
-            *resolution.closed_work_items, *approval_closed, *input_closed)}.values())
+        candidates = (*resolution.closed_work_items, *approval_closed, *input_closed)
+        if thread_id is not None:
+            originals = tuple(item for pending in (state.pending_interaction, state.pending_approval)
+                              if pending is not None and pending.checkpoint_thread_id == thread_id
+                              for item in pending.suspended_work_items)
+            candidates = tuple(item for item in candidates if item in originals)
+        return tuple(item for index, item in enumerate(candidates) if item not in candidates[:index])
 
     def _apply_missing_inputs(
         self,

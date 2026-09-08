@@ -30,6 +30,25 @@ class OrchestrationRuntimeError(ValueError):
     pass
 
 
+def _checkpoint_outcomes(state):
+    """Keep local result IDs paired with the WorkItems from their own graph."""
+    results = {result.work_item_id: result for result in state.get("agent_results", ())}
+    return _merge_checkpoint_outcomes(tuple(state.get("retained_outcomes", ())), tuple(
+        (item, results.get(item.work_item_id)) for item in state["work_plan"].items))
+
+
+def _merge_checkpoint_outcomes(left, right):
+    outcomes = list(left)
+    for item, result in right:
+        same = next(((original, previous) for original, previous in outcomes
+                     if original == item or (item.control is not None and original.control == item.control)), None)
+        if same is None:
+            outcomes.append((item, result))
+        elif same != (item, result):
+            raise OrchestrationRuntimeError("checkpoint progress conflicts for the same goal revision")
+    return tuple(outcomes)
+
+
 @dataclass(frozen=True)
 class AgentContextView:
     work_item: WorkItem
@@ -42,6 +61,10 @@ class AgentContextView:
     dependency_results: tuple[AgentResult, ...] = ()
     working_messages: tuple[dict, ...] = ()
     pending_approval: PendingApprovalState | None = None
+
+    def __post_init__(self):
+        for name in ("verified_facts", "recent_relevant_turns", "evidence_refs", "dependency_results", "working_messages"):
+            object.__setattr__(self, name, tuple(getattr(self, name)))
 
 
 class WorkExecutor(Protocol):
@@ -73,6 +96,7 @@ class ParentGraphState(TypedDict, total=False):
     continuation_messages: dict[str, tuple[dict, ...]]
     pending_approval: PendingApprovalState | None
     retained_outcomes: tuple[tuple[WorkItem, AgentResult | None], ...]
+    imported_source_threads: tuple[str, ...]
 
 
 class WorkerState(TypedDict):
@@ -247,8 +271,9 @@ class OrchestrationRuntime:
         if not isinstance(resumed, Mapping):
             raise OrchestrationRuntimeError("resume payload must be an object")
         closed = tuple(resumed.get("closed_work_items", ()))
-        checkpoint_items = (*state["work_plan"].items,
-                            *(item for item, _ in state.get("retained_outcomes", ())))
+        previous = _checkpoint_outcomes(state)
+        imported = tuple(resumed.get("imported_outcomes", ()))
+        checkpoint_items = tuple(item for item, _ in (*previous, *imported))
         if any(item not in checkpoint_items for item in closed):
             raise OrchestrationRuntimeError("closed objective does not match checkpoint")
         if resumed.get("cancel") is True:
@@ -268,37 +293,35 @@ class OrchestrationRuntime:
         plan = resumed.get("work_plan")
         if not isinstance(plan, WorkPlan):
             raise OrchestrationRuntimeError("resume payload requires a validated WorkPlan")
-        previous_items = {item.work_item_id: item for item in state["work_plan"].items}
-        previous_results = {result.work_item_id: result for result in state.get("agent_results", ())}
+        previous = _merge_checkpoint_outcomes(previous, imported)
         # A resume executes a subset, but cannot erase other outcomes from the
         # original request. These are checkpoint projections, never runnable work.
         retained = tuple((item, _closed_outcome(item, result) if item in closed else result)
-            for item, result in (*state.get("retained_outcomes", ()),
-            *((item, previous_results.get(item.work_item_id)) for item in previous_items.values()))
+            for item, result in previous
             if not any(item == new or (
                 item.control and new.control and item.control.control_id == new.control.control_id
                 and item.control.revision < new.control.revision) for new in plan.items))
-        preserved = tuple(previous_results[item.work_item_id] for item in plan.items
-                          if previous_items.get(item.work_item_id) == item
-                          and item.work_item_id in previous_results)
+        preserved = tuple(result for item, result in previous if item in plan.items and result is not None)
         board = self._result_board.evaluate(plan, preserved)
         progress = {}
         messages = {}
         now = datetime.now(timezone.utc)
         for item in plan.items:
-            if previous_items.get(item.work_item_id) == item:
+            if any(original == item for original, _ in previous):
                 continue
             if item.continuation_of is None:
                 continue
-            previous = previous_items.get(item.continuation_of)
-            result = previous_results.get(item.continuation_of)
-            if (previous is None
-                    or previous.owner_agent != item.owner_agent
-                    or previous.registry_fingerprint != item.registry_fingerprint
-                    or previous.control is None or item.control is None
-                    or previous.control.control_id != item.control.control_id
-                    or previous.control.revision + 1 != item.control.revision):
+            candidates = tuple((original, result) for original, result in previous
+                if original.work_item_id == item.continuation_of
+                and original.control is not None and item.control is not None
+                and original.control.control_id == item.control.control_id
+                and original.control.revision + 1 == item.control.revision)
+            if len(candidates) != 1:
                 raise OrchestrationRuntimeError("continuation does not match checkpoint progress")
+            original, result = candidates[0]
+            if (original.owner_agent != item.owner_agent
+                    or original.registry_fingerprint != item.registry_fingerprint):
+                raise OrchestrationRuntimeError("continuation capability scope differs from checkpoint")
             if result is None:
                 # The prior checkpoint retained this queued, not-yet-run item.
                 continue
@@ -322,6 +345,8 @@ class OrchestrationRuntime:
             "ready_items": board.ready_items,
             "board": board,
             "retained_outcomes": retained,
+            "imported_source_threads": tuple(dict.fromkeys(
+                (*state.get("imported_source_threads", ()), *resumed.get("source_thread_ids", ())))),
         }
 
     async def _execute_work_item(self, state: WorkerState):
@@ -536,12 +561,17 @@ class OrchestrationRuntime:
         trusted_context: Mapping[str, str] | None = None,
         pending_approval: PendingApprovalState | None = None,
         closed_work_items: tuple[WorkItem, ...] = (),
+        source_thread_ids: tuple[str, ...] = (),
     ) -> ResultBoardSnapshot:
         if self._checkpointer is None:
             raise OrchestrationRuntimeError("resume requires a checkpointer")
+        if len(source_thread_ids) > 1 or thread_id in source_thread_ids:
+            raise OrchestrationRuntimeError("resume supports only the conversation's two distinct waits")
         config = {"configurable": {"thread_id": thread_id}}
         snapshot = await self.graph.aget_state(config)
         if snapshot.values.get("work_plan_fingerprint") == _work_plan_fingerprint(work_plan):
+            if set(source_thread_ids).difference(snapshot.values.get("imported_source_threads", ())):
+                raise OrchestrationRuntimeError("checkpoint replay cannot add an unaccepted source")
             # This continuation was already accepted before its caller stopped.
             # Reuse the normal checkpoint replay, not a second resume signal.
             return await self.execute(
@@ -552,6 +582,29 @@ class OrchestrationRuntime:
                 pending_approval=pending_approval)
         if not snapshot.tasks or not any(task.interrupts for task in snapshot.tasks):
             raise OrchestrationRuntimeError("checkpoint thread is not interrupted")
+        imported = ()
+        for source in source_thread_ids:
+            if source in snapshot.values.get("imported_source_threads", ()):
+                continue
+            other = await self.graph.aget_state({"configurable": {"thread_id": source}})
+            if not other.tasks or not any(task.interrupts for task in other.tasks):
+                raise OrchestrationRuntimeError("source checkpoint is not interrupted")
+            scope = snapshot.values.get("trusted_context", {})
+            other_scope = other.values.get("trusted_context", {})
+            if (any(not scope.get(key) for key in ("tenant_id", "user_id", "conversation_id"))
+                    or any(scope.get(key) != other_scope.get(key)
+                   for key in ("tenant_id", "user_id", "conversation_id", "conv_id"))):
+                raise OrchestrationRuntimeError("source checkpoint belongs to another conversation")
+            outcomes = _checkpoint_outcomes(other.values)
+            if any(item.registry_fingerprint != work_plan.items[0].registry_fingerprint for item, _ in outcomes):
+                raise OrchestrationRuntimeError("source checkpoint registry differs from plan")
+            if not any(original in closed_work_items or any(
+                original.control and item.control
+                and original.control.control_id == item.control.control_id
+                and original.control.revision + 1 == item.control.revision
+                for item in work_plan.items) for original, _ in outcomes):
+                raise OrchestrationRuntimeError("source checkpoint has no goal in the accepted plan")
+            imported = _merge_checkpoint_outcomes(imported, outcomes)
         result = await self.graph.ainvoke(Command(resume={
             "work_plan": work_plan,
             "interrupt_after_completion": interrupt_after_completion,
@@ -562,7 +615,9 @@ class OrchestrationRuntime:
             "trusted_context": dict(trusted_context or {}),
             "pending_approval": pending_approval,
             "closed_work_items": closed_work_items,
-        }), config=config)
+            "imported_outcomes": imported,
+            "source_thread_ids": source_thread_ids,
+        }), config=config, durability="sync")
         return result["board"]
 
     async def cancel_interrupt(self, *, thread_id: str, closed_work_items: tuple[WorkItem, ...] = ()) -> None:

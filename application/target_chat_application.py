@@ -5,7 +5,7 @@ import hashlib
 import json
 import logging
 import time
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Mapping, Protocol
@@ -391,8 +391,9 @@ class TargetChatApplication:
                     "owner_agent": item.owner_agent,
                     "status": item.status.value,
                     "reason_code": item.reason_code,
+                    "control": asdict(contract.control) if contract.control else None,
                 }
-                for item in board.all_results
+                for contract, item in board.outcome_items if item is not None
             ]
             facts = board.facts
             missing = list(board.missing_requirement_ids)
@@ -438,6 +439,7 @@ class TargetChatApplication:
                 "work_items": [{
                     "work_item_id": item.work_item_id,
                     "control_mode": item.control_mode.value,
+                    "control": asdict(item.control) if item.control else None,
                     "owner_agent": item.owner_agent,
                     "allowed_tools": list(item.allowed_tools),
                     "allowed_skills": list(item.allowed_skills),

@@ -323,6 +323,7 @@ class WorkPlan:
     primary_work_item_id: str
 
     def __post_init__(self) -> None:
+        object.__setattr__(self, "items", tuple(self.items))
         if not self.items:
             raise WorkItemContractError("work plan requires items")
         ids = tuple(item.work_item_id for item in self.items)

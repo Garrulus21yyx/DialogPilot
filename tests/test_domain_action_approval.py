@@ -94,7 +94,7 @@ def test_existing_explicit_approval_retains_only_same_checkpoint_work(waiting_st
                                 board, None, "thread") is next_state
 
 
-@pytest.mark.parametrize("decision", ["approve", "deny", "supersede", "ask_first", "ask_twice", "clarify_during_approval", "invalid_followup"])
+@pytest.mark.parametrize("decision", ["approve", "deny", "supersede", "ask_first", "ask_twice", "clarify_during_approval", "cancel_both", "invalid_followup"])
 def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url, decision):
     async def run():
         base = build_default_capability_registry("tenant-target")
@@ -136,7 +136,7 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
             *([AIMessage(content="", tool_calls=[{"name": "request_user_input",
                 "args": {"question": "Which part would you like explained?"}, "id": "clarify"}]),
                AIMessage(content="The cancellation is still awaiting your decision.")]
-              if decision == "clarify_during_approval" else []),
+              if decision in {"clarify_during_approval", "cancel_both"} else []),
             *([AIMessage(content="", tool_calls=[{"name": "request_user_input",
                 "args": {"question": "Should I cancel it?"}, "id": f"invalid-{index}"}])
                for index in range(2)] if decision == "invalid_followup" else
@@ -195,7 +195,7 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
             assert pending.suspended_work_items[0].allowed_actions == (action.ref,)
             assert dict((arg.name, arg.value) for arg in pending.arguments) == {
                 "order_id": "DP1234", "expected_order_version": 4}
-            if decision == "clarify_during_approval":
+            if decision in {"clarify_during_approval", "cancel_both"}:
                 question = await manager.handle(_identity("ask-about-approval"), TurnObservations(
                     "Before confirming, can you explain?"))
                 clarification = question.state_after.pending_interaction
@@ -211,6 +211,36 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                     "arguments": {arg.name: arg.value for arg in pending.arguments},
                     "status": "AWAITING_DECISION_NOT_EXECUTED",
                 }
+                if decision == "cancel_both":
+                    from application.conversation_agent import ConversationAgent
+                    from application.target_understanding import CascadedTargetUnderstanding, StateBoundTargetUnderstanding
+                    from tests.test_conversation_agent import Provider
+                    provider = Provider({"status": "resolved", "goals": [
+                        {"kind": "cancel_active_work", "revises_control_id": control.control_id}
+                        for control in question.state_after.active_work_controls]})
+                    manager._understanding = CascadedTargetUnderstanding(StateBoundTargetUnderstanding(), ConversationAgent(provider))
+                    prepared = await manager.prepare(_identity("cancel-both"), TurnObservations("Stop both tasks"))
+                    assert set((prepared.resume_thread_id, *prepared.source_thread_ids)) == {
+                        clarification.checkpoint_thread_id, pending.checkpoint_thread_id}
+                    assert prepared.state.pending_interaction is prepared.state.pending_approval is None
+                    result = await manager.execute(prepared)
+                    close = manager._orchestration.cancel_interrupt
+                    fail_once = True
+                    async def interrupted_cleanup(**kwargs):
+                        nonlocal fail_once
+                        await close(**kwargs)
+                        if kwargs["thread_id"] in prepared.source_thread_ids and fail_once:
+                            fail_once = False
+                            raise ConnectionError("cleanup acknowledgement lost")
+                    manager._orchestration.cancel_interrupt = interrupted_cleanup
+                    with pytest.raises(ConnectionError, match="acknowledgement"):
+                        await manager.commit(result)
+                    await manager.commit(result)  # Cleanup replay is harmless.
+                    assert calls == ["read"]
+                    for thread in (clarification.checkpoint_thread_id, pending.checkpoint_thread_id):
+                        snapshot = await manager._orchestration.graph.aget_state({"configurable": {"thread_id": thread}})
+                        assert not any(task.interrupts for task in snapshot.tasks)
+                    return
                 answered = await manager.handle(_identity("clarify-approval"), TurnObservations(
                     "Whether the order has been cancelled yet", interaction_id=clarification.interaction_id,
                     interaction_version=clarification.version))

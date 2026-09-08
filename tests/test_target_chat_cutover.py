@@ -1,5 +1,6 @@
 import asyncio
 import inspect
+from dataclasses import replace
 from datetime import datetime, timezone
 from types import SimpleNamespace
 
@@ -207,6 +208,32 @@ def _application(understanding=None):
     ), tools
 
 
+@pytest.mark.parametrize("retained_count", [1, 3])
+def test_public_outcomes_preserve_control_when_local_ids_repeat(monkeypatch, retained_count):
+    from application.work_item import WorkControlBinding
+
+    original_execute = OrchestrationRuntime.execute
+
+    async def execute_with_history(self, *args, **kwargs):
+        board = await original_execute(self, *args, **kwargs)
+        item, result = board.outcome_items[0]
+        retained = tuple((replace(item, control=WorkControlBinding(f"prior-{index}", 1)), result)
+                         for index in range(retained_count))
+        return replace(board, retained_outcomes=retained)
+
+    monkeypatch.setattr(OrchestrationRuntime, "execute", execute_with_history)
+    application, _ = _application()
+    outcome = asyncio.run(application.handle(ChatCommand(
+        "查一下订单 DP1234 物流", "user-a", "tenant-a", "conversation-a", "request-a")))
+    assert isinstance(outcome, Completed)
+    results = outcome.response["agent_outcomes"]
+    assert len(results) == retained_count + 1
+    assert len({item["work_item_id"] for item in results}) == 1
+    assert len({item["control"]["control_id"] for item in results}) == retained_count + 1
+    assert {item["control"]["control_id"] for item in results[:-1]} == {
+        f"prior-{index}" for index in range(retained_count)}
+
+
 class _FailingSemanticProvider:
     version = "failing-semantic-provider-test-v1"
 
@@ -298,6 +325,7 @@ def test_target_chat_direct_order_path_publishes_once_and_replays():
     )
     assert trace["artifact"]["route_mode"] == "DIRECT"
     assert trace["consumption"]["work_items"][0]["control_mode"] == "DIRECT"
+    assert first.response["agent_outcomes"][0]["control"] == trace["consumption"]["work_items"][0]["control"]
     fact, = trace["consumption"]["facts"]
     assert fact == {
         "requirement_id": "order.current_state",
