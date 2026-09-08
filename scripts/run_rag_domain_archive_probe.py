@@ -18,12 +18,16 @@ from scripts.adapt_mtrag_retrieval_dataset import digest
 ROOT=Path(os.environ.get('RAG_ARCHIVE_PROBE_OUTPUT','artifacts/eval/rag-g4-domain-archive1-2026-09-08'))
 async def main():
     src=Path('artifacts/eval/rag-g4-mtrag-pack32-2026-09-08/cases.json.gz')
-    row=next(r for r in json.load(gzip.open(src,'rt')) if r['case_id']=='e1b602e47ded79a35d8df4eefe194e39<::>1')
-    v=row['arms']['0.75'];view=json.loads(v['wire']);query='Is it possible to build a dialog skill in a language other than English?'
+    case_id=os.environ.get('RAG_ARCHIVE_PROBE_CASE','e1b602e47ded79a35d8df4eefe194e39<::>1')
+    row=next(r for r in json.load(gzip.open(src,'rt')) if r['case_id']==case_id)
+    v=row['arms']['0.75'];view=json.loads(v['wire'])
+    reference=next(r for line in Path('/tmp/dialogpilot-rag-external-lock-20260907/reference.jsonl').open() if (r:=json.loads(line))['task_id']==case_id)
+    turns=reference['input'];assert turns[-1]['speaker']=='user'
+    query=turns[-1]['text'];history=tuple(json.dumps({'role':t['speaker'],'text':t['text']},ensure_ascii=False) for t in turns[:-1])
     data={'status':'OK','evidence_pack':{'query':view['query_used'],'index_manifest_fingerprint':'frozen-eval-fixture','items':[{'chunk_id':cid,'text':e['text'],'title':e['title'],'source_ref':e['source']} for cid,e in zip(v['packed_ids'],view['evidence'],strict=True)]}}
     ROOT.mkdir(exist_ok=False)
     files=['infrastructure/target_framework_agent.py','infrastructure/target_context_compaction.py','infrastructure/target_result_archive.py','infrastructure/target_domain_outcome.py','infrastructure/target_agent_middleware.py','core/structured_model.py']
-    (ROOT/'fixture.json').write_text(json.dumps({'query':query,'source_sha256':digest(src),'data':data,'source_files':{p:digest(Path(p)) for p in files}},indent=2)+'\n')
+    (ROOT/'fixture.json').write_text(json.dumps({'query':query,'case_id':case_id,'history':history,'source_sha256':digest(src),'data':data,'source_files':{p:digest(Path(p)) for p in files}},indent=2)+'\n')
     values={**dotenv_values('.env'),**os.environ};policy=ModelPolicy.from_env(values);profile=ModelProfile('deepseek-v4-flash',ReasoningEffort.NONE,'deepseek')
     model=framework_model(profile,{'api_key':values['ANTHROPIC_API_KEY'],'base_url':policy.base_url},max_tokens=1200)
     capture=FrameworkCapture(limit=9);tool_calls=[]
@@ -32,7 +36,7 @@ async def main():
         tool_calls.append(params);return data
     manager.register(Tool('knowledge_search','Search the supplied product documentation and return source evidence.',lookup,{'type':'object','properties':{'query':{'type':'string'}},'required':['query'],'additionalProperties':False},authority='knowledge.active_source'))
     item=WorkItem('archive-probe','general',query,ControlMode.DELEGATED,('knowledge_search',),(),(ArgumentValue.create('question',query),),('knowledge.active_source',),(),CapabilityEffect.READ,CapabilityRisk.MEDIUM,'agent-result-v1','customer-service-default:v1',1,'registry:eval',timeout_seconds=60,max_steps=8)
-    context=AgentContextView(item,query,(),(),(),2000,{'tenant_id':'tenant-a','user_id':'eval','conversation_id':'archive-probe','request_id':'archive-probe','invocation_key':'archive-probe'})
+    context=AgentContextView(item,query,(),history,(),2000,{'tenant_id':'tenant-a','user_id':'eval','conversation_id':'archive-probe','request_id':'archive-probe','invocation_key':'archive-probe'})
     agent=TargetFrameworkAgent(model,manager,review_model=model,review_available_tokens=14200,result_store=InMemoryStore(),registry=build_default_capability_registry('tenant-a'),system_prompt='Answer the supplied product documentation question using retrieved evidence. Preserve source conditions and uncertainty.',callbacks=(capture,))
     result=None;error=None
     try:result=await agent(context)

@@ -1,0 +1,103 @@
+{
+  "query": "weak understanding metrics",
+  "case_id": "1be66272113492407e814eaf21a761d4<::>3",
+  "history": [
+    "{\"role\": \"user\", \"text\": \"How can I compare the metrics for different periods?\"}",
+    "{\"role\": \"agent\", \"text\": \"To compare the metrics for different periods, you can use the Time period control to select the desired time frames. You can choose from predefined periods such as a single day, a week, a month, or a quarter, or create custom time periods. The data points on the graph will adjust to an appropriate measurement period for the selected time frame. For example, when viewing a graph for a day, the data is presented in hourly values, but when viewing a graph for a week, the data is shown by day. Additionally, you can use the Refresh data option to ensure the data is up-to-date.\"}",
+    "{\"role\": \"user\", \"text\": \"some example of alerts\"}",
+    "{\"role\": \"agent\", \"text\": \"Sure, here's an example of detail alerts: - Name: Enter a name for the alert (e.g., 'High CPU Usage'). - Description: Add a description for more context (optional). - Group: Specify the alert group (or use the default group). - Severity: Set the level of criticality (e.g., 'High', 'Medium', 'Low', or 'Info'). - Metric: Configure the metric you want to monitor (e.g., 'CPU usage'). - Scope: Configure the scope (e.g., specific resources, resource groups, or cloud accounts). - Trigger: Define the condition and threshold value that must be evaluated. For instance, you can set an alert to trigger when CPU usage exceeds 80% for at least 5 minutes. - Notification Channel: Enable 1 or more notification channels to receive alert notifications. Remember to save your alert settings after configuring them. For more information, refer to the document on configuring alerts: [Configuring an alert](https://cloud.ibm.com/docs/monitoring?topic=monitoring-alert-config).\"}"
+  ],
+  "source_sha256": "23a13c723f8a1d9ad7f665fb4a53236868960c61b72c683307f98b4cf95bf69f",
+  "data": {
+    "status": "OK",
+    "evidence_pack": {
+      "query": "|user|: Can you clarify what you mean by 'weak understanding metrics'?",
+      "index_manifest_fingerprint": "frozen-eval-fixture",
+      "items": [
+        {
+          "chunk_id": "mtrag:cloud:ibmcld_03363-4-2165",
+          "text": "\nThis documentation is for the classic Watson Assistant experience. To see the documentation for the new Watson Assistant, please go [here](https://cloud.ibm.com/docs/watson-assistant).\n\n\n\n Metrics overview \n\nThe overview page provides a summary of the interactions between users and your assistant.\n\nAnalytics help you to understand the following things:\n\n\n\n* What do customers want help with today?\n* Is your assistant understanding and addressing customer needs?\n* How can you make your assistant better?\n\n\n\nTo see metrics information, select Overview in the navigation bar. The information in Analytics is not immediately updated after a user interacts with your assistant. Watson Assistant prepares the data for Analytics in the background.\n\nAfter the numbers in metrics hit the 3,000 and above range, the totals are approximated to prevent performance lags in the page.\n\n\n\n Scorecards \n\nThe scorecards give you a quick view of your metrics. Scroll to see full interactive graphs later in the page.\n\n![Shows the scorecards that are displayed at the start of the Analytics page](https://cloud.ibm.com/docs-content/v1/content/417db917d18067d9dcc4cf2612564a9a87c3ddc8/assistant/images/scorecard.png)\n\n\n\n* Total conversations: The total number of conversations between active users and your assistant that occur during the selected time period. The total conversations metric and the User conversations page only include conversations in which both the assistant and customer participate. Conversations that only have welcome messages from the assistant, or that only have user messages of zero length, are not included. This metric is not used for billing purposes. An exchange with a user is not considered a billable conversation until the customer submits a message.\n* Avg. msg. per conversation: The total messages received during the selected time period divided by the total conversations during the selected time period, as shown in the corresponding graph.\n* Max. conversations: The maximum number of conversations for a single data point within the selected time period.\n* Weak understanding: The number of individual messages with weak understanding.",
+          "title": "",
+          "source_ref": {
+            "source_id": "mtrag:cloud:ibmcld_03363-4-2165",
+            "source_revision": "2c618bb98db3c8526433e22d8a2f7320f10a7470",
+            "start_char": 0,
+            "end_char": 2162,
+            "source_type": "mtrag_official_passage",
+            "checksum": "34782f016a2d9461eee8044814755af971b6a994071056a029c9141b3f5ec833",
+            "scope": "public",
+            "applicability": {}
+          }
+        },
+        {
+          "chunk_id": "mtrag:cloud:ibmcld_03036-4322-6185",
+          "text": "\nper conversation: The total messages received during the selected time period divided by the total conversations during the selected time period, as shown in the corresponding graph.\n* Max. conversations: The maximum number of conversations for a single data point within the selected time period.\n* Weak understanding: The number of individual messages with weak understanding. These messages are not classified by an intent, and do not contain any known entities. Reviewing unrecognized messages can help you to identify potential dialog problems.\n\n\n\n\n\n\n\n Graphs and statistics \n\nDetailed graphs provide additional information. Click a data point on the graphs to see more detail.\n\n![Single data point](https://cloud.ibm.com/docs-content/v1/content/a2b18c153837bce00a5b4de496e4b4ca64bbf56e/assistant-data/images/oview-point.png)\n\n\n\n* Containment: Number of conversations in which the assistant is able to satisfy the customer's request without human intervention.\n\n\n\n* The volume graph shows the total number of conversations per day and how many of the conversations were contained and not contained.\n* The trend graph shows the percentage of daily conversations that were contained. This graph helps you to see if the assistant is getting better or worse at containing conversations over time.\n\n\n\n![Shows the two containment metrics for volume and trend](https://cloud.ibm.com/docs-content/v1/content/a2b18c153837bce00a5b4de496e4b4ca64bbf56e/assistant-data/images/containment-metric.png)\n\nThe containment metric requires that your dialog flag requests for external support when they occur. For more information, see [Measuring containment](https://cloud.ibm.com/docs/assistant-data?topic=assistant-data-dialog-supportdialog-support-containment).\n* Coverage: Number of conversations in which the assistant is confident that it can address a customer's request.",
+          "title": "",
+          "source_ref": {
+            "source_id": "mtrag:cloud:ibmcld_03036-4322-6185",
+            "source_revision": "2c618bb98db3c8526433e22d8a2f7320f10a7470",
+            "start_char": 0,
+            "end_char": 1864,
+            "source_type": "mtrag_official_passage",
+            "checksum": "d8bbcd933d785e46303af6592afc744c43736593c27134bcd094cbc6037f4666",
+            "scope": "public",
+            "applicability": {}
+          }
+        },
+        {
+          "chunk_id": "mtrag:cloud:ibmcld_03363-1671-3630",
+          "text": "\nAn exchange with a user is not considered a billable conversation until the customer submits a message.\n* Avg. msg. per conversation: The total messages received during the selected time period divided by the total conversations during the selected time period, as shown in the corresponding graph.\n* Max. conversations: The maximum number of conversations for a single data point within the selected time period.\n* Weak understanding: The number of individual messages with weak understanding. These messages are not classified by an intent, and do not contain any known entities. Reviewing unrecognized messages can help you to identify potential dialog problems.\n\n\n\n\n\n\n\n Graphs and statistics \n\nDetailed graphs provide additional information. Click a data point on the graphs to see more detail.\n\n![Single data point](https://cloud.ibm.com/docs-content/v1/content/417db917d18067d9dcc4cf2612564a9a87c3ddc8/assistant/images/oview-point.png)\n\n\n\n* Containment: Number of conversations in which the assistant is able to satisfy the customer's request without human intervention.\n\n\n\n* The volume graph shows the total number of conversations per day and how many of the conversations were contained and not contained.\n* The trend graph shows the percentage of daily conversations that were contained. This graph helps you to see if the assistant is getting better or worse at containing conversations over time.\n\n\n\n![Shows the two containment metrics for volume and trend](https://cloud.ibm.com/docs-content/v1/content/417db917d18067d9dcc4cf2612564a9a87c3ddc8/assistant/images/containment-metric.png)\n\nThe containment metric requires that your dialog flag requests for external support when they occur. For more information, see [Measuring containment](https://cloud.ibm.com/docs/assistant?topic=assistant-dialog-supportdialog-support-containment).\n* Coverage: Number of conversations in which the assistant is confident that it can address a customer's request.",
+          "title": "",
+          "source_ref": {
+            "source_id": "mtrag:cloud:ibmcld_03363-1671-3630",
+            "source_revision": "2c618bb98db3c8526433e22d8a2f7320f10a7470",
+            "start_char": 0,
+            "end_char": 1960,
+            "source_type": "mtrag_official_passage",
+            "checksum": "d0c28def2f0d6efed723ad11e40f0913e1ffce5125e095cbad634b58876d0632",
+            "scope": "public",
+            "applicability": {}
+          }
+        },
+        {
+          "chunk_id": "mtrag:cloud:ibmcld_13406-3429-5587",
+          "text": "\nThe service calculates the metrics at the requested interval, but it returns all metrics for the audio with the final transcription results.\n\n\n\nThe service also returns processing metrics for transcription events. If you request interim results with the WebSocket interface, you can receive metrics with greater frequency than the requested interval.\n\nTo receive processing metrics only for transcription events instead of at periodic intervals, set the processing interval to a large number. If the interval is larger than the duration of the audio, the service returns processing metrics only for transcription events.\n\n\n\n\n\n Understanding processing metrics \n\nThe service returns processing metrics for transcription events in the processing_metrics field of the SpeechRecognitionResults object. For metrics generated at periodic intervals, not with transcription events, the object contains only the processing_metrics field, as shown in the following example.\n\n{\n\"processing_metrics\": {\n\"processed_audio\": {\n\"received\": float,\n\"seen_by_engine\": float,\n\"transcription\": float,\n\"speaker_labels\": float\n},\n\"wall_clock_since_first_byte_received\": float,\n\"periodic\": boolean\n}\n}\n\nThe processing_metrics field includes a ProcessingMetrics object that has the following fields:\n\n\n\n* wall_clock_since_first_byte_received is the amount of real time in seconds that has passed since the service received the first byte of input audio. Values in this field are generally multiples of the specified metrics interval, with two differences:\n\n\n\n* Values might not reflect exact intervals such as 0.25, 0.5, and so on. Actual values might, for example, be 0.27, 0.52, and so on, depending on when the service receives and processes audio.\n* Values for transcription events are not related to the processing interval. The service returns event-driven results as they occur.\n\n\n\n* periodic indicates whether the metrics apply to a periodic interval or to a transcription event:\n\n\n\n* true means that the response was triggered by a processing interval. The information contains processing metrics only.\n* false means that the response was triggered by a transcription event.",
+          "title": "",
+          "source_ref": {
+            "source_id": "mtrag:cloud:ibmcld_13406-3429-5587",
+            "source_revision": "2c618bb98db3c8526433e22d8a2f7320f10a7470",
+            "start_char": 0,
+            "end_char": 2159,
+            "source_type": "mtrag_official_passage",
+            "checksum": "295b98be60564f687ddc8ee5a5f6245f7e1c486c141b383c21463d05250dd41e",
+            "scope": "public",
+            "applicability": {}
+          }
+        },
+        {
+          "chunk_id": "mtrag:cloud:ibmcld_13406-6795-8870",
+          "text": "\nThe metrics indicate the progress and complexity of the engine's processing:\n\n\n\n* seen_by_engine is audio that the service has read and passed to the engine at least once.\n* received - seen_by_engine is audio that has been buffered at the service but has not yet been seen or processed by the engine.\n* The relationship between the times is received >= seen_by_engine >= transcription >= speaker_labels.\n\n\n\nThe following relationships can also be helpful in understanding the results:\n\n\n\n* The values of the received and seen_by_engine fields are greater than the values of the transcription and speaker_labels fields during speech recognition processing. The service must receive the audio before it can begin to process results.\n* The values of the received and seen_by_engine fields are identical when the service has finished processing the audio. The final values of the fields can be greater than the values of the transcription and speaker_labels fields by a fractional number of seconds.\n* The value of the speaker_labels field typically trails the value of the transcription field during speech recognition processing. The values of the transcription and speaker_labels fields are identical when the service has finished processing the audio.\n\n\n\n\n\n\n\n Processing metrics example: WebSocket interface \n\nThe following example shows the start message that is passed for a request to the WebSocket interface. The request enables processing metrics and sets the processing metrics interval to 0.25 seconds. It also sets the interim_results and speaker_labels parameters to true. The audio contains the simple message \"hello world long pause stop.\"\n\nfunction onOpen(evt) {\nvar message = {\naction: 'start',\ncontent-type: 'audio/flac',\nprocessing_metrics: true,\nprocessing_metrics_interval: 0.25,\ninterim_results: true,\nspeaker_labels: true\n};\nwebsocket.send(JSON.stringify(message));\nwebsocket.send(blob);\n}\n\nThe following example output shows the first few processing metrics results that the service returns for the request.\n\n{\n\"processing_metrics\": {\n\"processed_audio\": {",
+          "title": "",
+          "source_ref": {
+            "source_id": "mtrag:cloud:ibmcld_13406-6795-8870",
+            "source_revision": "2c618bb98db3c8526433e22d8a2f7320f10a7470",
+            "start_char": 0,
+            "end_char": 2076,
+            "source_type": "mtrag_official_passage",
+            "checksum": "4e86097ebc78bc73abc07c85981c4daeff3d0a6145fa758e35daddc7be5da417",
+            "scope": "public",
+            "applicability": {}
+          }
+        }
+      ]
+    }
+  },
+  "source_files": {
+    "infrastructure/target_framework_agent.py": "7f6f3c4d96305c05ef515835c026ba3747d683ef9b758b02e42e7269a5047cab",
+    "infrastructure/target_context_compaction.py": "caeab9858e7058d25090d9c1f99b7315c6fb9b7aa670796d680f4b978e5d8e96",
+    "infrastructure/target_result_archive.py": "bff92432dca51ad2de809fdf833954db6094f48f3b59725df375e87c91af46b4",
+    "infrastructure/target_domain_outcome.py": "839aa2d034a1abda12f851999187bc0af242f89aff41d7ee7fc32f5ebadeb2f7",
+    "infrastructure/target_agent_middleware.py": "63bcb5801b3371e3d3a618355f9f3aca7ca385158d72b8b371fe3ebf491c8f38",
+    "core/structured_model.py": "b18283c824b7536c6ca0b9b841004ff1029ededc8c86c6dbdd7ed36bf247c5af"
+  }
+}

@@ -272,3 +272,7 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - R05导航Flash复测预注册：复用steps8同fixture/query/system/model，max_steps8、Flash NONE1200输出、总API上限9；仅已提交导航schema/归档pointer变化，source hash对照留痕。记录search/read的evidence_id与页、实际输入、终态、答案支持/引用；旧5次失败为开发基线，单例成功不作泛化。生产步数/工具阈值不变。
 
 - R05导航Flash复测完成：同8步领域任务由TERMINAL_FAILURE→SUCCEEDED，模型5→5/search5→3/read2→5，正文4000→8934字、输入token13564→26743、输出673→1294；不称降本或全链准确率。五条证据页均实际进入模型请求，核心非英语答案有来源；部分日志只读首段，未要求全包。11项检查通过，新API5。只有导航两文件源hash变化；固定fixture/已消费单例，泛化未验。见evidence-navigation-flash报告。下一项不同任务导航/预算泛化，其他公共集与RAG缺口保持开放。
+
+- R05不同任务预注册：既有Cloud弱理解1be662与预标注ddbbbe两题，原reference.input历史及末轮问题，冻结.75 pack；各8步/9API上限，总18。真实领域Agent导航，无新检索/改写；这些是已消费开发题上的新归档轨迹，不叫新鲜数据验收。统计终态、读取原文可见及答案依据，失败保留，不调prompt。
+
+- R05不同任务完成：弱理解4次Flash/1search/5read→SUCCEEDED，定义及classic范围受来源支持；预标注3次/2search/5read后申请两尾页，触发9/8工具限制无答案。10页原文/来源实际模型可见，3项累计轨迹审计通过。新API7；未做这两题旧分页配对、不报成功率提升。预标注继续读取是有理由补条件，不能当无效补搜。下一项零API目录参数/页预算核对，不直接增加步数，其他集和RAG缺口开放。见navigation-additional2报告。

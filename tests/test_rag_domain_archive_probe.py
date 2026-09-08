@@ -46,3 +46,22 @@ def test_navigation_probe_delivers_selected_evidence_and_completes_same_budget()
         assert page['text']==e['text'][page['offset']:page['next_offset']]
         assert any(page['text'] in set(strings(c['request'])) for c in calls)
     assert result['result']['candidate_response']
+
+def test_two_additional_navigation_tasks_keep_history_and_exact_pages():
+    from application.knowledge_tool_contract import model_evidence
+    base=Path('artifacts/eval')
+    for kind,expected_calls,expected_status in [('weak',4,'SUCCEEDED'),('preannotation',3,'TERMINAL_FAILURE')]:
+        p=base/f'rag-g4-domain-nav-{kind}-2026-09-08'
+        fixture=json.loads((p/'fixture.json').read_text());result=json.loads((p/'result.json').read_text())
+        calls=json.loads(gzip.decompress((p/'calls.json.gz').read_bytes()))
+        evidence={e['evidence_id']:e for e in model_evidence(fixture['data'])['evidence']}
+        assert fixture['history'] and result['max_steps']==8
+        assert result['api_calls']==len(calls)==expected_calls
+        assert result['result']['status']==expected_status
+        pages=[json.loads(m['data']['content']) for m in result['result']['working_messages'] if m['type']=='tool' and m['data'].get('name')=='read_tool_result']
+        assert len(pages)==5
+        for page in pages:
+            e=evidence[page['evidence_id']]
+            assert page['source']==e['source']
+            assert page['text']==e['text'][page['offset']:page['next_offset']]
+            assert any(page['text'] in set(strings(c['request'])) for c in calls)
