@@ -1,0 +1,41 @@
+{
+  "cases": 2,
+  "api_calls": 8,
+  "latency_p50_ms": 8104.030987247825,
+  "runtime_verified": 2,
+  "evidence_source_exact": 2,
+  "packed_required_quotes_visible": 2,
+  "model_view_required_quotes_visible": 2,
+  "visible_citations_valid": 2,
+  "citation_applicable": 2,
+  "citation_format_valid": 2,
+  "limits": "Synthetic development cases; required quote checks are not benchmark Recall/nDCG or semantic accuracy. Model view uses saved output_for_model when present, otherwise replayed serialization; no claim about later provider input coverage.",
+  "rows": [
+    {
+      "case_id": "opened-negation",
+      "runtime_verified": true,
+      "evidence_source_exact": true,
+      "packed_required_quotes_visible": true,
+      "model_view_required_quotes_visible": true,
+      "citation_applicable": true,
+      "citation_format_valid": true,
+      "visible_citations_valid": true,
+      "api_calls": 4,
+      "latency_ms": 8813.771720975637,
+      "answer": "很抱歉，根据规定，已拆封的耳机如果不是因质量问题，是不适用七天无理由退货的 [E9168463a30fd]。只有未拆封的耳机在签收后七日内才可以申请无理由退货 [E9168463a30fd][E0079e2da2054]。\n\n如果您是因为商品质量问题想退货，需要提交检测材料进行专项审核 [E9168463a30fd]。请问您的耳机是遇到了什么具体问题吗？"
+    },
+    {
+      "case_id": "historical-policy",
+      "runtime_verified": true,
+      "evidence_source_exact": true,
+      "packed_required_quotes_visible": true,
+      "model_view_required_quotes_visible": true,
+      "citation_applicable": true,
+      "citation_format_valid": true,
+      "visible_citations_valid": true,
+      "api_calls": 4,
+      "latency_ms": 7394.290253520012,
+      "answer": "按2026年3月1日适用的规则，普通质量退货的标准寄回运费报销上限为**十二元**。[Ea500e158fedb] 需注意，报销仅适用于确认属于商品质量问题、且按平台指定方式寄回的标准运费；加急运费不在报销范围内。[E0584df3c2a04]"
+    }
+  ]
+}

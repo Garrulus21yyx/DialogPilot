@@ -295,3 +295,7 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - R05工具批次准入实现（整体仍开放）：ToolResultPersistence只保存完整原文/artifact并返回完整正文；ContextCompaction在已知整个批次、固定任务和overhead后，仅在受保护后缀确实超预算时把已归档大结果换为可读指针，保留最新tool调用/结果配对和最终预算错误。未截断证据句子。更新所有构造调用、stateful输出预算fixture及当前重放脚本，旧报告保持历史口径。45项相关测试通过、5项PG测试未跑；stateful工具输出fixture四断言通过。96视图安全检查零拦截、持久化后96份完整内联且可恢复（仅这一边界，不代表全链）。API0。历史verified_facts注入的固定比例归档仍待共同修复，实际模型答案未复测，因此不关闭预算根因项；最新未验证分页参数改动不计入本次交付。
 
 - R05历史事实准入实现：移除verified_facts单条available//5归档；先构造完整任务，计入实际system/tools开销，再按总预算决定是否将事实换为可恢复指针。原Fact内容/来源不变；原有历史裁剪仍由ContextBudgetManager负责，工作消息由ContextCompaction负责。不可缩减任务仍抛ModelContextBudgetExceeded，归档失败沿既有typed路径处理。48项相关测试通过、5项PG未跑；首次新增fixture未使用canonical JSON导致3项失败，修正fixture后通过。新增API0。两处提前归档实现已处理，但尚未以新鲜模型轨迹验证最终质量，整体R05/RAG仍开放。下一项真实统一入口小批验收的输入冻结与链路记录，不恢复单例翻页付费调试。
+
+- R01/R05/R06真实入口烟测预注册：先复用已消费中文电商opened-negation/historical-policy两条开发回归，当前HEAD f44e603工作区源码SHA留档，独立测试数据库。使用run_rag_tool_calibration的full-chain路径，真实Conversation Agent/PG历史/知识handler/本地BGE-M3检索/listwise Flash精排/生成核验发布；不固定query或候选。当前默认.25/.75、每路20/最终20/pack5/2600不变；Flash NONE，总API硬上限12，SDK重试0，首次终态不盲重试。仅校验入口接线、实际查询与来源/条件/回答；这两题原来已能完成，不能用它们证明归档修复收益。预算问题的长证据真实入口覆盖仍需后续案例，不回到固定pack单例翻页。报告完成和核验状态与独立答案支持分列，失败保留；API不做权重扫参。
+
+- 真实入口两题烟测完成：8次Flash（每题4），两题Completed/verified，原文位置及引用审计均通过；历史政策十二元与拆封非质量不适用结论获测试政策支持。保存实际请求回查两题各5片段均在捕获请求逐字出现。拆封题末尾重复追问商品问题，属于已知否定后的冗余追问，单列质量问题；不能把verified=2说成全面正确率。真实query由Agent产生，首题省略显式“非质量”但查询无理由条件并取到对应政策，不按词缺失直接判检索失败。仅已消费中文模拟2题，没有隔离证明预算修复收益，不报Recall/nDCG或提升。独立测试库运行正常终止，产物rag-current-entry2-2026-09-08，输入/源码hash及运行脚本保存；下一项扩大开发入口案例覆盖长证据和多条件，预算预注册后执行，不针对本题追加付费prompt调参。
