@@ -64,12 +64,7 @@ async def resolved_working_messages(context, archive):
                                   if fact.requirement_id in action.requirement_ids]}
                     break
         elif pending.status is AgentResultStatus.NEEDS_USER_INPUT:
-            rejected = json.loads(context.trusted_context.get("rejected_inputs") or "{}")
-            if origin in rejected:
-                resolution = {"status": "REJECTED", "source_kind": "INTERNAL_REVIEW",
-                    "reason": rejected[origin], "published": False, "approval_granted": False,
-                    "next_step": "Reconsider the missing-input request using existing evidence. No user answered this question."}
-            elif context.trusted_context.get("resolved_input_signal"):
+            if context.trusted_context.get("resolved_input_signal"):
                 resolution = {"status": "ANSWERED", "reply": context.current_message,
                               "source_kind": "USER_ASSERTED", "approval_granted": False,
                               "signal_id": context.trusted_context["resolved_input_signal"]}
@@ -78,7 +73,7 @@ async def resolved_working_messages(context, archive):
                 "content": json.dumps(resolution, ensure_ascii=False),
                 "artifact": {"schema": "resolved-interaction-v1", "resolution": resolution,
                              "original_reference": artifact.get("reference")},
-                "status": "error" if resolution["status"] == "REJECTED" else "success",
+                "status": "success",
             })
     return messages
 

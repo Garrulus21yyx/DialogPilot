@@ -478,22 +478,6 @@ class TargetConversationManager:
     def supports_resume(self) -> bool:
         return self._orchestration.supports_resume
 
-    def prepare_interaction_repair(self, prepared, managed, assembled):
-        """An unpublished rejected question is internal feedback, not user input."""
-        from application.work_recovery import repair_input_plan
-        progress = managed.state_transitions[:managed.progress_transition_count]
-        prepared = replace(prepared, state=progress[-1] if progress else prepared.state,
-                           state_transitions=progress)
-        plan, revised = repair_input_plan(prepared, managed, assembled.rejected_input_work_items,
-            registry=self._registry, policy=self._route_policy, compiler=self._compiler)
-        state = prepared.state.accept_work_items(revised,
-            invocation_key=str(prepared.invocation.invocation_key))
-        return replace(prepared, state=state, plan=plan,
-            resume_thread_id=managed.checkpoint_thread_id,
-            state_transitions=(*prepared.state_transitions, state),
-            execution_context={**prepared.execution_context, "rejected_inputs": json.dumps({
-                item: assembled.interaction_feedback for item in assembled.rejected_input_work_items})})
-
     async def commit_progress(self, result: ManagedTurnResult) -> None:
         """Execution facts and prepared actions do not depend on reply quality."""
         self._commit_states(result.state_before,

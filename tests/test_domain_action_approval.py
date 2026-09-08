@@ -305,9 +305,7 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                         assert next(s for s in current.workstreams if s.workstream_id == pending.workstream_id).status is WorkstreamStatus.COMPLETED
                         assert board.results[0].action_receipts[0].receipt_id == "cancel-receipt"
                         return AssembledResponse("", ResponseAssemblyMode.TEMPLATE, (), False,
-                            "REJECT", "INVALID_INTERACTION", rejected_input_work_items=tuple(
-                                s.target_work_item_id for s in requested_inputs),
-                            interaction_feedback="The action already completed; no user choice remains.")
+                            "REJECT", "INCOMPLETE")
                 checkpoints = InMemorySaver(serde=target_checkpoint_serializer())
                 for _ in range(2):
                     runtime = TurnRuntime(manager, RejectInput(), checkpointer=checkpoints)
@@ -315,7 +313,7 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                         await runtime.execute(_identity("approve"), TurnObservations(
                             "", approval_decision=True, approval_id=pending.approval_id))
                 assert len([call for call in calls if isinstance(call, tuple)]) == 1
-                assert model.calls == 4  # Two invalid questions, no endless repair on restart.
+                assert model.calls == 3  # Reply rejection never dispatches the domain again.
                 return
             from application.turn_runtime import TurnRuntime
             from application.response_assembly import ResponseAssembler

@@ -152,7 +152,7 @@ def test_only_consumed_input_signal_completes_user_tool_without_approval(bound):
 
 
 @pytest.mark.parametrize("old_signal", [False, True])
-def test_internal_input_rejection_is_never_projected_as_user_answer(old_signal):
+def test_obsolete_reviewer_metadata_cannot_control_interaction_projection(old_signal):
     async def run():
         from application.work_item import WorkControlBinding
         _, context, _, _ = domain([])
@@ -167,10 +167,12 @@ def test_internal_input_rejection_is_never_projected_as_user_answer(old_signal):
                 "resolved_input_signal": "prior-answer" if old_signal else ""})
         archive = TargetResultArchive(InMemoryStore())
         projected = await resolved_working_messages(context, archive)
-        value = json.loads(projected[0].content)
-        assert value["status"] == "REJECTED" and value["source_kind"] == "INTERNAL_REVIEW"
-        assert not value["approval_granted"] and not value["published"]
-        assert "reply" not in value and "signal_id" not in value
+        if old_signal:
+            value = json.loads(projected[0].content)
+            assert value["status"] == "ANSWERED" and value["source_kind"] == "USER_ASSERTED"
+            assert not value["approval_granted"]
+        else:
+            assert projected == [message]
         assert projected[0].tool_call_id == message.tool_call_id
         assert message.content == "Proceed?"
         assert await resolved_working_messages(replace(context,

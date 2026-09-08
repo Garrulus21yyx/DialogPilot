@@ -47,7 +47,6 @@ class TurnGraphState(TypedDict, total=False):
     prepared: PreparedTurn
     managed: ManagedTurnResult
     assembled: AssembledResponse | None
-    interaction_repairs: int
 
 
 @dataclass(frozen=True)
@@ -59,7 +58,7 @@ class TurnRuntimeResult:
 class TurnRuntime:
     """Coordinate durable turn phases without owning their domain semantics."""
 
-    version = "turn-runtime-v4"
+    version = "turn-runtime-v5"
 
     def __init__(
         self,
@@ -84,15 +83,11 @@ class TurnRuntime:
         builder.add_node("commit_turn_state", self._commit_turn_state)
         builder.add_node("commit_progress", self._commit_progress)
         builder.add_node("assemble_response", self._assemble_response)
-        builder.add_node("repair_interaction", self._repair_interaction)
         builder.add_edge(START, "prepare_turn")
         builder.add_edge("prepare_turn", "execute_work_plan")
         builder.add_edge("execute_work_plan", "commit_progress")
         builder.add_edge("commit_progress", "assemble_response")
-        builder.add_conditional_edges("assemble_response", lambda state:
-            "repair_interaction" if state.get("assembled") and state["assembled"].rejected_input_work_items
-            else "commit_turn_state", ["repair_interaction", "commit_turn_state"])
-        builder.add_edge("repair_interaction", "execute_work_plan")
+        builder.add_edge("assemble_response", "commit_turn_state")
         builder.add_edge("commit_turn_state", END)
         return builder.compile(checkpointer=self._checkpointer)
 
@@ -113,12 +108,6 @@ class TurnRuntime:
     async def _commit_progress(self, state: TurnGraphState):
         await self._manager.commit_progress(state["managed"])
         return {}
-
-    async def _repair_interaction(self, state: TurnGraphState):
-        return {"prepared": self._manager.prepare_interaction_repair(
-                    state["prepared"], state["managed"], state["assembled"]),
-                "interaction_repairs": state.get("interaction_repairs", 0) + 1,
-                "assembled": None}
 
     @property
     def supports_resume(self) -> bool:
@@ -192,9 +181,6 @@ class TurnRuntime:
             requested_inputs=questions,
         )
         if questions and not assembled.verified:
-            if (assembled.rejected_input_work_items and state.get("interaction_repairs", 0) < 1
-                    and self._manager.supports_resume):
-                return {"assembled": assembled}
             raise InteractionAssemblyUnavailable(
                 retryable=assembled.retryable and self._checkpointer is not None,
                 reason=assembled.verification_reason, diagnostics=assembled.diagnostics)

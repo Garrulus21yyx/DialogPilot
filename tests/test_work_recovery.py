@@ -64,7 +64,7 @@ def _setup(worker, *, provider=None, store=None, checkpointer=None):
 
 @pytest.mark.parametrize("reject_again", [False, True])
 @pytest.mark.parametrize("backend", ["memory", "postgres"])
-def test_unpublished_input_repair_preserves_other_results_and_has_durable_budget(reject_again, backend, request):
+def test_reply_rejection_never_reexecutes_work_and_can_resume_assembly(reject_again, backend, request):
     from hashlib import sha256
     from application.response_assembly import AssembledResponse, ResponseAssemblyMode
     from application.turn_runtime import TurnRuntime, InteractionAssemblyUnavailable
@@ -78,16 +78,11 @@ def test_unpublished_input_repair_preserves_other_results_and_has_durable_budget
         async def worker(context):
             item = context.work_item
             calls.append(item.owner_agent)
-            if item.continuation_of:
-                feedback = json.loads(context.trusted_context["rejected_inputs"])
-                assert item.continuation_of in feedback
-                assert not context.trusted_context.get("resolved_input_signal")
-                assert not context.trusted_context.get("approval_binding")
-                assert fact in context.verified_facts
-            if item.owner_agent == "product_technical" and (not item.continuation_of or reject_again):
+            assert not item.continuation_of
+            if item.owner_agent == "product_technical":
                 return AgentResult(item.work_item_id, item.owner_agent, AgentResultStatus.NEEDS_USER_INPUT,
                     "INPUT", "test", missing_inputs=(MissingInputSpec("reply", item.work_item_id,
-                        "INPUT", "string", "May I perform the already requested lookup?"),))
+                        "INPUT", "string", "Which product do you mean?"),))
             return AgentResult(item.work_item_id, item.owner_agent, AgentResultStatus.SUCCEEDED,
                 "DONE", "test", candidate_response="Found",
                 facts=(fact,) if item.owner_agent == "order_logistics" else ())
@@ -97,42 +92,43 @@ def test_unpublished_input_repair_preserves_other_results_and_has_durable_budget
         identity = _identity(f"internal-repair-{uuid4().hex}")
         class Assembler:
             fallback_locale = "en"
+            calls = 0
             async def assemble(self, board, *, requested_inputs, **kwargs):
+                self.calls += 1
                 stored = store.load(identity.tenant_id, identity.user_id, identity.conversation_id)
                 assert stored.pending_interaction is None  # Never publish an invalid wait.
                 assert stored.pending_approval is None
-                if requested_inputs:
+                assert requested_inputs
+                if self.calls == 1 or reject_again:
                     return AssembledResponse("", ResponseAssemblyMode.TEMPLATE, (), False,
-                        "REJECT", "INVALID_INTERACTION",
-                        rejected_input_work_items=tuple(s.target_work_item_id for s in requested_inputs),
-                        interaction_feedback="The lookup is already requested; no missing choice exists.")
+                        "REJECT", "INCOMPLETE")
                 return AssembledResponse("Found", ResponseAssemblyMode.TEMPLATE, (), False,
                     "PASS", "VALID", verified_text_sha256=sha256(b"Found").hexdigest())
 
         checkpoints = saver or InMemorySaver(serde=target_checkpoint_serializer())
-        runtime = TurnRuntime(manager=manager, response_assembler=Assembler(), checkpointer=checkpoints)
+        assembler = Assembler()
+        runtime = TurnRuntime(manager=manager, response_assembler=assembler, checkpointer=checkpoints)
         observations = TurnObservations("Find the product and read my order")
+        with pytest.raises(InteractionAssemblyUnavailable):
+            await runtime.execute(identity, observations)
+        reopened = TurnRuntime(manager=manager, response_assembler=assembler, checkpointer=checkpoints)
         if reject_again:
-            with pytest.raises(InteractionAssemblyUnavailable):
-                await runtime.execute(identity, observations)
-            reopened = TurnRuntime(manager=manager, response_assembler=Assembler(), checkpointer=checkpoints)
             with pytest.raises(InteractionAssemblyUnavailable):
                 await reopened.execute(identity, observations)
         else:
-            result = await runtime.execute(identity, observations)
-            assert all(r.status is AgentResultStatus.SUCCEEDED for r in result.managed.board.results)
-            assert result.managed.state_after.pending_interaction is None
-            await runtime.execute(identity, observations)  # Completed graph replay is side-effect free.
-        assert calls.count("product_technical") == 2
+            result = await reopened.execute(identity, observations)
+            assert result.managed.state_after.pending_interaction is not None
+            await reopened.execute(identity, observations)  # Completed graph replay is side-effect free.
+        assert calls.count("product_technical") == 1
         assert calls.count("order_logistics") == 1
-        assert store.load(identity.tenant_id, identity.user_id, identity.conversation_id).pending_interaction is None
+        assert (store.load(identity.tenant_id, identity.user_id, identity.conversation_id).pending_interaction is None) is reject_again
     if backend == "memory":
         asyncio.run(run())
     else:
         from infrastructure.langgraph_checkpoint import AsyncPostgresCheckpointOwner
         from infrastructure.postgres import PostgresPool, PostgresPoolConfig, PostgresMigrationRunner
         from infrastructure.postgres_target_runtime import PostgresConversationStateStore
-        url = request.getfixturevalue("postgres_database_url")
+        url = request.getfixturevalue("fresh_postgres_database_url")
         async def persisted():
             PostgresMigrationRunner(url).upgrade()
             pool = PostgresPool(PostgresPoolConfig(url, min_size=1, max_size=3))
@@ -269,7 +265,8 @@ def test_recovery_decision_algebra_rejects_missing_duplicate_or_unauthorized_tar
         recovery_questions({"decisions": decisions}, (SimpleNamespace(work_item_id="work"),))
 
 
-def test_recovery_question_is_published_and_resumes_after_postgres_reopen(postgres_database_url):
+def test_recovery_question_is_published_and_resumes_after_postgres_reopen(fresh_postgres_database_url):
+    postgres_database_url = fresh_postgres_database_url
     from application.chat_contracts import ChatCommand, NeedsInput, Completed
     from application.target_chat_application import TargetChatApplication
     from application.turn_runtime import TurnRuntime

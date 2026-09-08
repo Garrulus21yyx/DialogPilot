@@ -418,3 +418,21 @@ def test_loaded_context_survives_assembly_retry_without_reloading():
     asyncio.run(runtime.execute(_identity(), TurnObservations('不是，查订单 DP1234')))
     assert provider.calls == 1
     assert assembler.contexts == [conversation_context_payload(context)] * 2
+
+
+@pytest.mark.parametrize("legacy_fields", [
+    {"rejected_input_work_items": [], "interaction_feedback": ""},
+    {"rejected_input_work_items": ["work"], "interaction_feedback": "Retry domain"},
+])
+def test_old_reply_checkpoint_is_explicitly_rejected_not_silently_lost(legacy_fields):
+    import ormsgpack
+    from langgraph.checkpoint.serde.jsonplus import EXT_CONSTRUCTOR_KW_ARGS
+    from infrastructure.langgraph_checkpoint import TargetCheckpointContractError
+    fields = {"text": "Saved reply", "mode": "template", "evidence_refs": [],
+        "composer_used": False, "verification_status": "NOT_CHECKED",
+        "verification_reason": "legacy", **legacy_fields}
+    old = ormsgpack.Ext(EXT_CONSTRUCTOR_KW_ARGS, ormsgpack.packb(
+        ("application.response_assembly", "AssembledResponse", fields)))
+    payload = ("msgpack", ormsgpack.packb({"assembled": old}))
+    with pytest.raises(TargetCheckpointContractError, match="legacy response checkpoint"):
+        target_checkpoint_serializer().loads_typed(payload)

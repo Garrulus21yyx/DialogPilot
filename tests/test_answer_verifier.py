@@ -13,7 +13,6 @@ from evaluation.framework_capture import FrameworkCapture
 def run(verdict='SUPPORTED', need='ANSWERED', *, mutation=None, stop='tool_use', context=None, answer='当前状态未知。'):
     output={'supported': verdict == 'SUPPORTED', 'answered': need != 'MISSING',
             'approval_terms_complete': False,
-            'rejected_input_work_items': [],
             'issues': [] if verdict == 'SUPPORTED' and need != 'MISSING' else ['缺少状态证据或尚未回答问题']}
     if mutation: mutation(output)
     capture = FrameworkCapture(limit=1)
@@ -55,9 +54,10 @@ def test_truncated_checks_are_unknown():
     assert result.status is VerificationStatus.UNKNOWN and not result.publishable
 
 
-@pytest.mark.parametrize('pending,terms,supported,answered', itertools.product([False, True], repeat=4))
-def test_approval_readiness_is_part_of_the_single_verification_verdict(pending, terms, supported, answered):
-    result, requests = run(context={'pending_actions': [{'action': 'change'}] if pending else []},
+@pytest.mark.parametrize('pending,fields,terms,supported,answered', itertools.product([False, True], repeat=5))
+def test_approval_readiness_is_part_of_the_single_verification_verdict(pending, fields, terms, supported, answered):
+    result, requests = run(context={'pending_actions': [{'action': 'change'}] if pending else [],
+        'requested_inputs': [{'target_work_item_id': 'independent', 'question': 'Which color?'}] if fields else []},
         mutation=lambda o: o.update(supported=supported, answered=answered,
             approval_terms_complete=terms, issues=[] if supported and answered else ['Revise the answer']))
     assert result.publishable is (supported and answered and (not pending or terms))
@@ -67,9 +67,21 @@ def test_approval_readiness_is_part_of_the_single_verification_verdict(pending, 
     if isinstance(content, list):
         content = ''.join(block['text'] for block in content if block.get('type') == 'text')
     assert json.loads(content)['evidence']['approval_required'] is pending
+    system = requests[0]['system']
+    assert ('Current turn includes an accepted information request.' in system) is fields
+    assert ('Current turn: approve the prepared action.' in system) is pending
+    assert 'missing information, not execution approval' not in system
     if pending and not terms and supported and answered:
         assert result.reason_code is VerificationReasonCode.APPROVAL_REQUIRED
         assert result.assessment is not None
+
+
+def test_retained_approval_is_not_presented_again_when_answering_another_question():
+    result, requests = run(context={'pending_actions': [], 'requested_inputs': [],
+        'conversation_context': {'retained_approval': {'status': 'AWAITING_DECISION_NOT_EXECUTED'}}})
+    assert result.publishable
+    content = requests[0]['messages'][-1]['content']
+    assert not json.loads(content)['evidence']['approval_required']
 
 
 @pytest.mark.parametrize('invalid', [object(), float('nan'), {'bad': object()}])
@@ -90,7 +102,7 @@ def test_assessment_binds_final_answer_and_original_evidence():
 
 
 def test_honest_partial_answer_can_pass_without_completing_business():
-    output = {"supported": True, "answered": True, "approval_terms_complete": False, "issues": [], "rejected_input_work_items": []}
+    output = {"supported": True, "answered": True, "approval_terms_complete": False, "issues": []}
     verifier = AnswerVerifier(models(output, name="submit_claim_checks")[ModelRole.INTENT],
                               model_profile=ModelProfile("test"))
     result = asyncio.run(verifier.verify("查状态", "暂时无法查询状态。",

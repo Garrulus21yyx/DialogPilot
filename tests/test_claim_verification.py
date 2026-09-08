@@ -11,7 +11,7 @@ from tests.framework_structured_stub import models
 
 def fixture():
     return make_request("问", "当前状态未知。", {"status": "unknown", "version": 1}), {
-        "supported": True, "answered": True, "approval_terms_complete": False, "issues": [], "rejected_input_work_items": []}
+        "supported": True, "answered": True, "approval_terms_complete": False, "issues": []}
 
 
 @pytest.mark.parametrize("supported,answered,approval", itertools.product([False, True], repeat=3))
@@ -51,18 +51,16 @@ def test_binding_changes_with_each_authoritative_input():
         assert not result.matches(**changed)
 
 
-@pytest.mark.parametrize("rejected", [[], ["a"], ["b"], ["a", "b"]])
-def test_invalid_inputs_are_bound_to_current_request_and_do_not_grant_approval(rejected):
+@pytest.mark.parametrize("targets", [[], ["a"], ["b"], ["a", "b"]])
+def test_question_evidence_is_bound_without_granting_workflow_control(targets):
     request, output = fixture()
     request["evidence"]["context"] = {"requested_inputs": [
-        {"target_work_item_id": item} for item in ("a", "b")]}
-    output.update(answered=not rejected, issues=["No missing choice exists"] if rejected else [],
-                  rejected_input_work_items=rejected)
+        {"target_work_item_id": item} for item in targets]}
     result = assess(request, output)
-    assert result.rejected_input_work_items == tuple(rejected)
+    assert not hasattr(result, "rejected_input_work_items")
     assert not result.approval_terms_complete
     changed = copy.deepcopy(request)
-    changed["evidence"]["context"]["requested_inputs"].pop()
+    changed["evidence"]["context"]["requested_inputs"].append({"target_work_item_id": "new"})
     assert not result.matches(**changed)
 
 

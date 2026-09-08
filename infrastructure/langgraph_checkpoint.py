@@ -43,9 +43,11 @@ class TargetCheckpointSerializer(JsonPlusSerializer):
                                             option=ormsgpack.OPT_NON_STR_KEYS)
                 if (isinstance(decoded, (list, tuple)) and len(decoded) >= 3
                         and tuple(decoded[:2]) == ("application.response_assembly", "AssembledResponse")
-                        and isinstance(decoded[2], dict) and "used_claim_ids" in decoded[2]):
+                        and isinstance(decoded[2], dict) and {
+                            "used_claim_ids", "rejected_input_work_items", "interaction_feedback",
+                        }.intersection(decoded[2])):
                     contract_errors.append(TargetCheckpointContractError(
-                        "legacy segmented response checkpoint requires reply regeneration from retained execution results"))
+                        "legacy response checkpoint requires reply regeneration from retained execution results"))
                 if (isinstance(decoded, (list, tuple)) and len(decoded) >= 2
                         and decoded[:2] in (("application.entity_binding", "EntityBinding"),
                                             ["application.entity_binding", "EntityBinding"])):

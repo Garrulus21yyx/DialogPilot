@@ -42,21 +42,21 @@ def test_invalid_native_completion_remains_an_explicit_provider_failure(message)
 
 @pytest.mark.parametrize('has_input', [False, True])
 @pytest.mark.parametrize('terms_complete', [False, True])
-def test_persisted_proposal_is_evidence_not_automatic_approval_presentation(has_input, terms_complete):
+def test_selected_approval_presentation_is_independent_of_other_input(has_input, terms_complete):
     pending = PendingApprovalState('approval', 1, 'flow', 'action', 'order.cancel:v1', 'operation',
         'order:DP1234', '1', '2099-01-01T00:00:00+00:00')
     specs = (MissingInputSpec('reply', 'w', 'MISSING', 'string', 'Which option?'),) if has_input else ()
     board = _board(AgentResult('w', 'retail', AgentResultStatus.NEEDS_USER_INPUT,
         'MISSING', 'test', missing_inputs=specs)) if has_input else _board(_verified_order_result())
-    composer = _Composer('Which option?' if has_input else 'Cancel DP1234; not executed. Shall I proceed?')
+    composer = _Composer('Cancel DP1234; not executed. Shall I proceed?' + (' Which option for the other task?' if has_input else ''))
     verifier = ApprovalVerifier('ANSWERED' if terms_complete else 'MISSING')
     answer = asyncio.run(ResponseAssembler(composer, knowledge_verifier=verifier).assemble(
         board, current_message='Continue', pending_approval=pending, requested_inputs=specs))
-    assert answer.verified is (has_input or terms_complete)
+    assert answer.verified is terms_complete
     evidence = json.loads(verifier.calls[0][1]['context'])
     assert evidence['pending_actions'][0]['effect_status'] == 'NOT_EXECUTED'
-    assert (_APPROVAL_DESCRIPTION_REQUIREMENT in composer.calls[0]['response_requirements']) is not has_input
-    assert bool(answer.approval_operation_key) is (not has_input and terms_complete)
+    assert _APPROVAL_DESCRIPTION_REQUIREMENT in composer.calls[0]['response_requirements']
+    assert bool(answer.approval_operation_key) is terms_complete
 
 
 def test_turn_runtime_does_not_drop_persisted_approval_while_asking_for_input():
@@ -70,12 +70,13 @@ def test_turn_runtime_does_not_drop_persisted_approval_while_asking_for_input():
     composer = _Composer('Which option?')
     runtime = TurnRuntime(NS(), ResponseAssembler(composer, knowledge_verifier=Verifier(True)))
     managed = NS(board=board, interaction_questions=(spec,),
-        state_before=NS(pending_interaction=None),
+        state_before=NS(pending_interaction=None, pending_approval=pending),
         state_after=NS(pending_interaction=NS(interaction_id='input', requested_fields=(spec,)), pending_approval=pending),
         plan=NS(route=NS(reason_code='CONTINUE')))
     result = asyncio.run(runtime._assemble_response({'managed': managed, 'observations': NS(raw_text='Wait'),
         'prepared': NS(context=TargetTurnContext())}))
-    assert composer.calls[0]['evidence']['pending_actions']
+    assert not composer.calls[0]['evidence']['pending_actions']
+    assert composer.calls[0]['conversation_context']['retained_approval']
     assert result['assembled'].verified
     assert result['assembled'].approval_operation_key == ''
 

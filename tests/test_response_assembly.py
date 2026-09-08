@@ -112,14 +112,13 @@ class _Composer:
 
 
 @pytest.mark.parametrize("invalid_input", [False, True])
-def test_verifier_separates_domain_reconsideration_from_reply_revision(invalid_input):
+def test_verifier_feedback_only_revises_reply_from_same_evidence(invalid_input):
     from application.agent_result import MissingInputSpec
     from services.answer_verifier import AnswerVerifier
     from core.model_policy import ModelProfile, ModelRole
     from tests.framework_structured_stub import models
     output = {"supported": True, "answered": False, "approval_terms_complete": False,
-        "issues": ["There is no missing choice" if invalid_input else "Ask only for the missing choice"],
-        "rejected_input_work_items": ["work"] if invalid_input else []}
+        "issues": ["There is no missing choice" if invalid_input else "Ask only for the missing choice"]}
     model = models(output, name="submit_claim_checks")[ModelRole.INTENT]
     composer = _Composer("May I proceed?")
     missing = (MissingInputSpec("reply", "work", "INPUT", "string", "May I proceed?"),)
@@ -129,10 +128,10 @@ def test_verifier_separates_domain_reconsideration_from_reply_revision(invalid_i
                 "INPUT", "test", missing_inputs=missing)),
             current_message="Please process my request", requested_inputs=missing))
     assert not result.verified
-    assert len(composer.calls) == (1 if invalid_input else 2)
-    assert result.rejected_input_work_items == (("work",) if invalid_input else ())
-    if invalid_input:
-        assert result.interaction_feedback and result.evidence_json
+    assert len(composer.calls) == 2
+    assert not hasattr(result, "rejected_input_work_items")
+    assert composer.calls[0]["evidence"] == composer.calls[1]["evidence"]
+    assert result.evidence_json
 
 
 @pytest.mark.parametrize("owner", ["general", "order_logistics", "billing_refund", "retail"])
