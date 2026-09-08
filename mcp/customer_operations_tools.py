@@ -4,9 +4,10 @@ from __future__ import annotations
 import asyncio
 from typing import Any, Dict, Optional, Tuple
 
-from mcp.tool_manager import Tool, ToolEffectReceipt, ToolEffectStatus, ToolRisk
+from mcp.tool_manager import Tool, ToolEffectReceipt, ToolEffectStatus, ToolRisk, ToolRejected
 from services.customer_operations import (
     CustomerOperationsService,
+    CustomerOperationError,
     RefundLookup,
     SecuritySeverity,
 )
@@ -14,6 +15,17 @@ from services.customer_operations import (
 
 def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, ...]:
     """构造订单、退款和安全事件工具；身份与审批只来自执行上下文。"""
+
+    def governed_write(handler):
+        async def execute(params, context):
+            try:
+                return await handler(params, context)
+            except CustomerOperationError as exc:
+                # These owner exceptions leave the transaction rolled back. Keep
+                # business rejection separate from transport uncertainty; a replay
+                # must not repeat a stale version or conflicting approved payload.
+                raise ToolRejected(str(exc), data={"reason_code": type(exc).__name__}) from exc
+        return execute
 
     def _user(context):
         if _trusted(context, "tenant_id") != service.tenant_id:
@@ -340,7 +352,7 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
                 "为已通过资格检查的订单提交幂等退款申请；高风险写操作，"
                 "必须携带资格结果中的订单版本并等待宿主审批"
             ),
-            handler=refund_create,
+            handler=governed_write(refund_create),
             schema={
                 "type": "object",
                 "properties": {
@@ -402,7 +414,7 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
             description=(
                 "取消仍处于已支付状态的订单；必须绑定最新订单版本并获得宿主确认"
             ),
-            handler=order_cancel,
+            handler=governed_write(order_cancel),
             schema={
                 "type": "object",
                 "properties": {
@@ -461,7 +473,7 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
                 "修改仍处于已支付状态的订单收货地址；"
                 "必须绑定最新订单版本并获得宿主确认"
             ),
-            handler=shipping_address_change,
+            handler=governed_write(shipping_address_change),
             schema={
                 "type": "object",
                 "properties": {
@@ -564,7 +576,7 @@ def customer_operation_tools(service: CustomerOperationsService) -> Tuple[Tool, 
             description=(
                 "冻结当前认证账户；必须绑定最新账户版本并获得宿主确认"
             ),
-            handler=account_freeze,
+            handler=governed_write(account_freeze),
             schema={
                 "type": "object",
                 "properties": {

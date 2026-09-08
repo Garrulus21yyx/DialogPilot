@@ -246,14 +246,7 @@ class WorkItem:
             "approval_binding": self.approval_binding,
             "target_entity_version": self.target_entity_version,
             "reconciliation": (
-                {
-                    "tool_id": self.reconciliation.tool_id,
-                    "requirement_id": self.reconciliation.requirement_id,
-                    "operation_key_argument": self.reconciliation.operation_key_argument,
-                    "operation_key_field": self.reconciliation.operation_key_field,
-                    "passthrough_arguments": self.reconciliation.passthrough_arguments,
-                    "receipt_id_field": self.reconciliation.receipt_id_field,
-                }
+                self.reconciliation.to_payload()
                 if self.reconciliation else None
             ),
             "aggregate_ref": self.aggregate_ref,
@@ -307,14 +300,7 @@ class WorkItem:
             "approval_binding": self.approval_binding,
             "target_entity_version": self.target_entity_version,
             "reconciliation": (
-                {
-                    "tool_id": self.reconciliation.tool_id,
-                    "requirement_id": self.reconciliation.requirement_id,
-                    "operation_key_argument": self.reconciliation.operation_key_argument,
-                    "operation_key_field": self.reconciliation.operation_key_field,
-                    "passthrough_arguments": self.reconciliation.passthrough_arguments,
-                    "receipt_id_field": self.reconciliation.receipt_id_field,
-                }
+                self.reconciliation.to_payload()
                 if self.reconciliation else None
             ),
             "aggregate_ref": self.aggregate_ref,

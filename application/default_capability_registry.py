@@ -6,6 +6,7 @@ from application.capability_registry import (
     ActionDefinition,
     ActionPreparationDefinition,
     ActionReconciliationDefinition,
+    WriteRecoveryPolicy,
     AgentDefinition,
     ApprovalPolicy,
     CapabilityEffect,
@@ -207,6 +208,7 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
                 "operation_key",
                 ("order_id",),
                 "refund_id",
+                WriteRecoveryPolicy("IDEMPOTENT_OPERATION"),
             ),
             profile.ref,
             ActionPreparationDefinition.create(
@@ -231,6 +233,7 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
                 "operation_key",
                 (),
                 "ticket_id",
+                WriteRecoveryPolicy("RECEIPT_ONLY"),
             ),
             profile.ref,
         ),
@@ -246,6 +249,7 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
                 "operation_key",
                 ("order_id",),
                 "cancellation_id",
+                WriteRecoveryPolicy("IDEMPOTENT_OPERATION"),
             ),
             profile.ref,
             ActionPreparationDefinition.create(
@@ -273,6 +277,7 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
                 "operation_key",
                 ("order_id", "new_address"),
                 "change_id",
+                WriteRecoveryPolicy("IDEMPOTENT_OPERATION"),
             ),
             profile.ref,
             ActionPreparationDefinition.create(
@@ -299,6 +304,7 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
                 "operation_key",
                 (),
                 "freeze_id",
+                WriteRecoveryPolicy("IDEMPOTENT_OPERATION"),
             ),
             profile.ref,
             ActionPreparationDefinition.create(

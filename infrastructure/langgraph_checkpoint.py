@@ -112,6 +112,7 @@ _TARGET_CHECKPOINT_TYPES = (
     ("application.capability_registry", "CapabilityRisk"),
     ("application.capability_registry", "ApprovalPolicy"),
     ("application.capability_registry", "ActionReconciliationDefinition"),
+    ("application.capability_registry", "WriteRecoveryPolicy"),
     ("application.agent_result", "AgentResultStatus"),
     ("application.agent_result", "FactSourceKind"),
     ("application.agent_result", "FactRecord"),

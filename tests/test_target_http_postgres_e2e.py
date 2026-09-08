@@ -621,12 +621,14 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                     "user-target-e2e",
                     unknown_conv,
                 )
-                assert unknown_state.workstreams[0].status.value == "RECONCILING"
-                assert unknown_state.workstreams[0].phase == "RECONCILE"
+                assert unknown_state.workstreams[0].status.value == "COMPLETED"
+                assert unknown_state.workstreams[0].phase == "COMPLETE"
+                # The approved invocation now reconciles automatically. Reconnect
+                # by repeating that request, without a second approval/operation.
                 refund_reconciled = await chat(
                     "refund-unknown",
-                    "查询刚才退款结果",
-                    request_suffix="reconcile",
+                    "确认提交退款",
+                    request_suffix="approval",
                     approval_id=unknown_signal,
                     approved=True,
                 )
@@ -673,7 +675,7 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                 202
                 if name in {
                     "refund-precheck", "refund-replay", "refund-decline",
-                    "refund-unknown-prepare", "refund-unknown",
+                    "refund-unknown-prepare",
                     "cancel-precheck",
                     "address-precheck",
                     "freeze-precheck",
@@ -753,7 +755,8 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
         assert "尚未提交" in refund_declined["response"]
         assert not any(name == "refund_request_create" and params.get("order_id") == "DP5678"
                        for name, params, *_ in tools.calls)
-        assert refund_unknown["outcome"] == "reconciling"
+        assert refund_unknown == refund_reconciled
+        assert refund_unknown["task_completed"]
         assert cancel_precheck["outcome"] == "needs_input"
         cancel_calls = [item for item in tools.calls if item[0] == "order_cancel"]
         assert len(cancel_calls) == 1

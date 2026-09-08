@@ -218,6 +218,23 @@ class ActionPreparationDefinition:
 
 
 @dataclass(frozen=True)
+class WriteRecoveryPolicy:
+    """Pinned owner guarantee and bounded recovery budget, never chosen by an LLM."""
+
+    mode: str = "RECEIPT_ONLY"
+    max_attempts: int = 3
+    delay_seconds: float = 1.0
+
+    def __post_init__(self):
+        if self.mode not in {"RECEIPT_ONLY", "IDEMPOTENT_OPERATION"}:
+            raise CapabilityRegistryError("unsupported write recovery mode")
+        if type(self.max_attempts) is not int or not 1 <= self.max_attempts <= 10:
+            raise CapabilityRegistryError("recovery attempts must be between 1 and 10")
+        if isinstance(self.delay_seconds, bool) or not 0 <= self.delay_seconds <= 5:
+            raise CapabilityRegistryError("recovery delay must be between 0 and 5 seconds")
+
+
+@dataclass(frozen=True)
 class ActionReconciliationDefinition:
     """Registry-owned read contract for resolving an unknown write outcome."""
 
@@ -227,8 +244,20 @@ class ActionReconciliationDefinition:
     operation_key_field: str
     passthrough_arguments: tuple[str, ...]
     receipt_id_field: str
+    recovery: WriteRecoveryPolicy | None = None
+
+    def to_payload(self):
+        payload = asdict(self)
+        # Preserve the fingerprint of historical receipt-only work. New policies
+        # enter both approval/checkpoint binding and operation identity explicitly.
+        if self.recovery is None:
+            del payload["recovery"]
+        return payload
 
     def __post_init__(self) -> None:
+        object.__setattr__(self, "passthrough_arguments", tuple(self.passthrough_arguments))
+        if self.recovery is not None and not isinstance(self.recovery, WriteRecoveryPolicy):
+            raise CapabilityRegistryError("recovery requires a typed owner policy")
         _required(
             self.tool_id,
             self.requirement_id,

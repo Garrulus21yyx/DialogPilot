@@ -922,6 +922,15 @@ class ConversationState:
             phase="RECONCILE",
         )
 
+    def mark_workstream_manual_review(self, workstream_id, *, expected_version):
+        current = self._workstream(workstream_id)
+        if current.state_version != expected_version:
+            raise ConversationStateConflict("workstream version changed")
+        if current.status is WorkstreamStatus.PAUSED and current.phase == "MANUAL_REVIEW":
+            return self
+        return self._transition_workstream(workstream_id, expected_version=expected_version,
+            status=WorkstreamStatus.PAUSED, phase="MANUAL_REVIEW")
+
     def transfer_to_human(self, receipt: ReceiptRef) -> "ConversationState":
         if receipt.requirement_id != "support.handoff_action":
             raise ConversationStateError("receipt does not prove a handoff")

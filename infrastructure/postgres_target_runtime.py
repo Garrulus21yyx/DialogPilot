@@ -17,6 +17,7 @@ from pydantic import TypeAdapter
 from application.agent_result import FactRecord, RequestedField
 from application.capability_registry import (
     ActionReconciliationDefinition,
+    WriteRecoveryPolicy,
     ApprovalPolicy,
     CapabilityEffect,
     CapabilityRisk,
@@ -460,14 +461,7 @@ def _work_item_to_payload(item: WorkItem) -> dict[str, object]:
             item.approval_policy.value if item.approval_policy else None
         ),
         "reconciliation": (
-            {
-                "tool_id": item.reconciliation.tool_id,
-                "requirement_id": item.reconciliation.requirement_id,
-                "operation_key_argument": item.reconciliation.operation_key_argument,
-                "operation_key_field": item.reconciliation.operation_key_field,
-                "passthrough_arguments": list(item.reconciliation.passthrough_arguments),
-                "receipt_id_field": item.reconciliation.receipt_id_field,
-            }
+            item.reconciliation.to_payload()
             if item.reconciliation else None
         ),
         "control": (
@@ -494,6 +488,8 @@ def _work_item_from_payload(raw: Mapping[str, object]) -> WorkItem:
                 "passthrough_arguments", (),
             )),
             str(reconciliation_raw["receipt_id_field"]),
+            (WriteRecoveryPolicy(**reconciliation_raw["recovery"])
+             if reconciliation_raw.get("recovery") is not None else None),
         )
         if isinstance(reconciliation_raw, Mapping) else None
     )
@@ -603,10 +599,19 @@ def operation_to_payload(record: OperationRecord) -> dict[str, object]:
         "receipt_schema_version": record.receipt_schema_version,
         "reason_code": record.reason_code,
         "facts": _OPERATION_FACTS.dump_python(record.facts, mode="json"),
+        "recovery_attempts": record.recovery_attempts,
+        "next_recovery_at": record.next_recovery_at,
+        "manual_ticket_id": record.manual_ticket_id,
+        "effect_status": record.effect_status.value,
+        "last_outcome": record.last_outcome.value if record.last_outcome else None,
+        "outcome_scope": record.outcome_scope,
+        "outcome_detail": record.outcome_detail,
+        "outcome_source_ref": record.outcome_source_ref,
     }
 
 
 def operation_from_payload(raw: Mapping[str, object]) -> OperationRecord:
+    from application.write_workflow import WriteOutcomeStatus
     payload = dict(raw)
     if payload.get("schema_version") != "target-write-operation-v1":
         raise WriteWorkflowError("unsupported write operation schema")
@@ -620,6 +625,15 @@ def operation_from_payload(raw: Mapping[str, object]) -> OperationRecord:
         str(payload.get("receipt_schema_version") or ""),
         str(payload.get("reason_code") or ""),
         _OPERATION_FACTS.validate_python(payload.get("facts", [])),
+        int(payload.get("recovery_attempts", 0)),
+        float(payload.get("next_recovery_at", 0)),
+        str(payload.get("manual_ticket_id", "")),
+        WriteOutcomeStatus(payload.get("effect_status",
+            "COMMITTED" if payload["status"] == "COMMITTED" else "OUTCOME_UNKNOWN")),
+        WriteOutcomeStatus(payload["last_outcome"]) if payload.get("last_outcome") else None,
+        str(payload.get("outcome_scope", "")),
+        str(payload.get("outcome_detail", "")),
+        str(payload.get("outcome_source_ref", "")),
     )
 
 
@@ -635,12 +649,8 @@ def _validate_state_successor(current, next_state) -> None:
 
 
 def _validate_operation_successor(current, next_record) -> None:
-    if current.operation_key != next_record.operation_key:
-        raise WriteWorkflowError("operation CAS keys differ")
-    if next_record.version != current.version + 1:
-        raise WriteWorkflowError("operation CAS must advance one version")
-    if current.work_item_fingerprint != next_record.work_item_fingerprint:
-        raise OperationConflict("operation binding cannot change")
+    from application.write_workflow import validate_operation_successor
+    validate_operation_successor(current, next_record)
 
 
 def _subject(connection, scope: ConversationScope, *, create: bool, lock: bool):

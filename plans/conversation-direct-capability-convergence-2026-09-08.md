@@ -451,4 +451,71 @@ operation reconciliation can settle prior uncertainty; a later attempt-local
 error cannot. Legacy records cannot recover lost details and must not invent them.
 Acceptance covers first rejection, unknown-then-rejection, authoritative operation
 results, exhausted recovery, late responses/CAS, restart and ticket replay. This
-remains open; no production recovery fields were changed in this inspection stage.
+remains open; no production recovery fields were changed in that inspection stage.
+
+### Effect-knowledge repair in progress
+
+The current working implementation carries detail/source from the tool adapter
+into WriteToolOutcome and persists effect knowledge separately from manual handling
+in OperationRecord. Attempt-local rejection after ambiguous execution does not
+settle the original operation; operation-scoped reconciliation can. Ticket content,
+execution feedback and fallback consume the recorded distinction. Legacy payloads
+retain unknown knowledge rather than reconstructing discarded errors.
+
+The new restart/codec/fallback tests cover first rejection, ambiguous replay
+rejection and authoritative reconciliation, plus two adapter error descriptions.
+Initial non-DB verification: 5 passed, 3 PostgreSQL cases skipped. A missing primary
+WorkItem ID in the new test fixture was corrected; no production change was made
+for that test error. PostgreSQL and exceptional-path verification remain pending.
+These edits overlap the user's existing business-recovery work and are not yet
+committed; unrelated work must not be staged with this repair. No new tau replay
+has run, and this does not establish semantic or full-task closure.
+
+Independent review identified the dispatch boundary as part of this same knowledge
+contract: a new dispatch must invalidate a previous NOT_COMMITTED conclusion in
+the EXECUTING CAS before I/O. Both initial/retry and recovery-replay reservations
+now set UNKNOWN while retaining the last observation as historical evidence.
+Cancellation-at-dispatch and 27 generated reconciliation histories exercise this.
+Legacy COMMITTED records retain their authoritative receipt-backed COMMITTED
+knowledge; only lossy non-success records default to UNKNOWN. Record validation
+rejects non-enum effects and contradictory committed states, and the shared ledger
+CAS rejects changes after committed termination.
+
+First PostgreSQL-enabled recovery/workflow/projection/registered-owner suite:
+146 passed, 2 skipped in 147.70 seconds. This run preceded the independent-review
+dispatch/legacy validation changes and therefore does not validate those changes.
+Subsequent non-DB effect/workflow/persistence suite: 75 passed, 54 skipped.
+A PostgreSQL rerun of those revised boundaries completed: 128 passed, 2 skipped
+in 80.38 seconds; both skips are database-scope isolation checks in the in-memory
+fixture, not missing PostgreSQL coverage. Independent fresh-context read-only
+review confirmed the dispatch/legacy/type/terminal fixes without another concrete
+blocker in that surface. Diff whitespace checks passed. Implementation remains
+uncommitted alongside overlapping user recovery changes; semantic task validation
+and coherent delivery remain open. Production
+reconciliation currently emits COMMITTED or UNKNOWN; injected operation-level
+REJECTED tests establish the port contract, not a new production query capability.
+
+### Coherent recovery delivery preparation
+
+Reviewed and staged the existing bounded-recovery implementation together with the
+effect-knowledge repair and its actual dependencies (Registry/WorkItem pinning,
+ledger/checkpoint codec, tool conversion, manual ticket, state/public projection,
+tests and reproduction script). Unrelated RAG, archive navigation, ACK additions
+and resume documentation edits remain outside this delivery.
+
+Exported index tree `1de3406bbd80a0e1bf57d46c95f4c95cb0f97be9` into a clean
+temporary snapshot. PostgreSQL effect/recovery/projection/registered-owner/workflow/
+persistence/HTTP suite: 169 passed, 2 in-memory-scope skips in 132.65 seconds.
+An additional approval gate exposed pre-existing stale test doubles: direct reply
+node calls lacked presentation_state, request_completed and route.missing_inputs.
+The graph supplies these fields; production TurnRuntime has no diff from HEAD.
+Updated only the test inputs, preserving their published/unpublished approval and
+pending-input assertions. No production default or approval rule was relaxed.
+The revised index tree `71e28a59df1f753d876e33e7867c2f12b0d4fc20` differs only in
+that test and the historical-evidence documentation; all tested production code
+is identical. Its non-DB architecture/tools/domain-approval/revision suite passed
+60, skipped 19 PostgreSQL cases; the subsequent PostgreSQL-enabled run passed
+all 79 tests in 33.10 seconds with no skips. Staged whitespace checks passed.
+
+This delivery closes neither real-model goal coupling nor repeated confirmation.
+The fixed10 and task19 failed trajectories remain unchanged, and Encoder stays off.

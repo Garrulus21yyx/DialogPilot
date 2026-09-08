@@ -762,6 +762,12 @@ class TargetConversationManager:
                 if next_state is not state:
                     transitions.append(next_state)
                 return next_state
+            if result is not None and result.reason_code == "WRITE_MANUAL_REVIEW_REQUIRED":
+                next_state = state.mark_workstream_manual_review(
+                    stream.workstream_id, expected_version=stream.state_version)
+                if next_state is not state:
+                    transitions.append(next_state)
+                return next_state
         if plan.transitions is None:
             return state
         results = {item.work_item_id: item for item in board.results}

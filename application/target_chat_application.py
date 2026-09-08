@@ -585,6 +585,13 @@ class TargetChatApplication:
                               "Final answer changed after evidence verification")
         reconciling = managed.board is not None and any(
             result.status is AgentResultStatus.RECONCILING for result in managed.board.all_results)
+        manual_reviews = [feedback for result in managed.board.all_results
+            if result.reason_code == "WRITE_MANUAL_REVIEW_REQUIRED"
+            for feedback in result.execution_feedback if feedback.get("stage") == "write_recovery"
+        ] if managed.board is not None else []
+        if manual_reviews:
+            public_response.update(manual_review_actions=manual_reviews,
+                recovery_status="MANUAL_REVIEW", task_completed=False)
         if reconciling:
             # A response can be committed while a remote effect remains unknown.
             # Persist the disposition with it so replay never invents completion.

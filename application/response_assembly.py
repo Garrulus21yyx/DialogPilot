@@ -539,6 +539,17 @@ def _render_board(board, *, locale="zh-CN", knowledge_safe=False) -> str:
             rendered.append(_message(locale, "此项结论依赖的资料存在冲突，暂时无法确认。",
                 "Conflicting evidence affects this result; its conclusion cannot yet be confirmed."))
         elif result.status not in _SUCCESS:
+            if result.reason_code == "WRITE_MANUAL_REVIEW_REQUIRED":
+                uncommitted = any(row.get("stage") == "write_recovery"
+                    and row.get("business_outcome") == "NOT_COMMITTED" for row in result.execution_feedback)
+                rendered.append(_message(locale,
+                    "请求未提交。自动处理已停止，需要人工核查。",
+                    "The request was not committed. Automatic processing has stopped and requires human review.")
+                    if uncommitted else _message(locale,
+                    "自动处理已停止，业务结果尚未确认，需要人工核实。",
+                    "Automatic processing has stopped. The business outcome is unconfirmed and requires human review."))
+                sections.append("\n".join(rendered))
+                continue
             label = (_OWNER_LABELS_EN.get(result.owner_agent, "This request") if locale == "en"
                      else _OWNER_LABELS.get(result.owner_agent, "此项请求"))
             rendered.append(label + (": " if locale == "en" else "：")

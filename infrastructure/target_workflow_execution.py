@@ -21,6 +21,7 @@ from application.write_workflow import (
 from application.work_control import WorkControlGuard
 from core.identity import ConversationId, TenantId, UserId
 from infrastructure.postgres_target_runtime import PostgresOperationLedger
+from infrastructure.postgres_write_recovery import PostgresWriteRecoveryReview
 from infrastructure.target_agent_result_adapter import fact_from_tool_result
 
 
@@ -59,6 +60,7 @@ class TargetWorkflowExecutor:
             reconciliation_port=_ToolReconciler(self._tools, context,
                 principal=self._registry.agent(item.owner_agent).execution_principal),
             approval_grants=grants,
+            manual_review=PostgresWriteRecoveryReview(self._pool, scope),
         )
         return await runtime(context)
 
@@ -198,8 +200,13 @@ class _ToolPort:
             )
         if str(result.effect_status).lower() == "not_committed":
             return WriteToolOutcome(
-                WriteOutcomeStatus.NOT_COMMITTED,
-                reason_code="TOOL_NOT_COMMITTED",
+                (WriteOutcomeStatus.REJECTED if str(result.status).lower() == "rejected"
+                 else WriteOutcomeStatus.NOT_COMMITTED),
+                reason_code=(str((result.data or {}).get("reason_code", "TOOL_REJECTED"))
+                    if str(result.status).lower() == "rejected" and isinstance(result.data, dict)
+                    else "TOOL_NOT_COMMITTED"),
+                detail=str(result.error or "") if str(result.status).lower() == "rejected" else "",
+                source_ref=str(result.call_id or operation_key),
             )
         return WriteToolOutcome(
             WriteOutcomeStatus.OUTCOME_UNKNOWN,
