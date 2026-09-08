@@ -104,3 +104,59 @@ reports the correct $5.08 charge. This is a successful path, not evidence that
 Task6's already-prepared-source revision is solved. Keep the different timing
 of scope change in the causal comparison. Existing asynchronous store teardown
 warnings remain visible and are not relabeled business failures without evidence.
+
+## Task8 — prior stale-goal witness now succeeds before proposal preparation
+
+ALL1/ENV1/ACTION1, final task_completed=true with committed action and completed
+domain outcomes. User25 withdraws the bottle; the lamp-only goal subsequently
+obtains payment choice and approval, then one exchange writes the correct lamp
+and $26.34 difference. Final response40 agrees with the receipt and explicitly
+leaves the bottle unchanged. This differs from Task6: the source being revised
+was a field wait, not a prepared action workstream that retirement invalidated.
+The earlier broad stale-objective witness is improved, while the prepared-source
+transition remains disproved. Assistant24's refusal to help choose a bottle is
+a dialogue-quality concern, not proof of unavailable tool capability.
+
+## Task10 — same binding/transition defect in a compound denial
+
+ERROR at turn3, before any return. Assistant first presents exactly orderW5490111
+and correctly marks W7387996 as later work. The user says "No, refund that one
+to my other payment method." RoutePolicy then raises the same stale-binding
+error. Unlike Task6's next-turn continuation, here semantic arguments were
+selected against the loaded pre-decision state, then Manager locally consumes
+the approval before final validation. A source version can change inside the
+same planned transition. The repair must account for both initial selection
+validation and retained accepted-argument provenance, not only continuation.
+This task also shows that single-proposal wording can be correct; Task4 cannot
+be explained merely by all conversations always showing two proposals.
+
+## Task11 — contradictory verification then an invalid planner continuation
+
+ERROR, no completed return. After the user requests reversed refund methods,
+the actor prepares the first return using the supported original payment method.
+The first candidate explains the policy and asks approval of that first prepared
+return. The verifier rejects it with contradictory reasons: it must request
+approval, but asking to proceed is redundant; it must also prepare the second
+return, although the pending action only covers the first. Revision broadens the
+question to both returns and is rejected again. The published fallback is only
+"This request: Awaiting approval; the action has not been completed."
+
+The frustrated next user asks why. Planning produces unchanged continuation of
+the still-undecided origin; StateBound correctly rejects execution without an
+approval decision, but the conversation ends as target_runtime_failed rather
+than an explanation. Distinguish the valid execution guard from the poor plan
+and prior contradictory verifier prompt. Do not remove authorization checking
+to make this task pass. The trace preserves both rejected candidates/verdicts,
+the fallback and final error. This is additional evidence of interaction-purpose
+and incremental-work acceptance ambiguity, not a refund-specific exception.
+
+## Task13 — corrected target succeeds, an unnecessary scope question remains
+
+ALL1/ENV1/ACTION1, final task_completed=true. Initial message12 again calls the
+keyboard non-gaming, but user13 explicitly excludes keyboard/mouse and chooses
+the original card if PayPal cannot be used. This correction is preserved; one
+return writes exactly4579334072/6117189161/4947717507 and the final reply agrees.
+Unlike v2 the wrong fourth item is not returned. Assistant14 still asks the user
+to reconfirm the already-explicit target set before actual proposal16; record
+this as avoidable dialogue, not a second committed operation. Successful official
+reward does not establish that unnecessary confirmation is eliminated.
