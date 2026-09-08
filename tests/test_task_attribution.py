@@ -134,6 +134,7 @@ def test_real_composition_wires_every_domain_to_sdk_and_diagnostics(postgres_dat
             registry=build_default_capability_registry("tenant-a"), enable_encoder=False, langfuse_sink=sink)
         try:
             assert runtime.orchestration._domain_workers
+            assert runtime.application._turn_runtime._assembler._registry is runtime.registry
             for worker in runtime.orchestration._domain_workers.values():
                 assert worker._callbacks and worker._trace_sink is sink
                 assert worker._model is next(model for profile, _, model in built if profile.model == "actor-test")

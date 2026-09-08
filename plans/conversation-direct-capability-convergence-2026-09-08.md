@@ -1133,3 +1133,27 @@ budget and result-priority changes found no new concrete issue. This is bounded
 runtime evidence with scripted semantic judgments, not model-quality closure or
 a live tau rerun. Policy-to-response transport remains the next implementation
 item; do not claim the coupled-action failure fully repaired.
+
+Active policy transport repair: ResponseAssembler receives the existing immutable
+capability Registry from runtime composition. Its evidence snapshot includes the
+same agent policy descriptions available to planning, bound to Registry version
+and fingerprint, separately from conversation history and observed business facts.
+Authoring, verification and the single wording repair consume that same snapshot.
+No extra policy retrieval/model call, no inferred task-specific precondition table.
+Tests must cover direct replies without a board, domain outcomes, wording repair,
+and evidence identity changing with policy version/content. This proves transport,
+not that a model reliably infers interacting state transitions from prose.
+
+Policy transport implemented in ResponseAssembler v11; runtime composition injects
+the same augmented Registry used by execution/planning, not a reconstructed default.
+Five tests cover direct/domain replies, the existing one-repair path, unchanged
+model-call counts, exact author/verifier snapshot equality and policy-content hash.
+Independent review identified completed-unpublished checkpoint bypass, so TurnRuntime
+is now v12-policy-evidence and rejects old v11 checkpoints via the existing explicit
+migration error before returning a saved reply. No automatic business replay.
+Already published messages remain on the existing immutable publication read path.
+Initial PG assertion compared against the pre-augmentation default registry and
+failed; corrected to object identity with the actual runtime Registry. Verification:
+103 passed / 5 skipped; PG composition + TurnRuntime: 17 passed in 4.66s. No live
+model/task calls. Full-policy model feasibility judgment remains unverified; policy
+presence alone does not close that semantic false-positive defect.

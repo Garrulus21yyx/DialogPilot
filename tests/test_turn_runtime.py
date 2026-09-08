@@ -284,7 +284,8 @@ def test_question_failure_survives_postgres_checkpoint_reopen(postgres_database_
     assert composer.calls == 1
 
 
-def test_unpublished_prior_lifecycle_checkpoint_is_not_reinterpreted_as_new_execution():
+@pytest.mark.parametrize("old_version", ["turn-runtime-v7-result-owned-delivery", "turn-runtime-v11-observation-progress"])
+def test_unpublished_prior_lifecycle_checkpoint_is_not_reinterpreted_as_new_execution(old_version):
     from application.turn_runtime import TurnCheckpointVersionError
     executor = _Executor()
     runtime = TurnRuntime(_manager(executor), ResponseAssembler(),
@@ -294,7 +295,7 @@ def test_unpublished_prior_lifecycle_checkpoint_is_not_reinterpreted_as_new_exec
         await runtime.execute(identity, TurnObservations("查询订单 DP1234"))
         calls = executor.calls
         config = {"configurable": {"thread_id": "turn:" + str(identity.invocation_key)}}
-        await runtime.graph.aupdate_state(config, {"runtime_version": "turn-runtime-v7-result-owned-delivery"})
+        await runtime.graph.aupdate_state(config, {"runtime_version": old_version})
         with pytest.raises(TurnCheckpointVersionError, match="explicit lifecycle migration"):
             await runtime.execute(identity, TurnObservations("查询订单 DP1234"))
         assert executor.calls == calls

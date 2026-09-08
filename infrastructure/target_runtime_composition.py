@@ -223,6 +223,7 @@ async def build_target_runtime(
                 callbacks=(langfuse_sink.callback(),) if langfuse_sink else (),
             )
         assembler = ResponseAssembler(conversation_agent,
+                                      registry=registry,
                                       fallback_locale=(response_locale if response_locale is not None
                                                        else os.getenv("TARGET_RESPONSE_LOCALE", "zh-CN")),
                                       internal_tool_names=tool_manager.registered_tool_names,

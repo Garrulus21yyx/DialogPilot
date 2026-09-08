@@ -11,6 +11,55 @@ from application.result_board import ResultBoardSnapshot
 from tests.test_knowledge_answer_boundary import Verifier
 
 
+@pytest.mark.parametrize("direct", [False, True])
+@pytest.mark.parametrize("repair", [False, True])
+def test_policy_snapshot_reaches_author_and_verifier_without_extra_calls(direct, repair):
+    import json
+    from dataclasses import replace
+    from application.default_capability_registry import build_default_capability_registry
+    registry = build_default_capability_registry("tenant-a")
+    registry = replace(registry, agents=tuple(replace(agent,
+        description=f"Policy for {agent.agent_id}: action A prevents subsequent action B.")
+        for agent in registry.agents))
+    author_inputs = []
+    class Author:
+        async def compose(self, payload):
+            author_inputs.append(payload)
+            return "The operations must be assessed together."
+    class Review(Verifier):
+        async def verify(self, *args, **kwargs):
+            self.passed = not repair or bool(self.calls)
+            return await super().verify(*args, **kwargs)
+    verifier = Review(True)
+    result = asyncio.run(ResponseAssembler(Author(), registry=registry, knowledge_verifier=verifier).assemble(
+        None if direct else _board(_verified_order_result()), current_message="Can I do both?",
+        response_candidate="Both operations are possible." if direct else None,
+        conversation_context={"historical_assistant": "Everything is permitted."}))
+    assert result.verified
+    evidence = json.loads(result.evidence_json)
+    policy = evidence["capability_policy"]
+    assert policy["registry_fingerprint"] == registry.fingerprint
+    assert policy["bundle_version"] == registry.bundle_version
+    assert policy["agents"] == [{"agent_id": agent.agent_id, "description": agent.description}
+                                for agent in registry.agents]
+    assert all(json.loads(kwargs["context"]) == evidence for _, kwargs in verifier.calls)
+    assert all(payload["evidence"] == evidence for payload in author_inputs)
+    assert len(verifier.calls) == 1 + int(repair)
+    assert len(author_inputs) == int(not direct) + int(repair)
+
+
+def test_policy_revision_changes_response_evidence_identity():
+    from dataclasses import replace
+    from application.default_capability_registry import build_default_capability_registry
+    registry = build_default_capability_registry("tenant-a")
+    revised = replace(registry, agents=(replace(registry.agents[0], description="Changed applicability."),
+                                       *registry.agents[1:]))
+    responses = [asyncio.run(ResponseAssembler(registry=value, knowledge_verifier=Verifier(True)).assemble(
+        None, current_message="Explain policy", response_candidate="Policy explanation."))
+        for value in (registry, revised)]
+    assert responses[0].evidence_sha256 != responses[1].evidence_sha256
+
+
 def _result(
     work_item_id, owner, status=AgentResultStatus.SUCCEEDED,
     response=None, reason="DONE", receipts=(),
