@@ -29,3 +29,19 @@ def test_complete_evidence_requires_all_three_sources():
     assert metrics(chunks,units,3)['complete_r5']==1
     assert metrics(chunks,units,3)['ndcg5']==1
     assert metrics([],units,3)['ndcg5']==0
+
+
+def test_evidence_metrics_preserve_provenance_and_complete_unit_coverage():
+    from scripts.report_ecommerce_complex import metrics
+    units=[{'source_id':str(i),'start_char':0,'end_char':1,'quote':'X'} for i in range(3)]
+    chunks=[{'source_id':str(i),'source_start_char':0,'source_end_char':1,'content':'X'} for i in range(3)]
+    wrong={'source_id':'other-channel','source_start_char':0,'source_end_char':1,'content':'X'}
+    assert metrics([wrong],units,3)['unit_r5']==0
+    previous=0
+    for count in range(4):
+        result=metrics(chunks[:count],units,3)
+        assert result['unit_r5']>=previous
+        assert result['complete_r5']==int(count==3)
+        assert 0<=result['ndcg5']<=1
+        previous=result['unit_r5']
+    assert metrics(chunks,units,3)['ndcg5']==1

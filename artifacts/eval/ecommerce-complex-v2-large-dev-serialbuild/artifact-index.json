@@ -1,0 +1,28 @@
+{
+  "local_artifacts": {
+    "runtime/pure-cases.jsonl.gz": {
+      "sha256": "907e462d4223a3b14ff01444fa11b09c847544818555396154bb3d2cfcf4d72c",
+      "bytes": 2122952
+    },
+    "runtime/source-route-captures.json.gz": {
+      "sha256": "58dc855361904cc996cdba222a1762bf71e3e815484697ded72b6d0148ce7cf0",
+      "bytes": 1886774
+    },
+    "runtime/manifest.json": {
+      "sha256": "e4734719b24a43f1a63552e0d569dfe16a1a69dcfcb0f59ebb58d5aa66069277",
+      "bytes": 17265088
+    }
+  },
+  "note": "Full source captures remain local; rebuild from external corpus manifest and replay script. Published scores contain synthetic query and aggregate metrics only. Latency is cache-replayed query retrieval, not online rewriting or load test.",
+  "reranker_fallbacks": 0,
+  "latency_ms": {
+    "history_concat": {
+      "p50": 1154.8121543601155,
+      "p95": 1277.711322531104
+    },
+    "standalone_raw": {
+      "p50": 1847.437398508191,
+      "p95": 2154.7672878950834
+    }
+  }
+}

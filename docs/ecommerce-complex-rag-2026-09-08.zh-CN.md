@@ -47,3 +47,49 @@ PYTHONPATH=. .venv/bin/python scripts/report_ecommerce_complex.py \
 运行需既有隔离测试PG容器、本地CUDA模型缓存和Flash凭据。第二步仅离线评分、不调用API。输入与gold分开；运行入口只读dev.inputs及corpus，不打开heldout问题。构建脚本遇到manifest拒绝覆盖。
 
 资料位于data/eval/ecommerce-complex-v2，开发记录位于artifacts/eval/ecommerce-complex-v2-dev。下一项为开发策略固定后的留存验收；不恢复业务核验支线。本次完成数据/开发实验交付，复杂电商整体能力未关闭。
+
+## 按用户要求扩入外部语料
+
+已复用本地WixQA全量6221篇英文帮助文章（[官方数据卡](https://huggingface.co/datasets/Wix/WixQA)，2026-09-08核对MIT），加60份同商品异渠道中文近似规则。总6287篇、结构512/64共11590片段；外部11513、近似干扰60、原库17。英文背景与中文近似干扰作用不同，不以文档数代替同领域难度。原120题和gold不变，80留存未执行。
+
+构建器scripts/build_ecommerce_external_corpus.py保存原文来源、ID、hash；完整外部语料生成在本地，不复制入Git，按manifest下载地址及hash复现。新增API0。上表仍是17片段小库开发数据，不能当扩库成绩。第一次扩库导入在HNSW构建因容器共享内存不足失败，未检索；评测进程关闭索引并行构建后重跑，失败产物保留。
+
+扩库复现（使用新的输出目录）：
+
+```bash
+PYTHONPATH=. .venv/bin/python scripts/build_ecommerce_external_corpus.py \
+  --wix-corpus /path/to/wix_kb_corpus.jsonl --output /tmp/ecommerce-expanded
+PYTHONPATH=. .venv/bin/python scripts/run_ecommerce_complex_dev.py \
+  --corpus /tmp/ecommerce-expanded/corpus.json \
+  --rewrite-cache artifacts/eval/ecommerce-complex-v2-dev/runtime/pure-cases.jsonl.gz \
+  --output /tmp/ecommerce-expanded-dev
+PYTHONPATH=. .venv/bin/python scripts/report_ecommerce_complex.py \
+  --corpus /tmp/ecommerce-expanded/corpus.json --root /tmp/ecommerce-expanded-dev
+```
+
+扩库对照固定的是语料、输入历史、模型与最终候选/输出预算；完整query＋raw有额外搜索表达，不表示两臂总计算量相同。本轮缓存重放隔离查询采样变化，不能当成重新测得的在线改写延迟。
+
+
+## 扩库开发对照实测（6287文档／11590片段）
+
+40题／10规则族，两臂80次纯RAG已完成；30条旧改写原样复用，本轮新增API **0**，本地精排fallback **0**。初次导入失败与成功重跑分目录保留，没有重采样查询。当前30个独立gold条款切块完整包含率100%。
+
+| 指标（全部40题，失败保留） | 历史拼接 | 完整query＋raw |
+|---|---:|---:|
+| 候选Top20完整证据覆盖 | 70.0%（28/40） | 75.0%（30/40） |
+| 精排／最终可见Top5完整证据覆盖 | 30.0%（12/40） | 32.5%（13/40） |
+| 最终Top5证据单元Recall | 71.67% | 75.83% |
+| 最终MRR@5 | 0.6083 | 0.7125 |
+| 最终nDCG@5 | 0.5713 | 0.6211 |
+| 最终含错误适用范围来源的题数 | 38/40 | 38/40 |
+| 最终错误适用范围片段总数 | 80 | 72 |
+
+全40题救回4、误伤3；其中cx-19-1历史拼接返回POSTGRES_UNAVAILABLE，而另一臂成功。两臂均OK的39题中完整覆盖均为12/39，救回3、误伤3。主表没有剔除失败；敏感性诊断说明净增1题不能归因为改写的语义收益。数据库不可用的底层原因未被现有trace确定，不通过选择性重跑改写主成绩。
+
+扩库后确实暴露候选缺失和Top5多证据排序不足：完整query组30题候选齐全，仅13题最终齐全；打包没有额外损失。最终没有Wix英文背景片段，主要可观察干扰来自中文异渠道／旧规则。不能仅凭这个实验断言新增近似负例解释了全部下降，需要另行同预算消融才可定量分摊。
+
+评测边界也已查明：本轮来源适用范围主要写在正文，实际检索request_scope中的region/channel/product均为null。它测的是文本检索辨别适用范围，并未验收已有metadata硬过滤能力，也不能据此断言生产过滤失效。下一项应先把自建语料的适用范围作为结构化metadata贯通到导入和已知请求条件，再对照原40开发题；须记录通用适用来源的保留规则，不由gold文档ID直接过滤。80留存继续锁定，候选方案确认后再验收。
+
+扩库报告：artifacts/eval/ecommerce-complex-v2-large-dev-serialbuild/report.json；逐例scored-cases.json；runtime/pure-completion.json确认80次运行/API0；artifact-index.json记录本地完整trace的hash；execution-inputs.json固定实际扩库及改写缓存hash。失败目录ecommerce-complex-v2-large-dev保留failure.json。外部完整原文与trace留本地，提交来源manifest、复现脚本和汇总，不将全部外部语料复制入Git。
+
+扩库交付验证：7项相关测试通过，包含证据来源身份、全部必要条款覆盖、排名指标边界与查询历史缓存一致性。未将本次结果写成复杂电商答案准确率。

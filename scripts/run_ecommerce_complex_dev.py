@@ -10,9 +10,12 @@ def main():
     if args.output.exists():raise ValueError('output must be new')
     data=Path('data/eval/ecommerce-complex-v2');args.output.mkdir(parents=True)
     (args.output/'inputs.json').write_bytes((data/'dev.inputs.json').read_bytes())
+    pinned={'corpus':args.corpus or data/'corpus.json','inputs':args.output/'inputs.json'}
+    if args.rewrite_cache:pinned['rewrite_cache']=args.rewrite_cache
+    (args.output/'execution-inputs.json').write_text(json.dumps({k:{'path':str(v),'sha256':hashlib.sha256(v.read_bytes()).hexdigest()} for k,v in pinned.items()},indent=2)+'\n')
     cfg=json.loads(subprocess.check_output(['docker','inspect','dialogpilot-target-v1-test']))[0]
     env=dict(x.split('=',1) for x in cfg['Config']['Env'] if '=' in x)
-    runenv={**os.environ,'TEST_DATABASE_URL':'postgresql://'+quote(env.get('POSTGRES_USER','postgres'),safe='')+':'+quote(env['POSTGRES_PASSWORD'],safe='')+'@127.0.0.1:55432/postgres','MODEL_PROVIDER':'deepseek','RAG_RERANKER':'local_bge','RAG_LOCAL_RERANKER_PATH':'/home/yang/.cache/dialogpilot-models/bge-reranker-v2-m3','RAG_LOCAL_RERANKER_DEVICE':'cuda','HF_HUB_OFFLINE':'1'}
+    runenv={**os.environ,'TEST_DATABASE_URL':'postgresql://'+quote(env.get('POSTGRES_USER','postgres'),safe='')+':'+quote(env['POSTGRES_PASSWORD'],safe='')+'@127.0.0.1:55432/postgres','PGOPTIONS':'-c max_parallel_maintenance_workers=0','MODEL_PROVIDER':'deepseek','RAG_RERANKER':'local_bge','RAG_LOCAL_RERANKER_PATH':'/home/yang/.cache/dialogpilot-models/bge-reranker-v2-m3','RAG_LOCAL_RERANKER_DEVICE':'cuda','HF_HUB_OFFLINE':'1'}
     for role in ModelRole:
         runenv['MODEL_'+role.value.upper()]='deepseek-v4-flash';runenv['MODEL_'+role.value.upper()+'_REASONING']='none';runenv['MODEL_'+role.value.upper()+'_MIN_COMPLETION_TOKENS']='0'
     paths=subprocess.check_output(['git','ls-files','core','application','infrastructure','mcp','api'],text=True).splitlines()+['scripts/run_rag_tool_calibration.py','evaluation/ecommerce_pure_rag.py','scripts/run_ecommerce_complex_dev.py']

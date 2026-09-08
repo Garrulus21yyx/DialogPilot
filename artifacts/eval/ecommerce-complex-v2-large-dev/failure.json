@@ -1,0 +1,7 @@
+{
+  "stage": "ingestion_hnsw_build",
+  "error": "PostgreSQL DiskFull shared-memory resize 63999616 bytes",
+  "api_calls": 0,
+  "retrieval_cases": 0,
+  "repair": "evaluation process PGOPTIONS max_parallel_maintenance_workers=0; no corpus reduction"
+}
