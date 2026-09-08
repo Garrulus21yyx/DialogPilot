@@ -1,0 +1,4 @@
+{
+  "added_instruction": "\nFor each factual conclusion, check that its supporting passage concerns the same exact\nentity, product/form/model variant, jurisdiction and time scope. Similar names or shared\nwords do not authorize transferring a rule between entities. Preserve the evidence's\nconditions and logical strength: a necessary condition is not sufficient eligibility,\nand unspecified qualification does not establish a particular threshold or requirement.\nCheck added modifiers and quantifiers separately from the supported part of a sentence.\nIf the supplied original evidence cannot establish a conclusion, set supported=false\nand identify the unsupported addition. A qualified hypothesis or question is not an\nassertion of an event; accurately expressing a lack of evidence can be supported.\n",
+  "input_source": "artifacts/eval/rag-g4-verifier4-2026-09-08/inputs.json"
+}

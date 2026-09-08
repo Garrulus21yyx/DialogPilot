@@ -26,6 +26,7 @@ async def main():
     parser.add_argument('--output',type=Path)
     parser.add_argument('--inputs',type=Path)
     parser.add_argument('--semantic-focus',action='store_true')
+    parser.add_argument('--model',choices=['deepseek-v4-flash','deepseek-v4-pro'],default='deepseek-v4-flash')
     args=parser.parse_args()
     source=Path('artifacts/eval/rag-g4-verifier4-2026-09-08')
     root=args.output or source
@@ -38,7 +39,7 @@ async def main():
     if args.semantic_focus:claims.SYSTEM += SEMANTIC_FOCUS
     (root/'experiment.json').write_text(json.dumps({'added_instruction':SEMANTIC_FOCUS if args.semantic_focus else '', 'input_source':str(input_path)},indent=2)+'\n')
     values={**dotenv_values('.env'),**os.environ};policy=ModelPolicy.from_env(values)
-    profile=ModelProfile('deepseek-v4-flash',ReasoningEffort.NONE,'deepseek')
+    profile=ModelProfile(args.model,ReasoningEffort.NONE,'deepseek')
     model=framework_model(profile,{'api_key':values['ANTHROPIC_API_KEY'],'base_url':policy.base_url},max_tokens=4096)
     capture=FrameworkCapture(limit=4);verifier=AnswerVerifier(model,model_profile=profile,callbacks=(capture,))
     for entry in inputs:
