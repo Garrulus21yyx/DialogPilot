@@ -1,6 +1,7 @@
 # Conversation-only response contract
 
-Status: in_progress. Baseline a34102c; preserve concurrent RAG/provider edits.
+Status: implementation and bounded integration verification complete. Baseline
+a34102c; concurrent RAG/provider edits preserved. Real-model τ³ closure untested.
 
 ## Cause and scope
 The planning algebra equates understood input with executable goals/approval.
@@ -25,8 +26,7 @@ adapter separately discards published non-Completed outcomes.
 1. done: trace and migrate schema, proposal, policy, plan, assembly,
    publication and checkpoint identity.
 2. done: invariant/schema tests, waiting-state and publication integration.
-3. in_progress: independent review passed; clean committed-snapshot validation
-   and push remain.
+3. done: independent review and clean committed-snapshot validation passed.
 
 ## Review-driven contract completion
 Raw text was also blindly coerced into a sole non-DELEGATED pending field.
@@ -64,7 +64,25 @@ trips equal. No migration of old receipts or automatic re-execution is added.
   Decline assertion now checks its scripted not-submitted reply AND absence of
   the denied order's write, retaining final CANCELLED-state assertions. No
   production approval behavior was changed for this fixture.
-- Updated HTTP test passed. Final combined snapshot run remains before push.
+- Updated HTTP test passed.
+
+## Final acceptance
+Isolated worktree of **7f57c29**, combining all 15 selected test files:
+**353 passed, zero skipped, 12 warnings, 55.49 seconds**. Tests use a disposable
+PostgreSQL container and isolated databases via TEST_DATABASE_URL. Model/provider
+responses are scripted; no live model task was run. Existing tau dependencies
+were used only for adapter unit tests.
+
+Covered: response schema variants and checkpoint round trips, no work/state
+mutation, unshown input/approval preservation, candidate verification and bounded
+revision, structured and semantic input binding, input + independent goal +
+approval decision, restart before publication, committed replay, HTTP writes and
+reconciliation, Run failure publication, and benchmark delivery attribution.
+
+Delivery commits: 83a7c3c implementation; 7f57c29 HTTP fixture migration. This
+record is committed separately and pushed with them. Prior τ³ failures remain
+unchanged; next effect evaluation must be explicitly recorded as a new run, not
+retroactively marked successful. Encoder configuration is unchanged.
 
 No keyword classification, new loop, engine fallback, Encoder change or real
 model benchmark in this work item. Prior two tasks remain recorded failures.
