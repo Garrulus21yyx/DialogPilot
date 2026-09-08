@@ -1,0 +1,129 @@
+{
+  "schema_version": "dialogpilot-target-encoder-v2",
+  "status": "ACTIVE",
+  "artifact_version": "dialogpilot-coverage-zh-calibrated",
+  "bundle_version": "customer-service-v1",
+  "model_filename": "model.safetensors",
+  "model_sha256": "352ce1e92da5a79876bc04de454b8fb8c58ec4b9d327a2c2674209057c640563",
+  "target_precision": 0.88,
+  "heldout_target_precision": 0.98,
+  "heldout_min_accepts": 10,
+  "classes": [
+    {
+      "label": "general_qa",
+      "owner_agent": "general",
+      "capability_kind": "tool",
+      "capability_id": "knowledge_search",
+      "required_arguments": [
+        "query"
+      ],
+      "threshold": 0.9999194145202637,
+      "enabled": false,
+      "calibration_accepted": 88,
+      "calibration_correct": 87,
+      "calibration_precision_lower_bound": 0.9506621027688466,
+      "heldout_accepted": 64,
+      "heldout_correct": 63,
+      "heldout_precision_lower_bound": 0.9329515543744261
+    },
+    {
+      "label": "product_identification",
+      "owner_agent": "product_technical",
+      "capability_kind": "skill",
+      "capability_id": "product_identification",
+      "required_arguments": [
+        "asset_id"
+      ],
+      "threshold": 0.9998660087585449,
+      "enabled": true,
+      "calibration_accepted": 157,
+      "calibration_correct": 157,
+      "calibration_precision_lower_bound": 0.9830591763092237,
+      "heldout_accepted": 103,
+      "heldout_correct": 103,
+      "heldout_precision_lower_bound": 0.9744049047411563
+    },
+    {
+      "label": "refund_status_summary",
+      "owner_agent": "billing_refund",
+      "capability_kind": "tool",
+      "capability_id": "refund_status",
+      "required_arguments": [
+        "order_id"
+      ],
+      "threshold": 0.9997896552085876,
+      "enabled": true,
+      "calibration_accepted": 214,
+      "calibration_correct": 210,
+      "calibration_precision_lower_bound": 0.9590171504068462,
+      "heldout_accepted": 126,
+      "heldout_correct": 126,
+      "heldout_precision_lower_bound": 0.9789788117785275
+    }
+  ],
+  "required_languages": [
+    "zh"
+  ],
+  "language_reports": {
+    "general_qa": {
+      "zh": {
+        "threshold": 0.9999194145202637,
+        "enabled": true,
+        "accepted": 64,
+        "correct": 63,
+        "precision_lower_bound": 0.9329515543744261
+      }
+    },
+    "product_identification": {
+      "zh": {
+        "threshold": 0.9998660087585449,
+        "enabled": true,
+        "accepted": 103,
+        "correct": 103,
+        "precision_lower_bound": 0.9744049047411563
+      }
+    },
+    "refund_status_summary": {
+      "zh": {
+        "threshold": 0.9997896552085876,
+        "enabled": true,
+        "accepted": 126,
+        "correct": 126,
+        "precision_lower_bound": 0.9789788117785275
+      }
+    }
+  },
+  "datasets": [
+    {
+      "split": "train",
+      "sha256": "26d45cdeac7f43e1bfdc2cc4b7da979ce80204a42772f5f6808d635b43de7010"
+    },
+    {
+      "split": "calibration",
+      "sha256": "1feb8f745119ee78f216ca5a31c2a59828a6e0791c605098227f0c5812550d10"
+    },
+    {
+      "split": "heldout",
+      "sha256": "cd7b6da0b943368b87b674e2761f61702c971e29da0c927035aee73a0e78421c"
+    }
+  ],
+  "model_type": "transformers-sequence-classification",
+  "input_schema": "dialogpilot-encoder-context-v1",
+  "max_tokens": 384,
+  "objective": "whole-request-pair-v1",
+  "coverage_hypotheses": {
+    "general_qa": "\u7ed3\u5408\u5bf9\u8bdd\uff0c\u4ec5\u6267\u884c\u4ee5\u4e0b\u80fd\u529b\u5c31\u80fd\u5b8c\u6574\u6ee1\u8db3\u7528\u6237\u672c\u8f6e\u8bf7\u6c42\uff0c\u65e0\u9700\u5176\u4ed6\u80fd\u529b\u6216\u76ee\u6807\uff1a\u4ec5\u68c0\u7d22\u5e76\u89e3\u91ca\u516c\u5f00\u77e5\u8bc6\u3001\u4e00\u822c\u653f\u7b56\u6216\u64cd\u4f5c\u8bf4\u660e\uff0c\u4e0d\u8bfb\u53d6\u4e2a\u4eba\u5b9e\u65f6\u4e1a\u52a1\u72b6\u6001\uff0c\u4e0d\u4fee\u6539\u4e1a\u52a1\u3002",
+    "product_identification": "\u7ed3\u5408\u5bf9\u8bdd\uff0c\u4ec5\u6267\u884c\u4ee5\u4e0b\u80fd\u529b\u5c31\u80fd\u5b8c\u6574\u6ee1\u8db3\u7528\u6237\u672c\u8f6e\u8bf7\u6c42\uff0c\u65e0\u9700\u5176\u4ed6\u80fd\u529b\u6216\u76ee\u6807\uff1a\u4ec5\u8bc6\u522b\u7528\u6237\u63d0\u4f9b\u56fe\u7247\u4e2d\u7684\u5546\u54c1\u8eab\u4efd\u6216\u578b\u53f7\uff0c\u4e0d\u67e5\u8be2\u5e93\u5b58\u3001\u8fd0\u8d39\u3001\u4ef7\u683c\uff0c\u4e0d\u4e0b\u5355\u6216\u5224\u65ad\u4f7f\u7528\u9002\u914d\u6027\u3002",
+    "refund_status_summary": "\u7ed3\u5408\u5bf9\u8bdd\uff0c\u4ec5\u6267\u884c\u4ee5\u4e0b\u80fd\u529b\u5c31\u80fd\u5b8c\u6574\u6ee1\u8db3\u7528\u6237\u672c\u8f6e\u8bf7\u6c42\uff0c\u65e0\u9700\u5176\u4ed6\u80fd\u529b\u6216\u76ee\u6807\uff1a\u4ec5\u67e5\u8be2\u5e76\u62a5\u544a\u6307\u5b9a\u8ba2\u5355\u5df2\u6709\u9000\u6b3e\u7684\u5f53\u524d\u72b6\u6001\uff0c\u4e0d\u89e3\u91ca\u4e00\u822c\u653f\u7b56\uff0c\u4e0d\u53d1\u8d77\u6216\u64a4\u9500\u9000\u6b3e\u3002"
+  },
+  "calibration_minimum_empirical_precision": 0.98,
+  "development_unsafe_accepts": {
+    "general_qa": 1,
+    "product_identification": 0,
+    "refund_status_summary": 0
+  },
+  "backbone": {
+    "name": "BAAI/bge-small-zh-v1.5",
+    "revision": "7999e1d3359715c523056ef9478215996d62a620"
+  }
+}

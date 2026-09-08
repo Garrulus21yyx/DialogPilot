@@ -12,7 +12,8 @@ from evaluation.encoder_fastpath_evaluation import evaluate
 from evaluation.semantic_encoder_experiment import SemanticCandidate
 
 
-async def main(zh: Path, en: Path, output: Path, data: Path, challenge: Path):
+async def main(zh: Path, en: Path, output: Path, data: Path, challenge: Path, regression=(),
+               comparison_zh=None, comparison_en=None):
     if output.exists():
         raise ValueError("evaluation output exists")
     torch.set_num_threads(2)
@@ -25,6 +26,7 @@ async def main(zh: Path, en: Path, output: Path, data: Path, challenge: Path):
     previous = root / "data/eval/semantic-encoder-context-challenge-2026-09-08.jsonl"
     if (root / challenge) != previous:
         sources["regression"].append(previous)
+    sources["regression"].extend(root / p for p in regression)
     consumed = {EncoderInput.from_record(json.loads(line)).identity()
         for path in (root / data).glob("*/*.jsonl") for line in path.read_text().splitlines()}
     leaked = [row["case_id"] for row in map(json.loads, (root / challenge).read_text().splitlines())
@@ -32,16 +34,24 @@ async def main(zh: Path, en: Path, output: Path, data: Path, challenge: Path):
     if leaked:
         raise ValueError(f"independent challenge overlaps development data: {leaked}")
     artifacts = {"zh": zh, "en": en}
+    if bool(comparison_zh) != bool(comparison_en):
+        raise ValueError("comparison requires both language artifacts")
     baseline = {lang: root / f"artifacts/target-encoder-{lang}-context-v2" for lang in ("zh", "en")}
     output.mkdir(parents=True)
     records = {}
     for scope, paths in sources.items():
         rows = [json.loads(line) for path in paths for line in path.read_text().splitlines()]
         records[scope] = {}
-        for name, kwargs in (("baseline", dict(artifacts=baseline)),
-                             ("semantic", dict(artifacts=artifacts, load_artifact=SemanticCandidate))):
+        arms = [("baseline", dict(artifacts=baseline)),
+                ("semantic", dict(artifacts=artifacts, load_artifact=SemanticCandidate))]
+        if comparison_zh:
+            arms.append(("category", dict(artifacts={"zh": comparison_zh, "en": comparison_en},
+                                           load_artifact=SemanticCandidate)))
+        for name, kwargs in arms:
             result = await evaluate(rows, warmup=True, **kwargs)
             result["sources"] = {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
+            result["artifacts"] = {lang: hashlib.sha256((path / "manifest.json").read_bytes()).hexdigest()
+                                   for lang, path in kwargs["artifacts"].items()}
             for language, summary in result["summary"].items():
                 positives = [r for r in result["details"] if r["language"] == language
                              and r["contextual"] and r["expected"] in {"refund_status_summary", "product_identification"}]
@@ -76,4 +86,7 @@ if __name__ == "__main__":
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--data", type=Path, default=Path("data/training/semantic-encoder-v1"))
     parser.add_argument("--challenge", type=Path, default=Path("data/eval/semantic-encoder-context-challenge-2026-09-08.jsonl"))
+    parser.add_argument("--regression", type=Path, action="append", default=[])
+    parser.add_argument("--comparison-zh", type=Path)
+    parser.add_argument("--comparison-en", type=Path)
     asyncio.run(main(**vars(parser.parse_args())))

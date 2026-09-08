@@ -21,6 +21,8 @@ from application.target_encoder_artifact import (DEFER_LABEL, TARGET_ENCODER_SCH
     TargetEncoderClass, TargetEncoderManifest)
 from evaluation.target_encoder_training import (TARGETS, _load, _select_threshold,
                                                _evaluate_threshold)
+from evaluation.encoder_coverage import (COVERAGE_OBJECTIVE, hypotheses,
+                                         pair_targets, routing_scores)
 
 
 BACKBONES = {
@@ -41,7 +43,7 @@ def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def calibrate(classes, probabilities, splits, language, output, data):
+def calibrate(classes, probabilities, splits, language, output, data, *, objective="category-v1"):
     records, language_reports, unsafe_reports = [], {}, {}
     for label, (owner, kind, capability, arguments) in TARGETS.items():
         selected = _select_threshold(label, classes, probabilities["calibration"],
@@ -70,7 +72,9 @@ def calibrate(classes, probabilities, splits, language, output, data):
         classes=[asdict(r) for r in records], required_languages=[language],
         language_reports=language_reports, datasets=[dict(split=s, sha256=digest(data / f"{s}.jsonl"))
             for s in splits], model_type="transformers-sequence-classification",
-        input_schema=CONTEXT_INPUT_SCHEMA, max_tokens=MAX_TOKENS,
+        input_schema=CONTEXT_INPUT_SCHEMA, max_tokens=384 if objective == COVERAGE_OBJECTIVE else MAX_TOKENS,
+        objective=objective,
+        coverage_hypotheses=hypotheses(language) if objective == COVERAGE_OBJECTIVE else None,
         calibration_minimum_empirical_precision=.98,
         development_unsafe_accepts=unsafe_reports,
         backbone=dict(zip(("name", "revision"), BACKBONES[language])))
@@ -78,7 +82,7 @@ def calibrate(classes, probabilities, splits, language, output, data):
     return manifest
 
 
-def train(data: Path, output: Path, language: str, epochs: int = 4):
+def train(data: Path, output: Path, language: str, epochs: int = 4, objective="category-v1"):
     if output.exists():
         raise ValueError("experiment output already exists")
     set_seed(17)
@@ -91,19 +95,24 @@ def train(data: Path, output: Path, language: str, epochs: int = 4):
                 raise ValueError("input or conversation-family leakage")
             seen.add(item.input.identity())
     classes = tuple(sorted({DEFER_LABEL, *TARGETS}))
+    contracts = hypotheses(language) if objective == COVERAGE_OBJECTIVE else None
+    model_classes = ("NOT_COMPLETE", "COMPLETE") if contracts else classes
+    max_tokens = 384 if contracts else MAX_TOKENS
     name, revision = BACKBONES[language]
     tokenizer = AutoTokenizer.from_pretrained(name, revision=revision, local_files_only=True)
     model = AutoModelForSequenceClassification.from_pretrained(name, revision=revision,
-        local_files_only=True, num_labels=len(classes), id2label=dict(enumerate(classes)),
-        label2id={label: i for i, label in enumerate(classes)})
+        local_files_only=True, num_labels=len(model_classes), id2label=dict(enumerate(model_classes)),
+        label2id={label: i for i, label in enumerate(model_classes)})
     datasets = {}
     for split, items in splits.items():
         rows = []
         for item in items:
-            encoded = tokenizer(render(item.input), truncation=False)
-            if len(encoded["input_ids"]) > MAX_TOKENS:
-                raise ValueError(f"training input exceeds declared budget: {item.case_id}")
-            rows.append({**encoded, "labels": classes.index(item.label)})
+            pairs = list(zip(contracts.values(), pair_targets(item.label, contracts))) if contracts else [(None, classes.index(item.label))]
+            for hypothesis, target in pairs:
+                encoded = tokenizer(render(item.input), text_pair=hypothesis, truncation=False)
+                if len(encoded["input_ids"]) > max_tokens:
+                    raise ValueError(f"training input exceeds declared budget: {item.case_id}")
+                rows.append({**encoded, "labels": target})
         datasets[split] = Dataset.from_list(rows)
     output.mkdir(parents=True)
     args = TrainingArguments(output_dir=str(output / "trainer"), num_train_epochs=epochs,
@@ -119,10 +128,13 @@ def train(data: Path, output: Path, language: str, epochs: int = 4):
     for split in ("calibration", "heldout"):
         logits = trainer.predict(datasets[split]).predictions
         probabilities[split] = torch.softmax(torch.tensor(logits), dim=1).numpy()
+        if contracts:
+            probabilities[split] = routing_scores(probabilities[split][:, 1].reshape(-1, len(contracts)),
+                                                  tuple(contracts), classes)
     # Standard safetensors serialization; no pickle/custom model runtime.
     model.half().save_pretrained(output, safe_serialization=True)
     tokenizer.save_pretrained(output)
-    manifest = calibrate(classes, probabilities, splits, language, output, data)
+    manifest = calibrate(classes, probabilities, splits, language, output, data, objective=objective)
     (output / "training.json").write_text(json.dumps(dict(metrics=result.metrics,
         elapsed_seconds=time.perf_counter()-started, counts={s: len(v) for s,v in splits.items()},
         versions=dict(torch=torch.__version__, transformers=__import__("transformers").__version__),
@@ -131,44 +143,63 @@ def train(data: Path, output: Path, language: str, epochs: int = 4):
                       for r in manifest["classes"]}), flush=True)
 
 
-class SemanticCandidate:
-    """Evaluation-only adapter, no production selection or silent fallback."""
+class SemanticScorer:
+    """Raw scoring for calibration, including candidates with no enabled class."""
     input_schema = CONTEXT_INPUT_SCHEMA
 
-    def __init__(self, path: Path):
+    def __init__(self, path: Path, *, device="cpu"):
         raw = json.loads((path / "manifest.json").read_text())
-        self.manifest = TargetEncoderManifest.from_dict(raw)
-        if digest(path / self.manifest.model_filename) != self.manifest.model_sha256:
+        self.raw_manifest = raw
+        self.targets = tuple(TargetEncoderClass(**r) for r in raw["classes"])
+        if digest(path / "model.safetensors") != raw["model_sha256"]:
             raise ValueError("candidate weight digest mismatch")
         self.tokenizer = AutoTokenizer.from_pretrained(path, local_files_only=True)
-        self.model = AutoModelForSequenceClassification.from_pretrained(path, local_files_only=True).float().eval()
+        self.device = torch.device(device)
+        self.model = AutoModelForSequenceClassification.from_pretrained(path, local_files_only=True).float().to(self.device).eval()
         self.max_tokens = raw["max_tokens"]
-
-    def validate_registry(self, registry):
-        # Reuse the exact existing owner-level registry contract, which only
-        # reads self.manifest; no copy of permission or capability logic.
-        from application.target_encoder_artifact import TargetTextEncoderArtifact
-        TargetTextEncoderArtifact.validate_registry(self, registry)
+        self.objective = raw.get("objective", "category-v1")
+        self.contracts = raw.get("coverage_hypotheses")
 
     def predict(self, value):
-        encoded = self.tokenizer(render(value), return_tensors="pt", truncation=False)
+        encoded = self.tokenizer([render(value)] * len(self.contracts),
+            text_pair=list(self.contracts.values()), return_tensors="pt", padding=True,
+            truncation=False) if self.contracts else self.tokenizer(render(value), return_tensors="pt", truncation=False)
         if encoded["input_ids"].shape[1] > self.max_tokens:
-            return tuple(RankedCandidate(c.label, 0.) for c in self.manifest.classes), 1.
+            return tuple(RankedCandidate(c.label, 0.) for c in self.targets), 1.
+        encoded = {name: tensor.to(self.device) for name, tensor in encoded.items()}
         with torch.inference_mode():
-            probabilities = self.model(**encoded).logits.softmax(-1)[0].tolist()
-        scores = {self.model.config.id2label[i]: p for i,p in enumerate(probabilities)}
+            probabilities = self.model(**encoded).logits.softmax(-1)
+        if self.contracts:
+            classes = tuple(sorted({DEFER_LABEL, *self.contracts}))
+            values = routing_scores(probabilities[:, 1].cpu().numpy().reshape(1, -1), tuple(self.contracts), classes)[0]
+            scores = dict(zip(classes, values))
+        else:
+            scores = {self.model.config.id2label[i]: p for i,p in enumerate(probabilities[0].tolist())}
         return (tuple(RankedCandidate(c.label, scores[c.label]) for c in
-                      sorted(self.manifest.classes, key=lambda c: (-scores[c.label], c.label))),
+                      sorted(self.targets, key=lambda c: (-scores[c.label], c.label))),
                 scores[DEFER_LABEL])
 
 
-def finalize_candidate(data: Path, trained: Path, output: Path, language: str):
-    """Calibrate the deployed CPU/fp32 view of saved fp16 weights, not GPU logits."""
+class SemanticCandidate(SemanticScorer):
+    """Evaluation-only policy adapter; rejected artifacts remain non-executable."""
+
+    def __init__(self, path, *, device="cpu"):
+        super().__init__(path, device=device)
+        self.manifest = TargetEncoderManifest.from_dict(self.raw_manifest)
+
+    def validate_registry(self, registry):
+        from application.target_encoder_artifact import TargetTextEncoderArtifact
+        TargetTextEncoderArtifact.validate_registry(self, registry)
+
+
+def finalize_candidate(data: Path, trained: Path, output: Path, language: str, device="cpu"):
+    """Calibrate saved weights on the explicitly selected inference device."""
     torch.set_num_threads(2)
     if output.exists():
         raise ValueError("candidate output already exists")
-    candidate = SemanticCandidate(trained)
-    classes = tuple(candidate.model.config.id2label[i] for i in range(candidate.model.config.num_labels))
+    candidate = SemanticScorer(trained, device=device)
+    classes = tuple(sorted({DEFER_LABEL, *candidate.contracts})) if candidate.contracts else tuple(
+        candidate.model.config.id2label[i] for i in range(candidate.model.config.num_labels))
     splits = {s: _load(data / f"{s}.jsonl") for s in ("train", "calibration", "heldout")}
     probabilities = {}
     for split in ("calibration", "heldout"):
@@ -180,7 +211,9 @@ def finalize_candidate(data: Path, trained: Path, output: Path, language: str):
             scores.append([values[c] for c in classes])
         probabilities[split] = np.asarray(scores)
     shutil.copytree(trained, output)
-    manifest = calibrate(classes, probabilities, splits, language, output, data)
+    manifest = calibrate(classes, probabilities, splits, language, output, data, objective=candidate.objective)
+    manifest["calibration_device"] = str(candidate.device)
+    (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     print(json.dumps({r["label"]: {k:r[k] for k in ("enabled", "threshold", "heldout_accepted", "heldout_correct")}
                       for r in manifest["classes"]}), flush=True)
 
@@ -192,10 +225,15 @@ if __name__ == "__main__":
     parser.add_argument("--language", choices=BACKBONES, required=True)
     parser.add_argument("--epochs", type=int, default=4, choices=range(1, 5))
     parser.add_argument("--finalize-from", type=Path)
+    parser.add_argument("--objective", choices=("category-v1", COVERAGE_OBJECTIVE), default="category-v1")
+    parser.add_argument("--device", choices=("cpu", "cuda"), default="cpu",
+                        help="Inference device for --finalize-from; training uses available GPU")
     args = vars(parser.parse_args())
     trained = args.pop("finalize_from")
     if trained:
         args.pop("epochs")
+        args.pop("objective")
         finalize_candidate(trained=trained, **args)
     else:
+        args.pop("device")
         train(**args)

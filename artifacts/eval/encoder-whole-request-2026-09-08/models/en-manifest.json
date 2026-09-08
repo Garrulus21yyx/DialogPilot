@@ -1,0 +1,129 @@
+{
+  "schema_version": "dialogpilot-target-encoder-v2",
+  "status": "ACTIVE",
+  "artifact_version": "dialogpilot-coverage-en-calibrated",
+  "bundle_version": "customer-service-v1",
+  "model_filename": "model.safetensors",
+  "model_sha256": "71e938b18e944ae6b205b4ff7b4474325aa011296f56f478c261cb6a78b49925",
+  "target_precision": 0.88,
+  "heldout_target_precision": 0.98,
+  "heldout_min_accepts": 10,
+  "classes": [
+    {
+      "label": "general_qa",
+      "owner_agent": "general",
+      "capability_kind": "tool",
+      "capability_id": "knowledge_search",
+      "required_arguments": [
+        "query"
+      ],
+      "threshold": 0.9895299077033997,
+      "enabled": true,
+      "calibration_accepted": 550,
+      "calibration_correct": 547,
+      "calibration_precision_lower_bound": 0.9864311627643135,
+      "heldout_accepted": 524,
+      "heldout_correct": 524,
+      "heldout_precision_lower_bound": 0.9948632713520488
+    },
+    {
+      "label": "product_identification",
+      "owner_agent": "product_technical",
+      "capability_kind": "skill",
+      "capability_id": "product_identification",
+      "required_arguments": [
+        "asset_id"
+      ],
+      "threshold": 0.9970085024833679,
+      "enabled": true,
+      "calibration_accepted": 93,
+      "calibration_correct": 93,
+      "calibration_precision_lower_bound": 0.9717305460431025,
+      "heldout_accepted": 52,
+      "heldout_correct": 52,
+      "heldout_precision_lower_bound": 0.9505435229545669
+    },
+    {
+      "label": "refund_status_summary",
+      "owner_agent": "billing_refund",
+      "capability_kind": "tool",
+      "capability_id": "refund_status",
+      "required_arguments": [
+        "order_id"
+      ],
+      "threshold": 0.6783366799354553,
+      "enabled": true,
+      "calibration_accepted": 341,
+      "calibration_correct": 337,
+      "calibration_precision_lower_bound": 0.9741293950940005,
+      "heldout_accepted": 237,
+      "heldout_correct": 237,
+      "heldout_precision_lower_bound": 0.9887130542952439
+    }
+  ],
+  "required_languages": [
+    "en"
+  ],
+  "language_reports": {
+    "general_qa": {
+      "en": {
+        "threshold": 0.9895299077033997,
+        "enabled": true,
+        "accepted": 524,
+        "correct": 524,
+        "precision_lower_bound": 0.9948632713520488
+      }
+    },
+    "product_identification": {
+      "en": {
+        "threshold": 0.9970085024833679,
+        "enabled": true,
+        "accepted": 52,
+        "correct": 52,
+        "precision_lower_bound": 0.9505435229545669
+      }
+    },
+    "refund_status_summary": {
+      "en": {
+        "threshold": 0.6783366799354553,
+        "enabled": true,
+        "accepted": 237,
+        "correct": 237,
+        "precision_lower_bound": 0.9887130542952439
+      }
+    }
+  },
+  "datasets": [
+    {
+      "split": "train",
+      "sha256": "5f2e28120f3348fec805a93ad5e0975b2618fce485edb8b089dab9d07b7624b5"
+    },
+    {
+      "split": "calibration",
+      "sha256": "1a0001818ad9c757ea1f5382a5e0989f0101c3e747f4671890eb295b8bb3f7d6"
+    },
+    {
+      "split": "heldout",
+      "sha256": "2abd33bd99eb3fcd1d8c00bd21a72e446ca59414f17d8afe2151d9c67295bce1"
+    }
+  ],
+  "model_type": "transformers-sequence-classification",
+  "input_schema": "dialogpilot-encoder-context-v1",
+  "max_tokens": 384,
+  "objective": "whole-request-pair-v1",
+  "coverage_hypotheses": {
+    "general_qa": "Given the dialogue, this capability alone completely satisfies the current user request, with no additional capability or goal required: Only retrieve and explain public knowledge, general policies or instructions; no personal live business state or business changes.",
+    "product_identification": "Given the dialogue, this capability alone completely satisfies the current user request, with no additional capability or goal required: Only identify the product or model in the supplied image; no stock, shipping charge or price lookup, purchase or compatibility assessment.",
+    "refund_status_summary": "Given the dialogue, this capability alone completely satisfies the current user request, with no additional capability or goal required: Only read and report the current status of an existing refund for the specified order; no general policy explanation, refund creation or cancellation."
+  },
+  "calibration_minimum_empirical_precision": 0.98,
+  "development_unsafe_accepts": {
+    "general_qa": 0,
+    "product_identification": 0,
+    "refund_status_summary": 0
+  },
+  "backbone": {
+    "name": "BAAI/bge-small-en",
+    "revision": "2275a7bdee235e9b4f01fa73aa60d3311983cfea"
+  }
+}
