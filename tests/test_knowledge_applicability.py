@@ -277,3 +277,27 @@ def test_pure_lexical_route_needs_no_embedding_provider(store, postgres_database
 def configured_sales_channels(monkeypatch):
     from pathlib import Path
     monkeypatch.setenv('KNOWLEDGE_FILTER_CATALOG_FILE', str(Path('config/knowledge-filter-catalog.example.json').resolve()))
+
+
+@pytest.mark.parametrize('offset', [-7, 0, 5.5, 8, 14])
+def test_source_instants_have_timezone_independent_identity(offset):
+    from datetime import timedelta
+    from application.knowledge_source import SourceRevision
+    start=instant(2026);end=instant(2027)
+    kwargs=dict(tenant_id='t',source_id='s',title='t',source_type='text',content='policy',schema_version='knowledge-source-v2')
+    baseline=SourceRevision.create(**kwargs,effective_from=start,effective_to=end)
+    zone=timezone(timedelta(hours=offset))
+    converted=SourceRevision.create(**kwargs,effective_from=start.astimezone(zone),effective_to=end.astimezone(zone))
+    assert converted.revision_id==baseline.revision_id
+    assert converted.immutable_fingerprint==baseline.immutable_fingerprint
+    assert replace(converted,effective_from=start.astimezone(zone)).immutable_fingerprint==baseline.immutable_fingerprint
+
+
+def test_non_utc_source_survives_later_batch_and_reimport(store):
+    knowledge, _, _=store
+    start=datetime.fromisoformat('2026-06-01T00:00:00+08:00')
+    doc=SourceDocument.create(source_id='cn-zone',title='中国区政策',content='完整政策。',effective_from=start)
+    first=knowledge.import_documents((doc,))
+    knowledge.import_documents((SourceDocument.create(source_id='later',title='later',content='另一个来源'),))
+    again=knowledge.import_documents((replace(doc,effective_from=start.astimezone(timezone.utc)),))
+    assert again.revisions==first.revisions

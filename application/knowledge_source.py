@@ -4,7 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Sequence
 
 
@@ -20,6 +20,12 @@ def _required(*values: str) -> None:
 def _checksum(value: str) -> None:
     if len(value) != 64 or any(char not in "0123456789abcdef" for char in value):
         raise KnowledgeSourceContractError("knowledge checksum must be lowercase SHA-256")
+
+
+def _instant(value: datetime) -> datetime:
+    if not isinstance(value, datetime) or value.utcoffset() is None:
+        raise KnowledgeSourceContractError("source instant must be timezone-aware")
+    return value.astimezone(timezone.utc)
 
 
 @dataclass(frozen=True)
@@ -64,6 +70,9 @@ class SourceRevision:
         _checksum(self.checksum)
         if hashlib.sha256(self.content.encode("utf-8")).hexdigest() != self.checksum:
             raise KnowledgeSourceContractError("source content checksum mismatch")
+        object.__setattr__(self, "effective_from", _instant(self.effective_from))
+        if self.effective_to is not None:
+            object.__setattr__(self, "effective_to", _instant(self.effective_to))
         if self.effective_from.tzinfo is None:
             raise KnowledgeSourceContractError("effective_from must be timezone-aware")
         if self.effective_to is not None and (
@@ -92,6 +101,8 @@ class SourceRevision:
         schema_version: str = "knowledge-source-v0",
         channel: str = "global",
     ) -> "SourceRevision":
+        effective_from = _instant(effective_from)
+        effective_to = _instant(effective_to) if effective_to is not None else None
         checksum = hashlib.sha256(str(content).encode("utf-8")).hexdigest()
         if str(schema_version) in {"knowledge-source-v1", "knowledge-source-v2"}:
             revision_prefix = "revision-v2" if schema_version == "knowledge-source-v2" else "revision-v1"

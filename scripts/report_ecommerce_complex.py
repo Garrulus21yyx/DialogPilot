@@ -19,13 +19,15 @@ def metrics(candidates,units,relevant_count):
     return out
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--root',type=Path,required=True);p.add_argument('--corpus',type=Path);a=p.parse_args()
-    labels={r['id']:r for r in json.loads((ROOT/'dev.gold.json').read_text())}
+    p=argparse.ArgumentParser();p.add_argument('--root',type=Path,required=True);p.add_argument('--corpus',type=Path);p.add_argument('--split',choices=['dev','heldout'],default='dev');p.add_argument('--scope-pair',action='store_true');a=p.parse_args()
+    labels={r['id']:r for r in json.loads((ROOT/f'{a.split}.gold.json').read_text())}
     docs=json.loads((a.corpus or ROOT/'corpus.json').read_text());chunks=[]
     for d in docs:
         chunks += [{'source_id':d['source_id'],'source_start_char':c.start_char,'source_end_char':c.end_char,'content':c.content} for c in DocumentChunker().split(d['content'],max_tokens=512,overlap_tokens=64,source_type=d['metadata']['source_type'])]
     rows=[json.loads(l) for l in gzip.decompress((a.root/'runtime/pure-cases.jsonl.gz').read_bytes()).splitlines()]
-    assert len(rows)==80 and len({(r['id'],r['arm']) for r in rows})==80
+    rows=[r for r in rows if r['id'] in labels]
+    arms=['scope_unfiltered','scope_filtered'] if a.scope_pair else ['history_concat','standalone_raw']
+    assert len(rows)==2*len(labels) and {(r['id'],r['arm']) for r in rows}=={(cid,arm) for cid in labels for arm in arms}
     scored=[]
     for row in rows:
         units=labels[row['id']]['evidence_units'];gold_count=sum(any(covers(c,e) for e in units) for c in chunks)
@@ -42,18 +44,18 @@ def main():
             'candidate_count':len(candidates),
             'status':row['result']['status']})
     summary={}
-    for arm in ['history_concat','standalone_raw']:
+    for arm in arms:
         rr=[r for r in scored if r['arm']==arm]
         summary[arm]={stage:{k:sum(r[stage][k] for r in rr)/len(rr) for k in rr[0][stage]} for stage in ['candidate','rerank','wire']}
         summary[arm]['diagnostics']={'candidate_count_min':min(r['candidate_count'] for r in rr),'candidate_count_max':max(r['candidate_count'] for r in rr),'cases_with_wrong_scope_in_wire':sum(r['wrong_scope_top5']>0 for r in rr),'wrong_scope_wire_chunks':sum(r['wrong_scope_top5'] for r in rr),'external_background_wire_chunks':sum(r['external_background_top5'] for r in rr)}
     changes=[]
     for cid in labels:
-        b,c=([r for r in scored if r['id']==cid and r['arm']==arm][0] for arm in ['history_concat','standalone_raw'])
+        b,c=([r for r in scored if r['id']==cid and r['arm']==arm][0] for arm in arms)
         changes.append({'id':cid,'wire_delta':c['wire']['complete_r5']-b['wire']['complete_r5'],'both_available':b['status']=='OK' and c['status']=='OK','baseline_complete':b['wire']['complete_r5'],'candidate_complete':c['wire']['complete_r5']})
     unique={e['unit_id']:e for row in labels.values() for e in row['evidence_units']}
-    result={'n':40,'groups':10,'documents':len(docs),'chunks':len(chunks),'gold_units':len(unique),'chunk_containment':sum(any(covers(c,e) for c in chunks) for e in unique.values())/len(unique),'summary':summary,'rescue':sum(x['wire_delta']>0 for x in changes),'hurt':sum(x['wire_delta']<0 for x in changes),'definition':'Complete = all 3 annotated source clauses covered; unit recall averages 3 binary coverage labels. nDCG uses binary relevance of whole chunks containing any gold unit, ideal from complete corpus chunks. Not answer correctness. Only dev opened for scoring.'}
+    result={'n':len(labels),'groups':len({r['group_id'] for r in labels.values()}),'split':a.split,'documents':len(docs),'chunks':len(chunks),'gold_units':len(unique),'chunk_containment':sum(any(covers(c,e) for c in chunks) for e in unique.values())/len(unique),'summary':summary,'rescue':sum(x['wire_delta']>0 for x in changes),'hurt':sum(x['wire_delta']<0 for x in changes),'definition':'Complete = all 3 annotated source clauses covered; unit recall averages 3 binary coverage labels. nDCG uses binary relevance of whole chunks containing any gold unit, ideal from complete corpus chunks. Not answer correctness. Scores are split-specific; no answer generation assessed.'}
     available=[x for x in changes if x['both_available']]
     result['availability_failures']=[{'id':r['id'],'arm':r['arm'],'status':r['status']} for r in scored if r['status']!='OK']
     result['both_available_sensitivity']={'n':len(available),'baseline_complete':sum(x['baseline_complete'] for x in available),'candidate_complete':sum(x['candidate_complete'] for x in available),'rescue':sum(x['wire_delta']>0 for x in available),'hurt':sum(x['wire_delta']<0 for x in available),'note':'Diagnostic only; primary table keeps all requests including failures.'}
-    (a.root/'report.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n');(a.root/'scored-cases.json').write_text(json.dumps(scored,ensure_ascii=False,indent=2)+'\n');print(json.dumps(result,ensure_ascii=False,indent=2))
+    (a.root/(a.split+'-report.json' if a.scope_pair else 'report.json')).write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n');(a.root/(a.split+'-scored-cases.json' if a.scope_pair else 'scored-cases.json')).write_text(json.dumps(scored,ensure_ascii=False,indent=2)+'\n');print(json.dumps(result,ensure_ascii=False,indent=2))
 if __name__=='__main__':main()

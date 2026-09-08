@@ -210,7 +210,7 @@ async def evaluate(args, database_url):
                 from evaluation.ecommerce_pure_rag import run
                 await run(inputs=args.pure_rag_inputs, output=args.output, retrieve=api._retrieve_knowledge,
                           client=client, policy=policy, source=source, reranker=reranker,
-                          transformer=api._knowledge_retriever._transformer)
+                          transformer=api._knowledge_retriever._transformer, scope_pair=args.pure_scope_pair)
                 return
             if getattr(args, 'full_chain', False):
                 from evaluation.rag_full_chain_probe import run_full_chain
@@ -283,6 +283,7 @@ def main():
     mode.add_argument('--mixed-business', action='store_true')
     mode.add_argument('--full-chain', action='store_true')
     mode.add_argument('--candidate-scope-probe', action='store_true', help='No inference: paired candidate retrieval with/without request applicability')
+    p.add_argument('--pure-scope-pair',action='store_true')
     p.add_argument('--pure-rewrite-cache',type=Path)
     p.add_argument('--corpus-file',type=Path)
     p.add_argument('--business-fixtures',type=Path)

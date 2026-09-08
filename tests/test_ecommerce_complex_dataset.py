@@ -45,3 +45,20 @@ def test_evidence_metrics_preserve_provenance_and_complete_unit_coverage():
         assert 0<=result['ndcg5']<=1
         previous=result['unit_r5']
     assert metrics(chunks,units,3)['ndcg5']==1
+
+
+def test_scoped_authoring_uses_source_declarations_and_valid_intervals():
+    from scripts.build_ecommerce_scoped_corpus import applicability
+    from mcp.source_document import SourceDocument
+    from datetime import datetime
+    import pytest
+    docs=json.loads((ROOT/'corpus.json').read_text())
+    for doc in docs:
+        scope=applicability(doc)
+        SourceDocument.create(source_id=doc['source_id'],title=doc['title'],content=doc['content'],
+            **{k:datetime.fromisoformat(v) if k.startswith('effective_') else v for k,v in scope.items()})
+        # Identity and relevance are not inputs to assigning applicability.
+        assert applicability({**doc,'source_id':'different-id'})==scope
+    assert applicability({'metadata':{'origin':'WixQA'},'content':'Any help topic'})=={}
+    with pytest.raises(ValueError):
+        applicability({'source_id':'unknown','metadata':{},'content':'unknown source'})

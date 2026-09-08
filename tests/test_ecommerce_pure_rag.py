@@ -53,3 +53,27 @@ def test_capture_and_retrieval_share_one_identical_transform():
         await memo.standalone('否',['B'])
         assert delegate.calls==2
     asyncio.run(check())
+
+
+def test_scope_pair_preserves_query_budget_and_snapshot(tmp_path):
+    import asyncio
+    from types import SimpleNamespace
+    from evaluation.ecommerce_pure_rag import run
+    calls=[]
+    async def retrieve(query,**options):
+        calls.append((query,options))
+        return SimpleNamespace(to_dict=lambda **kwargs:{'status':'NO_EVIDENCE','evidence_pack':None})
+    class Transformer:
+        async def standalone(self,query,history):return query,None
+    path=tmp_path/'inputs.json'
+    path.write_text(json.dumps([{'id':'x','message':'我只问中国大陆官网的规则','history':[]}]))
+    asyncio.run(run(inputs=path,output=tmp_path,retrieve=retrieve,client=SimpleNamespace(calls=[]),policy=None,
+        source=SimpleNamespace(records=[]),reranker=SimpleNamespace(records=[],version='test'),transformer=Transformer(),scope_pair=True))
+    a,b=calls
+    assert a[0]==b[0]
+    assert a[1]['history']==b[1]['history']
+    assert a[1]['as_of']==b[1]['as_of']
+    assert a[1]['policy_values']==b[1]['policy_values']
+    assert 'applicable_channel' not in a[1]
+    assert b[1]['applicable_channel']=='web' and b[1]['applicable_region']=='CN'
+    assert 'applicable_product' not in b[1]

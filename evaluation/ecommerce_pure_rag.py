@@ -44,8 +44,10 @@ class ReplayTransformer:
         return self.queries[(query,tuple(history))]
 
 
-async def run(*, inputs, output, retrieve, client, policy, source, reranker, transformer):
+async def run(*, inputs, output, retrieve, client, policy, source, reranker, transformer, scope_pair=False):
     cases = json.loads(Path(inputs).read_text())
+    from datetime import datetime, timezone
+    evaluation_time=datetime.now(timezone.utc)
     rows = []
     for case in cases:
         history = [f'{role}: {text}' for role, text in case['history']]
@@ -53,16 +55,21 @@ async def run(*, inputs, output, retrieve, client, policy, source, reranker, tra
         rewritten, error = await transformer.standalone(case['message'], history)
         rewrite_calls = client.calls[before:]
         concat = '\n'.join([*history, 'user: '+case['message']]) if history else case['message']
-        for arm, query in [('history_concat', concat), ('standalone_raw', rewritten)]:
+        arms=[('scope_unfiltered',rewritten),('scope_filtered',rewritten)] if scope_pair else [('history_concat', concat), ('standalone_raw', rewritten)]
+        if scope_pair:
+            assert '中国大陆官网' in case['message'], 'fixture must explicitly state CN/web; never infer from gold'
+        for arm, query in arms:
+            scope={'as_of':evaluation_time} if scope_pair else {}
+            if arm=='scope_filtered':scope.update(applicable_region='CN',applicable_channel='web')
             start = time.perf_counter()
             rs, rk = len(source.records), len(reranker.records)
             result_object = await retrieve(query if arm=='history_concat' else case['message'],
-                history=tuple(history) if arm=='standalone_raw' else (),
-                query_mode='HISTORY' if arm=='standalone_raw' else 'RESOLVED',
+                history=tuple(history) if arm!='history_concat' else (),
+                query_mode='HISTORY' if arm!='history_concat' else 'RESOLVED',
                 tenant_id='rag-tool-dev', user_scope='eval-user', conversation_id='eval-conversation',
                 authorization_fingerprint='isolated-eval-authorized', requirement_signature='pure-rag',
                 policy_version='pure-rag-v2:'+case['id']+':'+arm,
-                original_user_message=case['message'],
+                original_user_message=case['message'], **scope,
                 policy_values={'query_expansion_count':0,'expansion_query_weight':0.0,
                                'candidate_k':20,'top_k':5,'context_max_tokens':2600,
                                'vector_weight':0.5,'lexical_weight':0.5})
@@ -70,8 +77,8 @@ async def run(*, inputs, output, retrieve, client, policy, source, reranker, tra
             wire = json.loads(MCPToolManager._render_for_model(None, ToolResult(
                 True, result, 'knowledge_search', authority='knowledge.active_source')))
             row = {'id':case['id'], 'arm':arm, 'query':query, 'original':case['message'],
-                   'history':case['history'], 'rewrite_error':error if arm=='standalone_raw' else None,
-                   'rewrite_calls':rewrite_calls if arm=='standalone_raw' else [],
+                   'history':case['history'], 'rewrite_error':error if arm!='history_concat' else None,
+                   'rewrite_calls':rewrite_calls if arm in ('standalone_raw','scope_unfiltered') else [],
                    'retrieval':source.records[rs:], 'rerank':reranker.records[rk:],
                    'result':result, 'wire':wire, 'measured_ms':(time.perf_counter()-start)*1000}
             rows.append(row)
