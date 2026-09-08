@@ -48,9 +48,14 @@ class CountingPlanner:
         return TurnProposal(ProposalDisposition.CLARIFY, (), "EVALUATION_PLANNER_REACHED")
 
 
-async def evaluate(rows, artifacts):
-    encoders = {language: TargetEncoderUnderstanding(load_target_text_encoder_artifact(path))
+async def evaluate(rows, artifacts, *, load_artifact=load_target_text_encoder_artifact, warmup=False):
+    encoders = {language: TargetEncoderUnderstanding(load_artifact(path))
                 for language, path in artifacts.items()}
+    if warmup:
+        for language, encoder in encoders.items():
+            example = next(row for row in rows if row["language"] == language)
+            args = prepare(example)
+            await encoder(args[0], args[1], args[3], args[4])
     details = []
     for row in rows:
         args = prepare(row)
@@ -95,6 +100,7 @@ async def evaluate(rows, artifacts):
             false_accepts=[row["case_id"] for row in accepted if not row["correct"]],
             contextual_accepted=sum(row["contextual"] for row in accepted))
     return {"summary": summary, "details": details,
+            "warmup": warmup,
             "scope": "Real FastPathPolicy + cascade + RoutePolicy with grounded parameter fixture; planner is counting stub, not real LLM latency or full task quality"}
 
 

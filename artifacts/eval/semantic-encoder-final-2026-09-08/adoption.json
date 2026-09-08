@@ -1,0 +1,24 @@
+{
+  "zh": {
+    "passed": false,
+    "checks": {
+      "precision_at_least_98": false,
+      "no_unsafe_accepts": true,
+      "contextual_improvement": true,
+      "overall_coverage_not_lower": true,
+      "cpu_p95_under_100ms": true
+    },
+    "artifact_sha256": "93a656dbf0dc4d7524d014031138db2ebadb996abaf82f7301dbb216eea8fd4c"
+  },
+  "en": {
+    "passed": false,
+    "checks": {
+      "precision_at_least_98": false,
+      "no_unsafe_accepts": false,
+      "contextual_improvement": true,
+      "overall_coverage_not_lower": true,
+      "cpu_p95_under_100ms": true
+    },
+    "artifact_sha256": "654e100ecb0b9a270905f977b3e32c4428561ac08f56322e93f941694a075a5e"
+  }
+}

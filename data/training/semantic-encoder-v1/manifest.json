@@ -1,0 +1,35 @@
+{
+  "source": "data/training/encoder-language-v3",
+  "families_sha256": "9ed37087c0dece8e0e3265248e2c9d1cd5cc925baf6a2532c06b50d6c05e91ba",
+  "scope": "Synthetic counterfactual families; old development splits remain consumed",
+  "splits": {
+    "zh": {
+      "train": {
+        "count": 3995,
+        "sha256": "f6d9c8385d2c956dd4e2e6a27f52bba515f2d75fa4f1a54ff1a2315faf2260f7"
+      },
+      "calibration": {
+        "count": 727,
+        "sha256": "07841ee8ce61abf08d402691ada6fa1c4c922cdabd8b456ebdfa388d3be50715"
+      },
+      "heldout": {
+        "count": 450,
+        "sha256": "e28ddc1321458450329bbcc0dcdfdd80c1b45c7ccb50837e2852f61d77d9c176"
+      }
+    },
+    "en": {
+      "train": {
+        "count": 6376,
+        "sha256": "4960e449f848c8268e2991799fda21c320027308926c8cdd0f2c41a63ae444b3"
+      },
+      "calibration": {
+        "count": 1409,
+        "sha256": "63b4b4bfd13c3b721ed9fb62c4f8eca70d2b480afce509d4a862bb8ce1f9b1d6"
+      },
+      "heldout": {
+        "count": 1005,
+        "sha256": "8472c71bfb89c937ef961b53c9c969ea3483110a06aee33482b9f4ab6b80d954"
+      }
+    }
+  }
+}

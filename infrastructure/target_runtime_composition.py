@@ -271,7 +271,10 @@ async def build_target_runtime(
 
 
 def _target_encoder(project_root: Path, *, language: str | None = None) -> TargetEncoderUnderstanding | None:
-    enabled = os.getenv("TARGET_ENCODER_ENABLED", "true").strip().lower()
+    # Temporary containment: the frozen semantic/contextual challenge exposed
+    # dropped compound goals in the shipped classifier. Re-enable by default
+    # only after the documented whole-message acceptance gate passes.
+    enabled = os.getenv("TARGET_ENCODER_ENABLED", "false").strip().lower()
     if enabled not in {"true", "false"}:
         raise RuntimeError("TARGET_ENCODER_ENABLED must be true or false")
     if enabled == "false":

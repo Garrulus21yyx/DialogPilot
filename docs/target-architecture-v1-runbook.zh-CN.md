@@ -33,12 +33,17 @@ Registry 当前包含 6 个领域 Agent、19 个原子 Tool、1 个复合 Skill
 
 ## 启动配置
 
+2026-09-08语义候选验收发现旧快速模型也会遗漏复合目标，因此当前
+`TARGET_ENCODER_ENABLED`默认false。这是临时止损，不是多轮修复完成。
+请求继续走现有ConversationAgent；已有显式true配置不会被代码默认值覆盖。
+恢复条件和失败证据见[语义候选报告](semantic-encoder-2026-09-08.zh-CN.md)。
+
 默认按回复语言加载仓库内的 `artifacts/target-encoder-zh-context-v2` 或
 `artifacts/target-encoder-en-context-v2`；未配置时使用中文。两种语言独立校准、独立启用。
 可显式配置部署语言，不增加语言识别模型：
 
 ```bash
-TARGET_ENCODER_ENABLED=true
+TARGET_ENCODER_ENABLED=false
 TARGET_ENCODER_LANGUAGE=zh
 # 英文部署设为 en；一般无需覆盖artifact路径。
 # TARGET_ENCODER_ARTIFACT_DIR=/absolute/path/to/target-encoder-zh-context-v2
@@ -48,7 +53,7 @@ TARGET_ENCODER_LANGUAGE=zh
 请求继续进入 structured provider，不关闭 DIRECT、Worker、Flow 或其他业务能力。
 artifact 缺失、摘要不一致、Bundle 版本过期或 capability owner/effect 不一致时启动失败，
 不会静默加载不兼容模型。
-语言与artifact的校准语言不一致也会明确报错。当前中文启用退款状态查询，英文启用知识问答和商品识别；
+语言与artifact的校准语言不一致也会明确报错。此前产物中文通过退款状态查询，英文通过知识问答和商品识别；
 其余类别、未建模摘要、低置信和状态冲突仍进入既有ConversationAgent，不是第二条执行链。
 数据、完整策略和少量真实规划对照见[语言快速路由报告](encoder-language-fastpath-2026-09-08.zh-CN.md)。
 

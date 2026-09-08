@@ -286,7 +286,8 @@ def _matrix(
     return matrix
 
 
-def _select_threshold(label, classes, probabilities, expected, target_precision):
+def _select_threshold(label, classes, probabilities, expected, target_precision,
+                      *, minimum_empirical_precision=0.0):
     index = classes.index(label)
     winners = probabilities.argmax(axis=1)
     thresholds = sorted({
@@ -297,7 +298,8 @@ def _select_threshold(label, classes, probabilities, expected, target_precision)
     best = None
     for threshold in thresholds:
         result = _evaluate_threshold(label, classes, probabilities, expected, threshold)
-        if result["precision_lower_bound"] >= target_precision and (
+        if (result["precision_lower_bound"] >= target_precision
+            and result["correct"] / max(1, result["accepted"]) >= minimum_empirical_precision) and (
             best is None or result["accepted"] > best["accepted"]
         ):
             best = result
