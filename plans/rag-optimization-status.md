@@ -351,3 +351,7 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 
 - 导入预算owner修复：chunk检查集合改为本次imported(source_id,revision_id)投影，与来源输入预算对齐，累计generation保留历史；配置4096不变。模型身份变更/缓存缺失需要全代重建时，missing向量按既有chunk批大小调用provider，全部获得后才沿原注册/投影/激活路径发布。首轮真实隔离PG13测试通过；补充累计超限后的修订、typed embedding失败断言并连同source projection/budget测试复验中。未执行全量WixQA实际PG导入，未改token配置执行或全代构建性能合同；后续向量缓存接入+全量导入仍待做。报告docs/rag-ingest-batch-repair-2026-09-08.zh-CN.md，本轮API0，微调暂停。
 - 导入修复复验完成：tests/test_postgres_knowledge_store.py、test_cost_budget.py、test_knowledge_source_postgres.py共16通过（20.80s），全部所需PG测试实际运行于新建隔离库，无skip；typed失败/旧代保留/累计增长/修订与缓存重建均覆盖。产物pytest.txt保存，准备提交推送本次owner改动与文档，不混入其他工作区变更。下一项复用WixQA缓存向量导入全量PG，不能把本次16测试称全库导入已完成。
+
+- 用户明确要求实际全量导入：新建独立测试库dialogpilot_wixqa_eval_20260908（55432，保留供后续真实入口），生产store固定512/64，25批各最多256源。逐文本绑定已验证本地向量缓存，任意未命中文本失败，不调用模型或API；原文SHA/分片SHA/输入hash/shape/L2校验。仅导入正文与向量，不导入测试答案。完成校验6221源/11167投影及原位置文本一致，记录每批已激活代，现有生产默认和线上库不变。脚本import_wixqa_cached_postgres.py，新产物wixqa-postgres-import-2026-09-08。
+
+- WixQA全量PG实际导入完成：session57184正常exit0，25批/6221源/11167片段，590.71秒，最终knowledge-generation-95a4fede15af901f0c3c20e2727070f0 ACTIVE。独立保留库dialogpilot_wixqa_eval_20260908@55432，tenant wixqa-eval；原位置+检索文本11167逐条一致，缓存向量服务恰11167，新增embedding/API0。累计4096以上继续成功，生产store/manifest/projector/HNSW/activation全部实际执行，不绕过预算。报告docs/rag-wixqa-postgres-import-2026-09-08.zh-CN.md，脚本import_wixqa_cached_postgres.py、database/batches/report产物。当前全代重建造成后期批次变慢，不当作在线延迟。下一步直接复用此库做PG分路核对→公共真实Agent/Flash，禁止重复建库/重新embedding；整体RAG未关闭。本次交付待commit/push。
